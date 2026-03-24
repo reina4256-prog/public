@@ -1649,7 +1649,7 @@ aiPet.update = function() {
     const oldPower = Math.floor(this.stats.power);
     const oldMood  = Math.floor(this.stats.mood); 
     const oldBeauty = Math.floor(this.stats.beauty || 0);
-    const oldSpeed = Math.floor(this.stats.speed || 10); // ★追加
+    const oldSpeed = Math.floor(this.stats.speed || 10);
 
     if (!this.isReincarnating && this.age >= (this.lifespan || 100)) {
         this.isReincarnating = true; this.actionState = 'idle'; this.visualAction = 'sleep'; this.schedule = [];
@@ -1665,23 +1665,16 @@ aiPet.update = function() {
         if (this.ffTimer >= 60) { 
             this.ffTimer = 0; this.age += 1; this.energy = 100; this.hunger = 100; this.stats.mood = 100;
             if (this.schedule.length > 0) { this.schedule[0].duration -= 15; }
-            if (typeof addFloatingText === 'function') { addFloatingText(this.x, this.y - 80, "⏳ 1年経過...", "#E0E0E0"); }
-            
-            // ★追加：早送り時も20歳の判定を行う
+            if (typeof addFloatingText === 'function' && !window.isCatchingUp) { addFloatingText(this.x, this.y - 80, "⏳ 1年経過...", "#E0E0E0"); }
             if (this.age === 20 && typeof this.checkAndTriggerAdulthood === 'function') this.checkAndTriggerAdulthood();
         }
     } else {
-        // ★追加：プレイ中、早送りでない場合の自然加齢タイマー
         if (this.age === 0 && (this.lifeAgeTimer === undefined || this.lifeAgeTimer > 100)) this.lifeAgeTimer = 0;
         this.lifeAgeTimer = (this.lifeAgeTimer || 0) + 1;
-        
-        // 1440秒(24分) = 86400フレーム で1歳年を取る
         if (this.lifeAgeTimer >= 86400) {
             this.lifeAgeTimer = 0;
             this.age = (this.age || 0) + 1;
-            if (typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, `🎂 ${this.age}歳になった！`, "#FF4081");
-            
-            // ★追加：自然に20歳になった瞬間の「悟り」判定
+            if (typeof addFloatingText === 'function' && !window.isCatchingUp) addFloatingText(this.x, this.y - 60, `🎂 ${this.age}歳になった！`, "#FF4081");
             if (this.age === 20 && typeof this.checkAndTriggerAdulthood === 'function') this.checkAndTriggerAdulthood();
         }
     }
@@ -1714,9 +1707,6 @@ aiPet.update = function() {
         } else { this.debtTimer = 0; }
     }
 
-    // ==========================================
-    // ★ 復元：店舗経営のための必須関数
-    // ==========================================
     if (typeof window.addShopLog !== 'function') {
         window.addShopLog = function(shopData, text) {
             if (!shopData) return;
@@ -1725,7 +1715,7 @@ aiPet.update = function() {
             shopData.logs.unshift(`[${timeStr}] ${text}`);
             if (shopData.logs.length > 8) shopData.logs.pop(); 
             let shopAsset = Object.values(assets).find(a => a.shopData === shopData);
-            if (typeof window.updateShopUIData === 'function' && shopAsset) window.updateShopUIData(shopAsset);
+            if (typeof window.updateShopUIData === 'function' && shopAsset && !window.isCatchingUp) window.updateShopUIData(shopAsset);
         };
     }
     if (typeof window.checkRecipeMaterials !== 'function') {
@@ -1765,9 +1755,6 @@ aiPet.update = function() {
         };
     }
 
-    // ==========================================
-    // ★ AIの店舗経営 思考ロジック（正常版）
-    // ==========================================
     let myShop = null;
     if (this.isIndoors && this.indoorTarget && (this.indoorTarget.type === 'restaurant' || this.indoorTarget.type === 'smith')) {
         myShop = this.indoorTarget;
@@ -1784,8 +1771,6 @@ aiPet.update = function() {
             let s = myShop.shopData;
             if (s) {
                 let targetStock = 10 + Math.floor((this.stats.intel || 10) / 20) * 5; 
-                
-                // ★大修正：お店のメニュー（レシピ）に登録されているもの「だけ」を在庫として数える
                 let totalStock = 0;
                 let knownRecipes = Object.keys(s.recipes || {}).filter(k => s.recipes[k].learned);
                 this.inventory.forEach(i => {
@@ -1800,14 +1785,12 @@ aiPet.update = function() {
                     let runningCost = myShop.type === 'restaurant' ? 2 : 3;
                     this.gold -= runningCost;
                     
-                    // 在庫が本当に0になったら店を閉める判定
                     if (totalStock === 0 && !(window.shopNPCs && window.shopNPCs.length > 0)) {
                         if (Math.random() < ((this.stats.intel || 10) / 100 + 0.2)) {
                             s.isOpen = false;
                             window.addShopLog?.(s, "売り切れのため一度お店を閉めよう。");
-                            if (typeof window.openShopManagementUI === 'function' && document.getElementById('shop-management-ui')?.style.display !== 'none') window.openShopManagementUI(myShop);
+                            if (typeof window.openShopManagementUI === 'function' && document.getElementById('shop-management-ui')?.style.display !== 'none' && !window.isCatchingUp) window.openShopManagementUI(myShop);
                         } else {
-                            // ★復活：AIがバカすぎて在庫0に気づいていない時のログ
                             if (Math.random() < 0.3) window.addShopLog?.(s, "【警告】在庫が0なのにのんきに店を開け続けている！");
                         }
                     }
@@ -1816,10 +1799,9 @@ aiPet.update = function() {
                     if (s.interiorLevel < 3 && this.gold >= upgradeCost * 2 && Math.random() < 0.2) {
                         this.gold -= upgradeCost; s.interiorLevel++;
                         window.addShopLog?.(s, `✨ お店の内装をレベル${s.interiorLevel}に改装した！`);
-                        if (typeof window.openShopManagementUI === 'function' && document.getElementById('shop-management-ui')?.style.display !== 'none') window.openShopManagementUI(myShop);
+                        if (typeof window.openShopManagementUI === 'function' && document.getElementById('shop-management-ui')?.style.display !== 'none' && !window.isCatchingUp) window.openShopManagementUI(myShop);
                     }
                     else if (totalStock >= targetStock) { 
-                        // ★案3（賢さ依存）：通常営業の開店直前にもメニューを管理する
                         let isSmartMenuManager = (this.stats.intel || 10) >= 50;
                         for (let r in s.recipes) {
                             if (s.recipes[r].learned) {
@@ -1831,33 +1813,27 @@ aiPet.update = function() {
                         
                         s.isOpen = true;
                         window.addShopLog?.(s, "在庫が貯まった！お店を開けよう！");
-                        if (typeof window.openShopManagementUI === 'function' && document.getElementById('shop-management-ui')?.style.display !== 'none') window.openShopManagementUI(myShop);
+                        if (typeof window.openShopManagementUI === 'function' && document.getElementById('shop-management-ui')?.style.display !== 'none' && !window.isCatchingUp) window.openShopManagementUI(myShop);
                     } else {
-                        // ==========================================
-                        // ★ 賢いAIの計画（1個ずつ仕込みのスマート化）
-                        // ==========================================
                         let maxPerItem = 20 + Math.min(10, Math.floor((this.stats.intel || 10) / 100));
                         let currentStockDict = typeof window.getCurrentShopStock === 'function' ? window.getCurrentShopStock(s.recipes) : {};
                         let knownRecipes = Object.keys(s.recipes || {}).filter(k => s.recipes[k].learned);
 
-                        // ★ 素材温存チェック関数
                         const canAffordToConsume = (consumedIds) => {
                             let requiredCounts = {};
                             consumedIds.forEach(id => { requiredCounts[id] = (requiredCounts[id] || 0) + 1; });
                             for (let id in requiredCounts) {
                                 let currentTotal = (this.inventory || []).filter(item => item === id).length;
-                                // 消費後の残りが5個未満になってしまうなら「作成ストップ（温存）」と判断
                                 if (currentTotal - requiredCounts[id] < 5) return false;
                             }
                             return true;
                         };
 
-                        // 作成可能なレシピを厳選
                         let craftable = knownRecipes.filter(r => {
-                            if ((currentStockDict[r] || 0) >= maxPerItem) return false; // 1メニューの偏り防止
+                            if ((currentStockDict[r] || 0) >= maxPerItem) return false;
                             let consumedIds = typeof window.checkRecipeMaterials === 'function' ? window.checkRecipeMaterials(this.inventory, r, myShop.type) : null;
-                            if (!consumedIds) return false; // 素材がない
-                            if (!canAffordToConsume(consumedIds)) return false; // いざという時のために素材を温存！
+                            if (!consumedIds) return false;
+                            if (!canAffordToConsume(consumedIds)) return false; 
                             return true;
                         });
 
@@ -1865,10 +1841,8 @@ aiPet.update = function() {
                         let doResearch = false;
 
                         if (craftable.length === 0) {
-                            // 素材が足りない、または上限に達した場合は、研究に専念する
                             if (Math.random() < 0.4) doResearch = true; 
                         } else if (!hasZeroStockMenu) {
-                            // 在庫が十分にある場合、賢さ＋進行度で新メニュー開発率をアップさせる
                             let researchChance = 0.15 + ((this.stats.intel || 10) / 400);
                             if (researchChance > 0.6) researchChance = 0.6;
                             if (Math.random() < researchChance) doResearch = true;
@@ -1878,7 +1852,6 @@ aiPet.update = function() {
                             this.schedule.unshift({ type: 'shop_research', buildingId: myShop.id || Object.keys(assets).find(k=>assets[k]===myShop), duration: 80 });
                             window.addShopLog?.(s, "ふと新しいアイデアが降りてきそうだ...新メニューの研究を始めよう！");
                         } else if (craftable.length > 0) {
-                            // 一番在庫が「少ない」メニューを優先して作る（均等化）
                             craftable.sort((a, b) => {
                                 let stockA = currentStockDict[a] || 0;
                                 let stockB = currentStockDict[b] || 0;
@@ -1896,12 +1869,7 @@ aiPet.update = function() {
         }
     }
 
-    // --- タスクの進行処理 ---
     if ((currentMode === 'play' || currentMode === 'grazing')) {
-        
-        // ==========================================
-        // ★ 店舗防壁：店内にいる時だけタスクを隔離する
-        // ==========================================
         if (myShop) {
             if (!this._stashedTasks) this._stashedTasks = [];
             for (let i = this.schedule.length - 1; i >= 0; i--) {
@@ -1923,8 +1891,10 @@ aiPet.update = function() {
         if (this.schedule.length > 0) {
             let task = this.schedule[0]; 
             const eff = getActionEfficiency(task.type).rate;
-            const tData = this.getTraitData();
-            const consumeRate = tData.consumption || 1.0;
+            
+            // ★完全修正：特性（消費率）をここで取得し、0の場合は絶対に1.0に上書きさせない！
+            const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
+            const consumeRate = tData.consumption !== undefined ? tData.consumption : 1.0; 
             const bIntel = tData.statBonus?.intel || 1.0;
             const bPower = tData.statBonus?.power || 1.0;
 
@@ -1937,22 +1907,13 @@ aiPet.update = function() {
                 if (task.type === 'explore') {
                     task.duration = 60; task.maxDuration = 60;
                     let targets = Object.values(assets).filter(a => a.type === 'nature' || a.type === 'building' || a.type === 'skull' || a.type === 'crystal');
-                    
-                    // ★修正：typeが'building'になっていても、名前でダンジョンだと見抜くようにする！
                     let isDungeon = (a) => a.type === 'skull' || a.type === 'crystal' || (a.name && (a.name.includes('スカル') || a.name.includes('クリスタル') || a.name.includes('迷宮') || a.name.includes('ダンジョン')));
-                    
                     let dungeons = targets.filter(isDungeon);
                     let others = targets.filter(a => !isDungeon(a));
                     let finalTarget = null;
-                    
-                    if (dungeons.length > 0 && Math.random() < 0.7) {
-                        finalTarget = dungeons[Math.floor(Math.random() * dungeons.length)];
-                    } else if (others.length > 0) {
-                        finalTarget = others[Math.floor(Math.random() * others.length)];
-                    } else if (dungeons.length > 0) {
-                        finalTarget = dungeons[Math.floor(Math.random() * dungeons.length)];
-                    }
-                    
+                    if (dungeons.length > 0 && Math.random() < 0.7) finalTarget = dungeons[Math.floor(Math.random() * dungeons.length)];
+                    else if (others.length > 0) finalTarget = others[Math.floor(Math.random() * others.length)];
+                    else if (dungeons.length > 0) finalTarget = dungeons[Math.floor(Math.random() * dungeons.length)];
                     if (finalTarget) this.startBuildingInteraction(finalTarget); else { task.duration = 0; task.aborted = true; }
                 }
                 else if (task.type === 'eat') {
@@ -1963,30 +1924,21 @@ aiPet.update = function() {
                     if (!this.processBuildingStart(task)) { task.duration = 0; task.aborted = true; } 
                     else {
                         this.interactionTarget = { type: 'building_site' };
-                        // ★修正：水上(bestX)ではなく、手前の安全な陸地(walkX)に移動するように変更！
                         let destX = task.buildData.walkX !== undefined ? task.buildData.walkX : task.buildData.bestX;
                         let destY = task.buildData.walkY !== undefined ? task.buildData.walkY : task.buildData.bestY;
-                        
-                        if (this.setDestination(destX, destY, false)) {
-                            this.actionState = 'moving_to_enter';
-                        } else { 
-                            task.duration = 0; task.aborted = true; 
-                        }
+                        if (this.setDestination(destX, destY, false)) this.actionState = 'moving_to_enter';
+                        else { task.duration = 0; task.aborted = true; }
                     }
                 }
-                // ★追加：余生タスクの開始設定
                 else if (task.type.startsWith('life_')) {
                     if (typeof this.processLifePathStart === 'function') this.processLifePathStart(task);
-                    this.actionState = 'camping'; // 立ち止まって実行させる
+                    this.actionState = 'camping'; 
                 }
                 else {
                     const facility = task.type.startsWith('shop_') ? assets[task.buildingId] : findFacilityForTask(task.type, task.masterType);
                     if (facility) {
-                        if (this.isIndoors && (this.indoorTarget === facility || task.type.startsWith('shop_'))) {
-                            this.actionState = 'apprentice_training';
-                        } else {
-                            this.startBuildingInteraction(facility);
-                        }
+                        if (this.isIndoors && (this.indoorTarget === facility || task.type.startsWith('shop_'))) this.actionState = 'apprentice_training';
+                        else this.startBuildingInteraction(facility);
                     } else { this.actionState = 'camping'; }
                 }
                 task._started = true;
@@ -1996,15 +1948,12 @@ aiPet.update = function() {
 
             if (isActing) {
                 const fastTasks = ['cook', 'smith', 'shop_work', 'shop_research', 'auto_trade']; 
-                // ★修正：fish を除外し、「ゆっくり時間が減るタスク」に設定する
                 const isSlowTask = !fastTasks.includes(task.type) && task.type !== 'explore';
 
                 if (isSlowTask && !window.isFastForwardLife && !isOneMinutePassed) {
                     if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study') { this.visualAction = 'study'; } 
                     else if (task.type === 'eat') { this.actionState = this.isIndoors ? 'inside' : 'eating'; this.visualAction = 'eat_raw'; } 
-                    // ★修正：鍛冶（smith）のタスクでも鍛冶アニメーションを指定する
                     else if (task.type === 'cook' || task.type === 'shop_work' || task.type === 'smith') { this.visualAction = (myShop?.type === 'smith' || task.type === 'smith') ? 'smith' : 'cook'; }
-                    // ★追加：時間が減らないフレームでも、ミニゲーム（processFishingFrame）を毎秒60回実行させる
                     else if (task.type === 'fish') {
                         this.visualAction = 'fish'; this.actionState = 'fishing';
                         if (typeof this.processFishingFrame === 'function') this.processFishingFrame();
@@ -2012,35 +1961,26 @@ aiPet.update = function() {
                 } else {
                     if (task.type !== 'explore') {
                         task.duration--;
-                        // ★追加：モニュメントの効果で時間を1にする
                         if (this.activeMonuments) {
                             if (this.activeMonuments.some(m => m.stat === 'power') && task.type === 'train' && task.duration > 1) task.duration = 1;
                             if (this.activeMonuments.some(m => m.stat === 'intel') && (task.type === 'study' || task.type === 'writing' || task.type === 'life_author') && task.duration > 1) task.duration = 1;
-                            // ★追加：素早さのモニュメントがあれば、ランニングが一瞬で終わる！
                             if (this.activeMonuments.some(m => m.stat === 'speed') && task.type === 'run' && task.duration > 1) task.duration = 1;
                         }
                     }
 
                     if (task.type === 'study') { this.actionState = this.isIndoors ? 'inside' : 'studying'; this.visualAction = 'study'; this.stats.intel += 0.1 * eff * bIntel; }
                     else if (task.type === 'train') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'train'; this.stats.power += 0.1 * eff * bPower; }
-                    // ★追加: ランニング処理（状態はtraining扱いだが、アニメーションはmove、素早さが上がる）
                     else if (task.type === 'run') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'move'; this.stats.speed += 0.1 * eff * bPower; }
                     else if (task.type === 'rest' || task.type === 'sleep') { 
                         this.actionState = this.isIndoors ? 'inside' : 'sleeping'; this.visualAction = 'sleep'; this.energy += 1.0 * eff;
                         if (this.energy >= 90 && this.hunger >= 90) {
                             this.stats.beauty += 0.1 * eff;
-                            
-                            // ★連続湧き出しエフェクト！
-                            // 塊に見えないよう、毎フレーム「1〜2個」をコンスタントに出し続ける（1秒間で約90個がポポポポと出ます）
-                            let effectCount = 1 + Math.floor(Math.random() * 2); 
-                            for (let i = 0; i < effectCount; i++) {
-                                // 横方向は寝ている体全体をすっぽり覆うように広く（-60px 〜 +60px）
-                                let offsetX = (Math.random() - 0.5) * 120; 
-                                // 高さは地面スレスレの低い位置で固定しつつ、わずかに散らす（-15px 〜 +15px）
-                                let offsetY = (Math.random() - 0.5) * 30; 
-                                
-                                if (typeof addFloatingText === 'function') {
-                                    addFloatingText(this.x + offsetX, this.y + offsetY, "✨", "#FFEB3B");
+                            if (!window.isCatchingUp) {
+                                let effectCount = 1 + Math.floor(Math.random() * 2); 
+                                for (let i = 0; i < effectCount; i++) {
+                                    let offsetX = (Math.random() - 0.5) * 120; 
+                                    let offsetY = (Math.random() - 0.5) * 30; 
+                                    if (typeof addFloatingText === 'function') addFloatingText(this.x + offsetX, this.y + offsetY, "✨", "#FFEB3B");
                                 }
                             }
                         }
@@ -2050,48 +1990,35 @@ aiPet.update = function() {
                         if (this.hunger < 100) this.consumeFood();
                         if (task.duration <= 0 && !task.aborted) this.processEatingFinish?.(task);
                     }
-                    // ★追加：時間が減るフレームでもミニゲームを実行させる
                     else if (task.type === 'fish') {
                         this.visualAction = 'fish'; this.actionState = 'fishing';
                         if (typeof this.processFishingFrame === 'function') this.processFishingFrame();
                     }
-                    // ★修正：鍛冶（smith）のタスクを追加
                     else if (task.type === 'cook' || task.type === 'shop_work' || task.type === 'smith') {
-                        
-                        // ★大修正：師匠のテントでの鍛冶は、背景を「null（真っ暗）」にさせないため「野宿（camping）」に強制する！
                         if (task.type === 'smith' && (!myShop || myShop.type !== 'smith')) {
-                            this.actionState = 'camping';
-                            this.isIndoors = false; // 室内扱いを解除して外に出す
-                            this.visualScale = 1.0; // enteringで小さくなっていたら元のサイズに戻す
+                            this.actionState = 'camping'; this.isIndoors = false; this.visualScale = 1.0; 
                         } else {
                             this.actionState = this.isIndoors ? 'inside' : 'apprentice_training';
                         }
-                        
-                        // 鍛冶タスクなら鍛冶アニメーションにする
                         this.visualAction = (myShop?.type === 'smith' || task.type === 'smith') ? 'smith' : 'cook';
-                        
                         let workMsg = task.type === 'shop_work' ? "真剣に仕込み中..." : (task.type === 'smith' ? "カン！カン！（鍛冶中）" : "おいしくな～れ！");
-                        if (this.message !== workMsg) { this.message = workMsg; this.messageTimer = 120; }
+                        if (this.message !== workMsg && !window.isCatchingUp) { this.message = workMsg; this.messageTimer = 120; }
 
                         if (task.type === 'cook' && !task.cookData) { if (typeof this.processCookingStart === 'function' && !this.processCookingStart(task)) { task.duration = 0; task.aborted = true; } }
-                        
-                        // ★追加：鍛冶の開始処理（鉄鉱石の消費と作るアイテムの決定）を呼び出す！
-                        if (task.type === 'smith' && !task.smithData) { 
-                            if (typeof this.processSmithingStart === 'function' && !this.processSmithingStart(task)) { task.duration = 0; task.aborted = true; } 
-                        }
+                        if (task.type === 'smith' && !task.smithData) { if (typeof this.processSmithingStart === 'function' && !this.processSmithingStart(task)) { task.duration = 0; task.aborted = true; } }
 
                         if (task.duration <= 0 && !task.aborted) {
                             if (task.type === 'shop_work') {
                                 if (!this.inventory) this.inventory = [];
                                 this.inventory.push(task.targetRecipeId);
                                 window.addShopLog?.(myShop.shopData, `「${typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(task.targetRecipeId) : task.targetRecipeId}」が完成！`);
-                                if (typeof window.updateShopUIData === 'function') window.updateShopUIData(myShop);
+                                if (typeof window.updateShopUIData === 'function' && !window.isCatchingUp) window.updateShopUIData(myShop);
                             } else if (task.type === 'cook') { 
                                 if (typeof this.processCookingFinish === 'function') this.processCookingFinish(task); 
                             } else if (task.type === 'smith') {
                                 if (typeof this.processSmithingFinish === 'function') this.processSmithingFinish(task);
                             }
-                            window.updateScheduleList?.();
+                            if (!window.isCatchingUp) window.updateScheduleList?.();
                         }
                     }
                     else if (task.type === 'life_author' || task.type === 'writing') { this.visualAction = 'study'; this.actionState = 'studying'; }
@@ -2103,22 +2030,14 @@ aiPet.update = function() {
                     }
                     else if (task.type === 'shop_research') {
                         this.visualAction = 'study';
-                        if (task.duration <= 0 && !task.aborted) { window.addShopLog?.(myShop.shopData, "新しいレシピのヒントを得た！"); window.updateScheduleList?.(); }
+                        if (task.duration <= 0 && !task.aborted) { window.addShopLog?.(myShop.shopData, "新しいレシピのヒントを得た！"); if(!window.isCatchingUp) window.updateScheduleList?.(); }
                     }
-                    // ==========================================
-                    // ★究極の修正：時間が0になったら、絶対に「完成処理」を呼び出す！
-                    // ==========================================
                     else if (task.type === 'build') {
-                        if (task.duration <= 0 && !task.aborted) {
-                            if (typeof this.processBuildingFinish === 'function') {
-                                this.processBuildingFinish(task);
-                            }
-                        }
+                        if (task.duration <= 0 && !task.aborted && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
                     }
                 }
             }
 
-            // ★修正：回復系のアクション（食事、睡眠、休憩）は、体力が0でも満腹度が0でも絶対に強制キャンセルしない！
             const isRecoveryTask = ['rest', 'sleep', 'eat'].includes(task.type);
             const isEnergyOut = !this.godMode && this.energy <= 0 && !isRecoveryTask;
             const isHungerOut = !this.godMode && this.hunger <= 0 && !isRecoveryTask;
@@ -2129,32 +2048,24 @@ aiPet.update = function() {
 
                 if (!waitingExit) {
                     if (task.duration <= 0 && !task.aborted) {
-                        
-                        // ★ここを1行追加（時間が0になったら完成処理を呼ぶ）★
                         if (task.type === 'build' && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
-
-                        // ★追加：余生タスクの完了処理を確実に呼ぶ
                         if (task.type.startsWith('life_') && typeof this.processLifePathFinish === 'function') this.processLifePathFinish(task);
 
-                        // ★追加：秘伝書の消費とステータスアップ
                         if (this.activeBooks && this.activeBooks.length > 0) {
-                            let consumedIds = []; // ★追加：使い切った秘伝書のIDを記録
+                            let consumedIds = []; 
                             this.activeBooks.forEach(b => {
                                 if (b.charges > 0) {
-                                    b.charges--;
-                                    this.stats[b.stat] += b.val;
-                                    // ★修正：判定に「素早さ」を追加
+                                    b.charges--; this.stats[b.stat] += b.val;
                                     let statName = b.stat === 'power' ? '活力' : b.stat === 'intel' ? '賢さ' : b.stat === 'speed' ? '素早さ' : '美しさ';
-                                    if (typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, `📖秘伝書(${statName} +${b.val})`, "#2196F3");
+                                    if (typeof addFloatingText === 'function' && !window.isCatchingUp) addFloatingText(this.x, this.y - 60, `📖秘伝書(${statName} +${b.val})`, "#2196F3");
                                     if (b.charges <= 0) {
-                                        this.message = "秘伝書の内容を全て吸収した！"; this.messageTimer = 180;
-                                        consumedIds.push(b.id); // ★追加
+                                        if(!window.isCatchingUp){ this.message = "秘伝書の内容を全て吸収した！"; this.messageTimer = 180; }
+                                        consumedIds.push(b.id);
                                     }
                                 }
                             });
                             this.activeBooks = this.activeBooks.filter(b => b.charges > 0);
                             
-                            // ★追加：使い切った秘伝書は「遺産倉庫（localStorage）」からも完全に消去する！
                             if (consumedIds.length > 0) {
                                 let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
                                 legacy.books = legacy.books.filter(b => !consumedIds.includes(b.id));
@@ -2170,58 +2081,56 @@ aiPet.update = function() {
                         }
                         const taskToKeyword = { 'study':'勉強','train':'筋トレ','sleep':'睡眠','rest':'休息','eat':'食事','cook':'料理','smith':'鍛冶','build':'建築','fish':'釣り','explore':'探検' };
                         const keyword = taskToKeyword[task.type];
-                        if (keyword && this.apprentice?.activeQuest?.desc.includes(keyword)) { this.apprentice.qVal = (this.apprentice.qVal || 0) + 1; window.updateQuestHUD?.(); }
+                        if (keyword && this.apprentice?.activeQuest?.desc.includes(keyword)) { this.apprentice.qVal = (this.apprentice.qVal || 0) + 1; if(!window.isCatchingUp) window.updateQuestHUD?.(); }
                         if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest(task.type);
                     }
-                    this.schedule.shift(); window.updateScheduleList?.(); this.visualAction = null;
+                    this.schedule.shift(); 
+                    if (!window.isCatchingUp) window.updateScheduleList?.(); 
+                    this.visualAction = null;
                     
-                    // ★最重要：店舗タスクなら店に留まる！
-                    if (isShopTask) {
-                        this.actionState = 'inside';
-                        this.exploreTimer = 0;
-                    } else {
-                        this.indoorTarget = null; this.isIndoors = false; this.actionState = 'idle';
-                    }
+                    if (isShopTask) { this.actionState = 'inside'; this.exploreTimer = 0; } 
+                    else { this.indoorTarget = null; this.isIndoors = false; this.actionState = 'idle'; }
                 } else if (this.isIndoors) { 
                     this.actionState = 'exiting'; this.isIndoors = false; 
                 }
             }
 
-            // ★追加：タスク実行中（動いている最中）の体力・満腹度の消費！
-            if (currentMode === 'play' && !this.godMode) {
-                // 回復・休息系のタスク以外なら体力を減らす
+            // ★完全修正：タスク実行中（動いている最中）の消費。消費率(consumeRate)が0より大きい場合のみ減る！
+            if (currentMode === 'play' && !this.godMode && consumeRate > 0) {
                 if (!['sleep', 'rest', 'eat', 'life_slowlife'].includes(task.type)) {
-                    // 筋トレ・建築・鍛冶などの重労働は1.5倍疲れるようにする
-                    let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0; // ★ run を追加
+                    let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
                     this.energy -= 0.03 * consumeRate * drainMult;
                     this.hunger -= 0.03 * consumeRate * drainMult;
                 }
             }
 
         } else {
-            // ★修正：スケジュールが空っぽ（暇で立ち止まっている時）の処理
             const activeStates = ['camping', 'studying', 'training', 'sleeping', 'eating', 'fishing', 'smithing', 'building', 'apprentice_training'];
             if (activeStates.includes(this.actionState)) { this.actionState = 'idle'; this.visualAction = null; }
-            // 立ち止まっている時でも、時間経過で少しだけお腹が空き、疲れる
-            if (currentMode === 'play' && !this.godMode) { this.energy -= 0.02; this.hunger -= 0.02; }
+            
+            // ★完全修正：暇なとき（立ち止まっている時）の消費も、消費率(consumeRate)を掛ける！
+            const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
+            const idleConsumeRate = tData.consumption !== undefined ? tData.consumption : 1.0;
+            if (currentMode === 'play' && !this.godMode && idleConsumeRate > 0) { 
+                this.energy -= 0.02 * idleConsumeRate; 
+                this.hunger -= 0.02 * idleConsumeRate; 
+            }
         }
     }
     
     this.energy = Math.max(0, Math.min(100, this.energy)); this.hunger = Math.max(0, Math.min(100, this.hunger));
     
-    // ★修正：パッシブ効果の計算を、UP表示の判定より「前」に移動！
     const isPassiveActing = ['studying', 'training', 'sleeping', 'eating', 'fishing', 'smithing', 'building', 'apprentice_training', 'camping'].includes(this.actionState);
-    if (isPassiveActing && this.activeMonuments) {
-        this.activeMonuments.forEach(m => { this.stats[m.stat] += 0.05; });
-    }
-    if (this.actionState === 'sleeping' && this.activeMonuments && this.activeMonuments.some(m => m.stat === 'beauty')) {
-        this.stats.beauty += 0.1;
-    }
+    if (isPassiveActing && this.activeMonuments) { this.activeMonuments.forEach(m => { this.stats[m.stat] += 0.05; }); }
+    if (this.actionState === 'sleeping' && this.activeMonuments && this.activeMonuments.some(m => m.stat === 'beauty')) { this.stats.beauty += 0.1; }
 
-    if (Math.floor(this.stats.intel) > oldIntel) addFloatingText(this.x, this.y - 40, "賢さ UP!", "#4fc3f7");
-    if (Math.floor(this.stats.power) > oldPower) addFloatingText(this.x, this.y - 40, "パワー UP!", "#ff5252");
-    if (Math.floor(this.stats.beauty) > oldBeauty) addFloatingText(this.x, this.y - 40, "美しさ UP!", "#e040fb");
-    if (Math.floor(this.stats.speed) > oldSpeed) addFloatingText(this.x, this.y - 40, "素早さ UP!", "#00e676"); // ★追加
+    // ★重要：キャッチアップ中（別タブ復帰時の一括処理中）は画面上にポポポポと文字が出ないようにする
+    if (!window.isCatchingUp) {
+        if (Math.floor(this.stats.intel) > oldIntel) addFloatingText(this.x, this.y - 40, "賢さ UP!", "#4fc3f7");
+        if (Math.floor(this.stats.power) > oldPower) addFloatingText(this.x, this.y - 40, "パワー UP!", "#ff5252");
+        if (Math.floor(this.stats.beauty) > oldBeauty) addFloatingText(this.x, this.y - 40, "美しさ UP!", "#e040fb");
+        if (Math.floor(this.stats.speed) > oldSpeed) addFloatingText(this.x, this.y - 40, "素早さ UP!", "#00e676"); 
+    }
 
     if (currentMode === 'play' || currentMode === 'grazing') {
         this.checkEncounter?.();
@@ -2233,73 +2142,43 @@ aiPet.update = function() {
                 const dist = Math.sqrt(dx*dx + dy*dy); 
                 let speed = 3.5 + (Math.floor(this.stats.speed || 10) / 50); 
                 
-                // ★修正: スピードが目的地までの距離を上回る場合は、通り過ぎないようにピタッと止める！
                 if (dist > speed && dist > 5) { 
-                    this.flip = (dx < 0); 
-                    this.x += (dx / dist) * speed; 
-                    this.y += (dy / dist) * speed; 
+                    this.flip = (dx < 0); this.x += (dx / dist) * speed; this.y += (dy / dist) * speed; 
                 } else { 
-                    this.x = targetPoint.x; 
-                    this.y = targetPoint.y; 
-                    this.pathQueue.shift(); 
+                    this.x = targetPoint.x; this.y = targetPoint.y; this.pathQueue.shift(); 
                     if (this.pathQueue.length === 0) { 
                         if (this.actionState === 'moving_to_enter') { 
                             if (this.schedule[0]?.type === 'explore') { 
                                 this.actionState = 'inside'; this.isIndoors = true; this.indoorTarget = this.interactionTarget; this.exploreTimer = 0; 
                             } else if (this.schedule[0]?.type === 'fish') {
                                 this.actionState = 'fishing'; this.visualAction = 'fish'; this.isIndoors = false;
-                            } else { 
-                                this.executeEnterAction(); 
-                            } 
-                        } else { 
-                            this.actionState = 'idle'; 
-                        } 
+                            } else { this.executeEnterAction(); } 
+                        } else { this.actionState = 'idle'; } 
                     } 
                 }
             } else if (this.actionState === 'moving_to_enter') { 
                 if (this.schedule[0]?.type === 'explore') { 
                     if (this.interactionTarget && (this.interactionTarget.type === 'skull' || this.interactionTarget.type === 'crystal')) {
                         this.actionState = 'idle'; this.isIndoors = false; this.indoorTarget = null;
-                        
-                        // ★修正：残りの予定（探検40回分など）をすべてキャンセルして立ち止まらせる！
-                        this.schedule = []; 
-                        if (typeof window.updateScheduleList === 'function') window.updateScheduleList(); // 画面右の予定リストも空にする
-                        
-                        if (typeof window.openDungeonUI === 'function') window.openDungeonUI(this.interactionTarget.type);
-                    } else {
-                        this.actionState = 'inside'; this.isIndoors = true; this.indoorTarget = this.interactionTarget; this.exploreTimer = 0; 
-                    }
+                        this.schedule = []; if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
+                        if (typeof window.openDungeonUI === 'function' && !window.isCatchingUp) window.openDungeonUI(this.interactionTarget.type);
+                    } else { this.actionState = 'inside'; this.isIndoors = true; this.indoorTarget = this.interactionTarget; this.exploreTimer = 0; }
                 } else if (this.schedule[0]?.type === 'fish') {
-                    // ★追加：釣りの目的地（海や橋）に到着したら釣りを開始する
                     this.actionState = 'fishing'; this.visualAction = 'fish'; this.isIndoors = false;
-                } else { 
-                    this.executeEnterAction(); 
-                } 
+                } else { this.executeEnterAction(); } 
             }
         }
-        // ==========================================
-        // ★復活：建物に入る（entering）時の縮小アニメ＆完了判定
-        // ==========================================
         else if (this.actionState === 'entering') {
             if (this.visualScale === undefined) this.visualScale = 1.0;
-            this.visualScale -= 0.05; // キャラクターをどんどん小さくする
-            
+            this.visualScale -= 0.05; 
             if (this.interactionTarget) {
-                // 建物の中央に向かってスッと吸い込まれるように移動
                 const aScale = this.interactionTarget.scale || 0.5;
                 const targetX = this.interactionTarget.dx + (this.interactionTarget.sw * aScale) / 2;
                 const targetY = this.interactionTarget.dy + (this.interactionTarget.sh * aScale) / 2;
-                this.x += (targetX - this.x) * 0.1; 
-                this.y += (targetY - this.y) * 0.1;
+                this.x += (targetX - this.x) * 0.1; this.y += (targetY - this.y) * 0.1;
             }
-
-            // 完全に小さくなったら（中に入り切ったら）
             if (this.visualScale <= 0) {
-                this.visualScale = 0;
-                this.actionState = 'inside'; // 状態を inside に変更！
-                this.isIndoors = true;       // これで isActing が true になる！
-                this.indoorTarget = this.interactionTarget;
-                this.exploreTimer = 0;
+                this.visualScale = 0; this.actionState = 'inside'; this.isIndoors = true; this.indoorTarget = this.interactionTarget; this.exploreTimer = 0;
             }
         }
         else if (this.actionState === 'inside') {
@@ -2308,32 +2187,26 @@ aiPet.update = function() {
             else if (this.schedule.length === 0 && this.exploreTimer > 60 && !isShopUIOpen) { this.actionState = 'exiting'; }
         }
         else if (this.actionState === 'exiting') {
-            this.visualAction = null; this.isIndoors = false; this.visualScale = (this.visualScale || 1.0) + 0.05; if (this.visualScale >= 1.0) { this.visualScale = 1.0; this.actionState = 'idle'; this.interactionTarget = null; this.indoorTarget = null; }
+            this.visualAction = null; this.isIndoors = false; this.visualScale = (this.visualScale || 1.0) + 0.05; 
+            if (this.visualScale >= 1.0) { this.visualScale = 1.0; this.actionState = 'idle'; this.interactionTarget = null; this.indoorTarget = null; }
         }
     }
 
-    // ★追加：弟子UIの更新
     if (this.schedule && this.schedule.length > 0 && this.schedule[0].type === 'life_mentor') {
-        if (typeof this.updateDiscipleUI === 'function') this.updateDiscipleUI(this.schedule[0]);
+        if (typeof this.updateDiscipleUI === 'function' && !window.isCatchingUp) this.updateDiscipleUI(this.schedule[0]);
     } else {
-        let dEl = document.getElementById('disciple-vfx');
-        if (dEl) dEl.style.display = 'none';
+        let dEl = document.getElementById('disciple-vfx'); if (dEl) dEl.style.display = 'none';
     }
 
-    // ★修正: アニメーションの早回しロジック
-    let tickLimit = 8; // 通常は8フレームごとに画像切り替え
+    let tickLimit = 8;
     if (this.visualAction === 'move' || this.actionState === 'moving' || this.actionState === 'moving_to_enter') {
-        // 素早さが上がると、歩行アニメーションが最大で3フレーム間隔まで早回しになる
         tickLimit = Math.max(3, 8 - Math.floor((this.stats.speed || 10) / 50));
     }
-    // ランニング中（ダッシュ）は無条件で超早回し（2フレーム間隔）！
-    if (this.schedule && this.schedule.length > 0 && this.schedule[0].type === 'run') {
-        tickLimit = 2;
-    }
+    if (this.schedule && this.schedule.length > 0 && this.schedule[0].type === 'run') tickLimit = 2;
 
     if (++this.tick > tickLimit) { this.frameStep = (this.frameStep + 1) % 4; this.frameIndex = [0, 1, 2, 1][this.frameStep]; this.tick = 0; }
     if (this.messageTimer > 0) this.messageTimer--;
-    if (this.fishingPopupTimer > 0) this.fishingPopupTimer--; // ★復活：これがないと釣りの文字が消えません！
+    if (this.fishingPopupTimer > 0) this.fishingPopupTimer--; 
 };
 
 // aiPet.executeEnterAction = function() {
@@ -3469,9 +3342,11 @@ setInterval(() => {
     // 【絶対安全装置】
     let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
     if (mode === 'play' && window.aiPet && window.aiPet.id) {
-        // 外にいて、動いているか待機中の時だけ（寝ている時や施設の中では拾わない）
-        if (window.aiPet.actionState !== 'sleep' && window.aiPet.actionState !== 'inside') {
-            // 10秒に1回、15%の確率で野イチゴを発見（バランスはお好みで調整してください）
+        // ★修正：完全にアイドル状態（待機・徘徊中）かつ、予定(スケジュール)が空の時のみ拾う！
+        if ((window.aiPet.actionState === 'idle' || window.aiPet.actionState === 'moving') && 
+            (!window.aiPet.schedule || window.aiPet.schedule.length === 0)) {
+            
+            // 10秒に1回、15%の確率で野イチゴを発見
             if (Math.random() < 0.15) {
                 if (!window.aiPet.inventory) window.aiPet.inventory = [];
                 window.aiPet.inventory.push('item_berry');

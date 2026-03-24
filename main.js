@@ -755,3 +755,41 @@ setInterval(() => {
         }
     }
 }, 2000);
+
+// ==========================================
+// ★新規追加：別タブ（バックグラウンド）での進行処理
+// ==========================================
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // タブが隠れた時間を記録
+        window.bgTimeStart = Date.now();
+    } else {
+        // タブに戻ってきた時の処理
+        if (window.bgTimeStart && window.aiPet && typeof window.aiPet.update === 'function') {
+            let elapsedMs = Date.now() - window.bgTimeStart;
+            let missedFrames = Math.floor(elapsedMs / 16.666); // 60fps換算で失われたフレーム数を計算
+            
+            // 5秒以上（約300フレーム）離れていた場合のみ一気に処理を進める
+            if (missedFrames > 300) {
+                // 最大1時間分（216,000フレーム）まで許容して高速処理
+                let catchUpFrames = Math.min(missedFrames, 216000);
+                console.log(`[Background Sync] バックグラウンドで ${Math.floor(elapsedMs/1000)}秒 経過。${catchUpFrames}フレーム分を処理します。`);
+                
+                // ★重要：描画系の処理をスキップしてブラウザのフリーズを防ぐフラグ
+                window.isCatchingUp = true; 
+                for (let i = 0; i < catchUpFrames; i++) {
+                    window.aiPet.update();
+                }
+                window.isCatchingUp = false; // フラグ解除
+                
+                // キャッチアップ完了後にUIを1回だけ一括更新
+                if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+                if (typeof window.updateStatusUI === 'function') window.updateStatusUI();
+                if (typeof window.addFloatingText === 'function') {
+                    window.addFloatingText(window.aiPet.x, window.aiPet.y - 60, "⏰ 経過時間を処理しました！", "#FFC107");
+                }
+            }
+            window.bgTimeStart = null;
+        }
+    }
+});
