@@ -277,6 +277,8 @@ const monsterBookData = {
 const itemCatalog = {
     stone: { name: "ただの石", type: 'material', value: 10, desc: "建築の基本素材" },
     wood: { name: "木材", type: 'material', value: 15, desc: "建築に使う丈夫な木" },
+    high_wood: { name: '良質な木材', type: 'material', value: 150, desc: '森の深部で採れる、硬くて丈夫な木材。' },
+    high_stone: { name: '硬い石', type: 'material', value: 150, desc: '山の深部で採れる、密度が高くずっしりとした石。' },
     iron: { name: "鉄鉱石", type: 'material', value: 50, desc: "武具の素材" },
     herb: { name: "薬草", type: 'food', stats: { energy: 10, hunger: 5 }, value: 20, desc: "少し元気が湧く" },
     coin: { name: "古びた硬貨", type: 'material', value: 100, desc: "売ると高い" },

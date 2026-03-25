@@ -2375,19 +2375,55 @@ window.updateQuestHUD = function() {
                 let currentVal = 0;
                 let targetVal = Math.floor(aiPet.apprentice.qVal); 
                 
-                if (aiPet.apprentice.activeQuest.desc.includes("活力") || aiPet.apprentice.activeQuest.desc.includes("賢さ")) {
-                    const isPower = aiPet.apprentice.activeQuest.desc.includes("活力");
-                    currentVal = Math.floor(isPower ? aiPet.stats.power : aiPet.stats.intel);
+                // ★修正: 新ステータス（素早さ・美しさ）の判定を追加
+                const desc = aiPet.apprentice.activeQuest.desc;
+                if (desc.includes("活力") || desc.includes("賢さ") || desc.includes("素早さ") || desc.includes("美しさ")) {
+                    let label = "";
+                    if (desc.includes("活力")) { currentVal = Math.floor(aiPet.stats.power); label = "活力"; }
+                    else if (desc.includes("賢さ")) { currentVal = Math.floor(aiPet.stats.intel); label = "賢さ"; }
+                    else if (desc.includes("素早さ")) { currentVal = Math.floor(aiPet.stats.speed || 0); label = "素早さ"; }
+                    else if (desc.includes("美しさ")) { currentVal = Math.floor(aiPet.stats.beauty || 0); label = "美しさ"; }
+                    
                     const targetVal = Math.floor(aiPet.apprentice.qVal);
-                    const label = isPower ? "活力" : "賢さ";
                     
                     if (currentVal >= targetVal) {
                         progressStr = `<div style="font-size: 11px; color: #4CAF50; margin-top: 4px;">目標達成！ (${currentVal} / ${targetVal})</div>`;
                     } else {
                         progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">現在の${label}: ${currentVal} / 目標: ${targetVal}</div>`;
                     }
+                } else if (desc.includes("集め") || desc.includes("持ってこよう")) {
+                    // ★追加：アイテム収集クエスト専用の表示ロジック
+                    let itemsStr = [];
+                    // 良質な木材と普通の木材を区別する
+                    if (desc.includes("良質な木材")) {
+                        let c = aiPet.inventory.filter(i => i === 'high_wood').length;
+                        itemsStr.push(`良質な木材: ${c} / 3`);
+                    } else if (desc.includes("木材")) {
+                        let c = aiPet.inventory.filter(i => i === 'wood').length;
+                        let max = desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3);
+                        itemsStr.push(`木材: ${c} / ${max}`);
+                    }
+                    // 硬い石と普通の石を区別する
+                    if (desc.includes("硬い石")) {
+                        let c = aiPet.inventory.filter(i => i === 'high_stone').length;
+                        itemsStr.push(`硬い石: ${c} / 3`);
+                    } else if (desc.includes("石")) {
+                        let c = aiPet.inventory.filter(i => i === 'stone').length;
+                        let max = desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3);
+                        itemsStr.push(`石: ${c} / ${max}`);
+                    }
+                    if (desc.includes("質のいい")) {
+                        let c = aiPet.inventory.filter(i => i.startsWith('high_')).length;
+                        itemsStr.push(`大成功野菜: ${c} / 3`);
+                    }
+                    if (itemsStr.length > 0) {
+                        progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">収集状況: ${itemsStr.join(' , ')}</div>`;
+                    }
                 } else if (targetVal > 0) {
-                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">進捗: ${targetVal} 回完了</div>`;
+                    // ★修正：目標回数がテキスト内にあれば抽出して「1 / 5回完了」のように表示
+                    let match = desc.match(/(\d+)回/);
+                    let reqCount = match ? match[1] : "?";
+                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">進捗: ${targetVal} / ${reqCount} 回完了</div>`;
                 }
             }
 

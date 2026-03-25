@@ -50,138 +50,134 @@ aiPet.getMasterQuestData = function(mType, rank) {
         'explore': { // 冒険家のクエスト（ランク1〜9）
             1: { 
                 name: "基礎体力の証明", 
-                desc: "探検には体力がいる。活力を開始時より＋3上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 3; }, 
+                desc: "探検には体力がいる。活力を開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 15; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             2: { 
-                name: "はじめての収集", 
-                desc: "森などを「探検」して、木材（wood）を1つ拾ってこよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, // ★修正：0にリセット
-                check: function() { return aiPet.inventory.includes('wood'); },
-                onClear: function() { aiPet.inventory.splice(aiPet.inventory.indexOf('wood'), 1); } 
+                name: "罠を避ける足", 
+                desc: "危険を回避する素早さが必要だ。「ランニング」等で素早さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.speed || 0) + 15; },
+                check: function() { return (aiPet.stats.speed || 0) >= aiPet.apprentice.qVal; }
             },
             3: { 
-                name: "危険を察知する頭脳", 
-                desc: "罠を見抜く知恵も必要だ。「勉強」を2回行おう。", 
+                name: "はじめての探索", 
+                desc: "森や山を「探検」して、木材（wood）を5つ、石（stone）を5つ集めてこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 2; }
-            },
-            4: { 
-                name: "山の試練", 
-                desc: "山などを「探検」して、石（stone）を2つ集めてこよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, // ★修正：0にリセット
-                check: function() { return aiPet.inventory.filter(i => i === 'stone').length >= 2; }, 
-                onClear: function() { 
-                    aiPet.inventory.splice(aiPet.inventory.indexOf('stone'), 1);
-                    aiPet.inventory.splice(aiPet.inventory.indexOf('stone'), 1);
-                }
-            },
-            5: { 
-                name: "一人前の体力", 
-                desc: "過酷な環境に耐えるため、活力を開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 10; }, 
-                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
-            },
-            6: { 
-                name: "冒険者の休息", 
-                desc: "命を守るためには休むことも大事だ。「睡眠」を2回とろう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 2; }
-            },
-            7: { 
-                name: "最深部へのルート開拓", 
-                desc: "何度も「探検」を繰り返し、奥地へのルートを開拓しよう。（探検を5回行う）", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 5; }
-            },
-            8: { 
-                name: "大自然の制覇", 
-                desc: "森と山を駆け巡り、木材（wood）を3つ、石（stone）を3つ集めてこよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, // ★修正：0にリセット
                 check: function() { 
                     const woods = aiPet.inventory.filter(i => i === 'wood').length;
                     const stones = aiPet.inventory.filter(i => i === 'stone').length;
-                    return woods >= 3 && stones >= 3; 
+                    return woods >= 5 && stones >= 5; 
+                },
+                onClear: function() { 
+                    for(let i=0; i<5; i++) aiPet.inventory.splice(aiPet.inventory.indexOf('wood'), 1);
+                    for(let i=0; i<5; i++) aiPet.inventory.splice(aiPet.inventory.indexOf('stone'), 1);
+                } 
+            },
+            4: { 
+                name: "深きを知る知恵", 
+                desc: "深層の構造を理解するには賢さも必要だ。賢さを開始時より＋20上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel || 0) + 20; }, 
+                check: function() { return (aiPet.stats.intel || 0) >= aiPet.apprentice.qVal; }
+            },
+            5: { 
+                name: "過酷な環境への適応", 
+                desc: "中層の険しい道に耐えるため、活力を開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 30; }, 
+                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
+            },
+            6: { 
+                name: "冒険者の身だしなみ", 
+                desc: "野宿ばかりでは心が荒む。清潔な休息を取り、美しさを開始時より＋10上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 10; }, 
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
+            },
+            7: { 
+                name: "最深部への準備", 
+                desc: "未知の魔物から逃げ切るため、素早さを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.speed || 0) + 30; }, 
+                check: function() { return (aiPet.stats.speed || 0) >= aiPet.apprentice.qVal; }
+            },
+            8: { 
+                name: "秘境の至宝", 
+                desc: "中層や深層でしか採れない、良質な木材（high_wood）を3つ、硬い石（high_stone）を3つ集めてこよう。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { 
+                    const hw = aiPet.inventory.filter(i => i === 'high_wood').length;
+                    const hs = aiPet.inventory.filter(i => i === 'high_stone').length;
+                    return hw >= 3 && hs >= 3; 
                 },
                 onClear: function() {
-                    for(let i=0; i<3; i++) aiPet.inventory.splice(aiPet.inventory.indexOf('wood'), 1);
-                    for(let i=0; i<3; i++) aiPet.inventory.splice(aiPet.inventory.indexOf('stone'), 1);
+                    for(let i=0; i<3; i++) aiPet.inventory.splice(aiPet.inventory.indexOf('high_wood'), 1);
+                    for(let i=0; i<3; i++) aiPet.inventory.splice(aiPet.inventory.indexOf('high_stone'), 1);
                 }
             },
             9: { 
                 name: "伝説への道", 
-                desc: "冒険の道を極める最後の試練！活力を開始時より＋20上げよう。", // ★テキスト修正
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 20; }, 
+                desc: "冒険の道を極める最後の試練！活力を開始時より＋50上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 50; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
         'farming': { // 農家のクエスト（ランク1〜9）
             1: { 
                 name: "土を耕す体力", 
-                desc: "クワを振るうには体力がいる。活力を開始時より＋3上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 3; }, 
+                desc: "クワを振るうには体力がいる。活力を開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 15; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             2: { 
-                name: "はじめての種まき", 
-                desc: "支給されたニンジンの種で「農業」を1回行おう。", 
+                name: "畑仕事の基本", 
+                desc: "まずは実践だ。支給された種で「農業」を5回行おう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; aiPet.inventory.push('seed_carrot'); },
-                check: function() { return aiPet.apprentice.qVal >= 1; }
+                check: function() { return aiPet.apprentice.qVal >= 5; }
             },
             3: { 
-                name: "知識の種", 
-                desc: "野菜の育て方を知るため「勉強」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; },
-                check: function() { return aiPet.apprentice.qVal >= 2; }
+                name: "畑を駆け回る足", 
+                desc: "広い畑を管理する素早さが必要だ。「ランニング」等で素早さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.speed || 0) + 15; },
+                check: function() { return (aiPet.stats.speed || 0) >= aiPet.apprentice.qVal; }
             },
             4: { 
-                name: "初収穫の味", 
-                desc: "立派に育てたニンジンを1つ、報告しに行こう。", 
+                name: "大地の恵み", 
+                desc: "大成功した野菜（質のいいニンジンなど）を1つ、報告しに行こう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                // ★修正：普通のニンジンか、質のいいニンジンのどちらかがあればOK！
-                check: function() { return aiPet.inventory.includes('carrot') || aiPet.inventory.includes('high_carrot'); },
+                // ★修正: high_ から始まるアイテムを持っているか判定
+                check: function() { return aiPet.inventory.some(i => i.startsWith('high_')); },
                 onClear: function() { 
-                    if (aiPet.inventory.includes('high_carrot')) {
-                        aiPet.inventory.splice(aiPet.inventory.indexOf('high_carrot'), 1);
-                    } else if (aiPet.inventory.includes('carrot')) {
-                        aiPet.inventory.splice(aiPet.inventory.indexOf('carrot'), 1);
-                    }
+                    const idx = aiPet.inventory.findIndex(i => i.startsWith('high_'));
+                    if (idx !== -1) aiPet.inventory.splice(idx, 1);
                 }
             },
             5: { 
                 name: "農作業の持久力", 
-                desc: "広大な畑を管理するため、活力を開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 10; }, 
+                desc: "過酷な環境に耐えるため、活力を開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 30; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             6: { 
-                name: "農家の休息", 
-                desc: "倒れては元も子もない。「睡眠」を2回とって体を休めよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 2; }
+                name: "美しい農作物", 
+                desc: "作物には作り手の美しさも宿る。体力と満腹度を保ってよく眠り、美しさを開始時より＋10上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 10; }, 
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
             },
             7: { 
-                name: "畑の管理", 
-                desc: "毎日の手入れが命だ。「農業」を3回行おう。", 
+                name: "農の鬼", 
+                desc: "毎日の手入れが命だ。「農業」を15回行おう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 3; }
+                check: function() { return aiPet.apprentice.qVal >= 15; }
             },
             8: { 
                 name: "豊穣の秋", 
-                desc: "ニンジン、トマト、ピーマンのどれでもいい。野菜を合計3つ持ってこよう。", 
+                desc: "種類は問わない。大成功した野菜（質のいい～）を合計3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { 
-                    // ★修正：質のいい野菜（high_～）もカウント対象に追加！
-                    const targets = ['carrot', 'tomato', 'pepper', 'high_carrot', 'high_tomato', 'high_pepper'];
-                    const count = aiPet.inventory.filter(i => targets.includes(i)).length;
-                    return count >= 3; 
+                    return aiPet.inventory.filter(i => i.startsWith('high_')).length >= 3; 
                 },
                 onClear: function() {
-                    const targets = ['carrot', 'tomato', 'pepper', 'high_carrot', 'high_tomato', 'high_pepper'];
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (targets.includes(aiPet.inventory[i])) {
+                        if (aiPet.inventory[i].startsWith('high_')) {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
@@ -190,8 +186,8 @@ aiPet.getMasterQuestData = function(mType, rank) {
             },
             9: { 
                 name: "大農園の主", 
-                desc: "農業の道を極める最後の試練！活力を開始時より＋20上げよう。", // ★テキスト修正
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 20; }, 
+                desc: "農業の道を極める最後の試練！活力を開始時より＋50上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 50; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
@@ -741,7 +737,7 @@ aiPet.isWaterBetween = function(x1, y1, x2, y2) {
     return false;
 };
 
-// ★修正：第4引数に ignoreWater = false を追加
+// ★完全修正：水で分断された場合の妥協ルート生成パッチ
 aiPet.setDestination = function(tx, ty, isWandering = false, ignoreWater = false) {
     this.targetX = tx;
     this.targetY = ty;
@@ -844,17 +840,56 @@ aiPet.setDestination = function(tx, ty, isWandering = false, ignoreWater = false
             return true; // 諦めずに進む！
         }
 
-        // 橋が島に1つも建っていない場合だけ諦める
+        // ==========================================
+        // ★新規追加パッチ：橋がなく、目的地が川の向こう側の場合の妥協処理
+        // ==========================================
+        // ランダムな移動（isWandering）ではなく、明確なタスク（探検など）の場合
         if (!isWandering) {
-            this.message = "川を渡るには橋が足りないみたい...";
-            this.messageTimer = 120;
-            if (this.schedule && this.schedule.length > 0) {
-                this.schedule[0].duration = 0;
-                this.schedule[0].aborted = true;
+            // 目的地とAIを直線で結び、その直線上で「水（川）にぶつかる手前の座標」を探す
+            let dx = tx - this.x;
+            let dy = ty - this.y;
+            let dist = Math.hypot(dx, dy);
+            
+            // 10px刻みでAIの位置から目的地に向かって線を引いていく
+            let safeX = this.x;
+            let safeY = this.y;
+            let stepX = (dx / dist) * 10;
+            let stepY = (dy / dist) * 10;
+            let currentX = this.x;
+            let currentY = this.y;
+            
+            // 川の判定(isWaterBetween)がtrueになる直前の安全な位置を見つける
+            for (let d = 10; d < dist; d += 10) {
+                currentX += stepX;
+                currentY += stepY;
+                if (this.isWaterBetween(this.x, this.y, currentX, currentY)) {
+                    break; // 水にぶつかったらストップ
+                }
+                // 水にぶつからなければ安全な位置を更新
+                safeX = currentX;
+                safeY = currentY;
             }
+
+            // 安全な位置が自分の現在地から少しでも離れていれば、そこを新たな目的地にする！
+            if (Math.hypot(safeX - this.x, safeY - this.y) > 20) {
+                this.pathQueue = [{x: safeX, y: safeY}];
+                return true; // 川の手前まで進む！
+            } else {
+                // 川岸ギリギリに立っていて、もう1歩も進めない場合のみ諦める
+                this.message = "川を渡るには橋が足りないみたい...";
+                this.messageTimer = 120;
+                if (this.schedule && this.schedule.length > 0) {
+                    this.schedule[0].duration = 0;
+                    this.schedule[0].aborted = true;
+                }
+                this.actionState = 'idle';
+                return false;
+            }
+        } else {
+            // ただのうろうろ歩きなら、何も言わずにその場で立ち止まる
+            this.actionState = 'idle';
+            return false;
         }
-        this.actionState = 'idle';
-        return false;
     }
     
     let path = [];
@@ -1669,8 +1704,9 @@ aiPet.update = function() {
             if (this.age === 20 && typeof this.checkAndTriggerAdulthood === 'function') this.checkAndTriggerAdulthood();
         }
     } else {
-        if (this.age === 0 && (this.lifeAgeTimer === undefined || this.lifeAgeTimer > 100)) this.lifeAgeTimer = 0;
-        this.lifeAgeTimer = (this.lifeAgeTimer || 0) + 1;
+        // ★修正: 0歳の時にタイマーを強制リセットしてしまうバグの行を削除
+        if (this.lifeAgeTimer === undefined) this.lifeAgeTimer = 0;
+        this.lifeAgeTimer++;
         if (this.lifeAgeTimer >= 86400) {
             this.lifeAgeTimer = 0;
             this.age = (this.age || 0) + 1;
@@ -1908,12 +1944,18 @@ aiPet.update = function() {
                     task.duration = 60; task.maxDuration = 60;
                     let targets = Object.values(assets).filter(a => a.type === 'nature' || a.type === 'building' || a.type === 'skull' || a.type === 'crystal');
                     let isDungeon = (a) => a.type === 'skull' || a.type === 'crystal' || (a.name && (a.name.includes('スカル') || a.name.includes('クリスタル') || a.name.includes('迷宮') || a.name.includes('ダンジョン')));
-                    let dungeons = targets.filter(isDungeon);
+                    
+                    // ★追加: 冒険家の免許皆伝(ランク10)がないとダンジョンを候補から除外する！
+                    let isMasterExplorer = (this.apprentice && this.apprentice.rank && this.apprentice.rank['explore'] >= 10);
+                    
+                    let dungeons = isMasterExplorer ? targets.filter(isDungeon) : [];
                     let others = targets.filter(a => !isDungeon(a));
                     let finalTarget = null;
+                    
                     if (dungeons.length > 0 && Math.random() < 0.7) finalTarget = dungeons[Math.floor(Math.random() * dungeons.length)];
                     else if (others.length > 0) finalTarget = others[Math.floor(Math.random() * others.length)];
                     else if (dungeons.length > 0) finalTarget = dungeons[Math.floor(Math.random() * dungeons.length)];
+                    
                     if (finalTarget) this.startBuildingInteraction(finalTarget); else { task.duration = 0; task.aborted = true; }
                 }
                 else if (task.type === 'eat') {
@@ -1948,7 +1990,8 @@ aiPet.update = function() {
 
             if (isActing) {
                 const fastTasks = ['cook', 'smith', 'shop_work', 'shop_research', 'auto_trade']; 
-                const isSlowTask = !fastTasks.includes(task.type) && task.type !== 'explore';
+                // ★修正：探検（explore）を例外扱いから外し、他の筋トレ等と同じ「時間をかけるタスク（SlowTask）」にする！
+                const isSlowTask = !fastTasks.includes(task.type);
 
                 if (isSlowTask && !window.isFastForwardLife && !isOneMinutePassed) {
                     if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study') { this.visualAction = 'study'; } 
@@ -1957,6 +2000,14 @@ aiPet.update = function() {
                     else if (task.type === 'fish') {
                         this.visualAction = 'fish'; this.actionState = 'fishing';
                         if (typeof this.processFishingFrame === 'function') this.processFishingFrame();
+                    }
+                    // ★追加：探検中も毎フレームアニメーション状態を維持する（時間が経過するのを待つ）
+                    else if (task.type === 'explore') {
+                        if (this.actionState === 'inside' || this.isIndoors) { 
+                            this.visualAction = 'move'; 
+                        } else { 
+                            this.actionState = 'inside'; this.isIndoors = true; 
+                        }
                     }
                 } else {
                     if (task.type !== 'explore') {
@@ -2131,7 +2182,7 @@ aiPet.update = function() {
     // ★追加：空腹・疲労による強烈なストレス（機嫌の減少）と闇落ちカウンターの増加
     if (currentMode === 'play' && !this.godMode) {
         // ★修正：睡眠中・食事中・休憩中など「回復行動をしている最中」はペナルティを免除する！
-        let isHealing = ['sleep', 'sleeping', 'rest', 'eat', 'life_slowlife'].includes(this.actionState) || 
+        let isHealing = ['sleep', 'sleeping', 'rest', 'eat', 'eating', 'life_slowlife'].includes(this.actionState) || 
                         (this.currentTask && ['sleep', 'rest', 'eat', 'life_slowlife'].includes(this.currentTask.type));
                         
         if ((this.energy <= 20 || this.hunger <= 20) && !isHealing) {
@@ -2186,9 +2237,19 @@ aiPet.update = function() {
             } else if (this.actionState === 'moving_to_enter') { 
                 if (this.schedule[0]?.type === 'explore') { 
                     if (this.interactionTarget && (this.interactionTarget.type === 'skull' || this.interactionTarget.type === 'crystal')) {
+                        // ★修正：免許皆伝かどうかをここで判定し、ダメなら現在のタスク「だけ」をキャンセルして次へ進む
+                        let isMasterExplorer = (this.apprentice && this.apprentice.rank && this.apprentice.rank['explore'] >= 10);
                         this.actionState = 'idle'; this.isIndoors = false; this.indoorTarget = null;
-                        this.schedule = []; if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
-                        if (typeof window.openDungeonUI === 'function' && !window.isCatchingUp) window.openDungeonUI(this.interactionTarget.type);
+                        
+                        if (!isMasterExplorer) {
+                            this.message = "ここから先は危険だ...\n（免許皆伝が必要）"; this.messageTimer = 120;
+                            this.schedule.shift(); // ★全消しではなく、今やろうとしていた探索タスクだけを消す
+                            if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
+                        } else {
+                            this.schedule = []; // 入れる場合は今まで通り全消ししてダンジョンに集中
+                            if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
+                            if (typeof window.openDungeonUI === 'function' && !window.isCatchingUp) window.openDungeonUI(this.interactionTarget.type);
+                        }
                     } else { this.actionState = 'inside'; this.isIndoors = true; this.indoorTarget = this.interactionTarget; this.exploreTimer = 0; }
                 } else if (this.schedule[0]?.type === 'fish') {
                     this.actionState = 'fishing'; this.visualAction = 'fish'; this.isIndoors = false;
@@ -2892,6 +2953,23 @@ aiPet.processExploration = function() {
     state.depth += depthAdvance;
     if (state.depth > state.maxDepth) state.depth = state.maxDepth;
     
+    // ▼▼▼ 新規追加：ステータスの壁（階層制限） ▼▼▼
+    if (state.depth >= 8) { // 8〜10階（深層）
+        if ((this.stats.power || 0) < 80 || (this.stats.speed || 0) < 60 || (this.stats.intel || 0) < 50) {
+            this.message = "深層の過酷さに耐えきれず怪我をした！";
+            if (!this.godMode) { this.energy -= 40; this.stats.mood -= 40; }
+            this.finishExploration();
+            return; // 強制帰還
+        }
+    } else if (state.depth >= 4) { // 4〜7階（中層）
+        if ((this.stats.power || 0) < 50 || (this.stats.speed || 0) < 30) {
+            this.message = "中層の険しさに足を滑らせ怪我をした！";
+            if (!this.godMode) { this.energy -= 20; this.stats.mood -= 20; }
+            this.finishExploration();
+            return; // 強制帰還
+        }
+    }
+    
     let successRate = (myStat / (difficulty + 1)); 
     if (myStat < difficulty * 0.5) successRate = 0.1; 
     successRate = Math.min(1.0, Math.max(0.1, successRate));
@@ -2912,10 +2990,27 @@ aiPet.processExploration = function() {
         }
 
         if (Math.random() < dropChance && itemsTable.length > 0) {
-            const itemKey = itemsTable[Math.floor(Math.random() * itemsTable.length)]; 
-            const item = itemCatalog[itemKey]; 
+            let itemKey = itemsTable[Math.floor(Math.random() * itemsTable.length)]; 
+
+            // ▼▼▼ 新規追加：レアアイテムは「深層（8階以上）」限定のドロップにする ▼▼▼
+            if (itemKey === 'wood' || itemKey === 'stone') {
+                let isRare = false;
+                // 中層のドロップを廃止し、深層（8階以上）到達時のみ50%でドロップするように変更
+                if (state.depth >= 8 && Math.random() < 0.5) {
+                    isRare = true; 
+                }
+
+                if (isRare) {
+                    itemKey = itemKey === 'wood' ? 'high_wood' : 'high_stone';
+                }
+            }
+            // ▲▲▲ 新規追加ここまで ▲▲▲
+
+            // カタログに未登録の場合の簡易フォールバック
+            const item = itemCatalog[itemKey] || { name: itemKey === 'high_wood' ? '良質な木材' : (itemKey === 'high_stone' ? '硬い石' : itemKey) }; 
+            
             if (item) { 
-                this.inventory.push(itemKey); 
+                this.inventory.push(itemKey);
                 this.message = `${item.name}を見つけた！`; 
                 if (typeof this.checkItemCardUnlock === 'function') this.checkItemCardUnlock(itemKey);
                 const bMood = (this.getTraitData().statBonus && this.getTraitData().statBonus.mood) ? this.getTraitData().statBonus.mood : 1.0;
@@ -6092,3 +6187,25 @@ aiPet.checkAndTriggerAdulthood = function() {
         }
     };
 })();
+
+// ==========================================
+// ★新規追加：ダンジョンの入り口に「絶対に」鍵をかける（UI制御）
+// ==========================================
+if (typeof window._originalOpenDungeonUI === 'undefined' && typeof window.openDungeonUI === 'function') {
+    window._originalOpenDungeonUI = window.openDungeonUI;
+    window.openDungeonUI = function(dungeonType) {
+        // 冒険家のランクをチェック
+        let isMasterExplorer = (aiPet.apprentice && aiPet.apprentice.rank && aiPet.apprentice.rank['explore'] >= 10);
+        
+        if (!isMasterExplorer) {
+            // 免許皆伝でない場合は、UIを開かずに追い返す
+            aiPet.actionState = 'idle';
+            aiPet.message = "ここから先は危険だ...\n（※入るには「冒険家」の免許皆伝が必要です）";
+            aiPet.messageTimer = 180;
+            return; // 処理をここでストップ！
+        }
+        
+        // 免許皆伝なら本来のダンジョンUIを開く
+        window._originalOpenDungeonUI(dungeonType);
+    };
+}
