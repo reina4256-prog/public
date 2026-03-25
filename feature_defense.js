@@ -157,6 +157,9 @@ window.showDefenseMessage = async function(text, color) {
 
 window.startDefenseMonitor = function() {
     setInterval(() => {
+        // ★追加：デバッグで襲撃イベントOFFに設定されている場合はスキップ
+        if (window.DEFENSE_STATE && window.DEFENSE_STATE.noAttack) return;
+        
         if (window.DEFENSE_STATE.isActive || window.DEFENSE_STATE.isEmergency) return;
         let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
         let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
@@ -1831,169 +1834,115 @@ if (!window._defenseMonitorStarted) {
 // ==========================================
 // 🔧 デバッグ用：防衛機能テスト ＆ 演出確認 ＆ 施設HP管理 UI
 // ==========================================
+// ==========================================
+// 🔧 デバッグ用：防衛機能テスト ＆ 演出確認 ＆ 施設HP管理 UI
+// ==========================================
 setTimeout(() => {
-    const debugOverlay = document.getElementById('debugOverlay');
-    if (debugOverlay) {
-        let existing = document.getElementById('debug-defense-ui');
-        if(existing) existing.remove();
+    // UI(HTML)は index.html のアコーディオン内に統合済みのためDOM生成処理は削除
 
-        // --- 全スキルのリスト作成 ---
-        let skillOptions = '';
-        for (let race in window.DEFENSE_SKILL_DB) {
-            window.DEFENSE_SKILL_DB[race].forEach(s => {
-                skillOptions += `<option value="${s.name}">${s.name} (${s.type==='melee'?'近接':'遠距離'})</option>`;
-            });
+    // --- 共通機能 ---
+    window.applyDebugMaxDeploy = function() {
+        let val = parseInt(document.getElementById('debug-max-deploy').value);
+        if (val >= 1 && val <= 15) { window.DEFENSE_CONFIG.maxDeploy = val; alert("適用しました"); }
+    };
+
+    window.forceTriggerDefense = function() {
+        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+        let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
+        if (!hasCastle) { alert("⚠️ 島に「王城」が建っていないため、襲撃イベントを開始できません！"); return; }
+        if (typeof switchMode === 'function') switchMode('play');
+        window.triggerEmergency();
+    };
+
+    // --- 復興UI 強制テスト実行関数 ---
+    window.debugForceRebuildUI = function() {
+        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+        let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
+        if (!hasCastle) { alert("⚠️ 島に「王城」が建っていないため、テストできません！"); return; }
+        
+        // 全施設を強制的にHP0にして敗北処理へ流し込む
+        window.DEFENSE_STATE.facilities = [];
+        Object.keys(currentAssets).forEach(key => {
+            let a = currentAssets[key];
+            if (a && window.DEFENSE_CONFIG.facilities[a.type]) {
+                let conf = window.DEFENSE_CONFIG.facilities[a.type];
+                window.DEFENSE_STATE.facilities.push({ id: key, type: a.type, name: conf.name, team: 'facility', gridX: a.gridX, gridY: a.gridY, hp: 0, maxHp: conf.maxHp });
+                currentAssets[key].hp = 0; // マップ上の大元データも0にする
+            }
+        });
+
+        if (typeof switchMode === 'function') switchMode('play');
+        window.DEFENSE_STATE.mode = 'normal';
+        window.endDefenseBattle(false); // 敗北扱いで終了
+    };
+
+    // --- 演出テスト実行関数 ---
+    window.runDebugCutscene = async function() {
+        let atkSkin = document.getElementById('dbg-atk-skin').value || 'robot';
+        let defSkin = document.getElementById('dbg-def-skin').value || 'dragon';
+        let skillName = document.getElementById('dbg-skill-name').value;
+        let doCounter = document.getElementById('dbg-do-counter').checked;
+        let doKill = document.getElementById('dbg-do-kill').checked;
+
+        let atk = { name: 'テスト攻撃手', skin: atkSkin, hp: 100, maxHp: 100, team: 'player', atk: 30 };
+        let def = { name: 'テスト防衛手', skin: defSkin, hp: doKill ? 40 : 100, maxHp: 100, team: 'enemy', atk: 20, def: 5 };
+        
+        let skill = window.DEFENSE_SKILL_DB['default'][0];
+        for (let k in window.DEFENSE_SKILL_DB) {
+            let found = window.DEFENSE_SKILL_DB[k].find(s => s.name === skillName);
+            if (found) { skill = found; break; }
         }
 
-        const deployUI = document.createElement('div');
-        deployUI.id = 'debug-defense-ui';
-        deployUI.style.cssText = "margin-top: 20px; padding: 15px; background: rgba(10, 20, 40, 0.9); border: 2px solid #00E5FF; border-radius: 8px; font-family: sans-serif; text-align: left; max-height: 400px; overflow-y: auto;";
-        
-        deployUI.innerHTML = `
-            <div style="color: #00E5FF; font-weight: bold; margin-bottom: 10px; font-size: 18px; border-bottom:1px solid #00E5FF; padding-bottom:5px;">🛠️ 防衛＆演出 デバッグツール</div>
-            
-            <div style="margin-bottom: 15px; background:#111; padding:10px; border-radius:6px;">
-                <div style="color:#FFD700; font-weight:bold; margin-bottom:5px;">① 基本設定</div>
-                <div style="display: flex; align-items: center; gap: 10px; margin-bottom:10px;">
-                    <span style="color: white; font-size: 14px;">最大出撃数:</span>
-                    <input type="number" id="debug-max-deploy" value="${window.DEFENSE_CONFIG.maxDeploy}" min="1" max="15" style="width: 50px; background: #222; color: #fff; border: 1px solid #777; padding: 4px; text-align: center; border-radius: 4px;">
-                    <button onclick="window.applyDebugMaxDeploy()" style="padding: 4px 10px; background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 4px;">適用</button>
-                </div>
-                <button onclick="window.forceTriggerDefense()" style="width:100%; padding: 10px; background: #b71c1c; color: white; font-weight: bold; border: 2px solid #ff5252; cursor: pointer; border-radius: 6px; box-shadow: 0 0 10px rgba(255,0,0,0.5);">🚨 緊急防衛（襲撃）を強制発生させる</button>
-                
-                <button onclick="window.debugForceRebuildUI()" style="width:100%; padding: 10px; background: #9C27B0; color: white; font-weight: bold; border: 2px solid #E040FB; cursor: pointer; border-radius: 6px; box-shadow: 0 0 10px rgba(156,39,176,0.5); margin-top: 10px;">🏚️ 復興テスト（全施設を破壊して敗北）</button>
-            </div>
+        let cSkill = window.DEFENSE_SKILL_DB['dragon'][0] || window.DEFENSE_SKILL_DB['default'][0];
 
-            <div style="margin-bottom: 15px; background:#111; padding:10px; border-radius:6px;">
-                <div style="color:#FF9800; font-weight:bold; margin-bottom:5px;">② バトル演出（スパロボ風）テスト</div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:10px;">
-                    <div><span style="color:#ccc; font-size:12px;">味方種族</span><br><input type="text" id="dbg-atk-skin" value="robot_2" style="width:100%; background:#222; color:#fff; border:1px solid #555; padding:4px;"></div>
-                    <div><span style="color:#ccc; font-size:12px;">敵種族</span><br><input type="text" id="dbg-def-skin" value="dragon_1" style="width:100%; background:#222; color:#fff; border:1px solid #555; padding:4px;"></div>
-                </div>
-                <div style="margin-bottom:10px;">
-                    <span style="color:#ccc; font-size:12px;">使用する技</span><br>
-                    <select id="dbg-skill-name" style="width:100%; background:#222; color:#fff; border:1px solid #555; padding:4px;">
-                        ${skillOptions}
-                    </select>
-                </div>
-                <div style="display:flex; gap:15px; margin-bottom:10px;">
-                    <label style="color:#fff; font-size:13px;"><input type="checkbox" id="dbg-do-counter"> 敵が反撃する</label>
-                    <label style="color:#fff; font-size:13px;"><input type="checkbox" id="dbg-do-kill"> 攻撃で敵を倒す</label>
-                </div>
-                <button onclick="window.runDebugCutscene()" style="width:100%; padding: 8px; background: #2196F3; color: white; font-weight: bold; border: none; cursor: pointer; border-radius: 6px;">🎬 この設定で演出テストを実行</button>
-            </div>
+        window.DEFENSE_STATE.animMode = true; // 強制的にアニメON
+        await window.showDefenseCutscene(atk, def, 50, skill, doCounter, 10, cSkill);
+    };
 
-            <div style="background:#111; padding:10px; border-radius:6px;">
-                <div style="color:#8BC34A; font-weight:bold; margin-bottom:5px;">③ マップ上の施設HP管理 <button onclick="window.refreshDebugFacilities()" style="font-size:11px; padding:2px 5px;">更新</button></div>
-                <div id="dbg-facility-list" style="max-height:120px; overflow-y:auto; border:1px solid #333; padding:5px;"></div>
-            </div>
-        `;
-        debugOverlay.appendChild(deployUI);
-
-        // --- 共通機能 ---
-        window.applyDebugMaxDeploy = function() {
-            let val = parseInt(document.getElementById('debug-max-deploy').value);
-            if (val >= 1 && val <= 15) { window.DEFENSE_CONFIG.maxDeploy = val; alert("適用しました"); }
-        };
-
-        window.forceTriggerDefense = function() {
-            let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
-            let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
-            if (!hasCastle) { alert("⚠️ 島に「王城」が建っていないため、襲撃イベントを開始できません！"); return; }
-            if (typeof switchMode === 'function') switchMode('play');
-            window.triggerEmergency();
-        };
-
-        // --- 復興UI 強制テスト実行関数 ---
-        window.debugForceRebuildUI = function() {
-            let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
-            let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
-            if (!hasCastle) { alert("⚠️ 島に「王城」が建っていないため、テストできません！"); return; }
-            
-            // 全施設を強制的にHP0にして敗北処理へ流し込む
-            window.DEFENSE_STATE.facilities = [];
-            Object.keys(currentAssets).forEach(key => {
-                let a = currentAssets[key];
-                if (a && window.DEFENSE_CONFIG.facilities[a.type]) {
-                    let conf = window.DEFENSE_CONFIG.facilities[a.type];
-                    window.DEFENSE_STATE.facilities.push({ id: key, type: a.type, name: conf.name, team: 'facility', gridX: a.gridX, gridY: a.gridY, hp: 0, maxHp: conf.maxHp });
-                    currentAssets[key].hp = 0; // マップ上の大元データも0にする
-                }
-            });
-
-            if (typeof switchMode === 'function') switchMode('play');
-            window.DEFENSE_STATE.mode = 'normal';
-            window.endDefenseBattle(false); // 敗北扱いで終了
-        };
-
-        // --- 演出テスト実行関数 ---
-        window.runDebugCutscene = async function() {
-            let atkSkin = document.getElementById('dbg-atk-skin').value || 'robot';
-            let defSkin = document.getElementById('dbg-def-skin').value || 'dragon';
-            let skillName = document.getElementById('dbg-skill-name').value;
-            let doCounter = document.getElementById('dbg-do-counter').checked;
-            let doKill = document.getElementById('dbg-do-kill').checked;
-
-            let atk = { name: 'テスト攻撃手', skin: atkSkin, hp: 100, maxHp: 100, team: 'player', atk: 30 };
-            let def = { name: 'テスト防衛手', skin: defSkin, hp: doKill ? 40 : 100, maxHp: 100, team: 'enemy', atk: 20, def: 5 };
-            
-            let skill = window.DEFENSE_SKILL_DB['default'][0];
-            for (let k in window.DEFENSE_SKILL_DB) {
-                let found = window.DEFENSE_SKILL_DB[k].find(s => s.name === skillName);
-                if (found) { skill = found; break; }
-            }
-
-            let cSkill = window.DEFENSE_SKILL_DB['dragon'][0] || window.DEFENSE_SKILL_DB['default'][0];
-
-            window.DEFENSE_STATE.animMode = true; // 強制的にアニメON
-            await window.showDefenseCutscene(atk, def, 50, skill, doCounter, 10, cSkill);
-        };
-
-        // --- 施設HPリスト更新＆変更関数 ---
-        window.refreshDebugFacilities = function() {
-            let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
-            let listHtml = '';
-            Object.keys(currentAssets).forEach(key => {
-                let a = currentAssets[key];
-                if (a && window.DEFENSE_CONFIG.facilities[a.type]) {
-                    let conf = window.DEFENSE_CONFIG.facilities[a.type];
-                    let currentHp = a.hp !== undefined ? a.hp : conf.maxHp;
-                    listHtml += `
-                        <div style="display:flex; justify-content:space-between; align-items:center; background:#222; padding:5px; margin-bottom:4px; border-radius:4px; font-size:12px; color:#fff;">
-                            <span>${conf.name} (${key.substring(0,4)}...)</span>
-                            <div>
-                                <input type="number" id="fac-hp-${key}" value="${Math.floor(currentHp)}" style="width:50px; background:#111; color:#fff; border:1px solid #555;"> / ${conf.maxHp}
-                                <button onclick="window.applyDebugFacilityHp('${key}', ${conf.maxHp})" style="background:#4CAF50; color:#fff; border:none; padding:2px 5px; cursor:pointer;">反映</button>
-                            </div>
+    // --- 施設HPリスト更新＆変更関数 ---
+    window.refreshDebugFacilities = function() {
+        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+        let listHtml = '';
+        Object.keys(currentAssets).forEach(key => {
+            let a = currentAssets[key];
+            if (a && window.DEFENSE_CONFIG.facilities[a.type]) {
+                let conf = window.DEFENSE_CONFIG.facilities[a.type];
+                let currentHp = a.hp !== undefined ? a.hp : conf.maxHp;
+                listHtml += `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:#222; padding:5px; margin-bottom:4px; border-radius:4px; font-size:12px; color:#fff;">
+                        <span>${conf.name} (${key.substring(0,4)}...)</span>
+                        <div>
+                            <input type="number" id="fac-hp-${key}" value="${Math.floor(currentHp)}" style="width:50px; background:#111; color:#fff; border:1px solid #555;"> / ${conf.maxHp}
+                            <button onclick="window.applyDebugFacilityHp('${key}', ${conf.maxHp})" style="background:#4CAF50; color:#fff; border:none; padding:2px 5px; cursor:pointer;">反映</button>
                         </div>
-                    `;
-                }
-            });
-            let listDom = document.getElementById('dbg-facility-list');
-            if (listDom) listDom.innerHTML = listHtml || '<div style="color:#888;">施設がありません</div>';
-        };
-
-        window.applyDebugFacilityHp = function(key, maxHp) {
-            let input = document.getElementById(`fac-hp-${key}`);
-            if(!input) return;
-            let newHp = parseInt(input.value);
-            let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
-            
-            if (currentAssets[key]) {
-                // 1. 大元のセーブデータを更新
-                currentAssets[key].hp = Math.max(0, Math.min(maxHp, newHp));
-                
-                // 2. 現在画面に表示されている「防衛用のHPバー」も同時に更新！
-                if (window.DEFENSE_STATE && window.DEFENSE_STATE.facilities) {
-                    let activeFac = window.DEFENSE_STATE.facilities.find(f => f.id === key);
-                    if (activeFac) activeFac.hp = currentAssets[key].hp;
-                }
-                
-                alert("HPを更新しました！マップに即座に反映されます。");
+                    </div>
+                `;
             }
-        };
+        });
+        let listDom = document.getElementById('dbg-facility-list');
+        if (listDom) listDom.innerHTML = listHtml || '<div style="color:#888;">施設がありません</div>';
+    };
 
-        // デバッグメニューを開いた時に一度リストを生成
-        setTimeout(window.refreshDebugFacilities, 500);
-    }
+    window.applyDebugFacilityHp = function(key, maxHp) {
+        let input = document.getElementById(`fac-hp-${key}`);
+        if(!input) return;
+        let newHp = parseInt(input.value);
+        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+        
+        if (currentAssets[key]) {
+            // 1. 大元のセーブデータを更新
+            currentAssets[key].hp = Math.max(0, Math.min(maxHp, newHp));
+            
+            // 2. 現在画面に表示されている「防衛用のHPバー」も同時に更新！
+            if (window.DEFENSE_STATE && window.DEFENSE_STATE.facilities) {
+                let activeFac = window.DEFENSE_STATE.facilities.find(f => f.id === key);
+                if (activeFac) activeFac.hp = currentAssets[key].hp;
+            }
+            
+            alert("HPを更新しました！マップに即座に反映されます。");
+        }
+    };
+
+    // デバッグメニューを開いた時に一度リストを生成
+    setTimeout(window.refreshDebugFacilities, 500);
 }, 2000);

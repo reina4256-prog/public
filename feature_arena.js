@@ -328,7 +328,13 @@ window.removeArenaPartyMember = function(index) {
 // ==========================================
 window.startArenaBattle = function() {
     document.getElementById('arena-reception-ui').style.display = 'none';
-    window.ARENA_STATE.wave = 1; window.ARENA_STATE.healPots = 3; window.ARENA_STATE.active = true; window.ARENA_STATE.autoMode = false; window.ARENA_STATE.isProcessing = false;
+    
+    // ★追加: デバッグ用のWAVE指定があればそれを使い、無ければ1にする
+    let startWave = window.currentArenaWave || 1;
+    window.ARENA_STATE.wave = startWave; 
+    window.currentArenaWave = null; // 使い終わったらリセット
+    
+    window.ARENA_STATE.healPots = 3; window.ARENA_STATE.active = true; window.ARENA_STATE.autoMode = false; window.ARENA_STATE.isProcessing = false;
     let darkUI = document.createElement('div');
     darkUI.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; background:black; z-index: 55000; display:flex; justify-content:center; align-items:center; color:#ff5252; font-size:36px; font-weight:bold; opacity:0; transition: opacity 1s;`;
     darkUI.innerText = "血湧き肉躍る狂宴の幕開けだ……！"; document.body.appendChild(darkUI);

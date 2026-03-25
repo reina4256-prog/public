@@ -793,3 +793,148 @@ document.addEventListener('visibilitychange', () => {
         }
     }
 });
+
+// =========================================
+// ★ 統合デバッグ用関数群
+// =========================================
+
+// 1. 選択制リセット
+window.customResetGameData = function() {
+    let resetMap = document.getElementById('chk-reset-map').checked;
+    let resetAI = document.getElementById('chk-reset-ai').checked;
+    let resetGrazing = document.getElementById('chk-reset-grazing').checked;
+
+    if (!confirm("選択したデータをリセットします。本当によろしいですか？")) return;
+
+    if (resetMap) { localStorage.removeItem('map_data_v6'); }
+    if (resetAI) {
+        localStorage.removeItem('ai_pet_data_v1');
+        localStorage.removeItem('ai_configs_v8');
+    }
+    if (resetGrazing) { localStorage.removeItem('grazing_data_v1'); }
+
+    localStorage.setItem('force_first_play', 'true');
+    location.reload();
+};
+
+// 2. 弟子入りの強制変更
+window.forceApprenticeState = function() {
+    let master = document.getElementById('dbg-master-sel').value;
+    let rank = parseInt(document.getElementById('dbg-rank-input').value);
+    
+    if (!window.aiPet) return;
+    if (!window.aiPet.apprentice) window.aiPet.apprentice = { currentMaster: null, rank: {} };
+    
+    window.aiPet.apprentice.currentMaster = master;
+    window.aiPet.apprentice.rank[master] = rank;
+    alert(`【弟子入り変更】\n師匠: ${master}\nランク: ${rank} (免許皆伝=10) に設定しました。`);
+};
+
+// 3. 城の強制配置と襲撃トグル
+window.forceBuildCastle = function() {
+    let currentAssets = (typeof assets !== 'undefined') ? assets : window.assets;
+    if (!currentAssets) return;
+    
+    // 既に城があるかチェック
+    let hasCastle = Object.values(currentAssets).some(a => a.type === 'castle');
+    if (hasCastle) {
+        alert("すでに城が存在します！");
+        return;
+    }
+
+    // マップ中央付近に無理やり配置
+    let debugCastleId = "fac_debug_castle_" + Date.now();
+    currentAssets[debugCastleId] = {
+        id: debugCastleId, type: 'castle', hp: 5000, maxHp: 5000,
+        gridX: 10, gridY: 10, visual: 'castle_build' // 座標や画像名は適宜調整
+    };
+    alert("城を座標(10, 10)に強制配置しました！");
+};
+
+window.toggleDefenseAttack = function() {
+    if (typeof window.DEFENSE_STATE === 'undefined') window.DEFENSE_STATE = { noAttack: false };
+    window.DEFENSE_STATE.noAttack = !window.DEFENSE_STATE.noAttack;
+    
+    let btn = document.getElementById('btn-toggle-attack');
+    if (window.DEFENSE_STATE.noAttack) {
+        btn.innerText = "🛡️ 襲撃イベント: OFF (安全)";
+        btn.style.background = "#4CAF50"; // 緑にして安全をアピール
+    } else {
+        btn.innerText = "🛡️ 襲撃イベント: ON";
+        btn.style.background = "#555";
+    }
+};
+
+// 3-B. WAVE指定スタート / 防衛回数変更
+window.debugStartArena = function() {
+    let wave = parseInt(document.getElementById('dbg-arena-wave').value);
+    // ※実際のWAVE開始関数（例: startArenaWave(wave)）に繋ぎ変えてください
+    if (typeof window.startArena === 'function') {
+        window.startArena(wave);
+        alert(`アリーナ WAVE ${wave} からスタートします！`);
+    } else {
+        alert(`アリーナ開始関数が見つかりません。内部変数(arenaWave)等を直接書き換えます。`);
+        window.currentArenaWave = wave; // 仮
+    }
+};
+
+window.debugSetDefenseCount = function() {
+    let count = parseInt(document.getElementById('dbg-defense-count').value);
+    // ※実際の防衛回数管理変数に繋いでください
+    if (window.aiPet) window.aiPet.defenseCount = count;
+    alert(`防衛の襲撃回数を ${count} 回目に設定しました。`);
+};
+
+// 4. TCGカタログ (お友達向け)
+window.showTCGCardCatalog = function() {
+    // 汎用チュートリアル関数を利用してカタログを表示
+    if (typeof window.showGameTutorial === 'function') {
+        let msg = "<h3>【デバッグ】実装済みカード一覧</h3><div style='height:250px; overflow-y:scroll; text-align:left; font-size:12px;'>";
+        
+        // window.tcgCardData 等にカード定義があると仮定。適宜変数名を変更してください。
+        let cardDataObj = (typeof window.tcgCards !== 'undefined') ? window.tcgCards : {}; 
+        
+        for (let key in cardDataObj) {
+            let c = cardDataObj[key];
+            msg += `<div style="margin-bottom:8px; border-bottom:1px solid #444; padding-bottom:4px;">
+                <strong style="color:#FFD700;">${c.name}</strong> (Cost:${c.cost})<br>
+                効果: ${c.desc || '説明なし'}
+            </div>`;
+        }
+        if (Object.keys(cardDataObj).length === 0) {
+            msg += "カードデータが見つかりません。(変数 window.tcgCards などを確認してください)";
+        }
+        msg += "</div>";
+        window.showGameTutorial("カードカタログ", msg, () => {});
+    }
+};
+
+// =========================================
+// ★ アリーナ・ダンジョン強制スタート機能
+// =========================================
+window.debugStartArena = function() {
+    let wave = parseInt(document.getElementById('dbg-arena-wave').value) || 1;
+    window.currentArenaWave = wave; // 変数にセットしておく
+    
+    // 城がない場合の警告
+    let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+    let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
+    if (!hasCastle) {
+        if (!confirm("⚠️ 城が建っていません！\nエラーになる可能性がありますが、強制的にアリーナ受付を開きますか？")) return;
+    }
+
+    if (typeof window.openArenaReception === 'function') {
+        window.openArenaReception();
+        alert(`アリーナ受付を開きました。\nパーティを編成して「出陣する」を押すと、指定したWAVE ${wave} からスタートします！`);
+    }
+};
+
+window.debugStartDungeon = function() {
+    let type = document.getElementById('dbg-dungeon-type').value;
+    let floor = parseInt(document.getElementById('dbg-dungeon-floor').value) || 1;
+
+    if (typeof window.openDungeonUI === 'function') {
+        window.openDungeonUI(type, floor);
+        alert(`${type === 'crystal' ? 'クリスタル迷宮' : 'スカルダンジョン'} の ${floor}F に突入しました！`);
+    }
+};

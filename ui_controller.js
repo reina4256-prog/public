@@ -6069,3 +6069,21 @@ window.formatLargeNumber = function(num) {
     if (n >= 1000) return (n / 1000).toFixed(1) + 'K';             // 1000以上
     return n.toString();                                           // 1000未満
 };
+
+// 修正後→（ファイルの末尾などに以下の関数を追加）
+window.initDebugAccordion = function() {
+    let acc = document.getElementsByClassName("dbg-accordion");
+    for (let i = 0; i < acc.length; i++) {
+        acc[i].addEventListener("click", function() {
+            this.classList.toggle("active");
+            let panel = this.nextElementSibling;
+            if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+        });
+    }
+};
+// 起動時に初期化
+setTimeout(() => { if(typeof initDebugAccordion === 'function') initDebugAccordion(); }, 1000);

@@ -3783,9 +3783,14 @@ window.toggleDungeonAuto = function() {
     }
 };
 
-window.openDungeonUI = function(mapType = 'skull') {
+// ★修正: 第2引数(startFloor)を受け取れるようにする
+window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     const s = window.DUNGEON_STATE;
-    s.mapType = mapType; s.floor = 1;
+    
+    // ★追加: デバッグの階層指定があれば優先、無ければ1階から
+    let floor = startFloor || (window.dungeonState && window.dungeonState.floor) || 1;
+    s.mapType = mapType; s.floor = floor;
+    if (window.dungeonState) window.dungeonState = null; // リセット
     
     let currentSkin = 'robot'; let currentType = 'robot';
     if (window.aiPet) {
