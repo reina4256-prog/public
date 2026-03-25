@@ -785,6 +785,7 @@ document.addEventListener('visibilitychange', () => {
                 // キャッチアップ完了後にUIを1回だけ一括更新
                 if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
                 if (typeof window.updateStatusUI === 'function') window.updateStatusUI();
+                if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
                 if (typeof window.addFloatingText === 'function') {
                     window.addFloatingText(window.aiPet.x, window.aiPet.y - 60, "⏰ 経過時間を処理しました！", "#FFC107");
                 }
@@ -824,17 +825,84 @@ window.customResetGameData = function() {
     location.reload();
 };
 
-// 2. 弟子入りの強制変更
+// 2. 弟子入りの強制変更（裏の職業の個別リセット・皆伝仕様 完全対応版）
 window.forceApprenticeState = function() {
     let master = document.getElementById('dbg-master-sel').value;
     let rank = parseInt(document.getElementById('dbg-rank-input').value);
     
     if (!window.aiPet) return;
-    if (!window.aiPet.apprentice) window.aiPet.apprentice = { currentMaster: null, rank: {} };
+    if (!window.aiPet.apprentice) window.aiPet.apprentice = { currentMaster: null, rank: {}, retired: {}, learnedWords: [] };
     
-    window.aiPet.apprentice.currentMaster = master;
-    window.aiPet.apprentice.rank[master] = rank;
-    alert(`【弟子入り変更】\n師匠: ${master}\nランク: ${rank} (免許皆伝=10) に設定しました。`);
+    // ★現在就いている職業と、変更しようとしている職業が「同じ」かどうかを判定
+    let isCurrentMaster = (window.aiPet.apprentice.currentMaster === master);
+
+    // ▼ ランク0（未入門）が選ばれた場合の完全リセット処理
+    if (rank === 0) {
+        // 該当職業のランクと皆伝履歴（retired）だけをピンポイントで削除
+        delete window.aiPet.apprentice.rank[master]; 
+        if (window.aiPet.apprentice.retired) delete window.aiPet.apprentice.retired[master];
+        
+        // ★修正：今就いている職業をリセットした時「だけ」現在のクエスト進行を白紙にする！
+        // （裏の職業をリセットした時はスルーされるので、今のクエストは守られます）
+        if (isCurrentMaster) {
+            window.aiPet.apprentice.currentMaster = null;
+            window.aiPet.apprentice.activeQuest = null;
+            window.aiPet.apprentice.isGraduated = false;
+            window.aiPet.apprentice.qVal = 0;
+        }
+        
+        window.aiPet.message = "デバッグの力で、記録を白紙に戻したよ！";
+        
+    } else {
+        // ▼ ランク1以上の通常処理
+        window.aiPet.apprentice.rank[master] = rank;
+        
+        if (rank >= 10) {
+            // ランク10（免許皆伝）の処理
+            if (!window.aiPet.apprentice.retired) window.aiPet.apprentice.retired = {};
+            window.aiPet.apprentice.retired[master] = true;
+            
+            // もし今就いている職業を皆伝させたなら、卒業状態にする
+            if (isCurrentMaster) {
+                window.aiPet.apprentice.isGraduated = true;
+                window.aiPet.apprentice.activeQuest = null;
+                window.aiPet.apprentice.qVal = 0;
+            }
+            window.aiPet.message = "デバッグの力で免許皆伝した！";
+        } else {
+            // 修行中ランク（1〜9）への変更
+            if (window.aiPet.apprentice.retired) delete window.aiPet.apprentice.retired[master];
+            
+            // 別の職業のランクをいじった場合は、強制的にその職業に転職させる
+            window.aiPet.apprentice.currentMaster = master;
+            window.aiPet.apprentice.isGraduated = false;
+            window.aiPet.apprentice.qVal = 0;
+            
+            let qData = typeof window.aiPet.getMasterQuestData === 'function' ? window.aiPet.getMasterQuestData() : null;
+            if (qData && qData[master] && qData[master][rank]) {
+                window.aiPet.apprentice.activeQuest = qData[master][rank];
+                if (typeof window.aiPet.apprentice.activeQuest.setup === 'function') {
+                    window.aiPet.apprentice.activeQuest.setup(); 
+                }
+            } else {
+                window.aiPet.apprentice.activeQuest = null;
+            }
+            window.aiPet.message = "デバッグの力でランクを変更した！";
+        }
+    }
+    
+    window.aiPet.messageTimer = 180;
+
+    // UIとセーブデータの即時更新
+    if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+    if (typeof window.updateStatUI === 'function') window.updateStatUI();
+    if (typeof window.saveGameData === 'function') window.saveGameData();
+
+    if (rank === 0) {
+        alert(`【弟子入りリセット】\n現在のクエスト状態を維持したまま、${master} の履歴だけを「未入門」にリセットしました！`);
+    } else {
+        alert(`【弟子入り強制適用】\n師匠: ${master}\nランク: ${rank} に設定しました！`);
+    }
 };
 
 // 3. 城の強制配置と襲撃トグル

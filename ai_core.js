@@ -133,21 +133,16 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.apprentice.qVal >= 5; }
             },
             3: { 
-                name: "畑を駆け回る足", 
-                desc: "広い畑を管理する素早さが必要だ。「ランニング」等で素早さを開始時より＋15上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.speed || 0) + 15; },
-                check: function() { return (aiPet.stats.speed || 0) >= aiPet.apprentice.qVal; }
+                name: "美しい農作物", 
+                desc: "作物には作り手の「美しさ」も宿る。清潔に保ち、美しさを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 15; },
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
             },
             4: { 
-                name: "大地の恵み", 
-                desc: "大成功した野菜（質のいいニンジンなど）を1つ、報告しに行こう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                // ★修正: high_ から始まるアイテムを持っているか判定
-                check: function() { return aiPet.inventory.some(i => i.startsWith('high_')); },
-                onClear: function() { 
-                    const idx = aiPet.inventory.findIndex(i => i.startsWith('high_'));
-                    if (idx !== -1) aiPet.inventory.splice(idx, 1);
-                }
+                name: "土壌の知識", 
+                desc: "美味しい野菜を育てるには知識も必要だ。「勉強」等で賢さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel || 0) + 15; }, 
+                check: function() { return (aiPet.stats.intel || 0) >= aiPet.apprentice.qVal; }
             },
             5: { 
                 name: "農作業の持久力", 
@@ -156,9 +151,9 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             6: { 
-                name: "美しい農作物", 
-                desc: "作物には作り手の美しさも宿る。体力と満腹度を保ってよく眠り、美しさを開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 10; }, 
+                name: "大自然の芸術", 
+                desc: "最高の野菜を作るため、美しさを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 30; }, 
                 check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
             },
             7: { 
@@ -169,7 +164,7 @@ aiPet.getMasterQuestData = function(mType, rank) {
             },
             8: { 
                 name: "豊穣の秋", 
-                desc: "種類は問わない。大成功した野菜（質のいい～）を合計3つ持ってこよう。", 
+                desc: "大成功した野菜（質のいい～）を合計3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { 
                     return aiPet.inventory.filter(i => i.startsWith('high_')).length >= 3; 
@@ -194,59 +189,28 @@ aiPet.getMasterQuestData = function(mType, rank) {
         'fishing': { // 漁師のクエスト（ランク1〜9）
             1: { 
                 name: "釣り場に立つ体力", 
-                desc: "長時間の釣りには体力がいる。活力を開始時より＋3上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 3; }, 
+                desc: "長時間の釣りには体力がいる。活力を開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 15; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             2: { 
                 name: "はじめての釣り", 
-                desc: "支給された古い釣り竿で「釣り」を1回行おう。", 
+                desc: "支給された古い釣り竿で「釣り」を5回行おう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; aiPet.inventory.push('rod_old'); },
-                check: function() { return aiPet.apprentice.qVal >= 1; }
+                check: function() { return aiPet.apprentice.qVal >= 5; }
             },
             3: { 
-                name: "魚の生態", 
-                desc: "魚の習性を知るため「勉強」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; },
-                check: function() { return aiPet.apprentice.qVal >= 2; }
+                name: "素早いアワセ", 
+                desc: "魚が食いついた瞬間に合わせるため、素早さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.speed || 0) + 15; },
+                check: function() { return (aiPet.stats.speed || 0) >= aiPet.apprentice.qVal; }
             },
             4: { 
                 name: "初釣果", 
-                desc: "種類は問わない。釣った魚を1匹、報告しに行こう。", 
+                desc: "種類は問わない。釣った魚を3匹集めてこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.inventory.some(i => i.startsWith('fish_')); }, // ★「fish_」から始まるアイテムがあればOK
+                check: function() { return aiPet.inventory.filter(i => i.startsWith('fish_')).length >= 3; },
                 onClear: function() { 
-                    const idx = aiPet.inventory.findIndex(i => i.startsWith('fish_'));
-                    if (idx !== -1) aiPet.inventory.splice(idx, 1); 
-                }
-            },
-            5: { 
-                name: "忍耐力", 
-                desc: "大物を待つ忍耐力をつけるため、活力を開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 10; }, 
-                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
-            },
-            6: { 
-                name: "漁師の休息", 
-                desc: "夜釣りに備えて「睡眠」を2回とって体を休めよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 2; }
-            },
-            7: { 
-                name: "爆釣の予感", 
-                desc: "何度も糸を垂らそう。「釣り」を5回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 5; }
-            },
-            8: { 
-                name: "大漁の証", 
-                desc: "種類は問わない。魚（fish_から始まるアイテム）を合計3匹持ってこよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, // ★修正：0にリセット
-                check: function() { 
-                    const count = aiPet.inventory.filter(i => i.startsWith('fish_')).length;
-                    return count >= 3; 
-                },
-                onClear: function() {
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
                         if (aiPet.inventory[i].startsWith('fish_')) {
@@ -256,216 +220,263 @@ aiPet.getMasterQuestData = function(mType, rank) {
                     }
                 }
             },
+            5: { 
+                name: "大物との対峙", 
+                desc: "大物の引きに負けないよう、活力を開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 30; }, 
+                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
+            },
+            6: { 
+                name: "漁師の休息", 
+                desc: "潮風で荒れた肌を労ろう。清潔な休息を取り、美しさを開始時より＋10上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 10; }, 
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
+            },
+            7: { 
+                name: "見切りの目", 
+                desc: "一瞬のウキの沈みを見逃さないため、素早さを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.speed || 0) + 30; }, 
+                check: function() { return (aiPet.stats.speed || 0) >= aiPet.apprentice.qVal; }
+            },
+            8: { 
+                name: "伝説の証明", 
+                desc: "真の漁師の証として、川か海の「ヌシ」を1匹釣ってこよう。", 
+                setup: function() { aiPet.apprentice.qVal = 0; },
+                check: function() { 
+                    return aiPet.inventory.some(i => i === 'fish_boss_river' || i === 'fish_boss_sea');
+                },
+                onClear: function() {
+                    let idx = aiPet.inventory.indexOf('fish_boss_river');
+                    if (idx === -1) idx = aiPet.inventory.indexOf('fish_boss_sea');
+                    if (idx !== -1) aiPet.inventory.splice(idx, 1);
+                }
+            },
             9: { 
                 name: "伝説の海へ", 
-                desc: "漁師の道を極める最後の試練！活力を開始時より＋20上げよう。", // ★テキスト修正
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 20; }, 
+                desc: "漁師の道を極める最後の試練！活力を開始時より＋50上げよう。",
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 50; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
         'cooking': { // 料理人のクエスト（ランク1〜9）
             1: { 
                 name: "料理の心得", 
-                desc: "レシピを理解する知性が必要だ。賢さを開始時より＋3上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 3; }, 
+                desc: "レシピを理解する知性が必要だ。賢さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 15; }, 
                 check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
             },
             2: { 
                 name: "はじめての調理", 
-                desc: "支給された食材で「料理」を1回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; aiPet.inventory.push('carrot'); }, // ★バグ対策: 強制的にニンジンを支給
-                check: function() { return aiPet.apprentice.qVal >= 1; }
-            },
-            3: { 
-                name: "食材の研究", 
-                desc: "食材の栄養価を知るため「勉強」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; },
-                check: function() { return aiPet.apprentice.qVal >= 2; }
-            },
-            4: { 
-                name: "初めての一皿", 
-                desc: "種類は問わない。料理を1つ完成させて、報告しに行こう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                // ★修正：アイテムの有無ではなく、作った回数（qVal）が1以上ならクリア！
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 1; },
-                onClear: function() { 
-                    // 報告時にもし料理を持っていれば消費する（食べてしまっていてもペナルティなし）
-                    const idx = aiPet.inventory.findIndex(i => i.startsWith('dish_'));
-                    if (idx !== -1) aiPet.inventory.splice(idx, 1); 
-                    aiPet.apprentice.qVal = 0; 
-                }
-            },
-            5: { 
-                name: "味覚の探求心", 
-                desc: "新しい味の探求のため、賢さを開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 10; }, 
-                check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
-            },
-            6: { 
-                name: "料理人の舌", 
-                desc: "味覚を鍛えるには食べることも修行だ。「食事」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.apprentice.qVal >= 2; }
-            },
-            7: { 
-                name: "厨房の戦い", 
-                desc: "何度もフライパンを振ろう。「料理」を5回行おう。", 
+                desc: "まずはフライパンに慣れよう。お試しで「料理」を5回行おう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { return aiPet.apprentice.qVal >= 5; }
             },
-            8: { 
-                name: "フルコースの準備", 
-                desc: "種類は問わない。料理を合計3つ完成させて、報告しに行こう。", 
+            3: { 
+                name: "盛り付けの美学", 
+                desc: "料理は見た目も味のうち。美しさを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 15; },
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
+            },
+            4: { 
+                name: "基本の一皿", 
+                desc: "黒焦げを避け、成功した「普通の試作料理」を3つ持ってこよう。（※食べられる前に報告だ！）", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                // ★修正：インベントリの数ではなく、作った実績（qVal）が3以上ならクリア！
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 3; },
-                onClear: function() {
-                    // 報告時に料理を持っていれば最大3つまで消費（なくてもOK）
+                check: function() { return aiPet.inventory.filter(i => i === 'food_practice_normal').length >= 3; },
+                onClear: function() { 
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (aiPet.inventory[i].startsWith('dish_')) {
+                        if (aiPet.inventory[i] === 'food_practice_normal') {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
                     }
-                    aiPet.apprentice.qVal = 0;
+                }
+            },
+            5: { 
+                name: "味覚の探求心", 
+                desc: "より高度な調理法を学ぶため、賢さを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 30; }, 
+                check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
+            },
+            6: { 
+                name: "料理人の舌", 
+                desc: "他人の料理を食べることも修行だ。「食事」を3回行おう。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.apprentice.qVal >= 3; }
+            },
+            7: { 
+                name: "芸術的な感性", 
+                desc: "究極の料理を作るインスピレーションを得るため、美しさを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 30; }, 
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
+            },
+            8: { 
+                name: "究極のフルコース", 
+                desc: "大成功でのみ作れる「究極の試作料理」を3つ持ってこよう。（※絶対に食べられるな！）", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => i === 'food_practice_great').length >= 3; },
+                onClear: function() {
+                    let removed = 0;
+                    for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
+                        if (aiPet.inventory[i] === 'food_practice_great') {
+                            aiPet.inventory.splice(i, 1); removed++;
+                            if (removed >= 3) break;
+                        }
+                    }
                 }
             },
             9: { 
                 name: "三ツ星の頂へ", 
-                desc: "料理の道を極める最後の試練！賢さを開始時より＋20上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 20; }, 
+                desc: "料理の道を極める最後の試練！賢さを開始時より＋50上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 50; }, 
                 check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
             }
         },
         'smithing': { // 鍛冶師のクエスト（ランク1〜9）
             1: { 
                 name: "火に耐える体力", 
-                desc: "重い槌を振るう体力がいる。活力を開始時より＋3上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 3; }, 
+                desc: "重い槌を振るう体力がいる。活力を開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 15; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             2: { 
                 name: "はじめての鍛造", 
-                desc: "支給された鉄鉱石で「鍛冶」を1回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; aiPet.inventory.push('iron'); }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 1; }
-            },
-            3: { 
-                name: "金属の知識", 
-                desc: "鉱石の性質を知るため「勉強」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; },
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 2; }
-            },
-            4: { 
-                name: "職人の証", 
-                desc: "種類は問わない。作った装備品を1つ、報告しに行こう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 1; },
-                onClear: function() { 
-                    const idx = aiPet.inventory.findIndex(i => i.startsWith('eq_') || i.startsWith('tool_'));
-                    if (idx !== -1) aiPet.inventory.splice(idx, 1); 
-                    aiPet.apprentice.qVal = 0;
-                }
-            },
-            5: { 
-                name: "精神統一", 
-                desc: "集中力を維持するため、活力を開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 10; }, 
-                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
-            },
-            6: { 
-                name: "鍛冶師の休息", 
-                desc: "熱中しすぎも良くない。「睡眠」を2回とって体を休めよう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 2; }
-            },
-            7: { 
-                name: "千錬万鍛", 
-                desc: "鉄を叩いて形を覚えよう。「鍛冶」を5回行おう。", 
+                desc: "まずは鉄を叩いてみよう。「鍛冶」を5回行おう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { return (aiPet.apprentice.qVal || 0) >= 5; }
             },
-            8: { 
-                name: "名工への準備", 
-                desc: "作った装備品（eq_やtool_から始まるもの）を合計3つ持ってこよう。", 
+            3: { 
+                name: "金属の知識", 
+                desc: "温度管理と鉱石の性質を知るため、賢さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 15; },
+                check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
+            },
+            4: { 
+                name: "職人の証", 
+                desc: "種類は問わない。作った練習用装備（なまくら剣など）を3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 3; },
-                onClear: function() {
+                check: function() { return aiPet.inventory.filter(i => i.includes('_practice_')).length >= 3; },
+                onClear: function() { 
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (aiPet.inventory[i].startsWith('eq_') || aiPet.inventory[i].startsWith('tool_')) {
+                        if (aiPet.inventory[i].includes('_practice_')) {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
                     }
-                    aiPet.apprentice.qVal = 0;
+                }
+            },
+            5: { 
+                name: "精神統一", 
+                desc: "集中力を維持するため、活力を開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 30; }, 
+                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
+            },
+            6: { 
+                name: "鍛冶師の休息", 
+                desc: "煤まみれでは良い作品は作れない。清潔な休息を取り、美しさを開始時より＋10上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 10; }, 
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
+            },
+            7: { 
+                name: "千錬万鍛", 
+                desc: "芸術の域に達する設計図を引くため、賢さを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 30; }, 
+                check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
+            },
+            8: { 
+                name: "名工への準備", 
+                desc: "大成功でのみ作れる芸術品（黄金の鍋など）を合計3つ持ってこよう。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => i.includes('_art_')).length >= 3; },
+                onClear: function() {
+                    let removed = 0;
+                    for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
+                        if (aiPet.inventory[i].includes('_art_')) {
+                            aiPet.inventory.splice(i, 1); removed++;
+                            if (removed >= 3) break;
+                        }
+                    }
                 }
             },
             9: { 
                 name: "伝説の鍛冶屋へ", 
-                desc: "鍛冶の道を極める最後の試練！活力を開始時より＋20上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 20; }, 
+                desc: "鍛冶の道を極める最後の試練！活力を開始時より＋50上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 50; }, 
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
         'building': { // 建築士のクエスト（ランク1〜9）
             1: { 
-                name: "空間把握能力", 
-                desc: "図面を引くには賢さがいる。賢さを開始時より＋3上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 3; }, 
+                name: "構造計算の基礎", 
+                desc: "まずは図面を引く知識がいる。賢さを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 15; }, 
                 check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
             },
             2: { 
-                name: "はじめての建築", 
-                // ★修正：チャットで指示する文言に変更
-                desc: "支給された資材で「建築」を1回行おう。", 
-                setup: function() { 
-                    aiPet.apprentice.qVal = 0; 
-                    for(let i=0; i<5; i++){ aiPet.inventory.push('wood'); aiPet.inventory.push('stone'); } 
-                }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 1; }
+                name: "はじめての製図", 
+                desc: "師匠の元で「建築（製図）」を5回行おう。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.apprentice.qVal >= 5; }
             },
             3: { 
-                name: "素材の知識", 
-                desc: "建材の性質を知るため「勉強」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; },
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 2; }
-            },
-            4: { 
-                name: "基礎工事の反復", 
-                desc: "実践あるのみ。「建築」を2回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 2; }
-            },
-            5: { 
                 name: "現場の体力", 
-                desc: "重い資材を運ぶため、活力を開始時より＋10上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 10; }, 
+                desc: "模型を組み上げるには体力も必要だ。活力を開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 15; },
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
-            6: { 
-                name: "職人の休息", 
-                desc: "事故を防ぐには休息も大事だ。「睡眠」を2回とろう。", 
+            4: { 
+                name: "見習いの証明", 
+                desc: "落書きを避け、成功した「練習用の図面」を3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 2; }
+                check: function() { return aiPet.inventory.filter(i => i === 'build_practice_normal').length >= 3; },
+                onClear: function() { 
+                    let removed = 0;
+                    for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
+                        if (aiPet.inventory[i] === 'build_practice_normal') {
+                            aiPet.inventory.splice(i, 1); removed++;
+                            if (removed >= 3) break;
+                        }
+                    }
+                }
+            },
+            5: { 
+                name: "高度な設計理論", 
+                desc: "芸術的な建築を計算するため、賢さを開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 30; }, 
+                check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
+            },
+            6: { 
+                name: "デザインの美学", 
+                desc: "機能美を追求するため、美しさを開始時より＋15上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.beauty || 0) + 15; }, 
+                check: function() { return (aiPet.stats.beauty || 0) >= aiPet.apprentice.qVal; }
             },
             7: { 
-                name: "街づくりの鬼", 
-                desc: "どんどん建てよう。「建築」を5回行おう。", 
-                setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 5; }
+                name: "不屈の精神", 
+                desc: "徹夜の作業に耐えるため、活力を開始時より＋30上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.power) + 30; }, 
+                check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             },
             8: { 
-                name: "現場の指揮", 
-                desc: "図面と安全管理を極めるため、「勉強」を3回行おう。", 
+                name: "マスターピース", 
+                desc: "大成功でのみ作れる「精巧な建築模型」を3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return (aiPet.apprentice.qVal || 0) >= 3; }
+                check: function() { return aiPet.inventory.filter(i => i === 'build_practice_great').length >= 3; },
+                onClear: function() {
+                    let removed = 0;
+                    for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
+                        if (aiPet.inventory[i] === 'build_practice_great') {
+                            aiPet.inventory.splice(i, 1); removed++;
+                            if (removed >= 3) break;
+                        }
+                    }
+                }
             },
             9: { 
-                name: "伝説のマスタービルダーへ", 
-                desc: "建築の道を極める最後の試練！賢さを開始時より＋20上げよう。", 
-                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 20; }, 
+                name: "伝説の建築士へ", 
+                desc: "建築の道を極める最後の試練！賢さを開始時より＋50上げよう。", 
+                setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 50; }, 
                 check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
             }
         }
@@ -481,43 +492,48 @@ aiPet.getMasterQuestData = function(mType, rank) {
     };
 };
 
-// ★完全版: 育成の偏りによって性格が分岐するシステム
-function getPersonalityType(stats) {
-    if (!stats) return 'average';
+// ==========================================
+// ★完全版: 素早さ＆インフレ対応の性格判定システム
+// ==========================================
+window.getPersonalityType = function(stats) {
+    if (!stats) return "普通";
     const intel = stats.intel || 0;
     const power = stats.power || 0;
     const beauty = stats.beauty || 0;
-    const mood = stats.mood || 0; 
-    
-    // 育成ステータス（機嫌以外）の最大値と最小値を計算
-    const coreMax = Math.max(intel, power, beauty);
-    const coreMin = Math.min(intel, power, beauty);
-    
+    const speed = stats.speed || 10;
+    const mood = stats.mood || 0;
+
+    const maxStat = Math.max(intel, power, beauty, speed);
+    const minStat = Math.min(intel, power, beauty, speed);
+
     // 1. 状態異常系（最優先）
-    if (mood <= 20) return 'gloom'; // 陰気（機嫌が非常に悪い）
-    
-    // 2. 超エリート状態
-    if (intel > 40 && power > 40 && beauty > 40) return 'stoic'; // ストイック
-    
+    if (mood <= 20) return "憂鬱"; // 機嫌が極端に悪い
+
+    // 2. 超エリート状態（すべてが非常に高い）
+    if (intel >= 1000 && power >= 1000 && beauty >= 1000 && speed >= 1000) return "完璧超人";
+    if (intel >= 100 && power >= 100 && beauty >= 100 && speed >= 100) return "ストイック";
+
     // 3. 初期状態・未発達
-    if (coreMax < 30) return 'average'; // まだ育っていない時は基本「普通」
-    
-    // 4. 器用貧乏（中途半端なバランス型）
-    // トップの能力と一番低い能力の差が10未満の場合、器用貧乏になってサボりだす
-    if (coreMax - coreMin < 10) return 'lazy'; // 怠け者
-    
-    // 5. 特化型（何かが突出して育っている場合）
-    if (coreMax === beauty) {
-        // 美しさ特化の場合、機嫌が非常に良ければアイドル、それ以外は芸術家
-        if (mood >= 90) return 'idol';
-        return 'artist';
+    if (maxStat < 30) return "普通";
+
+    // 4. 器用貧乏・のんびり（ステータスに偏りがない場合）
+    // ※ステータスが数万にインフレしても対応できるよう、差が「最大値の10%未満」かで判定
+    if ((maxStat - minStat) < (maxStat * 0.1) || (maxStat - minStat) < 10) return "のんびり屋";
+
+    // 5. 特化型（一番高いステータスで決定）
+    if (maxStat === beauty) {
+        if (mood >= 90) return "アイドル";
+        return "芸術家";
     }
-    
-    if (coreMax === intel) return 'scholar'; // 学者肌
-    if (coreMax === power) return 'athlete'; // 体育会系
-    
-    return 'average';
-}
+    if (maxStat === speed) {
+        if (mood >= 90) return "韋駄天"; // 素早さ特化＋ご機嫌
+        return "せっかち";
+    }
+    if (maxStat === intel) return "学者肌";
+    if (maxStat === power) return "熱血";
+
+    return "普通";
+};
 
 function resetIdle() { 
     // ★修正：配列の中に 'building' を追加
@@ -979,37 +995,49 @@ aiPet.performIdleAction = function() {
     }
     // ==========================================
     
-    const pType = getPersonalityType(this.stats);
-    let typeKey = this.baseType || 'robot';
-    if (this.currentSkin) {
-        if (this.currentSkin.includes('robot')) typeKey = 'robot'; 
-        else if (this.currentSkin.includes('spirit')) typeKey = 'spirit'; 
-        else if (this.currentSkin.includes('magician')) typeKey = 'magician';
+    const pType = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(this.stats) : '普通';
+    
+    // ★修正：まずは現在のスキン（進化後の姿）をキーにする
+    let typeKey = this.currentSkin || this.baseType || 'robot';
+    
+    // もし characterDialogues の中に進化後の専用セリフがまだ作られていなければ、基本種族（baseType）を代わりに入れる
+    if (typeof characterDialogues !== 'undefined' && !characterDialogues[typeKey]) {
+        typeKey = this.baseType || 'robot';
     }
-    if (!characterDialogues[typeKey]) typeKey = 'robot';
+    // それでも無ければ強制的に robot にする保険
+    if (typeof characterDialogues !== 'undefined' && !characterDialogues[typeKey]) {
+        typeKey = 'robot';
+    }
+    if (typeof characterDialogues !== 'undefined' && !characterDialogues[typeKey]) typeKey = 'robot';
 
-    // (※以下、元の「知っている行動のみ自発的に開始する」処理などがそのまま続きます)
-    if (currentMode === 'play' && this.schedule.length === 0 && Math.random() < 0.4) {
+    // (※以下、元の「知っている行動のみ自発的に開始する」処理)
+    if (typeof currentMode !== 'undefined' && currentMode === 'play' && this.schedule.length === 0 && Math.random() < 0.4) {
         let autoTask = null;
         let actMsg = "";
         
         const knows = (word) => this.apprentice && this.apprentice.learnedWords && this.apprentice.learnedWords.includes(word);
         
-        if (pType === 'scholar' && knows("勉強") && Math.random() < 0.6) { autoTask = 'study'; actMsg = "気になって本を読み始めた！"; }
-        else if (pType === 'athlete' && knows("筋トレ") && Math.random() < 0.6) { autoTask = 'train'; actMsg = "じっとしていられず筋トレ開始！"; }
-        else if (pType === 'artist' && knows("鍛冶") && Math.random() < 0.4) { autoTask = 'smith'; actMsg = "何かを作りたくなってきた！"; }
-        else if (pType === 'idol' && knows("探検") && Math.random() < 0.4) { autoTask = 'explore'; actMsg = "みんなに会いにお出かけしよう！"; }
-        else if (pType === 'stoic' && Math.random() < 0.7) { 
+        // ★性格の日本語化 ＆ 新性格の追加
+        if (pType === '学者肌' && knows("勉強") && Math.random() < 0.6) { autoTask = 'study'; actMsg = "気になって本を読み始めた！"; }
+        else if (pType === '熱血' && knows("筋トレ") && Math.random() < 0.6) { autoTask = 'train'; actMsg = "じっとしていられず筋トレ開始！"; }
+        else if (pType === '芸術家' && knows("鍛冶") && Math.random() < 0.4) { autoTask = 'smith'; actMsg = "何かを作りたくなってきた！"; }
+        else if (pType === 'アイドル' && knows("探検") && Math.random() < 0.4) { autoTask = 'explore'; actMsg = "みんなに会いにお出かけしよう！"; }
+        // ▼ 新規追加：素早さ特化（せっかち・韋駄天）はランニングに行きたがる
+        else if ((pType === 'せっかち' || pType === '韋駄天') && knows("ランニング") && Math.random() < 0.6) { autoTask = 'run'; actMsg = "じっとしていられない！走ってくる！"; }
+        // ▼ 修正：ストイック・完璧超人の自己研鑽
+        else if ((pType === 'ストイック' || pType === '完璧超人') && Math.random() < 0.7) { 
             let stoicActs = [];
             if (knows("勉強")) stoicActs.push('study');
             if (knows("筋トレ")) stoicActs.push('train');
             if (knows("探検")) stoicActs.push('explore');
+            if (knows("ランニング")) stoicActs.push('run'); // ランニングも追加
             if (stoicActs.length > 0) {
                 autoTask = stoicActs[Math.floor(Math.random() * stoicActs.length)];
                 actMsg = "時間を無駄にせず自己研鑽だ！";
             }
         }
-        else if (pType === 'lazy' && knows("休憩") && Math.random() < 0.5) { autoTask = 'rest'; actMsg = "もう疲れたから寝る..."; }
+        // ▼ 修正：lazy → のんびり屋 （※学習単語に合わせて「睡眠」に変更）
+        else if (pType === 'のんびり屋' && knows("睡眠") && Math.random() < 0.5) { autoTask = 'sleep'; actMsg = "もう疲れたから寝る..."; }
         
         if (autoTask) {
             this.schedule.push({type: autoTask, duration: 150});
@@ -1031,27 +1059,53 @@ aiPet.performIdleAction = function() {
             const wanderY = (Math.random() - 0.5) * 300;
             nextX = this.x + wanderX; nextY = this.y + wanderY;
             nextX = Math.max(50, Math.min(750, nextX)); nextY = Math.max(50, Math.min(430, nextY));
-            if (!this.isPointOnWater(nextX, nextY)) { found = true; break; }
+            if (typeof this.isPointOnWater === 'function' && !this.isPointOnWater(nextX, nextY)) { found = true; break; }
         }
         if (found) {
-            if(this.setDestination(nextX, nextY, true)) this.actionState = 'moving';
+            if(typeof this.setDestination === 'function' && this.setDestination(nextX, nextY, true)) this.actionState = 'moving';
         }
     } else {
-        const data = characterDialogues[typeKey][pType];
-        if (data && data.length > 0) { this.message = data[Math.floor(Math.random() * data.length)]; }
+        // ★重要修正：存在しない性格データが呼ばれた時にエラーにならないように、見つからなければ「普通」のセリフを喋らせるフォールバックを追加
+        if (typeof characterDialogues !== 'undefined' && characterDialogues[typeKey]) {
+            const data = characterDialogues[typeKey][pType] || characterDialogues[typeKey]['普通'] || characterDialogues[typeKey]['average'];
+            if (data && data.length > 0) { 
+                this.message = data[Math.floor(Math.random() * data.length)]; 
+            }
+        }
         this.messageTimer = 120;
     }
 };
 
 aiPet.processCookingStart = function(task) {
-    // 修行中（isTrialフラグがある時）は材料チェックをスキップしてお試し料理
+    // ★修正：修行中（isTrial）は材料なしで、ステータス依存の試作料理を作る！
     if (task.isTrial) {
-        let successRate = 0.4 + ((this.skills.cooking || 1) * 0.05);
+        let intel = this.stats.intel || 10;
+        let beauty = this.stats.beauty || 10;
+        
+        // 賢さ（レシピ理解）と美しさ（盛り付け）から成功率と大成功率を計算
+        let successRate = 0.3 + (intel * 0.005) + (beauty * 0.005) + ((this.skills.cooking || 1) * 0.05);
+        let greatSuccessRate = (intel * 0.003) + (beauty * 0.003); // ステータスが高いほど大成功しやすい
+        
+        successRate = Math.min(0.95, successRate);
+        
+        let isSuccess = Math.random() < successRate;
+        let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
+
+        // 結果の決定
+        let targetId = 'food_practice_normal';
+        let targetName = '普通の試作料理';
+
+        if (isGreatSuccess) {
+            targetId = 'food_practice_great';
+            targetName = '究極の試作料理';
+        }
+
         task.cookData = {
-            targetId: 'baked_carrot', // お試しはニンジン料理固定
-            targetName: "お試しの焼きニンジン",
+            targetId: targetId,
+            targetName: targetName,
             successRate: successRate,
-            isSuccess: Math.random() < successRate,
+            isSuccess: isSuccess,
+            isGreatSuccess: isGreatSuccess, // 大成功フラグを追加
             isTrial: true
         };
         return true;
@@ -1099,15 +1153,33 @@ aiPet.processCookingFinish = function(task) {
     if (d.isSuccess) {
         if (!this.skills.cooking) this.skills.cooking = 1;
         this.skills.cooking += 0.5;
-        this.stats.mood += 5;
-        this.message = `料理成功！ ${d.targetName}ができた！`;
-        // お試し料理の場合はアイテムを渡さない（または即座に消費したことにする）
-        if (!d.isTrial) this.inventory.push(d.targetId);
+        
+        // ★修正：大成功時は機嫌が大きく回復するボーナス
+        this.stats.mood += d.isGreatSuccess ? 15 : 5;
+        
+        if (d.isGreatSuccess) {
+            this.message = `大成功！！ 奇跡の出来栄え「${d.targetName}」が完成した！`;
+        } else {
+            this.message = `料理成功！ ${d.targetName}ができた！`;
+        }
+        
+        // ★修正：修行中（isTrial）であっても、クエスト報告のためにインベントリに入れる！
+        this.inventory.push(d.targetId);
+        
+        // クエストの進捗（料理した回数）をカウントする
+        if (this.apprentice && this.apprentice.activeQuest) {
+            const desc = this.apprentice.activeQuest.desc;
+            if (desc.includes('料理') || desc.includes('試作')) {
+                this.apprentice.qVal = (this.apprentice.qVal || 0) + 1;
+                if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+            }
+        }
     } else {
         if (!this.skills.cooking) this.skills.cooking = 1;
         this.skills.cooking += 0.1;
-        this.message = "料理失敗... 焦がしちゃった...";
-        if (!d.isTrial) this.inventory.push('burnt_food');
+        this.message = "料理失敗... 黒焦げの謎の物体になっちゃった...";
+        // ★修正：修行中であってもペナルティとして黒焦げをインベントリにねじ込む！
+        this.inventory.push('burnt_food');
     }
     
     this.messageTimer = 150;
@@ -1123,23 +1195,42 @@ aiPet.processCookingFinish = function(task) {
 };
 
 aiPet.processSmithingStart = function(task) {
-    // ★修正：修行中（isTrialフラグがある時）は、材料消費なしで「練習用装備」を作る！
+    // ★修正：修行中（isTrial）は実用品を作らず、ステータス依存で「なまくら」か「超高品質な工芸品（非実用）」を作る！
     if (task.isTrial) {
-        let successRate = 0.3 + ((this.skills.smithing || 1) * 0.05);
+        let power = this.stats.power || 10;
+        let intel = this.stats.intel || 10;
         
-        // クエストの判定（eq_ や tool_ から始まる）を通過しつつ、実用品ではないIDにする
+        // 活力（打つ力）と賢さ（温度管理）から成功率と大成功率を計算
+        let successRate = 0.3 + (power * 0.005) + (intel * 0.005) + ((this.skills.smithing || 1) * 0.05);
+        let greatSuccessRate = (power * 0.003) + (intel * 0.003); // ステータスが高いほど大成功しやすい
+        
+        successRate = Math.min(0.95, successRate);
+        
+        let isSuccess = Math.random() < successRate;
+        let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
+
+        // 普通の成功時（実用性のない練習用）
         const trialItems = [
             { id: 'eq_practice_sword', name: '練習用のなまくら剣' },
             { id: 'eq_practice_shield', name: '練習用のボロボロの盾' },
             { id: 'tool_practice_pan', name: '練習用の歪な鍋' }
         ];
-        let pick = trialItems[Math.floor(Math.random() * trialItems.length)];
+        // ★新規追加：大成功時にできる「価値は高いが実用性はない芸術品」
+        const artItems = [
+            { id: 'eq_art_sword', name: '芸術的な模造剣' },
+            { id: 'eq_art_shield', name: '装飾過多な儀礼盾' },
+            { id: 'tool_art_pan', name: '黄金のディスプレイ鍋' }
+        ];
+
+        let targetPool = isGreatSuccess ? artItems : trialItems;
+        let pick = targetPool[Math.floor(Math.random() * targetPool.length)];
 
         task.smithData = {
             targetId: pick.id,
             targetName: pick.name,
             successRate: successRate,
-            isSuccess: Math.random() < successRate,
+            isSuccess: isSuccess,
+            isGreatSuccess: isGreatSuccess, // 大成功フラグを追加
             isTrial: true
         };
         return true;
@@ -1177,10 +1268,16 @@ aiPet.processSmithingFinish = function(task) {
     if (d.isSuccess) {
         if (!this.skills.smithing) this.skills.smithing = 1;
         this.skills.smithing += 0.5;
-        this.stats.mood += 5;
-        this.message = `鍛冶成功！ ${d.targetName}ができた！`;
+        // ★修正：大成功時は機嫌が大きく回復するボーナス
+        this.stats.mood += d.isGreatSuccess ? 15 : 5;
         
-        // ★修正：お試し（練習用装備）であっても、報告して没収されるようにインベントリに入れる！
+        if (d.isGreatSuccess) {
+            this.message = `大成功！！ 素晴らしい出来の「${d.targetName}」ができた！`;
+        } else {
+            this.message = `鍛冶成功！ ${d.targetName}ができた！`;
+        }
+        
+        // お試し（練習用装備・工芸品）であっても、報告や売却のためにインベントリに入れる！
         this.inventory.push(d.targetId);
 
         // クエストの進捗（作った回数）をカウントする
@@ -1360,9 +1457,33 @@ aiPet.processFishingFrame = function() {
                 if (rand < current) { caughtItem = seasonTable[i].id; break; }
             }
             if (!caughtItem) caughtItem = seasonTable[0].id;
-            d.caughtItem = caughtItem;
-            d.targetName = itemCatalog[caughtItem].name;
             
+            // ▼▼▼ 新規追加：ステータスが高いと「ヌシ」が掛かるようになる ▼▼▼
+            if ((this.stats.power || 0) >= 30 && (this.stats.speed || 0) >= 30) {
+                let bossChance = 0.05 + ((this.stats.power || 0) * 0.001); // 5%以上の確率でヌシ
+                if (Math.random() < bossChance) {
+                    caughtItem = isSea ? 'fish_boss_sea' : 'fish_boss_river';
+                }
+            }
+            
+            d.caughtItem = caughtItem;
+            d.targetName = (typeof itemCatalog !== 'undefined' && itemCatalog[caughtItem]) ? itemCatalog[caughtItem].name : (isSea ? "海のヌシ" : "川のヌシ");
+            
+            // ▼▼▼ 新規追加：大物のステータスの壁 ▼▼▼
+            d.isBoss = (caughtItem === 'fish_boss_sea' || caughtItem === 'fish_boss_river');
+            d.bossFailed = false;
+            
+            if (d.isBoss) {
+                if ((this.stats.power || 0) < 80 || (this.stats.speed || 0) < 60) {
+                    d.isSuccess = false; // ステータス不足なら絶対に釣れない
+                    d.bossFailed = true; // 大物に逃げられるフラグ
+                } else {
+                    // ステータスを満たしていても釣りにくい（確率半減）
+                    d.isSuccess = Math.random() < (catchRate * 0.5);
+                }
+            }
+            // ▲▲▲ 新規追加ここまで ▲▲▲
+
             d.phase = 'hit';
             d.timer = 0;
             d.pos = 100; 
@@ -1417,9 +1538,22 @@ aiPet.processFishingFrame = function() {
             if (d.timer > 180 || d.pos >= 120) {
                 d.phase = 'result';
                 d.timer = 0;
-                const failMsgs = ["逃げられた...", "糸が切れた..."];
-                this.message = failMsgs[Math.floor(Math.random()*failMsgs.length)];
+                
+                // ▼▼▼ 新規追加：大物に逃げられた時の激しいペナルティ ▼▼▼
+                if (d.bossFailed || (d.isBoss && !d.isSuccess)) {
+                    this.message = "化け物みたいな引きだ...糸が切られた！！";
+                    if (!this.godMode) {
+                        this.energy -= 20;  // 激しく体力を消耗
+                        this.stats.mood -= 20; // かなり不機嫌になる
+                    }
+                    this.fishingPopupTimer = 90;
+                    this.fishingPopup = `❌ ヌシに力負けした...`;
+                } else {
+                    const failMsgs = ["逃げられた...", "糸が切れた..."];
+                    this.message = failMsgs[Math.floor(Math.random()*failMsgs.length)];
+                }
                 this.messageTimer = 90;
+                // ▲▲▲ 新規追加ここまで ▲▲▲
                 
                 if (d.isBreak) {
                     this.inventory.splice(d.bestIdx, 1);
@@ -2352,12 +2486,81 @@ aiPet.executeEnterAction = function() {
     if (this.interactionTarget && this.interactionTarget.type === 'farm') {
         this.actionState = 'farming_work'; this.exploreTimer = 0;
         let farmAct = 'farm_plow'; let msg = "手入れ中...";
-        if (this.intendedSeed) { farmAct = 'farm_seed'; msg = "種まき中..."; }
-        else if (this.intendedAction === 'pest_control') { farmAct = 'farm_pest'; msg = "害虫退治中..."; }
-        else if (this.interactionTarget.isDead || this.interactionTarget.isEaten) { farmAct = 'farm_plow'; msg = "片付け中..."; }
-        else if (this.interactionTarget.growth >= 100) { farmAct = 'farm_harvest'; msg = "収穫中..."; }
+        let farm = this.interactionTarget;
+        let seed = this.intendedSeed;
+        let act = this.intendedAction;
+
+        if (seed) { farmAct = 'farm_seed'; msg = "種まき中..."; }
+        else if (act === 'pest_control') { farmAct = 'farm_pest'; msg = "害虫退治中..."; }
+        else if (farm.isDead || farm.isEaten) { farmAct = 'farm_plow'; msg = "片付け中..."; }
+        else if (farm.growth >= 100) { farmAct = 'farm_harvest'; msg = "収穫中..."; }
         else { farmAct = 'farm_water'; }
-        this.visualAction = farmAct; this.message = msg;
+        
+        this.visualAction = farmAct; 
+        this.message = msg;
+        this.messageTimer = 120;
+
+        // ★修正：アニメーションを3秒見せた後、確実に完了させて立ち状態に戻す（フリーズ対策）
+        setTimeout(() => {
+            if (this.actionState !== 'farming_work') return; // 別の行動に上書きされていたら中止
+            
+            if (seed && (!farm.plantedCrop || farm.isDead || farm.isEaten)) {
+                farm.plantedCrop = seed; farm.growth = 0; farm.waterLevel = 100;
+                farm.isDead = false; farm.isEaten = false;
+                this.message = "種まき完了！";
+                
+                // 種を消費（支給品以外）
+                if (seed !== 'seed_carrot_given') {
+                    let idx = this.inventory.indexOf(seed);
+                    if (idx !== -1) this.inventory.splice(idx, 1);
+                }
+            } 
+            else if (act === 'pest_control') {
+                farm.pestState = false; this.message = "害虫を退治した！";
+            } 
+            else if (farm.isDead || farm.isEaten) {
+                farm.plantedCrop = null; farm.isDead = false; farm.isEaten = false;
+                this.message = "枯れた作物を片付けた！";
+            } 
+            else if (farm.growth >= 100) {
+                let cropId = farm.plantedCrop.replace('seed_', '');
+                if (cropId === 'carrot_given') cropId = 'carrot'; // 支給品対応
+                
+                // ★農家のブラッシュアップ：ステータスが高いとレア野菜になる！
+                let isRare = false;
+                
+                // ★修正：ランク10の制限を撤廃！ 美しさと賢さが50以上なら30%で「質のいい〇〇」に変化
+                if ((this.stats.beauty || 0) >= 50 && (this.stats.intel || 0) >= 50) {
+                    if (Math.random() < 0.3) isRare = true;
+                }
+                
+                if (isRare) {
+                    cropId = 'high_' + cropId;
+                    this.message = "おおっ！質のいい作物が収穫できた！";
+                } else {
+                    this.message = "収穫完了！";
+                }
+                
+                this.inventory.push(cropId);
+                farm.plantedCrop = null; farm.growth = 0;
+            } 
+            else {
+                farm.waterLevel = 100; this.message = "水やり完了！";
+            }
+            
+            // 農業クエストの進行回数をカウント
+            if (this.apprentice && this.apprentice.activeQuest && this.apprentice.activeQuest.desc.includes("農業")) {
+                this.apprentice.qVal = (this.apprentice.qVal || 0) + 1;
+                if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+            }
+            
+            // 無事に立ち状態（idle）へ戻す
+            this.actionState = 'idle';
+            this.visualAction = null;
+            this.messageTimer = 120;
+            if (typeof saveGameData === 'function') saveGameData();
+            
+        }, 3000); // 3秒かけて農作業を行う
     } 
     else if (this.interactionTarget && (this.interactionTarget.type === 'bridge' || this.interactionTarget.type === 'sea')) {
         this.actionState = 'fishing'; this.visualAction = 'fish'; this.fishingData = null; 
@@ -2652,6 +2855,17 @@ const _legacy_originalApplyInitialPet = typeof originalApplyInitialPet !== 'unde
 window.applyInitialPet = function(skinKey) {
     _legacy_originalApplyInitialPet(skinKey);
     
+    // ▼▼▼ 追加：元システムが設定し忘れた「美しさ」と「素早さ」の基本値(10)をここで確実にセットする！ ▼▼▼
+    if (window.aiPet && window.aiPet.stats) {
+        if (window.aiPet.stats.beauty === undefined || isNaN(window.aiPet.stats.beauty) || window.aiPet.stats.beauty === 0) {
+            window.aiPet.stats.beauty = 10;
+        }
+        if (window.aiPet.stats.speed === undefined || isNaN(window.aiPet.stats.speed) || window.aiPet.stats.speed === 0) {
+            window.aiPet.stats.speed = 10;
+        }
+    }
+    // ▲▲▲ 追加ここまで ▲▲▲
+
     window.aiPet.legacyProgress = {}; 
     window.aiPet.lifePath = null; // 余生ルートリセット
     window.aiPet.originalLifespan = null; 
@@ -5153,6 +5367,42 @@ window.findFacilityForTask = function(taskType, masterType = null) {
 // ==========================================
 
 aiPet.processBuildingStart = function(task) {
+    // ★新規追加：修行中（isTrial）は実物を建てず、ステータス依存で図面や模型を作る！
+    if (task.isTrial) {
+        let intel = this.stats.intel || 10;
+        let power = this.stats.power || 10;
+        
+        // 賢さ（構造計算）と活力（模型を組み上げる体力）から成功率を計算
+        let successRate = 0.3 + (intel * 0.005) + (power * 0.005) + ((this.skills.building || 1) * 0.05);
+        let greatSuccessRate = (intel * 0.003) + (power * 0.003); // ステータスが高いほど大成功しやすい
+        successRate = Math.min(0.95, successRate);
+        
+        let isSuccess = Math.random() < successRate;
+        let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
+
+        let targetId = 'build_practice_normal';
+        let targetName = '練習用の図面';
+
+        if (isGreatSuccess) {
+            targetId = 'build_practice_great';
+            targetName = '精巧な建築模型';
+        } else if (!isSuccess) {
+            targetId = 'build_practice_fail';
+            targetName = '落書きの紙くず';
+        }
+
+        task.buildData = {
+            typeKey: 'trial', // マップ配置を回避するためのダミーキー
+            targetId: targetId,
+            targetName: targetName,
+            successRate: successRate,
+            isSuccess: isSuccess,
+            isGreatSuccess: isGreatSuccess,
+            isTrial: true
+        };
+        return true;
+    }
+
     let bId = task.targetBuilding;
     
     // blacksmith と smith の名前の揺れを強制的に吸収してエラーを防ぐ！
@@ -5379,6 +5629,45 @@ if (typeof window.AICharacter !== 'undefined') {
         if (!task || !task.buildData || task._hasBeenBuilt) return;
         task._hasBeenBuilt = true;
         
+        // ▼▼▼ 新規追加：修行中（isTrial）の場合はマップに建てず、インベントリにアイテムを入れる ▼▼▼
+        if (task.buildData.isTrial) {
+            let d = task.buildData;
+            if (!this.skills.building) this.skills.building = 1;
+            
+            if (d.isSuccess) {
+                this.skills.building += 0.5;
+                this.stats.mood += d.isGreatSuccess ? 15 : 5;
+                
+                if (d.isGreatSuccess) {
+                    this.message = `大成功！！ 芸術的な「${d.targetName}」が完成した！`;
+                } else {
+                    this.message = `製図成功！ ${d.targetName}ができた！`;
+                }
+            } else {
+                this.skills.building += 0.1;
+                this.message = "計算ミス... わけのわからない設計図になっちゃった...";
+            }
+            
+            // アイテムをインベントリに入れる
+            this.inventory.push(d.targetId);
+
+            // クエストの進捗（修行した回数）をカウント
+            if (this.apprentice && this.apprentice.activeQuest) {
+                const desc = this.apprentice.activeQuest.desc;
+                if (desc.includes('図面') || desc.includes('模型') || desc.includes('製図') || desc.includes('建築')) {
+                    this.apprentice.qVal = (this.apprentice.qVal || 0) + 1;
+                    if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+                }
+            }
+
+            this.messageTimer = 150;
+            this.visualAction = null;
+            this.actionState = 'idle';
+            if (typeof saveGameData === 'function') saveGameData();
+            return; // ★ここで return することで、これ以下の「マップへの配置」を完全にストップします！
+        }
+        // ▲▲▲ 新規追加ここまで ▲▲▲
+
         let bId = task.buildData.typeKey;
         let bData = (typeof buildingCatalog !== 'undefined') ? buildingCatalog[bId] : null;
         
@@ -5736,13 +6025,16 @@ if (typeof window.AICharacter !== 'undefined') {
                     if (cmd && cmd.id) validCmdIds.push(cmd.id); 
                 });
 
-                let pType = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(ai.stats) : 'average';
-                if (pType === 'lazy' && Math.random() < 0.2) {
+                // ★性格が日本語になったので判定も日本語に修正
+                if (pType === 'のんびり屋' && Math.random() < 0.2) {
                     window.addDungeonLog(`${aiName} は面倒くさがって立ち止まった...`, '#aaa'); chosenCommand = 'skip';
-                } else if (pType === 'gloom' && Math.random() < 0.2) {
+                } else if (pType === '憂鬱' && Math.random() < 0.2) {
                     window.addDungeonLog(`${aiName} は暗い気持ちになり、ため息をついた...`, '#aaa'); chosenCommand = 'skip';
-                } else if ((pType === 'idol' || pType === 'artist') && Math.random() < 0.15) {
+                } else if ((pType === 'アイドル' || pType === '芸術家') && Math.random() < 0.15) {
                     window.addDungeonLog(`${aiName} は敵の前で優雅にポーズを決めた！`, '#FFD700'); chosenCommand = 'skip';
+                // ▼ 新規追加：素早さ特化（機嫌が普通以下）の場合の空回り
+                } else if (pType === 'せっかち' && Math.random() < 0.15) {
+                    window.addDungeonLog(`${aiName} は先走って空回りした！`, '#FF9800'); chosenCommand = 'skip';
                 }
 
                 if (chosenCommand !== 'skip') {
@@ -6209,3 +6501,74 @@ if (typeof window._originalOpenDungeonUI === 'undefined' && typeof window.openDu
         window._originalOpenDungeonUI(dungeonType);
     };
 }
+
+// ==========================================
+// ★ AIセーフティシステム（過労ストッパー ＆ スタック救出機能）
+// ==========================================
+(function() {
+    // 1. 過労・餓死ストッパー（毎フレームの更新処理にフック）
+    let patchUpdate = function(obj) {
+        if (!obj || obj._isSafetyPatched) return;
+        const _origUpdate = obj.update;
+        
+        obj.update = function() {
+            // 元々のゲーム進行処理を実行
+            _origUpdate.call(this);
+            
+            // ★体力が満腹度が尽きた場合、回復行動以外はすべて強制キャンセル！
+            if (!this.godMode && this.schedule && this.schedule.length > 0) {
+                let currentTask = this.schedule[0];
+                let isRecovery = ['sleep', 'eat', 'rest', 'life_slowlife'].includes(currentTask.type);
+                
+                if (!isRecovery && (this.energy <= 0 || this.hunger <= 0)) {
+                    this.message = "もうクタクタだ...動けない...";
+                    this.messageTimer = 180;
+                    this.schedule = []; // 積まれていた予定を全消去
+                    this.actionState = 'idle';
+                    this.visualAction = null;
+                    if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+                }
+            }
+        };
+        obj._isSafetyPatched = true;
+    };
+
+    // AIの設計図（Prototype）と、現在動いているAI（Instance）の両方に適用
+    if (typeof window.AICharacter !== 'undefined') patchUpdate(window.AICharacter.prototype);
+    if (window.aiPet) patchUpdate(window.aiPet);
+
+    // 2. スタック（川の向こうなどに行こうとしてハマる現象）救出機能
+    setInterval(() => {
+        if (!window.aiPet) return;
+        
+        // 移動中のはずなのに、座標が変わっていないかを監視
+        if (window.aiPet.actionState === 'moving' || window.aiPet.actionState === 'moving_to_enter') {
+            let dx = Math.abs(window.aiPet.x - (window.aiPet._lastX || 0));
+            let dy = Math.abs(window.aiPet.y - (window.aiPet._lastY || 0));
+            
+            // 1ピクセルも動いていない場合カウントアップ
+            if (dx < 0.5 && dy < 0.5) {
+                window.aiPet._stuckCount = (window.aiPet._stuckCount || 0) + 1;
+                
+                // 約3秒間（500ms × 6回）足踏みし続けたら強制キャンセルして諦める
+                if (window.aiPet._stuckCount > 6) {
+                    window.aiPet.message = "道がなくて、あそこには行けないみたい...";
+                    window.aiPet.messageTimer = 150;
+                    window.aiPet.schedule = [];
+                    window.aiPet.actionState = 'idle';
+                    window.aiPet.visualAction = null;
+                    window.aiPet._stuckCount = 0;
+                    if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+                }
+            } else {
+                window.aiPet._stuckCount = 0; // ちゃんと動けていればリセット
+            }
+            
+            // 現在の座標を記録して次回比較する
+            window.aiPet._lastX = window.aiPet.x;
+            window.aiPet._lastY = window.aiPet.y;
+        } else {
+            window.aiPet._stuckCount = 0;
+        }
+    }, 500);
+})();

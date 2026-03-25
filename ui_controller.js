@@ -1,15 +1,5 @@
 // ui_controller.js : UI操作 (Fixed Version v45 - Absolute UI Safety & Evolution Button Fix)
 
-// ★追加：消えてしまっていた性格判定関数を復活！
-window.getPersonalityType = function(stats) {
-    if (!stats) return "普通";
-    if (stats.mood <= 30) return "憂鬱";
-    if (stats.power > stats.intel && stats.power > stats.beauty) return "熱血";
-    if (stats.intel > stats.power && stats.intel > stats.beauty) return "知的";
-    if (stats.beauty > stats.power && stats.beauty > stats.intel) return "魅惑";
-    return "普通";
-};
-
 // ==========================================
 // ★ 追加：いつでも呼び出せる汎用チュートリアルウィンドウ
 // ==========================================
@@ -161,13 +151,7 @@ window.openStatusMenu = function() {
     document.getElementById('s-gen').innerText = aiPet.generation || 1;
     document.getElementById('s-age').innerText = aiPet.age || 0;
     
-    let pType = getPersonalityType(aiPet.stats);
-    let pName = "普通";
-    if (pType === 'gloom') pName = "暗い";
-    else if (pType === 'scholar') pName = "学者肌";
-    else if (pType === 'athlete') pName = "熱血";
-    else if (pType === 'idol') pName = "アイドル";
-    document.getElementById('s-type').innerText = pName;
+    document.getElementById('s-type').innerText = window.getPersonalityType(aiPet.stats);
 
     let skin = aiPet.currentSkin || 'robot';
     let baseType = skin.split('_')[0] || 'robot';
@@ -187,7 +171,6 @@ window.openStatusMenu = function() {
     document.getElementById('s-energy').innerText = Math.floor(aiPet.energy || 0);
     document.getElementById('s-hunger').innerText = Math.floor(aiPet.hunger || 0);
     
-    // ★修正：能力値とゴールドをフォーマット関数に通す
     document.getElementById('s-intel').innerText = window.formatLargeNumber(aiPet.stats.intel);
     document.getElementById('s-power').innerText = window.formatLargeNumber(aiPet.stats.power);
     document.getElementById('s-mood').innerText = window.formatLargeNumber(aiPet.stats.mood);
@@ -195,7 +178,6 @@ window.openStatusMenu = function() {
     const beautyEl = document.getElementById('s-beauty');
     if (beautyEl) beautyEl.innerText = window.formatLargeNumber(aiPet.stats.beauty);
 
-    // ★追加: 詳細ステータス画面への素早さの表示
     const speedEl = document.getElementById('s-speed');
     if (speedEl) speedEl.innerText = window.formatLargeNumber(aiPet.stats.speed);
 
@@ -214,33 +196,74 @@ window.openStatusMenu = function() {
         html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #4CAF50; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
         html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">🎓 現在の専門家と課題</div>`;
         
-        // ★追加：皆伝済みの師匠の数をカウントする
         let masteredCount = 0;
         const jobKeys = ['explore', 'farming', 'fishing', 'cooking', 'smithing', 'building'];
         jobKeys.forEach(j => { if (app.rank && app.rank[j] >= 10) masteredCount++; });
 
-        if (app.currentMaster) {
+        // ★大改修：判定の順番を整理（全皆伝 → 現在進行中の師匠がいるか → 破門 → なし）
+        if (masteredCount === 6) {
+            html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px;">👑 全知全能の達人 👑<br><span style="font-size:11px; color:#ccc; font-weight:normal;">この世界に存在するすべての道を極めました！<br>悠々自適な余生を満喫しましょう。</span></div>`;
+        } else if (app.currentMaster) {
             const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
             const mName = masterNames[app.currentMaster] || "不明";
             const rank = app.rank[app.currentMaster] || 1;
             
             html += `<div style="font-size: 13px; color: #fff; margin-bottom: 8px;">専門家: <span style="color:#FFC107; font-weight:bold;">${mName} (ランク ${rank})</span></div>`;
             
-            if (app.activeQuest) {
+            if (app.isGraduated) {
+                // 現在の師匠で卒業している場合のみ皆伝メッセージ
+                html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">修行を終え、立派な達人になりました！<br>（フィールドを歩けば、まだ見ぬ他の師匠に出会えるかもしれません）</span></div>`;
+            } else if (app.activeQuest) {
                 let progressStr = "";
-                if (typeof app.qVal === 'number') {
-                    const desc = app.activeQuest.desc;
-                    // ★大改修：能力値クエストか回数クエストかを判定して表示をHUDと統一
-                    if (desc.includes("賢さ") || desc.includes("知性") || desc.includes("活力") || desc.includes("パワー")) {
-                        // ★修正：クエストの目標値と現在値もフォーマットする
-                        let currentVal = desc.includes("賢さ") || desc.includes("知性") ? window.formatLargeNumber(aiPet.stats.intel) : window.formatLargeNumber(aiPet.stats.power);
-                        let targetVal = window.formatLargeNumber(app.qVal);
-                        progressStr = `<span style="color:#FF9800;">現在の能力: ${currentVal} / 目標: ${targetVal}</span>`;
+                const desc = app.activeQuest.desc;
+                
+                // ★HUDと同じように、能力値クエストか、アイテムクエストか、回数クエストかを判定
+                let isStatQuest = false;
+                let statVal = 0;
+                if (desc.includes("賢さ") || desc.includes("知性")) { isStatQuest = true; statVal = aiPet.stats.intel; }
+                else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = aiPet.stats.power; }
+                else if (desc.includes("美しさ")) { isStatQuest = true; statVal = aiPet.stats.beauty; }
+                else if (desc.includes("素早さ")) { isStatQuest = true; statVal = aiPet.stats.speed; }
+
+                if (isStatQuest) {
+                    let currentVal = window.formatLargeNumber(statVal);
+                    let targetVal = window.formatLargeNumber(app.qVal);
+                    progressStr = `<span style="color:#FF9800;">現在の能力: ${currentVal} / 目標: ${targetVal}</span>`;
+                } else {
+                    let itemProgress = "";
+                    let isItemQuest = true;
+                    const inv = aiPet.inventory || [];
+                    
+                    if (desc.includes("鉄くず")) {
+                        itemProgress = `鉄くず: ${inv.filter(i => i === 'scrap_metal').length} / 3`;
+                    } else if (desc.includes("芸術品")) {
+                        itemProgress = `芸術品: ${inv.filter(i => typeof i === 'string' && i.includes('_art_')).length} / 3`;
+                    } else if (desc.includes("ヌシ")) {
+                        itemProgress = `ヌシ: ${inv.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length} / 1`;
+                    } else if (desc.includes("魚")) {
+                        let max = desc.includes("3匹") ? 3 : 1;
+                        itemProgress = `魚: ${inv.filter(i => typeof i === 'string' && i.startsWith('fish_')).length} / ${max}`;
+                    } else if (desc.includes("質のいい")) {
+                        itemProgress = `質のいい野菜: ${inv.filter(i => typeof i === 'string' && i.startsWith('high_')).length} / 3`;
+                    } else if (desc.includes("普通の試作料理")) {
+                        itemProgress = `普通の試作料理: ${inv.filter(i => i === 'food_practice_normal').length} / 3`;
+                    } else if (desc.includes("究極の試作料理")) {
+                        itemProgress = `究極の試作料理: ${inv.filter(i => i === 'food_practice_great').length} / 3`;
+                    } else if (desc.includes("練習用の図面")) {
+                        itemProgress = `練習用の図面: ${inv.filter(i => i === 'build_practice_normal').length} / 3`;
+                    } else if (desc.includes("建築模型")) {
+                        itemProgress = `精巧な建築模型: ${inv.filter(i => i === 'build_practice_great').length} / 3`;
                     } else {
-                        // 回数系クエストの場合（進捗: X回）
+                        isItemQuest = false;
+                    }
+
+                    if (isItemQuest) {
+                        progressStr = `<span style="color:#FF9800;">(進捗: ${itemProgress})</span>`;
+                    } else {
                         progressStr = `<span style="color:#FF9800;">(進捗: ${Math.floor(app.qVal)}回)</span>`;
                     }
                 }
+
                 html += `<div style="font-size: 12px; color: #ccc; background: #222; padding: 8px; border-radius: 4px; border-left: 3px solid #FFC107;">
                             <div style="font-weight:bold; color:#fff; margin-bottom: 3px;">📜 ${app.activeQuest.name}</div>
                             <div style="font-size: 11px; line-height: 1.4;">${app.activeQuest.desc} <br>${progressStr}</div>
@@ -250,19 +273,14 @@ window.openStatusMenu = function() {
             }
         } else if (app.isExcommunicated) {
             html += `<div style="font-size: 13px; color: #ff5252; font-weight: bold; background: rgba(244,67,54,0.1); padding: 10px; border-radius: 4px;">現在、破門されています...<br><span style="font-size:11px; color:#aaa; font-weight:normal;">基礎トレーニングを繰り返して自分を見つめ直しましょう。</span></div>`;
-        } else if (masteredCount === 6) {
-            // ★追加：全ての職業を極めている場合の専用メッセージ
-            html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px;">👑 全知全能の達人 👑<br><span style="font-size:11px; color:#ccc; font-weight:normal;">この世界に存在するすべての道を極めました！<br>悠々自適な余生を満喫しましょう。</span></div>`;
-        } else if (app.isGraduated || masteredCount > 0) {
-            // ★修正：引継ぎでisGraduatedが消えていても、1つ以上皆伝していれば判定する
-            html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">修行を終え、立派な達人になりました！<br>（フィールドを歩けば、まだ見ぬ他の師匠に出会えるかもしれません）</span></div>`;
         } else {
+            // ★修正：誰にも弟子入りしていない（currentMasterが無い）場合は確実にこのメッセージを出す
             html += `<div style="font-size: 12px; color: #888; text-align: center; padding: 10px;">現在入門している専門家はいません。<br>フィールドを歩いて出会いを探しましょう。</div>`;
         }
         html += `</div>`;
 
         // 2. 職業ライセンス
-        html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333;">`;
+        html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-top: 10px;">`;
         html += `<div style="color: #E040FB; font-weight: bold; margin-bottom: 10px; font-size: 14px;">🌟 職業ライセンス (入門状況)</div>`;
         html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">`;
         
@@ -517,13 +535,8 @@ function updateStatUI() {
         }
     }
     
-    let pType = getPersonalityType(aiPet.stats);
-    let pName = "普通";
-    if (pType === 'gloom') pName = "暗い";
-    else if (pType === 'scholar') pName = "学者肌";
-    else if (pType === 'athlete') pName = "熱血";
-    else if (pType === 'idol') pName = "アイドル";
-    setText('stat-type', pName);
+    // 新しい性格判定関数は直接日本語を返すので、そのままセットするだけ！
+    setText('stat-type', window.getPersonalityType(aiPet.stats));
 
     // ★修正: デバッグなどで選んだ画像IDに特性がなくても、本来の種族特性を引っ張ってくる
     let skin = aiPet.currentSkin || 'robot';
@@ -2412,9 +2425,45 @@ window.updateQuestHUD = function() {
                         let max = desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3);
                         itemsStr.push(`石: ${c} / ${max}`);
                     }
+                    // ▼▼▼ 追加：鍛冶クエスト用 ▼▼▼
+                    if (desc.includes("練習用装備")) {
+                        let c = aiPet.inventory.filter(i => i.includes('_practice_')).length;
+                        itemsStr.push(`練習用装備: ${c} / 3`);
+                    }
+                    if (desc.includes("芸術品")) {
+                        let c = aiPet.inventory.filter(i => i.includes('_art_')).length;
+                        itemsStr.push(`芸術品: ${c} / 3`);
+                    }
+                    // ▼▼▼ 追加：漁師クエスト用 ▼▼▼
+                    if (desc.includes("ヌシ")) {
+                        let c = aiPet.inventory.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length;
+                        itemsStr.push(`ヌシ: ${c} / 1`);
+                    } else if (desc.includes("魚")) {
+                        let c = aiPet.inventory.filter(i => i.startsWith('fish_')).length;
+                        let max = desc.includes("3匹") ? 3 : 1;
+                        itemsStr.push(`魚: ${c} / ${max}`);
+                    }
                     if (desc.includes("質のいい")) {
-                        let c = aiPet.inventory.filter(i => i.startsWith('high_')).length;
-                        itemsStr.push(`大成功野菜: ${c} / 3`);
+                        let c = aiPet.inventory.filter(i => i.startsWith('high_') && (i.includes('carrot') || i.includes('tomato') || i.includes('pepper'))).length;
+                        itemsStr.push(`質のいい野菜: ${c} / 3`);
+                    }
+                    // ▼▼▼ 追加：料理クエスト用 ▼▼▼
+                    if (desc.includes("普通の試作料理")) {
+                        let c = aiPet.inventory.filter(i => i === 'food_practice_normal').length;
+                        itemsStr.push(`普通の試作料理: ${c} / 3`);
+                    }
+                    if (desc.includes("究極の試作料理")) {
+                        let c = aiPet.inventory.filter(i => i === 'food_practice_great').length;
+                        itemsStr.push(`究極の試作料理: ${c} / 3`);
+                    }
+                    // ▼▼▼ 追加：建築士クエスト用 ▼▼▼
+                    if (desc.includes("練習用の図面")) {
+                        let c = aiPet.inventory.filter(i => i === 'build_practice_normal').length;
+                        itemsStr.push(`練習用の図面: ${c} / 3`);
+                    }
+                    if (desc.includes("建築模型")) {
+                        let c = aiPet.inventory.filter(i => i === 'build_practice_great').length;
+                        itemsStr.push(`精巧な建築模型: ${c} / 3`);
                     }
                     if (itemsStr.length > 0) {
                         progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">収集状況: ${itemsStr.join(' , ')}</div>`;
