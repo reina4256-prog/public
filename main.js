@@ -802,6 +802,8 @@ document.addEventListener('visibilitychange', () => {
 window.customResetGameData = function() {
     let resetMap = document.getElementById('chk-reset-map').checked;
     let resetAI = document.getElementById('chk-reset-ai').checked;
+    let resetLegacy = document.getElementById('chk-reset-legacy').checked;
+    let resetRescue = document.getElementById('chk-reset-rescue').checked;
     let resetGrazing = document.getElementById('chk-reset-grazing').checked;
 
     if (!confirm("選択したデータをリセットします。本当によろしいですか？")) return;
@@ -810,6 +812,11 @@ window.customResetGameData = function() {
     if (resetAI) {
         localStorage.removeItem('ai_pet_data_v1');
         localStorage.removeItem('ai_configs_v8');
+    }
+    if (resetLegacy) { localStorage.removeItem('ai_legacy_data'); }
+    if (resetRescue) { 
+        localStorage.removeItem('rescue_waiting_map'); 
+        localStorage.removeItem('rescue_waiting_floor'); 
     }
     if (resetGrazing) { localStorage.removeItem('grazing_data_v1'); }
 

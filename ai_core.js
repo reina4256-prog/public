@@ -2101,6 +2101,11 @@ aiPet.update = function() {
                     let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
                     this.energy -= 0.03 * consumeRate * drainMult;
                     this.hunger -= 0.03 * consumeRate * drainMult;
+                    // ★追加：労働（タスク実行）による機嫌の低下（少しずつ）
+                    this.stats.mood -= 0.02 * consumeRate;
+                } else if (['sleep', 'rest', 'life_slowlife'].includes(task.type)) {
+                    // ★追加：休息による機嫌の回復
+                    this.stats.mood += 0.05 * consumeRate;
                 }
             }
 
@@ -2114,12 +2119,34 @@ aiPet.update = function() {
             if (currentMode === 'play' && !this.godMode && idleConsumeRate > 0) { 
                 this.energy -= 0.02 * idleConsumeRate; 
                 this.hunger -= 0.02 * idleConsumeRate; 
+                
+                // ★追加：放置中の機嫌の自然回復（自由気ままな時間）
+                this.stats.mood += 0.01 * idleConsumeRate;
             }
         }
     }
     
     this.energy = Math.max(0, Math.min(100, this.energy)); this.hunger = Math.max(0, Math.min(100, this.hunger));
     
+    // ★追加：空腹・疲労による強烈なストレス（機嫌の減少）と闇落ちカウンターの増加
+    if (currentMode === 'play' && !this.godMode) {
+        // ★修正：睡眠中・食事中・休憩中など「回復行動をしている最中」はペナルティを免除する！
+        let isHealing = ['sleep', 'sleeping', 'rest', 'eat', 'life_slowlife'].includes(this.actionState) || 
+                        (this.currentTask && ['sleep', 'rest', 'eat', 'life_slowlife'].includes(this.currentTask.type));
+                        
+        if ((this.energy <= 20 || this.hunger <= 20) && !isHealing) {
+            this.stats.mood -= 0.05; // ピンチ時はどんどん不機嫌になる
+        }
+        this.stats.mood = Math.max(0, Math.min(100, this.stats.mood));
+        
+        // 機嫌が0の時、闇落ちカウンターが蓄積していく
+        if (this.stats.mood <= 0) {
+            this.darknessCounter = (this.darknessCounter || 0) + 0.1;
+        } else {
+            this.darknessCounter = Math.max(0, (this.darknessCounter || 0) - 0.05); // 機嫌が良いと少しずつ戻る
+        }
+    }
+
     const isPassiveActing = ['studying', 'training', 'sleeping', 'eating', 'fishing', 'smithing', 'building', 'apprentice_training', 'camping'].includes(this.actionState);
     if (isPassiveActing && this.activeMonuments) { this.activeMonuments.forEach(m => { this.stats[m.stat] += 0.05; }); }
     if (this.actionState === 'sleeping' && this.activeMonuments && this.activeMonuments.some(m => m.stat === 'beauty')) { this.stats.beauty += 0.1; }
@@ -2904,10 +2931,12 @@ aiPet.processExploration = function() {
                 const bStat = (this.getTraitData().statBonus && this.getTraitData().statBonus[fData.stat]) ? this.getTraitData().statBonus[fData.stat] : 1.0;
                 this.stats[fData.stat] += 1 * bStat; 
             }
+            // ★追加：探検を続けると少しずつ機嫌が下がる（過酷さの表現）
+            if (!this.godMode) this.stats.mood = Math.max(0, this.stats.mood - (0.5 * consumeRate));
         }
     } else { 
         this.message = "敵に遭遇！逃げた！"; 
-        if (!this.godMode) { this.energy -= 5 * consumeRate; this.stats.mood -= 2; }
+        if (!this.godMode) { this.energy -= 5 * consumeRate; this.stats.mood -= 5; } // ★修正：逃走時のストレス増加
     }
 
     const targetAsset = this.interactionTarget;
@@ -3023,6 +3052,12 @@ aiPet.learnOrForgetWord = function(message) {
 
     // 新しい言葉として記憶する！
     this.apprentice.learnedWords.push(message);
+    
+    // ★追加：コミュニケーション（新しい言葉を教わる）による機嫌の大幅回復
+    if (this.stats) {
+        const bMood = (this.getTraitData().statBonus && this.getTraitData().statBonus.mood) ? this.getTraitData().statBonus.mood : 1.0;
+        this.stats.mood = Math.min(100, (this.stats.mood || 0) + 15 * bMood);
+    }
     
     // ※「意味のあるワード」に対するリアクションは、この後ゲーム側で処理される前提
     // もし意味のないワードだった場合用の汎用メッセージを一旦セットしておく

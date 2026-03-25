@@ -66,8 +66,12 @@ aiPet.rescueItem = function(itemKey) {
 
 aiPet.triggerBankruptcy = function() {
     alert("【自己破産】\n借金が返済できず、すべてを失いました...\n(データは初期化されます)");
+    // ★修正：既存のデータだけでなく、遺産やダンジョンの救助フラグなどすべてを確実に消去する
     localStorage.removeItem('map_data_v6');
     localStorage.removeItem('ai_pet_data_v1');
+    localStorage.removeItem('ai_legacy_data'); 
+    localStorage.removeItem('rescue_waiting_map'); 
+    localStorage.removeItem('rescue_waiting_floor'); 
     location.reload();
 };
 
