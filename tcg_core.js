@@ -380,7 +380,278 @@ window.TCG_MASTER = {
     'support_5': { name: "武器の鍛造", type: "action", image: "support_card.png", imageIndex: 5, offsetX: 0, offsetY: 0, zoomX: 300, zoomY: 500, baseCost: 3, baseHp: 0, skillName: "カンカン", skillCost: 0, baseDmg: 20, ability: "action_atk_up" },
     'support_8': { name: "未知の洞窟探検", type: "action", image: "support_card.png", imageIndex: 8, offsetX: 0, offsetY: 0, zoomX: 300, zoomY: 500, baseCost: 3, baseHp: 0, skillName: "お宝発見", skillCost: 0, baseDmg: 0, ability: "action_search_evo" },
     'support_11': { name: "豊穣の畑仕事", type: "action", image: "support_card.png", imageIndex: 11, offsetX: 0, offsetY: 0, zoomX: 300, zoomY: 500, baseCost: 2, baseHp: 0, skillName: "収穫", skillCost: 0, baseDmg: 0, ability: "action_heal_face" },
-    'support_14': { name: "キャンプファイヤー", type: "action", image: "support_card.png", imageIndex: 14, offsetX: 0, offsetY: 0, zoomX: 300, zoomY: 500, baseCost: 1, baseHp: 0, skillName: "大宴会", skillCost: 0, baseDmg: 0, ability: "action_heal_all" }
+    'support_14': { name: "キャンプファイヤー", type: "action", image: "support_card.png", imageIndex: 14, offsetX: 0, offsetY: 0, zoomX: 300, zoomY: 500, baseCost: 1, baseHp: 0, skillName: "大宴会", skillCost: 0, baseDmg: 0, ability: "action_heal_all" },
+    // 👤 人物カード (Person)
+    "person_farmer": {
+        "name": "農家",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 0,
+        "baseCost": 2,
+        "baseHp": 40,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_farmer",
+        "personSkills": [
+            {
+                "name": "おすそわけ",
+                "cost": 1,
+                "desc": "味方1体を 15 回復する"
+            },
+            {
+                "name": "豊穣の祈り",
+                "cost": 3,
+                "desc": "1枚ドローし、最大マナを+1する"
+            }
+        ],
+        "sx": 630,
+        "sy": -118,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_fisherman": {
+        "name": "漁師",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 1,
+        "baseCost": 3,
+        "baseHp": 40,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_fisherman",
+        "personSkills": [
+            {
+                "name": "一本釣り",
+                "cost": 1,
+                "desc": "敵1体に 10 ダメージ (守護・潜伏無視)"
+            },
+            {
+                "name": "大漁網",
+                "cost": 4,
+                "desc": "敵モンスター1体を山札に戻す"
+            }
+        ],
+        "sx": 1316,
+        "sy": -118,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_builder": {
+        "name": "建築士",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 2,
+        "baseCost": 3,
+        "baseHp": 50,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_builder",
+        "personSkills": [
+            {
+                "name": "即席バリケード",
+                "cost": 2,
+                "desc": "味方1体にこのターンのみ「守護」を付与"
+            },
+            {
+                "name": "突貫工事",
+                "cost": 4,
+                "desc": "フィールドHP 50回復かリーダー 40回復"
+            }
+        ],
+        "sx": 622,
+        "sy": 573,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_chef": {
+        "name": "料理人",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 3,
+        "baseCost": 3,
+        "baseHp": 40,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_chef",
+        "personSkills": [
+            {
+                "name": "特製スパイス",
+                "cost": 1,
+                "desc": "指定した味方モンスターの攻撃力を 永続で+10"
+            },
+            {
+                "name": "究極のフルコース",
+                "cost": 4,
+                "desc": "行動済みの味方を「未行動」に戻し、全回復"
+            }
+        ],
+        "sx": -52,
+        "sy": 573,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_smith": {
+        "name": "鍛冶師",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 4,
+        "baseCost": 4,
+        "baseHp": 50,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_smith",
+        "personSkills": [
+            {
+                "name": "武器研磨",
+                "cost": 2,
+                "desc": "味方1体の次の攻撃に「+20」ダメージを付与"
+            },
+            {
+                "name": "会心の武具",
+                "cost": 4,
+                "desc": "味方1体にこのターンのみ「貫通」を付与"
+            }
+        ],
+        "sx": 1316,
+        "sy": 574,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_adventurer": {
+        "name": "冒険家",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 5,
+        "baseCost": 2,
+        "baseHp": 30,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_adventurer",
+        "personSkills": [
+            {
+                "name": "マッピング",
+                "cost": 1,
+                "desc": "カードを1枚引く"
+            },
+            {
+                "name": "秘境の発見",
+                "cost": 3,
+                "desc": "山札から「進化後」モンスター1体をサーチ"
+            }
+        ],
+        "sx": -48,
+        "sy": -60,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_king": {
+        "name": "王様",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 6,
+        "baseCost": 6,
+        "baseHp": 80,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_king",
+        "personSkills": [
+            {
+                "name": "王の号令",
+                "cost": 2,
+                "desc": "味方モンスター全員の攻撃力を +10 する"
+            },
+            {
+                "name": "王の裁き",
+                "cost": 6,
+                "desc": "HP 40以下の敵全員をすべて破壊する"
+            }
+        ],
+        "sx": -49,
+        "sy": 1264,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_captain": {
+        "name": "隊長",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 7,
+        "baseCost": 5,
+        "baseHp": 60,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_captain",
+        "personSkills": [
+            {
+                "name": "陣形指示",
+                "cost": 2,
+                "desc": "このターン、味方全体が受けるダメージを -10"
+            },
+            {
+                "name": "総員突撃",
+                "cost": 5,
+                "desc": "このターン、味方モンスター全員が「連撃」化"
+            }
+        ],
+        "sx": 630,
+        "sy": 1264,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    },
+    "person_soldier": {
+        "name": "兵士",
+        "type": "person",
+        "image": "character_card.png",
+        "imageIndex": 8,
+        "baseCost": 1,
+        "baseHp": 30,
+        "skillName": "人物スキル",
+        "skillCost": 0,
+        "baseDmg": 0,
+        "ability": "person_soldier",
+        "personSkills": [
+            {
+                "name": "槍の突き",
+                "cost": 1,
+                "desc": "敵1体に 10 ダメージを与える"
+            },
+            {
+                "name": "決死の覚悟",
+                "cost": 3,
+                "desc": "敵1体に 40 ダメージ ＆ 自身に 20 ダメージ"
+            }
+        ],
+        "sx": 1316,
+        "sy": 1264,
+        "sw": 795,
+        "sh": 731,
+        "scaleX": 0.3,
+        "scaleY": 0.29999999999999966
+    }
 };
 
 // // ==========================================
@@ -3180,10 +3451,12 @@ window.refreshDeckBuilderView = function() {
     const deckArea = document.getElementById('db-deck-area');
     const countDisplay = document.getElementById('db-count');
     
+    // 現在の検索＆フィルター・ソートの条件を取得
     const searchInput = document.getElementById('db-search-name');
     const searchName = searchInput ? searchInput.value.toLowerCase() : "";
-    const filterSelect = document.getElementById('db-filter-type');
-    const filterType = filterSelect ? filterSelect.value : "all";
+    const filterRace = document.getElementById('db-filter-race') ? document.getElementById('db-filter-race').value : "all";
+    const filterStage = document.getElementById('db-filter-stage') ? document.getElementById('db-filter-stage').value : "all";
+    const sortType = document.getElementById('db-sort') ? document.getElementById('db-sort').value : "newest";
 
     let collectionHtml = '';
     let deckHtml = '';
@@ -3197,63 +3470,82 @@ window.refreshDeckBuilderView = function() {
     const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
     const emptyDeckText = isUnlocked ? "デッキは空です" : "アルバムのページは空です";
 
-    // 🗃️ 編成画面でのカードクリック時メニュー（重なりバグ修正版）
-window.showDeckCardActionMenu = function(uid, isDeckArea) {
-    let card = window.TCG.myCollection.find(c => c.uid === uid);
-    if (!card) return;
-
-    let menu = document.getElementById('tcg-card-action-menu');
-    if (menu) menu.remove();
-    
-    menu = document.createElement('div');
-    menu.id = 'tcg-card-action-menu';
-    menu.style.cssText = `
-        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-        background: rgba(0,0,0,0.85); z-index: 60000;
-        display: flex; flex-direction: column; justify-content: center; align-items: center;
-    `;
-    
-    let actionBtn = isDeckArea 
-        ? `<button onclick="window.toggleCardInDeck('${uid}'); document.getElementById('tcg-card-action-menu').remove();" style="padding:15px 30px; font-size:18px; font-weight:bold; background:#ff5252; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.3);">➖ デッキから外す</button>`
-        : `<button onclick="window.toggleCardInDeck('${uid}'); document.getElementById('tcg-card-action-menu').remove();" style="padding:15px 30px; font-size:18px; font-weight:bold; background:#4CAF50; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.3);">➕ デッキに入れる</button>`;
-
-    menu.innerHTML = `
-        <div style="width: 270px; height: 390px; margin-bottom: 30px; display: flex; justify-content: center; align-items: flex-start;">
-            <div style="transform: scale(1.5); transform-origin: top center; pointer-events:none; box-shadow:0 0 30px rgba(0,188,212,0.4); border-radius:12px;">
-                ${window.renderCardHTML(card)}
-            </div>
-        </div>
-        <div style="display:flex; gap:20px; margin-bottom: 20px;">
-            <button onclick="document.getElementById('tcg-card-action-menu').remove(); window.showCardDetailModal(window.TCG.myCollection.find(c => c.uid === '${uid}'), false);" style="padding:15px 30px; font-size:18px; font-weight:bold; background:#00BCD4; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.3);">🔍 詳細を見る</button>
-            ${actionBtn}
-        </div>
-        <button onclick="document.getElementById('tcg-card-action-menu').remove();" style="padding:12px 40px; font-size:16px; background:#555; color:white; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer;">キャンセル</button>
-    `;
-    document.body.appendChild(menu);
-};
-
-    window.TCG.editingDeck.forEach(uid => {
-        const card = window.TCG.myCollection.find(c => c.uid === uid);
-        if (card) deckHtml += `<div onclick="window.showDeckCardActionMenu('${card.uid}', true)" style="transform: scale(0.65); transform-origin: top left; width: 117px; height: 169px; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(0.7) translateY(-5px)'" onmouseout="this.style.transform='scale(0.65) translateY(0)'"><div style="pointer-events:none;">${window.renderCardHTML(card)}</div></div>`;
-    });
-
-    window.TCG.myCollection.forEach(card => {
-        if (!window.TCG.editingDeck.includes(card.uid)) {
+    // --- カードのフィルタリング＆ソート処理関数 ---
+    const processCards = (cardArray, isDeckArea) => {
+        // 1. フィルタリング
+        let filtered = cardArray.filter(card => {
             let match = true;
+            // 名前検索
             if (searchName && !card.name.toLowerCase().includes(searchName)) match = false;
-            if (match && filterType !== 'all') {
-                if (filterType === 'evolution') {
-                    if (!card.evolvesFrom) match = false; 
-                } else if (filterType === 'monster_basic') {
-                    if (card.evolvesFrom || ['action', 'item', 'field'].includes(card.type)) match = false;
-                } else if (['action', 'item', 'field'].includes(filterType)) {
-                    if (card.type !== filterType) match = false;
+            
+            // 種族フィルター
+            if (match && filterRace !== 'all') {
+                if (filterRace === 'support') {
+                    if (!['item', 'action', 'field'].includes(card.type)) match = false;
                 } else {
-                    if (!card.type.startsWith(filterType)) match = false;
+                    if (!card.type.startsWith(filterRace)) match = false;
                 }
             }
-            if (match) collectionHtml += `<div onclick="window.showDeckCardActionMenu('${card.uid}', false)" style="transform: scale(0.65); transform-origin: top left; width: 117px; height: 169px; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(0.7) translateY(-5px)'" onmouseout="this.style.transform='scale(0.65) translateY(0)'"><div style="pointer-events:none;">${window.renderCardHTML(card)}</div></div>`;
-        }
+            
+            // 階級・進化フィルター（サポートカードは階級フィルタから除外される）
+            if (match && filterStage !== 'all') {
+                let isSupport = ['item', 'action', 'field'].includes(card.type);
+                if (isSupport) {
+                    match = false; 
+                } else {
+                    let isStage1 = false, isStage2 = false, isBase = false;
+                    if (card.evolvesFrom) {
+                        const parentKey = Object.keys(window.TCG_MASTER).find(k => window.TCG_MASTER[k].type === card.evolvesFrom);
+                        const parentData = parentKey ? window.TCG_MASTER[parentKey] : null;
+                        if (parentData && parentData.evolvesFrom) isStage2 = true;
+                        else isStage1 = true;
+                    } else {
+                        isBase = true;
+                    }
+                    
+                    if (filterStage === 'base' && !isBase) match = false;
+                    if (filterStage === 'stage1' && !isStage1) match = false;
+                    if (filterStage === 'stage2' && !isStage2) match = false;
+                }
+            }
+            return match;
+        });
+
+        // 2. ソート
+        filtered.sort((a, b) => {
+            let aCost = a.cost || 0; let bCost = b.cost || 0;
+            let aHp = a.hp || 0; let bHp = b.hp || 0;
+            let aDmg = a.damage || 0; let bDmg = b.damage || 0;
+            
+            if (sortType === 'cost_asc') return aCost - bCost || bHp - aHp;
+            if (sortType === 'cost_desc') return bCost - aCost || bHp - aHp;
+            if (sortType === 'hp_desc') return bHp - aHp || bDmg - aDmg;
+            if (sortType === 'dmg_desc') return bDmg - aDmg || bHp - aHp;
+            
+            // newest (デフォルト): 獲得日時（UIDのタイムスタンプ等）の新しい順
+            let aTime = parseInt(a.uid.split('_')[1]) || 0;
+            let bTime = parseInt(b.uid.split('_')[1]) || 0;
+            return bTime - aTime;
+        });
+        
+        return filtered;
+    };
+
+    // デッキ内のカード（ユーザーが分かりやすいよう、デッキエリアもソートを適用します）
+    let deckCards = window.TCG.editingDeck.map(uid => window.TCG.myCollection.find(c => c.uid === uid)).filter(c=>c);
+    deckCards = processCards(deckCards, true);
+
+    // コレクションエリアのカード（デッキに入っているものは除く）
+    let collectionCards = window.TCG.myCollection.filter(card => !window.TCG.editingDeck.includes(card.uid));
+    collectionCards = processCards(collectionCards, false);
+
+    // HTMLの生成
+    deckCards.forEach(card => {
+        deckHtml += `<div onclick="window.showDeckCardActionMenu('${card.uid}', true)" style="transform: scale(0.65); transform-origin: top left; width: 117px; height: 169px; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(0.7) translateY(-5px)'" onmouseout="this.style.transform='scale(0.65) translateY(0)'"><div style="pointer-events:none;">${window.renderCardHTML(card)}</div></div>`;
+    });
+
+    collectionCards.forEach(card => {
+        collectionHtml += `<div onclick="window.showDeckCardActionMenu('${card.uid}', false)" style="transform: scale(0.65); transform-origin: top left; width: 117px; height: 169px; cursor: pointer; transition: transform 0.1s;" onmouseover="this.style.transform='scale(0.7) translateY(-5px)'" onmouseout="this.style.transform='scale(0.65) translateY(0)'"><div style="pointer-events:none;">${window.renderCardHTML(card)}</div></div>`;
     });
 
     if (collectionArea) collectionArea.innerHTML = collectionHtml || '<div style="color:#666; width:100%; text-align:center; padding-top: 20px;">条件に合うカードが見つかりません</div>';
@@ -4640,55 +4932,137 @@ window.autoBuildDeck = function() {
     };
 };
 
+// ==========================================
+// ★ 賢いおまかせ編成ロジック（シナジー不適合カードの除外処理追加）
+// ==========================================
 window.executeAutoBuildLogic = function(selectedTypes, concept) {
     let myCards = [...window.TCG.myCollection];
     let selectedUids = [];
 
+    // 1. プール分け（指定された系統か、それ以外か）
     let pool = myCards.filter(c => {
-        if (selectedTypes.includes('support') && ['item','action','field'].includes(c.type)) return true;
+        let cType = c.type || (window.TCG_MASTER[c.masterId] ? window.TCG_MASTER[c.masterId].type : 'robot');
+        let ability = c.ability || (window.TCG_MASTER[c.masterId] ? window.TCG_MASTER[c.masterId].ability : null);
+
+        // ★追加：種族専用フィールドカードのミスマッチをAIが判断して除外する！
+        if (ability === 'field_forest') {
+            // 『静寂の森の小屋』は、精霊・つぼみ・虫のいずれかが選択されている時だけプールに入れる
+            if (!selectedTypes.includes('spirit') && !selectedTypes.includes('seed') && !selectedTypes.includes('beetle')) {
+                return false; // それ以外のデッキなら腐るので入れない！
+            }
+        }
+
+        if (selectedTypes.includes('support') && ['item','action','field'].includes(cType)) return true;
         for (let t of selectedTypes) {
-            if (t !== 'support' && c.type.startsWith(t)) return true;
+            if (t !== 'support' && cType.startsWith(t)) return true;
         }
         return false;
     });
     
     let otherPool = myCards.filter(c => !pool.includes(c));
 
+    // 2. シャッフル（同じコスト・優先度の中でランダム性を出すため）
     window.shuffleArray(pool);
     window.shuffleArray(otherPool);
 
-    if (concept === 'aggro') pool.sort((a, b) => a.cost - b.cost);
-    else if (concept === 'heavy') pool.sort((a, b) => b.cost - a.cost);
-    else if (concept === 'evolve') {
-        pool.sort((a, b) => {
-            let aEvo = a.evolvesFrom ? 1 : 0; let bEvo = b.evolvesFrom ? 1 : 0;
-            let aBase = (!a.evolvesFrom && !['item','action','field'].includes(a.type)) ? 0.5 : 0;
-            let bBase = (!b.evolvesFrom && !['item','action','field'].includes(b.type)) ? 0.5 : 0;
-            return (bEvo + bBase) - (aEvo + aBase);
+    // ★進化の深さを判定するヘルパー（基本=0, 1進化=1, 2進化=2）
+    const getEvoDepth = (card) => {
+        if (!card.evolvesFrom) return 0;
+        const parentKey = Object.keys(window.TCG_MASTER).find(k => window.TCG_MASTER[k].type === card.evolvesFrom);
+        const parentData = parentKey ? window.TCG_MASTER[parentKey] : null;
+        if (parentData && parentData.evolvesFrom) return 2;
+        return 1;
+    };
+
+    // 3. コンセプトに基づくソート（優先順位付け）
+    const sortPool = (p) => {
+        p.sort((a, b) => {
+            if (concept === 'aggro') return (a.cost || 0) - (b.cost || 0); // 軽い順
+            if (concept === 'heavy') return (b.cost || 0) - (a.cost || 0); // 重い順
+            if (concept === 'evolve') return getEvoDepth(b) - getEvoDepth(a); // 進化形態（2進化）を最優先
+            if (concept === 'support') {
+                let aSup = ['item','action','field'].includes(a.type) ? 1 : 0;
+                let bSup = ['item','action','field'].includes(b.type) ? 1 : 0;
+                return bSup - aSup; // サポート最優先
+            }
+            return 0; // balance はシャッフルされた状態をベースにする
         });
-    }
+    };
+    sortPool(pool);
+    sortPool(otherPool);
 
-    let oneManaCard = pool.find(c => c.cost === 1) || otherPool.find(c => c.cost === 1);
-    if (oneManaCard) {
-        selectedUids.push(oneManaCard.uid);
-    }
+    // ★ 事故防止！進化元セット抽出ロジック（トップダウン方式）
+    const tryExtractChain = (targetCard, sourcePool) => {
+        let chain = [targetCard];
+        let currentEvo = targetCard;
+        
+        while (currentEvo.evolvesFrom) {
+            let baseCard = sourcePool.find(c => !chain.includes(c) && window.checkCanEvolve(c, currentEvo));
+            if (!baseCard) return null; // 進化元が1枚でも足りなければ破棄
+            
+            chain.push(baseCard);
+            currentEvo = baseCard;
+        }
+        return chain; // 成功すれば [2進化, 1進化, 基本種] のセットが返る
+    };
 
-    for (let c of pool) { if (selectedUids.length < 60 && !selectedUids.includes(c.uid)) selectedUids.push(c.uid); }
-    
-    // ★追加：指定された種族だけで60枚に届かなかった（足りなかった）枚数を計算
+    // 5. デッキ構築処理本体
+    const buildDeckFromPool = (sourcePool) => {
+        let remainingPool = [...sourcePool];
+        
+        // 手札事故防止：コスト1（基本種）を最優先で1枚確保
+        if (selectedUids.length === 0) {
+            let oneManaIdx = remainingPool.findIndex(c => (c.cost || 0) === 1 && !c.evolvesFrom);
+            if (oneManaIdx !== -1) {
+                let c = remainingPool.splice(oneManaIdx, 1)[0];
+                selectedUids.push(c.uid);
+            }
+        }
+
+        while (remainingPool.length > 0 && selectedUids.length < 60) {
+            let card = remainingPool.shift(); 
+            
+            if (card.evolvesFrom) {
+                let chain = tryExtractChain(card, remainingPool);
+                if (chain) {
+                    if (selectedUids.length + chain.length <= 60) {
+                        chain.forEach(c => {
+                            selectedUids.push(c.uid);
+                            if (c !== card) {
+                                let idx = remainingPool.findIndex(rc => rc.uid === c.uid);
+                                if (idx !== -1) remainingPool.splice(idx, 1);
+                            }
+                        });
+                    }
+                } 
+            } else {
+                selectedUids.push(card.uid);
+            }
+        }
+    };
+
+    buildDeckFromPool(pool);
     let lackCount = 60 - selectedUids.length; 
     
-    for (let c of otherPool) { if (selectedUids.length < 60 && !selectedUids.includes(c.uid)) selectedUids.push(c.uid); }
+    if (selectedUids.length < 60) buildDeckFromPool(otherPool);
+    
+    if (selectedUids.length < 60) {
+        for (let c of myCards) {
+            if (selectedUids.length < 60 && !selectedUids.includes(c.uid)) {
+                selectedUids.push(c.uid);
+            }
+        }
+    }
 
+    // デッキを更新して画面に反映
     window.TCG.editingDeck = selectedUids;
     window.refreshDeckBuilderView();
     
     const uiTitle = document.getElementById('db-title-text');
-    if(uiTitle) {
-        // ★修正：足りなかった場合は「他のカードで埋めたよ」と正直に報告する
-        let msgText = "✨ 条件に合わせてデッキを編成しました！";
+    if (uiTitle) {
+        let msgText = "✨ コンセプトに合わせて最強デッキを編成しました！";
         if (lackCount > 0) {
-            msgText += `<br><span style="color:#FFC107; font-size:16px;">※指定の条件のカードが不足していたため、<br>他の種類のカードで <b>${lackCount}枚分</b> 埋め合わせました。</span>`;
+            msgText += `<br><span style="color:#FFC107; font-size:16px;">※指定系統や進化元カードが不足していたため、<br>他のカードで <b>${lackCount}枚分</b> 埋め合わせました。</span>`;
         }
         msgText += `<br><span style="font-size:14px;">（問題なければ右上の『デッキを保存』を押してください）</span>`;
 
@@ -5020,6 +5394,10 @@ window.checkDeath = function(card, owner, htmlId, enemyOwner = null) {
 if (!window.TCG.deckNames) window.TCG.deckNames = ["デッキ 1", "デッキ 2", "デッキ 3"];
 
 // ① 編成画面のUI上書き（デッキ名入力欄を追加）
+// ==========================================
+// ★ 検索フィルター＆ソート機能 大拡張パッチ
+// ==========================================
+
 window.openDeckBuilder = function() {
     let builderUI = document.getElementById('tcg-deck-builder');
     const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
@@ -5071,28 +5449,42 @@ window.openDeckBuilder = function() {
             <div style="flex: 1; display: flex; overflow: hidden;">
                 <div style="flex: 3; background: #222; display: flex; flex-direction: column; border-right: 4px solid #444;">
                     <div id="db-col-header" style="padding: 10px; background: #333; color: #aaa; text-align: center; font-weight: bold; border-bottom: 1px solid #111;">${uiColArea}</div>
-                    <div style="padding: 10px; background: #2a2a2a; border-bottom: 2px solid #111; display: flex; gap: 10px;">
-                        <input type="text" id="db-search-name" placeholder="🔍 ${isUnlocked ? 'カード名' : '思い出'}で検索..." oninput="window.refreshDeckBuilderView()" style="flex: 1; padding: 8px; border-radius: 6px; border: 1px solid #555; background: #111; color: white; font-size: 14px;">
-                        <select id="db-filter-type" onchange="window.refreshDeckBuilderView()" style="padding: 8px; border-radius: 6px; border: 1px solid #555; background: #111; color: white; font-size: 14px; cursor: pointer; display: ${isUnlocked ? 'block' : 'none'};">
-                            <option value="all">🌟 すべてのカード</option>
-                            <option value="evolution">✨ 進化モンスターのみ</option>
-                            <option value="monster_basic">🟢 基本モンスターのみ</option>
-                            <option value="action">⚡ アクションカード</option>
-                            <option value="item">🎒 アイテムカード</option>
-                            <option value="field">⛺ フィールドカード</option>
-                            <option value="robot">🤖 ロボット種族</option>
-                            <option value="dragon">🐉 ドラゴン種族</option>
-                            <option value="magician">🧙 魔法使い種族</option>
-                            <option value="ghost">👻 ゴースト種族</option>
-                            <option value="seed">🌱 つぼみ種族</option>
-                            <option value="spirit">🍃 精霊種族</option>
-                            <option value="stone">🪨 ゴーレム種族</option>
-                            <option value="machine">⚙️ ぜんまい種族</option>
-                            <option value="bird">🐦 鳥種族</option>
-                            <option value="beetle">🪲 虫種族</option>
-                            <option value="balloon">🎈 風船種族</option>
+                    
+                    <div style="padding: 10px; background: #2a2a2a; border-bottom: 2px solid #111; display: flex; flex-wrap: wrap; gap: 10px; align-items: center;">
+                        <input type="text" id="db-search-name" placeholder="🔍 ${isUnlocked ? 'カード名' : '思い出'}で検索..." oninput="window.refreshDeckBuilderView()" style="flex: 1; min-width: 150px; padding: 8px; border-radius: 6px; border: 1px solid #555; background: #111; color: white; font-size: 14px;">
+                        
+                        <select id="db-filter-race" onchange="window.refreshDeckBuilderView()" style="padding: 8px; border-radius: 6px; border: 1px solid #555; background: #111; color: white; font-size: 14px; cursor: pointer; display: ${isUnlocked ? 'block' : 'none'};">
+                            <option value="all">🌟 全種族</option>
+                            <option value="robot">🤖 ロボット</option>
+                            <option value="dragon">🐉 ドラゴン</option>
+                            <option value="magician">🧙 魔法使い</option>
+                            <option value="ghost">👻 ゴースト</option>
+                            <option value="seed">🌱 つぼみ</option>
+                            <option value="spirit">🍃 精霊</option>
+                            <option value="stone">🪨 ゴーレム</option>
+                            <option value="machine">⚙️ ぜんまい</option>
+                            <option value="bird">🐦 鳥</option>
+                            <option value="beetle">🪲 虫</option>
+                            <option value="balloon">🎈 風船</option>
+                            <option value="support">🎒 サポート(魔法/アイテム)</option>
+                        </select>
+
+                        <select id="db-filter-stage" onchange="window.refreshDeckBuilderView()" style="padding: 8px; border-radius: 6px; border: 1px solid #555; background: #111; color: white; font-size: 14px; cursor: pointer; display: ${isUnlocked ? 'block' : 'none'};">
+                            <option value="all">🔰 全階級</option>
+                            <option value="base">🟢 基本種のみ(たね)</option>
+                            <option value="stage1">✨ 1進化のみ</option>
+                            <option value="stage2">👑 2進化のみ(最終)</option>
+                        </select>
+
+                        <select id="db-sort" onchange="window.refreshDeckBuilderView()" style="padding: 8px; border-radius: 6px; border: 1px solid #555; background: #111; color: white; font-size: 14px; cursor: pointer;">
+                            <option value="newest">🕒 獲得が新しい順</option>
+                            <option value="cost_asc">🔼 コストが低い順</option>
+                            <option value="cost_desc">🔽 コストが高い順</option>
+                            <option value="hp_desc">❤️ HPが高い順</option>
+                            <option value="dmg_desc">⚔️ 攻撃力が高い順</option>
                         </select>
                     </div>
+
                     <div id="db-collection-area" style="flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 10px;"></div>
                 </div>
                 <div style="flex: 2; background: #111; display: flex; flex-direction: column;">
@@ -5111,16 +5503,18 @@ window.openDeckBuilder = function() {
         if (colHeader) colHeader.innerText = uiColArea;
         const deckHeader = document.getElementById('db-deck-header');
         if (deckHeader) deckHeader.innerText = uiDeckArea;
-        const searchInput = document.getElementById('db-search-name');
-        if (searchInput) searchInput.placeholder = `🔍 ${isUnlocked ? 'カード名' : '思い出'}で検索...`;
         
         let nameInput = document.getElementById('db-deck-name-input');
         if (nameInput) nameInput.value = currentDeckName;
         
-        const filterSelect = document.getElementById('db-filter-type');
-        if (filterSelect) { filterSelect.style.display = isUnlocked ? 'block' : 'none'; filterSelect.value = "all"; }
         const autoBtn = document.getElementById('db-auto-btn');
         if (autoBtn) autoBtn.style.display = isUnlocked ? 'block' : 'none';
+
+        // フィルター・ソートを初期化するかどうか（そのまま保持するならスキップ）
+        const filterRace = document.getElementById('db-filter-race');
+        if (filterRace) filterRace.style.display = isUnlocked ? 'block' : 'none';
+        const filterStage = document.getElementById('db-filter-stage');
+        if (filterStage) filterStage.style.display = isUnlocked ? 'block' : 'none';
     }
 
     builderUI.style.display = 'flex';
@@ -7524,8 +7918,26 @@ window.showDirectAttackCutin = function(isPlayer, isPierce) {
 // };
 
 // ==========================================
-// ★ 攻撃処理の完全版（全アビリティ・連撃バグ修正済）
+// ★ バグ修正：撃破された「守護」が残り続ける問題の解決パッチ
 // ==========================================
+
+// ① 登場時効果（ダメージなど）が終わった直後に、盤面から死体を確実に取り除く
+const _originalTriggerPlayEffect_fix = window.triggerPlayEffect;
+window.triggerPlayEffect = function(card, isPlayer) {
+    _originalTriggerPlayEffect_fix(card, isPlayer);
+    
+    // 元の処理が終わる頃（800ms後）に、お互いの盤面からHP0のカードを完全に削除する
+    setTimeout(() => {
+        if (window.TCG_BATTLE && window.TCG_BATTLE.player && window.TCG_BATTLE.cpu) {
+            window.TCG_BATTLE.player.field = window.TCG_BATTLE.player.field.filter(c => !c.isDead);
+            window.TCG_BATTLE.cpu.field = window.TCG_BATTLE.cpu.field.filter(c => !c.isDead);
+            window.renderBattleBoard(); // 綺麗になった盤面を再描画
+        }
+    }, 850);
+};
+
+
+// ② 攻撃する際の「守護がいるか？」の判定で、念のため死体を除外する
 window.executeAttack = function(targetType, enemyIndex) {
     try {
         const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
@@ -7540,7 +7952,9 @@ window.executeAttack = function(targetType, enemyIndex) {
         const attackerCard = owner.field[attackerIndex];
 
         const isPierce = attackerCard.ability === "pierce_recoil" || attackerCard.ability === "flight" || attackerCard.ability === "god_strike" || attackerCard.ability === "dimension_drill" || attackerCard.ability === "piercing_juggernaut";
-        const hasTaunt = enemy.field.some(c => c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending);
+        
+        // ★修正箇所：敵の盤面に「守護」がいるか探す時、(!c.isDead)を追加して死体を無視する！
+        const hasTaunt = enemy.field.some(c => (c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending) && !c.isDead);
         
         if (hasTaunt && !isPierce) {
             if (targetType === 'cpu' || targetType === 'player' || (targetType === 'card' && enemy.field[enemyIndex].ability !== "taunt" && enemy.field[enemyIndex].ability !== "pure_aegis" && !enemy.field[enemyIndex].isDefending)) {
@@ -7608,7 +8022,7 @@ window.executeAttack = function(targetType, enemyIndex) {
                 window.showVFX(targetHtmlId, 'slash', '迎撃');
             }
 
-            // ▼▼▼ 重装甲 ▼▼▼
+            // 重装甲
             if (target.ability === "heavy_armor") {
                 dmgToTarget = Math.max(0, dmgToTarget - 20);
                 window.showVFX(targetHtmlId, 'heal', '装甲化');
@@ -7648,9 +8062,9 @@ window.executeAttack = function(targetType, enemyIndex) {
             
             window.showBattleMessage(`💥 ${target.name} に ${dmgToTarget} ダメージ！`, false, 1500, !isPlayer, true);
 
-            // ▼▼▼ 沈黙 ▼▼▼
+            // 沈黙
             if (attackerCard.ability === "silence" && target && target.ability) {
-                target.ability = null; // 相手の能力を消去
+                target.ability = null; 
                 window.showVFX(targetHtmlId, 'slash', '沈黙');
                 window.showBattleMessage(`🔇 【沈黙】${target.name} の能力が封じられた！`, false, 2000, !isPlayer, true);
             }
@@ -7687,25 +8101,21 @@ window.executeAttack = function(targetType, enemyIndex) {
                 window.showBattleMessage(`💥 【貫通】超過した ${excess} ダメージがリーダーに直撃！`, false, 2000, !isPlayer, true);
             }
 
-            if(target.hp <= 0 && !target.isDead) targetDied = true;
-            window.checkDeath(target, enemy, targetHtmlId, owner);
-
-            // ▼▼▼ 修正＆追加（ターゲット側の自爆） ▼▼▼
             let targetWasAlive = !target.isDead;
             if(target.hp <= 0 && !target.isDead) targetDied = true;
             window.checkDeath(target, enemy, targetHtmlId, owner);
 
-            // ダメージを受けて生き残っていれば逆鱗発動！
+            // 逆鱗
             if (targetWasAlive && !target.isDead && target.ability === "wrath" && dmgToTarget > 0) {
                 target.damage += 20;
                 window.showVFX(targetHtmlId, 'heal', '逆鱗(攻+20)');
                 window.showBattleMessage(`💢 【逆鱗】${target.name} の攻撃力が上がった！`, false, 1500, !isPlayer, true);
             }
             
-            // 死んだ瞬間に自爆発動！
+            // 自爆
             if (targetWasAlive && target.isDead && target.ability === "self_destruct" && !target._has_self_destructed) {
                 target._has_self_destructed = true;
-                owner.hp -= 30; // 攻撃してきた側のリーダーにダメージ
+                owner.hp -= 30;
                 const faceId = isPlayer ? 'player-face' : 'cpu-face';
                 window.showVFX(faceId, 'damage', 30);
                 window.showBattleMessage(`💥 【自爆】${target.name} の爆発でリーダーに30ダメージ！`, false, 1500, !isPlayer, true);
@@ -7730,7 +8140,7 @@ window.executeAttack = function(targetType, enemyIndex) {
             window.showBattleMessage(`💖 【吸収】リーダーのHPが ${dmgToTarget} 回復した！`, false, 1500, !isPlayer, true);
         }
 
-        // 捕食系
+        // 捕食
         if (targetDied) {
             if (attackerCard.ability === "devour") {
                 attackerCard.maxHp = (attackerCard.maxHp||attackerCard.hp) + 20;
@@ -7754,7 +8164,7 @@ window.executeAttack = function(targetType, enemyIndex) {
             }
         }
 
-        // ▼▼▼ 範囲魔法 ▼▼▼
+        // 範囲魔法
         if (attackerCard.ability === "splash_damage") {
             const otherEnemies = enemy.field.filter((c, idx) => (!c.isDead && (targetType !== 'card' || idx !== enemyIndex)));
             if (otherEnemies.length > 0) {
@@ -7767,7 +8177,6 @@ window.executeAttack = function(targetType, enemyIndex) {
                 });
                 window.showBattleMessage(`🔥 【範囲魔法】他の敵全員に 10 の巻き添えダメージ！`, false, 1500, !isPlayer, true);
                 
-                // 画面揺れ演出
                 const ui = document.getElementById('tcg-battle-ui'); 
                 if (ui) { ui.classList.remove('screen-shake-effect'); void ui.offsetWidth; ui.classList.add('screen-shake-effect'); }
             }
@@ -7809,42 +8218,37 @@ window.executeAttack = function(targetType, enemyIndex) {
 
         if (attackerCard.ability === "pierce_recoil") { dmgToAttacker += 10; }
 
-        // 反撃ダメージの処理（200ms遅延）
+        // アタッカー側の反撃ダメージ処理
         if (dmgToAttacker > 0) {
             setTimeout(() => {
                 attackerCard.hp -= dmgToAttacker; window.showVFX(attackerHtmlId, 'slash'); window.showVFX(attackerHtmlId, 'damage', dmgToAttacker);
                 
-                // ▼▼▼ 修正＆追加（アタッカー側の自爆） ▼▼▼
                 let attackerWasAlive = !attackerCard.isDead;
                 window.checkDeath(attackerCard, owner, attackerHtmlId, enemy); 
 
-                // ▼▼▼ 逆鱗・アタッカー側 ▼▼▼
                 if (attackerWasAlive && !attackerCard.isDead && attackerCard.ability === "wrath" && dmgToAttacker > 0) {
                     attackerCard.damage += 20;
                     window.showVFX(attackerHtmlId, 'heal', '逆鱗(攻+20)');
                     window.showBattleMessage(`💢 【逆鱗】${attackerCard.name} の攻撃力が上がった！`, false, 1500, isPlayer, true);
                 }
                 
-                // 反撃で死んだ瞬間に自爆発動！
                 if (attackerWasAlive && attackerCard.isDead && attackerCard.ability === "self_destruct" && !attackerCard._has_self_destructed) {
-                    enemy.hp -= 30; // 迎撃してきた側のリーダーにダメージ
+                    enemy.hp -= 30; 
                     const faceId = isPlayer ? 'cpu-face' : 'player-face';
                     window.showVFX(faceId, 'damage', 30);
                     window.showBattleMessage(`💥 【自爆】${attackerCard.name} の爆発でリーダーに30ダメージ！`, false, 1500, isPlayer, true);
                     const ui = document.getElementById('tcg-battle-ui'); 
                     if (ui) { ui.classList.remove('screen-shake-effect'); void ui.offsetWidth; ui.classList.add('screen-shake-effect'); }
                 } 
-                if (attackerCard.isDead) attackerCard.canAttack = false; // 死んだら攻撃不可
+                if (attackerCard.isDead) attackerCard.canAttack = false; 
                 window.renderBattleBoard();
             }, 200);
         }
         
         if (attackerCard.ability === "stealth") attackerCard.ability = null;
 
-        // ★ 連撃の完全管理
         if (attackerCard.ability === "double_strike" && !attackerCard._has_attacked_once && !attackerCard.isDead) {
             attackerCard._has_attacked_once = true;
-            // canAttack は true のまま残す！
             window.showBattleMessage(`🌪️ 【連撃】${attackerCard.name} はもう一度攻撃できる！`, false, 1500, !isPlayer, true);
         } else {
             attackerCard.canAttack = false; 
@@ -7854,11 +8258,13 @@ window.executeAttack = function(targetType, enemyIndex) {
         if(isPlayer) window.TCG_BATTLE.selectedAttackerIndex = -1; 
 
         setTimeout(() => {
+            // ★修正：戦闘後も、お互いの盤面から死体を確実に取り除く
+            p.field = p.field.filter(c => !c.isDead); 
+            cpu.field = cpu.field.filter(c => !c.isDead);
             window.renderBattleBoard();
-            p.field = p.field.filter(c => !c.isDead); cpu.field = cpu.field.filter(c => !c.isDead);
+            
             if (cpu.hp <= 0) { cpu.hp = 0; window.renderBattleBoard(); window.showBattleMessage("🎉 YOU WIN!!\n相手のHPを0にしました！", false, 5000); setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000); return; }
             if (p.hp <= 0) { p.hp = 0; window.renderBattleBoard(); window.showBattleMessage("💀 YOU LOSE...\nプレイヤーのHPが0になりました。", true, 5000); setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000); return; }
-            window.renderBattleBoard();
         }, 1100);
     } catch (e) {
         console.error("Attack Execution Error: ", e);
@@ -7868,13 +8274,23 @@ window.executeAttack = function(targetType, enemyIndex) {
 // ==========================================
 // ★ 進化バッジ正確化パッチ（ID名に依存せず進化深度を判定）
 // ==========================================
+// ==========================================
+// ★ バグ修正：バッジ生成時のエラー回避 ＆ 欠落データ補完パッチ
+// ==========================================
 window.getCardBadgeInfo = function(card) {
     let badges = [];
+    
+    // ★追加：typeが未定義の場合、マスターデータから補完する安全装置
+    let cType = card.type;
+    if (!cType && window.TCG_MASTER[card.masterId]) {
+        cType = window.TCG_MASTER[card.masterId].type;
+    }
+    cType = cType || 'robot'; // それでも無ければデフォルト
 
     // 1. サポートカード
-    if (card.type === 'item') { badges.push({ text: '具', color: '#8D6E63' }); return badges; }
-    if (card.type === 'action') { badges.push({ text: '技', color: '#FFB74D' }); return badges; }
-    if (card.type === 'field') { badges.push({ text: '地', color: '#4DB6AC' }); return badges; }
+    if (cType === 'item') { badges.push({ text: '具', color: '#8D6E63' }); return badges; }
+    if (cType === 'action') { badges.push({ text: '技', color: '#FFB74D' }); return badges; }
+    if (cType === 'field') { badges.push({ text: '地', color: '#4DB6AC' }); return badges; }
 
     // 2. 基本種族の判定
     const raceMap = {
@@ -7886,39 +8302,35 @@ window.getCardBadgeInfo = function(card) {
         'robot': { t: '機', c: '#9E9E9E' }
     };
 
-    let baseType = card.type.split('_')[0]; 
+    let baseType = cType.split('_')[0]; 
     if (raceMap[baseType]) {
         badges.push({ text: raceMap[baseType].t, color: raceMap[baseType].c });
     }
 
-    // 3. ★修正：文字(ID)ではなく「進化の深さ」を直接調べて段階を判定する！
+    // 3. 進化の段階を判定
     let isStage1 = false;
     let isStage2 = false;
 
     if (card.evolvesFrom) {
-        // マスターデータの中から、親となるカードを検索する
         const parentKey = Object.keys(window.TCG_MASTER).find(k => window.TCG_MASTER[k].type === card.evolvesFrom);
         const parentData = parentKey ? window.TCG_MASTER[parentKey] : null;
 
         if (parentData && parentData.evolvesFrom) {
-            // 親もさらに進化元を持っている ＝ 自分は「最終進化（第2形態）」
             isStage2 = true;
         } else {
-            // 親は基本種族 ＝ 自分は「1進化（第1形態）」
             isStage1 = true;
         }
     }
 
     // 4. 進化属性の判定
     let evoText = ''; let evoColor = '';
-    if (card.type.includes('type1')) { evoText = '闇'; evoColor = '#9C27B0'; }
-    else if (card.type.includes('type2')) { evoText = '美'; evoColor = '#E91E63'; }
-    else if (card.type.includes('type3')) { evoText = '賢'; evoColor = '#2196F3'; }
-    else if (card.type.includes('type4')) { evoText = '活'; evoColor = '#FF5722'; }
-    else if (card.type.includes('type5')) { evoText = '老'; evoColor = '#795548'; }
+    if (cType.includes('type1')) { evoText = '闇'; evoColor = '#9C27B0'; }
+    else if (cType.includes('type2')) { evoText = '美'; evoColor = '#E91E63'; }
+    else if (cType.includes('type3')) { evoText = '賢'; evoColor = '#2196F3'; }
+    else if (cType.includes('type4')) { evoText = '活'; evoColor = '#FF5722'; }
+    else if (cType.includes('type5')) { evoText = '老'; evoColor = '#795548'; }
 
     if (evoText) {
-        // 最終進化（第2形態）の時だけ「+」をつける
         if (isStage2) evoText += '+'; 
         badges.push({ text: evoText, color: evoColor });
     }
@@ -10283,6 +10695,12 @@ window.selectPlayerCard = function(index) {
 };
 
 // 5. CPUターンの攻撃処理を async/await で直列化し、2段階の割り込みを実現
+// ==========================================
+// ★ 仕様変更：敵の攻撃宣言時に「誰を狙っているか」を表示する
+// ==========================================
+// ==========================================
+// ★ バグ修正：CPUターンの攻撃スルー＆連撃無限ループ解消パッチ
+// ==========================================
 window.executeCPUTurn = async function(isFirstTurn = false) {
     window.TCG_BATTLE.isEnemyTurn = true;
     window.TCG_BATTLE.isAnimating = true;
@@ -10298,6 +10716,7 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
         cpu.hand.push(cpu.deck.shift());
     }
 
+    // ターン開始時効果
     cpu.field.forEach((c, i) => {
         if (c.isDead) return;
         if (c.ability === "start_draw" && !c.isDead) { if (cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift()); window.showVFX(`c-card-${i}`, 'heal', 'Draw'); }
@@ -10311,7 +10730,7 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
     
     cpu.field.forEach(card => { card.canAttack = true; card._has_attacked_once = false; });
     window.renderBattleBoard();
-    await window.tcgSleep(1000);
+    await window.tcgSleep(1000); 
 
     // --- 攻撃フェーズ ---
     for (let cpuIndex = 0; cpuIndex < cpu.field.length; cpuIndex++) {
@@ -10323,22 +10742,17 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
             cpu.hp -= cpuCard.damage;
             window.showVFX('cpu-face', 'slash'); window.showVFX('cpu-face', 'damage', cpuCard.damage);
             window.renderBattleBoard();
-
-            // ▼▼▼ 追加：CPUのHPが0になったら勝利！ ▼▼▼
             if (cpu.hp <= 0) {
                 cpu.hp = 0; window.renderBattleBoard();
                 window.showBattleMessage("🎉 YOU WIN!!\n敵リーダーのHPが0になりました！", false, 5000);
                 setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000);
-                return; // ターン処理自体を完全に終了する
+                return; 
             }
-            // ▲▲▲ 追加おわり ▲▲▲
-
             await window.tcgSleep(800);
             continue;
         }
         if (cpuCard.status === "stunned") continue;
 
-        // 攻撃前のアニメーション表示
         window.TCG_BATTLE.selectedAttackerIndex = cpuIndex;
         window.renderBattleBoard();
         
@@ -10348,27 +10762,37 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
         let tIndex = 0;
 
         if (!isPierce) {
-            // ★ プレイヤーの割り込み判断（フェーズ1：追加するか？ → フェーズ2：どれで受けるか？）
             let targetInfo = await new Promise(async resolve => {
-                
                 const getTaunts = () => p.field.filter(c => c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending);
-                const getCanTaunt = () => p.field.some(c => !c.isDefending && c.ability !== "taunt" && c.ability !== "pure_aegis" && !c.isDead && c.status !== "stunned");
+                const getCanTaunt = () => p.field.some(c => (!c.canAttack || c.damage <= 0) && !c.isDefending && c.ability !== "taunt" && c.ability !== "pure_aegis" && !c.isDead && c.status !== "stunned");
                 
                 let taunts = getTaunts();
                 let canTaunt = getCanTaunt();
                 let hasMana = p.currentMana >= 1;
 
+                let predictedTargetType = 'player';
+                let predictedTargetIndex = 0;
+                
+                if (taunts.length > 0) {
+                    predictedTargetType = 'card';
+                    predictedTargetIndex = p.field.indexOf(taunts[Math.floor(Math.random() * taunts.length)]);
+                } else {
+                    let aiTarget = window._decideAITarget(cpu, p);
+                    predictedTargetType = aiTarget.type;
+                    predictedTargetIndex = aiTarget.index;
+                }
+
+                let targetNameStr = "";
+                if (predictedTargetType === 'player') targetNameStr = "あなた (リーダー)";
+                else if (predictedTargetType === 'field') targetNameStr = `フィールド『${window.TCG_BATTLE.currentField.card.name}』`;
+                else if (predictedTargetType === 'card') targetNameStr = `味方『${p.field[predictedTargetIndex].name}』`;
+
                 if (window.TCG_BATTLE.isAuto) {
-                    if (taunts.length > 0) resolve({ targetType: 'card', targetIndex: p.field.indexOf(taunts[Math.floor(Math.random() * taunts.length)]) });
-                    else {
-                        const valids = p.field.filter(c => c.ability !== "stealth" && !c.isDead);
-                        if (valids.length > 0 && Math.random() > 0.5) resolve({ targetType: 'card', targetIndex: p.field.indexOf(valids[Math.floor(Math.random() * valids.length)]) });
-                        else resolve({ targetType: 'player', targetIndex: 0 });
-                    }
+                    resolve({ targetType: predictedTargetType, targetIndex: predictedTargetIndex });
                     return;
                 }
 
-                // 【フェーズ1】マナがあり、守護にできるカードがあるなら「追加」を聞く
+                // マナがあり、守護にできるカードがあるなら「追加」を聞く
                 if (hasMana && canTaunt) {
                     window.TCG_BATTLE.isIntercepting = true;
                     window.TCG_BATTLE.interceptPhase = 'asking';
@@ -10380,7 +10804,8 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                         ui.style.cssText = `position:absolute; top:50%; right:20px; transform:translateY(-50%); background:rgba(0,0,0,0.9); padding:20px; border:4px solid #ff9800; border-radius:12px; z-index:40000; text-align:center; box-shadow:0 0 30px rgba(255,152,0,0.8); pointer-events:auto; width: 280px;`;
                         ui.innerHTML = `
                             <h3 style="color:#ff9800; margin:0 0 10px 0; font-size:20px;">⚠️ 敵の攻撃！</h3>
-                            <div style="font-size:18px; color:#fff; margin-bottom: 15px; font-weight:bold;">${cpuCard.name}<br><span style="color:#ff5252; font-size:24px;">${cpuCard.damage} ダメージ</span></div>
+                            <div style="font-size:18px; color:#fff; margin-bottom: 5px; font-weight:bold;">${cpuCard.name}<br><span style="color:#ff5252; font-size:24px;">${cpuCard.damage} ダメージ</span></div>
+                            <div style="font-size:14px; color:#FFEB3B; margin-bottom:15px; background:rgba(0,0,0,0.5); padding:5px; border-radius:4px; border:1px solid #FFC107;">🎯 狙い: ${targetNameStr}</div>
                             <p style="color:#ddd; font-size:13px; margin-bottom:15px;">マナを消費して「守護」を追加しますか？</p>
                             <button id="btn-add-guard" style="padding:10px; background:#00BCD4; color:#fff; border:2px solid #fff; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:10px;">🛡️ 守護を追加する (1マナ)</button>
                             <button id="btn-skip-guard" style="padding:10px; background:#555; color:#fff; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">追加しない</button>
@@ -10396,7 +10821,6 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                             window.TCG_BATTLE.interceptPhase = 'adding';
                             window.TCG_BATTLE.interceptResolve = res2;
                             
-                            // ▼▼▼ 追加：守護選択の案内UIとキャンセルボタン ▼▼▼
                             let ui = document.getElementById('tcg-target-ui');
                             if (!ui) {
                                 ui = document.createElement('div');
@@ -10417,19 +10841,16 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                                     }
                                 };
                             }
-                            // ▲▲▲ 追加おわり ▲▲▲
-                            
                             window.renderBattleBoard();
                         });
                         
-                        // キャンセルされずに無事追加された時だけリストを更新
                         if (addResult === 'added') {
                             taunts = getTaunts(); 
                         }
                     }
                 }
 
-                // 【フェーズ2】守護が2体以上なら「どれで受けるか」を聞く
+                // 守護が2体以上なら「どれで受けるか」を聞く
                 if (taunts.length >= 2) {
                     window.TCG_BATTLE.isIntercepting = true;
                     window.TCG_BATTLE.interceptPhase = 'selecting';
@@ -10442,7 +10863,7 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                         ui.style.cssText = `position:absolute; top:50%; right:20px; transform:translateY(-50%); background:rgba(0,0,0,0.9); padding:20px; border:4px solid #ff9800; border-radius:12px; z-index:40000; text-align:center; box-shadow:0 0 30px rgba(255,152,0,0.8); pointer-events:auto; width: 280px;`;
                         ui.innerHTML = `
                             <h3 style="color:#ff9800; margin:0 0 10px 0; font-size:20px;">⚠️ 敵の攻撃！</h3>
-                            <div style="font-size:18px; color:#fff; margin-bottom: 15px; font-weight:bold;">${cpuCard.name}<br><span style="color:#ff5252; font-size:24px;">${cpuCard.damage} ダメージ</span></div>
+                            <div style="font-size:18px; color:#fff; margin-bottom: 5px; font-weight:bold;">${cpuCard.name}<br><span style="color:#ff5252; font-size:24px;">${cpuCard.damage} ダメージ</span></div>
                             <p style="color:#ddd; font-size:13px; margin-bottom:15px;">守護が複数います。<br><span style="color:#00BCD4; font-weight:bold;">身代わりにする味方をクリック！</span></p>
                         `;
                         document.getElementById('tcg-battle-ui').appendChild(ui);
@@ -10450,21 +10871,14 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                     resolve(phase2Result);
                     return;
                 } 
-                // 守護が1体だけなら自動で受ける
                 else if (taunts.length === 1) {
                     window.TCG_BATTLE.isIntercepting = false;
                     resolve({ targetType: 'card', targetIndex: p.field.indexOf(taunts[0]) });
                     return;
                 } 
-                // 守護が0体ならランダムor顔面へ
                 else {
                     window.TCG_BATTLE.isIntercepting = false;
-                    const valids = p.field.filter(c => c.ability !== "stealth" && !c.isDead); 
-                    if (valids.length > 0 && Math.random() > 0.5) {
-                        resolve({ targetType: 'card', targetIndex: p.field.indexOf(valids[Math.floor(Math.random() * valids.length)]) });
-                    } else {
-                        resolve({ targetType: 'player', targetIndex: 0 });
-                    }
+                    resolve({ targetType: predictedTargetType, targetIndex: predictedTargetIndex });
                     return;
                 }
             });
@@ -10473,18 +10887,23 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
             tIndex = targetInfo.targetIndex;
             
         } else {
-            // 貫通攻撃の場合は守護を無視して攻撃
-            const validTargets = p.field.filter(c => c.ability !== "stealth" && !c.isDead); 
-            if (validTargets.length > 0 && Math.random() > 0.5) {
-                targetType = 'card';
-                tIndex = p.field.indexOf(validTargets[Math.floor(Math.random() * validTargets.length)]);
-            }
+            let aiTarget = window._decideAITarget(cpu, p);
+            targetType = aiTarget.type;
+            tIndex = aiTarget.index;
         }
 
-        // ★修正：順番を入れ替え、さらに sleep を tcgWait に変更
+        // ★バグ修正：ここで selectedAttackerIndex を -1 にしてはいけない！（攻撃がキャンセルされてしまう）
         window.executeAttack(targetType, tIndex);
-        window.TCG_BATTLE.selectedAttackerIndex = -1; 
         await window.tcgSleep(1500); 
+
+        // ★バグ修正：攻撃の演出が終わってから、ハイライト（選択状態）を解除する
+        window.TCG_BATTLE.selectedAttackerIndex = -1;
+        window.renderBattleBoard();
+
+        // ★バグ修正：連撃処理。攻撃がキャンセルされないので正常にループが戻る
+        if (cpuCard.ability === "double_strike" && cpuCard.canAttack && !cpuCard.isDead) {
+            cpuIndex--; 
+        }
     }
 
     // --- 召喚＆魔法＆進化フェーズ ---
@@ -10494,48 +10913,31 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
         if (cpu.currentMana >= actualCost) {
             if (card.type === 'action' && cpu.actionUsed) continue;
             
-            // ① フィールドカードの場合
             if (card.type === 'field') {
                 cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isSupport: true, targetCard: null });
                 cpu.currentMana -= actualCost; cpu.hand.splice(i, 1);
             }
-            // ② 魔法カード（アイテム・アクション）の場合
             else if (card.type === 'item' || card.type === 'action') {
                 let needsTarget = window.requiresTarget ? window.requiresTarget(card) : false;
                 let targetCard = null;
-                
-                // AIの思考：能力名に攻撃的なワードが入っているか？
                 let isOffensive = card.ability && (card.ability.includes('damage') || card.ability.includes('stun') || card.ability.includes('charm') || card.ability.includes('break') || card.ability.includes('debuff'));
                 
                 if (needsTarget) {
                     if (isOffensive) {
-                        // 攻撃魔法：プレイヤーのモンスターをランダムに狙う
                         let validTargets = p.field.filter(c => !c.isDead && c.ability !== "stealth");
-                        if (validTargets.length > 0) {
-                            targetCard = validTargets[Math.floor(Math.random() * validTargets.length)];
-                        } else {
-                            continue; // 撃つ相手がいないなら、無駄撃ちせず手札に温存する！
-                        }
+                        if (validTargets.length > 0) targetCard = validTargets[Math.floor(Math.random() * validTargets.length)];
+                        else continue;
                     } else {
-                        // 強化魔法：自分のモンスターを狙う
                         let validTargets = cpu.field.filter(c => !c.isDead);
-                        if (card.ability === "item_taunt") { 
-                            // 賢いAI：すでに守護を持っている味方には重ねがけしない
-                            validTargets = validTargets.filter(c => c.ability !== "taunt" && c.ability !== "pure_aegis" && !c.hasPermanentTaunt);
-                        }
-                        if (validTargets.length > 0) {
-                            targetCard = validTargets[Math.floor(Math.random() * validTargets.length)];
-                        } else {
-                            continue; // 味方がいないなら温存する！
-                        }
+                        if (card.ability === "item_taunt") validTargets = validTargets.filter(c => c.ability !== "taunt" && c.ability !== "pure_aegis" && !c.hasPermanentTaunt);
+                        if (validTargets.length > 0) targetCard = validTargets[Math.floor(Math.random() * validTargets.length)];
+                        else continue; 
                     }
                 }
-
                 cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isSupport: true, targetCard: targetCard });
                 cpu.currentMana -= actualCost; cpu.hand.splice(i, 1);
                 if (card.type === 'action') cpu.actionUsed = true;
             }
-            // ③ 進化モンスターの場合
             else if (card.evolvesFrom) {
                 let targetIndex = cpu.field.findIndex(c => window.checkCanEvolve(c, card)); 
                 if (targetIndex !== -1) {
@@ -10543,7 +10945,6 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                     cpu.currentMana -= actualCost; cpu.hand.splice(i, 1);
                 }
             } 
-            // ④ 通常モンスターの場合
             else {
                 cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isEvo: false });
                 cpu.currentMana -= actualCost; cpu.hand.splice(i, 1);
@@ -10559,12 +10960,10 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
         await new Promise(resolve => {
             window.animateCardPlay(card, false, () => {
                 if (card.type === 'field') {
-                    // フィールド発動
                     window.showBattleMessage(`⛰️ 敵がフィールド『${card.name}』を展開！`, false, 2500, true);
                     if (window.playFieldCard) window.playFieldCard(card, false);
                 } 
                 else if (card.type === 'item' || card.type === 'action') {
-                    // 魔法発動
                     window.showBattleMessage(`✨ 敵が魔法『${card.name}』を使用！`, false, 2500, true);
                     if (window.executeSupportCard) {
                         window.executeSupportCard(card, playData.targetCard, false);
@@ -10574,10 +10973,9 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                     }
                 } 
                 else if (playData.isEvo) {
-                    // 進化
                     let prevCard = cpu.field[playData.targetIndex];
                     let canAttackInherit = prevCard ? prevCard.canAttack : false;
-                    let hasPermanentTauntInherit = prevCard ? prevCard.hasPermanentTaunt : false; // 敵も木の板を引き継ぐ
+                    let hasPermanentTauntInherit = prevCard ? prevCard.hasPermanentTaunt : false; 
                     let isDefendingInherit = prevCard ? prevCard.isDefending : false;
                     
                     card.canAttack = canAttackInherit; 
@@ -10588,7 +10986,6 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                     window.triggerPlayEffect(card, false); 
                 } 
                 else {
-                    // 通常モンスター
                     card.canAttack = (card.ability === "haste"); cpu.field.push(card); 
                     window.showBattleMessage(`🛡️ 敵が ${card.name} を配置！`, false, 2000, true);
                     window.triggerPlayEffect(card, false); 
@@ -10992,22 +11389,42 @@ window.requiresTarget = function(card) {
 //     window.renderBattleBoard();
 // };
 
+// ==========================================
+// ★ バグ修正：サポートカード（魔法・アイテム）処理パッチ
+// ==========================================
 window.executeSupportCard = function(card, targetCard, isPlayer) {
     const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
     const owner = isPlayer ? p : cpu;
     
+    // エラー防止：ターゲットIDを先に定義しておく
+    let tIdx = targetCard ? owner.field.indexOf(targetCard) : -1;
+    let tId = isPlayer ? `p-card-${tIdx}` : `c-card-${tIdx}`;
+
     // 1. まずステータスの計算だけを行う
-    if (card.ability === "item_hp_up" && targetCard) { targetCard.maxHp += 20; targetCard.hp += 20; }
-    else if (card.ability === "item_taunt" && targetCard) {
-        targetCard.hasPermanentTaunt = true; // 元の能力は残したまま「永続守護フラグ」を追加
-        targetCard.isDefending = true; 
-        window.showVFX(tId, 'heal', '守護付与');
+    if (card.ability === "item_hp_up" && targetCard) { 
+        targetCard.maxHp += 20; targetCard.hp += 20; 
     }
-    else if (card.ability === "item_heal_cleanse" && targetCard) { targetCard.hp = targetCard.maxHp; targetCard.status = null; }
-    else if (card.ability === "item_draw") { if (owner.deck.length > 0) owner.hand.push(owner.deck.shift()); }
-    else if (card.ability === "item_mana_boost") { owner.currentMana += 2; }
-    else if (card.ability === "action_draw_3") { for(let i=0; i<3; i++) { if(owner.deck.length > 0) owner.hand.push(owner.deck.shift()); } }
-    else if (card.ability === "action_atk_up" && targetCard) { targetCard.damage += 40; }
+    else if (card.ability === "item_taunt" && targetCard) {
+        targetCard.hasPermanentTaunt = true; 
+        targetCard.isDefending = true; 
+    }
+    else if (card.ability === "item_heal_cleanse" && targetCard) { 
+        // ★修正：現在のHPがすでに最大HPを突破している場合は、その高いHPを維持する！
+        targetCard.hp = Math.max(targetCard.hp, targetCard.maxHp); 
+        targetCard.status = null; 
+    }
+    else if (card.ability === "item_draw") { 
+        if (owner.deck.length > 0) owner.hand.push(owner.deck.shift()); 
+    }
+    else if (card.ability === "item_mana_boost") { 
+        owner.currentMana += 2; 
+    }
+    else if (card.ability === "action_draw_3") { 
+        for(let i=0; i<3; i++) { if(owner.deck.length > 0) owner.hand.push(owner.deck.shift()); } 
+    }
+    else if (card.ability === "action_atk_up" && targetCard) { 
+        targetCard.damage += 40; 
+    }
     else if (card.ability === "action_search_evo") {
         let evos = owner.deck.filter(c => window.TCG_MASTER[c.masterId] && window.TCG_MASTER[c.masterId].evolvesFrom);
         if (evos.length > 0) {
@@ -11015,9 +11432,13 @@ window.executeSupportCard = function(card, targetCard, isPlayer) {
             owner.deck = owner.deck.filter(c => c !== hit); owner.hand.push(hit);
         }
     }
-    else if (card.ability === "action_heal_face") { owner.hp += 100; }
+    else if (card.ability === "action_heal_face") { 
+        owner.hp += 100; 
+    }
     else if (card.ability === "action_heal_all") {
-        owner.hp += 100; owner.field.forEach(c => c.hp = c.maxHp);
+        owner.hp += 100; 
+        // ★修正：全体回復も同じく突破したHPを削らないようにする
+        owner.field.forEach(c => c.hp = Math.max(c.hp, c.maxHp)); 
     }
 
     card.isDead = true;
@@ -11029,12 +11450,10 @@ window.executeSupportCard = function(card, targetCard, isPlayer) {
 
     // 3. 最後にエフェクト（VFX）とメッセージを出す
     window.showBattleMessage(`🪄 ${card.name} を発動！`, false, 2000, !isPlayer);
-    let tIdx = targetCard ? owner.field.indexOf(targetCard) : -1;
-    let tId = isPlayer ? `p-card-${tIdx}` : `c-card-${tIdx}`;
 
     if (card.ability === "item_hp_up" && targetCard) window.showVFX(tId, 'heal', 'HP+20');
     else if (card.ability === "item_taunt" && targetCard) window.showVFX(tId, 'heal', '守護付与');
-    else if (card.ability === "item_heal_cleanse" && targetCard) window.showVFX(tId, 'heal', '全回復');
+    else if (card.ability === "item_heal_cleanse" && targetCard) window.showVFX(tId, 'heal', '全回復＆浄化');
     else if (card.ability === "item_draw") window.showVFX(isPlayer ? 'player-face' : 'cpu-face', 'heal', 'ドロー');
     else if (card.ability === "item_mana_boost") window.showVFX(isPlayer ? 'player-face' : 'cpu-face', 'heal', 'マナ+2');
     else if (card.ability === "action_draw_3") window.showVFX(isPlayer ? 'player-face' : 'cpu-face', 'heal', '3ドロー');
@@ -11493,8 +11912,30 @@ window.showCardDetailModal = function(card, fromGacha = false) {
     }
 };
 
-// 🔍 リッチなカード詳細画面（ガチャ後 ＆ 編成画面の両方で使う共通UI）
-window.showCardDetailModal = function(card, fromGacha = false) {
+// ==========================================
+// ★ バグ修正：バトル中の詳細表示（虫眼鏡）エラー解消パッチ
+// ==========================================
+window.showCardDetailModal = function(ownerTypeOrCard, indexOrFromGacha) {
+    let card = null;
+    let fromGacha = false;
+    let isBattleSimple = false;
+
+    // ★修正：引数が「文字列（バトル中）」か「オブジェクト（バインダー等）」かで処理を分ける！
+    if (typeof ownerTypeOrCard === 'string') {
+        isBattleSimple = true;
+        let index = indexOrFromGacha;
+        if (ownerTypeOrCard === 'player') card = window.TCG_BATTLE.player.field[index];
+        else if (ownerTypeOrCard === 'cpu') card = window.TCG_BATTLE.cpu.field[index];
+        else if (ownerTypeOrCard === 'player_hand') card = window.TCG_BATTLE.player.hand[index];
+        else if (ownerTypeOrCard === 'player_field') card = window.TCG_BATTLE.currentField.card;
+        else if (ownerTypeOrCard === 'cpu_field') card = window.TCG_BATTLE.currentField.card;
+    } else {
+        card = ownerTypeOrCard;
+        fromGacha = indexOrFromGacha === true;
+    }
+
+    if (!card) return;
+
     let modal = document.getElementById('tcg-card-detail-modal');
     if (!modal) {
         modal = document.createElement('div');
@@ -11508,58 +11949,83 @@ window.showCardDetailModal = function(card, fromGacha = false) {
         document.body.appendChild(modal);
     }
     
-    // ナイトガンダム風に、左側にカード、右側にステータスを配置
-    let isSupport = ['item','action','field'].includes(card.type);
-    let s_hp = isSupport ? "---" : card.hp;
-    let s_cost = card.cost;
-    let s_dmg = isSupport ? "---" : (card.damage || 0);
-    
-    let btnHtml = '';
-    if (fromGacha) {
-        btnHtml = `
-            <div style="display:flex; gap:20px; margin-top:30px; justify-content:center;">
-                <button onclick="document.getElementById('tcg-card-detail-modal').style.display='none'; window.drawCardPack();" style="padding:12px 30px; font-size:18px; font-weight:bold; background:#00BCD4; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5);">もう1回引く</button>
-                <button onclick="document.getElementById('tcg-card-detail-modal').style.display='none'; window.openCardShopUI();" style="padding:12px 30px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #888; border-radius:8px; cursor:pointer;">店に戻る</button>
+    // 背景（またはカード自身）をクリックした時に閉じる
+    modal.onclick = function(e) {
+        if (e.target === this || isBattleSimple) {
+            modal.style.display = 'none';
+        }
+    };
+
+    if (isBattleSimple) {
+        // ★ バトル中は、シンプルに「カードだけを大きく拡大」するUIにする
+        modal.innerHTML = `
+            <div style="display:flex; flex-direction:column; align-items:center; pointer-events:none;">
+                <div style="margin-bottom: 20px; color: #00BCD4; font-size: 24px; font-weight: bold; text-shadow: 0 2px 4px #000;">
+                    🔍 カード詳細
+                </div>
+                <div style="transform: scale(1.8); box-shadow: 0 0 40px rgba(0,188,212,0.6); border-radius: 12px;">
+                    ${window.renderCardHTML(card)}
+                </div>
+                <div style="margin-top: 130px; color: #aaa; font-size: 16px; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px;">
+                    画面をクリックして閉じる
+                </div>
             </div>
         `;
     } else {
-        btnHtml = `
-            <div style="margin-top:30px; text-align:center;">
-                <button onclick="document.getElementById('tcg-card-detail-modal').style.display='none';" style="padding:12px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #888; border-radius:8px; cursor:pointer;">閉じる</button>
+        // ガチャやバインダー用のリッチUI（ステータス表示付き）
+        let isSupport = ['item','action','field'].includes(card.type);
+        let s_hp = isSupport ? "---" : card.hp;
+        let s_cost = card.cost;
+        let s_dmg = isSupport ? "---" : (card.damage || 0);
+        
+        let btnHtml = '';
+        if (fromGacha) {
+            btnHtml = `
+                <div style="display:flex; gap:20px; margin-top:30px; justify-content:center;">
+                    <button onclick="document.getElementById('tcg-card-detail-modal').style.display='none'; window.drawCardPack();" style="padding:12px 30px; font-size:18px; font-weight:bold; background:#00BCD4; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5);">もう1回引く</button>
+                    <button onclick="document.getElementById('tcg-card-detail-modal').style.display='none'; window.openCardShopUI();" style="padding:12px 30px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #888; border-radius:8px; cursor:pointer;">店に戻る</button>
+                </div>
+            `;
+        } else {
+            btnHtml = `
+                <div style="margin-top:30px; text-align:center;">
+                    <button onclick="document.getElementById('tcg-card-detail-modal').style.display='none';" style="padding:12px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #888; border-radius:8px; cursor:pointer;">閉じる</button>
+                </div>
+            `;
+        }
+
+        modal.innerHTML = `
+            <div style="display:flex; align-items:center; gap:50px; transform:scale(0.9); transition:transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" id="card-detail-inner">
+                <div style="transform: scale(1.5); box-shadow: 0 0 30px rgba(0,188,212,0.4); border-radius: 12px; pointer-events:none;">
+                    ${window.renderCardHTML(card)}
+                </div>
+                
+                <div style="width: 350px; background: #222; border: 4px solid #00BCD4; border-radius: 12px; padding: 25px; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);" onclick="event.stopPropagation()">
+                    <div style="font-size:26px; font-weight:bold; color:#00BCD4; border-bottom:2px solid #444; padding-bottom:10px; margin-bottom:20px;">
+                        ${card.name}
+                    </div>
+                    <div style="display:flex; flex-direction:column; gap:12px; font-size:18px; margin-bottom:20px;">
+                        <div style="display:flex; justify-content:space-between; background:#111; padding:10px; border-radius:6px;">
+                            <span style="color:#aaa;">必要マナ</span><span style="color:#FFD700; font-weight:bold;">${s_cost}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; background:#111; padding:10px; border-radius:6px;">
+                            <span style="color:#aaa;">HP</span><span style="color:#4CAF50; font-weight:bold;">${s_hp}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; background:#111; padding:10px; border-radius:6px;">
+                            <span style="color:#aaa;">攻撃力 (威力)</span><span style="color:#ff5252; font-weight:bold;">${s_dmg}</span>
+                        </div>
+                    </div>
+                    ${btnHtml}
+                </div>
             </div>
         `;
     }
-
-    modal.innerHTML = `
-        <div style="display:flex; align-items:center; gap:50px; transform:scale(0.9); transition:transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" id="card-detail-inner">
-            <div style="transform: scale(1.5); box-shadow: 0 0 30px rgba(0,188,212,0.4); border-radius: 12px; pointer-events:none;">
-                ${window.renderCardHTML(card)}
-            </div>
-            
-            <div style="width: 350px; background: #222; border: 4px solid #00BCD4; border-radius: 12px; padding: 25px; color: white; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
-                <div style="font-size:26px; font-weight:bold; color:#00BCD4; border-bottom:2px solid #444; padding-bottom:10px; margin-bottom:20px;">
-                    ${card.name}
-                </div>
-                <div style="display:flex; flex-direction:column; gap:12px; font-size:18px; margin-bottom:20px;">
-                    <div style="display:flex; justify-content:space-between; background:#111; padding:10px; border-radius:6px;">
-                        <span style="color:#aaa;">必要マナ</span><span style="color:#FFD700; font-weight:bold;">${s_cost}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; background:#111; padding:10px; border-radius:6px;">
-                        <span style="color:#aaa;">HP</span><span style="color:#4CAF50; font-weight:bold;">${s_hp}</span>
-                    </div>
-                    <div style="display:flex; justify-content:space-between; background:#111; padding:10px; border-radius:6px;">
-                        <span style="color:#aaa;">攻撃力 (威力)</span><span style="color:#ff5252; font-weight:bold;">${s_dmg}</span>
-                    </div>
-                </div>
-                ${btnHtml}
-            </div>
-        </div>
-    `;
     
     modal.style.display = 'flex';
     setTimeout(() => {
         modal.style.opacity = '1';
-        document.getElementById('card-detail-inner').style.transform = 'scale(1)';
+        let inner = document.getElementById('card-detail-inner');
+        if (inner) inner.style.transform = 'scale(1)';
     }, 50);
 };
 
@@ -11930,3 +12396,1978 @@ window.exitCardShop = function() {
         window.aiPet.messageTimer = 120;
     }
 };
+
+// ==========================================
+// ★ フィールドカード攻撃対応パッチ
+// ==========================================
+
+// ① 盤面描画の修正：フィールドカードをクリックして攻撃できるようにする
+const _originalRenderBattleBoard_fieldAttack = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    _originalRenderBattleBoard_fieldAttack();
+    
+    const ui = document.getElementById('tcg-battle-ui');
+    if (!ui) return;
+    
+    const p = window.TCG_BATTLE.player;
+    const cpu = window.TCG_BATTLE.cpu;
+    const isTargeting = window.TCG_BATTLE.selectedAttackerIndex !== -1;
+
+    // フィールドゾーンを描画し直す内部関数
+    const createFieldZoneHtml = (isPlayerOwner) => {
+        let owner = isPlayerOwner ? p : cpu;
+        let fieldData = window.TCG_BATTLE.currentField;
+        
+        const zoneId = isPlayerOwner ? 'p-field-zone' : 'c-field-zone';
+        
+        if (fieldData && fieldData.owner === owner) {
+            let cardHtml = window.renderCardHTML(fieldData.card);
+            
+            // ★追加：自分が攻撃モードで、敵のフィールドならターゲットにできる
+            let canTarget = isTargeting && !isPlayerOwner && !window.TCG_BATTLE.isEnemyTurn;
+            let filter = canTarget ? "drop-shadow(0 0 20px #FF9800) brightness(1.2)" : "drop-shadow(0 0 10px #4DB6AC)";
+            let cursor = canTarget ? "crosshair" : "default";
+
+            return `
+            <div id="${zoneId}" style="position: absolute; left: 20px; top: 10px; display:flex; flex-direction:column; align-items:center; z-index: 40; filter: ${filter}; cursor: ${cursor}; transition: transform 0.2s;" title="${fieldData.card.name}"
+                 onmouseover="if(${canTarget}){ this.style.transform='scale(1.05)'; }"
+                 onmouseout="if(${canTarget}){ this.style.transform='scale(1)'; }"
+                 onclick="if(${canTarget}) window.executeAttack('field', 0)">
+                <div style="transform: scale(0.55); transform-origin: top left; width: 99px; height: 143px; pointer-events:none; z-index:50;">
+                    ${cardHtml}
+                </div>
+                <div style="color:#4DB6AC; font-size:12px; font-weight:bold; margin-top:-5px; background:#111; padding:2px 8px; border-radius:4px; border:1px solid #4DB6AC; z-index:51;">
+                    展開中 (HP: ${fieldData.card.hp})
+                </div>
+            </div>`;
+        } else {
+            return `
+            <div id="${zoneId}" style="position: absolute; left: 20px; top: 10px; width: 100px; height: 140px; border: 2px dashed ${isPlayerOwner ? '#00BCD4' : '#ff5252'}; border-radius: 8px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); z-index: 40;">
+                <span style="color: ${isPlayerOwner ? '#00BCD4' : '#ff5252'}; font-weight: bold; font-size: 12px; opacity: 0.5;">フィールド</span>
+            </div>`;
+        }
+    };
+
+    // 既存のフィールド描画を上書き
+    const cpuFieldArea = ui.children[0].children[1]; // cpuの盤面エリア
+    const playerFieldArea = ui.children[0].children[2]; // playerの盤面エリア
+    
+    if (cpuFieldArea && cpuFieldArea.firstElementChild) {
+        let oldZone = cpuFieldArea.querySelector('#c-field-zone') || cpuFieldArea.firstElementChild;
+        if (oldZone && oldZone.style.position === 'absolute') oldZone.outerHTML = createFieldZoneHtml(false);
+    }
+    if (playerFieldArea && playerFieldArea.firstElementChild) {
+        let oldZone = playerFieldArea.querySelector('#p-field-zone') || playerFieldArea.firstElementChild;
+        if (oldZone && oldZone.style.position === 'absolute') oldZone.outerHTML = createFieldZoneHtml(true);
+    }
+};
+
+// ② 攻撃実行処理の拡張（targetType: 'field' の追加）
+const _originalExecuteAttack_field = window.executeAttack;
+window.executeAttack = function(targetType, enemyIndex) {
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    const isPlayer = window.TCG_BATTLE.isEnemyTurn === false;
+    const enemy = isPlayer ? cpu : p;
+
+    // 「かばう」がいる場合はフィールドも狙えないようにする
+    const attackerIndex = window.TCG_BATTLE.selectedAttackerIndex; 
+    if (attackerIndex !== -1) {
+        const attackerCard = (isPlayer ? p : cpu).field[attackerIndex];
+        const isPierce = attackerCard.ability === "pierce_recoil" || attackerCard.ability === "flight" || attackerCard.ability === "god_strike" || attackerCard.ability === "dimension_drill" || attackerCard.ability === "piercing_juggernaut";
+        const hasTaunt = enemy.field.some(c => (c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending) && !c.isDead);
+        
+        if (hasTaunt && !isPierce && targetType === 'field') {
+            if(isPlayer) window.showBattleMessage("🛡️ 敵の場に【かばう】を持つカードがいます！\n先にそちらを攻撃してください", true); 
+            return;
+        }
+    }
+
+    // ★ フィールドへの攻撃処理
+    if (targetType === 'field' && window.TCG_BATTLE.currentField) {
+        const attackerCard = (isPlayer ? p : cpu).field[attackerIndex];
+        let dmgToTarget = attackerCard.damage;
+        
+        window.showBattleMessage(`⚔️ ${attackerCard.name} の攻撃！`, false, 1500, !isPlayer);
+        
+        if (attackerCard.ability === "piercing_juggernaut") {
+            attackerCard.damage += 10;
+            window.showVFX(`${isPlayer ? 'p' : 'c'}-card-${attackerIndex}`, 'heal', '火力UP');
+        }
+
+        const fieldCard = window.TCG_BATTLE.currentField.card;
+        const targetHtmlId = isPlayer ? 'c-field-zone' : 'p-field-zone';
+        
+        fieldCard.hp -= dmgToTarget;
+        
+        window.showVFX(targetHtmlId, 'slash'); 
+        window.showVFX(targetHtmlId, 'damage', dmgToTarget);
+        window.showBattleMessage(`💥 フィールド『${fieldCard.name}』に ${dmgToTarget} ダメージ！`, false, 2000, !isPlayer, true);
+
+        // 破壊判定
+        if (fieldCard.hp <= 0) {
+            setTimeout(() => {
+                window.showBattleMessage(`🏚️ フィールド『${fieldCard.name}』が破壊された！`, false, 2500, !isPlayer, true);
+                const ui = document.getElementById('tcg-battle-ui'); 
+                if (ui) { ui.classList.remove('screen-shake-effect'); void ui.offsetWidth; ui.classList.add('screen-shake-effect'); }
+                
+                window.TCG_BATTLE.currentField.owner.graveyard.push(fieldCard);
+                window.TCG_BATTLE.currentField = null;
+                window.renderBattleBoard();
+            }, 800);
+        }
+
+        // 吸収などのアタッカー側効果
+        if (attackerCard.ability === "soul_drain" && dmgToTarget > 0) {
+            let heal = Math.floor(dmgToTarget / 2);
+            attackerCard.hp += heal; window.showVFX(`${isPlayer ? 'p' : 'c'}-card-${attackerIndex}`, 'heal', heal);
+        }
+        if (attackerCard.ability === "life_drain" && dmgToTarget > 0) {
+            (isPlayer ? p : cpu).hp += dmgToTarget;
+            window.showVFX(isPlayer ? 'player-face' : 'cpu-face', 'heal', dmgToTarget);
+        }
+
+        // 攻撃終了処理
+        if (attackerCard.ability === "stealth") attackerCard.ability = null;
+        if (attackerCard.ability === "double_strike" && !attackerCard._has_attacked_once && !attackerCard.isDead) {
+            attackerCard._has_attacked_once = true;
+            window.showBattleMessage(`🌪️ 【連撃】${attackerCard.name} はもう一度攻撃できる！`, false, 1500, !isPlayer, true);
+        } else {
+            attackerCard.canAttack = false; 
+            attackerCard._has_attacked_once = false;
+        }
+
+        if(isPlayer) window.TCG_BATTLE.selectedAttackerIndex = -1; 
+        setTimeout(() => window.renderBattleBoard(), 1100);
+        return;
+    }
+
+    // 通常のカード・リーダー攻撃の場合は元の処理へ
+    _originalExecuteAttack_field(targetType, enemyIndex);
+};
+
+// ③ 敵CPU＆オートバトルの「ターゲット選択AI」の拡張
+// CPUが攻撃先を決める時、フィールドカードも候補に含める賢いロジックにする
+const _originalCPUAttackLogic = window.executeCPUTurn;
+
+// AI用のターゲット決定ヘルパー関数
+window._decideAITarget = function(attackerObj, defenderObj) {
+    const tauntTargets = defenderObj.field.filter(c => c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending);
+    const validTargets = defenderObj.field.filter(c => c.ability !== "stealth"); 
+    
+    // 貫通系はかばうを無視できる
+    const attackerCard = attackerObj.field[window.TCG_BATTLE.selectedAttackerIndex];
+    const isPierce = attackerCard && (attackerCard.ability === "pierce_recoil" || attackerCard.ability === "flight" || attackerCard.ability === "god_strike" || attackerCard.ability === "dimension_drill" || attackerCard.ability === "piercing_juggernaut");
+    
+    if (tauntTargets.length > 0 && !isPierce) {
+        return { type: 'card', index: defenderObj.field.indexOf(tauntTargets[Math.floor(Math.random() * tauntTargets.length)]) };
+    } 
+
+    // 候補リストを作成（リーダー、各モンスター、フィールド）
+    let candidates = [{ type: 'player', index: 0 }]; // リーダー（cpu視点だとplayer扱い）
+    
+    validTargets.forEach(c => {
+        candidates.push({ type: 'card', index: defenderObj.field.indexOf(c) });
+    });
+
+    if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === defenderObj) {
+        // フィールドカードがあれば候補に入れる（少し確率を高めにしておく）
+        candidates.push({ type: 'field', index: 0 });
+        candidates.push({ type: 'field', index: 0 }); 
+    }
+
+    return candidates[Math.floor(Math.random() * candidates.length)];
+};
+
+// 敵ターンの攻撃ループの中のターゲット選択部分を書き換えるためのハック
+// （オートバトル側のループもこれを使います）
+setInterval(() => {
+    // オートバトル時のターゲット選択を書き換え
+    if (window.TCG_BATTLE && window.TCG_BATTLE.isAuto && !window.TCG_BATTLE.isEnemyTurn && !window.TCG_BATTLE.isAnimating) {
+        let attackerIndex = window.TCG_BATTLE.player.field.findIndex(c => c.canAttack && c.damage > 0 && !c.isDead && c.status !== 'stunned' && c.status !== 'charmed');
+        if (attackerIndex !== -1 && window.TCG_BATTLE.selectedAttackerIndex === -1) {
+            window.TCG_BATTLE.selectedAttackerIndex = attackerIndex;
+            let targetInfo = window._decideAITarget(window.TCG_BATTLE.player, window.TCG_BATTLE.cpu);
+            // 本来のオートバトルのタイマーが拾う前に、ここで強制実行させてしまう
+            window.TCG_BATTLE.isAnimating = true;
+            window.executeAttack(targetInfo.type === 'player' ? 'cpu' : targetInfo.type, targetInfo.index);
+            setTimeout(() => { window.TCG_BATTLE.isAnimating = false; }, 1500);
+        }
+    }
+}, 1000);
+
+// ついでにフィールドカードの虫眼鏡にも対応させます
+const _originalRenderBattleBoard_fieldMag = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    _originalRenderBattleBoard_fieldMag();
+    
+    const pFieldZone = document.getElementById('p-field-zone');
+    const cFieldZone = document.getElementById('c-field-zone');
+    
+    if (pFieldZone && !pFieldZone.querySelector('.field-magnifier') && window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === window.TCG_BATTLE.player) {
+        const mag = document.createElement('div');
+        mag.className = 'field-magnifier';
+        mag.style.cssText = `position:absolute; top:-10px; right:-10px; background:#222; color:#00BCD4; border:2px solid #00BCD4; border-radius:50%; width:32px; height:32px; display:flex; justify-content:center; align-items:center; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.8); z-index:60;`;
+        mag.innerHTML = "🔍";
+        mag.onclick = function(e) { e.stopPropagation(); window.showCardDetailModal('player_field'); };
+        pFieldZone.appendChild(mag);
+    }
+    
+    if (cFieldZone && !cFieldZone.querySelector('.field-magnifier') && window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === window.TCG_BATTLE.cpu) {
+        const mag = document.createElement('div');
+        mag.className = 'field-magnifier';
+        mag.style.cssText = `position:absolute; top:-10px; right:-10px; background:#222; color:#ff5252; border:2px solid #ff5252; border-radius:50%; width:32px; height:32px; display:flex; justify-content:center; align-items:center; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.8); z-index:60;`;
+        mag.innerHTML = "🔍";
+        mag.onclick = function(e) { e.stopPropagation(); window.showCardDetailModal('cpu_field'); };
+        cFieldZone.appendChild(mag);
+    }
+};
+
+// ======================================================================
+// ★ 人物（サポート）カードシステム 完全統合版プラグイン（UI完全修復版）
+// ======================================================================
+
+console.log("🛠️ 人物カードシステムを初期化中...");
+
+// ------------------------------------------
+// 1. マスターデータの追加
+// ------------------------------------------
+const userSlicedPersonCards = {
+    "person_farmer": { "name": "農家", "type": "person", "image": "character_card.png", "imageIndex": 0, "baseCost": 2, "baseHp": 40, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_farmer", "personSkills": [ { "name": "おすそわけ", "cost": 1, "desc": "味方1体を 15 回復する" }, { "name": "豊穣の祈り", "cost": 3, "desc": "1枚ドローし、最大マナを+1する" } ], "sx": 630, "sy": -118, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_fisherman": { "name": "漁師", "type": "person", "image": "character_card.png", "imageIndex": 1, "baseCost": 3, "baseHp": 40, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_fisherman", "personSkills": [ { "name": "一本釣り", "cost": 1, "desc": "敵1体に 10 ダメージ (守護・潜伏無視)" }, { "name": "大漁網", "cost": 4, "desc": "敵モンスター1体を山札に戻す" } ], "sx": 1316, "sy": -118, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_builder": { "name": "建築士", "type": "person", "image": "character_card.png", "imageIndex": 2, "baseCost": 3, "baseHp": 50, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_builder", "personSkills": [ { "name": "即席バリケード", "cost": 2, "desc": "味方1体にこのターンのみ「守護」を付与" }, { "name": "突貫工事", "cost": 4, "desc": "フィールドHP 50回復かリーダー 40回復" } ], "sx": 622, "sy": 573, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_chef": { "name": "料理人", "type": "person", "image": "character_card.png", "imageIndex": 3, "baseCost": 3, "baseHp": 40, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_chef", "personSkills": [ { "name": "特製スパイス", "cost": 1, "desc": "指定した味方モンスターの攻撃力を 永続で+10" }, { "name": "究極のフルコース", "cost": 4, "desc": "行動済みの味方を「未行動」に戻し、全回復" } ], "sx": -52, "sy": 573, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_smith": { "name": "鍛冶師", "type": "person", "image": "character_card.png", "imageIndex": 4, "baseCost": 4, "baseHp": 50, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_smith", "personSkills": [ { "name": "武器研磨", "cost": 2, "desc": "味方1体の次の攻撃に「+20」ダメージを付与" }, { "name": "会心の武具", "cost": 4, "desc": "味方1体にこのターンのみ「貫通」を付与" } ], "sx": 1316, "sy": 574, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_adventurer": { "name": "冒険家", "type": "person", "image": "character_card.png", "imageIndex": 5, "baseCost": 2, "baseHp": 30, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_adventurer", "personSkills": [ { "name": "マッピング", "cost": 1, "desc": "カードを1枚引く" }, { "name": "秘境の発見", "cost": 3, "desc": "山札から「進化後」モンスター1体をサーチ" } ], "sx": -48, "sy": -60, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_king": { "name": "王様", "type": "person", "image": "character_card.png", "imageIndex": 6, "baseCost": 6, "baseHp": 80, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_king", "personSkills": [ { "name": "王の号令", "cost": 2, "desc": "味方モンスター全員の攻撃力を +10 する" }, { "name": "王の裁き", "cost": 6, "desc": "HP 40以下の敵全員をすべて破壊する" } ], "sx": -49, "sy": 1264, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_captain": { "name": "隊長", "type": "person", "image": "character_card.png", "imageIndex": 7, "baseCost": 5, "baseHp": 60, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_captain", "personSkills": [ { "name": "陣形指示", "cost": 2, "desc": "このターン、味方全体が受けるダメージを -10" }, { "name": "総員突撃", "cost": 5, "desc": "このターン、味方モンスター全員が「連撃」化" } ], "sx": 630, "sy": 1264, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 },
+    "person_soldier": { "name": "兵士", "type": "person", "image": "character_card.png", "imageIndex": 8, "baseCost": 1, "baseHp": 30, "skillName": "人物スキル", "skillCost": 0, "baseDmg": 0, "ability": "person_soldier", "personSkills": [ { "name": "槍の突き", "cost": 1, "desc": "敵1体に 10 ダメージを与える" }, { "name": "決死の覚悟", "cost": 3, "desc": "敵1体に 40 ダメージ ＆ 自身に 20 ダメージ" } ], "sx": 1316, "sy": 1264, "sw": 795, "sh": 731, "scaleX": 0.3, "scaleY": 0.29999999999999966 }
+};
+Object.assign(window.TCG_MASTER, userSlicedPersonCards);
+
+// ------------------------------------------
+// 2. カードの描画（元の描画関数を保護！）
+// ------------------------------------------
+if (!window._originalRenderCardHTML_Base) {
+    window._originalRenderCardHTML_Base = window.renderCardHTML;
+}
+
+// ==========================================
+// ★ バグ修正：アビリティ上書きを撤廃し、一時ステータスとして付与するパッチ
+// ==========================================
+
+// ==========================================
+// 1. カード描画（renderCardHTML）のオーバーライド
+// ==========================================
+window.renderCardHTML = function(card) {
+    // 【保護】人物以外のカードは元のゲームの描画関数に丸投げ
+    if (card.type !== 'person' && window._originalRenderCardHTML_Base) {
+        let baseHtml = window._originalRenderCardHTML_Base(card);
+        
+        // ★修正点：バフが付与されている場合、見た目に専用バッジを後付けする
+        let badges = '';
+        if (card._captain_double) badges += `<div style="background:#E91E63; color:white; padding:2px 4px; border-radius:4px; border:1px solid #fff; font-size:11px; margin-bottom:2px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">⚔️連撃</div>`;
+        if (card._smith_trample) badges += `<div style="background:#FF9800; color:white; padding:2px 4px; border-radius:4px; border:1px solid #fff; font-size:11px; margin-bottom:2px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">☄️貫通</div>`;
+        if (card._builder_guarded) badges += `<div style="background:#4CAF50; color:white; padding:2px 4px; border-radius:4px; border:1px solid #fff; font-size:11px; margin-bottom:2px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">🛡️守護</div>`;
+        if (card._smith_buffed) badges += `<div style="background:#00BCD4; color:white; padding:2px 4px; border-radius:4px; border:1px solid #fff; font-size:11px; margin-bottom:2px; box-shadow:0 2px 4px rgba(0,0,0,0.5);">🗡️研磨</div>`;
+        
+        if (badges !== '' && !card.isDead) {
+            let badgeContainer = `<div style="position:absolute; top:35px; right:5px; display:flex; flex-direction:column; z-index:10; pointer-events:none;">${badges}</div>`;
+            baseHtml = baseHtml.replace('</div>', badgeContainer + '</div>'); 
+        }
+        return baseHtml;
+    }
+
+    // ★ ここから下は「人物カード」だけの専用描画！
+    if (typeof window.TCG_MASTER !== 'undefined') {
+        let masterData = card.masterId ? window.TCG_MASTER[card.masterId] : null;
+        if (masterData) {
+            if (masterData.sx !== undefined) card.sx = masterData.sx;
+            if (masterData.sy !== undefined) card.sy = masterData.sy;
+            if (masterData.sw !== undefined) card.sw = masterData.sw;
+            if (masterData.sh !== undefined) card.sh = masterData.sh;
+            if (masterData.scaleX !== undefined) card.scaleX = masterData.scaleX;
+            if (masterData.scaleY !== undefined) card.scaleY = masterData.scaleY;
+            if (masterData.image) card.image = masterData.image;
+            card.personSkills = masterData.personSkills || masterData.skills;
+        }
+    }
+
+    const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
+    let displayCost = card.cost !== undefined ? card.cost : 0;
+    if (window.TCG_BATTLE && window.TCG_BATTLE.player) {
+        let owner = window.TCG_BATTLE.player.hand.includes(card) ? window.TCG_BATTLE.player : null;
+        if (!owner && window.TCG_BATTLE.cpu.hand.includes(card)) owner = window.TCG_BATTLE.cpu;
+        if (owner) displayCost = window.getActualCost(owner, card);
+    }
+    const costColor = displayCost < (card.cost || 0) ? "#4CAF50" : "#FFD700";
+    const badges = window.getCardBadgeInfo ? window.getCardBadgeInfo(card) : [];
+    let badgesHtml = badges.map(b => `<span style="font-size: 11px; background: rgba(0,0,0,0.6); color: ${b.color}; padding: 2px 5px; border-radius: 4px; border: 1px solid ${b.color}; white-space: nowrap;">${b.text}</span>`).join('');
+
+    let imgPath = card.image;
+    if (!imgPath || imgPath === 'characters.png') imgPath = null;
+    else if (typeof imageSources !== 'undefined' && imageSources[imgPath]) imgPath = imageSources[imgPath];
+
+    let html = `<div class="tcg-card" style="width: 180px; height: 260px; background-color: #222; border: 4px solid #E91E63; border-radius: 12px; position: relative; font-family: sans-serif; color: white; box-shadow: 0 4px 8px rgba(0,0,0,0.5); display: flex; flex-direction: column; overflow: hidden; user-select: none;">`;
+
+    if (isUnlocked) {
+        html += `<div style="position: absolute; top: 6px; left: 6px; width: 28px; height: 28px; background: ${costColor}; color: #000; border-radius: 50%; font-weight: bold; font-size: 18px; display: flex; justify-content: center; align-items: center; border: 2px solid #FFF; z-index: 2; box-shadow: 0 2px 4px rgba(0,0,0,0.5);">${displayCost}</div>`;
+    }
+
+    if (card.sx !== undefined) {
+        const scX = card.scaleX !== undefined ? card.scaleX : 1.0;
+        const scY = card.scaleY !== undefined ? card.scaleY : 1.0;
+        const sw = card.sw || 50; const sh = card.sh || 50;
+        const sx = card.sx || 0; const sy = card.sy || 0;
+        let imgStyle = imgPath ? `background-image: url('${imgPath}'); background-position: ${-sx}px ${-sy}px; background-repeat: no-repeat;` : `background: linear-gradient(135deg, #444, #111);`; 
+        html += `<div style="width: 100%; height: 120px; background-color: #1a1a1a; overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; border-bottom: 3px solid #444;"><div style="width: ${sw}px; height: ${sh}px; ${imgStyle} transform: scale(${scX}, ${scY}); transform-origin: center center; flex-shrink: 0;">${!imgPath ? '<div style="width:100%; height:100%; display:flex; justify-content:center; align-items:center; color:#666; font-size:12px; font-weight:bold;">NO IMAGE</div>' : ''}</div></div>`;
+    }
+
+    html += `<div style="padding: 4px 8px; font-weight: bold; font-size: 14px; background: linear-gradient(to right, #444, #222); border-bottom: 2px solid #111; text-shadow: 1px 1px 2px #000; display: flex; justify-content: space-between; align-items: center;"><span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1;">${card.name}</span>${isUnlocked ? `<div style="display:flex; gap:2px; margin-left: 4px;">${badgesHtml}</div>` : ''}</div>`;
+
+    if (isUnlocked) {
+        let pSkills = card.personSkills || [];
+        let skillHtml = "";
+        if (pSkills.length >= 2) {
+            let s1 = pSkills[0]; let s2 = pSkills[1];
+            skillHtml = `
+                <div style="display:flex; flex-direction:column; gap:4px; height:100%; justify-content:space-evenly; margin-top:2px;">
+                    <div style="background:#111; padding:4px; border-radius:4px; border:1px solid #4CAF50; box-shadow:inset 0 0 5px rgba(0,0,0,0.5);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;"><span style="color:#4CAF50; font-weight:bold;">${s1.name}</span><span style="background:#4CAF50; color:#fff; border-radius:3px; padding:1px 4px; font-size:9px;">コスト ${s1.cost}</span></div>
+                        <div style="color:#ddd; font-size:9px; line-height:1.2;">${s1.desc}</div>
+                    </div>
+                    <div style="background:#111; padding:4px; border-radius:4px; border:1px solid #E91E63; box-shadow:inset 0 0 5px rgba(0,0,0,0.5);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:2px;"><span style="color:#E91E63; font-weight:bold;">${s2.name}</span><span style="background:#E91E63; color:#fff; border-radius:3px; padding:1px 4px; font-size:9px;">コスト ${s2.cost}</span></div>
+                        <div style="color:#ddd; font-size:9px; line-height:1.2;">${s2.desc}</div>
+                    </div>
+                </div>`;
+        }
+        html += `<div style="flex: 1; padding: 6px; padding-bottom: 24px; font-size: 11px; color: #ddd; background: #2a2a2a; display: flex; flex-direction: column; gap: 2px;">${skillHtml}</div>
+        <div style="position: absolute; bottom: -4px; right: -4px; background: #E91E63; color: white; padding: 4px 12px; border-radius: 8px 0 0 0; font-weight: bold; font-size: 16px; border: 2px solid #333; border-right: none; border-bottom: none; box-shadow: -2px -2px 4px rgba(0,0,0,0.3); z-index: 2;">HP ${card.hp !== undefined ? card.hp : '0'}</div>`;
+    } else {
+        html += `<div style="flex: 1; padding: 15px 10px; font-size: 12px; line-height: 1.6; color: #bbb; background: #2a2a2a; text-align: center; display: flex; align-items: center; justify-content: center;"><span style="font-style: italic;">「かつて出会った、頼もしき協力者の記憶。」</span></div>`;
+    }
+    html += `</div>`;
+    return html;
+};
+
+// ------------------------------------------
+// 3. バトル開始・ターン処理・配置処理
+// ------------------------------------------
+window.ensurePersonSystemInitialized = function() {
+    if (window.TCG_BATTLE && !window.TCG_BATTLE.currentPerson) {
+        window.TCG_BATTLE.currentPerson = { player: null, cpu: null };
+        window.TCG_BATTLE.personSkillUsed = { player: false, cpu: false };
+        window.TCG_BATTLE.captainGuard = { player: false, cpu: false };
+    }
+};
+
+window.showDeckCardActionMenu = function(uid, isDeckArea) {
+    if (isDeckArea) {
+        const idx = window.TCG.editingDeck.indexOf(uid);
+        if (idx !== -1) window.TCG.editingDeck.splice(idx, 1);
+    } else {
+        window.TCG.editingDeck.push(uid); 
+    }
+    window.refreshDeckBuilderView();
+};
+
+if (!window._originalStartBattle_Base) window._originalStartBattle_Base = window.startBattle;
+window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
+    window._originalStartBattle_Base(enemyData, selectedDeckIndex);
+    window.ensurePersonSystemInitialized();
+};
+
+if (!window._originalRenderBattleBoard_Base) window._originalRenderBattleBoard_Base = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    // ターン切り替わり検知
+    if (window.TCG_BATTLE && window.TCG_BATTLE._lastEnemyTurnState !== window.TCG_BATTLE.isEnemyTurn) {
+        window.TCG_BATTLE._lastEnemyTurnState = window.TCG_BATTLE.isEnemyTurn;
+        if (window.TCG_BATTLE.personSkillUsed) {
+            if (!window.TCG_BATTLE.isEnemyTurn) {
+                window.TCG_BATTLE.personSkillUsed.player = false;
+                if(window.TCG_BATTLE.player && window.TCG_BATTLE.player.field) window.TCG_BATTLE.player.field.forEach(c => { c._builder_guarded = false; c._smith_buffed = false; c._smith_trample = false; c._captain_double = false; });
+            } else {
+                window.TCG_BATTLE.personSkillUsed.cpu = false;
+            }
+        }
+    }
+
+    window._originalRenderBattleBoard_Base();
+    window.ensurePersonSystemInitialized();
+    
+    const ui = document.getElementById('tcg-battle-ui');
+    if (!ui) return;
+
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    const isTargeting = window.TCG_BATTLE.selectedAttackerIndex !== -1;
+    document.querySelectorAll('#p-person-zone, #c-person-zone').forEach(el => el.remove());
+
+    const createPersonZoneHtml = (isPlayerOwner) => {
+        try {
+            let personCard = window.TCG_BATTLE.currentPerson[isPlayerOwner ? 'player' : 'cpu'];
+            const zoneId = isPlayerOwner ? 'p-person-zone' : 'c-person-zone';
+            const color = isPlayerOwner ? '#E91E63' : '#ff5252';
+            const positionStyle = `position: absolute; right: 20px; top: 10px;`; // ★右側に配置
+
+            if (personCard && !personCard.isDead) {
+                let canTarget = isTargeting && !isPlayerOwner && !window.TCG_BATTLE.isEnemyTurn;
+                let filter = canTarget ? "drop-shadow(0 0 20px #FF9800) brightness(1.2)" : `drop-shadow(0 0 10px ${color})`;
+                let cursor = canTarget ? "crosshair" : "default";
+                let canUseSkill = isPlayerOwner && !window.TCG_BATTLE.personSkillUsed.player && !window.TCG_BATTLE.isAnimating && !window.TCG_BATTLE.isEnemyTurn;
+                let mData = window.TCG_MASTER[personCard.masterId] || {};
+                let pSkills = mData.personSkills || mData.skills || [];
+                let s1 = pSkills.length > 0 ? pSkills[0] : null;
+                let s2 = pSkills.length > 1 ? pSkills[1] : null;
+
+                return `
+                <div id="${zoneId}" style="${positionStyle} display:flex; flex-direction:column; align-items:center; z-index: 45; filter: ${filter}; cursor: ${cursor}; transition: transform 0.2s;" title="${personCard.name}"
+                     onmouseover="if(${canTarget}){ this.style.transform='scale(1.05)'; }" onmouseout="if(${canTarget}){ this.style.transform='scale(1)'; }" onclick="if(${canTarget}) window.executeAttack('person', 0)">
+                    <div style="transform: scale(0.55); transform-origin: top right; width: 99px; height: 143px; pointer-events:none; z-index:50;">${window.renderCardHTML(personCard)}</div>
+                    <div style="color:${color}; font-size:12px; font-weight:bold; margin-top:-5px; background:#111; padding:2px 8px; border-radius:4px; border:1px solid ${color}; z-index:51;">人物 (HP: ${personCard.hp})</div>
+                    ${isPlayerOwner && s1 && s2 ? `
+                    <div style="display:flex; gap:5px; margin-top:5px; z-index:55;">
+                        <button onclick="event.stopPropagation(); window.openPersonSkillTarget(${0}, ${s1.cost})" style="padding:4px 8px; font-size:11px; font-weight:bold; background:${canUseSkill && p.currentMana >= s1.cost ? '#4CAF50' : '#555'}; color:white; border:1px solid #FFF; border-radius:6px; cursor:${canUseSkill && p.currentMana >= s1.cost ? 'pointer' : 'not-allowed'}; box-shadow:0 2px 4px rgba(0,0,0,0.5);" title="${s1.desc}">${s1.name}(${s1.cost}M)</button>
+                        <button onclick="event.stopPropagation(); window.openPersonSkillTarget(${1}, ${s2.cost})" style="padding:4px 8px; font-size:11px; font-weight:bold; background:${canUseSkill && p.currentMana >= s2.cost ? '#E91E63' : '#555'}; color:white; border:1px solid #FFF; border-radius:6px; cursor:${canUseSkill && p.currentMana >= s2.cost ? 'pointer' : 'not-allowed'}; box-shadow:0 2px 4px rgba(0,0,0,0.5);" title="${s2.desc}">${s2.name}(${s2.cost}M)</button>
+                    </div>` : ''}
+                    <div class="person-magnifier" style="position:absolute; top:-10px; left:-10px; background:#222; color:${color}; border:2px solid ${color}; border-radius:50%; width:32px; height:32px; display:flex; justify-content:center; align-items:center; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.8); z-index:60; transition: transform 0.2s;"
+                         onmouseover="this.style.transform='scale(1.2)'" onmouseout="this.style.transform='scale(1)'" onclick="event.stopPropagation(); window.showCardDetailModal('${isPlayerOwner ? 'player_person' : 'cpu_person'}');">🔍</div>
+                </div>`;
+            } else {
+                return `<div id="${zoneId}" style="${positionStyle} width: 100px; height: 140px; border: 2px dashed ${color}; border-radius: 8px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); z-index: 40; filter:brightness(0.7);"><span style="color: ${color}; font-weight: bold; font-size: 12px; opacity: 0.5;">人物</span></div>`;
+            }
+        } catch (e) { return ''; }
+    };
+
+    const pFace = document.getElementById('player-face');
+    if (pFace && pFace.nextElementSibling) {
+        const pBoard = pFace.nextElementSibling; pBoard.style.position = 'relative'; pBoard.insertAdjacentHTML('beforeend', createPersonZoneHtml(true));
+    }
+    const cFace = document.getElementById('cpu-face');
+    if (cFace && cFace.nextElementSibling) {
+        const cBoard = cFace.nextElementSibling; cBoard.style.position = 'relative'; cBoard.insertAdjacentHTML('beforeend', createPersonZoneHtml(false));
+    }
+};
+
+if (!window._originalPlayCard_Base) window._originalPlayCard_Base = window.playCard;
+window.playCard = function(handIndex) {
+    if (window.TCG_BATTLE.isEnemyTurn || window.TCG_BATTLE.isAnimating || window.TCG_BATTLE.selectedAttackerIndex !== -1) return;
+    if (window.TCG_BATTLE.targetingHandIndex !== undefined && window.TCG_BATTLE.targetingHandIndex !== -1) {
+        window.TCG_BATTLE.targetingHandIndex = -1; let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove(); window.renderBattleBoard(); return;
+    }
+
+    const p = window.TCG_BATTLE.player; const card = p.hand[handIndex];
+    if (window.TCG_MASTER[card.masterId]) card.type = window.TCG_MASTER[card.masterId].type;
+    const actualCost = window.getActualCost(p, card);
+    
+    if (p.currentMana < actualCost) { window.showBattleMessage(`マナが足りません！\n(必要: ${actualCost} / 現在: ${p.currentMana})`, true); return; }
+
+    if (card.type === 'person') {
+        window.TCG_BATTLE.isAnimating = true;
+        window.animateCardPlay(card, true, () => { 
+            p.currentMana -= actualCost; p.hand.splice(handIndex, 1);
+            window.ensurePersonSystemInitialized();
+            if (window.TCG_BATTLE.currentPerson.player) p.graveyard.push(window.TCG_BATTLE.currentPerson.player);
+            if (card.hp === undefined) { card.hp = window.TCG_MASTER[card.masterId].baseHp || 30; card.maxHp = card.hp; }
+            card.isDead = false;
+            window.TCG_BATTLE.currentPerson.player = card; window.TCG_BATTLE.personSkillUsed.player = false; 
+            window.showBattleMessage(`👤 人物『${card.name}』が戦場に駆けつけた！`, false, 2500, false);
+            window.TCG_BATTLE.isAnimating = false; window.renderBattleBoard();
+        });
+        return;
+    }
+    window._originalPlayCard_Base(handIndex);
+};
+
+// ------------------------------------------
+// 4. スキル処理とモーダル
+// ------------------------------------------
+window.openPersonSkillTarget = function(skillIndex, cost) {
+    if (window.TCG_BATTLE.personSkillUsed.player || window.TCG_BATTLE.isAnimating) return;
+    if (window.TCG_BATTLE.player.currentMana < cost) { window.showBattleMessage("⚠️ マナが足りません！", true); return; }
+
+    const personCard = window.TCG_BATTLE.currentPerson.player;
+    const mData = window.TCG_MASTER[personCard.masterId];
+    const skill = (mData.personSkills || mData.skills)[skillIndex];
+
+    const needsTarget = skill.desc.includes("味方1体") || skill.desc.includes("敵1体") || skill.desc.includes("敵モンスター1体");
+    if (!needsTarget) { window.executePersonSkill(skillIndex, null, true); return; }
+
+    window.TCG_BATTLE.personTargetingIndex = skillIndex;
+    let ui = document.getElementById('tcg-target-ui');
+    if (!ui) {
+        ui = document.createElement('div'); ui.id = "tcg-target-ui";
+        ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #E91E63; border-radius:30px; z-index:50000; text-align:center; box-shadow:0 0 20px rgba(233,30,99,0.6); pointer-events:auto;`;
+        ui.innerHTML = `<div style="color:#E91E63; font-size:22px; font-weight:bold; margin-bottom:10px;">🎯 対象を選択中...</div><div style="color:#ddd; font-size:14px; margin-bottom:15px;">「${skill.name}」の対象となるカードをクリックしてください</div><button id="btn-cancel-person" style="padding:8px 20px; background:#555; color:#fff; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer;">キャンセル</button>`;
+        document.body.appendChild(ui);
+        document.getElementById('btn-cancel-person').onclick = () => { window.TCG_BATTLE.personTargetingIndex = -1; ui.remove(); };
+    }
+};
+
+if (!window._originalSelectPlayerCard_Base) window._originalSelectPlayerCard_Base = window.selectPlayerCard;
+window.selectPlayerCard = function(index) {
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        window.executePersonSkill(sIdx, window.TCG_BATTLE.player.field[index], true, true);
+        return;
+    }
+    window._originalSelectPlayerCard_Base(index);
+};
+
+if (!window._originalExecuteAttack_Base) window._originalExecuteAttack_Base = window.executeAttack;
+window.executeAttack = function(targetType, enemyIndex) {
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        if (targetType === 'card') window.executePersonSkill(sIdx, window.TCG_BATTLE.cpu.field[enemyIndex], true, false);
+        else window.showBattleMessage("⚠️ そのスキルはモンスターのみ対象です", true);
+        return;
+    }
+
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    const isPlayer = window.TCG_BATTLE.isEnemyTurn === false;
+    const owner = isPlayer ? p : cpu; const enemy = isPlayer ? cpu : p;
+    const attackerCard = owner.field[window.TCG_BATTLE.selectedAttackerIndex];
+
+    if (attackerCard && attackerCard._smith_buffed) {
+        attackerCard.damage += 20; attackerCard._smith_buffed = false;
+        window.showVFX(`${isPlayer ? 'p' : 'c'}-card-${window.TCG_BATTLE.selectedAttackerIndex}`, 'heal', '鍛冶強化+20');
+    }
+
+    if (targetType === 'person') {
+        const targetPerson = window.TCG_BATTLE.currentPerson[isPlayer ? 'cpu' : 'player'];
+        if (!targetPerson) return;
+        let dmg = attackerCard.damage;
+        if (enemy._captain_guard) dmg = Math.max(0, dmg - 10);
+
+        window.showBattleMessage(`⚔️ ${attackerCard.name} の攻撃！`, false, 1500, !isPlayer);
+        const targetHtmlId = isPlayer ? 'c-person-zone' : 'p-person-zone';
+        targetPerson.hp -= dmg;
+        window.showVFX(targetHtmlId, 'slash'); window.showVFX(targetHtmlId, 'damage', dmg);
+        window.showBattleMessage(`💥 人物『${targetPerson.name}』に ${dmg} ダメージ！`, false, 2000, !isPlayer, true);
+
+        if (targetPerson.hp <= 0) {
+            setTimeout(() => {
+                window.showBattleMessage(`🏃 人物『${targetPerson.name}』が退却した！`, false, 2500, !isPlayer, true);
+                const ui = document.getElementById('tcg-battle-ui'); if (ui) { ui.classList.remove('screen-shake-effect'); void ui.offsetWidth; ui.classList.add('screen-shake-effect'); }
+                enemy.graveyard.push(targetPerson); window.TCG_BATTLE.currentPerson[isPlayer ? 'cpu' : 'player'] = null; window.renderBattleBoard();
+            }, 800);
+        }
+        if (attackerCard.ability === "stealth") attackerCard.ability = null;
+        if (attackerCard.ability === "double_strike" || attackerCard._captain_double) {
+            if (!attackerCard._has_attacked_once && !attackerCard.isDead) { attackerCard._has_attacked_once = true; window.showBattleMessage(`🌪️ 【連撃】${attackerCard.name} はもう一度攻撃できる！`, false, 1500, !isPlayer, true); } 
+            else { attackerCard.canAttack = false; attackerCard._has_attacked_once = false; }
+        } else { attackerCard.canAttack = false; }
+        if(isPlayer) window.TCG_BATTLE.selectedAttackerIndex = -1; setTimeout(() => window.renderBattleBoard(), 1100); return;
+    }
+
+    if (enemy._captain_guard && attackerCard) {
+        let originalDmg = attackerCard.damage; attackerCard.damage = Math.max(0, attackerCard.damage - 10);
+        window._originalExecuteAttack_Base(targetType, enemyIndex);
+        attackerCard.damage = originalDmg;
+    } else {
+        window._originalExecuteAttack_Base(targetType, enemyIndex);
+    }
+};
+
+// ==========================================
+// 2. スキル処理（executePersonSkill）のオーバーライド
+// ==========================================
+window.executePersonSkill = function(skillIndex, targetCard, isPlayer, isPlayerTarget = true) {
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    const owner = isPlayer ? p : cpu; const enemy = isPlayer ? cpu : p;
+    const personCard = window.TCG_BATTLE.currentPerson[isPlayer ? 'player' : 'cpu'];
+    const mData = window.TCG_MASTER[personCard.masterId];
+    const skill = (mData.personSkills || mData.skills)[skillIndex];
+
+    owner.currentMana -= skill.cost; window.TCG_BATTLE.personSkillUsed[isPlayer ? 'player' : 'cpu'] = true;
+    window.showBattleMessage(`👤 ${personCard.name}のスキル\n『${skill.name}』発動！`, false, 2000, !isPlayer);
+    
+    let tIdx = targetCard ? (isPlayerTarget ? owner.field.indexOf(targetCard) : enemy.field.indexOf(targetCard)) : -1;
+    let tId = isPlayerTarget ? (isPlayer ? `p-card-${tIdx}` : `c-card-${tIdx}`) : (isPlayer ? `c-card-${tIdx}` : `p-card-${tIdx}`);
+
+    if (personCard.masterId === 'person_farmer') {
+        if (skillIndex === 0 && targetCard) { targetCard.hp += 15; window.showVFX(tId, 'heal', 15); }
+        else if (skillIndex === 1) { if(owner.deck.length>0) owner.hand.push(owner.deck.shift()); owner.maxMana = Math.min(10, owner.maxMana+1); window.showVFX(isPlayer?'player-face':'cpu-face', 'heal', 'ドロー&マナ+1'); }
+    } else if (personCard.masterId === 'person_fisherman') {
+        if (skillIndex === 0 && targetCard) { targetCard.hp -= 10; window.showVFX(tId, 'slash'); window.showVFX(tId, 'damage', 10); window.checkDeath(targetCard, enemy, tId, owner); }
+        else if (skillIndex === 1 && targetCard) { targetCard.isDead = true; enemy.deck.push(targetCard); window.showVFX(tId, 'slash', 'バウンス'); }
+    } else if (personCard.masterId === 'person_builder') {
+        if (skillIndex === 0 && targetCard) { targetCard.isDefending = true; targetCard._builder_guarded = true; window.showVFX(tId, 'heal', '守護'); }
+        else if (skillIndex === 1) { 
+            if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === owner) { window.TCG_BATTLE.currentField.card.hp += 50; window.showVFX(isPlayer?'p-field-zone':'c-field-zone', 'heal', 50); }
+            else { owner.hp += 40; window.showVFX(isPlayer?'player-face':'cpu-face', 'heal', 40); }
+        }
+    } else if (personCard.masterId === 'person_chef') {
+        if (skillIndex === 0 && targetCard) { targetCard.damage += 10; if(targetCard.baseDmg !== undefined) targetCard.baseDmg += 10; window.showVFX(tId, 'heal', '攻+10'); }
+        else if (skillIndex === 1 && targetCard) { targetCard.canAttack = true; targetCard.hp = targetCard.maxHp; window.showVFX(tId, 'heal', '全回復＆再行動'); }
+    } else if (personCard.masterId === 'person_smith') {
+        if (skillIndex === 0 && targetCard) { targetCard._smith_buffed = true; window.showVFX(tId, 'heal', '武器研磨'); }
+        else if (skillIndex === 1 && targetCard) { targetCard._smith_trample = true; window.showVFX(tId, 'heal', '貫通付与'); } // ★abilityは書き換えない！
+    } else if (personCard.masterId === 'person_adventurer') {
+        if (skillIndex === 0) { if(owner.deck.length>0) owner.hand.push(owner.deck.shift()); window.showVFX(isPlayer?'player-face':'cpu-face', 'heal', 'ドロー'); }
+        else if (skillIndex === 1) { let evos = owner.deck.filter(c => window.TCG_MASTER[c.masterId] && window.TCG_MASTER[c.masterId].evolvesFrom); if (evos.length > 0) { let hit = evos[Math.floor(Math.random() * evos.length)]; owner.deck = owner.deck.filter(c => c !== hit); owner.hand.push(hit); window.showVFX(isPlayer?'player-face':'cpu-face', 'heal', 'サーチ'); } }
+    } else if (personCard.masterId === 'person_king') {
+        if (skillIndex === 0) { owner.field.forEach((c, idx) => { c.damage += 10; if(c.baseDmg !== undefined) c.baseDmg += 10; window.showVFX(isPlayer?`p-card-${idx}`:`c-card-${idx}`, 'heal', '攻+10'); }); }
+        else if (skillIndex === 1) { enemy.field.forEach((c, idx) => { if(c.hp <= 40) { c.hp = 0; window.checkDeath(c, enemy, isPlayer?`c-card-${idx}`:`p-card-${idx}`, owner); window.showVFX(isPlayer?`c-card-${idx}`:`p-card-${idx}`, 'slash', '裁き'); } }); }
+    } else if (personCard.masterId === 'person_captain') {
+        if (skillIndex === 0) { window.TCG_BATTLE.captainGuard[isPlayer ? 'player' : 'cpu'] = true; window.showVFX(isPlayer?'player-face':'cpu-face', 'heal', '陣形防御'); }
+        else if (skillIndex === 1) { owner.field.forEach((c, idx) => { c._captain_double = true; window.showVFX(isPlayer?`p-card-${idx}`:`c-card-${idx}`, 'heal', '連撃付与'); }); } // ★abilityは書き換えない！
+    } else if (personCard.masterId === 'person_soldier') {
+        if (skillIndex === 0 && targetCard) { targetCard.hp -= 10; window.showVFX(tId, 'slash'); window.showVFX(tId, 'damage', 10); window.checkDeath(targetCard, enemy, tId, owner); }
+        else if (skillIndex === 1 && targetCard) { targetCard.hp -= 40; window.showVFX(tId, 'slash'); window.showVFX(tId, 'damage', 40); window.checkDeath(targetCard, enemy, tId, owner); personCard.hp -= 20; window.showVFX(isPlayer?'p-person-zone':'c-person-zone', 'damage', 20); if (personCard.hp <= 0) { enemy.graveyard.push(personCard); window.TCG_BATTLE.currentPerson[isPlayer?'player':'cpu'] = null; } }
+    }
+
+    setTimeout(() => { enemy.field = enemy.field.filter(c => !c.isDead); owner.field = owner.field.filter(c => !c.isDead); window.renderBattleBoard(); }, 800);
+};
+
+if (!window._originalDecideAITarget_Base) window._originalDecideAITarget_Base = window._decideAITarget;
+window._decideAITarget = function(attackerObj, defenderObj) {
+    if (window.TCG_BATTLE.currentPerson.cpu && !window.TCG_BATTLE.personSkillUsed.cpu) {
+        const pCard = window.TCG_BATTLE.currentPerson.cpu; const mData = window.TCG_MASTER[pCard.masterId];
+        const pSkills = mData.personSkills || mData.skills; const s1 = pSkills[0]; const s2 = pSkills[1];
+        if (attackerObj.currentMana >= s2.cost && Math.random() < 0.5) { let t = s2.desc.includes("敵") ? defenderObj.field[Math.floor(Math.random() * defenderObj.field.length)] : attackerObj.field[Math.floor(Math.random() * attackerObj.field.length)]; if (!s2.desc.includes("1体") || t) window.executePersonSkill(1, t, false, !s2.desc.includes("敵")); } 
+        else if (attackerObj.currentMana >= s1.cost && Math.random() < 0.7) { let t = s1.desc.includes("敵") ? defenderObj.field[Math.floor(Math.random() * defenderObj.field.length)] : attackerObj.field[Math.floor(Math.random() * attackerObj.field.length)]; if (!s1.desc.includes("1体") || t) window.executePersonSkill(0, t, false, !s1.desc.includes("敵")); }
+    }
+    if (window.TCG_BATTLE.currentPerson.player && Math.random() < 0.3) {
+        const taunts = defenderObj.field.filter(c => c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending);
+        if (taunts.length === 0) return { type: 'person', index: 0 };
+    }
+    return window._originalDecideAITarget_Base ? window._originalDecideAITarget_Base(attackerObj, defenderObj) : { type: 'player', index: 0 };
+};
+
+if (!window._originalShowCardDetailModal_Base) window._originalShowCardDetailModal_Base = window.showCardDetailModal;
+window.showCardDetailModal = function(ownerTypeOrCard, indexOrFromGacha) {
+    if (typeof ownerTypeOrCard === 'string' && (ownerTypeOrCard === 'player_person' || ownerTypeOrCard === 'cpu_person')) {
+        let card = window.TCG_BATTLE.currentPerson[ownerTypeOrCard === 'player_person' ? 'player' : 'cpu'];
+        if (!card) return;
+        let modal = document.getElementById('tcg-card-detail-modal');
+        if (!modal) { modal = document.createElement('div'); modal.id = 'tcg-card-detail-modal'; modal.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,15,20,0.95); z-index: 65000; display: flex; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s;`; document.body.appendChild(modal); }
+        modal.onclick = function(e) { if (e.target === this || true) modal.style.display = 'none'; };
+        modal.innerHTML = `<div style="display:flex; flex-direction:column; align-items:center; pointer-events:none;"><div style="margin-bottom: 20px; color: #E91E63; font-size: 24px; font-weight: bold; text-shadow: 0 2px 4px #000;">🔍 人物詳細</div><div style="transform: scale(1.8); box-shadow: 0 0 40px rgba(233,30,99,0.6); border-radius: 12px;">${window.renderCardHTML(card)}</div><div style="margin-top: 130px; color: #aaa; font-size: 16px; background: rgba(0,0,0,0.5); padding: 10px 20px; border-radius: 20px;">画面をクリックして閉じる</div></div>`;
+        modal.style.display = 'flex'; setTimeout(() => modal.style.opacity = '1', 50);
+        return;
+    }
+    if (window._originalShowCardDetailModal_Base) window._originalShowCardDetailModal_Base(ownerTypeOrCard, indexOrFromGacha);
+};
+
+console.log("✨ 人物カードシステム ＆ UI完全修復版の読み込みが完了しました！");
+
+// ==========================================
+// ★ パッチ：CPUの誤配置修正 ＆ 人物カードの世代強化システム
+// ==========================================
+
+// 1. 世代（レベル）による強化を計算する関数
+window.applyPersonLevelBonus = function(card) {
+    if (card.type !== 'person') return;
+    
+    // カードのレベルを取得（デフォルトは1）
+    let level = card.level || 1; 
+    let master = window.TCG_MASTER[card.masterId];
+    if (!master) return;
+
+    let baseHp = master.baseHp || 30;
+    let baseCost = master.baseCost !== undefined ? master.baseCost : (master.cost || 0);
+
+    // 【強化ロジック】 レベルが1上がるごとにHP+10 / レベルが2上がるごとにコスト-1
+    let bonusHp = (level - 1) * 10;
+    let discountCost = Math.floor((level - 1) / 2);
+
+    card.maxHp = baseHp + bonusHp;
+    
+    // 配置コストの計算（最低でもコストは1になるように制限）
+    card.cost = Math.max(1, baseCost - discountCost);
+};
+
+// 2. 盤面描画のタイミングで「敵がモンスター枠に出した人物」を強制ワープ＆強化適用
+const _originalRenderBattleBoard_autoFix = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    
+    // ★ 何よりも先に安全装置を起動！箱（currentPerson）がなければ作る
+    if (window.ensurePersonSystemInitialized) window.ensurePersonSystemInitialized();
+
+    // ★ 箱が確実に存在する場合のみ、強化やワープの処理を行う（これでエラー回避！）
+    if (window.TCG_BATTLE && window.TCG_BATTLE.currentPerson) {
+        const p = window.TCG_BATTLE.player; 
+        const cpu = window.TCG_BATTLE.cpu;
+
+        // 手札や盤面の人物カードに「世代強化」を適用する
+        [p, cpu].forEach(owner => {
+            if (!owner) return;
+            owner.hand.forEach(c => { if(c.type === 'person') window.applyPersonLevelBonus(c); });
+            
+            // ★ currentPerson の中身をチェック
+            if (window.TCG_BATTLE.currentPerson[owner === p ? 'player' : 'cpu']) {
+                window.applyPersonLevelBonus(window.TCG_BATTLE.currentPerson[owner === p ? 'player' : 'cpu']);
+            }
+            
+            // ★ 敵CPUのルール違反（モンスター枠への配置）を検知してワープさせる！
+            if (owner.field) {
+                for (let i = owner.field.length - 1; i >= 0; i--) {
+                    let card = owner.field[i];
+                    if (card.type === 'person' || (window.TCG_MASTER[card.masterId] && window.TCG_MASTER[card.masterId].type === 'person')) {
+                        // モンスター枠から剥がす
+                        let misplacedPerson = owner.field.splice(i, 1)[0];
+                        misplacedPerson.type = 'person';
+                        
+                        // すでに人物枠に誰かいたら墓地へ送る
+                        if (window.TCG_BATTLE.currentPerson[owner === p ? 'player' : 'cpu']) {
+                            owner.graveyard.push(window.TCG_BATTLE.currentPerson[owner === p ? 'player' : 'cpu']);
+                        }
+                        
+                        // HPの初期化と強化の適用
+                        window.applyPersonLevelBonus(misplacedPerson);
+                        if (misplacedPerson.hp === undefined || misplacedPerson.hp <= 0) {
+                            misplacedPerson.hp = misplacedPerson.maxHp;
+                        }
+                        misplacedPerson.isDead = false;
+
+                        // 人物枠に正しくセットする
+                        window.TCG_BATTLE.currentPerson[owner === p ? 'player' : 'cpu'] = misplacedPerson;
+                        console.log(`⚠️ ${owner === p ? 'プレイヤー' : 'CPU'} が人物をフィールドに誤配置したため、人物枠へワープさせました。`);
+                    }
+                }
+            }
+        });
+    }
+
+    _originalRenderBattleBoard_autoFix();
+};
+
+// 3. プレイヤーが手札から出す時も、強化後のHPをセットする
+const _originalPlayCard_levelFix = window.playCard;
+window.playCard = function(handIndex) {
+    if (!window.TCG_BATTLE || window.TCG_BATTLE.isEnemyTurn || window.TCG_BATTLE.isAnimating || window.TCG_BATTLE.selectedAttackerIndex !== -1) return;
+    
+    const p = window.TCG_BATTLE.player; 
+    const card = p.hand[handIndex];
+    if (!card) return;
+
+    if (window.TCG_MASTER[card.masterId]) card.type = window.TCG_MASTER[card.masterId].type;
+
+    if (card.type === 'person') {
+        window.applyPersonLevelBonus(card); // 強化の適用
+        // playCardの元の処理に任せずにここで処理を奪うなら、HP初期化を確実に行う
+        if (card.hp === undefined) {
+            card.hp = card.maxHp;
+        }
+    }
+    
+    _originalPlayCard_levelFix(handIndex);
+};
+
+// ------------------------------------------
+// 4. デッキ構築画面の検索フィルター UI
+// ------------------------------------------
+const _origOpenDeckBuilder = window.openDeckBuilder;
+window.openDeckBuilder = function() {
+    if (_origOpenDeckBuilder) _origOpenDeckBuilder();
+    setTimeout(() => {
+        const selects = document.querySelectorAll('select');
+        selects.forEach(sel => {
+            if (sel.innerHTML.includes('全種族') && !sel.innerHTML.includes('value="person"')) {
+                sel.insertAdjacentHTML('beforeend', '<option value="person">👤 人物(サポート)</option>');
+            }
+        });
+    }, 100);
+};
+
+// ------------------------------------------
+// 5. カードアンロックのフック（師匠＆アリーナ）
+// ------------------------------------------
+// ① 師匠の免許皆伝（ランク10到達時）
+const _origCheckMasterVisit = window.checkMasterVisit;
+window.checkMasterVisit = function(masterType) {
+    const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
+    
+    if (hero && hero.apprentice && hero.apprentice.activeQuest) {
+        const rank = hero.apprentice.rank[masterType] || 1;
+        const qData = hero.getMasterQuestData(masterType, rank);
+        
+        // クエストをクリアしてランク9→10（免許皆伝）になる瞬間を検知！
+        if (qData && qData.check() && rank >= 9) {
+            const masterTypeMap = { 'farming':'farmer', 'fishing':'fisherman', 'building':'builder', 'cooking':'chef', 'smithing':'smith', 'explore':'adventurer' };
+            const tcgId = 'person_' + (masterTypeMap[masterType] || masterType);
+            
+            if (typeof window.triggerTCGUnlock === 'function') {
+                window.triggerTCGUnlock(tcgId, hero.generation || 1);
+            }
+        }
+    }
+    
+    // 元の処理を実行（会話UIなどを開く）
+    if (_origCheckMasterVisit) _origCheckMasterVisit(masterType);
+};
+
+// ② 城の助っ人（アリーナ終了時にログから検知）
+const _origEndArena = window.endArena;
+window.endArena = function(isGiveUp) {
+    let state = window.ARENA_STATE;
+    // バトルログの中に「城の兵士」などの文字列があれば、その戦闘で召喚されたとみなしてアンロック！
+    if (state && state.log && typeof window.triggerTCGUnlock === 'function') {
+        let logStr = state.log.join(" ");
+        let gen = (window.aiPet && window.aiPet.generation) ? window.aiPet.generation : 1;
+        
+        if (logStr.includes("城の兵士")) window.triggerTCGUnlock('person_soldier', gen);
+        if (logStr.includes("城の隊長")) window.triggerTCGUnlock('person_captain', gen);
+        if (logStr.includes("王様"))   window.triggerTCGUnlock('person_king', gen);
+    }
+    
+    // 元の終了処理を実行
+    if (_origEndArena) _origEndArena(isGiveUp);
+};
+
+// 一時的に付与したフラグをターン切り替え時に元に戻す処理
+const _originalStartPlayerTurn_resetFlags = window.startPlayerTurn;
+window.startPlayerTurn = async function(isFirstTurn = false) {
+    if (window.TCG_BATTLE) {
+        window.TCG_BATTLE.personSkillUsed.player = false;
+        window.TCG_BATTLE.captainGuard.player = false;
+        window.TCG_BATTLE.player.field.forEach(c => { 
+            if (c._builder_guarded) { c._builder_guarded = false; c.isDefending = false; }
+            if (c._smith_trample) { c._smith_trample = false; }
+            if (c._captain_double) { c._captain_double = false; }
+            c._smith_buffed = false; 
+        });
+    }
+    await _originalStartPlayerTurn_resetFlags(isFirstTurn);
+};
+
+const _originalExecuteCPUTurn_resetFlags = window.executeCPUTurn;
+window.executeCPUTurn = async function(isFirstTurn = false) {
+    if (window.TCG_BATTLE) {
+        window.TCG_BATTLE.personSkillUsed.cpu = false;
+        window.TCG_BATTLE.captainGuard.cpu = false;
+        window.TCG_BATTLE.cpu.field.forEach(c => { 
+            if (c._builder_guarded) { c._builder_guarded = false; c.isDefending = false; }
+            if (c._smith_trample) { c._smith_trample = false; }
+            if (c._captain_double) { c._captain_double = false; }
+            c._smith_buffed = false; 
+        });
+    }
+    await _originalExecuteCPUTurn_resetFlags(isFirstTurn);
+};
+
+console.log("✨ 人物カード：UIバッジ・アンロックフックのパッチ適用完了！");
+
+// ======================================================================
+// ★ 仕様追加：敵の攻撃宣言時に割り込む（インターセプト）システム
+// ======================================================================
+
+// 1. 敵の攻撃を検知して時間を止めるフック
+if (!window._originalExecuteAttack_InterruptBase) {
+    window._originalExecuteAttack_InterruptBase = window.executeAttack;
+}
+
+// ==========================================
+// ★ バグ修正：インターセプト（割り込み）が発動しない問題の完全修正
+// ==========================================
+
+// 1. 敵の攻撃宣言時に、確実に割り込みUIを起動する
+window.executeAttack = function(targetType, enemyIndex) {
+    // ターゲット選択中のクリック処理
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        if (targetType === 'card') window.executePersonSkill(sIdx, window.TCG_BATTLE.cpu.field[enemyIndex], true, false);
+        else window.showBattleMessage("⚠️ そのスキルはモンスターのみ対象です", true);
+        
+        // 割り込み中だった場合は、少し待ってから敵の攻撃を再開させる
+        if (window.TCG_BATTLE._isInterrupting) setTimeout(window.resumePendingAttack, 1200);
+        return;
+    }
+
+    // ★修正点1：isAnimating の条件を削除！敵ターンは操作禁止フラグが立っているため、それを無視して割り込む！
+    if (window.TCG_BATTLE && window.TCG_BATTLE.isEnemyTurn && !window.TCG_BATTLE._interruptHandled) {
+        const p = window.TCG_BATTLE.player;
+        const personCard = window.TCG_BATTLE.currentPerson ? window.TCG_BATTLE.currentPerson.player : null;
+
+        if (personCard && !personCard.isDead && !window.TCG_BATTLE.personSkillUsed.player) {
+            let mData = window.TCG_MASTER[personCard.masterId] || {};
+            let pSkills = mData.personSkills || mData.skills || [];
+            let s1 = pSkills[0], s2 = pSkills[1];
+            let canS1 = s1 && p.currentMana >= s1.cost;
+            let canS2 = s2 && p.currentMana >= s2.cost;
+
+            // マナが足りている場合のみ、割り込みUIを出す
+            if (canS1 || canS2) {
+                window.TCG_BATTLE._interruptHandled = true; 
+                window.TCG_BATTLE._pendingTargetType = targetType; 
+                window.TCG_BATTLE._pendingEnemyIndex = enemyIndex;
+                window.TCG_BATTLE._pendingAttackerIndex = window.TCG_BATTLE.selectedAttackerIndex;
+                
+                window.TCG_BATTLE._isInterrupting = true; // 割り込み状態オン
+                window.showPersonInterruptModal(personCard, s1, s2, canS1, canS2);
+                return; 
+            }
+        }
+    }
+
+    window.TCG_BATTLE._interruptHandled = false;
+    
+    // ★ 割り込み（バウンスや破壊）によって、攻撃元の敵モンスターが消滅している場合は攻撃を不発にする
+    const owner = window.TCG_BATTLE.isEnemyTurn ? window.TCG_BATTLE.cpu : window.TCG_BATTLE.player;
+    const attacker = owner.field[window.TCG_BATTLE.selectedAttackerIndex];
+    if (!attacker || attacker.isDead) {
+        window.TCG_BATTLE.selectedAttackerIndex = -1;
+        window.renderBattleBoard();
+        return; 
+    }
+
+    if (window._originalExecuteAttack_InterruptBase) {
+        window._originalExecuteAttack_InterruptBase(targetType, enemyIndex);
+    } else if (window._originalExecuteAttack_Base) {
+        window._originalExecuteAttack_Base(targetType, enemyIndex);
+    }
+};
+
+
+// 2. 本家リスペクト！邪魔にならないスマートなサイドパネルUI
+window.showPersonInterruptModal = function(personCard, s1, s2, canS1, canS2) {
+    window.TCG_BATTLE._isInterrupting = true;
+    
+    let ui = document.createElement('div');
+    ui.id = 'tcg-interrupt-ui';
+    // ★ 右側にスライドインするスタイリッシュなデザインに変更
+    ui.style.cssText = `position:fixed; right:30px; top:50%; transform:translateY(-50%); width:300px; background:rgba(15,15,20,0.95); border:3px solid #E91E63; border-radius:12px; padding:20px; z-index:60000; display:flex; flex-direction:column; gap:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8); animation: slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;`;
+    
+    if (!document.getElementById('interrupt-style')) {
+        let style = document.createElement('style'); style.id = 'interrupt-style';
+        style.innerHTML = `@keyframes slideInRight { 0% { transform:translate(100%, -50%); opacity:0; } 100% { transform:translate(0, -50%); opacity:1; } }`;
+        document.head.appendChild(style);
+    }
+
+    ui.innerHTML = `
+        <div style="color:#FF9800; font-size:20px; font-weight:bold; text-align:center; border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:5px;">
+            ⚠️ 敵の攻撃宣言！
+        </div>
+        <div style="color:#ddd; font-size:14px; text-align:center; line-height:1.4;">
+            <span style="color:#E91E63; font-weight:bold; font-size:16px;">${personCard.name}</span> のスキルで<br>割り込みますか？
+        </div>
+        
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+            ${canS1 ? `<button onclick="window.confirmInterrupt(${0}, ${s1.cost})" style="padding:12px; font-size:14px; font-weight:bold; background:#111; color:#00BCD4; border:2px solid #00BCD4; border-radius:8px; cursor:pointer; transition: 0.2s;" onmouseover="this.style.background='#00BCD4'; this.style.color='#fff';" onmouseout="this.style.background='#111'; this.style.color='#00BCD4';">${s1.name} (${s1.cost}M)</button>` : `<button disabled style="padding:12px; font-size:14px; font-weight:bold; background:#222; color:#555; border:2px solid #444; border-radius:8px;">${s1.name} (マナ不足)</button>`}
+            
+            ${canS2 ? `<button onclick="window.confirmInterrupt(${1}, ${s2.cost})" style="padding:12px; font-size:14px; font-weight:bold; background:#111; color:#E91E63; border:2px solid #E91E63; border-radius:8px; cursor:pointer; transition: 0.2s;" onmouseover="this.style.background='#E91E63'; this.style.color='#fff';" onmouseout="this.style.background='#111'; this.style.color='#E91E63';">${s2.name} (${s2.cost}M)</button>` : `<button disabled style="padding:12px; font-size:14px; font-weight:bold; background:#222; color:#555; border:2px solid #444; border-radius:8px;">${s2.name} (マナ不足)</button>`}
+        </div>
+        
+        <button onclick="window.cancelInterrupt()" style="margin-top:10px; padding:10px; font-size:14px; font-weight:bold; background:#444; color:#bbb; border:none; border-radius:8px; cursor:pointer; transition: background 0.2s;" onmouseover="this.style.background='#555'" onmouseout="this.style.background='#444'">割り込まない</button>
+    `;
+    document.body.appendChild(ui);
+};
+
+// 3. 割り込みの選択結果を処理する関数
+window.confirmInterrupt = function(skillIndex, cost) {
+    document.getElementById('tcg-interrupt-ui').remove();
+    // ★ ターゲット選択中だけ「敵のターン」フラグを一時的に解除し、プレイヤーが盤面をクリックできるようにする！
+    window.TCG_BATTLE._realEnemyTurn = window.TCG_BATTLE.isEnemyTurn;
+    window.TCG_BATTLE.isEnemyTurn = false; 
+    
+    window.openPersonSkillTarget(skillIndex, cost);
+};
+
+window.cancelInterrupt = function() {
+    document.getElementById('tcg-interrupt-ui').remove();
+    window.resumePendingAttack(); // スキップして敵の攻撃を再開
+};
+
+// 2. 割り込みが終わった後、止めていたCPUを再起動させる処理
+window.resumePendingAttack = function() {
+    window.TCG_BATTLE._isInterrupting = false;
+    
+    if (window.TCG_BATTLE._realEnemyTurn !== undefined) {
+        window.TCG_BATTLE.isEnemyTurn = window.TCG_BATTLE._realEnemyTurn;
+    }
+
+    let tType = window.TCG_BATTLE._pendingTargetType;
+    let eIdx = window.TCG_BATTLE._pendingEnemyIndex;
+    let aIdx = window.TCG_BATTLE._pendingAttackerIndex;
+    
+    window.TCG_BATTLE._pendingTargetType = null;
+    window.TCG_BATTLE._pendingEnemyIndex = null;
+    window.TCG_BATTLE._pendingAttackerIndex = null;
+    
+    // スキルのアニメーションを待ってから判定
+    setTimeout(async () => {
+        const owner = window.TCG_BATTLE.isEnemyTurn ? window.TCG_BATTLE.cpu : window.TCG_BATTLE.player;
+        const attacker = owner.field[aIdx];
+        let result;
+        
+        // 割り込みスキル（大漁網など）によって攻撃元が消えていた場合
+        if (!attacker || attacker.isDead) {
+            window.showBattleMessage("💥 敵の攻撃は不発に終わった！", false, 1500, false, true);
+            window.TCG_BATTLE.selectedAttackerIndex = -1;
+            window.TCG_BATTLE.isAnimating = false; 
+            window.renderBattleBoard();
+        } else {
+            // 生き残っていた場合は攻撃を続行！
+            window.TCG_BATTLE.selectedAttackerIndex = aIdx; 
+            if (window._originalExecuteAttack_InterruptBase) {
+                result = await window._originalExecuteAttack_InterruptBase(tType, eIdx);
+            }
+        }
+
+        // ★ ここでカギ（resolve）を回し、フリーズしていたCPUのループを解放・再開させる！
+        if (window.TCG_BATTLE._interruptResolve) {
+            window.TCG_BATTLE._interruptResolve(result);
+            window.TCG_BATTLE._interruptResolve = null;
+        }
+    }, 500);
+};
+
+// 2. 割り込み中のスキル使用時に、操作禁止フラグに弾かれないようにする
+window.openPersonSkillTarget = function(skillIndex, cost) {
+    // ★修正点2：割り込み中(_isInterrupting)は、isAnimatingのブロックを無視して操作を許可する！
+    if (window.TCG_BATTLE.personSkillUsed.player || (!window.TCG_BATTLE._isInterrupting && window.TCG_BATTLE.isAnimating)) return;
+    if (window.TCG_BATTLE.player.currentMana < cost) { window.showBattleMessage("⚠️ マナが足りません！", true); return; }
+
+    const personCard = window.TCG_BATTLE.currentPerson.player;
+    const mData = window.TCG_MASTER[personCard.masterId];
+    const skill = (mData.personSkills || mData.skills)[skillIndex];
+
+    // ★ 料理人のスキル等も確実にターゲット要求するように設定
+    const needsTarget = skill.desc.includes("1体") || skill.desc.includes("指定した") || skill.desc.includes("行動済みの味方");
+    if (!needsTarget) { 
+        window.executePersonSkill(skillIndex, null, true); 
+        if (window.TCG_BATTLE._isInterrupting) setTimeout(window.resumePendingAttack, 1200);
+        return; 
+    }
+
+    window.TCG_BATTLE.personTargetingIndex = skillIndex;
+    let ui = document.getElementById('tcg-target-ui');
+    if (!ui) {
+        ui = document.createElement('div'); ui.id = "tcg-target-ui";
+        ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #E91E63; border-radius:30px; z-index:50000; text-align:center; box-shadow:0 0 20px rgba(233,30,99,0.6); pointer-events:auto;`;
+        ui.innerHTML = `<div style="color:#E91E63; font-size:22px; font-weight:bold; margin-bottom:10px;">🎯 対象を選択中...</div><div style="color:#ddd; font-size:14px; margin-bottom:15px;">「${skill.name}」の対象となるカードをクリックしてください</div><button id="btn-cancel-person" style="padding:8px 20px; background:#555; color:#fff; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer;">キャンセル</button>`;
+        document.body.appendChild(ui);
+        document.getElementById('btn-cancel-person').onclick = () => { 
+            window.TCG_BATTLE.personTargetingIndex = -1; ui.remove(); 
+            if (window.TCG_BATTLE._isInterrupting) window.resumePendingAttack();
+        };
+    }
+};
+
+if (!window._originalSelectPlayerCard_IntBase) window._originalSelectPlayerCard_IntBase = window.selectPlayerCard;
+window.selectPlayerCard = function(index) {
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        window.executePersonSkill(sIdx, window.TCG_BATTLE.player.field[index], true, true);
+        
+        // スキル発動後、アニメーションを待って敵の攻撃を再開
+        if (window.TCG_BATTLE._isInterrupting) setTimeout(window.resumePendingAttack, 1200);
+        return;
+    }
+    window._originalSelectPlayerCard_IntBase(index);
+};
+
+// ======================================================================
+// ★ バグ修正：CPUの処理を完全に「物理停止」させる真の割り込みパッチ
+// ======================================================================
+
+// 1. 敵の攻撃宣言時に Promise（待機命令）を使ってCPUをフリーズさせる！
+if (!window._originalExecuteAttack_InterruptBase) {
+    window._originalExecuteAttack_InterruptBase = window.executeAttack;
+}
+
+// 2. 敵の攻撃宣言時に時間を止める処理
+const _origExecuteAttack_TS = window.executeAttack;
+window.executeAttack = async function(targetType, enemyIndex) {
+    // ターゲット選択中のクリックはそのまま通す
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        if (targetType === 'card') window.executePersonSkill(sIdx, window.TCG_BATTLE.cpu.field[enemyIndex], true, false);
+        else window.showBattleMessage("⚠️ そのスキルはモンスターのみ対象です", true);
+        
+        // スキル発動後、少し待ってから「時間停止解除の合図」を出す
+        setTimeout(() => { window.TCG_BATTLE._isInterrupting = false; }, 800);
+        return;
+    }
+
+    // 敵CPUの攻撃宣言時、割り込みUIを起動して時を止める！
+    if (window.TCG_BATTLE && window.TCG_BATTLE.isEnemyTurn && !window.TCG_BATTLE._interruptHandled) {
+        const p = window.TCG_BATTLE.player;
+        const personCard = window.TCG_BATTLE.currentPerson ? window.TCG_BATTLE.currentPerson.player : null;
+
+        if (personCard && !personCard.isDead && !window.TCG_BATTLE.personSkillUsed.player) {
+            let mData = window.TCG_MASTER[personCard.masterId] || {};
+            let pSkills = mData.personSkills || mData.skills || [];
+            let s1 = pSkills[0], s2 = pSkills[1];
+            let canS1 = s1 && p.currentMana >= s1.cost;
+            let canS2 = s2 && p.currentMana >= s2.cost;
+
+            if (canS1 || canS2) {
+                window.TCG_BATTLE._interruptHandled = true; 
+                window.TCG_BATTLE._isInterrupting = true; // ★ 時間停止フラグON！
+                let cachedAttackerIdx = window.TCG_BATTLE.selectedAttackerIndex; // 攻撃者をメモしておく
+                
+                // UI表示
+                window.showPersonInterruptModal(personCard, s1, s2, canS1, canS2);
+                
+                // ★ 超重要：プレイヤーが選択を終え、かつ「スキルのアニメーション」が完全に終わるまで待機！
+                // （これでサイレントキャンセルによるフリーズが100%直ります！）
+                while (window.TCG_BATTLE._isInterrupting || window.TCG_BATTLE.isAnimating) {
+                    await new Promise(r => setTimeout(r, 100));
+                }
+
+                // 時間が動き出した後、敵の攻撃元がまだ生きているか確認
+                const owner = window.TCG_BATTLE.cpu;
+                const attacker = owner.field[cachedAttackerIdx];
+                if (!attacker || attacker.isDead) {
+                    window.showBattleMessage("💥 敵の攻撃は不発に終わった！", false, 1500, false, true);
+                    window.TCG_BATTLE.selectedAttackerIndex = -1;
+                    window.renderBattleBoard();
+                    return; // 攻撃キャンセル（フィズる）
+                }
+                
+                // 攻撃元が生きているなら、攻撃者を再セットして本来の攻撃を再開！
+                window.TCG_BATTLE.selectedAttackerIndex = cachedAttackerIdx;
+            }
+        }
+    }
+
+    window.TCG_BATTLE._interruptHandled = false;
+    if (_origExecuteAttack_TS) {
+        return await _origExecuteAttack_TS.apply(this, arguments);
+    }
+};
+
+// ======================================================================
+// ★ バグ修正：ゲーム全体の時間を停止させる「真・インターセプト」パッチ
+// ======================================================================
+
+// 1. 【最強の時間停止】JavaScriptのタイマー機能をハッキングして時を止める！
+if (!window._origSetTimeout) {
+    window._origSetTimeout = window.setTimeout;
+    window._isSystemBypass = false;
+    
+    // ゲーム内のすべての待機処理を監視し、割り込み中は「見えない箱」に閉じ込める
+    window.setTimeout = function(callback, delay, ...args) {
+        if (window.TCG_BATTLE && window.TCG_BATTLE._isInterrupting && !window._isSystemBypass) {
+            window.TCG_BATTLE._frozenTimeouts = window.TCG_BATTLE._frozenTimeouts || [];
+            window.TCG_BATTLE._frozenTimeouts.push({ callback, delay, args });
+            return Math.floor(Math.random() * 100000) + 900000; // 偽のタイマーIDを返して敵を騙す
+        }
+        return window._origSetTimeout(callback, delay, ...args);
+    };
+    
+    // 私たちのUIやアニメーションだけは時間を無視して動けるようにする特別ルート
+    window._safeSetTimeout = function(cb, ms, ...args) {
+        window._isSystemBypass = true;
+        let id = window._origSetTimeout(cb, ms, ...args);
+        window._isSystemBypass = false;
+        return id;
+    };
+    
+    // 止まっていた時間を再び動かす処理
+    window.unfreezeTime = function() {
+        window.TCG_BATTLE._isInterrupting = false;
+        if (window.TCG_BATTLE._frozenTimeouts) {
+            let queue = [...window.TCG_BATTLE._frozenTimeouts];
+            window.TCG_BATTLE._frozenTimeouts = [];
+            queue.forEach(t => window._origSetTimeout(t.callback, t.delay, ...t.args));
+        }
+    };
+}
+
+// ======================================================================
+// ★ バグ修正：無限ループ（非同期エラー）を完全解消する同期インターセプト
+// ======================================================================
+
+// 1. CPUの思考をフリーズさせる最強の wait ハッキング
+if (!window._origWait_SyncTS) {
+    window._origWait_SyncTS = window.wait || (ms => new Promise(r => setTimeout(r, ms)));
+}
+window.wait = async function(ms) {
+    // 割り込み中は、ここでCPUを無限ループに閉じ込めて時間を止める
+    while (window.TCG_BATTLE && window.TCG_BATTLE._isInterrupting) {
+        await new Promise(r => setTimeout(r, 100));
+    }
+    return window._origWait_SyncTS(ms);
+};
+
+// 2. 敵の攻撃宣言時に「攻撃をキャンセルしてUIを出す」処理（★ asyncを外して同期に戻しました！）
+const _origExecuteAttack_Sync = window.executeAttack;
+window.executeAttack = function(targetType, enemyIndex) {
+    // ターゲット選択中のクリックは通す
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        window.executePersonSkill(sIdx, window.TCG_BATTLE.cpu.field[enemyIndex], true, false);
+        return;
+    }
+
+    // 敵CPUの攻撃宣言時、割り込み可能なら【現在の攻撃をキャンセル】してUIを出す
+    if (window.TCG_BATTLE && window.TCG_BATTLE.isEnemyTurn && !window.TCG_BATTLE._interruptHandled) {
+        const p = window.TCG_BATTLE.player;
+        const personCard = window.TCG_BATTLE.currentPerson ? window.TCG_BATTLE.currentPerson.player : null;
+
+        if (personCard && !personCard.isDead && !window.TCG_BATTLE.personSkillUsed.player) {
+            let mData = window.TCG_MASTER[personCard.masterId] || {};
+            let pSkills = mData.personSkills || mData.skills || [];
+            let s1 = pSkills[0], s2 = pSkills[1];
+            let canS1 = s1 && p.currentMana >= s1.cost;
+            let canS2 = s2 && p.currentMana >= s2.cost;
+
+            if (canS1 || canS2) {
+                // 敵の攻撃パラメーターをメモしておく
+                window.TCG_BATTLE._interruptHandled = true; 
+                window.TCG_BATTLE._pendingTargetType = targetType; 
+                window.TCG_BATTLE._pendingEnemyIndex = enemyIndex;
+                window.TCG_BATTLE._pendingAttackerIndex = window.TCG_BATTLE.selectedAttackerIndex;
+                
+                // 時間停止フラグON
+                window.TCG_BATTLE._isInterrupting = true; 
+                
+                // UIを表示
+                window.showPersonInterruptModal(personCard, s1, s2, canS1, canS2);
+                
+                // ★ 最重要：ここで処理を `return` して中断する！
+                // 元の攻撃処理を呼ばないことで、一旦「何も起きなかった」ことにしてCPUを wait でフリーズさせる！
+                return; 
+            }
+        }
+    }
+
+    // 割り込みが終わった後、または割り込まない場合の本来の攻撃処理
+    window.TCG_BATTLE._interruptHandled = false;
+    if (_origExecuteAttack_Sync) {
+        return _origExecuteAttack_Sync.apply(this, arguments);
+    }
+};
+
+// 3. プレイヤーが選択を終えた後、キャンセルしていた攻撃を【手動で再開】させる処理
+window.resumePendingAttack = function() {
+    let tType = window.TCG_BATTLE._pendingTargetType;
+    let eIdx = window.TCG_BATTLE._pendingEnemyIndex;
+    let aIdx = window.TCG_BATTLE._pendingAttackerIndex;
+    
+    window.TCG_BATTLE._pendingTargetType = null;
+    window.TCG_BATTLE._pendingEnemyIndex = null;
+    window.TCG_BATTLE._pendingAttackerIndex = null;
+    
+    const owner = window.TCG_BATTLE.cpu;
+    const attacker = owner.field[aIdx];
+    
+    // スキルの効果（大漁網など）で敵が消滅していた場合は不発！
+    if (!attacker || attacker.isDead) {
+        window.showBattleMessage("💥 敵の攻撃は不発に終わった！", false, 1500, false, true);
+        window.TCG_BATTLE.selectedAttackerIndex = -1;
+        window.renderBattleBoard();
+    } else {
+        // 敵が生き残っているなら、メモしておいたパラメーターで【手動で元の攻撃を実行】する！
+        window.TCG_BATTLE.selectedAttackerIndex = aIdx; 
+        if (_origExecuteAttack_Sync) {
+            _origExecuteAttack_Sync(tType, eIdx);
+        }
+    }
+
+    // ★ 最後に時間を動かす！凍結されていたCPUのループが再開する
+    window.TCG_BATTLE._isInterrupting = false;
+};
+
+// 4. サイドパネルUI ＆ 各種ボタン操作（時間を止めつつ操作するためのラップ）
+window.showPersonInterruptModal = function(personCard, s1, s2, canS1, canS2) {
+    let ui = document.createElement('div'); ui.id = 'tcg-interrupt-ui';
+    ui.style.cssText = `position:fixed; right:30px; top:50%; transform:translateY(-50%); width:300px; background:rgba(15,15,20,0.95); border:3px solid #E91E63; border-radius:12px; padding:20px; z-index:60000; display:flex; flex-direction:column; gap:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8);`;
+    
+    ui.innerHTML = `
+        <div style="color:#FF9800; font-size:20px; font-weight:bold; text-align:center; border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:5px;">⚠️ 敵の攻撃宣言！</div>
+        <div style="color:#ddd; font-size:14px; text-align:center; line-height:1.4;"><span style="color:#E91E63; font-weight:bold; font-size:16px;">${personCard.name}</span> のスキルで<br>割り込みますか？</div>
+        <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+            ${canS1 ? `<button onclick="window._isSystemBypass=true; document.getElementById('tcg-interrupt-ui').remove(); window.openPersonSkillTarget(${0}, ${s1.cost}); window._isSystemBypass=false;" style="padding:12px; font-size:14px; font-weight:bold; background:#111; color:#00BCD4; border:2px solid #00BCD4; border-radius:8px; cursor:pointer;">${s1.name} (${s1.cost}M)</button>` : `<button disabled style="padding:12px; font-size:14px; font-weight:bold; background:#222; color:#555; border:2px solid #444; border-radius:8px;">${s1.name} (マナ不足)</button>`}
+            ${canS2 ? `<button onclick="window._isSystemBypass=true; document.getElementById('tcg-interrupt-ui').remove(); window.openPersonSkillTarget(${1}, ${s2.cost}); window._isSystemBypass=false;" style="padding:12px; font-size:14px; font-weight:bold; background:#111; color:#E91E63; border:2px solid #E91E63; border-radius:8px; cursor:pointer;">${s2.name} (${s2.cost}M)</button>` : `<button disabled style="padding:12px; font-size:14px; font-weight:bold; background:#222; color:#555; border:2px solid #444; border-radius:8px;">${s2.name} (マナ不足)</button>`}
+        </div>
+        <button onclick="window._isSystemBypass=true; document.getElementById('tcg-interrupt-ui').remove(); window.resumePendingAttack(); window._isSystemBypass=false;" style="margin-top:10px; padding:10px; font-size:14px; font-weight:bold; background:#444; color:#bbb; border:none; border-radius:8px; cursor:pointer;">割り込まない</button>
+    `;
+    document.body.appendChild(ui);
+};
+
+// 5. ターゲット選択後、アニメーションを待ってから攻撃を再開させる
+window.openPersonSkillTarget = function(skillIndex, cost) {
+    if (window.TCG_BATTLE.player.currentMana < cost) { window.showBattleMessage("⚠️ マナが足りません！", true); return; }
+    const personCard = window.TCG_BATTLE.currentPerson.player;
+    const mData = window.TCG_MASTER[personCard.masterId];
+    const skill = (mData.personSkills || mData.skills)[skillIndex];
+
+    const needsTarget = skill.desc.includes("1体") || skill.desc.includes("指定した") || skill.desc.includes("行動済みの味方");
+    if (!needsTarget) { 
+        window.executePersonSkill(skillIndex, null, true); 
+        // ターゲット不要スキルを使った後、800ms後に攻撃を再開
+        setTimeout(window.resumePendingAttack, 800);
+        return; 
+    }
+
+    window.TCG_BATTLE.personTargetingIndex = skillIndex;
+    let ui = document.createElement('div'); ui.id = "tcg-target-ui";
+    ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #E91E63; border-radius:30px; z-index:50000; text-align:center;`;
+    ui.innerHTML = `<div style="color:#E91E63; font-size:22px; font-weight:bold; margin-bottom:10px;">🎯 対象を選択中...</div><div style="color:#ddd; font-size:14px; margin-bottom:15px;">「${skill.name}」の対象となるカードをクリックしてください</div><button id="btn-cancel-person" style="padding:8px 20px; background:#555; color:#fff; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer;">キャンセル</button>`;
+    document.body.appendChild(ui);
+    
+    document.getElementById('btn-cancel-person').onclick = () => { 
+        window.TCG_BATTLE.personTargetingIndex = -1; ui.remove(); 
+        window.resumePendingAttack(); // キャンセルしたので即座に再開
+    };
+};
+
+const _origSelectPlayerCard_TS = window.selectPlayerCard;
+window.selectPlayerCard = function(index) {
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        window.executePersonSkill(sIdx, window.TCG_BATTLE.player.field[index], true, true);
+        
+        // ターゲットを選択し終わったら、時を動かす！
+        setTimeout(() => { window.TCG_BATTLE._isInterrupting = false; }, 800);
+        return;
+    }
+    if (_origSelectPlayerCard_TS) return _origSelectPlayerCard_TS.apply(this, arguments);
+};
+
+// ==========================================
+// ★ バグ修正：配列ズレによるフリーズ解消 ＆ 即時HP反映パッチ
+// ==========================================
+
+// 1. 敵の攻撃宣言時の処理（カードそのものを記憶する！）
+const _origExecuteAttack_Final = window.executeAttack;
+window.executeAttack = function(targetType, enemyIndex) {
+    // ターゲット選択中はそのまま通す
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        window.executePersonSkill(sIdx, window.TCG_BATTLE.cpu.field[enemyIndex], true, false);
+        return;
+    }
+
+    if (window.TCG_BATTLE && window.TCG_BATTLE.isEnemyTurn && !window.TCG_BATTLE._interruptHandled) {
+        const p = window.TCG_BATTLE.player;
+        const personCard = window.TCG_BATTLE.currentPerson ? window.TCG_BATTLE.currentPerson.player : null;
+
+        if (personCard && !personCard.isDead && !window.TCG_BATTLE.personSkillUsed.player) {
+            let mData = window.TCG_MASTER[personCard.masterId] || {};
+            let pSkills = mData.personSkills || mData.skills || [];
+            let s1 = pSkills[0], s2 = pSkills[1];
+            let canS1 = s1 && p.currentMana >= s1.cost;
+            let canS2 = s2 && p.currentMana >= s2.cost;
+
+            if (canS1 || canS2) {
+                window.TCG_BATTLE._interruptHandled = true; 
+                
+                // ★最重要修正：座席番号（Index）ではなく、カードの実体を直接記憶しておく！
+                window.TCG_BATTLE._pendingTargetType = targetType; 
+                window.TCG_BATTLE._pendingAttackerCard = window.TCG_BATTLE.cpu.field[window.TCG_BATTLE.selectedAttackerIndex];
+                window.TCG_BATTLE._pendingTargetCard = targetType === 'card' ? window.TCG_BATTLE.player.field[enemyIndex] : null;
+                
+                window.TCG_BATTLE._isInterrupting = true; 
+                window.showPersonInterruptModal(personCard, s1, s2, canS1, canS2);
+                return; // ここで処理を中断！
+            }
+        }
+    }
+
+    window.TCG_BATTLE._interruptHandled = false;
+    if (_origExecuteAttack_Final) return _origExecuteAttack_Final.apply(this, arguments);
+};
+
+// 2. 攻撃再開処理（記憶したカードを探し直す！）
+window.resumePendingAttack = function() {
+    window.TCG_BATTLE._isInterrupting = false; // 時間停止を解除
+
+    let tType = window.TCG_BATTLE._pendingTargetType;
+    let attackerCard = window.TCG_BATTLE._pendingAttackerCard;
+    let targetCard = window.TCG_BATTLE._pendingTargetCard;
+    
+    // お掃除
+    window.TCG_BATTLE._pendingTargetType = null;
+    window.TCG_BATTLE._pendingAttackerCard = null;
+    window.TCG_BATTLE._pendingTargetCard = null;
+    
+    // ★修正点：ズレたかもしれない現在の座席番号（Index）を探し直す！
+    let newAIdx = window.TCG_BATTLE.cpu.field.indexOf(attackerCard);
+    let newEIdx = tType === 'card' ? window.TCG_BATTLE.player.field.indexOf(targetCard) : 0;
+
+    if (newAIdx === -1 || !attackerCard || attackerCard.isDead) {
+        // 攻撃元が倒されていた場合
+        window.showBattleMessage("💥 攻撃元の敵が消滅し、不発に終わった！", false, 1500, false, true);
+        window.TCG_BATTLE.selectedAttackerIndex = -1;
+        window.renderBattleBoard();
+    } else if (tType === 'card' && (newEIdx === -1 || !targetCard || targetCard.isDead)) {
+        // 攻撃対象が消えていた場合
+        window.showBattleMessage("💨 攻撃対象が消滅し、敵の攻撃が空を切った！", false, 1500, false, true);
+        window.TCG_BATTLE.selectedAttackerIndex = -1;
+        window.renderBattleBoard();
+    } else {
+        // 全員生き残っているなら、新しい座席番号で攻撃再開！
+        window.TCG_BATTLE.selectedAttackerIndex = newAIdx; 
+        
+        // アニメーションの余韻を少しだけ待ってから確実に実行
+        setTimeout(() => {
+            if (_origExecuteAttack_Final) _origExecuteAttack_Final(tType, newEIdx);
+        }, 100);
+    }
+};
+
+// 3. スキル使用処理（HPの即時反映 ＆ ターゲット処理の同期）
+const _origExecutePersonSkill_Visual = window.executePersonSkill;
+window.executePersonSkill = function(skillIndex, targetCard, isPlayer, isPlayerTarget = true) {
+    _origExecutePersonSkill_Visual.apply(this, arguments);
+    
+    // ★修正点：スキル発動直後に、上限を超えないようにHPを計算して即座に画面を更新する！
+    if (targetCard) {
+        if (targetCard.hp > (targetCard.maxHp || 30)) targetCard.hp = targetCard.maxHp || 30;
+    }
+    window.renderBattleBoard(); 
+};
+
+// 4. ターゲット選択キャンセル時の処理修正
+window.openPersonSkillTarget = function(skillIndex, cost) {
+    if (window.TCG_BATTLE.player.currentMana < cost) { window.showBattleMessage("⚠️ マナが足りません！", true); return; }
+    const personCard = window.TCG_BATTLE.currentPerson.player;
+    const mData = window.TCG_MASTER[personCard.masterId];
+    const skill = (mData.personSkills || mData.skills)[skillIndex];
+
+    const needsTarget = skill.desc.includes("1体") || skill.desc.includes("指定した") || skill.desc.includes("行動済みの味方");
+    if (!needsTarget) { 
+        window.executePersonSkill(skillIndex, null, true); 
+        setTimeout(window.resumePendingAttack, 800); // アニメーション後に再開
+        return; 
+    }
+
+    window.TCG_BATTLE.personTargetingIndex = skillIndex;
+    let ui = document.createElement('div'); ui.id = "tcg-target-ui";
+    ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #E91E63; border-radius:30px; z-index:50000; text-align:center;`;
+    ui.innerHTML = `<div style="color:#E91E63; font-size:22px; font-weight:bold; margin-bottom:10px;">🎯 対象を選択中...</div><div style="color:#ddd; font-size:14px; margin-bottom:15px;">「${skill.name}」の対象となるカードをクリックしてください</div><button id="btn-cancel-person" style="padding:8px 20px; background:#555; color:#fff; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer;">キャンセル</button>`;
+    document.body.appendChild(ui);
+    
+    document.getElementById('btn-cancel-person').onclick = () => { 
+        window.TCG_BATTLE.personTargetingIndex = -1; ui.remove(); 
+        window.resumePendingAttack(); 
+    };
+};
+
+const _origSelectPlayerCard_Sync = window.selectPlayerCard;
+window.selectPlayerCard = function(index) {
+    if (window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+        let sIdx = window.TCG_BATTLE.personTargetingIndex; window.TCG_BATTLE.personTargetingIndex = -1;
+        let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+        
+        window.executePersonSkill(sIdx, window.TCG_BATTLE.player.field[index], true, true);
+        
+        // ★ スキルのVFX演出を待ってから攻撃を再開！
+        setTimeout(window.resumePendingAttack, 800);
+        return;
+    }
+    if (_origSelectPlayerCard_Sync) return _origSelectPlayerCard_Sync.apply(this, arguments);
+};
+
+// ======================================================================
+// 🛠️ 最終決戦版v4：完全手動処理 ＆ 強制ターゲティング・防弾パッチ (F12用)
+// ======================================================================
+console.log("🛠️ すべてのバグをねじ伏せる究極のパッチを適用中...");
+
+window.tcgSleep = ms => new Promise(r => setTimeout(r, ms));
+
+const getTargetNameStr = (type, idx, p) => {
+    if (type === 'player') return 'あなた (リーダー)';
+    if (type === 'person') return `人物『${window.TCG_BATTLE.currentPerson ? (window.TCG_BATTLE.currentPerson.player ? window.TCG_BATTLE.currentPerson.player.name : window.TCG_BATTLE.currentPerson.name) : '不明'}』`;
+    if (type === 'field' && window.TCG_BATTLE.currentField) return `フィールド『${window.TCG_BATTLE.currentField.card.name}』`;
+    return `味方『${p.field[idx] ? p.field[idx].name : '不明'}』`;
+};
+
+const pLog = (msg, isErr = false) => { window.showBattleMessage(`🧑 [プレイヤーログ] ${msg}`, isErr, 0, true); };
+
+const getPersonCard = () => {
+    if (!window.TCG_BATTLE || !window.TCG_BATTLE.currentPerson) return null;
+    if (window.TCG_BATTLE.currentPerson.player) return window.TCG_BATTLE.currentPerson.player;
+    if (window.TCG_BATTLE.currentPerson.masterId) return window.TCG_BATTLE.currentPerson;
+    return null;
+};
+
+// スキル分類（誤爆防止とUI制御のため）
+const ALLY_SKILLS = ["おすそわけ", "特製スパイス", "武器研磨", "即席バリケード", "会心の武具"];
+const ENEMY_SKILLS = ["槍の突き", "槍の突撃", "決死の覚悟", "一本釣り", "大漁網"];
+const NO_TARGET_SKILLS = ["陣形指示", "総員突撃", "突貫工事", "豊穣の祈り", "マッピング", "秘境の発見", "お宝発見", "究極のフルコース"];
+
+// =====================================
+// ① 強制ターゲティング・システム（クリック監視）
+// エンジンがクリックを無視するのを防ぐため、画面クリックを直接監視します
+// =====================================
+if (!window.__targetingClickHandlerInstalled) {
+    document.addEventListener('click', (e) => {
+        if (window.TCG_BATTLE && window.TCG_BATTLE.personTargetingIndex !== undefined && window.TCG_BATTLE.personTargetingIndex !== -1) {
+            let cpuCardEl = e.target.closest('[id^="c-card-"]');
+            let pCardEl = e.target.closest('[id^="p-card-"]');
+            
+            if (cpuCardEl || pCardEl) {
+                e.stopPropagation(); e.preventDefault();
+                
+                let isAlly = !!pCardEl;
+                let idx = parseInt((isAlly ? pCardEl : cpuCardEl).id.replace(/[cp]-card-/, ''));
+                let targetCard = isAlly ? window.TCG_BATTLE.player.field[idx] : window.TCG_BATTLE.cpu.field[idx];
+                
+                if (targetCard) {
+                    let sIdx = window.TCG_BATTLE.personTargetingIndex;
+                    const personCard = getPersonCard(); 
+                    const skillName = ((window.TCG_MASTER[personCard.masterId] || {}).personSkills || (window.TCG_MASTER[personCard.masterId] || {}).skills || [])[sIdx]?.name;
+
+                    // 誤爆防止フィルター
+                    if (isAlly && ENEMY_SKILLS.includes(skillName)) { window.showBattleMessage("⚠️ そのスキルは敵専用です！", true); return; }
+                    if (!isAlly && ALLY_SKILLS.includes(skillName)) { window.showBattleMessage("⚠️ そのスキルは味方専用です！", true); return; }
+
+                    pLog(`${isAlly ? '味方' : '敵'}カード(index:${idx})への強制クリックを検知！`);
+                    window.TCG_BATTLE.personTargetingIndex = -1;
+                    let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+                    window.executePersonSkill(sIdx, targetCard, !!window.TCG_BATTLE.isEnemyTurn, isAlly);
+                }
+            }
+        }
+    }, true);
+    window.__targetingClickHandlerInstalled = true;
+}
+
+// =====================================
+// ② 人物スキルの完全手動オーバーライド
+// =====================================
+if (!window._orig_executePersonSkill_V12) window._orig_executePersonSkill_V12 = window.executePersonSkill;
+window.executePersonSkill = function(...args) {
+    let skillIndex = args[0]; let targetCard = args[1]; let isIntercept = args[2]; let isAllyTarget = args[3];
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    const personCard = getPersonCard(); 
+    const mData = personCard ? (window.TCG_MASTER[personCard.masterId] || {}) : {};
+    const skill = (mData.personSkills || mData.skills || [])[skillIndex];
+
+    let isPlayerSkill = !window.TCG_BATTLE.isEnemyTurn || isIntercept;
+    pLog(`スキル発動処理を開始... (スキル名: ${skill ? skill.name : '不明'})`);
+
+    let res = null;
+    if (window.TCG_BATTLE.isEnemyTurn && isIntercept) {
+        res = window.TCG_BATTLE.inputResolve || window.TCG_BATTLE.interceptResolve;
+        window.TCG_BATTLE.inputResolve = null; window.TCG_BATTLE.interceptResolve = null; window.TCG_BATTLE.awaitingInput = null;
+    }
+    
+    let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+    if (window.TCG_BATTLE) window.TCG_BATTLE.personTargetingIndex = -1;
+
+    // 1ターン1回制限チェック
+    if (isPlayerSkill && window.TCG_BATTLE.personSkillUsed && window.TCG_BATTLE.personSkillUsed.player) {
+        window.showBattleMessage("⚠️ スキルは1ターンに1回しか使えません！", true);
+        if (res) res('cancel'); return;
+    }
+
+    let handledManually = false;
+
+    // ★ すべてのバグスキルをここで完全手動処理！
+    if (skill && isPlayerSkill) {
+        let sName = skill.name;
+        
+        if (sName === "おすそわけ" && targetCard) {
+            targetCard.hp += 15; if (targetCard.hp > (targetCard.maxHp||100)) targetCard.hp = targetCard.maxHp||100;
+            window.showVFX(`p-card-${p.field.indexOf(targetCard)}`, 'heal', '+15'); window.showBattleMessage("✨ おすそわけでHPを15回復！", false, 1500);
+            handledManually = true;
+        } else if (sName === "陣形指示") {
+            p.tempDamageReduction = 10; window.showBattleMessage("🛡️ 陣形指示！このターン受けるダメージを-10！", false, 1500);
+            handledManually = true;
+        } else if (sName === "武器研磨" && targetCard) {
+            targetCard.damage += 20; window.showVFX(`p-card-${p.field.indexOf(targetCard)}`, 'buff', '+20'); window.showBattleMessage("⚔️ 武器研磨！攻撃力が20アップ！", false, 1500);
+            handledManually = true;
+        } else if ((sName === "槍の突き" || sName === "槍の突撃") && targetCard) {
+            targetCard.hp -= 10; window.showVFX(isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, 'damage', 10); window.showBattleMessage("⚔️ 槍の突き！敵に10ダメージ！", false, 1500);
+            if (window.checkDeath) window.checkDeath(targetCard, isAllyTarget ? p : cpu, isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, isAllyTarget ? cpu : p);
+            handledManually = true;
+        } else if (sName === "決死の覚悟" && targetCard) {
+            targetCard.hp -= 40; if (personCard) personCard.hp -= 20;
+            window.showVFX(isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, 'damage', 40);
+            if (personCard) window.showVFX('p-person', 'damage', 20); window.showBattleMessage("💥 決死の覚悟！敵に40、自身に20ダメージ！", false, 1500);
+            if (window.checkDeath) window.checkDeath(targetCard, isAllyTarget ? p : cpu, isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, isAllyTarget ? cpu : p);
+            if (window.checkDeath && personCard) window.checkDeath(personCard, window.TCG_BATTLE.currentPerson, 'p-person', cpu);
+            handledManually = true;
+        } else if (sName === "総員突撃") {
+            p.field.forEach(c => { if(c) c.hasDoubleStrike = true; }); window.showBattleMessage("⚔️ 総員突撃！味方全員が連撃化！", false, 1500);
+            handledManually = true;
+        } else if (sName === "即席バリケード" && targetCard) {
+            targetCard.isDefending = true; window.showVFX(`p-card-${p.field.indexOf(targetCard)}`, 'buff', '守護'); window.showBattleMessage("🛡️ 即席バリケード！このターンのみ守護を付与！", false, 1500);
+            handledManually = true;
+        } else if (sName === "突貫工事") {
+            if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card) { window.TCG_BATTLE.currentField.card.hp += 50; window.showVFX('p-field', 'heal', '+50'); }
+            p.hp += 40; window.showVFX('player-face', 'heal', '+40'); window.showBattleMessage("🛠️ 突貫工事！フィールドとリーダーを回復！", false, 1500);
+            handledManually = true;
+        } else if (sName === "豊穣の祈り") {
+            if (p.deck.length > 0) p.hand.push(p.deck.shift());
+            if (p.maxMana < 10) p.maxMana++; p.currentMana++; 
+            window.showBattleMessage("✨ 豊穣の祈り！カードを引き、マナ回復！", false, 1500);
+            handledManually = true;
+        } else if (sName === "マッピング" || sName === "秘境の発見") {
+            if (p.deck.length > 0) p.hand.push(p.deck.shift()); window.showBattleMessage("🗺️ 探索！カードを1枚引いた！", false, 1500);
+            handledManually = true;
+        } else if (sName === "お宝発見") {
+            let evoIdx = p.deck.findIndex(c => c && c.evolvesFrom);
+            if (evoIdx !== -1) p.hand.push(p.deck.splice(evoIdx, 1)[0]);
+            else if (p.deck.length > 0) p.hand.push(p.deck.shift());
+            window.showBattleMessage("💎 お宝発見！進化カードを手に入れた！", false, 1500);
+            handledManually = true;
+        } else if (sName === "一本釣り" && targetCard) {
+            targetCard.hp -= 10; window.showVFX(isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, 'damage', 10); window.showBattleMessage("🎣 一本釣り！敵に10ダメージ！", false, 1500);
+            if (window.checkDeath) window.checkDeath(targetCard, isAllyTarget ? p : cpu, isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, isAllyTarget ? cpu : p);
+            handledManually = true;
+        } else if (sName === "特製スパイス" && targetCard) {
+            targetCard.damage += 20; window.showVFX(`p-card-${p.field.indexOf(targetCard)}`, 'buff', '+20'); window.showBattleMessage("🔥 特製スパイス！攻撃力が20アップ！", false, 1500);
+            handledManually = true;
+        } else if (sName === "会心の武具" && targetCard) {
+            targetCard.ability = "pierce_recoil"; targetCard.badges = targetCard.badges || []; 
+            if(!targetCard.badges.includes("貫通")) targetCard.badges.push("貫通");
+            window.showVFX(`p-card-${p.field.indexOf(targetCard)}`, 'buff', '貫通'); window.showBattleMessage("⚔️ 会心の武具！貫通を付与！", false, 1500);
+            handledManually = true;
+        } else if (sName === "大漁網" && targetCard) {
+            targetCard.isDead = true; cpu.deck.push(targetCard);
+            window.showVFX(isAllyTarget ? `p-card-${p.field.indexOf(targetCard)}` : `c-card-${cpu.field.indexOf(targetCard)}`, 'slash', 'バウンス');
+            window.showBattleMessage("🎣 大漁網！敵を山札に戻した！", false, 1500);
+            handledManually = true;
+        } else if (sName === "究極のフルコース") {
+            p.field.forEach(c => { if (c && !c.isDead) { c.hp = c.maxHp || 100; window.showVFX(`p-card-${p.field.indexOf(c)}`, 'heal', '全回復'); } });
+            window.showBattleMessage("🍽️ 究極のフルコース！味方全体を全回復！", false, 1500);
+            handledManually = true;
+        }
+
+        // マナ消費と使用済みフラグのセット、UI強制更新
+        if (handledManually) {
+            let costVal = parseInt(skill.cost) || 0;
+            if (p.currentMana >= costVal) p.currentMana -= costVal;
+            if (!window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed = {};
+            window.TCG_BATTLE.personSkillUsed.player = true;
+            if (window.updatePlayerUI) window.updatePlayerUI();
+            window.renderBattleBoard();
+            pLog(`手動適用完了。`);
+        }
+    }
+
+    let ret;
+    try {
+        if (!handledManually) {
+            pLog(`エンジン標準処理へ渡します。`);
+            let safeTarget = targetCard || { masterId: 'dummy' };
+            ret = window._orig_executePersonSkill_V12.call(this, skillIndex, safeTarget, isIntercept, isAllyTarget);
+            if (isPlayerSkill) {
+                if (!window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed = {};
+                window.TCG_BATTLE.personSkillUsed.player = true;
+                if (window.updatePlayerUI) window.updatePlayerUI();
+                window.renderBattleBoard();
+            }
+        }
+    } catch(e) {
+        pLog(`⚠️ エンジン内部エラー発生: ${e.message}`, true); console.error(e);
+    } finally {
+        pLog(`スキル処理完了。`);
+        if (res) { setTimeout(() => { window.TCG_BATTLE.isEnemyTurn = true; window.TCG_BATTLE.isAnimating = true; res('used'); }, 800); }
+    }
+    return ret;
+};
+
+// =====================================
+// ② 対象不要スキルの即発動
+// =====================================
+window.openPersonSkillTarget = function(skillIndex, cost) {
+    if (window.TCG_BATTLE.player.currentMana < cost) { window.showBattleMessage("⚠️ マナが足りません！", true); return; }
+    if (window.TCG_BATTLE.personSkillUsed && window.TCG_BATTLE.personSkillUsed.player) {
+        window.showBattleMessage("⚠️ スキルは1ターンに1回しか使えません！", true); return;
+    }
+    
+    const personCard = getPersonCard(); 
+    if (!personCard) return; 
+    
+    const mData = window.TCG_MASTER[personCard.masterId] || {};
+    const skill = (mData.personSkills || mData.skills || [])[skillIndex];
+    if (!skill) return;
+
+    if (NO_TARGET_SKILLS.includes(skill.name)) {
+        pLog(`対象不要スキル即発動: ${skill.name}`);
+        window.executePersonSkill(skillIndex, null, !!window.TCG_BATTLE.isEnemyTurn, false);
+        return;
+    }
+
+    window.TCG_BATTLE.personTargetingIndex = skillIndex;
+    let ui = document.getElementById('tcg-target-ui'); if (ui) ui.remove();
+    ui = document.createElement('div'); ui.id = "tcg-target-ui";
+    ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #E91E63; border-radius:30px; z-index:50000; text-align:center;`;
+    ui.innerHTML = `<div style="color:#E91E63; font-size:22px; font-weight:bold; margin-bottom:10px;">🎯 対象を選択中...</div><div style="color:#ddd; font-size:14px; margin-bottom:15px;">「${skill.name}」の対象となるカードをクリックしてください</div><button id="btn-cancel-person" style="padding:8px 20px; background:#555; color:#fff; border:2px solid #777; border-radius:8px; font-weight:bold; cursor:pointer;">キャンセル</button>`;
+    document.body.appendChild(ui);
+
+    document.getElementById('btn-cancel-person').onclick = () => {
+        window.TCG_BATTLE.personTargetingIndex = -1; ui.remove();
+        let res = window.TCG_BATTLE.inputResolve || window.TCG_BATTLE.interceptResolve;
+        if (res) { window.TCG_BATTLE.inputResolve = null; window.TCG_BATTLE.interceptResolve = null; window.TCG_BATTLE.awaitingInput = null; res('cancel'); }
+    };
+};
+
+window.cancelInterrupt = function() {
+    pLog(`割り込みがキャンセルされました。`);
+    let ui = document.getElementById('tcg-interrupt-ui'); if (ui) ui.remove();
+    let res = window.TCG_BATTLE.inputResolve || window.TCG_BATTLE.interceptResolve;
+    if (res) { window.TCG_BATTLE.inputResolve = null; window.TCG_BATTLE.interceptResolve = null; window.TCG_BATTLE.awaitingInput = null; res('cancel'); }
+};
+
+// =====================================
+// ③ 連撃(総員突撃)とターンのリセット
+// =====================================
+if (!window._orig_executeAttack_V12) window._orig_executeAttack_V12 = window.executeAttack;
+window.executeAttack = function(targetType, enemyIndex) {
+    let attackerIndex = -1; let attackerCard = null;
+    let isPlayerAttack = !window.TCG_BATTLE.isEnemyTurn && window.TCG_BATTLE.selectedAttackerIndex !== -1;
+    if (isPlayerAttack) {
+        attackerIndex = window.TCG_BATTLE.selectedAttackerIndex;
+        attackerCard = window.TCG_BATTLE.player.field[attackerIndex];
+    }
+
+    let ret = window._orig_executeAttack_V12.apply(this, arguments);
+
+    if (isPlayerAttack && attackerCard && !attackerCard.isDead && attackerCard.hp > 0) {
+        let hasDoubleStrike = attackerCard.ability === 'double_strike' || attackerCard.status === 'double_strike' || 
+                              (attackerCard.badges && (attackerCard.badges.includes('double_strike') || attackerCard.badges.includes('連撃') || attackerCard.badges.includes('連撃バッジ') || attackerCard.badges.includes('総員突撃'))) || attackerCard.hasDoubleStrike;
+        if (hasDoubleStrike && !attackerCard._doubleStrikeUsed) {
+            attackerCard.canAttack = true; attackerCard._doubleStrikeUsed = true;
+            window.showBattleMessage(`⚔️ 連撃発動！ ${attackerCard.name} はもう一度攻撃できる！`, false, 1500); window.renderBattleBoard();
+        }
+    }
+    return ret;
+};
+
+if (!window._orig_startPlayerTurn_V12) window._orig_startPlayerTurn_V12 = window.startPlayerTurn;
+window.startPlayerTurn = function(...args) {
+    pLog(`自ターン開始。スキル制限をリセットします。`);
+    if (window.TCG_BATTLE.player) {
+        if (window.TCG_BATTLE.player.field) window.TCG_BATTLE.player.field.forEach(c => { if(c) c._doubleStrikeUsed = false; });
+        if (window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed.player = false;
+    }
+    return window._orig_startPlayerTurn_V12.apply(this, args);
+};
+
+// =====================================
+// ④ 敵ターンの攻撃ループ（王の裁き対策＆手動戦闘処理）
+// =====================================
+window.executeCPUTurn = async function(isFirstTurn = false) {
+    window.TCG_BATTLE.isEnemyTurn = true; window.TCG_BATTLE.isAnimating = true;
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    window.showBattleMessage(`🤖 [思考ログ] 敵のターン処理を開始...`, false, 0, true);
+
+    if (p.tempDamageReduction === undefined) p.tempDamageReduction = 0;
+
+    if (!isFirstTurn && window.TCG_BATTLE.firstPlayer === 'cpu') window.TCG_BATTLE.turn++;
+    if (cpu.maxMana < 10) cpu.maxMana++; cpu.currentMana = cpu.maxMana; cpu.actionUsed = false; 
+
+    if ((!isFirstTurn || window.TCG_BATTLE.firstPlayer === 'player') && cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift());
+
+    cpu.field.forEach((c, i) => {
+        if (c.isDead) return;
+        if (c.ability === "start_draw" && !c.isDead) { if (cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift()); window.showVFX(`c-card-${i}`, 'heal', 'Draw'); }
+        if (c.ability === "infinite_gear" && !c.isDead) { while(cpu.hand.length < 5 && cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift()); window.showVFX(`c-card-${i}`, 'heal', 'Draw'); }
+        if (c.ability === "star_breath" && !c.isDead) { cpu.maxMana = Math.min(10, cpu.maxMana+2); cpu.currentMana = Math.min(10, cpu.currentMana+2); cpu.hp += 30; window.showVFX('cpu-face', 'heal', 30); }
+        if (c.ability === "heaven_judgement" && !c.isDead) { p.hp -= 20; window.showVFX('player-face', 'damage', 20); p.field.forEach((f, fi) => { if(!f.isDead){ f.hp -= 20; window.showVFX(`p-card-${fi}`, 'damage', 20); if(window.checkDeath) window.checkDeath(f, p, `p-card-${fi}`, cpu); } }); }
+    });
+
+    cpu.field.forEach(card => card.canAttack = true); window.renderBattleBoard(); await window.tcgSleep(1000);
+
+    for (let cpuIndex = 0; cpuIndex < cpu.field.length; cpuIndex++) {
+        let cpuCard = cpu.field[cpuIndex];
+        if (!cpuCard || !cpuCard.canAttack || cpuCard.damage <= 0 || cpuCard.isDead) continue;
+
+        window.showBattleMessage(`🤖 [思考ログ] 『${cpuCard.name}』の攻撃準備...`, false, 0, true);
+
+        if (cpuCard.status === "charmed") {
+            cpuCard.status = null; cpuCard.canAttack = false; cpu.hp -= cpuCard.damage;
+            window.showVFX('cpu-face', 'slash'); window.showVFX('cpu-face', 'damage', cpuCard.damage);
+            window.renderBattleBoard();
+            if (cpu.hp <= 0) { cpu.hp = 0; window.renderBattleBoard(); window.showBattleMessage("🎉 YOU WIN!!\n敵リーダーのHPが0になりました！", false, 5000); setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000); return; }
+            await window.tcgSleep(800); continue;
+        }
+        if (cpuCard.status === "stunned") continue;
+
+        p.field = p.field.filter(c => c && !c.isDead && c.hp > 0); cpu.field = cpu.field.filter(c => c && !c.isDead && c.hp > 0);
+        window.TCG_BATTLE.selectedAttackerIndex = cpuIndex; window.renderBattleBoard();
+
+        const isPierce = cpuCard.ability === "pierce_recoil" || cpuCard.ability === "flight" || cpuCard.ability === "god_strike" || cpuCard.ability === "dimension_drill" || cpuCard.ability === "piercing_juggernaut";
+
+        let aiTarget = window._decideAITarget ? window._decideAITarget(cpu, p) : {type: 'player', index: 0};
+        let finalTargetType = aiTarget.type; let finalTargetIndex = aiTarget.index;
+
+        if (finalTargetType === 'card' && (!p.field[finalTargetIndex] || p.field[finalTargetIndex].isDead || p.field[finalTargetIndex].hp <= 0)) {
+            finalTargetType = 'player'; finalTargetIndex = 0;
+        } else if (finalTargetType === 'person' && (!window.TCG_BATTLE.currentPerson || window.TCG_BATTLE.currentPerson.player.isDead || window.TCG_BATTLE.currentPerson.player.hp <= 0)) {
+            finalTargetType = 'player'; finalTargetIndex = 0;
+        }
+        
+        let targetNameStr = getTargetNameStr(finalTargetType, finalTargetIndex, p);
+        window.showBattleMessage(`🤖 『${cpuCard.name}』は【${targetNameStr}】に狙いを定めた！`, false, 0, true);
+
+        if (!isPierce && !window.TCG_BATTLE.isAuto) {
+            const personCard = getPersonCard();
+            if (personCard && !personCard.isDead && (!window.TCG_BATTLE.personSkillUsed || !window.TCG_BATTLE.personSkillUsed.player)) {
+                let mData = window.TCG_MASTER[personCard.masterId] || {};
+                let pSkills = mData.personSkills || mData.skills || [];
+                let s1 = pSkills[0], s2 = pSkills[1];
+                let cost1 = parseInt(s1?.cost) || 0; let cost2 = parseInt(s2?.cost) || 0;
+                let canS1 = s1 && p.currentMana >= cost1; let canS2 = s2 && p.currentMana >= cost2;
+
+                if (canS1 || canS2) {
+                    window.showBattleMessage(`🤖 [思考ログ] プレイヤーの割り込み入力を待機します...`, false, 0, true);
+                    let pResult = await new Promise(resolve => {
+                        window.TCG_BATTLE.interceptResolve = resolve;
+                        let ui = document.createElement('div'); ui.id = 'tcg-interrupt-ui';
+                        ui.style.cssText = `position:fixed; right:30px; top:50%; transform:translateY(-50%); width:300px; background:rgba(15,15,20,0.95); border:3px solid #E91E63; border-radius:12px; padding:20px; z-index:60000; display:flex; flex-direction:column; gap:12px; box-shadow:0 10px 40px rgba(0,0,0,0.8);`;
+                        ui.innerHTML = `
+                            <div style="color:#FF9800; font-size:20px; font-weight:bold; text-align:center; border-bottom:1px solid #444; padding-bottom:10px; margin-bottom:5px;">⚠️ 敵の攻撃宣言！</div>
+                            <div style="color:#ddd; font-size:14px; text-align:center; line-height:1.4;"><span style="color:#E91E63; font-weight:bold; font-size:16px;">${personCard.name}</span> のスキルで割り込みますか？</div>
+                            <div style="font-size:13px; color:#FFEB3B; text-align:center; margin-top:5px; background:rgba(0,0,0,0.5); padding:5px; border-radius:4px; border:1px solid #FFC107;">🎯 狙い: ${targetNameStr}</div>
+                            <div style="display:flex; flex-direction:column; gap:10px; margin-top:10px;">
+                                ${canS1 ? `<button onclick="document.getElementById('tcg-interrupt-ui').remove(); window.openPersonSkillTarget(${0}, ${cost1});" style="padding:12px; font-size:14px; font-weight:bold; background:#111; color:#00BCD4; border:2px solid #00BCD4; border-radius:8px; cursor:pointer;">${s1.name} (${cost1}M)</button>` : `<button disabled style="padding:12px; font-size:14px; font-weight:bold; background:#222; color:#555; border:2px solid #444; border-radius:8px;">${s1.name} (不足)</button>`}
+                                ${canS2 ? `<button onclick="document.getElementById('tcg-interrupt-ui').remove(); window.openPersonSkillTarget(${1}, ${cost2});" style="padding:12px; font-size:14px; font-weight:bold; background:#111; color:#E91E63; border:2px solid #E91E63; border-radius:8px; cursor:pointer;">${s2.name} (${cost2}M)</button>` : `<button disabled style="padding:12px; font-size:14px; font-weight:bold; background:#222; color:#555; border:2px solid #444; border-radius:8px;">${s2.name} (不足)</button>`}
+                            </div>
+                            <button onclick="window.cancelInterrupt()" style="margin-top:10px; padding:10px; font-size:14px; font-weight:bold; background:#444; color:#bbb; border:none; border-radius:8px; cursor:pointer;">割り込まない</button>
+                        `; document.body.appendChild(ui); 
+                    });
+                    if (pResult === 'used') { await window.tcgSleep(900); }
+                }
+            }
+
+            if (cpuCard.isDead || cpuCard.hp <= 0) {
+                window.showBattleMessage("💥 攻撃元の敵が消滅し、不発に終わった！", false, 1500, false, true);
+                window.TCG_BATTLE.selectedAttackerIndex = -1; window.renderBattleBoard(); await window.tcgSleep(1000); continue; 
+            }
+
+            window.showBattleMessage(`🤖 [思考ログ] ターゲットの生存確認を行います...`, false, 0, true);
+            if (finalTargetType === 'card' && (!p.field[finalTargetIndex] || p.field[finalTargetIndex].isDead)) {
+                finalTargetType = 'player'; finalTargetIndex = 0; targetNameStr = 'あなた (リーダー)';
+            } else if (finalTargetType === 'person' && (!window.TCG_BATTLE.currentPerson || window.TCG_BATTLE.currentPerson.player.isDead)) {
+                finalTargetType = 'player'; finalTargetIndex = 0; targetNameStr = 'あなた (リーダー)';
+            }
+
+            window.showBattleMessage(`🤖 [思考ログ] 守護の確認フェーズへ移行...`, false, 0, true);
+            const getTauntIndices = () => { let idxs = []; p.field.forEach((c, i) => { if (c && !c.isDead && (c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending)) idxs.push(i); }); return idxs; };
+            const getCanTaunt = () => p.field.some(c => c && !c.isDead && !c.isDefending && c.ability !== "taunt" && c.ability !== "pure_aegis" && c.status !== "stunned");
+            
+            let tauntIndices = getTauntIndices(); let canTaunt = getCanTaunt(); let hasMana = p.currentMana >= 1;
+
+            if (hasMana && canTaunt) {
+                window.TCG_BATTLE.isIntercepting = true; window.TCG_BATTLE.interceptPhase = 'asking'; window.renderBattleBoard();
+                let phase1Result = await new Promise(res1 => {
+                    window.TCG_BATTLE.interceptResolve = res1;
+                    let ui = document.createElement('div'); ui.id = "tcg-intercept-taunt-ui";
+                    ui.style.cssText = `position:absolute; top:50%; right:20px; transform:translateY(-50%); background:rgba(0,0,0,0.9); padding:20px; border:4px solid #ff9800; border-radius:12px; z-index:40000; text-align:center; box-shadow:0 0 30px rgba(255,152,0,0.8); width: 280px;`;
+                    ui.innerHTML = `
+                        <h3 style="color:#ff9800; margin:0 0 10px 0;">⚠️ 敵の攻撃！</h3>
+                        <div style="font-size:18px; color:#fff;">${cpuCard.name}<br><span style="color:#ff5252;">${cpuCard.damage} ダメージ</span></div>
+                        <div style="font-size:13px; color:#FFEB3B; background:rgba(0,0,0,0.5); padding:5px; margin:10px 0; border:1px solid #FFC107;">🎯 狙い: ${targetNameStr}</div>
+                        <p style="color:#ddd; font-size:13px;">マナを消費して「守護」を追加しますか？</p>
+                        <button onclick="document.getElementById('tcg-intercept-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('add');" style="padding:10px; background:#00BCD4; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:10px;">🛡️ 守護を追加 (1M)</button>
+                        <button onclick="document.getElementById('tcg-intercept-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('skip');" style="padding:10px; background:#555; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">追加しない</button>
+                    `; document.body.appendChild(ui);
+                });
+
+                if (phase1Result === 'add') {
+                    window.TCG_BATTLE.interceptPhase = 'adding'; window.renderBattleBoard();
+                    let addResult = await new Promise(res2 => {
+                        window.TCG_BATTLE.interceptResolve = res2;
+                        let ui = document.createElement('div'); ui.id = "tcg-target-taunt-ui";
+                        ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #00BCD4; border-radius:30px; z-index:50000; text-align:center;`;
+                        ui.innerHTML = `
+                            <div style="color:#00BCD4; font-size:22px; font-weight:bold; margin-bottom:10px;">🛡️ 守護にする味方をクリック</div>
+                            <button onclick="document.getElementById('tcg-target-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('cancel');" style="padding:8px 20px; background:#555; color:#fff; border-radius:8px; cursor:pointer;">キャンセル</button>
+                        `; document.body.appendChild(ui);
+                    });
+                    if (addResult === 'added') { tauntIndices = getTauntIndices(); }
+                }
+            }
+
+            if (tauntIndices.length >= 2) {
+                window.TCG_BATTLE.isIntercepting = true; window.TCG_BATTLE.interceptPhase = 'selecting'; window.renderBattleBoard();
+                let phase2Result = await new Promise(res3 => {
+                    window.TCG_BATTLE.interceptResolve = res3;
+                    let ui = document.createElement('div'); ui.id = "tcg-intercept-select-ui";
+                    ui.style.cssText = `position:absolute; top:50%; right:20px; transform:translateY(-50%); background:rgba(0,0,0,0.9); padding:20px; border:4px solid #ff9800; border-radius:12px; z-index:40000; text-align:center; width: 280px;`;
+                    ui.innerHTML = `<h3 style="color:#ff9800; margin:0 0 10px 0;">⚠️ 敵の攻撃！</h3><div style="font-size:18px; color:#fff;">${cpuCard.name}<br>${cpuCard.damage} ダメージ</div><p style="color:#00BCD4; font-weight:bold; margin-top:10px;">身代わりにする味方をクリック！</p>`; document.body.appendChild(ui);
+                });
+                finalTargetType = phase2Result.targetType; finalTargetIndex = phase2Result.targetIndex; window.TCG_BATTLE.isIntercepting = false;
+            } else if (tauntIndices.length === 1) {
+                finalTargetType = 'card'; finalTargetIndex = tauntIndices[0]; window.TCG_BATTLE.isIntercepting = false;
+            } else { window.TCG_BATTLE.isIntercepting = false; }
+        }
+
+        window.showBattleMessage(`🤖 [思考ログ] 全ての確認を終了。攻撃を実行します！`, false, 0, true);
+        
+        let tempPerson = window.TCG_BATTLE.currentPerson;
+        if (window.TCG_BATTLE.currentPerson) window.TCG_BATTLE.currentPerson = null;
+
+        let dmg = cpuCard.damage;
+        if (finalTargetType !== 'field' && p.tempDamageReduction > 0) {
+            dmg = Math.max(0, dmg - p.tempDamageReduction); window.showBattleMessage(`🛡️ 陣形指示! ダメージ軽減: ${cpuCard.damage} -> ${dmg}`, false, 800, false, true);
+        }
+
+        if (finalTargetType === 'player') {
+            window.showBattleMessage(`⚔️ ${cpuCard.name} -> リーダー (${dmg} dmg)`, false, 800, false, true); p.hp -= dmg; window.showVFX('player-face', 'slash'); window.showVFX('player-face', 'damage', dmg);
+        } else if (finalTargetType === 'card' && p.field[finalTargetIndex]) {
+            let defender = p.field[finalTargetIndex];
+            window.showBattleMessage(`⚔️ ${cpuCard.name} -> ${defender.name} (${dmg} dmg)`, false, 800, false, true); defender.hp -= dmg; cpuCard.hp -= defender.damage; 
+            window.showVFX(`p-card-${finalTargetIndex}`, 'damage', dmg); window.showVFX(`c-card-${cpuIndex}`, 'damage', defender.damage);
+            if (window.checkDeath) window.checkDeath(defender, p, `p-card-${finalTargetIndex}`, cpu); if (window.checkDeath) window.checkDeath(cpuCard, cpu, `c-card-${cpuIndex}`, p);
+        } else if (finalTargetType === 'person' && tempPerson) {
+            let person = tempPerson.player || tempPerson;
+            window.showBattleMessage(`⚔️ ${cpuCard.name} -> 人物 (${dmg} dmg)`, false, 800, false, true); person.hp -= dmg; window.showVFX('p-person', 'damage', dmg);
+            if (window.checkDeath) window.checkDeath(person, tempPerson, 'p-person', cpu);
+        } else if (finalTargetType === 'field' && window.TCG_BATTLE.currentField) {
+            let field = window.TCG_BATTLE.currentField.card;
+            window.showBattleMessage(`⚔️ ${cpuCard.name} -> フィールド (${dmg} dmg)`, false, 800, false, true); field.hp -= dmg; window.showVFX('p-field', 'damage', dmg);
+        }
+        await window.tcgSleep(1000);
+
+        if (tempPerson) window.TCG_BATTLE.currentPerson = tempPerson;
+        p.field = p.field.filter(c => c && !c.isDead && c.hp > 0); cpu.field = cpu.field.filter(c => c && !c.isDead && c.hp > 0);
+        window.TCG_BATTLE.selectedAttackerIndex = -1; window.renderBattleBoard();
+
+        if (cpuCard.ability === "double_strike" && cpuCard.canAttack && !cpuCard.isDead && cpuCard.hp > 0 && !cpuCard._doubleStrikeUsed) { 
+            window.showBattleMessage(`🤖 『${cpuCard.name}』は連撃により再度攻撃態勢に入った！`, false, 0, true); cpuCard._doubleStrikeUsed = true; cpuIndex--; 
+        }
+    }
+
+    // --- 召喚フェーズ・ターン終了処理は省略なし ---
+    window.showBattleMessage(`🤖 [思考ログ] 召喚フェーズへ移行...`, false, 0, true);
+    let cardsToPlay = [];
+    for (let i = cpu.hand.length - 1; i >= 0; i--) {
+        let card = cpu.hand[i]; let actualCost = window.getActualCost(cpu, card);
+        if (cpu.currentMana >= actualCost) {
+            if (card.type === 'action' && cpu.actionUsed) continue;
+            if (card.evolvesFrom) {
+                let targetIndex = cpu.field.findIndex(c => window.checkCanEvolve ? window.checkCanEvolve(c, card) : (c.type === card.evolvesFrom));
+                if (targetIndex !== -1) { cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isEvo: true, targetIndex: targetIndex }); cpu.currentMana -= actualCost; cpu.hand.splice(i, 1); }
+            } else { cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isEvo: false }); cpu.currentMana -= actualCost; cpu.hand.splice(i, 1); if (card.type === 'action') cpu.actionUsed = true; }
+        }
+    }
+    if (cardsToPlay.length > 0) window.renderBattleBoard(); 
+    for (let idx = 0; idx < cardsToPlay.length; idx++) {
+        let playData = cardsToPlay[idx]; let card = playData.card;
+        await new Promise(resolve => {
+            if (window.animateCardPlay) { window.animateCardPlay(card, false, () => { _processCPUSummon(card, playData); setTimeout(resolve, 1000); }); } else { _processCPUSummon(card, playData); setTimeout(resolve, 1000); }
+        });
+    }
+    function _processCPUSummon(card, playData) {
+        if (playData.isEvo) { let prevCard = cpu.field[playData.targetIndex]; card.canAttack = prevCard ? prevCard.canAttack : false; cpu.field[playData.targetIndex] = card; if(window.triggerPlayEffect) window.triggerPlayEffect(card, false); } 
+        else { if (card.type === 'item' || card.type === 'action') { card.isDead = true; cpu.graveyard.push(card); if(window.triggerPlayEffect) window.triggerPlayEffect(card, false); } else { card.canAttack = false; cpu.field.push(card); if(window.triggerPlayEffect) window.triggerPlayEffect(card, false); } }
+    }
+
+    cpu.field.forEach((c, i) => {
+        if (c.isDead) return; c.status = null; c._doubleStrikeUsed = false; 
+        if (c.ability === "burn_field" || c.ability === "cataclysm") { let dmg = c.ability === "cataclysm" ? 20 : 10; p.field.forEach((ec, eidx) => { if(!ec.isDead) { ec.hp -= dmg; window.showVFX(`p-card-${eidx}`, 'damage', dmg); if(window.checkDeath) window.checkDeath(ec, p, `p-card-${eidx}`, cpu); } }); }
+        if (c.ability === "absolute_sanctuary") { cpu.field.forEach((ac, aidx) => { if(!ac.isDead) { ac.hp += 20; window.showVFX(`c-card-${aidx}`, 'heal', '聖域'); } }); }
+        if (c.ability === "raise_dead" && cpu.graveyard.length > 0) { let res = cpu.graveyard.shift(); res.isDead = false; res.hp = Math.floor((res.maxHp||50)/2); cpu.field.push(res); }
+        if (c.ability === "end_heal") { c.hp += 20; window.showVFX(`c-card-${i}`, 'heal', 20); }
+        if (c.ability === "cyber_miracle") { cpu.field.forEach((f, fi) => { if(!f.isDead){ f.hp += 100; window.showVFX(`c-card-${fi}`, 'heal', '回復'); } }); }
+        if (c.ability === "event_horizon") { const aliveEnemies = p.field.filter(e => !e.isDead); if (aliveEnemies.length > 0) { let target = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)]; target.isDead = true; p.deck.push(target); window.showVFX(`p-card-${p.field.indexOf(target)}`, 'slash', 'バウンス'); } }
+        if (c.ability === "divine_grace" && cpu.graveyard && cpu.graveyard.length > 0) { let resCard = cpu.graveyard.shift(); resCard.isDead = false; resCard.hp = window.TCG_MASTER[resCard.masterId] ? window.TCG_MASTER[resCard.masterId].baseHp : 50; cpu.field.push(resCard); window.showVFX('cpu-face', 'heal', '蘇生'); }
+    });
+    p.field = p.field.filter(c => c && !c.isDead && c.hp > 0); cpu.field = cpu.field.filter(c => c && !c.isDead && c.hp > 0);
+
+    if (p.hp <= 0) { p.hp = 0; window.renderBattleBoard(); window.showBattleMessage("💀 YOU LOSE...\nプレイヤーのHPが0になりました。", true, 5000); setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000); return; }
+
+    window.showBattleMessage(`🤖 [思考ログ] 敵ターン終了。`, false, 0, true);
+    p.tempDamageReduction = 0; window.startPlayerTurn(false);
+};
+
+console.log("✅ 超・完全防弾パッチ適用完了！画面のクリックすらも強制制御します。");
