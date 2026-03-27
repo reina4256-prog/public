@@ -14266,12 +14266,12 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                     window.TCG_BATTLE.interceptPhase = 'adding'; window.renderBattleBoard();
                     let addResult = await new Promise(res2 => {
                         window.TCG_BATTLE.interceptResolve = res2;
-                        let ui = document.createElement('div'); ui.id = "tcg-target-taunt-ui";
-                        ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #00BCD4; border-radius:30px; z-index:50000; text-align:center;`;
-                        ui.innerHTML = `
-                            <div style="color:#00BCD4; font-size:22px; font-weight:bold; margin-bottom:10px;">🛡️ 守護にする味方をクリック</div>
-                            <button onclick="document.getElementById('tcg-target-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('cancel');" style="padding:8px 20px; background:#555; color:#fff; border-radius:8px; cursor:pointer;">キャンセル</button>
-                        `; document.body.appendChild(ui);
+                        // let ui = document.createElement('div'); ui.id = "tcg-target-taunt-ui";
+                        // ui.style.cssText = `position:fixed; top:25%; left:50%; transform:translateX(-50%); background:rgba(0,0,0,0.85); padding:15px 30px; border:3px solid #00BCD4; border-radius:30px; z-index:50000; text-align:center;`;
+                        // ui.innerHTML = `
+                        //     <div style="color:#00BCD4; font-size:22px; font-weight:bold; margin-bottom:10px;">🛡️ 守護にする味方をクリック</div>
+                        //     <button onclick="document.getElementById('tcg-target-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('cancel');" style="padding:8px 20px; background:#555; color:#fff; border-radius:8px; cursor:pointer;">キャンセル</button>
+                        // `; document.body.appendChild(ui);
                     });
                     if (addResult === 'added') { tauntIndices = getTauntIndices(); }
                 }
@@ -14281,9 +14281,9 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                 window.TCG_BATTLE.isIntercepting = true; window.TCG_BATTLE.interceptPhase = 'selecting'; window.renderBattleBoard();
                 let phase2Result = await new Promise(res3 => {
                     window.TCG_BATTLE.interceptResolve = res3;
-                    let ui = document.createElement('div'); ui.id = "tcg-intercept-select-ui";
-                    ui.style.cssText = `position:absolute; top:50%; right:20px; transform:translateY(-50%); background:rgba(0,0,0,0.9); padding:20px; border:4px solid #ff9800; border-radius:12px; z-index:40000; text-align:center; width: 280px;`;
-                    ui.innerHTML = `<h3 style="color:#ff9800; margin:0 0 10px 0;">⚠️ 敵の攻撃！</h3><div style="font-size:18px; color:#fff;">${cpuCard.name}<br>${cpuCard.damage} ダメージ</div><p style="color:#00BCD4; font-weight:bold; margin-top:10px;">身代わりにする味方をクリック！</p>`; document.body.appendChild(ui);
+                    // let ui = document.createElement('div'); ui.id = "tcg-intercept-select-ui";
+                    // ui.style.cssText = `position:absolute; top:50%; right:20px; transform:translateY(-50%); background:rgba(0,0,0,0.9); padding:20px; border:4px solid #ff9800; border-radius:12px; z-index:40000; text-align:center; width: 280px;`;
+                    // ui.innerHTML = `<h3 style="color:#ff9800; margin:0 0 10px 0;">⚠️ 敵の攻撃！</h3><div style="font-size:18px; color:#fff;">${cpuCard.name}<br>${cpuCard.damage} ダメージ</div><p style="color:#00BCD4; font-weight:bold; margin-top:10px;">身代わりにする味方をクリック！</p>`; document.body.appendChild(ui);
                 });
                 finalTargetType = phase2Result.targetType; finalTargetIndex = phase2Result.targetIndex; window.TCG_BATTLE.isIntercepting = false;
             } else if (tauntIndices.length === 1) {
@@ -14371,3 +14371,604 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
 };
 
 console.log("✅ 超・完全防弾パッチ適用完了！画面のクリックすらも強制制御します。");
+
+// ======================================================================
+// 🎨 演出・UIブラッシュアップ追加パッチ（tcg_core.jsの一番下に追記）
+// ======================================================================
+
+// ① ターン開始時のスキルボタン色（アクティブ化）を確実に反映する
+const _polish_startPlayerTurn = window.startPlayerTurn;
+window.startPlayerTurn = function(...args) {
+    let ret = _polish_startPlayerTurn.apply(this, args);
+    
+    // ドローやマナ回復のアニメーションには時間がかかるため、
+    // 確実なタイミング(100ms, 800ms, 1500ms後)で複数回UIを強制更新します。
+    const forceUIUpdate = () => {
+        if (window.TCG_BATTLE && window.TCG_BATTLE.player) {
+            if (window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed.player = false;
+            if (window.updatePlayerUI) window.updatePlayerUI();
+            if (window.renderBattleBoard) window.renderBattleBoard();
+            
+            // ★ ブラウザが動かされた(リサイズされた)フリをして、エンジンに画面の再計算を強制する！
+            window.dispatchEvent(new Event('resize'));
+        }
+    };
+
+    setTimeout(forceUIUpdate, 100);
+    setTimeout(forceUIUpdate, 800);
+    setTimeout(forceUIUpdate, 1500); // 演出が完全に終わった頃にダメ押し
+    
+    return ret;
+};
+
+// ② 人物やフィールドのダメージVFX（数字のポップアップ）の位置を正確に補正する
+const _polish_showVFX = window.showVFX;
+window.showVFX = function(targetId, type, text) {
+    let realId = targetId;
+    
+    // 人物へのエフェクト宛先補正（p-person-zoneへ誘導）
+    if (targetId === 'p-person') {
+        if (document.getElementById('p-person-zone')) {
+            realId = 'p-person-zone'; 
+        }
+    }
+    // フィールドへのエフェクト宛先補正（title属性からdivを探し出してIDを付与）
+    else if (targetId === 'p-field') {
+        let fieldCard = window.TCG_BATTLE.currentField?.card;
+        if (fieldCard) {
+            let el = document.querySelector(`div[title="${fieldCard.name}"]`);
+            if (el) {
+                if (!el.id) el.id = 'p-field-zone';
+                realId = el.id;
+            }
+        }
+    }
+
+    return _polish_showVFX.call(this, realId, type, text);
+};
+
+// ③ 人物スキル発動時に「一瞬で終わる」のを防ぐため、少しの間（ウェイト）を作る
+const _polish_executePersonSkill = window.executePersonSkill;
+window.executePersonSkill = function(...args) {
+    let isIntercept = args[2];
+    let isPlayerTurnAction = window.TCG_BATTLE && !window.TCG_BATTLE.isEnemyTurn && !isIntercept;
+    
+    if (isPlayerTurnAction) {
+        // 自ターンのスキル発動時、1.2秒間だけ他の操作をロックして「演出を見る時間」を作る
+        window.TCG_BATTLE.isAnimating = true;
+        setTimeout(() => {
+            if (window.TCG_BATTLE) window.TCG_BATTLE.isAnimating = false;
+        }, 1200);
+    }
+
+    // 画面中央に出るログメッセージも少し長めに表示する (1.5秒 -> 2.5秒)
+    const origShowMessage = window.showBattleMessage;
+    window.showBattleMessage = function(msg, isErr, duration, ...rest) {
+        let newDuration = duration === 1500 ? 2500 : duration;
+        return origShowMessage.call(this, msg, isErr, newDuration, ...rest);
+    };
+    
+    let ret = _polish_executePersonSkill.apply(this, args);
+    
+    window.showBattleMessage = origShowMessage; // 関数を元に戻す
+    return ret;
+};
+
+// ======================================================================
+// 🎨 追加ブラッシュアップ：UI更新の最適化 ＆ フィールド破壊処理の実装
+// ======================================================================
+
+// ① ご提案いただいた通り、ターン開始演出の「終了直後」にUI更新をねじ込みます！
+window.startPlayerTurn = function(isFirstTurn = false) {
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    window.TCG_BATTLE.isEnemyTurn = false;
+
+    // ★ 1ターン1回のスキル制限を解除
+    if (window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed.player = false;
+
+    if (!isFirstTurn && window.TCG_BATTLE.firstPlayer === 'player') window.TCG_BATTLE.turn++;
+
+    if (p.maxMana < 10) p.maxMana++;
+    p.currentMana = p.maxMana; p.actionUsed = false; 
+    window.TCG_BATTLE.selectedHandCardIndex = -1; 
+    window.TCG_BATTLE.selectedAttackerIndex = -1; 
+    
+    let drewCard = false;
+    if ((!isFirstTurn || window.TCG_BATTLE.firstPlayer === 'cpu') && p.deck.length > 0) {
+        p.hand.push(p.deck.shift()); drewCard = true;
+    }
+    
+    p.field.forEach(card => { 
+        if(card) {
+            card.canAttack = true; 
+            card._has_attacked_once = false; 
+            card._doubleStrikeUsed = false; // 連撃フラグも解除
+        }
+    });
+    window.renderBattleBoard();
+
+    // アニメーション開始
+    window.showTurnCutin(`TURN ${window.TCG_BATTLE.turn}\nYOUR TURN`, "#4CAF50", () => {
+        p.field.forEach((c, i) => {
+            if (!c || c.isDead) return;
+            if (c.ability === "start_draw") {
+                if (p.deck.length > 0) p.hand.push(p.deck.shift());
+                window.showVFX(`p-card-${i}`, 'heal', 'Draw'); 
+            }
+            if (c.ability === "infinite_gear") {
+                while(p.hand.length < 5 && p.deck.length > 0) p.hand.push(p.deck.shift());
+                window.showVFX(`p-card-${i}`, 'heal', 'Draw'); 
+            }
+            if (c.ability === "star_breath") { p.maxMana = Math.min(10, p.maxMana+2); p.currentMana = Math.min(10, p.currentMana+2); p.hp += 30; window.showVFX('player-face', 'heal', 30); }
+            if (c.ability === "heaven_judgement") {
+                cpu.hp -= 20; window.showVFX('cpu-face', 'damage', 20);
+                cpu.field.forEach((f, fi) => { if(f && !f.isDead){ f.hp -= 20; window.showVFX(`c-card-${fi}`, 'damage', 20); if(window.checkDeath) window.checkDeath(f, cpu, `c-card-${fi}`, p); } });
+            }
+        });
+        cpu.field = cpu.field.filter(c => c && !c.isDead);
+        window.renderBattleBoard(); 
+        
+        if (drewCard) window.showBattleMessage("✨ マナが回復し、カードを1枚引きました！", false, 2000);
+        else window.showBattleMessage("✨ マナが回復しました！\n（先攻1ターン目はドローなし）", false, 3500);
+        
+        window.TCG_BATTLE.isAnimating = false; 
+        
+        // ★★★ ここです！演出が終わった瞬間に、マナとボタン色を強制更新！ ★★★
+        if (window.updatePlayerUI) window.updatePlayerUI();
+        window.renderBattleBoard();
+    });
+};
+
+// ② フィールドカードがHP0以下になった時に「破壊（消去）」する処理を追加
+// 巨大な executeCPUTurn 全体を書き換えるのではなく、敵の攻撃（executeAttack）の後に
+// フィールドのHPを監視して処理するフックを追加します。
+const _orig_executeAttack_FieldCheck = window.executeAttack;
+window.executeAttack = function(...args) {
+    let ret = _orig_executeAttack_FieldCheck.apply(this, args);
+    
+    // プレイヤーのフィールド（味方陣地）の破壊チェック
+    if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card) {
+        if (window.TCG_BATTLE.currentField.card.hp <= 0) {
+            let fieldName = window.TCG_BATTLE.currentField.card.name;
+            window.showBattleMessage(`💥 フィールド『${fieldName}』が破壊された！`, true, 2000, true);
+            if (window.TCG_BATTLE.player.graveyard) window.TCG_BATTLE.player.graveyard.push(window.TCG_BATTLE.currentField.card);
+            window.TCG_BATTLE.currentField = null; // 盤面から消す
+            if (window.renderBattleBoard) window.renderBattleBoard();
+        }
+    }
+
+    // 敵のフィールド（相手陣地）の破壊チェック（自分が攻撃して壊した場合）
+    if (window.TCG_BATTLE.cpuField && window.TCG_BATTLE.cpuField.card) {
+        if (window.TCG_BATTLE.cpuField.card.hp <= 0) {
+            let fieldName = window.TCG_BATTLE.cpuField.card.name;
+            window.showBattleMessage(`💥 敵のフィールド『${fieldName}』を破壊した！`, false, 2000, true);
+            if (window.TCG_BATTLE.cpu.graveyard) window.TCG_BATTLE.cpu.graveyard.push(window.TCG_BATTLE.cpuField.card);
+            window.TCG_BATTLE.cpuField = null; // 盤面から消す
+            if (window.renderBattleBoard) window.renderBattleBoard();
+        }
+    }
+    
+    return ret;
+};
+
+// ======================================================================
+// 🎨 最終お化粧パッチ（フィールド破壊 ＆ VFX位置補正）
+// ======================================================================
+
+// ① フィールドのHP0破壊処理を「盤面が描画されるタイミング」で自動チェック
+if (!window._orig_renderBattleBoard_FieldFix) window._orig_renderBattleBoard_FieldFix = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    // フィールド破壊判定（プレイヤー）
+    if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card && window.TCG_BATTLE.currentField.card.hp <= 0) {
+        window.showBattleMessage(`💥 フィールド『${window.TCG_BATTLE.currentField.card.name}』が崩壊した！`, true, 2000, true);
+        if (window.TCG_BATTLE.player.graveyard) window.TCG_BATTLE.player.graveyard.push(window.TCG_BATTLE.currentField.card);
+        window.TCG_BATTLE.currentField = null;
+    }
+    // フィールド破壊判定（CPU）
+    if (window.TCG_BATTLE.cpuField && window.TCG_BATTLE.cpuField.card && window.TCG_BATTLE.cpuField.card.hp <= 0) {
+        window.showBattleMessage(`💥 敵のフィールド『${window.TCG_BATTLE.cpuField.card.name}』を破壊した！`, false, 2000, true);
+        if (window.TCG_BATTLE.cpu.graveyard) window.TCG_BATTLE.cpu.graveyard.push(window.TCG_BATTLE.cpuField.card);
+        window.TCG_BATTLE.cpuField = null;
+    }
+    return window._orig_renderBattleBoard_FieldFix.apply(this);
+};
+
+// ② 人物とフィールドのダメージVFX（数字ポップアップ）の飛び先を強制補正
+if (!window._orig_showVFX_TargetFix) window._orig_showVFX_TargetFix = window.showVFX;
+window.showVFX = function(targetId, type, text) {
+    let realId = targetId;
+    
+    // 人物カードのID補正（HTMLに存在する 'p-person-zone' に向ける）
+    if (targetId === 'p-person') {
+        if (document.getElementById('p-person-zone')) realId = 'p-person-zone';
+    } else if (targetId === 'c-person') {
+        if (document.getElementById('c-person-zone')) realId = 'c-person-zone';
+    }
+    // フィールドカードのID補正（title属性からdivを探し出してIDを自動付与する）
+    else if (targetId === 'p-field') {
+        let fieldCard = window.TCG_BATTLE.currentField?.card;
+        if (fieldCard) {
+            let el = document.querySelector(`div[title="${fieldCard.name}"]`);
+            if (el) {
+                if (!el.id) el.id = 'p-field-zone';
+                realId = el.id;
+            }
+        }
+    } else if (targetId === 'c-field') {
+        let fieldCard = window.TCG_BATTLE.cpuField?.card;
+        if (fieldCard) {
+            let el = document.querySelector(`div[title="${fieldCard.name}"]`);
+            if (el) {
+                if (!el.id) el.id = 'c-field-zone';
+                realId = el.id;
+            }
+        }
+    }
+    
+    // 補正した正しいIDで本来のVFX関数を呼ぶ
+    return window._orig_showVFX_TargetFix.call(this, realId, type, text);
+};
+
+// ======================================================================
+// 🎨 追加ブラッシュアップ：VFX（ダメージ・回復数字）の消滅防止パッチ
+// ======================================================================
+
+const _orig_showVFX_PreventWipe = window.showVFX;
+window.showVFX = function(targetId, type, text) {
+    let realId = targetId;
+    
+    // 万が一、インデックスが -1（リーダー等）になっていた場合のフェイルセーフ
+    if (realId.includes('-1')) {
+        if (realId.startsWith('p-card')) realId = 'player-face';
+        if (realId.startsWith('c-card')) realId = 'cpu-face';
+    }
+
+    // ★ 修正の肝：演出の消滅防止
+    // renderBattleBoard() による盤面リセットでVFXが消し飛ばされるのを防ぐため、
+    // 描画が完了した「直後（50ミリ秒後）」にVFXを発生させます。
+    setTimeout(() => {
+        // 対象の要素が画面に存在する場合のみエフェクトを出す
+        if (document.getElementById(realId)) {
+            _orig_showVFX_PreventWipe.call(window, realId, type, text);
+        } else {
+            // 要素が見つからなかった場合のフォールバック（画面中央に出すなど）
+            let fallbackId = realId.startsWith('p-') ? 'player-face' : 'cpu-face';
+            if (document.getElementById(fallbackId)) {
+                 _orig_showVFX_PreventWipe.call(window, fallbackId, type, text);
+            }
+        }
+    }, 50);
+};
+
+// ======================================================================
+// 👑 追加パッチ：王様のスキル（対象不要化 ＆ 完全手動エフェクト）
+// ======================================================================
+
+// ① 王様のスキルが選ばれたら、UIを出さずに即時発動させる
+const _king_openPersonSkillTarget = window.openPersonSkillTarget;
+window.openPersonSkillTarget = function(skillIndex, cost) {
+    const personCard = window.TCG_BATTLE.currentPerson ? (window.TCG_BATTLE.currentPerson.player || window.TCG_BATTLE.currentPerson) : null;
+    if (personCard) {
+        const mData = window.TCG_MASTER[personCard.masterId] || {};
+        const skill = (mData.personSkills || mData.skills || [])[skillIndex];
+        
+        // 王様のスキルなら、ターゲット選択UIをスキップして発動へ進む
+        if (skill && (skill.name === "王の号令" || skill.name === "王の裁き")) {
+            if (window.TCG_BATTLE.player.currentMana < cost) { window.showBattleMessage("⚠️ マナが足りません！", true); return; }
+            if (window.TCG_BATTLE.personSkillUsed && window.TCG_BATTLE.personSkillUsed.player) {
+                window.showBattleMessage("⚠️ スキルは1ターンに1回しか使えません！", true); return;
+            }
+            window.showBattleMessage(`🧑 [プレイヤーログ] 王様のスキル即発動: ${skill.name}`, false, 0, true);
+            window.executePersonSkill(skillIndex, null, !!window.TCG_BATTLE.isEnemyTurn, false);
+            return;
+        }
+    }
+    // それ以外のスキルは今までの処理にお任せ
+    return _king_openPersonSkillTarget.apply(this, arguments);
+};
+
+// ② 王様のスキル効果を安全に手動で適用し、VFXを出す
+const _king_executePersonSkill = window.executePersonSkill;
+window.executePersonSkill = function(...args) {
+    let skillIndex = args[0]; let isIntercept = args[2];
+    const personCard = window.TCG_BATTLE.currentPerson ? (window.TCG_BATTLE.currentPerson.player || window.TCG_BATTLE.currentPerson) : null;
+    const mData = personCard ? (window.TCG_MASTER[personCard.masterId] || {}) : {};
+    const skill = (mData.personSkills || mData.skills || [])[skillIndex];
+
+    let isPlayerSkill = !window.TCG_BATTLE.isEnemyTurn || isIntercept;
+
+    // 王様のスキルなら、エンジンを無視してここで完璧に処理する
+    if (skill && isPlayerSkill && (skill.name === "王の号令" || skill.name === "王の裁き")) {
+        const p = window.TCG_BATTLE.player;
+        const cpu = window.TCG_BATTLE.cpu;
+        
+        let res = null;
+        if (window.TCG_BATTLE.isEnemyTurn && isIntercept) {
+            res = window.TCG_BATTLE.inputResolve || window.TCG_BATTLE.interceptResolve;
+            window.TCG_BATTLE.inputResolve = null; window.TCG_BATTLE.interceptResolve = null; window.TCG_BATTLE.awaitingInput = null;
+        }
+
+        // 王の号令：味方全員の攻撃力+10
+        if (skill.name === "王の号令") {
+            p.field.forEach((c, i) => { 
+                if (c && !c.isDead) {
+                    c.damage += 10; 
+                    window.showVFX(`p-card-${i}`, 'buff', '+10'); 
+                }
+            });
+            window.showBattleMessage("👑 王の号令！味方全員の攻撃力が10アップ！", false, 2000);
+        } 
+        // 王の裁き：HP40以下の敵を全滅させる
+        else if (skill.name === "王の裁き") {
+            let destroyedCount = 0;
+            cpu.field.forEach((c, i) => { 
+                if (c && !c.isDead && c.hp <= 40) {
+                    c.hp = 0; 
+                    window.showVFX(`c-card-${i}`, 'damage', '破壊'); 
+                    if (window.checkDeath) window.checkDeath(c, cpu, `c-card-${i}`, p);
+                    destroyedCount++;
+                }
+            });
+            if (destroyedCount > 0) {
+                window.showBattleMessage(`⚔️ 王の裁き！ ${destroyedCount}体の敵を一掃した！`, false, 2500);
+            } else {
+                window.showBattleMessage("⚔️ 王の裁き！ だが条件を満たす敵はいなかった...", false, 2000);
+            }
+        }
+
+        // マナ消費と使用済みフラグの処理
+        let costVal = parseInt(skill.cost) || 0;
+        if (p.currentMana >= costVal) p.currentMana -= costVal;
+        if (!window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed = {};
+        window.TCG_BATTLE.personSkillUsed.player = true;
+        if (window.updatePlayerUI) window.updatePlayerUI();
+        window.renderBattleBoard();
+
+        if (res) {
+            setTimeout(() => { window.TCG_BATTLE.isEnemyTurn = true; window.TCG_BATTLE.isAnimating = true; res('used'); }, 800);
+        }
+        return; // 処理が終わったのでエンジンには渡さず終了
+    }
+
+    // 王様以外のスキルは今まで通り処理
+    return _king_executePersonSkill.apply(this, args);
+};
+
+// ======================================================================
+// 🎰 最終お化粧パッチ v3：フィールド効果（カジノ等）＆ 永続守護の復旧
+// ======================================================================
+
+// CPUターン用の横入りフック（最新のexecuteCPUTurnを包み込む）
+const _hook_executeCPUTurn_Field = window.executeCPUTurn;
+window.executeCPUTurn = async function(isFirstTurn = false) {
+    window.TCG_BATTLE.isEnemyTurn = true; 
+    
+    // フィールド効果（プレイヤー終了時 → CPU開始時）
+    if (window.triggerFieldEffects) {
+        if (!isFirstTurn) await window.triggerFieldEffects("end", true); 
+        await window.triggerFieldEffects("start", false); 
+    }
+    
+    // バグ修正済みの最新CPUターン処理へ
+    await _hook_executeCPUTurn_Field.call(this, isFirstTurn);
+};
+
+// プレイヤーターン用の横入りフック（最新のstartPlayerTurnを包み込む）
+const _hook_startPlayerTurn_Field = window.startPlayerTurn;
+window.startPlayerTurn = async function(isFirstTurn = false) {
+    // フィールド効果（CPU終了時）
+    if (window.triggerFieldEffects) {
+        if (!isFirstTurn) await window.triggerFieldEffects("end", false); 
+    }
+    
+    // バグ修正済みの最新プレイヤーターン処理（ドローやカットイン演出）を実行
+    let ret = _hook_startPlayerTurn_Field.call(this, isFirstTurn);
+    
+    // 永続守護の維持
+    if (window.TCG_BATTLE && window.TCG_BATTLE.player) {
+        window.TCG_BATTLE.player.field.forEach(c => {
+            if (c && c.hasPermanentTaunt) c.isDefending = true;
+        });
+    }
+    
+    // フィールド効果（プレイヤー開始時：カジノのギャンブル等）
+    if (window.triggerFieldEffects) {
+        window.TCG_BATTLE.isEnemyTurn = true; // 演出中の操作ブロック
+        await window.triggerFieldEffects("start", true); 
+        window.TCG_BATTLE.isEnemyTurn = false; // 操作ブロック解除
+        
+        // ギャンブル等の結果を画面に反映させる
+        if (window.updatePlayerUI) window.updatePlayerUI();
+        if (window.renderBattleBoard) window.renderBattleBoard();
+    }
+    
+    return ret;
+};
+
+// ======================================================================
+// 🎨 追加パッチ：突貫工事VFX宛先強制補正（タイマー割り込み）
+// ======================================================================
+
+const _hook_showVFX_FinalTiming = window.showVFX;
+window.showVFX = function(targetId, type, text) {
+    let newTargetId = targetId;
+    
+    // インデックスバグ対策（-1リーダー等）
+    if (newTargetId.includes('-1')) {
+        newTargetId = newTargetId.startsWith('p-card') ? 'player-face' : 'cpu-face';
+    }
+
+    // ★ 演出消滅防止タイマーの中身を完全に上書き
+    setTimeout(() => {
+        // --- タイマー発動の瞬間(0.05秒後)に、宛先を強制再計算する ---
+
+        // 人物へのエフェクト宛先補正（HTMLに存在するゾーンIDへ）
+        if (targetId === 'p-person' && document.getElementById('p-person-zone')) {
+            newTargetId = 'p-person-zone'; 
+        } else if (targetId === 'c-person' && document.getElementById('c-person-zone')) {
+            newTargetId = 'c-person-zone';
+        }
+        
+        // フィールドへのエフェクト宛先補正（title属性からdivを探し出してIDを自動付与）
+        if (targetId === 'p-field') {
+            let fieldCard = window.TCG_BATTLE.currentField?.card;
+            if (fieldCard) {
+                let el = document.querySelector(`div[title="${fieldCard.name}"]`);
+                if (el) {
+                    if (!el.id) el.id = 'p-field-zone';
+                    newTargetId = el.id;
+                }
+            }
+        } else if (targetId === 'c-field') {
+            let fieldCard = window.TCG_BATTLE.cpuField?.card;
+            if (fieldCard) {
+                let el = document.querySelector(`div[title="${fieldCard.name}"]`);
+                if (el) {
+                    if (!el.id) el.id = 'c-field-zone';
+                    newTargetId = el.id;
+                }
+            }
+        }
+
+        // --- 最終決定されたターゲットにエフェクトを出す ---
+        if (document.getElementById(newTargetId)) {
+            // 元のエフェクト再生関数を呼ぶ
+            _orig_showVFX_PreventWipe.call(window, newTargetId, type, text);
+        } else {
+            // 要素がなければプレイヤー/CPUのリーダー位置へフォールバック
+            let fallbackId = newTargetId.startsWith('p-') ? 'player-face' : 'cpu-face';
+            if (document.getElementById(fallbackId)) {
+                _orig_showVFX_PreventWipe.call(window, fallbackId, type, text);
+            }
+        }
+    }, 50); // 演出消滅防止タイマーと同じ時間(50ミリ秒)を維持
+};
+
+// ======================================================================
+// 🎖️ 追加ブラッシュアップ：隊長・鍛冶師スキルのバッジ即時反映パッチ
+// ======================================================================
+console.log("🎖️ バッジ即時反映パッチを適用中...");
+
+const _hook_executePersonSkill_Badges = window.executePersonSkill;
+window.executePersonSkill = function(...args) {
+    let skillIndex = args[0]; let targetCard = args[1]; let isIntercept = args[2];
+    const p = window.TCG_BATTLE.player;
+    
+    // 現在の人物カードとスキルを特定
+    const getPersonCard = () => {
+        if (!window.TCG_BATTLE || !window.TCG_BATTLE.currentPerson) return null;
+        if (window.TCG_BATTLE.currentPerson.player) return window.TCG_BATTLE.currentPerson.player;
+        if (window.TCG_BATTLE.currentPerson.masterId) return window.TCG_BATTLE.currentPerson;
+        return null;
+    };
+    const personCard = getPersonCard(); 
+    const mData = personCard ? (window.TCG_MASTER[personCard.masterId] || {}) : {};
+    const skill = (mData.personSkills || mData.skills || [])[skillIndex];
+    let isPlayerSkill = !window.TCG_BATTLE.isEnemyTurn || isIntercept;
+
+    // ★ スキル実行前に、バッジのデータを確実に付与しておく
+    if (skill && isPlayerSkill && p) {
+        if (skill.name === "総員突撃") {
+            p.field.forEach(c => { 
+                if(c && !c.isDead) {
+                    c.badges = c.badges || [];
+                    if (!c.badges.includes("連撃")) c.badges.push("連撃");
+                }
+            });
+        }
+        else if (skill.name === "会心の武具" && targetCard) {
+            targetCard.badges = targetCard.badges || [];
+            if (!targetCard.badges.includes("貫通")) targetCard.badges.push("貫通");
+        }
+        else if (skill.name === "即席バリケード" && targetCard) {
+            // ついでに建築士の守護もバッジ化しておきます
+            targetCard.badges = targetCard.badges || [];
+            if (!targetCard.badges.includes("守護")) targetCard.badges.push("守護");
+        }
+    }
+
+    // 本来の手動スキル処理を実行
+    let ret = _hook_executePersonSkill_Badges.apply(this, args);
+
+    // ★ スキル実行後、少し待ってから確実に盤面を再描画してバッジをUIに反映
+    if (isPlayerSkill && p) {
+        setTimeout(() => {
+            if (window.renderBattleBoard) window.renderBattleBoard();
+            // ボタンの色の時と同じく、念のための画面更新シグナル
+            window.dispatchEvent(new Event('resize'));
+        }, 150);
+    }
+
+    return ret;
+};
+
+// ======================================================================
+// 🎖️ 最終お化粧パッチ v7：バッジ可視化（後付けバフのみ表示するスマート版）
+// ======================================================================
+
+const _orig_renderBattleBoard_CleanBadges = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    let ret = _orig_renderBattleBoard_CleanBadges.apply(this, arguments);
+    
+    setTimeout(() => {
+        const drawStatusBadges = (field, prefix) => {
+            if (!field) return;
+            field.forEach((card, i) => {
+                if (!card || card.isDead) return;
+                
+                let el = document.getElementById(`${prefix}-card-${i}`);
+                if (!el) return;
+                
+                let activeBadges = [];
+                
+                // マスターデータ（カードの元々の情報）を取得
+                let mData = window.TCG_MASTER[card.masterId] || {};
+                let baseAbility = mData.ability || "";
+                let baseDmg = parseInt(mData.damage !== undefined ? mData.damage : (mData.attack !== undefined ? mData.attack : card.damage));
+                
+                // ⚔️ 連撃の判定（元々「連撃」を持っている場合はバッジを表示しない）
+                let isNativeDoubleStrike = (baseAbility === 'double_strike');
+                let hasBuffDoubleStrike = card.hasDoubleStrike || card.status === 'double_strike' || (card.badges && (card.badges.includes("連撃") || card.badges.includes("総員突撃")));
+                if (hasBuffDoubleStrike && !isNativeDoubleStrike) {
+                    activeBadges.push({text: "⚔️ 連撃", color: "#FF9800"});
+                }
+                
+                // 💥 貫通の判定（元々「貫通系」の能力を持っている場合はバッジを表示しない）
+                let isNativePierce = (baseAbility === 'pierce_recoil' || baseAbility === 'flight' || baseAbility === 'god_strike' || baseAbility === 'dimension_drill' || baseAbility === 'piercing_juggernaut');
+                let hasBuffPierce = (card.ability === "pierce_recoil" && !isNativePierce) || (card.badges && card.badges.includes("貫通"));
+                if (hasBuffPierce) {
+                    activeBadges.push({text: "💥 貫通", color: "#E91E63"});
+                }
+                
+                // 🔥 強化の判定（元々の攻撃力より高くなっている場合のみ表示）
+                if (parseInt(card.damage) > baseDmg || (card.badges && card.badges.includes("研磨"))) {
+                    activeBadges.push({text: "🔥 強化", color: "#4CAF50"});
+                }
+
+                // 古いバッジのお掃除
+                let oldContainer = document.getElementById(`${prefix}-card-${i}-custom-vbadges`);
+                if (oldContainer) oldContainer.remove();
+
+                // 新しく付与
+                if (activeBadges.length > 0) {
+                    let container = document.createElement('div');
+                    container.id = `${prefix}-card-${i}-custom-vbadges`;
+                    container.style.cssText = "position:absolute; top:-15px; left:-15px; display:flex; flex-direction:column; gap:5px; z-index:999; pointer-events:none;";
+                    
+                    container.innerHTML = activeBadges.map(b => 
+                        `<div style="background:${b.color}; color:#fff; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:6px; border:2px solid #fff; box-shadow:0 3px 6px rgba(0,0,0,0.6); text-shadow:1px 1px 0 #000; letter-spacing: 1px;">${b.text}</div>`
+                    ).join('');
+                    
+                    el.appendChild(container);
+                }
+            });
+        };
+        
+        if (window.TCG_BATTLE) {
+            drawStatusBadges(window.TCG_BATTLE.player?.field, 'p');
+            drawStatusBadges(window.TCG_BATTLE.cpu?.field, 'c');
+        }
+    }, 50);
+
+    return ret;
+};
