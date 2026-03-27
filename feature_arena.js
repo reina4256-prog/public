@@ -1261,68 +1261,250 @@ window.ARENA_BOSS_PATTERNS = {
 
 // ★修正：全11種族の専用二つ名と基礎ステータス（speed追加）
 window.ARENA_ENEMIES = {
-    "robot": { name: "試作決戦兵器プロト・ロボ", hp: 150, atk: 25, def: 10, speed: 20, spriteKey: "arena_robot", type: "robot" },
-    "ghost": { name: "彷徨えるプチゴースト", hp: 120, atk: 30, def: 5, speed: 40, spriteKey: "arena_ghost", type: "ghost" },
-    "balloon": { name: "浮遊するバルーンスライム", hp: 180, atk: 20, def: 5, speed: 30, spriteKey: "arena_balloon", type: "balloon" },
-    "stone": { name: "剛腕のロックゴーレム", hp: 250, atk: 30, def: 20, speed: 5, spriteKey: "arena_stone", type: "stone" },
-    "machine": { name: "暴走ゼンマイギア", hp: 130, atk: 28, def: 12, speed: 35, spriteKey: "arena_machine", type: "machine" },
-    "bird": { name: "疾風のアネモバード", hp: 110, atk: 35, def: 8, speed: 60, spriteKey: "arena_bird", type: "bird" },
-    "dragon": { name: "荒ぶるベビードラゴン", hp: 200, atk: 40, def: 15, speed: 25, spriteKey: "arena_dragon", type: "dragon" },
-    "seed": { name: "猛毒のプラントシード", hp: 140, atk: 22, def: 10, speed: 15, spriteKey: "arena_seed", type: "seed" },
-    "magician": { name: "炎の魔術見習い", hp: 100, atk: 45, def: 5, speed: 25, spriteKey: "arena_magician", type: "magician" },
-    "spirit": { name: "怒れる森の精霊", hp: 160, atk: 20, def: 15, speed: 35, spriteKey: "arena_spirit", type: "spirit" },
-    "beetle": { name: "鉄壁のアーマービートル", hp: 220, atk: 25, def: 25, speed: 10, spriteKey: "arena_beetle", type: "beetle" }
-};
+    // ------------------------------------------
+    // 👑 基本種（Tier 0） 11種
+    // ------------------------------------------
+    "robot": { name: "試作決戦兵器プロト・ロボ", bossName: "【機神】オメガ・プロトタイプ", hp: 150, atk: 25, def: 10, speed: 20, spriteKey: "arena_robot", type: "robot" },
+    "ghost": { name: "彷徨えるプチゴースト", bossName: "【怨嗟】レイス・キング", hp: 120, atk: 30, def: 5, speed: 40, spriteKey: "arena_ghost", type: "ghost" },
+    "balloon": { name: "浮遊するバルーンスライム", bossName: "【大破裂】マッド・バルーン", hp: 180, atk: 20, def: 5, speed: 30, spriteKey: "arena_balloon", type: "balloon" },
+    "stone": { name: "剛腕のロックゴーレム", bossName: "【堅牢】アース・ガーディアン", hp: 250, atk: 30, def: 20, speed: 5, spriteKey: "arena_stone", type: "stone" },
+    "machine": { name: "暴走ゼンマイギア", bossName: "【狂乱】カラクリ大帝", hp: 130, atk: 28, def: 12, speed: 35, spriteKey: "arena_machine", type: "machine" },
+    "bird": { name: "疾風のアネモバード", bossName: "【嵐翼】ストーム・ブリンガー", hp: 110, atk: 35, def: 8, speed: 60, spriteKey: "arena_bird", type: "bird" },
+    "dragon": { name: "荒ぶるベビードラゴン", bossName: "【竜王】バハムート・プライム", hp: 200, atk: 40, def: 15, speed: 25, spriteKey: "arena_dragon", type: "dragon" },
+    "seed": { name: "猛毒のプラントシード", bossName: "【魔樹】ユグドラシル・コラプト", hp: 140, atk: 22, def: 10, speed: 15, spriteKey: "arena_seed", type: "seed" },
+    "magician": { name: "炎の魔術見習い", bossName: "【大魔導】グランド・メイガス", hp: 100, atk: 45, def: 5, speed: 25, spriteKey: "arena_magician", type: "magician" },
+    "spirit": { name: "怒れる森の精霊", bossName: "【聖霊】マナ・アヴァターラ", hp: 160, atk: 20, def: 15, speed: 35, spriteKey: "arena_spirit", type: "spirit" },
+    "beetle": { name: "鉄壁のアーマービートル", bossName: "【甲王】ヘラクレス・エンペラー", hp: 220, atk: 25, def: 25, speed: 10, spriteKey: "arena_beetle", type: "beetle" },
 
-// ★進化系のエネミーデータをツリーから自動生成して追加登録する
-if (typeof evolutionRequirements !== 'undefined') {
-    let tier0 = ["robot", "ghost", "balloon", "stone", "machine", "bird", "dragon", "seed", "magician", "spirit", "beetle"];
+    // ------------------------------------------
+    // 🤖 ロボット進化ツリー (20種)
+    // ------------------------------------------
+    "robot_type1": { name: "暴走する殺戮機械", bossName: "【災厄】ジェノサイド・マキナ", hp: 220, atk: 45, def: 15, speed: 25, spriteKey: window.DUNGEON_SPRITES["arena_robot_type1"]?"arena_robot_type1":"arena_robot", type: "robot_type1" },
+    "robot_type1_2": { name: "血塗られた処刑装置", bossName: "【終焉】エグゼキューショナー", hp: 350, atk: 75, def: 25, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_robot_type1_2"]?"arena_robot_type1_2":"arena_robot", type: "robot_type1_2" },
+    "robot_type1_3": { name: "意志無き殲滅兵器", bossName: "【絶望】アポカリプス・エンジン", hp: 380, atk: 80, def: 20, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_robot_type1_3"]?"arena_robot_type1_3":"arena_robot", type: "robot_type1_3" },
     
-    tier0.forEach(baseKey => {
-        let baseStats = window.ARENA_ENEMIES[baseKey];
-        if (!baseStats || !evolutionRequirements[baseKey]) return;
-        
-        // Tier 1 の生成
-        evolutionRequirements[baseKey].forEach(evo => {
-            let bonusHp = evo.req.power ? 50 : 0;
-            let bonusAtk = (evo.req.power || evo.req.dark) ? 10 : 0;
-            let bonusDef = evo.req.beauty ? 10 : 0;
-            let bonusSpd = evo.req.intel ? 10 : (evo.req.old ? -5 : 0);
+    "robot_type2": { name: "白銀の流線型ドロイド", bossName: "【幻惑】ミラージュ・ナイツ", hp: 200, atk: 35, def: 20, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_robot_type2"]?"arena_robot_type2":"arena_robot", type: "robot_type2" },
+    "robot_type2_2": { name: "純白の天使型オートマタ", bossName: "【聖機】セラフィム・ギア", hp: 320, atk: 55, def: 35, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_robot_type2_2"]?"arena_robot_type2_2":"arena_robot", type: "robot_type2_2" },
+    "robot_type2_3": { name: "黄金の近衛騎士", bossName: "【光輝】パラディン・カスタム", hp: 340, atk: 60, def: 40, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_robot_type2_3"]?"arena_robot_type2_3":"arena_robot", type: "robot_type2_3" },
+    "robot_type2_4": { name: "完全無欠の芸術機体", bossName: "【至高】パーフェクト・ヴィーナス", hp: 300, atk: 65, def: 30, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_robot_type2_4"]?"arena_robot_type2_4":"arena_robot", type: "robot_type2_4" },
+    
+    "robot_type3": { name: "自律型戦術AI", bossName: "【論理】タクティカル・コマンダー", hp: 180, atk: 40, def: 15, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_robot_type3"]?"arena_robot_type3":"arena_robot", type: "robot_type3" },
+    "robot_type3_2": { name: "索敵特化型ドローン", bossName: "【真眼】オール・ सीイング", hp: 170, atk: 35, def: 15, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_robot_type3_2"]?"arena_robot_type3_2":"arena_robot", type: "robot_type3_2" },
+    "robot_type3_3": { name: "森羅万象の計算機", bossName: "【全知】アカシック・ブレイン", hp: 280, atk: 70, def: 25, speed: 55, spriteKey: window.DUNGEON_SPRITES["arena_robot_type3_3"]?"arena_robot_type3_3":"arena_robot", type: "robot_type3_3" },
+    "robot_type3_4": { name: "高機動迎撃ユニット", bossName: "【神速】ライトニング・ストライカー", hp: 260, atk: 65, def: 20, speed: 80, spriteKey: window.DUNGEON_SPRITES["arena_robot_type3_4"]?"arena_robot_type3_4":"arena_robot", type: "robot_type3_4" },
+    "robot_type3_5": { name: "次元干渉型アンドロイド", bossName: "【超越】クロノス・マトリクス", hp: 300, atk: 85, def: 20, speed: 65, spriteKey: window.DUNGEON_SPRITES["arena_robot_type3_5"]?"arena_robot_type3_5":"arena_robot", type: "robot_type3_5" },
+    
+    "robot_type4": { name: "重装格闘用サイボーグ", bossName: "【剛鉄】ギガント・ブレイカー", hp: 280, atk: 50, def: 25, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_robot_type4"]?"arena_robot_type4":"arena_robot", type: "robot_type4" },
+    "robot_type4_2": { name: "火力特化型タンク", bossName: "【弾幕】ヘビー・アーティレリー", hp: 300, atk: 45, def: 30, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_robot_type4_2"]?"arena_robot_type4_2":"arena_robot", type: "robot_type4_2" },
+    "robot_type4_3": { name: "超弩級の陸戦兵器", bossName: "【要塞】グランド・フォートレス", hp: 500, atk: 80, def: 50, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_robot_type4_3"]?"arena_robot_type4_3":"arena_robot", type: "robot_type4_3" },
+    "robot_type4_4": { name: "限界突破の戦闘狂", bossName: "【闘争】バーサーカー・マキシマム", hp: 450, atk: 95, def: 30, speed: 25, spriteKey: window.DUNGEON_SPRITES["arena_robot_type4_4"]?"arena_robot_type4_4":"arena_robot", type: "robot_type4_4" },
+    
+    "robot_type5": { name: "廃棄された旧式機", bossName: "【遺物】アンティーク・ギア", hp: 180, atk: 20, def: 20, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_robot_type5"]?"arena_robot_type5":"arena_robot", type: "robot_type5" },
+    "robot_type5_2": { name: "サビに塗れた守護者", bossName: "【鉄屑】アイアン・ゾンビ", hp: 400, atk: 35, def: 45, speed: 5, spriteKey: window.DUNGEON_SPRITES["arena_robot_type5_2"]?"arena_robot_type5_2":"arena_robot", type: "robot_type5_2" },
+    "robot_type5_3": { name: "部品を継ぎ接いだ怪物", bossName: "【怨念】キメラ・ジャンク", hp: 350, atk: 50, def: 30, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_robot_type5_3"]?"arena_robot_type5_3":"arena_robot", type: "robot_type5_3" },
+    "robot_type5_4": { name: "古代文明の起動兵器", bossName: "【神話】エンシェント・ゴーレム", hp: 480, atk: 60, def: 50, speed: 8, spriteKey: window.DUNGEON_SPRITES["arena_robot_type5_4"]?"arena_robot_type5_4":"arena_robot", type: "robot_type5_4" },
 
-            window.ARENA_ENEMIES[evo.next] = {
-                name: `【${evo.name}】${baseStats.name}`, 
-                hp: Math.floor(baseStats.hp * 1.5) + bonusHp,
-                atk: Math.floor(baseStats.atk * 1.5) + bonusAtk,
-                def: Math.floor(baseStats.def * 1.5) + bonusDef,
-                speed: Math.max(5, Math.floor(baseStats.speed * 1.5) + bonusSpd),
-                spriteKey: window.DUNGEON_SPRITES[`arena_${evo.next}`] ? `arena_${evo.next}` : baseStats.spriteKey,
-                type: evo.next,
-                evoName: evo.name // ★行動パターン分岐用に記憶
-            };
+    // ------------------------------------------
+    // 🧚 精霊進化ツリー (13種)
+    // ------------------------------------------
+    "spirit_type1": { name: "呪いを帯びた悪霊", bossName: "【怨嗟】ダーク・スピリット", hp: 200, atk: 30, def: 10, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type1"]?"arena_spirit_type1":"arena_spirit", type: "spirit_type1" },
+    "spirit_type1_2": { name: "深淵より出でし悪魔", bossName: "【奈落】アビス・ロード", hp: 330, atk: 55, def: 20, speed: 55, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type1_2"]?"arena_spirit_type1_2":"arena_spirit", type: "spirit_type1_2" },
+    
+    "spirit_type2": { name: "光をまとう妖精", bossName: "【清浄】フェアリー・クイーン", hp: 180, atk: 25, def: 20, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type2"]?"arena_spirit_type2":"arena_spirit", type: "spirit_type2" },
+    "spirit_type2_2": { name: "神聖なる大天使", bossName: "【救済】アークエンジェル", hp: 300, atk: 40, def: 35, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type2_2"]?"arena_spirit_type2_2":"arena_spirit", type: "spirit_type2_2" },
+    "spirit_type2_3": { name: "星屑の精霊王", bossName: "【煌めき】スターライト・モナルカ", hp: 280, atk: 50, def: 25, speed: 65, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type2_3"]?"arena_spirit_type2_3":"arena_spirit", type: "spirit_type2_3" },
+    
+    "spirit_type3": { name: "知識を探求する霊体", bossName: "【叡智】ウィズダム・ゴースト", hp: 160, atk: 35, def: 15, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type3"]?"arena_spirit_type3":"arena_spirit", type: "spirit_type3" },
+    "spirit_type3_2": { name: "宇宙の真理を識る者", bossName: "【真理】コズミック・エンティティ", hp: 250, atk: 65, def: 25, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type3_2"]?"arena_spirit_type3_2":"arena_spirit", type: "spirit_type3_2" },
+    
+    "spirit_type4": { name: "暴風雨の化身", bossName: "【荒神】テンペスト・アヴァター", hp: 220, atk: 40, def: 15, speed: 55, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type4"]?"arena_spirit_type4":"arena_spirit", type: "spirit_type4" },
+    "spirit_type4_2": { name: "雷鳴を呼ぶ雷神", bossName: "【轟雷】ライトニング・ロード", hp: 340, atk: 70, def: 25, speed: 70, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type4_2"]?"arena_spirit_type4_2":"arena_spirit", type: "spirit_type4_2" },
+    "spirit_type4_3": { name: "大地を揺るがす神獣", bossName: "【大自然】ガイア・ビースト", hp: 420, atk: 60, def: 40, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type4_3"]?"arena_spirit_type4_3":"arena_spirit", type: "spirit_type4_3" },
+    
+    "spirit_type5": { name: "枯れ葉と土の精", bossName: "【黄昏】オータム・ウッズ", hp: 200, atk: 15, def: 25, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type5"]?"arena_spirit_type5":"arena_spirit", type: "spirit_type5" },
+    "spirit_type5_2": { name: "朽ちゆく大樹の主", bossName: "【終焉】デッドツリー・エルダー", hp: 450, atk: 30, def: 45, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type5_2"]?"arena_spirit_type5_2":"arena_spirit", type: "spirit_type5_2" },
+    "spirit_type5_3": { name: "砂塵に舞う亡霊", bossName: "【風化】デザート・ファントム", hp: 320, atk: 45, def: 20, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_spirit_type5_3"]?"arena_spirit_type5_3":"arena_spirit", type: "spirit_type5_3" },
 
-            // Tier 2 の生成
-            if (evolutionRequirements[evo.next]) {
-                evolutionRequirements[evo.next].forEach(evo2 => {
-                    let bonusHp2 = evo2.req.power ? 100 : 0;
-                    let bonusAtk2 = (evo2.req.power || evo2.req.dark) ? 20 : 0;
-                    let bonusDef2 = evo2.req.beauty ? 20 : 0;
-                    let bonusSpd2 = evo2.req.intel ? 20 : (evo2.req.old ? -10 : 0);
+    // ------------------------------------------
+    // 🧙‍♂️ 魔術師進化ツリー (18種)
+    // ------------------------------------------
+    "magician_type1": { name: "禁忌に触れた黒魔道士", bossName: "【邪悪】ダーク・ウィザード", hp: 130, atk: 65, def: 5, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_magician_type1"]?"arena_magician_type1":"arena_magician", type: "magician_type1" },
+    "magician_type1_2": { name: "魂を狩る死霊術師", bossName: "【死神】ネクロマンサー", hp: 150, atk: 60, def: 10, speed: 25, spriteKey: window.DUNGEON_SPRITES["arena_magician_type1_2"]?"arena_magician_type1_2":"arena_magician", type: "magician_type1_2" },
+    "magician_type1_3": { name: "奈落の業火を操る者", bossName: "【絶望】アビス・ウォーロック", hp: 240, atk: 100, def: 15, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_magician_type1_3"]?"arena_magician_type1_3":"arena_magician", type: "magician_type1_3" },
+    "magician_type1_4": { name: "悪魔と契約せし教祖", bossName: "【狂信】デーモン・サマナー", hp: 260, atk: 90, def: 20, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_magician_type1_4"]?"arena_magician_type1_4":"arena_magician", type: "magician_type1_4" },
+    
+    "magician_type2": { name: "華麗なる幻術士", bossName: "【幻惑】イリュージョニスト", hp: 120, atk: 55, def: 10, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_magician_type2"]?"arena_magician_type2":"arena_magician", type: "magician_type2" },
+    "magician_type2_2": { name: "癒やしの白魔道士", bossName: "【聖女】ホーリー・プリースト", hp: 160, atk: 45, def: 20, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_magician_type2_2"]?"arena_magician_type2_2":"arena_magician", type: "magician_type2_2" },
+    "magician_type2_3": { name: "星の輝きを放つ妖術師", bossName: "【星天】アストラル・メイジ", hp: 230, atk: 85, def: 25, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_magician_type2_3"]?"arena_magician_type2_3":"arena_magician", type: "magician_type2_3" },
+    "magician_type2_4": { name: "奇跡の奇術師", bossName: "【喝采】ミラクル・パフォーマー", hp: 250, atk: 75, def: 30, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_magician_type2_4"]?"arena_magician_type2_4":"arena_magician", type: "magician_type2_4" },
+    
+    "magician_type3": { name: "真理を求む賢者", bossName: "【全知】ハイ・セージ", hp: 140, atk: 70, def: 15, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_magician_type3"]?"arena_magician_type3":"arena_magician", type: "magician_type3" },
+    "magician_type3_2": { name: "時空を操る大魔導士", bossName: "【時空】クロノ・マスター", hp: 280, atk: 110, def: 25, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_magician_type3_2"]?"arena_magician_type3_2":"arena_magician", type: "magician_type3_2" },
+    "magician_type3_3": { name: "次元の狭間を覗く者", bossName: "【超越】ディメンション・ウォーカー", hp: 250, atk: 105, def: 20, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_magician_type3_3"]?"arena_magician_type3_3":"arena_magician", type: "magician_type3_3" },
+    
+    "magician_type4": { name: "魔法剣を振るう魔戦士", bossName: "【魔法剣】ルーン・ナイト", hp: 180, atk: 60, def: 25, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_magician_type4"]?"arena_magician_type4":"arena_magician", type: "magician_type4" },
+    "magician_type4_2": { name: "爆炎の格闘魔術師", bossName: "【爆拳】フレイム・モンク", hp: 200, atk: 65, def: 20, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_magician_type4_2"]?"arena_magician_type4_2":"arena_magician", type: "magician_type4_2" },
+    "magician_type4_3": { name: "無双の魔法剣聖", bossName: "【覇王】ルーン・マスター", hp: 350, atk: 95, def: 40, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_magician_type4_3"]?"arena_magician_type4_3":"arena_magician", type: "magician_type4_3" },
+    "magician_type4_4": { name: "焦熱の破壊神", bossName: "【業火】イフリート・アヴァター", hp: 320, atk: 115, def: 30, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_magician_type4_4"]?"arena_magician_type4_4":"arena_magician", type: "magician_type4_4" },
+    
+    "magician_type5": { name: "老いぼれた魔法使い", bossName: "【忘却】オールド・ソーサラー", hp: 150, atk: 40, def: 10, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_magician_type5"]?"arena_magician_type5":"arena_magician", type: "magician_type5" },
+    "magician_type5_2": { name: "失われた禁呪の詠唱者", bossName: "【禁忌】ロスト・メイジ", hp: 220, atk: 120, def: 15, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_magician_type5_2"]?"arena_magician_type5_2":"arena_magician", type: "magician_type5_2" },
+    "magician_type5_3": { name: "埃を被った歴史の証人", bossName: "【古記録】エンシェント・スカラー", hp: 400, atk: 55, def: 35, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_magician_type5_3"]?"arena_magician_type5_3":"arena_magician", type: "magician_type5_3" },
+// ------------------------------------------
+    // 🦅 鳥進化ツリー (11種)
+    // ------------------------------------------
+    "bird_type2": { name: "極彩色の霊鳥", bossName: "【極彩】レインボー・フェニックス", hp: 200, atk: 55, def: 15, speed: 80, spriteKey: window.DUNGEON_SPRITES["arena_bird_type2"]?"arena_bird_type2":"arena_bird", type: "bird_type2" },
+    "bird_type2_2": { name: "神々しき天鳥", bossName: "【神鳥】ホーリー・スワン", hp: 320, atk: 80, def: 25, speed: 95, spriteKey: window.DUNGEON_SPRITES["arena_bird_type2_2"]?"arena_bird_type2_2":"arena_bird", type: "bird_type2_2" },
+    
+    "bird_type4": { name: "猛禽類の王", bossName: "【暴風】タイフーン・イーグル", hp: 250, atk: 70, def: 20, speed: 70, spriteKey: window.DUNGEON_SPRITES["arena_bird_type4"]?"arena_bird_type4":"arena_bird", type: "bird_type4" },
+    "bird_type4_2": { name: "音速を越えし怪鳥", bossName: "【音速】ソニック・ガルーダ", hp: 350, atk: 105, def: 30, speed: 120, spriteKey: window.DUNGEON_SPRITES["arena_bird_type4_2"]?"arena_bird_type4_2":"arena_bird", type: "bird_type4_2" },
+    
+    "bird_type5": { name: "羽の抜け落ちた老鳥", bossName: "【風化】エンシェント・ディノバード", hp: 180, atk: 40, def: 30, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_bird_type5"]?"arena_bird_type5":"arena_bird", type: "bird_type5" },
+    "bird_type5_2": { name: "骨だけの始祖鳥", bossName: "【化石】スケルトン・プテラ", hp: 280, atk: 65, def: 50, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_bird_type5_2"]?"arena_bird_type5_2":"arena_bird", type: "bird_type5_2" },
+    
+    "bird_type1": { name: "漆黒の怪鴉", bossName: "【凶鳥】ナイトメア・クロウ", hp: 150, atk: 75, def: 10, speed: 85, spriteKey: window.DUNGEON_SPRITES["arena_bird_type1"]?"arena_bird_type1":"arena_bird", type: "bird_type1" },
+    "bird_type1_2": { name: "災いを運ぶ死神鳥", bossName: "【死告】デス・ブリンガー", hp: 240, atk: 110, def: 15, speed: 100, spriteKey: window.DUNGEON_SPRITES["arena_bird_type1_2"]?"arena_bird_type1_2":"arena_bird", type: "bird_type1_2" },
+    
+    "bird_type3": { name: "全てを見通す梟", bossName: "【慧眼】オラクル・オウル", hp: 170, atk: 60, def: 15, speed: 90, spriteKey: window.DUNGEON_SPRITES["arena_bird_type3"]?"arena_bird_type3":"arena_bird", type: "bird_type3" },
+    "bird_type3_2": { name: "天候を操る雷鳥", bossName: "【天候】サンダーバード・ロード", hp: 280, atk: 85, def: 20, speed: 110, spriteKey: window.DUNGEON_SPRITES["arena_bird_type3_2"]?"arena_bird_type3_2":"arena_bird", type: "bird_type3_2" },
+    "bird_type3_3": { name: "宇宙の理を識る星鳥", bossName: "【星天】コズミック・ファルコン", hp: 380, atk: 120, def: 25, speed: 130, spriteKey: window.DUNGEON_SPRITES["arena_bird_type3_3"]?"arena_bird_type3_3":"arena_bird", type: "bird_type3_3" },
 
-                    window.ARENA_ENEMIES[evo2.next] = {
-                        name: `【${evo2.name}】${baseStats.name}`, 
-                        hp: Math.floor(baseStats.hp * 2.5) + bonusHp + bonusHp2,
-                        atk: Math.floor(baseStats.atk * 2.5) + bonusAtk + bonusAtk2,
-                        def: Math.floor(baseStats.def * 2.5) + bonusDef + bonusDef2,
-                        speed: Math.max(5, Math.floor(baseStats.speed * 2.5) + bonusSpd + bonusSpd2),
-                        spriteKey: window.DUNGEON_SPRITES[`arena_${evo2.next}`] ? `arena_${evo2.next}` : baseStats.spriteKey,
-                        type: evo2.next,
-                        evoName: evo2.name // ★行動パターン分岐用に記憶
-                    };
-                });
-            }
-        });
-    });
-}
+    // ------------------------------------------
+    // ⚙️ 機械進化ツリー (11種)
+    // ------------------------------------------
+    "machine_type2": { name: "黄金の時計仕掛け", bossName: "【煌機】クロックワーク・ゴールド", hp: 200, atk: 45, def: 25, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_machine_type2"]?"arena_machine_type2":"arena_machine", type: "machine_type2" },
+    "machine_type2_2": { name: "白金の永久機関", bossName: "【永遠】プラチナム・ペルペトゥア", hp: 320, atk: 70, def: 40, speed: 65, spriteKey: window.DUNGEON_SPRITES["arena_machine_type2_2"]?"arena_machine_type2_2":"arena_machine", type: "machine_type2_2" },
+    
+    "machine_type4": { name: "重機動キャタピラー", bossName: "【重機】メガトン・ドーザー", hp: 280, atk: 60, def: 35, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_machine_type4"]?"arena_machine_type4":"arena_machine", type: "machine_type4" },
+    "machine_type4_2": { name: "要塞型・巨大穿孔機", bossName: "【粉砕】ギガ・ドリル・マキシマム", hp: 450, atk: 90, def: 55, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_machine_type4_2"]?"arena_machine_type4_2":"arena_machine", type: "machine_type4_2" },
+    
+    "machine_type5": { name: "サビだらけのポンコツ", bossName: "【廃棄】スクラップ・マウンテン", hp: 190, atk: 35, def: 20, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_machine_type5"]?"arena_machine_type5":"arena_machine", type: "machine_type5" },
+    "machine_type5_2": { name: "オイルを血とする亡霊機", bossName: "【呪機】ジャンク・ファントム", hp: 380, atk: 55, def: 45, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_machine_type5_2"]?"arena_machine_type5_2":"arena_machine", type: "machine_type5_2" },
+    "machine_type5_3": { name: "腐食した暴走特急", bossName: "【暴走】アシッド・トレイン", hp: 420, atk: 75, def: 35, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_machine_type5_3"]?"arena_machine_type5_3":"arena_machine", type: "machine_type5_3" },
+    
+    "machine_type1": { name: "殺戮特化型チェンソー機", bossName: "【斬殺】ブラッド・マキナ", hp: 160, atk: 80, def: 10, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_machine_type1"]?"arena_machine_type1":"arena_machine", type: "machine_type1" },
+    "machine_type1_2": { name: "狂気の人型兵器", bossName: "【抹殺】ジェノサイド・アンドロイド", hp: 250, atk: 110, def: 15, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_machine_type1_2"]?"arena_machine_type1_2":"arena_machine", type: "machine_type1_2" },
+    
+    "machine_type3": { name: "演算特化のメインフレーム", bossName: "【演算】マトリクス・コア", hp: 170, atk: 65, def: 25, speed: 55, spriteKey: window.DUNGEON_SPRITES["arena_machine_type3"]?"arena_machine_type3":"arena_machine", type: "machine_type3" },
+    "machine_type3_2": { name: "ネットワークを支配する神脳", bossName: "【全脳】システム・オメガ", hp: 260, atk: 95, def: 30, speed: 70, spriteKey: window.DUNGEON_SPRITES["arena_machine_type3_2"]?"arena_machine_type3_2":"arena_machine", type: "machine_type3_2" },
+
+    // ------------------------------------------
+    // 🪨 岩進化ツリー (12種)
+    // ------------------------------------------
+    "stone_type2": { name: "水晶の守護者", bossName: "【結晶】クリスタル・ガーディアン", hp: 350, atk: 50, def: 40, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_stone_type2"]?"arena_stone_type2":"arena_stone", type: "stone_type2" },
+    "stone_type2_2": { name: "虹色の巨星", bossName: "【輝石】プリズム・モノリス", hp: 480, atk: 75, def: 55, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_stone_type2_2"]?"arena_stone_type2_2":"arena_stone", type: "stone_type2_2" },
+    
+    "stone_type4": { name: "溶岩を纏う魔人", bossName: "【灼熱】ヴォルカニック・ゴーレム", hp: 400, atk: 65, def: 35, speed: 5, spriteKey: window.DUNGEON_SPRITES["arena_stone_type4"]?"arena_stone_type4":"arena_stone", type: "stone_type4" },
+    "stone_type4_2": { name: "地殻を砕く剛腕", bossName: "【地殻】アース・クラッシャー", hp: 450, atk: 85, def: 45, speed: 8, spriteKey: window.DUNGEON_SPRITES["arena_stone_type4_2"]?"arena_stone_type4_2":"arena_stone", type: "stone_type4_2" },
+    "stone_type4_3": { name: "大陸を背負う巨神", bossName: "【大陸】ガイア・タイタン", hp: 650, atk: 110, def: 60, speed: 5, spriteKey: window.DUNGEON_SPRITES["arena_stone_type4_3"]?"arena_stone_type4_3":"arena_stone", type: "stone_type4_3" },
+    
+    "stone_type5": { name: "苔むした遺跡の主", bossName: "【遺跡】エンシェント・ルイン", hp: 320, atk: 40, def: 50, speed: 5, spriteKey: window.DUNGEON_SPRITES["arena_stone_type5"]?"arena_stone_type5":"arena_stone", type: "stone_type5" },
+    "stone_type5_2": { name: "動くピラミッド", bossName: "【王墓】ファラオ・ストーン", hp: 550, atk: 60, def: 65, speed: 3, spriteKey: window.DUNGEON_SPRITES["arena_stone_type5_2"]?"arena_stone_type5_2":"arena_stone", type: "stone_type5_2" },
+    "stone_type5_3": { name: "砂漠を飲み込む流砂", bossName: "【砂塵】デザート・イーター", hp: 500, atk: 80, def: 40, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_stone_type5_3"]?"arena_stone_type5_3":"arena_stone", type: "stone_type5_3" },
+    
+    "stone_type1": { name: "呪いの黒曜石", bossName: "【呪石】カースド・オブシディアン", hp: 280, atk: 70, def: 25, speed: 12, spriteKey: window.DUNGEON_SPRITES["arena_stone_type1"]?"arena_stone_type1":"arena_stone", type: "stone_type1" },
+    "stone_type1_2": { name: "奈落の墓標", bossName: "【絶望】アビス・モノリス", hp: 380, atk: 100, def: 35, speed: 18, spriteKey: window.DUNGEON_SPRITES["arena_stone_type1_2"]?"arena_stone_type1_2":"arena_stone", type: "stone_type1_2" },
+    
+    "stone_type3": { name: "ルーンを刻まれし賢石", bossName: "【賢石】ルーン・ゴーレム", hp: 300, atk: 80, def: 35, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_stone_type3"]?"arena_stone_type3":"arena_stone", type: "stone_type3" },
+    "stone_type3_2": { name: "魔法陣を宿す浮遊岩", bossName: "【魔陣】アルテマ・ストーン", hp: 420, atk: 115, def: 45, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_stone_type3_2"]?"arena_stone_type3_2":"arena_stone", type: "stone_type3_2" },
+
+    // ------------------------------------------
+    // 🎈 風船進化ツリー (14種)
+    // ------------------------------------------
+    "balloon_type2": { name: "虹色のシャボン玉", bossName: "【虹泡】プリズム・バブル", hp: 250, atk: 35, def: 15, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type2"]?"arena_balloon_type2":"arena_balloon", type: "balloon_type2" },
+    "balloon_type2_2": { name: "魅惑の香水バルーン", bossName: "【甘香】パフューム・フロート", hp: 270, atk: 40, def: 12, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type2_2"]?"arena_balloon_type2_2":"arena_balloon", type: "balloon_type2_2" },
+    "balloon_type2_3": { name: "夢の国の気球", bossName: "【夢幻】ドリーム・エアシップ", hp: 400, atk: 60, def: 25, speed: 65, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type2_3"]?"arena_balloon_type2_3":"arena_balloon", type: "balloon_type2_3" },
+    
+    "balloon_type4": { name: "巨大な熱気球", bossName: "【爆熱】バーニング・バルーン", hp: 350, atk: 55, def: 15, speed: 25, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type4"]?"arena_balloon_type4":"arena_balloon", type: "balloon_type4" },
+    "balloon_type4_2": { name: "弾みまくるゴムボール", bossName: "【超弾】バウンド・スマッシャー", hp: 320, atk: 65, def: 20, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type4_2"]?"arena_balloon_type4_2":"arena_balloon", type: "balloon_type4_2" },
+    "balloon_type4_3": { name: "破裂寸前の超高圧球", bossName: "【大破裂】メガトン・ボンバー", hp: 480, atk: 100, def: 25, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type4_3"]?"arena_balloon_type4_3":"arena_balloon", type: "balloon_type4_3" },
+    
+    "balloon_type1": { name: "毒ガスを孕む風船", bossName: "【猛毒】ポイズン・スライム", hp: 200, atk: 50, def: 5, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type1"]?"arena_balloon_type1":"arena_balloon", type: "balloon_type1" },
+    "balloon_type1_2": { name: "悪夢を見せる昏睡ガス", bossName: "【昏睡】ナイトメア・ガス", hp: 220, atk: 60, def: 8, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type1_2"]?"arena_balloon_type1_2":"arena_balloon", type: "balloon_type1_2" },
+    "balloon_type1_3": { name: "終焉の瘴気雲", bossName: "【終焉】アビス・クラウド", hp: 330, atk: 95, def: 10, speed: 55, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type1_3"]?"arena_balloon_type1_3":"arena_balloon", type: "balloon_type1_3" },
+    
+    "balloon_type5": { name: "しぼみかけのゴム", bossName: "【劣化】メルト・バルーン", hp: 240, atk: 25, def: 10, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type5"]?"arena_balloon_type5":"arena_balloon", type: "balloon_type5" },
+    "balloon_type5_2": { name: "穴だらけのボロ気球", bossName: "【廃棄】パッチワーク・エア", hp: 380, atk: 45, def: 20, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type5_2"]?"arena_balloon_type5_2":"arena_balloon", type: "balloon_type5_2" },
+    
+    "balloon_type3": { name: "天候観測バルーン", bossName: "【観測】ウェザー・フロート", hp: 210, atk: 45, def: 15, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type3"]?"arena_balloon_type3":"arena_balloon", type: "balloon_type3" },
+    "balloon_type3_2": { name: "光学迷彩の浮遊球", bossName: "【隠密】ステルス・バブル", hp: 190, atk: 55, def: 10, speed: 70, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type3_2"]?"arena_balloon_type3_2":"arena_balloon", type: "balloon_type3_2" },
+    "balloon_type3_3": { name: "成層圏の人工衛星", bossName: "【衛星】サテライト・アイ", hp: 320, atk: 90, def: 25, speed: 85, spriteKey: window.DUNGEON_SPRITES["arena_balloon_type3_3"]?"arena_balloon_type3_3":"arena_balloon", type: "balloon_type3_3" },
+
+    // ------------------------------------------
+    // 👻 幽霊進化ツリー (11種)
+    // ------------------------------------------
+    "ghost_type2": { name: "鏡に棲む美しき幻影", bossName: "【幻影】ミラージュ・レイス", hp: 170, atk: 45, def: 10, speed: 55, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type2"]?"arena_ghost_type2":"arena_ghost", type: "ghost_type2" },
+    "ghost_type2_2": { name: "女神の魂を宿す霊体", bossName: "【神霊】ホーリー・アヴァター", hp: 280, atk: 70, def: 20, speed: 75, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type2_2"]?"arena_ghost_type2_2":"arena_ghost", type: "ghost_type2_2" },
+    
+    "ghost_type4": { name: "暴れ狂うポルターガイスト", bossName: "【喧騒】マッド・ポルターガイスト", hp: 220, atk: 60, def: 15, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type4"]?"arena_ghost_type4":"arena_ghost", type: "ghost_type4" },
+    "ghost_type4_2": { name: "物理干渉する超念動力", bossName: "【念動】サイコキネシス・ロード", hp: 340, atk: 95, def: 25, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type4_2"]?"arena_ghost_type4_2":"arena_ghost", type: "ghost_type4_2" },
+    
+    "ghost_type5": { name: "忘れ去られた千年の怨み", bossName: "【千秋】エンシェント・カース", hp: 250, atk: 50, def: 25, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type5"]?"arena_ghost_type5":"arena_ghost", type: "ghost_type5" },
+    "ghost_type5_2": { name: "風化しゆく古代の王霊", bossName: "【古王】ファラオ・ゴースト", hp: 420, atk: 75, def: 40, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type5_2"]?"arena_ghost_type5_2":"arena_ghost", type: "ghost_type5_2" },
+    
+    "ghost_type1": { name: "漆黒の悪霊", bossName: "【怨嗟】ダーク・レイス", hp: 140, atk: 70, def: 5, speed: 65, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type1"]?"arena_ghost_type1":"arena_ghost", type: "ghost_type1" },
+    "ghost_type1_2": { name: "魂を狩り尽くす死神", bossName: "【死神】グリム・リーパー", hp: 230, atk: 115, def: 10, speed: 85, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type1_2"]?"arena_ghost_type1_2":"arena_ghost", type: "ghost_type1_2" },
+    
+    "ghost_type3": { name: "禁書庫の彷徨える知識", bossName: "【禁書】ライブラリ・ファントム", hp: 160, atk: 65, def: 15, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type3"]?"arena_ghost_type3":"arena_ghost", type: "ghost_type3" },
+    "ghost_type3_2": { name: "他者の脳髄を喰う霊", bossName: "【脳波】マインド・イーター", hp: 180, atk: 75, def: 10, speed: 70, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type3_2"]?"arena_ghost_type3_2":"arena_ghost", type: "ghost_type3_2" },
+    "ghost_type3_3": { name: "アカシックレコードの番霊", bossName: "【全知】アカシック・スピリット", hp: 300, atk: 110, def: 25, speed: 80, spriteKey: window.DUNGEON_SPRITES["arena_ghost_type3_3"]?"arena_ghost_type3_3":"arena_ghost", type: "ghost_type3_3" },
+
+    // ------------------------------------------
+    // 🪲 カブト進化ツリー (10種)
+    // ------------------------------------------
+    "beetle_type4": { name: "一角の暴走戦車", bossName: "【突進】ギガント・ホーン", hp: 350, atk: 60, def: 40, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type4"]?"arena_beetle_type4":"arena_beetle", type: "beetle_type4" },
+    "beetle_type4_2": { name: "大地を割る剛力王", bossName: "【剛力】ヘラクレス・アースシェイカー", hp: 500, atk: 95, def: 55, speed: 25, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type4_2"]?"arena_beetle_type4_2":"arena_beetle", type: "beetle_type4_2" },
+    
+    "beetle_type5": { name: "琥珀に封じられし古代虫", bossName: "【琥珀】アンバー・インセクト", hp: 400, atk: 35, def: 60, speed: 5, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type5"]?"arena_beetle_type5":"arena_beetle", type: "beetle_type5" },
+    "beetle_type5_2": { name: "地中深く眠る始祖虫", bossName: "【始祖】エンシェント・スカラベ", hp: 600, atk: 55, def: 80, speed: 5, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type5_2"]?"arena_beetle_type5_2":"arena_beetle", type: "beetle_type5_2" },
+    
+    "beetle_type2": { name: "黄金に輝く甲虫", bossName: "【黄金】ゴールド・ビートル", hp: 280, atk: 45, def: 35, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type2"]?"arena_beetle_type2":"arena_beetle", type: "beetle_type2" },
+    "beetle_type2_2": { name: "宝石の如き白金の殻", bossName: "【白金】プラチナ・インセクト", hp: 320, atk: 55, def: 45, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type2_2"]?"arena_beetle_type2_2":"arena_beetle", type: "beetle_type2_2" },
+    "beetle_type2_3": { name: "美しき虹色の妖甲虫", bossName: "【極彩】レインボー・スカラベ", hp: 400, atk: 75, def: 50, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type2_3"]?"arena_beetle_type2_3":"arena_beetle", type: "beetle_type2_3" },
+    "beetle_type2_4": { name: "女神の遣いなる聖甲虫", bossName: "【聖甲】ディヴァイン・ビートル", hp: 450, atk: 85, def: 60, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type2_4"]?"arena_beetle_type2_4":"arena_beetle", type: "beetle_type2_4" },
+    
+    "beetle_type3": { name: "軍団を統べる女王蟻", bossName: "【統率】クイーン・コマンド", hp: 300, atk: 65, def: 30, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type3"]?"arena_beetle_type3":"arena_beetle", type: "beetle_type3" },
+    
+    "beetle_type1": { name: "猛毒を放つ邪悪な甲殻", bossName: "【猛毒】パラサイト・バグ", hp: 250, atk: 80, def: 20, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_beetle_type1"]?"arena_beetle_type1":"arena_beetle", type: "beetle_type1" },
+
+    // ------------------------------------------
+    // 🌱 種進化ツリー (11種)
+    // ------------------------------------------
+    "seed_type4": { name: "血に飢えた捕食植物", bossName: "【捕食】ブラッド・ヴァイン", hp: 220, atk: 50, def: 20, speed: 25, spriteKey: window.DUNGEON_SPRITES["arena_seed_type4"]?"arena_seed_type4":"arena_seed", type: "seed_type4" },
+    "seed_type4_2": { name: "暴走する大地の根絶やし", bossName: "【大樹】ガイア・イーター", hp: 380, atk: 85, def: 35, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_seed_type4_2"]?"arena_seed_type4_2":"arena_seed", type: "seed_type4_2" },
+    
+    "seed_type1": { name: "死の胞子を撒く魔花", bossName: "【死胞】デッドリー・スポア", hp: 160, atk: 65, def: 10, speed: 35, spriteKey: window.DUNGEON_SPRITES["arena_seed_type1"]?"arena_seed_type1":"arena_seed", type: "seed_type1" },
+    "seed_type1_2": { name: "奈落の底に咲く魔界樹", bossName: "【魔界】アビス・イグドラシル", hp: 260, atk: 100, def: 20, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_seed_type1_2"]?"arena_seed_type1_2":"arena_seed", type: "seed_type1_2" },
+    
+    "seed_type5": { name: "枯れ果てた茨の塊", bossName: "【枯葉】デッド・ソーン", hp: 200, atk: 35, def: 30, speed: 10, spriteKey: window.DUNGEON_SPRITES["arena_seed_type5"]?"arena_seed_type5":"arena_seed", type: "seed_type5" },
+    "seed_type5_2": { name: "腐海を形成する古木", bossName: "【腐海】エンシェント・ロト", hp: 350, atk: 60, def: 55, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_seed_type5_2"]?"arena_seed_type5_2":"arena_seed", type: "seed_type5_2" },
+    
+    "seed_type3": { name: "精神を支配する寄生種", bossName: "【寄生】マインド・パラサイト", hp: 180, atk: 55, def: 15, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_seed_type3"]?"arena_seed_type3":"arena_seed", type: "seed_type3" },
+    "seed_type3_2": { name: "幻覚を見せる極彩花", bossName: "【幻覚】イリュージョン・フラワー", hp: 210, atk: 65, def: 20, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_seed_type3_2"]?"arena_seed_type3_2":"arena_seed", type: "seed_type3_2" },
+    "seed_type3_3": { name: "世界の理を記す世界樹", bossName: "【世界】ユグドラシル・オリジン", hp: 340, atk: 95, def: 35, speed: 65, spriteKey: window.DUNGEON_SPRITES["arena_seed_type3_3"]?"arena_seed_type3_3":"arena_seed", type: "seed_type3_3" },
+    
+    "seed_type2": { name: "魅惑の香りを放つ大輪", bossName: "【芳香】パフューム・ブルーム", hp: 190, atk: 40, def: 20, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_seed_type2"]?"arena_seed_type2":"arena_seed", type: "seed_type2" },
+    "seed_type2_2": { name: "光り輝く楽園の聖花", bossName: "【聖花】パラダイス・ロータス", hp: 300, atk: 70, def: 30, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_seed_type2_2"]?"arena_seed_type2_2":"arena_seed", type: "seed_type2_2" },
+
+    // ------------------------------------------
+    // 🐉 竜進化ツリー (11種)
+    // ------------------------------------------
+    "dragon_type4": { name: "全てを破壊する暴竜", bossName: "【暴虐】タイラント・ドラゴン", hp: 350, atk: 85, def: 25, speed: 30, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type4"]?"arena_dragon_type4":"arena_dragon", type: "dragon_type4" },
+    "dragon_type4_2": { name: "天地を喰らう覇王竜", bossName: "【覇王】カイザー・バハムート", hp: 600, atk: 130, def: 40, speed: 40, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type4_2"]?"arena_dragon_type4_2":"arena_dragon", type: "dragon_type4_2" },
+    
+    "dragon_type1": { name: "奈落の業火を吐く邪竜", bossName: "【邪竜】アビス・ファフニール", hp: 280, atk: 100, def: 15, speed: 45, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type1"]?"arena_dragon_type1":"arena_dragon", type: "dragon_type1" },
+    "dragon_type1_2": { name: "終焉をもたらす漆黒の絶竜", bossName: "【終焉】アポカリプス・ドラゴン", hp: 450, atk: 150, def: 25, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type1_2"]?"arena_dragon_type1_2":"arena_dragon", type: "dragon_type1_2" },
+    
+    "dragon_type5": { name: "骨だけになった古竜", bossName: "【骸骨】スカル・ドラゴン", hp: 300, atk: 60, def: 35, speed: 15, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type5"]?"arena_dragon_type5":"arena_dragon", type: "dragon_type5" },
+    "dragon_type5_2": { name: "千年を生きるゾンビ竜", bossName: "【死者】アンデッド・エンペラー", hp: 550, atk: 90, def: 55, speed: 20, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type5_2"]?"arena_dragon_type5_2":"arena_dragon", type: "dragon_type5_2" },
+    
+    "dragon_type3": { name: "魔法を極めし賢竜", bossName: "【賢竜】ワイズ・ドラゴン", hp: 250, atk: 95, def: 20, speed: 50, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type3"]?"arena_dragon_type3":"arena_dragon", type: "dragon_type3" },
+    "dragon_type3_2": { name: "時空を操る神竜", bossName: "【時空】クロノ・バハムート", hp: 420, atk: 135, def: 30, speed: 70, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type3_2"]?"arena_dragon_type3_2":"arena_dragon", type: "dragon_type3_2" },
+    
+    "dragon_type2": { name: "虹色の鱗を持つ聖竜", bossName: "【聖竜】ホーリー・ドラゴン", hp: 280, atk: 75, def: 30, speed: 60, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type2"]?"arena_dragon_type2":"arena_dragon", type: "dragon_type2" },
+    "dragon_type2_2": { name: "クリスタルを纏う天竜", bossName: "【水晶】クリスタル・リヴァイアサン", hp: 480, atk: 115, def: 45, speed: 75, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type2_2"]?"arena_dragon_type2_2":"arena_dragon", type: "dragon_type2_2" },
+    "dragon_type2_3": { name: "銀河を翔ける星封竜", bossName: "【星天】ギャラクシー・ドラゴン", hp: 550, atk: 140, def: 50, speed: 90, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type2_3"]?"arena_dragon_type2_3":"arena_dragon", type: "dragon_type2_3" }
+};
 
 // ★すべての新コマンド・陣形・召喚スキルを登録
 window.ARENA_SKILLS = {
@@ -1447,7 +1629,8 @@ window.renderArenaReception = function() {
     `).join('') : `<div style="color:#888; text-align:center; width:100%; padding:20px;">図鑑に登録された仲間が見つかりません</div>`;
 
     let highestWave = window.aiPet.arenaHighestWave || 1;
-    let bossUnlocked = highestWave >= 51; 
+    // ★修正：ボス討伐履歴がある場合も解放条件に含める！
+    let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0); 
 
     // ★修正：onchangeイベントで選択状態を記憶させ、再描画時にも復元する
     ui.innerHTML = `
@@ -1464,10 +1647,17 @@ window.renderArenaReception = function() {
                     <input type="radio" name="arenaMode" value="boss" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'boss' ? 'checked' : ''}> ボスラッシュ
                 </label>
                 <label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#4fc3f7;">
-                    <input type="radio" name="arenaMode" value="friend" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'friend' ? 'checked' : ''}> フレンド(幻影)バトル
+                    <input type="radio" name="arenaMode" value="friend" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'friend' ? 'checked' : ''}> フレンド(幻影)バトル
                 </label>
             ` : `<span style="color:#666; font-size:12px;">(WAVE 50突破で新モード解放...)</span>`}
         </div>
+
+        ${rState.selectedMode !== 'friend' ? `
+        <div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;">
+            <span style="color:#FFD700; font-weight:bold;">開始WAVE:</span>
+            <input type="number" id="arena-start-wave" min="1" max="${highestWave}" value="${highestWave}" style="width:80px; padding:5px; font-size:16px; background:#222; color:#fff; border:1px solid #444; border-radius:4px; text-align:center; font-weight:bold;">
+            <span style="font-size:12px; color:#aaa;">(最高到達: ${highestWave}WAVE)</span>
+        </div>` : ''}
 
         <div style="display:flex; width:90%; max-width:900px; gap:20px; margin-bottom:30px;">
             <div style="flex:1; background:rgba(0,0,0,0.5); padding:20px; border-radius:12px; border:2px solid #555;"><div style="font-size:18px; color:#4fc3f7; margin-bottom:15px; font-weight:bold; text-align:center;">▼ 出撃パーティ (最大4人)</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">${partyHtml}</div></div>
@@ -1626,11 +1816,22 @@ window.removeArenaPartyMember = function(index) {
 // ==========================================
 window.startArenaBattle = function() {
     document.getElementById('arena-reception-ui').style.display = 'none';
-
-    // ★追加: デバッグ用のWAVE指定があればそれを使い、無ければ1にする
-    let startWave = window.currentArenaWave || 1;
+    
+    let startWave = 1;
+    let waveInput = document.getElementById('arena-start-wave');
+    if (waveInput && window.ARENA_STATE.mode !== 'friend') {
+        startWave = parseInt(waveInput.value) || 1;
+        let highestWave = window.aiPet.arenaHighestWave || 1;
+        if (startWave > highestWave) startWave = highestWave;
+        if (startWave < 1) startWave = 1;
+    }
+    if (window.currentArenaWave) {
+        startWave = window.currentArenaWave;
+        window.currentArenaWave = null;
+    }
     window.ARENA_STATE.wave = startWave; 
-    window.currentArenaWave = null; // 使い終わったらリセット
+    // ★開始WAVEに合わせてスキップされたボスの討伐数を計算し、正しいボスから出現させる
+    window.ARENA_STATE.bossesDefeated = Math.floor((startWave - 1) / 50);
     
     window.ARENA_STATE.healPots = 3; window.ARENA_STATE.active = true; window.ARENA_STATE.autoMode = false; window.ARENA_STATE.isProcessing = false;
     let darkUI = document.createElement('div');
@@ -1699,18 +1900,21 @@ window.startArenaWave = function() {
         if (!rKey) rKey = Object.keys(window.ARENA_ENEMIES).find(k => window.ARENA_ENEMIES[k].type === bossType.split('_')[0]) || 'robot';
         
         let base = window.ARENA_ENEMIES[rKey];
-        
-        let eHp = Math.floor(base.hp * hpMultiplier * 3 + 2000);
-        let eAtk = Math.floor(base.atk * atkMultiplier * 1.5 + 50);
-        let eDef = Math.floor(base.def * defMultiplier * 2);
-        let eSpd = Math.floor(base.speed * spdMultiplier * 1.5); // ★追加
+        
+        let eHp = Math.floor(base.hp * hpMultiplier * 3 + 2000);
+        let eAtk = Math.floor(base.atk * atkMultiplier * 1.5 + 50);
+        let eDef = Math.floor(base.def * defMultiplier * 2);
+        let eSpd = Math.floor(base.speed * spdMultiplier * 1.5);
 
-        state.enemies.push({
-            id: `e_boss`, baseName: base.name, name: `【BOSS】巨魁なる${base.name}`, spriteKey: base.spriteKey, type: base.type,
-            hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd, // ★speed追加
-            buffAtk: 1.0, buffDef: 1.0, isBoss: true, patternStep: 0,
-            bossTypeKey: bossType, row: 'front' 
-        });
+        // ★修正：辞書に bossName があればそれを使い、無ければ予備として巨魁なる〜を使う
+        let finalBossName = base.bossName ? base.bossName : `【BOSS】巨魁なる${base.name}`;
+
+        state.enemies.push({
+            id: `e_boss`, baseName: base.name, name: finalBossName, spriteKey: base.spriteKey, type: base.type,
+            hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd,
+            buffAtk: 1.0, buffDef: 1.0, isBoss: true, patternStep: 0,
+            bossTypeKey: bossType, row: 'front' 
+        });
 
     } else if (state.mode === 'friend') {
         let friendParty = [];
@@ -1873,6 +2077,14 @@ window.renderArenaBattle = function() {
 
     let logHtml = state.log.map(l => `<div style="margin-bottom:6px; border-bottom:1px solid #333; padding-bottom:4px;">${l}</div>`).join('');
     let isBusy = state.isProcessing || state.autoMode || state.skipMode;
+    
+    // ★追加：50WAVEを突破した（ボスラッシュ等が解放された）かどうかの判定
+    let highestWave = window.aiPet.arenaHighestWave || 1;
+    // ★修正：ボス討伐履歴がある場合も解放条件に含める！
+    let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0);
+    
+    // ★追加：解放されている場合のみスキップボタンのHTMLを生成
+    let skipButtonHtml = bossUnlocked ? `<button onclick="window.skipArenaWave()" ${isBusy ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${isBusy ? '#555' : '#9C27B0'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'};">⏭ スキップ</button>` : ``;
 
     ui.innerHTML = `
         <div style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.7); color:white; padding:10px 20px; border-radius:8px; font-size:24px; font-weight:bold; border:2px solid #FFC107;">WAVE ${state.wave}</div>
@@ -1894,7 +2106,7 @@ window.renderArenaBattle = function() {
             <div style="flex:1.5; display:flex; flex-direction:column; justify-content:center; gap:10px;">
                 <button onclick="window.processArenaTurn()" ${isBusy ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${isBusy ? '#555' : '#4CAF50'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'};">▶ 1ターン</button>
                 <button onclick="window.toggleArenaAuto()" ${state.skipMode ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${state.autoMode ? '#FF9800' : (state.skipMode ? '#555' : '#2196F3')}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${state.skipMode ? 'not-allowed' : 'pointer'};">${state.autoMode ? '⏸ AUTO停止' : '⏩ AUTO進行'}</button>
-                <button onclick="window.skipArenaWave()" ${isBusy ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${isBusy ? '#555' : '#9C27B0'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'};">⏭ スキップ</button>
+                ${skipButtonHtml}
             </div>
         </div>
     `;

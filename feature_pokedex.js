@@ -5,14 +5,31 @@
 // ==========================================
 
 // ★追加：selectedBase (現在選択中の基本種) を状態として保持する
+// ★追加：selectedBase と mode (図鑑の切り替え状態) を保持する
 var pokedexState = { 
     active: false, 
+    mode: 'breeding', // 'breeding' または 'arena'
     selectedSkin: null, 
-    selectedBase: null, // ←追加
+    selectedBase: null,
     action: 'idle', 
     frame: 0, 
     tick: 0,
     animId: null
+};
+
+// ★追加：闘技場ボス専用のオリジナル説明文（進化時は先頭に自動でプレフィックスが付きます）
+window.ARENA_BOSS_DESCRIPTIONS = {
+    "robot": "闘技場の最深部で待ち受ける殺戮兵器。冷酷なる論理で挑戦者を粉砕する。",
+    "ghost": "闘技場で散った無数の戦士たちの怨念が集合した姿。物理攻撃が通りにくい。",
+    "balloon": "かつて子供たちを喜ばせた風船が、闘いの狂気で破裂の恐怖を振りまく魔物と化した。",
+    "stone": "闘技場の岩盤から生まれ落ちた巨兵。その硬度はあらゆる刃を弾き返す。",
+    "machine": "整備不良で暴走した闘技場の管理ロボット。予測不能な動きで敵を切り刻む。",
+    "bird": "空の王者。鋭い爪と嵐を巻き起こす羽ばたきで、地上を這う者を蹂躙する。",
+    "dragon": "伝説に謳われる最強の生物。そのブレスは全てを灰燼に帰す。",
+    "seed": "闘技場の血を吸って育った魔性の植物。獲物を捕らえ、養分として貪り食う。",
+    "magician": "狂気に囚われた魔道士。禁忌の魔法をためらいなく行使する。",
+    "spirit": "自然の怒りが具現化した精霊。大いなるマナの奔流で敵を圧倒する。",
+    "beetle": "鋼鉄の甲殻を持つ巨大昆虫。その突進は城壁すら粉砕する。"
 };
 
 const actionNameMap = {
@@ -40,30 +57,47 @@ function getLocalizedActionName(actionKey) {
 function openPokedex() {
     const el = document.getElementById('pokedexOverlay');
     if (!el) return;
+
+    // ★究極修正：50WAVE突破を条件に、タブの表示/非表示（ネタバレ防止）を切り替える
+    const titleEl = el.querySelector('h2');
+    if (titleEl) {
+        let highestWave = (window.aiPet && window.aiPet.arenaHighestWave) ? window.aiPet.arenaHighestWave : 1;
+        // ★修正：ボス討伐履歴がある場合も解放条件に含める！
+        let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0);
+
+        if (bossUnlocked) {
+            // 50WAVE突破済み：タブを表示
+            titleEl.innerHTML = `
+                <span onclick="window.switchPokedexMode('breeding')" style="cursor:pointer; padding-right:15px; color:${pokedexState.mode === 'breeding' ? '#FFD700' : '#888'}; border-right:2px solid #555; transition:0.2s;">📖 育成図鑑</span>
+                <span onclick="window.switchPokedexMode('arena')" style="cursor:pointer; padding-left:15px; color:${pokedexState.mode === 'arena' ? '#ff5252' : '#888'}; transition:0.2s;">⚔️ 闘技場ボス図鑑</span>
+            `;
+            titleEl.style.display = "flex";
+            titleEl.style.alignItems = "center";
+        } else {
+            // 未突破：ただの「育成図鑑」として表示し、闘技場モードへの切り替えを封じる
+            pokedexState.mode = 'breeding'; // 強制的に育成モードに戻す
+            titleEl.innerHTML = `<span style="color:#FFD700;">📖 育成図鑑</span>`;
+            titleEl.style.display = "block";
+        }
+        titleEl.style.margin = "0 0 10px 0";
+    }
     
-    // ヘッダー部分のレイアウト調整
+    // ヘッダー部分のレイアウト調整（もしあれば）
     const header = el.querySelector('.overlay-header');
     if (header) {
         header.style.display = "flex";
         header.style.justifyContent = "space-between";
         header.style.alignItems = "center";
         header.style.padding = "10px 20px";
-        
-        const title = header.querySelector('h2');
-        if (title) {
-            title.style.margin = "0";
-            title.style.flex = "1";
-            title.style.textAlign = "left";
-        }
-        
-        const countEl = document.getElementById('pokedexCount');
-        if (countEl) {
-            countEl.style.fontSize = "16px";
-            countEl.style.fontWeight = "bold";
-            countEl.style.color = "#FFD700";
-            countEl.style.marginRight = "15px";
-            countEl.style.whiteSpace = "nowrap"; 
-        }
+    }
+
+    const countEl = document.getElementById('pokedexCount');
+    if (countEl) {
+        countEl.style.fontSize = "16px";
+        countEl.style.fontWeight = "bold";
+        countEl.style.color = pokedexState.mode === 'arena' ? '#ff5252' : '#FFD700';
+        countEl.style.marginRight = "15px";
+        countEl.style.whiteSpace = "nowrap"; 
     }
 
     // ★究極修正1：モーダル（枠）自体の「高さ固定縛り」を解除して、中身に合わせて広がるようにする！
@@ -92,13 +126,17 @@ function openPokedex() {
     
     updateDiscoveryCount();
 
-    if (!pokedexState.selectedSkin && aiPet.discoveredMonsters && aiPet.discoveredMonsters.length > 0) {
-        selectMonster(aiPet.discoveredMonsters[aiPet.discoveredMonsters.length - 1]);
+    let targetList = pokedexState.mode === 'breeding' ? (aiPet.discoveredMonsters || []) : (aiPet.defeatedArenaBosses || []);
+    
+    if (!pokedexState.selectedSkin && targetList.length > 0) {
+        selectMonster(targetList[targetList.length - 1]);
     } else if (pokedexState.selectedSkin) {
-        if (aiPet.discoveredMonsters.includes(pokedexState.selectedSkin)) {
+        if (targetList.includes(pokedexState.selectedSkin)) {
             selectMonster(pokedexState.selectedSkin);
-        } else if (aiPet.discoveredMonsters.length > 0) {
-            selectMonster(aiPet.discoveredMonsters[0]);
+        } else if (targetList.length > 0) {
+            selectMonster(targetList[0]);
+        } else {
+            selectMonster(null); // 切り替え時に空ならリセット
         }
     }
     
@@ -113,6 +151,14 @@ function openPokedex() {
     }
 }
 
+// ★タブ切り替え用の関数を追加
+window.switchPokedexMode = function(mode) {
+    pokedexState.mode = mode;
+    pokedexState.selectedSkin = null; 
+    pokedexState.selectedBase = null;
+    openPokedex(); // 再描画
+};
+
 function closePokedex() {
     const el = document.getElementById('pokedexOverlay');
     if (el) el.classList.remove('active');
@@ -124,11 +170,19 @@ function closePokedex() {
 }
 
 function updateDiscoveryCount() {
-    if (!aiPet.discoveredMonsters) aiPet.discoveredMonsters = [];
-    const uniqueFound = [...new Set(aiPet.discoveredMonsters)];
-    const count = uniqueFound.length;
     const countEl = document.getElementById('pokedexCount');
-    if (countEl) countEl.innerText = `発見数: ${count}種`;
+    if (!countEl) return;
+    
+    if (pokedexState.mode === 'arena') {
+        const uniqueBosses = [...new Set(aiPet.defeatedArenaBosses || [])];
+        countEl.innerText = `討伐数: ${uniqueBosses.length}種`;
+        countEl.style.color = '#ff5252';
+    } else {
+        if (!aiPet.discoveredMonsters) aiPet.discoveredMonsters = [];
+        const uniqueFound = [...new Set(aiPet.discoveredMonsters)];
+        countEl.innerText = `発見数: ${uniqueFound.length}種`;
+        countEl.style.color = '#FFD700';
+    }
 }
 
 // ==========================================
@@ -155,9 +209,15 @@ function renderPokedexList() {
     listEl.innerHTML = "";
 
     const allBases = ["robot", "spirit", "magician", "bird", "machine", "stone", "balloon", "ghost", "beetle", "seed", "dragon"];
-    if (!aiPet.discoveredMonsters || aiPet.discoveredMonsters.length === 0) aiPet.discoveredMonsters = ['robot'];
+    let targetList = pokedexState.mode === 'breeding' ? (aiPet.discoveredMonsters || ['robot']) : (aiPet.defeatedArenaBosses || []);
+    if (targetList.length === 0 && pokedexState.mode === 'breeding') targetList = ['robot'];
     
-    let discoveredBases = [...new Set(aiPet.discoveredMonsters.map(k => k.split('_')[0]))];
+    if (targetList.length === 0) {
+        listEl.innerHTML = "<div style='color:#888; text-align:center; padding:30px; font-weight:bold;'>まだ闘技場でボスを討伐していません。</div>";
+        return;
+    }
+
+    let discoveredBases = [...new Set(targetList.map(k => k.split('_')[0]))];
     discoveredBases.sort((a,b) => allBases.indexOf(a) - allBases.indexOf(b)); 
 
     if (!pokedexState.selectedBase || !discoveredBases.includes(pokedexState.selectedBase)) {
@@ -209,7 +269,7 @@ function renderPokedexList() {
         btn.appendChild(iconCanvas);
         btn.onclick = () => {
             pokedexState.selectedBase = base;
-            let variants = aiPet.discoveredMonsters.filter(k => k.split('_')[0] === base);
+            let variants = targetList.filter(k => k.split('_')[0] === base);
             if (variants.length > 0) {
                 selectMonster(variants[0]);
             }
@@ -230,7 +290,7 @@ function renderPokedexList() {
     
     const variantIconSize = 54;
 
-    let currentVariants = aiPet.discoveredMonsters.filter(k => k.split('_')[0] === pokedexState.selectedBase);
+    let currentVariants = targetList.filter(k => k.split('_')[0] === pokedexState.selectedBase);
     
     currentVariants.forEach(key => {
         const btn = document.createElement('div');
@@ -312,30 +372,61 @@ function selectMonster(key) {
     pokedexState.action = 'idle';
     pokedexState.frame = 0;
 
-    const data = monsterBookData[key];
     const nameEl = document.getElementById('dex-name');
     const descEl = document.getElementById('dex-desc');
     const unknownEl = document.getElementById('dex-unknown');
     const canvasEl = document.getElementById('dexCanvas');
     const actionListEl = document.getElementById('dex-actions');
 
-    if (!data) return;
+    if (!key) {
+        if (nameEl) nameEl.innerText = "データなし";
+        if (descEl) descEl.innerText = "";
+        if (canvasEl) canvasEl.style.display = 'none';
+        if (actionListEl) actionListEl.innerHTML = "";
+        return;
+    }
 
-    if (nameEl) nameEl.innerText = data.name;
-    if (descEl) descEl.innerText = data.desc;
-    if (unknownEl) unknownEl.style.display = 'none';
-    if (canvasEl) canvasEl.style.display = 'block';
+    const data = (typeof monsterBookData !== 'undefined' && monsterBookData[key]) ? monsterBookData[key] : { name: key, desc: "" };
 
-    if (actionListEl) {
-        actionListEl.innerHTML = "";
-        let conf = aiConfigs[key];
-        // ★追加: 描画時と同様にアクションリストも大元の設定から引っ張る
-        if (conf && conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
-            conf = aiConfigs[conf.img];
-        }
-        
-        if (conf && conf.actions) {
-            Object.keys(conf.actions).forEach(act => {
+    if (pokedexState.mode === 'arena') {
+        let baseKey = key.split('_')[0];
+        let arenaData = window.ARENA_ENEMIES && window.ARENA_ENEMIES[key] ? window.ARENA_ENEMIES[key] : null;
+        
+        // ★ 新しく設定した「完全固有ボスネーム」を優先的に取得
+        let bossName = arenaData && arenaData.bossName ? arenaData.bossName : `【BOSS】巨魁なる${data.name}`;
+        
+        // ★ 名前を赤く光る大文字にして威厳を出す
+        if (nameEl) nameEl.innerHTML = `<span style="color:#ff5252; font-size:1.1em; text-shadow:0 0 5px rgba(255,0,0,0.5); font-weight:bold;">${bossName}</span>`;
+        
+        let arenaDesc = window.ARENA_BOSS_DESCRIPTIONS ? window.ARENA_BOSS_DESCRIPTIONS[baseKey] : "闘技場に君臨する恐るべきボスモンスター。";
+        if (key.includes('_')) arenaDesc = "過酷な闘いを経て異常な進化を遂げた姿。\n" + arenaDesc;
+        if (descEl) descEl.innerText = arenaDesc;
+    } else {
+        if (nameEl) nameEl.innerText = data.name;
+        if (descEl) descEl.innerText = data.desc;
+    }
+
+    if (unknownEl) unknownEl.style.display = 'none';
+    if (canvasEl) canvasEl.style.display = 'block';
+
+    if (actionListEl) {
+        actionListEl.innerHTML = "";
+        if (pokedexState.mode === 'arena') {
+            actionListEl.innerHTML = "<div style='color:#FF9800; font-size:12px; font-weight:bold; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px;'>▼ 危険行動パターン</div>";
+            
+            // ★ 複雑な分岐をやめ、先ほど作った全160種統合辞書（ARENA_BOSS_PATTERNS）から一発で取得する
+            let patterns = (window.ARENA_BOSS_PATTERNS && window.ARENA_BOSS_PATTERNS[key]) ? window.ARENA_BOSS_PATTERNS[key] : [];
+            
+            let skillHtml = patterns.map(p => `<span style="display:inline-block; background:#222; border:1px solid #ff5252; border-radius:4px; padding:3px 8px; margin:2px 4px 2px 0; font-size:11px; color:#fff; font-weight:bold; box-shadow:0 0 3px rgba(255,0,0,0.5);">${p.skillName}</span>`).join('');
+            actionListEl.innerHTML += `<div style="display:flex; flex-wrap:wrap;">${skillHtml}</div>`;
+        } else {
+            let conf = aiConfigs[key];
+            if (conf && conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
+                conf = aiConfigs[conf.img];
+            }
+            
+            if (conf && conf.actions) {
+                Object.keys(conf.actions).forEach(act => {
                 const btn = document.createElement('span');
                 btn.innerText = getLocalizedActionName(act);
                 btn.style.display = "inline-block";
@@ -360,7 +451,8 @@ function selectMonster(key) {
                     btn.style.background = "#FFC107"; btn.style.color = "#000";
                 };
                 actionListEl.appendChild(btn);
-            });
+                });
+            }
         }
     }
 
@@ -372,6 +464,12 @@ function selectMonster(key) {
         grazeBtnContainer.style.marginTop = "15px";
         actionListEl.parentNode.appendChild(grazeBtnContainer);
     }
+    
+    if (pokedexState.mode === 'arena') {
+        grazeBtnContainer.style.display = 'none';
+        return; // 闘技場モードでは放牧ボタンの処理は不要
+    }
+    grazeBtnContainer.style.display = 'block';
 
     const discCount = (aiPet.discoveredMonsters && aiPet.discoveredMonsters.length) ? aiPet.discoveredMonsters.length : 0;
     const canGraze = (discCount >= 2);
@@ -461,12 +559,50 @@ function pokedexLoop() {
 
 // ★究極修正：余計なごまかしを排除し、正しいアクション画像をストレートに適用する！
 function drawPokedexSpriteInternal(ctx, type, action, frameIdx, cx, cy) {
-    let conf = aiConfigs[type];
-    if (!conf) return;
+    // ==========================================
+    // ★追加：闘技場モードの場合は、育成用ドット絵ではなく「闘技場用の巨大ボス画像」を描画する
+    // ==========================================
+    if (pokedexState.mode === 'arena' && typeof window.DUNGEON_SPRITES !== 'undefined') {
+        let arenaEnemyData = (window.ARENA_ENEMIES && window.ARENA_ENEMIES[type]) ? window.ARENA_ENEMIES[type] : null;
+        let spriteKey = arenaEnemyData ? arenaEnemyData.spriteKey : "arena_" + type.split('_')[0];
+        let sp = window.DUNGEON_SPRITES[spriteKey] || window.DUNGEON_SPRITES["arena_robot"];
+        
+        if (sp) {
+            let img = images[sp.img];
+            if (!img) {
+                img = new Image();
+                img.src = sp.img; // 画像ファイル名を直接指定
+                images[sp.img] = img;
+                return; // 読み込み待ちのため今回の描画はスキップ
+            }
+            if (!img.complete || img.naturalWidth === 0) return;
 
-    if (conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
-        conf = aiConfigs[conf.img];
+            // キャンバス枠（80%）に綺麗に収まるようにスケールを自動計算
+            const targetW = ctx.canvas.width * 0.8;
+            const targetH = ctx.canvas.height * 0.8;
+            let scaleW = targetW / sp.sw;
+            let scaleH = targetH / sp.sh;
+            let scale = Math.min(scaleW, scaleH);
+            
+            const drawW = sp.sw * scale;
+            const drawH = sp.sh * scale;
+
+            ctx.save();
+            ctx.imageSmoothingEnabled = true; // ボス用の一枚絵は滑らかに縮小描画する
+            ctx.translate(cx, cy);
+            ctx.drawImage(img, sp.sx, sp.sy, sp.sw, sp.sh, -drawW/2, -drawH/2, drawW, drawH);
+            ctx.restore();
+            return; // 闘技場ボスの描画が完了したので、以下の育成用描画処理はスキップ
+        }
     }
+
+    // --- 以下、育成モード（通常のドット絵アニメ）の描画 ---
+    let conf = aiConfigs[type];
+    if (!conf) return;
+
+    if (conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
+        conf = aiConfigs[conf.img];
+    }
 
     // 1. 描画すべき画像のキー（ファイル名のもと）を決定
     let imgKey = conf.img || type;
