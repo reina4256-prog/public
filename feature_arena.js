@@ -36,6 +36,654 @@ if (typeof window.DUNGEON_SPRITES !== 'undefined') {
     window.DUNGEON_SPRITES["arena_explore"] = { "img": "adventurer_battle_enemy.png", "sx": 794, "sy": 0, "sw": 1344, "sh": 1536, "scale": 0.15000000000000002 };
 }
 
+// ==========================================
+// ★ 闘技場ボス専用：全160種 完全固有行動辞書
+// ==========================================
+window.ARENA_BOSS_PATTERNS = {
+    // ------------------------------------------
+    // 👑 基本種族（Tier 0） 全11種
+    // ------------------------------------------
+    "robot": [
+        { actionType: "buff_atk", skillName: "システム起動" },
+        { actionType: "attack", skillName: "ガトリングガン" },
+        { actionType: "heavy", skillName: "ロケットパンチ" },
+        { actionType: "magic_all", skillName: "拡散レーザー" },
+        { actionType: "buff_def", skillName: "エネルギーシールド" },
+        { actionType: "heavy_magic", skillName: "サテライトビーム" }
+    ],
+    "ghost": [
+        { actionType: "debuff_def", skillName: "呪縛の叫び" },
+        { actionType: "attack", skillName: "引き裂く爪" },
+        { actionType: "magic_all", skillName: "ポルターガイスト" },
+        { actionType: "heavy_magic", skillName: "ソウルイーター" },
+        { actionType: "summon_enemy", skillName: "怨霊召喚" },
+        { actionType: "heavy", skillName: "奈落への誘い" }
+    ],
+    "balloon": [
+        { actionType: "buff_atk", skillName: "極限膨張" },
+        { actionType: "attack", skillName: "弾む体" },
+        { actionType: "magic_all", skillName: "暴風ブレス" },
+        { actionType: "heavy", skillName: "大破裂" },
+        { actionType: "debuff_def", skillName: "まとわりつくゴム" },
+        { actionType: "heal_self", skillName: "空気の補充" }
+    ],
+    "stone": [
+        { actionType: "buff_def", skillName: "大地の加護" },
+        { actionType: "attack", skillName: "岩石投げ" },
+        { actionType: "magic_all", skillName: "アースクエイク" },
+        { actionType: "heavy", skillName: "メガトンプッシュ" },
+        { actionType: "debuff_def", skillName: "目潰しの砂埃" },
+        { actionType: "heal_self", skillName: "結晶化修復" }
+    ],
+    "machine": [
+        { actionType: "buff_atk", skillName: "オーバークロック" },
+        { actionType: "attack", skillName: "突撃装甲" },
+        { actionType: "heavy", skillName: "回転ノコギリ" },
+        { actionType: "magic_all", skillName: "高圧電流" },
+        { actionType: "debuff_def", skillName: "オイル散布" },
+        { actionType: "summon_enemy", skillName: "支援ドローン展開" }
+    ],
+    "bird": [
+        { actionType: "buff_atk", skillName: "ハンターの眼" },
+        { actionType: "attack", skillName: "ソニッククロー" },
+        { actionType: "magic_all", skillName: "カマイタチ" },
+        { actionType: "heavy", skillName: "渾身の急降下" },
+        { actionType: "heal_self", skillName: "羽繕い" },
+        { actionType: "debuff_def", skillName: "威圧の眼差し" }
+    ],
+    "dragon": [
+        { actionType: "buff_atk", skillName: "竜の闘気" },
+        { actionType: "attack", skillName: "ドラゴンクロー" },
+        { actionType: "magic_all", skillName: "灼熱のブレス" },
+        { actionType: "heavy", skillName: "テイルスマッシュ" },
+        { actionType: "buff_def", skillName: "硬質な竜鱗" },
+        { actionType: "heavy_magic", skillName: "ドラゴニック・メテオ" }
+    ],
+    "seed": [
+        { actionType: "heal_self", skillName: "光合成" },
+        { actionType: "attack", skillName: "茨の鞭" },
+        { actionType: "magic_all", skillName: "暴走する根" },
+        { actionType: "sleep", skillName: "催眠花粉" },
+        { actionType: "debuff_def", skillName: "溶解液" },
+        { actionType: "heavy_magic", skillName: "生命力強制吸収" }
+    ],
+    "magician": [
+        { actionType: "buff_atk", skillName: "魔力集中" },
+        { actionType: "attack", skillName: "マジックミサイル" },
+        { actionType: "magic_all", skillName: "エクスプロージョン" },
+        { actionType: "buff_def", skillName: "マナシールド" },
+        { actionType: "heavy_magic", skillName: "裁きの雷" },
+        { actionType: "heal_ally", skillName: "癒やしの風" }
+    ],
+    "spirit": [
+        { actionType: "buff_def", skillName: "精霊の加護" },
+        { actionType: "attack", skillName: "風の刃" },
+        { actionType: "magic_all", skillName: "スターライト" },
+        { actionType: "heavy_magic", skillName: "大自然の裁き" },
+        { actionType: "heal_all", skillName: "大地の恵み" },
+        { actionType: "summon_enemy", skillName: "ウィスプ召喚" }
+    ],
+    "beetle": [
+        { actionType: "buff_def", skillName: "甲殻硬化" },
+        { actionType: "attack", skillName: "ホーンアタック" },
+        { actionType: "heavy", skillName: "ギガントシザース" },
+        { actionType: "debuff_def", skillName: "威嚇の羽音" },
+        { actionType: "heal_self", skillName: "樹液吸収" },
+        { actionType: "summon_enemy", skillName: "群れの呼び声" }
+    ],
+    // ------------------------------------------
+    // 🤖 ロボット（Robot）ツリー 全20種
+    // ------------------------------------------
+    // ▼ 闇落ち進化
+    "robot_type1": [
+        {actionType: "summon_enemy", skillName: "バグ増殖"}, {actionType: "debuff_def", skillName: "ウイルス散布"}, 
+        {actionType: "heavy", skillName: "暴走スクラップ"}, {actionType: "heavy_magic", skillName: "汚染レーザー"}, 
+        {actionType: "heal_self", skillName: "不正な自己修復"}, {actionType: "magic_all", skillName: "システムクラッシュ"}
+    ],
+    "robot_type1_2": [ // 闇落ち2段A
+        {actionType: "summon_enemy", skillName: "デッドリーバグ"}, {actionType: "debuff_def", skillName: "絶望のノイズ"}, 
+        {actionType: "heavy", skillName: "メルトダウンパンチ"}, {actionType: "heavy_magic", skillName: "ブラックホール砲"}, 
+        {actionType: "buff_atk", skillName: "狂気の出力"}, {actionType: "magic_all", skillName: "終焉のカウントダウン"}
+    ],
+    "robot_type1_3": [ // 闇落ち2段B
+        {actionType: "buff_atk", skillName: "殺戮プロトコル"}, {actionType: "debuff_def", skillName: "恐怖のハッキング"}, 
+        {actionType: "heavy", skillName: "処刑ブレード"}, {actionType: "heavy_magic", skillName: "アビサル・レイ"}, 
+        {actionType: "heal_self", skillName: "生命力強制吸収"}, {actionType: "magic_all", skillName: "ゼロ・ディバイド"}
+    ],
+
+    // ▼ 美しさ進化
+    "robot_type2": [
+        {actionType: "buff_def", skillName: "プリズムコート"}, {actionType: "debuff_def", skillName: "魅惑のホログラム"}, 
+        {actionType: "attack", skillName: "エレガント・スラッシュ"}, {actionType: "heavy_magic", skillName: "スターダスト・レーザー"}, 
+        {actionType: "heal_ally", skillName: "癒やしの光波"}, {actionType: "magic_all", skillName: "流麗なる乱れ撃ち"}
+    ],
+    "robot_type2_2": [ // 美しさ2段A
+        {actionType: "buff_def", skillName: "クリスタル・イージス"}, {actionType: "debuff_def", skillName: "幻惑の鏡面"}, 
+        {actionType: "heavy", skillName: "プラチナ・エッジ"}, {actionType: "heavy_magic", skillName: "スーパーノヴァ・ライト"}, 
+        {actionType: "heal_all", skillName: "女神の修復波"}, {actionType: "magic_all", skillName: "オーロラ・エクスキューション"}
+    ],
+    "robot_type2_3": [ // 美しさ2段B
+        {actionType: "buff_atk", skillName: "美の探求"}, {actionType: "debuff_def", skillName: "思考奪取の輝き"}, 
+        {actionType: "heavy", skillName: "ローズ・ウィップ"}, {actionType: "heavy_magic", skillName: "レインボー・カノン"}, 
+        {actionType: "summon_enemy", skillName: "取り巻きの防衛機"}, {actionType: "magic_all", skillName: "ブリリアント・ストーム"}
+    ],
+    "robot_type2_4": [ // 美しさ2段C
+        {actionType: "sleep", skillName: "優雅なる休眠"}, {actionType: "debuff_def", skillName: "絶対的な美の暴力"}, 
+        {actionType: "attack", skillName: "白鳥の舞"}, {actionType: "heavy_magic", skillName: "エンジェリック・レイ"}, 
+        {actionType: "buff_def", skillName: "神聖不可侵装甲"}, {actionType: "magic_all", skillName: "パラダイス・ロスト"}
+    ],
+
+    // ▼ 賢さ進化
+    "robot_type3": [
+        {actionType: "buff_atk", skillName: "弱点解析"}, {actionType: "debuff_def", skillName: "ジャミング波"}, 
+        {actionType: "attack", skillName: "精密射撃"}, {actionType: "heavy_magic", skillName: "サテライトストライク"}, 
+        {actionType: "buff_def", skillName: "予測回避機動"}, {actionType: "magic_all", skillName: "量子分解ビーム"}
+    ],
+    "robot_type3_2": [ // 賢さ進化B
+        {actionType: "summon_enemy", skillName: "デコイ展開"}, {actionType: "debuff_def", skillName: "行動阻害パルス"}, 
+        {actionType: "heavy", skillName: "急所突き"}, {actionType: "heavy_magic", skillName: "プラズマ放電"}, 
+        {actionType: "heal_self", skillName: "応急パッチ適用"}, {actionType: "magic_all", skillName: "制圧射撃"}
+    ],
+    "robot_type3_3": [ // 賢さ2段A
+        {actionType: "buff_atk", skillName: "森羅万象の演算"}, {actionType: "debuff_def", skillName: "神経ネットワーク切断"}, 
+        {actionType: "heavy", skillName: "完全必中の一撃"}, {actionType: "heavy_magic", skillName: "軌道兵器『タケミカヅチ』"}, 
+        {actionType: "buff_def", skillName: "次元断層シールド"}, {actionType: "magic_all", skillName: "コズミック・レイ"}
+    ],
+    "robot_type3_4": [ // 賢さ2段B
+        {actionType: "summon_enemy", skillName: "自律型ビット射出"}, {actionType: "debuff_def", skillName: "重力波干渉"}, 
+        {actionType: "heavy", skillName: "空間切断ブレード"}, {actionType: "heavy_magic", skillName: "反物質ミサイル"}, 
+        {actionType: "heal_all", skillName: "ナノマシン散布"}, {actionType: "magic_all", skillName: "オーバー・テクノロジー"}
+    ],
+    "robot_type3_5": [ // 賢さ2段C
+        {actionType: "sleep", skillName: "超高度演算移行(睡眠)"}, {actionType: "buff_atk", skillName: "全リミッター解除"}, 
+        {actionType: "heavy", skillName: "質量兵器投下"}, {actionType: "heavy_magic", skillName: "アカシック・ノヴァ"}, 
+        {actionType: "debuff_def", skillName: "真理の暴露"}, {actionType: "magic_all", skillName: "ワールド・エンド"}
+    ],
+
+    // ▼ 活力進化
+    "robot_type4": [
+        {actionType: "buff_atk", skillName: "オーバーヒート"}, {actionType: "heavy", skillName: "ギガントナックル"}, 
+        {actionType: "heavy", skillName: "爆砕プレス"}, {actionType: "heal_self", skillName: "エンジン冷却"}, 
+        {actionType: "debuff_def", skillName: "威圧の駆動音"}, {actionType: "magic_all", skillName: "全弾発射"}
+    ],
+    "robot_type4_2": [ // 活力進化B
+        {actionType: "buff_atk", skillName: "ブーストオン"}, {actionType: "attack", skillName: "音速の連撃"}, 
+        {actionType: "heavy", skillName: "パイルバンカー"}, {actionType: "buff_def", skillName: "リアクティブアーマー"}, 
+        {actionType: "summon_enemy", skillName: "支援機要請"}, {actionType: "magic_all", skillName: "ガトリング掃射"}
+    ],
+    "robot_type4_3": [ // 活力2段A
+        {actionType: "buff_atk", skillName: "闘争本能プロトコル"}, {actionType: "heavy", skillName: "アルティメット・ナックル"}, 
+        {actionType: "heavy", skillName: "彗星の如き急降下"}, {actionType: "heal_self", skillName: "無限の動力炉"}, 
+        {actionType: "buff_def", skillName: "超重装甲展開"}, {actionType: "magic_all", skillName: "グランドシェイカー"}
+    ],
+    "robot_type4_4": [ // 活力2段B
+        {actionType: "buff_atk", skillName: "限界突破モーター"}, {actionType: "heavy", skillName: "ドリル・クラッシャー"}, 
+        {actionType: "attack", skillName: "千手観音ラッシュ"}, {actionType: "debuff_def", skillName: "装甲破壊工作"}, 
+        {actionType: "summon_enemy", skillName: "量産機大隊出撃"}, {actionType: "magic_all", skillName: "ハイパー・バズーカ"}
+    ],
+
+    // ▼ 老化進化
+    "robot_type5": [
+        {actionType: "debuff_def", skillName: "錆びた歯車の軋み"}, {actionType: "heavy", skillName: "ロストテクノロジー"}, 
+        {actionType: "sleep", skillName: "機能停止(休眠)"}, {actionType: "heavy_magic", skillName: "古のビーム砲"}, 
+        {actionType: "buff_def", skillName: "ガラクタの盾"}, {actionType: "magic_all", skillName: "メルトダウン"}
+    ],
+    "robot_type5_2": [ // 老化2段A
+        {actionType: "debuff_def", skillName: "風化する歴史"}, {actionType: "heavy", skillName: "忘れ去られた鉄槌"}, 
+        {actionType: "sleep", skillName: "悠久の眠り"}, {actionType: "heavy_magic", skillName: "エンシェント・カノン"}, 
+        {actionType: "summon_enemy", skillName: "亡霊機械の呼び声"}, {actionType: "magic_all", skillName: "崩壊する巨体"}
+    ],
+    "robot_type5_3": [ // 老化2段B
+        {actionType: "debuff_def", skillName: "時代遅れの呪縛"}, {actionType: "attack", skillName: "鈍重な歯車"}, 
+        {actionType: "buff_atk", skillName: "最後の輝き"}, {actionType: "heavy_magic", skillName: "廃棄物の怨念"}, 
+        {actionType: "heal_self", skillName: "他機体からの部品強奪"}, {actionType: "magic_all", skillName: "オイルの海"}
+    ],
+    "robot_type5_4": [ // 老化2段C
+        {actionType: "buff_def", skillName: "骨董品の意地"}, {actionType: "heavy", skillName: "重力崩壊"}, 
+        {actionType: "debuff_def", skillName: "時空の歪み"}, {actionType: "heavy_magic", skillName: "ジェネシス・レイ"}, 
+        {actionType: "summon_enemy", skillName: "過去の残像"}, {actionType: "magic_all", skillName: "終わりの始まり"}
+    ],
+    // ------------------------------------------
+    // 🧚 精霊（Spirit）ツリー 全13種
+    // ------------------------------------------
+    "spirit_type2": [ // 美しさ進化
+        { actionType: "heal_ally", skillName: "癒やしのオーラ" },
+        { actionType: "magic_all", skillName: "ホーリーレイ" },
+        { actionType: "debuff_def", skillName: "妖精の悪戯" },
+        { actionType: "buff_def", skillName: "聖なる結界" },
+        { actionType: "heavy_magic", skillName: "神罰の光" },
+        { actionType: "summon_enemy", skillName: "光のウィスプ召喚" }
+    ],
+    "spirit_type2_2": [ // 美しさ2段A
+        { actionType: "heal_all", skillName: "女神の抱擁" },
+        { actionType: "magic_all", skillName: "レインボーダスト" },
+        { actionType: "debuff_def", skillName: "幻惑の光輪" },
+        { actionType: "buff_def", skillName: "セレスティアルガード" },
+        { actionType: "heavy_magic", skillName: "エンジェリックバースト" },
+        { actionType: "buff_atk", skillName: "奇跡の祈り" }
+    ],
+    "spirit_type2_3": [ // 美しさ2段B
+        { actionType: "debuff_def", skillName: "魅了の鱗粉" },
+        { actionType: "magic_all", skillName: "スターライトシャワー" },
+        { actionType: "sleep", skillName: "妖精郷への誘い" },
+        { actionType: "buff_def", skillName: "精霊王の盾" },
+        { actionType: "heavy_magic", skillName: "ルミナスフレア" },
+        { actionType: "heal_ally", skillName: "癒やしの極光" }
+    ],
+    "spirit_type4": [ // 活力進化
+        { actionType: "magic_all", skillName: "大自然の怒り" },
+        { actionType: "heavy", skillName: "テンペスト" },
+        { actionType: "heal_self", skillName: "命の奔流" },
+        { actionType: "buff_atk", skillName: "荒ぶる風" },
+        { actionType: "heavy_magic", skillName: "ライトニングボルト" },
+        { actionType: "attack", skillName: "ギガントインパクト" }
+    ],
+    "spirit_type4_2": [ // 活力2段A
+        { actionType: "buff_atk", skillName: "怒髪天" },
+        { actionType: "magic_all", skillName: "アースシェイカー" },
+        { actionType: "heal_self", skillName: "根源の再生" },
+        { actionType: "debuff_def", skillName: "暴風雨" },
+        { actionType: "heavy_magic", skillName: "サンダーボルト" },
+        { actionType: "heavy", skillName: "怒涛の自然魔法" }
+    ],
+    "spirit_type4_3": [ // 活力2段B
+        { actionType: "buff_atk", skillName: "野生の覚醒" },
+        { actionType: "magic_all", skillName: "ギガントトルネード" },
+        { actionType: "heal_all", skillName: "マナ湧出" },
+        { actionType: "buff_def", skillName: "大地の共鳴" },
+        { actionType: "heavy_magic", skillName: "ボルテックス" },
+        { actionType: "heavy", skillName: "神獣の突撃" }
+    ],
+    "spirit_type5": [ // 老化進化
+        { actionType: "magic_all", skillName: "枯葉の舞" },
+        { actionType: "debuff_def", skillName: "生命の黄昏" },
+        { actionType: "sleep", skillName: "静かなる眠り" },
+        { actionType: "heavy_magic", skillName: "生命力吸収" },
+        { actionType: "heavy", skillName: "枯れ木の鞭" },
+        { actionType: "debuff_def", skillName: "風化の呪い" }
+    ],
+    "spirit_type5_2": [ // 老化2段A
+        { actionType: "magic_all", skillName: "悠久の秋" },
+        { actionType: "debuff_def", skillName: "万物枯死" },
+        { actionType: "sleep", skillName: "忘却の彼方" },
+        { actionType: "heal_self", skillName: "精気吸引" },
+        { actionType: "heavy", skillName: "朽ちた根の縛り" },
+        { actionType: "heavy_magic", skillName: "古の精霊術" }
+    ],
+    "spirit_type5_3": [ // 老化2段B
+        { actionType: "magic_all", skillName: "終焉の木漏れ日" },
+        { actionType: "debuff_def", skillName: "灰燼の風" },
+        { actionType: "sleep", skillName: "終わりのまどろみ" },
+        { actionType: "heavy_magic", skillName: "魂の回収" },
+        { actionType: "heavy", skillName: "古木の一撃" },
+        { actionType: "debuff_def", skillName: "砂塵の魔法" }
+    ],
+    "spirit_type1": [ // 闇落ち進化
+        { actionType: "debuff_def", skillName: "呪詛の囁き" },
+        { actionType: "heavy_magic", skillName: "ライフドレイン" },
+        { actionType: "summon_enemy", skillName: "悪霊召喚" },
+        { actionType: "magic_all", skillName: "怨念の渦" },
+        { actionType: "heavy", skillName: "ポルターガイスト" },
+        { actionType: "buff_atk", skillName: "暗黒の儀式" }
+    ],
+    "spirit_type1_2": [ // 闇落ち2段
+        { actionType: "sleep", skillName: "奈落の誘い" },
+        { actionType: "heavy_magic", skillName: "ソウルイーター" },
+        { actionType: "summon_enemy", skillName: "ファントムレギオン" },
+        { actionType: "magic_all", skillName: "ダークバースト" },
+        { actionType: "heavy", skillName: "怨念の物理化" },
+        { actionType: "debuff_def", skillName: "深淵のオーラ" }
+    ],
+    "spirit_type3": [ // 賢さ進化
+        { actionType: "buff_atk", skillName: "アカシックレコード" },
+        { actionType: "magic_all", skillName: "エレメンタルバースト" },
+        { actionType: "heavy_magic", skillName: "絶対零度" },
+        { actionType: "debuff_def", skillName: "真理の開眼" },
+        { actionType: "buff_def", skillName: "叡智の盾" },
+        { actionType: "heavy", skillName: "古代語魔法" }
+    ],
+    "spirit_type3_2": [ // 賢さ2段
+        { actionType: "buff_atk", skillName: "宇宙の真理" },
+        { actionType: "magic_all", skillName: "ビッグバン" },
+        { actionType: "heavy_magic", skillName: "コズミック・アイス" },
+        { actionType: "debuff_def", skillName: "次元歪曲" },
+        { actionType: "buff_def", skillName: "星座の加護" },
+        { actionType: "heavy", skillName: "メテオストライク" }
+    ],
+
+    // ------------------------------------------
+    // 🧙‍♂️ 魔術師（Magician）ツリー 全18種
+    // ------------------------------------------
+    "magician_type4": [ // 活力進化A
+        { actionType: "buff_atk", skillName: "マナバースト" },
+        { actionType: "magic_all", skillName: "爆裂魔法" },
+        { actionType: "heavy", skillName: "魔力格闘術" },
+        { actionType: "heavy_magic", skillName: "炎の槍" },
+        { actionType: "attack", skillName: "メテオナックル" },
+        { actionType: "buff_def", skillName: "闘争本能" }
+    ],
+    "magician_type4_2": [ // 活力進化B
+        { actionType: "buff_atk", skillName: "バーサークキャスト" },
+        { actionType: "magic_all", skillName: "ヘルファイア" },
+        { actionType: "heavy", skillName: "魔杖殴打" },
+        { actionType: "heavy_magic", skillName: "業火の球" },
+        { actionType: "attack", skillName: "ギガントプレス" },
+        { actionType: "buff_def", skillName: "炎の鎧" }
+    ],
+    "magician_type4_3": [ // 活力2段A
+        { actionType: "buff_atk", skillName: "アルティメットバースト" },
+        { actionType: "magic_all", skillName: "メガ・エクスプロージョン" },
+        { actionType: "heavy", skillName: "剛腕マジック" },
+        { actionType: "heavy_magic", skillName: "灼熱の神槍" },
+        { actionType: "attack", skillName: "隕石落とし" },
+        { actionType: "buff_def", skillName: "鬼神の魔力" }
+    ],
+    "magician_type4_4": [ // 活力2段B
+        { actionType: "magic_all", skillName: "インフェルノ" },
+        { actionType: "heavy_magic", skillName: "ヴォルカニックレイ" },
+        { actionType: "heavy", skillName: "マジック・ラッシュ" },
+        { actionType: "debuff_def", skillName: "太陽のフレア" },
+        { actionType: "attack", skillName: "スマッシュロッド" },
+        { actionType: "heal_self", skillName: "無尽蔵のマナ" }
+    ],
+    "magician_type1": [ // 闇落ち進化A
+        { actionType: "magic_all", skillName: "ダークフレア" },
+        { actionType: "summon_enemy", skillName: "死者の軍勢" },
+        { actionType: "heavy_magic", skillName: "魂の収穫" },
+        { actionType: "debuff_def", skillName: "死の宣告" },
+        { actionType: "heal_self", skillName: "吸血" },
+        { actionType: "attack", skillName: "漆黒の波動" }
+    ],
+    "magician_type1_2": [ // 闇落ち進化B
+        { actionType: "debuff_def", skillName: "シャドウバインド" },
+        { actionType: "summon_enemy", skillName: "デーモンサモン" },
+        { actionType: "heavy_magic", skillName: "呪殺" },
+        { actionType: "attack", skillName: "ペイン" },
+        { actionType: "sleep", skillName: "ナイトメア" },
+        { actionType: "buff_def", skillName: "闇のベール" }
+    ],
+    "magician_type1_3": [ // 闇落ち2段A
+        { actionType: "magic_all", skillName: "アビスフレア" },
+        { actionType: "summon_enemy", skillName: "ネクロマンシー極" },
+        { actionType: "heavy_magic", skillName: "ソウルハント" },
+        { actionType: "debuff_def", skillName: "終焉の宣告" },
+        { actionType: "heal_self", skillName: "ブラッドドレイン" },
+        { actionType: "heavy", skillName: "ブラックホール" }
+    ],
+    "magician_type1_4": [ // 闇落ち2段B
+        { actionType: "magic_all", skillName: "イクリプス" },
+        { actionType: "buff_atk", skillName: "悪魔の契約" },
+        { actionType: "heavy_magic", skillName: "即死魔法" },
+        { actionType: "debuff_def", skillName: "拷問部屋" },
+        { actionType: "summon_enemy", skillName: "悪夢の具現化" },
+        { actionType: "buff_def", skillName: "絶望の壁" }
+    ],
+    "magician_type5": [ // 老化進化
+        { actionType: "heavy_magic", skillName: "忘れられた禁呪" },
+        { actionType: "buff_atk", skillName: "詠唱破棄" },
+        { actionType: "magic_all", skillName: "時間操作" },
+        { actionType: "sleep", skillName: "魔力枯渇" },
+        { actionType: "debuff_def", skillName: "老魔導士の威圧" },
+        { actionType: "attack", skillName: "埃まみれの魔道書" }
+    ],
+    "magician_type5_2": [ // 老化2段A
+        { actionType: "heavy_magic", skillName: "ロスト・マジック" },
+        { actionType: "buff_atk", skillName: "古代の叡智" },
+        { actionType: "magic_all", skillName: "タイムストップ" },
+        { actionType: "sleep", skillName: "長き瞑想" },
+        { actionType: "debuff_def", skillName: "賢者の眼差し" },
+        { actionType: "attack", skillName: "禁断の古文書" }
+    ],
+    "magician_type5_3": [ // 老化2段B
+        { actionType: "heavy_magic", skillName: "崩壊の呪文" },
+        { actionType: "attack", skillName: "老練なる手品" },
+        { actionType: "heal_self", skillName: "過去への回帰" },
+        { actionType: "debuff_def", skillName: "魔力の衰退" },
+        { actionType: "buff_atk", skillName: "大魔導士の覇気" },
+        { actionType: "magic_all", skillName: "灰の魔法" }
+    ],
+    "magician_type2": [ // 美しさ進化A
+        { actionType: "debuff_def", skillName: "魅惑のウインク" },
+        { actionType: "magic_all", skillName: "幻惑の薔薇" },
+        { actionType: "buff_def", skillName: "ミスティックアーツ" },
+        { actionType: "heavy_magic", skillName: "イリュージョンバースト" },
+        { actionType: "heal_ally", skillName: "マジカルヒール" },
+        { actionType: "attack", skillName: "プリズムレイ" }
+    ],
+    "magician_type2_2": [ // 美しさ進化B
+        { actionType: "debuff_def", skillName: "スイートマジック" },
+        { actionType: "magic_all", skillName: "フラワーシャワー" },
+        { actionType: "buff_def", skillName: "ビューティガード" },
+        { actionType: "heavy_magic", skillName: "カラフルボム" },
+        { actionType: "heal_ally", skillName: "女神の祈り" },
+        { actionType: "attack", skillName: "キラキラパウダー" }
+    ],
+    "magician_type2_3": [ // 美しさ2段A
+        { actionType: "debuff_def", skillName: "テンプテーション" },
+        { actionType: "magic_all", skillName: "ローズ・タイフーン" },
+        { actionType: "buff_def", skillName: "ミラージュシールド" },
+        { actionType: "heavy_magic", skillName: "レインボースマッシュ" },
+        { actionType: "heal_all", skillName: "ホーリーヒール" },
+        { actionType: "summon_enemy", skillName: "幻影の美神" }
+    ],
+    "magician_type2_4": [ // 美しさ2段B
+        { actionType: "debuff_def", skillName: "ラブリー・イリュージョン" },
+        { actionType: "magic_all", skillName: "ユートピア" },
+        { actionType: "buff_def", skillName: "パーフェクト・バリア" },
+        { actionType: "heavy_magic", skillName: "シャイニング・スター" },
+        { actionType: "heal_all", skillName: "天使の歌声" },
+        { actionType: "attack", skillName: "ダイヤモンドダスト" }
+    ],
+    "magician_type3": [ // 賢さ進化
+        { actionType: "buff_atk", skillName: "魔力集中" },
+        { actionType: "magic_all", skillName: "アルテマ" },
+        { actionType: "heavy_magic", skillName: "真理の扉" },
+        { actionType: "debuff_def", skillName: "精神破壊" },
+        { actionType: "buff_def", skillName: "マナシールド" },
+        { actionType: "heavy", skillName: "超重力魔法" }
+    ],
+    "magician_type3_2": [ // 賢さ2段A
+        { actionType: "buff_atk", skillName: "究極魔力集中" },
+        { actionType: "magic_all", skillName: "オメガ・アルテマ" },
+        { actionType: "heavy_magic", skillName: "アカシック・ゲート" },
+        { actionType: "debuff_def", skillName: "マインドクラッシュ" },
+        { actionType: "buff_def", skillName: "アブソリュート・シールド" },
+        { actionType: "heavy", skillName: "ブラックホール" }
+    ],
+    "magician_type3_3": [ // 賢さ2段B
+        { actionType: "buff_atk", skillName: "全知全能" },
+        { actionType: "magic_all", skillName: "メテオ" },
+        { actionType: "heavy_magic", skillName: "次元切断" },
+        { actionType: "debuff_def", skillName: "神経ハッキング" },
+        { actionType: "buff_def", skillName: "時空防壁" },
+        { actionType: "heavy", skillName: "ギャラクシアン・エクスプロージョン" }
+    ],
+
+    // ------------------------------------------
+    // 🦅 鳥（Bird）ツリー 全11種
+    // ------------------------------------------
+    "bird_type2": [ // 美しさ進化
+        { actionType: "heal_all", skillName: "フェニックスフェザー" },
+        { actionType: "debuff_def", skillName: "魅惑のさえずり" },
+        { actionType: "magic_all", skillName: "極彩色の竜巻" },
+        { actionType: "buff_def", skillName: "光の羽衣" },
+        { actionType: "heavy", skillName: "ビューティフルダイブ" },
+        { actionType: "heal_ally", skillName: "癒やしの風" }
+    ],
+    "bird_type2_2": [ // 美しさ2段
+        { actionType: "heal_all", skillName: "リザレクション" },
+        { actionType: "debuff_def", skillName: "幻惑の歌声" },
+        { actionType: "magic_all", skillName: "レインボートルネード" },
+        { actionType: "buff_def", skillName: "女神の翼" },
+        { actionType: "heavy", skillName: "ルミナス・ストライク" },
+        { actionType: "heal_ally", skillName: "聖なるそよ風" }
+    ],
+    "bird_type4": [ // 活力進化
+        { actionType: "heavy", skillName: "怒涛の連続嘴" },
+        { actionType: "magic_all", skillName: "ソニックブーム" },
+        { actionType: "buff_atk", skillName: "狩猟本能" },
+        { actionType: "heavy", skillName: "猛禽の爪" },
+        { actionType: "buff_def", skillName: "エアロシールド" },
+        { actionType: "attack", skillName: "暴風の羽ばたき" }
+    ],
+    "bird_type4_2": [ // 活力2段
+        { actionType: "heavy", skillName: "音速の嘴" },
+        { actionType: "magic_all", skillName: "ハリケーン" },
+        { actionType: "buff_atk", skillName: "プレデター・アイ" },
+        { actionType: "heavy", skillName: "引き裂く大爪" },
+        { actionType: "buff_def", skillName: "暴風雨の壁" },
+        { actionType: "attack", skillName: "ギガント・ウイング" }
+    ],
+    "bird_type5": [ // 老化進化
+        { actionType: "debuff_def", skillName: "化石化の呪い" },
+        { actionType: "magic_all", skillName: "古代の風" },
+        { actionType: "heavy", skillName: "羽抜けの突風" },
+        { actionType: "sleep", skillName: "長き眠り" },
+        { actionType: "heavy_magic", skillName: "始祖の雄叫び" },
+        { actionType: "debuff_def", skillName: "砂埃" }
+    ],
+    "bird_type5_2": [ // 老化2段
+        { actionType: "debuff_def", skillName: "石化の邪眼" },
+        { actionType: "magic_all", skillName: "太古のサイクロン" },
+        { actionType: "heavy", skillName: "骨の羽ばたき" },
+        { actionType: "sleep", skillName: "永遠の休眠" },
+        { actionType: "heavy_magic", skillName: "恐竜の咆哮" },
+        { actionType: "debuff_def", skillName: "デザートストーム" }
+    ],
+    "bird_type1": [ // 闇落ち進化
+        { actionType: "magic_all", skillName: "漆黒の羽ばたき" },
+        { actionType: "heavy", skillName: "デスダイブ" },
+        { actionType: "debuff_def", skillName: "絶望の鳴き声" },
+        { actionType: "heavy_magic", skillName: "宵闇の風" },
+        { actionType: "summon_enemy", skillName: "カラスの群れ" },
+        { actionType: "attack", skillName: "ブラインドダスト" }
+    ],
+    "bird_type1_2": [ // 闇落ち2段
+        { actionType: "magic_all", skillName: "アビス・ウイング" },
+        { actionType: "heavy", skillName: "ヘル・ダイブ" },
+        { actionType: "debuff_def", skillName: "怨念の絶叫" },
+        { actionType: "heavy_magic", skillName: "ダーク・トルネード" },
+        { actionType: "summon_enemy", skillName: "ナイトメア・スウォーム" },
+        { actionType: "attack", skillName: "暗闇の帳" }
+    ],
+    "bird_type3": [ // 賢さ進化A
+        { actionType: "buff_atk", skillName: "フクロウの眼" },
+        { actionType: "heavy", skillName: "真空刃" },
+        { actionType: "debuff_def", skillName: "暴風雨の予測" },
+        { actionType: "magic_all", skillName: "サイクロン" },
+        { actionType: "heavy_magic", skillName: "賢鳥の裁き" },
+        { actionType: "attack", skillName: "マジックフェザー" }
+    ],
+    "bird_type3_2": [ // 賢さ進化B
+        { actionType: "buff_atk", skillName: "鷹の目" },
+        { actionType: "heavy", skillName: "ウインドカッター" },
+        { actionType: "debuff_def", skillName: "天候支配" },
+        { actionType: "magic_all", skillName: "エアロガ" },
+        { actionType: "heavy_magic", skillName: "知恵の風" },
+        { actionType: "attack", skillName: "狙撃" }
+    ],
+    "bird_type3_3": [ // 賢さ2段
+        { actionType: "buff_atk", skillName: "神鳥の千里眼" },
+        { actionType: "heavy", skillName: "次元斬" },
+        { actionType: "debuff_def", skillName: "気象コントロール" },
+        { actionType: "magic_all", skillName: "ギガ・サイクロン" },
+        { actionType: "heavy_magic", skillName: "セイント・ジャッジメント" },
+        { actionType: "attack", skillName: "ホーリーフェザー" }
+    ],
+
+    // ------------------------------------------
+    // ⚙️ 機械（Machine）ツリー 全11種
+    // ------------------------------------------
+    "machine_type2": [ // 美しさ進化
+        { actionType: "debuff_def", skillName: "タイムイリュージョン" },
+        { actionType: "magic_all", skillName: "クロックワークマジック" },
+        { actionType: "buff_def", skillName: "美しき歯車" },
+        { actionType: "heavy", skillName: "黄金のドリル" },
+        { actionType: "heal_self", skillName: "自動修復" },
+        { actionType: "attack", skillName: "シャイニングギア" }
+    ],
+    "machine_type2_2": [ // 美しさ2段
+        { actionType: "debuff_def", skillName: "クロノス・ゲート" },
+        { actionType: "magic_all", skillName: "ギア・オブ・ヘブン" },
+        { actionType: "buff_def", skillName: "プラチナシールド" },
+        { actionType: "heavy", skillName: "ゴッド・ドリル" },
+        { actionType: "heal_self", skillName: "完全自動修復" },
+        { actionType: "attack", skillName: "ルミナス・ドライブ" }
+    ],
+    "machine_type4": [ // 活力進化
+        { actionType: "heavy", skillName: "ロードローラー" },
+        { actionType: "heavy", skillName: "パイルバンカー" },
+        { actionType: "buff_atk", skillName: "限界突破モーター" },
+        { actionType: "magic_all", skillName: "大回転アタック" },
+        { actionType: "heal_self", skillName: "オイル補給" },
+        { actionType: "attack", skillName: "ギガントプレス" }
+    ],
+    "machine_type4_2": [ // 活力2段
+        { actionType: "heavy", skillName: "メガ・ロードローラー" },
+        { actionType: "heavy", skillName: "スーパーパイルバンカー" },
+        { actionType: "buff_atk", skillName: "マックス・ブースト" },
+        { actionType: "magic_all", skillName: "超高速スピン" },
+        { actionType: "heal_self", skillName: "ターボチャージ" },
+        { actionType: "attack", skillName: "メテオスタンプ" }
+    ],
+    "machine_type5": [ // 老化進化
+        { actionType: "magic_all", skillName: "オイル漏れ引火" },
+        { actionType: "heavy", skillName: "ガラクタミサイル" },
+        { actionType: "debuff_def", skillName: "暴走ショート" },
+        { actionType: "sleep", skillName: "バッテリー切れ" },
+        { actionType: "heavy_magic", skillName: "錆びたブレード" },
+        { actionType: "attack", skillName: "異音" }
+    ],
+    "machine_type5_2": [ // 老化2段A
+        { actionType: "magic_all", skillName: "大爆発" },
+        { actionType: "heavy", skillName: "ジャンクバズーカ" },
+        { actionType: "debuff_def", skillName: "メルトダウン" },
+        { actionType: "sleep", skillName: "永遠のシャットダウン" },
+        { actionType: "heavy_magic", skillName: "アンティーク・ソード" },
+        { actionType: "attack", skillName: "ノイズ・キャノン" }
+    ],
+    "machine_type5_3": [ // 老化2段B
+        { actionType: "debuff_def", skillName: "ヘドロ散布" },
+        { actionType: "heavy", skillName: "廃棄ミサイル" },
+        { actionType: "magic_all", skillName: "回路発火" },
+        { actionType: "sleep", skillName: "スリープモード" },
+        { actionType: "heavy_magic", skillName: "錆びた大槌" },
+        { actionType: "attack", skillName: "スクラップ・ストーム" }
+    ],
+    "machine_type1": [ // 闇落ち進化
+        { actionType: "buff_atk", skillName: "キリングモード" },
+        { actionType: "heavy", skillName: "死のカウントダウン" },
+        { actionType: "magic_all", skillName: "スクラップ弾" },
+        { actionType: "debuff_def", skillName: "恐怖の駆動音" },
+        { actionType: "heavy_magic", skillName: "デストロイビーム" },
+        { actionType: "attack", skillName: "キラーソー" }
+    ],
+    "machine_type1_2": [ // 闇落ち2段
+        { actionType: "buff_atk", skillName: "ジェノサイドモード" },
+        { actionType: "heavy", skillName: "終焉のタイマー" },
+        { actionType: "magic_all", skillName: "デッドリー・マイン" },
+        { actionType: "debuff_def", skillName: "絶望のサイレン" },
+        { actionType: "heavy_magic", skillName: "サテライトキャノン" },
+        { actionType: "attack", skillName: "ヘル・カッター" }
+    ],
+    "machine_type3": [ // 賢さ進化
+        { actionType: "debuff_def", skillName: "ハッキング" },
+        { actionType: "magic_all", skillName: "演算完了・殲滅" },
+        { actionType: "buff_def", skillName: "量子バリア" },
+        { actionType: "heavy_magic", skillName: "プラズマ砲" },
+        { actionType: "buff_atk", skillName: "最適化" },
+        { actionType: "attack", skillName: "レーザーグリッド" }
+    ],
+    "machine_type3_2": [ // 賢さ2段
+        { actionType: "debuff_def", skillName: "システム掌握" },
+        { actionType: "magic_all", skillName: "オメガ・デストロイ" },
+        { actionType: "buff_def", skillName: "アブソリュート・シールド" },
+        { actionType: "heavy_magic", skillName: "反物質砲" },
+        { actionType: "buff_atk", skillName: "オーバークロック" },
+        { actionType: "attack", skillName: "マトリックス・レイ" }
+    ]
+};
+
 // ★修正：全11種族の専用二つ名と基礎ステータス（speed追加）
 window.ARENA_ENEMIES = {
     "robot": { name: "試作決戦兵器プロト・ロボ", hp: 150, atk: 25, def: 10, speed: 20, spriteKey: "arena_robot", type: "robot" },
@@ -50,6 +698,56 @@ window.ARENA_ENEMIES = {
     "spirit": { name: "怒れる森の精霊", hp: 160, atk: 20, def: 15, speed: 35, spriteKey: "arena_spirit", type: "spirit" },
     "beetle": { name: "鉄壁のアーマービートル", hp: 220, atk: 25, def: 25, speed: 10, spriteKey: "arena_beetle", type: "beetle" }
 };
+
+// ★進化系のエネミーデータをツリーから自動生成して追加登録する
+if (typeof evolutionRequirements !== 'undefined') {
+    let tier0 = ["robot", "ghost", "balloon", "stone", "machine", "bird", "dragon", "seed", "magician", "spirit", "beetle"];
+    
+    tier0.forEach(baseKey => {
+        let baseStats = window.ARENA_ENEMIES[baseKey];
+        if (!baseStats || !evolutionRequirements[baseKey]) return;
+        
+        // Tier 1 の生成
+        evolutionRequirements[baseKey].forEach(evo => {
+            let bonusHp = evo.req.power ? 50 : 0;
+            let bonusAtk = (evo.req.power || evo.req.dark) ? 10 : 0;
+            let bonusDef = evo.req.beauty ? 10 : 0;
+            let bonusSpd = evo.req.intel ? 10 : (evo.req.old ? -5 : 0);
+
+            window.ARENA_ENEMIES[evo.next] = {
+                name: `【${evo.name}】${baseStats.name}`, 
+                hp: Math.floor(baseStats.hp * 1.5) + bonusHp,
+                atk: Math.floor(baseStats.atk * 1.5) + bonusAtk,
+                def: Math.floor(baseStats.def * 1.5) + bonusDef,
+                speed: Math.max(5, Math.floor(baseStats.speed * 1.5) + bonusSpd),
+                spriteKey: window.DUNGEON_SPRITES[`arena_${evo.next}`] ? `arena_${evo.next}` : baseStats.spriteKey,
+                type: evo.next,
+                evoName: evo.name // ★行動パターン分岐用に記憶
+            };
+
+            // Tier 2 の生成
+            if (evolutionRequirements[evo.next]) {
+                evolutionRequirements[evo.next].forEach(evo2 => {
+                    let bonusHp2 = evo2.req.power ? 100 : 0;
+                    let bonusAtk2 = (evo2.req.power || evo2.req.dark) ? 20 : 0;
+                    let bonusDef2 = evo2.req.beauty ? 20 : 0;
+                    let bonusSpd2 = evo2.req.intel ? 20 : (evo2.req.old ? -10 : 0);
+
+                    window.ARENA_ENEMIES[evo2.next] = {
+                        name: `【${evo2.name}】${baseStats.name}`, 
+                        hp: Math.floor(baseStats.hp * 2.5) + bonusHp + bonusHp2,
+                        atk: Math.floor(baseStats.atk * 2.5) + bonusAtk + bonusAtk2,
+                        def: Math.floor(baseStats.def * 2.5) + bonusDef + bonusDef2,
+                        speed: Math.max(5, Math.floor(baseStats.speed * 2.5) + bonusSpd + bonusSpd2),
+                        spriteKey: window.DUNGEON_SPRITES[`arena_${evo2.next}`] ? `arena_${evo2.next}` : baseStats.spriteKey,
+                        type: evo2.next,
+                        evoName: evo2.name // ★行動パターン分岐用に記憶
+                    };
+                });
+            }
+        });
+    });
+}
 
 // ★すべての新コマンド・陣形・召喚スキルを登録
 window.ARENA_SKILLS = {
@@ -221,18 +919,43 @@ window.commitArenaBattle = function() {
         if (defeated.length === 0) defeated = ['robot']; // 万が一のセーフティ
         bQueue = shuffle(defeated);
     } 
-    // 通常エンドレスの場合は、今まで通り図鑑から出現させる
+    // 通常エンドレスの場合は、進化ツリーを解析して段階的に出現させる
     else {
         let dTypes = window.aiPet.discoveredMonsters || [];
-        let allBases = ["robot", "ghost", "balloon", "stone", "machine", "bird", "dragon", "seed", "magician", "spirit", "beetle"];
-        let myBases = dTypes.filter(t => allBases.includes(t));
-        let myEvos = dTypes.filter(t => t.includes('_'));
-        
+        let tier0 = ["robot", "ghost", "balloon", "stone", "machine", "bird", "dragon", "seed", "magician", "spirit", "beetle"];
+        let tier1 = []; let tier2 = [];
+
+        // 進化ツリーから正確に1進化、2進化のリストを作成
+        if (typeof evolutionRequirements !== 'undefined') {
+            tier0.forEach(base => {
+                if (evolutionRequirements[base]) {
+                    evolutionRequirements[base].forEach(evo => {
+                        tier1.push(evo.next);
+                        if (evolutionRequirements[evo.next]) {
+                            evolutionRequirements[evo.next].forEach(evo2 => tier2.push(evo2.next));
+                        }
+                    });
+                }
+            });
+        }
+
+        let myBases = dTypes.filter(t => tier0.includes(t));
+        let myEvo1 = dTypes.filter(t => tier1.includes(t));
+        let myEvo2 = dTypes.filter(t => tier2.includes(t));
+
         bQueue = shuffle(myBases);
-        if (myBases.length >= 11) bQueue = bQueue.concat(shuffle(myEvos));
+        // 基本種が全種(11種)揃ったら1進化を開放
+        if (myBases.length >= tier0.length && myEvo1.length > 0) {
+            bQueue = bQueue.concat(shuffle(myEvo1));
+            // 1進化が全種解放されたら2進化を開放
+            if (myEvo1.length >= tier1.length && myEvo2.length > 0) {
+                bQueue = bQueue.concat(shuffle(myEvo2));
+            }
+        }
+
         if (bQueue.length === 0) bQueue = ['robot']; 
     }
-    
+
     window.ARENA_STATE.bossQueue = bQueue;
     window.ARENA_STATE.bossesDefeated = 0;
     
@@ -328,7 +1051,7 @@ window.removeArenaPartyMember = function(index) {
 // ==========================================
 window.startArenaBattle = function() {
     document.getElementById('arena-reception-ui').style.display = 'none';
-    
+
     // ★追加: デバッグ用のWAVE指定があればそれを使い、無ければ1にする
     let startWave = window.currentArenaWave || 1;
     window.ARENA_STATE.wave = startWave; 
@@ -1160,16 +1883,27 @@ window.processArenaTurn = async function() {
                 
                 let r = Math.random();
                 if (e.isBoss) {
-                    const bossPatterns = [
-                        { actionType: "buff_atk", skillName: "王の威圧" }, 
-                        { actionType: "attack", skillName: "なぎ払い" }, 
-                        { actionType: "heavy", skillName: "粉砕撃" }, 
-                        { actionType: "magic_all", skillName: "滅びの光" }, 
-                        { actionType: "buff_def", skillName: "絶対防壁" }, 
-                        { actionType: "heavy_magic", skillName: "裁きの雷" } 
+                    // 万が一辞書にない種族が来た場合のフォールバック（保険）
+                    let fallbackPatterns = [
+                        { actionType: "buff_atk", skillName: "威圧" },
+                        { actionType: "attack", skillName: "強撃" },
+                        { actionType: "heavy", skillName: "粉砕" },
+                        { actionType: "magic_all", skillName: "魔力解放" },
+                        { actionType: "buff_def", skillName: "防壁" },
+                        { actionType: "heavy_magic", skillName: "裁き" }
                     ];
+
+                    // 自分の種族ID（robot_type1_2 など）に完全一致するパターンを辞書から取得
+                    let targetKey = e.bossTypeKey || e.type || "";
+                    let bossPatterns = (window.ARENA_BOSS_PATTERNS && window.ARENA_BOSS_PATTERNS[targetKey]) 
+                                       ? window.ARENA_BOSS_PATTERNS[targetKey] 
+                                       : fallbackPatterns;
+
                     let pat = bossPatterns[e.patternStep % bossPatterns.length];
-                    e.patternStep++; actionType = pat.actionType; skillName = pat.skillName;
+                    e.patternStep++; 
+                    actionType = pat.actionType; 
+                    skillName = pat.skillName;
+
                 } else if (e.isFriend) {
                     let validWords = e.words && e.words.length > 0 ? [...e.words] : ["たたかう"];
                     let scoredSkills = validWords.map(w => {
