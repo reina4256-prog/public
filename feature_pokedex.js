@@ -388,38 +388,38 @@ function selectMonster(key) {
 
     const data = (typeof monsterBookData !== 'undefined' && monsterBookData[key]) ? monsterBookData[key] : { name: key, desc: "" };
 
-    if (pokedexState.mode === 'arena') {
-        let baseKey = key.split('_')[0];
-        let arenaData = window.ARENA_ENEMIES && window.ARENA_ENEMIES[key] ? window.ARENA_ENEMIES[key] : null;
-        
-        // ★ 新しく設定した「完全固有ボスネーム」を優先的に取得
-        let bossName = arenaData && arenaData.bossName ? arenaData.bossName : `【BOSS】巨魁なる${data.name}`;
-        
-        // ★ 名前を赤く光る大文字にして威厳を出す
-        if (nameEl) nameEl.innerHTML = `<span style="color:#ff5252; font-size:1.1em; text-shadow:0 0 5px rgba(255,0,0,0.5); font-weight:bold;">${bossName}</span>`;
-        
-        let arenaDesc = window.ARENA_BOSS_DESCRIPTIONS ? window.ARENA_BOSS_DESCRIPTIONS[baseKey] : "闘技場に君臨する恐るべきボスモンスター。";
-        if (key.includes('_')) arenaDesc = "過酷な闘いを経て異常な進化を遂げた姿。\n" + arenaDesc;
-        if (descEl) descEl.innerText = arenaDesc;
-    } else {
-        if (nameEl) nameEl.innerText = data.name;
-        if (descEl) descEl.innerText = data.desc;
-    }
+    if (pokedexState.mode === 'arena') {
+        let baseKey = key.split('_')[0];
+        let arenaData = window.ARENA_ENEMIES && window.ARENA_ENEMIES[key] ? window.ARENA_ENEMIES[key] : null;
+        
+        // ★ 新しく設定した「完全固有ボスネーム」を優先的に取得
+        let bossName = arenaData && arenaData.bossName ? arenaData.bossName : `【BOSS】巨魁なる${data.name}`;
+        
+        // ★ 名前を赤く光る大文字にして威厳を出す
+        if (nameEl) nameEl.innerHTML = `<span style="color:#ff5252; font-size:1.1em; text-shadow:0 0 5px rgba(255,0,0,0.5); font-weight:bold;">${bossName}</span>`;
+        
+        let arenaDesc = window.ARENA_BOSS_DESCRIPTIONS ? window.ARENA_BOSS_DESCRIPTIONS[baseKey] : "闘技場に君臨する恐るべきボスモンスター。";
+        if (key.includes('_')) arenaDesc = "過酷な闘いを経て異常な進化を遂げた姿。\n" + arenaDesc;
+        if (descEl) descEl.innerText = arenaDesc;
+    } else {
+        if (nameEl) nameEl.innerText = data.name;
+        if (descEl) descEl.innerText = data.desc;
+    }
 
-    if (unknownEl) unknownEl.style.display = 'none';
-    if (canvasEl) canvasEl.style.display = 'block';
+    if (unknownEl) unknownEl.style.display = 'none';
+    if (canvasEl) canvasEl.style.display = 'block';
 
-    if (actionListEl) {
-        actionListEl.innerHTML = "";
-        if (pokedexState.mode === 'arena') {
-            actionListEl.innerHTML = "<div style='color:#FF9800; font-size:12px; font-weight:bold; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px;'>▼ 危険行動パターン</div>";
-            
-            // ★ 複雑な分岐をやめ、先ほど作った全160種統合辞書（ARENA_BOSS_PATTERNS）から一発で取得する
-            let patterns = (window.ARENA_BOSS_PATTERNS && window.ARENA_BOSS_PATTERNS[key]) ? window.ARENA_BOSS_PATTERNS[key] : [];
-            
-            let skillHtml = patterns.map(p => `<span style="display:inline-block; background:#222; border:1px solid #ff5252; border-radius:4px; padding:3px 8px; margin:2px 4px 2px 0; font-size:11px; color:#fff; font-weight:bold; box-shadow:0 0 3px rgba(255,0,0,0.5);">${p.skillName}</span>`).join('');
-            actionListEl.innerHTML += `<div style="display:flex; flex-wrap:wrap;">${skillHtml}</div>`;
-        } else {
+    if (actionListEl) {
+        actionListEl.innerHTML = "";
+        if (pokedexState.mode === 'arena') {
+            actionListEl.innerHTML = "<div style='color:#FF9800; font-size:12px; font-weight:bold; margin-bottom:5px; border-bottom:1px solid #555; padding-bottom:3px;'>▼ 危険行動パターン</div>";
+            
+            // ★ 複雑な分岐をやめ、先ほど作った全160種統合辞書（ARENA_BOSS_PATTERNS）から一発で取得する
+            let patterns = (window.ARENA_BOSS_PATTERNS && window.ARENA_BOSS_PATTERNS[key]) ? window.ARENA_BOSS_PATTERNS[key] : [];
+            
+            let skillHtml = patterns.map(p => `<span style="display:inline-block; background:#222; border:1px solid #ff5252; border-radius:4px; padding:3px 8px; margin:2px 4px 2px 0; font-size:11px; color:#fff; font-weight:bold; box-shadow:0 0 3px rgba(255,0,0,0.5);">${p.skillName}</span>`).join('');
+            actionListEl.innerHTML += `<div style="display:flex; flex-wrap:wrap;">${skillHtml}</div>`;
+        } else {
             let conf = aiConfigs[key];
             if (conf && conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
                 conf = aiConfigs[conf.img];
@@ -597,12 +597,12 @@ function drawPokedexSpriteInternal(ctx, type, action, frameIdx, cx, cy) {
     }
 
     // --- 以下、育成モード（通常のドット絵アニメ）の描画 ---
-    let conf = aiConfigs[type];
-    if (!conf) return;
+    let conf = aiConfigs[type];
+    if (!conf) return;
 
-    if (conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
-        conf = aiConfigs[conf.img];
-    }
+    if (conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) {
+        conf = aiConfigs[conf.img];
+    }
 
     // 1. 描画すべき画像のキー（ファイル名のもと）を決定
     let imgKey = conf.img || type;

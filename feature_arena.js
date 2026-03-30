@@ -1550,15 +1550,157 @@ window.ARENA_STATE = {
 window.ARENA_RECEPTION_STATE = { party: [], available: [] };
 
 // ==========================================
-// 1. 受付画面
+// ★ ガンビット（作戦）システム用 データとロジック
+// ==========================================
+
+window.TACTIC_CONDITIONS = {
+    "always": "いつでも",
+    "hp_self_under_30": "自分のHPが30%以下",
+    "hp_self_under_50": "自分のHPが50%以下",
+    "hp_self_under_70": "自分のHPが70%以下",
+    "hp_ally_under_30": "味方の誰かのHPが30%以下",
+    "hp_ally_under_50": "味方の誰かのHPが50%以下",
+    "mp_self_under_30": "自分のMPが30%以下",
+    "enemy_count_2_over": "敵が2体以上いる",
+    "enemy_count_4_over": "敵が4体以上いる",
+    "enemy_more_than_ally": "敵の数が味方より多い",
+    "no_guest": "助っ人・援軍が誰もいない",
+    "is_front": "自分が前衛にいる",
+    "is_back": "自分が後衛にいる",
+    "no_buff_atk": "自分の攻撃力が上がっていない",
+    "no_shield": "自分に防壁がない",
+    "no_equip": "自分が武器を装備していない"
+};
+
+// ★修正: 覚えている言葉「だけ」を使って、デフォルト作戦を動的に生成する関数
+window.getDefaultTactics = function(words) {
+    let wList = Array.isArray(words) ? words : [];
+    let tactics = [
+        { name: "バランスよく", rules: [] },
+        { name: "ガンガンいこうぜ", rules: [] },
+        { name: "いのちをだいじに", rules: [] },
+        { name: "サポート頼む", rules: [] }
+    ];
+    if (wList.length === 0) return tactics; // 何も覚えていなければ空の作戦になる
+
+    // 覚えている言葉をカテゴリ分け
+    let attacks = wList.filter(w => window.ARENA_SKILLS[w] && ["attack", "heavy"].includes(window.ARENA_SKILLS[w].type));
+    let magics = wList.filter(w => window.ARENA_SKILLS[w] && ["magic", "heavy_magic", "magic_all"].includes(window.ARENA_SKILLS[w].type));
+    let heals = wList.filter(w => window.ARENA_SKILLS[w] && ["heal", "heal_self", "heal_all", "eat", "sleep"].includes(window.ARENA_SKILLS[w].type));
+    let buffs = wList.filter(w => window.ARENA_SKILLS[w] && ["buff", "defend", "equip"].includes(window.ARENA_SKILLS[w].type));
+    let supports = wList.filter(w => window.ARENA_SKILLS[w] && ["summon", "call_rescue", "build_hut", "build_bridge", "build_farm", "random_build", "explore", "fishing"].includes(window.ARENA_SKILLS[w].type));
+
+    // 各役割ごとの「一番手（使える技）」を決定
+    let basicAttack = attacks.length > 0 ? attacks[0] : (magics.length > 0 ? magics[0] : (supports.length > 0 ? supports[0] : wList[0]));
+    let bigAttack = magics.length > 0 ? magics[0] : basicAttack;
+    let healSkill = heals.length > 0 ? heals[0] : null;
+    let buffSkill = buffs.length > 0 ? buffs[0] : null;
+    let supportSkill = supports.length > 0 ? supports[0] : (buffs.length > 0 ? buffs[0] : null);
+
+    // バランスよく
+    if (healSkill) tactics[0].rules.push({ condition: "hp_self_under_50", action: healSkill });
+    if (basicAttack) tactics[0].rules.push({ condition: "always", action: basicAttack });
+
+    // ガンガンいこうぜ
+    if (bigAttack && bigAttack !== basicAttack) tactics[1].rules.push({ condition: "enemy_count_2_over", action: bigAttack });
+    if (basicAttack) tactics[1].rules.push({ condition: "always", action: basicAttack });
+
+    // いのちをだいじに
+    if (healSkill) tactics[2].rules.push({ condition: "hp_ally_under_50", action: healSkill });
+    if (buffSkill) tactics[2].rules.push({ condition: "no_shield", action: buffSkill });
+    if (basicAttack) tactics[2].rules.push({ condition: "always", action: basicAttack });
+
+    // サポート頼む
+    if (supportSkill) tactics[3].rules.push({ condition: "no_guest", action: supportSkill });
+    if (buffSkill) tactics[3].rules.push({ condition: "no_buff_atk", action: buffSkill });
+    if (basicAttack) tactics[3].rules.push({ condition: "always", action: basicAttack });
+
+    return tactics;
+};
+
+window.initTactics = function() {
+    if (!window.aiPet) return;
+    if (!window.aiPet.tactics || window.aiPet.tactics.length === 0) {
+        window.aiPet.tactics = [
+            { name: "マイ作戦1", rules: [{ condition: "always", action: "たたかう" }] },
+            { name: "マイ作戦2", rules: [{ condition: "always", action: "たたかう" }] },
+            { name: "マイ作戦3", rules: [{ condition: "always", action: "たたかう" }] }
+        ];
+    }
+};
+
+window.checkTacticCondition = function(cond, p, state) {
+    if (cond === "always") return true;
+    let myHpRate = p.hp / p.maxHp;
+    let myMpRate = (p.maxMp > 0) ? (p.mp / p.maxMp) : 0;
+    let aliveParty = state.party.filter(pt => pt.hp > 0 && (pt.exploreTimer||0) === 0);
+    let minAllyHpRate = aliveParty.length > 0 ? Math.min(...aliveParty.map(pt => pt.hp / pt.maxHp)) : 1.0;
+    let aliveEnemies = state.enemies.filter(e => e.hp > 0);
+    let aliveGuests = state.guests.filter(g => g.hp > 0);
+
+    switch(cond) {
+        case "hp_self_under_30": return myHpRate <= 0.3;
+        case "hp_self_under_50": return myHpRate <= 0.5;
+        case "hp_self_under_70": return myHpRate <= 0.7;
+        case "hp_ally_under_30": return minAllyHpRate <= 0.3;
+        case "hp_ally_under_50": return minAllyHpRate <= 0.5;
+        case "mp_self_under_30": return myMpRate <= 0.3;
+        case "enemy_count_2_over": return aliveEnemies.length >= 2;
+        case "enemy_count_4_over": return aliveEnemies.length >= 4;
+        case "enemy_more_than_ally": return aliveEnemies.length > (aliveParty.length + aliveGuests.length);
+        case "no_guest": return aliveGuests.length === 0;
+        case "is_front": return p.row === 'front';
+        case "is_back": return p.row === 'back';
+        case "no_buff_atk": return (p.buffAtk || 1.0) <= 1.0;
+        case "no_shield": return !p.shield;
+        case "no_equip": return !p.isEquipped;
+    }
+    return false;
+};
+
+// 失敗行動の決定（性格依存）
+window.getFailureAction = function(p) {
+    let stats = { intel: p.intel, power: p.atk, speed: p.speed, beauty: 10, mood: 50 }; 
+    let personality = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(stats) : "普通";
+    let words = p.words || [];
+    
+    let isAggressive = ["熱血", "ストイック"].includes(personality);
+    let isDefensive = ["学者肌", "完璧超人"].includes(personality);
+    let isPanic = ["せっかち", "韋駄天"].includes(personality);
+    let isShowy = ["芸術家", "アイドル"].includes(personality);
+    
+    let chosenSkill = null;
+    let logMsg = `${p.name} はぼーっとしている...`;
+
+    // 覚えている言葉の中から性格に合ったものを強引に使う
+    if (isAggressive) {
+        let atks = words.filter(w => window.ARENA_SKILLS[w] && ["attack", "heavy", "magic", "heavy_magic", "magic_all"].includes(window.ARENA_SKILLS[w].type));
+        if (atks.length > 0) chosenSkill = atks[Math.floor(Math.random() * atks.length)];
+        else chosenSkill = "たたかう";
+    } else if (isDefensive) {
+        let defs = words.filter(w => window.ARENA_SKILLS[w] && ["defend", "buff", "heal", "heal_ally", "heal_all", "build_hut", "build_bridge"].includes(window.ARENA_SKILLS[w].type));
+        if (defs.length > 0) chosenSkill = defs[Math.floor(Math.random() * defs.length)];
+        else chosenSkill = "たたかう";
+    } else if (isPanic) {
+        if (words.length > 0) chosenSkill = words[Math.floor(Math.random() * words.length)];
+        else chosenSkill = "たたかう";
+    } else if (isShowy) {
+        logMsg = `${p.name} は華麗なポーズを決めた！✨（効果なし）`;
+    } else if (personality === "憂鬱") {
+        logMsg = `${p.name} はため息をついている...`;
+    }
+
+    return { skillName: chosenSkill, log: logMsg };
+};
+
+// ==========================================
+// 1. 受付画面 ＆ ガンビットエディタ
 // ==========================================
 window.openArenaReception = function() {
-    // ▼▼▼ 追加：城に入った時のカードアンロック ▼▼▼
-    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') {
-        window.triggerTCGUnlock('visit_castle', window.aiPet.generation);
-    }
-    // ▲▲▲ 追加おわり ▲▲▲
+    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') window.triggerTCGUnlock('visit_castle', window.aiPet.generation);
+    window.initTactics();
     if (typeof window.ARENA_RECEPTION_STATE === 'undefined' || !window.ARENA_RECEPTION_STATE) window.ARENA_RECEPTION_STATE = { party: [], available: [] };
+    
     const encounterUi = document.getElementById('encounterOverlay'); if (encounterUi) encounterUi.classList.remove('active');
     const statusUi = document.getElementById('statusOverlay'); if (statusUi) statusUi.classList.remove('active');
 
@@ -1569,14 +1711,13 @@ window.openArenaReception = function() {
         document.body.appendChild(ui);
     }
     
-    let pwr = Math.floor(window.aiPet.stats.power || 10); let int = Math.floor(window.aiPet.stats.intel || 10); 
-    let spd = Math.floor(window.aiPet.stats.speed || 10); // ★追加
+    let pwr = Math.floor(window.aiPet.stats.power || 10); let int = Math.floor(window.aiPet.stats.intel || 10); let spd = Math.floor(window.aiPet.stats.speed || 10);
     window.ARENA_RECEPTION_STATE.party = [{
         id: "me", name: window.aiPet.name || "現在のAI", skin: window.aiPet.currentSkin || 'robot',
         hp: Math.floor(100 + (pwr * 2)), maxHp: Math.floor(100 + (pwr * 2)), mp: Math.floor(int * 2), maxMp: Math.floor(int * 2),
-        atk: Math.floor(10 + pwr * 0.5), def: Math.floor(5 + pwr * 0.2), intel: int, speed: spd, // ★speed追加
+        atk: Math.floor(10 + pwr * 0.5), def: Math.floor(5 + pwr * 0.2), intel: int, speed: spd, 
         words: window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? [...window.aiPet.apprentice.learnedWords] : [],
-        isMe: true
+        isMe: true, tacticType: "custom", tacticIndex: 0
     }];
 
     window.ARENA_RECEPTION_STATE.available = [];
@@ -1586,39 +1727,50 @@ window.openArenaReception = function() {
     discovered.forEach(skinKey => {
         if (skinKey === window.aiPet.currentSkin) return;
         let sName = (typeof monsterBookData !== 'undefined' && monsterBookData[skinKey]) ? monsterBookData[skinKey].name : skinKey;
-        let sPwr = Math.floor(Math.max(5, pwr - 5)); let sInt = Math.floor(Math.max(5, int - 5)); let sSpd = Math.floor(Math.max(5, spd - 5)); // ★追加
-        let sWords = ["たたかう", "かいふく", ["ほのお", "まもる", "いのる"][Math.floor(Math.random() * 3)]];
+        let sPwr = Math.floor(Math.max(5, pwr - 5)); let sInt = Math.floor(Math.max(5, int - 5)); let sSpd = Math.floor(Math.max(5, spd - 5));
+        let sWords = []; // デフォルトは何も覚えていない
         if (savedStats[skinKey]) {
-            if (savedStats[skinKey].stats) { 
-                sPwr = Math.floor(savedStats[skinKey].stats.power || sPwr); 
-                sInt = Math.floor(savedStats[skinKey].stats.intel || sInt); 
-                sSpd = Math.floor(savedStats[skinKey].stats.speed || sSpd); // ★追加
-            }
+            if (savedStats[skinKey].stats) { sPwr = Math.floor(savedStats[skinKey].stats.power || sPwr); sInt = Math.floor(savedStats[skinKey].stats.intel || sInt); sSpd = Math.floor(savedStats[skinKey].stats.speed || sSpd); }
             if (savedStats[skinKey].learnedWords && savedStats[skinKey].learnedWords.length > 0) sWords = [...savedStats[skinKey].learnedWords];
         }
         window.ARENA_RECEPTION_STATE.available.push({
             id: "past_" + pastId++, name: `幻影の${sName}`, skin: skinKey, hp: Math.floor(80 + sPwr), maxHp: Math.floor(80 + sPwr), mp: Math.floor(sInt * 2), maxMp: Math.floor(sInt * 2),
-            atk: Math.floor(8 + sPwr * 0.4), def: 5, intel: sInt, speed: sSpd, words: sWords, isMe: false // ★speed追加
+            atk: Math.floor(8 + sPwr * 0.4), def: 5, intel: sInt, speed: sSpd, words: sWords, isMe: false, tacticType: "default", tacticIndex: 0
         });
     });
-    if (typeof window.renderArenaReception === 'function') window.renderArenaReception();
+    window.renderArenaReception();
+};
+
+window.changePartyTactic = function(e, idx) {
+    let val = e.target.value.split('_');
+    window.ARENA_RECEPTION_STATE.party[idx].tacticType = val[0];
+    window.ARENA_RECEPTION_STATE.party[idx].tacticIndex = parseInt(val[1]);
 };
 
 window.renderArenaReception = function() {
     let ui = document.getElementById('arena-reception-ui'); if (!ui) return;
     let rState = window.ARENA_RECEPTION_STATE;
-    
-    // ★追加：選択中のモードを状態として保持する（未定義ならnormal）
     if (!rState.selectedMode) rState.selectedMode = 'normal';
 
-    let partyHtml = rState.party.map((p, index) => `
-        <div onclick="window.removeArenaPartyMember(${index})" style="background:#222; border:2px solid ${p.isMe ? '#4CAF50' : '#FFD700'}; border-radius:8px; padding:10px; width:150px; text-align:center; cursor:${p.isMe ? 'default' : 'pointer'}; position:relative;">
+    let partyHtml = rState.party.map((p, index) => {
+        let pDefTactics = window.getDefaultTactics(p.words);
+        let defOpts = pDefTactics.map((t, i) => `<option value="default_${i}" ${p.tacticType==='default' && p.tacticIndex===i ? 'selected' : ''}>[基本] ${t.name}</option>`).join('');
+        let cusOpts = p.isMe ? window.aiPet.tactics.map((t, i) => `<option value="custom_${i}" ${p.tacticType==='custom' && p.tacticIndex===i ? 'selected' : ''}>[マイ] ${t.name}</option>`).join('') : '';
+        let editBtn = `<button onclick="event.stopPropagation(); window.openTacticEditor();" style="background:#2196F3; color:#fff; border:none; border-radius:4px; font-size:10px; padding:4px 5px; cursor:pointer; margin-top:5px; width:100%;">⚙️ ガンビット作戦を編集・確認</button>`;
+
+        return `
+        <div onclick="window.removeArenaPartyMember(${index})" style="background:#222; border:2px solid ${p.isMe ? '#4CAF50' : '#FFD700'}; border-radius:8px; padding:10px; width:160px; text-align:center; cursor:${p.isMe ? 'default' : 'pointer'}; position:relative;">
             <div style="font-size:16px; color:${p.isMe ? '#4CAF50' : '#FFD700'}; font-weight:bold; margin-bottom:5px;">${p.name}</div>
             <div style="font-size:12px; color:#aaa;">HP:${p.hp} / MP:${p.mp}</div>
+            <select onchange="window.changePartyTactic(event, ${index})" onclick="event.stopPropagation()" style="margin-top:8px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; font-size:11px; padding:4px; width:100%;">
+                ${defOpts}${cusOpts}
+            </select>
+            ${editBtn}
             ${!p.isMe ? `<div style="position:absolute; top:-10px; right:-10px; background:red; color:white; border-radius:50%; width:20px; height:20px; font-weight:bold; line-height:20px;">×</div>` : ''}
         </div>
-    `).join('');
-    for(let i=rState.party.length; i<4; i++) partyHtml += `<div style="background:#111; border:2px dashed #555; border-radius:8px; padding:10px; width:150px; text-align:center; display:flex; align-items:center; justify-content:center; color:#555;">EMPTY</div>`;
+        `;
+    }).join('');
+    for(let i=rState.party.length; i<4; i++) partyHtml += `<div style="background:#111; border:2px dashed #555; border-radius:8px; padding:10px; width:160px; text-align:center; display:flex; align-items:center; justify-content:center; color:#555;">EMPTY</div>`;
     
     let availableHtml = rState.available.length > 0 ? rState.available.map((p, index) => `
         <div onclick="window.addArenaPartyMember(${index})" style="background:#1a1a1a; border:1px solid #444; border-radius:8px; padding:10px; width:140px; text-align:center; cursor:pointer;">
@@ -1629,37 +1781,21 @@ window.renderArenaReception = function() {
     `).join('') : `<div style="color:#888; text-align:center; width:100%; padding:20px;">図鑑に登録された仲間が見つかりません</div>`;
 
     let highestWave = window.aiPet.arenaHighestWave || 1;
-    // ★修正：ボス討伐履歴がある場合も解放条件に含める！
     let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0); 
 
-    // ★修正：onchangeイベントで選択状態を記憶させ、再描画時にも復元する
     ui.innerHTML = `
         <h1 style="color:#ff5252; font-size:36px; margin-top:30px; text-shadow: 0 0 10px red;">⚔️ 闘技場 受付 ⚔️</h1>
         <p style="font-size:14px; color:#ccc; margin-bottom:10px;">全滅すれば寿命が削られるデスマッチ...。挑む覚悟はあるか？</p>
         
         <div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;">
             <span style="color:#FFD700; font-weight:bold;">挑戦モード:</span>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;">
-                <input type="radio" name="arenaMode" value="normal" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'normal' ? 'checked' : ''}> 通常エンドレス
-            </label>
-            ${bossUnlocked ? `
-                <label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#ff5252;">
-                    <input type="radio" name="arenaMode" value="boss" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'boss' ? 'checked' : ''}> ボスラッシュ
-                </label>
-                <label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#4fc3f7;">
-                    <input type="radio" name="arenaMode" value="friend" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'friend' ? 'checked' : ''}> フレンド(幻影)バトル
-                </label>
-            ` : `<span style="color:#666; font-size:12px;">(WAVE 50突破で新モード解放...)</span>`}
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="radio" name="arenaMode" value="normal" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'normal' ? 'checked' : ''}> 通常エンドレス</label>
+            ${bossUnlocked ? `<label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#ff5252;"><input type="radio" name="arenaMode" value="boss" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'boss' ? 'checked' : ''}> ボスラッシュ</label><label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#4fc3f7;"><input type="radio" name="arenaMode" value="friend" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'friend' ? 'checked' : ''}> フレンド(幻影)バトル</label>` : `<span style="color:#666; font-size:12px;">(WAVE 50突破で解放)</span>`}
         </div>
 
-        ${rState.selectedMode !== 'friend' ? `
-        <div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;">
-            <span style="color:#FFD700; font-weight:bold;">開始WAVE:</span>
-            <input type="number" id="arena-start-wave" min="1" max="${highestWave}" value="${highestWave}" style="width:80px; padding:5px; font-size:16px; background:#222; color:#fff; border:1px solid #444; border-radius:4px; text-align:center; font-weight:bold;">
-            <span style="font-size:12px; color:#aaa;">(最高到達: ${highestWave}WAVE)</span>
-        </div>` : ''}
+        ${rState.selectedMode !== 'friend' ? `<div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;"><span style="color:#FFD700; font-weight:bold;">開始WAVE:</span><input type="number" id="arena-start-wave" min="1" max="${highestWave}" value="${highestWave}" style="width:80px; padding:5px; font-size:16px; background:#222; color:#fff; border:1px solid #444; border-radius:4px; text-align:center; font-weight:bold;"><span style="font-size:12px; color:#aaa;">(最高到達: ${highestWave}WAVE)</span></div>` : ''}
 
-        <div style="display:flex; width:90%; max-width:900px; gap:20px; margin-bottom:30px;">
+        <div style="display:flex; width:95%; max-width:1000px; gap:20px; margin-bottom:30px;">
             <div style="flex:1; background:rgba(0,0,0,0.5); padding:20px; border-radius:12px; border:2px solid #555;"><div style="font-size:18px; color:#4fc3f7; margin-bottom:15px; font-weight:bold; text-align:center;">▼ 出撃パーティ (最大4人)</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">${partyHtml}</div></div>
             <div style="flex:1; background:rgba(0,0,0,0.5); padding:20px; border-radius:12px; border:2px solid #555; max-height: 300px; overflow-y:auto;"><div style="font-size:18px; color:#FFC107; margin-bottom:15px; font-weight:bold; text-align:center;">▼ 図鑑の仲間たち</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">${availableHtml}</div></div>
         </div>
@@ -1669,6 +1805,145 @@ window.renderArenaReception = function() {
         </div>
     `;
     ui.style.display = 'flex';
+};
+
+window.openTacticEditor = function() {
+    let ui = document.getElementById('tactic-editor-ui');
+    if (!ui) {
+        ui = document.createElement('div'); ui.id = 'tactic-editor-ui';
+        ui.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,5,10,0.95); z-index: 55000; display: flex; flex-direction: column; align-items: center; color: white; font-family: sans-serif; overflow-y: auto; padding:40px; box-sizing:border-box;`;
+        document.body.appendChild(ui);
+    }
+    window.EDITOR_TACTIC_TYPE = 'default';
+    window.EDITOR_TACTIC_INDEX = 0;
+    window.renderTacticEditor();
+};
+
+window.copyTacticToCustom = function(defaultIdx) {
+    let targetIdx = prompt("コピー先のマイ作戦番号を入力してください (1〜3)", "1");
+    let destIdx = parseInt(targetIdx) - 1;
+    if (isNaN(destIdx) || destIdx < 0 || destIdx > 2) { alert("キャンセルしました。"); return; }
+    
+    let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    let src = window.getDefaultTactics(learnedWords)[defaultIdx];
+    window.aiPet.tactics[destIdx].rules = JSON.parse(JSON.stringify(src.rules));
+    window.EDITOR_TACTIC_TYPE = 'custom';
+    window.EDITOR_TACTIC_INDEX = destIdx;
+    window.renderTacticEditor();
+    alert(`「${src.name}」のルールを「${window.aiPet.tactics[destIdx].name}」にコピーしました！`);
+};
+
+window.renderTacticEditor = function() {
+    let ui = document.getElementById('tactic-editor-ui'); if (!ui) return;
+    let tType = window.EDITOR_TACTIC_TYPE;
+    let idx = window.EDITOR_TACTIC_INDEX;
+    let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? [...window.aiPet.apprentice.learnedWords] : [];
+    
+    let defTactics = window.getDefaultTactics(learnedWords);
+    let currentTactic = tType === 'default' ? defTactics[idx] : window.aiPet.tactics[idx];
+    let isReadOnly = (tType === 'default');
+
+    let defTabs = defTactics.map((t, i) => `<div onclick="window.EDITOR_TACTIC_TYPE='default'; window.EDITOR_TACTIC_INDEX=${i}; window.renderTacticEditor();" style="padding:10px 15px; background:${tType==='default'&&i===idx ? '#4CAF50' : '#2E7D32'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[基本] ${t.name}</div>`).join('');
+    let cusTabs = window.aiPet.tactics.map((t, i) => `<div onclick="window.EDITOR_TACTIC_TYPE='custom'; window.EDITOR_TACTIC_INDEX=${i}; window.renderTacticEditor();" style="padding:10px 15px; background:${tType==='custom'&&i===idx ? '#2196F3' : '#1565C0'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[マイ] ${t.name}</div>`).join('');
+
+    let rulesHtml = currentTactic.rules.map((rule, rIdx) => {
+        let condOptions = Object.keys(window.TACTIC_CONDITIONS).map(k => `<option value="${k}" ${rule.condition === k ? 'selected' : ''}>${window.TACTIC_CONDITIONS[k]}</option>`).join('');
+        let actOptions = learnedWords.map(w => `<option value="${w}" ${rule.action === w ? 'selected' : ''}>${w}</option>`).join('');
+        
+        return `
+            <div style="display:flex; align-items:center; gap:10px; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
+                <div style="font-weight:bold; color:#FF9800; width:60px;">優先度 ${rIdx + 1}</div>
+                <div style="color:#aaa;">もし</div>
+                <select ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].rules[${rIdx}].condition = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:2;">${condOptions}</select>
+                <div style="color:#aaa;">なら</div>
+                <select ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].rules[${rIdx}].action = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1;">${isReadOnly ? `<option>${rule.action}</option>` : actOptions}</select>
+                ${!isReadOnly ? `<button onclick="window.aiPet.tactics[${idx}].rules.splice(${rIdx}, 1); window.renderTacticEditor();" style="background:#f44336; color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">削除</button>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    if (rulesHtml === '') rulesHtml = `<div style="text-align:center; color:#888; padding:20px;">ルールが設定されていません。</div>`;
+
+    ui.innerHTML = `
+        <h2 style="color:#4fc3f7; margin-bottom:20px;">⚙️ 作戦（ガンビット）エディタ</h2>
+        <div style="display:flex; justify-content:center; width:100%; max-width:900px;">
+            <div style="display:flex; margin-right:20px; border-bottom:2px solid #4CAF50;">${defTabs}</div>
+            <div style="display:flex; border-bottom:2px solid #2196F3;">${cusTabs}</div>
+        </div>
+        <div style="background:#111; padding:20px; width:100%; max-width:900px; border-radius:0 0 8px 8px; border:2px solid ${tType==='default' ? '#4CAF50' : '#2196F3'}; border-top:none; box-sizing:border-box;">
+            <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-weight:bold; color:${isReadOnly ? '#aaa' : '#fff'};">作戦名:</span>
+                    <input type="text" value="${currentTactic.name}" ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].name = this.value;" style="padding:5px; background:#222; color:#fff; border:1px solid #555; border-radius:4px; width:200px;">
+                </div>
+                ${isReadOnly ? `<button onclick="window.copyTacticToCustom(${idx})" style="background:#FF9800; color:#000; border:none; font-weight:bold; border-radius:4px; padding:8px 15px; cursor:pointer;">📥 この構成をマイ作戦にコピー</button>` : ''}
+            </div>
+            <div style="margin-bottom:20px;">
+                <p style="color:#aaa; font-size:12px; margin-bottom:10px;">※上にあるルールほど優先されます。設定したルールが多いほど、賢さが低いAIは混乱して作戦を失敗しやすくなります。</p>
+                ${rulesHtml}
+                ${!isReadOnly ? `<button onclick="window.aiPet.tactics[${idx}].rules.push({condition:'always', action: (window.aiPet.apprentice && window.aiPet.apprentice.learnedWords && window.aiPet.apprentice.learnedWords.length > 0 ? window.aiPet.apprentice.learnedWords[0] : '')}); window.renderTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:10px; cursor:pointer; width:100%; font-weight:bold; margin-top:10px;">＋ ルールを追加する</button>` : ''}
+            </div>
+        </div>
+        <button onclick="document.getElementById('tactic-editor-ui').style.display='none'; window.renderArenaReception();" style="margin-top:30px; padding:15px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #777; border-radius:8px; cursor:pointer;">閉じる</button>
+    `;
+};
+
+// ==========================================
+// ★ 追加：ガンビット＆チャット機能（送信処理）
+// ==========================================
+
+window.sendArenaChat = function() {
+    let input = document.getElementById('arena-chat-input');
+    if (!input || !input.value.trim()) return;
+    let text = input.value.trim();
+    
+    if (!window.arenaChatHistory) window.arenaChatHistory = [];
+    if (window.arenaChatHistory[window.arenaChatHistory.length - 1] !== text) window.arenaChatHistory.push(text);
+    window.arenaChatHistoryIndex = window.arenaChatHistory.length;
+    input.value = "";
+
+    window.ARENA_STATE.log.push(`<span style="color:#00BCD4; font-weight:bold;">🗣️ Player「${text}」</span>`);
+    
+    let p = window.ARENA_STATE.party.find(pt => pt.isMe);
+    if (!p) { window.renderArenaBattle(); return; }
+
+    let matchedType = null; let matchedIdx = -1; let matchedName = "";
+    
+    for (let i = 0; i < window.aiPet.tactics.length; i++) {
+        if (text.includes(window.aiPet.tactics[i].name)) { matchedType = 'custom'; matchedIdx = i; matchedName = window.aiPet.tactics[i].name; break; }
+    }
+    if (!matchedType) {
+        let defTactics = window.getDefaultTactics(p.words);
+        for (let i = 0; i < defTactics.length; i++) {
+            if (text.includes(defTactics[i].name)) { matchedType = 'default'; matchedIdx = i; matchedName = defTactics[i].name; break; }
+        }
+    }
+
+    if (matchedType) {
+        let cmdChance = Math.min(0.9, (p.intel || 10) / 100 + 0.3); 
+        if (Math.random() < cmdChance) {
+            p.tacticType = matchedType;
+            p.tacticIndex = matchedIdx;
+            window.ARENA_STATE.log.push(`<span style="color:#4CAF50; font-weight:bold;">💡 ${p.name} は指示に頷き、作戦を【${matchedName}】に切り替えた！</span>`);
+        } else {
+            window.ARENA_STATE.log.push(`<span style="color:#888;">💦 しかし ${p.name} は指示を聞き流した...</span>`);
+        }
+    } else {
+        window.ARENA_STATE.log.push(`<span style="color:#aaa;">（指示された作戦名が見つからないようだ...）</span>`);
+    }
+    window.renderArenaBattle();
+};
+
+window.handleArenaChatKey = function(e) {
+    if (!window.arenaChatHistory) return;
+    let input = document.getElementById('arena-chat-input');
+    if (e.key === 'Enter') window.sendArenaChat();
+    else if (e.key === 'ArrowUp') {
+        if (window.arenaChatHistoryIndex > 0) { window.arenaChatHistoryIndex--; input.value = window.arenaChatHistory[window.arenaChatHistoryIndex]; }
+    } else if (e.key === 'ArrowDown') {
+        if (window.arenaChatHistoryIndex < window.arenaChatHistory.length - 1) { window.arenaChatHistoryIndex++; input.value = window.arenaChatHistory[window.arenaChatHistoryIndex]; } 
+        else { window.arenaChatHistoryIndex = window.arenaChatHistory.length; input.value = ""; }
+    }
 };
 
 window.commitArenaBattle = function() {
@@ -1859,21 +2134,19 @@ window.startArenaWave = function() {
     state.autoMode = false;
     state.guests = [];
     state.farmTimer = 0;
+    state.globalTick = 0; // ★追加：ATB用の全体時間カウント
 
     state.party.forEach((p, idx) => {
         p.row = 'front'; p.col = idx;
         p.buffAtk = 1.0; p.buffIntel = 1.0; p.isEquipped = false;
         p.isSleeping = false; p.shield = false; p.exploreTimer = 0; p.hutHp = 0;
+        p.actionGauge = 0; // ★追加：初期ゲージは0
 
-        // ★追加：WAVE開始時に、受付時の「本来のステータス」を復元する（デバフの永続化を防ぐ）
+        // WAVE開始時に、受付時の「本来のステータス」を復元する
         let origP = window.ARENA_RECEPTION_STATE.party.find(rp => rp.id === p.id);
         if (origP) {
-            p.atk = origP.atk;
-            p.def = origP.def;
-            p.intel = origP.intel;
-            // 最大HP/MPも念のためリセット（現在HP/MPの減りはそのまま引き継ぐ）
-            p.maxHp = origP.maxHp;
-            p.maxMp = origP.maxMp;
+            p.atk = origP.atk; p.def = origP.def; p.intel = origP.intel; p.speed = origP.speed || p.speed;
+            p.maxHp = origP.maxHp; p.maxMp = origP.maxMp;
         }
     });
 
@@ -1892,7 +2165,7 @@ window.startArenaWave = function() {
     let hpMultiplier = 1 + (waveMinus * 0.3) + (Math.pow(1.04, waveMinus) - 1);
     let atkMultiplier = 1 + (waveMinus * 0.2) + (Math.pow(1.03, waveMinus) - 1);
     let defMultiplier = 1 + (waveMinus * 0.1) + (Math.pow(1.02, waveMinus) - 1);
-    let spdMultiplier = 1 + (waveMinus * 0.05); // ★追加（素早さもWAVEで微増）
+    let spdMultiplier = 1 + (waveMinus * 0.05);
 
     if (isBossWave) {
         let bossType = state.bossQueue[state.bossesDefeated] || state.bossQueue[state.bossQueue.length - 1];
@@ -1900,21 +2173,21 @@ window.startArenaWave = function() {
         if (!rKey) rKey = Object.keys(window.ARENA_ENEMIES).find(k => window.ARENA_ENEMIES[k].type === bossType.split('_')[0]) || 'robot';
         
         let base = window.ARENA_ENEMIES[rKey];
-        
-        let eHp = Math.floor(base.hp * hpMultiplier * 3 + 2000);
-        let eAtk = Math.floor(base.atk * atkMultiplier * 1.5 + 50);
-        let eDef = Math.floor(base.def * defMultiplier * 2);
-        let eSpd = Math.floor(base.speed * spdMultiplier * 1.5);
+        let eHp = Math.floor(base.hp * hpMultiplier * 3 + 2000);
+        let eAtk = Math.floor(base.atk * atkMultiplier * 1.5 + 50);
+        let eDef = Math.floor(base.def * defMultiplier * 2);
+        let eSpd = Math.floor(base.speed * spdMultiplier * 1.5);
 
-        // ★修正：辞書に bossName があればそれを使い、無ければ予備として巨魁なる〜を使う
-        let finalBossName = base.bossName ? base.bossName : `【BOSS】巨魁なる${base.name}`;
+        let finalBossName = base.bossName ? base.bossName : `【BOSS】巨魁なる${base.name}`;
 
-        state.enemies.push({
-            id: `e_boss`, baseName: base.name, name: finalBossName, spriteKey: base.spriteKey, type: base.type,
-            hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd,
-            buffAtk: 1.0, buffDef: 1.0, isBoss: true, patternStep: 0,
-            bossTypeKey: bossType, row: 'front' 
-        });
+        state.enemies.push({
+            id: `e_boss`, baseName: base.name, name: finalBossName, spriteKey: base.spriteKey, type: base.type,
+            hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd,
+            buffAtk: 1.0, buffDef: 1.0, isBoss: true, patternStep: 0,
+            bossTypeKey: bossType, row: 'front',
+            // ★致命的修正：敵にも「探検中ではない」「睡眠中ではない」「ゲージ0」を明示的にセット！
+            exploreTimer: 0, isSleeping: false, actionGauge: 0, hutHp: 0, shield: false
+        });
 
     } else if (state.mode === 'friend') {
         let friendParty = [];
@@ -1938,13 +2211,15 @@ window.startArenaWave = function() {
             let eHp = fp.maxHp || 100;
             let eAtk = fp.atk || 20;
             let eDef = fp.def || 10;
-            let eSpd = fp.speed || 10; // ★追加
+            let eSpd = fp.speed || 10;
 
             state.enemies.push({
                 id: `e_f_${i}`, baseName: fp.name, name: `幻影の${fp.name}`, spriteKey: spriteKey, type: aType, skin: fp.skin || 'robot',
-                hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd, // ★speed追加
+                hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd,
                 intel: fp.intel || 20, mp: fp.maxMp || 100, maxMp: fp.maxMp || 100, words: fp.words || ["たたかう"],
-                buffAtk: 1.0, buffDef: 1.0, isFriend: true, row: i < 2 ? 'front' : 'back', col: i % 2
+                buffAtk: 1.0, buffDef: 1.0, isFriend: true, row: i < 2 ? 'front' : 'back', col: i % 2,
+                // ★ここにも追加！
+                exploreTimer: 0, isSleeping: false, actionGauge: 0, hutHp: 0, shield: false
             });
         });
 
@@ -1970,7 +2245,7 @@ window.startArenaWave = function() {
             let eHp = Math.floor(base.hp * hpMultiplier + (state.wave * 10));
             let eAtk = Math.floor(base.atk * atkMultiplier + (state.wave * 2));
             let eDef = Math.floor(base.def * defMultiplier + (state.wave * 1));
-            let eSpd = Math.floor(base.speed * spdMultiplier); // ★追加
+            let eSpd = Math.floor(base.speed * spdMultiplier);
 
             state.enemySpawnCounts[base.name] = (state.enemySpawnCounts[base.name] || 0) + 1;
             let spawnIndex = state.enemySpawnCounts[base.name] - 1; 
@@ -1980,17 +2255,56 @@ window.startArenaWave = function() {
 
             state.enemies.push({
                 id: `e_${i}`, baseName: base.name, name: finalName, spriteKey: base.spriteKey, type: base.type,
-                hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd, buffAtk: 1.0, buffDef: 1.0, // ★speed追加
-                row: i < 4 ? 'front' : 'back' 
+                hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd, buffAtk: 1.0, buffDef: 1.0,
+                row: i < 4 ? 'front' : 'back',
+                // ★雑魚敵にも追加！
+                exploreTimer: 0, isSleeping: false, actionGauge: 0, hutHp: 0, shield: false
             });
         }
     }
     window.renderArenaBattle();
 };
 
+// ★追加：コマンドセット関数
+window.setArenaCommand = function(cmd) {
+    window.ARENA_STATE.currentCommand = cmd;
+    window.renderArenaBattle();
+};
+
 window.renderArenaBattle = function() {
     let ui = document.getElementById('arena-battle-ui'); if (!ui) return;
     let state = window.ARENA_STATE;
+
+    // ★究極修正：初回のみ画面の骨組みを作り、チャット入力欄を保護する
+    if (!document.getElementById('arena-field-area')) {
+        ui.innerHTML = `
+            <style>
+                @keyframes arena-blink { 0% { transform: scale(1); box-shadow: 0 0 10px #FF9800; filter: brightness(1.2); } 50% { transform: scale(0.95); box-shadow: 0 0 2px #FF9800; filter: brightness(0.9); } 100% { transform: scale(1); box-shadow: 0 0 10px #FF9800; filter: brightness(1.2); } }
+                .arena-ready-blink { animation: arena-blink 1s ease-in-out infinite; border-radius: 50%; }
+                @keyframes dq-blink { 0% { opacity: 1; filter: drop-shadow(0 0 10px red) brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(1000%); } 20% { opacity: 0; } 40% { opacity: 1; filter: drop-shadow(0 0 10px red) brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(1000%); } 60% { opacity: 0; } 80% { opacity: 1; filter: drop-shadow(0 0 10px red) brightness(0.5) sepia(1) hue-rotate(-50deg) saturate(1000%); } 100% { opacity: 1; filter: none; } }
+                .enemy-flash { animation: dq-blink 0.4s linear; }
+            </style>
+            <div style="flex:1; display:flex; flex-direction:row; width:100%; overflow:hidden;">
+                <div id="arena-field-area" style="flex:1; position:relative; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px; padding-top:30px;"></div>
+                <div id="arena-timeline-area" style="width:90px; flex-shrink:0; background:rgba(0,0,0,0.8); border-left:3px solid #555; padding:10px; display:flex; flex-direction:column; align-items:center; box-sizing:border-box;"></div>
+            </div>
+            <div style="height:250px; background:rgba(0,0,0,0.85); border-top:4px solid #FFF; display:flex; padding:10px; gap:10px; position:relative;">
+                <div id="arena-log-container" style="flex:2; border:2px solid #444; border-radius:8px; padding:10px; font-size:15px; color:#FFF; line-height:1.5; overflow-y:auto; display:flex; flex-direction:column; justify-content:flex-start;"></div>
+                <div id="arena-party-area" style="flex:4; display:flex; flex-direction:column; justify-content:center; gap:5px; border:1px solid #333; border-radius:8px; background:#111; padding:5px;"></div>
+                <div id="arena-control-area" style="flex:1.5; display:flex; flex-direction:column; justify-content:center; gap:5px;">
+                    <div id="arena-auto-btn-area"></div>
+                    <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px;">
+                        <div style="font-size:11px; color:#00BCD4; font-weight:bold; text-align:center;">💬 AIへの指示チャット</div>
+                        <div style="display:flex; height:36px;">
+                            <input type="text" id="arena-chat-input" placeholder="例: マイ作戦1に変更して！" onkeydown="window.handleArenaChatKey(event)" style="flex:1; padding:0 10px; font-size:14px; background:#222; color:#fff; border:1px solid #444; border-radius:4px 0 0 4px; outline:none;">
+                            <button onclick="window.sendArenaChat()" style="padding:0 15px; font-weight:bold; background:#00BCD4; color:#000; border:none; border-radius:0 4px 4px 0; cursor:pointer;">送信</button>
+                        </div>
+                        <div style="font-size:10px; color:#aaa; text-align:center;">↑↓キーで履歴を呼び出し</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
 
     let enemyCount = state.enemies.length;
     let enemyScaleRate = enemyCount > 6 ? 0.5 : (enemyCount > 4 ? 0.65 : 1.0);
@@ -2011,19 +2325,24 @@ window.renderArenaBattle = function() {
         let finalW = (sp ? sp.sw : 200) * finalScale;
         let finalH = (sp ? sp.sh : 250) * finalScale;
 
+        let wrapperTransform = "translateY(0) scale(1)";
+        if (e.flash) wrapperTransform = "scale(0.9) rotate(-3deg)"; 
+        else if (e.hp <= 0) wrapperTransform = "translateY(30px) scale(0.5)"; 
+
         let imgContent = sp ? `
-            <div style="width:${finalW}px; height:${finalH}px; margin: 0 auto; position: relative; transition: all 0.2s; ${e.hp <= 0 ? 'opacity:0; transform:scale(0.5);' : ''}">
-                <div class="${e.flash ? 'enemy-flash' : ''}" style="position: absolute; top: 0; left: 0; width: ${sp.sw}px; height: ${sp.sh}px; background: url('${sp.img}') -${sp.sx}px -${sp.sy}px; transform: scale(${finalScale}); transform-origin: top left;"></div>
+            <div class="${e.flash ? 'enemy-flash' : ''}" style="width:${finalW}px; height:${finalH}px; margin: 0 auto; position: relative; transition: opacity 0.4s ease-in, transform 0.15s; opacity:${e.hp <= 0 && !e.flash ? '0' : '1'}; transform:${wrapperTransform};">
+                <div style="position: absolute; top: 0; left: 0; width: ${sp.sw}px; height: ${sp.sh}px; background: url('${sp.img}') -${sp.sx}px -${sp.sy}px; transform: scale(${finalScale}); transform-origin: top left;"></div>
             </div>` 
-        : `<img src="robot_battle_enemy.png" class="${e.flash ? 'enemy-flash' : ''}" style="height: ${250 * enemyScaleRate * bossScale}px; transition: all 0.2s; ${e.hp <= 0 ? 'opacity:0; transform:scale(0.5);' : ''}">`;
+        : `<img src="robot_battle_enemy.png" class="${e.flash ? 'enemy-flash' : ''}" style="height: ${250 * enemyScaleRate * bossScale}px; transition: opacity 0.4s ease-in, transform 0.15s; opacity:${e.hp <= 0 && !e.flash ? '0' : '1'}; transform:${wrapperTransform};">`;
 
         let rowTag = e.row === 'back' ? `<div style="font-size:10px; color:#aaa; margin-top:2px;">[後衛]</div>` : `<div style="font-size:10px; color:#ff9800; margin-top:2px;">[前衛]</div>`;
         let scaleStyle = e.row === 'back' ? `transform: scale(0.85);` : ``; 
 
-        return `<div id="ui_enemy_${e.id}" style="text-align:center; display:flex; flex-direction:column; align-items:center; margin: 5px; ${isHidden ? 'opacity:0.4;' : ''} ${scaleStyle} transition: all 0.3s;">
+        return `<div id="ui_enemy_${e.id}" style="text-align:center; display:flex; flex-direction:column; align-items:center; margin: 5px; ${isHidden ? 'opacity:0.4;' : ''} ${scaleStyle} ${e.isActing ? 'filter: drop-shadow(0 0 15px #FFD700); transform: translateY(-10px); z-index: 10;' : ''} transition: filter 0.3s, transform 0.3s;">
             ${isHidden ? `<div style="color:#aaa; font-weight:bold; margin-bottom:50px;">(探検中...)</div>` : imgContent}
-            <div style="background:rgba(0,0,0,0.7); color:white; font-weight:bold; font-size:${Math.max(10, 14 * enemyScaleRate)}px; padding:2px 8px; border-radius:4px; margin-top:5px; transition: opacity 0.2s; ${e.hp <= 0 ? 'opacity:0;' : ''}">
+            <div style="background:rgba(0,0,0,0.7); color:white; font-weight:bold; font-size:${Math.max(10, 14 * enemyScaleRate)}px; padding:2px 8px; border-radius:4px; margin-top:5px; transition: opacity 0.2s; ${e.hp <= 0 && !e.flash ? 'opacity:0;' : 'opacity:1;'}; width:100%; box-sizing:border-box;">
                 ${e.name} <span style="font-size:12px;">${statusIcons}</span>
+                <div style="width:100%; height:3px; background:#222; margin-top:3px; border-radius:2px; overflow:hidden;"><div style="width:${Math.min(100, e.actionGauge || 0)}%; height:100%; background:#FF9800; transition:width 0.2s;"></div></div>
             </div>
             ${e.hp > 0 && !e.isBoss ? rowTag : ''}
         </div>`;
@@ -2031,16 +2350,25 @@ window.renderArenaBattle = function() {
 
     let enemiesHtml = "";
     state.enemies.forEach((e, i) => { if (e.row === 'back') enemiesHtml += enemyHtmlList[i]; }); 
-    // ★修正：'front' か判定するのではなく「'back' 以外すべて」として描画漏れを完全に防ぐ
     state.enemies.forEach((e, i) => { if (e.row !== 'back') enemiesHtml += enemyHtmlList[i]; }); 
 
     let partyAndGuests = [];
     state.party.forEach(p => partyAndGuests.push({ ...p, isParty: true }));
-    state.guests.forEach(g => {
-        if (['farming', 'soldier', 'captain', 'king'].includes(g.type)) {
-            let gName = g.type === 'farming' ? '🎃身代わりカボチャ' : (g.type === 'soldier' ? '⚔️城の兵士' : (g.type === 'captain' ? '🛡️城の隊長' : '👑王様'));
-            partyAndGuests.push({ isParty: false, name: gName, hp: g.hp, maxHp: g.maxHp, mp: 0, maxMp: 0, row: 'front', col: 1.5, typeStr: g.type });
+    state.guests.forEach((g, idx) => {
+        let gName = "";
+        switch (g.type) {
+            case 'farming': gName = '🎃身代わりカボチャ'; break;
+            case 'soldier': gName = '⚔️城の兵士'; break;
+            case 'captain': gName = '🛡️城の隊長'; break;
+            case 'king': gName = '👑王様'; break;
+            case 'cooking': gName = '🍲料理人'; break;
+            case 'smithing': gName = '🔨鍛冶師'; break;
+            case 'fishing': gName = '🎣漁師'; break;
+            case 'explore': gName = '🗺️冒険家'; break;
+            case 'building': gName = '🧱建築士'; break;
+            default: gName = '👤助っ人';
         }
+        partyAndGuests.push({ id: g.id || `g_${g.type}_${idx}`, isParty: false, isGuest: true, name: gName, hp: g.hp, maxHp: g.maxHp, mp: 0, maxMp: 0, row: 'front', col: 1.5 + (idx * 0.1), typeStr: g.type, actionGauge: g.actionGauge || 0, flash: g.flash, isActing: g.isActing });
     });
 
     let backRowHtml = ""; let frontRowHtml = "";
@@ -2053,115 +2381,220 @@ window.renderArenaBattle = function() {
             if (p.isSleeping) statusIcons += "💤"; if (p.shield) statusIcons += "🧱"; if (p.hutHp > 0) statusIcons += "🏠";
             if (p.isEquipped) statusIcons += "🗡️";
         }
+        
+        let borderCol = p.isParty ? '#555' : '#00BCD4'; let bgCol = "rgba(20,20,30,0.8)";
+        let wrapperTransform = "translateY(0) scale(1)"; let wrapperOpacity = isHidden || (p.hp <= 0 && !p.flash) ? "0.4" : "1";
+        let wrapperFilter = "none"; let wrapperZIndex = "1"; let wrapperBoxShadow = "none";
+
+        if (p.isActing) { wrapperTransform = "translateY(-10px)"; wrapperFilter = "drop-shadow(0 0 15px #FFD700)"; wrapperBoxShadow = "0 0 20px #FFD700"; wrapperZIndex = "10"; } 
+        else if (p.flash) { wrapperTransform = "scale(0.95) rotate(-2deg)"; wrapperFilter = "brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(1000%) drop-shadow(0 0 15px red)"; bgCol = "rgba(255,0,0,0.6)"; borderCol = "#ff5252"; }
+
+        let tacticNameHtml = "";
+        if (p.isParty) {
+            let tName = p.tacticType === 'default' ? window.getDefaultTactics(p.words)[p.tacticIndex || 0].name : (window.aiPet.tactics[p.tacticIndex || 0] ? window.aiPet.tactics[p.tacticIndex || 0].name : "不明");
+            tacticNameHtml = `<div style="font-size:10px; color:#FF9800; background:#000; border-radius:2px; margin-top:2px; padding:1px 3px;">作戦: ${tName}</div>`;
+        }
+
         let content = `
-        <div style="order:${p.col}; width:130px; background:rgba(20,20,30,0.8); border:2px solid ${p.isParty ? '#555' : '#E91E63'}; padding:8px; border-radius:6px; display:flex; flex-direction:column; ${isHidden || p.hp <= 0 ? 'opacity:0.4;' : ''}">
-            <div style="color:${p.hp <= 0 ? '#888' : (p.isParty ? '#FFD700' : '#E91E63')}; font-weight:bold; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+        <div id="ui_enemy_${p.id}" class="${p.flash ? 'enemy-flash' : ''}" style="order:${Math.floor(p.col)}; width:130px; background:${bgCol}; border:2px solid ${borderCol}; padding:8px; border-radius:6px; display:flex; flex-direction:column; transition: opacity 0.4s ease-in, transform 0.2s; opacity:${wrapperOpacity}; transform:${wrapperTransform}; filter:${wrapperFilter}; box-shadow:${wrapperBoxShadow}; z-index:${wrapperZIndex};">
+            <div style="color:${p.hp <= 0 && !p.flash ? '#888' : (p.isParty ? '#FFD700' : '#00BCD4')}; font-weight:bold; font-size:13px; margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 ${p.name} <span style="font-size:12px;">${statusIcons}</span>
             </div>
+            ${tacticNameHtml}
             ${isHidden ? `<div style="color:#aaa; font-size:12px; font-weight:bold; text-align:center; margin:10px 0;">(探検中...)</div>` : `
-                <div style="color:#76ff03; font-size:12px; font-weight:bold;">HP: ${Math.max(0, p.hp)}</div>
-                ${p.isParty ? `<div style="color:#4fc3f7; font-size:12px; font-weight:bold; margin-bottom:4px;">MP: ${Math.max(0, p.mp)}</div>
-                <div style="margin-top:auto; display:flex; flex-wrap:wrap; max-height:35px; overflow-y:auto;">${wordsHtml}</div>` : ''}
+                <div style="color:#76ff03; font-size:12px; font-weight:bold; margin-top:4px;">HP: ${Math.max(0, Math.floor(p.hp))}</div>
+                ${p.isParty ? `<div style="color:#4fc3f7; font-size:12px; font-weight:bold; margin-bottom:4px;">MP: ${Math.max(0, p.mp)}</div>` : ''}
+                <div style="width:100%; height:4px; background:#222; margin-bottom:4px; border-radius:2px; overflow:hidden; margin-top:3px;"><div style="width:${Math.min(100, p.actionGauge || 0)}%; height:100%; background:${p.isGuest ? '#00BCD4' : '#00E676'}; transition:width 0.2s;"></div></div>
+                ${p.isParty ? `<div style="margin-top:auto; display:flex; flex-wrap:wrap; max-height:35px; overflow-y:auto;">${wordsHtml}</div>` : ''}
             `}
         </div>`;
         if (p.row === 'back') backRowHtml += content; else frontRowHtml += content;
     });
 
-    let nonTargetGuestsHtml = state.guests.map(g => {
-        if (['farming', 'soldier', 'captain', 'king'].includes(g.type)) return '';
-        let emoji = "👤";
-        if(g.type === 'explore') emoji = "🗺️"; if(g.type === 'fishing') emoji = "🎣";
-        if(g.type === 'cooking') emoji = "🍲"; if(g.type === 'building') emoji = "🧱"; if(g.type === 'smithing') emoji = "🔨";
-        return `<div style="background:#111; border:2px solid #E91E63; border-radius:50%; width:40px; height:40px; display:flex; justify-content:center; align-items:center; font-size:24px; box-shadow:0 0 10px #E91E63; margin-right:10px;" title="${g.type}">${emoji}</div>`;
-    }).join('');
-
     let logHtml = state.log.map(l => `<div style="margin-bottom:6px; border-bottom:1px solid #333; padding-bottom:4px;">${l}</div>`).join('');
     let isBusy = state.isProcessing || state.autoMode || state.skipMode;
-    
-    // ★追加：50WAVEを突破した（ボスラッシュ等が解放された）かどうかの判定
     let highestWave = window.aiPet.arenaHighestWave || 1;
-    // ★修正：ボス討伐履歴がある場合も解放条件に含める！
     let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0);
     
-    // ★追加：解放されている場合のみスキップボタンのHTMLを生成
-    let skipButtonHtml = bossUnlocked ? `<button onclick="window.skipArenaWave()" ${isBusy ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${isBusy ? '#555' : '#9C27B0'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'};">⏭ スキップ</button>` : ``;
+    let autoBtnColor = state.autoMode ? '#FF9800' : '#2196F3';
+    let autoBtnText = state.autoMode ? '⏸ AUTO停止' : '⏩ AUTO進行';
+    let skipButtonHtml = bossUnlocked ? `<button onclick="window.skipArenaWave()" ${isBusy ? 'disabled' : ''} style="width:100%; padding:10px; font-size:14px; font-weight:bold; background:${isBusy ? '#555' : '#9C27B0'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'}; margin-top:5px;">⏭ スキップ</button>` : ``;
 
-    ui.innerHTML = `
-        <div style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.7); color:white; padding:10px 20px; border-radius:8px; font-size:24px; font-weight:bold; border:2px solid #FFC107;">WAVE ${state.wave}</div>
-        
-        <div style="flex:1; display:flex; justify-content:center; align-items:center; flex-wrap:wrap; gap:10px; padding-top:50px;">${enemiesHtml}</div>
-        
-        <div style="height:230px; background:rgba(0,0,0,0.85); border-top:4px solid #FFF; display:flex; padding:10px; gap:10px; position:relative;">
-            <div style="position:absolute; top:-50px; right:20px; display:flex;">${nonTargetGuestsHtml}</div>
-            
-            <div id="arena-log-container" style="flex:2; border:2px solid #444; border-radius:8px; padding:10px; font-size:15px; color:#FFF; line-height:1.5; overflow-y:auto; display:flex; flex-direction:column; justify-content:flex-start;">
-                ${logHtml}
-            </div>
-            
-            <div style="flex:4; display:flex; flex-direction:column; justify-content:center; gap:5px; border:1px solid #333; border-radius:8px; background:#111; padding:5px;">
-                <div style="display:flex; justify-content:center; gap:10px; min-height:85px; align-items:center;">${backRowHtml}</div>
-                <div style="display:flex; justify-content:center; gap:10px; min-height:85px; align-items:center;">${frontRowHtml}</div>
-            </div>
-            
-            <div style="flex:1.5; display:flex; flex-direction:column; justify-content:center; gap:10px;">
-                <button onclick="window.processArenaTurn()" ${isBusy ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${isBusy ? '#555' : '#4CAF50'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'};">▶ 1ターン</button>
-                <button onclick="window.toggleArenaAuto()" ${state.skipMode ? 'disabled' : ''} style="padding:12px; font-size:16px; font-weight:bold; background:${state.autoMode ? '#FF9800' : (state.skipMode ? '#555' : '#2196F3')}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${state.skipMode ? 'not-allowed' : 'pointer'};">${state.autoMode ? '⏸ AUTO停止' : '⏩ AUTO進行'}</button>
-                ${skipButtonHtml}
-            </div>
-        </div>
+    let allFighters = [];
+    state.party.forEach(p => { if (p.hp > 0 && (p.exploreTimer||0) === 0 && !p.isSleeping) allFighters.push({ isEnemy: false, isGuest: false, obj: p }); });
+    state.guests.forEach(g => { if (g.hp > 0) allFighters.push({ isEnemy: false, isGuest: true, obj: g }); });
+    state.enemies.forEach(e => { if (e.hp > 0 && (e.exploreTimer||0) === 0 && !e.isSleeping) allFighters.push({ isEnemy: true, isGuest: false, obj: e }); });
+    allFighters.sort((a, b) => (b.obj.actionGauge || 0) - (a.obj.actionGauge || 0));
+
+    let readyIconsHtml = ""; let waitIconsHtml = "";
+    allFighters.forEach(f => {
+        let p = f.obj; let gauge = Math.min(100, p.actionGauge || 0); 
+        let spKey = f.isEnemy ? p.spriteKey : (f.isGuest ? "arena_" + p.type : "arena_" + (p.skin || 'robot').split('_')[0]);
+        let sp = window.DUNGEON_SPRITES[spKey] || window.DUNGEON_SPRITES["arena_robot"];
+        let iconScale = 36 / Math.max(sp.sw, sp.sh);
+        let borderColor = f.isEnemy ? "#ff5252" : (f.isGuest ? "#00BCD4" : "#00E676");
+        let iconHtml = `<div style="position:relative; width:36px; height:36px; border-radius:50%; border:2px solid ${borderColor}; overflow:hidden; background:rgba(0,0,0,0.8); box-shadow: 0 0 5px ${borderColor}; z-index:2; margin: 2px 0;"><div style="position:absolute; top:0; left:0; width:${sp.sw}px; height:${sp.sh}px; background:url('${sp.img}') -${sp.sx}px -${sp.sy}px; transform:scale(${iconScale}); transform-origin:top left;"></div></div>`;
+        if (gauge >= 100) readyIconsHtml += `<div class="arena-ready-blink" title="${p.name}">${iconHtml}</div>`;
+        else waitIconsHtml += `<div style="position:absolute; bottom:${gauge}%; left:50%; transform:translate(-50%, 50%); transition:bottom 0.2s linear;" title="${p.name}">${iconHtml}</div>`;
+    });
+
+    let timelineHtml = `
+        <div style="color:#FF9800; font-weight:bold; font-size:12px; margin-bottom:5px; letter-spacing:2px;">ACTION</div>
+        <div style="width:100%; min-height:60px; border:2px solid #FF9800; border-radius:8px; background:rgba(255,152,0,0.2); display:flex; flex-direction:column; align-items:center; padding:5px; box-sizing:border-box; z-index:10; box-shadow:0 0 10px rgba(255,152,0,0.3);"><div style="font-size:10px; color:#FFC107; font-weight:bold; margin-bottom:5px;">READY</div>${readyIconsHtml}</div>
+        <div style="position:relative; flex:1; width:6px; background:#222; border-radius:3px; margin-top:15px; margin-bottom:15px; box-shadow: inset 0 0 5px black;"><div style="position:absolute; bottom:0; left:0; width:100%; height:100%; background:linear-gradient(to top, rgba(33,150,243,0.5), rgba(255,152,0,0.8)); border-radius:3px;"></div>${waitIconsHtml}</div>
     `;
 
-    setTimeout(() => {
-        let logContainer = document.getElementById('arena-log-container');
-        if (logContainer) logContainer.scrollTop = logContainer.scrollHeight;
-    }, 10);
-};
+    // 枠組みの中身だけを更新する（差分更新）
+    let fieldArea = document.getElementById('arena-field-area');
+    if (fieldArea) {
+        fieldArea.innerHTML = `<div style="position:absolute; top:20px; left:20px; background:rgba(0,0,0,0.7); color:white; padding:10px 20px; border-radius:8px; font-size:24px; font-weight:bold; border:2px solid #FFC107;">WAVE ${state.wave}</div>${enemiesHtml}`;
+    }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-window.toggleArenaAuto = function() { let state = window.ARENA_STATE; state.autoMode = !state.autoMode; window.renderArenaBattle(); if (state.autoMode && !state.isProcessing) window.processArenaTurn(); };
+    let timelineArea = document.getElementById('arena-timeline-area');
+    if (timelineArea) {
+        timelineArea.innerHTML = timelineHtml;
+    }
+
+    let partyArea = document.getElementById('arena-party-area');
+    if (partyArea) {
+        partyArea.innerHTML = `
+            <div style="display:flex; justify-content:center; gap:10px; min-height:85px; align-items:center;">${backRowHtml}</div>
+            <div style="display:flex; justify-content:center; gap:10px; min-height:85px; align-items:center;">${frontRowHtml}</div>
+        `;
+    }
+
+    let logArea = document.getElementById('arena-log-container');
+    if (logArea) {
+        logArea.innerHTML = logHtml;
+        logArea.scrollTop = logArea.scrollHeight;
+    }
+
+    let autoBtnArea = document.getElementById('arena-auto-btn-area');
+    if (autoBtnArea) {
+        autoBtnArea.innerHTML = `
+            <button onclick="window.toggleArenaAuto()" style="width:100%; padding:15px; font-size:18px; font-weight:bold; background:${autoBtnColor}; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 0 #1565C0;">${autoBtnText}</button>
+            ${skipButtonHtml}
+        `;
+    }
+};
 
 // 本格RPGエフェクト関数
 window.showArenaEffect = function(targetId, typeStr) {
-    let eDiv = document.getElementById(`ui_enemy_${targetId}`); if(!eDiv) return;
-    eDiv.style.position = 'relative';
-    let fxContainer = document.createElement('div'); fxContainer.style.cssText = `position:absolute; top:50%; left:50%; width:100px; height:100px; transform:translate(-50%, -50%); z-index:100; pointer-events:none;`; eDiv.appendChild(fxContainer);
-    if (typeStr === 'beetle' || typeStr === 'seed') {
+    let eDiv = document.getElementById(`ui_enemy_${targetId}`); 
+    if(!eDiv) return;
+    
+    let rect = eDiv.getBoundingClientRect();
+    let fxContainer = document.createElement('div'); 
+    fxContainer.style.cssText = `position:fixed; top:${rect.top + rect.height/2}px; left:${rect.left + rect.width/2}px; width:100px; height:100px; transform:translate(-50%, -50%); z-index:60000; pointer-events:none;`; 
+    document.body.appendChild(fxContainer);
+    
+    // ★新規追加：回復エフェクト（緑の十字が浮かび上がる）
+    if (typeStr === 'heal') {
+        for(let i=0; i<3; i++) {
+            let cross = document.createElement('div');
+            cross.innerHTML = '✚';
+            cross.style.cssText = `position:absolute; top:70%; left:${20 + i*30}%; color:#00E676; font-weight:bold; font-size:24px; text-shadow:0 0 8px #00E676; opacity:0; transition:all 0.6s ease-out; transform:translate(-50%, -50%);`;
+            fxContainer.appendChild(cross);
+            setTimeout(() => { cross.style.top = '10%'; cross.style.opacity = '1'; }, 10 + i*150);
+            setTimeout(() => { cross.style.opacity = '0'; }, 400 + i*150);
+        }
+    }
+    // ★新規追加：バフエフェクト（オレンジの矢印が上に登る）
+    else if (typeStr === 'buff') {
+        for(let i=0; i<3; i++) {
+            let arrow = document.createElement('div');
+            arrow.innerHTML = '⬆';
+            arrow.style.cssText = `position:absolute; top:70%; left:${20 + i*30}%; color:#FF9800; font-weight:bold; font-size:24px; text-shadow:0 0 8px #FF9800; opacity:0; transition:all 0.5s ease-out; transform:translate(-50%, -50%);`;
+            fxContainer.appendChild(arrow);
+            setTimeout(() => { arrow.style.top = '10%'; arrow.style.opacity = '1'; }, 10 + i*100);
+            setTimeout(() => { arrow.style.opacity = '0'; }, 400 + i*100);
+        }
+    }
+    // ★新規追加：デバフエフェクト（紫の矢印が下に落ちる）
+    else if (typeStr === 'debuff') {
+        for(let i=0; i<3; i++) {
+            let arrow = document.createElement('div');
+            arrow.innerHTML = '⬇';
+            arrow.style.cssText = `position:absolute; top:10%; left:${20 + i*30}%; color:#9C27B0; font-weight:bold; font-size:24px; text-shadow:0 0 8px #9C27B0; opacity:0; transition:all 0.5s ease-in; transform:translate(-50%, -50%);`;
+            fxContainer.appendChild(arrow);
+            setTimeout(() => { arrow.style.top = '70%'; arrow.style.opacity = '1'; }, 10 + i*100);
+            setTimeout(() => { arrow.style.opacity = '0'; }, 400 + i*100);
+        }
+    }
+    else if (typeStr === 'beetle' || typeStr === 'seed') {
         let color = typeStr === 'seed' ? '#4CAF50' : '#FFF'; let shadow = typeStr === 'seed' ? '#8BC34A' : '#FFD700';
         let line1 = document.createElement('div'); let line2 = document.createElement('div');
         let baseStyle = `position:absolute; top:50%; left:50%; width:140px; height:6px; background:${color}; box-shadow:0 0 10px ${shadow}, 0 0 20px ${shadow}; border-radius:50%; transform-origin:center; opacity:0;`;
-        line1.style.cssText = baseStyle + `transform:translate(-50%, -50%) rotate(45deg) scaleX(0); transition:transform 0.1s ease-out, opacity 0.1s;`; line2.style.cssText = baseStyle + `transform:translate(-50%, -50%) rotate(-45deg) scaleX(0); transition:transform 0.1s ease-out 0.05s, opacity 0.1s 0.05s;`;
+        line1.style.cssText = baseStyle + `transform:translate(-50%, -50%) rotate(45deg) scaleX(0); transition:transform 0.15s ease-out, opacity 0.15s;`; line2.style.cssText = baseStyle + `transform:translate(-50%, -50%) rotate(-45deg) scaleX(0); transition:transform 0.15s ease-out 0.1s, opacity 0.15s 0.1s;`;
         fxContainer.appendChild(line1); fxContainer.appendChild(line2);
-        setTimeout(() => { line1.style.transform = 'translate(-50%, -50%) rotate(45deg) scaleX(1)'; line1.style.opacity = '1'; }, 10); setTimeout(() => { line2.style.transform = 'translate(-50%, -50%) rotate(-45deg) scaleX(1)'; line2.style.opacity = '1'; }, 60); setTimeout(() => { line1.style.opacity = '0'; line2.style.opacity = '0'; }, 200);
+        setTimeout(() => { line1.style.transform = 'translate(-50%, -50%) rotate(45deg) scaleX(1)'; line1.style.opacity = '1'; }, 10); setTimeout(() => { line2.style.transform = 'translate(-50%, -50%) rotate(-45deg) scaleX(1)'; line2.style.opacity = '1'; }, 80); setTimeout(() => { line1.style.opacity = '0'; line2.style.opacity = '0'; }, 400);
     } else if (typeStr === 'robot' || typeStr === 'stone') {
         let color = typeStr === 'robot' ? '#FF5722' : '#795548'; let blast = document.createElement('div');
-        blast.style.cssText = `position:absolute; top:50%; left:50%; width:30px; height:30px; background:${color}; border-radius:50%; box-shadow:0 0 30px #FFC107, 0 0 50px #FF5252; transform:translate(-50%, -50%) scale(0.5); opacity:1; transition:all 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);`; fxContainer.appendChild(blast);
-        let spikes = document.createElement('div'); spikes.style.cssText = `position:absolute; top:50%; left:50%; width:120px; height:120px; background:repeating-conic-gradient(from 0deg, transparent 0deg 20deg, #FFEB3B 20deg 30deg); transform:translate(-50%, -50%) scale(0); opacity:1; border-radius:50%; transition:all 0.15s ease-out; mask-image:radial-gradient(circle, transparent 20%, black 70%); -webkit-mask-image:radial-gradient(circle, transparent 20%, black 70%);`; fxContainer.appendChild(spikes);
+        blast.style.cssText = `position:absolute; top:50%; left:50%; width:30px; height:30px; background:${color}; border-radius:50%; box-shadow:0 0 30px #FFC107, 0 0 50px #FF5252; transform:translate(-50%, -50%) scale(0.5); opacity:1; transition:all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);`; fxContainer.appendChild(blast);
+        let spikes = document.createElement('div'); spikes.style.cssText = `position:absolute; top:50%; left:50%; width:120px; height:120px; background:repeating-conic-gradient(from 0deg, transparent 0deg 20deg, #FFEB3B 20deg 30deg); transform:translate(-50%, -50%) scale(0); opacity:1; border-radius:50%; transition:all 0.25s ease-out; mask-image:radial-gradient(circle, transparent 20%, black 70%); -webkit-mask-image:radial-gradient(circle, transparent 20%, black 70%);`; fxContainer.appendChild(spikes);
         setTimeout(() => { blast.style.transform = 'translate(-50%, -50%) scale(4)'; blast.style.opacity = '0'; spikes.style.transform = 'translate(-50%, -50%) scale(1.5)'; spikes.style.opacity = '0'; }, 10);
     } else if (typeStr === 'magician' || typeStr === 'ghost') {
-        let color = typeStr === 'magician' ? '#E040FB' : '#673AB7'; let ring = document.createElement('div'); ring.style.cssText = `position:absolute; top:50%; left:50%; width:10px; height:10px; border:6px solid ${color}; border-radius:50%; box-shadow:0 0 20px ${color} inset, 0 0 20px ${color}; transform:translate(-50%, -50%) scale(12); opacity:0; transition:all 0.2s ease-in;`; fxContainer.appendChild(ring);
-        let core = document.createElement('div'); core.style.cssText = `position:absolute; top:50%; left:50%; width:80px; height:80px; background:${color}; border-radius:50%; filter:blur(12px); transform:translate(-50%, -50%) scale(0); opacity:0; transition:all 0.15s ease-out 0.2s;`; fxContainer.appendChild(core);
-        setTimeout(() => { ring.style.transform = 'translate(-50%, -50%) scale(0.5)'; ring.style.opacity = '1'; }, 10); setTimeout(() => { ring.style.opacity = '0'; core.style.transform = 'translate(-50%, -50%) scale(1.5)'; core.style.opacity = '1'; }, 200); setTimeout(() => { core.style.opacity = '0'; }, 350);
+        let color = typeStr === 'magician' ? '#E040FB' : '#673AB7'; let ring = document.createElement('div'); ring.style.cssText = `position:absolute; top:50%; left:50%; width:10px; height:10px; border:6px solid ${color}; border-radius:50%; box-shadow:0 0 20px ${color} inset, 0 0 20px ${color}; transform:translate(-50%, -50%) scale(12); opacity:0; transition:all 0.3s ease-in;`; fxContainer.appendChild(ring);
+        let core = document.createElement('div'); core.style.cssText = `position:absolute; top:50%; left:50%; width:80px; height:80px; background:${color}; border-radius:50%; filter:blur(12px); transform:translate(-50%, -50%) scale(0); opacity:0; transition:all 0.25s ease-out 0.3s;`; fxContainer.appendChild(core);
+        setTimeout(() => { ring.style.transform = 'translate(-50%, -50%) scale(0.5)'; ring.style.opacity = '1'; }, 10); setTimeout(() => { ring.style.opacity = '0'; core.style.transform = 'translate(-50%, -50%) scale(1.5)'; core.style.opacity = '1'; }, 300); setTimeout(() => { core.style.opacity = '0'; }, 600);
     } else if (typeStr === 'dragon') {
-        let fire = document.createElement('div'); fire.style.cssText = `position:absolute; bottom:0; left:50%; width:90px; height:0px; background:linear-gradient(to top, #FFEB3B, #FF9800, #F44336, transparent); filter:blur(4px); transform:translateX(-50%); border-radius:40px 40px 0 0; transition:height 0.2s ease-out, opacity 0.2s ease-out 0.1s; opacity:1;`; fxContainer.appendChild(fire);
-        setTimeout(() => { fire.style.height = '140px'; }, 10); setTimeout(() => { fire.style.opacity = '0'; }, 250);
+        let fire = document.createElement('div'); fire.style.cssText = `position:absolute; bottom:0; left:50%; width:90px; height:0px; background:linear-gradient(to top, #FFEB3B, #FF9800, #F44336, transparent); filter:blur(4px); transform:translateX(-50%); border-radius:40px 40px 0 0; transition:height 0.3s ease-out, opacity 0.3s ease-out 0.2s; opacity:1;`; fxContainer.appendChild(fire);
+        setTimeout(() => { fire.style.height = '140px'; }, 10); setTimeout(() => { fire.style.opacity = '0'; }, 400);
     } else if (typeStr === 'spirit' || typeStr === 'bird' || typeStr === 'balloon') {
-        let color = typeStr === 'spirit' ? '#00BCD4' : (typeStr === 'bird' ? '#81D4FA' : '#FFFFFF'); let wave = document.createElement('div'); wave.style.cssText = `position:absolute; top:50%; left:50%; width:20px; height:20px; border:6px solid ${color}; border-radius:50%; box-shadow:0 0 15px ${color}; transform:translate(-50%, -50%) scale(0.5); opacity:1; transition:all 0.25s ease-out;`; fxContainer.appendChild(wave);
-        let wave2 = document.createElement('div'); wave2.style.cssText = `position:absolute; top:50%; left:50%; width:20px; height:20px; border:3px solid ${color}; border-radius:50%; transform:translate(-50%, -50%) scale(0.5); opacity:1; transition:all 0.3s ease-out 0.05s;`; fxContainer.appendChild(wave2);
+        let color = typeStr === 'spirit' ? '#00BCD4' : (typeStr === 'bird' ? '#81D4FA' : '#FFFFFF'); let wave = document.createElement('div'); wave.style.cssText = `position:absolute; top:50%; left:50%; width:20px; height:20px; border:6px solid ${color}; border-radius:50%; box-shadow:0 0 15px ${color}; transform:translate(-50%, -50%) scale(0.5); opacity:1; transition:all 0.4s ease-out;`; fxContainer.appendChild(wave);
+        let wave2 = document.createElement('div'); wave2.style.cssText = `position:absolute; top:50%; left:50%; width:20px; height:20px; border:3px solid ${color}; border-radius:50%; transform:translate(-50%, -50%) scale(0.5); opacity:1; transition:all 0.4s ease-out 0.1s;`; fxContainer.appendChild(wave2);
         setTimeout(() => { wave.style.transform = 'translate(-50%, -50%) scale(7)'; wave.style.opacity = '0'; wave2.style.transform = 'translate(-50%, -50%) scale(9)'; wave2.style.opacity = '0'; }, 10);
-    } else if (typeStr === 'machine') {
-        let bolt = document.createElement('div'); bolt.style.cssText = `position:absolute; top:50%; left:50%; width:100px; height:100px; transform:translate(-50%, -50%);`; bolt.innerHTML = `<svg viewBox="0 0 100 100" style="width:100%; height:100%; filter:drop-shadow(0 0 8px #FFEB3B);"><polyline points="50,0 35,45 65,45 50,100" fill="none" stroke="#FFF" stroke-width="8" stroke-linejoin="miter"/></svg>`; bolt.style.opacity = '0'; bolt.style.transition = 'opacity 0.05s'; fxContainer.appendChild(bolt);
-        setTimeout(() => { bolt.style.opacity = '1'; }, 10); setTimeout(() => { bolt.style.opacity = '0'; }, 60); setTimeout(() => { bolt.style.opacity = '1'; }, 100); setTimeout(() => { bolt.style.opacity = '0'; }, 180);
+    } else if (typeStr === 'smithing') {
+        let hammer = document.createElement('div');
+        hammer.style.cssText = `position:absolute; top:-100px; left:50%; width:50px; height:60px; background:#795548; border-radius:8px; border-bottom:10px solid #5D4037; transform:translateX(-50%); transition:top 0.3s cubic-bezier(0.55, 0.085, 0.68, 0.53); box-shadow: 0 0 10px rgba(0,0,0,0.5);`;
+        fxContainer.appendChild(hammer);
+        setTimeout(() => { hammer.style.top = '10px'; }, 10);
+        setTimeout(() => {
+            hammer.style.opacity = '0';
+            let spark = document.createElement('div');
+            spark.style.cssText = `position:absolute; top:40px; left:50%; width:120px; height:120px; background:radial-gradient(circle, #FF9800 10%, #FF5722 30%, transparent 70%); transform:translate(-50%, -50%) scale(0); transition:transform 0.3s, opacity 0.3s; opacity:1;`;
+            fxContainer.appendChild(spark);
+            setTimeout(() => { spark.style.transform = 'translate(-50%, -50%) scale(1.5)'; spark.style.opacity = '0'; }, 10);
+        }, 300);
+    } else if (typeStr === 'fishing') {
+        let splash = document.createElement('div');
+        splash.style.cssText = `position:absolute; bottom:-10px; left:50%; width:80px; height:40px; background:rgba(0, 188, 212, 0.7); border-radius:50%; transform:translateX(-50%) scale(0); transition:transform 0.3s ease-out;`;
+        fxContainer.appendChild(splash);
+        let hook = document.createElement('div');
+        hook.style.cssText = `position:absolute; bottom:0; left:50%; width:3px; height:200px; background:#FFF; box-shadow:0 0 5px #00BCD4; transform:translateX(-50%) translateY(100%); transition:transform 0.3s ease-in;`;
+        fxContainer.appendChild(hook);
+        setTimeout(() => { splash.style.transform = 'translateX(-50%) scale(1.5)'; hook.style.transform = 'translateX(-50%) translateY(-30px)'; }, 10);
+        setTimeout(() => { splash.style.opacity = '0'; hook.style.opacity = '0'; }, 400);
+    } else if (typeStr === 'soldier' || typeStr === 'captain') {
+        let color = typeStr === 'captain' ? '#FFD700' : '#E0E0E0';
+        let slash = document.createElement('div');
+        slash.style.cssText = `position:absolute; top:50%; left:50%; width:160px; height:12px; background:${color}; box-shadow:0 0 20px ${color}; transform:translate(-50%, -50%) rotate(45deg) scaleX(0); transition:transform 0.2s ease-out; border-radius:6px;`;
+        fxContainer.appendChild(slash);
+        setTimeout(() => { slash.style.transform = 'translate(-50%, -50%) rotate(45deg) scaleX(1)'; }, 10);
+        if (typeStr === 'captain') {
+            let slash2 = document.createElement('div');
+            slash2.style.cssText = `position:absolute; top:50%; left:50%; width:160px; height:12px; background:${color}; box-shadow:0 0 20px ${color}; transform:translate(-50%, -50%) rotate(-45deg) scaleX(0); transition:transform 0.2s ease-out 0.1s; border-radius:6px;`;
+            fxContainer.appendChild(slash2);
+            setTimeout(() => { slash2.style.transform = 'translate(-50%, -50%) rotate(-45deg) scaleX(1)'; }, 10);
+            setTimeout(() => { slash2.style.opacity = '0'; }, 400);
+        }
+        setTimeout(() => { slash.style.opacity = '0'; }, 400);
+    } else if (typeStr === 'explore') {
+        let trap = document.createElement('div');
+        trap.style.cssText = `position:absolute; bottom:0; left:50%; width:120px; height:40px; background:radial-gradient(ellipse, #4E342E 30%, transparent 70%); border:3px dashed #3E2723; border-radius:50%; transform:translateX(-50%) scale(0); transition:transform 0.3s;`;
+        fxContainer.appendChild(trap);
+        setTimeout(() => { trap.style.transform = 'translateX(-50%) scale(1)'; }, 10);
+        setTimeout(() => { trap.style.opacity = '0'; }, 500);
     } else {
-        let hit = document.createElement('div'); hit.style.cssText = `position:absolute; top:50%; left:50%; width:80px; height:80px; background:radial-gradient(circle, #FFF 10%, #FF9800 50%, transparent 80%); transform:translate(-50%, -50%) scale(0); opacity:1; transition:all 0.15s ease-out;`; fxContainer.appendChild(hit);
+        let hit = document.createElement('div'); hit.style.cssText = `position:absolute; top:50%; left:50%; width:80px; height:80px; background:radial-gradient(circle, #FFF 10%, #FF9800 50%, transparent 80%); transform:translate(-50%, -50%) scale(0); opacity:1; transition:all 0.25s ease-out;`; fxContainer.appendChild(hit);
         setTimeout(() => { hit.style.transform = 'translate(-50%, -50%) scale(2)'; hit.style.opacity = '0'; }, 10);
     }
-    setTimeout(() => { fxContainer.remove(); }, 600);
+    
+    setTimeout(() => { fxContainer.remove(); }, 1000);
 };
 
-// ==========================================
-// ★新規追加：AIの行動価値を評価するスコアリングエンジン（敵味方兼用版）
-// ==========================================
-window.evaluateArenaSkillScore = function(p, skillName, state, isEnemy = false) {
+// ★修正：第5引数に isFollowCommand（指示を聞くフラグ）を追加
+window.evaluateArenaSkillScore = function(p, skillName, state, isEnemy = false, isFollowCommand = false) {
     let score = 0;
     let skill = window.ARENA_SKILLS[skillName];
     if (!skill) return -1000;
@@ -2171,104 +2604,66 @@ window.evaluateArenaSkillScore = function(p, skillName, state, isEnemy = false) 
     if ((p.mp || 0) < skill.cost) return -1000;
 
     let myHpRate = p.hp / p.maxHp;
-    
-    // ★修正：isEnemy フラグによって、「味方」と「敵」の認識を反転させる
-    let aliveOpponents = isEnemy ? state.party.filter(pt => pt.hp > 0 && pt.exploreTimer === 0 && !pt.isSleeping) : state.enemies.filter(e => e.hp > 0);
-    let myTeam = isEnemy ? state.enemies.filter(e => e.hp > 0) : state.party.filter(pt => pt.hp > 0 && pt.exploreTimer === 0);
-    
+    let aliveOpponents = isEnemy ? state.party.filter(pt => pt.hp > 0 && (pt.exploreTimer||0) === 0 && !pt.isSleeping) : state.enemies.filter(e => e.hp > 0);
+    let myTeam = isEnemy ? state.enemies.filter(e => e.hp > 0) : state.party.filter(pt => pt.hp > 0 && (pt.exploreTimer||0) === 0);
     let teamHpRates = myTeam.map(pt => pt.hp / pt.maxHp);
     let lowestHpRate = teamHpRates.length > 0 ? Math.min(...teamHpRates) : 1.0;
 
+    // --- 既存の基礎スコア計算 ---
     switch(skill.type) {
-        case "attack":
-            score = 50; 
-            if (p.row === 'front') score += 20; 
-            if (p.buffAtk > 1.0) score += 30;   
-            if (p.isEquipped) score += 20;
-            break;
-        case "magic":
-            score = 50;
-            if (aliveOpponents.length >= 2) score += 40; 
-            if (p.buffIntel > 1.0) score += 30; 
-            if (p.row === 'back') score += 20;  
-            break;
-        case "heal":
-        case "eat":
-            if (myHpRate < 0.3) score = 150; 
-            else if (myHpRate < 0.6) score = 80;
-            else score = -500; 
-            break;
-        case "heal_all":
-            if (lowestHpRate < 0.4) score = 200; 
-            else if (lowestHpRate < 0.7) score = 100;
-            else score = -500;
-            break;
-        case "defend":
-            if (myHpRate < 0.5 && p.row === 'front') score = 90; 
-            else score = 10;
-            break;
-        case "sleep":
-            if (p.mp < skill.cost + 15) score = 120; 
-            else if (myHpRate < 0.4) score = 60; 
-            else score = -500; 
-            break;
-        case "buff":
-            if (skill.stat === 'atk' && (p.buffAtk || 1.0) < 2.0) score = 70;
-            else if (skill.stat === 'intel' && (p.buffIntel || 1.0) < 2.0) score = 70;
-            else score = -500; 
-            break;
-        case "move":
-            if (skill.dir === 'up' && p.row === 'back' && myHpRate > 0.6) score = 60; 
-            else if (skill.dir === 'down' && p.row === 'front' && myHpRate < 0.4) score = 100; 
-            else score = 5;
-            break;
-        case "summon":
-            if (!state.guests.some(g => g.type === skill.master)) score = 110;
-            else score = -1000; 
-            break;
-        case "call_rescue":
-            if (!state.guests.some(g => ['soldier', 'captain', 'king'].includes(g.type))) score = 110;
-            else score = -1000;
-            break;
-        case "equip":
-            if (!p.isEquipped) score = 80; 
-            else score = -1000; 
-            break;
-        case "build_hut":
-            if ((p.hutHp || 0) <= 0 && myHpRate < 0.6) score = 90; 
-            else score = -10;
-            break;
-        case "build_bridge":
-            if (lowestHpRate < 0.5) score = 80; 
-            else score = 10;
-            break;
-        case "build_farm":
-            if (state.farmTimer === 0 && myHpRate > 0.6) score = 80; 
-            else score = -10;
-            break;
-        case "random_build":
-            if (myHpRate > 0.5) score = 60;
-            else score = 10;
-            break;
-        case "explore":
-            if (myHpRate > 0.8 && lowestHpRate > 0.6) score = 70; 
-            else score = -500; 
-            break;
-        case "fishing":
-            score = 40;
-            break;
-        default:
-            score = 30;
+        case "attack": score = 50; if(p.row==='front') score+=20; if(p.buffAtk>1.0) score+=30; if(p.isEquipped) score+=20; break;
+        case "magic": score = 50; if(aliveOpponents.length>=2) score+=40; if(p.buffIntel>1.0) score+=30; if(p.row==='back') score+=20; break;
+        case "heal": case "eat": if(myHpRate<0.3) score=150; else if(myHpRate<0.6) score=80; else score=-500; break;
+        case "heal_all": if(lowestHpRate<0.4) score=200; else if(lowestHpRate<0.7) score=100; else score=-500; break;
+        case "defend": if(myHpRate<0.5 && p.row==='front') score=90; else score=10; break;
+        case "sleep": if(p.mp<skill.cost+15) score=120; else if(myHpRate<0.4) score=60; else score=-500; break;
+        case "buff": if(skill.stat==='atk' && (p.buffAtk||1.0)<2.0) score=70; else if(skill.stat==='intel' && (p.buffIntel||1.0)<2.0) score=70; else score=-500; break;
+        case "move": if(skill.dir==='up' && p.row==='back' && myHpRate>0.6) score=60; else if(skill.dir==='down' && p.row==='front' && myHpRate<0.4) score=100; else score=5; break;
+        case "summon": if(!state.guests.some(g=>g.type===skill.master)) score=110; else score=-1000; break;
+        case "call_rescue": if(!state.guests.some(g=>['soldier','captain','king'].includes(g.type))) score=110; else score=-1000; break;
+        case "equip": if(!p.isEquipped) score=80; else score=-1000; break;
+        case "build_hut": if((p.hutHp||0)<=0 && myHpRate<0.6) score=90; else score=-10; break;
+        case "build_bridge": if(lowestHpRate<0.5) score=80; else score=10; break;
+        case "build_farm": if(state.farmTimer===0 && myHpRate>0.6) score=80; else score=-10; break;
+        case "random_build": if(myHpRate>0.5) score=60; else score=10; break;
+        case "explore": if(myHpRate>0.8 && lowestHpRate>0.6) score=70; else score=-500; break;
+        case "fishing": score = 40; break;
+        default: score = 30;
     }
+
+    // ★追加：受付で設定した「作戦（Tactic）」によるスコア補正（ベース性格）
+    let tactic = p.tactic || 'normal';
+    if (!isEnemy) {
+        if (tactic === 'offensive' && (skill.type === 'attack' || skill.type === 'magic')) score += 40;
+        if (tactic === 'defensive' && (skill.type === 'heal' || skill.type === 'heal_all' || skill.type === 'defend' || skill.type === 'sleep' || skill.type === 'eat' || skill.type === 'build_hut' || skill.type === 'build_bridge')) score += 40;
+        if (tactic === 'support' && (skill.type === 'buff' || skill.type === 'summon' || skill.type === 'call_rescue' || skill.type === 'explore' || skill.type === 'equip' || skill.type === 'fishing' || skill.type === 'random_build')) score += 40;
+
+        // ★追加：戦闘中のプレイヤーの「声かけ（コマンド）」による強制スコア補正（圧倒的優先度）
+        if (isFollowCommand && state.currentCommand) {
+            let cmd = state.currentCommand;
+            if (cmd === 'offensive' && (skill.type === 'attack' || skill.type === 'magic')) score += 1000;
+            if (cmd === 'defensive' && (skill.type === 'heal' || skill.type === 'heal_all' || skill.type === 'defend' || skill.type === 'eat' || skill.type === 'sleep' || skill.type === 'build_hut')) score += 1000;
+            if (cmd === 'support' && (skill.type === 'buff' || skill.type === 'summon' || skill.type === 'call_rescue' || skill.type === 'equip' || skill.type === 'explore' || skill.type === 'fishing' || skill.type === 'build_farm')) score += 1000;
+        }
+    }
+
     return score;
 };
 
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+window.toggleArenaAuto = function() { let state = window.ARENA_STATE; state.autoMode = !state.autoMode; window.renderArenaBattle(); if (state.autoMode && !state.isProcessing) window.processArenaTurn(); };
+
 // ==========================================
-// ★究極改修：素早さ順行動＆連続行動＆回避搭載の最強ターン処理
+// ★ 究極改修：ATBターン処理とガンビット行動ロジック
 // ==========================================
+
 window.processArenaTurn = async function() {
     let state = window.ARENA_STATE;
     if (state.isProcessing && !state.skipMode) return;
+    
+    // AUTOモードかSKIPモードでなければ進行を止める
+    if (!state.autoMode && !state.skipMode) return;
+
     state.isProcessing = true;
 
     const wait = async (ms) => { if (!state.skipMode) await new Promise(r => setTimeout(r, ms)); };
@@ -2283,109 +2678,96 @@ window.processArenaTurn = async function() {
         avgDef = alivePartyForAvg.reduce((s, p) => s + p.def, 0) / alivePartyForAvg.length;
     }
 
-    // --- ① ターン開始時：タイマー・ゲスト・回復処理 ---
     let startLogs = [];
-    
-    if (state.farmTimer > 0) {
-        state.farmTimer--;
-        if (state.farmTimer === 0) {
-            if (Math.random() < 0.3) {
-                startLogs.push(`しかし、設置した畑は虫に食い荒らされていた...(失敗)`);
-            } else {
-                state.party.forEach(p => { 
-                    if(p.hp > 0) { 
-                        let heal = Math.max(50, Math.floor(p.maxHp * 0.15));
-                        p.hp = Math.min(p.maxHp, p.hp + heal); p.buffAtk += 0.2; 
-                    }
-                });
-                startLogs.push(`【大豊作！】畑から作物が供給され、味方全員の体力回復＆攻撃アップ！🌱`);
-            }
-        }
-    }
+    let actorData = null; 
 
-    for (let p of state.party) {
-        if (p.hp <= 0) continue;
-        if (p.exploreTimer > 0) {
-            p.exploreTimer--;
-            if (p.exploreTimer === 0) {
-                if (p.exploreOriginalTurn === 2) {
-                    let healHp = Math.max(30, Math.floor(p.maxHp * 0.2)); let healMp = Math.max(20, Math.floor(p.maxMp * 0.2));
-                    p.hp = Math.min(p.maxHp, p.hp + healHp); p.mp = Math.min(p.maxMp, p.mp + healMp);
-                    startLogs.push(`${p.name} が探検から帰還！見つけた食料で回復した！🍖`);
-                } else if (p.exploreOriginalTurn === 3) {
-                    let aliveEnemies = state.enemies.filter(e => e.hp > 0);
-                    if (aliveEnemies.length > 0) {
-                        let t = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-                        let logDmg = Math.max(40, Math.floor(p.atk * p.buffAtk * 0.8));
-                        t.hp -= logDmg; t.flash = true;
-                        startLogs.push(`${p.name} が探検から帰還！拾った丸太を ${t.name} に投げつけ ${logDmg} ダメージ！🪵`);
-                        setTimeout(()=>{ t.flash = false; render(); }, 150);
+    while (!actorData) {
+        if (!state.autoMode && !state.skipMode) {
+            state.isProcessing = false;
+            return;
+        }
+        
+        if (state.party.filter(p => p.hp > 0).length === 0 || state.enemies.filter(e => e.hp > 0).length === 0) break;
+
+        if (state.globalTick > 0 && state.globalTick % 40 === 0) {
+            if (state.farmTimer > 0) {
+                state.farmTimer--;
+                if (state.farmTimer === 0) {
+                    if (Math.random() < 0.3) { startLogs.push(`設置した畑は虫に食い荒らされていた...(失敗)`); } 
+                    else {
+                        state.party.forEach(p => { if(p.hp > 0) { p.hp = Math.min(p.maxHp, p.hp + Math.max(50, Math.floor(p.maxHp * 0.15))); p.buffAtk += 0.2; }});
+                        startLogs.push(`【大豊作！】畑から作物が供給され、味方全員の体力回復＆攻撃アップ！🌱`);
                     }
-                } else if (p.exploreOriginalTurn >= 4) {
-                    state.party.forEach(pt => { pt.buffAtk += 0.5; pt.buffIntel += 0.5; });
-                    startLogs.push(`【奇跡】${p.name} が探検から帰還！大いなる財宝の力で味方全員が超強化！💎`);
                 }
             }
-        }
-        if (p.isSleeping && p.exploreTimer === 0) {
-            p.hp = Math.min(p.maxHp, p.hp + Math.floor(p.maxHp * 0.2)); p.mp = Math.min(p.maxMp, p.mp + 15);
-            startLogs.push(`${p.name} は眠って体力・MPを回復した！(💤)`); p.isSleeping = false; 
-        }
-        if (p.hutHp > 0 && p.exploreTimer === 0 && !p.isSleeping) {
-            let healHp = Math.max(15, Math.floor(p.maxHp * 0.1));
-            p.hp = Math.min(p.maxHp, p.hp + healHp); p.mp = Math.min(p.maxMp, p.mp + 10);
-            startLogs.push(`${p.name} は小屋の中で安全に回復した！(🏠)`);
-        }
-    }
-
-    for (let e of state.enemies) {
-        if (e.hp <= 0) continue;
-        if (e.exploreTimer > 0) {
-            e.exploreTimer--;
-            if (e.exploreTimer === 0) {
-                if (e.exploreOriginalTurn === 2) {
-                    let healHp = Math.max(30, Math.floor(e.maxHp * 0.2));
-                    e.hp = Math.min(e.maxHp, e.hp + healHp); e.mp = Math.min(e.maxMp || 100, (e.mp||0) + 20);
-                    startLogs.push(`<span style="color:#ff5252;">${e.name} が探検から帰還し、回復した！🍖</span>`);
-                } else if (e.exploreOriginalTurn === 3) {
-                    let aliveParty = state.party.filter(p => p.hp > 0);
-                    if (aliveParty.length > 0) {
-                        let t = aliveParty[Math.floor(Math.random() * aliveParty.length)];
-                        let logDmg = Math.max(40, Math.floor(e.atk * e.buffAtk * 0.8));
-                        t.hp -= logDmg; t.flash = true;
-                        startLogs.push(`<span style="color:#ff5252;">${e.name} が帰還！ ${t.name} に丸太を投げつけ ${logDmg} ダメージ！🪵</span>`);
-                        setTimeout(()=>{ t.flash = false; render(); }, 150);
+            for (let p of state.party) {
+                if (p.hp <= 0) continue;
+                if (p.exploreTimer > 0) {
+                    p.exploreTimer--;
+                    if (p.exploreTimer === 0) {
+                        if (p.exploreOriginalTurn === 2) { p.hp = Math.min(p.maxHp, p.hp + Math.max(30, Math.floor(p.maxHp * 0.2))); p.mp = Math.min(p.maxMp, p.mp + Math.max(20, Math.floor(p.maxMp * 0.2))); startLogs.push(`${p.name} が探検から帰還し回復した！🍖`); }
+                        else if (p.exploreOriginalTurn === 3) {
+                            let aliveE = state.enemies.filter(e => e.hp > 0);
+                            if (aliveE.length > 0) { let t = aliveE[Math.floor(Math.random() * aliveE.length)]; let logDmg = Math.max(40, Math.floor(p.atk * p.buffAtk * 0.8)); t.hp -= logDmg; t.flash = true; startLogs.push(`${p.name} が探検から帰還！丸太を投げつけ ${logDmg} ダメージ！🪵`); setTimeout(()=>{ t.flash = false; render(); }, 400); }
+                        } else if (p.exploreOriginalTurn >= 4) { state.party.forEach(pt => { pt.buffAtk += 0.5; pt.buffIntel += 0.5; }); startLogs.push(`【奇跡】${p.name} が大いなる財宝を持ち帰り、味方全員が超強化！💎`); }
                     }
-                } else if (e.exploreOriginalTurn >= 4) {
-                    state.enemies.forEach(en => { en.buffAtk = (en.buffAtk||1) + 0.5; en.buffDef = (en.buffDef||1) + 0.5; });
-                    startLogs.push(`<span style="color:#ff5252;">【驚愕】${e.name} が財宝を持ち帰り、敵全員が超強化！💎</span>`);
                 }
+                if (p.isSleeping && p.exploreTimer === 0) { p.hp = Math.min(p.maxHp, p.hp + Math.floor(p.maxHp * 0.2)); p.mp = Math.min(p.maxMp, p.mp + 15); startLogs.push(`${p.name} は眠って回復した！(💤)`); p.isSleeping = false; }
+                if (p.hutHp > 0 && p.exploreTimer === 0 && !p.isSleeping) { p.hp = Math.min(p.maxHp, p.hp + Math.max(15, Math.floor(p.maxHp * 0.1))); p.mp = Math.min(p.maxMp, p.mp + 10); startLogs.push(`${p.name} は小屋の中で回復した！(🏠)`); }
+            }
+            for (let e of state.enemies) {
+                if (e.hp <= 0) continue;
+                if (e.exploreTimer > 0) {
+                    e.exploreTimer--;
+                    if (e.exploreTimer === 0) {
+                        if (e.exploreOriginalTurn === 2) { e.hp = Math.min(e.maxHp, e.hp + Math.max(30, Math.floor(e.maxHp * 0.2))); e.mp = Math.min(e.maxMp || 100, (e.mp||0) + 20); startLogs.push(`<span style="color:#ff5252;">${e.name} が探検から帰還し回復した！🍖</span>`); } 
+                        else if (e.exploreOriginalTurn === 3) {
+                            let aliveP = state.party.filter(p => p.hp > 0);
+                            if (aliveP.length > 0) { let t = aliveP[Math.floor(Math.random() * aliveP.length)]; let logDmg = Math.max(40, Math.floor(e.atk * e.buffAtk * 0.8)); t.hp -= logDmg; t.flash = true; startLogs.push(`<span style="color:#ff5252;">${e.name} が帰還！丸太を投げつけ ${logDmg} ダメージ！🪵</span>`); setTimeout(()=>{ t.flash = false; render(); }, 400); }
+                        } else if (e.exploreOriginalTurn >= 4) { state.enemies.forEach(en => { en.buffAtk = (en.buffAtk||1) + 0.5; en.buffDef = (en.buffDef||1) + 0.5; }); startLogs.push(`<span style="color:#ff5252;">【驚愕】${e.name} が財宝を持ち帰り敵全員が超強化！💎</span>`); }
+                    }
+                }
+                if (e.isSleeping && e.exploreTimer === 0) { e.hp = Math.min(e.maxHp, e.hp + Math.floor(e.maxHp * 0.2)); startLogs.push(`<span style="color:#ff5252;">${e.name} は眠って回復した！(💤)</span>`); e.isSleeping = false; }
+                if (e.hutHp > 0 && e.exploreTimer === 0 && !e.isSleeping) { e.hp = Math.min(e.maxHp, e.hp + Math.max(15, Math.floor(e.maxHp * 0.1))); startLogs.push(`<span style="color:#ff5252;">${e.name} は小屋の中で回復した！(🏠)</span>`); }
             }
         }
-        if (e.isSleeping && e.exploreTimer === 0) {
-            e.hp = Math.min(e.maxHp, e.hp + Math.floor(e.maxHp * 0.2));
-            startLogs.push(`<span style="color:#ff5252;">${e.name} は眠って体力を回復した！(💤)</span>`); e.isSleeping = false; 
+
+        let allFighters = [];
+        state.party.forEach(p => { if (p.hp > 0 && (p.exploreTimer || 0) === 0 && !p.isSleeping) allFighters.push({ isEnemy: false, isGuest: false, obj: p }); });
+        state.enemies.forEach(e => { if (e.hp > 0 && (e.exploreTimer || 0) === 0 && !e.isSleeping) allFighters.push({ isEnemy: true, isGuest: false, obj: e }); });
+        state.guests.forEach(g => { if (g.hp > 0) allFighters.push({ isEnemy: false, isGuest: true, obj: g }); });
+
+        if (allFighters.length === 0) {
+            state.globalTick++; 
+            break; 
         }
-        if (e.hutHp > 0 && e.exploreTimer === 0 && !e.isSleeping) {
-            let healHp = Math.max(15, Math.floor(e.maxHp * 0.1));
-            e.hp = Math.min(e.maxHp, e.hp + healHp);
-            startLogs.push(`<span style="color:#ff5252;">${e.name} は小屋の中で回復した！(🏠)</span>`);
+
+        for (let f of allFighters) {
+            let speed = f.obj.speed || 10;
+            f.obj.actionGauge = (f.obj.actionGauge || 0) + 4 + Math.floor(speed * 0.1);
+        }
+
+        allFighters.sort((a, b) => b.obj.actionGauge - a.obj.actionGauge);
+        if (allFighters[0].obj.actionGauge >= 100) {
+            actorData = allFighters[0];
+            actorData.obj.actionGauge = 100; 
+        }
+
+        state.globalTick++;
+        
+        if (!state.skipMode && !actorData) {
+            render(); await wait(30);
         }
     }
 
-    if (state.guests.some(g => g.type === 'cooking')) {
-        state.party.forEach(p => { if(p.hp > 0 && p.exploreTimer === 0) p.hp = Math.min(p.maxHp, p.hp + Math.max(20, Math.floor(p.maxHp * 0.15))); });
-        startLogs.push(`料理人の特製スープで味方全員のHPが回復！(🍲)`);
-    }
-    if (state.guests.some(g => g.type === 'building')) {
-        state.party.forEach(p => { if(p.hp > 0 && p.exploreTimer === 0) p.shield = true; });
-        startLogs.push(`建築士が味方陣地に「防壁」を展開した！(🧱)`);
-    }
-    if (state.guests.some(g => g.type === 'king')) {
-        state.party.forEach(p => { if(p.hp > 0) p.buffAtk += 0.1; });
-        let defDrop = Math.max(2, Math.floor(avgInt * 0.05));
-        state.enemies.forEach(e => { if(e.hp > 0) e.def = Math.max(0, e.def - defDrop); });
-        startLogs.push(`王様の号令！味方の攻撃力が上がり、敵の防御力が下がった！(👑)`);
+    if (actorData && !state.skipMode) {
+        actorData.obj.isActing = true;
+        render(); 
+        await wait(400); 
+        
+        actorData.obj.actionGauge = 0; 
+        actorData.obj.isActing = false; 
+        render(); 
     }
 
     if (startLogs.length > 0) {
@@ -2393,643 +2775,449 @@ window.processArenaTurn = async function() {
         render(); await wait(800);
     }
 
-    let aliveEnemies = state.enemies.filter(e => e.hp > 0);
-    for (let g of state.guests) {
-        if (aliveEnemies.length === 0) break;
-        let t = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
-        
-        if (g.type === 'smithing') {
-            let dmg = Math.max(30, Math.floor(avgAtk * 0.8)); t.hp -= dmg; t.flash = true;
-            state.log.push(`<span style="color:#FF9800;">鍛冶師のハンマー！ ${t.name} に ${dmg} のダメージ！(🔨)</span>`);
-            render(); await wait(150); t.flash = false; render(); await wait(400);
-        } else if (g.type === 'fishing') {
-            let dmg = Math.max(15, Math.floor(avgAtk * 0.4)); t.hp -= dmg; t.flash = true;
-            state.log.push(`<span style="color:#00BCD4;">漁師の大物釣り！ ${t.name} に ${dmg} のダメージ！(🎣)</span>`);
-            render(); await wait(150); t.flash = false; render(); await wait(400);
-        } else if (g.type === 'explore') {
-            let defDrop = Math.max(5, Math.floor(avgInt * 0.1)); t.def = Math.max(0, t.def - defDrop);
-            state.log.push(`<span style="color:#E040FB;">冒険家の罠！ ${t.name} の防御力が大幅に下がった！(🗺️)</span>`);
-            render(); await wait(500);
-        } else if (g.type === 'soldier') {
-            let dmg = Math.max(20, Math.floor(avgAtk * 0.6)); t.hp -= dmg; t.flash = true;
-            state.log.push(`<span style="color:#FFF;">城の兵士の攻撃！ ${t.name} に ${dmg} のダメージ！(⚔️)</span>`);
-            render(); await wait(150); t.flash = false; render(); await wait(400);
-        } else if (g.type === 'captain') {
-            let dmg = Math.max(35, Math.floor(avgAtk * 1.2)); t.hp -= dmg; t.flash = true;
-            state.log.push(`<span style="color:#FFD700;">城の隊長の強撃！ ${t.name} に ${dmg} のダメージ！(🛡️)</span>`);
-            render(); await wait(150); t.flash = false; render(); await wait(400);
-        }
-    }
+    if (actorData && actorData.obj.hp > 0) {
+        let actor = actorData.obj;
+        let isEnemy = actorData.isEnemy;
+        let isGuest = actorData.isGuest;
 
-    // ==========================================
-    // ★② 素早さによる行動順ソート＆連続行動キュー作成
-    // ==========================================
-    let allFighters = [];
-    state.party.forEach(p => { if (p.hp > 0 && p.exploreTimer === 0 && !p.isSleeping) allFighters.push({ isEnemy: false, obj: p }); });
-    state.enemies.forEach(e => { if (e.hp > 0 && e.exploreTimer === 0 && !e.isSleeping) allFighters.push({ isEnemy: true, obj: e }); });
-    
-    // 素早さ順に行動順を並び替える
-    allFighters.sort((a, b) => (b.obj.speed || 10) - (a.obj.speed || 10));
-
-    for (let fighter of allFighters) {
-        let actor = fighter.obj;
-        if (actor.hp <= 0) continue; 
-        
         let alivePartyCheck = state.party.filter(p => p.hp > 0);
         let aliveEnemiesCheck = state.enemies.filter(e => e.hp > 0);
-        if (alivePartyCheck.length === 0 || aliveEnemiesCheck.length === 0) break; // 勝負がついた
 
-        let actionCount = 1 + Math.floor((actor.speed || 10) / 50);
-        if (actionCount > 1) {
-            let color = fighter.isEnemy ? "#ff5252" : "#00e676";
-            state.log.push(`<span style="color:${color}; font-weight:bold;">💨 ${actor.name} は素早さを活かして ${actionCount}回 連続行動する！</span>`);
-            render(); await wait(400);
-        }
+        if (alivePartyCheck.length > 0 && aliveEnemiesCheck.length > 0) {
+            if (isGuest) {
+                let g = actor;
+                let tName = "";
+                if (g.type === 'farming') tName = '身代わりカボチャ'; else if (g.type === 'soldier') tName = '城の兵士'; else if (g.type === 'captain') tName = '城の隊長'; else if (g.type === 'king') tName = '王様'; else if (g.type === 'cooking') tName = '料理人'; else if (g.type === 'smithing') tName = '鍛冶師'; else if (g.type === 'fishing') tName = '漁師'; else if (g.type === 'explore') tName = '冒険家'; else if (g.type === 'building') tName = '建築士'; else tName = '助っ人';
 
-        // ==========================================
-        // ③ キャラクターごとの行動ループ
-        // ==========================================
-        for (let act = 0; act < actionCount; act++) {
-            if (actor.hp <= 0) break;
-
-            alivePartyCheck = state.party.filter(p => p.hp > 0);
-            aliveEnemiesCheck = state.enemies.filter(e => e.hp > 0);
-            if (alivePartyCheck.length === 0 || aliveEnemiesCheck.length === 0) {
-                actionCount = 0; // 残りの行動回数を破棄
-                break;
-            }
-
-            if (!fighter.isEnemy) {
+                if (g.type === 'cooking') {
+                    state.log.push(`<span style="color:#00E676;">${tName} の特製スープで味方回復！(🍲)</span>`);
+                    if (!state.skipMode) { state.party.forEach(p => { if(p.hp > 0 && p.exploreTimer === 0) window.showArenaEffect(p.id, 'heal'); }); await wait(600); }
+                    state.party.forEach(p => { if(p.hp > 0 && p.exploreTimer === 0) p.hp = Math.min(p.maxHp, p.hp + Math.max(20, Math.floor(p.maxHp * 0.15))); });
+                    render(); await wait(200);
+                } else if (g.type === 'building') {
+                    state.log.push(`<span style="color:#FFD700;">${tName} が味方陣地に防壁を展開！(🧱)</span>`);
+                    if (!state.skipMode) { state.party.forEach(p => { if(p.hp > 0 && p.exploreTimer === 0) window.showArenaEffect(p.id, 'buff'); }); await wait(600); }
+                    state.party.forEach(p => { if(p.hp > 0 && p.exploreTimer === 0) p.shield = true; });
+                    render(); await wait(200);
+                } else if (g.type === 'king') {
+                    state.log.push(`<span style="color:#FFD700;">${tName} の号令！味方攻撃UP＆敵防御DOWN！(👑)</span>`);
+                    if (!state.skipMode) { 
+                        state.party.forEach(p => { if(p.hp > 0) window.showArenaEffect(p.id, 'buff'); });
+                        state.enemies.forEach(e => { if(e.hp > 0) window.showArenaEffect(e.id, 'debuff'); });
+                        await wait(600); 
+                    }
+                    state.party.forEach(p => { if(p.hp > 0) p.buffAtk += 0.1; });
+                    state.enemies.forEach(e => { if(e.hp > 0) e.def = Math.max(0, e.def - Math.max(2, Math.floor(avgInt * 0.05))); });
+                    render(); await wait(200);
+                } else if (g.type === 'farming') {
+                    state.log.push(`<span style="color:#FF9800;">${tName} は ぷるぷる揺れている！(🎃)</span>`);
+                    render(); await wait(450);
+                } else {
+                    let aliveEnemies = state.enemies.filter(e => e.hp > 0);
+                    if (aliveEnemies.length > 0) {
+                        let t = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)];
+                        if (g.type === 'smithing') { 
+                            let dmg = Math.max(30, Math.floor(avgAtk * 0.8)); 
+                            state.log.push(`<span style="color:#FF9800;">${tName} のハンマー！ ${t.name} に ${dmg} のダメージ！(🔨)</span>`); 
+                            if (!state.skipMode) { window.showArenaEffect(t.id, 'smithing'); await wait(600); }
+                            t.hp -= dmg; t.flash = true; render(); await wait(400); t.flash = false; render(); await wait(200); 
+                        } else if (g.type === 'fishing') { 
+                            let dmg = Math.max(15, Math.floor(avgAtk * 0.4)); 
+                            state.log.push(`<span style="color:#00BCD4;">${tName} の大物釣り！ ${t.name} に ${dmg} のダメージ！(🎣)</span>`); 
+                            if (!state.skipMode) { window.showArenaEffect(t.id, 'fishing'); await wait(600); }
+                            t.hp -= dmg; t.flash = true; render(); await wait(400); t.flash = false; render(); await wait(200); 
+                        } else if (g.type === 'explore') { 
+                            state.log.push(`<span style="color:#E040FB;">${tName} の罠！ ${t.name} の防御力が大幅低下！(🗺️)</span>`); 
+                            if (!state.skipMode) { window.showArenaEffect(t.id, 'explore'); window.showArenaEffect(t.id, 'debuff'); await wait(600); }
+                            t.def = Math.max(0, t.def - Math.max(5, Math.floor(avgInt * 0.1))); render(); await wait(400); 
+                        } else if (g.type === 'soldier') { 
+                            let dmg = Math.max(20, Math.floor(avgAtk * 0.6)); 
+                            state.log.push(`<span style="color:#FFF;">${tName} の攻撃！ ${t.name} に ${dmg} ダメージ！(⚔️)</span>`); 
+                            if (!state.skipMode) { window.showArenaEffect(t.id, 'soldier'); await wait(600); }
+                            t.hp -= dmg; t.flash = true; render(); await wait(400); t.flash = false; render(); await wait(200); 
+                        } else if (g.type === 'captain') { 
+                            let dmg = Math.max(35, Math.floor(avgAtk * 1.2)); 
+                            state.log.push(`<span style="color:#FFD700;">${tName} の強撃！ ${t.name} に ${dmg} ダメージ！(🛡️)</span>`); 
+                            if (!state.skipMode) { window.showArenaEffect(t.id, 'captain'); await wait(600); }
+                            t.hp -= dmg; t.flash = true; render(); await wait(400); t.flash = false; render(); await wait(200); 
+                        }
+                    }
+                }
+            } 
+            else if (!isEnemy) {
                 // ---------- 味方のアクション ----------
                 let p = actor;
                 let typeStr = (p.skin || 'robot').split('_')[0];
-                let validWords = p.words.length > 0 ? [...p.words] : ["たたかう"];
-                let chosenSkillName = "たたかう";
+                let chosenSkillName = null;
 
-                let scoredSkills = validWords.map(w => {
-                    return { name: w, score: window.evaluateArenaSkillScore(p, w, state, false) };
-                }).filter(s => s.score > -100);
-
-                let smartChance = Math.min(0.95, (p.intel || 10) / 100); 
-                if (scoredSkills.length === 0) { chosenSkillName = "たたかう"; }
-                else {
-                    scoredSkills.sort((a, b) => b.score - a.score); 
-                    if (Math.random() < smartChance) {
-                        let topScore = scoredSkills[0].score;
-                        let topSkills = scoredSkills.filter(s => s.score === topScore);
-                        chosenSkillName = topSkills[Math.floor(Math.random() * topSkills.length)].name;
-                    } else {
-                        chosenSkillName = scoredSkills[Math.floor(Math.random() * scoredSkills.length)].name;
+                // ★ ガンビット作戦の読み込み
+                let defTactics = window.getDefaultTactics(p.words);
+                let tactic = p.tacticType === 'default' ? defTactics[p.tacticIndex || 0] : (window.aiPet.tactics[p.tacticIndex || 0]);
+                if (!tactic) tactic = defTactics[0]; 
+                
+                let usedRuleIndex = 0;
+                for (let i = 0; i < tactic.rules.length; i++) {
+                    if (window.checkTacticCondition(tactic.rules[i].condition, p, state)) {
+                        let allowedWords = p.words && p.words.length > 0 ? [...p.words, "たたかう"] : ["たたかう"];
+                        if (allowedWords.includes(tactic.rules[i].action)) {
+                            chosenSkillName = tactic.rules[i].action;
+                            usedRuleIndex = i;
+                            break;
+                        }
                     }
                 }
 
-                let skill = window.ARENA_SKILLS[chosenSkillName] || window.ARENA_SKILLS["たたかう"];
+                // ★ インフレ対応：成功率判定
+                if (chosenSkillName) {
+                    let avgEnemyIntel = aliveEnemiesCheck.length > 0 ? (aliveEnemiesCheck.reduce((s, e) => s + e.intel, 0) / aliveEnemiesCheck.length) : 10;
+                    let ratio = p.intel / (p.intel + avgEnemyIntel);
+                    if (isNaN(ratio)) ratio = 0.5;
+                    
+                    let baseProb = ratio * 100;
+                    let penaltyPerRule = 20 * (1.0 - ratio); 
+                    let successRate = Math.max(5, Math.min(100, baseProb - (usedRuleIndex * penaltyPerRule)));
 
-                if (skill.allowedTypes !== "all" && !skill.allowedTypes.includes(typeStr)) {
-                    state.log.push(`<span style="color:#4fc3f7;">${p.name} は「${chosenSkillName}」を使おうとしたが失敗した...</span>`); render(); await wait(400); continue;
-                }
-                if (p.mp < skill.cost) {
-                    state.log.push(`<span style="color:#4fc3f7;">${p.name} は「${chosenSkillName}」を使おうとしたがMPが足りない！</span>`); render(); await wait(400); continue;
-                }
-
-                state.log.push(`<span style="color:#4fc3f7;">${p.name} は「${chosenSkillName}」を使った！</span>`);
-                render(); await wait(400);
-                p.mp -= skill.cost;
-
-                if (skill.type === "move") {
-                    if (skill.dir === 'up') p.row = 'front'; if (skill.dir === 'down') p.row = 'back';
-                    if (skill.dir === 'left') p.col = Math.max(0, p.col - 1); if (skill.dir === 'right') p.col = Math.min(3, p.col + 1);
-                    state.log.push(`<span style="color:#FFF;">陣形を「${skill.name}」に変更した！</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "buff") {
-                    if (skill.stat === 'atk') p.buffAtk += 0.5; if (skill.stat === 'intel') p.buffIntel += 0.5;
-                    state.log.push(`<span style="color:#FFC107;">気合が入り、${skill.name}した！</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "sleep") {
-                    p.isSleeping = true; state.log.push(`<span style="color:#aaa;">${p.name} は その場でぐっすり眠りについた...💤</span>`); render(); await wait(500); break; // 眠ったら連続行動もストップ
-                }
-                else if (skill.type === "summon") {
-                    if (!state.guests.some(g => g.type === skill.master)) {
-                        let masterHP = Math.max(10, Math.floor(avgHp * (skill.master === 'farming' ? 1.5 : 0.3))); 
-                        state.guests.push({ type: skill.master, hp: masterHP, maxHp: masterHP });
-                        state.log.push(`<span style="color:#E91E63; font-weight:bold;">${skill.name}により師匠が駆けつけた！！</span>`);
-                    } else { state.log.push(`<span style="color:#aaa;">しかし、既に呼ばれていた！(失敗)</span>`); }
-                    render(); await wait(500);
-                }
-                else if (skill.type === "call_rescue") {
-                    let rTypes = ['soldier', 'soldier', 'captain', 'king']; let gType = rTypes[Math.floor(Math.random() * rTypes.length)];
-                    let gHp = Math.floor(avgHp * (gType === 'captain' ? 0.8 : (gType === 'soldier' ? 0.5 : 0.3))); gHp = Math.max(10, gHp);
-                    state.guests.push({ type: gType, hp: gHp, maxHp: gHp });
-                    state.log.push(`<span style="color:#FFD700; font-weight:bold;">城から援軍が到着した！</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "build_hut") {
-                    p.hutHp = 5; state.log.push(`<span style="color:#FFF;">${p.name} は頑丈な小屋に立てこもった！(🏠)</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "build_bridge") {
-                    state.party.forEach(pt => { if (pt.hp > 0 && pt.exploreTimer === 0) pt.row = 'back'; });
-                    state.log.push(`<span style="color:#00BCD4;">橋を架けて、味方全員が後衛に退避した！</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "build_farm") {
-                    state.farmTimer = 4; state.log.push(`<span style="color:#4CAF50;">急いで畑を耕した！</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "random_build") {
-                    let rnd = Math.random();
-                    if (rnd < 0.25) { p.hutHp = 5; state.log.push(`<span style="color:#FFF;">小屋が完成し、中に立てこもった！</span>`); }
-                    else if (rnd < 0.5) { state.party.forEach(pt => pt.row = 'back'); state.log.push(`<span style="color:#00BCD4;">橋が完成し、全員で後衛に退避した！</span>`); }
-                    else if (rnd < 0.75) { state.farmTimer = 4; state.log.push(`<span style="color:#4CAF50;">畑が完成した！収穫を待とう...</span>`); }
-                    else { 
-                        let bHp = Math.max(10, Math.floor(avgHp * 0.5)); state.guests.push({ type: 'soldier', hp: bHp, maxHp: bHp }); 
-                        state.log.push(`<span style="color:#FFD700;">城の設備を作り、兵士を呼び込んだ！</span>`); 
-                    }
-                    render(); await wait(500);
-                }
-                else if (skill.type === "explore") {
-                    p.exploreOriginalTurn = 2 + Math.floor(Math.random() * 3); p.exploreTimer = p.exploreOriginalTurn;
-                    state.log.push(`<span style="color:#E040FB;">「ちょっと探検してくる！」 ${p.name} は戦場から姿を消した...</span>`); render(); await wait(500); break; // 探検に出たら連続行動ストップ
-                }
-                else if (skill.type === "fishing") {
-                    let r = Math.random();
-                    if (r < 0.33) {
-                        let t = aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)];
-                        
-                        // ★回避判定バグ修正：正しくカッコで括る！
-                        let dodgeChance = Math.min(0.8, Math.max(0, ((t.speed || 10) - (p.speed || 10)) * 0.05));
-                        if (Math.random() < dodgeChance) {
-                            state.log.push(`<span style="color:#aaa;">大物が釣れたが、${t.name} は素早く躱した！(MISS)</span>`);
+                    if (Math.random() * 100 > successRate) {
+                        let failure = window.getFailureAction(p);
+                        chosenSkillName = failure.skillName; 
+                        if (chosenSkillName) {
+                            state.log.push(`<span style="color:#888;">💦 ${p.name} は作戦を失敗し、勝手に行動した！</span>`);
                         } else {
-                            let fishDmg = Math.max(30, Math.floor(p.atk * p.buffAtk * 0.6));
-                            t.hp -= fishDmg; t.flash = true;
-                            state.log.push(`<span style="color:#00BCD4;">大物が釣れた！暴れる魚が ${t.name} に ${fishDmg} のダメージ！🎣</span>`);
-                            render(); await wait(150); t.flash = false;
+                            state.log.push(`<span style="color:#888;">💦 ${failure.log}</span>`);
                         }
-                        render(); await wait(500);
-                    } else if (r < 0.66) {
-                        let fishHeal = Math.max(40, Math.floor(p.maxHp * 0.2)); p.hp = Math.min(p.maxHp, p.hp + fishHeal); 
-                        state.log.push(`<span style="color:#76ff03;">新鮮な魚を刺身にして食べた！HP回復！🍣</span>`); render(); await wait(500);
-                    } else {
-                        state.log.push(`<span style="color:#aaa;">...空き缶が釣れた。(失敗)</span>`); render(); await wait(500);
+                        render(); await wait(600);
                     }
-                }
-                else if (skill.type === "eat") {
-                    let eatHealHp = Math.max(50, Math.floor(p.maxHp * 0.25)); let eatHealMp = Math.max(20, Math.floor(p.maxMp * 0.15));
-                    p.hp = Math.min(p.maxHp, p.hp + eatHealHp); p.mp = Math.min(p.maxMp, p.mp + eatHealMp);
-                    state.log.push(`<span style="color:#76ff03;">持っていた食料を食べた！HPとMPが大回復！🍖</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "equip") {
-                    p.buffAtk += 0.5; p.isEquipped = true; state.log.push(`<span style="color:#FFC107;">武器を構えた！攻撃力大幅アップ！🗡️</span>`); render(); await wait(500);
-                }
-                else if (skill.type === "unequip") {
-                    if (p.isEquipped) { p.buffAtk = Math.max(1.0, p.buffAtk - 0.5); p.isEquipped = false; state.log.push(`<span style="color:#aaa;">重い装備を外して身軽になった。</span>`); }
-                    else { state.log.push(`<span style="color:#aaa;">しかし何も装備していなかった。</span>`); }
-                    render(); await wait(500);
-                }
-                else if (skill.type === "attack" || skill.type === "magic") {
-                    let target = aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)];
-                    let targets = skill.target === "all" ? aliveEnemiesCheck : [target];
-                    
-                    for(let t of targets) { if(!state.skipMode) window.showArenaEffect(t.id, typeStr); }
-                    await wait(350); 
-                    for(let t of targets) { t.flash = true; }
-                    render(); await wait(150);
-                    for(let t of targets) { t.flash = false; }
-                    render();
-                    
-                    for(let t of targets) {
-                        // ★回避判定バグ修正：正しくカッコで括る！
-                        let dodgeChance = Math.min(0.8, Math.max(0, ((t.speed || 10) - (p.speed || 10)) * 0.05));
-                        if (Math.random() < dodgeChance) {
-                            state.log.push(`<span style="color:#aaa;">${t.name} は攻撃をヒラリと避けた！(MISS)</span>`);
-                            continue;
-                        }
-
-                        let finalAtk = p.atk * p.buffAtk;
-                        if (skill.type === "magic") finalAtk = p.intel * p.buffIntel;
-                        let dmgMultiplier = 1.0;
-                        if (p.row === 'back' && skill.type === "attack") dmgMultiplier = 0.7; 
-                        if (p.hutHp > 0) dmgMultiplier *= 0.8; 
-                        
-                        let dmg = Math.floor(finalAtk * skill.power * dmgMultiplier) - Math.floor(t.def * 0.5);
-                        dmg = Math.max(1, dmg); 
-                        t.hp -= dmg;
-                        state.log.push(`<span style="color:#FFF;">${t.name} に ${dmg} のダメージ！</span>`);
-                    }
+                } else {
+                    state.log.push(`<span style="color:#888;">💦 ${p.name} はどうしていいか分からず戸惑っている...</span>`);
                     render(); await wait(600);
-                } 
-                else if (skill.type === "heal") {
-                    p.hp = Math.min(p.maxHp, p.hp + skill.power + Math.floor(p.intel * p.buffIntel * 0.5));
-                    state.log.push(`<span style="color:#76ff03;">${p.name} のHPが回復した！</span>`); render(); await wait(600);
-                } else if (skill.type === "heal_all") {
-                    for (let pt of state.party) { if(pt.hp > 0 && pt.exploreTimer === 0) pt.hp = Math.min(pt.maxHp, pt.hp + skill.power + Math.floor(p.intel * pt.buffIntel * 0.3)); }
-                    state.log.push(`<span style="color:#76ff03;">味方全員のHPが回復した！</span>`); render(); await wait(600);
-                } else if (skill.type === "defend") {
-                    p.shield = true; state.log.push(`<span style="color:#FFF;">${p.name} は身を固めている！（次ダメージ半減）</span>`); render(); await wait(600);
                 }
 
+                // --- スキル発動処理 ---
+                if (chosenSkillName) {
+                    let skill = window.ARENA_SKILLS[chosenSkillName] || window.ARENA_SKILLS["たたかう"];
+
+                    if (skill.allowedTypes !== "all" && !skill.allowedTypes.includes(typeStr)) {
+                        state.log.push(`<span style="color:#4fc3f7;">${p.name} は「${chosenSkillName}」を使おうとしたが失敗した...</span>`); render(); await wait(400); 
+                    } else if (p.mp < skill.cost) {
+                        state.log.push(`<span style="color:#4fc3f7;">${p.name} は「${chosenSkillName}」を使おうとしたがMPが足りない！</span>`); render(); await wait(400); 
+                    } else {
+                        state.log.push(`<span style="color:#4fc3f7; font-weight:bold;">⚔️ ${p.name} は「${chosenSkillName}」を使った！</span>`); render(); await wait(400);
+                        p.mp -= skill.cost;
+
+                        if (skill.type === "move") {
+                            if (skill.dir === 'up') p.row = 'front'; if (skill.dir === 'down') p.row = 'back';
+                            if (skill.dir === 'left') p.col = Math.max(0, p.col - 1); if (skill.dir === 'right') p.col = Math.min(3, p.col + 1);
+                            state.log.push(`<span style="color:#FFF;">陣形を「${skill.name}」に変更した！</span>`); render(); await wait(500);
+                        }
+                        else if (skill.type === "buff") {
+                            state.log.push(`<span style="color:#FFC107;">気合が入り、${skill.name}した！</span>`); 
+                            if (!state.skipMode) { window.showArenaEffect(p.id, 'buff'); await wait(500); }
+                            if (skill.stat === 'atk') p.buffAtk += 0.5; if (skill.stat === 'intel') p.buffIntel += 0.5;
+                            render(); await wait(200);
+                        }
+                        else if (skill.type === "sleep") { p.isSleeping = true; state.log.push(`<span style="color:#aaa;">${p.name} は その場でぐっすり眠りについた...💤</span>`); render(); await wait(500); }
+                        else if (skill.type === "summon") {
+                            if (!state.guests.some(g => g.type === skill.master)) {
+                                let masterHP = Math.max(10, Math.floor(avgHp * (skill.master === 'farming' ? 1.5 : 0.3))); 
+                                state.guests.push({ id: `g_${skill.master}_${Date.now()}`, type: skill.master, hp: masterHP, maxHp: masterHP, actionGauge: 0, speed: 40 });
+                                state.log.push(`<span style="color:#E91E63; font-weight:bold;">${skill.name}により師匠が駆けつけた！！</span>`);
+                            } else { state.log.push(`<span style="color:#aaa;">しかし、既に呼ばれていた！(失敗)</span>`); }
+                            render(); await wait(500);
+                        }
+                        else if (skill.type === "call_rescue") {
+                            let rTypes = ['soldier', 'soldier', 'captain', 'king']; let gType = rTypes[Math.floor(Math.random() * rTypes.length)];
+                            let gHp = Math.floor(avgHp * (gType === 'captain' ? 0.8 : (gType === 'soldier' ? 0.5 : 0.3))); gHp = Math.max(10, gHp);
+                            state.guests.push({ id: `g_${gType}_${Date.now()}`, type: gType, hp: gHp, maxHp: gHp, actionGauge: 0, speed: 45 }); 
+                            state.log.push(`<span style="color:#FFD700; font-weight:bold;">城から援軍が到着した！</span>`); render(); await wait(500);
+                        }
+                        else if (skill.type === "build_hut") { p.hutHp = 5; state.log.push(`<span style="color:#FFF;">${p.name} は頑丈な小屋に立てこもった！(🏠)</span>`); render(); await wait(500); }
+                        else if (skill.type === "build_bridge") { state.party.forEach(pt => { if (pt.hp > 0 && pt.exploreTimer === 0) pt.row = 'back'; }); state.log.push(`<span style="color:#00BCD4;">橋を架けて味方全員が後衛に退避した！</span>`); render(); await wait(500); }
+                        else if (skill.type === "build_farm") { state.farmTimer = 4; state.log.push(`<span style="color:#4CAF50;">急いで畑を耕した！</span>`); render(); await wait(500); }
+                        else if (skill.type === "random_build") {
+                            let rnd = Math.random();
+                            if (rnd < 0.25) { p.hutHp = 5; state.log.push(`<span style="color:#FFF;">小屋が完成し中に立てこもった！</span>`); }
+                            else if (rnd < 0.5) { state.party.forEach(pt => pt.row = 'back'); state.log.push(`<span style="color:#00BCD4;">橋が完成し全員で後衛に退避した！</span>`); }
+                            else if (rnd < 0.75) { state.farmTimer = 4; state.log.push(`<span style="color:#4CAF50;">畑が完成した！収穫を待とう...</span>`); }
+                            else { 
+                                let bHp = Math.max(10, Math.floor(avgHp * 0.5)); 
+                                state.guests.push({ id: `g_soldier_${Date.now()}`, type: 'soldier', hp: bHp, maxHp: bHp, actionGauge: 0, speed: 45 }); 
+                                state.log.push(`<span style="color:#FFD700;">城の設備を作り兵士を呼び込んだ！</span>`); 
+                            }
+                            render(); await wait(500);
+                        }
+                        else if (skill.type === "explore") { p.exploreOriginalTurn = 2 + Math.floor(Math.random() * 3); p.exploreTimer = p.exploreOriginalTurn; state.log.push(`<span style="color:#E040FB;">「ちょっと探検してくる！」 ${p.name} は戦場から姿を消した...</span>`); render(); await wait(500); }
+                        else if (skill.type === "fishing") {
+                            let r = Math.random();
+                            if (r < 0.33) {
+                                let t = aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)];
+                                let dodgeChance = Math.min(0.8, Math.max(0, ((t.speed || 10) - (p.speed || 10)) * 0.05));
+                                if (Math.random() < dodgeChance) { state.log.push(`<span style="color:#aaa;">大物が釣れたが、${t.name} は素早く躱した！(MISS)</span>`); } 
+                                else { 
+                                    let fishDmg = Math.max(30, Math.floor(p.atk * p.buffAtk * 0.6)); 
+                                    state.log.push(`<span style="color:#00BCD4;">大物が釣れた！暴れる魚が ${t.name} に ${fishDmg} ダメージ！🎣</span>`); 
+                                    if (!state.skipMode) { window.showArenaEffect(t.id, 'fishing'); await wait(600); }
+                                    t.hp -= fishDmg; t.flash = true; render(); await wait(400); t.flash = false; render(); await wait(200); 
+                                }
+                            } else if (r < 0.66) { p.hp = Math.min(p.maxHp, p.hp + Math.max(40, Math.floor(p.maxHp * 0.2))); state.log.push(`<span style="color:#76ff03;">新鮮な魚を食べてHP回復！🍣</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'heal'); await wait(500); } render(); } 
+                            else { state.log.push(`<span style="color:#aaa;">...空き缶が釣れた。(失敗)</span>`); render(); await wait(500); }
+                        }
+                        else if (skill.type === "eat") { state.log.push(`<span style="color:#76ff03;">食料を食べてHPとMPが大回復！🍖</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'heal'); await wait(500); } p.hp = Math.min(p.maxHp, p.hp + Math.max(50, Math.floor(p.maxHp * 0.25))); p.mp = Math.min(p.maxMp, p.mp + Math.max(20, Math.floor(p.maxMp * 0.15))); render(); await wait(200); }
+                        else if (skill.type === "equip") { state.log.push(`<span style="color:#FFC107;">武器を構えた！攻撃力大幅アップ！🗡️</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); } p.buffAtk += 0.5; p.isEquipped = true; render(); await wait(200); }
+                        else if (skill.type === "unequip") { if (p.isEquipped) { p.buffAtk = Math.max(1.0, p.buffAtk - 0.5); p.isEquipped = false; state.log.push(`<span style="color:#aaa;">重い装備を外して身軽になった。</span>`); } else { state.log.push(`<span style="color:#aaa;">しかし何も装備していなかった。</span>`); } render(); await wait(500); }
+                        else if (skill.type === "attack" || skill.type === "magic") {
+                            let target = aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)];
+                            let targets = skill.target === "all" ? aliveEnemiesCheck : [target];
+                            
+                            for(let t of targets) { if(!state.skipMode) window.showArenaEffect(t.id, typeStr); }
+                            if (!state.skipMode) await wait(600); 
+                            
+                            for(let t of targets) {
+                                let dodgeChance = Math.min(0.8, Math.max(0, ((t.speed || 10) - (p.speed || 10)) * 0.05));
+                                if (Math.random() < dodgeChance) { state.log.push(`<span style="color:#aaa;">${t.name} は攻撃をヒラリと避けた！(MISS)</span>`); continue; }
+                                
+                                let finalAtk = p.atk * p.buffAtk; if (skill.type === "magic") finalAtk = p.intel * p.buffIntel;
+                                let dmgMultiplier = 1.0; if (p.row === 'back' && skill.type === "attack") dmgMultiplier = 0.7; if (p.hutHp > 0) dmgMultiplier *= 0.8; 
+                                let dmg = Math.max(1, Math.floor(finalAtk * skill.power * dmgMultiplier) - Math.floor(t.def * 0.5));
+                                
+                                t.hp -= dmg; 
+                                t.flash = true; 
+                                state.log.push(`<span style="color:#FFF;">${t.name} に ${dmg} のダメージ！</span>`);
+                            }
+                            
+                            render(); 
+                            if (!state.skipMode) await wait(400); 
+                            for(let t of targets) { t.flash = false; } 
+                            render(); 
+                            if (!state.skipMode) await wait(200); 
+                        } 
+                        else if (skill.type === "heal") { state.log.push(`<span style="color:#76ff03;">${p.name} のHPが回復した！</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'heal'); await wait(600); } p.hp = Math.min(p.maxHp, p.hp + skill.power + Math.floor(p.intel * p.buffIntel * 0.5)); render(); await wait(200); } 
+                        else if (skill.type === "heal_all") { state.log.push(`<span style="color:#76ff03;">味方全員のHPが回復した！</span>`); if(!state.skipMode){ state.party.forEach(pt => { if(pt.hp > 0 && (pt.exploreTimer||0) === 0) window.showArenaEffect(pt.id, 'heal'); }); await wait(600); } for (let pt of state.party) { if(pt.hp > 0 && (pt.exploreTimer||0) === 0) pt.hp = Math.min(pt.maxHp, pt.hp + skill.power + Math.floor(p.intel * pt.buffIntel * 0.3)); } render(); await wait(200); } 
+                        else if (skill.type === "defend") { state.log.push(`<span style="color:#FFF;">${p.name} は身を固めている！（次ダメージ半減）</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); } p.shield = true; render(); await wait(200); }
+                    }
+                }
             } else {
                 // ---------- 敵のアクション ----------
                 let e = actor;
-                
                 let targets = [];
                 state.party.forEach(pt => { if (pt.hp > 0 && pt.exploreTimer === 0 && !pt.isSleeping) targets.push({ obj: pt, isGuest: false, row: pt.row, col: pt.col }); });
-                state.guests.forEach(g => { if (g.hp > 0 && ['farming', 'soldier', 'captain', 'king'].includes(g.type)) targets.push({ obj: g, isGuest: true, type: g.type, row: 'front', col: 1.5 }); });
+                state.guests.forEach(g => { if (g.hp > 0) targets.push({ obj: g, isGuest: true, type: g.type, row: 'front', col: 1.5 }); });
                 
                 if (targets.length === 0) {
                     state.party.forEach(pt => { if (pt.hp > 0 && pt.exploreTimer === 0) targets.push({ obj: pt, isGuest: false, row: pt.row, col: pt.col }); });
-                    if (targets.length === 0) break;
                 }
 
-                let hateList = targets.map(t => {
-                    let hate = 10;
-                    if (t.row === 'back') hate -= 6; 
-                    if (t.isGuest) {
-                        if (t.type === 'captain') hate += 100; 
-                        if (t.type === 'farming') hate += 200; 
-                        if (t.type === 'soldier') hate += 5;
-                        if (t.type === 'king') hate += 5;
-                    } else { hate += (3 - t.col) * 2; }
-                    return { target: t, hate: Math.max(1, hate) };
-                });
-                
-                let totalHate = hateList.reduce((s, i) => s + i.hate, 0);
-                let rHate = Math.random() * totalHate;
-                let finalTargetData = hateList[0].target;
-                for (let item of hateList) {
-                    rHate -= item.hate;
-                    if (rHate <= 0) { finalTargetData = item.target; break; }
-                }
-
-                let targetObj = finalTargetData.obj;
-                let defValue = finalTargetData.isGuest ? Math.floor(avgDef * 0.5) : targetObj.def;
-                
-                let baseAtk = e.atk * (e.buffAtk || 1.0);
-                let dmgMultiplier = 1.0;
-                if (e.hutHp > 0) dmgMultiplier *= 0.8;
-                
-                let dmg = 0; let logMsg = null;
-                let actionType = "attack"; let skillName = "通常攻撃";
-                
-                let r = Math.random();
-                if (e.isBoss) {
-                    // 万が一辞書にない種族が来た場合のフォールバック（保険）
-                    let fallbackPatterns = [
-                        { actionType: "buff_atk", skillName: "威圧" },
-                        { actionType: "attack", skillName: "強撃" },
-                        { actionType: "heavy", skillName: "粉砕" },
-                        { actionType: "magic_all", skillName: "魔力解放" },
-                        { actionType: "buff_def", skillName: "防壁" },
-                        { actionType: "heavy_magic", skillName: "裁き" }
-                    ];
-
-                    // 自分の種族ID（robot_type1_2 など）に完全一致するパターンを辞書から取得
-                    let targetKey = e.bossTypeKey || e.type || "";
-                    let bossPatterns = (window.ARENA_BOSS_PATTERNS && window.ARENA_BOSS_PATTERNS[targetKey]) 
-                                       ? window.ARENA_BOSS_PATTERNS[targetKey] 
-                                       : fallbackPatterns;
-
-                    let pat = bossPatterns[e.patternStep % bossPatterns.length];
-                    e.patternStep++; 
-                    actionType = pat.actionType; 
-                    skillName = pat.skillName;
-
-                } else if (e.isFriend) {
-                    let validWords = e.words && e.words.length > 0 ? [...e.words] : ["たたかう"];
-                    let scoredSkills = validWords.map(w => {
-                        return { name: w, score: window.evaluateArenaSkillScore(e, w, state, true) };
-                    }).filter(s => s.score > -100);
-
-                    let smartChance = Math.min(0.95, (e.intel || 10) / 100); 
-                    if (scoredSkills.length === 0) skillName = "たたかう";
-                    else {
-                        scoredSkills.sort((a, b) => b.score - a.score); 
-                        if (Math.random() < smartChance) {
-                            let topSkills = scoredSkills.filter(s => s.score === scoredSkills[0].score);
-                            skillName = topSkills[Math.floor(Math.random() * topSkills.length)].name;
-                        } else {
-                            skillName = scoredSkills[Math.floor(Math.random() * scoredSkills.length)].name;
-                        }
-                    }
+                if (targets.length > 0) {
+                    let hateList = targets.map(t => {
+                        let hate = 10; if (t.row === 'back') hate -= 6; 
+                        if (t.isGuest) { if (t.type === 'captain') hate += 100; if (t.type === 'farming') hate += 200; if (t.type === 'soldier' || t.type === 'king') hate += 5; } else { hate += (3 - t.col) * 2; }
+                        return { target: t, hate: Math.max(1, hate) };
+                    });
                     
-                    let skill = window.ARENA_SKILLS[skillName] || window.ARENA_SKILLS["たたかう"];
-                    e.mp = Math.max(0, (e.mp || 0) - (skill.cost || 0)); 
-                    
-                    actionType = skill.type;
-                    if (actionType === "attack") actionType = "heavy"; 
-                    if (actionType === "magic") actionType = skill.target === "all" ? "magic_all" : "heavy_magic";
-                } else {
-                    if (e.type === 'robot') { if (r < 0.3) { actionType = "heavy"; skillName = "ロケットパンチ"; } else if (r < 0.5) { actionType = "buff_atk"; skillName = "リミッター解除"; } }
-                    else if (e.type === 'dragon') { if (r < 0.4) { actionType = "magic_all"; skillName = "火炎の息"; } else if (r < 0.7) { actionType = "heavy"; skillName = "噛み砕く"; } }
-                    else if (e.type === 'magician') { if (r < 0.4) { actionType = "heavy_magic"; skillName = "ファイアボルト"; } else if (r < 0.6) { actionType = "heal_ally"; skillName = "ヒール"; } }
-                    else if (e.type === 'stone') { if (r < 0.3) { actionType = "magic_all"; skillName = "大地震"; } else if (r < 0.6) { actionType = "buff_def"; skillName = "硬化"; } }
-                    else if (e.type === 'bird') { if (r < 0.4) { actionType = "magic_all"; skillName = "突風"; } }
-                    else if (e.type === 'beetle') { if (r < 0.4) { actionType = "heavy"; skillName = "ホーンタックル"; } else if (r < 0.7) { actionType = "buff_def"; skillName = "甲殻防御"; } }
-                    else if (e.type === 'spirit') { if (r < 0.3) { actionType = "magic_all"; skillName = "自然の怒り"; } else if (r < 0.6) { actionType = "heal_all"; skillName = "癒やしの光"; } }
-                    else if (e.type === 'seed') { if (r < 0.3) { actionType = "summon_enemy"; skillName = "増殖"; } else if (r < 0.6) { actionType = "heavy"; skillName = "ポイズンシード"; } else if (r < 0.8) { actionType = "heal_self"; skillName = "光合成"; } }
-                    else if (e.type === 'balloon') { if (r < 0.3) { actionType = "summon_enemy"; skillName = "仲間を呼ぶ"; } else if (r < 0.6) { actionType = "heavy"; skillName = "のしかかり"; } else if (r < 0.8) { actionType = "heal_self"; skillName = "分裂の構え"; } }
-                    else if (e.type === 'machine') { if (r < 0.4) { actionType = "buff_atk"; skillName = "ゼンマイ巻き"; } else if (r < 0.7) { actionType = "magic_all"; skillName = "回転アタック"; } }
-                    else if (e.type === 'ghost') { if (r < 0.3) { actionType = "summon_enemy"; skillName = "霊体召喚"; } else if (r < 0.6) { actionType = "magic_all"; skillName = "ポルターガイスト"; } else if (r < 0.8) { actionType = "debuff_def"; skillName = "呪い"; } }
-                }
+                    let totalHate = hateList.reduce((s, i) => s + i.hate, 0); let rHate = Math.random() * totalHate;
+                    let finalTargetData = hateList[0].target;
+                    for (let item of hateList) { rHate -= item.hate; if (rHate <= 0) { finalTargetData = item.target; break; } }
 
-                if (actionType === "move") {
-                    let skill = window.ARENA_SKILLS[skillName];
-                    if (skill && skill.dir === 'up') e.row = 'front';
-                    if (skill && skill.dir === 'down') e.row = 'back';
-                    state.log.push(`<span style="color:#ff5252;">${e.name} が陣形を「${skillName}」に変更した！</span>`);
-                    render(); await wait(600); continue;
-                } else if (actionType === "buff" || actionType === "buff_atk") {
-                    let skill = window.ARENA_SKILLS[skillName];
-                    if (skill && skill.stat === 'intel') e.buffDef = (e.buffDef||1) + 0.5; 
-                    else e.buffAtk = (e.buffAtk||1) + 0.5;
-                    state.log.push(`<span style="color:#ff5252;">${e.name} が気合を入れた！（効果アップ）</span>`);
-                    render(); await wait(600); continue;
-                } else if (actionType === "sleep") {
-                    e.isSleeping = true; state.log.push(`<span style="color:#ff5252;">${e.name} は その場でぐっすり眠りについた...💤</span>`); render(); await wait(600); break;
-                } else if (actionType === "summon" || actionType === "call_rescue") {
-                    let skill = window.ARENA_SKILLS[skillName]; let masterType = skill ? skill.master : null;
-                    if (actionType === "call_rescue") { let rTypes = ['soldier', 'soldier', 'captain', 'king']; masterType = rTypes[Math.floor(Math.random() * rTypes.length)]; }
-                    if (masterType) {
-                        let gHp = masterType === 'captain' ? 100 : (masterType === 'soldier' ? 50 : (masterType === 'king' ? 30 : 20));
-                        if (state.mode === 'boss' || state.mode === 'normal') {
-                            let calcWave = state.mode === 'boss' ? state.wave * 50 : state.wave; 
-                            let waveMinus = calcWave - 1; let hpMult = 1 + (waveMinus * 0.3) + (Math.pow(1.04, waveMinus) - 1);
-                            gHp = Math.floor(gHp * hpMult);
-                        }
-                        let gAtk = Math.max(20, Math.floor(e.atk * 0.5)); let gDef = Math.max(5, Math.floor(e.def * 0.5));
-                        let spriteKey = "arena_" + masterType; let mName = "幻影の助っ人";
-                        if (masterType === 'soldier') mName = "城の兵士"; else if (masterType === 'captain') mName = "城の隊長"; else if (masterType === 'king') mName = "王様"; else if (masterType === 'explore') mName = "冒険家"; else if (masterType === 'fishing') { mName = "漁師"; spriteKey = "arena_fisherman"; } 
-                        else if (masterType === 'cooking') mName = "料理人"; else if (masterType === 'farming') mName = "農家"; else if (masterType === 'building') mName = "建築士"; else if (masterType === 'smithing') mName = "鍛冶師";
-                        
-                        state.enemies.push({ id: `e_${state.enemies.length}_${Date.now()}`, baseName: mName, name: mName, spriteKey: spriteKey, type: masterType, hp: gHp, maxHp: gHp, atk: gAtk, def: gDef, buffAtk: 1.0, buffDef: 1.0, row: 'back', col: 0 });
-                        state.log.push(`<span style="color:#ff5252;">なんと！${e.name} が ${mName} を呼び出した！！</span>`);
-                    }
-                    render(); await wait(600); continue;
-                } else if (actionType === "build_hut") {
-                    e.hutHp = 5; state.log.push(`<span style="color:#ff5252;">${e.name} は頑丈な小屋に立てこもった！(🏠)</span>`); render(); await wait(600); continue;
-                } else if (actionType === "build_bridge") {
-                    state.enemies.forEach(en => { if (en.hp > 0 && en.exploreTimer === 0) en.row = 'back'; });
-                    state.log.push(`<span style="color:#ff5252;">${e.name} が橋を架け、敵全員が後衛に退避した！</span>`); render(); await wait(600); continue;
-                } else if (actionType === "build_farm") {
-                    state.log.push(`<span style="color:#ff5252;">${e.name} は急いで畑を耕した！</span>`);
-                    state.enemies.forEach(en => { if(en.hp > 0) en.hp = Math.min(en.maxHp, en.hp + Math.max(50, Math.floor(en.maxHp * 0.15))); });
-                    render(); await wait(600); continue;
-                } else if (actionType === "random_build") {
-                    let rnd = Math.random();
-                    if (rnd < 0.33) { e.hutHp = 5; state.log.push(`<span style="color:#ff5252;">${e.name} は小屋を作り立てこもった！</span>`); }
-                    else if (rnd < 0.66) { state.enemies.forEach(en => en.row = 'back'); state.log.push(`<span style="color:#ff5252;">敵陣に橋が完成し、敵が退避した！</span>`); }
-                    else { e.shield = true; state.log.push(`<span style="color:#ff5252;">敵陣に防壁が完成した！</span>`); }
-                    render(); await wait(600); continue;
-                } else if (actionType === "explore") {
-                    e.exploreOriginalTurn = 2 + Math.floor(Math.random() * 3); e.exploreTimer = e.exploreOriginalTurn;
-                    state.log.push(`<span style="color:#ff5252;">${e.name} は戦場から姿を消した... (探検中)</span>`); render(); await wait(600); break;
-                } else if (actionType === "fishing") {
+                    let targetObj = finalTargetData.obj; let defValue = finalTargetData.isGuest ? Math.floor(avgDef * 0.5) : targetObj.def;
+                    let baseAtk = e.atk * (e.buffAtk || 1.0); let dmgMultiplier = 1.0; if (e.hutHp > 0) dmgMultiplier *= 0.8;
+                    
+                    let dmg = 0; let logMsg = null; let actionType = "attack"; let skillName = "通常攻撃";
+                    
                     let r = Math.random();
-                    if (r < 0.33) {
-                        // ★敵の回避判定
+                    if (e.isBoss) {
+                        let fallbackPatterns = [ { actionType: "buff_atk", skillName: "威圧" }, { actionType: "attack", skillName: "強撃" }, { actionType: "heavy", skillName: "粉砕" }, { actionType: "magic_all", skillName: "魔力解放" }, { actionType: "buff_def", skillName: "防壁" }, { actionType: "heavy_magic", skillName: "裁き" } ];
+                        let targetKey = e.bossTypeKey || e.type || "";
+                        let bossPatterns = (window.ARENA_BOSS_PATTERNS && window.ARENA_BOSS_PATTERNS[targetKey]) ? window.ARENA_BOSS_PATTERNS[targetKey] : fallbackPatterns;
+                        let pat = bossPatterns[e.patternStep % bossPatterns.length];
+                        e.patternStep++; actionType = pat.actionType; skillName = pat.skillName;
+                    } else if (e.isFriend) {
+                        let defTactics = window.getDefaultTactics(e.words);
+                        let tactic = e.tacticType === 'default' ? defTactics[e.tacticIndex || 0] : defTactics[0];
+                        if(!tactic) tactic = defTactics[0];
+                        let chosenSkillEnemy = null;
+                        let validWords = e.words && e.words.length > 0 ? [...e.words, "たたかう"] : ["たたかう"];
+                        for (let i = 0; i < tactic.rules.length; i++) {
+                            if (window.checkTacticCondition(tactic.rules[i].condition, e, state)) {
+                                if (validWords.includes(tactic.rules[i].action)) { chosenSkillEnemy = tactic.rules[i].action; break; }
+                            }
+                        }
+                        if(!chosenSkillEnemy) chosenSkillEnemy = "たたかう";
+                        
+                        let skill = window.ARENA_SKILLS[chosenSkillEnemy] || window.ARENA_SKILLS["たたかう"];
+                        skillName = chosenSkillEnemy;
+                        e.mp = Math.max(0, (e.mp || 0) - (skill.cost || 0)); 
+                        actionType = skill.type; if (actionType === "attack") actionType = "heavy"; if (actionType === "magic") actionType = skill.target === "all" ? "magic_all" : "heavy_magic";
+                    } else {
+                        if (e.type === 'robot') { if (r < 0.3) { actionType = "heavy"; skillName = "ロケットパンチ"; } else if (r < 0.5) { actionType = "buff_atk"; skillName = "リミッター解除"; } }
+                        else if (e.type === 'dragon') { if (r < 0.4) { actionType = "magic_all"; skillName = "火炎の息"; } else if (r < 0.7) { actionType = "heavy"; skillName = "噛み砕く"; } }
+                        else if (e.type === 'magician') { if (r < 0.4) { actionType = "heavy_magic"; skillName = "ファイアボルト"; } else if (r < 0.6) { actionType = "heal_ally"; skillName = "ヒール"; } }
+                        else if (e.type === 'stone') { if (r < 0.3) { actionType = "magic_all"; skillName = "大地震"; } else if (r < 0.6) { actionType = "buff_def"; skillName = "硬化"; } }
+                        else if (e.type === 'bird') { if (r < 0.4) { actionType = "magic_all"; skillName = "突風"; } }
+                        else if (e.type === 'beetle') { if (r < 0.4) { actionType = "heavy"; skillName = "ホーンタックル"; } else if (r < 0.7) { actionType = "buff_def"; skillName = "甲殻防御"; } }
+                        else if (e.type === 'spirit') { if (r < 0.3) { actionType = "magic_all"; skillName = "自然の怒り"; } else if (r < 0.6) { actionType = "heal_all"; skillName = "癒やしの光"; } }
+                        else if (e.type === 'seed') { if (r < 0.3) { actionType = "summon_enemy"; skillName = "増殖"; } else if (r < 0.6) { actionType = "heavy"; skillName = "ポイズンシード"; } else if (r < 0.8) { actionType = "heal_self"; skillName = "光合成"; } }
+                        else if (e.type === 'balloon') { if (r < 0.3) { actionType = "summon_enemy"; skillName = "仲間を呼ぶ"; } else if (r < 0.6) { actionType = "heavy"; skillName = "のしかかり"; } else if (r < 0.8) { actionType = "heal_self"; skillName = "分裂の構え"; } }
+                        else if (e.type === 'machine') { if (r < 0.4) { actionType = "buff_atk"; skillName = "ゼンマイ巻き"; } else if (r < 0.7) { actionType = "magic_all"; skillName = "回転アタック"; } }
+                        else if (e.type === 'ghost') { if (r < 0.3) { actionType = "summon_enemy"; skillName = "霊体召喚"; } else if (r < 0.6) { actionType = "magic_all"; skillName = "ポルターガイスト"; } else if (r < 0.8) { actionType = "debuff_def"; skillName = "呪い"; } }
+                    }
+
+                    if (actionType !== "attack" && actionType !== "heavy" && actionType !== "heavy_magic" && actionType !== "magic_all") {
+                        state.log.push(`<span style="color:#ff5252; font-weight:bold;">🔥 ${e.name} の【${skillName}】！</span>`);
+                    }
+
+                    if (actionType === "move") { let skill = window.ARENA_SKILLS[skillName]; if (skill && skill.dir === 'up') e.row = 'front'; if (skill && skill.dir === 'down') e.row = 'back'; render(); await wait(600); } 
+                    else if (actionType === "buff" || actionType === "buff_atk") { if(!state.skipMode){ window.showArenaEffect(e.id, 'buff'); await wait(500); } let skill = window.ARENA_SKILLS[skillName]; if (skill && skill.stat === 'intel') e.buffDef = (e.buffDef||1) + 0.5; else e.buffAtk = (e.buffAtk||1) + 0.5; render(); await wait(200); } 
+                    else if (actionType === "sleep") { e.isSleeping = true; state.log.push(`<span style="color:#ff5252;">${e.name} は眠りについた...💤</span>`); render(); await wait(600); } 
+                    else if (actionType === "summon" || actionType === "call_rescue") {
+                        let masterType = actionType === "call_rescue" ? ['soldier', 'captain', 'king'][Math.floor(Math.random() * 3)] : (window.ARENA_SKILLS[skillName] ? window.ARENA_SKILLS[skillName].master : 'soldier');
+                        let gHp = Math.floor(avgHp * 0.5); gHp = Math.max(10, gHp);
+                        state.enemies.push({ id: `e_${state.enemies.length}_${Date.now()}`, baseName: "幻影の助っ人", name: "幻影の助っ人", spriteKey: "arena_" + masterType, type: masterType, hp: gHp, maxHp: gHp, atk: Math.floor(avgAtk*0.5), def: Math.floor(avgDef*0.5), speed: e.speed, buffAtk: 1.0, buffDef: 1.0, row: 'back', actionGauge: 0 });
+                        state.log.push(`<span style="color:#00BCD4;">新たな魔物が現れた！</span>`); render(); await wait(800); 
+                    } 
+                    else if (actionType === "build_hut") { e.hutHp = 5; state.log.push(`<span style="color:#ff5252;">小屋に立てこもった！(🏠)</span>`); render(); await wait(600); } 
+                    else if (actionType === "build_bridge") { state.enemies.forEach(en => { if (en.hp > 0 && en.exploreTimer === 0) en.row = 'back'; }); state.log.push(`<span style="color:#ff5252;">敵全員が後衛に退避した！</span>`); render(); await wait(600); } 
+                    else if (actionType === "build_farm") { if(!state.skipMode){ state.enemies.forEach(en=>{ if(en.hp>0) window.showArenaEffect(en.id, 'heal'); }); await wait(500); } state.enemies.forEach(en => { if(en.hp > 0) en.hp = Math.min(en.maxHp, en.hp + Math.max(50, Math.floor(en.maxHp * 0.15))); }); render(); await wait(200); } 
+                    else if (actionType === "random_build") { let rnd = Math.random(); if (rnd < 0.33) { e.hutHp = 5; } else if (rnd < 0.66) { state.enemies.forEach(en => en.row = 'back'); } else { e.shield = true; } render(); await wait(600); } 
+                    else if (actionType === "explore") { e.exploreOriginalTurn = 2 + Math.floor(Math.random() * 3); e.exploreTimer = e.exploreOriginalTurn; state.log.push(`<span style="color:#ff5252;">戦場から姿を消した... (探検中)</span>`); render(); await wait(600); } 
+                    else if (actionType === "fishing") {
+                        let r = Math.random();
+                        if (r < 0.33) {
+                            let dodgeChance = Math.min(0.8, Math.max(0, ((targetObj.speed||10) - (e.speed||10)) * 0.05));
+                            if (Math.random() < dodgeChance) { state.log.push(`<span style="color:#aaa;">敵の釣りを ${targetObj.name||"味方"} は避けた！(MISS)</span>`); } 
+                            else { 
+                                targetObj.flash = true; let fishDmg = Math.max(30, Math.floor(e.atk * e.buffAtk * 0.6)); targetObj.hp -= fishDmg; 
+                                state.log.push(`<span style="color:#ff5252;">釣った大物が ${targetObj.name||"味方"} に ${fishDmg} ダメージ！🎣</span>`); 
+                                if (!state.skipMode) { window.showArenaEffect(targetObj.id, 'fishing'); await wait(600); }
+                                render(); await wait(400); targetObj.flash = false; render(); await wait(200); 
+                            }
+                        } else if (r < 0.66) { if(!state.skipMode){ window.showArenaEffect(e.id, 'heal'); await wait(500); } e.hp = Math.min(e.maxHp, e.hp + Math.max(40, Math.floor(e.maxHp * 0.2))); state.log.push(`<span style="color:#ff5252;">魚を食べてHP回復！🍣</span>`); render(); await wait(200); } 
+                        else { state.log.push(`<span style="color:#aaa;">空き缶を釣った。(失敗)</span>`); render(); await wait(600); }
+                    } 
+                    else if (actionType === "eat") { if(!state.skipMode){ window.showArenaEffect(e.id, 'heal'); await wait(500); } e.hp = Math.min(e.maxHp, e.hp + Math.max(50, Math.floor(e.maxHp * 0.25))); e.mp = Math.min(e.maxMp || 100, (e.mp || 0) + Math.max(20, Math.floor((e.maxMp||100) * 0.15))); state.log.push(`<span style="color:#ff5252;">食料を食べて回復した！🍖</span>`); render(); await wait(200); } 
+                    else if (actionType === "equip") { if(!state.skipMode){ window.showArenaEffect(e.id, 'buff'); await wait(500); } e.buffAtk = (e.buffAtk||1) + 0.5; e.isEquipped = true; state.log.push(`<span style="color:#ff5252;">武器を構えた！攻撃力大幅アップ！🗡️</span>`); render(); await wait(200); } 
+                    else if (actionType === "unequip") { if (e.isEquipped) { e.buffAtk = Math.max(1.0, e.buffAtk - 0.5); e.isEquipped = false; } render(); await wait(600); } 
+                    else if (actionType === "defend" || actionType === "buff_def") { if(!state.skipMode){ window.showArenaEffect(e.id, 'buff'); await wait(500); } e.shield = true; state.log.push(`<span style="color:#ff5252;">身を固めている！（次ダメージ半減）</span>`); render(); await wait(200); } 
+                    else if (actionType === "heal_all") { if(!state.skipMode){ state.enemies.forEach(en=>{ if(en.hp>0) window.showArenaEffect(en.id, 'heal'); }); await wait(500); } let healAmount = Math.floor(e.maxHp * 0.2); state.enemies.forEach(en => { if(en.hp>0) en.hp = Math.min(en.maxHp, en.hp + healAmount); }); render(); await wait(200); } 
+                    else if (actionType === "heal_ally" || actionType === "heal_self" || actionType === "heal") {
+                        let healAmount = Math.floor(e.maxHp * 0.2);
+                        if (actionType === "heal_ally") { 
+                            let lowestE = state.enemies.filter(en=>en.hp>0).sort((a,b)=>a.hp-b.hp)[0]; 
+                            if(lowestE) { if(!state.skipMode){ window.showArenaEffect(lowestE.id, 'heal'); await wait(500); } lowestE.hp = Math.min(lowestE.maxHp, lowestE.hp + healAmount); } 
+                        } else { 
+                            if(!state.skipMode){ window.showArenaEffect(e.id, 'heal'); await wait(500); } e.hp = Math.min(e.maxHp, e.hp + healAmount); 
+                        }
+                        render(); await wait(200); 
+                    } 
+                    else if (actionType === "debuff_def") { if(!state.skipMode){ state.party.forEach(pt=>{ if(pt.hp>0) window.showArenaEffect(pt.id, 'debuff'); }); await wait(500); } state.party.forEach(pt => { if(pt.hp > 0) pt.def = Math.max(0, Math.floor(pt.def * 0.9)); }); state.log.push(`<span style="color:#9C27B0;">味方全体の防御力が下げられた！</span>`); render(); await wait(200); } 
+                    else if (actionType === "summon_enemy") {
+                        if (state.enemies.filter(en => en.hp > 0).length < 8 && !e.isBoss && !e.isFriend) {
+                            let eHp = Math.floor(e.maxHp * 0.5);
+                            state.enemies.push({ id: `e_${state.enemies.length}_${Date.now()}`, baseName: e.baseName, name: e.name + " の分身", spriteKey: e.spriteKey, type: e.type, hp: eHp, maxHp: eHp, atk: Math.floor(e.atk*0.8), def: Math.floor(e.def*0.8), speed: e.speed, buffAtk: 1.0, buffDef: 1.0, row: 'back', actionGauge: 0 });
+                            state.log.push(`<span style="color:#00BCD4;">新たな魔物が現れた！</span>`); render(); await wait(800); 
+                        } else { state.log.push(`<span style="color:#aaa;">しかしこれ以上は現れなかった...</span>`); render(); await wait(800); }
+                    }
+
+                    if (actionType === "magic_all") {
+                        let dmg = Math.max(1, Math.floor(baseAtk * 0.8));
+                        state.log.push(`<span style="color:#ff5252; font-weight:bold;">🔥 ${e.name} の【${skillName}】！</span>`); render(); await wait(300);
+                        let allTargets = [];
+                        state.party.forEach(pt => { if(pt.hp > 0 && pt.exploreTimer === 0 && !pt.isSleeping) allTargets.push({obj: pt, isGuest: false}); });
+                        state.guests.forEach(g => { if(g.hp > 0) allTargets.push({obj: g, isGuest: true}); });
+                        
+                        for (let tInfo of allTargets) {
+                            let pt = tInfo.obj; let dodgeChance = Math.min(0.8, Math.max(0, ((pt.speed||10) - (e.speed||10)) * 0.05));
+                            let curName = tInfo.isGuest ? (pt.type === 'farming' ? '身代わりカボチャ' : (pt.type === 'soldier' ? '城の兵士' : (pt.type === 'captain' ? '城の隊長' : (pt.type === 'king' ? '王様' : (pt.type === 'cooking' ? '料理人' : (pt.type === 'smithing' ? '鍛冶師' : (pt.type === 'fishing' ? '漁師' : (pt.type === 'explore' ? '冒険家' : (pt.type === 'building' ? '建築士' : '助っ人'))))))))) : pt.name;
+                            if (Math.random() < dodgeChance) { state.log.push(`<span style="color:#aaa;">${curName} は魔法をヒラリと避けた！(MISS)</span>`); continue; }
+                            let pDef = tInfo.isGuest ? Math.floor(avgDef * 0.5) : pt.def; let pDmg = Math.max(1, dmg - Math.floor(pDef * 0.5));
+                            if (!tInfo.isGuest) { if (pt.shield) { pDmg = Math.floor(pDmg / 2); pt.shield = false; } if (pt.hutHp > 0) { pDmg = Math.floor(pDmg / 2); pt.hutHp--; } }
+                            pt.hp -= pDmg; state.log.push(`<span style="color:#ff5252;">${curName} は ${pDmg} のダメージを受けた！</span>`);
+                            pt.flash = true; 
+                        }
+                        render();
+                        if (!state.skipMode) { let ui = document.getElementById('arena-battle-ui'); if (ui) { ui.classList.add('arena-shake', 'arena-damage-red'); setTimeout(() => ui.classList.remove('arena-shake', 'arena-damage-red'), 200); } await wait(400); }
+                        for (let tInfo of allTargets) { tInfo.obj.flash = false; }
+                        render();
+                        if(!state.skipMode) await wait(200);
+                    }
+
+                    if (actionType === "heavy" || actionType === "heavy_magic" || actionType === "attack") {
+                        let captain = state.guests.find(g => g.type === 'captain' && g.hp > 0);
+                        if (captain && !finalTargetData.isGuest && Math.random() < 0.5) {
+                            targetObj = captain; finalTargetData = { obj: captain, isGuest: true }; defValue = Math.floor(avgDef * 0.5); 
+                            state.log.push(`<span style="color:#FFD700;">城の隊長が身を挺して ${targetObj.name || "味方"} をかばった！！🛡️</span>`); render(); await wait(500);
+                        }
+                        let tName = finalTargetData.isGuest ? (targetObj.type === 'farming' ? '身代わりカボチャ' : (targetObj.type === 'soldier' ? '城の兵士' : (targetObj.type === 'captain' ? '城の隊長' : (targetObj.type === 'king' ? '王様' : (targetObj.type === 'cooking' ? '料理人' : (targetObj.type === 'smithing' ? '鍛冶師' : (targetObj.type === 'fishing' ? '漁師' : (targetObj.type === 'explore' ? '冒険家' : (targetObj.type === 'building' ? '建築士' : '助っ人'))))))))) : targetObj.name;
+                        
                         let dodgeChance = Math.min(0.8, Math.max(0, ((targetObj.speed||10) - (e.speed||10)) * 0.05));
                         if (Math.random() < dodgeChance) {
-                            state.log.push(`<span style="color:#aaa;">敵が釣り上げた大物を ${targetObj.name||"味方"} はヒラリと避けた！(MISS)</span>`);
+                            if(actionType === "attack") logMsg = `<span style="color:#aaa;">${e.name} の攻撃！ しかし ${tName} は素早く避けた！(MISS)</span>`;
+                            else logMsg = `<span style="color:#aaa;">🔥 ${e.name} の【${skillName}】！ しかし ${tName} は素早く避けた！(MISS)</span>`;
                         } else {
-                            targetObj.flash = true;
-                            let fishDmg = Math.max(30, Math.floor(e.atk * e.buffAtk * 0.6)); targetObj.hp -= fishDmg; 
-                            state.log.push(`<span style="color:#ff5252;">${e.name} が釣った大物が ${targetObj.name||"味方"} に ${fishDmg} のダメージ！🎣</span>`);
-                            render(); await wait(150); targetObj.flash = false;
+                            if (e.row === 'back' && actionType === "attack") dmgMultiplier *= 0.7; 
+                            baseAtk *= dmgMultiplier;
+                            if (actionType === "heavy" || actionType === "heavy_magic") { dmg = Math.max(1, Math.floor(baseAtk * 1.5) - Math.floor(defValue * 0.5)); } 
+                            else { dmg = Math.max(1, Math.floor(baseAtk) - Math.floor(defValue * 0.5)); }
+                            if (!finalTargetData.isGuest) { if (targetObj.shield) { dmg = Math.floor(dmg / 2); targetObj.shield = false; } if (targetObj.hutHp > 0) { dmg = Math.floor(dmg / 2); targetObj.hutHp--; } }
+                            targetObj.hp -= dmg;
+                            if (actionType === "attack") logMsg = `<span style="color:#ff5252;">${e.name} の攻撃！ ${tName} は ${dmg} のダメージを受けた！</span>`;
+                            else logMsg = `<span style="color:#ff5252; font-weight:bold;">🔥 ${e.name} の【${skillName}】！ 強烈な一撃が ${tName} に ${dmg} ダメージ！</span>`;
+                            targetObj.flash = true; 
                         }
-                        render(); await wait(500);
-                    } else if (r < 0.66) {
-                        let fishHeal = Math.max(40, Math.floor(e.maxHp * 0.2)); e.hp = Math.min(e.maxHp, e.hp + fishHeal); 
-                        state.log.push(`<span style="color:#ff5252;">${e.name} は魚を食べてHP回復！🍣</span>`); render(); await wait(600);
-                    } else { state.log.push(`<span style="color:#aaa;">${e.name} は空き缶を釣った。(失敗)</span>`); render(); await wait(600); }
-                    continue;
-                } else if (actionType === "eat") {
-                    let eatHealHp = Math.max(50, Math.floor(e.maxHp * 0.25)); let eatHealMp = Math.max(20, Math.floor((e.maxMp||100) * 0.15));
-                    e.hp = Math.min(e.maxHp, e.hp + eatHealHp); e.mp = Math.min(e.maxMp || 100, (e.mp || 0) + eatHealMp);
-                    state.log.push(`<span style="color:#ff5252;">${e.name} は食料を食べて回復した！🍖</span>`); render(); await wait(600); continue;
-                } else if (actionType === "equip") {
-                    e.buffAtk = (e.buffAtk||1) + 0.5; e.isEquipped = true; state.log.push(`<span style="color:#ff5252;">${e.name} が武器を構えた！攻撃力大幅アップ！🗡️</span>`); render(); await wait(600); continue;
-                } else if (actionType === "unequip") {
-                    if (e.isEquipped) { e.buffAtk = Math.max(1.0, e.buffAtk - 0.5); e.isEquipped = false; state.log.push(`<span style="color:#aaa;">${e.name} は装備を外した。</span>`); }
-                    else { state.log.push(`<span style="color:#aaa;">${e.name} は何も装備していなかった。</span>`); }
-                    render(); await wait(600); continue;
-                } else if (actionType === "defend" || actionType === "buff_def") {
-                    e.shield = true; state.log.push(`<span style="color:#ff5252;">${e.name} は身を固めている！（次ダメージ半減）</span>`); render(); await wait(600); continue;
-                } else if (actionType === "heal_all") {
-                    let healAmount = Math.floor(e.maxHp * 0.2); state.enemies.forEach(en => { if(en.hp>0) en.hp = Math.min(en.maxHp, en.hp + healAmount); });
-                    state.log.push(`<span style="color:#ff5252;">${e.name} の【${skillName}】！ 敵全体の体力が回復した！</span>`); render(); await wait(600); continue;
-                } else if (actionType === "heal_ally" || actionType === "heal_self" || actionType === "heal") {
-                    let healAmount = Math.floor(e.maxHp * 0.2);
-                    if (actionType === "heal_ally") {
-                        let lowestE = state.enemies.filter(en=>en.hp>0).sort((a,b)=>a.hp-b.hp)[0]; lowestE.hp = Math.min(lowestE.maxHp, lowestE.hp + healAmount);
-                    } else { e.hp = Math.min(e.maxHp, e.hp + healAmount); }
-                    state.log.push(`<span style="color:#ff5252;">${e.name} の【${skillName}】！ 敵の体力が回復した！</span>`); render(); await wait(600); continue;
-                } else if (actionType === "debuff_def") {
-                    state.party.forEach(pt => { if(pt.hp > 0) pt.def = Math.max(0, Math.floor(pt.def * 0.9)); });
-                    state.log.push(`<span style="color:#9C27B0;">${e.name} の【${skillName}】！ 味方全体の防御力が下げられた！</span>`); render(); await wait(600); continue;
-                } 
-                else if (actionType === "summon_enemy") {
-                    let aliveEnemiesCount = state.enemies.filter(en => en.hp > 0).length;
-                    if (aliveEnemiesCount < 8 && !e.isBoss && !e.isFriend) {
-                        let rKey = null;
-                        if (e.type === 'seed' || e.type === 'ghost') {
-                            let possibleKeys = Object.keys(window.ARENA_ENEMIES).filter(k => window.ARENA_ENEMIES[k].type === e.type); rKey = possibleKeys[0];
-                        } else {
-                            let discoveredTypes = (window.aiPet.discoveredMonsters || []).map(k => k.split('_')[0]);
-                            let enemyKeys = Object.keys(window.ARENA_ENEMIES).filter(k => discoveredTypes.includes(window.ARENA_ENEMIES[k].type));
-                            if (enemyKeys.length === 0) enemyKeys = ['robot']; rKey = enemyKeys[Math.floor(Math.random() * enemyKeys.length)];
-                        }
+                        if (logMsg) state.log.push(logMsg);
                         
-                        let base = window.ARENA_ENEMIES[rKey]; let spawnCount = state.enemySpawnCounts[base.name] || 0;
-                        const getSuffix = (index) => String.fromCharCode(65 + (index % 26));
-
-                        if (spawnCount === 1) { let existing = state.enemies.find(en => en.baseName === base.name); if (existing && existing.name === base.name) existing.name = `${base.name} A`; }
-                        state.enemySpawnCounts[base.name] = spawnCount + 1; let spawnIndex = state.enemySpawnCounts[base.name] - 1; let newName = (state.enemySpawnCounts[base.name] > 1) ? `${base.name} ${getSuffix(spawnIndex)}` : base.name;
-
-                        let waveMinus = state.wave - 1; let hpMultiplier = 1 + (waveMinus * 0.3) + (Math.pow(1.04, waveMinus) - 1); let atkMultiplier = 1 + (waveMinus * 0.2) + (Math.pow(1.03, waveMinus) - 1); let defMultiplier = 1 + (waveMinus * 0.1) + (Math.pow(1.02, waveMinus) - 1); let spdMultiplier = 1 + (waveMinus * 0.05);
-
-                        let eHp = Math.floor(base.hp * hpMultiplier + (state.wave * 10)); let eAtk = Math.floor(base.atk * atkMultiplier + (state.wave * 2)); let eDef = Math.floor(base.def * defMultiplier + (state.wave * 1)); let eSpd = Math.floor((base.speed||10) * spdMultiplier);
-
-                        state.enemies.push({ id: `e_${state.enemies.length}_${Date.now()}`, baseName: base.name, name: newName, spriteKey: base.spriteKey, type: base.type, hp: eHp, maxHp: eHp, atk: eAtk, def: eDef, speed: eSpd, buffAtk: 1.0, buffDef: 1.0, row: 'back' });
-                        state.log.push(`<span style="color:#00BCD4;">${e.name} の【${skillName}】！ 新たな魔物（${newName}）が現れた！</span>`);
-                        render(); await wait(800); continue;
-                    } else { state.log.push(`<span style="color:#aaa;">${e.name} は【${skillName}】を使ったが、これ以上は現れなかった...</span>`); render(); await wait(800); continue; }
-                }
-
-                if (actionType === "magic_all") {
-                    let dmg = Math.max(1, Math.floor(baseAtk * 0.8));
-                    state.log.push(`<span style="color:#ff5252;">${e.name} の【${skillName}】！</span>`);
-                    render(); await wait(300);
-
-                    let allTargets = [];
-                    state.party.forEach(pt => { if(pt.hp > 0 && pt.exploreTimer === 0 && !pt.isSleeping) allTargets.push({obj: pt, isGuest: false}); });
-                    state.guests.forEach(g => { if(g.hp > 0 && ['farming', 'soldier', 'captain', 'king'].includes(g.type)) allTargets.push({obj: g, isGuest: true}); });
-                    
-                    for (let tInfo of allTargets) {
-                        let pt = tInfo.obj;
-                        // ★敵の回避判定
-                        let dodgeChance = Math.min(0.8, Math.max(0, ((pt.speed||10) - (e.speed||10)) * 0.05));
-                        let curName = tInfo.isGuest ? (pt.type === 'farming' ? '身代わりカボチャ' : (pt.type === 'soldier' ? '兵士' : (pt.type === 'captain' ? '隊長' : '王様'))) : pt.name;
-
-                        if (Math.random() < dodgeChance) {
-                            state.log.push(`<span style="color:#aaa;">${curName} は魔法をヒラリと避けた！(MISS)</span>`);
-                            continue;
-                        }
-
-                        let pDef = tInfo.isGuest ? Math.floor(avgDef * 0.5) : pt.def;
-                        let pDmg = Math.max(1, dmg - Math.floor(pDef * 0.5));
-                        if (!tInfo.isGuest) {
-                            if (pt.shield) { pDmg = Math.floor(pDmg / 2); pt.shield = false; }
-                            if (pt.hutHp > 0) { pDmg = Math.floor(pDmg / 2); pt.hutHp--; }
-                        }
-                        pt.hp -= pDmg;
-                        
-                        state.log.push(`<span style="color:#ff5252;">${curName} は ${pDmg} のダメージを受けた！</span>`);
-                        if (!state.skipMode) { let ui = document.getElementById('arena-battle-ui'); if (ui) { ui.classList.add('arena-shake', 'arena-damage-red'); setTimeout(() => ui.classList.remove('arena-shake', 'arena-damage-red'), 200); } }
-                        render(); await wait(300); 
-                    }
-                    continue; 
-                }
-
-                let captain = state.guests.find(g => g.type === 'captain' && g.hp > 0);
-                if (captain && !finalTargetData.isGuest && Math.random() < 0.5) {
-                    targetObj = captain; finalTargetData = { obj: captain, isGuest: true }; defValue = Math.floor(avgDef * 0.5); 
-                    state.log.push(`<span style="color:#FFD700;">城の隊長が身を挺して ${targetObj.name || "味方"} をかばった！！🛡️</span>`);
-                    render(); await wait(500);
-                }
-
-                let tName = finalTargetData.isGuest ? (targetObj.type === 'farming' ? '身代わりカボチャ' : (targetObj.type === 'soldier' ? '兵士' : (targetObj.type === 'captain' ? '隊長' : '王様'))) : targetObj.name;
-                
-                dmg = 0;
-                if (actionType === "heavy" || actionType === "heavy_magic" || actionType === "attack") {
-                    // ★敵の回避判定
-                    let dodgeChance = Math.min(0.8, Math.max(0, ((targetObj.speed||10) - (e.speed||10)) * 0.05));
-                    if (Math.random() < dodgeChance) {
-                        logMsg = `<span style="color:#aaa;">${e.name} の攻撃！ しかし ${tName} は素早く避けた！(MISS)</span>`;
-                    } else {
-                        if (e.row === 'back' && actionType === "attack") dmgMultiplier *= 0.7; 
-                        baseAtk *= dmgMultiplier;
-                        
-                        if (actionType === "heavy" || actionType === "heavy_magic") { dmg = Math.max(1, Math.floor(baseAtk * 1.5) - Math.floor(defValue * 0.5)); } 
-                        else { dmg = Math.max(1, Math.floor(baseAtk) - Math.floor(defValue * 0.5)); }
-                        
-                        if (!finalTargetData.isGuest) {
-                            if (targetObj.shield) { dmg = Math.floor(dmg / 2); targetObj.shield = false; }
-                            if (targetObj.hutHp > 0) { dmg = Math.floor(dmg / 2); targetObj.hutHp--; }
-                        }
-                        targetObj.hp -= dmg;
-                        if (actionType === "attack") logMsg = `<span style="color:#ff5252;">${e.name} の攻撃！ ${tName} は ${dmg} のダメージを受けた！</span>`;
-                        else logMsg = `<span style="color:#ff5252;">${e.name} の【${skillName}】！ 強烈な一撃が ${tName} に ${dmg} ダメージ！</span>`;
+                        render();
+                        if (!state.skipMode && dmg > 0) { let ui = document.getElementById('arena-battle-ui'); if (ui) { ui.classList.add('arena-shake', 'arena-damage-red'); setTimeout(() => ui.classList.remove('arena-shake', 'arena-damage-red'), 500); } await wait(400); }
+                        targetObj.flash = false;
+                        render();
+                        if(!state.skipMode) await wait(200);
                     }
                 }
-
-                if (logMsg) state.log.push(logMsg);
-                
-                if (!state.skipMode && dmg > 0) {
-                    let ui = document.getElementById('arena-battle-ui');
-                    if (ui) { ui.classList.add('arena-shake', 'arena-damage-red'); setTimeout(() => ui.classList.remove('arena-shake', 'arena-damage-red'), 500); }
-                }
-                render(); await wait(800);
             }
         }
     }
 
     state.isProcessing = false;
 
-    // --- ④ 勝敗判定 ---
+    // --- ③ 勝敗判定 ---
     let partyAlive = state.party.some(p => p.hp > 0);
     let enemyAlive = state.enemies.filter(e => e.hp > 0).length > 0;
 
-    if (!partyAlive) {
-        state.autoMode = false; state.skipMode = false; render(); await wait(1000); 
-        if (state.mode === 'friend') {
-            let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
-            state.active = false; state.autoMode = false;
-
-            let resUi = document.createElement('div');
-            resUi.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index: 60000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;`;
-            resUi.innerHTML = `
-                <div style="background:#111; border:4px solid #9E9E9E; padding:40px; border-radius:12px; text-align:center;">
-                    <h2 style="color:#9E9E9E; font-size:36px; margin-top:0;">🤝 フレンドバトル 敗北...</h2>
-                    <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">惜しくもフレンドの幻影に敗れてしまった。<br>※フレンドバトルでの寿命ペナルティはありません。</div>
-                    <div style="margin-bottom: 30px;">
-                        <button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button>
-                    </div>
-                    <div style="display:flex; gap:20px; justify-content:center;">
-                        <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(resUi);
-        } else {
-            window.endArena(false); 
-        }
-    } else if (!enemyAlive) {
-        state.log.push(`<span style="color:#FFD700; font-weight:bold;">${state.mode === 'friend' ? 'フレンドバトル' : `第 ${state.wave} 戦`}、勝利！！</span>`);
-        state.autoMode = false; state.skipMode = false; render(); await wait(1500); 
-        
-        if (state.mode === 'friend') {
-            if (window.aiPet) window.aiPet.gold = (window.aiPet.gold || 0) + 1000;
-            if (typeof saveGameData === 'function') saveGameData();
-
-            let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
-            state.active = false; state.autoMode = false;
-
-            let resUi = document.createElement('div');
-            resUi.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index: 60000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;`;
-            resUi.innerHTML = `
-                <div style="background:#111; border:4px solid #4fc3f7; padding:40px; border-radius:12px; text-align:center;">
-                    <h2 style="color:#4fc3f7; font-size:36px; margin-top:0;">🤝 フレンドバトル 勝利！</h2>
-                    <div style="color:#FFD700; font-size:20px; font-weight:bold; margin-bottom:20px;">報酬: 1,000 G 獲得！</div>
-                    <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">見事、フレンドの幻影に打ち勝った！<br>他のプレイヤーにも挑戦してみよう！</div>
-                    <div style="margin-bottom: 30px;">
-                        <button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button>
-                    </div>
-                    <div style="display:flex; gap:20px; justify-content:center;">
-                        <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
-                    </div>
-                </div>
-            `;
-            document.body.appendChild(resUi);
-        } else {
-            if (state.enemies.some(e => e.isBoss)) {
-                state.bossesDefeated = (state.bossesDefeated || 0) + 1;
-                if (state.mode === 'normal') {
-                    if (!window.aiPet.defeatedArenaBosses) window.aiPet.defeatedArenaBosses = [];
-                    let boss = state.enemies.find(e => e.isBoss);
-                    if (boss && !window.aiPet.defeatedArenaBosses.includes(boss.bossTypeKey)) {
-                        window.aiPet.defeatedArenaBosses.push(boss.bossTypeKey);
-                    }
-                }
-            }
-            
-            let maxWaves = state.mode === 'boss' ? state.bossQueue.length : state.bossQueue.length * 50;
-            
-            if (state.wave >= maxWaves) {
-                let partyToSave = state.party.map(p => {
-                    let origP = window.ARENA_RECEPTION_STATE.party.find(rp => rp.id === p.id) || p;
-                    return { ...p, atk: origP.atk || p.atk, def: origP.def || p.def, intel: origP.intel || p.intel, speed: origP.speed || p.speed };
-                });
-                if (typeof window.updateArenaRanking === 'function') window.updateArenaRanking(state.wave, partyToSave);
-
-                if (window.aiPet) window.aiPet.gold = (window.aiPet.gold || 0) + 50000;
-                if (window.aiPet) window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, maxWaves);
-                if (typeof saveGameData === 'function') saveGameData();
-                
+    if (!partyAlive || !enemyAlive) {
+        if (!partyAlive) {
+            state.autoMode = false; state.skipMode = false; render(); await wait(1000); 
+            if (state.mode === 'friend') {
                 let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
                 state.active = false; state.autoMode = false;
-
                 let resUi = document.createElement('div');
                 resUi.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index: 60000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;`;
                 resUi.innerHTML = `
-                    <div style="background:#111; border:4px solid #FFD700; padding:40px; border-radius:12px; text-align:center;">
-                        <h2 style="color:#FFD700; font-size:36px; margin-top:0;">🏆 闘技場 完全制覇！</h2>
-                        <div style="font-size:24px; margin-bottom:10px;">到達ウェーブ: <b>第 ${state.wave} 戦</b></div>
-                        <div style="color:#FFD700; font-size:20px; font-weight:bold; margin-bottom:20px;">制覇報酬: 50,000 G 獲得！</div>
-                        <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">立ちはだかる全 ${state.bossQueue.length} 体のボスを撃破した！闘技場の覇者よ、見事なり！<br>さらなる強敵（新種族）を育成して、再び挑んでくれ！</div>
-                        
-                        <div style="margin-bottom: 30px;">
-                            <button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 6px rgba(0,0,0,0.5); transition:transform 0.1s;" onmousedown="this.style.transform='scale(0.95)'" onmouseup="this.style.transform='scale(1)'">📜 最後の戦闘ログを確認</button>
+                    <div style="background:#111; border:4px solid #9E9E9E; padding:40px; border-radius:12px; text-align:center;">
+                        <h2 style="color:#9E9E9E; font-size:36px; margin-top:0;">🤝 フレンドバトル 敗北...</h2>
+                        <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">惜しくもフレンドの幻影に敗れてしまった。<br>※フレンドバトルでの寿命ペナルティはありません。</div>
+                        <div style="margin-bottom: 30px;"><button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button></div>
+                        <div style="display:flex; gap:20px; justify-content:center;">
+                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
                         </div>
-
+                    </div>
+                `;
+                document.body.appendChild(resUi);
+            } else { window.endArena(false); }
+        } else if (!enemyAlive) {
+            state.log.push(`<span style="color:#FFD700; font-weight:bold;">${state.mode === 'friend' ? 'フレンドバトル' : `第 ${state.wave} 戦`}、勝利！！</span>`);
+            state.autoMode = false; state.skipMode = false; render(); await wait(1500); 
+            if (state.mode === 'friend') {
+                if (window.aiPet) window.aiPet.gold = (window.aiPet.gold || 0) + 1000;
+                if (typeof saveGameData === 'function') saveGameData();
+                let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
+                state.active = false; state.autoMode = false;
+                let resUi = document.createElement('div');
+                resUi.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index: 60000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;`;
+                resUi.innerHTML = `
+                    <div style="background:#111; border:4px solid #4fc3f7; padding:40px; border-radius:12px; text-align:center;">
+                        <h2 style="color:#4fc3f7; font-size:36px; margin-top:0;">🤝 フレンドバトル 勝利！</h2>
+                        <div style="color:#FFD700; font-size:20px; font-weight:bold; margin-bottom:20px;">報酬: 1,000 G 獲得！</div>
+                        <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">見事、フレンドの幻影に打ち勝った！<br>他のプレイヤーにも挑戦してみよう！</div>
+                        <div style="margin-bottom: 30px;"><button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button></div>
                         <div style="display:flex; gap:20px; justify-content:center;">
                             <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
                             <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
@@ -3038,12 +3226,49 @@ window.processArenaTurn = async function() {
                 `;
                 document.body.appendChild(resUi);
             } else {
-                window.showArenaInterval(); 
+                if (state.enemies.some(e => e.isBoss)) {
+                    state.bossesDefeated = (state.bossesDefeated || 0) + 1;
+                    if (state.mode === 'normal') {
+                        if (!window.aiPet.defeatedArenaBosses) window.aiPet.defeatedArenaBosses = [];
+                        let boss = state.enemies.find(e => e.isBoss);
+                        if (boss && !window.aiPet.defeatedArenaBosses.includes(boss.bossTypeKey)) { window.aiPet.defeatedArenaBosses.push(boss.bossTypeKey); }
+                    }
+                }
+                let maxWaves = state.mode === 'boss' ? state.bossQueue.length : state.bossQueue.length * 50;
+                if (state.wave >= maxWaves) {
+                    let partyToSave = state.party.map(p => {
+                        let origP = window.ARENA_RECEPTION_STATE.party.find(rp => rp.id === p.id) || p;
+                        return { ...p, atk: origP.atk || p.atk, def: origP.def || p.def, intel: origP.intel || p.intel, speed: origP.speed || p.speed };
+                    });
+                    if (typeof window.updateArenaRanking === 'function') window.updateArenaRanking(state.wave, partyToSave);
+                    if (window.aiPet) window.aiPet.gold = (window.aiPet.gold || 0) + 50000;
+                    if (window.aiPet) window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, maxWaves);
+                    if (typeof saveGameData === 'function') saveGameData();
+                    let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
+                    state.active = false; state.autoMode = false;
+                    let resUi = document.createElement('div');
+                    resUi.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.95); z-index: 60000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white;`;
+                    resUi.innerHTML = `
+                        <div style="background:#111; border:4px solid #FFD700; padding:40px; border-radius:12px; text-align:center;">
+                            <h2 style="color:#FFD700; font-size:36px; margin-top:0;">🏆 闘技場 完全制覇！</h2>
+                            <div style="font-size:24px; margin-bottom:10px;">到達ウェーブ: <b>第 ${state.wave} 戦</b></div>
+                            <div style="color:#FFD700; font-size:20px; font-weight:bold; margin-bottom:20px;">制覇報酬: 50,000 G 獲得！</div>
+                            <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">立ちはだかる全 ${state.bossQueue.length} 体のボスを撃破した！闘技場の覇者よ、見事なり！<br>さらなる強敵（新種族）を育成して、再び挑んでくれ！</div>
+                            <div style="margin-bottom: 30px;"><button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button></div>
+                            <div style="display:flex; gap:20px; justify-content:center;">
+                                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
+                                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
+                            </div>
+                        </div>
+                    `;
+                    document.body.appendChild(resUi);
+                } else { window.showArenaInterval(); }
             }
         }
     } else {
         render();
-        if (state.autoMode && state.active && !state.skipMode) setTimeout(() => { if (window.ARENA_STATE.autoMode && window.ARENA_STATE.active) window.processArenaTurn(); }, 800);
+        // AUTOモード時は自動でターンを進める
+        if (state.autoMode && state.active && !state.skipMode) setTimeout(() => { if (window.ARENA_STATE.autoMode && window.ARENA_STATE.active) window.processArenaTurn(); }, 150);
     }
 };
 
