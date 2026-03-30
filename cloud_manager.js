@@ -17,6 +17,16 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); 
 
+// ★追加：データ通信を節約するためのキャッシュ（一時保存）領域
+const dataCache = {
+    tcgMarket: { items: [], lastFetch: 0 },
+    tavernAIs: { items: [], lastFetch: 0 },   // 酒場(ステータス)AI用
+    onlineDecks: { items: [], lastFetch: 0 }, // TCGオンラインデッキ用
+    dungeonRank: {}, // ダンジョンランキング用（種類ごとに動的追加）
+    arenaRank: {}    // アリーナランキング用（モードごとに動的追加）
+};
+const CACHE_LIFETIME = 3 * 60 * 1000; // キャッシュの有効期限（3分 = 180,000ミリ秒）
+
 // ==========================================
 // 🔐 新規アカウント作成処理
 // ==========================================
@@ -287,7 +297,12 @@ window.uploadMyAIToCloud = async function() {
     try { await setDoc(doc(db, "tavern_ais", myPlayerId), cloudData); } catch (error) { }
 };
 
-window.fetchCloudAIs = async function() {
+window.fetchCloudAIs = async function(forceRefresh = false) {
+    if (!forceRefresh && Date.now() - dataCache.tavernAIs.lastFetch < CACHE_LIFETIME) {
+        console.log("酒場AI: キャッシュから取得 (通信量0)");
+        return dataCache.tavernAIs.items;
+    }
+
     try {
         const q = query(collection(db, "tavern_ais"), orderBy("lastUpdated", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
@@ -297,6 +312,9 @@ window.fetchCloudAIs = async function() {
             const data = doc.data();
             if (data.playerId !== myPlayerId) aiList.push(data);
         });
+        
+        dataCache.tavernAIs.items = aiList;
+        dataCache.tavernAIs.lastFetch = Date.now();
         return aiList;
     } catch (error) { return []; }
 };
@@ -305,7 +323,12 @@ window.uploadMyDeckToCloud = async function(myId, uploadData) {
     try { await setDoc(doc(db, "tcg_online_decks", myId), uploadData); return true; } catch (error) { return false; }
 };
 
-window.fetchOnlineDecks = async function() {
+window.fetchOnlineDecks = async function(forceRefresh = false) {
+    if (!forceRefresh && Date.now() - dataCache.onlineDecks.lastFetch < CACHE_LIFETIME) {
+        console.log("TCGデッキ: キャッシュから取得 (通信量0)");
+        return dataCache.onlineDecks.items;
+    }
+
     try {
         const q = query(collection(db, "tcg_online_decks"), orderBy("updatedAt", "desc"), limit(15));
         const querySnapshot = await getDocs(q);
@@ -315,6 +338,9 @@ window.fetchOnlineDecks = async function() {
             const data = doc.data();
             if (data.playerId !== myId) deckList.push(data);
         });
+        
+        dataCache.onlineDecks.items = deckList;
+        dataCache.onlineDecks.lastFetch = Date.now();
         return deckList;
     } catch (error) { return []; }
 };
@@ -375,7 +401,14 @@ window.updateDungeonRanking = async function(mapType, reachedFloor, aiLevel = 1)
     }
 };
 
-window.fetchDungeonRanking = async function(mapType) {
+window.fetchDungeonRanking = async function(mapType, forceRefresh = false) {
+    if (!dataCache.dungeonRank[mapType]) dataCache.dungeonRank[mapType] = { items: [], lastFetch: 0 };
+    
+    if (!forceRefresh && Date.now() - dataCache.dungeonRank[mapType].lastFetch < CACHE_LIFETIME) {
+        console.log(`ダンジョン(${mapType}): キャッシュから取得 (通信量0)`);
+        return dataCache.dungeonRank[mapType].items;
+    }
+
     try {
         // ★ 修正：コレクションを分けているので、orderBy（並び替え）単体でエラーなく取得できる！
         const collectionName = `dungeon_rankings_${mapType}`;
@@ -385,6 +418,9 @@ window.fetchDungeonRanking = async function(mapType) {
         querySnapshot.forEach((doc) => {
             rankList.push(doc.data());
         });
+        
+        dataCache.dungeonRank[mapType].items = rankList;
+        dataCache.dungeonRank[mapType].lastFetch = Date.now();
         return rankList;
     } catch (error) {
         console.error("ランキング取得エラー:", error);
@@ -683,7 +719,14 @@ window.updateArenaRanking = async function(reachedWave, partyData) {
     }
 };
 
-window.fetchArenaRanking = async function(mode = 'normal') {
+window.fetchArenaRanking = async function(mode = 'normal', forceRefresh = false) {
+    if (!dataCache.arenaRank[mode]) dataCache.arenaRank[mode] = { items: [], lastFetch: 0 };
+    
+    if (!forceRefresh && Date.now() - dataCache.arenaRank[mode].lastFetch < CACHE_LIFETIME) {
+        console.log(`アリーナ(${mode}): キャッシュから取得 (通信量0)`);
+        return dataCache.arenaRank[mode].items;
+    }
+
     try {
         // ★修正：引数のモードで取得先のコレクションを切り替える
         const collectionName = mode === 'boss' ? "arena_rankings_boss" : "arena_rankings";
@@ -693,6 +736,9 @@ window.fetchArenaRanking = async function(mode = 'normal') {
         querySnapshot.forEach((doc) => {
             rankList.push(doc.data());
         });
+        
+        dataCache.arenaRank[mode].items = rankList;
+        dataCache.arenaRank[mode].lastFetch = Date.now();
         return rankList;
     } catch (error) {
         console.error("アリーナランキング取得エラー:", error);
@@ -1032,7 +1078,13 @@ window.uploadTCGMarketItem = async function(cardData, price) {
     } catch(e) { console.error(e); return false; }
 };
 
-window.fetchTCGMarketItems = async function() {
+window.fetchTCGMarketItems = async function(forceRefresh = false) {
+    // ★追加: キャッシュが有効（3分以内）なら、データベース通信をせずにキャッシュを返す
+    if (!forceRefresh && Date.now() - dataCache.tcgMarket.lastFetch < CACHE_LIFETIME) {
+        console.log("TCGマーケット: キャッシュからデータを取得しました (通信量0)");
+        return dataCache.tcgMarket.items;
+    }
+
     try {
         const q = query(collection(db, "tcg_market"), orderBy("createdAt", "desc"), limit(50));
         const snap = await getDocs(q);
@@ -1042,6 +1094,11 @@ window.fetchTCGMarketItems = async function() {
             data.docId = d.id;
             items.push(data);
         });
+        
+        // ★追加: 取得したデータをキャッシュに保存し、取得時間を更新
+        dataCache.tcgMarket.items = items;
+        dataCache.tcgMarket.lastFetch = Date.now();
+        
         return items;
     } catch(e) { console.error(e); return []; }
 };

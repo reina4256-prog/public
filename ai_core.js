@@ -4433,7 +4433,7 @@ window.showRescueWaitingScreen = function() {
     `;
     waitingUI.style.display = 'flex';
     
-    // 5秒ごとに救助されたかチェックする
+    // ★修正: 20秒ごとに救助されたかチェックする（無料枠節約のために間隔を延長！）
     window.rescueCheckInterval = setInterval(async () => {
         if (typeof window.checkMyRescueStatus === 'function') {
             const isRescued = await window.checkMyRescueStatus();
@@ -4457,7 +4457,7 @@ window.showRescueWaitingScreen = function() {
                 }, 3000);
             }
         }
-    }, 5000);
+    }, 20000);
 };
 
 // 救助を諦める処理
