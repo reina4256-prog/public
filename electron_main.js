@@ -1,5 +1,5 @@
 // electron_main.js
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const steamworks = require('steamworks.js');
 
@@ -12,6 +12,18 @@ try {
 } catch (error) {
   console.error('Steamの初期化に失敗しました。Steamクライアントが起動しているか確認してください。', error);
 }
+
+// ★追加：ゲーム側からSteam情報を要求された時に返す処理
+ipcMain.handle('get-steam-info', () => {
+  if (steamClient && steamClient.localplayer) {
+    return {
+      name: steamClient.localplayer.getName(),
+      // IDは巨大な数値(BigInt)なので、エラー防止のため文字列に変換して送る
+      steamId: steamClient.localplayer.getSteamId().steamId64.toString() 
+    };
+  }
+  return null;
+});
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -28,6 +40,10 @@ function createWindow () {
 
   // ゲームのindex.htmlを読み込む
   win.loadFile('index.html');
+
+  // ★追加：起動時に自動で開発者ツール(DevTools)を開く
+  // win.webContents.openDevTools();
+
   // F11キーでフルスクリーン切替、ESCキーで解除する処理を追加
   win.webContents.on('before-input-event', (event, input) => {
     if (input.key === 'F11' && input.type === 'keyDown') {

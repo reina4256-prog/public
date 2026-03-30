@@ -1067,3 +1067,54 @@ window.cancelTCGMarketItem = async function(docId) {
     try { await deleteDoc(doc(db, "tcg_market", docId)); return true; } 
     catch(e) { console.error(e); return false; }
 };
+
+// ==========================================
+// 🚀 Steam IDを利用した完全自動ログイン処理
+// ==========================================
+window.performSteamAutoLogin = async function() {
+    if (typeof require === 'undefined') return false; // ブラウザ版の場合はスキップ
+    const { ipcRenderer } = require('electron');
+    if (!ipcRenderer) return false;
+
+    try {
+        // Electron側からSteam情報を取得
+        const steamInfo = await ipcRenderer.invoke('get-steam-info');
+        if (!steamInfo) {
+            console.log("Steam情報が取得できませんでした。オフラインモードで続行します。");
+            return false;
+        }
+
+        const steamId = steamInfo.steamId;
+        const steamName = steamInfo.name;
+
+        // Steam IDから擬似的なメールアドレスとパスワードを生成
+        const email = `steam_${steamId}@aipetgame.local`;
+        const password = `SteamAuto_${steamId}_SecretKey`; // 簡易的なパスワード
+
+        try {
+            // ログイン試行
+            await signInWithEmailAndPassword(auth, email, password);
+            console.log("✅ Steam連携ログイン成功:", steamName);
+            localStorage.setItem('my_player_name', steamName); // ローカルにも名前を保存
+            return true;
+        } catch (err) {
+            if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
+                // アカウントが存在しない場合は新規作成してログイン
+                await createUserWithEmailAndPassword(auth, email, password);
+                console.log("✨ Steam連携アカウント新規作成成功:", steamName);
+                localStorage.setItem('my_player_name', steamName);
+                return true;
+            }
+            console.error("Steam連携ログインエラー:", err);
+            return false;
+        }
+    } catch (e) {
+        console.error("Steam連携 IPC通信エラー:", e);
+        return false;
+    }
+};
+
+// ファイル読み込み時に自動でログインを実行する
+setTimeout(() => {
+    window.performSteamAutoLogin();
+}, 1000); // 起動直後の安全のために1秒後に実行
