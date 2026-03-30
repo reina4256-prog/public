@@ -23,7 +23,8 @@ const dataCache = {
     tavernAIs: { items: [], lastFetch: 0 },   // 酒場(ステータス)AI用
     onlineDecks: { items: [], lastFetch: 0 }, // TCGオンラインデッキ用
     dungeonRank: {}, // ダンジョンランキング用（種類ごとに動的追加）
-    arenaRank: {}    // アリーナランキング用（モードごとに動的追加）
+    arenaRank: {},   // アリーナランキング用（モードごとに動的追加）
+    defenseRank: {}  // ★追加：防衛戦ランキング用（モードごとに動的追加）
 };
 const CACHE_LIFETIME = 3 * 60 * 1000; // キャッシュの有効期限（3分 = 180,000ミリ秒）
 
@@ -1123,6 +1124,51 @@ window.buyTCGMarketItem = async function(docId, cardData, price, sellerId) {
 window.cancelTCGMarketItem = async function(docId) {
     try { await deleteDoc(doc(db, "tcg_market", docId)); return true; } 
     catch(e) { console.error(e); return false; }
+};
+
+// ==========================================
+// 🛡️ 防衛戦：オンラインランキング機能
+// ==========================================
+window.updateDefenseRanking = async function(mode, wave, partyData) {
+    const user = auth.currentUser;
+    if (!user) return;
+    const playerName = localStorage.getItem('my_player_name') || "名無し";
+    const collectionName = mode === 'endless' ? "defense_rankings_endless" : "defense_rankings_normal";
+
+    try {
+        const docRef = doc(db, collectionName, user.uid);
+        const docSnap = await getDoc(docRef);
+        let shouldUpdate = true;
+        if (docSnap.exists()) {
+            const currentRecord = docSnap.data().wave;
+            if (wave <= currentRecord) shouldUpdate = false; // 過去の記録より低ければ更新しない
+        }
+        if (shouldUpdate) {
+            await setDoc(docRef, {
+                playerId: user.uid, playerName: playerName, wave: wave, party: partyData, updatedAt: Date.now()
+            });
+            console.log(`☁️ [Ranking] 防衛戦(${mode}) WAVE ${wave} の記録を保存しました！`);
+        }
+    } catch (error) { console.error("防衛戦ランキング登録エラー:", error); }
+};
+
+window.fetchDefenseRanking = async function(mode = 'normal', forceRefresh = false) {
+    if (!dataCache.defenseRank[mode]) dataCache.defenseRank[mode] = { items: [], lastFetch: 0 };
+    if (!forceRefresh && Date.now() - dataCache.defenseRank[mode].lastFetch < CACHE_LIFETIME) {
+        console.log(`防衛戦(${mode}): キャッシュから取得 (通信量0)`);
+        return dataCache.defenseRank[mode].items;
+    }
+    try {
+        const collectionName = mode === 'endless' ? "defense_rankings_endless" : "defense_rankings_normal";
+        const q = query(collection(db, collectionName), orderBy("wave", "desc"), limit(50));
+        const querySnapshot = await getDocs(q);
+        let rankList = [];
+        querySnapshot.forEach((doc) => rankList.push(doc.data()));
+
+        dataCache.defenseRank[mode].items = rankList;
+        dataCache.defenseRank[mode].lastFetch = Date.now();
+        return rankList;
+    } catch (error) { return []; }
 };
 
 // ==========================================

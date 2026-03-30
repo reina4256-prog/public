@@ -1511,6 +1511,9 @@ window.endDefenseBattle = async function(isWin) {
         let isNewRecord = reachedWave > bestRecord;
         if (isNewRecord) window.aiPet.bestEndlessWave = reachedWave; 
         
+        // ★追加：エンドレス防衛の記録をクラウドに送信！
+        if (typeof window.updateDefenseRanking === 'function') window.updateDefenseRanking('endless', reachedWave, window.aiPet.lastDefenseParty);
+
         overlay.innerHTML = `
             <div style="background:#222; border:4px solid #E040FB; border-radius:12px; padding:40px; text-align:center; box-shadow:0 0 30px #E040FB; width:80%; max-width:600px;">
                 <h1 style="color:#E040FB; font-size:36px; margin-bottom:10px;">💀 全滅...サバイバル終了 💀</h1>
@@ -1525,7 +1528,10 @@ window.endDefenseBattle = async function(isWin) {
         `;
     } else {
         if (isWin) {
-            window.aiPet.defenseWave = (window.aiPet.defenseWave || 1) + 1; window.showDefenseResultUI(overlay);
+            window.aiPet.defenseWave = (window.aiPet.defenseWave || 1) + 1; 
+            // ★追加：通常防衛の記録をクラウドに送信！
+            if (typeof window.updateDefenseRanking === 'function') window.updateDefenseRanking('normal', window.aiPet.defenseWave - 1, window.aiPet.lastDefenseParty);
+            window.showDefenseResultUI(overlay);
         } else {
             window.showRebuildUI(overlay);
         }
@@ -1758,31 +1764,23 @@ window.renderDefenseRankingList = async function(mode = 'normal') {
     let detailArea = document.getElementById('ranking-detail-area');
     if (detailArea) detailArea.style.display = 'none'; 
 
-    let rankList = [];
     let myId = localStorage.getItem('my_player_id') || 'local_me';
-    let myName = (window.aiPet && window.aiPet.name) ? window.aiPet.name : '現在のAI';
-    let mySkin = (window.aiPet && window.aiPet.currentSkin) ? window.aiPet.currentSkin : 'robot';
     
-    let recordWave = 0;
-    if (mode === 'normal') {
-        recordWave = (window.aiPet && window.aiPet.defenseWave) ? window.aiPet.defenseWave - 1 : 0;
-    } else {
-        recordWave = (window.aiPet && window.aiPet.bestEndlessWave) ? window.aiPet.bestEndlessWave : 0;
+    // ★修正：クラウドからランキングと他プレイヤーのパーティを取得する
+    let rankList = [];
+    if (typeof window.fetchDefenseRanking === 'function') {
+        rankList = await window.fetchDefenseRanking(mode);
     }
 
-    // ★デフォルトのダミーパーティ（出撃記録がない場合）
-    let pwr = Math.floor(window.aiPet.stats.power || 10); 
-    let int = Math.floor(window.aiPet.stats.intel || 10);
-    let myParty = window.aiPet && window.aiPet.lastDefenseParty ? window.aiPet.lastDefenseParty : [{ 
-        skin: mySkin, name: myName, 
-        hp: Math.floor(100 + (pwr * 2)), maxHp: Math.floor(100 + (pwr * 2)), 
-        atk: Math.floor(10 + pwr * 0.5), def: Math.floor(5 + pwr * 0.2), 
-        intel: int, pwr: pwr, speed: 3 
-    }];
-    
-    if (recordWave > 0) rankList.push({ playerId: myId, playerName: myName, wave: recordWave, party: myParty });
+    // 通信エラー等で空だった場合のフェイルセーフ（自分の記録だけ表示）
+    if (rankList.length === 0) {
+        let recordWave = mode === 'normal' ? ((window.aiPet && window.aiPet.defenseWave) ? window.aiPet.defenseWave - 1 : 0) : ((window.aiPet && window.aiPet.bestEndlessWave) ? window.aiPet.bestEndlessWave : 0);
+        if (recordWave > 0 && window.aiPet && window.aiPet.lastDefenseParty) {
+            let myName = window.aiPet.name || '現在のAI';
+            rankList.push({ playerId: myId, playerName: myName, wave: recordWave, party: window.aiPet.lastDefenseParty });
+        }
+    }
 
-    rankList.sort((a, b) => b.wave - a.wave);
     window.arenaRankDataCache = rankList; 
 
     if (!rankList || rankList.length === 0) {
