@@ -4,7 +4,15 @@
   "description": "",
   "main": "electron_main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "build": "electron-builder --windows"
+  },
+  "build": {
+    "appId": "com.yourname.aipetgame",
+    "productName": "AIPetGame",
+    "win": {
+      "target": ["dir"]
+    }
   },
   "repository": {
     "type": "git",
@@ -19,6 +27,7 @@
   },
   "homepage": "https://github.com/reina4256-prog/public#readme",
   "devDependencies": {
-    "electron": "^41.1.0"
+    "electron": "^41.1.0",
+    "electron-builder": "^26.8.1"
   }
 }
