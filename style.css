@@ -291,3 +291,26 @@ canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
 .dbg-panel button { margin: 5px 0; background: #555; color: white; border: 1px solid #777; cursor: pointer; padding: 5px; width: 100%; }
 .dbg-panel button:hover { background: #FF9800; color: black; }
 .dbg-panel label { display: block; margin: 5px 0; }
+
+
+/* PCゲーム用: フルスクリーン時の余白を黒帯にして中央配置 */
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #000; /* 余白（黒帯）の色 */
+    overflow: hidden; /* スクロールバーを隠す */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw;
+    height: 100vh;
+}
+
+#game-container {
+    width: 1280px; 
+    height: 720px; 
+    position: absolute; /* 画面中央に固定するための準備 */
+    background-color: #111;
+    overflow: hidden;
+    transform-origin: center center; /* 中央を基準に拡大縮小する */
+}

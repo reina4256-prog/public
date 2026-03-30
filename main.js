@@ -1013,3 +1013,36 @@ window.debugStartDungeon = function() {
         alert(`${type === 'crystal' ? 'クリスタル迷宮' : 'スカルダンジョン'} の ${floor}F に突入しました！`);
     }
 };
+
+// ==========================================
+// 🖥️ PCゲーム向け：画面自動ズーム処理 (Electron専用)
+// ==========================================
+window.autoZoomGame = function() {
+    const container = document.getElementById('game-container');
+    if (!container) return;
+
+    // Electronのズーム機能はリセット（1.0倍に固定）
+    if (typeof require !== 'undefined') {
+        const { webFrame } = require('electron');
+        webFrame.setZoomFactor(1.0);
+    }
+    
+    const BASE_WIDTH = 1280;  
+    const BASE_HEIGHT = 720;  
+
+    // ウィンドウサイズに合わせて倍率を計算
+    const scale = Math.min(
+        window.innerWidth / BASE_WIDTH,
+        window.innerHeight / BASE_HEIGHT
+    );
+
+    // CSSのtransformで画面をぴったりフィットさせる
+    container.style.transform = `scale(${scale})`;
+    container.style.left = `${(window.innerWidth - BASE_WIDTH) / 2}px`;
+    container.style.top = `${(window.innerHeight - BASE_HEIGHT) / 2}px`;
+};
+
+// ウィンドウサイズが変更されたら再計算
+window.addEventListener('resize', window.autoZoomGame);
+// 起動直後に1回実行
+setTimeout(window.autoZoomGame, 100);

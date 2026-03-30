@@ -29,6 +29,9 @@ function createWindow () {
   const win = new BrowserWindow({
     width: 1280,
     height: 720,
+    minWidth: 640,  // これ以上小さくならない
+    minHeight: 360,
+    useContentSize: true, // フレームを含まない「中身」のサイズを1280x720にする
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false
