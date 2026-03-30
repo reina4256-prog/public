@@ -1,6 +1,17 @@
 // electron_main.js
 const { app, BrowserWindow } = require('electron');
 const path = require('path');
+const steamworks = require('steamworks.js');
+
+// Steamworksの初期化 (AppID 480はテスト用)
+let steamClient;
+try {
+  steamClient = steamworks.init(480);
+  console.log('Steamworks APIが正常に初期化されました！');
+  console.log('ログイン中のSteamユーザー:', steamClient.localplayer.getName());
+} catch (error) {
+  console.error('Steamの初期化に失敗しました。Steamクライアントが起動しているか確認してください。', error);
+}
 
 function createWindow () {
   const win = new BrowserWindow({
@@ -41,3 +52,6 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
+
+// SteamオーバーレイをElectron上で有効化するための必須コード
+steamworks.electronEnableSteamOverlay();
