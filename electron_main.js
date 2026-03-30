@@ -17,6 +17,17 @@ function createWindow () {
 
   // ゲームのindex.htmlを読み込む
   win.loadFile('index.html');
+  // F11キーでフルスクリーン切替、ESCキーで解除する処理を追加
+  win.webContents.on('before-input-event', (event, input) => {
+    if (input.key === 'F11' && input.type === 'keyDown') {
+      win.setFullScreen(!win.isFullScreen());
+      event.preventDefault(); // デフォルトの動作をブロック
+    }
+    if (input.key === 'Escape' && win.isFullScreen() && input.type === 'keyDown') {
+      win.setFullScreen(false);
+      event.preventDefault();
+    }
+  });
 }
 
 app.whenReady().then(() => {
