@@ -6,6 +6,12 @@ const steamworks = require('steamworks.js');
 // Steamworksの初期化 (AppID 480はテスト用)
 let steamClient;
 try {
+  // ★追加：Steamクライアント経由の起動を強制する（DRM機能）
+  // if (steamworks.restartAppIfNecessary(480)) {
+  //   app.quit();
+  //   process.exit(0); // アプリを強制終了して、Steamからの再起動に任せる
+  // }
+
   steamClient = steamworks.init(480);
   console.log('Steamworks APIが正常に初期化されました！');
   console.log('ログイン中のSteamユーザー:', steamClient.localplayer.getName());
@@ -23,6 +29,39 @@ ipcMain.handle('get-steam-info', () => {
     };
   }
   return null;
+});
+
+// ★追加：ゲーム側から実績解除を要求された時の処理
+ipcMain.on('unlock-achievement', (event, achievementId) => {
+  if (steamClient && steamClient.achievement) {
+    try {
+      const activated = steamClient.achievement.activate(achievementId);
+      if (activated) {
+        console.log(`🏆 実績解除リクエスト送信: ${achievementId}`);
+      } else {
+        console.log(`実績解除失敗（存在しないID、または既に解除済み）: ${achievementId}`);
+      }
+    } catch (error) {
+      console.error(`実績解除エラー (${achievementId}):`, error);
+    }
+  }
+});
+
+// ★追加：テスト用に実績を「未解除（ロック状態）」に戻す処理
+ipcMain.on('clear-achievement', (event, achievementId) => {
+  if (steamClient && steamClient.achievement) {
+    try {
+      steamClient.achievement.clear(achievementId);
+      console.log(`🗑️ 実績をリセットしました: ${achievementId}`);
+    } catch (error) {
+      console.error(`実績リセットエラー:`, error);
+    }
+  }
+});
+
+// ★追加：ゲーム内から「終了」を指示された時の処理
+ipcMain.on('quit-app', () => {
+  app.quit();
 });
 
 function createWindow () {

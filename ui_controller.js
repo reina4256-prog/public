@@ -6172,3 +6172,34 @@ window.initDebugAccordion = function() {
 };
 // 起動時に初期化
 setTimeout(() => { if(typeof initDebugAccordion === 'function') initDebugAccordion(); }, 1000);
+
+// ==========================================
+// 🏆 Steam実績解除の共通関数
+// ==========================================
+window.unlockSteamAchievement = function(id) {
+    if (typeof require !== 'undefined') {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('unlock-achievement', id);
+    }
+};
+
+window.clearSteamAchievement = function(id) {
+    if (typeof require !== 'undefined') {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.send('clear-achievement', id);
+    }
+};
+
+// ==========================================
+// 🚪 PCゲーム用：ゲーム終了機能
+// ==========================================
+window.quitGame = function() {
+    if (confirm("ゲームを終了してデスクトップに戻りますか？\n（※クラウドへのセーブはお済みですか？）")) {
+        if (typeof require !== 'undefined') {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('quit-app');
+        } else {
+            window.close(); // ブラウザテスト用の予備
+        }
+    }
+};
