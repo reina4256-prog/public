@@ -84,7 +84,7 @@ function createWindow () {
   win.loadFile('index.html');
 
   // ★追加：起動時に自動で開発者ツール(DevTools)を開く
-  // win.webContents.openDevTools();
+  win.webContents.openDevTools();
 
   // F11キーでフルスクリーン切替、ESCキーで解除する処理を追加
   win.webContents.on('before-input-event', (event, input) => {

@@ -2329,7 +2329,18 @@ const itemCatalog = {
     // ▼▼▼ 追加：建築士の試作品と失敗作 ▼▼▼
     build_practice_normal: { name: '練習用の図面', type: 'material', value: 10, desc: '修行で引いた普通の図面。基礎はしっかりしている。' },
     build_practice_great: { name: '精巧な建築模型', type: 'material', value: 500, desc: '卓越した技術で作られた美しい建築模型。芸術品として売れる。' },
-    build_practice_fail: { name: '落書きの紙くず', type: 'material', value: 1, desc: '構造計算に失敗してクシャクシャに丸められた紙。' }
+    build_practice_fail: { name: '落書きの紙くず', type: 'material', value: 1, desc: '構造計算に失敗してクシャクシャに丸められた紙。' },
+    item_seed_happy: { name: "しあわせの種", type: 'material', value: 200, desc: "レベルが上がる不思議な種" },
+    item_scroll_sleep: { name: "睡眠の巻物", type: 'material', value: 100, desc: "部屋の敵を眠らせる" },
+    item_wand_fire: { name: "火竜の杖", type: 'material', value: 150, desc: "炎で大ダメージを与える" },
+    item_sword_double: { name: "連撃の剣", type: 'equip', value: 500, desc: "2回連続で攻撃する" },
+    item_shield_counter: { name: "反撃の盾", type: 'equip', value: 500, desc: "受けたダメージを少し跳ね返す" },
+    item_shield_hara: { name: "ハラモチの盾", type: 'equip', value: 500, desc: "お腹が減りにくくなる" },
+    item_armor_iron: { name: "鉄の鎧", type: 'equip', value: 400, desc: "防御力が高い鎧" },
+    item_ring_haste: { name: "俊足の腕輪", type: 'equip', value: 1000, desc: "素早く行動できる" },
+    item_ring_heal: { name: "回復の指輪", type: 'equip', value: 1000, desc: "体力が回復するが腹が減る" },
+    // ▼▼ 追加：ダンジョン用の上限突破アイテム ▼▼
+    item_bread: { name: '大きなパン', type: 'food', value: 150, hungerRec: 50, energyRec: 0, desc: 'ふっくら焼き上がった大きなパン。お腹がいっぱいの時に食べると、満腹度の上限が少し増える。' }
 };
 
 const riverFishingTable = {
