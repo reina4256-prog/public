@@ -4014,14 +4014,109 @@ window.DUNGEON_SPRITES = {
 
 window._dungeonAiTypesList = ['robot', 'magician', 'spirit', 'dragon', 'machine', 'stone', 'seed', 'ghost', 'balloon', 'beetle', 'bird'];
 
-// ==========================================
-// ★ 追加：ダンジョン内のアイテム効果＆特性タグ（Trait）辞書
-// ==========================================
-window.getDungeonItemEffect = function(itemId) {
-    // ★追加：「item_sword_iron_+1」のような文字列からベースIDと＋値を分離する
-    let baseId = itemId.split('_+')[0];
+// ★新規追加：印の詳細説明データ（装備詳細画面で使います）
+window.SEAL_DESCRIPTIONS = {
+    heal: { name: '癒', desc: '与えたダメージの20%を吸収しHPを回復する。' },
+    life: { name: '命', desc: '毎ターンHPが1ずつ自動回復する。' },
+    sleep: { name: '眠', desc: '攻撃時、20%の確率で敵を睡眠状態にする。' },
+    counter_sleep: { name: '眠', desc: '敵から直接攻撃を受けた際、15%の確率で敵を睡眠状態にする。' },
+    fire: { name: '炎', desc: '通常ダメージに加え、追加で固定の炎ダメージ(+10)を与える。' },
+    anti_dragon: { name: '竜', desc: 'ドラゴン系のモンスターから受けるダメージを半減する。' },
+    exp: { name: '幸', desc: '敵を倒した時に得られる経験値が1.5倍になる。' },
+    dodge: { name: '避', desc: '素早さによる回避とは別に、15%の確率で無条件に攻撃をかわす。' },
+    double: { name: '連', desc: '通常攻撃が2回連続になる。' },
+    parry: { name: '見', desc: '敵からの直接攻撃を15%の確率で弾き、無効化する。' },
+    food: { name: '食', desc: '敵を倒した時、稀に食料（野イチゴやパン）をドロップする。' },
+    half_hunger: { name: '腹', desc: 'お腹の減る速度が半分になる。' },
+    angry: { name: '怒', desc: '自分がダメージを受けた直後のターンに攻撃すると、ダメージが1.5倍になる。' },
+    counter: { name: '反', desc: '受けたダメージの半分を相手に跳ね返す。' },
+    crit: { name: '会', desc: '攻撃時、15%の確率で会心の一撃（ダメージ2倍）が出る。' },
+    max_hunger: { name: '膨', desc: '装備中、最大満腹度に +20 のボーナスがつく。' },
+    first: { name: '先', desc: '敵が自分に隣接してきた瞬間、ターンを消費せずに先制攻撃を行う。' },
+    light: { name: '軽', desc: '素早さによる回避率の上限が「75%」に引き上げられる。' },
+    holy: { name: '光', desc: 'アンデッド・悪魔系モンスターに対して2倍のダメージを与える。' },
+    regen: { name: '治', desc: '毎ターンHPが回復し、装備の「腹減り2倍」のデメリットを打ち消す。' }
+};
+
+// ★完全修正：アイテム文字列から「ベース名」「＋値」「印の配列」を正確に分解する
+window.parseItemString = function(itemId) {
+    let baseId = "";
+    
+    // ★追加：装備のベースIDリスト（これらに前方一致するかを最優先で確認する）
+    const baseEquipIds = [
+        'item_sword_double', 'item_sword_iron', 
+        'item_shield_counter', 'item_shield_hara', 'item_shield_wood', 
+        'item_armor_iron',
+        'item_ring_haste', 'item_ring_heal'
+    ];
+    
+    for(let b of baseEquipIds) {
+        if (itemId.startsWith(b)) { baseId = b; break; }
+    }
+    
+    // カタログにある名前から「最長一致」で探す（装備以外のアイテム用）
+    if (!baseId) {
+        let keys = [];
+        if (typeof itemCatalog !== 'undefined') keys = Object.keys(itemCatalog).sort((a,b) => b.length - a.length);
+        for(let k of keys) {
+            if (itemId.startsWith(k)) { baseId = k; break; }
+        }
+    }
+    
+    // 究極のフォールバック
+    if (!baseId) baseId = itemId.split('_+')[0]; 
+
     let plusMatch = itemId.match(/_\+(\d+)/);
     let plus = plusMatch ? parseInt(plusMatch[1]) : 0;
+
+    // ベースIDと＋値を取り除いた「残りの文字列」から印を探す
+    let remainder = itemId.replace(baseId, '').replace(/_\+\d+/, '');
+    
+    let seals = [];
+    const validSeals = Object.keys(window.SEAL_DESCRIPTIONS || {});
+    let sortedSeals = [...validSeals].sort((a,b) => b.length - a.length);
+    
+    for (let s of sortedSeals) {
+        if (remainder.includes(s)) {
+            seals.push(s);
+            remainder = remainder.replace(new RegExp(s, 'g'), ''); // 同じ印が重複するのを防ぐ
+        }
+    }
+    return { baseId: baseId, plus: plus, seals: seals };
+};
+
+// ★新規追加：異種合成時に「どの印がつくか」を定義する辞書
+window.getSealFromItem = function(itemBaseId, targetEquipType) {
+    if (targetEquipType === 'weapon') {
+        if (itemBaseId === 'herb' || itemBaseId === 'item_berry') return 'heal';
+        if (itemBaseId === 'item_scroll_sleep') return 'sleep';
+        if (itemBaseId === 'item_wand_fire') return 'fire';
+        if (itemBaseId === 'item_seed_happy') return 'exp';
+        if (itemBaseId === 'item_sword_double') return 'double';
+        if (itemBaseId === 'item_shield_hara') return 'food';
+        if (itemBaseId === 'item_shield_counter') return 'angry';
+        if (itemBaseId === 'item_bread') return 'crit';
+        if (itemBaseId === 'item_ring_haste') return 'first';
+        if (itemBaseId === 'item_ring_heal') return 'holy';
+    } else if (targetEquipType === 'shield' || targetEquipType === 'armor') {
+        if (itemBaseId === 'herb' || itemBaseId === 'item_berry') return 'life';
+        if (itemBaseId === 'item_scroll_sleep') return 'counter_sleep';
+        if (itemBaseId === 'item_wand_fire') return 'anti_dragon';
+        if (itemBaseId === 'item_seed_happy') return 'dodge';
+        if (itemBaseId === 'item_sword_double') return 'parry';
+        if (itemBaseId === 'item_shield_hara') return 'half_hunger';
+        if (itemBaseId === 'item_shield_counter') return 'counter';
+        if (itemBaseId === 'item_bread') return 'max_hunger';
+        if (itemBaseId === 'item_ring_haste') return 'light';
+        if (itemBaseId === 'item_ring_heal') return 'regen';
+    }
+    return null;
+};
+
+// ★上書き：印の文字列を名前に変換し、効果を適用する
+window.getDungeonItemEffect = function(itemId) {
+    let parsed = window.parseItemString(itemId);
+    let baseId = parsed.baseId; let plus = parsed.plus; let seals = parsed.seals;
 
     let baseData = null;
     if (typeof itemCatalog !== 'undefined' && itemCatalog[baseId]) baseData = itemCatalog[baseId];
@@ -4030,101 +4125,60 @@ window.getDungeonItemEffect = function(itemId) {
     if (baseId === 'item_sword_iron') name = "鉄の剣";
     if (baseId === 'item_shield_wood') name = "木の盾";
 
-    // ★＋値がある場合は名前にくっつける
     if (plus > 0) name += ` +${plus}`;
-    
-    // ★追加：equipType（装備部位）と traits（特性タグの配列）を追加
-    let effect = { 
-        hp: 0, hunger: 0, 
-        isConsumable: false, 
-        equipType: null, // 'weapon', 'shield', 'armor', 'accessory' のいずれかが入る
-        atk: 0, def: 0, 
-        name: name,
-        traits: [] // ここに 'double_attack' などの特殊効果の文字を入れる
+
+    // 印の表示名マッピング
+    const sealMap = {
+        heal: '癒', life: '命', sleep: '眠', counter_sleep: '眠', fire: '炎', anti_dragon: '竜',
+        exp: '幸', dodge: '避', double: '連', parry: '見', food: '食', half_hunger: '腹',
+        angry: '怒', counter: '反', crit: '会', max_hunger: '膨', first: '先', light: '軽',
+        holy: '光', regen: '治'
     };
 
-    // ==========================================
-    // 1. 消費アイテム（食べ物、薬、巻物など）
-    // ==========================================
-    if (itemId.startsWith('dish_')) { effect.hp = 30; effect.hunger = 40; effect.isConsumable = true; }
-    else if (itemId === 'item_berry' || itemId.includes('apple') || itemId.includes('fruit')) { effect.hp = 10; effect.hunger = 15; effect.isConsumable = true; }
-    else if (itemId === 'herb' || itemId.includes('potion')) { effect.hp = 50; effect.hunger = 5; effect.isConsumable = true; }
-    // ★新規追加：満腹度上限突破アイテム（HP回復0なので「かいふく」コマンドでは使われない）
-    else if (itemId === 'item_bread') { effect.name = "大きなパン"; effect.hp = 0; effect.hunger = 50; effect.isConsumable = true; }
-    else if (itemId.includes('fish') || itemId.includes('meat')) { effect.hp = 15; effect.hunger = 25; effect.isConsumable = true; }
-    else if (itemId.includes('seed')) { effect.hp = 5; effect.hunger = 5; effect.isConsumable = true; }
+    if (seals.length > 0) {
+        let sealStrs = seals.map(s => `[${sealMap[s]}]`).join('');
+        name += ` ${sealStrs}`;
+    }
+
+    let effect = { 
+        hp: 0, hunger: 0, 
+        isConsumable: false, equipType: null,
+        atk: 0, def: 0, name: name,
+        traits: [...seals] // ★配列に直接印を突っ込む！
+    };
+
+    if (baseId.startsWith('dish_')) { effect.hp = 30; effect.hunger = 40; effect.isConsumable = true; }
+    else if (baseId === 'item_bread') { effect.hp = 0; effect.hunger = 50; effect.isConsumable = true; }
+    else if (baseId === 'item_berry' || baseId.includes('apple') || baseId.includes('fruit')) { effect.hp = 10; effect.hunger = 15; effect.isConsumable = true; }
+    else if (baseId === 'herb' || baseId.includes('potion')) { effect.hp = 50; effect.hunger = 5; effect.isConsumable = true; }
+    else if (baseId.includes('fish') || baseId.includes('meat')) { effect.hp = 15; effect.hunger = 25; effect.isConsumable = true; }
+    else if (baseId === 'item_seed_happy') { effect.isConsumable = true; effect.traits.push('level_up'); }
+    else if (baseId === 'item_scroll_sleep') { effect.isConsumable = true; effect.traits.push('sleep_aoe'); }
+    else if (baseId === 'item_wand_fire') { effect.isConsumable = true; effect.traits.push('fire_damage'); }
     
-    // ▼ 新規追加：ローグライク特有の魔法アイテム
-    else if (itemId === 'item_seed_happy') { 
-        effect.name = "しあわせの種"; effect.isConsumable = true; 
-        effect.traits.push('level_up'); // 使うとレベルアップ
-    }
-    else if (itemId === 'item_scroll_sleep') { 
-        effect.name = "睡眠の巻物"; effect.isConsumable = true; 
-        effect.traits.push('sleep_aoe'); // 部屋中の敵を眠らせる
-    }
-    else if (itemId === 'item_wand_fire') {
-        effect.name = "火竜の杖"; effect.isConsumable = true;
-        effect.traits.push('fire_damage'); // 目の前の敵に大ダメージ
-    }
-    
-    // ==========================================
-    // 2. 装備品（武器）
-    // ==========================================
     else if (baseId === 'item_sword_iron' || baseId.includes('sword') || baseId.includes('weapon')) {
-        effect.equipType = 'weapon';
-        effect.atk = 15 + (plus * 2); // ★＋値のボーナスを追加
-        
-        if (baseId === 'item_sword_double') { 
-            effect.name = `連撃の剣${plus > 0 ? ' +'+plus : ''}`; effect.atk = 10 + (plus * 2); effect.traits.push('double_attack'); 
-        }
+        effect.equipType = 'weapon'; effect.atk = 15 + (plus * 2);
+        if (baseId === 'item_sword_double' && !effect.traits.includes('double')) effect.traits.push('double');
     }
-    // ==========================================
-    // 3. 装備品（盾）
-    // ==========================================
     else if (baseId === 'item_shield_wood' || baseId.includes('shield')) {
-        effect.equipType = 'shield';
-        effect.def = 8 + (plus * 2); // ★＋値のボーナスを追加
-        
-        if (baseId === 'item_shield_counter') { 
-            effect.name = `反撃の盾${plus > 0 ? ' +'+plus : ''}`; effect.def = 5 + (plus * 2); effect.traits.push('counter_attack'); 
-        }
-        if (baseId === 'item_shield_hara') { 
-            effect.name = `ハラモチの盾${plus > 0 ? ' +'+plus : ''}`; effect.def = 6 + (plus * 2); effect.traits.push('half_hunger'); 
-        }
+        effect.equipType = 'shield'; effect.def = 8 + (plus * 2);
+        if (baseId === 'item_shield_counter' && !effect.traits.includes('counter')) effect.traits.push('counter');
+        if (baseId === 'item_shield_hara' && !effect.traits.includes('half_hunger')) effect.traits.push('half_hunger');
     }
-    // ==========================================
-    // 4. 装備品（鎧）★新規枠
-    // ==========================================
-    // ★ itemId ではなく baseId で判定する
     else if (baseId.includes('armor') || baseId.includes('mail') || baseId.includes('robe')) {
-        effect.equipType = 'armor';
-        // ★ ＋値がある場合、防御力を上昇させる（+1につき防御+2）
-        effect.def = 15 + (plus * 2); 
+        effect.equipType = 'armor'; effect.def = 15 + (plus * 2);
     }
-    // ==========================================
-    // 5. 装備品（装飾品・アクセサリ）★新規枠
-    // ==========================================
-    // ★ itemId ではなく baseId で判定する
     else if (baseId.includes('ring') || baseId.includes('bracelet')) {
         effect.equipType = 'accessory';
-        
-        // ▼ 特殊効果付きのアクセサリ
-        // ★ ＋値がある場合、名前に「+1」などを表示させる
-        if (baseId === 'item_ring_haste') { 
-            effect.name = `俊足の腕輪${plus > 0 ? ' +'+plus : ''}`; 
-            effect.traits.push('fast_move'); // 行動回数アップ
-        }
-        if (baseId === 'item_ring_heal') { 
-            effect.name = `回復の指輪${plus > 0 ? ' +'+plus : ''}`; 
-            effect.traits.push('regen_hp', 'fast_hunger'); // 毎ターン回復するが、腹減り2倍
+        if (baseId === 'item_ring_haste' && !effect.traits.includes('fast_move')) effect.traits.push('fast_move');
+        if (baseId === 'item_ring_heal') {
+            if (!effect.traits.includes('regen_hp')) effect.traits.push('regen_hp');
+            if (!effect.traits.includes('fast_hunger')) effect.traits.push('fast_hunger');
         }
     }
 
-    // 以前のコード（isWeapon/isShield）への後方互換性（既存の処理がエラーにならないように残す）
     effect.isWeapon = (effect.equipType === 'weapon');
     effect.isShield = (effect.equipType === 'shield');
-
     return effect;
 };
 
@@ -4353,7 +4407,10 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
                     <span id="dg-level-display">${levelHtml}</span>
                 </div>
                 <div id="dg-inventory-container" style="margin-top: 12px; border-top: 1px dashed #555; padding-top: 8px; display: block;">
-                    <div style="font-size: 12px; color: #aaa; margin-bottom: 5px;">🎒 持ち込みアイテム (自動消費)</div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <span style="font-size: 12px; color: #aaa;">🎒 持ち込みアイテム (自動消費)</span>
+                        <button onclick="window.showEquipDetailsModal()" style="padding:4px 8px; background:#FF9800; color:#fff; border:none; border-radius:4px; font-size:12px; font-weight:bold; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.5);">🔍 装備詳細と印</button>
+                    </div>
                     <div id="dg-inventory-list" style="font-size: 13px; max-height: 60px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 5px;">
                         </div>
                 </div>
@@ -4531,17 +4588,14 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
             rewardHtml += `<div style="text-align:left; background:#222; padding:15px; border-radius:8px; border:2px solid #555; width:80%; margin:0 auto; max-height: 200px; overflow-y: auto;">`;
             rewardHtml += `<div style="color:#aaa; font-size:14px; margin-bottom:5px;">▼ 持ち帰ったアイテム</div>`;
             for(let key in itemCounts) {
-                // ★修正：＋値がついたアイテム名を綺麗に日本語化する
-                let baseKey = key.split('_+')[0];
-                let plusMatch = key.match(/_\+(\d+)/);
-                
-                let itemName = typeof itemCatalog !== 'undefined' && itemCatalog[baseKey] ? itemCatalog[baseKey].name : baseKey;
-                if (baseKey === 'item_sword_iron') itemName = "鉄の剣";
-                if (baseKey === 'item_shield_wood') itemName = "木の盾";
-                
-                if (plusMatch) itemName += ` +${plusMatch[1]}`; // ＋値を付与
+                // ★完全修正：getDungeonItemEffect を通すことで、＋値も印もすべて綺麗な日本語に翻訳される！
+                let eff = window.getDungeonItemEffect(key);
+                let itemName = eff ? eff.name : key;
                 
                 let nameColor = key.startsWith('mat_') ? '#E040FB' : '#FFF';
+                // 装備品は特別な色（金色）にする
+                if (eff && (eff.equipType !== null)) nameColor = '#FFD700';
+                
                 rewardHtml += `<div style="font-size:18px; color:${nameColor};">🎁 ${itemName} <span style="color:#4CAF50;">x ${itemCounts[key]}</span></div>`;
             }
             rewardHtml += `</div>`;
@@ -5217,92 +5271,144 @@ window.playProjectileVFX = function(sx, sy, tx, ty, color) {
 };
 
 window.dealDungeonDamage = function(attacker, defender) {
+    let s = window.DUNGEON_STATE;
+
     // ==========================================
-    // ★神仕様：素早さによる「回避」の判定（上限60%）
+    // ★神仕様：素早さと印による「回避」＆「見切り」
     // ==========================================
-    if (defender === window.DUNGEON_STATE.player) {
+    if (defender === s.player) {
         let spd = window.aiPet && window.aiPet.stats ? (window.aiPet.stats.speed || 10) : 10;
-        let dodgeChance = Math.min(0.60, spd / 333); // 素早さ100で約30%、200以上で最大60%
+        let dodgeCap = 0.60; let extraDodge = 0;
+        
+        let sEff = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
+        let aEff = s.player.equipArmor ? window.getDungeonItemEffect(s.player.equipArmor) : null;
+        
+        if ((sEff && sEff.traits.includes('light')) || (aEff && aEff.traits.includes('light'))) dodgeCap = 0.75; // [軽]で上限突破
+        if ((sEff && sEff.traits.includes('dodge')) || (aEff && aEff.traits.includes('dodge'))) extraDodge += 0.15; // [避]で回避+15%
+        
+        let dodgeChance = Math.min(dodgeCap, spd / 333) + extraDodge;
         if (Math.random() < dodgeChance) {
             window.addDungeonLog(`ヒュンッ！ ${window.aiPet.name || 'AI'} は素早く攻撃をかわした！`, '#00e676');
             if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, "Miss", true);
             return 0;
         }
+        
+        // [見] 防御印：見切り（15%で無条件無効化）
+        if ((sEff && sEff.traits.includes('parry')) || (aEff && aEff.traits.includes('parry'))) {
+            if (Math.random() < 0.15) {
+                window.addDungeonLog(`🛡️ 装備で巧みに攻撃を弾いた！(0ダメージ)`, '#FFD700');
+                if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, "Parry!", true);
+                return 0;
+            }
+        }
     }
 
-    let basePwr = attacker === window.DUNGEON_STATE.player ? window.DUNGEON_STATE.player.basePwr : 10;
+    let basePwr = attacker === s.player ? s.player.basePwr : 10;
     let dmg = attacker.damage || (5 + Math.floor(basePwr * 0.5));
+    let wEff = (attacker === s.player && s.player.equipWeapon) ? window.getDungeonItemEffect(s.player.equipWeapon) : null;
     
-    if (attacker === window.DUNGEON_STATE.player && window.DUNGEON_STATE.player.equipWeapon) {
-        dmg += window.getDungeonItemEffect(window.DUNGEON_STATE.player.equipWeapon).atk;
+    // ==========================================
+    // ★ プレイヤーの攻撃印処理
+    // ==========================================
+    if (attacker === s.player && wEff) {
+        dmg += wEff.atk;
+        if (wEff.traits.includes('crit') && Math.random() < 0.15) {
+            dmg *= 2; window.addDungeonLog(`💥 会心の一撃！`, '#ff5252'); // [会]
+        }
+        if (wEff.traits.includes('angry') && s.player._isAngry) {
+            dmg = Math.floor(dmg * 1.5); window.addDungeonLog(`💢 怒りの痛撃！`, '#ff5252'); // [怒]
+            s.player._isAngry = false;
+        }
+        if (wEff.traits.includes('holy') && (defender.type === 'ghost' || defender.type === 'skull')) {
+            dmg *= 2; window.addDungeonLog(`✨ 聖なる一撃が弱点を突く！`, '#E040FB'); // [光]
+        }
+        if (wEff.traits.includes('fire')) {
+            dmg += 10; window.addDungeonLog(`🔥 炎が敵を焼き焦がす！(+10)`, '#FF5252'); // [炎]
+        }
     }
 
     let defBuff = 0;
-    if (defender === window.DUNGEON_STATE.player) {
-        // ★追加：レベルアップで基礎防御力が上がり、終盤の一撃死を防ぐ
-        defBuff += Math.floor((window.DUNGEON_STATE.player.level || 1) * 1.5);
-        if (window.DUNGEON_STATE.player.equipShield) {
-            defBuff += window.getDungeonItemEffect(window.DUNGEON_STATE.player.equipShield).def;
-        }
-        // ★追加：鎧の防御力を追加
-        if (window.DUNGEON_STATE.player.equipArmor) {
-            defBuff += window.getDungeonItemEffect(window.DUNGEON_STATE.player.equipArmor).def;
-        }
+    if (defender === s.player) {
+        defBuff += Math.floor((s.player.level || 1) * 1.5);
+        if (s.player.equipShield) defBuff += window.getDungeonItemEffect(s.player.equipShield).def;
+        if (s.player.equipArmor) defBuff += window.getDungeonItemEffect(s.player.equipArmor).def;
     }
     if (defender.type === 'stone') defBuff += 5; 
 
-    // ★追加：魔法使いの防御無視攻撃（固定ダメージ）
     if (attacker.isPiercing) {
-        defBuff = 0; // 防御力を無視！
-        dmg = 20 + Math.floor(window.DUNGEON_STATE.floor * 1.0); // 階層に応じた固定ダメージ
+        defBuff = 0; dmg = 20 + Math.floor(s.floor * 1.0); 
         window.addDungeonLog(`💥 防御無視の強烈な魔法！`, '#E040FB');
     }
 
+    // ==========================================
+    // ★ 敵の特攻とプレイヤーの防具印処理
+    // ==========================================
     if (attacker.type === 'dragon' && Math.random() < 0.2) {
-        dmg *= 2; window.addDungeonLog(`ドラゴンの猛撃！ダメージ2倍！`, '#ff5252');
-    }
-    if (attacker.type === 'magician' && !attacker.isPiercing) { 
-        window.addDungeonLog(`魔法攻撃！`, '#E040FB'); 
+        let hasAntiDragon = false;
+        if (s.player.equipShield && window.getDungeonItemEffect(s.player.equipShield).traits.includes('anti_dragon')) hasAntiDragon = true;
+        if (s.player.equipArmor && window.getDungeonItemEffect(s.player.equipArmor).traits.includes('anti_dragon')) hasAntiDragon = true;
+        
+        if (hasAntiDragon) { window.addDungeonLog(`🛡️ 竜の盾が炎のブレスを防いだ！`, '#FFD700'); } 
+        else { dmg *= 2; window.addDungeonLog(`ドラゴンの猛撃！ダメージ2倍！`, '#ff5252'); }
     }
 
-    if (defender.type === 'ghost' && Math.random() < 0.3) {
-        window.addDungeonLog(`ゴーストは攻撃をすり抜けた！`, '#aaa'); return 0;
-    }
+    if (attacker.type === 'magician' && !attacker.isPiercing) window.addDungeonLog(`魔法攻撃！`, '#E040FB'); 
+    if (defender.type === 'ghost' && Math.random() < 0.3) { window.addDungeonLog(`ゴーストは攻撃をすり抜けた！`, '#aaa'); return 0; }
     
     dmg = Math.max(1, dmg - defBuff); 
-
     defender.hp -= dmg;
-    defender.damageAnim = true; // ★追加：被弾アニメーションのフラグを立てる
+    defender.damageAnim = true; 
     
-    // ★追加：ダメージのポップアップエフェクトを呼ぶ
-    if (typeof window.showDungeonDamageEffect === 'function') {
-        window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === window.DUNGEON_STATE.player);
-    }
+    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === s.player);
     
-    // ★修正：プレイヤーがダメージを受けた時に正しくAIの名前を表示する
-    let defName = defender === window.DUNGEON_STATE.player ? (window.aiPet.name || 'AI') : (defender.name || '敵');
+    let defName = defender === s.player ? (window.aiPet.name || 'AI') : (defender.name || '敵');
     window.addDungeonLog(`${defName}に ${dmg} ダメージ！`, '#ff5252');
 
-    // ★特性効果：反撃の盾（受けたダメージの半分を返す）
-    if (defender === window.DUNGEON_STATE.player && window.DUNGEON_STATE.player.equipShield) {
-        let shEff = window.getDungeonItemEffect(window.DUNGEON_STATE.player.equipShield);
-        // ★修正：魔法（isPiercing）には反撃不可とする
-        if (shEff.traits.includes('counter_attack') && attacker.hp > 0 && !attacker.isPiercing) {
-            let counterDmg = Math.max(1, Math.floor(dmg / 2));
-            attacker.hp -= counterDmg;
+    // プレイヤーが被弾した時に[怒]フラグをセット
+    if (defender === s.player) s.player._isAngry = true;
+
+    // ==========================================
+    // ★ 被弾時の反撃・睡眠カウンター印
+    // ==========================================
+    if (defender === s.player && !attacker.isPiercing) {
+        let sEff = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
+        let aEff = s.player.equipArmor ? window.getDungeonItemEffect(s.player.equipArmor) : null;
+        let allDefTraits = [];
+        if (sEff) allDefTraits.push(...sEff.traits);
+        if (aEff) allDefTraits.push(...aEff.traits);
+
+        if (allDefTraits.includes('counter') && attacker.hp > 0) { // [反]
+            let counterDmg = Math.max(1, Math.floor(dmg / 2)); attacker.hp -= counterDmg;
             if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(attacker.x, attacker.y, counterDmg, false);
-            window.addDungeonLog(`🛡️ 反撃の盾！${attacker.name}に ${counterDmg} のダメージをやり返した！`, '#FFD700');
+            window.addDungeonLog(`🛡️ 反撃！${attacker.name}に ${counterDmg} のダメージをやり返した！`, '#FFD700');
+        }
+        if (allDefTraits.includes('counter_sleep') && attacker.hp > 0 && Math.random() < 0.15) { // [眠] 防具
+            attacker.charmed = true; window.addDungeonLog(`💤 カウンター！敵を眠らせた！`, '#B39DDB');
         }
     }
 
+    // ==========================================
+    // ★ 攻撃ヒット後のプレイヤー武器印
+    // ==========================================
+    if (attacker === s.player && wEff) {
+        if (wEff.traits.includes('heal') && dmg > 0) { // [癒]
+            let rec = Math.max(1, Math.floor(dmg * 0.2));
+            s.player.hp = Math.min(s.player.maxHp, s.player.hp + rec);
+            window.addDungeonLog(`🩸 与えたダメージからHPを ${rec} 吸収した！`, '#4CAF50');
+        }
+        if (wEff.traits.includes('sleep') && defender.hp > 0 && Math.random() < 0.2) { // [眠]
+            defender.charmed = true; window.addDungeonLog(`💤 睡眠攻撃で敵が眠りについた！`, '#B39DDB');
+        }
+    }
+
+    // 敵の特殊行動
     if (defender.hp > 0) {
         if (attacker.type === 'beetle') {
             let kx = defender.x, ky = defender.y;
             if (attacker.face === 'up') ky--; else if (attacker.face === 'down') ky++;
             else if (attacker.face === 'left') kx--; else if (attacker.face === 'right') kx++;
-            if (window.DUNGEON_STATE.grid[ky][kx] !== 1 && !window.DUNGEON_STATE.enemies.some(e => e.hp>0 && e.x===kx && e.y===ky)) {
-                defender.x = kx; defender.y = ky; 
-                defender.knockbackAnim = true; // ★追加：吹き飛ばしの回転エフェクト用フラグ
+            if (s.grid[ky][kx] !== 1 && !s.enemies.some(e => e.hp>0 && e.x===kx && e.y===ky)) {
+                defender.x = kx; defender.y = ky; defender.knockbackAnim = true;
                 window.addDungeonLog(`カブトムシの角で吹き飛ばされた！`, '#FF9800');
             }
         }
@@ -5311,66 +5417,46 @@ window.dealDungeonDamage = function(attacker, defender) {
             window.addDungeonLog(`精霊の力で ${heal} 回復！`, '#4CAF50');
         }
         if (defender.type === 'balloon') {
-            let wx, wy;
-            do { wx = Math.floor(Math.random() * window.DUNGEON_STATE.mapWidth); wy = Math.floor(Math.random() * window.DUNGEON_STATE.mapHeight);
-            } while (window.DUNGEON_STATE.grid[wy][wx] !== 0);
-            defender.x = wx; defender.y = wy; 
-            defender.warpAnim = true; // ★追加：ワープエフェクトフラグ
+            let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0);
+            defender.x = wx; defender.y = wy; defender.warpAnim = true; 
             window.addDungeonLog(`風船が割れてどこかへ飛んでいった！`, '#00BCD4');
         }
-    } else if (defender !== window.DUNGEON_STATE.player) {
+    } else if (defender !== s.player) {
         window.addDungeonLog(`${defender.name} を倒した！`, '#FFD700');
         
-        // ★修正：クリスタル迷宮（ローグライク）限定でアイテムをドロップする
-        // 確率も少し上げて（40% → 45%）アイテムがたくさん落ちる楽しさをアップ！
-        if (window.DUNGEON_STATE.mapType === 'crystal' && Math.random() < 0.45) {
-            
-            // ★追加：新しい特殊効果装備や魔法アイテムをテーブルに追加
+        // ★ 死亡時ボーナス印
+        if (attacker === s.player && wEff) {
+            if (wEff.traits.includes('exp')) { // [幸]
+                s.player.exp += Math.floor(defender.maxHp * 0.5); 
+                window.addDungeonLog(`✨ 経験値ボーナス！`, '#E040FB');
+            }
+            if (wEff.traits.includes('food') && Math.random() < 0.10) { // [食]
+                let drop = Math.random() < 0.5 ? 'item_berry' : 'item_bread';
+                s.player.tempInventory.push(drop); window.addDungeonLog(`🍖 モンスターが食料を落とした！`, '#FF9800');
+            }
+        }
+        
+        if (s.mapType === 'crystal' && Math.random() < 0.45) {
             const dropTable = [
-                // 回復・食料
-                { id: 'herb', name: '薬草', weight: 20 },
-                { id: 'item_berry', name: '野イチゴ', weight: 15 }, // パンの分少し減らす
-                { id: 'item_bread', name: '大きなパン', weight: 15 }, // ★新規追加
-                { id: 'dish_stirfry', name: '野菜炒め', weight: 10 },
-                // 魔法・消費アイテム
-                { id: 'item_seed_happy', name: 'しあわせの種', weight: 3 }, // レア！
-                { id: 'item_scroll_sleep', name: '睡眠の巻物', weight: 7 },
-                { id: 'item_wand_fire', name: '火竜の杖', weight: 7 },
-                // 武器
-                { id: 'item_sword_iron', name: '鉄の剣', weight: 10 },
-                { id: 'item_sword_double', name: '連撃の剣', weight: 4 }, // レア！
-                // 盾
-                { id: 'item_shield_wood', name: '木の盾', weight: 10 },
-                { id: 'item_shield_counter', name: '反撃の盾', weight: 4 }, // レア！
-                { id: 'item_shield_hara', name: 'ハラモチの盾', weight: 4 }, // レア！
-                // 鎧と装飾品（新規枠）
-                { id: 'item_armor_iron', name: '鉄の鎧', weight: 8 },
-                { id: 'item_ring_haste', name: '俊足の腕輪', weight: 2 }, // 超レア！
-                { id: 'item_ring_heal', name: '回復の指輪', weight: 2 }   // 超レア！
+                { id: 'herb', name: '薬草', weight: 20 }, { id: 'item_berry', name: '野イチゴ', weight: 15 }, { id: 'item_bread', name: '大きなパン', weight: 15 },
+                { id: 'dish_stirfry', name: '野菜炒め', weight: 10 }, { id: 'item_seed_happy', name: 'しあわせの種', weight: 3 }, { id: 'item_scroll_sleep', name: '睡眠の巻物', weight: 7 }, 
+                { id: 'item_wand_fire', name: '火竜の杖', weight: 7 }, { id: 'item_sword_iron', name: '鉄の剣', weight: 10 }, { id: 'item_sword_double', name: '連撃の剣', weight: 4 }, 
+                { id: 'item_shield_wood', name: '木の盾', weight: 10 }, { id: 'item_shield_counter', name: '反撃の盾', weight: 4 }, { id: 'item_shield_hara', name: 'ハラモチの盾', weight: 4 },
+                { id: 'item_armor_iron', name: '鉄の鎧', weight: 8 }, { id: 'item_ring_haste', name: '俊足の腕輪', weight: 2 }, { id: 'item_ring_heal', name: '回復の指輪', weight: 2 } 
             ];
             let totalWeight = dropTable.reduce((sum, item) => sum + item.weight, 0);
-            let rand = Math.random() * totalWeight;
-            let dropped = dropTable[0];
-            for (let item of dropTable) {
-                if (rand < item.weight) { dropped = item; break; }
-                rand -= item.weight;
-            }
-            window.DUNGEON_STATE.player.tempInventory.push(dropped.id);
-            window.addDungeonLog(`敵は ${dropped.name} を落とした！`, '#4CAF50');
-            window.updateDungeonUI();
+            let rand = Math.random() * totalWeight; let dropped = dropTable[0];
+            for (let item of dropTable) { if (rand < item.weight) { dropped = item; break; } rand -= item.weight; }
+            s.player.tempInventory.push(dropped.id); window.addDungeonLog(`敵は ${dropped.name} を落とした！`, '#4CAF50');
         }
 
-        if (window.DUNGEON_STATE.mapType === 'crystal') {
-            let s = window.DUNGEON_STATE;
+        if (s.mapType === 'crystal') {
             s.player.exp += defender.maxHp;
             if (s.player.exp >= s.player.nextExp) {
-                s.player.level++;
-                s.player.exp -= s.player.nextExp;
-                s.player.nextExp = Math.floor(s.player.nextExp * 1.5);
-                s.player.maxHp += 20;
-                s.player.hp = s.player.maxHp; 
-                s.player.basePwr += 8; // ★上方修正: レベルアップ時の攻撃力上昇をアップ
-                s.player.hunger = s.player.maxHunger || 100; // ★上限突破対応の完全回復！
+                s.player.level++; s.player.exp -= s.player.nextExp; s.player.nextExp = Math.floor(s.player.nextExp * 1.5);
+                s.player.maxHp += 20; s.player.hp = s.player.maxHp; s.player.basePwr += 8; 
+                // ★修正：装備ボーナスを含めた本当の最大値まで全回復する！
+                s.player.hunger = window.getRealMaxHunger(); 
                 window.addDungeonLog(`✨ レベルアップ！ Lv.${s.player.level} になった！（体力・満腹度 全回復！） ✨`, '#E040FB');
             }
         }
@@ -6560,10 +6646,8 @@ if (typeof window.AICharacter !== 'undefined') {
 
     window.processDungeonTurn = async function() { 
     const s = window.DUNGEON_STATE; 
-    
     if (s.isProcessingTurn) return;
     s.isProcessingTurn = true;
-    
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
     try {
@@ -6573,16 +6657,26 @@ if (typeof window.AICharacter !== 'undefined') {
         let consumption = tData ? (tData.consumption || 1.0) : 1.0;
         
         let shEff = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
+        let arEff = s.player.equipArmor ? window.getDungeonItemEffect(s.player.equipArmor) : null;
         let acEff = s.player.equipAccessory ? window.getDungeonItemEffect(s.player.equipAccessory) : null;
         
-        if (shEff && shEff.traits.includes('half_hunger')) consumption *= 0.5;
-        if (acEff && acEff.traits.includes('fast_hunger')) consumption *= 2.0;
+        let allTraits = [];
+        if (shEff) allTraits.push(...shEff.traits);
+        if (arEff) allTraits.push(...arEff.traits);
+        if (acEff) allTraits.push(...acEff.traits);
 
-        s.player.hunger = Math.max(0, s.player.hunger - (1.0 * consumption));
-        
-        if (acEff && acEff.traits.includes('regen_hp') && s.player.hp < s.player.maxHp) {
+        let bonusHunger = allTraits.includes('max_hunger') ? 20 : 0;
+        let maxH = (s.player.maxHunger || 100) + bonusHunger;
+
+        if ((allTraits.includes('regen') || allTraits.includes('life')) && s.player.hp < s.player.maxHp) {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 1);
         }
+
+        if (allTraits.includes('half_hunger')) consumption *= 0.5;
+        if (allTraits.includes('fast_hunger')) consumption *= 2.0;
+        if (allTraits.includes('regen') && consumption > 1.0) consumption = 1.0; 
+
+        s.player.hunger = Math.max(0, s.player.hunger - (1.0 * consumption));
         
         if (s.player.hunger <= 0) {
             s.player.hp -= 2; window.addDungeonLog(`お腹が空いて倒れそうだ... (HP-2)`, '#ff5252');
@@ -6590,30 +6684,26 @@ if (typeof window.AICharacter !== 'undefined') {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 1);
         }
 
-        if (s.player.type === 'seed' && s.floor % 5 === 0) {
-            s.player.hp = Math.min(s.player.maxHp, s.player.hp + 5); window.addDungeonLog(`光合成で少し回復した...`, '#4CAF50');
-        }
-
         let realSpd = Math.floor(ai.stats.speed || 10);
-        // ★修正：素早さによる複数回行動を廃止し、「俊足の腕輪」でのみ+1回行動とする
         let actionCount = 1; 
-        if (acEff && acEff.traits.includes('fast_move')) actionCount += 1;
-        
-        if (actionCount > 1) {
-            window.addDungeonLog(`💨 腕輪の力で ${actionCount}回 連続行動する！`, '#00e676');
+        if (acEff && acEff.traits.includes('fast_move')) {
+            let plus = parseInt(s.player.equipAccessory.match(/_\+(\d+)/)?.[1] || 0);
+            actionCount += 1 + Math.floor(plus / 5);
         }
+        
+        if (actionCount > 1) { window.addDungeonLog(`💨 腕輪の力で ${actionCount}回 連続行動する！`, '#00e676'); }
 
         for (let actStep = 0; actStep < actionCount; actStep++) {
             if (s.player.hp <= 0) break; 
 
-            let enemyAdjacent = null; let enemyInSight = null; 
+            // ★修正：エラーの原因だった変数スコープをループの先頭で確実に定義！
+            let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y));
+            let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
+            let enemyAdjacent = adjacentEnemies.length > 0 ? adjacentEnemies[0] : null; 
+            let enemyInSight = visibleEnemies.length > 0 ? visibleEnemies[0] : null;
+
             s.enemies.forEach(e => { 
-                if (e.hp <= 0) return;
-                let dist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
-                if (dist === 1) enemyAdjacent = e; 
-                if (window.isTileVisible(s, e.x, e.y)) enemyInSight = e;
-                
-                if (s.player.type === 'magician' && dist <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
+                if (e.hp > 0 && s.player.type === 'magician' && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
                     if (window.isTileVisible(s, e.x, e.y)) {
                         let clear = true;
                         if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][s.player.x]===1) clear=false; }
@@ -6625,7 +6715,6 @@ if (typeof window.AICharacter !== 'undefined') {
 
             if (enemyAdjacent && ai.stats && ai.stats.beauty > 20) {
                 if (enemyAdjacent.type !== 'robot' && enemyAdjacent.type !== 'machine' && enemyAdjacent.type !== 'stone') {
-                    // ★修正：みとれる確率を最大25%にキャップする
                     let charmChance = Math.min(0.25, ai.stats.beauty / 400); 
                     if (Math.random() < charmChance) {
                         window.addDungeonLog(`敵は ${aiName} の美しさにみとれて動けない！`, '#E040FB');
@@ -6638,24 +6727,13 @@ if (typeof window.AICharacter !== 'undefined') {
             let smartChance = Math.min(0.95, (ai.stats.intel || 10) / 100); 
             
             let myWords = (ai.apprentice && ai.apprentice.learnedWords) ? ai.apprentice.learnedWords : [];
-            let validCmdIds = [];
-            myWords.forEach(w => {
-                let cmd = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w);
-                if (cmd && cmd.id) validCmdIds.push(cmd.id); 
-            });
-
+            let validCmdIds = []; myWords.forEach(w => { let cmd = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w); if (cmd && cmd.id) validCmdIds.push(cmd.id); });
             let pType = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(ai.stats) : '普通';
 
-            // ★性格によるサボりは面白いので残します！
-            if (pType === 'のんびり屋' && Math.random() < 0.2) {
-                window.addDungeonLog(`${aiName} は面倒くさがって立ち止まった...`, '#aaa'); chosenCommand = 'skip';
-            } else if (pType === '憂鬱' && Math.random() < 0.2) {
-                window.addDungeonLog(`${aiName} は暗い気持ちになり、ため息をついた...`, '#aaa'); chosenCommand = 'skip';
-            } else if ((pType === 'アイドル' || pType === '芸術家') && Math.random() < 0.15) {
-                window.addDungeonLog(`${aiName} は敵の前で優雅にポーズを決めた！`, '#FFD700'); chosenCommand = 'skip';
-            } else if (pType === 'せっかち' && Math.random() < 0.15) {
-                window.addDungeonLog(`${aiName} は先走って空回りした！`, '#FF9800'); chosenCommand = 'skip';
-            }
+            if (pType === 'のんびり屋' && Math.random() < 0.2) { window.addDungeonLog(`${aiName} は面倒くさがって立ち止まった...`, '#aaa'); chosenCommand = 'skip'; } 
+            else if (pType === '憂鬱' && Math.random() < 0.2) { window.addDungeonLog(`${aiName} は暗い気持ちになり、ため息をついた...`, '#aaa'); chosenCommand = 'skip'; } 
+            else if ((pType === 'アイドル' || pType === '芸術家') && Math.random() < 0.15) { window.addDungeonLog(`${aiName} は敵の前で優雅にポーズを決めた！`, '#FFD700'); chosenCommand = 'skip'; } 
+            else if (pType === 'せっかち' && Math.random() < 0.15) { window.addDungeonLog(`${aiName} は先走って空回りした！`, '#FF9800'); chosenCommand = 'skip'; }
 
             if (chosenCommand !== 'skip') {
                 if (validCmdIds.length === 0) {
@@ -6664,248 +6742,162 @@ if (typeof window.AICharacter !== 'undefined') {
                     chosenCommand = randomActions[Math.floor(Math.random() * randomActions.length)];
                 } else {
                     if (Math.random() < smartChance) {
-                            let hasFood = s.player.tempInventory.some(i => { let e = window.getDungeonItemEffect(i); return e.isConsumable && e.traits.length === 0; });
-                            let hasMagic = s.player.tempInventory.some(i => { let e = window.getDungeonItemEffect(i); return e.isConsumable && e.traits.length > 0; });
-
-                            let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y));
-                            let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
-
-                            // ==========================================
-                            // ★ 戦術0：上限突破対応 アイテム最適化スコアリング
-                            // ==========================================
-                            let bestItemIdx = -1;
-                            let bestItemScore = -1;
-                            let bestItemCmd = '';
-
-                            let hpRate = s.player.hp / s.player.maxHp;
-                            for(let i=0; i<s.player.tempInventory.length; i++) {
-                                let effect = window.getDungeonItemEffect(s.player.tempInventory[i]);
-                                if (!effect.isConsumable) continue;
-                                
-                                let isMagic = effect.traits.length > 0;
-                                let score = 0;
-                                
-                                if (effect.traits.includes('level_up')) {
-                                    // ★修正：しあわせの種は、超ピンチか空腹時に食べると全回復＆レベルアップの恩恵絶大
-                                    if (hpRate < 0.4 || (visibleEnemies.length >= 2 && hpRate < 0.5) || s.player.hunger < 20) score = 100; 
-                                } else if (effect.traits.includes('sleep_aoe')) {
-                                    if (visibleEnemies.length >= 3 || adjacentEnemies.length >= 2) score = 90;
-                                    else if (visibleEnemies.length >= 2) score = 75; 
-                                } else if (effect.traits.includes('fire_damage')) {
-                                    if (adjacentEnemies.length >= 1) score = 85;
-                                    else if (visibleEnemies.length >= 2) score = 80;
-                                } else {
-                                    // ★ステータスが減っている時の通常使用スコア
-                                    if (effect.hp > 0 && s.player.hp < s.player.maxHp) {
-                                        if (hpRate < 0.3) score = 95; 
-                                        else if (hpRate < 0.6) score = 40;
-                                        else score = 10;
-                                    }
-                                    if (effect.hunger > 0 && s.player.hunger < (s.player.maxHunger || 100)) {
-                                        if (s.player.hunger < 20) score = Math.max(score, 90); 
-                                        else if (s.player.hunger < 40) score = Math.max(score, 30);
-                                        else score = Math.max(score, 10);
-                                    }
-                                    
-                                    let isHpFull = s.player.hp >= s.player.maxHp;
-                                    let isHungerFull = s.player.hunger >= (s.player.maxHunger || 100);
-
-                                    // ★上限突破専用の評価（対象アイテムかつステータスが満タンの時）
-                                    if (s.player.tempInventory[i] === 'herb' && isHpFull) {
-                                        if ((ai.stats.intel || 10) >= 60 && adjacentEnemies.length === 0) score = 25; else score = -1;
-                                    }
-                                    else if (s.player.tempInventory[i] === 'item_bread' && isHungerFull) {
-                                        if ((ai.stats.intel || 10) >= 60 && adjacentEnemies.length === 0) score = 25; else score = -1;
-                                    }
-                                    else if (isHpFull && isHungerFull && effect.traits.length === 0) {
-                                        score = -1; // 上限突破対象以外のアイテムでHP・満腹度が満タンなら絶対に使わない
-                                    }
-                                }
-
-                                if (score > bestItemScore) {
-                                    bestItemScore = score;
-                                    bestItemIdx = i;
-                                    bestItemCmd = isMagic ? 'use' : 'eat';
-                                    if (bestItemCmd === 'eat' && effect.hp > 0 && validCmdIds.includes('heal')) bestItemCmd = 'heal'; 
-                                }
-                            }
-                            s.player._bestItemIdx = bestItemIdx; 
-
-                            // ==================================================
-                            // ★ 超・天才AIの経路探索エンジン（BFS）
-                            // ==================================================
-                            let getBfsNextStep = function(startX, startY, isTargetFunc, avoidEnemies = false) {
-                                let queue = [{x: startX, y: startY}];
-                                let visitedMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(false));
-                                visitedMap[startY][startX] = true;
-                                let parent = {};
-                                let foundTarget = null;
-
-                                while(queue.length > 0) {
-                                    let cur = queue.shift();
-                                    if (isTargetFunc(cur.x, cur.y)) { foundTarget = cur; break; }
-                                    let dirs = [ {dx:0,dy:-1,cmd:'move_up'}, {dx:1,dy:0,cmd:'move_right'}, {dx:0,dy:1,cmd:'move_down'}, {dx:-1,dy:0,cmd:'move_left'} ];
-                                    
-                                    for(let d of dirs) {
-                                        if (!validCmdIds.includes(d.cmd)) continue;
-                                        let nx = cur.x + d.dx; let ny = cur.y + d.dy;
-                                        if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1 && !visitedMap[ny][nx]) {
-                                            if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) continue;
-                                            visitedMap[ny][nx] = true;
-                                            parent[`${nx},${ny}`] = {x: cur.x, y: cur.y};
-                                            queue.push({x: nx, y: ny});
-                                        }
-                                    }
-                                }
-                                if (!foundTarget) return null;
-                                let curr = foundTarget;
-                                while(curr.x !== startX || curr.y !== startY) {
-                                    let p = parent[`${curr.x},${curr.y}`];
-                                    if (p.x === startX && p.y === startY) return curr;
-                                    curr = p;
-                                }
-                                return null;
-                            };
-
-                            // ★ 戦術1：通路への誘い込み ＆ 反復横跳び防止
-                            let isCorridor = (s.grid[s.player.y][s.player.x] === 3); 
-                            let tacticalMove = null; 
-                            let tacticalWait = false;
-                            if (s.player._commitFight > 0) s.player._commitFight--;
-
-                            if (visibleEnemies.length >= 2 && !isCorridor && (ai.stats.intel || 10) >= 40 && !s.player._commitFight) {
-                                let nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => s.visited[y][x] && s.grid[y][x] === 3 && !s.enemies.some(e => e.hp>0 && e.x===x && e.y===y), true);
-                                if (nextStep) {
-                                    if (nextStep.x === s.player.lastX && nextStep.y === s.player.lastY) {
-                                        window.addDungeonLog(`${aiName} は逃げ道で挟み撃ちにされそうになり、覚悟を決めた！`, '#ff5252');
-                                        s.player._commitFight = 6;
-                                    } else {
-                                        if (nextStep.x < s.player.x) tacticalMove = 'move_left';
-                                        else if (nextStep.x > s.player.x) tacticalMove = 'move_right';
-                                        else if (nextStep.y < s.player.y) tacticalMove = 'move_up';
-                                        else if (nextStep.y > s.player.y) tacticalMove = 'move_down';
-                                    }
-                                } else {
-                                    window.addDungeonLog(`${aiName} は逃げ道が塞がれていることに気づき、覚悟を決めた！`, '#ff5252');
-                                    s.player._commitFight = 6;
-                                }
-                            }
-                            else if (isCorridor && visibleEnemies.length > 0 && adjacentEnemies.length === 0 && (ai.stats.intel || 10) >= 40) {
-                                let nearestDist = Infinity;
-                                visibleEnemies.forEach(e => {
-                                    let d = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
-                                    if (d < nearestDist) nearestDist = d;
-                                });
-                                let willBeSuicide = visibleEnemies.length >= 2;
-
-                                if (nearestDist === 2 || willBeSuicide) {
-                                    s.player._waitCount = (s.player._waitCount || 0) + 1;
-                                    if (s.player._waitCount <= 4) {
-                                        tacticalWait = true;
-                                    } else {
-                                        window.addDungeonLog(`${aiName} は待ちくたびれて突撃を決意した！`, '#ff5252');
-                                        s.player._commitFight = 6; 
-                                        s.player._waitCount = 0;
-                                    }
-                                } else {
-                                    s.player._waitCount = 0;
-                                }
+                        let bestItemIdx = -1; let bestItemScore = -1; let bestItemCmd = '';
+                        let hpRate = s.player.hp / s.player.maxHp;
+                        
+                        for(let i=0; i<s.player.tempInventory.length; i++) {
+                            let effect = window.getDungeonItemEffect(s.player.tempInventory[i]);
+                            if (!effect.isConsumable) continue;
+                            
+                            let isMagic = effect.traits.length > 0; let score = 0;
+                            
+                            if (effect.traits.includes('level_up')) {
+                                if (hpRate < 0.4 || (visibleEnemies.length >= 2 && hpRate < 0.5) || s.player.hunger < 20) score = 100; 
+                            } else if (effect.traits.includes('warp_self')) {
+                                if (adjacentEnemies.length >= 2 || (hpRate < 0.3 && adjacentEnemies.length >= 1)) score = 95;
+                            } else if (effect.traits.includes('sleep_aoe')) {
+                                if (visibleEnemies.length >= 3 || adjacentEnemies.length >= 2) score = 90; else if (visibleEnemies.length >= 2) score = 75; 
+                            } else if (effect.traits.includes('fire_damage')) {
+                                if (adjacentEnemies.length >= 1) score = 85; else if (visibleEnemies.length >= 2) score = 80;
                             } else {
-                                s.player._waitCount = 0;
-                            }
-
-                            // ★ 真の優先順位
-                            let hasRegenRingEquipped = s.player.equipAccessory && window.getDungeonItemEffect(s.player.equipAccessory).traits.includes('regen_hp');
-                            let isHpFull = s.player.hp >= s.player.maxHp;
-                            let shouldEquipAcc = false;
-                            if (!s.player.equipAccessory) {
-                                let accs = s.player.tempInventory.filter(i => window.getDungeonItemEffect(i).equipType === 'accessory');
-                                if (accs.length > 0) {
-                                    let hasOtherThanRegen = accs.some(i => !window.getDungeonItemEffect(i).traits.includes('regen_hp'));
-                                    if (hasOtherThanRegen || !isHpFull) shouldEquipAcc = true; 
-                                }
+                                if (effect.hp > 0 && s.player.hp < s.player.maxHp) { if (hpRate < 0.3) score = 95; else if (hpRate < 0.6) score = 40; else score = 10; }
+                                if (effect.hunger > 0 && s.player.hunger < maxH) { if (s.player.hunger < 20) score = Math.max(score, 90); else if (s.player.hunger < 40) score = Math.max(score, 30); else score = Math.max(score, 10); }
+                                
+                                let isHpFull = s.player.hp >= s.player.maxHp; let isHungerFull = s.player.hunger >= maxH;
+                                let baseItemKey = s.player.tempInventory[i].split('_+')[0];
+                                
+                                if (baseItemKey === 'herb' && isHpFull) { if ((ai.stats.intel || 10) >= 60 && adjacentEnemies.length === 0) score = 25; else score = -1; }
+                                else if (baseItemKey === 'item_bread' && isHungerFull) { if ((ai.stats.intel || 10) >= 60 && adjacentEnemies.length === 0) score = 25; else score = -1; }
+                                else if (isHpFull && isHungerFull && effect.traits.length === 0) { score = -1; }
                             }
                             
-                            // ★追加：合成の可否判定（アクセサリは同種のみ！）
-                            let canSynthWeapon = s.player.equipWeapon && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'weapon');
-                            let canSynthShield = s.player.equipShield && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'shield');
-                            let canSynthArmor = s.player.equipArmor && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'armor');
-                            let canSynthAccessory = s.player.equipAccessory && s.player.tempInventory.some(i => {
-                                let eff = window.getDungeonItemEffect(i);
-                                return eff.equipType === 'accessory' && i.split('_+')[0] === s.player.equipAccessory.split('_+')[0];
-                            });
+                            if (score > bestItemScore) { bestItemScore = score; bestItemIdx = i; bestItemCmd = isMagic ? 'use' : 'eat'; if (bestItemCmd === 'eat' && effect.hp > 0 && validCmdIds.includes('heal')) bestItemCmd = 'heal'; }
+                        }
+                        s.player._bestItemIdx = bestItemIdx; 
 
-                            if (bestItemScore >= 80 && validCmdIds.includes(bestItemCmd)) {
-                                chosenCommand = bestItemCmd;
-                            }
-                            else if (hasRegenRingEquipped && isHpFull && validCmdIds.includes('unequip') && (ai.stats.intel || 10) >= 40) {
-                                chosenCommand = 'unequip'; s.player._unequipTarget = 'equipAccessory';
-                                window.addDungeonLog(`${aiName} はHPが満タンになったので回復の指輪を外そうと考えた。`, '#00BCD4');
-                            }
-                            // ★優先度2.5：安全な時に合成！
-                            else if ((canSynthWeapon || canSynthShield || canSynthArmor || canSynthAccessory) && validCmdIds.includes('synthesize') && adjacentEnemies.length === 0 && (ai.stats.intel || 10) >= 40) {
-                                chosenCommand = 'synthesize';
-                            }
-                            else if (tacticalMove) {
-                                chosenCommand = tacticalMove; 
-                                window.addDungeonLog(`${aiName} は多勢に無勢と悟り、通路へ退いて各個撃破を狙う！`, '#00BCD4');
-                            } 
-                            else if (tacticalWait && validCmdIds.includes('attack')) {
-                                chosenCommand = 'attack'; 
-                                window.addDungeonLog(`${aiName} は通路に陣取り、敵が来るのを待ち構えている！`, '#FF9800');
-                            }
-                            else if (bestItemScore >= 25 && validCmdIds.includes(bestItemCmd)) {
-                                chosenCommand = bestItemCmd;
-                            }
-                            else if ((!s.player.equipWeapon && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'weapon' || window.getDungeonItemEffect(i).isWeapon)) || 
-                                     (!s.player.equipShield && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'shield' || window.getDungeonItemEffect(i).isShield)) ||
-                                     (!s.player.equipArmor && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'armor')) ||
-                                     shouldEquipAcc) {
-                                if (validCmdIds.includes('equip')) chosenCommand = 'equip'; 
-                            } 
-                            else if (adjacentEnemies.length > 0 && validCmdIds.includes('attack')) {
-                                chosenCommand = 'attack'; 
-                            } 
-                            else if (s.player._commitFight > 0 && visibleEnemies.length > 0) {
-                                let targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0];
-                                let nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => x === targetEnemy.x && y === targetEnemy.y);
-                                if (nextStep) {
-                                    if (nextStep.x < s.player.x) chosenCommand = 'move_left';
-                                    else if (nextStep.x > s.player.x) chosenCommand = 'move_right';
-                                    else if (nextStep.y < s.player.y) chosenCommand = 'move_up';
-                                    else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
-                                }
-                            }
-                            else {
-                                let nextStep = null;
-                                nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => s.visited[y][x] && s.grid[y][x] === 2);
-
-                                if (!nextStep && s.player.hp > s.player.maxHp * 0.4 && enemyInSight) {
-                                    if (enemyInSight.type === 'beetle' && (ai.stats.intel || 10) >= 50) {
-                                        window.addDungeonLog(`${aiName} はカブトムシとの正面衝突を避けた！`, '#00BCD4');
-                                    } else {
-                                        nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => x === enemyInSight.x && y === enemyInSight.y);
+                        let getBfsNextStep = function(startX, startY, isTargetFunc, avoidEnemies = false) {
+                            let queue = [{x: startX, y: startY}]; let visitedMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(false)); visitedMap[startY][startX] = true;
+                            let parent = {}; let foundTarget = null;
+                            while(queue.length > 0) {
+                                let cur = queue.shift();
+                                if (isTargetFunc(cur.x, cur.y)) { foundTarget = cur; break; }
+                                let dirs = [ {dx:0,dy:-1,cmd:'move_up'}, {dx:1,dy:0,cmd:'move_right'}, {dx:0,dy:1,cmd:'move_down'}, {dx:-1,dy:0,cmd:'move_left'} ];
+                                for(let d of dirs) {
+                                    if (!validCmdIds.includes(d.cmd)) continue;
+                                    let nx = cur.x + d.dx; let ny = cur.y + d.dy;
+                                    if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1 && !visitedMap[ny][nx]) {
+                                        if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) continue;
+                                        visitedMap[ny][nx] = true; parent[`${nx},${ny}`] = {x: cur.x, y: cur.y}; queue.push({x: nx, y: ny});
                                     }
                                 }
+                            }
+                            if (!foundTarget) return null; let curr = foundTarget;
+                            while(curr.x !== startX || curr.y !== startY) { let p = parent[`${curr.x},${curr.y}`]; if (p.x === startX && p.y === startY) return curr; curr = p; }
+                            return null;
+                        };
 
-                                if (!nextStep) {
-                                    nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => !s.visited[y][x] && s.grid[y][x] !== 1);
-                                }
+                        let isCorridor = (s.grid[s.player.y][s.player.x] === 3); 
+                        let tacticalMove = null; let tacticalWait = false;
+                        if (s.player._commitFight > 0) s.player._commitFight--;
 
-                                if (nextStep) {
-                                    if (nextStep.x < s.player.x) chosenCommand = 'move_left';
-                                    else if (nextStep.x > s.player.x) chosenCommand = 'move_right';
-                                    else if (nextStep.y < s.player.y) chosenCommand = 'move_up';
-                                    else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
-                                } else {
-                                    window.addDungeonLog(`${aiName} はどうしていいか分からずオロオロしている...`, '#888');
-                                    chosenCommand = 'skip';
+                        if (visibleEnemies.length >= 2 && !isCorridor && (ai.stats.intel || 10) >= 40 && !s.player._commitFight) {
+                            let nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => s.visited[y][x] && s.grid[y][x] === 3 && !s.enemies.some(e => e.hp>0 && e.x===x && e.y===y), true);
+                            if (nextStep) {
+                                if (nextStep.x === s.player.lastX && nextStep.y === s.player.lastY) { window.addDungeonLog(`${aiName} は逃げ道で挟み撃ちにされそうになり、覚悟を決めた！`, '#ff5252'); s.player._commitFight = 6; } 
+                                else {
+                                    if (nextStep.x < s.player.x) tacticalMove = 'move_left'; else if (nextStep.x > s.player.x) tacticalMove = 'move_right';
+                                    else if (nextStep.y < s.player.y) tacticalMove = 'move_up'; else if (nextStep.y > s.player.y) tacticalMove = 'move_down';
                                 }
+                            } else { window.addDungeonLog(`${aiName} は逃げ道が塞がれていることに気づき、覚悟を決めた！`, '#ff5252'); s.player._commitFight = 6; }
+                        }
+                        else if (isCorridor && visibleEnemies.length > 0 && adjacentEnemies.length === 0 && (ai.stats.intel || 10) >= 40) {
+                            let nearestDist = Infinity; visibleEnemies.forEach(e => { let d = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y); if (d < nearestDist) nearestDist = d; });
+                            if (nearestDist === 2 || visibleEnemies.length >= 2) {
+                                s.player._waitCount = (s.player._waitCount || 0) + 1;
+                                if (s.player._waitCount <= 4) { tacticalWait = true; } else { window.addDungeonLog(`${aiName} は待ちくたびれて突撃を決意した！`, '#ff5252'); s.player._commitFight = 6; s.player._waitCount = 0; }
+                            } else { s.player._waitCount = 0; }
+                        } else { s.player._waitCount = 0; }
+
+                        let isHpFull = s.player.hp >= s.player.maxHp;
+                        let shouldEquipAcc = false;
+                        if (!s.player.equipAccessory) {
+                            let accs = s.player.tempInventory.filter(i => window.getDungeonItemEffect(i).equipType === 'accessory');
+                            if (accs.length > 0) {
+                                let hasOtherThanRegen = accs.some(i => !window.getDungeonItemEffect(i).traits.includes('regen_hp'));
+                                if (hasOtherThanRegen || !isHpFull) shouldEquipAcc = true; 
+                            }
+                        }
+
+                        let synthInfo = null;
+                        const trySynth = (equipSlot, eType) => {
+                            if (!s.player[equipSlot]) return null;
+                            let parsedBase = window.parseItemString(s.player[equipSlot]);
+                            
+                            for (let i = 0; i < s.player.tempInventory.length; i++) {
+                                let matItem = s.player.tempInventory[i];
+                                let parsedMat = window.parseItemString(matItem);
+                                let matEff = window.getDungeonItemEffect(matItem);
+                                
+                                if (eType === 'accessory') {
+                                    if (matEff.equipType === 'accessory' && parsedBase.baseId === parsedMat.baseId) return { type: eType, matIdx: i, isSame: true };
+                                    continue;
+                                }
+                                if (matEff.equipType === eType && parsedBase.baseId === parsedMat.baseId) return { type: eType, matIdx: i, isSame: true };
+                                
+                                if ((ai.stats.intel || 10) >= 60) {
+                                    let seal = window.getSealFromItem(parsedMat.baseId, eType);
+                                    if (seal && !parsedBase.seals.includes(seal)) return { type: eType, matIdx: i, isSame: false, seal: seal };
+                                }
+                            }
+                            return null;
+                        };
+
+                        if (validCmdIds.includes('synthesize') && adjacentEnemies.length === 0 && (ai.stats.intel || 10) >= 40) {
+                            synthInfo = trySynth('equipWeapon', 'weapon') || trySynth('equipShield', 'shield') || trySynth('equipArmor', 'armor') || trySynth('equipAccessory', 'accessory');
+                        }
+
+                        if (bestItemScore >= 80 && validCmdIds.includes(bestItemCmd)) { chosenCommand = bestItemCmd; }
+                        else if (s.player.equipAccessory && window.getDungeonItemEffect(s.player.equipAccessory).traits.includes('regen_hp') && isHpFull && validCmdIds.includes('unequip') && (ai.stats.intel || 10) >= 40 && !allTraits.includes('regen')) {
+                            chosenCommand = 'unequip'; s.player._unequipTarget = 'equipAccessory'; window.addDungeonLog(`${aiName} はHPが満タンになったので回復の指輪を外そうと考えた。`, '#00BCD4');
+                        }
+                        else if (synthInfo) { chosenCommand = 'synthesize'; s.player._synthInfo = synthInfo; }
+                        else if (tacticalMove) { chosenCommand = tacticalMove; window.addDungeonLog(`${aiName} は多勢に無勢と悟り、通路へ退いて各個撃破を狙う！`, '#00BCD4'); } 
+                        else if (tacticalWait && validCmdIds.includes('attack')) { chosenCommand = 'attack'; window.addDungeonLog(`${aiName} は通路に陣取り、敵が来るのを待ち構えている！`, '#FF9800'); }
+                        else if (bestItemScore >= 25 && validCmdIds.includes(bestItemCmd)) { chosenCommand = bestItemCmd; }
+                        else if ((!s.player.equipWeapon && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'weapon' || window.getDungeonItemEffect(i).isWeapon)) || 
+                                 (!s.player.equipShield && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'shield' || window.getDungeonItemEffect(i).isShield)) ||
+                                 (!s.player.equipArmor && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'armor')) ||
+                                 shouldEquipAcc) {
+                            if (validCmdIds.includes('equip')) chosenCommand = 'equip'; 
+                        } 
+                        else if (adjacentEnemies.length > 0 && validCmdIds.includes('attack')) { chosenCommand = 'attack'; } 
+                        else if (s.player._commitFight > 0 && visibleEnemies.length > 0) {
+                            let targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0];
+                            let nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => x === targetEnemy.x && y === targetEnemy.y);
+                            if (nextStep) {
+                                if (nextStep.x < s.player.x) chosenCommand = 'move_left'; else if (nextStep.x > s.player.x) chosenCommand = 'move_right';
+                                else if (nextStep.y < s.player.y) chosenCommand = 'move_up'; else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
+                            }
+                        }
+                        else {
+                            let nextStep = null;
+                            nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => s.visited[y][x] && s.grid[y][x] === 2);
+                            if (!nextStep && s.player.hp > s.player.maxHp * 0.4 && enemyInSight) {
+                                if (enemyInSight.type === 'beetle' && (ai.stats.intel || 10) >= 50) window.addDungeonLog(`${aiName} はカブトムシとの正面衝突を避けた！`, '#00BCD4');
+                                else nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => x === enemyInSight.x && y === enemyInSight.y);
+                            }
+                            if (!nextStep) nextStep = getBfsNextStep(s.player.x, s.player.y, (x, y) => !s.visited[y][x] && s.grid[y][x] !== 1);
+
+                            if (nextStep) {
+                                if (nextStep.x < s.player.x) chosenCommand = 'move_left'; else if (nextStep.x > s.player.x) chosenCommand = 'move_right';
+                                else if (nextStep.y < s.player.y) chosenCommand = 'move_up'; else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
+                            } else {
+                                window.addDungeonLog(`${aiName} はどうしていいか分からずオロオロしている...`, '#888');
+                                chosenCommand = 'skip';
                             }
                         }
                     }
 
-                    // 知識不足のフォールバック
                     if (!chosenCommand) {
                         let smartValidCmds = validCmdIds.filter(cmd => {
                             if (cmd === 'eat') return s.player.tempInventory.some(i => { let e = window.getDungeonItemEffect(i); return e.isConsumable && e.traits.length === 0; });
@@ -6920,19 +6912,13 @@ if (typeof window.AICharacter !== 'undefined') {
                             if (cmd === 'unequip') return s.player.equipWeapon || s.player.equipShield || s.player.equipArmor || s.player.equipAccessory;
                             if (cmd === 'attack') return enemyAdjacent != null;
                             if (['move_up', 'move_down', 'move_left', 'move_right'].includes(cmd)) {
-                                let nx = s.player.x + (cmd === 'move_right' ? 1 : cmd === 'move_left' ? -1 : 0);
-                                let ny = s.player.y + (cmd === 'move_down' ? 1 : cmd === 'move_up' ? -1 : 0);
+                                let nx = s.player.x + (cmd === 'move_right' ? 1 : cmd === 'move_left' ? -1 : 0); let ny = s.player.y + (cmd === 'move_down' ? 1 : cmd === 'move_up' ? -1 : 0);
                                 return nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1;
                             }
                             return true;
                         });
-                        
-                        if (smartValidCmds.length > 0) {
-                            chosenCommand = smartValidCmds[Math.floor(Math.random() * smartValidCmds.length)];
-                        } else {
-                            window.addDungeonLog(`${aiName} はどうしていいか分からずオロオロしている...`, '#888');
-                            chosenCommand = 'skip';
-                        }
+                        if (smartValidCmds.length > 0) chosenCommand = smartValidCmds[Math.floor(Math.random() * smartValidCmds.length)];
+                        else { window.addDungeonLog(`${aiName} はどうしていいか分からずオロオロしている...`, '#888'); chosenCommand = 'skip'; }
                     }
                 }
 
@@ -6940,8 +6926,7 @@ if (typeof window.AICharacter !== 'undefined') {
 
                 if (chosenCommand !== 'skip') {
                     const cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.id === chosenCommand); 
-                    if (cmdInfo) window.addDungeonLog(`${aiName} は「${cmdInfo.name}」と考えた！`, '#FFF');
-                    else { chosenCommand = 'attack'; window.addDungeonLog(`${aiName} はとっさに身構えた！`, '#ff9800'); }
+                    if (cmdInfo) window.addDungeonLog(`${aiName} は「${cmdInfo.name}」と考えた！`, '#FFF'); else { chosenCommand = 'attack'; window.addDungeonLog(`${aiName} はとっさに身構えた！`, '#ff9800'); }
                 }
 
                 let newX = s.player.x; let newY = s.player.y;
@@ -6964,34 +6949,33 @@ if (typeof window.AICharacter !== 'undefined') {
                     if (newX >= 0 && newX < s.mapWidth && newY >= 0 && newY < s.mapHeight && s.grid[newY][newX] !== 1) {
                         let hitEnemy = s.enemies.find(e => e.x === newX && e.y === newY && e.hp > 0);
                         if (hitEnemy) { window.addDungeonLog(`ゴツン！ 敵にぶつかった！`, '#FF9800'); s.player.attackAnim = true; } 
-                        else { 
-                            s.player.lastX = s.player.x; 
-                            s.player.lastY = s.player.y;
-                            s.player.x = newX; s.player.y = newY; 
+                        else { s.player.lastX = s.player.x; s.player.lastY = s.player.y; s.player.x = newX; s.player.y = newY; }
+                        
+                        if (!hitEnemy && s.player.equipWeapon && window.getDungeonItemEffect(s.player.equipWeapon).traits.includes('first')) {
+                            let newlyAdjacent = s.enemies.find(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
+                            if (newlyAdjacent) {
+                                window.addDungeonLog(`⚡ 疾風迅雷！敵の気配を察知して先制攻撃を叩き込んだ！`, '#FFD700');
+                                if (newlyAdjacent.x < s.player.x) s.player.face = 'left'; else if (newlyAdjacent.x > s.player.x) s.player.face = 'right'; else if (newlyAdjacent.y < s.player.y) s.player.face = 'up'; else if (newlyAdjacent.y > s.player.y) s.player.face = 'down';
+                                s.player.attackAnim = true;
+                                window.dealDungeonDamage(s.player, newlyAdjacent);
+                                window.updateDungeonUI(); await sleep(200);
+                            }
                         }
-                    } else {
-                        window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa');
-                    }
+                    } else { window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa'); }
                 } else if (chosenCommand === 'attack') {
                     if (enemyAdjacent) {
                         if (enemyAdjacent.x < s.player.x) s.player.face = 'left'; else if (enemyAdjacent.x > s.player.x) s.player.face = 'right';
                         else if (enemyAdjacent.y < s.player.y) s.player.face = 'up'; else if (enemyAdjacent.y > s.player.y) s.player.face = 'down';
-                        s.player.attackAnim = true;
-                        window.dealDungeonDamage(s.player, enemyAdjacent);
+                        s.player.attackAnim = true; window.dealDungeonDamage(s.player, enemyAdjacent);
                         
-                        let atkWait = enemyAdjacent.warpAnim ? 400 : 150;
-                        window.updateDungeonUI();
-                        await sleep(atkWait);
+                        let atkWait = enemyAdjacent.warpAnim ? 400 : 150; window.updateDungeonUI(); await sleep(atkWait);
                         
                         let wEff = s.player.equipWeapon ? window.getDungeonItemEffect(s.player.equipWeapon) : null;
-                        if (wEff && wEff.traits.includes('double_attack') && enemyAdjacent.hp > 0) {
-                            window.addDungeonLog(`⚔️ 連撃の剣が発発動！怒涛の連続攻撃！`, '#FFD700');
-                            s.player.attackAnim = true;
-                            window.dealDungeonDamage(s.player, enemyAdjacent);
-                            window.updateDungeonUI();
-                            await sleep(150);
+                        if (wEff && wEff.traits.includes('double') && enemyAdjacent.hp > 0) { 
+                            window.addDungeonLog(`⚔️ 連撃の剣が発動！怒涛の連続攻撃！`, '#FFD700');
+                            s.player.attackAnim = true; window.dealDungeonDamage(s.player, enemyAdjacent);
+                            window.updateDungeonUI(); await sleep(150);
                         }
-
                     } else { s.player.attackAnim = true; window.addDungeonLog(`空を切った...（近くに敵がいない）`, '#aaa'); }
                 } else if (chosenCommand === 'heal' || chosenCommand === 'eat' || chosenCommand === 'use') {
                     if (s.player._bestItemIdx !== undefined && s.player._bestItemIdx !== -1 && s.player.tempInventory[s.player._bestItemIdx]) {
@@ -7000,196 +6984,128 @@ if (typeof window.AICharacter !== 'undefined') {
 
                         if (chosenCommand === 'eat' || chosenCommand === 'heal') {
                             window.addDungeonLog(`${aiName} は ${effect.name} を食べた！`, '#4CAF50');
-                            
-                            // ★修正：対象アイテムを限定した上限突破処理！
                             let limitBreakMsg = "";
-                            if (itemId === 'herb' && s.player.hp >= s.player.maxHp) {
-                                s.player.maxHp += 1; limitBreakMsg += `最大HPが ${s.player.maxHp} に！ `;
-                            }
-                            if (itemId === 'item_bread' && s.player.hunger >= (s.player.maxHunger || 100)) {
-                                s.player.maxHunger = (s.player.maxHunger || 100) + 5; limitBreakMsg += `最大満腹度が ${s.player.maxHunger} に！`;
-                            }
+                            let baseItemKey = itemId.split('_+')[0]; 
+                            
+                            if (baseItemKey === 'herb' && s.player.hp >= s.player.maxHp) { s.player.maxHp += 1; limitBreakMsg += `最大HPが ${s.player.maxHp} に！ `; }
+                            if (baseItemKey === 'item_bread' && s.player.hunger >= maxH) { s.player.maxHunger = maxH + 5; limitBreakMsg += `最大満腹度が ${s.player.maxHunger} に！`; }
                             if (limitBreakMsg !== "") window.addDungeonLog(`💪 上限突破！ ${limitBreakMsg}`, '#FF9800');
-
                             if (effect.hp > 0 || effect.hunger > 0) window.addDungeonLog(`HPが ${effect.hp}、満腹度が ${effect.hunger} 回復した！`, '#4CAF50');
-                        } else {
-                            window.addDungeonLog(`${aiName} は ${effect.name} を使った！`, '#00BCD4');
-                        }
+                        } else { window.addDungeonLog(`${aiName} は ${effect.name} を使った！`, '#00BCD4'); }
                         
                         s.player.tempInventory.splice(s.player._bestItemIdx, 1); 
                         s.player.hp = Math.min(s.player.maxHp, s.player.hp + effect.hp); 
-                        s.player.hunger = Math.min((s.player.maxHunger || 100), s.player.hunger + effect.hunger); 
+                        s.player.hunger = Math.min(maxH, s.player.hunger + effect.hunger); 
                         
                         if (effect.traits.includes('level_up')) {
-                            s.player.level = (s.player.level || 1) + 1;
-                            s.player.maxHp += 20; 
-                            s.player.hp = s.player.maxHp; 
-                            s.player.hunger = s.player.maxHunger || 100; // ★修正：しあわせの種で満腹度も完全回復！
-                            s.player.basePwr += 8;
-                            s.player.levelUpAnim = true;
-                            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'level_up');
+                            s.player.level = (s.player.level || 1) + 1; s.player.maxHp += 20; s.player.hp = s.player.maxHp; s.player.hunger = maxH; s.player.basePwr += 8;
+                            s.player.levelUpAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'level_up');
                             window.addDungeonLog(`✨ 奇跡が起きた！Lv.${s.player.level}にレベルアップし、全回復した！`, '#E040FB');
                         }
                         if (effect.traits.includes('sleep_aoe')) {
-                            s.player.magicAnim = true;
-                            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
-                            s.enemies.forEach(e => {
-                                if (e.hp > 0 && window.isTileVisible(s, e.x, e.y)) {
-                                    e.charmed = true; 
-                                    if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(e.x, e.y, 'sleep'); 
-                                }
-                            });
+                            s.player.magicAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                            s.enemies.forEach(e => { if (e.hp > 0 && window.isTileVisible(s, e.x, e.y)) { e.charmed = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(e.x, e.y, 'sleep'); } });
                             window.addDungeonLog(`部屋中の魔物たちが深い眠りについた...💤`, '#B39DDB');
                         }
                         if (effect.traits.includes('fire_damage')) {
-                            s.player.magicAnim = true;
-                            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                            s.player.magicAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
                             let targetEnemy = enemyAdjacent;
-                            if (!targetEnemy) {
-                                let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y));
-                                targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0];
-                            }
+                            if (!targetEnemy) { let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y)); targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0]; }
                             if (targetEnemy) {
                                 targetEnemy.hp -= 40;
                                 if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
                                 if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, 40, false);
                                 window.addDungeonLog(`🔥 灼熱の炎が ${targetEnemy.name} を焼き尽くす！(40ダメージ)`, '#FF5252');
-                            } else {
-                                window.addDungeonLog(`しかし目の前に敵はいなかった...（無駄遣い！）`, '#aaa');
-                            }
+                            } else { window.addDungeonLog(`しかし目の前に敵はいなかった...（無駄遣い！）`, '#aaa'); }
                         }
-                    } else {
-                        window.addDungeonLog(`しかし使えるアイテムを持っていなかった！`, '#ff5252');
-                    }
+                        if (effect.traits.includes('warp_self')) {
+                            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'warp');
+                            let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0);
+                            s.player.x = wx; s.player.y = wy; window.addDungeonLog(`🌀 ${aiName} は別の場所へワープした！`, '#E040FB'); window.updateDungeonUI();
+                        }
+                    } else { window.addDungeonLog(`しかし使えるアイテムを持っていなかった！`, '#ff5252'); }
                 } else if (chosenCommand === 'equip') {
                     let equippedSomething = false;
                     const tryEquip = (slotName, typeName, logName) => {
                         if (equippedSomething || s.player[slotName]) return;
                         let idx = s.player.tempInventory.findIndex(i => window.getDungeonItemEffect(i).equipType === typeName || (typeName==='weapon' && window.getDungeonItemEffect(i).isWeapon) || (typeName==='shield' && window.getDungeonItemEffect(i).isShield));
                         if (idx !== -1) {
-                            s.player[slotName] = s.player.tempInventory[idx];
-                            s.player.tempInventory.splice(idx, 1);
-                            window.addDungeonLog(`${logName}（${window.getDungeonItemEffect(s.player[slotName]).name}）を装備した！`, '#FFD700');
-                            equippedSomething = true;
+                            s.player[slotName] = s.player.tempInventory[idx]; s.player.tempInventory.splice(idx, 1);
+                            window.addDungeonLog(`${logName}（${window.getDungeonItemEffect(s.player[slotName]).name}）を装備した！`, '#FFD700'); equippedSomething = true;
                         }
                     };
-
-                    tryEquip('equipWeapon', 'weapon', '武器');
-                    tryEquip('equipShield', 'shield', '盾');
-                    tryEquip('equipArmor', 'armor', '鎧'); 
-                    tryEquip('equipAccessory', 'accessory', '装飾品'); 
-
+                    tryEquip('equipWeapon', 'weapon', '武器'); tryEquip('equipShield', 'shield', '盾'); tryEquip('equipArmor', 'armor', '鎧'); tryEquip('equipAccessory', 'accessory', '装飾品'); 
                     if (!equippedSomething) window.addDungeonLog(`装備できるものを持っていなかった...`, '#aaa');
                 } else if (chosenCommand === 'unequip') {
-                    let target = s.player._unequipTarget;
-                    s.player._unequipTarget = null; 
-                    
-                    if (target === 'equipAccessory' && s.player.equipAccessory) {
-                        s.player.tempInventory.push(s.player.equipAccessory); window.addDungeonLog(`装飾品をはずして鞄にしまった。`, '#aaa'); s.player.equipAccessory = null;
-                    } else if (s.player.equipWeapon) {
-                        s.player.tempInventory.push(s.player.equipWeapon); window.addDungeonLog(`武器をはずして鞄にしまった。`, '#aaa'); s.player.equipWeapon = null;
-                    } else if (s.player.equipShield) {
-                        s.player.tempInventory.push(s.player.equipShield); window.addDungeonLog(`盾をはずして鞄にしまった。`, '#aaa'); s.player.equipShield = null;
-                    } else if (s.player.equipArmor) {
-                        s.player.tempInventory.push(s.player.equipArmor); window.addDungeonLog(`鎧をはずして鞄にしまった。`, '#aaa'); s.player.equipArmor = null;
-                    } else if (s.player.equipAccessory) {
-                        s.player.tempInventory.push(s.player.equipAccessory); window.addDungeonLog(`装飾品をはずして鞄にしまった。`, '#aaa'); s.player.equipAccessory = null;
-                    } else { 
-                        window.addDungeonLog(`はずす装備がなかった。`, '#aaa'); 
-                    }
+                    let target = s.player._unequipTarget; s.player._unequipTarget = null; 
+                    if (target === 'equipAccessory' && s.player.equipAccessory) { s.player.tempInventory.push(s.player.equipAccessory); window.addDungeonLog(`装飾品をはずして鞄にしまった。`, '#aaa'); s.player.equipAccessory = null; } 
+                    else if (s.player.equipWeapon) { s.player.tempInventory.push(s.player.equipWeapon); window.addDungeonLog(`武器をはずして鞄にしまった。`, '#aaa'); s.player.equipWeapon = null; } 
+                    else if (s.player.equipShield) { s.player.tempInventory.push(s.player.equipShield); window.addDungeonLog(`盾をはずして鞄にしまった。`, '#aaa'); s.player.equipShield = null; } 
+                    else if (s.player.equipArmor) { s.player.tempInventory.push(s.player.equipArmor); window.addDungeonLog(`鎧をはずして鞄にしまった。`, '#aaa'); s.player.equipArmor = null; } 
+                    else if (s.player.equipAccessory) { s.player.tempInventory.push(s.player.equipAccessory); window.addDungeonLog(`装飾品をはずして鞄にしまった。`, '#aaa'); s.player.equipAccessory = null; } 
+                    else { window.addDungeonLog(`はずす装備がなかった。`, '#aaa'); }
                 } else if (chosenCommand === 'synthesize') {
-                    // ★完全版：合成コマンドの実行
-                    let synthType = null;
-                    let matIdx = -1;
-                    
-                    if (s.player.equipWeapon && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'weapon')) { synthType = 'weapon'; matIdx = s.player.tempInventory.findIndex(i => window.getDungeonItemEffect(i).equipType === 'weapon'); }
-                    else if (s.player.equipShield && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'shield')) { synthType = 'shield'; matIdx = s.player.tempInventory.findIndex(i => window.getDungeonItemEffect(i).equipType === 'shield'); }
-                    else if (s.player.equipArmor && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'armor')) { synthType = 'armor'; matIdx = s.player.tempInventory.findIndex(i => window.getDungeonItemEffect(i).equipType === 'armor'); }
-                    else if (s.player.equipAccessory) {
-                        // アクセサリーは同じ種類のみ合成可能
-                        matIdx = s.player.tempInventory.findIndex(i => {
-                            let eff = window.getDungeonItemEffect(i);
-                            return eff.equipType === 'accessory' && i.split('_+')[0] === s.player.equipAccessory.split('_+')[0];
-                        });
-                        if (matIdx !== -1) synthType = 'accessory';
-                    }
-
-                    if (synthType && matIdx !== -1) {
-                        let baseEquip = s.player.equipWeapon;
-                        if (synthType === 'shield') baseEquip = s.player.equipShield;
-                        else if (synthType === 'armor') baseEquip = s.player.equipArmor;
-                        else if (synthType === 'accessory') baseEquip = s.player.equipAccessory;
-
-                        let matEquip = s.player.tempInventory[matIdx];
+                    if (s.player._synthInfo) {
+                        let info = s.player._synthInfo; s.player._synthInfo = null;
+                        let baseEquip = s.player[info.type === 'weapon' ? 'equipWeapon' : info.type === 'shield' ? 'equipShield' : info.type === 'armor' ? 'equipArmor' : 'equipAccessory'];
+                        let matEquip = s.player.tempInventory[info.matIdx];
                         
-                        // ★天才AIの極み：特性が多い方、またはレアな方を「ベース」にするためにスワップ！
-                        if ((ai.stats.intel || 10) >= 50) {
-                            let bData = window.getDungeonItemEffect(baseEquip);
-                            let mData = window.getDungeonItemEffect(matEquip);
-                            // 素材側の方が特性が多い（レア）なら入れ替える
-                            if (mData.traits.length > bData.traits.length) {
-                                let temp = baseEquip; baseEquip = matEquip; matEquip = temp;
-                            }
+                        let parsedBase = window.parseItemString(baseEquip);
+                        let parsedMat = window.parseItemString(matEquip);
+                        
+                        let bData = window.getDungeonItemEffect(baseEquip);
+                        let mData = window.getDungeonItemEffect(matEquip);
+                        
+                        s.player.tempInventory.splice(info.matIdx, 1);
+                        let newEquipStr = "";
+                        
+                        if (info.isSame) {
+                            let newPlus = parsedBase.plus + parsedMat.plus + 1;
+                            let mergedSeals = [...new Set([...parsedBase.seals, ...parsedMat.seals])];
+                            newEquipStr = `${parsedBase.baseId}_+${newPlus}`;
+                            if (mergedSeals.length > 0) newEquipStr += '_' + mergedSeals.join('_');
+                            window.addDungeonLog(`🔨 ${aiName} は ${bData.name} と ${mData.name} を合成した！`, '#FFD700');
+                        } else {
+                            parsedBase.seals.push(info.seal);
+                            newEquipStr = `${parsedBase.baseId}`;
+                            if (parsedBase.plus > 0) newEquipStr += `_+${parsedBase.plus}`;
+                            newEquipStr += '_' + parsedBase.seals.join('_');
+                            window.addDungeonLog(`🔨 ${aiName} は ${bData.name} に ${mData.name} を溶かし込んだ！`, '#E040FB');
                         }
-
-                        s.player.tempInventory.splice(matIdx, 1); 
                         
-                        let baseIdStr = baseEquip.split('_+')[0];
-                        let baseData = window.getDungeonItemEffect(baseEquip);
-                        let matData = window.getDungeonItemEffect(matEquip);
+                        if (info.type === 'weapon') s.player.equipWeapon = newEquipStr;
+                        else if (info.type === 'shield') s.player.equipShield = newEquipStr;
+                        else if (info.type === 'armor') s.player.equipArmor = newEquipStr;
+                        else if (info.type === 'accessory') s.player.equipAccessory = newEquipStr;
                         
-                        let currentPlusMatch = baseEquip.match(/_\+(\d+)/);
-                        let matPlusMatch = matEquip.match(/_\+(\d+)/);
-                        let currentPlus = currentPlusMatch ? parseInt(currentPlusMatch[1]) : 0;
-                        let matPlus = matPlusMatch ? parseInt(matPlusMatch[1]) : 0;
-                        
-                        let newPlus = currentPlus + matPlus + 1;
-                        let newEquip = `${baseIdStr}_+${newPlus}`;
-                        
-                        if (synthType === 'weapon') s.player.equipWeapon = newEquip;
-                        else if (synthType === 'shield') s.player.equipShield = newEquip;
-                        else if (synthType === 'armor') s.player.equipArmor = newEquip;
-                        else if (synthType === 'accessory') s.player.equipAccessory = newEquip;
-                        
-                        window.addDungeonLog(`🔨 ${aiName} は ${baseData.name} に ${matData.name} を合成した！`, '#FFD700');
-                        window.addDungeonLog(`✨ ${window.getDungeonItemEffect(newEquip).name} に強化された！`, '#FFD700');
-                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'level_up'); 
-                    } else {
-                        window.addDungeonLog(`合成できる装備がなかった。`, '#aaa');
-                    }
+                        window.addDungeonLog(`✨ ${window.getDungeonItemEffect(newEquipStr).name} が完成した！`, '#FFD700');
+                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'level_up');
+                    } else { window.addDungeonLog(`合成できる装備がなかった。`, '#aaa'); }
                 }
 
                 if (s.rescueTargets) {
                     let targetToRescue = s.rescueTargets.find(t => t.x === s.player.x && t.y === s.player.y && !t.rescued);
                     if (targetToRescue) {
-                        targetToRescue.rescued = true;
-                        window.addDungeonLog(`倒れていた ${targetToRescue.name} を救助した！！`, '#FFEB3B');
+                        targetToRescue.rescued = true; window.addDungeonLog(`倒れていた ${targetToRescue.name} を救助した！！`, '#FFEB3B');
                         if (typeof window.completeRescue === 'function') window.completeRescue(targetToRescue.id);
-                        s.player.hp = s.player.maxHp; s.player.hunger = s.player.maxHunger || 100;
-                        window.addDungeonLog(`感謝の光に包まれ、体力と満腹度が全回復した！✨`, '#4CAF50');
+                        s.player.hp = s.player.maxHp; s.player.hunger = maxH; window.addDungeonLog(`感謝の光に包まれ、体力と満腹度が全回復した！✨`, '#4CAF50');
                     }
                 }
 
                 if (s.grid[s.player.y][s.player.x] === 2) {
                     window.addDungeonLog(`階段を見つけた！ 次のフロアへ進む！`, '#00BCD4');
-                    if (s.isAuto) window.toggleDungeonAuto(); 
-                    s.floor++; 
+                    if (s.isAuto) window.toggleDungeonAuto(); s.floor++; 
                     (async () => { await window.generateDungeonFloor(); window.updateDungeonUI(); s.isProcessingTurn = false; })();
                     return; 
                 }
 
                 let waitTime = 150;
-                if (s.player.levelUpAnim) waitTime = 800;
-                else if (s.player.magicAnim) waitTime = 500;
-
+                if (s.player.levelUpAnim) waitTime = 800; else if (s.player.magicAnim) waitTime = 500;
                 window.updateDungeonUI();
                 
-                if (actionCount > 1 && actStep < actionCount - 1) {
-                    await sleep(Math.max(200, waitTime));
-                } else if (chosenCommand !== 'attack') {
-                    await sleep(waitTime); 
-                }
+                if (actionCount > 1 && actStep < actionCount - 1) { await sleep(Math.max(200, waitTime)); } else if (chosenCommand !== 'attack') { await sleep(waitTime); }
             } 
+        }
 
             // ==========================================
             // ★ 敵のターン
@@ -7204,25 +7120,22 @@ if (typeof window.AICharacter !== 'undefined') {
                     if (e.hp <= 0) break;
                     let dist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
                     let ex = e.x, ey = e.y, moveDir = '';
-                    
                     let hasAttacked = false;
 
                     if (e.type === 'magician' && dist <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
                         if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
                         e.attackAnim = true; 
                         
-                        // ★追加：遠距離攻撃のエフェクト＆20%で防御無視魔法！
+                        // ★ 魔法の遠距離エフェクト ＆ 20%で防御無視
                         if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
                         e.isPiercing = (Math.random() < 0.20); 
                         
                         window.dealDungeonDamage(e, s.player); 
-                        e.isPiercing = false; // リセット
-                        hasAttacked = true;
+                        e.isPiercing = false; hasAttacked = true;
                     }
                     else if (dist === 1) {
                         if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
-                        e.attackAnim = true; window.dealDungeonDamage(e, s.player); 
-                        hasAttacked = true;
+                        e.attackAnim = true; window.dealDungeonDamage(e, s.player); hasAttacked = true;
                     } 
                     else if (dist < 6) {
                         if (Math.abs(s.player.x - e.x) > Math.abs(s.player.y - e.y)) {
@@ -7242,15 +7155,26 @@ if (typeof window.AICharacter !== 'undefined') {
                     }
 
                     if (hasAttacked) {
-                        window.updateDungeonUI(); 
-                        await sleep(150); 
+                        window.updateDungeonUI(); await sleep(150); 
                         continue; 
                     }
 
                     if (moveDir !== '') {
                         let occupied = s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === ex && oe.y === ey);
                         let playerHit = (ex === s.player.x && ey === s.player.y);
-                        if (!occupied && !playerHit) { e.x = ex; e.y = ey; e.face = moveDir; }
+                        if (!occupied && !playerHit) { 
+                            e.x = ex; e.y = ey; e.face = moveDir; 
+                            
+                            // ★ [先] (first) 先制攻撃：敵が一歩近づいて隣接した瞬間に発動！
+                            let newDist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
+                            if (newDist === 1 && s.player.equipWeapon && window.getDungeonItemEffect(s.player.equipWeapon).traits.includes('first')) {
+                                window.addDungeonLog(`⚡ 疾風迅雷！敵の接近を察知して先制攻撃を叩き込んだ！`, '#FFD700');
+                                if (e.x < s.player.x) s.player.face = 'left'; else if (e.x > s.player.x) s.player.face = 'right'; else if (e.y < s.player.y) s.player.face = 'up'; else if (e.y > s.player.y) s.player.face = 'down';
+                                s.player.attackAnim = true;
+                                window.dealDungeonDamage(s.player, e);
+                                window.updateDungeonUI(); await sleep(200);
+                            }
+                        }
                     }
                 }
             }
@@ -7267,13 +7191,8 @@ if (typeof window.AICharacter !== 'undefined') {
                     
                     if (attempts < 10) {
                         let eType = window._dungeonAiTypesList[Math.floor(Math.random() * window._dungeonAiTypesList.length)];
-                        const eHpBase = s.mapType === 'crystal' ? 10 : 20;
-                        const eDmgBase = s.mapType === 'crystal' ? 2 : 5;
-                        s.enemies.push({ 
-                            id: 'e_spawn_'+Date.now(), x: ex, y: ey, 
-                            hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, 
-                            damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false 
-                        });
+                        const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;
+                        s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false });
                         window.addDungeonLog(`どこからか魔物の気配がする...`, '#aaa');
                     }
                 }
@@ -7284,20 +7203,11 @@ if (typeof window.AICharacter !== 'undefined') {
             if (s.player.hp <= 0) {
                 window.addDungeonLog(`${aiName} は倒れてしまった...`, '#ff5252');
                 if (s.isAuto) window.toggleDungeonAuto(); 
-                setTimeout(() => { 
-                    if (typeof window.updateDungeonRanking === 'function') {
-                        window.updateDungeonRanking(s.mapType, s.floor, s.player.level);
-                    }
-                    window.closeDungeonUI(true); 
-                }, 1500);
+                setTimeout(() => { if (typeof window.updateDungeonRanking === 'function') window.updateDungeonRanking(s.mapType, s.floor, s.player.level); window.closeDungeonUI(true); }, 1500);
             }
-        } catch (e) {
-            console.error("【DungeonTurnエラー】処理中にエラーが発生しました:", e);
-        } finally {
-            s.isProcessingTurn = false;
-        }
+        } catch (e) { console.error("【DungeonTurnエラー】処理中にエラーが発生しました:", e); } finally { s.isProcessingTurn = false; }
     };
-})(); // ★ 即時実行関数の閉じカッコ（ファイルの一番最後）
+})();
 
 // ==========================================
 // ★ 追加：強くてニューゲーム専用「成人（悟り）イベント」の本体
@@ -7484,3 +7394,84 @@ if (typeof window._originalOpenDungeonUI === 'undefined' && typeof window.openDu
         }
     }, 500);
 })();
+
+// ==========================================
+// ★新規追加：装備詳細と印の効果を確認するモーダル
+// ==========================================
+window.showEquipDetailsModal = function() {
+    let modal = document.getElementById('dg-equip-details-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'dg-equip-details-modal';
+        // ★修正：z-indexを 20000 から 40000 に引き上げ、ダンジョン画面より手前に表示する！
+        modal.style.cssText = `position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 600px; height: 75%; background: rgba(15, 15, 20, 0.95); border: 3px solid #FF9800; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; z-index: 40000; box-shadow: 0 10px 40px rgba(0,0,0,0.8); color: #fff; font-family: sans-serif;`;
+        document.body.appendChild(modal);
+    }
+
+    const s = window.DUNGEON_STATE;
+    const p = s.player;
+    
+    let html = `<h3 style="margin-top:0; color:#FF9800; border-bottom:1px solid #555; padding-bottom:10px;">🔍 装備詳細と印の効果</h3>`;
+    html += `<div style="flex:1; overflow-y:auto; padding-right:10px;">`;
+
+    const renderEquip = (slotItem, typeName, icon, color) => {
+        if (!slotItem) return `<div style="margin-bottom:15px; color:#666;">${icon} ${typeName}：装備なし</div>`;
+        
+        let eff = window.getDungeonItemEffect(slotItem);
+        let parsed = window.parseItemString(slotItem);
+        let res = `<div style="margin-bottom:15px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border-left:4px solid ${color};">`;
+        res += `<div style="font-size:16px; font-weight:bold; color:${color}; margin-bottom:5px;">${icon} ${eff.name}</div>`;
+        
+        if (eff.atk > 0) res += `<span style="font-size:13px; margin-right:15px; color:#ccc;">攻撃力: <span style="color:#FFF;">${eff.atk}</span></span>`;
+        if (eff.def > 0) res += `<span style="font-size:13px; margin-right:15px; color:#ccc;">防御力: <span style="color:#FFF;">${eff.def}</span></span>`;
+        
+        if (parsed.seals.length > 0) {
+            res += `<div style="margin-top:8px; font-size:13px; color:#ddd; background:#111; padding:8px; border-radius:4px;">`;
+            parsed.seals.forEach(sealId => {
+                let sData = window.SEAL_DESCRIPTIONS[sealId];
+                if (sData) {
+                    res += `<div style="margin-bottom:4px;"><span style="color:#FFD700; font-weight:bold;">[${sData.name}]</span> ${sData.desc}</div>`;
+                }
+            });
+            res += `</div>`;
+        } else {
+            res += `<div style="margin-top:8px; font-size:12px; color:#666;">付与されている印はありません。</div>`;
+        }
+        res += `</div>`;
+        return res;
+    };
+
+    html += renderEquip(p.equipWeapon, '武器', '⚔️', '#FFD700');
+    html += renderEquip(p.equipShield, '盾', '🛡️', '#4fc3f7');
+    html += renderEquip(p.equipArmor, '鎧', '👕', '#8BC34A');
+    html += renderEquip(p.equipAccessory, '装飾品', '💍', '#E040FB');
+
+    html += `</div>`;
+    html += `<button onclick="document.getElementById('dg-equip-details-modal').style.display='none'" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>`;
+
+    modal.innerHTML = html;
+    modal.style.display = 'flex';
+};
+
+// ★新規追加：装備の印を合算した「真の最大満腹度」を計算する
+window.getRealMaxHunger = function() {
+    let s = window.DUNGEON_STATE;
+    if (!s || !s.player) return 100;
+    
+    let baseMax = s.player.maxHunger || 100; // パンで増えた基礎上限
+    let bonus = 0;
+    
+    let sEff = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
+    let aEff = s.player.equipArmor ? window.getDungeonItemEffect(s.player.equipArmor) : null;
+    let acEff = s.player.equipAccessory ? window.getDungeonItemEffect(s.player.equipAccessory) : null;
+    
+    let allTraits = [];
+    if (sEff) allTraits.push(...sEff.traits);
+    if (aEff) allTraits.push(...aEff.traits);
+    if (acEff) allTraits.push(...acEff.traits);
+    
+    // ★印の数だけ加算する（盾と鎧の両方につければ +40 になる！）
+    bonus = allTraits.filter(t => t === 'max_hunger').length * 20; 
+    
+    return baseMax + bonus;
+};

@@ -58,8 +58,8 @@ window.switchRightPanel = function(panelId) {
     else if (panelId === 'schedule') { updateScheduleList(); } 
     else if (panelId === 'shop') { window.updateShopList(); }
     else if (panelId === 'rescue') { window.updateRescueList(); } 
-    else if (panelId === 'tavern') { window.openTavernPanel(); } // ★これを追加！
-    else if (panelId === 'ranking') { window.openRankingPanel('power'); } // ★これを追加
+    else if (panelId === 'tavern') { window.openTavernPanel(); } 
+    else if (panelId === 'ranking') { window.openRankingPanel('power'); }
 
     if (panelId !== 'shop' && typeof aiPet !== 'undefined' && aiPet.actionState === 'inside') {
         if (aiPet.indoorTarget && aiPet.indoorTarget.type === 'shop') {
@@ -378,32 +378,155 @@ function openBuildMenuPanel() {
 }
 
 function openInventoryPanel() {
-    const list = document.getElementById('inventoryList'); if (!list) return; list.innerHTML = "";
+    const list = document.getElementById('inventoryList'); 
+    if (!list) return; 
+    list.innerHTML = "";
+    
+    // ==========================================
+    // ★ 2ペイン構造のコンテナを作成
+    // ==========================================
+    const container = document.createElement('div');
+    container.style.display = 'flex';
+    container.style.height = '100%'; // 親要素の高さに合わせる
+    container.style.gap = '10px';
+    
+    // 左ペイン：アイテムリスト
+    const leftPane = document.createElement('div');
+    leftPane.style.flex = '1.2';
+    leftPane.style.overflowY = 'auto';
+    leftPane.style.maxHeight = '350px'; // 念のための高さ制限
+    leftPane.style.paddingRight = '5px';
+    
+    // 右ペイン：詳細情報
+    const rightPane = document.createElement('div');
+    rightPane.style.flex = '1';
+    rightPane.style.overflowY = 'auto';
+    rightPane.style.borderLeft = '2px solid #444';
+    rightPane.style.paddingLeft = '10px';
+    rightPane.style.display = 'flex';
+    rightPane.style.flexDirection = 'column';
+    rightPane.innerHTML = '<div style="color:#777; font-size:12px; text-align:center; margin-top:50px;">アイテムを選択すると<br>詳細が表示されます</div>';
+    
+    container.appendChild(leftPane);
+    container.appendChild(rightPane);
+    list.appendChild(container);
+
     let totalItems = 0;
     
+    // ==========================================
+    // ★ 右ペインに詳細を描画する関数
+    // ==========================================
+    const showDetails = (itemKey, count, isGiven) => {
+        let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(itemKey) : null;
+        let parsed = typeof window.parseItemString === 'function' ? window.parseItemString(itemKey) : { baseId: itemKey, seals: [] };
+        let baseData = typeof itemCatalog !== 'undefined' && itemCatalog[parsed.baseId] ? itemCatalog[parsed.baseId] : null;
+        
+        let itemName = eff ? eff.name : (baseData ? baseData.name : itemKey);
+        let desc = baseData && baseData.desc ? baseData.desc : '説明はありません。';
+        let nameColor = isGiven ? '#FFD700' : (eff && eff.equipType ? '#00e676' : '#FFF');
+        
+        let html = `<div style="font-size:15px; font-weight:bold; color:${nameColor}; margin-bottom:5px; line-height:1.3; word-break:break-word;">${isGiven ? '[支給品] ' : ''}${itemName}</div>`;
+        html += `<div style="font-size:12px; color:#aaa; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">所持数: x${count}</div>`;
+        
+        if (eff) {
+            let statsHtml = `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">`;
+            if (eff.atk > 0) statsHtml += `<span style="font-size:12px; background:rgba(255,82,82,0.1); color:#ff5252; padding:3px 6px; border-radius:4px; border:1px solid #ff5252;">攻撃力 ${eff.atk}</span>`;
+            if (eff.def > 0) statsHtml += `<span style="font-size:12px; background:rgba(79,195,247,0.1); color:#4fc3f7; padding:3px 6px; border-radius:4px; border:1px solid #4fc3f7;">防御力 ${eff.def}</span>`;
+            if (eff.hp > 0) statsHtml += `<span style="font-size:12px; background:rgba(76,175,80,0.1); color:#4CAF50; padding:3px 6px; border-radius:4px; border:1px solid #4CAF50;">HP回復 ${eff.hp}</span>`;
+            if (eff.hunger > 0) statsHtml += `<span style="font-size:12px; background:rgba(255,152,0,0.1); color:#FF9800; padding:3px 6px; border-radius:4px; border:1px solid #FF9800;">満腹回復 ${eff.hunger}</span>`;
+            statsHtml += `</div>`;
+            html += statsHtml;
+            
+            if (parsed.seals && parsed.seals.length > 0) {
+                html += `<div style="margin-top:10px; font-size:12px; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; border:1px solid #555;">`;
+                html += `<div style="color:#FFD700; font-weight:bold; margin-bottom:5px; font-size:11px;">◆ 付与されている印</div>`;
+                parsed.seals.forEach(seal => {
+                    let sData = window.SEAL_DESCRIPTIONS && window.SEAL_DESCRIPTIONS[seal];
+                    if (sData) {
+                        html += `<div style="margin-bottom:6px; color:#ddd; line-height:1.4;"><span style="color:#FFD700; font-weight:bold;">[${sData.name}]</span> ${sData.desc}</div>`;
+                    }
+                });
+                html += `</div>`;
+            }
+        }
+        
+        html += `<div style="margin-top:10px; font-size:12px; color:#ccc; line-height:1.5;">${desc}</div>`;
+        rightPane.innerHTML = html;
+    };
+
+    // ==========================================
+    // ★ 左ペインのリストアイテムを生成する関数
+    // ==========================================
+    const createItemRow = (k, count, isGiven) => {
+        let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(k) : null;
+        let baseId = typeof window.parseItemString === 'function' ? window.parseItemString(k).baseId : k;
+        let baseData = typeof itemCatalog !== 'undefined' && itemCatalog[baseId] ? itemCatalog[baseId] : null;
+        
+        let itemName = eff ? eff.name : (baseData ? baseData.name : k);
+        
+        const d = document.createElement('div'); 
+        d.className = 'panel-list-item';
+        d.style.cursor = 'pointer';
+        d.style.transition = 'all 0.2s';
+        
+        // 多言語化と長い印に対応するための折り返し設定
+        d.style.whiteSpace = 'normal';
+        d.style.wordBreak = 'break-word';
+        d.style.lineHeight = '1.4';
+        d.style.padding = '8px 10px';
+        d.style.marginBottom = '5px';
+        
+        if (isGiven) {
+            d.style.borderLeft = "4px solid #FFD700"; 
+            d.style.backgroundColor = "rgba(255, 215, 0, 0.1)";
+        } else {
+            d.style.borderLeft = "4px solid transparent";
+        }
+        
+        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px; color:${isGiven ? '#FFD700' : '#ddd'};">
+            <span style="flex:1; padding-right:5px;">${isGiven ? '[支給品] ' : ''}${itemName}</span> 
+            <span style="color:${isGiven ? '#FFD700' : '#4CAF50'}; white-space:nowrap; align-self:flex-start;">x${count}</span>
+        </div>`;
+        
+        d.onmouseover = () => { d.style.filter = 'brightness(1.3)'; d.style.transform = 'translateX(2px)'; };
+        d.onmouseout = () => { d.style.filter = 'none'; d.style.transform = 'translateX(0)'; };
+        d.onclick = () => {
+            // 選択状態の強調
+            Array.from(leftPane.children).forEach(child => {
+                child.style.backgroundColor = child.dataset.given === 'true' ? 'rgba(255, 215, 0, 0.1)' : '';
+                child.style.borderLeftColor = child.dataset.given === 'true' ? '#FFD700' : 'transparent';
+            });
+            d.style.backgroundColor = 'rgba(33, 150, 243, 0.2)';
+            d.style.borderLeftColor = '#2196F3';
+            
+            showDetails(k, count, isGiven);
+        };
+        d.dataset.given = isGiven;
+        return d;
+    };
+
+    // ==========================================
+    // ★ アイテムリストの読み込みと配置
+    // ==========================================
     if (typeof aiPet !== 'undefined' && aiPet.apprentice && aiPet.apprentice.inventory && aiPet.apprentice.inventory.length > 0) {
         const counts = {}; aiPet.apprentice.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
         for(let k in counts) {
-            // ★修正：アイテム名の翻訳処理を通す
-            let itemName = typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(k) : k;
-            const d = document.createElement('div'); d.className = 'panel-list-item'; d.style.borderLeft = "4px solid #FFD700"; d.style.backgroundColor = "rgba(255, 215, 0, 0.1)";
-            d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px; color:#FFD700;"><span>[支給品] ${itemName}</span> <span>x${counts[k]}</span></div>`;
-            list.appendChild(d); totalItems++;
+            leftPane.appendChild(createItemRow(k, counts[k], true));
+            totalItems++;
         }
     }
     
-    if (aiPet.inventory && aiPet.inventory.length > 0) {
+    if (typeof aiPet !== 'undefined' && aiPet.inventory && aiPet.inventory.length > 0) {
         const counts = {}; aiPet.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
         for(let k in counts) {
-            // ★修正：アイテム名の翻訳処理を通す
-            let itemName = typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(k) : k;
-            const d = document.createElement('div'); d.className = 'panel-list-item';
-            d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px;"><span>${itemName}</span> <span style="color:#FFD700">x${counts[k]}</span></div>`;
-            list.appendChild(d); totalItems++;
+            leftPane.appendChild(createItemRow(k, counts[k], false));
+            totalItems++;
         }
     }
     
-    if (totalItems === 0) { list.innerHTML = "<div style='color:#777; font-size:12px;'>何も持っていません</div>"; }
+    if (totalItems === 0) { 
+        list.innerHTML = "<div style='color:#777; font-size:12px; text-align:center; margin-top:20px;'>何も持っていません</div>"; 
+    }
 }
 
 window.updateScheduleList = function() {
