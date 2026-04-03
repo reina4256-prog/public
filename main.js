@@ -1027,6 +1027,20 @@ window.debugStartDungeon = function() {
 
     if (typeof window.openDungeonUI === 'function') {
         window.openDungeonUI(type, floor);
+        
+        // ★ 新規追加：深層へ飛んだ場合、即死しないようにチートステータスを付与する！
+        if (floor >= 10 && window.DUNGEON_STATE) {
+            let s = window.DUNGEON_STATE;
+            s.player.level = Math.floor(floor * 1.2);
+            s.player.maxHp = 100 + (s.player.level * 20);
+            s.player.hp = s.player.maxHp;
+            s.player.basePwr = 10 + (s.player.level * 5);
+            s.player.equipWeapon = `item_sword_iron_+${Math.floor(floor/3)}_holy_fire_life`;
+            s.player.equipShield = `item_shield_wood_+${Math.floor(floor/3)}_counter_half_hunger`;
+            s.player.tempInventory.push('item_ring_heal', 'item_wand_fire_+5', 'item_scroll_sleep', 'herb');
+            setTimeout(() => { window.addDungeonLog(`🔧 [DEBUG] 階層に応じたステータスと装備を付与しました。`, '#E040FB'); }, 1000);
+        }
+        
         alert(`${type === 'crystal' ? 'クリスタル迷宮' : 'スカルダンジョン'} の ${floor}F に突入しました！`);
     }
 };
