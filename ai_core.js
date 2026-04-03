@@ -5074,40 +5074,52 @@ window.DUNGEON_STATE = {
 };
 window.dungeonAutoInterval = null;
 
-window.createDungeonSprite = function(spriteKey, logicalY, brightness = 1.0, isEnemy = false, logicalTileX = 100) {
-    const sp = window.DUNGEON_SPRITES[spriteKey]; if (!sp) return null;
+window.createDungeonSprite = function(spriteKey, logicalY, brightness = 1.0, isEnemy = false, logicalTileX = 100, existingDiv = null) {
+    const sp = window.DUNGEON_SPRITES[spriteKey]; 
+    if (!sp) return null;
     
-    // ★オーバーレイ（地形・罠・アイテム）かどうかの判定
     const isOverlay = spriteKey.startsWith('skull_') || spriteKey.startsWith('crystal_') || 
                       spriteKey.startsWith('gimmick_') || spriteKey.startsWith('trap_') || spriteKey.startsWith('spr_item_');
     
-    const div = document.createElement('div');
-    div.style.position = 'absolute'; div.style.width = `${sp.sw}px`; div.style.height = `${sp.sh}px`;
-    div.style.display = 'flex'; div.style.justifyContent = 'center'; 
-    // ★はみ出し防止：オーバーレイは「下揃え（flex-end）」にして床の底辺に合わせる
-    div.style.alignItems = isOverlay ? 'flex-end' : 'center'; 
-    div.style.overflow = 'visible'; div.style.zIndex = logicalY; 
+    // ★ リサイクル：既存の要素があればそれを使い、無ければ新規作成
+    const div = existingDiv || document.createElement('div');
+    const inner = existingDiv ? div.firstChild : document.createElement('div');
+
+    if (!existingDiv) {
+        div.style.position = 'absolute'; 
+        div.style.display = 'flex'; 
+        div.style.justifyContent = 'center'; 
+        div.style.alignItems = isOverlay ? 'flex-end' : 'center'; 
+        div.style.overflow = 'visible'; 
+        
+        inner.style.backgroundRepeat = 'no-repeat'; 
+        inner.style.flexShrink = '0';
+        div.appendChild(inner);
+    }
+
+    // 毎ターン変わる可能性のある情報を更新
+    div.style.width = `${sp.sw}px`; 
+    div.style.height = `${sp.sh}px`;
+    div.style.zIndex = logicalY; 
     
-    const inner = document.createElement('div');
-    inner.style.width = `${sp.sw}px`; inner.style.height = `${sp.sh}px`;
-    inner.style.backgroundImage = `url('${sp.img}')`; inner.style.backgroundPosition = `-${sp.sx}px -${sp.sy}px`;
-    inner.style.backgroundRepeat = 'no-repeat'; 
+    inner.style.width = `${sp.sw}px`; 
+    inner.style.height = `${sp.sh}px`;
+    inner.style.backgroundImage = `url('${sp.img}')`; 
+    inner.style.backgroundPosition = `-${sp.sx}px -${sp.sy}px`; // 向きが変わればここが変わる
     
     let filterStr = brightness < 1.0 ? `brightness(${brightness}) ` : '';
     if (isEnemy) filterStr += "sepia(100%) hue-rotate(-50deg) saturate(200%) brightness(0.7) ";
     inner.style.filter = filterStr.trim();
     
-    // ★自動スケーリング：ギミック・罠・アイテムは、現在の床の横幅(logicalTileX)に合わせて自動で縮小・拡大する
     let fitScale = 1.0;
     if (spriteKey.startsWith('gimmick_') || spriteKey.startsWith('trap_') || spriteKey.startsWith('spr_item_')) {
         fitScale = logicalTileX / sp.sw;
     }
     
     inner.style.transform = `scale(${sp.scale * fitScale})`;
-    // ★スケーリングの基準点も「下中央」にする
     inner.style.transformOrigin = isOverlay ? 'bottom center' : 'center center'; 
-    inner.style.flexShrink = '0';
-    div.appendChild(inner); return div;
+    
+    return div;
 };
 
 window.toggleDungeonModal = function(type) {
@@ -5836,7 +5848,9 @@ window.generateDungeonFloor = async function() {
 };
 
 window.updateDungeonUI = function() {
-    const s = window.DUNGEON_STATE; const container = document.getElementById('dg-map-container'); const gridDiv = document.getElementById('dg-grid');
+    const s = window.DUNGEON_STATE; 
+    const container = document.getElementById('dg-map-container'); 
+    const gridDiv = document.getElementById('dg-grid');
     if (!gridDiv || !container) return;
 
     let prefix = s.mapType === 'crystal' ? 'crystal_' : 'skull_';
@@ -5845,14 +5859,22 @@ window.updateDungeonUI = function() {
     const logicalTileX = floorSp ? (floorSp.sw * (floorSp.scale || 1.0)) : 100;
     const logicalTileY = floorSp ? (floorSp.sh * (floorSp.scale || 1.0)) : 100;
 
-    gridDiv.style.width = `${s.mapWidth * logicalTileX}px`; gridDiv.style.height = `${s.mapHeight * logicalTileY}px`; gridDiv.innerHTML = '';
-    const cw = container.clientWidth; const ch = container.clientHeight;
+    gridDiv.style.width = `${s.mapWidth * logicalTileX}px`; 
+    gridDiv.style.height = `${s.mapHeight * logicalTileY}px`; 
     
+    // ★ 大改修：innerHTML = '' による全消去を廃止！
+    // 代わりに、今ターンで描画した要素のIDを記録するセットを用意
+    let currentActiveIds = new Set();
+
+    const cw = container.clientWidth; const ch = container.clientHeight;
     const camZoom = 0.6; 
     const playerPixelX = s.player.x * logicalTileX + (logicalTileX / 2); 
     const playerPixelY = s.player.y * logicalTileY + (logicalTileY / 2);
     const camX = (cw / 2) - playerPixelX * camZoom; 
     const camY = (ch / 2) - playerPixelY * camZoom;
+    
+    // カメラの追従も滑らかにする
+    gridDiv.style.transition = 'transform 0.2s linear';
     gridDiv.style.transform = `translate(${camX}px, ${camY}px) scale(${camZoom})`;
 
     const viewDistX = Math.ceil((cw / 2 / camZoom) / logicalTileX) + 2; 
@@ -5875,12 +5897,14 @@ window.updateDungeonUI = function() {
 
     let isCorridor = (s.grid[s.player.y][s.player.x] === 3); 
 
-    // ★ 配置時のY軸オフセット計算（床や罠は下揃え、キャラは中央揃え）
     const getOffsetY = (key, sp) => {
         const isOverlay = key.startsWith('skull_') || key.startsWith('crystal_') || key.startsWith('gimmick_') || key.startsWith('trap_') || key.startsWith('spr_item_');
         return isOverlay ? (logicalTileY - sp.sh) : (logicalTileY - sp.sh) / 2;
     };
 
+    // ==========================================
+    // ★ 描画ループ：背景マップ
+    // ==========================================
     for(let y = startY; y <= endY; y++) {
         for(let x = startX; x <= endX; x++) {
             if (!s.visited[y][x]) continue; 
@@ -5905,32 +5929,51 @@ window.updateDungeonUI = function() {
             else if (tileType === 4) key = `gimmick_water`;
             else if (tileType === 5) key = `gimmick_magma`;
             
-            const tile = window.createDungeonSprite(key, y * 10, brightness, false, logicalTileX);
-            if (tile) { 
+            // ★ リサイクル描画
+            let domId = `tile_${x}_${y}`;
+            currentActiveIds.add(domId);
+            let existingDiv = document.getElementById(domId);
+            const tile = window.createDungeonSprite(key, y * 10, brightness, false, logicalTileX, existingDiv);
+            
+            if (tile && !existingDiv) {
+                tile.id = domId;
                 const sp = window.DUNGEON_SPRITES[key];
                 const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; 
                 const offsetY = sp ? getOffsetY(key, sp) : 0;
-                tile.style.left = `${x * logicalTileX + offsetX}px`; tile.style.top = `${y * logicalTileY + offsetY}px`; 
+                tile.style.left = `${x * logicalTileX + offsetX}px`; 
+                tile.style.top = `${y * logicalTileY + offsetY}px`; 
                 gridDiv.appendChild(tile); 
             }
         }
     }
 
+    // ==========================================
+    // ★ 描画ループ：罠・ギミック
+    // ==========================================
     if (s.traps) {
         s.traps.forEach(t => {
             if (!t.visible || !window.isTileVisible(s, t.x, t.y)) return;
             let sprKey = `trap_${t.type}`; 
-            const trapDiv = window.createDungeonSprite(sprKey, t.y * 10 + 1, 1.0, false, logicalTileX);
-            if (trapDiv) {
+            let domId = `trap_${t.x}_${t.y}`;
+            currentActiveIds.add(domId);
+            let existingDiv = document.getElementById(domId);
+            
+            const trapDiv = window.createDungeonSprite(sprKey, t.y * 10 + 1, 1.0, false, logicalTileX, existingDiv);
+            if (trapDiv && !existingDiv) {
+                trapDiv.id = domId;
                 const sp = window.DUNGEON_SPRITES[sprKey];
                 const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; 
                 const offsetY = sp ? getOffsetY(sprKey, sp) : 0;
-                trapDiv.style.left = `${t.x * logicalTileX + offsetX}px`; trapDiv.style.top = `${t.y * logicalTileY + offsetY}px`;
+                trapDiv.style.left = `${t.x * logicalTileX + offsetX}px`; 
+                trapDiv.style.top = `${t.y * logicalTileY + offsetY}px`;
                 gridDiv.appendChild(trapDiv);
             }
         });
     }
 
+    // ==========================================
+    // ★ 描画ループ：アイテム
+    // ==========================================
     if (s.items) {
         s.items.forEach(i => {
             if (!window.isTileVisible(s, i.x, i.y)) return;
@@ -5939,23 +5982,38 @@ window.updateDungeonUI = function() {
             else if (i.key.includes('scroll')) sprKey = 'spr_item_scroll';
             else if (i.key.includes('wand')) sprKey = 'spr_item_wand';
             
-            const itemDiv = window.createDungeonSprite(sprKey, i.y * 10 + 1, 1.0, false, logicalTileX);
-            if (itemDiv) {
+            // アイテムには固有のユニークIDがあるはずですが、無ければ座標ベースで管理
+            let domId = `item_${i.id || (i.x+'_'+i.y)}`;
+            currentActiveIds.add(domId);
+            let existingDiv = document.getElementById(domId);
+            
+            const itemDiv = window.createDungeonSprite(sprKey, i.y * 10 + 1, 1.0, false, logicalTileX, existingDiv);
+            if (itemDiv && !existingDiv) {
+                itemDiv.id = domId;
                 const sp = window.DUNGEON_SPRITES[sprKey];
                 const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; 
                 const offsetY = sp ? getOffsetY(sprKey, sp) : 0;
-                itemDiv.style.left = `${i.x * logicalTileX + offsetX}px`; itemDiv.style.top = `${i.y * logicalTileY + offsetY}px`;
+                itemDiv.style.left = `${i.x * logicalTileX + offsetX}px`; 
+                itemDiv.style.top = `${i.y * logicalTileY + offsetY}px`;
                 itemDiv.style.animation = "atk-up 2s infinite ease-in-out"; 
                 gridDiv.appendChild(itemDiv);
             }
         });
     }
 
+    // ==========================================
+    // ★ 描画ループ：救助対象
+    // ==========================================
     if (s.rescueTargets) {
-        s.rescueTargets.forEach(t => {
+        s.rescueTargets.forEach((t, idx) => {
             if(t.rescued || !window.isTileVisible(s, t.x, t.y)) return; 
-            const targetDiv = window.createDungeonSprite(`${t.skin}_down`, t.y * 10 + 2, 1.0, false, logicalTileX);
-            if (targetDiv) {
+            let domId = `rescue_${idx}`;
+            currentActiveIds.add(domId);
+            let existingDiv = document.getElementById(domId);
+            
+            const targetDiv = window.createDungeonSprite(`${t.skin}_down`, t.y * 10 + 2, 1.0, false, logicalTileX, existingDiv);
+            if (targetDiv && !existingDiv) {
+                targetDiv.id = domId;
                 const sp = window.DUNGEON_SPRITES[`${t.skin}_down`];
                 const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; const offsetY = sp ? (logicalTileY - sp.sh) / 2 : 0;
                 targetDiv.style.left = `${t.x * logicalTileX + offsetX}px`; targetDiv.style.top = `${t.y * logicalTileY + offsetY}px`; 
@@ -5968,89 +6026,150 @@ window.updateDungeonUI = function() {
         });
     }
 
+    // ==========================================
+    // ★ 描画ループ：敵（滑らか移動とZインデックス制御）
+    // ==========================================
     s.enemies.forEach(e => {
         if(e.hp <= 0 || e.x < startX || e.x > endX || e.y < startY || e.y > endY || !window.isTileVisible(s, e.x, e.y)) return;
-        const enemyDiv = window.createDungeonSprite(`${e.type}_${e.face}`, e.y * 10 + 5, 1.0, true, logicalTileX);
+        
+        let domId = e.id; 
+        currentActiveIds.add(domId);
+        let existingDiv = document.getElementById(domId);
+        
+        // ★ 追加：移動前の古いZインデックスを取得しておく
+        let oldZ = existingDiv ? parseInt(existingDiv.style.zIndex || '0') : 0;
+        let newZ = e.y * 10 + 5;
+
+        const enemyDiv = window.createDungeonSprite(`${e.type}_${e.face}`, newZ, 1.0, true, logicalTileX, existingDiv);
         if (enemyDiv) {
+            // ★ 追加：上に移動する(newZ < oldZ)時は、移動が終わるまでZインデックスを維持する
+            if (existingDiv && newZ < oldZ) {
+                enemyDiv.style.zIndex = oldZ; 
+                clearTimeout(enemyDiv._zTimeout);
+                enemyDiv._zTimeout = setTimeout(() => { enemyDiv.style.zIndex = newZ; }, 200); // 敵の移動時間は0.2s
+            }
+
             const sp = window.DUNGEON_SPRITES[`${e.type}_${e.face}`];
             const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; const offsetY = sp ? (logicalTileY - sp.sh) / 2 : 0;
-            enemyDiv.style.left = `${e.x * logicalTileX + offsetX}px`; enemyDiv.style.top = `${e.y * logicalTileY + offsetY}px`; enemyDiv.style.transition = 'left 0.2s, top 0.2s';
+            
+            if (!existingDiv) {
+                enemyDiv.id = domId;
+                enemyDiv.style.left = `${e.x * logicalTileX + offsetX}px`; 
+                enemyDiv.style.top = `${e.y * logicalTileY + offsetY}px`; 
+                gridDiv.appendChild(enemyDiv);
+            } else {
+                enemyDiv.style.transition = 'left 0.2s linear, top 0.2s linear';
+                enemyDiv.style.left = `${e.x * logicalTileX + offsetX}px`; 
+                enemyDiv.style.top = `${e.y * logicalTileY + offsetY}px`; 
+            }
+
+            enemyDiv.classList.remove('anim-atk-up', 'anim-atk-down', 'anim-atk-left', 'anim-atk-right', 'anim-damage', 'anim-warp');
+            void enemyDiv.offsetWidth; 
             if (e.attackAnim) { enemyDiv.classList.add(`anim-atk-${e.face}`); e.attackAnim = false; }
             if (e.damageAnim) { enemyDiv.classList.add(`anim-damage`); e.damageAnim = false; } 
             if (e.warpAnim) { enemyDiv.classList.add(`anim-warp`); e.warpAnim = false; } 
+            
+            let zzz = enemyDiv.querySelector('.zzz-mark');
             if (e.charmed) {
-                const zzz = document.createElement('div'); zzz.innerText = "Zzz"; zzz.style.position = "absolute"; zzz.style.top = "-20px"; zzz.style.right = "-5px";
-                zzz.style.color = "#B39DDB"; zzz.style.fontWeight = "bold"; zzz.style.fontSize = "16px"; zzz.style.textShadow = "1px 1px 2px #000";
-                zzz.style.animation = "atk-up 1.5s infinite linear"; enemyDiv.appendChild(zzz);
+                if (!zzz) {
+                    zzz = document.createElement('div'); 
+                    zzz.className = 'zzz-mark';
+                    zzz.innerText = "Zzz"; zzz.style.position = "absolute"; zzz.style.top = "-20px"; zzz.style.right = "-5px";
+                    zzz.style.color = "#B39DDB"; zzz.style.fontWeight = "bold"; zzz.style.fontSize = "16px"; zzz.style.textShadow = "1px 1px 2px #000";
+                    zzz.style.animation = "atk-up 1.5s infinite linear"; enemyDiv.appendChild(zzz);
+                }
+            } else if (zzz) {
+                zzz.remove();
             }
-            gridDiv.appendChild(enemyDiv);
         }
     });
 
+    // ==========================================
+    // ★ 描画ループ：プレイヤー（滑らか移動とZインデックス制御）
+    // ==========================================
     let stateStr = "";
     if (s.player.equipWeapon && s.player.equipShield) stateStr = "_sword_shield";
     else if (s.player.equipWeapon) stateStr = "_sword";
     else if (s.player.equipShield) stateStr = "_shield";
     
-    // ★ 修正：type(基本種族)ではなく skin(進化形態) をベースにする
     let baseSkin = s.player.skin || s.player.type;
     let pKey = `${baseSkin}${stateStr}_${s.player.face}`;
     let pSp = window.DUNGEON_SPRITES[pKey];
     
-    // ★ 1. 武器盾持ちの進化スキンが無ければ、ご用意いただいた「素手の進化スキン」を探す
-    if (!pSp) { 
-        pKey = `${baseSkin}_${s.player.face}`; 
-        pSp = window.DUNGEON_SPRITES[pKey]; 
-    }
-    // ★ 2. それでも無ければ、念のため基本種族のスキン（+武器盾）を探す
-    if (!pSp) { 
-        pKey = `${s.player.type}${stateStr}_${s.player.face}`; 
-        pSp = window.DUNGEON_SPRITES[pKey]; 
-    }
-    // ★ 3. 最終手段：基本種族の素手
-    if (!pSp) { 
-        pKey = `${s.player.type}_${s.player.face}`; 
-        pSp = window.DUNGEON_SPRITES[pKey]; 
-    }
+    if (!pSp) { pKey = `${baseSkin}_${s.player.face}`; pSp = window.DUNGEON_SPRITES[pKey]; }
+    if (!pSp) { pKey = `${s.player.type}${stateStr}_${s.player.face}`; pSp = window.DUNGEON_SPRITES[pKey]; }
+    if (!pSp) { pKey = `${s.player.type}_${s.player.face}`; pSp = window.DUNGEON_SPRITES[pKey]; }
+
+    let playerDomId = 'dg-player-sprite';
+    currentActiveIds.add(playerDomId);
+    let existingPlayer = document.getElementById(playerDomId);
+
+    // ★ 追加：移動前の古いZインデックスを取得しておく
+    let oldZ = existingPlayer ? parseInt(existingPlayer.style.zIndex || '0') : 0;
+    let newZ = s.player.y * 10 + 5;
 
     if (pSp) {
-        const pDiv = window.createDungeonSprite(pKey, s.player.y * 10 + 5, 1.0, false, logicalTileX);
+        const pDiv = window.createDungeonSprite(pKey, newZ, 1.0, false, logicalTileX, existingPlayer);
         if (pDiv) {
+            // ★ 追加：上に移動する時は、奥に潜り込まないようにZインデックスを維持する
+            if (existingPlayer && newZ < oldZ) {
+                pDiv.style.zIndex = oldZ; 
+                clearTimeout(pDiv._zTimeout);
+                pDiv._zTimeout = setTimeout(() => { pDiv.style.zIndex = newZ; }, 150); // プレイヤーの移動時間は0.15s
+            }
+
             const offsetX = (logicalTileX - pSp.sw) / 2; const offsetY = (logicalTileY - pSp.sh) / 2;
-            pDiv.style.left = `${s.player.x * logicalTileX + offsetX}px`; pDiv.style.top = `${s.player.y * logicalTileY + offsetY}px`; pDiv.style.transition = 'left 0.2s, top 0.2s';
+            
+            if (!existingPlayer) {
+                pDiv.id = playerDomId;
+                pDiv.style.left = `${s.player.x * logicalTileX + offsetX}px`; 
+                pDiv.style.top = `${s.player.y * logicalTileY + offsetY}px`; 
+                gridDiv.appendChild(pDiv);
+            } else {
+                pDiv.style.transition = 'left 0.15s linear, top 0.15s linear';
+                pDiv.style.left = `${s.player.x * logicalTileX + offsetX}px`; 
+                pDiv.style.top = `${s.player.y * logicalTileY + offsetY}px`; 
+            }
+
+            pDiv.classList.remove('anim-atk-up', 'anim-atk-down', 'anim-atk-left', 'anim-atk-right', 'anim-damage', 'anim-knockback', 'anim-levelup', 'anim-magic');
+            void pDiv.offsetWidth; 
             if (s.player.attackAnim) { pDiv.classList.add(`anim-atk-${s.player.face}`); s.player.attackAnim = false; }
             if (s.player.damageAnim) { pDiv.classList.add(`anim-damage`); s.player.damageAnim = false; } 
             if (s.player.knockbackAnim) { pDiv.classList.add(`anim-knockback`); s.player.knockbackAnim = false; } 
             if (s.player.levelUpAnim) { pDiv.classList.add(`anim-levelup`); s.player.levelUpAnim = false; } 
             if (s.player.magicAnim) { pDiv.classList.add(`anim-magic`); s.player.magicAnim = false; } 
-            gridDiv.appendChild(pDiv);
         }
     }
 
+    // ==========================================
+    // ★ ゴミ掃除（クリーンアップ）
+    // ==========================================
+    // 画面外に出た、または消滅した要素（currentActiveIds に含まれないもの）を削除する
+    Array.from(gridDiv.children).forEach(child => {
+        // dmg-text (ダメージ数値) や vfx系の要素は勝手に消えるのでここでは無視する
+        if (child.id && !currentActiveIds.has(child.id) && !child.classList.contains('dmg-text')) {
+            gridDiv.removeChild(child);
+        }
+    });
+
+    // ==========================================
+    // ★ 以下、UI（HPやインベントリ）の更新はそのまま
+    // ==========================================
     document.getElementById('dg-hp').innerText = Math.max(0, Math.floor(s.player.hp)); 
     document.getElementById('dg-max-hp').innerText = Math.floor(s.player.maxHp); 
     document.getElementById('dg-floor').innerText = s.floor;
     document.getElementById('dg-hunger').innerText = Math.max(0, Math.floor(s.player.hunger));
 
-    // ==========================================
-    // ★ 追加：レベル表記の更新
-    // ==========================================
     let lvlEl = document.getElementById('dg-level');
     if (lvlEl) {
         lvlEl.innerText = s.player.level || 1;
     } else {
         let allSpans = document.querySelectorAll('span');
-        allSpans.forEach(span => {
-            if (span.innerText.includes('Lv.')) span.innerText = `Lv.${s.player.level || 1}`;
-        });
+        allSpans.forEach(span => { if (span.innerText.includes('Lv.')) span.innerText = `Lv.${s.player.level || 1}`; });
     }
 
-    // ==========================================
-    // ★ 修正：スクロールバーを完全に廃止し、AUTO中でも確実に開閉できるUI
-    // ==========================================
     const invListEl = document.getElementById('dg-inventory-list');
     if (invListEl) {
-        // もし過去のスタイル（スクロール等）が残っていたら強制解除
         invListEl.style.maxHeight = 'none';
         invListEl.style.overflowY = 'visible';
 
@@ -6065,7 +6184,6 @@ window.updateDungeonUI = function() {
         for (let k in counts) { let iName = window.getDungeonItemEffect(k).name; invHtml += `<span style="background:#222; padding:3px 8px; border-radius:4px; border:1px solid #555; margin-right:5px; display:inline-block; margin-bottom:3px;">${iName} <span style="color:#FFD700">x${counts[k]}</span></span>`; }
         if (invHtml === "") { invHtml = `<span style="color:#888; font-size:12px;">なにも持っていない</span>`; }
         
-        // ★ポイント：外側の枠は一度作ったら二度と作り直さない。中身(dg-inv-content)だけを更新する。
         let detailsEl = document.getElementById('dg-inv-details');
         if (!detailsEl) {
             invListEl.innerHTML = `
@@ -6095,7 +6213,6 @@ window.updateDungeonUI = function() {
             traitHtml += `</ul>`;
         }
         
-        // ★ポイント：特性も外側の枠は作り直さず、中身だけを更新する。
         let tDetailsEl = document.getElementById('dg-trait-details');
         if (!tDetailsEl) {
             document.getElementById('dg-active-traits').innerHTML = `
@@ -6108,7 +6225,6 @@ window.updateDungeonUI = function() {
         document.getElementById('dg-trait-content').innerHTML = traitHtml;
     }
 
-    // ★ 完全復旧：使える言葉のUI更新
     const wordsContainer = document.getElementById('dg-known-words'); 
     if (wordsContainer) {
         const myWords = (window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.learnedWords) ? window.aiPet.apprentice.learnedWords : [];
