@@ -267,7 +267,7 @@ function render() {
 
     if ((currentMode === 'ai_adjust' || currentMode === 'editor') && editingTarget === 'map' && selectedMapKey) drawMapPreview();
     if (currentMode === 'ai_adjust' && editingTarget === 'card' && selectedCardKey) drawCardPreview();
-    if (currentMode === 'ai_adjust' && (editingTarget === 'dmap' || editingTarget === 'dchr' || editingTarget === 'achr' || editingTarget === 'afld')) drawDungeonPreview();
+    if (currentMode === 'ai_adjust' && ['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) drawDungeonPreview();
     if (currentMode === 'ai_adjust' && (editingTarget === 'rasset' || editingTarget === 'sasset')) if (typeof window.drawFurniturePreview === 'function') window.drawFurniturePreview();
     if (currentMode === 'ai_adjust') drawAdjustUI();
     if (currentMode === 'grazing' || (currentMode === 'play' && typeof party !== 'undefined' && party.length > 1)) drawPartyPIPs();

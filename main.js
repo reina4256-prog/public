@@ -328,6 +328,11 @@ function initAdjustUI() {
             <label style="margin-right:10px; cursor:pointer;"><input type="radio" name="adjTarget" value="card"> CARD</label>
             <div style="margin-top: 5px;">
                 <label style="margin-right:10px; cursor:pointer; color:#00BCD4;"><input type="radio" name="adjTarget" value="dmap"> D-MAP</label>
+                <label style="margin-right:10px; cursor:pointer; color:#2196F3;"><input type="radio" name="adjTarget" value="dgim"> D-GIM(地形)</label>
+                <label style="margin-right:10px; cursor:pointer; color:#9C27B0;"><input type="radio" name="adjTarget" value="dtrap"> D-TRAP(罠)</label>
+            </div>
+            <div style="margin-top: 5px;">
+                <label style="margin-right:10px; cursor:pointer; color:#FFEB3B;"><input type="radio" name="adjTarget" value="ditem"> D-ITEM(拾)</label>
                 <label style="margin-right:10px; cursor:pointer; color:#4CAF50;"><input type="radio" name="adjTarget" value="dchr"> D-CHR</label>
             </div>
             <div style="margin-top: 5px;">
@@ -415,7 +420,7 @@ function initAdjustUI() {
             if (editingTarget === 'ai') statusEl.innerText = `Target: ${selectedAIType || 'None'}`;
             else if (editingTarget === 'map') statusEl.innerText = `Target: ${selectedMapKey || 'None'}`;
             else if (editingTarget === 'card') statusEl.innerText = `Target: ${window.TCG_MASTER ? window.TCG_MASTER[selectedCardKey]?.name : 'None'}`;
-            else if (['dmap', 'dchr', 'achr', 'afld'].includes(editingTarget)) statusEl.innerText = `Target: ${window.selectedDungeonSpriteKey || 'None'}`;
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) statusEl.innerText = `Target: ${window.selectedDungeonSpriteKey || 'None'}`; // ★修正
             else if (editingTarget === 'rasset') {
                 let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['restaurant'] ? window.SHOP_FURNITURE_DATA['restaurant'][window.selectedFurnitureIndex] : null;
                 statusEl.innerText = `Target: ${fData ? fData.name : 'None'} (${window.selectedFurnitureIndex+1})`;
@@ -473,11 +478,15 @@ window.getAdjustTarget = function() {
                 if (!target.image) target.image = base ? (base.img || base.image || 'characters') : 'characters';
             }
         }
-    } else if (['dmap', 'dchr', 'achr', 'afld'].includes(editingTarget)) {
+    // ★ 修正：dgim(地形ギミック), dtrap(罠), ditem(アイテム) を追加
+    } else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) {
         if (typeof window.DUNGEON_SPRITES !== 'undefined') {
             const keys = Object.keys(window.DUNGEON_SPRITES).filter(k => {
                 if (editingTarget === 'dmap') return k.startsWith('skull_') || k.startsWith('crystal_');
-                if (editingTarget === 'dchr') return !k.startsWith('skull_') && !k.startsWith('crystal_') && !k.startsWith('arena_');
+                if (editingTarget === 'dgim') return k.startsWith('gimmick_');
+                if (editingTarget === 'dtrap') return k.startsWith('trap_');
+                if (editingTarget === 'ditem') return k.startsWith('spr_item_');
+                if (editingTarget === 'dchr') return !k.startsWith('skull_') && !k.startsWith('crystal_') && !k.startsWith('gimmick_') && !k.startsWith('trap_') && !k.startsWith('spr_item_') && !k.startsWith('arena_');
                 if (editingTarget === 'achr') return k.startsWith('arena_') && !k.startsWith('arena_fld_');
                 if (editingTarget === 'afld') return k.startsWith('arena_fld_');
                 return false;
@@ -525,7 +534,7 @@ window.addEventListener('keydown', (e) => {
             else if (currentMode === 'ai_adjust') {
                 if (editingTarget === 'card' && typeof window.TCG_MASTER !== 'undefined') {
                     console.log("▼▼▼ TCG_MASTER ▼▼▼\n" + JSON.stringify(window.TCG_MASTER, null, 4)); alert("カードデータをコンソールに出力しました！");
-                } else if (['dmap', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') {
+                } else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') { // ★修正
                     console.log("▼▼▼ DUNGEON_SPRITES ▼▼▼\n" + JSON.stringify(window.DUNGEON_SPRITES, null, 4)); alert("ダンジョン素材をコンソールに出力しました！");
                 } else if (['rasset', 'sasset'].includes(editingTarget) && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                     console.log("▼▼▼ SHOP_FURNITURE_DATA ▼▼▼\n" + JSON.stringify(window.SHOP_FURNITURE_DATA, null, 4)); alert("家具配置データをコンソールに出力しました！\nこれを ui_controller.js に貼り付けてください。");
@@ -569,10 +578,13 @@ window.addEventListener('keydown', (e) => {
                 const keys = Object.keys(window.TCG_MASTER); let idx = keys.indexOf(selectedCardKey);
                 if (e.shiftKey) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
                 selectedCardKey = keys[idx];
-            } else if (['dmap', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') {
+            } else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') { // ★修正
                 const keys = Object.keys(window.DUNGEON_SPRITES).filter(k => {
                     if (editingTarget === 'dmap') return k.startsWith('skull_') || k.startsWith('crystal_');
-                    if (editingTarget === 'dchr') return !k.startsWith('skull_') && !k.startsWith('crystal_') && !k.startsWith('arena_');
+                    if (editingTarget === 'dgim') return k.startsWith('gimmick_'); // ★追加
+                    if (editingTarget === 'dtrap') return k.startsWith('trap_'); // ★追加
+                    if (editingTarget === 'ditem') return k.startsWith('spr_item_'); // ★追加
+                    if (editingTarget === 'dchr') return !k.startsWith('skull_') && !k.startsWith('crystal_') && !k.startsWith('gimmick_') && !k.startsWith('trap_') && !k.startsWith('spr_item_') && !k.startsWith('arena_'); // ★修正
                     if (editingTarget === 'achr') return k.startsWith('arena_') && !k.startsWith('arena_fld_');
                     if (editingTarget === 'afld') return k.startsWith('arena_fld_');
                     return false;
@@ -602,14 +614,14 @@ window.addEventListener('keydown', (e) => {
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = Math.max(0.1, (aiConfigs[selectedAIType].scale||0.25) - 0.05);
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = Math.max(0.1, (catalog[selectedMapKey].scale||1.0) - 0.05);
             else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = Math.max(0.1, (window.TCG_MASTER[selectedCardKey].scaleX||1.0) - 0.05);
-            else if (['dmap', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.1, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05);
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.1, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05); // ★修正
             else if (['rasset', 'sasset'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.1, (t.scale||1.0) - 0.05); }
         }
         if (e.key.toLowerCase() === 'b') { 
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = (aiConfigs[selectedAIType].scale||0.25) + 0.05;
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = (catalog[selectedMapKey].scale||1.0) + 0.05;
             else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = (window.TCG_MASTER[selectedCardKey].scaleX||1.0) + 0.05;
-            else if (['dmap', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05;
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05; // ★修正
             else if (['rasset', 'sasset'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
         }
         if (e.key.toLowerCase() === 'n') { if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleY = Math.max(0.1, (window.TCG_MASTER[selectedCardKey].scaleY||1.0) - 0.05); }
