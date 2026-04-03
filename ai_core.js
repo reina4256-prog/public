@@ -4059,6 +4059,88 @@ window.DUNGEON_SPRITES = {
         "scale": 0.4
     },
 
+    "robot_type1_down": { "img": "robot_type1_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type1_up": { "img": "robot_type1_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type1_left": { "img": "robot_type1_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type1_right": { "img": "robot_type1_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type1_2_down": { "img": "robot_type1_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type1_2_up": { "img": "robot_type1_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type1_2_left": { "img": "robot_type1_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type1_2_right": { "img": "robot_type1_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type1_3_down": { "img": "robot_type1_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type1_3_up": { "img": "robot_type1_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type1_3_left": { "img": "robot_type1_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type1_3_right": { "img": "robot_type1_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_down": { "img": "robot_type2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_up": { "img": "robot_type2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_left": { "img": "robot_type2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_right": { "img": "robot_type2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_2_down": { "img": "robot_type2_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_2_up": { "img": "robot_type2_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_2_left": { "img": "robot_type2_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_2_right": { "img": "robot_type2_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_3_down": { "img": "robot_type2_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_3_up": { "img": "robot_type2_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_3_left": { "img": "robot_type2_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_3_right": { "img": "robot_type2_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_4_down": { "img": "robot_type2_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_4_up": { "img": "robot_type2_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type2_4_left": { "img": "robot_type2_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type2_4_right": { "img": "robot_type2_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_down": { "img": "robot_type3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_up": { "img": "robot_type3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_left": { "img": "robot_type3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_right": { "img": "robot_type3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_2_down": { "img": "robot_type3_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_2_up": { "img": "robot_type3_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_2_left": { "img": "robot_type3_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_2_right": { "img": "robot_type3_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_3_down": { "img": "robot_type3_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_3_up": { "img": "robot_type3_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_3_left": { "img": "robot_type3_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_3_right": { "img": "robot_type3_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_4_down": { "img": "robot_type3_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_4_up": { "img": "robot_type3_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_4_left": { "img": "robot_type3_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_4_right": { "img": "robot_type3_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_5_down": { "img": "robot_type3_5_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_5_up": { "img": "robot_type3_5_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type3_5_left": { "img": "robot_type3_5_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type3_5_right": { "img": "robot_type3_5_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_down": { "img": "robot_type4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_up": { "img": "robot_type4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_left": { "img": "robot_type4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_right": { "img": "robot_type4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_2_down": { "img": "robot_type4_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_2_up": { "img": "robot_type4_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_2_left": { "img": "robot_type4_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_2_right": { "img": "robot_type4_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_3_down": { "img": "robot_type4_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_3_up": { "img": "robot_type4_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_3_left": { "img": "robot_type4_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_3_right": { "img": "robot_type4_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_4_down": { "img": "robot_type4_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_4_up": { "img": "robot_type4_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type4_4_left": { "img": "robot_type4_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type4_4_right": { "img": "robot_type4_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_down": { "img": "robot_type5_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_up": { "img": "robot_type5_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_left": { "img": "robot_type5_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_right": { "img": "robot_type5_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_2_down": { "img": "robot_type5_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_2_up": { "img": "robot_type5_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_2_left": { "img": "robot_type5_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_2_right": { "img": "robot_type5_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_3_down": { "img": "robot_type5_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_3_up": { "img": "robot_type5_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_3_left": { "img": "robot_type5_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_3_right": { "img": "robot_type5_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_4_down": { "img": "robot_type5_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_4_up": { "img": "robot_type5_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_type5_4_left": { "img": "robot_type5_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type5_4_right": { "img": "robot_type5_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+
+
     "magician_down": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 42, "sw": 835, "sh": 1014, "scale": 0.4 },
     "magician_up": { "img": "magician_dungeon_walk.png", "sx": 1020, "sy": 42, "sw": 855, "sh": 1014, "scale": 0.4 },
     "magician_left": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 1169, "sw": 835, "sh": 1014, "scale": 0.4 },
@@ -4102,6 +4184,76 @@ window.DUNGEON_SPRITES = {
 };
 
 window._dungeonAiTypesList = ['robot', 'magician', 'spirit', 'dragon', 'machine', 'stone', 'seed', 'ghost', 'balloon', 'beetle', 'bird'];
+
+// ==========================================
+// ★ 新規追加：全種族の特性カタログ（ロボット系21種 完備）
+// ==========================================
+window.DUNGEON_TRAIT_DICT = {
+    // 【基本形態】
+    'robot': { player: { name: '頑丈な装甲', desc: '基礎防御力が常に +3 される。' }, enemy: null },
+    // 【1進化】
+    'robot_type3': { player: { name: '学習機能', desc: '敵を倒したときの獲得経験値が常に +20% される。' }, enemy: 'データ収集' },
+    'robot_type3_2': { player: { name: '演算予測', desc: '魔法アイテム（巻物など）を使用したときの効果がフロア全体に及ぶ。' }, enemy: '遠隔操作' },
+    'robot_type2': { player: { name: 'スポットライト', desc: 'フロアに降りた瞬間、アイテムの位置がマップでわかる。' }, enemy: 'フラッシュ' },
+    'robot_type4': { player: { name: '重装甲', desc: '基礎防御力が常に +6 される（頑丈な装甲を上書き）。' }, enemy: 'キャタピラ突進' },
+    'robot_type4_2': { player: { name: '重機動アーム', desc: '壁に向かって移動すると壁を掘って道を作れる。' }, enemy: 'アームスマッシュ' },
+    'robot_type1': { player: { name: '殺戮回路', desc: 'HPが満タンの時、通常攻撃のダメージが1.5倍になる。' }, enemy: '破壊衝動' },
+    'robot_type5': { player: { name: '省エネ', desc: '満腹度の最大値が最初から +20 される。' }, enemy: 'サビ撒き' },
+    // 【2進化】
+    'robot_type3_3': { player: { name: '未来予知', desc: '敵からの直接攻撃を 15% の確率で完全回避する。' }, enemy: '神託の盾' },
+    'robot_type3_4': { player: { name: 'マッドサイエンス', desc: '草や食べ物の回復量がランダムで 2倍 になる。' }, enemy: '劇薬投擲' },
+    'robot_type3_5': { player: { name: '管理者権限', desc: '階段を降りた時、ランダムなアイテムを1つ生成する。' }, enemy: '地形再構築' },
+    'robot_type2_2': { player: { name: '癒やしの舞', desc: '部屋の中に敵がいない状態で歩くとHPが自動回復する。' }, enemy: '優雅な舞' },
+    'robot_type2_3': { player: { name: '電子の歌姫', desc: '睡眠や混乱など、精神系の状態異常を無効化する。' }, enemy: 'ホログラム' },
+    'robot_type2_4': { player: { name: '成金趣味', desc: '敵を倒した時にアイテムをドロップする確率が大幅に上がる。' }, enemy: '買収' },
+    'robot_type4_3': { player: { name: '最終兵器', desc: '基礎攻撃力が常に +10 される。' }, enemy: 'ロックオンレーザー' },
+    'robot_type4_4': { player: { name: '無限機関', desc: '満腹度が一切減らなくなる（餓死無効）。' }, enemy: 'アースクエイク' },
+    'robot_type1_2': { player: { name: 'ウイルス侵蝕', desc: '通常攻撃時、敵に猛毒を付与する。' }, enemy: 'データ吸収' },
+    'robot_type1_3': { player: { name: '終焉の炉心', desc: '炎や光などの「追加ダメージ系の印」の威力が2倍になる。' }, enemy: 'メルトダウン' },
+    'robot_type5_2': { player: { name: '古代の盾', desc: '敵から受けるすべてのダメージを常に -5 軽減する。' }, enemy: '絶対防御陣' },
+    'robot_type5_3': { player: { name: '悠久の時', desc: '自分が死亡した時、一度だけHP半分で復活する。' }, enemy: '時間逆行' },
+    'robot_type5_4': { player: { name: '大地の恵み', desc: '毎ターンHPが少し回復し、罠を踏んでも作動しない。' }, enemy: '自然同化' }
+};
+
+// 進化ツリーの系譜（スタック）を解決する関数
+window.getPlayerDungeonTraits = function(skin) {
+    let traits = [];
+    if (!skin || !skin.includes('robot')) return traits; // 現状はロボットのみ処理
+
+    const addTrait = (id) => { if (window.DUNGEON_TRAIT_DICT[id] && window.DUNGEON_TRAIT_DICT[id].player) traits.push(window.DUNGEON_TRAIT_DICT[id].player); };
+
+    // Base
+    addTrait('robot');
+
+    // Gen 1 & Gen 2 lineage resolution
+    if (skin === 'robot_type3') { addTrait('robot_type3'); }
+    else if (skin === 'robot_type3_2') { addTrait('robot_type3_2'); }
+    else if (skin === 'robot_type2') { addTrait('robot_type2'); }
+    else if (skin === 'robot_type4') { addTrait('robot_type4'); }
+    else if (skin === 'robot_type4_2') { addTrait('robot_type4_2'); }
+    else if (skin === 'robot_type1') { addTrait('robot_type1'); }
+    else if (skin === 'robot_type5') { addTrait('robot_type5'); }
+    
+    else if (skin === 'robot_type3_3') { addTrait('robot_type3'); addTrait('robot_type3_3'); }
+    else if (skin === 'robot_type3_4') { addTrait('robot_type3'); addTrait('robot_type3_4'); }
+    else if (skin === 'robot_type3_5') { addTrait('robot_type3'); addTrait('robot_type3_5'); }
+    else if (skin === 'robot_type2_2') { addTrait('robot_type2'); addTrait('robot_type2_2'); }
+    else if (skin === 'robot_type2_3') { addTrait('robot_type2'); addTrait('robot_type2_3'); }
+    else if (skin === 'robot_type2_4') { addTrait('robot_type2'); addTrait('robot_type2_4'); }
+    else if (skin === 'robot_type4_3') { addTrait('robot_type4'); addTrait('robot_type4_3'); }
+    else if (skin === 'robot_type4_4') { addTrait('robot_type4'); addTrait('robot_type4_4'); }
+    else if (skin === 'robot_type1_2') { addTrait('robot_type1'); addTrait('robot_type1_2'); }
+    else if (skin === 'robot_type1_3') { addTrait('robot_type1'); addTrait('robot_type1_3'); }
+    else if (skin === 'robot_type5_2') { addTrait('robot_type5'); addTrait('robot_type5_2'); }
+    else if (skin === 'robot_type5_3') { addTrait('robot_type5'); addTrait('robot_type5_3'); }
+    else if (skin === 'robot_type5_4') { addTrait('robot_type5'); addTrait('robot_type5_4'); }
+
+    // 重装甲がある場合、頑丈な装甲を上書きする
+    let hasHeavy = traits.find(t => t.name === '重装甲');
+    if (hasHeavy) traits = traits.filter(t => t.name !== '頑丈な装甲');
+
+    return traits;
+};
 
 // ★新規追加：印の詳細説明データ（装備詳細画面で使います）
 window.SEAL_DESCRIPTIONS = {
@@ -5016,18 +5168,32 @@ window.generateDungeonFloor = async function() {
     lastRoom = rooms[rooms.length - 1]; 
     s.grid[lastRoom.y][lastRoom.x] = 2; // 階段
 
-    // 敵・アイテム・罠の生成
+    // ==========================================
+    // ★ 敵の生成（階層に応じた進化形態の出現）
+    // ==========================================
     const enemyCount = 3 + Math.floor(s.floor / 3); 
-    const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 3 : 5;   
+    const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;   
     for(let i=0; i<enemyCount; i++) {
-        // ★修正: rooms ではなく、幅と高さを持つ s.roomsInfo を参照するように変更
         let roomIdx = 1 + Math.floor(Math.random() * (s.roomsInfo.length - 1)); let r = s.roomsInfo[roomIdx];
         let ex, ey; let attempts = 0;
         do { ex = r.x + Math.floor(Math.random() * r.w); ey = r.y + Math.floor(Math.random() * r.h); attempts++;
         } while ((s.grid[ey][ex] !== 0 || (ex === s.player.x && ey === s.player.y)) && attempts < 50);
         
         let eType = window._dungeonAiTypesList[Math.floor(Math.random() * window._dungeonAiTypesList.length)];
-        s.enemies.push({ id: 'e_'+i, x: ex, y: ey, hp: eHpBase + s.floor * 3, maxHp: eHpBase + s.floor * 3, damage: eDmgBase + s.floor * 1, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false, status: { poison:0, confusion:0 } });
+        let eSkin = eType;
+
+        // ★階層進化ロジック（ロボット系以外は一旦基本スキン）
+        if (eType === 'robot') {
+            if (s.floor >= 70) {
+                const gen2Skins = ['robot_type3_3', 'robot_type3_4', 'robot_type3_5', 'robot_type2_2', 'robot_type2_3', 'robot_type2_4', 'robot_type4_3', 'robot_type4_4', 'robot_type1_2', 'robot_type1_3', 'robot_type5_2', 'robot_type5_3', 'robot_type5_4'];
+                eSkin = gen2Skins[Math.floor(Math.random() * gen2Skins.length)];
+            } else if (s.floor >= 30) {
+                const gen1Skins = ['robot_type3', 'robot_type3_2', 'robot_type2', 'robot_type4', 'robot_type4_2', 'robot_type1', 'robot_type5'];
+                eSkin = gen1Skins[Math.floor(Math.random() * gen1Skins.length)];
+            }
+        }
+
+        s.enemies.push({ id: 'e_'+Date.now()+'_'+i, x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0 } });
     }
 
     // ==========================================
@@ -5259,9 +5425,27 @@ window.updateDungeonUI = function() {
     if (s.player.equipWeapon && s.player.equipShield) stateStr = "_sword_shield";
     else if (s.player.equipWeapon) stateStr = "_sword";
     else if (s.player.equipShield) stateStr = "_shield";
-    let pKey = `${s.player.type}${stateStr}_${s.player.face}`;
+    
+    // ★ 修正：type(基本種族)ではなく skin(進化形態) をベースにする
+    let baseSkin = s.player.skin || s.player.type;
+    let pKey = `${baseSkin}${stateStr}_${s.player.face}`;
     let pSp = window.DUNGEON_SPRITES[pKey];
-    if (!pSp) { pKey = `${s.player.type}_${s.player.face}`; pSp = window.DUNGEON_SPRITES[pKey]; }
+    
+    // ★ 1. 武器盾持ちの進化スキンが無ければ、ご用意いただいた「素手の進化スキン」を探す
+    if (!pSp) { 
+        pKey = `${baseSkin}_${s.player.face}`; 
+        pSp = window.DUNGEON_SPRITES[pKey]; 
+    }
+    // ★ 2. それでも無ければ、念のため基本種族のスキン（+武器盾）を探す
+    if (!pSp) { 
+        pKey = `${s.player.type}${stateStr}_${s.player.face}`; 
+        pSp = window.DUNGEON_SPRITES[pKey]; 
+    }
+    // ★ 3. 最終手段：基本種族の素手
+    if (!pSp) { 
+        pKey = `${s.player.type}_${s.player.face}`; 
+        pSp = window.DUNGEON_SPRITES[pKey]; 
+    }
 
     if (pSp) {
         const pDiv = window.createDungeonSprite(pKey, s.player.y * 10 + 5, 1.0, false, logicalTileX);
@@ -5282,6 +5466,19 @@ window.updateDungeonUI = function() {
     document.getElementById('dg-floor').innerText = s.floor;
     document.getElementById('dg-hunger').innerText = Math.max(0, Math.floor(s.player.hunger));
 
+    // ==========================================
+    // ★ 追加：レベル表記の更新
+    // ==========================================
+    let lvlEl = document.getElementById('dg-level');
+    if (lvlEl) {
+        lvlEl.innerText = s.player.level || 1;
+    } else {
+        let allSpans = document.querySelectorAll('span');
+        allSpans.forEach(span => {
+            if (span.innerText.includes('Lv.')) span.innerText = `Lv.${s.player.level || 1}`;
+        });
+    }
+
     const invListEl = document.getElementById('dg-inventory-list');
     if (invListEl) {
         let invHtml = "";
@@ -5295,6 +5492,36 @@ window.updateDungeonUI = function() {
         for (let k in counts) { let iName = window.getDungeonItemEffect(k).name; invHtml += `<span style="background:#222; padding:3px 8px; border-radius:4px; border:1px solid #555; margin-right:5px;">${iName} <span style="color:#FFD700">x${counts[k]}</span></span>`; }
         if (invHtml === "") { invHtml = `<span style="color:#888; font-size:12px;">なにも持っていない</span>`; }
         invListEl.innerHTML = invHtml;
+    }
+
+    // ==========================================
+    // ★ 新規追加：発動中の種族特性UIの表示
+    // ==========================================
+    const traitContainer = document.getElementById('dg-active-traits');
+    if (!traitContainer && invListEl) {
+        const div = document.createElement('div');
+        div.id = 'dg-active-traits';
+        div.style.marginTop = '10px';
+        div.style.padding = '10px';
+        div.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
+        div.style.border = '1px solid #00BCD4';
+        div.style.borderRadius = '5px';
+        invListEl.parentNode.appendChild(div);
+    }
+
+    if (document.getElementById('dg-active-traits')) {
+        let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin) : [];
+        let traitHtml = `<h4 style="color:#00BCD4; margin:0 0 5px 0; font-size:14px;">🌟 発動中の種族特性</h4>`;
+        if (activeTraits.length === 0) {
+            traitHtml += `<span style="color:#aaa; font-size:12px;">固有の特性はありません。</span>`;
+        } else {
+            traitHtml += `<ul style="margin:0; padding-left:20px; color:#fff; font-size:12px; line-height:1.4;">`;
+            activeTraits.forEach(t => {
+                traitHtml += `<li><strong style="color:#FFEB3B;">【${t.name}】</strong> ${t.desc}</li>`;
+            });
+            traitHtml += `</ul>`;
+        }
+        document.getElementById('dg-active-traits').innerHTML = traitHtml;
     }
 
     // ★ 完全復旧：使える言葉のUI更新
@@ -5507,201 +5734,162 @@ window.playProjectileVFX = function(sx, sy, tx, ty, color) {
 };
 
 window.dealDungeonDamage = function(attacker, defender) {
-    let s = window.DUNGEON_STATE;
-
-    // ==========================================
-    // ★神仕様：素早さと印による「回避」＆「見切り」
-    // ==========================================
-    if (defender === s.player) {
-        let spd = window.aiPet && window.aiPet.stats ? (window.aiPet.stats.speed || 10) : 10;
-        let dodgeCap = 0.60; let extraDodge = 0;
-        
-        let sEff = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
-        let aEff = s.player.equipArmor ? window.getDungeonItemEffect(s.player.equipArmor) : null;
-        
-        if ((sEff && sEff.traits.includes('light')) || (aEff && aEff.traits.includes('light'))) dodgeCap = 0.75; // [軽]で上限突破
-        if ((sEff && sEff.traits.includes('dodge')) || (aEff && aEff.traits.includes('dodge'))) extraDodge += 0.15; // [避]で回避+15%
-        
-        let dodgeChance = Math.min(dodgeCap, spd / 333) + extraDodge;
-        if (Math.random() < dodgeChance) {
-            window.addDungeonLog(`ヒュンッ！ ${window.aiPet.name || 'AI'} は素早く攻撃をかわした！`, '#00e676');
-            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, "Miss", true);
-            return 0;
-        }
-        
-        // [見] 防御印：見切り（15%で無条件無効化）
-        if ((sEff && sEff.traits.includes('parry')) || (aEff && aEff.traits.includes('parry'))) {
-            if (Math.random() < 0.15) {
-                window.addDungeonLog(`🛡️ 装備で巧みに攻撃を弾いた！(0ダメージ)`, '#FFD700');
-                if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, "Parry!", true);
-                return 0;
-            }
-        }
-    }
-
-    let basePwr = attacker === s.player ? s.player.basePwr : 10;
-    let dmg = attacker.damage || (5 + Math.floor(basePwr * 0.5));
-    let wEff = (attacker === s.player && s.player.equipWeapon) ? window.getDungeonItemEffect(s.player.equipWeapon) : null;
+    if (defender.hp <= 0) return;
+    const s = window.DUNGEON_STATE;
     
-    // ==========================================
-    // ★ プレイヤーの攻撃印処理
-    // ==========================================
-    if (attacker === s.player && wEff) {
-        dmg += wEff.atk;
-        if (wEff.traits.includes('crit') && Math.random() < 0.15) {
-            dmg *= 2; window.addDungeonLog(`💥 会心の一撃！`, '#ff5252'); // [会]
+    let aIsPlayer = (attacker === s.player);
+    let aTraits = aIsPlayer ? window.getPlayerDungeonTraits(attacker.skin).map(t => t.name) : [];
+    let dTraits = !aIsPlayer ? window.getPlayerDungeonTraits(defender.skin).map(t => t.name) : [];
+
+    // ★ 特性：未来予知（プレイヤーが殴られる時、15%で回避）
+    if (!aIsPlayer && dTraits.includes('未来予知') && Math.random() < 0.15) {
+        window.addDungeonLog(`未来予知！ ${defender.name} は攻撃を完全に見切った！`, '#00BCD4');
+        return;
+    }
+    // ★ 特性：データ収集（敵ロボットの回避バフ）
+    if (!aIsPlayer && defender.highDodge && Math.random() < 0.8) {
+        window.addDungeonLog(`${defender.name} のデータ予測により攻撃がかわされた！`, '#aaa');
+        defender.highDodge = false; // 消費
+        return;
+    }
+
+    let aAtk = attacker.basePwr || attacker.damage || 5;
+    let dDef = defender.def || 0;
+
+    let wEff = null; let sEff = null;
+    let sealBonus = 0; let isDoubleSeal = false;
+
+    if (aIsPlayer) {
+        wEff = attacker.equipWeapon ? window.getDungeonItemEffect(attacker.equipWeapon) : null;
+        if (wEff) {
+            aAtk += wEff.atk;
+            if (wEff.traits.includes('holy') && (defender.type === 'ghost' || defender.type === 'spirit')) sealBonus += 15;
+            if (wEff.traits.includes('fire')) sealBonus += 10;
+            if (wEff.traits.includes('anti_dragon') && defender.type === 'dragon') sealBonus += 15;
         }
-        if (wEff.traits.includes('angry') && s.player._isAngry) {
-            dmg = Math.floor(dmg * 1.5); window.addDungeonLog(`💢 怒りの痛撃！`, '#ff5252'); // [怒]
-            s.player._isAngry = false;
-        }
-        if (wEff.traits.includes('holy') && (defender.type === 'ghost' || defender.type === 'skull')) {
-            dmg *= 2; window.addDungeonLog(`✨ 聖なる一撃が弱点を突く！`, '#E040FB'); // [光]
-        }
-        if (wEff.traits.includes('fire')) {
-            dmg += 10; window.addDungeonLog(`🔥 炎が敵を焼き焦がす！(+10)`, '#FF5252'); // [炎]
+        // ★ 特性：最終兵器
+        if (aTraits.includes('最終兵器')) aAtk += 10;
+        // ★ 特性：殺戮回路
+        if (aTraits.includes('殺戮回路') && attacker.hp >= attacker.maxHp) aAtk = Math.floor(aAtk * 1.5);
+        // ★ 特性：終焉の炉心
+        if (aTraits.includes('終焉の炉心')) isDoubleSeal = true;
+    } else {
+        sEff = defender.equipShield ? window.getDungeonItemEffect(defender.equipShield) : null;
+        if (sEff) dDef += sEff.def;
+        // ★ 特性：頑丈な装甲 / 重装甲
+        if (dTraits.includes('重装甲')) dDef += 6;
+        else if (dTraits.includes('頑丈な装甲')) dDef += 3;
+    }
+
+    // ★ 敵特性：アームスマッシュ（盾無視）
+    if (!aIsPlayer && attacker.skin && attacker.skin.includes('robot_type4_2') && Math.random() < 0.3) {
+        window.addDungeonLog(`💥 アームスマッシュ！ ${defender.name} の防御を貫いた！`, '#FF5252');
+        dDef = 0;
+    }
+    // ★ 敵特性：絶対防御陣（正面からの物理無効）
+    if (!aIsPlayer && defender.skin && defender.skin.includes('robot_type5_2')) {
+        let isFront = false;
+        if (attacker.face === 'up' && defender.face === 'down') isFront = true;
+        if (attacker.face === 'down' && defender.face === 'up') isFront = true;
+        if (attacker.face === 'left' && defender.face === 'right') isFront = true;
+        if (attacker.face === 'right' && defender.face === 'left') isFront = true;
+        if (isFront) {
+            window.addDungeonLog(`絶対防御陣により攻撃が弾かれた！`, '#aaa');
+            return;
         }
     }
 
-    let defBuff = 0;
-    if (defender === s.player) {
-        defBuff += Math.floor((s.player.level || 1) * 1.5);
-        if (s.player.equipShield) defBuff += window.getDungeonItemEffect(s.player.equipShield).def;
-        if (s.player.equipArmor) defBuff += window.getDungeonItemEffect(s.player.equipArmor).def;
-    }
-    if (defender.type === 'stone') defBuff += 5; 
+    let dmg = Math.max(1, aAtk - dDef);
+    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15) { dmg *= 2; window.addDungeonLog(`💥 会心の一撃！`, '#FFEB3B'); }
+    if (!aIsPlayer && sEff && sEff.traits.includes('parry') && Math.random() < 0.15) { window.addDungeonLog(`🛡️ 見切り！ ${defender.name} は攻撃を弾いた！`, '#4fc3f7'); return; }
 
-    if (attacker.isPiercing) {
-        defBuff = 0; dmg = 20 + Math.floor(s.floor * 1.0); 
-        window.addDungeonLog(`💥 防御無視の強烈な魔法！`, '#E040FB');
-    }
+    let finalSealDmg = isDoubleSeal ? sealBonus * 2 : sealBonus;
+    dmg += finalSealDmg;
 
-    // ==========================================
-    // ★ 敵の特攻とプレイヤーの防具印処理
-    // ==========================================
-    if (attacker.type === 'dragon' && Math.random() < 0.2) {
-        let hasAntiDragon = false;
-        if (s.player.equipShield && window.getDungeonItemEffect(s.player.equipShield).traits.includes('anti_dragon')) hasAntiDragon = true;
-        if (s.player.equipArmor && window.getDungeonItemEffect(s.player.equipArmor).traits.includes('anti_dragon')) hasAntiDragon = true;
-        
-        if (hasAntiDragon) { window.addDungeonLog(`🛡️ 竜の盾が炎のブレスを防いだ！`, '#FFD700'); } 
-        else { dmg *= 2; window.addDungeonLog(`ドラゴンの猛撃！ダメージ2倍！`, '#ff5252'); }
+    // ★ 特性：古代の盾
+    if (!aIsPlayer && dTraits.includes('古代の盾')) dmg = Math.max(1, dmg - 5);
+    // ★ 敵特性：神託の盾（偶数ターンはダメージ1）
+    if (aIsPlayer && defender.skin && defender.skin.includes('robot_type3_3') && (s.turnCount || 0) % 2 === 0) {
+        window.addDungeonLog(`神託の盾が輝き、ダメージが 1 に軽減された！`, '#00BCD4');
+        dmg = 1;
     }
 
-    if (attacker.type === 'magician' && !attacker.isPiercing) window.addDungeonLog(`魔法攻撃！`, '#E040FB'); 
-    if (defender.type === 'ghost' && Math.random() < 0.3) { window.addDungeonLog(`ゴーストは攻撃をすり抜けた！`, '#aaa'); return 0; }
-    
-    dmg = Math.max(1, dmg - defBuff); 
+    // ★ 敵特性：データ吸収（HPではなく満腹度を奪う）
+    if (!aIsPlayer && attacker.skin && attacker.skin.includes('robot_type1_2')) {
+        window.addDungeonLog(`データ吸収！ ${defender.name} の満腹度が奪われた！`, '#9C27B0');
+        defender.hunger = Math.max(0, defender.hunger - dmg);
+        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, `-${dmg} Food`, false);
+        return;
+    }
+
     defender.hp -= dmg;
-    defender.damageAnim = true; 
-    
     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === s.player);
-    
-    let defName = defender === s.player ? (window.aiPet.name || 'AI') : (defender.name || '敵');
-    window.addDungeonLog(`${defName}に ${dmg} ダメージ！`, '#ff5252');
+    window.addDungeonLog(`${defender.name} に ${dmg} ダメージ！`, defender === s.player ? '#ff5252' : '#FF9800');
 
-    // プレイヤーが被弾した時に[怒]フラグをセット
-    if (defender === s.player) s.player._isAngry = true;
-
-    // ==========================================
-    // ★ 被弾時の反撃・睡眠カウンター印
-    // ==========================================
-    if (defender === s.player && !attacker.isPiercing) {
-        let sEff = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
-        let aEff = s.player.equipArmor ? window.getDungeonItemEffect(s.player.equipArmor) : null;
-        let allDefTraits = [];
-        if (sEff) allDefTraits.push(...sEff.traits);
-        if (aEff) allDefTraits.push(...aEff.traits);
-
-        if (allDefTraits.includes('counter') && attacker.hp > 0) { // [反]
-            let counterDmg = Math.max(1, Math.floor(dmg / 2)); attacker.hp -= counterDmg;
-            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(attacker.x, attacker.y, counterDmg, false);
-            window.addDungeonLog(`🛡️ 反撃！${attacker.name}に ${counterDmg} のダメージをやり返した！`, '#FFD700');
-        }
-        if (allDefTraits.includes('counter_sleep') && attacker.hp > 0 && Math.random() < 0.15) { // [眠] 防具
-            attacker.charmed = true; window.addDungeonLog(`💤 カウンター！敵を眠らせた！`, '#B39DDB');
-        }
-    }
-
-    // ==========================================
-    // ★ 攻撃ヒット後のプレイヤー武器印
-    // ==========================================
-    if (attacker === s.player && wEff) {
-        if (wEff.traits.includes('heal') && dmg > 0) { // [癒]
-            let rec = Math.max(1, Math.floor(dmg * 0.2));
-            s.player.hp = Math.min(s.player.maxHp, s.player.hp + rec);
-            window.addDungeonLog(`🩸 与えたダメージからHPを ${rec} 吸収した！`, '#4CAF50');
-        }
-        if (wEff.traits.includes('sleep') && defender.hp > 0 && Math.random() < 0.2) { // [眠]
-            defender.charmed = true; window.addDungeonLog(`💤 睡眠攻撃で敵が眠りについた！`, '#B39DDB');
-        }
-    }
-
-    // 敵の特殊行動
-    if (defender.hp > 0) {
-        if (attacker.type === 'beetle') {
-            let kx = defender.x, ky = defender.y;
-            if (attacker.face === 'up') ky--; else if (attacker.face === 'down') ky++;
-            else if (attacker.face === 'left') kx--; else if (attacker.face === 'right') kx++;
-            if (s.grid[ky][kx] !== 1 && !s.enemies.some(e => e.hp>0 && e.x===kx && e.y===ky)) {
-                defender.x = kx; defender.y = ky; defender.knockbackAnim = true;
-                window.addDungeonLog(`カブトムシの角で吹き飛ばされた！`, '#FF9800');
+    // ★ 特性：ウイルス侵蝕（殴った敵を毒にする）
+    if (aIsPlayer && aTraits.includes('ウイルス侵蝕')) { defender.status.poison += 3; }
+    // ★ 敵特性：サビ撒き
+    if (!aIsPlayer && attacker.skin && attacker.skin.includes('robot_type5')) {
+        if (defender.equipWeapon) {
+            let pBase = window.parseItemString(defender.equipWeapon);
+            if (pBase.plus > 0) {
+                defender.equipWeapon = `${pBase.baseId}_+${pBase.plus - 1}` + (pBase.seals.length>0 ? '_'+pBase.seals.join('_') : '');
+                window.addDungeonLog(`サビ撒き！ ${attacker.name} の武器が劣化してしまった！`, '#9C27B0');
             }
         }
-        if (attacker.type === 'spirit') {
-            let heal = Math.floor(dmg / 2); attacker.hp = Math.min(attacker.maxHp || 100, attacker.hp + heal);
-            window.addDungeonLog(`精霊の力で ${heal} 回復！`, '#4CAF50');
+    }
+    // ★ 敵特性：ホログラム（ダメージを受けると分身生成）
+    if (aIsPlayer && defender.skin && defender.skin.includes('robot_type2_3') && defender.hp > 0 && Math.random() < 0.3) {
+        let ex = defender.x; let ey = defender.y;
+        let dirs = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}];
+        for (let d of dirs) { if (s.grid[ey+d.dy][ex+d.dx] !== 1 && !s.enemies.some(e=>e.x===ex+d.dx&&e.y===ey+d.dy)) { ex+=d.dx; ey+=d.dy; break; } }
+        if (ex !== defender.x || ey !== defender.y) {
+            window.addDungeonLog(`${defender.name} のホログラム（分身）が現れた！`, '#00BCD4');
+            s.enemies.push({ id: 'e_holo_'+Date.now(), x: ex, y: ey, hp: 1, maxHp: 1, damage: defender.damage, name: `分身の${defender.type}`, type: defender.type, skin: defender.skin, face: defender.face, attackAnim: false, status: { poison:0, confusion:0 } });
         }
-        if (defender.type === 'balloon') {
-            let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0);
-            defender.x = wx; defender.y = wy; defender.warpAnim = true; 
-            window.addDungeonLog(`風船が割れてどこかへ飛んでいった！`, '#00BCD4');
-        }
-    } else if (defender !== s.player) {
+    }
+    // ★ 敵特性：データ収集（殴られたら回避アップ）
+    if (aIsPlayer && defender.skin && defender.skin.includes('robot_type3')) defender.highDodge = true;
+
+    // 撃破時の処理
+    if (defender.hp <= 0) {
         window.addDungeonLog(`${defender.name} を倒した！`, '#FFD700');
-        
-        // ★ 死亡時ボーナス印
-        if (attacker === s.player && wEff) {
-            if (wEff.traits.includes('exp')) { // [幸]
-                s.player.exp += Math.floor(defender.maxHp * 0.5); 
-                window.addDungeonLog(`✨ 経験値ボーナス！`, '#E040FB');
-            }
-            if (wEff.traits.includes('food') && Math.random() < 0.10) { // [食]
-                let drop = Math.random() < 0.5 ? 'item_berry' : 'item_bread';
-                s.player.tempInventory.push(drop); window.addDungeonLog(`🍖 モンスターが食料を落とした！`, '#FF9800');
-            }
-        }
-        
-        if (s.mapType === 'crystal' && Math.random() < 0.45) {
-            const dropTable = [
-                { id: 'herb', name: '薬草', weight: 20 }, { id: 'item_berry', name: '野イチゴ', weight: 15 }, { id: 'item_bread', name: '大きなパン', weight: 15 },
-                { id: 'dish_stirfry', name: '野菜炒め', weight: 10 }, { id: 'item_seed_happy', name: 'しあわせの種', weight: 3 }, { id: 'item_scroll_sleep', name: '睡眠の巻物', weight: 7 }, 
-                { id: 'item_wand_fire', name: '火竜の杖', weight: 7 }, { id: 'item_sword_iron', name: '鉄の剣', weight: 10 }, { id: 'item_sword_double', name: '連撃の剣', weight: 4 }, 
-                { id: 'item_shield_wood', name: '木の盾', weight: 10 }, { id: 'item_shield_counter', name: '反撃の盾', weight: 4 }, { id: 'item_shield_hara', name: 'ハラモチの盾', weight: 4 },
-                { id: 'item_armor_iron', name: '鉄の鎧', weight: 8 }, { id: 'item_ring_haste', name: '俊足の腕輪', weight: 2 }, { id: 'item_ring_heal', name: '回復の指輪', weight: 2 } 
-            ];
-            let totalWeight = dropTable.reduce((sum, item) => sum + item.weight, 0);
-            let rand = Math.random() * totalWeight; let dropped = dropTable[0];
-            for (let item of dropTable) { if (rand < item.weight) { dropped = item; break; } rand -= item.weight; }
-            s.player.tempInventory.push(dropped.id); 
-            
-            // ★追加・修正：敵が落とした時も、鑑定フィルターを通した偽名をログに出す！
-            let eff = window.getDungeonItemEffect(dropped.id);
-            window.addDungeonLog(`敵は ${eff.name} を落とした！`, '#4CAF50');
-        }
+        if (aIsPlayer) {
+            // ★ 特性：学習機能
+            let expGain = aTraits.includes('学習機能') ? 24 : 20;
+            attacker.exp = (attacker.exp || 0) + expGain;
+            if (attacker.exp >= 100) {
+                attacker.exp -= 100; attacker.level = (attacker.level || 1) + 1; attacker.maxHp += 20; attacker.hp = attacker.maxHp; attacker.basePwr += 8;
+                
+                // ★ 修正：レベルアップ時に満腹度も全回復させる
+                let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (attacker.maxHunger || 100);
+                attacker.hunger = maxH; 
 
-        if (s.mapType === 'crystal') {
-            s.player.exp += defender.maxHp;
-            if (s.player.exp >= s.player.nextExp) {
-                s.player.level++; s.player.exp -= s.player.nextExp; s.player.nextExp = Math.floor(s.player.nextExp * 1.5);
-                s.player.maxHp += 20; s.player.hp = s.player.maxHp; s.player.basePwr += 8; 
-                // ★修正：装備ボーナスを含めた本当の最大値まで全回復する！
-                s.player.hunger = window.getRealMaxHunger(); 
-                window.addDungeonLog(`✨ レベルアップ！ Lv.${s.player.level} になった！（体力・満腹度 全回復！） ✨`, '#E040FB');
+                attacker.levelUpAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(attacker.x, attacker.y, 'level_up');
+                window.addDungeonLog(`✨ レベルアップ！ Lv.${attacker.level} になった！(体力・満腹度 全回復)`, '#E040FB');
             }
+            // ★ 特性：成金趣味
+            let dropChance = aTraits.includes('成金趣味') ? 0.6 : 0.1;
+            if (Math.random() < dropChance) {
+                let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
+                let droppedKey = items[Math.floor(Math.random() * items.length)];
+                s.player.tempInventory.push(droppedKey); 
+                window.addDungeonLog(`敵は ${window.getDungeonItemEffect(droppedKey).name} を落とした！`, '#4CAF50');
+            }
+        }
+        // ★ 敵特性：メルトダウン（死亡時爆発）
+        if (!aIsPlayer && defender.skin && defender.skin.includes('robot_type1_3')) {
+            window.addDungeonLog(`💥 メルトダウン！ ${defender.name} が大爆発を起こした！`, '#FF5252');
+            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(defender.x, defender.y, 'fire');
+            if (Math.abs(s.player.x - defender.x) <= 1 && Math.abs(s.player.y - defender.y) <= 1) s.player.hp -= 30;
+            s.enemies.forEach(e => { if(e!==defender && Math.abs(e.x - defender.x) <= 1 && Math.abs(e.y - defender.y) <= 1) e.hp -= 30; });
+        }
+        // ★ 敵特性：時間逆行
+        if (!aIsPlayer && defender.skin && defender.skin.includes('robot_type5_3') && !defender.hasRevived) {
+            window.addDungeonLog(`⏳ 時間逆行！ ${defender.name} は時を戻して復活した！`, '#E040FB');
+            defender.hp = defender.maxHp; defender.hasRevived = true;
         }
     }
-    return dmg;
 };
 
 window.processDungeonTurn = async function() { 
@@ -6905,17 +7093,28 @@ if (typeof window.AICharacter !== 'undefined') {
         if (arEff) allTraits.push(...arEff.traits);
         if (acEff) allTraits.push(...acEff.traits);
 
+        // ★ 追加：現在発動中の特性リストを取得
+        let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+
         let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
 
         if ((allTraits.includes('regen') || allTraits.includes('life')) && s.player.hp < s.player.maxHp) {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 1);
         }
 
+        // ★ 特性追加：大地の恵み（毎ターンHP微回復）
+        if (activeTraits.includes('大地の恵み') && s.player.hp < s.player.maxHp) {
+            s.player.hp = Math.min(s.player.maxHp, s.player.hp + 2);
+        }
+
         if (allTraits.includes('half_hunger')) consumption *= 0.5;
         if (allTraits.includes('fast_hunger')) consumption *= 2.0;
         if (allTraits.includes('regen') && consumption > 1.0) consumption = 1.0; 
 
-        s.player.hunger = Math.max(0, s.player.hunger - (1.0 * consumption));
+        // ★ 特性追加：無限機関（満腹度が一切減らない）
+        if (!activeTraits.includes('無限機関')) {
+            s.player.hunger = Math.max(0, s.player.hunger - (1.0 * consumption));
+        }
         
         if (s.player.hunger <= 0) {
             s.player.hp -= 2; window.addDungeonLog(`お腹が空いて倒れそうだ... (HP-2)`, '#ff5252');
@@ -7398,11 +7597,41 @@ if (typeof window.AICharacter !== 'undefined') {
                 }
 
                 if (newX !== s.player.x || newY !== s.player.y) {
-                    if (newX >= 0 && newX < s.mapWidth && newY >= 0 && newY < s.mapHeight && s.grid[newY][newX] !== 1 && (isFlying || s.grid[newY][newX] !== 4)) {
+                    if (newX >= 0 && newX < s.mapWidth && newY >= 0 && newY < s.mapHeight) {
+                        
+                        let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+                        let isWall = s.grid[newY][newX] === 1;
+                        let isWater = s.grid[newY][newX] === 4;
+
+                        // ★ 特性追加：重機動アーム（壁を掘る）
+                        if (isWall) {
+                            if (activeTraits.includes('重機動アーム') && newX > 0 && newX < s.mapWidth-1 && newY > 0 && newY < s.mapHeight-1) {
+                                window.addDungeonLog(`💥 重機動アームで壁を粉砕した！`, '#FFD700');
+                                s.grid[newY][newX] = 0; // 床にする
+                            } else {
+                                window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa');
+                                continue;
+                            }
+                        } else if (!isFlying && isWater) {
+                            window.addDungeonLog(`ガンッ！ 水脈にぶつかった！`, '#aaa');
+                            continue;
+                        }
+
                         let hitEnemy = s.enemies.find(e => e.x === newX && e.y === newY && e.hp > 0);
-                        if (hitEnemy) { window.addDungeonLog(`ゴツン！ 敵にぶつかった！`, '#FF9800'); s.player.attackAnim = true; } 
+                        if (hitEnemy) { 
+                            window.addDungeonLog(`ゴツン！ 敵にぶつかった！`, '#FF9800'); s.player.attackAnim = true; 
+                        } 
                         else { 
                             s.player.lastX = s.player.x; s.player.lastY = s.player.y; s.player.x = newX; s.player.y = newY; 
+
+                            // ★ 特性追加：癒やしの舞（敵がいない部屋を歩くとHP回復）
+                            if (activeTraits.includes('癒やしの舞') && s.player.hp < s.player.maxHp) {
+                                let currentRoom = s.roomsInfo.find(r => newX >= r.x && newX < r.x + r.w && newY >= r.y && newY < r.y + r.h);
+                                if (currentRoom) {
+                                    let enemiesInRoom = s.enemies.some(e => e.hp > 0 && e.x >= currentRoom.x && e.x < currentRoom.x + currentRoom.w && e.y >= currentRoom.y && e.y < currentRoom.y + currentRoom.h);
+                                    if (!enemiesInRoom) s.player.hp = Math.min(s.player.maxHp, s.player.hp + 5);
+                                }
+                            }
 
                             if (s.grid[s.player.y][s.player.x] === 5) {
                                 window.addDungeonLog(`🔥 マグマを踏んで火傷した！(HP-10)`, '#FF5252');
@@ -7414,13 +7643,9 @@ if (typeof window.AICharacter !== 'undefined') {
                                 let itemIdx = s.items.findIndex(i => i.x === s.player.x && i.y === s.player.y);
                                 if (itemIdx !== -1) {
                                     let itm = s.items[itemIdx];
-                                    
-                                    // ★追加：鑑定フィルターを通して、見えている通りの名前を取得する
                                     let eff = window.getDungeonItemEffect(itm.key); 
-
                                     if (s.player.tempInventory.length < 20) { 
                                         s.player.tempInventory.push(itm.key); 
-                                        // ★修正：itm.name (本名) ではなく eff.name (偽名) をログに出す！
                                         window.addDungeonLog(`足元から ${eff.name} を拾った！`, '#4CAF50'); 
                                         s.items.splice(itemIdx, 1);
                                     } else { 
@@ -7428,9 +7653,16 @@ if (typeof window.AICharacter !== 'undefined') {
                                     }
                                 }
                             }
+
                             if (s.traps && s.player.type !== 'balloon' && s.player.type !== 'ghost') { 
                                 let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
-                                if (trap && !s.player.status.paralyzed) { 
+                                
+                                // ★ 特性追加：大地の恵み（罠無効化）
+                                if (trap && activeTraits.includes('大地の恵み')) {
+                                    window.addDungeonLog(`大地の恵みにより、罠が作動しなかった！`, '#4CAF50');
+                                    trap.visible = true; 
+                                }
+                                else if (trap && !s.player.status.paralyzed) { 
                                     if (!trap.visible) window.addDungeonLog(`カシャッ！ 何か罠を踏んだ！`, '#ff5252');
                                     trap.visible = true;
                                     if (trap.type === 'poison') { window.addDungeonLog(`毒矢が飛んできた！`, '#9C27B0'); s.player.status.poison += 5; }
@@ -7710,8 +7942,17 @@ if (typeof window.AICharacter !== 'undefined') {
 
                 if (s.grid[s.player.y][s.player.x] === 2) {
                     window.addDungeonLog(`階段を見つけた！ 次のフロアへ進む！`, '#00BCD4');
+                    
+                    // ★ 特性：管理者権限（フロア移動時にアイテム生成）
+                    if (activeTraits.includes('管理者権限')) {
+                        let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
+                        let droppedKey = items[Math.floor(Math.random() * items.length)];
+                        s.player.tempInventory.push(droppedKey); 
+                        window.addDungeonLog(`💻 管理者権限により ${window.getDungeonItemEffect(droppedKey).name} をカバンに生成した！`, '#E040FB');
+                    }
+
                     window.updateDungeonUI();
-                    await sleep(300); 
+                    await sleep(300);
                     
                     if (s.isAuto) window.toggleDungeonAuto(); s.floor++; 
                     (async () => { await window.generateDungeonFloor(); window.updateDungeonUI(); s.isProcessingTurn = false; })();
