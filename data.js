@@ -2340,7 +2340,8 @@ const itemCatalog = {
     item_ring_haste: { name: "俊足の腕輪", type: 'equip', value: 1000, desc: "素早く行動できる" },
     item_ring_heal: { name: "回復の指輪", type: 'equip', value: 1000, desc: "体力が回復するが腹が減る" },
     // ▼▼ 追加：ダンジョン用の上限突破アイテム ▼▼
-    item_bread: { name: '大きなパン', type: 'food', value: 150, hungerRec: 50, energyRec: 0, desc: 'ふっくら焼き上がった大きなパン。お腹がいっぱいの時に食べると、満腹度の上限が少し増える。' }
+    item_bread: { name: '大きなパン', type: 'food', value: 150, hungerRec: 50, energyRec: 0, desc: 'ふっくら焼き上がった大きなパン。お腹がいっぱいの時に食べると、満腹度の上限が少し増える。' },
+    item_scroll_identify: { name: '識別の巻物', type: 'scroll', value: 100, desc: 'アイテムの正体を完全に見破る巻物。' }
 };
 
 const riverFishingTable = {
