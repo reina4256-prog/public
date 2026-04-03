@@ -3867,6 +3867,26 @@ window.DUNGEON_SPRITES = {
         "sh": 237,
         "scale": 1
     },
+
+    // ==========================================
+    // ★ 追加：特殊な床、トラップ、アイテムの定義
+    // ==========================================
+    // 特殊な床 (dungeon_gimmick_mapchip.png)
+    "gimmick_water": { "img": "dungeon_gimmick_mapchip.png", "sx": 0, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "gimmick_magma": { "img": "dungeon_gimmick_mapchip.png", "sx": 100, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+
+    // トラップ (dungeon_trap_mapchip.png)
+    "trap_poison": { "img": "dungeon_trap_mapchip.png", "sx": 0, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "trap_mine": { "img": "dungeon_trap_mapchip.png", "sx": 100, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "trap_blind": { "img": "dungeon_trap_mapchip.png", "sx": 200, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "trap_bear_trap": { "img": "dungeon_trap_mapchip.png", "sx": 300, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+
+    // 床落ちアイテム (dungeon_item_mapchip.png)
+    "spr_item_herb": { "img": "dungeon_item_mapchip.png", "sx": 0, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "spr_item_scroll": { "img": "dungeon_item_mapchip.png", "sx": 100, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "spr_item_wand": { "img": "dungeon_item_mapchip.png", "sx": 200, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+    "spr_item_bag": { "img": "dungeon_item_mapchip.png", "sx": 300, "sy": 0, "sw": 100, "sh": 100, "scale": 1 },
+
     // キャラクター
     "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
@@ -4776,7 +4796,9 @@ window.isTileVisible = function(s, tx, ty) {
 window.generateDungeonFloor = async function() {
     const s = window.DUNGEON_STATE;
     s.grid = []; s.enemies = []; s.visited = []; s.roomsInfo = []; 
-    s.rescueTargets = []; // ★追加：この階にいる救助対象
+    s.rescueTargets = []; 
+    s.items = []; // 床落ちアイテム
+    s.traps = []; // 罠
     
     for(let y = 0; y < s.mapHeight; y++) {
         s.grid[y] = new Array(s.mapWidth).fill(1);
@@ -4803,8 +4825,7 @@ window.generateDungeonFloor = async function() {
     s.player.x = rooms[0].x; s.player.y = rooms[0].y;
     let lastRoom = rooms[rooms.length - 1]; s.grid[lastRoom.y][lastRoom.x] = 2; 
 
-    // ★修正：敵の基礎ステータスを大幅に下げて、初期レベルでも戦えるようにする
-    const enemyCount = 3 + Math.floor(s.floor / 3); // 数も減らす
+    const enemyCount = 3 + Math.floor(s.floor / 3); 
     const eHpBase = s.mapType === 'crystal' ? 10 : 20;  
     const eDmgBase = s.mapType === 'crystal' ? 3 : 5;   
 
@@ -4815,46 +4836,69 @@ window.generateDungeonFloor = async function() {
         } while (s.grid[ey][ex] !== 0 || (ex === s.player.x && ey === s.player.y));
         
         let eType = window._dungeonAiTypesList[Math.floor(Math.random() * window._dungeonAiTypesList.length)];
-        
-        // ★修正：階層ボーナス（s.floor * 5等）の上がり幅もマイルドにしました
-        s.enemies.push({ id: 'e_'+i, x: ex, y: ey, hp: eHpBase + s.floor * 3, maxHp: eHpBase + s.floor * 3, damage: eDmgBase + s.floor * 1, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false });
+        s.enemies.push({ id: 'e_'+i, x: ex, y: ey, hp: eHpBase + s.floor * 3, maxHp: eHpBase + s.floor * 3, damage: eDmgBase + s.floor * 1, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false, status: { poison:0, confusion:0 } });
     }
 
     // ==========================================
-    // ★ 追加：クラウドから救助待ちプレイヤーを取得してマップに配置
+    // ★ 追加：アイテムを床にばら撒く (1フロアに2〜4個)
     // ==========================================
+    const dropTable = [
+        { id: 'herb', name: '薬草', weight: 20 }, { id: 'item_berry', name: '野イチゴ', weight: 15 }, { id: 'item_bread', name: '大きなパン', weight: 15 },
+        { id: 'dish_stirfry', name: '野菜炒め', weight: 10 }, { id: 'item_seed_happy', name: 'しあわせの種', weight: 3 }, { id: 'item_scroll_sleep', name: '睡眠の巻物', weight: 7 }, 
+        { id: 'item_wand_fire', name: '火竜の杖', weight: 7 }, { id: 'item_sword_iron', name: '鉄の剣', weight: 10 }, { id: 'item_sword_double', name: '連撃の剣', weight: 4 }, 
+        { id: 'item_shield_wood', name: '木の盾', weight: 10 }, { id: 'item_shield_counter', name: '反撃の盾', weight: 4 }, { id: 'item_shield_hara', name: 'ハラモチの盾', weight: 4 },
+        { id: 'item_armor_iron', name: '鉄の鎧', weight: 8 }, { id: 'item_ring_haste', name: '俊足の腕輪', weight: 2 }, { id: 'item_ring_heal', name: '回復の指輪', weight: 2 } 
+    ];
+    let itemCount = 2 + Math.floor(Math.random() * 3);
+    let totalWeight = dropTable.reduce((sum, item) => sum + item.weight, 0);
+    for(let i=0; i<itemCount; i++) {
+        let roomIdx = Math.floor(Math.random() * rooms.length); let r = s.roomsInfo[roomIdx];
+        let ix, iy; let attempts = 0;
+        do {
+            ix = r.x + Math.floor(Math.random() * r.w); iy = r.y + Math.floor(Math.random() * r.h); attempts++;
+        } while ((s.grid[iy][ix] !== 0 || (ix === s.player.x && iy === s.player.y)) && attempts < 50);
+        
+        let rand = Math.random() * totalWeight; let dropped = dropTable[0];
+        for (let item of dropTable) { if (rand < item.weight) { dropped = item; break; } rand -= item.weight; }
+        s.items.push({ id: `item_${Date.now()}_${i}`, key: dropped.id, name: dropped.name, x: ix, y: iy });
+    }
+
     // ==========================================
-    // ★ 追加：クラウドから救助待ちプレイヤーを取得してマップに配置
+    // ★ 追加：罠を仕掛ける (階層が深くなると増える)
     // ==========================================
+    const trapTypes = [
+        { type: 'poison', name: '毒矢の罠' }, { type: 'mine', name: '地雷' }, 
+        { type: 'blind', name: '泥水の罠' }, { type: 'bear_trap', name: 'トラバサミ' }
+    ];
+    let trapCount = 1 + Math.floor(s.floor / 3);
+    for(let i=0; i<trapCount; i++) {
+        let roomIdx = Math.floor(Math.random() * rooms.length); let r = s.roomsInfo[roomIdx];
+        let tx, ty; let attempts = 0;
+        do {
+            tx = r.x + Math.floor(Math.random() * r.w); ty = r.y + Math.floor(Math.random() * r.h); attempts++;
+        } while ((s.grid[ty][tx] !== 0 || (tx === s.player.x && ty === s.player.y) || s.items.some(it => it.x===tx && it.y===ty)) && attempts < 50);
+        
+        let tData = trapTypes[Math.floor(Math.random() * trapTypes.length)];
+        s.traps.push({ id: `trap_${Date.now()}_${i}`, type: tData.type, name: tData.name, x: tx, y: ty, visible: false });
+    }
+
     if (typeof window.fetchRescueRequests === 'function') {
         try {
             const requests = await window.fetchRescueRequests(s.mapType);
             requests.forEach(req => {
-                // 同じ階層で倒れている他プレイヤーがいれば配置！
                 if (req.floor === s.floor) {
-                    // ★修正：rooms配列(中心点のみ)ではなく、s.roomsInfo(幅と高さあり)を使う！
-                    let roomIdx = Math.floor(Math.random() * s.roomsInfo.length);
-                    let r = s.roomsInfo[roomIdx];
-                    let rx, ry; 
-                    let attempts = 0;
+                    let roomIdx = Math.floor(Math.random() * s.roomsInfo.length); let r = s.roomsInfo[roomIdx];
+                    let rx, ry; let attempts = 0;
                     do {
-                        rx = r.x + Math.floor(Math.random() * r.w);
-                        ry = r.y + Math.floor(Math.random() * r.h);
-                        attempts++;
+                        rx = r.x + Math.floor(Math.random() * r.w); ry = r.y + Math.floor(Math.random() * r.h); attempts++;
                     } while ((s.grid[ry][rx] !== 0 || (rx === s.player.x && ry === s.player.y)) && attempts < 50);
                     
-                    s.rescueTargets.push({
-                        id: req.requesterId,
-                        name: req.requesterName,
-                        skin: req.aiSkin,
-                        x: rx, y: ry, rescued: false
-                    });
+                    s.rescueTargets.push({ id: req.requesterId, name: req.requesterName, skin: req.aiSkin, x: rx, y: ry, rescued: false });
                 }
             });
         } catch(e) { console.error("救助データ配置エラー:", e); }
     }
     
-    // 配置後に再描画
     window.updateDungeonUI();
 };
 
@@ -4886,9 +4930,12 @@ window.updateDungeonUI = function() {
 
     if (!s.visited) s.visited = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(false));
 
+    let isBlind = s.player.status && s.player.status.blind > 0; 
+
     for(let y = 0; y < s.mapHeight; y++) {
         for(let x = 0; x < s.mapWidth; x++) {
-            if (window.isTileVisible(s, x, y)) s.visited[y][x] = true;
+            if (!isBlind && window.isTileVisible(s, x, y)) s.visited[y][x] = true;
+            else if (isBlind && Math.abs(x - s.player.x) + Math.abs(y - s.player.y) <= 1) s.visited[y][x] = true;
         }
     }
 
@@ -4898,14 +4945,13 @@ window.updateDungeonUI = function() {
         for(let x = startX; x <= endX; x++) {
             if (!s.visited[y][x]) continue; 
             
-            let isVisibleNow = window.isTileVisible(s, x, y);
+            let isVisibleNow = !isBlind ? window.isTileVisible(s, x, y) : (Math.abs(x - s.player.x) + Math.abs(y - s.player.y) <= 1);
             let brightness = 0.2; 
             
             if (isVisibleNow) {
                 let inRoom = (!isCorridor && s.roomsInfo.some(r => s.player.x >= r.x && s.player.x < r.x + r.w && s.player.y >= r.y && s.player.y < r.y + r.h && x >= r.x - 1 && x < r.x + r.w + 1 && y >= r.y - 1 && y < r.y + r.h + 1));
-                if (inRoom) {
-                    brightness = 1.0; 
-                } else {
+                if (inRoom) { brightness = 1.0; } 
+                else {
                     const dist = Math.sqrt(Math.pow(x - s.player.x, 2) + Math.pow(y - s.player.y, 2));
                     let baseRad = s.player.type === 'bird' ? 3.5 : 1.5;
                     brightness = dist > baseRad - 0.5 ? 0.6 : 1.0;
@@ -4918,13 +4964,52 @@ window.updateDungeonUI = function() {
             const tile = window.createDungeonSprite(key, y * 10, brightness, false);
             if (tile) { 
                 const sp = window.DUNGEON_SPRITES[key];
-                const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0;
-                const offsetY = sp ? (logicalTileY - sp.sh) / 2 : 0;
-                tile.style.left = `${x * logicalTileX + offsetX}px`; 
-                tile.style.top = `${y * logicalTileY + offsetY}px`; 
+                const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; const offsetY = sp ? (logicalTileY - sp.sh) / 2 : 0;
+                tile.style.left = `${x * logicalTileX + offsetX}px`; tile.style.top = `${y * logicalTileY + offsetY}px`; 
                 gridDiv.appendChild(tile); 
             }
         }
+    }
+
+    // ==========================================
+    // ★ 画像スプライトを使った罠の描画
+    // ==========================================
+    if (s.traps) {
+        s.traps.forEach(t => {
+            if (!t.visible || !window.isTileVisible(s, t.x, t.y)) return;
+            let sprKey = `trap_${t.type}`; // 例: trap_poison
+            const trapDiv = window.createDungeonSprite(sprKey, t.y * 10 + 1, 1.0, false);
+            if (trapDiv) {
+                const sp = window.DUNGEON_SPRITES[sprKey];
+                const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; const offsetY = sp ? (logicalTileY - sp.sh) / 2 : 0;
+                trapDiv.style.left = `${t.x * logicalTileX + offsetX}px`; trapDiv.style.top = `${t.y * logicalTileY + offsetY}px`;
+                gridDiv.appendChild(trapDiv);
+            }
+        });
+    }
+
+    // ==========================================
+    // ★ 画像スプライトを使った床落ちアイテムの描画
+    // ==========================================
+    if (s.items) {
+        s.items.forEach(i => {
+            if (!window.isTileVisible(s, i.x, i.y)) return;
+            
+            // アイテム種別から描画するスプライトキーを判定
+            let sprKey = 'spr_item_bag'; // デフォルトは革袋（装備など）
+            if (i.key.includes('herb') || i.key.includes('berry') || i.key.includes('bread') || i.key.includes('seed')) sprKey = 'spr_item_herb';
+            else if (i.key.includes('scroll')) sprKey = 'spr_item_scroll';
+            else if (i.key.includes('wand')) sprKey = 'spr_item_wand';
+            
+            const itemDiv = window.createDungeonSprite(sprKey, i.y * 10 + 1, 1.0, false);
+            if (itemDiv) {
+                const sp = window.DUNGEON_SPRITES[sprKey];
+                const offsetX = sp ? (logicalTileX - sp.sw) / 2 : 0; const offsetY = sp ? (logicalTileY - sp.sh) / 2 : 0;
+                itemDiv.style.left = `${i.x * logicalTileX + offsetX}px`; itemDiv.style.top = `${i.y * logicalTileY + offsetY}px`;
+                itemDiv.style.animation = "atk-up 2s infinite ease-in-out"; // ぷかぷか浮く
+                gridDiv.appendChild(itemDiv);
+            }
+        });
     }
 
     // 救助待ちの他プレイヤーを描画
@@ -4941,14 +5026,9 @@ window.updateDungeonUI = function() {
                 targetDiv.style.filter = "grayscale(100%) opacity(0.7)"; 
                 
                 const sosMark = document.createElement('div');
-                sosMark.innerText = "🆘";
-                sosMark.style.position = "absolute";
-                sosMark.style.top = "-30px";
-                sosMark.style.fontSize = "30px";
-                sosMark.style.textShadow = "0 0 5px red";
-                sosMark.style.animation = "atk-up 1s infinite"; 
+                sosMark.innerText = "🆘"; sosMark.style.position = "absolute"; sosMark.style.top = "-30px"; sosMark.style.fontSize = "30px";
+                sosMark.style.textShadow = "0 0 5px red"; sosMark.style.animation = "atk-up 1s infinite"; 
                 targetDiv.appendChild(sosMark);
-
                 gridDiv.appendChild(targetDiv);
             }
         });
@@ -4967,28 +5047,16 @@ window.updateDungeonUI = function() {
             if (e.damageAnim) { enemyDiv.classList.add(`anim-damage`); e.damageAnim = false; } 
             if (e.warpAnim) { enemyDiv.classList.add(`anim-warp`); e.warpAnim = false; } 
             
-            // ★追加：睡眠状態（charmed）の敵に持続的な「Zzz」テキストを表示（絵文字不使用）
             if (e.charmed) {
-                const zzz = document.createElement('div');
-                zzz.innerText = "Zzz";
-                zzz.style.position = "absolute";
-                zzz.style.top = "-20px";
-                zzz.style.right = "-5px";
-                zzz.style.color = "#B39DDB";
-                zzz.style.fontWeight = "bold";
-                zzz.style.fontSize = "16px";
-                zzz.style.textShadow = "1px 1px 2px #000, -1px -1px 2px #000";
-                zzz.style.animation = "atk-up 1.5s infinite linear"; // ふわふわ上下に揺らす
+                const zzz = document.createElement('div'); zzz.innerText = "Zzz"; zzz.style.position = "absolute"; zzz.style.top = "-20px"; zzz.style.right = "-5px";
+                zzz.style.color = "#B39DDB"; zzz.style.fontWeight = "bold"; zzz.style.fontSize = "16px"; zzz.style.textShadow = "1px 1px 2px #000, -1px -1px 2px #000";
+                zzz.style.animation = "atk-up 1.5s infinite linear"; 
                 enemyDiv.appendChild(zzz);
             }
-            
             gridDiv.appendChild(enemyDiv);
         }
     });
 
-    // ==========================================
-    // ★ 修正：プレイヤー画像の動的切り替え（装備反映）
-    // ==========================================
     let stateStr = "";
     if (s.player.equipWeapon && s.player.equipShield) stateStr = "_sword_shield";
     else if (s.player.equipWeapon) stateStr = "_sword";
@@ -4996,12 +5064,7 @@ window.updateDungeonUI = function() {
 
     let pKey = `${s.player.type}${stateStr}_${s.player.face}`;
     let pSp = window.DUNGEON_SPRITES[pKey];
-
-    // 万が一その種族の装備画像が登録されていない場合は、通常画像（手ぶら）でフォールバック
-    if (!pSp) {
-        pKey = `${s.player.type}_${s.player.face}`;
-        pSp = window.DUNGEON_SPRITES[pKey];
-    }
+    if (!pSp) { pKey = `${s.player.type}_${s.player.face}`; pSp = window.DUNGEON_SPRITES[pKey]; }
 
     if (pSp) {
         const pDiv = window.createDungeonSprite(pKey, s.player.y * 10 + 5, 1.0, false);
@@ -5009,10 +5072,10 @@ window.updateDungeonUI = function() {
             const offsetX = (logicalTileX - pSp.sw) / 2; const offsetY = (logicalTileY - pSp.sh) / 2;
             pDiv.style.left = `${s.player.x * logicalTileX + offsetX}px`; pDiv.style.top = `${s.player.y * logicalTileY + offsetY}px`; pDiv.style.transition = 'left 0.2s, top 0.2s';
             if (s.player.attackAnim) { pDiv.classList.add(`anim-atk-${s.player.face}`); s.player.attackAnim = false; }
-            if (s.player.damageAnim) { pDiv.classList.add(`anim-damage`); s.player.damageAnim = false; } // ★追加
-            if (s.player.knockbackAnim) { pDiv.classList.add(`anim-knockback`); s.player.knockbackAnim = false; } // ★追加：吹き飛ばしアニメ
-            if (s.player.levelUpAnim) { pDiv.classList.add(`anim-levelup`); s.player.levelUpAnim = false; } // ★追加：レベルアップ
-            if (s.player.magicAnim) { pDiv.classList.add(`anim-magic`); s.player.magicAnim = false; } // ★追加：魔法詠唱
+            if (s.player.damageAnim) { pDiv.classList.add(`anim-damage`); s.player.damageAnim = false; } 
+            if (s.player.knockbackAnim) { pDiv.classList.add(`anim-knockback`); s.player.knockbackAnim = false; } 
+            if (s.player.levelUpAnim) { pDiv.classList.add(`anim-levelup`); s.player.levelUpAnim = false; } 
+            if (s.player.magicAnim) { pDiv.classList.add(`anim-magic`); s.player.magicAnim = false; } 
             gridDiv.appendChild(pDiv);
         }
     }
@@ -5028,63 +5091,28 @@ window.updateDungeonUI = function() {
         else levelDisplay.innerHTML = '';
     }
 
-    // ==========================================
-    // ★ 修正：インベントリUIに装備状態を表示
-    // ==========================================
     const invListEl = document.getElementById('dg-inventory-list');
     if (invListEl) {
         let invHtml = "";
-        
-        // 装備中の武器・盾を先頭に表示
-        if (s.player.equipWeapon) {
-            let wName = window.getDungeonItemEffect(s.player.equipWeapon).name;
-            invHtml += `<span style="background:rgba(255,215,0,0.15); color:#FFD700; padding:3px 8px; border-radius:4px; border:1px solid #FFD700; margin-right:5px;">⚔️ ${wName} (装備中)</span>`;
-        }
-        if (s.player.equipShield) {
-            let sName = window.getDungeonItemEffect(s.player.equipShield).name;
-            invHtml += `<span style="background:rgba(79,195,247,0.15); color:#4fc3f7; padding:3px 8px; border-radius:4px; border:1px solid #4fc3f7; margin-right:5px;">🛡️ ${sName} (装備中)</span>`;
-        }
-        // ★追加：鎧と装飾品も装備中であれば表示する
-        if (s.player.equipArmor) {
-            let aName = window.getDungeonItemEffect(s.player.equipArmor).name;
-            invHtml += `<span style="background:rgba(139,195,74,0.15); color:#8BC34A; padding:3px 8px; border-radius:4px; border:1px solid #8BC34A; margin-right:5px;">👕 ${aName} (装備中)</span>`;
-        }
-        if (s.player.equipAccessory) {
-            let acName = window.getDungeonItemEffect(s.player.equipAccessory).name;
-            invHtml += `<span style="background:rgba(224,64,251,0.15); color:#E040FB; padding:3px 8px; border-radius:4px; border:1px solid #E040FB; margin-right:5px;">💍 ${acName} (装備中)</span>`;
-        }
+        if (s.player.equipWeapon) { let wName = window.getDungeonItemEffect(s.player.equipWeapon).name; invHtml += `<span style="background:rgba(255,215,0,0.15); color:#FFD700; padding:3px 8px; border-radius:4px; border:1px solid #FFD700; margin-right:5px;">⚔️ ${wName} (装備中)</span>`; }
+        if (s.player.equipShield) { let sName = window.getDungeonItemEffect(s.player.equipShield).name; invHtml += `<span style="background:rgba(79,195,247,0.15); color:#4fc3f7; padding:3px 8px; border-radius:4px; border:1px solid #4fc3f7; margin-right:5px;">🛡️ ${sName} (装備中)</span>`; }
+        if (s.player.equipArmor) { let aName = window.getDungeonItemEffect(s.player.equipArmor).name; invHtml += `<span style="background:rgba(139,195,74,0.15); color:#8BC34A; padding:3px 8px; border-radius:4px; border:1px solid #8BC34A; margin-right:5px;">👕 ${aName} (装備中)</span>`; }
+        if (s.player.equipAccessory) { let acName = window.getDungeonItemEffect(s.player.equipAccessory).name; invHtml += `<span style="background:rgba(224,64,251,0.15); color:#E040FB; padding:3px 8px; border-radius:4px; border:1px solid #E040FB; margin-right:5px;">💍 ${acName} (装備中)</span>`; }
 
-        // 持っているアイテムを表示
         let counts = {};
-        if (s.player.tempInventory) {
-            s.player.tempInventory.forEach(k => counts[k] = (counts[k] || 0) + 1);
-        }
-        for (let k in counts) {
-            let iName = window.getDungeonItemEffect(k).name;
-            invHtml += `<span style="background:#222; padding:3px 8px; border-radius:4px; border:1px solid #555; margin-right:5px;">${iName} <span style="color:#FFD700">x${counts[k]}</span></span>`;
-        }
-        
-        // 何も持っていない＆装備もない場合
-        if (invHtml === "") {
-            invHtml = `<span style="color:#888; font-size:12px;">なにも持っていない</span>`;
-        }
-        
+        if (s.player.tempInventory) { s.player.tempInventory.forEach(k => counts[k] = (counts[k] || 0) + 1); }
+        for (let k in counts) { let iName = window.getDungeonItemEffect(k).name; invHtml += `<span style="background:#222; padding:3px 8px; border-radius:4px; border:1px solid #555; margin-right:5px;">${iName} <span style="color:#FFD700">x${counts[k]}</span></span>`; }
+        if (invHtml === "") { invHtml = `<span style="color:#888; font-size:12px;">なにも持っていない</span>`; }
         invListEl.innerHTML = invHtml;
     }
 
     const wordsContainer = document.getElementById('dg-known-words'); 
     const myWords = (window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.learnedWords) ? window.aiPet.apprentice.learnedWords : [];
     let validCmds = [];
-    myWords.forEach(w => {
-        let cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w);
-        if (cmdInfo) validCmds.push(cmdInfo);
-    });
+    myWords.forEach(w => { let cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w); if (cmdInfo) validCmds.push(cmdInfo); });
     
-    if (validCmds.length === 0) { 
-        wordsContainer.innerHTML = `<span style="color:#aaa; font-size:12px;">※言葉を知らないのでランダムに行動します</span>`; 
-    } else { 
-        wordsContainer.innerHTML = validCmds.map(c => `<span style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid #00BCD4; color: #00BCD4; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">${c.name}</span>`).join(''); 
-    }
+    if (validCmds.length === 0) { wordsContainer.innerHTML = `<span style="color:#aaa; font-size:12px;">※言葉を知らないのでランダムに行動します</span>`; } 
+    else { wordsContainer.innerHTML = validCmds.map(c => `<span style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid #00BCD4; color: #00BCD4; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">${c.name}</span>`).join(''); }
     const minimap = document.getElementById('dg-modal-minimap'); if (minimap && minimap.style.display !== 'none') window.drawMinimap();
 };
 
@@ -5095,34 +5123,41 @@ window.drawMinimap = function() {
     for(let y = 0; y < s.mapHeight; y++) {
         for(let x = 0; x < s.mapWidth; x++) {
             if (!s.visited || !s.visited[y][x]) continue; 
-            
             const dot = document.createElement('div'); dot.style.position = 'absolute'; dot.style.left = `${x * miniSize}px`; dot.style.top = `${y * miniSize}px`; dot.style.width = `${miniSize}px`; dot.style.height = `${miniSize}px`;
-            
-            if (s.grid[y][x] === 1) dot.style.backgroundColor = '#444'; 
-            else if (s.grid[y][x] === 2) dot.style.backgroundColor = '#00BCD4'; 
-            else dot.style.backgroundColor = '#888'; 
-            
+            if (s.grid[y][x] === 1) dot.style.backgroundColor = '#444'; else if (s.grid[y][x] === 2) dot.style.backgroundColor = '#00BCD4'; else dot.style.backgroundColor = '#888'; 
             container.appendChild(dot);
         }
     }
     
-    // ★ 追加：ミニマップに救助待ちプレイヤーを黄色で表示
     if (s.rescueTargets) {
         s.rescueTargets.forEach(t => { 
-            if(t.rescued) return; 
-            if (!window.isTileVisible(s, t.x, t.y)) return; 
-
+            if(t.rescued || !window.isTileVisible(s, t.x, t.y)) return; 
             const tDot = document.createElement('div'); tDot.style.position = 'absolute'; tDot.style.left = `${t.x * miniSize}px`; tDot.style.top = `${t.y * miniSize}px`; tDot.style.width = `${miniSize}px`; tDot.style.height = `${miniSize}px`; 
-            tDot.style.backgroundColor = '#FFEB3B'; // 黄色い点
-            tDot.style.boxShadow = '0 0 3px #FFEB3B';
+            tDot.style.backgroundColor = '#FFEB3B'; tDot.style.boxShadow = '0 0 3px #FFEB3B'; container.appendChild(tDot); 
+        });
+    }
+
+    // ミニマップにアイテムを水色で表示
+    if (s.items) {
+        s.items.forEach(i => {
+            if (!window.isTileVisible(s, i.x, i.y)) return;
+            const iDot = document.createElement('div'); iDot.style.position = 'absolute'; iDot.style.left = `${i.x * miniSize}px`; iDot.style.top = `${i.y * miniSize}px`; iDot.style.width = `${miniSize}px`; iDot.style.height = `${miniSize}px`; 
+            iDot.style.backgroundColor = '#00BCD4'; container.appendChild(iDot); 
+        });
+    }
+
+    // ミニマップに見えている罠を赤紫のバツ印で表示（文字は残すがドット絵UIと分離されているため安全）
+    if (s.traps) {
+        s.traps.forEach(t => {
+            if (!t.visible || !window.isTileVisible(s, t.x, t.y)) return;
+            const tDot = document.createElement('div'); tDot.style.position = 'absolute'; tDot.style.left = `${t.x * miniSize}px`; tDot.style.top = `${t.y * miniSize}px`; tDot.style.width = `${miniSize}px`; tDot.style.height = `${miniSize}px`; 
+            tDot.style.backgroundColor = '#E040FB'; tDot.innerText = 'x'; tDot.style.color = '#FFF'; tDot.style.fontSize = '8px'; tDot.style.lineHeight = '10px'; tDot.style.textAlign = 'center';
             container.appendChild(tDot); 
         });
     }
 
     s.enemies.forEach(e => { 
-        if(e.hp <= 0) return; 
-        if (!window.isTileVisible(s, e.x, e.y)) return; 
-
+        if(e.hp <= 0 || !window.isTileVisible(s, e.x, e.y)) return; 
         const eDot = document.createElement('div'); eDot.style.position = 'absolute'; eDot.style.left = `${e.x * miniSize}px`; eDot.style.top = `${e.y * miniSize}px`; eDot.style.width = `${miniSize}px`; eDot.style.height = `${miniSize}px`; eDot.style.backgroundColor = '#ff5252'; container.appendChild(eDot); 
     });
     
@@ -6665,8 +6700,7 @@ if (typeof window.AICharacter !== 'undefined') {
         if (arEff) allTraits.push(...arEff.traits);
         if (acEff) allTraits.push(...acEff.traits);
 
-        let bonusHunger = allTraits.includes('max_hunger') ? 20 : 0;
-        let maxH = (s.player.maxHunger || 100) + bonusHunger;
+        let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
 
         if ((allTraits.includes('regen') || allTraits.includes('life')) && s.player.hp < s.player.maxHp) {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 1);
@@ -6684,6 +6718,31 @@ if (typeof window.AICharacter !== 'undefined') {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 1);
         }
 
+        // ==========================================
+        // ★ プレイヤーの状態異常（ターン開始時処理）
+        // ==========================================
+        if (s.player.status) {
+            if (s.player.status.poison > 0) {
+                s.player.hp -= 3; window.addDungeonLog(`🤢 毒のダメージを受けた！(HP-3)`, '#9C27B0');
+                s.player.status.poison--;
+                if (s.player.status.poison <= 0) window.addDungeonLog(`毒が治った！`, '#4CAF50');
+            }
+            if (s.player.status.confusion > 0) {
+                s.player.status.confusion--;
+                if (s.player.status.confusion <= 0) window.addDungeonLog(`混乱が解けて正気を取り戻した！`, '#4CAF50');
+            }
+            if (s.player.status.blind > 0) {
+                s.player.status.blind--;
+                if (s.player.status.blind <= 0) window.addDungeonLog(`視界が元に戻った！`, '#4CAF50');
+            }
+            if (s.player.status.paralyzed > 0) {
+                s.player.status.paralyzed--;
+                if (s.player.status.paralyzed <= 0) window.addDungeonLog(`足の痺れがとれた！`, '#4CAF50');
+            }
+        } else {
+            s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0 };
+        }
+
         let realSpd = Math.floor(ai.stats.speed || 10);
         let actionCount = 1; 
         if (acEff && acEff.traits.includes('fast_move')) {
@@ -6696,15 +6755,19 @@ if (typeof window.AICharacter !== 'undefined') {
         for (let actStep = 0; actStep < actionCount; actStep++) {
             if (s.player.hp <= 0) break; 
 
-            // ★修正：エラーの原因だった変数スコープをループの先頭で確実に定義！
+            // ★暗闇状態なら視界判定を強制的に狭くする
+            let isBlind = s.player.status && s.player.status.blind > 0;
+            
             let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y));
+            if (isBlind) visibleEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1); // 暗闇時は隣接しか見えない
+            
             let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
             let enemyAdjacent = adjacentEnemies.length > 0 ? adjacentEnemies[0] : null; 
             let enemyInSight = visibleEnemies.length > 0 ? visibleEnemies[0] : null;
 
             s.enemies.forEach(e => { 
                 if (e.hp > 0 && s.player.type === 'magician' && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
-                    if (window.isTileVisible(s, e.x, e.y)) {
+                    if (!isBlind && window.isTileVisible(s, e.x, e.y)) {
                         let clear = true;
                         if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][s.player.x]===1) clear=false; }
                         else { for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) if(s.grid[s.player.y][x]===1) clear=false; }
@@ -6730,14 +6793,21 @@ if (typeof window.AICharacter !== 'undefined') {
             let validCmdIds = []; myWords.forEach(w => { let cmd = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w); if (cmd && cmd.id) validCmdIds.push(cmd.id); });
             let pType = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(ai.stats) : '普通';
 
+            let isConfused = s.player.status && s.player.status.confusion > 0;
+
+            // ★混乱状態の時は知能が下がり、ランダム行動しやすくなる
+            if (isConfused) {
+                window.addDungeonLog(`🌀 ${aiName} は混乱してフラフラしている！`, '#FF9800');
+                smartChance = 0; 
+            }
+
             if (pType === 'のんびり屋' && Math.random() < 0.2) { window.addDungeonLog(`${aiName} は面倒くさがって立ち止まった...`, '#aaa'); chosenCommand = 'skip'; } 
             else if (pType === '憂鬱' && Math.random() < 0.2) { window.addDungeonLog(`${aiName} は暗い気持ちになり、ため息をついた...`, '#aaa'); chosenCommand = 'skip'; } 
             else if ((pType === 'アイドル' || pType === '芸術家') && Math.random() < 0.15) { window.addDungeonLog(`${aiName} は敵の前で優雅にポーズを決めた！`, '#FFD700'); chosenCommand = 'skip'; } 
             else if (pType === 'せっかち' && Math.random() < 0.15) { window.addDungeonLog(`${aiName} は先走って空回りした！`, '#FF9800'); chosenCommand = 'skip'; }
 
             if (chosenCommand !== 'skip') {
-                if (validCmdIds.length === 0) {
-                    window.addDungeonLog(`${aiName} は言葉を知らないため、勘で動いている...`, '#aaa');
+                if (validCmdIds.length === 0 || isConfused) { // 混乱中も勘で動く
                     let randomActions = ['move_up', 'move_down', 'move_left', 'move_right', 'attack'];
                     chosenCommand = randomActions[Math.floor(Math.random() * randomActions.length)];
                 } else {
@@ -6924,9 +6994,16 @@ if (typeof window.AICharacter !== 'undefined') {
 
                 if (typeof chosenCommand === 'object' && chosenCommand !== null) chosenCommand = chosenCommand.id;
 
+                // ★ 足止め状態なら移動系コマンドを強制キャンセル
+                let isParalyzed = s.player.status && s.player.status.paralyzed > 0;
+                if (isParalyzed && ['move_up', 'move_down', 'move_left', 'move_right', 'flee'].includes(chosenCommand)) {
+                    window.addDungeonLog(`⚡ 足が痺れて動けない！`, '#FF9800');
+                    chosenCommand = 'skip';
+                }
+
                 if (chosenCommand !== 'skip') {
                     const cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.id === chosenCommand); 
-                    if (cmdInfo) window.addDungeonLog(`${aiName} は「${cmdInfo.name}」と考えた！`, '#FFF'); else { chosenCommand = 'attack'; window.addDungeonLog(`${aiName} はとっさに身構えた！`, '#ff9800'); }
+                    if (cmdInfo && !isConfused) window.addDungeonLog(`${aiName} は「${cmdInfo.name}」と考えた！`, '#FFF'); else if (!isConfused) { chosenCommand = 'attack'; window.addDungeonLog(`${aiName} はとっさに身構えた！`, '#ff9800'); }
                 }
 
                 let newX = s.player.x; let newY = s.player.y;
@@ -6941,15 +7018,51 @@ if (typeof window.AICharacter !== 'undefined') {
                         else if (s.player.x > enemyInSight.x && s.grid[s.player.y][s.player.x + 1] !== 1) { newX++; s.player.face = 'right'; }
                         else if (s.player.y < enemyInSight.y && s.grid[s.player.y - 1][s.player.x] !== 1) { newY--; s.player.face = 'up'; }
                         else if (s.player.y > enemyInSight.y && s.grid[s.player.y + 1][s.player.x] !== 1) { newY++; s.player.face = 'down'; }
-                        window.addDungeonLog(`敵から遠ざかるように走った！`, '#00BCD4');
-                    } else { window.addDungeonLog(`キョロキョロしている。（敵がいない）`, '#aaa'); }
+                        if(!isConfused) window.addDungeonLog(`敵から遠ざかるように走った！`, '#00BCD4');
+                    } else { if(!isConfused) window.addDungeonLog(`キョロキョロしている。（敵がいない）`, '#aaa'); }
                 }
 
                 if (newX !== s.player.x || newY !== s.player.y) {
                     if (newX >= 0 && newX < s.mapWidth && newY >= 0 && newY < s.mapHeight && s.grid[newY][newX] !== 1) {
                         let hitEnemy = s.enemies.find(e => e.x === newX && e.y === newY && e.hp > 0);
                         if (hitEnemy) { window.addDungeonLog(`ゴツン！ 敵にぶつかった！`, '#FF9800'); s.player.attackAnim = true; } 
-                        else { s.player.lastX = s.player.x; s.player.lastY = s.player.y; s.player.x = newX; s.player.y = newY; }
+                        else { 
+                            s.player.lastX = s.player.x; s.player.lastY = s.player.y; s.player.x = newX; s.player.y = newY;
+                        
+                            // 🌟🌟🌟 ここに追加 🌟🌟🌟
+                            // ★ アイテムを拾う処理
+                            if (s.items) {
+                                let itemIdx = s.items.findIndex(i => i.x === s.player.x && i.y === s.player.y);
+                                if (itemIdx !== -1) {
+                                    let itm = s.items[itemIdx];
+                                    if (s.player.tempInventory.length < 20) { // 所持上限(仮で20)
+                                        s.player.tempInventory.push(itm.key);
+                                        window.addDungeonLog(`足元から ${itm.name} を拾った！`, '#4CAF50');
+                                        s.items.splice(itemIdx, 1);
+                                    } else {
+                                        window.addDungeonLog(`カバンがいっぱいで ${itm.name} を拾えない！`, '#FF9800');
+                                    }
+                                }
+                            }
+                            // ★ 罠を踏む処理
+                            if (s.traps && s.player.type !== 'balloon' && s.player.type !== 'ghost') { // 風船とゴーストは浮遊回避
+                                let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
+                                if (trap && !s.player.status.paralyzed) { 
+                                    if (!trap.visible) window.addDungeonLog(`カシャッ！ 何か罠を踏んだ！`, '#ff5252');
+                                    trap.visible = true;
+                                    
+                                    if (trap.type === 'poison') { window.addDungeonLog(`毒矢が飛んできた！`, '#9C27B0'); s.player.status.poison += 5; }
+                                    else if (trap.type === 'mine') { 
+                                        window.addDungeonLog(`地雷が大爆発！`, '#FF5252'); 
+                                        s.player.hp -= Math.floor(s.player.maxHp * 0.3);
+                                        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, "BOOM", true);
+                                    }
+                                    else if (trap.type === 'blind') { window.addDungeonLog(`泥水を被り、視界が奪われた！`, '#9C27B0'); s.player.status.blind += 15; }
+                                    else if (trap.type === 'bear_trap') { window.addDungeonLog(`トラバサミに引っかかり、足が痺れた！`, '#FF9800'); s.player.status.paralyzed += 3; s.player.hp -= 10; }
+                                }
+                            }
+                            // 🌟🌟🌟 ここまで 🌟🌟🌟
+                        }
                         
                         if (!hitEnemy && s.player.equipWeapon && window.getDungeonItemEffect(s.player.equipWeapon).traits.includes('first')) {
                             let newlyAdjacent = s.enemies.find(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
@@ -6963,7 +7076,8 @@ if (typeof window.AICharacter !== 'undefined') {
                         }
                     } else { window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa'); }
                 } else if (chosenCommand === 'attack') {
-                    if (enemyAdjacent) {
+                    // ★ 混乱中は隣接する敵がいなくても素振りするか、変な方向を攻撃する
+                    if (enemyAdjacent && !isConfused) {
                         if (enemyAdjacent.x < s.player.x) s.player.face = 'left'; else if (enemyAdjacent.x > s.player.x) s.player.face = 'right';
                         else if (enemyAdjacent.y < s.player.y) s.player.face = 'up'; else if (enemyAdjacent.y > s.player.y) s.player.face = 'down';
                         s.player.attackAnim = true; window.dealDungeonDamage(s.player, enemyAdjacent);
@@ -6976,7 +7090,20 @@ if (typeof window.AICharacter !== 'undefined') {
                             s.player.attackAnim = true; window.dealDungeonDamage(s.player, enemyAdjacent);
                             window.updateDungeonUI(); await sleep(150);
                         }
-                    } else { s.player.attackAnim = true; window.addDungeonLog(`空を切った...（近くに敵がいない）`, '#aaa'); }
+                    } else { 
+                        s.player.attackAnim = true; 
+                        if (isConfused) {
+                            let dirs = ['up', 'down', 'left', 'right'];
+                            s.player.face = dirs[Math.floor(Math.random() * dirs.length)];
+                            let hx = s.player.x, hy = s.player.y;
+                            if (s.player.face === 'up') hy--; else if (s.player.face === 'down') hy++; else if (s.player.face === 'left') hx--; else if (s.player.face === 'right') hx++;
+                            let hitE = s.enemies.find(e => e.hp > 0 && e.x === hx && e.y === hy);
+                            if (hitE) { window.addDungeonLog(`混乱したままデタラメに殴ったら当たった！`, '#FF9800'); window.dealDungeonDamage(s.player, hitE); }
+                            else { window.addDungeonLog(`明後日の方向を殴っている！`, '#aaa'); }
+                        } else {
+                            window.addDungeonLog(`空を切った...（近くに敵がいない）`, '#aaa'); 
+                        }
+                    }
                 } else if (chosenCommand === 'heal' || chosenCommand === 'eat' || chosenCommand === 'use') {
                     if (s.player._bestItemIdx !== undefined && s.player._bestItemIdx !== -1 && s.player.tempInventory[s.player._bestItemIdx]) {
                         let itemId = s.player.tempInventory[s.player._bestItemIdx];
@@ -7107,29 +7234,58 @@ if (typeof window.AICharacter !== 'undefined') {
             } 
         }
 
-            // ==========================================
-            // ★ 敵のターン
-            // ==========================================
-            for (let e of s.enemies) {
-                if (e.hp <= 0) continue;
-                if (e.charmed) { e.charmed = false; continue; }
-                let actions = 1;
-                if (e.type === 'machine' && Math.random() < 0.2) actions = 2; 
+        // ==========================================
+        // ★ 敵のターン
+        // ==========================================
+        for (let e of s.enemies) {
+            if (e.hp <= 0) continue;
+            
+            // ★ 敵の状態異常処理（毒、睡眠、混乱）
+            if (e.status) {
+                if (e.status.poison > 0) {
+                    e.hp -= Math.max(1, Math.floor(e.maxHp * 0.05)); // 敵の毒は最大HPの5%ダメージ
+                    e.status.poison--;
+                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(e.x, e.y, "Poison", false);
+                }
+                if (e.status.confusion > 0) e.status.confusion--;
+            } else {
+                e.status = { poison: 0, confusion: 0 };
+            }
+            
+            if (e.hp <= 0) { window.addDungeonLog(`${e.name} は毒で倒れた！`, '#FFD700'); continue; }
+            if (e.charmed) { e.charmed = false; continue; }
 
-                for (let a = 0; a < actions; a++) {
-                    if (e.hp <= 0) break;
-                    let dist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
-                    let ex = e.x, ey = e.y, moveDir = '';
-                    let hasAttacked = false;
+            let actions = 1;
+            if (e.type === 'machine' && Math.random() < 0.2) actions = 2; 
 
+            for (let a = 0; a < actions; a++) {
+                if (e.hp <= 0) break;
+                
+                let isEnemyConfused = e.status && e.status.confusion > 0;
+                let dist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
+                let ex = e.x, ey = e.y, moveDir = '';
+                let hasAttacked = false;
+
+                // ★敵が混乱している時はランダムに歩き回る
+                if (isEnemyConfused) {
+                    const dirs = [];
+                    if (s.grid[e.y][e.x+1] !== 1) dirs.push({x: e.x+1, y: e.y, dir: 'right'});
+                    if (s.grid[e.y][e.x-1] !== 1) dirs.push({x: e.x-1, y: e.y, dir: 'left'});
+                    if (s.grid[e.y+1][e.x] !== 1) dirs.push({x: e.x, y: e.y+1, dir: 'down'});
+                    if (s.grid[e.y-1][e.x] !== 1) dirs.push({x: e.x, y: e.y-1, dir: 'up'});
+                    if (dirs.length > 0) { const rnd = dirs[Math.floor(Math.random() * dirs.length)]; ex = rnd.x; ey = rnd.y; moveDir = rnd.dir; }
+                    
+                    if (dist === 1 && Math.random() < 0.5) { // たまにプレイヤーを殴る
+                        e.attackAnim = true; window.dealDungeonDamage(e, s.player); hasAttacked = true; moveDir = '';
+                    }
+                } 
+                else {
+                    // 通常のAI行動
                     if (e.type === 'magician' && dist <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
                         if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
                         e.attackAnim = true; 
-                        
-                        // ★ 魔法の遠距離エフェクト ＆ 20%で防御無視
                         if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
                         e.isPiercing = (Math.random() < 0.20); 
-                        
                         window.dealDungeonDamage(e, s.player); 
                         e.isPiercing = false; hasAttacked = true;
                     }
@@ -7153,60 +7309,59 @@ if (typeof window.AICharacter !== 'undefined') {
                             if (dirs.length > 0) { const rnd = dirs[Math.floor(Math.random() * dirs.length)]; ex = rnd.x; ey = rnd.y; moveDir = rnd.dir; }
                         }
                     }
+                }
 
-                    if (hasAttacked) {
-                        window.updateDungeonUI(); await sleep(150); 
-                        continue; 
-                    }
+                if (hasAttacked) {
+                    window.updateDungeonUI(); await sleep(150); 
+                    continue; 
+                }
 
-                    if (moveDir !== '') {
-                        let occupied = s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === ex && oe.y === ey);
-                        let playerHit = (ex === s.player.x && ey === s.player.y);
-                        if (!occupied && !playerHit) { 
-                            e.x = ex; e.y = ey; e.face = moveDir; 
-                            
-                            // ★ [先] (first) 先制攻撃：敵が一歩近づいて隣接した瞬間に発動！
-                            let newDist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
-                            if (newDist === 1 && s.player.equipWeapon && window.getDungeonItemEffect(s.player.equipWeapon).traits.includes('first')) {
-                                window.addDungeonLog(`⚡ 疾風迅雷！敵の接近を察知して先制攻撃を叩き込んだ！`, '#FFD700');
-                                if (e.x < s.player.x) s.player.face = 'left'; else if (e.x > s.player.x) s.player.face = 'right'; else if (e.y < s.player.y) s.player.face = 'up'; else if (e.y > s.player.y) s.player.face = 'down';
-                                s.player.attackAnim = true;
-                                window.dealDungeonDamage(s.player, e);
-                                window.updateDungeonUI(); await sleep(200);
-                            }
+                if (moveDir !== '') {
+                    let occupied = s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === ex && oe.y === ey);
+                    let playerHit = (ex === s.player.x && ey === s.player.y);
+                    if (!occupied && !playerHit) { 
+                        e.x = ex; e.y = ey; e.face = moveDir; 
+                        let newDist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
+                        if (newDist === 1 && s.player.equipWeapon && window.getDungeonItemEffect(s.player.equipWeapon).traits.includes('first')) {
+                            window.addDungeonLog(`⚡ 疾風迅雷！敵の接近を察知して先制攻撃を叩き込んだ！`, '#FFD700');
+                            if (e.x < s.player.x) s.player.face = 'left'; else if (e.x > s.player.x) s.player.face = 'right'; else if (e.y < s.player.y) s.player.face = 'up'; else if (e.y > s.player.y) s.player.face = 'down';
+                            s.player.attackAnim = true;
+                            window.dealDungeonDamage(s.player, e);
+                            window.updateDungeonUI(); await sleep(200);
                         }
                     }
                 }
             }
+        }
 
-            s.turnCount = (s.turnCount || 0) + 1;
-            if (s.turnCount % 40 === 0 && s.enemies.filter(e => e.hp > 0).length < 15) {
-                let rooms = s.roomsInfo;
-                if (rooms && rooms.length > 0) {
-                    let r = rooms[Math.floor(Math.random() * rooms.length)];
-                    let ex, ey; let attempts = 0;
-                    do { 
-                        ex = r.x + Math.floor(Math.random() * r.w); ey = r.y + Math.floor(Math.random() * r.h); attempts++;
-                    } while (attempts < 10 && (s.grid[ey][ex] !== 0 || (ex === s.player.x && ey === s.player.y) || window.isTileVisible(s, ex, ey)));
-                    
-                    if (attempts < 10) {
-                        let eType = window._dungeonAiTypesList[Math.floor(Math.random() * window._dungeonAiTypesList.length)];
-                        const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;
-                        s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false });
-                        window.addDungeonLog(`どこからか魔物の気配がする...`, '#aaa');
-                    }
+        s.turnCount = (s.turnCount || 0) + 1;
+        if (s.turnCount % 40 === 0 && s.enemies.filter(e => e.hp > 0).length < 15) {
+            let rooms = s.roomsInfo;
+            if (rooms && rooms.length > 0) {
+                let r = rooms[Math.floor(Math.random() * rooms.length)];
+                let ex, ey; let attempts = 0;
+                do { 
+                    ex = r.x + Math.floor(Math.random() * r.w); ey = r.y + Math.floor(Math.random() * r.h); attempts++;
+                } while (attempts < 10 && (s.grid[ey][ex] !== 0 || (ex === s.player.x && ey === s.player.y) || window.isTileVisible(s, ex, ey)));
+                
+                if (attempts < 10) {
+                    let eType = window._dungeonAiTypesList[Math.floor(Math.random() * window._dungeonAiTypesList.length)];
+                    const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;
+                    s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, face: 'down', attackAnim: false, status: { poison:0, confusion:0 } });
+                    window.addDungeonLog(`どこからか魔物の気配がする...`, '#aaa');
                 }
             }
+        }
 
-            window.updateDungeonUI();
+        window.updateDungeonUI();
 
-            if (s.player.hp <= 0) {
-                window.addDungeonLog(`${aiName} は倒れてしまった...`, '#ff5252');
-                if (s.isAuto) window.toggleDungeonAuto(); 
-                setTimeout(() => { if (typeof window.updateDungeonRanking === 'function') window.updateDungeonRanking(s.mapType, s.floor, s.player.level); window.closeDungeonUI(true); }, 1500);
-            }
-        } catch (e) { console.error("【DungeonTurnエラー】処理中にエラーが発生しました:", e); } finally { s.isProcessingTurn = false; }
-    };
+        if (s.player.hp <= 0) {
+            window.addDungeonLog(`${aiName} は倒れてしまった...`, '#ff5252');
+            if (s.isAuto) window.toggleDungeonAuto(); 
+            setTimeout(() => { if (typeof window.updateDungeonRanking === 'function') window.updateDungeonRanking(s.mapType, s.floor, s.player.level); window.closeDungeonUI(true); }, 1500);
+        }
+    } catch (e) { console.error("【DungeonTurnエラー】処理中にエラーが発生しました:", e); } finally { s.isProcessingTurn = false; }
+};
 })();
 
 // ==========================================
