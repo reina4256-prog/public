@@ -569,14 +569,19 @@ window.addEventListener('keydown', (e) => {
             }
         }
 
-        if (e.key === 'Tab') { 
+        // ★修正：Tabまたは「. (ピリオド)」で次へ、「, (カンマ)」で前へ戻る
+        let isNext = (e.key === 'Tab' && !e.shiftKey) || e.key === '.';
+        let isPrev = e.key === ',';
+
+        if (isNext || isPrev) { 
             e.preventDefault(); 
             if (editingTarget === 'ai') {
-                const currentIndex = actionTypes.indexOf(editingActionType); let nextIndex = e.shiftKey ? (currentIndex - 1 + actionTypes.length) % actionTypes.length : (currentIndex + 1) % actionTypes.length;
+                const currentIndex = actionTypes.indexOf(editingActionType); 
+                let nextIndex = isPrev ? (currentIndex - 1 + actionTypes.length) % actionTypes.length : (currentIndex + 1) % actionTypes.length;
                 editingActionType = actionTypes[nextIndex]; editingFrameIndex = 0; 
             } else if (editingTarget === 'card' && typeof window.TCG_MASTER !== 'undefined') {
                 const keys = Object.keys(window.TCG_MASTER); let idx = keys.indexOf(selectedCardKey);
-                if (e.shiftKey) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
+                if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
                 selectedCardKey = keys[idx];
             } else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') { // ★修正
                 const keys = Object.keys(window.DUNGEON_SPRITES).filter(k => {
@@ -593,14 +598,14 @@ window.addEventListener('keydown', (e) => {
                     let currentKey = window.selectedDungeonSpriteKey || keys[0]; 
                     if (!keys.includes(currentKey)) currentKey = keys[0];
                     let idx = keys.indexOf(currentKey);
-                    if (e.shiftKey) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
+                    if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
                     window.selectedDungeonSpriteKey = keys[idx];
                 }
             } else if (['rasset', 'sasset'].includes(editingTarget) && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                 let listKey = editingTarget === 'rasset' ? 'restaurant' : 'smith';
                 let list = window.SHOP_FURNITURE_DATA[listKey];
                 if (list && list.length > 0) {
-                    if (e.shiftKey) window.selectedFurnitureIndex = (window.selectedFurnitureIndex - 1 + list.length) % list.length;
+                    if (isPrev) window.selectedFurnitureIndex = (window.selectedFurnitureIndex - 1 + list.length) % list.length;
                     else window.selectedFurnitureIndex = (window.selectedFurnitureIndex + 1) % list.length;
                 }
             }

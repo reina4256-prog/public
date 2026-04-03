@@ -4058,87 +4058,646 @@ window.DUNGEON_SPRITES = {
         "sh": 669,
         "scale": 0.4
     },
-
-    "robot_type1_down": { "img": "robot_type1_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type1_up": { "img": "robot_type1_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type1_left": { "img": "robot_type1_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type1_right": { "img": "robot_type1_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type1_2_down": { "img": "robot_type1_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type1_2_up": { "img": "robot_type1_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type1_2_left": { "img": "robot_type1_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type1_2_right": { "img": "robot_type1_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type1_3_down": { "img": "robot_type1_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type1_3_up": { "img": "robot_type1_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type1_3_left": { "img": "robot_type1_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type1_3_right": { "img": "robot_type1_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_down": { "img": "robot_type2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_up": { "img": "robot_type2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_left": { "img": "robot_type2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_right": { "img": "robot_type2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_2_down": { "img": "robot_type2_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_2_up": { "img": "robot_type2_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_2_left": { "img": "robot_type2_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_2_right": { "img": "robot_type2_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_3_down": { "img": "robot_type2_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_3_up": { "img": "robot_type2_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_3_left": { "img": "robot_type2_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_3_right": { "img": "robot_type2_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_4_down": { "img": "robot_type2_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_4_up": { "img": "robot_type2_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type2_4_left": { "img": "robot_type2_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type2_4_right": { "img": "robot_type2_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_down": { "img": "robot_type3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_up": { "img": "robot_type3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_left": { "img": "robot_type3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_right": { "img": "robot_type3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_2_down": { "img": "robot_type3_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_2_up": { "img": "robot_type3_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_2_left": { "img": "robot_type3_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_2_right": { "img": "robot_type3_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_3_down": { "img": "robot_type3_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_3_up": { "img": "robot_type3_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_3_left": { "img": "robot_type3_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_3_right": { "img": "robot_type3_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_4_down": { "img": "robot_type3_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_4_up": { "img": "robot_type3_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_4_left": { "img": "robot_type3_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_4_right": { "img": "robot_type3_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_5_down": { "img": "robot_type3_5_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_5_up": { "img": "robot_type3_5_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type3_5_left": { "img": "robot_type3_5_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type3_5_right": { "img": "robot_type3_5_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_down": { "img": "robot_type4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_up": { "img": "robot_type4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_left": { "img": "robot_type4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_right": { "img": "robot_type4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_2_down": { "img": "robot_type4_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_2_up": { "img": "robot_type4_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_2_left": { "img": "robot_type4_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_2_right": { "img": "robot_type4_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_3_down": { "img": "robot_type4_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_3_up": { "img": "robot_type4_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_3_left": { "img": "robot_type4_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_3_right": { "img": "robot_type4_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_4_down": { "img": "robot_type4_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_4_up": { "img": "robot_type4_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type4_4_left": { "img": "robot_type4_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type4_4_right": { "img": "robot_type4_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_down": { "img": "robot_type5_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_up": { "img": "robot_type5_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_left": { "img": "robot_type5_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_right": { "img": "robot_type5_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_2_down": { "img": "robot_type5_2_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_2_up": { "img": "robot_type5_2_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_2_left": { "img": "robot_type5_2_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_2_right": { "img": "robot_type5_2_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_3_down": { "img": "robot_type5_3_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_3_up": { "img": "robot_type5_3_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_3_left": { "img": "robot_type5_3_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_3_right": { "img": "robot_type5_3_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_4_down": { "img": "robot_type5_4_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_4_up": { "img": "robot_type5_4_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
-    "robot_type5_4_left": { "img": "robot_type5_4_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
-    "robot_type5_4_right": { "img": "robot_type5_4_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_type1_down": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 74,
+        "sy": 39,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_up": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 907,
+        "sy": 39,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_left": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 74,
+        "sy": 1290,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_right": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 874,
+        "sy": 1290,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_2_down": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 55,
+        "sy": 38,
+        "sw": 879,
+        "sh": 1085,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_2_up": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 1013,
+        "sy": 38,
+        "sw": 879,
+        "sh": 1085,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_2_left": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 55,
+        "sy": 1125,
+        "sw": 879,
+        "sh": 1127,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_2_right": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 1033,
+        "sy": 1125,
+        "sw": 879,
+        "sh": 1127,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_down": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 12,
+        "sy": 60,
+        "sw": 854,
+        "sh": 1208,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_up": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 841,
+        "sy": 60,
+        "sw": 854,
+        "sh": 1208,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_left": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 12,
+        "sy": 1268,
+        "sw": 854,
+        "sh": 1247,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_right": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 846,
+        "sy": 1268,
+        "sw": 854,
+        "sh": 1247,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_down": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 71,
+        "sy": 55,
+        "sw": 722,
+        "sh": 1111,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_up": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 972,
+        "sy": 55,
+        "sw": 722,
+        "sh": 1111,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_left": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 991,
+        "sy": 1214,
+        "sw": 722,
+        "sh": 1142,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_right": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 91,
+        "sy": 1214,
+        "sw": 722,
+        "sh": 1142,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_down": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 39,
+        "sy": 76,
+        "sw": 745,
+        "sh": 1241,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_up": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 860,
+        "sy": 76,
+        "sw": 745,
+        "sh": 1241,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_left": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 39,
+        "sy": 1326,
+        "sw": 745,
+        "sh": 1306,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_right": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 876,
+        "sy": 1326,
+        "sw": 745,
+        "sh": 1306,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_down": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 28,
+        "sy": 76,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_up": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 805,
+        "sy": 76,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_left": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 28,
+        "sy": 1496,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_right": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 814,
+        "sy": 1496,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_down": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 38,
+        "sy": 40,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_up": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 1235,
+        "sy": 40,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_left": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 38,
+        "sy": 934,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_right": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 1267,
+        "sy": 933,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_down": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 55,
+        "sy": 44,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_up": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 874,
+        "sy": 44,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_left": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 55,
+        "sy": 1272,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_right": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 897,
+        "sy": 1272,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_down": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 83,
+        "sy": 76,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_up": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 1083,
+        "sy": 76,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_left": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 1075,
+        "sy": 1083,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_right": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 75,
+        "sy": 1083,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_down": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 147,
+        "sy": 76,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_up": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 1147,
+        "sy": 76,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_left": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 1147,
+        "sy": 1026,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_right": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 147,
+        "sy": 1026,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_down": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 57,
+        "sy": 65,
+        "sw": 670,
+        "sh": 1321,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_up": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 818,
+        "sy": 65,
+        "sw": 683,
+        "sh": 1321,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_left": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 810,
+        "sy": 1377,
+        "sw": 670,
+        "sh": 1345,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_right": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 110,
+        "sy": 1377,
+        "sw": 670,
+        "sh": 1345,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_down": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 44,
+        "sy": 60,
+        "sw": 982,
+        "sh": 942,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_up": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 1087,
+        "sy": 60,
+        "sw": 982,
+        "sh": 942,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_left": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 1087,
+        "sy": 1028,
+        "sw": 982,
+        "sh": 1006,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_right": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 39,
+        "sy": 1028,
+        "sw": 982,
+        "sh": 1006,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_down": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 55,
+        "sy": 43,
+        "sw": 773,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_up": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 898,
+        "sy": 43,
+        "sw": 774,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_left": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 937,
+        "sy": 1260,
+        "sw": 773,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_right": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 59,
+        "sy": 1260,
+        "sw": 773,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_down": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 92,
+        "sy": 76,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_up": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 1204,
+        "sy": 76,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_left": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 86,
+        "sy": 928,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_right": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 1214,
+        "sy": 928,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_down": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 41,
+        "sy": 40,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_up": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 1041,
+        "sy": 40,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_left": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 41,
+        "sy": 1124,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_right": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 1041,
+        "sy": 1124,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_down": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 42,
+        "sy": 76,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_up": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 969,
+        "sy": 56,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_left": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 123,
+        "sy": 1135,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_right": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 882,
+        "sy": 1135,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_down": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": -12,
+        "sy": -6,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_up": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": 902,
+        "sy": -6,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_left": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": 900,
+        "sy": 1226,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_right": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": 23,
+        "sy": 1226,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_down": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": -9,
+        "sy": 148,
+        "sw": 806,
+        "sh": 1178,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_up": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": 818,
+        "sy": 76,
+        "sw": 806,
+        "sh": 1249,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_left": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": 814,
+        "sy": 1401,
+        "sw": 806,
+        "sh": 1253,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_right": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": 30,
+        "sy": 1401,
+        "sw": 806,
+        "sh": 1253,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_down": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 109,
+        "sy": 297,
+        "sw": 703,
+        "sh": 918,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_up": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 952,
+        "sy": 297,
+        "sw": 703,
+        "sh": 918,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_left": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 979,
+        "sy": 1297,
+        "sw": 703,
+        "sh": 979,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_right": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 137,
+        "sy": 1297,
+        "sw": 703,
+        "sh": 979,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_down": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": -5,
+        "sy": 15,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_up": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": 792,
+        "sy": 15,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_left": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": -5,
+        "sy": 1324,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_right": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": 827,
+        "sy": 1324,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
 
 
     "magician_down": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 42, "sw": 835, "sh": 1014, "scale": 0.4 },
@@ -4388,11 +4947,16 @@ window.getDungeonItemEffect = function(itemId) {
     // 表示用の最終的な名前を決定
     let finalName = displayName || realName;
 
-    // 杖の回数、＋値、印の表示（正体が分かっている時、または装備した時だけ見える）
-    // ※本家仕様：武器の＋値などは装備するまで見えない
+    // ==========================================
+    // ★ 修正：表示制御（リザルト画面での印消失バグ対応）
+    // ==========================================
     const isEquipped = (s.player.equipWeapon === itemId || s.player.equipShield === itemId || s.player.equipArmor === itemId || s.player.equipAccessory === itemId);
     
-    if (isIdentified || isEquipped || baseId.includes('wand')) {
+    // 武器や盾は拾った時点で（装備しなくても）＋値と印を常に表示させるように変更
+    let isEquipment = baseId.includes('sword') || baseId.includes('shield') || baseId.includes('armor') || baseId.includes('ring');
+    let isDungeonFinished = !s.active; // リザルト画面では無条件で全て開示する
+
+    if (isIdentified || isEquipped || baseId.includes('wand') || isEquipment || isDungeonFinished) {
         if (baseId.includes('wand')) finalName += ` [${plus}]`;
         else if (plus > 0) finalName += ` +${plus}`;
 
@@ -4403,7 +4967,7 @@ window.getDungeonItemEffect = function(itemId) {
     }
 
     let effect = { 
-        hp: 0, hunger: 0, 
+        hp: 0, hunger: 0,
         isConsumable: false, equipType: null,
         atk: 0, def: 0, name: finalName, realName: realName, maxSeals: 3, charges: 0,
         traits: [...seals], isIdentified: isIdentified
@@ -5182,8 +5746,10 @@ window.generateDungeonFloor = async function() {
         let eType = window._dungeonAiTypesList[Math.floor(Math.random() * window._dungeonAiTypesList.length)];
         let eSkin = eType;
 
-        // ★階層進化ロジック（ロボット系以外は一旦基本スキン）
-        if (eType === 'robot') {
+        // ==========================================
+        // ★ 修正：階層進化ロジック（文字列判定を堅牢化）
+        // ==========================================
+        if (eType && eType.includes('robot')) {
             if (s.floor >= 70) {
                 const gen2Skins = ['robot_type3_3', 'robot_type3_4', 'robot_type3_5', 'robot_type2_2', 'robot_type2_3', 'robot_type2_4', 'robot_type4_3', 'robot_type4_4', 'robot_type1_2', 'robot_type1_3', 'robot_type5_2', 'robot_type5_3', 'robot_type5_4'];
                 eSkin = gen2Skins[Math.floor(Math.random() * gen2Skins.length)];
@@ -5479,49 +6045,67 @@ window.updateDungeonUI = function() {
         });
     }
 
+    // ==========================================
+    // ★ 修正：スクロールバーを完全に廃止し、AUTO中でも確実に開閉できるUI
+    // ==========================================
     const invListEl = document.getElementById('dg-inventory-list');
     if (invListEl) {
+        // もし過去のスタイル（スクロール等）が残っていたら強制解除
+        invListEl.style.maxHeight = 'none';
+        invListEl.style.overflowY = 'visible';
+
         let invHtml = "";
-        if (s.player.equipWeapon) { let wName = window.getDungeonItemEffect(s.player.equipWeapon).name; invHtml += `<span style="background:rgba(255,215,0,0.15); color:#FFD700; padding:3px 8px; border-radius:4px; border:1px solid #FFD700; margin-right:5px;">⚔️ ${wName} (装備中)</span>`; }
-        if (s.player.equipShield) { let sName = window.getDungeonItemEffect(s.player.equipShield).name; invHtml += `<span style="background:rgba(79,195,247,0.15); color:#4fc3f7; padding:3px 8px; border-radius:4px; border:1px solid #4fc3f7; margin-right:5px;">🛡️ ${sName} (装備中)</span>`; }
-        if (s.player.equipArmor) { let aName = window.getDungeonItemEffect(s.player.equipArmor).name; invHtml += `<span style="background:rgba(139,195,74,0.15); color:#8BC34A; padding:3px 8px; border-radius:4px; border:1px solid #8BC34A; margin-right:5px;">👕 ${aName} (装備中)</span>`; }
-        if (s.player.equipAccessory) { let acName = window.getDungeonItemEffect(s.player.equipAccessory).name; invHtml += `<span style="background:rgba(224,64,251,0.15); color:#E040FB; padding:3px 8px; border-radius:4px; border:1px solid #E040FB; margin-right:5px;">💍 ${acName} (装備中)</span>`; }
+        if (s.player.equipWeapon) { let wName = window.getDungeonItemEffect(s.player.equipWeapon).name; invHtml += `<span style="background:rgba(255,215,0,0.15); color:#FFD700; padding:3px 8px; border-radius:4px; border:1px solid #FFD700; margin-right:5px; display:inline-block; margin-bottom:3px;">⚔️ ${wName}</span>`; }
+        if (s.player.equipShield) { let sName = window.getDungeonItemEffect(s.player.equipShield).name; invHtml += `<span style="background:rgba(79,195,247,0.15); color:#4fc3f7; padding:3px 8px; border-radius:4px; border:1px solid #4fc3f7; margin-right:5px; display:inline-block; margin-bottom:3px;">🛡️ ${sName}</span>`; }
+        if (s.player.equipArmor) { let aName = window.getDungeonItemEffect(s.player.equipArmor).name; invHtml += `<span style="background:rgba(139,195,74,0.15); color:#8BC34A; padding:3px 8px; border-radius:4px; border:1px solid #8BC34A; margin-right:5px; display:inline-block; margin-bottom:3px;">👕 ${aName}</span>`; }
+        if (s.player.equipAccessory) { let acName = window.getDungeonItemEffect(s.player.equipAccessory).name; invHtml += `<span style="background:rgba(224,64,251,0.15); color:#E040FB; padding:3px 8px; border-radius:4px; border:1px solid #E040FB; margin-right:5px; display:inline-block; margin-bottom:3px;">💍 ${acName}</span>`; }
 
         let counts = {};
         if (s.player.tempInventory) { s.player.tempInventory.forEach(k => counts[k] = (counts[k] || 0) + 1); }
-        for (let k in counts) { let iName = window.getDungeonItemEffect(k).name; invHtml += `<span style="background:#222; padding:3px 8px; border-radius:4px; border:1px solid #555; margin-right:5px;">${iName} <span style="color:#FFD700">x${counts[k]}</span></span>`; }
+        for (let k in counts) { let iName = window.getDungeonItemEffect(k).name; invHtml += `<span style="background:#222; padding:3px 8px; border-radius:4px; border:1px solid #555; margin-right:5px; display:inline-block; margin-bottom:3px;">${iName} <span style="color:#FFD700">x${counts[k]}</span></span>`; }
         if (invHtml === "") { invHtml = `<span style="color:#888; font-size:12px;">なにも持っていない</span>`; }
-        invListEl.innerHTML = invHtml;
+        
+        // ★ポイント：外側の枠は一度作ったら二度と作り直さない。中身(dg-inv-content)だけを更新する。
+        let detailsEl = document.getElementById('dg-inv-details');
+        if (!detailsEl) {
+            invListEl.innerHTML = `
+                <details id="dg-inv-details" style="background:rgba(0,0,0,0.7); border:1px solid #555; border-radius:6px; margin-bottom:5px; padding-bottom:2px;">
+                    <summary style="padding:8px; cursor:pointer; color:#FFF; font-weight:bold; outline:none; font-size:14px; user-select:none;">🎒 持ち物と装備</summary>
+                    <div id="dg-inv-content" style="padding:8px; border-top:1px solid #555;"></div>
+                </details>
+            `;
+        }
+        document.getElementById('dg-inv-content').innerHTML = invHtml;
     }
 
-    // ==========================================
-    // ★ 新規追加：発動中の種族特性UIの表示
-    // ==========================================
     const traitContainer = document.getElementById('dg-active-traits');
     if (!traitContainer && invListEl) {
-        const div = document.createElement('div');
-        div.id = 'dg-active-traits';
-        div.style.marginTop = '10px';
-        div.style.padding = '10px';
-        div.style.backgroundColor = 'rgba(0, 0, 0, 0.6)';
-        div.style.border = '1px solid #00BCD4';
-        div.style.borderRadius = '5px';
+        const div = document.createElement('div'); div.id = 'dg-active-traits';
         invListEl.parentNode.appendChild(div);
     }
-
     if (document.getElementById('dg-active-traits')) {
         let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin) : [];
-        let traitHtml = `<h4 style="color:#00BCD4; margin:0 0 5px 0; font-size:14px;">🌟 発動中の種族特性</h4>`;
+        
+        let traitHtml = "";
         if (activeTraits.length === 0) {
-            traitHtml += `<span style="color:#aaa; font-size:12px;">固有の特性はありません。</span>`;
+            traitHtml = `<span style="color:#aaa; font-size:12px;">固有の特性はありません。</span>`;
         } else {
-            traitHtml += `<ul style="margin:0; padding-left:20px; color:#fff; font-size:12px; line-height:1.4;">`;
-            activeTraits.forEach(t => {
-                traitHtml += `<li><strong style="color:#FFEB3B;">【${t.name}】</strong> ${t.desc}</li>`;
-            });
+            traitHtml = `<ul style="margin:0; padding-left:20px; color:#fff; font-size:12px; line-height:1.4;">`;
+            activeTraits.forEach(t => { traitHtml += `<li style="margin-bottom:4px;"><strong style="color:#FFEB3B;">【${t.name}】</strong> ${t.desc}</li>`; });
             traitHtml += `</ul>`;
         }
-        document.getElementById('dg-active-traits').innerHTML = traitHtml;
+        
+        // ★ポイント：特性も外側の枠は作り直さず、中身だけを更新する。
+        let tDetailsEl = document.getElementById('dg-trait-details');
+        if (!tDetailsEl) {
+            document.getElementById('dg-active-traits').innerHTML = `
+                <details id="dg-trait-details" style="background:rgba(0,0,0,0.7); border:1px solid #00BCD4; border-radius:6px; padding-bottom:2px;">
+                    <summary style="padding:8px; cursor:pointer; color:#00BCD4; font-weight:bold; outline:none; font-size:14px; user-select:none;">🌟 発動中の種族特性</summary>
+                    <div id="dg-trait-content" style="padding:8px; border-top:1px solid #00BCD4;"></div>
+                </details>
+            `;
+        }
+        document.getElementById('dg-trait-content').innerHTML = traitHtml;
     }
 
     // ★ 完全復旧：使える言葉のUI更新
@@ -5565,12 +6149,27 @@ window.drawMinimap = function() {
         });
     }
 
-    // ミニマップにアイテムを水色で表示
+    // ==========================================
+    // ★ 修正：ミニマップにアイテムを表示（スポットライト対応）
+    // ==========================================
+    let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+    let hasSpotlight = activeTraits.includes('スポットライト');
+
     if (s.items) {
         s.items.forEach(i => {
-            if (!window.isTileVisible(s, i.x, i.y)) return;
-            const iDot = document.createElement('div'); iDot.style.position = 'absolute'; iDot.style.left = `${i.x * miniSize}px`; iDot.style.top = `${i.y * miniSize}px`; iDot.style.width = `${miniSize}px`; iDot.style.height = `${miniSize}px`; 
-            iDot.style.backgroundColor = '#00BCD4'; container.appendChild(iDot); 
+            // スポットライトがない場合は、視界外のアイテムを描画しない
+            if (!hasSpotlight && !window.isTileVisible(s, i.x, i.y)) return;
+            
+            const iDot = document.createElement('div'); 
+            iDot.style.position = 'absolute'; 
+            iDot.style.left = `${i.x * miniSize}px`; 
+            iDot.style.top = `${i.y * miniSize}px`; 
+            iDot.style.width = `${miniSize}px`; 
+            iDot.style.height = `${miniSize}px`; 
+            
+            // スポットライトで感知したものは黄色、直接視界で見ているものは水色
+            iDot.style.backgroundColor = hasSpotlight && !window.isTileVisible(s, i.x, i.y) ? '#FFEB3B' : '#00BCD4'; 
+            container.appendChild(iDot); 
         });
     }
 
@@ -5596,18 +6195,17 @@ window.drawMinimap = function() {
     pDot.appendChild(faceIndicator); container.appendChild(pDot);
 };
 
-// ★ダメージ数値をポップアップさせ、画面を揺らす
+// ★ダメージ数値をポップアップさせ、画面全体の揺れだけを行う
 window.showDungeonDamageEffect = function(x, y, dmg, isPlayer) {
     const gridDiv = document.getElementById('dg-grid');
     const container = document.getElementById('dg-map-container');
     if (!gridDiv || !container) return;
 
-    // 画面全体の振動は消されないのでそのまま実行
+    // 画面全体の振動
     container.classList.remove('anim-screen-shake');
     void container.offsetWidth; 
     container.classList.add('anim-screen-shake');
 
-    // ★超重要：ダメージの数字も全消去をやり過ごすために10ミリ秒待つ！
     setTimeout(() => {
         const s = window.DUNGEON_STATE;
         const prefix = s.mapType === 'crystal' ? 'crystal_' : 'skull_';
@@ -5615,15 +6213,28 @@ window.showDungeonDamageEffect = function(x, y, dmg, isPlayer) {
         const logicalTileX = floorSp ? (floorSp.sw * (floorSp.scale || 1.0)) : 100;
         const logicalTileY = floorSp ? (floorSp.sh * (floorSp.scale || 1.0)) : 100;
 
+        // 数値のポップアップのみ生成
         const popup = document.createElement('div');
         popup.innerText = dmg;
         popup.className = 'dmg-text';
+        popup.style.position = 'absolute';
         popup.style.left = `${x * logicalTileX + (logicalTileX / 2) - 15}px`;
         popup.style.top = `${y * logicalTileY + 20}px`;
         popup.style.color = isPlayer ? '#ff5252' : '#FFF';
+        popup.style.fontWeight = 'bold';
+        popup.style.fontSize = '24px';
+        popup.style.textShadow = '2px 2px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000';
+        popup.style.zIndex = '5000';
+        popup.style.pointerEvents = 'none';
+        popup.style.transition = 'top 0.8s ease-out, opacity 0.8s ease-in';
         
         gridDiv.appendChild(popup);
-        setTimeout(() => { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 600);
+        
+        requestAnimationFrame(() => {
+            popup.style.top = `${y * logicalTileY - 40}px`;
+            popup.style.opacity = '0';
+        });
+        setTimeout(() => { if (popup.parentNode) popup.parentNode.removeChild(popup); }, 800);
     }, 10);
 };
 
@@ -5823,6 +6434,13 @@ window.dealDungeonDamage = function(attacker, defender) {
     }
 
     defender.hp -= dmg;
+    
+    // ==========================================
+    // ★ ここがすべてを解決する魔法の1行です！！
+    // これにより、updateDungeonUIで元の「完璧なCSSアニメーション」が発動します！
+    // ==========================================
+    defender.damageAnim = true; 
+    
     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === s.player);
     window.addDungeonLog(`${defender.name} に ${dmg} ダメージ！`, defender === s.player ? '#ff5252' : '#FF9800');
 
@@ -5858,11 +6476,20 @@ window.dealDungeonDamage = function(attacker, defender) {
             // ★ 特性：学習機能
             let expGain = aTraits.includes('学習機能') ? 24 : 20;
             attacker.exp = (attacker.exp || 0) + expGain;
-            if (attacker.exp >= 100) {
-                attacker.exp -= 100; attacker.level = (attacker.level || 1) + 1; attacker.maxHp += 20; attacker.hp = attacker.maxHp; attacker.basePwr += 8;
+
+            // ★修正：レベルアップに必要な経験値をスケールさせる（Lv1=100, Lv2=150, Lv3=200...）
+            let requiredExp = 100 + ((attacker.level || 1) - 1) * 50; 
+
+            if (attacker.exp >= requiredExp) {
+                attacker.exp -= requiredExp; 
+                attacker.level = (attacker.level || 1) + 1; 
+                attacker.maxHp += 20; 
+                attacker.hp = attacker.maxHp; 
+                attacker.basePwr += 5; // 攻撃力の上がり幅を少しマイルドに調整
                 
-                // ★ 修正：レベルアップ時に満腹度も全回復させる
+                // ★修正：「省エネ」の最大満腹度+20を考慮して全回復させる
                 let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (attacker.maxHunger || 100);
+                if (aTraits.includes('省エネ')) maxH += 20;
                 attacker.hunger = maxH; 
 
                 attacker.levelUpAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(attacker.x, attacker.y, 'level_up');
@@ -7102,7 +7729,6 @@ if (typeof window.AICharacter !== 'undefined') {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 1);
         }
 
-        // ★ 特性追加：大地の恵み（毎ターンHP微回復）
         if (activeTraits.includes('大地の恵み') && s.player.hp < s.player.maxHp) {
             s.player.hp = Math.min(s.player.maxHp, s.player.hp + 2);
         }
@@ -7111,9 +7737,11 @@ if (typeof window.AICharacter !== 'undefined') {
         if (allTraits.includes('fast_hunger')) consumption *= 2.0;
         if (allTraits.includes('regen') && consumption > 1.0) consumption = 1.0; 
 
-        // ★ 特性追加：無限機関（満腹度が一切減らない）
+        // ==========================================
+        // ★修正：異常な餓死スピードをローグライクの標準（約7ターンで1減少）に変更
+        // ==========================================
         if (!activeTraits.includes('無限機関')) {
-            s.player.hunger = Math.max(0, s.player.hunger - (1.0 * consumption));
+            s.player.hunger = Math.max(0, s.player.hunger - (0.15 * consumption)); 
         }
         
         if (s.player.hunger <= 0) {
@@ -7321,11 +7949,26 @@ if (typeof window.AICharacter !== 'undefined') {
                                     
                                     if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight) {
                                         let tile = s.grid[ny][nx];
-                                        if (tile === 1) continue; 
+                                        let moveCost = 1; 
+                                        
+                                        // ==========================================
+                                        // ★ 修正：重機動アームの壁貫通ルーチン
+                                        // ==========================================
+                                        if (tile === 1) {
+                                            let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+                                            // ==========================================
+                                            // ★修正：壁破壊のコストを5から2に下げる。
+                                            // これにより、ちょっとの近道でも嬉々として壁をぶち抜くようになります！
+                                            // ==========================================
+                                            if (activeTraits.includes('重機動アーム') && (nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1)) {
+                                                moveCost = 2; 
+                                            } else {
+                                                continue; 
+                                            }
+                                        }
+                                        
                                         if (!isFlying && tile === 4) continue; 
                                         if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) continue;
-                                        
-                                        let moveCost = 1; 
                                         if (tile === 5) {
                                             if (s.player.hp <= 20) continue; 
                                             moveCost = 20; 
@@ -7397,25 +8040,15 @@ if (typeof window.AICharacter !== 'undefined') {
                                 let parsedMat = window.parseItemString(matItem);
                                 let matEff = window.getDungeonItemEffect(matItem);
                                 
-                                // ==========================================
-                                // ★修正：未識別アイテムは怖いので絶対に合成素材にしない！
-                                // ==========================================
                                 let isMatUnidentified = s.sessionItemDict && s.sessionItemDict[parsedMat.baseId] && !s.aiMemory.identified.includes(parsedMat.baseId);
-                                // リーフ・スカラーの鑑定眼がある場合は例外
                                 if (s.player.skin && s.player.skin.includes('spirit_type3')) isMatUnidentified = false;
+                                if (isMatUnidentified) continue; 
                                 
-                                if (isMatUnidentified) continue; // 未識別ならパス！
-                                
-                                if (eType === 'accessory') {
-                                    if (matEff.equipType === 'accessory' && parsedBase.baseId === parsedMat.baseId) {
-                                        let mergedSeals = [...new Set([...parsedBase.seals, ...parsedMat.seals])];
-                                        if (mergedSeals.length <= bData.maxSeals) return { type: eType, matIdx: i, isSame: true };
-                                    }
-                                    continue;
-                                }
-                                if (matEff.equipType === eType && parsedBase.baseId === parsedMat.baseId) {
-                                    let mergedSeals = [...new Set([...parsedBase.seals, ...parsedMat.seals])];
-                                    if (mergedSeals.length <= bData.maxSeals) return { type: eType, matIdx: i, isSame: true };
+                                // ==========================================
+                                // ★修正：武器同士、盾同士なら「ベースが違っても」必ず合成対象にする！
+                                // ==========================================
+                                if (matEff.equipType === eType) {
+                                    return { type: eType, matIdx: i, isSame: true }; // isSameフラグを「＋値の強化」として利用
                                 }
                                 
                                 if ((ai.stats.intel || 10) >= 60) {
@@ -7776,13 +8409,34 @@ if (typeof window.AICharacter !== 'undefined') {
                             effectTriggered = true;
                         }
                         if ((effect.traits.includes('fire_damage') || effect.traits.includes('swap_pos') || effect.traits.includes('blow_back')) && (chosenCommand === 'use' || isUnidentified)) {
-                            s.player.magicAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                            s.player.magicAnim = true; 
+                            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                            
                             let targetEnemy = enemyAdjacent;
-                            if (!targetEnemy) { let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y)); targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0]; }
+                            if (!targetEnemy) { 
+                                let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y)); 
+                                targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0]; 
+                            }
                             
                             if (targetEnemy) {
+                                // ==========================================
+                                // ★ 修正：魔法を撃つ前に、敵の方へ向きを変えて画面を更新する
+                                // ==========================================
+                                if (targetEnemy.x < s.player.x) s.player.face = 'left'; 
+                                else if (targetEnemy.x > s.player.x) s.player.face = 'right';
+                                else if (targetEnemy.y < s.player.y) s.player.face = 'up';
+                                else if (targetEnemy.y > s.player.y) s.player.face = 'down';
+                                window.updateDungeonUI(); // 振り向いた姿を描画
+                                await sleep(150); // ★振り向いたのをプレイヤーに見せる！
+
+                                // 魔法の弾を飛ばす
+                                let magicColor = effect.traits.includes('fire_damage') ? '#FF5252' : '#00BCD4';
+                                if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, targetEnemy.x, targetEnemy.y, magicColor);
+                                await sleep(150); // 弾が飛ぶのを待つ
+
                                 if (effect.traits.includes('fire_damage')) {
-                                    targetEnemy.hp -= 40; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
+                                    targetEnemy.hp -= 40; 
+                                    if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
                                     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, 40, false);
                                     window.addDungeonLog(`🔥 灼熱の炎が ${targetEnemy.name} を焼き尽くす！(40ダメージ)`, '#FF5252');
                                 }
@@ -7896,21 +8550,22 @@ if (typeof window.AICharacter !== 'undefined') {
                         let canSynth = true;
 
                         if (info.isSame) {
-                            // ★修正：杖の合成は「回数の合算」のみ行う
                             if (parsedBase.baseId.includes('wand')) {
                                 let newCharges = parsedBase.plus + parsedMat.plus;
                                 newEquipStr = `${parsedBase.baseId}_+${newCharges}`;
                                 window.addDungeonLog(`🔨 ${aiName} は ${bData.name} と ${mData.name} の魔力を一つに束ねた！`, '#FFD700');
                             } else {
                                 let mergedSeals = [...new Set([...parsedBase.seals, ...parsedMat.seals])];
+                                
+                                // ★修正：印が限界を超えている場合は、はみ出た分を切り捨てる
                                 if (mergedSeals.length > bData.maxSeals) {
-                                    window.addDungeonLog(`印の限界数（${bData.maxSeals}個）に達しているためこれ以上異種合成できない！`, '#ff9800');
-                                    canSynth = false;
-                                } else {
-                                    let newPlus = parsedBase.plus + parsedMat.plus + 1; 
-                                    newEquipStr = `${parsedBase.baseId}_+${newPlus}`; if (mergedSeals.length > 0) newEquipStr += '_' + mergedSeals.join('_');
-                                    window.addDungeonLog(`🔨 ${aiName} は ${bData.name} と ${mData.name} を合成した！`, '#FFD700');
+                                    mergedSeals = mergedSeals.slice(0, bData.maxSeals);
                                 }
+                                
+                                let newPlus = parsedBase.plus + parsedMat.plus + 1; 
+                                newEquipStr = `${parsedBase.baseId}_+${newPlus}`; 
+                                if (mergedSeals.length > 0) newEquipStr += '_' + mergedSeals.join('_');
+                                window.addDungeonLog(`🔨 ${aiName} は ${bData.name} と ${mData.name} を合成した！`, '#FFD700');
                             }
                         } else {
                             if (parsedBase.seals.length >= bData.maxSeals && !parsedBase.seals.includes(info.seal)) {
@@ -7943,20 +8598,38 @@ if (typeof window.AICharacter !== 'undefined') {
                 if (s.grid[s.player.y][s.player.x] === 2) {
                     window.addDungeonLog(`階段を見つけた！ 次のフロアへ進む！`, '#00BCD4');
                     
-                    // ★ 特性：管理者権限（フロア移動時にアイテム生成）
-                    if (activeTraits.includes('管理者権限')) {
+                    if (activeTraits && activeTraits.includes('管理者権限')) {
                         let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
                         let droppedKey = items[Math.floor(Math.random() * items.length)];
                         s.player.tempInventory.push(droppedKey); 
                         window.addDungeonLog(`💻 管理者権限により ${window.getDungeonItemEffect(droppedKey).name} をカバンに生成した！`, '#E040FB');
                     }
 
-                    window.updateDungeonUI();
-                    await sleep(300);
+                    // ==========================================
+                    // ★ 追加：階段を降りる時の暗転（フェード）演出
+                    // ==========================================
+                    let fade = document.getElementById('dg-fade-overlay');
+                    if (!fade) {
+                        fade = document.createElement('div');
+                        fade.id = 'dg-fade-overlay';
+                        fade.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:black; z-index:99999; opacity:0; transition:opacity 0.6s ease; display:flex; justify-content:center; align-items:center; color:white; font-size:42px; font-weight:bold; pointer-events:none; letter-spacing: 4px;';
+                        document.body.appendChild(fade);
+                    }
+                    fade.innerHTML = `<div style="text-align:center;"><span style="color:#00BCD4; font-size:24px;">地下深くへ...</span><br>B${s.floor + 1} F</div>`;
+                    fade.style.opacity = 1; // 暗転開始
+                    await sleep(800); // 完全に真っ暗になるまで待つ
+
+                    s.floor++;
+                    s.turnCount = 0;
+                    s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0 };
+                    window.generateDungeonFloor();
+                    window.updateDungeonUI(); // マップを裏で描画
                     
-                    if (s.isAuto) window.toggleDungeonAuto(); s.floor++; 
-                    (async () => { await window.generateDungeonFloor(); window.updateDungeonUI(); s.isProcessingTurn = false; })();
-                    return; 
+                    await sleep(300); // 少し余韻を残す
+                    fade.style.opacity = 0; // 暗転解除（明転）
+                    await sleep(600); // 明転しきるまで待つ
+
+                    continue;
                 }
 
                 let waitTime = 150;
@@ -8008,11 +8681,22 @@ if (typeof window.AICharacter !== 'undefined') {
                 } 
                 else {
                     if (e.type === 'magician' && dist <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
+                        // 1. まずプレイヤーの方へ振り向く
                         if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
-                        e.attackAnim = true; 
+                        window.updateDungeonUI(); // 振り向いた姿を画面に反映
+                        
+                        // 2. 魔法の弾を飛ばす
                         if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
+                        
+                        // ★修正：ここが超重要！弾がプレイヤーに届くまで処理を一時停止して見せる
+                        await sleep(150); 
+                        
+                        // 3. 着弾したらダメージ計算とアニメーション
+                        e.attackAnim = true; 
                         e.isPiercing = (Math.random() < 0.20); 
-                        window.dealDungeonDamage(e, s.player); e.isPiercing = false; hasAttacked = true;
+                        window.dealDungeonDamage(e, s.player); 
+                        e.isPiercing = false; 
+                        hasAttacked = true;
                     }
                     else if (dist === 1) {
                         if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
@@ -8184,20 +8868,22 @@ aiPet.checkAndTriggerAdulthood = function() {
 // ==========================================
 if (typeof window._originalOpenDungeonUI === 'undefined' && typeof window.openDungeonUI === 'function') {
     window._originalOpenDungeonUI = window.openDungeonUI;
-    window.openDungeonUI = function(dungeonType) {
+    
+    // ★修正：第2引数（startFloor）を追加で受け取る
+    window.openDungeonUI = function(dungeonType, startFloor) { 
         // 冒険家のランクをチェック
         let isMasterExplorer = (aiPet.apprentice && aiPet.apprentice.rank && aiPet.apprentice.rank['explore'] >= 10);
         
-        if (!isMasterExplorer) {
-            // 免許皆伝でない場合は、UIを開かずに追い返す
+        // デバッグモード時はチェックをバイパスできるようにしておく
+        if (!isMasterExplorer && currentMode !== 'debug') {
             aiPet.actionState = 'idle';
             aiPet.message = "ここから先は危険だ...\n（※入るには「冒険家」の免許皆伝が必要です）";
             aiPet.messageTimer = 180;
-            return; // 処理をここでストップ！
+            return; 
         }
         
-        // 免許皆伝なら本来のダンジョンUIを開く
-        window._originalOpenDungeonUI(dungeonType);
+        // ★修正：受け取った startFloor を本来の関数にしっかり渡す！
+        window._originalOpenDungeonUI(dungeonType, startFloor);
     };
 }
 
