@@ -2023,6 +2023,17 @@ function rouletteAnimLoop() {
                 aiPet.messageTimer = 180;
 
                 // ==========================================
+                // ★ 修正：姿を変える直前に、現在の姿を履歴(pastSkins)に保存する！
+                // ==========================================
+                if (!aiPet.pastSkins) aiPet.pastSkins = []; // 履歴配列がない場合は作成
+                
+                // 現在の姿（baseTypeまたは現在のスキン）を履歴に追加
+                let oldSkin = aiPet.currentSkin || aiPet.baseType || 'robot';
+                if (!aiPet.pastSkins.includes(oldSkin)) {
+                    aiPet.pastSkins.push(oldSkin);
+                }
+
+                // ==========================================
                 // ★ここを1行追加！！AIの姿を本当に変える！！
                 aiPet.currentSkin = selectedEvo.next;
                 // ==========================================

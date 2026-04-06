@@ -298,7 +298,8 @@
             <div class="dbg-panel">
                 <div style="padding:10px; display:flex; flex-direction:column; gap:5px;">
                     <label><input type="checkbox" id="chk-reset-map" checked> マップ/施設データ</label>
-                    <label><input type="checkbox" id="chk-reset-ai" checked> AI/プレイヤーデータ</label>
+                    <label><input type="checkbox" id="chk-reset-ai" checked> AI調整</label>
+                    <label><input type="checkbox" id="chk-reset-ai-data" checked> プレイヤーデータ</label>
                     <label><input type="checkbox" id="chk-reset-legacy" checked> 遺産・引継ぎデータ</label>
                     <label><input type="checkbox" id="chk-reset-rescue" checked> 救助待ちデータ</label>
                     <label><input type="checkbox" id="chk-reset-grazing"> 放牧データ</label>
@@ -326,27 +327,29 @@
 
             <button class="dbg-accordion">🧬 キャラクター操作 ＆ 環境</button>
             <div class="dbg-panel">
-                <div style="background:#222; padding:10px; border-radius:4px; margin:10px 0; border:1px solid #444;">
-                    <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;"><span style="font-size:12px;">現在の姿:</span><select id="dbg-char-select" style="background:#333; color:white; border:1px solid #555; padding:5px; flex:1;"></select></div>
-                    <div style="margin-top:10px; padding:5px; background:#333; border-radius:4px; display:flex; align-items:center;">
-                        <input type="checkbox" id="dbg-god-mode" style="margin-right:10px; transform: scale(1.2);">
-                        <label for="dbg-god-mode" style="color:#FFEB3B; font-weight:bold; cursor:pointer;">⚡ 無敵モード (体力・満腹が減らない)</label>
+                <div style="padding:10px;">
+                    <div style="background:#222; padding:10px; border-radius:4px; margin-bottom:10px; border:1px solid #444;">
+                        <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;"><span style="font-size:12px;">現在の姿:</span><select id="dbg-char-select" style="background:#333; color:white; border:1px solid #555; padding:5px; flex:1;"></select></div>
+                        <div style="margin-top:10px; padding:5px; background:#333; border-radius:4px; display:flex; align-items:center;">
+                            <input type="checkbox" id="dbg-god-mode" style="margin-right:10px; transform: scale(1.2);">
+                            <label for="dbg-god-mode" style="color:#FFEB3B; font-weight:bold; cursor:pointer;">⚡ 無敵モード (体力・満腹が減らない)</label>
+                        </div>
+                        <div style="font-size:12px; color:#aaa; margin-top:10px; margin-bottom:5px;">次の進化条件:</div>
+                        <div id="dbg-evo-info" style="background:#111; padding:5px; border:1px solid #333; min-height:40px; font-family:monospace; white-space:pre-wrap; color:#76ff03;"></div>
                     </div>
-                    <div style="font-size:12px; color:#aaa; margin-top:10px; margin-bottom:5px;">次の進化条件:</div>
-                    <div id="dbg-evo-info" style="background:#111; padding:5px; border:1px solid #333; min-height:40px; font-family:monospace; white-space:pre-wrap; color:#76ff03;"></div>
-                </div>
-                <div style="background:#222; padding:10px; border-radius:4px; margin-bottom:10px;">
-                    <label>Gen: <input type="number" id="dbg-gen" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <label>Age: <input type="number" id="dbg-age" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px; display:flex; gap:10px;">
-                        <div><label style="font-size:12px;">Time(Hour):</label><br><input type="number" id="dbg-hour" min="-1" max="23" style="width:60px; background:#333; color:white; border:1px solid #555;"><div style="font-size:10px; color:#aaa;">(-1=Real)</div></div>
-                        <div><label style="font-size:12px;">Season:</label><br>
-                            <select id="dbg-season" style="background:#333; color:white; border:1px solid #555; padding:2px;">
-                                <option value="spring">春 (Spring)</option>
-                                <option value="summer">夏 (Summer)</option>
-                                <option value="autumn">秋 (Autumn)</option>
-                                <option value="winter">冬 (Winter)</option>
-                            </select>
+                    <div style="background:#222; padding:10px; border-radius:4px; margin-bottom:10px;">
+                        <label>Gen: <input type="number" id="dbg-gen" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <label>Age: <input type="number" id="dbg-age" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <div style="margin-top:5px; border-top:1px solid #444; padding-top:5px; display:flex; gap:10px;">
+                            <div><label style="font-size:12px;">Time(Hour):</label><br><input type="number" id="dbg-hour" min="-1" max="23" style="width:60px; background:#333; color:white; border:1px solid #555;"><div style="font-size:10px; color:#aaa;">(-1=Real)</div></div>
+                            <div><label style="font-size:12px;">Season:</label><br>
+                                <select id="dbg-season" style="background:#333; color:white; border:1px solid #555; padding:2px;">
+                                    <option value="spring">春 (Spring)</option>
+                                    <option value="summer">夏 (Summer)</option>
+                                    <option value="autumn">秋 (Autumn)</option>
+                                    <option value="winter">冬 (Winter)</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -354,32 +357,34 @@
 
             <button class="dbg-accordion">📊 ステータス ＆ アイテム</button>
             <div class="dbg-panel">
-                <div style="background:#222; padding:10px; border-radius:4px; margin-top:10px;">
-                    <div style="color:#E040FB; font-weight:bold; margin-bottom:5px;">熟練度</div>
-                    <label>Cook: <input type="number" id="dbg-skill-cook" style="width:40px; background:#333; color:white; border:1px solid #555;"></label>
-                    <label>Smith: <input type="number" id="dbg-skill-smith" style="width:40px; background:#333; color:white; border:1px solid #555;"></label>
-                    <label>Build: <input type="number" id="dbg-skill-build" style="width:40px; background:#333; color:white; border:1px solid #555;"></label>
-                </div>
-                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:10px; margin:10px 0;">
-                    <div style="background:#222; padding:10px; border-radius:4px;"><div style="color:#4CAF50; font-weight:bold; margin-bottom:5px;">基本生存</div><label>Energy: <input type="number" id="dbg-energy" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br><label>Hunger: <input type="number" id="dbg-hunger" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br><label>Lifespan: <input type="number" id="dbg-lifespan" style="width:40px; background:#333; color:white; border:1px solid #555;"></label></div>
-                    <div style="background:#222; padding:10px; border-radius:4px;"><div style="color:#2196F3; font-weight:bold; margin-bottom:5px;">能力値</div>
-                    <label>Intel: <input type="number" id="dbg-intel" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <label>Power: <input type="number" id="dbg-power" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <label>Mood: <input type="number" id="dbg-mood" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <label>Beauty: <input type="number" id="dbg-stat-beauty" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <label>Speed: <input type="number" id="dbg-stat-speed" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    <label>Dark: <input type="number" id="dbg-darkness" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
-                    </div><div style="background:#222; padding:10px; border-radius:4px;"><div style="color:#FFC107; font-weight:bold; margin-bottom:5px;">資産</div><label>Gold: <input type="number" id="dbg-gold" style="width:60px; background:#333; color:white; border:1px solid #555;"></label></div>
-                </div>
-                
-                <div style="display:flex; gap:15px; margin-bottom:10px;">
-                    <div style="flex:1; background:#222; padding:10px; border-radius:4px;">
-                        <div style="color:#E91E63; font-weight:bold; border-bottom:1px solid #444; margin-bottom:5px;">🗺 マップオブジェクト</div>
-                        <div id="dbg-map-objects" style="max-height:150px; overflow-y:auto; font-size:12px;"></div>
+                <div style="padding:10px;">
+                    <div style="background:#222; padding:10px; border-radius:4px; margin-top:10px;">
+                        <div style="color:#E040FB; font-weight:bold; margin-bottom:5px;">熟練度</div>
+                        <label>Cook: <input type="number" id="dbg-skill-cook" style="width:40px; background:#333; color:white; border:1px solid #555;"></label>
+                        <label>Smith: <input type="number" id="dbg-skill-smith" style="width:40px; background:#333; color:white; border:1px solid #555;"></label>
+                        <label>Build: <input type="number" id="dbg-skill-build" style="width:40px; background:#333; color:white; border:1px solid #555;"></label>
                     </div>
-                    <div style="flex:1; background:#222; padding:10px; border-radius:4px;">
-                        <div style="color:#9C27B0; font-weight:bold; border-bottom:1px solid #444; margin-bottom:5px;">🎒 アイテム個数</div>
-                        <div id="dbg-items" style="max-height:150px; overflow-y:auto; display:grid; grid-template-columns: 1fr 1fr; gap:5px; font-size:12px;"></div>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:10px; margin:10px 0;">
+                        <div style="background:#222; padding:10px; border-radius:4px;"><div style="color:#4CAF50; font-weight:bold; margin-bottom:5px;">基本生存</div><label>Energy: <input type="number" id="dbg-energy" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br><label>Hunger: <input type="number" id="dbg-hunger" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br><label>Lifespan: <input type="number" id="dbg-lifespan" style="width:40px; background:#333; color:white; border:1px solid #555;"></label></div>
+                        <div style="background:#222; padding:10px; border-radius:4px;"><div style="color:#2196F3; font-weight:bold; margin-bottom:5px;">能力値</div>
+                        <label>Intel: <input type="number" id="dbg-intel" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <label>Power: <input type="number" id="dbg-power" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <label>Mood: <input type="number" id="dbg-mood" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <label>Beauty: <input type="number" id="dbg-stat-beauty" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <label>Speed: <input type="number" id="dbg-stat-speed" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        <label>Dark: <input type="number" id="dbg-darkness" style="width:40px; background:#333; color:white; border:1px solid #555;"></label><br>
+                        </div><div style="background:#222; padding:10px; border-radius:4px;"><div style="color:#FFC107; font-weight:bold; margin-bottom:5px;">資産</div><label>Gold: <input type="number" id="dbg-gold" style="width:60px; background:#333; color:white; border:1px solid #555;"></label></div>
+                    </div>
+                    
+                    <div style="display:flex; gap:15px; margin-bottom:10px;">
+                        <div style="flex:1; background:#222; padding:10px; border-radius:4px;">
+                            <div style="color:#E91E63; font-weight:bold; border-bottom:1px solid #444; margin-bottom:5px;">🗺 マップオブジェクト</div>
+                            <div id="dbg-map-objects" style="max-height:150px; overflow-y:auto; font-size:12px;"></div>
+                        </div>
+                        <div style="flex:1; background:#222; padding:10px; border-radius:4px;">
+                            <div style="color:#9C27B0; font-weight:bold; border-bottom:1px solid #444; margin-bottom:5px;">🎒 アイテム個数</div>
+                            <div id="dbg-items" style="max-height:150px; overflow-y:auto; display:grid; grid-template-columns: 1fr 1fr; gap:5px; font-size:12px;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -400,30 +405,109 @@
                     <button onclick="window.runDebugCutscene()" style="width:100%; padding: 8px; background: #2196F3; color: white; font-weight: bold; border: none; cursor: pointer; border-radius: 6px;">🎬 防衛演出テスト実行</button>
                     
                     <div style="color:#8BC34A; font-weight:bold; margin-top:15px; margin-bottom:5px;">施設HP管理 <button onclick="window.refreshDebugFacilities()" style="font-size:11px; padding:2px 5px; cursor:pointer;">更新</button></div>
-                <div id="dbg-facility-list" style="max-height:120px; overflow-y:auto; border:1px solid #333; padding:5px; background:#111; margin-bottom:15px;"></div>
-                
-                <hr style="border-color:#444; margin:15px 0;">
-                <div style="color:#E91E63; font-weight:bold; margin-bottom:5px;">⚔️ アリーナ ＆ ダンジョン</div>
-                
-                <div style="display:flex; gap:10px; margin-bottom:10px;">
-                    <span style="color:#ccc; font-size:12px; align-self:center;">アリーナ:</span>
-                    <input type="number" id="dbg-arena-wave" value="10" min="1" style="width:60px; background:#333; color:white; border:1px solid #555; padding:5px;" placeholder="WAVE">
-                    <button onclick="debugStartArena()" style="flex:1; background:#E91E63; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">WAVE開始</button>
-                </div>
-
-                <div style="display:flex; gap:10px; margin-bottom:5px;">
-                    <span style="color:#ccc; font-size:12px; align-self:center;">迷宮:</span>
-                    <select id="dbg-dungeon-type" style="width:80px; background:#333; color:white; border:1px solid #555; padding:5px;">
-                        <option value="crystal">クリスタル</option>
-                        <option value="skull">スカル</option>
-                    </select>
-                    <input type="number" id="dbg-dungeon-floor" value="5" min="1" style="width:60px; background:#333; color:white; border:1px solid #555; padding:5px;" placeholder="階層">
-                    <button onclick="debugStartDungeon()" style="flex:1; background:#9C27B0; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">フロア突入</button>
+                    <div id="dbg-facility-list" style="max-height:120px; overflow-y:auto; border:1px solid #333; padding:5px; background:#111; margin-bottom:15px;"></div>
                 </div>
             </div>
-        </div>
+            
+            <button class="dbg-accordion">⚔️ アリーナ ＆ ダンジョン</button>
+            <div class="dbg-panel">
+                <div style="padding:10px;"> <div style="display:flex; gap:10px; margin-bottom:10px;">
+                        <span style="color:#ccc; font-size:12px; align-self:center;">アリーナ:</span>
+                        <input type="number" id="dbg-arena-wave" value="10" min="1" style="width:60px; background:#333; color:white; border:1px solid #555; padding:5px;" placeholder="WAVE">
+                        <button onclick="debugStartArena()" style="flex:1; background:#E91E63; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">WAVE開始</button>
+                    </div>
 
-            <button class="dbg-accordion">🃏 TCG テストツール</button>
+                    <div style="display:flex; gap:10px; margin-bottom:5px;">
+                        <span style="color:#ccc; font-size:12px; align-self:center;">迷宮:</span>
+                        <select id="dbg-dungeon-type" style="width:80px; background:#333; color:white; border:1px solid #555; padding:5px;">
+                            <option value="crystal">クリスタル</option>
+                            <option value="skull">スカル</option>
+                        </select>
+                        <input type="number" id="dbg-dungeon-floor" value="30" min="1" style="width:60px; background:#333; color:white; border:1px solid #555; padding:5px;" placeholder="階層">
+                        <button onclick="debugStartDungeon()" style="flex:1; background:#9C27B0; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">フロア突入</button>
+                    </div>
+
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px dashed #555;">
+                        <div style="color: #FFD700; font-size: 12px; margin-bottom: 5px;">🔧 初期ステータス＆装備強制セット（任意）</div>
+                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:5px;">
+                            <span style="color:#ccc; font-size:12px; width:40px;">レベル:</span>
+                            <input type="number" id="dbg-dungeon-level" value="30" style="width:50px; background:#222; color:white; border:1px solid #555;">
+                            <span style="color:#ccc; font-size:12px; margin-left:10px; width:30px;">強化:</span>
+                            <input type="number" id="dbg-dungeon-plus" value="10" title="武器と盾の＋値" style="width:50px; background:#222; color:white; border:1px solid #555;">
+                        </div>
+                        
+                        <div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:5px; min-height: 24px;">
+                            <span style="color:#ccc; font-size:12px; width:40px; margin-top:2px;">武器:</span>
+                            <select id="dbg-dungeon-weapon" style="width:100px; background:#222; color:white; border:1px solid #555;" onchange="window.updateDebugSeals('weapon')">
+                                <option value="">(なし)</option>
+                                <option value="item_sword_iron" selected>鉄の剣</option>
+                                <option value="item_sword_double">連撃の剣</option>
+                            </select>
+                            <div id="dbg-weapon-seals-container" style="flex:1; display:flex; flex-wrap:wrap; gap:4px; align-items:center;"></div>
+                        </div>
+
+                        <div style="display:flex; align-items:flex-start; gap:5px; margin-bottom:5px; min-height: 24px;">
+                            <span style="color:#ccc; font-size:12px; width:40px; margin-top:2px;">盾:</span>
+                            <select id="dbg-dungeon-shield" style="width:100px; background:#222; color:white; border:1px solid #555;" onchange="window.updateDebugSeals('shield')">
+                                <option value="">(なし)</option>
+                                <option value="item_shield_wood" selected>木の盾</option>
+                                <option value="item_shield_counter">反撃の盾</option>
+                                <option value="item_shield_hara">ハラモチの盾</option>
+                            </select>
+                            <div id="dbg-shield-seals-container" style="flex:1; display:flex; flex-wrap:wrap; gap:4px; align-items:center;"></div>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:5px; margin-bottom:10px;">
+                            <span style="color:#ccc; font-size:12px; width:40px;">鎧:</span>
+                            <select id="dbg-dungeon-armor" style="width:100px; background:#222; color:white; border:1px solid #555;">
+                                <option value="">(なし)</option>
+                                <option value="item_armor_iron" selected>鉄の鎧</option>
+                            </select>
+                            <span style="color:#ccc; font-size:12px; margin-left:10px; width:30px;">指輪:</span>
+                            <select id="dbg-dungeon-accessory" style="flex:1; background:#222; color:white; border:1px solid #555;">
+                                <option value="">(なし)</option>
+                                <option value="item_ring_heal" selected>回復の指輪</option>
+                                <option value="item_ring_haste">俊足の腕輪</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-top:5px; padding-top:5px; border-top:1px dashed #555;">
+                            <span style="color:#ccc; font-size:12px;">カバンの中身 (未チェックで未識別になります):</span>
+                            <div id="dbg-item-slots" style="display:flex; flex-direction:column; gap:3px; margin-top:3px;">
+                                <script>
+                                    const dbgItemList = `
+                                        <option value="">(なし)</option>
+                                        <option value="herb">薬草</option>
+                                        <option value="item_berry">野イチゴ</option>
+                                        <option value="item_bread">大きなパン</option>
+                                        <option value="item_seed_happy">しあわせの種</option>
+                                        <option value="item_seed_mystery">謎の種</option>
+                                        <option value="item_scroll_sleep">睡眠の巻物</option>
+                                        <option value="item_scroll_confuse">混乱の巻物</option>
+                                        <option value="item_scroll_identify">識別の巻物</option>
+                                        <option value="item_wand_fire">火竜の杖</option>
+                                        <option value="item_wand_swap">場所替えの杖</option>
+                                        <option value="item_wand_blow">吹き飛ばしの杖</option>
+                                    `;
+                                    for(let i=1; i<=4; i++) {
+                                        document.write(`
+                                            <div style="display:flex; align-items:center; gap:5px;">
+                                                <span style="color:#888; font-size:10px;">枠${i}</span>
+                                                <select id="dbg-item-${i}" style="width:110px; background:#222; color:white; border:1px solid #555;">
+                                                    ${dbgItemList}
+                                                </select>
+                                                <input type="number" id="dbg-item-${i}-plus" placeholder="回数/強化" title="杖の回数など" style="width:60px; background:#222; color:white; border:1px solid #555;">
+                                                <label style="color:#ccc; font-size:12px; cursor:pointer;">
+                                                    <input type="checkbox" id="dbg-item-${i}-id" checked> 識別済
+                                                </label>
+                                            </div>
+                                        `);
+                                    }
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                </div> </div> <button class="dbg-accordion">🃏 TCG テストツール</button>
             <div class="dbg-panel">
                 <div style="padding:15px; text-align:center;">
                     <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
@@ -439,9 +523,7 @@
                 <button class="quiz-btn" style="background:#555;" onclick="switchMode('play')">キャンセル</button>
             </div>
         </div>
-    </div>
-
-    <div id="pokedexOverlay" class="overlay">
+    </div> <div id="pokedexOverlay" class="overlay">
         <div class="quiz-card">
             <div class="dex-header">
                 <h2 style="margin:0; color:#3F51B5;">📖 モンスター図鑑</h2>
@@ -663,6 +745,5 @@
             <button class="quiz-btn" style="background:#555; margin:15px; height:45px; flex-shrink:0;" onclick="document.getElementById('dungeon-ranking-ui').classList.remove('active')">全体を閉じる</button>
         </div>
     </div>
-</div>
 </body>
 </html>

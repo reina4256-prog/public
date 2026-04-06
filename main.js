@@ -820,6 +820,7 @@ document.addEventListener('visibilitychange', () => {
 window.customResetGameData = function() {
     let resetMap = document.getElementById('chk-reset-map').checked;
     let resetAI = document.getElementById('chk-reset-ai').checked;
+    let resetAIData = document.getElementById('chk-reset-ai-data').checked;
     let resetLegacy = document.getElementById('chk-reset-legacy').checked;
     let resetRescue = document.getElementById('chk-reset-rescue').checked;
     let resetGrazing = document.getElementById('chk-reset-grazing').checked;
@@ -828,8 +829,10 @@ window.customResetGameData = function() {
 
     if (resetMap) { localStorage.removeItem('map_data_v6'); }
     if (resetAI) {
-        localStorage.removeItem('ai_pet_data_v1');
         localStorage.removeItem('ai_configs_v8');
+    }
+    if (resetAIData) {
+        localStorage.removeItem('ai_pet_data_v1');
     }
     if (resetLegacy) { localStorage.removeItem('ai_legacy_data'); }
     if (resetRescue) { 
@@ -1021,24 +1024,144 @@ window.debugStartArena = function() {
     }
 };
 
+// ==========================================
+// ★新規追加：印のチェックボックスUIを動的に生成・制限する機能
+// ==========================================
+window.updateDebugSeals = function(type) {
+    let selectId = type === 'weapon' ? 'dbg-dungeon-weapon' : 'dbg-dungeon-shield';
+    let containerId = type === 'weapon' ? 'dbg-weapon-seals-container' : 'dbg-shield-seals-container';
+    let itemId = document.getElementById(selectId).value;
+    let container = document.getElementById(containerId);
+    
+    if (!itemId) {
+        container.innerHTML = '<span style="color:#888; font-size:10px;">(装備なし)</span>';
+        return;
+    }
+
+    // 装備の「印の最大枠数」を取得
+    let effect = (window.getDungeonItemEffect) ? window.getDungeonItemEffect(itemId) : { maxSeals: 3 };
+    let maxSeals = effect.maxSeals || 0;
+    
+    // 武器用・盾用の印リスト
+    const WEAPON_SEALS = ['heal', 'sleep', 'fire', 'exp', 'double', 'crit', 'holy', 'angry', 'first', 'curse'];
+    const SHIELD_SEALS = ['life', 'counter_sleep', 'anti_dragon', 'dodge', 'parry', 'half_hunger', 'counter', 'max_hunger', 'light', 'regen', 'curse'];
+    
+    let availableSeals = type === 'weapon' ? WEAPON_SEALS : SHIELD_SEALS;
+    
+    let html = `<span style="color:#FFD700; font-size:10px; margin-right:5px; background:#444; padding:2px 4px; border-radius:3px;">空き枠:<span id="dbg-${type}-slots">${maxSeals}</span></span>`;
+    
+    availableSeals.forEach(s => {
+        let sealData = window.SEAL_DESCRIPTIONS && window.SEAL_DESCRIPTIONS[s];
+        if (sealData) {
+            html += `<label style="font-size:11px; margin-right:3px; cursor:pointer; color:#ccc;" title="${sealData.desc}">
+                        <input type="checkbox" class="dbg-seal-${type}" value="${s}" onchange="window.checkDebugSealLimit('${type}', ${maxSeals})">
+                        [${sealData.name}]
+                     </label>`;
+        }
+    });
+    container.innerHTML = html;
+};
+
+// 印の数が上限に達したら、それ以上のチェックをロックする
+window.checkDebugSealLimit = function(type, max) {
+    let checkboxes = document.querySelectorAll(`.dbg-seal-${type}`);
+    let checkedCount = 0;
+    checkboxes.forEach(cb => { if(cb.checked) checkedCount++; });
+    
+    let slotsEl = document.getElementById(`dbg-${type}-slots`);
+    if(slotsEl) slotsEl.innerText = Math.max(0, max - checkedCount);
+
+    checkboxes.forEach(cb => {
+        if (!cb.checked) {
+            cb.disabled = (checkedCount >= max); // 上限到達時は未チェックのものを操作不可に
+        }
+    });
+};
+
+// ページ読み込み時にUIを初期化する（少し遅延させてSEAL_DESCRIPTIONSの読み込みを待つ）
+setTimeout(() => {
+    if (document.getElementById('dbg-dungeon-weapon')) window.updateDebugSeals('weapon');
+    if (document.getElementById('dbg-dungeon-shield')) window.updateDebugSeals('shield');
+}, 500);
+
+// ==========================================
+// ★修正：バグを排除し、チェックボックス対応にしたデバッグ開始関数
+// ==========================================
 window.debugStartDungeon = function() {
     let type = document.getElementById('dbg-dungeon-type').value;
     let floor = parseInt(document.getElementById('dbg-dungeon-floor').value) || 1;
 
+    let dbgLevel = parseInt(document.getElementById('dbg-dungeon-level')?.value) || 1;
+    let dbgPlus = parseInt(document.getElementById('dbg-dungeon-plus')?.value) || 0;
+    
+    let baseWeapon = document.getElementById('dbg-dungeon-weapon')?.value || '';
+    let baseShield = document.getElementById('dbg-dungeon-shield')?.value || '';
+    let dbgArmor = document.getElementById('dbg-dungeon-armor')?.value || '';
+    let dbgAccessory = document.getElementById('dbg-dungeon-accessory')?.value || '';
+
+    // ★チェックされた印を配列として取得する
+    let wSeals = Array.from(document.querySelectorAll('.dbg-seal-weapon:checked')).map(cb => cb.value);
+    let sSeals = Array.from(document.querySelectorAll('.dbg-seal-shield:checked')).map(cb => cb.value);
+
+    // ★装備ID生成関数（配列を受け取るように修正）
+    const buildEquipStr = (base, plus, sealsArray) => {
+        if (!base) return '';
+        let result = base;
+        if (plus > 0) result += `_+${plus}`;
+        if (sealsArray && sealsArray.length > 0) result += '_' + sealsArray.join('_');
+        return result;
+    };
+
+    let finalWeapon = buildEquipStr(baseWeapon, dbgPlus, wSeals);
+    let finalShield = buildEquipStr(baseShield, dbgPlus, sSeals);
+    let finalArmor = buildEquipStr(dbgArmor, dbgPlus, []);
+
     if (typeof window.openDungeonUI === 'function') {
         window.openDungeonUI(type, floor);
         
-        // ★ 新規追加：深層へ飛んだ場合、即死しないようにチートステータスを付与する！
-        if (floor >= 10 && window.DUNGEON_STATE) {
-            let s = window.DUNGEON_STATE;
-            s.player.level = Math.floor(floor * 1.2);
-            s.player.maxHp = 100 + (s.player.level * 20);
-            s.player.hp = s.player.maxHp;
-            s.player.basePwr = 10 + (s.player.level * 5);
-            s.player.equipWeapon = `item_sword_iron_+${Math.floor(floor/3)}_holy_fire_life`;
-            s.player.equipShield = `item_shield_wood_+${Math.floor(floor/3)}_counter_half_hunger`;
-            s.player.tempInventory.push('item_ring_heal', 'item_wand_fire_+5', 'item_scroll_sleep', 'herb');
-            setTimeout(() => { window.addDungeonLog(`🔧 [DEBUG] 階層に応じたステータスと装備を付与しました。`, '#E040FB'); }, 1000);
+        let s = window.DUNGEON_STATE;
+        if (s) {
+            if (dbgLevel > 1) {
+                s.player.level = dbgLevel;
+                s.player.maxHp = 100 + (dbgLevel * 20);
+                s.player.hp = s.player.maxHp;
+                s.player.basePwr = 10 + (dbgLevel * 5);
+            }
+
+            if (finalWeapon) s.player.equipWeapon = finalWeapon;
+            if (finalShield) s.player.equipShield = finalShield;
+            if (finalArmor)  s.player.equipArmor = finalArmor;
+            if (dbgAccessory) s.player.equipAccessory = dbgAccessory;
+
+            // ★修正：条件分岐のバグを排除し、必ず4スロットをチェックする
+            for (let i = 1; i <= 4; i++) {
+                let itemSelect = document.getElementById(`dbg-item-${i}`);
+                let itemPlus = parseInt(document.getElementById(`dbg-item-${i}-plus`)?.value) || 0;
+                let isIdentified = document.getElementById(`dbg-item-${i}-id`)?.checked;
+
+                if (itemSelect && itemSelect.value) {
+                    let baseId = itemSelect.value;
+                    let finalId = baseId;
+                    
+                    if (baseId.includes('wand') && itemPlus > 0) {
+                        finalId += `_+${itemPlus}`;
+                    }
+                    
+                    s.player.tempInventory.push(finalId);
+                    
+                    if (isIdentified) {
+                        if (!s.aiMemory.identified.includes(baseId)) s.aiMemory.identified.push(baseId);
+                    } else {
+                        s.aiMemory.identified = s.aiMemory.identified.filter(id => id !== baseId);
+                    }
+                }
+            }
+
+            window.updateDungeonUI();
+
+            setTimeout(() => { 
+                window.addDungeonLog(`🔧 [DEBUG] 装備(${dbgPlus > 0 ? '+'+dbgPlus : '強化なし'}) と アイテムを強制付与しました。`, '#E040FB'); 
+            }, 1000);
         }
         
         alert(`${type === 'crystal' ? 'クリスタル迷宮' : 'スカルダンジョン'} の ${floor}F に突入しました！`);
