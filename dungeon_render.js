@@ -1,3 +1,1399 @@
+window.DUNGEON_SPRITES = {
+    // スカル
+    "skull_floor": { "img": "dungeon_scull_mapchip.png", "sx": 9, "sy": 0, "sw": 341, "sh": 331, "scale": 1 },
+    "skull_wall": { "img": "dungeon_scull_mapchip.png", "sx": 5, "sy": 337, "sw": 341, "sh": 429, "scale": 1 },
+    "skull_stair": { "img": "dungeon_scull_mapchip.png", "sx": 448, "sy": 1168, "sw": 341, "sh": 376, "scale": 1 },
+    // ★ 追加：クリスタル（調整ツールで値を上書きしてください）
+    "crystal_floor": {
+        "img": "dungeon_crystal_mapchip.png",
+        "sx": 3,
+        "sy": 57,
+        "sw": 230,
+        "sh": 256,
+        "scale": 1
+    },
+    "crystal_wall": {
+        "img": "dungeon_crystal_mapchip.png",
+        "sx": 33,
+        "sy": 404,
+        "sw": 230,
+        "sh": 237,
+        "scale": 1
+    },
+    "crystal_stair": {
+        "img": "dungeon_crystal_mapchip.png",
+        "sx": 1999,
+        "sy": 404,
+        "sw": 230,
+        "sh": 237,
+        "scale": 1
+    },
+
+    // ==========================================
+    // ★ 追加：特殊な床、トラップ、アイテムの定義
+    // ==========================================
+    "gimmick_water": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 22,
+        "sy": 573,
+        "sw": 377,
+        "sh": 387,
+        "scale": 1
+    },
+    "gimmick_magma": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 421,
+        "sy": 573,
+        "sw": 377,
+        "sh": 387,
+        "scale": 1
+    },
+    "gimmick_grass": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 820,
+        "sy": 573,
+        "sw": 377,
+        "sh": 387,
+        "scale": 1
+    },
+    "gimmick_dirt": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 1220,
+        "sy": 573,
+        "sw": 377,
+        "sh": 387,
+        "scale": 1
+    },
+    "gimmick_ice": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 1619,
+        "sy": 573,
+        "sw": 377,
+        "sh": 387,
+        "scale": 1
+    },
+    "gimmick_puddle": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 2019,
+        "sy": 573,
+        "sw": 377,
+        "sh": 387,
+        "scale": 1
+    },
+    "gimmick_fire": {
+        "img": "dungeon_gimmick_mapchip.png",
+        "sx": 2417,
+        "sy": 496,
+        "sw": 377,
+        "sh": 464,
+        "scale": 1
+    },
+    "trap_poison": {
+        "img": "dungeon_trap_mapchip.png",
+        "sx": 77,
+        "sy": 83,
+        "sw": 573,
+        "sh": 578,
+        "scale": 0.8
+    },
+    "trap_mine": {
+        "img": "dungeon_trap_mapchip.png",
+        "sx": 740,
+        "sy": 83,
+        "sw": 573,
+        "sh": 578,
+        "scale": 0.8
+    },
+    "trap_blind": {
+        "img": "dungeon_trap_mapchip.png",
+        "sx": 1491,
+        "sy": 783,
+        "sw": 588,
+        "sh": 578,
+        "scale": 0.8
+    },
+    "trap_bear_trap": {
+        "img": "dungeon_trap_mapchip.png",
+        "sx": 740,
+        "sy": 783,
+        "sw": 573,
+        "sh": 578,
+        "scale": 0.8
+    },
+    "trap_stone": {
+        "img": "dungeon_trap_mapchip.png",
+        "sx": 2183,
+        "sy": 83,
+        "sw": 573,
+        "sh": 578,
+        "scale": 0.8
+    },
+    "spr_item_herb": {
+        "img": "dungeon_item_mapchip.png",
+        "sx": 210,
+        "sy": 637,
+        "sw": 346,
+        "sh": 458,
+        "scale": 0.8
+    },
+    "spr_item_scroll": {
+        "img": "dungeon_item_mapchip.png",
+        "sx": 815,
+        "sy": 668,
+        "sw": 492,
+        "sh": 500,
+        "scale": 0.8
+    },
+    "spr_item_wand": {
+        "img": "dungeon_item_mapchip.png",
+        "sx": 1420,
+        "sy": 618,
+        "sw": 634,
+        "sh": 590,
+        "scale": 0.8
+    },
+    "spr_item_bag": {
+        "img": "dungeon_item_mapchip.png",
+        "sx": 2223,
+        "sy": 638,
+        "sw": 442,
+        "sh": 519,
+        "scale": 0.8
+    },
+
+    // キャラクター
+    "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
+    "robot_left": { "img": "robot_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+    "robot_right": { "img": "robot_dungeon_walk.png", "sx": 737, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
+
+    "robot_sword_down": {
+        "img": "robot_dungeon_sword.png",
+        "sx": 463,
+        "sy": 76,
+        "sw": 636,
+        "sh": 626,
+        "scale": 0.4
+    },
+    "robot_sword_up": {
+        "img": "robot_dungeon_sword.png",
+        "sx": 1513,
+        "sy": 76,
+        "sw": 675,
+        "sh": 626,
+        "scale": 0.4
+    },
+    "robot_sword_left": {
+        "img": "robot_dungeon_sword.png",
+        "sx": 1634,
+        "sy": 796,
+        "sw": 490,
+        "sh": 669,
+        "scale": 0.4
+    },
+    "robot_sword_right": {
+        "img": "robot_dungeon_sword.png",
+        "sx": 737,
+        "sy": 796,
+        "sw": 494,
+        "sh": 669,
+        "scale": 0.4
+    },
+    "robot_shield_down": {
+        "img": "robot_dungeon_shield.png",
+        "sx": 688,
+        "sy": 76,
+        "sw": 504,
+        "sh": 626,
+        "scale": 0.4
+    },
+    "robot_shield_up": {
+        "img": "robot_dungeon_shield.png",
+        "sx": 1663,
+        "sy": 76,
+        "sw": 504,
+        "sh": 626,
+        "scale": 0.4
+    },
+    "robot_shield_left": {
+        "img": "robot_dungeon_shield.png",
+        "sx": 1736,
+        "sy": 796,
+        "sw": 382,
+        "sh": 669,
+        "scale": 0.4
+    },
+    "robot_shield_right": {
+        "img": "robot_dungeon_shield.png",
+        "sx": 737,
+        "sy": 796,
+        "sw": 408,
+        "sh": 669,
+        "scale": 0.4
+    },
+    "robot_sword_shield_down": {
+        "img": "robot_dungeon_sword_shield.png",
+        "sx": 525,
+        "sy": 76,
+        "sw": 660,
+        "sh": 626,
+        "scale": 0.4
+    },
+    "robot_sword_shield_up": {
+        "img": "robot_dungeon_sword_shield.png",
+        "sx": 1678,
+        "sy": 76,
+        "sw": 635,
+        "sh": 626,
+        "scale": 0.4
+    },
+    "robot_sword_shield_left": {
+        "img": "robot_dungeon_sword_shield.png",
+        "sx": 1676,
+        "sy": 796,
+        "sw": 453,
+        "sh": 669,
+        "scale": 0.4
+    },
+    "robot_sword_shield_right": {
+        "img": "robot_dungeon_sword_shield.png",
+        "sx": 737,
+        "sy": 796,
+        "sw": 449,
+        "sh": 669,
+        "scale": 0.4
+    },
+    "robot_type1_down": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 74,
+        "sy": 39,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_up": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 907,
+        "sy": 39,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_left": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 74,
+        "sy": 1290,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_right": {
+        "img": "robot_type1_dungeon_walk.png",
+        "sx": 874,
+        "sy": 1290,
+        "sw": 696,
+        "sh": 1240,
+        "scale": 0.25
+    },
+    "robot_type1_2_down": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 55,
+        "sy": 38,
+        "sw": 879,
+        "sh": 1085,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_2_up": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 1013,
+        "sy": 38,
+        "sw": 879,
+        "sh": 1085,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_2_left": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 55,
+        "sy": 1125,
+        "sw": 879,
+        "sh": 1127,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_2_right": {
+        "img": "robot_type1_2_dungeon_walk.png",
+        "sx": 1033,
+        "sy": 1125,
+        "sw": 879,
+        "sh": 1127,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_down": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 12,
+        "sy": 60,
+        "sw": 854,
+        "sh": 1208,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_up": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 841,
+        "sy": 60,
+        "sw": 854,
+        "sh": 1208,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_left": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 12,
+        "sy": 1268,
+        "sw": 854,
+        "sh": 1247,
+        "scale": 0.25000000000000006
+    },
+    "robot_type1_3_right": {
+        "img": "robot_type1_3_dungeon_walk.png",
+        "sx": 846,
+        "sy": 1268,
+        "sw": 854,
+        "sh": 1247,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_down": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 71,
+        "sy": 55,
+        "sw": 722,
+        "sh": 1111,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_up": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 972,
+        "sy": 55,
+        "sw": 722,
+        "sh": 1111,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_left": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 991,
+        "sy": 1214,
+        "sw": 722,
+        "sh": 1142,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_right": {
+        "img": "robot_type2_dungeon_walk.png",
+        "sx": 91,
+        "sy": 1214,
+        "sw": 722,
+        "sh": 1142,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_down": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 39,
+        "sy": 76,
+        "sw": 745,
+        "sh": 1241,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_up": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 860,
+        "sy": 76,
+        "sw": 745,
+        "sh": 1241,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_left": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 39,
+        "sy": 1326,
+        "sw": 745,
+        "sh": 1306,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_2_right": {
+        "img": "robot_type2_2_dungeon_walk.png",
+        "sx": 876,
+        "sy": 1326,
+        "sw": 745,
+        "sh": 1306,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_down": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 28,
+        "sy": 76,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_up": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 805,
+        "sy": 76,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_left": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 28,
+        "sy": 1496,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_3_right": {
+        "img": "robot_type2_3_dungeon_walk.png",
+        "sx": 814,
+        "sy": 1496,
+        "sw": 718,
+        "sh": 1251,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_down": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 38,
+        "sy": 40,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_up": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 1235,
+        "sy": 40,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_left": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 38,
+        "sy": 934,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type2_4_right": {
+        "img": "robot_type2_4_dungeon_walk.png",
+        "sx": 1267,
+        "sy": 933,
+        "sw": 1089,
+        "sh": 885,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_down": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 55,
+        "sy": 44,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_up": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 874,
+        "sy": 44,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_left": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 55,
+        "sy": 1272,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_right": {
+        "img": "robot_type3_dungeon_walk.png",
+        "sx": 897,
+        "sy": 1272,
+        "sw": 772,
+        "sh": 1233,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_down": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 83,
+        "sy": 76,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_up": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 1083,
+        "sy": 76,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_left": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 1075,
+        "sy": 1083,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_2_right": {
+        "img": "robot_type3_2_dungeon_walk.png",
+        "sx": 75,
+        "sy": 1083,
+        "sw": 872,
+        "sh": 997,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_down": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 147,
+        "sy": 76,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_up": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 1147,
+        "sy": 76,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_left": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 1147,
+        "sy": 1026,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_3_right": {
+        "img": "robot_type3_3_dungeon_walk.png",
+        "sx": 147,
+        "sy": 1026,
+        "sw": 818,
+        "sh": 925,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_down": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 57,
+        "sy": 65,
+        "sw": 670,
+        "sh": 1321,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_up": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 818,
+        "sy": 65,
+        "sw": 683,
+        "sh": 1321,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_left": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 810,
+        "sy": 1377,
+        "sw": 670,
+        "sh": 1345,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_4_right": {
+        "img": "robot_type3_4_dungeon_walk.png",
+        "sx": 110,
+        "sy": 1377,
+        "sw": 670,
+        "sh": 1345,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_down": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 44,
+        "sy": 60,
+        "sw": 982,
+        "sh": 942,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_up": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 1087,
+        "sy": 60,
+        "sw": 982,
+        "sh": 942,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_left": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 1087,
+        "sy": 1028,
+        "sw": 982,
+        "sh": 1006,
+        "scale": 0.25000000000000006
+    },
+    "robot_type3_5_right": {
+        "img": "robot_type3_5_dungeon_walk.png",
+        "sx": 39,
+        "sy": 1028,
+        "sw": 982,
+        "sh": 1006,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_down": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 55,
+        "sy": 43,
+        "sw": 773,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_up": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 898,
+        "sy": 43,
+        "sw": 774,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_left": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 937,
+        "sy": 1260,
+        "sw": 773,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_right": {
+        "img": "robot_type4_dungeon_walk.png",
+        "sx": 59,
+        "sy": 1260,
+        "sw": 773,
+        "sh": 1232,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_down": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 92,
+        "sy": 76,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_up": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 1204,
+        "sy": 76,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_left": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 86,
+        "sy": 928,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_2_right": {
+        "img": "robot_type4_2_dungeon_walk.png",
+        "sx": 1214,
+        "sy": 928,
+        "sw": 994,
+        "sh": 854,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_down": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 41,
+        "sy": 40,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_up": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 1041,
+        "sy": 40,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_left": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 41,
+        "sy": 1124,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_3_right": {
+        "img": "robot_type4_3_dungeon_walk.png",
+        "sx": 1041,
+        "sy": 1124,
+        "sw": 880,
+        "sh": 1088,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_down": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 42,
+        "sy": 76,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_up": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 969,
+        "sy": 56,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_left": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 123,
+        "sy": 1135,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type4_4_right": {
+        "img": "robot_type4_4_dungeon_walk.png",
+        "sx": 882,
+        "sy": 1135,
+        "sw": 909,
+        "sh": 1022,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_down": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": -12,
+        "sy": -6,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_up": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": 902,
+        "sy": -6,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_left": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": 900,
+        "sy": 1226,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_right": {
+        "img": "robot_type5_dungeon_walk.png",
+        "sx": 23,
+        "sy": 1226,
+        "sw": 849,
+        "sh": 1235,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_down": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": -9,
+        "sy": 148,
+        "sw": 806,
+        "sh": 1178,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_up": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": 818,
+        "sy": 76,
+        "sw": 806,
+        "sh": 1249,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_left": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": 814,
+        "sy": 1401,
+        "sw": 806,
+        "sh": 1253,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_2_right": {
+        "img": "robot_type5_2_dungeon_walk.png",
+        "sx": 30,
+        "sy": 1401,
+        "sw": 806,
+        "sh": 1253,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_down": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 109,
+        "sy": 297,
+        "sw": 703,
+        "sh": 918,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_up": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 952,
+        "sy": 297,
+        "sw": 703,
+        "sh": 918,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_left": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 979,
+        "sy": 1297,
+        "sw": 703,
+        "sh": 979,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_3_right": {
+        "img": "robot_type5_3_dungeon_walk.png",
+        "sx": 137,
+        "sy": 1297,
+        "sw": 703,
+        "sh": 979,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_down": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": -5,
+        "sy": 15,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_up": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": 792,
+        "sy": 15,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_left": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": -5,
+        "sy": 1324,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+    "robot_type5_4_right": {
+        "img": "robot_type5_4_dungeon_walk.png",
+        "sx": 827,
+        "sy": 1324,
+        "sw": 819,
+        "sh": 1324,
+        "scale": 0.25000000000000006
+    },
+
+
+    "magician_down": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 42, "sw": 835, "sh": 1014, "scale": 0.4 },
+    "magician_up": { "img": "magician_dungeon_walk.png", "sx": 1020, "sy": 42, "sw": 855, "sh": 1014, "scale": 0.4 },
+    "magician_left": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 1169, "sw": 835, "sh": 1014, "scale": 0.4 },
+    "magician_right": { "img": "magician_dungeon_walk.png", "sx": 1036, "sy": 1169, "sw": 835, "sh": 1014, "scale": 0.4 },
+
+    "spirit_down": {
+        "img": "spirit_dungeon_walk.png",
+        "sx": 99,
+        "sy": 63,
+        "sw": 697,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_up": {
+        "img": "spirit_dungeon_walk.png",
+        "sx": 997,
+        "sy": 63,
+        "sw": 697,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_left": {
+        "img": "spirit_dungeon_walk.png",
+        "sx": 99,
+        "sy": 1249,
+        "sw": 697,
+        "sh": 1012,
+        "scale": 0.30000000000000004
+    },
+    "spirit_right": {
+        "img": "spirit_dungeon_walk.png",
+        "sx": 970,
+        "sy": 1249,
+        "sw": 697,
+        "sh": 1012,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_down": {
+        "img": "spirit_type1_dungeon_walk.png",
+        "sx": 45,
+        "sy": 6,
+        "sw": 791,
+        "sh": 1156,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_up": {
+        "img": "spirit_type1_dungeon_walk.png",
+        "sx": 945,
+        "sy": 6,
+        "sw": 791,
+        "sh": 1156,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_left": {
+        "img": "spirit_type1_dungeon_walk.png",
+        "sx": 1012,
+        "sy": 1249,
+        "sw": 697,
+        "sh": 1125,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_right": {
+        "img": "spirit_type1_dungeon_walk.png",
+        "sx": 92,
+        "sy": 1249,
+        "sw": 697,
+        "sh": 1125,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_2_down": {
+        "img": "spirit_type1_2_dungeon_walk.png",
+        "sx": 98,
+        "sy": 113,
+        "sw": 814,
+        "sh": 1052,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_2_up": {
+        "img": "spirit_type1_2_dungeon_walk.png",
+        "sx": 948,
+        "sy": 113,
+        "sw": 814,
+        "sh": 1052,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_2_left": {
+        "img": "spirit_type1_2_dungeon_walk.png",
+        "sx": 973,
+        "sy": 1177,
+        "sw": 814,
+        "sh": 1052,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type1_2_right": {
+        "img": "spirit_type1_2_dungeon_walk.png",
+        "sx": 78,
+        "sy": 1177,
+        "sw": 814,
+        "sh": 1052,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_down": {
+        "img": "spirit_type2_dungeon_walk.png",
+        "sx": 11,
+        "sy": 24,
+        "sw": 841,
+        "sh": 1137,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_up": {
+        "img": "spirit_type2_dungeon_walk.png",
+        "sx": 953,
+        "sy": 21,
+        "sw": 829,
+        "sh": 1136,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_left": {
+        "img": "spirit_type2_dungeon_walk.png",
+        "sx": 953,
+        "sy": 1217,
+        "sw": 829,
+        "sh": 1136,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_right": {
+        "img": "spirit_type2_dungeon_walk.png",
+        "sx": 11,
+        "sy": 1217,
+        "sw": 829,
+        "sh": 1136,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_2_down": {
+        "img": "spirit_type2_2_dungeon_walk.png",
+        "sx": 119,
+        "sy": 63,
+        "sw": 743,
+        "sh": 897,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_2_up": {
+        "img": "spirit_type2_2_dungeon_walk.png",
+        "sx": 1338,
+        "sy": 63,
+        "sw": 697,
+        "sh": 888,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_2_left": {
+        "img": "spirit_type2_2_dungeon_walk.png",
+        "sx": 1338,
+        "sy": 952,
+        "sw": 697,
+        "sh": 888,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_2_right": {
+        "img": "spirit_type2_2_dungeon_walk.png",
+        "sx": 178,
+        "sy": 952,
+        "sw": 697,
+        "sh": 888,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_3_down": {
+        "img": "spirit_type2_3_dungeon_walk.png",
+        "sx": 36,
+        "sy": 42,
+        "sw": 947,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_3_up": {
+        "img": "spirit_type2_3_dungeon_walk.png",
+        "sx": 1042,
+        "sy": 48,
+        "sw": 935,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_3_left": {
+        "img": "spirit_type2_3_dungeon_walk.png",
+        "sx": 85,
+        "sy": 1069,
+        "sw": 947,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type2_3_right": {
+        "img": "spirit_type2_3_dungeon_walk.png",
+        "sx": 1032,
+        "sy": 1069,
+        "sw": 947,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_down": {
+        "img": "spirit_type3_dungeon_walk.png",
+        "sx": 25,
+        "sy": 14,
+        "sw": 790,
+        "sh": 1146,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_up": {
+        "img": "spirit_type3_dungeon_walk.png",
+        "sx": 923,
+        "sy": 14,
+        "sw": 790,
+        "sh": 1146,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_left": {
+        "img": "spirit_type3_dungeon_walk.png",
+        "sx": 986,
+        "sy": 1247,
+        "sw": 715,
+        "sh": 1149,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_right": {
+        "img": "spirit_type3_dungeon_walk.png",
+        "sx": 83,
+        "sy": 1237,
+        "sw": 715,
+        "sh": 1149,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_2_down": {
+        "img": "spirit_type3_2_dungeon_walk.png",
+        "sx": 99,
+        "sy": 37,
+        "sw": 734,
+        "sh": 1068,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_2_up": {
+        "img": "spirit_type3_2_dungeon_walk.png",
+        "sx": 1065,
+        "sy": 35,
+        "sw": 722,
+        "sh": 1076,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_2_left": {
+        "img": "spirit_type3_2_dungeon_walk.png",
+        "sx": 113,
+        "sy": 1150,
+        "sw": 697,
+        "sh": 1096,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type3_2_right": {
+        "img": "spirit_type3_2_dungeon_walk.png",
+        "sx": 1066,
+        "sy": 1150,
+        "sw": 697,
+        "sh": 1096,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_down": {
+        "img": "spirit_type4_dungeon_walk.png",
+        "sx": 5,
+        "sy": -13,
+        "sw": 883,
+        "sh": 1182,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_up": {
+        "img": "spirit_type4_dungeon_walk.png",
+        "sx": 957,
+        "sy": 3,
+        "sw": 865,
+        "sh": 1171,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_left": {
+        "img": "spirit_type4_dungeon_walk.png",
+        "sx": 99,
+        "sy": 1195,
+        "sw": 718,
+        "sh": 1163,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_right": {
+        "img": "spirit_type4_dungeon_walk.png",
+        "sx": 1005,
+        "sy": 1195,
+        "sw": 745,
+        "sh": 1163,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_2_down": {
+        "img": "spirit_type4_2_dungeon_walk.png",
+        "sx": 141,
+        "sy": 46,
+        "sw": 881,
+        "sh": 949,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_2_up": {
+        "img": "spirit_type4_2_dungeon_walk.png",
+        "sx": 1203,
+        "sy": 46,
+        "sw": 881,
+        "sh": 949,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_2_left": {
+        "img": "spirit_type4_2_dungeon_walk.png",
+        "sx": 1215,
+        "sy": 978,
+        "sw": 881,
+        "sh": 949,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_2_right": {
+        "img": "spirit_type4_2_dungeon_walk.png",
+        "sx": 124,
+        "sy": 978,
+        "sw": 881,
+        "sh": 949,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_3_down": {
+        "img": "spirit_type4_3_dungeon_walk.png",
+        "sx": 11,
+        "sy": 14,
+        "sw": 889,
+        "sh": 991,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_3_up": {
+        "img": "spirit_type4_3_dungeon_walk.png",
+        "sx": 1168,
+        "sy": 14,
+        "sw": 901,
+        "sh": 991,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_3_left": {
+        "img": "spirit_type4_3_dungeon_walk.png",
+        "sx": 209,
+        "sy": 1007,
+        "sw": 505,
+        "sh": 991,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type4_3_right": {
+        "img": "spirit_type4_3_dungeon_walk.png",
+        "sx": 936,
+        "sy": 1007,
+        "sw": 497,
+        "sh": 991,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_down": {
+        "img": "spirit_type5_dungeon_walk.png",
+        "sx": 33,
+        "sy": -10,
+        "sw": 869,
+        "sh": 1155,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_up": {
+        "img": "spirit_type5_dungeon_walk.png",
+        "sx": 933,
+        "sy": -10,
+        "sw": 869,
+        "sh": 1155,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_left": {
+        "img": "spirit_type5_dungeon_walk.png",
+        "sx": 33,
+        "sy": 1201,
+        "sw": 869,
+        "sh": 1155,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_right": {
+        "img": "spirit_type5_dungeon_walk.png",
+        "sx": 933,
+        "sy": 1201,
+        "sw": 869,
+        "sh": 1155,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_2_down": {
+        "img": "spirit_type5_2_dungeon_walk.png",
+        "sx": 232,
+        "sy": 63,
+        "sw": 697,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_2_up": {
+        "img": "spirit_type5_2_dungeon_walk.png",
+        "sx": 1219,
+        "sy": 63,
+        "sw": 697,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_2_left": {
+        "img": "spirit_type5_2_dungeon_walk.png",
+        "sx": 232,
+        "sy": 1008,
+        "sw": 697,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_2_right": {
+        "img": "spirit_type5_2_dungeon_walk.png",
+        "sx": 1198,
+        "sy": 1008,
+        "sw": 697,
+        "sh": 1005,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_3_down": {
+        "img": "spirit_type5_3_dungeon_walk.png",
+        "sx": 113,
+        "sy": 63,
+        "sw": 749,
+        "sh": 1060,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_3_up": {
+        "img": "spirit_type5_3_dungeon_walk.png",
+        "sx": 978,
+        "sy": 58,
+        "sw": 770,
+        "sh": 1067,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_3_left": {
+        "img": "spirit_type5_3_dungeon_walk.png",
+        "sx": 57,
+        "sy": 1158,
+        "sw": 794,
+        "sh": 1060,
+        "scale": 0.30000000000000004
+    },
+    "spirit_type5_3_right": {
+        "img": "spirit_type5_3_dungeon_walk.png",
+        "sx": 1015,
+        "sy": 1158,
+        "sw": 794,
+        "sh": 1060,
+        "scale": 0.30000000000000004
+    },
+
+
+    "dragon_down": { "img": "dragon_dungeon_walk.png", "sx": 60, "sy": 63, "sw": 870, "sh": 864, "scale": 0.4 },
+    "dragon_up": { "img": "dragon_dungeon_walk.png", "sx": 1045, "sy": 73, "sw": 882, "sh": 940, "scale": 0.4 },
+    "dragon_left": { "img": "dragon_dungeon_walk.png", "sx": 60, "sy": 1175, "sw": 870, "sh": 927, "scale": 0.4 },
+    "dragon_right": { "img": "dragon_dungeon_walk.png", "sx": 1053, "sy": 1175, "sw": 870, "sh": 927, "scale": 0.4 },
+    "machine_down": { "img": "machine_dungeon_walk.png", "sx": 724, "sy": 1100, "sw": 603, "sh": 864, "scale": 0.4 },
+    "machine_up": { "img": "machine_dungeon_walk.png", "sx": 724, "sy": 90, "sw": 603, "sh": 864, "scale": 0.4 },
+    "machine_left": { "img": "machine_dungeon_walk.png", "sx": 30, "sy": 1086, "sw": 629, "sh": 882, "scale": 0.4 },
+    "machine_right": { "img": "machine_dungeon_walk.png", "sx": 1391, "sy": 1086, "sw": 629, "sh": 882, "scale": 0.4 },
+    "stone_down": { "img": "stone_dungeon_walk.png", "sx": 94, "sy": 137, "sw": 836, "sh": 919, "scale": 0.4 },
+    "stone_up": { "img": "stone_dungeon_walk.png", "sx": 998, "sy": 137, "sw": 836, "sh": 919, "scale": 0.4 },
+    "stone_left": { "img": "stone_dungeon_walk.png", "sx": 94, "sy": 1156, "sw": 843, "sh": 983, "scale": 0.4 },
+    "stone_right": { "img": "stone_dungeon_walk.png", "sx": 956, "sy": 1156, "sw": 843, "sh": 983, "scale": 0.4 },
+    "seed_down": { "img": "seed_dungeon_walk.png", "sx": 150, "sy": 186, "sw": 604, "sh": 1019, "scale": 0.4 },
+    "seed_up": { "img": "seed_dungeon_walk.png", "sx": 941, "sy": 186, "sw": 604, "sh": 1019, "scale": 0.4 },
+    "seed_left": { "img": "seed_dungeon_walk.png", "sx": 939, "sy": 1400, "sw": 658, "sh": 1064, "scale": 0.4 },
+    "seed_right": { "img": "seed_dungeon_walk.png", "sx": 113, "sy": 1400, "sw": 658, "sh": 1064, "scale": 0.4 },
+    "ghost_down": { "img": "ghost_dungeon_walk.png", "sx": 185, "sy": 138, "sw": 674, "sh": 782, "scale": 0.4 },
+    "ghost_up": { "img": "ghost_dungeon_walk.png", "sx": 1110, "sy": 138, "sw": 674, "sh": 782, "scale": 0.4 },
+    "ghost_left": { "img": "ghost_dungeon_walk.png", "sx": 1148, "sy": 1130, "sw": 674, "sh": 782, "scale": 0.4 },
+    "ghost_right": { "img": "ghost_dungeon_walk.png", "sx": 132, "sy": 1130, "sw": 674, "sh": 782, "scale": 0.4 },
+    "balloon_down": { "img": "balloon_dungeon_walk.png", "sx": 168, "sy": 152, "sw": 789, "sh": 845, "scale": 0.4 },
+    "balloon_up": { "img": "balloon_dungeon_walk.png", "sx": 1162, "sy": 152, "sw": 818, "sh": 845, "scale": 0.4 },
+    "balloon_left": { "img": "balloon_dungeon_walk.png", "sx": 1172, "sy": 1050, "sw": 789, "sh": 884, "scale": 0.4 },
+    "balloon_right": { "img": "balloon_dungeon_walk.png", "sx": 173, "sy": 1050, "sw": 789, "sh": 884, "scale": 0.4 },
+    "beetle_down": { "img": "beetle_dungeon_walk.png", "sx": 1100, "sy": 76, "sw": 683, "sh": 997, "scale": 0.4 },
+    "beetle_up": { "img": "beetle_dungeon_walk.png", "sx": 152, "sy": 76, "sw": 683, "sh": 1001, "scale": 0.4 },
+    "beetle_left": { "img": "beetle_dungeon_walk.png", "sx": 1039, "sy": 1149, "sw": 785, "sh": 1001, "scale": 0.4 },
+    "beetle_right": { "img": "beetle_dungeon_walk.png", "sx": 120, "sy": 1149, "sw": 785, "sh": 1001, "scale": 0.4 },
+    "bird_down": { "img": "bird_dungeon_walk.png", "sx": 220, "sy": 234, "sw": 557, "sh": 940, "scale": 0.4 },
+    "bird_up": { "img": "bird_dungeon_walk.png", "sx": 219, "sy": 1234, "sw": 557, "sh": 957, "scale": 0.4 },
+    "bird_left": { "img": "bird_dungeon_walk.png", "sx": 1074, "sy": 1234, "sw": 631, "sh": 957, "scale": 0.4 },
+    "bird_right": { "img": "bird_dungeon_walk.png", "sx": 1049, "sy": 274, "sw": 631, "sh": 913, "scale": 0.4 }
+};
+
 window.triggerMonsterHouseEffect = function() {
     window.addDungeonLog(`🚨 モンスターハウスだ！！`, '#ff5252');
     const dgMap = document.getElementById('dg-map-container');
@@ -764,3 +2160,51 @@ window.showEquipDetailsModal = function() {
     modal.style.display = 'flex';
 };
 
+window.createDungeonSprite = function(spriteKey, logicalY, brightness = 1.0, isEnemy = false, logicalTileX = 100, existingDiv = null) {
+    const sp = window.DUNGEON_SPRITES[spriteKey]; 
+    if (!sp) return null;
+    
+    const isOverlay = spriteKey.startsWith('skull_') || spriteKey.startsWith('crystal_') || 
+                      spriteKey.startsWith('gimmick_') || spriteKey.startsWith('trap_') || spriteKey.startsWith('spr_item_');
+    
+    const div = existingDiv || document.createElement('div');
+    const inner = existingDiv ? div.firstChild : document.createElement('div');
+
+    if (!existingDiv) {
+        div.style.position = 'absolute'; 
+        div.style.display = 'flex'; 
+        div.style.justifyContent = 'center'; 
+        div.style.alignItems = isOverlay ? 'flex-end' : 'center'; 
+        div.style.overflow = 'visible'; 
+        
+        inner.style.backgroundRepeat = 'no-repeat'; 
+        inner.style.flexShrink = '0';
+        div.appendChild(inner);
+    }
+
+    div.style.width = `${sp.sw}px`; 
+    div.style.height = `${sp.sh}px`;
+    div.style.zIndex = logicalY; 
+    
+    inner.style.width = `${sp.sw}px`; 
+    inner.style.height = `${sp.sh}px`;
+    inner.style.backgroundImage = `url('${sp.img}')`; 
+    inner.style.backgroundPosition = `-${sp.sx}px -${sp.sy}px`; 
+    
+    let filterStr = brightness < 1.0 ? `brightness(${brightness}) ` : '';
+    if (isEnemy) filterStr += "sepia(100%) hue-rotate(-50deg) saturate(200%) brightness(0.7) ";
+    inner.style.filter = filterStr.trim();
+    
+    let fitScaleX = 1.0;
+    let fitScaleY = 1.0;
+    if (spriteKey.startsWith('gimmick_') || spriteKey.startsWith('trap_') || spriteKey.startsWith('spr_item_')) {
+        fitScaleX = logicalTileX / sp.sw;
+        // ★修正：縦幅が微妙に足りない画像を、強制的にタイルサイズに合わせて引き延ばす！
+        fitScaleY = logicalTileX / sp.sh; 
+    }
+    
+    inner.style.transform = `scale(${sp.scale * fitScaleX}, ${sp.scale * fitScaleY})`;
+    inner.style.transformOrigin = isOverlay ? 'bottom center' : 'center center'; 
+    
+    return div;
+};

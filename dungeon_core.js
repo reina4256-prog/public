@@ -1,3 +1,29 @@
+window.DUNGEON_AVAILABLE_COMMANDS = [
+    { id: "move_up", name: "うえ" }, { id: "move_down", name: "した" },
+    { id: "move_left", name: "ひだり" }, { id: "move_right", name: "みぎ" },
+    { id: "face_up", name: "うえむき" }, { id: "face_down", name: "したむき" }, // ★追加(0ターン)
+    { id: "face_left", name: "ひだりむき" }, { id: "face_right", name: "みぎむき" }, // ★追加(0ターン)
+    { id: "attack", name: "たたかう" }, { id: "heal", name: "かいふく" },
+    { id: "eat", name: "たべる" }, 
+    { id: "equip", name: "そうび" }, { id: "unequip", name: "はずす" },
+    { id: "flee", name: "にげる" },
+    { id: "use", name: "つかう" },
+    { id: "synthesize", name: "ごうせい" },
+    { id: "identify", name: "しらべる" }, // ★追加（鑑定）
+    { id: "name_item", name: "なまえ" },    // ★追加（推測して仮名をつける）
+    { id: 'throw', name: 'なげる' },
+    { id: 'put_down', name: 'おく' }
+];
+
+window.DUNGEON_STATE = {
+    active: false, isAuto: false, mapWidth: 30, mapHeight: 30, floor: 1, mapType: 'skull',
+    player: { x: 15, y: 15, hp: 100, maxHp: 100, face: 'down', type: 'robot', skin: 'robot', attackAnim: false, atkBuff: 0, defBuff: 0, hunger: 100, level: 1, exp: 0, nextExp: 20, tempInventory: [] },
+    enemies: [], grid: [], log: []
+};
+
+window.dungeonAutoInterval = null;
+
+
 // ★修正: 第2引数(startFloor)を受け取れるようにする
 window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     const s = window.DUNGEON_STATE;
@@ -423,6 +449,157 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
     `;
     resultUI.style.display = 'flex';
 };
+
+window.processDungeonChat = function() {
+    const input = document.getElementById('dg-chat-input');
+    if (!input || !input.value.trim()) return;
+    const text = input.value.trim();
+    input.value = "";
+    
+    const ai = window.aiPet;
+    if (!ai || !ai.apprentice) return;
+    if (!ai.apprentice.learnedWords) ai.apprentice.learnedWords = [];
+    
+    const forgetMatch = text.match(/(.+)を(?:忘|わす)れて/);
+    if (forgetMatch) {
+        let targetWord = forgetMatch[1].trim();
+        const idx = ai.apprentice.learnedWords.indexOf(targetWord);
+        if (idx !== -1) {
+            ai.apprentice.learnedWords.splice(idx, 1);
+            window.addDungeonLog(`「${targetWord}」という言葉を忘れた...`, '#FF9800');
+            if (typeof saveGameData === 'function') saveGameData();
+        }
+        window.updateDungeonUI();
+        return;
+    }
+    
+    const maxWords = (typeof ai.getMaxVocabulary === 'function') ? ai.getMaxVocabulary() : 5;
+    if (ai.apprentice.learnedWords.includes(text)) {
+        window.addDungeonLog(`「${text}」はもう知ってるよ！`, '#aaa');
+    } else if (ai.apprentice.learnedWords.length >= maxWords) {
+        window.addDungeonLog(`記憶がいっぱいで「${text}」は覚えられない...`, '#ff5252');
+    } else {
+        ai.apprentice.learnedWords.push(text);
+        window.addDungeonLog(`「${text}」という言葉を学習した！`, '#FFD700');
+        if (typeof saveGameData === 'function') saveGameData();
+    }
+    window.updateDungeonUI();
+};
+
+
+window.toggleDungeonModal = function(type) {
+    const logModal = document.getElementById('dg-modal-log'); const mapModal = document.getElementById('dg-modal-minimap');
+    if (type === 'log') { logModal.style.display = logModal.style.display === 'none' ? 'flex' : 'none'; mapModal.style.display = 'none'; } 
+    else if (type === 'minimap') { mapModal.style.display = mapModal.style.display === 'none' ? 'flex' : 'none'; logModal.style.display = 'none'; if (mapModal.style.display === 'flex') window.drawMinimap(); }
+};
+
+window.toggleDungeonAuto = function() {
+    window.DUNGEON_STATE.isAuto = !window.DUNGEON_STATE.isAuto;
+    const btn = document.getElementById('dg-auto-btn');
+    if (window.DUNGEON_STATE.isAuto) {
+        btn.innerHTML = "⏸ AUTO 停止"; btn.style.background = "#FF9800"; btn.style.boxShadow = "0 8px 0 #E65100, 0 15px 20px rgba(0,0,0,0.5)";
+        window.dungeonAutoInterval = setInterval(() => { if (window.DUNGEON_STATE.active) window.processDungeonTurn(); }, 350);
+    } else {
+        btn.innerHTML = "🔄 AUTO 開始"; btn.style.background = "#2196F3"; btn.style.boxShadow = "0 8px 0 #0D47A1, 0 15px 20px rgba(0,0,0,0.5)";
+        clearInterval(window.dungeonAutoInterval);
+    }
+};
+
+
+
+// 救助要請ボタンを押した時の処理
+window.sendRescueRequest = async function(mapType, floor) {
+    // ボタンを無効化
+    event.target.disabled = true;
+    event.target.innerHTML = "⏳ 要請送信中...";
+    
+    if (typeof window.requestRescue === 'function') {
+        const success = await window.requestRescue(mapType, floor);
+        if (success) {
+            // 要請に成功したら、ゲーム全体を「救助待ち画面」で覆ってロックする
+            document.getElementById('dg-result-ui').style.display = 'none';
+            document.getElementById('dungeon-main-ui').style.display = 'none';
+            window.showRescueWaitingScreen();
+        } else {
+            alert("通信エラー：救助要請を送信できませんでした。ログイン状態を確認してください。");
+            event.target.disabled = false;
+            event.target.innerHTML = "🆘 救助を要請する";
+        }
+    }
+};
+
+// 救助待ち画面の表示（ゲームのロック）
+window.showRescueWaitingScreen = function() {
+    let waitingUI = document.getElementById('rescue-waiting-ui');
+    if (!waitingUI) {
+        waitingUI = document.createElement('div'); waitingUI.id = 'rescue-waiting-ui';
+        waitingUI.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.95); z-index: 50000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-family: sans-serif;`;
+        document.body.appendChild(waitingUI);
+    }
+    
+    waitingUI.innerHTML = `
+        <div style="text-align:center;">
+            <h1 style="color:#2196F3; font-size:40px; margin-bottom:10px;">🆘 救助待ち...</h1>
+            <p style="font-size:18px; color:#aaa; line-height:1.6; margin-bottom:30px;">
+                他の冒険者が同じダンジョンを探索し、<br>
+                あなたの倒れた階層にたどり着くのを待っています。<br>
+                （この画面を閉じたりリロードしても状態は保持されます）
+            </p>
+            <div id="rescue-check-status" style="font-size:24px; font-weight:bold; color:#FFD700; margin-bottom:30px;">
+                📡 空の彼方へ通信中...
+            </div>
+            <button onclick="window.cancelRescueRequest()" 
+                    style="padding:12px 20px; font-size:16px; background:#444; color:white; border:none; border-radius:8px; cursor:pointer;">
+                救助を諦めて村へ戻る（アイテムは全て失われます）
+            </button>
+        </div>
+    `;
+    waitingUI.style.display = 'flex';
+    
+    // ★修正: 20秒ごとに救助されたかチェックする（無料枠節約のために間隔を延長！）
+    window.rescueCheckInterval = setInterval(async () => {
+        if (typeof window.checkMyRescueStatus === 'function') {
+            const isRescued = await window.checkMyRescueStatus();
+            if (isRescued) {
+                clearInterval(window.rescueCheckInterval);
+                document.getElementById('rescue-check-status').innerHTML = "👼 救助されました！！";
+                document.getElementById('rescue-check-status').style.color = "#4CAF50";
+                
+                // 3秒後に救助待ち画面を消して、ダンジョンUIを再開モードで開く
+                setTimeout(() => {
+                    document.getElementById('rescue-waiting-ui').style.display = 'none';
+                    localStorage.removeItem('rescue_waiting_map');
+                    localStorage.removeItem('rescue_waiting_floor');
+                    
+                    // HPと満腹度を半分にして復活！
+                    window.DUNGEON_STATE.player.hp = Math.floor(window.DUNGEON_STATE.player.maxHp / 2);
+                    window.DUNGEON_STATE.player.hunger = 50;
+                    
+                    // リザルト画面（救助成功版）を表示して再開
+                    window.closeDungeonUI(false, true); 
+                }, 3000);
+            }
+        }
+    }, 20000);
+};
+
+// 救助を諦める処理
+window.cancelRescueRequest = function() {
+    if (confirm("本当に救助を諦めますか？（持ち物は全て失われます）")) {
+        clearInterval(window.rescueCheckInterval);
+        document.getElementById('rescue-waiting-ui').style.display = 'none';
+        localStorage.removeItem('rescue_waiting_map');
+        localStorage.removeItem('rescue_waiting_floor');
+        // 諦めた場合は完全にロスト（何も渡さずUIを消す）
+        if (window.aiPet) window.aiPet.inventory = [];
+        if (typeof saveGameData === 'function') saveGameData();
+    }
+};
+
+// ゲーム読み込み時に救助待ち状態なら画面をロックする（main.jsなどの初期化処理に後で追加します）
+if (localStorage.getItem('rescue_waiting_map')) {
+    setTimeout(window.showRescueWaitingScreen, 1000);
+}
 
 // ==========================================
 // 🚪 ダンジョン突入用フック ＆ 拠点時間停止パッチ
