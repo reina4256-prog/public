@@ -96,6 +96,14 @@ window.DUNGEON_SPRITES = {
         "sh": 391,
         "scale": 1
     },
+    "gimmick_rune": {
+        "img": "dungeon_trap_mapchip.png",
+        "sx": 1447,
+        "sy": 16,
+        "sw": 707,
+        "sh": 621,
+        "scale": 0.7
+    },
     "trap_poison": {
         "img": "dungeon_trap_mapchip.png",
         "sx": 77,
@@ -1756,14 +1764,20 @@ window.DUNGEON_SPRITES = {
 
 window.triggerMonsterHouseEffect = function() {
     window.addDungeonLog(`🚨 モンスターハウスだ！！`, '#ff5252');
-    const dgMap = document.getElementById('dg-map-container');
-    if (dgMap) {
-        dgMap.style.transition = 'background-color 0.1s';
-        dgMap.style.backgroundColor = 'rgba(255, 0, 0, 0.6)';
-        setTimeout(() => { dgMap.style.backgroundColor = 'transparent'; }, 150);
-        setTimeout(() => { dgMap.style.backgroundColor = 'rgba(255, 0, 0, 0.6)'; }, 300);
-        setTimeout(() => { dgMap.style.backgroundColor = 'transparent'; }, 450);
+    
+    // ★修正：マップの裏側ではなく、画面全体の手前にフラッシュ用レイヤーを作る
+    let flashOverlay = document.getElementById('dg-mh-flash-overlay');
+    if (!flashOverlay) {
+        flashOverlay = document.createElement('div');
+        flashOverlay.id = 'dg-mh-flash-overlay';
+        flashOverlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background-color:transparent; pointer-events:none; z-index:99999; transition:background-color 0.1s ease;';
+        document.body.appendChild(flashOverlay);
     }
+    
+    flashOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0.5)'; // 画面全体を赤く染める
+    setTimeout(() => { flashOverlay.style.backgroundColor = 'transparent'; }, 150);
+    setTimeout(() => { flashOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0.5)'; }, 300);
+    setTimeout(() => { flashOverlay.style.backgroundColor = 'transparent'; }, 450);
 };
 
 window.updateDungeonUI = function() {
@@ -1853,6 +1867,7 @@ window.updateDungeonUI = function() {
             else if (tileType === 8) key = `gimmick_ice`;
             else if (tileType === 9) key = `gimmick_puddle`;
             else if (tileType === 10) key = `gimmick_fire`;
+            else if (tileType === 11) key = `gimmick_rune`; // ★ 追加：ルーン魔方陣
             
             // ★ リサイクル描画
             let domId = `tile_${x}_${y}`;
@@ -2000,8 +2015,9 @@ window.updateDungeonUI = function() {
             if (e.damageAnim) { enemyDiv.classList.add(`anim-damage`); e.damageAnim = false; } 
             if (e.warpAnim) { enemyDiv.classList.add(`anim-warp`); e.warpAnim = false; } 
             
+            // ★修正：魅了(charmed)ではなく、睡眠(sleep > 0)の時に表示するように修正
             let zzz = enemyDiv.querySelector('.zzz-mark');
-            if (e.charmed) {
+            if (e.status && e.status.sleep > 0) {
                 if (!zzz) {
                     zzz = document.createElement('div'); 
                     zzz.className = 'zzz-mark';
@@ -2211,7 +2227,20 @@ window.drawMinimap = function() {
         for(let x = 0; x < s.mapWidth; x++) {
             if (!s.visited || !s.visited[y][x]) continue; 
             const dot = document.createElement('div'); dot.style.position = 'absolute'; dot.style.left = `${x * miniSize}px`; dot.style.top = `${y * miniSize}px`; dot.style.width = `${miniSize}px`; dot.style.height = `${miniSize}px`;
-            if (s.grid[y][x] === 1) dot.style.backgroundColor = '#444'; else if (s.grid[y][x] === 2) dot.style.backgroundColor = '#00BCD4'; else dot.style.backgroundColor = '#888'; 
+            
+            // ★ 修正：ギミック地形の色分け表示を追加
+            let t = s.grid[y][x];
+            if (t === 1) dot.style.backgroundColor = '#444';      // 壁
+            else if (t === 2) dot.style.backgroundColor = '#00BCD4'; // 階段
+            else if (t === 4) dot.style.backgroundColor = '#1E88E5'; // 水脈
+            else if (t === 5 || t === 10) dot.style.backgroundColor = '#FF5252'; // マグマ・火柱
+            else if (t === 6) dot.style.backgroundColor = '#8BC34A'; // 草地
+            else if (t === 7) dot.style.backgroundColor = '#795548'; // 土
+            else if (t === 8) dot.style.backgroundColor = '#B2EBF2'; // 氷
+            else if (t === 9) dot.style.backgroundColor = '#4DD0E1'; // 浅瀬
+            else if (t === 11) dot.style.backgroundColor = '#9C27B0'; // ルーン魔方陣
+            else dot.style.backgroundColor = '#888';                 // 通路・部屋
+            
             container.appendChild(dot);
         }
     }

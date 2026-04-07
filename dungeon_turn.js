@@ -6,7 +6,11 @@ window.isTileVisible = function(s, tx, ty) {
     let isCorridor = (currentTile === 3); // 3は通路
     
     let baseSightRadius = isCorridor ? 1.5 : 1.5; 
-    if (s.player.type === 'bird') baseSightRadius += 2.0; // 鳥は通路でも目が良い
+    let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+    
+    if (s.player.skin && s.player.skin.includes('bird')) baseSightRadius += 2.0; // 鳥は基本目が良い
+    if (activeTraits.includes('鷹の目')) baseSightRadius += 1.5; // 鷹の目でさらに視界拡大
+    if (activeTraits.includes('神眼')) baseSightRadius += 3.0;   // 神眼で極大視界
 
     // ①自分の周囲の狭い円形は常に見える
     const dist = Math.sqrt(Math.pow(tx - s.player.x, 2) + Math.pow(ty - s.player.y, 2));
@@ -169,11 +173,15 @@ window.processDungeonTurn = async function() {
                     s.player.status.paralyzed--;
                     if (s.player.status.paralyzed <= 0) window.addDungeonLog(`足の痺れがとれた！`, '#4CAF50');
                 }
+                // ★追加：石化ステータスのターン経過
+                if (s.player.status.petrified > 0) {
+                    s.player.status.petrified--;
+                    if (s.player.status.petrified <= 0) window.addDungeonLog(`石化が解けて動けるようになった！`, '#4CAF50');
+                }
             } else {
-                s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0 };
+                s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0 };
             }
 
-            // ★修正: 進化後(bird_type2など)でも確実に飛翔フラグをONにする
             let isFlying = s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'));
             let realSpd = Math.floor(ai.stats.speed || 10);
             let actionCount = 1 + Math.floor(realSpd / 50); 
@@ -181,10 +189,26 @@ window.processDungeonTurn = async function() {
                 let plus = parseInt(s.player.equipAccessory.match(/_\+(\d+)/)?.[1] || 0);
                 actionCount += 1 + Math.floor(plus / 5);
             }
+            // ★追加：魔力飛行のバフ消費
+            if (s.player._magicFlight) {
+                actionCount += 1;
+                s.player._magicFlight = false; // 1ターンで消費
+                window.addDungeonLog(`🪽 魔力飛行の恩恵で行動回数がアップしている！`, '#00e676');
+            }
             if (actionCount > 1) { window.addDungeonLog(`💨 素早さを活かして ${actionCount}回 連続行動する！`, '#00e676'); }
 
             for (let actStep = 0; actStep < actionCount; actStep++) {
                 if (s.player.hp <= 0) break; 
+
+                // ★修正：神眼の判定を「1アクションごと」に行うようにループ内に移動（2回行動時の罠激突を防止）
+                if (activeTraits.includes('神眼') && s.traps) {
+                    s.traps.forEach(t => {
+                        if (!t.visible && Math.abs(t.x - s.player.x) <= 1 && Math.abs(t.y - s.player.y) <= 1) {
+                            t.visible = true;
+                            window.addDungeonLog(`👁️ 神眼が足元の罠を見破った！`, '#FFD700');
+                        }
+                    });
+                }
 
                 let currentRoom = s.roomsInfo ? s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x + r.w && s.player.y >= r.y && s.player.y < r.y + r.h) : null;
                 let isDarkRoom = currentRoom ? currentRoom.isDark : false;
@@ -365,8 +389,8 @@ window.processDungeonTurn = async function() {
                                             }
                                             
                                             // ★氷と罠を迂回シミュレート
-                                            // 飛翔中は罠を踏まないため、罠避けの迂回コストを加算しない！
-                                            let willHitTrap = s.traps && !isFlying && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
+                                            // 風船やゴーストのハードコーディング罠回避を削除（全種族共通で罠を踏む前提）
+                                            let willHitTrap = s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
                                             if (tile === 8 && !hasColdResist) {
                                                 let sx = nx, sy = ny;
                                                 while (true) {
@@ -591,19 +615,27 @@ window.processDungeonTurn = async function() {
 
                                         // 1. アイテム回収チェック（ターゲットロック固定）
                                         if (iqRank >= 1 && s.player.tempInventory.length < 20 && s.items) {
-                                            let visibleItems = s.items.filter(i => window.isTileVisible(s, i.x, i.y) && s.grid[i.y][i.x] !== 5); 
+                                            // ★修正：_unreachableItems (ブラックリスト) に入っているアイテムは無視する
+                                            let visibleItems = s.items.filter(i => window.isTileVisible(s, i.x, i.y) && s.grid[i.y][i.x] !== 5 && (!s.player._unreachableItems || !s.player._unreachableItems.includes(`${i.x},${i.y}`))); 
                                             if (visibleItems.length > 0) {
                                                 let currentTargetStillValid = s.player._itemTargetPos && visibleItems.some(i => i.x === s.player._itemTargetPos.x && i.y === s.player._itemTargetPos.y);
                                                 if (currentTargetStillValid) {
                                                     targetPos = s.player._itemTargetPos;
-                                                    thoughtLog = "あそこのアイテムを目指して進もう。";
                                                 } else {
                                                     let nearestItem = visibleItems.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0];
                                                     targetPos = { x: nearestItem.x, y: nearestItem.y };
                                                     s.player._itemTargetPos = targetPos;
-                                                    thoughtLog = "あそこにアイテムが落ちている！拾いに行こう。";
                                                 }
                                                 nextStep = getSmartNextStep(s.player.x, s.player.y, (x, y) => x === targetPos.x && y === targetPos.y);
+                                                
+                                                if (nextStep) {
+                                                    thoughtLog = currentTargetStillValid ? "あそこのアイテムを目指して進もう。" : "あそこにアイテムが落ちている！拾いに行こう。";
+                                                } else {
+                                                    // ★追加：到達不可能なアイテムだったのでブラックリストに入れて諦める
+                                                    if (!s.player._unreachableItems) s.player._unreachableItems = [];
+                                                    s.player._unreachableItems.push(`${targetPos.x},${targetPos.y}`);
+                                                    s.player._itemTargetPos = null;
+                                                }
                                             } else {
                                                 s.player._itemTargetPos = null;
                                             }
@@ -702,8 +734,9 @@ window.processDungeonTurn = async function() {
                         if (['move_up', 'move_down', 'move_left', 'move_right'].includes(cmd)) {
                             let nx = s.player.x + (cmd === 'move_right' ? 1 : cmd === 'move_left' ? -1 : 0); let ny = s.player.y + (cmd === 'move_down' ? 1 : cmd === 'move_up' ? -1 : 0);
                             if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1) {
-                                // ★修正: 水脈(4)だけでなく溝(10)の判定も追加
                                 if (!isFlying && (s.grid[ny][nx] === 4 || s.grid[ny][nx] === 10)) return false; 
+                                // ★追加：見えている罠をランダム行動で踏まないようにする
+                                if (s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny)) return false;
                                 return true;
                             }
                             return false;
@@ -717,8 +750,11 @@ window.processDungeonTurn = async function() {
                 if (typeof chosenCommand === 'object' && chosenCommand !== null) chosenCommand = chosenCommand.id;
 
                 let isParalyzed = s.player.status && s.player.status.paralyzed > 0;
-                if (isParalyzed && ['move_up', 'move_down', 'move_left', 'move_right', 'flee'].includes(chosenCommand)) {
-                    window.addDungeonLog(`⚡ 足が痺れて動けない！`, '#FF9800');
+                let isPetrified = s.player.status && s.player.status.petrified > 0;
+                // ★修正：石化の場合は移動だけでなく攻撃やアイテム使用も完全に封じる
+                if ((isParalyzed || isPetrified) && ['move_up', 'move_down', 'move_left', 'move_right', 'flee', 'attack', 'throw', 'put_down'].includes(chosenCommand)) {
+                    if (isPetrified) window.addDungeonLog(`🗿 体が石化して動けない！`, '#757575');
+                    else window.addDungeonLog(`⚡ 足が痺れて動けない！`, '#FF9800');
                     chosenCommand = 'skip';
                 }
 
@@ -753,6 +789,11 @@ window.processDungeonTurn = async function() {
 
                 if (chosenCommand === 'descend_stairs') {
                     window.addDungeonLog(`階段を降りて次のフロアへ進む！`, '#00BCD4');
+                    // ★追加：神鳥の舞（フロア移動時全回復）
+                    if (activeTraits && activeTraits.includes('神鳥の舞')) {
+                        s.player.hp = s.player.maxHp;
+                        window.addDungeonLog(`✨ 神鳥の舞が発動！ 体力が完全に回復した！`, '#4CAF50');
+                    }
                     if (activeTraits && activeTraits.includes('管理者権限')) {
                         let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
                         let droppedKey = items[Math.floor(Math.random() * items.length)];
@@ -770,8 +811,10 @@ window.processDungeonTurn = async function() {
                     fade.style.opacity = 1; await sleep(800); 
 
                     s.floor++; s.turnCount = 0; s.floorTurn = 0; 
-                    s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0, wet: 0, sleep: 0 };
-                    window.generateDungeonFloor(); window.updateDungeonUI(); 
+                    s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0, wet: 0, sleep: 0, petrified: 0 };
+                    s.player.atkBuff = 0; // ★追加：階層移動で攻撃力デバフもリセット
+                    s.player._itemTargetPos = null; s.player._unreachableItems = []; // ★追加：アイテムターゲットとブラックリストをリセット
+                    window.generateDungeonFloor(); window.updateDungeonUI();
                     
                     await sleep(300); fade.style.opacity = 0; await sleep(600); 
                     
@@ -800,7 +843,8 @@ window.processDungeonTurn = async function() {
                 }
                 else if (chosenCommand === 'flee') {
                     if (enemyInSight) {
-                        const canFlee = (tx, ty) => s.grid[ty][tx] !== 1 && (isFlying || (s.grid[ty][tx] !== 4 && s.grid[ty][tx] !== 10)); // ★関数化して溝(10)を追加
+                        // ★修正：逃げる時も見えている罠を避けるように条件を追加
+                        const canFlee = (tx, ty) => s.grid[ty][tx] !== 1 && (isFlying || (s.grid[ty][tx] !== 4 && s.grid[ty][tx] !== 10)) && (!s.traps || !s.traps.some(t => t.visible && t.x === tx && t.y === ty)); 
                         if (s.player.x < enemyInSight.x && canFlee(s.player.x - 1, s.player.y)) { newX--; s.player.face = 'left'; }
                         else if (s.player.x > enemyInSight.x && canFlee(s.player.x + 1, s.player.y)) { newX++; s.player.face = 'right'; }
                         else if (s.player.y < enemyInSight.y && canFlee(s.player.x, s.player.y - 1)) { newY--; s.player.face = 'up'; }
@@ -917,7 +961,8 @@ window.processDungeonTurn = async function() {
                                 }
                             }
 
-                            if (s.traps && !isFlying) { // ★修正: 鳥系も罠を浮遊して回避できるように統一
+                            // ★修正: 風船・ゴーストのハードコーディング罠回避を削除（罠回避は特性システムに一任）
+                            if (s.traps) {
                                 let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
                                 
                                 if (trap && activeTraits.includes('大地の恵み')) {
@@ -1047,6 +1092,19 @@ window.processDungeonTurn = async function() {
                             else { window.addDungeonLog(`明後日の方向を殴っている！`, '#aaa'); }
                         } else { window.addDungeonLog(`空を切った...（近くに敵がいない）`, '#aaa'); }
                     }
+
+                    // ★ 追加：素振り（攻撃行動）による目の前の罠発見
+                    let tx = s.player.x; let ty = s.player.y;
+                    if (s.player.face === 'up') ty--; else if (s.player.face === 'down') ty++; else if (s.player.face === 'left') tx--; else if (s.player.face === 'right') tx++;
+                    
+                    if (s.traps) {
+                        let hiddenTrap = s.traps.find(t => t.x === tx && t.y === ty && !t.visible);
+                        if (hiddenTrap) {
+                            hiddenTrap.visible = true;
+                            window.addDungeonLog(`👀 目の前に隠された罠を発見した！`, '#FFD700');
+                        }
+                    }
+
                 } else if (chosenCommand === 'heal' || chosenCommand === 'eat' || chosenCommand === 'use') {
                     if (s.player._bestItemIdx !== undefined && s.player._bestItemIdx !== -1 && s.player.tempInventory[s.player._bestItemIdx]) {
                         let itemId = s.player.tempInventory[s.player._bestItemIdx]; 
@@ -1083,6 +1141,11 @@ window.processDungeonTurn = async function() {
                             }
 
                             window.addDungeonLog(`${aiName} は ${effect.name} を使った！`, '#00BCD4'); 
+                            
+                            // ★追加：魔力飛行の発動
+                            if (activeTraits.includes('魔力飛行')) {
+                                s.player._magicFlight = true;
+                            }
                             
                             if (itemId.includes('wand')) {
                                 s.player.tempInventory[s.player._bestItemIdx] = `${parsed.baseId}_+${parsed.plus - 1}`;
@@ -1406,6 +1469,92 @@ window.processDungeonTurn = async function() {
                 let ex = e.x, ey = e.y, moveDir = '';
                 let hasAttacked = false;
 
+                // ★追加：暴風域（周囲2マスの者を吹き飛ばす）
+                if (e.skin && e.skin === 'bird_type4_2') {
+                    let blowTargets = [];
+                    if (dist > 0 && dist <= 2) blowTargets.push(s.player);
+                    s.enemies.forEach(oe => { if (oe !== e && oe.hp > 0 && Math.abs(oe.x - e.x) + Math.abs(oe.y - e.y) <= 2 && Math.abs(oe.x - e.x) + Math.abs(oe.y - e.y) > 0) blowTargets.push(oe); });
+                    if (blowTargets.length > 0) {
+                        window.addDungeonLog(`🌪️ ${e.name} の暴風域！ 周囲が吹き飛ばされる！`, '#00BCD4');
+                        blowTargets.forEach(tgt => {
+                            let dx = Math.sign(tgt.x - e.x); let dy = Math.sign(tgt.y - e.y);
+                            if (dx === 0 && dy === 0) dx = 1; // 座標被り回避
+                            if (tgt === s.player && activeTraits.includes('暴風の主')) {
+                                window.addDungeonLog(`しかし ${s.player.name} は風を支配し、逆に弾き返した！`, '#00BCD4');
+                                if (s.grid[e.y-dy] && s.grid[e.y-dy][e.x-dx] !== 1) { e.x -= dx; e.y -= dy; }
+                            } else {
+                                if (s.grid[tgt.y+dy] && s.grid[tgt.y+dy][tgt.x+dx] !== 1) { tgt.x += dx; tgt.y += dy; }
+                            }
+                        });
+                        window.updateDungeonUI(); await sleep(100);
+                        dist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y); // 距離再計算
+                    }
+                }
+
+                // ★追加：死肉喰らい（倒れた敵を食べる）
+                if (!hasAttacked && e.skin && e.skin === 'bird_type1_2' && e.hp < e.maxHp) {
+                    let corpseIdx = s.enemies.findIndex(oe => oe !== e && oe.hp <= 0 && !oe.eaten);
+                    if (corpseIdx !== -1) {
+                        let corpse = s.enemies[corpseIdx];
+                        corpse.eaten = true;
+                        e.x = corpse.x; e.y = corpse.y; 
+                        e.hp = e.maxHp; e.damage += 5; e.atkBuff = (e.atkBuff || 0) + 5;
+                        window.addDungeonLog(`🍖 ${e.name} は ${corpse.name} の死肉を喰らい、完全回復＆パワーアップした！`, '#FF5252');
+                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(e.x, e.y, 'heal');
+                        hasAttacked = true;
+                    }
+                }
+
+                // ★追加：急降下（3マス離れていると一気に詰めて大ダメージ）
+                if (!hasAttacked && e.skin && e.skin === 'bird_type4' && dist === 3) {
+                    let dx = Math.sign(s.player.x - e.x); let dy = Math.sign(s.player.y - e.y);
+                    if (e.x === s.player.x || e.y === s.player.y) {
+                        let clear = true;
+                        if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][e.x]===1) clear=false; }
+                        else { for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) if(s.grid[e.y][x]===1) clear=false; }
+                        
+                        if (clear) {
+                            window.addDungeonLog(`🦅 ${e.name} の急降下！ 一気に距離を詰めてきた！`, '#FF5252');
+                            e.x = s.player.x - dx; e.y = s.player.y - dy; // プレイヤーの隣に着地
+                            e.attackAnim = true;
+                            let origDmg = e.damage; e.damage = Math.floor(e.damage * 1.5);
+                            window.dealDungeonDamage(e, s.player);
+                            e.damage = origDmg;
+                            hasAttacked = true;
+                        }
+                    }
+                }
+
+                // ★追加：夜行性（視界外から正確に魔法攻撃）
+                if (!hasAttacked && e.skin && e.skin === 'bird_type5' && !window.isTileVisible(s, e.x, e.y) && dist <= 5) {
+                    window.addDungeonLog(`🌑 暗闇の中から ${e.name} の魔法攻撃が飛んできた！`, '#9C27B0');
+                    if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#9C27B0');
+                    await sleep(150);
+                    e.attackAnim = true; window.dealDungeonDamage(e, s.player);
+                    hasAttacked = true;
+                }
+
+                // ★追加：ひったくり（足元のアイテムを奪ってワープ）
+                if (!hasAttacked && e.skin && e.skin === 'bird_type1' && dist === 1) {
+                    let itemIdx = s.items ? s.items.findIndex(i => i.x === s.player.x && i.y === s.player.y) : -1;
+                    if (itemIdx !== -1) {
+                        let stolen = s.items[itemIdx];
+                        s.items.splice(itemIdx, 1);
+                        window.addDungeonLog(`🦅 ${e.name} は足元の ${window.getDungeonItemEffect(stolen.key).name} をひったくった！`, '#FF9800');
+                        let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0);
+                        e.x = wx; e.y = wy; e.warpAnim = true;
+                        window.addDungeonLog(`🌀 そしてどこかへワープして逃げた！`, '#E040FB');
+                        hasAttacked = true;
+                    }
+                }
+
+                // ★追加：ルーン魔方陣（足元に魔法陣を描く）
+                if (!hasAttacked && e.skin && e.skin === 'bird_type3' && Math.random() < 0.2 && s.grid[e.y][e.x] === 0) {
+                    window.addDungeonLog(`✡️ ${e.name} は足元にルーン魔方陣を描いた！`, '#E040FB');
+                    s.grid[e.y][e.x] = 11; // 11: ルーン魔方陣
+                    hasAttacked = true;
+                }
+
                 if (isEnemyConfused) {
                     const dirs = [];
                     if (s.grid[e.y][e.x+1] !== 1) dirs.push({x: e.x+1, y: e.y, dir: 'right'});
@@ -1462,10 +1611,39 @@ window.processDungeonTurn = async function() {
                             if (dirs.length > 0) { const rnd = dirs[Math.floor(Math.random() * dirs.length)]; ex = rnd.x; ey = rnd.y; moveDir = rnd.dir; }
                         }
                     }
+
+                    // ★追加：追跡レーダー（通常移動を上書きし、障害物を完璧に迂回する）
+                    if (!hasAttacked && e.skin && e.skin === 'bird_type3_2' && dist > 1) {
+                        let distMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(Infinity));
+                        distMap[e.y][e.x] = 0; let queue = [{x: e.x, y: e.y}]; let parent = {}; let found = false;
+                        while(queue.length > 0) {
+                            let cur = queue.shift();
+                            if (cur.x === s.player.x && cur.y === s.player.y) { found = true; break; }
+                            let dirs = [{dx:0,dy:-1,cmd:'up'}, {dx:1,dy:0,cmd:'right'}, {dx:0,dy:1,cmd:'down'}, {dx:-1,dy:0,cmd:'left'}];
+                            for(let d of dirs) {
+                                let nx = cur.x + d.dx, ny = cur.y + d.dy;
+                                if (nx>=0 && nx<s.mapWidth && ny>=0 && ny<s.mapHeight && s.grid[ny][nx] !== 1) {
+                                    if (distMap[ny][nx] === Infinity) {
+                                        distMap[ny][nx] = distMap[cur.y][cur.x] + 1;
+                                        parent[`${nx},${ny}`] = {x: cur.x, y: cur.y, dir: d.cmd};
+                                        queue.push({x: nx, y: ny});
+                                    }
+                                }
+                            }
+                        }
+                        if (found) {
+                            let curr = {x: s.player.x, y: s.player.y};
+                            while(parent[`${curr.x},${curr.y}`] && (parent[`${curr.x},${curr.y}`].x !== e.x || parent[`${curr.x},${curr.y}`].y !== e.y)) {
+                                curr = parent[`${curr.x},${curr.y}`];
+                            }
+                            if (parent[`${curr.x},${curr.y}`]) {
+                                ex = curr.x; ey = curr.y; moveDir = parent[`${curr.x},${curr.y}`].dir;
+                            }
+                        }
+                    }
                 }
 
                 if (hasAttacked) { window.updateDungeonUI(); await sleep(150); continue; }
-
                 if (moveDir !== '') {
                     let occupied = s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === ex && oe.y === ey);
                     let playerHit = (ex === s.player.x && ey === s.player.y);

@@ -6,16 +6,25 @@ window.dealDungeonDamage = function(attacker, defender) {
     let aTraits = aIsPlayer ? window.getPlayerDungeonTraits(attacker.skin).map(t => t.name) : [];
     let dTraits = !aIsPlayer ? window.getPlayerDungeonTraits(defender.skin).map(t => t.name) : [];
 
+    // ★ 追加：必中判定（プレイヤーの「神眼」 or 敵の「真理の目」）
+    let isSureHit = (aIsPlayer && aTraits.includes('神眼')) || (!aIsPlayer && attacker.skin && attacker.skin.includes('bird_type3_3'));
+
     // ★ 特性：未来予知（プレイヤーが殴られる時、15%で回避）
     if (!aIsPlayer && dTraits.includes('未来予知') && Math.random() < 0.15) {
-        window.addDungeonLog(`未来予知！ ${defender.name} は攻撃を完全に見切った！`, '#00BCD4');
-        return;
+        if (isSureHit) window.addDungeonLog(`👁️ 真理の目が未来予知を破った！`, '#FF5252');
+        else { window.addDungeonLog(`未来予知！ ${defender.name} は攻撃を完全に見切った！`, '#00BCD4'); return; }
     }
     // ★ 特性：データ収集（敵ロボットの回避バフ）
-    if (!aIsPlayer && defender.highDodge && Math.random() < 0.8) {
-        window.addDungeonLog(`${defender.name} のデータ予測により攻撃がかわされた！`, '#aaa');
-        defender.highDodge = false; // 消費
-        return;
+    // ※バグ修正：プレイヤーの攻撃時（aIsPlayer）に敵が回避判定を行うように修正
+    if (aIsPlayer && defender.highDodge && Math.random() < 0.8) {
+        if (isSureHit) {
+            window.addDungeonLog(`👁️ 神眼が ${defender.name} の予測回避を無効化した！`, '#FFD700');
+            defender.highDodge = false;
+        } else {
+            window.addDungeonLog(`${defender.name} のデータ予測により攻撃がかわされた！`, '#aaa');
+            defender.highDodge = false; // 消費
+            return;
+        }
     }
 
     let aAtk = attacker.basePwr || attacker.damage || 5;
@@ -32,6 +41,9 @@ window.dealDungeonDamage = function(attacker, defender) {
             if (wEff.traits.includes('fire')) sealBonus += 10;
             if (wEff.traits.includes('anti_dragon') && defender.type === 'dragon') sealBonus += 15;
         }
+        // ★ 追加：魅惑の鱗粉などによる攻撃力デバフの適用
+        aAtk = Math.max(1, aAtk + (attacker.atkBuff || 0));
+
         // ★ 特性：最終兵器
         if (aTraits.includes('最終兵器')) aAtk += 10;
         // ★ 特性：殺戮回路
@@ -65,8 +77,26 @@ window.dealDungeonDamage = function(attacker, defender) {
     }
 
     let dmg = Math.max(1, aAtk - dDef);
-    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15) { dmg *= 2; window.addDungeonLog(`💥 会心の一撃！`, '#FFEB3B'); }
-    if (!aIsPlayer && sEff && sEff.traits.includes('parry') && Math.random() < 0.15) { window.addDungeonLog(`🛡️ 見切り！ ${defender.name} は攻撃を弾いた！`, '#4fc3f7'); return; }
+    
+    // ★ 追加：ルーン魔方陣（タイルID:11）によるダメージ半減
+    if (s.grid[defender.y] && s.grid[defender.y][defender.x] === 11) {
+        window.addDungeonLog(`✡️ ルーン魔方陣が光り、ダメージを半減した！`, '#E040FB');
+        dmg = Math.max(1, Math.floor(dmg / 2));
+    }
+
+    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15) { 
+        // ★ 特性：冥界の風（会心ダメージ3倍）
+        if (aTraits.includes('冥界の風')) {
+            dmg *= 3; window.addDungeonLog(`🌪️ 冥界の風！ 破壊的な会心の一撃！(ダメージ3倍)`, '#9C27B0'); 
+        } else {
+            dmg *= 2; window.addDungeonLog(`💥 会心の一撃！`, '#FFEB3B'); 
+        }
+    }
+    // ★ 修正：盾の見切り（parry）も必中で貫通する
+    if (!aIsPlayer && sEff && sEff.traits.includes('parry') && Math.random() < 0.15) {
+        if (isSureHit) window.addDungeonLog(`👁️ 真理の目が盾の見切りを貫通した！`, '#FF5252');
+        else { window.addDungeonLog(`🛡️ 見切り！ ${defender.name} は攻撃を弾いた！`, '#4fc3f7'); return; }
+    }
 
     let finalSealDmg = isDoubleSeal ? sealBonus * 2 : sealBonus;
     dmg += finalSealDmg;
@@ -149,11 +179,30 @@ window.dealDungeonDamage = function(attacker, defender) {
                 attacker.levelUpAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(attacker.x, attacker.y, 'level_up');
                 window.addDungeonLog(`✨ レベルアップ！ Lv.${attacker.level} になった！(体力・満腹度 全回復)`, '#E040FB');
             }
-            // ★ 特性：成金趣味
+            // ★ 特性：始祖の血（ごく稀に最大HP+1）
+            if (aTraits.includes('始祖の血') && Math.random() < 0.05) {
+                attacker.maxHp += 1;
+                attacker.hp += 1; // 上限が上がった分、現在HPも回復
+                window.addDungeonLog(`🩸 始祖の血が脈打つ！ 最大HPが 1 上がった！`, '#FF5252');
+            }
+
+            // ★ 特性：成金趣味 ＆ カラスの嗅覚
             let dropChance = aTraits.includes('成金趣味') ? 0.6 : 0.1;
+            if (aTraits.includes('カラスの嗅覚') && dropChance < 0.2) dropChance = 0.2; // 嗅覚持ちはベースのドロップ率も少し上げる
+
             if (Math.random() < dropChance) {
                 let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
                 let droppedKey = items[Math.floor(Math.random() * items.length)];
+
+                // ★ 特性：カラスの嗅覚（指輪や命の草などの確率を大幅アップ）
+                if (aTraits.includes('カラスの嗅覚') && Math.random() < 0.5) {
+                    let rareItems = items.filter(k => k.includes('ring') || k.includes('herb_life') || k.includes('scroll_bless') || k.includes('wand_magic'));
+                    if (rareItems.length > 0) {
+                        droppedKey = rareItems[Math.floor(Math.random() * rareItems.length)];
+                        window.addDungeonLog(`🦅 カラスの嗅覚がレアアイテムを嗅ぎつけた！`, '#FFD700');
+                    }
+                }
+
                 s.player.tempInventory.push(droppedKey); 
                 window.addDungeonLog(`敵は ${window.getDungeonItemEffect(droppedKey).name} を落とした！`, '#4CAF50');
             }
@@ -194,8 +243,11 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         }
 
         // --- 2. 敵(防御側)の回避と防御特性 ---
+        let isSureHit = activeTraits.includes('神眼'); // プレイヤー攻撃時の必中フラグ
+
         if (eSkin === 'spirit_type5_2' && Math.random() < 0.2) {
-            window.addDungeonLog(`🍂 落葉に遮られ、${defender.name}への攻撃が外れた！`, '#aaa'); return;
+            if (isSureHit) window.addDungeonLog(`👁️ 神眼が落葉の目眩ましを見破った！`, '#FFD700');
+            else { window.addDungeonLog(`🍂 落葉に遮られ、${defender.name}への攻撃が外れた！`, '#aaa'); return; }
         }
         if (eSkin === 'spirit_type4') finalDamage = Math.max(1, finalDamage - 3);
         if (isMagic && eSkin === 'spirit_type2_3' && Math.random() < 0.5) {
@@ -255,10 +307,12 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
     } else {
         // --- 敵からの攻撃 ---
         let eSkin = attacker.skin || attacker.type || "";
+        let isEnemySureHit = eSkin === 'bird_type3_3'; // 敵の必中フラグ（真理の目）
 
         // --- 1. プレイヤー(防御側)のバフ ---
         if (activeTraits.includes('妖精の加護') && Math.random() < 0.1) {
-            window.addDungeonLog(`✨ 妖精の加護が光り、ダメージを無効化した！`, '#4CAF50'); return; 
+            if (isEnemySureHit) window.addDungeonLog(`👁️ 真理の目が妖精の加護を打ち消した！`, '#FF5252');
+            else { window.addDungeonLog(`✨ 妖精の加護が光り、ダメージを無効化した！`, '#4CAF50'); return; }
         }
         if (activeTraits.includes('哀愁の波動')) {
             let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
@@ -307,6 +361,24 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
                     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, 5, true);
                 }
             }
+        }
+
+        // ★追加：鳥系の攻撃時スキル（鱗粉、尾羽、石化）
+        if (eSkin.includes('bird_type2_2') && Math.random() < 0.2 && !activeTraits.includes('清浄なる輝き')) {
+            window.addDungeonLog(`🌌 銀河の尾羽が煌めく！ 状態異常が撒き散らされた！`, '#E040FB');
+            let r = Math.random();
+            if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
+            else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
+            else { s.player.status.confusion += 10; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
+        } else if (eSkin.includes('bird_type2') && Math.random() < 0.3) {
+            let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
+            s.player.hunger = Math.min(maxH, s.player.hunger + 5);
+            s.player.atkBuff = (s.player.atkBuff || 0) - 1;
+            window.addDungeonLog(`✨ 魅惑の鱗粉！ お腹が少し膨れたが、攻撃力が下がってしまった！`, '#E040FB');
+        }
+        if (eSkin.includes('bird_type5_2') && Math.random() < 0.15 && !activeTraits.includes('清浄なる輝き')) {
+            s.player.status.petrified = 3;
+            window.addDungeonLog(`🗿 化石の呪い！ 体が石化して動けない！`, '#757575');
         }
 
         if (eSkin === 'spirit') {

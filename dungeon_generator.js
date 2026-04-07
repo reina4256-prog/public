@@ -192,7 +192,28 @@ window.generateDungeonFloor = async function() {
         }
 
         for(let i=0; i<tNum; i++) {
-            let pos = getRandomPos(r);
+            let pos = null;
+            let attempts = 0;
+            // ★追加：罠専用の厳密な配置チェック（入り口には置かない）
+            do {
+                pos = getRandomPos(r);
+                if (pos) {
+                    // 周囲上下左右4マスに「通路(3)」があるかチェック
+                    let isEntrance = false;
+                    const checkDirs = [{dx:0, dy:-1}, {dx:1, dy:0}, {dx:0, dy:1}, {dx:-1, dy:0}];
+                    for (let d of checkDirs) {
+                        let nx = pos.x + d.dx;
+                        let ny = pos.y + d.dy;
+                        if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] === 3) {
+                            isEntrance = true;
+                            break;
+                        }
+                    }
+                    if (isEntrance) pos = null; // 入り口ならボツにして引き直し
+                }
+                attempts++;
+            } while (!pos && attempts < 10);
+
             if (pos) {
                 let tData = trapTypes[Math.floor(Math.random() * trapTypes.length)];
                 s.traps.push({ id: `trap_${Date.now()}_${idx}_${i}`, type: tData.type, name: tData.name, x: pos.x, y: pos.y, visible: false });
