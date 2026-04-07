@@ -9,6 +9,30 @@ window.dealDungeonDamage = function(attacker, defender) {
     // ★ 追加：必中判定（プレイヤーの「神眼」 or 敵の「真理の目」）
     let isSureHit = (aIsPlayer && aTraits.includes('神眼')) || (!aIsPlayer && attacker.skin && attacker.skin.includes('bird_type3_3'));
 
+    // ★ カブトムシ系：皇帝の威圧（50%の確率で強制ミス、残る50%は後続の計算で会心化）
+    let isEmperor = (aIsPlayer && aTraits.includes('皇帝の威圧'));
+    if (isEmperor) {
+        if (Math.random() < 0.5) {
+            window.addDungeonLog(`👑 皇帝の威圧... しかし攻撃は空を切った！`, '#9E9E9E');
+            return; // 強制ミス
+        }
+        attacker._isEmperorCrit = true; // 後続のダメージ計算で必ず会心にするためのフラグ
+    }
+
+    // ★ カブトムシ系特性：群れの統率者（満腹度80%以上で回避率大幅UP）
+    let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : 100;
+    if (!aIsPlayer && dTraits.includes('群れの統率者') && defender.hunger >= maxH * 0.8 && Math.random() < 0.3) {
+        if (isSureHit) window.addDungeonLog(`👁️ 真理の目が群れの統率を破った！`, '#FF5252');
+        else { window.addDungeonLog(`🦋 統率された動き！ ${defender.name} は攻撃を完全にかわした！`, '#00BCD4'); return; }
+    }
+    
+    // ★ カブトムシ系敵特性：完全硬化（ダメージ無効バリア）
+    if (!aIsPlayer && defender._hardened > 0) {
+        window.addDungeonLog(`🛡️ 完全硬化中！ ${defender.name} は殻にこもり攻撃を弾いた！`, '#aaa');
+        defender._hardened--; // 攻撃を受けるたびにバリア耐久が減る
+        return; 
+    }
+
     // ★ 特性：未来予知（プレイヤーが殴られる時、15%で回避）
     if (!aIsPlayer && dTraits.includes('未来予知') && Math.random() < 0.15) {
         if (isSureHit) window.addDungeonLog(`👁️ 真理の目が未来予知を破った！`, '#FF5252');
@@ -37,12 +61,23 @@ window.dealDungeonDamage = function(attacker, defender) {
         wEff = attacker.equipWeapon ? window.getDungeonItemEffect(attacker.equipWeapon) : null;
         if (wEff) {
             aAtk += wEff.atk;
-            if (wEff.traits.includes('holy') && (defender.type === 'ghost' || defender.type === 'spirit')) sealBonus += 15;
+            // ★ 修正：聖なる甲殻（[光]の印がすべての悪魔・闇落ち系に効く）
+            let isUndead = (defender.type === 'ghost' || defender.type === 'spirit');
+            let isDemonOrDark = (defender.type === 'demon' || (defender.skin && defender.skin.includes('type1')));
+            if (wEff.traits.includes('holy') && (isUndead || (aTraits.includes('聖なる甲殻') && isDemonOrDark))) {
+                sealBonus += 15;
+            }
             if (wEff.traits.includes('fire')) sealBonus += 10;
             if (wEff.traits.includes('anti_dragon') && defender.type === 'dragon') sealBonus += 15;
         }
         // ★ 追加：魅惑の鱗粉などによる攻撃力デバフの適用
         aAtk = Math.max(1, aAtk + (attacker.atkBuff || 0));
+
+        // ★ カブトムシ系敵特性：神聖領域（隣接時、プレイヤーの攻撃力激減）
+        if (s.enemies.some(e => e.hp > 0 && e.skin && e.skin.includes('beetle_type2_4') && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1)) {
+             aAtk = Math.max(1, Math.floor(aAtk / 2));
+             window.addDungeonLog(`✨ 神聖領域の影響で、攻撃力が激減してしまった！`, '#aaa');
+        }
 
         // ★ 特性：最終兵器
         if (aTraits.includes('最終兵器')) aAtk += 10;
@@ -50,12 +85,31 @@ window.dealDungeonDamage = function(attacker, defender) {
         if (aTraits.includes('殺戮回路') && attacker.hp >= attacker.maxHp) aAtk = Math.floor(aAtk * 1.5);
         // ★ 特性：終焉の炉心
         if (aTraits.includes('終焉の炉心')) isDoubleSeal = true;
+        
+        // ★ カブトムシ系特性：剛力（所持アイテムが多いほど攻撃力UP！最大+20前後）
+        if (aTraits.includes('剛力') && s.player.tempInventory) {
+            aAtk += s.player.tempInventory.length;
+        }
     } else {
         sEff = defender.equipShield ? window.getDungeonItemEffect(defender.equipShield) : null;
         if (sEff) dDef += sEff.def;
         // ★ 特性：頑丈な装甲 / 重装甲
         if (dTraits.includes('重装甲')) dDef += 6;
         else if (dTraits.includes('頑丈な装甲')) dDef += 3;
+        
+        // ★ カブトムシ系特性：硬い外殻（防御力+2）
+        if (dTraits.includes('硬い外殻')) dDef += 2;
+        
+        // ★ カブトムシ系特性：群れの統率者（満腹度80%以上で防御力大幅UP）
+        if (dTraits.includes('群れの統率者') && defender.hunger >= maxH * 0.8) {
+            dDef += 10;
+        }
+    }
+
+    // ★ カブトムシ系敵特性：挟み切り（プレイヤーの防御力を半減）
+    if (!aIsPlayer && attacker.skin && attacker.skin.includes('beetle_type1') && Math.random() < 0.25) {
+        window.addDungeonLog(`✂️ 挟み切り！ ${defender.name} の装甲が切り裂かれた！`, '#FF5252');
+        dDef = Math.floor(dDef / 2);
     }
 
     // ★ 敵特性：アームスマッシュ（盾無視）
@@ -92,6 +146,14 @@ window.dealDungeonDamage = function(attacker, defender) {
             dmg *= 2; window.addDungeonLog(`💥 会心の一撃！`, '#FFEB3B'); 
         }
     }
+
+    // ★ カブトムシ系特性：皇帝の威圧（当たれば必ず強烈な会心の一撃！）
+    if (attacker._isEmperorCrit) {
+        dmg = Math.floor(dmg * 2.5); // 通常の会心よりさらに強力な 2.5倍
+        window.addDungeonLog(`👑 皇帝の威圧！ 圧倒的な一撃が ${defender.name} を粉砕する！`, '#FFD700');
+        delete attacker._isEmperorCrit; // フラグをリセット
+    }
+
     // ★ 修正：盾の見切り（parry）も必中で貫通する
     if (!aIsPlayer && sEff && sEff.traits.includes('parry') && Math.random() < 0.15) {
         if (isSureHit) window.addDungeonLog(`👁️ 真理の目が盾の見切りを貫通した！`, '#FF5252');
@@ -128,15 +190,28 @@ window.dealDungeonDamage = function(attacker, defender) {
     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === s.player);
     window.addDungeonLog(`${defender.name} に ${dmg} ダメージ！`, defender === s.player ? '#ff5252' : '#FF9800');
 
+    // ★ 追加：武器の[癒]の印の効果 ＆ カブトムシ系「血の飢え」による倍化
+    if (aIsPlayer && wEff && wEff.traits.includes('heal')) {
+        let healAmt = Math.max(1, Math.floor(dmg * 0.2));
+        if (aTraits.includes('血の飢え')) healAmt *= 2; // ★血の飢えで2倍！
+        attacker.hp = Math.min(attacker.maxHp, attacker.hp + healAmt);
+        window.addDungeonLog(`💧 [癒]の印でHPを ${healAmt} 吸収した！`, '#4CAF50');
+    }
+
     // ★ 特性：ウイルス侵蝕（殴った敵を毒にする）
     if (aIsPlayer && aTraits.includes('ウイルス侵蝕')) { defender.status.poison += 3; }
     // ★ 敵特性：サビ撒き
     if (!aIsPlayer && attacker.skin && attacker.skin.includes('robot_type5')) {
         if (defender.equipWeapon) {
-            let pBase = window.parseItemString(defender.equipWeapon);
-            if (pBase.plus > 0) {
-                defender.equipWeapon = `${pBase.baseId}_+${pBase.plus - 1}` + (pBase.seals.length>0 ? '_'+pBase.seals.join('_') : '');
-                window.addDungeonLog(`サビ撒き！ ${attacker.name} の武器が劣化してしまった！`, '#9C27B0');
+            // ★ カブトムシ系特性：琥珀コーティング（サビ無効）
+            if (dTraits.includes('琥珀コーティング')) {
+                window.addDungeonLog(`✨ 琥珀コーティングが ${defender.name} の武器をサビから守った！`, '#FFD700');
+            } else {
+                let pBase = window.parseItemString(defender.equipWeapon);
+                if (pBase.plus > 0) {
+                    defender.equipWeapon = `${pBase.baseId}_+${pBase.plus - 1}` + (pBase.seals.length>0 ? '_'+pBase.seals.join('_') : '');
+                    window.addDungeonLog(`サビ撒き！ ${attacker.name} の武器が劣化してしまった！`, '#9C27B0');
+                }
             }
         }
     }
@@ -189,6 +264,9 @@ window.dealDungeonDamage = function(attacker, defender) {
             // ★ 特性：成金趣味 ＆ カラスの嗅覚
             let dropChance = aTraits.includes('成金趣味') ? 0.6 : 0.1;
             if (aTraits.includes('カラスの嗅覚') && dropChance < 0.2) dropChance = 0.2; // 嗅覚持ちはベースのドロップ率も少し上げる
+            
+            // ★ カブトムシ系特性：希少種（ドロップ率 +20%）
+            if (aTraits.includes('希少種')) dropChance += 0.2;
 
             if (Math.random() < dropChance) {
                 let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
@@ -301,6 +379,7 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         
         if (activeTraits.includes('怨念の根') && !isMagic) {
             let heal = Math.floor(finalDamage * 0.3);
+            if (activeTraits.includes('血の飢え')) heal *= 2; // ★血の飢えで吸収量が倍化！
             if (heal > 0) { s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal); window.addDungeonLog(`🌱 怨念の根でHPを ${heal} 吸収した！`, '#4CAF50'); }
         }
 
@@ -332,6 +411,61 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         if (activeTraits.includes('大樹の怒り')) s.player._wrath = true;
 
         // --- 3. 攻撃後の追加効果（敵のスキル発動） ---
+        
+        // ★ カブトムシ系敵特性：大地の怒り（インベントリからアイテムを強制ドロップ）
+        if (eSkin === 'beetle_type4_2' && Math.random() < 0.15) {
+            window.addDungeonLog(`🌋 ${attacker.name} の大地の怒り！ 地面が激しく揺れる！`, '#FF5252');
+            s.player.damageAnim = true;
+            if (s.player.tempInventory && s.player.tempInventory.length > 0) {
+                // インベントリからランダムに1つアイテムを落とす
+                let dropIdx = Math.floor(Math.random() * s.player.tempInventory.length);
+                let droppedItem = s.player.tempInventory.splice(dropIdx, 1)[0];
+                // プレイヤーの足元にアイテムを配置
+                s.items.push({ key: droppedItem, x: s.player.x, y: s.player.y });
+                window.addDungeonLog(`💥 転倒してしまい、持っていたアイテムを落としてしまった！`, '#FF9800');
+                if (typeof window.updateDungeonUI === 'function') window.updateDungeonUI();
+            }
+        }
+        
+        // ★ カブトムシ系敵特性：カチ上げ（落下ダメージ＋麻痺による行動不能）
+        if (eSkin === 'beetle_type4' && Math.random() < 0.15) {
+            let fallDmg = Math.floor(s.player.maxHp * 0.1); // 最大HPの10%の固定ダメージ
+            s.player.hp -= fallDmg;
+            s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 1; // 1ターン行動不能
+            window.addDungeonLog(`🚀 カチ上げられた！ 空中に打ち上げられ、落下して ${fallDmg} ダメージ！`, '#FF5252');
+        }
+
+        // ★ カブトムシ系敵特性：フェロモン指揮（周囲の敵を集結）
+        if (eSkin === 'beetle_type3' && Math.random() < 0.20) {
+            window.addDungeonLog(`🔊 ${attacker.name} がフェロモンを放ち、周囲の敵を呼び寄せた！`, '#FF5252');
+            s.enemies.forEach(e => {
+                if (e.hp > 0 && e !== attacker && Math.random() < 0.5) { 
+                    let dirs = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}, {dx:1,dy:1}, {dx:-1,dy:-1}, {dx:1,dy:-1}, {dx:-1,dy:1}];
+                    for(let d of dirs) {
+                        let nx = s.player.x + d.dx; let ny = s.player.y + d.dy;
+                        if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(en=>en.hp>0 && en.x===nx && en.y===ny) && !(nx===s.player.x && ny===s.player.y)) {
+                            e.x = nx; e.y = ny; e.warpAnim = true; break;
+                        }
+                    }
+                }
+            });
+        }
+        
+        // ★ カブトムシ系敵特性：完全硬化（殻にこもり、次の2回の攻撃を無効化するバリア）
+        if (eSkin === 'beetle_type5_2' && Math.random() < 0.15) {
+            attacker._hardened = 2; // 2回無効化
+            window.addDungeonLog(`🐚 ${attacker.name} は殻にこもり、完全硬化した！(攻撃2回無効)`, '#FFF');
+        }
+
+        // ★ カブトムシ系敵特性：鱗粉の風（ランダム状態異常）
+        if (eSkin === 'beetle_type2_3' && Math.random() < 0.20 && !activeTraits.includes('清浄なる輝き')) {
+            window.addDungeonLog(`🦋 鱗粉の風が舞い散る！`, '#E040FB');
+            let r = Math.random();
+            if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
+            else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
+            else { s.player.status.confusion += 5; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
+        }
+
         // ★ 新規追加：鳥系の敵スキル「突風」（20%でノックバック）
         if (eSkin && eSkin.includes('bird') && Math.random() < 0.20) {
             // プレイヤーが2進化特性「暴風の主」を持っていたら無効化＆カウンター！

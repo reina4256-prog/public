@@ -4,6 +4,18 @@ window._dungeonAiTypesList = ['robot', 'magician', 'spirit', 'dragon', 'machine'
 // ★ 新規追加：全種族の特性カタログ（ロボット系21種 完備）
 // ==========================================
 window.DUNGEON_TRAIT_DICT = {
+    // 【カブトムシ系】
+    'beetle': { player: { name: '角突き', desc: '移動時に敵にぶつかるとターンを消費せずダメージを与える。' }, enemy: '硬い外殻' },
+    'beetle_type4': { player: { name: '剛力', desc: '所持しているアイテムの数が多いほど攻撃力が上がる。' }, enemy: 'カチ上げ' },
+    'beetle_type5': { player: { name: '琥珀コーティング', desc: '装備している武器や盾がサビや劣化の効果を受けなくなる。' }, enemy: '琥珀の鎧' },
+    'beetle_type2': { player: { name: '希少種', desc: '敵がアイテムをドロップする確率が常に+20%される。' }, enemy: '宝石の煌めき' },
+    'beetle_type2_2': { player: { name: '発光体', desc: '暗闇状態を無効化し、フロア全体の隠し通路を見破る。' }, enemy: '月光の刃' },
+    'beetle_type3': { player: { name: '群れの統率者', desc: '満腹度が満タンに近いほど、回避率と防御力が大幅に上がる。' }, enemy: 'フェロモン指揮' },
+    'beetle_type1': { player: { name: '血の飢え', desc: '[癒]の印（HP吸収）の回復量が2倍になる。' }, enemy: '挟み切り' },
+    'beetle_type4_2': { player: { name: '皇帝の威圧', desc: '通常攻撃が必ず「会心の一撃」か「ミス」のどちらかになる。' }, enemy: '大地の怒り' },
+    'beetle_type5_2': { player: { name: '生きた化石', desc: '同じフロアに長く留まっても風で強制ゲームオーバーにならない。' }, enemy: '完全硬化' },
+    'beetle_type2_3': { player: { name: '妖精の羽', desc: '常に浮遊状態となり、あらゆる罠と特殊地形の効果を受けない。' }, enemy: '鱗粉の風' },
+    'beetle_type2_4': { player: { name: '聖なる甲殻', desc: '[光]の印の効果が、すべての悪魔・闇落ち系の敵にも効く。' }, enemy: '神聖領域' },
     // 【基本形態】
     'robot': { player: { name: '頑丈な装甲', desc: '基礎防御力が常に +3 される。' }, enemy: null },
     // 【1進化】
@@ -143,6 +155,32 @@ window.getPlayerDungeonTraits = function(skin) {
         else if (skin === 'bird_type5_2') { addTrait('bird_type5'); addTrait('bird_type5_2'); }
         else if (skin === 'bird_type1_2') { addTrait('bird_type1'); addTrait('bird_type1_2'); }
         else if (skin === 'bird_type3_3') { addTrait('bird_type3'); addTrait('bird_type3_3'); }
+    }
+
+    // ==========================================
+    // ★ カブトムシ系の系譜
+    // ==========================================
+    if (skin.includes('beetle')) {
+        addTrait('beetle'); // Base
+
+        // Gen 1
+        if (['beetle_type4', 'beetle_type5', 'beetle_type2', 'beetle_type2_2', 'beetle_type3', 'beetle_type1'].includes(skin)) {
+            addTrait(skin);
+        } 
+        // Gen 2 (履歴解決あり)
+        else {
+            if (skin === 'beetle_type4_2') { addTrait('beetle_type4'); addTrait(skin); }
+            else if (skin === 'beetle_type5_2') { addTrait('beetle_type5'); addTrait(skin); }
+            else if (skin === 'beetle_type2_3' || skin === 'beetle_type2_4') { 
+                // 美しさルートの履歴解決
+                let pastBeauty = 'beetle_type2'; 
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('beetle_type2_2')) {
+                    pastBeauty = 'beetle_type2_2'; 
+                }
+                addTrait(pastBeauty); 
+                addTrait(skin); 
+            }
+        }
     }
 
     // ==========================================

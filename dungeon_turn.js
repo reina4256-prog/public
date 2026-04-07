@@ -11,6 +11,8 @@ window.isTileVisible = function(s, tx, ty) {
     if (s.player.skin && s.player.skin.includes('bird')) baseSightRadius += 2.0; // 鳥は基本目が良い
     if (activeTraits.includes('鷹の目')) baseSightRadius += 1.5; // 鷹の目でさらに視界拡大
     if (activeTraits.includes('神眼')) baseSightRadius += 3.0;   // 神眼で極大視界
+    // ★カブトムシ系：発光体（視界拡大）
+    if (activeTraits.includes('発光体')) baseSightRadius += 4.0;
 
     // ①自分の周囲の狭い円形は常に見える
     const dist = Math.sqrt(Math.pow(tx - s.player.x, 2) + Math.pow(ty - s.player.y, 2));
@@ -126,12 +128,19 @@ window.processDungeonTurn = async function() {
             let actStep = 1;
             
             s.floorTurn = (s.floorTurn || 0) + 1;
-            if (s.floorTurn === 700) window.addDungeonLog(`🌀 どこからか 風が吹いてきた...`, '#00BCD4');
-            if (s.floorTurn === 850) window.addDungeonLog(`🌀🌀 強い風が 吹き荒れている！`, '#FF9800');
-            if (s.floorTurn === 950) window.addDungeonLog(`🌀🌀🌀 突風だ！ 次の風が吹いたら 飛ばされてしまう！`, '#FF5252');
-            if (s.floorTurn >= 1000) {
-                window.addDungeonLog(`🌪️ 謎の突風に 吹き飛ばされた！！！`, '#FF5252');
-                s.player.hp = 0; window.updateDungeonUI(); setTimeout(() => window.closeDungeonUI(true, false), 1500); return; 
+            
+            // ★ カブトムシ系特性：生きた化石（風による強制ゲームオーバーを無効化）
+            if (activeTraits.includes('生きた化石')) {
+                if (s.floorTurn === 700) window.addDungeonLog(`🌀 強い風が吹いてきたが、生きた化石の重厚な殻は微動だにしない！`, '#FFD700');
+                // 以降の風の警告やゲームオーバー処理を完全にスキップ
+            } else {
+                if (s.floorTurn === 700) window.addDungeonLog(`🌀 どこからか 風が吹いてきた...`, '#00BCD4');
+                if (s.floorTurn === 850) window.addDungeonLog(`🌀🌀 強い風が 吹き荒れている！`, '#FF9800');
+                if (s.floorTurn === 950) window.addDungeonLog(`🌀🌀🌀 突風だ！ 次の風が吹いたら 飛ばされてしまう！`, '#FF5252');
+                if (s.floorTurn >= 1000) {
+                    window.addDungeonLog(`🌪️ 謎の突風に 吹き飛ばされた！！！`, '#FF5252');
+                    s.player.hp = 0; window.updateDungeonUI(); setTimeout(() => window.closeDungeonUI(true, false), 1500); return; 
+                }
             }
 
             let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
@@ -182,7 +191,8 @@ window.processDungeonTurn = async function() {
                 s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0 };
             }
 
-            let isFlying = s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'));
+            // ★カブトムシ系：妖精の羽（常に浮遊）を追加
+            let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽');
             let realSpd = Math.floor(ai.stats.speed || 10);
             let actionCount = 1 + Math.floor(realSpd / 50); 
             if (acEff && acEff.traits.includes('fast_move')) {
@@ -196,6 +206,8 @@ window.processDungeonTurn = async function() {
                 window.addDungeonLog(`🪽 魔力飛行の恩恵で行動回数がアップしている！`, '#00e676');
             }
             if (actionCount > 1) { window.addDungeonLog(`💨 素早さを活かして ${actionCount}回 連続行動する！`, '#00e676'); }
+
+            s.player._hornThrustUsed = false; // ★カブトムシ系：角突きの1ターン1回制限フラグをリセット
 
             for (let actStep = 0; actStep < actionCount; actStep++) {
                 if (s.player.hp <= 0) break; 
@@ -214,6 +226,12 @@ window.processDungeonTurn = async function() {
                 let isDarkRoom = currentRoom ? currentRoom.isDark : false;
                 let isBlind = (s.player.status && s.player.status.blind > 0) || isDarkRoom;
                 
+                // ★カブトムシ系：発光体（暗闇・視界不良を無効化）
+                if (activeTraits.includes('発光体')) {
+                    isDarkRoom = false;
+                    isBlind = false;
+                }
+
                 let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y));
                 if (isBlind) visibleEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1); 
                 
@@ -874,11 +892,28 @@ window.processDungeonTurn = async function() {
                         }
 
                         let hitEnemy = s.enemies.find(e => e.x === newX && e.y === newY && e.hp > 0);
-                        if (hitEnemy) { 
-                            window.addDungeonLog(`ゴツン！ 敵にぶつかった！`, '#FF9800'); s.player.attackAnim = true; 
-                        } 
-                        else { 
-                            s.player.lastX = s.player.x; s.player.lastY = s.player.y; 
+                        if (hitEnemy) {
+                            if (activeTraits.includes('角突き') && !s.player._hornThrustUsed) {
+                                window.addDungeonLog(`🪲 角突き！ 突進の勢いで ${hitEnemy.name} を撥ね飛ばした！`, '#FFD700');
+                                s.player.attackAnim = true;
+                                window.dealDungeonDamage(s.player, hitEnemy);
+                                // 吹き飛ばし処理
+                                let dx = Math.sign(hitEnemy.x - s.player.x); let dy = Math.sign(hitEnemy.y - s.player.y);
+                                if (dx === 0 && dy === 0) dx = 1;
+                                let nx = hitEnemy.x + dx; let ny = hitEnemy.y + dy;
+                                if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(e => e.hp > 0 && e !== hitEnemy && e.x === nx && e.y === ny)) {
+                                    hitEnemy.x = nx; hitEnemy.y = ny; hitEnemy.warpAnim = true;
+                                }
+                                s.player._hornThrustUsed = true;
+                                actStep--; // ★ターン消費なし！（もう一度行動できる）
+                                await sleep(100);
+                                continue;
+                            } else {
+                                window.addDungeonLog(`ゴツン！ 敵にぶつかった！`, '#FF9800'); s.player.attackAnim = true;
+                            }
+                        }
+                        else {
+                            s.player.lastX = s.player.x; s.player.lastY = s.player.y;
                             s.player.x = Math.round(newX); s.player.y = Math.round(newY);
 
                             let hasColdResist = activeTraits.includes('耐冷構造');
@@ -962,7 +997,8 @@ window.processDungeonTurn = async function() {
                             }
 
                             // ★修正: 風船・ゴーストのハードコーディング罠回避を削除（罠回避は特性システムに一任）
-                            if (s.traps) {
+                            // ★カブトムシ系：妖精の羽（罠を完全に無効化）
+                            if (s.traps && !activeTraits.includes('妖精の羽')) {
                                 let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
                                 
                                 if (trap && activeTraits.includes('大地の恵み')) {
