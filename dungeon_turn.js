@@ -13,6 +13,8 @@ window.isTileVisible = function(s, tx, ty) {
     if (activeTraits.includes('神眼')) baseSightRadius += 3.0;   // 神眼で極大視界
     // ★カブトムシ系：発光体（視界拡大）
     if (activeTraits.includes('発光体')) baseSightRadius += 4.0;
+    // ★風船系：広域スキャン（視界拡大）
+    if (activeTraits.includes('広域スキャン')) baseSightRadius += 3.0;
 
     // ①自分の周囲の狭い円形は常に見える
     const dist = Math.sqrt(Math.pow(tx - s.player.x, 2) + Math.pow(ty - s.player.y, 2));
@@ -155,6 +157,9 @@ window.processDungeonTurn = async function() {
             // ★追加: 鳥系の特性「最適化ルート」
             if (activeTraits.includes('最適化ルート')) consumption *= 0.9;
 
+            // ★ 風船系：超浮力（腹減り速度を極端に抑える）
+            if (activeTraits.includes('超浮力')) consumption *= 0.1;
+
             // ★修正: 0.15だとAUTO時に早すぎるため 0.03（約5倍長持ち）に緩和
             if (!activeTraits.includes('無限機関')) s.player.hunger = Math.max(0, s.player.hunger - (0.03 * consumption));
             
@@ -165,6 +170,10 @@ window.processDungeonTurn = async function() {
             }
 
             if (s.player.status) {
+                if (s.player.status.fear > 0) {
+                    s.player.status.fear--;
+                    if (s.player.status.fear <= 0) window.addDungeonLog(`恐怖が薄れ、落ち着きを取り戻した！`, '#4CAF50');
+                }
                 if (s.player.status.poison > 0) {
                     s.player.hp -= 3; window.addDungeonLog(`🤢 毒のダメージを受けた！(HP-3)`, '#9C27B0');
                     s.player.status.poison--;
@@ -188,7 +197,7 @@ window.processDungeonTurn = async function() {
                     if (s.player.status.petrified <= 0) window.addDungeonLog(`石化が解けて動けるようになった！`, '#4CAF50');
                 }
             } else {
-                s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0 };
+                s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0, fear: 0 };
             }
 
             // ★カブトムシ系：妖精の羽（常に浮遊）を追加
@@ -767,11 +776,24 @@ window.processDungeonTurn = async function() {
 
                 if (typeof chosenCommand === 'object' && chosenCommand !== null) chosenCommand = chosenCommand.id;
 
+                // ★ 風船系：夢の鼓動（時間経過で稀にアイテムがしあわせの種に変化）
+                if (activeTraits.includes('夢の鼓動') && Math.random() < 0.005) {
+                    let normalItems = s.player.tempInventory.filter(i => !i.includes('happy') && !i.includes('bless') && !i.includes('weapon') && !i.includes('shield') && !i.includes('armor'));
+                    if (normalItems.length > 0) {
+                         let target = normalItems[Math.floor(Math.random() * normalItems.length)];
+                         let idx = s.player.tempInventory.indexOf(target);
+                         s.player.tempInventory[idx] = 'item_seed_happy';
+                         window.addDungeonLog(`🌟 夢の鼓動！ カバンの中のアイテムが「しあわせの種」に変化した！`, '#FFD700');
+                    }
+                }
+
                 let isParalyzed = s.player.status && s.player.status.paralyzed > 0;
                 let isPetrified = s.player.status && s.player.status.petrified > 0;
-                // ★修正：石化の場合は移動だけでなく攻撃やアイテム使用も完全に封じる
-                if ((isParalyzed || isPetrified) && ['move_up', 'move_down', 'move_left', 'move_right', 'flee', 'attack', 'throw', 'put_down'].includes(chosenCommand)) {
+                let isFear = s.player.status && s.player.status.fear > 0;
+                // ★修正：石化や恐怖の場合は移動だけでなく攻撃やアイテム使用も完全に封じる
+                if ((isParalyzed || isPetrified || isFear) && ['move_up', 'move_down', 'move_left', 'move_right', 'flee', 'attack', 'throw', 'put_down'].includes(chosenCommand)) {
                     if (isPetrified) window.addDungeonLog(`🗿 体が石化して動けない！`, '#757575');
+                    else if (isFear) window.addDungeonLog(`😱 恐怖で足がすくんで動けない！`, '#9C27B0');
                     else window.addDungeonLog(`⚡ 足が痺れて動けない！`, '#FF9800');
                     chosenCommand = 'skip';
                 }
@@ -1000,6 +1022,7 @@ window.processDungeonTurn = async function() {
                             // ★カブトムシ系：妖精の羽（罠を完全に無効化）
                             if (s.traps && !activeTraits.includes('妖精の羽')) {
                                 let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
+                                let oldStatus = JSON.parse(JSON.stringify(s.player.status || {})); // ★ 状態異常記録
                                 
                                 if (trap && activeTraits.includes('大地の恵み')) {
                                     window.addDungeonLog(`大地の恵みにより、罠が作動しなかった！`, '#4CAF50');
@@ -1024,8 +1047,13 @@ window.processDungeonTurn = async function() {
                                     } 
                                     else if (trap.type === 'mine') { 
                                         let dmg = Math.floor(s.player.hp / 2);
-                                        window.addDungeonLog(`💣 地雷が大爆発！(HPが半分になった！)`, '#FF5252'); 
-                                        s.player.hp -= dmg; 
+                                        if (activeTraits.includes('不朽の硬度')) {
+                                            dmg = Math.floor(dmg / 2);
+                                            window.addDungeonLog(`💣 地雷が大爆発！しかし 不朽の硬度 でダメージを抑えた！`, '#00BCD4'); 
+                                        } else {
+                                            window.addDungeonLog(`💣 地雷が大爆発！(HPが半分になった！)`, '#FF5252'); 
+                                        }
+                                        s.player.hp -= dmg;
                                         s.player.damageAnim = true;
                                         if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, "BOOM", true);
                                     }
@@ -1075,6 +1103,29 @@ window.processDungeonTurn = async function() {
                                             
                                             s.items.push({ x: dropX, y: dropY, key: dropKey });
                                             window.addDungeonLog(`カバンから ${window.getDungeonItemEffect(dropKey).name} が転がり落ちた！`, '#FF5252');
+                                        }
+                                    }
+
+                                    // ★ 風船系パッシブ：毒ガスタンク＆美しき反射（罠によるデバフ）
+                                    if (trap && !activeTraits.includes('大地の恵み')) {
+                                        let gainedPoison = s.player.status.poison > (oldStatus.poison || 0);
+                                        let gainedBlind = s.player.status.blind > (oldStatus.blind || 0);
+                                        let gainedParalyze = s.player.status.paralyzed > (oldStatus.paralyzed || 0);
+                                        
+                                        if (activeTraits.includes('毒ガスタンク') && gainedPoison) {
+                                            s.player.atkBuff = (s.player.atkBuff || 0) + 5;
+                                            window.addDungeonLog(`🎈 毒ガスタンク起動！ 毒を力に変えて攻撃力が上がった！`, '#FFD700');
+                                        }
+                                        if (activeTraits.includes('美しき反射') && (gainedPoison || gainedBlind || gainedParalyze)) {
+                                            let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
+                                            if (adj.length > 0) {
+                                                adj.forEach(e => {
+                                                    if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
+                                                    if (gainedBlind) e.status.confusion = (e.status.confusion || 0) + 5; // 盲目→混乱へ変換
+                                                    if (gainedParalyze) e.status.sleep = (e.status.sleep || 0) + 3; // 麻痺→睡眠へ変換
+                                                });
+                                                window.addDungeonLog(`🪞 美しき反射！ 罠で受けた状態異常を周囲の敵にばら撒いた！`, '#E040FB');
+                                            }
                                         }
                                     }
                                 }
@@ -1467,6 +1518,12 @@ window.processDungeonTurn = async function() {
         // ==========================================
         for (let e of s.enemies) {
             if (e.hp <= 0) continue;
+
+            // ★ 風船系敵特性：ガス抜け（2ターンに1回しか行動しない）
+            if (e.skin === 'balloon_type5') {
+                e._gasSkip = !e._gasSkip;
+                if (e._gasSkip) continue;
+            }
             
             if (e.status) {
                 if (e.status.poison > 0) {
@@ -1558,6 +1615,99 @@ window.processDungeonTurn = async function() {
                             e.damage = origDmg;
                             hasAttacked = true;
                         }
+                    }
+                }
+
+                // ★ 風船系敵特性：バウンド・プレス（2マス先からジャンプして踏みつけ＆麻痺）
+                if (!hasAttacked && e.skin === 'balloon_type4' && dist === 2) {
+                    let dx = Math.sign(s.player.x - e.x); let dy = Math.sign(s.player.y - e.y);
+                    if ((e.x === s.player.x || e.y === s.player.y) && s.grid[s.player.y - dy][s.player.x - dx] !== 1) {
+                        window.addDungeonLog(`🎈 ${e.name} のバウンド・プレス！ 大ジャンプで押し潰してきた！`, '#FF5252');
+                        e.x = s.player.x - dx; e.y = s.player.y - dy; // プレイヤーの隣に着地
+                        e.attackAnim = true;
+                        window.dealDungeonDamage(e, s.player);
+                        s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 1; // 1ターン行動不能
+                        window.addDungeonLog(`⚡ 押し潰されて動けない！`, '#FF9800');
+                        hasAttacked = true;
+                    }
+                }
+
+                // ★ 風船系敵特性：落雷予測（プレイヤーの頭上に雷を落とす）
+                if (!hasAttacked && e.skin === 'balloon_type3' && Math.random() < 0.20) {
+                    let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
+                    let eRoom = s.roomsInfo.find(r => e.x >= r.x && e.x < r.x+r.w && e.y >= r.y && e.y < r.y+r.h);
+                    let canSee = window.isTileVisible(s, e.x, e.y);
+                    if ((pRoom && eRoom && pRoom === eRoom) || canSee) {
+                        window.addDungeonLog(`☁️ ${e.name} の落雷予測！ プレイヤーの頭上に雷が落ちる！`, '#FFD700');
+                        let pTile = s.grid[s.player.y][s.player.x];
+                        let dmg = 15;
+                        if (pTile === 4 || pTile === 9) { // 水脈や浅瀬
+                            dmg *= 2;
+                            window.addDungeonLog(`⚡ 水場にいたため、雷のダメージが倍増した！`, '#FF5252');
+                        }
+                        let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+                        if (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度')) {
+                            dmg = Math.max(1, Math.floor(dmg / 2));
+                            window.addDungeonLog(`🌈 特性により雷のダメージを半減した！`, '#00BCD4');
+                        }
+                        s.player.hp -= dmg; s.player.damageAnim = true;
+                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, dmg, true);
+                        hasAttacked = true;
+                    }
+                }
+
+                // ★ 風船系敵特性：狙撃レンズ（直線状に入った瞬間に遠距離レーザー）
+                if (!hasAttacked && e.skin === 'balloon_type3_2') {
+                    if (e.x === s.player.x || e.y === s.player.y) {
+                        let clear = true;
+                        if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][e.x]===1) clear=false; }
+                        else { for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) if(s.grid[e.y][x]===1) clear=false; }
+                        
+                        if (clear) {
+                            window.addDungeonLog(`🎯 ${e.name} の狙撃レンズ！ 視界に入った瞬間にレーザーで撃ち抜かれた！`, '#FF5252');
+                            if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#FFD700');
+                            e.attackAnim = true;
+                            let origDmg = e.damage; e.damage = Math.floor(e.damage * 1.5);
+                            window.dealDungeonDamage(e, s.player);
+                            e.damage = origDmg;
+                            hasAttacked = true;
+                        }
+                    }
+                }
+
+                // ★ 風船系敵特性：衛星軌道レーザー（3ターン後に部屋全体に即死級ダメージ）
+                if (e.skin === 'balloon_type3_3') {
+                    let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
+                    let eRoom = s.roomsInfo.find(r => e.x >= r.x && e.x < r.x+r.w && e.y >= r.y && e.y < r.y+r.h);
+                    
+                    if (pRoom && eRoom && pRoom === eRoom) {
+                        e._laserTimer = (e._laserTimer || 0) + 1;
+                        hasAttacked = true; // ★ 照準中は移動・通常攻撃を行わない
+                        if (e._laserTimer === 1) window.addDungeonLog(`⚠️ ${e.name} が衛星軌道レーザーの照準を合わせた！(発射まで あと3ターン)`, '#FF5252');
+                        else if (e._laserTimer === 2) window.addDungeonLog(`⚠️ 衛星レーザー発射まで あと2ターン！`, '#FF5252');
+                        else if (e._laserTimer === 3) window.addDungeonLog(`⚠️ 衛星レーザー発射まで あと1ターン！ 部屋から逃げろ！`, '#FF5252');
+                        else if (e._laserTimer >= 4) {
+                            window.addDungeonLog(`🛰️ 衛星軌道レーザー発射！！！ 部屋全体が焼き尽くされた！`, '#FFD700');
+                            s.player.hp -= 999; s.player.damageAnim = true;
+                            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, 999, true);
+                            if (typeof window.playDungeonVFX === 'function') {
+                                for(let ry=pRoom.y; ry<pRoom.y+pRoom.h; ry++) {
+                                    for(let rx=pRoom.x; rx<pRoom.x+pRoom.w; rx++) {
+                                        if (s.grid[ry][rx] !== 1) window.playDungeonVFX(rx, ry, 'fire');
+                                    }
+                                }
+                            }
+                            s.enemies.forEach(oe => {
+                                if (oe !== e && oe.hp > 0 && oe.x >= pRoom.x && oe.x < pRoom.x+pRoom.w && oe.y >= pRoom.y && oe.y < pRoom.y+pRoom.h) {
+                                    oe.hp -= 999; oe.damageAnim = true;
+                                }
+                            });
+                            e._laserTimer = 0;
+                        }
+                    } else {
+                        if (e._laserTimer > 0) window.addDungeonLog(`💨 対象が部屋から出たため、衛星レーザーの照準がリセットされた。`, '#aaa');
+                        e._laserTimer = 0;
                     }
                 }
 
@@ -1688,6 +1838,14 @@ window.processDungeonTurn = async function() {
                         if (!isEnemyFlying && (s.grid[ey][ex] === 4 || s.grid[ey][ex] === 10)) continue; // ★追加: 敵AIの溝回避
                         
                         e.x = ex; e.y = ey; e.face = moveDir; 
+                        // ★ 風船系敵特性：爆弾投下（移動時に確率で地雷を設置）
+                        if (e.skin === 'balloon_type4_3' && Math.random() < 0.15) {
+                            if (!s.traps.some(t => t.x === e.x && t.y === e.y)) {
+                                s.traps.push({ type: 'mine', x: e.x, y: e.y, visible: true });
+                                window.addDungeonLog(`💣 ${e.name} が時限爆弾（地雷）を投下した！`, '#FF9800');
+                            }
+                        }
+                        
                         let newDist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
                         
                         if (newDist === 1 && s.player.equipWeapon && window.getDungeonItemEffect(s.player.equipWeapon).traits.includes('first')) {

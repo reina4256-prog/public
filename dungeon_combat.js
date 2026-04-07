@@ -19,6 +19,31 @@ window.dealDungeonDamage = function(attacker, defender) {
         attacker._isEmperorCrit = true; // 後続のダメージ計算で必ず会心にするためのフラグ
     }
 
+    // ==========================================
+    // ★ 風船系の戦闘前処理（フラグ・倍率の仕込み）
+    // ==========================================
+    // [回避] 自：熱気球（炎印の武器装備時、回避率+15%）
+    let hasFireSeal = (defender === s.player && defender.equipWeapon && typeof window.getDungeonItemEffect === 'function' && window.getDungeonItemEffect(defender.equipWeapon) === 'fire');
+    defender._balloonDodgeBonus = (dTraits.includes('熱気球') && hasFireSeal) ? 0.15 : 0;
+
+    // [会心無効] 自：しわしわボディ（敵からのクリティカルを完全に防ぐフラグ）
+    defender._isCritImmune = dTraits.includes('しわしわボディ');
+
+    // [防御倍率] 自：圧縮筋肉（満腹度30以下で防御力2倍）
+    if (defender === s.player && dTraits.includes('圧縮筋肉') && (s.player.hunger || 0) <= 30) {
+        defender._defMultiplier = (defender._defMultiplier || 1.0) * 2.0;
+    }
+    // [防御倍率] 敵：ガス抜け（物理ダメージをほとんど受け付けない）
+    if (!aIsPlayer && defender.skin && defender.skin.includes('balloon_type5')) {
+        defender._defMultiplier = (defender._defMultiplier || 1.0) * 10.0;
+    }
+
+    // [攻撃倍率] 自：悪夢の住人（睡眠・混乱の敵に3倍ダメージ）
+    let isNightmareTarget = (defender.status && (defender.status.sleep > 0 || defender.status.confusion > 0));
+    if (aTraits.includes('悪夢の住人') && isNightmareTarget) {
+        attacker._atkMultiplier = (attacker._atkMultiplier || 1.0) * 3.0;
+    }
+
     // ★ カブトムシ系特性：群れの統率者（満腹度80%以上で回避率大幅UP）
     let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : 100;
     if (!aIsPlayer && dTraits.includes('群れの統率者') && defender.hunger >= maxH * 0.8 && Math.random() < 0.3) {
@@ -51,8 +76,18 @@ window.dealDungeonDamage = function(attacker, defender) {
         }
     }
 
+    // ★ 風船系：熱気球（回避ボーナス）
+    if (defender._balloonDodgeBonus > 0 && Math.random() < defender._balloonDodgeBonus) {
+        if (isSureHit) window.addDungeonLog(`👁️ 神眼が熱気球の回避を無効化した！`, '#FFD700');
+        else { window.addDungeonLog(`🎈 熱気球！ ${defender.name} は攻撃をふわりとかわした！`, '#00BCD4'); return; }
+    }
+
     let aAtk = attacker.basePwr || attacker.damage || 5;
     let dDef = defender.def || 0;
+
+    // ★ 風船系：仕込んでおいた攻防倍率の適用
+    aAtk = Math.floor(aAtk * (attacker._atkMultiplier || 1.0));
+    dDef = Math.floor(dDef * (defender._defMultiplier || 1.0));
 
     let wEff = null; let sEff = null;
     let sealBonus = 0; let isDoubleSeal = false;
@@ -138,7 +173,7 @@ window.dealDungeonDamage = function(attacker, defender) {
         dmg = Math.max(1, Math.floor(dmg / 2));
     }
 
-    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15) { 
+    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15 && !defender._isCritImmune) { 
         // ★ 特性：冥界の風（会心ダメージ3倍）
         if (aTraits.includes('冥界の風')) {
             dmg *= 3; window.addDungeonLog(`🌪️ 冥界の風！ 破壊的な会心の一撃！(ダメージ3倍)`, '#9C27B0'); 
@@ -332,6 +367,13 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
             window.addDungeonLog(`🪞 鏡面反射！ 魔法が跳ね返された！`, '#FF5252');
             s.player.hp -= finalDamage; s.player.damageAnim = true; return;
         }
+        
+        // ★ 風船系敵特性：シャボンバリア（魔法ダメージを完全に反射）
+        if (isMagic && eSkin === 'balloon_type2') {
+            window.addDungeonLog(`🫧 シャボンバリア！ 薄い膜が魔法を完全に跳ね返した！`, '#FF5252');
+            s.player.hp -= finalDamage; s.player.damageAnim = true; return;
+        }
+
         if (eSkin === 'spirit_type3_2' && Math.random() < 0.5) {
             let otherEnemies = s.enemies.filter(e => e.hp > 0 && e.id !== defender.id && window.isTileVisible(s, e.x, e.y));
             if (otherEnemies.length > 0) {
@@ -387,8 +429,28 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         // --- 敵からの攻撃 ---
         let eSkin = attacker.skin || attacker.type || "";
         let isEnemySureHit = eSkin === 'bird_type3_3'; // 敵の必中フラグ（真理の目）
+        let oldStatus = JSON.parse(JSON.stringify(s.player.status || {})); // ★ 状態異常記録
+
+        // ★ 風船系敵特性：機雷爆発（隣接自爆）
+        if (eSkin === 'balloon_type1_2') {
+            window.addDungeonLog(`💣 機雷爆発！ ${attacker.name} が自爆攻撃を仕掛けてきた！`, '#FF5252');
+            finalDamage = Math.max(1, Math.floor(s.player.maxHp / 2));
+            attacker.hp = 0; // 自爆
+        }
+        // ★ 風船系敵特性：バーナー放射
+        if (eSkin === 'balloon_type4_2') {
+            window.addDungeonLog(`🔥 バーナー放射！ 頭上から回避不能の炎を浴びせた！`, '#FF5252');
+            finalDamage += 15;
+            isEnemySureHit = true; // 回避不能
+        }
 
         // --- 1. プレイヤー(防御側)のバフ ---
+        // ★ 風船系特性：虹色の膜 / 不朽の硬度（魔法・属性ダメージ・固定ダメージの半減）
+        if (isMagic && (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度'))) {
+            finalDamage = Math.max(1, Math.floor(finalDamage / 2));
+            window.addDungeonLog(activeTraits.includes('虹色の膜') ? `🌈 虹色の膜が魔法ダメージを半減した！` : `💎 不朽の硬度がダメージを半減した！`, '#00BCD4');
+        }
+
         if (activeTraits.includes('妖精の加護') && Math.random() < 0.1) {
             if (isEnemySureHit) window.addDungeonLog(`👁️ 真理の目が妖精の加護を打ち消した！`, '#FF5252');
             else { window.addDungeonLog(`✨ 妖精の加護が光り、ダメージを無効化した！`, '#4CAF50'); return; }
@@ -481,6 +543,9 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
                     window.addDungeonLog(`💥 ${attacker.name} は壁に激突した！(10ダメージ)`, '#FF5252');
                     attacker.hp -= 10;
                 }
+            // ★ 風船系特性：弾む体（吹き飛ばしを無効化）
+            } else if (dTraits.includes('弾む体')) {
+                window.addDungeonLog(`🎈 ${attacker.name} の突風！しかし ${defender.name} は弾む体で吹き飛ばしを無効化した！`, '#00BCD4');
             } else {
                 window.addDungeonLog(`🌪️ ${attacker.name} の突風！ 1マス吹き飛ばされた！`, '#00BCD4');
                 let dx = Math.sign(defender.x - attacker.x); let dy = Math.sign(defender.y - attacker.y);
@@ -519,6 +584,22 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
             let heal = Math.floor(finalDamage * 0.5);
             if (heal > 0) { attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal); window.addDungeonLog(`💧 体力を吸収された！`, '#aaa'); }
         }
+
+        // ==========================================
+        // ★ 風船系の被弾後・死亡時リアクション
+        // ==========================================
+        // 【自】爆発反応装甲：近接ダメージを受けた時に固定10ダメージを返す
+        if (dTraits.includes('爆発反応装甲') && finalDamage > 0) {
+            window.addDungeonLog(`💥 爆発反応装甲が起動！ ${attacker.name} に爆発を返した！`, '#FF5722');
+            attacker.hp = Math.max(0, attacker.hp - 10);
+        }
+
+        // 【敵】絶望の破裂：死亡時に「恐怖（行動不可）」と「毒」をばら撒く
+        if (!aIsPlayer && defender.hp <= 0 && defender.skin && defender.skin.includes('balloon_type1_3')) {
+            window.addDungeonLog(`☠️ ${defender.name} の絶望の破裂！ 毒と絶望のガスが撒き散らされた！`, '#9C27B0');
+            s.player.status.poison = (s.player.status.poison || 0) + 5;
+            s.player.status.fear = (s.player.status.fear || 0) + 3; // ★ sleepではなく、専用のfearステータスを使用
+        }
         if (eSkin === 'spirit_type2' && Math.random() < 0.1 && !activeTraits.includes('清浄なる輝き')) {
             s.player.status.sleep = 3; window.addDungeonLog(`💤 睡眠の粉を吸い込んで眠ってしまった！`, '#B39DDB');
         }
@@ -527,6 +608,32 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         }
         if (eSkin === 'spirit_type5_3' && !activeTraits.includes('清浄なる輝き')) {
             s.player.status.paralyzed = 1; window.addDungeonLog(`❄️ 凍結の吐息で体が凍りついた！`, '#00BCD4');
+        }
+
+        // ==========================================
+        // ★ 風船系のデバフ反射・吸収処理
+        // ==========================================
+        let gainedPoison = s.player.status.poison > (oldStatus.poison || 0);
+        let gainedSleep = s.player.status.sleep > (oldStatus.sleep || 0);
+        let gainedConfusion = s.player.status.confusion > (oldStatus.confusion || 0);
+        let gainedParalyze = s.player.status.paralyzed > (oldStatus.paralyzed || 0);
+        let gainedPetrify = s.player.status.petrified > (oldStatus.petrified || 0);
+        let gainedFear = s.player.status.fear > (oldStatus.fear || 0);
+
+        if (activeTraits.includes('毒ガスタンク') && gainedPoison) {
+            s.player.atkBuff = (s.player.atkBuff || 0) + 5;
+            window.addDungeonLog(`🎈 毒ガスタンク起動！ 毒を力に変えて攻撃力が上がった！`, '#FFD700');
+        }
+        if (activeTraits.includes('美しき反射') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear)) {
+            let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
+            if (adj.length > 0) {
+                adj.forEach(e => {
+                    if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
+                    if (gainedSleep || gainedParalyze || gainedFear || gainedPetrify) e.status.sleep = (e.status.sleep || 0) + 3;
+                    if (gainedConfusion) e.status.confusion = (e.status.confusion || 0) + 5;
+                });
+                window.addDungeonLog(`🪞 美しき反射！ 受けた状態異常を周囲の敵にそっくりそのまま返した！`, '#E040FB');
+            }
         }
     }
 };

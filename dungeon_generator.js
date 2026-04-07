@@ -235,10 +235,21 @@ window.generateDungeonFloor = async function() {
     }
 
     let mySkin = s.player.skin || "";
-    if (mySkin === 'spirit_type3_2') {
+    let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(mySkin).map(t => t.name) : [];
+
+    if (mySkin === 'spirit_type3_2' || activeTraits.includes('全天候衛星')) {
         for(let y=0; y<s.mapHeight; y++) { for(let x=0; x<s.mapWidth; x++) s.visited[y][x] = true; }
-        window.addDungeonLog(`🌳 世界樹の記憶により、このフロアの地形を完全に把握した！`, '#00BCD4');
+        window.addDungeonLog(activeTraits.includes('全天候衛星') ? `🛰️ 全天候衛星からのスキャン完了！地形を完全に把握した！` : `🌳 世界樹の記憶により、このフロアの地形を完全に把握した！`, '#00BCD4');
     }
+    if (activeTraits.includes('気象観測') || activeTraits.includes('全天候衛星')) {
+        s.traps.forEach(t => t.visible = true); // ★修正：discovered ではなく visible に変更
+        window.addDungeonLog(`☁️ ${activeTraits.includes('全天候衛星') ? '衛星スキャン' : '気象観測'}により、隠された罠をすべて見破った！`, '#00BCD4');
+    }
+    if (activeTraits.includes('全天候衛星')) {
+        s.items.forEach(i => i.discovered = true);
+        s.isMHDiscovered = true; // モンスターハウスの察知
+    }
+
     if (mySkin.includes('spirit_type3')) {
         s.items.forEach(it => {
             let parsed = window.parseItemString(it.key);

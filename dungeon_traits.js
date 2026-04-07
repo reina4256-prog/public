@@ -4,6 +4,23 @@ window._dungeonAiTypesList = ['robot', 'magician', 'spirit', 'dragon', 'machine'
 // ★ 新規追加：全種族の特性カタログ（ロボット系21種 完備）
 // ==========================================
 window.DUNGEON_TRAIT_DICT = {
+    // 【風船系】
+    'balloon': { player: { name: '弾む体', desc: '敵から受けるノックバック（吹き飛ばし）ダメージを無効化する。' }, enemy: '浮遊' },
+    'balloon_type2': { player: { name: '虹色の膜', desc: '炎や氷などの「属性ダメージ」を半減する。' }, enemy: 'シャボンバリア' },
+    'balloon_type2_2': { player: { name: '美しき反射', desc: '敵から受けたデバフを周囲の敵にもばら撒く。' }, enemy: '光の屈折' },
+    'balloon_type4': { player: { name: '圧縮筋肉', desc: '満腹度が30以下のとき、防御力が2倍になる。' }, enemy: 'バウンド・プレス' },
+    'balloon_type4_2': { player: { name: '熱気球', desc: '[炎]の印がついた武器を装備していると、回避率が+15%される。' }, enemy: 'バーナー放射' },
+    'balloon_type1': { player: { name: '毒ガスタンク', desc: '毒罠を踏んだり毒を受けた際、攻撃力が上がる。' }, enemy: '排気ガス' },
+    'balloon_type1_2': { player: { name: '爆発反応装甲', desc: '近接攻撃を受けた時、周囲1マスに爆風ダメージを返す。' }, enemy: '機雷爆発' },
+    'balloon_type5': { player: { name: 'しわしわボディ', desc: '敵からのクリティカルヒットを絶対に受けない。' }, enemy: 'ガス抜け' },
+    'balloon_type3': { player: { name: '気象観測', desc: 'フロアに降りた時、罠の位置がすべてミニマップに表示される。' }, enemy: '落雷予測' },
+    'balloon_type3_2': { player: { name: '広域スキャン', desc: '視界が広がり、暗い通路の先まで見えるようになる。' }, enemy: '狙撃レンズ' },
+    'balloon_type2_3': { player: { name: '夢の鼓動', desc: '時間経過でアイテムがレアアイテムに変化することがある。' }, enemy: 'ハッピーパレード' },
+    'balloon_type4_3': { player: { name: '超浮力', desc: '装備の重さを完全に打ち消し、満腹度が減りにくくなる。' }, enemy: '爆弾投下' },
+    'balloon_type5_2': { player: { name: '不朽の硬度', desc: '最大HPが+50され、あらゆる固定ダメージを半減する。' }, enemy: '化石化ガス' },
+    'balloon_type1_3': { player: { name: '悪夢の住人', desc: '睡眠や混乱状態の敵を攻撃した際、ダメージが3倍になる。' }, enemy: '絶望の破裂' },
+    'balloon_type3_3': { player: { name: '全天候衛星', desc: 'マップ、敵、アイテム、罠、階段が常に完全に可視化される。' }, enemy: '衛星軌道レーザー' },
+
     // 【カブトムシ系】
     'beetle': { player: { name: '角突き', desc: '移動時に敵にぶつかるとターンを消費せずダメージを与える。' }, enemy: '硬い外殻' },
     'beetle_type4': { player: { name: '剛力', desc: '所持しているアイテムの数が多いほど攻撃力が上がる。' }, enemy: 'カチ上げ' },
@@ -179,6 +196,44 @@ window.getPlayerDungeonTraits = function(skin) {
                 }
                 addTrait(pastBeauty); 
                 addTrait(skin); 
+            }
+        }
+    }
+
+    // ==========================================
+    // ★ 風船系の系譜
+    // ==========================================
+    if (skin.includes('balloon')) {
+        addTrait('balloon'); // Base
+
+        // Gen 1
+        if (['balloon_type2', 'balloon_type2_2', 'balloon_type4', 'balloon_type4_2', 'balloon_type1', 'balloon_type1_2', 'balloon_type5', 'balloon_type3', 'balloon_type3_2'].includes(skin)) {
+            addTrait(skin);
+        }
+        // Gen 2 (履歴解決あり)
+        else {
+            if (skin === 'balloon_type5_2') { 
+                addTrait('balloon_type5'); addTrait(skin); 
+            }
+            else if (skin === 'balloon_type2_3') {
+                let past = 'balloon_type2';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('balloon_type2_2')) past = 'balloon_type2_2';
+                addTrait(past); addTrait(skin);
+            }
+            else if (skin === 'balloon_type4_3') {
+                let past = 'balloon_type4';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('balloon_type4_2')) past = 'balloon_type4_2';
+                addTrait(past); addTrait(skin);
+            }
+            else if (skin === 'balloon_type1_3') {
+                let past = 'balloon_type1';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('balloon_type1_2')) past = 'balloon_type1_2';
+                addTrait(past); addTrait(skin);
+            }
+            else if (skin === 'balloon_type3_3') {
+                let past = 'balloon_type3';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('balloon_type3_2')) past = 'balloon_type3_2';
+                addTrait(past); addTrait(skin);
             }
         }
     }
