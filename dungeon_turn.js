@@ -88,11 +88,13 @@ window.processDungeonTurn = async function() {
                 });
             }
             if (mySkin === 'spirit_type2_3') s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: s.player.status.wet, sleep: 0 };
-            if (mySkin === 'spirit_type5' && Math.random() < 0.2) s.player.hunger += (1 / s.maxHungerTime);
+            // ★修正: maxHungerTimeのNaNエラーを防ぐため固定値に変更
+            if (mySkin === 'spirit_type5' && Math.random() < 0.2) s.player.hunger = Math.min(100, s.player.hunger + 0.5);
 
             let sameRoomSweet = s.enemies.find(e => e.hp > 0 && e.skin === 'spirit_type2_2' && window.isTileVisible(s, e.x, e.y));
             if (sameRoomSweet) {
-                s.player.hunger -= (1 / s.maxHungerTime);
+                // ★修正: maxHungerTimeのNaNエラーを防ぐため固定値に変更
+                s.player.hunger = Math.max(0, s.player.hunger - 0.5);
                 if (s.turnCount % 10 === 0) window.addDungeonLog(`🌸 甘い香りで お腹が急激に減ってきた...`, '#FF9800');
             }
 
@@ -137,7 +139,11 @@ window.processDungeonTurn = async function() {
             if (allTraits.includes('fast_hunger')) consumption *= 2.0;
             if (allTraits.includes('regen') && consumption > 1.0) consumption = 1.0; 
 
-            if (!activeTraits.includes('無限機関')) s.player.hunger = Math.max(0, s.player.hunger - (0.15 * consumption)); 
+            // ★追加: 鳥系の特性「最適化ルート」
+            if (activeTraits.includes('最適化ルート')) consumption *= 0.9;
+
+            // ★修正: 0.15だとAUTO時に早すぎるため 0.03（約5倍長持ち）に緩和
+            if (!activeTraits.includes('無限機関')) s.player.hunger = Math.max(0, s.player.hunger - (0.03 * consumption));
             
             if (s.player.hunger <= 0) {
                 s.player.hp -= 2; window.addDungeonLog(`お腹が空いて倒れそうだ... (HP-2)`, '#ff5252');
@@ -167,7 +173,8 @@ window.processDungeonTurn = async function() {
                 s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0 };
             }
 
-            let isFlying = s.player.type === 'balloon' || s.player.type === 'ghost' || s.player.type === 'bird';
+            // ★修正: 進化後(bird_type2など)でも確実に飛翔フラグをONにする
+            let isFlying = s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'));
             let realSpd = Math.floor(ai.stats.speed || 10);
             let actionCount = 1 + Math.floor(realSpd / 50); 
             if (acEff && acEff.traits.includes('fast_move')) {
@@ -350,7 +357,7 @@ window.processDungeonTurn = async function() {
                                                 }
                                             }
                                             
-                                            if (!isFlying && tile === 4) continue; 
+                                            if (!isFlying && (tile === 4 || tile === 10)) continue; // ★追加: 10(溝)
                                             if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) continue;
                                             if (tile === 5) {
                                                 if (s.player.hp <= 20) continue; 
@@ -358,7 +365,8 @@ window.processDungeonTurn = async function() {
                                             }
                                             
                                             // ★氷と罠を迂回シミュレート
-                                            let willHitTrap = s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
+                                            // 飛翔中は罠を踏まないため、罠避けの迂回コストを加算しない！
+                                            let willHitTrap = s.traps && !isFlying && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
                                             if (tile === 8 && !hasColdResist) {
                                                 let sx = nx, sy = ny;
                                                 while (true) {
@@ -694,7 +702,8 @@ window.processDungeonTurn = async function() {
                         if (['move_up', 'move_down', 'move_left', 'move_right'].includes(cmd)) {
                             let nx = s.player.x + (cmd === 'move_right' ? 1 : cmd === 'move_left' ? -1 : 0); let ny = s.player.y + (cmd === 'move_down' ? 1 : cmd === 'move_up' ? -1 : 0);
                             if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1) {
-                                if (!isFlying && s.grid[ny][nx] === 4) return false; 
+                                // ★修正: 水脈(4)だけでなく溝(10)の判定も追加
+                                if (!isFlying && (s.grid[ny][nx] === 4 || s.grid[ny][nx] === 10)) return false; 
                                 return true;
                             }
                             return false;
@@ -791,10 +800,11 @@ window.processDungeonTurn = async function() {
                 }
                 else if (chosenCommand === 'flee') {
                     if (enemyInSight) {
-                        if (s.player.x < enemyInSight.x && s.grid[s.player.y][s.player.x - 1] !== 1 && (isFlying || s.grid[s.player.y][s.player.x - 1] !== 4)) { newX--; s.player.face = 'left'; }
-                        else if (s.player.x > enemyInSight.x && s.grid[s.player.y][s.player.x + 1] !== 1 && (isFlying || s.grid[s.player.y][s.player.x + 1] !== 4)) { newX++; s.player.face = 'right'; }
-                        else if (s.player.y < enemyInSight.y && s.grid[s.player.y - 1][s.player.x] !== 1 && (isFlying || s.grid[s.player.y - 1][s.player.x] !== 4)) { newY--; s.player.face = 'up'; }
-                        else if (s.player.y > enemyInSight.y && s.grid[s.player.y + 1][s.player.x] !== 1 && (isFlying || s.grid[s.player.y + 1][s.player.x] !== 4)) { newY++; s.player.face = 'down'; }
+                        const canFlee = (tx, ty) => s.grid[ty][tx] !== 1 && (isFlying || (s.grid[ty][tx] !== 4 && s.grid[ty][tx] !== 10)); // ★関数化して溝(10)を追加
+                        if (s.player.x < enemyInSight.x && canFlee(s.player.x - 1, s.player.y)) { newX--; s.player.face = 'left'; }
+                        else if (s.player.x > enemyInSight.x && canFlee(s.player.x + 1, s.player.y)) { newX++; s.player.face = 'right'; }
+                        else if (s.player.y < enemyInSight.y && canFlee(s.player.x, s.player.y - 1)) { newY--; s.player.face = 'up'; }
+                        else if (s.player.y > enemyInSight.y && canFlee(s.player.x, s.player.y + 1)) { newY++; s.player.face = 'down'; }
                         if(!isConfused) window.addDungeonLog(`敵から遠ざかるように走った！`, '#00BCD4');
                     } else { if(!isConfused) window.addDungeonLog(`キョロキョロしている。（敵がいない）`, '#aaa'); }
                 }
@@ -804,7 +814,7 @@ window.processDungeonTurn = async function() {
                         
                         let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
                         let isWall = s.grid[newY][newX] === 1;
-                        let isWater = s.grid[newY][newX] === 4;
+                        let isWaterOrDitch = s.grid[newY][newX] === 4 || s.grid[newY][newX] === 10; // ★追加: 10(溝)
 
                         if (isWall) {
                             if (activeTraits.includes('重機動アーム') && newX > 0 && newX < s.mapWidth-1 && newY > 0 && newY < s.mapHeight-1) {
@@ -814,8 +824,8 @@ window.processDungeonTurn = async function() {
                                 window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa');
                                 continue;
                             }
-                        } else if (!isFlying && isWater) {
-                            window.addDungeonLog(`ガンッ！ 水脈にぶつかった！`, '#aaa');
+                        } else if (!isFlying && isWaterOrDitch) {
+                            window.addDungeonLog(`ガンッ！ 水脈や溝にぶつかった！`, '#aaa');
                             continue;
                         }
 
@@ -907,7 +917,7 @@ window.processDungeonTurn = async function() {
                                 }
                             }
 
-                            if (s.traps && s.player.type !== 'balloon' && s.player.type !== 'ghost') { 
+                            if (s.traps && !isFlying) { // ★修正: 鳥系も罠を浮遊して回避できるように統一
                                 let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
                                 
                                 if (trap && activeTraits.includes('大地の恵み')) {
@@ -1461,7 +1471,7 @@ window.processDungeonTurn = async function() {
                     let playerHit = (ex === s.player.x && ey === s.player.y);
                     if (!occupied && !playerHit) { 
                         let isEnemyFlying = e.type === 'balloon' || e.type === 'ghost' || e.type === 'bird';
-                        if (!isEnemyFlying && s.grid[ey][ex] === 4) continue; 
+                        if (!isEnemyFlying && (s.grid[ey][ex] === 4 || s.grid[ey][ex] === 10)) continue; // ★追加: 敵AIの溝回避
                         
                         e.x = ex; e.y = ey; e.face = moveDir; 
                         let newDist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);

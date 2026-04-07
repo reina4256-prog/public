@@ -70,7 +70,7 @@ window.DUNGEON_TRAIT_DICT = {
 // 進化ツリーの系譜（スタック）を解決する関数
 window.getPlayerDungeonTraits = function(skin) {
     let traits = [];
-    if (!skin || (!skin.includes('robot') && !skin.includes('spirit'))) return traits; 
+    if (!skin) return traits; // ★修正: 今後の全種族拡張を見据えて、存在チェックのみに簡略化
 
     const addTrait = (id) => { if (window.DUNGEON_TRAIT_DICT[id] && window.DUNGEON_TRAIT_DICT[id].player) traits.push(window.DUNGEON_TRAIT_DICT[id].player); };
 

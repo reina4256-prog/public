@@ -278,6 +278,37 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         if (activeTraits.includes('大樹の怒り')) s.player._wrath = true;
 
         // --- 3. 攻撃後の追加効果（敵のスキル発動） ---
+        // ★ 新規追加：鳥系の敵スキル「突風」（20%でノックバック）
+        if (eSkin && eSkin.includes('bird') && Math.random() < 0.20) {
+            // プレイヤーが2進化特性「暴風の主」を持っていたら無効化＆カウンター！
+            if (dTraits.includes('暴風の主')) {
+                window.addDungeonLog(`🌪️ ${attacker.name} の突風！しかし ${defender.name} は風を支配し、逆に弾き返した！`, '#00BCD4');
+                let dx = Math.sign(attacker.x - defender.x); let dy = Math.sign(attacker.y - defender.y);
+                if (dx === 0 && dy === 0) dx = 1; // 同座標フェイルセーフ
+                let nx = attacker.x + dx; let ny = attacker.y + dy;
+                
+                if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny && e !== attacker)) {
+                    attacker.x = nx; attacker.y = ny;
+                } else {
+                    window.addDungeonLog(`💥 ${attacker.name} は壁に激突した！(10ダメージ)`, '#FF5252');
+                    attacker.hp -= 10;
+                }
+            } else {
+                window.addDungeonLog(`🌪️ ${attacker.name} の突風！ 1マス吹き飛ばされた！`, '#00BCD4');
+                let dx = Math.sign(defender.x - attacker.x); let dy = Math.sign(defender.y - attacker.y);
+                if (dx === 0 && dy === 0) dx = 1; // 同座標フェイルセーフ
+                let nx = defender.x + dx; let ny = defender.y + dy;
+                
+                if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) {
+                    defender.x = nx; defender.y = ny;
+                } else {
+                    window.addDungeonLog(`💥 壁に激突した！(5ダメージ)`, '#FF5252');
+                    defender.hp -= 5;
+                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, 5, true);
+                }
+            }
+        }
+
         if (eSkin === 'spirit') {
             let heal = Math.floor(finalDamage * 0.5);
             if (heal > 0) { attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal); window.addDungeonLog(`💧 体力を吸収された！`, '#aaa'); }
