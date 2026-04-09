@@ -45,6 +45,11 @@ window.processDungeonTurn = async function() {
     const sleep = ms => new Promise(r => setTimeout(r, ms));
 
     try {
+        // ★修正：ターン開始時にインベントリに混入した undefined や null を完全に抹消する
+        if (s.player.tempInventory) {
+            s.player.tempInventory = s.player.tempInventory.filter(i => i !== undefined && i !== null && i !== 'undefined');
+        }
+
         const ai = window.aiPet; const aiName = ai.name || "AI"; 
         
         let tData = typeof charaTraits !== 'undefined' ? (charaTraits[s.player.skin] || charaTraits[s.player.type]) : null;
@@ -307,6 +312,9 @@ window.processDungeonTurn = async function() {
 
                             for(let i=0; i<s.player.tempInventory.length; i++) {
                                 let itemId = s.player.tempInventory[i];
+                                // ★念のためのフェイルセーフ
+                                if (!itemId || itemId === 'undefined') continue;
+                                
                                 let effect = window.getDungeonItemEffect(itemId);
                                 if (!effect.isConsumable) continue;
                                 if (itemId.includes('wand') && effect.charges <= 0) continue;
@@ -501,6 +509,9 @@ window.processDungeonTurn = async function() {
                                     let matItem = s.player.tempInventory[i];
                                     let parsedMat = window.parseItemString(matItem);
                                     let matEff = window.getDungeonItemEffect(matItem);
+
+                                    // ★ 修正：呪われたアイテムを素材にしない（賢いAIの判断）
+                                    if (matEff && matEff.traits && matEff.traits.includes('curse')) continue;
                                     
                                     let isMatUnidentified = s.sessionItemDict && s.sessionItemDict[parsedMat.baseId] && !s.aiMemory.identified.includes(parsedMat.baseId);
                                     if (s.player.skin && s.player.skin.includes('spirit_type3')) isMatUnidentified = false;
@@ -1782,19 +1793,61 @@ window.processDungeonTurn = async function() {
                         hasAttacked = true;
                     } 
                     else if (dist < 6) {
-                        if (Math.abs(s.player.x - e.x) > Math.abs(s.player.y - e.y)) {
-                            if (e.x < s.player.x && s.grid[e.y][e.x+1] !== 1) { ex++; moveDir = 'right'; } else if (e.x > s.player.x && s.grid[e.y][e.x-1] !== 1) { ex--; moveDir = 'left'; }
+                        // ★ 追跡AIの改善：軸移動が詰まったら別の軸を試す
+                        let dx = s.player.x - e.x;
+                        let dy = s.player.y - e.y;
+                        let canMoveX = false;
+                        let canMoveY = false;
+
+                        if (dx !== 0) {
+                            let nx = e.x + Math.sign(dx);
+                            if (s.grid[e.y][nx] !== 1 && !s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === nx && oe.y === e.y)) canMoveX = true;
+                        }
+                        if (dy !== 0) {
+                            let ny = e.y + Math.sign(dy);
+                            if (s.grid[ny][e.x] !== 1 && !s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === e.x && oe.y === ny)) canMoveY = true;
+                        }
+
+                        // 距離が遠い方の軸を優先するが、詰まっていたら空いている方へ行く
+                        if (Math.abs(dx) >= Math.abs(dy)) {
+                            if (canMoveX) { ex += Math.sign(dx); moveDir = dx > 0 ? 'right' : 'left'; }
+                            else if (canMoveY) { ey += Math.sign(dy); moveDir = dy > 0 ? 'down' : 'up'; }
                         } else {
-                            if (e.y < s.player.y && s.grid[e.y+1][e.x] !== 1) { ey++; moveDir = 'down'; } else if (e.y > s.player.y && s.grid[e.y-1][e.x] !== 1) { ey--; moveDir = 'up'; }
+                            if (canMoveY) { ey += Math.sign(dy); moveDir = dy > 0 ? 'down' : 'up'; }
+                            else if (canMoveX) { ex += Math.sign(dx); moveDir = dx > 0 ? 'right' : 'left'; }
                         }
                     } else {
                         if (Math.random() < 0.6) {
-                            const dirs = [];
-                            if (s.grid[e.y][e.x+1] !== 1) dirs.push({x: e.x+1, y: e.y, dir: 'right'});
-                            if (s.grid[e.y][e.x-1] !== 1) dirs.push({x: e.x-1, y: e.y, dir: 'left'});
-                            if (s.grid[e.y+1][e.x] !== 1) dirs.push({x: e.x, y: e.y+1, dir: 'down'});
-                            if (s.grid[e.y-1][e.x] !== 1) dirs.push({x: e.x, y: e.y-1, dir: 'up'});
-                            if (dirs.length > 0) { const rnd = dirs[Math.floor(Math.random() * dirs.length)]; ex = rnd.x; ey = rnd.y; moveDir = rnd.dir; }
+                            // ★ 徘徊AIの改善：部屋から通路へ入りやすくするため「直進」を最優先する
+                            let forwardDir = e.face || ['up', 'down', 'left', 'right'][Math.floor(Math.random() * 4)];
+                            let dx = forwardDir === 'right' ? 1 : forwardDir === 'left' ? -1 : 0;
+                            let dy = forwardDir === 'down' ? 1 : forwardDir === 'up' ? -1 : 0;
+                            
+                            let canMoveForward = s.grid[e.y + dy] && s.grid[e.y + dy][e.x + dx] !== 1;
+                            
+                            // 80%の確率で直進を試みる
+                            if (canMoveForward && Math.random() < 0.8) {
+                                ex = e.x + dx; ey = e.y + dy; moveDir = forwardDir;
+                            } else {
+                                // 直進できない、または気まぐれで方向転換する場合
+                                const dirs = [];
+                                // Uターン（直前の逆方向）は極力避ける
+                                let backDir = forwardDir === 'right' ? 'left' : forwardDir === 'left' ? 'right' : forwardDir === 'up' ? 'down' : 'up';
+                                
+                                if (s.grid[e.y][e.x+1] !== 1 && backDir !== 'right') dirs.push({x: e.x+1, y: e.y, dir: 'right'});
+                                if (s.grid[e.y][e.x-1] !== 1 && backDir !== 'left') dirs.push({x: e.x-1, y: e.y, dir: 'left'});
+                                if (s.grid[e.y+1][e.x] !== 1 && backDir !== 'down') dirs.push({x: e.x, y: e.y+1, dir: 'down'});
+                                if (s.grid[e.y-1][e.x] !== 1 && backDir !== 'up') dirs.push({x: e.x, y: e.y-1, dir: 'up'});
+                                
+                                // 行き止まりの場合のみUターンを候補に入れる
+                                if (dirs.length === 0) {
+                                    if (s.grid[e.y][e.x+1] !== 1) dirs.push({x: e.x+1, y: e.y, dir: 'right'});
+                                    if (s.grid[e.y][e.x-1] !== 1) dirs.push({x: e.x-1, y: e.y, dir: 'left'});
+                                    if (s.grid[e.y+1][e.x] !== 1) dirs.push({x: e.x, y: e.y+1, dir: 'down'});
+                                    if (s.grid[e.y-1][e.x] !== 1) dirs.push({x: e.x, y: e.y-1, dir: 'up'});
+                                }
+                                if (dirs.length > 0) { const rnd = dirs[Math.floor(Math.random() * dirs.length)]; ex = rnd.x; ey = rnd.y; moveDir = rnd.dir; }
+                            }
                         }
                     }
 

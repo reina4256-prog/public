@@ -841,7 +841,12 @@ window.customResetGameData = function() {
     }
     if (resetGrazing) { localStorage.removeItem('grazing_data_v1'); }
 
-    localStorage.setItem('force_first_play', 'true');
+    // プレイヤーデータをリセットする場合のみ、初回プレイ用のフラグを立てる
+    if (resetAIData) {
+        localStorage.setItem('force_first_play', 'true');
+    }
+
+    // 削除したデータをゲーム状態に反映させるため、必ずリロードを実行する
     location.reload();
 };
 

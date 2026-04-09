@@ -2920,12 +2920,18 @@ window.updateDungeonUI = function() {
     document.getElementById('dg-floor').innerText = s.floor;
     document.getElementById('dg-hunger').innerText = Math.max(0, Math.floor(s.player.hunger));
 
+    // ★修正：レベル表示の横に「現在のEXP / 次のレベルまでのEXP」を追記する
     let lvlEl = document.getElementById('dg-level');
+    let currentLv = s.player.level || 1;
+    let currentExp = s.player.exp || 0;
+    let requiredExp = 100 + (currentLv - 1) * 50;
+    let expStr = ` (EXP: ${currentExp}/${requiredExp})`;
+
     if (lvlEl) {
-        lvlEl.innerText = s.player.level || 1;
+        lvlEl.innerText = `${currentLv}${expStr}`;
     } else {
         let allSpans = document.querySelectorAll('span');
-        allSpans.forEach(span => { if (span.innerText.includes('Lv.')) span.innerText = `Lv.${s.player.level || 1}`; });
+        allSpans.forEach(span => { if (span.innerText.includes('Lv.')) span.innerText = `Lv.${currentLv}${expStr}`; });
     }
 
     const invListEl = document.getElementById('dg-inventory-list');

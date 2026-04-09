@@ -263,16 +263,18 @@ window.dealDungeonDamage = function(attacker, defender) {
     // ★ 敵特性：データ収集（殴られたら回避アップ）
     if (aIsPlayer && defender.skin && defender.skin.includes('robot_type3')) defender.highDodge = true;
 
-    // 撃破時の処理
     if (defender.hp <= 0) {
-        window.addDungeonLog(`${defender.name} を倒した！`, '#FFD700');
         if (aIsPlayer) {
-            // ★ 特性：学習機能
-            let expGain = aTraits.includes('学習機能') ? 24 : 20;
+            // ★修正：フロアの深さに応じて獲得経験値がスケールするように調整
+            let baseExp = aTraits.includes('学習機能') ? 24 : 20;
+            let expGain = baseExp + Math.floor((s.floor || 1) * 3);
             attacker.exp = (attacker.exp || 0) + expGain;
+            
+            // ★ログに獲得経験値を表示
+            window.addDungeonLog(`${defender.name} を倒した！(+${expGain} EXP)`, '#FFD700');
 
             // ★修正：レベルアップに必要な経験値をスケールさせる（Lv1=100, Lv2=150, Lv3=200...）
-            let requiredExp = 100 + ((attacker.level || 1) - 1) * 50; 
+            let requiredExp = 100 + ((attacker.level || 1) - 1) * 50;
 
             if (attacker.exp >= requiredExp) {
                 attacker.exp -= requiredExp; 
