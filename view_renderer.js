@@ -572,7 +572,6 @@ function drawActionWindow(animType, sceneType) {
         if (animType === 'train') statusText = "💪 筋トレ中...";
         if (animType === 'sleep') statusText = "💤 休憩中...";
         if (animType === 'cook') statusText = "🍳 料理中...";
-        // ★修正: building の場合は建築中と表示
         if (animType === 'smith') statusText = sceneType === 'building' ? "🔨 建築作業中..." : "🔨 鍛冶作業中...";
     }
     else if (sceneType === 'camping') {
@@ -594,6 +593,14 @@ function drawActionWindow(animType, sceneType) {
         else if (animType === 'farm_pest') statusText = "🐛 退治中...";
         else if (animType === 'farm_harvest') statusText = "🌾 収穫中...";
         else statusText = "🚜 畑仕事中...";
+    }
+
+    // ★追加：もし現在実行中の予定が「バイト」なら、テキストを専用のものに上書きする！
+    if (aiPet.schedule && aiPet.schedule.length > 0) {
+        const currentTask = aiPet.schedule[0];
+        if (currentTask.isBaito && currentTask.baitoActionMsg) {
+            statusText = "💼 " + currentTask.baitoActionMsg; // 💼アイコンをつけてバイト感を出します
+        }
     }
     
     ctx.strokeStyle = "black"; ctx.lineWidth = 4; ctx.strokeText(statusText, cx, by + winH + 20);

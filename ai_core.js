@@ -4,6 +4,60 @@ if (typeof window.aiPet === 'undefined') {
     window.aiPet = {};
 }
 
+// ==========================================
+// ★追加：入門試験（一問一答）のキーワード定義（類義語・超許容版）
+// ==========================================
+window.EXAM_KEYWORDS = {
+    'explore': { 
+        accepts: [
+            ['地図', 'マップ', '地図帳', 'マップアプリ'], 
+            ['水筒', '水', '飲み物', 'お茶', 'ペットボトル', 'ボトル'], 
+            ['コンパス', '方位磁針', '方位磁石', '磁石', '方位']
+        ], 
+        q1: "探検で自分の位置を知る道具は？", q2: "喉の渇きを潤すために必要なものは？", q3: "方角を知るために必要なものは？" 
+    },
+    'farming': { 
+        accepts: [
+            ['太陽', '日光', '光', 'お日様', '日差し', 'おひさま'], 
+            ['土', '大地', '土壌', '畑', '地面', '泥'], 
+            ['水', '雨', '水分', '水やり', 'みず']
+        ], 
+        q1: "作物に光を与える自然の恵みは？", q2: "作物が根を張るための大地を何と呼ぶ？", q3: "作物を潤す命の源は？" 
+    },
+    'fishing': { 
+        accepts: [
+            ['竿', '釣り竿', 'つりざお', 'ロッド', 'さお'], 
+            ['糸', '釣り糸', 'ライン', 'いと', '釣り糸'], 
+            ['エサ', '餌', 'えさ', 'ルアー', '疑似餌', 'ワーム']
+        ], 
+        q1: "魚を釣るための長い棒を何と言う？", q2: "竿の先から垂らす細い線は？", q3: "魚をおびき寄せるための食べ物は？" 
+    },
+    'cooking': { 
+        accepts: [
+            ['包丁', 'ナイフ', '刃物', 'ほうちょう'], 
+            ['鍋', 'なべ', 'フライパン', 'ボウル', 'お鍋'], 
+            ['火', '炎', '熱', 'ガス', 'コンロ', '火加減']
+        ], 
+        q1: "食材を切るための道具は？", q2: "スープを煮込むための容器は？", q3: "食材を加熱するために必要なものは？" 
+    },
+    'smithing': { 
+        accepts: [
+            ['鉄', '金属', '鉱石', '鋼', 'アイアン', '鉄鉱石'], 
+            ['ハンマー', '金槌', 'かなづち', 'トンカチ', '槌'], 
+            ['炉', '火', 'かまど', '溶鉱炉', 'ふいご', '炎']
+        ], 
+        q1: "剣や鎧の材料となる硬い金属は？", q2: "熱した金属を叩くための道具は？", q3: "金属を赤く熱するための設備は？" 
+    },
+    'building': { 
+        accepts: [
+            ['図面', '設計図', '計画', '設計', '青写真', '完成図', '見取り図'], 
+            ['木材', '木', '板', '柱', '丸太', 'もくざい'], 
+            ['トンカチ', 'ハンマー', '金槌', 'かなづち', '釘打ち']
+        ], 
+        q1: "建物の完成図を描いた紙を何と呼ぶ？", q2: "柱や壁の材料になる木の板は？", q3: "釘を打つための道具は？" 
+    }
+};
+
 // ★完全安全化: 特性データの取得エラーをゼロにする
 aiPet.getTraitData = function() {
     if (typeof charaTraits === 'undefined') return { consumption: 1.0, statBonus: { power: 1.0, intel: 1.0, mood: 1.0 } };
@@ -18,20 +72,49 @@ aiPet.getTraitData = function() {
     };
 };
 
-function getTaskName(type) {
+function getTaskName(type, task = null) {
+    // UI側からtaskオブジェクトが渡されなかった場合は、現在のスケジュールから推測する
+    if (!task && typeof window.aiPet !== 'undefined' && window.aiPet.schedule) {
+        task = window.aiPet.schedule.find(t => t.type === type);
+    }
+
+    // ★追加：バイト名の動的生成
+    if (task && task.isBaito && task.baitoWord) {
+        return `バイト（${task.baitoWord}）`;
+    }
+
     if(type==='study') return "勉強"; if(type==='train') return "筋トレ"; if(type==='run') return "ランニング";
-    if(type==='rest' || type==='sleep') return "睡眠"; // ★修正：sleepも睡眠に変換！
+    if(type==='rest' || type==='sleep') return "睡眠"; 
     if(type==='explore') return "探検"; if(type==='eat') return "食事"; if(type==='project') return "計画実行";
     if(type==='fish') return "釣り"; 
     if(type==='cook') return "料理"; 
     if(type==='smith') return "鍛冶"; 
-    // ★追加：表示名を「建築」にする
     if(type==='build') return "建築";
-    if(type==='apprentice_exam') return "入門試験"; // ★修正
-    if(type==='master_quest') return "課題の実行"; // ★修正
-    if(type==='visit_master') return "報告に向かっている";
+    if(type==='master_quest') return "課題の実行"; 
 
-    // ★追加：余生ルートの専用アクション名
+    if(type==='apprentice_exam' || type==='visit_master') {
+        if (task && task.masterType && typeof window.aiPet !== 'undefined') {
+            const mType = task.masterType;
+            const mNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+            const mName = mNames[mType] || '専門家';
+            const app = window.aiPet.apprentice || {};
+            
+            if (type === 'apprentice_exam') return `${mName}の入門試験`;
+
+            let isBanned = (app.excommunicatedFrom === mType) || (app.attempts && app.attempts[mType] >= 3);
+            // ★修正後（上書き）：過去の師匠を除外！
+            let isMastered = (app.rank && app.rank[task.masterType] >= 10);
+            let isApprentice = (app.currentMaster === mType);
+
+            if (isBanned) return `${mName}のところへ向かっている`;
+            if (isMastered) return `${mName}のところへ遊びに行っている`;
+            if (isApprentice) return `${mName}へ課題の報告に向かっている`;
+            
+            return `${mName}に会いに行っている`;
+        }
+        return type === 'apprentice_exam' ? "入門試験" : "報告に向かっている";
+    }
+
     if (type === 'life_monument') return "大事業（モニュメント建造）";
     if (type === 'life_author') return "大事業（秘伝書の執筆）";
     if (type === 'life_guardian') return "村のパトロール";
@@ -47,7 +130,8 @@ function getTaskName(type) {
 // ==========================================
 aiPet.getMasterQuestData = function(mType, rank) {
     const quests = {
-        'explore': { // 冒険家のクエスト（ランク1〜9）
+        'explore': { // 冒険家のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『位置を知る道具』『飲み物』『方角を知る道具』について聞かれる。答えとなる言葉を覚えよう。" },
             1: { 
                 name: "基礎体力の証明", 
                 desc: "探検には体力がいる。活力を開始時より＋15上げよう。", 
@@ -119,7 +203,8 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
-        'farming': { // 農家のクエスト（ランク1〜9）
+        'farming': { // 農家のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『光』『大地』『命の源』について聞かれる。答えとなる言葉を覚えよう。" },
             1: { 
                 name: "土を耕す体力", 
                 desc: "クワを振るうには体力がいる。活力を開始時より＋15上げよう。", 
@@ -186,7 +271,8 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
-        'fishing': { // 漁師のクエスト（ランク1〜9）
+        'fishing': { // 漁師のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『釣るための棒』『垂らす線』『おびき寄せる食べ物』について聞かれる。答えとなる言葉を覚えよう。" },
             1: { 
                 name: "釣り場に立つ体力", 
                 desc: "長時間の釣りには体力がいる。活力を開始時より＋15上げよう。", 
@@ -258,7 +344,8 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
-        'cooking': { // 料理人のクエスト（ランク1〜9）
+        'cooking': { // 料理人のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『切る道具』『煮込む容器』『加熱するもの』について聞かれる。答えとなる言葉を覚えよう。" },
             1: { 
                 name: "料理の心得", 
                 desc: "レシピを理解する知性が必要だ。賢さを開始時より＋15上げよう。", 
@@ -332,7 +419,8 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
             }
         },
-        'smithing': { // 鍛冶師のクエスト（ランク1〜9）
+        'smithing': { // 鍛冶師のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『硬い金属』『叩く道具』『熱する設備』について聞かれる。答えとなる言葉を覚えよう。" },
             1: { 
                 name: "火に耐える体力", 
                 desc: "重い槌を振るう体力がいる。活力を開始時より＋15上げよう。", 
@@ -406,7 +494,8 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 check: function() { return aiPet.stats.power >= aiPet.apprentice.qVal; }
             }
         },
-        'building': { // 建築士のクエスト（ランク1〜9）
+        'building': { // 建築士のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『完成図』『木の板』『釘を打つ道具』について聞かれる。答えとなる言葉を覚えよう。" },
             1: { 
                 name: "構造計算の基礎", 
                 desc: "まずは図面を引く知識がいる。賢さを開始時より＋15上げよう。", 
@@ -579,6 +668,11 @@ function findFacilityForTask(taskType, masterType = null) {
         priorities = ['smith', 'blacksmith']; 
     }
     else if (taskType === 'master_quest' || taskType === 'visit_master') {
+        // 優先的に「顔見せ時に固定生成した師匠のキャンプ」を探す
+        for (let k in assets) {
+            if (k.startsWith(masterType + '_master_camp')) return assets[k];
+        }
+
         if (masterType === 'farming') priorities = ['farm'];
         else if (masterType === 'cooking') priorities = ['restaurant', 'house', 'hut', 'castle'];
         else if (masterType === 'smithing') priorities = ['blacksmith', 'castle'];
@@ -1590,7 +1684,6 @@ aiPet.applyApprenticeship = function(masterType) {
     if (this.apprentice.isGraduated) {
         this.message = "自分はもう極めた身だ。（他の弟子入りはできない）"; this.messageTimer = 120; return false;
     }
-    
     if (this.apprentice.currentMaster) {
         this.message = "すでに弟子入り中です！"; this.messageTimer = 120; return false;
     }
@@ -1603,7 +1696,6 @@ aiPet.applyApprenticeship = function(masterType) {
         this.message = "このジャンルではもう見放されている...（挑戦上限）"; this.messageTimer = 120; return false;
     }
     
-    // 志願回数を増やす
     this.apprentice.attempts[masterType] = attempts + 1;
     
     // 現在の予定をクリアして試験タスクを入れる
@@ -1611,54 +1703,50 @@ aiPet.applyApprenticeship = function(masterType) {
     this.schedule.push({
         type: 'apprentice_exam',
         masterType: masterType,
-        duration: 15, // 約5秒間の試験時間
-        maxDuration: 15
+        duration: 300, // 約10秒間の試験時間（プログレスバー進行用に延長）
+        maxDuration: 300
     });
     
-    this.message = "弟子入り試験に挑戦します！";
+    this.message = "いざ、入門試験へ...！";
     this.messageTimer = 120;
     
     if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
     return true;
 };
 
+// ★大改修：教えた3つの言葉を基準に合否を判定する（類義語対応版）
 aiPet.processApprenticeExamFinish = function(task) {
     const mType = task.masterType;
-    let score = 0; let passScore = 50; 
-    const words = this.apprentice.learnedWords;
-    if (mType === 'farming') { if (words.includes("農業") || words.includes("水やり")) score += 20; score += this.stats.power; }
-    else if (mType === 'cooking') { if (words.includes("料理") || words.includes("食事")) score += 20; score += this.stats.intel; }
-    else if (mType === 'smithing') { if (words.includes("鍛冶")) score += 30; score += (this.stats.power + this.stats.intel) / 2; }
-    else if (mType === 'explore') { if (words.includes("探検")) score += 30; score += this.stats.power; }
-    else if (mType === 'fishing') { if (words.includes("釣り")) score += 30; score += (this.stats.intel + this.stats.power) / 2; }
-    else if (mType === 'building') { if (words.includes("建築") || words.includes("木")) score += 30; score += this.stats.intel; }
+    const words = this.apprentice.learnedWords || [];
+    const kwData = window.EXAM_KEYWORDS[mType];
     
-    score += (this.stats.mood - 50) * 0.2;
+    let passed = true;
+    // ★修正：acceptsのグループそれぞれについて、AIが知っている単語が1つでも含まれていればクリア！
+    if (kwData && kwData.accepts) {
+        passed = kwData.accepts.every(synonyms => synonyms.some(w => words.includes(w)));
+    }
     
-    if (score >= passScore) {
-        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, "「見事だ！今日からお前は私の弟子だ！」", 'exam_pass');
+    if (passed) {
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, "「全問正解だ！お前を私の弟子として認めよう！」", 'exam_pass');
     } else {
         let attempts = this.apprentice.attempts[mType] || 0;
         if (attempts >= 3) {
             let retireMsg = "";
-            if (mType === 'explore') retireMsg = "冒険家「君には才能がない。もう会うことはないだろう...」";
-            else if (mType === 'farming') retireMsg = "農家「畑を引き払って別の村へ行くよ。達者でな」";
-            else if (mType === 'fishing') retireMsg = "漁師「この周辺ではもう魚はとれそうにない。潮時だな」";
-            else if (mType === 'cooking') retireMsg = "料理人「このあたりでは集客が見込めない。店をたたむよ」";
-            else if (mType === 'smithing') retireMsg = "鍛冶師「自分の技術はもっと色んな人に伝えたいから、旅に出るよ」";
-            else if (mType === 'building') retireMsg = "建築士「このあたりの木の選定が終わったから、次の森へ行くよ」";
-            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, retireMsg, 'retire');
+            if (mType === 'explore') retireMsg = "「ごめんなさい、自然は甘くないから君を連れて行くわけにはいかないわ。……でも、キャンプに遊びに来るくらいならいつでも歓迎するわよ！」";
+            else if (mType === 'farming') retireMsg = "「ごめんね、君にはまだ土と対話する準備ができていないようだ。……でも、うちの野菜が食べたくなったらいつでもおいで。」";
+            else if (mType === 'fishing') retireMsg = "「いやぁ、お前さんには釣りの才能はないかもしれんな！ハッハッハ！……まぁ、釣りの話がしたくなったらいつでも遊びに来なよ。」";
+            else if (mType === 'cooking') retireMsg = "「ダメだな！君の料理にはソウルが足りない！弟子入りはお断りだ！……だが、腹が減ったらうちの飯を食いに来な！」";
+            else if (mType === 'smithing') retireMsg = "「……鉄が泣いている。お前には教えられん。……だが、火にあたりたければ、端に座っているくらいは許そう。」";
+            else if (mType === 'building') retireMsg = "「悪いが、君に設計図を引くセンスは感じられないな。……だが、建築に興味があるなら、現場を見学するくらいは構わないぞ。」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, retireMsg, 'banned');
         } else {
-            // ==========================================
-            // ★修正：師匠ごとの具体的なヒントメッセージを作成
-            // ==========================================
             let hintMsg = "";
-            if (mType === 'farming') hintMsg = "「まだまだだな。土を耕すための『活力』と、『農業』への関心を高めてきなさい。」";
-            else if (mType === 'cooking') hintMsg = "「レシピを理解する『賢さ』と、『料理』に対する熱意が足りないわね。出直してきな！」";
-            else if (mType === 'smithing') hintMsg = "「熱に耐える『活力』や『賢さ』、そして何より『鍛冶』への興味を見せてみろ。」";
-            else if (mType === 'explore') hintMsg = "「未知を踏破する『活力』と、『探検』したいという強い意思が足りないな。」";
-            else if (mType === 'fishing') hintMsg = "「魚との駆け引きに必要な『賢さ』や『活力』、そして『釣り』への執念が足りんぞ。」";
-            else if (mType === 'building') hintMsg = "「図面を読む『賢さ』と、『建築』への探求心が不可欠だ。勉強してきなさい。」";
+            if (mType === 'explore') hintMsg = "「まだまだね。私が指定した3つの言葉をもう一度しっかり覚えていらっしゃい。」";
+            else if (mType === 'farming') hintMsg = "「まだまだだね。私が指定した3つの言葉をもう一度しっかり覚えておいで。」";
+            else if (mType === 'fishing') hintMsg = "「全然ダメだぜ！俺が指定した3つの言葉をもう一度しっかり覚えてきな！」";
+            else if (mType === 'cooking') hintMsg = "「なっちゃいないな！私が指定した3つの言葉をもう一度しっかり覚えてこい！」";
+            else if (mType === 'smithing') hintMsg = "「……話にならん。俺が指定した3つの言葉をもう一度しっかり覚えてこい。」";
+            else if (mType === 'building') hintMsg = "「まだまだだな。私が指定した3つの言葉をもう一度しっかり覚えてきてくれ。」";
             
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, hintMsg, 'exam_fail');
         }
@@ -1670,29 +1758,22 @@ aiPet.assignApprenticeQuest = function() {};
 aiPet.checkExcommunication = function() {};
 
 // ==========================================
-// ★ 修正：空気を読むランダムエンカウント（鍛冶師パラドックス解消版）
+// ★ 修正：空気を読むランダムエンカウント
 // ==========================================
 aiPet.checkEncounter = function() {
     if (this.isHelper || window.isGamePaused) return;
     
-    // 新生児ガード（5秒間）
     if (this.age === 0 && (!this._birthGuardTimer || this._birthGuardTimer < 300)) {
         this._birthGuardTimer = (this._birthGuardTimer || 0) + 1;
         return; 
     }
 
     if (!this.apprentice || !this.apprentice.learnedWords || this.apprentice.learnedWords.length < 3) return;
-    
-    // 1. 現在弟子入り中なら他の師匠には会わない
-    // 2. 「今世」ですでにいずれかの免許皆伝となり、余生を過ごしているなら会わない
     if (this.apprentice.currentMaster || this.apprentice.isGraduated) return;
 
-    // ==========================================
-    // ★ 修正：睡眠・野宿中だけはスケジュールがあってもエンカウントを許可する！
-    // ==========================================
     if (this.schedule && this.schedule.length > 0) {
         if (!['camping', 'sleeping', 'rest'].includes(this.actionState)) {
-            return; // 睡眠・野宿以外の作業中なら邪魔しない
+            return; 
         }
     }
     if (['apprentice_training', 'inside', 'entering'].includes(this.actionState)) return;
@@ -1700,10 +1781,7 @@ aiPet.checkEncounter = function() {
     this.apprentice.encounterTimer = (this.apprentice.encounterTimer || 0) + 1;
     if (this.apprentice.encounterTimer < 200) return;
 
-    // --- 抽選フェーズ ---
     let candidates = [];
-    
-    // 個別の師匠ごとに「過去の世代含めて極めているか」を判定
     const isAlreadyMastered = (mType) => {
         if (this.apprentice.retired && this.apprentice.retired[mType] === true) return true;
         if (this.apprentice.retiredList && this.apprentice.retiredList.includes(mType)) return true;
@@ -1714,8 +1792,9 @@ aiPet.checkEncounter = function() {
     const getAttempts = (mType) => this.apprentice.attempts && this.apprentice.attempts[mType] ? this.apprentice.attempts[mType] : 0;
 
     if (['camping', 'sleeping', 'rest'].includes(this.actionState)) {
-        if (!isAlreadyMastered('smithing') && getAttempts('smithing') < 3) candidates.push('smithing');
-    } 
+        if (!this.apprentice.metMasters) this.apprentice.metMasters = [];
+        if (!this.apprentice.metMasters.includes('smithing')) candidates.push('smithing');
+    }
     else if (['idle', 'moving'].includes(this.actionState)) {
         let nearFlags = { explore: false, building: false, fishing: false, farming: false, cooking: false };
 
@@ -1736,12 +1815,14 @@ aiPet.checkEncounter = function() {
             }
         }
 
-        // 過去の世代でまだ皆伝していない（ランク10未満の）師匠だけが候補に入る
-        if (nearFlags.explore && !isAlreadyMastered('explore') && getAttempts('explore') < 3) candidates.push('explore');
-        if (nearFlags.building && !isAlreadyMastered('building') && getAttempts('building') < 3) candidates.push('building');
-        if (nearFlags.fishing && !isAlreadyMastered('fishing') && getAttempts('fishing') < 3) candidates.push('fishing');
-        if (nearFlags.farming && !isAlreadyMastered('farming') && getAttempts('farming') < 3) candidates.push('farming');
-        if (nearFlags.cooking && !isAlreadyMastered('cooking') && getAttempts('cooking') < 3) candidates.push('cooking');
+        if (!this.apprentice.metMasters) this.apprentice.metMasters = [];
+        const hasMet = (mType) => this.apprentice.metMasters.includes(mType);
+
+        if (nearFlags.explore && !hasMet('explore')) candidates.push('explore');
+        if (nearFlags.building && !hasMet('building')) candidates.push('building');
+        if (nearFlags.fishing && !hasMet('fishing')) candidates.push('fishing');
+        if (nearFlags.farming && !hasMet('farming')) candidates.push('farming');
+        if (nearFlags.cooking && !hasMet('cooking')) candidates.push('cooking');
     }
 
     if (candidates.length > 0) {
@@ -1752,12 +1833,12 @@ aiPet.checkEncounter = function() {
             this.message = "（誰かの気配がする...！）";
             this.messageTimer = 120;
             let encounterMsg = "";
-            if (metType === 'explore') encounterMsg = "「おや、こんな所で人に会うとは...」";
-            else if (metType === 'farming') encounterMsg = "「ほっほっ、土いじりに興味があるのかね？」";
-            else if (metType === 'fishing') encounterMsg = "「坊主、魚の釣り方を教えてやろうか？」";
-            else if (metType === 'cooking') encounterMsg = "「いらっしゃい！私の料理の腕前、見ていく？」";
-            else if (metType === 'smithing') encounterMsg = "「野宿か。火の扱いなら私が教えてやろう」";
-            else if (metType === 'building') encounterMsg = "「良い木材だ...ん？君も建築に興味があるのか？」";
+            if (metType === 'explore') encounterMsg = "「あら、こんな所で人に会うなんてね...」";
+            else if (metType === 'farming') encounterMsg = "「やあ、土いじりに興味があるのかい？」";
+            else if (metType === 'fishing') encounterMsg = "「坊主、魚の釣り方を教えてやろうか？ハッハッハ！」";
+            else if (metType === 'cooking') encounterMsg = "「いらっしゃい！私の料理の腕前、見ていくか！」";
+            else if (metType === 'smithing') encounterMsg = "「……野宿か。火の扱いなら教えよう。」";
+            else if (metType === 'building') encounterMsg = "「良い木材だな...ん？君も建築に興味があるのか？」";
             
             setTimeout(() => { if (typeof window.openEncounterUI === 'function') window.openEncounterUI(metType, encounterMsg, 'encounter_intro'); }, 1000);
             if (metType === 'cooking') { for (let k in assets) { if (assets[k].type === 'restaurant' && assets[k].isMobile) { delete assets[k]; break; } } }
@@ -1768,8 +1849,8 @@ aiPet.checkEncounter = function() {
 aiPet.processApprenticeQuestFinish = function(task) {
     if (task.aborted) {
         this.apprentice.failCount = (this.apprentice.failCount || 0) + 1;
-        this.apprentice.pendingReport = 'fail'; // 失敗報告待ち状態にする
-        this.message = "課題を途中でやめた...報告に行かなきゃ..."; // 修正
+        this.apprentice.pendingReport = 'fail'; 
+        this.message = "課題を途中でやめた...報告に行かなきゃ..."; 
         return;
     }
 
@@ -1780,14 +1861,14 @@ aiPet.processApprenticeQuestFinish = function(task) {
 
     if (Math.random() < successRate) {
         this.apprentice.successCount = (this.apprentice.successCount || 0) + 1;
-        this.apprentice.pendingReport = 'success'; // 成功報告待ち状態
-        this.message = "課題達成！報告に行こう！"; // 修正
+        this.apprentice.pendingReport = 'success'; 
+        this.message = "課題達成！報告に行こう！"; 
     } else {
         this.apprentice.failCount = (this.apprentice.failCount || 0) + 1;
-        this.apprentice.pendingReport = 'fail'; // 失敗報告待ち状態
-        this.message = "失敗しちゃった...報告に行かなきゃ..."; // 修正
+        this.apprentice.pendingReport = 'fail'; 
+        this.message = "失敗しちゃった...報告に行かなきゃ..."; 
     }
-    this.apprentice.inventory = []; // 支給品はここで回収
+    this.apprentice.inventory = []; 
     this.messageTimer = 180;
 };
 
@@ -1806,6 +1887,19 @@ aiPet.update = function() {
     
     if (!this.apprentice) this.apprentice = { learnedWords: [], rank: {}, attempts: {} };
     if (!this.apprentice.learnedWords) this.apprentice.learnedWords = [];
+
+    // ★互換性パッチ：activeQuest(単一)を activeQuests(配列) に変換
+    if (!this.apprentice.activeQuests) {
+        this.apprentice.activeQuests = [];
+        if (this.apprentice.activeQuest) {
+            let oldQ = this.apprentice.activeQuest;
+            oldQ.masterType = oldQ.masterType || this.apprentice.currentMaster;
+            oldQ.qVal = this.apprentice.qVal || 0;
+            this.apprentice.activeQuests.push(oldQ);
+            delete this.apprentice.activeQuest;
+            delete this.apprentice.qVal;
+        }
+    }
     
     if (this.apprentice.learnedWords.length === 0 && !this._tutorialDone && currentMode === 'play') {
         this._tutorialDone = true;
@@ -1838,7 +1932,6 @@ aiPet.update = function() {
             if (this.age === 20 && typeof this.checkAndTriggerAdulthood === 'function') this.checkAndTriggerAdulthood();
         }
     } else {
-        // ★修正: 0歳の時にタイマーを強制リセットしてしまうバグの行を削除
         if (this.lifeAgeTimer === undefined) this.lifeAgeTimer = 0;
         this.lifeAgeTimer++;
         if (this.lifeAgeTimer >= 86400) {
@@ -2062,7 +2155,6 @@ aiPet.update = function() {
             let task = this.schedule[0]; 
             const eff = getActionEfficiency(task.type).rate;
             
-            // ★完全修正：特性（消費率）をここで取得し、0の場合は絶対に1.0に上書きさせない！
             const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
             const consumeRate = tData.consumption !== undefined ? tData.consumption : 1.0; 
             const bIntel = tData.statBonus?.intel || 1.0;
@@ -2070,7 +2162,8 @@ aiPet.update = function() {
 
             if (!task._started) {
                 const instantTasks = ['visit_master', 'apprentice_exam', 'master_quest'];
-                if (instantTasks.includes(task.type)) { task.duration = 1; } 
+                // ★修正: apprentice_exam は上で時間を伸ばしたのでここでは初期化しない
+                if (instantTasks.includes(task.type) && task.type !== 'apprentice_exam') { task.duration = 1; } 
                 else if (!task.duration || task.duration <= 0) { task.duration = 60; }
                 task.maxDuration = task.duration;
                 
@@ -2079,7 +2172,6 @@ aiPet.update = function() {
                     let targets = Object.values(assets).filter(a => a.type === 'nature' || a.type === 'building' || a.type === 'skull' || a.type === 'crystal');
                     let isDungeon = (a) => a.type === 'skull' || a.type === 'crystal' || (a.name && (a.name.includes('スカル') || a.name.includes('クリスタル') || a.name.includes('迷宮') || a.name.includes('ダンジョン')));
                     
-                    // ★追加: 冒険家の免許皆伝(ランク10)がないとダンジョンを候補から除外する！
                     let isMasterExplorer = (this.apprentice && this.apprentice.rank && this.apprentice.rank['explore'] >= 10);
                     
                     let dungeons = isMasterExplorer ? targets.filter(isDungeon) : [];
@@ -2124,7 +2216,6 @@ aiPet.update = function() {
 
             if (isActing) {
                 const fastTasks = ['cook', 'smith', 'shop_work', 'shop_research', 'auto_trade']; 
-                // ★修正：探検（explore）を例外扱いから外し、他の筋トレ等と同じ「時間をかけるタスク（SlowTask）」にする！
                 const isSlowTask = !fastTasks.includes(task.type);
 
                 if (isSlowTask && !window.isFastForwardLife && !isOneMinutePassed) {
@@ -2135,7 +2226,6 @@ aiPet.update = function() {
                         this.visualAction = 'fish'; this.actionState = 'fishing';
                         if (typeof this.processFishingFrame === 'function') this.processFishingFrame();
                     }
-                    // ★追加：探検中も毎フレームアニメーション状態を維持する（時間が経過するのを待つ）
                     else if (task.type === 'explore') {
                         if (this.actionState === 'inside' || this.isIndoors) { 
                             this.visualAction = 'move'; 
@@ -2143,8 +2233,21 @@ aiPet.update = function() {
                             this.actionState = 'inside'; this.isIndoors = true; 
                         }
                     }
+                    else if (task.type === 'apprentice_exam') {
+                        this.actionState = 'inside'; this.isIndoors = true; this.visualAction = 'study';
+                        task.duration--; // ★試験のプログレスバーを確実に進める
+                        if (typeof window.updateExamUI === 'function') window.updateExamUI(task);
+                    }
+                    
+                    // ★追加：バイト中のセリフを固定
+                    if (task.isBaito && task.baitoActionMsg) {
+                        if (this.message !== task.baitoActionMsg && !window.isCatchingUp) { 
+                            this.message = task.baitoActionMsg; 
+                            this.messageTimer = 120; 
+                        }
+                    }
                 } else {
-                    if (task.type !== 'explore') {
+                    if (task.type !== 'explore' && task.type !== 'apprentice_exam') {
                         task.duration--;
                         if (this.activeMonuments) {
                             if (this.activeMonuments.some(m => m.stat === 'power') && task.type === 'train' && task.duration > 1) task.duration = 1;
@@ -2264,12 +2367,61 @@ aiPet.update = function() {
                             else if (task.type === 'master_quest') this.processApprenticeQuestFinish?.(task);
                             else if (task.type === 'apprentice_exam') this.processApprenticeExamFinish?.(task);
                         }
+                        
+                        // ==========================================
+                        // ★ バイト完了時（報酬はここでは与えず、進捗だけ進める！）
+                        // ==========================================
+                        if (task.isBaito && this.apprentice && this.apprentice.activeQuests) {
+                            this.apprentice.activeQuests.forEach(q => {
+                                // ① バイトクエストの進捗
+                                if (q.isBaitoQuest && q.baitoWord === task.baitoWord) {
+                                    q.qVal = (q.qVal || 0) + 1;
+                                }
+                                // ② ★追加：建築士の本業課題「はじめての製図」も、書き写しで進むようにする！
+                                if (!q.isBaitoQuest && task.baitoWord === '書き写し') {
+                                    if (q.desc.includes('製図') || q.desc.includes('書き写し') || q.name.includes('製図')) {
+                                        q.qVal = (q.qVal || 0) + 1;
+                                    }
+                                }
+                            });
+                            this.message = "ふぅ、手伝い完了！";
+                            this.messageTimer = 120;
+                            if (!window.isCatchingUp) window.updateQuestHUD?.();
+                        }
+
+                        // ★配列内の全クエストをチェック
                         const taskToKeyword = { 'study':'勉強','train':'筋トレ','sleep':'睡眠','rest':'休息','eat':'食事','cook':'料理','smith':'鍛冶','build':'建築','fish':'釣り','explore':'探検' };
                         const keyword = taskToKeyword[task.type];
-                        if (keyword && this.apprentice?.activeQuest?.desc.includes(keyword)) { this.apprentice.qVal = (this.apprentice.qVal || 0) + 1; if(!window.isCatchingUp) window.updateQuestHUD?.(); }
+                        if (keyword && this.apprentice && this.apprentice.activeQuests) {
+                            this.apprentice.activeQuests.forEach(q => {
+                                // ★修正：ステータス目標の数値が壊れないよう、「〇〇回行おう」という条件の時だけカウントを進める！
+                                if (q.desc.includes(keyword) && q.desc.includes('回行おう')) {
+                                    q.qVal = (q.qVal || 0) + 1;
+                                }
+                            });
+                            if(!window.isCatchingUp) window.updateQuestHUD?.();
+                        }
                         if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest(task.type);
+                        
+                        if (this.apprentice && this.apprentice.isExcommunicated) {
+                            if (['study', 'train', 'run'].includes(task.type)) {
+                                this.apprentice.exileTrainingCount = (this.apprentice.exileTrainingCount || 0) + 1;
+                                if (this.apprentice.exileTrainingCount >= 10) {
+                                    this.apprentice.isExcommunicated = false;
+                                    this.apprentice.exileTrainingCount = 0;
+                                    if (this.apprentice.excommunicatedFrom) {
+                                        this.apprentice.attempts[this.apprentice.excommunicatedFrom] = 3; 
+                                    }
+                                    this.message = "心を入れ替えて頑張った！悪い噂も消えたかな...！";
+                                    this.messageTimer = 180;
+                                    if (typeof addFloatingText === 'function' && !window.isCatchingUp) {
+                                        addFloatingText(this.x, this.y - 60, "✨ 破門状態 解除！ ✨", "#4CAF50");
+                                    }
+                                }
+                            }
+                        }
                     }
-                    this.schedule.shift(); 
+                    this.schedule.shift();
                     if (!window.isCatchingUp) window.updateScheduleList?.(); 
                     this.visualAction = null;
                     
@@ -2280,32 +2432,25 @@ aiPet.update = function() {
                 }
             }
 
-            // ★完全修正：タスク実行中（動いている最中）の消費。消費率(consumeRate)が0より大きい場合のみ減る！
             if (currentMode === 'play' && !this.godMode && consumeRate > 0) {
                 if (!['sleep', 'rest', 'eat', 'life_slowlife'].includes(task.type)) {
                     let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
                     this.energy -= 0.03 * consumeRate * drainMult;
                     this.hunger -= 0.03 * consumeRate * drainMult;
-                    // ★追加：労働（タスク実行）による機嫌の低下（少しずつ）
                     this.stats.mood -= 0.02 * consumeRate;
                 } else if (['sleep', 'rest', 'life_slowlife'].includes(task.type)) {
-                    // ★追加：休息による機嫌の回復
                     this.stats.mood += 0.05 * consumeRate;
                 }
             }
-
         } else {
             const activeStates = ['camping', 'studying', 'training', 'sleeping', 'eating', 'fishing', 'smithing', 'building', 'apprentice_training'];
             if (activeStates.includes(this.actionState)) { this.actionState = 'idle'; this.visualAction = null; }
             
-            // ★完全修正：暇なとき（立ち止まっている時）の消費も、消費率(consumeRate)を掛ける！
             const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
             const idleConsumeRate = tData.consumption !== undefined ? tData.consumption : 1.0;
             if (currentMode === 'play' && !this.godMode && idleConsumeRate > 0) { 
                 this.energy -= 0.02 * idleConsumeRate; 
                 this.hunger -= 0.02 * idleConsumeRate; 
-                
-                // ★追加：放置中の機嫌の自然回復（自由気ままな時間）
                 this.stats.mood += 0.01 * idleConsumeRate;
             }
         }
@@ -2313,22 +2458,19 @@ aiPet.update = function() {
     
     this.energy = Math.max(0, Math.min(100, this.energy)); this.hunger = Math.max(0, Math.min(100, this.hunger));
     
-    // ★追加：空腹・疲労による強烈なストレス（機嫌の減少）と闇落ちカウンターの増加
     if (currentMode === 'play' && !this.godMode) {
-        // ★修正：睡眠中・食事中・休憩中など「回復行動をしている最中」はペナルティを免除する！
         let isHealing = ['sleep', 'sleeping', 'rest', 'eat', 'eating', 'life_slowlife'].includes(this.actionState) || 
                         (this.currentTask && ['sleep', 'rest', 'eat', 'life_slowlife'].includes(this.currentTask.type));
                         
         if ((this.energy <= 20 || this.hunger <= 20) && !isHealing) {
-            this.stats.mood -= 0.05; // ピンチ時はどんどん不機嫌になる
+            this.stats.mood -= 0.05;
         }
         this.stats.mood = Math.max(0, Math.min(100, this.stats.mood));
         
-        // 機嫌が0の時、闇落ちカウンターが蓄積していく
         if (this.stats.mood <= 0) {
             this.darknessCounter = (this.darknessCounter || 0) + 0.1;
         } else {
-            this.darknessCounter = Math.max(0, (this.darknessCounter || 0) - 0.05); // 機嫌が良いと少しずつ戻る
+            this.darknessCounter = Math.max(0, (this.darknessCounter || 0) - 0.05);
         }
     }
 
@@ -2477,10 +2619,12 @@ aiPet.update = function() {
 aiPet.executeEnterAction = function() {
     const currentTask = (this.schedule && this.schedule.length > 0) ? this.schedule[0] : null;
 
-    // ★修正: 城や農場に到着した瞬間にフリーズしないよう、報告・試験タスクを最優先でキャッチ！
+    // ★修正: 師匠の拠点に到着した時、そのまま自動で更新ループの完了処理に渡す
     if (currentTask && (currentTask.type === 'visit_master' || currentTask.type === 'apprentice_exam')) {
         this.actionState = 'inside'; this.indoorTarget = this.interactionTarget; this.isIndoors = true; this.exploreTimer = 0;
-        this.message = "師匠、来ました！"; this.messageTimer = 120; return; 
+        this.message = "師匠のところに着いたよ！"; this.messageTimer = 120; 
+        currentTask.duration = 0; // すぐに完了扱いにしてAI更新ループへ
+        return; 
     }
 
     if (this.interactionTarget && this.interactionTarget.type === 'farm') {
@@ -3838,6 +3982,11 @@ window.findFacilityForTask = function(taskType, masterType = null) {
             return assets[campId];
         } else if (masterType === 'building') {
             if (typeof assets !== 'undefined') assets[campId] = { type: 'palms', name: '建築士のテント', dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6 };
+            if (typeof saveGameData === 'function') saveGameData();
+            return assets[campId];
+        } else if (masterType === 'cooking') {
+            // ★追加：料理人の場合は移動レストランとして復活させる
+            if (typeof assets !== 'undefined') assets[campId] = { type: 'restaurant', name: '移動レストラン', dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMobile: true };
             if (typeof saveGameData === 'function') saveGameData();
             return assets[campId];
         } else {

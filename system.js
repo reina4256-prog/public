@@ -172,6 +172,9 @@ function generateNatureMap() {
     // ★追加: 農家との出会い用に、メインエリアに畑を1つ確定配置
     spawnObjects({ farm: 1 }, 'main');
 
+    // ★追加: 料理人との出会い用に、メインエリアにレストランを1つ確定配置
+    spawnObjects({ restaurant: 1 }, 'main');
+
     // レアエリア（川を渡った先）: 洞窟、クリスタル、少数の森・山を配置
     spawnObjects({ skull: 1, crystal: 2, mountain: 1, palms: 1 }, 'rare');
 

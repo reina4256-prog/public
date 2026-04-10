@@ -191,97 +191,147 @@ window.openStatusMenu = function() {
     if (rightPanel) {
         let html = "";
         const app = aiPet.apprentice || {};
-        
-        // 1. 現在の専門家・課題
-        html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #4CAF50; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
-        html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">🎓 現在の専門家と課題</div>`;
-        
+
+        const metMasters = app.metMasters || [];
+        const attempts = app.attempts || {};
+        let totalAttempts = 0;
+        for (let k in attempts) totalAttempts += attempts[k];
+
         let masteredCount = 0;
         const jobKeys = ['explore', 'farming', 'fishing', 'cooking', 'smithing', 'building'];
         jobKeys.forEach(j => { if (app.rank && app.rank[j] >= 10) masteredCount++; });
 
-        // ★大改修：判定の順番を整理（全皆伝 → 現在進行中の師匠がいるか → 破門 → なし）
-        if (masteredCount === 6) {
-            html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px;">👑 全知全能の達人 👑<br><span style="font-size:11px; color:#ccc; font-weight:normal;">この世界に存在するすべての道を極めました！<br>悠々自適な余生を満喫しましょう。</span></div>`;
-        } else if (app.currentMaster) {
-            const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
-            const mName = masterNames[app.currentMaster] || "不明";
-            const rank = app.rank[app.currentMaster] || 1;
+        let phase = 1;
+        if (app.currentMaster || masteredCount > 0 || (app.retired && Object.keys(app.retired).length > 0) || app.isExcommunicated) {
+            phase = 4; 
+        } else if (totalAttempts > 0) {
+            phase = 3; 
+        } else if (metMasters.length > 0) {
+            phase = 2; 
+        }
+
+        html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #4CAF50; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">`;
+        
+        if (phase === 1) {
+            html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">❓ まだ見ぬ出会い</div>`;
+            html += `<div style="font-size: 12px; color: #888; text-align: center; padding: 10px;">いろいろな場所を歩き回ってみましょう。<br>新しい出会いが待っているかもしれません。</div>`;
+        } else if (phase === 2) {
+            html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">🤝 新たな出会い</div>`;
+            html += `<div style="font-size: 12px; color: #888; text-align: center; padding: 10px;">出会った人たちの元へ遊びに行くことができます。<br>チャットで「（名前）のところへ」と入力して会いに行ってみましょう！</div>`;
+        } else if (phase === 3) {
+            html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">🎓 専門家への入門</div>`;
+            html += `<div style="font-size: 12px; color: #888; text-align: center; padding: 10px;">出会った専門家の元へ通うことができます。<br>チャットで「〇〇のところへ」と入力し、弟子入り試験に挑戦しましょう！</div>`;
+        } else {
+            html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">🎓 現在の専門家と課題</div>`;
             
-            html += `<div style="font-size: 13px; color: #fff; margin-bottom: 8px;">専門家: <span style="color:#FFC107; font-weight:bold;">${mName} (ランク ${rank})</span></div>`;
-            
-            if (app.isGraduated) {
-                // 現在の師匠で卒業している場合のみ皆伝メッセージ
-                html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">修行を終え、立派な達人になりました！<br>（フィールドを歩けば、まだ見ぬ他の師匠に出会えるかもしれません）</span></div>`;
-            } else if (app.activeQuest) {
-                let progressStr = "";
-                const desc = app.activeQuest.desc;
+            if (masteredCount === 6) {
+                html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px;">👑 全知全能の達人 👑<br><span style="font-size:11px; color:#ccc; font-weight:normal;">この世界に存在するすべての道を極めました！<br>悠々自適な余生を満喫しましょう。</span></div>`;
+            } else if (app.currentMaster) {
+                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+                const mName = masterNames[app.currentMaster] || "不明";
+                const rank = app.rank[app.currentMaster] || 1;
                 
-                // ★HUDと同じように、能力値クエストか、アイテムクエストか、回数クエストかを判定
-                let isStatQuest = false;
-                let statVal = 0;
-                if (desc.includes("賢さ") || desc.includes("知性")) { isStatQuest = true; statVal = aiPet.stats.intel; }
-                else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = aiPet.stats.power; }
-                else if (desc.includes("美しさ")) { isStatQuest = true; statVal = aiPet.stats.beauty; }
-                else if (desc.includes("素早さ")) { isStatQuest = true; statVal = aiPet.stats.speed; }
-
-                if (isStatQuest) {
-                    let currentVal = window.formatLargeNumber(statVal);
-                    let targetVal = window.formatLargeNumber(app.qVal);
-                    progressStr = `<span style="color:#FF9800;">現在の能力: ${currentVal} / 目標: ${targetVal}</span>`;
+                html += `<div style="font-size: 13px; color: #fff; margin-bottom: 8px;">専門家: <span style="color:#FFC107; font-weight:bold;">${mName} (ランク ${rank})</span></div>`;
+                
+                if (app.isGraduated) {
+                    html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">修行を終え、立派な達人になりました！<br>（フィールドを歩けば、まだ見ぬ他の師匠に出会えるかもしれません）</span></div>`;
                 } else {
-                    let itemProgress = "";
-                    let isItemQuest = true;
-                    const inv = aiPet.inventory || [];
-                    
-                    if (desc.includes("鉄くず")) {
-                        itemProgress = `鉄くず: ${inv.filter(i => i === 'scrap_metal').length} / 3`;
-                    } else if (desc.includes("芸術品")) {
-                        itemProgress = `芸術品: ${inv.filter(i => typeof i === 'string' && i.includes('_art_')).length} / 3`;
-                    } else if (desc.includes("ヌシ")) {
-                        itemProgress = `ヌシ: ${inv.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length} / 1`;
-                    } else if (desc.includes("魚")) {
-                        let max = desc.includes("3匹") ? 3 : 1;
-                        itemProgress = `魚: ${inv.filter(i => typeof i === 'string' && i.startsWith('fish_')).length} / ${max}`;
-                    } else if (desc.includes("質のいい")) {
-                        itemProgress = `質のいい野菜: ${inv.filter(i => typeof i === 'string' && i.startsWith('high_')).length} / 3`;
-                    } else if (desc.includes("普通の試作料理")) {
-                        itemProgress = `普通の試作料理: ${inv.filter(i => i === 'food_practice_normal').length} / 3`;
-                    } else if (desc.includes("究極の試作料理")) {
-                        itemProgress = `究極の試作料理: ${inv.filter(i => i === 'food_practice_great').length} / 3`;
-                    } else if (desc.includes("練習用の図面")) {
-                        itemProgress = `練習用の図面: ${inv.filter(i => i === 'build_practice_normal').length} / 3`;
-                    } else if (desc.includes("建築模型")) {
-                        itemProgress = `精巧な建築模型: ${inv.filter(i => i === 'build_practice_great').length} / 3`;
-                    } else {
-                        isItemQuest = false;
-                    }
+                    // ★完全修正：activeQuests から現在の師匠の課題（本業＆バイト）を抽出して描画！
+                    let currentMasterQuests = (app.activeQuests || []).filter(q => q.masterType === app.currentMaster && q.rank !== 0);
 
-                    if (isItemQuest) {
-                        progressStr = `<span style="color:#FF9800;">(進捗: ${itemProgress})</span>`;
+                    if (currentMasterQuests.length > 0) {
+                        html += `<div style="background: #222; padding: 8px; border-radius: 4px; border-left: 3px solid #FFC107;">`;
+                        
+                        currentMasterQuests.forEach((q, idx) => {
+                            let progressStr = "";
+                            const desc = q.desc;
+                            let isItemQuest = true;
+                            
+                            let isStatQuest = false;
+                            let statVal = 0;
+                            if (desc.includes("賢さ") || desc.includes("知性")) { isStatQuest = true; statVal = aiPet.stats.intel; }
+                            else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = aiPet.stats.power; }
+                            else if (desc.includes("美しさ")) { isStatQuest = true; statVal = aiPet.stats.beauty; }
+                            else if (desc.includes("素早さ")) { isStatQuest = true; statVal = aiPet.stats.speed; }
+
+                            if (isStatQuest) {
+                                // インフレ対応：上昇量で表示
+                                let match = desc.match(/[＋\+](\d+)/); 
+                                if (match) {
+                                    let reqIncrease = parseInt(match[1], 10);
+                                    let startVal = q.qVal - reqIncrease; 
+                                    let currentIncrease = Math.max(0, Math.floor(statVal - startVal));
+                                    if (currentIncrease > reqIncrease) currentIncrease = reqIncrease;
+                                    progressStr = `<span style="color:#FF9800;">(進捗: 上昇量 +${currentIncrease} / +${reqIncrease})</span>`;
+                                } else {
+                                    let currentVal = window.formatLargeNumber(statVal);
+                                    let targetVal = window.formatLargeNumber(q.qVal);
+                                    progressStr = `<span style="color:#FF9800;">(現在の能力: ${currentVal} / 目標: ${targetVal})</span>`;
+                                }
+                            } else {
+                                let itemProgress = "";
+                                const inv = aiPet.inventory || [];
+                                
+                                if (desc.includes("良質な木材")) itemProgress = `良質木: ${inv.filter(i => i === 'high_wood').length} / 3`;
+                                else if (desc.includes("木材")) itemProgress = `木材: ${inv.filter(i => i === 'wood').length} / ${desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)}`;
+                                else if (desc.includes("硬い石")) itemProgress = `硬い石: ${inv.filter(i => i === 'high_stone').length} / 3`;
+                                else if (desc.includes("石")) itemProgress = `石: ${inv.filter(i => i === 'stone').length} / ${desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)}`;
+                                else if (desc.includes("練習用装備")) itemProgress = `練習用: ${inv.filter(i => typeof i === 'string' && i.includes('_practice_')).length} / 3`;
+                                else if (desc.includes("鉄くず")) itemProgress = `鉄くず: ${inv.filter(i => i === 'scrap_metal').length} / 3`;
+                                else if (desc.includes("芸術品")) itemProgress = `芸術品: ${inv.filter(i => typeof i === 'string' && i.includes('_art_')).length} / 3`;
+                                else if (desc.includes("ヌシ")) itemProgress = `ヌシ: ${inv.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length} / 1`;
+                                else if (desc.includes("魚")) itemProgress = `魚: ${inv.filter(i => typeof i === 'string' && i.startsWith('fish_')).length} / ${desc.includes("3匹") ? 3 : 1}`;
+                                else if (desc.includes("質のいい")) itemProgress = `質のいい野菜: ${inv.filter(i => typeof i === 'string' && i.startsWith('high_')).length} / 3`;
+                                else if (desc.includes("普通の試作料理")) itemProgress = `普通の試作料理: ${inv.filter(i => i === 'food_practice_normal').length} / 3`;
+                                else if (desc.includes("究極の試作料理")) itemProgress = `究極の試作料理: ${inv.filter(i => i === 'food_practice_great').length} / 3`;
+                                else if (desc.includes("練習用の図面")) itemProgress = `練習用の図面: ${inv.filter(i => i === 'build_practice_normal').length} / 3`;
+                                else if (desc.includes("建築模型")) itemProgress = `精巧な建築模型: ${inv.filter(i => i === 'build_practice_great').length} / 3`;
+                                else isItemQuest = false;
+
+                                if (isItemQuest) progressStr = `<span style="color:#FF9800;">(進捗: ${itemProgress})</span>`;
+                            }
+
+                            if (!isStatQuest && !isItemQuest) {
+                                let reqCount = q.targetCount || "?";
+                                if (!q.isBaitoQuest) {
+                                    let match = desc.match(/(\d+)回/);
+                                    reqCount = match ? match[1] : "?";
+                                }
+                                progressStr = `<span style="color:#FF9800;">(進捗: ${Math.floor(q.qVal)} / ${reqCount} 回完了)</span>`;
+                            }
+
+                            let icon = q.isBaitoQuest ? "💰" : "📜";
+                            let isLast = idx === currentMasterQuests.length - 1;
+                            html += `
+                                <div style="margin-bottom: ${isLast ? '0' : '8px'}; padding-bottom: ${isLast ? '0' : '8px'}; border-bottom: ${isLast ? 'none' : '1px dashed rgba(255,255,255,0.2)'};">
+                                    <div style="font-weight:bold; color:#fff; margin-bottom: 3px;">${icon} ${q.name}</div>
+                                    <div style="font-size: 11px; color:#ccc; line-height: 1.4;">${q.desc} <br>${progressStr}</div>
+                                </div>
+                            `;
+                        });
+                        html += `</div>`;
                     } else {
-                        progressStr = `<span style="color:#FF9800;">(進捗: ${Math.floor(app.qVal)}回)</span>`;
+                        html += `<div style="font-size: 12px; color: #888; background: #222; padding: 8px; border-radius: 4px;">現在受けている課題はありません。<br>チャットで「${mName}のところへ」と入力して課題をもらいましょう。</div>`;
                     }
                 }
-
-                html += `<div style="font-size: 12px; color: #ccc; background: #222; padding: 8px; border-radius: 4px; border-left: 3px solid #FFC107;">
-                            <div style="font-weight:bold; color:#fff; margin-bottom: 3px;">📜 ${app.activeQuest.name}</div>
-                            <div style="font-size: 11px; line-height: 1.4;">${app.activeQuest.desc} <br>${progressStr}</div>
-                         </div>`;
+            } else if (app.isExcommunicated) {
+                let remain = 10 - (app.exileTrainingCount || 0);
+                html += `<div style="font-size: 13px; color: #ff5252; font-weight: bold; background: rgba(244,67,54,0.1); padding: 10px; border-radius: 4px;">現在、破門されています...<br><span style="font-size:11px; color:#aaa; font-weight:normal; line-height:1.5; display:inline-block; margin-top:5px;">勉強・筋トレ・ランニングのいずれかを行い、自分を見つめ直しましょう。<br>（破門解除まで あと <span style="font-size:14px; font-weight:bold; color:#ff5252;">${remain}</span> 回）</span></div>`;
             } else {
-                html += `<div style="font-size: 12px; color: #888; background: #222; padding: 8px; border-radius: 4px;">現在受けている課題はありません。<br>チャットで「${mName}のところへ」と入力して課題をもらいましょう。</div>`;
+                html += `<div style="font-size: 12px; color: #888; text-align: center; padding: 10px;">現在入門している専門家はいません。<br>チャットで専門家の元へ行き、弟子入りしましょう。</div>`;
             }
-        } else if (app.isExcommunicated) {
-            html += `<div style="font-size: 13px; color: #ff5252; font-weight: bold; background: rgba(244,67,54,0.1); padding: 10px; border-radius: 4px;">現在、破門されています...<br><span style="font-size:11px; color:#aaa; font-weight:normal;">基礎トレーニングを繰り返して自分を見つめ直しましょう。</span></div>`;
-        } else {
-            // ★修正：誰にも弟子入りしていない（currentMasterが無い）場合は確実にこのメッセージを出す
-            html += `<div style="font-size: 12px; color: #888; text-align: center; padding: 10px;">現在入門している専門家はいません。<br>フィールドを歩いて出会いを探しましょう。</div>`;
         }
+        
         html += `</div>`;
 
-        // 2. 職業ライセンス
+        // 2. 職業ライセンス（フェーズごとの動的表示）
         html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-top: 10px;">`;
-        html += `<div style="color: #E040FB; font-weight: bold; margin-bottom: 10px; font-size: 14px;">🌟 職業ライセンス (入門状況)</div>`;
+        
+        let titleText = "🌟 ？？？";
+        if (phase >= 3) titleText = "🌟 職業ライセンス (入門状況)";
+        else if (phase === 2) titleText = "🌟 交友関係";
+
+        html += `<div style="color: #E040FB; font-weight: bold; margin-bottom: 10px; font-size: 14px;">${titleText}</div>`;
         html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">`;
         
         const jobs = [
@@ -294,15 +344,51 @@ window.openStatusMenu = function() {
         ];
         
         jobs.forEach(j => {
-            const r = app.rank[j.id] || 0;
-            let rankText = r === 0 ? `<span style="color:#555;">未入門</span>` : (r >= 10 ? `<span style="color:#FFD700; font-weight:bold;">皆伝!</span>` : `<span style="color:#fff;">Lv.${r}</span>`);
-            let boxStyle = r >= 10 ? `border: 1px solid #FFD700; background: rgba(255,215,0,0.1);` : `border: 1px solid #444; background: #222;`;
+            let isMet = metMasters.includes(j.id);
+            const r = (app.rank && app.rank[j.id]) ? app.rank[j.id] : 0;
+            
+            let displayName = isMet ? j.name : "？？？";
+            let displayIcon = isMet ? j.icon : "❓";
+            let rankText = "---";
+            let boxStyle = `border: 1px solid #444; background: #222;`;
+
+            let isExcommunicated = (app.excommunicatedFrom === j.id);
+            // ★修正後（上書き）：retired（過去の師匠）を皆伝扱いから外す！
+            let isCurrentOrMastered = (app.currentMaster === j.id) || (r >= 10);
+            let isFailed = (!isExcommunicated && !isCurrentOrMastered && app.attempts && app.attempts[j.id] >= 3);
+
+            if (phase === 1) {
+                displayName = "？？？"; displayIcon = "❓"; rankText = "---";
+            } else if (phase === 2) {
+                if (isMet) rankText = `<span style="color:#aaa;">顔見知り</span>`;
+            } else if (phase >= 3) {
+                if (isExcommunicated) {
+                    rankText = `<div style="color:#ff5252; font-weight:bold; font-size:11px; line-height:1.2; text-align:right;">破門<br>(再入門不可)</div>`;
+                    boxStyle = `border: 1px solid #f44336; background: rgba(244,67,54,0.1);`;
+                    displayName = j.name; displayIcon = j.icon;
+                } else if (isFailed) {
+                    rankText = `<div style="color:#ff5252; font-weight:bold; font-size:11px; line-height:1.2; text-align:right;">見放された<br>(入門不可)</div>`;
+                    boxStyle = `border: 1px solid #f44336; background: rgba(244,67,54,0.1);`;
+                    displayName = j.name; displayIcon = j.icon;
+                } else if (isMet || r > 0) {
+                    if (r === 0) {
+                        rankText = `<span style="color:#555;">未入門</span>`;
+                    } else if (r >= 10) {
+                        rankText = `<span style="color:#FFD700; font-weight:bold;">皆伝!</span>`;
+                        boxStyle = `border: 1px solid #FFD700; background: rgba(255,215,0,0.1);`;
+                    } else {
+                        rankText = `<span style="color:#fff;">Lv.${r}</span>`;
+                    }
+                    displayName = j.name; displayIcon = j.icon;
+                }
+            }
+
             if (app.currentMaster === j.id) boxStyle = `border: 1px solid #4CAF50; background: rgba(76,175,80,0.1);`;
             
             html += `
             <div style="padding: 8px 10px; border-radius: 6px; ${boxStyle} display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 12px; color: #ddd;">${j.icon} ${j.name}</span>
-                <span style="font-size: 13px;">${rankText}</span>
+                <span style="font-size: 12px; color: #ddd; white-space: nowrap; flex-shrink: 0;">${displayIcon} ${displayName}</span>
+                <span style="font-size: 13px; text-align: right;">${rankText}</span>
             </div>
             `;
         });
@@ -705,7 +791,7 @@ function updateStatUI() {
 }
 
 // ==========================================
-// ★ コマンドHUD更新（★修正：即送信されるボタン！）
+// ★ コマンドHUD更新（再描画のチラつき＆スクロールリセット完全防止版！）
 // ==========================================
 window.updateCommandHUD = function() {
     const hud = document.getElementById('commandHUD');
@@ -719,7 +805,18 @@ window.updateCommandHUD = function() {
     }
 
     const knows = (word) => aiPet.apprentice.learnedWords && aiPet.apprentice.learnedWords.includes(word);
-    
+    let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
+
+    // ★超重要パッチ1：表示状態を文字列化して比較し、変化がないなら一切再描画しない（点滅とガタつきを完全防止）
+    const stateStr = JSON.stringify(aiPet.apprentice.learnedWords) + "_" + metMasters.join(',') + "_" + (aiPet.gold < 0 ? aiPet.debtTimer : 0);
+    if (hud.dataset.state === stateStr) {
+        return; // データに変化がなければ再描画をストップし、操作を邪魔しない
+    }
+    hud.dataset.state = stateStr;
+
+    // ★超重要パッチ2：再描画される前に現在のスクロール位置を記憶する
+    const currentScrollTop = hud.scrollTop;
+
     const categories = {
         '🏠 生活・回復': [], '💪 育成・訓練': [], '🎓 依頼・課題': [], '⚔️ 冒険・作業': [], '🏪 施設・その他': [], '🗣️ 自由な言葉': []
     };
@@ -728,7 +825,6 @@ window.updateCommandHUD = function() {
     if (knows("食事")) categories['🏠 生活・回復'].push({ label: "食事", base: "食事" });
     if (knows("勉強")) categories['💪 育成・訓練'].push({ label: "勉強", base: "勉強" });
     if (knows("筋トレ")) categories['💪 育成・訓練'].push({ label: "筋トレ", base: "筋トレ" });
-    // ★追加: ランニングを育成・訓練カテゴリへ
     if (knows("ランニング")) categories['💪 育成・訓練'].push({ label: "ランニング", base: "ランニング" });
     if (knows("探検")) categories['⚔️ 冒険・作業'].push({ label: "探検", base: "探検" });
     if (knows("ニンジン")) categories['⚔️ 冒険・作業'].push({ label: "ニンジン育てて", base: "ニンジン" });
@@ -742,20 +838,32 @@ window.updateCommandHUD = function() {
     if (knows("建築")) categories['⚔️ 冒険・作業'].push({ label: "建築", base: "建築" });
     
     const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+
     for (let key in masterNames) {
-        if (knows(masterNames[key])) categories['🎓 依頼・課題'].push({ label: `${masterNames[key]}のところへ`, base: masterNames[key] });
+        if (knows(masterNames[key]) && metMasters.includes(key)) {
+            categories['🎓 依頼・課題'].push({ label: `${masterNames[key]}のところへ`, base: masterNames[key] });
+        }
     }
-    if (knows("バイト")) categories['🎓 依頼・課題'].push({ label: "バイト", base: "バイト" });
+
+    if (knows("書き写し") && metMasters.includes('building')) categories['🎓 依頼・課題'].push({ label: "書き写し", base: "書き写し" });
+    if (knows("ふいご") && metMasters.includes('smithing')) categories['🎓 依頼・課題'].push({ label: "ふいご", base: "ふいご" });
+    if (knows("石拾い") && metMasters.includes('farming')) categories['🎓 依頼・課題'].push({ label: "石拾い", base: "石拾い" });
+    if (knows("皿洗い") && metMasters.includes('cooking')) categories['🎓 依頼・課題'].push({ label: "皿洗い", base: "皿洗い" });
+    if (knows("網の修理") && metMasters.includes('fishing')) categories['🎓 依頼・課題'].push({ label: "網の修理", base: "網の修理" });
+    if (knows("荷物運び") && metMasters.includes('explore')) categories['🎓 依頼・課題'].push({ label: "荷物運び", base: "荷物運び" });
 
     if (knows("買い物")) categories['🏪 施設・その他'].push({ label: "買い物", base: "買い物" }); 
     if (knows("城")) categories['🏪 施設・その他'].push({ label: "城に行く", base: "城" });
     if (knows("カジノ")) categories['🏪 施設・その他'].push({ label: "カジノ", base: "カジノ" });
 
     const systemWords = [
-        "睡眠", "食事", "勉強", "筋トレ", "ランニング", "探検", "料理", "鍛冶", "建築", // ★追加
+        "睡眠", "食事", "勉強", "筋トレ", "ランニング", "探検", "料理", "鍛冶", "建築", 
         "買い物", "城", "カジノ", "釣り", "ニンジン", "ピーマン", "トマト", "退治", "農業", 
-        "冒険家", "農家", "漁師", "料理人", "鍛冶師", "建築士", "バイト"
+        "バイト", "書き写し", "ふいご", "石拾い", "皿洗い", "網の修理", "荷物運び"
     ];
+    for (let key in masterNames) {
+        if (metMasters.includes(key)) systemWords.push(masterNames[key]);
+    }
     
     if (aiPet.apprentice.learnedWords) {
         aiPet.apprentice.learnedWords.forEach(word => {
@@ -779,7 +887,7 @@ window.updateCommandHUD = function() {
     for (let cat in categories) {
         if (categories[cat].length > 0) {
             html += `<div style="font-size: 11px; font-weight: bold; color: #888; margin-top: 8px; margin-bottom: 6px;">${cat}</div>`;
-            html += `<div style="display:flex; flex-wrap:wrap; gap:6px;">`;
+            html += `<div style="display:flex; flex-wrap:wrap; gap:6px; align-items: flex-start;">`; // ★ 折り返し時の挙動を安定させる
             categories[cat].forEach(c => {
                 totalCmds++;
                 let label = c.label;
@@ -788,8 +896,7 @@ window.updateCommandHUD = function() {
                 let textColor = c.color ? "#fff" : "#ddd";
                 let borderColor = c.color ? (c.color === '#9C27B0' ? '#7B1FA2' : '#b71c1c') : "#555";
                 
-                // ★修正：type="button" にして、onmousedown の瞬間に送信処理を確定させる！
-                html += `<button type="button" style="background: ${bgColor}; color: ${textColor}; border: 1px solid ${borderColor}; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.1s; box-shadow: 0 2px rgba(0,0,0,0.5);" 
+                html += `<button type="button" style="background: ${bgColor}; color: ${textColor}; border: 1px solid ${borderColor}; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.1s; box-shadow: 0 2px rgba(0,0,0,0.5); white-space: nowrap;" 
                         onmousedown="this.style.transform='translateY(2px)'; this.style.boxShadow='none'; document.getElementById('chatInput').value='${baseWord}'; window.sendChat();" 
                         onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px rgba(0,0,0,0.5)';">${label}</button>`;
             });
@@ -801,7 +908,14 @@ window.updateCommandHUD = function() {
         html += `<div style="text-align: center; padding: 20px; color: #666; font-size: 12px; background: rgba(0,0,0,0.2); border-radius: 8px; margin-top: 10px;">まだ言葉を知りません。<br>下のチャット欄から言葉を教えてみましょう！</div>`;
     }
 
-    if (hud.innerHTML !== html) hud.innerHTML = html;
+    // ★重要パッチ3：見切れ防止用の底上げスペーサー
+    html += `<div style="height: 60px; width: 100%; pointer-events: none; flex-shrink: 0;"></div>`;
+
+    // 新しいHTMLを適用
+    hud.innerHTML = html;
+    
+    // ★重要パッチ4：HTMLを再構築した直後に、記憶しておいたスクロール位置を復元する
+    hud.scrollTop = currentScrollTop;
     
     if (debtContainer) {
         if (aiPet.gold < 0) {
@@ -816,56 +930,67 @@ window.updateCommandHUD = function() {
 };
 
 // ==========================================
-// ★ チャット履歴管理 ＆ 常時フォーカスシステム（ボタンクリック後対応版）
+// ★ チャット履歴管理 ＆ 常時フォーカスシステム（最強・除外エリア対応版）
 // ==========================================
 window.chatHistory = JSON.parse(localStorage.getItem('ai_pet_chat_history')) || [];
 window.chatHistoryIndex = -1;
 
-document.addEventListener('DOMContentLoaded', () => {
+(function() {
     const input = document.getElementById('chatInput');
-    if (input) {
-        // 1. 履歴の上下キー呼び出し
-        input.addEventListener('keydown', function(e) {
-            if (window.chatHistory.length === 0) return;
-            
-            if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                if (window.chatHistoryIndex < window.chatHistory.length - 1) {
-                    window.chatHistoryIndex++;
-                    input.value = window.chatHistory[window.chatHistory.length - 1 - window.chatHistoryIndex];
-                }
-            } else if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                if (window.chatHistoryIndex > 0) {
-                    window.chatHistoryIndex--;
-                    input.value = window.chatHistory[window.chatHistory.length - 1 - window.chatHistoryIndex];
-                } else if (window.chatHistoryIndex === 0) {
-                    window.chatHistoryIndex = -1;
-                    input.value = ""; // 一番下まで行ったら空にする
-                }
-            }
-        });
+    if (!input || input._isFocusHijacked) return;
+    
+    // 元の focus メソッドを保存して乗っ取る
+    const originalFocus = input.focus;
+    window._blockChatFocus = false;
 
-        // 2. ★修正：どんなボタンを押した後でも、入力欄以外ならチャット欄にフォーカスを戻す
-        document.addEventListener('click', function(e) {
-            // 文字を入力・選択する場所（テキストボックス等）をクリックした時は邪魔しない
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') {
+    input.focus = function(options) {
+        if (window._blockChatFocus) return; // UI操作中はフォーカス移動を強制ブロック
+        originalFocus.call(this, options);
+    };
+    input._isFocusHijacked = true;
+
+    input.addEventListener('keydown', function(e) {
+        if (window.chatHistory.length === 0) return;
+        if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            if (window.chatHistoryIndex < window.chatHistory.length - 1) {
+                window.chatHistoryIndex++;
+                input.value = window.chatHistory[window.chatHistory.length - 1 - window.chatHistoryIndex];
+            }
+        } else if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            if (window.chatHistoryIndex > 0) {
+                window.chatHistoryIndex--;
+                input.value = window.chatHistory[window.chatHistory.length - 1 - window.chatHistoryIndex];
+            } else if (window.chatHistoryIndex === 0) {
+                window.chatHistoryIndex = -1;
+                input.value = ""; 
+            }
+        }
+    });
+
+    // キャプチャフェーズでマウスクリックを監視し、UIを触った瞬間にロックをかける
+    document.addEventListener('mousedown', function(e) {
+        const noFocusSelectors = [
+            'INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 
+            '#questHUD', '#questListHUD', 
+            '#commandHUD', '#aiStatus', '.panel-view',
+            '#encounterOverlay', '#examOverlay', '#shop-management-ui', '#player-shop-ui', '#recipe-book-overlay',
+            '[id*="-modal"]', '[id*="-ui"]', '#in-game-tutorial'
+        ];
+
+        for (let selector of noFocusSelectors) {
+            if (e.target.closest(selector)) {
+                window._blockChatFocus = true;
+                clearTimeout(window._unblockTimer);
+                window._unblockTimer = setTimeout(() => { window._blockChatFocus = false; }, 500);
                 return;
             }
-            
-            // バトル画面や編成ダイアログが開いている時は邪魔しない
-            const tcgModal = document.getElementById('tcg-auto-build-modal');
-            if (tcgModal && tcgModal.style.display !== 'none') return;
-            const tcgBattle = document.getElementById('tcg-battle-ui');
-            if (tcgBattle && tcgBattle.style.display !== 'none') return;
-            
-            // ボタン本来のクリック動作が確実に実行されるよう「10ミリ秒」だけ待ってからフォーカスを戻す
-            setTimeout(() => {
-                input.focus();
-            }, 10);
-        });
-    }
-});
+        }
+
+        setTimeout(() => { input.focus(); }, 10);
+    }, true);
+})();
 
 // ==========================================
 // ★ チャット送信処理（超・賢い意図解釈システム＆誤爆修正版！）
@@ -876,7 +1001,6 @@ window.sendChat = function() {
     const rawText = input.value.trim();
     if (!rawText) return;
     
-    // ★修正：チャット履歴に同じ単語があれば古いものを消し、常に最新のものとして末尾に移動させる（重複防止）
     const existingIndex = window.chatHistory.indexOf(rawText);
     if (existingIndex !== -1) {
         window.chatHistory.splice(existingIndex, 1);
@@ -900,21 +1024,21 @@ window.sendChat = function() {
         "農家": ["農家", "農民"],
         "漁師": ["漁師", "釣り人"],
         "料理人": ["料理人", "シェフ", "コック"],
-        "鍛冶師": ["鍛冶師", "職人"], // ★修正：「鍛冶屋」をここから外して独立させる
+        "鍛冶師": ["鍛冶師", "職人"], 
         "建築士": ["建築士", "建築家"],
         "ニンジン": ["ニンジン", "にんじん", "人参"],
         "トマト": ["トマト", "とまと"],
         "ピーマン": ["ピーマン", "ぴーまん"],
         
         "勉強": ["学ぶ", "学んで", "まなぶ", "まなんで", "賢く", "かしこく", "知性", "知恵", "本", "勉強"],
-        "筋トレ": ["筋肉", "鍛え", "きたえ", "体力", "活力", "運動", "トレーニング", "筋トレ"], // 「走」を削除
-        "ランニング": ["走る", "走って", "はしって", "ダッシュ", "ランニング", "マラソン", "ジョギング"], // ★追加
+        "筋トレ": ["筋肉", "鍛え", "きたえ", "体力", "活力", "運動", "トレーニング", "筋トレ"], 
+        "ランニング": ["走る", "走って", "はしって", "ダッシュ", "ランニング", "マラソン", "ジョギング"], 
         "睡眠": ["寝る", "寝て", "ねて", "休", "やす", "休憩", "おやすみ", "眠", "睡眠"],
         "食事": ["食べる", "食べて", "たべて", "ご飯", "ごはん", "メシ", "めし", "腹", "はら", "食事"],
         "探検": ["冒険", "出かけ", "でかけ", "外", "散歩", "さんぽ", "探索", "探検"],
         "釣り": ["釣", "つり", "つって", "魚"],
         "料理": ["クッキング", "作って", "つくって", "料理"],
-        "鍛冶屋": ["鍛冶屋", "工房"], // ★追加：施設としての鍛冶屋
+        "鍛冶屋": ["鍛冶屋", "工房"], 
         "鍛冶": ["武器", "防具", "装備", "鉄", "打って", "鍛冶"],
         "建築": ["建てて", "たてて", "建築", "建てる", "大工"],
         "橋": ["橋", "はし", "ブリッジ"],
@@ -922,11 +1046,17 @@ window.sendChat = function() {
         "城": ["城", "お城", "キャッスル", "闘技場", "アリーナ"],
         "カジノ": ["カジノ", "スロット", "ギャンブル", "遊んで", "あそんで"],
         "ショップ": ["ショップ", "買い物", "かいもの", "お店", "店", "買いたい"],
-        "カード": ["カード", "カードダス", "カードショップ", "トレカ", "パック"], // ★追加
+        "カード": ["カード", "カードダス", "カードショップ", "トレカ", "パック"], 
         "レストラン": ["レストラン", "食堂", "ご飯屋"],
         "農業": ["畑", "耕", "たがや", "農業", "水やり", "種"],
         "退治": ["虫", "駆除", "倒し", "退治"],
-        "バイト": ["稼", "かせ", "仕事", "バイト"]
+        "バイト": ["稼", "かせ", "仕事", "バイト"],
+        "書き写し": ["書き写し", "かきうつし"],
+        "ふいご": ["ふいご", "フイゴ"],
+        "石拾い": ["石拾い", "いしひろい", "石拾", "石ひろい"],
+        "皿洗い": ["皿洗い", "さらあらい", "皿洗"],
+        "網の修理": ["網の修理", "あみのしゅうり", "網の修", "網修理", "あみ修理"],
+        "荷物運び": ["荷物運び", "にもつはこび", "荷物運"]
     };
 
     let interpretedWord = rawText;
@@ -980,22 +1110,41 @@ window.sendChat = function() {
     const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
-    // ==========================================
-    // ★大改修：ユニーク施設のスマート判定
-    // ==========================================
     const uniqueFacilities = {
         "城": { type: 'castle', bId: 'castle', name: 'お城', onEnter: () => { if(typeof window.openArenaReception === 'function') window.openArenaReception(); } },
         "カジノ": { type: 'casino', bId: 'casino', name: 'カジノ', onEnter: () => { if(typeof window.openCasino === 'function') window.openCasino(); } },
-        
-        // ★修正：チャットで指示されたら「行ってくる！」と喋って歩き出すだけにします
         "ショップ": { type: 'shop', bId: 'shop', name: 'ショップ', onEnter: null },
-        
-        // ★追加：カードショップの判定と、入店時のUI呼び出し
         "カード": { type: 'card_shop', bId: 'card_shop', name: 'カードショップ', onEnter: () => { if(typeof window.openCardShopUI === 'function') window.openCardShopUI(); } }
-
-        // "レストラン": { type: 'restaurant', bId: 'restaurant', name: 'レストラン', onEnter: null },
-        // "鍛冶屋": { type: 'smith', bId: 'smith', name: '鍛冶屋', onEnter: null }
     };
+
+    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building' };
+    
+    if (allMasterNames[interpretedWord] && knows(interpretedWord) && !aiPet.isHelper) {
+        let mType = allMasterNames[interpretedWord];
+        let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
+        
+        if (metMasters.includes(mType)) {
+            actionTriggered = true;
+            
+            if (aiPet.apprentice.currentMaster && aiPet.apprentice.currentMaster !== mType) {
+                let currentMasterName = Object.keys(allMasterNames).find(k => allMasterNames[k] === aiPet.apprentice.currentMaster) || "今の師匠";
+                aiPet.message = `今は${currentMasterName}の修行に集中しないと！\n（他の人のところへは行けないよ）`;
+                aiPet.messageTimer = 180;
+            } 
+            else if (!aiPet.apprentice.isExcommunicated) {
+                let facility = typeof findFacilityForTask === 'function' ? findFacilityForTask('visit_master', mType) : null;
+                if (facility) {
+                    aiPet.schedule = [{type: 'visit_master', masterType: mType, duration: 0}];
+                    aiPet.startBuildingInteraction(facility); 
+                    aiPet.message = "師匠のところへ行くよ！"; aiPet.messageTimer = 120;
+                } else { 
+                    aiPet.message = "どこにいるかわからない..."; aiPet.messageTimer = 120; 
+                }
+            } else { 
+                aiPet.message = "破門中だから会いに行けない..."; aiPet.messageTimer = 120; 
+            }
+        }
+    }
 
     if (Object.keys(uniqueFacilities).includes(interpretedWord)) {
         actionTriggered = true;
@@ -1019,18 +1168,16 @@ window.sendChat = function() {
                 aiPet.schedule = []; aiPet.startBuildingInteraction(existingTarget);
                 aiPet.message = `${facInfo.name}に行ってくる！`; aiPet.messageTimer = 120;
                 let checkInterval = setInterval(() => {
-                    // ★カジノ等で entering のままフリーズするバグの修正
                     if (aiPet.actionState === 'inside' || aiPet.actionState === 'entering' || aiPet.actionState === 'moving_to_enter') {
                         let sc = existingTarget.scale !== undefined ? existingTarget.scale : 0.5;
                         let tx = existingTarget.dx + (existingTarget.sw * sc) / 2;
                         let ty = existingTarget.dy + (existingTarget.sh * sc) / 2;
                         let dist = Math.abs(aiPet.x - tx) + Math.abs(aiPet.y - ty);
                         
-                        // 距離が近ければ（ドアの前にいれば）強制的に入室させる
                         if (dist < 40 || aiPet.actionState === 'inside') {
                             aiPet.actionState = 'inside';
                             aiPet.isIndoors = true;
-                            aiPet.indoorTarget = existingTarget; // nullを強制上書き
+                            aiPet.indoorTarget = existingTarget; 
                             if (facInfo.onEnter) facInfo.onEnter();
                             clearInterval(checkInterval);
                         }
@@ -1045,7 +1192,6 @@ window.sendChat = function() {
             aiPet.message = `${facInfo.name}は今作っている最中だよ！`; aiPet.messageTimer = 120;
         } else {
             if (knows("建築")) {
-                // ★修正：ランク10（皆伝）の判定を追加！
                 let isMaster = aiPet.apprentice && (
                     (aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || 
                     (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) ||
@@ -1055,7 +1201,6 @@ window.sendChat = function() {
                 if (!isMaster) {
                     aiPet.message = `まだ修行中の身だから、${facInfo.name}は作れないよ...\n(まずは建築士の免許皆伝を目指そう！)`; aiPet.messageTimer = 180;
                 } else {
-                    // ★追加：施設のフラグ条件（カジノ来店など）を満たしているかチェック
                     let bData = typeof buildingCatalog !== 'undefined' ? buildingCatalog[facInfo.bId] : null;
                     if (bData && bData.reqFlag && !aiPet[bData.reqFlag]) {
                         if (facInfo.bId === 'card_shop') {
@@ -1074,11 +1219,9 @@ window.sendChat = function() {
             }
         }
     }
-    // --- 汎用的な複数建築（橋、小屋）の処理 ---
     else if (["橋", "小屋"].includes(interpretedWord) && knows("建築")) {
         actionTriggered = true;
         let bId = interpretedWord === "橋" ? "bridge" : "hut";
-        // ★修正：ランク10（皆伝）の判定を追加！
         let isMaster = aiPet.apprentice && (
             (aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || 
             (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) ||
@@ -1092,10 +1235,8 @@ window.sendChat = function() {
             aiPet.message = `${interpretedWord}の建築を予定に追加したよ！`; aiPet.messageTimer = 150;
         }
     }
-    // 既存の「建築」コマンドは畑（farm）をデフォルトにする
     else if (interpretedWord === "建築" && knows("建築")) { 
         actionTriggered = true;
-        // ★修正：ランク10（皆伝）の判定を追加！
         let isMaster = aiPet.apprentice && (
             (aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || 
             (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) ||
@@ -1114,43 +1255,64 @@ window.sendChat = function() {
         }
     }
     else if (interpretedWord === "バイト" && knows("バイト")) {
-        actionTriggered = true;
-        if (aiPet.apprentice.currentMaster && !aiPet.apprentice.isExcommunicated) {
-            let facility = null;
-            if (typeof findFacilityForTask === 'function') facility = findFacilityForTask('visit_master', aiPet.apprentice.currentMaster);
-            if (facility) {
-                aiPet.schedule = []; aiPet.startBuildingInteraction(facility);
-                aiPet.message = "師匠のところでバイトしてくる！"; aiPet.messageTimer = 120;
-                let baitoInterval = setInterval(() => {
-                    if (aiPet.actionState === 'inside' && aiPet.indoorTarget === facility) {
-                        setTimeout(() => {
-                            aiPet.gold = (aiPet.gold || 0) + 50; 
-                            aiPet.energy = Math.max(0, (aiPet.energy || 100) - 10); aiPet.hunger = Math.max(0, (aiPet.hunger || 100) - 10);
-                            aiPet.message = "バイト完了！ 50G稼いだよ！"; aiPet.messageTimer = 180;
-                            if (typeof updateStatUI === 'function') updateStatUI();
-                            if (typeof addFloatingText === 'function') addFloatingText(aiPet.x, aiPet.y - 40, "+50 G", "#FFD700");
-                            aiPet.actionState = 'exiting'; aiPet.indoorTarget = null;
-                            if (typeof saveGameData === 'function') saveGameData();
-                        }, 3000); 
-                        clearInterval(baitoInterval);
-                    } else if (aiPet.actionState === 'idle') { clearInterval(baitoInterval); }
-                }, 500);
-            } else { aiPet.message = "師匠がどこにいるかわからない..."; aiPet.messageTimer = 120; }
-        } else { aiPet.message = "バイト先（師匠）がいないよ..."; aiPet.messageTimer = 120; }
+        aiPet.message = "漠然と「バイト」と言われても困るな...。\n（師匠のお手伝いになる言葉を教えよう！）";
+        aiPet.messageTimer = 180;
+        input.value = ""; input.focus(); return;
     }
-    else if (myMasterName && interpretedWord === myMasterName && knows(myMasterName) && !aiPet.isHelper) {
+    // ▼▼▼ 修正：ワード派生型バイト（予約対応版） ▼▼▼
+    else if (Object.keys({
+        "書き写し": { base: "study", master: "building", actionMsg: "図面の書き写し中..." },
+        "ふいご": { base: "train", master: "smithing", actionMsg: "ふいご吹き中...（体力勝負！）" },
+        "石拾い": { base: "train", master: "farming", actionMsg: "畑の石拾い中..." },
+        "皿洗い": { base: "run", master: "cooking", actionMsg: "猛ダッシュで皿洗い中...！" },
+        "網の修理": { base: "study", master: "fishing", actionMsg: "集中して網の修理中..." },
+        "荷物運び": { base: "run", master: "explore", actionMsg: "キャンプへの荷物運び中..." }
+    }).includes(interpretedWord) && knows(interpretedWord)) {
         actionTriggered = true;
-        if (!aiPet.apprentice.isExcommunicated) {
+        const baitoWords = {
+            "書き写し": { base: "study", master: "building", actionMsg: "図面の書き写し中..." },
+            "ふいご": { base: "train", master: "smithing", actionMsg: "ふいご吹き中...（体力勝負！）" },
+            "石拾い": { base: "train", master: "farming", actionMsg: "畑の石拾い中..." },
+            "皿洗い": { base: "run", master: "cooking", actionMsg: "猛ダッシュで皿洗い中...！" },
+            "網の修理": { base: "study", master: "fishing", actionMsg: "集中して網の修理中..." },
+            "荷物運び": { base: "run", master: "explore", actionMsg: "キャンプへの荷物運び中..." }
+        };
+        let bData = baitoWords[interpretedWord];
+        let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
+        if (metMasters.includes(bData.master)) {
             let facility = null;
-            if (typeof findFacilityForTask === 'function') facility = findFacilityForTask('visit_master', aiPet.apprentice.currentMaster);
+            if (typeof findFacilityForTask === 'function') facility = findFacilityForTask('visit_master', bData.master);
             if (facility) {
-                aiPet.schedule = [{type: 'visit_master', masterType: aiPet.apprentice.currentMaster, duration: 0}];
-                aiPet.startBuildingInteraction(facility); aiPet.message = "師匠のところへ行くよ！"; aiPet.messageTimer = 120;
-            } else { aiPet.message = "どこにいるかわからない..."; aiPet.messageTimer = 120; }
-        } else { aiPet.message = "破門中だから会いに行けない..."; aiPet.messageTimer = 120; }
+                // ★修正：schedule = []; を削除し、push（追加）に変更！
+                aiPet.schedule.push({
+                    type: bData.base,
+                    duration: 60,
+                    isBaito: true,
+                    baitoMaster: bData.master,
+                    baitoWord: interpretedWord,
+                    baitoActionMsg: bData.actionMsg
+                });
+                
+                // ★追加：もし予定がこれ一つだけ（今すぐ開始）なら移動を開始する
+                if (aiPet.schedule.length === 1) {
+                    aiPet.startBuildingInteraction(facility);
+                    aiPet.message = `「${interpretedWord}」だね！師匠の手伝いをしてくるよ！`;
+                } else {
+                    // すでに何かやっているなら予約だけして報告
+                    aiPet.message = `「${interpretedWord}」の予約を入れたよ！順番にやっていくね！`;
+                }
+                aiPet.messageTimer = 150;
+            } else {
+                aiPet.message = "師匠の拠点が見つからないから手伝えないみたい...";
+                aiPet.messageTimer = 120;
+            }
+        } else {
+            aiPet.message = `「${interpretedWord}」の言葉は知ってるけど、手伝う相手がまだいないみたい...`;
+            aiPet.messageTimer = 180;
+        }
     }
+    // ▲▲▲ 追加ここまで ▲▲▲
     else if (interpretedWord === "睡眠" && knows("睡眠")) { aiPet.schedule.push({type:'sleep', duration:60}); actionTriggered = true; }
-    // ★追加: ランニングのスケジュール実行
     else if (interpretedWord === "ランニング" && knows("ランニング")) { aiPet.schedule.push({type:'run', duration:60}); actionTriggered = true; }
     else if (interpretedWord === "食事" && knows("食事")) { aiPet.schedule.push({type:'eat', duration:30}); actionTriggered = true; }
     else if (interpretedWord === "勉強" && knows("勉強")) { aiPet.schedule.push({type:'study', duration:60}); actionTriggered = true; }
@@ -1351,15 +1513,7 @@ window.sendChat = function() {
             aiPet.startBuildingInteraction(targetFarm); aiPet.message = "害虫退治にいくよ！"; aiPet.messageTimer = 120;
         } else { aiPet.message = "虫はいないみたい！"; aiPet.messageTimer = 120; }
     }
-    // 1. 弟子入り志願としての「農家」
-    else if (interpretedWord === "農家") {
-        actionTriggered = true;
-        // 近くに農家の師匠がいるか、または弟子入り試験の処理へ
-        if (typeof aiPet.applyApprenticeship === 'function') {
-            aiPet.applyApprenticeship('farming');
-        }
-        return; // 「農家」の場合はここで終了（実作業はさせない）
-    }
+    
     else if (interpretedWord === "農業" && knows("農業")) {
         actionTriggered = true;
         
@@ -2130,37 +2284,73 @@ let currentEncounterMode = '';
 let savedEncounterMsg = ""; 
 
 // ==========================================
-// ★ 追加：UIから直接バイトを行う機能
+// ★ 修正：UIからバイトを「クエストとして受注」する機能（ヒント形式版）
 // ==========================================
 window.startBaito = function() {
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
-    const overlay = document.getElementById('encounterOverlay');
-    if (overlay) overlay.classList.remove('active');
-    window.isGamePaused = false;
     
     if (hero.apprentice && currentEncounterMaster && !hero.apprentice.isExcommunicated) {
-        let facility = null;
-        if (typeof findFacilityForTask === 'function') facility = findFacilityForTask('visit_master', currentEncounterMaster);
-        if (facility) {
-            hero.schedule = []; 
-            hero.startBuildingInteraction(facility);
-            hero.message = "師匠のところでバイトしてくる！"; hero.messageTimer = 120;
-            let baitoInterval = setInterval(() => {
-                if (hero.actionState === 'inside' && hero.indoorTarget === facility) {
-                    setTimeout(() => {
-                        hero.gold = (hero.gold || 0) + 50; 
-                        hero.energy = Math.max(0, (hero.energy || 100) - 10); 
-                        hero.hunger = Math.max(0, (hero.hunger || 100) - 10);
-                        hero.message = "バイト完了！ 50G稼いだよ！"; hero.messageTimer = 180;
-                        if (typeof updateStatUI === 'function') updateStatUI();
-                        if (typeof addFloatingText === 'function') addFloatingText(hero.x, hero.y - 40, "+50 G", "#FFD700");
-                        hero.actionState = 'exiting'; hero.indoorTarget = null;
-                        if (typeof saveGameData === 'function') saveGameData();
-                    }, 3000); 
-                    clearInterval(baitoInterval);
-                } else if (hero.actionState === 'idle') { clearInterval(baitoInterval); }
-            }, 500);
+        if (!hero.apprentice.activeQuests) hero.apprentice.activeQuests = [];
+        
+        const mType = currentEncounterMaster;
+        
+        // 既に同じ師匠のバイトを受注しているかチェック
+        const existingBaito = hero.apprentice.activeQuests.find(q => q.masterType === mType && q.isBaitoQuest);
+        if (existingBaito) {
+            hero.message = "まずは今受けている手伝いを終わらせよう！"; hero.messageTimer = 120;
+            return;
         }
+
+        let baitoName = ""; let baitoWord = ""; let baseAct = ""; let targetCount = 2; let baitoDesc = "";
+        if (mType === 'building') { 
+            baitoName = "図面の書き写し"; baitoWord = "書き写し"; baseAct = "study"; 
+            baitoDesc = "師匠が描いた図面を複製する手伝いをしよう。AIにどう指示すれば伝わるだろうか？";
+        }
+        else if (mType === 'smithing') { 
+            baitoName = "ふいご吹き"; baitoWord = "ふいご"; baseAct = "train"; 
+            baitoDesc = "炉に風を送り込んで火力を上げる手伝いをしよう。AIにどう指示すれば伝わるだろうか？";
+        }
+        else if (mType === 'farming') { 
+            baitoName = "畑の石拾い"; baitoWord = "石拾い"; baseAct = "train"; 
+            baitoDesc = "畑を耕す邪魔になる石を取り除こう。AIにどう指示すれば伝わるだろうか？";
+        }
+        else if (mType === 'cooking') { 
+            baitoName = "皿洗い"; baitoWord = "皿洗い"; baseAct = "run"; 
+            baitoDesc = "山積みになった汚れた食器を綺麗にしよう。AIにどう指示すれば伝わるだろうか？";
+        }
+        else if (mType === 'fishing') { 
+            baitoName = "網の修理"; baitoWord = "網の修理"; baseAct = "study"; 
+            baitoDesc = "魚が逃げないよう、破れた漁網を直す手伝いをしよう。AIにどう指示すれば伝わるだろうか？";
+        }
+        else if (mType === 'explore') { 
+            baitoName = "キャンプへの荷物運び"; baitoWord = "荷物運び"; baseAct = "run"; 
+            baitoDesc = "探検の拠点となるキャンプへ物資を運ぼう。AIにどう指示すれば伝わるだろうか？";
+        }
+
+        // バイトクエストをリストに追加
+        hero.apprentice.activeQuests.push({
+            name: `手伝い：${baitoName}`,
+            desc: `${baitoDesc}`,
+            rank: -1, // バイト用のダミーランク
+            masterType: mType,
+            qVal: 0,
+            isBaitoQuest: true,
+            baitoWord: baitoWord,
+            targetCount: targetCount
+        });
+
+        // ★AIのセリフも、答えを言わずに「どうすればいいか教えて」というニュアンスに変更
+        hero.message = `「${baitoName}」の手伝いを引き受けたよ！何をすればいいか言葉で教えてね！`; 
+        hero.messageTimer = 180;
+        
+        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        if (typeof saveGameData === 'function') saveGameData();
+        
+        // ダイアログを閉じる
+        const overlay = document.getElementById('encounterOverlay');
+        if (overlay) overlay.classList.remove('active');
+        window.isGamePaused = false;
+        currentEncounterMaster = null; currentEncounterMode = '';
     }
 };
 
@@ -2184,7 +2374,7 @@ window.requestNextQuest = function() {
 };
 
 // ==========================================
-// ★ 修正：UI描画（バイト・連続受注・特大ヒント対応版！）
+// ★ 修正：UI描画（バイト・連続受注・特大ヒント・師匠立ち絵完全対応版！）
 // ==========================================
 window.openEncounterUI = function(masterType, message, mode = 'encounter') {
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
@@ -2221,36 +2411,64 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter') {
         let hint = "";
         const attempts = (hero.apprentice.attempts && hero.apprentice.attempts[masterType]) ? hero.apprentice.attempts[masterType] : 0;
 
-        if (score >= 50) {
+        if (!missingWord && score >= 50) {
             hint = "今の僕なら、きっと認めてもらえるはず！";
         } else if (attempts >= 1) {
-            // ★大修正：1回以上不合格になっている場合は、特大ヒントを出す！
             if (missingWord) {
-                hint = `（前回ダメだったのは言葉のせいだ！チャットで「${exactWord}」って教えてもらえれば…！）`;
+                hint = `でも、前回ダメだったのは言葉のせいだ！チャットで「${exactWord}」って教えてもらえれば…！`;
             } else {
                 let shortAmt = Math.ceil(50 - score);
-                hint = `（言葉はOKだ！あとは勉強や筋トレで「${missingStat}」をあと ${shortAmt} くらい上げれば絶対受かるはず…！）`;
+                hint = `でも、勉強や筋トレで『${missingStat}』をあと ${shortAmt > 0 ? shortAmt : '少し'} くらい上げれば絶対受かるはず…！`;
             }
         } else {
-            // 初回のヒント（フワッとしている）
-            if (score >= 35) { if (missingWord) hint = "でも、もう少しこの人の『専門知識』を勉強しないと...。"; else hint = `でも、もう少し『${missingStat}』を鍛えないと厳しいかも...。`; } 
-            else { if (missingWord) hint = `今のままじゃダメだ...『${missingStat}』と『専門知識』を身につけよう。`; else hint = `今の『${missingStat}』じゃ、まだ相手にされないかも...。`; }
+            if (score >= 35) { 
+                if (missingWord) hint = "でも、もう少しこの人の『専門知識』を勉強しないと...。"; 
+                else hint = `でも、もう少し『${missingStat}』を鍛えないと厳しいかも...。`; 
+            } else { 
+                if (missingWord) hint = `今のままじゃダメだ...『${missingStat}』と『専門知識』を身につけよう。`; 
+                else hint = `今の『${missingStat}』じゃ、まだ相手にされないかも...。`; 
+            }
         }
         thoughtText = `（${baseThought}\n${hint}）`;
     } 
     else if (mode === 'quest_offer') { thoughtText = "（新しい課題だ...！頑張ろう！）"; }
+    else if (mode === 'quest_offer_exam') { thoughtText = "（これが弟子入りのための課題...！まずは言葉を覚えよう！）"; rightText = savedEncounterMsg; }
     else if (mode === 'quest_report' || mode === 'rank_up') { thoughtText = "（うまくできたかな...？）"; }
     else if (mode === 'exam_pass') { thoughtText = "（やったー！弟子入りだ！）"; }
-    else if (mode === 'exam_fail' || mode === 'retire') { thoughtText = "（だめだったか...）"; }
+    else if (mode === 'exam_fail' || mode === 'retire' || mode === 'banned') { thoughtText = "（だめだったか...）"; }
     else if (mode === 'excommunicate') { thoughtText = "（怒らせてしまった...）"; }
     else if (mode === 'graduate') { thoughtText = "（ついにここまで来たんだ...！）"; }
+    // ★追加：免許皆伝後に会いに行った時の心の声
+    else if (mode === 'graduate_visit') { thoughtText = "（師匠！ いつもありがとうございます！）"; rightText = savedEncounterMsg; }
 
     document.getElementById('encounter-text').innerText = rightText;
+    
+    // ★追加：セリフ枠（白い吹き出し）の幅を狭めて、右側にスペースを作る！
+    const textEl = document.getElementById('encounter-text');
+    if (textEl && textEl.parentElement) {
+        textEl.parentElement.style.width = '65%'; // 幅を縮小
+        textEl.parentElement.style.marginRight = 'auto'; // 左寄りに配置
+    }
+
     const thoughtEl = document.getElementById('ai-thought-text');
     if (thoughtEl) thoughtEl.innerText = thoughtText;
-    const tailEl = document.getElementById('encounter-tail');
-    if (tailEl) tailEl.style.display = showTail ? 'block' : 'none';
     
+    const tailEl = document.getElementById('encounter-tail');
+    if (tailEl) {
+        tailEl.style.display = showTail ? 'block' : 'none';
+        if (showTail) {
+            tailEl.style.position = 'absolute';
+            tailEl.style.left = 'auto';
+            tailEl.style.right = '-15px'; // 吹き出しの右側に突き出す
+            // ★修正：しっぽを「上部（顔の高さ）」に移動！
+            tailEl.style.top = '30px'; 
+            tailEl.style.transform = 'rotate(-90deg)'; // 向きを右（師匠の方）に向ける
+        }
+    }
+    
+    // ----------------------------------------------------
+    // ① 左側のキャンバス（背景＋AIペットの描画）
+    // ----------------------------------------------------
     const canvas = document.getElementById('encounterCanvas');
     if (canvas) {
         const ctx = canvas.getContext('2d'); ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -2269,44 +2487,161 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter') {
         let skin = hero.currentSkin || 'robot'; 
         if (typeof drawCharacterSprite === 'function') drawCharacterSprite(ctx, skin, canvas.width / 2, canvas.height / 2 + 20, 160, 160, false, 1.0);
     }
+
+    // ----------------------------------------------------
+    // ② 右側のキャンバス（師匠の立ち絵・右上配置 決定版！）
+    // ----------------------------------------------------
+    if (overlay) {
+        let oldDiv = document.getElementById('encounter-master-img');
+        if (oldDiv && oldDiv.tagName !== 'CANVAS') oldDiv.remove();
+
+        let masterCanvas = document.getElementById('encounter-master-canvas');
+        if (!masterCanvas) {
+            masterCanvas = document.createElement('canvas');
+            masterCanvas.id = 'encounter-master-canvas';
+            overlay.appendChild(masterCanvas); // 画面全体（overlay）に直接追加
+        }
+        masterCanvas.width = 400;  
+        masterCanvas.height = 400;
+        
+        // ★大修正：画面の中央から「右上（ダイアログの右外側・高め）」に向けて絶対配置！
+        masterCanvas.style.cssText = `
+            position: absolute; 
+            top: 50%; 
+            left: 50%;
+            margin-top: -180px;  /* ★修正：-240pxから-180pxにして、少し下に降ろす！ */
+            margin-left: 140px;  /* 横：右に移動（ダイアログの右外側に配置） */
+            width: 280px; 
+            height: 280px;
+            pointer-events: none; 
+            z-index: 9999; 
+            opacity: 0;
+            transform: translateX(30px);
+            transition: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+        `;
+
+        const masterSprites = {
+            'farming':  { img: "farmer_battle_enemy.png", sx: 758, sy: 0, sw: 1248, sh: 1536 },
+            'fishing':  { img: "fisherman_battle_enemy.png", sx: 839, sy: 0, sw: 1248, sh: 1536 },
+            'building': { img: "builder_battle_enemy.png", sx: 839, sy: 0, sw: 1248, sh: 1536 },
+            'smithing': { img: "smith_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
+            'cooking':  { img: "chef_battle_enemy.png", sx: 439, sy: 0, sw: 1766, sh: 1536 },
+            'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 }
+        };
+        let mData = masterSprites[masterType];
+
+        const mCtx = masterCanvas.getContext('2d');
+        mCtx.clearRect(0, 0, masterCanvas.width, masterCanvas.height);
+
+        if (mData) {
+            let imgSrc = mData.img;
+            if (imgSrc) {
+                let tempImg = new Image();
+                tempImg.onload = function() {
+                    let targetHeight = 360; 
+                    let scale = targetHeight / mData.sh;
+                    let dw = mData.sw * scale;
+                    let dh = mData.sh * scale;
+                    let dx = (masterCanvas.width - dw) / 2;
+                    let dy = masterCanvas.height - dh; 
+                    
+                    mCtx.drawImage(tempImg, mData.sx, mData.sy, mData.sw, mData.sh, dx, dy, dw, dh);
+                    masterCanvas.style.opacity = '1';
+                    masterCanvas.style.transform = 'translateX(0)';
+                };
+                tempImg.src = imgSrc; 
+            } else { masterCanvas.style.opacity = '0'; }
+        } else { masterCanvas.style.opacity = '0'; }
+    }
     
+    // ----------------------------------------------------
+    // ③ ボタンエリアの制御
+    // ----------------------------------------------------
     const btnBox = document.getElementById('encounter-buttons');
     if (btnBox) {
         btnBox.style.display = 'flex';
         btnBox.style.flexDirection = 'column';
         btnBox.style.gap = '8px';
+        
+        // ★追加：ボタンの幅もセリフ枠に合わせて縮め、師匠とかぶらないようにする！
+        btnBox.style.width = '65%';
 
         let baitoBtn = "";
-        if (hero.apprentice && hero.apprentice.currentMaster === masterType && !hero.apprentice.isExcommunicated) {
-            baitoBtn = `<button class="quiz-btn" onclick="window.startBaito()" style="flex: 1; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer;">💰 バイトする</button>`;
+        let isMastered = hero.apprentice && ((hero.apprentice.retired && hero.apprentice.retired[masterType]) || (hero.apprentice.rank && hero.apprentice.rank[masterType] >= 10));
+        
+        if (mode !== 'excommunicate' && mode !== 'retire' && mode !== 'exam_fail' && mode !== 'banned') {
+            if ((hero.apprentice && hero.apprentice.currentMaster === masterType && !hero.apprentice.isExcommunicated) || isMastered) {
+                let existingBaito = hero.apprentice.activeQuests && hero.apprentice.activeQuests.find(q => q.masterType === masterType && q.isBaitoQuest);
+                if (existingBaito) {
+                    baitoBtn = `<button class="quiz-btn" style="flex: 1; padding: 10px; font-size: 14px; background: #555; color: #888; font-weight: bold; border: 2px solid #444; border-radius: 8px; cursor: not-allowed;" disabled>💰 バイト中</button>`;
+                } else {
+                    baitoBtn = `<button class="quiz-btn" onclick="window.startBaito()" style="flex: 1; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer;">💰 バイトする</button>`;
+                }
+            }
         }
 
         if (mode === 'encounter_intro') {
             btnBox.innerHTML = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: #2196F3; color: #fff; font-weight: bold; border: 2px solid #1976D2; border-radius: 8px; cursor: pointer;">辺りを見渡す ▶</button>`;
         }
-        else if (mode === 'encounter' || mode === 'quest_offer') {
-            let yesText = mode === 'encounter' ? "話を聞いてみる（試験へ）" : "課題を受ける";
-            
+        else if (mode === 'greeting') {
+            thoughtText = "（言葉を教えて、またチャットで呼んで会いに行こう！）";
+            btnBox.innerHTML = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: #FF9800; color: #fff; font-weight: bold; border: 2px solid #E65100; border-radius: 8px; cursor: pointer;">わかった！</button>`;
+        }
+        // ★修正：入門試験の準備（quest_offer_exam）の時は、確実に「課題を受ける」ボタンを出す！
+        else if (mode === 'encounter' || mode === 'quest_offer' || mode === 'quest_offer_exam') {
+            let yesText = mode === 'encounter' ? "試験を開始する" : "課題を受ける";
+            let mainBtnHtml = "";
+            let canTakeExam = true;
+
+            if (mode === 'encounter') {
+                let baseWord = "";
+                if (masterType === 'explore') baseWord = "探検";
+                else if (masterType === 'farming') baseWord = "農業";
+                else if (masterType === 'fishing') baseWord = "釣り";
+                else if (masterType === 'cooking') baseWord = "料理";
+                else if (masterType === 'smithing') baseWord = "鍛冶";
+                else if (masterType === 'building') baseWord = "建築";
+
+                if (baseWord && hero.apprentice && hero.apprentice.learnedWords) {
+                    if (!hero.apprentice.learnedWords.includes(baseWord)) {
+                        canTakeExam = false; 
+                    }
+                }
+            }
+
+            if (mode === 'encounter' && !canTakeExam) {
+                mainBtnHtml = `<button class="quiz-btn" style="padding: 12px; font-size: 16px; background: #555; color: #888; font-weight: bold; border: 2px solid #444; border-radius: 8px; cursor: not-allowed;" disabled>専門知識が必要...</button>`;
+            } else {
+                mainBtnHtml = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: linear-gradient(to bottom, #FFD700, #FF9800); color: #000; font-weight: bold; border: 2px solid #FFD700; border-radius: 8px; cursor: pointer;">${yesText}</button>`;
+            }
+
             btnBox.innerHTML = `
-                <button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: linear-gradient(to bottom, #FFD700, #FF9800); color: #000; font-weight: bold; border: 2px solid #FFD700; border-radius: 8px; cursor: pointer;">${yesText}</button>
+                ${mainBtnHtml}
                 <div style="display: flex; gap: 8px; width: 100%;">
                     ${baitoBtn}
                     <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">今はやめる</button>
                 </div>
             `;
-        } else {
+        }
+        else if (mode === 'graduate_visit') {
+            btnBox.innerHTML = `
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    ${baitoBtn}
+                    <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">また来るよ</button>
+                </div>
+            `;
+        }
+        else {
             let btnText = "わかった";
             let isReportEnd = false;
             
             if (mode === 'exam_pass') btnText = "よろしくお願いします！";
-            else if (mode === 'exam_fail' || mode === 'retire') btnText = "立ち去る";
+            else if (mode === 'exam_fail' || mode === 'retire' || mode === 'banned') btnText = "立ち去る";
             else if (mode === 'excommunicate') btnText = "はい……";
             else if (mode === 'graduate') btnText = "ありがとうございます！";
             else if (mode === 'quest_not_clear') btnText = "引き続き頑張ります";
-            else if (mode === 'rank_up' || mode === 'quest_report') { 
-                btnText = "報告完了"; 
-                isReportEnd = true; 
-            }
+            else if (mode === 'rank_up') { btnText = "報告完了"; isReportEnd = true; }
+            else if (mode === 'quest_report') { btnText = "ありがとう！"; isReportEnd = false; }
 
             let nextQuestBtn = "";
             if (isReportEnd) {
@@ -2455,171 +2790,281 @@ window.confirmEncounter = function(isAccept) {
 
 // ★ 追加：AIが師匠の場所に到着した時に呼ばれる処理
 window.checkMasterVisit = function(masterType) {
-    // ★大修正：話しかけた瞬間、誰と話しているかを隠しポケットに絶対メモしておく！
-    if (masterType) {
-        window._lastVisitedMaster = masterType;
-    }
+    if (masterType) window._lastVisitedMaster = masterType;
 
-    // ★修正: 対象を常に主人公（リーダー）に固定する
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
     if (!hero || !hero.apprentice) return;
     
     const app = hero.apprentice;
+    
+    let isApprentice = (app.currentMaster === masterType) || (app.retired && app.retired[masterType]) || (app.rank && app.rank[masterType] >= 10);
+    if (!isApprentice) {
+        // ★修正：破門済み、または見放された師匠の場合は完全に門前払いする！
+        let isBanned = (app.excommunicatedFrom === masterType) || (app.attempts && app.attempts[masterType] >= 3);
+        if (isBanned) {
+            let rejectMsg = "";
+            if (masterType === 'explore') rejectMsg = (app.excommunicatedFrom === masterType) ? "「あなたに教えることはもう何もないわ。帰りなさい。」" : "「ごめんなさいね、君には見込みがないわ。他を当たってちょうだい。」";
+            else if (masterType === 'farming') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もないよ。帰っておくれ。」" : "「君には見込みがないかな。他を当たっておくれ。」";
+            else if (masterType === 'fishing') rejectMsg = (app.excommunicatedFrom === masterType) ? "「お前さんに教えることはもう何もないぜ。帰りな！」" : "「お前さんには見込みがないな。他を当たってくれや！」";
+            else if (masterType === 'cooking') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もない！帰れ！」" : "「君には見込みがない！他を当たってくれ！」";
+            else if (masterType === 'smithing') rejectMsg = (app.excommunicatedFrom === masterType) ? "「……お前に教えることはもう何もない。帰れ。」" : "「……君には見込みがない。他を当たれ。」";
+            else if (masterType === 'building') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もない。帰ってくれ。」" : "「君には見込みがないな。他を当たってくれ。」";
+
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, rejectMsg, 'retire');
+            return;
+        }
+
+        let examMsg = "";
+        if (masterType === 'explore') examMsg = "「よく来たわね。試験を受ける覚悟はできている？」";
+        else if (masterType === 'farming') examMsg = "「よく来たね。試験を受ける覚悟はできているかい？」";
+        else if (masterType === 'fishing') examMsg = "「よく来たな。試験を受ける覚悟はできているか？」";
+        else if (masterType === 'cooking') examMsg = "「よく来たな！試験を受ける覚悟はできているか！」";
+        else if (masterType === 'smithing') examMsg = "「……来たか。試験を受ける覚悟はあるな？」";
+        else if (masterType === 'building') examMsg = "「よく来たな。試験を受ける覚悟はできているか？」";
+        
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
+        return;
+    }
+
     const rank = app.rank[masterType] || 1;
 
     if (app.activeQuest) {
         const qData = hero.getMasterQuestData(masterType, rank);
         
+        let yearsPassed = (hero.age || 0) - (app.questAcceptedAge || 0);
+        let isNeglected = yearsPassed >= 2;
+        let isLazy = (app.lazyReportCount || 0) >= 3;
+
+        if (isNeglected || isLazy) {
+            let reason = "";
+            if (masterType === 'explore') reason = isNeglected ? "「何年待たせる気！あなたのような不義理な者に教えることは何もないわ！破門よ！」" : "「何度も冷やかしにきて！あなたのように不真面目な者に教えることは何もないわ！破門よ！」";
+            else if (masterType === 'farming') reason = isNeglected ? "「何年待たせる気だい。君のような不義理な者に教えることは何もないよ。破門だ。」" : "「何度も冷やかしおって。君のように不真面目な者に教えることは何もないよ。破門だ。」";
+            else if (masterType === 'fishing') reason = isNeglected ? "「何年待たせる気だ！お前さんのような不義理な者に教えることは何もないぜ！破門だ！」" : "「何度も冷やかしおって！お前さんのように不真面目な者に教えることは何もないぜ！破門だ！」";
+            else if (masterType === 'cooking') reason = isNeglected ? "「何年待たせる気だ！君のような不義理な者に教えることは何もない！破門だ！」" : "「何度も冷やかしおって！君のように不真面目な者に教えることは何もない！破門だ！」";
+            else if (masterType === 'smithing') reason = isNeglected ? "「……何年待たせる気だ。貴様のような不義理な者に教えることは何もない。破門だ。」" : "「……何度も冷やかしおって。貴様のように不真面目な者に教えることは何もない。破門だ。」";
+            else if (masterType === 'building') reason = isNeglected ? "「何年待たせる気だ！君のような不義理な者に教えることは何もないぞ！破門だ！」" : "「何度も冷やかしおって！君のように不真面目な者に教えることは何もないぞ！破門だ！」";
+
+            window.openEncounterUI(masterType, reason, 'excommunicate');
+            return;
+        }
+
         if (qData.check()) {
             if (typeof qData.onClear === 'function') qData.onClear(); 
             
             if (rank >= 9) {
-                 window.openEncounterUI(masterType, "「見事だ！お前に教えることはもう何もない...免許皆伝だ！」", 'graduate');
+                let gradMsg = "";
+                if (masterType === 'explore') gradMsg = "「見事よ！あなたに教えることはもう何もないわ...免許皆伝ね！」";
+                else if (masterType === 'farming') gradMsg = "「見事だ！君に教えることはもう何もない...免許皆伝だよ！」";
+                else if (masterType === 'fishing') gradMsg = "「見事だ！お前さんに教えることはもう何もないぜ...免許皆伝だ！」";
+                else if (masterType === 'cooking') gradMsg = "「見事だ！君に教えることはもう何もない！免許皆伝だ！」";
+                else if (masterType === 'smithing') gradMsg = "「……見事だ。お前に教えることはもう何もない。免許皆伝だ。」";
+                else if (masterType === 'building') gradMsg = "「見事だな！君に教えることはもう何もない...免許皆伝だ！」";
+                window.openEncounterUI(masterType, gradMsg, 'graduate');
             } else {
-                 window.openEncounterUI(masterType, `「よし、課題クリアだ！お前のランクが ${rank + 1} に上がったぞ！」`, 'rank_up');
+                let clearMsg = "";
+                if (masterType === 'explore') clearMsg = `「よし、課題クリアね！あなたのランクが ${rank + 1} に上がったわよ！」`;
+                else if (masterType === 'farming') clearMsg = `「よし、課題クリアだね！君のランクが ${rank + 1} に上がったよ！」`;
+                else if (masterType === 'fishing') clearMsg = `「よし、課題クリアだ！お前さんのランクが ${rank + 1} に上がったぜ！」`;
+                else if (masterType === 'cooking') clearMsg = `「よし、課題クリアだ！君のランクが ${rank + 1} に上がったぞ！」`;
+                else if (masterType === 'smithing') clearMsg = `「……よし、課題クリアだ。お前のランクが ${rank + 1} に上がったぞ。」`;
+                else if (masterType === 'building') clearMsg = `「よし、課題クリアだな！君のランクが ${rank + 1} に上がったぞ！」`;
+                window.openEncounterUI(masterType, clearMsg, 'rank_up');
             }
         } else {
-             window.openEncounterUI(masterType, "「どうした？まだ課題は終わっていないようだが...」", 'quest_not_clear');
+            app.lazyReportCount = (app.lazyReportCount || 0) + 1;
+            let notClearMsg = "";
+            if (masterType === 'explore') notClearMsg = `「どうしたの？まだ課題は終わっていないようだけど...（未達成報告：${app.lazyReportCount} / 3回）」`;
+            else if (masterType === 'farming') notClearMsg = `「どうしたんだい？まだ課題は終わっていないようだけれど...（未達成報告：${app.lazyReportCount} / 3回）」`;
+            else if (masterType === 'fishing') notClearMsg = `「どうした？まだ課題は終わっていないようだが...（未達成報告：${app.lazyReportCount} / 3回）」`;
+            else if (masterType === 'cooking') notClearMsg = `「どうした！まだ課題は終わっていないようだが！（未達成報告：${app.lazyReportCount} / 3回）」`;
+            else if (masterType === 'smithing') notClearMsg = `「……どうした。まだ課題は終わっていないようだが。（未達成報告：${app.lazyReportCount} / 3回）」`;
+            else if (masterType === 'building') notClearMsg = `「どうした？まだ課題は終わっていないようだが...（未達成報告：${app.lazyReportCount} / 3回）」`;
+            window.openEncounterUI(masterType, notClearMsg, 'quest_not_clear');
         }
     } else {
         const qData = hero.getMasterQuestData(masterType, rank);
-        window.openEncounterUI(masterType, `「新たなる課題『${qData.name}』を命ずる！\n内容：${qData.desc}」`, 'quest_offer');
+        let offerMsg = "";
+        if (masterType === 'explore') offerMsg = `「新たなる課題『${qData.name}』を命ずるわ！\n内容：${qData.desc}」`;
+        else if (masterType === 'farming') offerMsg = `「新たなる課題『${qData.name}』を出すよ。\n内容：${qData.desc}」`;
+        else if (masterType === 'fishing') offerMsg = `「新たなる課題『${qData.name}』を命ずるぜ！\n内容：${qData.desc}」`;
+        else if (masterType === 'cooking') offerMsg = `「新たなる課題『${qData.name}』を命ずる！\n内容：${qData.desc}」`;
+        else if (masterType === 'smithing') offerMsg = `「……新たなる課題『${qData.name}』を命ずる。\n内容：${qData.desc}」`;
+        else if (masterType === 'building') offerMsg = `「新たなる課題『${qData.name}』を命ずるぞ。\n内容：${qData.desc}」`;
+        window.openEncounterUI(masterType, offerMsg, 'quest_offer');
     }
 };
 
+// ==========================================
+// ★ マルチ対応＆アコーディオン型 クエストHUD更新（インフレ対応・差分表示版）
+// ==========================================
 window.updateQuestHUD = function() {
     const hud = document.getElementById('questHUD');
     const list = document.getElementById('questListHUD');
     if (!hud || !list) return;
 
-    // ★修正: 助っ人操作中はHUDを非表示にする
-    if (typeof aiPet !== 'undefined' && aiPet.apprentice && aiPet.apprentice.activeQuest && !aiPet.isHelper) {
-        hud.style.display = 'block';
-        
-        const mType = aiPet.apprentice.currentMaster;
-        const rank = aiPet.apprentice.rank[mType] || 1;
-        const qData = aiPet.getMasterQuestData(mType, rank);
-        
-        let isCleared = false;
-        if (qData && qData.check) {
-            isCleared = qData.check();
-        }
+    hud.style.pointerEvents = 'auto';
+    list.style.pointerEvents = 'auto';
 
-        if (isCleared) {
-            hud.style.border = "2px solid #4CAF50";
-            hud.style.boxShadow = "0 0 15px rgba(76, 175, 80, 0.6)";
-            list.innerHTML = `
-                <div style="font-size: 13px; font-weight: bold; color: #fff;">${aiPet.apprentice.activeQuest.name}</div>
-                <div style="font-size: 11px; color: #ccc; margin-top: 4px; line-height: 1.4;">${aiPet.apprentice.activeQuest.desc}</div>
-                <div style="font-size: 12px; color: #4CAF50; font-weight: bold; margin-top: 8px; text-align: center; background: rgba(76, 175, 80, 0.2); padding: 5px; border-radius: 4px;">✅ 条件達成！報告しよう</div>
-            `;
-        } else {
-            hud.style.border = "1px solid rgba(255, 255, 255, 0.3)";
-            hud.style.boxShadow = "none";
-            
-            let progressStr = "";
-            if (typeof aiPet.apprentice.qVal === 'number') {
-                let currentVal = 0;
-                let targetVal = Math.floor(aiPet.apprentice.qVal); 
+    if (hud.matches(':hover')) return;
+
+    const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
+    if (hero && hero.apprentice && !hero.apprentice.activeQuests) hero.apprentice.activeQuests = [];
+
+    // ★修正：ネタバレ防止！「書き写し」という正解ワードを隠しつつ、バイトのヒントに合わせる
+    if (hero && hero.apprentice && hero.apprentice.activeQuests) {
+        hero.apprentice.activeQuests.forEach(q => {
+            if (q.masterType === 'building') {
+                if (q.desc.includes('建築（製図）')) {
+                    q.desc = q.desc.replace(/「建築（製図）」/g, '「図面の複製の手伝い」');
+                    q.desc = q.desc.replace(/建築（製図）/g, '図面の複製の手伝い');
+                }
+                if (q.desc.includes('練習用の図面') && q.desc.includes('落書きを避け')) {
+                    q.desc = '手伝いで図面の複製をこなし、成功した「練習用の図面」を3つ持ってこよう。';
+                }
                 
-                // ★修正: 新ステータス（素早さ・美しさ）の判定を追加
-                const desc = aiPet.apprentice.activeQuest.desc;
-                if (desc.includes("活力") || desc.includes("賢さ") || desc.includes("素早さ") || desc.includes("美しさ")) {
-                    let label = "";
-                    if (desc.includes("活力")) { currentVal = Math.floor(aiPet.stats.power); label = "活力"; }
-                    else if (desc.includes("賢さ")) { currentVal = Math.floor(aiPet.stats.intel); label = "賢さ"; }
-                    else if (desc.includes("素早さ")) { currentVal = Math.floor(aiPet.stats.speed || 0); label = "素早さ"; }
-                    else if (desc.includes("美しさ")) { currentVal = Math.floor(aiPet.stats.beauty || 0); label = "美しさ"; }
-                    
-                    const targetVal = Math.floor(aiPet.apprentice.qVal);
-                    
-                    if (currentVal >= targetVal) {
-                        progressStr = `<div style="font-size: 11px; color: #4CAF50; margin-top: 4px;">目標達成！ (${currentVal} / ${targetVal})</div>`;
-                    } else {
-                        progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">現在の${label}: ${currentVal} / 目標: ${targetVal}</div>`;
-                    }
-                } else if (desc.includes("集め") || desc.includes("持ってこよう")) {
-                    // ★追加：アイテム収集クエスト専用の表示ロジック
-                    let itemsStr = [];
-                    // 良質な木材と普通の木材を区別する
-                    if (desc.includes("良質な木材")) {
-                        let c = aiPet.inventory.filter(i => i === 'high_wood').length;
-                        itemsStr.push(`良質な木材: ${c} / 3`);
-                    } else if (desc.includes("木材")) {
-                        let c = aiPet.inventory.filter(i => i === 'wood').length;
-                        let max = desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3);
-                        itemsStr.push(`木材: ${c} / ${max}`);
-                    }
-                    // 硬い石と普通の石を区別する
-                    if (desc.includes("硬い石")) {
-                        let c = aiPet.inventory.filter(i => i === 'high_stone').length;
-                        itemsStr.push(`硬い石: ${c} / 3`);
-                    } else if (desc.includes("石")) {
-                        let c = aiPet.inventory.filter(i => i === 'stone').length;
-                        let max = desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3);
-                        itemsStr.push(`石: ${c} / ${max}`);
-                    }
-                    // ▼▼▼ 追加：鍛冶クエスト用 ▼▼▼
-                    if (desc.includes("練習用装備")) {
-                        let c = aiPet.inventory.filter(i => i.includes('_practice_')).length;
-                        itemsStr.push(`練習用装備: ${c} / 3`);
-                    }
-                    if (desc.includes("芸術品")) {
-                        let c = aiPet.inventory.filter(i => i.includes('_art_')).length;
-                        itemsStr.push(`芸術品: ${c} / 3`);
-                    }
-                    // ▼▼▼ 追加：漁師クエスト用 ▼▼▼
-                    if (desc.includes("ヌシ")) {
-                        let c = aiPet.inventory.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length;
-                        itemsStr.push(`ヌシ: ${c} / 1`);
-                    } else if (desc.includes("魚")) {
-                        let c = aiPet.inventory.filter(i => i.startsWith('fish_')).length;
-                        let max = desc.includes("3匹") ? 3 : 1;
-                        itemsStr.push(`魚: ${c} / ${max}`);
-                    }
-                    if (desc.includes("質のいい")) {
-                        let c = aiPet.inventory.filter(i => i.startsWith('high_') && (i.includes('carrot') || i.includes('tomato') || i.includes('pepper'))).length;
-                        itemsStr.push(`質のいい野菜: ${c} / 3`);
-                    }
-                    // ▼▼▼ 追加：料理クエスト用 ▼▼▼
-                    if (desc.includes("普通の試作料理")) {
-                        let c = aiPet.inventory.filter(i => i === 'food_practice_normal').length;
-                        itemsStr.push(`普通の試作料理: ${c} / 3`);
-                    }
-                    if (desc.includes("究極の試作料理")) {
-                        let c = aiPet.inventory.filter(i => i === 'food_practice_great').length;
-                        itemsStr.push(`究極の試作料理: ${c} / 3`);
-                    }
-                    // ▼▼▼ 追加：建築士クエスト用 ▼▼▼
-                    if (desc.includes("練習用の図面")) {
-                        let c = aiPet.inventory.filter(i => i === 'build_practice_normal').length;
-                        itemsStr.push(`練習用の図面: ${c} / 3`);
-                    }
-                    if (desc.includes("建築模型")) {
-                        let c = aiPet.inventory.filter(i => i === 'build_practice_great').length;
-                        itemsStr.push(`精巧な建築模型: ${c} / 3`);
-                    }
-                    if (itemsStr.length > 0) {
-                        progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">収集状況: ${itemsStr.join(' , ')}</div>`;
-                    }
-                } else if (targetVal > 0) {
-                    // ★修正：目標回数がテキスト内にあれば抽出して「1 / 5回完了」のように表示
-                    let match = desc.match(/(\d+)回/);
-                    let reqCount = match ? match[1] : "?";
-                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">進捗: ${targetVal} / ${reqCount} 回完了</div>`;
+                // ★追加：「精巧な建築模型」もバイトの手伝いで稀にできることをヒントとして出す！
+                if (q.desc.includes('精巧な建築模型') && q.desc.includes('大成功でのみ作れる')) {
+                    q.desc = '手伝い中に稀に完成する、大成功の「精巧な建築模型」を3つ持ってこよう。';
+                }
+                // （※もし古いデータが残っていた場合の保険）
+                if (q.desc.includes('3つもらってこよう。')) {
+                    q.desc = q.desc.replace('3つもらってこよう。', '3つ持ってこよう。');
                 }
             }
+        });
+    }
 
-            list.innerHTML = `
-                <div style="font-size: 13px; font-weight: bold; color: #fff;">${aiPet.apprentice.activeQuest.name}</div>
-                <div style="font-size: 11px; color: #ccc; margin-top: 4px; line-height: 1.4;">${aiPet.apprentice.activeQuest.desc}</div>
-                ${progressStr}
-                <div style="font-size: 10px; color: #ffeb3b; margin-top: 6px; text-align: right;">※進行中...</div>
-            `;
-        }
-    } else {
+    // 自動修復パッチ：すでにランク1以上に達している師匠の「入門試験（ランク0）」が残っていれば消去する
+    if (hero && hero.apprentice && hero.apprentice.activeQuests) {
+        hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => {
+            if (q.rank === 0 && hero.apprentice.rank && hero.apprentice.rank[q.masterType] >= 1) return false;
+            return true;
+        });
+    }
+
+    if (!hero || !hero.apprentice || hero.apprentice.activeQuests.length === 0 || hero.isHelper) {
         hud.style.display = 'none';
-        list.innerHTML = "";
+        return;
+    }
+
+    const currentScrollTop = list.scrollTop;
+    const openStates = {};
+    Array.from(list.children).forEach(child => {
+        const titleEl = child.querySelector('.quest-title');
+        const contentEl = child.querySelector('.quest-content');
+        if (titleEl && contentEl) {
+            openStates[titleEl.innerText] = contentEl.style.display;
+        }
+    });
+
+    let newHtml = ""; 
+    let anyCleared = false;
+
+    hero.apprentice.activeQuests.forEach((q, index) => {
+        const mType = q.masterType;
+        const qData = hero.getMasterQuestData(mType, q.rank);
+        
+        hero.apprentice.qVal = q.qVal;
+        
+        let isCleared = false;
+        if (q.rank === 0) isCleared = false;
+        else if (q.isBaitoQuest) isCleared = q.qVal >= q.targetCount;
+        else isCleared = (qData && qData.check ? qData.check() : false);
+        
+        if (isCleared) anyCleared = true;
+
+        let progressStr = "";
+        if (q.rank === 0) {
+            progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">準備ができたら『話を聞いてみる』を押そう</div>`;
+        } else if (isCleared) {
+            progressStr = `<div style="font-size: 11px; color: #4CAF50; font-weight: bold; margin-top: 4px;">✅ 条件達成！報告しよう</div>`;
+        } else {
+            const desc = q.desc;
+            let isStatQuest = false; let statVal = 0;
+            
+            if (desc.includes("賢さ") || desc.includes("知性")) { isStatQuest = true; statVal = hero.stats.intel; }
+            else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = hero.stats.power; }
+            else if (desc.includes("美しさ")) { isStatQuest = true; statVal = hero.stats.beauty; }
+            else if (desc.includes("素早さ")) { isStatQuest = true; statVal = hero.stats.speed; }
+
+            if (isStatQuest) {
+                // ★修正：大数値のフォーマット丸め(150.0Kなど)を回避するため、上昇量の差分のみを表示する！
+                let match = desc.match(/[＋\+](\d+)/); // 説明文から「＋〇〇」の数字を抽出
+                if (match) {
+                    let reqIncrease = parseInt(match[1], 10);
+                    let startVal = q.qVal - reqIncrease; // qValは目標の絶対値なので、そこから上昇量を引けば開始値になる
+                    let currentIncrease = Math.max(0, Math.floor(statVal - startVal));
+                    if (currentIncrease > reqIncrease) currentIncrease = reqIncrease; // 上限突破防止
+                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">上昇量: +${currentIncrease} / +${reqIncrease}</div>`;
+                } else {
+                    let currentVal = window.formatLargeNumber(statVal);
+                    let targetVal = window.formatLargeNumber(q.qVal);
+                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">現在の能力: ${currentVal} / 目標: ${targetVal}</div>`;
+                }
+            // ★修正：「もらってこよう」という表現でも正しくアイテムクエストとして判定させる！
+            } else if (desc.includes("集め") || desc.includes("持ってこよう") || desc.includes("もらってこよう")) {
+                let itemsStr = [];
+                if (desc.includes("良質な木材")) itemsStr.push(`良質木: ${hero.inventory.filter(i => i === 'high_wood').length} / 3`);
+                else if (desc.includes("木材")) itemsStr.push(`木材: ${hero.inventory.filter(i => i === 'wood').length} / ${desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)}`);
+                if (desc.includes("硬い石")) itemsStr.push(`硬い石: ${hero.inventory.filter(i => i === 'high_stone').length} / 3`);
+                else if (desc.includes("石")) itemsStr.push(`石: ${hero.inventory.filter(i => i === 'stone').length} / ${desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)}`);
+                if (desc.includes("練習用装備")) itemsStr.push(`練習用: ${hero.inventory.filter(i => i.includes('_practice_')).length} / 3`);
+                if (desc.includes("芸術品")) itemsStr.push(`芸術品: ${hero.inventory.filter(i => i.includes('_art_')).length} / 3`);
+                if (desc.includes("ヌシ")) itemsStr.push(`ヌシ: ${hero.inventory.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length} / 1`);
+                else if (desc.includes("魚")) itemsStr.push(`魚: ${hero.inventory.filter(i => typeof i === 'string' && i.startsWith('fish_')).length} / ${desc.includes("3匹") ? 3 : 1}`);
+                if (desc.includes("質のいい")) itemsStr.push(`上質野菜: ${hero.inventory.filter(i => typeof i === 'string' && i.startsWith('high_') && (i.includes('carrot') || i.includes('tomato') || i.includes('pepper'))).length} / 3`);
+                if (desc.includes("普通の試作料理")) itemsStr.push(`試作料理: ${hero.inventory.filter(i => i === 'food_practice_normal').length} / 3`);
+                if (desc.includes("究極の試作料理")) itemsStr.push(`究極料理: ${hero.inventory.filter(i => i === 'food_practice_great').length} / 3`);
+                if (desc.includes("練習用の図面")) itemsStr.push(`練習図面: ${hero.inventory.filter(i => i === 'build_practice_normal').length} / 3`);
+                if (desc.includes("建築模型")) itemsStr.push(`建築模型: ${hero.inventory.filter(i => i === 'build_practice_great').length} / 3`);
+
+                if (itemsStr.length > 0) progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">収集: ${itemsStr.join(' , ')}</div>`;
+            } else if (q.qVal >= 0) {
+                let reqCount = q.targetCount || "?";
+                if (!q.isBaitoQuest) {
+                    let match = desc.match(/(\d+)回/);
+                    reqCount = match ? match[1] : "?";
+                }
+                progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">進捗: ${q.qVal} / ${reqCount} 回完了</div>`;
+            }
+        }
+        
+        let qTitle = `📜 ${q.name}`;
+        let initialDisplay = openStates[qTitle] !== undefined 
+            ? openStates[qTitle] 
+            : (hero.apprentice.activeQuests.length > 2 ? 'none' : 'block');
+        
+        newHtml += `
+            <div style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: ${index < hero.apprentice.activeQuests.length - 1 ? '1px solid rgba(255,255,255,0.1)' : 'none'};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; cursor: pointer;" onclick="const el = this.nextElementSibling; el.style.display = el.style.display === 'none' ? 'block' : 'none'; const icon = this.querySelector('.acc-icon'); icon.innerText = el.style.display === 'none' ? '▼' : '▲';">
+                    <div style="flex: 1;">
+                        <div class="quest-title" style="font-size: 12px; font-weight: bold; color: ${isCleared ? '#4CAF50' : '#FFC107'};">${qTitle}</div>
+                        ${progressStr}
+                    </div>
+                    <div class="acc-icon" style="font-size: 10px; color: #aaa; padding: 4px;">${initialDisplay === 'none' ? '▼' : '▲'}</div>
+                </div>
+                <div class="quest-content" style="display: ${initialDisplay}; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #444;">
+                    <div style="font-size: 11px; color: #ccc; line-height: 1.4;">${q.desc}</div>
+                    <div style="font-size: 10px; color: #ffeb3b; margin-top: 4px; text-align: right;">※進行中...</div>
+                </div>
+            </div>
+        `;
+    });
+
+    hud.style.display = 'block';
+    list.style.maxHeight = '250px';
+    list.style.overflowY = 'auto';
+    list.style.paddingRight = '5px';
+    
+    list.innerHTML = newHtml;
+    list.scrollTop = currentScrollTop;
+
+    if (anyCleared) {
+        hud.style.border = "2px solid #4CAF50";
+        hud.style.boxShadow = "0 0 15px rgba(76, 175, 80, 0.4)";
+    } else {
+        hud.style.border = "1px solid rgba(255, 255, 255, 0.3)";
+        hud.style.boxShadow = "none";
     }
 };
 
@@ -4974,9 +5419,91 @@ window.updateQuestHUD = function() {
 
 // 2. クエストのキャンセル処理とセーブ処理の完全化
 window.confirmEncounter = function(isAccept) {
+    // ★追加：ダイアログを閉じる際に立ち絵をスッと消去する
+    const hideMasterImg = () => {
+        let masterImgBox = document.getElementById('encounter-master-img');
+        if (masterImgBox) {
+            masterImgBox.style.opacity = '0';
+            masterImgBox.style.transform = 'translateX(30px)';
+        }
+    };
+    hideMasterImg();
+
     if (currentEncounterMode === 'encounter_intro') {
-        window.openEncounterUI(currentEncounterMaster, savedEncounterMsg, 'encounter');
+        const mType = currentEncounterMaster;
+        const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
+        let isMastered = hero.apprentice && ((hero.apprentice.retired && hero.apprentice.retired[mType]) || (hero.apprentice.rank && hero.apprentice.rank[mType] >= 10));
+        
+        let greetingMsg = "";
+        
+        // ★修正：師匠ごとの口調に合わせた顔見せ時のセリフ
+        if (isMastered) {
+            if (mType === 'explore') greetingMsg = "「あら！あなたはあの時の...いや、違う子ね。でもその身のこなし、既に免許皆伝の域じゃない！いつでも遊びにいらっしゃい！」";
+            else if (mType === 'farming') greetingMsg = "「おや！君はあの時の...いや、違う子か。だがその構え、既に免許皆伝の域だね。いつでも遊びにおいで。」";
+            else if (mType === 'fishing') greetingMsg = "「おお！お前さんはあの時の...いや、違うか。だがその構え、既に免許皆伝の域だな！いつでも遊びに来な！」";
+            else if (mType === 'cooking') greetingMsg = "「おお！君はあの時の...いや、違うな！だがその構え、既に免許皆伝の域だ！いつでも飯を食いに来い！」";
+            else if (mType === 'smithing') greetingMsg = "「……お前はあの時の……いや、違うか。だがその構え、既に免許皆伝の域。……いつでも火にあたりに来い。」";
+            else if (mType === 'building') greetingMsg = "「おっ。君はあの時の...いや、違う子か。だがその構え、既に免許皆伝の域だな。いつでも見学に来てくれ。」";
+        } else {
+            if (mType === 'explore') greetingMsg = "「この周辺をキャンプ地にしようと思うの。準備ができたらまたいらっしゃい！」";
+            else if (mType === 'farming') greetingMsg = "「この辺りに畑を作ろうと思ってね。準備ができたらまたおいで。」";
+            else if (mType === 'fishing') greetingMsg = "「この辺りを釣り場にするぜ。準備ができたらまた来な！」";
+            else if (mType === 'cooking') greetingMsg = "「この辺りで屋台を開くぞ！準備ができたらまた来な！」";
+            else if (mType === 'smithing') greetingMsg = "「……この辺りに炉を構える。準備ができたら来い。」";
+            else if (mType === 'building') greetingMsg = "「この辺りを拠点にする。準備ができたらまた来てくれ。」";
+        }
+
+        window.openEncounterUI(mType, greetingMsg, 'greeting');
         return; 
+    }
+    
+    if (currentEncounterMode === 'greeting') {
+        const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
+        const mType = currentEncounterMaster;
+        
+        if (!hero.apprentice.metMasters) hero.apprentice.metMasters = [];
+        if (!hero.apprentice.metMasters.includes(mType)) hero.apprentice.metMasters.push(mType);
+
+        // 川を越えない安全な場所に拠点を配置するロジック
+        let tx = hero.x, ty = hero.y;
+        for(let i = 0; i < 100; i++) {
+            let cx = 50 + Math.random() * 700; let cy = 50 + Math.random() * 380;
+            // 川判定を避け、かつ水の上でない座標を探す
+            if (typeof hero.isWaterBetween === 'function' && !hero.isWaterBetween(hero.x, hero.y, cx, cy) && !hero.isPointOnWater(cx, cy)) {
+                tx = cx; ty = cy; break;
+            }
+        }
+        
+        let campId = mType + '_master_camp_' + Date.now();
+        let cType = 'tent'; let cName = '師匠のテント';
+        let isMobile = false; // ★追加
+        if (mType === 'smithing') { cType = 'blacksmith'; cName = '鍛冶師のキャンプ'; }
+        else if (mType === 'building') { cType = 'palms'; cName = '建築士のテント'; }
+        else if (mType === 'cooking') { cType = 'restaurant'; cName = '移動レストラン'; isMobile = true; } // ★修正
+        else if (mType === 'fishing') { cType = 'tent'; cName = '漁師の小屋'; }
+        else if (mType === 'explore') { cType = 'tent'; cName = '冒険家のキャンプ'; }
+        else if (mType === 'farming') { cType = 'farm'; cName = '農家の畑'; }
+        
+        if (typeof assets !== 'undefined') assets[campId] = { type: cType, name: cName, dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMobile: isMobile }; // ★修正
+
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+        const mName = masterNames[mType];
+        
+        // この言葉を覚えることで、仕様上自動で「記憶容量（getMaxVocabulary）」が+1されます
+        if (!hero.apprentice.learnedWords.includes(mName)) {
+            hero.apprentice.learnedWords.push(mName);
+            setTimeout(() => {
+                hero.message = `「${mName}」という言葉を覚えた！\n（チャットで呼びかけて会いに行こう）`; hero.messageTimer = 180;
+                if (typeof addFloatingText === 'function') addFloatingText(hero.x, hero.y - 60, "言葉を学習した！", "#FF9800");
+                if (typeof updateCommandHUD === 'function') updateCommandHUD();
+            }, 1000); 
+        }
+        
+        if (typeof saveGameData === 'function') saveGameData();
+        document.getElementById('encounterOverlay').classList.remove('active');
+        window.isGamePaused = false;
+        currentEncounterMaster = null; currentEncounterMode = '';
+        return;
     }
 
     document.getElementById('encounterOverlay').classList.remove('active');
@@ -4988,24 +5515,43 @@ window.confirmEncounter = function(isAccept) {
     const mType = currentEncounterMaster;
     
     if (currentEncounterMode === 'encounter') {
-        if (isAccept) hero.applyApprenticeship(mType);
+        if (isAccept) {
+            hero.applyApprenticeship(mType);
+            hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => !(q.masterType === mType && q.rank === 0));
+            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        }
         else { hero.message = "立ち去った..."; hero.messageTimer = 120; }
     } 
+    // ★追加：入門試験課題の受注
+    else if (currentEncounterMode === 'quest_offer_exam') {
+        if (isAccept) {
+            const qData = hero.getMasterQuestData(mType, 0);
+            hero.apprentice.activeQuests.push({ name: qData.name, desc: qData.desc, rank: 0, masterType: mType, qVal: 0 });
+            hero.message = "入門試験の課題を受けた！言葉を覚えよう！"; hero.messageTimer = 120;
+            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+            if (typeof saveGameData === 'function') saveGameData(); 
+        } else {
+            hero.message = "今はやめておこう..."; hero.messageTimer = 120;
+        }
+    }
     else if (currentEncounterMode === 'quest_offer') {
         if (isAccept) {
             const rank = hero.apprentice.rank[mType] || 1;
             const qData = hero.getMasterQuestData(mType, rank);
             qData.setup(); 
             
-            hero.apprentice.activeQuest = { name: qData.name, desc: qData.desc };
+            // ★修正：qVal を 0 ではなく、setup() で計算された正しい目標値をセットする！
+            let initialQVal = hero.apprentice.qVal !== undefined ? hero.apprentice.qVal : 0;
+            hero.apprentice.activeQuests.push({ name: qData.name, desc: qData.desc, rank: rank, masterType: mType, qVal: initialQVal });
+            hero.apprentice.questAcceptedAge = hero.age || 0;
+            hero.apprentice.lazyReportCount = 0;
+
             hero.message = "課題を受けた！頑張ろう！"; hero.messageTimer = 120;
         } else {
-            // ★修正：断った場合は確実に activeQuest を消去する
-            hero.apprentice.activeQuest = null;
             hero.message = "今はやめておこう..."; hero.messageTimer = 120;
         }
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
-        if (typeof saveGameData === 'function') saveGameData(); // 確実なセーブ
+        if (typeof saveGameData === 'function') saveGameData(); 
     }
     else if (currentEncounterMode === 'quest_not_clear') {
         hero.message = "引き続き課題を頑張ろう..."; hero.messageTimer = 120;
@@ -5014,20 +5560,10 @@ window.confirmEncounter = function(isAccept) {
         hero.apprentice.currentMaster = mType;
         hero.apprentice.rank[mType] = 1;
         hero.apprentice.activeQuest = null; // ★過去のバグデータを消去
-
-        if (mType === 'smithing') {
-            let tx = hero.x + 100; let ty = hero.y;
-            if (tx > 750) tx = hero.x - 100;
-            if (typeof hero.isPointOnWater === 'function' && hero.isPointOnWater(tx, ty)) tx = hero.x - 100; 
-            let campId = 'blacksmith_master_camp';
-            if (typeof assets !== 'undefined') assets[campId] = { type: 'blacksmith', name: '師匠のキャンプ', dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6 };
-        }
-        else if (mType === 'building') {
-            let tx = hero.x - 120; let ty = hero.y;
-            if (tx < 50) tx = hero.x + 120;
-            if (typeof hero.isPointOnWater === 'function' && hero.isPointOnWater(tx, ty)) tx = hero.x + 120;
-            let campId = 'building_master_camp';
-            if (typeof assets !== 'undefined') assets[campId] = { type: 'palms', name: '建築士のテント', dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6 };
+        
+        // ★追加：誰かに弟子入りした瞬間、受けていたすべての「入門試験（ランク0）」を破棄する！
+        if (hero.apprentice.activeQuests) {
+            hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.rank !== 0);
         }
         
         const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
@@ -5046,7 +5582,6 @@ window.confirmEncounter = function(isAccept) {
                 if (typeof updateCommandHUD === 'function') updateCommandHUD();
             }, 1000); 
         }
-        // ★修正：テントを生成した後は確実にセーブする！
         if (typeof saveGameData === 'function') saveGameData();
     }
     else if (currentEncounterMode === 'rank_up') {
@@ -5079,7 +5614,11 @@ window.confirmEncounter = function(isAccept) {
         }
     }
     else if (currentEncounterMode === 'excommunicate') {
-        hero.apprentice.isExcommunicated = true; hero.apprentice.currentMaster = null; hero.apprentice.activeQuest = null;
+        hero.apprentice.isExcommunicated = true; 
+        hero.apprentice.excommunicatedFrom = mType; 
+        hero.apprentice.exileTrainingCount = 0; 
+        hero.apprentice.currentMaster = null; 
+        hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.masterType !== mType);
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
         if (typeof saveGameData === 'function') saveGameData();
     }
@@ -6337,3 +6876,471 @@ window.quitGame = function() {
         }
     }
 };
+
+// ==========================================
+// ★ 修正：入門試験用の一問一答UI表示＆更新（師匠直接描画・完全解決版）
+// ==========================================
+window.openExamUI = function(masterType, task) {
+    let overlay = document.getElementById('examOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'examOverlay';
+        overlay.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:90000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; font-family:sans-serif;`;
+        document.body.appendChild(overlay);
+    }
+    
+    // ★大修正：余計なimgタグや2枚目のCanvasを全廃止！HTMLを極限までシンプルにしました。
+    overlay.innerHTML = `
+        <div style="width:700px; height:450px; position:relative; border:4px solid #FFD700; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.8); background:#333; overflow:hidden;">
+            <canvas id="examCanvas" width="700" height="450" style="position:absolute; top:0; left:0; width:100%; height:100%;"></canvas>
+            
+            <div id="exam-dialogue" style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); width:90%; background:rgba(0,0,0,0.85); border:2px solid #fff; border-radius:8px; padding:15px; text-align:center; font-size:18px; font-weight:bold; min-height:80px; display:flex; flex-direction:column; justify-content:center; z-index:20;">
+                試験開始...！
+            </div>
+        </div>
+        <div style="width:700px; margin-top:20px;">
+            <div style="background:#222; border:2px solid #555; border-radius:10px; height:24px; overflow:hidden;">
+                <div id="exam-progress-bar" style="background:linear-gradient(90deg, #FF9800, #FFC107); width:0%; height:100%; transition:width 0.2s;"></div>
+            </div>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+
+    const canvas = document.getElementById('examCanvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d'); 
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // 1. 背景の描画
+        let bgImgKey = 'field_bg'; let getCrop = (img) => { return {sx:0, sy:0, sw:img.width, sh:img.height}; };
+        if (masterType === 'explore' || masterType === 'building') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
+        else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
+        else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
+        else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
+        else if (masterType === 'cooking') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+
+        const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
+        if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
+            const crop = getCrop(bgImg); 
+            ctx.drawImage(bgImg, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = "#333"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        // 2. AIペットの描画（左側）
+        let skin = window.aiPet.currentSkin || 'robot'; 
+        if (typeof drawCharacterSprite === 'function') {
+            drawCharacterSprite(ctx, skin, canvas.width * 0.25, canvas.height / 2 + 30, 180, 180, false, 1.0);
+        }
+
+        // 3. 師匠の描画（★直接描画法：AIペットと同じキャンバスに描くから絶対にズレない！）
+        const masterSprites = {
+            'farming':  { img: "farmer_battle_enemy.png", sx: 758, sy: 0, sw: 1248, sh: 1536 },
+            'fishing':  { img: "fisherman_battle_enemy.png", sx: 839, sy: 0, sw: 1248, sh: 1536 },
+            'building': { img: "builder_battle_enemy.png", sx: 839, sy: 0, sw: 1248, sh: 1536 },
+            'smithing': { img: "smith_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
+            'cooking':  { img: "chef_battle_enemy.png", sx: 439, sy: 0, sw: 1766, sh: 1536 },
+            'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 }
+        };
+        let mData = masterSprites[masterType];
+        if (mData && mData.img) {
+            let tempImg = new Image();
+            tempImg.onload = function() {
+                let targetHeight = 250; // AIペット(180)より少し大きいくらいの適正サイズ
+                let scale = targetHeight / mData.sh;
+                let dw = mData.sw * scale;
+                let dh = mData.sh * scale;
+                
+                ctx.save();
+                // 座標指定：右側(x=550)の、AIと同じくらいの足元の高さ(y=340)に設定
+                ctx.translate(550, 340); 
+                ctx.scale(-1, 1); // 左右反転させてAIの方を向かせる
+                
+                // 中心が足元になるように描画
+                ctx.drawImage(tempImg, mData.sx, mData.sy, mData.sw, mData.sh, -dw/2, -dh, dw, dh);
+                ctx.restore();
+            };
+            tempImg.src = mData.img;
+        }
+    }
+};
+
+window.updateExamUI = function(task) {
+    const overlay = document.getElementById('examOverlay');
+    if (!overlay || overlay.style.display === 'none') {
+        if (task.maxDuration === task.duration + 1) window.openExamUI(task.masterType, task);
+        else return;
+    }
+    
+    const maxD = task.maxDuration; const curD = task.duration;
+    const percent = 100 - ((curD / maxD) * 100);
+    
+    let bar = document.getElementById('exam-progress-bar');
+    if(bar) bar.style.width = percent + '%';
+    
+    const kwData = window.EXAM_KEYWORDS[task.masterType];
+    const aiWords = window.aiPet.apprentice.learnedWords || [];
+    const dialogue = document.getElementById('exam-dialogue');
+    if (!dialogue || !kwData) return;
+
+    // ★追加：AIが知っている「正解の類義語」の中から、どれを答えるかを探し出す関数
+    const getAiAnswer = (index) => {
+        if (!kwData.accepts) return "えーっと…";
+        const found = kwData.accepts[index].find(w => aiWords.includes(w));
+        return found || "えーっと…";
+    };
+
+    let text = "";
+    if (percent < 15) { text = `<span style="color:#FFD700;">師匠:</span> 「よし、入門試験を始めるぞ！」`; } 
+    else if (percent < 35) {
+        let ans = getAiAnswer(0);
+        text = `<span style="color:#FFD700;">師匠:</span> 「第1問！ ${kwData.q1}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！」`;
+    } 
+    else if (percent < 45) { text = `<span style="color:#FFD700;">師匠:</span> 「ふむ…次だ！」`; } 
+    else if (percent < 65) {
+        let ans = getAiAnswer(1);
+        text = `<span style="color:#FFD700;">師匠:</span> 「第2問！ ${kwData.q2}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！」`;
+    } 
+    else if (percent < 75) { text = `<span style="color:#FFD700;">師匠:</span> 「よし、最後の問題だ！」`; } 
+    else if (percent < 95) {
+        let ans = getAiAnswer(2);
+        text = `<span style="color:#FFD700;">師匠:</span> 「第3問！ ${kwData.q3}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！！」`;
+    } 
+    else { text = `<span style="color:#FFD700;">師匠:</span> 「……結果は！」`; }
+    
+    dialogue.innerHTML = text;
+    if (curD <= 0) { overlay.style.display = 'none'; overlay.remove(); }
+};
+
+// ==========================================
+// ★ 修正：師匠訪問時の一括報告（バイト＆試験の同時精算）パッチ
+// ==========================================
+const _origCheckMasterVisitExam = window.checkMasterVisit;
+window.checkMasterVisit = function(masterType) {
+    if (masterType) window._lastVisitedMaster = masterType;
+
+    const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
+    if (!hero || !hero.apprentice) return;
+
+    // ★修正：世代交代のクリーンアップ（先代の負の遺産や中途半端な進行度をすべて白紙にする！）
+    if (hero.apprentice.lastGenId !== hero.generation) {
+        hero.apprentice.attempts = {};
+        hero.apprentice.excommunicatedFrom = null;
+        hero.apprentice.isExcommunicated = false;
+        hero.apprentice.exileTrainingCount = 0;
+        
+        // ★大修正：免許皆伝（ランク10）以外のランクはすべて「0（入門前）」にリセットする！
+        if (hero.apprentice.rank) {
+            for (let m in hero.apprentice.rank) {
+                if (hero.apprentice.rank[m] < 10) {
+                    hero.apprentice.rank[m] = 0;
+                }
+            }
+        }
+        // ★追加：先代の「リタイア（中途半端にやめた履歴）」も引き継がずに白紙に戻す
+        hero.apprentice.retired = {};
+        
+        hero.apprentice.lastGenId = hero.generation;
+    }
+    
+    const app = hero.apprentice;
+    if (!app.activeQuests) app.activeQuests = [];
+
+    // 自動修復パッチ
+    if (app.attempts && app.attempts[masterType] >= 3 && app.retired && app.retired[masterType]) {
+        delete app.retired[masterType];
+    }
+    
+    let isApprentice = (app.currentMaster === masterType) || (app.retired && app.retired[masterType]) || (app.rank && app.rank[masterType] >= 10);
+    
+    // ★修正：弟子入り中や皆伝済みの場合は、過去に3回失敗していても「見放された（出禁）」状態にしない！
+    let isBanned = (app.excommunicatedFrom === masterType) || (!isApprentice && app.attempts && app.attempts[masterType] >= 3);
+    
+    // 出禁判定
+    if (isBanned) {
+        let rejectMsg = "";
+        if (masterType === 'explore') rejectMsg = (app.excommunicatedFrom === masterType) ? "「あなたに教えることはもう何もないわ。帰りなさい。」" : "「ごめんなさいね、君には見込みがないわ。他を当たってちょうだい。」";
+        else if (masterType === 'farming') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もないよ。帰っておくれ。」" : "「君には見込みがないかな。他を当たっておくれ。」";
+        else if (masterType === 'fishing') rejectMsg = (app.excommunicatedFrom === masterType) ? "「お前さんに教えることはもう何もないぜ。帰りな！」" : "「お前さんには見込みがないな。他を当たってくれや！」";
+        else if (masterType === 'cooking') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もない！帰れ！」" : "「君には見込みがない！他を当たってくれ！」";
+        else if (masterType === 'smithing') rejectMsg = (app.excommunicatedFrom === masterType) ? "「……お前に教えることはもう何もない。帰れ。」" : "「……君には見込みがない。他を当たれ。」";
+        else if (masterType === 'building') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もない。帰ってくれ。」" : "「君には見込みがないな。他を当たってくれ。」";
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, rejectMsg, 'banned');
+        return;
+    }
+
+    // この師匠から受けているクエストを全て取得
+    const myQuests = app.activeQuests.filter(q => q.masterType === masterType);
+
+    if (!isApprentice && myQuests.length === 0) {
+        // 未入門 ＆ クエストなし
+        let examMsg = "";
+        let baseWord = "";
+        if (masterType === 'explore') baseWord = "探検"; else if (masterType === 'farming') baseWord = "農業"; else if (masterType === 'fishing') baseWord = "釣り";
+        else if (masterType === 'cooking') baseWord = "料理"; else if (masterType === 'smithing') baseWord = "鍛冶"; else if (masterType === 'building') baseWord = "建築";
+
+        let words = app.learnedWords || [];
+        if (!words.includes(baseWord)) {
+            if (masterType === 'explore') examMsg = `「ごめんなさいね。まずは『${baseWord}』とは何か、その基本を知ってから来てちょうだい。」`;
+            else if (masterType === 'farming') examMsg = `「おや、まずは『${baseWord}』の何たるかを知ってから来るといいよ。」`;
+            else if (masterType === 'fishing') examMsg = `「坊主、まずは『${baseWord}』の何たるかを知ってから出直してきな！」`;
+            else if (masterType === 'cooking') examMsg = `「ダメだな！まずは『${baseWord}』の何たるかを知ってから出直してこい！」`;
+            else if (masterType === 'smithing') examMsg = `「……まずは『${baseWord}』の何たるかを知ってから来い。」`;
+            else if (masterType === 'building') examMsg = `「悪いが、まずは『${baseWord}』の基本を知ってから来てくれ。」`;
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
+        } else {
+            let offerMsg = "";
+            if (masterType === 'explore') offerMsg = `「私に弟子入りしたいのね？ よし、ではこの課題『入門試験の準備』をこなしてみせなさい！」`;
+            else if (masterType === 'farming') offerMsg = `「私に弟子入りしたいのかい？ よし、ではこの課題『入門試験の準備』をこなしてみせなさい。」`;
+            else if (masterType === 'fishing') offerMsg = `「俺に弟子入りしたいのか？ よし、ではこの課題『入門試験の準備』をこなしてみせな！」`;
+            else if (masterType === 'cooking') offerMsg = `「私に弟子入りしたいのか！ よし、ではこの課題『入門試験の準備』をこなしてみせろ！」`;
+            else if (masterType === 'smithing') offerMsg = `「……俺に弟子入りしたいのか。よし、ではこの課題『入門試験の準備』をこなしてみせろ。」`;
+            else if (masterType === 'building') offerMsg = `「私に弟子入りしたいのか？ よし、ではこの課題『入門試験の準備』をこなしてみせよ。」`;
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer_exam');
+        }
+        return;
+    }
+
+    if (myQuests.length > 0) {
+        // ★ 一括報告システムの構築
+        let clearedQuests = [];
+        let notClearedRegularQuests = []; // ★追加：未達成の「本業」の課題
+        let notClearedBaitoQuests = [];   // ★追加：未達成の「バイト」
+        let hasRankZero = false;
+
+        myQuests.forEach(q => {
+            if (q.rank === 0) {
+                hasRankZero = true; // 入門試験本番待ち
+            } else if (q.isBaitoQuest) {
+                if (q.qVal >= q.targetCount) clearedQuests.push(q);
+                else notClearedBaitoQuests.push(q);
+            } else {
+                const qData = hero.getMasterQuestData(masterType, q.rank);
+                app.qVal = q.qVal;
+                if (qData.check()) clearedQuests.push(q);
+                else notClearedRegularQuests.push(q);
+            }
+        });
+
+        // 1. 入門試験の準備中なら試験本番へ
+        if (hasRankZero) {
+            let examMsg = "";
+            if (masterType === 'explore') examMsg = `「言葉は覚えてきた？ 準備ができたなら、いざ試験開始よ！」`;
+            else if (masterType === 'farming') examMsg = `「言葉は覚えてきたかい？ 準備ができたなら、試験を始めようか。」`;
+            else if (masterType === 'fishing') examMsg = `「言葉は覚えてきたか？ 準備ができたなら、試験開始だぜ！」`;
+            else if (masterType === 'cooking') examMsg = `「言葉は覚えてきたか！ 準備ができたなら、試験開始だ！」`;
+            else if (masterType === 'smithing') examMsg = `「……言葉は覚えてきたな。準備ができたなら、試験を始めるぞ。」`;
+            else if (masterType === 'building') examMsg = `「言葉は覚えてきたな？ 準備ができたなら、試験開始だ。」`;
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
+            return;
+        }
+
+        // 2. 達成済みのクエストがあれば一括精算！
+        if (clearedQuests.length > 0) {
+            let totalGold = 0;
+            let reportMsg = "";
+            let isExamCleared = false;
+            let examRank = 1;
+
+            clearedQuests.forEach(q => {
+                if (q.isBaitoQuest) {
+                    let gold = 0; let item = null;
+                    if (masterType === 'farming') { gold = 30; item = 'carrot'; }
+                    else if (masterType === 'fishing') { gold = 30; item = 'fish_sardine'; }
+                    else if (masterType === 'cooking') { gold = 40; item = 'food_practice_normal'; }
+                    else if (masterType === 'smithing') { gold = 40; item = Math.random() < 0.5 ? 'iron' : 'scrap_metal'; }
+                    else if (masterType === 'building') { 
+                        gold = 40; 
+                        let r = Math.random();
+                        // ★追加：25%の高確率で大成功品「精巧な建築模型」ができる！
+                        if (r < 0.25) item = 'build_practice_great'; 
+                        else if (r < 0.60) item = 'build_practice_normal'; 
+                        else if (r < 0.80) item = 'wood';
+                        else item = 'stone';
+                    }
+                    else if (masterType === 'explore') { gold = 30; item = Math.random() < 0.2 ? 'crystal' : 'item_berry'; }
+                    
+                    totalGold += gold;
+                    if (item) { 
+                        if (!hero.inventory) hero.inventory = []; 
+                        hero.inventory.push(item); 
+                        
+                        let itemName = "素材";
+                        if(item === 'build_practice_great') itemName = "精巧な建築模型"; // ★追加
+                        else if(item === 'build_practice_normal') itemName = "練習用の図面";
+                        else if(item === 'scrap_metal') itemName = "鉄くず";
+                        else if(item === 'iron') itemName = "鉄";
+                        else if(item === 'wood') itemName = "木材";
+                        else if(item === 'stone') itemName = "石";
+                        else if(item === 'carrot') itemName = "ニンジン";
+                        else if(item === 'fish_sardine') itemName = "魚";
+                        else if(item === 'food_practice_normal') itemName = "試作料理";
+                        else if(item === 'crystal') itemName = "クリスタル";
+                        else if(item === 'item_berry') itemName = "木の実";
+                        
+                        reportMsg += `「手伝い助かったぞ！報酬の ${gold}G と『${itemName}』を持っていけ！」\n`;
+                    } else {
+                        reportMsg += `「手伝い助かったぞ！報酬の ${gold}G を受け取ってくれ！」\n`;
+                    }
+                } else {
+                    isExamCleared = true;
+                    examRank = q.rank;
+                    const qData = hero.getMasterQuestData(masterType, q.rank);
+                    if (typeof qData.onClear === 'function') qData.onClear(); 
+                }
+                app.activeQuests = app.activeQuests.filter(activeQ => activeQ !== q);
+            });
+
+            if (totalGold > 0) {
+                hero.gold += totalGold;
+                if (typeof addFloatingText === 'function') addFloatingText(hero.x, hero.y - 40, `+${totalGold} G`, "#FFD700");
+                if (typeof updateStatUI === 'function') updateStatUI();
+            }
+
+            if (isExamCleared) {
+                if (examRank >= 9) {
+                    if (masterType === 'explore') reportMsg += "「見事よ！あなたに教えることはもう何もないわ...免許皆伝ね！」";
+                    else if (masterType === 'farming') reportMsg += "「見事だ！君に教えることはもう何もない...免許皆伝だよ！」";
+                    else if (masterType === 'fishing') reportMsg += "「見事だ！お前さんに教えることはもう何もないぜ...免許皆伝だ！」";
+                    else if (masterType === 'cooking') reportMsg += "「見事だ！君に教えることはもう何もない！免許皆伝だ！」";
+                    else if (masterType === 'smithing') reportMsg += "「……見事だ。お前に教えることはもう何もない。免許皆伝だ。」";
+                    else if (masterType === 'building') reportMsg += "「見事だな！君に教えることはもう何もない...免許皆伝だ！」";
+                    if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
+                } else {
+                    if (masterType === 'explore') reportMsg += `「よし、課題クリアね！あなたのランクが ${examRank + 1} に上がったわよ！」`;
+                    else if (masterType === 'farming') reportMsg += `「よし、課題クリアだね！君のランクが ${examRank + 1} に上がったよ！」`;
+                    else if (masterType === 'fishing') reportMsg += `「よし、課題クリアだ！お前さんのランクが ${examRank + 1} に上がったぜ！」`;
+                    else if (masterType === 'cooking') reportMsg += `「よし、課題クリアだ！君のランクが ${examRank + 1} に上がったぞ！」`;
+                    else if (masterType === 'smithing') reportMsg += `「……よし、課題クリアだ。お前のランクが ${examRank + 1} に上がったぞ。」`;
+                    else if (masterType === 'building') reportMsg += `「よし、課題クリアだな！君のランクが ${examRank + 1} に上がったぞ！」`;
+                    if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
+                }
+            } else {
+                if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'quest_report');
+            }
+
+            // ★追加：バイトを報告したなら「真面目に手伝っている」とみなし、本業の期限を延長（リセット）する！
+            app.questAcceptedAge = hero.age || 0;
+
+            return;
+        }
+
+        // 3. 未達成の「本業の課題」がある場合の処理
+        if (notClearedRegularQuests.length > 0) {
+            // ★修正：話しかけただけで lazyReportCount を増やす理不尽仕様を廃止！
+            
+            let notClearMsg = "";
+            if (masterType === 'explore') notClearMsg = `「どうしたの？まだ課題は終わっていないようだけど...」`;
+            else if (masterType === 'farming') notClearMsg = `「どうしたんだい？まだ頼んだことは終わっていないようだけれど...」`;
+            else if (masterType === 'fishing') notClearMsg = `「どうした？まだ頼んだことは終わっていないようだが...」`;
+            else if (masterType === 'cooking') notClearMsg = `「どうした！まだ頼んだことは終わっていないようだが！」`;
+            else if (masterType === 'smithing') notClearMsg = `「……どうした。まだ頼んだことは終わっていないようだが。」`;
+            else if (masterType === 'building') notClearMsg = `「どうした？まだ頼んだことは終わっていないようだが...」`;
+            
+            // クエストを受けてから何年経過したかだけを見る
+            let yearsPassed = (hero.age || 0) - (app.questAcceptedAge || 0);
+            
+            if (yearsPassed >= 2) {
+                let reason = "";
+                if (masterType === 'explore') reason = "「何年待たせる気！？あなたのように不真面目な者に教えることは何もないわ！破門よ！」";
+                else if (masterType === 'farming') reason = "「何年待たせるんだい。君のように不真面目な者に教えることは何もないよ。破門だ。」";
+                else if (masterType === 'fishing') reason = "「何年待たせる気だ！お前さんのように不真面目な者に教えることは何もないぜ！破門だ！」";
+                else if (masterType === 'cooking') reason = "「何年待たせる気だ！君のように不真面目な者に教えることは何もない！破門だ！」";
+                else if (masterType === 'smithing') reason = "「……何年待たせる気だ。貴様のように不真面目な者に教えることは何もない。破門だ。」";
+                else if (masterType === 'building') reason = "「何年待たせる気だ！君のように不真面目な者に教えることは何もないぞ！破門だ！」";
+                if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reason, 'excommunicate');
+                return;
+            }
+            
+            // まだ期限内なら、ただの「進行中」の会話としてUIを開く（ここからバイトも受けられる）
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, notClearMsg, 'quest_not_clear');
+            return;
+        }
+    }
+
+    // ★追加：本業のオファーの前に、すでに免許皆伝（ランク10）かどうかを判定！
+    let isMastered = (app.retired && app.retired[masterType]) || (app.rank && app.rank[masterType] >= 10);
+    if (isMastered) {
+        let msg = "";
+        if (masterType === 'explore') msg = "「よく来たわね！ もう教えることはないけれど、手伝いならいつでも歓迎よ！」";
+        else if (masterType === 'farming') msg = "「おお、よく来てくれたね！ もう教えることはないが、手伝いならいつでも大歓迎だよ！」";
+        else if (masterType === 'fishing') msg = "「おう！ よく来たな！ お前さんに教えることはもうねえが、手伝いならいつでも歓迎だぜ！」";
+        else if (masterType === 'cooking') msg = "「おお、よく来たな！ もう教えることはないが、手伝いならいつでも歓迎するぞ！」";
+        else if (masterType === 'smithing') msg = "「……よく来たな。もう教えることはないが、手伝いなら歓迎するぞ。」";
+        else if (masterType === 'building') msg = "「おお、よく来たな！ もう教えることはないが、手伝いならいつでも歓迎だぞ！」";
+        
+        // ★新しいモード「graduate_visit（皆伝者の訪問）」でUIを開く
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
+        return;
+    }
+
+    // 4. 本業のクエストがない場合は新規オファー（バイト中であっても課題を受けられる！）
+    const rank = app.rank[masterType] || 1;
+    const qData = hero.getMasterQuestData(masterType, rank);
+    
+    // バイト中かどうかで少しセリフを変える
+    let hasBaito = app.activeQuests && app.activeQuests.some(q => q.masterType === masterType && q.isBaitoQuest);
+    
+    let offerMsg = "";
+    if (hasBaito) {
+        if (masterType === 'explore') offerMsg = `「手伝いもよろしく頼むわね。ところで新たなる課題『${qData.name}』を命ずるわ！\n内容：${qData.desc}」`;
+        else if (masterType === 'farming') offerMsg = `「手伝いも進めておいておくれ。ところで新たなる課題『${qData.name}』を出すよ。\n内容：${qData.desc}」`;
+        else if (masterType === 'fishing') offerMsg = `「手伝いも頼むぜ！さて、新たなる課題『${qData.name}』を命ずるぜ！\n内容：${qData.desc}」`;
+        else if (masterType === 'cooking') offerMsg = `「手伝いも頼むぞ！さて、新たなる課題『${qData.name}』を命ずる！\n内容：${qData.desc}」`;
+        else if (masterType === 'smithing') offerMsg = `「……手伝いも頼む。さて、新たなる課題『${qData.name}』を命ずる。\n内容：${qData.desc}」`;
+        else if (masterType === 'building') offerMsg = `「手伝いもよろしく頼むぞ。さて、新たなる課題『${qData.name}』を命ずるぞ。\n内容：${qData.desc}」`;
+    } else {
+        if (masterType === 'explore') offerMsg = `「新たなる課題『${qData.name}』を命ずるわ！\n内容：${qData.desc}」`;
+        else if (masterType === 'farming') offerMsg = `「新たなる課題『${qData.name}』を出すよ。\n内容：${qData.desc}」`;
+        else if (masterType === 'fishing') offerMsg = `「新たなる課題『${qData.name}』を命ずるぜ！\n内容：${qData.desc}」`;
+        else if (masterType === 'cooking') offerMsg = `「新たなる課題『${qData.name}』を命ずる！\n内容：${qData.desc}」`;
+        else if (masterType === 'smithing') offerMsg = `「……新たなる課題『${qData.name}』を命ずる。\n内容：${qData.desc}」`;
+        else if (masterType === 'building') offerMsg = `「新たなる課題『${qData.name}』を命ずるぞ。\n内容：${qData.desc}」`;
+    }
+    
+    if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer');
+};
+
+// ==========================================
+// ★ チャット欄の絶対防衛（フォーカス強奪防止）パッチ
+// ==========================================
+(function() {
+    const input = document.getElementById('chatInput');
+    // 入力欄がない、または既にハック済みならスキップ
+    if (!input || input._isFocusHijacked) return;
+    
+    // 元の focus メソッドを保存
+    const originalFocus = input.focus;
+    window._blockChatFocus = false;
+
+    // 画面上のUI（保護エリア）を触った瞬間に、フォーカスを強制的に0.5秒間ロックする
+    document.addEventListener('mousedown', function(e) {
+        const protectedAreas = [
+            '#questHUD', '#questListHUD', '.panel-view', '#commandHUD', '#aiStatus',
+            '#encounterOverlay', '#examOverlay', '#shop-management-ui', '#player-shop-ui', '#recipe-book-overlay',
+            '#tcg-auto-build-modal', '#tcg-battle-ui', '#tcg-main-menu', '#tcg-online-lobby', '#tcg-deck-builder',
+            '#in-game-tutorial', 'BUTTON', 'SELECT', 'INPUT'
+        ];
+
+        for (let selector of protectedAreas) {
+            if (e.target.closest(selector)) {
+                window._blockChatFocus = true;
+                clearTimeout(window._unblockTimer);
+                // 0.5秒後にロック解除
+                window._unblockTimer = setTimeout(() => { window._blockChatFocus = false; }, 500);
+                return;
+            }
+        }
+    }, true); // true = キャプチャフェーズ（他のリスナーより先に最優先で判定する）
+
+    // input.focus() の呼び出し自体を乗っ取る
+    input.focus = function() {
+        if (window._blockChatFocus) {
+            // UI操作中の場合は、スクリプトからの focus() 呼び出しをすべて無視する！
+            return; 
+        }
+        // ブロックされていなければ本来のフォーカス処理を実行
+        originalFocus.apply(this, arguments);
+    };
+    input._isFocusHijacked = true;
+})();
