@@ -2279,8 +2279,8 @@ const itemCatalog = {
     carrot: { name: "ニンジン", type: 'ingredient', value: 30, desc: "料理の定番食材" },
     pepper: { name: "ピーマン", type: 'ingredient', value: 30, desc: "ビタミン豊富" },
     tomato: { name: "トマト", type: 'ingredient', value: 40, desc: "みずみずしい" },
-    dead_crop: { name: "枯れた野菜", type: 'material', value: 1, desc: "枯れてしまった..." },
-    eaten_crop: { name: "食べられた野菜", type: 'food', value: 2, stats: { hunger: 5 }, desc: "食い荒らされた残骸。" },
+    dead_crop: { name: "枯れた野菜", type: 'food', value: 1, stats: { hunger: 5 }, quality: 'bad', desc: "枯れてしまった..." },
+    eaten_crop: { name: "食べられた野菜", type: 'food', value: 2, stats: { hunger: 5 }, quality: 'bad', desc: "食い荒らされた残骸。" },
     high_carrot: { name: "質のいいニンジン", type: 'ingredient', value: 100, desc: "大成功！ツヤツヤで甘い！" },
     high_pepper: { name: "質のいいピーマン", type: 'ingredient', value: 100, desc: "大成功！旨味が詰まった高級品！" },
     high_tomato: { name: "質のいいトマト", type: 'ingredient', value: 150, desc: "大成功！フルーツのようなトマト！" },
@@ -2302,7 +2302,7 @@ const itemCatalog = {
     fish_saury: { name: "サンマ", type: 'food', stats: { hunger: 15, intel: 2 }, value: 80, desc: "秋の味覚。" },
     fish_boss_river: { name: '川のヌシ', type: 'food', value: 800, desc: '川の主と呼ばれる巨大な淡水魚。釣り上げるには相当な腕力が必要。' },
     fish_boss_sea: { name: '海のヌシ', type: 'food', value: 1000, desc: '海を統べる伝説の巨大魚。市場に出せば途方もない高値がつく。' },
-    burnt_food: { name: "焦げた料理", type: 'food', value: 1, stats: { mood: -5, energy: 5 }, desc: "失敗作。" },
+    burnt_food: { name: "焦げた料理", type: 'food', value: 1, stats: { mood: -5, energy: 5 }, quality: 'bad', desc: "失敗作。" },
     scrap_metal: { name: "鉄くず", type: 'material', value: 5, desc: "鍛冶の失敗作" },
     bad_sword: { name: "なまくら剣", type: 'equip', stats: { power: 5 }, value: 50, desc: "切れ味が悪い" },
     dish_salad: { name: "フレッシュサラダ", type: 'dish', stats: { mood: 10, power: 2 }, value: 80, desc: "シャキシャキ" },
@@ -2343,7 +2343,16 @@ const itemCatalog = {
     item_bread: { name: '大きなパン', type: 'food', value: 150, hungerRec: 50, energyRec: 0, desc: 'ふっくら焼き上がった大きなパン。お腹がいっぱいの時に食べると、満腹度の上限が少し増える。' },
     item_scroll_identify: { name: '識別の巻物', type: 'scroll', value: 100, desc: 'アイテムの正体を完全に見破る巻物。' },
     item_seed_mystery: { name: "謎の種", type: "consumable", hp: 5, hunger: 5, traits: [], desc: "土に植えると育つかもしれない種。" },
-    item_scroll_wet: { name: "濡れた巻物", type: "consumable", hp: 0, hunger: 0, traits: [], desc: "水浸しになって読めなくなった巻物。" }
+    item_scroll_wet: { name: "濡れた巻物", type: "consumable", hp: 0, hunger: 0, traits: [], desc: "水浸しになって読めなくなった巻物。" },
+    rotten_fish: { name: "腐った魚", type: 'food', value: 1, stats: { hunger: 5, mood: -10 }, quality: 'bad', desc: "悪臭を放っている生魚。" },
+    rotten_food: { name: "腐った料理", type: 'food', value: 1, stats: { hunger: 5, mood: -15 }, quality: 'bad', desc: "糸を引いている料理。" },
+    // ★追加: 腐った野菜
+    rotten_veg: { name: "腐った野菜", type: 'food', value: 1, stats: { hunger: 5, mood: -10 }, quality: 'bad', desc: "ドロドロに溶けかかっている野菜。" },
+    item_medicine_cure: { name: "特効薬", type: 'medicine', value: 300, desc: "どんな病気も治すが、強い副作用で寿命が削られる劇薬。" },
+    // ★統合：救済措置アイテム
+    item_berry: { name: '野イチゴ', type: 'food', value: 2, stats: { hunger: 15, energy: 5 }, desc: '道端で見つけた小さなイチゴ。少しお腹が膨れる。' },
+    item_lunchbox: { name: '師匠のお弁当', type: 'food', value: 0, stats: { hunger: 80, energy: 50, mood: 20 }, desc: '師匠からの差し入れ。愛情と栄養がたっぷり！' },
+    item_secret_book: { name: '達人の秘伝書', type: 'book', value: 1000, desc: '前世の知識と技術が詰まった本。読むとステータスが上がるかも。' }
 };
 
 const riverFishingTable = {
@@ -2552,8 +2561,9 @@ const charaTraits = {
 };
 
 const translations = { 
-    ja: { gen: "世代", age: "年齢", energy: "体力", hunger: "満腹", intel: "賢さ", power: "活力", mood: "機嫌", beauty: "美しさ", speed: "素早さ", type: "性格", gold: "所持金", trait: "特性", weather: "天気", time: "日時" }, 
-    en: { gen: "GEN", age: "AGE", energy: "ENERGY", hunger: "HUNGER", intel: "INTEL", power: "POWER", mood: "MOOD", beauty: "BEAUTY", speed: "SPEED", type: "TYPE", gold: "GOLD", trait: "TRAIT", weather: "WEATHER", time: "TIME" } 
+    // ★それぞれ最後に health を追加
+    ja: { gen: "世代", age: "年齢", energy: "体力", hunger: "満腹", intel: "賢さ", power: "活力", mood: "機嫌", beauty: "美しさ", speed: "素早さ", type: "性格", gold: "所持金", trait: "特性", weather: "天気", time: "日時", health: "健康" }, 
+    en: { gen: "GEN", age: "AGE", energy: "ENERGY", hunger: "HUNGER", intel: "INTEL", power: "POWER", mood: "MOOD", beauty: "BEAUTY", speed: "SPEED", type: "TYPE", gold: "GOLD", trait: "TRAIT", weather: "WEATHER", time: "TIME", health: "HEALTH" } 
 };
 
 const personalityQuestions = [

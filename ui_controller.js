@@ -81,6 +81,7 @@ function applyTranslations() {
         'label-gen': trans.gen, 'label-age': trans.age, 'label-energy': trans.energy, 'label-hunger': trans.hunger,
         'label-intel': trans.intel, 'label-power': trans.power, 'label-mood': trans.mood, 'label-type': trans.type,
         'label-gold': trans.gold, 'label-beauty': trans.beauty, 'label-speed': trans.speed, 'label-trait': trans.trait, 'label-weather': trans.weather, 'label-time': trans.time || "日時",
+        'label-health': trans.health || "健康", // ★追加
         'label-detail-beauty': trans.beauty,
         'label-detail-speed': trans.speed
     };
@@ -535,7 +536,8 @@ function openInventoryPanel() {
     // ==========================================
     // ★ 右ペインに詳細を描画する関数
     // ==========================================
-    const showDetails = (itemKey, count, isGiven) => {
+    // ★修正：age(鮮度)の引数を追加
+    const showDetails = (itemKey, count, isGiven, age = 0) => {
         let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(itemKey) : null;
         let parsed = typeof window.parseItemString === 'function' ? window.parseItemString(itemKey) : { baseId: itemKey, seals: [] };
         let baseData = typeof itemCatalog !== 'undefined' && itemCatalog[parsed.baseId] ? itemCatalog[parsed.baseId] : null;
@@ -545,8 +547,29 @@ function openInventoryPanel() {
         let nameColor = isGiven ? '#FFD700' : (eff && eff.equipType ? '#00e676' : '#FFF');
         
         let html = `<div style="font-size:15px; font-weight:bold; color:${nameColor}; margin-bottom:5px; line-height:1.3; word-break:break-word;">${isGiven ? '[支給品] ' : ''}${itemName}</div>`;
-        html += `<div style="font-size:12px; color:#aaa; margin-bottom:10px; border-bottom:1px solid #444; padding-bottom:5px;">所持数: x${count}</div>`;
+        html += `<div style="font-size:12px; color:#aaa; margin-bottom:5px; border-bottom:1px solid #444; padding-bottom:5px;">所持数: x${count}</div>`;
         
+        // ★完全修正：腐るアイテム(food, ingredient, dish)かどうか判定し、専用の鮮度バッジを表示！
+        const isPerishable = baseData && ['food', 'ingredient', 'dish'].includes(baseData.type);
+        
+        if (!isGiven && isPerishable) {
+            let ageText = "";
+            let ageColor = "";
+            if (age === 0) {
+                ageText = "✨ 鮮度: 採れたて";
+                ageColor = "#00e676"; // 緑
+            } else if (age >= 8) {
+                ageText = `⚠️ 鮮度: 腐敗寸前 (${age}時間経過)`;
+                ageColor = "#ff5252"; // 赤
+            } else {
+                ageText = `🕒 鮮度: やや落ち (${age}時間経過)`;
+                ageColor = "#ffb300"; // オレンジ
+            }
+            html += `<div style="font-size:11px; font-weight:bold; color:${ageColor}; margin-bottom:10px; background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:4px; display:inline-block; border:1px solid ${ageColor}55;">${ageText}</div><br>`;
+        } else {
+            html += `<div style="margin-bottom:10px;"></div>`;
+        }
+
         if (eff) {
             let statsHtml = `<div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:10px;">`;
             if (eff.atk > 0) statsHtml += `<span style="font-size:12px; background:rgba(255,82,82,0.1); color:#ff5252; padding:3px 6px; border-radius:4px; border:1px solid #ff5252;">攻撃力 ${eff.atk}</span>`;
@@ -576,19 +599,26 @@ function openInventoryPanel() {
     // ==========================================
     // ★ 左ペインのリストアイテムを生成する関数
     // ==========================================
-    const createItemRow = (k, count, isGiven) => {
+    // ★修正：age(鮮度)の引数を追加
+    const createItemRow = (k, count, isGiven, age = 0) => {
         let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(k) : null;
         let baseId = typeof window.parseItemString === 'function' ? window.parseItemString(k).baseId : k;
         let baseData = typeof itemCatalog !== 'undefined' && itemCatalog[baseId] ? itemCatalog[baseId] : null;
         
         let itemName = eff ? eff.name : (baseData ? baseData.name : k);
         
+        // ★修正：腐るアイテムの場合、リスト一覧の時点でも「✨」や「⚠️」のアイコンをつけてあげる
+        let ageMarker = "";
+        const isPerishable = baseData && ['food', 'ingredient', 'dish'].includes(baseData.type);
+        if (!isGiven && isPerishable) {
+            if (age >= 8) ageMarker = " <span style='font-size:10px;'>⚠️</span>";
+            else if (age === 0) ageMarker = " <span style='font-size:10px;'>✨</span>";
+        }
+        
         const d = document.createElement('div'); 
         d.className = 'panel-list-item';
         d.style.cursor = 'pointer';
         d.style.transition = 'all 0.2s';
-        
-        // 多言語化と長い印に対応するための折り返し設定
         d.style.whiteSpace = 'normal';
         d.style.wordBreak = 'break-word';
         d.style.lineHeight = '1.4';
@@ -603,14 +633,13 @@ function openInventoryPanel() {
         }
         
         d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px; color:${isGiven ? '#FFD700' : '#ddd'};">
-            <span style="flex:1; padding-right:5px;">${isGiven ? '[支給品] ' : ''}${itemName}</span> 
+            <span style="flex:1; padding-right:5px;">${isGiven ? '[支給品] ' : ''}${itemName}${ageMarker}</span> 
             <span style="color:${isGiven ? '#FFD700' : '#4CAF50'}; white-space:nowrap; align-self:flex-start;">x${count}</span>
         </div>`;
         
         d.onmouseover = () => { d.style.filter = 'brightness(1.3)'; d.style.transform = 'translateX(2px)'; };
         d.onmouseout = () => { d.style.filter = 'none'; d.style.transform = 'translateX(0)'; };
         d.onclick = () => {
-            // 選択状態の強調
             Array.from(leftPane.children).forEach(child => {
                 child.style.backgroundColor = child.dataset.given === 'true' ? 'rgba(255, 215, 0, 0.1)' : '';
                 child.style.borderLeftColor = child.dataset.given === 'true' ? '#FFD700' : 'transparent';
@@ -618,7 +647,8 @@ function openInventoryPanel() {
             d.style.backgroundColor = 'rgba(33, 150, 243, 0.2)';
             d.style.borderLeftColor = '#2196F3';
             
-            showDetails(k, count, isGiven);
+            // ★修正：ageを渡す
+            showDetails(k, count, isGiven, age);
         };
         d.dataset.given = isGiven;
         return d;
@@ -628,7 +658,8 @@ function openInventoryPanel() {
     // ★ アイテムリストの読み込みと配置
     // ==========================================
     if (typeof aiPet !== 'undefined' && aiPet.apprentice && aiPet.apprentice.inventory && aiPet.apprentice.inventory.length > 0) {
-        const counts = {}; aiPet.apprentice.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
+        const counts = {}; 
+        aiPet.apprentice.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
         for(let k in counts) {
             leftPane.appendChild(createItemRow(k, counts[k], true));
             totalItems++;
@@ -636,9 +667,21 @@ function openInventoryPanel() {
     }
     
     if (typeof aiPet !== 'undefined' && aiPet.inventory && aiPet.inventory.length > 0) {
-        const counts = {}; aiPet.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
-        for(let k in counts) {
-            leftPane.appendChild(createItemRow(k, counts[k], false));
+        // ★完全修正：オブジェクト構造(id, age)に対応したグループ化
+        const grouped = {}; 
+        aiPet.inventory.forEach(item => {
+            let k = typeof item === 'string' ? item : item.id;
+            let age = typeof item === 'string' ? 0 : (item.age || 0);
+            
+            // 同じIDでも鮮度(age)が違うものは別枠としてカウントする
+            let keyWithAge = `${k}__${age}`; 
+            if (!grouped[keyWithAge]) grouped[keyWithAge] = { id: k, count: 0, age: age };
+            grouped[keyWithAge].count++;
+        });
+
+        for(let key in grouped) {
+            let itemData = grouped[key];
+            leftPane.appendChild(createItemRow(itemData.id, itemData.count, false, itemData.age));
             totalItems++;
         }
     }
@@ -777,8 +820,26 @@ function updateStatUI() {
         }
     }
     
-    // 新しい性格判定関数は直接日本語を返すので、そのままセットするだけ！
+    // ★追加：健康状態のテキストと色を決定
+    const healthStr = aiPet.isSick ? "😷病気" : "🟢健康";
+    const healthColor = aiPet.isSick ? "#ff5252" : "#00e676";
+
+    // 新しい性格判定関数は直接日本語を返すので、そのままセットするだけ！(病気の文字は削除)
     setText('stat-type', window.getPersonalityType(aiPet.stats));
+
+    // ★追加：画面上部(HUD)の健康状態を更新
+    const statHealthEl = document.getElementById('stat-health');
+    if (statHealthEl) {
+        statHealthEl.innerText = healthStr;
+        statHealthEl.style.color = healthColor;
+    }
+
+    // ★追加：詳細画面の健康状態UIを更新
+    const sHealthEl = document.getElementById('s-health');
+    if (sHealthEl) {
+        sHealthEl.innerText = healthStr;
+        sHealthEl.style.color = healthColor;
+    }
 
     // ★修正: デバッグなどで選んだ画像IDに特性がなくても、本来の種族特性を引っ張ってくる
     let skin = aiPet.currentSkin || 'robot';
@@ -1849,7 +1910,11 @@ window.loadDebugData = function() {
     if (itemList) {
         itemList.innerHTML = "";
         const counts = {};
-        if (aiPet.inventory) aiPet.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
+        // ★修正: オブジェクト構造に対応
+        if (aiPet.inventory) aiPet.inventory.forEach(item => {
+            let k = typeof item === 'string' ? item : item.id;
+            counts[k] = (counts[k]||0)+1;
+        });
         for (let key in itemCatalog) {
             const count = counts[key] || 0; const item = itemCatalog[key];
             const div = document.createElement('div'); const style = count > 0 ? 'color:white' : 'color:#555';
@@ -1906,7 +1971,33 @@ window.saveDebugData = function() {
 
     const itemInputs = document.querySelectorAll('.dbg-item-val');
     const newInventory = [];
-    itemInputs.forEach(input => { const key = input.getAttribute('data-key'); const count = parseInt(input.value); for(let i=0; i<count; i++) { newInventory.push(key); } });
+    
+    // ★完全修正: 既存のアイテムの「鮮度(age)」を保持するための辞書を作成
+    let currentInvObj = {};
+    if (aiPet.inventory) {
+        aiPet.inventory.forEach(item => {
+            let id = typeof item === 'string' ? item : item.id;
+            if (!currentInvObj[id]) currentInvObj[id] = [];
+            // 古い文字列データが混ざっていても安全にオブジェクト化して退避
+            currentInvObj[id].push(typeof item === 'string' ? { id: item, age: 0 } : item);
+        });
+    }
+
+    itemInputs.forEach(input => { 
+        const key = input.getAttribute('data-key'); 
+        const count = parseInt(input.value); 
+        let existingItems = currentInvObj[key] || [];
+
+        for(let i=0; i<count; i++) { 
+            if (i < existingItems.length) {
+                // 既に持っていた分は、元の鮮度データを引き継いで戻す
+                newInventory.push(existingItems[i]); 
+            } else {
+                // デバッグで増やした分は、新品(age:0)のオブジェクトとして追加
+                newInventory.push({ id: key, age: 0 }); 
+            }
+        } 
+    });
     aiPet.inventory = newInventory;
 
     saveGameData();

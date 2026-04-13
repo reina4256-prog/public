@@ -568,6 +568,9 @@ function applyInitialPet(skinKey) {
     aiPet.hunger = 100;
     aiPet.age = 0;
     aiPet.lifespan = traitData.lifespan || 100;
+    aiPet.isSick = false; // 病気フラグ
+    aiPet.darknessCounter = 0;       // 闇落ちポイント
+    aiPet.consecutiveSleepCount = 0; // 連続睡眠カウント
     
     // 新しい人生が始まる時に、前世の記憶や履歴を完全に消去する！
     aiPet.apprentice = {

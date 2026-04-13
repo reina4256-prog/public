@@ -413,6 +413,12 @@ function drawAICharacter() {
                 ctx.filter = 'none'; // 通常
             }
         }
+        else if (targetPet.isSick) {
+            // ★追加：育成モードで病気の場合は、毒々しい紫色（または青緑色）のフィルターをかける
+            ctx.filter = 'sepia(0.8) hue-rotate(250deg) saturate(2) brightness(0.8)';
+        } else {
+            ctx.filter = 'none'; // 通常
+        }
         
         ctx.drawImage(img, f.sx || 0, f.sy || 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH); ctx.restore();
     }

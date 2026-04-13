@@ -785,55 +785,132 @@ aiPet.updateWeather = function() {
 };
 
 aiPet.consumeFood = function() {
-    if (this.hunger >= 95) { this.message = "もうお腹いっぱい！"; return false; }
-    let bestFood = null; let bestIdx = -1; let maxPriority = 0; let hasFood = false;
+    if (this.hunger >= 95 && !this.isSick) { this.message = "もうお腹いっぱい！"; return false; }
+    
+    let bestFood = null; let bestIdx = -1; let maxPriority = -999; let hasFood = false;
 
-    this.inventory.forEach((key, idx) => {
+    this.inventory.forEach((itemObj, idx) => {
+        // ★修正: オブジェクト構造に対応 (itemObj.id を使用)
+        const key = typeof itemObj === 'string' ? itemObj : itemObj.id;
         const item = itemCatalog[key]; if (!item) return;
+        
+        // ① 薬の判定（病気の時のみ最優先で探す）
+        if (item.type === 'medicine') {
+            if (this.isSick && key === 'item_medicine_cure') {
+                hasFood = true;
+                if (100 > maxPriority) { maxPriority = 100; bestFood = item; bestIdx = idx; } // 優先度MAX
+            }
+            return; // 病気じゃない時は薬は飲まない
+        }
+
+        // ② 通常の食べ物の判定
         if (!['dish', 'food', 'ingredient'].includes(item.type)) return;
         hasFood = true;
 
-        let potentialGain = 0; if (item.stats && typeof item.stats.hunger !== 'undefined') { potentialGain = item.stats.hunger; } else { if (item.type === 'dish') potentialGain = 20; else potentialGain = 10; }
-        if (this.hunger + potentialGain > 100) { return; }
+        let potentialGain = 0; 
+        if (item.stats && typeof item.stats.hunger !== 'undefined') { potentialGain = item.stats.hunger; } 
+        else { if (item.type === 'dish') potentialGain = 20; else potentialGain = 10; }
         
-        let priority = 0; if (item.type === 'dish') priority = 3; else if (item.type === 'food') priority = 2; else if (item.type === 'ingredient') priority = 1;
+        // 満腹にならないかチェック（少し余裕を持たせる）
+        if (this.hunger + potentialGain > 100 && this.hunger >= 80) { return; } 
+        
+        let priority = 0; 
+        if (item.type === 'dish') priority = 3; 
+        else if (item.type === 'food') priority = 2; 
+        else if (item.type === 'ingredient') priority = 1;
+        
+        // ★ ゲテモノ（bad）は優先度を激下げし、他に何もない時の最終手段にする
+        if (item.quality === 'bad') priority -= 10;
+
         if (priority > maxPriority) { maxPriority = priority; bestFood = item; bestIdx = idx; }
     });
     
-    if (!hasFood) { this.message = "食べるものがない..."; return false; }
+    if (!hasFood || bestIdx === -1) { 
+        if (this.isSick) this.message = "薬がない...";
+        else this.message = "食べるものがない..."; 
+        return false; 
+    }
 
-    if (bestFood && bestIdx !== -1) {
-        this.inventory.splice(bestIdx, 1);
-        let gainEnergy = 0; let gainHunger = 0;
-        
-        const tData = this.getTraitData();
-        const bIntel = (tData.statBonus && tData.statBonus.intel) ? tData.statBonus.intel : 1.0;
-        const bPower = (tData.statBonus && tData.statBonus.power) ? tData.statBonus.power : 1.0;
-        const bMood = (tData.statBonus && tData.statBonus.mood) ? tData.statBonus.mood : 1.0;
-
-        if (bestFood.stats) {
-            if (bestFood.stats.energy) gainEnergy += bestFood.stats.energy; gainHunger += (bestFood.stats.hunger || 20);
-            if (bestFood.stats.power) this.stats.power += bestFood.stats.power * bPower; 
-            if (bestFood.stats.intel) this.stats.intel += bestFood.stats.intel * bIntel; 
-            if (bestFood.stats.mood) this.stats.mood += bestFood.stats.mood * bMood;
-        } else { gainHunger += 10; gainEnergy += 5; }
-        
-        let action = "食べた";
-        if (bestFood.type === 'dish') { this.visualAction = 'eat_dish'; action = "食べた"; } 
-        else { this.visualAction = 'eat_raw'; action = "丸かじりした"; }
-        
+    this.inventory.splice(bestIdx, 1);
+    
+    // =======================================
+    // A: 薬を飲んだ時の特殊処理
+    // =======================================
+    if (bestFood.type === 'medicine') {
+        this.isSick = false;
+        this.lifespan -= 5; // 寿命がガッツリ削られる
+        this.visualAction = 'eat_raw'; 
         this.visualActionTimer = 60;
-        this.energy = Math.min(100, this.energy + gainEnergy); this.hunger = Math.min(100, this.hunger + gainHunger);
-        this.message = `${bestFood.name}を${action}！`; 
+        this.message = "特効薬で病気が治った！...(寿命-5)";
+        if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "💊 完治(寿命激減)", "#4CAF50");
+        
         if (typeof openInventoryPanel === 'function') {
             const invPanel = document.getElementById('panel-inventory');
             if (invPanel && invPanel.classList.contains('active')) { openInventoryPanel(); }
         }
         return true;
-    } else { 
-        if (this.hunger >= 90) { this.message = "腹八分目にしておこう"; } else { this.message = "ちょうどいい食事がなかった..."; } 
-        return false; 
     }
+
+    // =======================================
+    // B: 通常の食事処理
+    // =======================================
+    let gainEnergy = 0; let gainHunger = 0;
+    
+    const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
+    const bIntel = (tData.statBonus && tData.statBonus.intel) ? tData.statBonus.intel : 1.0;
+    const bPower = (tData.statBonus && tData.statBonus.power) ? tData.statBonus.power : 1.0;
+    const bMood = (tData.statBonus && tData.statBonus.mood) ? tData.statBonus.mood : 1.0;
+
+    if (bestFood.stats) {
+        if (bestFood.stats.energy) gainEnergy += bestFood.stats.energy; 
+        gainHunger += (bestFood.stats.hunger || 20);
+        if (bestFood.stats.power) this.stats.power += bestFood.stats.power * bPower; 
+        if (bestFood.stats.intel) this.stats.intel += bestFood.stats.intel * bIntel; 
+        if (bestFood.stats.mood) this.stats.mood += bestFood.stats.mood * bMood;
+    } else { 
+        gainHunger += 10; gainEnergy += 5; 
+    }
+    
+    let action = "食べた";
+    if (bestFood.type === 'dish') { this.visualAction = 'eat_dish'; action = "食べた"; } 
+    else { this.visualAction = 'eat_raw'; action = "丸かじりした"; }
+    
+    this.visualActionTimer = 60;
+    this.energy = Math.min(100, this.energy + gainEnergy); 
+    this.hunger = Math.min(100, this.hunger + gainHunger);
+    this.message = `${bestFood.name}を${action}！`; 
+
+    // ★追加: 生魚（dishではない魚）を食べた時の確率病気ペナルティ
+    const consumedId = typeof this.inventory[bestIdx] === 'string' ? this.inventory[bestIdx] : this.inventory[bestIdx]?.id;
+    if (consumedId && consumedId.startsWith('fish_') && bestFood.type !== 'dish' && bestFood.quality !== 'bad') {
+        if (Math.random() < 0.25) { // 25%であたる
+            this.isSick = true;
+            this.stats.mood -= 10;
+            this.message = "ウッ…生魚にあたった…";
+            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "😷 病気になった！", "#E53935");
+        }
+    }
+
+    // =======================================
+    // C: 悪い食べ物（ゲテモノ）のペナルティ処理
+    // =======================================
+    if (bestFood.quality === 'bad') {
+        this.stats.mood -= 20; // 機嫌が大幅ダウン
+        this.message = "ウッ…不味いしお腹が痛い…";
+        if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "🤢 激マズ...", "#795548");
+        
+        // ★ 30%の確率で病気を発症する！
+        if (Math.random() < 0.30) {
+            this.isSick = true;
+            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "😷 病気になった！", "#E53935");
+        }
+    }
+
+    if (typeof openInventoryPanel === 'function') {
+        const invPanel = document.getElementById('panel-inventory');
+        if (invPanel && invPanel.classList.contains('active')) { openInventoryPanel(); }
+    }
+    return true;
 };
 
 aiPet.isPointOnWater = function(x, y) {
@@ -1899,6 +1976,47 @@ aiPet.update = function() {
     
     if (isOneMinutePassed) {
         this.gameTimer = 0; this.updateWeather();
+
+        // ★追加: インベントリの互換性パッチ（文字列からオブジェクトへ変換）
+        if (this.inventory && this.inventory.length > 0 && typeof this.inventory[0] === 'string') {
+            this.inventory = this.inventory.map(itemId => ({ id: itemId, age: 0 }));
+        }
+
+        // ★追加: 鮮度（腐敗）システムの更新
+        if (this.inventory && this.inventory.length > 0) {
+            this.inventory.forEach(itemObj => {
+                const itemData = window.itemCatalog ? window.itemCatalog[itemObj.id] : null;
+                if (!itemData) return;
+
+                // 食べ物系（素材、料理、魚など）のみ鮮度が落ちる
+                if (itemData.type === 'ingredient' || itemData.type === 'food' || itemData.type === 'dish') {
+                    // すでに腐っている物、悪い物は進行させない
+                    if (itemData.quality === 'bad') return;
+
+                    itemObj.age = (itemObj.age || 0) + 1;
+
+                    // 腐敗限界値の設定（例：魚や料理は12時間、野菜は24時間）
+                    let rotLimit = 24;
+                    if (itemObj.id.startsWith('fish_') || itemData.type === 'dish') rotLimit = 12;
+
+                    // 限界を超えたら腐敗アイテムに変換
+                    if (itemObj.age >= rotLimit) {
+                        if (itemObj.id.startsWith('fish_')) {
+                            itemObj.id = 'rotten_fish';
+                        } else if (itemData.type === 'dish') {
+                            itemObj.id = 'rotten_food';
+                        } else {
+                            itemObj.id = 'rotten_veg'; // ★修正：専用の腐った野菜に変化！
+                        }
+                        itemObj.age = 0;
+                        if (!window.isCatchingUp && typeof addFloatingText === 'function') {
+                            addFloatingText(this.x, this.y - 60, "🍄 持ち物が腐った...", "#795548");
+                        }
+                    }
+                }
+            });
+        }
+
         for (let uid in assets) {
             const a = assets[uid];
             if (a.type === 'farm') {
@@ -1982,17 +2100,29 @@ aiPet.update = function() {
             let tempInv = [...inventory];
             for (let req of reqs) {
                 let foundIdx = -1;
+                let maxAge = -1; // ★一番古いものを探すための変数
+
                 for (let i = 0; i < tempInv.length; i++) {
-                    let item = tempInv[i];
-                    if (!item) continue;
+                    let itemObj = tempInv[i];
+                    if (!itemObj) continue;
+                    
+                    // ★修正: 文字列かオブジェクトか判定
+                    let itemId = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                    let itemAge = typeof itemObj === 'string' ? 0 : (itemObj.age || 0);
+                    
                     let match = false;
-                    if (req === 'veg') match = ['carrot', 'tomato', 'pepper', '七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'berry', 'イチゴ', '春の七草', '野イチゴ'].some(k => item.includes(k));
-                    else if (req === 'meat') match = ['meat', '肉', 'chicken', 'beef'].some(k => item.includes(k));
-                    else if (req === 'water') match = ['water', '水'].some(k => item.includes(k));
-                    else if (req === 'fish') match = ['fish', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ'].some(k => item.includes(k));
-                    else if (req === 'any_food') match = ['七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ', 'イチゴ', '春の七草', '野イチゴ'].some(k => item.includes(k));
-                    else match = item.includes(req);
-                    if (match) { foundIdx = i; break; }
+                    if (req === 'veg') match = ['carrot', 'tomato', 'pepper', '七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'berry', 'イチゴ', '春の七草', '野イチゴ'].some(k => itemId.includes(k));
+                    else if (req === 'meat') match = ['meat', '肉', 'chicken', 'beef'].some(k => itemId.includes(k));
+                    else if (req === 'water') match = ['water', '水'].some(k => itemId.includes(k));
+                    else if (req === 'fish') match = ['fish', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ'].some(k => itemId.includes(k));
+                    else if (req === 'any_food') match = ['七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ', 'イチゴ', '春の七草', '野イチゴ'].some(k => itemId.includes(k));
+                    else match = itemId.includes(req);
+                    
+                    // ★追加: マッチした場合、より「古い(ageが大きい)」ものを優先して選ぶ
+                    if (match && itemAge > maxAge) { 
+                        foundIdx = i; 
+                        maxAge = itemAge;
+                    }
                 }
                 if (foundIdx !== -1) { consumedIndices.push(foundIdx); tempInv[foundIdx] = null; } 
                 else { return null; }
@@ -2141,6 +2271,17 @@ aiPet.update = function() {
 
         if (this.schedule.length > 0) {
             let task = this.schedule[0]; 
+
+            // ★追加: 病気中のタスク拒否（睡眠・休息・食事以外）
+            if (this.isSick && !['sleep', 'rest', 'eat'].includes(task.type)) {
+                task.duration = 0; task.aborted = true;
+                this.actionState = 'idle';
+                this.message = "具合が悪くて動けない..."; this.messageTimer = 120;
+                this.schedule.shift();
+                if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
+                return; // ここで抜ける
+            }
+
             const eff = getActionEfficiency(task.type).rate;
             
             const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
@@ -2433,8 +2574,11 @@ aiPet.update = function() {
                     else if (task.type === 'run') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'move'; this.stats.speed += 0.1 * eff * bPower; }
                     else if (task.type === 'rest' || task.type === 'sleep') { 
                         this.actionState = this.isIndoors ? 'inside' : 'sleeping'; this.visualAction = 'sleep'; this.energy += 1.0 * eff;
-                        if (this.energy >= 90 && this.hunger >= 90) {
-                            this.stats.beauty += 0.1 * eff;
+                        if (this.energy >= 60 && this.hunger >= 60) { // ★条件緩和
+                            let beautyGain = 0.1 * eff;
+                            const currentHour = new Date().getHours();
+                            if (currentHour >= 22 || currentHour <= 4) beautyGain *= 2; // ★シンデレラタイム
+                            this.stats.beauty += beautyGain;
                             if (!window.isCatchingUp) {
                                 let effectCount = 1 + Math.floor(Math.random() * 2); 
                                 for (let i = 0; i < effectCount; i++) {
@@ -2447,7 +2591,8 @@ aiPet.update = function() {
                     }
                     else if (task.type === 'eat') { 
                         this.actionState = this.isIndoors ? 'inside' : 'eating'; this.visualAction = 'eat_raw';
-                        if (this.hunger < 100) this.consumeFood();
+                        // ★修正：病気の時は、満腹(100)でも薬を飲むためにconsumeFoodを呼ぶ！
+                        if (this.hunger < 100 || this.isSick) this.consumeFood();
                         if (task.duration <= 0 && !task.aborted) this.processEatingFinish?.(task);
                     }
                     else if (task.type === 'fish') {
@@ -2510,6 +2655,27 @@ aiPet.update = function() {
                     if (task.duration <= 0 && !task.aborted) {
                         if (task.type === 'build' && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
                         if (task.type.startsWith('life_') && typeof this.processLifePathFinish === 'function') this.processLifePathFinish(task);
+
+                        // ★追加: 連続睡眠ボーナス
+                        if (task.type === 'sleep' || task.type === 'rest') {
+                            if (this.energy >= 60 && this.hunger >= 60) {
+                                this.consecutiveSleepCount = (this.consecutiveSleepCount || 0) + 1;
+                                if (this.consecutiveSleepCount >= 2) {
+                                    this.stats.beauty += (this.consecutiveSleepCount * 2);
+                                    if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "💖 美容ボーナス!", "#FF4081");
+                                }
+                            }
+                        } else {
+                            this.consecutiveSleepCount = 0; // 他の作業をしたらカウントリセット
+                        }
+
+                        // ★追加: 闇落ちポイント(darknessCounter)の加算
+                        if (!['sleep', 'rest', 'eat'].includes(task.type)) {
+                            if (this.age > (this.lifespan || 100) * 0.5 && this.stats.mood <= 30) {
+                                this.darknessCounter = (this.darknessCounter || 0) + 1;
+                                if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "👿 闇の蓄積...", "#9C27B0");
+                            }
+                        }
 
                         if (this.activeBooks && this.activeBooks.length > 0) {
                             let consumedIds = []; 
@@ -2639,10 +2805,13 @@ aiPet.update = function() {
         }
         this.stats.mood = Math.max(0, Math.min(100, this.stats.mood));
         
-        if (this.stats.mood <= 0) {
-            this.darknessCounter = (this.darknessCounter || 0) + 0.1;
-        } else {
-            this.darknessCounter = Math.max(0, (this.darknessCounter || 0) - 0.05);
+        // ★修正: 自動の闇落ち増減を削除し、病気時の放置ペナルティを追加
+        if (this.isSick) {
+            this.stats.mood -= 0.01; // 病気だとジワジワ機嫌悪化
+            this.lifespan -= 0.005;  // 放置すると最大寿命が削られる
+            if (!isHealing && Math.random() < 0.01 && !window.isCatchingUp && typeof addFloatingText === 'function') {
+                addFloatingText(this.x, this.y - 40, "😷 苦しい...", "#8D6E63");
+            }
         }
     }
 
@@ -4015,17 +4184,6 @@ let featureUnlockCheck = setInterval(() => {
         }
     }
 }, 1000);
-
-// ==========================================
-// ★ 追加：序盤の救済措置＆秘伝書（アイテム定義）
-// ==========================================
-setTimeout(() => {
-    if (typeof itemCatalog !== 'undefined') {
-        if (!itemCatalog['item_berry']) itemCatalog['item_berry'] = { name: '野イチゴ', type: 'food', value: 2, hungerRec: 15, energyRec: 5, desc: '道端で見つけた小さなイチゴ。少しお腹が膨れる。' };
-        if (!itemCatalog['item_lunchbox']) itemCatalog['item_lunchbox'] = { name: '師匠のお弁当', type: 'food', value: 0, hungerRec: 80, energyRec: 50, desc: '師匠からの差し入れ。愛情と栄養がたっぷり！' };
-        if (!itemCatalog['item_secret_book']) itemCatalog['item_secret_book'] = { name: '達人の秘伝書', type: 'book', value: 1000, desc: '前世の知識と技術が詰まった本。読むとステータスが上がるかも。' };
-    }
-}, 2000);
 
 // 2. 草むら探索（自動で一定確率で野イチゴを拾う）
 setInterval(() => {
