@@ -580,6 +580,8 @@ function drawActionWindow(animType, sceneType) {
         else if (animType === 'sleep') statusText = "💤 休憩中...";
         else if (animType === 'cook') statusText = "🍳 料理中...";
         else if (animType === 'smith') statusText = "🔨 鍛冶作業中..."; 
+        // ★追加：ランニングの判定を追加！
+        else if (animType === 'run') statusText = "🏃 ランニング中...";
         else statusText = "⛺ 野宿中...";
     }
     else if (sceneType === 'eating') statusText = "🍙 食事中...";
@@ -700,13 +702,20 @@ function drawFarmStatus(a) {
         return;
     }
 
-    const cropData = itemCatalog[a.plantedCrop];
-    if (!cropData) return;
+    // ★修正：アイテムカタログから名前を取得（支給品等でエラーが出ないよう安全に処理）
+    let cropData = null;
+    if (typeof itemCatalog !== 'undefined') {
+        cropData = itemCatalog[a.plantedCrop];
+        if (a.plantedCrop === 'seed_carrot_given') cropData = itemCatalog['seed_carrot'];
+    }
+    // 「ニンジンの種」という表記を「ニンジン」にカットする簡易処理
+    let cropName = cropData ? cropData.name.replace("の種", "") : "作物"; 
 
+    // ★修正：成長と水分の「2本のゲージ」が入るように背景の黒枠を少し縦に広げる
     ctx.fillStyle = "rgba(0, 0, 0, 0.7)"; 
-    ctx.fillRect(cx - 50, topY - 35, 100, 35);
+    ctx.fillRect(cx - 50, topY - 45, 100, 45); 
     
-    let text = `${cropData.name} (${Math.floor(a.growth)}%)`;
+    let text = `${cropName} (${Math.floor(a.growth)}%)`;
     let color = "#fff";
     let statusIcon = "";
 
@@ -718,29 +727,41 @@ function drawFarmStatus(a) {
         text = "食べられた..."; 
         color = "#e57373"; 
     }
+    else if (a.growth >= 100) {
+        // ★追加：収穫可能になったら文字を緑にしてアピール！
+        text = `✨収穫可能 (${cropName})`;
+        color = "#4CAF50"; 
+    }
     else {
         if (a.pestState) statusIcon = "🐛 危険!";
     }
 
     ctx.fillStyle = color;
-    ctx.fillText(text, cx, topY - 22);
+    ctx.fillText(text, cx, topY - 30); // テキストを少し上に配置
     
     if (statusIcon) {
         ctx.font = "bold 12px sans-serif";
         ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
         ctx.lineWidth = 3;
-        ctx.strokeText(statusIcon, cx, topY - 38);
+        ctx.strokeText(statusIcon, cx, topY - 45); // 虫アイコンは枠から飛び出すように配置
         ctx.fillStyle = "#ff5252";
-        ctx.fillText(statusIcon, cx, topY - 38);
+        ctx.fillText(statusIcon, cx, topY - 45);
         ctx.font = "10px sans-serif";
     }
 
     if (!a.isDead && !a.isEaten) {
+        // ★追加：1. 成長進捗ゲージ（緑色）
+        ctx.fillStyle = "#444"; 
+        ctx.fillRect(cx - 40, topY - 18, 80, 6);
+        ctx.fillStyle = "#4CAF50"; // 緑
+        ctx.fillRect(cx - 40, topY - 18, 80 * (Math.max(0, a.growth) / 100), 6);
+
+        // 2. 水分ゲージ（青色 / 30%以下で赤色）
         const water = a.waterLevel !== undefined ? a.waterLevel : 100;
         ctx.fillStyle = "#444"; 
-        ctx.fillRect(cx - 40, topY - 10, 80, 6);
+        ctx.fillRect(cx - 40, topY - 8, 80, 6);
         ctx.fillStyle = water > 30 ? "#29b6f6" : "#ff3d00";
-        ctx.fillRect(cx - 40, topY - 10, 80 * (Math.max(0, water) / 100), 6);
+        ctx.fillRect(cx - 40, topY - 8, 80 * (Math.max(0, water) / 100), 6);
     }
 }
 

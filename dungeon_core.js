@@ -613,17 +613,23 @@ if (localStorage.getItem('rescue_waiting_map')) {
         // ダンジョン突入処理の共通関数
         const handleDungeonEntry = function(context) {
             if (context.interactionTarget && (context.interactionTarget.type === 'skull' || context.interactionTarget.type === 'crystal')) {
+                let isMasterExplorer = (context.apprentice && context.apprentice.rank && context.apprentice.rank['explore'] >= 10);
                 context.actionState = 'idle'; context.isIndoors = false; context.indoorTarget = null;
-                context.schedule = []; // 予定をクリア
                 
-                // TCGアンロック
-                if (typeof window.triggerTCGUnlock === 'function') {
-                    if (context.interactionTarget.type === 'skull') window.triggerTCGUnlock('visit_cave', context.generation);
-                    if (context.interactionTarget.type === 'crystal') window.triggerTCGUnlock('visit_mine', context.generation);
+                // ★大修正：皆伝済みなら全消去して突入、未皆伝なら現在のタスクだけ消して追い出す！
+                if (isMasterExplorer) {
+                    context.schedule = []; // 予定を全クリア
+                    if (typeof window.triggerTCGUnlock === 'function') {
+                        if (context.interactionTarget.type === 'skull') window.triggerTCGUnlock('visit_cave', context.generation);
+                        if (context.interactionTarget.type === 'crystal') window.triggerTCGUnlock('visit_mine', context.generation);
+                    }
+                    if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+                    if (typeof window.openDungeonUI === 'function') window.openDungeonUI(context.interactionTarget.type);
+                } else {
+                    context.message = "ここから先は危険だ...\n（免許皆伝が必要）"; context.messageTimer = 120;
+                    if (context.schedule.length > 0 && context.schedule[0].type === 'explore') context.schedule.shift();
+                    if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
                 }
-
-                if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
-                if (typeof window.openDungeonUI === 'function') window.openDungeonUI(context.interactionTarget.type);
                 return true;
             }
             return false;
