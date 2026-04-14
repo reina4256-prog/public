@@ -2637,7 +2637,12 @@ const buildingCatalog = {
   casino: { name: "カジノ", reqIntel: 80, reqBuildLevel: 6, cost: { energy: 80 }, materials: { stone: 10, wood: 10, coin: 5 }, breakChance: 0.0005 },
   castle: { name: "お城", reqIntel: 100, reqBuildLevel: 8, cost: { energy: 90 }, materials: { stone: 20, wood: 10, iron: 5 }, breakChance: 0.0005 },
   // ★追加：カードショップ（カジノ来店フラグが必要。クリスタル迷宮25Fの素材を要求）
-  card_shop: { name: "カード屋", reqIntel: 120, reqBuildLevel: 9, cost: { energy: 90 }, materials: { stone: 20, wood: 20, mat_card_1: 1 }, breakChance: 0.0005, reqFlag: 'visitedCasino' } };
+  card_shop: { name: "カード屋", reqIntel: 120, reqBuildLevel: 9, cost: { energy: 90 }, materials: { stone: 20, wood: 20, mat_card_1: 1 }, breakChance: 0.0005, reqFlag: 'visitedCasino' },
+  // ★追加：小屋の拡張ストレージ設備（上限なしで増築可能）
+  freezer: { name: "冷凍庫", reqIntel: 50, reqBuildLevel: 2, cost: { energy: 40 }, materials: { iron: 5, stone: 2 }, isUpgrade: true, targetFacility: 'hut' },
+  warehouse: { name: "倉庫", reqIntel: 40, reqBuildLevel: 2, cost: { energy: 40 }, materials: { wood: 10 }, isUpgrade: true, targetFacility: 'hut' },
+  safe: { name: "金庫", reqIntel: 100, reqBuildLevel: 4, cost: { energy: 60 }, materials: { iron: 10, coin: 2 }, isUpgrade: true, targetFacility: 'hut' }
+};
 const recipeCatalog = [ { id: 'dish_salad', name: "フレッシュサラダ", ingredients: { carrot: 1, tomato: 1 } }, { id: 'dish_stirfry', name: "野菜炒め", ingredients: { carrot: 1, pepper: 1 } }, { id: 'dish_soup', name: "ミネストローネ", ingredients: { tomato: 1, pepper: 1 } }, { id: 'baked_carrot', name: "焼きニンジン", ingredients: { carrot: 1 }, type: 'simple' }, { id: 'baked_pepper', name: "焼きピーマン", ingredients: { pepper: 1 }, type: 'simple' }, { id: 'baked_tomato', name: "焼きトマト", ingredients: { tomato: 1 }, type: 'simple' }, { id: 'baked_fish', name: "焼き魚", ingredients: { fish: 1 }, type: 'simple' } ];
 const craftCatalog = [ { id: 'eq_sword', name: "鉄の剣", materials: { iron: 5, wood: 2 } }, { id: 'eq_shield', name: "鉄の盾", materials: { iron: 4, stone: 4 } }, { id: 'eq_staff', name: "魔法の杖", materials: { wood: 5, crystal: 1 } }, { id: 'eq_crown', name: "王冠", materials: { coin: 5, crystal: 2 } }, { id: 'tool_pan', name: "フライパン", materials: { iron: 2, wood: 1 } } ];
 const actionTypes = ['idle', 'move', 'study', 'train', 'sleep', 'eat_dish', 'eat_raw', 'fish', 'cook', 'smith', 'farm_plow', 'farm_seed', 'farm_water', 'farm_pest', 'farm_harvest'];

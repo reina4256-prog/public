@@ -94,7 +94,14 @@ function getTaskName(type, task = null) {
     if(type==='fish') return "釣り"; 
     if(type==='cook') return "料理"; 
     if(type==='smith') return "鍛冶"; 
-    if(type==='build') return "建築";
+    // ★修正：建築と拡張の具体的な表示に対応
+    if(type==='build') {
+        if (task && task.buildData) {
+            if (task.buildData.isUpgrade) return `${task.buildData.name}拡張`;
+            return `${task.buildData.name}建築`;
+        }
+        return "建築";
+    }
     if(type==='master_quest') return "課題の実行"; 
 
     if(type==='apprentice_exam' || type==='visit_master') {
@@ -1977,36 +1984,30 @@ aiPet.update = function() {
     if (isOneMinutePassed) {
         this.gameTimer = 0; this.updateWeather();
 
-        // ★追加: インベントリの互換性パッチ（文字列からオブジェクトへ変換）
         if (this.inventory && this.inventory.length > 0 && typeof this.inventory[0] === 'string') {
             this.inventory = this.inventory.map(itemId => ({ id: itemId, age: 0 }));
         }
 
-        // ★追加: 鮮度（腐敗）システムの更新
         if (this.inventory && this.inventory.length > 0) {
             this.inventory.forEach(itemObj => {
                 const itemData = window.itemCatalog ? window.itemCatalog[itemObj.id] : null;
                 if (!itemData) return;
 
-                // 食べ物系（素材、料理、魚など）のみ鮮度が落ちる
                 if (itemData.type === 'ingredient' || itemData.type === 'food' || itemData.type === 'dish') {
-                    // すでに腐っている物、悪い物は進行させない
                     if (itemData.quality === 'bad') return;
 
                     itemObj.age = (itemObj.age || 0) + 1;
 
-                    // 腐敗限界値の設定（例：魚や料理は12時間、野菜は24時間）
                     let rotLimit = 24;
                     if (itemObj.id.startsWith('fish_') || itemData.type === 'dish') rotLimit = 12;
 
-                    // 限界を超えたら腐敗アイテムに変換
                     if (itemObj.age >= rotLimit) {
                         if (itemObj.id.startsWith('fish_')) {
                             itemObj.id = 'rotten_fish';
                         } else if (itemData.type === 'dish') {
                             itemObj.id = 'rotten_food';
                         } else {
-                            itemObj.id = 'rotten_veg'; // ★修正：専用の腐った野菜に変化！
+                            itemObj.id = 'rotten_veg'; 
                         }
                         itemObj.age = 0;
                         if (!window.isCatchingUp && typeof addFloatingText === 'function') {
@@ -2042,11 +2043,9 @@ aiPet.update = function() {
                     if (this.weather === 'rain' || this.weather === 'thunder' || onWater) {
                         a.waterLevel = 100;
                     } else { 
-                        // ★修正：減少速度を5%から2%に緩和
                         a.waterLevel = Math.max(0, a.waterLevel - 2); 
                     }
                     
-                    // ★修正：水分が0の時に確実に枯れる（支給品以外）
                     if (a.waterLevel <= 0 && !isGivenSeed) {
                         a.isDead = true;
                     }
@@ -2056,7 +2055,6 @@ aiPet.update = function() {
                         if (a.growth > 100) a.growth = 100;
                     }
                     
-                    // 虫食いロジック
                     if (!isGivenSeed && a.growth > 10) {
                         if (!a.pestState && Math.random() < 0.10) { a.pestState = true; a.pestTimer = 0; }
                         if (a.pestState) {
@@ -2100,13 +2098,12 @@ aiPet.update = function() {
             let tempInv = [...inventory];
             for (let req of reqs) {
                 let foundIdx = -1;
-                let maxAge = -1; // ★一番古いものを探すための変数
+                let maxAge = -1;
 
                 for (let i = 0; i < tempInv.length; i++) {
                     let itemObj = tempInv[i];
                     if (!itemObj) continue;
                     
-                    // ★修正: 文字列かオブジェクトか判定
                     let itemId = typeof itemObj === 'string' ? itemObj : itemObj.id;
                     let itemAge = typeof itemObj === 'string' ? 0 : (itemObj.age || 0);
                     
@@ -2118,7 +2115,6 @@ aiPet.update = function() {
                     else if (req === 'any_food') match = ['七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ', 'イチゴ', '春の七草', '野イチゴ'].some(k => itemId.includes(k));
                     else match = itemId.includes(req);
                     
-                    // ★追加: マッチした場合、より「古い(ageが大きい)」ものを優先して選ぶ
                     if (match && itemAge > maxAge) { 
                         foundIdx = i; 
                         maxAge = itemAge;
@@ -2135,7 +2131,6 @@ aiPet.update = function() {
 
     let myShop = null;
     if (this.isIndoors && this.indoorTarget && (this.indoorTarget.type === 'restaurant' || this.indoorTarget.type === 'smith')) {
-        // ★完全修正：師匠の店（isMasterShop）の場合は「自分の店」として認識しない！乗っ取り防止！
         if (!this.indoorTarget.isMasterShop) {
             myShop = this.indoorTarget;
         }
@@ -2154,8 +2149,9 @@ aiPet.update = function() {
                 let targetStock = 10 + Math.floor((this.stats.intel || 10) / 20) * 5; 
                 let totalStock = 0;
                 let knownRecipes = Object.keys(s.recipes || {}).filter(k => s.recipes[k].learned);
-                this.inventory.forEach(i => {
-                    if (knownRecipes.includes(i)) {
+                this.inventory.forEach(itemObj => {
+                    let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                    if (knownRecipes.includes(id)) {
                         totalStock++;
                     }
                 });
@@ -2186,7 +2182,10 @@ aiPet.update = function() {
                         let isSmartMenuManager = (this.stats.intel || 10) >= 50;
                         for (let r in s.recipes) {
                             if (s.recipes[r].learned) {
-                                let count = this.inventory.filter(i => i === r).length;
+                                let count = this.inventory.filter(itemObj => {
+                                    let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                                    return id === r;
+                                }).length;
                                 if (isSmartMenuManager && count === 0) s.recipes[r].hidden = true;
                                 else s.recipes[r].hidden = false;
                             }
@@ -2202,9 +2201,15 @@ aiPet.update = function() {
 
                         const canAffordToConsume = (consumedIds) => {
                             let requiredCounts = {};
-                            consumedIds.forEach(id => { requiredCounts[id] = (requiredCounts[id] || 0) + 1; });
+                            consumedIds.forEach(itemObj => { 
+                                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                                requiredCounts[id] = (requiredCounts[id] || 0) + 1; 
+                            });
                             for (let id in requiredCounts) {
-                                let currentTotal = (this.inventory || []).filter(item => item === id).length;
+                                let currentTotal = (this.inventory || []).filter(itemObj => {
+                                    let iid = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                                    return iid === id;
+                                }).length;
                                 if (currentTotal - requiredCounts[id] < 5) return false;
                             }
                             return true;
@@ -2272,14 +2277,13 @@ aiPet.update = function() {
         if (this.schedule.length > 0) {
             let task = this.schedule[0]; 
 
-            // ★追加: 病気中のタスク拒否（睡眠・休息・食事以外）
             if (this.isSick && !['sleep', 'rest', 'eat'].includes(task.type)) {
                 task.duration = 0; task.aborted = true;
                 this.actionState = 'idle';
                 this.message = "具合が悪くて動けない..."; this.messageTimer = 120;
                 this.schedule.shift();
                 if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
-                return; // ここで抜ける
+                return;
             }
 
             const eff = getActionEfficiency(task.type).rate;
@@ -2289,20 +2293,21 @@ aiPet.update = function() {
             const bIntel = tData.statBonus?.intel || 1.0;
             const bPower = tData.statBonus?.power || 1.0;
 
+            // =======================================
+            // ★タスクの初期化処理
+            // =======================================
             if (!task._started) {
                 const instantTasks = ['visit_master', 'apprentice_exam', 'master_quest'];
-                // ★修正: apprentice_exam は上で時間を伸ばしたのでここでは初期化しない
                 if (instantTasks.includes(task.type) && task.type !== 'apprentice_exam') { task.duration = 1; } 
                 else if (!task.duration || task.duration <= 0) { task.duration = 60; }
                 task.maxDuration = task.duration;
                 
-                // ★完全修正：探検時の目的地選び（名前やIDのすり抜けを完全防止）
+                // 探検の目的地選び
                 if (task.type === 'explore') {
                     task.duration = 60; task.maxDuration = 60;
                     
                     let isMasterExplorer = (this.apprentice && this.apprentice.rank && this.apprentice.rank['explore'] >= 10);
                     
-                    // ★最強のダンジョン検知レーダー：type、ID(uid)、名前のどれかに引っかかればダンジョン扱い！
                     let isDungeon = (a, uid) => {
                         if (a.type === 'skull' || a.type === 'crystal') return true;
                         if (uid && (uid.startsWith('skull') || uid.startsWith('crystal'))) return true;
@@ -2310,21 +2315,14 @@ aiPet.update = function() {
                         return false;
                     };
                     
-                    // Object.entries を使って、アセットの裏側のID(uid)も一緒に取得する
                     let allAssetsWithUid = Object.entries(assets).map(([uid, a]) => ({ uid, ...a, originalAsset: a }));
-
-                    // 1. マップ上にある「橋」の数をカウント
                     let bridgeCount = allAssetsWithUid.filter(a => a.type === 'bridge').length;
                     let canAccessRareArea = bridgeCount >= 2;
-
-                    // 2. メインエリア（AIの拠点側）の基準点を取得
                     let mainRef = allAssetsWithUid.find(a => a.type === 'farm' || a.type === 'restaurant' || a.type === 'house');
                     let refX = mainRef ? mainRef.dx + 25 : 400;
                     let refY = mainRef ? mainRef.dy + 25 : 240;
 
-                    // 3. アクセス可能な施設を厳密にフィルタリング
                     let validTargets = allAssetsWithUid.filter(a => {
-                        // 探検可能なタイプ、またはダンジョンと認識されるもの
                         let isPossibleTarget = (a.type === 'nature' || a.type === 'building' || a.type === 'skull' || a.type === 'crystal' || isDungeon(a, a.uid));
                         if (!isPossibleTarget) return false;
 
@@ -2333,22 +2331,16 @@ aiPet.update = function() {
                         let aY = a.dy + (a.sh * aScale) / 2;
                         let inRareArea = typeof this.isWaterBetween === 'function' ? this.isWaterBetween(refX, refY, aX, aY) : false;
 
-                        // 条件A：橋が2つ未満なら、川の向こう側はすべて除外
                         if (inRareArea && !canAccessRareArea) return false;
-
-                        // 条件B：免許皆伝でなければ、ダンジョンは除外！（手前側にあっても入れない）
                         if (!isMasterExplorer && isDungeon(a, a.uid)) return false;
 
                         return true;
                     });
 
-                    // 4. ダンジョンと通常エリア（森・山）に分ける
                     let dungeons = validTargets.filter(a => isDungeon(a, a.uid));
                     let normals = validTargets.filter(a => !isDungeon(a, a.uid));
-
                     let finalTargetWrapped = null;
 
-                    // 5. 確率に基づくターゲット選定
                     if (dungeons.length > 0 && normals.length > 0) {
                         if (Math.random() < 0.70) {
                             finalTargetWrapped = dungeons[Math.floor(Math.random() * dungeons.length)];
@@ -2361,9 +2353,7 @@ aiPet.update = function() {
                         finalTargetWrapped = normals[Math.floor(Math.random() * normals.length)];
                     }
 
-                    // 目的地へ向かう
                     if (finalTargetWrapped) {
-                        // 実際の移動には元のオリジナルアセットオブジェクトを渡す
                         this.startBuildingInteraction(finalTargetWrapped.originalAsset);
                         let targetName = finalTargetWrapped.name || "未知の場所";
                         this.message = `「${targetName}」に探検に行くよ！`;
@@ -2392,7 +2382,6 @@ aiPet.update = function() {
                     if (typeof this.processLifePathStart === 'function') this.processLifePathStart(task);
                     this.actionState = 'camping'; 
                 }
-                // ★超進化版：農業（スマート巡回＆ピンチ優先ロジック）
                 else if (task.type === 'farm') {
                     let isMaster = this.apprentice && (
                         (this.apprentice.retired && this.apprentice.retired['farming']) || 
@@ -2404,9 +2393,9 @@ aiPet.update = function() {
 
                     if (!intendedSeed && task.intendedAction !== 'pest_control') {
                         if (isMaster) {
-                            if (this.inventory && this.inventory.includes('seed_carrot')) intendedSeed = 'seed_carrot';
-                            else if (this.inventory && this.inventory.includes('seed_tomato')) intendedSeed = 'seed_tomato';
-                            else if (this.inventory && this.inventory.includes('seed_pepper')) intendedSeed = 'seed_pepper';
+                            if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_carrot')) intendedSeed = 'seed_carrot';
+                            else if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_tomato')) intendedSeed = 'seed_tomato';
+                            else if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_pepper')) intendedSeed = 'seed_pepper';
                         } else { intendedSeed = 'seed_carrot_given'; }
                     }
 
@@ -2466,7 +2455,6 @@ aiPet.update = function() {
                         let cx = targetFarm.dx + (targetFarm.sw * (targetFarm.scale||0.5))/2;
                         let cy = targetFarm.dy + (targetFarm.sh * (targetFarm.scale||0.5))/2;
                         
-                        // ★修正：距離が近い（すでに畑の上にいる）場合は移動をスキップして即座に作業開始！
                         if (Math.hypot(this.x - cx, this.y - cy) < 80) {
                             this.interactionTarget = targetFarm;
                             this.executeEnterAction();
@@ -2480,33 +2468,25 @@ aiPet.update = function() {
                         this.messageTimer = 120;
                     }
                 }
+                // ★荷物整理タスクの初期化
+                else if (task.type === '荷物整理') {
+                    let myHut = assets[task.targetUid];
+                    if (!myHut || !myHut.storage) {
+                        this.message = "整理する設備がまだないみたい...";
+                        this.messageTimer = 180;
+                        task.duration = 0; 
+                        task.aborted = true;
+                        return;
+                    }
+                    this.startBuildingInteraction(myHut);
+                }
                 else {
                     let fType = task.type;
                     if (task.type === 'fish') fType = 'bridge';
                     const facility = task.type.startsWith('shop_') ? assets[task.buildingId] : findFacilityForTask(fType, task.masterType);
                     
                     if (facility) {
-                        let aScale = facility.scale || 0.5;
-                        let cx = facility.dx + (facility.sw * aScale)/2;
-                        let cy = facility.dy + (facility.sh * aScale)/2;
-                        let dist = Math.hypot(this.x - cx, this.y - cy);
-
-                        // ★致命的バグ修正：「this.interactionTarget === facility」の条件を削除。
-                        // これがあると、チャットで指示を出した瞬間に「すでに到着している」と勘違いして瞬間移動（過程スキップ）してしまうため！
-                        if (dist < 80) {
-                            this.interactionTarget = facility;
-                            if (task.type === 'fish') {
-                                this.actionState = 'fishing'; this.visualAction = 'fish';
-                                this.message = "ここで釣りを続けるよ！"; this.messageTimer = 120;
-                            } else if (this.isIndoors && (this.indoorTarget === facility || task.type.startsWith('shop_'))) {
-                                this.actionState = 'apprentice_training';
-                            } else {
-                                this.executeEnterAction(); // 即座に開始
-                            }
-                        } else {
-                            // 距離が遠いなら、ちゃんと歩いて移動する
-                            this.startBuildingInteraction(facility);
-                        }
+                        this.startBuildingInteraction(facility);
                     } else { 
                         if (task.type === 'fish') {
                             this.interactionTarget = { type: 'sea' };
@@ -2519,14 +2499,19 @@ aiPet.update = function() {
                 task._started = true;
             }
 
+            // ★作業中かどうかの判定（荷物整理も含める）
             const isActing = (this.actionState === 'camping' || this.actionState === 'studying' || this.actionState === 'training' || this.actionState === 'sleeping' || this.actionState === 'eating' || this.actionState === 'fishing' || this.actionState === 'smithing' || this.actionState === 'building' || this.isIndoors || this.actionState === 'apprentice_training' || this.actionState === 'farming_work');
 
+            // =======================================
+            // ★作業中(isActing)の毎フレーム処理
+            // =======================================
             if (isActing) {
                 const fastTasks = ['cook', 'smith', 'shop_work', 'shop_research', 'auto_trade']; 
                 const isSlowTask = !fastTasks.includes(task.type);
 
                 if (isSlowTask && !window.isFastForwardLife && !isOneMinutePassed) {
-                    if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study') { this.visualAction = 'study'; } 
+                    // アニメーションの設定
+                    if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study' || task.type === '荷物整理') { this.visualAction = 'study'; } 
                     else if (task.type === 'eat') { this.actionState = this.isIndoors ? 'inside' : 'eating'; this.visualAction = 'eat_raw'; } 
                     else if (task.type === 'cook' || task.type === 'shop_work' || task.type === 'smith') { this.visualAction = (myShop?.type === 'smith' || task.type === 'smith') ? 'smith' : 'cook'; }
                     else if (task.type === 'fish') {
@@ -2542,16 +2527,14 @@ aiPet.update = function() {
                     }
                     else if (task.type === 'apprentice_exam') {
                         this.actionState = 'inside'; this.isIndoors = true; this.visualAction = 'study';
-                        task.duration--; // ★試験のプログレスバーを確実に進める
+                        task.duration--; 
                         if (typeof window.updateExamUI === 'function') window.updateExamUI(task);
                     }
-                    // ★追加：farmタスクの実行中は強制的にこの状態を維持する
                     else if (task.type === 'farm') {
                         if (!this.visualAction) this.visualAction = 'farm_plow';
                         this.actionState = 'farming_work';
                     }
                     
-                    // ★追加：バイト中のセリフを固定
                     if (task.isBaito && task.baitoActionMsg) {
                         if (this.message !== task.baitoActionMsg && !window.isCatchingUp) { 
                             this.message = task.baitoActionMsg; 
@@ -2559,7 +2542,7 @@ aiPet.update = function() {
                         }
                     }
                 } else {
-                    // ★完全修正：農業(farm)だけは自動減算をせず手動で終わらせる！釣り(fish)は時間経過で終わらせるため減算する！
+                    // ★ゲージの減算処理（農作業などはシステム側で終わらせるため減らさない）
                     if (task.type !== 'explore' && task.type !== 'apprentice_exam' && task.type !== 'farm') {
                         task.duration--;
                         if (this.activeMonuments) {
@@ -2569,15 +2552,16 @@ aiPet.update = function() {
                         }
                     }
 
+                    // --- 各種ステータスアップなどのインゲーム処理 ---
                     if (task.type === 'study') { this.actionState = this.isIndoors ? 'inside' : 'studying'; this.visualAction = 'study'; this.stats.intel += 0.1 * eff * bIntel; }
                     else if (task.type === 'train') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'train'; this.stats.power += 0.1 * eff * bPower; }
                     else if (task.type === 'run') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'move'; this.stats.speed += 0.1 * eff * bPower; }
                     else if (task.type === 'rest' || task.type === 'sleep') { 
                         this.actionState = this.isIndoors ? 'inside' : 'sleeping'; this.visualAction = 'sleep'; this.energy += 1.0 * eff;
-                        if (this.energy >= 60 && this.hunger >= 60) { // ★条件緩和
+                        if (this.energy >= 60 && this.hunger >= 60) { 
                             let beautyGain = 0.1 * eff;
                             const currentHour = new Date().getHours();
-                            if (currentHour >= 22 || currentHour <= 4) beautyGain *= 2; // ★シンデレラタイム
+                            if (currentHour >= 22 || currentHour <= 4) beautyGain *= 2;
                             this.stats.beauty += beautyGain;
                             if (!window.isCatchingUp) {
                                 let effectCount = 1 + Math.floor(Math.random() * 2); 
@@ -2591,7 +2575,6 @@ aiPet.update = function() {
                     }
                     else if (task.type === 'eat') { 
                         this.actionState = this.isIndoors ? 'inside' : 'eating'; this.visualAction = 'eat_raw';
-                        // ★修正：病気の時は、満腹(100)でも薬を飲むためにconsumeFoodを呼ぶ！
                         if (this.hunger < 100 || this.isSick) this.consumeFood();
                         if (task.duration <= 0 && !task.aborted) this.processEatingFinish?.(task);
                     }
@@ -2640,23 +2623,268 @@ aiPet.update = function() {
                     else if (task.type === 'build') {
                         if (task.duration <= 0 && !task.aborted && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
                     }
+                    // ==========================================
+                    // 📦 マイホームでの自動身支度・お片付け (完全自律型AI版・拡張ロジック補完)
+                    // ==========================================
+                    else if (task.type === '荷物整理') {
+                        let myHut = assets[task.targetUid];
+                        if (!myHut) { task.duration = 0; return; }
+
+                        if (!this.isIndoors) {
+                            if (this.actionState === 'idle') this.startBuildingInteraction(myHut);
+                            return;
+                        }
+
+                        this.visualAction = 'study';
+
+                        // --- 初回入室時のUIオープン＆初期化 ---
+                        if (!task._uiOpened) {
+                            task._uiOpened = true;
+                            if (!myHut.storage) myHut.storage = { freezer: {level:1, capacity:10, items:[]}, warehouse: {level:1, capacity:10, items:[]}, safe: {level:1, capacity:50000, gold:0} };
+                            if (typeof window.openHutStorageUI === 'function') window.openHutStorageUI(myHut);
+                        }
+
+                        let s = myHut.storage;
+                        let prepMessages = [];
+                        let fullReason = null;
+                        let sortedCount = 0; // しまったアイテム・お金のカウント
+                        
+                        // 今回AIが「持っていく！」と決めたアイテムを入れる新しいカバン
+                        let newInventory = [];
+
+                        const getItemData = (itemObj) => { let id = typeof itemObj === 'string' ? itemObj : itemObj.id; return (typeof itemCatalog !== 'undefined') ? itemCatalog[id] : null; };
+
+                        // --------------------------------------------------
+                        // 1. 【最優先】特効薬の確保
+                        // --------------------------------------------------
+                        let mIdx = this.inventory.findIndex(i => getItemData(i)?.type === 'medicine');
+                        if (mIdx !== -1) {
+                            newInventory.push(this.inventory.splice(mIdx, 1)[0]);
+                        } else {
+                            let wIdx = s.warehouse.items.findIndex(i => getItemData(i)?.type === 'medicine');
+                            if (wIdx !== -1) { newInventory.push(s.warehouse.items.splice(wIdx, 1)[0]); prepMessages.push("特効薬を準備"); }
+                            else {
+                                let fIdx = s.freezer.items.findIndex(i => getItemData(i)?.type === 'medicine');
+                                if (fIdx !== -1) { newInventory.push(s.freezer.items.splice(fIdx, 1)[0]); prepMessages.push("特効薬を準備"); }
+                            }
+                        }
+
+                        // --------------------------------------------------
+                        // 2. 【生存優先】食事の確保 (満タンになるまで)
+                        // --------------------------------------------------
+                        let simE = this.energy || 0; let simH = this.hunger || 0;
+                        if (simE < 100 || simH < 100) {
+                            let foodCandidates = [];
+                            // 手持ちから探す
+                            for (let i = this.inventory.length - 1; i >= 0; i--) {
+                                let item = this.inventory[i]; let d = getItemData(item);
+                                if (d && ['food','ingredient','dish'].includes(d.type) && (!item.quality || item.quality !== 'bad')) {
+                                    foodCandidates.push({ item: item, src: 'inv', idx: i, val: (d.stats?.energy||0)+(d.stats?.hunger||0) });
+                                }
+                            }
+                            // 冷凍庫から探す
+                            for (let i = s.freezer.items.length - 1; i >= 0; i--) {
+                                let item = s.freezer.items[i]; let d = getItemData(item);
+                                if (d && ['food','ingredient','dish'].includes(d.type) && (!item.quality || item.quality !== 'bad')) {
+                                    foodCandidates.push({ item: item, src: 'freezer', idx: i, val: (d.stats?.energy||0)+(d.stats?.hunger||0) });
+                                }
+                            }
+                            // 回復量の高い順にソート (popで大きいものから取るため昇順)
+                            foodCandidates.sort((a,b) => a.val - b.val);
+                            
+                            let foodAdded = false;
+                            while ((simE < 100 || simH < 100) && foodCandidates.length > 0) {
+                                let best = foodCandidates.pop();
+                                // 元の場所から抜き取る
+                                if (best.src === 'inv') this.inventory.splice(this.inventory.indexOf(best.item), 1);
+                                else s.freezer.items.splice(s.freezer.items.indexOf(best.item), 1);
+                                
+                                newInventory.push(best.item);
+                                let d = getItemData(best.item);
+                                simE += (d.stats?.energy || 0); simH += (d.stats?.hunger || 0);
+                                if (best.src === 'freezer') foodAdded = true;
+                            }
+                            if (foodAdded) prepMessages.push("食料を確保");
+                        }
+
+                        // --------------------------------------------------
+                        // 3. 【目標優先】建築・拡張素材の確保 (一括拡張対応版)
+                        // --------------------------------------------------
+                        let targetBuild = null;
+                        let expandCountForTarget = 1; 
+                        let bCat = typeof buildingCatalog !== 'undefined' ? buildingCatalog : {};
+                        let avail = {}; // 手持ち・倉庫・冷凍庫の合算
+                        [...this.inventory, ...s.warehouse.items, ...s.freezer.items].forEach(i => { let id = typeof i === 'string' ? i : i.id; avail[id] = (avail[id] || 0) + 1; });
+
+                        const checkMats = (mats, mult = 1) => { for (let k in mats) { if ((avail[k]||0) < mats[k] * mult) return false; } return true; };
+
+                        let hasCasino = Object.values(assets).some(a => a.type === 'casino');
+                        let hasCastle = Object.values(assets).some(a => a.type === 'castle');
+
+                        let intel = this.stats.intel || 10;
+                        let power = this.stats.power || 10;
+                        let upgradeTarget = null;
+                        let upgradeCount = 0;
+
+                        // [3-A] 一括拡張の計算 (漏れていたロジック)
+                        if (intel >= 30) {
+                            let maxByPower = Math.max(1, Math.floor(power / 30));
+                            let foodCount = 0; let matCount = 0;
+                            [...this.inventory, ...s.warehouse.items, ...s.freezer.items].forEach(i => {
+                                let d = getItemData(i);
+                                if (d && ['food', 'ingredient', 'dish'].includes(d.type)) foodCount++;
+                                else matCount++;
+                            });
+                            
+                            let extraBuffer = Math.floor(intel / 50) * 10;
+                            let upgTypes = ['warehouse', 'freezer', 'safe'];
+                            
+                            for (let uType of upgTypes) {
+                                if (!bCat[uType]) continue;
+                                let reqCount = 0;
+                                if (uType === 'freezer') {
+                                    let overflow = foodCount - (s.freezer.capacity || 0);
+                                    reqCount = Math.ceil((Math.max(0, overflow) + extraBuffer) / 10);
+                                } else if (uType === 'warehouse') {
+                                    let overflow = matCount - (s.warehouse.capacity || 0);
+                                    reqCount = Math.ceil((Math.max(0, overflow) + extraBuffer) / 10);
+                                } else if (uType === 'safe') {
+                                    let overflow = this.gold - (s.safe.capacity || 0);
+                                    if (overflow > 0) reqCount = Math.ceil(overflow / 50000);
+                                }
+                                
+                                if (reqCount > 0) {
+                                    let affordable = maxByPower;
+                                    let mats = bCat[uType].materials;
+                                    for (let mKey in mats) { affordable = Math.min(affordable, Math.floor((avail[mKey]||0) / mats[mKey])); }
+                                    if (affordable > 0) {
+                                        upgradeTarget = uType;
+                                        upgradeCount = Math.min(reqCount, affordable);
+                                        break; // 1回の整理でターゲットにする拡張は1種類まで
+                                    }
+                                }
+                            }
+                        }
+
+                        // [3-B] ターゲットの決定
+                        if (!hasCasino && bCat['casino'] && checkMats(bCat['casino'].materials)) { targetBuild = 'casino'; }
+                        else if (!hasCastle && bCat['castle'] && checkMats(bCat['castle'].materials)) { targetBuild = 'castle'; }
+                        else if (upgradeTarget) { targetBuild = upgradeTarget; expandCountForTarget = upgradeCount; }
+                        else {
+                            // まだ建っていない通常の施設（鍛冶屋など）を探す
+                            let unbuilt = Object.keys(bCat).filter(k => !['casino','castle','hut','farm','warehouse','freezer','safe'].includes(k) && !Object.values(assets).some(a => a.type === k));
+                            for (let k of unbuilt) { if (checkMats(bCat[k].materials)) { targetBuild = k; break; } }
+                        }
+
+                        // [3-C] 素材の引き出し処理
+                        if (targetBuild) {
+                            let reqMats = bCat[targetBuild].materials;
+                            let matsAdded = false;
+                            for (let mKey in reqMats) {
+                                let needed = reqMats[mKey] * expandCountForTarget;
+                                let found = 0;
+                                // 手持ちから
+                                for (let i = this.inventory.length - 1; i >= 0 && found < needed; i--) {
+                                    let id = typeof this.inventory[i] === 'string' ? this.inventory[i] : this.inventory[i].id;
+                                    if (id === mKey) { newInventory.push(this.inventory.splice(i, 1)[0]); found++; }
+                                }
+                                // 倉庫から
+                                for (let i = s.warehouse.items.length - 1; i >= 0 && found < needed; i--) {
+                                    let id = typeof s.warehouse.items[i] === 'string' ? s.warehouse.items[i] : s.warehouse.items[i].id;
+                                    if (id === mKey) { newInventory.push(s.warehouse.items.splice(i, 1)[0]); found++; matsAdded = true; }
+                                }
+                                // 冷凍庫から（氷などの特殊な建築素材対策）
+                                for (let i = s.freezer.items.length - 1; i >= 0 && found < needed; i--) {
+                                    let id = typeof s.freezer.items[i] === 'string' ? s.freezer.items[i] : s.freezer.items[i].id;
+                                    if (id === mKey) { newInventory.push(s.freezer.items.splice(i, 1)[0]); found++; matsAdded = true; }
+                                }
+                            }
+                            if (matsAdded) prepMessages.push(`${bCat[targetBuild].name}${expandCountForTarget > 1 ? `(一括拡張)` : ''}の素材`);
+                            else prepMessages.push(`${bCat[targetBuild].name}の素材ヨシ`); // 手持ちだけで足りた場合のフレーバー
+                        }
+
+                        // --------------------------------------------------
+                        // 4. 【お片付け】不用品の収納
+                        // --------------------------------------------------
+                        while(this.inventory.length > 0) {
+                            let item = this.inventory.pop(); // 元のカバンに残っているものはすべて不用品
+                            let d = getItemData(item);
+                            let isFood = d && ['food','ingredient','dish'].includes(d.type);
+                            
+                            if (isFood) {
+                                if (s.freezer.level > 0 && s.freezer.items.length < s.freezer.capacity) { s.freezer.items.push(item); sortedCount++; }
+                                else { newInventory.push(item); fullReason = "冷凍庫がいっぱい"; }
+                            } else {
+                                if (s.warehouse.level > 0 && s.warehouse.items.length < s.warehouse.capacity) { s.warehouse.items.push(item); sortedCount++; }
+                                else { newInventory.push(item); fullReason = "倉庫がいっぱい"; }
+                            }
+                        }
+                        
+                        // 新しいカバン（予約済みアイテム＋あふれたアイテム）を装備
+                        this.inventory = newInventory;
+
+                        // --------------------------------------------------
+                        // 5. お金の収納
+                        // --------------------------------------------------
+                        if (this.gold > 500 && s.safe.level > 0) {
+                            let deposit = Math.min(this.gold - 500, s.safe.capacity - s.safe.gold);
+                            if (deposit > 0) {
+                                this.gold -= deposit;
+                                s.safe.gold += deposit;
+                                sortedCount++;
+                            } else if (this.gold > 500) fullReason = "金庫がいっぱい";
+                        }
+
+                        // --------------------------------------------------
+                        // 終了処理とメッセージ
+                        // --------------------------------------------------
+                        if (prepMessages.length > 0) this.message = "身支度完了！\n" + prepMessages.join(' / ');
+                        else if (sortedCount > 0) this.message = "不要なものを片付けたよ！";
+                        else if (fullReason) this.message = `${fullReason}みたい...\nそのまま持っておくね。`;
+                        else this.message = "整理終わり！準備バッチリ！";
+
+                        this.messageTimer = 180;
+                        if (typeof window.openHutStorageUI === 'function') window.openHutStorageUI(myHut);
+                        
+                        // 待機して外へ
+                        if (task._waitingFinish === undefined) task._waitingFinish = 3; 
+                        task._waitingFinish--;
+                        
+                        if (task._waitingFinish <= 0) task.duration = 0; 
+                        else task.duration = 2; 
+
+                        if (task.duration <= 0) {
+                            this.actionState = 'exiting'; 
+                            this.isIndoors = false; 
+                            this.indoorTarget = null;
+                            let ui = document.getElementById('hut-storage-ui');
+                            if (ui) ui.remove();
+                            if (typeof updateStatUI === 'function') updateStatUI();
+                        }
+                    }
                 }
             }
 
+            // =======================================
+            // ★タスクの完了・破棄判定（ループ終了部分）
+            // =======================================
             const isRecoveryTask = ['rest', 'sleep', 'eat'].includes(task.type);
             const isEnergyOut = !this.godMode && this.energy <= 0 && !isRecoveryTask;
             const isHungerOut = !this.godMode && this.hunger <= 0 && !isRecoveryTask;
 
             if (task.duration <= 0 || isEnergyOut || isHungerOut) {
                 const isShopTask = (task.type === 'shop_work' || task.type === 'shop_research');
-                const waitingExit = !isShopTask && task._started && (this.isIndoors || this.actionState === 'exiting');
+                
+                // ★完全修正：タスクが完了し、かつ「中に入っている」場合は、次のタスクへ進む前に外へ出る（exiting）状態に移行させる
+                // ※ただし探索など「引き続き中にとどまる」特殊タスクは除外
+                const waitingExit = !isShopTask && task._started && task.type !== 'explore' && task.type !== 'apprentice_exam' && this.isIndoors;
 
-                if (!waitingExit) {
+                if (!waitingExit || this.actionState === 'exiting') {
                     if (task.duration <= 0 && !task.aborted) {
                         if (task.type === 'build' && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
                         if (task.type.startsWith('life_') && typeof this.processLifePathFinish === 'function') this.processLifePathFinish(task);
 
-                        // ★追加: 連続睡眠ボーナス
+                        // 連続睡眠ボーナス
                         if (task.type === 'sleep' || task.type === 'rest') {
                             if (this.energy >= 60 && this.hunger >= 60) {
                                 this.consecutiveSleepCount = (this.consecutiveSleepCount || 0) + 1;
@@ -2666,10 +2894,10 @@ aiPet.update = function() {
                                 }
                             }
                         } else {
-                            this.consecutiveSleepCount = 0; // 他の作業をしたらカウントリセット
+                            this.consecutiveSleepCount = 0; 
                         }
 
-                        // ★追加: 闇落ちポイント(darknessCounter)の加算
+                        // 闇落ちポイント加算
                         if (!['sleep', 'rest', 'eat'].includes(task.type)) {
                             if (this.age > (this.lifespan || 100) * 0.5 && this.stats.mood <= 30) {
                                 this.darknessCounter = (this.darknessCounter || 0) + 1;
@@ -2706,16 +2934,11 @@ aiPet.update = function() {
                             else if (task.type === 'apprentice_exam') this.processApprenticeExamFinish?.(task);
                         }
                         
-                        // ==========================================
-                        // ★ バイト完了時（報酬はここでは与えず、進捗だけ進める！）
-                        // ==========================================
                         if (task.isBaito && this.apprentice && this.apprentice.activeQuests) {
                             this.apprentice.activeQuests.forEach(q => {
-                                // ① バイトクエストの進捗
                                 if (q.isBaitoQuest && q.baitoWord === task.baitoWord) {
                                     q.qVal = (q.qVal || 0) + 1;
                                 }
-                                // ② ★追加：建築士の本業課題「はじめての製図」も、書き写しで進むようにする！
                                 if (!q.isBaitoQuest && task.baitoWord === '書き写し') {
                                     if (q.desc.includes('製図') || q.desc.includes('書き写し') || q.name.includes('製図')) {
                                         q.qVal = (q.qVal || 0) + 1;
@@ -2727,12 +2950,10 @@ aiPet.update = function() {
                             if (!window.isCatchingUp) window.updateQuestHUD?.();
                         }
 
-                        // ★配列内の全クエストをチェック
                         const taskToKeyword = { 'study':'勉強','train':'筋トレ','sleep':'睡眠','rest':'休息','eat':'食事','cook':'料理','smith':'鍛冶','build':'建築','fish':'釣り','explore':'探検' };
                         const keyword = taskToKeyword[task.type];
                         if (keyword && this.apprentice && this.apprentice.activeQuests) {
                             this.apprentice.activeQuests.forEach(q => {
-                                // ★修正：ステータス目標の数値が壊れないよう、「〇〇回行おう」という条件の時だけカウントを進める！
                                 if (q.desc.includes(keyword) && q.desc.includes('回行おう')) {
                                     q.qVal = (q.qVal || 0) + 1;
                                 }
@@ -2759,13 +2980,20 @@ aiPet.update = function() {
                             }
                         }
                     }
+                    
+                    // ここでタスクをスケジュールから削除
                     this.schedule.shift();
                     if (!window.isCatchingUp) window.updateScheduleList?.(); 
                     this.visualAction = null;
                     
-                    if (isShopTask) { this.actionState = 'inside'; this.exploreTimer = 0; } 
-                    else { this.indoorTarget = null; this.isIndoors = false; this.actionState = 'idle'; }
+                    if (isShopTask) { 
+                        this.actionState = 'inside'; this.exploreTimer = 0; 
+                    } 
+                    else { 
+                        this.indoorTarget = null; this.isIndoors = false; this.actionState = 'idle'; 
+                    }
                 } else if (this.isIndoors) { 
+                    // ★タスクが終わったので、一旦外に出る（exiting状態へ）
                     this.actionState = 'exiting'; this.isIndoors = false; 
                 }
             }
@@ -2805,10 +3033,9 @@ aiPet.update = function() {
         }
         this.stats.mood = Math.max(0, Math.min(100, this.stats.mood));
         
-        // ★修正: 自動の闇落ち増減を削除し、病気時の放置ペナルティを追加
         if (this.isSick) {
-            this.stats.mood -= 0.01; // 病気だとジワジワ機嫌悪化
-            this.lifespan -= 0.005;  // 放置すると最大寿命が削られる
+            this.stats.mood -= 0.01; 
+            this.lifespan -= 0.005;  
             if (!isHealing && Math.random() < 0.01 && !window.isCatchingUp && typeof addFloatingText === 'function') {
                 addFloatingText(this.x, this.y - 40, "😷 苦しい...", "#8D6E63");
             }
@@ -2819,7 +3046,6 @@ aiPet.update = function() {
     if (isPassiveActing && this.activeMonuments) { this.activeMonuments.forEach(m => { this.stats[m.stat] += 0.05; }); }
     if (this.actionState === 'sleeping' && this.activeMonuments && this.activeMonuments.some(m => m.stat === 'beauty')) { this.stats.beauty += 0.1; }
 
-    // ★重要：キャッチアップ中（別タブ復帰時の一括処理中）は画面上にポポポポと文字が出ないようにする
     if (!window.isCatchingUp) {
         if (Math.floor(this.stats.intel) > oldIntel) addFloatingText(this.x, this.y - 40, "賢さ UP!", "#4fc3f7");
         if (Math.floor(this.stats.power) > oldPower) addFloatingText(this.x, this.y - 40, "パワー UP!", "#ff5252");
@@ -2854,16 +3080,15 @@ aiPet.update = function() {
             } else if (this.actionState === 'moving_to_enter') { 
                 if (this.schedule[0]?.type === 'explore') { 
                     if (this.interactionTarget && (this.interactionTarget.type === 'skull' || this.interactionTarget.type === 'crystal')) {
-                        // ★修正：免許皆伝かどうかをここで判定し、ダメなら現在のタスク「だけ」をキャンセルして次へ進む
                         let isMasterExplorer = (this.apprentice && this.apprentice.rank && this.apprentice.rank['explore'] >= 10);
                         this.actionState = 'idle'; this.isIndoors = false; this.indoorTarget = null;
                         
                         if (!isMasterExplorer) {
                             this.message = "ここから先は危険だ...\n（免許皆伝が必要）"; this.messageTimer = 120;
-                            this.schedule.shift(); // ★全消しではなく、今やろうとしていた探索タスクだけを消す
+                            this.schedule.shift();
                             if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
                         } else {
-                            this.schedule = []; // 入れる場合は今まで通り全消ししてダンジョンに集中
+                            this.schedule = []; 
                             if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
                             if (typeof window.openDungeonUI === 'function' && !window.isCatchingUp) window.openDungeonUI(this.interactionTarget.type);
                         }
@@ -3095,7 +3320,7 @@ function processWeatherAndDisaster() {
 // ==========================================
 // ★大改修：転生時の「魂の引継ぎショップ」システム (余生システム対応版)
 // ==========================================
-// ★修正：map（マップ引継ぎ）を追加！コストは無料（0）に設定
+// ★修正：map（マップ引継ぎ）を追加！
 let inheritanceSelections = { stats: false, inventory: false, vocab: false, license: false, personality: false, map: false };
 window.inheritanceStatsPercent = 10;
 
@@ -3146,6 +3371,9 @@ window.updateInheritanceStatsPercent = function(value) {
     window.renderInheritanceShop();
 };
 
+// ==========================================
+// ★大改修：転生時の「魂の引継ぎショップ」システム (ロスト警告・倉庫救済版)
+// ==========================================
 window.renderInheritanceShop = function() {
     const shopUI = document.getElementById('inheritance-shop-ui');
     if (!shopUI) return;
@@ -3155,7 +3383,14 @@ window.renderInheritanceShop = function() {
         if (inheritanceSelections[key]) totalCost += currentInheritanceCosts[key];
     }
     
-    const isAffordable = window.aiPet.gold >= totalCost;
+    // ★追加：金庫のゴールドを合算する
+    let hut = null;
+    let _assets = typeof assets !== 'undefined' ? assets : window.assets;
+    for(let k in _assets) { if(_assets[k].storage) hut = _assets[k]; }
+    let safeGold = hut && hut.storage.safe ? hut.storage.safe.gold : 0;
+    let totalAvailGold = window.aiPet.gold + safeGold;
+    
+    const isAffordable = totalAvailGold >= totalCost;
     const goldColor = isAffordable ? '#4CAF50' : '#ff5252';
 
     let currentGen = window.aiPet.generation || 1;
@@ -3169,7 +3404,6 @@ window.renderInheritanceShop = function() {
     const renderOption = (key, title, desc, icon) => {
         const isSelected = inheritanceSelections[key];
         const cost = currentInheritanceCosts[key];
-        
         let extraUI = '';
         let displayDesc = desc;
         if (key === 'stats') {
@@ -3179,7 +3413,6 @@ window.renderInheritanceShop = function() {
                         <span style="font-size:11px; color:#aaa; margin-left:10px;">※世代が進むと上限が解放されます</span>
                     </div>`;
         }
-
         return `
             <div style="background: ${isSelected ? 'rgba(76, 175, 80, 0.3)' : '#333'}; border: 2px solid ${isSelected ? '#4CAF50' : '#555'}; border-radius: 8px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: 0.2s;"
                  onclick="window.toggleInheritance('${key}')" onmouseover="this.style.transform='scale(1.01)'" onmouseout="this.style.transform='scale(1)'">
@@ -3197,20 +3430,18 @@ window.renderInheritanceShop = function() {
     let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
     if (legacy.disciple) {
         let s = legacy.disciple.stats;
-        // ★修正: 素早さの表示を追加
         legacyHtml += renderOption('disciple', '一番弟子の引継ぎ', `育てた弟子を次の主人公にします。(初期値 活力:${s.power} 賢さ:${s.intel} 美しさ:${s.beauty} 素早さ:${s.speed||10})`, '👶');
     }
     legacy.monuments.forEach(m => {
-        // ★修正: speed に対応
         let statName = m.stat === 'power' ? '活力' : m.stat === 'intel' ? '賢さ' : m.stat === 'speed' ? '素早さ' : '美しさ';
         legacyHtml += renderOption(m.id, `モニュメント (${statName})`, `マップに建築され、あらゆる行動に【${statName}ボーナス】を与えます。<br><span style="color:#ff5252">※選択しないとこのモニュメントは消滅します</span>`, '🗽');
     });
     legacy.books.forEach(b => {
-        // ★修正: speed に対応
         let statName = b.stat === 'power' ? '活力' : b.stat === 'intel' ? '賢さ' : b.stat === 'speed' ? '素早さ' : '美しさ';
         legacyHtml += renderOption(b.id, `秘伝書の伝授 (${statName})`, `次世代の最初の10アクション時に、毎回【${statName} +${b.val}】のボーナスを付与します。<br><span style="color:#ff5252">※選択しないとこの秘伝書は消滅します</span>`, '📖');
     });
 
+    // ★修正：所持金表示を「手持ち＋金庫」にする
     shopUI.innerHTML = `
         <div style="background: #111; padding: 20px; border-bottom: 2px solid #FFD700; text-align: center;">
             <h2 style="margin: 0; color: #FFD700;">👼 魂の引継ぎ（強くてニューゲーム）</h2>
@@ -3222,19 +3453,146 @@ window.renderInheritanceShop = function() {
             ${renderOption('vocab', '語彙・記憶領域の引継ぎ', '前世で教えた言葉と、拡張された記憶容量を最初から持った状態で始まります。', '🗣️')}
             ${renderOption('license', '職業ライセンスの引継ぎ', '師匠から受けたランクや皆伝の証をそのまま持ち越します。', '📜')}
             ${renderOption('personality', '姿と性格の引継ぎ (診断スキップ)', '性格診断をスキップし、前世と全く同じ姿と性格で生まれ変わります。', '🧬')}
-
             ${renderOption('map', 'マップの引継ぎ', '前世で開拓したフィールドや施設をそのまま引き継ぎます。<br><span style="color:#FF9800;">※選択しない場合、新しいマップが再生成されます</span>', '🗺️')}
-
             ${legacyHtml !== "" ? `<div style="margin: 20px 0 10px 0; font-size: 16px; font-weight: bold; color: #00BCD4; border-bottom: 1px solid #00BCD4; padding-bottom: 5px;">🏆 余生の遺産 (選択必須)</div>` + legacyHtml : ""}
         </div>
         <div style="background: #111; padding: 20px; border-top: 2px solid #555; display: flex; justify-content: space-between; align-items: center;">
             <div style="font-size: 22px; font-weight: bold;">
-                所持金: <span style="color: #FFD700;">${window.aiPet.gold} G</span><br>
+                所持金: <span style="color: #FFD700;">${window.aiPet.gold} G</span> <span style="font-size:14px; color:#aaa;">(+金庫: ${safeGold}G)</span><br>
                 <span style="font-size: 16px; color: #aaa;">消費: <span style="color: ${goldColor};">-${totalCost} G</span></span>
             </div>
             <button onclick="window.executeReincarnation()" style="padding: 15px 40px; font-size: 20px; font-weight: bold; background: ${isAffordable ? '#FF9800' : '#666'}; color: white; border: none; border-radius: 8px; cursor: ${isAffordable ? 'pointer' : 'not-allowed'}; box-shadow: 0 4px 10px rgba(0,0,0,0.5);">次の人生へ ➔</button>
         </div>
     `;
+};
+
+// ★追加：実行ボタンを押した際の「ロスト警告ポップアップ」処理
+window.executeReincarnation = function() {
+    const names = { stats: '能力値', inventory: '持ち物', vocab: '語彙・記憶領域', license: '職業ライセンス', personality: '姿と性格', map: 'マップ' };
+    let lostList = [];
+    for (let key in inheritanceSelections) {
+        if (!inheritanceSelections[key] && names[key]) lostList.push(`・${names[key]}`);
+    }
+    
+    let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
+    if (legacy.disciple && !inheritanceSelections['disciple']) lostList.push("・一番弟子 (消滅)");
+    let lostMon = legacy.monuments.filter(m => !inheritanceSelections[m.id]).length;
+    if (lostMon > 0) lostList.push(`・モニュメント x${lostMon} (消滅)`);
+    let lostBooks = legacy.books.filter(b => !inheritanceSelections[b.id]).length;
+    if (lostBooks > 0) lostList.push(`・秘伝書 x${lostBooks} (消滅)`);
+
+    if (lostList.length > 0) {
+        let warnUI = document.createElement('div');
+        warnUI.id = 'reincarnation-warn-ui';
+        warnUI.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:40000; display:flex; justify-content:center; align-items:center; flex-direction:column; color:#fff; font-family:sans-serif;`;
+        warnUI.innerHTML = `
+            <div style="background:#222; border:2px solid #ff5252; border-radius:12px; padding:30px; max-width:500px; text-align:center;">
+                <h3 style="color:#ff5252; margin-top:0;">⚠️ 最終確認</h3>
+                <p style="font-size:16px;">以下の要素は次の世代へ持ち込まれず、失われますがよろしいですか？</p>
+                <div style="background:#111; padding:15px; border-radius:8px; text-align:left; color:#ccc; margin-bottom:20px; font-size:15px; line-height:1.6;">
+                    ${lostList.join('<br>')}
+                </div>
+                <div style="display:flex; gap:15px; justify-content:center;">
+                    <button onclick="document.getElementById('reincarnation-warn-ui').remove()" style="padding:10px 20px; font-size:16px; font-weight:bold; background:#555; color:white; border:none; border-radius:6px; cursor:pointer;">もう一度考え直す</button>
+                    <button onclick="document.getElementById('reincarnation-warn-ui').remove(); window.executeReincarnationFinal();" style="padding:10px 20px; font-size:16px; font-weight:bold; background:#FF9800; color:white; border:none; border-radius:6px; cursor:pointer;">そのまま進む ➔</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(warnUI);
+    } else {
+        window.executeReincarnationFinal();
+    }
+};
+
+// ★追加：実際の決済・救済・転生処理
+window.executeReincarnationFinal = function() {
+    let totalCost = 0;
+    for (let key in inheritanceSelections) { if (inheritanceSelections[key]) totalCost += currentInheritanceCosts[key]; }
+    
+    let hut = null;
+    let _assets = typeof assets !== 'undefined' ? assets : window.assets;
+    for(let k in _assets) { if(_assets[k].storage) hut = _assets[k]; }
+    let safeGold = hut && hut.storage.safe ? hut.storage.safe.gold : 0;
+    
+    if (window.aiPet.gold + safeGold < totalCost) { alert("ゴールドが足りません！"); return; }
+    
+    // 金庫からの自動補填決済
+    if (window.aiPet.gold >= totalCost) {
+        window.aiPet.gold -= totalCost;
+    } else {
+        let rem = totalCost - window.aiPet.gold;
+        window.aiPet.gold = 0;
+        hut.storage.safe.gold -= rem;
+    }
+
+    const inheritedData = {};
+    if (inheritanceSelections.stats) {
+        let multiplier = window.inheritanceStatsPercent / 100;
+        inheritedData.stats = {
+            intel: Math.floor(window.aiPet.stats.intel * multiplier),
+            power: Math.floor(window.aiPet.stats.power * multiplier),
+            beauty: Math.floor(window.aiPet.stats.beauty * multiplier),
+            speed: Math.floor((window.aiPet.stats.speed || 10) * multiplier)
+        };
+    }
+    
+    if (!inheritanceSelections.map) {
+        inheritedData.resetMap = true;
+    }
+    
+    // ★ 倉庫消失回避の救済措置
+    if (inheritanceSelections.inventory && !inheritanceSelections.map && hut) {
+        let rescuedItems = [...hut.storage.warehouse.items, ...hut.storage.freezer.items];
+        window.aiPet.inventory = window.aiPet.inventory.concat(rescuedItems);
+        window.aiPet.gold += hut.storage.safe.gold;
+        console.log("📦 倉庫消失回避のため、倉庫・冷凍庫・金庫の中身をすべて手持ちに引き出しました！");
+        inheritedData.inventory = [...window.aiPet.inventory];
+    } else if (inheritanceSelections.inventory) {
+        inheritedData.inventory = [...window.aiPet.inventory];
+    }
+
+    if (inheritanceSelections.vocab && window.aiPet.apprentice) {
+        inheritedData.apprentice = { 
+            learnedWords: [...window.aiPet.apprentice.learnedWords],
+            baseVocab: typeof window.aiPet.getMaxVocabulary === 'function' ? window.aiPet.getMaxVocabulary() : 3
+        };
+    }
+    if (inheritanceSelections.license && window.aiPet.apprentice) {
+        if (!inheritedData.apprentice) inheritedData.apprentice = {};
+        inheritedData.apprentice.rank = JSON.parse(JSON.stringify(window.aiPet.apprentice.rank || {}));
+        inheritedData.apprentice.retired = JSON.parse(JSON.stringify(window.aiPet.apprentice.retired || {}));
+        if (window.aiPet.apprentice.isGraduated && window.aiPet.apprentice.currentMaster) {
+            inheritedData.apprentice.retired[window.aiPet.apprentice.currentMaster] = true;
+        }
+    }
+    if (inheritanceSelections.personality) {
+        inheritedData.skin = window.aiPet.currentSkin;
+        inheritedData.baseType = window.aiPet.baseType;
+    }
+
+    let oldLegacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
+    let newLegacy = { monuments: [], books: [], disciple: null };
+    
+    if (inheritanceSelections['disciple'] && oldLegacy.disciple) {
+        inheritedData.discipleSkin = oldLegacy.disciple.skin;
+        inheritedData.discipleStats = oldLegacy.disciple.stats;
+    }
+    oldLegacy.monuments.forEach(m => { if (inheritanceSelections[m.id]) newLegacy.monuments.push(m); });
+    oldLegacy.books.forEach(b => {
+        if (inheritanceSelections[b.id]) { b.charges = 10; newLegacy.books.push(b); }
+    });
+    localStorage.setItem('ai_legacy_data', JSON.stringify(newLegacy));
+
+    window.aiPet.generation++;
+    document.getElementById('inheritance-shop-ui').style.display = 'none';
+    window.pendingInheritanceData = inheritedData;
+    if (typeof window.clearSchedule === 'function') window.clearSchedule();
+
+    if (inheritanceSelections.personality || inheritanceSelections['disciple']) {
+        window.applyInheritedPet(inheritedData.discipleSkin || inheritedData.skin || 'robot', inheritedData);
+    } else {
+        if (typeof startPersonalityTest === 'function') startPersonalityTest();
+    }
 };
 
 window.toggleInheritance = function(key) {
@@ -4425,19 +4783,29 @@ aiPet.processBuildingStart = function(task) {
     }
     if (!bData) { this.message = "建て方がわからない..."; this.messageTimer = 120; return false; }
 
-    // 素材チェックと消費
+    // ★修正：修行中の素材自動補充ロジックもオブジェクト対応にする
     if (this.apprentice && this.apprentice.currentMaster === 'building') {
         if (!this.inventory) this.inventory = [];
         if (bData.materials) {
             for (let mKey in bData.materials) {
                 let req = bData.materials[mKey];
-                while (this.inventory.filter(i => i === mKey).length < req) { this.inventory.push(mKey); }
+                // カウント処理をオブジェクトの .id を見るように修正
+                while (this.inventory.filter(item => (typeof item === 'string' ? item : item.id) === mKey).length < req) { 
+                    this.inventory.push({ id: mKey, age: 0 }); // 文字列ではなくオブジェクトをpushする
+                }
             }
         }
     }
 
+    // ★修正：所持数のカウント処理
     let myItems = {};
-    if (this.inventory) this.inventory.forEach(k => myItems[k] = (myItems[k] || 0) + 1);
+    if (this.inventory) {
+        this.inventory.forEach(item => {
+            // 文字列ならそのまま、オブジェクトなら .id を取得
+            let id = typeof item === 'string' ? item : item.id;
+            myItems[id] = (myItems[id] || 0) + 1;
+        });
+    }
     let canBuild = true;
     if (bData.materials) {
         for (let mKey in bData.materials) {
@@ -4451,16 +4819,36 @@ aiPet.processBuildingStart = function(task) {
     let tx = this.x; let ty = this.y;
     let walkX = this.x; let walkY = this.y; 
     let foundSpot = false;
+    let targetUid = null; // ★追加：拡張対象のIDを保持
 
     // ==========================================
-    // ★大改修：全方位スキャン型の超賢い「橋架け」アルゴリズム
-    // 既存の橋の上に立って2つ目の橋を架ける処理もこれで完璧に動きます！
+    // ★修正：拡張施設（冷凍庫・倉庫・金庫）の場合は小屋の手前を探す
     // ==========================================
-    if (bId === 'bridge') {
+    if (bData.isUpgrade) {
+        let targetAsset = null;
+        for (let k in assets) {
+            if (assets[k].type === bData.targetFacility && !assets[k].isMobile) { targetAsset = assets[k]; break; }
+        }
+        if (!targetAsset) {
+            this.message = `拡張元の施設（${bData.targetFacility}）が見つからないよ...`; this.messageTimer = 120; return false;
+        }
+        let aScale = targetAsset.scale || 0.5;
+        tx = targetAsset.dx + (targetAsset.sw * aScale) / 2;
+        ty = targetAsset.dy + (targetAsset.sh * aScale) / 2;
+        
+        // ★重要：小屋のど真ん中だと衝突して歩けないため、手前（下側）を目標にする！
+        walkX = tx; 
+        walkY = targetAsset.dy + (targetAsset.sh * aScale) + 20; 
+        foundSpot = true;
+        targetUid = Object.keys(assets).find(k => assets[k] === targetAsset);
+    }
+    // ==========================================
+    // ★大改修：全方位スキャン型の超賢い「橋架け」アルゴリズム
+    // ==========================================
+    else if (bId === 'bridge') { // ★ if を else if に変更！
         let bestSpot = null;
         let minDist = Infinity;
 
-        // 指定座標に「既存の橋」があるか判定する関数
         let isOnBridge = (cx, cy) => {
             if (typeof assets !== 'undefined') {
                 for (let k in assets) {
@@ -4468,7 +4856,6 @@ aiPet.processBuildingStart = function(task) {
                     if (a.type === 'bridge') {
                         let scale = a.scale || 0.5;
                         let w = (a.sw || 50) * scale; let h = (a.sh || 50) * scale;
-                        // 判定を少し甘めにして橋の上を足場と認識しやすくする
                         if (cx >= a.dx - 10 && cx <= a.dx + w + 10 && cy >= a.dy - 10 && cy <= a.dy + h + 10) return true;
                     }
                 }
@@ -4476,27 +4863,19 @@ aiPet.processBuildingStart = function(task) {
             return false;
         };
 
-        // 指定座標が「足場（陸地か、または既存の橋の上）」であるかを判定
         let isWalkable = (cx, cy) => {
             if (typeof this.isPointOnWater === 'function' && !this.isPointOnWater(cx, cy)) return true;
             return isOnBridge(cx, cy);
         };
 
-        // 画面全体（40px刻みのグリッド）をスキャンして、橋を架けるべき「水」の座標を探す
         for (let cx = 40; cx <= 760; cx += 20) {
             for (let cy = 40; cy <= 440; cy += 20) {
-                // 建設予定地は「水の上」であり、かつ「まだ橋がない場所」でなければならない
                 if (typeof this.isPointOnWater === 'function' && this.isPointOnWater(cx, cy) && !isOnBridge(cx, cy)) {
-                    
-                    // その水の周囲4方向（上下左右）に「立てる場所（足場）」があるか？
                     let offsets = [ {dx:-40, dy:0}, {dx:40, dy:0}, {dx:0, dy:-40}, {dx:0, dy:40} ];
                     for (let off of offsets) {
                         let sx = cx + off.dx;
                         let sy = cy + off.dy;
-                        
-                        // 足場が「陸地」または「既存の橋」であれば建設可能！
                         if (isWalkable(sx, sy)) {
-                            // 今のAIの場所から一番近い候補地を選ぶ
                             let dist = Math.hypot(this.x - sx, this.y - sy);
                             if (dist < minDist) {
                                 minDist = dist;
@@ -4514,7 +4893,7 @@ aiPet.processBuildingStart = function(task) {
         if (!foundSpot) { this.message = "橋を架ける適当な水辺が見つからないよ..."; this.messageTimer = 120; return false; }
         
     } else {
-        // 橋以外の建物（カード屋など）は、陸地にランダムに建てる
+        // 橋・拡張以外の建物は、陸地にランダムに建てる
         for (let i = 0; i < 50; i++) {
             let checkX = 50 + Math.random() * 700; let checkY = 50 + Math.random() * 380;
             if (typeof this.isPointOnWater === 'function' && !this.isPointOnWater(checkX, checkY)) {
@@ -4524,7 +4903,7 @@ aiPet.processBuildingStart = function(task) {
         if (!foundSpot) { this.message = "安全に建てられる空き地が見つからないよ..."; this.messageTimer = 120; return false; }
     }
 
-    this.message = `${bData.name}を建てる場所へ行くよ！`; this.messageTimer = 120;
+    this.message = `${bData.name}の作業をする場所へ行くよ！`; this.messageTimer = 120;
     let vSrc = (typeof catalog !== 'undefined' && catalog[bId]) ? catalog[bId] : {img: bId, sw: 50, sh: 50, sx: 0, sy: 0, scale: 0.5};
 
     task.buildData = {
@@ -4532,6 +4911,13 @@ aiPet.processBuildingStart = function(task) {
         visualSource: { img: vSrc.img || vSrc.image || 'field', sx: vSrc.sx || 0, sy: vSrc.sy || 0, sw: vSrc.sw || 50, sh: vSrc.sh || 50 },
         targetScale: vSrc.scale || 0.5, bestX: tx, bestY: ty, walkX: walkX, walkY: walkY, targetFlip: false, maxDurability: bData.maxDurability || -1
     };
+
+    // ★追加：上書きされて消えないように、最後にもう一度拡張フラグをセットする！
+    if (bData.isUpgrade) {
+        task.buildData.isUpgrade = true;
+        task.buildData.targetUid = targetUid;
+    }
+
     task._hasBeenBuilt = false;
     return true;
 };
@@ -4539,59 +4925,180 @@ aiPet.processBuildingStart = function(task) {
 // ★ここが最も重要：確実にaiPetに完成処理を直接生やす！
 aiPet.processBuildingFinish = function(task) {
     if (!task || !task.buildData || task._hasBeenBuilt) return;
-    task._hasBeenBuilt = true;
     
     let bId = task.buildData.typeKey;
+
+    // 修行中（isTrial）の場合はマップに建てず、インベントリにアイテムを入れる
+    if (task.buildData.isTrial) {
+        let d = task.buildData;
+        if (!this.skills.building) this.skills.building = 1;
+        
+        if (d.isSuccess) {
+            this.skills.building += 0.5;
+            this.stats.mood += d.isGreatSuccess ? 15 : 5;
+            this.message = d.isGreatSuccess ? `大成功！！ 芸術的な「${d.targetName}」が完成した！` : `製図成功！ ${d.targetName}ができた！`;
+        } else {
+            this.skills.building += 0.1;
+            this.message = "計算ミス... わけのわからない設計図になっちゃった...";
+        }
+        
+        this.inventory.push(d.targetId);
+
+        if (this.apprentice && this.apprentice.activeQuest) {
+            const desc = this.apprentice.activeQuest.desc;
+            if (desc.includes('図面') || desc.includes('模型') || desc.includes('製図') || desc.includes('建築')) {
+                this.apprentice.qVal = (this.apprentice.qVal || 0) + 1;
+                if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+            }
+        }
+
+        this.messageTimer = 150; this.visualAction = null; this.actionState = 'idle';
+        if (typeof saveGameData === 'function') saveGameData();
+        task._hasBeenBuilt = true;
+        return; 
+    }
+
     let bData = (typeof buildingCatalog !== 'undefined') ? buildingCatalog[bId] : null;
     
-    if (!this.godMode && bData && bData.materials) {
-        let myItems = {};
-        (this.inventory || []).forEach(k => myItems[k] = (myItems[k] || 0) + 1);
-        let canBuild = true;
-        for (let mKey in bData.materials) {
-            if ((myItems[mKey] || 0) < bData.materials[mKey]) canBuild = false;
+    // ==========================================
+    // ★ ストレージ一括拡張ロジック
+    // ==========================================
+    let expandCount = 1; 
+    
+    if (task.buildData.isUpgrade) {
+        let intel = this.stats.intel || 10;
+        let power = this.stats.power || 10;
+        
+        if (intel >= 30) {
+            let requiredCount = 1;
+            let upgType = bId; 
+            let tAsset = assets[task.buildData.targetUid];
+            
+            if (tAsset && tAsset.storage) {
+                if (upgType === 'warehouse' || upgType === 'freezer') {
+                    let targetItemsCount = 0;
+                    const getItemData = (itemObj) => { let id = typeof itemObj === 'string' ? itemObj : itemObj.id; return (typeof window.itemCatalog !== 'undefined') ? window.itemCatalog[id] : null; };
+                    
+                    (this.inventory || []).forEach(i => {
+                        let d = getItemData(i);
+                        if (d) {
+                            let isFood = ['food', 'ingredient', 'dish'].includes(d.type);
+                            if (upgType === 'freezer' && isFood) targetItemsCount++;
+                            if (upgType === 'warehouse' && !isFood) targetItemsCount++;
+                        } else {
+                            if (upgType === 'warehouse') targetItemsCount++;
+                        }
+                    });
+                    
+                    let currentCap = tAsset.storage[upgType].capacity || 0;
+                    let overflow = targetItemsCount - currentCap;
+                    let extraBuffer = Math.floor(intel / 50) * 10; 
+                    
+                    if (overflow > 0) requiredCount = Math.ceil((overflow + extraBuffer) / 10);
+                    else requiredCount = Math.ceil(extraBuffer / 10);
+                } else if (upgType === 'safe') {
+                    let currentCap = tAsset.storage.safe.capacity || 0;
+                    let overflow = this.gold - currentCap;
+                    if (overflow > 0) requiredCount = Math.ceil(overflow / 50000); 
+                }
+                
+                let maxByPower = Math.max(1, Math.floor(power / 30));
+                expandCount = Math.min(requiredCount, maxByPower);
+                if (expandCount < 1) expandCount = 1;
+            }
         }
-        if (!canBuild) {
+    }
+
+    // ==========================================
+    // ★ 素材の消費処理（GodModeを無視して確実に消費させる！）
+    // ==========================================
+    if (bData && bData.materials) {
+        let myItems = {};
+        (this.inventory || []).forEach(item => {
+            let id = typeof item === 'string' ? item : item.id;
+            myItems[id] = (myItems[id] || 0) + 1;
+        });
+        
+        for (let mKey in bData.materials) {
+            let reqOne = bData.materials[mKey];
+            let has = myItems[mKey] || 0;
+            let possibleTimes = Math.floor(has / reqOne);
+            if (possibleTimes < expandCount) expandCount = possibleTimes;
+        }
+        
+        if (expandCount < 1) {
             this.message = "あれ？ 途中で素材を落としちゃったみたい..."; this.messageTimer = 120;
             return;
         }
+
+        // 実際の消費ループ
         for (let mKey in bData.materials) {
-            for (let i = 0; i < bData.materials[mKey]; i++) {
-                let idx = this.inventory.indexOf(mKey);
+            let totalReq = bData.materials[mKey] * expandCount;
+            for (let i = 0; i < totalReq; i++) {
+                let idx = this.inventory.findIndex(item => {
+                    let id = typeof item === 'string' ? item : item.id;
+                    return id === mKey;
+                });
                 if (idx !== -1) this.inventory.splice(idx, 1);
             }
         }
         if (typeof updateStatUI === 'function') updateStatUI();
     }
+    
+    task._hasBeenBuilt = true;
 
+    // ==========================================
+    // ★ 拡張施設の場合の処理
+    // ==========================================
+    if (task.buildData.isUpgrade) {
+        let tAsset = assets[task.buildData.targetUid];
+        if (tAsset) {
+            if (!tAsset.storage) tAsset.storage = { freezer: {level:0, capacity:0, items:[]}, warehouse: {level:0, capacity:0, items:[]}, safe: {level:0, capacity:0, gold:0} };
+            let upgType = task.buildData.typeKey; 
+            
+            tAsset.storage[upgType].level += expandCount;
+            let addedCapacity = 0;
+
+            if (upgType === 'safe') {
+                addedCapacity = 50000 * expandCount;
+                tAsset.storage[upgType].capacity += addedCapacity; 
+            } else {
+                addedCapacity = 10 * expandCount;
+                tAsset.storage[upgType].capacity += addedCapacity; 
+            }
+
+            if (expandCount > 1) {
+                this.message = `一気に工事したよ！ ${task.buildData.name}の容量が +${window.formatLargeNumber(addedCapacity)} 増えた！`;
+                if (typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 40, `✨ 一括拡張(x${expandCount})`, "#00BCD4");
+            } else {
+                this.message = `${task.buildData.name}の設置・拡張（Lv.${tAsset.storage[upgType].level}）が完了したよ！`;
+                if (typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 40, "✨ 設備拡張！", "#00BCD4");
+            }
+            
+            this.messageTimer = 180;
+            if (typeof saveGameData === 'function') saveGameData();
+        }
+        return;
+    }
+
+    // 通常の建築処理
     let uid = 'build_' + bId + '_' + Date.now();
     let vSrc = task.buildData.visualSource || {};
 
-    // ★修正：透明化を防ぐため、img, sx, sy を完全に反映させる
     if (bId === 'bridge') {
         assets[uid] = {
-            type: 'bridge',
-            name: '橋',
-            img: 'field_6',
+            type: 'bridge', name: '橋', img: 'field_6',
             sx: 183, sy: 1126, sw: 769, sh: 691, scale: 0.10000000000000007,
-            dx: task.buildData.bestX, 
-            dy: task.buildData.bestY,
-            durability: -1, maxDurability: -1
+            dx: task.buildData.bestX, dy: task.buildData.bestY, durability: -1, maxDurability: -1
         };
     } else {
-        let vSrc = task.buildData.visualSource || {};
         assets[uid] = {
-            type: bId,
-            name: task.buildData.name,
-            img: vSrc.img || 'field',
-            sx: vSrc.sx !== undefined ? vSrc.sx : 0,
-            sy: vSrc.sy !== undefined ? vSrc.sy : 0,
-            dx: task.buildData.bestX, 
-            dy: task.buildData.bestY, 
-            sw: sw, sh: sh,
+            type: bId, name: task.buildData.name, img: vSrc.img || 'field',
+            sx: vSrc.sx !== undefined ? vSrc.sx : 0, sy: vSrc.sy !== undefined ? vSrc.sy : 0,
+            dx: task.buildData.bestX, dy: task.buildData.bestY, 
+            sw: vSrc.sw !== undefined ? vSrc.sw : 50, sh: vSrc.sh !== undefined ? vSrc.sh : 50,
             scale: task.buildData.targetScale || 0.5,
-            durability: task.buildData.maxDurability || -1,
-            maxDurability: task.buildData.maxDurability || -1
+            durability: task.buildData.maxDurability || -1, maxDurability: task.buildData.maxDurability || -1
         };
     }
 
@@ -4607,9 +5114,7 @@ aiPet.processBuildingFinish = function(task) {
     console.log(`[Build Success] ${task.buildData.name} を設置しました！`);
 };
 
-// パーティメンバー等にも反映させるための保険
 if (typeof window.AICharacter !== 'undefined') {
-    window.AICharacter.prototype.processBuildingStart = aiPet.processBuildingStart;
     window.AICharacter.prototype.processBuildingFinish = aiPet.processBuildingFinish;
 }
 
@@ -4678,9 +5183,13 @@ if (typeof window.AICharacter !== 'undefined') {
                 this.message = "あれ？ 途中で素材を落としちゃったみたい..."; this.messageTimer = 120;
                 return;
             }
+            // ★修正: オブジェクト対応の消費処理
             for (let mKey in bData.materials) {
                 for (let i = 0; i < bData.materials[mKey]; i++) {
-                    let idx = this.inventory.indexOf(mKey);
+                    let idx = this.inventory.findIndex(item => {
+                        let id = typeof item === 'string' ? item : item.id;
+                        return id === mKey;
+                    });
                     if (idx !== -1) this.inventory.splice(idx, 1);
                 }
             }
@@ -4777,14 +5286,13 @@ if (typeof window.AICharacter !== 'undefined') {
 }
 
 // ==========================================
-// 🩹 建築システムの最終パッチ（橋の実体化＆修行アイテム化）
+// 🩹 建築システムの最終パッチ（一括拡張ロジック搭載版）
 // ==========================================
 (function() {
     if (typeof window.AICharacter === 'undefined') return;
 
     const processBuildingFinishCore = function(task) {
         if (!task || !task.buildData || task._hasBeenBuilt) return;
-        task._hasBeenBuilt = true;
         
         let bId = task.buildData.typeKey;
 
@@ -4819,21 +5327,147 @@ if (typeof window.AICharacter !== 'undefined') {
 
         let bData = (typeof buildingCatalog !== 'undefined') ? buildingCatalog[bId] : null;
         
+        // ==========================================
+        // ★ ストレージ一括拡張ロジック（計算バグ完全修正版）
+        // ==========================================
+        let expandCount = 1; 
+        
+        if (task.buildData.isUpgrade) {
+            let intel = this.stats.intel || 10;
+            let power = this.stats.power || 10;
+            
+            // 賢さ30以上で発動
+            if (intel >= 30) {
+                let requiredCount = 1;
+                let upgType = bId; 
+                let tAsset = assets[task.buildData.targetUid];
+                
+                if (tAsset && tAsset.storage) {
+                    if (upgType === 'warehouse' || upgType === 'freezer') {
+                        // ★修正：手持ちアイテムの「総数」を正しく計算する
+                        let targetItemsCount = 0;
+                        const getItemData = (itemObj) => { let id = typeof itemObj === 'string' ? itemObj : itemObj.id; return (typeof window.itemCatalog !== 'undefined') ? window.itemCatalog[id] : null; };
+                        
+                        (this.inventory || []).forEach(i => {
+                            let d = getItemData(i);
+                            if (d) {
+                                let isFood = ['food', 'ingredient', 'dish'].includes(d.type);
+                                if (upgType === 'freezer' && isFood) targetItemsCount++;
+                                if (upgType === 'warehouse' && !isFood) targetItemsCount++;
+                            } else {
+                                if (upgType === 'warehouse') targetItemsCount++; // 不明なものは倉庫行きとする
+                            }
+                        });
+                        
+                        let currentCap = tAsset.storage[upgType].capacity || 0;
+                        let overflow = targetItemsCount - currentCap;
+                        
+                        // ★修正：あふれている分だけではなく、将来のために少し余裕を持たせる（賢さボーナス）
+                        // 賢さが高いほど「ついでにもう少し広げておこう」と考える
+                        let extraBuffer = Math.floor(intel / 50) * 10; 
+                        
+                        if (overflow > 0) {
+                            requiredCount = Math.ceil((overflow + extraBuffer) / 10);
+                        } else {
+                            // 今はあふれていなくても、賢ければ予防的に拡張しておく
+                            requiredCount = Math.ceil(extraBuffer / 10);
+                        }
+                    } else if (upgType === 'safe') {
+                        let currentCap = tAsset.storage.safe.capacity || 0;
+                        let overflow = this.gold - currentCap;
+                        if (overflow > 0) {
+                            requiredCount = Math.ceil(overflow / 50000); 
+                        }
+                    }
+                    
+                    // 活力による工事限界（活力30ごとに1回分[+10枠]拡張できる）
+                    // 活力7900なら約260回分（2600枠）の限界パワーを持つ
+                    let maxByPower = Math.max(1, Math.floor(power / 30));
+                    expandCount = Math.min(requiredCount, maxByPower);
+                    if (expandCount < 1) expandCount = 1;
+                }
+            }
+        }
+
+        // ==========================================
+        // ★ 素材の消費処理
+        // ==========================================
         if (!this.godMode && bData && bData.materials) {
             let myItems = {};
-            (this.inventory || []).forEach(k => myItems[k] = (myItems[k] || 0) + 1);
-            let canBuild = true;
-            for (let mKey in bData.materials) { if ((myItems[mKey] || 0) < bData.materials[mKey]) canBuild = false; }
-            if (!canBuild) { this.message = "あれ？ 途中で素材を落としちゃったみたい..."; this.messageTimer = 120; return; }
+            (this.inventory || []).forEach(item => {
+                let id = typeof item === 'string' ? item : item.id;
+                myItems[id] = (myItems[id] || 0) + 1;
+            });
+            
+            // 手持ちの素材で作れる最大回数を算出
             for (let mKey in bData.materials) {
-                for (let i = 0; i < bData.materials[mKey]; i++) {
-                    let idx = this.inventory.indexOf(mKey);
+                let reqOne = bData.materials[mKey];
+                let has = myItems[mKey] || 0;
+                let possibleTimes = Math.floor(has / reqOne);
+                
+                // 素材が足りない場合は、作れる分までに妥協する
+                if (possibleTimes < expandCount) {
+                    expandCount = possibleTimes;
+                }
+            }
+            
+            if (expandCount < 1) {
+                this.message = "あれ？ 途中で素材を落としちゃったみたい..."; this.messageTimer = 120;
+                return;
+            }
+
+            // 消費
+            for (let mKey in bData.materials) {
+                let totalReq = bData.materials[mKey] * expandCount;
+                for (let i = 0; i < totalReq; i++) {
+                    let idx = this.inventory.findIndex(item => {
+                        let id = typeof item === 'string' ? item : item.id;
+                        return id === mKey;
+                    });
                     if (idx !== -1) this.inventory.splice(idx, 1);
                 }
             }
             if (typeof updateStatUI === 'function') updateStatUI();
         }
+        
+        task._hasBeenBuilt = true;
 
+        // ==========================================
+        // ★ 拡張施設の場合の処理
+        // ==========================================
+        if (task.buildData.isUpgrade) {
+            let tAsset = assets[task.buildData.targetUid];
+            if (tAsset) {
+                if (!tAsset.storage) tAsset.storage = { freezer: {level:0, capacity:0, items:[]}, warehouse: {level:0, capacity:0, items:[]}, safe: {level:0, capacity:0, gold:0} };
+                let upgType = task.buildData.typeKey; 
+                
+                tAsset.storage[upgType].level += expandCount;
+                let addedCapacity = 0;
+
+                if (upgType === 'safe') {
+                    addedCapacity = 50000 * expandCount;
+                    tAsset.storage[upgType].capacity += addedCapacity; 
+                } else {
+                    addedCapacity = 10 * expandCount;
+                    tAsset.storage[upgType].capacity += addedCapacity; 
+                }
+
+                // 拡張した回数に応じてメッセージを変える
+                if (expandCount > 1) {
+                    this.message = `一気に工事したよ！ ${task.buildData.name}の容量が +${window.formatLargeNumber(addedCapacity)} 増えた！`;
+                    if (typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 40, `✨ 一括拡張(x${expandCount})`, "#00BCD4");
+                } else {
+                    this.message = `${task.buildData.name}の設置・拡張（Lv.${tAsset.storage[upgType].level}）が完了したよ！`;
+                    if (typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 40, "✨ 設備拡張！", "#00BCD4");
+                }
+                
+                this.messageTimer = 180;
+                if (typeof saveGameData === 'function') saveGameData();
+            }
+            return;
+        }
+
+        // 通常の建築処理
         let uid = 'build_' + bId + '_' + Date.now();
 
         // 橋の強制実体化データ

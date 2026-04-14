@@ -446,7 +446,7 @@ function drawActionWindow(animType, sceneType) {
         if (target.type === 'hut' || target.type === 'house' || target.type === 'restaurant') bgKey = 'hut_room'; 
         else if (target.type === 'castle') bgKey = 'castle_room';
     }
-    if (sceneType === 'camping' || sceneType === 'building') bgKey = 'camping_bg'; // ★修正: building を追加
+    if (sceneType === 'camping' || sceneType === 'building') bgKey = 'camping_bg'; 
     if (sceneType === 'farm')    bgKey = 'farm_bg';
     if (sceneType === 'eating')  bgKey = 'eating_bg';
     
@@ -466,9 +466,6 @@ function drawActionWindow(animType, sceneType) {
     
     const bgData = bgKey ? catalog[bgKey] : null; const bgImg = bgData ? images[bgData.img] : null;
     
-    // ==========================================
-    // ★追加：背景が変わった時だけコンソールに名前とデータを表示！
-    // ==========================================
     if (window._lastLoggedBgKey !== bgKey) {
         console.log(`🖼️ 現在表示中の背景ID: [ ${bgKey} ]`, bgData);
         window._lastLoggedBgKey = bgKey;
@@ -530,13 +527,13 @@ function drawActionWindow(animType, sceneType) {
 
     drawCharacterInWindow(animType, cx, cy);
     
-    // ★修正: 料理/鍛冶/建築の進捗ゲージとターゲット表示
+    // ★プログレスゲージの描画
     if ((animType === 'cook' || animType === 'smith' || sceneType === 'building') && aiPet.schedule && aiPet.schedule.length > 0) {
         const task = aiPet.schedule[0];
         let data = null;
         if (animType === 'cook') data = task.cookData;
         else if (animType === 'smith') data = task.smithData;
-        else if (sceneType === 'building') data = task.buildData;
+        else if (sceneType === 'building' || task.type === 'build') data = task.buildData;
         
         if (data && task.maxDuration) {
             const gaugeW = 240; const gaugeH = 20;  
@@ -545,11 +542,12 @@ function drawActionWindow(animType, sceneType) {
             ctx.save();
             ctx.fillStyle = "#fff"; ctx.font = "bold 14px sans-serif"; ctx.textAlign = "left";
             
-            let tName = data.targetName || data.name; // ★修正
-            ctx.fillText(`作成: ${tName}`, gx, gy - 8);
+            let tName = data.targetName || data.name;
+            // ★修正：拡張の場合は「作成」ではなく「拡張」と表示する
+            let actionPrefix = data.isUpgrade ? "拡張" : "作成";
+            ctx.fillText(`${actionPrefix}: ${tName}`, gx, gy - 8);
             
             ctx.textAlign = "right";
-            // ★修正: 建築の場合は成功率ではなく進行中と表示
             if (data.successRate !== undefined) {
                 ctx.fillStyle = data.successRate >= 0.8 ? "#76ff03" : (data.successRate >= 0.5 ? "#FFC107" : "#ff5252");
                 ctx.fillText(`成功率: ${Math.floor(data.successRate * 100)}%`, gx + gaugeW, gy - 8);
@@ -563,8 +561,7 @@ function drawActionWindow(animType, sceneType) {
             
             let progress = 1.0 - (task.duration / task.maxDuration);
             progress = Math.max(0, Math.min(1, progress));
-            // ★修正: 色分け
-            ctx.fillStyle = animType === 'cook' ? "#FF9800" : (sceneType === 'building' ? "#8BC34A" : "#9E9E9E");
+            ctx.fillStyle = animType === 'cook' ? "#FF9800" : (sceneType === 'building' || task.type === 'build' ? "#8BC34A" : "#9E9E9E");
             ctx.fillRect(gx, gy, gaugeW * progress, gaugeH);
             ctx.restore();
         }
@@ -578,16 +575,28 @@ function drawActionWindow(animType, sceneType) {
         if (animType === 'train') statusText = "💪 筋トレ中...";
         if (animType === 'sleep') statusText = "💤 休憩中...";
         if (animType === 'cook') statusText = "🍳 料理中...";
-        if (animType === 'smith') statusText = sceneType === 'building' ? "🔨 建築作業中..." : "🔨 鍛冶作業中...";
+        if (animType === 'smith') statusText = "🔨 鍛冶作業中...";
     }
-    else if (sceneType === 'camping') {
+    else if (sceneType === 'camping' || sceneType === 'building') {
         if (animType === 'study') statusText = "📖 勉強中...";
         else if (animType === 'train') statusText = "💪 筋トレ中...";
         else if (animType === 'sleep') statusText = "💤 休憩中...";
         else if (animType === 'cook') statusText = "🍳 料理中...";
-        else if (animType === 'smith') statusText = "🔨 鍛冶作業中..."; 
-        // ★追加：ランニングの判定を追加！
         else if (animType === 'run') statusText = "🏃 ランニング中...";
+        else if (animType === 'smith') {
+            // ★修正：建築中か鍛冶中か、拡張中かを正確に判定してテキストを分ける
+            let isBuildTask = aiPet.schedule && aiPet.schedule.length > 0 && aiPet.schedule[0].type === 'build';
+            if (isBuildTask) {
+                let bData = aiPet.schedule[0].buildData;
+                if (bData && bData.isUpgrade) {
+                    statusText = `🔨 ${bData.name}拡張中...`; // 例: 倉庫拡張中...
+                } else {
+                    statusText = "🔨 建築作業中...";
+                }
+            } else {
+                statusText = "🔨 鍛冶作業中..."; 
+            }
+        }
         else statusText = "⛺ 野宿中...";
     }
     else if (sceneType === 'eating') statusText = "🍙 食事中...";
@@ -603,11 +612,10 @@ function drawActionWindow(animType, sceneType) {
         else statusText = "🚜 畑仕事中...";
     }
 
-    // ★追加：もし現在実行中の予定が「バイト」なら、テキストを専用のものに上書きする！
     if (aiPet.schedule && aiPet.schedule.length > 0) {
         const currentTask = aiPet.schedule[0];
         if (currentTask.isBaito && currentTask.baitoActionMsg) {
-            statusText = "💼 " + currentTask.baitoActionMsg; // 💼アイコンをつけてバイト感を出します
+            statusText = "💼 " + currentTask.baitoActionMsg; 
         }
     }
     

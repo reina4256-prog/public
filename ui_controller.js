@@ -47,12 +47,40 @@ window.showGameTutorial = function(title, message, callback) {
 };
 
 window.switchRightPanel = function(panelId) {
+    // 1. 旧仕様の右パネル（side-panelなど）の制御
     const panels = document.querySelectorAll('.panel-view');
     panels.forEach(p => p.classList.remove('active'));
 
-    const target = document.getElementById('panel-' + panelId);
-    if (target) { target.classList.add('active'); } else { document.getElementById('panel-default').classList.add('active'); }
+    // 今回独立させたオーバーレイ（独立ウィンドウ）のリスト
+    const overlayPanels = ['inventory', 'schedule', 'rescue', 'shop', 'tavern'];
 
+    // 'default' または 独立ウィンドウを開く場合は、右側は常に 'panel-default'(AIコマンド) を表示しておく
+    if (panelId === 'default' || overlayPanels.includes(panelId)) {
+        let defaultPanel = document.getElementById('panel-default');
+        if (defaultPanel) defaultPanel.classList.add('active');
+    } else {
+        let targetRight = document.getElementById('panel-' + panelId);
+        if (targetRight && targetRight.classList.contains('panel-view')) {
+            targetRight.classList.add('active');
+        }
+    }
+
+    // 2. 新仕様の独立オーバーレイを全て閉じる（重複表示を防ぐため）
+    overlayPanels.forEach(id => {
+        const el = document.getElementById('panel-' + id);
+        if (el) el.classList.remove('active');
+    });
+
+    // 閉じる操作('default')の場合はここで終了
+    if (panelId === 'default') return;
+
+    // 対象が独立ウィンドウなら、それをアクティブにして浮かせる
+    if (overlayPanels.includes(panelId)) {
+        const targetOverlay = document.getElementById('panel-' + panelId);
+        if (targetOverlay) targetOverlay.classList.add('active');
+    }
+
+    // --- 3. 各メニュー専用の更新関数を叩く ---
     if (panelId === 'build') { openBuildMenuPanel(); } 
     else if (panelId === 'inventory') { openInventoryPanel(); } 
     else if (panelId === 'schedule') { updateScheduleList(); } 
@@ -61,6 +89,7 @@ window.switchRightPanel = function(panelId) {
     else if (panelId === 'tavern') { window.openTavernPanel(); } 
     else if (panelId === 'ranking') { window.openRankingPanel('power'); }
 
+    // --- 4. ショップ退出時の特別な処理 ---
     if (panelId !== 'shop' && typeof aiPet !== 'undefined' && aiPet.actionState === 'inside') {
         if (aiPet.indoorTarget && aiPet.indoorTarget.type === 'shop') {
             aiPet.actionState = 'exiting';
@@ -69,7 +98,7 @@ window.switchRightPanel = function(panelId) {
         }
     }
     
-    updateAIStatusText();
+    if (typeof updateAIStatusText === 'function') updateAIStatusText();
 };
 
 function applyTranslations() {
@@ -502,41 +531,120 @@ function openInventoryPanel() {
     if (!list) return; 
     list.innerHTML = "";
     
+    // ★現在のタブ（デフォルトは'hand' = 手持ち）
+    if (!window.currentInventoryTab) window.currentInventoryTab = 'hand';
+
+    // 建築士皆伝かどうかの判定（タブを出すかどうかのフラグ）
+    let isMasterBuilder = window.aiPet && window.aiPet.apprentice && (
+        (window.aiPet.apprentice.retired && window.aiPet.apprentice.retired['building']) || 
+        (window.aiPet.apprentice.currentMaster === 'building' && window.aiPet.apprentice.isGraduated) ||
+        (window.aiPet.apprentice.rank && window.aiPet.apprentice.rank['building'] >= 10)
+    );
+
+    // ==========================================
+    // ★ここを修正：window.assets ではなく、直接 assets を参照する
+    // ==========================================
+    let myHut = null;
+    let _assets = typeof assets !== 'undefined' ? assets : window.assets;
+    for (let k in _assets) { 
+        if (_assets[k].type === 'hut') { 
+            if (!myHut) myHut = _assets[k];
+            if (_assets[k].storage) {
+                myHut = _assets[k];
+                break;
+            }
+        } 
+    }
+    
+    // F12コンソールに、UIが認識した小屋の情報を出力
+    console.log("[持ち物UIログ] 認識した小屋のデータ:", myHut);
+
+    let storage = (myHut && myHut.storage) ? myHut.storage : { freezer: {level:0, capacity:0, items:[]}, warehouse: {level:0, capacity:0, items:[]}, safe: {level:0, capacity:0, gold:0} };
+
+    // ==========================================
+    // ★ タブUIの生成（建築士マスター時のみ表示）
+    // ==========================================
+    if (isMasterBuilder) {
+        const tabContainer = document.createElement('div');
+        tabContainer.style.display = 'flex';
+        tabContainer.style.marginBottom = '10px';
+        tabContainer.style.gap = '5px';
+        
+        const createTab = (id, icon, text, level, currentCount, maxCapacity) => {
+            const btn = document.createElement('button');
+            let isActive = window.currentInventoryTab === id;
+            
+            // タブに容量（現在の数/最大数）を表示する
+            let countText = "";
+            if (id !== 'hand' && id !== 'safe' && level > 0) {
+                countText = `<br><span style="font-size:9px; color:${isActive?'#fff':'#888'};">(${currentCount}/${maxCapacity})</span>`;
+            }
+
+            btn.innerHTML = `${icon} ${text}${countText}`;
+            btn.style.flex = '1';
+            btn.style.padding = '5px 0';
+            btn.style.fontSize = '11px';
+            btn.style.fontWeight = 'bold';
+            btn.style.border = 'none';
+            btn.style.borderRadius = '4px';
+            btn.style.cursor = 'pointer';
+            btn.style.backgroundColor = isActive ? '#2196F3' : '#333';
+            btn.style.color = isActive ? '#fff' : '#aaa';
+            
+            // レベルが0（未建築）の場合はグレーアウト
+            if (level !== null && level <= 0) {
+                btn.style.opacity = '0.3';
+                btn.style.cursor = 'not-allowed';
+                btn.innerHTML = `🔒 ${text}`;
+                btn.title = "小屋を拡張すると確認できます";
+            } else {
+                btn.onclick = () => { window.currentInventoryTab = id; openInventoryPanel(); };
+            }
+            return btn;
+        };
+
+        tabContainer.appendChild(createTab('hand', '🎒', '手持ち', null, 0, 0));
+        tabContainer.appendChild(createTab('freezer', '🧊', '冷凍庫', storage.freezer.level, storage.freezer.items.length, storage.freezer.capacity));
+        tabContainer.appendChild(createTab('warehouse', '🛖', '倉庫', storage.warehouse.level, storage.warehouse.items.length, storage.warehouse.capacity));
+        tabContainer.appendChild(createTab('safe', '💰', '金庫', storage.safe.level, 0, 0));
+        list.appendChild(tabContainer);
+    }
+
+    // 金庫タブの場合の特別表示
+    if (window.currentInventoryTab === 'safe') {
+        const safeView = document.createElement('div');
+        safeView.innerHTML = `<div style="text-align:center; margin-top:20px;">
+            <div style="font-size:30px; margin-bottom:10px;">💰</div>
+            <div style="font-size:14px; color:#aaa;">金庫の貯金</div>
+            <div style="font-size:24px; color:#FFD700; font-weight:bold; margin-bottom:10px;">${window.formatLargeNumber(storage.safe.gold || 0)} G</div>
+            <div style="font-size:12px; color:#888;">最大容量: ${window.formatLargeNumber(storage.safe.capacity)} G</div>
+            <div style="margin-top:20px; font-size:12px; color:#4CAF50; padding:10px; background:rgba(76,175,80,0.1); border-radius:5px;">
+                ※AIが賢ければ、チャットで「小屋」と指示した際に自動で不要なお金を預けてくれます。
+            </div>
+        </div>`;
+        list.appendChild(safeView);
+        return;
+    }
+
     // ==========================================
     // ★ 2ペイン構造のコンテナを作成
     // ==========================================
     const container = document.createElement('div');
     container.style.display = 'flex';
-    container.style.height = '100%'; // 親要素の高さに合わせる
+    container.style.height = 'calc(100% - 35px)'; 
     container.style.gap = '10px';
     
-    // 左ペイン：アイテムリスト
-    const leftPane = document.createElement('div');
-    leftPane.style.flex = '1.2';
-    leftPane.style.overflowY = 'auto';
-    leftPane.style.maxHeight = '350px'; // 念のための高さ制限
-    leftPane.style.paddingRight = '5px';
-    
-    // 右ペイン：詳細情報
-    const rightPane = document.createElement('div');
-    rightPane.style.flex = '1';
-    rightPane.style.overflowY = 'auto';
-    rightPane.style.borderLeft = '2px solid #444';
-    rightPane.style.paddingLeft = '10px';
-    rightPane.style.display = 'flex';
-    rightPane.style.flexDirection = 'column';
+    const leftPane = document.createElement('div'); leftPane.style.flex = '1.2'; leftPane.style.overflowY = 'auto'; leftPane.style.maxHeight = '300px'; leftPane.style.paddingRight = '5px';
+    const rightPane = document.createElement('div'); rightPane.style.flex = '1'; rightPane.style.overflowY = 'auto'; rightPane.style.borderLeft = '2px solid #444'; rightPane.style.paddingLeft = '10px'; rightPane.style.display = 'flex'; rightPane.style.flexDirection = 'column';
     rightPane.innerHTML = '<div style="color:#777; font-size:12px; text-align:center; margin-top:50px;">アイテムを選択すると<br>詳細が表示されます</div>';
     
-    container.appendChild(leftPane);
-    container.appendChild(rightPane);
-    list.appendChild(container);
+    container.appendChild(leftPane); container.appendChild(rightPane); list.appendChild(container);
 
     let totalItems = 0;
     
     // ==========================================
     // ★ 右ペインに詳細を描画する関数
     // ==========================================
-    // ★修正：age(鮮度)の引数を追加
     const showDetails = (itemKey, count, isGiven, age = 0) => {
         let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(itemKey) : null;
         let parsed = typeof window.parseItemString === 'function' ? window.parseItemString(itemKey) : { baseId: itemKey, seals: [] };
@@ -549,21 +657,15 @@ function openInventoryPanel() {
         let html = `<div style="font-size:15px; font-weight:bold; color:${nameColor}; margin-bottom:5px; line-height:1.3; word-break:break-word;">${isGiven ? '[支給品] ' : ''}${itemName}</div>`;
         html += `<div style="font-size:12px; color:#aaa; margin-bottom:5px; border-bottom:1px solid #444; padding-bottom:5px;">所持数: x${count}</div>`;
         
-        // ★完全修正：腐るアイテム(food, ingredient, dish)かどうか判定し、専用の鮮度バッジを表示！
         const isPerishable = baseData && ['food', 'ingredient', 'dish'].includes(baseData.type);
-        
         if (!isGiven && isPerishable) {
-            let ageText = "";
-            let ageColor = "";
-            if (age === 0) {
-                ageText = "✨ 鮮度: 採れたて";
-                ageColor = "#00e676"; // 緑
-            } else if (age >= 8) {
-                ageText = `⚠️ 鮮度: 腐敗寸前 (${age}時間経過)`;
-                ageColor = "#ff5252"; // 赤
-            } else {
-                ageText = `🕒 鮮度: やや落ち (${age}時間経過)`;
-                ageColor = "#ffb300"; // オレンジ
+            let ageText = age === 0 ? "✨ 鮮度: 採れたて" : age >= 8 ? `⚠️ 鮮度: 腐敗寸前 (${age}時間経過)` : `🕒 鮮度: やや落ち (${age}時間経過)`;
+            let ageColor = age === 0 ? "#00e676" : age >= 8 ? "#ff5252" : "#ffb300";
+            
+            // 冷凍庫に入っているアイテムは鮮度が止まっていることを明示
+            if (window.currentInventoryTab === 'freezer') { 
+                ageText = `❄️ 鮮度維持 (冷凍中 / 元の鮮度:${age})`; 
+                ageColor = "#4fc3f7"; 
             }
             html += `<div style="font-size:11px; font-weight:bold; color:${ageColor}; margin-bottom:10px; background:rgba(0,0,0,0.2); padding:4px 8px; border-radius:4px; display:inline-block; border:1px solid ${ageColor}55;">${ageText}</div><br>`;
         } else {
@@ -576,78 +678,50 @@ function openInventoryPanel() {
             if (eff.def > 0) statsHtml += `<span style="font-size:12px; background:rgba(79,195,247,0.1); color:#4fc3f7; padding:3px 6px; border-radius:4px; border:1px solid #4fc3f7;">防御力 ${eff.def}</span>`;
             if (eff.hp > 0) statsHtml += `<span style="font-size:12px; background:rgba(76,175,80,0.1); color:#4CAF50; padding:3px 6px; border-radius:4px; border:1px solid #4CAF50;">HP回復 ${eff.hp}</span>`;
             if (eff.hunger > 0) statsHtml += `<span style="font-size:12px; background:rgba(255,152,0,0.1); color:#FF9800; padding:3px 6px; border-radius:4px; border:1px solid #FF9800;">満腹回復 ${eff.hunger}</span>`;
-            statsHtml += `</div>`;
-            html += statsHtml;
-            
+            statsHtml += `</div>`; html += statsHtml;
             if (parsed.seals && parsed.seals.length > 0) {
-                html += `<div style="margin-top:10px; font-size:12px; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; border:1px solid #555;">`;
-                html += `<div style="color:#FFD700; font-weight:bold; margin-bottom:5px; font-size:11px;">◆ 付与されている印</div>`;
-                parsed.seals.forEach(seal => {
-                    let sData = window.SEAL_DESCRIPTIONS && window.SEAL_DESCRIPTIONS[seal];
-                    if (sData) {
-                        html += `<div style="margin-bottom:6px; color:#ddd; line-height:1.4;"><span style="color:#FFD700; font-weight:bold;">[${sData.name}]</span> ${sData.desc}</div>`;
-                    }
-                });
+                html += `<div style="margin-top:10px; font-size:12px; background:rgba(0,0,0,0.3); padding:8px; border-radius:6px; border:1px solid #555;"><div style="color:#FFD700; font-weight:bold; margin-bottom:5px; font-size:11px;">◆ 付与されている印</div>`;
+                parsed.seals.forEach(seal => { let sData = window.SEAL_DESCRIPTIONS && window.SEAL_DESCRIPTIONS[seal]; if (sData) html += `<div style="margin-bottom:6px; color:#ddd; line-height:1.4;"><span style="color:#FFD700; font-weight:bold;">[${sData.name}]</span> ${sData.desc}</div>`; });
                 html += `</div>`;
             }
         }
         
         html += `<div style="margin-top:10px; font-size:12px; color:#ccc; line-height:1.5;">${desc}</div>`;
+
+        // プレイヤーへの案内テキスト
+        if (isMasterBuilder && !isGiven && window.currentInventoryTab !== 'hand') {
+            html += `<div style="margin-top:auto; padding-top:15px; text-align:center; font-size:10px; color:#888;">※アイテムの整理はAIに「小屋」と指示してください。</div>`;
+        }
+        
         rightPane.innerHTML = html;
     };
 
     // ==========================================
     // ★ 左ペインのリストアイテムを生成する関数
     // ==========================================
-    // ★修正：age(鮮度)の引数を追加
     const createItemRow = (k, count, isGiven, age = 0) => {
         let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(k) : null;
         let baseId = typeof window.parseItemString === 'function' ? window.parseItemString(k).baseId : k;
         let baseData = typeof itemCatalog !== 'undefined' && itemCatalog[baseId] ? itemCatalog[baseId] : null;
-        
         let itemName = eff ? eff.name : (baseData ? baseData.name : k);
         
-        // ★修正：腐るアイテムの場合、リスト一覧の時点でも「✨」や「⚠️」のアイコンをつけてあげる
         let ageMarker = "";
         const isPerishable = baseData && ['food', 'ingredient', 'dish'].includes(baseData.type);
-        if (!isGiven && isPerishable) {
+        if (!isGiven && isPerishable && window.currentInventoryTab !== 'freezer') {
             if (age >= 8) ageMarker = " <span style='font-size:10px;'>⚠️</span>";
             else if (age === 0) ageMarker = " <span style='font-size:10px;'>✨</span>";
         }
         
-        const d = document.createElement('div'); 
-        d.className = 'panel-list-item';
-        d.style.cursor = 'pointer';
-        d.style.transition = 'all 0.2s';
-        d.style.whiteSpace = 'normal';
-        d.style.wordBreak = 'break-word';
-        d.style.lineHeight = '1.4';
-        d.style.padding = '8px 10px';
-        d.style.marginBottom = '5px';
+        const d = document.createElement('div'); d.className = 'panel-list-item'; d.style.cursor = 'pointer'; d.style.transition = 'all 0.2s'; d.style.whiteSpace = 'normal'; d.style.wordBreak = 'break-word'; d.style.lineHeight = '1.4'; d.style.padding = '8px 10px'; d.style.marginBottom = '5px';
+        if (isGiven) { d.style.borderLeft = "4px solid #FFD700"; d.style.backgroundColor = "rgba(255, 215, 0, 0.1)"; } else { d.style.borderLeft = "4px solid transparent"; }
         
-        if (isGiven) {
-            d.style.borderLeft = "4px solid #FFD700"; 
-            d.style.backgroundColor = "rgba(255, 215, 0, 0.1)";
-        } else {
-            d.style.borderLeft = "4px solid transparent";
-        }
-        
-        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px; color:${isGiven ? '#FFD700' : '#ddd'};">
-            <span style="flex:1; padding-right:5px;">${isGiven ? '[支給品] ' : ''}${itemName}${ageMarker}</span> 
-            <span style="color:${isGiven ? '#FFD700' : '#4CAF50'}; white-space:nowrap; align-self:flex-start;">x${count}</span>
-        </div>`;
+        d.innerHTML = `<div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px; color:${isGiven ? '#FFD700' : '#ddd'};"><span style="flex:1; padding-right:5px;">${isGiven ? '[支給品] ' : ''}${itemName}${ageMarker}</span><span style="color:${isGiven ? '#FFD700' : '#4CAF50'}; white-space:nowrap; align-self:flex-start;">x${count}</span></div>`;
         
         d.onmouseover = () => { d.style.filter = 'brightness(1.3)'; d.style.transform = 'translateX(2px)'; };
         d.onmouseout = () => { d.style.filter = 'none'; d.style.transform = 'translateX(0)'; };
         d.onclick = () => {
-            Array.from(leftPane.children).forEach(child => {
-                child.style.backgroundColor = child.dataset.given === 'true' ? 'rgba(255, 215, 0, 0.1)' : '';
-                child.style.borderLeftColor = child.dataset.given === 'true' ? '#FFD700' : 'transparent';
-            });
-            d.style.backgroundColor = 'rgba(33, 150, 243, 0.2)';
-            d.style.borderLeftColor = '#2196F3';
-            
-            // ★修正：ageを渡す
+            Array.from(leftPane.children).forEach(child => { child.style.backgroundColor = child.dataset.given === 'true' ? 'rgba(255, 215, 0, 0.1)' : ''; child.style.borderLeftColor = child.dataset.given === 'true' ? '#FFD700' : 'transparent'; });
+            d.style.backgroundColor = 'rgba(33, 150, 243, 0.2)'; d.style.borderLeftColor = '#2196F3';
             showDetails(k, count, isGiven, age);
         };
         d.dataset.given = isGiven;
@@ -655,25 +729,26 @@ function openInventoryPanel() {
     };
 
     // ==========================================
-    // ★ アイテムリストの読み込みと配置
+    // ★ リストの読み込み（タブに応じたデータを取得）
     // ==========================================
-    if (typeof aiPet !== 'undefined' && aiPet.apprentice && aiPet.apprentice.inventory && aiPet.apprentice.inventory.length > 0) {
-        const counts = {}; 
-        aiPet.apprentice.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
-        for(let k in counts) {
-            leftPane.appendChild(createItemRow(k, counts[k], true));
-            totalItems++;
+    let targetList = [];
+    if (window.currentInventoryTab === 'hand') {
+        if (window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.inventory) {
+            const counts = {}; window.aiPet.apprentice.inventory.forEach(k => counts[k] = (counts[k]||0)+1);
+            for(let k in counts) { leftPane.appendChild(createItemRow(k, counts[k], true)); totalItems++; }
         }
+        targetList = window.aiPet ? (window.aiPet.inventory || []) : [];
+    } else if (window.currentInventoryTab === 'freezer') {
+        targetList = storage.freezer.items || [];
+    } else if (window.currentInventoryTab === 'warehouse') {
+        targetList = storage.warehouse.items || [];
     }
-    
-    if (typeof aiPet !== 'undefined' && aiPet.inventory && aiPet.inventory.length > 0) {
-        // ★完全修正：オブジェクト構造(id, age)に対応したグループ化
+
+    if (targetList.length > 0) {
         const grouped = {}; 
-        aiPet.inventory.forEach(item => {
+        targetList.forEach(item => {
             let k = typeof item === 'string' ? item : item.id;
             let age = typeof item === 'string' ? 0 : (item.age || 0);
-            
-            // 同じIDでも鮮度(age)が違うものは別枠としてカウントする
             let keyWithAge = `${k}__${age}`; 
             if (!grouped[keyWithAge]) grouped[keyWithAge] = { id: k, count: 0, age: age };
             grouped[keyWithAge].count++;
@@ -687,7 +762,8 @@ function openInventoryPanel() {
     }
     
     if (totalItems === 0) { 
-        list.innerHTML = "<div style='color:#777; font-size:12px; text-align:center; margin-top:20px;'>何も持っていません</div>"; 
+        // listではなく、左側のアイテム枠(leftPane)の中にメッセージを入れる
+        leftPane.innerHTML = `<div style='color:#777; font-size:12px; text-align:center; margin-top:20px; width:100%;'>中身は空っぽです</div>`; 
     }
 }
 
@@ -875,13 +951,34 @@ function updateStatUI() {
     }
 
     const goldEl = document.getElementById('stat-gold');
-    // ★修正: HUDのゴールド表示もフォーマット関数を通す
     if (goldEl) { goldEl.innerText = window.formatLargeNumber(aiPet.gold) + " G"; goldEl.style.color = (aiPet.gold < 0) ? '#ff5252' : '#ffd700'; }
     updateShopGold(); 
     updateCommandHUD(); 
     updateAIStatusText();
 
     if(typeof updateQuestHUD==='function') updateQuestHUD();
+
+    // ★修正: 建築士皆伝時、持ち物ボタンを「マイホームの収納」に変更
+    const btnInv = document.getElementById('btnInventory');
+    const panelHeader = document.querySelector('#panel-inventory .panel-header');
+    if (btnInv && panelHeader) {
+        let isMasterBuilder = aiPet.apprentice && (
+            (aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || 
+            (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) ||
+            (aiPet.apprentice.rank && aiPet.apprentice.rank['building'] >= 10)
+        );
+        if (isMasterBuilder) {
+            btnInv.innerHTML = "🏠 マイホームの収納"; // ★変更
+            btnInv.style.background = "#9C27B0";
+            panelHeader.innerHTML = "🏠 マイホームの収納"; // ★変更
+            panelHeader.style.color = "#9C27B0";
+        } else {
+            btnInv.innerHTML = "🎒 持ち物";
+            btnInv.style.background = "#E91E63";
+            panelHeader.innerHTML = "🎒 持ち物";
+            panelHeader.style.color = "#E91E63";
+        }
+    }
 }
 
 // ==========================================
@@ -1317,20 +1414,47 @@ window.sendChat = function() {
             }
         }
     }
-    else if (["橋", "小屋"].includes(interpretedWord) && knows("建築")) {
+    else if (["橋", "小屋", "冷凍庫", "倉庫", "金庫"].includes(interpretedWord)) {
         actionTriggered = true;
-        let bId = interpretedWord === "橋" ? "bridge" : "hut";
-        let isMaster = aiPet.apprentice && (
-            (aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || 
-            (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) ||
-            (aiPet.apprentice.rank && aiPet.apprentice.rank['building'] >= 10)
-        );
+        let bId = interpretedWord === "橋" ? "bridge" : interpretedWord === "小屋" ? "hut" : interpretedWord === "冷凍庫" ? "freezer" : interpretedWord === "倉庫" ? "warehouse" : "safe";
         
-        if (!isMaster) {
-            aiPet.message = `まだ修行中の身だから、${interpretedWord}は作れないよ...\n(まずは建築士の免許皆伝を目指そう！)`; aiPet.messageTimer = 180;
+        let myHut = null;
+        for (let k in assets) {
+            if (assets[k].type === 'hut') { myHut = assets[k]; break; }
+        }
+
+        // ①「小屋」と指示され、既に小屋がある場合は「整理(出し入れ)」に向かう
+            if (interpretedWord === "小屋" && myHut) {
+                // ★修正: タスク名を日本語にして、プログレスバーの表示を綺麗にする
+                aiPet.schedule.push({type: '荷物整理', targetUid: Object.keys(assets).find(k => assets[k] === myHut), duration: 60});
+                if (aiPet.schedule.length === 1) {
+                    aiPet.startBuildingInteraction(myHut);
+                    aiPet.message = "小屋に戻って荷物を整理するね！";
+                } else {
+                    aiPet.message = "小屋での荷物整理を予約したよ！";
+                }
+                aiPet.messageTimer = 150;
+            }
+        // ②小屋がないのに冷凍庫などを作ろうとした場合
+        else if (bId !== "hut" && bId !== "bridge" && !myHut) {
+            aiPet.message = `${interpretedWord}を作りたいけど、まずは「小屋」を建てないとダメみたい...`;
+            aiPet.messageTimer = 180;
+        }
+        // ③建築系の言葉を知っているなら建築/拡張を試みる
+        else if (knows("建築")) {
+            let isMaster = aiPet.apprentice && (
+                (aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || 
+                (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) ||
+                (aiPet.apprentice.rank && aiPet.apprentice.rank['building'] >= 10)
+            );
+            if (!isMaster) {
+                aiPet.message = `まだ修行中の身だから、${interpretedWord}は作れないよ...\n(まずは建築士の免許皆伝を目指そう！)`; aiPet.messageTimer = 180;
+            } else {
+                aiPet.schedule.push({type: 'build', targetBuilding: bId, duration: 60});
+                aiPet.message = `${interpretedWord}の建築(拡張)を予定に追加したよ！`; aiPet.messageTimer = 150;
+            }
         } else {
-            aiPet.schedule.push({type: 'build', targetBuilding: bId, duration: 60});
-            aiPet.message = `${interpretedWord}の建築を予定に追加したよ！`; aiPet.messageTimer = 150;
+            aiPet.message = `「${interpretedWord}」の言葉は知ってるけど、建て方がわからないや...`; aiPet.messageTimer = 150;
         }
     }
     else if (interpretedWord === "建築" && knows("建築")) { 
@@ -4160,7 +4284,11 @@ window.renderBuildRecipe = function() {
 
     let myItems = {};
     if (ai.inventory) {
-        ai.inventory.forEach(k => myItems[k] = (myItems[k] || 0) + 1);
+        // ★修正：アイテムが文字列でもオブジェクトでも正しくIDを取り出してカウントする
+        ai.inventory.forEach(item => {
+            let id = typeof item === 'string' ? item : item.id;
+            myItems[id] = (myItems[id] || 0) + 1;
+        });
     }
 
     let html = `<div style="font-size:16px; font-weight:bold; color:#FFD700; margin-bottom:15px; padding:10px; background:rgba(255,215,0,0.1); border-radius:6px; text-align:center; border:2px solid #FFD700; text-shadow:0 0 5px rgba(255,215,0,0.5);">✨ 建築士 免許皆伝 ✨</div>`;
@@ -7701,3 +7829,254 @@ window.updateExamUI = function(task) {
     };
     input._isFocusHijacked = true;
 })();
+
+// ==========================================
+// 📦 小屋専用：スマートストレージ管理UI
+// ==========================================
+window.openHutStorageUI = function(hutAsset) {
+    if (!hutAsset || !hutAsset.storage) return;
+    
+    let ui = document.getElementById('hut-storage-ui');
+    if (!ui) {
+        ui = document.createElement('div');
+        ui.id = 'hut-storage-ui';
+        ui.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:80000; display:flex; justify-content:center; align-items:center; font-family:sans-serif; backdrop-filter:blur(3px);`;
+        document.body.appendChild(ui);
+    }
+    
+    let s = hutAsset.storage;
+    let ai = window.aiPet;
+    let aiMsg = ai ? ai.message : "整理中...";
+    let aiColor = "#FFF";
+    if (aiMsg.includes('❄️')) aiColor = "#4fc3f7";
+    else if (aiMsg.includes('🛖')) aiColor = "#8BC34A";
+    else if (aiMsg.includes('💰')) aiColor = "#FFD700";
+    else if (aiMsg.includes('✨')) aiColor = "#00e676";
+    else if (aiMsg.includes('❓') || aiMsg.includes('失敗')) aiColor = "#ff5252";
+
+    // 各ストレージの中身を描画するヘルパー
+    const renderItems = (items) => {
+        if (!items || items.length === 0) return `<div style="color:#666; font-size:12px; text-align:center; padding:10px;">からっぽ</div>`;
+        let counts = {};
+        items.forEach(i => {
+            let id = typeof i === 'string' ? i : i.id;
+            counts[id] = (counts[id] || 0) + 1;
+        });
+        let html = "";
+        for (let k in counts) {
+            let name = (typeof itemCatalog !== 'undefined' && itemCatalog[k]) ? itemCatalog[k].name : k;
+            html += `<span style="background:#333; padding:4px 8px; border-radius:4px; margin:2px; font-size:11px; border:1px solid #555; display:inline-block;">${name} <span style="color:#FFD700;">x${counts[k]}</span></span>`;
+        }
+        return html;
+    };
+
+    let html = `
+        <div style="background: linear-gradient(135deg, #2a2a2a, #111); padding:25px; border-radius:12px; border:2px solid #8BC34A; width:600px; color:#fff; box-shadow:0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column;">
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:15px; margin-bottom:20px;">
+                <h2 style="margin:0; color:#8BC34A; font-size:24px;">📦 拠点ストレージ</h2>
+                <div style="font-size:12px; color:#aaa;">※AIが自動で整理を行っています</div>
+            </div>
+
+            <div style="background:#111; border:2px dashed ${aiColor}; border-radius:8px; padding:15px; margin-bottom:20px; text-align:center; position:relative;">
+                <div style="position:absolute; top:-10px; left:20px; background:#111; padding:0 5px; font-size:12px; color:${aiColor}; font-weight:bold;">AIの思考</div>
+                <div style="font-size:16px; font-weight:bold; color:${aiColor};">${aiMsg}</div>
+            </div>
+
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                <div style="background:#222; border:1px solid #4fc3f7; border-radius:8px; padding:10px;">
+                    <div style="font-size:14px; font-weight:bold; color:#4fc3f7; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;">❄️ 冷凍庫 ${s.freezer.level > 0 ? `<span style="font-size:10px; color:#aaa; float:right;">(${s.freezer.items.length}/${s.freezer.capacity})</span>` : `<span style="font-size:10px; color:#ff5252; float:right;">🔒未建築</span>`}</div>
+                    <div style="min-height:50px; max-height:80px; overflow-y:auto;">
+                        ${s.freezer.level > 0 ? renderItems(s.freezer.items) : `<div style="color:#666; font-size:12px; text-align:center; padding:10px;">建築士に依頼して拡張しましょう</div>`}
+                    </div>
+                </div>
+
+                <div style="background:#222; border:1px solid #FF9800; border-radius:8px; padding:10px;">
+                    <div style="font-size:14px; font-weight:bold; color:#FF9800; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;">🛖 倉庫 ${s.warehouse.level > 0 ? `<span style="font-size:10px; color:#aaa; float:right;">(${s.warehouse.items.length}/${s.warehouse.capacity})</span>` : `<span style="font-size:10px; color:#ff5252; float:right;">🔒未建築</span>`}</div>
+                    <div style="min-height:50px; max-height:80px; overflow-y:auto;">
+                        ${s.warehouse.level > 0 ? renderItems(s.warehouse.items) : `<div style="color:#666; font-size:12px; text-align:center; padding:10px;">建築士に依頼して拡張しましょう</div>`}
+                    </div>
+                </div>
+
+                <div style="background:#222; border:1px solid #FFD700; border-radius:8px; padding:10px; grid-column: span 2;">
+                    <div style="font-size:14px; font-weight:bold; color:#FFD700; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;">💰 金庫 ${s.safe.level > 0 ? `<span style="font-size:10px; color:#aaa; float:right;">(最大容量: ${window.formatLargeNumber(s.safe.capacity)})</span>` : `<span style="font-size:10px; color:#ff5252; float:right;">🔒未建築</span>`}</div>
+                    <div style="text-align:center; padding:10px;">
+                        ${s.safe.level > 0 ? `<span style="font-size:24px; font-weight:bold; color:#FFD700;">${window.formatLargeNumber(s.safe.gold || 0)} G</span>` : `<div style="color:#666; font-size:12px;">建築士に依頼して拡張しましょう</div>`}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    `;
+    ui.innerHTML = html;
+    ui.style.display = 'flex';
+};
+
+// ==========================================
+// 📦 小屋専用：スマートストレージ管理UI（リッチアニメーション版）
+// ==========================================
+window.openHutStorageUI = function(hutAsset) {
+    let ai = window.aiPet;
+    if (!ai || !hutAsset || !hutAsset.storage) return;
+
+    let s = hutAsset.storage;
+
+    // AIキャラクターのアバターHTML生成
+    let avatarHtml = "";
+    let myConf = (typeof aiConfigs !== 'undefined') ? aiConfigs[ai.currentSkin || ai.baseType || 'robot'] : null;
+    if (myConf) {
+        let myFrames = (myConf.actions && myConf.actions['study']) ? myConf.actions['study'] :
+                       (myConf.actions && myConf.actions['idle']) ? myConf.actions['idle'] : null;
+        
+        if (myFrames && myFrames.length > 0) {
+            let mFrame = myFrames[0];
+            let mImgKey = ai.currentSkin || ai.baseType || 'robot';
+            if (myConf.img) mImgKey = myConf.img;
+            if (myConf.actionImages && myConf.actionImages['study']) mImgKey = myConf.actionImages['study'];
+            else if (mFrame.img) mImgKey = mFrame.img;
+
+            let mImgUrl = 'characters.png';
+            if (typeof images !== 'undefined' && images[mImgKey] && images[mImgKey].src) mImgUrl = images[mImgKey].src;
+            else if (typeof window.dynamicImageCatalog !== 'undefined' && window.dynamicImageCatalog[mImgKey]) mImgUrl = window.dynamicImageCatalog[mImgKey];
+            else if (typeof imageSources !== 'undefined' && imageSources[mImgKey]) mImgUrl = imageSources[mImgKey];
+
+            let sScale = myConf.scale || 0.25;
+            sScale *= 1.5;
+            if (sScale > 0.8) sScale = 0.8;
+
+            let sw = mFrame.sw || 300; let sh = mFrame.sh || 300; let sx = mFrame.sx || 0; let sy = mFrame.sy || 0;
+            
+            // ★修正1：transform(縮小)をここから外し、純粋な画像表示スタイルにする
+            let myBgStyle = `width:${sw}px; height:${sh}px; background-image:url('${mImgUrl}'); background-position:-${sx}px -${sy}px; background-repeat:no-repeat;`;
+
+            let roomBgUrl = 'room_bg.png';
+            if (typeof images !== 'undefined' && images['room_bg'] && images['room_bg'].src) roomBgUrl = images['room_bg'].src;
+            else if (typeof window.dynamicImageCatalog !== 'undefined' && window.dynamicImageCatalog['room_bg']) roomBgUrl = window.dynamicImageCatalog['room_bg'];
+
+            // ★修正2：背景を固定し、キャラクターだけを「縮小用ラッパー」と「アニメ用ラッパー」で包む！
+            avatarHtml = `
+                <div style="position:relative; display:flex; justify-content:center; align-items:center; width:100%; height:160px; background-color: #2d1b11; border-radius:8px; overflow:hidden; box-shadow: inset 0 0 15px rgba(0,0,0,0.8); border: 1px solid #444;">
+                    <div style="position:absolute; top:50%; left:50%; width:1307px; height:654px; background-image:url('${roomBgUrl}'); background-position:-35px -391px; background-repeat:no-repeat; transform:translate(-50%, -50%) scale(0.15); pointer-events:none;"></div>
+                    
+                    <div style="position:relative; z-index:1; transform:scale(${sScale}); transform-origin: center center;">
+                        <div style="animation: softBounce 1s infinite alternate ease-in-out;">
+                            <div style="${myBgStyle}"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    }
+
+    let ui = document.getElementById('hut-storage-ui');
+    if (!ui) {
+        ui = document.createElement('div');
+        ui.id = 'hut-storage-ui';
+        ui.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:80000; display:flex; justify-content:center; align-items:center; font-family:sans-serif; backdrop-filter:blur(3px);`;
+        document.body.appendChild(ui);
+
+        if (!document.getElementById('storage-anim-css')) {
+            const style = document.createElement('style');
+            style.id = 'storage-anim-css';
+            style.innerHTML = `@keyframes softBounce { 0% { transform: translateY(0); } 100% { transform: translateY(-10px); } }`;
+            document.head.appendChild(style);
+        }
+
+        ui.innerHTML = `
+            <div style="background: linear-gradient(135deg, #1a1a1a, #111); padding:20px; border-radius:12px; border:2px solid #8BC34A; width:650px; color:#fff; box-shadow:0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:15px;">
+                    <h2 style="margin:0; color:#8BC34A; font-size:22px;">🏠 マイホームの収納</h2>
+                    <div style="font-size:12px; color:#aaa;">※AIが自動で整理を行っています</div>
+                </div>
+
+                <div style="display:flex; gap:20px; height:350px;">
+                    <div style="width:220px; display:flex; flex-direction:column; align-items:center; position:relative; background:#111; border-radius:8px; border:1px solid #444; padding:15px; box-sizing:border-box;">
+                        <div id="storage-speech-bubble" style="background:rgba(255,255,255,0.9); color:#000; padding:10px 12px; border-radius:8px; font-size:13px; font-weight:bold; position:absolute; top:10px; width:85%; text-align:center; box-shadow:0 4px 6px rgba(0,0,0,0.5); z-index:10; border:2px solid #aaa; transition:all 0.2s;">
+                            整理中...
+                        </div>
+                        
+                        <div style="flex:1; display:flex; justify-content:center; align-items:center; margin-top:20px; width:100%;">
+                            ${avatarHtml}
+                        </div>
+
+                        <div style="width:100%; margin-top:10px; background:#222; padding:10px; border-radius:6px; border:1px inset #555; box-sizing:border-box; text-align:center;">
+                            <div style="font-size:11px; color:#aaa; margin-bottom:4px;">手持ちのお金</div>
+                            <div id="storage-ui-gold" style="font-size:18px; font-weight:bold; color:#FFD700;">${ai.gold || 0} G</div>
+                        </div>
+                    </div>
+
+                    <div style="flex:1; display:flex; flex-direction:column; gap:10px; overflow-y:auto; padding-right:5px;">
+                        <div style="background:#222; border:1px solid #4fc3f7; border-radius:8px; padding:10px; flex:1; display:flex; flex-direction:column;">
+                            <div style="font-size:13px; font-weight:bold; color:#4fc3f7; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;">
+                                ❄️ 冷凍庫 <span id="storage-freezer-count" style="font-size:11px; float:right;"></span>
+                            </div>
+                            <div id="storage-freezer-items" style="flex:1; overflow-y:auto; font-size:11px;"></div>
+                        </div>
+
+                        <div style="background:#222; border:1px solid #FF9800; border-radius:8px; padding:10px; flex:1; display:flex; flex-direction:column;">
+                            <div style="font-size:13px; font-weight:bold; color:#FF9800; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;">
+                                🛖 倉庫 <span id="storage-warehouse-count" style="font-size:11px; float:right;"></span>
+                            </div>
+                            <div id="storage-warehouse-items" style="flex:1; overflow-y:auto; font-size:11px;"></div>
+                        </div>
+
+                        <div style="background:#222; border:1px solid #FFD700; border-radius:8px; padding:10px;">
+                            <div style="font-size:13px; font-weight:bold; color:#FFD700; margin-bottom:5px; border-bottom:1px solid #333; padding-bottom:5px;">
+                                💰 金庫 <span id="storage-safe-count" style="font-size:11px; float:right;"></span>
+                            </div>
+                            <div id="storage-safe-gold" style="text-align:center; font-size:20px; font-weight:bold; color:#FFD700; padding:5px;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // 中身を描画するヘルパー関数
+    const renderItems = (items) => {
+        if (!items || items.length === 0) return `<div style="color:#666; font-size:11px; text-align:center; padding:5px;">からっぽ</div>`;
+        let counts = {};
+        items.forEach(i => { let id = typeof i === 'string' ? i : i.id; counts[id] = (counts[id] || 0) + 1; });
+        let html = "";
+        for (let k in counts) {
+            // ★修正： window. を外して直接 itemCatalog を参照する
+            let name = (typeof itemCatalog !== 'undefined' && itemCatalog[k]) ? itemCatalog[k].name : k;
+            html += `<span style="background:#333; padding:3px 6px; border-radius:4px; margin:2px; font-size:11px; border:1px solid #555; display:inline-block;">${name} <span style="color:#FFD700;">x${counts[k]}</span></span>`;
+        }
+        return html;
+    };
+
+    // UIの要素を更新
+    const updateEl = (id, html) => { let el = document.getElementById(id); if (el) el.innerHTML = html; };
+    
+    // フキダシの内容と色を感情豊かに設定
+    let msg = ai.message || "整理中...";
+    let msgColor = "#000"; let borderColor = "#aaa";
+    if (msg.includes('❄️')) { msgColor = "#0277bd"; borderColor = "#4fc3f7"; }
+    else if (msg.includes('🛖')) { msgColor = "#e65100"; borderColor = "#FF9800"; }
+    else if (msg.includes('💰')) { msgColor = "#f57f17"; borderColor = "#FFD700"; }
+    else if (msg.includes('✨')) { msgColor = "#1b5e20"; borderColor = "#4CAF50"; }
+    else if (msg.includes('失敗') || msg.includes('！')) { msgColor = "#c62828"; borderColor = "#ff5252"; }
+
+    let bubble = document.getElementById('storage-speech-bubble');
+    if (bubble) {
+        if (bubble.innerText !== msg) {
+            bubble.style.transform = 'translateY(5px)'; // メッセージ更新時にピコッと動かす
+            setTimeout(() => { bubble.style.transform = 'translateY(0)'; }, 100);
+        }
+        bubble.innerText = msg;
+        bubble.style.color = msgColor;
+        bubble.style.borderColor = borderColor;
+    }
+
+    updateEl('storage-ui-gold', `${window.formatLargeNumber(ai.gold || 0)} G`);
+    
+    updateEl('storage-freezer-count', s.freezer.level > 0 ? `<span style="color:#aaa;">(${s.freezer.items.length}/${s.freezer.capacity})</span>` : `<span style="color:#ff5252;">🔒未建築</span>`);
+    updateEl('storage-freezer-items', s.freezer.level > 0 ? renderItems(s.freezer.items) : `<div style="color:#666; text-align:center;">建築士に依頼して拡張しましょう</div>`);
+
+    updateEl('storage-warehouse-count', s.warehouse.level > 0 ? `<span style="color:#aaa;">(${s.warehouse.items.length}/${s.warehouse.capacity})</span>` : `<span style="color:#ff5252;">🔒未建築</span>`);
+    updateEl('storage-warehouse-items', s.warehouse.level > 0 ? renderItems(s.warehouse.items) : `<div style="color:#666; text-align:center;">建築士に依頼して拡張しましょう</div>`);
+
+    updateEl('storage-safe-count', s.safe.level > 0 ? `<span style="color:#aaa;">(最大: ${window.formatLargeNumber(s.safe.capacity)})</span>` : `<span style="color:#ff5252;">🔒未建築</span>`);
+    updateEl('storage-safe-gold', s.safe.level > 0 ? `${window.formatLargeNumber(s.safe.gold || 0)} G` : `<span style="color:#666; font-size:12px;">建築士に依頼して拡張しましょう</span>`);
+};

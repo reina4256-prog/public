@@ -120,70 +120,6 @@
                 </div>
             </div>
 
-            <div id="panel-inventory" class="panel-view">
-                <div class="panel-header" style="color:#E91E63;">🎒 持ち物</div>
-                <div id="inventoryList" style="flex:1;"></div>
-                <button class="quiz-btn" style="margin-top:10px; height:30px;" onclick="switchRightPanel('default')">閉じる</button>
-            </div>
-            <div id="panel-schedule" class="panel-view">
-                <div class="panel-header" style="color:#00bcd4;">📅 予定表</div>
-                <div style="background:#333; padding:10px; border-radius:5px; margin-bottom:10px;">
-                    <span style="font-size:12px; color:#aaa;">実行時間:</span>
-                    <input type="number" id="scheduleTimeInput" value="60" step="10" min="10" style="width:50px;">
-                    <span style="font-size:12px; color:#aaa;">分</span>
-                </div>
-                <div style="display:flex; gap:5px; flex-wrap:wrap; margin-bottom:10px;">
-                    <button class="quiz-btn" style="font-size:11px; flex:1;" onclick="addScheduleFromInput('study')">📚 勉強</button>
-                    <button class="quiz-btn" style="font-size:11px; flex:1;" onclick="addScheduleFromInput('train')">💪 運動</button>
-                    <button class="quiz-btn" style="font-size:11px; flex:1;" onclick="addScheduleFromInput('rest')">💤 睡眠</button>
-                    <button class="quiz-btn" style="font-size:11px; flex:1; background:#ff5722;" onclick="addScheduleFromInput('eat')">🍖 食事</button>
-                </div>
-                <div style="font-size:12px; color:#aaa;">予約リスト:</div>
-                <div id="scheduleList" style="height:150px; overflow-y:auto; background:#111; padding:5px; border:1px solid #444; margin-bottom:10px;"></div>
-                <div style="display:flex; gap:5px;">
-                    <button class="quiz-btn" style="background:#d32f2f; flex:1;" onclick="clearSchedule()">リセット</button>
-                    <button class="quiz-btn" style="background:#555; flex:1;" onclick="switchRightPanel('default')">閉じる</button>
-                </div>
-            </div>
-
-            <div id="panel-rescue" class="panel-view">
-                <div class="panel-header" style="color:#FF5722;">🆘 救援物資</div>
-                <div style="font-size:11px; color:#aaa; margin-bottom:10px;">緊急時の食料支援です。借金して手に入れます。</div>
-                <div id="rescue-gold-display" style="text-align:right; color:#FFD700; font-weight:bold; margin-bottom:10px;">0 G</div>
-                <div style="flex:1; overflow-y:auto;" id="rescueList"></div>
-                <button class="quiz-btn" style="background:#555; margin-top:10px; height:30px;" onclick="switchRightPanel('default')">閉じる</button>
-            </div>
-
-            <div id="panel-shop" class="panel-view">
-                <div class="panel-header" style="color:#FF9800;">🏪 ショップ</div>
-                <div id="shop-gold-display" style="text-align:right; color:#FFD700; font-weight:bold; margin-bottom:10px;">0 G</div>
-                <div style="flex:1; overflow-y:auto;">
-                    <h4 style="margin:5px 0; border-bottom:1px solid #444;">買う (所持金のみ)</h4>
-                    <div id="buyList"></div>
-                    <h4 style="margin:15px 0 5px 0; border-bottom:1px solid #444;">売る</h4>
-                    <div id="sellList"></div>
-                </div>
-                <button class="quiz-btn" style="background:#555; margin-top:10px; height:30px;" onclick="switchRightPanel('default')">お店を出る</button>
-            </div>
-
-            <div id="panel-tavern" class="panel-view">
-                <div class="panel-header" style="color:#FF9800;">🍻 ギルド酒場</div>
-                
-                <div style="background:#222; border:1px solid #555; border-radius:8px; padding:10px; margin-bottom:15px;">
-                    <div style="color:#4fc3f7; font-size:12px; font-weight:bold; margin-bottom:5px;">💬 酒場の伝言板</div>
-                    <div id="messageBoardList" style="height:100px; overflow-y:auto; background:#111; padding:5px; border-radius:4px; margin-bottom:8px; font-size:11px; color:#ddd;">
-                        <div style="color:#888; text-align:center; margin-top:30px;">読み込み中...</div>
-                    </div>
-                    <div style="display:flex; gap:5px;">
-                        <input type="text" id="messageBoardInput" placeholder="メッセージを残す..." style="flex:1; padding:5px; border-radius:4px; border:1px solid #444; background:#333; color:white; font-size:11px;" maxlength="40">
-                        <button class="quiz-btn" style="background:#00bcd4; padding:0 10px; font-size:11px;" onclick="sendMessageBoard()">書き込む</button>
-                    </div>
-                </div>
-                <div style="font-size:11px; color:#aaa; margin-bottom:10px;">他のプレイヤーが育てたAIを雇えます</div>
-                <div id="tavernList" style="flex:1; overflow-y:auto;"></div>
-                <button class="quiz-btn" style="background:#555; margin-top:10px; height:30px;" onclick="switchRightPanel('default')">酒場を出る</button>
-            </div>
-
             <div id="side-panel" class="panel-view" style="display:none;">
                 <div class="panel-header" style="color:#4CAF50;">🛠 Editor Tools</div>
                 <div id="statusLabel" style="font-size:12px; color:#aaa; margin-bottom:5px;">準備完了</div>
@@ -757,6 +693,80 @@
             </div>
             
             <button class="quiz-btn" style="background:#555; margin:15px; height:45px; flex-shrink:0;" onclick="document.getElementById('dungeon-ranking-ui').classList.remove('active')">全体を閉じる</button>
+        </div>
+    </div>
+
+    <div id="panel-inventory" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
+        <div class="quiz-card" style="width: 500px; max-height: 85vh; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #E91E63; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
+            <h2 class="panel-header" style="color:#E91E63; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🎒 持ち物</h2>
+            <div id="inventoryList" style="flex:1; overflow-y:auto; padding-right:5px;"></div>
+            <button class="quiz-btn" style="background:#555; margin-top:15px; height:45px; flex-shrink:0; font-size:16px;" onclick="switchRightPanel('default')">閉じる</button>
+        </div>
+    </div>
+
+    <div id="panel-schedule" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
+        <div class="quiz-card" style="width: 450px; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #00bcd4; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
+            <h2 class="panel-header" style="color:#00bcd4; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">📅 予定表</h2>
+            <div style="background:#333; padding:15px; border-radius:8px; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
+                <span style="font-size:14px; color:#ddd; font-weight:bold;">実行時間:</span>
+                <input type="number" id="scheduleTimeInput" value="60" step="10" min="10" style="width:70px; padding:5px; font-size:16px; border-radius:4px; border:none;">
+                <span style="font-size:14px; color:#aaa;">分</span>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:15px;">
+                <button class="quiz-btn" style="font-size:14px; flex:1; height:40px;" onclick="addScheduleFromInput('study')">📚 勉強</button>
+                <button class="quiz-btn" style="font-size:14px; flex:1; height:40px;" onclick="addScheduleFromInput('train')">💪 運動</button>
+                <button class="quiz-btn" style="font-size:14px; flex:1; height:40px;" onclick="addScheduleFromInput('rest')">💤 睡眠</button>
+                <button class="quiz-btn" style="font-size:14px; flex:1; height:40px; background:#ff5722;" onclick="addScheduleFromInput('eat')">🍖 食事</button>
+            </div>
+            <div style="font-size:14px; color:#aaa; font-weight:bold; margin-bottom:5px;">予約リスト:</div>
+            <div id="scheduleList" style="height:200px; overflow-y:auto; background:#111; padding:10px; border:2px solid #444; border-radius:8px; margin-bottom:15px;"></div>
+            <div style="display:flex; gap:10px;">
+                <button class="quiz-btn" style="background:#d32f2f; flex:1; height:45px; font-size:16px;" onclick="clearSchedule()">リセット</button>
+                <button class="quiz-btn" style="background:#555; flex:1; height:45px; font-size:16px;" onclick="switchRightPanel('default')">閉じる</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="panel-rescue" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
+        <div class="quiz-card" style="width: 450px; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #FF5722; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
+            <h2 class="panel-header" style="color:#FF5722; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🆘 救援物資</h2>
+            <div style="font-size:13px; color:#ccc; margin-bottom:15px; line-height:1.5;">緊急時の食料支援です。借金して手に入れます。</div>
+            <div id="rescue-gold-display" style="text-align:right; color:#FFD700; font-size:20px; font-weight:bold; margin-bottom:15px; background:#222; padding:10px; border-radius:8px;">0 G</div>
+            <div style="flex:1; overflow-y:auto; max-height:400px; padding-right:5px;" id="rescueList"></div>
+            <button class="quiz-btn" style="background:#555; margin-top:15px; height:45px; flex-shrink:0; font-size:16px;" onclick="switchRightPanel('default')">閉じる</button>
+        </div>
+    </div>
+
+    <div id="panel-shop" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
+        <div class="quiz-card" style="width: 500px; max-height: 85vh; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #FF9800; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
+            <h2 class="panel-header" style="color:#FF9800; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🏪 ショップ</h2>
+            <div id="shop-gold-display" style="text-align:right; color:#FFD700; font-size:20px; font-weight:bold; margin-bottom:15px; background:#222; padding:10px; border-radius:8px;">0 G</div>
+            <div style="flex:1; overflow-y:auto; padding-right:5px;">
+                <h4 style="margin:5px 0 10px 0; border-bottom:2px solid #444; color:#4CAF50; padding-bottom:5px;">💰 買う (所持金のみ)</h4>
+                <div id="buyList"></div>
+                <h4 style="margin:25px 0 10px 0; border-bottom:2px solid #444; color:#E91E63; padding-bottom:5px;">📦 売る</h4>
+                <div id="sellList"></div>
+            </div>
+            <button class="quiz-btn" style="background:#555; margin-top:15px; height:45px; flex-shrink:0; font-size:16px;" onclick="switchRightPanel('default')">お店を出る</button>
+        </div>
+    </div>
+
+    <div id="panel-tavern" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
+        <div class="quiz-card" style="width: 550px; max-height: 85vh; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #FF9800; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
+            <h2 class="panel-header" style="color:#FF9800; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🍻 ギルド酒場</h2>
+            <div style="background:#222; border:2px solid #555; border-radius:8px; padding:15px; margin-bottom:15px;">
+                <div style="color:#4fc3f7; font-size:14px; font-weight:bold; margin-bottom:10px;">💬 酒場の伝言板</div>
+                <div id="messageBoardList" style="height:120px; overflow-y:auto; background:#111; padding:10px; border-radius:6px; margin-bottom:10px; font-size:13px; color:#ddd; border:1px inset #444;">
+                    <div style="color:#888; text-align:center; margin-top:40px;">読み込み中...</div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <input type="text" id="messageBoardInput" placeholder="メッセージを残す..." style="flex:1; padding:10px; border-radius:6px; border:1px solid #444; background:#333; color:white; font-size:14px;" maxlength="40">
+                    <button class="quiz-btn" style="background:#00bcd4; padding:0 20px; font-size:14px;" onclick="sendMessageBoard()">書き込む</button>
+                </div>
+            </div>
+            <div style="font-size:14px; color:#aaa; font-weight:bold; margin-bottom:10px;">👤 他のプレイヤーが育てたAIを雇えます</div>
+            <div id="tavernList" style="flex:1; overflow-y:auto; padding-right:5px;"></div>
+            <button class="quiz-btn" style="background:#555; margin-top:15px; height:45px; flex-shrink:0; font-size:16px;" onclick="switchRightPanel('default')">酒場を出る</button>
         </div>
     </div>
 </body>
