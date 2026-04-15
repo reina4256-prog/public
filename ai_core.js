@@ -5584,6 +5584,8 @@ aiPet.checkAndTriggerAdulthood = function() {
                                 clearInterval(window.DEFENSE_STATE.emergencyTimer);
                                 let marquee = document.getElementById('emergency-marquee');
                                 if(marquee) marquee.style.display = 'none'; 
+                                // ★追加：襲撃BGMを停止
+                                if (window.audioManager) { window.audioManager.stopBGM(); }
                                 window.DEFENSE_STATE.isEmergency = false;
                                 alert("防衛を放置したため、王城が陥落してしまいました..."); window.executeAbandon(); 
                             } else {

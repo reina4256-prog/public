@@ -170,6 +170,11 @@ window.startDefenseMonitor = function() {
 window.triggerEmergency = function() {
     if (window.DEFENSE_STATE.isEmergency) return;
     window.DEFENSE_STATE.isEmergency = true;
+
+    // ★追加：襲撃BGMの再生（bgm_defense_start.mp3）
+    if (window.audioManager) {
+        window.audioManager.playBGM('defense_start');
+    }
     
     let marquee = document.getElementById('emergency-marquee');
     if (!marquee) {
@@ -228,6 +233,8 @@ window.triggerEmergency = function() {
                 if (targetFac.hp <= 0) {
                     if (targetFac.type === 'castle') {
                         clearInterval(window.DEFENSE_STATE.emergencyTimer);
+                        // ★追加：襲撃BGMを停止
+                        if (window.audioManager) { window.audioManager.stopBGM(); }
                         marquee.style.display = 'none'; window.DEFENSE_STATE.isEmergency = false;
                         alert("防衛を放置したため、王城が陥落してしまいました..."); window.executeAbandon(); 
                     } else {

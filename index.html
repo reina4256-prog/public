@@ -80,6 +80,7 @@
                     <button id="btnPokedex" class="quiz-btn" style="background:#3F51B5;" onclick="openPokedex()">📖 図鑑</button> 
                     <button id="btnBuildRecipe" class="quiz-btn" style="background:#795548;" onclick="window.openBuildRecipe()">🔨 設計図</button>
                     <button id="btnTcgDeck" class="quiz-btn" style="background:#9C27B0;" onclick="window.openDeckBuilder()">🃏 TCG</button>
+                    <button id="btnMusicHall" class="quiz-btn" style="background:#607D8B; color:white;" onclick="window.openMusicHall()">🎵 音楽館</button>
                     <button id="btn-menu-friend" class="quiz-btn" style="background:#E040FB; color:white;" onclick="window.openFriendListUI()">🤝 フレンド</button>
                     <button id="btn-menu-rescue" class="quiz-btn hidden-feature" style="background:#FF5722; color:white;" onclick="switchRightPanel('rescue')">🆘 救済</button>
                     <button id="btnQuit" class="quiz-btn" style="background:#b71c1c; color:white; margin-left: auto;" onclick="window.quitGame()">🚪 終了</button>
@@ -767,6 +768,21 @@
             <div style="font-size:14px; color:#aaa; font-weight:bold; margin-bottom:10px;">👤 他のプレイヤーが育てたAIを雇えます</div>
             <div id="tavernList" style="flex:1; overflow-y:auto; padding-right:5px;"></div>
             <button class="quiz-btn" style="background:#555; margin-top:15px; height:45px; flex-shrink:0; font-size:16px;" onclick="switchRightPanel('default')">酒場を出る</button>
+        </div>
+    </div>
+
+    <div id="musicHallOverlay" class="overlay">
+        <div class="quiz-card" style="width: 450px; max-height: 85vh; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #607D8B; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
+            <h2 class="panel-header" style="color:#607D8B; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🎵 音楽館</h2>
+            <div style="font-size:13px; color:#ccc; margin-bottom:15px; line-height:1.5;">これまでに聴いたことのある楽曲を再生できます。</div>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; background: #222; padding: 10px; border-radius: 8px; border: 1px solid #444; margin-bottom: 15px;">
+                <span style="color: #aaa; font-weight: bold; font-size: 14px;">🔊 音量設定</span>
+                <input type="range" id="bgm-volume-slider" min="0" max="1" step="0.05" value="0.5" style="width: 250px; cursor: pointer;" onchange="window.changeBgmVolume(this.value)">
+            </div>
+
+            <div id="musicHallList" style="flex:1; overflow-y:auto; padding-right:5px; display:flex; flex-direction:column; gap:8px;"></div>
+            <button class="quiz-btn" style="background:#555; margin-top:15px; height:45px; flex-shrink:0; font-size:16px;" onclick="window.closeMusicHall()">閉じる</button>
         </div>
     </div>
 </body>

@@ -8080,3 +8080,131 @@ window.openHutStorageUI = function(hutAsset) {
     updateEl('storage-safe-count', s.safe.level > 0 ? `<span style="color:#aaa;">(最大: ${window.formatLargeNumber(s.safe.capacity)})</span>` : `<span style="color:#ff5252;">🔒未建築</span>`);
     updateEl('storage-safe-gold', s.safe.level > 0 ? `${window.formatLargeNumber(s.safe.gold || 0)} G` : `<span style="color:#666; font-size:12px;">建築士に依頼して拡張しましょう</span>`);
 };
+
+// ==========================================
+// ★ 追加：音楽館とBGM制御システム
+// ==========================================
+window.openMusicHall = function() {
+    const overlay = document.getElementById('musicHallOverlay');
+    if (!overlay) return;
+
+    // 開いた瞬間に、現在フィールドで流れているBGMを止める
+    if (window.audioManager) {
+        window.audioManager.stopBGM();
+    }
+
+    // 音量スライダーの初期化
+    const slider = document.getElementById('bgm-volume-slider');
+    if (slider && window.aiPet) {
+        slider.value = window.aiPet.bgmVolume !== undefined ? window.aiPet.bgmVolume : 0.5;
+    }
+
+    // 解放済みリストの描画
+    const listEl = document.getElementById('musicHallList');
+    listEl.innerHTML = "";
+
+    const unlocked = window.aiPet && window.aiPet.unlockedBGMs ? window.aiPet.unlockedBGMs : [];
+
+    if (unlocked.length === 0) {
+        listEl.innerHTML = `<div style="text-align:center; color:#777; padding:20px; font-size:13px;">まだ解放されたBGMがありません。<br>（育成を始めると追加されます）</div>`;
+    } else {
+        unlocked.forEach(type => {
+            const btn = document.createElement('button');
+            
+            // 表示名の振り分けロジック
+            let trackName = "";
+            const specialTracks = {
+                'defense_start': '襲撃の予感（防衛戦）',
+                // 今後追加される曲があればここに追記
+            };
+
+            if (specialTracks[type]) {
+                trackName = specialTracks[type];
+            } else {
+                const monsterName = (typeof monsterBookData !== 'undefined' && monsterBookData[type]) ? monsterBookData[type].name : '未知の楽曲';
+                trackName = `${monsterName} のテーマ`;
+            }
+            
+            btn.className = 'quiz-btn';
+            btn.style.cssText = `background: #333; color: #fff; text-align: left; padding: 12px 15px; font-size: 15px; border: 1px solid #555; display: flex; justify-content: space-between; align-items: center; cursor: pointer;`;
+            btn.innerHTML = `<span>🎵 ${trackName}</span><span style="font-size:12px; color:#888;">再生 ▶</span>`;
+            
+            btn.onclick = () => {
+                // 他のボタンの色とテキストをリセット
+                Array.from(listEl.children).forEach(child => {
+                    child.style.background = '#333';
+                    child.style.border = '1px solid #555';
+                    child.innerHTML = child.innerHTML.replace('再生中 ⏸', '再生 ▶').replace('color:#FFF', 'color:#888');
+                });
+                
+                // 指定された種族のBGMを再生
+                if (window.audioManager) {
+                    window.audioManager.playBGM(type);
+                }
+
+                // 押されたボタンを目立たせる
+                btn.style.background = '#2196F3';
+                btn.style.border = '1px solid #64B5F6';
+                btn.innerHTML = `<span>🎵 ${trackName}</span><span style="color:#FFF; font-weight:bold;">再生中 ⏸</span>`;
+            };
+            listEl.appendChild(btn);
+        });
+    }
+
+    overlay.classList.add('active');
+};
+
+window.closeMusicHall = function() {
+    const overlay = document.getElementById('musicHallOverlay');
+    if (overlay) overlay.classList.remove('active');
+
+    // 音楽館で視聴していたBGMを止めて、育成メイン（現在の種族）のBGMを最初から再生し直す
+    if (window.audioManager && window.aiPet && window.aiPet.type) {
+        window.audioManager.stopBGM();
+        // 現在がプレイモード(育成画面)であれば再生再開
+        let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
+        if (mode === 'play') {
+             window.audioManager.playBGM(window.aiPet.type);
+        }
+    }
+};
+
+window.changeBgmVolume = function(vol) {
+    if (window.audioManager) {
+        window.audioManager.setVolume(parseFloat(vol));
+    }
+    if (typeof saveGameData === 'function') saveGameData(); // 音量設定を保存して次回起動時に引き継ぐ
+};
+
+// ==========================================
+// ★ 中断復帰＆リロード後のBGM自動再開システム（最強版）
+// ==========================================
+window._hasUserInteracted = false;
+
+// ① ロード後、最初のクリックを検知してフラグを立てる（ブラウザの自動再生ブロック解除のため）
+document.addEventListener('click', function() {
+    if (!window._hasUserInteracted) {
+        window._hasUserInteracted = true;
+        // 最初のクリックでBGMが鳴っていなければ再生開始
+        if (window.audioManager && !window.audioManager.currentAudio) {
+            let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
+            if (mode === 'play' || mode === 'unknown') {
+                window.audioManager.restoreMainBGM();
+            }
+        }
+    }
+}, { once: true });
+
+// ② 1秒ごとのループで「育成画面にいるのにBGMが止まっている」場合、自動で復旧させる
+setInterval(() => {
+    let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
+    if (mode === 'play' && window._hasUserInteracted) {
+        if (window.audioManager && !window.audioManager.currentAudio) {
+            // ただし、音楽館のUIを開いている時はプレビューの邪魔をしないようにスキップ
+            const musicHall = document.getElementById('musicHallOverlay');
+            if (!musicHall || !musicHall.classList.contains('active')) {
+                window.audioManager.restoreMainBGM();
+            }
+        }
+    }
+}, 1000);

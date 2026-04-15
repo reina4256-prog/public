@@ -3,6 +3,68 @@
 // --- グローバル変数 ---
 var isDragging = false;
 var selectedAsset = null;
+
+// ==========================================
+// ★ BGM管理マネージャー (本番用クリーン版)
+// ==========================================
+window.audioManager = {
+    currentAudio: null,
+    currentBGMType: null,
+    
+    playBGM: function(type) {
+        // 同じ曲が流れている場合はスキップ
+        if (this.currentAudio && this.currentBGMType === type) return; 
+        
+        // 別の曲が流れていれば止める
+        if (this.currentAudio) { this.stopBGM(); }
+        
+        this.currentBGMType = type;
+        const src = `./bgm_${type}.mp3`; 
+        
+        this.currentAudio = new Audio(src);
+        this.currentAudio.loop = true;
+        this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
+        
+        // 再生実行（ブラウザの自動再生ブロック対策）
+        let playPromise = this.currentAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                console.log(`[BGM] ユーザー操作待ちのため再生を保留しました: ${e.name}`);
+                this.currentAudio = null; 
+            });
+        }
+        
+        // 音楽館への解放記録
+        if (typeof aiPet !== 'undefined' && aiPet.unlockedBGMs && !aiPet.unlockedBGMs.includes(type)) {
+            aiPet.unlockedBGMs.push(type);
+        }
+    },
+    
+    stopBGM: function() {
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio = null;
+        }
+    },
+    
+    setVolume: function(v) {
+        if (typeof aiPet !== 'undefined') aiPet.bgmVolume = v;
+        if (this.currentAudio) { this.currentAudio.volume = v; }
+    },
+    
+    restoreMainBGM: function() {
+        // 防衛戦の緊急事態中なら襲撃BGMを優先
+        if (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isEmergency) {
+            this.playBGM('defense_start');
+            return;
+        }
+        // 通常時なら現在の種族BGMを再生
+        if (typeof aiPet !== 'undefined' && aiPet.type) {
+            this.playBGM(aiPet.type);
+        }
+    }
+};
+
 var editingTarget = 'ai'; 
 var selectedMapKey = 'grass1';
 var selectedAIType = 'robot';
@@ -259,6 +321,9 @@ if (!aiPet.apprentice) {
         currentMaster: null, attempts: {}, rank: {}, 
         isExcommunicated: false, popularity: 0, inventory: [], learnedWords: []
     };
+    // ★追加：BGM解放フラグと音量設定
+    aiPet.unlockedBGMs = aiPet.unlockedBGMs || [];
+    aiPet.bgmVolume = aiPet.bgmVolume !== undefined ? aiPet.bgmVolume : 0.5;
 }
 
 // 発見済みモンスターリストの初期化とチェック
@@ -555,6 +620,14 @@ function applyInitialPet(skinKey) {
     // ==========================================
     aiPet.type = skinKey; 
     aiPet.skin = skinKey; 
+    
+    // ★修正：再生はせず、BGMの解放（音楽館への登録）と音量の初期化のみ行う
+    aiPet.unlockedBGMs = aiPet.unlockedBGMs || [];
+    if (!aiPet.unlockedBGMs.includes(skinKey)) {
+        aiPet.unlockedBGMs.push(skinKey);
+    }
+    aiPet.bgmVolume = aiPet.bgmVolume !== undefined ? aiPet.bgmVolume : 0.5;
+
     aiPet.baseType = skinKey;
     aiPet.currentSkin = skinKey;
     aiPet.x = 400; // 画面中央X
