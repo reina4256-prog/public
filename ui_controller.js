@@ -7903,8 +7903,25 @@ window.openMusicHall = function() {
             let trackName = "";
             const specialTracks = {
                 'defense_start': '襲撃の予感（防衛戦）',
-                'personality': '鏡の水面（性格診断）',
-                'inheritance': '黄金のまどろみ（魂の引継ぎ）',
+                'defense_lobby': '戦士たちの集い（ロビー）',
+                'defense_main_theme': '島を防衛せよ！（防衛戦）',
+                'defense_friend': '好敵手との交撃（模擬戦）',
+                'defense_endless': '限界突破サバイバル（エンドレス）',
+                'defense_clear': '勝利の凱歌（防衛成功）',
+                'defense_enemy': '迫り来る脅威（敵フェーズ）',
+                'defense_robot': '鋼鉄の闘志（ロボット出撃）',
+                'defense_spirit': '精霊の導き（精霊出撃）',
+                'defense_magician': '魔力解放（魔法使い出撃）',
+                'defense_stone': '盤石なる陣（ゴーレム出撃）',
+                'defense_bird': '天空の支配者（鳥出撃）',
+                'defense_ghost': '深淵からの手（幽霊出撃）',
+                'defense_balloon': '予測不能の風（風船出撃）',
+                'defense_seed': '生命の脈動（つぼみ出撃）',
+                'defense_machine': '駆動する狂気（ぜんまい出撃）',
+                'defense_beetle': '重装甲の進撃（甲虫出撃）',
+                'defense_dragon': '竜の咆哮（ドラゴン出撃）',
+                'personality': '鏡の水面（性格診断）',
+                'inheritance': '黄金のまどろみ（魂の引継ぎ）',
                 'title_main': '観測者の島（メインテーマ）',
                 'title_song': 'AIテラリウム（ボーカル主題歌）'
             };

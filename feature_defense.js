@@ -251,9 +251,14 @@ if (typeof window.originalOpenArenaReception === 'undefined') {
     window.originalOpenArenaReception = window.openArenaReception;
 }
 window.openArenaReception = function() {
-    if (window.DEFENSE_STATE.isActive) return; 
+    if (window.DEFENSE_STATE.isActive) return; 
 
-    let currentWave = window.aiPet.defenseWave || 1;
+    // ★追加：ロビーBGMを再生（襲撃BGMなどを上書き）
+    if (window.audioManager) {
+        window.audioManager.playBGM('defense_lobby');
+    }
+
+    let currentWave = window.aiPet.defenseWave || 1;
     let isEndlessUnlocked = currentWave > 10;
     let isEmergency = window.DEFENSE_STATE.isEmergency;
 
@@ -285,10 +290,15 @@ window.openArenaReception = function() {
 
 // ★追加: 城から完全に退出してAIを自由行動に戻す処理
 window.exitCastleReception = function() {
-    let ui = document.getElementById('castle-reception-overlay');
-    if (ui) ui.remove(); // UIを閉じる
+    let ui = document.getElementById('castle-reception-overlay');
+    if (ui) ui.remove(); // UIを閉じる
 
-    if (window.aiPet) {
+    // ★追加：城から出たら、育成モードのキャラクターBGMに戻す
+    if (window.audioManager) {
+        window.audioManager.restoreMainBGM();
+    }
+
+    if (window.aiPet) {
         window.aiPet.isIndoors = false;     // 屋内判定を解除
         window.aiPet.indoorTarget = null;   // ターゲット施設を解除
         window.aiPet.actionState = 'idle';  // 行動状態をアイドルに戻す
@@ -786,18 +796,29 @@ window.spawnReinforcements = async function(requestCount) {
 };
 
 window.startDefenseSimulation = function() {
-    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
-    document.getElementById('defense-sortie-ui').style.display = 'none';
-    let marquee = document.getElementById('emergency-marquee'); if (marquee) marquee.style.display = 'none';
-    
-    let style = document.getElementById('def-hide-style');
-    if (!style) { style = document.createElement('style'); style.id = 'def-hide-style'; document.head.appendChild(style); }
-    style.innerHTML = `#nav, #aiStatus, #info-column, #gameControls, #action-buttons-row, #chat-input-row, .main-toolbar, #toolbar, .mobile-only-btn, #main-tab-container, .tabs, #tabs, .main-tab, .sub-tab { display: none !important; }`;
+    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
+    document.getElementById('defense-sortie-ui').style.display = 'none';
+    let marquee = document.getElementById('emergency-marquee'); if (marquee) marquee.style.display = 'none';
+    
+    let style = document.getElementById('def-hide-style');
+    if (!style) { style = document.createElement('style'); style.id = 'def-hide-style'; document.head.appendChild(style); }
+    style.innerHTML = `#nav, #aiStatus, #info-column, #gameControls, #action-buttons-row, #chat-input-row, .main-toolbar, #toolbar, .mobile-only-btn, #main-tab-container, .tabs, #tabs, .main-tab, .sub-tab { display: none !important; }`;
 
-    window.currentMode = 'defense';
-    window.DEFENSE_STATE.mode = window.DEFENSE_STATE.nextMode || 'normal';
+    window.currentMode = 'defense';
+    window.DEFENSE_STATE.mode = window.DEFENSE_STATE.nextMode || 'normal';
 
-    // ★修正：ランキング用に今回の出撃パーティを「完全な状態」で記録
+    // ★追加：戦闘モードに応じたBGMの再生
+    if (window.audioManager) {
+        if (window.DEFENSE_STATE.mode === 'endless') {
+            window.audioManager.playBGM('defense_endless');
+        } else if (window.DEFENSE_STATE.mode === 'mock') {
+            window.audioManager.playBGM('defense_friend');
+        } else {
+            window.audioManager.playBGM('defense_main_theme');
+        }
+    }
+
+    // ★修正：ランキング用に今回の出撃パーティを「完全な状態」で記録
     window.aiPet.lastDefenseParty = JSON.parse(JSON.stringify(window.DEFENSE_STATE.preDeployed));
 
     if (window.aiPet) {
@@ -1043,27 +1064,35 @@ window.processPhaseAI = async function() {
     window.DEFENSE_STATE.activeUnit = null; 
 
     if (window.DEFENSE_STATE.phase === 'player') {
-        window.DEFENSE_STATE.phase = 'enemy'; await window.showDefenseMessage("🔴 ENEMY PHASE", "#f44336"); window.addDefenseLog(`🔴 敵フェイズ`);
-        window.DEFENSE_STATE.isProcessingPhase = false; if (window.DEFENSE_STATE.autoMode) setTimeout(() => { window.processPhaseAI(); }, 500);
-    } else {
-        window.DEFENSE_STATE.turn++; window.DEFENSE_STATE.phase = 'player';
-        window.addDefenseLog(`▼ 防衛戦 第 ${window.DEFENSE_STATE.turn} ターン開始`); 
+        window.DEFENSE_STATE.phase = 'enemy'; await window.showDefenseMessage("🔴 ENEMY PHASE", "#f44336"); window.addDefenseLog(`🔴 敵フェイズ`);
+        // ★追加：敵フェーズBGMに変更
+        if (window.audioManager) window.audioManager.playBGM('defense_enemy');
+        window.DEFENSE_STATE.isProcessingPhase = false; if (window.DEFENSE_STATE.autoMode) setTimeout(() => { window.processPhaseAI(); }, 500);
+    } else {
+        window.DEFENSE_STATE.turn++; window.DEFENSE_STATE.phase = 'player';
+        window.addDefenseLog(`▼ 防衛戦 第 ${window.DEFENSE_STATE.turn} ターン開始`); 
 
-        if (window.DEFENSE_STATE.mode === 'normal') {
-            let cfg = window.DEFENSE_STATE.waveConfig;
-            if (cfg.spawnedSoFar < cfg.totalToSpawn) {
-                cfg.turnsUntilNextSpawn--;
-                let aliveEnemies = window.DEFENSE_STATE.enemies.filter(e => e.hp > 0);
-                if (cfg.turnsUntilNextSpawn <= 0 || aliveEnemies.length === 0) {
-                    await window.spawnReinforcements(Math.min(3, cfg.totalToSpawn - cfg.spawnedSoFar));
-                }
-            }
-        }
+        if (window.DEFENSE_STATE.mode === 'normal') {
+            let cfg = window.DEFENSE_STATE.waveConfig;
+            if (cfg.spawnedSoFar < cfg.totalToSpawn) {
+                cfg.turnsUntilNextSpawn--;
+                let aliveEnemies = window.DEFENSE_STATE.enemies.filter(e => e.hp > 0);
+                if (cfg.turnsUntilNextSpawn <= 0 || aliveEnemies.length === 0) {
+                    await window.spawnReinforcements(Math.min(3, cfg.totalToSpawn - cfg.spawnedSoFar));
+                }
+            }
+        }
 
-        await window.showDefenseMessage("🔵 PLAYER PHASE", "#2196F3");
-        window.addDefenseLog(`🔵 味方フェイズ`); window.DEFENSE_STATE.isProcessingPhase = false;
-        if (window.DEFENSE_STATE.autoMode) setTimeout(() => { window.processPhaseAI(); }, 500);
-    }
+        await window.showDefenseMessage("🔵 PLAYER PHASE", "#2196F3");
+        window.addDefenseLog(`🔵 味方フェイズ`); window.DEFENSE_STATE.isProcessingPhase = false;
+        // ★追加：プレイヤーフェーズ開始時に元の戦闘BGMに戻す
+        if (window.audioManager) {
+            if (window.DEFENSE_STATE.mode === 'endless') window.audioManager.playBGM('defense_endless');
+            else if (window.DEFENSE_STATE.mode === 'mock') window.audioManager.playBGM('defense_friend');
+            else window.audioManager.playBGM('defense_main_theme');
+        }
+        if (window.DEFENSE_STATE.autoMode) setTimeout(() => { window.processPhaseAI(); }, 500);
+    }
 };
 
 window.thinkDefenseAI = async function(unit) {
@@ -1178,9 +1207,15 @@ window.getCutsceneSpriteHtml = function(u, direction, domId) {
 };
 
 window.showDefenseCutscene = async function(act, def, damageVal, skill, canCounter, counterDmg, counterSkill) {
-    if (!window.DEFENSE_STATE.animMode) return; 
+    if (!window.DEFENSE_STATE.animMode) return; 
 
-    let cutUi = document.createElement('div'); cutUi.id = 'def-cutscene';
+    // ★追加：自ら攻撃を仕掛けた場合のみ、種族専用BGMを流す
+    if (act.team === 'player' && window.DEFENSE_STATE.phase === 'player') {
+        let baseSkin = (act.skin || 'robot').split('_')[0]; // 進化後もベース種族を取得
+        if (window.audioManager) window.audioManager.playBGM('defense_' + baseSkin);
+    }
+
+    let cutUi = document.createElement('div'); cutUi.id = 'def-cutscene';
     cutUi.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:70000; display:flex; flex-direction:column; overflow:hidden; font-family:sans-serif; transition:opacity 0.2s; background: linear-gradient(to bottom, #1976D2, #81D4FA);`;
     
     let leftUnit = act; let rightUnit = def;
@@ -1495,11 +1530,17 @@ window.executeDefenseBattle = async function(attacker, defender, actSkill) {
 };
 
 window.endDefenseBattle = async function(isWin) {
-    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
-    window.DEFENSE_STATE.isActive = false;
-    await window.wait(500);
-    
-    let overlay = document.createElement('div'); overlay.id = 'def-result-overlay';
+    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
+    window.DEFENSE_STATE.isActive = false;
+    await window.wait(500);
+
+    // ★追加：勝利時はクリアBGM、敗北時や全滅時は無音にして絶望感を出す
+    if (window.audioManager) {
+        if (isWin) window.audioManager.playBGM('defense_clear');
+        else window.audioManager.stopBGM();
+    }
+    
+    let overlay = document.createElement('div'); overlay.id = 'def-result-overlay';
     overlay.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:80000; display:flex; justify-content:center; align-items:center; flex-direction:column; font-family:sans-serif;`;
     document.body.appendChild(overlay);
 
@@ -1741,11 +1782,17 @@ window.giveUpDefense = function(skipConfirm = false) {
 };
 
 window._executeGiveUp = function() {
-    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
-    window.DEFENSE_STATE.isActive = false; window.DEFENSE_STATE.isEmergency = false; window.currentMode = 'play'; 
-    let controls = document.getElementById('defense-controls'); if (controls) controls.style.display = 'none';
-    let style = document.getElementById('def-hide-style'); if (style) style.innerHTML = '';
-    if (typeof render === 'function') render();
+    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
+    window.DEFENSE_STATE.isActive = false; window.DEFENSE_STATE.isEmergency = false; window.currentMode = 'play'; 
+    let controls = document.getElementById('defense-controls'); if (controls) controls.style.display = 'none';
+    let style = document.getElementById('def-hide-style'); if (style) style.innerHTML = '';
+
+    // ★追加：すべての防衛フェーズが終わり、育成モードのキャラクターBGMに戻す
+    if (window.audioManager) {
+        window.audioManager.restoreMainBGM();
+    }
+
+    if (typeof render === 'function') render();
 };
 
 window.renderDefenseRankingList = async function(mode = 'normal') {
