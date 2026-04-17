@@ -998,8 +998,14 @@ window.updateCommandHUD = function() {
     const knows = (word) => aiPet.apprentice.learnedWords && aiPet.apprentice.learnedWords.includes(word);
     let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
 
-    // ★超重要パッチ1：表示状態を文字列化して比較し、変化がないなら一切再描画しない（点滅とガタつきを完全防止）
-    const stateStr = JSON.stringify(aiPet.apprentice.learnedWords) + "_" + metMasters.join(',') + "_" + (aiPet.gold < 0 ? aiPet.debtTimer : 0);
+    // ==========================================
+    // ★修正：下にあった計算式を上に引っ張り上げました！
+    // ==========================================
+    let maxWords = (typeof aiPet.getMaxVocabulary === 'function') ? aiPet.getMaxVocabulary() : 5;
+
+    // ★修正：判定条件に maxWords を追加し、容量が増えた瞬間も確実に再描画させる！
+    const stateStr = JSON.stringify(aiPet.apprentice.learnedWords) + "_" + metMasters.join(',') + "_" + (aiPet.gold < 0 ? aiPet.debtTimer : 0) + "_" + maxWords;
+    
     if (hud.dataset.state === stateStr) {
         return; // データに変化がなければ再描画をストップし、操作を邪魔しない
     }
@@ -1064,7 +1070,6 @@ window.updateCommandHUD = function() {
         });
     }
 
-    let maxWords = (typeof aiPet.getMaxVocabulary === 'function') ? aiPet.getMaxVocabulary() : 5;
     let currentWords = aiPet.apprentice.learnedWords ? aiPet.apprentice.learnedWords.length : 0;
     
     let html = `
@@ -1654,14 +1659,24 @@ window.sendChat = function() {
     }
     else if (interpretedWord === "釣り" && knows("釣り")) {
         actionTriggered = true;
-        let hasRod = aiPet.inventory && aiPet.inventory.some(k => k.startsWith('rod_'));
+        // ==========================================
+        // ★修正：インベントリがオブジェクト化（鮮度対応）したため、
+        // 釣り竿の所持判定を安全な「id取得方式」に完全対応させる！
+        // ==========================================
+        let hasRod = false;
+        if (aiPet.inventory && Array.isArray(aiPet.inventory)) {
+            hasRod = aiPet.inventory.some(item => {
+                let id = typeof item === 'string' ? item : item.id;
+                return id && id.startsWith('rod_');
+            });
+        }
+        
         if (aiPet.apprentice && aiPet.apprentice.currentMaster === 'fishing') hasRod = true;
         
         if (!hasRod) { 
             aiPet.message = "釣り竿を持ってないよ！"; aiPet.messageTimer = 120;
         } else {
-            // ★完全修正：釣りも他のタスクと同じようにシンプルにキューに積むだけ！
-            aiPet.schedule.push({type: 'fish', duration: 180}); // 約3分（ゲーム内時間）釣りを続ける
+            aiPet.schedule.push({type: 'fish', duration: 180}); 
             if (aiPet.schedule.length === 1) aiPet.message = "釣りに行くよ！"; 
             else aiPet.message = "釣りの予約を入れたよ！";
             aiPet.messageTimer = 120;
@@ -7089,232 +7104,6 @@ setInterval(() => {
 }, 2000);
 
 // ==========================================
-// ★ 釣り処理（エラー回避＆クエスト進行 修正版）
-// ==========================================
-// if (typeof window.AICharacter !== 'undefined') {
-//     window.AICharacter.prototype.processFishingFrame = function() {
-//         if (!this.fishingData) {
-//             this.fishingData = { phase: 'idle', timer: 0, pos: 100, targetName: null, isSuccess: false, isBreak: false, bestIdx: -1, caughtItem: null };
-//         }
-//         const d = this.fishingData;
-
-//         if (d.phase === 'idle') {
-//             d.timer++;
-//             // 待たせすぎないよう、HIT確率を少しだけアップ
-//             if (d.timer > 60 && Math.random() < 0.02) {
-//                 let bestRod = null; let bestIdx = -1; let rodPriority = { 'rod_super': 3, 'rod_norm': 2, 'rod_old': 1 };
-//                 this.inventory.forEach((key, idx) => {
-//                     if (rodPriority[key]) {
-//                         if (!bestRod || rodPriority[key] > rodPriority[bestRod]) { bestRod = key; bestIdx = idx; }
-//                     }
-//                 });
-                
-//                 if (!bestRod) {
-//                     // 漁師の弟子なら、釣り竿が壊れてしまっても自動で予備を補充する
-//                     if (this.apprentice && this.apprentice.currentMaster === 'fishing') {
-//                         this.inventory.push('rod_old');
-//                         bestRod = 'rod_old';
-//                         bestIdx = this.inventory.length - 1;
-//                     } else {
-//                         this.message = "釣り竿がない！"; this.messageTimer = 120;
-//                         if (typeof window.clearSchedule === 'function') window.clearSchedule();
-//                         return;
-//                     }
-//                 }
-
-//                 d.bestIdx = bestIdx;
-                
-//                 let catchRate = 0.4 + ((this.stats.power || 10) * 0.002);
-//                 if (bestRod === 'rod_norm') catchRate += 0.2;
-//                 if (bestRod === 'rod_super') catchRate += 0.4;
-//                 d.isSuccess = (Math.random() < catchRate);
-                
-//                 let breakChance = 0.10;
-//                 if (bestRod === 'rod_norm') breakChance = 0.05;
-//                 if (bestRod === 'rod_super') breakChance = 0.01;
-//                 d.isBreak = (Math.random() < breakChance);
-
-//                 let isSea = (this.interactionTarget && this.interactionTarget.type === 'sea');
-                
-//                 // ★修正：魚のテーブルが無い場合でも絶対にエラーを起こさないフォールバックを追加
-//                 let fallbackSea = [ {id: 'fish_sardine', prob: 50, name: 'イワシ'}, {id: 'fish_salmon', prob: 30, name: 'サケ'}, {id: 'fish_tuna', prob: 20, name: 'マグロ'} ];
-//                 let fallbackRiver = [ {id: 'fish_medaka', prob: 50, name: 'メダカ'}, {id: 'fish_bass', prob: 30, name: 'バス'}, {id: 'fish_carp', prob: 20, name: 'コイ'} ];
-
-//                 let seasonTable = null;
-//                 if (isSea) {
-//                     seasonTable = (typeof seaFishingTable !== 'undefined') ? seaFishingTable[this.season || 'spring'] || seaFishingTable['spring'] : fallbackSea;
-//                 } else {
-//                     seasonTable = (typeof riverFishingTable !== 'undefined') ? riverFishingTable[this.season || 'spring'] || riverFishingTable['spring'] : fallbackRiver;
-//                 }
-//                 if (!seasonTable) seasonTable = isSea ? fallbackSea : fallbackRiver;
-                
-//                 let rand = Math.random() * 100;
-//                 let current = 0; let caughtItem = null;
-//                 for (let i=0; i<seasonTable.length; i++) {
-//                     current += seasonTable[i].prob;
-//                     if (rand < current) { caughtItem = seasonTable[i].id; break; }
-//                 }
-//                 if (!caughtItem) caughtItem = seasonTable[0].id;
-//                 d.caughtItem = caughtItem;
-                
-//                 // ★修正：アイテムカタログに載っていない魚が釣れてもエラーで落ちないように保護
-//                 d.targetName = (typeof itemCatalog !== 'undefined' && itemCatalog[caughtItem]) ? itemCatalog[caughtItem].name : 
-//                                (seasonTable.find(f => f.id === caughtItem)?.name || "魚");
-                
-//                 d.phase = 'hit';
-//                 d.timer = 0;
-//                 d.pos = 100; 
-//                 this.message = "きた！！";
-//                 this.messageTimer = 60;
-//             }
-//         } else if (d.phase === 'hit') {
-//             d.timer++;
-            
-//             if (d.isSuccess) {
-//                 d.pos -= (0.4 + Math.random() * 0.8);
-//                 if (Math.random() < 0.1) d.pos += (1.0 + Math.random() * 2.0);
-                
-//                 if (d.pos <= 0) { 
-//                     d.pos = 0;
-//                     d.phase = 'result';
-//                     d.timer = 0;
-//                     this.inventory.push(d.caughtItem);
-                    
-//                     let bMood = 1.0;
-//                     let tData = typeof this.getTraitData === 'function' ? this.getTraitData() : null;
-//                     if (tData && tData.statBonus && tData.statBonus.mood) bMood = tData.statBonus.mood;
-//                     if (this.stats && this.stats.mood) this.stats.mood += 2 * bMood;
-                    
-//                     if (!this.godMode) { 
-//                         let consumption = (tData && tData.consumption) ? tData.consumption : 1.0;
-//                         this.energy -= 1 * consumption; 
-//                         this.hunger -= 1 * consumption; 
-//                     }
-                    
-//                     this.fishingPopup = `✨ ${d.targetName} を釣った！ ✨`;
-//                     this.fishingPopupTimer = 90;
-                    
-//                     if (typeof window.unlockSupportCard === 'function') window.unlockSupportCard('support_2', this.generation || 1, 'アクション');
-                    
-//                     if (typeof openInventoryPanel === 'function') {
-//                         const invPanel = document.getElementById('panel-inventory');
-//                         if (invPanel && invPanel.classList.contains('active')) openInventoryPanel();
-//                     }
-                    
-//                     if (d.isBreak) {
-//                         this.inventory.splice(d.bestIdx, 1);
-//                         setTimeout(() => {
-//                             this.message = "あっ！釣り竿が壊れちゃった..."; this.messageTimer = 150;
-//                         }, 1000);
-//                     }
-
-//                     if (this.apprentice && this.apprentice.activeQuest && this.apprentice.activeQuest.desc.includes("釣り")) {
-//                         this.apprentice.qVal = (this.apprentice.qVal || 0) + 1;
-//                         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
-//                     }
-//                     if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest('fish'); 
-//                 }
-//             } else {
-//                 d.pos += (0.2 + Math.random() * 0.5);
-//                 if (Math.random() < 0.3) d.pos -= 1.0; 
-                
-//                 if (d.timer > 180 || d.pos >= 120) {
-//                     d.phase = 'result';
-//                     d.timer = 0;
-//                     const failMsgs = ["逃げられた...", "糸が切れた..."];
-//                     this.message = failMsgs[Math.floor(Math.random()*failMsgs.length)];
-//                     this.messageTimer = 90;
-                    
-//                     if (d.isBreak) {
-//                         this.inventory.splice(d.bestIdx, 1);
-//                         setTimeout(() => {
-//                             this.message = "あっ！釣り竿が壊れちゃった..."; this.messageTimer = 150;
-//                         }, 1000);
-//                     }
-
-//                     // 失敗してもクエストの「釣りをした回数」にはカウント
-//                     if (this.apprentice && this.apprentice.activeQuest && this.apprentice.activeQuest.desc.includes("釣り")) {
-//                         this.apprentice.qVal = (this.apprentice.qVal || 0) + 1;
-//                         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
-//                     }
-//                     if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest('fish'); 
-//                 }
-//             }
-//         } else if (d.phase === 'result') {
-//             d.timer++;
-//             if (d.timer > 100) { 
-//                 d.phase = 'idle';
-//                 d.timer = 0;
-//                 let hasRod = this.inventory.some(k => k.startsWith('rod_'));
-//                 // 竿が無くなった場合のみ釣りを強制終了
-//                 if (!hasRod && typeof window.clearSchedule === 'function') {
-//                     window.clearSchedule(); 
-//                 }
-//             }
-//         }
-//     };
-// }
-
-// // ==========================================
-// // ★ 釣りシステム復活 ＆ 爆速減算ストップパッチ
-// // ==========================================
-// if (typeof window.AICharacter !== 'undefined') {
-//     if (!window.AICharacter.prototype._originalAIUpdate_fishing_patched) {
-//         window.AICharacter.prototype._originalAIUpdate_fishing_patched = window.AICharacter.prototype.update;
-        
-//         window.AICharacter.prototype.update = function() {
-//             // 元の `duration` が猛スピードで減らされるのを防ぐための記録
-//             let oldDuration = -1;
-//             let isFishingTask = this.schedule && this.schedule.length > 0 && this.schedule[0].type === 'fish';
-//             if (isFishingTask) {
-//                 oldDuration = this.schedule[0].duration;
-//             }
-
-//             // 元のAIの思考・移動処理をそのまま実行
-//             if (typeof this._originalAIUpdate_fishing_patched === 'function') {
-//                 this._originalAIUpdate_fishing_patched.call(this);
-//             }
-            
-//             if (isFishingTask && this.schedule.length > 0 && this.schedule[0].type === 'fish') {
-//                 let task = this.schedule[0];
-                
-//                 // ★修正：元の処理で duration が勝手に減らされていたら元に戻す（1フレーム1削られるのを防ぐ）
-//                 if (task.duration < oldDuration) {
-//                     task.duration = oldDuration;
-//                 }
-
-//                 // 自前でゲーム内時間に合わせた減算処理（約1秒に1減らす程度にゆっくりにする）
-//                 if (!this._fishTick) this._fishTick = 0;
-//                 this._fishTick++;
-//                 if (this._fishTick >= 60) { 
-//                     this._fishTick = 0;
-//                     task.duration--;
-//                     if (task.duration <= 0) {
-//                         this.message = "釣りはこれくらいにしておこう！";
-//                         this.messageTimer = 120;
-//                         if (typeof window.clearSchedule === 'function') window.clearSchedule();
-//                         return;
-//                     }
-//                 }
-
-//                 // 目的地に到着したかの判定
-//                 if (this.actionState === 'idle' || this.actionState === 'inside') {
-//                     this.actionState = 'fishing';
-//                     this.visualAction = 'fish';
-//                 }
-                
-//                 // 釣りの処理（ミニゲームのゲージ等）
-//                 if (this.actionState === 'fishing') {
-//                     if (typeof this.processFishingFrame === 'function') {
-//                         this.processFishingFrame();
-//                     }
-//                 }
-//             }
-//         };
-//     }
-// }
-
-// ==========================================
 // ★ 追加：大数値を K, M, G でフォーマットする関数
 // ==========================================
 window.formatLargeNumber = function(num) {
@@ -8081,9 +7870,6 @@ window.openHutStorageUI = function(hutAsset) {
     updateEl('storage-safe-gold', s.safe.level > 0 ? `${window.formatLargeNumber(s.safe.gold || 0)} G` : `<span style="color:#666; font-size:12px;">建築士に依頼して拡張しましょう</span>`);
 };
 
-// ==========================================
-// ★ 追加：音楽館とBGM制御システム
-// ==========================================
 window.openMusicHall = function() {
     const overlay = document.getElementById('musicHallOverlay');
     if (!overlay) return;
@@ -8111,22 +7897,33 @@ window.openMusicHall = function() {
         unlocked.forEach(type => {
             const btn = document.createElement('button');
             
-            // 表示名の振り分けロジック
+            // ==========================================
+            // ★修正：特殊なBGMに世界観に合ったカッコいい名前を付ける！
+            // ==========================================
             let trackName = "";
             const specialTracks = {
                 'defense_start': '襲撃の予感（防衛戦）',
-                // 今後追加される曲があればここに追記
+                'personality': '鏡の水面（性格診断）',
+                'inheritance': '黄金のまどろみ（魂の引継ぎ）',
+                'title_main': '観測者の島（メインテーマ）',
+                'title_song': 'AIテラリウム（ボーカル主題歌）'
             };
 
             if (specialTracks[type]) {
                 trackName = specialTracks[type];
+            } else if (type.startsWith('title_')) {
+                // タイトル画面で流れた「種族ごとのBGM」の場合
+                const baseSpecies = type.replace('title_', '');
+                const monsterName = (typeof monsterBookData !== 'undefined' && monsterBookData[baseSpecies]) ? monsterBookData[baseSpecies].name : '未知の種族';
+                trackName = `${monsterName} のテーマ（タイトルVer.）`;
             } else {
+                // 通常の育成中BGMの場合
                 const monsterName = (typeof monsterBookData !== 'undefined' && monsterBookData[type]) ? monsterBookData[type].name : '未知の楽曲';
                 trackName = `${monsterName} のテーマ`;
             }
             
             btn.className = 'quiz-btn';
-            btn.style.cssText = `background: #333; color: #fff; text-align: left; padding: 12px 15px; font-size: 15px; border: 1px solid #555; display: flex; justify-content: space-between; align-items: center; cursor: pointer;`;
+            btn.style.cssText = `background: #333; color: #fff; text-align: left; padding: 12px 15px; font-size: 15px; border: 1px solid #555; display: flex; justify-content: space-between; align-items: center; cursor: pointer; margin-bottom: 5px;`;
             btn.innerHTML = `<span>🎵 ${trackName}</span><span style="font-size:12px; color:#888;">再生 ▶</span>`;
             
             btn.onclick = () => {

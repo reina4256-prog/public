@@ -5,7 +5,7 @@ var isDragging = false;
 var selectedAsset = null;
 
 // ==========================================
-// ★ BGM管理マネージャー (タイトルランダム選曲対応版)
+// ★ BGM管理マネージャー (全曲コレクション対応版)
 // ==========================================
 window.audioManager = {
     currentAudio: null,
@@ -16,18 +16,16 @@ window.audioManager = {
     playTitleMusic: function(unlockedSpeciesArray = []) {
         if (this.isPlayingTitle) return;
         this.isPlayingTitle = true;
-
-        // 通常のBGMが鳴っていれば止める
         this.stopBGM();
 
-        // 1. 進化系も含めたリストから「11系統のベース種族」だけを抽出する
+        // ★修正：進化キャラをベース種族に変換し、重複のないリストを作る
         let baseUnlocked = new Set();
         const baseSpeciesList = ['robot', 'spirit', 'magician', 'stone', 'balloon', 'bird', 'beetle', 'seed', 'ghost', 'machine', 'dragon'];
         
         if (unlockedSpeciesArray && unlockedSpeciesArray.length > 0) {
             unlockedSpeciesArray.forEach(sp => {
                 for (let base of baseSpeciesList) {
-                    if (sp === base || sp.startsWith(base + '_')) {
+                    if (sp === base || (typeof sp === 'string' && sp.startsWith(base + '_'))) {
                         baseUnlocked.add(base);
                         break;
                     }
@@ -35,24 +33,18 @@ window.audioManager = {
             });
         }
 
-        // 2. 再生候補のリストを作成（最低でも main は入る）
         let candidates = ['main']; 
-        
-        // ベース種族を候補に追加（複数種類のロボット系がいても、'robot'は1回しか入らない）
-        baseUnlocked.forEach(base => {
-            candidates.push(base);
-        });
+        baseUnlocked.forEach(base => candidates.push(base));
 
-        // 3. 全11系統が揃っている場合は、歌入りバージョンを候補に追加！
         if (baseUnlocked.size >= 11) {
             candidates.push('song');
         }
 
-        // 4. 候補の中からランダムに1曲選ぶ
         let selectedTrack = candidates[Math.floor(Math.random() * candidates.length)];
-        let src = `./bgm_title_${selectedTrack}.mp3`;
         
-        // 5. 再生実行
+        let trackKey = 'title_' + selectedTrack; 
+        let src = `./bgm_${trackKey}.mp3`;
+        
         this.currentAudio = new Audio(src);
         this.currentAudio.loop = true; 
         this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
@@ -60,6 +52,14 @@ window.audioManager = {
         let playPromise = this.currentAudio.play();
         if (playPromise !== undefined) {
             playPromise.catch(e => console.log("[BGM] タイトル曲の自動再生待機中:", e));
+        }
+
+        if (typeof window.aiPet !== 'undefined') {
+            if (!window.aiPet.unlockedBGMs) window.aiPet.unlockedBGMs = [];
+            if (!window.aiPet.unlockedBGMs.includes(trackKey)) {
+                window.aiPet.unlockedBGMs.push(trackKey);
+                if (typeof window.saveGameData === 'function') window.saveGameData();
+            }
         }
     },
 
@@ -71,8 +71,20 @@ window.audioManager = {
         }
     },
 
-    // --- 以下、通常のインゲームBGM処理（既存のまま） ---
+    // --- 通常のインゲームBGM処理 ---
     playBGM: function(type) {
+        // ★修正：進化キャラ名をベース種族に変換する処理から、
+        // title_, personality, inheritance（引継ぎ）を除外してそのまま鳴らす
+        if (!type.startsWith('title_') && type !== 'personality' && type !== 'inheritance') {
+            const baseSpeciesList = ['robot', 'spirit', 'magician', 'stone', 'balloon', 'bird', 'beetle', 'seed', 'ghost', 'machine', 'dragon'];
+            for (let base of baseSpeciesList) {
+                if (type === base || (typeof type === 'string' && type.startsWith(base + '_'))) {
+                    type = base;
+                    break;
+                }
+            }
+        }
+
         if (this.currentAudio && this.currentBGMType === type) return; 
         if (this.currentAudio) { this.stopBGM(); }
         
@@ -91,8 +103,15 @@ window.audioManager = {
             });
         }
         
-        if (typeof aiPet !== 'undefined' && aiPet.unlockedBGMs && !aiPet.unlockedBGMs.includes(type)) {
-            aiPet.unlockedBGMs.push(type);
+        // ==========================================
+        // ★絶対仕様：鳴らした曲は、それがどんなBGMであれ「すべて」音楽館の履歴に登録する！
+        // ==========================================
+        if (typeof window.aiPet !== 'undefined') {
+            if (!window.aiPet.unlockedBGMs) window.aiPet.unlockedBGMs = [];
+            if (!window.aiPet.unlockedBGMs.includes(type)) {
+                window.aiPet.unlockedBGMs.push(type);
+                if (typeof window.saveGameData === 'function') window.saveGameData();
+            }
         }
     },
     
@@ -566,9 +585,12 @@ let determinedSkin = 'robot';
 window.isGamePaused = false; 
 
 window.startPersonalityTest = function() {
-    // ★追加：性格診断に入ったらタイトルBGMを止める
-    if (window.audioManager && window.audioManager.stopTitleMusic) {
-        window.audioManager.stopTitleMusic();
+    // ==========================================
+    // ★追加：タイトルBGMを止めて、性格診断BGMをループ再生！
+    // ==========================================
+    if (window.audioManager) {
+        if (window.audioManager.stopTitleMusic) window.audioManager.stopTitleMusic();
+        if (window.audioManager.playBGM) window.audioManager.playBGM('personality');
     }
 
     window.isGamePaused = true;
@@ -661,9 +683,15 @@ window.confirmInitialPet = function() {
     document.getElementById('resultOverlay').classList.remove('active');
     window.isGamePaused = true; 
     
+    if (window.audioManager && window.audioManager.stopBGM) {
+        window.audioManager.stopBGM();
+    }
+
     // ==========================================
-    // ★絶対防御シールド発動：名前入力UI以外をすべて透明にしてクリック不可にする
+    // ★究極修正1：これが「完全なニューゲーム」か「引継ぎ中」かを判定する！
     // ==========================================
+    const isNGPlus = !!window.pendingInheritanceData;
+
     document.body.classList.add('is-naming');
     if (!document.getElementById('naming-shield-css')) {
         const style = document.createElement('style');
@@ -677,8 +705,18 @@ window.confirmInitialPet = function() {
 
     if (window.aiPet) {
         window.aiPet.gold = 0;
-        window.aiPet.discoveredMonsters = [];
-        window.aiPet.unlockedBGMs = [];
+        window.aiPet.age = 0;
+
+        // ★究極修正2：「完全なニューゲーム」の時だけ歴史を白紙にする！
+        if (!isNGPlus) {
+            window.aiPet.discoveredMonsters = [];
+            window.aiPet.unlockedBGMs = [];
+            window.aiPet.generation = 1;
+        }
+        
+        window.aiPet.apprentice = {
+            learnedWords: [], rank: {}, attempts: {}, metMasters: [], retired: {}
+        };
     }
     
     if (typeof party !== 'undefined') window.party = [];
@@ -703,7 +741,6 @@ window.confirmInitialPet = function() {
         window.aiPet.visualAction = 'idle'; 
         if (typeof camera !== 'undefined') camera.target = window.aiPet; 
         
-        // ★AIが勝手にチュートリアルを始めないように思考をストップ
         window.isNamingPhase = true;
         const originalUpdate = window.aiPet.update;
         window.aiPet.update = function(dt) {
@@ -729,7 +766,11 @@ window.confirmInitialPet = function() {
     const els = ['canvas-wrapper', 'aiStatus', 'info-column', 'gameControls'];
     els.forEach(id => {
         const el = document.getElementById(id);
-        if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+        if (el) { 
+            el.style.display = ''; // ★究極修正3：隠れていたゲーム画面を確実に復元する
+            el.style.opacity = '0'; 
+            el.style.pointerEvents = 'none'; 
+        }
     });
     
     setTimeout(() => {
@@ -744,12 +785,11 @@ window.confirmInitialPet = function() {
         setTimeout(() => {
             if (typeof checkLoginBonus === 'function') checkLoginBonus();
             
-            // ★大修正：既にログイン済みなら、名前入力画面をスキップしてシールド解除！
-            if (typeof auth !== 'undefined' && auth.currentUser && localStorage.getItem('my_player_name')) {
+            // ★究極修正4：引継ぎ（NG+）なら絶対に名前入力をスキップする！
+            if (isNGPlus || localStorage.getItem('my_player_name')) {
                 document.body.classList.remove('is-naming');
                 window.isNamingPhase = false;
             } else {
-                // 未ログインの場合のみ名前入力画面を呼び出す
                 if (typeof openNameInputUI === 'function') {
                     openNameInputUI();
                 } else {

@@ -3333,33 +3333,43 @@ window.triggerReincarnation = function() {
 };
 
 window.openInheritanceShop = function() {
-    // ★追加：ショップが開いたら裏でAIが動かないように時間を止める！
     window.isGamePaused = true;
+    
+    if (window.audioManager) {
+        window.audioManager.stopBGM();
+        window.audioManager.playBGM('inheritance');
+    }
+    
+    // ★究極修正5：ゲーム画面を完全に非表示にして真っ黒にする
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    if (canvasWrapper) canvasWrapper.style.display = 'none';
+    const uiControls = document.getElementById('gameControls');
+    if (uiControls) uiControls.style.display = 'none';
     
     let shopUI = document.getElementById('inheritance-shop-ui');
     if (!shopUI) {
         shopUI = document.createElement('div');
         shopUI.id = 'inheritance-shop-ui';
-        shopUI.style.cssText = `position: fixed; top: 5%; left: 10%; width: 80%; height: 90%; background: rgba(20, 20, 20, 0.95); border: 4px solid #FFD700; border-radius: 12px; z-index: 30000; display: none; flex-direction: column; color: white; font-family: sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,0.8);`;
+        shopUI.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #050505; z-index: 30000; display: none; flex-direction: column; color: white; font-family: sans-serif;`;
         document.body.appendChild(shopUI);
     }
     
-    // 基本項目をリセット（★ここにも map: false を追加）
     inheritanceSelections = { stats: false, inventory: false, vocab: false, license: false, personality: false, map: false };
     currentInheritanceCosts = { ...BASE_INHERITANCE_COSTS };
     
-    // ★追加：レガシー（余生の成果）データをロードして動的に選択肢を追加
     let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
+    
+    // ★究極修正6：過去に発生した undefinedG のゴミデータをここで完全に浄化する！
+    legacy.books = legacy.books.filter(b => b && b.val !== undefined && b.val !== null && !isNaN(b.val));
+    legacy.monuments = legacy.monuments.filter(m => m && m.val !== undefined && m.val !== null && !isNaN(m.val));
+    localStorage.setItem('ai_legacy_data', JSON.stringify(legacy));
+
     if (legacy.disciple) {
         inheritanceSelections['disciple'] = false;
         currentInheritanceCosts['disciple'] = 1000;
     }
-    legacy.monuments.forEach(m => {
-        inheritanceSelections[m.id] = false; currentInheritanceCosts[m.id] = 500;
-    });
-    legacy.books.forEach(b => {
-        inheritanceSelections[b.id] = false; currentInheritanceCosts[b.id] = 400;
-    });
+    legacy.monuments.forEach(m => { inheritanceSelections[m.id] = false; currentInheritanceCosts[m.id] = 500; });
+    legacy.books.forEach(b => { inheritanceSelections[b.id] = false; currentInheritanceCosts[b.id] = 400; });
 
     window.inheritanceStatsPercent = 10; 
     window.renderInheritanceShop();
@@ -3516,7 +3526,6 @@ window.executeReincarnationFinal = function() {
     
     if (window.aiPet.gold + safeGold < totalCost) { alert("ゴールドが足りません！"); return; }
     
-    // 金庫からの自動補填決済
     if (window.aiPet.gold >= totalCost) {
         window.aiPet.gold -= totalCost;
     } else {
@@ -3526,6 +3535,13 @@ window.executeReincarnationFinal = function() {
     }
 
     const inheritedData = {};
+    
+    // ==========================================
+    // ★大修正：音楽館の履歴と「図鑑（これまでの姿）」は絶対に次世代へ引き継ぐ！
+    // ==========================================
+    inheritedData.unlockedBGMs = window.aiPet.unlockedBGMs ? [...window.aiPet.unlockedBGMs] : [];
+    inheritedData.discoveredMonsters = window.aiPet.discoveredMonsters ? [...window.aiPet.discoveredMonsters] : [];
+
     if (inheritanceSelections.stats) {
         let multiplier = window.inheritanceStatsPercent / 100;
         inheritedData.stats = {
@@ -3540,7 +3556,6 @@ window.executeReincarnationFinal = function() {
         inheritedData.resetMap = true;
     }
     
-    // ★ 倉庫消失回避の救済措置
     if (inheritanceSelections.inventory && !inheritanceSelections.map && hut) {
         let rescuedItems = [...hut.storage.warehouse.items, ...hut.storage.freezer.items];
         window.aiPet.inventory = window.aiPet.inventory.concat(rescuedItems);
@@ -3671,6 +3686,18 @@ window.executeReincarnation = function() {
 
 window.applyInheritedPet = function(skinKey, data) {
     window.applyInitialPet(skinKey); 
+    
+    // ★究極修正7：引継ぎBGMを止めて、新しい種族のBGMを鳴らす！
+    if (window.audioManager && window.audioManager.restoreMainBGM) {
+        window.audioManager.restoreMainBGM();
+    }
+
+    // ★究極修正8：隠していたゲーム画面を復元する
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    if (canvasWrapper) canvasWrapper.style.display = '';
+    const uiControls = document.getElementById('gameControls');
+    if (uiControls) uiControls.style.display = '';
+    
     window.isGamePaused = false; 
     if(typeof updateStatUI === 'function') updateStatUI();
     if(typeof updateCommandHUD === 'function') updateCommandHUD();
@@ -3683,50 +3710,29 @@ const _legacy_originalApplyInitialPet = typeof originalApplyInitialPet !== 'unde
 window.applyInitialPet = function(skinKey) {
     _legacy_originalApplyInitialPet(skinKey);
     
-    // ▼▼▼ 追加：元システムが設定し忘れた「美しさ」と「素早さ」の基本値(10)をここで確実にセットする！ ▼▼▼
     if (window.aiPet && window.aiPet.stats) {
-        if (window.aiPet.stats.beauty === undefined || isNaN(window.aiPet.stats.beauty) || window.aiPet.stats.beauty === 0) {
-            window.aiPet.stats.beauty = 10;
-        }
-        if (window.aiPet.stats.speed === undefined || isNaN(window.aiPet.stats.speed) || window.aiPet.stats.speed === 0) {
-            window.aiPet.stats.speed = 10;
-        }
+        if (window.aiPet.stats.beauty === undefined || isNaN(window.aiPet.stats.beauty) || window.aiPet.stats.beauty === 0) window.aiPet.stats.beauty = 10;
+        if (window.aiPet.stats.speed === undefined || isNaN(window.aiPet.stats.speed) || window.aiPet.stats.speed === 0) window.aiPet.stats.speed = 10;
     }
-    // ▲▲▲ 追加ここまで ▲▲▲
 
-    // ▼▼▼ 大修正：マップの再生成処理（引継ぎOFFの場合） ▼▼▼
     if (window.pendingInheritanceData && window.pendingInheritanceData.resetMap) {
-        
-        // 1. ローカルストレージ内の古いマップデータを確実に消去
         localStorage.removeItem('map_data_v6');
-        
-        // 2. ★超重要：letで宣言された assets を直接操作し「中身をそっくり入れ替える」！
         if (typeof assets !== 'undefined' && typeof generateNatureMap === 'function') {
-            // 今画面に出ている木や川などのオブジェクトをすべて消し去る
-            for (let key in assets) {
-                delete assets[key];
-            }
-            
-            // 新しいマップを作り、空っぽになった assets に詰め直す
+            for (let key in assets) { delete assets[key]; }
             let newMap = generateNatureMap();
-            for (let key in newMap) {
-                assets[key] = newMap[key];
-            }
+            for (let key in newMap) { assets[key] = newMap[key]; }
         }
     }
-    // ▲▲▲ 大修正ここまで ▲▲▲
 
     window.aiPet.legacyProgress = {}; 
-    window.aiPet.lifePath = null; // 余生ルートリセット
+    window.aiPet.lifePath = null; 
     window.aiPet.originalLifespan = null; 
     window.aiPet.isReincarnating = false;
     
-    // ★追加：引き継いだレガシーデータ（モニュメント・秘伝書）をAIに装備
     let activeLegacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[]}');
     window.aiPet.activeMonuments = activeLegacy.monuments;
     window.aiPet.activeBooks = activeLegacy.books;
     
-    // モニュメントをマップに出現させる
     activeLegacy.monuments.forEach(m => {
         if (typeof assets !== 'undefined') {
             assets[m.id] = { type: 'stone', name: '英雄のモニュメント', dx: m.x, dy: m.y, sw: 100, sh: 100, scale: 0.6 };
@@ -3736,17 +3742,25 @@ window.applyInitialPet = function(skinKey) {
     if (window.pendingInheritanceData) {
         const data = window.pendingInheritanceData;
         
-        // 弟子引継ぎによる上書き
+        // ==========================================
+        // ★究極修正9：初期化関数の中で、保護した図鑑と音楽を確実に上書き(統合)する！
+        // ==========================================
+        if (data.unlockedBGMs) window.aiPet.unlockedBGMs = data.unlockedBGMs;
+        if (data.discoveredMonsters) {
+            let currentList = window.aiPet.discoveredMonsters || [];
+            window.aiPet.discoveredMonsters = [...new Set([...data.discoveredMonsters, ...currentList])];
+        }
+
         if (data.discipleStats) {
             window.aiPet.stats.intel = data.discipleStats.intel;
             window.aiPet.stats.power = data.discipleStats.power;
             window.aiPet.stats.beauty = data.discipleStats.beauty;
-            if (data.discipleStats.speed) window.aiPet.stats.speed = data.discipleStats.speed; // ★追加
+            if (data.discipleStats.speed) window.aiPet.stats.speed = data.discipleStats.speed;
         } else if (data.stats) {
             window.aiPet.stats.intel += data.stats.intel;
             window.aiPet.stats.power += data.stats.power;
             window.aiPet.stats.beauty += data.stats.beauty;
-            if (data.stats.speed) window.aiPet.stats.speed += data.stats.speed; // ★追加
+            if (data.stats.speed) window.aiPet.stats.speed += data.stats.speed;
         }
         
         if (data.inventory) window.aiPet.inventory = data.inventory;
@@ -3790,7 +3804,6 @@ aiPet.processLifePathStart = function(task) {
 };
 
 aiPet.processLifePathFinish = function(task) {
-    // ★修正：大事業をやり遂げた証として、タスク完了時に年齢（寿命）を加算する！
     const ls = this.lifespan || 100;
     let ageRate = 0.1; 
     if (task.type === 'life_monument' || task.type === 'life_author') ageRate = 0.25;
@@ -3802,7 +3815,6 @@ aiPet.processLifePathFinish = function(task) {
     let maxStat = 'power'; let maxVal = this.stats.power;
     if (this.stats.intel > maxVal) { maxStat = 'intel'; maxVal = this.stats.intel; }
     if (this.stats.beauty > maxVal) { maxStat = 'beauty'; maxVal = this.stats.beauty; }
-    // ★追加: 素早さも比較対象に入れる
     if (this.stats.speed > maxVal) { maxStat = 'speed'; maxVal = this.stats.speed; }
 
     if (task.type === 'life_mentor') {
@@ -3815,7 +3827,7 @@ aiPet.processLifePathFinish = function(task) {
                 intel: Math.floor(this.stats.intel * intelFactor),
                 power: Math.floor(this.stats.power * intelFactor),
                 beauty: Math.floor(this.stats.beauty * intelFactor),
-                speed: Math.floor((this.stats.speed || 10) * intelFactor) // ★追加
+                speed: Math.floor((this.stats.speed || 10) * intelFactor)
             }
         };
         localStorage.setItem('ai_legacy_data', JSON.stringify(legacy));
@@ -3823,15 +3835,19 @@ aiPet.processLifePathFinish = function(task) {
     else if (task.type === 'life_monument') {
         this.legacyProgress = this.legacyProgress || {};
         this.legacyProgress['monument'] = (this.legacyProgress['monument'] || 0) + 25;
+        
         if (this.legacyProgress['monument'] >= 100) {
-            this.message = "モニュメント完成！"; this.messageTimer = 120;
-            let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
-            legacy.monuments.push({ id: 'mon_'+Date.now(), stat: maxStat, val: maxVal, x: this.x, y: this.y });
-            localStorage.setItem('ai_legacy_data', JSON.stringify(legacy));
-            
-            // ★追加：完成したら進捗を0に戻し、次の建造に向けてリセットする！
-            this.legacyProgress['monument'] = 0;
-            
+            // ★究極修正10：1度完成したらフラグを立てて、それ以上増殖させない！
+            if (!this.legacyProgress['monument_done']) {
+                this.message = "モニュメント完成！"; this.messageTimer = 120;
+                let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
+                legacy.monuments.push({ id: 'mon_'+Date.now(), stat: maxStat, val: maxVal, x: this.x, y: this.y });
+                localStorage.setItem('ai_legacy_data', JSON.stringify(legacy));
+                this.legacyProgress['monument_done'] = true;
+            } else {
+                this.message = "モニュメントは既に完成しているよ！"; this.messageTimer = 120;
+            }
+            this.legacyProgress['monument'] = 100; // 100でストップ
         } else {
             this.message = `モニュメント建造中... (${this.legacyProgress['monument']}%)`; this.messageTimer = 120;
         }
@@ -3840,7 +3856,6 @@ aiPet.processLifePathFinish = function(task) {
         let mult = 10 + ((this.generation || 1) * 10);
         if (this.visualAction === 'train') this.stats.power += 10 * mult;
         else if (this.visualAction === 'study') this.stats.intel += 10 * mult;
-        // ★追加: アニメーションがmove（ランニング等）の場合は素早さを爆上げする
         else if (this.visualAction === 'move') this.stats.speed += 10 * mult;
         else this.stats.power += 5 * mult; 
         this.message = `限界突破！(効果 ${mult}倍)`; this.messageTimer = 120;
@@ -3855,15 +3870,19 @@ aiPet.processLifePathFinish = function(task) {
     else if (task.type === 'life_author') {
         this.legacyProgress = this.legacyProgress || {};
         this.legacyProgress['author'] = (this.legacyProgress['author'] || 0) + 25;
+        
         if (this.legacyProgress['author'] >= 100) {
-            this.message = "秘伝書完成！"; this.messageTimer = 120;
-            let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
-            legacy.books.push({ id: 'book_'+Date.now(), stat: maxStat, val: Math.floor(maxVal) });
-            localStorage.setItem('ai_legacy_data', JSON.stringify(legacy));
-            
-            // ★追加：完成したら進捗を0に戻し、次の執筆に向けてリセットする！
-            this.legacyProgress['author'] = 0;
-            
+            // ★究極修正11：1度完成したらフラグを立てて、それ以上増殖させない！
+            if (!this.legacyProgress['author_done']) {
+                this.message = "秘伝書完成！"; this.messageTimer = 120;
+                let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
+                legacy.books.push({ id: 'book_'+Date.now(), stat: maxStat, val: Math.floor(maxVal) });
+                localStorage.setItem('ai_legacy_data', JSON.stringify(legacy));
+                this.legacyProgress['author_done'] = true;
+            } else {
+                this.message = "完成した秘伝書を読み返している..."; this.messageTimer = 120;
+            }
+            this.legacyProgress['author'] = 100; // 100でストップ
         } else {
             this.message = `執筆中... (${this.legacyProgress['author']}%)`; this.messageTimer = 120;
         }
