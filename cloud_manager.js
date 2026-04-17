@@ -133,6 +133,29 @@ onAuthStateChanged(auth, (user) => {
 // 🏷️ プレイヤー名のチェックと登録機能
 // ==========================================
 
+// ★新規追加：ゲームに馴染むカッコいいアラートUI
+window.showCustomAlert = function(title, message, callback) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.7); z-index:999999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(3px);';
+    
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#222; border:2px solid #FF9800; border-radius:8px; padding:25px; width:350px; text-align:center; color:#fff; box-shadow:0 10px 30px rgba(0,0,0,0.8); font-family:sans-serif;';
+    
+    box.innerHTML = `
+        <div style="font-size:20px; font-weight:bold; color:#FF9800; margin-bottom:15px;">${title}</div>
+        <div style="font-size:14px; line-height:1.6; margin-bottom:25px; color:#ddd;">${message.replace(/\n/g, '<br>')}</div>
+        <button id="custom-alert-btn" style="background:#FF9800; color:#000; border:none; padding:12px 30px; border-radius:4px; font-weight:bold; cursor:pointer; font-size:16px; transition:0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">OK</button>
+    `;
+    
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    
+    document.getElementById('custom-alert-btn').onclick = () => {
+        document.body.removeChild(overlay);
+        if (callback) callback();
+    };
+};
+
 // ログイン直後に、名前が登録されているかチェックする
 window.checkAndPromptPlayerName = async function(user) {
     try {
@@ -140,23 +163,34 @@ window.checkAndPromptPlayerName = async function(user) {
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists() && docSnap.data().playerName) {
-            // 既に名前があればローカルに保存して終了
             localStorage.setItem('my_player_name', docSnap.data().playerName);
             console.log("✅ プレイヤー名確認完了:", docSnap.data().playerName);
         } else {
-            // まだ名前がない場合は、登録画面を強制表示！
-            document.getElementById('playerNameOverlay').classList.add('active');
+            // ★大修正：クラウドに名前がない（新規アカウント作成時）のスマートな連携！
+            const localName = localStorage.getItem('my_player_name');
+            
+            if (localName && localName !== "名無し") {
+                const q = query(collection(db, "player_profiles"), where("playerName", "==", localName));
+                const querySnapshot = await getDocs(q);
+                
+                if (!querySnapshot.empty) {
+                    window.showCustomAlert("⚠️ 名前の重複", `オフラインで使用していた名前「${localName}」は、既にオンライン上で他のプレイヤーが使用しています。\nお手数ですが、別の名前を登録してください。`);
+                    document.getElementById('playerNameOverlay').classList.add('active');
+                } else {
+                    await setDoc(docRef, { playerName: localName, createdAt: Date.now() });
+                    window.showCustomAlert("☁️ クラウド連携完了", `現在のプレイヤー名「${localName}」をクラウドに同期しました！\nこれでオンライン機能が利用できます。`);
+                }
+            } else {
+                document.getElementById('playerNameOverlay').classList.add('active');
+            }
         }
     } catch (error) {
         console.error("名前チェックエラー:", error);
     }
 };
 
-// 登録ボタンを押した時の処理（重複チェック！）
+// 登録ボタンを押した時の処理
 window.registerPlayerName = async function() {
-    const user = auth.currentUser;
-    if (!user) return;
-
     const inputName = document.getElementById('inputPlayerName').value.trim();
     const errorMsg = document.getElementById('playerNameErrorMessage');
 
@@ -165,31 +199,51 @@ window.registerPlayerName = async function() {
         return;
     }
 
+    const user = auth.currentUser;
+    if (!user) {
+        // ★修正：ゲスト状態での登録。文言を分かりやすく変更！
+        localStorage.setItem('my_player_name', inputName);
+        document.getElementById('playerNameOverlay').classList.remove('active');
+        
+        document.body.classList.remove('is-naming');
+        window.isNamingPhase = false; 
+        
+        window.showCustomAlert(
+            "📝 登録完了", 
+            `プレイヤー名を「${inputName}」に決定しました！\n\n※オンライン機能（酒場や闘技場）で遊ぶ場合は、画面下の「ログイン」ボタンからアカウントを作成してください。`, 
+            () => {
+                const chatInput = document.getElementById('chatInput');
+                if (chatInput) chatInput.focus();
+            }
+        );
+        return;
+    }
+
     try {
         errorMsg.textContent = "名前が使えるか確認中...";
         errorMsg.style.color = "#aaa";
 
-        // Firestoreの「player_profiles」全体から、同じ名前の人がいないか検索する！
         const q = query(collection(db, "player_profiles"), where("playerName", "==", inputName));
         const querySnapshot = await getDocs(q);
 
         if (!querySnapshot.empty) {
-            // 既に同じ名前の人が見つかった場合
             errorMsg.textContent = "❌ その名前は既に他のプレイヤーが使用しています。";
             errorMsg.style.color = "#F44336";
             return;
         }
 
-        // 誰も使っていなければ、自分のUIDの場所に名前を保存する
-        await setDoc(doc(db, "player_profiles", user.uid), {
-            playerName: inputName,
-            createdAt: Date.now()
-        });
+        await setDoc(doc(db, "player_profiles", user.uid), { playerName: inputName, createdAt: Date.now() });
 
-        // ローカルにも保存して、画面を閉じる
         localStorage.setItem('my_player_name', inputName);
         document.getElementById('playerNameOverlay').classList.remove('active');
-        alert(`プレイヤー名を「${inputName}」に決定しました！`);
+        
+        document.body.classList.remove('is-naming');
+        window.isNamingPhase = false; 
+        
+        window.showCustomAlert("📝 登録完了", `プレイヤー名を「${inputName}」に決定し、クラウドに保存しました！`, () => {
+            const chatInput = document.getElementById('chatInput');
+            if (chatInput) chatInput.focus();
+        });
 
     } catch (error) {
         console.error("名前登録エラー:", error);
@@ -1174,45 +1228,53 @@ window.fetchDefenseRanking = async function(mode = 'normal', forceRefresh = fals
 // ==========================================
 // 🚀 Steam IDを利用した完全自動ログイン処理
 // ==========================================
+window.silentSignOutForNewGame = async function() {
+    window.skipAutoLogin = true; 
+    try { await signOut(auth); } catch (e) {}
+    localStorage.removeItem('my_player_name');
+    localStorage.removeItem('my_player_id');
+};
+
 window.performSteamAutoLogin = async function() {
-    if (typeof require === 'undefined') return false; // ブラウザ版の場合はスキップ
+    if (window.skipAutoLogin || localStorage.getItem('force_first_play') === 'true') return false;
+
+    if (typeof require === 'undefined') return false; 
     const { ipcRenderer } = require('electron');
     if (!ipcRenderer) return false;
 
     try {
-        // Electron側からSteam情報を取得
         const steamInfo = await ipcRenderer.invoke('get-steam-info');
         if (!steamInfo) {
-            console.log("Steam情報が取得できませんでした。オフラインモードで続行します。");
+            console.log("Steam情報が取得できませんでした。");
+            return false;
+        }
+
+        // ★重要：数秒かかる通信から戻ってきた後、再びフラグをチェックする！
+        if (window.skipAutoLogin || localStorage.getItem('force_first_play') === 'true') {
+            console.log("🚫 ニューゲームが選択されたため、遅延していたSteamログインをキャンセルしました。");
             return false;
         }
 
         const steamId = steamInfo.steamId;
         const steamName = steamInfo.name;
-
-        // Steam IDから擬似的なメールアドレスとパスワードを生成
         const email = `steam_${steamId}@aipetgame.local`;
-        const password = `SteamAuto_${steamId}_SecretKey`; // 簡易的なパスワード
+        const password = `SteamAuto_${steamId}_SecretKey`; 
 
         try {
-            // ログイン試行
             await signInWithEmailAndPassword(auth, email, password);
             console.log("✅ Steam連携ログイン成功:", steamName);
-            localStorage.setItem('my_player_name', steamName); // ローカルにも名前を保存
+            localStorage.setItem('my_player_name', steamName); 
             return true;
         } catch (err) {
             if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-                // アカウントが存在しない場合は新規作成してログイン
                 await createUserWithEmailAndPassword(auth, email, password);
                 console.log("✨ Steam連携アカウント新規作成成功:", steamName);
                 localStorage.setItem('my_player_name', steamName);
                 return true;
             }
-            console.error("Steam連携ログインエラー:", err);
             return false;
         }
     } catch (e) {
-        console.error("Steam連携 IPC通信エラー:", e);
         return false;
     }
 };
@@ -1221,3 +1283,245 @@ window.performSteamAutoLogin = async function() {
 setTimeout(() => {
     window.performSteamAutoLogin();
 }, 1000); // 起動直後の安全のために1秒後に実行
+
+// ==========================================
+// 🛡️ [究極版] ゲーム開始フロー＆アカウント統合制御システム
+// ==========================================
+
+// 汎用：リッチな選択ダイアログ生成エンジン
+window.showRichChoiceDialog = function(title, description, buttons) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:999999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px);';
+    
+    const box = document.createElement('div');
+    box.style.cssText = 'background:#1a1a1a; border:2px solid #00BCD4; border-radius:12px; padding:30px; width:450px; text-align:center; color:#fff; box-shadow:0 15px 50px rgba(0,0,0,0.9); font-family:sans-serif;';
+    
+    let html = `
+        <div style="font-size:24px; font-weight:bold; color:#00BCD4; margin-bottom:15px; text-shadow:0 2px 4px rgba(0,0,0,0.5);">${title}</div>
+        <div style="font-size:14px; line-height:1.6; margin-bottom:30px; color:#ccc;">${description.replace(/\n/g, '<br>')}</div>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+    `;
+    
+    buttons.forEach((btn, index) => {
+        const bg = btn.color || '#333';
+        const textCol = btn.textColor || '#fff';
+        const border = btn.border || 'none';
+        html += `<button id="rich-btn-${index}" style="background:${bg}; color:${textCol}; border:${border}; padding:14px 20px; border-radius:6px; font-weight:bold; cursor:pointer; font-size:16px; transition:0.2s;" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'">${btn.text}</button>`;
+    });
+    
+    html += `</div>`;
+    box.innerHTML = html;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+    
+    buttons.forEach((btn, index) => {
+        document.getElementById(`rich-btn-${index}`).onclick = () => {
+            if (!btn.keepOpen) document.body.removeChild(overlay);
+            if (btn.action) btn.action();
+        };
+    });
+};
+
+// 1. 【新規プレイ】「はじめから」選択時のログインフロー
+window.showNewGameLoginChoice = function() {
+    const hasElectron = (typeof require !== 'undefined');
+    
+    let buttons = [];
+    if (hasElectron) {
+        buttons.push({ text: '🎮 Steamアカウントで遊ぶ（推奨）', color: '#1b2838', border: '1px solid #66c0f4', action: () => {
+            window.performSteamAutoLogin().then((success) => {
+                if (success) {
+                    window.showCustomAlert("連携完了", "Steamアカウントでログインしました！", () => window.executeNewGameInitialization(false));
+                } else {
+                    window.showCustomAlert("エラー", "Steam連携に失敗しました。\nオフラインまたはメールで開始してください。", window.showNewGameLoginChoice);
+                }
+            });
+        }});
+    }
+    
+    buttons.push({ text: '✉️ メール・パスワードで登録して遊ぶ', color: '#2196F3', action: () => window.showEmailRegistrationUI(true) });
+    buttons.push({ text: '📴 ログインせずに遊ぶ（オフライン）', color: '#444', action: () => {
+        window.showCustomAlert("確認", "オフラインで開始します。\n※オンライン機能（闘技場など）で遊ぶ場合は、あとから設定メニューでアカウントを作成できます。", () => window.executeNewGameInitialization(true));
+    }});
+    buttons.push({ text: '戻る', color: 'transparent', textColor: '#888', action: () => {} });
+
+    window.showRichChoiceDialog("✨ 新しい冒険の準備", "オンライン機能（酒場や闘技場）を利用するために、\nアカウントの登録をおすすめします。", buttons);
+};
+
+// 2. 【既存プレイ】「つづきから」選択時（未ログイン者）のフロー
+window.showContinueLoginChoice = function() {
+    let buttons = [
+        { text: '✉️ ログイン・登録して遊ぶ', color: '#4CAF50', action: () => window.showEmailRegistrationUI(false) },
+        { text: '📴 そのまま（オフライン）で遊ぶ', color: '#444', action: () => {
+            window.skipAutoLogin = true;
+            window.startActualGame(false);
+        }},
+        { text: '戻る', color: 'transparent', textColor: '#888', action: () => {} }
+    ];
+    window.showRichChoiceDialog("📡 オンライン接続", "現在オフライン（ゲスト）状態です。\nクラウド同期やオンライン機能を利用しますか？", buttons);
+};
+
+// 3. 【実際の初期化処理】（フロー完了後に呼ばれる）
+window.executeNewGameInitialization = async function(isOffline) {
+    if (isOffline) {
+        window.skipAutoLogin = true;
+        try { await signOut(auth); } catch(e){}
+        localStorage.removeItem('my_player_name');
+        localStorage.removeItem('my_player_id');
+    }
+    
+    // 古いデータの破壊
+    const safeKeys = ['bgm_volume', 'se_volume'];
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+        let k = localStorage.key(i);
+        if (!safeKeys.includes(k)) localStorage.removeItem(k);
+    }
+    localStorage.setItem('force_first_play', 'true');
+
+    if (typeof assets !== 'undefined') {
+        for (let k in assets) delete assets[k];
+    }
+    if (window.TCG) window.TCG.myCollection = [];
+    
+    // システムの準備が整ったので、性格診断（ゲーム本編）へ！
+    window.startActualGame(true);
+};
+
+// 4. 【データ競合解決】既存アカウントにログインした際の選択
+window.handleDataConflict = function(cloudData) {
+    let buttons = [
+        { text: '☁️ クラウドのデータで再開（ロード）', color: '#00BCD4', action: () => {
+            for (const key in cloudData) { localStorage.setItem(key, cloudData[key]); }
+            localStorage.setItem('trigger_fade_in', 'true');
+            window.showCustomAlert("復元完了", "クラウドのデータを復元しました。\nゲームを再起動します。", () => window.location.reload());
+        }},
+        { text: '💾 現在のデータで上書き（セーブ）', color: '#FF9800', action: () => {
+            window.backupSaveDataToCloud();
+            window.startActualGame(false);
+        }}
+    ];
+    window.showRichChoiceDialog("⚠️ データの競合を検知", "このアカウントには既にクラウドセーブが存在します。\nどちらのデータを使用しますか？", buttons);
+};
+
+// 5. 【専用UI】メール・パスワード登録・ログイン画面
+window.showEmailRegistrationUI = function(isNewGame) {
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:999999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px);';
+    
+    overlay.innerHTML = `
+        <div style="background:#222; border:2px solid #2196F3; border-radius:12px; padding:30px; width:400px; color:#fff; font-family:sans-serif; box-shadow:0 15px 50px rgba(33,150,243,0.3);">
+            <div style="font-size:22px; font-weight:bold; color:#2196F3; margin-bottom:10px; text-align:center;">アカウント設定</div>
+            <div style="font-size:12px; color:#FF9800; margin-bottom:20px; background:rgba(255,152,0,0.1); padding:10px; border-radius:6px; border:1px solid #FF9800; line-height:1.5;">
+                ※架空のメールアドレスも使用可能ですが、パスワードを忘れた場合の復旧（再発行）は二度とできなくなります。<br>自己責任でご利用ください。
+            </div>
+            
+            <div style="margin-bottom:15px;">
+                <label style="font-size:13px; color:#aaa; display:block; margin-bottom:5px;">メールアドレス</label>
+                <input type="email" id="temp-email" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #444; border-radius:4px; box-sizing:border-box;">
+            </div>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px; color:#aaa; display:block; margin-bottom:5px;">パスワード (6文字以上)</label>
+                <input type="password" id="temp-pass" style="width:100%; padding:10px; background:#111; color:#fff; border:1px solid #444; border-radius:4px; box-sizing:border-box;">
+            </div>
+            
+            <div id="temp-err" style="color:#F44336; font-size:13px; margin-bottom:15px; text-align:center; min-height:15px;"></div>
+            
+            <div style="display:flex; gap:10px;">
+                <button id="temp-btn-submit" style="flex:1; background:#2196F3; color:#fff; border:none; padding:12px; border-radius:6px; font-weight:bold; cursor:pointer;">ログイン / 新規登録</button>
+                <button id="temp-btn-cancel" style="padding:12px 20px; background:#444; color:#fff; border:none; border-radius:6px; cursor:pointer;">戻る</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+    
+    document.getElementById('temp-btn-cancel').onclick = () => document.body.removeChild(overlay);
+    
+    document.getElementById('temp-btn-submit').onclick = async () => {
+        const email = document.getElementById('temp-email').value;
+        const pass = document.getElementById('temp-pass').value;
+        const err = document.getElementById('temp-err');
+        
+        if (!email || pass.length < 6) { err.textContent = "正しい情報を入力してください"; return; }
+        
+        err.style.color = "#aaa";
+        err.textContent = "通信中...";
+        
+        try {
+            // ログイン試行
+            await signInWithEmailAndPassword(auth, email, pass);
+            document.body.removeChild(overlay);
+            
+            if (isNewGame) {
+                window.showCustomAlert("エラー", "そのアカウントは既に存在します。\n既存のデータで遊ぶ場合はタイトル画面の「つづきから」を選んでください。", () => {
+                    signOut(auth); // すぐにログアウトさせて弾く
+                });
+            } else {
+                // つづきから（既存プレイ）でのログイン成功時はクラウドデータの有無をチェック
+                const user = auth.currentUser;
+                const docRef = doc(db, "user_save_data", user.uid);
+                const docSnap = await getDoc(docRef);
+                
+                if (docSnap.exists() && docSnap.data().saveData) {
+                    window.handleDataConflict(docSnap.data().saveData);
+                } else {
+                    window.showCustomAlert("ログイン完了", "ログインしました。\n現在のデータをクラウドに保存します。", () => {
+                        window.backupSaveDataToCloud();
+                        window.startActualGame(false);
+                    });
+                }
+            }
+        } catch (error) {
+            // ログイン失敗＝アカウントが存在しない場合、新規作成を試みる
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
+                try {
+                    await createUserWithEmailAndPassword(auth, email, pass);
+                    document.body.removeChild(overlay);
+                    
+                    if (isNewGame) {
+                        window.showCustomAlert("登録完了", "新規アカウントを作成しました。\n冒険をはじめます！", () => window.executeNewGameInitialization(false));
+                    } else {
+                        window.showCustomAlert("登録完了", "アカウントを作成しました。\n現在のデータをクラウドに保存します。", () => {
+                            window.backupSaveDataToCloud();
+                            window.startActualGame(false);
+                        });
+                    }
+                } catch (createErr) {
+                    err.style.color = "#F44336";
+                    err.textContent = "登録エラー: " + createErr.message;
+                }
+            } else {
+                err.style.color = "#F44336";
+                err.textContent = "パスワードが違うか、ロックされています。";
+            }
+        }
+    };
+};
+
+// 6. 【ソフトゲート】オフライン時のオンライン機能へのアクセス制御
+window.checkOnlineFeatureAccess = function() {
+    if (auth && auth.currentUser) return true; // ログイン済みなら通す
+    
+    window.showRichChoiceDialog(
+        "🔐 オンライン機能",
+        "この機能（闘技場・ランキング・フレンド等）で遊ぶには、\nアカウント登録（ログイン）が必要です。",
+        [
+            { text: '今すぐ登録・ログインする', color: '#2196F3', action: () => window.showEmailRegistrationUI(false) },
+            { text: '閉じる', color: '#444', action: () => {} }
+        ]
+    );
+    return false;
+};
+
+// 各オンラインUIを開く既存の関数を上書きして、ソフトゲートをかませる
+const _legacy_openArenaReception = typeof window.openArenaReception === 'function' ? window.openArenaReception : null;
+if (_legacy_openArenaReception) {
+    window.openArenaReception = function() {
+        if (window.checkOnlineFeatureAccess()) _legacy_openArenaReception();
+    };
+}
+const _legacy_renderDungeonRankingList = typeof window.renderDungeonRankingList === 'function' ? window.renderDungeonRankingList : null;
+if (_legacy_renderDungeonRankingList) {
+    window.renderDungeonRankingList = function(mapType) {
+        if (window.checkOnlineFeatureAccess()) _legacy_renderDungeonRankingList(mapType);
+    };
+}

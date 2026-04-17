@@ -9,7 +9,177 @@ if (typeof camera === 'undefined') {
 
 function render() {
     if (!ctx || imagesLoaded < totalImages) return;
+
+    // ==========================================
+    // 🛠️ 1. タイトル画面の調整ツール描画処理（Shift+Dモード用）
+    // ==========================================
+    if (typeof currentMode !== 'undefined' && currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
+        if (window.bgTitleImg && window.bgTitleImg.complete) {
+            ctx.drawImage(window.bgTitleImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        if (window.TITLE_SCREEN_DATA) {
+            let keys = Object.keys(window.TITLE_SCREEN_DATA);
+            // Z軸で奥から手前へソート
+            keys.sort((a, b) => (window.TITLE_SCREEN_DATA[a].z || 0) - (window.TITLE_SCREEN_DATA[b].z || 0));
+
+            for (let k of keys) {
+                let chara = window.TITLE_SCREEN_DATA[k];
+                if (!chara.imgObj || !chara.imgObj.src) { chara.imgObj = new Image(); chara.imgObj.src = chara.img; }
+                
+                if (chara.imgObj.complete) {
+                    ctx.save();
+                    ctx.translate(chara.x || 640, chara.y || 360);
+                    ctx.scale(chara.scale || 1, chara.scale || 1);
+                    if (chara.flip) ctx.scale(-1, 1); // 左右反転
+                    
+                    ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
+                                  -(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
+                    
+                    if (window.selectedTitleCharKey === k) {
+                        ctx.strokeStyle = 'lime'; ctx.lineWidth = 2 / (chara.scale || 1);
+                        ctx.strokeRect(-(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
+                        ctx.fillStyle = 'red'; ctx.fillRect(-2, -2, 4, 4);
+                    }
+                    ctx.restore();
+                }
+            }
+        }
+        return; 
+    }
     
+    // ==========================================
+    // 🎮 2. 本番のタイトル画面の描画処理
+    // ==========================================
+    if (currentMode === 'title') {
+        if (window.bgTitleImg && window.bgTitleImg.complete) {
+            ctx.drawImage(window.bgTitleImg, 0, 0, canvas.width, canvas.height);
+        } else {
+            ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+        
+        // ★修正：セーブデータが存在するか確認（ニューゲーム時は誰もいない風景にする）
+        let hasSaveData = !!localStorage.getItem('ai_pet_data_v1');
+        
+        if (window.TITLE_SCREEN_DATA && hasSaveData) {
+            let keys = Object.keys(window.TITLE_SCREEN_DATA);
+            keys.sort((a, b) => (window.TITLE_SCREEN_DATA[a].z || 0) - (window.TITLE_SCREEN_DATA[b].z || 0));
+
+            // セーブデータ（JSON文字列）を取得（図鑑等の変数名が不明なため、最も確実な文字列一致判定を使用）
+            let rawSaveData = localStorage.getItem('ai_pet_data_v1') || "";
+
+            for (let k of keys) {
+                // ★進行度チェック：セーブデータの中に、その種族(k)に関連するデータが1つでも存在するか？
+                // (例: 'robot' や 'robot_fire' 等の文字列がセーブデータ内にあれば解放済みとみなす)
+                let isUnlocked = rawSaveData.includes(`"${k}"`) || rawSaveData.includes(`"${k}_`);
+                
+                // 解放されていなければ、このキャラクターの描画をスキップして次へ
+                if (!isUnlocked) continue; 
+                
+                let chara = window.TITLE_SCREEN_DATA[k];
+                if (!chara.imgObj || !chara.imgObj.src) { chara.imgObj = new Image(); chara.imgObj.src = chara.img; }
+                if (chara.imgObj.complete) {
+                    ctx.save();
+                    ctx.translate(chara.x || 640, chara.y || 360);
+                    ctx.scale(chara.scale || 1, chara.scale || 1);
+                    if (chara.flip) ctx.scale(-1, 1); 
+                    ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
+                                  -(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
+                    ctx.restore();
+                }
+            }
+        }
+
+        // ==========================================
+        // ★絶対表示させる鉄壁のテキスト描画★
+        // ==========================================
+        ctx.save();
+        ctx.globalAlpha = 1.0; 
+        ctx.textAlign = 'right'; 
+        ctx.textBaseline = 'middle';
+        ctx.lineJoin = 'round'; 
+
+        const TEXT_X = canvas.width * 0.95;   
+        const TITLE_Y = canvas.height * 0.25; 
+        const SUB_Y = canvas.height * 0.35;   
+        const MENU1_Y = canvas.height * 0.75; 
+        const MENU2_Y = canvas.height * 0.85; 
+
+        // 1. タイトルロゴ
+        ctx.font = 'bold 80px sans-serif'; 
+        ctx.fillStyle = '#ffffff';
+        ctx.strokeStyle = '#000000'; 
+        ctx.lineWidth = 8;
+        ctx.strokeText('AIテラリウム', TEXT_X, TITLE_Y); 
+        ctx.fillText('AIテラリウム', TEXT_X, TITLE_Y);
+
+        ctx.font = 'italic 30px sans-serif';
+        ctx.lineWidth = 5;
+        ctx.strokeText('- 観測者の島 -', TEXT_X, SUB_Y);
+        ctx.fillText('- 観測者の島 -', TEXT_X, SUB_Y);
+
+        // 2. メニュー描画
+        let pulse = (Math.sin(Date.now() / 300) + 1) / 2;
+        let alpha = 0.6 + (pulse * 0.4);
+        ctx.font = 'bold 36px sans-serif';
+        ctx.lineWidth = 6;
+
+        let hoverNew = (window.titleMenuHover === 1);
+        ctx.fillStyle = hoverNew ? `rgba(255, 215, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`;
+        ctx.strokeStyle = hoverNew ? '#553300' : '#000000';
+        ctx.strokeText('はじめから', TEXT_X, MENU1_Y);
+        ctx.fillText('はじめから', TEXT_X, MENU1_Y);
+
+        let hoverCont = (window.titleMenuHover === 2);
+        // セーブがない時は「つづきから」をグレーアウト
+        if (!hasSaveData) { ctx.fillStyle = 'rgba(100, 100, 100, 0.5)'; ctx.strokeStyle = 'rgba(0,0,0,0.5)'; }
+        else { ctx.fillStyle = hoverCont ? `rgba(255, 215, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`; ctx.strokeStyle = hoverCont ? '#553300' : '#000000'; }
+        ctx.strokeText('つづきから', TEXT_X, MENU2_Y);
+        ctx.fillText('つづきから', TEXT_X, MENU2_Y);
+
+        // ==========================================
+        // ★ リッチな確認ダイアログ（はじめから押下時）
+        // ==========================================
+        if (window.titleConfirmMode) {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.85)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            ctx.textAlign = 'center';
+            ctx.fillStyle = '#fff';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 4;
+            ctx.font = 'bold 32px sans-serif';
+            ctx.strokeText('現在のセーブデータは失われます。', cx, cy - 40);
+            ctx.fillText('現在のセーブデータは失われます。', cx, cy - 40);
+            ctx.strokeText('本当に最初から始めますか？', cx, cy);
+            ctx.fillText('本当に最初から始めますか？', cx, cy);
+
+            ctx.font = 'bold 28px sans-serif';
+            
+            // はい ボタン
+            let hYes = (window.titleMenuHover === 3);
+            ctx.fillStyle = hYes ? '#FF5252' : '#aa0000';
+            ctx.fillRect(cx - 160, cy + 50, 140, 50);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('はい', cx - 90, cy + 75);
+
+            // いいえ ボタン
+            let hNo = (window.titleMenuHover === 4);
+            ctx.fillStyle = hNo ? '#4CAF50' : '#226622';
+            ctx.fillRect(cx + 20, cy + 50, 140, 50);
+            ctx.fillStyle = '#fff';
+            ctx.fillText('いいえ', cx + 90, cy + 75);
+        }
+
+        ctx.restore();
+        return; 
+    }
+
     let isDefense = (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isActive);
     let isEmergency = (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isEmergency);
 

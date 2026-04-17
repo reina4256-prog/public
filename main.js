@@ -109,27 +109,124 @@ function startGameSequence() {
     gameStarted = true;
     createPalette(); 
 
+    // ★修正：起動時は必ずタイトル画面モードにする
+    switchMode('title'); 
+    
+    // キャンバス自体は表示する
+    const canvasWrapper = document.getElementById('canvas-wrapper');
+    if (canvasWrapper) { canvasWrapper.style.opacity = '1'; canvasWrapper.style.pointerEvents = 'auto'; }
+
+    requestAnimationFrame(render);
+}
+
+window.startActualGame = function(isNewGameMenuClicked) {
+    if (isNewGameMenuClicked) {
+        localStorage.setItem('force_first_play', 'true');
+    }
+
+    // ==========================================
+    // ★大元凶の解決：ダンジョン・パーティデータの残留による「アップデート権の強奪」を防止！
+    // ==========================================
+    if (typeof party !== 'undefined') window.party = [];
+
+    // ==========================================
+    // 1. 本物の保護 ＆ 偽物の完全消去
+    // ==========================================
+    if (typeof assets !== 'undefined') {
+        const petTypes = ['robot', 'spirit', 'magician', 'stone', 'balloon', 'bird', 'beetle', 'seed', 'ghost', 'machine', 'dragon'];
+        for (let k in assets) {
+            // 本物のAIペットは絶対に消さない（シールド）
+            if (window.aiPet && k === window.aiPet.id) continue;
+            
+            let t = assets[k].type || '';
+            if (petTypes.includes(t) || k.includes('dummy') || k.includes('insurance') || k.includes('robot') || t.includes('insurance') || t.includes('dummy')) {
+                delete assets[k];
+            }
+        }
+        // エンジン（メインループ）に本物を確実に接続
+        if (window.aiPet && window.aiPet.id) {
+            assets[window.aiPet.id] = window.aiPet;
+        }
+    }
+
+    // ==========================================
+    // 2. 画像のロード ＆ 脳の強制再起動
+    // ==========================================
+    if (window.aiPet) {
+        let trueSkin = null;
+
+        try {
+            let saveData = localStorage.getItem('ai_pet_data_v1') || localStorage.getItem('ai_pet_data');
+            if (saveData) {
+                let parsed = JSON.parse(saveData);
+                trueSkin = parsed.currentSkin || parsed.type || parsed.baseType;
+            }
+        } catch(e) {}
+        
+        trueSkin = trueSkin || window.aiPet.currentSkin || window.aiPet.type || 'robot';
+
+        window.aiPet.currentSkin = trueSkin;
+        window.aiPet.type = trueSkin;
+
+        window.aiPet.actionState = 'idle';
+        window.aiPet.visualAction = 'idle';
+        window.aiPet.schedule = []; 
+        window.aiPet.pathQueue = []; // 念のため移動経路も完全に消去
+        window.aiPet.frameIndex = 0;
+        
+        if (!window.aiPet.sw) window.aiPet.sw = 50;
+        if (!window.aiPet.sh) window.aiPet.sh = 50;
+        if (!window.images) window.images = {};
+
+        let baseImg = trueSkin;
+        if (typeof aiConfigs !== 'undefined' && aiConfigs[trueSkin] && aiConfigs[trueSkin].img) {
+            baseImg = aiConfigs[trueSkin].img;
+        }
+        if (!window.images[baseImg]) {
+            window.images[baseImg] = new Image();
+            let srcPath = (window.dynamicImageCatalog && window.dynamicImageCatalog[baseImg]) 
+                        ? window.dynamicImageCatalog[baseImg] : baseImg + '.png';
+            window.images[baseImg].src = srcPath;
+        }
+
+        if (typeof aiConfigs !== 'undefined' && aiConfigs[trueSkin] && aiConfigs[trueSkin].actionImages) {
+            for (let actKey in aiConfigs[trueSkin].actionImages) {
+                let actImgName = aiConfigs[trueSkin].actionImages[actKey];
+                if (!window.images[actImgName]) {
+                    window.images[actImgName] = new Image();
+                    let srcPath = (window.dynamicImageCatalog && window.dynamicImageCatalog[actImgName]) 
+                                ? window.dynamicImageCatalog[actImgName] : actImgName + '.png';
+                    window.images[actImgName].src = srcPath;
+                }
+            }
+        }
+        
+        if (typeof camera !== 'undefined') camera.target = window.aiPet;
+    }
+
+    window.isGamePaused = false;
+
+    // ==========================================
+    // 3. フェードイン等のUI制御
+    // ==========================================
     const forceFirstPlay = localStorage.getItem('force_first_play');
     const triggerFadeIn = localStorage.getItem('trigger_fade_in'); 
     const isNewGame = (forceFirstPlay === 'true' || (typeof isFirstPlay !== 'undefined' && isFirstPlay));
 
     const els = ['canvas-wrapper', 'aiStatus', 'info-column', 'gameControls'];
 
+    els.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+    });
+
     if (isNewGame) {
-        els.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
-        });
         switchMode('play'); 
         localStorage.removeItem('force_first_play'); 
         if (typeof startPersonalityTest === 'function') startPersonalityTest(); 
     } else if (triggerFadeIn === 'true') {
         localStorage.removeItem('trigger_fade_in'); 
         switchMode('play');
-        els.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
-        });
         setTimeout(() => {
             els.forEach((id) => {
                 const el = document.getElementById(id);
@@ -138,23 +235,24 @@ function startGameSequence() {
                     setTimeout(() => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }, 50); 
                 }
             });
-            setTimeout(checkLoginBonus, 2500);
+            setTimeout(() => { if (typeof checkLoginBonus === 'function') checkLoginBonus(); }, 2500);
         }, 100);
     } else {
         switchMode('play'); 
-        els.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) { el.style.transition = 'none'; el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }
-        });
-        setTimeout(checkLoginBonus, 500);
+        setTimeout(() => {
+            els.forEach((id) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.style.transition = 'opacity 1.5s ease-in-out';
+                    setTimeout(() => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }, 50); 
+                }
+            });
+            setTimeout(() => { if (typeof checkLoginBonus === 'function') checkLoginBonus(); }, 1500);
+        }, 100);
     }
 
-    // ▼▼▼ 追加：UIが表示されるタイミングでボタン表示を更新 ▼▼▼
     if (typeof window.updateTcgButtonAppearance === 'function') window.updateTcgButtonAppearance();
-    // ▲▲▲ 追加おわり ▲▲▲
-
-    requestAnimationFrame(render);
-}
+};
 
 window.getDailyQuests = function() {
     const today = new Date().toLocaleDateString('ja-JP');
@@ -268,10 +366,17 @@ window.switchMode = function(mode) {
         if(debugOverlay) { debugOverlay.classList.add('active'); if(typeof loadDebugData === 'function') loadDebugData(); }
         
         // UIを隠す
-        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
+        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
 
-    } else { 
-        // editor, ai_adjust などの開発モード
+    } else if (mode === 'title') {
+        // ★追加：タイトル画面ではゲームUIを全て隠す
+        if(gameControls) gameControls.style.display = 'none'; 
+        if(help) help.style.display = 'none';
+        const sidePanel = document.getElementById('side-panel'); if(sidePanel) { sidePanel.classList.remove('active'); sidePanel.style.display = 'none'; }
+        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
+
+    } else { 
+        // editor, ai_adjust などの開発モード
         if(gameControls) gameControls.style.display = 'none'; 
         if(help) help.style.display = 'block';
         const sidePanel = document.getElementById('side-panel'); if(sidePanel) { sidePanel.classList.add('active'); sidePanel.style.display = 'flex'; }
@@ -315,6 +420,22 @@ function createPalette() {
 // ==========================================
 window.editingTarget = 'ai'; window.selectedCardKey = ''; window.selectedDungeonSpriteKey = 'skull_floor'; 
 window.selectedFurnitureIndex = 0; window.copiedFrameData = null; 
+// ★タイトル画面調整用データ
+window.selectedTitleCharKey = 'robot';
+window.bgTitleImg = new Image(); window.bgTitleImg.src = 'bg_game_title.png';
+window.TITLE_SCREEN_DATA = {
+    "robot": { "img": "title_robot.png", "x": 309, "y": 231, "sx": 963, "sy": 74, "sw": 839, "sh": 1319, "scale": 0.1, "imgObj": {} },
+    "spirit": { "img": "title_spirit.png", "x": 104, "y": 307, "sx": 963, "sy": 74, "sw": 839, "sh": 1319, "scale": 0.1, "imgObj": {} },
+    "magician": { "img": "title_magician.png", "x": 559, "y": 231, "sx": 772, "sy": 74, "sw": 1212, "sh": 1399, "scale": 0.1, "imgObj": {} },
+    "stone": { "img": "title_stone.png", "x": 233, "y": 287, "sx": 791, "sy": 74, "sw": 1212, "sh": 1399, "scale": 0.1, "imgObj": {} },
+    "balloon": { "img": "title_balloon.png", "x": 384, "y": 247, "sx": 344, "sy": 4, "sw": 796, "sh": 760, "scale": 0.1, "imgObj": {} },
+    "bird": { "img": "title_bird.png", "x": 586, "y": 395, "sx": 344, "sy": 4, "sw": 796, "sh": 760, "scale": 0.15000000000000002, "imgObj": {}, "flip": true, "z": 1 },
+    "beetle": { "img": "title_beetle.png", "x": 678, "y": 296, "sx": 344, "sy": 4, "sw": 796, "sh": 760, "scale": 0.15000000000000002, "imgObj": {}, "flip": true, "z": 1 },
+    "seed": { "img": "title_seed.png", "x": 215, "y": 360, "sx": 344, "sy": 4, "sw": 796, "sh": 761, "scale": 0.15000000000000002, "imgObj": {} },
+    "ghost": { "img": "title_ghost.png", "x": 489, "y": 108, "sx": 344, "sy": 4, "sw": 796, "sh": 761, "scale": 0.15000000000000002, "imgObj": {} },
+    "machine": { "img": "title_machine.png", "x": 459, "y": 289, "sx": 772, "sy": 4, "sw": 1257, "sh": 1499, "scale": 0.10000000000000002, "imgObj": {}, "flip": true },
+    "dragon": { "img": "title_dragon.png", "x": 548, "y": 325, "sx": 338, "sy": 31, "sw": 692, "sh": 703, "scale": 0.2, "imgObj": {}, "flip": true }
+};
 
 function initAdjustUI() {
     const panel = document.createElement('div'); panel.id = 'ai-adjust-panel';
@@ -341,7 +462,8 @@ function initAdjustUI() {
             </div>
             <div style="margin-top: 5px;">
                 <label style="margin-right:10px; cursor:pointer; color:#E040FB;"><input type="radio" name="adjTarget" value="rasset"> R-ASSET</label>
-                <label style="cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> S-ASSET</label>
+                <label style="margin-right:10px; cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> S-ASSET</label>
+                <label style="cursor:pointer; color:#FF5722;"><input type="radio" name="adjTarget" value="title"> TITLE</label>
             </div>
         </div>
         <div id="ai-adjust-status" style="margin-bottom:10px; font-size:12px; color:#00ff00;"></div>
@@ -429,12 +551,16 @@ function initAdjustUI() {
                 let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['smith'] ? window.SHOP_FURNITURE_DATA['smith'][window.selectedFurnitureIndex] : null;
                 statusEl.innerText = `Target: ${fData ? fData.name : 'None'} (${window.selectedFurnitureIndex+1})`;
             }
+            else if (editingTarget === 'title') {
+                statusEl.innerText = `Target: ${window.selectedTitleCharKey}`;
+            }
         }
         
-        if (typeof currentMode !== 'undefined' && currentMode === 'ai_adjust') {
-            const target = getAdjustTarget();
-            if (target) {
-                p.style.display = 'block';
+        if (typeof window.showAdjustUI === 'undefined') window.showAdjustUI = true;
+        if (typeof currentMode !== 'undefined' && currentMode === 'ai_adjust') {
+            const target = getAdjustTarget();
+            if (target && window.showAdjustUI) {
+                p.style.display = 'block';
                 document.getElementById('adj-act-wrap').style.display = (editingTarget === 'ai') ? 'flex' : 'none';
                 
                 const sel = document.getElementById('adjust-action-select');
@@ -447,7 +573,7 @@ function initAdjustUI() {
                     const el = document.getElementById('direct-input-' + f);
                     if (document.activeElement !== el) {
                         // 家具の場合は scaleX 欄に scale（配置倍率）を表示する
-                        if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset'].includes(editingTarget)) {
+                        if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
                             el.value = target.scale !== undefined ? target.scale : 1;
                         } else { el.value = target[f] !== undefined ? target[f] : (f.includes('scale') ? 1 : 0); }
                     }
@@ -506,6 +632,8 @@ window.getAdjustTarget = function() {
             if (window.selectedFurnitureIndex >= list.length) window.selectedFurnitureIndex = 0;
             target = list[window.selectedFurnitureIndex];
         }
+    } else if (editingTarget === 'title') {
+        target = window.TITLE_SCREEN_DATA[window.selectedTitleCharKey];
     }
     return target;
 };
@@ -538,6 +666,8 @@ window.addEventListener('keydown', (e) => {
                     console.log("▼▼▼ DUNGEON_SPRITES ▼▼▼\n" + JSON.stringify(window.DUNGEON_SPRITES, null, 4)); alert("ダンジョン素材をコンソールに出力しました！");
                 } else if (['rasset', 'sasset'].includes(editingTarget) && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                     console.log("▼▼▼ SHOP_FURNITURE_DATA ▼▼▼\n" + JSON.stringify(window.SHOP_FURNITURE_DATA, null, 4)); alert("家具配置データをコンソールに出力しました！\nこれを ui_controller.js に貼り付けてください。");
+                } else if (editingTarget === 'title') {
+                    console.log("▼▼▼ TITLE_SCREEN_DATA ▼▼▼\n" + JSON.stringify(window.TITLE_SCREEN_DATA, null, 4)); alert("タイトルキャラの座標・切り抜きデータをコンソールに出力しました！");
                 } else { if(typeof exportAIConfig === 'function') exportAIConfig(); }
             } else alert("エディタまたはAI調整モードで実行してください");
         }
@@ -608,8 +738,13 @@ window.addEventListener('keydown', (e) => {
                     if (isPrev) window.selectedFurnitureIndex = (window.selectedFurnitureIndex - 1 + list.length) % list.length;
                     else window.selectedFurnitureIndex = (window.selectedFurnitureIndex + 1) % list.length;
                 }
+            } else if (editingTarget === 'title') {
+                const keys = Object.keys(window.TITLE_SCREEN_DATA);
+                let idx = keys.indexOf(window.selectedTitleCharKey);
+                if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
+                window.selectedTitleCharKey = keys[idx];
             }
-            render(); return; 
+            render(); return;
         }
         
         if (editingTarget === 'ai' && e.key === ' ') { isTestPlaying = !isTestPlaying; e.preventDefault(); }
@@ -620,14 +755,14 @@ window.addEventListener('keydown', (e) => {
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = Math.max(0.1, (catalog[selectedMapKey].scale||1.0) - 0.05);
             else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = Math.max(0.1, (window.TCG_MASTER[selectedCardKey].scaleX||1.0) - 0.05);
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.1, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05); // ★修正
-            else if (['rasset', 'sasset'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.1, (t.scale||1.0) - 0.05); }
+            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.1, (t.scale||1.0) - 0.05); }
         }
         if (e.key.toLowerCase() === 'b') { 
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = (aiConfigs[selectedAIType].scale||0.25) + 0.05;
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = (catalog[selectedMapKey].scale||1.0) + 0.05;
             else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = (window.TCG_MASTER[selectedCardKey].scaleX||1.0) + 0.05;
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05; // ★修正
-            else if (['rasset', 'sasset'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
+            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
         }
         if (e.key.toLowerCase() === 'n') { if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleY = Math.max(0.1, (window.TCG_MASTER[selectedCardKey].scaleY||1.0) - 0.05); }
         if (e.key.toLowerCase() === 'm') { if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleY = (window.TCG_MASTER[selectedCardKey].scaleY||1.0) + 0.05; }
@@ -672,15 +807,22 @@ window.addEventListener('keydown', (e) => {
     if (key === 'z') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale = Math.max(0.1, target.scale - 0.05); else target.sh -= step; }
     if (key === 'c') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale += 0.05; else target.sh += step; }
     
-    // ★追加：家具の配置位置（X/Y）の調整（矢印キー）
-    if (['rasset', 'sasset'].includes(editingTarget)) {
+    // ★追加：家具・タイトルキャラの配置位置（X/Y）の調整（矢印キー）
+    if (['rasset', 'sasset', 'title'].includes(editingTarget)) {
         if (e.key === 'ArrowUp') { target.y -= step; e.preventDefault(); }
         if (e.key === 'ArrowDown') { target.y += step; e.preventDefault(); }
         if (e.key === 'ArrowLeft') { target.x -= step; e.preventDefault(); }
-        if (e.key === 'ArrowRight') { target.x += step; e.preventDefault(); }
-    }
-    
-    if (key === 'r' && (currentMode === 'editor' || currentMode === 'grazing_editor')) target.flip = !target.flip;
+        if (e.key === 'ArrowRight') { target.x += step; e.preventDefault(); }
+    }
+    
+    // ★追加：[キーで奥へ、]キーで手前へ移動（Z軸の調整）
+    if (editingTarget === 'title') {
+        if (e.key === '[') { target.z = (target.z || 0) - 1; e.preventDefault(); } // 奥へ
+        if (e.key === ']') { target.z = (target.z || 0) + 1; e.preventDefault(); } // 手前へ
+    }
+    
+    // ★修正：title編集時もRキーで左右反転できるようにする
+    if (key === 'r' && (currentMode === 'editor' || currentMode === 'grazing_editor' || editingTarget === 'title')) target.flip = !target.flip;
     if (key === 'delete' && (currentMode === 'editor' || currentMode === 'grazing_editor') && selectedAsset) { 
         for(let k in assets) { if (assets[k] === selectedAsset) { delete assets[k]; break; } } 
         selectedAsset = null; 
@@ -700,8 +842,50 @@ window.addEventListener('keydown', (e) => {
 });
 
 canvas.addEventListener('mousedown', (e) => {
-    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
-    if (currentMode === 'editor' || currentMode === 'grazing_editor') {
+    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // ==========================================
+    // ★タイトル画面：マウスクリック判定
+    // ==========================================
+    if (currentMode === 'title') {
+        if (window.titleConfirmMode) {
+            if (window.titleMenuHover === 3) { // はい（New Game実行）
+                window.titleConfirmMode = false;
+                
+                // ★完全ブロック：ログイン履歴（ID）がある場合は「はじめから」を禁止し、カスタムアラートで弾く
+                if (localStorage.getItem('my_player_id')) {
+                    if (typeof window.showCustomAlert === 'function') {
+                        window.showCustomAlert("⚠️ プレイ制限", "現在オンラインアカウントで連携中です。\n誤操作によるデータ消失を防ぐため、「はじめから」は選択できません。\n\n既存のデータで遊ぶ場合は「つづきから」を選択してください。");
+                    }
+                    return; // ここで処理を終了し、初期化を絶対にさせない
+                }
+
+                // 未連携の場合はログイン選択へ
+                if (typeof window.showNewGameLoginChoice === 'function') {
+                    window.showNewGameLoginChoice();
+                } else {
+                    window.executeNewGameInitialization(true);
+                }
+            } else if (window.titleMenuHover === 4) { // いいえ（キャンセル）
+                window.titleConfirmMode = false;
+            }
+            return;
+        }
+
+        if (window.titleMenuHover === 1) { // はじめから
+            window.titleConfirmMode = true;
+        } else if (window.titleMenuHover === 2) { // つづきから
+            // 未ログイン（ゲスト）の続きからの場合は、ログイン選択UIを挟む
+            if (!localStorage.getItem('my_player_id') && !window.skipAutoLogin && typeof window.showContinueLoginChoice === 'function') {
+                window.showContinueLoginChoice();
+            } else {
+                window.startActualGame(false);
+            }
+        }
+        return;
+    }
+
+    if (currentMode === 'editor' || currentMode === 'grazing_editor') {
         selectedAsset = null; let hitKey = null;
         for (let key in assets) {
             const a = assets[key]; const dw = a.sw * a.scale, dh = a.sh * a.scale;
@@ -709,24 +893,67 @@ canvas.addEventListener('mousedown', (e) => {
             if (checkX > a.dx && checkX < a.dx + dw && checkY > a.dy && checkY < a.dy + dh) hitKey = key;
         }
         if (hitKey) { selectedAsset = assets[hitKey]; isDragging = true; offsetX = (mx + camera.x) - selectedAsset.dx; offsetY = (my + camera.y) - selectedAsset.dy; }
-    }
-    render();
+    } else if (currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
+        let t = window.getAdjustTarget();
+        if (t) {
+            let dw = (t.sw || 150) * (t.scale || 1); let dh = (t.sh || 150) * (t.scale || 1);
+            let left = (t.x || 640) - dw/2; let right = (t.x || 640) + dw/2;
+            let top = (t.y || 360) - dh/2; let bottom = (t.y || 360) + dh/2;
+            if (mx >= left && mx <= right && my >= top && my <= bottom) {
+                window.isDraggingTitle = true; window.titleDragOffsetX = mx - (t.x || 640); window.titleDragOffsetY = my - (t.y || 360);
+            }
+        }
+    }
+    render();
 });
 
 canvas.addEventListener('mousemove', (e) => {
-    if (isDragging && selectedAsset && (currentMode === 'editor' || currentMode === 'grazing_editor')) {
-        const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
-        selectedAsset.dx = (mx + camera.x) - offsetX; selectedAsset.dy = (my + camera.y) - offsetY; render();
+    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    
+    // ==========================================
+    // ★タイトル画面：マウスホバー判定
+    // ==========================================
+    if (currentMode === 'title') {
+        window.titleMenuHover = 0;
+        
+        if (window.titleConfirmMode) {
+            // 確認ダイアログ中のホバー判定
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+            if (my > cy + 40 && my < cy + 100) {
+                if (mx > cx - 180 && mx < cx - 20) window.titleMenuHover = 3; // はい
+                if (mx > cx + 20 && mx < cx + 180) window.titleMenuHover = 4; // いいえ
+            }
+            return;
+        }
+
+        const TEXT_X = canvas.width * 0.95;   
+        const MENU1_Y = canvas.height * 0.75; 
+        const MENU2_Y = canvas.height * 0.85; 
+
+        if (mx > TEXT_X - 250 && mx < TEXT_X + 20) {
+            if (my > MENU1_Y - 30 && my < MENU1_Y + 30) window.titleMenuHover = 1; 
+            if (my > MENU2_Y - 30 && my < MENU2_Y + 30) window.titleMenuHover = 2; 
+        }
+        return; 
     }
+
+    if (isDragging && selectedAsset && (currentMode === 'editor' || currentMode === 'grazing_editor')) {
+        selectedAsset.dx = (mx + camera.x) - offsetX; selectedAsset.dy = (my + camera.y) - offsetY; render();
+    } else if (window.isDraggingTitle && currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
+        let t = window.getAdjustTarget();
+        if (t) { t.x = mx - window.titleDragOffsetX; t.y = my - window.titleDragOffsetY; render(); }
+    }
 });
 
 window.addEventListener('mouseup', () => { isDragging = false; if (currentMode === 'editor' || currentMode === 'grazing_editor') saveGameData(); });
 
 window.onload = () => { 
-    if(typeof applyTranslations === 'function') applyTranslations();
-    const nav = document.getElementById('nav'); if (nav) nav.style.display = 'none'; 
-    if (!window.isGamePaused) switchMode('play'); 
-    if(typeof processOfflineProgression === 'function') processOfflineProgression(); 
+    if(typeof applyTranslations === 'function') applyTranslations();
+    const nav = document.getElementById('nav'); if (nav) nav.style.display = 'none'; 
+    // ★修正：勝手にプレイ画面に切り替わる古い処理を削除（タイトル画面を維持します）
+    // if (!window.isGamePaused) switchMode('play'); 
+    if(typeof processOfflineProgression === 'function') processOfflineProgression();
     
     setInterval(() => { 
         if (typeof window.isGamePaused !== 'undefined' && window.isGamePaused) {

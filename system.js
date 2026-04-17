@@ -600,15 +600,108 @@ function showResult() {
 
 window.confirmInitialPet = function() {
     document.getElementById('resultOverlay').classList.remove('active');
+    window.isGamePaused = true; 
     
-    applyInitialPet(determinedSkin);
+    // ==========================================
+    // ★絶対防御シールド発動：名前入力UI以外をすべて透明にしてクリック不可にする
+    // ==========================================
+    document.body.classList.add('is-naming');
+    if (!document.getElementById('naming-shield-css')) {
+        const style = document.createElement('style');
+        style.id = 'naming-shield-css';
+        style.innerHTML = `
+            body.is-naming .overlay.active { display: none !important; }
+            body.is-naming #playerNameOverlay.active { display: flex !important; z-index: 999999 !important; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    if (window.aiPet) {
+        window.aiPet.gold = 0;
+        window.aiPet.discoveredMonsters = [];
+        window.aiPet.unlockedBGMs = [];
+    }
+    
+    if (typeof party !== 'undefined') window.party = [];
+    
+    if (typeof assets !== 'undefined') {
+        for (let k in assets) delete assets[k]; 
+        if (typeof generateNatureMap === 'function') {
+            let newMap = generateNatureMap();
+            for (let k in newMap) { assets[k] = newMap[k]; }
+        }
+    }
+    
+    window.playerName = null;
+    window.isLoggedIn = false;
+    
+    if (typeof applyInitialPet === 'function') applyInitialPet(determinedSkin);
+    
+    let petKey = determinedSkin || 'robot';
+    if (window.aiPet) {
+        window.aiPet.currentSkin = petKey;
+        window.aiPet.type = petKey;
+        window.aiPet.visualAction = 'idle'; 
+        if (typeof camera !== 'undefined') camera.target = window.aiPet; 
+        
+        // ★AIが勝手にチュートリアルを始めないように思考をストップ
+        window.isNamingPhase = true;
+        const originalUpdate = window.aiPet.update;
+        window.aiPet.update = function(dt) {
+            if (window.isNamingPhase) return; 
+            if (originalUpdate) originalUpdate.call(this, dt);
+        };
+    }
+    
+    if (!window.images) window.images = {};
+    if (!window.images[petKey] || !window.images[petKey].complete) {
+        window.images[petKey] = new Image();
+        let srcPath = (window.dynamicImageCatalog && window.dynamicImageCatalog[petKey]) 
+                    ? window.dynamicImageCatalog[petKey] 
+                    : petKey + '.png';
+        window.images[petKey].src = srcPath;
+    }
+
     saveGameData();
+
+    window.isGamePaused = false;
+    if (typeof switchMode === 'function') switchMode('play');
     
-    // ==========================================
-    // ★大天才パッチ：F5リロードを疑似的に実行し、綺麗な状態でフェードインさせるためのチケットを発行
-    // ==========================================
-    localStorage.setItem('trigger_fade_in', 'true');
-    window.location.reload(); 
+    const els = ['canvas-wrapper', 'aiStatus', 'info-column', 'gameControls'];
+    els.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) { el.style.opacity = '0'; el.style.pointerEvents = 'none'; }
+    });
+    
+    setTimeout(() => {
+        els.forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.style.transition = 'opacity 2.5s ease-in-out';
+                setTimeout(() => { el.style.opacity = '1'; el.style.pointerEvents = 'auto'; }, 50); 
+            }
+        });
+        
+        setTimeout(() => {
+            if (typeof checkLoginBonus === 'function') checkLoginBonus();
+            
+            // ★大修正：既にログイン済みなら、名前入力画面をスキップしてシールド解除！
+            if (typeof auth !== 'undefined' && auth.currentUser && localStorage.getItem('my_player_name')) {
+                document.body.classList.remove('is-naming');
+                window.isNamingPhase = false;
+            } else {
+                // 未ログインの場合のみ名前入力画面を呼び出す
+                if (typeof openNameInputUI === 'function') {
+                    openNameInputUI();
+                } else {
+                    let overlay = document.getElementById('playerNameOverlay');
+                    if(overlay) overlay.classList.add('active');
+                }
+            }
+        }, 2500);
+    }, 100);
+
+    if (typeof window.updateTcgButtonAppearance === 'function') window.updateTcgButtonAppearance();
 };
 
 function applyInitialPet(skinKey) {

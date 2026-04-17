@@ -4371,6 +4371,12 @@ setTimeout(() => {
         // 診断画面が「完全に閉じていて」、かつゲームが開始している時だけ発動！
         if (typeof currentMode !== 'undefined' && currentMode === 'play' && window.aiPet && window.aiPet.id) {
             
+            // ==========================================
+            // ★超重要：名前入力中なら、UI表示もチュートリアル判定も行わず「一旦保留」にして次のループ（0.5秒後）を待つ！
+            // （これで、名前が決まるまでこのループが自爆せずに回り続けます）
+            // ==========================================
+            if (window.isNamingPhase) return;
+
             // ★ AIがすでに言葉を知っているか（＝続きからプレイか）を判定
             const isNewGame = (!window.aiPet.apprentice || !window.aiPet.apprentice.learnedWords || window.aiPet.apprentice.learnedWords.length === 0);
             
@@ -4397,8 +4403,9 @@ setTimeout(() => {
             });
 
             // 2. 言葉を知らない（新規）場合のみ、視覚的なチュートリアルを開始
-            if (isNewGame && !hasTutorialPlayed) {
-                hasTutorialPlayed = true;
+            // ※念のため hasTutorialPlayed が未定義の場合をケア
+            if (isNewGame && (typeof hasTutorialPlayed === 'undefined' || !hasTutorialPlayed)) {
+                window.hasTutorialPlayed = true;
                 
                 // UIがすべて出揃った頃（約5.5秒後）にチュートリアルを出す
                 setTimeout(() => {
@@ -4479,10 +4486,12 @@ setTimeout(() => {
 
                 }, 5500); // UI表示演出完了に合わせて実行
             }
-            clearInterval(uiRevealCheck); // 監視を終了
+            
+            // ★超重要：保留されずにここまで到達した（＝名前入力が終わった）時だけ監視を終了する！
+            clearInterval(uiRevealCheck); 
         }
     }, 500);
-}, 2000); // ★ここがポイント：2秒間待ってから監視スタート
+}, 2000);
 
 
 // ==========================================
