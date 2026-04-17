@@ -5,17 +5,75 @@ var isDragging = false;
 var selectedAsset = null;
 
 // ==========================================
-// ★ BGM管理マネージャー (本番用クリーン版)
+// ★ BGM管理マネージャー (タイトルランダム選曲対応版)
 // ==========================================
 window.audioManager = {
     currentAudio: null,
     currentBGMType: null,
-    
-    playBGM: function(type) {
-        // 同じ曲が流れている場合はスキップ
-        if (this.currentAudio && this.currentBGMType === type) return; 
+    isPlayingTitle: false,
+
+    // --- タイトル画面専用の再生処理 ---
+    playTitleMusic: function(unlockedSpeciesArray = []) {
+        if (this.isPlayingTitle) return;
+        this.isPlayingTitle = true;
+
+        // 通常のBGMが鳴っていれば止める
+        this.stopBGM();
+
+        // 1. 進化系も含めたリストから「11系統のベース種族」だけを抽出する
+        let baseUnlocked = new Set();
+        const baseSpeciesList = ['robot', 'spirit', 'magician', 'stone', 'balloon', 'bird', 'beetle', 'seed', 'ghost', 'machine', 'dragon'];
         
-        // 別の曲が流れていれば止める
+        if (unlockedSpeciesArray && unlockedSpeciesArray.length > 0) {
+            unlockedSpeciesArray.forEach(sp => {
+                for (let base of baseSpeciesList) {
+                    if (sp === base || sp.startsWith(base + '_')) {
+                        baseUnlocked.add(base);
+                        break;
+                    }
+                }
+            });
+        }
+
+        // 2. 再生候補のリストを作成（最低でも main は入る）
+        let candidates = ['main']; 
+        
+        // ベース種族を候補に追加（複数種類のロボット系がいても、'robot'は1回しか入らない）
+        baseUnlocked.forEach(base => {
+            candidates.push(base);
+        });
+
+        // 3. 全11系統が揃っている場合は、歌入りバージョンを候補に追加！
+        if (baseUnlocked.size >= 11) {
+            candidates.push('song');
+        }
+
+        // 4. 候補の中からランダムに1曲選ぶ
+        let selectedTrack = candidates[Math.floor(Math.random() * candidates.length)];
+        let src = `./bgm_title_${selectedTrack}.mp3`;
+        
+        // 5. 再生実行
+        this.currentAudio = new Audio(src);
+        this.currentAudio.loop = true; 
+        this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
+
+        let playPromise = this.currentAudio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => console.log("[BGM] タイトル曲の自動再生待機中:", e));
+        }
+    },
+
+    stopTitleMusic: function() {
+        this.isPlayingTitle = false;
+        if (this.currentAudio) {
+            this.currentAudio.pause();
+            this.currentAudio = null;
+        }
+    },
+
+    // --- 以下、通常のインゲームBGM処理（既存のまま） ---
+    playBGM: function(type) {
+        if (this.currentAudio && this.currentBGMType === type) return; 
         if (this.currentAudio) { this.stopBGM(); }
         
         this.currentBGMType = type;
@@ -25,7 +83,6 @@ window.audioManager = {
         this.currentAudio.loop = true;
         this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
         
-        // 再生実行（ブラウザの自動再生ブロック対策）
         let playPromise = this.currentAudio.play();
         if (playPromise !== undefined) {
             playPromise.catch(e => {
@@ -34,7 +91,6 @@ window.audioManager = {
             });
         }
         
-        // 音楽館への解放記録
         if (typeof aiPet !== 'undefined' && aiPet.unlockedBGMs && !aiPet.unlockedBGMs.includes(type)) {
             aiPet.unlockedBGMs.push(type);
         }
@@ -49,16 +105,14 @@ window.audioManager = {
     
     setVolume: function(v) {
         if (typeof aiPet !== 'undefined') aiPet.bgmVolume = v;
-        if (this.currentAudio) { this.currentAudio.volume = v; }
+        if (this.currentAudio) this.currentAudio.volume = v;
     },
     
     restoreMainBGM: function() {
-        // 防衛戦の緊急事態中なら襲撃BGMを優先
         if (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isEmergency) {
             this.playBGM('defense_start');
             return;
         }
-        // 通常時なら現在の種族BGMを再生
         if (typeof aiPet !== 'undefined' && aiPet.type) {
             this.playBGM(aiPet.type);
         }
@@ -512,6 +566,11 @@ let determinedSkin = 'robot';
 window.isGamePaused = false; 
 
 window.startPersonalityTest = function() {
+    // ★追加：性格診断に入ったらタイトルBGMを止める
+    if (window.audioManager && window.audioManager.stopTitleMusic) {
+        window.audioManager.stopTitleMusic();
+    }
+
     window.isGamePaused = true;
     // スコアリセット
     for (let key in personalityScores) personalityScores[key] = 0;

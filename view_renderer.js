@@ -35,9 +35,15 @@ function render() {
                     ctx.scale(chara.scale || 1, chara.scale || 1);
                     if (chara.flip) ctx.scale(-1, 1); // 左右反転
                     
-                    ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
-                                  -(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
+                    // ==========================================
+                    // ★大修正：HIDEにチェックが入っていない時だけ画像を描画する
+                    // ==========================================
+                    if (!chara.isHidden) {
+                        ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
+                                      -(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
+                    }
                     
+                    // 選択中の緑枠は「見失わないよう」常に描画する
                     if (window.selectedTitleCharKey === k) {
                         ctx.strokeStyle = 'lime'; ctx.lineWidth = 2 / (chara.scale || 1);
                         ctx.strokeRect(-(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
@@ -60,31 +66,30 @@ function render() {
             ctx.fillStyle = '#000'; ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
-        // ★修正：セーブデータが存在するか確認（ニューゲーム時は誰もいない風景にする）
         let hasSaveData = !!localStorage.getItem('ai_pet_data_v1');
         
-        if (window.TITLE_SCREEN_DATA && hasSaveData) {
-            let keys = Object.keys(window.TITLE_SCREEN_DATA);
-            keys.sort((a, b) => (window.TITLE_SCREEN_DATA[a].z || 0) - (window.TITLE_SCREEN_DATA[b].z || 0));
+        if (window.TITLE_SCREEN_DATA && hasSaveData && window.TITLE_RANDOM_LAYOUT) {
+            // ★描画対象（解放済みで、ランダムレイアウトが生成されたキャラ）のキーだけを抽出
+            let activeKeys = Object.keys(window.TITLE_SCREEN_DATA).filter(k => window.TITLE_RANDOM_LAYOUT[k]);
 
-            // セーブデータ（JSON文字列）を取得（図鑑等の変数名が不明なため、最も確実な文字列一致判定を使用）
-            let rawSaveData = localStorage.getItem('ai_pet_data_v1') || "";
+            // ★Y座標（画面の奥から手前）でソート（キャラクターの重なり合いを自然にするため）
+            activeKeys.sort((a, b) => window.TITLE_RANDOM_LAYOUT[a].y - window.TITLE_RANDOM_LAYOUT[b].y);
 
-            for (let k of keys) {
-                // ★進行度チェック：セーブデータの中に、その種族(k)に関連するデータが1つでも存在するか？
-                // (例: 'robot' や 'robot_fire' 等の文字列がセーブデータ内にあれば解放済みとみなす)
-                let isUnlocked = rawSaveData.includes(`"${k}"`) || rawSaveData.includes(`"${k}_`);
-                
-                // 解放されていなければ、このキャラクターの描画をスキップして次へ
-                if (!isUnlocked) continue; 
-                
+            for (let k of activeKeys) {
                 let chara = window.TITLE_SCREEN_DATA[k];
+                let layout = window.TITLE_RANDOM_LAYOUT[k]; // 計算済みのランダム座標＆Flipデータ
+                
                 if (!chara.imgObj || !chara.imgObj.src) { chara.imgObj = new Image(); chara.imgObj.src = chara.img; }
+                
                 if (chara.imgObj.complete) {
                     ctx.save();
-                    ctx.translate(chara.x || 640, chara.y || 360);
+                    // ★元の座標ではなく、生成されたランダム座標を使用！
+                    ctx.translate(layout.x, layout.y);
                     ctx.scale(chara.scale || 1, chara.scale || 1);
-                    if (chara.flip) ctx.scale(-1, 1); 
+                    
+                    // ★川をまたいだ反転ルールを適用！
+                    if (layout.flip) ctx.scale(-1, 1); 
+                    
                     ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
                                   -(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
                     ctx.restore();
@@ -93,7 +98,7 @@ function render() {
         }
 
         // ==========================================
-        // ★絶対表示させる鉄壁のテキスト描画★
+        // ★ 絶対表示させる鉄壁のテキスト描画★
         // ==========================================
         ctx.save();
         ctx.globalAlpha = 1.0; 

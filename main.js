@@ -109,10 +109,9 @@ function startGameSequence() {
     gameStarted = true;
     createPalette(); 
 
-    // ★修正：起動時は必ずタイトル画面モードにする
-    switchMode('title'); 
+    // ★修正：起動時はタイトルではなく、まず「ロゴ画面」にする
+    switchMode('logo'); 
     
-    // キャンバス自体は表示する
     const canvasWrapper = document.getElementById('canvas-wrapper');
     if (canvasWrapper) { canvasWrapper.style.opacity = '1'; canvasWrapper.style.pointerEvents = 'auto'; }
 
@@ -120,6 +119,11 @@ function startGameSequence() {
 }
 
 window.startActualGame = function(isNewGameMenuClicked) {
+    // ★追加：ゲーム本編に入ったらタイトルBGMを止める
+    if (window.audioManager && window.audioManager.stopTitleMusic) {
+        window.audioManager.stopTitleMusic();
+    }
+
     if (isNewGameMenuClicked) {
         localStorage.setItem('force_first_play', 'true');
     }
@@ -434,6 +438,142 @@ window.TITLE_SCREEN_DATA = {
     "seed": { "img": "title_seed.png", "x": 215, "y": 360, "sx": 344, "sy": 4, "sw": 796, "sh": 761, "scale": 0.15000000000000002, "imgObj": {} },
     "ghost": { "img": "title_ghost.png", "x": 489, "y": 108, "sx": 344, "sy": 4, "sw": 796, "sh": 761, "scale": 0.15000000000000002, "imgObj": {} },
     "machine": { "img": "title_machine.png", "x": 459, "y": 289, "sx": 772, "sy": 4, "sw": 1257, "sh": 1499, "scale": 0.10000000000000002, "imgObj": {}, "flip": true },
+    "machine_type1": { "img": "title_machine_type1.png", "x": 459, "y": 289, "sx": 772, "sy": 4, "sw": 1257, "sh": 1499, "scale": 0.10000000000000002, "imgObj": {}, "flip": true },
+    "machine_type1": {
+        "img": "title_machine_type1.png",
+        "x": 146,
+        "y": 342,
+        "sx": 314,
+        "sy": -54,
+        "sw": 821,
+        "sh": 841,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": false
+    },
+    "machine_type1_2": {
+        "img": "title_machine_type1_2.png",
+        "x": 311,
+        "y": 119,
+        "sx": 61,
+        "sy": 4,
+        "sw": 1257,
+        "sh": 770,
+        "scale": 0.15000000000000002,
+        "imgObj": {},
+        "flip": false
+    },
+    "machine_type2": {
+        "img": "title_machine_type2.png",
+        "x": 301,
+        "y": 306,
+        "sx": 772,
+        "sy": 4,
+        "sw": 1257,
+        "sh": 1499,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": false
+    },
+    "machine_type2_2": {
+        "img": "title_machine_type2_2.png",
+        "x": 703,
+        "y": 298,
+        "sx": 339,
+        "sy": 4,
+        "sw": 728,
+        "sh": 814,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true
+    },
+    "machine_type3": {
+        "img": "title_machine_type3.png",
+        "x": 192,
+        "y": 261,
+        "sx": 772,
+        "sy": 4,
+        "sw": 1257,
+        "sh": 1499,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": -1
+    },
+    "machine_type3_2": {
+        "img": "title_machine_type3_2.png",
+        "x": 610,
+        "y": 238,
+        "sx": 313,
+        "sy": 4,
+        "sw": 693,
+        "sh": 873,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true
+    },
+    "machine_type4": {
+        "img": "title_machine_type4.png",
+        "x": 604,
+        "y": 352,
+        "sx": 772,
+        "sy": 4,
+        "sw": 1347,
+        "sh": 1499,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1
+    },
+    "machine_type4_2": {
+        "img": "title_machine_type4_2.png",
+        "x": 489,
+        "y": 243,
+        "sx": 290,
+        "sy": -4,
+        "sw": 802,
+        "sh": 822,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true
+    },
+    "machine_type5": {
+        "img": "title_machine_type5.png",
+        "x": 355,
+        "y": 240,
+        "sx": 340,
+        "sy": -8,
+        "sw": 703,
+        "sh": 867,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": false,
+        "z": -2
+    },
+    "machine_type5_2": {
+        "img": "title_machine_type5_2.png",
+        "x": 229,
+        "y": 327,
+        "sx": 772,
+        "sy": 4,
+        "sw": 1257,
+        "sh": 1499,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": false
+    },
+    "machine_type5_3": {
+        "img": "title_machine_type5_3.png",
+        "x": 542,
+        "y": 289,
+        "sx": 131,
+        "sy": -22,
+        "sw": 655,
+        "sh": 836,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true
+    },
     "dragon": { "img": "title_dragon.png", "x": 548, "y": 325, "sx": 338, "sy": 31, "sw": 692, "sh": 703, "scale": 0.2, "imgObj": {}, "flip": true }
 };
 
@@ -482,6 +622,11 @@ function initAdjustUI() {
                 <input type="number" step="${f.includes('scale') ? '0.05' : '1'}" id="direct-input-${f}" style="width:70px; background:#222; color:#fff; border:1px solid #555; padding:4px; border-radius:3px;">
             </div>
         `).join('')}
+        
+        <div style="margin:8px 0; display:flex; align-items:center;">
+            <label style="width:55px; color:#ff9800;">HIDE: </label>
+            <input type="checkbox" id="direct-input-hide" style="cursor:pointer; width:16px; height:16px;">
+        </div>
         <div style="margin-top:15px; display:flex; gap:8px;">
             <button id="adj-btn-copy" style="flex:1; padding:6px; background:#444; color:white; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">Copy</button>
             <button id="adj-btn-paste" style="flex:1; padding:6px; background:#444; color:white; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">Paste</button>
@@ -511,6 +656,17 @@ function initAdjustUI() {
             const target = getAdjustTarget(); if (target) { target[f] = parseFloat(e.target.value) || (f.includes('scale') ? 1 : 0); if(typeof render === 'function') render(); }
         });
         input.addEventListener('change', () => { if(typeof saveGameData === 'function') saveGameData(); });
+    });
+
+    // ==========================================
+    // ★ここに追加：HIDEチェックボックスの操作イベント
+    // ==========================================
+    document.getElementById('direct-input-hide').addEventListener('change', e => {
+        const target = getAdjustTarget(); 
+        if (target) { 
+            target.isHidden = e.target.checked; 
+            if(typeof render === 'function') render(); 
+        }
     });
 
     document.getElementById('adj-btn-copy').onclick = function() {
@@ -578,6 +734,10 @@ function initAdjustUI() {
                         } else { el.value = target[f] !== undefined ? target[f] : (f.includes('scale') ? 1 : 0); }
                     }
                 });
+
+                // ★ここに追加：HIDE状態をUIに反映
+                const hideEl = document.getElementById('direct-input-hide');
+                if (hideEl && document.activeElement !== hideEl) hideEl.checked = !!target.isHidden;
             } else { p.style.display = 'none'; }
         } else { p.style.display = 'none'; }
     }, 100);
@@ -842,10 +1002,35 @@ window.addEventListener('keydown', (e) => {
 });
 
 canvas.addEventListener('mousedown', (e) => {
-    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
     
     // ==========================================
-    // ★タイトル画面：マウスクリック判定
+    // ★ロゴ画面をクリックしたら、タイトルへ移行＆BGMスタート！
+    // ==========================================
+    if (currentMode === 'logo') {
+        switchMode('title');
+        
+        let unlocked = [];
+        if (window.aiPet && window.aiPet.discoveredMonsters) {
+            // ゴミデータ（dummy, insurance等）だけを弾き、進化系はすべて含める
+            unlocked = window.aiPet.discoveredMonsters.filter(sp => !sp.includes('dummy') && !sp.includes('insurance'));
+            unlocked = [...new Set(unlocked)]; 
+        }
+        
+        // タイトル画面に入る瞬間に、1回だけ「最大11体」のランダム配置を計算
+        if (typeof window.generateTitleLayout === 'function') {
+            window.generateTitleLayout(unlocked);
+        }
+
+        // タイトル音楽のランダム再生をスタート！
+        if (window.audioManager && window.audioManager.playTitleMusic) {
+            window.audioManager.playTitleMusic(unlocked);
+        }
+        return; // ここで終わる
+    }
+
+    // ==========================================
+    // タイトル画面：マウスクリック判定
     // ==========================================
     if (currentMode === 'title') {
         if (window.titleConfirmMode) {
@@ -961,6 +1146,14 @@ window.onload = () => {
             if (canvasEl) { const ctxEl = canvasEl.getContext('2d'); ctxEl.fillStyle = '#222'; ctxEl.fillRect(0, 0, canvasEl.width, canvasEl.height); }
             return;
         }
+
+        // ★追加：ロゴモードの時は、専用のロゴ描画だけを行って処理を終わる
+        if (typeof currentMode !== 'undefined' && currentMode === 'logo') {
+            if (typeof window.drawStudioLogo === 'function') window.drawStudioLogo();
+            return;
+        }
+
+        // （以下、既存の処理が続きます）
         if (currentMode === 'grazing') { if (typeof updateGrazingLoop === 'function') updateGrazingLoop(); } 
         else {
             if (typeof party !== 'undefined' && party.length > 0) {
@@ -1432,3 +1625,140 @@ window.autoZoomGame = function() {
 window.addEventListener('resize', window.autoZoomGame);
 // 起動直後に1回実行
 setTimeout(window.autoZoomGame, 100);
+
+// ==========================================
+// ★ Two-Sided Studio 鏡面ロゴ描画システム
+// ==========================================
+window.drawStudioLogo = function() {
+    const canvas = document.getElementById('gameCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // 背景を黒で塗りつぶす
+    ctx.fillStyle = '#050505';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const text = "Two-Sided Studio";
+
+    // --- 上部（現実）のロゴ ---
+    ctx.font = 'bold 50px serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillText(text, cx, cy - 30);
+
+    // --- 境界線（ふたつの世界を隔てる線） ---
+    ctx.beginPath();
+    ctx.moveTo(cx - 250, cy);
+    ctx.lineTo(cx + 250, cy);
+    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // --- 下部（AI・裏側）の鏡面ロゴ ---
+    ctx.save();
+    ctx.translate(cx, cy + 30); // 反転の基準点へ移動
+    ctx.scale(1, -1);           // Y軸を反転（鏡面反射）
+    
+    // 透明度を下げて、水面に映ったように描画
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.15)';
+    ctx.fillText(text, 0, 0);
+    ctx.restore();
+
+    // --- Click to Start の点滅アニメーション ---
+    let alpha = (Math.sin(Date.now() / 400) + 1) / 2; // 0.0 ~ 1.0を波打つ
+    ctx.font = '16px sans-serif';
+    ctx.fillStyle = `rgba(200, 200, 200, ${alpha})`;
+    ctx.fillText("- Click to Start -", cx, canvas.height - 50);
+};
+
+// ==========================================
+// ★ タイトル画面ランダム配置ジェネレーター（最大11体ピックアップ版）
+// ==========================================
+window.generateTitleLayout = function(unlockedKeys) {
+    window.TITLE_RANDOM_LAYOUT = {}; 
+    if (!window.TITLE_SCREEN_DATA) return;
+
+    // --- 1. キャラクターのピックアップ (最大11体) ---
+    const baseSpeciesList = ['robot', 'spirit', 'magician', 'stone', 'balloon', 'bird', 'beetle', 'seed', 'ghost', 'machine', 'dragon'];
+    let selectedKeys = [];
+    
+    // TITLE_SCREEN_DATAに存在するものだけをフィルタリング
+    let available = [...new Set(unlockedKeys)].filter(k => window.TITLE_SCREEN_DATA[k]);
+
+    // 配列をシャッフルする関数
+    const shuffle = (array) => {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    };
+    
+    // どの進化系が選ばれるかをランダムにするためシャッフル
+    shuffle(available);
+
+    // ① まず、11系統の基本種族ごとに「どれか1体」を優先して選ぶ
+    for (let base of baseSpeciesList) {
+        // その系統（自分自身、または _ で続く進化系）を探す
+        let idx = available.findIndex(k => k === base || k.startsWith(base + '_'));
+        if (idx !== -1) {
+            selectedKeys.push(available[idx]);
+            available.splice(idx, 1); // 選んだものは候補から外す
+        }
+    }
+
+    // ② もし11系統揃っておらず枠が余っていれば、残りの候補から11体になるまで埋める
+    while (selectedKeys.length < 11 && available.length > 0) {
+        selectedKeys.push(available.shift());
+    }
+
+    // --- 2. スロットの準備 ---
+    let airSlots = [];
+    let groundSlots = [];
+    
+    // TITLE_SCREEN_DATA に定義されたすべての座標を「スロットのプール」として回収
+    for (let k in window.TITLE_SCREEN_DATA) {
+        let chara = window.TITLE_SCREEN_DATA[k];
+        let slot = { x: chara.x, y: chara.y };
+        if (chara.y < 150) airSlots.push(slot);
+        else groundSlots.push(slot);
+    }
+    
+    // スロットの割り当て先をランダムにする
+    shuffle(airSlots);
+    shuffle(groundSlots);
+
+    let airIdx = 0;
+    let groundIdx = 0;
+
+    // --- 3. ピックアップしたキャラにスロットを割り当て ---
+    selectedKeys.forEach(k => {
+        let orig = window.TITLE_SCREEN_DATA[k];
+        let isOrigAir = orig.y < 150;
+        let isOrigLeft = orig.x < 400;
+        let isOrigRight = orig.x >= 450;
+
+        // 空キャラには空スロットを、地上キャラには地上スロットを割り当て
+        // （万が一スロットが足りなくなった時のフェイルセーフとして元の座標を使用）
+        let newSlot;
+        if (isOrigAir) newSlot = (airIdx < airSlots.length) ? airSlots[airIdx++] : {x: orig.x, y: orig.y};
+        else newSlot = (groundIdx < groundSlots.length) ? groundSlots[groundIdx++] : {x: orig.x, y: orig.y};
+
+        let isNewLeft = newSlot.x < 400;
+        let isNewRight = newSlot.x >= 450;
+
+        let newFlip = orig.flip ? true : false;
+
+        // 川をまたいで移動した場合は、Flipを反転させる
+        if (isOrigLeft && isNewRight) newFlip = !newFlip;
+        if (isOrigRight && isNewLeft) newFlip = !newFlip;
+
+        window.TITLE_RANDOM_LAYOUT[k] = {
+            x: newSlot.x,
+            y: newSlot.y,
+            flip: newFlip
+        };
+    });
+};
