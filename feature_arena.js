@@ -3584,3 +3584,84 @@ window.toggleArenaResultLog = function() {
         }, 10);
     }
 };
+
+// ======================================================================
+// 🎵 闘技場（アリーナ）BGM 完全統合 ＆ 動的切り替えパッチ
+// ======================================================================
+
+// ① 闘技場ロビーに入場した時のBGM
+const _orig_openArenaReception_bgm = window.openArenaReception;
+window.openArenaReception = function() {
+    if (window.audioManager) window.audioManager.playBGM('arena_lobby');
+    if (_orig_openArenaReception_bgm) _orig_openArenaReception_bgm.apply(this, arguments);
+};
+
+// ② アリーナから完全に退出した時（城の外へ出た時）に育成BGMへ戻す
+const _orig_exitArenaFacility_bgm = window.exitArenaFacility;
+window.exitArenaFacility = function() {
+    if (window.audioManager) window.audioManager.restoreMainBGM();
+    if (_orig_exitArenaFacility_bgm) _orig_exitArenaFacility_bgm.apply(this, arguments);
+};
+
+// ③ WAVE開始時のBGM判定 (雑魚・各種ボス・フレンド戦の切り替え)
+const _orig_startArenaWave_bgm = window.startArenaWave;
+window.startArenaWave = function() {
+    if (_orig_startArenaWave_bgm) _orig_startArenaWave_bgm.apply(this, arguments);
+
+    let state = window.ARENA_STATE;
+    if (!state || !window.audioManager) return;
+
+    let isBossWave = (state.mode === 'boss') || (state.mode === 'normal' && state.wave > 0 && state.wave % 50 === 0);
+
+    if (state.mode === 'friend') {
+        window.audioManager.playBGM('arena_friend');
+    } else if (isBossWave) {
+        // 現在のボスの種族（進化系含む）を取得し、アンダースコアの前（ベース種族）を抽出して曲を決める
+        let bossType = state.bossQueue[state.bossesDefeated] || state.bossQueue[state.bossQueue.length - 1];
+        if (bossType) {
+            let baseType = bossType.split('_')[0]; // 例: "robot_type1" -> "robot"
+            window.audioManager.playBGM('arena_' + baseType);
+        } else {
+            window.audioManager.playBGM('arena_robot'); // 万が一のセーフティ
+        }
+    } else {
+        window.audioManager.playBGM('arena_enemy');
+    }
+};
+
+// ④ 休憩画面 (WAVEクリア後のインターバル) のBGM
+const _orig_showArenaInterval_bgm = window.showArenaInterval;
+window.showArenaInterval = function() {
+    if (window.audioManager) window.audioManager.playBGM('arena_rest');
+    if (_orig_showArenaInterval_bgm) _orig_showArenaInterval_bgm.apply(this, arguments);
+};
+
+// ⑤ 全滅・棄権画面のBGM
+const _orig_endArena_bgm = window.endArena;
+window.endArena = function(isGiveUp) {
+    // 棄権時はロビーに戻るのでロビーBGM、全滅時は敗北BGMを鳴らす
+    if (window.audioManager) {
+        window.audioManager.playBGM(isGiveUp ? 'arena_lobby' : 'arena_lose');
+    }
+    if (_orig_endArena_bgm) _orig_endArena_bgm.apply(this, arguments);
+};
+
+// ⑥ 勝敗リザルト (フレンド勝利・完全制覇・フレンド敗北) のBGM
+// UIが動的に生成されるため、画面に特定のテキストが出現した瞬間にBGMを鳴らすスマートなハック
+if (!window._arenaResultObserver) {
+    window._arenaResultObserver = new MutationObserver((mutations) => {
+        mutations.forEach(mutation => {
+            mutation.addedNodes.forEach(node => {
+                if (node.tagName === 'DIV' && node.innerHTML) {
+                    if (node.innerHTML.includes('🤝 フレンドバトル 勝利！') || node.innerHTML.includes('🏆 闘技場 完全制覇！')) {
+                        if (window.audioManager) window.audioManager.playBGM('arena_victory');
+                    } else if (node.innerHTML.includes('🤝 フレンドバトル 敗北...')) {
+                        if (window.audioManager) window.audioManager.playBGM('arena_lose');
+                    }
+                }
+            });
+        });
+    });
+    // 画面（body）の変更を常時監視
+    window._arenaResultObserver.observe(document.body, { childList: true });
+}

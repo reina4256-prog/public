@@ -855,3 +855,57 @@ function applyInitialPet(skinKey) {
         aiPet.discoveredMonsters.push(skinKey);
     }
 }
+
+// ======================================================================
+// 🎵 闘技場（アリーナ）BGM 一括登録＆音楽館対応パッチ
+// ======================================================================
+if (window.audioManager) {
+    // 1. ファイルとエイリアスの紐付け
+    const arenaBGMs = {
+        'arena_lobby': 'bgm_arena_lobby.mp3',
+        'arena_enemy': 'bgm_arena_enemy.mp3',
+        'arena_rest': 'bgm_arena_rest.mp3',
+        'arena_lose': 'bgm_arena_lose.mp3',
+        'arena_friend': 'bgm_arena_friend.mp3',
+        'arena_victory': 'bgm_arena_victory.mp3',
+        
+        // ボス戦用（種族別）
+        'arena_robot': 'bgm_arena_robot.mp3',
+        'arena_spirit': 'bgm_arena_spirit.mp3',
+        'arena_magician': 'bgm_arena_magician.mp3',
+        'arena_stone': 'bgm_arena_stone.mp3',
+        'arena_seed': 'bgm_arena_seed.mp3',
+        'arena_balloon': 'bgm_arena_balloon.mp3',
+        'arena_ghost': 'bgm_arena_ghost.mp3',
+        'arena_beetle': 'bgm_arena_beetle.mp3',
+        'arena_bird': 'bgm_arena_bird.mp3',
+        'arena_machine': 'bgm_arena_machine.mp3',
+        'arena_dragon': 'bgm_arena_dragon.mp3'
+    };
+
+    // 既存のリストに統合
+    if (!window.audioManager.bgmList) window.audioManager.bgmList = {};
+    Object.assign(window.audioManager.bgmList, arenaBGMs);
+
+    // 2. 音楽館 (Music Hall) 用の曲名・フレーバーテキスト登録
+    if (!window.audioManager.specialTracks) window.audioManager.specialTracks = {};
+    Object.assign(window.audioManager.specialTracks, {
+        'arena_lobby': '闘技場 - 闘志の集う場所',
+        'arena_enemy': '闘技場 - 名もなき挑戦者',
+        'arena_rest': '闘技場 - 束の間の休息',
+        'arena_lose': '闘技場 - 崩れ落ちる野望',
+        'arena_friend': '闘技場 - 好敵手との激突',
+        'arena_victory': '闘技場 - 栄光の勝者',
+        'arena_robot': '闘技場 - 暴走する機巧',
+        'arena_spirit': '闘技場 - 神威の執行者',
+        'arena_magician': '闘技場 - 狂気の魔導',
+        'arena_stone': '闘技場 - 迫り来る巨岩',
+        'arena_seed': '闘技場 - 荒ぶる大自然',
+        'arena_balloon': '闘技場 - 狂騒の悪夢',
+        'arena_ghost': '闘技場 - 怨念の狂舞',
+        'arena_beetle': '闘技場 - 鋼の重戦車',
+        'arena_bird': '闘技場 - 疾風の暴君',
+        'arena_machine': '闘技場 - 狂乱の歯車',
+        'arena_dragon': '闘技場 - 伝説の逆鱗'
+    });
+}

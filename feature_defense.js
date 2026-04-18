@@ -1998,3 +1998,148 @@ setTimeout(() => {
     // デバッグメニューを開いた時に一度リストを生成
     setTimeout(window.refreshDebugFacilities, 500);
 }, 2000);
+
+// ======================================================================
+// 🛡️ 襲撃イベント発生＆進行ブロック 完全防弾パッチ
+// ======================================================================
+
+// 1. 現在が「完全に野外で自由行動中」であるかを判定する最強のチェッカー
+window.isFreeExploring = function() {
+    // モードが play または grazing 以外ならNG (ダンジョンや開発モード等)
+    if (typeof window.currentMode !== 'undefined' && window.currentMode !== 'play' && window.currentMode !== 'grazing') return false;
+    
+    // AIが屋内にいる（カジノやお店などに入っている）ならNG
+    if (window.aiPet && window.aiPet.isIndoors) return false;
+
+    // 画面を覆い隠す巨大なUIが開いているならNG
+    const blockingUIs = [
+        'tcg-battle-ui',
+        'tcg-deck-builder',
+        'casino-lobby-ui',
+        'tcg-market-ui',
+        'tcg-shop-ui',
+        'arena-reception-ui',
+        'arena-battle-ui',
+        'arena-friend-select-ui',
+        'arena-interval-ui'
+    ];
+    for (let id of blockingUIs) {
+        let el = document.getElementById(id);
+        // display が none でも空文字（初期状態）でもない場合＝表示されている
+        if (el && el.style.display !== 'none' && el.style.display !== '') return false;
+    }
+
+    return true; // すべてクリアなら自由行動中！
+};
+
+// 2. 襲撃モニターの完全上書き
+window.startDefenseMonitor = function() {
+    // 既存のタイマーがあれば消す
+    if (window.DEFENSE_STATE && window.DEFENSE_STATE._monitorTimer) {
+        clearInterval(window.DEFENSE_STATE._monitorTimer);
+    }
+    
+    let timerId = setInterval(() => {
+        if (!window.DEFENSE_STATE) return;
+        // デバッグで襲撃OFFならスキップ
+        if (window.DEFENSE_STATE.noAttack) return;
+        // 既に襲撃中・防衛戦中ならスキップ
+        if (window.DEFENSE_STATE.isActive || window.DEFENSE_STATE.isEmergency) return;
+        
+        // ★追加：自由行動中でなければ襲撃は発生させない！！
+        if (!window.isFreeExploring()) return;
+
+        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+        let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
+        if (hasCastle && Math.random() < window.DEFENSE_CONFIG.triggerChance) window.triggerEmergency();
+    }, 60000); 
+    
+    if (window.DEFENSE_STATE) window.DEFENSE_STATE._monitorTimer = timerId;
+};
+
+// 3. 襲撃イベント本体の完全上書き
+window.triggerEmergency = function() {
+    if (window.DEFENSE_STATE.isEmergency) return;
+    
+    // ★念のための追加：ここでも自由行動中でなければ弾く
+    if (!window.isFreeExploring()) return;
+
+    window.DEFENSE_STATE.isEmergency = true;
+
+    if (window.audioManager) {
+        window.audioManager.playBGM('defense_start');
+    }
+    
+    let marquee = document.getElementById('emergency-marquee');
+    if (!marquee) {
+        marquee = document.createElement('div'); marquee.id = 'emergency-marquee';
+        marquee.style.cssText = `position:fixed; top:60px; left:0; width:100vw; background:rgba(255,0,0,0.85); color:white; font-size:24px; font-weight:bold; padding:10px 0; z-index:40000; overflow:hidden; white-space:nowrap; border-top:2px solid #FFEB3B; border-bottom:2px solid #FFEB3B; box-shadow:0 0 20px red; pointer-events:none;`;
+        let style = document.createElement('style'); style.innerHTML = `@keyframes alert-marquee { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }`;
+        document.head.appendChild(style); document.body.appendChild(marquee);
+    }
+    marquee.innerHTML = `<div style="display:inline-block; padding-left:20px; animation:alert-marquee 12s linear infinite;">🚨 【緊急防衛クエスト】島に魔物が接近中！「王城」へ向かい迎撃せよ！！（放置すると施設が破壊されます） 🚨</div>`;
+    marquee.style.display = 'block';
+
+    window.DEFENSE_STATE.facilities = [];
+    let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+    let castleAsset = Object.values(currentAssets).find(a => a && a.type === 'castle');
+    let cx = 10; let cy = 6; 
+
+    Object.values(currentAssets).forEach(a => {
+        if (a) {
+            if (a === castleAsset) { a.gridX = cx; a.gridY = cy; } 
+            else if (castleAsset) {
+                let diffPx = a.dx - castleAsset.dx; let diffPy = a.dy - castleAsset.dy;
+                let dGy = Math.round(diffPy / 25); let oddOffset = (dGy % 2 !== 0) ? 25 : 0;
+                let dGx = Math.round((diffPx - oddOffset) / 50);
+                a.gridX = cx + dGx; a.gridY = cy + dGy;
+            }
+        }
+    });
+
+    Object.keys(currentAssets).forEach(key => {
+        let a = currentAssets[key];
+        let validTypes = Object.keys(window.DEFENSE_CONFIG.facilities);
+        if (a && validTypes.includes(a.type)) {
+            let conf = window.DEFENSE_CONFIG.facilities[a.type];
+            window.DEFENSE_STATE.facilities.push({ id: key, type: a.type, name: conf.name, team: 'facility', gridX: a.gridX, gridY: a.gridY, hp: conf.maxHp, maxHp: conf.maxHp });
+        }
+    });
+
+    if (window.DEFENSE_STATE.emergencyTimer) clearInterval(window.DEFENSE_STATE.emergencyTimer);
+    
+    window.DEFENSE_STATE.emergencyTimer = setInterval(() => {
+        // ★追加：放置ダメージの進行も、自由行動中でなければストップ（時間停止）させる！
+        if (!window.isFreeExploring()) return;
+
+        if (window.DEFENSE_STATE.isEmergency && !window.DEFENSE_STATE.isActive) {
+            let targetFac = window.DEFENSE_STATE.facilities.find(f => f.hp > 0 && f.type !== 'castle'); 
+            if (!targetFac) targetFac = window.DEFENSE_STATE.facilities.find(f => f.hp > 0);
+            
+            if (targetFac) {
+                targetFac.hp -= 50; 
+                let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+                if (currentAssets[targetFac.id]) currentAssets[targetFac.id].hp = targetFac.hp;
+
+                if (typeof floatingTexts !== 'undefined') {
+                    let pos = window.getGridPixelPos(targetFac.gridX, targetFac.gridY);
+                    floatingTexts.push({ text: `-50`, x: pos.x, y: pos.y - 50, color: "#ff5252", life: 60, dy: -1 });
+                }
+                
+                if (targetFac.hp <= 0) {
+                    if (targetFac.type === 'castle') {
+                        clearInterval(window.DEFENSE_STATE.emergencyTimer);
+                        if (window.audioManager) { window.audioManager.stopBGM(); }
+                        let marquee = document.getElementById('emergency-marquee');
+                        if (marquee) marquee.style.display = 'none'; 
+                        window.DEFENSE_STATE.isEmergency = false;
+                        alert("防衛を放置したため、王城が陥落してしまいました..."); window.executeAbandon(); 
+                    } else {
+                        let delAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+                        if (delAssets[targetFac.id]) delete delAssets[targetFac.id];
+                    }
+                }
+            }
+        }
+    }, 30000); 
+};
