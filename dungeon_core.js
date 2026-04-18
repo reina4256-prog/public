@@ -682,3 +682,127 @@ if (typeof window._originalOpenDungeonUI === 'undefined' && typeof window.openDu
         window._originalOpenDungeonUI(dungeonType, startFloor);
     };
 }
+
+// ======================================================================
+// 🎵 ダンジョン（ローグライク）BGM 完全統合 ＆ 重複再生防止パッチ
+// ======================================================================
+
+// ① BGMの選曲ロジック（ダンジョンの種類と階層の深さからBGMを決定）
+window.getDungeonBGM = function(mapType, floor) {
+    let phase = 1;
+    if (floor >= 70) phase = 3;
+    else if (floor >= 30) phase = 2;
+
+    let baseName = mapType === 'crystal' ? 'dungeon_crystal_' : 'dungeon_skull_';
+    return baseName + phase; 
+};
+
+// ② ダンジョン突入時（フロア生成時）のBGM切り替えフック
+const _orig_openDungeonUI_bgm = window.openDungeonUI;
+window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
+    if (_orig_openDungeonUI_bgm) _orig_openDungeonUI_bgm.apply(this, arguments);
+
+    if (window.audioManager && window.DUNGEON_STATE) {
+        let targetBGM = window.getDungeonBGM(window.DUNGEON_STATE.mapType, window.DUNGEON_STATE.floor);
+        // ★修正：二重再生を防ぐため、システムに「今からこれを鳴らす」と記憶させる
+        window.DUNGEON_STATE._lastRequestedBGM = targetBGM;
+        window.audioManager.playBGM(targetBGM);
+    }
+};
+
+// ③ 階段を降りた（フロアが切り替わった）時のBGM更新チェック
+const _orig_updateDungeonUI_bgm = window.updateDungeonUI;
+window.updateDungeonUI = function() {
+    if (_orig_updateDungeonUI_bgm) _orig_updateDungeonUI_bgm.apply(this, arguments);
+
+    if (!window.DUNGEON_STATE || !window.DUNGEON_STATE.active || !window.audioManager) return;
+
+    let targetBGM = window.getDungeonBGM(window.DUNGEON_STATE.mapType, window.DUNGEON_STATE.floor);
+    const protectedBGMs = ['dungeon_death', 'dungeon_escape', 'dungeon_monsterhouse', 'dungeon_wind'];
+    
+    // ★オーディオマネージャーのラグを考慮し、最後にリクエストしたBGMを正とする
+    let current = window.DUNGEON_STATE._lastRequestedBGM || window.audioManager.currentBGMType;
+
+    // フロア移動直後（ターン数が0の時）は、強制的にイベントBGMフラグを解除して通常曲に戻す
+    if ((window.DUNGEON_STATE.floorTurn || 0) === 0 || (window.DUNGEON_STATE.turnCount || 0) === 0) {
+        if (current === 'dungeon_monsterhouse' || current === 'dungeon_wind') {
+            window.DUNGEON_STATE._lastRequestedBGM = targetBGM;
+            window.audioManager.playBGM(targetBGM);
+            return;
+        }
+    }
+
+    // ★ 現在リクエストされているBGMがターゲットと違い、かつ保護対象のBGMが鳴っていなければ切り替える
+    if (current !== targetBGM && !protectedBGMs.includes(current)) {
+        window.DUNGEON_STATE._lastRequestedBGM = targetBGM;
+        window.audioManager.playBGM(targetBGM);
+    }
+};
+
+// ④ ターン進行中の特殊イベント（モンスターハウス、風の警告、死亡）のフック
+const _orig_addDungeonLog_bgm = window.addDungeonLog;
+window.addDungeonLog = function(msg, color) {
+    if (_orig_addDungeonLog_bgm) _orig_addDungeonLog_bgm.apply(this, arguments);
+    if (!window.audioManager || !window.DUNGEON_STATE) return;
+
+    let triggerBGM = null;
+    if (msg.includes('モンスターハウスだ！！') || msg.includes('魔物の巣窟に迷い込んだ！')) {
+        triggerBGM = 'dungeon_monsterhouse';
+    } else if (msg.includes('どこからか 風が吹いてきた...')) {
+        triggerBGM = 'dungeon_wind';
+    } else if (msg.includes('は倒れてしまった...')) {
+        triggerBGM = 'dungeon_death';
+    }
+
+    // ★ 重複再生防止ロック
+    if (triggerBGM && window.DUNGEON_STATE._lastRequestedBGM !== triggerBGM) {
+        window.DUNGEON_STATE._lastRequestedBGM = triggerBGM;
+        window.audioManager.playBGM(triggerBGM);
+    }
+};
+
+// モンスターハウスの関数が直接呼ばれた場合もBGMを切り替える
+if (typeof window.triggerMonsterHouseEffect !== 'undefined') {
+    const _orig_triggerMonsterHouseEffect_bgm = window.triggerMonsterHouseEffect;
+    window.triggerMonsterHouseEffect = function() {
+        if (window.audioManager && window.DUNGEON_STATE && window.DUNGEON_STATE._lastRequestedBGM !== 'dungeon_monsterhouse') {
+            window.DUNGEON_STATE._lastRequestedBGM = 'dungeon_monsterhouse';
+            window.audioManager.playBGM('dungeon_monsterhouse');
+        }
+        if (_orig_triggerMonsterHouseEffect_bgm) _orig_triggerMonsterHouseEffect_bgm.apply(this, arguments);
+    };
+}
+
+// ⑤ ダンジョンから退出した時の処理（生還BGM と 育成BGMへの復帰）
+const _orig_closeDungeonUI_bgm = window.closeDungeonUI;
+window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
+    if (window.audioManager && window.DUNGEON_STATE) {
+        // 生還した場合（ゲームオーバーではない、または救助された）はクリアBGMを鳴らす
+        let escapeBGM = 'dungeon_escape';
+        if (!isGameOver || isRescued) {
+            if (window.DUNGEON_STATE._lastRequestedBGM !== escapeBGM) {
+                window.DUNGEON_STATE._lastRequestedBGM = escapeBGM;
+                window.audioManager.playBGM(escapeBGM);
+            }
+        }
+
+        // リザルト画面を閉じる際に育成BGMへ戻す
+        setTimeout(() => {
+            const resultUI = document.getElementById('dg-result-ui');
+            if (resultUI) {
+                const buttons = resultUI.querySelectorAll('button');
+                buttons.forEach(btn => {
+                    const oldClick = btn.onclick;
+                    btn.onclick = function(e) {
+                        if (oldClick) oldClick.call(this, e);
+                        if (window.audioManager) window.audioManager.restoreMainBGM();
+                        // 退出時にBGMリクエスト履歴をクリア
+                        if (window.DUNGEON_STATE) window.DUNGEON_STATE._lastRequestedBGM = null;
+                    };
+                });
+            }
+        }, 100);
+    }
+
+    if (_orig_closeDungeonUI_bgm) _orig_closeDungeonUI_bgm.apply(this, arguments);
+};

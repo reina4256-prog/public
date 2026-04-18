@@ -7959,7 +7959,19 @@ window.openMusicHall = function() {
                 'arena_beetle': '闘技場 - 鋼の重戦車',
                 'arena_bird': '闘技場 - 疾風の暴君',
                 'arena_machine': '闘技場 - 狂乱の歯車',
-                'arena_dragon': '闘技場 - 伝説の逆鱗'
+                'arena_dragon': '闘技場 - 伝説の逆鱗',
+
+                // ★追加：ダンジョンのBGM名
+                'dungeon_skull_1': '迷宮 - ドクロの洞窟（浅層）',
+                'dungeon_skull_2': '迷宮 - ドクロの洞窟（中層）',
+                'dungeon_skull_3': '迷宮 - ドクロの洞窟（深層）',
+                'dungeon_crystal_1': '迷宮 - 結晶の鉱脈（浅層）',
+                'dungeon_crystal_2': '迷宮 - 結晶の鉱脈（中層）',
+                'dungeon_crystal_3': '迷宮 - 結晶の鉱脈（深層）',
+                'dungeon_monsterhouse': '迷宮 - モンスターハウス遭遇！',
+                'dungeon_wind': '迷宮 - 死神の足音',
+                'dungeon_escape': '迷宮 - 無事生還',
+                'dungeon_death': '迷宮 - 志半ばで...'
             };
 
             if (specialTracks[type]) {

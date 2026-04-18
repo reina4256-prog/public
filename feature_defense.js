@@ -2000,16 +2000,19 @@ setTimeout(() => {
 }, 2000);
 
 // ======================================================================
-// 🛡️ 襲撃イベント発生＆進行ブロック 完全防弾パッチ
+// 🛡️ 襲撃イベント発生＆進行ブロック 完全防弾パッチ (ダンジョン完全対応版)
 // ======================================================================
 
 // 1. 現在が「完全に野外で自由行動中」であるかを判定する最強のチェッカー
 window.isFreeExploring = function() {
-    // モードが play または grazing 以外ならNG (ダンジョンや開発モード等)
+    // モードが play または grazing 以外ならNG (開発モード等)
     if (typeof window.currentMode !== 'undefined' && window.currentMode !== 'play' && window.currentMode !== 'grazing') return false;
     
     // AIが屋内にいる（カジノやお店などに入っている）ならNG
     if (window.aiPet && window.aiPet.isIndoors) return false;
+
+    // ★追加：ダンジョン探索中なら絶対にNG！
+    if (window.DUNGEON_STATE && window.DUNGEON_STATE.active) return false;
 
     // 画面を覆い隠す巨大なUIが開いているならNG
     const blockingUIs = [
@@ -2021,7 +2024,9 @@ window.isFreeExploring = function() {
         'arena-reception-ui',
         'arena-battle-ui',
         'arena-friend-select-ui',
-        'arena-interval-ui'
+        'arena-interval-ui',
+        'dungeon-main-ui',  // ★追加：ダンジョン画面
+        'dg-result-ui'      // ★追加：ダンジョンのリザルト画面
     ];
     for (let id of blockingUIs) {
         let el = document.getElementById(id);
@@ -2029,7 +2034,7 @@ window.isFreeExploring = function() {
         if (el && el.style.display !== 'none' && el.style.display !== '') return false;
     }
 
-    return true; // すべてクリアなら自由行動中！
+    return true; // すべてクリアなら本当にただの自由行動中！
 };
 
 // 2. 襲撃モニターの完全上書き

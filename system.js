@@ -909,3 +909,38 @@ if (window.audioManager) {
         'arena_dragon': '闘技場 - 伝説の逆鱗'
     });
 }
+
+// ======================================================================
+// 🎵 ダンジョン BGM 一括登録＆音楽館対応パッチ
+// ======================================================================
+if (window.audioManager) {
+    const dungeonBGMs = {
+        'dungeon_skull_1': 'bgm_dungeon_skull_1.mp3',
+        'dungeon_skull_2': 'bgm_dungeon_skull_2.mp3',
+        'dungeon_skull_3': 'bgm_dungeon_skull_3.mp3',
+        'dungeon_crystal_1': 'bgm_dungeon_crystal_1.mp3',
+        'dungeon_crystal_2': 'bgm_dungeon_crystal_2.mp3',
+        'dungeon_crystal_3': 'bgm_dungeon_crystal_3.mp3',
+        'dungeon_monsterhouse': 'bgm_dungeon_monsterhouse.mp3',
+        'dungeon_wind': 'bgm_dungeon_wind.mp3',
+        'dungeon_escape': 'bgm_dungeon_escape.mp3',
+        'dungeon_death': 'bgm_dungeon_death.mp3'
+    };
+
+    if (!window.audioManager.bgmList) window.audioManager.bgmList = {};
+    Object.assign(window.audioManager.bgmList, dungeonBGMs);
+
+    if (!window.audioManager.specialTracks) window.audioManager.specialTracks = {};
+    Object.assign(window.audioManager.specialTracks, {
+        'dungeon_skull_1': '迷宮 - ドクロの洞窟（浅層）',
+        'dungeon_skull_2': '迷宮 - ドクロの洞窟（中層）',
+        'dungeon_skull_3': '迷宮 - ドクロの洞窟（深層）',
+        'dungeon_crystal_1': '迷宮 - 結晶の鉱脈（浅層）',
+        'dungeon_crystal_2': '迷宮 - 結晶の鉱脈（中層）',
+        'dungeon_crystal_3': '迷宮 - 結晶の鉱脈（深層）',
+        'dungeon_monsterhouse': '迷宮 - モンスターハウス遭遇！',
+        'dungeon_wind': '迷宮 - 死神の足音',
+        'dungeon_escape': '迷宮 - 無事生還',
+        'dungeon_death': '迷宮 - 志半ばで...'
+    });
+}
