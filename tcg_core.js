@@ -3588,9 +3588,13 @@ window.saveDeck = function() {
 
 // ★追加：明示的に「閉じる ✖」ボタンを押した時に、カジノロビーに戻るための関数
 window.closeDeckBuilder = function() {
-    document.getElementById('tcg-deck-builder').style.display = 'none';
-    let lobby = document.getElementById('casino-lobby-ui');
-    if (lobby) lobby.style.display = 'flex'; // カジノロビーを再表示する
+    document.getElementById('tcg-deck-builder').style.display = 'none';
+    let lobby = document.getElementById('casino-lobby-ui');
+    if (lobby) {
+        lobby.style.display = 'flex'; // カジノロビーを再表示する
+        // ★追加：ロビーに戻ったので、ロビーBGMを掛け直す
+        if (window.audioManager) window.audioManager.playBGM('card_lobby');
+    }
 };
 
 // ==========================================
@@ -3759,9 +3763,12 @@ window.startBattle = function(enemyData = null) {
                     coinUI.style.opacity = '0';
                     coinUI.style.transition = '0.5s';
                     setTimeout(() => {
-                        coinUI.remove();
-                        
-                        // 初期ドロー (5枚ずつ)
+                        coinUI.remove();
+
+                        // ★追加：バトル開始（通常）BGMを再生
+                        if (window.audioManager) window.audioManager.playBGM('card_main');
+                        
+                        // 初期ドロー (5枚ずつ)
                         let drawCount = 0;
                         
                         // ★仕様変更：初手で必ずコスト1のカードを1枚確保する（手札事故防止マリガン）
@@ -3913,6 +3920,30 @@ window.showCardDetailModal = function(ownerType, index) {
         </div>
     `;
     modal.style.display = 'flex';
+};
+
+// ★新機能：バトル状況に応じたBGMの動的切り替え
+window.updateTCGBattleBGM = function() {
+    if (!window.TCG_BATTLE || !window.audioManager) return;
+    const p = window.TCG_BATTLE.player;
+    const cpu = window.TCG_BATTLE.cpu;
+    
+    // 勝敗が決まっている場合は何もしない（勝利・敗北BGMを優先するため）
+    if (p.hp <= 0 || cpu.hp <= 0) return;
+
+    let targetBGM = 'card_main';
+
+    // チャンスとピンチが同時に条件を達成した場合は、チャンスを優先
+    if (cpu.hp < 50) {
+        targetBGM = 'card_chance';
+    } else if (p.hp < 50) {
+        targetBGM = 'card_pinch';
+    }
+
+    // 現在のBGMタイプと異なる場合のみ切り替えを実行
+    if (window.audioManager.currentBGMType !== targetBGM) {
+        window.audioManager.playBGM(targetBGM);
+    }
 };
 
 window.renderBattleBoard = function() {
@@ -5399,8 +5430,11 @@ if (!window.TCG.deckNames) window.TCG.deckNames = ["デッキ 1", "デッキ 2",
 // ==========================================
 
 window.openDeckBuilder = function() {
-    let builderUI = document.getElementById('tcg-deck-builder');
-    const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
+    // ★追加：デッキ編成BGMを再生
+    if (window.audioManager) window.audioManager.playBGM('card_deck_build');
+
+    let builderUI = document.getElementById('tcg-deck-builder');
+    const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
     
     const uiTitle = isUnlocked ? "🛠️ デッキ編成" : "📖 思い出の整理";
     const uiCountUnit = isUnlocked ? "枚" : "個";
@@ -9918,9 +9952,12 @@ window.finishIntercept = function(targetType, targetIndex) {
 // 3. 盤面描画の修正：敵ターン中に味方のカードが浮き上がるバグを修正
 window._originalRenderBattleBoard_fixAttacker = window._originalRenderBattleBoard_fixAttacker || window.renderBattleBoard;
 window.renderBattleBoard = function() {
-    window._originalRenderBattleBoard_fixAttacker();
+    window._originalRenderBattleBoard_fixAttacker();
 
-    const p = window.TCG_BATTLE.player;
+    // ★追加：描画のたびにBGMの状況（チャンス・ピンチ）を確認
+    window.updateTCGBattleBGM();
+
+    const p = window.TCG_BATTLE.player;
     const cpu = window.TCG_BATTLE.cpu;
     const isEnemyTurn = window.TCG_BATTLE.isEnemyTurn;
 
@@ -11603,12 +11640,16 @@ window.triggerFieldEffects = async function(timing, isPlayerTurn) {
     
     // HP0になった場合のゲームセット判定
     if (p.hp <= 0) {
-        p.hp = 0; window.renderBattleBoard(); window.showBattleMessage("💀 YOU LOSE...\nプレイヤーのHPが0になりました。", true, 5000);
-        setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 3000);
-    } else if (cpu.hp <= 0) {
-        cpu.hp = 0; window.renderBattleBoard(); window.showBattleMessage("🎉 YOU WIN!!\n敵リーダーのHPが0になりました！", false, 5000);
-        setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 3000);
-    }
+        p.hp = 0; 
+        if (window.audioManager) window.audioManager.playBGM('card_lose'); // ★敗北BGM
+        window.renderBattleBoard(); window.showBattleMessage("💀 YOU LOSE...\nプレイヤーのHPが0になりました。", true, 5000);
+        setTimeout(() => { document.getElementById('tcg-battle-ui').style.display = 'none'; if(window.audioManager) window.audioManager.restoreMainBGM(); }, 3000);
+    } else if (cpu.hp <= 0) {
+        cpu.hp = 0; 
+        if (window.audioManager) window.audioManager.playBGM('card_victory'); // ★勝利BGM
+        window.renderBattleBoard(); window.showBattleMessage("🎉 YOU WIN!!\n敵リーダーのHPが0になりました！", false, 5000);
+        setTimeout(() => { document.getElementById('tcg-battle-ui').style.display = 'none'; if(window.audioManager) window.audioManager.restoreMainBGM(); }, 3000);
+    }
 };
 
 // ターン進行の横入りフック（既存の関数を包み込む）
@@ -14971,4 +15012,673 @@ window.renderBattleBoard = function() {
     }, 50);
 
     return ret;
+};
+
+// ======================================================================
+// 🎵 TCG 動的サウンド ＆ 一元化リザルトUI 統合パッチ
+// ======================================================================
+
+// ① カジノ入室時のロビーBGM再生（フック）
+const _orig_openCasino_bgm = window.openCasino;
+window.openCasino = function() {
+    if (_orig_openCasino_bgm) _orig_openCasino_bgm.apply(this, arguments);
+    if (window.audioManager) window.audioManager.playBGM('card_lobby');
+};
+
+// ② ご提示いただいた退出処理（育成BGMへの復帰を追加）
+window.exitCasino = function() {
+    const casinoUI = document.getElementById('casino-lobby-ui');
+    if (casinoUI) casinoUI.style.display = 'none';
+    
+    // ★ BGMを育成モードの曲に戻す
+    if (window.audioManager) window.audioManager.restoreMainBGM();
+    
+    if (window.aiPet && window.aiPet.indoorTarget && window.aiPet.indoorTarget.type === 'casino') {
+        window.aiPet.actionState = 'exiting';
+        window.aiPet.isIndoors = false;
+        window.aiPet.interactionTarget = null;
+        window.aiPet.indoorTarget = null;
+        window.aiPet.visualAction = null;
+        window.aiPet.message = "カジノから出たよ！";
+        window.aiPet.messageTimer = 120;
+        
+        if (window.aiPet.schedule && window.aiPet.schedule.length > 0) {
+            window.aiPet.schedule.shift(); 
+        }
+        if (typeof window.updateScheduleList === 'function') {
+            window.updateScheduleList();
+        }
+    }
+};
+
+// ③ デッキ編成画面のBGM再生
+const _orig_openDeckBuilder_bgm = window.openDeckBuilder;
+window.openDeckBuilder = function() {
+    if (window.audioManager) window.audioManager.playBGM('card_deck_build');
+    if (_orig_openDeckBuilder_bgm) _orig_openDeckBuilder_bgm.apply(this, arguments);
+};
+
+// ④ バトル開始時のBGM再生とフラグ初期化
+const _orig_startBattle_bgm = window.startBattle;
+// ======================================================================
+// 🎵 TCG 進行・BGM制御 修正パッチ (デッキ選択バグ修正版)
+// ======================================================================
+
+// ④ バトル開始処理の修正（BGMのタイミングとキャンセルの遷移）
+window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
+    if (selectedDeckIndex === -1) {
+        // --- 1. デッキ選択画面（モーダル）を表示するフェーズ ---
+        let modal = document.getElementById('tcg-deck-select-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'tcg-deck-select-modal';
+            modal.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:55000; display:flex; justify-content:center; align-items:center;`;
+            document.body.appendChild(modal);
+        }
+        
+        window._tempEnemyData = enemyData;
+        
+        let html = `
+            <div style="background:#222; border:3px solid #4CAF50; border-radius:12px; padding:30px; width:550px; text-align:center; color:white; font-family:sans-serif; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+                <h2 style="color:#4CAF50; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🛡️ 使用するデッキを選択</h2>
+                <div style="display:flex; flex-direction:column; gap:15px; margin:20px 0;">
+        `;
+        
+        for (let i = 0; i < 3; i++) {
+            let deck = window.TCG.decks[i] || [];
+            let isValid = deck.length >= 60;
+            let dName = window.TCG.deckNames ? window.TCG.deckNames[i] : `デッキ ${i + 1}`;
+            let bg = isValid ? '#333' : '#222';
+            let color = isValid ? '#FFF' : '#666';
+            
+            html += `
+                <div style="display:flex; gap:10px;">
+                    <button onclick="if(${isValid}) { document.getElementById('tcg-deck-select-modal').style.display='none'; window.startBattle(window._tempEnemyData, ${i}); }" 
+                            style="flex:1; padding:15px; background:${bg}; color:${color}; border:2px solid ${isValid ? '#4CAF50' : '#444'}; border-radius:8px; font-size:18px; font-weight:bold; cursor:${isValid ? 'pointer' : 'not-allowed'}; transition:0.2s;">
+                        ${dName} ${isValid ? `(${deck.length}枚)` : '(未編成)'}
+                    </button>
+                    <button onclick="window.showDeckDetailModal(${i})" style="padding:15px 20px; background:#2196F3; color:#fff; border:2px solid #1976D2; border-radius:8px; font-weight:bold; cursor:pointer;">詳細 🔍</button>
+                </div>
+            `;
+        }
+    
+        html += `
+                </div>
+                <button onclick="window.cancelDeckSelection()" style="padding:10px 30px; font-size:16px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer;">キャンセル</button>
+            </div>
+        `;
+        
+        modal.innerHTML = html;
+        modal.style.display = 'flex';
+        
+        // ★ デッキ選択中はBGMを切り替えない（ロビーBGMを継続させるため、ここで return）
+        return;
+    }
+    
+    // --- 2. デッキが選ばれ、実際にバトルを開始するフェーズ ---
+    // ここで初めてBGMを切り替える
+    if (window.audioManager) {
+        window.audioManager.playBGM('card_main');
+    }
+
+    // 既存のバトル初期化ロジックを実行
+    const p = window.TCG_BATTLE ? window.TCG_BATTLE.player : null;
+    if (p) {
+        // デッキの入れ替えなどの既存処理...
+        let tempDeck0 = window.TCG.decks[0];
+        window.TCG.decks[0] = window.TCG.decks[selectedDeckIndex];
+        
+        // 元のバトル開始処理（もし _coreStartBattle2 などがあれば）を呼ぶ
+        if (window._coreStartBattle2) window._coreStartBattle2(enemyData);
+        
+        window.TCG.decks[0] = tempDeck0; // 戻しておく
+        if (window.TCG_BATTLE) {
+            window.TCG_BATTLE.isEnded = false;
+            window.TCG_BATTLE.battleLog = [];
+        }
+    }
+};
+
+// ★新機能：デッキ選択をキャンセルしてロビーに戻る
+window.cancelDeckSelection = function() {
+    // 選択画面を閉じる
+    let modal = document.getElementById('tcg-deck-select-modal');
+    if (modal) modal.style.display = 'none';
+
+    // カジノロビーを再表示
+    let lobby = document.getElementById('casino-lobby-ui');
+    if (lobby) {
+        lobby.style.display = 'flex';
+        // BGMを念のためロビーに戻す（継続しているはずですが、確実にするため）
+        if (window.audioManager) window.audioManager.playBGM('card_lobby');
+    }
+};
+
+// ⑤ 盤面更新時の状況監視（ピンチ・チャンス・勝敗一元管理）
+const _orig_renderBattleBoard_bgm = window.renderBattleBoard;
+window.renderBattleBoard = function() {
+    if (_orig_renderBattleBoard_bgm) _orig_renderBattleBoard_bgm.apply(this, arguments);
+
+    if (!window.TCG_BATTLE || window.TCG_BATTLE.isEnded) return;
+
+    const p = window.TCG_BATTLE.player;
+    const cpu = window.TCG_BATTLE.cpu;
+
+    // 1. 動的BGM（ピンチ・チャンス）の切り替え
+    if (p.hp > 0 && cpu.hp > 0 && window.audioManager) {
+        let targetBGM = 'card_main';
+        if (cpu.hp < 50) targetBGM = 'card_chance'; // チャンス優先
+        else if (p.hp < 50) targetBGM = 'card_pinch';
+
+        if (window.audioManager.currentBGMType !== targetBGM) {
+            window.audioManager.playBGM(targetBGM);
+        }
+    }
+
+    // 2. 勝敗の一元監視とリザルトUIの呼び出し
+    if (p.hp <= 0) {
+        window.endTCGBattle(false);
+    } else if (cpu.hp <= 0) {
+        window.endTCGBattle(true);
+    }
+};
+
+// ⑥ 独立したリザルトUIの生成とBGM再生
+window.endTCGBattle = function(isWin) {
+    if (window.TCG_BATTLE.isEnded) return;
+    window.TCG_BATTLE.isEnded = true;
+
+    // ★ 勝利/敗北BGMの再生
+    if (window.audioManager) {
+        window.audioManager.playBGM(isWin ? 'card_victory' : 'card_lose');
+    }
+
+    // ★修正：ID変更ハックはBGM誤作動の原因だったため廃止！
+    // 代わりに、CSSの !important を使って、古いタイマーによる画面消去を強制ブロックします。
+    let battleUI = document.getElementById('tcg-battle-ui');
+    if (battleUI) {
+        battleUI.style.setProperty('display', 'flex', 'important');
+    }
+
+    // 1.5秒後（最後のダメージ演出を見せた後）にリザルトUIをポップアップ
+    setTimeout(() => {
+        let resultUI = document.createElement('div');
+        resultUI.id = 'tcg-result-ui';
+        resultUI.style.cssText = `
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.85); z-index: 70000;
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; transition: opacity 0.5s ease;
+        `;
+        
+        let titleColor = isWin ? '#FFD700' : '#f44336';
+        let titleText = isWin ? '🎉 YOU WIN!!' : '💀 YOU LOSE...';
+        let subText = isWin ? '見事、相手のHPを0にしました！' : '無念...プレイヤーのHPが尽きました。';
+
+        resultUI.innerHTML = `
+            <div style="background: #2a2a2a; border: 4px solid ${titleColor}; border-radius: 12px; padding: 40px; width: 500px; text-align: center; color: white; font-family: sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform: scale(0.9); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+                <h1 style="color: ${titleColor}; font-size: 40px; margin-top: 0; text-shadow: 0 0 20px ${titleColor};">${titleText}</h1>
+                <p style="font-size: 18px; color: #ddd; margin-bottom: 40px;">${subText}</p>
+                
+                <div style="display: flex; flex-direction: column; gap: 15px;">
+                    <button onclick="window.closeTCGBattle('lobby')" style="padding: 15px; font-size: 18px; font-weight: bold; background: #2196F3; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🎰 カジノロビーに戻る
+                    </button>
+                    <button onclick="window.closeTCGBattle('field')" style="padding: 15px; font-size: 18px; font-weight: bold; background: #4CAF50; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🏝️ 島（育成画面）に戻る
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(resultUI);
+        
+        setTimeout(() => {
+            resultUI.style.opacity = '1';
+            resultUI.firstElementChild.style.transform = 'scale(1)';
+        }, 50);
+
+    }, 1500); 
+};
+
+// ⑦ リザルト画面からの遷移処理
+window.closeTCGBattle = function(destination) {
+    let resultUI = document.getElementById('tcg-result-ui');
+    if (resultUI) resultUI.remove();
+
+    // ★修正：バトル画面を閉じる（!important 指定を解除して確実に消す）
+    let battleUI = document.getElementById('tcg-battle-ui');
+    if (battleUI) {
+        battleUI.style.removeProperty('display');
+        battleUI.style.display = 'none';
+    }
+
+    if (destination === 'lobby') {
+        // カジノロビーに戻る
+        if (window.audioManager) window.audioManager.playBGM('card_lobby');
+        let casinoUI = document.getElementById('casino-lobby-ui');
+        if (casinoUI) casinoUI.style.display = 'flex';
+    } else {
+        // 島に戻る (退出処理を呼ぶことでメインBGMに戻り、AIも行動を再開する)
+        window.exitCasino(); 
+    }
+};
+
+// ⑧ （おまけ）音楽館の曲名登録
+if (window.audioManager && typeof window.openMusicHall !== 'undefined') {
+    const _orig_openMusicHall = window.openMusicHall;
+    window.openMusicHall = function() {
+        // もし specialTracks が定義されている場所があれば、そこに曲名を追加しておくための備忘録
+        // 実際には system.js 側に書き込まれているため、ここでは何もしなくてOKです
+        _orig_openMusicHall.apply(this, arguments);
+    };
+}
+
+// ======================================================================
+// 🛠️ TCG デッキ選択画面のBGM消失 ＆ 表示バグ 完全修復パッチ
+// ======================================================================
+
+// 大元のバトル開始関数を安全に保護して退避
+if (!window._ultimate_coreStartBattle) {
+    window._ultimate_coreStartBattle = window._coreStartBattle2 || window.startBattle;
+}
+
+window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
+    let lobby = document.getElementById('casino-lobby-ui');
+    
+    // --- 1. デッキ選択フェーズ ---
+    if (selectedDeckIndex === -1) {
+        // ★重要：デッキ選択画面では、カジノロビーを消さずに裏に残しておく！
+        // これにより、システムが「外に出た」と誤認して育成BGMを鳴らすのを防ぎます。
+        if (lobby) lobby.style.display = 'flex'; 
+        
+        let modal = document.getElementById('tcg-deck-select-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'tcg-deck-select-modal';
+            modal.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:55000; display:flex; justify-content:center; align-items:center;`;
+            document.body.appendChild(modal);
+        }
+        
+        window._tempEnemyData = enemyData;
+        
+        let html = `
+            <div style="background:#222; border:3px solid #4CAF50; border-radius:12px; padding:30px; width:550px; text-align:center; color:white; font-family:sans-serif; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+                <h2 style="color:#4CAF50; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🛡️ 使用するデッキを選択</h2>
+                <div style="display:flex; flex-direction:column; gap:15px; margin:20px 0;">
+        `;
+        
+        for (let i = 0; i < 3; i++) {
+            let deck = window.TCG.decks[i] || [];
+            let isValid = deck.length >= 60;
+            let dName = window.TCG.deckNames ? window.TCG.deckNames[i] : `デッキ ${i + 1}`;
+            let bg = isValid ? '#333' : '#222';
+            let color = isValid ? '#FFF' : '#666';
+            
+            html += `
+                <div style="display:flex; gap:10px;">
+                    <button onclick="if(${isValid}) { window.startBattle(window._tempEnemyData, ${i}); }" 
+                            style="flex:1; padding:15px; background:${bg}; color:${color}; border:2px solid ${isValid ? '#4CAF50' : '#444'}; border-radius:8px; font-size:18px; font-weight:bold; cursor:${isValid ? 'pointer' : 'not-allowed'}; transition:0.2s;">
+                        ${dName} ${isValid ? `(${deck.length}枚)` : '(未編成)'}
+                    </button>
+                    <button onclick="window.showDeckDetailModal(${i})" style="padding:15px 20px; background:#2196F3; color:#fff; border:2px solid #1976D2; border-radius:8px; font-weight:bold; cursor:pointer;">詳細 🔍</button>
+                </div>
+            `;
+        }
+    
+        // ★修正：キャンセルボタン専用の関数を呼ぶように変更
+        html += `
+                </div>
+                <button onclick="window.cancelDeckSelection()" style="padding:10px 30px; font-size:16px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer;">キャンセル</button>
+            </div>
+        `;
+        
+        modal.innerHTML = html;
+        modal.style.display = 'flex';
+        
+        // ロビーBGMを強制維持
+        if (window.audioManager) window.audioManager.playBGM('card_lobby');
+        return;
+    }
+    
+    // --- 2. バトル開始フェーズ ---
+    // ★ デッキが選ばれ、本当にバトルが始まる瞬間に初めてカジノロビーと選択画面を消す！
+    if (lobby) lobby.style.display = 'none'; 
+    
+    let modal = document.getElementById('tcg-deck-select-modal');
+    if (modal) modal.style.display = 'none';
+    
+    // TCGバトル用BGM開始
+    if (window.audioManager) window.audioManager.playBGM('card_main');
+    
+    // デッキの入れ替え
+    let tempDeck0 = window.TCG.decks[0];
+    let tempCurrentIdx = window.TCG.currentDeckIndex;
+    window.TCG.currentDeckIndex = selectedDeckIndex;
+    window.TCG.decks[0] = window.TCG.decks[selectedDeckIndex];
+    
+    // バトル情報の初期化
+    if (!window.TCG_BATTLE) window.TCG_BATTLE = {};
+    window.TCG_BATTLE.battleLog = [];
+    window.TCG_BATTLE.isEnded = false;
+    
+    // 大元のバトル開始関数を呼ぶ
+    window._ultimate_coreStartBattle(enemyData, selectedDeckIndex);
+    
+    // 入れ替えたデッキを元に戻す
+    window.TCG.currentDeckIndex = tempCurrentIdx;
+    window.TCG.decks[0] = tempDeck0;
+};
+
+// ★新設：キャンセルボタンを押した時の安全な処理
+window.cancelDeckSelection = function() {
+    let modal = document.getElementById('tcg-deck-select-modal');
+    if (modal) modal.style.display = 'none';
+    
+    // カジノロビーを確実に表示状態にし、BGMもロビー用を維持する
+    let lobby = document.getElementById('casino-lobby-ui');
+    if (lobby) lobby.style.display = 'flex';
+    
+    if (window.audioManager) window.audioManager.playBGM('card_lobby');
+};
+
+// ======================================================================
+// 🛠️ TCG デッキ選択・BGM・表示バグ 最終修復パッチ
+// ======================================================================
+
+// 1. カジノロビーを開く処理を上書き（ボタンを押してもロビーを消さないようにする！）
+const _orig_openCasino_Final = window.openCasino;
+window.openCasino = function() {
+    // 既存のオープン処理を実行
+    if (_orig_openCasino_Final) _orig_openCasino_Final.apply(this, arguments);
+
+    let casinoUI = document.getElementById('casino-lobby-ui');
+    if (casinoUI) {
+        // ロビーのボタンから「display='none'」を削除して、画面が消えないようにするハック
+        casinoUI.innerHTML = casinoUI.innerHTML.replace(/document\.getElementById\('casino-lobby-ui'\)\.style\.display='none';\s*/g, '');
+    }
+};
+
+// 2. キャンセル時の処理（モーダルを消すだけ。ロビーは裏にあるのでそのまま表示される）
+window.cancelDeckSelection = function() {
+    let modal = document.getElementById('tcg-deck-select-modal');
+    if (modal) modal.style.display = 'none';
+};
+
+// 3. バトル開始処理の「完全版」で全てを上書きし、過去のバグを吹き飛ばす！
+window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
+    let lobby = document.getElementById('casino-lobby-ui');
+    
+    // --- 【フェーズ1】デッキ選択画面の表示 ---
+    if (selectedDeckIndex === -1) {
+        // ★ ここではロビーも消さないし、BGMも変えない！
+        let modal = document.getElementById('tcg-deck-select-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'tcg-deck-select-modal';
+            modal.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:55000; display:flex; justify-content:center; align-items:center;`;
+            document.body.appendChild(modal);
+        }
+        window._tempEnemyData = enemyData;
+        let html = `
+            <div style="background:#222; border:3px solid #4CAF50; border-radius:12px; padding:30px; width:550px; text-align:center; color:white; font-family:sans-serif; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+                <h2 style="color:#4CAF50; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">🛡️ 使用するデッキを選択</h2>
+                <div style="display:flex; flex-direction:column; gap:15px; margin:20px 0;">
+        `;
+        for (let i = 0; i < 3; i++) {
+            let deck = window.TCG.decks[i] || [];
+            let isValid = deck.length >= 60;
+            let dName = window.TCG.deckNames ? window.TCG.deckNames[i] : `デッキ ${i + 1}`;
+            let bg = isValid ? '#333' : '#222';
+            let color = isValid ? '#FFF' : '#666';
+            let cursor = isValid ? 'pointer' : 'not-allowed';
+            html += `
+                <div style="display:flex; gap:10px;">
+                    <button onclick="if(${isValid}) { document.getElementById('tcg-deck-select-modal').style.display='none'; window.startBattle(window._tempEnemyData, ${i}); }" 
+                            style="flex:1; padding:15px; background:${bg}; color:${color}; border:2px solid ${isValid ? '#4CAF50' : '#444'}; border-radius:8px; font-size:18px; font-weight:bold; cursor:${cursor}; transition:0.2s;"
+                            onmouseover="if(${isValid}) this.style.transform='scale(1.02)'" onmouseout="if(${isValid}) this.style.transform='scale(1)'">
+                        ${dName} ${isValid ? `(${deck.length}枚)` : '(未編成)'}
+                    </button>
+                    <button onclick="window.showDeckDetailModal(${i})" style="padding:15px 20px; background:#2196F3; color:#fff; border:2px solid #1976D2; border-radius:8px; font-weight:bold; cursor:pointer; transition:0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">詳細 🔍</button>
+                </div>
+            `;
+        }
+        html += `
+                </div>
+                <button onclick="window.cancelDeckSelection()" style="padding:10px 30px; font-size:16px; background:#555; color:white; border:none; border-radius:8px; cursor:pointer;">キャンセル</button>
+            </div>
+        `;
+        modal.innerHTML = html;
+        modal.style.display = 'flex';
+        return; 
+    }
+    
+    // --- 【フェーズ2】実際のバトル開始 ---
+    // ★ デッキが決まった「今」、初めてロビーを消してBGMを鳴らす！
+    if (lobby) lobby.style.display = 'none';
+    if (window.audioManager) window.audioManager.playBGM('card_main');
+
+    let deckIdx = selectedDeckIndex;
+    if (!window.TCG.decks[deckIdx] || window.TCG.decks[deckIdx].length < 60) return;
+
+    window.TCG_BATTLE = {
+        player: { hp: 200, maxMana: 0, currentMana: 0, deck: [], hand: [], field: [], actionUsed: false, graveyard: [] },
+        cpu:    { hp: 200, maxMana: 0, currentMana: 0, deck: [], hand: [], field: [], actionUsed: false, graveyard: [] },
+        turn: 1, selectedAttackerIndex: -1, selectedHandCardIndex: -1, _skipDefendHint: false,
+        currentField: null, targetingHandIndex: -1,
+        firstPlayer: 'player', isEnemyTurn: false, isAnimating: true, isAuto: false,
+        battleLog: [], isEnded: false
+    };
+    const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+
+    let battleUI = document.getElementById('tcg-battle-ui');
+    if (!battleUI) {
+        battleUI = document.createElement('div');
+        battleUI.id = 'tcg-battle-ui';
+        battleUI.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: #2a2a2a; z-index: 20000; display: flex; flex-direction: column; font-family: sans-serif; color: white; overflow: hidden;`;
+        document.body.appendChild(battleUI);
+    }
+
+    // デッキ構築・シャッフル
+    p.deck = window.TCG.decks[deckIdx].map(uid => {
+        const originalCard = window.TCG.myCollection.find(c => c.uid === uid);
+        if (!originalCard) return null;
+        let cardCopy = JSON.parse(JSON.stringify(originalCard));
+        let master = window.TCG_MASTER[cardCopy.masterId];
+        if (master) { cardCopy.hp = Math.max(cardCopy.hp, master.baseHp); cardCopy.evolvesFrom = master.evolvesFrom; }
+        cardCopy.maxHp = cardCopy.hp; cardCopy.isDead = false; cardCopy.canAttack = false; cardCopy.isDefending = false; cardCopy.status = null;
+        return cardCopy;
+    }).filter(c => c !== null);
+    window.shuffleArray(p.deck);
+
+    if (enemyData && enemyData.deck) {
+        cpu.deck = enemyData.deck.map((dCard, i) => {
+            let master = window.TCG_MASTER[dCard.masterId];
+            if(!master) return null;
+            return {
+                uid: 'ghost_' + i, masterId: dCard.masterId, name: dCard.name || master.name, type: master.type,
+                cost: master.baseCost, hp: dCard.hp || master.baseHp, maxHp: dCard.hp || master.baseHp,
+                skillName: master.skillName, skillCost: master.skillCost, damage: dCard.damage || master.baseDmg, 
+                ability: master.ability, image: master.image, imageIndex: master.imageIndex,
+                offsetX: master.offsetX, offsetY: master.offsetY, zoomX: master.zoomX, zoomY: master.zoomY, canAttack: false, isDefending: false, status: null, evolvesFrom: master.evolvesFrom
+            };
+        }).filter(c => c !== null);
+        if(cpu.deck.length < 60) { alert("敵のデッキデータが不完全です。通常のCPUと対戦します。"); enemyData = null; } 
+        else { window.shuffleArray(cpu.deck); }
+    } 
+    if (!enemyData || !enemyData.deck) {
+        const allMasterKeys = Object.keys(window.TCG_MASTER);
+        for (let i = 0; i < Math.max(60, p.deck.length); i++) {
+            let randomKey = allMasterKeys[Math.floor(Math.random() * allMasterKeys.length)];
+            let master = window.TCG_MASTER[randomKey];
+            cpu.deck.push({
+                uid: 'cpu_' + i, masterId: randomKey, name: master.name, type: master.type, cost: master.baseCost, hp: master.baseHp, maxHp: master.baseHp, skillName: master.skillName, skillCost: master.skillCost, damage: master.baseDmg, ability: master.ability, image: master.image, imageIndex: master.imageIndex, offsetX: master.offsetX, offsetY: master.offsetY, zoomX: master.zoomX, zoomY: master.zoomY, canAttack: false, isDefending: false, status: null, evolvesFrom: master.evolvesFrom
+            });
+        }
+    }
+
+    window.renderBattleBoard();
+
+    let cpuNameLabel = document.getElementById('cpu-name-label');
+    if (!cpuNameLabel) {
+        cpuNameLabel = document.createElement('div');
+        cpuNameLabel.id = 'cpu-name-label';
+        cpuNameLabel.style.cssText = 'position:absolute; top:20px; right:30px; color:#FF5252; font-weight:bold; font-size:24px; text-shadow:0 0 10px #000; z-index:100;';
+        battleUI.appendChild(cpuNameLabel);
+    }
+    cpuNameLabel.innerHTML = enemyData ? `VS ${enemyData.playerName}` : "VS 名もなきCPU";
+    battleUI.style.display = 'flex';
+
+    // スプラッシュ・コイントス・ドロー演出
+    const blocker = document.createElement('div'); blocker.id = 'tcg-battle-blocker'; blocker.style.cssText = `position: fixed; top:0; left:0; width:100%; height:100%; z-index:25000;`; document.body.appendChild(blocker);
+    const splash = document.createElement('div'); splash.id = 'tcg-battle-splash'; splash.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 26000; display: flex; justify-content: center; align-items: center; color: white; font-size: 80px; font-weight: bold; font-style: italic; text-align:center; line-height:1.2; text-shadow: 0 0 30px #FF9800, 5px 5px 0 #000; opacity: 0; transform: scale(1.5); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);`;
+    splash.innerHTML = enemyData ? `ONLINE BATTLE !!<br><span style="font-size:50px; color:#4fc3f7;">VS ${enemyData.playerName}</span>` : "BATTLE START !!";
+    document.body.appendChild(splash);
+
+    setTimeout(() => { splash.style.opacity = '1'; splash.style.transform = 'scale(1)'; }, 50);
+    setTimeout(() => {
+        splash.style.opacity = '0'; splash.style.transform = 'scale(0.8)';
+        setTimeout(() => {
+            splash.remove();
+            const isPlayerFirst = Math.random() < 0.5;
+            window.TCG_BATTLE.firstPlayer = isPlayerFirst ? 'player' : 'cpu';
+            window.TCG_BATTLE.isEnemyTurn = !isPlayerFirst;
+            
+            const coinUI = document.createElement('div');
+            coinUI.style.cssText = `position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 26000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white;`;
+            coinUI.innerHTML = `<div style="font-size: 30px; font-weight: bold; margin-bottom: 30px; color:#00BCD4;">先攻・後攻を決定します...</div><div class="coin-flip-anim" style="width: 150px; height: 150px; background: #FFD700; border-radius: 50%; border: 10px solid #FFA000; box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 10px 30px rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; font-size: 60px; font-weight: bold; color: #B28900; text-shadow: 1px 1px 0px #FFF;">TCG</div>`;
+            document.body.appendChild(coinUI);
+
+            setTimeout(() => {
+                coinUI.innerHTML = `<div style="font-size: 50px; font-weight: bold; margin-bottom: 30px; color:${isPlayerFirst ? '#4CAF50' : '#ff5252'}; text-shadow: 0 0 20px ${isPlayerFirst ? '#4CAF50' : '#ff5252'};">${isPlayerFirst ? 'あなたの先攻！' : '敵の先攻！'}</div>`;
+                setTimeout(() => {
+                    coinUI.style.opacity = '0'; coinUI.style.transition = '0.5s';
+                    setTimeout(() => {
+                        coinUI.remove();
+                        let drawCount = 0;
+                        let pOneManaIdx = p.deck.findIndex(c => window.getActualCost(p, c) === 1 || c.cost === 1);
+                        if (pOneManaIdx !== -1) { p.hand.push(p.deck.splice(pOneManaIdx, 1)[0]); drawCount = 1; }
+                        
+                        const drawTimer = setInterval(() => {
+                            if (drawCount < 5) {
+                                p.hand.push(p.deck.shift());
+                                cpu.hand.push(cpu.deck.shift());
+                                window.showBattleMessage(`シュッ！ (手札: ${drawCount + 1}枚)`, false, 250);
+                                window.renderBattleBoard();
+                                drawCount++;
+                            } else {
+                                clearInterval(drawTimer);
+                                blocker.remove(); 
+                                if (isPlayerFirst) window.startPlayerTurn(true);
+                                else window.showTurnCutin("ENEMY TURN", "#ff5252", () => { window.executeCPUTurn(true); });
+                            }
+                        }, 350);
+                    }, 500);
+                }, 2000);
+            }, 2500);
+        }, 500);
+    }, 1500); 
+};
+
+// ======================================================================
+// 🎨 TCG "YOUR TURN" 消失バグ ＆ 演出強化パッチ
+// ======================================================================
+
+window.showTurnCutin = function(text, color, callback) {
+    if (text.includes("YOUR TURN")) {
+        if (window.TCG_BATTLE && window.TCG_BATTLE.player) {
+            window.TCG_BATTLE.player.field.forEach(c => { if (c) c.isDefending = false; });
+        }
+    }
+
+    if (window.TCG_BATTLE) window.TCG_BATTLE.isAnimating = true;
+
+    // ★修正：アニメーションをバトルUI内ではなく、画面の最前面（body）に直接描画する！
+    // これにより、裏で盤面が何度再描画されても文字が消えなくなります。
+    const blocker = document.createElement('div');
+    blocker.style.cssText = `position: fixed; top:0; left:0; width:100vw; height:100vh; z-index:90000;`;
+    document.body.appendChild(blocker);
+
+    const splash = document.createElement('div');
+    splash.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.6); z-index: 91000; display: flex;
+        justify-content: center; align-items: center; color: white; text-align: center;
+        font-size: 90px; font-weight: bold; font-style: italic; white-space: pre-wrap; line-height: 1.1;
+        text-shadow: 0 0 40px ${color}, 5px 5px 0 #000, -2px -2px 0 #000;
+        opacity: 0; transform: scale(1.5) skewX(-15deg); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: none;
+    `;
+    
+    splash.innerHTML = text; 
+    document.body.appendChild(splash);
+
+    // アニメーション処理
+    setTimeout(() => { 
+        splash.style.opacity = '1'; 
+        splash.style.transform = 'scale(1) skewX(-15deg)'; 
+    }, 50);
+    
+    setTimeout(() => {
+        splash.style.opacity = '0'; 
+        splash.style.transform = 'scale(0.8) skewX(-15deg)';
+        setTimeout(() => { 
+            splash.remove(); 
+            blocker.remove(); 
+            if (callback) callback(); 
+        }, 300);
+    }, 1200);
+};
+
+// ======================================================================
+// 🛠️ デッキ編成画面が裏に隠れてしまうバグの修正パッチ
+// ======================================================================
+
+const _fix_openDeckBuilder_zIndex = window.openDeckBuilder;
+window.openDeckBuilder = function() {
+    // 念のための安全装置（セーブデータが空だった際のエラー防止）
+    window.TCG.currentDeckIndex = window.TCG.currentDeckIndex || 0;
+    while(window.TCG.decks.length < 3) window.TCG.decks.push([]);
+    if (!window.TCG.decks[window.TCG.currentDeckIndex]) {
+        window.TCG.decks[window.TCG.currentDeckIndex] = [];
+    }
+
+    // これまでのデッキ画面を開く処理を実行
+    if (_fix_openDeckBuilder_zIndex) _fix_openDeckBuilder_zIndex.apply(this, arguments);
+    
+    // ★ 修正：カジノロビー（z-index: 50000）のさらに上に表示されるように優先度を引き上げる！
+    let builderUI = document.getElementById('tcg-deck-builder');
+    if (builderUI) {
+        builderUI.style.zIndex = '60000';
+    }
+};
+
+// ======================================================================
+// 🛠️ 勝利BGMが上書きされる（育成BGMに戻る）バグの究極防弾パッチ
+// ======================================================================
+
+const _ultimate_endTCGBattle = window.endTCGBattle;
+window.endTCGBattle = function(isWin) {
+    if (window.TCG_BATTLE && window.TCG_BATTLE.isEnded) return; 
+    
+    // ★ 究極のハック：リザルト画面中は、古いタイマーによる「育成BGMへの強制復帰」を完全にブロックする！
+    if (window.audioManager && !window._orig_restoreMainBGM_tcg) {
+        window._orig_restoreMainBGM_tcg = window.audioManager.restoreMainBGM;
+        window.audioManager.restoreMainBGM = function() {
+            console.log("TCGリザルト画面中のため、育成BGMへの誤作動をブロックしました！");
+        };
+    }
+
+    // 元のリザルト表示・VictoryBGM再生処理を実行
+    if (_ultimate_endTCGBattle) _ultimate_endTCGBattle.apply(this, arguments);
+};
+
+const _ultimate_closeTCGBattle = window.closeTCGBattle;
+window.closeTCGBattle = function(destination) {
+    // ★ リザルト画面を閉じる（ロビーや島に戻るボタンを押した）時に、ブロックを解除して元に戻す
+    if (window.audioManager && window._orig_restoreMainBGM_tcg) {
+        window.audioManager.restoreMainBGM = window._orig_restoreMainBGM_tcg;
+        window._orig_restoreMainBGM_tcg = null;
+    }
+
+    // 元の画面遷移処理を実行
+    if (_ultimate_closeTCGBattle) _ultimate_closeTCGBattle.apply(this, arguments);
 };

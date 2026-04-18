@@ -1767,10 +1767,15 @@ window.sendChat = function() {
 // ★究極改修：カジノ入室時の専用ロビーとAI連動処理（リッチUI版）
 // ==========================================
 window.openCasino = function() {
-    // ▼▼▼ 追加：カジノに足を踏み入れた時のカードアンロック ▼▼▼
-    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') {
-        window.triggerTCGUnlock('visit_casino', window.aiPet.generation);
-    }
+    // ▼▼▼ 追加：カジノに足を踏み入れた時のカードアンロック ▼▼▼
+    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') {
+        window.triggerTCGUnlock('visit_casino', window.aiPet.generation);
+    }
+
+    // ★追加：カジノ（ロビー）専用BGMを再生
+    if (window.audioManager) {
+        window.audioManager.playBGM('card_lobby');
+    }
     
     // カジノ来店フラグ（念のための直接付与）
     if (window.aiPet) {
@@ -1906,10 +1911,15 @@ window.openCasino = function() {
 
 // ★ カジノからAIを確実に退出させる処理
 window.exitCasino = function() {
-    const casinoUI = document.getElementById('casino-lobby-ui');
-    if (casinoUI) casinoUI.style.display = 'none';
-    
-    if (window.aiPet && window.aiPet.indoorTarget && window.aiPet.indoorTarget.type === 'casino') {
+    const casinoUI = document.getElementById('casino-lobby-ui');
+    if (casinoUI) casinoUI.style.display = 'none';
+
+    // ★追加：カジノから出たら、育成モードのキャラクターBGMに戻す
+    if (window.audioManager) {
+        window.audioManager.restoreMainBGM();
+    }
+    
+    if (window.aiPet && window.aiPet.indoorTarget && window.aiPet.indoorTarget.type === 'casino') {
         window.aiPet.actionState = 'exiting';
         window.aiPet.isIndoors = false;
         window.aiPet.interactionTarget = null;
@@ -7902,7 +7912,14 @@ window.openMusicHall = function() {
             // ==========================================
             let trackName = "";
             const specialTracks = {
-                'defense_start': '襲撃の予感（防衛戦）',
+                'card_lobby': '運命のラウンジ（カジノ）',
+                'card_deck_build': '思考の迷宮（デッキ編成）',
+                'card_main': '観測者の知略（カードゲーム）',
+                'card_pinch': '追い詰められた観測者（ピンチ）',
+                'card_chance': '一転攻勢の輝き（チャンス）',
+                'card_victory': '勝利の記憶（リザルト）',
+                'card_lose': '敗北の静寂（リザルト）',
+                'defense_start': '襲撃の予感（防衛戦）',
                 'defense_lobby': '戦士たちの集い（ロビー）',
                 'defense_main_theme': '島を防衛せよ！（防衛戦）',
                 'defense_friend': '好敵手との交撃（模擬戦）',
