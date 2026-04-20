@@ -428,64 +428,1742 @@ window.selectedFurnitureIndex = 0; window.copiedFrameData = null;
 window.selectedTitleCharKey = 'robot';
 window.bgTitleImg = new Image(); window.bgTitleImg.src = 'bg_game_title.png';
 window.TITLE_SCREEN_DATA = {
-    "robot": { "img": "title_robot.png", "x": 309, "y": 231, "sx": 963, "sy": 74, "sw": 839, "sh": 1319, "scale": 0.1, "imgObj": {} },
-    "spirit": { "img": "title_spirit.png", "x": 104, "y": 307, "sx": 963, "sy": 74, "sw": 839, "sh": 1319, "scale": 0.1, "imgObj": {} },
-    "magician": { "img": "title_magician.png", "x": 559, "y": 231, "sx": 772, "sy": 74, "sw": 1212, "sh": 1399, "scale": 0.1, "imgObj": {} },
-    "stone": { "img": "title_stone.png", "x": 233, "y": 287, "sx": 791, "sy": 74, "sw": 1212, "sh": 1399, "scale": 0.1, "imgObj": {} },
-    "balloon": { "img": "title_balloon.png", "x": 384, "y": 247, "sx": 344, "sy": 4, "sw": 796, "sh": 760, "scale": 0.1, "imgObj": {} },
-    "bird": { "img": "title_bird.png", "x": 586, "y": 395, "sx": 344, "sy": 4, "sw": 796, "sh": 760, "scale": 0.15000000000000002, "imgObj": {}, "flip": true, "z": 1 },
-    "beetle": { "img": "title_beetle.png", "x": 678, "y": 296, "sx": 344, "sy": 4, "sw": 796, "sh": 760, "scale": 0.15000000000000002, "imgObj": {}, "flip": true, "z": 1 },
-    "seed": { "img": "title_seed.png", "x": 215, "y": 360, "sx": 344, "sy": 4, "sw": 796, "sh": 761, "scale": 0.15000000000000002, "imgObj": {} },
-    "ghost": { "img": "title_ghost.png", "x": 489, "y": 108, "sx": 344, "sy": 4, "sw": 796, "sh": 761, "scale": 0.15000000000000002, "imgObj": {} },
-    "machine": { "img": "title_machine.png", "x": 459, "y": 289, "sx": 772, "sy": 4, "sw": 1257, "sh": 1499, "scale": 0.10000000000000002, "imgObj": {}, "flip": true },
-    "machine_type1": { "img": "title_machine_type1.png", "x": 459, "y": 289, "sx": 772, "sy": 4, "sw": 1257, "sh": 1499, "scale": 0.10000000000000002, "imgObj": {}, "flip": true },
-    "machine_type1": {
-        "img": "title_machine_type1.png",
-        "x": 146,
-        "y": 342,
-        "sx": 314,
-        "sy": -54,
-        "sw": 821,
-        "sh": 841,
-        "scale": 0.2,
+    "robot": {
+        "img": "title_robot.png",
+        "x": 172,
+        "y": 407,
+        "sx": 963,
+        "sy": 74,
+        "sw": 839,
+        "sh": 1319,
+        "scale": 0.05000000000000001,
         "imgObj": {},
+        "isHidden": false
+    },
+    "robot_type1": {
+        "img": "title_robot_type1.png",
+        "x": 149,
+        "y": 385,
+        "sx": 490,
+        "sy": -24,
+        "sw": 441,
+        "sh": 811,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "robot_type1_2": {
+        "img": "title_robot_type1_2.png",
+        "x": 128,
+        "y": 360,
+        "sx": 410,
+        "sy": -24,
+        "sw": 565,
+        "sh": 792,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2
+    },
+    "robot_type1_3": {
+        "img": "title_robot_type1_3.png",
+        "x": 173,
+        "y": 340,
+        "sx": 869,
+        "sy": 74,
+        "sw": 1001,
+        "sh": 1397,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2
+    },
+    "robot_type2": {
+        "img": "title_robot_type2.png",
+        "x": 152,
+        "y": 298,
+        "sx": 29,
+        "sy": -12,
+        "sw": 1746,
+        "sh": 2403,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -3
+    },
+    "robot_type2_2": {
+        "img": "title_robot_type2_2.png",
+        "x": 201,
+        "y": 289,
+        "sx": 963,
+        "sy": 65,
+        "sw": 847,
+        "sh": 1392,
+        "scale": 0.060000000000000005,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -3
+    },
+    "robot_type2_3": {
+        "img": "title_robot_type2_3.png",
+        "x": 230,
+        "y": 109,
+        "sx": 474,
+        "sy": 54,
+        "sw": 448,
+        "sh": 700,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 20
+    },
+    "robot_type2_4": {
+        "img": "title_robot_type2_4.png",
+        "x": 384,
+        "y": 51,
+        "sx": 586,
+        "sy": 23,
+        "sw": 1544,
+        "sh": 1319,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "rotation": -10
+    },
+    "robot_type3": {
+        "img": "title_robot_type3.png",
+        "x": 196,
+        "y": 314,
+        "sx": 446,
+        "sy": 16,
+        "sw": 519,
+        "sh": 727,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -3
+    },
+    "robot_type3_2": {
+        "img": "title_robot_type3_2.png",
+        "x": 203,
+        "y": 361,
+        "sx": 402,
+        "sy": 34,
+        "sw": 630,
+        "sh": 711,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "robot_type3_3": {
+        "img": "title_robot_type3_3.png",
+        "x": 72,
+        "y": 138,
+        "sx": 340,
+        "sy": 9,
+        "sw": 750,
+        "sh": 716,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 5
+    },
+    "robot_type3_4": {
+        "img": "title_robot_type3_4.png",
+        "x": 101,
+        "y": 330,
+        "sx": 485,
+        "sy": 14,
+        "sw": 450,
+        "sh": 738,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -3
+    },
+    "robot_type3_5": {
+        "img": "title_robot_type3_5.png",
+        "x": 170,
+        "y": 143,
+        "sx": 310,
+        "sy": 16,
+        "sw": 814,
+        "sh": 786,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "robot_type4": {
+        "img": "title_robot_type4.png",
+        "x": 241,
+        "y": 337,
+        "sx": 946,
+        "sy": 18,
+        "sw": 829,
+        "sh": 1489,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "robot_type4_2": {
+        "img": "title_robot_type4_2.png",
+        "x": 259,
+        "y": 307,
+        "sx": 339,
+        "sy": 34,
+        "sw": 802,
+        "sh": 700,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "robot_type4_3": {
+        "img": "title_robot_type4_3.png",
+        "x": 573,
+        "y": 89,
+        "sx": 351,
+        "sy": 22,
+        "sw": 680,
+        "sh": 760,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10,
+        "flip": true
+    },
+    "robot_type4_4": {
+        "img": "title_robot_type4_4.png",
+        "x": 264,
+        "y": 274,
+        "sx": 725,
+        "sy": 33,
+        "sw": 1289,
+        "sh": 1491,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2
+    },
+    "robot_type5": {
+        "img": "title_robot_type5.png",
+        "x": 287,
+        "y": 334,
+        "sx": 104,
+        "sy": 44,
+        "sw": 684,
+        "sh": 1171,
+        "scale": 0.06000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 0
+    },
+    "robot_type5_2": {
+        "img": "title_robot_type5_2.png",
+        "x": 271,
+        "y": 355,
+        "sx": 500,
+        "sy": 74,
+        "sw": 441,
+        "sh": 673,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "robot_type5_3": {
+        "img": "title_robot_type5_3.png",
+        "x": 241,
+        "y": 369,
+        "sx": 418,
+        "sy": 16,
+        "sw": 571,
+        "sh": 770,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "robot_type5_4": {
+        "img": "title_robot_type5_4.png",
+        "x": 104,
+        "y": 369,
+        "sx": 963,
+        "sy": 47,
+        "sw": 839,
+        "sh": 1398,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit": {
+        "img": "title_spirit.png",
+        "x": 327,
+        "y": 256,
+        "sx": 963,
+        "sy": 74,
+        "sw": 839,
+        "sh": 1319,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type1": {
+        "img": "title_spirit_type1.png",
+        "x": 438,
+        "y": 265,
+        "sx": 310,
+        "sy": 397,
+        "sw": 319,
+        "sh": 413,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type1_2": {
+        "img": "title_spirit_type1_2.png",
+        "x": 346,
+        "y": 267,
+        "sx": 395,
+        "sy": 8,
+        "sw": 615,
+        "sh": 702,
+        "scale": 0.060000000000000005,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type2": {
+        "img": "title_spirit_type2.png",
+        "x": 312,
+        "y": 272,
+        "sx": 450,
+        "sy": 29,
+        "sw": 531,
+        "sh": 764,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type2_2": {
+        "img": "title_spirit_type2_2.png",
+        "x": 328,
+        "y": 288,
+        "sx": 328,
+        "sy": 34,
+        "sw": 745,
+        "sh": 764,
+        "scale": 0.0600000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type2_3": {
+        "img": "title_spirit_type2_3.png",
+        "x": 314,
+        "y": 299,
+        "sx": 377,
+        "sy": -12,
+        "sw": 690,
+        "sh": 773,
+        "scale": 0.060000000000000026,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type3": {
+        "img": "title_spirit_type3.png",
+        "x": 348,
+        "y": 322,
+        "sx": 854,
+        "sy": 74,
+        "sw": 977,
+        "sh": 1432,
+        "scale": 0.03,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type3_2": {
+        "img": "title_spirit_type3_2.png",
+        "x": 364,
+        "y": 292,
+        "sx": 321,
+        "sy": 37,
+        "sw": 794,
+        "sh": 749,
+        "scale": 0.06000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type4": {
+        "img": "title_spirit_type4.png",
+        "x": 377,
+        "y": 306,
+        "sx": 868,
+        "sy": 125,
+        "sw": 1036,
+        "sh": 1319,
+        "scale": 0.02499999999999998,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type4_2": {
+        "img": "title_spirit_type4_2.png",
+        "x": 311,
+        "y": 254,
+        "sx": 361,
+        "sy": 23,
+        "sw": 745,
+        "sh": 753,
+        "scale": 0.07,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "spirit_type4_3": {
+        "img": "title_spirit_type4_3.png",
+        "x": 382,
+        "y": 253,
+        "sx": 93,
+        "sy": 20,
+        "sw": 839,
+        "sh": 940,
+        "scale": 0.06000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "z": -1
+    },
+    "spirit_type5": {
+        "img": "title_spirit_type5.png",
+        "x": 406,
+        "y": 290,
+        "sx": 808,
+        "sy": 74,
+        "sw": 1091,
+        "sh": 1359,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "spirit_type5_2": {
+        "img": "title_spirit_type5_2.png",
+        "x": 394,
+        "y": 283,
+        "sx": 435,
+        "sy": 52,
+        "sw": 649,
+        "sh": 722,
+        "scale": 0.060000000000000026,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "spirit_type5_3": {
+        "img": "title_spirit_type5_3.png",
+        "x": 319,
+        "y": 313,
+        "sx": 442,
+        "sy": 31,
+        "sw": 576,
+        "sh": 681,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician": {
+        "img": "title_magician.png",
+        "x": 462,
+        "y": 271,
+        "sx": 772,
+        "sy": 74,
+        "sw": 1212,
+        "sh": 1399,
+        "scale": 0.03,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type1": {
+        "img": "title_magician_type1.png",
+        "x": 484,
+        "y": 278,
+        "sx": 453,
+        "sy": 60,
+        "sw": 525,
+        "sh": 655,
+        "scale": 0.0700000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type1_2": {
+        "img": "title_magician_type1_2.png",
+        "x": 481,
+        "y": 62,
+        "sx": 411,
+        "sy": 20,
+        "sw": 566,
+        "sh": 712,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "magician_type1_3": {
+        "img": "title_magician_type1_3.png",
+        "x": 498,
+        "y": 293,
+        "sx": 370,
+        "sy": 30,
+        "sw": 614,
+        "sh": 743,
+        "scale": 0.06000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type1_4": {
+        "img": "title_magician_type1_4.png",
+        "x": 330,
+        "y": 140,
+        "sx": 772,
+        "sy": 74,
+        "sw": 1400,
+        "sh": 1399,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": -15
+    },
+    "magician_type2": {
+        "img": "title_magician_type2.png",
+        "x": 495,
+        "y": 259,
+        "sx": 411,
+        "sy": -5,
+        "sw": 588,
+        "sh": 748,
+        "scale": 0.07000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "magician_type2_2": {
+        "img": "title_magician_type2_2.png",
+        "x": 446,
+        "y": 293,
+        "sx": 703,
+        "sy": 104,
+        "sw": 1275,
+        "sh": 1399,
+        "scale": 0.03,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "magician_type2_3": {
+        "img": "title_magician_type2_3.png",
+        "x": 473,
+        "y": 310,
+        "sx": 52,
+        "sy": -31,
+        "sw": 1013,
+        "sh": 1102,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type2_4": {
+        "img": "title_magician_type2_4.png",
+        "x": 537,
+        "y": 271,
+        "sx": 772,
+        "sy": 43,
+        "sw": 1212,
+        "sh": 1496,
+        "scale": 0.04000000000000001,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "magician_type3": {
+        "img": "title_magician_type3.png",
+        "x": 533,
+        "y": 292,
+        "sx": 439,
+        "sy": 31,
+        "sw": 567,
+        "sh": 678,
+        "scale": 0.07000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type3_2": {
+        "img": "title_magician_type3_2.png",
+        "x": 565,
+        "y": 257,
+        "sx": 772,
+        "sy": 74,
+        "sw": 1250,
+        "sh": 1400,
+        "scale": 0.04000000000000001,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -1
+    },
+    "magician_type3_3": {
+        "img": "title_magician_type3_3.png",
+        "x": 625,
+        "y": 245,
+        "sx": 419,
+        "sy": 10,
+        "sw": 589,
+        "sh": 715,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type4": {
+        "img": "title_magician_type4.png",
+        "x": 506,
+        "y": 325,
+        "sx": 421,
+        "sy": 35,
+        "sw": 614,
+        "sh": 821,
+        "scale": 0.07000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type4_2": {
+        "img": "title_magician_type4_2.png",
+        "x": 427,
+        "y": 315,
+        "sx": 637,
+        "sy": 74,
+        "sw": 1540,
+        "sh": 1403,
+        "scale": 0.04000000000000001,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type4_3": {
+        "img": "title_magician_type4_3.png",
+        "x": 581,
+        "y": 278,
+        "sx": 263,
+        "sy": 29,
+        "sw": 843,
+        "sh": 716,
+        "scale": 0.07000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type4_4": {
+        "img": "title_magician_type4_4.png",
+        "x": 454,
+        "y": 329,
+        "sx": 129,
+        "sy": -8,
+        "sw": 803,
+        "sh": 931,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type5": {
+        "img": "title_magician_type5.png",
+        "x": 559,
+        "y": 291,
+        "sx": 772,
+        "sy": 74,
+        "sw": 1212,
+        "sh": 1399,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "magician_type5_2": {
+        "img": "title_magician_type5_2.png",
+        "x": 517,
+        "y": 254,
+        "sx": 43,
+        "sy": -18,
+        "sw": 1047,
+        "sh": 1037,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2
+    },
+    "magician_type5_3": {
+        "img": "title_magician_type5_3.png",
+        "x": 469,
+        "y": 249,
+        "sx": 259,
+        "sy": 127,
+        "sw": 1232,
+        "sh": 1995,
+        "scale": 0.03,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2
+    },
+    "stone": {
+        "img": "title_stone.png",
+        "x": 603,
+        "y": 420,
+        "sx": 791,
+        "sy": 74,
+        "sw": 1212,
+        "sh": 1399,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "stone_type1": {
+        "img": "title_stone_type1.png",
+        "x": 626,
+        "y": 397,
+        "sx": 285,
+        "sy": -21,
+        "sw": 828,
+        "sh": 830,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": false,
+        "z": -1
+    },
+    "stone_type1_2": {
+        "img": "title_stone_type1_2.png",
+        "x": 664,
+        "y": 371,
+        "sx": 368,
+        "sy": 20,
+        "sw": 670,
+        "sh": 732,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2,
+        "flip": true
+    },
+    "stone_type2": {
+        "img": "title_stone_type2.png",
+        "x": 589,
+        "y": 388,
+        "sx": 366,
+        "sy": 7,
+        "sw": 721,
+        "sh": 789,
+        "scale": 0.1,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -2,
+        "flip": true
+    },
+    "stone_type2_2": {
+        "img": "title_stone_type2_2.png",
+        "x": 632,
+        "y": 361,
+        "sx": 366,
+        "sy": -8,
+        "sw": 699,
+        "sh": 807,
+        "scale": 0.1,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": false,
+        "z": -3
+    },
+    "stone_type3": {
+        "img": "title_stone_type3.png",
+        "x": 563,
+        "y": 375,
+        "sx": 791,
+        "sy": 74,
+        "sw": 1212,
+        "sh": 1399,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 0,
+        "z": -3,
+        "flip": true
+    },
+    "stone_type3_2": {
+        "img": "title_stone_type3_2.png",
+        "x": 692,
+        "y": 350,
+        "sx": 368,
+        "sy": 42,
+        "sw": 664,
+        "sh": 733,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -3,
+        "flip": true
+    },
+    "stone_type4": {
+        "img": "title_stone_type4.png",
+        "x": 540,
+        "y": 357,
+        "sx": -67,
+        "sy": -9,
+        "sw": 1065,
+        "sh": 1228,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -4,
+        "flip": true
+    },
+    "stone_type4_2": {
+        "img": "title_stone_type4_2.png",
+        "x": 585,
+        "y": 354,
+        "sx": 765,
+        "sy": 74,
+        "sw": 1212,
+        "sh": 1399,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -4
+    },
+    "stone_type4_3": {
+        "img": "title_stone_type4_3.png",
+        "x": 663,
+        "y": 339,
+        "sx": 399,
+        "sy": -13,
+        "sw": 655,
+        "sh": 773,
+        "scale": 0.11000000000000003,
+        "imgObj": {},
+        "isHidden": false,
+        "z": -5
+    },
+    "stone_type5": {
+        "img": "title_stone_type5.png",
+        "x": 613,
+        "y": 338,
+        "sx": 34,
+        "sy": 36,
+        "sw": 995,
+        "sh": 1108,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": false,
+        "z": -5
+    },
+    "stone_type5_2": {
+        "img": "title_stone_type5_2.png",
+        "x": 716,
+        "y": 332,
+        "sx": 349,
+        "sy": -21,
+        "sw": 742,
+        "sh": 838,
+        "scale": 0.1,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "z": -4
+    },
+    "stone_type5_3": {
+        "img": "title_stone_type5_3.png",
+        "x": 685,
+        "y": 322,
+        "sx": 10,
+        "sy": -69,
+        "sw": 1026,
+        "sh": 1233,
+        "scale": 0.08,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "z": -6
+    },
+    "balloon": {
+        "img": "title_balloon.png",
+        "x": 309,
+        "y": 364,
+        "sx": 344,
+        "sy": 14,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "balloon_type1": {
+        "img": "title_balloon_type1.png",
+        "x": 400,
+        "y": 111,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "balloon_type1_2": {
+        "img": "title_balloon_type1_2.png",
+        "x": 345,
+        "y": 351,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.07,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "balloon_type1_3": {
+        "img": "title_balloon_type1_3.png",
+        "x": 432,
+        "y": 142,
+        "sx": 202,
+        "sy": 4,
+        "sw": 924,
+        "sh": 760,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "rotation": -10
+    },
+    "balloon_type2": {
+        "img": "title_balloon_type2.png",
+        "x": 339,
+        "y": 76,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "balloon_type2_2": {
+        "img": "title_balloon_type2_2.png",
+        "x": 394,
+        "y": 382,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "balloon_type2_3": {
+        "img": "title_balloon_type2_3.png",
+        "x": 205,
+        "y": 200,
+        "sx": 424,
+        "sy": 4,
+        "sw": 1842,
+        "sh": 1345,
+        "scale": 0.03,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "balloon_type3": {
+        "img": "title_balloon_type3.png",
+        "x": 69,
+        "y": 195,
+        "sx": 259,
+        "sy": 4,
+        "sw": 829,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "balloon_type3_2": {
+        "img": "title_balloon_type3_2.png",
+        "x": 484,
+        "y": 338,
+        "sx": 830,
+        "sy": 25,
+        "sw": 1224,
+        "sh": 1394,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "balloon_type3_3": {
+        "img": "title_balloon_type3_3.png",
+        "x": 502,
+        "y": 359,
+        "sx": 322,
+        "sy": 131,
+        "sw": 1762,
+        "sh": 1720,
+        "scale": 0.03,
+        "imgObj": {},
+        "isHidden": false,
+        "z": 0,
+        "flip": true
+    },
+    "balloon_type4": {
+        "img": "title_balloon_type4.png",
+        "x": 622,
+        "y": 133,
+        "sx": 86,
+        "sy": 4,
+        "sw": 1147,
+        "sh": 761,
+        "scale": 0.07000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "balloon_type4_2": {
+        "img": "title_balloon_type4_2.png",
+        "x": 674,
+        "y": 106,
+        "sx": 278,
+        "sy": 3,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "rotation": -10
+    },
+    "balloon_type4_3": {
+        "img": "title_balloon_type4_3.png",
+        "x": 718,
+        "y": 290,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 0,
+        "flip": true,
+        "z": -5
+    },
+    "balloon_type5": {
+        "img": "title_balloon_type5.png",
+        "x": 519,
+        "y": 379,
+        "sx": 344,
+        "sy": 4,
+        "sw": 644,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "balloon_type5_2": {
+        "img": "title_balloon_type5_2.png",
+        "x": 669,
+        "y": 249,
+        "sx": 344,
+        "sy": 4,
+        "sw": 797,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "bird": {
+        "img": "title_bird.png",
+        "x": 450,
+        "y": 464,
+        "sx": 344,
+        "sy": 14,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false
+    },
+    "bird_type1": {
+        "img": "title_bird_type1.png",
+        "x": 466,
+        "y": 118,
+        "sx": 298,
+        "sy": 4,
+        "sw": 805,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false,
+        "rotation": -5
+    },
+    "bird_type1_2": {
+        "img": "title_bird_type1_2.png",
+        "x": 730,
+        "y": 226,
+        "sx": 58,
+        "sy": 27,
+        "sw": 877,
+        "sh": 891,
+        "scale": 0.06000000000000001,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false
+    },
+    "bird_type2": {
+        "img": "title_bird_type2.png",
+        "x": 287,
+        "y": 459,
+        "sx": 599,
+        "sy": 68,
+        "sw": 1439,
+        "sh": 1435,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": 1,
+        "isHidden": false
+    },
+    "bird_type2_2": {
+        "img": "title_bird_type2_2.png",
+        "x": 633,
+        "y": 53,
+        "sx": 73,
+        "sy": 4,
+        "sw": 1205,
+        "sh": 761,
+        "scale": 0.06000000000000001,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false,
+        "rotation": -10
+    },
+    "bird_type3": {
+        "img": "title_bird_type3.png",
+        "x": 510,
+        "y": 148,
+        "sx": 235,
+        "sy": 4,
+        "sw": 850,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": 1,
+        "isHidden": false,
+        "rotation": 10
+    },
+    "bird_type3_2": {
+        "img": "title_bird_type3_2.png",
+        "x": 404,
+        "y": 462,
+        "sx": 344,
+        "sy": 5,
+        "sw": 1413,
+        "sh": 1951,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "flip": false,
+        "z": 1,
+        "isHidden": false
+    },
+    "bird_type3_3": {
+        "img": "title_bird_type3_3.png",
+        "x": 621,
+        "y": 273,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": 1,
+        "isHidden": false
+    },
+    "bird_type4": {
+        "img": "title_bird_type4.png",
+        "x": 389,
+        "y": 182,
+        "sx": 270,
+        "sy": 4,
+        "sw": 848,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false
+    },
+    "bird_type4_2": {
+        "img": "title_bird_type4_2.png",
+        "x": 279,
+        "y": 73,
+        "sx": 264,
+        "sy": 4,
+        "sw": 995,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false,
+        "rotation": -15
+    },
+    "bird_type5": {
+        "img": "title_bird_type5.png",
+        "x": 122,
+        "y": 306,
+        "sx": 64,
+        "sy": 42,
+        "sw": 2002,
+        "sh": 1893,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "flip": true,
+        "z": -4,
+        "isHidden": false
+    },
+    "bird_type5_2": {
+        "img": "title_bird_type5_2.png",
+        "x": 221,
+        "y": 267,
+        "sx": 210,
+        "sy": 4,
+        "sw": 1125,
+        "sh": 771,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -4,
+        "isHidden": false
+    },
+    "beetle": {
+        "img": "title_beetle.png",
+        "x": 529,
+        "y": 329,
+        "sx": 344,
+        "sy": 14,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -5,
+        "isHidden": false
+    },
+    "beetle_type1": {
+        "img": "title_beetle_type1.png",
+        "x": 548,
+        "y": 325,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -6,
+        "isHidden": false
+    },
+    "beetle_type2": {
+        "img": "title_beetle_type2.png",
+        "x": 570,
+        "y": 320,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -5,
+        "isHidden": false
+    },
+    "beetle_type2_2": {
+        "img": "title_beetle_type2_2.png",
+        "x": 585,
+        "y": 316,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -6,
+        "isHidden": false
+    },
+    "beetle_type2_3": {
+        "img": "title_beetle_type2_3.png",
+        "x": 539,
+        "y": 447,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": 1,
+        "isHidden": false
+    },
+    "beetle_type2_4": {
+        "img": "title_beetle_type2_4.png",
+        "x": 598,
+        "y": 452,
+        "sx": 231,
+        "sy": 4,
+        "sw": 853,
+        "sh": 762,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false
+    },
+    "beetle_type3": {
+        "img": "title_beetle_type3.png",
+        "x": 565,
+        "y": 155,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": 1,
+        "isHidden": false,
+        "rotation": 10
+    },
+    "beetle_type4": {
+        "img": "title_beetle_type4.png",
+        "x": 461,
+        "y": 399,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": 1,
+        "isHidden": false
+    },
+    "beetle_type4_2": {
+        "img": "title_beetle_type4_2.png",
+        "x": 404,
+        "y": 247,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -2,
+        "isHidden": false
+    },
+    "beetle_type5": {
+        "img": "title_beetle_type5.png",
+        "x": 606,
+        "y": 315,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 760,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "z": -7,
+        "isHidden": false
+    },
+    "beetle_type5_2": {
+        "img": "title_beetle_type5_2.png",
+        "x": 426,
+        "y": 248,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "z": -3,
+        "isHidden": false
+    },
+    "seed": {
+        "img": "title_seed.png",
+        "x": 351,
+        "y": 427,
+        "sx": 344,
+        "sy": 14,
+        "sw": 796,
+        "sh": 762,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type1": {
+        "img": "title_seed_type1.png",
+        "x": 311,
+        "y": 401,
+        "sx": 827,
+        "sy": 25,
+        "sw": 1214,
+        "sh": 1472,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type1_2": {
+        "img": "title_seed_type1_2.png",
+        "x": 423,
+        "y": 410,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 762,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type2": {
+        "img": "title_seed_type2.png",
+        "x": 365,
+        "y": 389,
+        "sx": 47,
+        "sy": 4,
+        "sw": 796,
+        "sh": 1240,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type2_2": {
+        "img": "title_seed_type2_2.png",
+        "x": 421,
+        "y": 360,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type3": {
+        "img": "title_seed_type3.png",
+        "x": 365,
+        "y": 459,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "seed_type3_2": {
+        "img": "title_seed_type3_2.png",
+        "x": 379,
+        "y": 415,
+        "sx": 64,
+        "sy": 4,
+        "sw": 813,
+        "sh": 1164,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "seed_type3_3": {
+        "img": "title_seed_type3_3.png",
+        "x": 391,
+        "y": 346,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true
+    },
+    "seed_type4": {
+        "img": "title_seed_type4.png",
+        "x": 225,
+        "y": 441,
+        "sx": 895,
+        "sy": 4,
+        "sw": 1002,
+        "sh": 1390,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false,
         "flip": false
     },
-    "machine_type1_2": {
-        "img": "title_machine_type1_2.png",
-        "x": 311,
-        "y": 119,
-        "sx": 61,
+    "seed_type4_2": {
+        "img": "title_seed_type4_2.png",
+        "x": 508,
+        "y": 430,
+        "sx": 344,
         "sy": 4,
-        "sw": 1257,
-        "sh": 770,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type5": {
+        "img": "title_seed_type5.png",
+        "x": 214,
+        "y": 457,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "seed_type5_2": {
+        "img": "title_seed_type5_2.png",
+        "x": 215,
+        "y": 360,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
         "scale": 0.15000000000000002,
         "imgObj": {},
-        "flip": false
+        "isHidden": false
     },
-    "machine_type2": {
-        "img": "title_machine_type2.png",
-        "x": 301,
-        "y": 306,
+    "ghost": {
+        "img": "title_ghost.png",
+        "x": 258,
+        "y": 167,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 762,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": -15
+    },
+    "ghost_type1": {
+        "img": "title_ghost_type1.png",
+        "x": 116,
+        "y": 107,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "ghost_type1_2": {
+        "img": "title_ghost_type1_2.png",
+        "x": 275,
+        "y": 118,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "ghost_type2": {
+        "img": "title_ghost_type2.png",
+        "x": 274,
+        "y": 203,
+        "sx": 707,
+        "sy": 53,
+        "sw": 1219,
+        "sh": 1348,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "ghost_type2_2": {
+        "img": "title_ghost_type2_2.png",
+        "x": 83,
+        "y": 244,
+        "sx": 65,
+        "sy": 50,
+        "sw": 1656,
+        "sh": 1963,
+        "scale": 0.020000000000000004,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": false,
+        "rotation": 5
+    },
+    "ghost_type3": {
+        "img": "title_ghost_type3.png",
+        "x": 434,
+        "y": 195,
+        "sx": 75,
+        "sy": 4,
+        "sw": 777,
+        "sh": 1062,
+        "scale": 0.04000000000000003,
+        "imgObj": {},
+        "isHidden": false,
+        "flip": true,
+        "rotation": 10
+    },
+    "ghost_type3_2": {
+        "img": "title_ghost_type3_2.png",
+        "x": 383,
+        "y": 149,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 5
+    },
+    "ghost_type4": {
+        "img": "title_ghost_type4.png",
+        "x": 435,
+        "y": 37,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "ghost_type4_2": {
+        "img": "title_ghost_type4_2.png",
+        "x": 214,
+        "y": 158,
+        "sx": 849,
+        "sy": 51,
+        "sw": 971,
+        "sh": 1106,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "isHidden": false,
+        "rotation": 10
+    },
+    "ghost_type5": {
+        "img": "title_ghost_type5.png",
+        "x": 698,
+        "y": 248,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "ghost_type5_2": {
+        "img": "title_ghost_type5_2.png",
+        "x": 518,
+        "y": 52,
+        "sx": 344,
+        "sy": 4,
+        "sw": 796,
+        "sh": 761,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "isHidden": false
+    },
+    "machine": {
+        "img": "title_machine.png",
+        "x": 401,
+        "y": 318,
         "sx": 772,
         "sy": 4,
         "sw": 1257,
         "sh": 1499,
+        "scale": 0.030000000000000006,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false
+    },
+    "machine_type1": {
+        "img": "title_machine_type1.png",
+        "x": 130,
+        "y": 396,
+        "sx": 314,
+        "sy": -54,
+        "sw": 821,
+        "sh": 841,
         "scale": 0.10000000000000002,
         "imgObj": {},
-        "flip": false
+        "flip": false,
+        "isHidden": false
+    },
+    "machine_type1_2": {
+        "img": "title_machine_type1_2.png",
+        "x": 419,
+        "y": 85,
+        "sx": 61,
+        "sy": 4,
+        "sw": 1257,
+        "sh": 771,
+        "scale": 0.060000000000000005,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false,
+        "rotation": 10
+    },
+    "machine_type2": {
+        "img": "title_machine_type2.png",
+        "x": 322,
+        "y": 338,
+        "sx": 772,
+        "sy": 4,
+        "sw": 1257,
+        "sh": 1500,
+        "scale": 0.030000000000000013,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false
     },
     "machine_type2_2": {
         "img": "title_machine_type2_2.png",
-        "x": 703,
-        "y": 298,
+        "x": 677,
+        "y": 277,
         "sx": 339,
         "sy": 4,
         "sw": 728,
         "sh": 814,
-        "scale": 0.2,
+        "scale": 0.060000000000000005,
         "imgObj": {},
-        "flip": true
+        "flip": true,
+        "isHidden": false
     },
     "machine_type3": {
         "img": "title_machine_type3.png",
@@ -495,10 +2173,11 @@ window.TITLE_SCREEN_DATA = {
         "sy": 4,
         "sw": 1257,
         "sh": 1499,
-        "scale": 0.10000000000000002,
+        "scale": 0.030000000000000006,
         "imgObj": {},
         "flip": false,
-        "z": -1
+        "z": -1,
+        "isHidden": false
     },
     "machine_type3_2": {
         "img": "title_machine_type3_2.png",
@@ -508,78 +2187,256 @@ window.TITLE_SCREEN_DATA = {
         "sy": 4,
         "sw": 693,
         "sh": 873,
-        "scale": 0.2,
+        "scale": 0.05000000000000002,
         "imgObj": {},
-        "flip": true
+        "flip": true,
+        "isHidden": false
     },
     "machine_type4": {
         "img": "title_machine_type4.png",
-        "x": 604,
-        "y": 352,
+        "x": 632,
+        "y": 307,
         "sx": 772,
         "sy": 4,
         "sw": 1347,
         "sh": 1499,
-        "scale": 0.10000000000000002,
+        "scale": 0.030000000000000006,
         "imgObj": {},
         "flip": true,
-        "z": 1
+        "z": 1,
+        "isHidden": false
     },
     "machine_type4_2": {
         "img": "title_machine_type4_2.png",
-        "x": 489,
-        "y": 243,
+        "x": 341,
+        "y": 303,
         "sx": 290,
         "sy": -4,
         "sw": 802,
-        "sh": 822,
-        "scale": 0.2,
+        "sh": 823,
+        "scale": 0.060000000000000005,
         "imgObj": {},
-        "flip": true
+        "flip": true,
+        "isHidden": false
     },
     "machine_type5": {
         "img": "title_machine_type5.png",
-        "x": 355,
-        "y": 240,
+        "x": 356,
+        "y": 250,
         "sx": 340,
         "sy": -8,
         "sw": 703,
         "sh": 867,
-        "scale": 0.2,
+        "scale": 0.05000000000000002,
         "imgObj": {},
         "flip": false,
-        "z": -2
+        "z": -2,
+        "isHidden": false
     },
     "machine_type5_2": {
         "img": "title_machine_type5_2.png",
-        "x": 229,
+        "x": 215,
         "y": 327,
         "sx": 772,
         "sy": 4,
         "sw": 1257,
         "sh": 1499,
-        "scale": 0.10000000000000002,
+        "scale": 0.030000000000000006,
         "imgObj": {},
-        "flip": false
+        "flip": false,
+        "isHidden": false
     },
     "machine_type5_3": {
         "img": "title_machine_type5_3.png",
-        "x": 542,
-        "y": 289,
+        "x": 583,
+        "y": 299,
         "sx": 131,
         "sy": -22,
         "sw": 655,
         "sh": 836,
+        "scale": 0.05000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false
+    },
+    "dragon": {
+        "img": "title_dragon.png",
+        "x": 1,
+        "y": 389,
+        "sx": 338,
+        "sy": 41,
+        "sw": 692,
+        "sh": 703,
         "scale": 0.2,
         "imgObj": {},
-        "flip": true
+        "flip": false,
+        "isHidden": false,
+        "rotation": 35
     },
-    "dragon": { "img": "title_dragon.png", "x": 548, "y": 325, "sx": 338, "sy": 31, "sw": 692, "sh": 703, "scale": 0.2, "imgObj": {}, "flip": true }
+    "dragon_type1": {
+        "img": "title_dragon_type1.png",
+        "x": 837,
+        "y": 65,
+        "sx": -42,
+        "sy": 31,
+        "sw": 1132,
+        "sh": 926,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false,
+        "rotation": -30
+    },
+    "dragon_type1_2": {
+        "img": "title_dragon_type1_2.png",
+        "x": 1,
+        "y": 130,
+        "sx": 323,
+        "sy": 31,
+        "sw": 814,
+        "sh": 703,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false,
+        "rotation": 40
+    },
+    "dragon_type2": {
+        "img": "title_dragon_type2.png",
+        "x": 812,
+        "y": 162,
+        "sx": 338,
+        "sy": 31,
+        "sw": 692,
+        "sh": 703,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false,
+        "rotation": -35
+    },
+    "dragon_type2_2": {
+        "img": "title_dragon_type2_2.png",
+        "x": 821,
+        "y": 521,
+        "sx": 487,
+        "sy": 31,
+        "sw": 1614,
+        "sh": 1387,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false,
+        "rotation": 15
+    },
+    "dragon_type2_3": {
+        "img": "title_dragon_type2_3.png",
+        "x": 24,
+        "y": 494,
+        "sx": 332,
+        "sy": 12,
+        "sw": 780,
+        "sh": 703,
+        "scale": 0.3,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false,
+        "rotation": -5
+    },
+    "dragon_type3": {
+        "img": "title_dragon_type3.png",
+        "x": -26,
+        "y": 218,
+        "sx": 227,
+        "sy": 15,
+        "sw": 884,
+        "sh": 731,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false,
+        "rotation": 30
+    },
+    "dragon_type3_2": {
+        "img": "title_dragon_type3_2.png",
+        "x": 821,
+        "y": 249,
+        "sx": 304,
+        "sy": -2,
+        "sw": 764,
+        "sh": 703,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false,
+        "rotation": -35
+    },
+    "dragon_type4": {
+        "img": "title_dragon_type4.png",
+        "x": -18,
+        "y": 308,
+        "sx": 235,
+        "sy": 31,
+        "sw": 849,
+        "sh": 703,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false,
+        "rotation": 30,
+        "z": -1
+    },
+    "dragon_type4_2": {
+        "img": "title_dragon_type4_2.png",
+        "x": 820,
+        "y": 328,
+        "sx": 641,
+        "sy": 31,
+        "sw": 1413,
+        "sh": 1437,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false,
+        "rotation": -20
+    },
+    "dragon_type5": {
+        "img": "title_dragon_type5.png",
+        "x": 47,
+        "y": -10,
+        "sx": 162,
+        "sy": 31,
+        "sw": 2419,
+        "sh": 1432,
+        "scale": 0.10000000000000002,
+        "imgObj": {},
+        "flip": false,
+        "isHidden": false,
+        "rotation": 45
+    },
+    "dragon_type5_2": {
+        "img": "title_dragon_type5_2.png",
+        "x": 772,
+        "y": 41,
+        "sx": 338,
+        "sy": 31,
+        "sw": 692,
+        "sh": 703,
+        "scale": 0.2,
+        "imgObj": {},
+        "flip": true,
+        "isHidden": false,
+        "z": -2,
+        "rotation": -25
+    }
 };
 
+// ==========================================
+// ★ AI調整用の直接入力UIパネル（追加表示ボタン追加版）
+// ==========================================
 function initAdjustUI() {
     const panel = document.createElement('div'); panel.id = 'ai-adjust-panel';
-    panel.style.cssText = `position:fixed; bottom:20px; right:20px; background:rgba(0,0,0,0.85); color:white; padding:15px; border-radius:8px; display:none; z-index:9999; font-family:monospace; box-shadow:0 4px 10px rgba(0,0,0,0.5);`;
+    panel.style.cssText = `position:fixed; bottom:20px; right:20px; background:rgba(0,0,0,0.85); color:white; padding:15px; border-radius:8px; display:none; z-index:9999; font-family:monospace; box-shadow:0 4px 10px rgba(0,0,0,0.5); width:320px;`;
     
     panel.innerHTML = `
         <div style="margin-bottom:10px; font-weight:bold; border-bottom:1px solid #555; padding-bottom:5px;">✂ Adjust Mode (Direct Input)</div>
@@ -616,17 +2473,33 @@ function initAdjustUI() {
         <div style="margin:8px 0; display:flex; align-items:center;">
             <label style="width:55px;">IMG: </label><input type="text" id="direct-input-image" style="flex:1; background:#222; color:#fff; border:1px solid #555; padding:4px; border-radius:3px;">
         </div>
-        ${['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY'].map(f => `
-            <div style="margin:8px 0; display:flex; align-items:center;">
-                <label style="width:55px;">${f.toUpperCase()}: </label>
-                <input type="number" step="${f.includes('scale') ? '0.05' : '1'}" id="direct-input-${f}" style="width:70px; background:#222; color:#fff; border:1px solid #555; padding:4px; border-radius:3px;">
-            </div>
-        `).join('')}
         
-        <div style="margin:8px 0; display:flex; align-items:center;">
-            <label style="width:55px; color:#ff9800;">HIDE: </label>
-            <input type="checkbox" id="direct-input-hide" style="cursor:pointer; width:16px; height:16px;">
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:5px;">
+            ${['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY'].map(f => `
+                <div style="display:flex; align-items:center;">
+                    <label style="width:55px;">${f.toUpperCase()}:</label>
+                    <input type="number" step="${f.includes('scale') ? '0.01' : '1'}" id="direct-input-${f}" style="width:70px; background:#222; color:#fff; border:1px solid #555; padding:4px; border-radius:3px;">
+                </div>
+            `).join('')}
+            
+            <div style="display:flex; align-items:center;">
+                <label style="width:55px;">ROT: </label>
+                <input type="number" step="1" id="direct-input-rotation" style="width:70px; background:#222; color:#fff; border:1px solid #555; padding:4px; border-radius:3px;">
+            </div>
+            
+            <div style="display:flex; align-items:center;">
+                <label style="width:55px; color:#ff9800;">HIDE: </label>
+                <input type="checkbox" id="direct-input-hide" style="cursor:pointer; width:16px; height:16px;">
+            </div>
         </div>
+
+        <div id="title-bulk-hide-btns" style="margin-top:12px; display:none; grid-template-columns: 1fr 1fr; gap:6px; border-top:1px dashed #555; padding-top:10px;">
+            <button id="adj-btn-show-all" style="padding:6px; background:#4CAF50; color:white; border:none; cursor:pointer; border-radius:4px; font-size:10px; font-weight:bold;">ALL SHOW</button>
+            <button id="adj-btn-hide-all" style="padding:6px; background:#f44336; color:white; border:none; cursor:pointer; border-radius:4px; font-size:10px; font-weight:bold;">ALL HIDE</button>
+            <button id="adj-btn-show-species" style="padding:6px; background:#2196F3; color:white; border:none; cursor:pointer; border-radius:4px; font-size:10px; font-weight:bold;" title="同じ種族（進化系含む）だけを表示">SPECIES ONLY</button>
+            <button id="adj-btn-add-species" style="padding:6px; background:#9C27B0; color:white; border:none; cursor:pointer; border-radius:4px; font-size:10px; font-weight:bold;" title="現在の表示に同じ種族を追加する">ADD SPECIES</button>
+        </div>
+
         <div style="margin-top:15px; display:flex; gap:8px;">
             <button id="adj-btn-copy" style="flex:1; padding:6px; background:#444; color:white; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">Copy</button>
             <button id="adj-btn-paste" style="flex:1; padding:6px; background:#444; color:white; border:none; cursor:pointer; border-radius:4px; font-weight:bold;">Paste</button>
@@ -650,17 +2523,27 @@ function initAdjustUI() {
     });
     document.getElementById('direct-input-image').addEventListener('change', () => { if(typeof saveGameData === 'function') saveGameData(); });
 
-    ['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY'].forEach(f => {
+    ['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY', 'rotation'].forEach(f => {
         const input = document.getElementById('direct-input-' + f);
-        input.addEventListener('input', e => {
-            const target = getAdjustTarget(); if (target) { target[f] = parseFloat(e.target.value) || (f.includes('scale') ? 1 : 0); if(typeof render === 'function') render(); }
-        });
-        input.addEventListener('change', () => { if(typeof saveGameData === 'function') saveGameData(); });
+        if (input) {
+            input.addEventListener('input', e => {
+                const target = getAdjustTarget(); 
+                if (target) { 
+                    let val = parseFloat(e.target.value);
+                    if (isNaN(val)) val = f.includes('scale') ? 1 : 0;
+
+                    if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
+                        target.scale = val;
+                    } else {
+                        target[f] = val;
+                    }
+                    if(typeof render === 'function') render(); 
+                }
+            });
+            input.addEventListener('change', () => { if(typeof saveGameData === 'function') saveGameData(); });
+        }
     });
 
-    // ==========================================
-    // ★ここに追加：HIDEチェックボックスの操作イベント
-    // ==========================================
     document.getElementById('direct-input-hide').addEventListener('change', e => {
         const target = getAdjustTarget(); 
         if (target) { 
@@ -669,10 +2552,45 @@ function initAdjustUI() {
         }
     });
 
+    document.getElementById('adj-btn-show-all').onclick = function() {
+        if (editingTarget === 'title' && window.TITLE_SCREEN_DATA) {
+            for (let k in window.TITLE_SCREEN_DATA) { window.TITLE_SCREEN_DATA[k].isHidden = false; }
+            if(typeof render === 'function') render();
+        }
+    };
+    document.getElementById('adj-btn-hide-all').onclick = function() {
+        if (editingTarget === 'title' && window.TITLE_SCREEN_DATA) {
+            for (let k in window.TITLE_SCREEN_DATA) { window.TITLE_SCREEN_DATA[k].isHidden = true; }
+            if(typeof render === 'function') render();
+        }
+    };
+    document.getElementById('adj-btn-show-species').onclick = function() {
+        if (editingTarget === 'title' && window.selectedTitleCharKey && window.TITLE_SCREEN_DATA) {
+            let base = window.selectedTitleCharKey.split('_')[0];
+            for (let k in window.TITLE_SCREEN_DATA) { 
+                if (k === base || k.startsWith(base + '_')) window.TITLE_SCREEN_DATA[k].isHidden = false;
+                else window.TITLE_SCREEN_DATA[k].isHidden = true;
+            }
+            if(typeof render === 'function') render();
+        }
+    };
+    // ★追加：既存の表示を消さずに、選択中の種族を「追加」で表示するボタン
+    document.getElementById('adj-btn-add-species').onclick = function() {
+        if (editingTarget === 'title' && window.selectedTitleCharKey && window.TITLE_SCREEN_DATA) {
+            let base = window.selectedTitleCharKey.split('_')[0];
+            for (let k in window.TITLE_SCREEN_DATA) { 
+                if (k === base || k.startsWith(base + '_')) {
+                    window.TITLE_SCREEN_DATA[k].isHidden = false;
+                }
+            }
+            if(typeof render === 'function') render();
+        }
+    };
+
     document.getElementById('adj-btn-copy').onclick = function() {
          const target = getAdjustTarget();
          if(target) {
-             window.copiedFrameData = { sx: target.sx, sy: target.sy, sw: target.sw, sh: target.sh, scaleX: target.scaleX, scaleY: target.scaleY, scale: target.scale };
+             window.copiedFrameData = { sx: target.sx, sy: target.sy, sw: target.sw, sh: target.sh, scaleX: target.scaleX, scaleY: target.scaleY, scale: target.scale, rotation: target.rotation };
              this.innerText = 'Copied!'; this.style.background = '#2e8b57'; setTimeout(() => { this.innerText = 'Copy'; this.style.background = '#444'; }, 1000);
          }
     };
@@ -684,6 +2602,7 @@ function initAdjustUI() {
              if(window.copiedFrameData.scaleX !== undefined) target.scaleX = window.copiedFrameData.scaleX;
              if(window.copiedFrameData.scaleY !== undefined) target.scaleY = window.copiedFrameData.scaleY;
              if(window.copiedFrameData.scale !== undefined) target.scale = window.copiedFrameData.scale;
+             if(window.copiedFrameData.rotation !== undefined) target.rotation = window.copiedFrameData.rotation;
              if(typeof render === 'function') render(); if(typeof saveGameData === 'function') saveGameData();
              this.innerText = 'Pasted!'; this.style.background = '#b22222'; setTimeout(() => { this.innerText = 'Paste'; this.style.background = '#444'; }, 1000);
          }
@@ -698,7 +2617,7 @@ function initAdjustUI() {
             if (editingTarget === 'ai') statusEl.innerText = `Target: ${selectedAIType || 'None'}`;
             else if (editingTarget === 'map') statusEl.innerText = `Target: ${selectedMapKey || 'None'}`;
             else if (editingTarget === 'card') statusEl.innerText = `Target: ${window.TCG_MASTER ? window.TCG_MASTER[selectedCardKey]?.name : 'None'}`;
-            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) statusEl.innerText = `Target: ${window.selectedDungeonSpriteKey || 'None'}`; // ★修正
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) statusEl.innerText = `Target: ${window.selectedDungeonSpriteKey || 'None'}`;
             else if (editingTarget === 'rasset') {
                 let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['restaurant'] ? window.SHOP_FURNITURE_DATA['restaurant'][window.selectedFurnitureIndex] : null;
                 statusEl.innerText = `Target: ${fData ? fData.name : 'None'} (${window.selectedFurnitureIndex+1})`;
@@ -713,10 +2632,10 @@ function initAdjustUI() {
         }
         
         if (typeof window.showAdjustUI === 'undefined') window.showAdjustUI = true;
-        if (typeof currentMode !== 'undefined' && currentMode === 'ai_adjust') {
-            const target = getAdjustTarget();
-            if (target && window.showAdjustUI) {
-                p.style.display = 'block';
+        if (typeof currentMode !== 'undefined' && currentMode === 'ai_adjust') {
+            const target = getAdjustTarget();
+            if (target && window.showAdjustUI) {
+                p.style.display = 'block';
                 document.getElementById('adj-act-wrap').style.display = (editingTarget === 'ai') ? 'flex' : 'none';
                 
                 const sel = document.getElementById('adjust-action-select');
@@ -725,19 +2644,24 @@ function initAdjustUI() {
                 const imgEl = document.getElementById('direct-input-image');
                 if (imgEl && document.activeElement !== imgEl) imgEl.value = target.image || target.img || '';
 
-                ['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY'].forEach(f => {
+                ['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY', 'rotation'].forEach(f => {
                     const el = document.getElementById('direct-input-' + f);
-                    if (document.activeElement !== el) {
-                        // 家具の場合は scaleX 欄に scale（配置倍率）を表示する
+                    if (el && document.activeElement !== el) {
                         if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
                             el.value = target.scale !== undefined ? target.scale : 1;
-                        } else { el.value = target[f] !== undefined ? target[f] : (f.includes('scale') ? 1 : 0); }
+                        } else { 
+                            el.value = target[f] !== undefined ? target[f] : (f.includes('scale') ? 1 : 0); 
+                        }
                     }
                 });
 
-                // ★ここに追加：HIDE状態をUIに反映
                 const hideEl = document.getElementById('direct-input-hide');
                 if (hideEl && document.activeElement !== hideEl) hideEl.checked = !!target.isHidden;
+                
+                // ★修正：grid形式にしたボタンコンテナを表示
+                const bulkBtns = document.getElementById('title-bulk-hide-btns');
+                if (bulkBtns) bulkBtns.style.display = (editingTarget === 'title') ? 'grid' : 'none';
+                
             } else { p.style.display = 'none'; }
         } else { p.style.display = 'none'; }
     }, 100);
@@ -910,22 +2834,39 @@ window.addEventListener('keydown', (e) => {
         if (editingTarget === 'ai' && e.key === ' ') { isTestPlaying = !isTestPlaying; e.preventDefault(); }
         if (editingTarget === 'ai' && e.key.toLowerCase() === 'f') { editingFrameIndex = (editingFrameIndex + 1) % 3; render(); }
 
+        // ★修正: 縮小限界を 0.1 から 0.01 へ解除
         if (e.key.toLowerCase() === 'v') { 
-            if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = Math.max(0.1, (aiConfigs[selectedAIType].scale||0.25) - 0.05);
-            else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = Math.max(0.1, (catalog[selectedMapKey].scale||1.0) - 0.05);
-            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = Math.max(0.1, (window.TCG_MASTER[selectedCardKey].scaleX||1.0) - 0.05);
-            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.1, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05); // ★修正
-            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.1, (t.scale||1.0) - 0.05); }
+            if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = Math.max(0.01, (aiConfigs[selectedAIType].scale||0.25) - 0.05);
+            else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = Math.max(0.01, (catalog[selectedMapKey].scale||1.0) - 0.05);
+            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = Math.max(0.01, (window.TCG_MASTER[selectedCardKey].scaleX||1.0) - 0.05);
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.01, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05);
+            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.01, (t.scale||1.0) - 0.05); }
         }
         if (e.key.toLowerCase() === 'b') { 
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = (aiConfigs[selectedAIType].scale||0.25) + 0.05;
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = (catalog[selectedMapKey].scale||1.0) + 0.05;
             else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = (window.TCG_MASTER[selectedCardKey].scaleX||1.0) + 0.05;
-            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05; // ★修正
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05;
             else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
         }
-        if (e.key.toLowerCase() === 'n') { if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleY = Math.max(0.1, (window.TCG_MASTER[selectedCardKey].scaleY||1.0) - 0.05); }
-        if (e.key.toLowerCase() === 'm') { if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleY = (window.TCG_MASTER[selectedCardKey].scaleY||1.0) + 0.05; }
+
+        // ★追加: Nキー（左回転）と Mキー（右回転）5度ずつ回転
+        if (e.key.toLowerCase() === 'n') { 
+            let applyRot = (obj) => { obj.rotation = ((obj.rotation || 0) - 5) % 360; };
+            if (editingTarget === 'ai' && aiConfigs[selectedAIType]) applyRot(aiConfigs[selectedAIType]);
+            else if (editingTarget === 'map' && catalog[selectedMapKey]) applyRot(catalog[selectedMapKey]);
+            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) applyRot(window.TCG_MASTER[selectedCardKey]);
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) applyRot(window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]);
+            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
+        }
+        if (e.key.toLowerCase() === 'm') { 
+            let applyRot = (obj) => { obj.rotation = ((obj.rotation || 0) + 5) % 360; };
+            if (editingTarget === 'ai' && aiConfigs[selectedAIType]) applyRot(aiConfigs[selectedAIType]);
+            else if (editingTarget === 'map' && catalog[selectedMapKey]) applyRot(catalog[selectedMapKey]);
+            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) applyRot(window.TCG_MASTER[selectedCardKey]);
+            else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) applyRot(window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]);
+            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
+        }
     }
 
     let target = null;
@@ -1005,28 +2946,97 @@ canvas.addEventListener('mousedown', (e) => {
     const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
     
     // ==========================================
-    // ★ロゴ画面をクリックしたら、タイトルへ移行＆BGMスタート！
+    // ★ロゴ画面をクリックしたら、暗転中に超高速でプリロードしてタイトルへ！
     // ==========================================
     if (currentMode === 'logo') {
-        switchMode('title');
+        if (window.isTitleTransitioning) return; // 連打防止
+        window.isTitleTransitioning = true;
         
-        let unlocked = [];
-        if (window.aiPet && window.aiPet.discoveredMonsters) {
-            // ゴミデータ（dummy, insurance等）だけを弾き、進化系はすべて含める
-            unlocked = window.aiPet.discoveredMonsters.filter(sp => !sp.includes('dummy') && !sp.includes('insurance'));
-            unlocked = [...new Set(unlocked)]; 
-        }
-        
-        // タイトル画面に入る瞬間に、1回だけ「最大11体」のランダム配置を計算
-        if (typeof window.generateTitleLayout === 'function') {
-            window.generateTitleLayout(unlocked);
-        }
+        let fader = document.createElement('div');
+        fader.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:#050505; z-index:99999; opacity:0; transition:opacity 0.3s ease; pointer-events:none;`;
+        document.body.appendChild(fader);
 
-        // タイトル音楽のランダム再生をスタート！
-        if (window.audioManager && window.audioManager.playTitleMusic) {
-            window.audioManager.playTitleMusic(unlocked);
-        }
-        return; // ここで終わる
+        setTimeout(() => {
+            fader.style.opacity = '1';
+
+            setTimeout(() => {
+                let unlocked = [];
+                
+                try {
+                    let saveData = localStorage.getItem('ai_pet_data_v1') || localStorage.getItem('ai_pet_data');
+                    if (saveData) {
+                        let parsed = JSON.parse(saveData);
+                        let list1 = Array.isArray(parsed.discoveredMonsters) ? parsed.discoveredMonsters : [];
+                        let list2 = (parsed.aiPet && Array.isArray(parsed.aiPet.discoveredMonsters)) ? parsed.aiPet.discoveredMonsters : [];
+                        let list3 = (window.aiPet && Array.isArray(window.aiPet.discoveredMonsters)) ? window.aiPet.discoveredMonsters : [];
+                        unlocked = [...new Set([...list1, ...list2, ...list3])];
+                    } else if (window.aiPet && window.aiPet.discoveredMonsters) {
+                        unlocked = window.aiPet.discoveredMonsters;
+                    }
+                } catch(err) {}
+
+                unlocked = unlocked.filter(sp => typeof sp === 'string' && !sp.includes('dummy') && !sp.includes('insurance'));
+                unlocked = [...new Set(unlocked)]; 
+                
+                if (typeof window.generateTitleLayout === 'function') {
+                    window.generateTitleLayout(unlocked);
+                }
+
+                let activeKeys = Object.keys(window.TITLE_SCREEN_DATA || {}).filter(k => window.TITLE_RANDOM_LAYOUT && window.TITLE_RANDOM_LAYOUT[k]);
+                
+                let loadPromises = activeKeys.map(k => {
+                    return new Promise(resolve => {
+                        let chara = window.TITLE_SCREEN_DATA[k];
+                        
+                        // ==========================================
+                        // ★究極修正：単なる空箱 {} だった場合は、本物の Image() で上書きする！
+                        // ==========================================
+                        if (!chara.imgObj || !(chara.imgObj instanceof Image)) {
+                            chara.imgObj = new Image();
+                        }
+
+                        if (chara.imgObj.src && chara.imgObj.src.includes(chara.img) && chara.imgObj.complete && chara.imgObj.naturalWidth !== 0) {
+                            resolve(); return;
+                        }
+
+                        chara.imgObj.onload = () => resolve();
+                        chara.imgObj.onerror = () => resolve(); 
+                        chara.imgObj.src = chara.img;
+
+                        setTimeout(() => { if (chara.imgObj.complete) resolve(); }, 50);
+                    });
+                });
+
+                if (!window.bgTitleImg) window.bgTitleImg = new Image();
+                loadPromises.push(new Promise(resolve => {
+                    if (window.bgTitleImg.src && window.bgTitleImg.src.includes('bg_game_title.png') && window.bgTitleImg.complete) {
+                        resolve(); return;
+                    }
+                    window.bgTitleImg.onload = () => resolve();
+                    window.bgTitleImg.onerror = () => resolve();
+                    window.bgTitleImg.src = 'bg_game_title.png';
+                    setTimeout(() => { if (window.bgTitleImg.complete) resolve(); }, 50);
+                }));
+
+                const timeoutPromise = new Promise(resolve => setTimeout(resolve, 400));
+
+                Promise.race([Promise.all(loadPromises), timeoutPromise]).then(() => {
+                    switchMode('title'); 
+                    
+                    if (window.audioManager && window.audioManager.playTitleMusic) {
+                        window.audioManager.playTitleMusic(unlocked);
+                    }
+
+                    fader.style.opacity = '0';
+                    setTimeout(() => {
+                        fader.remove();
+                        window.isTitleTransitioning = false;
+                    }, 300);
+                });
+
+            }, 300); 
+        }, 10);
+        return; 
     }
 
     // ==========================================
@@ -1034,33 +3044,30 @@ canvas.addEventListener('mousedown', (e) => {
     // ==========================================
     if (currentMode === 'title') {
         if (window.titleConfirmMode) {
-            if (window.titleMenuHover === 3) { // はい（New Game実行）
+            if (window.titleMenuHover === 3) { 
                 window.titleConfirmMode = false;
                 
-                // ★完全ブロック：ログイン履歴（ID）がある場合は「はじめから」を禁止し、カスタムアラートで弾く
                 if (localStorage.getItem('my_player_id')) {
                     if (typeof window.showCustomAlert === 'function') {
                         window.showCustomAlert("⚠️ プレイ制限", "現在オンラインアカウントで連携中です。\n誤操作によるデータ消失を防ぐため、「はじめから」は選択できません。\n\n既存のデータで遊ぶ場合は「つづきから」を選択してください。");
                     }
-                    return; // ここで処理を終了し、初期化を絶対にさせない
+                    return; 
                 }
 
-                // 未連携の場合はログイン選択へ
                 if (typeof window.showNewGameLoginChoice === 'function') {
                     window.showNewGameLoginChoice();
                 } else {
                     window.executeNewGameInitialization(true);
                 }
-            } else if (window.titleMenuHover === 4) { // いいえ（キャンセル）
+            } else if (window.titleMenuHover === 4) { 
                 window.titleConfirmMode = false;
             }
             return;
         }
 
-        if (window.titleMenuHover === 1) { // はじめから
+        if (window.titleMenuHover === 1) { 
             window.titleConfirmMode = true;
-        } else if (window.titleMenuHover === 2) { // つづきから
-            // 未ログイン（ゲスト）の続きからの場合は、ログイン選択UIを挟む
+        } else if (window.titleMenuHover === 2) { 
             if (!localStorage.getItem('my_player_id') && !window.skipAutoLogin && typeof window.showContinueLoginChoice === 'function') {
                 window.showContinueLoginChoice();
             } else {
@@ -1070,7 +3077,7 @@ canvas.addEventListener('mousedown', (e) => {
         return;
     }
 
-    if (currentMode === 'editor' || currentMode === 'grazing_editor') {
+    if (currentMode === 'editor' || currentMode === 'grazing_editor') {
         selectedAsset = null; let hitKey = null;
         for (let key in assets) {
             const a = assets[key]; const dw = a.sw * a.scale, dh = a.sh * a.scale;
@@ -1078,18 +3085,18 @@ canvas.addEventListener('mousedown', (e) => {
             if (checkX > a.dx && checkX < a.dx + dw && checkY > a.dy && checkY < a.dy + dh) hitKey = key;
         }
         if (hitKey) { selectedAsset = assets[hitKey]; isDragging = true; offsetX = (mx + camera.x) - selectedAsset.dx; offsetY = (my + camera.y) - selectedAsset.dy; }
-    } else if (currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
-        let t = window.getAdjustTarget();
-        if (t) {
-            let dw = (t.sw || 150) * (t.scale || 1); let dh = (t.sh || 150) * (t.scale || 1);
-            let left = (t.x || 640) - dw/2; let right = (t.x || 640) + dw/2;
-            let top = (t.y || 360) - dh/2; let bottom = (t.y || 360) + dh/2;
-            if (mx >= left && mx <= right && my >= top && my <= bottom) {
-                window.isDraggingTitle = true; window.titleDragOffsetX = mx - (t.x || 640); window.titleDragOffsetY = my - (t.y || 360);
-            }
-        }
-    }
-    render();
+    } else if (currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
+        let t = window.getAdjustTarget();
+        if (t) {
+            let dw = (t.sw || 150) * (t.scale || 1); let dh = (t.sh || 150) * (t.scale || 1);
+            let left = (t.x || 640) - dw/2; let right = (t.x || 640) + dw/2;
+            let top = (t.y || 360) - dh/2; let bottom = (t.y || 360) + dh/2;
+            if (mx >= left && mx <= right && my >= top && my <= bottom) {
+                window.isDraggingTitle = true; window.titleDragOffsetX = mx - (t.x || 640); window.titleDragOffsetY = my - (t.y || 360);
+            }
+        }
+    }
+    render();
 });
 
 canvas.addEventListener('mousemove', (e) => {
@@ -1675,90 +3682,23 @@ window.drawStudioLogo = function() {
 };
 
 // ==========================================
-// ★ タイトル画面ランダム配置ジェネレーター（最大11体ピックアップ版）
+// ★ タイトル画面 ダイレクト配置ジェネレーター (119体フル表示対応版)
 // ==========================================
 window.generateTitleLayout = function(unlockedKeys) {
     window.TITLE_RANDOM_LAYOUT = {}; 
     if (!window.TITLE_SCREEN_DATA) return;
 
-    // --- 1. キャラクターのピックアップ (最大11体) ---
-    const baseSpeciesList = ['robot', 'spirit', 'magician', 'stone', 'balloon', 'bird', 'beetle', 'seed', 'ghost', 'machine', 'dragon'];
-    let selectedKeys = [];
-    
-    // TITLE_SCREEN_DATAに存在するものだけをフィルタリング
+    // 解放済みのキャラクターで、かつエディタ(TITLE_SCREEN_DATA)にデータがあるものを抽出
     let available = [...new Set(unlockedKeys)].filter(k => window.TITLE_SCREEN_DATA[k]);
 
-    // 配列をシャッフルする関数
-    const shuffle = (array) => {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    };
-    
-    // どの進化系が選ばれるかをランダムにするためシャッフル
-    shuffle(available);
-
-    // ① まず、11系統の基本種族ごとに「どれか1体」を優先して選ぶ
-    for (let base of baseSpeciesList) {
-        // その系統（自分自身、または _ で続く進化系）を探す
-        let idx = available.findIndex(k => k === base || k.startsWith(base + '_'));
-        if (idx !== -1) {
-            selectedKeys.push(available[idx]);
-            available.splice(idx, 1); // 選んだものは候補から外す
-        }
-    }
-
-    // ② もし11系統揃っておらず枠が余っていれば、残りの候補から11体になるまで埋める
-    while (selectedKeys.length < 11 && available.length > 0) {
-        selectedKeys.push(available.shift());
-    }
-
-    // --- 2. スロットの準備 ---
-    let airSlots = [];
-    let groundSlots = [];
-    
-    // TITLE_SCREEN_DATA に定義されたすべての座標を「スロットのプール」として回収
-    for (let k in window.TITLE_SCREEN_DATA) {
-        let chara = window.TITLE_SCREEN_DATA[k];
-        let slot = { x: chara.x, y: chara.y };
-        if (chara.y < 150) airSlots.push(slot);
-        else groundSlots.push(slot);
-    }
-    
-    // スロットの割り当て先をランダムにする
-    shuffle(airSlots);
-    shuffle(groundSlots);
-
-    let airIdx = 0;
-    let groundIdx = 0;
-
-    // --- 3. ピックアップしたキャラにスロットを割り当て ---
-    selectedKeys.forEach(k => {
+    // シャッフルや11体制限を行わず、すべて「TITLE_SCREEN_DATA」の座標・設定そのままで描画用レイアウトに登録！
+    available.forEach(k => {
         let orig = window.TITLE_SCREEN_DATA[k];
-        let isOrigAir = orig.y < 150;
-        let isOrigLeft = orig.x < 400;
-        let isOrigRight = orig.x >= 450;
-
-        // 空キャラには空スロットを、地上キャラには地上スロットを割り当て
-        // （万が一スロットが足りなくなった時のフェイルセーフとして元の座標を使用）
-        let newSlot;
-        if (isOrigAir) newSlot = (airIdx < airSlots.length) ? airSlots[airIdx++] : {x: orig.x, y: orig.y};
-        else newSlot = (groundIdx < groundSlots.length) ? groundSlots[groundIdx++] : {x: orig.x, y: orig.y};
-
-        let isNewLeft = newSlot.x < 400;
-        let isNewRight = newSlot.x >= 450;
-
-        let newFlip = orig.flip ? true : false;
-
-        // 川をまたいで移動した場合は、Flipを反転させる
-        if (isOrigLeft && isNewRight) newFlip = !newFlip;
-        if (isOrigRight && isNewLeft) newFlip = !newFlip;
-
         window.TITLE_RANDOM_LAYOUT[k] = {
-            x: newSlot.x,
-            y: newSlot.y,
-            flip: newFlip
+            x: orig.x,
+            y: orig.y,
+            flip: orig.flip ? true : false,
+            rotation: orig.rotation || 0 // 回転情報もそのまま引き継ぐ
         };
     });
 };

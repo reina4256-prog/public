@@ -2005,32 +2005,24 @@ setTimeout(() => {
 
 // 1. 現在が「完全に野外で自由行動中」であるかを判定する最強のチェッカー
 window.isFreeExploring = function() {
-    // モードが play または grazing 以外ならNG (開発モード等)
-    if (typeof window.currentMode !== 'undefined' && window.currentMode !== 'play' && window.currentMode !== 'grazing') return false;
+    // ★修正：ローカル変数 `currentMode` を直接参照し、play/grazing 以外なら絶対に弾く！
+    let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
+    if (mode !== 'play' && mode !== 'grazing') return false;
     
     // AIが屋内にいる（カジノやお店などに入っている）ならNG
     if (window.aiPet && window.aiPet.isIndoors) return false;
 
-    // ★追加：ダンジョン探索中なら絶対にNG！
+    // ダンジョン探索中なら絶対にNG！
     if (window.DUNGEON_STATE && window.DUNGEON_STATE.active) return false;
 
     // 画面を覆い隠す巨大なUIが開いているならNG
     const blockingUIs = [
-        'tcg-battle-ui',
-        'tcg-deck-builder',
-        'casino-lobby-ui',
-        'tcg-market-ui',
-        'tcg-shop-ui',
-        'arena-reception-ui',
-        'arena-battle-ui',
-        'arena-friend-select-ui',
-        'arena-interval-ui',
-        'dungeon-main-ui',  // ★追加：ダンジョン画面
-        'dg-result-ui'      // ★追加：ダンジョンのリザルト画面
+        'tcg-battle-ui', 'tcg-deck-builder', 'casino-lobby-ui', 'tcg-market-ui',
+        'tcg-shop-ui', 'arena-reception-ui', 'arena-battle-ui', 'arena-friend-select-ui',
+        'arena-interval-ui', 'dungeon-main-ui', 'dg-result-ui'
     ];
     for (let id of blockingUIs) {
         let el = document.getElementById(id);
-        // display が none でも空文字（初期状態）でもない場合＝表示されている
         if (el && el.style.display !== 'none' && el.style.display !== '') return false;
     }
 

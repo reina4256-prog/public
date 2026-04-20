@@ -22,22 +22,50 @@ function render() {
         
         if (window.TITLE_SCREEN_DATA) {
             let keys = Object.keys(window.TITLE_SCREEN_DATA);
-            // Z軸で奥から手前へソート
-            keys.sort((a, b) => (window.TITLE_SCREEN_DATA[a].z || 0) - (window.TITLE_SCREEN_DATA[b].z || 0));
+            
+            // ==========================================
+            // ★大修正：ドラゴン最前面 ＆ Y座標ベースの自動ソート (エディタ用)
+            // ==========================================
+            keys.sort((a, b) => {
+                let charA = window.TITLE_SCREEN_DATA[a];
+                let charB = window.TITLE_SCREEN_DATA[b];
+                
+                let isDragonA = a.startsWith('dragon') ? 1 : 0;
+                let isDragonB = b.startsWith('dragon') ? 1 : 0;
+                
+                // 1. ドラゴンは無条件で他の種族より手前（後に描画）
+                if (isDragonA !== isDragonB) return isDragonA - isDragonB;
+                
+                // 2. ドラゴン同士、または他種族同士なら Y座標でソート (Yが小さい＝上にあるほど奥)
+                // ※手動設定された `z` プロパティは、微調整用の強力なオフセットとして加算する
+                let scoreA = (charA.y || 0) + ((charA.z || 0) * 10000);
+                let scoreB = (charB.y || 0) + ((charB.z || 0) * 10000);
+                
+                return scoreA - scoreB;
+            });
 
             for (let k of keys) {
                 let chara = window.TITLE_SCREEN_DATA[k];
-                if (!chara.imgObj || !chara.imgObj.src) { chara.imgObj = new Image(); chara.imgObj.src = chara.img; }
+                // ★空箱 {} トラップを回避する最強の安全装置
+                if (!chara.imgObj || !(chara.imgObj instanceof Image) || !chara.imgObj.src) { 
+                    chara.imgObj = new Image(); 
+                    chara.imgObj.src = chara.img; 
+                }
                 
                 if (chara.imgObj.complete) {
                     ctx.save();
+                    // 描画の中心（基準点）へ移動してから回転とスケールを適用！
                     ctx.translate(chara.x || 640, chara.y || 360);
+                    
+                    // 回転処理を追加 (角度からラジアンへ変換)
+                    if (chara.rotation) {
+                        ctx.rotate(chara.rotation * Math.PI / 180);
+                    }
+                    
                     ctx.scale(chara.scale || 1, chara.scale || 1);
                     if (chara.flip) ctx.scale(-1, 1); // 左右反転
                     
-                    // ==========================================
-                    // ★大修正：HIDEにチェックが入っていない時だけ画像を描画する
-                    // ==========================================
+                    // HIDEにチェックが入っていない時だけ画像を描画する
                     if (!chara.isHidden) {
                         ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
                                       -(chara.sw||150)/2, -(chara.sh||150)/2, chara.sw||150, chara.sh||150);
@@ -69,25 +97,54 @@ function render() {
         let hasSaveData = !!localStorage.getItem('ai_pet_data_v1');
         
         if (window.TITLE_SCREEN_DATA && hasSaveData && window.TITLE_RANDOM_LAYOUT) {
-            // ★描画対象（解放済みで、ランダムレイアウトが生成されたキャラ）のキーだけを抽出
+            // 描画対象のキーだけを抽出
             let activeKeys = Object.keys(window.TITLE_SCREEN_DATA).filter(k => window.TITLE_RANDOM_LAYOUT[k]);
 
-            // ★Y座標（画面の奥から手前）でソート（キャラクターの重なり合いを自然にするため）
-            activeKeys.sort((a, b) => window.TITLE_RANDOM_LAYOUT[a].y - window.TITLE_RANDOM_LAYOUT[b].y);
+            // ==========================================
+            // ★大修正：ドラゴン最前面 ＆ 実際の配置Y座標ベースの自動ソート (本番用)
+            // ==========================================
+            activeKeys.sort((a, b) => {
+                let charA = window.TITLE_SCREEN_DATA[a];
+                let charB = window.TITLE_SCREEN_DATA[b];
+                let layoutA = window.TITLE_RANDOM_LAYOUT[a];
+                let layoutB = window.TITLE_RANDOM_LAYOUT[b];
+                
+                let isDragonA = a.startsWith('dragon') ? 1 : 0;
+                let isDragonB = b.startsWith('dragon') ? 1 : 0;
+                
+                // 1. ドラゴンは無条件で他の種族より手前（後に描画）
+                if (isDragonA !== isDragonB) return isDragonA - isDragonB;
+                
+                // 2. ランダム（ダイレクト）配置された実際の Y座標でソート
+                let scoreA = layoutA.y + ((charA.z || 0) * 10000);
+                let scoreB = layoutB.y + ((charB.z || 0) * 10000);
+                
+                return scoreA - scoreB;
+            });
 
             for (let k of activeKeys) {
                 let chara = window.TITLE_SCREEN_DATA[k];
                 let layout = window.TITLE_RANDOM_LAYOUT[k]; // 計算済みのランダム座標＆Flipデータ
                 
-                if (!chara.imgObj || !chara.imgObj.src) { chara.imgObj = new Image(); chara.imgObj.src = chara.img; }
+                // ★空箱 {} トラップを回避する最強の安全装置
+                if (!chara.imgObj || !(chara.imgObj instanceof Image) || !chara.imgObj.src) { 
+                    chara.imgObj = new Image(); 
+                    chara.imgObj.src = chara.img; 
+                }
                 
                 if (chara.imgObj.complete) {
                     ctx.save();
-                    // ★元の座標ではなく、生成されたランダム座標を使用！
+                    // 生成されたランダム座標を使用！
                     ctx.translate(layout.x, layout.y);
+                    
+                    // 回転情報を適用！
+                    if (layout.rotation) {
+                        ctx.rotate(layout.rotation * Math.PI / 180);
+                    }
+
                     ctx.scale(chara.scale || 1, chara.scale || 1);
                     
-                    // ★川をまたいだ反転ルールを適用！
+                    // 川をまたいだ反転ルールを適用！
                     if (layout.flip) ctx.scale(-1, 1); 
                     
                     ctx.drawImage(chara.imgObj, chara.sx || 0, chara.sy || 0, chara.sw || 150, chara.sh || 150, 
@@ -188,7 +245,6 @@ function render() {
     let isDefense = (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isActive);
     let isEmergency = (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isEmergency);
 
-    // ★修正：確実にassetsを取得する
     let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
 
     let camBase = aiPet;
@@ -293,9 +349,6 @@ function render() {
         }
     });
 
-    // ==========================================
-    // ★施設のHPバーと襲撃アラート（正確な座標取得）
-    // ==========================================
     if ((isDefense || isEmergency) && window.DEFENSE_STATE.facilities) {
         window.DEFENSE_STATE.facilities.forEach(fac => {
             if (fac.hp > 0) {
@@ -357,7 +410,6 @@ function render() {
         if (currentMode === 'ai_adjust') {
             drawAICharacter();
             
-            // ▼▼▼ 追加：AI Adjustモード時の赤枠（補助フレーム）描画 ▼▼▼
             if (editingTarget === 'ai') {
                 const target = typeof getAdjustTarget === 'function' ? getAdjustTarget() : null;
                 if (target) {
@@ -373,25 +425,20 @@ function render() {
                     const dw = target.sw * scaleX;
                     const dh = target.sh * scaleY;
                     
-                    // スクリーン上のキャラクター座標を計算（カメラ追従時は自動的に画面中央になります）
                     const cx = aiPet.x - camera.x;
                     const cy = aiPet.y - camera.y;
                     
                     ctx.strokeStyle = "red";
                     ctx.lineWidth = 2;
-                    ctx.setLineDash([4, 4]); // 見やすい点線
+                    ctx.setLineDash([4, 4]); 
                     
-                    // 中心基準の描画枠（キャラクターを囲う四角形）
                     ctx.strokeRect(cx - dw / 2, cy - dh / 2, dw, dh);
                     
-                    // 基準点（アンカー）のクロスヘア表示
                     ctx.fillStyle = "rgba(255, 0, 0, 0.8)";
-                    ctx.fillRect(cx - 15, cy - 1, 30, 2); // 横線
-                    ctx.fillRect(cx - 1, cy - 15, 2, 30); // 縦線
+                    ctx.fillRect(cx - 15, cy - 1, 30, 2); 
+                    ctx.fillRect(cx - 1, cy - 15, 2, 30); 
                 }
             }
-            // ▲▲▲ 追加おわり ▲▲▲
-
         } else {
             let mainPetBackup = aiPet; 
             if (typeof party !== 'undefined' && party.length > 0) {
