@@ -34,6 +34,169 @@ if (typeof window.DUNGEON_SPRITES !== 'undefined') {
     window.DUNGEON_SPRITES["arena_smithing"] = { "img": "smith_battle_enemy.png", "sx": 794, "sy": 0, "sw": 1344, "sh": 1536, "scale": 0.15000000000000002 };
     window.DUNGEON_SPRITES["arena_cooking"] = { "img": "chef_battle_enemy.png", "sx": 439, "sy": 0, "sw": 1766, "sh": 1536, "scale": 0.15000000000000002 };
     window.DUNGEON_SPRITES["arena_explore"] = { "img": "adventurer_battle_enemy.png", "sx": 794, "sy": 0, "sw": 1344, "sh": 1536, "scale": 0.15000000000000002 };
+
+    // 🤖 Robot Tree (20種 - 座標調整版)
+    window.DUNGEON_SPRITES["arena_robot_type1"] = { "img": "robot_type1_battle_enemy.png", "sx": 588, "sy": 3, "sw": 1302, "sh": 1784, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type1_2"] = { "img": "robot_type1_2_battle_enemy.png", "sx": 398, "sy": 7, "sw": 1717, "sh": 1757, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type1_3"] = { "img": "robot_type1_3_battle_enemy.png", "sx": 510, "sy": 32, "sw": 1458, "sh": 1733, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type2"] = { "img": "robot_type2_battle_enemy.png", "sx": 559, "sy": 32, "sw": 1377, "sh": 1737, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type2_2"] = { "img": "robot_type2_2_battle_enemy.png", "sx": 617, "sy": 9, "sw": 1270, "sh": 1780, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type2_3"] = { "img": "robot_type2_3_battle_enemy.png", "sx": 681, "sy": 67, "sw": 1177, "sh": 1697, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type2_4"] = { "img": "robot_type2_4_battle_enemy.png", "sx": 85, "sy": 22, "sw": 2335, "sh": 1700, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type3"] = { "img": "robot_type3_battle_enemy.png", "sx": 581, "sy": -39, "sw": 1322, "sh": 1803, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type3_2"] = { "img": "robot_type3_2_battle_enemy.png", "sx": 551, "sy": 38, "sw": 1443, "sh": 1765, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type3_3"] = { "img": "robot_type3_3_battle_enemy.png", "sx": 464, "sy": 67, "sw": 1606, "sh": 1588, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type3_4"] = { "img": "robot_type3_4_battle_enemy.png", "sx": 600, "sy": 12, "sw": 1341, "sh": 1781, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type3_5"] = { "img": "robot_type3_5_battle_enemy.png", "sx": 149, "sy": 42, "sw": 2199, "sh": 1741, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type4"] = { "img": "robot_type4_battle_enemy.png", "sx": 588, "sy": -13, "sw": 1291, "sh": 1785, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type4_2"] = { "img": "robot_type4_2_battle_enemy.png", "sx": 304, "sy": 67, "sw": 1806, "sh": 1684, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type4_3"] = { "img": "robot_type4_3_battle_enemy.png", "sx": 385, "sy": 16, "sw": 1771, "sh": 1768, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type4_4"] = { "img": "robot_type4_4_battle_enemy.png", "sx": 379, "sy": -4, "sw": 1812, "sh": 1796, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type5"] = { "img": "robot_type5_battle_enemy.png", "sx": 397, "sy": -3, "sw": 1742, "sh": 1783, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type5_2"] = { "img": "robot_type5_2_battle_enemy.png", "sx": 623, "sy": -12, "sw": 1289, "sh": 1734, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type5_3"] = { "img": "robot_type5_3_battle_enemy.png", "sx": 516, "sy": -48, "sw": 1482, "sh": 1839, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_robot_type5_4"] = { "img": "robot_type5_4_battle_enemy.png", "sx": 576, "sy": -37, "sw": 1352, "sh": 1809, "scale": 0.15 };
+    
+    // 🧚 Spirit Tree
+    window.DUNGEON_SPRITES["arena_spirit_type2"] = { "img": "spirit_type2_battle_enemy.png", "sx": 553, "sy": 19, "sw": 1415, "sh": 1743, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type4"] = { "img": "spirit_type4_battle_enemy.png", "sx": 495, "sy": -19, "sw": 1498, "sh": 1731, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type5"] = { "img": "spirit_type5_battle_enemy.png", "sx": 360, "sy": 0, "sw": 1804, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type1"] = { "img": "spirit_type1_battle_enemy.png", "sx": 720, "sy": -14, "sw": 1351, "sh": 1579, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type3"] = { "img": "spirit_type3_battle_enemy.png", "sx": 629, "sy": 61, "sw": 1239, "sh": 1615, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type2_2"] = { "img": "spirit_type2_2_battle_enemy.png", "sx": 345, "sy": 83, "sw": 1864, "sh": 1554, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type2_3"] = { "img": "spirit_type2_3_battle_enemy.png", "sx": 467, "sy": -23, "sw": 1611, "sh": 1801, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type4_2"] = { "img": "spirit_type4_2_battle_enemy.png", "sx": 366, "sy": 40, "sw": 1778, "sh": 1721, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type4_3"] = { "img": "spirit_type4_3_battle_enemy.png", "sx": 350, "sy": -23, "sw": 1767, "sh": 1824, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type5_2"] = { "img": "spirit_type5_2_battle_enemy.png", "sx": 592, "sy": 83, "sw": 1611, "sh": 1641, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type5_3"] = { "img": "spirit_type5_3_battle_enemy.png", "sx": 548, "sy": 40, "sw": 1390, "sh": 1737, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type1_2"] = { "img": "spirit_type1_2_battle_enemy.png", "sx": 278, "sy": 17, "sw": 1973, "sh": 1735, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_spirit_type3_2"] = { "img": "spirit_type3_2_battle_enemy.png", "sx": 603, "sy": -7, "sw": 1495, "sh": 1740, "scale": 0.15000000000000002 };
+
+    // 🧙‍♂️ Magician Tree
+    window.DUNGEON_SPRITES["arena_magician_type4"] = { "img": "magician_type4_battle_enemy.png", "sx": 516, "sy": 53, "sw": 1478, "sh": 1685, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type4_2"] = { "img": "magician_type4_2_battle_enemy.png", "sx": 342, "sy": 70, "sw": 1846, "sh": 1654, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type1"] = { "img": "magician_type1_battle_enemy.png", "sx": 538, "sy": -52, "sw": 1414, "sh": 1743, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type1_2"] = { "img": "magician_type1_2_battle_enemy.png", "sx": 412, "sy": 27, "sw": 1705, "sh": 1746, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type5"] = { "img": "magician_type5_battle_enemy.png", "sx": 467, "sy": -12, "sw": 1545, "sh": 1771, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type2"] = { "img": "magician_type2_battle_enemy.png", "sx": 579, "sy": 2, "sw": 1397, "sh": 1735, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type2_2"] = { "img": "magician_type2_2_battle_enemy.png", "sx": 672, "sy": 83, "sw": 1229, "sh": 1684, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type3"] = { "img": "magician_type3_battle_enemy.png", "sx": 500, "sy": 1, "sw": 1511, "sh": 1702, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type4_3"] = { "img": "magician_type4_3_battle_enemy.png", "sx": 51, "sy": -56, "sw": 2401, "sh": 1831, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type4_4"] = { "img": "magician_type4_4_battle_enemy.png", "sx": 149, "sy": -19, "sw": 2093, "sh": 1789, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type1_3"] = { "img": "magician_type1_3_battle_enemy.png", "sx": 359, "sy": -33, "sw": 1809, "sh": 1762, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type1_4"] = { "img": "magician_type1_4_battle_enemy.png", "sx": -4, "sy": 6, "sw": 1965, "sh": 2222, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type5_2"] = { "img": "magician_type5_2_battle_enemy.png", "sx": 360, "sy": -30, "sw": 1803, "sh": 1780, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type5_3"] = { "img": "magician_type5_3_battle_enemy.png", "sx": 570, "sy": 6, "sw": 1427, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type2_3"] = { "img": "magician_type2_3_battle_enemy.png", "sx": 400, "sy": -4, "sw": 1767, "sh": 1763, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type2_4"] = { "img": "magician_type2_4_battle_enemy.png", "sx": 467, "sy": -53, "sw": 1521, "sh": 1835, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type3_2"] = { "img": "magician_type3_2_battle_enemy.png", "sx": 412, "sy": -21, "sw": 1719, "sh": 1755, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_magician_type3_3"] = { "img": "magician_type3_3_battle_enemy.png", "sx": 467, "sy": -31, "sw": 1582, "sh": 1818, "scale": 0.15000000000000002 };
+
+    // 🦅 Bird Tree
+    window.DUNGEON_SPRITES["arena_bird_type2"] = { "img": "bird_type2_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type4"] = { "img": "bird_type4_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type5"] = { "img": "bird_type5_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type1"] = { "img": "bird_type1_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type3"] = { "img": "bird_type3_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type3_2"] = { "img": "bird_type3_2_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type2_2"] = { "img": "bird_type2_2_battle_enemy.png", "sx": 11, "sy": 2, "sw": 2111, "sh": 2066, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type4_2"] = { "img": "bird_type4_2_battle_enemy.png", "sx": 26, "sy": -37, "sw": 2494, "sh": 1795, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type5_2"] = { "img": "bird_type5_2_battle_enemy.png", "sx": -9, "sy": -1, "sw": 2508, "sh": 1760, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type1_2"] = { "img": "bird_type1_2_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_bird_type3_3"] = { "img": "bird_type3_3_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+
+    // ⚙️ Machine Tree
+    window.DUNGEON_SPRITES["arena_machine_type2"] = { "img": "machine_type2_battle_enemy.png", "sx": 65, "sy": 55, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type4"] = { "img": "machine_type4_battle_enemy.png", "sx": 65, "sy": 35, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type5"] = { "img": "machine_type5_battle_enemy.png", "sx": 65, "sy": 7, "sw": 2363, "sh": 1690, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type1"] = { "img": "machine_type1_battle_enemy.png", "sx": 65, "sy": 8, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type3"] = { "img": "machine_type3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type2_2"] = { "img": "machine_type2_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type4_2"] = { "img": "machine_type4_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type5_2"] = { "img": "machine_type5_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type5_3"] = { "img": "machine_type5_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type1_2"] = { "img": "machine_type1_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_machine_type3_2"] = { "img": "machine_type3_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+
+    // 🪨 Stone Tree
+    window.DUNGEON_SPRITES["arena_stone_type2"] = { "img": "stone_type2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type4"] = { "img": "stone_type4_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type4_2"] = { "img": "stone_type4_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type5"] = { "img": "stone_type5_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type1"] = { "img": "stone_type1_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type3"] = { "img": "stone_type3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type2_2"] = { "img": "stone_type2_2_battle_enemy.png", "sx": 65, "sy": -5, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type4_3"] = { "img": "stone_type4_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type5_2"] = { "img": "stone_type5_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type5_3"] = { "img": "stone_type5_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type1_2"] = { "img": "stone_type1_2_battle_enemy.png", "sx": 65, "sy": 23, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_stone_type3_2"] = { "img": "stone_type3_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+
+    // 🎈 Balloon Tree
+    window.DUNGEON_SPRITES["arena_balloon_type2"] = { "img": "balloon_type2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type2_2"] = { "img": "balloon_type2_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type4"] = { "img": "balloon_type4_battle_enemy.png", "sx": 3, "sy": -6, "sw": 2500, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type4_2"] = { "img": "balloon_type4_2_battle_enemy.png", "sx": 19, "sy": -6, "sw": 2459, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type1"] = { "img": "balloon_type1_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type1_2"] = { "img": "balloon_type1_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type5"] = { "img": "balloon_type5_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type3"] = { "img": "balloon_type3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type3_2"] = { "img": "balloon_type3_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type2_3"] = { "img": "balloon_type2_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type4_3"] = { "img": "balloon_type4_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type5_2"] = { "img": "balloon_type5_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type1_3"] = { "img": "balloon_type1_3_battle_enemy.png", "sx": 59, "sy": -6, "sw": 2393, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_balloon_type3_3"] = { "img": "balloon_type3_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+
+    // 👻 Ghost Tree
+    window.DUNGEON_SPRITES["arena_ghost_type2"] = { "img": "ghost_type2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type4"] = { "img": "ghost_type4_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type5"] = { "img": "ghost_type5_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type1"] = { "img": "ghost_type1_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type3"] = { "img": "ghost_type3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type3_2"] = { "img": "ghost_type3_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type2_2"] = { "img": "ghost_type2_2_battle_enemy.png", "sx": 65, "sy": 84, "sw": 1774, "sh": 1935, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type4_2"] = { "img": "ghost_type4_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type5_2"] = { "img": "ghost_type5_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_ghost_type1_2"] = { "img": "ghost_type1_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+
+    // 🪲 Beetle Tree
+    window.DUNGEON_SPRITES["arena_beetle_type4"] = { "img": "beetle_type4_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type5"] = { "img": "beetle_type5_battle_enemy.png", "sx": -19, "sy": -6, "sw": 2181, "sh": 2068, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type2"] = { "img": "beetle_type2_battle_enemy.png", "sx": 839, "sy": 83, "sw": 1061, "sh": 1435, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type2_2"] = { "img": "beetle_type2_2_battle_enemy.png", "sx": 594, "sy": 7, "sw": 1293, "sh": 1698, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type3"] = { "img": "beetle_type3_battle_enemy.png", "sx": 23, "sy": -6, "sw": 2467, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type1"] = { "img": "beetle_type1_battle_enemy.png", "sx": 581, "sy": 35, "sw": 1331, "sh": 1649, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type4_2"] = { "img": "beetle_type4_2_battle_enemy.png", "sx": 65, "sy": -13, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type5_2"] = { "img": "beetle_type5_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type2_3"] = { "img": "beetle_type2_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_beetle_type2_4"] = { "img": "beetle_type2_4_battle_enemy.png", "sx": 50, "sy": -6, "sw": 2419, "sh": 1765, "scale": 0.15000000000000002 };
+
+    // 🌱 Seed Tree
+    window.DUNGEON_SPRITES["arena_seed_type4"] = { "img": "seed_type4_battle_enemy.png", "sx": 724, "sy": 2, "sw": 1030, "sh": 1742, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type1"] = { "img": "seed_type1_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type5"] = { "img": "seed_type5_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type3"] = { "img": "seed_type3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type3_2"] = { "img": "seed_type3_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type2"] = { "img": "seed_type2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type4_2"] = { "img": "seed_type4_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type1_2"] = { "img": "seed_type1_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type5_2"] = { "img": "seed_type5_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type3_3"] = { "img": "seed_type3_3_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_seed_type2_2"] = { "img": "seed_type2_2_battle_enemy.png", "sx": 65, "sy": -6, "sw": 2363, "sh": 1765, "scale": 0.15000000000000002 };
+
+    // 🐉 Dragon Tree
+    window.DUNGEON_SPRITES["arena_dragon_type4"] = { "img": "dragon_type4_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type1"] = { "img": "dragon_type1_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type5"] = { "img": "dragon_type5_battle_enemy.png", "sx": -21, "sy": -85, "sw": 2857, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type3"] = { "img": "dragon_type3_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type2"] = { "img": "dragon_type2_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type4_2"] = { "img": "dragon_type4_2_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type1_2"] = { "img": "dragon_type1_2_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type5_2"] = { "img": "dragon_type5_2_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type3_2"] = { "img": "dragon_type3_2_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type2_2"] = { "img": "dragon_type2_2_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
+    window.DUNGEON_SPRITES["arena_dragon_type2_3"] = { "img": "dragon_type2_3_battle_enemy.png", "sx": -21, "sy": -6, "sw": 2540, "sh": 1765, "scale": 0.15000000000000002 };
 }
 
 // ==========================================
@@ -1506,41 +1669,98 @@ window.ARENA_ENEMIES = {
     "dragon_type2_3": { name: "銀河を翔ける星封竜", bossName: "【星天】ギャラクシー・ドラゴン", hp: 550, atk: 140, def: 50, speed: 90, spriteKey: window.DUNGEON_SPRITES["arena_dragon_type2_3"]?"arena_dragon_type2_3":"arena_dragon", type: "dragon_type2_3" }
 };
 
-// ★すべての新コマンド・陣形・召喚スキルを登録
+// ★すべての新コマンド・陣形・召喚スキルを登録（種族制限撤廃＆生活・訓練言葉に全対応）
 window.ARENA_SKILLS = {
-    "たたかう": { type: "attack", cost: 0, power: 1.0, target: "single", name: "通常攻撃", allowedTypes: "all" },
-    "かいふく": { type: "heal", cost: 10, power: 40, target: "self", name: "自己回復", allowedTypes: "all" },
-    "ほのお":   { type: "magic", cost: 15, power: 1.5, target: "all", name: "灼熱の炎", allowedTypes: ["dragon", "magician", "ghost"] },
-    "まもる":   { type: "defend", cost: 5, power: 0, target: "self", name: "防御態勢", allowedTypes: ["stone", "machine", "robot", "beetle"] },
-    "いのる":   { type: "heal_all", cost: 20, power: 30, target: "party", name: "奇跡の祈り", allowedTypes: ["spirit", "magician", "bird", "seed"] },
-    
-    "うえ": { type: "move", dir: "up", cost: 0, name: "前進（前衛）", allowedTypes: "all" },
-    "した": { type: "move", dir: "down", cost: 0, name: "後退（後衛）", allowedTypes: "all" },
-    "ひだり": { type: "move", dir: "left", cost: 0, name: "左へ移動", allowedTypes: "all" },
-    "みぎ": { type: "move", dir: "right", cost: 0, name: "右へ移動", allowedTypes: "all" },
+    // 基礎アクション
+    "たたかう": { type: "attack", cost: 0, power: 1.0, target: "single", name: "通常攻撃", desc: "対象に物理ダメージを与える。", allowedTypes: "all" },
+    "かいふく": { type: "heal", cost: 10, power: 40, target: "self", name: "自己回復", desc: "自身のHPを中回復する。", allowedTypes: "all" },
+    "まもる":   { type: "defend", cost: 5, power: 0, target: "self", name: "防御態勢", desc: "次のターンの被ダメージを半減する。", allowedTypes: "all" },
+    "にげる":   { type: "escape", cost: 15, target: "self", name: "逃走回避", desc: "数ターン画面外へ退避し、完全無敵になる。", allowedTypes: "all" },
+    "しらべる": { type: "debuff_def", cost: 10, target: "enemy", name: "弱点看破", desc: "敵単体の防御力と回避率を下げる。", allowedTypes: "all" },
+    "ごうせい": { type: "buff_next_atk", cost: 20, target: "self", name: "武器強化", desc: "次に与えるダメージが2.5倍になる。", allowedTypes: "all" },
+    "なまえ":   { type: "provoke", cost: 5, target: "self", name: "名乗り", desc: "敵のヘイトを自身に集中させる（挑発）。", allowedTypes: "all" },
+    "そうび":   { type: "equip", cost: 0, name: "武器装備", desc: "武器を構え、攻撃力を大幅にアップさせる。", allowedTypes: "all" },
+    "はずす":   { type: "unequip", cost: 0, name: "装備解除", desc: "装備を外し身軽になる（回避率UP）。", allowedTypes: "all" },
+    "つかう":   { type: "use_item", cost: 0, target: "self", name: "アイテム使用", desc: "ランダムな消費アイテムの効果を発揮する。", allowedTypes: "all" },
 
-    "筋トレ": { type: "buff", stat: "atk", cost: 5, name: "筋力アップ", allowedTypes: "all" },
-    "勉強": { type: "buff", stat: "intel", cost: 5, name: "知力アップ", allowedTypes: "all" },
-    "睡眠": { type: "sleep", cost: 0, name: "居眠り回復", allowedTypes: "all" },
+    // 陣形・姿勢制御
+    "うえ": { type: "move", dir: "up", cost: 0, name: "前進", desc: "前衛に出る。攻撃力が上がるが狙われやすい。", allowedTypes: "all" },
+    "した": { type: "move", dir: "down", cost: 0, name: "後退", desc: "後衛に下がる。狙われにくく被ダメージが減る。", allowedTypes: "all" },
+    "みぎ": { type: "move", dir: "right", cost: 0, name: "右移動", desc: "右へ移動し、敵の狙いを逸らす。", allowedTypes: "all" },
+    "ひだり": { type: "move", dir: "left", cost: 0, name: "左移動", desc: "左へ移動し、敵の狙いを逸らす。", allowedTypes: "all" },
+    "うえむき": { type: "stance", mode: "high", cost: 5, name: "上段の構え", desc: "次ターンの攻撃力が1.5倍になる。", allowedTypes: "all" },
+    "したむき": { type: "stance", mode: "low", cost: 5, name: "下段の構え", desc: "次ターンの防御力が1.5倍になる。", allowedTypes: "all" },
+    "みぎむき": { type: "stance", mode: "evade_r", cost: 5, name: "右構え", desc: "次ターンの物理回避率が大幅に上がる。", allowedTypes: "all" },
+    "ひだりむき": { type: "stance", mode: "evade_l", cost: 5, name: "左構え", desc: "次ターンの魔法回避率が大幅に上がる。", allowedTypes: "all" },
 
-    "冒険家": { type: "summon", master: "explore", cost: 15, name: "冒険家の呼出", allowedTypes: "all" },
-    "漁師": { type: "summon", master: "fishing", cost: 15, name: "漁師の呼出", allowedTypes: "all" },
-    "料理人": { type: "summon", master: "cooking", cost: 15, name: "料理人の呼出", allowedTypes: "all" },
-    "農家": { type: "summon", master: "farming", cost: 15, name: "農家の呼出", allowedTypes: "all" },
-    "建築士": { type: "summon", master: "building", cost: 15, name: "建築士の呼出", allowedTypes: "all" },
-    "鍛冶師": { type: "summon", master: "smithing", cost: 15, name: "鍛冶師の呼出", allowedTypes: "all" },
+    // 日常・訓練・食材
+    "食事": { type: "eat", cost: 0, healHp: 30, healMp: 10, name: "食事", desc: "HPを中回復し、MPを少し回復する。", allowedTypes: "all" },
+    "たべる": { type: "eat", cost: 0, healHp: 40, healMp: 0, name: "たべる", desc: "HPを多めに回復する。", allowedTypes: "all" },
+    "睡眠": { type: "sleep", cost: 0, name: "睡眠", desc: "その場で眠り、数ターン無防備になるがHP/MP全回復。", allowedTypes: "all" },
+    "筋トレ": { type: "buff", stat: "atk", cost: 10, name: "筋トレ", desc: "自身の攻撃力をアップさせる（重複可）。", allowedTypes: "all" },
+    "勉強": { type: "buff", stat: "intel", cost: 10, name: "勉強", desc: "自身の賢さをアップさせる（重複可）。", allowedTypes: "all" },
+    "ランニング": { type: "buff", stat: "speed", cost: 10, name: "ランニング", desc: "自身の素早さをアップさせる。", allowedTypes: "all" },
+    "ニンジン": { type: "buff_speed", cost: 5, target: "self", name: "ニンジン食い", desc: "目を良くし、命中率と素早さを少し上げる。", allowedTypes: "all" },
+    "トマト": { type: "heal", cost: 5, power: 25, target: "self", name: "トマト食い", desc: "リコピンパワーでHPを回復する。", allowedTypes: "all" },
+    "ピーマン": { type: "debuff_all", cost: 15, stat: "atk", target: "enemy", name: "ピーマン投擲", desc: "苦味で敵全体の攻撃力とやる気を下げる。", allowedTypes: "all" },
 
-    "建築": { type: "random_build", cost: 10, name: "即席建築", allowedTypes: "all" },
-    "釣り": { type: "fishing", cost: 5, name: "フィッシング", allowedTypes: "all" },
-    "探検": { type: "explore", cost: 10, name: "秘境探検", allowedTypes: "all" },
-    "城":   { type: "call_rescue", cost: 20, name: "城の援軍要請", allowedTypes: "all" },
-    "小屋": { type: "build_hut", cost: 10, name: "小屋立てこもり", allowedTypes: "all" },
-    "橋":   { type: "build_bridge", cost: 10, name: "橋で距離を取る", allowedTypes: "all" },
-    "畑":   { type: "build_farm", cost: 10, name: "畑の開墾", allowedTypes: "all" },
-    
-    "たべる": { type: "eat", cost: 0, name: "食料を食べる", allowedTypes: "all" },
-    "そうび": { type: "equip", cost: 0, name: "武器を装備", allowedTypes: "all" },
-    "はずす": { type: "unequip", cost: 0, name: "装備を外す", allowedTypes: "all" }
+    // 下積み・バイト
+    "退治": { type: "attack_special", cost: 10, power: 1.5, target: "single", name: "害虫退治", desc: "特定の種族（虫・植物系）に特効ダメージ。", allowedTypes: "all" },
+    "バイト": { type: "gold_earn", cost: 0, target: "self", name: "バイト", desc: "1ターン無駄にするが、少しゴールドを稼ぐ。", allowedTypes: "all" },
+    "書き写し": { type: "reflect", cost: 20, target: "self", name: "模写", desc: "次に受ける魔法攻撃を1度だけ反射する。", allowedTypes: "all" },
+    "ふいご": { type: "buff_party", stat: "speed", cost: 15, name: "追い風", desc: "風を送り、味方全体の素早さを上げる。", allowedTypes: "all" },
+    "石拾い": { type: "buff", stat: "def", cost: 5, name: "石積み", desc: "石を積んで自身の防御力を上げる。", allowedTypes: "all" },
+    "皿洗い": { type: "cure_party", cost: 15, target: "party", name: "浄化の洗浄", desc: "味方全体のデバフや状態異常を洗い流す。", allowedTypes: "all" },
+    "網の修理": { type: "debuff_speed", cost: 15, target: "enemy", name: "網投げ", desc: "敵単体に網を掛け、素早さを激減させる。", allowedTypes: "all" },
+    "荷物運び": { type: "heavy", cost: 25, power: 2.0, target: "single", name: "重荷プレス", desc: "重い荷物を落とし大ダメージ＋スタン付与。", allowedTypes: "all" },
+    "なげる": { type: "throw", cost: 5, power: 1.2, target: "single", name: "投擲", desc: "手持ちのガラクタを投げる（防御力無視固定ダメージ）。", allowedTypes: "all" },
+    "おく": { type: "trap", cost: 15, target: "field", name: "罠設置", desc: "足元にトラップを設置し、接近した敵を迎撃する。", allowedTypes: "all" },
+
+    // 師匠・専門アクション
+    "冒険家": { type: "summon", master: "explore", cost: 30, name: "冒険家の呼出", desc: "冒険家を呼ぶ。敵の防御力を大幅に下げる罠を仕掛ける。", allowedTypes: "all" },
+    "漁師": { type: "summon", master: "fishing", cost: 30, name: "漁師の呼出", desc: "漁師を呼ぶ。釣り竿で大ダメージを与えたり回復したりする。", allowedTypes: "all" },
+    "料理人": { type: "summon", master: "cooking", cost: 30, name: "料理人の呼出", desc: "料理人を呼ぶ。特製スープで味方全体のHPを持続回復する。", allowedTypes: "all" },
+    "農家": { type: "summon", master: "farming", cost: 30, name: "農家の呼出", desc: "身代わりカボチャを呼ぶ。敵の攻撃を一身に引き受ける。", allowedTypes: "all" },
+    "建築士": { type: "summon", master: "building", cost: 30, name: "建築士の呼出", desc: "建築士を呼ぶ。味方陣地に強力なダメージカット防壁を張る。", allowedTypes: "all" },
+    "鍛冶師": { type: "summon", master: "smithing", cost: 30, name: "鍛冶師の呼出", desc: "鍛冶師を呼ぶ。ハンマーで敵にダメージを与えつつ装甲を砕く。", allowedTypes: "all" },
+    "建築": { type: "random_build", cost: 20, name: "即席建築", desc: "小屋、橋、防壁のどれかをランダムで瞬時に組み上げる。", allowedTypes: "all" },
+    "釣り": { type: "fishing", cost: 15, name: "一本釣り", desc: "敵単体にダメージを与えるか、魚を釣って自身を回復する。", allowedTypes: "all" },
+    "探検": { type: "explore", cost: 25, name: "秘境探検", desc: "数ターン戦線離脱し、回復アイテムや強力なバフを持って帰還する。", allowedTypes: "all" },
+    "鍛冶": { type: "heavy", cost: 20, power: 1.5, target: "single", name: "鍛冶撃ち", desc: "敵の防御力を無視して装甲を叩き割る物理攻撃。", allowedTypes: "all" },
+    "農業": { type: "build_farm", cost: 15, name: "畑の開墾", desc: "畑を作り、数ターン後に味方全体を大回復する。", allowedTypes: "all" },
+    "料理": { type: "heal_party", cost: 25, power: 30, name: "振る舞い", desc: "味方全体のHPを回復する。", allowedTypes: "all" },
+
+    // 施設・建物系
+    "城":   { type: "call_rescue", cost: 40, name: "城の援軍要請", desc: "城から兵士、隊長、あるいは王様をランダムに呼び寄せる。", allowedTypes: "all" },
+    "小屋": { type: "build_hut", cost: 15, name: "小屋立てこもり", desc: "小屋を建てて中に籠り、物理ダメージを大幅に軽減する。", allowedTypes: "all" },
+    "橋":   { type: "build_bridge", cost: 15, name: "橋架け", desc: "橋を架け、味方全員を強制的に後衛へ安全に退避させる。", allowedTypes: "all" },
+    "カジノ": { type: "roulette", cost: 30, target: "all", name: "パルプンテ", desc: "敵味方問わず、超回復か大ダメージがランダムで発生する。", allowedTypes: "all" },
+    "レストラン": { type: "full_heal_party", cost: 80, target: "party", name: "晩餐会", desc: "莫大なMPを消費し、味方全体のHP・MPを全回復＋全バフ。", allowedTypes: "all" },
+    "カード": { type: "draw_card", cost: 15, target: "enemy", name: "ドロー", desc: "デッキからカードを引き、ランダムな属性魔法攻撃を放つ。", allowedTypes: "all" },
+    "ショップ": { type: "buy_mercenary", cost: 0, target: "party", name: "傭兵雇用", desc: "所持ゴールドを消費し、その戦闘中だけ強力な傭兵を雇う。", allowedTypes: "all" },
+    "冷凍庫": { type: "magic_ice", cost: 35, power: 1.5, target: "all", name: "絶対零度", desc: "敵全体に氷属性ダメージを与え、確率でスタンさせる。", allowedTypes: "all" },
+    "金庫": { type: "invincible", cost: 50, target: "self", name: "金庫隠れ", desc: "数ターン行動不能になるが、一切のダメージを受け付けない。", allowedTypes: "all" },
+    "倉庫": { type: "magic_random", cost: 25, power: 1.2, target: "random", name: "ガラクタの雨", desc: "空から大量のガラクタを降らせ、敵全体にランダム複数回ダメージ。", allowedTypes: "all" },
+
+    // 一問一答・属性魔法系（類義語による微細な効果違い）
+    "水筒": { type: "heal", cost: 0, power: 15, target: "self", name: "水飲み", desc: "MPを消費せずHPを少し回復する。", allowedTypes: "all" },
+    "飲み物": { type: "heal", cost: 5, power: 25, target: "self", name: "水分補給", desc: "HPを少し回復し、MPも少し回復する。", allowedTypes: "all" },
+    "水": { type: "regen_party", cost: 20, target: "party", name: "癒やしの水", desc: "味方全体に数ターンの継続回復効果（リジェネ）を付与。", allowedTypes: "all" },
+    "雨": { type: "magic_water", cost: 25, power: 1.0, target: "all", name: "恵みの雨", desc: "敵全体に水属性ダメージを与え、火属性の敵を弱体化。", allowedTypes: "all" },
+    "火": { type: "magic_fire", cost: 15, power: 1.5, target: "all", name: "火炎", desc: "敵全体に炎属性の魔法ダメージを与える。", allowedTypes: "all" },
+    "炎": { type: "magic_fire", cost: 25, power: 2.0, target: "single", name: "爆炎", desc: "敵単体に強烈な炎属性の魔法ダメージを与える。", allowedTypes: "all" },
+    "熱": { type: "buff_atk", cost: 10, target: "self", name: "熱気", desc: "自身の体温を上げ、攻撃力を徐々にアップさせる。", allowedTypes: "all" },
+    "ガス": { type: "magic_poison", cost: 20, target: "all", name: "毒ガス", desc: "敵全体を毒状態にし、毎ターンスリップダメージを与える。", allowedTypes: "all" },
+    "太陽": { type: "magic_light", cost: 30, power: 1.8, target: "all", name: "ソーラーレイ", desc: "敵全体に光属性ダメージを与え、暗闇（命中ダウン）にする。", allowedTypes: "all" },
+    "光": { type: "blind", cost: 15, target: "single", name: "フラッシュ", desc: "敵単体の目を眩ませ、命中率を大幅に下げる。", allowedTypes: "all" },
+    "土": { type: "magic_earth", cost: 20, power: 1.5, target: "all", name: "アースクエイク", desc: "敵全体に地属性ダメージ。飛行していない敵に特効。", allowedTypes: "all" },
+    "泥": { type: "debuff_speed", cost: 10, target: "single", name: "泥投げ", desc: "敵単体の素早さと回避率を下げる。", allowedTypes: "all" },
+    "鉄": { type: "buff_def", cost: 15, target: "self", name: "アイアンボディ", desc: "自身の体を鉄のように硬くし、防御力を絶大に上げる。", allowedTypes: "all" },
+    "鋼": { type: "buff_def", cost: 25, target: "party", name: "鋼の陣形", desc: "味方全体の防御力を大幅に上げる。", allowedTypes: "all" },
+    "包丁": { type: "attack_pierce", cost: 10, power: 1.2, target: "single", name: "ナイフ撃", desc: "敵の防御力をある程度無視して斬撃ダメージを与える。", allowedTypes: "all" },
+    "鍋": { type: "shield", cost: 10, target: "self", name: "鍋の盾", desc: "鍋を構え、数ターンの間物理ダメージを大幅にカットする。", allowedTypes: "all" },
+    "コンパス": { type: "aim", cost: 10, target: "self", name: "弱点看破", desc: "次のターンの攻撃が必ずクリティカルヒットになる。", allowedTypes: "all" },
+    "図面": { type: "dodge", cost: 20, target: "self", name: "行動予測", desc: "敵の行動を予測し、次の一撃を100%回避する。", allowedTypes: "all" }
 };
 
 window.ARENA_STATE = {
@@ -1548,6 +1768,72 @@ window.ARENA_STATE = {
     guests: [], farmTimer: 0
 };
 window.ARENA_RECEPTION_STATE = { party: [], available: [] };
+
+
+// ★ロール別のスキル定義（おまかせ機能用）
+window.ROLE_PROFILES = {
+    'tank': { name: '鉄壁の盾', words: ['なまえ','まもる','したむき','した','石拾い','鍋','金庫','農家','鉄','鋼','図面'] },
+    'attacker': { name: '剛腕の矛', words: ['たたかう','うえむき','うえ','筋トレ','ごうせい','火','炎','荷物運び','鍛冶','退治','包丁'] },
+    'healer': { name: '慈愛の光', words: ['かいふく','食事','たべる','トマト','水','料理','レストラン','皿洗い','農業'] },
+    'support': { name: '機知の翼', words: ['しらべる','勉強','ランニング','ニンジン','ピーマン','ふいご','網の修理','冒険家','漁師','建築士','コンパス','太陽'] }
+};
+
+// ★追加：alertの代わりに使用するメッセージ表示関数
+window.showTacticMsg = function(msg, color = '#4CAF50') {
+    let el = document.getElementById('tactic-editor-msg');
+    if (!el) return;
+    el.innerHTML = msg;
+    el.style.color = color;
+    el.style.opacity = 1;
+    clearTimeout(window._tacticMsgTimer);
+    window._tacticMsgTimer = setTimeout(() => { el.style.opacity = 0; }, 2000);
+};
+
+// ★「おまかせ」実行関数（優先度と条件の罠を解消した賢い版）
+window.autoSetTactic = function(roleKey, tIdx) {
+    let learned = window.aiPet.apprentice?.learnedWords || [];
+    let profile = window.ROLE_PROFILES[roleKey];
+    let rules = [];
+    let fallbackRules = []; // 「いつでも」系の攻撃スキルを退避させる配列
+    
+    let matches = profile.words.filter(w => learned.includes(w));
+    
+    // 絶対の最優先：瀕死時の回復
+    if (learned.includes("かいふく")) rules.push({ condition: "hp_self_under_30", action: "かいふく" });
+    if (learned.includes("睡眠")) rules.push({ condition: "mp_self_under_30", action: "睡眠" });
+    
+    matches.forEach(w => {
+        let skill = window.ARENA_SKILLS[w];
+        if (!skill) return;
+
+        let cond = "always";
+        // スキルのタイプから最適な条件を推論して割り当てる
+        if (skill.type.includes("buff") || skill.type === "equip" || w === "うえむき" || w === "したむき") cond = "no_buff_atk";
+        else if (skill.type === "defend" || skill.type === "shield" || w === "した" || w === "金庫" || w === "小屋") cond = "hp_self_under_50";
+        else if (skill.type.includes("magic_all") || skill.type === "roulette" || skill.type === "magic_ice" || skill.target === "all") cond = "enemy_count_2_over";
+        else if (skill.type === "summon" || skill.type === "call_rescue") cond = "no_guest";
+        else if (w === "なまえ" || w === "うえ") cond = "is_back"; // 後衛にいたら前衛に出る/挑発する
+        
+        if (cond === "always") {
+            if (w !== "たたかう") fallbackRules.push({ condition: "always", action: w });
+        } else {
+            rules.push({ condition: cond, action: w });
+        }
+    });
+    
+    // 条件付きルールを先に詰め、その後に「いつでも」系の技を配置
+    rules = rules.concat(fallbackRules);
+    
+    // 最後に絶対「たたかう」を入れる（何もしないターンを防ぐため）
+    if (!rules.some(r => r.action === "たたかう" && r.condition === "always")) {
+        rules.push({ condition: "always", action: "たたかう" });
+    }
+    
+    window.aiPet.tactics[tIdx].rules = rules.slice(0, 8); // 最大8個
+    window.aiPet.tactics[tIdx].name = profile.name;
+    window.renderTacticEditor();
+    window.showTacticMsg(`「${profile.name}」の構成で再構築しました！`, '#2196F3');
+};
 
 // ==========================================
 // ★ ガンビット（作戦）システム用 データとロジック
@@ -1780,8 +2066,11 @@ window.renderArenaReception = function() {
         </div>
     `).join('') : `<div style="color:#888; text-align:center; width:100%; padding:20px;">図鑑に登録された仲間が見つかりません</div>`;
 
-    let highestWave = window.aiPet.arenaHighestWave || 1;
-    let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0); 
+    let highestWaveNormal = window.aiPet.arenaHighestWave || 1;
+    let highestWaveBoss = window.aiPet.arenaBossHighestWave || 1;
+    let currentHighest = rState.selectedMode === 'boss' ? highestWaveBoss : highestWaveNormal;
+
+    let bossUnlocked = (highestWaveNormal >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0);
 
     ui.innerHTML = `
         <h1 style="color:#ff5252; font-size:36px; margin-top:30px; text-shadow: 0 0 10px red;">⚔️ 闘技場 受付 ⚔️</h1>
@@ -1789,11 +2078,11 @@ window.renderArenaReception = function() {
         
         <div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;">
             <span style="color:#FFD700; font-weight:bold;">挑戦モード:</span>
-            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="radio" name="arenaMode" value="normal" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'normal' ? 'checked' : ''}> 通常エンドレス</label>
-            ${bossUnlocked ? `<label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#ff5252;"><input type="radio" name="arenaMode" value="boss" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value" ${rState.selectedMode === 'boss' ? 'checked' : ''}> ボスラッシュ</label><label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#4fc3f7;"><input type="radio" name="arenaMode" value="friend" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'friend' ? 'checked' : ''}> フレンド(幻影)バトル</label>` : `<span style="color:#666; font-size:12px;">(WAVE 50突破で解放)</span>`}
+            <label style="cursor:pointer; display:flex; align-items:center; gap:5px;"><input type="radio" name="arenaMode" value="normal" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'normal' ? 'checked' : ''}> 通常エンドレス</label>
+            ${bossUnlocked ? `<label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#ff5252;"><input type="radio" name="arenaMode" value="boss" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'boss' ? 'checked' : ''}> ボスラッシュ</label><label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:#4fc3f7;"><input type="radio" name="arenaMode" value="friend" onchange="window.ARENA_RECEPTION_STATE.selectedMode=this.value; window.renderArenaReception();" ${rState.selectedMode === 'friend' ? 'checked' : ''}> フレンド(幻影)バトル</label>` : `<span style="color:#666; font-size:12px;">(通常WAVE 50突破で解放)</span>`}
         </div>
 
-        ${rState.selectedMode !== 'friend' ? `<div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;"><span style="color:#FFD700; font-weight:bold;">開始WAVE:</span><input type="number" id="arena-start-wave" min="1" max="${highestWave}" value="${highestWave}" style="width:80px; padding:5px; font-size:16px; background:#222; color:#fff; border:1px solid #444; border-radius:4px; text-align:center; font-weight:bold;"><span style="font-size:12px; color:#aaa;">(最高到達: ${highestWave}WAVE)</span></div>` : ''}
+        ${rState.selectedMode !== 'friend' ? `<div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;"><span style="color:#FFD700; font-weight:bold;">開始WAVE:</span><input type="number" id="arena-start-wave" min="1" max="${currentHighest}" value="${currentHighest}" style="width:80px; padding:5px; font-size:16px; background:#222; color:#fff; border:1px solid #444; border-radius:4px; text-align:center; font-weight:bold;"><span style="font-size:12px; color:#aaa;">(最高到達: ${currentHighest}WAVE)</span></div>` : ''}
 
         <div style="display:flex; width:95%; max-width:1000px; gap:20px; margin-bottom:30px;">
             <div style="flex:1; background:rgba(0,0,0,0.5); padding:20px; border-radius:12px; border:2px solid #555;"><div style="font-size:18px; color:#4fc3f7; margin-bottom:15px; font-weight:bold; text-align:center;">▼ 出撃パーティ (最大4人)</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">${partyHtml}</div></div>
@@ -1807,6 +2096,9 @@ window.renderArenaReception = function() {
     ui.style.display = 'flex';
 };
 
+// コピー・貼り付け用のグローバル変数
+window.CLIPBOARD_TACTIC_RULE = null;
+
 window.openTacticEditor = function() {
     let ui = document.getElementById('tactic-editor-ui');
     if (!ui) {
@@ -1814,30 +2106,110 @@ window.openTacticEditor = function() {
         ui.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,5,10,0.95); z-index: 55000; display: flex; flex-direction: column; align-items: center; color: white; font-family: sans-serif; overflow-y: auto; padding:40px; box-sizing:border-box;`;
         document.body.appendChild(ui);
     }
+    // ★バグ修正：2回目以降も確実に表示させる！
+    ui.style.display = 'flex';
+    
     window.EDITOR_TACTIC_TYPE = 'default';
     window.EDITOR_TACTIC_INDEX = 0;
     window.renderTacticEditor();
 };
 
-window.copyTacticToCustom = function(defaultIdx) {
-    let targetIdx = prompt("コピー先のマイ作戦番号を入力してください (1〜3)", "1");
-    let destIdx = parseInt(targetIdx) - 1;
-    if (isNaN(destIdx) || destIdx < 0 || destIdx > 2) { alert("キャンセルしました。"); return; }
-    
+// ★作戦コピー関数（prompt・alert排除版。直接コピー先を指定する）
+window.copyTacticToCustom = function(defaultIdx, destIdx) {
     let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
     let src = window.getDefaultTactics(learnedWords)[defaultIdx];
     window.aiPet.tactics[destIdx].rules = JSON.parse(JSON.stringify(src.rules));
     window.EDITOR_TACTIC_TYPE = 'custom';
     window.EDITOR_TACTIC_INDEX = destIdx;
     window.renderTacticEditor();
-    alert(`「${src.name}」のルールを「${window.aiPet.tactics[destIdx].name}」にコピーしました！`);
+    window.showTacticMsg(`「${src.name}」を「${window.aiPet.tactics[destIdx].name}」にコピーしました！`);
+};
+
+// パレット・サジェストの外側をクリックした時に閉じる処理
+if (!window._tacticSuggestListenerAdded) {
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.tactic-action-input-wrapper')) {
+            document.querySelectorAll('.tactic-suggest-box').forEach(el => el.style.display = 'none');
+        }
+    });
+    window._tacticSuggestListenerAdded = true;
+}
+
+// ★追加：カテゴリ別パレットの表示関数
+window.showTacticPalette = function(inputElem, rIdx, tType, tIdx) {
+    document.querySelectorAll('.tactic-suggest-box').forEach(el => el.style.display = 'none');
+    let suggestBox = document.getElementById(`suggest-box-${rIdx}`);
+    if (!suggestBox) return;
+
+    if (inputElem.value.trim() === "" || inputElem.value.trim() === inputElem.defaultValue) {
+        let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? [...window.aiPet.apprentice.learnedWords, "たたかう"] : ["たたかう"];
+        
+        let categories = {
+            "⚔️ 攻撃": ["attack", "heavy", "magic", "heavy_magic", "magic_all", "attack_special", "attack_pierce", "throw", "trap"],
+            "💚 回復": ["heal", "heal_all", "eat", "sleep", "heal_party", "full_heal_party", "regen_party", "cure_party"],
+            "🛡️ 補助": ["defend", "buff", "buff_next_atk", "buff_speed", "buff_party", "buff_atk", "buff_def", "shield", "dodge"],
+            "✨ デバフ・妨害": ["debuff_def", "debuff_all", "debuff_speed", "magic_poison", "blind", "provoke"],
+            "👥 陣形・召喚": ["move", "stance", "escape", "summon", "call_rescue", "random_build", "build_hut", "build_bridge", "build_farm"],
+            "🔧 特殊・その他": ["equip", "unequip", "use_item", "gold_earn", "reflect", "fishing", "explore", "roulette", "draw_card", "buy_mercenary"]
+        };
+
+        let html = '';
+        for (let cat in categories) {
+            let wordsInCat = learnedWords.filter(w => {
+                let skill = window.ARENA_SKILLS[w];
+                if (!skill) return false;
+                return categories[cat].includes(skill.type) || (cat === "🔧 特殊・その他" && !Object.values(categories).flat().includes(skill.type));
+            });
+            
+            if (wordsInCat.length > 0) {
+                html += `<div style="font-weight:bold; color:#FFC107; padding:8px 5px; background:#333; border-bottom:1px solid #555; position:sticky; top:0;">${cat}</div>`;
+                wordsInCat.forEach(w => {
+                    let skill = window.ARENA_SKILLS[w];
+                    html += `<div onclick="window.aiPet.tactics[${tIdx}].rules[${rIdx}].action = '${w}'; window.renderTacticEditor();" style="padding:10px 8px; cursor:pointer; border-bottom:1px solid #444; background:#222; font-size:12px;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#222'">
+                        <span style="color:#FFF; font-weight:bold; font-size:14px;">${w}</span> <span style="color:#4fc3f7; font-weight:bold;">(MP:${skill.cost})</span><br>
+                        <span style="color:#aaa; font-size:11px;">${skill.desc}</span>
+                    </div>`;
+                });
+            }
+        }
+        if(html === '') html = `<div style="padding:10px; color:#aaa;">使用できる言葉がありません</div>`;
+        suggestBox.innerHTML = html;
+        suggestBox.style.display = 'block';
+    } else {
+        window.updateTacticSuggest(inputElem, rIdx, tType, tIdx);
+    }
+};
+
+// サジェスト（検索）更新用関数
+window.updateTacticSuggest = function(inputElem, rIdx, tType, tIdx) {
+    let val = inputElem.value.trim();
+    let suggestBox = document.getElementById(`suggest-box-${rIdx}`);
+    if (!suggestBox) return;
+
+    if (val.length === 0) {
+        window.showTacticPalette(inputElem, rIdx, tType, tIdx);
+        return;
+    }
+    let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? [...window.aiPet.apprentice.learnedWords, "たたかう"] : ["たたかう"];
+    let matches = learnedWords.filter(w => w.includes(val));
+    
+    if (matches.length > 0) {
+        suggestBox.innerHTML = matches.map(w => {
+            let skill = window.ARENA_SKILLS[w];
+            let desc = skill ? `<span style="font-size:10px; color:#aaa; margin-left:10px;">${skill.desc} (MP:${skill.cost})</span>` : '';
+            return `<div onclick="window.aiPet.tactics[${tIdx}].rules[${rIdx}].action = '${w}'; window.renderTacticEditor();" style="padding:8px; cursor:pointer; border-bottom:1px solid #444; background:#222;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#222'">${w}${desc}</div>`;
+        }).join('');
+        suggestBox.style.display = 'block';
+    } else {
+        suggestBox.style.display = 'none';
+    }
 };
 
 window.renderTacticEditor = function() {
     let ui = document.getElementById('tactic-editor-ui'); if (!ui) return;
     let tType = window.EDITOR_TACTIC_TYPE;
     let idx = window.EDITOR_TACTIC_INDEX;
-    let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? [...window.aiPet.apprentice.learnedWords] : [];
+    let learnedWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? [...window.aiPet.apprentice.learnedWords, "たたかう"] : ["たたかう"];
     
     let defTactics = window.getDefaultTactics(learnedWords);
     let currentTactic = tType === 'default' ? defTactics[idx] : window.aiPet.tactics[idx];
@@ -1848,16 +2220,41 @@ window.renderTacticEditor = function() {
 
     let rulesHtml = currentTactic.rules.map((rule, rIdx) => {
         let condOptions = Object.keys(window.TACTIC_CONDITIONS).map(k => `<option value="${k}" ${rule.condition === k ? 'selected' : ''}>${window.TACTIC_CONDITIONS[k]}</option>`).join('');
-        let actOptions = learnedWords.map(w => `<option value="${w}" ${rule.action === w ? 'selected' : ''}>${w}</option>`).join('');
-        
+        let skillInfo = window.ARENA_SKILLS[rule.action];
+        let descHtml = skillInfo ? `<div style="font-size:11px; color:#4fc3f7; margin-top:5px; width:100%;">💡 効果: ${skillInfo.desc} (MP:${skillInfo.cost})</div>` : `<div style="font-size:11px; color:#f44336; margin-top:5px;">⚠️ 未知の言葉（効果なし）</div>`;
+
+        let controlBtns = `
+            <div style="display:flex; flex-direction:column; gap:2px;">
+                <button ${rIdx===0 ? 'disabled style="opacity:0.3"' : `onclick="let r=window.aiPet.tactics[${idx}].rules; let tmp=r[${rIdx}]; r[${rIdx}]=r[${rIdx}-1]; r[${rIdx}-1]=tmp; window.renderTacticEditor();"`} style="background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer;">▲</button>
+                <button ${rIdx===currentTactic.rules.length-1 ? 'disabled style="opacity:0.3"' : `onclick="let r=window.aiPet.tactics[${idx}].rules; let tmp=r[${rIdx}]; r[${rIdx}]=r[${rIdx}+1]; r[${rIdx}+1]=tmp; window.renderTacticEditor();"`} style="background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer;">▼</button>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:2px; margin-left:5px;">
+                <button onclick="window.CLIPBOARD_TACTIC_RULE = JSON.parse(JSON.stringify(window.aiPet.tactics[${idx}].rules[${rIdx}])); window.showTacticMsg('ルールをコピーしました', '#2196F3');" style="background:#2196F3; color:#fff; border:none; font-size:10px; padding:2px 5px; cursor:pointer;">コピー</button>
+                <button onclick="window.CLIPBOARD_TACTIC_RULE = JSON.parse(JSON.stringify(window.aiPet.tactics[${idx}].rules[${rIdx}])); window.aiPet.tactics[${idx}].rules.splice(${rIdx},1); window.showTacticMsg('ルールを切り取りました', '#FF9800'); window.renderTacticEditor();" style="background:#FF9800; color:#fff; border:none; font-size:10px; padding:2px 5px; cursor:pointer;">切取</button>
+                <button onclick="if(window.CLIPBOARD_TACTIC_RULE){ window.aiPet.tactics[${idx}].rules.splice(${rIdx+1}, 0, JSON.parse(JSON.stringify(window.CLIPBOARD_TACTIC_RULE))); window.renderTacticEditor(); }" style="background:#4CAF50; color:#fff; border:none; font-size:10px; padding:2px 5px; cursor:pointer;">貼付(下)</button>
+            </div>
+            <button onclick="window.aiPet.tactics[${idx}].rules.splice(${rIdx}, 1); window.renderTacticEditor();" style="background:#f44336; color:white; border:none; border-radius:4px; padding:5px 10px; margin-left:10px; cursor:pointer;">削除</button>
+        `;
+
         return `
-            <div style="display:flex; align-items:center; gap:10px; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
-                <div style="font-weight:bold; color:#FF9800; width:60px;">優先度 ${rIdx + 1}</div>
-                <div style="color:#aaa;">もし</div>
-                <select ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].rules[${rIdx}].condition = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:2;">${condOptions}</select>
-                <div style="color:#aaa;">なら</div>
-                <select ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].rules[${rIdx}].action = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1;">${isReadOnly ? `<option>${rule.action}</option>` : actOptions}</select>
-                ${!isReadOnly ? `<button onclick="window.aiPet.tactics[${idx}].rules.splice(${rIdx}, 1); window.renderTacticEditor();" style="background:#f44336; color:white; border:none; border-radius:4px; padding:5px 10px; cursor:pointer;">削除</button>` : ''}
+            <div style="display:flex; flex-direction:column; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div style="font-weight:bold; color:#FF9800; width:60px;">優先度 ${rIdx + 1}</div>
+                    <div style="color:#aaa;">もし</div>
+                    <select ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].rules[${rIdx}].condition = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:2;">${condOptions}</select>
+                    <div style="color:#aaa;">なら</div>
+                    
+                    <div class="tactic-action-input-wrapper" style="position:relative; flex:1;">
+                        <input type="text" ${isReadOnly ? 'disabled' : ''} value="${rule.action}" 
+                            onclick="window.showTacticPalette(this, ${rIdx}, '${tType}', ${idx})"
+                            oninput="window.updateTacticSuggest(this, ${rIdx}, '${tType}', ${idx})" 
+                            onchange="window.aiPet.tactics[${idx}].rules[${rIdx}].action = this.value; window.renderTacticEditor();"
+                            placeholder="言葉を検索" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; width:100%; box-sizing:border-box;">
+                        <div id="suggest-box-${rIdx}" class="tactic-suggest-box" style="display:none; position:absolute; top:100%; left:0; width:320px; max-height:300px; overflow-y:auto; background:#111; border:1px solid #555; z-index:100; box-shadow:0 4px 10px rgba(0,0,0,0.8);"></div>
+                    </div>
+                    ${!isReadOnly ? controlBtns : ''}
+                </div>
+                ${descHtml}
             </div>
         `;
     }).join('');
@@ -1865,7 +2262,9 @@ window.renderTacticEditor = function() {
     if (rulesHtml === '') rulesHtml = `<div style="text-align:center; color:#888; padding:20px;">ルールが設定されていません。</div>`;
 
     ui.innerHTML = `
-        <h2 style="color:#4fc3f7; margin-bottom:20px;">⚙️ 作戦（ガンビット）エディタ</h2>
+        <h2 style="color:#4fc3f7; margin-bottom:10px;">⚙️ AIマインド（ガンビット作戦）エディタ</h2>
+        <div id="tactic-editor-msg" style="height:20px; margin-bottom:10px; transition:opacity 0.3s; opacity:0; font-weight:bold; text-align:center;"></div>
+        
         <div style="display:flex; justify-content:center; width:100%; max-width:900px;">
             <div style="display:flex; margin-right:20px; border-bottom:2px solid #4CAF50;">${defTabs}</div>
             <div style="display:flex; border-bottom:2px solid #2196F3;">${cusTabs}</div>
@@ -1876,12 +2275,32 @@ window.renderTacticEditor = function() {
                     <span style="font-weight:bold; color:${isReadOnly ? '#aaa' : '#fff'};">作戦名:</span>
                     <input type="text" value="${currentTactic.name}" ${isReadOnly ? 'disabled' : ''} onchange="window.aiPet.tactics[${idx}].name = this.value;" style="padding:5px; background:#222; color:#fff; border:1px solid #555; border-radius:4px; width:200px;">
                 </div>
-                ${isReadOnly ? `<button onclick="window.copyTacticToCustom(${idx})" style="background:#FF9800; color:#000; border:none; font-weight:bold; border-radius:4px; padding:8px 15px; cursor:pointer;">📥 この構成をマイ作戦にコピー</button>` : ''}
+                ${isReadOnly ? `
+                    <div style="display:flex; gap:5px; align-items:center;">
+                        <span style="color:#aaa; font-size:12px;">コピー先:</span>
+                        <button onclick="window.copyTacticToCustom(${idx}, 0)" style="background:#FF9800; color:#000; border:none; font-weight:bold; border-radius:4px; padding:6px 10px; cursor:pointer;">マイ1</button>
+                        <button onclick="window.copyTacticToCustom(${idx}, 1)" style="background:#FF9800; color:#000; border:none; font-weight:bold; border-radius:4px; padding:6px 10px; cursor:pointer;">マイ2</button>
+                        <button onclick="window.copyTacticToCustom(${idx}, 2)" style="background:#FF9800; color:#000; border:none; font-weight:bold; border-radius:4px; padding:6px 10px; cursor:pointer;">マイ3</button>
+                    </div>
+                ` : ''}
             </div>
+            
+            ${!isReadOnly ? `
+                <div style="margin-bottom:20px; padding:10px; background:#1a1a1a; border:1px dashed #555; border-radius:8px;">
+                    <div style="font-size:12px; color:#FFC107; margin-bottom:5px; font-weight:bold;">✨ おまかせ構築（現在の記憶から自動編成）</div>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="window.autoSetTactic('tank', ${idx})" style="flex:1; padding:8px; background:#5D4037; color:#fff; border:1px solid #8D6E63; border-radius:4px; cursor:pointer;">🛡️ 盾特化</button>
+                        <button onclick="window.autoSetTactic('attacker', ${idx})" style="flex:1; padding:8px; background:#B71C1C; color:#fff; border:1px solid #E53935; border-radius:4px; cursor:pointer;">⚔️ 攻撃特化</button>
+                        <button onclick="window.autoSetTactic('healer', ${idx})" style="flex:1; padding:8px; background:#1B5E20; color:#fff; border:1px solid #43A047; border-radius:4px; cursor:pointer;">💚 回復特化</button>
+                        <button onclick="window.autoSetTactic('support', ${idx})" style="flex:1; padding:8px; background:#01579B; color:#fff; border:1px solid #1E88E5; border-radius:4px; cursor:pointer;">🪽 補助特化</button>
+                    </div>
+                </div>
+            ` : ''}
+
             <div style="margin-bottom:20px;">
-                <p style="color:#aaa; font-size:12px; margin-bottom:10px;">※上にあるルールほど優先されます。設定したルールが多いほど、賢さが低いAIは混乱して作戦を失敗しやすくなります。</p>
+                <p style="color:#aaa; font-size:12px; margin-bottom:10px;">※上にあるルールほど優先されます。<br>※入力欄をクリックすると、カテゴリ分けされた習得スキル一覧が表示されます。</p>
                 ${rulesHtml}
-                ${!isReadOnly ? `<button onclick="window.aiPet.tactics[${idx}].rules.push({condition:'always', action: (window.aiPet.apprentice && window.aiPet.apprentice.learnedWords && window.aiPet.apprentice.learnedWords.length > 0 ? window.aiPet.apprentice.learnedWords[0] : '')}); window.renderTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:10px; cursor:pointer; width:100%; font-weight:bold; margin-top:10px;">＋ ルールを追加する</button>` : ''}
+                ${!isReadOnly ? `<button onclick="window.aiPet.tactics[${idx}].rules.push({condition:'always', action: 'たたかう'}); window.renderTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:10px; cursor:pointer; width:100%; font-weight:bold; margin-top:10px;">＋ 新しいルールを追加する</button>` : ''}
             </div>
         </div>
         <button onclick="document.getElementById('tactic-editor-ui').style.display='none'; window.renderArenaReception();" style="margin-top:30px; padding:15px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #777; border-radius:8px; cursor:pointer;">閉じる</button>
@@ -2096,8 +2515,8 @@ window.startArenaBattle = function() {
     let waveInput = document.getElementById('arena-start-wave');
     if (waveInput && window.ARENA_STATE.mode !== 'friend') {
         startWave = parseInt(waveInput.value) || 1;
-        let highestWave = window.aiPet.arenaHighestWave || 1;
-        if (startWave > highestWave) startWave = highestWave;
+        let currentHighest = window.ARENA_STATE.mode === 'boss' ? (window.aiPet.arenaBossHighestWave || 1) : (window.aiPet.arenaHighestWave || 1);
+        if (startWave > currentHighest) startWave = currentHighest;
         if (startWave < 1) startWave = 1;
     }
     if (window.currentArenaWave) {
@@ -2300,6 +2719,7 @@ window.renderArenaBattle = function() {
                             <button onclick="window.sendArenaChat()" style="padding:0 15px; font-weight:bold; background:#00BCD4; color:#000; border:none; border-radius:0 4px 4px 0; cursor:pointer;">送信</button>
                         </div>
                         <div style="font-size:10px; color:#aaa; text-align:center;">↑↓キーで履歴を呼び出し</div>
+                        <button onclick="window.toggleInBattleTacticViewer()" style="margin-top:5px; padding:5px; font-size:12px; font-weight:bold; background:#333; color:#FFC107; border:1px solid #FFC107; border-radius:4px; cursor:pointer;">📋 作戦と指示ワードを確認</button>
                     </div>
                 </div>
             </div>
@@ -2413,12 +2833,24 @@ window.renderArenaBattle = function() {
 
     let logHtml = state.log.map(l => `<div style="margin-bottom:6px; border-bottom:1px solid #333; padding-bottom:4px;">${l}</div>`).join('');
     let isBusy = state.isProcessing || state.autoMode || state.skipMode;
-    let highestWave = window.aiPet.arenaHighestWave || 1;
-    let bossUnlocked = (highestWave >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0);
+    let highestWaveNormal = window.aiPet.arenaHighestWave || 1;
+    let bossUnlocked = (highestWaveNormal >= 51) || (window.aiPet && window.aiPet.defeatedArenaBosses && window.aiPet.defeatedArenaBosses.length > 0);
+    
+    let currentHighest = state.mode === 'boss' ? (window.aiPet.arenaBossHighestWave || 1) : (window.aiPet.arenaHighestWave || 1);
+    // ★修正：現在のWAVEが最高到達点に達している（または超えている）場合はスキップ不可
+    let canSkipThisWave = state.wave < currentHighest;
+    let skipBtnDisabled = isBusy || !canSkipThisWave;
     
     let autoBtnColor = state.autoMode ? '#FF9800' : '#2196F3';
     let autoBtnText = state.autoMode ? '⏸ AUTO停止' : '⏩ AUTO進行';
-    let skipButtonHtml = bossUnlocked ? `<button onclick="window.skipArenaWave()" ${isBusy ? 'disabled' : ''} style="width:100%; padding:10px; font-size:14px; font-weight:bold; background:${isBusy ? '#555' : '#9C27B0'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'}; margin-top:5px;">⏭ スキップ</button>` : ``;
+    let skipButtonHtml = '';
+    if (bossUnlocked) {
+        if (canSkipThisWave) {
+            skipButtonHtml = `<button onclick="window.skipArenaWave()" ${skipBtnDisabled ? 'disabled' : ''} style="width:100%; padding:10px; font-size:14px; font-weight:bold; background:${isBusy ? '#555' : '#9C27B0'}; color:white; border:2px solid #FFF; border-radius:8px; cursor:${isBusy ? 'not-allowed' : 'pointer'}; margin-top:5px;">⏭ スキップ</button>`;
+        } else {
+            skipButtonHtml = `<button disabled style="width:100%; padding:10px; font-size:12px; font-weight:bold; background:#444; color:#888; border:2px solid #555; border-radius:8px; cursor:not-allowed; margin-top:5px;">🔒 未到達WAVE (スキップ不可)</button>`;
+        }
+    }
 
     let allFighters = [];
     state.party.forEach(p => { if (p.hp > 0 && (p.exploreTimer||0) === 0 && !p.isSleeping) allFighters.push({ isEnemy: false, isGuest: false, obj: p }); });
@@ -2867,15 +3299,13 @@ window.processArenaTurn = async function() {
                     }
                 }
 
-                // ★ インフレ対応：成功率判定
+                // ★ インフレ対応：成功率判定（絶対評価に変更）
                 if (chosenSkillName) {
-                    let avgEnemyIntel = aliveEnemiesCheck.length > 0 ? (aliveEnemiesCheck.reduce((s, e) => s + e.intel, 0) / aliveEnemiesCheck.length) : 10;
-                    let ratio = p.intel / (p.intel + avgEnemyIntel);
-                    if (isNaN(ratio)) ratio = 0.5;
-                    
-                    let baseProb = ratio * 100;
-                    let penaltyPerRule = 20 * (1.0 - ratio); 
-                    let successRate = Math.max(5, Math.min(100, baseProb - (usedRuleIndex * penaltyPerRule)));
+                    // 敵の賢さに関係なく、自分の賢さ(MAX100想定)で成功率が決まる。
+                    // 賢さ50の場合、基礎成功率85%。下位のルールになるほど少しずつ下がる。
+                    let baseProb = Math.min(100, 60 + (p.intel * 0.5));
+                    let penaltyPerRule = p.intel >= 100 ? 0 : (5 * Math.max(0, 1 - (p.intel / 100)));
+                    let successRate = Math.max(20, Math.min(100, baseProb - (usedRuleIndex * penaltyPerRule)));
 
                     if (Math.random() * 100 > successRate) {
                         let failure = window.getFailureAction(p);
@@ -2909,11 +3339,117 @@ window.processArenaTurn = async function() {
                             if (skill.dir === 'left') p.col = Math.max(0, p.col - 1); if (skill.dir === 'right') p.col = Math.min(3, p.col + 1);
                             state.log.push(`<span style="color:#FFF;">陣形を「${skill.name}」に変更した！</span>`); render(); await wait(500);
                         }
-                        else if (skill.type === "buff") {
-                            state.log.push(`<span style="color:#FFC107;">気合が入り、${skill.name}した！</span>`); 
-                            if (!state.skipMode) { window.showArenaEffect(p.id, 'buff'); await wait(500); }
-                            if (skill.stat === 'atk') p.buffAtk += 0.5; if (skill.stat === 'intel') p.buffIntel += 0.5;
+                        // ★追加: 姿勢制御 (うえむき等) の処理
+                        else if (skill.type === "stance") {
+                            state.log.push(`<span style="color:#FFC107;">${p.name} は ${skill.name} をとった！</span>`);
+                            if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); }
+                            if (skill.mode === 'high') p.buffAtk += 0.5;
+                            else if (skill.mode === 'low') p.buffDef += 0.5;
+                            else if (skill.mode === 'evade_r' || skill.mode === 'evade_l') p.accBoost = true;
                             render(); await wait(200);
+                        }
+                        // ★追加: 逃走回避 (にげる) の処理
+                        else if (skill.type === "escape") {
+                            state.log.push(`<span style="color:#00BCD4;">${p.name} は戦線から一時離脱した！</span>`);
+                            p.exploreOriginalTurn = 3; p.exploreTimer = 3; render(); await wait(500);
+                        }
+                        // ★追加: 弱点看破・網投げ (しらべる等) の処理
+                        else if (skill.type === "debuff_def" || skill.type === "debuff_speed") {
+                            let t = aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)];
+                            state.log.push(`<span style="color:#9C27B0;">${t.name} の弱点を突いた！</span>`);
+                            if(!state.skipMode){ window.showArenaEffect(t.id, 'debuff'); await wait(500); }
+                            t.def = Math.max(0, Math.floor(t.def * 0.8)); t.speed = Math.max(1, Math.floor((t.speed||10) * 0.8));
+                            render(); await wait(200);
+                        }
+                        // ★追加: 武器強化 (ごうせい等) の処理
+                        else if (skill.type === "buff_next_atk") {
+                            state.log.push(`<span style="color:#FFC107;">武器を強化した！次の攻撃が超絶アップ！</span>`);
+                            if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); }
+                            p.nextAtkBoost = 2.5; render(); await wait(200);
+                        }
+                        // ★追加: 名乗り (なまえ等) の処理
+                        else if (skill.type === "provoke") {
+                            state.log.push(`<span style="color:#FF9800;">${p.name} は大声で名乗りを上げ、敵の注意を引いた！</span>`);
+                            p.hateBoost = true; render(); await wait(500);
+                        }
+                        // ★追加: アイテム使用 (つかう等) の処理
+                        else if (skill.type === "use_item") {
+                            state.log.push(`<span style="color:#76ff03;">手持ちのアイテムを使った！HPが回復！</span>`);
+                            if(!state.skipMode){ window.showArenaEffect(p.id, 'heal'); await wait(500); }
+                            p.hp = Math.min(p.maxHp, p.hp + 50); render(); await wait(200);
+                        }
+                        else if (skill.type === "buff" || skill.type === "buff_speed") {
+                            state.log.push(`<span style="color:#FFC107;">気合が入り、能力がアップした！</span>`); 
+                            if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); }
+                            if (skill.stat === 'atk') p.buffAtk += 0.5; if (skill.stat === 'intel') p.buffIntel += 0.5;
+                            // ★追加: 素早さアップの処理
+                            if (skill.stat === 'speed' || skill.type === "buff_speed") p.speed = (p.speed||10) + 10;
+                            render(); await wait(200);
+                        }
+                        // ★追加: 敵全体デバフ (ピーマン等) の処理
+                        else if (skill.type === "debuff_all") {
+                            state.log.push(`<span style="color:#9C27B0;">敵全体の攻撃力がダウン！</span>`);
+                            if(!state.skipMode){ state.enemies.forEach(e => {if(e.hp>0) window.showArenaEffect(e.id, 'debuff')}); await wait(500); }
+                            state.enemies.forEach(e => { if(e.hp>0) e.buffAtk = Math.max(0.5, (e.buffAtk||1) - 0.2); });
+                            render(); await wait(200);
+                        }
+                        // ★追加: ゴールド獲得 (バイト等) の処理
+                        else if (skill.type === "gold_earn") {
+                            state.log.push(`<span style="color:#FFD700;">${p.name} は戦闘中に小銭を稼いだ！ (500G)</span>`);
+                            if (window.aiPet) window.aiPet.gold = (window.aiPet.gold || 0) + 500;
+                            render(); await wait(500);
+                        }
+                        // ★追加: 魔法反射 (書き写し等) の処理
+                        else if (skill.type === "reflect") {
+                            state.log.push(`<span style="color:#00BCD4;">魔法を反射する構えをとった！</span>`);
+                            p.reflect = true; render(); await wait(500);
+                        }
+                        // ★追加: パーティ全体バフ (ふいご等) の処理
+                        else if (skill.type === "buff_party") {
+                            state.log.push(`<span style="color:#FFC107;">味方全体の素早さがアップ！</span>`);
+                            if(!state.skipMode){ state.party.forEach(pt => {if(pt.hp>0 && pt.exploreTimer===0) window.showArenaEffect(pt.id, 'buff')}); await wait(500); }
+                            state.party.forEach(pt => { if(pt.hp>0 && pt.exploreTimer===0) pt.speed = (pt.speed||10) + 10; });
+                            render(); await wait(200);
+                        }
+                        // ★追加: 状態異常解除 (皿洗い等) の処理
+                        else if (skill.type === "cure_party") {
+                            state.log.push(`<span style="color:#76ff03;">味方全体のデバフを洗い流した！</span>`);
+                            if(!state.skipMode){ state.party.forEach(pt => {if(pt.hp>0 && pt.exploreTimer===0) window.showArenaEffect(pt.id, 'heal')}); await wait(500); }
+                            state.party.forEach(pt => { if(pt.hp>0 && pt.exploreTimer===0) pt.def = Math.max(pt.def, 10); }); 
+                            render(); await wait(200);
+                        }
+                        // ★追加: 罠設置 (おく等) の処理
+                        else if (skill.type === "trap") {
+                            state.log.push(`<span style="color:#FF9800;">${p.name} は足元に罠を設置した！</span>`);
+                            p.trapActive = true; render(); await wait(500);
+                        }
+                        // ★追加: ランダム効果 (カジノ等) の処理
+                        else if (skill.type === "roulette") {
+                            state.log.push(`<span style="color:#E91E63; font-weight:bold;">パルプンテ！ 何が起こるかわからない！</span>`);
+                            if(!state.skipMode) await wait(500);
+                            if (Math.random() < 0.5) {
+                                state.log.push(`<span style="color:#76ff03;">奇跡の光が降り注ぎ、味方全員が完全回復！</span>`);
+                                state.party.forEach(pt => { if(pt.hp>0) { pt.hp = pt.maxHp; pt.mp = pt.maxMp; pt.buffAtk += 0.5; }});
+                            } else {
+                                state.log.push(`<span style="color:#ff5252;">隕石が直撃し、敵全体に大ダメージ！</span>`);
+                                state.enemies.forEach(e => { if(e.hp>0) { e.hp -= 9999; e.flash = true; }});
+                            }
+                            render(); await wait(500); state.enemies.forEach(e => e.flash = false); render();
+                        }
+                        // ★追加: パーティ全回復＋バフ (レストラン等) の処理
+                        else if (skill.type === "full_heal_party") {
+                            state.log.push(`<span style="color:#76ff03; font-weight:bold;">豪華な食事が振る舞われ、味方全員が完全回復＋超強化！</span>`);
+                            if(!state.skipMode){ state.party.forEach(pt => {if(pt.hp>0 && pt.exploreTimer===0) window.showArenaEffect(pt.id, 'heal')}); await wait(500); }
+                            state.party.forEach(pt => { if(pt.hp>0 && pt.exploreTimer===0) { pt.hp = pt.maxHp; pt.mp = pt.maxMp; pt.buffAtk += 0.5; pt.buffIntel += 0.5; }});
+                            render(); await wait(200);
+                        }
+                        // ★追加: ゴールド消費召喚 (ショップ等) の処理
+                        else if (skill.type === "buy_mercenary") {
+                            state.log.push(`<span style="color:#FFD700;">ゴールドを支払い、屈強な傭兵を雇った！</span>`);
+                            if (window.aiPet) window.aiPet.gold = Math.max(0, (window.aiPet.gold || 0) - 1000);
+                            let gHp = Math.max(10, Math.floor(avgHp)); 
+                            state.guests.push({ id: `g_soldier_${Date.now()}`, type: 'soldier', hp: gHp*2, maxHp: gHp*2, actionGauge: 0, speed: 60 }); 
+                            render(); await wait(500);
                         }
                         else if (skill.type === "sleep") { p.isSleeping = true; state.log.push(`<span style="color:#aaa;">${p.name} は その場でぐっすり眠りについた...💤</span>`); render(); await wait(500); }
                         else if (skill.type === "summon") {
@@ -2964,7 +3500,31 @@ window.processArenaTurn = async function() {
                         else if (skill.type === "eat") { state.log.push(`<span style="color:#76ff03;">食料を食べてHPとMPが大回復！🍖</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'heal'); await wait(500); } p.hp = Math.min(p.maxHp, p.hp + Math.max(50, Math.floor(p.maxHp * 0.25))); p.mp = Math.min(p.maxMp, p.mp + Math.max(20, Math.floor(p.maxMp * 0.15))); render(); await wait(200); }
                         else if (skill.type === "equip") { state.log.push(`<span style="color:#FFC107;">武器を構えた！攻撃力大幅アップ！🗡️</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); } p.buffAtk += 0.5; p.isEquipped = true; render(); await wait(200); }
                         else if (skill.type === "unequip") { if (p.isEquipped) { p.buffAtk = Math.max(1.0, p.buffAtk - 0.5); p.isEquipped = false; state.log.push(`<span style="color:#aaa;">重い装備を外して身軽になった。</span>`); } else { state.log.push(`<span style="color:#aaa;">しかし何も装備していなかった。</span>`); } render(); await wait(500); }
-                        else if (skill.type === "attack" || skill.type === "magic") {
+                        // ★追加: 属性魔法系 (氷・水・火・光・地・毒・ランダム) の処理
+                        else if (skill.type === "magic_ice" || skill.type === "magic_water" || skill.type === "magic_fire" || skill.type === "magic_light" || skill.type === "magic_earth" || skill.type === "magic_poison" || skill.type === "magic_random") {
+                            let isAll = skill.target === "all" || skill.target === "random";
+                            let targets = isAll ? aliveEnemiesCheck : [aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)]];
+                            state.log.push(`<span style="color:#E040FB; font-weight:bold;">✨ ${p.name} の【${skill.name}】！</span>`);
+                            if(!state.skipMode){ targets.forEach(t => window.showArenaEffect(t.id, 'magic')); await wait(600); }
+                            
+                            let totalDmgMsg = [];
+                            targets.forEach(t => {
+                                let dodgeChance = Math.min(0.8, Math.max(0, ((t.speed||10) - (p.speed||10)) * 0.05));
+                                if (Math.random() < dodgeChance && !p.accBoost) { totalDmgMsg.push(`${t.name} は回避`); return; }
+                                
+                                let dmg = Math.max(1, Math.floor(p.intel * p.buffIntel * (skill.power || 1.5)) - Math.floor(t.def * 0.5));
+                                if (p.nextAtkBoost) { dmg = Math.floor(dmg * p.nextAtkBoost); p.nextAtkBoost = null; }
+                                t.hp -= dmg; t.flash = true;
+                                totalDmgMsg.push(`${t.name}に${dmg}Dmg`);
+                                if (skill.type === "magic_poison") t.buffAtk = Math.max(0.5, (t.buffAtk||1) - 0.1);
+                                if (skill.type === "blind") t.speed = Math.max(1, (t.speed||10) - 5);
+                            });
+                            state.log.push(`<span style="color:#FFF;">${totalDmgMsg.join(', ')}！</span>`);
+                            render(); if(!state.skipMode) await wait(400);
+                            targets.forEach(t => t.flash = false); render(); if(!state.skipMode) await wait(200);
+                        }
+                        // ★追加: 各種物理攻撃系 (カードドロー含む) の処理
+                        else if (skill.type === "attack_special" || skill.type === "attack_pierce" || skill.type === "heavy" || skill.type === "throw" || skill.type === "draw_card" || skill.type === "attack" || skill.type === "magic") {
                             let target = aliveEnemiesCheck[Math.floor(Math.random() * aliveEnemiesCheck.length)];
                             let targets = skill.target === "all" ? aliveEnemiesCheck : [target];
                             
@@ -2973,15 +3533,23 @@ window.processArenaTurn = async function() {
                             
                             for(let t of targets) {
                                 let dodgeChance = Math.min(0.8, Math.max(0, ((t.speed || 10) - (p.speed || 10)) * 0.05));
-                                if (Math.random() < dodgeChance) { state.log.push(`<span style="color:#aaa;">${t.name} は攻撃をヒラリと避けた！(MISS)</span>`); continue; }
+                                if (skill.type !== "throw" && Math.random() < dodgeChance && !p.accBoost) { state.log.push(`<span style="color:#aaa;">${t.name} は攻撃をヒラリと避けた！(MISS)</span>`); continue; }
                                 
-                                let finalAtk = p.atk * p.buffAtk; if (skill.type === "magic") finalAtk = p.intel * p.buffIntel;
-                                let dmgMultiplier = 1.0; if (p.row === 'back' && skill.type === "attack") dmgMultiplier = 0.7; if (p.hutHp > 0) dmgMultiplier *= 0.8; 
-                                let dmg = Math.max(1, Math.floor(finalAtk * skill.power * dmgMultiplier) - Math.floor(t.def * 0.5));
+                                let finalAtk = p.atk * p.buffAtk; 
+                                if (skill.type === "magic" || skill.type === "draw_card") finalAtk = p.intel * p.buffIntel;
+                                let dmgMultiplier = 1.0; 
+                                if (p.row === 'back' && (skill.type === "attack" || skill.type === "heavy")) dmgMultiplier = 0.7; 
+                                if (p.hutHp > 0) dmgMultiplier *= 0.8; 
+                                
+                                let dmg = Math.max(1, Math.floor(finalAtk * (skill.power || 1.0) * dmgMultiplier) - Math.floor(t.def * 0.5));
+                                
+                                if (skill.type === "attack_pierce") dmg = Math.max(1, Math.floor(finalAtk * 1.2)); 
+                                if (skill.type === "throw") dmg = Math.max(10, Math.floor(p.atk * 1.5)); 
+                                if (p.nextAtkBoost) { dmg = Math.floor(dmg * p.nextAtkBoost); p.nextAtkBoost = null; }
                                 
                                 t.hp -= dmg; 
                                 t.flash = true; 
-                                state.log.push(`<span style="color:#FFF;">${t.name} に ${dmg} のダメージ！</span>`);
+                                state.log.push(`<span style="color:#FFF;">${skill.name}！ ${t.name} に ${dmg} のダメージ！</span>`);
                             }
                             
                             render(); 
@@ -2989,10 +3557,23 @@ window.processArenaTurn = async function() {
                             for(let t of targets) { t.flash = false; } 
                             render(); 
                             if (!state.skipMode) await wait(200); 
-                        } 
+                        }
+                        // ★追加: 継続回復・防御系の処理
+                        else if (skill.type === "shield" || skill.type === "invincible" || skill.type === "defend") {
+                            state.log.push(`<span style="color:#FFF;">${p.name} は ${skill.name} を展開した！</span>`);
+                            if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); }
+                            p.shield = true; 
+                            if (skill.type === "invincible") p.invincible = true;
+                            render(); await wait(200);
+                        }
+                        else if (skill.type === "regen_party") {
+                            state.log.push(`<span style="color:#76ff03;">味方全体にリジェネ（継続回復）が付与された！</span>`);
+                            if(!state.skipMode){ state.party.forEach(pt => {if(pt.hp>0 && pt.exploreTimer===0) window.showArenaEffect(pt.id, 'heal')}); await wait(500); }
+                            state.party.forEach(pt => { if(pt.hp>0 && pt.exploreTimer===0) pt.regen = true; });
+                            render(); await wait(200);
+                        }
                         else if (skill.type === "heal") { state.log.push(`<span style="color:#76ff03;">${p.name} のHPが回復した！</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'heal'); await wait(600); } p.hp = Math.min(p.maxHp, p.hp + skill.power + Math.floor(p.intel * p.buffIntel * 0.5)); render(); await wait(200); } 
-                        else if (skill.type === "heal_all") { state.log.push(`<span style="color:#76ff03;">味方全員のHPが回復した！</span>`); if(!state.skipMode){ state.party.forEach(pt => { if(pt.hp > 0 && (pt.exploreTimer||0) === 0) window.showArenaEffect(pt.id, 'heal'); }); await wait(600); } for (let pt of state.party) { if(pt.hp > 0 && (pt.exploreTimer||0) === 0) pt.hp = Math.min(pt.maxHp, pt.hp + skill.power + Math.floor(p.intel * pt.buffIntel * 0.3)); } render(); await wait(200); } 
-                        else if (skill.type === "defend") { state.log.push(`<span style="color:#FFF;">${p.name} は身を固めている！（次ダメージ半減）</span>`); if(!state.skipMode){ window.showArenaEffect(p.id, 'buff'); await wait(500); } p.shield = true; render(); await wait(200); }
+                        else if (skill.type === "heal_all" || skill.type === "heal_party") { state.log.push(`<span style="color:#76ff03;">味方全員のHPが回復した！</span>`); if(!state.skipMode){ state.party.forEach(pt => { if(pt.hp > 0 && (pt.exploreTimer||0) === 0) window.showArenaEffect(pt.id, 'heal'); }); await wait(600); } for (let pt of state.party) { if(pt.hp > 0 && (pt.exploreTimer||0) === 0) pt.hp = Math.min(pt.maxHp, pt.hp + skill.power + Math.floor(p.intel * pt.buffIntel * 0.3)); } render(); await wait(200); } 
                     }
                 }
             } else {
@@ -3241,8 +3822,14 @@ window.processArenaTurn = async function() {
                         return { ...p, atk: origP.atk || p.atk, def: origP.def || p.def, intel: origP.intel || p.intel, speed: origP.speed || p.speed };
                     });
                     if (typeof window.updateArenaRanking === 'function') window.updateArenaRanking(state.wave, partyToSave);
-                    if (window.aiPet) window.aiPet.gold = (window.aiPet.gold || 0) + 50000;
-                    if (window.aiPet) window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, maxWaves);
+                    if (window.aiPet) {
+                        window.aiPet.gold = (window.aiPet.gold || 0) + 50000;
+                        if (state.mode === 'boss') {
+                            window.aiPet.arenaBossHighestWave = Math.max(window.aiPet.arenaBossHighestWave || 0, maxWaves);
+                        } else {
+                            window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, maxWaves);
+                        }
+                    }
                     if (typeof saveGameData === 'function') saveGameData();
                     let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
                     state.active = false; state.autoMode = false;
@@ -3273,7 +3860,13 @@ window.processArenaTurn = async function() {
 };
 
 window.showArenaInterval = function() {
-    if (window.aiPet) window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, window.ARENA_STATE.wave + 1);
+    if (window.aiPet) {
+        if (window.ARENA_STATE.mode === 'boss') {
+            window.aiPet.arenaBossHighestWave = Math.max(window.aiPet.arenaBossHighestWave || 0, window.ARENA_STATE.wave + 1);
+        } else {
+            window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, window.ARENA_STATE.wave + 1);
+        }
+    }
     let ui = document.getElementById('arena-interval-ui');
     if (!ui) {
         ui = document.createElement('div'); ui.id = 'arena-interval-ui';
@@ -3322,7 +3915,13 @@ window.useArenaHeal = function() {
 window.nextArenaWave = function() { document.getElementById('arena-interval-ui').style.display = 'none'; window.ARENA_STATE.wave++; window.startArenaWave(); };
 
 window.endArena = function(isGiveUp) {
-    if (window.aiPet && !isGiveUp) window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, window.ARENA_STATE.wave);
+    if (window.aiPet && !isGiveUp) {
+        if (window.ARENA_STATE.mode === 'boss') {
+            window.aiPet.arenaBossHighestWave = Math.max(window.aiPet.arenaBossHighestWave || 0, window.ARENA_STATE.wave);
+        } else {
+            window.aiPet.arenaHighestWave = Math.max(window.aiPet.arenaHighestWave || 0, window.ARENA_STATE.wave);
+        }
+    }
     let ui = document.getElementById('arena-battle-ui'); if (ui) ui.style.display = 'none';
     let intUi = document.getElementById('arena-interval-ui'); if (intUi) intUi.style.display = 'none';
     let state = window.ARENA_STATE; state.active = false; state.autoMode = false;
@@ -3540,15 +4139,42 @@ window.skipArenaWave = async function() {
     // スキップフラグを立ててAUTO進行をオフにする
     state.skipMode = true;
     state.autoMode = false;
-    window.renderArenaBattle(); // ボタンを無効化するために一度再描画
+    
+    let ui = document.getElementById('arena-battle-ui');
+    if (ui) ui.style.filter = 'saturate(0.5) blur(1px)'; // 高速処理中の視覚エフェクト
+    
+    let skipOverlay = document.createElement('div');
+    skipOverlay.id = 'arena-skip-overlay';
+    skipOverlay.style.cssText = 'position:absolute; top:20px; left:50%; transform:translateX(-50%); background:rgba(156,39,176,0.9); border:2px solid #FFF; padding:10px 20px; border-radius:8px; color:#FFF; font-weight:bold; font-size:20px; z-index:60000; box-shadow:0 0 15px #9C27B0; display:flex; align-items:center; gap:10px;';
+    skipOverlay.innerHTML = `<div class="arena-ready-blink">⏭</div> 超高速演算モード実行中... <span id="skip-turn-count">0</span> Turn`;
+    if (ui) ui.appendChild(skipOverlay);
 
+    let turnCount = 0;
+    
     // 敵か味方のどちらかが全滅するまで、裏でターン処理を回し続ける
     while (state.active && state.party.some(p => p.hp > 0) && state.enemies.some(e => e.hp > 0)) {
         await window.processArenaTurn();
+        turnCount++;
+        
+        // 10ターンに1回、画面の一部だけを更新しつつ、ブラウザのフリーズを防ぐ
+        if (turnCount % 10 === 0) {
+            let turnElem = document.getElementById('skip-turn-count');
+            if (turnElem) turnElem.innerText = turnCount;
+            // 超軽量なUI更新（HPバーのみ更新などを入れると更に良いが、今回はフリーズ防止が主目的）
+            await new Promise(r => setTimeout(r, 0)); // イベントループを解放！これがフリーズ防止の要
+        }
+        
+        // 安全装置：万が一1万ターンを超えた場合は、泥試合と判定して強制的にループを抜ける
+        if (turnCount > 10000) {
+            state.log.push(`<span style="color:#FF9800;">【泥試合警告】戦闘が1万ターンを超えました。これ以上はAIの精神が持ちません。</span>`);
+            break;
+        }
     }
     
     // 処理が終わったらスキップモードを解除して最終結果を描画
     state.skipMode = false;
+    if (ui) ui.style.filter = 'none';
+    if (skipOverlay) skipOverlay.remove();
     window.renderArenaBattle();
 };
 
@@ -3665,3 +4291,54 @@ if (!window._arenaResultObserver) {
     // 画面（body）の変更を常時監視
     window._arenaResultObserver.observe(document.body, { childList: true });
 }
+
+// ★追加：戦闘中の作戦・チャット確認ウィンドウ
+window.toggleInBattleTacticViewer = function() {
+    let viewer = document.getElementById('in-battle-tactic-viewer');
+    if (!viewer) {
+        viewer = document.createElement('div');
+        viewer.id = 'in-battle-tactic-viewer';
+        viewer.style.cssText = `position: fixed; top: 10%; left: 10%; width: 80%; height: 80%; background: rgba(10,10,15,0.95); border: 3px solid #00BCD4; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; z-index: 70000; box-shadow: 0 10px 40px rgba(0,0,0,0.8); color: white; font-family: sans-serif; box-sizing: border-box;`;
+        document.body.appendChild(viewer);
+    }
+
+    if (viewer.style.display === 'flex') {
+        viewer.style.display = 'none';
+    } else {
+        let p = window.ARENA_STATE.party.find(pt => pt.isMe);
+        if (!p) return;
+
+        let defTactics = window.getDefaultTactics(p.words);
+        let myTactics = window.aiPet.tactics || [];
+        
+        let allTacticNames = [];
+        defTactics.forEach(t => allTacticNames.push(`<span style="color:#4CAF50;">${t.name}</span>`));
+        myTactics.forEach(t => allTacticNames.push(`<span style="color:#2196F3;">${t.name}</span>`));
+
+        let currentTactic = p.tacticType === 'default' ? defTactics[p.tacticIndex || 0] : myTactics[p.tacticIndex || 0];
+        
+        let rulesHtml = currentTactic.rules.map((r, i) => {
+            let condStr = window.TACTIC_CONDITIONS[r.condition] || r.condition;
+            let skillInfo = window.ARENA_SKILLS[r.action];
+            let desc = skillInfo ? `<span style="color:#4fc3f7; font-size:12px;">(${skillInfo.desc})</span>` : '';
+            return `<div style="background:#222; padding:8px; border-bottom:1px solid #444; font-size:14px;">
+                <span style="color:#FF9800; font-weight:bold;">${i+1}.</span> もし <span style="color:#ddd;">${condStr}</span> なら 
+                <span style="font-weight:bold; color:#FFF;">${r.action}</span> ${desc}
+            </div>`;
+        }).join('');
+
+        viewer.innerHTML = `
+            <h3 style="color:#00BCD4; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">📋 現在の作戦とチャット指示</h3>
+            <div style="font-size:14px; color:#ccc; margin-bottom:10px;">
+                チャット欄に以下の作戦名を入力して送信すると、AIに作戦変更を指示できます。<br>
+                <b>使える指示ワード：</b> ${allTacticNames.join(', ')}
+            </div>
+            <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #444; flex:1; overflow-y:auto;">
+                <div style="color:#FFC107; font-weight:bold; font-size:18px; margin-bottom:10px;">現在の作戦：${currentTactic.name}</div>
+                ${rulesHtml}
+            </div>
+            <button onclick="window.toggleInBattleTacticViewer()" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>
+        `;
+        viewer.style.display = 'flex';
+    }
+};
