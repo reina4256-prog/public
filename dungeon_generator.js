@@ -131,6 +131,10 @@ window.generateDungeonFloor = async function() {
 
     const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;   
 
+    // ★ 特性取得（ドロップテーブル操作用）
+    let mySkinTemp = s.player.skin || "";
+    let activeTraitsTemp = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(mySkinTemp).map(t => t.name) : [];
+
     const dropTable = [ 
         { id: 'herb', name: '薬草', weight: 20 }, { id: 'item_berry', name: '野イチゴ', weight: 15 }, 
         { id: 'item_bread', name: '大きなパン', weight: 15 }, { id: 'item_seed_happy', name: 'しあわせの種', weight: 3 },
@@ -143,6 +147,11 @@ window.generateDungeonFloor = async function() {
         { id: 'item_shield_hara', name: 'ハラモチの盾', weight: 4 }, { id: 'item_armor_iron', name: '鉄の鎧', weight: 8 }, 
         { id: 'item_ring_haste', name: '俊足の腕輪', weight: 2 }, { id: 'item_ring_heal', name: '回復の指輪', weight: 2 } 
     ];
+
+    // ★ 魔法使い系特性：天体観測（巻物のドロップウェイトを3倍にして実質的な出現数を増やす）
+    if (activeTraitsTemp.includes('天体観測')) {
+        dropTable.forEach(item => { if (item.id.includes('scroll')) item.weight *= 3; });
+    }
 
     const trapTypes = [ 
         { type: 'poison', name: '毒矢の罠' }, 
@@ -237,15 +246,17 @@ window.generateDungeonFloor = async function() {
     let mySkin = s.player.skin || "";
     let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(mySkin).map(t => t.name) : [];
 
-    if (mySkin === 'spirit_type3_2' || activeTraits.includes('全天候衛星')) {
+    if (mySkin === 'spirit_type3_2' || activeTraits.includes('全天候衛星') || activeTraits.includes('叡智の頂点')) {
         for(let y=0; y<s.mapHeight; y++) { for(let x=0; x<s.mapWidth; x++) s.visited[y][x] = true; }
-        window.addDungeonLog(activeTraits.includes('全天候衛星') ? `🛰️ 全天候衛星からのスキャン完了！地形を完全に把握した！` : `🌳 世界樹の記憶により、このフロアの地形を完全に把握した！`, '#00BCD4');
+        let msg = activeTraits.includes('叡智の頂点') ? `👁️ 叡智の頂点により、フロアの全てが見通せる！` : 
+                  (activeTraits.includes('全天候衛星') ? `🛰️ 全天候衛星からのスキャン完了！地形を完全に把握した！` : `🌳 世界樹の記憶により、このフロアの地形を完全に把握した！`);
+        window.addDungeonLog(msg, '#00BCD4');
     }
-    if (activeTraits.includes('気象観測') || activeTraits.includes('全天候衛星')) {
-        s.traps.forEach(t => t.visible = true); // ★修正：discovered ではなく visible に変更
-        window.addDungeonLog(`☁️ ${activeTraits.includes('全天候衛星') ? '衛星スキャン' : '気象観測'}により、隠された罠をすべて見破った！`, '#00BCD4');
+    if (activeTraits.includes('気象観測') || activeTraits.includes('全天候衛星') || activeTraits.includes('星の預言') || activeTraits.includes('叡智の頂点')) {
+        s.traps.forEach(t => t.visible = true); 
+        window.addDungeonLog(`☁️ 隠された罠をすべて見破った！`, '#00BCD4');
     }
-    if (activeTraits.includes('全天候衛星')) {
+    if (activeTraits.includes('全天候衛星') || activeTraits.includes('叡智の頂点')) {
         s.items.forEach(i => i.discovered = true);
         s.isMHDiscovered = true; // モンスターハウスの察知
     }

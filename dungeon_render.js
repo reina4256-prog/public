@@ -921,10 +921,615 @@ window.DUNGEON_SPRITES = {
     },
 
 
-    "magician_down": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 42, "sw": 835, "sh": 1014, "scale": 0.4 },
-    "magician_up": { "img": "magician_dungeon_walk.png", "sx": 1020, "sy": 42, "sw": 855, "sh": 1014, "scale": 0.4 },
-    "magician_left": { "img": "magician_dungeon_walk.png", "sx": 43, "sy": 1169, "sw": 835, "sh": 1014, "scale": 0.4 },
-    "magician_right": { "img": "magician_dungeon_walk.png", "sx": 1036, "sy": 1169, "sw": 835, "sh": 1014, "scale": 0.4 },
+    "magician_down": {
+        "img": "magician_dungeon_walk.png",
+        "sx": 43,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1015,
+        "scale": 0.25000000000000006
+    },
+    "magician_up": {
+        "img": "magician_dungeon_walk.png",
+        "sx": 1020,
+        "sy": 42,
+        "sw": 855,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_left": {
+        "img": "magician_dungeon_walk.png",
+        "sx": 43,
+        "sy": 1169,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_right": {
+        "img": "magician_dungeon_walk.png",
+        "sx": 1036,
+        "sy": 1169,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_down": {
+        "img": "magician_type1_dungeon_walk.png",
+        "sx": 26,
+        "sy": 3,
+        "sw": 894,
+        "sh": 1135,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_up": {
+        "img": "magician_type1_dungeon_walk.png",
+        "sx": 937,
+        "sy": -10,
+        "sw": 910,
+        "sh": 1166,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_left": {
+        "img": "magician_type1_dungeon_walk.png",
+        "sx": 24,
+        "sy": 1146,
+        "sw": 892,
+        "sh": 1168,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_right": {
+        "img": "magician_type1_dungeon_walk.png",
+        "sx": 945,
+        "sy": 1148,
+        "sw": 898,
+        "sh": 1159,
+        "scale": 0.25000000000000006,
+        "rotation": -5
+    },
+    "magician_type1_2_down": {
+        "img": "magician_type1_2_dungeon_walk.png",
+        "sx": 297,
+        "sy": 113,
+        "sw": 733,
+        "sh": 898,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_2_up": {
+        "img": "magician_type1_2_dungeon_walk.png",
+        "sx": 1188,
+        "sy": 113,
+        "sw": 733,
+        "sh": 898,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_2_left": {
+        "img": "magician_type1_2_dungeon_walk.png",
+        "sx": 1219,
+        "sy": 1009,
+        "sw": 733,
+        "sh": 898,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_2_right": {
+        "img": "magician_type1_2_dungeon_walk.png",
+        "sx": 251,
+        "sy": 1009,
+        "sw": 733,
+        "sh": 898,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_3_down": {
+        "img": "magician_type1_3_dungeon_walk.png",
+        "sx": 55,
+        "sy": -13,
+        "sw": 988,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_3_up": {
+        "img": "magician_type1_3_dungeon_walk.png",
+        "sx": 1127,
+        "sy": -13,
+        "sw": 988,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_3_left": {
+        "img": "magician_type1_3_dungeon_walk.png",
+        "sx": 61,
+        "sy": 990,
+        "sw": 988,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_3_right": {
+        "img": "magician_type1_3_dungeon_walk.png",
+        "sx": 1104,
+        "sy": 990,
+        "sw": 988,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_4_down": {
+        "img": "magician_type1_4_dungeon_walk.png",
+        "sx": 43,
+        "sy": 65,
+        "sw": 913,
+        "sh": 1056,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_4_up": {
+        "img": "magician_type1_4_dungeon_walk.png",
+        "sx": 959,
+        "sy": 65,
+        "sw": 913,
+        "sh": 1056,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_4_left": {
+        "img": "magician_type1_4_dungeon_walk.png",
+        "sx": 959,
+        "sy": 1134,
+        "sw": 913,
+        "sh": 1056,
+        "scale": 0.25000000000000006
+    },
+    "magician_type1_4_right": {
+        "img": "magician_type1_4_dungeon_walk.png",
+        "sx": 45,
+        "sy": 1134,
+        "sw": 913,
+        "sh": 1056,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_down": {
+        "img": "magician_type2_dungeon_walk.png",
+        "sx": 81,
+        "sy": 19,
+        "sw": 850,
+        "sh": 1117,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_up": {
+        "img": "magician_type2_dungeon_walk.png",
+        "sx": 1018,
+        "sy": 1122,
+        "sw": 850,
+        "sh": 1117,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_left": {
+        "img": "magician_type2_dungeon_walk.png",
+        "sx": 81,
+        "sy": 1143,
+        "sw": 850,
+        "sh": 1117,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_right": {
+        "img": "magician_type2_dungeon_walk.png",
+        "sx": 981,
+        "sy": 19,
+        "sw": 850,
+        "sh": 1117,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_2_down": {
+        "img": "magician_type2_2_dungeon_walk.png",
+        "sx": 174,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_2_up": {
+        "img": "magician_type2_2_dungeon_walk.png",
+        "sx": 1149,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_2_left": {
+        "img": "magician_type2_2_dungeon_walk.png",
+        "sx": 1149,
+        "sy": 983,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_2_right": {
+        "img": "magician_type2_2_dungeon_walk.png",
+        "sx": 214,
+        "sy": 983,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_3_down": {
+        "img": "magician_type2_3_dungeon_walk.png",
+        "sx": 192,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_3_up": {
+        "img": "magician_type2_3_dungeon_walk.png",
+        "sx": 1112,
+        "sy": 42,
+        "sw": 970,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_3_left": {
+        "img": "magician_type2_3_dungeon_walk.png",
+        "sx": 1112,
+        "sy": 1021,
+        "sw": 970,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_3_right": {
+        "img": "magician_type2_3_dungeon_walk.png",
+        "sx": 108,
+        "sy": 1021,
+        "sw": 970,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_4_down": {
+        "img": "magician_type2_4_dungeon_walk.png",
+        "sx": -9,
+        "sy": 31,
+        "sw": 851,
+        "sh": 1241,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_4_up": {
+        "img": "magician_type2_4_dungeon_walk.png",
+        "sx": 831,
+        "sy": 31,
+        "sw": 851,
+        "sh": 1241,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_4_left": {
+        "img": "magician_type2_4_dungeon_walk.png",
+        "sx": 831,
+        "sy": 1294,
+        "sw": 851,
+        "sh": 1252,
+        "scale": 0.25000000000000006
+    },
+    "magician_type2_4_right": {
+        "img": "magician_type2_4_dungeon_walk.png",
+        "sx": 1,
+        "sy": 1294,
+        "sw": 851,
+        "sh": 1252,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_down": {
+        "img": "magician_type3_dungeon_walk.png",
+        "sx": 73,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_up": {
+        "img": "magician_type3_dungeon_walk.png",
+        "sx": 969,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_left": {
+        "img": "magician_type3_dungeon_walk.png",
+        "sx": 969,
+        "sy": 1158,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_right": {
+        "img": "magician_type3_dungeon_walk.png",
+        "sx": 90,
+        "sy": 1158,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_2_down": {
+        "img": "magician_type3_2_dungeon_walk.png",
+        "sx": 116,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_2_up": {
+        "img": "magician_type3_2_dungeon_walk.png",
+        "sx": 1126,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_2_left": {
+        "img": "magician_type3_2_dungeon_walk.png",
+        "sx": 1135,
+        "sy": 1042,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_2_right": {
+        "img": "magician_type3_2_dungeon_walk.png",
+        "sx": 121,
+        "sy": 1042,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_3_down": {
+        "img": "magician_type3_3_dungeon_walk.png",
+        "sx": 114,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1087,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_3_up": {
+        "img": "magician_type3_3_dungeon_walk.png",
+        "sx": 981,
+        "sy": 42,
+        "sw": 835,
+        "sh": 1087,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_3_left": {
+        "img": "magician_type3_3_dungeon_walk.png",
+        "sx": 981,
+        "sy": 1137,
+        "sw": 835,
+        "sh": 1087,
+        "scale": 0.25000000000000006
+    },
+    "magician_type3_3_right": {
+        "img": "magician_type3_3_dungeon_walk.png",
+        "sx": 107,
+        "sy": 1137,
+        "sw": 835,
+        "sh": 1087,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_down": {
+        "img": "magician_type4_dungeon_walk.png",
+        "sx": 64,
+        "sy": 68,
+        "sw": 835,
+        "sh": 1086,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_up": {
+        "img": "magician_type4_dungeon_walk.png",
+        "sx": 1006,
+        "sy": 68,
+        "sw": 835,
+        "sh": 1086,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_left": {
+        "img": "magician_type4_dungeon_walk.png",
+        "sx": 1006,
+        "sy": 1186,
+        "sw": 835,
+        "sh": 1086,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_right": {
+        "img": "magician_type4_dungeon_walk.png",
+        "sx": 81,
+        "sy": 1186,
+        "sw": 835,
+        "sh": 1086,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_2_down": {
+        "img": "magician_type4_2_dungeon_walk.png",
+        "sx": 70,
+        "sy": 25,
+        "sw": 937,
+        "sh": 936,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_2_up": {
+        "img": "magician_type4_2_dungeon_walk.png",
+        "sx": 1223,
+        "sy": 25,
+        "sw": 937,
+        "sh": 936,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_2_left": {
+        "img": "magician_type4_2_dungeon_walk.png",
+        "sx": 1223,
+        "sy": 960,
+        "sw": 937,
+        "sh": 936,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_2_right": {
+        "img": "magician_type4_2_dungeon_walk.png",
+        "sx": 78,
+        "sy": 960,
+        "sw": 937,
+        "sh": 936,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_3_down": {
+        "img": "magician_type4_3_dungeon_walk.png",
+        "sx": 170,
+        "sy": 42,
+        "sw": 821,
+        "sh": 980,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_3_up": {
+        "img": "magician_type4_3_dungeon_walk.png",
+        "sx": 1225,
+        "sy": 42,
+        "sw": 821,
+        "sh": 980,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_3_left": {
+        "img": "magician_type4_3_dungeon_walk.png",
+        "sx": 1239,
+        "sy": 994,
+        "sw": 821,
+        "sh": 980,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_3_right": {
+        "img": "magician_type4_3_dungeon_walk.png",
+        "sx": 159,
+        "sy": 994,
+        "sw": 821,
+        "sh": 980,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_4_down": {
+        "img": "magician_type4_4_dungeon_walk.png",
+        "sx": 207,
+        "sy": 42,
+        "sw": 754,
+        "sh": 943,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_4_up": {
+        "img": "magician_type4_4_dungeon_walk.png",
+        "sx": 1379,
+        "sy": 42,
+        "sw": 754,
+        "sh": 943,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_4_left": {
+        "img": "magician_type4_4_dungeon_walk.png",
+        "sx": 1379,
+        "sy": 943,
+        "sw": 754,
+        "sh": 943,
+        "scale": 0.25000000000000006
+    },
+    "magician_type4_4_right": {
+        "img": "magician_type4_4_dungeon_walk.png",
+        "sx": 179,
+        "sy": 943,
+        "sw": 754,
+        "sh": 943,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_down": {
+        "img": "magician_type5_dungeon_walk.png",
+        "sx": 68,
+        "sy": 65,
+        "sw": 835,
+        "sh": 1051,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_up": {
+        "img": "magician_type5_dungeon_walk.png",
+        "sx": 992,
+        "sy": 65,
+        "sw": 835,
+        "sh": 1051,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_left": {
+        "img": "magician_type5_dungeon_walk.png",
+        "sx": 977,
+        "sy": 1155,
+        "sw": 835,
+        "sh": 1051,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_right": {
+        "img": "magician_type5_dungeon_walk.png",
+        "sx": 130,
+        "sy": 1155,
+        "sw": 835,
+        "sh": 1051,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_2_down": {
+        "img": "magician_type5_2_dungeon_walk.png",
+        "sx": 97,
+        "sy": 58,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_2_up": {
+        "img": "magician_type5_2_dungeon_walk.png",
+        "sx": 1153,
+        "sy": 58,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_2_left": {
+        "img": "magician_type5_2_dungeon_walk.png",
+        "sx": 103,
+        "sy": 1058,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_2_right": {
+        "img": "magician_type5_2_dungeon_walk.png",
+        "sx": 1144,
+        "sy": 1058,
+        "sw": 835,
+        "sh": 1014,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_3_down": {
+        "img": "magician_type5_3_dungeon_walk.png",
+        "sx": 44,
+        "sy": 59,
+        "sw": 835,
+        "sh": 1120,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_3_up": {
+        "img": "magician_type5_3_dungeon_walk.png",
+        "sx": 956,
+        "sy": 59,
+        "sw": 835,
+        "sh": 1120,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_3_left": {
+        "img": "magician_type5_3_dungeon_walk.png",
+        "sx": 113,
+        "sy": 1218,
+        "sw": 835,
+        "sh": 1120,
+        "scale": 0.25000000000000006
+    },
+    "magician_type5_3_right": {
+        "img": "magician_type5_3_dungeon_walk.png",
+        "sx": 910,
+        "sy": 1218,
+        "sw": 835,
+        "sh": 1120,
+        "scale": 0.25000000000000006
+    },
 
     "spirit_down": {
         "img": "spirit_dungeon_walk.png",

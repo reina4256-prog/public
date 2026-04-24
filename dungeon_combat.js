@@ -58,6 +58,13 @@ window.dealDungeonDamage = function(attacker, defender) {
         return; 
     }
 
+    // ★ 魔法使い系敵特性：魔法障壁（3回攻撃するまでダメージ0バリア）
+    if (!aIsPlayer && defender._magicBarrier > 0) {
+        window.addDungeonLog(`🛡️ 魔法障壁！ ${defender.name} はバリアでダメージを完全に防いだ！(残り${defender._magicBarrier}回)`, '#00BCD4');
+        defender._magicBarrier--;
+        return; 
+    }
+
     // ★ 特性：未来予知（プレイヤーが殴られる時、15%で回避）
     if (!aIsPlayer && dTraits.includes('未来予知') && Math.random() < 0.15) {
         if (isSureHit) window.addDungeonLog(`👁️ 真理の目が未来予知を破った！`, '#FF5252');
@@ -88,6 +95,11 @@ window.dealDungeonDamage = function(attacker, defender) {
     // ★ 風船系：仕込んでおいた攻防倍率の適用
     aAtk = Math.floor(aAtk * (attacker._atkMultiplier || 1.0));
     dDef = Math.floor(dDef * (defender._defMultiplier || 1.0));
+
+    // ★ 魔法使い系特性：魔力強化肉体（賢さの20%を基礎攻撃力に加算）
+    if (aIsPlayer && aTraits.includes('魔力強化肉体') && typeof window.DUNGEON_STATE !== 'undefined' && window.DUNGEON_STATE.player.intel) {
+        aAtk += Math.floor(window.DUNGEON_STATE.player.intel * 0.2);
+    }
 
     let wEff = null; let sEff = null;
     let sealBonus = 0; let isDoubleSeal = false;
@@ -125,6 +137,15 @@ window.dealDungeonDamage = function(attacker, defender) {
         if (aTraits.includes('剛力') && s.player.tempInventory) {
             aAtk += s.player.tempInventory.length;
         }
+
+        // ★ 魔法使い系特性：発火体質
+        if (aTraits.includes('発火体質')) sealBonus += 10;
+        
+        // ★ 魔法使い系特性：闘神の加護（武器の＋補正を強化）
+        if (aTraits.includes('闘神の加護') && attacker.equipWeapon && typeof window.parseItemString === 'function') {
+            let pBase = window.parseItemString(attacker.equipWeapon);
+            if (pBase && pBase.plus > 0) aAtk += Math.floor(pBase.plus * 0.2);
+        }
     } else {
         sEff = defender.equipShield ? window.getDungeonItemEffect(defender.equipShield) : null;
         if (sEff) dDef += sEff.def;
@@ -138,6 +159,12 @@ window.dealDungeonDamage = function(attacker, defender) {
         // ★ カブトムシ系特性：群れの統率者（満腹度80%以上で防御力大幅UP）
         if (dTraits.includes('群れの統率者') && defender.hunger >= maxH * 0.8) {
             dDef += 10;
+        }
+
+        // ★ 魔法使い系特性：闘神の加護（盾の＋補正を強化）
+        if (dTraits.includes('闘神の加護') && defender.equipShield && typeof window.parseItemString === 'function') {
+            let pBase = window.parseItemString(defender.equipShield);
+            if (pBase && pBase.plus > 0) dDef += Math.floor(pBase.plus * 0.2);
         }
     }
 
@@ -233,8 +260,12 @@ window.dealDungeonDamage = function(attacker, defender) {
         window.addDungeonLog(`💧 [癒]の印でHPを ${healAmt} 吸収した！`, '#4CAF50');
     }
 
-    // ★ 特性：ウイルス侵蝕（殴った敵を毒にする）
-    if (aIsPlayer && aTraits.includes('ウイルス侵蝕')) { defender.status.poison += 3; }
+    // ★ 特性：ウイルス侵蝕（殴った敵を毒にする）＆ 魔法使い特性：毒の知識
+    if (aIsPlayer && aTraits.includes('ウイルス侵蝕')) { 
+        let pAmt = aTraits.includes('毒の知識') ? 6 : 3;
+        defender.status.poison = (defender.status.poison || 0) + pAmt; 
+        if (aTraits.includes('毒の知識')) window.addDungeonLog(`🍄 毒の知識により、より強力な猛毒を与えた！`, '#9C27B0');
+    }
     // ★ 敵特性：サビ撒き
     if (!aIsPlayer && attacker.skin && attacker.skin.includes('robot_type5')) {
         if (defender.equipWeapon) {
@@ -296,6 +327,12 @@ window.dealDungeonDamage = function(attacker, defender) {
                 attacker.maxHp += 1;
                 attacker.hp += 1; // 上限が上がった分、現在HPも回復
                 window.addDungeonLog(`🩸 始祖の血が脈打つ！ 最大HPが 1 上がった！`, '#FF5252');
+            }
+
+            // ★ 魔法使い系特性：禁忌の儀式（敵を倒すとHP5回復）
+            if (aTraits.includes('禁忌の儀式')) {
+                attacker.hp = Math.min(attacker.maxHp, attacker.hp + 5);
+                window.addDungeonLog(`🩸 禁忌の儀式でHPが 5 回復した！`, '#4CAF50');
             }
 
             // ★ 特性：成金趣味 ＆ カラスの嗅覚
@@ -376,6 +413,13 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
             s.player.hp -= finalDamage; s.player.damageAnim = true; return;
         }
 
+        // ★ 魔法使い系敵特性：魔法鎧（魔法ダメージを1.5倍にして反射）
+        if (isMagic && eSkin === 'magician_type4_3') {
+            let reflectDmg = Math.floor(finalDamage * 1.5);
+            window.addDungeonLog(`🪞 魔法鎧！ 魔法が 1.5倍 の威力になって跳ね返された！`, '#FF5252');
+            s.player.hp -= reflectDmg; s.player.damageAnim = true; return;
+        }
+
         if (eSkin === 'spirit_type3_2' && Math.random() < 0.5) {
             let otherEnemies = s.enemies.filter(e => e.hp > 0 && e.id !== defender.id && window.isTileVisible(s, e.x, e.y));
             if (otherEnemies.length > 0) {
@@ -447,10 +491,23 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         }
 
         // --- 1. プレイヤー(防御側)のバフ ---
+        // ★ 魔法使い系特性：万物の法則（魔法・属性ダメージを完全に 0 にする）
+        if ((isMagic || eSkin === 'balloon_type4_2') && activeTraits.includes('万物の法則')) {
+            finalDamage = 0;
+            window.addDungeonLog(`🌌 万物の法則がすべての属性ダメージを無に帰した！`, '#00BCD4');
+            return;
+        }
+
         // ★ 風船系特性：虹色の膜 / 不朽の硬度（魔法・属性ダメージ・固定ダメージの半減）
         if (isMagic && (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度'))) {
             finalDamage = Math.max(1, Math.floor(finalDamage / 2));
             window.addDungeonLog(activeTraits.includes('虹色の膜') ? `🌈 虹色の膜が魔法ダメージを半減した！` : `💎 不朽の硬度がダメージを半減した！`, '#00BCD4');
+        }
+
+        // ★ 魔法使い系敵特性：聖なる審判（闇落ち進化のプレイヤーに大ダメージ）
+        if (eSkin === 'magician_type2_4' && s.player.skin && s.player.skin.includes('type1')) {
+            finalDamage = Math.floor(finalDamage * 2.0);
+            window.addDungeonLog(`⚔️ 聖なる審判！ 闇の者に対して特大ダメージ！`, '#FF5252');
         }
 
         if (activeTraits.includes('妖精の加護') && Math.random() < 0.1) {
@@ -472,6 +529,20 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         defender.hp -= finalDamage; defender.damageAnim = true;
         window.addDungeonLog(`💥 ${attacker.name} から ${finalDamage} ダメージを受けた！`, '#FF9800');
         
+        // ★ 魔法使い系敵特性：杖打（追加ダメージ）
+        if (eSkin === 'magician_type4' && finalDamage > 0) {
+            defender.hp -= 5;
+            window.addDungeonLog(`💥 杖打による追撃！ さらに 5 ダメージを受けた！`, '#FF9800');
+        }
+        
+        // ★ 魔法使い系敵特性：マナ・ドレイン（満腹度吸収）
+        if (eSkin === 'magician_type1_2' && finalDamage > 0) {
+            let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
+            let drain = Math.max(1, Math.floor(maxH * 0.05));
+            s.player.hunger = Math.max(0, s.player.hunger - drain);
+            window.addDungeonLog(`🦇 マナ・ドレイン！ 満腹度を ${drain} 奪われた！`, '#9C27B0');
+        }
+
         if (activeTraits.includes('大樹の怒り')) s.player._wrath = true;
 
         // --- 3. 攻撃後の追加効果（敵のスキル発動） ---

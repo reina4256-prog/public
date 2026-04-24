@@ -39,6 +39,7 @@ window.getDungeonItemEffect = function(itemId) {
     // --- 未識別名の判定ロジック ---
     let displayName = null;
     let isIdentified = (s.aiMemory && s.aiMemory.identified.includes(baseId));
+    let activeTraits = (s.player && s.player.skin && window.getPlayerDungeonTraits) ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
 
     // リーフ・スカラー（spirit_type3）なら最初から全識別
     if (s.player.skin && s.player.skin.includes('spirit_type3')) isIdentified = true;
@@ -117,6 +118,9 @@ window.getDungeonItemEffect = function(itemId) {
         if (baseId === 'item_wand_fire') effect.traits.push('fire_damage');
         else if (baseId === 'item_wand_swap') effect.traits.push('swap_pos');
         else if (baseId === 'item_wand_blow') effect.traits.push('blow_back');
+
+        // ★ 魔法使い系特性：氷結の杖（全ての杖に凍結効果を追加）
+        if (activeTraits.includes('氷結の杖')) effect.traits.push('freeze_effect');
     }
     
     else if (baseId === 'item_sword_iron' || baseId.includes('sword') || baseId.includes('weapon')) {
@@ -143,6 +147,18 @@ window.getDungeonItemEffect = function(itemId) {
     if (effect.traits.includes('curse')) {
         if (effect.atk > 0) effect.atk = Math.max(1, Math.floor(effect.atk / 2));
         if (effect.def > 0) effect.def = Math.max(1, Math.floor(effect.def / 2));
+    }
+
+    // ★ 魔法使い系特性：虹色の加護（印スロット制限を実質なくす）
+    if (activeTraits.includes('虹色の加護')) {
+        effect.maxSeals = 99; 
+    }
+
+    // ★ 魔法使い系特性：魔力の才（杖や巻物の威力を1.2倍にするプロパティを付与）
+    if (activeTraits.includes('魔力の才') && (baseId.includes('wand') || baseId.includes('scroll'))) {
+        effect.magicPowerMult = 1.2;
+    } else {
+        effect.magicPowerMult = 1.0;
     }
 
     effect.isWeapon = (effect.equipType === 'weapon');

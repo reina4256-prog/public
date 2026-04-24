@@ -4,6 +4,27 @@ window._dungeonAiTypesList = ['robot', 'magician', 'spirit', 'dragon', 'machine'
 // ★ 新規追加：全種族の特性カタログ（ロボット系21種 完備）
 // ==========================================
 window.DUNGEON_TRAIT_DICT = {
+    // 【魔法使い系】
+    'magician': { player: { name: '魔力の才', desc: '魔法アイテム（杖・巻物）の基本威力が 1.2倍 になる。' }, enemy: '初級魔法' },
+    'magician_type4': { player: { name: '魔力強化肉体', desc: '基礎攻撃力が 賢さの 20% 分 加算される。' }, enemy: '杖打' },
+    'magician_type4_2': { player: { name: '発火体質', desc: '[炎]の印がなくても、通常攻撃に 10 炎ダメージが追加される。' }, enemy: 'ファイアボール' },
+    'magician_type1': { player: { name: '毒の知識', desc: '敵に与える毒ダメージが 2倍 になり、持続ターンも伸びる。' }, enemy: 'ウィークネス' },
+    'magician_type1_2': { player: { name: '禁忌の儀式', desc: '敵を倒したとき、HPが 5 回復する。' }, enemy: 'マナ・ドレイン' },
+    'magician_type5': { player: { name: '効率的詠唱', desc: '魔法アイテム（杖）の使用回数が 15% の確率で減らなくなる。' }, enemy: '魔法障壁' },
+    'magician_type2': { player: { name: '変幻自在', desc: 'フロア移動時、ランダムなバフ（加速・攻撃UP等）が1つかかる。' }, enemy: 'ミスディレクション' },
+    'magician_type2_2': { player: { name: '氷結の杖', desc: 'すべての杖に「敵を1ターン凍らせる」効果が追加される。' }, enemy: 'フロスト墓標' },
+    'magician_type3': { player: { name: '天体観測', desc: 'フロアに落ちている「巻物」の数が 2倍 になる。' }, enemy: 'スターライト' },
+    'magician_type4_3': { player: { name: '闘神の加護', desc: '武器と盾の「＋値」による補正が 1.2倍 に強化される。' }, enemy: '魔法鎧' },
+    'magician_type4_4': { player: { name: '竜魔の血', desc: '最大HPが +50 され、ドラゴン特効の印を無効化（半減）する。' }, enemy: '竜の咆哮' },
+    'magician_type1_3': { player: { name: '冥界の主', desc: 'ゴースト系の敵が自分を攻撃してこなくなる。' }, enemy: '死者蘇生' },
+    'magician_type1_4': { player: { name: '等価交換', desc: '満腹度を 10 消費することで、攻撃力を 1ターン 3倍 にできる。' }, enemy: '悪魔召喚' },
+    'magician_type5_2': { player: { name: 'クイック・アクト', desc: '10% の確率で、1ターンの間に 2回 行動できる。' }, enemy: 'タイム・ストップ' },
+    'magician_type5_3': { player: { name: '星の預言', desc: '罠の位置がすべて見え、かつ 100% 回避できるようになる。' }, enemy: '予言' },
+    'magician_type2_3': { player: { name: '虹色の加護', desc: '装備しているアイテムの「印」のスロット数が無限になる。' }, enemy: '七色の幻惑' },
+    'magician_type2_4': { player: { name: '天の祝福', desc: '歩くたびに 5% の確率で、足元に「薬草」が生成される。' }, enemy: '聖なる審判' },
+    'magician_type3_2': { player: { name: '万物の法則', desc: '属性攻撃（炎・氷・光）による被ダメージをすべて 0 にする。' }, enemy: 'ブラックホール' },
+    'magician_type3_3': { player: { name: '叡智の頂点', desc: 'フロアのすべての敵、アイテム、階段、罠を最初から見通す。' }, enemy: '全知の消去' },
+
     // 【風船系】
     'balloon': { player: { name: '弾む体', desc: '敵から受けるノックバック（吹き飛ばし）ダメージを無効化する。' }, enemy: '浮遊' },
     'balloon_type2': { player: { name: '虹色の膜', desc: '炎や氷などの「属性ダメージ」を半減する。' }, enemy: 'シャボンバリア' },
@@ -234,6 +255,47 @@ window.getPlayerDungeonTraits = function(skin) {
                 let past = 'balloon_type3';
                 if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('balloon_type3_2')) past = 'balloon_type3_2';
                 addTrait(past); addTrait(skin);
+            }
+        }
+    }
+
+    // ==========================================
+    // ★ 魔法使い系の系譜
+    // ==========================================
+    if (skin.includes('magician')) {
+        addTrait('magician'); // Base
+
+        // Gen 1
+        if (['magician_type4', 'magician_type4_2', 'magician_type1', 'magician_type1_2', 'magician_type5', 'magician_type2', 'magician_type2_2', 'magician_type3'].includes(skin)) {
+            addTrait(skin);
+        }
+        // Gen 2 (履歴解決あり)
+        else {
+            // 活力ルート (4, 4_2 -> 4_3, 4_4)
+            if (skin === 'magician_type4_3' || skin === 'magician_type4_4') {
+                let past = 'magician_type4';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('magician_type4_2')) past = 'magician_type4_2';
+                addTrait(past); addTrait(skin);
+            }
+            // 闇落ちルート (1, 1_2 -> 1_3, 1_4)
+            else if (skin === 'magician_type1_3' || skin === 'magician_type1_4') {
+                let past = 'magician_type1';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('magician_type1_2')) past = 'magician_type1_2';
+                addTrait(past); addTrait(skin);
+            }
+            // 老化ルート (5 -> 5_2, 5_3)
+            else if (skin === 'magician_type5_2' || skin === 'magician_type5_3') {
+                addTrait('magician_type5'); addTrait(skin);
+            }
+            // 美しさルート (2, 2_2 -> 2_3, 2_4)
+            else if (skin === 'magician_type2_3' || skin === 'magician_type2_4') {
+                let past = 'magician_type2';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('magician_type2_2')) past = 'magician_type2_2';
+                addTrait(past); addTrait(skin);
+            }
+            // 賢さルート (3 -> 3_2, 3_3)
+            else if (skin === 'magician_type3_2' || skin === 'magician_type3_3') {
+                addTrait('magician_type3'); addTrait(skin);
             }
         }
     }

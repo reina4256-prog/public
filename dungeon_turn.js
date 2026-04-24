@@ -219,7 +219,22 @@ window.processDungeonTurn = async function() {
                 s.player._magicFlight = false; // 1ターンで消費
                 window.addDungeonLog(`🪽 魔力飛行の恩恵で行動回数がアップしている！`, '#00e676');
             }
+
+            // ★ 魔法使い系特性：クイック・アクト（10%の確率で行動回数+1）
+            if (activeTraits.includes('クイック・アクト') && Math.random() < 0.10) {
+                actionCount += 1;
+                window.addDungeonLog(`⏱️ クイック・アクト発動！ 瞬時に体を動かす！`, '#00BCD4');
+            }
+
             if (actionCount > 1) { window.addDungeonLog(`💨 素早さを活かして ${actionCount}回 連続行動する！`, '#00e676'); }
+
+            // ★ 魔法使い系特性：等価交換（敵が隣接していれば、満腹度10を消費して攻撃力3倍）
+            s.player._atkMultiplier = 1.0; // 毎ターンリセット
+            if (activeTraits.includes('等価交換') && s.player.hunger >= 10 && adjacentEnemies.length > 0) {
+                s.player.hunger -= 10;
+                s.player._atkMultiplier = 3.0;
+                window.addDungeonLog(`🩸 等価交換！ 満腹度10と引き換えに、一時的に力が3倍に膨れ上がった！`, '#FF5252');
+            }
 
             s.player._hornThrustUsed = false; // ★カブトムシ系：角突きの1ターン1回制限フラグをリセット
 
@@ -845,6 +860,15 @@ window.processDungeonTurn = async function() {
                         s.player.hp = s.player.maxHp;
                         window.addDungeonLog(`✨ 神鳥の舞が発動！ 体力が完全に回復した！`, '#4CAF50');
                     }
+
+                    // ★ 魔法使い系特性：変幻自在（フロア移動時にランダムバフ）
+                    if (activeTraits && activeTraits.includes('変幻自在')) {
+                        let r = Math.random();
+                        if (r < 0.33) { s.player._magicFlight = true; window.addDungeonLog(`✨ 変幻自在！ 次のフロアの開幕行動回数がアップ！`, '#E040FB'); }
+                        else if (r < 0.66) { s.player.atkBuff = (s.player.atkBuff || 0) + 10; window.addDungeonLog(`✨ 変幻自在！ 攻撃力がアップ！`, '#FFD700'); }
+                        else { s.player.hp = s.player.maxHp; window.addDungeonLog(`✨ 変幻自在！ 体力が全回復！`, '#4CAF50'); }
+                    }
+
                     if (activeTraits && activeTraits.includes('管理者権限')) {
                         let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
                         let droppedKey = items[Math.floor(Math.random() * items.length)];
@@ -948,6 +972,14 @@ window.processDungeonTurn = async function() {
                         else {
                             s.player.lastX = s.player.x; s.player.lastY = s.player.y;
                             s.player.x = Math.round(newX); s.player.y = Math.round(newY);
+
+                            // ★ 魔法使い系特性：天の祝福（歩くたびに5%で足跡に薬草生成）
+                            if (activeTraits.includes('天の祝福') && Math.random() < 0.05) {
+                                if (!s.items.some(i => i.x === s.player.lastX && i.y === s.player.lastY) && s.grid[s.player.lastY][s.player.lastX] !== 4 && s.grid[s.player.lastY][s.player.lastX] !== 10) {
+                                    s.items.push({ x: s.player.lastX, y: s.player.lastY, key: 'herb' });
+                                    window.addDungeonLog(`✨ 足跡から薬草が芽吹いた！`, '#4CAF50');
+                                }
+                            }
 
                             let hasColdResist = activeTraits.includes('耐冷構造');
                             
@@ -1309,13 +1341,21 @@ window.processDungeonTurn = async function() {
                                 await sleep(150); 
 
                                 if (effect.traits.includes('fire_damage')) {
-                                    targetEnemy.hp -= 40; targetEnemy.damageAnim = true;
+                                    let baseMagicDmg = Math.floor(40 * (effect.magicPowerMult || 1.0));
+                                    targetEnemy.hp -= baseMagicDmg; targetEnemy.damageAnim = true;
                                     // ★ 魔法攻撃時に敵を起こす
                                     if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
                                     if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
-                                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, 40, false);
-                                    window.addDungeonLog(`🔥 灼熱の炎が ${targetEnemy.name} を焼き尽くす！(40ダメージ)`, '#FF5252');
+                                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, baseMagicDmg, false);
+                                    window.addDungeonLog(`🔥 灼熱の炎が ${targetEnemy.name} を焼き尽くす！(${baseMagicDmg}ダメージ)`, '#FF5252');
                                 }
+                                
+                                // ★ 魔法使い系特性：氷結の杖（すべての杖の追加効果）
+                                if (effect.traits.includes('freeze_effect') && targetEnemy) {
+                                    targetEnemy.status.paralyzed = (targetEnemy.status.paralyzed || 0) + 1;
+                                    window.addDungeonLog(`❄️ 氷結の杖の冷気が ${targetEnemy.name} を凍らせた！`, '#00BCD4');
+                                }
+
                                 if (effect.traits.includes('swap_pos')) {
                                     let px = s.player.x, py = s.player.y;
                                     s.player.x = targetEnemy.x; s.player.y = targetEnemy.y; targetEnemy.x = px; targetEnemy.y = py;
@@ -1330,11 +1370,12 @@ window.processDungeonTurn = async function() {
                                         if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e!==targetEnemy&&e.x===nx+dx&&e.y===ny+dy)) {
                                             nx += dx; ny += dy;
                                         } else {
-                                            targetEnemy.hp -= 20; targetEnemy.damageAnim = true;
+                                            let blowDmg = Math.floor(20 * (effect.magicPowerMult || 1.0));
+                                            targetEnemy.hp -= blowDmg; targetEnemy.damageAnim = true;
                                             // ★ 吹き飛ばし激突時に敵を起こす
                                             if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
-                                            window.addDungeonLog(`💥 ${targetEnemy.name} は壁に激突した！(20ダメージ)`, '#FF5252');
-                                            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, 20, false);
+                                            window.addDungeonLog(`💥 ${targetEnemy.name} は壁に激突した！(${blowDmg}ダメージ)`, '#FF5252');
+                                            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, blowDmg, false);
                                             break;
                                         }
                                     }
@@ -1750,6 +1791,121 @@ window.processDungeonTurn = async function() {
                     window.addDungeonLog(`✡️ ${e.name} は足元にルーン魔方陣を描いた！`, '#E040FB');
                     s.grid[e.y][e.x] = 11; // 11: ルーン魔方陣
                     hasAttacked = true;
+                }
+
+                // ==========================================
+                // ★ 魔法使い系の敵固有スキル
+                // ==========================================
+                let canSeePlayer = window.isTileVisible(s, e.x, e.y);
+                let inSameRoom = false;
+                let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
+                let eRoom = s.roomsInfo.find(r => e.x >= r.x && e.x < r.x+r.w && e.y >= r.y && e.y < r.y+r.h);
+                if (pRoom && eRoom && pRoom === eRoom) inSameRoom = true;
+                
+                let pActiveTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+                let magicMult = pActiveTraits.includes('万物の法則') ? 0 : (pActiveTraits.includes('虹色の膜') || pActiveTraits.includes('不朽の硬度') ? 0.5 : 1);
+
+                if (!hasAttacked && e.skin && e.skin.includes('magician') && canSeePlayer) {
+                    if (e.skin === 'magician' && dist === 2 && Math.random() < 0.5) {
+                        window.addDungeonLog(`🔥 ${e.name} の初級魔法！ 火の玉が飛んできた！`, '#FF5252');
+                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#FF5252');
+                        let dmg = Math.max(1, Math.floor(10 * magicMult));
+                        if (magicMult === 0) window.addDungeonLog(`🌌 万物の法則が魔法を完全に打ち消した！`, '#00BCD4');
+                        else { s.player.hp -= dmg; s.player.damageAnim = true; }
+                        hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type4_2' && dist <= 5 && (e.x === s.player.x || e.y === s.player.y) && Math.random() < 0.4) {
+                        window.addDungeonLog(`🌋 ${e.name} のファイアボール！ 直線状に爆発が走る！`, '#FF5252');
+                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#FF9800');
+                        let dmg = Math.max(1, Math.floor(25 * magicMult));
+                        if (magicMult === 0) window.addDungeonLog(`🌌 万物の法則が炎を完全に打ち消した！`, '#00BCD4');
+                        else { s.player.hp -= dmg; s.player.damageAnim = true; }
+                        hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type1' && dist <= 3 && Math.random() < 0.3) {
+                        window.addDungeonLog(`💀 ${e.name} のウィークネス！ 力が抜け、攻撃力が下がってしまった！`, '#9C27B0');
+                        s.player.atkBuff = (s.player.atkBuff || 0) - 10; hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type2_2' && dist <= 4 && Math.random() < 0.3) {
+                        window.addDungeonLog(`❄️ ${e.name} のフロスト墓標！ 氷の壁に閉じ込められ、凍りついてしまった！`, '#00BCD4');
+                        s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 3; hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type5_2' && dist <= 3 && Math.random() < 0.25) {
+                        window.addDungeonLog(`⏳ ${e.name} のタイム・ストップ！ 時間が止められ、体が全く動かない！`, '#E040FB');
+                        s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 2; hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type5_3' && dist <= 4 && Math.random() < 0.3) {
+                        window.addDungeonLog(`👁️‍🗨️ ${e.name} の予言！ 足元に危険な魔力が集まっている！`, '#FFD700');
+                        s.traps.push({ type: 'mine', x: s.player.x, y: s.player.y, visible: true });
+                        hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type2_3' && dist <= 3 && Math.random() < 0.3) {
+                        window.addDungeonLog(`🌈 ${e.name} の七色の幻惑！ 視界が歪み、混乱してしまった！`, '#E040FB');
+                        s.player.status.confusion += 5; hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type3_2' && inSameRoom && dist > 1 && Math.random() < 0.25) {
+                        window.addDungeonLog(`🌌 ${e.name} のブラックホール！ 強烈な引力で引き寄せられた！`, '#9C27B0');
+                        let dx = Math.sign(s.player.x - e.x); let dy = Math.sign(s.player.y - e.y);
+                        let nx = e.x + dx; let ny = e.y + dy;
+                        if (s.grid[ny] && s.grid[ny][nx] !== 1) { s.player.x = nx; s.player.y = ny; }
+                        let dmg = Math.max(1, Math.floor(30 * magicMult));
+                        if (magicMult === 0) window.addDungeonLog(`🌌 万物の法則がダメージを完全に無効化した！`, '#00BCD4');
+                        else { s.player.hp -= dmg; s.player.damageAnim = true; }
+                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                        hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type3_3' && dist <= 4 && Math.random() < 0.15) {
+                        let targets = [];
+                        if (s.player.equipWeapon && window.parseItemString(s.player.equipWeapon).seals.length > 0) targets.push('equipWeapon');
+                        if (s.player.equipShield && window.parseItemString(s.player.equipShield).seals.length > 0) targets.push('equipShield');
+                        if (targets.length > 0) {
+                            let tSlot = targets[Math.floor(Math.random() * targets.length)];
+                            let parsed = window.parseItemString(s.player[tSlot]);
+                            let removed = parsed.seals.pop();
+                            s.player[tSlot] = `${parsed.baseId}_+${parsed.plus}${parsed.seals.length>0 ? '_'+parsed.seals.join('_') : ''}`;
+                            window.addDungeonLog(`📖 ${e.name} の全知の消去！ 装備の印が一つ消し去られてしまった！`, '#FF5252');
+                            hasAttacked = true;
+                        }
+                    }
+                    else if (e.skin === 'magician_type1_3' && Math.random() < 0.2) {
+                        let spawnDist = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}];
+                        let spawned = false;
+                        for (let d of spawnDist) {
+                            let nx = e.x + d.dx; let ny = e.y + d.dy;
+                            if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(oe=>oe.hp>0&&oe.x===nx&&oe.y===ny) && !(nx===s.player.x&&ny===s.player.y)) {
+                                s.enemies.push({ id: 'e_zombie_'+Date.now(), x: nx, y: ny, hp: 10, maxHp: 10, damage: 5, name: `蘇った死者`, type: 'ghost', skin: 'ghost', face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0 } });
+                                spawned = true; break;
+                            }
+                        }
+                        if (spawned) { window.addDungeonLog(`🧟 ${e.name} の死者蘇生！ ゾンビが這い出してきた！`, '#9C27B0'); hasAttacked = true; }
+                    }
+                    else if (e.skin === 'magician_type1_4' && Math.random() < 0.15 && s.enemies.length < 20) {
+                        window.addDungeonLog(`👿 ${e.name} の悪魔召喚！ 小さな悪魔たちが現れた！`, '#FF5252');
+                        let count = 0;
+                        for (let ry = e.y - 1; ry <= e.y + 1; ry++) {
+                            for (let rx = e.x - 1; rx <= e.x + 1; rx++) {
+                                if (count >= 3) break;
+                                if (s.grid[ry] && s.grid[ry][rx] !== 1 && !s.enemies.some(oe=>oe.hp>0&&oe.x===rx&&oe.y===ry) && !(rx===s.player.x&&ry===s.player.y)) {
+                                    s.enemies.push({ id: 'e_demon_'+Date.now()+count, x: rx, y: ry, hp: 15, maxHp: 15, damage: 15, name: `小悪魔`, type: 'robot', skin: 'robot_type1', face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0 } });
+                                    count++;
+                                }
+                            }
+                        }
+                        hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type3' && inSameRoom && Math.random() < 0.25) {
+                        let dmg = Math.max(1, Math.floor((s.floor * 2) * magicMult));
+                        window.addDungeonLog(`✨ ${e.name} のスターライト！ 部屋全体に星の光が降り注ぐ！`, '#00BCD4');
+                        if (magicMult === 0) window.addDungeonLog(`🌌 万物の法則が光を完全に打ち消した！`, '#00BCD4');
+                        else { s.player.hp -= dmg; s.player.damageAnim = true; window.addDungeonLog(`(固定 ${dmg} ダメージ)`, '#FF5252'); }
+                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                        hasAttacked = true;
+                    }
+                    else if (e.skin === 'magician_type4_4' && inSameRoom && Math.random() < 0.25) {
+                        window.addDungeonLog(`🐉 ${e.name} の竜の咆哮！ すさまじいプレッシャーで恐怖に陥った！`, '#FF9800');
+                        s.player.status.fear = (s.player.status.fear || 0) + 3;
+                        hasAttacked = true;
+                    }
                 }
 
                 if (isEnemyConfused) {
