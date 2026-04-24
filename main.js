@@ -3071,11 +3071,14 @@ canvas.addEventListener('mousedown', (e) => {
                     return; 
                 }
 
-                if (typeof window.showNewGameLoginChoice === 'function') {
-                    window.showNewGameLoginChoice();
-                } else {
-                    window.executeNewGameInitialization(true);
-                }
+                // クラスを外して通常のゲームレイアウト（+AIコマンドセンター）に戻す
+                document.getElementById('canvas-wrapper').classList.remove('fullscreen-mode');
+                
+                if (typeof window.showNewGameLoginChoice === 'function') {
+                    window.showNewGameLoginChoice();
+                } else {
+                    window.executeNewGameInitialization(true);
+                }
             } else if (window.titleMenuHover === 4) { 
                 window.titleConfirmMode = false;
             }
@@ -3085,11 +3088,14 @@ canvas.addEventListener('mousedown', (e) => {
         if (window.titleMenuHover === 1) { 
             window.titleConfirmMode = true;
         } else if (window.titleMenuHover === 2) { 
-            if (!localStorage.getItem('my_player_id') && !window.skipAutoLogin && typeof window.showContinueLoginChoice === 'function') {
-                window.showContinueLoginChoice();
-            } else {
-                window.startActualGame(false);
-            }
+            // クラスを外して通常のゲームレイアウト（+AIコマンドセンター）に戻す
+            document.getElementById('canvas-wrapper').classList.remove('fullscreen-mode');
+
+            if (!localStorage.getItem('my_player_id') && !window.skipAutoLogin && typeof window.showContinueLoginChoice === 'function') {
+                window.showContinueLoginChoice();
+            } else {
+                window.startActualGame(false);
+            }
         }
         return;
     }
