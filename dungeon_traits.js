@@ -25,6 +25,20 @@ window.DUNGEON_TRAIT_DICT = {
     'magician_type3_2': { player: { name: '万物の法則', desc: '属性攻撃（炎・氷・光）による被ダメージをすべて 0 にする。' }, enemy: 'ブラックホール' },
     'magician_type3_3': { player: { name: '叡智の頂点', desc: 'フロアのすべての敵、アイテム、階段、罠を最初から見通す。' }, enemy: '全知の消去' },
 
+    // 【機械系】
+    'machine': { player: { name: 'エコ駆動', desc: '何も行動せずターンをスキップ（素振り）した時の満腹度消費が 0 になる。' }, enemy: 'ゼンマイ駆動' },
+    'machine_type2': { player: { name: '癒やしの音色', desc: 'ダメージを受けた時、確率で自分のHPを少し回復する。' }, enemy: '子守唄' },
+    'machine_type4': { player: { name: 'パワフル', desc: '重い武器（剣や斧など）を装備していると、攻撃力に +5 のボーナス。' }, enemy: 'プレス攻撃' },
+    'machine_type5': { player: { name: '骨董品の価値', desc: '敵を倒した時、稀に「最大満腹度」が微回復する。' }, enemy: 'ギシギシ音' },
+    'machine_type1': { player: { name: '身代わり人形', desc: '致命傷を受けた時、鞄のアイテムをランダムに1つ消滅させてHP1で耐える。' }, enemy: '呪いの釘' },
+    'machine_type3': { player: { name: '階差演算', desc: '同じ敵を連続で攻撃するたびに、ダメージが +2 ずつ増加していく。' }, enemy: '計算された一撃' },
+    'machine_type2_2': { player: { name: 'クロックアップ', desc: 'HPが30%以下のピンチのとき、常に2回行動できるようになる。' }, enemy: '時報' },
+    'machine_type4_2': { player: { name: '蒸気爆発', desc: '通常攻撃時、10%の確率で周囲1マスにも範囲ダメージ（爆風）を与える。' }, enemy: 'オーバードライブ' },
+    'machine_type5_2': { player: { name: '自然適応', desc: '毒、睡眠などの「自然系の状態異常」をすべて無効化する。' }, enemy: '自己修復' },
+    'machine_type5_3': { player: { name: 'オーバーテクノロジー', desc: '魔法の杖を使った際、確率で消費なしで効果が2回連続で発動する。' }, enemy: '古代兵器' },
+    'machine_type1_2': { player: { name: 'ガラクタ吸収', desc: 'インベントリのアイテムを「食べる（消化）」ことでHPを回復できる。' }, enemy: '同化' },
+    'machine_type3_2': { player: { name: '特異点', desc: 'ワープの罠や風船移動時、着地先に敵がいない安全な場所が選ばれる。' }, enemy: '次元跳躍' },
+
     // 【風船系】
     'balloon': { player: { name: '弾む体', desc: '敵から受けるノックバック（吹き飛ばし）ダメージを無効化する。' }, enemy: '浮遊' },
     'balloon_type2': { player: { name: '虹色の膜', desc: '炎や氷などの「属性ダメージ」を半減する。' }, enemy: 'シャボンバリア' },
@@ -322,6 +336,28 @@ window.getPlayerDungeonTraits = function(skin) {
         else if (skin === 'spirit_type5_3') { addTrait('spirit_type5'); addTrait('spirit_type5_3'); }
         else if (skin === 'spirit_type1_2') { addTrait('spirit_type1'); addTrait('spirit_type1_2'); }
         else if (skin === 'spirit_type3_2') { addTrait('spirit_type3'); addTrait('spirit_type3_2'); }
+    }
+
+    // ==========================================
+    // ★ 機械系の系譜
+    // ==========================================
+    if (skin.includes('machine')) {
+        addTrait('machine');
+
+        // Gen 1
+        if (skin === 'machine_type2') { addTrait('machine_type2'); }
+        else if (skin === 'machine_type4') { addTrait('machine_type4'); }
+        else if (skin === 'machine_type5') { addTrait('machine_type5'); }
+        else if (skin === 'machine_type1') { addTrait('machine_type1'); }
+        else if (skin === 'machine_type3') { addTrait('machine_type3'); }
+
+        // Gen 2
+        else if (skin === 'machine_type2_2') { addTrait('machine_type2'); addTrait('machine_type2_2'); }
+        else if (skin === 'machine_type4_2') { addTrait('machine_type4'); addTrait('machine_type4_2'); }
+        else if (skin === 'machine_type5_2') { addTrait('machine_type5'); addTrait('machine_type5_2'); }
+        else if (skin === 'machine_type5_3') { addTrait('machine_type5'); addTrait('machine_type5_3'); }
+        else if (skin === 'machine_type1_2') { addTrait('machine_type1'); addTrait('machine_type1_2'); }
+        else if (skin === 'machine_type3_2') { addTrait('machine_type3'); addTrait('machine_type3_2'); }
     }
 
     return traits;

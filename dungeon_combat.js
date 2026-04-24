@@ -20,6 +20,35 @@ window.dealDungeonDamage = function(attacker, defender) {
     }
 
     // ==========================================
+    // ★ 機械系（ゼンマイ系）：攻撃前のダメージ補正・特殊フラグ設定
+    // ==========================================
+    // 【パワフル】（プレイヤー：重い武器装備で攻撃力+5）
+    if (aIsPlayer && aTraits.includes('パワフル')) {
+        let wpn = s.player.equipWeapon ? window.itemCatalog[s.player.equipWeapon] : null;
+        if (wpn && (wpn.name.includes('剣') || wpn.name.includes('斧'))) {
+            attacker._powerfulBonus = 5;
+        }
+    }
+    // 【階差演算】（プレイヤー：同じ敵を連続攻撃でダメージ増加）
+    if (aIsPlayer && aTraits.includes('階差演算')) {
+        if (s.player._lastAttackedEnemyId === defender.id) {
+            s.player._diffCalcBonus = (s.player._diffCalcBonus || 0) + 2;
+        } else {
+            s.player._lastAttackedEnemyId = defender.id;
+            s.player._diffCalcBonus = 0;
+        }
+    }
+    // 【オーバードライブ】（敵：HP半分以下で攻撃力3倍フラグ）
+    if (!aIsPlayer && attacker.skin === 'machine_type4_2' && attacker.hp <= attacker.maxHp / 2) {
+        attacker._isOverdrive = true; 
+        attacker._atkMultiplier = (attacker._atkMultiplier || 1.0) * 3.0; // ★ここで3倍を適用
+    }
+    // 【計算された一撃】（敵：防御無視の固定ダメージフラグ）
+    if (!aIsPlayer && attacker.skin === 'machine_type3') {
+        attacker._isCalculatedStrike = true;
+    }
+
+    // ==========================================
     // ★ 風船系の戦闘前処理（フラグ・倍率の仕込み）
     // ==========================================
     // [回避] 自：熱気球（炎印の武器装備時、回避率+15%）
@@ -95,6 +124,14 @@ window.dealDungeonDamage = function(attacker, defender) {
     // ★ 風船系：仕込んでおいた攻防倍率の適用
     aAtk = Math.floor(aAtk * (attacker._atkMultiplier || 1.0));
     dDef = Math.floor(dDef * (defender._defMultiplier || 1.0));
+
+    // ★ 機械系：仕込んでおいたフラグの適用（攻撃力ボーナス・盾の同化無効化）
+    if (attacker._powerfulBonus) aAtk += attacker._powerfulBonus;
+    if (attacker === s.player && s.player._diffCalcBonus) aAtk += s.player._diffCalcBonus;
+    if (defender === s.player && s.player._shieldAssimilated) {
+        let sEff = defender.equipShield ? window.getDungeonItemEffect(defender.equipShield) : null;
+        if (sEff) dDef = Math.max(0, dDef - sEff.def); // 同化により盾の防御力を無効化
+    }
 
     // ★ 魔法使い系特性：魔力強化肉体（賢さの20%を基礎攻撃力に加算）
     if (aIsPlayer && aTraits.includes('魔力強化肉体') && typeof window.DUNGEON_STATE !== 'undefined' && window.DUNGEON_STATE.player.intel) {
@@ -194,6 +231,13 @@ window.dealDungeonDamage = function(attacker, defender) {
 
     let dmg = Math.max(1, aAtk - dDef);
     
+    // ★ 機械系：計算された一撃（防御無視の固定ダメージ）
+    if (attacker._isCalculatedStrike) {
+        dmg = 20; // 20の固定ダメージ
+        window.addDungeonLog(`🧮 計算された一撃！ 防御を完全に無視した ${dmg} の固定ダメージ！`, '#FF5252');
+        delete attacker._isCalculatedStrike;
+    }
+
     // ★ 追加：ルーン魔方陣（タイルID:11）によるダメージ半減
     if (s.grid[defender.y] && s.grid[defender.y][defender.x] === 11) {
         window.addDungeonLog(`✡️ ルーン魔方陣が光り、ダメージを半減した！`, '#E040FB');
@@ -242,12 +286,79 @@ window.dealDungeonDamage = function(attacker, defender) {
     }
 
     defender.hp -= dmg;
+
+    // ==========================================
+    // ★ 機械系（ゼンマイ系）：被ダメージ後・与ダメージ後の発動スキル
+    // ==========================================
+    // 【癒やしの音色】（被ダメ時、確率でHP微回復）
+    if (aIsPlayer === false && dTraits.includes('癒やしの音色') && defender.hp > 0) {
+        if (Math.random() < 0.3) {
+            let healAmt = 5;
+            defender.hp = Math.min(defender.maxHp, defender.hp + healAmt);
+            window.addDungeonLog(`🎶 癒やしの音色！ HPが ${healAmt} 回復した！`, '#4CAF50');
+        }
+    }
+    // 【身代わり人形】（致命傷時、ランダムアイテム消滅でHP1耐え）
+    if (defender.hp <= 0 && aIsPlayer === false && dTraits.includes('身代わり人形')) {
+        let targetInv = s.player.tempInventory && s.player.tempInventory.length > 0 ? s.player.tempInventory : [];
+        if (targetInv.length > 0) {
+            let dropIdx = Math.floor(Math.random() * targetInv.length);
+            let lostItemKey = targetInv.splice(dropIdx, 1)[0]; // アイテムを1つ消滅
+            let itemName = window.itemCatalog && window.itemCatalog[lostItemKey] ? window.itemCatalog[lostItemKey].name : 'アイテム';
+            defender.hp = 1;
+            window.addDungeonLog(`🎎 身代わり人形が身代わりとなって壊れた！ (${itemName} を失い、致命傷を耐えた)`, '#E91E63');
+        }
+    }
+    // 【呪いの釘】（敵被弾時、プレイヤーに攻撃力低下）
+    if (aIsPlayer && defender.skin && defender.skin.includes('machine_type1') && defender.hp > 0) {
+        attacker.atkBuff = (attacker.atkBuff || 0) - 2;
+        window.addDungeonLog(`📌 カースド・ドールの呪いの釘が突き刺さる！ ${attacker.name} の攻撃力が下がってしまった！`, '#9C27B0');
+    }
+    // 【蒸気爆発】（通常攻撃時、10%確率で周囲1マス爆風）
+    if (aIsPlayer && aTraits.includes('蒸気爆発')) {
+        if (Math.random() < 0.10) {
+            window.addDungeonLog(`🚂💨 激しい蒸気爆発が発生！周囲に熱風が吹き荒れる！`, '#FF5722');
+            let adjEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1 && e !== defender);
+            adjEnemies.forEach(e => {
+                e.hp -= 10;
+                e.damageAnim = true;
+                if (e.hp <= 0) {
+                    window.addDungeonLog(`💥 蒸気の爆風に巻き込まれて ${e.name} は機能停止した！`, '#FF5722');
+                }
+            });
+        }
+    }
+    // 【同化】（敵攻撃時、盾の防御力を0にするフラグ）
+    if (!aIsPlayer && attacker.skin && attacker.skin.includes('machine_type1_2')) {
+        if (s.player.equipShield) {
+            s.player._shieldAssimilated = true; 
+            window.addDungeonLog(`🧲 同化！ スクラップが盾に張り付き、防御力が機能しなくなった！`, '#9C27B0');
+        }
+    }
+    // 【次元跳躍】（敵被弾時、ワープで逃げる）
+    if (aIsPlayer && defender.skin && defender.skin.includes('machine_type3_2') && defender.hp > 0) {
+        window.addDungeonLog(`🌀 クォンタム・クロックワークは次元跳躍でワープして逃げた！`, '#00BCD4');
+        defender.x = Math.floor(Math.random() * s.mapWidth); 
+        defender.y = Math.floor(Math.random() * s.mapHeight);
+    }
+    // 【オーバードライブ 自傷】（敵攻撃後、反動ダメージ）
+    if (!aIsPlayer && attacker._isOverdrive) {
+        attacker.hp -= 10;
+        window.addDungeonLog(`⚙️ オーバードライブの反動で ${attacker.name} の機体が損傷した！`, '#FF9800');
+    }
+    // 【骨董品の価値】（敵討伐時、稀に最大満腹度が微回復）
+    if (defender.hp <= 0 && aIsPlayer && aTraits.includes('骨董品の価値')) {
+        if (Math.random() < 0.2) {
+            s.player.maxHunger = (s.player.maxHunger || 100) + 1;
+            window.addDungeonLog(`🕰️ 骨董品の価値を見出した！ 最大満腹度が 1 増えた！`, '#FFD700');
+        }
+    }
     
     // ==========================================
     // ★ ここがすべてを解決する魔法の1行です！！
     // これにより、updateDungeonUIで元の「完璧なCSSアニメーション」が発動します！
     // ==========================================
-    defender.damageAnim = true; 
+    defender.damageAnim = true;
     
     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === s.player);
     window.addDungeonLog(`${defender.name} に ${dmg} ダメージ！`, defender === s.player ? '#ff5252' : '#FF9800');
@@ -692,6 +803,17 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         let gainedParalyze = s.player.status.paralyzed > (oldStatus.paralyzed || 0);
         let gainedPetrify = s.player.status.petrified > (oldStatus.petrified || 0);
         let gainedFear = s.player.status.fear > (oldStatus.fear || 0);
+
+        // ★ 機械系：自然適応（毒・睡眠・麻痺などの自然系状態異常を無効化）
+        if (activeTraits.includes('自然適応') && (gainedPoison || gainedSleep || gainedParalyze)) {
+            if (gainedPoison) s.player.status.poison = oldStatus.poison || 0;
+            if (gainedSleep) s.player.status.sleep = oldStatus.sleep || 0;
+            if (gainedParalyze) s.player.status.paralyzed = oldStatus.paralyzed || 0;
+            window.addDungeonLog(`🛡️⚙️ 自然適応！ 機械の体は自然界の異常を完全にシャットアウトした！`, '#00BCD4');
+            gainedPoison = false;
+            gainedSleep = false;
+            gainedParalyze = false;
+        }
 
         if (activeTraits.includes('毒ガスタンク') && gainedPoison) {
             s.player.atkBuff = (s.player.atkBuff || 0) + 5;

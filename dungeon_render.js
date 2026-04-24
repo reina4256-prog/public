@@ -1985,10 +1985,362 @@ window.DUNGEON_SPRITES = {
     "dragon_up": { "img": "dragon_dungeon_walk.png", "sx": 1045, "sy": 73, "sw": 882, "sh": 940, "scale": 0.4 },
     "dragon_left": { "img": "dragon_dungeon_walk.png", "sx": 60, "sy": 1175, "sw": 870, "sh": 927, "scale": 0.4 },
     "dragon_right": { "img": "dragon_dungeon_walk.png", "sx": 1053, "sy": 1175, "sw": 870, "sh": 927, "scale": 0.4 },
-    "machine_down": { "img": "machine_dungeon_walk.png", "sx": 724, "sy": 1100, "sw": 603, "sh": 864, "scale": 0.4 },
-    "machine_up": { "img": "machine_dungeon_walk.png", "sx": 724, "sy": 90, "sw": 603, "sh": 864, "scale": 0.4 },
-    "machine_left": { "img": "machine_dungeon_walk.png", "sx": 30, "sy": 1086, "sw": 629, "sh": 882, "scale": 0.4 },
-    "machine_right": { "img": "machine_dungeon_walk.png", "sx": 1391, "sy": 1086, "sw": 629, "sh": 882, "scale": 0.4 },
+    "machine_down": { "img": "machine_dungeon_walk.png", "sx": 724, "sy": 1100, "sw": 603, "sh": 864, "scale": 0.25 },
+    "machine_up": { "img": "machine_dungeon_walk.png", "sx": 724, "sy": 90, "sw": 603, "sh": 864, "scale": 0.25 },
+    "machine_left": { "img": "machine_dungeon_walk.png", "sx": 30, "sy": 1086, "sw": 629, "sh": 882, "scale": 0.25 },
+    "machine_right": { "img": "machine_dungeon_walk.png", "sx": 1391, "sy": 1086, "sw": 629, "sh": 882, "scale": 0.25 },
+    "machine_type1_down": {
+        "img": "machine_type1_dungeon_walk.png",
+        "sx": 90,
+        "sy": 17,
+        "sw": 762,
+        "sh": 1084,
+        "scale": 0.25
+    },
+    "machine_type1_up": {
+        "img": "machine_type1_dungeon_walk.png",
+        "sx": 1089,
+        "sy": 17,
+        "sw": 762,
+        "sh": 1084,
+        "scale": 0.25
+    },
+    "machine_type1_left": {
+        "img": "machine_type1_dungeon_walk.png",
+        "sx": 1142,
+        "sy": 1079,
+        "sw": 762,
+        "sh": 1084,
+        "scale": 0.25
+    },
+    "machine_type1_right": {
+        "img": "machine_type1_dungeon_walk.png",
+        "sx": 84,
+        "sy": 1079,
+        "sw": 762,
+        "sh": 1084,
+        "scale": 0.25
+    },
+    "machine_type1_2_down": {
+        "img": "machine_type1_2_dungeon_walk.png",
+        "sx": 78,
+        "sy": 100,
+        "sw": 809,
+        "sh": 1067,
+        "scale": 0.25
+    },
+    "machine_type1_2_up": {
+        "img": "machine_type1_2_dungeon_walk.png",
+        "sx": 964,
+        "sy": 100,
+        "sw": 809,
+        "sh": 1067,
+        "scale": 0.25
+    },
+    "machine_type1_2_left": {
+        "img": "machine_type1_2_dungeon_walk.png",
+        "sx": 78,
+        "sy": 1178,
+        "sw": 809,
+        "sh": 1067,
+        "scale": 0.25
+    },
+    "machine_type1_2_right": {
+        "img": "machine_type1_2_dungeon_walk.png",
+        "sx": 1018,
+        "sy": 1178,
+        "sw": 809,
+        "sh": 1067,
+        "scale": 0.25
+    },
+    "machine_type2_down": {
+        "img": "machine_type2_dungeon_walk.png",
+        "sx": 57,
+        "sy": 72,
+        "sw": 795,
+        "sh": 1048,
+        "scale": 0.25
+    },
+    "machine_type2_up": {
+        "img": "machine_type2_dungeon_walk.png",
+        "sx": 1057,
+        "sy": 72,
+        "sw": 847,
+        "sh": 1048,
+        "scale": 0.25
+    },
+    "machine_type2_left": {
+        "img": "machine_type2_dungeon_walk.png",
+        "sx": 118,
+        "sy": 1114,
+        "sw": 795,
+        "sh": 1048,
+        "scale": 0.25
+    },
+    "machine_type2_right": {
+        "img": "machine_type2_dungeon_walk.png",
+        "sx": 1018,
+        "sy": 1114,
+        "sw": 795,
+        "sh": 1048,
+        "scale": 0.25
+    },
+    "machine_type2_2_down": {
+        "img": "machine_type2_2_dungeon_walk.png",
+        "sx": 179,
+        "sy": 113,
+        "sw": 765,
+        "sh": 983,
+        "scale": 0.25
+    },
+    "machine_type2_2_up": {
+        "img": "machine_type2_2_dungeon_walk.png",
+        "sx": 979,
+        "sy": 113,
+        "sw": 765,
+        "sh": 983,
+        "scale": 0.25
+    },
+    "machine_type2_2_left": {
+        "img": "machine_type2_2_dungeon_walk.png",
+        "sx": 179,
+        "sy": 1165,
+        "sw": 765,
+        "sh": 983,
+        "scale": 0.25
+    },
+    "machine_type2_2_right": {
+        "img": "machine_type2_2_dungeon_walk.png",
+        "sx": 1077,
+        "sy": 1165,
+        "sw": 765,
+        "sh": 983,
+        "scale": 0.25
+    },
+    "machine_type3_down": {
+        "img": "machine_type3_dungeon_walk.png",
+        "sx": -1,
+        "sy": 100,
+        "sw": 850,
+        "sh": 1064,
+        "scale": 0.25
+    },
+    "machine_type3_up": {
+        "img": "machine_type3_dungeon_walk.png",
+        "sx": 1009,
+        "sy": 100,
+        "sw": 850,
+        "sh": 1064,
+        "scale": 0.25
+    },
+    "machine_type3_left": {
+        "img": "machine_type3_dungeon_walk.png",
+        "sx": 84,
+        "sy": 1200,
+        "sw": 850,
+        "sh": 1089,
+        "scale": 0.25
+    },
+    "machine_type3_right": {
+        "img": "machine_type3_dungeon_walk.png",
+        "sx": 940,
+        "sy": 1200,
+        "sw": 850,
+        "sh": 1089,
+        "scale": 0.25
+    },
+    "machine_type3_2_down": {
+        "img": "machine_type3_2_dungeon_walk.png",
+        "sx": 124,
+        "sy": -2,
+        "sw": 745,
+        "sh": 1069,
+        "scale": 0.25
+    },
+    "machine_type3_2_up": {
+        "img": "machine_type3_2_dungeon_walk.png",
+        "sx": 1127,
+        "sy": -2,
+        "sw": 745,
+        "sh": 1069,
+        "scale": 0.25
+    },
+    "machine_type3_2_left": {
+        "img": "machine_type3_2_dungeon_walk.png",
+        "sx": 1127,
+        "sy": 1079,
+        "sw": 745,
+        "sh": 1069,
+        "scale": 0.25
+    },
+    "machine_type3_2_right": {
+        "img": "machine_type3_2_dungeon_walk.png",
+        "sx": 127,
+        "sy": 1079,
+        "sw": 745,
+        "sh": 1069,
+        "scale": 0.25
+    },
+    "machine_type4_down": {
+        "img": "machine_type4_dungeon_walk.png",
+        "sx": 71,
+        "sy": 8,
+        "sw": 775,
+        "sh": 1042,
+        "scale": 0.25
+    },
+    "machine_type4_up": {
+        "img": "machine_type4_dungeon_walk.png",
+        "sx": 1123,
+        "sy": 8,
+        "sw": 775,
+        "sh": 1042,
+        "scale": 0.25
+    },
+    "machine_type4_left": {
+        "img": "machine_type4_dungeon_walk.png",
+        "sx": 207,
+        "sy": 1046,
+        "sw": 775,
+        "sh": 1059,
+        "scale": 0.25
+    },
+    "machine_type4_right": {
+        "img": "machine_type4_dungeon_walk.png",
+        "sx": 1083,
+        "sy": 1046,
+        "sw": 775,
+        "sh": 1059,
+        "scale": 0.25
+    },
+    "machine_type4_2_down": {
+        "img": "machine_type4_2_dungeon_walk.png",
+        "sx": 56,
+        "sy": 30,
+        "sw": 848,
+        "sh": 1100,
+        "scale": 0.25
+    },
+    "machine_type4_2_up": {
+        "img": "machine_type4_2_dungeon_walk.png",
+        "sx": 998,
+        "sy": 30,
+        "sw": 848,
+        "sh": 1100,
+        "scale": 0.25
+    },
+    "machine_type4_2_left": {
+        "img": "machine_type4_2_dungeon_walk.png",
+        "sx": 998,
+        "sy": 1147,
+        "sw": 848,
+        "sh": 1100,
+        "scale": 0.25
+    },
+    "machine_type4_2_right": {
+        "img": "machine_type4_2_dungeon_walk.png",
+        "sx": 81,
+        "sy": 1147,
+        "sw": 848,
+        "sh": 1100,
+        "scale": 0.25
+    },
+    "machine_type5_down": {
+        "img": "machine_type5_dungeon_walk.png",
+        "sx": -6,
+        "sy": 24,
+        "sw": 866,
+        "sh": 1124,
+        "scale": 0.25
+    },
+    "machine_type5_up": {
+        "img": "machine_type5_dungeon_walk.png",
+        "sx": 945,
+        "sy": 24,
+        "sw": 866,
+        "sh": 1124,
+        "scale": 0.25
+    },
+    "machine_type5_left": {
+        "img": "machine_type5_dungeon_walk.png",
+        "sx": 945,
+        "sy": 1167,
+        "sw": 866,
+        "sh": 1124,
+        "scale": 0.25
+    },
+    "machine_type5_right": {
+        "img": "machine_type5_dungeon_walk.png",
+        "sx": 49,
+        "sy": 1167,
+        "sw": 866,
+        "sh": 1124,
+        "scale": 0.25
+    },
+    "machine_type5_2_down": {
+        "img": "machine_type5_2_dungeon_walk.png",
+        "sx": 49,
+        "sy": 100,
+        "sw": 801,
+        "sh": 1028,
+        "scale": 0.25
+    },
+    "machine_type5_2_up": {
+        "img": "machine_type5_2_dungeon_walk.png",
+        "sx": 942,
+        "sy": 100,
+        "sw": 801,
+        "sh": 1028,
+        "scale": 0.25
+    },
+    "machine_type5_2_left": {
+        "img": "machine_type5_2_dungeon_walk.png",
+        "sx": 942,
+        "sy": 1169,
+        "sw": 801,
+        "sh": 1179,
+        "scale": 0.25
+    },
+    "machine_type5_2_right": {
+        "img": "machine_type5_2_dungeon_walk.png",
+        "sx": 116,
+        "sy": 1169,
+        "sw": 801,
+        "sh": 1179,
+        "scale": 0.25
+    },
+    "machine_type5_3_down": {
+        "img": "machine_type5_3_dungeon_walk.png",
+        "sx": 37,
+        "sy": 41,
+        "sw": 802,
+        "sh": 1168,
+        "scale": 0.25
+    },
+    "machine_type5_3_up": {
+        "img": "machine_type5_3_dungeon_walk.png",
+        "sx": 928,
+        "sy": 41,
+        "sw": 802,
+        "sh": 1168,
+        "scale": 0.25
+    },
+    "machine_type5_3_left": {
+        "img": "machine_type5_3_dungeon_walk.png",
+        "sx": 928,
+        "sy": 1234,
+        "sw": 802,
+        "sh": 1168,
+        "scale": 0.25
+    },
+    "machine_type5_3_right": {
+        "img": "machine_type5_3_dungeon_walk.png",
+        "sx": 99,
+        "sy": 1234,
+        "sw": 802,
+        "sh": 1168,
+        "scale": 0.25
+    },
     "stone_down": { "img": "stone_dungeon_walk.png", "sx": 94, "sy": 137, "sw": 836, "sh": 919, "scale": 0.4 },
     "stone_up": { "img": "stone_dungeon_walk.png", "sx": 998, "sy": 137, "sw": 836, "sh": 919, "scale": 0.4 },
     "stone_left": { "img": "stone_dungeon_walk.png", "sx": 94, "sy": 1156, "sw": 843, "sh": 983, "scale": 0.4 },

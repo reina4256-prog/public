@@ -165,8 +165,14 @@ window.processDungeonTurn = async function() {
             // ★ 風船系：超浮力（腹減り速度を極端に抑える）
             if (activeTraits.includes('超浮力')) consumption *= 0.1;
 
+            // ★ 機械系：エコ駆動（何も行動せずスキップしたターンは満腹度を消費しない）
+            let actualConsumption = consumption;
+            if (activeTraits.includes('エコ駆動') && s.player._lastCommand === 'skip') {
+                actualConsumption = 0;
+            }
+
             // ★修正: 0.15だとAUTO時に早すぎるため 0.03（約5倍長持ち）に緩和
-            if (!activeTraits.includes('無限機関')) s.player.hunger = Math.max(0, s.player.hunger - (0.03 * consumption));
+            if (!activeTraits.includes('無限機関')) s.player.hunger = Math.max(0, s.player.hunger - (0.03 * actualConsumption));
             
             if (s.player.hunger <= 0) {
                 s.player.hp -= 2; window.addDungeonLog(`お腹が空いて倒れそうだ... (HP-2)`, '#ff5252');
@@ -205,6 +211,8 @@ window.processDungeonTurn = async function() {
                 s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0, fear: 0 };
             }
 
+            s.player._shieldAssimilated = false; // ★ 機械系：同化（盾無効化）のターンリセット
+
             // ★カブトムシ系：妖精の羽（常に浮遊）を追加
             let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽');
             let realSpd = Math.floor(ai.stats.speed || 10);
@@ -224,6 +232,12 @@ window.processDungeonTurn = async function() {
             if (activeTraits.includes('クイック・アクト') && Math.random() < 0.10) {
                 actionCount += 1;
                 window.addDungeonLog(`⏱️ クイック・アクト発動！ 瞬時に体を動かす！`, '#00BCD4');
+            }
+
+            // ★ 機械系：クロックアップ（HP30%以下で常に2回行動）
+            if (activeTraits.includes('クロックアップ') && s.player.hp <= s.player.maxHp * 0.3) {
+                if (actionCount < 2) actionCount = 2;
+                window.addDungeonLog(`⏱️ クロックアップ！ ピンチにより思考と運動が加速している！`, '#FFD700');
             }
 
             if (actionCount > 1) { window.addDungeonLog(`💨 素早さを活かして ${actionCount}回 連続行動する！`, '#00e676'); }
@@ -331,8 +345,9 @@ window.processDungeonTurn = async function() {
                                 if (!itemId || itemId === 'undefined') continue;
                                 
                                 let effect = window.getDungeonItemEffect(itemId);
-                                if (!effect.isConsumable) continue;
-                                if (itemId.includes('wand') && effect.charges <= 0) continue;
+                                let isGarakuta = activeTraits.includes('ガラクタ吸収') && !effect.isWeapon && !effect.isShield && !effect.isConsumable;
+                                if (!effect.isConsumable && !isGarakuta) continue;
+                                if (itemId.includes('wand') && effect.charges <= 0 && !isGarakuta) continue;
                                 
                                 let baseItemKey = itemId.split('_+')[0];
                                 let isUnidentified = s.sessionItemDict && s.sessionItemDict[baseItemKey] && !s.aiMemory.identified.includes(baseItemKey);
@@ -382,7 +397,10 @@ window.processDungeonTurn = async function() {
                                     }
                                 }
                                 
-                                if (score > bestItemScore) { 
+                                // ★ ガラクタ吸収：ピンチ時に不要な装備を食べる
+                                if (isGarakuta && hpRate < 0.3) score = Math.max(score, 90);
+                                
+                                if (score > bestItemScore) {
                                     bestItemScore = score; bestItemIdx = i; bestItemCmd = isMagic ? 'use' : 'eat'; 
                                     if (bestItemCmd === 'eat' && effect.hp > 0 && validCmdIds.includes('heal')) bestItemCmd = 'heal'; 
                                     
@@ -801,6 +819,8 @@ window.processDungeonTurn = async function() {
                 }
 
                 if (typeof chosenCommand === 'object' && chosenCommand !== null) chosenCommand = chosenCommand.id;
+
+                s.player._lastCommand = chosenCommand; // ★エコ駆動の判定用に記録
 
                 // ★ 風船系：夢の鼓動（時間経過で稀にアイテムがしあわせの種に変化）
                 if (activeTraits.includes('夢の鼓動') && Math.random() < 0.005) {
@@ -1244,13 +1264,20 @@ window.processDungeonTurn = async function() {
                         let isUnidentified = s.sessionItemDict && s.sessionItemDict[baseId] && !s.aiMemory.identified.includes(baseId);
                         
                         let isMagicItem = effect.traits.length > 0 && !effect.traits.includes('level_up');
+                        let isOverTech = itemId.includes('wand') && activeTraits.includes('オーバーテクノロジー') && Math.random() < 0.25;
 
                         if (chosenCommand === 'eat' || chosenCommand === 'heal') {
+                            if (!effect.isConsumable && activeTraits.includes('ガラクタ吸収')) {
+                                window.addDungeonLog(`⚙️ ${aiName} は ${effect.name} をガリガリと噛み砕いて消化した！`, '#4CAF50');
+                                s.player.hp = Math.min(s.player.maxHp, s.player.hp + 30); // ガラクタでHPを30回復
+                                s.player.tempInventory.splice(s.player._bestItemIdx, 1);
+                                continue;
+                            }
                             if (isMagicItem && !isUnidentified) {
                                 window.addDungeonLog(`${aiName} は ${effect.name} を食べようとしたが、食べ物ではないことに気づいた！`, '#aaa');
                                 s.player._bestItemIdx = -1; continue;
                             }
-                            window.addDungeonLog(`${aiName} は ${effect.name} を食べた！`, '#4CAF50'); 
+                            window.addDungeonLog(`${aiName} は ${effect.name} を食べた！`, '#4CAF50');
                             let limitBreakMsg = ""; 
                             if (baseId === 'herb' && s.player.hp >= s.player.maxHp) { s.player.maxHp += 1; limitBreakMsg += `最大HPが ${s.player.maxHp} に！ `; }
                             if (baseId === 'item_bread' && s.player.hunger >= maxH) { s.player.maxHunger = maxH + 5; limitBreakMsg += `最大満腹度が ${s.player.maxHunger} に！`; }
@@ -1278,13 +1305,17 @@ window.processDungeonTurn = async function() {
                             }
                             
                             if (itemId.includes('wand')) {
-                                s.player.tempInventory[s.player._bestItemIdx] = `${parsed.baseId}_+${parsed.plus - 1}`;
+                                if (isOverTech) {
+                                    window.addDungeonLog(`✨ オーバーテクノロジー！ 杖の魔力を消費せずに放つ！`, '#FFD700');
+                                } else {
+                                    s.player.tempInventory[s.player._bestItemIdx] = `${parsed.baseId}_+${parsed.plus - 1}`;
+                                }
                             } else {
                                 s.player.tempInventory.splice(s.player._bestItemIdx, 1);
                             }
                         }
                         
-                        let effectTriggered = false; 
+                        let effectTriggered = false;
 
                         if (effect.traits.includes('level_up')) {
                             s.player.level = (s.player.level || 1) + 1; s.player.maxHp += 20; s.player.hp = s.player.maxHp; s.player.hunger = maxH; s.player.basePwr += 8;
@@ -1348,12 +1379,32 @@ window.processDungeonTurn = async function() {
                                     if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
                                     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, baseMagicDmg, false);
                                     window.addDungeonLog(`🔥 灼熱の炎が ${targetEnemy.name} を焼き尽くす！(${baseMagicDmg}ダメージ)`, '#FF5252');
+
+                                    if (isOverTech && targetEnemy.hp > 0) {
+                                        await sleep(150);
+                                        window.addDungeonLog(`✨ オーバーテクノロジーによる連続発動！ さらにもう一撃！`, '#E040FB');
+                                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, targetEnemy.x, targetEnemy.y, magicColor);
+                                        await sleep(150);
+                                        targetEnemy.hp -= baseMagicDmg; targetEnemy.damageAnim = true;
+                                        if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
+                                        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, baseMagicDmg, false);
+                                        window.addDungeonLog(`🔥 追撃の炎が ${targetEnemy.name} を襲う！(${baseMagicDmg}ダメージ)`, '#FF5252');
+                                    }
                                 }
                                 
                                 // ★ 魔法使い系特性：氷結の杖（すべての杖の追加効果）
                                 if (effect.traits.includes('freeze_effect') && targetEnemy) {
                                     targetEnemy.status.paralyzed = (targetEnemy.status.paralyzed || 0) + 1;
                                     window.addDungeonLog(`❄️ 氷結の杖の冷気が ${targetEnemy.name} を凍らせた！`, '#00BCD4');
+
+                                    if (isOverTech && targetEnemy.hp > 0) {
+                                        await sleep(150);
+                                        window.addDungeonLog(`✨ オーバーテクノロジーによる連続発動！`, '#E040FB');
+                                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, targetEnemy.x, targetEnemy.y, '#00BCD4');
+                                        await sleep(150);
+                                        targetEnemy.status.paralyzed = (targetEnemy.status.paralyzed || 0) + 1;
+                                        window.addDungeonLog(`❄️ 追撃の冷気で ${targetEnemy.name} はさらに深く凍りついた！`, '#00BCD4');
+                                    }
                                 }
 
                                 if (effect.traits.includes('swap_pos')) {
@@ -1361,6 +1412,18 @@ window.processDungeonTurn = async function() {
                                     s.player.x = targetEnemy.x; s.player.y = targetEnemy.y; targetEnemy.x = px; targetEnemy.y = py;
                                     window.addDungeonLog(`🌀 魔法の力で ${targetEnemy.name} と場所を入れ替わった！`, '#00BCD4');
                                     if (typeof window.playDungeonVFX === 'function') { window.playDungeonVFX(s.player.x, s.player.y, 'warp'); window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'warp'); }
+
+                                    if (isOverTech && targetEnemy.hp > 0) {
+                                        await sleep(150);
+                                        window.addDungeonLog(`✨ オーバーテクノロジーによる連続発動！ さらにもう一回！`, '#E040FB');
+                                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, targetEnemy.x, targetEnemy.y, magicColor);
+                                        await sleep(150);
+
+                                        let px2 = s.player.x, py2 = s.player.y;
+                                        s.player.x = targetEnemy.x; s.player.y = targetEnemy.y; targetEnemy.x = px2; targetEnemy.y = py2;
+                                        window.addDungeonLog(`🌀 ${targetEnemy.name} と再び場所を入れ替わり、元の位置に戻ってしまった！`, '#00BCD4');
+                                        if (typeof window.playDungeonVFX === 'function') { window.playDungeonVFX(s.player.x, s.player.y, 'warp'); window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'warp'); }
+                                    }
                                 }
                                 if (effect.traits.includes('blow_back')) {
                                     let dx = Math.sign(targetEnemy.x - s.player.x); let dy = Math.sign(targetEnemy.y - s.player.y);
@@ -1381,6 +1444,32 @@ window.processDungeonTurn = async function() {
                                     }
                                     targetEnemy.x = nx; targetEnemy.y = ny; targetEnemy.warpAnim = true; 
                                     window.addDungeonLog(`💨 ${targetEnemy.name} を遠くへ吹き飛ばした！`, '#00BCD4');
+
+                                    if (isOverTech && targetEnemy.hp > 0) {
+                                        await sleep(150);
+                                        window.addDungeonLog(`✨ オーバーテクノロジーによる連続発動！ さらにもう一撃！`, '#E040FB');
+                                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, targetEnemy.x, targetEnemy.y, magicColor);
+                                        await sleep(150);
+
+                                        // 2回目の吹き飛ばし計算（新しい位置から）
+                                        dx = Math.sign(targetEnemy.x - s.player.x); dy = Math.sign(targetEnemy.y - s.player.y);
+                                        if (dx === 0 && dy === 0) dx = 1;
+                                        nx = targetEnemy.x; ny = targetEnemy.y;
+                                        for(let k=0; k<pushDist; k++) {
+                                            if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e!==targetEnemy&&e.x===nx+dx&&e.y===ny+dy)) {
+                                                nx += dx; ny += dy;
+                                            } else {
+                                                let blowDmg = Math.floor(20 * (effect.magicPowerMult || 1.0));
+                                                targetEnemy.hp -= blowDmg; targetEnemy.damageAnim = true;
+                                                if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
+                                                window.addDungeonLog(`💥 追撃で ${targetEnemy.name} はさらに壁に激突した！(${blowDmg}ダメージ)`, '#FF5252');
+                                                if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, blowDmg, false);
+                                                break;
+                                            }
+                                        }
+                                        targetEnemy.x = nx; targetEnemy.y = ny; targetEnemy.warpAnim = true; 
+                                        window.addDungeonLog(`💨 ${targetEnemy.name} をさらに遠くへ吹き飛ばした！`, '#00BCD4');
+                                    }
                                 }
                                 effectTriggered = true; 
                             } else { 
@@ -1389,7 +1478,10 @@ window.processDungeonTurn = async function() {
                         }
                         if (effect.traits.includes('warp_self') && (chosenCommand === 'use' || isUnidentified)) {
                             if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'warp');
-                            let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0);
+                            let wx, wy; 
+                            do { 
+                                wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); 
+                            } while (s.grid[wy][wx] !== 0 || (activeTraits.includes('特異点') && s.enemies.some(e => e.hp > 0 && Math.abs(e.x - wx) <= 2 && Math.abs(e.y - wy) <= 2)));
                             s.player.x = wx; s.player.y = wy; window.addDungeonLog(`🌀 ${aiName} は別の場所へワープした！`, '#E040FB'); window.updateDungeonUI();
                             effectTriggered = true;
                         }
@@ -1576,6 +1668,15 @@ window.processDungeonTurn = async function() {
                 e._gasSkip = !e._gasSkip;
                 if (e._gasSkip) continue;
             }
+
+            // ★ 機械系敵特性：ゼンマイ駆動（3ターン行動後、1ターン休む）
+            if (e.skin && e.skin.includes('machine')) {
+                e._zenmaiTurn = (e._zenmaiTurn || 0) + 1;
+                if (e._zenmaiTurn % 4 === 0) {
+                    if (window.isTileVisible(s, e.x, e.y)) window.addDungeonLog(`⚙️ ${e.name} はゼンマイが切れて止まっている...`, '#aaa');
+                    continue;
+                }
+            }
             
             if (e.status) {
                 if (e.status.poison > 0) {
@@ -1667,6 +1768,92 @@ window.processDungeonTurn = async function() {
                             e.damage = origDmg;
                             hasAttacked = true;
                         }
+                    }
+                }
+
+                // ==========================================
+                // ★ 機械系の敵固有スキル
+                // ==========================================
+                // 【自己修復】水脈や浅瀬の上、部屋の四隅でHP回復
+                if (e.skin === 'machine_type5_2' && e.hp < e.maxHp) {
+                    let onWater = s.grid[e.y][e.x] === 4 || s.grid[e.y][e.x] === 9;
+                    let room = s.roomsInfo.find(r => e.x >= r.x && e.x < r.x+r.w && e.y >= r.y && e.y < r.y+r.h);
+                    let inCorner = room && ((e.x === room.x || e.x === room.x+room.w-1) && (e.y === room.y || e.y === room.y+room.h-1));
+                    if (onWater || inCorner) {
+                        e.hp = Math.min(e.maxHp, e.hp + 20);
+                        if (window.isTileVisible(s, e.x, e.y)) window.addDungeonLog(`🔧 ${e.name} が環境を利用して自己修復を行い、HPを回復した！`, '#4CAF50');
+                    }
+                }
+                // 【子守唄】周囲2マスのプレイヤーを深い眠りに誘う
+                if (!hasAttacked && e.skin === 'machine_type2' && dist <= 2 && Math.random() < 0.25) {
+                    window.addDungeonLog(`🎶 ${e.name} の子守唄... オルゴールの音色で深い眠りに誘われる...`, '#B39DDB');
+                    s.player.status.sleep = (s.player.status.sleep || 0) + 3;
+                    hasAttacked = true;
+                }
+                // 【プレス攻撃】ノックバック攻撃（壁激突時に大ダメージ追加）
+                if (!hasAttacked && e.skin === 'machine_type4' && dist === 1 && Math.random() < 0.25) {
+                    window.addDungeonLog(`⚙️ ${e.name} のプレス攻撃！ 激しく吹き飛ばされた！`, '#FF5252');
+                    let dx = Math.sign(s.player.x - e.x); let dy = Math.sign(s.player.y - e.y);
+                    if (dx === 0 && dy === 0) dx = 1;
+                    let nx = s.player.x + dx; let ny = s.player.y + dy;
+                    if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(oe => oe.hp > 0 && oe.x === nx && oe.y === ny)) {
+                        s.player.x = nx; s.player.y = ny;
+                    } else {
+                        s.player.hp -= 20; s.player.damageAnim = true;
+                        window.addDungeonLog(`💥 壁に激突！ プレス攻撃の圧殺で 20 の追加ダメージ！`, '#FF5252');
+                        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, 20, true);
+                    }
+                    hasAttacked = true;
+                }
+                // 【時報】10ターンごとにフロア全体へダメージ
+                if (e.skin === 'machine_type2_2') {
+                    e._clockTimer = (e._clockTimer || 0) + 1;
+                    if (e._clockTimer >= 10) {
+                        e._clockTimer = 0;
+                        window.addDungeonLog(`🔔 ボーン...ボーン... ${e.name} の時報がフロア全体に鳴り響く！`, '#FFD700');
+                        s.player.hp -= 15; s.player.damageAnim = true;
+                        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, 15, true);
+                        window.addDungeonLog(`💥 凄まじい音波で 15 の回避不能ダメージ！`, '#FF5252');
+                        hasAttacked = true; 
+                    }
+                }
+                // 【ギシギシ音】プレイヤーが近づくと敵を引き寄せる
+                if (!hasAttacked && e.skin === 'machine_type5' && dist <= 3 && Math.random() < 0.2) {
+                    window.addDungeonLog(`⚙️ ギシィィィィ！ ${e.name} が不快な音を鳴らし、フロア中の魔物を引き寄せた！`, '#9C27B0');
+                    s.enemies.forEach(oe => {
+                        if (oe.hp > 0 && oe !== e && Math.random() < 0.5) {
+                            let dirs = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}];
+                            for(let d of dirs) {
+                                let nx = s.player.x + d.dx; let ny = s.player.y + d.dy;
+                                if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(en=>en.hp>0 && en.x===nx && en.y===ny) && !(nx===s.player.x && ny===s.player.y)) {
+                                    oe.x = nx; oe.y = ny; oe.warpAnim = true; break;
+                                }
+                            }
+                        }
+                    });
+                    hasAttacked = true;
+                }
+                // 【古代兵器】通常攻撃をせず、ランダム状態異常ビーム
+                if (!hasAttacked && e.skin === 'machine_type5_3') {
+                    let canSeePlayer = window.isTileVisible(s, e.x, e.y);
+                    if (canSeePlayer && (e.x === s.player.x || e.y === s.player.y)) {
+                        let clear = true;
+                        if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][s.player.x]===1) clear=false; }
+                        else { for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) if(s.grid[s.player.y][x]===1) clear=false; }
+                        if (clear) {
+                            if (e.x < s.player.x) e.face = 'right'; else if (e.x > s.player.x) e.face = 'left'; else if (e.y < s.player.y) e.face = 'down'; else if (e.y > s.player.y) e.face = 'up';
+                            window.addDungeonLog(`📡 ${e.name} の古代兵器！ ランダムな状態異常ビームを放った！`, '#E040FB');
+                            if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
+                            let r = Math.random();
+                            if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
+                            else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
+                            else { s.player.status.confusion += 5; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
+                            e.attackAnim = true;
+                            hasAttacked = true;
+                        }
+                    }
+                    if (dist === 1) {
+                        hasAttacked = true; // 通常攻撃は一切しない
                     }
                 }
 
