@@ -129,6 +129,21 @@ window.startActualGame = function(isNewGameMenuClicked) {
     }
 
     // ==========================================
+    // ★新規追加：闘技場（城など）の強制リセット処理をここで確実に行う！
+    // ==========================================
+    if (typeof window.exitArenaFacility === 'function') {
+        window.exitArenaFacility();
+    }
+    if (window.ARENA_STATE) window.ARENA_STATE.active = false;
+    let arenaUi = document.getElementById('arena-reception-ui');
+    let battleUi = document.getElementById('arena-battle-ui');
+    let intUi = document.getElementById('arena-interval-ui');
+    if (arenaUi) arenaUi.style.display = 'none';
+    if (battleUi) battleUi.style.display = 'none';
+    if (intUi) intUi.style.display = 'none';
+    window.isInArena = false; // 念のためのフラグ解除
+
+    // ==========================================
     // ★大元凶の解決：ダンジョン・パーティデータの残留による「アップデート権の強奪」を防止！
     // ==========================================
     if (typeof party !== 'undefined') window.party = [];
@@ -174,6 +189,8 @@ window.startActualGame = function(isNewGameMenuClicked) {
 
         window.aiPet.actionState = 'idle';
         window.aiPet.visualAction = 'idle';
+        window.aiPet.isIndoors = false; // ★追加：建物内フラグを強制解除
+        window.aiPet.indoorTarget = null; // ★追加：ターゲット解除
         window.aiPet.schedule = []; 
         window.aiPet.pathQueue = []; // 念のため移動経路も完全に消去
         window.aiPet.frameIndex = 0;

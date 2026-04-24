@@ -7944,8 +7944,10 @@ window.openMusicHall = function() {
                 
                 // ★追加：アリーナ（闘技場）のBGM名
                 'arena_lobby': '闘技場 - 闘志の集う場所',
-                'arena_enemy': '闘技場 - 名もなき挑戦者',
-                'arena_rest': '闘技場 - 束の間の休息',
+                'arena_battle_tier0': '闘技場 - 名もなき挑戦者',
+                'arena_battle_tier1': '闘技場 - 覚醒の旋律',
+                'arena_battle_tier2': '闘技場 - 絶望の神託',
+                'arena_battle_tier0': '闘技場 - 束の間の休息',
                 'arena_lose': '闘技場 - 崩れ落ちる野望',
                 'arena_friend': '闘技場 - 好敵手との激突',
                 'arena_victory': '闘技場 - 栄光の勝者',

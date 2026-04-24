@@ -1354,6 +1354,7 @@ window.showContinueLoginChoice = function() {
         { text: '✉️ ログイン・登録して遊ぶ', color: '#4CAF50', action: () => window.showEmailRegistrationUI(false) },
         { text: '📴 そのまま（オフライン）で遊ぶ', color: '#444', action: () => {
             window.skipAutoLogin = true;
+            window.forceResetArenaForLoad(); // ★オフライン進行時もリセット
             window.startActualGame(false);
         }},
         { text: '戻る', color: 'transparent', textColor: '#888', action: () => {} }
@@ -1403,7 +1404,33 @@ window.handleDataConflict = function(cloudData) {
     window.showRichChoiceDialog("⚠️ データの競合を検知", "このアカウントには既にクラウドセーブが存在します。\nどちらのデータを使用しますか？", buttons);
 };
 
-// 5. 【専用UI】メール・パスワード登録・ログイン画面
+// ★新規追加：ゲームロード時に闘技場の状態を強制リセットする安全装置
+window.forceResetArenaForLoad = function() {
+    if (typeof window.exitArenaFacility === 'function') {
+        window.exitArenaFacility();
+    }
+    
+    // ★追加：データロード完了後に確実にAIを外に出すための監視ループ
+    let resetTimer = setInterval(() => {
+        if (window.aiPet) {
+            window.aiPet.actionState = 'idle';
+            window.aiPet.isIndoors = false;
+            window.aiPet.interactionTarget = null;
+            window.aiPet.indoorTarget = null;
+            clearInterval(resetTimer);
+        }
+    }, 100);
+
+    if (window.ARENA_STATE) window.ARENA_STATE.active = false;
+    let arenaUi = document.getElementById('arena-reception-ui');
+    let battleUi = document.getElementById('arena-battle-ui');
+    let intUi = document.getElementById('arena-interval-ui');
+    if (arenaUi) arenaUi.style.display = 'none';
+    if (battleUi) battleUi.style.display = 'none';
+    if (intUi) intUi.style.display = 'none';
+};
+
+// １．つづきからを選択したときに呼ばれる関数
 window.showEmailRegistrationUI = function(isNewGame) {
     const overlay = document.createElement('div');
     overlay.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:999999; display:flex; justify-content:center; align-items:center; backdrop-filter:blur(5px);';
@@ -1447,16 +1474,14 @@ window.showEmailRegistrationUI = function(isNewGame) {
         err.textContent = "通信中...";
         
         try {
-            // ログイン試行
             await signInWithEmailAndPassword(auth, email, pass);
             document.body.removeChild(overlay);
             
             if (isNewGame) {
                 window.showCustomAlert("エラー", "そのアカウントは既に存在します。\n既存のデータで遊ぶ場合はタイトル画面の「つづきから」を選んでください。", () => {
-                    signOut(auth); // すぐにログアウトさせて弾く
+                    signOut(auth); 
                 });
             } else {
-                // つづきから（既存プレイ）でのログイン成功時はクラウドデータの有無をチェック
                 const user = auth.currentUser;
                 const docRef = doc(db, "user_save_data", user.uid);
                 const docSnap = await getDoc(docRef);
@@ -1466,22 +1491,26 @@ window.showEmailRegistrationUI = function(isNewGame) {
                 } else {
                     window.showCustomAlert("ログイン完了", "ログインしました。\n現在のデータをクラウドに保存します。", () => {
                         window.backupSaveDataToCloud();
+                        window.forceResetArenaForLoad(); // ★ここで闘技場を強制リセット
                         window.startActualGame(false);
                     });
                 }
             }
         } catch (error) {
-            // ログイン失敗＝アカウントが存在しない場合、新規作成を試みる
             if (error.code === 'auth/user-not-found' || error.code === 'auth/invalid-credential') {
                 try {
                     await createUserWithEmailAndPassword(auth, email, pass);
                     document.body.removeChild(overlay);
                     
                     if (isNewGame) {
-                        window.showCustomAlert("登録完了", "新規アカウントを作成しました。\n冒険をはじめます！", () => window.executeNewGameInitialization(false));
+                        window.showCustomAlert("登録完了", "新規アカウントを作成しました。\n冒険をはじめます！", () => {
+                            window.forceResetArenaForLoad(); // ★ここでもリセット
+                            window.executeNewGameInitialization(false);
+                        });
                     } else {
                         window.showCustomAlert("登録完了", "アカウントを作成しました。\n現在のデータをクラウドに保存します。", () => {
                             window.backupSaveDataToCloud();
+                            window.forceResetArenaForLoad(); // ★ここでもリセット
                             window.startActualGame(false);
                         });
                     }

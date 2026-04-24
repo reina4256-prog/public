@@ -863,7 +863,10 @@ if (window.audioManager) {
     // 1. ファイルとエイリアスの紐付け
     const arenaBGMs = {
         'arena_lobby': 'bgm_arena_lobby.mp3',
-        'arena_enemy': 'bgm_arena_enemy.mp3',
+        // ★ここに新しいBGMを追加する必要があるかも！
+        "arena_battle_tier0": "bgm_arena_battle_tier0.mp3",
+        "arena_battle_tier1": "bgm_arena_battle_tier1.mp3",
+        "arena_battle_tier2": "bgm_arena_battle_tier2.mp3",
         'arena_rest': 'bgm_arena_rest.mp3',
         'arena_lose': 'bgm_arena_lose.mp3',
         'arena_friend': 'bgm_arena_friend.mp3',
@@ -891,7 +894,9 @@ if (window.audioManager) {
     if (!window.audioManager.specialTracks) window.audioManager.specialTracks = {};
     Object.assign(window.audioManager.specialTracks, {
         'arena_lobby': '闘技場 - 闘志の集う場所',
-        'arena_enemy': '闘技場 - 名もなき挑戦者',
+        'arena_battle_tier0': '闘技場 - 名もなき挑戦者',
+        'arena_battle_tier1': '闘技場 - 覚醒の旋律',
+        'arena_battle_tier2': '闘技場 - 絶望の神託',
         'arena_rest': '闘技場 - 束の間の休息',
         'arena_lose': '闘技場 - 崩れ落ちる野望',
         'arena_friend': '闘技場 - 好敵手との激突',
