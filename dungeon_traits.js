@@ -128,7 +128,24 @@ window.DUNGEON_TRAIT_DICT = {
     'spirit_type5_2': { player: { name: '哀愁の波動', desc: '同じ部屋にいる敵の攻撃力を 10% 低下させる。' }, enemy: '落葉の目眩まし' },
     'spirit_type5_3': { player: { name: '耐冷構造', desc: '「水」や「氷」の地形効果を無効化し、攻撃力が上がる。' }, enemy: '凍結の吐息' },
     'spirit_type1_2': { player: { name: '怨念の根', desc: '通常攻撃時、与えたダメージの 30% をHPとして吸収する。' }, enemy: '死の絶叫' },
-    'spirit_type3_2': { player: { name: '世界樹の記憶', desc: 'フロアに降りた瞬間、マップ全域と階段の位置が完全に判明する。' }, enemy: '因果改変' }
+    'spirit_type3_2': { player: { name: '世界樹の記憶', desc: 'フロアに降りた瞬間、マップ全域と階段の位置が完全に判明する。' }, enemy: '因果改変' },
+
+    // ==========================================
+    // ★ 岩系（ゴーレム系）（全13種）
+    // ==========================================
+    'stone': { player: { name: '石の体', desc: '敵から受ける吹き飛ばし効果を完全に無効化する。' }, enemy: '鈍重' },
+    'stone_type2': { player: { name: '光の屈折', desc: '敵からの魔法ダメージを 20% 軽減する。' }, enemy: 'クリスタル・レイ' },
+    'stone_type4': { player: { name: '地熱吸収', desc: '炎属性のダメージを無効化し、吸収してHPを回復する。' }, enemy: '灼熱の体' },
+    'stone_type4_2': { player: { name: '鋼の鎧', desc: '基礎防御力が常に +8 される（基本特性を上書き）。' }, enemy: '鉄壁' },
+    'stone_type5': { player: { name: '守り神', desc: 'そのフロアで同じ部屋に長く留まるほど、防御力が少しずつ上がっていく。' }, enemy: '擬態' },
+    'stone_type1': { player: { name: '悪霊払い', desc: 'アンデッド・ゴースト系の敵から受けるダメージを半減する。' }, enemy: '石化睨み' },
+    'stone_type3': { player: { name: '古代文字', desc: '魔法の杖を近接武器として振って殴った時のダメージが、剣並みに高くなる。' }, enemy: 'ルーン設置' },
+    'stone_type2_2': { player: { name: '宝石の煌めき', desc: '魅了の成功率が大幅に上がり、敵がアイテムを落とす確率も上昇する。' }, enemy: 'プリズムアーマー' },
+    'stone_type4_3': { player: { name: '星の砕き手', desc: '壁を壊したとき、稀に「しあわせの種」などのレアアイテムが出現する。' }, enemy: '隕石落とし' },
+    'stone_type5_2': { player: { name: '大地の鼓動', desc: 'マップ上の罠を意図的に踏み潰して破壊できるようになる。' }, enemy: '箱庭の理' },
+    'stone_type5_3': { player: { name: '双極の力', desc: '通常攻撃時、確率で敵を火傷（毎ターンダメージ）か凍結（行動不可）にする。' }, enemy: '熱膨張と凍結' },
+    'stone_type1_2': { player: { name: '漆黒の鏡', desc: '敵から受けたデバフ（毒やステータス低下など）を無効化し、相手にそのまま跳ね返す。' }, enemy: '生命吸収' },
+    'stone_type3_2': { player: { name: '反重力', desc: '罠を浮遊して回避し、水脈の上も自由に歩けるようになる。' }, enemy: '重力操作' }
 };
 
 // 進化ツリーの系譜（スタック）を解決する関数
@@ -360,5 +377,34 @@ window.getPlayerDungeonTraits = function(skin) {
         else if (skin === 'machine_type3_2') { addTrait('machine_type3'); addTrait('machine_type3_2'); }
     }
 
-    return traits;
+    // ==========================================
+    // ★ 岩系（ゴーレム系）の系譜
+    // ==========================================
+    if (skin.includes('stone')) {
+        addTrait('stone');
+
+        // Gen 1
+        if (['stone_type2', 'stone_type4', 'stone_type4_2', 'stone_type5', 'stone_type1', 'stone_type3'].includes(skin)) {
+            addTrait(skin);
+        }
+        // Gen 2 (履歴解決あり)
+        else {
+            if (skin === 'stone_type2_2') { addTrait('stone_type2'); addTrait(skin); }
+            else if (skin === 'stone_type4_3') {
+                let past = 'stone_type4';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('stone_type4_2')) past = 'stone_type4_2';
+                addTrait(past); addTrait(skin);
+            }
+            else if (skin === 'stone_type5_2' || skin === 'stone_type5_3') { addTrait('stone_type5'); addTrait(skin); }
+            else if (skin === 'stone_type1_2') { addTrait('stone_type1'); addTrait(skin); }
+            else if (skin === 'stone_type3_2') { addTrait('stone_type3'); addTrait(skin); }
+        }
+
+        // 鋼の鎧がある場合、石の体を上書きする（防御特化への変質）
+        if (traits.find(t => t.name === '鋼の鎧')) {
+            traits = traits.filter(t => t.name !== '石の体');
+        }
+    }
+
+    return traits;
 };

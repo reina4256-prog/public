@@ -66,7 +66,14 @@ window.processDungeonTurn = async function() {
 
         let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
 
-        let rawIntel = window.aiPet && window.aiPet.stats && window.aiPet.stats.intel ? window.aiPet.stats.intel : 10;
+        // ★ 岩系の部屋判定（守り神、箱庭の理、重力操作用）
+        let pRoomForStone = s.roomsInfo && s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x + r.w && s.player.y >= r.y && s.player.y < r.y + r.h);
+        if (pRoomForStone) {
+            if (s.player._lastRoom === pRoomForStone) s.player._guardianRoomTurns = (s.player._guardianRoomTurns || 0) + 1;
+            else { s.player._guardianRoomTurns = 0; s.player._lastRoom = pRoomForStone; }
+        } else { s.player._guardianRoomTurns = 0; s.player._lastRoom = null; }
+
+        let rawIntel = window.aiPet && window.aiPet.stats && window.aiPet.stats.intel ? window.aiPet.stats.intel : 10;
         if (typeof rawIntel === 'string') {
             rawIntel = parseFloat(rawIntel.replace(/,/g, '').replace(/[a-zA-Z]/g, ''));
         }
@@ -92,7 +99,13 @@ window.processDungeonTurn = async function() {
             }
 
             let mySkin = s.player.skin || "";
-            if (mySkin === 'spirit' && s.turnCount % 5 === 0 && s.player.hp < s.player.maxHp) s.player.hp++;
+            if (mySkin === 'spirit' && s.turnCount % 5 === 0 && s.player.hp < s.player.maxHp) s.player.hp++;
+
+            // ★ 岩系敵特性：灼熱の体（隣接しているだけで火傷ダメージ）
+            if (s.enemies.some(e => e.hp > 0 && e.skin === 'stone_type4' && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1)) {
+                s.player.hp -= 1; s.player.damageAnim = true;
+                window.addDungeonLog(`🔥 灼熱の体！ 近づいただけで火傷を負った！`, '#FF5252');
+            }
             if (mySkin === 'spirit_type2_2') {
                 s.rescueTargets.forEach(npc => {
                     if (!npc.rescued && Math.abs(npc.x - s.player.x) <= 1 && Math.abs(npc.y - s.player.y) <= 1) {
@@ -203,20 +216,39 @@ window.processDungeonTurn = async function() {
                     if (s.player.status.paralyzed <= 0) window.addDungeonLog(`足の痺れがとれた！`, '#4CAF50');
                 }
                 // ★追加：石化ステータスのターン経過
-                if (s.player.status.petrified > 0) {
-                    s.player.status.petrified--;
-                    if (s.player.status.petrified <= 0) window.addDungeonLog(`石化が解けて動けるようになった！`, '#4CAF50');
-                }
-            } else {
-                s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0, fear: 0 };
-            }
+                if (s.player.status.petrified > 0) {
+                    s.player.status.petrified--;
+                    if (s.player.status.petrified <= 0) window.addDungeonLog(`石化が解けて動けるようになった！`, '#4CAF50');
+                }
+                // ★新規：火傷と凍結のターン経過
+                if (s.player.status.burn > 0) {
+                    s.player.hp -= 3; window.addDungeonLog(`🔥 火傷のダメージを受けた！(HP-3)`, '#FF5252');
+                    s.player.status.burn--;
+                    if (s.player.status.burn <= 0) window.addDungeonLog(`火傷が治った！`, '#4CAF50');
+                }
+                if (s.player.status.frozen > 0) {
+                    s.player.status.frozen--;
+                    if (s.player.status.frozen <= 0) window.addDungeonLog(`凍結が解けて体が動くようになった！`, '#4CAF50');
+                }
+            } else {
+                s.player.status = { poison: 0, confusion: 0, blind: 0, paralyzed: 0, wet: 0, sleep: 0, petrified: 0, fear: 0, burn: 0, frozen: 0 };
+            }
 
             s.player._shieldAssimilated = false; // ★ 機械系：同化（盾無効化）のターンリセット
 
-            // ★カブトムシ系：妖精の羽（常に浮遊）を追加
-            let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽');
-            let realSpd = Math.floor(ai.stats.speed || 10);
-            let actionCount = 1 + Math.floor(realSpd / 50); 
+            // ★カブトムシ系：妖精の羽、岩系：反重力 を追加
+            let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽') || activeTraits.includes('反重力');
+            let realSpd = Math.floor(ai.stats.speed || 10);
+            let actionCount = 1 + Math.floor(realSpd / 50); 
+
+            // ★ 岩系敵特性：重力操作（同じ部屋にいると2ターンに1回しか動けない）
+            if (pRoomForStone && s.enemies.some(e => e.hp > 0 && e.skin === 'stone_type3_2' && e.x >= pRoomForStone.x && e.x < pRoomForStone.x + pRoomForStone.w && e.y >= pRoomForStone.y && e.y < pRoomForStone.y + pRoomForStone.h)) {
+                s.player._gravitySkip = !s.player._gravitySkip;
+                if (s.player._gravitySkip) {
+                    actionCount = 0;
+                    window.addDungeonLog(`⏬ 重力操作！ 体が重くて動けない！`, '#9C27B0');
+                }
+            }
             if (acEff && acEff.traits.includes('fast_move')) {
                 let plus = parseInt(s.player.equipAccessory.match(/_\+(\d+)/)?.[1] || 0);
                 actionCount += 1 + Math.floor(plus / 5);
@@ -294,8 +326,9 @@ window.processDungeonTurn = async function() {
                 });
 
                 if (enemyAdjacent && ai.stats && ai.stats.beauty > 20) {
-                    if (enemyAdjacent.type !== 'robot' && enemyAdjacent.type !== 'machine' && enemyAdjacent.type !== 'stone') {
-                        let charmChance = Math.min(0.25, ai.stats.beauty / 400); 
+                    if (enemyAdjacent.type !== 'robot' && enemyAdjacent.type !== 'machine' && enemyAdjacent.type !== 'stone') {
+                        let charmChance = Math.min(0.25, ai.stats.beauty / 400); 
+                        if (activeTraits.includes('宝石の煌めき')) charmChance += 0.25; // ★ 岩系特性：魅了確率大幅UP
                         if (Math.random() < charmChance) {
                             window.addDungeonLog(`敵は ${aiName} の美しさにみとれて動けない！`, '#E040FB');
                             enemyAdjacent.charmed = true; 
@@ -312,7 +345,14 @@ window.processDungeonTurn = async function() {
                 let pType = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(ai.stats) : '普通';
 
                 let isConfused = s.player.status && s.player.status.confusion > 0;
-                if (isConfused) { window.addDungeonLog(`🌀 ${aiName} は混乱してフラフラしている！`, '#FF9800'); smartChance = 0; }
+                if (isConfused) { window.addDungeonLog(`🌀 ${aiName} は混乱してフラフラしている！`, '#FF9800'); smartChance = 0; }
+
+                // ★ 岩系敵特性：箱庭の理（同じ部屋にいる間アイテム使用不可）
+                let inGardenRoom = pRoomForStone && s.enemies.some(e => e.hp > 0 && e.skin === 'stone_type5_2' && e.x >= pRoomForStone.x && e.x < pRoomForStone.x + pRoomForStone.w && e.y >= pRoomForStone.y && e.y < pRoomForStone.y + pRoomForStone.h);
+                if (inGardenRoom) {
+                    validCmdIds = validCmdIds.filter(cmd => !['use', 'eat', 'heal', 'throw'].includes(cmd));
+                    if (['use', 'eat', 'heal', 'throw'].includes(chosenCommand)) chosenCommand = 'skip';
+                }
 
                 if (pType === 'のんびり屋' && Math.random() < 0.2) { window.addDungeonLog(`${aiName} は面倒くさがって立ち止まった...`, '#aaa'); chosenCommand = 'skip'; } 
                 else if (pType === '憂鬱' && Math.random() < 0.2) { window.addDungeonLog(`${aiName} は暗い気持ちになり、ため息をついた...`, '#aaa'); chosenCommand = 'skip'; } 
@@ -442,9 +482,10 @@ window.processDungeonTurn = async function() {
                                             let moveCost = 1; 
                                             
                                             if (tile === 1) {
-                                                if (activeTraits.includes('重機動アーム') && (nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1)) {
-                                                    moveCost = 2; 
-                                                } else {
+                                                // ★ ロボットの「重機動アーム」 または ゴーレムの「星の砕き手」 なら壁を掘って進める
+                                                if ((activeTraits.includes('重機動アーム') || activeTraits.includes('星の砕き手')) && (nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1)) {
+                                                    moveCost = 2; 
+                                                } else {
                                                     continue; 
                                                 }
                                             }
@@ -834,15 +875,18 @@ window.processDungeonTurn = async function() {
                 }
 
                 let isParalyzed = s.player.status && s.player.status.paralyzed > 0;
-                let isPetrified = s.player.status && s.player.status.petrified > 0;
-                let isFear = s.player.status && s.player.status.fear > 0;
-                // ★修正：石化や恐怖の場合は移動だけでなく攻撃やアイテム使用も完全に封じる
-                if ((isParalyzed || isPetrified || isFear) && ['move_up', 'move_down', 'move_left', 'move_right', 'flee', 'attack', 'throw', 'put_down'].includes(chosenCommand)) {
-                    if (isPetrified) window.addDungeonLog(`🗿 体が石化して動けない！`, '#757575');
-                    else if (isFear) window.addDungeonLog(`😱 恐怖で足がすくんで動けない！`, '#9C27B0');
-                    else window.addDungeonLog(`⚡ 足が痺れて動けない！`, '#FF9800');
-                    chosenCommand = 'skip';
-                }
+                let isPetrified = s.player.status && s.player.status.petrified > 0;
+                let isFear = s.player.status && s.player.status.fear > 0;
+                let isFrozen = s.player.status && s.player.status.frozen > 0;
+
+                // ★修正：石化や凍結の場合は移動だけでなく攻撃やアイテム使用も完全に封じる
+                if ((isParalyzed || isPetrified || isFear || isFrozen) && ['move_up', 'move_down', 'move_left', 'move_right', 'flee', 'attack', 'throw', 'put_down'].includes(chosenCommand)) {
+                    if (isPetrified) window.addDungeonLog(`🗿 体が石化して動けない！`, '#757575');
+                    else if (isFrozen) window.addDungeonLog(`❄️ 体が凍りついて動けない！`, '#00BCD4');
+                    else if (isFear) window.addDungeonLog(`😱 恐怖で足がすくんで動けない！`, '#9C27B0');
+                    else window.addDungeonLog(`⚡ 足が痺れて動けない！`, '#FF9800');
+                    chosenCommand = 'skip';
+                }
 
                 if (chosenCommand !== 'skip' && chosenCommand !== 'descend_stairs') {
                     const cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.id === chosenCommand); 
@@ -906,7 +950,7 @@ window.processDungeonTurn = async function() {
                     fade.style.opacity = 1; await sleep(800); 
 
                     s.floor++; s.turnCount = 0; s.floorTurn = 0; 
-                    s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0, wet: 0, sleep: 0, petrified: 0 };
+                    s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0, wet: 0, sleep: 0, petrified: 0, fear: 0, burn: 0, frozen: 0 };
                     s.player.atkBuff = 0; // ★追加：階層移動で攻撃力デバフもリセット
                     s.player._itemTargetPos = null; s.player._unreachableItems = []; // ★追加：アイテムターゲットとブラックリストをリセット
                     window.generateDungeonFloor(); window.updateDungeonUI();
@@ -956,14 +1000,22 @@ window.processDungeonTurn = async function() {
                         let isWaterOrDitch = s.grid[newY][newX] === 4 || s.grid[newY][newX] === 10; // ★追加: 10(溝)
 
                         if (isWall) {
-                            if (activeTraits.includes('重機動アーム') && newX > 0 && newX < s.mapWidth-1 && newY > 0 && newY < s.mapHeight-1) {
-                                window.addDungeonLog(`💥 重機動アームで壁を粉砕した！`, '#FFD700');
-                                s.grid[newY][newX] = 0; 
-                            } else {
-                                window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa');
-                                continue;
-                            }
-                        } else if (!isFlying && isWaterOrDitch) {
+                            if ((activeTraits.includes('重機動アーム') || activeTraits.includes('星の砕き手')) && newX > 0 && newX < s.mapWidth-1 && newY > 0 && newY < s.mapHeight-1) {
+                                if (activeTraits.includes('星の砕き手')) {
+                                    window.addDungeonLog(`☄️ 星の砕き手で壁を粉砕した！`, '#FFD700');
+                                    if (Math.random() < 0.05) {
+                                        s.items.push({ x: newX, y: newY, key: 'item_seed_happy' });
+                                        window.addDungeonLog(`🌟 砕いた壁の中から「しあわせの種」が出てきた！`, '#FFD700');
+                                    }
+                                } else {
+                                    window.addDungeonLog(`💥 重機動アームで壁を粉砕した！`, '#FFD700');
+                                }
+                                s.grid[newY][newX] = 0; 
+                            } else {
+                                window.addDungeonLog(`ガンッ！ 壁にぶつかった！`, '#aaa');
+                                continue;
+                            }
+                        } else if (!isFlying && isWaterOrDitch) {
                             window.addDungeonLog(`ガンッ！ 水脈や溝にぶつかった！`, '#aaa');
                             continue;
                         }
@@ -1083,11 +1135,15 @@ window.processDungeonTurn = async function() {
 
                             // ★修正: 風船・ゴーストのハードコーディング罠回避を削除（罠回避は特性システムに一任）
                             // ★カブトムシ系：妖精の羽（罠を完全に無効化）
-                            if (s.traps && !activeTraits.includes('妖精の羽')) {
-                                let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
-                                let oldStatus = JSON.parse(JSON.stringify(s.player.status || {})); // ★ 状態異常記録
-                                
-                                if (trap && activeTraits.includes('大地の恵み')) {
+                            if (s.traps && !activeTraits.includes('妖精の羽') && !activeTraits.includes('反重力')) {
+                                let trap = s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
+                                let oldStatus = JSON.parse(JSON.stringify(s.player.status || {})); // ★ 状態異常記録
+                                
+                                if (trap && activeTraits.includes('大地の鼓動')) {
+                                    window.addDungeonLog(`🦶 大地の鼓動！ 踏み込んだ衝撃で罠を完全に粉砕した！`, '#FFD700');
+                                    s.traps = s.traps.filter(t => t !== trap);
+                                }
+                                else if (trap && activeTraits.includes('大地の恵み')) {
                                     window.addDungeonLog(`大地の恵みにより、罠が作動しなかった！`, '#4CAF50');
                                     trap.visible = true; 
                                 }
@@ -1433,7 +1489,12 @@ window.processDungeonTurn = async function() {
                                         if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e!==targetEnemy&&e.x===nx+dx&&e.y===ny+dy)) {
                                             nx += dx; ny += dy;
                                         } else {
-                                            let blowDmg = Math.floor(20 * (effect.magicPowerMult || 1.0));
+                                            // ★ 岩系特性：石の体（吹き飛ばし無効）
+                                            if (targetEnemy.skin && targetEnemy.skin.includes('stone')) {
+                                                window.addDungeonLog(`🪨 石の体！ ${targetEnemy.name} は吹き飛ばしを無効化した！`, '#aaa');
+                                                break;
+                                            }
+                                            let blowDmg = Math.floor(20 * (effect.magicPowerMult || 1.0));
                                             targetEnemy.hp -= blowDmg; targetEnemy.damageAnim = true;
                                             // ★ 吹き飛ばし激突時に敵を起こす
                                             if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
@@ -1458,8 +1519,9 @@ window.processDungeonTurn = async function() {
                                         for(let k=0; k<pushDist; k++) {
                                             if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e!==targetEnemy&&e.x===nx+dx&&e.y===ny+dy)) {
                                                 nx += dx; ny += dy;
-                                            } else {
-                                                let blowDmg = Math.floor(20 * (effect.magicPowerMult || 1.0));
+                                            } else {
+                                                if (targetEnemy.skin && targetEnemy.skin.includes('stone')) break;
+                                                let blowDmg = Math.floor(20 * (effect.magicPowerMult || 1.0));
                                                 targetEnemy.hp -= blowDmg; targetEnemy.damageAnim = true;
                                                 if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
                                                 window.addDungeonLog(`💥 追撃で ${targetEnemy.name} はさらに壁に激突した！(${blowDmg}ダメージ)`, '#FF5252');
@@ -1664,12 +1726,17 @@ window.processDungeonTurn = async function() {
             if (e.hp <= 0) continue;
 
             // ★ 風船系敵特性：ガス抜け（2ターンに1回しか行動しない）
-            if (e.skin === 'balloon_type5') {
-                e._gasSkip = !e._gasSkip;
-                if (e._gasSkip) continue;
-            }
+            if (e.skin === 'balloon_type5') {
+                e._gasSkip = !e._gasSkip;
+                if (e._gasSkip) continue;
+            }
+            // ★ 岩系敵特性：鈍重 ＆ オラクルストーン（2ターンに1回しか行動しない）
+            if (e.skin === 'stone' || e.skin === 'stone_type3_2') {
+                e._heavySkip = !e._heavySkip;
+                if (e._heavySkip) continue;
+            }
 
-            // ★ 機械系敵特性：ゼンマイ駆動（3ターン行動後、1ターン休む）
+            // ★ 機械系敵特性：ゼンマイ駆動（3ターン行動後、1ターン休む）
             if (e.skin && e.skin.includes('machine')) {
                 e._zenmaiTurn = (e._zenmaiTurn || 0) + 1;
                 if (e._zenmaiTurn % 4 === 0) {
@@ -1679,17 +1746,28 @@ window.processDungeonTurn = async function() {
             }
             
             if (e.status) {
-                if (e.status.poison > 0) {
-                    e.hp -= Math.max(1, Math.floor(e.maxHp * 0.05)); e.damageAnim = true;
-                    e.status.poison--;
-                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(e.x, e.y, "Poison", false);
-                }
-                if (e.status.confusion > 0) e.status.confusion--;
-                if (e.status.sleep === undefined) e.status.sleep = 0;
-            } else { e.status = { poison: 0, confusion: 0, sleep: 0 }; }
-            
-            if (e.hp <= 0) { window.addDungeonLog(`${e.name} は毒で倒れた！`, '#FFD700'); continue; }
-            if (e.charmed) { e.charmed = false; continue; }
+                if (e.status.poison > 0) {
+                    e.hp -= Math.max(1, Math.floor(e.maxHp * 0.05)); e.damageAnim = true;
+                    e.status.poison--;
+                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(e.x, e.y, "Poison", false);
+                }
+                if (e.status.burn > 0) {
+                    e.hp -= Math.max(1, Math.floor(e.maxHp * 0.05)); e.damageAnim = true;
+                    e.status.burn--;
+                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(e.x, e.y, "Burn", false);
+                }
+                if (e.status.confusion > 0) e.status.confusion--;
+                if (e.status.sleep === undefined) e.status.sleep = 0;
+                if (e.status.frozen === undefined) e.status.frozen = 0;
+            } else { e.status = { poison: 0, confusion: 0, sleep: 0, burn: 0, frozen: 0 }; }
+            
+            if (e.hp <= 0) { window.addDungeonLog(`${e.name} は倒れた！`, '#FFD700'); continue; }
+            if (e.charmed) { e.charmed = false; continue; }
+
+            if (e.status.frozen > 0) {
+                e.status.frozen--;
+                continue; // 凍結時は完全にターンスキップ
+            }
 
             // ==========================================
             // ★ 敵の睡眠チェック（モンスターハウス対応）
@@ -1974,14 +2052,85 @@ window.processDungeonTurn = async function() {
                 }
 
                 // ★追加：ルーン魔方陣（足元に魔法陣を描く）
-                if (!hasAttacked && e.skin && e.skin === 'bird_type3' && Math.random() < 0.2 && s.grid[e.y][e.x] === 0) {
-                    window.addDungeonLog(`✡️ ${e.name} は足元にルーン魔方陣を描いた！`, '#E040FB');
-                    s.grid[e.y][e.x] = 11; // 11: ルーン魔方陣
-                    hasAttacked = true;
-                }
+                if (!hasAttacked && e.skin && e.skin === 'bird_type3' && Math.random() < 0.2 && s.grid[e.y][e.x] === 0) {
+                    window.addDungeonLog(`✡️ ${e.name} は足元にルーン魔方陣を描いた！`, '#E040FB');
+                    s.grid[e.y][e.x] = 11; // 11: ルーン魔方陣
+                    hasAttacked = true;
+                }
 
-                // ==========================================
-                // ★ 魔法使い系の敵固有スキル
+                // ==========================================
+                // ★ 岩系の敵固有スキル
+                // ==========================================
+                let canSeePlayerForRock = window.isTileVisible(s, e.x, e.y);
+                let eRoomForRock = s.roomsInfo.find(r => e.x >= r.x && e.x < r.x+r.w && e.y >= r.y && e.y < r.y+r.h);
+                let inSameRoomForRock = (pRoomForStone && eRoomForRock && pRoomForStone === eRoomForRock);
+
+                // 【擬態】プレイヤーが隣接するまで行動をパスし続ける（ステルス）
+                if (!hasAttacked && e.skin === 'stone_type5') {
+                    if (dist > 1 && !e._mimicRevealed) {
+                        continue; // 隣接するまで動かない（壁に擬態）
+                    } else if (dist === 1 && !e._mimicRevealed) {
+                        e._mimicRevealed = true;
+                        window.addDungeonLog(`🧱 壁だと思っていたものが動き出した！ ${e.name} の擬態だ！`, '#FF9800');
+                    }
+                }
+                // 【クリスタル・レイ】直線状のプレイヤーに暗闇攻撃
+                if (!hasAttacked && e.skin === 'stone_type2' && canSeePlayerForRock && (e.x === s.player.x || e.y === s.player.y) && Math.random() < 0.3) {
+                    window.addDungeonLog(`💎 ${e.name} のクリスタル・レイ！ 直線状に眩ばゆい光線が放たれた！`, '#00BCD4');
+                    if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#00BCD4');
+                    s.player.status.blind = (s.player.status.blind || 0) + 10;
+                    s.player.hp -= 15; s.player.damageAnim = true;
+                    hasAttacked = true;
+                }
+                // 【石化睨み】直線状のプレイヤーを石化
+                if (!hasAttacked && e.skin === 'stone_type1' && canSeePlayerForRock && (e.x === s.player.x || e.y === s.player.y) && Math.random() < 0.25) {
+                    window.addDungeonLog(`🗿 ${e.name} の石化睨み！ 眼が合い、体が石になってしまった！`, '#757575');
+                    if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#757575');
+                    s.player.status.petrified = (s.player.status.petrified || 0) + 3;
+                    hasAttacked = true;
+                }
+                // 【ルーン設置】プレイヤーの足元に地雷を召喚
+                if (!hasAttacked && e.skin === 'stone_type3' && dist > 1 && Math.random() < 0.25) {
+                    window.addDungeonLog(`✡️ ${e.name} のルーン設置！ 足元に罠が召喚された！`, '#E040FB');
+                    s.traps.push({ type: 'mine', x: s.player.x, y: s.player.y, visible: true });
+                    hasAttacked = true;
+                }
+                // 【隕石落とし】部屋全体に大ダメージ
+                if (!hasAttacked && e.skin === 'stone_type4_3' && inSameRoomForRock && Math.random() < 0.2) {
+                    window.addDungeonLog(`☄️ ${e.name} の隕石落とし！ 部屋全体に巨大な岩が降り注ぐ！`, '#FF5252');
+                    s.player.hp -= 25; s.player.damageAnim = true;
+                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, 25, true);
+                    hasAttacked = true;
+                }
+                // 【熱膨張と凍結】炎ダメージと氷ダメージ（麻痺+防御ダウン相当）を交互に撃つ
+                if (!hasAttacked && e.skin === 'stone_type5_3' && dist === 1) {
+                    if (e._nextIce) {
+                        window.addDungeonLog(`❄️ ${e.name} の凍結！ 急激な冷却で装甲が脆くなった！`, '#00BCD4');
+                        s.player.hp -= 10; s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 1;
+                        s.player.atkBuff = (s.player.atkBuff || 0) - 5; // 防御ダウンの代わりに攻撃デバフを付与
+                        e._nextIce = false;
+                    } else {
+                        window.addDungeonLog(`🔥 ${e.name} の熱膨張！ 灼熱の打撃！`, '#FF5252');
+                        s.player.hp -= 20;
+                        e._nextIce = true;
+                    }
+                    s.player.damageAnim = true;
+                    hasAttacked = true;
+                }
+                // 【生命吸収】周囲のあらゆる者からHPを毎ターン吸い取る
+                if (e.skin === 'stone_type1_2') {
+                    let drained = false;
+                    if (dist <= 3) { s.player.hp -= 1; e.hp = Math.min(e.maxHp, e.hp + 1); drained = true; }
+                    s.enemies.forEach(oe => {
+                        if (oe !== e && oe.hp > 0 && Math.abs(oe.x - e.x) <= 3 && Math.abs(oe.y - e.y) <= 3) {
+                            oe.hp -= 1; e.hp = Math.min(e.maxHp, e.hp + 1); drained = true;
+                        }
+                    });
+                    if (drained && canSeePlayerForRock) window.addDungeonLog(`💀 ${e.name} の生命吸収！ 周囲の生命力が奪われている...`, '#9C27B0');
+                }
+
+                // ==========================================
+                // ★ 魔法使い系の敵固有スキル
                 // ==========================================
                 let canSeePlayer = window.isTileVisible(s, e.x, e.y);
                 let inSameRoom = false;
@@ -2060,7 +2209,7 @@ window.processDungeonTurn = async function() {
                         for (let d of spawnDist) {
                             let nx = e.x + d.dx; let ny = e.y + d.dy;
                             if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(oe=>oe.hp>0&&oe.x===nx&&oe.y===ny) && !(nx===s.player.x&&ny===s.player.y)) {
-                                s.enemies.push({ id: 'e_zombie_'+Date.now(), x: nx, y: ny, hp: 10, maxHp: 10, damage: 5, name: `蘇った死者`, type: 'ghost', skin: 'ghost', face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0 } });
+                                s.enemies.push({ id: 'e_zombie_'+Date.now(), x: nx, y: ny, hp: 10, maxHp: 10, damage: 5, name: `蘇った死者`, type: 'ghost', skin: 'ghost', face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0, burn:0, frozen:0 } });
                                 spawned = true; break;
                             }
                         }
@@ -2073,7 +2222,7 @@ window.processDungeonTurn = async function() {
                             for (let rx = e.x - 1; rx <= e.x + 1; rx++) {
                                 if (count >= 3) break;
                                 if (s.grid[ry] && s.grid[ry][rx] !== 1 && !s.enemies.some(oe=>oe.hp>0&&oe.x===rx&&oe.y===ry) && !(rx===s.player.x&&ry===s.player.y)) {
-                                    s.enemies.push({ id: 'e_demon_'+Date.now()+count, x: rx, y: ry, hp: 15, maxHp: 15, damage: 15, name: `小悪魔`, type: 'robot', skin: 'robot_type1', face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0 } });
+                                    s.enemies.push({ id: 'e_demon_'+Date.now()+count, x: rx, y: ry, hp: 15, maxHp: 15, damage: 15, name: `小悪魔`, type: 'robot', skin: 'robot_type1', face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0, burn:0, frozen:0 } });
                                     count++;
                                 }
                             }
@@ -2291,7 +2440,7 @@ window.processDungeonTurn = async function() {
                     let eType = eSkin.split('_')[0]; 
 
                     const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;
-                    s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0 } });
+                    s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0, burn:0, frozen:0 } });
                     
                     if (s.player._isGrinding) window.addDungeonLog(`どこからか 新たな魔物の気配がする...！`, '#FF9800');
                     else window.addDungeonLog(`どこからか魔物の気配がする...`, '#aaa');

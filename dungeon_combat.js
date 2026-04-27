@@ -119,9 +119,14 @@ window.dealDungeonDamage = function(attacker, defender) {
     }
 
     let aAtk = attacker.basePwr || attacker.damage || 5;
-    let dDef = defender.def || 0;
+    let dDef = defender.def || 0;
 
-    // ★ 風船系：仕込んでおいた攻防倍率の適用
+    // ★ 岩系特性：古代文字（杖の近接攻撃力が剣並みに大幅UP）
+    if (aIsPlayer && aTraits.includes('古代文字') && attacker.equipWeapon && typeof window.parseItemString === 'function' && window.parseItemString(attacker.equipWeapon).baseId.includes('wand')) {
+        aAtk = 15 + (attacker.level || 1); 
+    }
+
+    // ★ 風船系：仕込んでおいた攻防倍率の適用
     aAtk = Math.floor(aAtk * (attacker._atkMultiplier || 1.0));
     dDef = Math.floor(dDef * (defender._defMultiplier || 1.0));
 
@@ -185,12 +190,18 @@ window.dealDungeonDamage = function(attacker, defender) {
         }
     } else {
         sEff = defender.equipShield ? window.getDungeonItemEffect(defender.equipShield) : null;
-        if (sEff) dDef += sEff.def;
-        // ★ 特性：頑丈な装甲 / 重装甲
-        if (dTraits.includes('重装甲')) dDef += 6;
-        else if (dTraits.includes('頑丈な装甲')) dDef += 3;
-        
-        // ★ カブトムシ系特性：硬い外殻（防御力+2）
+        if (sEff) dDef += sEff.def;
+        // ★ 特性：頑丈な装甲 / 重装甲 / 鋼の鎧
+        if (dTraits.includes('鋼の鎧')) dDef += 8;
+        else if (dTraits.includes('重装甲')) dDef += 6;
+        else if (dTraits.includes('頑丈な装甲')) dDef += 3;
+        
+        // ★ 岩系特性：守り神（同じ部屋に長く留まるほど防御力UP）
+        if (dTraits.includes('守り神') && defender._guardianRoomTurns > 0) {
+            dDef += Math.floor(defender._guardianRoomTurns / 5);
+        }
+
+        // ★ カブトムシ系特性：硬い外殻（防御力+2）
         if (dTraits.includes('硬い外殻')) dDef += 2;
         
         // ★ カブトムシ系特性：群れの統率者（満腹度80%以上で防御力大幅UP）
@@ -267,17 +278,46 @@ window.dealDungeonDamage = function(attacker, defender) {
     }
 
     let finalSealDmg = isDoubleSeal ? sealBonus * 2 : sealBonus;
-    dmg += finalSealDmg;
+    
+    // ★ 岩系特性：地熱吸収（炎の印ダメージを無効化して吸収）
+    if (!aIsPlayer && dTraits.includes('地熱吸収') && wEff && wEff.traits.includes('fire')) {
+        defender.hp = Math.min(defender.maxHp, defender.hp + finalSealDmg);
+        window.addDungeonLog(`🌋 地熱吸収！ 炎のダメージを吸収して回復した！`, '#4CAF50');
+        finalSealDmg = 0; 
+    }
+    dmg += finalSealDmg;
 
-    // ★ 特性：古代の盾
+    // ★ 岩系敵特性：プリズムアーマー（同じ属性の連続攻撃を大幅軽減）
+    if (!aIsPlayer && defender.skin === 'stone_type2_2') {
+        let currentDmgType = finalSealDmg > 0 ? 'magic' : 'physical'; // 印ダメージがあれば魔法判定
+        if (defender._lastDmgType === currentDmgType) {
+            dmg = Math.max(1, Math.floor(dmg / 4));
+            window.addDungeonLog(`💎 プリズムアーマー！ 連続する同属性の攻撃を大幅に軽減した！`, '#00BCD4');
+        }
+        defender._lastDmgType = currentDmgType;
+    }
+
+    // ★ 特性：古代の盾
     if (!aIsPlayer && dTraits.includes('古代の盾')) dmg = Math.max(1, dmg - 5);
     // ★ 敵特性：神託の盾（偶数ターンはダメージ1）
-    if (aIsPlayer && defender.skin && defender.skin.includes('robot_type3_3') && (s.turnCount || 0) % 2 === 0) {
-        window.addDungeonLog(`神託の盾が輝き、ダメージが 1 に軽減された！`, '#00BCD4');
-        dmg = 1;
-    }
+    if (aIsPlayer && defender.skin && defender.skin.includes('robot_type3_3') && (s.turnCount || 0) % 2 === 0) {
+        window.addDungeonLog(`神託の盾が輝き、ダメージが 1 に軽減された！`, '#00BCD4');
+        dmg = 1;
+    }
 
-    // ★ 敵特性：データ吸収（HPではなく満腹度を奪う）
+    // ★ 岩系特性：悪霊払い（アンデッドからのダメージ半減）
+    if (!aIsPlayer && dTraits.includes('悪霊払い') && (attacker.type === 'ghost' || attacker.type === 'spirit')) {
+        dmg = Math.max(1, Math.floor(dmg / 2));
+        window.addDungeonLog(`✝️ 悪霊払い！ 亡霊からのダメージを半減した！`, '#00BCD4');
+    }
+
+    // ★ 岩系敵特性：鉄壁（HP満タン時にプレイヤーからのダメージを1にする）
+    if (aIsPlayer && defender.skin === 'stone_type4_2' && defender.hp >= defender.maxHp) {
+        dmg = 1;
+        window.addDungeonLog(`🛡️ 鉄壁！ 無傷の ${defender.name} にはまともなダメージが通らない！`, '#aaa');
+    }
+
+    // ★ 敵特性：データ吸収（HPではなく満腹度を奪う）
     if (!aIsPlayer && attacker.skin && attacker.skin.includes('robot_type1_2')) {
         window.addDungeonLog(`データ吸収！ ${defender.name} の満腹度が奪われた！`, '#9C27B0');
         defender.hunger = Math.max(0, defender.hunger - dmg);
@@ -451,9 +491,22 @@ window.dealDungeonDamage = function(attacker, defender) {
             if (aTraits.includes('カラスの嗅覚') && dropChance < 0.2) dropChance = 0.2; // 嗅覚持ちはベースのドロップ率も少し上げる
             
             // ★ カブトムシ系特性：希少種（ドロップ率 +20%）
-            if (aTraits.includes('希少種')) dropChance += 0.2;
+            if (aTraits.includes('希少種')) dropChance += 0.2;
+            // ★ 岩系特性：宝石の煌めき（ドロップ率 +20%）
+            if (aTraits.includes('宝石の煌めき')) dropChance += 0.2;
 
-            if (Math.random() < dropChance) {
+            // ★ 岩系特性：双極の力（攻撃時に確率で火傷か凍結）
+            if (aIsPlayer && aTraits.includes('双極の力') && Math.random() < 0.25) {
+                if (Math.random() < 0.5) {
+                    defender.status.burn = (defender.status.burn || 0) + 5;
+                    window.addDungeonLog(`🔥 双極の力！ ${defender.name} を火傷状態にした！`, '#FF5252');
+                } else {
+                    defender.status.frozen = (defender.status.frozen || 0) + 2;
+                    window.addDungeonLog(`❄️ 双極の力！ ${defender.name} を凍らせた！`, '#00BCD4');
+                }
+            }
+
+            if (Math.random() < dropChance) {
                 let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
                 let droppedKey = items[Math.floor(Math.random() * items.length)];
 
@@ -602,9 +655,22 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         }
 
         // --- 1. プレイヤー(防御側)のバフ ---
-        // ★ 魔法使い系特性：万物の法則（魔法・属性ダメージを完全に 0 にする）
-        if ((isMagic || eSkin === 'balloon_type4_2') && activeTraits.includes('万物の法則')) {
-            finalDamage = 0;
+        // ★ 岩系特性：光の屈折（魔法ダメージを20%軽減）
+        if (isMagic && activeTraits.includes('光の屈折')) {
+            finalDamage = Math.max(1, Math.floor(finalDamage * 0.8));
+            window.addDungeonLog(`💎 光の屈折が魔法ダメージを軽減した！`, '#00BCD4');
+        }
+
+        // ★ 岩系特性：地熱吸収（炎魔法のダメージを吸収）
+        if ((isMagic || eSkin === 'balloon_type4_2') && activeTraits.includes('地熱吸収') && (eSkin.includes('fire') || eSkin.includes('magician') || eSkin.includes('balloon'))) {
+            s.player.hp = Math.min(s.player.maxHp, s.player.hp + finalDamage);
+            window.addDungeonLog(`🌋 地熱吸収！ 炎や魔法の熱を吸収して回復した！`, '#4CAF50');
+            return;
+        }
+
+        // ★ 魔法使い系特性：万物の法則（魔法・属性ダメージを完全に 0 にする）
+        if ((isMagic || eSkin === 'balloon_type4_2') && activeTraits.includes('万物の法則')) {
+            finalDamage = 0;
             window.addDungeonLog(`🌌 万物の法則がすべての属性ダメージを無に帰した！`, '#00BCD4');
             return;
         }
@@ -801,32 +867,48 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         let gainedSleep = s.player.status.sleep > (oldStatus.sleep || 0);
         let gainedConfusion = s.player.status.confusion > (oldStatus.confusion || 0);
         let gainedParalyze = s.player.status.paralyzed > (oldStatus.paralyzed || 0);
-        let gainedPetrify = s.player.status.petrified > (oldStatus.petrified || 0);
-        let gainedFear = s.player.status.fear > (oldStatus.fear || 0);
+        let gainedPetrify = s.player.status.petrified > (oldStatus.petrified || 0);
+        let gainedFear = s.player.status.fear > (oldStatus.fear || 0);
+        let gainedBurn = s.player.status.burn > (oldStatus.burn || 0);
+        let gainedFrozen = s.player.status.frozen > (oldStatus.frozen || 0);
 
-        // ★ 機械系：自然適応（毒・睡眠・麻痺などの自然系状態異常を無効化）
-        if (activeTraits.includes('自然適応') && (gainedPoison || gainedSleep || gainedParalyze)) {
-            if (gainedPoison) s.player.status.poison = oldStatus.poison || 0;
-            if (gainedSleep) s.player.status.sleep = oldStatus.sleep || 0;
-            if (gainedParalyze) s.player.status.paralyzed = oldStatus.paralyzed || 0;
-            window.addDungeonLog(`🛡️⚙️ 自然適応！ 機械の体は自然界の異常を完全にシャットアウトした！`, '#00BCD4');
-            gainedPoison = false;
-            gainedSleep = false;
-            gainedParalyze = false;
-        }
+        // ★ 岩系特性：漆黒の鏡（受けたデバフを完全に無効化し、攻撃者にそのまま返す）
+        if (activeTraits.includes('漆黒の鏡') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen)) {
+            if (gainedPoison) { attacker.status.poison = (attacker.status.poison || 0) + 5; s.player.status.poison = oldStatus.poison || 0; }
+            if (gainedSleep) { attacker.status.sleep = (attacker.status.sleep || 0) + 3; s.player.status.sleep = oldStatus.sleep || 0; }
+            if (gainedConfusion) { attacker.status.confusion = (attacker.status.confusion || 0) + 5; s.player.status.confusion = oldStatus.confusion || 0; }
+            if (gainedParalyze) { attacker.status.paralyzed = (attacker.status.paralyzed || 0) + 3; s.player.status.paralyzed = oldStatus.paralyzed || 0; }
+            if (gainedPetrify) { attacker.status.petrified = (attacker.status.petrified || 0) + 3; s.player.status.petrified = oldStatus.petrified || 0; }
+            if (gainedFear) { attacker.status.fear = (attacker.status.fear || 0) + 3; s.player.status.fear = oldStatus.fear || 0; }
+            if (gainedBurn) { attacker.status.burn = (attacker.status.burn || 0) + 5; s.player.status.burn = oldStatus.burn || 0; }
+            if (gainedFrozen) { attacker.status.frozen = (attacker.status.frozen || 0) + 2; s.player.status.frozen = oldStatus.frozen || 0; }
+            window.addDungeonLog(`🪞 漆黒の鏡！ 呪いを完全に反射した！`, '#9C27B0');
+        }
 
-        if (activeTraits.includes('毒ガスタンク') && gainedPoison) {
-            s.player.atkBuff = (s.player.atkBuff || 0) + 5;
-            window.addDungeonLog(`🎈 毒ガスタンク起動！ 毒を力に変えて攻撃力が上がった！`, '#FFD700');
-        }
-        if (activeTraits.includes('美しき反射') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear)) {
-            let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
-            if (adj.length > 0) {
-                adj.forEach(e => {
-                    if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
-                    if (gainedSleep || gainedParalyze || gainedFear || gainedPetrify) e.status.sleep = (e.status.sleep || 0) + 3;
-                    if (gainedConfusion) e.status.confusion = (e.status.confusion || 0) + 5;
-                });
+        // ★ 機械系：自然適応（毒・睡眠・麻痺などの自然系状態異常を無効化）
+        if (activeTraits.includes('自然適応') && (gainedPoison || gainedSleep || gainedParalyze || gainedBurn || gainedFrozen)) {
+            if (gainedPoison) s.player.status.poison = oldStatus.poison || 0;
+            if (gainedSleep) s.player.status.sleep = oldStatus.sleep || 0;
+            if (gainedParalyze) s.player.status.paralyzed = oldStatus.paralyzed || 0;
+            if (gainedBurn) s.player.status.burn = oldStatus.burn || 0;
+            if (gainedFrozen) s.player.status.frozen = oldStatus.frozen || 0;
+            window.addDungeonLog(`🛡️⚙️ 自然適応！ 機械の体は自然界の異常を完全にシャットアウトした！`, '#00BCD4');
+            gainedPoison = false; gainedSleep = false; gainedParalyze = false; gainedBurn = false; gainedFrozen = false;
+        }
+
+        if (activeTraits.includes('毒ガスタンク') && gainedPoison) {
+            s.player.atkBuff = (s.player.atkBuff || 0) + 5;
+            window.addDungeonLog(`🎈 毒ガスタンク起動！ 毒を力に変えて攻撃力が上がった！`, '#FFD700');
+        }
+        if (activeTraits.includes('美しき反射') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen)) {
+            let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
+            if (adj.length > 0) {
+                adj.forEach(e => {
+                    if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
+                    if (gainedBurn) e.status.burn = (e.status.burn || 0) + 5;
+                    if (gainedSleep || gainedParalyze || gainedFear || gainedPetrify || gainedFrozen) e.status.sleep = (e.status.sleep || 0) + 3;
+                    if (gainedConfusion) e.status.confusion = (e.status.confusion || 0) + 5;
+                });
                 window.addDungeonLog(`🪞 美しき反射！ 受けた状態異常を周囲の敵にそっくりそのまま返した！`, '#E040FB');
             }
         }
