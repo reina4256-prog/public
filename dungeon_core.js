@@ -58,6 +58,9 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     if (window.dungeonState) window.dungeonState = null; // リセット
     
     let currentSkin = 'robot'; let currentType = 'robot';
+    // ★追加：ペットの名前を取得（無ければ "AI" にする）
+    let pName = (window.aiPet && window.aiPet.name) ? window.aiPet.name : "AI"; 
+
     if (window.aiPet) {
         currentSkin = window.aiPet.currentSkin || window.aiPet.baseType || 'robot';
         currentType = currentSkin.split('_')[0]; 
@@ -65,6 +68,7 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     
     s.player.type = currentType;
     s.player.skin = currentSkin;
+    s.player.name = pName; // ★修正：プレイヤーのデータに名前をセット（これでundefinedになりません！）
     s.player.atkBuff = 0; s.player.defBuff = 0;
 
     // ★追加：育成モードからのステータス引継ぎ
@@ -91,7 +95,8 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
             s.player.hp = Math.max(1, Math.floor(s.player.maxHp * (pEnergy / 100))); // 現在の体力割合
             s.player.hunger = pHunger; // 満腹度を引き継ぐ
             s.player.basePwr = pwr;
-            s.player.tempInventory = window.aiPet.inventory ? [...window.aiPet.inventory] : [];
+            // ★ オブジェクトのまま持ち込まないよう、純粋な文字列のIDだけを抽出して持ち込む！
+            s.player.tempInventory = window.aiPet.inventory ? window.aiPet.inventory.map(i => typeof i === 'string' ? i : i.id).filter(i => i) : [];
         }
     }
     
@@ -238,7 +243,6 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
         </div>
     `;
     
-    let pName = (window.aiPet && window.aiPet.name) ? window.aiPet.name : "AI";
     dungeonUI.style.display = 'flex';
     window.addDungeonLog(`=== ${pName} の冒険が始まった ===`, titleColor); 
     
@@ -299,9 +303,10 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
         // ★大改修：クリスタルダンジョンでも生還すれば道中のアイテムを持ち帰れる！
         if (!isGameOver || isRescued) {
             if (s.mapType === 'skull') {
-                window.aiPet.inventory = [...s.player.tempInventory]; 
+                // ★ 持ち帰る時に「鮮度(age: 0)」のオブジェクト形式に再変換して村へ返す！
+                window.aiPet.inventory = s.player.tempInventory.map(i => ({ id: i, age: 0 })); 
             } else if (s.mapType === 'crystal') {
-                s.player.tempInventory.forEach(item => window.aiPet.inventory.push(item));
+                s.player.tempInventory.forEach(item => window.aiPet.inventory.push({ id: item, age: 0 }));
             }
         } else {
             if (s.mapType === 'skull') {
@@ -310,7 +315,7 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
             // クリスタルで死んだ場合は、元々のインベントリは失われない
         }
         
-        itemsReward.forEach(item => window.aiPet.inventory.push(item)); 
+        itemsReward.forEach(item => window.aiPet.inventory.push({ id: item, age: 0 })); 
         if (typeof saveGameData === 'function') saveGameData();
         
         if (typeof updateStatUI === 'function') updateStatUI();

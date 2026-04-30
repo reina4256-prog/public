@@ -39,6 +39,20 @@ window.DUNGEON_TRAIT_DICT = {
     'machine_type1_2': { player: { name: 'ガラクタ吸収', desc: 'インベントリのアイテムを「食べる（消化）」ことでHPを回復できる。' }, enemy: '同化' },
     'machine_type3_2': { player: { name: '特異点', desc: 'ワープの罠や風船移動時、着地先に敵がいない安全な場所が選ばれる。' }, enemy: '次元跳躍' },
 
+    // 【ゴースト系】
+    'ghost': { player: { name: '幽体', desc: '壁の中を移動できる（壁の中にいる間は毎ターンHPを消費）。' }, enemy: 'すり抜け' },
+    'ghost_type2': { player: { name: '浄化の光', desc: '呪われた装備品を装備した瞬間、自動的に解呪する。' }, enemy: '誘いの光' },
+    'ghost_type4': { player: { name: '念動力', desc: '部屋内のアイテムを自動的に足元へ引き寄せる。' }, enemy: 'ポルターガイスト' },
+    'ghost_type5': { player: { name: '古の霊体', desc: '空腹によるHP減少ダメージを完全に無効化する。' }, enemy: '忘却の霧' },
+    'ghost_type1': { player: { name: '魂狩り', desc: '敵を倒した時、自分のHPが 10 回復する。' }, enemy: '死神の鎌' },
+    'ghost_type3': { player: { name: '学識', desc: '「巻物」を使用した時の効果が、確率で2回連続で発動する。' }, enemy: '知識吸収' },
+    'ghost_type3_2': { player: { name: '読心術', desc: '敵の攻撃を必ず見切る（パリィ）確率が +15% される。' }, enemy: '精神干渉' },
+    'ghost_type2_2': { player: { name: '天使の加護', desc: '毎ターンHPが大幅に回復し、アンデッド系から攻撃されなくなる。' }, enemy: 'ホーリーライト' },
+    'ghost_type4_2': { player: { name: '霊的腕力', desc: '武器を装備していない時の攻撃力が大幅に高くなる。' }, enemy: '実体化' },
+    'ghost_type5_2': { player: { name: '王の威厳', desc: '自分よりレベルの低い敵が、近づくと「怯え」て逃げていくようになる。' }, enemy: '王の呪い' },
+    'ghost_type1_2': { player: { name: '冥界の使者', desc: '通常攻撃時、5%の確率でどんな敵も一撃で即死させる。' }, enemy: '死の宣告' },
+    'ghost_type3_3': { player: { name: '不死の大魔導', desc: '魔法アイテム（杖）の効果範囲が広がり、威力が 3倍 になる。' }, enemy: '魔法反射' },
+
     // 【風船系】
     'balloon': { player: { name: '弾む体', desc: '敵から受けるノックバック（吹き飛ばし）ダメージを無効化する。' }, enemy: '浮遊' },
     'balloon_type2': { player: { name: '虹色の膜', desc: '炎や氷などの「属性ダメージ」を半減する。' }, enemy: 'シャボンバリア' },
@@ -128,24 +142,24 @@ window.DUNGEON_TRAIT_DICT = {
     'spirit_type5_2': { player: { name: '哀愁の波動', desc: '同じ部屋にいる敵の攻撃力を 10% 低下させる。' }, enemy: '落葉の目眩まし' },
     'spirit_type5_3': { player: { name: '耐冷構造', desc: '「水」や「氷」の地形効果を無効化し、攻撃力が上がる。' }, enemy: '凍結の吐息' },
     'spirit_type1_2': { player: { name: '怨念の根', desc: '通常攻撃時、与えたダメージの 30% をHPとして吸収する。' }, enemy: '死の絶叫' },
-    'spirit_type3_2': { player: { name: '世界樹の記憶', desc: 'フロアに降りた瞬間、マップ全域と階段の位置が完全に判明する。' }, enemy: '因果改変' },
+    'spirit_type3_2': { player: { name: '世界樹の記憶', desc: 'フロアに降りた瞬間、マップ全域と階段の位置が完全に判明する。' }, enemy: '因果改変' },
 
-    // ==========================================
-    // ★ 岩系（ゴーレム系）（全13種）
-    // ==========================================
-    'stone': { player: { name: '石の体', desc: '敵から受ける吹き飛ばし効果を完全に無効化する。' }, enemy: '鈍重' },
-    'stone_type2': { player: { name: '光の屈折', desc: '敵からの魔法ダメージを 20% 軽減する。' }, enemy: 'クリスタル・レイ' },
-    'stone_type4': { player: { name: '地熱吸収', desc: '炎属性のダメージを無効化し、吸収してHPを回復する。' }, enemy: '灼熱の体' },
-    'stone_type4_2': { player: { name: '鋼の鎧', desc: '基礎防御力が常に +8 される（基本特性を上書き）。' }, enemy: '鉄壁' },
-    'stone_type5': { player: { name: '守り神', desc: 'そのフロアで同じ部屋に長く留まるほど、防御力が少しずつ上がっていく。' }, enemy: '擬態' },
-    'stone_type1': { player: { name: '悪霊払い', desc: 'アンデッド・ゴースト系の敵から受けるダメージを半減する。' }, enemy: '石化睨み' },
-    'stone_type3': { player: { name: '古代文字', desc: '魔法の杖を近接武器として振って殴った時のダメージが、剣並みに高くなる。' }, enemy: 'ルーン設置' },
-    'stone_type2_2': { player: { name: '宝石の煌めき', desc: '魅了の成功率が大幅に上がり、敵がアイテムを落とす確率も上昇する。' }, enemy: 'プリズムアーマー' },
-    'stone_type4_3': { player: { name: '星の砕き手', desc: '壁を壊したとき、稀に「しあわせの種」などのレアアイテムが出現する。' }, enemy: '隕石落とし' },
-    'stone_type5_2': { player: { name: '大地の鼓動', desc: 'マップ上の罠を意図的に踏み潰して破壊できるようになる。' }, enemy: '箱庭の理' },
-    'stone_type5_3': { player: { name: '双極の力', desc: '通常攻撃時、確率で敵を火傷（毎ターンダメージ）か凍結（行動不可）にする。' }, enemy: '熱膨張と凍結' },
-    'stone_type1_2': { player: { name: '漆黒の鏡', desc: '敵から受けたデバフ（毒やステータス低下など）を無効化し、相手にそのまま跳ね返す。' }, enemy: '生命吸収' },
-    'stone_type3_2': { player: { name: '反重力', desc: '罠を浮遊して回避し、水脈の上も自由に歩けるようになる。' }, enemy: '重力操作' }
+    // ==========================================
+    // ★ 岩系（ゴーレム系）（全13種）
+    // ==========================================
+    'stone': { player: { name: '石の体', desc: '敵から受ける吹き飛ばし効果を完全に無効化する。' }, enemy: '鈍重' },
+    'stone_type2': { player: { name: '光の屈折', desc: '敵からの魔法ダメージを 20% 軽減する。' }, enemy: 'クリスタル・レイ' },
+    'stone_type4': { player: { name: '地熱吸収', desc: '炎属性のダメージを無効化し、吸収してHPを回復する。' }, enemy: '灼熱の体' },
+    'stone_type4_2': { player: { name: '鋼の鎧', desc: '基礎防御力が常に +8 される（基本特性を上書き）。' }, enemy: '鉄壁' },
+    'stone_type5': { player: { name: '守り神', desc: 'そのフロアで同じ部屋に長く留まるほど、防御力が少しずつ上がっていく。' }, enemy: '擬態' },
+    'stone_type1': { player: { name: '悪霊払い', desc: 'アンデッド・ゴースト系の敵から受けるダメージを半減する。' }, enemy: '石化睨み' },
+    'stone_type3': { player: { name: '古代文字', desc: '魔法の杖を近接武器として振って殴った時のダメージが、剣並みに高くなる。' }, enemy: 'ルーン設置' },
+    'stone_type2_2': { player: { name: '宝石の煌めき', desc: '魅了の成功率が大幅に上がり、敵がアイテムを落とす確率も上昇する。' }, enemy: 'プリズムアーマー' },
+    'stone_type4_3': { player: { name: '星の砕き手', desc: '壁を壊したとき、稀に「しあわせの種」などのレアアイテムが出現する。' }, enemy: '隕石落とし' },
+    'stone_type5_2': { player: { name: '大地の鼓動', desc: 'マップ上の罠を意図的に踏み潰して破壊できるようになる。' }, enemy: '箱庭の理' },
+    'stone_type5_3': { player: { name: '双極の力', desc: '通常攻撃時、確率で敵を火傷（毎ターンダメージ）か凍結（行動不可）にする。' }, enemy: '熱膨張と凍結' },
+    'stone_type1_2': { player: { name: '漆黒の鏡', desc: '敵から受けたデバフ（毒やステータス低下など）を無効化し、相手にそのまま跳ね返す。' }, enemy: '生命吸収' },
+    'stone_type3_2': { player: { name: '反重力', desc: '罠を浮遊して回避し、水脈の上も自由に歩けるようになる。' }, enemy: '重力操作' }
 };
 
 // 進化ツリーの系譜（スタック）を解決する関数
@@ -378,33 +392,154 @@ window.getPlayerDungeonTraits = function(skin) {
     }
 
     // ==========================================
-    // ★ 岩系（ゴーレム系）の系譜
-    // ==========================================
-    if (skin.includes('stone')) {
-        addTrait('stone');
+    // ★ ゴースト系の系譜
+    // ==========================================
+    if (skin.includes('ghost')) {
+        addTrait('ghost');
+        if (['ghost_type2', 'ghost_type4', 'ghost_type5', 'ghost_type1', 'ghost_type3', 'ghost_type3_2'].includes(skin)) {
+            addTrait(skin);
+        } else {
+            if (skin === 'ghost_type2_2') { addTrait('ghost_type2'); addTrait(skin); }
+            else if (skin === 'ghost_type4_2') { addTrait('ghost_type4'); addTrait(skin); }
+            else if (skin === 'ghost_type5_2') { addTrait('ghost_type5'); addTrait(skin); }
+            else if (skin === 'ghost_type1_2') { addTrait('ghost_type1'); addTrait(skin); }
+            else if (skin === 'ghost_type3_3') {
+                if (pastSkins && pastSkins.includes('ghost_type3_2')) { addTrait('ghost_type3_2'); } else { addTrait('ghost_type3'); }
+                addTrait(skin);
+            }
+        }
+    }
 
-        // Gen 1
-        if (['stone_type2', 'stone_type4', 'stone_type4_2', 'stone_type5', 'stone_type1', 'stone_type3'].includes(skin)) {
-            addTrait(skin);
-        }
-        // Gen 2 (履歴解決あり)
-        else {
-            if (skin === 'stone_type2_2') { addTrait('stone_type2'); addTrait(skin); }
-            else if (skin === 'stone_type4_3') {
-                let past = 'stone_type4';
-                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('stone_type4_2')) past = 'stone_type4_2';
-                addTrait(past); addTrait(skin);
-            }
-            else if (skin === 'stone_type5_2' || skin === 'stone_type5_3') { addTrait('stone_type5'); addTrait(skin); }
-            else if (skin === 'stone_type1_2') { addTrait('stone_type1'); addTrait(skin); }
-            else if (skin === 'stone_type3_2') { addTrait('stone_type3'); addTrait(skin); }
-        }
+    // ==========================================
+    // ★ 岩系（ゴーレム系）の系譜
+    // ==========================================
+    if (skin.includes('stone')) {
+        addTrait('stone');
 
-        // 鋼の鎧がある場合、石の体を上書きする（防御特化への変質）
-        if (traits.find(t => t.name === '鋼の鎧')) {
-            traits = traits.filter(t => t.name !== '石の体');
-        }
-    }
+        // Gen 1
+        if (['stone_type2', 'stone_type4', 'stone_type4_2', 'stone_type5', 'stone_type1', 'stone_type3'].includes(skin)) {
+            addTrait(skin);
+        }
+        // Gen 2 (履歴解決あり)
+        else {
+            if (skin === 'stone_type2_2') { addTrait('stone_type2'); addTrait(skin); }
+            else if (skin === 'stone_type4_3') {
+                let past = 'stone_type4';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('stone_type4_2')) past = 'stone_type4_2';
+                addTrait(past); addTrait(skin);
+            }
+            else if (skin === 'stone_type5_2' || skin === 'stone_type5_3') { addTrait('stone_type5'); addTrait(skin); }
+            else if (skin === 'stone_type1_2') { addTrait('stone_type1'); addTrait(skin); }
+            else if (skin === 'stone_type3_2') { addTrait('stone_type3'); addTrait(skin); }
+        }
 
-    return traits;
+        // 鋼の鎧がある場合、石の体を上書きする（防御特化への変質）
+        if (traits.find(t => t.name === '鋼の鎧')) {
+            traits = traits.filter(t => t.name !== '石の体');
+        }
+    }
+
+    // ==========================================
+    // ★ 種系の系譜
+    // ==========================================
+    if (skin.includes('seed')) {
+        addTrait('seed');
+
+        // Gen 1
+        if (['seed_type4', 'seed_type1', 'seed_type5', 'seed_type3', 'seed_type3_2', 'seed_type2'].includes(skin)) {
+            addTrait(skin);
+        }
+        // Gen 2
+        else {
+            if (skin === 'seed_type4_2') { addTrait('seed_type4'); addTrait(skin); }
+            else if (skin === 'seed_type1_2') { addTrait('seed_type1'); addTrait(skin); }
+            else if (skin === 'seed_type5_2') { addTrait('seed_type5'); addTrait(skin); }
+            else if (skin === 'seed_type2_2') { addTrait('seed_type2'); addTrait(skin); }
+            else if (skin === 'seed_type3_3') {
+                let past = 'seed_type3';
+                if (window.aiPet && window.aiPet.pastSkins && window.aiPet.pastSkins.includes('seed_type3_2')) past = 'seed_type3_2';
+                addTrait(past); addTrait(skin);
+            }
+        }
+    }
+
+    // ==========================================
+    // ★ ドラゴン系の系譜
+    // ==========================================
+    if (skin.includes('dragon')) {
+        addTrait('dragon');
+
+        // Gen 1
+        if (['dragon_type4', 'dragon_type1', 'dragon_type5', 'dragon_type3', 'dragon_type2'].includes(skin)) {
+            addTrait(skin);
+        }
+        // Gen 2
+        else {
+            if (skin === 'dragon_type4_2') { addTrait('dragon_type4'); addTrait(skin); }
+            else if (skin === 'dragon_type1_2') { addTrait('dragon_type1'); addTrait(skin); }
+            else if (skin === 'dragon_type5_2') { addTrait('dragon_type5'); addTrait(skin); }
+            else if (skin === 'dragon_type3_2') { addTrait('dragon_type3'); addTrait(skin); }
+            else if (skin === 'dragon_type2_2' || skin === 'dragon_type2_3') { addTrait('dragon_type2'); addTrait(skin); }
+        }
+    }
+
+    // ==========================================
+    // ★ スカルダンジョン用のUIテキスト上書きロジック
+    // ==========================================
+    if (typeof window.DUNGEON_STATE !== 'undefined' && window.DUNGEON_STATE.mapType === 'skull') {
+        const skullDescOverrides = {
+            '学習機能': '敵を倒した際、活力・賢さ・素早さが 1 上がる。',
+            '成金趣味': '敵を倒した時に、確率で「しあわせの種」をドロップする。',
+            '天体観測': 'フロア移動時、ランダムで1〜2個の巻物がフロアに生成される。',
+            'カラスの嗅覚': '敵を倒した時に、確率で「薬草」や「指輪」をドロップする。',
+            '始祖の血': '敵を倒した時、ごく稀に活力が 1 増える。',
+            '骨董品の価値': '敵を倒した時、稀に最大満腹度が増加し、同時に満腹度が全回復する。',
+            '希少種': '敵を倒した時、20%の確率で「しあわせの種」をドロップする。',
+            '宝石の煌めき': '魅了の成功率が大幅に上がり、敵を倒した時に確率で「しあわせの種」を落とす。',
+            '星の砕き手': '壁を壊したとき、稀に「しあわせの種」が出現する。',
+            '夢の鼓動': 'インベントリ内のアイテムが、時間経過で勝手に「しあわせの種」に変化することがある。',
+            '宇宙の樹': '「しあわせの種」を使用した時のステータス上昇値がすべて2倍になる。',
+            '竜の血': '「しあわせの種」を使用した時の活力上昇量が通常より多くなる。'
+        };
+        traits = traits.map(t => {
+            if (skullDescOverrides[t.name]) {
+                // オブジェクトをクローンしてスカル専用のテキストを被せる
+                return { name: t.name, desc: skullDescOverrides[t.name] };
+            }
+            return t;
+        });
+    }
+
+    return traits;
 };
+
+// ★ 新規追加分（ディクショナリへの統合）
+Object.assign(window.DUNGEON_TRAIT_DICT, {
+    // 【種系】
+    'seed': { player: { name: '根張り', desc: '移動せずに「素振り（待機）」をするとHPが回復する。' }, enemy: '光合成' },
+    'seed_type4': { player: { name: '大地の恵み', desc: '薬草を食べたときの最大HP上昇確率が大幅に上がる。' }, enemy: '根のムチ' },
+    'seed_type4_2': { player: { name: '暴食の根', desc: '敵を倒した時、その敵の残り最大HPの10%を自分の最大HPに加算する。' }, enemy: '丸呑み' },
+    'seed_type1': { player: { name: '茨の鎧', desc: '[反]の印がなくても、受けたダメージの 20% を相手に返す。' }, enemy: '毒の茨' },
+    'seed_type1_2': { player: { name: '死の大樹', desc: '敵を倒すと、その場所に「毒の沼」を生成し、後続の敵にダメージを与える。' }, enemy: '寄生種子' },
+    'seed_type5': { player: { name: '侘び寂び', desc: 'アイテムを一切持たずに次の階へ進むと、ステータスが恒久的に上がる。' }, enemy: '盆栽の宇宙' },
+    'seed_type5_2': { player: { name: '化石の記憶', desc: '過去のフロアで落としたり失ったアイテムが、次の階で落ちている確率が上がる。' }, enemy: '珪化木' },
+    'seed_type3': { player: { name: '図書館', desc: '「巻物」の効果範囲が、部屋全体からフロア全体に拡張される。' }, enemy: '知識の葉' },
+    'seed_type3_2': { player: { name: '神経網', desc: 'フロア内のすべての敵の「HPバー」と「向いている方向」がマップで分かる。' }, enemy: '神経接続' },
+    'seed_type3_3': { player: { name: '宇宙の樹', desc: '「しあわせの種」を使用したときのステータス上昇値がすべて2倍になる。' }, enemy: '真理の言葉' },
+    'seed_type2': { player: { name: '芳醇な香り', desc: 'フロアの敵が、自分より他の敵を優先して攻撃するようになる。' }, enemy: '幻惑のアロマ' },
+    'seed_type2_2': { player: { name: 'エデンの果実', desc: '満腹度がMAXの時、すべての状態異常を無効化し、攻撃力が 1.5倍 になる。' }, enemy: '楽園の幻影' },
+
+    // 【ドラゴン系】
+    'dragon': { player: { name: '竜の血', desc: 'レベルアップ時の最大HP上昇量が通常より多い。' }, enemy: '竜の爪' },
+    'dragon_type4': { player: { name: '風切り羽', desc: '素早さによる「回避率の上限」が 80% に引き上げられる。' }, enemy: '滑空突撃' },
+    'dragon_type4_2': { player: { name: '魔竜王', desc: '[怒]の印による反撃ダメージ倍率が 3倍 になり、すべての物理攻撃を粉砕する。' }, enemy: 'メガフレア' },
+    'dragon_type1': { player: { name: '呪いの竜鱗', desc: '呪われた装備をつけている時、その装備のステータス補正が 2倍 になる。' }, enemy: '呪炎のブレス' },
+    'dragon_type1_2': { player: { name: '無限の再生', desc: 'HPが0になっても、満腹度を 50 消費してHP満タンで復活する。' }, enemy: '次元の顎' },
+    'dragon_type5': { player: { name: '古竜の威圧', desc: '敵から「先制攻撃」を絶対に受けない。' }, enemy: '地響き' },
+    'dragon_type5_2': { player: { name: '星の化身', desc: 'すべての地形ダメージを無効化し、壁をすり抜けて移動できる。' }, enemy: '星の鼓動' },
+    'dragon_type3': { player: { name: '海王の力', desc: '水脈のある地形にいる時、毎ターンHPが 10 回復する。' }, enemy: '大津波' },
+    'dragon_type3_2': { player: { name: '宇宙竜', desc: '杖や巻物の魔法を使った時、威力が 5倍 になるが、最大HPの 10% を反動で受ける。' }, enemy: '超新星爆発' },
+    'dragon_type2': { player: { name: 'クリスタルボディ', desc: '[光]や[竜]など、特定の種族への特攻ダメージをすべて無効化する。' }, enemy: 'プリズム・ブレス' },
+    'dragon_type2_2': { player: { name: '天の加護', desc: '敵の攻撃を回避した直後、自分のHPが 5 回復する。' }, enemy: '神の息吹' },
+    'dragon_type2_3': { player: { name: '極光のオーラ', desc: '通常攻撃に、炎・氷・光・闇の属性ダメージがランダムに追加される。' }, enemy: 'オーロラ・イリュージョン' }
+});

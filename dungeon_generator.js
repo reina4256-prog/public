@@ -148,12 +148,15 @@ window.generateDungeonFloor = async function() {
         { id: 'item_ring_haste', name: '俊足の腕輪', weight: 2 }, { id: 'item_ring_heal', name: '回復の指輪', weight: 2 } 
     ];
 
-    // ★ 魔法使い系特性：天体観測（巻物のドロップウェイトを3倍にして実質的な出現数を増やす）
+    // ★ 魔法使い系特性：天体観測
     if (activeTraitsTemp.includes('天体観測')) {
-        dropTable.forEach(item => { if (item.id.includes('scroll')) item.weight *= 3; });
+        if (s.mapType === 'crystal') {
+            // クリスタルの現行仕様：巻物のドロップウェイトを3倍にして実質的な出現数を増やす
+            dropTable.forEach(item => { if (item.id.includes('scroll')) item.weight *= 3; });
+        }
     }
 
-    const trapTypes = [ 
+    const trapTypes = [
         { type: 'poison', name: '毒矢の罠' }, 
         { type: 'mine', name: '地雷' }, 
         { type: 'blind', name: '泥水の罠' }, 
@@ -176,6 +179,9 @@ window.generateDungeonFloor = async function() {
         let eNum = isMH ? (floorMhType === 'large' ? 25 + Math.floor(Math.random()*6) : 10 + Math.floor(Math.random()*3)) : (1 + Math.floor(Math.random()*2));
         let iNum = isMH ? (floorMhType === 'large' ? 15 : 5 + Math.floor(Math.random()*4)) : (idx === 0 ? 0 : 1);
         let tNum = isMH ? (floorMhType === 'large' ? 15 : 5 + Math.floor(Math.random()*4)) : (1 + Math.floor(s.floor/10));
+
+        // ★追加：スカルダンジョンの場合は、床に落ちるアイテム数を強制的に 0 にする！
+        if (s.mapType === 'skull') iNum = 0;
 
         for(let i=0; i<eNum; i++) {
             let pos = getRandomPos(r);
@@ -229,6 +235,37 @@ window.generateDungeonFloor = async function() {
             }
         }
     });
+
+    // ★ 魔法使い系特性：天体観測（スカル限定仕様：フロア生成時、ランダムで1〜2個「巻物」を生成）
+    if (activeTraitsTemp.includes('天体観測') && s.mapType === 'skull') {
+        let scrollCount = 1 + Math.floor(Math.random() * 2);
+        let scrolls = ['item_scroll_sleep', 'item_scroll_confuse', 'item_scroll_identify'];
+        for (let i = 0; i < scrollCount; i++) {
+            let r = s.roomsInfo[Math.floor(Math.random() * s.roomsInfo.length)];
+            let pos = getRandomPos(r);
+            if (pos) {
+                let sc = scrolls[Math.floor(Math.random() * scrolls.length)];
+                s.items.push({ id: `item_${Date.now()}_obs_${i}`, key: sc, name: itemCatalog[sc] ? itemCatalog[sc].name : sc, x: pos.x, y: pos.y });
+            }
+        }
+    }
+
+    // ★ 種系特性：化石の記憶（前フロアでロストしたアイテムを一定確率で配置）
+    if (activeTraitsTemp.includes('化石の記憶') && s.player.lostItems && s.player.lostItems.length > 0) {
+        let newLost = [];
+        s.player.lostItems.forEach((itemKey, idx) => {
+            if (Math.random() < 0.4) { // 40%で再配置
+                let r = s.roomsInfo[Math.floor(Math.random() * s.roomsInfo.length)];
+                let pos = getRandomPos(r);
+                if (pos) {
+                    s.items.push({ id: `item_${Date.now()}_fossil_${idx}`, key: itemKey, name: itemCatalog[itemKey] ? itemCatalog[itemKey].name : itemKey, x: pos.x, y: pos.y });
+                }
+            } else {
+                newLost.push(itemKey); 
+            }
+        });
+        s.player.lostItems = []; // 一旦すべてクリアする
+    }
 
     if (typeof window.fetchRescueRequests === 'function') {
         try {

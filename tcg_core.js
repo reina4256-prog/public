@@ -3588,9 +3588,9 @@ window.saveDeck = function() {
 
 // ★追加：明示的に「閉じる ✖」ボタンを押した時に、カジノロビーに戻るための関数
 window.closeDeckBuilder = function() {
-    document.getElementById('tcg-deck-builder').style.display = 'none';
-    let lobby = document.getElementById('casino-lobby-ui');
-    if (lobby) {
+    document.getElementById('tcg-deck-builder').style.display = 'none';
+    let lobby = document.getElementById('casino-lobby-ui');
+    if (lobby) {
         lobby.style.display = 'flex'; // カジノロビーを再表示する
         // ★追加：ロビーに戻ったので、ロビーBGMを掛け直す
         if (window.audioManager) window.audioManager.playBGM('card_lobby');
@@ -3763,12 +3763,12 @@ window.startBattle = function(enemyData = null) {
                     coinUI.style.opacity = '0';
                     coinUI.style.transition = '0.5s';
                     setTimeout(() => {
-                        coinUI.remove();
+                        coinUI.remove();
 
                         // ★追加：バトル開始（通常）BGMを再生
                         if (window.audioManager) window.audioManager.playBGM('card_main');
-                        
-                        // 初期ドロー (5枚ずつ)
+                        
+                        // 初期ドロー (5枚ずつ)
                         let drawCount = 0;
                         
                         // ★仕様変更：初手で必ずコスト1のカードを1枚確保する（手札事故防止マリガン）
@@ -5433,8 +5433,8 @@ window.openDeckBuilder = function() {
     // ★追加：デッキ編成BGMを再生
     if (window.audioManager) window.audioManager.playBGM('card_deck_build');
 
-    let builderUI = document.getElementById('tcg-deck-builder');
-    const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
+    let builderUI = document.getElementById('tcg-deck-builder');
+    const isUnlocked = window.TCG && window.TCG.myCollection && window.TCG.myCollection.length >= 60;
     
     const uiTitle = isUnlocked ? "🛠️ デッキ編成" : "📖 思い出の整理";
     const uiCountUnit = isUnlocked ? "枚" : "個";
@@ -9952,12 +9952,12 @@ window.finishIntercept = function(targetType, targetIndex) {
 // 3. 盤面描画の修正：敵ターン中に味方のカードが浮き上がるバグを修正
 window._originalRenderBattleBoard_fixAttacker = window._originalRenderBattleBoard_fixAttacker || window.renderBattleBoard;
 window.renderBattleBoard = function() {
-    window._originalRenderBattleBoard_fixAttacker();
+    window._originalRenderBattleBoard_fixAttacker();
 
     // ★追加：描画のたびにBGMの状況（チャンス・ピンチ）を確認
     window.updateTCGBattleBGM();
 
-    const p = window.TCG_BATTLE.player;
+    const p = window.TCG_BATTLE.player;
     const cpu = window.TCG_BATTLE.cpu;
     const isEnemyTurn = window.TCG_BATTLE.isEnemyTurn;
 
@@ -11640,16 +11640,16 @@ window.triggerFieldEffects = async function(timing, isPlayerTurn) {
     
     // HP0になった場合のゲームセット判定
     if (p.hp <= 0) {
-        p.hp = 0; 
+        p.hp = 0; 
         if (window.audioManager) window.audioManager.playBGM('card_lose'); // ★敗北BGM
         window.renderBattleBoard(); window.showBattleMessage("💀 YOU LOSE...\nプレイヤーのHPが0になりました。", true, 5000);
-        setTimeout(() => { document.getElementById('tcg-battle-ui').style.display = 'none'; if(window.audioManager) window.audioManager.restoreMainBGM(); }, 3000);
-    } else if (cpu.hp <= 0) {
-        cpu.hp = 0; 
+        setTimeout(() => { document.getElementById('tcg-battle-ui').style.display = 'none'; if(window.audioManager) window.audioManager.restoreMainBGM(); }, 3000);
+    } else if (cpu.hp <= 0) {
+        cpu.hp = 0; 
         if (window.audioManager) window.audioManager.playBGM('card_victory'); // ★勝利BGM
         window.renderBattleBoard(); window.showBattleMessage("🎉 YOU WIN!!\n敵リーダーのHPが0になりました！", false, 5000);
-        setTimeout(() => { document.getElementById('tcg-battle-ui').style.display = 'none'; if(window.audioManager) window.audioManager.restoreMainBGM(); }, 3000);
-    }
+        setTimeout(() => { document.getElementById('tcg-battle-ui').style.display = 'none'; if(window.audioManager) window.audioManager.restoreMainBGM(); }, 3000);
+    }
 };
 
 // ターン進行の横入りフック（既存の関数を包み込む）

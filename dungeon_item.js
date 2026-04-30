@@ -34,15 +34,16 @@ window.getDungeonItemEffect = function(itemId) {
 
     let parsed = window.parseItemString(itemId);
     let baseId = parsed.baseId; let plus = parsed.plus; let seals = parsed.seals;
-    const s = window.DUNGEON_STATE;
+    const s = window.DUNGEON_STATE || {}; // ★修正: データがない時のクラッシュ防止
+    const p = s.player || {}; // ★修正: データがない時のクラッシュ防止
 
     // --- 未識別名の判定ロジック ---
     let displayName = null;
-    let isIdentified = (s.aiMemory && s.aiMemory.identified.includes(baseId));
-    let activeTraits = (s.player && s.player.skin && window.getPlayerDungeonTraits) ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+    let isIdentified = (s.aiMemory && s.aiMemory.identified && s.aiMemory.identified.includes(baseId));
+    let activeTraits = (p.skin && window.getPlayerDungeonTraits) ? window.getPlayerDungeonTraits(p.skin).map(t => t.name) : [];
 
     // リーフ・スカラー（spirit_type3）なら最初から全識別
-    if (s.player.skin && s.player.skin.includes('spirit_type3')) isIdentified = true;
+    if (p.skin && p.skin.includes('spirit_type3')) isIdentified = true;
 
     if (!isIdentified && s.sessionItemDict && s.sessionItemDict[baseId]) {
         // まだ鑑定されていない場合、偽名をメインにする
@@ -70,7 +71,7 @@ window.getDungeonItemEffect = function(itemId) {
     // ==========================================
     // ★ 修正：表示制御（リザルト画面での印消失バグ対応）
     // ==========================================
-    const isEquipped = (s.player.equipWeapon === itemId || s.player.equipShield === itemId || s.player.equipArmor === itemId || s.player.equipAccessory === itemId);
+    const isEquipped = (p.equipWeapon === itemId || p.equipShield === itemId || p.equipArmor === itemId || p.equipAccessory === itemId);
     
     // 武器や盾は拾った時点で（装備しなくても）＋値と印を常に表示させるように変更
     let isEquipment = baseId.includes('sword') || baseId.includes('shield') || baseId.includes('armor') || baseId.includes('ring');
@@ -145,8 +146,14 @@ window.getDungeonItemEffect = function(itemId) {
     }
 
     if (effect.traits.includes('curse')) {
-        if (effect.atk > 0) effect.atk = Math.max(1, Math.floor(effect.atk / 2));
-        if (effect.def > 0) effect.def = Math.max(1, Math.floor(effect.def / 2));
+        // ★ ドラゴン系特性：呪いの竜鱗（呪われた装備のステータスが半減せず、逆に2倍になる！）
+        if (activeTraits.includes('呪いの竜鱗')) {
+            if (effect.atk > 0) effect.atk *= 2;
+            if (effect.def > 0) effect.def *= 2;
+        } else {
+            if (effect.atk > 0) effect.atk = Math.max(1, Math.floor(effect.atk / 2));
+            if (effect.def > 0) effect.def = Math.max(1, Math.floor(effect.def / 2));
+        }
     }
 
     // ★ 魔法使い系特性：虹色の加護（印スロット制限を実質なくす）
@@ -154,8 +161,10 @@ window.getDungeonItemEffect = function(itemId) {
         effect.maxSeals = 99; 
     }
 
-    // ★ 魔法使い系特性：魔力の才（杖や巻物の威力を1.2倍にするプロパティを付与）
-    if (activeTraits.includes('魔力の才') && (baseId.includes('wand') || baseId.includes('scroll'))) {
+    // ★ 魔法使い系特性：魔力の才 / ゴースト系特性：不死の大魔導
+    if (activeTraits.includes('不死の大魔導') && baseId.includes('wand')) {
+        effect.magicPowerMult = 3.0; // 杖の威力が3倍
+    } else if (activeTraits.includes('魔力の才') && (baseId.includes('wand') || baseId.includes('scroll'))) {
         effect.magicPowerMult = 1.2;
     } else {
         effect.magicPowerMult = 1.0;

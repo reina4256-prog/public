@@ -387,17 +387,17 @@ window.switchMode = function(mode) {
         if(debugOverlay) { debugOverlay.classList.add('active'); if(typeof loadDebugData === 'function') loadDebugData(); }
         
         // UIを隠す
-        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
+        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
 
-    } else if (mode === 'title') {
-        // ★追加：タイトル画面ではゲームUIを全て隠す
-        if(gameControls) gameControls.style.display = 'none'; 
-        if(help) help.style.display = 'none';
-        const sidePanel = document.getElementById('side-panel'); if(sidePanel) { sidePanel.classList.remove('active'); sidePanel.style.display = 'none'; }
-        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
+    } else if (mode === 'title') {
+        // ★追加：タイトル画面ではゲームUIを全て隠す
+        if(gameControls) gameControls.style.display = 'none'; 
+        if(help) help.style.display = 'none';
+        const sidePanel = document.getElementById('side-panel'); if(sidePanel) { sidePanel.classList.remove('active'); sidePanel.style.display = 'none'; }
+        mainUIElements.forEach(el => { if (el) el.style.display = 'none'; });
 
-    } else { 
-        // editor, ai_adjust などの開発モード
+    } else { 
+        // editor, ai_adjust などの開発モード
         if(gameControls) gameControls.style.display = 'none'; 
         if(help) help.style.display = 'block';
         const sidePanel = document.getElementById('side-panel'); if(sidePanel) { sidePanel.classList.add('active'); sidePanel.style.display = 'flex'; }
@@ -2930,17 +2930,17 @@ window.addEventListener('keydown', (e) => {
         if (e.key === 'ArrowUp') { target.y -= step; e.preventDefault(); }
         if (e.key === 'ArrowDown') { target.y += step; e.preventDefault(); }
         if (e.key === 'ArrowLeft') { target.x -= step; e.preventDefault(); }
-        if (e.key === 'ArrowRight') { target.x += step; e.preventDefault(); }
-    }
-    
-    // ★追加：[キーで奥へ、]キーで手前へ移動（Z軸の調整）
-    if (editingTarget === 'title') {
-        if (e.key === '[') { target.z = (target.z || 0) - 1; e.preventDefault(); } // 奥へ
-        if (e.key === ']') { target.z = (target.z || 0) + 1; e.preventDefault(); } // 手前へ
-    }
-    
-    // ★修正：title編集時もRキーで左右反転できるようにする
-    if (key === 'r' && (currentMode === 'editor' || currentMode === 'grazing_editor' || editingTarget === 'title')) target.flip = !target.flip;
+        if (e.key === 'ArrowRight') { target.x += step; e.preventDefault(); }
+    }
+    
+    // ★追加：[キーで奥へ、]キーで手前へ移動（Z軸の調整）
+    if (editingTarget === 'title') {
+        if (e.key === '[') { target.z = (target.z || 0) - 1; e.preventDefault(); } // 奥へ
+        if (e.key === ']') { target.z = (target.z || 0) + 1; e.preventDefault(); } // 手前へ
+    }
+    
+    // ★修正：title編集時もRキーで左右反転できるようにする
+    if (key === 'r' && (currentMode === 'editor' || currentMode === 'grazing_editor' || editingTarget === 'title')) target.flip = !target.flip;
     if (key === 'delete' && (currentMode === 'editor' || currentMode === 'grazing_editor') && selectedAsset) { 
         for(let k in assets) { if (assets[k] === selectedAsset) { delete assets[k]; break; } } 
         selectedAsset = null; 
@@ -3072,13 +3072,13 @@ canvas.addEventListener('mousedown', (e) => {
                 }
 
                 // クラスを外して通常のゲームレイアウト（+AIコマンドセンター）に戻す
-                document.getElementById('canvas-wrapper').classList.remove('fullscreen-mode');
-                
-                if (typeof window.showNewGameLoginChoice === 'function') {
-                    window.showNewGameLoginChoice();
-                } else {
-                    window.executeNewGameInitialization(true);
-                }
+                document.getElementById('canvas-wrapper').classList.remove('fullscreen-mode');
+                
+                if (typeof window.showNewGameLoginChoice === 'function') {
+                    window.showNewGameLoginChoice();
+                } else {
+                    window.executeNewGameInitialization(true);
+                }
             } else if (window.titleMenuHover === 4) { 
                 window.titleConfirmMode = false;
             }
@@ -3089,13 +3089,13 @@ canvas.addEventListener('mousedown', (e) => {
             window.titleConfirmMode = true;
         } else if (window.titleMenuHover === 2) { 
             // クラスを外して通常のゲームレイアウト（+AIコマンドセンター）に戻す
-            document.getElementById('canvas-wrapper').classList.remove('fullscreen-mode');
+            document.getElementById('canvas-wrapper').classList.remove('fullscreen-mode');
 
-            if (!localStorage.getItem('my_player_id') && !window.skipAutoLogin && typeof window.showContinueLoginChoice === 'function') {
-                window.showContinueLoginChoice();
-            } else {
-                window.startActualGame(false);
-            }
+            if (!localStorage.getItem('my_player_id') && !window.skipAutoLogin && typeof window.showContinueLoginChoice === 'function') {
+                window.showContinueLoginChoice();
+            } else {
+                window.startActualGame(false);
+            }
         }
         return;
     }
@@ -3123,7 +3123,7 @@ canvas.addEventListener('mousedown', (e) => {
 });
 
 canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
+    const rect = canvas.getBoundingClientRect(); const mx = (e.clientX - rect.left) * (canvas.width / rect.width); const my = (e.clientY - rect.top) * (canvas.height / rect.height);
     
     // ==========================================
     // ★タイトル画面：マウスホバー判定
@@ -3153,22 +3153,22 @@ canvas.addEventListener('mousemove', (e) => {
         return; 
     }
 
-    if (isDragging && selectedAsset && (currentMode === 'editor' || currentMode === 'grazing_editor')) {
-        selectedAsset.dx = (mx + camera.x) - offsetX; selectedAsset.dy = (my + camera.y) - offsetY; render();
-    } else if (window.isDraggingTitle && currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
-        let t = window.getAdjustTarget();
-        if (t) { t.x = mx - window.titleDragOffsetX; t.y = my - window.titleDragOffsetY; render(); }
-    }
+    if (isDragging && selectedAsset && (currentMode === 'editor' || currentMode === 'grazing_editor')) {
+        selectedAsset.dx = (mx + camera.x) - offsetX; selectedAsset.dy = (my + camera.y) - offsetY; render();
+    } else if (window.isDraggingTitle && currentMode === 'ai_adjust' && typeof editingTarget !== 'undefined' && editingTarget === 'title') {
+        let t = window.getAdjustTarget();
+        if (t) { t.x = mx - window.titleDragOffsetX; t.y = my - window.titleDragOffsetY; render(); }
+    }
 });
 
 window.addEventListener('mouseup', () => { isDragging = false; if (currentMode === 'editor' || currentMode === 'grazing_editor') saveGameData(); });
 
 window.onload = () => { 
-    if(typeof applyTranslations === 'function') applyTranslations();
-    const nav = document.getElementById('nav'); if (nav) nav.style.display = 'none'; 
-    // ★修正：勝手にプレイ画面に切り替わる古い処理を削除（タイトル画面を維持します）
-    // if (!window.isGamePaused) switchMode('play'); 
-    if(typeof processOfflineProgression === 'function') processOfflineProgression();
+    if(typeof applyTranslations === 'function') applyTranslations();
+    const nav = document.getElementById('nav'); if (nav) nav.style.display = 'none'; 
+    // ★修正：勝手にプレイ画面に切り替わる古い処理を削除（タイトル画面を維持します）
+    // if (!window.isGamePaused) switchMode('play'); 
+    if(typeof processOfflineProgression === 'function') processOfflineProgression();
     
     setInterval(() => { 
         if (typeof window.isGamePaused !== 'undefined' && window.isGamePaused) {

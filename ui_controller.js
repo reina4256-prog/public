@@ -1767,15 +1767,15 @@ window.sendChat = function() {
 // ★究極改修：カジノ入室時の専用ロビーとAI連動処理（リッチUI版）
 // ==========================================
 window.openCasino = function() {
-    // ▼▼▼ 追加：カジノに足を踏み入れた時のカードアンロック ▼▼▼
-    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') {
-        window.triggerTCGUnlock('visit_casino', window.aiPet.generation);
-    }
+    // ▼▼▼ 追加：カジノに足を踏み入れた時のカードアンロック ▼▼▼
+    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') {
+        window.triggerTCGUnlock('visit_casino', window.aiPet.generation);
+    }
 
-    // ★追加：カジノ（ロビー）専用BGMを再生
-    if (window.audioManager) {
-        window.audioManager.playBGM('card_lobby');
-    }
+    // ★追加：カジノ（ロビー）専用BGMを再生
+    if (window.audioManager) {
+        window.audioManager.playBGM('card_lobby');
+    }
     
     // カジノ来店フラグ（念のための直接付与）
     if (window.aiPet) {
@@ -1911,15 +1911,15 @@ window.openCasino = function() {
 
 // ★ カジノからAIを確実に退出させる処理
 window.exitCasino = function() {
-    const casinoUI = document.getElementById('casino-lobby-ui');
-    if (casinoUI) casinoUI.style.display = 'none';
+    const casinoUI = document.getElementById('casino-lobby-ui');
+    if (casinoUI) casinoUI.style.display = 'none';
 
-    // ★追加：カジノから出たら、育成モードのキャラクターBGMに戻す
-    if (window.audioManager) {
-        window.audioManager.restoreMainBGM();
-    }
-    
-    if (window.aiPet && window.aiPet.indoorTarget && window.aiPet.indoorTarget.type === 'casino') {
+    // ★追加：カジノから出たら、育成モードのキャラクターBGMに戻す
+    if (window.audioManager) {
+        window.audioManager.restoreMainBGM();
+    }
+    
+    if (window.aiPet && window.aiPet.indoorTarget && window.aiPet.indoorTarget.type === 'casino') {
         window.aiPet.actionState = 'exiting';
         window.aiPet.isIndoors = false;
         window.aiPet.interactionTarget = null;
