@@ -2480,6 +2480,20 @@ aiPet.update = function() {
                     }
                     this.startBuildingInteraction(myHut);
                 }
+                // ==========================================
+                // ★ 追加：作戦会議タスクの初期化
+                // ==========================================
+                else if (task.type === '作戦会議') {
+                    let myHut = assets[task.targetUid];
+                    if (!myHut) {
+                        this.message = "作戦を練る場所(小屋)がまだないみたい...";
+                        this.messageTimer = 180;
+                        task.duration = 0; 
+                        task.aborted = true;
+                        return;
+                    }
+                    this.startBuildingInteraction(myHut);
+                }
                 else {
                     let fType = task.type;
                     if (task.type === 'fish') fType = 'bridge';
@@ -2511,7 +2525,7 @@ aiPet.update = function() {
 
                 if (isSlowTask && !window.isFastForwardLife && !isOneMinutePassed) {
                     // アニメーションの設定
-                    if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study' || task.type === '荷物整理') { this.visualAction = 'study'; } 
+                    if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study' || task.type === '荷物整理' || task.type === '作戦会議') { this.visualAction = 'study'; } 
                     else if (task.type === 'eat') { this.actionState = this.isIndoors ? 'inside' : 'eating'; this.visualAction = 'eat_raw'; } 
                     else if (task.type === 'cook' || task.type === 'shop_work' || task.type === 'smith') { this.visualAction = (myShop?.type === 'smith' || task.type === 'smith') ? 'smith' : 'cook'; }
                     else if (task.type === 'fish') {
@@ -2860,6 +2874,43 @@ aiPet.update = function() {
                             let ui = document.getElementById('hut-storage-ui');
                             if (ui) ui.remove();
                             if (typeof updateStatUI === 'function') updateStatUI();
+                        }
+                    }
+                    // ==========================================
+                    // 🎒 マイホームでの作戦会議 (ダンジョンAIマインド)
+                    // ==========================================
+                    else if (task.type === '作戦会議') {
+                        let myHut = assets[task.targetUid];
+                        if (!myHut) { task.duration = 0; return; }
+
+                        if (!this.isIndoors) {
+                            if (this.actionState === 'idle') this.startBuildingInteraction(myHut);
+                            return;
+                        }
+
+                        this.visualAction = 'study';
+
+                        // 初回入室時に一度だけUIを開く
+                        if (!task._uiOpened) {
+                            task._uiOpened = true;
+                            if (typeof window.openDungeonTacticEditor === 'function') window.openDungeonTacticEditor();
+                        }
+                        
+                        this.message = "明日の探索の作戦を練るよ！";
+                        this.messageTimer = 180;
+
+                        // UI側から _waitingFinish が false にされるまで無限に待機する
+                        if (task._waitingFinish === undefined) task._waitingFinish = true; 
+                        
+                        if (!task._waitingFinish) task.duration = 0; 
+                        else task.duration = 2; // 常に残り時間を保ち、強制終了を防ぐ
+
+                        if (task.duration <= 0) {
+                            this.actionState = 'exiting';
+                            this.isIndoors = false; 
+                            this.indoorTarget = null;
+                            let ui = document.getElementById('dungeon-tactic-editor-ui');
+                            if (ui) ui.style.display = 'none';
                         }
                     }
                 }
@@ -4209,7 +4260,10 @@ aiPet.getMaxVocabulary = function() {
         });
     }
 
-    return base + intelBonus + ageBonus + typeBonus + masterBonus;
+    // ★ 追加：ダンジョンでの閃きによる記憶領域の拡張分
+    let dungeonBonus = (this.apprentice && this.apprentice.dungeonVocabBonus) ? this.apprentice.dungeonVocabBonus : 0;
+
+    return base + intelBonus + ageBonus + typeBonus + masterBonus + dungeonBonus;
 };
 
 // 2. 「なんでも覚える」＆「忘れる」統合処理

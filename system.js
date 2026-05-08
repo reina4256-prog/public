@@ -96,10 +96,19 @@ window.audioManager = {
         this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
         
         let playPromise = this.currentAudio.play();
+        let targetAudioRef = this.currentAudio; // ★追加：今のオーディオ参照を記憶しておく
+        
         if (playPromise !== undefined) {
             playPromise.catch(e => {
-                console.log(`[BGM] ユーザー操作待ちのため再生を保留しました: ${e.name}`);
-                this.currentAudio = null; 
+                // ★大修正：曲の連続切り替えによる意図的な中断（AbortError）は正常な挙動なので無視する！
+                if (e.name === 'AbortError') return;
+                
+                console.log(`[BGM] ユーザー操作待ち、または再生エラーのため保留しました: ${e.name}`);
+                
+                // ★大修正：エラーが起きた曲が「今まさに管理している最新の曲」である場合のみnullにする（多重再生バグ防止）
+                if (this.currentAudio === targetAudioRef) {
+                    this.currentAudio = null; 
+                }
             });
         }
         
@@ -128,6 +137,13 @@ window.audioManager = {
     },
     
     restoreMainBGM: function() {
+        // ==========================================
+        // ★絶対防波堤：ダンジョン探索中は、裏で育成タイマーが動いていても絶対に育成BGMの乱入を許さない！
+        // ==========================================
+        if (typeof window.DUNGEON_STATE !== 'undefined' && window.DUNGEON_STATE.active) {
+            return;
+        }
+
         if (typeof window.DEFENSE_STATE !== 'undefined' && window.DEFENSE_STATE.isEmergency) {
             this.playBGM('defense_start');
             return;

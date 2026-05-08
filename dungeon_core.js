@@ -21,6 +21,32 @@ window.DUNGEON_STATE = {
     enemies: [], grid: [], log: []
 };
 
+// ==========================================
+// ★ 言葉の閃きシステム コアロジック
+// ==========================================
+window.triggerDungeonInspiration = function(wordId) {
+    const ai = window.aiPet;
+    if (!ai || !ai.apprentice) return;
+    if (!ai.apprentice.learnedWords) ai.apprentice.learnedWords = [];
+
+    const cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.id === wordId);
+    if (!cmdInfo) return;
+
+    const wordName = cmdInfo.name;
+    if (ai.apprentice.learnedWords.includes(wordName)) return; // 既に知っていれば何もしない
+
+    // 閃いた！
+    ai.apprentice.learnedWords.push(wordName);
+    ai.apprentice.dungeonVocabBonus = (ai.apprentice.dungeonVocabBonus || 0) + 1; // 記憶容量の永続拡張
+    
+    window.addDungeonLog(`💡 閃き！ ${ai.name || "AI"} は「${wordName}」という言葉を理解した！`, '#FFD700');
+    
+    if (typeof window.showDungeonDamageEffect === 'function' && window.DUNGEON_STATE.player) {
+        window.showDungeonDamageEffect(window.DUNGEON_STATE.player.x, window.DUNGEON_STATE.player.y, "💡", false);
+    }
+    window.updateDungeonUI(); // 即座にUI(使える言葉リスト)に反映
+};
+
 window.dungeonAutoInterval = null;
 
 
@@ -37,20 +63,23 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     const grassNames = randomizeArray(['赤い草', '青い草', '黄色い草', '緑の草', '紫の草', '白い草', '黒い草', '虹色の草', '星型の草']);
     const scrollNames = randomizeArray(['シワシワの巻物', '古びた巻物', '濡れた巻物', '燃えかけの巻物', '金箔の巻物', '血塗られた巻物', '星印の巻物', '無地の巻物']);
     const wandNames = randomizeArray(['曲がった杖', 'まっすぐな杖', 'ドクロの杖', '水晶の杖', '短い杖', '長い杖', '黄金の杖', '黒檀の杖']);
+    const ringNames = randomizeArray(['赤い指輪', '青い指輪', '輝く指輪', 'くすんだ指輪', 'ドクロの指輪', '黄金の指輪', 'ガラスの指輪', 'トゲトゲの指輪']); // ★追加
     
     // 実際のアイテムID
-    const realGrasses = ['herb', 'item_berry', 'item_seed_happy']; // パンや魚は識別済みとする
-    const realScrolls = ['item_scroll_sleep', 'item_scroll_confuse', 'item_scroll_identify']; // ★識別の巻物を後で追加します
+    const realGrasses = ['herb', 'item_berry', 'item_seed_happy']; 
+    const realScrolls = ['item_scroll_sleep', 'item_scroll_confuse', 'item_scroll_identify']; 
     const realWands = ['item_wand_fire', 'item_wand_swap', 'item_wand_blow'];
+    const realRings = ['item_ring_haste', 'item_ring_heal']; // ★追加
     
     // 今回の冒険のハッシュマップ（正体と見た目の紐付け）
     s.sessionItemDict = {};
-    // AIの記憶（完全に識別したか、仮名をつけているか）
-    s.aiMemory = { identified: [], tempNames: {} };
+    // AIの記憶（完全に識別したか、仮名をつけているか、一度装備して一部判明したか）
+    s.aiMemory = { identified: [], tempNames: {}, knownEquips: [] }; // ★修正
 
     realGrasses.forEach((id, idx) => s.sessionItemDict[id] = grassNames[idx]);
     realScrolls.forEach((id, idx) => s.sessionItemDict[id] = scrollNames[idx]);
     realWands.forEach((id, idx) => s.sessionItemDict[id] = wandNames[idx]);
+    realRings.forEach((id, idx) => s.sessionItemDict[id] = ringNames[idx]); // ★追加
 
     // ★追加: デバッグの階層指定があれば優先、無ければ1階から
     let floor = startFloor || (window.dungeonState && window.dungeonState.floor) || 1;
@@ -86,6 +115,7 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
         s.player.nextExp = 20;
         s.player.basePwr = 10;
         s.player.tempInventory = []; 
+        s.player.maxInventory = 20; // ★追加：クリスタル迷宮は厳しい20枠制限
     } else {
         if (window.aiPet) {
             let pwr = window.aiPet.stats.power || 10;
@@ -97,6 +127,7 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
             s.player.basePwr = pwr;
             // ★ オブジェクトのまま持ち込まないよう、純粋な文字列のIDだけを抽出して持ち込む！
             s.player.tempInventory = window.aiPet.inventory ? window.aiPet.inventory.map(i => typeof i === 'string' ? i : i.id).filter(i => i) : [];
+            s.player.maxInventory = Infinity; // ★追加：スカルダンジョンは持ち込み自由（無限大！）
         }
     }
     
@@ -190,7 +221,10 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
         </div>
         <div style="position:absolute; top:0; left:0; width:100%; padding:20px; display:flex; justify-content:space-between; pointer-events:none; box-sizing:border-box; z-index:50;">
             <div style="pointer-events:auto; background:rgba(0,0,0,0.85); padding:15px 20px; border-radius:8px; border:2px solid #555; min-width:300px;">
-                <div style="font-size: 22px; font-weight:bold; color:${titleColor}; margin-bottom:5px;">${titleName} B<span id="dg-floor">1</span>F</div>
+                <div style="font-size: 22px; font-weight:bold; color:${titleColor}; margin-bottom:5px; display:flex; align-items:center; gap:10px;">
+                    <span>${titleName} B<span id="dg-floor">1</span>F</span>
+                    <span id="dg-tactic-badge" style="background:#2196F3; color:white; padding:4px 10px; border-radius:12px; font-weight:bold; font-size:12px; border:2px solid #FFF;">🚩 現在の作戦：AIにまかせる</span>
+                </div>
                 <div style="font-size: 18px;">
                     <span style="display:inline-block; width:100px;">HP: <span id="dg-hp" style="color:#4CAF50; font-weight:bold;">100</span> / <span id="dg-max-hp">100</span></span>
                     <span style="display:inline-block; margin-left:15px;">満腹: <span id="dg-hunger" style="color:#FF9800; font-weight:bold;">100</span>%</span>
@@ -212,34 +246,38 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
             </div>
         </div>
         <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); pointer-events:none; width:100%; display:flex; flex-direction:column; align-items:center; z-index:50;">
-            <div style="background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; display:flex; gap:10px; margin-bottom:15px; pointer-events:auto; border:1px solid #555;">
-                <input type="text" id="dg-chat-input" placeholder="AIに言葉を教える..." style="padding:8px; border-radius:4px; border:none; outline:none; width:200px;">
-                <button onclick="window.processDungeonChat()" style="padding:8px 15px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">送信</button>
+            <div style="background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:15px; pointer-events:auto; border:1px solid #555;">
+                <div style="display:flex; gap:10px; width:100%;">
+                    <input type="text" id="dg-chat-input" placeholder="作戦名を指示..." style="padding:8px; border-radius:4px; border:none; outline:none; width:200px;">
+                    <button onclick="window.processDungeonChat()" style="padding:8px 15px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">作戦変更</button>
+                </div>
+                <button onclick="window.toggleDungeonTacticViewer()" style="width:100%; padding:6px; font-size:12px; font-weight:bold; background:#333; color:#FFC107; border:1px solid #FFC107; border-radius:4px; cursor:pointer; box-shadow:0 2px 4px rgba(0,0,0,0.5);">📋 作戦リスト確認</button>
             </div>
-            <div style="color:#FFD700; font-size:16px; font-weight:bold; margin-bottom:10px; text-shadow:2px 2px 4px #000;">🧠 使える言葉</div>
-            <div id="dg-known-words" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin-bottom:20px; pointer-events:auto;"></div>
-            <div style="display:flex; gap:15px; pointer-events:auto;">
-                <button id="dg-step-btn" onclick="window.processDungeonTurn()" style="padding: 15px 30px; font-size: 20px; font-weight: bold; background: #4CAF50; color: white; border: 4px solid #FFF; border-radius: 16px; cursor: pointer; box-shadow: 0 8px 0 #2E7D32, 0 15px 20px rgba(0,0,0,0.5); transition: transform 0.1s, box-shadow 0.1s;" onmousedown="this.style.transform='translateY(8px)'; this.style.boxShadow='0 0 0 #2E7D32';" onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 0 #2E7D32';">▶ 1ターン</button>
-                <button id="dg-auto-btn" onclick="window.toggleDungeonAuto()" style="padding: 15px 20px; font-size: 18px; font-weight: bold; background: #2196F3; color: white; border: 4px solid #FFF; border-radius: 16px; cursor: pointer; box-shadow: 0 8px 0 #0D47A1, 0 15px 20px rgba(0,0,0,0.5); transition: transform 0.1s, box-shadow 0.1s;" onmousedown="this.style.transform='translateY(8px)'; this.style.boxShadow='0 0 0 #0D47A1';" onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 0 #0D47A1';">🔄 AUTO 開始</button>
+            <div style="display:flex; gap:15px; pointer-events:auto; justify-content:center; width:100%;">
+                <button id="dg-auto-btn" onclick="window.toggleDungeonAuto()" style="width: 250px; padding: 15px 20px; font-size: 22px; font-weight: bold; background: #2196F3; color: white; border: 4px solid #FFF; border-radius: 16px; cursor: pointer; box-shadow: 0 8px 0 #0D47A1, 0 15px 20px rgba(0,0,0,0.5); transition: transform 0.1s, box-shadow 0.1s;" onmousedown="this.style.transform='translateY(8px)'; this.style.boxShadow='0 0 0 #0D47A1';" onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 8px 0 #0D47A1';">🔄 AUTO 開始</button>
             </div>
         </div>
-        <div id="dg-modal-log" style="display:none; position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); width:80%; max-width:600px; height:50%; background:rgba(10,10,15,0.9); border:3px solid #9C27B0; border-radius:12px; padding:20px; flex-direction:column; z-index:100; box-shadow:0 10px 40px rgba(0,0,0,0.8);"><h3 style="color:#FFF; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">📜 冒険の記録</h3><div id="dg-log-area" style="flex:1; overflow-y:auto; color:#ddd; line-height:1.8; font-size:16px; padding-right:10px;"></div><button onclick="window.toggleDungeonModal('log')" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button></div>
-        <div id="dg-modal-minimap" style="display:none; position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(10,10,15,0.8); border:3px solid #2196F3; border-radius:12px; padding:20px; flex-direction:column; align-items:center; z-index:100; box-shadow:0 10px 40px rgba(0,0,0,0.8); width:90vw; max-width:500px; height:80vh; max-height:600px;">
-            <h3 style="color:#FFF; margin-top:0; width:100%; border-bottom:1px solid #555; padding-bottom:10px; text-align:center; flex-shrink:0;">🗺️ ミニマップ</h3>
+        <!-- ★追加：ログとマップを束ねて、自動的に並べるための親コンテナ（Flexbox） -->
+        <div id="dg-modals-container" style="position:absolute; top:45%; left:50%; transform:translate(-50%, -50%); width:95vw; height:75vh; pointer-events:none; z-index:100; display:flex; justify-content:center; align-items:center; gap:20px; flex-wrap:wrap;">
             
-            <div id="dg-minimap-content" style="background:rgba(0,0,0,0.4); border:2px solid #555; position:relative; margin:15px 0; overflow:hidden; flex:1; width:100%; display:flex; justify-content:center; align-items:center;">
-                <style>
-                    #dg-minimap-content canvas {
-                        max-width: 100%;
-                        max-height: 100%;
-                        width: auto !important;
-                        height: auto !important;
-                        object-fit: contain;
-                    }
-                </style>
+            <div id="dg-modal-log" style="display:none; flex: 1 1 400px; max-width:600px; height:100%; max-height:600px; background:rgba(10,10,15,0.9); border:3px solid #9C27B0; border-radius:12px; padding:20px; flex-direction:column; box-shadow:0 10px 40px rgba(0,0,0,0.8); pointer-events:auto; box-sizing:border-box;">
+                <h3 style="color:#FFF; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">📜 冒険の記録</h3>
+                <div id="dg-log-area" style="flex:1; overflow-y:auto; color:#ddd; line-height:1.8; font-size:16px; padding-right:10px;"></div>
+                <button onclick="window.toggleDungeonModal('log')" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>
             </div>
             
-            <button onclick="window.toggleDungeonModal('minimap')" style="padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px; width:100%; flex-shrink:0;">閉じる</button>
+            <div id="dg-modal-minimap" style="display:none; flex: 1 1 400px; max-width:500px; height:100%; max-height:600px; background:rgba(10,10,15,0.8); border:3px solid #2196F3; border-radius:12px; padding:20px; flex-direction:column; align-items:center; box-shadow:0 10px 40px rgba(0,0,0,0.8); pointer-events:auto; box-sizing:border-box;">
+                <h3 style="color:#FFF; margin-top:0; width:100%; border-bottom:1px solid #555; padding-bottom:10px; text-align:center; flex-shrink:0;">🗺️ ミニマップ</h3>
+                
+                <div id="dg-minimap-content" style="background:rgba(0,0,0,0.4); border:2px solid #555; position:relative; margin:15px 0; overflow:hidden; flex:1; width:100%; display:flex; justify-content:center; align-items:center;">
+                    <style>
+                        #dg-minimap-content canvas { max-width: 100%; max-height: 100%; width: auto !important; height: auto !important; object-fit: contain; }
+                    </style>
+                </div>
+                
+                <button onclick="window.toggleDungeonModal('minimap')" style="padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px; width:100%; flex-shrink:0;">閉じる</button>
+            </div>
+
         </div>
     `;
     
@@ -478,24 +516,27 @@ window.processDungeonChat = function() {
         return;
     }
     
-    const maxWords = (typeof ai.getMaxVocabulary === 'function') ? ai.getMaxVocabulary() : 5;
-    if (ai.apprentice.learnedWords.includes(text)) {
-        window.addDungeonLog(`「${text}」はもう知ってるよ！`, '#aaa');
-    } else if (ai.apprentice.learnedWords.length >= maxWords) {
-        window.addDungeonLog(`記憶がいっぱいで「${text}」は覚えられない...`, '#ff5252');
-    } else {
-        ai.apprentice.learnedWords.push(text);
-        window.addDungeonLog(`「${text}」という言葉を学習した！`, '#FFD700');
-        if (typeof saveGameData === 'function') saveGameData();
-    }
+    // ★ 作戦の切り替え処理
+    const s = window.DUNGEON_STATE;
+    s.player.currentTacticName = text; // チャット入力された言葉を現在の作戦名として設定
+    window.addDungeonLog(`📣 作戦を「${text}」に切り替えた！`, '#4fc3f7');
+    
+    if (typeof saveGameData === 'function') saveGameData();
     window.updateDungeonUI();
 };
 
 
 window.toggleDungeonModal = function(type) {
-    const logModal = document.getElementById('dg-modal-log'); const mapModal = document.getElementById('dg-modal-minimap');
-    if (type === 'log') { logModal.style.display = logModal.style.display === 'none' ? 'flex' : 'none'; mapModal.style.display = 'none'; } 
-    else if (type === 'minimap') { mapModal.style.display = mapModal.style.display === 'none' ? 'flex' : 'none'; logModal.style.display = 'none'; if (mapModal.style.display === 'flex') window.drawMinimap(); }
+    const logModal = document.getElementById('dg-modal-log'); 
+    const mapModal = document.getElementById('dg-modal-minimap');
+    
+    // ★修正：もう片方を閉じる処理を削除し、完全に独立して開閉できるようにする
+    if (type === 'log') { 
+        logModal.style.display = logModal.style.display === 'none' ? 'flex' : 'none'; 
+    } else if (type === 'minimap') { 
+        mapModal.style.display = mapModal.style.display === 'none' ? 'flex' : 'none'; 
+        if (mapModal.style.display === 'flex') window.drawMinimap(); 
+    }
 };
 
 window.toggleDungeonAuto = function() {
@@ -720,26 +761,42 @@ const _orig_updateDungeonUI_bgm = window.updateDungeonUI;
 window.updateDungeonUI = function() {
     if (_orig_updateDungeonUI_bgm) _orig_updateDungeonUI_bgm.apply(this, arguments);
 
-    if (!window.DUNGEON_STATE || !window.DUNGEON_STATE.active || !window.audioManager) return;
+    let s = window.DUNGEON_STATE; // ★短縮用に変数化
+    if (!s || !s.active || !window.audioManager) return;
 
-    let targetBGM = window.getDungeonBGM(window.DUNGEON_STATE.mapType, window.DUNGEON_STATE.floor);
+    let targetBGM = window.getDungeonBGM(s.mapType, s.floor);
     const protectedBGMs = ['dungeon_death', 'dungeon_escape', 'dungeon_monsterhouse', 'dungeon_wind'];
     
     // ★オーディオマネージャーのラグを考慮し、最後にリクエストしたBGMを正とする
-    let current = window.DUNGEON_STATE._lastRequestedBGM || window.audioManager.currentBGMType;
+    let current = s._lastRequestedBGM || window.audioManager.currentBGMType;
 
     // フロア移動直後（ターン数が0の時）は、強制的にイベントBGMフラグを解除して通常曲に戻す
-    if ((window.DUNGEON_STATE.floorTurn || 0) === 0 || (window.DUNGEON_STATE.turnCount || 0) === 0) {
+    if ((s.floorTurn || 0) === 0 || (s.turnCount || 0) === 0) {
         if (current === 'dungeon_monsterhouse' || current === 'dungeon_wind') {
-            window.DUNGEON_STATE._lastRequestedBGM = targetBGM;
-            window.audioManager.playBGM(targetBGM);
-            return;
+            
+            // ★大改修：大部屋（開幕）モンスターハウスの誤爆リセットを防止！
+            // 降りた瞬間のログを確認し、開幕MHの場合は曲を止めないようにする
+            let isOpeningMH = false;
+            if (s.logs && s.logs.length > 0) {
+                // ★修正：大部屋開幕時は敵やアイテムの出現ログが大量に流れて押し出されるため、余裕を持って直近50件をチェックする！
+                let recentLogs = s.logs.slice(-50).map(l => typeof l === 'string' ? l : (l.text || ''));
+                if (recentLogs.some(msg => msg.includes('モンスターハウスだ！！') || msg.includes('魔物の巣窟に迷い込んだ！'))) {
+                    isOpeningMH = true;
+                }
+            }
+
+            // 開幕MHではない（＝前の階層のMHや風の警告を引きずっているだけ）場合のみ、通常BGMに戻してリセットする
+            if (!isOpeningMH) {
+                s._lastRequestedBGM = targetBGM;
+                window.audioManager.playBGM(targetBGM);
+                return;
+            }
         }
     }
 
     // ★ 現在リクエストされているBGMがターゲットと違い、かつ保護対象のBGMが鳴っていなければ切り替える
     if (current !== targetBGM && !protectedBGMs.includes(current)) {
-        window.DUNGEON_STATE._lastRequestedBGM = targetBGM;
+        s._lastRequestedBGM = targetBGM;
         window.audioManager.playBGM(targetBGM);
     }
 };
@@ -810,4 +867,458 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
     }
 
     if (_orig_closeDungeonUI_bgm) _orig_closeDungeonUI_bgm.apply(this, arguments);
+};
+
+// ==========================================
+// ★ ダンジョン専用：作戦エディタUIシステム
+// ==========================================
+
+window.initDungeonTactics = function() {
+    if (!window.aiPet) return;
+    if (!window.aiPet.dungeonTactics || window.aiPet.dungeonTactics.length === 0) {
+        window.aiPet.dungeonTactics = [
+            { name: "カスタム作戦1", rules: [{ condition: "always", action: "たたかう" }] },
+            { name: "カスタム作戦2", rules: [{ condition: "always", action: "たたかう" }] },
+            { name: "カスタム作戦3", rules: [{ condition: "always", action: "たたかう" }] }
+        ];
+    }
+};
+
+window.openDungeonTacticEditor = function() {
+    window.initDungeonTactics();
+    
+    let ui = document.getElementById('dungeon-tactic-editor-ui');
+    if (!ui) {
+        ui = document.createElement('div'); ui.id = 'dungeon-tactic-editor-ui';
+        ui.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,5,10,0.95); z-index: 55000; display: flex; flex-direction: column; align-items: center; color: white; font-family: sans-serif; overflow-y: auto; padding:40px; box-sizing:border-box;`;
+        document.body.appendChild(ui);
+    }
+    ui.style.display = 'flex';
+    
+    window.DUNGEON_EDITOR_TACTIC_INDEX = 0;
+    window.renderDungeonTacticEditor();
+};
+
+window.closeDungeonTacticEditor = function() {
+    let ui = document.getElementById('dungeon-tactic-editor-ui');
+    if (ui) ui.style.display = 'none';
+    
+    // AIの待機状態を解除して小屋から出させる（終了シグナルを送信）
+    if (window.aiPet && window.aiPet.schedule && window.aiPet.schedule.length > 0) {
+        if (window.aiPet.schedule[0].type === '作戦会議') {
+            window.aiPet.schedule[0]._waitingFinish = false; 
+        }
+    }
+};
+
+window.showDungeonTacticMsg = function(msg, color = '#4CAF50') {
+    let el = document.getElementById('dungeon-tactic-editor-msg');
+    if (!el) return;
+    el.innerHTML = msg;
+    el.style.color = color;
+    el.style.opacity = 1;
+    clearTimeout(window._dungeonTacticMsgTimer);
+    window._dungeonTacticMsgTimer = setTimeout(() => { el.style.opacity = 0; }, 2000);
+};
+
+// ==========================================
+// ★ ダンジョン用：カテゴリ別スキルパレット表示
+// ==========================================
+window.showDungeonTacticPalette = function(inputElem, rIdx, tIdx, actNum) {
+    document.querySelectorAll('.tactic-suggest-box').forEach(el => el.style.display = 'none');
+    let suggestBox = document.getElementById(`dg-suggest-box-${rIdx}-${actNum}`);
+    if (!suggestBox) return;
+
+    let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    let learnedWords = Array.from(new Set([...baseWords, "たたかう"]));
+
+    if (inputElem.value.trim() === "" || inputElem.value.trim() === inputElem.defaultValue) {
+        // ダンジョン用コマンドのカテゴリ定義
+        let categories = {
+            "🏃 移動・向き": ["うえ", "した", "ひだり", "みぎ", "うえむき", "したむき", "ひだりむき", "みぎむき"],
+            "⚔️ 攻撃・戦闘": ["たたかう", "なげる", "にげる"],
+            "💚 回復・使用": ["かいふく", "たべる", "つかう"],
+            "🎒 アイテム操作": ["そうび", "はずす", "しらべる", "なまえ", "おく", "ごうせい"]
+        };
+
+        let html = '';
+        for (let cat in categories) {
+            let wordsInCat = learnedWords.filter(w => categories[cat].includes(w));
+            
+            if (wordsInCat.length > 0) {
+                html += `<div style="font-weight:bold; color:#FFC107; padding:8px 5px; background:#333; border-bottom:1px solid #555; position:sticky; top:0;">${cat}</div>`;
+                wordsInCat.forEach(w => {
+                    let cmdInfo = typeof window.DUNGEON_AVAILABLE_COMMANDS !== 'undefined' ? window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w) : null;
+                    if (!cmdInfo) return;
+                    html += `<div onclick="window.aiPet.dungeonTactics[${tIdx}].rules[${rIdx}]['action${actNum}'] = '${w}'; window.renderDungeonTacticEditor();" style="padding:10px 8px; cursor:pointer; border-bottom:1px solid #444; background:#222; font-size:12px;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#222'">
+                        <span style="color:#FFF; font-weight:bold; font-size:14px;">${w}</span>
+                    </div>`;
+                });
+            }
+        }
+        if(html === '') html = `<div style="padding:10px; color:#aaa;">使用できる言葉がありません</div>`;
+        suggestBox.innerHTML = html;
+        suggestBox.style.display = 'block';
+    } else {
+        window.updateDungeonTacticSuggest(inputElem, rIdx, tIdx, actNum);
+    }
+};
+
+// サジェスト関数の引数拡張パッチ (UI用)
+window.updateDungeonTacticSuggest = function(inputElem, rIdx, tIdx, actNum) {
+    let val = inputElem.value.trim();
+    let suggestBox = document.getElementById(`dg-suggest-box-${rIdx}-${actNum}`);
+    if (!suggestBox) return;
+
+    let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    let learnedWords = Array.from(new Set([...baseWords, "たたかう"]));
+
+    if (val.length === 0) {
+        window.showDungeonTacticPalette(inputElem, rIdx, tIdx, actNum);
+        return;
+    }
+    
+    let matches = window.DUNGEON_AVAILABLE_COMMANDS.filter(c => learnedWords.includes(c.name) && c.name.includes(val));
+    if (matches.length > 0) {
+        suggestBox.innerHTML = matches.map(c => {
+            return `<div onclick="window.aiPet.dungeonTactics[${tIdx}].rules[${rIdx}]['action${actNum}'] = '${c.name}'; window.renderDungeonTacticEditor();" style="padding:8px; cursor:pointer; border-bottom:1px solid #444; background:#222;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#222'">${c.name}</div>`;
+        }).join('');
+        suggestBox.style.display = 'block';
+    } else {
+        suggestBox.style.display = 'none';
+    }
+};
+
+window.saveDungeonTacticActionIfValid = function(inputElem, rIdx, tIdx, actNum, originalValue) {
+    let val = inputElem.value.trim();
+    if (val === '') {
+        window.aiPet.dungeonTactics[tIdx].rules[rIdx][`action${actNum}`] = '';
+        window.renderDungeonTacticEditor();
+        return;
+    }
+
+    let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    let learnedWords = Array.from(new Set([...baseWords, "たたかう"]));
+
+    if (learnedWords.includes(val) && window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === val)) {
+        window.aiPet.dungeonTactics[tIdx].rules[rIdx][`action${actNum}`] = val;
+        window.renderDungeonTacticEditor();
+    } else {
+        window.showDungeonTacticMsg(`「${val}」はまだ習得していないか、ダンジョンで使えない言葉です！`, '#FF5252');
+        inputElem.value = originalValue; 
+        window.aiPet.dungeonTactics[tIdx].rules[rIdx][`action${actNum}`] = originalValue;
+    }
+};
+
+window.renderDungeonTacticEditor = function() {
+    let ui = document.getElementById('dungeon-tactic-editor-ui'); if (!ui) return;
+    let idx = window.DUNGEON_EDITOR_TACTIC_INDEX;
+    
+    // ★デフォルト作戦をインデックス -1 として扱う
+    let isDefault = (idx === -1);
+    let currentTactic = isDefault ? { name: "AIにまかせる", rules: [{ condition: "always", action1: "（AI独自の生存本能で行動）" }] } : window.aiPet.dungeonTactics[idx];
+
+    let defTab = `<div onclick="window.DUNGEON_EDITOR_TACTIC_INDEX=-1; window.renderDungeonTacticEditor();" style="padding:10px 15px; background:${isDefault ? '#4CAF50' : '#2E7D32'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[基本] AIにまかせる</div>`;
+    let cusTabs = window.aiPet.dungeonTactics.map((t, i) => `<div onclick="window.DUNGEON_EDITOR_TACTIC_INDEX=${i}; window.renderDungeonTacticEditor();" style="padding:10px 15px; background:${!isDefault && i===idx ? '#2196F3' : '#1565C0'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[マイ] ${t.name}</div>`).join('');
+
+    let rulesHtml = "";
+    if (isDefault) {
+        rulesHtml = `<div style="background:#222; padding:15px; border-radius:8px; border:1px solid #4CAF50; color:#ccc; line-height:1.5;">この作戦では、AIはプレイヤーの命令を受けず、自身の知能と生存本能だけを頼りにダンジョンを探索します。<br>（※カスタム作戦のように立ち往生することはありません）</div>`;
+    } else if (typeof window.DUNGEON_TACTIC_CONDITIONS !== 'undefined') {
+        rulesHtml = currentTactic.rules.map((rule, rIdx) => {
+            let condOptions = Object.keys(window.DUNGEON_TACTIC_CONDITIONS).map(k => `<option value="${k}" ${rule.condition === k ? 'selected' : ''}>${window.DUNGEON_TACTIC_CONDITIONS[k]}</option>`).join('');
+
+            return `
+                <div style="display:flex; flex-direction:column; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="font-weight:bold; color:#FF9800; width:50px;">優先度 ${rIdx + 1}</div>
+                        <div style="color:#aaa;">もし</div>
+                        <select onchange="window.aiPet.dungeonTactics[${idx}].rules[${rIdx}].condition = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1.5;">${condOptions}</select>
+                        <div style="color:#aaa;">なら</div>
+                        
+                        <div style="display:flex; flex-direction:column; flex:2; gap:4px;">
+                            <div class="tactic-action-input-wrapper" style="position:relative;">
+                                <input type="text" value="${rule.action1 || ''}" 
+                                    onclick="window.showDungeonTacticPalette(this, ${rIdx}, ${idx}, 1)"
+                                    oninput="window.updateDungeonTacticSuggest(this, ${rIdx}, ${idx}, 1)" 
+                                    onchange="window.saveDungeonTacticActionIfValid(this, ${rIdx}, ${idx}, 1, '${rule.action1 || ''}')"
+                                    placeholder="第1候補 (例:つかう)" style="padding:5px; background:#111; color:#fff; border:1px solid #FFC107; border-radius:4px; width:100%; box-sizing:border-box;">
+                                <div id="dg-suggest-box-${rIdx}-1" class="tactic-suggest-box" style="display:none; position:absolute; top:100%; left:0; width:100%; max-height:200px; overflow-y:auto; background:#111; border:1px solid #555; z-index:100; box-shadow:0 4px 10px rgba(0,0,0,0.8);"></div>
+                            </div>
+                            <div class="tactic-action-input-wrapper" style="position:relative;">
+                                <input type="text" value="${rule.action2 || ''}" 
+                                    onclick="window.showDungeonTacticPalette(this, ${rIdx}, ${idx}, 2)"
+                                    oninput="window.updateDungeonTacticSuggest(this, ${rIdx}, ${idx}, 2)"
+                                    onchange="window.saveDungeonTacticActionIfValid(this, ${rIdx}, ${idx}, 2, '${rule.action2 || ''}')"
+                                    placeholder="第2候補 (例:にげる)" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; width:100%; box-sizing:border-box;">
+                                <div id="dg-suggest-box-${rIdx}-2" class="tactic-suggest-box" style="display:none; position:absolute; top:100%; left:0; width:100%; max-height:150px; overflow-y:auto; background:#111; border:1px solid #555; z-index:100;"></div>
+                            </div>
+                        </div>
+
+                        <div style="display:flex; flex-direction:column; gap:2px;">
+                            <button ${rIdx===0 ? 'disabled style="opacity:0.3"' : `onclick="let r=window.aiPet.dungeonTactics[${idx}].rules; let tmp=r[${rIdx}]; r[${rIdx}]=r[${rIdx}-1]; r[${rIdx}-1]=tmp; window.renderDungeonTacticEditor();"`} style="background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer;">▲</button>
+                            <button ${rIdx===currentTactic.rules.length-1 ? 'disabled style="opacity:0.3"' : `onclick="let r=window.aiPet.dungeonTactics[${idx}].rules; let tmp=r[${rIdx}]; r[${rIdx}]=r[${rIdx}+1]; r[${rIdx}+1]=tmp; window.renderDungeonTacticEditor();"`} style="background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer;">▼</button>
+                        </div>
+                        <button onclick="window.aiPet.dungeonTactics[${idx}].rules.splice(${rIdx}, 1); window.renderDungeonTacticEditor();" style="background:#f44336; color:white; border:none; border-radius:4px; padding:5px; margin-left:5px; cursor:pointer; font-size:11px;">削除</button>
+                    </div>
+                    
+                    ${rule.condition === 'stairs_found' && (rule.action1 === 'した' || rule.action2 === 'した') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 階段のマスへ向かって自動で移動し、フロアを下ります</div>` : ''}
+                    ${rule.condition === 'unexplored_exist' && (rule.action1 === 'しらべる' || rule.action2 === 'しらべる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: マップの未探索エリアへ向かって自動で探索を進めます</div>` : ''}
+                    ${rule.condition === 'monster_house' && (rule.action1 === 'にげる' || rule.action2 === 'にげる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 大部屋を避け、一番近い通路（安全地帯）へ退避します</div>` : ''}
+                    ${rule.condition === 'wind_blowing' && (rule.action1 === 'にげる' || rule.action2 === 'にげる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 風から逃れるため、未探索エリアへ全力で急行します</div>` : ''}
+                    ${rule.condition === 'uncollected_item_exist' && (rule.action1 === 'うえ' || rule.action2 === 'うえ') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: アイテムを拾わずに、上に乗って待機します</div>` : ''}
+                    ${rule.condition.startsWith('on_item_') && ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(rule.action1 || rule.action2) ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: カバンに入れず、足元のアイテムに直接アクションします</div>` : ''}
+                    ${rule.condition === 'on_stairs' && (rule.action1 === 'たたかう' || rule.action2 === 'たたかう') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 体力が満タンになるまで足踏み回復し、終わると次の行動へ移ります</div>` : ''}
+                    ${rule.condition === 'in_room' && (rule.action1 === 'たたかう' || rule.action2 === 'たたかう') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 部屋を歩く際、進行方向へ素振りをして罠を確認しながら慎重に進みます</div>` : ''}
+                </div>
+            `;
+        }).join('');
+    }
+
+    // 💡 注意：updateDungeonTacticSuggest と saveDungeonTacticActionIfValid に引数(候補番号)を足す必要があります。
+    // （サジェスト関数内で action の代わりに action1 / action2 に保存するよう改修）
+
+    ui.innerHTML = `
+        <h2 style="color:#4fc3f7; margin-bottom:10px;">🎒 ダンジョン作戦会議 (AIマインド)</h2>
+        <div id="dungeon-tactic-editor-msg" style="height:20px; margin-bottom:10px; transition:opacity 0.3s; opacity:0; font-weight:bold; text-align:center;"></div>
+        
+        <div style="display:flex; justify-content:center; width:100%; max-width:850px;">
+            <div style="display:flex; border-bottom:2px solid ${isDefault ? '#4CAF50' : '#2196F3'};">
+                ${defTab}${cusTabs}
+            </div>
+        </div>
+        <div style="background:#111; padding:20px; width:100%; max-width:850px; border-radius:0 0 8px 8px; border:2px solid ${isDefault ? '#4CAF50' : '#2196F3'}; border-top:none; box-sizing:border-box;">
+            <div style="margin-bottom:20px; display:flex; align-items:center;">
+                <span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span>
+                <input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.aiPet.dungeonTactics[${idx}].name = this.value;"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px; width:200px;">
+            </div>
+            
+            <div style="margin-bottom:20px; max-height:400px; overflow-y:auto; padding-right:10px;">
+                <p style="color:#aaa; font-size:12px; margin-bottom:10px;">※上にあるルールほど優先して行動します。第1候補ができない時は第2候補を実行します。</p>
+                ${rulesHtml}
+                ${!isDefault ? `<button onclick="window.aiPet.dungeonTactics[${idx}].rules.push({condition:'always', action1: '', action2: ''}); window.renderDungeonTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:10px; cursor:pointer; width:100%; font-weight:bold; margin-top:10px;">＋ 新しいルールを追加する</button>` : ''}
+            </div>
+            
+            ${!isDefault ? `
+                <div style="margin-top:20px; padding:15px; background:#1a1a1a; border:1px dashed #555; border-radius:8px;">
+                    <div style="font-size:13px; color:#FFC107; margin-bottom:10px; font-weight:bold;">✨ おまかせ構築（AIが現在の語彙から自動で考えます）</div>
+                    <div style="display:flex; gap:10px;">
+                        <button onclick="window.autoSetDungeonTactic('offensive', ${idx})" style="flex:1; padding:10px; background:#B71C1C; color:#fff; border:1px solid #E53935; border-radius:4px; cursor:pointer; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.5); transition:0.1s;" onmousedown="this.style.transform='translateY(2px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.5)';">⚔️ ガンガンいく</button>
+                        <button onclick="window.autoSetDungeonTactic('defensive', ${idx})" style="flex:1; padding:10px; background:#1B5E20; color:#fff; border:1px solid #43A047; border-radius:4px; cursor:pointer; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.5); transition:0.1s;" onmousedown="this.style.transform='translateY(2px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.5)';">💚 いのちだいじに</button>
+                        <button onclick="window.autoSetDungeonTactic('explore', ${idx})" style="flex:1; padding:10px; background:#01579B; color:#fff; border:1px solid #1E88E5; border-radius:4px; cursor:pointer; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.5); transition:0.1s;" onmousedown="this.style.transform='translateY(2px)'; this.style.boxShadow='none';" onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 4px rgba(0,0,0,0.5)';">🗺️ 探索優先</button>
+                    </div>
+                </div>
+            ` : ''}
+        </div>
+        <button onclick="window.closeDungeonTacticEditor()" style="margin-top:30px; padding:15px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #777; border-radius:8px; cursor:pointer;">会議を終える</button>
+    `;
+};
+
+// パレット・サジェストの外側をクリックした時に閉じる処理（ダンジョン版）
+if (!window._dgTacticSuggestListenerAdded) {
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.tactic-action-input-wrapper')) {
+            document.querySelectorAll('.tactic-suggest-box').forEach(el => el.style.display = 'none');
+        }
+    });
+    window._dgTacticSuggestListenerAdded = true;
+}
+
+// ==========================================
+// ★ ダンジョン用：おまかせ作戦構築ロジック
+// ==========================================
+window.autoSetDungeonTactic = function(policy, tIdx) {
+    let ai = window.aiPet;
+    if (!ai) return;
+    
+    // AIが現在知っている言葉をリストアップ（「たたかう」は最初から知っている前提）
+    let baseWords = ai.apprentice && ai.apprentice.learnedWords ? ai.apprentice.learnedWords : [];
+    let learnedWords = Array.from(new Set([...baseWords, "たたかう"]));
+
+    // 複数の言葉候補から、AIが知っているものを1つ探して返すヘルパー関数
+    const getKnownWord = (wordCandidates) => {
+        return wordCandidates.find(w => learnedWords.includes(w)) || '';
+    };
+
+    let rules = [];
+
+    // ★ 絶対優先の生存本能（方針に関わらず、知っていれば最上段にセット）
+    let healWord = getKnownWord(["かいふく", "たべる"]);
+    let fleeWord = getKnownWord(["にげる"]);
+    
+    // タイムリミット時は無条件で逃げる（階段・未探索へ急行する文脈解釈を利用）
+    if (fleeWord) rules.push({ condition: 'wind_blowing', action1: fleeWord, action2: '' });
+
+    if (policy === 'offensive') {
+        // --- ⚔️ ガンガンいこうぜ ---
+        let atkWord = getKnownWord(["たたかう", "なげる", "つかう"]);
+        let itemWord = getKnownWord(["つかう", "なげる"]);
+        
+        if (healWord) rules.push({ condition: 'hp_under_30', action1: healWord, action2: fleeWord || atkWord });
+        if (itemWord) rules.push({ condition: 'enemy_count_2_over', action1: itemWord, action2: atkWord });
+        if (atkWord)  rules.push({ condition: 'enemy_adjacent', action1: atkWord, action2: '' });
+        
+        // 敵がいない時はテキトーに移動
+        let moveWord = getKnownWord(["しらべる", "した", "うえ", "みぎ", "ひだり"]);
+        rules.push({ condition: 'always', action1: moveWord || "たたかう", action2: '' });
+
+    } else if (policy === 'defensive') {
+        // --- 💚 いのちだいじに ---
+        if (healWord) rules.push({ condition: 'hp_under_50', action1: healWord, action2: fleeWord });
+        if (fleeWord) rules.push({ condition: 'hp_under_30', action1: fleeWord, action2: healWord });
+        if (fleeWord) rules.push({ condition: 'monster_house', action1: fleeWord, action2: '' }); // モンスターハウスは即退避
+        
+        let statusWord = getKnownWord(["かいふく", "つかう"]);
+        if (statusWord) rules.push({ condition: 'status_bad', action1: statusWord, action2: fleeWord });
+        
+        if (fleeWord) rules.push({ condition: 'enemy_count_2_over', action1: fleeWord, action2: getKnownWord(["たたかう"]) });
+
+        let moveWord = getKnownWord(["しらべる", "した"]);
+        rules.push({ condition: 'always', action1: getKnownWord(["たたかう"]), action2: moveWord });
+
+    } else if (policy === 'explore') {
+        // --- 🗺️ 探索優先 ---
+        if (healWord) rules.push({ condition: 'hp_under_30', action1: healWord, action2: fleeWord });
+        
+        // 階段を見つけたら即降りる（文脈解釈）
+        let stairsWord = getKnownWord(["した"]);
+        if (stairsWord) rules.push({ condition: 'stairs_found', action1: stairsWord, action2: getKnownWord(["たたかう"]) });
+        
+        // 未探索があれば調べる（文脈解釈）
+        let exploreWord = getKnownWord(["しらべる"]);
+        if (exploreWord) rules.push({ condition: 'unexplored_exist', action1: exploreWord, action2: getKnownWord(["たたかう"]) });
+        
+        rules.push({ condition: 'always', action1: getKnownWord(["たたかう"]), action2: exploreWord || stairsWord });
+    }
+
+    // ルールのクリーンアップ（空のルールを排除し、最大8個までに制限）
+    let finalRules = [];
+    rules.forEach(r => {
+        if (r.action1 !== '' || r.action2 !== '') {
+            finalRules.push({
+                condition: r.condition,
+                action1: r.action1,
+                action2: r.action2
+            });
+        }
+    });
+
+    // 構築したルールを適用して再描画
+    ai.dungeonTactics[tIdx].rules = finalRules.slice(0, 8);
+    
+    // 方針名を作戦名に反映
+    let policyNames = { 'offensive': 'ガンガンいく', 'defensive': 'いのちだいじに', 'explore': '探索優先' };
+    ai.dungeonTactics[tIdx].name = policyNames[policy] + " (自動)";
+
+    window.renderDungeonTacticEditor();
+    window.showDungeonTacticMsg(`手持ちの言葉から自動構築しました！`, '#FFD700');
+};
+
+// ==========================================
+// ★ ダンジョン用：作戦リスト確認ウィンドウ（インゲーム用）
+// ==========================================
+window.toggleDungeonTacticViewer = function() {
+    let viewer = document.getElementById('dg-in-battle-tactic-viewer');
+    if (!viewer) {
+        viewer = document.createElement('div');
+        viewer.id = 'dg-in-battle-tactic-viewer';
+        viewer.style.cssText = `position: fixed; top: 10%; left: 10%; width: 80%; height: 80%; background: rgba(10,10,15,0.95); border: 3px solid #00BCD4; border-radius: 12px; padding: 20px; display: none; flex-direction: column; z-index: 70000; box-shadow: 0 10px 40px rgba(0,0,0,0.8); color: white; font-family: sans-serif; box-sizing: border-box;`;
+        document.body.appendChild(viewer);
+    }
+
+    if (viewer.style.display === 'flex') {
+        viewer.style.display = 'none';
+    } else {
+        let ai = window.aiPet;
+        if (!ai || !window.DUNGEON_STATE || !window.DUNGEON_STATE.player) return;
+
+        let myTactics = ai.dungeonTactics || [];
+        let defaultTacticName = "AIにまかせる";
+        
+        // 使える指示ワード一覧
+        let allTacticNames = [`<span style="color:#4CAF50;">${defaultTacticName}</span>`];
+        myTactics.forEach(t => allTacticNames.push(`<span style="color:#2196F3;">${t.name}</span>`));
+
+        let currentTacticName = window.DUNGEON_STATE.player.currentTacticName || defaultTacticName;
+        let currentTactic = currentTacticName === defaultTacticName ? 
+            { name: defaultTacticName, rules: [{ condition: "always", action1: "（AI独自の生存本能で行動）" }] } : 
+            myTactics.find(t => t.name === currentTacticName);
+            
+        if (!currentTactic) currentTactic = { name: "不明な作戦", rules: [] };
+        
+        let rulesHtml = "";
+        if (currentTactic.name === defaultTacticName) {
+            rulesHtml = `<div style="background:#222; padding:15px; border-radius:8px; border:1px solid #4CAF50; color:#ccc; line-height:1.5;">この作戦では、AIはプレイヤーの命令を受けず、自身の知能と生存本能だけを頼りにダンジョンを探索します。<br>（※カスタム作戦のように立ち往生することはありません）</div>`;
+        } else {
+            rulesHtml = currentTactic.rules.map((r, i) => {
+                let condStr = window.DUNGEON_TACTIC_CONDITIONS ? (window.DUNGEON_TACTIC_CONDITIONS[r.condition] || r.condition) : r.condition;
+                let a1 = r.action1 || ''; let a2 = r.action2 || '';
+                let actStr = a1 ? `<span style="font-weight:bold; color:#FFF;">${a1}</span>` : '';
+                if (a2) actStr += ` <span style="color:#aaa; font-size:12px;">(できなければ: ${a2})</span>`;
+                
+                // シナジー可視化（確認用）
+                let synergyHtml = "";
+                if (r.condition === 'stairs_found' && (a1 === 'した' || a2 === 'した')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 階段へ向かって自動で移動し、フロアを下ります</div>`;
+                else if (r.condition === 'unexplored_exist' && (a1 === 'しらべる' || a2 === 'しらべる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: マップの未探索エリアへ向かって自動で探索を進めます</div>`;
+                else if (r.condition === 'monster_house' && (a1 === 'にげる' || a2 === 'にげる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 大部屋を避け、一番近い通路（安全地帯）へ退避します</div>`;
+                else if (r.condition === 'wind_blowing' && (a1 === 'にげる' || a2 === 'にげる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 風から逃れるため、未探索エリアへ全力で急行します</div>`;
+                // ★追加：新しい文脈解釈のヒント
+                else if (r.condition === 'uncollected_item_exist' && (a1 === 'うえ' || a2 === 'うえ')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: アイテムを拾わずに、上に乗って待機します</div>`;
+                else if (r.condition.startsWith('on_item_') && ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a1) || ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a2)) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: カバンに入れず、足元のアイテムに直接アクションします</div>`;
+                else if (r.condition === 'on_stairs' && (a1 === 'たたかう' || a2 === 'たたかう')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 体力が満タンになるまで足踏み回復し、終わると次の行動へ移ります</div>`;
+                else if (r.condition === 'in_room' && (a1 === 'たたかう' || a2 === 'たたかう')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 部屋を歩く際、進行方向へ素振りをして罠を確認しながら慎重に進みます</div>`;
+
+                // ★修正：テレメトリ用に class="dg-rule-row" を確実に付与し、光るための余白(border-left)を設ける
+                return `<div class="dg-rule-row" style="background:#222; padding:8px; border-bottom:1px solid #444; font-size:14px; border-left: 6px solid transparent; transition: all 0.3s ease;">
+                    <span style="color:#FF9800; font-weight:bold;">${i+1}.</span> もし <span style="color:#ddd;">${condStr}</span> なら
+                    ${actStr}
+                    ${synergyHtml}
+                </div>`;
+            }).join('');
+            
+            if (!rulesHtml) rulesHtml = `<div style="color:#888;">ルールが設定されていません。</div>`;
+        }
+
+        viewer.innerHTML = `
+            <h3 style="color:#00BCD4; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">📋 現在の作戦とチャット指示</h3>
+            <div style="font-size:14px; color:#ccc; margin-bottom:10px;">
+                チャット欄に以下の作戦名を入力して送信すると、AIに作戦変更を指示できます。<br>
+                <b>使える指示ワード：</b> ${allTacticNames.join(', ')}
+            </div>
+            <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #444; flex:1; overflow-y:auto;">
+                <div style="color:#FFC107; font-weight:bold; font-size:18px; margin-bottom:10px;">現在の作戦：${currentTactic.name}</div>
+                ${rulesHtml}
+            </div>
+            <button onclick="window.toggleDungeonTacticViewer()" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>
+        `;
+        viewer.style.display = 'flex';
+        
+        // ★追加：モーダルを開いた瞬間に、現在の思考状態をUIに反映させる！
+        if (typeof window.updateTacticTelemetryUI === 'function') window.updateTacticTelemetryUI(window.DUNGEON_STATE);
+    }
+};
+
+// ★ ダンジョン用：AIの装備品品定め（スコアリング）ロジック
+window.evaluateEquipmentScore = function(itemStr, currentEquipStr) {
+    if (!itemStr) return -9999;
+    let eff = typeof window.getDungeonItemEffect === 'function' ? window.getDungeonItemEffect(itemStr) : null;
+    let parsed = typeof window.parseItemString === 'function' ? window.parseItemString(itemStr) : { plus: 0 };
+    if (!eff) return -9999;
+
+    let score = 0;
+    if (eff.traits && eff.traits.includes('curse') && eff.isStatsKnown) return -10000;
+
+    if (itemStr === currentEquipStr) score += 50;
+
+    let maxSeals = eff.maxSeals || 0;
+    let currentTraitsCount = eff.traits ? eff.traits.length : 0;
+    score += (currentTraitsCount * 200); 
+    score += (maxSeals * 150);            
+
+    let atk = eff.atk || 0;
+    let def = eff.def || 0;
+    score += (atk * 15) + (def * 15);
+    score += (parsed.plus * 20);
+
+    return score;
 };

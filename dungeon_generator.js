@@ -4,6 +4,10 @@ window.generateDungeonFloor = async function() {
     s.rescueTargets = []; s.items = []; s.traps = [];
     s.isMHDiscovered = false; 
 
+    // ★追加：過去の階のDOM（マップや敵の画像）の残骸を完全に消し去る！
+    const gridDiv = document.getElementById('dg-grid');
+    if (gridDiv) gridDiv.innerHTML = '';
+
     let floorMhType = 'none';
     let rnd = Math.random();
     if (s.floor > 1 && rnd < 0.03) floorMhType = 'large'; 
@@ -200,8 +204,19 @@ window.generateDungeonFloor = async function() {
                 for (let item of dropTable) { if (rand < item.weight) { dropped = item; break; } rand -= item.weight; }
                 let finalKey = dropped.id;
                 let isEquip = finalKey.includes('sword') || finalKey.includes('shield') || finalKey.includes('armor') || finalKey.includes('ring');
-                if (isEquip && Math.random() < 0.15) finalKey += '_curse';
-                if (finalKey.includes('wand')) finalKey += `_+${3 + Math.floor(Math.random() * 3)}`;
+                
+                // ★大修正：王道ローグライクのマイナス・プラス値の生成
+                if (isEquip) {
+                    if (Math.random() < 0.15) {
+                        let minus = Math.floor(Math.random() * 3) + 1; // -1 から -3 のマイナス値をつける
+                        finalKey += `_-${minus}_curse`;
+                    } else {
+                        let p = Math.floor(Math.random() * 3);
+                        if (p > 0) finalKey += `_+${p}`;
+                    }
+                } else if (finalKey.includes('wand')) {
+                    finalKey += `_+${3 + Math.floor(Math.random() * 3)}`; // 生成時に回数を3〜5回にする
+                }
                 s.items.push({ id: `item_${Date.now()}_${idx}_${i}`, key: finalKey, name: dropped.name, x: pos.x, y: pos.y });
             }
         }

@@ -659,12 +659,14 @@ window.dealDungeonDamage = function(attacker, defender) {
 
             // 実際のドロップ処理
             if (isHappyDrop) {
-                s.player.tempInventory.push('item_seed_happy');
+                // ★修正：カバンへ直接入れず、倒れた敵の座標(defender.x, defender.y)の床に落とす
+                window.scatterItem(s, defender.x, defender.y, 'item_seed_happy');
                 window.addDungeonLog(`敵は しあわせの種 を落とした！`, '#4CAF50');
             } else if (isRareDrop) {
                 let rarePool = ['herb', 'item_ring_haste', 'item_ring_heal'];
                 let rareKey = rarePool[Math.floor(Math.random() * rarePool.length)];
-                s.player.tempInventory.push(rareKey);
+                // ★修正：カバンへ直接入れず、倒れた敵の座標に落とす
+                window.scatterItem(s, defender.x, defender.y, rareKey);
                 window.addDungeonLog(`敵は ${window.getDungeonItemEffect(rareKey).name} を落とした！`, '#4CAF50');
             } else if (Math.random() < dropChance) {
                 let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
@@ -679,8 +681,25 @@ window.dealDungeonDamage = function(attacker, defender) {
                     }
                 }
 
-                s.player.tempInventory.push(droppedKey); 
-                window.addDungeonLog(`敵は ${window.getDungeonItemEffect(droppedKey).name} を落とした！`, '#4CAF50');
+                // ==========================================
+                // ★追加：敵ドロップ時も、装備なら+-や呪い、杖なら回数を生成する
+                // ==========================================
+                let isEquip = droppedKey.includes('sword') || droppedKey.includes('shield') || droppedKey.includes('armor') || droppedKey.includes('ring');
+                if (isEquip) {
+                    if (Math.random() < 0.15) {
+                        let minus = Math.floor(Math.random() * 3) + 1; // -1 から -3 のマイナス値をつける
+                        droppedKey += `_-${minus}_curse`;
+                    } else {
+                        let p = Math.floor(Math.random() * 3);
+                        if (p > 0) droppedKey += `_+${p}`;
+                    }
+                } else if (droppedKey.includes('wand')) {
+                    droppedKey += `_+${3 + Math.floor(Math.random() * 3)}`; // 生成時に回数を3〜5回にする
+                }
+
+                // ★修正：カバンへ直接入れず、倒れた敵の座標に落とす（さらに .name を .logName に！）
+                window.scatterItem(s, defender.x, defender.y, droppedKey); 
+                window.addDungeonLog(`敵は ${window.getDungeonItemEffect(droppedKey).logName} を落とした！`, '#4CAF50');
             }
         }
         // ★ 敵特性：メルトダウン（死亡時爆発）
@@ -919,6 +938,30 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         // --- 2. ダメージ処理 ---
         defender.hp -= finalDamage; defender.damageAnim = true;
         window.addDungeonLog(`💥 ${attacker.name} から ${finalDamage} ダメージを受けた！`, '#FF9800');
+
+        // ★ 閃き：敵から攻撃されたことで「たたかう（反撃）」を閃く！
+        if (typeof window.triggerDungeonInspiration === 'function') {
+            window.triggerDungeonInspiration('attack');
+
+            // 追加：HPが30%以下になったら「逃げる」「回復する」を閃く
+            if (defender.hp <= defender.maxHp * 0.3) {
+                window.triggerDungeonInspiration('flee');
+                window.triggerDungeonInspiration('heal');
+            }
+            
+            // 追加：正面以外から殴られたら「向き」を変えることを閃く
+            let isFront = false;
+            if (defender.face === 'up' && attacker.y < defender.y) isFront = true;
+            if (defender.face === 'down' && attacker.y > defender.y) isFront = true;
+            if (defender.face === 'left' && attacker.x < defender.x) isFront = true;
+            if (defender.face === 'right' && attacker.x > defender.x) isFront = true;
+            if (!isFront) {
+                if (attacker.y < defender.y) window.triggerDungeonInspiration('face_up');
+                else if (attacker.y > defender.y) window.triggerDungeonInspiration('face_down');
+                else if (attacker.x < defender.x) window.triggerDungeonInspiration('face_left');
+                else if (attacker.x > defender.x) window.triggerDungeonInspiration('face_right');
+            }
+        }
 
         // ★ [怒]の印（魔竜王用）：ダメージを受けたことを記録
         let pEffW = s.player.equipWeapon ? window.getDungeonItemEffect(s.player.equipWeapon) : null;

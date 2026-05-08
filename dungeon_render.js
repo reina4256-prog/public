@@ -5437,21 +5437,33 @@ window.updateDungeonUI = function() {
         document.getElementById('dg-trait-content').innerHTML = traitHtml;
     }
 
-    const wordsContainer = document.getElementById('dg-known-words'); 
-    if (wordsContainer) {
-        const myWords = (window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.learnedWords) ? window.aiPet.apprentice.learnedWords : [];
-        let validCmds = [];
-        myWords.forEach(w => { 
-            let cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w); 
-            if (cmdInfo) validCmds.push(cmdInfo); 
-        });
+    // 作戦バッジの表示更新
+    let tacticBadge = document.getElementById('dg-tactic-badge');
+    if (tacticBadge && s.player) {
+        let tName = s.player.currentTacticName || "AIにまかせる";
+        let activeRuleText = "";
         
-        if (validCmds.length === 0) { 
-            wordsContainer.innerHTML = `<span style="color:#aaa; font-size:12px;">※言葉を知らないのでランダムに行動します</span>`; 
-        } else { 
-            wordsContainer.innerHTML = validCmds.map(c => `<span style="background: rgba(0,0,0,0.8); padding: 8px 16px; border-radius: 8px; border: 2px solid #00BCD4; color: #00BCD4; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.5);">${c.name}</span>`).join(''); 
+        // ★追加：ミニ・テレメトリ（現在実行中の思考をバッジにも表示）
+        if (s.player._activeRuleIndex !== undefined && s.player._activeRuleIndex >= 0 && window.aiPet && window.aiPet.dungeonTactics) {
+            let activeTactic = window.aiPet.dungeonTactics.find(t => t.name === tName);
+            if (activeTactic && activeTactic.rules && activeTactic.rules[s.player._activeRuleIndex]) {
+                let rule = activeTactic.rules[s.player._activeRuleIndex];
+                let condName = window.DUNGEON_TACTIC_CONDITIONS[rule.condition] || rule.condition;
+                let actName = rule.action1; // 簡略化のため第1候補を表示
+                activeRuleText = `<span style="display:block; font-size:12px; color:#FFEB3B; font-weight:bold; text-shadow: 1px 1px 2px #000, 0 0 4px #000; margin-top:2px;">⚡ [思考] ${condName} ➔ ${actName}</span>`;
+            }
+        } else if (tName !== "AIにまかせる" && s.player._lastCommand === 'skip') {
+             activeRuleText = `<span style="display:block; font-size:12px; color:#FF5252; font-weight:bold; text-shadow: 1px 1px 2px #000; margin-top:2px;">⚠️ 思考停止中（条件合致なし）</span>`;
         }
+        
+        // バッジのスタイルを調整して2行表示に対応
+        tacticBadge.style.display = "inline-flex";
+        tacticBadge.style.flexDirection = "column";
+        tacticBadge.innerHTML = `<span>🚩 現在の作戦：${tName}</span>${activeRuleText}`;
     }
+    
+    // ★追加：作戦詳細モーダルへのリアルタイム・テレメトリ反映
+    if (typeof window.updateTacticTelemetryUI === 'function') window.updateTacticTelemetryUI(s);
 
     const minimap = document.getElementById('dg-modal-minimap'); if (minimap && minimap.style.display !== 'none') window.drawMinimap();
 };
@@ -5892,11 +5904,25 @@ window.playProjectileVFX = function(sx, sy, tx, ty, color) {
 };
 
 window.addDungeonLog = function(text, color = "#ddd") {
+    // ★内部のログデータ配列も100行に制限する（BGM判定などで使うため）
+    const s = window.DUNGEON_STATE;
+    if (s) {
+        if (!s.logs) s.logs = [];
+        s.logs.push(text);
+        if (s.logs.length > 100) s.logs.shift(); 
+    }
+
     const logArea = document.getElementById('dg-log-area');
     if (!logArea) return;
     const line = document.createElement('div');
     line.innerHTML = `<span style="color:#888;">[Turn]</span> <span style="color:${color}">${text}</span>`;
     logArea.appendChild(line);
+    
+    // ★大修正：表示されるログのDOM要素を最新の100行に制限し、ブラウザの負荷を完全に消し去る！
+    while (logArea.children.length > 100) {
+        logArea.removeChild(logArea.firstChild);
+    }
+    
     logArea.scrollTop = logArea.scrollHeight;
 };
 
@@ -6005,4 +6031,50 @@ window.createDungeonSprite = function(spriteKey, logicalY, brightness = 1.0, isE
     inner.style.transformOrigin = isOverlay ? 'bottom center' : 'center center'; 
     
     return div;
+};
+
+// ==========================================
+// ★新規追加：作戦確認画面のリアルタイム・テレメトリ（生体情報）更新
+// ==========================================
+window.updateTacticTelemetryUI = function(s) {
+    if (!s || !s.player) return;
+
+    // 動的に生成されるリッチな発光CSS（初回のみ注入）
+    if (!document.getElementById('telemetry-styles')) {
+        const style = document.createElement('style');
+        style.id = 'telemetry-styles';
+        style.innerHTML = `
+            @keyframes telemetry-pulse {
+                0% { box-shadow: 0 0 5px #00BCD4, inset 0 0 5px #00BCD4; background-color: rgba(0, 188, 212, 0.1); border-color: #00BCD4; }
+                100% { box-shadow: 0 0 15px #00BCD4, inset 0 0 15px #00BCD4; background-color: rgba(0, 188, 212, 0.4); border-color: #4DD0E1; }
+            }
+            .dg-rule-telemetry-active {
+                animation: telemetry-pulse 0.8s infinite alternate !important;
+                transition: all 0.2s ease;
+                border-left: 6px solid #00BCD4 !important;
+                transform: scale(1.02); /* 少しだけ手前に浮かび上がる */
+                z-index: 10;
+                position: relative; /* transformを効かせるため */
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // 作戦ビューアが開いているかチェック
+    const viewer = document.getElementById('dg-in-battle-tactic-viewer');
+    if (!viewer || viewer.style.display === 'none') return;
+
+    // クラス名 'dg-rule-row' が付与された行をすべて取得
+    const rows = viewer.querySelectorAll('.dg-rule-row');
+    if (rows.length === 0) return;
+
+    let activeIdx = s.player._activeRuleIndex;
+
+    rows.forEach((row, index) => {
+        if (index === activeIdx) {
+            row.classList.add('dg-rule-telemetry-active');
+        } else {
+            row.classList.remove('dg-rule-telemetry-active');
+        }
+    });
 };

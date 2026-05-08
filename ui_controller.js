@@ -1252,7 +1252,9 @@ window.sendChat = function() {
         "石拾い": ["石拾い", "いしひろい", "石拾", "石ひろい"],
         "皿洗い": ["皿洗い", "さらあらい", "皿洗"],
         "網の修理": ["網の修理", "あみのしゅうり", "網の修", "網修理", "あみ修理"],
-        "荷物運び": ["荷物運び", "にもつはこび", "荷物運"]
+        "荷物運び": ["荷物運び", "にもつはこび", "荷物運"],
+        // ★ 追加：作戦指示キーワード
+        "作戦": ["作戦", "戦術", "さくせん", "マインド"]
     };
 
     let interpretedWord = rawText;
@@ -1485,6 +1487,27 @@ window.sendChat = function() {
         aiPet.message = "漠然と「バイト」と言われても困るな...。\n（師匠のお手伝いになる言葉を教えよう！）";
         aiPet.messageTimer = 180;
         input.value = ""; input.focus(); return;
+    }
+    else if (interpretedWord === "作戦" && knows("作戦")) {
+        actionTriggered = true;
+        let myHut = null;
+        for (let k in assets) {
+            if (assets[k].type === 'hut') { myHut = assets[k]; break; }
+        }
+
+        if (myHut) {
+            aiPet.schedule.push({type: '作戦会議', targetUid: Object.keys(assets).find(k => assets[k] === myHut), duration: 60});
+            if (aiPet.schedule.length === 1) {
+                aiPet.startBuildingInteraction(myHut);
+                aiPet.message = "小屋で作戦会議をするね！";
+            } else {
+                aiPet.message = "後で小屋で作戦を練るよ！";
+            }
+            aiPet.messageTimer = 150;
+        } else {
+            aiPet.message = "今は作戦を練る場所(小屋)がないよ...";
+            aiPet.messageTimer = 180;
+        }
     }
     // ▼▼▼ 修正：ワード派生型バイト（予約対応版） ▼▼▼
     else if (Object.keys({
