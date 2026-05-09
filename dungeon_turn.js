@@ -50,6 +50,13 @@ window.checkDungeonTacticCondition = function(cond, s, p) {
     if (isBlind) visibleEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - p.x) + Math.abs(e.y - p.y) <= 1 && !e.isInvisible);
     let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - p.x) + Math.abs(e.y - p.y) === 1);
 
+    // ★追加：敵が2体以上見えたら退避メモリをセット。見えなくなっても3ターンは警戒を解かない
+    if (visibleEnemies.length >= 2) {
+        p._fleeMemory = 3;
+    } else if (p._fleeMemory > 0) {
+        p._fleeMemory--;
+    }
+
     switch(cond) {
         case "hp_under_30": return hpRate <= 0.3;
         case "hp_under_50": return hpRate <= 0.5;
@@ -57,7 +64,7 @@ window.checkDungeonTacticCondition = function(cond, s, p) {
         case "status_bad": 
             return p.status && (p.status.poison > 0 || p.status.confusion > 0 || p.status.sleep > 0 || p.status.paralyzed > 0 || p.status.blind > 0 || p.status.burn > 0 || p.status.frozen > 0 || p.status.fear > 0);
         case "enemy_adjacent": return adjacentEnemies.length > 0;
-        case "enemy_count_2_over": return visibleEnemies.length >= 2;
+        case "enemy_count_2_over": return visibleEnemies.length >= 2 || (p._fleeMemory > 0);
         case "monster_house": return currentRoom && currentRoom.isMH;
         case "wind_blowing": return (s.floorTurn || 0) >= 700;
         case "level_low": 
@@ -166,7 +173,10 @@ window.applyDungeonTurnStartEffects = function(s) {
         s.isMHDiscovered = true;
         if (typeof window.triggerMonsterHouseEffect === 'function') window.triggerMonsterHouseEffect();
         s.enemies.forEach(e => {
-            if (e.x >= pRoom.x && e.x < pRoom.x + pRoom.w && e.y >= pRoom.y && e.y < pRoom.y + pRoom.h && e.status && e.status.sleep > 0) e.status.sleep = 0;
+            if (e.x >= pRoom.x && e.x < pRoom.x + pRoom.w && e.y >= pRoom.y && e.y < pRoom.y + pRoom.h) {
+                if (e.status && e.status.sleep > 0) e.status.sleep = 0;
+                e.isMHActivated = true; // ★追加：モンスターハウスの敵はずっとプレイヤーを追跡するようになる
+            }
         });
     }
 
@@ -262,73 +272,77 @@ window.applyDungeonTurnStartEffects = function(s) {
 // ==========================================
 // ★ ダンジョン用：汎用経路探索ロジック（BFS + 氷の床シミュレート）
 // ==========================================
-window.getSmartNextStep = function(startX, startY, targetCondition, avoidRoom = false) {
+window.getSmartNextStep = function(startX, startY, targetCondition, avoidRoom = false, strictSafe = false) {
     const s = window.DUNGEON_STATE;
-    // メモリ最適化：全経路を持たず、「最初の一歩（firstStep）」だけを伝播させる
-    let queue = [{x: startX, y: startY, firstStep: null, depth: 0}];
-    let visited = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(false));
-    visited[startY][startX] = true;
+    let distMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(Infinity));
+    distMap[startY][startX] = 0;
     
-    // ★追加：飛行状態の判定（水脈・溝の回避用）
+    let queue = [{x: startX, y: startY, cost: 0, firstStep: null}];
+    
     let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
     let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽') || activeTraits.includes('反重力');
+    let hasColdResist = activeTraits.includes('耐冷構造') || activeTraits.includes('星の化身');
 
     let dirs = [{dx: 0, dy: -1}, {dx: 0, dy: 1}, {dx: -1, dy: 0}, {dx: 1, dy: 0}];
     
     while (queue.length > 0) {
-        let curr = queue.shift();
+        // コスト順にソート（Dijkstra法）
+        queue.sort((a, b) => a.cost - b.cost);
+        let cur = queue.shift();
         
-        // 条件を満たすマス（着地点）に到達したら、最初の一歩を返す
-        if (targetCondition(curr.x, curr.y) && curr.firstStep) {
-            return curr.firstStep; 
-        }
+        if (targetCondition(cur.x, cur.y) && cur.firstStep) return cur.firstStep;
         
-        // 探索深度制限（マップ全域をカバーしつつフリーズ防止）
-        if (curr.depth > 150) continue;
+        if (cur.cost > 2000 && strictSafe) continue; // 安全第一なら無理な探索はしない
+        if (cur.cost > 5000) continue; // フリーズ防止のハードリミット
         
         for (let d of dirs) {
-            let initialNx = curr.x + d.dx;
-            let initialNy = curr.y + d.dy;
+            let initialNx = cur.x + d.dx;
+            let initialNy = cur.y + d.dy;
             
             if (initialNx >= 0 && initialNx < s.mapWidth && initialNy >= 0 && initialNy < s.mapHeight) {
-                if (s.grid[initialNy][initialNx] === 1) continue; // 壁は進めない
-                // ★追加：飛行していなければ水脈(4)と溝(10)は進めない（脳内シミュレート）
-                if (!isFlying && (s.grid[initialNy][initialNx] === 4 || s.grid[initialNy][initialNx] === 10)) continue;
-                // ★追加：すでに見えている罠は障害物として絶対に避ける
-                if (s.traps && s.traps.some(t => t.visible && t.x === initialNx && t.y === initialNy)) continue;
-
-                let nx = initialNx;
-                let ny = initialNy;
+                let tile = s.grid[initialNy][initialNx];
+                if (tile === 1) continue; // 壁
+                if (!isFlying && (tile === 4 || tile === 10)) continue; // 飛行不可時の水・溝
                 
-                // ★ 氷の床(8)の滑りシミュレーション
-                // 氷に乗った場合、壁や通常の床にぶつかるまでそのまま滑り続ける未来を予測する
-                while (s.grid[ny][nx] === 8) {
-                    let nextX = nx + d.dx;
-                    let nextY = ny + d.dy;
-                    // 壁(1)にぶつかるか、マップ外ならそこで滑り止まる
-                    if (nextX < 0 || nextX >= s.mapWidth || nextY < 0 || nextY >= s.mapHeight || s.grid[nextY][nextX] === 1) {
-                        break;
+                let nx = initialNx; let ny = initialNy;
+                
+                let hitTrapInitial = s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
+                
+                // 氷の床の滑りシミュレート（罠があればそこで止まる）
+                if (!hitTrapInitial && tile === 8 && !hasColdResist) {
+                    while (s.grid[ny][nx] === 8) {
+                        let nextX = nx + d.dx; let nextY = ny + d.dy;
+                        if (nextX < 0 || nextX >= s.mapWidth || nextY < 0 || nextY >= s.mapHeight || s.grid[nextY][nextX] === 1) break;
+                        nx = nextX; ny = nextY;
+                        if (s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny)) break;
                     }
-                    nx = nextX;
-                    ny = nextY;
                 }
 
-                // 滑り終わった着地点が未訪問ならキューに追加
-                if (!visited[ny][nx]) {
-                    if (avoidRoom && s.roomsInfo) {
-                        let inRoom = s.roomsInfo.find(rm => nx >= rm.x && nx < rm.x + rm.w && ny >= rm.y && ny < rm.y + rm.h);
-                        if (inRoom) continue;
-                    }
-                    
-                    visited[ny][nx] = true;
-                    // 最初の一歩を決定。既に決まっていればそれを引き継ぐ（※ここは必ず最初の隣接マスを返す）
-                    let firstStep = curr.firstStep || {x: initialNx, y: initialNy};
-                    queue.push({x: nx, y: ny, firstStep: firstStep, depth: curr.depth + 1});
+                if (avoidRoom && s.roomsInfo) {
+                    let inRoom = s.roomsInfo.find(rm => nx >= rm.x && nx < rm.x + rm.w && ny >= rm.y && ny < rm.y + rm.h);
+                    if (inRoom) continue;
+                }
+
+                let hitTrapFinal = s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
+                let moveCost = 1;
+                
+                // ★大修正：罠の絶対回避をやめ、コスト1000として評価する（他に道がない時だけ踏むようになる）
+                if (hitTrapFinal) {
+                    if (strictSafe) continue; 
+                    else moveCost += 1000; 
+                }
+                if (tile === 5) moveCost += (s.player.hp <= 20 && strictSafe) ? 9999 : 20;
+
+                let nextCost = cur.cost + moveCost;
+                if (nextCost < distMap[ny][nx]) {
+                    distMap[ny][nx] = nextCost;
+                    let fStep = cur.firstStep || {x: initialNx, y: initialNy};
+                    queue.push({x: nx, y: ny, cost: nextCost, firstStep: fStep});
                 }
             }
         }
     }
-    return null; // 到達不可
+    return null;
 };
 
 // ==========================================
@@ -337,7 +351,11 @@ window.getSmartNextStep = function(startX, startY, targetCondition, avoidRoom = 
 window.getDungeonSealScore = function(sealId) {
     const scores = {
         'curse': 9999, // ★呪縛は絶対に外せない（枠を埋め続けるペナルティ）
+        // ▼ 新規追加：状態異常無効化系は非常に価値が高い（100〜95帯）
+        'anti_poison': 98, 'anti_confuse': 98, 'anti_blind': 95, 'anti_magic': 95, 'anti_paralyze': 98, // ★追加
         'double': 100, 'crit': 95, 'heal': 90, 'dodge': 85, 'parry': 85, 'anti_dragon': 80, 'holy': 80,
+        // ▼ 新規追加：状態異常付与系は便利だが優先度は少し下
+        'poison_atk': 75, 'confuse_atk': 75, 'blind_atk': 75, 'seal_atk': 75, 'paralyze_atk': 75, // ★追加
         'angry': 75, 'first': 70, 'counter': 70,
         'life': 65, 'regen': 65, 'max_hunger': 60, 'half_hunger': 60,
         'sleep': 50, 'counter_sleep': 50,
@@ -355,6 +373,14 @@ window.calculateBestSynth = function(s) {
     let bestSameSynth = null; let bestSameScore = -9999;
     let bestDiffSynth = null; let bestDiffScore = -9999;
 
+    // ★新規追加：現在装備している防具（盾・鎧）の印をすべて合算して把握する
+    let currentDefSeals = [];
+    if (p.equipShield) currentDefSeals.push(...window.getDungeonItemEffect(p.equipShield).traits);
+    if (p.equipArmor) currentDefSeals.push(...window.getDungeonItemEffect(p.equipArmor).traits);
+    
+    // 重複しても効果が加算されない（無駄になる）印のリスト
+    const nonStackableSeals = ['anti_poison', 'anti_confuse', 'anti_blind', 'anti_magic', 'anti_paralyze', 'half_hunger'];
+
     let allItems = []; 
     if (p.equipWeapon) allItems.push({ id: p.equipWeapon, isEquipped: true, slot: 'equipWeapon', idx: -1 });
     if (p.equipShield) allItems.push({ id: p.equipShield, isEquipped: true, slot: 'equipShield', idx: -1 });
@@ -368,7 +394,6 @@ window.calculateBestSynth = function(s) {
     }
 
     let activeTraits = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(p.skin).map(t => t.name) : [];
-    let isOmni = activeTraits.includes('全知');
 
     let effCache = {};
     for (let item of allItems) effCache[item.id] = window.getDungeonItemEffect(item.id);
@@ -376,21 +401,21 @@ window.calculateBestSynth = function(s) {
     for (let base of allItems) {
         let bEff = effCache[base.id];
         let pBase = window.parseItemString(base.id);
-        let isWand = pBase.baseId.includes('wand'); // ★追加：杖かどうかを判定
+        let isWand = pBase.baseId.includes('wand'); 
         
-        // ★修正：equipTypeがないアイテムでも、杖なら合成ベースとして許可する！
         if (!bEff || (!bEff.equipType && !isWand)) continue; 
-        if (bEff.traits.includes('curse')) continue; // 呪い装備はベースにしない
+        
+        // ▼ 修正：呪われていると「判明している」場合のみベースを避ける（未識別なら透視できず突っ込む）
+        if (bEff.traits.includes('curse') && bEff.isStatsKnown && !base.isEquipped) continue;
         
         let bScore = typeof window.evaluateEquipmentScore === 'function' ? window.evaluateEquipmentScore(base.id, base.isEquipped ? base.id : null) : 10;
         
-        // ★新規追加：ベースアイテムの「ポテンシャル（特性と印の枠）」を正当に高く評価する！
-        if (bEff.traits && bEff.traits.length > 0) bScore += bEff.traits.length * 1000; // 特性（連撃など）を持つものはベースとして超優秀
-        if (bEff.maxSeals) bScore += bEff.maxSeals * 200; // 印が沢山入るものも優秀
+        // 呪い装備は評価スコアが-10000になっているため、装備中ならペナルティを相殺して合成候補に挙がるようにする
+        if (base.isEquipped && bEff.traits.includes('curse')) bScore += 15000;
 
-        // ==========================================
-        // ★完全修正：スマート乗り換えの実現（スコア逆転ロジック）
-        // ==========================================
+        if (bEff.traits && bEff.traits.length > 0) bScore += bEff.traits.length * 1000; 
+        if (bEff.maxSeals) bScore += bEff.maxSeals * 200; 
+
         if (!base.isEquipped && !isWand && bEff.equipType) {
             let slotMap = { 'weapon': 'equipWeapon', 'shield': 'equipShield', 'armor': 'equipArmor', 'accessory': 'equipAccessory' };
             let slotName = slotMap[bEff.equipType];
@@ -398,7 +423,6 @@ window.calculateBestSynth = function(s) {
             
             if (equippedId) {
                 let eqEff = effCache[equippedId] || window.getDungeonItemEffect(equippedId);
-                // ★修正：単なる攻撃力だけでなく、特性の有無も含めた「総合価値」で乗り換えを判定する
                 let baseValue = (bEff.atk || 0) + (bEff.def || 0) + (bEff.traits ? bEff.traits.length * 15 : 0);
                 let eqValue = (eqEff.atk || 0) + (eqEff.def || 0) + (eqEff.traits ? eqEff.traits.length * 15 : 0);
                 if (baseValue > eqValue) bScore += 5000; 
@@ -411,14 +435,12 @@ window.calculateBestSynth = function(s) {
             if (base === mat) continue; 
             
             let mEff = effCache[mat.id];
-            if (!mEff || mEff.traits.includes('curse')) continue; 
+            // ▼ 修正：未識別なら呪いを透視できないようにする（チート完全排除）
+            if (!mEff || (mEff.traits.includes('curse') && mEff.isStatsKnown)) continue; 
             
-            // ★完全修正：装備中のものを素材にできるのは「同種合成（武器同士など、乗り換えできる場合）」のみ！
-            if (mat.isEquipped && mEff.equipType !== bEff.equipType) continue; 
+            if (mat.isEquipped && mEff.equipType !== bEff.equipType) continue;
             
             let pMat = window.parseItemString(mat.id);
-            // ★完全修正：未識別（isUnidentified）を弾く処理を削除し、一か八かのギャンブル合成を解禁！
-            // ※ AIは eff.isStatsKnown によって「自分が呪いだと知っているか」でスコアを下げて回避します
             
             if (isWand) {
                 if (pMat.baseId === pBase.baseId) { 
@@ -432,15 +454,14 @@ window.calculateBestSynth = function(s) {
             }
 
             if (mEff.equipType === bEff.equipType) {
-                // 【同種合成（強化・乗り換え）】
-                // ★大修正：ステータスだけでなく、特性を含めた総合価値でダウングレード（弱い装備に乗り換える事故）を防ぐ！
                 let baseTotalValue = (bEff.atk || 0) + (bEff.def || 0) + (bEff.traits ? bEff.traits.length * 15 : 0);
                 let matTotalValue = (mEff.atk || 0) + (mEff.def || 0) + (mEff.traits ? mEff.traits.length * 15 : 0);
                 if (mat.isEquipped && matTotalValue > baseTotalValue) continue;
 
-                // ★追加：ベースよりも素材の方が「+値」も「印の数」も多い場合、AIは弱いベースを選んでしまうため、スコア逆転を強制する！
                 if (matTotalValue > baseTotalValue && !mat.isEquipped) {
-                    continue; // 強い方がベースになるべきなので、弱いベースのこの組み合わせはスキップする
+                    if (!(base.isEquipped && bEff.traits.includes('curse'))) {
+                        continue; 
+                    }
                 }
 
                 let hasValue = pMat.plus > 0 || pMat.seals.length > 0 || mEff.equipType === 'accessory'; 
@@ -451,21 +472,19 @@ window.calculateBestSynth = function(s) {
                     }
                 }
             } else {
-                // 【異種合成（印の付与）】
-                // ★完全修正：現在装備中のアイテムを「異種合成の素材（印の抽出用）」にしてしまうと丸腰になるため、ここは絶対に除外！
                 if (mat.isEquipped) continue;
 
                 let seal = window.getSealFromItem(pMat.baseId, bEff.equipType);
                 if (seal) {
-                    let pBase = window.parseItemString(base.id);
-                    // ★修正：後付けの印(seals)だけでなく、生まれつきの固有能力(traits)も含めて重複チェックする！
+                    // 防具への合成で、すでに別の防具に付いている「重複無効な印」なら合成をスキップする
+                    if ((bEff.equipType === 'shield' || bEff.equipType === 'armor') && nonStackableSeals.includes(seal) && currentDefSeals.includes(seal)) {
+                        continue; 
+                    }
+
                     if (!bEff.traits.includes(seal)) { 
-                        
-                        // ★大修正：ベース装備の印の枠が満タンの場合、AIが「より価値の高い印」と判断した時のみ上書き合成を許可する！
                         if (pBase.seals.length >= bEff.maxSeals) {
                             let newSealScore = window.getDungeonSealScore(seal);
-                            let minCurrentScore = Math.min(...pBase.seals.map(s => window.getDungeonSealScore(s)));
-                            // 新しい印が、今の最低価値の印より「明確に優れている」場合のみ上書きを許可（同値は無限ループ防止のため却下）
+                            let minCurrentScore = Math.min(...pBase.seals.map(sealId => window.getDungeonSealScore(sealId)));
                             if (newSealScore <= minCurrentScore) continue;
                         }
 
@@ -517,6 +536,38 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
     }
 
     let currentRoom = s.roomsInfo ? s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x + r.w && s.player.y >= r.y && s.player.y < r.y + r.h) : null;
+
+    // ==========================================
+    // ★新生版：MH交戦フラグのグローバル管理と制圧判定（通路でも判定！）
+    // ==========================================
+    // 1. MHに入ったら交戦状態を記憶する
+    if (currentRoom && currentRoom.isMH) {
+        s.player._engagedMHRoom = currentRoom;
+    }
+
+    // 2. 交戦中なら、通路にいても常に「敵が残っているか」を監視する
+    if (s.player._engagedMHRoom) {
+        let r = s.player._engagedMHRoom;
+        
+        // 部屋の中の敵
+        let enemiesInRoom = s.enemies.filter(e => 
+            e.hp > 0 && e.type !== 'stone' && e.type !== 'npc' && (!e.skin || !e.skin.includes('stone')) &&
+            e.x >= r.x && e.x < r.x + r.w && e.y >= r.y && e.y < r.y + r.h
+        );
+        // AIの視界内の敵（通路まで追ってきた敵）
+        let visibleEnemies = s.enemies.filter(e => 
+            e.hp > 0 && e.type !== 'stone' && e.type !== 'npc' && (!e.skin || !e.skin.includes('stone')) &&
+            window.isTileVisible(s, e.x, e.y)
+        );
+
+        // 部屋の中が空っぽ ＆ 視界にも敵がいないなら制圧完了！
+        if (enemiesInRoom.length === 0 && visibleEnemies.length === 0) {
+            r.isMH = false;
+            s.player._engagedMHRoom = null;
+            window.addDungeonLog(`🎉 モンスターハウスの敵をすべて退けた！静けさを取り戻した。`, '#FFD700');
+        }
+    }
+    
     let isDarkRoom = currentRoom ? currentRoom.isDark : false;
     let isBlind = (s.player.status && s.player.status.blind > 0) || isDarkRoom;
     if (activeTraits.includes('発光体')) { isDarkRoom = false; isBlind = false; }
@@ -526,7 +577,7 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
     if (isBlind) visibleEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1 && !e.isInvisible); 
     
     // 隣接している敵は透明でも感知できる
-    let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
+    let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1);
     let enemyAdjacent = adjacentEnemies.length > 0 ? adjacentEnemies[0] : null;
     let enemyInSight = visibleEnemies.length > 0 ? visibleEnemies[0] : null;
 
@@ -550,6 +601,63 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
     let chosenCommand = null; let thoughtLog = "";
     let myWords = (ai.apprentice && ai.apprentice.learnedWords) ? ai.apprentice.learnedWords : [];
     let validCmdIds = []; myWords.forEach(w => { let cmd = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === w); if (cmd && cmd.id) validCmdIds.push(cmd.id); });
+
+    let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽') || activeTraits.includes('反重力');
+
+    const getSmartNextStep = function(startX, startY, isTargetFunc, avoidEnemies = false, ignoreObstacles = false) {
+        let distMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(Infinity));
+        distMap[startY][startX] = 0; let queue = [{x: startX, y: startY, cost: 0}];
+        let parent = {}; let foundTarget = null;
+        let hasColdResist = activeTraits.includes('耐冷構造') || activeTraits.includes('星の化身'); 
+        
+        while(queue.length > 0) {
+            queue.sort((a, b) => a.cost - b.cost); let cur = queue.shift();
+            if (isTargetFunc(cur.x, cur.y)) { foundTarget = cur; break; }
+            let dirs = [ {dx:0,dy:-1,cmd:'move_up'}, {dx:1,dy:0,cmd:'move_right'}, {dx:0,dy:1,cmd:'move_down'}, {dx:-1,dy:0,cmd:'move_left'} ];
+            for(let d of dirs) {
+                if (!validCmdIds.includes(d.cmd)) continue;
+                let nx = cur.x + d.dx; let ny = cur.y + d.dy;
+                if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight) {
+                    let tile = s.grid[ny][nx]; let moveCost = 1; 
+                    if (tile === 1) {
+                        // ★追加：障害物無視モードなら壁もコストを払ってルート計算に入れる
+                        if (ignoreObstacles) { moveCost = 50; } 
+                        else if ((activeTraits.includes('重機動アーム') || activeTraits.includes('星の砕き手') || activeTraits.includes('星の化身')) && nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1) moveCost = 2; 
+                        else if (activeTraits.includes('幽体') && nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1) moveCost = 3;
+                        else continue; 
+                    }
+                    if (!isFlying && (tile === 4 || tile === 10)) {
+                        // ★追加：障害物無視モードなら水脈や溝もルート計算に入れる
+                        if (ignoreObstacles) { moveCost = 50; }
+                        else continue; 
+                    }
+                    if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) continue;
+                    if (tile === 5) { if (s.player.hp <= 20) continue; moveCost = 20; }
+                    let willHitTrap = s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
+                    if (tile === 8 && !hasColdResist) {
+                        let sx = nx, sy = ny;
+                        while (true) {
+                            if (s.traps && s.traps.some(t => t.visible && t.x === sx && t.y === sy)) { willHitTrap = true; break; }
+                            let nextTile = (s.grid[sy + d.dy] && s.grid[sy + d.dy][sx + d.dx] !== undefined) ? s.grid[sy + d.dy][sx + d.dx] : 1;
+                            if (nextTile === 1 || (!isFlying && nextTile === 4)) break;
+                            if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === sx + d.dx && e.y === sy + d.dy)) break;
+                            sx += d.dx; sy += d.dy;
+                            if (nextTile !== 8) { if (s.traps && s.traps.some(t => t.visible && t.x === sx && t.y === sy)) willHitTrap = true; break; }
+                        }
+                        if (willHitTrap) moveCost += 1000; else moveCost += 5; 
+                    } else if (willHitTrap) { moveCost += 1000; }
+                    
+                    let nextCost = cur.cost + moveCost;
+                    if (nextCost < distMap[ny][nx]) { distMap[ny][nx] = nextCost; parent[`${nx},${ny}`] = {x: cur.x, y: cur.y}; queue.push({x: nx, y: ny, cost: nextCost}); }
+                }
+            }
+        }
+        if (!foundTarget) return null; 
+        let curr = foundTarget;
+        while(curr.x !== startX || curr.y !== startY) { let p = parent[`${curr.x},${curr.y}`]; if (p.x === startX && p.y === startY) return curr; curr = p; }
+        return null;
+    };
+
     let pType = typeof window.getPersonalityType === 'function' ? window.getPersonalityType(ai.stats) : '普通';
     let isConfused = s.player.status && s.player.status.confusion > 0;
     
@@ -578,7 +686,14 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             if (activeTactic && activeTactic.rules) {
                 for (let i = 0; i < activeTactic.rules.length; i++) {
                     let rule = activeTactic.rules[i];
-                    if (window.checkDungeonTacticCondition(rule.condition, s, s.player)) {
+                    
+                    // ★大改修：MH交戦中なら、部屋の外（通路）にいても強制的に条件をクリアさせる！
+                    let isConditionMet = window.checkDungeonTacticCondition(rule.condition, s, s.player);
+                    if (rule.condition === 'monster_house' && s.player._engagedMHRoom) {
+                        isConditionMet = true;
+                    }
+                    
+                    if (isConditionMet) {
                         ruleMatched = true;
                         s.player._activeRuleIndex = i; // ★ 追加：UIハイライト用に現在の行番号を記録
                         
@@ -627,15 +742,57 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                     thoughtLog = `作戦【${currentTacticName}】：未探索エリアへ進んでいる！`; break;
                                 }
                             }
-                            else if (rule.condition === 'monster_house' && actName === 'にげる') {
-                                let nextStep = window.getSmartNextStep(s.player.x, s.player.y, (x, y) => !s.roomsInfo.find(rm => x >= rm.x && x < rm.x + rm.w && y >= rm.y && y < rm.y + rm.h), true);
-                                let isEnemyInWay = nextStep ? s.enemies.some(e => e.hp > 0 && e.x === nextStep.x && e.y === nextStep.y) : false;
-                                if (nextStep && !isEnemyInWay) {
-                                    if (nextStep.x > s.player.x) chosenCommand = 'move_right';
-                                    else if (nextStep.x < s.player.x) chosenCommand = 'move_left';
-                                    else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
-                                    else if (nextStep.y < s.player.y) chosenCommand = 'move_up';
-                                    thoughtLog = `作戦【${currentTacticName}】：通路へ退避している！`; break;
+                            else if ((rule.condition === 'monster_house' || rule.condition === 'enemy_count_2_over') && actName === 'にげる') {
+                                // ★修正：突撃フラグが立っている間は、退避せずに敵に向かっていく（怒りの突撃で無限ループ防止）
+                                if (s.player._commitFight > 0) {
+                                    let targetEnemy = visibleEnemies.sort((a,b) => (Math.abs(a.x-s.player.x)+Math.abs(a.y-s.player.y)) - (Math.abs(b.x-s.player.x)+Math.abs(b.y-s.player.y)))[0];
+                                    if (targetEnemy) {
+                                        // ★修正：敵に隣接しているなら、移動ではなく「たたかう」を実行させる
+                                        if (adjacentEnemies.length > 0 && validCmdIds.includes('attack')) {
+                                            chosenCommand = 'attack';
+                                            thoughtLog = `作戦【${currentTacticName}】：怒りの突撃！敵を殲滅する！`; break;
+                                        } else {
+                                            let nextStep = window.getSmartNextStep(s.player.x, s.player.y, (x, y) => x === targetEnemy.x && y === targetEnemy.y);
+                                            if (nextStep) {
+                                                if (nextStep.x > s.player.x) chosenCommand = 'move_right';
+                                                else if (nextStep.x < s.player.x) chosenCommand = 'move_left';
+                                                else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
+                                                else if (nextStep.y < s.player.y) chosenCommand = 'move_up';
+                                                thoughtLog = `作戦【${currentTacticName}】：怒りの突撃！敵を殲滅する！`; break;
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    let isCorridor = (s.grid[s.player.y][s.player.x] === 3);
+                                    if (isCorridor) {
+                                        // すでに通路に退避完了している場合は、下位の作戦（アイテム回収など）に落ちないようにその場で迎撃・待機する
+                                        let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1);
+                                        if (adjacentEnemies.length > 0) {
+                                            s.player._waitCount = 0; // 敵が隣接したらカウントリセット
+                                            chosenCommand = 'attack'; thoughtLog = `作戦【${currentTacticName}】：退避した通路で敵を迎撃する！`; break;
+                                        } else {
+                                            // ★修正：一定ターン待っても敵が来ない（遠距離攻撃で削られ続ける）なら、突撃フラグを立てる
+                                            s.player._waitCount = (s.player._waitCount || 0) + 1;
+                                            if (s.player._waitCount > 3) {
+                                                window.addDungeonLog(`💢 ${aiName} は遠隔攻撃にしびれを切らし、突撃を決意した！`, '#ff5252');
+                                                s.player._commitFight = 6;
+                                                s.player._waitCount = 0;
+                                                chosenCommand = 'attack'; thoughtLog = `作戦【${currentTacticName}】：しびれを切らした！次から突撃する！`; break;
+                                            } else {
+                                                chosenCommand = 'attack'; thoughtLog = `作戦【${currentTacticName}】：通路へ退避完了！敵の追撃を警戒し、待ち構えている！`; break;
+                                            }
+                                        }
+                                    } else {
+                                        let nextStep = window.getSmartNextStep(s.player.x, s.player.y, (x, y) => !s.roomsInfo.find(rm => x >= rm.x && x < rm.x + rm.w && y >= rm.y && y < rm.y + rm.h), true);
+                                        let isEnemyInWay = nextStep ? s.enemies.some(e => e.hp > 0 && e.x === nextStep.x && e.y === nextStep.y) : false;
+                                        if (nextStep && !isEnemyInWay) {
+                                            if (nextStep.x > s.player.x) chosenCommand = 'move_right';
+                                            else if (nextStep.x < s.player.x) chosenCommand = 'move_left';
+                                            else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
+                                            else if (nextStep.y < s.player.y) chosenCommand = 'move_up';
+                                            thoughtLog = `作戦【${currentTacticName}】：通路へ退避している！`; break;
+                                        }
+                                    }
                                 }
                             }
                             else if (rule.condition === 'wind_blowing' && actName === 'にげる') {
@@ -679,8 +836,8 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                         else if (nextStep.y > s.player.y) chosenCommand = 'move_down';
                                         else if (nextStep.y < s.player.y) chosenCommand = 'move_up';
                                         
-                                        // ★完全修正：カバンが満杯の時「だけ」オートピックを防ぐ！空きがあれば普通に拾いながら進む！
-                                        if (isInvFull) s.player._preventAutoPick = true; 
+                                        // ★修正：「乗るだけ」の作戦なので、カバンの空きに関わらずオートピックを強制停止する
+                                        s.player._preventAutoPick = true; 
                                         
                                         thoughtLog = `作戦【${currentTacticName}】：アイテムの上へ向かっている！`; break;
                                     }
@@ -692,13 +849,15 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                 for (let i = 0; i < s.player.tempInventory.length; i++) {
                                     let itemId = s.player.tempInventory[i];
                                     let parsed = window.parseItemString(itemId);
+                                    let eff = window.getDungeonItemEffect(itemId);
                                     let tName = s.aiMemory.tempNames[parsed.baseId];
-                                    // ★修正：仮名がない、または「謎の〜」で保留中のものをピックアップ
-                                    let isUnid = s.sessionItemDict && s.sessionItemDict[parsed.baseId] && !s.aiMemory.identified.includes(parsed.baseId) && (!tName || tName.startsWith("謎の"));
-                                    if (!isUnid) continue;
+                                    // ★修正：装備品の未鑑定状態も未識別としてピックアップ
+                                    let isUnidConsumable = s.sessionItemDict && s.sessionItemDict[parsed.baseId] && !s.aiMemory.identified.includes(parsed.baseId) && (!tName || tName.startsWith("謎の"));
+                                    let isUnidEquip = (eff.equipType !== null || eff.isWeapon || eff.isShield) && !eff.isStatsKnown;
+                                    if (!isUnidConsumable && !isUnidEquip) continue;
 
-                                    // 見た目でカテゴリを判別する
-                                    let isFood = parsed.baseId === 'herb' || parsed.baseId.includes('berry') || parsed.baseId.includes('seed');
+                                    // 見た目でカテゴリを判別する（★草系とパンを完全網羅）
+                                    let isFood = parsed.baseId === 'herb' || parsed.baseId.startsWith('herb_') || parsed.baseId.includes('berry') || parsed.baseId.includes('seed') || parsed.baseId === 'item_bread';
                                     let isMagic = parsed.baseId.includes('scroll') || parsed.baseId.includes('wand');
 
                                     // ★追加：回数が0の杖は「つかう」対象から除外して無限ループを防ぐ
@@ -754,9 +913,12 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                         if (actName === 'しらべる') s.player._identifyTargetIdx = targetIdx;
                                         if (actName === 'なまえ') s.player._nameTargetIdx = targetIdx;
                                         thoughtLog = `作戦【${currentTacticName}】：カバンの未識別アイテムに「${actName}」を実行する！`; break;
+                                    } else {
+                                        window.addDungeonLog(`💭 思考キャンセル：「${actName}」はまだ閃いていないため実行できない。`, '#757575');
                                     }
+                                } else {
+                                    window.addDungeonLog(`💭 思考キャンセル：「${actName}」に適した未識別アイテムがないため次を検討。`, '#757575');
                                 }
-                                // アクションとアイテム種別が一致しない（巻物しかないのに「たべる」等）場合はスルーしてフォールバック
                             }
                             // ★追加：階段の上での「素振り回復」の限界チェック（満タンならフォールバック）
                             else if (rule.condition === 'on_stairs' && actName === 'たたかう') {
@@ -879,6 +1041,8 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                         if (s.items.some(i => i.x === nextStep.x && i.y === nextStep.y)) isSafeTile = true; // 3. アイテムが落ちている
                                         if (nextStep.x === stairX && nextStep.y === stairY) isSafeTile = true; // 4. 階段がある
                                         if ([4, 5, 6, 7, 8, 9, 10].includes(s.grid[nextStep.y][nextStep.x])) isSafeTile = true; // 5. 罠が置けないギミックマス
+                                        // ★追加：既に視界にハッキリ見えている罠は「素振りで探す」必要がないため、そのまま踏みに行く
+                                        if (s.traps && s.traps.some(t => t.visible && t.x === nextStep.x && t.y === nextStep.y)) isSafeTile = true;
 
                                         // ★安全なマスなら素振りをスキップ、それ以外はトグルに従って素振り！
                                         if (isSafeTile || (s.player._trapCheckToggle && s.player.face === dirStr)) {
@@ -898,7 +1062,8 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                             s.player._trapCheckToggle = true;
                                             
                                             // ★素振りしたマスを記憶し、同じフロアにいる間は二度と素振りしないようにする
-                                            s._trapCheckedTiles[`${nextStep.x},${nextStep.y}`] = true; 
+                                            // (実際に空振りできた後でフラグを立てるため保留)
+                                            s.player._pendingTrapCheckPos = {x: nextStep.x, y: nextStep.y};
                                             break;
                                         }
                                     }
@@ -915,31 +1080,35 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                     // ★完全修正：不確実な type プロパティではなく、確実な effectデータから種類を判定する！
                                     let eff = window.getDungeonItemEffect(groundItem.key);
                                     
-                                    if (actName === 'たべる' && (groundItem.type === 'food' || eff.isConsumable)) canExecute = true;
+                                    if (actName === 'たべる' && (groundItem.type === 'food' || (eff.isConsumable && !groundItem.key.includes('scroll') && !groundItem.key.includes('wand')))) canExecute = true;
                                     else if (actName === 'そうび' && ['weapon', 'shield', 'accessory'].includes(eff.equipType)) canExecute = true;
-                                    else if (actName === 'つかう' && (groundItem.type === 'scroll' || groundItem.type === 'wand' || eff.traits.length > 0)) canExecute = true;
-                                    else if (actName === 'かいふく' && (groundItem.type === 'potion' || (eff.isConsumable && eff.hp > 0))) canExecute = true;
+                                    else if (actName === 'つかう' && (groundItem.key.includes('scroll') || groundItem.key.includes('wand'))) canExecute = true;
+                                    else if (actName === 'かいふく' && (groundItem.type === 'potion' || (eff.isConsumable && !groundItem.key.includes('scroll') && !groundItem.key.includes('wand') && eff.hp > 0))) canExecute = true;
                                     else if (actName === 'なまえ') canExecute = true;
                                     else if (actName === 'しらべる') canExecute = true;
+
+                                    let failReason = "";
+                                    if (actName === 'たべる' && !(groundItem.type === 'food' || (eff.isConsumable && !groundItem.key.includes('scroll') && !groundItem.key.includes('wand')))) failReason = "食べ物ではない";
+                                    else if (actName === 'そうび' && !['weapon', 'shield', 'accessory'].includes(eff.equipType)) failReason = "装備品ではない";
+                                    else if (actName === 'つかう' && !(groundItem.key.includes('scroll') || groundItem.key.includes('wand'))) failReason = "魔法アイテムではない";
+                                    else if (actName === 'かいふく' && !(groundItem.type === 'potion' || (eff.isConsumable && !groundItem.key.includes('scroll') && !groundItem.key.includes('wand') && eff.hp > 0))) failReason = "回復薬ではない";
 
                                     if (canExecute) {
                                         let cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === actName);
                                         let baseCmdId = cmdInfo ? cmdInfo.id : actName; 
-                                        
-                                        // ★大修正：やはり 'ground_' プレフィックスが必要です！これがないとカバンの中身を参照して失敗してしまいます。
                                         chosenCommand = 'ground_' + baseCmdId; 
                                         s.player._targetGroundItem = groundItem;
-                                        
                                         groundItem._visited = true; 
-
-                                        // ★修正：groundItem.name ではなく eff.logName を使うことで、undefined を防ぎつつ綺麗な色付きログにします！
                                         thoughtLog = `作戦【${currentTacticName}】：足元の ${eff.logName} に対して「${actName}」を実行する！`; break;
+                                    } else {
+                                        window.addDungeonLog(`💭 思考キャンセル：足元のアイテムが${failReason}ため「${actName}」を諦めた。`, '#757575');
                                     }
                                 }
                             }
                             // ★追加：スタック（道がふさがっている）時の打開ロジック（指揮官の指示がある場合のみ発動）
                             else if (
                                 (rule.condition === 'path_blocked' && actName === 'なげる') ||
+                                (rule.condition === 'path_blocked' && actName === 'つかう') || // ★追加：「つかう」も打開ロジックとして認める！
                                 ((rule.condition === 'in_room' || rule.condition === 'unexplored_exist') && actName === 'つかう')
                             ) {
                                 // 目的地（未探索エリア、なければ階段）を決定
@@ -956,11 +1125,12 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                 }
 
                                 if (targetFn) {
-                                    let safeStep = window.getSmartNextStep(s.player.x, s.player.y, targetFn, false); // 罠・ギミック回避
-                                    let unsafeStep = window.getSmartNextStep(s.player.x, s.player.y, targetFn, true); // 罠・ギミック無視（強行ルート）
+                                    // ★大修正：window.getSmartNextStepではなく、ローカルのgetSmartNextStepを呼ぶ！
+                                    let normalStep = getSmartNextStep(s.player.x, s.player.y, targetFn, false, false); // 通常のルート
+                                    let forceStep  = getSmartNextStep(s.player.x, s.player.y, targetFn, false, true);  // ★追加：水脈や壁を「無視」した強行ルート
 
-                                    // 安全な道はないが、強行すれば道がある＝「罠や水脈で道がふさがっている（スタック）」と判定！
-                                    if (!safeStep && unsafeStep) {
+                                    // 通常の道はないが、障害物を無視すれば道がある＝「罠や水脈、壁で道が完全にふさがっている（スタック）」と判定！
+                                    if (!normalStep && forceStep) {
                                         let targetDir = '';
                                         if (unsafeStep.x > s.player.x) targetDir = 'right';
                                         else if (unsafeStep.x < s.player.x) targetDir = 'left';
@@ -1000,7 +1170,10 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                 let cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.name === actName);
                                 if (cmdInfo && validCmdIds.includes(cmdInfo.id)) {
                                     let canDo = true;
-                                    if (['eat', 'use', 'throw', 'put_down'].includes(cmdInfo.id) && (!s.player.tempInventory || s.player.tempInventory.length === 0)) canDo = false;
+                                    let failReason = "";
+                                    let silentFail = false; // ★新規追加：自明な失敗によるログスパムを防止するフラグ
+
+                                    if (['eat', 'use', 'throw', 'put_down'].includes(cmdInfo.id) && (!s.player.tempInventory || s.player.tempInventory.length === 0)) { canDo = false; failReason = "カバンが空だった"; silentFail = true; }
                                     
                                     // ★追加：そうび、ごうせいの実行可否（在庫）チェック！無い場合はフォールバックさせる
                                     if (cmdInfo.id === 'equip') {
@@ -1011,11 +1184,11 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                                    (!s.player.equipArmor && e.equipType === 'armor') ||
                                                    (!s.player.equipAccessory && e.equipType === 'accessory');
                                         });
-                                        if (!hasEquipable) canDo = false;
+                                        if (!hasEquipable) { canDo = false; failReason = "装備できるものがなかった"; silentFail = true; }
                                     }
                                     if (cmdInfo.id === 'synthesize') {
                                         if (s.player._synthCacheTurn !== s.turnCount) window.calculateBestSynth(s);
-                                        if (!s.player._bestSameSynth && !s.player._bestDiffSynth) canDo = false;
+                                        if (!s.player._bestSameSynth && !s.player._bestDiffSynth) { canDo = false; failReason = "合成できる組み合わせがなかった"; silentFail = true; }
                                     }
 
                                     // ==========================================
@@ -1071,20 +1244,118 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                                             s.player._targetItemIdx = bestTrashIdx;
                                             s.player._trashTargetName = window.getDungeonItemEffect(s.player.tempInventory[bestTrashIdx]).name;
                                         } else {
-                                            canDo = false; // 捨てられるものが何もない異常事態
+                                            canDo = false; failReason = "捨てるべき不要なアイテムがなかった"; silentFail = true;
+                                        }
+                                    }
+
+                                    // ★新規追加：「つかう」「たべる」「かいふく」が強制されたときの無駄撃ち防止＆対象アイテム選定
+                                    if (canDo && (cmdInfo.id === 'use' || cmdInfo.id === 'eat' || cmdInfo.id === 'heal')) {
+                                        let bestIdx = -1;
+                                        let highestScore = -9999;
+                                        let activeTraitsForScore = window.getPlayerDungeonTraits ? window.getPlayerDungeonTraits(s.player.skin).map(t => t.name) : [];
+                                        
+                                        for (let i = 0; i < s.player.tempInventory.length; i++) {
+                                            let itemId = s.player.tempInventory[i];
+                                            let effect = window.getDungeonItemEffect(itemId);
+                                            let parsed = window.parseItemString(itemId);
+                                            let bId = parsed.baseId;
+                                            
+                                            // ▼ ここから修正 ▼
+                                            let isFoodObj = bId === 'herb' || bId.startsWith('herb_') || bId.includes('berry') || bId.includes('seed') || bId === 'item_bread';
+                                            let isMagicObj = bId.includes('wand') || bId.includes('scroll');
+
+                                            // 用途不適合ならスキップ（草は使わない、魔法は食べない）
+                                            if (cmdInfo.id === 'eat' && !isFoodObj) continue; 
+                                            if (cmdInfo.id === 'heal' && (!isFoodObj || effect.hp <= 0)) continue;
+                                            if (cmdInfo.id === 'use' && !isMagicObj) continue;
+                                            // ▲ ここまで修正 ▲
+                                            
+                                            // 魔法の杖で回数0なら絶対に「つかう」候補にしない（無限素振りバグ防止）
+                                            if (cmdInfo.id === 'use' && bId.includes('wand') && effect.charges <= 0) continue;
+                                            
+                                            let score = 0;
+                                            let isUnid = s.sessionItemDict && s.sessionItemDict[bId] && !s.aiMemory.identified.includes(bId);
+                                            let tName = s.aiMemory && s.aiMemory.tempNames[bId];
+                                            let isTrulyUnid = isUnid && (!tName || tName.startsWith("謎の"));
+                                            
+                                            if (isTrulyUnid) {
+                                                score += 1000; // まったく分からない未識別の実験は最優先
+                                            } else {
+                                                // 識別済み（または「火の杖？」など正体がほぼ判明している）アイテムの無駄遣い防止
+                                                if (cmdInfo.id === 'use') {
+                                                    let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y) && !e.isInvisible);
+                                                    
+                                                    // ★新規追加：すでに眠り・混乱・麻痺・石化している敵は「脅威」から除外する！（死体蹴り防止）
+                                                    let activeEnemies = visibleEnemies.filter(e => !(e.status.sleep > 0) && !(e.status.confusion > 0) && !(e.status.paralyzed > 0) && !(e.status.petrified > 0));
+
+                                                    if (activeEnemies.length === 0) {
+                                                        score -= 5000; // 脅威がいない（または全員無力化済み）なら絶対に無駄撃ちしない！
+                                                    } else if (effect.traits.includes('sleep_aoe') || effect.traits.includes('confuse_aoe') || effect.traits.includes('seal_aoe')) {
+                                                        if (activeEnemies.length >= 2) {
+                                                            score += 2000; // 動ける敵が2体以上いる時だけ全体巻物を読む
+                                                        } else {
+                                                            score -= 5000; // 1体なら巻物はもったいないので温存する
+                                                        }
+                                                    } else if (effect.traits.includes('fire_damage') || effect.traits.includes('blow_back') || effect.traits.includes('freeze_effect') || effect.traits.includes('swap_pos')) {
+                                                        // 杖は「脅威となる敵が隣接している」か「HPが半分以下でピンチ」の時だけ振る（遠くから連打しない）
+                                                        let adjacentActive = activeEnemies.filter(e => Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
+                                                        if (adjacentActive.length > 0 || (s.player.hp / s.player.maxHp < 0.5)) {
+                                                            score += 1500; 
+                                                        } else {
+                                                            score -= 5000; 
+                                                        }
+                                                    } else if (effect.traits.includes('warp_self')) {
+                                                        if (activeEnemies.length >= 2 || (s.player.hp / s.player.maxHp < 0.4)) score += 1000;
+                                                        else score -= 5000;
+                                                    } else {
+                                                        score -= 5000;
+                                                    }
+                                                } else if (cmdInfo.id === 'eat' || cmdInfo.id === 'heal') {
+                                                    let hpRate = s.player.hp / s.player.maxHp;
+                                                    let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
+                                                    let hungerRate = s.player.hunger / maxH;
+                                                    
+                                                    if (bId === 'item_bread' && hungerRate >= 1.0) score += 600; // パンで最大満腹度アップ狙い
+                                                    else if (bId === 'herb' && hpRate >= 1.0 && activeTraitsForScore.includes('大地の恵み')) score += 600; // 草で最大HPアップ狙い
+                                                    else if (effect.traits.includes('level_up')) score += 800; // しあわせの種
+                                                    else if (effect.hp > 0 && hpRate < 1.0) score += 500;
+                                                    else if (effect.hunger > 0 && hungerRate < 1.0) score += 500;
+                                                    else score -= 5000; // 満タンの時に普通の草やパンを無駄食いしない
+                                                }
+                                            }
+                                            
+                                            let scoreLimit = -1000;
+                                            // 持ち物がいっぱいで整理が目的の作戦なら、無駄遣いでも消費を優先させる！
+                                            if (rule.condition === 'inventory_full') scoreLimit = -9999;
+
+                                            if (score > scoreLimit && score > highestScore) { // スコアが著しく低い（無駄遣い）ものは選ばない
+                                                highestScore = score;
+                                                bestIdx = i;
+                                            }
+                                        }
+                                        
+                                        if (bestIdx !== -1) {
+                                            s.player._bestItemIdx = bestIdx;
+                                        } else {
+                                            canDo = false; failReason = "状況に適したアイテムがなかった（無駄撃ち防止）"; silentFail = true;
                                         }
                                     }
 
                                     if (canDo) {
                                         chosenCommand = cmdInfo.id;
-                                        // ★修正：「おく」「なげる」の時は思考ログを賢い断捨離専用のものにする
                                         if (cmdInfo.id === 'put_down' || cmdInfo.id === 'throw') {
                                             thoughtLog = `作戦【${currentTacticName}】：カバン整理のため、不要な ${s.player._trashTargetName} に対して「${actName}」を実行！`;
                                         } else {
                                             thoughtLog = `作戦【${currentTacticName}】：条件を満たし「${actName}」を実行！`; 
                                         }
                                         break;
+                                    } else {
+                                        if (!silentFail) {
+                                            window.addDungeonLog(`💭 思考キャンセル：「${actName}」を試みたが、${failReason}ため次を検討。`, '#757575');
+                                        }
                                     }
+                                } else if (!validCmdIds.includes(cmdInfo?.id)) {
+                                    window.addDungeonLog(`💭 思考キャンセル：「${actName}」はまだ閃いていないため実行できない。`, '#757575');
                                 }
                             }
                         }
@@ -1105,56 +1376,6 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         }
     }
     // ==========================================
-
-    let isFlying = (s.player.skin && (s.player.skin.includes('balloon') || s.player.skin.includes('ghost') || s.player.skin.includes('bird'))) || activeTraits.includes('妖精の羽') || activeTraits.includes('反重力');
-
-    const getSmartNextStep = function(startX, startY, isTargetFunc, avoidEnemies = false) {
-        let distMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(Infinity));
-        distMap[startY][startX] = 0; let queue = [{x: startX, y: startY, cost: 0}];
-        let parent = {}; let foundTarget = null;
-        let hasColdResist = activeTraits.includes('耐冷構造') || activeTraits.includes('星の化身'); // ★星の化身は氷も滑らない
-        
-        while(queue.length > 0) {
-            queue.sort((a, b) => a.cost - b.cost); let cur = queue.shift();
-            if (isTargetFunc(cur.x, cur.y)) { foundTarget = cur; break; }
-            let dirs = [ {dx:0,dy:-1,cmd:'move_up'}, {dx:1,dy:0,cmd:'move_right'}, {dx:0,dy:1,cmd:'move_down'}, {dx:-1,dy:0,cmd:'move_left'} ];
-            for(let d of dirs) {
-                if (!validCmdIds.includes(d.cmd)) continue;
-                let nx = cur.x + d.dx; let ny = cur.y + d.dy;
-                if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight) {
-                    let tile = s.grid[ny][nx]; let moveCost = 1; 
-                    if (tile === 1) {
-                        if ((activeTraits.includes('重機動アーム') || activeTraits.includes('星の砕き手') || activeTraits.includes('星の化身')) && nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1) moveCost = 2; // ★星の化身も壁抜け
-                        else if (activeTraits.includes('幽体') && nx > 0 && nx < s.mapWidth - 1 && ny > 0 && ny < s.mapHeight - 1) moveCost = 3;
-                        else continue; 
-                    }
-                    if (!isFlying && (tile === 4 || tile === 10)) continue; 
-                    if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) continue;
-                    if (tile === 5) { if (s.player.hp <= 20) continue; moveCost = 20; }
-                    let willHitTrap = s.traps && s.traps.some(t => t.visible && t.x === nx && t.y === ny);
-                    if (tile === 8 && !hasColdResist) {
-                        let sx = nx, sy = ny;
-                        while (true) {
-                            if (s.traps && s.traps.some(t => t.visible && t.x === sx && t.y === sy)) { willHitTrap = true; break; }
-                            let nextTile = (s.grid[sy + d.dy] && s.grid[sy + d.dy][sx + d.dx] !== undefined) ? s.grid[sy + d.dy][sx + d.dx] : 1;
-                            if (nextTile === 1 || (!isFlying && nextTile === 4)) break;
-                            if (avoidEnemies && s.enemies.some(e => e.hp > 0 && e.x === sx + d.dx && e.y === sy + d.dy)) break;
-                            sx += d.dx; sy += d.dy;
-                            if (nextTile !== 8) { if (s.traps && s.traps.some(t => t.visible && t.x === sx && t.y === sy)) willHitTrap = true; break; }
-                        }
-                        if (willHitTrap) moveCost += 1000; else moveCost += 5; 
-                    } else if (willHitTrap) { moveCost += 1000; }
-                    
-                    let nextCost = cur.cost + moveCost;
-                    if (nextCost < distMap[ny][nx]) { distMap[ny][nx] = nextCost; parent[`${nx},${ny}`] = {x: cur.x, y: cur.y}; queue.push({x: nx, y: ny, cost: nextCost}); }
-                }
-            }
-        }
-        if (!foundTarget) return null; 
-        let curr = foundTarget;
-        while(curr.x !== startX || curr.y !== startY) { let p = parent[`${curr.x},${curr.y}`]; if (p.x === startX && p.y === startY) return curr; curr = p; }
-        return null;
-    };
 
     if (!chosenCommand && !isConfused) {
         if (validCmdIds.length === 0) {
@@ -1182,7 +1403,7 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 
                 let baseItemKey = itemId.split('_+')[0];
                 let isUnidentified = s.sessionItemDict && s.sessionItemDict[baseItemKey] && !s.aiMemory.identified.includes(baseItemKey);
-                let isMagic = effect.traits.length > 0 && !effect.traits.includes('level_up'); 
+                let isMagic = baseItemKey.includes('scroll') || baseItemKey.includes('wand'); 
                 let score = 0;
                 
                 if (isUnidentified) {
@@ -1196,8 +1417,14 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 } else {
                     if (effect.traits.includes('level_up')) { if (hpRate < 0.4 || (visibleEnemies.length >= 2 && hpRate < 0.5) || s.player.hunger < 20) score = 100; } 
                     else if (effect.traits.includes('warp_self')) { if (adjacentEnemies.length >= 2 || (hpRate < 0.3 && adjacentEnemies.length >= 1)) score = 95; } 
-                    else if (effect.traits.includes('sleep_aoe') || effect.traits.includes('confuse_aoe')) { if (visibleEnemies.length >= 3 || adjacentEnemies.length >= 2) score = 90; else if (visibleEnemies.length >= 2) score = 75; } 
-                    else if (effect.traits.includes('fire_damage') || effect.traits.includes('blow_back')) { if (adjacentEnemies.length >= 1) score = 85; else if (visibleEnemies.length >= 2) score = 80; } 
+                    else if (effect.traits.includes('sleep_aoe') || effect.traits.includes('confuse_aoe') || effect.traits.includes('seal_aoe')) { 
+                        let activeVisible = visibleEnemies.filter(e => !(e.status.sleep > 0) && !(e.status.confusion > 0) && !(e.status.paralyzed > 0) && !(e.status.petrified > 0));
+                        let activeAdjacent = adjacentEnemies.filter(e => !(e.status.sleep > 0) && !(e.status.confusion > 0) && !(e.status.paralyzed > 0) && !(e.status.petrified > 0));
+                        if (activeVisible.length >= 3 || activeAdjacent.length >= 2) score = 90; 
+                        else if (activeVisible.length >= 2) score = 75; 
+                        else score = -1; // 脅威がいない（全員無力化済み）場合は温存
+                    } 
+                    else if (effect.traits.includes('fire_damage') || effect.traits.includes('blow_back')) { if (adjacentEnemies.length >= 1) score = 85; else if (visibleEnemies.length >= 2) score = 80; }
                     else if (effect.traits.includes('swap_pos')) {
                         let farEnemies = visibleEnemies.filter(e => Math.abs(e.x - s.player.x) > 1 || Math.abs(e.y - s.player.y) > 1);
                         if (farEnemies.length > 0) { if (hpRate < 0.5 && adjacentEnemies.length >= 1) score = 95; else if (adjacentEnemies.length >= 2) score = 85; else score = -1; } 
@@ -1436,15 +1663,42 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                         } else if (!nextStep && !chosenCommand && chosenCommand !== 'skip') {
                             thoughtLog = "どうしていいか分からずオロオロしている..."; chosenCommand = 'skip';
                         }
+
+                        // ★追加：通路での「反復横跳び防止 ＆ 迎撃マクロ」
+                        if (chosenCommand && chosenCommand.startsWith('move_')) {
+                            let isCorridor = (s.grid[s.player.y][s.player.x] === 3); 
+                            let visibleEnemies = s.enemies.filter(e => e.hp > 0 && window.isTileVisible(s, e.x, e.y) && !e.isInvisible);
+                            let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1);
+                            
+                            // 通路にいて、視界に敵がいるが隣接していない場合
+                            if (isCorridor && visibleEnemies.length > 0 && adjacentEnemies.length === 0) {
+                                // ★修正：一定ターン待っても敵が来ない（遠距離攻撃で削られ続ける）なら、突撃フラグを立てて部屋に突入する！
+                                s.player._waitCount = (s.player._waitCount || 0) + 1;
+                                if (s.player._waitCount > 3) {
+                                    window.addDungeonLog(`💢 ${aiName} は遠隔攻撃にしびれを切らし、突撃を決意した！`, '#ff5252');
+                                    s.player._commitFight = 6;
+                                    s.player._waitCount = 0;
+                                    // 突撃フラグが立ったため、移動コマンドをキャンセルせずに続行させる
+                                } else if (s.player._commitFight > 0) {
+                                    s.player._waitCount = 0; // すでに突撃中なら待機せずに進む
+                                } else {
+                                    // 部屋に戻ろうとする移動コマンドをキャンセルし、その場で素振りして敵が寄ってくるのを待つ！
+                                    chosenCommand = 'attack';
+                                    thoughtLog = `作戦【${s.player.currentTacticName || 'AIにまかせる'}】：通路へ退避完了！敵の追撃を警戒し、待ち構えている！`;
+                                }
+                            } else {
+                                s.player._waitCount = 0; // 敵がいない、または隣接した場合はカウントリセット
+                            }
+                        }
                     }
                 }
             }
 
             if (!chosenCommand) {
                 let smartValidCmds = validCmdIds.filter(cmd => {
-                    if (cmd === 'eat') return s.player.tempInventory.some(i => { let e = window.getDungeonItemEffect(i); return e.isConsumable && e.traits.length === 0; });
-                    if (cmd === 'use') return s.player.tempInventory.some(i => { let e = window.getDungeonItemEffect(i); return e.isConsumable && e.traits.length > 0; });
-                    if (cmd === 'heal') return s.player.tempInventory.some(i => { let e = window.getDungeonItemEffect(i); return e.isConsumable && e.traits.length === 0 && e.hp > 0; });
+                    if (cmd === 'eat') return s.player.tempInventory.some(i => { let bId = window.parseItemString(i).baseId; let e = window.getDungeonItemEffect(i); return e.isConsumable && !bId.includes('scroll') && !bId.includes('wand'); });
+                    if (cmd === 'use') return s.player.tempInventory.some(i => { let bId = window.parseItemString(i).baseId; return bId.includes('scroll') || bId.includes('wand'); });
+                    if (cmd === 'heal') return s.player.tempInventory.some(i => { let bId = window.parseItemString(i).baseId; let e = window.getDungeonItemEffect(i); return e.isConsumable && !bId.includes('scroll') && !bId.includes('wand') && e.hp > 0; });
                     if (cmd === 'equip') return (
                              (!s.player.equipWeapon && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'weapon' || window.getDungeonItemEffect(i).isWeapon)) || 
                              (!s.player.equipShield && s.player.tempInventory.some(i => window.getDungeonItemEffect(i).equipType === 'shield' || window.getDungeonItemEffect(i).isShield)) ||
@@ -1504,14 +1758,15 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
 
     // ★ AI調整：名付け（name_item）による無駄なターンスキップを阻止し、ノーターンで自動名付けする！
     if (chosenCommand !== 'skip' && chosenCommand !== 'descend_stairs') {
-        const cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.id === chosenCommand); 
+        let checkCmdId = chosenCommand.startsWith('ground_') ? chosenCommand.replace('ground_', '') : chosenCommand;
+        const cmdInfo = window.DUNGEON_AVAILABLE_COMMANDS.find(c => c.id === checkCmdId); 
         if (cmdInfo && !isConfused) {
             let thoughtStr = thoughtLog ? ` (💭${thoughtLog})` : "";
             window.addDungeonLog(`${aiName} は「${cmdInfo.name}」と考えた！${thoughtStr}`, '#B0BEC5'); 
         } else if (!isConfused) { 
             chosenCommand = 'attack'; window.addDungeonLog(`⚠️ ${aiName} は未知の行動に混乱し、とっさに身構えた！`, '#ff5252'); 
         }
-    } else if (chosenCommand === 'descend_stairs') { window.addDungeonLog(`💭 階段を降りる決断をした。（${thoughtLog}）`, '#B0BEC5'); } 
+    } else if (chosenCommand === 'descend_stairs') { window.addDungeonLog(`💭 階段を降りる決断をした。（${thoughtLog}）`, '#B0BEC5'); }
     else if (chosenCommand === 'skip') {
         if (thoughtLog && !isConfused) window.addDungeonLog(`💭 立ち止まって様子を見ている。（${thoughtLog}）`, '#B0BEC5');
         // ★ 種系特性：根張り（移動せずに待機するとHPが回復）
@@ -1564,6 +1819,7 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         s.floor++; s.turnCount = 0; s.floorTurn = 0; 
         s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0, wet: 0, sleep: 0, petrified: 0, fear: 0, burn: 0, frozen: 0, miss_next: false, death_count: 0, forget_plus: false };
         s.player.atkBuff = 0; s.player._itemTargetPos = null; s.player._unreachableItems = []; 
+        s.player._sightUp = false; // ★追加：目薬草の効果（およびその他の一時フロア効果）を確実にリセット
         
         // ==========================================
         // ★完全修正：階を降りたら、前世の「安全確認メモリ」を完全に消去する！
@@ -1588,18 +1844,29 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             let itemId = s.player.tempInventory[idx]; let bId = window.parseItemString(itemId).baseId;
             if (!s.aiMemory.identified.includes(bId)) {
                 s.aiMemory.identified.push(bId);
-                window.addDungeonLog(`🔍 ${aiName} は「しらべる」を使って ${window.getDungeonItemEffect(itemId).realName} だと見抜いた！`, '#FFD700');
+                window.addDungeonLog(`🔍 ${aiName} は「しらべる」を使って ${window.getDungeonItemEffect(itemId).logName} であることを見抜いた！`, '#FFD700');
             }
         } s.player._identifyTargetIdx = null;
     }
     else if (chosenCommand === 'flee') {
         if (enemyInSight) {
-            const canFlee = (tx, ty) => s.grid[ty][tx] !== 1 && (isFlying || (s.grid[ty][tx] !== 4 && s.grid[ty][tx] !== 10)) && (!s.traps || !s.traps.some(t => t.visible && t.x === tx && t.y === ty)); 
-            if (s.player.x < enemyInSight.x && canFlee(s.player.x - 1, s.player.y)) { newX--; s.player.face = 'left'; }
-            else if (s.player.x > enemyInSight.x && canFlee(s.player.x + 1, s.player.y)) { newX++; s.player.face = 'right'; }
-            else if (s.player.y < enemyInSight.y && canFlee(s.player.x, s.player.y - 1)) { newY--; s.player.face = 'up'; }
-            else if (s.player.y > enemyInSight.y && canFlee(s.player.x, s.player.y + 1)) { newY++; s.player.face = 'down'; }
-            if(!isConfused) window.addDungeonLog(`敵から遠ざかるように走った！`, '#00BCD4');
+            const canFlee = (tx, ty) => tx >= 0 && tx < s.mapWidth && ty >= 0 && ty < s.mapHeight && s.grid[ty][tx] !== 1 && (isFlying || (s.grid[ty][tx] !== 4 && s.grid[ty][tx] !== 10)) && (!s.traps || !s.traps.some(t => t.visible && t.x === tx && t.y === ty)) && !s.enemies.some(e => e.hp > 0 && e.x === tx && e.y === ty); 
+            let moved = false;
+            // まずは敵から遠ざかる方向を試す
+            if (s.player.x < enemyInSight.x && canFlee(s.player.x - 1, s.player.y)) { newX--; s.player.face = 'left'; moved = true; }
+            else if (s.player.x > enemyInSight.x && canFlee(s.player.x + 1, s.player.y)) { newX++; s.player.face = 'right'; moved = true; }
+            else if (s.player.y < enemyInSight.y && canFlee(s.player.x, s.player.y - 1)) { newY--; s.player.face = 'up'; moved = true; }
+            else if (s.player.y > enemyInSight.y && canFlee(s.player.x, s.player.y + 1)) { newY++; s.player.face = 'down'; moved = true; }
+            
+            // 遠ざかるのが無理なら、横に避ける
+            if (!moved) {
+                if (canFlee(s.player.x - 1, s.player.y)) { newX--; s.player.face = 'left'; moved = true; }
+                else if (canFlee(s.player.x + 1, s.player.y)) { newX++; s.player.face = 'right'; moved = true; }
+                else if (canFlee(s.player.x, s.player.y - 1)) { newY--; s.player.face = 'up'; moved = true; }
+                else if (canFlee(s.player.x, s.player.y + 1)) { newY++; s.player.face = 'down'; moved = true; }
+            }
+            if (moved && !isConfused) window.addDungeonLog(`敵を避けるように走った！`, '#00BCD4');
+            else if (!isConfused) window.addDungeonLog(`逃げ道が塞がれている！`, '#FF5252');
         } else { if(!isConfused) window.addDungeonLog(`キョロキョロしている。（敵がいない）`, '#aaa'); }
     }
 
@@ -1692,10 +1959,39 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
 
                         let maxInv = s.player.maxInventory || 20; // ★上限を動的に取得
                         
-                        // ★完全修正：アイテム側の取得拒否（_preventAutoPick）とプレイヤー側マクロの取得拒否を両方判定！
-                        let canPick = s.player.tempInventory.length < maxInv && !itm._preventAutoPick && !s.player._preventAutoPick;
+                        // ★新規追加：プレイヤーの作戦に「足元アイテム」の指示があり、条件を満たす場合はオートピックを保留する
+                        let shouldRetainOnGround = false;
+                        let activeTactic = (ai.dungeonTactics || []).find(t => t.name === s.player.currentTacticName);
+                        if (activeTactic && activeTactic.rules && !itm._visited) {
+                            let eff = window.getDungeonItemEffect(itm.key);
+                            let bId = window.parseItemString(itm.key).baseId;
+                            let isFoodObj = bId === 'herb' || bId.startsWith('herb_') || bId.includes('berry') || bId.includes('seed') || bId === 'item_bread';
+                            let isEquipObj = eff.equipType !== null || eff.isWeapon || eff.isShield;
+                            let tName = s.aiMemory && s.aiMemory.tempNames[bId];
+                            let isUnidConsumable = s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId) && (!tName || tName.startsWith("謎の"));
+                            let isUnidEquip = isEquipObj && !eff.isStatsKnown;
+                            let isUnidObj = isUnidConsumable || isUnidEquip;
+                            
+                            for (let r of activeTactic.rules) {
+                                if (r.condition.startsWith('on_item_')) {
+                                    let match = (r.condition === 'on_item_any') || 
+                                                (r.condition === 'on_item_food' && isFoodObj) || 
+                                                (r.condition === 'on_item_equip' && isEquipObj) || 
+                                                (r.condition === 'on_item_unidentified' && isUnidObj);
+                                    if (match) {
+                                        let acts = [r.action1, r.action2].filter(a => a);
+                                        if (acts.some(a => ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a))) {
+                                            shouldRetainOnGround = true; break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        // ★完全修正：アイテム側、プレイヤー側、作戦による保留をすべて判定！
+                        let canPick = s.player.tempInventory.length < maxInv && !itm._preventAutoPick && !s.player._preventAutoPick && !shouldRetainOnGround;
                         
-                        if (canPick) { 
+                        if (canPick) {
                             s.player.tempInventory.push(itm.key); window.addDungeonLog(`足元から ${eff.logName} を拾った！`, '#4CAF50'); s.items.splice(itemIdx, 1);
                         } else {
                             if (s.player.tempInventory.length >= maxInv) {
@@ -1730,10 +2026,17 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                     else if (trap && !s.player.status.paralyzed) { 
                         if (!trap.visible) window.addDungeonLog(`カシャッ！ 何か罠を踏んだ！`, '#ff5252');
                         trap.visible = true;
+                        let defTraits = [];
+                        if (s.player.equipShield) defTraits.push(...window.getDungeonItemEffect(s.player.equipShield).traits);
+                        if (s.player.equipArmor) defTraits.push(...window.getDungeonItemEffect(s.player.equipArmor).traits);
+
                         if (trap.type === 'poison') {
                             if (s.player.skin && s.player.skin.includes('spirit_type1')) {
                                 window.addDungeonLog(`🍄 毒矢が刺さったが、毒素体質により逆に体力が回復した！`, '#4CAF50');
                                 s.player.hp = Math.min(s.player.maxHp, s.player.hp + 10); if (typeof window.showDungeonHealEffect === 'function') window.showDungeonHealEffect(s.player.x, s.player.y, 10);
+                            } else if (defTraits.includes('anti_poison')) {
+                                window.addDungeonLog(`☠️ 毒矢が刺さったが、[抗]の印が毒を防いだ！`, '#00BCD4');
+                                s.player.damageAnim = true; s.player.hp -= 5;
                             } else { window.addDungeonLog(`☠️ 毒矢の罠！ 毒状態になった！`, '#FF5252'); s.player.damageAnim = true; s.player.hp -= 5; s.player.status.poison = 10; }
                             window.updateDungeonUI();
                         } 
@@ -1743,8 +2046,20 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                             else { window.addDungeonLog(`💣 地雷が大爆発！(HPが半分になった！)`, '#FF5252'); }
                             s.player.hp -= dmg; s.player.damageAnim = true; if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, "BOOM", true);
                         }
-                        else if (trap.type === 'blind') { window.addDungeonLog(`泥水を被り、視界が奪われた！`, '#9C27B0'); s.player.status.blind += 15; }
-                        else if (trap.type === 'bear_trap') { window.addDungeonLog(`トラバサミに引っかかり、足が痺れた！`, '#FF9800'); s.player.status.paralyzed += 3; s.player.hp -= 10; s.player.damageAnim = true; }
+                        else if (trap.type === 'blind') { 
+                            if (defTraits.includes('anti_blind')) {
+                                window.addDungeonLog(`泥水を被ったが、[明]の印が目を保護した！`, '#00BCD4');
+                            } else {
+                                window.addDungeonLog(`泥水を被り、視界が奪われた！`, '#9C27B0'); s.player.status.blind += 15; 
+                            }
+                        }
+                        else if (trap.type === 'bear_trap') { 
+                            if (defTraits.includes('anti_paralyze')) {
+                                window.addDungeonLog(`トラバサミに挟まれたが、[動]の印が麻痺を防いだ！`, '#00BCD4'); s.player.hp -= 10; s.player.damageAnim = true;
+                            } else {
+                                window.addDungeonLog(`トラバサミに引っかかり、足が痺れた！`, '#FF9800'); s.player.status.paralyzed += 3; s.player.hp -= 10; s.player.damageAnim = true; 
+                            }
+                        }
                         else if (trap.type === 'stone') {
                             window.addDungeonLog(`ツルッ！ 石ころにつまずいて転んだ！`, '#FF9800'); s.player.damageAnim = true; s.player.hp -= 2; window.updateDungeonUI();
                             if (s.player.tempInventory.length > 0) {
@@ -1787,6 +2102,28 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 }
             } // ← ① hitEnemyの else を閉じる
         } else { window.addDungeonLog(`ガンッ！ 壁や水脈にぶつかった！`, '#aaa'); return 'continue'; } // ← ② マップ範囲内判定を閉じて else に繋ぐ
+    } else {
+        // ★新規追加：移動しなかったターン（足踏み、攻撃、足元を調べた後など）でも、足元に拾えるアイテムがあれば拾う！
+        if (s.items && !chosenCommand.startsWith('ground_')) {
+            let itemIdx = s.items.findIndex(i => i.x === s.player.x && i.y === s.player.y && !i._discarded);
+            if (itemIdx !== -1) {
+                let itm = s.items[itemIdx];
+                let maxInv = s.player.maxInventory || 20;
+                let canPick = s.player.tempInventory.length < maxInv && !itm._preventAutoPick && !s.player._preventAutoPick;
+                if (canPick) {
+                    let eff = window.getDungeonItemEffect(itm.key);
+                    s.player.tempInventory.push(itm.key); 
+                    window.addDungeonLog(`足元から ${eff.logName} を拾った！`, '#4CAF50'); 
+                    s.items.splice(itemIdx, 1);
+                    if (typeof window.triggerDungeonInspiration === 'function') {
+                        if (eff.equipType) window.triggerDungeonInspiration('equip');
+                        if (eff.isConsumable && eff.traits.length === 0) window.triggerDungeonInspiration('eat');
+                        if (eff.isConsumable && eff.traits.length > 0) window.triggerDungeonInspiration('use');
+                    }
+                }
+            }
+        }
+        s.player._preventAutoPick = false;
     } // ← ③ 移動判定全体を閉じる
     // ★追加：足元アイテムの直接装備ロジック（システム側の吸収）
     if (chosenCommand === 'ground_equip') {
@@ -1824,9 +2161,15 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         let bId = window.parseItemString(item.key).baseId;
         if (!s.aiMemory.identified.includes(bId)) {
             s.aiMemory.identified.push(bId);
-            window.addDungeonLog(`🔍 ${aiName} は足元のアイテムを調べ、${window.getDungeonItemEffect(item.key).realName} だと見抜いた！`, '#FFD700');
+            window.addDungeonLog(`🔍 ${aiName} は足元のアイテムを調べ、${window.getDungeonItemEffect(item.key).logName} であることを見抜いた！`, '#FFD700');
         } else {
-            window.addDungeonLog(`足元のアイテムはすでに ${window.getDungeonItemEffect(item.key).realName} だと分かっている。`, '#aaa');
+            window.addDungeonLog(`足元のアイテムはすでに ${window.getDungeonItemEffect(item.key).logName} であることが分かっている。`, '#aaa');
+        }
+        let maxInv = s.player.maxInventory || 20;
+        if (s.player.tempInventory.length < maxInv) {
+            s.player.tempInventory.push(item.key);
+            window.addDungeonLog(`そして ${window.getDungeonItemEffect(item.key).logName} をカバンにしまった。`, '#4CAF50');
+            s.items = s.items.filter(i => i !== item);
         }
         s.player._targetGroundItem = null;
         return 'continue';
@@ -1839,6 +2182,12 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             window.addDungeonLog(`💡 AIは足元のアイテムを【謎のアイテム？】と名付けた！`, '#FFD700');
         } else {
             window.addDungeonLog(`足元のアイテムはすでに名前がついているか、識別済みだ。`, '#aaa');
+        }
+        let maxInv = s.player.maxInventory || 20;
+        if (s.player.tempInventory.length < maxInv) {
+            s.player.tempInventory.push(item.key);
+            window.addDungeonLog(`そして ${window.getDungeonItemEffect(item.key).logName} をカバンにしまった。`, '#4CAF50');
+            s.items = s.items.filter(i => i !== item);
         }
         s.player._targetGroundItem = null;
         return 'continue';
@@ -1865,7 +2214,13 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         // ★大改修：罠警戒の素振りの時は、オートエイム（勝手な振り向き）を禁止し、向いている方向の敵だけを殴る！
         // ==========================================
         let targetEnemy = enemyAdjacent;
-        if (s.player._trapCheckToggle) {
+        
+        // ▼ 新規追加：敵が隣接している場合は、素振りフラグを強制解除してオートエイム（戦闘）を優先する！
+        if (enemyAdjacent) {
+            s.player._trapCheckToggle = false;
+            // ★さらに追加：敵を殴るのに夢中で「罠チェック」はできていないため、保留していた安全マスの記憶を消去する！
+            s.player._pendingTrapCheckPos = null; 
+        } else if (s.player._trapCheckToggle) {
             let tx = s.player.x, ty = s.player.y;
             if (s.player.face === 'up') ty--; else if (s.player.face === 'down') ty++; else if (s.player.face === 'left') tx--; else if (s.player.face === 'right') tx++;
             // 進行方向のマスにいる敵だけを攻撃対象に絞り込む
@@ -1881,12 +2236,18 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             window.dealDungeonDamage(s.player, targetEnemy);
             let atkWait = targetEnemy.warpAnim ? 400 : 150; window.updateDungeonUI(); await sleep(atkWait);
             let wEff = s.player.equipWeapon ? window.getDungeonItemEffect(s.player.equipWeapon) : null;
-            if (wEff && wEff.traits.includes('double') && targetEnemy.hp > 0) { 
-                window.addDungeonLog(`⚔️ 連撃の剣が発動！怒涛の連続攻撃！`, '#FFD700'); s.player.attackAnim = true; 
+            // ▼ 修正：wEff.traits が存在するかどうかを && で追加チェック
+            if (wEff && wEff.traits && wEff.traits.includes('double') && targetEnemy.hp > 0) { 
+                let isBaseDouble = window.parseItemString(s.player.equipWeapon).baseId === 'item_sword_double';
+                let logMsg = isBaseDouble ? `⚔️ 連撃の剣が発動！怒涛の連続攻撃！` : `⚔️ [連]の印が発動！怒涛の連続攻撃！`;
+                window.addDungeonLog(logMsg, '#FFD700'); s.player.attackAnim = true; 
                 window.dealDungeonDamage(s.player, targetEnemy); window.updateDungeonUI(); await sleep(150);
             }
+            
+            // ★追加：敵を殴ってしまったので、素振りによる安全確認は失敗
+            s.player._pendingTrapCheckPos = null;
         } else { 
-            s.player.attackAnim = true; 
+            s.player.attackAnim = true;
             if (isConfused) {
                 let dirs = ['up', 'down', 'left', 'right']; s.player.face = dirs[Math.floor(Math.random() * dirs.length)];
                 let hx = s.player.x, hy = s.player.y;
@@ -1896,7 +2257,18 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                     window.addDungeonLog(`混乱したままデタラメに殴ったら当たった！`, '#FF9800'); 
                     if (hitE.status && hitE.status.sleep > 0) hitE.status.sleep = 0; window.dealDungeonDamage(s.player, hitE); 
                 } else { window.addDungeonLog(`明後日の方向を殴っている！`, '#aaa'); }
-            } else { window.addDungeonLog(`空を切った...（近くに敵がいない）`, '#aaa'); }
+                
+                // 混乱時は狙ったマスへの安全確認ができない
+                s.player._pendingTrapCheckPos = null;
+            } else { 
+                window.addDungeonLog(`空を切った...（近くに敵がいない）`, '#aaa'); 
+                
+                // ★追加：本当に空振りできたので、保留していたマスの安全フラグを立てる！
+                if (s.player._pendingTrapCheckPos) {
+                    s._trapCheckedTiles[`${s.player._pendingTrapCheckPos.x},${s.player._pendingTrapCheckPos.y}`] = true;
+                    s.player._pendingTrapCheckPos = null;
+                }
+            }
         }
 
         let tx = s.player.x; let ty = s.player.y;
@@ -1917,7 +2289,7 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             let effect = window.getDungeonItemEffect(itemId);
             let parsed = window.parseItemString(itemId); let baseId = parsed.baseId;
             let isUnidentified = s.sessionItemDict && s.sessionItemDict[baseId] && !s.aiMemory.identified.includes(baseId);
-            let isMagicItem = effect.traits.length > 0 && !effect.traits.includes('level_up');
+            let isMagicItem = baseId.includes('scroll') || baseId.includes('wand');
             let isOverTech = itemId.includes('wand') && activeTraits.includes('オーバーテクノロジー') && Math.random() < 0.25;
 
             chosenCommand = realCommand; // ★ 以降の巨大な判定ロジックを一切壊さず完全に流用する
@@ -1941,31 +2313,51 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 if (limitBreakMsg !== "") window.addDungeonLog(`💪 上限突破！ ${limitBreakMsg}`, '#FF9800');
                 if (effect.hp > 0 || effect.hunger > 0) window.addDungeonLog(`HPが ${effect.hp}、満腹度が ${effect.hunger} 回復した！`, '#4CAF50');
                 
+                // ▼ 新規追加：状態異常回復アイテムの効果発動
+                if (effect.traits && effect.traits.includes('cure_poison')) {
+                    s.player.status.poison = 0; window.addDungeonLog(`✨ 体から毒が完全に抜け去った！`, '#4CAF50');
+                }
+                if (effect.traits && effect.traits.includes('cure_confuse_sleep')) {
+                    s.player.status.confusion = 0; s.player.status.sleep = 0; window.addDungeonLog(`✨ 頭がスッキリして正気を取り戻した！`, '#4CAF50');
+                }
+                if (effect.traits && effect.traits.includes('cure_blind_reveal_traps')) {
+                    s.player.status.blind = 0; s.player._sightUp = true; // 階層リセット確認用フラグとして維持
+                    if (s.traps) {
+                        s.traps.forEach(t => t.visible = true); // ★フロアの全罠を可視化！
+                    }
+                    window.addDungeonLog(`✨ 目が冴え渡り、暗闇が晴れ、フロアの隠された罠をすべて見破った！`, '#00BCD4');
+                }
+                // ▼ 追加
+                if (effect.traits && effect.traits.includes('cure_paralyze')) {
+                    s.player.status.paralyzed = 0; window.addDungeonLog(`✨ 足の痺れが完全に消え去った！`, '#4CAF50');
+                }
+
                 // ★完全版適用：過去に構築された完璧なレベルアップ・ステータス底上げ処理
                 if (effect.traits && effect.traits.includes('level_up')) {
                     let statMult = (s.mapType === 'skull' && activeTraits.includes('宇宙の樹')) ? 2 : 1;
-                    let pwrBonus = (s.mapType === 'skull' && activeTraits.includes('竜の血')) ? 12 : 8;
+                    // 通常の火力上昇+1に合わせ、竜の血ボーナスもスケールダウン
+                    let pwrBonus = (s.mapType === 'skull' && activeTraits.includes('竜の血')) ? 2 : 1;
 
                     if (s.mapType === 'crystal') {
                         s.player.level = (s.player.level || 1) + 1; 
-                        s.player.maxHp += 20; 
+                        s.player.maxHp += 5; 
                         s.player.hp = s.player.maxHp; 
                         s.player.hunger = maxH; 
-                        s.player.basePwr += 8;
+                        s.player.basePwr += 1;
                         window.addDungeonLog(`✨ 奇跡が起きた！Lv.${s.player.level}にレベルアップし、全回復した！`, '#E040FB');
                     } else {
                         // スカルダンジョン用のしあわせの種効果
-                        s.player.maxHp += 20 * statMult; 
+                        s.player.maxHp += 5 * statMult; 
                         s.player.hp = s.player.maxHp; 
                         s.player.hunger = maxH; 
                         s.player.basePwr += pwrBonus * statMult;
                         
-                        if (window.DUNGEON_STATE.player.intel) window.DUNGEON_STATE.player.intel += 5 * statMult;
-                        if (window.DUNGEON_STATE.player.speed) window.DUNGEON_STATE.player.speed += 5 * statMult;
+                        if (window.DUNGEON_STATE.player.intel) window.DUNGEON_STATE.player.intel += 1 * statMult;
+                        if (window.DUNGEON_STATE.player.speed) window.DUNGEON_STATE.player.speed += 1 * statMult;
 
                         window.addDungeonLog(`✨ 奇跡が起きた！能力が底上げされ、全回復した！`, '#E040FB');
                         if (statMult > 1) window.addDungeonLog(`🌌 宇宙の樹の力で、ステータス上昇値が2倍になった！`, '#00BCD4');
-                        if (activeTraits.includes('竜の血')) window.addDungeonLog(`🐉 竜の血がたぎり、活力が大幅に上昇した！`, '#FF5252');
+                        if (activeTraits.includes('竜の血')) window.addDungeonLog(`🐉 竜の血がたぎり、活力が追加で上昇した！`, '#FF5252');
                     }
                     s.player.levelUpAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'level_up');
 
@@ -1978,7 +2370,7 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 // ★大修正：草や食べ物は「使えば完全に識別される」王道仕様！
                 if (isUnidentified) {
                     s.aiMemory.identified.push(baseId);
-                    window.addDungeonLog(`💡 AIはこのアイテムが【${effect.realName}】だと完全に理解した！`, '#FFD700');
+                    window.addDungeonLog(`💡 AIはこのアイテムが ${effect.logName} であることを完全に理解した！`, '#FFD700');
                 }
 
                 if (isGround) s.items = s.items.filter(i => i !== s.player._targetGroundItem); else s.player.tempInventory.splice(s.player._bestItemIdx, 1); 
@@ -1994,14 +2386,87 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 if (itemId.includes('wand')) {
                     if (isOverTech) { window.addDungeonLog(`✨ オーバーテクノロジー！ 杖の魔力を消費せずに放つ！`, '#FFD700'); } 
                     else { 
-                        if (!isGround) s.player.tempInventory[s.player._bestItemIdx] = `${parsed.baseId}_+${parsed.plus - 1}`; 
+                        if (!isGround) {
+                            let nextChg = parsed.plus - 1;
+                            s.player.tempInventory[s.player._bestItemIdx] = `${parsed.baseId}${nextChg >= 0 ? '_+' : '_'}${nextChg}`; 
+                        }
                     }
-                } else { 
+                } else {
                     if (isGround) s.items = s.items.filter(i => i !== s.player._targetGroundItem); else s.player.tempInventory.splice(s.player._bestItemIdx, 1); 
                 }
             }
             
             let effectTriggered = false;
+
+            // ==========================================
+            // ★新規追加：識別の巻物の効果（自動判定＆ラッキー全鑑定）
+            // ==========================================
+            if (baseId === 'item_scroll_identify' && (chosenCommand === 'use' || isUnidentified)) {
+                s.player.magicAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+
+                // カバンの中の未識別アイテムをリストアップ
+                let unids = [];
+                for (let i = 0; i < s.player.tempInventory.length; i++) {
+                    let invId = s.player.tempInventory[i];
+                    let invParsed = window.parseItemString(invId);
+                    if (s.sessionItemDict && s.sessionItemDict[invParsed.baseId] && !s.aiMemory.identified.includes(invParsed.baseId)) {
+                        let score = 0;
+                        // 優先順位付け（指輪:100 > 杖:80 > 武器盾鎧:60 > その他:10）
+                        if (invParsed.baseId.includes('ring') || invParsed.baseId.includes('bracelet')) score = 100;
+                        else if (invParsed.baseId.includes('wand')) score = 80;
+                        else if (invParsed.baseId.includes('sword') || invParsed.baseId.includes('shield') || invParsed.baseId.includes('armor')) score = 60;
+                        else score = 10;
+                        
+                        unids.push({ idx: i, id: invId, baseId: invParsed.baseId, score: score });
+                    }
+                }
+
+                if (unids.length > 0) {
+                    // 5%の確率で全鑑定（大当たり）
+                    if (Math.random() < 0.05) {
+                        window.addDungeonLog(`✨ ラッキー！ 巻物が激しく光り輝いた！`, '#FFD700');
+                        unids.forEach(u => {
+                            if (!s.aiMemory.identified.includes(u.baseId)) s.aiMemory.identified.push(u.baseId);
+                        });
+                        window.addDungeonLog(`なんと、カバンの中の未識別アイテムがすべて識別された！`, '#4CAF50');
+                    } else {
+                        // 優先度順にソート（スコア降順）
+                        unids.sort((a, b) => b.score - a.score);
+                        let target = unids[0];
+                        
+                        // 識別処理
+                        s.aiMemory.identified.push(target.baseId);
+                        let targetEff = window.getDungeonItemEffect(target.id);
+                        
+                        // ★修正：自分で名前をつけていない場合は「紫の草」などの未識別時の見た目の名前をそのまま呼ぶ！
+                        let tName = s.aiMemory.tempNames[target.baseId] || targetEff.name;
+                        
+                        // AIの思考と結果をログに出力
+                        window.addDungeonLog(`💭 AI：カバンの中身を確認...よし、優先度の高い ${tName} を識別しよう！`, '#B0BEC5');
+                        window.addDungeonLog(`🔍 ${aiName} は巻物を読み、アイテムが ${targetEff.logName} であることを完全に理解した！`, '#FFD700');
+                    }
+                } else {
+                    window.addDungeonLog(`しかし、カバンの中に識別するアイテムがなかった！`, '#aaa');
+                }
+                effectTriggered = true;
+            }
+
+            // ▼ 新規追加：封魔の巻物
+            if (effect.traits.includes('seal_aoe') && (chosenCommand === 'use' || isUnidentified)) {
+                s.player.magicAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
+                let pRoom = s.roomsInfo ? s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x + r.w && s.player.y >= r.y && s.player.y < r.y + r.h) : null;
+                let targets = pRoom ? s.enemies.filter(e => e.hp > 0 && e.x >= pRoom.x && e.x < pRoom.x + pRoom.w && e.y >= pRoom.y && e.y < pRoom.y + pRoom.h) : s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
+                
+                if (targets.length > 0) {
+                    targets.forEach(e => { 
+                        e.status.sealed = (e.status.sealed || 0) + 15; 
+                        window.addDungeonLog(`${e.name} の口が塞がれ、特殊能力が封印された！🤐`, '#9C27B0');
+                    });
+                    effectTriggered = true;
+                } else {
+                    window.addDungeonLog(`巻物を読んだが、何も起きなかった...`, '#aaa');
+                }
+            }
 
             if (effect.traits.includes('sleep_aoe') && (chosenCommand === 'use' || isUnidentified)) {
                 // ★ 閃き：未識別アイテムで痛い目・想定外の事態に遭遇し「調べる」「名前をつける」を閃く
@@ -2335,7 +2800,8 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                         // 杖などで不発だった場合
                         let tName = baseId.includes('wand') ? "謎の杖" : "謎のアイテム";
                         let currentTempName = s.aiMemory.tempNames[baseId];
-                        if (!currentTempName || currentTempName.startsWith("謎の")) {
+                        // ★完全修正：すでに「謎の杖」と名付けている場合は、再度ログを出さない（スパム防止）
+                        if (currentTempName !== tName) {
                             s.aiMemory.tempNames[baseId] = tName;
                             window.addDungeonLog(`💡 AIは効果が分からなかったため、とりあえず保留で【${tName}？】と名付けた！`, '#FFD700');
                         }
@@ -2424,15 +2890,59 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         let info = s.player._synthInfo || s.player._bestSameSynth || s.player._bestDiffSynth;
         s.player._synthInfo = null;
         
+        // ==========================================
+        // ★新規追加：合成のベースと素材を賢く逆転させる（器の大きさ判定）
+        // ==========================================
+        if (info) {
+            let bD = window.getDungeonItemEffect(info.baseItem.id);
+            let mD = window.getDungeonItemEffect(info.matItem.id);
+            let pB = window.parseItemString(info.baseItem.id);
+            let pM = window.parseItemString(info.matItem.id);
+            
+            let bMax = bD.maxSeals || 0;
+            let mMax = mD.maxSeals || 0;
+            
+            let willDiscard = false;
+            if (info.isSame) {
+                let mSeals = [...(pM.seals || [])];
+                if (mD.traits) mD.traits.forEach(tr => { if (window.SEAL_DESCRIPTIONS && window.SEAL_DESCRIPTIONS[tr]) mSeals.push(tr); });
+                let merged = new Set([...(pB.seals || []), ...mSeals]);
+                if (merged.size > bMax) willDiscard = true;
+            } else {
+                let merged = new Set([...(pB.seals || []), info.seal].filter(x=>x));
+                if (merged.size > bMax) willDiscard = true;
+            }
+            
+            // ★新規追加：ベース装備が呪われているか判定（元々の特性、または付与された印）
+            let bIsCursed = (bD.traits && bD.traits.includes('curse')) || (pB.seals && pB.seals.includes('curse'));
+            
+            // 今のベースだと印が溢れる ＆ 素材の方が印枠が多い、または純粋に素材の方が印枠が圧倒的に多い(将来性)場合
+            // ★修正：ただし、ベースが呪われている場合は「呪縛」によりベースを他の器に溶かし込む（スワップする）ことはできない！
+            if (!bIsCursed && ((willDiscard && mMax > bMax) || (mMax >= bMax + 2))) {
+                let temp = info.baseItem;
+                info.baseItem = info.matItem;
+                info.matItem = temp;
+                if (!info.isSame) {
+                    info.seal = bD.traits && bD.traits.length > 0 ? bD.traits[0] : null;
+                }
+                window.addDungeonLog(`💭 AI：${bD.logName} より ${mD.logName} の方が器（印枠）が大きいため、ベースを逆転させる！`, '#B0BEC5');
+            } else if (bIsCursed && ((willDiscard && mMax > bMax) || (mMax >= bMax + 2))) {
+                // ★呪いでスワップできなかった場合の無念の思考ログ
+                window.addDungeonLog(`💭 AI：ベースを逆転させたいが、${bD.logName} の呪縛が強くて溶かし込めない！このまま合成するしかない...`, '#B0BEC5');
+            }
+        }
+        // ==========================================
+
         if (info) {
             let baseItem = info.baseItem; let matItem = info.matItem;
             let parsedBase = window.parseItemString(baseItem.id); let parsedMat = window.parseItemString(matItem.id);
             let bData = window.getDungeonItemEffect(baseItem.id); let mData = window.getDungeonItemEffect(matItem.id);
             
-            let newEquipStr = ""; 
+            let newEquipStr = "";
             if (info.isSame) {
                 if (parsedBase.baseId.includes('wand')) {
-                    let newCharges = parsedBase.plus + parsedMat.plus; newEquipStr = `${parsedBase.baseId}_+${newCharges}`;
+                    let newCharges = parsedBase.plus + parsedMat.plus; 
+                    newEquipStr = `${parsedBase.baseId}${newCharges >= 0 ? '_+' : '_'}${newCharges}`;
                     window.addDungeonLog(`🔨 ${aiName} は ${bData.logName} と ${mData.logName} の魔力を一つに束ねた！`, '#FFD700');
                 } else {
                     let matSeals = [...parsedMat.seals];
@@ -2463,7 +2973,10 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                     // ★大修正：アクセサリも「+1」の同種合成ボーナスを得られるように制限を解除！
                     let plusBonus = 1;
                     let newPlus = parsedBase.plus + parsedMat.plus + plusBonus; 
-                    newEquipStr = `${parsedBase.baseId}_+${newPlus}`; if (mergedSeals.length > 0) newEquipStr += '_' + mergedSeals.join('_');
+                    newEquipStr = `${parsedBase.baseId}`;
+                    if (newPlus > 0) newEquipStr += `_+${newPlus}`;
+                    else if (newPlus < 0) newEquipStr += `_${newPlus}`;
+                    if (mergedSeals.length > 0) newEquipStr += '_' + mergedSeals.join('_');
                     window.addDungeonLog(`🔨 ${aiName} は ${bData.logName} と ${mData.logName} を合成した！`, '#FFD700');
                 }
             } else {
@@ -2480,8 +2993,13 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                     let droppedNames = droppedSeals.map(s => `[${window.SEAL_DESCRIPTIONS[s] ? window.SEAL_DESCRIPTIONS[s].name : s}]`).join('');
                     window.addDungeonLog(`限界を超えた魔力により、価値の低い ${droppedNames} の印が押し出されて消滅した！`, '#FF9800');
                 }
-                newEquipStr = `${parsedBase.baseId}`; if (parsedBase.plus > 0) newEquipStr += `_+${parsedBase.plus}`;
-                newEquipStr += '_' + parsedBase.seals.join('_');
+                
+                // ★修正：マイナス値（呪いによる劣化など）も消えずに引き継がれるように、符号によって結合方法を変更！
+                newEquipStr = `${parsedBase.baseId}`; 
+                if (parsedBase.plus > 0) newEquipStr += `_+${parsedBase.plus}`;
+                else if (parsedBase.plus < 0) newEquipStr += `_${parsedBase.plus}`;
+                if (parsedBase.seals.length > 0) newEquipStr += '_' + parsedBase.seals.join('_');
+                
                 window.addDungeonLog(`🔨 ${aiName} は ${bData.logName} に ${mData.logName} を溶かし込んだ！`, '#E040FB');
                     
                 // ==========================================
@@ -2497,7 +3015,8 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                     // ★追加：現在ついている推測名を取得
                     let currentTempName = s.aiMemory.tempNames[mBaseId];
                     
-                    if (mBaseId.includes('scroll') || mBaseId === 'herb' || mBaseId.includes('berry') || mBaseId.includes('seed') || mBaseId.includes('bread')) {
+                    // ▼ 修正：mBaseId === 'herb' を mBaseId.includes('herb') に変更し、新しい草も一網打尽に識別させる
+                    if (mBaseId.includes('scroll') || mBaseId.includes('herb') || mBaseId.includes('berry') || mBaseId.includes('seed') || mBaseId.includes('bread')) {
                         // 草や巻物なら完全識別
                         s.aiMemory.identified.push(mBaseId);
                         window.addDungeonLog(`💡 合成で付与された印から、AIは素材が【${mData.realName}】だと完全に理解した！`, '#FFD700');
@@ -2655,7 +3174,10 @@ window.processDungeonTurn = async function() {
 
             if (pRoomForStone && s.enemies.some(e => e.hp > 0 && e.skin === 'stone_type3_2' && e.x >= pRoomForStone.x && e.x < pRoomForStone.x + pRoomForStone.w && e.y >= pRoomForStone.y && e.y < pRoomForStone.y + pRoomForStone.h)) {
                 s.player._gravitySkip = !s.player._gravitySkip;
-                if (s.player._gravitySkip) { actionCount = 0; window.addDungeonLog(`⏬ 重力操作！ 体が重くて動けない！`, '#9C27B0'); }
+                if (s.player._gravitySkip) { 
+                    s.player.status.paralyzed = Math.max(s.player.status.paralyzed || 0, 1);
+                    window.addDungeonLog(`⏬ 重力操作！ 体が鉛のように重くて動けない！`, '#9C27B0'); 
+                }
             }
             // ★修正：俊足の腕輪の行動回数増加も廃止（回避率アップ効果は戦闘ロジックに移行）
             if (s.player._magicFlight) { actionCount += 1; s.player._magicFlight = false; window.addDungeonLog(`🪽 魔力飛行の恩恵で行動回数がアップしている！`, '#00e676'); }
@@ -2665,7 +3187,7 @@ window.processDungeonTurn = async function() {
             if (actionCount > 1) window.addDungeonLog(`💨 素早さを活かして ${actionCount}回 連続行動する！`, '#00e676');
 
             s.player._atkMultiplier = 1.0; 
-            let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) === 1);
+            let adjacentEnemies = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y) <= 1);
             if (activeTraits.includes('等価交換') && s.player.hunger >= 10 && adjacentEnemies.length > 0) {
                 s.player.hunger -= 10; s.player._atkMultiplier = 3.0; window.addDungeonLog(`🩸 等価交換！ 満腹度10と引き換えに、一時的に力が3倍に膨れ上がった！`, '#FF5252');
             }
@@ -2713,15 +3235,53 @@ window.processDungeonTurn = async function() {
                         
                         let eSkin = pool[Math.floor(Math.random() * pool.length)]; let eType = eSkin.split('_')[0]; 
                         const eHpBase = s.mapType === 'crystal' ? 10 : 20; const eDmgBase = s.mapType === 'crystal' ? 2 : 5;
-                        s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0, burn:0, frozen:0, miss_next:false, death_count:0, fear:0 } });
+                        let mName = window.getDungeonMonsterName ? window.getDungeonMonsterName(eSkin) : eType; // ★追加
+                        s.enemies.push({ id: 'e_spawn_'+Date.now(), x: ex, y: ey, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${mName}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep:0, burn:0, frozen:0, miss_next:false, death_count:0, fear:0, blind:0 } });
                         if (s.player._isGrinding) window.addDungeonLog(`どこからか 新たな魔物の気配がする...！`, '#FF9800');
                         else window.addDungeonLog(`どこからか魔物の気配がする...`, '#aaa');
                     }
                 }
             }
+            
+            // ==========================================
+            // ★ フェイルセーフ：重なり弾き出し処理
+            // ==========================================
+            // プレイヤーと敵の重なりを解消
+            s.enemies.forEach(e => {
+                if (e.hp > 0 && e.x === s.player.x && e.y === s.player.y) {
+                    let dirs = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}, {dx:1,dy:1}, {dx:-1,dy:-1}, {dx:1,dy:-1}, {dx:-1,dy:1}];
+                    for (let d of dirs) {
+                        let nx = e.x + d.dx; let ny = e.y + d.dy;
+                        if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1 && !s.enemies.some(oe => oe.hp > 0 && oe.x === nx && oe.y === ny) && !(nx === s.player.x && ny === s.player.y)) {
+                            e.x = nx; e.y = ny; e.warpAnim = true;
+                            window.addDungeonLog(`💥 重力異常！ ${e.name} が弾き出された！`, '#FF9800');
+                            break;
+                        }
+                    }
+                }
+            });
+            // 敵同士の重なりを解消
+            for (let i = 0; i < s.enemies.length; i++) {
+                let e1 = s.enemies[i];
+                if (e1.hp <= 0) continue;
+                for (let j = i + 1; j < s.enemies.length; j++) {
+                    let e2 = s.enemies[j];
+                    if (e2.hp <= 0) continue;
+                    if (e1.x === e2.x && e1.y === e2.y) {
+                        let dirs = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}, {dx:1,dy:1}, {dx:-1,dy:-1}, {dx:1,dy:-1}, {dx:-1,dy:1}];
+                        for (let d of dirs) {
+                            let nx = e2.x + d.dx; let ny = e2.y + d.dy;
+                            if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight && s.grid[ny][nx] !== 1 && !s.enemies.some(oe => oe.hp > 0 && oe.x === nx && oe.y === ny) && !(nx === s.player.x && ny === s.player.y)) {
+                                e2.x = nx; e2.y = ny; e2.warpAnim = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
         }
         window.updateDungeonUI();
-    } catch (e) { 
+    } catch (e) {
         if (e !== "dead") console.error("【DungeonTurnエラー】処理中にエラーが発生しました:", e); 
     } finally { 
         if (s.player.hp <= 0) {
@@ -2740,6 +3300,9 @@ window.processDungeonTurn = async function() {
 window.executeDungeonEnemyTurn = async function(s, activeTraits) {
     const sleep = ms => new Promise(r => setTimeout(r, ms));
     let pRoomForStone = s.roomsInfo && s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x + r.w && s.player.y >= r.y && s.player.y < r.y + r.h);
+
+    // ★追加: ターン開始時の「きれいな状態」を記録
+    let turnStartStatus = JSON.parse(JSON.stringify(s.player.status || {}));
 
     for (let e of s.enemies) {
         if (e.hp <= 0) continue;
@@ -2774,15 +3337,25 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                 if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(e.x, e.y, "Burn", false);
             }
             if (e.status.confusion > 0) e.status.confusion--;
-            if (e.status.sleep === undefined) e.status.sleep = 0;
-            if (e.status.frozen === undefined) e.status.frozen = 0;
+            if (e.status.blind > 0) e.status.blind--;
+            if (e.status.sleep > 0 && e.status.sleep < 999) e.status.sleep--; // MH開幕の永続睡眠は減らさない
+            if (e.status.frozen > 0) e.status.frozen--;
+            if (e.status.paralyzed > 0) e.status.paralyzed--;
+            if (e.status.petrified > 0) e.status.petrified--;
+            if (e.status.fear > 0) e.status.fear--;
+            if (e.status.sealed > 0) e.status.sealed--; 
         } else { 
-            e.status = { poison: 0, confusion: 0, sleep: 0, burn: 0, frozen: 0 }; 
+            e.status = { poison: 0, confusion: 0, sleep: 0, burn: 0, frozen: 0, blind: 0, paralyzed: 0, petrified: 0, fear: 0, sealed: 0 }; 
         }
         
         if (e.hp <= 0) { window.addDungeonLog(`${e.name} は倒れた！`, '#FFD700'); continue; }
         if (e.charmed) { e.charmed = false; continue; }
-        if (e.status.frozen > 0) { e.status.frozen--; continue; }
+        
+        // 行動不可系の状態異常でターンスキップ
+        if (e.status.frozen > 0) continue;
+        if (e.status.paralyzed > 0) continue;
+        if (e.status.petrified > 0) continue;
+        if (e.status.fear > 0) continue;
 
         if (e.status.sleep > 0) {
             if (e.status.sleep < 999 && Math.random() < 0.05) {
@@ -2797,9 +3370,37 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
             if (e.hp <= 0) break;
             
             let isEnemyConfused = e.status && e.status.confusion > 0;
+            let isEnemyBlind = e && e.status && e.status.blind > 0;
             let dist = Math.abs(e.x - s.player.x) + Math.abs(e.y - s.player.y);
+            
+            // ★ 暗闇状態のハック：隣接(1)していない限り、プレイヤーを見失っている扱いにする
+            if (isEnemyBlind && dist > 1) {
+                dist = 999;
+            }
+            
             let ex = e.x, ey = e.y, moveDir = '';
             let hasAttacked = false;
+            
+            // ★新規追加：直線上で、間に壁や他の敵がいないかを判定するフラグ（射線チェック）
+            let isLineClear = false;
+            if (e.x === s.player.x || e.y === s.player.y) {
+                isLineClear = true;
+                if (e.x === s.player.x) {
+                    for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) {
+                        if(s.grid[y][e.x]===1 || s.enemies.some(oe => oe.hp > 0 && oe.x === e.x && oe.y === y)) { isLineClear = false; break; }
+                    }
+                } else {
+                    for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) {
+                        if(s.grid[e.y][x]===1 || s.enemies.some(oe => oe.hp > 0 && oe.x === x && oe.y === e.y)) { isLineClear = false; break; }
+                    }
+                }
+            }
+
+            // ▼ 新規追加：封印状態の判定と、スキルスキップ用の隠蔽ハック
+            let isSealed = e.status && e.status.sealed > 0;
+            
+            let originalSkin = e.skin;
+            if (isSealed) e.skin = "sealed_dummy"; // 一時的に種族特性を消し、スキル発動を抑制する
 
             // ★ ドラゴン系敵特性：オーロラ・イリュージョン（完全な透明化でターゲット選定を狂わせる）
             if (e.skin === 'dragon_type2_3') {
@@ -2852,17 +3453,17 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                     }
                 }
             }
-            if (!hasAttacked && e.skin === 'bird_type5' && !window.isTileVisible(s, e.x, e.y) && dist <= 5) {
+            if (!hasAttacked && e.skin === 'bird_type5' && !window.isTileVisible(s, e.x, e.y) && dist > 1 && dist <= 5 && isLineClear) {
                 window.addDungeonLog(`🌑 暗闇の中から ${e.name} の魔法攻撃が飛んできた！`, '#9C27B0');
                 if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#9C27B0');
                 await sleep(150); e.attackAnim = true; window.dealDungeonDamage(e, s.player); hasAttacked = true;
             }
-            if (!hasAttacked && e.skin === 'bird_type1' && dist === 1) {
+            if (!hasAttacked && e.skin === 'bird_type1' && dist <= 1) {
                 let itemIdx = s.items ? s.items.findIndex(i => i.x === s.player.x && i.y === s.player.y) : -1;
                 if (itemIdx !== -1) {
                     let stolen = s.items[itemIdx]; s.items.splice(itemIdx, 1);
                     window.addDungeonLog(`🦅 ${e.name} は足元の ${window.getDungeonItemEffect(stolen.key).name} をひったくった！`, '#FF9800');
-                    let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0);
+                    let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0 || (wx === s.player.x && wy === s.player.y) || s.enemies.some(en => en.hp > 0 && en.x === wx && en.y === wy));
                     e.x = wx; e.y = wy; e.warpAnim = true;
                     window.addDungeonLog(`🌀 そしてどこかへワープして逃げた！`, '#E040FB');
                     hasAttacked = true;
@@ -2886,9 +3487,12 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                     if (window.isTileVisible(s, e.x, e.y)) window.addDungeonLog(`🌱 ${e.name} の光合成！ 光を浴びてHPが回復した！`, '#4CAF50');
                 }
             }
-            if (!hasAttacked && e.skin === 'seed_type4' && dist === 2) {
+            if (!hasAttacked && e.skin === 'seed_type4' && dist > 1 && dist <= 2 && isLineClear) {
                 window.addDungeonLog(`🌿 ${e.name} の根のムチ！ 遠くから叩き据えられた！`, '#FF5252');
-                s.player.hp -= e.damage; s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 2; s.player.damageAnim = true; hasAttacked = true;
+                s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 2; 
+                e.attackAnim = true; 
+                window.dealDungeonDamage(e, s.player); // ★修正：防御力計算とダメージのポップアップを適用！
+                hasAttacked = true;
             }
             if (!hasAttacked && e.skin === 'seed_type5' && dist <= 3 && Math.random() < 0.25) {
                 window.addDungeonLog(`🌌 ${e.name} の盆栽の宇宙！ 空間認識が狂わされた！`, '#9C27B0');
@@ -3079,20 +3683,15 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
             }
             if (!hasAttacked && e.skin === 'machine_type5_3') {
                 let canSeePlayer = window.isTileVisible(s, e.x, e.y);
-                if (canSeePlayer && (e.x === s.player.x || e.y === s.player.y)) {
-                    let clear = true;
-                    if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][s.player.x]===1) clear=false; }
-                    else { for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) if(s.grid[s.player.y][x]===1) clear=false; }
-                    if (clear) {
-                        if (e.x < s.player.x) e.face = 'right'; else if (e.x > s.player.x) e.face = 'left'; else if (e.y < s.player.y) e.face = 'down'; else if (e.y > s.player.y) e.face = 'up';
-                        window.addDungeonLog(`📡 ${e.name} の古代兵器！ ランダムな状態異常ビームを放った！`, '#E040FB');
-                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
-                        let r = Math.random();
-                        if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
-                        else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
-                        else { s.player.status.confusion += 5; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
-                        e.attackAnim = true; hasAttacked = true;
-                    }
+                if (canSeePlayer && dist > 1 && isLineClear) {
+                    if (e.x < s.player.x) e.face = 'right'; else if (e.x > s.player.x) e.face = 'left'; else if (e.y < s.player.y) e.face = 'down'; else if (e.y > s.player.y) e.face = 'up';
+                    window.addDungeonLog(`📡 ${e.name} の古代兵器！ ランダムな状態異常ビームを放った！`, '#E040FB');
+                    if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
+                    let r = Math.random();
+                    if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
+                    else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
+                    else { s.player.status.confusion += 5; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
+                    e.attackAnim = true; hasAttacked = true;
                 }
                 if (dist === 1) hasAttacked = true; 
             }
@@ -3195,25 +3794,31 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
 
             // --- 岩系スキル ---
             let canSeePlayerForRock = window.isTileVisible(s, e.x, e.y);
+            if (isEnemyBlind && dist > 1) canSeePlayerForRock = false; // ★暗闇ハック
             let eRoomForRock = s.roomsInfo.find(r => e.x >= r.x && e.x < r.x+r.w && e.y >= r.y && e.y < r.y+r.h);
             let inSameRoomForRock = (pRoomForStone && eRoomForRock && pRoomForStone === eRoomForRock);
             if (!hasAttacked && e.skin === 'stone_type5') {
                 if (dist > 1 && !e._mimicRevealed) continue; 
                 else if (dist === 1 && !e._mimicRevealed) { e._mimicRevealed = true; window.addDungeonLog(`🧱 壁だと思っていたものが動き出した！ ${e.name} の擬態だ！`, '#FF9800'); }
             }
-            if (!hasAttacked && e.skin === 'stone_type2' && canSeePlayerForRock && (e.x === s.player.x || e.y === s.player.y) && Math.random() < 0.3) {
+            if (!hasAttacked && e.skin === 'stone_type2' && canSeePlayerForRock && dist > 1 && isLineClear && Math.random() < 0.3) {
                 window.addDungeonLog(`💎 ${e.name} のクリスタル・レイ！ 直線状に眩ばゆい光線が放たれた！`, '#00BCD4');
                 if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#00BCD4');
                 s.player.status.blind = (s.player.status.blind || 0) + 10; s.player.hp -= 15; s.player.damageAnim = true; hasAttacked = true;
             }
-            if (!hasAttacked && e.skin === 'stone_type1' && canSeePlayerForRock && (e.x === s.player.x || e.y === s.player.y) && Math.random() < 0.25) {
+            if (!hasAttacked && e.skin === 'stone_type1' && canSeePlayerForRock && dist > 1 && isLineClear && Math.random() < 0.25) {
                 window.addDungeonLog(`🗿 ${e.name} の石化睨み！ 眼が合い、体が石になってしまった！`, '#757575');
                 if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#757575');
                 s.player.status.petrified = (s.player.status.petrified || 0) + 3; hasAttacked = true;
             }
-            if (!hasAttacked && e.skin === 'stone_type3' && dist > 1 && Math.random() < 0.25) {
-                window.addDungeonLog(`✡️ ${e.name} のルーン設置！ 足元に罠が召喚された！`, '#E040FB');
-                s.traps.push({ type: 'mine', x: s.player.x, y: s.player.y, visible: true }); hasAttacked = true;
+            if (!hasAttacked && e.skin === 'stone_type3' && canSeePlayerForRock && dist > 1 && dist <= 4 && Math.random() < 0.25) {
+                // ★修正：プレイヤーが視界内かつ4マス以内にいて、足元に罠がない時だけ発動する
+                let existingTrap = s.traps && s.traps.find(t => t.x === s.player.x && t.y === s.player.y);
+                if (!existingTrap) {
+                    window.addDungeonLog(`✡️ ${e.name} のルーン設置！ 足元に地雷が召喚された！`, '#E040FB');
+                    s.traps.push({ type: 'mine', x: s.player.x, y: s.player.y, visible: true }); 
+                    hasAttacked = true;
+                }
             }
             if (!hasAttacked && e.skin === 'stone_type4_3' && inSameRoomForRock && Math.random() < 0.2) {
                 window.addDungeonLog(`☄️ ${e.name} の隕石落とし！ 部屋全体に巨大な岩が降り注ぐ！`, '#FF5252');
@@ -3245,41 +3850,42 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
 
             // --- 魔法使い系スキル ---
             let canSeePlayer = window.isTileVisible(s, e.x, e.y);
+            if (isEnemyBlind && dist > 1) canSeePlayer = false; // ★暗闇ハック
             let inSameRoom = (pRoomForStone && eRoomForRock && pRoomForStone === eRoomForRock);
             let magicMult = activeTraits.includes('万物の法則') ? 0 : (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度') ? 0.5 : 1);
 
             if (!hasAttacked && e.skin && e.skin.includes('magician') && canSeePlayer) {
-                if (e.skin === 'magician' && dist === 2 && Math.random() < 0.5) {
+                if (e.skin === 'magician' && dist > 1 && dist <= 3 && isLineClear && Math.random() < 0.5) {
                     window.addDungeonLog(`🔥 ${e.name} の初級魔法！ 火の玉が飛んできた！`, '#FF5252');
                     if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#FF5252');
                     let dmg = Math.max(1, Math.floor(10 * magicMult));
                     if (magicMult === 0) window.addDungeonLog(`🌌 万物の法則が魔法を完全に打ち消した！`, '#00BCD4'); else { s.player.hp -= dmg; s.player.damageAnim = true; }
                     hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type4_2' && dist <= 5 && (e.x === s.player.x || e.y === s.player.y) && Math.random() < 0.4) {
+                else if (e.skin === 'magician_type4_2' && dist > 1 && dist <= 5 && isLineClear && Math.random() < 0.4) {
                     window.addDungeonLog(`🌋 ${e.name} のファイアボール！ 直線状に爆発が走る！`, '#FF5252');
                     if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#FF9800');
                     let dmg = Math.max(1, Math.floor(25 * magicMult));
                     if (magicMult === 0) window.addDungeonLog(`🌌 万物の法則が炎を完全に打ち消した！`, '#00BCD4'); else { s.player.hp -= dmg; s.player.damageAnim = true; }
                     hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type1' && dist <= 3 && Math.random() < 0.3) {
+                else if (e.skin === 'magician_type1' && dist > 1 && dist <= 3 && isLineClear && Math.random() < 0.3) {
                     window.addDungeonLog(`💀 ${e.name} のウィークネス！ 力が抜け、攻撃力が下がってしまった！`, '#9C27B0');
                     s.player.atkBuff = (s.player.atkBuff || 0) - 10; hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type2_2' && dist <= 4 && Math.random() < 0.3) {
+                else if (e.skin === 'magician_type2_2' && dist > 1 && dist <= 4 && isLineClear && Math.random() < 0.3) {
                     window.addDungeonLog(`❄️ ${e.name} のフロスト墓標！ 氷の壁に閉じ込められ、凍りついてしまった！`, '#00BCD4');
                     s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 3; hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type5_2' && dist <= 3 && Math.random() < 0.25) {
+                else if (e.skin === 'magician_type5_2' && dist > 1 && dist <= 3 && isLineClear && Math.random() < 0.25) {
                     window.addDungeonLog(`⏳ ${e.name} のタイム・ストップ！ 時間が止められ、体が全く動かない！`, '#E040FB');
                     s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 2; hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type5_3' && dist <= 4 && Math.random() < 0.3) {
+                else if (e.skin === 'magician_type5_3' && dist > 1 && dist <= 4 && isLineClear && Math.random() < 0.3) {
                     window.addDungeonLog(`👁️‍🗨️ ${e.name} の予言！ 足元に危険な魔力が集まっている！`, '#FFD700');
                     s.traps.push({ type: 'mine', x: s.player.x, y: s.player.y, visible: true }); hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type2_3' && dist <= 3 && Math.random() < 0.3) {
+                else if (e.skin === 'magician_type2_3' && dist > 1 && dist <= 3 && isLineClear && Math.random() < 0.3) {
                     window.addDungeonLog(`🌈 ${e.name} の七色の幻惑！ 視界が歪み、混乱してしまった！`, '#E040FB');
                     s.player.status.confusion += 5; hasAttacked = true;
                 }
@@ -3293,7 +3899,7 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                     if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
                     hasAttacked = true;
                 }
-                else if (e.skin === 'magician_type3_3' && dist <= 4 && Math.random() < 0.15) {
+                else if (e.skin === 'magician_type3_3' && dist > 1 && dist <= 4 && isLineClear && Math.random() < 0.15) {
                     let targets = [];
                     if (s.player.equipWeapon && window.parseItemString(s.player.equipWeapon).seals.length > 0) targets.push('equipWeapon');
                     if (s.player.equipShield && window.parseItemString(s.player.equipShield).seals.length > 0) targets.push('equipShield');
@@ -3346,7 +3952,7 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
             let isAroma = activeTraits.includes('芳醇な香り');
             let targetEnemyForAroma = null;
             if (isAroma && !hasAttacked && Math.random() < 0.6) { // 60%で同士討ちを狙う
-                let adjEnemies = s.enemies.filter(oe => oe !== e && oe.hp > 0 && Math.abs(oe.x - e.x) + Math.abs(oe.y - e.y) === 1);
+                let adjEnemies = s.enemies.filter(oe => oe !== e && oe.hp > 0 && Math.abs(oe.x - e.x) + Math.abs(e.y - e.y) === 1);
                 if (adjEnemies.length > 0) {
                     targetEnemyForAroma = adjEnemies[Math.floor(Math.random() * adjEnemies.length)];
                     window.addDungeonLog(`🌸 芳醇な香りに惑わされ、${e.name} は ${targetEnemyForAroma.name} に襲い掛かった！`, '#FF5252');
@@ -3355,6 +3961,9 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                     hasAttacked = true;
                 }
             }
+            
+            // ▼ 隠蔽していたスキンを元に戻し、通常攻撃や移動の処理へ進む
+            if (isSealed) e.skin = originalSkin;
 
             if (isEnemyConfused) {
                 const dirs = [];
@@ -3363,26 +3972,22 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                 if (s.grid[e.y+1][e.x] !== 1) dirs.push({x: e.x, y: e.y+1, dir: 'down'});
                 if (s.grid[e.y-1][e.x] !== 1) dirs.push({x: e.x, y: e.y-1, dir: 'up'});
                 if (dirs.length > 0) { const rnd = dirs[Math.floor(Math.random() * dirs.length)]; ex = rnd.x; ey = rnd.y; moveDir = rnd.dir; }
-                if (dist === 1 && Math.random() < 0.5) { e.attackAnim = true; window.dealDungeonDamage(e, s.player); hasAttacked = true; moveDir = ''; }
+                if (dist <= 1 && Math.random() < 0.5) { e.attackAnim = true; window.dealDungeonDamage(e, s.player); hasAttacked = true; moveDir = ''; }
             } 
             else {
-                if (e.type === 'magician' && dist <= 3 && (e.x === s.player.x || e.y === s.player.y)) {
-                    let clear = true;
-                    if (e.x === s.player.x) { for(let y=Math.min(s.player.y, e.y)+1; y<Math.max(s.player.y, e.y); y++) if(s.grid[y][s.player.x]===1) clear=false; }
-                    else { for(let x=Math.min(s.player.x, e.x)+1; x<Math.max(s.player.x, e.x); x++) if(s.grid[s.player.y][x]===1) clear=false; }
-                    if (clear) {
-                        if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
-                        window.updateDungeonUI(); 
-                        if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
-                        await sleep(150); 
-                        e.attackAnim = true; e.isPiercing = (Math.random() < 0.20); window.dealDungeonDamage(e, s.player); e.isPiercing = false; hasAttacked = true;
-                    }
+                if (e.type === 'magician' && dist > 1 && dist <= 3 && isLineClear) {
+                    if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
+                    window.updateDungeonUI(); 
+                    if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(e.x, e.y, s.player.x, s.player.y, '#E040FB');
+                    await sleep(150); 
+                    e.attackAnim = true; e.isPiercing = (Math.random() < 0.20); window.dealDungeonDamage(e, s.player); e.isPiercing = false; hasAttacked = true;
                 }
-                else if (dist === 1) {
+                else if (dist <= 1) {
                     if (s.player.x < e.x) e.face = 'left'; else if (s.player.x > e.x) e.face = 'right'; else if (s.player.y < e.y) e.face = 'up'; else if (s.player.y > e.y) e.face = 'down';
                     e.attackAnim = true; window.dealDungeonDamage(e, s.player); hasAttacked = true;
                 } 
-                else if (dist < 6) {
+                // ▼ 修正：同じ部屋（大部屋MH含む）にいる場合は、距離に関係なくプレイヤーに向かって追尾するようにする！（※暗闇状態の時は除く）
+                else if (dist < 6 || (inSameRoomForSD && !isEnemyBlind)) {
                     let dx = s.player.x - e.x; let dy = s.player.y - e.y;
                     let canMoveX = false; let canMoveY = false;
                     if (dx !== 0) { let nx = e.x + Math.sign(dx); if (s.grid[e.y][nx] !== 1 && !s.enemies.some(oe => oe !== e && oe.hp > 0 && oe.x === nx && oe.y === e.y)) canMoveX = true; }
@@ -3415,12 +4020,15 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                     }
                 }
 
-                if (!hasAttacked && e.skin && e.skin === 'bird_type3_2' && dist > 1) {
+                // ★追加：鳥の索敵、またはモンハウで目覚めた敵はBFSで賢く追跡する
+                if (!hasAttacked && (e.skin === 'bird_type3_2' || e.isMHActivated) && dist > 1) {
                     let distMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(Infinity));
                     distMap[e.y][e.x] = 0; let queue = [{x: e.x, y: e.y}]; let parent = {}; let found = false;
                     while(queue.length > 0) {
                         let cur = queue.shift();
                         if (cur.x === s.player.x && cur.y === s.player.y) { found = true; break; }
+                        // ★処理落ち防止：20歩以上見つからなければ諦める
+                        if (distMap[cur.y][cur.x] > 20) break;
                         let dirs = [{dx:0,dy:-1,cmd:'up'}, {dx:1,dy:0,cmd:'right'}, {dx:0,dy:1,cmd:'down'}, {dx:-1,dy:0,cmd:'left'}];
                         for(let d of dirs) {
                             let nx = cur.x + d.dx, ny = cur.y + d.dy;
@@ -3433,6 +4041,9 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
                         let curr = {x: s.player.x, y: s.player.y};
                         while(parent[`${curr.x},${curr.y}`] && (parent[`${curr.x},${curr.y}`].x !== e.x || parent[`${curr.x},${curr.y}`].y !== e.y)) { curr = parent[`${curr.x},${curr.y}`]; }
                         if (parent[`${curr.x},${curr.y}`]) { ex = curr.x; ey = curr.y; moveDir = parent[`${curr.x},${curr.y}`].dir; }
+                    } else if (e.isMHActivated) {
+                        // 見失った場合はMH状態を解除し、元の徘徊ロジックに戻す
+                        e.isMHActivated = false;
                     }
                 }
             }
@@ -3473,6 +4084,89 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
             }
         }
     }
+
+    // ▼ ここから下をすべて追加！
+    // ==========================================
+    // ★大改修：敵の全行動終了後に、状態異常の「事後防衛」を一括で行う！
+    // ==========================================
+    let gainedPoison = s.player.status.poison > (turnStartStatus.poison || 0);
+    let gainedSleep = s.player.status.sleep > (turnStartStatus.sleep || 0);
+    let gainedConfusion = s.player.status.confusion > (turnStartStatus.confusion || 0);
+    let gainedParalyze = s.player.status.paralyzed > (turnStartStatus.paralyzed || 0);
+    let gainedPetrify = s.player.status.petrified > (turnStartStatus.petrified || 0);
+    let gainedFear = s.player.status.fear > (turnStartStatus.fear || 0);
+    let gainedBurn = s.player.status.burn > (turnStartStatus.burn || 0);
+    let gainedFrozen = s.player.status.frozen > (turnStartStatus.frozen || 0);
+    let gainedBlind = s.player.status.blind > (turnStartStatus.blind || 0);
+
+    let defTraits = [];
+    if (s.player.equipShield) defTraits.push(...window.getDungeonItemEffect(s.player.equipShield).traits);
+    if (s.player.equipArmor) defTraits.push(...window.getDungeonItemEffect(s.player.equipArmor).traits);
+    
+    if (gainedPoison && defTraits.includes('anti_poison')) { s.player.status.poison = turnStartStatus.poison || 0; gainedPoison = false; window.addDungeonLog(`🛡️ [抗]の印が 毒 を完全に防いだ！`, '#00BCD4'); }
+    if (gainedConfusion && defTraits.includes('anti_confuse')) { s.player.status.confusion = turnStartStatus.confusion || 0; gainedConfusion = false; window.addDungeonLog(`🛡️ [静]の印が 混乱 を完全に防いだ！`, '#00BCD4'); }
+    if (gainedBlind && defTraits.includes('anti_blind')) { s.player.status.blind = turnStartStatus.blind || 0; gainedBlind = false; window.addDungeonLog(`🛡️ [明]の印が 暗闇 を完全に防いだ！`, '#00BCD4'); }
+    if (gainedParalyze && defTraits.includes('anti_paralyze')) { s.player.status.paralyzed = turnStartStatus.paralyzed || 0; gainedParalyze = false; window.addDungeonLog(`🛡️ [動]の印が 麻痺 を完全に防いだ！`, '#00BCD4'); }
+
+    let isEdenActive = activeTraits.includes('エデンの果実') && (s.player.hunger >= (typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : 100));
+    if (isEdenActive && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen || gainedBlind)) {
+        if (gainedPoison) s.player.status.poison = turnStartStatus.poison || 0;
+        if (gainedSleep) s.player.status.sleep = turnStartStatus.sleep || 0;
+        if (gainedConfusion) s.player.status.confusion = turnStartStatus.confusion || 0;
+        if (gainedParalyze) s.player.status.paralyzed = turnStartStatus.paralyzed || 0;
+        if (gainedPetrify) s.player.status.petrified = turnStartStatus.petrified || 0;
+        if (gainedFear) s.player.status.fear = turnStartStatus.fear || 0;
+        if (gainedBurn) s.player.status.burn = turnStartStatus.burn || 0;
+        if (gainedFrozen) s.player.status.frozen = turnStartStatus.frozen || 0;
+        if (gainedBlind) s.player.status.blind = turnStartStatus.blind || 0;
+        window.addDungeonLog(`🌸 エデンの果実！ 楽園の加護がすべての異常を無効化した！`, '#FFD700');
+        gainedPoison = gainedSleep = gainedConfusion = gainedParalyze = gainedPetrify = gainedFear = gainedBurn = gainedFrozen = gainedBlind = false;
+    }
+
+    if (activeTraits.includes('自然適応') && (gainedPoison || gainedSleep || gainedParalyze || gainedBurn || gainedFrozen)) {
+        if (gainedPoison) s.player.status.poison = turnStartStatus.poison || 0;
+        if (gainedSleep) s.player.status.sleep = turnStartStatus.sleep || 0;
+        if (gainedParalyze) s.player.status.paralyzed = turnStartStatus.paralyzed || 0;
+        if (gainedBurn) s.player.status.burn = turnStartStatus.burn || 0;
+        if (gainedFrozen) s.player.status.frozen = turnStartStatus.frozen || 0;
+        window.addDungeonLog(`🛡️⚙️ 自然適応！ 機械の体は自然界の異常を完全にシャットアウトした！`, '#00BCD4');
+        gainedPoison = gainedSleep = gainedParalyze = gainedBurn = gainedFrozen = false;
+    }
+
+    if (activeTraits.includes('漆黒の鏡') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen || gainedBlind)) {
+        let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
+        if (adj.length > 0) {
+            adj.forEach(e => {
+                if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
+                if (gainedBurn) e.status.burn = (e.status.burn || 0) + 5;
+                if (gainedSleep || gainedParalyze || gainedFear || gainedPetrify || gainedFrozen) e.status.sleep = (e.status.sleep || 0) + 3;
+                if (gainedConfusion || gainedBlind) e.status.confusion = (e.status.confusion || 0) + 5;
+            });
+            window.addDungeonLog(`🪞 漆黒の鏡！ 受けた呪いを周囲の敵に反射した！`, '#9C27B0');
+        }
+        if (gainedPoison) s.player.status.poison = turnStartStatus.poison || 0;
+        if (gainedSleep) s.player.status.sleep = turnStartStatus.sleep || 0;
+        if (gainedConfusion) s.player.status.confusion = turnStartStatus.confusion || 0;
+        if (gainedParalyze) s.player.status.paralyzed = turnStartStatus.paralyzed || 0;
+        if (gainedPetrify) s.player.status.petrified = turnStartStatus.petrified || 0;
+        if (gainedFear) s.player.status.fear = turnStartStatus.fear || 0;
+        if (gainedBurn) s.player.status.burn = turnStartStatus.burn || 0;
+        if (gainedFrozen) s.player.status.frozen = turnStartStatus.frozen || 0;
+        if (gainedBlind) s.player.status.blind = turnStartStatus.blind || 0;
+    }
+    
+    if (activeTraits.includes('美しき反射') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen || gainedBlind)) {
+        let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
+        if (adj.length > 0) {
+            adj.forEach(e => {
+                if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
+                if (gainedBurn) e.status.burn = (e.status.burn || 0) + 5;
+                if (gainedSleep || gainedParalyze || gainedFear || gainedPetrify || gainedFrozen) e.status.sleep = (e.status.sleep || 0) + 3;
+                if (gainedConfusion || gainedBlind) e.status.confusion = (e.status.confusion || 0) + 5;
+            });
+            window.addDungeonLog(`🪞 美しき反射！ 受けた状態異常を周囲の敵にそっくりそのまま返した！`, '#E040FB');
+        }
+    }
 };
 
 // ==========================================
@@ -3508,10 +4202,13 @@ if (typeof window._origCheckDungeonCondition === 'undefined') {
         // ★追加：カバンの中の未識別アイテム判定
         if (cond === 'has_unidentified_item') {
             return s.player.tempInventory && s.player.tempInventory.some(i => {
+                let eff = window.getDungeonItemEffect(i);
                 let bId = window.parseItemString(i).baseId;
                 let tName = s.aiMemory && s.aiMemory.tempNames[bId];
-                // ★修正：「仮名がない」か「仮名が『謎の〜』で保留状態」であれば、まだ実験対象の未識別として扱う
-                return s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId) && (!tName || tName.startsWith("謎の"));
+                // ★修正：装備品の未鑑定状態も未識別として扱う
+                let isUnidConsumable = s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId) && (!tName || tName.startsWith("謎の"));
+                let isUnidEquip = (eff.equipType !== null || eff.isWeapon || eff.isShield) && !eff.isStatsKnown;
+                return isUnidConsumable || isUnidEquip;
             });
         }
 
@@ -3540,8 +4237,12 @@ if (typeof window._origCheckDungeonCondition === 'undefined') {
             if (cond === 'on_item_food') return groundItem.type === 'food' || eff.isConsumable;
             if (cond === 'on_item_equip') return ['weapon', 'shield', 'accessory'].includes(eff.equipType);
             if (cond === 'on_item_unidentified') {
+                let eff = window.getDungeonItemEffect(groundItem.key);
                 let bId = window.parseItemString(groundItem.key).baseId;
-                return s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId) && !s.aiMemory.tempNames[bId];
+                let tName = s.aiMemory && s.aiMemory.tempNames[bId];
+                let isUnidConsumable = s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId) && (!tName || tName.startsWith("謎の"));
+                let isUnidEquip = (eff.equipType !== null || eff.isWeapon || eff.isShield) && !eff.isStatsKnown;
+                return isUnidConsumable || isUnidEquip;
             }
         }
         

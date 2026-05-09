@@ -20,7 +20,19 @@ window.SEAL_DESCRIPTIONS = {
     light: { name: '軽', desc: '素早さによる回避率の上限が「75%」に引き上げられる。' },
     holy: { name: '光', desc: 'アンデッド・悪魔系モンスターに対して2倍のダメージを与える。' },
     regen: { name: '治', desc: '毎ターンHPが回復し、装備の「腹減り2倍」のデメリットを打ち消す。' },
-    curse: { name: '呪', desc: '呪縛。装備から外せなくなり、武器や防具の性能が半減する。' } // ★新規追加
+    curse: { name: '呪', desc: '呪縛。装備から外せなくなり、武器や防具の性能が半減する。' }, // ★新規追加
+    // ▼ 新規追加：状態異常対策の印
+    poison_atk: { name: '毒', desc: '攻撃時、20%の確率で敵を猛毒状態にする。' },
+    anti_poison: { name: '抗', desc: '敵から受ける猛毒状態を完全に防ぐ。' },
+    confuse_atk: { name: '乱', desc: '攻撃時、15%の確率で敵を混乱状態にする。' },
+    anti_confuse: { name: '静', desc: '敵から受ける混乱状態を完全に防ぐ。' },
+    blind_atk: { name: '盲', desc: '攻撃時、15%の確率で敵を暗闇状態（命中率低下）にする。' },
+    anti_blind: { name: '明', desc: '敵から受ける暗闇・視界不良状態を完全に防ぐ。' },
+    seal_atk: { name: '封', desc: '攻撃時、20%の確率で敵の特殊能力（魔法やスキル）を封じる。' },
+    anti_magic: { name: '魔', desc: '敵の魔法や厄介なスキルを受ける確率を一律 30% 軽減する。' },
+    // ▼ 新規追加
+    paralyze_atk: { name: '縛', desc: '攻撃時、15%の確率で敵を麻痺（行動不能）状態にする。' },
+    anti_paralyze: { name: '動', desc: '敵からの麻痺（罠や特殊攻撃など）を完全に防ぐ。' }
 };
 
 // ★上書き：アイテムの効果計算（王道ローグライクの識別システム＆色分けログ対応）
@@ -50,9 +62,8 @@ window.getDungeonItemEffect = function(itemId) {
     if (!isIdentified && s.sessionItemDict && s.sessionItemDict[baseId]) {
         displayName = s.sessionItemDict[baseId];
         if (s.aiMemory && s.aiMemory.tempNames && s.aiMemory.tempNames[baseId]) {
-            if (!s.aiMemory.tempNames[baseId].startsWith("謎の")) {
-                displayName += ` (${s.aiMemory.tempNames[baseId]}？)`;
-            }
+            // ★修正：「謎の〜」で始まる仮名も隠さずにしっかり表示させる
+            displayName += ` (${s.aiMemory.tempNames[baseId]}？)`;
         }
     }
 
@@ -65,6 +76,12 @@ window.getDungeonItemEffect = function(itemId) {
     else if (baseId === 'item_wand_fire') realName = "火竜の杖";
     else if (baseId === 'item_scroll_sleep') realName = "睡眠の巻物";
     else if (baseId === 'item_scroll_identify') realName = "識別の巻物";
+    // ▼ 新規追加
+    else if (baseId === 'herb_antidote') realName = "解毒の草";
+    else if (baseId === 'herb_mint') realName = "ハッカの葉";
+    else if (baseId === 'herb_eyedrop') realName = "目薬草";
+    else if (baseId === 'herb_paralysis') realName = "シビレ消し草"; // ★追加
+    else if (baseId === 'item_scroll_seal') realName = "封魔の巻物";
 
     let isBaseEquip = baseId.includes('sword') || baseId.includes('shield') || baseId.includes('armor');
     let finalName = (isBaseEquip ? realName : (displayName || realName));
@@ -77,7 +94,7 @@ window.getDungeonItemEffect = function(itemId) {
         }
     } else {
         if (isStatsKnown) {
-            const sealMap = { heal:'癒', life:'命', sleep:'眠', counter_sleep:'眠', fire:'炎', anti_dragon:'竜', exp:'幸', dodge:'避', double:'連', parry:'見', food:'食', half_hunger:'腹', angry:'怒', counter:'反', crit:'会', max_hunger:'膨', first:'先', light:'軽', holy:'光', regen:'治', curse:'呪' };
+            const sealMap = { heal:'癒', life:'命', sleep:'眠', counter_sleep:'眠', fire:'炎', anti_dragon:'竜', exp:'幸', dodge:'避', double:'連', parry:'見', food:'食', half_hunger:'腹', angry:'怒', counter:'反', crit:'会', max_hunger:'膨', first:'先', light:'軽', holy:'光', regen:'治', curse:'呪', poison_atk:'毒', anti_poison:'抗', confuse_atk:'乱', anti_confuse:'静', blind_atk:'盲', anti_blind:'明', seal_atk:'封', anti_magic:'魔', paralyze_atk:'縛', anti_paralyze:'動' }; // ★追加
             if (seals.length > 0) {
                 finalName += " " + seals.map(sl => `[${sealMap[sl] || sl}]`).join('');
             }
@@ -110,6 +127,12 @@ window.getDungeonItemEffect = function(itemId) {
     else if (baseId === 'item_scroll_sleep') { effect.isConsumable = true; effect.traits.push('sleep_aoe'); }
     else if (baseId === 'item_scroll_confuse') { effect.isConsumable = true; effect.traits.push('confuse_aoe'); }
     else if (baseId === 'item_scroll_identify') { effect.isConsumable = true; } 
+    // ▼ 新規追加：状態異常対策アイテムの効果フラグ
+    else if (baseId === 'herb_antidote') { effect.hp = 20; effect.isConsumable = true; effect.traits.push('cure_poison'); }
+    else if (baseId === 'herb_mint') { effect.hp = 10; effect.isConsumable = true; effect.traits.push('cure_confuse_sleep'); }
+    else if (baseId === 'herb_eyedrop') { effect.hp = 10; effect.isConsumable = true; effect.traits.push('cure_blind_reveal_traps'); }
+    else if (baseId === 'herb_paralysis') { effect.hp = 20; effect.isConsumable = true; effect.traits.push('cure_paralyze'); } // ★追加
+    else if (baseId === 'item_scroll_seal') { effect.isConsumable = true; effect.traits.push('seal_aoe'); }
     
     else if (baseId.includes('wand')) {
         effect.isConsumable = true; effect.charges = plus; effect.maxSeals = 0; 
@@ -132,7 +155,8 @@ window.getDungeonItemEffect = function(itemId) {
     else if (baseId.includes('armor') || baseId.includes('mail') || baseId.includes('robe')) {
         effect.equipType = 'armor'; effect.def = Math.max(0, 15 + plus * 2); effect.maxSeals = 3;
     }
-    else if (baseId.includes('ring') || baseId.includes('bracelet')) {
+    // ▼ 修正：「spring」などの単語に反応しないよう、確実に「item_ring_」で判定する！
+    else if (baseId.includes('item_ring_') || baseId.includes('bracelet')) {
         effect.equipType = 'accessory'; effect.maxSeals = 1;
         if (baseId === 'item_ring_haste' && !effect.traits.includes('fast_move')) effect.traits.push('fast_move');
         if (baseId === 'item_ring_heal') {
@@ -199,6 +223,12 @@ window.getSealFromItem = function(itemBaseId, targetEquipType) {
         if (itemBaseId === 'herb' || itemBaseId === 'item_berry') return 'heal';
         if (itemBaseId === 'item_scroll_sleep') return 'sleep';
         if (itemBaseId === 'item_wand_fire') return 'fire';
+        // ▼ 新規追加：武器への合成印
+        if (itemBaseId === 'herb_antidote') return 'poison_atk';
+        if (itemBaseId === 'herb_mint') return 'confuse_atk';
+        if (itemBaseId === 'herb_eyedrop') return 'blind_atk';
+        if (itemBaseId === 'herb_paralysis') return 'paralyze_atk'; // ★追加
+        if (itemBaseId === 'item_scroll_seal') return 'seal_atk';
         if (itemBaseId === 'item_seed_happy') return 'exp';
         if (itemBaseId === 'item_sword_double') return 'double';
         if (itemBaseId === 'item_shield_hara') return 'food';
@@ -210,6 +240,12 @@ window.getSealFromItem = function(itemBaseId, targetEquipType) {
         if (itemBaseId === 'herb' || itemBaseId === 'item_berry') return 'life';
         if (itemBaseId === 'item_scroll_sleep') return 'counter_sleep';
         if (itemBaseId === 'item_wand_fire') return 'anti_dragon';
+        // ▼ 新規追加：盾・鎧への合成印
+        if (itemBaseId === 'herb_antidote') return 'anti_poison';
+        if (itemBaseId === 'herb_mint') return 'anti_confuse';
+        if (itemBaseId === 'herb_eyedrop') return 'anti_blind';
+        if (itemBaseId === 'herb_paralysis') return 'anti_paralyze'; // ★追加
+        if (itemBaseId === 'item_scroll_seal') return 'anti_magic';
         if (itemBaseId === 'item_seed_happy') return 'dodge';
         if (itemBaseId === 'item_sword_double') return 'parry';
         if (itemBaseId === 'item_shield_hara') return 'half_hunger';

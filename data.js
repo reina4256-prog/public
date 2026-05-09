@@ -2352,7 +2352,14 @@ const itemCatalog = {
     // ★統合：救済措置アイテム
     item_berry: { name: '野イチゴ', type: 'food', value: 2, stats: { hunger: 15, energy: 5 }, desc: '道端で見つけた小さなイチゴ。少しお腹が膨れる。' },
     item_lunchbox: { name: '師匠のお弁当', type: 'food', value: 0, stats: { hunger: 80, energy: 50, mood: 20 }, desc: '師匠からの差し入れ。愛情と栄養がたっぷり！' },
-    item_secret_book: { name: '達人の秘伝書', type: 'book', value: 1000, desc: '前世の知識と技術が詰まった本。読むとステータスが上がるかも。' }
+    // ▼ 新規追加：状態異常対策アイテム
+    herb_antidote: { name: '解毒の草', type: 'food', stats: { hp: 20 }, value: 40, desc: '飲むと体内の毒が消え去り、HPも少し回復する草。' },
+    herb_mint: { name: 'ハッカの葉', type: 'food', stats: { hp: 10 }, value: 40, desc: 'スーッとする葉っぱ。飲むと混乱や睡眠から覚め、頭がスッキリする。' },
+    // 修正後
+    herb_eyedrop: { name: '目薬草', type: 'food', stats: { hp: 10 }, value: 50, desc: '飲むと暗闇状態が治る。さらにそのフロアにいる間、隠された罠がすべて見えるようになる。' },
+    item_scroll_seal: { name: '封魔の巻物', type: 'scroll', value: 150, desc: '部屋にいる敵の特殊能力や魔法を使えなくする。' },
+    // ▼ 今回追加するコード（カンマを忘れずに！）
+    herb_paralysis: { name: 'シビレ消し草', type: 'food', stats: { hp: 20 }, value: 50, desc: '飲むと体の痺れがとれ、麻痺状態から即座に回復する草。' }
 };
 
 const riverFishingTable = {

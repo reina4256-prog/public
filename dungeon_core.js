@@ -66,8 +66,8 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     const ringNames = randomizeArray(['赤い指輪', '青い指輪', '輝く指輪', 'くすんだ指輪', 'ドクロの指輪', '黄金の指輪', 'ガラスの指輪', 'トゲトゲの指輪']); // ★追加
     
     // 実際のアイテムID
-    const realGrasses = ['herb', 'item_berry', 'item_seed_happy']; 
-    const realScrolls = ['item_scroll_sleep', 'item_scroll_confuse', 'item_scroll_identify']; 
+    const realGrasses = ['herb', 'item_berry', 'item_seed_happy', 'herb_antidote', 'herb_mint', 'herb_eyedrop', 'herb_paralysis']; // ★追加
+    const realScrolls = ['item_scroll_sleep', 'item_scroll_confuse', 'item_scroll_identify', 'item_scroll_seal']; // ★追加
     const realWands = ['item_wand_fire', 'item_wand_swap', 'item_wand_blow'];
     const realRings = ['item_ring_haste', 'item_ring_heal']; // ★追加
     
@@ -99,6 +99,9 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     s.player.skin = currentSkin;
     s.player.name = pName; // ★修正：プレイヤーのデータに名前をセット（これでundefinedになりません！）
     s.player.atkBuff = 0; s.player.defBuff = 0;
+    // ★フェイルセーフ：死亡時の状態異常やアニメーションフラグを完全にリセット
+    s.player.status = { poison: 0, paralyzed: 0, blind: 0, confusion: 0, wet: 0, sleep: 0, petrified: 0, fear: 0, burn: 0, frozen: 0, miss_next: false, death_count: 0, forget_plus: false };
+    s.player.damageAnim = false; s.player.attackAnim = false; s.player.magicAnim = false; s.player.levelUpAnim = false;
 
     // ★追加：育成モードからのステータス引継ぎ
     let pEnergy = window.aiPet && window.aiPet.energy !== undefined ? window.aiPet.energy : 100;
@@ -373,6 +376,8 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
             // 倒れた瞬間のマップDOMを丸ごとクローン
             let cloneGrid = gridDiv.cloneNode(true);
             cloneGrid.id = ''; 
+            // ★透明化バグ修正：クローン内の全てのIDを剥奪し、再突入時の誤参照を防ぐ
+            cloneGrid.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
             
             let boxW = 400; let boxH = 220; // 状況を表示する小窓のサイズ
             let logicalTileX = 100; let logicalTileY = 100;
@@ -1064,7 +1069,7 @@ window.renderDungeonTacticEditor = function() {
                     
                     ${rule.condition === 'stairs_found' && (rule.action1 === 'した' || rule.action2 === 'した') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 階段のマスへ向かって自動で移動し、フロアを下ります</div>` : ''}
                     ${rule.condition === 'unexplored_exist' && (rule.action1 === 'しらべる' || rule.action2 === 'しらべる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: マップの未探索エリアへ向かって自動で探索を進めます</div>` : ''}
-                    ${rule.condition === 'monster_house' && (rule.action1 === 'にげる' || rule.action2 === 'にげる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 大部屋を避け、一番近い通路（安全地帯）へ退避します</div>` : ''}
+                    ${(rule.condition === 'monster_house' || rule.condition === 'enemy_count_2_over') && (rule.action1 === 'にげる' || rule.action2 === 'にげる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 多勢を避け、一番近い通路（安全地帯）へ退避・迎撃します</div>` : ''}
                     ${rule.condition === 'wind_blowing' && (rule.action1 === 'にげる' || rule.action2 === 'にげる') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 風から逃れるため、未探索エリアへ全力で急行します</div>` : ''}
                     ${rule.condition === 'uncollected_item_exist' && (rule.action1 === 'うえ' || rule.action2 === 'うえ') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: アイテムを拾わずに、上に乗って待機します</div>` : ''}
                     ${rule.condition.startsWith('on_item_') && ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(rule.action1 || rule.action2) ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: カバンに入れず、足元のアイテムに直接アクションします</div>` : ''}
@@ -1260,11 +1265,11 @@ window.toggleDungeonTacticViewer = function() {
                 let synergyHtml = "";
                 if (r.condition === 'stairs_found' && (a1 === 'した' || a2 === 'した')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 階段へ向かって自動で移動し、フロアを下ります</div>`;
                 else if (r.condition === 'unexplored_exist' && (a1 === 'しらべる' || a2 === 'しらべる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: マップの未探索エリアへ向かって自動で探索を進めます</div>`;
-                else if (r.condition === 'monster_house' && (a1 === 'にげる' || a2 === 'にげる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 大部屋を避け、一番近い通路（安全地帯）へ退避します</div>`;
+                else if ((r.condition === 'monster_house' || r.condition === 'enemy_count_2_over') && (a1 === 'にげる' || a2 === 'にげる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 多勢を避け、一番近い通路（安全地帯）へ退避・迎撃します</div>`;
                 else if (r.condition === 'wind_blowing' && (a1 === 'にげる' || a2 === 'にげる')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 風から逃れるため、未探索エリアへ全力で急行します</div>`;
                 // ★追加：新しい文脈解釈のヒント
                 else if (r.condition === 'uncollected_item_exist' && (a1 === 'うえ' || a2 === 'うえ')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: アイテムを拾わずに、上に乗って待機します</div>`;
-                else if (r.condition.startsWith('on_item_') && ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a1) || ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a2)) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: カバンに入れず、足元のアイテムに直接アクションします</div>`;
+                else if (r.condition.startsWith('on_item_') && (['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a1) || ['たべる', 'かいふく', 'つかう', 'そうび', 'しらべる', 'なまえ'].includes(a2))) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: カバンに入れず、足元のアイテムに直接アクションします</div>`;
                 else if (r.condition === 'on_stairs' && (a1 === 'たたかう' || a2 === 'たたかう')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 体力が満タンになるまで足踏み回復し、終わると次の行動へ移ります</div>`;
                 else if (r.condition === 'in_room' && (a1 === 'たたかう' || a2 === 'たたかう')) synergyHtml = `<div style="font-size:11px; color:#FFD700; margin-top:5px;">💡 文脈解釈: 部屋を歩く際、進行方向へ素振りをして罠を確認しながら慎重に進みます</div>`;
 

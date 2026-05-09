@@ -143,7 +143,10 @@ window.generateDungeonFloor = async function() {
         { id: 'herb', name: '薬草', weight: 20 }, { id: 'item_berry', name: '野イチゴ', weight: 15 }, 
         { id: 'item_bread', name: '大きなパン', weight: 15 }, { id: 'item_seed_happy', name: 'しあわせの種', weight: 3 },
         { id: 'item_seed_mystery', name: '謎の種', weight: 5 }, 
+        // ▼ 状態異常回復草をドロップテーブルに追加（需要が高いためウェイトは少し高め）
+        { id: 'herb_antidote', name: '解毒の草', weight: 10 }, { id: 'herb_mint', name: 'ハッカの葉', weight: 10 }, { id: 'herb_eyedrop', name: '目薬草', weight: 8 }, { id: 'herb_paralysis', name: 'シビレ消し草', weight: 10 },
         { id: 'item_scroll_sleep', name: '睡眠の巻物', weight: 7 }, { id: 'item_scroll_confuse', name: '混乱の巻物', weight: 7 },
+        { id: 'item_scroll_seal', name: '封魔の巻物', weight: 6 }, // ▼ 封魔の巻物を追加
         { id: 'item_wand_fire', name: '火竜の杖', weight: 7 }, { id: 'item_wand_swap', name: '場所替えの杖', weight: 5 }, 
         { id: 'item_wand_blow', name: '吹き飛ばしの杖', weight: 5 }, 
         { id: 'item_sword_iron', name: '鉄の剣', weight: 10 }, { id: 'item_sword_double', name: '連撃の剣', weight: 4 }, 
@@ -181,7 +184,8 @@ window.generateDungeonFloor = async function() {
         let isMH = r.isMH;
         
         let eNum = isMH ? (floorMhType === 'large' ? 25 + Math.floor(Math.random()*6) : 10 + Math.floor(Math.random()*3)) : (1 + Math.floor(Math.random()*2));
-        let iNum = isMH ? (floorMhType === 'large' ? 15 : 5 + Math.floor(Math.random()*4)) : (idx === 0 ? 0 : 1);
+        // MHのアイテム数を削減、通常部屋は確率で0〜1個に変更しリソースを適正化
+        let iNum = isMH ? (floorMhType === 'large' ? 6 + Math.floor(Math.random()*3) : 3 + Math.floor(Math.random()*2)) : (Math.random() < 0.4 ? 1 : 0);
         let tNum = isMH ? (floorMhType === 'large' ? 15 : 5 + Math.floor(Math.random()*4)) : (1 + Math.floor(s.floor/10));
 
         // ★追加：スカルダンジョンの場合は、床に落ちるアイテム数を強制的に 0 にする！
@@ -192,7 +196,8 @@ window.generateDungeonFloor = async function() {
             if (pos) {
                 let eSkin = pool[Math.floor(Math.random() * pool.length)]; let eType = eSkin.split('_')[0];
                 let sleepVal = (isMH && floorMhType === 'mini') ? 999 : 0; 
-                s.enemies.push({ id: 'e_'+Date.now()+'_'+idx+'_'+i, x: pos.x, y: pos.y, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${eType}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep: sleepVal } });
+                let mName = window.getDungeonMonsterName ? window.getDungeonMonsterName(eSkin) : eType; // ★追加
+                s.enemies.push({ id: 'e_'+Date.now()+'_'+idx+'_'+i, x: pos.x, y: pos.y, hp: eHpBase + s.floor * 5, maxHp: eHpBase + s.floor * 5, damage: eDmgBase + s.floor * 2, name: `迷宮の${mName}`, type: eType, skin: eSkin, face: 'down', attackAnim: false, status: { poison:0, confusion:0, sleep: sleepVal, blind: 0 } });
             }
         }
 
@@ -207,12 +212,16 @@ window.generateDungeonFloor = async function() {
                 
                 // ★大修正：王道ローグライクのマイナス・プラス値の生成
                 if (isEquip) {
-                    if (Math.random() < 0.15) {
-                        let minus = Math.floor(Math.random() * 3) + 1; // -1 から -3 のマイナス値をつける
+                    let r = Math.random();
+                    if (r < 0.15) {
+                        let minus = Math.floor(Math.random() * 2) + 1; // 呪いは-1か-2
                         finalKey += `_-${minus}_curse`;
-                    } else {
-                        let p = Math.floor(Math.random() * 3);
-                        if (p > 0) finalKey += `_+${p}`;
+                    } else if (r < 0.35) { // 20%で+1
+                        finalKey += `_+1`;
+                    } else if (r < 0.40) { // 5%で+2
+                        finalKey += `_+2`;
+                    } else if (r < 0.41) { // 1%で超レア+3
+                        finalKey += `_+3`;
                     }
                 } else if (finalKey.includes('wand')) {
                     finalKey += `_+${3 + Math.floor(Math.random() * 3)}`; // 生成時に回数を3〜5回にする

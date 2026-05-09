@@ -5370,7 +5370,8 @@ window.updateDungeonUI = function() {
     let lvlEl = document.getElementById('dg-level');
     let currentLv = s.player.level || 1;
     let currentExp = s.player.exp || 0;
-    let requiredExp = 100 + (currentLv - 1) * 50;
+    // ★修正：戦闘側と共通の指数関数カーブを用いて表示ズレを完全に防止！
+    let requiredExp = typeof window.getRequiredDungeonExp === 'function' ? window.getRequiredDungeonExp(currentLv) : Math.floor(100 * Math.pow(1.3, currentLv - 1));
     let expStr = ` (EXP: ${currentExp}/${requiredExp})`;
 
     if (lvlEl) {
@@ -5956,9 +5957,11 @@ window.showEquipDetailsModal = function() {
         if (eff.atk > 0) res += `<span style="font-size:13px; margin-right:15px; color:#ccc;">攻撃力: <span style="color:#FFF;">${eff.atk}</span></span>`;
         if (eff.def > 0) res += `<span style="font-size:13px; margin-right:15px; color:#ccc;">防御力: <span style="color:#FFF;">${eff.def}</span></span>`;
         
-        if (parsed.seals.length > 0) {
+        // ★修正：parsed.seals(後付けの印) ではなく、eff.traits(固有印も含むすべての印) を表示する
+        let uniqueSeals = [...new Set(eff.traits)]; // 重複を排除
+        if (uniqueSeals.length > 0) {
             res += `<div style="margin-top:8px; font-size:13px; color:#ddd; background:#111; padding:8px; border-radius:4px;">`;
-            parsed.seals.forEach(sealId => {
+            uniqueSeals.forEach(sealId => {
                 let sData = window.SEAL_DESCRIPTIONS[sealId];
                 if (sData) {
                     res += `<div style="margin-bottom:4px;"><span style="color:#FFD700; font-weight:bold;">[${sData.name}]</span> ${sData.desc}</div>`;

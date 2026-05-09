@@ -1,3 +1,10 @@
+// ==========================================
+// ★ 新規追加：経験値カーブ計算関数（インフレ抑制の指数関数ベース）
+// ==========================================
+window.getRequiredDungeonExp = function(level) {
+    return Math.floor(100 * Math.pow(1.3, (level || 1) - 1));
+};
+
 window.dealDungeonDamage = function(attacker, defender) {
     if (defender.hp <= 0) return;
     const s = window.DUNGEON_STATE;
@@ -358,7 +365,32 @@ window.dealDungeonDamage = function(attacker, defender) {
         dmg = Math.max(1, Math.floor(dmg / 2));
     }
 
-    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15 && !defender._isCritImmune) { 
+    // ▼ 新規追加：武器の印による状態異常付与（攻撃ヒット時）
+    // ★ wEff.traits が存在するかを最初の大枠でチェックするようにしました
+    if (aIsPlayer && wEff && dmg > 0 && wEff.traits) {
+        if (wEff.traits.includes('poison_atk') && Math.random() < 0.20) {
+            defender.status.poison = (defender.status.poison || 0) + 5;
+            window.addDungeonLog(`🍄 [毒]の印！ ${defender.name} を猛毒状態にした！`, '#9C27B0');
+        }
+        if (wEff.traits.includes('confuse_atk') && Math.random() < 0.15) {
+            defender.status.confusion = (defender.status.confusion || 0) + 5;
+            window.addDungeonLog(`🌀 [乱]の印！ ${defender.name} を混乱させた！`, '#FF9800');
+        }
+        if (wEff.traits.includes('blind_atk') && Math.random() < 0.15) {
+            defender.status.blind = (defender.status.blind || 0) + 5;
+            window.addDungeonLog(`🕶️ [盲]の印！ ${defender.name} の視界を奪った！`, '#757575');
+        }
+        if (wEff.traits.includes('seal_atk') && Math.random() < 0.20) {
+            defender.status.sealed = (defender.status.sealed || 0) + 5;
+            window.addDungeonLog(`🤐 [封]の印！ ${defender.name} の特殊能力を封印した！`, '#9C27B0');
+        }
+        if (wEff.traits.includes('paralyze_atk') && Math.random() < 0.15) {
+            defender.status.paralyzed = (defender.status.paralyzed || 0) + 3;
+            window.addDungeonLog(`⚡ [縛]の印！ ${defender.name} を麻痺させて動きを止めた！`, '#FF9800');
+        }
+    }
+
+    if (aIsPlayer && wEff && wEff.traits.includes('crit') && Math.random() < 0.15 && !defender._isCritImmune) {
         // ★ 特性：冥界の風（会心ダメージ3倍）
         if (aTraits.includes('冥界の風')) {
             dmg *= 3; window.addDungeonLog(`🌪️ 冥界の風！ 破壊的な会心の一撃！(ダメージ3倍)`, '#9C27B0'); 
@@ -481,8 +513,9 @@ window.dealDungeonDamage = function(attacker, defender) {
     // 【次元跳躍】（敵被弾時、ワープで逃げる）
     if (aIsPlayer && defender.skin && defender.skin.includes('machine_type3_2') && defender.hp > 0) {
         window.addDungeonLog(`🌀 クォンタム・クロックワークは次元跳躍でワープして逃げた！`, '#00BCD4');
-        defender.x = Math.floor(Math.random() * s.mapWidth); 
-        defender.y = Math.floor(Math.random() * s.mapHeight);
+        let wx, wy; do { wx = Math.floor(Math.random() * s.mapWidth); wy = Math.floor(Math.random() * s.mapHeight); } while (s.grid[wy][wx] !== 0 || (wx === s.player.x && wy === s.player.y) || s.enemies.some(en => en.hp > 0 && en.x === wx && en.y === wy));
+        defender.x = wx; 
+        defender.y = wy;
     }
     // 【オーバードライブ 自傷】（敵攻撃後、反動ダメージ）
     if (!aIsPlayer && attacker._isOverdrive) {
@@ -533,10 +566,11 @@ window.dealDungeonDamage = function(attacker, defender) {
                 window.addDungeonLog(`✨ 琥珀コーティングが ${defender.name} の武器をサビから守った！`, '#FFD700');
             } else {
                 let pBase = window.parseItemString(defender.equipWeapon);
-                if (pBase.plus > 0) {
-                    defender.equipWeapon = `${pBase.baseId}_+${pBase.plus - 1}` + (pBase.seals.length>0 ? '_'+pBase.seals.join('_') : '');
-                    window.addDungeonLog(`サビ撒き！ ${attacker.name} の武器が劣化してしまった！`, '#9C27B0');
-                }
+                let newPlus = pBase.plus - 1;
+                let sign = newPlus >= 0 ? '+' : '';
+                defender.equipWeapon = `${pBase.baseId}_${sign}${newPlus}` + (pBase.seals.length > 0 ? '_' + pBase.seals.join('_') : '');
+                window.addDungeonLog(`サビ撒き！ ${attacker.name} の武器が劣化してしまった！`, '#9C27B0');
+                if (defender === window.DUNGEON_STATE.player && typeof window.updateDungeonUI === 'function') window.updateDungeonUI();
             }
         }
     }
@@ -547,7 +581,8 @@ window.dealDungeonDamage = function(attacker, defender) {
         for (let d of dirs) { if (s.grid[ey+d.dy][ex+d.dx] !== 1 && !s.enemies.some(e=>e.x===ex+d.dx&&e.y===ey+d.dy)) { ex+=d.dx; ey+=d.dy; break; } }
         if (ex !== defender.x || ey !== defender.y) {
             window.addDungeonLog(`${defender.name} のホログラム（分身）が現れた！`, '#00BCD4');
-            s.enemies.push({ id: 'e_holo_'+Date.now(), x: ex, y: ey, hp: 1, maxHp: 1, damage: defender.damage, name: `分身の${defender.type}`, type: defender.type, skin: defender.skin, face: defender.face, attackAnim: false, status: { poison:0, confusion:0 } });
+            let mName = window.getDungeonMonsterName ? window.getDungeonMonsterName(defender.skin) : defender.type; // ★追加
+            s.enemies.push({ id: 'e_holo_'+Date.now(), x: ex, y: ey, hp: 1, maxHp: 1, damage: defender.damage, name: `分身の${mName}`, type: defender.type, skin: defender.skin, face: defender.face, attackAnim: false, status: { poison:0, confusion:0, sleep:0, blind:0 } });
         }
     }
     // ★ 敵特性：データ収集（殴られたら回避アップ）
@@ -564,14 +599,13 @@ window.dealDungeonDamage = function(attacker, defender) {
                 attacker.exp = (attacker.exp || 0) + expGain;
                 window.addDungeonLog(`${defender.name} を倒した！(+${expGain} EXP)`, '#FFD700');
 
-                let requiredExp = 100 + ((attacker.level || 1) - 1) * 50;
-
-                if (attacker.exp >= requiredExp) {
-                    attacker.exp -= requiredExp; 
+                // ★修正：共通関数を用いて、一気に経験値を得た場合でも連続でレベルアップできるようにする
+                while (attacker.exp >= window.getRequiredDungeonExp(attacker.level || 1)) {
+                    attacker.exp -= window.getRequiredDungeonExp(attacker.level || 1); 
                     attacker.level = (attacker.level || 1) + 1; 
-                    attacker.maxHp += 20; 
+                    attacker.maxHp += 5; // 上昇量を適正化
                     attacker.hp = attacker.maxHp; 
-                    attacker.basePwr += 5; 
+                    attacker.basePwr += 1; // 上昇量を適正化
                     
                     let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (attacker.maxHunger || 100);
                     if (aTraits.includes('省エネ')) maxH += 20;
@@ -634,10 +668,11 @@ window.dealDungeonDamage = function(attacker, defender) {
             let isRareDrop = false;
 
             if (s.mapType === 'crystal') {
-                if (aTraits.includes('成金趣味')) dropChance = 0.6;
-                if (aTraits.includes('カラスの嗅覚') && dropChance < 0.2) dropChance = 0.2; 
-                if (aTraits.includes('希少種')) dropChance += 0.2;
-                if (aTraits.includes('宝石の煌めき')) dropChance += 0.2;
+                dropChance = 0.05; // 基礎ドロップ率を低下させインフレを抑制
+                if (aTraits.includes('成金趣味')) dropChance = 0.25; 
+                if (aTraits.includes('カラスの嗅覚') && dropChance < 0.1) dropChance = 0.1; 
+                if (aTraits.includes('希少種')) dropChance += 0.1;
+                if (aTraits.includes('宝石の煌めき')) dropChance += 0.1;
             } else if (s.mapType === 'skull') {
                 // スカルダンジョン専用の特性ドロップ抽選
                 if (aTraits.includes('成金趣味') && Math.random() < 0.20) isHappyDrop = true;
@@ -669,7 +704,15 @@ window.dealDungeonDamage = function(attacker, defender) {
                 window.scatterItem(s, defender.x, defender.y, rareKey);
                 window.addDungeonLog(`敵は ${window.getDungeonItemEffect(rareKey).name} を落とした！`, '#4CAF50');
             } else if (Math.random() < dropChance) {
-                let items = Object.keys(itemCatalog).filter(k => k.startsWith('item_'));
+                // ★完全修正：村のアイテム（春の七草など）が混ざらないよう、ダンジョン用のアイテム群だけを厳密に抽出する！
+                let items = Object.keys(itemCatalog).filter(k => 
+                    k.startsWith('item_sword_') || k.startsWith('item_shield_') || 
+                    k.startsWith('item_armor_') || k.startsWith('item_ring_') || 
+                    k.startsWith('item_wand_') || k.startsWith('item_scroll_') || 
+                    k.startsWith('item_seed_') || k === 'item_bread' || k === 'item_berry' || 
+                    k === 'herb' || k.startsWith('herb_antidote') || k.startsWith('herb_mint') || 
+                    k.startsWith('herb_eyedrop') || k.startsWith('herb_paralysis')
+                );
                 let droppedKey = items[Math.floor(Math.random() * items.length)];
 
                 // ★ 特性：カラスの嗅覚（クリスタル限定の挙動）
@@ -686,12 +729,16 @@ window.dealDungeonDamage = function(attacker, defender) {
                 // ==========================================
                 let isEquip = droppedKey.includes('sword') || droppedKey.includes('shield') || droppedKey.includes('armor') || droppedKey.includes('ring');
                 if (isEquip) {
-                    if (Math.random() < 0.15) {
-                        let minus = Math.floor(Math.random() * 3) + 1; // -1 から -3 のマイナス値をつける
+                    let r = Math.random();
+                    if (r < 0.15) {
+                        let minus = Math.floor(Math.random() * 2) + 1; // 呪いは-1か-2に抑制
                         droppedKey += `_-${minus}_curse`;
-                    } else {
-                        let p = Math.floor(Math.random() * 3);
-                        if (p > 0) droppedKey += `_+${p}`;
+                    } else if (r < 0.35) { // 20%で+1
+                        droppedKey += `_+1`;
+                    } else if (r < 0.40) { // 5%で+2
+                        droppedKey += `_+2`;
+                    } else if (r < 0.41) { // 1%で超レア+3
+                        droppedKey += `_+3`;
                     }
                 } else if (droppedKey.includes('wand')) {
                     droppedKey += `_+${3 + Math.floor(Math.random() * 3)}`; // 生成時に回数を3〜5回にする
@@ -863,6 +910,16 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         }
 
         // --- 1. プレイヤー(防御側)のバフ ---
+        let defTraits = [];
+        if (s.player.equipShield) defTraits.push(...window.getDungeonItemEffect(s.player.equipShield).traits);
+        if (s.player.equipArmor) defTraits.push(...window.getDungeonItemEffect(s.player.equipArmor).traits);
+
+        // ▼ 新規追加：盾・鎧の印 [魔] 魔法ダメージを一律30%軽減
+        if (isMagic && defTraits.includes('anti_magic')) {
+            finalDamage = Math.max(1, Math.floor(finalDamage * 0.7)); 
+            window.addDungeonLog(`🛡️ [魔]の印が魔法の威力を弱めた！`, '#00BCD4');
+        }
+
         // ★ 岩系特性：光の屈折（魔法ダメージを20%軽減）
         if (isMagic && activeTraits.includes('光の屈折')) {
             finalDamage = Math.max(1, Math.floor(finalDamage * 0.8));
@@ -935,9 +992,25 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
             }
         }
 
+        // ★ 追加：盾・鎧の印 [反] ＆ 反撃の盾（受けたダメージの半分を相手に返す）
+        if (defTraits.includes('counter') && finalDamage > 0 && !isMagic) {
+            let recoil = Math.floor(finalDamage * 0.5);
+            if (recoil > 0) {
+                attacker.hp -= recoil;
+                window.addDungeonLog(`🛡️ [反]の印！ 攻撃を弾き返し ${attacker.name} に ${recoil} ダメージ！`, '#FFD700');
+            }
+        }
+
         // --- 2. ダメージ処理 ---
         defender.hp -= finalDamage; defender.damageAnim = true;
         window.addDungeonLog(`💥 ${attacker.name} から ${finalDamage} ダメージを受けた！`, '#FF9800');
+
+        // ★追加：通路待機中（迎撃マクロ中）に遠距離から魔法などで被弾した場合、待ちきれずに即座に突撃を決意する！
+        if (s.player._waitCount > 0 && Math.abs(attacker.x - s.player.x) + Math.abs(attacker.y - s.player.y) > 1) {
+            window.addDungeonLog(`💢 ${s.player.name || "AI"} は遠隔攻撃にしびれを切らし、突撃を決意した！`, '#ff5252');
+            s.player._commitFight = 6;
+            s.player._waitCount = 0;
+        }
 
         // ★ 閃き：敵から攻撃されたことで「たたかう（反撃）」を閃く！
         if (typeof window.triggerDungeonInspiration === 'function') {
@@ -1126,6 +1199,22 @@ window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, ba
         }
         if (eSkin === 'spirit_type5_3' && !activeTraits.includes('清浄なる輝き')) {
             s.player.status.paralyzed = 1; window.addDungeonLog(`❄️ 凍結の吐息で体が凍りついた！`, '#00BCD4');
+        }
+
+        // ==========================================
+        // ★ 盾・鎧の印（状態異常無効化）の適用
+        // ==========================================
+        if (defTraits.includes('anti_poison') && s.player.status.poison > (oldStatus.poison || 0)) {
+            s.player.status.poison = oldStatus.poison || 0; window.addDungeonLog(`🛡️ [抗]の印が 毒 を完全に防いだ！`, '#00BCD4');
+        }
+        if (defTraits.includes('anti_confuse') && s.player.status.confusion > (oldStatus.confusion || 0)) {
+            s.player.status.confusion = oldStatus.confusion || 0; window.addDungeonLog(`🛡️ [静]の印が 混乱 を完全に防いだ！`, '#00BCD4');
+        }
+        if (defTraits.includes('anti_blind') && s.player.status.blind > (oldStatus.blind || 0)) {
+            s.player.status.blind = oldStatus.blind || 0; window.addDungeonLog(`🛡️ [明]の印が 暗闇 を完全に防いだ！`, '#00BCD4');
+        }
+        if (defTraits.includes('anti_paralyze') && s.player.status.paralyzed > (oldStatus.paralyzed || 0)) {
+            s.player.status.paralyzed = oldStatus.paralyzed || 0; window.addDungeonLog(`🛡️ [動]の印が 麻痺 を完全に防いだ！`, '#00BCD4');
         }
 
         // ==========================================
