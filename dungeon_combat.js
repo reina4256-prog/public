@@ -74,6 +74,31 @@ window.dealDungeonDamage = function(attacker, defender) {
         }
     }
 
+    // ★ 追加：移行漏れ特性（完全回避・無効化系）
+    if (aIsPlayer) {
+        let eSkin = defender.skin || defender.type || "";
+        if (eSkin === 'spirit_type5_2' && Math.random() < 0.2) {
+            if (isSureHit) window.addDungeonLog(`👁️ 神眼が落葉の目眩ましを見破った！`, '#FFD700');
+            else { window.addDungeonLog(`🍂 落葉に遮られ、${defender.name}への攻撃が外れた！`, '#aaa'); return; }
+        }
+    } else {
+        if (dTraits.includes('天使の加護') && (attacker.type === 'ghost' || attacker.type === 'spirit')) {
+            window.addDungeonLog(`✨ 天使の加護がアンデッドの攻撃を完全に遮断した！`, '#4CAF50');
+            return; 
+        }
+        if (dTraits.includes('妖精の加護') && Math.random() < 0.1) {
+            if (isSureHit) window.addDungeonLog(`👁️ 真理の目が妖精の加護を打ち消した！`, '#FF5252');
+            else {
+                window.addDungeonLog(`✨ 妖精の加護が光り、ダメージを無効化した！`, '#4CAF50');
+                if (dTraits.includes('天の加護')) {
+                    s.player.hp = Math.min(s.player.maxHp, s.player.hp + 5);
+                    window.addDungeonLog(`✨ 天の加護！ 攻撃を回避し、HPが 5 回復した！`, '#4CAF50');
+                }
+                return;
+            }
+        }
+    }
+
     // ==========================================
     // ★ 機械系（ゼンマイ系）：攻撃前のダメージ補正・特殊フラグ設定
     // ==========================================
@@ -190,6 +215,35 @@ window.dealDungeonDamage = function(attacker, defender) {
     // ★ ゴースト系特性：霊的腕力（素手時の攻撃力が剣以上に高くなる）
     if (aIsPlayer && aTraits.includes('霊的腕力') && !attacker.equipWeapon) {
         aAtk += 20 + Math.floor((attacker.level || 1) * 1.5);
+    }
+
+    // ★ 追加：移行漏れ特性（攻撃力・防御力の増減）
+    if (aIsPlayer) {
+        if (aTraits.includes('大地の力') && (s.grid[s.player.y][s.player.x] === 6 || s.grid[s.player.y][s.player.x] === 7)) aAtk += 10;
+        if (aTraits.includes('耐冷構造') && (s.grid[s.player.y][s.player.x] === 8 || s.grid[s.player.y][s.player.x] === 9)) aAtk += 5;
+        if (aTraits.includes('大樹の怒り') && s.player._wrath) {
+            aAtk *= 2; s.player._wrath = false;
+            window.addDungeonLog(`🌿 大樹の怒り解放！ 強烈な一撃！`, '#FF9800');
+        }
+        let eSkin = defender.skin || defender.type || "";
+        if (eSkin === 'spirit_type4') dDef += 3;
+        if (eSkin === 'seed_type5_2') dDef += 10;
+    } else {
+        let eSkin = attacker.skin || attacker.type || "";
+        if (eSkin === 'dragon' && Math.random() < 0.2) {
+            aAtk = Math.floor(aAtk * 1.5);
+            window.addDungeonLog(`🐉 竜の爪！ 鋭い一撃で大ダメージ！`, '#FF5252');
+        }
+        if (dTraits.includes('哀愁の波動')) {
+            let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
+            let eRoom = s.roomsInfo.find(r => attacker.x >= r.x && attacker.x < r.x+r.w && attacker.y >= r.y && attacker.y < r.y+r.h);
+            if ((pRoom && eRoom && pRoom === eRoom) || (Math.abs(attacker.x - s.player.x) <= 2 && Math.abs(attacker.y - s.player.y) <= 2)) {
+                aAtk = Math.max(1, Math.floor(aAtk * 0.9)); 
+            }
+        }
+        if (dTraits.includes('大地の力') && (s.grid[s.player.y][s.player.x] === 6 || s.grid[s.player.y][s.player.x] === 7)) {
+            dDef += 10;
+        }
     }
 
     // ★ 風船系：仕込んでおいた攻防倍率の適用
@@ -337,6 +391,19 @@ window.dealDungeonDamage = function(attacker, defender) {
 
     let dmg = Math.max(1, aAtk - dDef);
     
+    // ★ 追加：移行漏れ特性（因果改変によるダメージ押し付け）
+    if (aIsPlayer && defender.skin === 'spirit_type3_2' && Math.random() < 0.5) {
+        let otherEnemies = s.enemies.filter(e => e.hp > 0 && e.id !== defender.id && window.isTileVisible(s, e.x, e.y));
+        if (otherEnemies.length > 0) {
+            let scapegoat = otherEnemies[Math.floor(Math.random() * otherEnemies.length)];
+            window.addDungeonLog(`🌀 因果改変！ ダメージが ${scapegoat.name} に押し付けられた！`, '#9C27B0');
+            scapegoat.hp -= dmg; scapegoat.damageAnim = true;
+            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(scapegoat.x, scapegoat.y, dmg, false);
+            if (scapegoat.hp <= 0) window.addDungeonLog(`💀 ${scapegoat.name} を倒した！`, '#FF5252');
+            return;
+        }
+    }
+
     // ★ ゴースト系：ヒット時の特殊処理（即死・経験値吸収など）
     if (!aIsPlayer && attacker.skin && attacker.skin === 'ghost_type1' && defender.hp <= defender.maxHp * 0.3 && Math.random() < 0.15) {
         dmg = defender.hp; // 即死
@@ -462,6 +529,69 @@ window.dealDungeonDamage = function(attacker, defender) {
 
     defender.hp -= dmg;
 
+    // ★ 追加：移行漏れ特性（攻撃ヒット後の追加効果・反射）
+    if (aIsPlayer) {
+        let eSkin = defender.skin || defender.type || "";
+        if (defender.hp > 0) {
+            if (aTraits.includes('ヘビーパンチ') && Math.random() < 0.2) {
+                let dx = defender.x - s.player.x; let dy = defender.y - s.player.y;
+                if (s.grid[defender.y + dy] && s.grid[defender.y + dy][defender.x + dx] !== 1) {
+                    defender.x += dx; defender.y += dy; window.addDungeonLog(`👊 ヘビーパンチ！ 敵を吹き飛ばした！`, '#00BCD4');
+                }
+            }
+            if (eSkin === 'spirit_type4_3' || eSkin === 'seed_type1') {
+                let recoil = Math.floor(dmg * 0.2);
+                if (recoil > 0) { s.player.hp -= recoil; s.player.damageAnim = true; window.addDungeonLog(`🌵 茨の反撃！ ${recoil} のダメージを受けた！`, '#FF5252'); }
+            }
+            if (eSkin === 'seed_type3_2') {
+                let recoil = Math.floor(dmg * 1.0);
+                if (recoil > 0) { s.player.hp -= recoil; s.player.damageAnim = true; window.addDungeonLog(`🧠 神経接続！ 与えたダメージがそのまま自分にも跳ね返ってきた！`, '#FF5252'); }
+            }
+            if (eSkin === 'spirit_type1' && Math.abs(defender.x - s.player.x) <= 1 && Math.abs(defender.y - s.player.y) <= 1) {
+                if (!aTraits.includes('毒素体質') && !aTraits.includes('清浄なる輝き')) {
+                    s.player.status.poison = (s.player.status.poison || 0) + 10; window.addDungeonLog(`🍄 猛毒胞子を浴びてしまった！`, '#FF5252');
+                }
+            }
+        } else {
+            if (eSkin === 'spirit_type1_2') {
+                let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
+                let eRoom = s.roomsInfo.find(r => defender.x >= r.x && defender.x < r.x+r.w && defender.y >= r.y && defender.y < r.y+r.h);
+                if ((pRoom && eRoom && pRoom === eRoom) || (Math.abs(defender.x - s.player.x) <= 2 && Math.abs(defender.y - s.player.y) <= 2)) {
+                    let screamDmg = Math.floor(s.player.hp * 0.5);
+                    s.player.hp -= screamDmg; s.player.damageAnim = true;
+                    window.addDungeonLog(`😱 死の絶叫！ 鼓膜を破る叫びで ${screamDmg} ダメージ！`, '#FF5252');
+                }
+            }
+        }
+        if (aTraits.includes('怨念の根')) {
+            let heal = Math.floor(dmg * 0.3);
+            if (aTraits.includes('血の飢え')) heal *= 2; 
+            if (heal > 0) { s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal); window.addDungeonLog(`🌱 怨念の根でHPを ${heal} 吸収した！`, '#4CAF50'); }
+        }
+    } else {
+        if (dTraits.includes('大樹の怒り')) s.player._wrath = true;
+
+        if (dTraits.includes('茨の鎧') && dmg > 0) {
+            let recoil = Math.floor(dmg * 0.2);
+            if (recoil > 0) { 
+                attacker.hp -= recoil; attacker.damageAnim = true;
+                if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(attacker.x, attacker.y, recoil, false);
+                window.addDungeonLog(`🌵 茨の鎧！ ${attacker.name} に ${recoil} のダメージを返した！`, '#FF5252'); 
+            }
+        }
+        let defTraits2 = [];
+        if (s.player.equipShield) defTraits2.push(...window.getDungeonItemEffect(s.player.equipShield).traits);
+        if (s.player.equipArmor) defTraits2.push(...window.getDungeonItemEffect(s.player.equipArmor).traits);
+        if (defTraits2.includes('counter') && dmg > 0) {
+            let recoil = Math.floor(dmg * 0.5);
+            if (recoil > 0) {
+                attacker.hp -= recoil; attacker.damageAnim = true;
+                if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(attacker.x, attacker.y, recoil, false);
+                window.addDungeonLog(`🛡️ [反]の印！ 攻撃を弾き返し ${attacker.name} に ${recoil} ダメージ！`, '#FFD700');
+            }
+        }
+    }
+
     // ==========================================
     // ★ 機械系（ゼンマイ系）：被ダメージ後・与ダメージ後の発動スキル
     // ==========================================
@@ -543,6 +673,30 @@ window.dealDungeonDamage = function(attacker, defender) {
     
     if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(defender.x, defender.y, dmg, defender === s.player);
     window.addDungeonLog(`${defender.name} に ${dmg} ダメージ！`, defender === s.player ? '#ff5252' : '#FF9800');
+
+    // ★ 閃き：敵から攻撃されたことで「たたかう（反撃）」等を閃く！
+    if (!aIsPlayer && typeof window.triggerDungeonInspiration === 'function') {
+        window.triggerDungeonInspiration('attack');
+
+        // 追加：HPが30%以下になったら「逃げる」「回復する」を閃く
+        if (defender.hp <= defender.maxHp * 0.3) {
+            window.triggerDungeonInspiration('flee');
+            window.triggerDungeonInspiration('heal');
+        }
+        
+        // 追加：正面以外から殴られたら「向き」を変えることを閃く
+        let isFront = false;
+        if (defender.face === 'up' && attacker.y < defender.y) isFront = true;
+        if (defender.face === 'down' && attacker.y > defender.y) isFront = true;
+        if (defender.face === 'left' && attacker.x < defender.x) isFront = true;
+        if (defender.face === 'right' && attacker.x > defender.x) isFront = true;
+        if (!isFront) {
+            if (attacker.y < defender.y) window.triggerDungeonInspiration('face_up');
+            else if (attacker.y > defender.y) window.triggerDungeonInspiration('face_down');
+            else if (attacker.x < defender.x) window.triggerDungeonInspiration('face_left');
+            else if (attacker.x > defender.x) window.triggerDungeonInspiration('face_right');
+        }
+    }
 
     // ★ 追加：武器の[癒]の印の効果 ＆ カブトムシ系「血の飢え」による倍化
     if (aIsPlayer && wEff && wEff.traits.includes('heal')) {
@@ -760,529 +914,6 @@ window.dealDungeonDamage = function(attacker, defender) {
         if (!aIsPlayer && defender.skin && defender.skin.includes('robot_type5_3') && !defender.hasRevived) {
             window.addDungeonLog(`⏳ 時間逆行！ ${defender.name} は時を戻して復活した！`, '#E040FB');
             defender.hp = defender.maxHp; defender.hasRevived = true;
-        }
-    }
-};
-
-// ==========================================
-// ⚔️ ダンジョン戦闘の中央処理関数（全特性対応）
-// ==========================================
-window.executeDungeonCombat = function(isPlayerAttacking, attacker, defender, baseDamage, isMagic = false) {
-    const s = window.DUNGEON_STATE;
-    let finalDamage = baseDamage;
-    let activeTraits = [];
-    if (s.player.skin) activeTraits = window.getPlayerDungeonTraits(s.player.skin).map(t => t.name);
-
-    if (isPlayerAttacking) {
-        let eSkin = defender.skin || defender.type || "";
-
-        // --- 1. プレイヤー(攻撃側)のバフ ---
-        if (activeTraits.includes('大地の力') && (s.grid[s.player.y][s.player.x] === 6 || s.grid[s.player.y][s.player.x] === 7)) finalDamage += 10;
-        if (activeTraits.includes('耐冷構造') && (s.grid[s.player.y][s.player.x] === 8 || s.grid[s.player.y][s.player.x] === 9)) finalDamage += 5;
-        if (activeTraits.includes('大樹の怒り') && s.player._wrath) {
-            finalDamage *= 2; s.player._wrath = false;
-            window.addDungeonLog(`🌿 大樹の怒り解放！ 強烈な一撃！`, '#FF9800');
-        }
-
-        // --- 2. 敵(防御側)の回避と防御特性 ---
-        let isSureHit = activeTraits.includes('神眼'); // プレイヤー攻撃時の必中フラグ
-
-        if (eSkin === 'spirit_type5_2' && Math.random() < 0.2) {
-            if (isSureHit) window.addDungeonLog(`👁️ 神眼が落葉の目眩ましを見破った！`, '#FFD700');
-            else { window.addDungeonLog(`🍂 落葉に遮られ、${defender.name}への攻撃が外れた！`, '#aaa'); return; }
-        }
-        if (eSkin === 'spirit_type4') finalDamage = Math.max(1, finalDamage - 3);
-        if (isMagic && eSkin === 'spirit_type2_3' && Math.random() < 0.5) {
-            window.addDungeonLog(`🪞 鏡面反射！ 魔法が跳ね返された！`, '#FF5252');
-            s.player.hp -= finalDamage; s.player.damageAnim = true; return;
-        }
-        
-        // ★ 風船系敵特性：シャボンバリア（魔法ダメージを完全に反射）
-        if (isMagic && eSkin === 'balloon_type2') {
-            window.addDungeonLog(`🫧 シャボンバリア！ 薄い膜が魔法を完全に跳ね返した！`, '#FF5252');
-            s.player.hp -= finalDamage; s.player.damageAnim = true; return;
-        }
-
-        // ★ 魔法使い系敵特性：魔法鎧（魔法ダメージを1.5倍にして反射）
-        if (isMagic && eSkin === 'magician_type4_3') {
-            let reflectDmg = Math.floor(finalDamage * 1.5);
-            window.addDungeonLog(`🪞 魔法鎧！ 魔法が 1.5倍 の威力になって跳ね返された！`, '#FF5252');
-            s.player.hp -= reflectDmg; s.player.damageAnim = true; return;
-        }
-        
-        // ★ ゴースト系敵特性：魔法反射（魔法をそのまま反射）
-        if (isMagic && eSkin === 'ghost_type3_3') {
-            window.addDungeonLog(`🪞 魔法反射！ 魔法がそのまま跳ね返された！`, '#FF5252');
-            s.player.hp -= finalDamage; s.player.damageAnim = true; return;
-        }
-
-        if (eSkin === 'spirit_type3_2' && Math.random() < 0.5) {
-            let otherEnemies = s.enemies.filter(e => e.hp > 0 && e.id !== defender.id && window.isTileVisible(s, e.x, e.y));
-            if (otherEnemies.length > 0) {
-                let scapegoat = otherEnemies[Math.floor(Math.random() * otherEnemies.length)];
-                window.addDungeonLog(`🌀 因果改変！ ダメージが ${scapegoat.name} に押し付けられた！`, '#9C27B0');
-                scapegoat.hp -= finalDamage; scapegoat.damageAnim = true;
-                if (scapegoat.hp <= 0) window.addDungeonLog(`💀 ${scapegoat.name} を倒した！`, '#FF5252');
-                return;
-            }
-        }
-
-        // ★ 種系敵特性：珪化木（ダメージ10軽減）
-        if (eSkin === 'seed_type5_2') {
-            finalDamage = Math.max(1, finalDamage - 10);
-            window.addDungeonLog(`🪵 珪化木！ 石化した木がダメージを大幅に防いだ！`, '#aaa');
-        }
-
-        // --- 3. ダメージ処理 ---
-        defender.hp -= finalDamage; defender.damageAnim = true;
-        window.addDungeonLog(`💥 ${defender.name} に ${finalDamage} ダメージ！`, '#FFF');
-
-        // --- 4. 攻撃後の追加効果（ノックバック、反撃、吸収など） ---
-        if (defender.hp > 0) {
-            if (activeTraits.includes('ヘビーパンチ') && Math.random() < 0.2 && !isMagic) {
-                let dx = defender.x - s.player.x; let dy = defender.y - s.player.y;
-                if (s.grid[defender.y + dy] && s.grid[defender.y + dy][defender.x + dx] !== 1) {
-                    defender.x += dx; defender.y += dy; window.addDungeonLog(`👊 ヘビーパンチ！ 敵を吹き飛ばした！`, '#00BCD4');
-                }
-            }
-            if (eSkin === 'spirit_type4_3' || eSkin === 'seed_type1') {
-                let recoil = Math.floor(finalDamage * 0.2);
-                if (recoil > 0) { s.player.hp -= recoil; window.addDungeonLog(`🌵 茨の反撃！ ${recoil} のダメージを受けた！`, '#FF5252'); }
-            }
-            // ★ 種系敵特性：神経接続（ダメージ共有）
-            if (eSkin === 'seed_type3_2') {
-                let recoil = Math.floor(finalDamage * 1.0);
-                if (recoil > 0) { s.player.hp -= recoil; window.addDungeonLog(`🧠 神経接続！ 与えたダメージがそのまま自分にも跳ね返ってきた！`, '#FF5252'); }
-            }
-            if (eSkin === 'spirit_type1' && Math.abs(defender.x - s.player.x) <= 1 && Math.abs(defender.y - s.player.y) <= 1) {
-                if (!activeTraits.includes('毒素体質') && !activeTraits.includes('清浄なる輝き')) {
-                    s.player.status.poison = 10; window.addDungeonLog(`🍄 猛毒胞子を浴びてしまった！`, '#FF5252');
-                }
-            }
-        } else if (defender.hp <= 0) {
-            window.addDungeonLog(`💀 ${defender.name} を倒した！`, '#FF5252');
-            if (eSkin === 'spirit_type1_2') {
-                let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
-                let eRoom = s.roomsInfo.find(r => defender.x >= r.x && defender.x < r.x+r.w && defender.y >= r.y && defender.y < r.y+r.h);
-                if ((pRoom && eRoom && pRoom === eRoom) || (Math.abs(defender.x - s.player.x) <= 2 && Math.abs(defender.y - s.player.y) <= 2)) {
-                    let screamDmg = Math.floor(s.player.hp * 0.5);
-                    s.player.hp -= screamDmg; s.player.damageAnim = true;
-                    window.addDungeonLog(`😱 死の絶叫！ 鼓膜を破る叫びで ${screamDmg} ダメージ！`, '#FF5252');
-                }
-            }
-        }
-        
-        if (activeTraits.includes('怨念の根') && !isMagic) {
-            let heal = Math.floor(finalDamage * 0.3);
-            if (activeTraits.includes('血の飢え')) heal *= 2; // ★血の飢えで吸収量が倍化！
-            if (heal > 0) { s.player.hp = Math.min(s.player.maxHp, s.player.hp + heal); window.addDungeonLog(`🌱 怨念の根でHPを ${heal} 吸収した！`, '#4CAF50'); }
-        }
-
-    } else {
-        // --- 敵からの攻撃 ---
-        let eSkin = attacker.skin || attacker.type || "";
-        let isEnemySureHit = eSkin === 'bird_type3_3'; // 敵の必中フラグ（真理の目）
-        let oldStatus = JSON.parse(JSON.stringify(s.player.status || {})); // ★ 状態異常記録
-
-        // ★ ドラゴン系敵特性：竜の爪
-        if (eSkin === 'dragon' && Math.random() < 0.2) {
-            finalDamage = Math.floor(finalDamage * 1.5);
-            window.addDungeonLog(`🐉 竜の爪！ 鋭い一撃で大ダメージ！`, '#FF5252');
-        }
-
-        // ★ ゴースト系特性：天使の加護（アンデッド系の攻撃を無効化）
-        if (activeTraits.includes('天使の加護') && (attacker.type === 'ghost' || attacker.type === 'spirit')) {
-            window.addDungeonLog(`✨ 天使の加護がアンデッドの攻撃を完全に遮断した！`, '#4CAF50');
-            return; 
-        }
-
-        // ★ 風船系敵特性：機雷爆発（隣接自爆）
-        if (eSkin === 'balloon_type1_2') {
-            window.addDungeonLog(`💣 機雷爆発！ ${attacker.name} が自爆攻撃を仕掛けてきた！`, '#FF5252');
-            finalDamage = Math.max(1, Math.floor(s.player.maxHp / 2));
-            attacker.hp = 0; // 自爆
-        }
-        // ★ 風船系敵特性：バーナー放射
-        if (eSkin === 'balloon_type4_2') {
-            window.addDungeonLog(`🔥 バーナー放射！ 頭上から回避不能の炎を浴びせた！`, '#FF5252');
-            finalDamage += 15;
-            isEnemySureHit = true; // 回避不能
-        }
-
-        // --- 1. プレイヤー(防御側)のバフ ---
-        let defTraits = [];
-        if (s.player.equipShield) defTraits.push(...window.getDungeonItemEffect(s.player.equipShield).traits);
-        if (s.player.equipArmor) defTraits.push(...window.getDungeonItemEffect(s.player.equipArmor).traits);
-
-        // ▼ 新規追加：盾・鎧の印 [魔] 魔法ダメージを一律30%軽減
-        if (isMagic && defTraits.includes('anti_magic')) {
-            finalDamage = Math.max(1, Math.floor(finalDamage * 0.7)); 
-            window.addDungeonLog(`🛡️ [魔]の印が魔法の威力を弱めた！`, '#00BCD4');
-        }
-
-        // ★ 岩系特性：光の屈折（魔法ダメージを20%軽減）
-        if (isMagic && activeTraits.includes('光の屈折')) {
-            finalDamage = Math.max(1, Math.floor(finalDamage * 0.8));
-            window.addDungeonLog(`💎 光の屈折が魔法ダメージを軽減した！`, '#00BCD4');
-        }
-
-        // ★ 岩系特性：地熱吸収（炎魔法のダメージを吸収）
-        if ((isMagic || eSkin === 'balloon_type4_2') && activeTraits.includes('地熱吸収') && (eSkin.includes('fire') || eSkin.includes('magician') || eSkin.includes('balloon'))) {
-            s.player.hp = Math.min(s.player.maxHp, s.player.hp + finalDamage);
-            window.addDungeonLog(`🌋 地熱吸収！ 炎や魔法の熱を吸収して回復した！`, '#4CAF50');
-            return;
-        }
-
-        // ★ 魔法使い系特性：万物の法則（魔法・属性ダメージを完全に 0 にする）
-        if ((isMagic || eSkin === 'balloon_type4_2') && activeTraits.includes('万物の法則')) {
-            finalDamage = 0;
-            window.addDungeonLog(`🌌 万物の法則がすべての属性ダメージを無に帰した！`, '#00BCD4');
-            return;
-        }
-        
-        // ★ ドラゴン系特性：クリスタルボディ（特効ダメージを無効化）
-        let eEffW = attacker.equipWeapon ? window.getDungeonItemEffect(attacker.equipWeapon) : null;
-        if (eEffW && (eEffW.traits.includes('anti_dragon') || eEffW.traits.includes('holy')) && activeTraits.includes('クリスタルボディ')) {
-            finalDamage = Math.max(1, Math.floor(finalDamage / 2)); // 敵側の印のダメージを相殺
-            window.addDungeonLog(`💎 クリスタルボディ！ 弱点属性のダメージを相殺した！`, '#00BCD4');
-        }
-
-        // ★ 風船系特性：虹色の膜 / 不朽の硬度（魔法・属性ダメージ・固定ダメージの半減）
-        if (isMagic && (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度'))) {
-            finalDamage = Math.max(1, Math.floor(finalDamage / 2));
-            window.addDungeonLog(activeTraits.includes('虹色の膜') ? `🌈 虹色の膜が魔法ダメージを半減した！` : `💎 不朽の硬度がダメージを半減した！`, '#00BCD4');
-        }
-
-        // ★ 魔法使い系敵特性：聖なる審判（闇落ち進化のプレイヤーに大ダメージ）
-        if (eSkin === 'magician_type2_4' && s.player.skin && s.player.skin.includes('type1')) {
-            finalDamage = Math.floor(finalDamage * 2.0);
-            window.addDungeonLog(`⚔️ 聖なる審判！ 闇の者に対して特大ダメージ！`, '#FF5252');
-        }
-
-        let isDodged = false;
-        if (activeTraits.includes('妖精の加護') && Math.random() < 0.1) {
-            if (isEnemySureHit) window.addDungeonLog(`👁️ 真理の目が妖精の加護を打ち消した！`, '#FF5252');
-            else { window.addDungeonLog(`✨ 妖精の加護が光り、ダメージを無効化した！`, '#4CAF50'); isDodged = true; }
-        }
-        if (isDodged) {
-            // ★ ドラゴン系特性：天の加護（回避成功時にHP回復）
-            if (activeTraits.includes('天の加護')) {
-                s.player.hp = Math.min(s.player.maxHp, s.player.hp + 5);
-                window.addDungeonLog(`✨ 天の加護！ 攻撃を回避し、HPが 5 回復した！`, '#4CAF50');
-            }
-            return;
-        }
-        if (activeTraits.includes('哀愁の波動')) {
-            let pRoom = s.roomsInfo.find(r => s.player.x >= r.x && s.player.x < r.x+r.w && s.player.y >= r.y && s.player.y < r.y+r.h);
-            let eRoom = s.roomsInfo.find(r => attacker.x >= r.x && attacker.x < r.x+r.w && attacker.y >= r.y && attacker.y < r.y+r.h);
-            if ((pRoom && eRoom && pRoom === eRoom) || (Math.abs(attacker.x - s.player.x) <= 2 && Math.abs(attacker.y - s.player.y) <= 2)) {
-                finalDamage = Math.max(1, Math.floor(finalDamage * 0.9)); 
-            }
-        }
-        if (activeTraits.includes('大地の力') && (s.grid[s.player.y][s.player.x] === 6 || s.grid[s.player.y][s.player.x] === 7)) {
-            finalDamage = Math.max(1, finalDamage - 10);
-        }
-
-        // ★ 種系特性：茨の鎧（受けたダメージの20%を相手に返す）
-        if (activeTraits.includes('茨の鎧') && finalDamage > 0 && !isMagic) {
-            let recoil = Math.floor(finalDamage * 0.2);
-            if (recoil > 0) { 
-                attacker.hp -= recoil; 
-                window.addDungeonLog(`🌵 茨の鎧！ ${attacker.name} に ${recoil} のダメージを返した！`, '#FF5252'); 
-            }
-        }
-
-        // ★ 追加：盾・鎧の印 [反] ＆ 反撃の盾（受けたダメージの半分を相手に返す）
-        if (defTraits.includes('counter') && finalDamage > 0 && !isMagic) {
-            let recoil = Math.floor(finalDamage * 0.5);
-            if (recoil > 0) {
-                attacker.hp -= recoil;
-                window.addDungeonLog(`🛡️ [反]の印！ 攻撃を弾き返し ${attacker.name} に ${recoil} ダメージ！`, '#FFD700');
-            }
-        }
-
-        // --- 2. ダメージ処理 ---
-        defender.hp -= finalDamage; defender.damageAnim = true;
-        window.addDungeonLog(`💥 ${attacker.name} から ${finalDamage} ダメージを受けた！`, '#FF9800');
-
-        // ★追加：通路待機中（迎撃マクロ中）に遠距離から魔法などで被弾した場合、待ちきれずに即座に突撃を決意する！
-        if (s.player._waitCount > 0 && Math.abs(attacker.x - s.player.x) + Math.abs(attacker.y - s.player.y) > 1) {
-            window.addDungeonLog(`💢 ${s.player.name || "AI"} は遠隔攻撃にしびれを切らし、突撃を決意した！`, '#ff5252');
-            s.player._commitFight = 6;
-            s.player._waitCount = 0;
-        }
-
-        // ★ 閃き：敵から攻撃されたことで「たたかう（反撃）」を閃く！
-        if (typeof window.triggerDungeonInspiration === 'function') {
-            window.triggerDungeonInspiration('attack');
-
-            // 追加：HPが30%以下になったら「逃げる」「回復する」を閃く
-            if (defender.hp <= defender.maxHp * 0.3) {
-                window.triggerDungeonInspiration('flee');
-                window.triggerDungeonInspiration('heal');
-            }
-            
-            // 追加：正面以外から殴られたら「向き」を変えることを閃く
-            let isFront = false;
-            if (defender.face === 'up' && attacker.y < defender.y) isFront = true;
-            if (defender.face === 'down' && attacker.y > defender.y) isFront = true;
-            if (defender.face === 'left' && attacker.x < defender.x) isFront = true;
-            if (defender.face === 'right' && attacker.x > defender.x) isFront = true;
-            if (!isFront) {
-                if (attacker.y < defender.y) window.triggerDungeonInspiration('face_up');
-                else if (attacker.y > defender.y) window.triggerDungeonInspiration('face_down');
-                else if (attacker.x < defender.x) window.triggerDungeonInspiration('face_left');
-                else if (attacker.x > defender.x) window.triggerDungeonInspiration('face_right');
-            }
-        }
-
-        // ★ [怒]の印（魔竜王用）：ダメージを受けたことを記録
-        let pEffW = s.player.equipWeapon ? window.getDungeonItemEffect(s.player.equipWeapon) : null;
-        let pEffS = s.player.equipShield ? window.getDungeonItemEffect(s.player.equipShield) : null;
-        if ((pEffW && pEffW.traits.includes('angry')) || (pEffS && pEffS.traits.includes('angry'))) {
-            s.player._angryCharge = true;
-        }
-        
-        // ★ 魔法使い系敵特性：杖打（追加ダメージ）
-        if (eSkin === 'magician_type4' && finalDamage > 0) {
-            defender.hp -= 5;
-            window.addDungeonLog(`💥 杖打による追撃！ さらに 5 ダメージを受けた！`, '#FF9800');
-        }
-        
-        // ★ 魔法使い系敵特性：マナ・ドレイン（満腹度吸収）
-        if (eSkin === 'magician_type1_2' && finalDamage > 0) {
-            let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
-            let drain = Math.max(1, Math.floor(maxH * 0.05));
-            s.player.hunger = Math.max(0, s.player.hunger - drain);
-            window.addDungeonLog(`🦇 マナ・ドレイン！ 満腹度を ${drain} 奪われた！`, '#9C27B0');
-        }
-
-        if (activeTraits.includes('大樹の怒り')) s.player._wrath = true;
-
-        // --- 3. 攻撃後の追加効果（敵のスキル発動） ---
-        
-        // ★ カブトムシ系敵特性：大地の怒り（インベントリからアイテムを強制ドロップ）
-        if (eSkin === 'beetle_type4_2' && Math.random() < 0.15) {
-            window.addDungeonLog(`🌋 ${attacker.name} の大地の怒り！ 地面が激しく揺れる！`, '#FF5252');
-            s.player.damageAnim = true;
-            if (s.player.tempInventory && s.player.tempInventory.length > 0) {
-                // インベントリからランダムに1つアイテムを落とす
-                let dropIdx = Math.floor(Math.random() * s.player.tempInventory.length);
-                let droppedItem = s.player.tempInventory.splice(dropIdx, 1)[0];
-                // プレイヤーの足元にアイテムを配置
-                if (typeof window.scatterItem === 'function') {
-                    window.scatterItem(s, s.player.x, s.player.y, droppedItem);
-                } else {
-                    s.items.push({ key: droppedItem, x: s.player.x, y: s.player.y });
-                }
-                window.addDungeonLog(`💥 転倒してしまい、持っていたアイテムを落としてしまった！`, '#FF9800');
-                if (typeof window.updateDungeonUI === 'function') window.updateDungeonUI();
-            }
-        }
-        
-        // ★ カブトムシ系敵特性：カチ上げ（落下ダメージ＋麻痺による行動不能）
-        if (eSkin === 'beetle_type4' && Math.random() < 0.15) {
-            let fallDmg = Math.floor(s.player.maxHp * 0.1); // 最大HPの10%の固定ダメージ
-            s.player.hp -= fallDmg;
-            s.player.status.paralyzed = (s.player.status.paralyzed || 0) + 1; // 1ターン行動不能
-            window.addDungeonLog(`🚀 カチ上げられた！ 空中に打ち上げられ、落下して ${fallDmg} ダメージ！`, '#FF5252');
-        }
-
-        // ★ カブトムシ系敵特性：フェロモン指揮（周囲の敵を集結）
-        if (eSkin === 'beetle_type3' && Math.random() < 0.20) {
-            window.addDungeonLog(`🔊 ${attacker.name} がフェロモンを放ち、周囲の敵を呼び寄せた！`, '#FF5252');
-            s.enemies.forEach(e => {
-                if (e.hp > 0 && e !== attacker && Math.random() < 0.5) { 
-                    let dirs = [{dx:1,dy:0}, {dx:-1,dy:0}, {dx:0,dy:1}, {dx:0,dy:-1}, {dx:1,dy:1}, {dx:-1,dy:-1}, {dx:1,dy:-1}, {dx:-1,dy:1}];
-                    for(let d of dirs) {
-                        let nx = s.player.x + d.dx; let ny = s.player.y + d.dy;
-                        if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(en=>en.hp>0 && en.x===nx && en.y===ny) && !(nx===s.player.x && ny===s.player.y)) {
-                            e.x = nx; e.y = ny; e.warpAnim = true; break;
-                        }
-                    }
-                }
-            });
-        }
-        
-        // ★ カブトムシ系敵特性：完全硬化（殻にこもり、次の2回の攻撃を無効化するバリア）
-        if (eSkin === 'beetle_type5_2' && Math.random() < 0.15) {
-            attacker._hardened = 2; // 2回無効化
-            window.addDungeonLog(`🐚 ${attacker.name} は殻にこもり、完全硬化した！(攻撃2回無効)`, '#FFF');
-        }
-
-        // ★ カブトムシ系敵特性：鱗粉の風（ランダム状態異常）
-        if (eSkin === 'beetle_type2_3' && Math.random() < 0.20 && !activeTraits.includes('清浄なる輝き')) {
-            window.addDungeonLog(`🦋 鱗粉の風が舞い散る！`, '#E040FB');
-            let r = Math.random();
-            if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
-            else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
-            else { s.player.status.confusion += 5; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
-        }
-
-        // ★ 新規追加：鳥系の敵スキル「突風」（20%でノックバック）
-        if (eSkin && eSkin.includes('bird') && Math.random() < 0.20) {
-            // プレイヤーが2進化特性「暴風の主」を持っていたら無効化＆カウンター！
-            if (dTraits.includes('暴風の主')) {
-                window.addDungeonLog(`🌪️ ${attacker.name} の突風！しかし ${defender.name} は風を支配し、逆に弾き返した！`, '#00BCD4');
-                let dx = Math.sign(attacker.x - defender.x); let dy = Math.sign(attacker.y - defender.y);
-                if (dx === 0 && dy === 0) dx = 1; // 同座標フェイルセーフ
-                let nx = attacker.x + dx; let ny = attacker.y + dy;
-                
-                if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny && e !== attacker)) {
-                    attacker.x = nx; attacker.y = ny;
-                } else {
-                    window.addDungeonLog(`💥 ${attacker.name} は壁に激突した！(10ダメージ)`, '#FF5252');
-                    attacker.hp -= 10;
-                }
-            // ★ 風船系特性：弾む体（吹き飛ばしを無効化）
-            } else if (dTraits.includes('弾む体')) {
-                window.addDungeonLog(`🎈 ${attacker.name} の突風！しかし ${defender.name} は弾む体で吹き飛ばしを無効化した！`, '#00BCD4');
-            } else {
-                window.addDungeonLog(`🌪️ ${attacker.name} の突風！ 1マス吹き飛ばされた！`, '#00BCD4');
-                let dx = Math.sign(defender.x - attacker.x); let dy = Math.sign(defender.y - attacker.y);
-                if (dx === 0 && dy === 0) dx = 1; // 同座標フェイルセーフ
-                let nx = defender.x + dx; let ny = defender.y + dy;
-                
-                if (s.grid[ny] && s.grid[ny][nx] !== 1 && !s.enemies.some(e => e.hp > 0 && e.x === nx && e.y === ny)) {
-                    defender.x = nx; defender.y = ny;
-                } else {
-                    window.addDungeonLog(`💥 壁に激突した！(5ダメージ)`, '#FF5252');
-                    defender.hp -= 5;
-                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, 5, true);
-                }
-            }
-        }
-
-        // ★追加：鳥系の攻撃時スキル（鱗粉、尾羽、石化）
-        if (eSkin.includes('bird_type2_2') && Math.random() < 0.2 && !activeTraits.includes('清浄なる輝き')) {
-            window.addDungeonLog(`🌌 銀河の尾羽が煌めく！ 状態異常が撒き散らされた！`, '#E040FB');
-            let r = Math.random();
-            if (r < 0.33) { s.player.status.poison += 5; window.addDungeonLog(`🍄 猛毒を浴びた！`, '#9C27B0'); }
-            else if (r < 0.66) { s.player.status.sleep += 3; window.addDungeonLog(`💤 強烈な睡魔に襲われた！`, '#B39DDB'); }
-            else { s.player.status.confusion += 10; window.addDungeonLog(`🌀 混乱してしまった！`, '#FF9800'); }
-        } else if (eSkin.includes('bird_type2') && Math.random() < 0.3) {
-            let maxH = typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : (s.player.maxHunger || 100);
-            s.player.hunger = Math.min(maxH, s.player.hunger + 5);
-            s.player.atkBuff = (s.player.atkBuff || 0) - 1;
-            window.addDungeonLog(`✨ 魅惑の鱗粉！ お腹が少し膨れたが、攻撃力が下がってしまった！`, '#E040FB');
-        }
-        if (eSkin.includes('bird_type5_2') && Math.random() < 0.15 && !activeTraits.includes('清浄なる輝き')) {
-            s.player.status.petrified = 3;
-            window.addDungeonLog(`🗿 化石の呪い！ 体が石化して動けない！`, '#757575');
-        }
-
-        if (eSkin === 'spirit') {
-            let heal = Math.floor(finalDamage * 0.5);
-            if (heal > 0) { attacker.hp = Math.min(attacker.maxHp, attacker.hp + heal); window.addDungeonLog(`💧 体力を吸収された！`, '#aaa'); }
-        }
-
-        // ==========================================
-        // ★ 風船系の被弾後・死亡時リアクション
-        // ==========================================
-        // 【自】爆発反応装甲：近接ダメージを受けた時に固定10ダメージを返す
-        if (dTraits.includes('爆発反応装甲') && finalDamage > 0) {
-            window.addDungeonLog(`💥 爆発反応装甲が起動！ ${attacker.name} に爆発を返した！`, '#FF5722');
-            attacker.hp = Math.max(0, attacker.hp - 10);
-        }
-
-        // 【敵】絶望の破裂：死亡時に「恐怖（行動不可）」と「毒」をばら撒く
-        if (!aIsPlayer && defender.hp <= 0 && defender.skin && defender.skin.includes('balloon_type1_3')) {
-            window.addDungeonLog(`☠️ ${defender.name} の絶望の破裂！ 毒と絶望のガスが撒き散らされた！`, '#9C27B0');
-            s.player.status.poison = (s.player.status.poison || 0) + 5;
-            s.player.status.fear = (s.player.status.fear || 0) + 3; // ★ sleepではなく、専用のfearステータスを使用
-        }
-        if (eSkin === 'spirit_type2' && Math.random() < 0.1 && !activeTraits.includes('清浄なる輝き')) {
-            s.player.status.sleep = 3; window.addDungeonLog(`💤 睡眠の粉を吸い込んで眠ってしまった！`, '#B39DDB');
-        }
-        if (eSkin === 'spirit_type4_2' && !activeTraits.includes('清浄なる輝き')) {
-            s.player.status.paralyzed = 2; window.addDungeonLog(`🌿 根に絡みつかれ、足止めされた！`, '#FF9800');
-        }
-        if (eSkin === 'spirit_type5_3' && !activeTraits.includes('清浄なる輝き')) {
-            s.player.status.paralyzed = 1; window.addDungeonLog(`❄️ 凍結の吐息で体が凍りついた！`, '#00BCD4');
-        }
-
-        // ==========================================
-        // ★ 盾・鎧の印（状態異常無効化）の適用
-        // ==========================================
-        if (defTraits.includes('anti_poison') && s.player.status.poison > (oldStatus.poison || 0)) {
-            s.player.status.poison = oldStatus.poison || 0; window.addDungeonLog(`🛡️ [抗]の印が 毒 を完全に防いだ！`, '#00BCD4');
-        }
-        if (defTraits.includes('anti_confuse') && s.player.status.confusion > (oldStatus.confusion || 0)) {
-            s.player.status.confusion = oldStatus.confusion || 0; window.addDungeonLog(`🛡️ [静]の印が 混乱 を完全に防いだ！`, '#00BCD4');
-        }
-        if (defTraits.includes('anti_blind') && s.player.status.blind > (oldStatus.blind || 0)) {
-            s.player.status.blind = oldStatus.blind || 0; window.addDungeonLog(`🛡️ [明]の印が 暗闇 を完全に防いだ！`, '#00BCD4');
-        }
-        if (defTraits.includes('anti_paralyze') && s.player.status.paralyzed > (oldStatus.paralyzed || 0)) {
-            s.player.status.paralyzed = oldStatus.paralyzed || 0; window.addDungeonLog(`🛡️ [動]の印が 麻痺 を完全に防いだ！`, '#00BCD4');
-        }
-
-        // ==========================================
-        // ★ 風船系のデバフ反射・吸収処理
-        // ==========================================
-        let gainedPoison = s.player.status.poison > (oldStatus.poison || 0);
-        let gainedSleep = s.player.status.sleep > (oldStatus.sleep || 0);
-        let gainedConfusion = s.player.status.confusion > (oldStatus.confusion || 0);
-        let gainedParalyze = s.player.status.paralyzed > (oldStatus.paralyzed || 0);
-        let gainedPetrify = s.player.status.petrified > (oldStatus.petrified || 0);
-        let gainedFear = s.player.status.fear > (oldStatus.fear || 0);
-        let gainedBurn = s.player.status.burn > (oldStatus.burn || 0);
-        let gainedFrozen = s.player.status.frozen > (oldStatus.frozen || 0);
-
-        // ★ 岩系特性：漆黒の鏡（受けたデバフを完全に無効化し、攻撃者にそのまま返す）
-        if (activeTraits.includes('漆黒の鏡') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen)) {
-            if (gainedPoison) { attacker.status.poison = (attacker.status.poison || 0) + 5; s.player.status.poison = oldStatus.poison || 0; }
-            if (gainedSleep) { attacker.status.sleep = (attacker.status.sleep || 0) + 3; s.player.status.sleep = oldStatus.sleep || 0; }
-            if (gainedConfusion) { attacker.status.confusion = (attacker.status.confusion || 0) + 5; s.player.status.confusion = oldStatus.confusion || 0; }
-            if (gainedParalyze) { attacker.status.paralyzed = (attacker.status.paralyzed || 0) + 3; s.player.status.paralyzed = oldStatus.paralyzed || 0; }
-            if (gainedPetrify) { attacker.status.petrified = (attacker.status.petrified || 0) + 3; s.player.status.petrified = oldStatus.petrified || 0; }
-            if (gainedFear) { attacker.status.fear = (attacker.status.fear || 0) + 3; s.player.status.fear = oldStatus.fear || 0; }
-            if (gainedBurn) { attacker.status.burn = (attacker.status.burn || 0) + 5; s.player.status.burn = oldStatus.burn || 0; }
-            if (gainedFrozen) { attacker.status.frozen = (attacker.status.frozen || 0) + 2; s.player.status.frozen = oldStatus.frozen || 0; }
-            window.addDungeonLog(`🪞 漆黒の鏡！ 呪いを完全に反射した！`, '#9C27B0');
-        }
-
-        // ★ 種系特性：エデンの果実（満腹度MAXの時、すべての状態異常を無効化）
-        let isEdenActive = activeTraits.includes('エデンの果実') && (s.player.hunger >= (typeof window.getRealMaxHunger === 'function' ? window.getRealMaxHunger() : 100));
-        if (isEdenActive && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen)) {
-            if (gainedPoison) s.player.status.poison = oldStatus.poison || 0;
-            if (gainedSleep) s.player.status.sleep = oldStatus.sleep || 0;
-            if (gainedConfusion) s.player.status.confusion = oldStatus.confusion || 0;
-            if (gainedParalyze) s.player.status.paralyzed = oldStatus.paralyzed || 0;
-            if (gainedPetrify) s.player.status.petrified = oldStatus.petrified || 0;
-            if (gainedFear) s.player.status.fear = oldStatus.fear || 0;
-            if (gainedBurn) s.player.status.burn = oldStatus.burn || 0;
-            if (gainedFrozen) s.player.status.frozen = oldStatus.frozen || 0;
-            window.addDungeonLog(`🌸 エデンの果実！ 楽園の加護がすべての異常を無効化した！`, '#FFD700');
-            gainedPoison = false; gainedSleep = false; gainedConfusion = false; gainedParalyze = false; gainedPetrify = false; gainedFear = false; gainedBurn = false; gainedFrozen = false;
-        }
-
-        // ★ 機械系：自然適応（毒・睡眠・麻痺などの自然系状態異常を無効化）
-        if (activeTraits.includes('自然適応') && (gainedPoison || gainedSleep || gainedParalyze || gainedBurn || gainedFrozen)) {
-            if (gainedPoison) s.player.status.poison = oldStatus.poison || 0;
-            if (gainedSleep) s.player.status.sleep = oldStatus.sleep || 0;
-            if (gainedParalyze) s.player.status.paralyzed = oldStatus.paralyzed || 0;
-            if (gainedBurn) s.player.status.burn = oldStatus.burn || 0;
-            if (gainedFrozen) s.player.status.frozen = oldStatus.frozen || 0;
-            window.addDungeonLog(`🛡️⚙️ 自然適応！ 機械の体は自然界の異常を完全にシャットアウトした！`, '#00BCD4');
-            gainedPoison = false; gainedSleep = false; gainedParalyze = false; gainedBurn = false; gainedFrozen = false;
-        }
-
-        if (activeTraits.includes('毒ガスタンク') && gainedPoison) {
-            s.player.atkBuff = (s.player.atkBuff || 0) + 5;
-            window.addDungeonLog(`🎈 毒ガスタンク起動！ 毒を力に変えて攻撃力が上がった！`, '#FFD700');
-        }
-        if (activeTraits.includes('美しき反射') && (gainedPoison || gainedSleep || gainedConfusion || gainedParalyze || gainedPetrify || gainedFear || gainedBurn || gainedFrozen)) {
-            let adj = s.enemies.filter(e => e.hp > 0 && Math.abs(e.x - s.player.x) <= 1 && Math.abs(e.y - s.player.y) <= 1);
-            if (adj.length > 0) {
-                adj.forEach(e => {
-                    if (gainedPoison) e.status.poison = (e.status.poison || 0) + 5;
-                    if (gainedBurn) e.status.burn = (e.status.burn || 0) + 5;
-                    if (gainedSleep || gainedParalyze || gainedFear || gainedPetrify || gainedFrozen) e.status.sleep = (e.status.sleep || 0) + 3;
-                    if (gainedConfusion) e.status.confusion = (e.status.confusion || 0) + 5;
-                });
-                window.addDungeonLog(`🪞 美しき反射！ 受けた状態異常を周囲の敵にそっくりそのまま返した！`, '#E040FB');
-            }
         }
     }
 };

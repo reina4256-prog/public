@@ -44,6 +44,22 @@ window.triggerDungeonInspiration = function(wordId) {
     if (typeof window.showDungeonDamageEffect === 'function' && window.DUNGEON_STATE.player) {
         window.showDungeonDamageEffect(window.DUNGEON_STATE.player.x, window.DUNGEON_STATE.player.y, "💡", false);
     }
+
+    // ★追加：「作戦」という言葉の閃き条件（ダンジョン用全コマンドを理解した時）
+    const allDungeonCommands = window.DUNGEON_AVAILABLE_COMMANDS.map(c => c.name);
+    let hasAll = allDungeonCommands.every(cmd => ai.apprentice.learnedWords.includes(cmd));
+    
+    if (hasAll && !ai.apprentice.learnedWords.includes("作戦")) {
+        ai.apprentice.learnedWords.push("作戦");
+        ai.apprentice.dungeonVocabBonus = (ai.apprentice.dungeonVocabBonus || 0) + 1; // 記憶容量拡張
+        setTimeout(() => {
+            window.addDungeonLog(`💡 閃き！ すべてのダンジョン行動を理解した ${ai.name || "AI"} は「作戦」という概念を理解した！`, '#FFD700');
+            if (typeof window.showDungeonDamageEffect === 'function' && window.DUNGEON_STATE.player) {
+                window.showDungeonDamageEffect(window.DUNGEON_STATE.player.x, window.DUNGEON_STATE.player.y, "💡", false);
+            }
+        }, 1000); // ログが重ならないように少し遅延
+    }
+
     window.updateDungeonUI(); // 即座にUI(使える言葉リスト)に反映
 };
 
@@ -249,7 +265,7 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
             </div>
         </div>
         <div style="position:absolute; bottom:20px; left:50%; transform:translateX(-50%); pointer-events:none; width:100%; display:flex; flex-direction:column; align-items:center; z-index:50;">
-            <div style="background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:15px; pointer-events:auto; border:1px solid #555;">
+            <div id="dg-tactic-controls" style="background:rgba(0,0,0,0.8); padding:10px; border-radius:8px; display:flex; flex-direction:column; align-items:center; gap:5px; margin-bottom:15px; pointer-events:auto; border:1px solid #555; display:none;">
                 <div style="display:flex; gap:10px; width:100%;">
                     <input type="text" id="dg-chat-input" placeholder="作戦名を指示..." style="padding:8px; border-radius:4px; border:none; outline:none; width:200px;">
                     <button onclick="window.processDungeonChat()" style="padding:8px 15px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">作戦変更</button>
@@ -523,8 +539,23 @@ window.processDungeonChat = function() {
     
     // ★ 作戦の切り替え処理
     const s = window.DUNGEON_STATE;
-    s.player.currentTacticName = text; // チャット入力された言葉を現在の作戦名として設定
-    window.addDungeonLog(`📣 作戦を「${text}」に切り替えた！`, '#4fc3f7');
+    
+    if (text === "AIにまかせる") {
+        s.player.currentTacticName = text;
+        window.addDungeonLog(`📣 作戦を「${text}」に切り替えた！`, '#4fc3f7');
+    } else {
+        // ※UI側で入力可否を制御するため、ここでの語彙チェックは削除
+
+        // 存在する作戦名かチェック
+        const isValidTactic = ai.dungeonTactics && ai.dungeonTactics.some(t => t.name === text);
+        if (isValidTactic) {
+            s.player.currentTacticName = text;
+            window.addDungeonLog(`📣 作戦を「${text}」に切り替えた！`, '#4fc3f7');
+        } else {
+            window.addDungeonLog(`💬 「${text}」という作戦はないようだ...`, '#FF9800');
+            return;
+        }
+    }
     
     if (typeof saveGameData === 'function') saveGameData();
     window.updateDungeonUI();
@@ -1019,6 +1050,10 @@ window.renderDungeonTacticEditor = function() {
     let ui = document.getElementById('dungeon-tactic-editor-ui'); if (!ui) return;
     let idx = window.DUNGEON_EDITOR_TACTIC_INDEX;
     
+    // ★スクロール維持用：再描画前のスクロール位置を記憶
+    let scrollContainer = document.getElementById('dg-tactic-rules-container');
+    let savedScrollY = scrollContainer ? scrollContainer.scrollTop : 0;
+    
     // ★デフォルト作戦をインデックス -1 として扱う
     let isDefault = (idx === -1);
     let currentTactic = isDefault ? { name: "AIにまかせる", rules: [{ condition: "always", action1: "（AI独自の生存本能で行動）" }] } : window.aiPet.dungeonTactics[idx];
@@ -1064,7 +1099,10 @@ window.renderDungeonTacticEditor = function() {
                             <button ${rIdx===0 ? 'disabled style="opacity:0.3"' : `onclick="let r=window.aiPet.dungeonTactics[${idx}].rules; let tmp=r[${rIdx}]; r[${rIdx}]=r[${rIdx}-1]; r[${rIdx}-1]=tmp; window.renderDungeonTacticEditor();"`} style="background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer;">▲</button>
                             <button ${rIdx===currentTactic.rules.length-1 ? 'disabled style="opacity:0.3"' : `onclick="let r=window.aiPet.dungeonTactics[${idx}].rules; let tmp=r[${rIdx}]; r[${rIdx}]=r[${rIdx}+1]; r[${rIdx}+1]=tmp; window.renderDungeonTacticEditor();"`} style="background:#555; color:#fff; border:none; padding:2px 8px; cursor:pointer;">▼</button>
                         </div>
-                        <button onclick="window.aiPet.dungeonTactics[${idx}].rules.splice(${rIdx}, 1); window.renderDungeonTacticEditor();" style="background:#f44336; color:white; border:none; border-radius:4px; padding:5px; margin-left:5px; cursor:pointer; font-size:11px;">削除</button>
+                        <div style="display:flex; flex-direction:column; gap:2px; margin-left:5px;">
+                            <button onclick="window.aiPet.dungeonTactics[${idx}].rules.splice(${rIdx}, 0, {condition:'always', action1: '', action2: ''}); window.renderDungeonTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px;">挿入</button>
+                            <button onclick="window.aiPet.dungeonTactics[${idx}].rules.splice(${rIdx}, 1); window.renderDungeonTacticEditor();" style="background:#f44336; color:white; border:none; border-radius:4px; padding:2px 8px; cursor:pointer; font-size:11px;">削除</button>
+                        </div>
                     </div>
                     
                     ${rule.condition === 'stairs_found' && (rule.action1 === 'した' || rule.action2 === 'した') ? `<div style="font-size:11px; color:#FFD700; margin-top:5px; width:100%; text-shadow:0 0 3px #000;">💡 文脈解釈: 階段のマスへ向かって自動で移動し、フロアを下ります</div>` : ''}
@@ -1093,15 +1131,23 @@ window.renderDungeonTacticEditor = function() {
             </div>
         </div>
         <div style="background:#111; padding:20px; width:100%; max-width:850px; border-radius:0 0 8px 8px; border:2px solid ${isDefault ? '#4CAF50' : '#2196F3'}; border-top:none; box-sizing:border-box;">
-            <div style="margin-bottom:20px; display:flex; align-items:center;">
-                <span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span>
-                <input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.aiPet.dungeonTactics[${idx}].name = this.value;"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px; width:200px;">
+            <div style="margin-bottom:20px; display:flex; align-items:center; justify-content:space-between;">
+                <div style="display:flex; align-items:center;">
+                    <span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span>
+                    <input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.aiPet.dungeonTactics[${idx}].name = this.value;"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px; width:200px;">
+                </div>
+                ${!isDefault ? `
+                <div style="display:flex; gap:5px;">
+                    <button onclick="window._copiedTacticRules = JSON.parse(JSON.stringify(window.aiPet.dungeonTactics[${idx}].rules)); window.showDungeonTacticMsg('作戦内容をコピーしました！', '#4CAF50');" style="background:#444; color:#fff; border:1px solid #666; border-radius:4px; padding:5px 10px; cursor:pointer; font-size:12px;">📄 コピー</button>
+                    <button onclick="if(window._copiedTacticRules) { window.aiPet.dungeonTactics[${idx}].rules = JSON.parse(JSON.stringify(window._copiedTacticRules)); window.renderDungeonTacticEditor(); window.showDungeonTacticMsg('作戦内容を貼り付けました！', '#FFD700'); } else { window.showDungeonTacticMsg('コピーされた作戦がありません', '#ff5252'); }" style="background:#444; color:#fff; border:1px solid #666; border-radius:4px; padding:5px 10px; cursor:pointer; font-size:12px;">📋 貼り付け</button>
+                </div>
+                ` : ''}
             </div>
             
-            <div style="margin-bottom:20px; max-height:400px; overflow-y:auto; padding-right:10px;">
+            <div id="dg-tactic-rules-container" style="margin-bottom:20px; max-height:400px; overflow-y:auto; padding-right:10px;">
                 <p style="color:#aaa; font-size:12px; margin-bottom:10px;">※上にあるルールほど優先して行動します。第1候補ができない時は第2候補を実行します。</p>
                 ${rulesHtml}
-                ${!isDefault ? `<button onclick="window.aiPet.dungeonTactics[${idx}].rules.push({condition:'always', action1: '', action2: ''}); window.renderDungeonTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:10px; cursor:pointer; width:100%; font-weight:bold; margin-top:10px;">＋ 新しいルールを追加する</button>` : ''}
+                ${!isDefault ? `<button onclick="window.aiPet.dungeonTactics[${idx}].rules.push({condition:'always', action1: '', action2: ''}); window.renderDungeonTacticEditor();" style="background:#4CAF50; color:white; border:none; border-radius:4px; padding:10px; cursor:pointer; width:100%; font-weight:bold; margin-top:10px;">＋ 新しいルールを一番下に追加する</button>` : ''}
             </div>
             
             ${!isDefault ? `
@@ -1115,8 +1161,138 @@ window.renderDungeonTacticEditor = function() {
                 </div>
             ` : ''}
         </div>
-        <button onclick="window.closeDungeonTacticEditor()" style="margin-top:30px; padding:15px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #777; border-radius:8px; cursor:pointer;">会議を終える</button>
+        <div style="display:flex; gap:15px; margin-top:30px;">
+            <button onclick="window.openSealPreferenceEditor()" ${isDefault ? 'disabled style="opacity:0.5; padding:15px 30px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #E040FB; border-radius:8px; cursor:not-allowed;"' : 'style="padding:15px 30px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #E040FB; border-radius:8px; cursor:pointer; box-shadow:0 4px 10px rgba(0,0,0,0.5);"'} >✡️ この作戦の合成印優先度</button>
+            <button onclick="window.closeDungeonTacticEditor()" style="padding:15px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #777; border-radius:8px; cursor:pointer;">会議を終える</button>
+        </div>
     `;
+    
+    // ★スクロール維持用：再描画後にスクロール位置を復元
+    let newScrollContainer = document.getElementById('dg-tactic-rules-container');
+    if (newScrollContainer) {
+        newScrollContainer.scrollTop = savedScrollY;
+    }
+};
+
+// ==========================================
+// ★ 合成印の優先度設定エディタ（カスタマイズ機能）
+// ==========================================
+window.openSealPreferenceEditor = function() {
+    let idx = window.DUNGEON_EDITOR_TACTIC_INDEX;
+    if (idx === -1 || !window.aiPet.dungeonTactics[idx]) return;
+    
+    if (!window.aiPet.dungeonTactics[idx].sealPreferences) {
+        window.aiPet.dungeonTactics[idx].sealPreferences = {};
+    }
+    
+    let ui = document.getElementById('dg-seal-preference-editor');
+    if (!ui) {
+        ui = document.createElement('div');
+        ui.id = 'dg-seal-preference-editor';
+        ui.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10,5,10,0.98); z-index: 60000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; font-family: sans-serif;`;
+        document.body.appendChild(ui);
+    }
+    
+    window.renderSealPreferenceEditor();
+};
+
+window.renderSealPreferenceEditor = function() {
+    let ui = document.getElementById('dg-seal-preference-editor');
+    if (!ui) return;
+    
+    let idx = window.DUNGEON_EDITOR_TACTIC_INDEX;
+    let tactic = window.aiPet.dungeonTactics[idx];
+    
+    let html = `
+        <div style="background:#111; padding:20px; border-radius:12px; border:2px solid #E040FB; width:90%; max-width:800px; max-height:80vh; display:flex; flex-direction:column; box-sizing:border-box; box-shadow:0 10px 40px rgba(0,0,0,0.8);">
+            <h2 style="color:#E040FB; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">✡️ 合成印の優先度設定（作戦：${tactic.name}）</h2>
+            <p style="color:#aaa; font-size:13px; margin-bottom:15px; line-height:1.5;">
+                AIが「ごうせい」を行う際、装備の印枠が溢れた場合に<span style="color:#FFD700; font-weight:bold;">スコアが高い印を優先して残します。</span><br>
+                空欄（デフォルト）の場合はシステムの基本スコアが適用されます。「呪」の印は設定できません。
+            </p>
+            <div style="flex:1; overflow-y:auto; padding-right:10px; display:flex; flex-direction:column; gap:20px;">
+    `;
+    
+    // 武器用と防具用で分類
+    let weaponSeals = ['heal', 'sleep', 'fire', 'anti_dragon', 'exp', 'double', 'food', 'angry', 'crit', 'first', 'holy', 'poison_atk', 'confuse_atk', 'blind_atk', 'seal_atk', 'paralyze_atk'];
+    let armorSeals = ['life', 'counter_sleep', 'dodge', 'parry', 'half_hunger', 'counter', 'max_hunger', 'light', 'regen', 'anti_poison', 'anti_confuse', 'anti_blind', 'anti_magic', 'anti_paralyze'];
+
+    const renderSealGroup = (title, sealList, icon, color) => {
+        let groupHtml = `
+            <div style="background:#1a1a1a; border:1px solid ${color}; border-radius:8px; padding:15px;">
+                <h3 style="color:${color}; margin-top:0; margin-bottom:10px; font-size:16px;">${icon} ${title}</h3>
+                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap:10px;">
+        `;
+        
+        let validSeals = sealList.filter(s => window.SEAL_DESCRIPTIONS[s]);
+        validSeals.sort((a, b) => {
+            let tempA = tactic.sealPreferences[a]; let tempB = tactic.sealPreferences[b];
+            tactic.sealPreferences[a] = undefined; tactic.sealPreferences[b] = undefined;
+            let scoreA = window.getDungeonSealScore(a); let scoreB = window.getDungeonSealScore(b);
+            tactic.sealPreferences[a] = tempA; tactic.sealPreferences[b] = tempB;
+            return scoreB - scoreA; 
+        });
+
+        validSeals.forEach(sealId => {
+            let sData = window.SEAL_DESCRIPTIONS[sealId];
+            
+            let tempCustom = tactic.sealPreferences[sealId];
+            tactic.sealPreferences[sealId] = undefined;
+            let baseScore = window.getDungeonSealScore(sealId);
+            tactic.sealPreferences[sealId] = tempCustom;
+            
+            let customScore = tactic.sealPreferences[sealId] !== undefined ? tactic.sealPreferences[sealId] : '';
+            
+            groupHtml += `
+                <div style="background:#222; padding:10px; border-radius:6px; border:1px solid #444; display:flex; flex-direction:column; gap:5px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span style="color:#FFD700; font-weight:bold; font-size:16px;">[${sData.name}]</span>
+                        <div style="display:flex; align-items:center; gap:5px;">
+                            <span style="font-size:11px; color:#888;">基本:${baseScore}</span>
+                            <input type="number" placeholder="自動" value="${customScore}" 
+                                onchange="window.saveSealPreference('${sealId}', this.value)" 
+                                style="width:60px; padding:4px; background:#111; color:#fff; border:1px solid #00BCD4; border-radius:4px; text-align:right;">
+                        </div>
+                    </div>
+                    <div style="font-size:11px; color:#ccc; line-height:1.4;">${sData.desc}</div>
+                </div>
+            `;
+        });
+        
+        groupHtml += `</div></div>`;
+        return groupHtml;
+    };
+
+    html += renderSealGroup('武器に付与される印', weaponSeals, '⚔️', '#FFD700');
+    html += renderSealGroup('盾・鎧に付与される印', armorSeals, '🛡️', '#4fc3f7');
+
+    html += `
+            </div>
+            <div style="margin-top:20px; text-align:center;">
+                <button onclick="document.getElementById('dg-seal-preference-editor').style.display='none';" style="padding:12px 30px; font-size:16px; font-weight:bold; background:#555; color:white; border:none; border-radius:8px; cursor:pointer;">設定を完了して戻る</button>
+            </div>
+        </div>
+    `;
+    
+    ui.innerHTML = html;
+    ui.style.display = 'flex';
+};
+
+window.saveSealPreference = function(sealId, valStr) {
+    let idx = window.DUNGEON_EDITOR_TACTIC_INDEX;
+    let tactic = window.aiPet.dungeonTactics[idx];
+    if (!tactic.sealPreferences) tactic.sealPreferences = {};
+    
+    if (valStr.trim() === '') {
+        delete tactic.sealPreferences[sealId];
+    } else {
+        let val = parseInt(valStr, 10);
+        if (!isNaN(val)) {
+            tactic.sealPreferences[sealId] = val;
+        } else {
+            delete tactic.sealPreferences[sealId];
+        }
+    }
 };
 
 // パレット・サジェストの外側をクリックした時に閉じる処理（ダンジョン版）
@@ -1242,7 +1418,17 @@ window.toggleDungeonTacticViewer = function() {
         
         // 使える指示ワード一覧
         let allTacticNames = [`<span style="color:#4CAF50;">${defaultTacticName}</span>`];
-        myTactics.forEach(t => allTacticNames.push(`<span style="color:#2196F3;">${t.name}</span>`));
+        
+        // ★追加：語彙がコンプリートされているかチェック
+        const allDungeonCmds = typeof window.DUNGEON_AVAILABLE_COMMANDS !== 'undefined' ? window.DUNGEON_AVAILABLE_COMMANDS.map(c => c.name) : [];
+        const learnedWords = ai.apprentice && ai.apprentice.learnedWords ? ai.apprentice.learnedWords : [];
+        const hasAllCmds = allDungeonCmds.every(cmd => learnedWords.includes(cmd));
+
+        if (hasAllCmds) {
+            myTactics.forEach(t => allTacticNames.push(`<span style="color:#2196F3;">${t.name}</span>`));
+        } else {
+            allTacticNames.push(`<span style="color:#888; font-size:12px;">(※全てのダンジョン用語を思い出すまで、他の作戦は指示できません)</span>`);
+        }
 
         let currentTacticName = window.DUNGEON_STATE.player.currentTacticName || defaultTacticName;
         let currentTactic = currentTacticName === defaultTacticName ? 

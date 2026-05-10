@@ -209,8 +209,27 @@ window.applyDungeonTurnStartEffects = function(s) {
         if (timer.turns <= 0) {
             if (timer.type === 'fire') { s.grid[timer.y][timer.x] = 7; window.updateDungeonUI(); } 
             else if (timer.type === 'seed') {
-                let grownItems = ['herb', 'item_bread', 'item_herb_life']; 
-                s.items.push({ x: timer.x, y: timer.y, key: grownItems[Math.floor(Math.random() * grownItems.length)] });
+                let grownKey = '';
+                
+                // ★ 大当たり枠：「しあわせの種」は 5% の低確率で実る
+                if (Math.random() < 0.05) {
+                    grownKey = 'item_seed_happy';
+                } else {
+                    // ★ 通常枠：実装済みの食べられるアイテムから均等にランダム
+                    let commonItems = [
+                        'herb',
+                        'item_bread',
+                        'item_berry',
+                        'herb_antidote',
+                        'herb_mint',
+                        'herb_eyedrop',
+                        'herb_paralysis'
+                    ];
+                    grownKey = commonItems[Math.floor(Math.random() * commonItems.length)];
+                }
+                
+                s.items.push({ x: timer.x, y: timer.y, key: grownKey });
+                window.addDungeonLog(`🌱 土に植えられていた種が成長し、アイテムを実らせた！`, '#4CAF50');
             }
             s.floorTimers.splice(i, 1);
         }
@@ -349,6 +368,31 @@ window.getSmartNextStep = function(startX, startY, targetCondition, avoidRoom = 
 // ★新規追加：AIが印の価値を判断するためのスコア辞書
 // ==========================================
 window.getDungeonSealScore = function(sealId) {
+    // ★修正：現在の作戦（ダンジョン内）またはエディタで選択中の作戦からスコアを取得する
+    let customScore = undefined;
+    if (sealId !== 'curse') {
+        let tacticName = null;
+        if (window.DUNGEON_STATE && window.DUNGEON_STATE.active && window.DUNGEON_STATE.player && window.DUNGEON_STATE.player.currentTacticName) {
+            tacticName = window.DUNGEON_STATE.player.currentTacticName;
+        }
+        
+        // 作戦エディタを開いている場合は、編集中の作戦のスコアを取得
+        if (typeof window.DUNGEON_EDITOR_TACTIC_INDEX !== 'undefined' && window.DUNGEON_EDITOR_TACTIC_INDEX !== -1) {
+            if (window.aiPet && window.aiPet.dungeonTactics && window.aiPet.dungeonTactics[window.DUNGEON_EDITOR_TACTIC_INDEX]) {
+                tacticName = window.aiPet.dungeonTactics[window.DUNGEON_EDITOR_TACTIC_INDEX].name;
+            }
+        }
+
+        if (tacticName && tacticName !== "AIにまかせる" && window.aiPet && window.aiPet.dungeonTactics) {
+            let activeTactic = window.aiPet.dungeonTactics.find(t => t.name === tacticName);
+            if (activeTactic && activeTactic.sealPreferences && typeof activeTactic.sealPreferences[sealId] === 'number') {
+                customScore = activeTactic.sealPreferences[sealId];
+            }
+        }
+    }
+
+    if (customScore !== undefined) return customScore;
+
     const scores = {
         'curse': 9999, // ★呪縛は絶対に外せない（枠を埋め続けるペナルティ）
         // ▼ 新規追加：状態異常無効化系は非常に価値が高い（100〜95帯）
@@ -1516,7 +1560,12 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 } 
                 else if (wantsToGrind) { 
                     wantsToDescend = false; 
-                    thoughtLog = `探索完了。目標Lv${targetLevel}まで修練する！`; 
+                    // ★追加：目標レベルに達しているかどうかで、ストイックなAIのセリフを分岐させる
+                    if (s.player.level < targetLevel) {
+                        thoughtLog = `探索完了。目標Lv${targetLevel}まで修練する！`; 
+                    } else {
+                        thoughtLog = `探索完了。風が吹くまで限界まで修練する！`; 
+                    }
                 } 
                 else { 
                     thoughtLog = "この階層での目的は果たした。階段を探そう。"; 
@@ -2152,6 +2201,22 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         if (!s.aiMemory.knownEquips.includes(item.key)) s.aiMemory.knownEquips.push(item.key);
         s.items = s.items.filter(i => i !== item); 
         s.player._targetGroundItem = null;
+
+        // ★追加：未識別の装備を身に着けた瞬間に「しらべる」「なまえをつける」を閃く
+        let bId = window.parseItemString(item.key).baseId;
+        if (s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId)) {
+            if (typeof window.triggerDungeonInspiration === 'function') {
+                window.triggerDungeonInspiration('identify');
+                window.triggerDungeonInspiration('name_item');
+            }
+        }
+
+        // ★追加：呪われた装備を身に着けてしまった瞬間に「はずす」を閃く
+        if (eff.traits.includes('curse') && typeof window.triggerDungeonInspiration === 'function') {
+            window.addDungeonLog(`しかし ${eff.logName} は呪われており、体にガッチリと張り付いてしまった！`, '#9C27B0');
+            window.triggerDungeonInspiration('unequip');
+        }
+
         return 'equip_ground'; 
     }
     
@@ -2293,6 +2358,12 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             let isOverTech = itemId.includes('wand') && activeTraits.includes('オーバーテクノロジー') && Math.random() < 0.25;
 
             chosenCommand = realCommand; // ★ 以降の巨大な判定ロジックを一切壊さず完全に流用する
+
+            // ★追加：未識別アイテムを使用・消費した瞬間に「しらべる」「なまえをつける」を閃く
+            if (isUnidentified && typeof window.triggerDungeonInspiration === 'function') {
+                window.triggerDungeonInspiration('identify');
+                window.triggerDungeonInspiration('name_item');
+            }
 
             if (chosenCommand === 'eat' || chosenCommand === 'heal') {
                 if (!effect.isConsumable && activeTraits.includes('ガラクタ吸収')) {
@@ -2468,12 +2539,13 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 }
             }
 
+            // ★ 修正：未識別アイテムを「使う・飲む・読む」した時点で、「調べる」「名前をつける」の概念を閃く！
+            if (isUnidentified && typeof window.triggerDungeonInspiration === 'function') {
+                window.triggerDungeonInspiration('identify');
+                window.triggerDungeonInspiration('name_item');
+            }
+
             if (effect.traits.includes('sleep_aoe') && (chosenCommand === 'use' || isUnidentified)) {
-                // ★ 閃き：未識別アイテムで痛い目・想定外の事態に遭遇し「調べる」「名前をつける」を閃く
-                if (isUnidentified && typeof window.triggerDungeonInspiration === 'function') {
-                    window.triggerDungeonInspiration('identify');
-                    window.triggerDungeonInspiration('name_item');
-                }
                 s.player.magicAnim = true; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'magic');
                 
                 // ★修正：部屋か通路かで効果範囲を変え、対象がいるかチェックする
@@ -2641,6 +2713,40 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                     if (hitObj) {
                         if (hitObj.type === 'enemy') {
                             let targetEnemy = hitObj.entity;
+
+                            // ★ 追加：魔法反射特性の統合処理
+                            let eSkin = targetEnemy.skin || targetEnemy.type || "";
+                            let isReflected = false;
+                            let reflectMult = 1.0;
+                            let reflectMsg = "";
+
+                            if (eSkin === 'spirit_type2_3' && Math.random() < 0.5) { isReflected = true; reflectMsg = `🪞 鏡面反射！ 魔法が跳ね返された！`; }
+                            else if (eSkin === 'balloon_type2') { isReflected = true; reflectMsg = `🫧 シャボンバリア！ 薄い膜が魔法を完全に跳ね返した！`; }
+                            else if (eSkin === 'ghost_type3_3') { isReflected = true; reflectMsg = `🪞 魔法反射！ 魔法がそのまま跳ね返された！`; }
+                            else if (eSkin === 'magician_type4_3') { isReflected = true; reflectMult = 1.5; reflectMsg = `🪞 魔法鎧！ 魔法が 1.5倍 の威力になって跳ね返された！`; }
+
+                            if (isReflected) {
+                                window.addDungeonLog(reflectMsg, '#FF5252');
+                                // 炎の杖（ダメージ魔法）なら反射ダメージを計算、それ以外（氷結や場所替え）は無効化扱い
+                                if (effect.traits.includes('fire_damage')) {
+                                    let baseMagicDmg = Math.floor(40 * (effect.magicPowerMult || 1.0));
+                                    if (isCosmicDragon) baseMagicDmg *= 5;
+                                    let finalRefDmg = Math.floor(baseMagicDmg * reflectMult);
+                                    
+                                    if (activeTraits.includes('万物の法則')) {
+                                        window.addDungeonLog(`🌌 万物の法則 が反射ダメージを完全に打ち消した！`, '#00BCD4');
+                                    } else {
+                                        if (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度')) {
+                                            finalRefDmg = Math.max(1, Math.floor(finalRefDmg / 2));
+                                            window.addDungeonLog(`🌈 特性により反射ダメージを半減した！`, '#00BCD4');
+                                        }
+                                        s.player.hp -= finalRefDmg; s.player.damageAnim = true;
+                                        if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, finalRefDmg, true);
+                                    }
+                                }
+                                continue; // 魔法の効果を無効化して次の弾へ
+                            }
+
                             if (effect.traits.includes('fire_damage')) {
                                 let baseMagicDmg = Math.floor(40 * (effect.magicPowerMult || 1.0));
                                 if (isCosmicDragon) baseMagicDmg *= 5;
@@ -2856,6 +2962,22 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
 
                 window.addDungeonLog(`${window.getDungeonItemEffect(s.player[slotName]).logName} を装備した！`, '#FFD700');
                 equippedSomething = true;
+
+                // ★追加：未識別の装備を身に着けた瞬間に「しらべる」「なまえをつける」を閃く
+                let bId = window.parseItemString(s.player[slotName]).baseId;
+                if (s.sessionItemDict && s.sessionItemDict[bId] && s.aiMemory && !s.aiMemory.identified.includes(bId)) {
+                    if (typeof window.triggerDungeonInspiration === 'function') {
+                        window.triggerDungeonInspiration('identify');
+                        window.triggerDungeonInspiration('name_item');
+                    }
+                }
+
+                // ★追加：呪われた装備を身に着けてしまった瞬間に「はずす」を閃く
+                let equipEff = window.getDungeonItemEffect(s.player[slotName]);
+                if (equipEff.traits.includes('curse') && typeof window.triggerDungeonInspiration === 'function') {
+                    window.addDungeonLog(`しかし装備は呪われており、体にガッチリと張り付いてしまった！`, '#9C27B0');
+                    window.triggerDungeonInspiration('unequip');
+                }
             }
         };
         
@@ -2916,19 +3038,18 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             // ★新規追加：ベース装備が呪われているか判定（元々の特性、または付与された印）
             let bIsCursed = (bD.traits && bD.traits.includes('curse')) || (pB.seals && pB.seals.includes('curse'));
             
-            // 今のベースだと印が溢れる ＆ 素材の方が印枠が多い、または純粋に素材の方が印枠が圧倒的に多い(将来性)場合
-            // ★修正：ただし、ベースが呪われている場合は「呪縛」によりベースを他の器に溶かし込む（スワップする）ことはできない！
-            if (!bIsCursed && ((willDiscard && mMax > bMax) || (mMax >= bMax + 2))) {
-                let temp = info.baseItem;
-                info.baseItem = info.matItem;
-                info.matItem = temp;
-                if (!info.isSame) {
-                    info.seal = bD.traits && bD.traits.length > 0 ? bD.traits[0] : null;
+            // ★大修正：異種合成の場合はベースの逆転を行ってはいけない！（装備種別が変わってしまうため）
+            // 逆転（スワップ）は「同種合成（info.isSame）」の時のみに限定する！
+            if (info.isSame) {
+                if (!bIsCursed && ((willDiscard && mMax > bMax) || (mMax >= bMax + 2))) {
+                    let temp = info.baseItem;
+                    info.baseItem = info.matItem;
+                    info.matItem = temp;
+                    window.addDungeonLog(`💭 AI：${bD.logName} より ${mD.logName} の方が器（印枠）が大きいため、ベースを逆転させる！`, '#B0BEC5');
+                } else if (bIsCursed && ((willDiscard && mMax > bMax) || (mMax >= bMax + 2))) {
+                    // ★呪いでスワップできなかった場合の無念の思考ログ
+                    window.addDungeonLog(`💭 AI：ベースを逆転させたいが、${bD.logName} の呪縛が強くて溶かし込めない！このまま合成するしかない...`, '#B0BEC5');
                 }
-                window.addDungeonLog(`💭 AI：${bD.logName} より ${mD.logName} の方が器（印枠）が大きいため、ベースを逆転させる！`, '#B0BEC5');
-            } else if (bIsCursed && ((willDiscard && mMax > bMax) || (mMax >= bMax + 2))) {
-                // ★呪いでスワップできなかった場合の無念の思考ログ
-                window.addDungeonLog(`💭 AI：ベースを逆転させたいが、${bD.logName} の呪縛が強くて溶かし込めない！このまま合成するしかない...`, '#B0BEC5');
             }
         }
         // ==========================================
@@ -3068,6 +3189,26 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             
             window.addDungeonLog(`✨ ${window.getDungeonItemEffect(newEquipStr).logName} が完成した！`, '#FFD700');
             if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(s.player.x, s.player.y, 'level_up');
+
+            // ★追加：未識別アイテムを合成した瞬間に「しらべる」「なまえをつける」を閃く
+            let bIdBase = parsedBase.baseId; let bIdMat = parsedMat.baseId;
+            let isBaseUnid = s.sessionItemDict && s.sessionItemDict[bIdBase] && s.aiMemory && !s.aiMemory.identified.includes(bIdBase);
+            let isMatUnid = s.sessionItemDict && s.sessionItemDict[bIdMat] && s.aiMemory && !s.aiMemory.identified.includes(bIdMat);
+            if ((isBaseUnid || isMatUnid) && typeof window.triggerDungeonInspiration === 'function') {
+                window.triggerDungeonInspiration('identify');
+                window.triggerDungeonInspiration('name_item');
+            }
+
+            // ★追加：合成によって「呪い」が付与・維持された瞬間に「はずす」を閃く
+            let newEff = window.getDungeonItemEffect(newEquipStr);
+            if (newEff.traits.includes('curse') && typeof window.triggerDungeonInspiration === 'function') {
+                // 装備中のものを合成したなら演出を追加
+                if (baseItem.isEquipped || (matItem.isEquipped && !baseItem.isEquipped)) {
+                    window.addDungeonLog(`呪縛が強まり、装備が体にガッチリと張り付いてしまった！`, '#9C27B0');
+                }
+                window.triggerDungeonInspiration('unequip');
+            }
+
         } else { window.addDungeonLog(`合成できる装備がなかった。`, '#aaa'); }
     }
     // 修正後→
@@ -3096,37 +3237,189 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
     else if (chosenCommand === 'throw') {
         if (typeof s.player._targetItemIdx === 'number' && s.player._targetItemIdx !== -1 && s.player.tempInventory[s.player._targetItemIdx]) {
             let itemKey = s.player.tempInventory[s.player._targetItemIdx];
+            let parsedItem = window.parseItemString(itemKey);
+            let eff = window.getDungeonItemEffect(itemKey);
+            let isWand = parsedItem.baseId.includes('wand');
+
             // ★修正：投げたアイテムをカバンから確実に削除する（無限増殖バグを修正！）
             s.player.tempInventory.splice(s.player._targetItemIdx, 1); 
             s.player.lostItems = s.player.lostItems || []; s.player.lostItems.push(itemKey); // ★化石の記憶用のロスト記録
-            window.addDungeonLog(`${aiName} は ${window.getDungeonItemEffect(itemKey).logName} を投げた！`, '#00BCD4');
+            window.addDungeonLog(`${aiName} は ${eff.logName} を投げた！`, '#00BCD4');
             
-            let dx = s.player.face === 'right' ? 1 : s.player.face === 'left' ? -1 : 0; let dy = s.player.face === 'down' ? 1 : s.player.face === 'up' ? -1 : 0;
-            let tx = s.player.x, ty = s.player.y; let hitEnemy = null;
-            
-            for (let dist = 1; dist <= 10; dist++) {
-                tx += dx; ty += dy;
-                if (s.grid[ty][tx] === 1) { tx -= dx; ty -= dy; break; } 
-                hitEnemy = s.enemies.find(e => e.hp > 0 && e.x === tx && e.y === ty);
-                if (hitEnemy) break;
+            // ★追加：未識別アイテムを投げた瞬間に「しらべる」「なまえをつける」を閃く
+            if (s.sessionItemDict && s.sessionItemDict[parsedItem.baseId] && s.aiMemory && !s.aiMemory.identified.includes(parsedItem.baseId)) {
+                if (typeof window.triggerDungeonInspiration === 'function') {
+                    window.triggerDungeonInspiration('identify');
+                    window.triggerDungeonInspiration('name_item');
+                }
             }
-            if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, tx, ty, '#FFF');
+
+            let dx = s.player.face === 'right' ? 1 : s.player.face === 'left' ? -1 : 0; let dy = s.player.face === 'down' ? 1 : s.player.face === 'up' ? -1 : 0;
+            let tx = s.player.x, ty = s.player.y; let hitEnemy = null; let hitObj = null;
+            
+            // ★追加：投げたものが「杖」なら、ギミックや罠にも当たる軌道計算を行う
+            if (isWand) {
+                for (let r = 1; r <= 10; r++) { // 投擲の最大距離は10マス
+                    tx += dx; ty += dy;
+                    if (tx < 0 || tx >= s.mapWidth || ty < 0 || ty >= s.mapHeight) break;
+                    let tile = s.grid[ty][tx];
+                    if (tile === 1) { hitObj = { type: 'wall' }; tx -= dx; ty -= dy; break; }
+                    
+                    let eHit = s.enemies.find(e => e.hp > 0 && e.x === tx && e.y === ty);
+                    if (eHit) { hitObj = { type: 'enemy', entity: eHit }; hitEnemy = eHit; break; }
+                    
+                    let trapTarget = s.traps && s.traps.find(t => t.x === tx && t.y === ty && t.visible);
+                    if (trapTarget && (eff.traits.includes('swap_pos') || eff.traits.includes('blow_back'))) {
+                        hitObj = { type: 'trap', entity: trapTarget }; break;
+                    }
+                    if ([2, 4, 5, 6, 7, 8, 9, 10].includes(tile)) {
+                        if (eff.traits.includes('fire_damage') && (tile === 6 || tile === 7)) { hitObj = { type: 'gimmick', x: tx, y: ty, tile: tile }; break; }
+                        if (eff.traits.includes('freeze_effect') && (tile === 4 || tile === 9)) { hitObj = { type: 'gimmick', x: tx, y: ty, tile: tile }; break; }
+                        if (eff.traits.includes('swap_pos') || eff.traits.includes('blow_back')) { hitObj = { type: 'gimmick', x: tx, y: ty, tile: tile }; break; }
+                    }
+                }
+            } else {
+                for (let dist = 1; dist <= 10; dist++) {
+                    tx += dx; ty += dy;
+                    if (s.grid[ty][tx] === 1) { tx -= dx; ty -= dy; break; } 
+                    hitEnemy = s.enemies.find(e => e.hp > 0 && e.x === tx && e.y === ty);
+                    if (hitEnemy) break;
+                }
+            }
+
+            if (typeof window.playProjectileVFX === 'function') window.playProjectileVFX(s.player.x, s.player.y, tx, ty, isWand ? '#E040FB' : '#FFF');
             await sleep(200);
 
-            if (hitEnemy) {
+            // ★追加：杖が何かに当たって割れた場合の魔法発動ロジック
+            if (isWand && hitObj && hitObj.type !== 'wall') {
+                window.addDungeonLog(`💥 投げた ${eff.logName} が割れ、閉じ込められていた魔法が発動した！`, '#E040FB');
+                
+                let isCosmicDragon = activeTraits.includes('宇宙竜');
+                if (hitObj.type === 'enemy') {
+                    let targetEnemy = hitObj.entity;
+                    let eSkin = targetEnemy.skin || targetEnemy.type || "";
+                    let isReflected = false; let reflectMult = 1.0; let reflectMsg = "";
+                    if (eSkin === 'spirit_type2_3' && Math.random() < 0.5) { isReflected = true; reflectMsg = `🪞 鏡面反射！ 魔法が跳ね返された！`; }
+                    else if (eSkin === 'balloon_type2') { isReflected = true; reflectMsg = `🫧 シャボンバリア！ 薄い膜が魔法を完全に跳ね返した！`; }
+                    else if (eSkin === 'ghost_type3_3') { isReflected = true; reflectMsg = `🪞 魔法反射！ 魔法がそのまま跳ね返された！`; }
+                    else if (eSkin === 'magician_type4_3') { isReflected = true; reflectMult = 1.5; reflectMsg = `🪞 魔法鎧！ 魔法が 1.5倍 の威力になって跳ね返された！`; }
+
+                    if (isReflected) {
+                        window.addDungeonLog(reflectMsg, '#FF5252');
+                        if (eff.traits.includes('fire_damage')) {
+                            let baseMagicDmg = Math.floor(40 * (eff.magicPowerMult || 1.0));
+                            if (isCosmicDragon) baseMagicDmg *= 5;
+                            let finalRefDmg = Math.floor(baseMagicDmg * reflectMult);
+                            if (activeTraits.includes('万物の法則')) { window.addDungeonLog(`🌌 万物の法則 が反射ダメージを完全に打ち消した！`, '#00BCD4'); }
+                            else {
+                                if (activeTraits.includes('虹色の膜') || activeTraits.includes('不朽の硬度')) { finalRefDmg = Math.max(1, Math.floor(finalRefDmg / 2)); window.addDungeonLog(`🌈 特性により反射ダメージを半減した！`, '#00BCD4'); }
+                                s.player.hp -= finalRefDmg; s.player.damageAnim = true;
+                                if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(s.player.x, s.player.y, finalRefDmg, true);
+                            }
+                        }
+                    } else {
+                        if (eff.traits.includes('fire_damage')) {
+                            let baseMagicDmg = Math.floor(40 * (eff.magicPowerMult || 1.0));
+                            if (isCosmicDragon) baseMagicDmg *= 5;
+                            targetEnemy.hp -= baseMagicDmg; targetEnemy.damageAnim = true;
+                            if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
+                            if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'fire'); 
+                            if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(targetEnemy.x, targetEnemy.y, baseMagicDmg, false);
+                            window.addDungeonLog(`🔥 灼熱の炎が ${targetEnemy.name} を焼き尽くす！(${baseMagicDmg}ダメージ)`, '#FF5252');
+                            if (activeTraits.includes('不死の大魔導')) {
+                                let splashTargets = s.enemies.filter(e => e.hp > 0 && e !== targetEnemy && Math.abs(e.x - targetEnemy.x) <= 1 && Math.abs(e.y - targetEnemy.y) <= 1);
+                                splashTargets.forEach(oe => { oe.hp -= baseMagicDmg; oe.damageAnim = true; if (oe.status && oe.status.sleep > 0) oe.status.sleep = 0; if (typeof window.playDungeonVFX === 'function') window.playDungeonVFX(oe.x, oe.y, 'fire'); if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(oe.x, oe.y, baseMagicDmg, false); });
+                            }
+                        } else if (eff.traits.includes('freeze_effect')) {
+                            targetEnemy.status.paralyzed = (targetEnemy.status.paralyzed || 0) + 1;
+                            window.addDungeonLog(`❄️ 氷結の魔法が ${targetEnemy.name} を凍らせた！`, '#00BCD4');
+                            if (activeTraits.includes('不死の大魔導')) {
+                                let splashTargets = s.enemies.filter(e => e.hp > 0 && e !== targetEnemy && Math.abs(e.x - targetEnemy.x) <= 1 && Math.abs(e.y - targetEnemy.y) <= 1);
+                                splashTargets.forEach(oe => { oe.status.paralyzed = (oe.status.paralyzed || 0) + 1; });
+                            }
+                        } else if (eff.traits.includes('swap_pos')) {
+                            let px = s.player.x, py = s.player.y;
+                            s.player.x = targetEnemy.x; s.player.y = targetEnemy.y; targetEnemy.x = px; targetEnemy.y = py;
+                            window.addDungeonLog(`🌀 魔法の力で ${targetEnemy.name} と場所を入れ替わった！`, '#00BCD4');
+                            if (typeof window.playDungeonVFX === 'function') { window.playDungeonVFX(s.player.x, s.player.y, 'warp'); window.playDungeonVFX(targetEnemy.x, targetEnemy.y, 'warp'); }
+                        } else if (eff.traits.includes('blow_back')) {
+                            let pushDist = 5; let nx = targetEnemy.x, ny = targetEnemy.y;
+                            for(let k=0; k<pushDist; k++) {
+                                if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e!==targetEnemy&&e.x===nx+dx&&e.y===ny+dy)) {
+                                    nx += dx; ny += dy;
+                                } else {
+                                    if (targetEnemy.skin && targetEnemy.skin.includes('stone')) { window.addDungeonLog(`🪨 石の体！ ${targetEnemy.name} は吹き飛ばしを無効化した！`, '#aaa'); break; }
+                                    let blowDmg = Math.floor(20 * (eff.magicPowerMult || 1.0)); 
+                                    if (isCosmicDragon) blowDmg *= 5; 
+                                    targetEnemy.hp -= blowDmg; targetEnemy.damageAnim = true;
+                                    if (targetEnemy.status && targetEnemy.status.sleep > 0) targetEnemy.status.sleep = 0;
+                                    window.addDungeonLog(`💥 ${targetEnemy.name} は壁に激突した！(${blowDmg}ダメージ)`, '#FF5252');
+                                    if (typeof window.showDungeonDamageEffect === 'function') window.showDungeonDamageEffect(nx, ny, blowDmg, false);
+                                    break;
+                                }
+                            }
+                            targetEnemy.x = nx; targetEnemy.y = ny; targetEnemy.warpAnim = true; 
+                            window.addDungeonLog(`💨 ${targetEnemy.name} を遠くへ吹き飛ばした！`, '#00BCD4');
+                        }
+                    }
+                } else if (hitObj.type === 'gimmick') {
+                    let gNames = {2: "階段", 4: "浅瀬", 5: "マグマ", 6: "草地", 7: "土の床", 8: "氷の床", 9: "深い水脈", 10: "溝"};
+                    let gName = gNames[hitObj.tile] || "特殊な地形";
+                    if ((hitObj.tile === 6 || hitObj.tile === 7) && eff.traits.includes('fire_damage')) { s.grid[hitObj.y][hitObj.x] = 5; window.addDungeonLog(`🔥 炎の魔法が${gName}に引火し、マグマ溜まりに変わった！`, '#FF5252'); }
+                    else if ((hitObj.tile === 4 || hitObj.tile === 9) && eff.traits.includes('freeze_effect')) { s.grid[hitObj.y][hitObj.x] = 8; window.addDungeonLog(`❄️ 氷結の魔法が${gName}を凍らせ、氷の床に変わった！`, '#00BCD4'); }
+                    else if (eff.traits.includes('swap_pos')) {
+                        let px = s.player.x, py = s.player.y; let pTile = s.grid[py][px]; let targetTile = s.grid[hitObj.y][hitObj.x];
+                        s.grid[py][px] = targetTile; s.grid[hitObj.y][hitObj.x] = pTile;
+                        s.player.x = hitObj.x; s.player.y = hitObj.y;
+                        window.addDungeonLog(`🌀 魔法の力で ${gName} と場所を入れ替わった！`, '#00BCD4');
+                        if (typeof window.playDungeonVFX === 'function') { window.playDungeonVFX(px, py, 'warp'); window.playDungeonVFX(s.player.x, s.player.y, 'warp'); }
+                    } else if (eff.traits.includes('blow_back')) {
+                        let pushDist = 5; let nx = hitObj.x, ny = hitObj.y; let targetTile = s.grid[hitObj.y][hitObj.x];
+                        for(let k=0; k<pushDist; k++) {
+                            if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e.x===nx+dx&&e.y===ny+dy) && !(s.traps&&s.traps.some(t=>t.x===nx+dx&&t.y===ny+dy))) { nx += dx; ny += dy; } else { break; }
+                        }
+                        if (nx !== hitObj.x || ny !== hitObj.y) {
+                            let isRoom = s.roomsInfo && s.roomsInfo.some(r => hitObj.x >= r.x && hitObj.x < r.x + r.w && hitObj.y >= r.y && hitObj.y < r.y + r.h);
+                            s.grid[hitObj.y][hitObj.x] = isRoom ? 0 : 3; s.grid[ny][nx] = targetTile;
+                        }
+                        window.addDungeonLog(`💨 ${gName} が風圧で遠くへ吹き飛んでいった！`, '#00BCD4');
+                    }
+                } else if (hitObj.type === 'trap') {
+                    let trap = hitObj.entity;
+                    if (eff.traits.includes('swap_pos')) {
+                        let px = s.player.x, py = s.player.y; s.player.x = trap.x; s.player.y = trap.y; trap.x = px; trap.y = py;
+                        window.addDungeonLog(`🌀 魔法の力で ${trap.name} と場所を入れ替わった！`, '#00BCD4');
+                        if (typeof window.playDungeonVFX === 'function') { window.playDungeonVFX(s.player.x, s.player.y, 'warp'); window.playDungeonVFX(trap.x, trap.y, 'warp'); }
+                    } else if (eff.traits.includes('blow_back')) {
+                        let pushDist = 5; let nx = trap.x, ny = trap.y;
+                        for(let k=0; k<pushDist; k++) {
+                            if (s.grid[ny+dy][nx+dx] !== 1 && !s.enemies.some(e=>e.hp>0&&e.x===nx+dx&&e.y===ny+dy) && !s.traps.some(t=>t!==trap&&t.x===nx+dx&&t.y===ny+dy)) { nx += dx; ny += dy; } else { break; }
+                        }
+                        trap.x = nx; trap.y = ny; window.addDungeonLog(`💨 ${trap.name} を遠くへ吹き飛ばした！`, '#00BCD4');
+                    }
+                }
+                
+                // 魔法効果が発動し、もし未識別なら完全識別する！
+                if (s.sessionItemDict && s.sessionItemDict[parsedItem.baseId] && !s.aiMemory.identified.includes(parsedItem.baseId)) {
+                    s.aiMemory.identified.push(parsedItem.baseId);
+                    window.addDungeonLog(`💡 AIは杖を投げて割れた時の魔法効果から、これが【${eff.realName}】だと完全に理解した！`, '#FFD700');
+                }
+                // 杖は割れて消滅したので、地面には落ちない（scatterItemを呼ばない）
+            } else if (hitEnemy) {
+                // 杖以外のアイテム、または杖だが壁の手前で敵に当たった物理ダメージ
                 if (hitEnemy.status && hitEnemy.status.sleep > 0) hitEnemy.status.sleep = 0; window.dealDungeonDamage(s.player, hitEnemy); 
-            // (throwの中のelse部分)
-            } else { 
-                window.addDungeonLog(`アイテムは地面に落ちた。`, '#aaa'); 
                 
                 let preLen = s.items.length; 
                 window.scatterItem(s, tx, ty, itemKey); 
-                
-                // ★修正：投げたアイテムにも3種の「完全無視フラグ」を焼き付ける！
                 for (let i = preLen; i < s.items.length; i++) {
-                    s.items[i]._discarded = true;     // 1. 探索作戦のターゲットにしない
-                    s.items[i]._visited = true;       // 2. 足元アクションを誤爆させない
-                    s.items[i]._preventAutoPick = true; // 3. 自動で拾わせない
+                    s.items[i]._discarded = true; s.items[i]._visited = true; s.items[i]._preventAutoPick = true;
+                }
+            } else { 
+                window.addDungeonLog(`アイテムは地面に落ちた。`, '#aaa'); 
+                let preLen = s.items.length; 
+                window.scatterItem(s, tx, ty, itemKey); 
+                for (let i = preLen; i < s.items.length; i++) {
+                    s.items[i]._discarded = true; s.items[i]._visited = true; s.items[i]._preventAutoPick = true;
                 }
             }
         } s.player._targetItemIdx = null;

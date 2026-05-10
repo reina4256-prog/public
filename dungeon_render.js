@@ -5438,29 +5438,51 @@ window.updateDungeonUI = function() {
         document.getElementById('dg-trait-content').innerHTML = traitHtml;
     }
 
-    // 作戦バッジの表示更新
+    // === 作戦バッジと操作パネルの表示更新 ===
     let tacticBadge = document.getElementById('dg-tactic-badge');
-    if (tacticBadge && s.player) {
-        let tName = s.player.currentTacticName || "AIにまかせる";
-        let activeRuleText = "";
-        
-        // ★追加：ミニ・テレメトリ（現在実行中の思考をバッジにも表示）
-        if (s.player._activeRuleIndex !== undefined && s.player._activeRuleIndex >= 0 && window.aiPet && window.aiPet.dungeonTactics) {
-            let activeTactic = window.aiPet.dungeonTactics.find(t => t.name === tName);
-            if (activeTactic && activeTactic.rules && activeTactic.rules[s.player._activeRuleIndex]) {
-                let rule = activeTactic.rules[s.player._activeRuleIndex];
-                let condName = window.DUNGEON_TACTIC_CONDITIONS[rule.condition] || rule.condition;
-                let actName = rule.action1; // 簡略化のため第1候補を表示
-                activeRuleText = `<span style="display:block; font-size:12px; color:#FFEB3B; font-weight:bold; text-shadow: 1px 1px 2px #000, 0 0 4px #000; margin-top:2px;">⚡ [思考] ${condName} ➔ ${actName}</span>`;
+    let tacticControls = document.getElementById('dg-tactic-controls'); // IDをこちらに統一
+
+    const allDungeonCommands = typeof window.DUNGEON_AVAILABLE_COMMANDS !== 'undefined' ? window.DUNGEON_AVAILABLE_COMMANDS.map(c => c.name) : [];
+    const learnedWords = (window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.learnedWords) ? window.aiPet.apprentice.learnedWords : [];
+    
+    // ★厳格な解放条件：全ての基礎コマンド ＋ 「作戦」という言葉を知っていること
+    const isTacticUnlocked = allDungeonCommands.every(cmd => learnedWords.includes(cmd)) && learnedWords.includes("作戦");
+
+    // 1. バッジ（上）の制御
+    if (tacticBadge) {
+        if (!isTacticUnlocked) {
+            tacticBadge.style.display = "none";
+            // 解放条件を満たしていない場合、実行中の作戦もリセット
+            if (s.player && s.player.currentTacticName !== "AIにまかせる") {
+                s.player.currentTacticName = "AIにまかせる";
             }
-        } else if (tName !== "AIにまかせる" && s.player._lastCommand === 'skip') {
-             activeRuleText = `<span style="display:block; font-size:12px; color:#FF5252; font-weight:bold; text-shadow: 1px 1px 2px #000; margin-top:2px;">⚠️ 思考停止中（条件合致なし）</span>`;
+        } else if (s.player) {
+            let tName = s.player.currentTacticName || "AIにまかせる";
+            let activeRuleText = "";
+            
+            // 現在の思考テレメトリ表示
+            if (s.player._activeRuleIndex !== undefined && s.player._activeRuleIndex >= 0 && window.aiPet && window.aiPet.dungeonTactics) {
+                let activeTactic = window.aiPet.dungeonTactics.find(t => t.name === tName);
+                if (activeTactic && activeTactic.rules && activeTactic.rules[s.player._activeRuleIndex]) {
+                    let rule = activeTactic.rules[s.player._activeRuleIndex];
+                    let condName = window.DUNGEON_TACTIC_CONDITIONS[rule.condition] || rule.condition;
+                    let actName = rule.action1;
+                    activeRuleText = `<span style="display:block; font-size:12px; color:#FFEB3B; font-weight:bold; text-shadow: 1px 1px 2px #000, 0 0 4px #000; margin-top:2px;">⚡ [思考] ${condName} ➔ ${actName}</span>`;
+                }
+            } else if (tName !== "AIにまかせる" && s.player._lastCommand === 'skip') {
+                 activeRuleText = `<span style="display:block; font-size:12px; color:#FF5252; font-weight:bold; text-shadow: 1px 1px 2px #000, 0 0 4px #000; margin-top:2px;">⚠️ 思考停止中（条件合致なし）</span>`;
+            }
+            
+            tacticBadge.style.display = "inline-flex";
+            tacticBadge.style.flexDirection = "column";
+            tacticBadge.innerHTML = `<span>🚩 現在の作戦：${tName}</span>${activeRuleText}`;
         }
-        
-        // バッジのスタイルを調整して2行表示に対応
-        tacticBadge.style.display = "inline-flex";
-        tacticBadge.style.flexDirection = "column";
-        tacticBadge.innerHTML = `<span>🚩 現在の作戦：${tName}</span>${activeRuleText}`;
+    }
+
+    // 2. 操作パネル（下）の制御
+    if (tacticControls) {
+        // バッジが表示されるなら、こちらも必ず表示される
+        tacticControls.style.display = isTacticUnlocked ? "flex" : "none";
     }
     
     // ★追加：作戦詳細モーダルへのリアルタイム・テレメトリ反映

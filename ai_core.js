@@ -2476,9 +2476,9 @@ aiPet.update = function() {
                         this.messageTimer = 180;
                         task.duration = 0; 
                         task.aborted = true;
-                        return;
+                    } else {
+                        this.startBuildingInteraction(myHut);
                     }
-                    this.startBuildingInteraction(myHut);
                 }
                 // ==========================================
                 // ★ 追加：作戦会議タスクの初期化
@@ -2490,9 +2490,33 @@ aiPet.update = function() {
                         this.messageTimer = 180;
                         task.duration = 0; 
                         task.aborted = true;
-                        return;
+                    } else {
+                        // ★追加：作戦を立てるためのダンジョン全語彙チェックと履歴管理
+                        const allDungeonCmds = typeof window.DUNGEON_AVAILABLE_COMMANDS !== 'undefined' ? window.DUNGEON_AVAILABLE_COMMANDS.map(c => c.name) : [];
+                        const learnedWords = this.apprentice.learnedWords || [];
+                        const hasAllCmds = allDungeonCmds.every(cmd => learnedWords.includes(cmd));
+                        
+                        // 一度でも全て揃ったら履歴フラグを立てる
+                        if (hasAllCmds) {
+                            this.apprentice.hasMasteredDungeonVocab = true;
+                        }
+
+                        // 1つでも忘れている（知らない）言葉がある場合のブロック処理
+                        if (!hasAllCmds) {
+                            if (this.apprentice.hasMasteredDungeonVocab) {
+                                // 過去にコンプしたことがある（言葉を忘れた）場合
+                                this.message = "ダンジョンで必要な言葉が足りなくて、作戦が立てられないや...";
+                            } else {
+                                // 一度もコンプしたことがない（まだダンジョンの概念に達していない）場合
+                                this.message = "？（何を言っているのかわからないみたい...）";
+                            }
+                            this.messageTimer = 180;
+                            task.duration = 0; 
+                            task.aborted = true;
+                        } else {
+                            this.startBuildingInteraction(myHut);
+                        }
                     }
-                    this.startBuildingInteraction(myHut);
                 }
                 else {
                     let fType = task.type;
