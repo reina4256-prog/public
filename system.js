@@ -326,8 +326,21 @@ function generateNatureMap() {
     // ★追加: 料理人との出会い用に、メインエリアにレストランを1つ確定配置
     spawnObjects({ restaurant: 1 }, 'main');
 
+    // ★追加: 薬剤師との出会い用に、メインエリアに薬局を1つ確定配置
+    spawnObjects({ pharmacy: 1 }, 'main');
+
     // レアエリア（川を渡った先）: 洞窟、クリスタル、少数の森・山を配置
     spawnObjects({ skull: 1, crystal: 2, mountain: 1, palms: 1 }, 'rare');
+
+    // ★修正: 確定配置した薬局に「師匠の拠点」としてのフラグを付与する
+    for (let k in newAssets) {
+        // type ではなく name で確実に捕まえて書き換える
+        if (newAssets[k].name === '薬局') {
+            newAssets[k].type = 'pharmacy';
+            newAssets[k].isMasterShop = true;
+            newAssets[k].masterType = 'pharmacist';
+        }
+    }
 
     return newAssets;
 }
@@ -349,6 +362,15 @@ if (assets) {
                 a.sh = correct.sh;
                 if (!a.scale) a.scale = correct.scale || 0.5;
             }
+        }
+
+        // ==========================================
+        // ★ 追加：薬局の自己修復パッチ
+        // ==========================================
+        if (a.name === '薬局') {
+            a.type = 'pharmacy';
+            a.isMasterShop = true;
+            a.masterType = 'pharmacist';
         }
     }
 }

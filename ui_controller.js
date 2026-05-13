@@ -254,20 +254,19 @@ window.openStatusMenu = function() {
         } else {
             html += `<div style="color: #4CAF50; font-weight: bold; margin-bottom: 10px; font-size: 15px;">🎓 現在の専門家と課題</div>`;
             
-            if (masteredCount === 6) {
+            if (masteredCount >= 6) {
                 html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px;">👑 全知全能の達人 👑<br><span style="font-size:11px; color:#ccc; font-weight:normal;">この世界に存在するすべての道を極めました！<br>悠々自適な余生を満喫しましょう。</span></div>`;
+            } else if (app.isGraduated) {
+                html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">今世での修行を終え、立派な達人になりました！<br>（1回の人生で極められる道は1つまでです。余生を満喫しましょう）</span></div>`;
             } else if (app.currentMaster) {
-                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
                 const mName = masterNames[app.currentMaster] || "不明";
                 const rank = app.rank[app.currentMaster] || 1;
                 
                 html += `<div style="font-size: 13px; color: #fff; margin-bottom: 8px;">専門家: <span style="color:#FFC107; font-weight:bold;">${mName} (ランク ${rank})</span></div>`;
                 
-                if (app.isGraduated) {
-                    html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">修行を終え、立派な達人になりました！<br>（フィールドを歩けば、まだ見ぬ他の師匠に出会えるかもしれません）</span></div>`;
-                } else {
-                    // ★完全修正：activeQuests から現在の師匠の課題（本業＆バイト）を抽出して描画！
-                    let currentMasterQuests = (app.activeQuests || []).filter(q => q.masterType === app.currentMaster && q.rank !== 0);
+                // ★完全修正：activeQuests から現在の師匠の課題（本業＆バイト）を抽出して描画！
+                let currentMasterQuests = (app.activeQuests || []).filter(q => q.masterType === app.currentMaster && q.rank !== 0);
 
                     if (currentMasterQuests.length > 0) {
                         html += `<div style="background: #222; padding: 8px; border-radius: 4px; border-left: 3px solid #FFC107;">`;
@@ -279,8 +278,13 @@ window.openStatusMenu = function() {
                             
                             let isStatQuest = false;
                             let statVal = 0;
-                            if (desc.includes("賢さ") || desc.includes("知性")) { isStatQuest = true; statVal = aiPet.stats.intel; }
-                            else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = aiPet.stats.power; }
+                            // ★修正：「集中薬」の説明文によるステータス判定の誤爆を回避
+                            if (desc.includes("賢さ") || desc.includes("知性")) { 
+                                if (!desc.includes("集中薬")) {
+                                    isStatQuest = true; statVal = hero.stats.intel; 
+                                }
+                            }
+                            else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = hero.stats.power; }
                             else if (desc.includes("美しさ")) { isStatQuest = true; statVal = aiPet.stats.beauty; }
                             else if (desc.includes("素早さ")) { isStatQuest = true; statVal = aiPet.stats.speed; }
 
@@ -328,6 +332,24 @@ window.openStatusMenu = function() {
                                 if (desc.includes("練習用の図面")) itemsStr.push(formatReq("練習用の図面", inv.filter(i => i === 'build_practice_normal').length, 3));
                                 if (desc.includes("建築模型")) itemsStr.push(formatReq("精巧な建築模型", inv.filter(i => i === 'build_practice_great').length, 3));
 
+                                // ==========================================
+                                // ★ここに追加：薬剤師のクエストアイテム判定
+                                // ==========================================
+                                if (desc.includes("薬草")) itemsStr.push(formatReq("薬草", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'herb').length, desc.includes("5つ") ? 5 : 3));
+                                if (desc.includes("きれいな水")) itemsStr.push(formatReq("きれいな水", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'water').length, desc.includes("5つ") ? 5 : 3));
+                                // 修正後
+                                if (desc.includes("風邪薬")) itemsStr.push(formatReq("風邪薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'item_medicine_cold').length, desc.includes("2つ") ? 2 : 1));
+
+                                // 毒キノコはRank4（毒のサンプル〜）の時だけカウントする
+                                if (desc.includes("毒のサンプル")) itemsStr.push(formatReq("毒キノコ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'poison_mushroom').length, 3));
+
+                                // ==========================================
+                                // ★追加：解毒薬のカウント（Rank5）
+                                // ==========================================
+                                if (desc.includes("解毒薬")) itemsStr.push(formatReq("解毒薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'item_antidote').length, desc.includes("2つ") ? 2 : 1));
+                                // ★修正：集中薬のカウント（バフ付与中の文言があるRank7ではカウントしない）
+                                if (desc.includes("集中薬") && !desc.includes("バフ付与中")) itemsStr.push(formatReq("集中薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'item_medicine_focus').length, 1));
+                                if (desc.includes("万能の霊薬")) itemsStr.push(formatReq("万能の霊薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'elixir').length, 1));
                                 if (itemsStr.length === 0) isItemQuest = false;
                                 if (q.isBaitoQuest) isItemQuest = false; // バイトの場合は強制的に除外
 
@@ -376,7 +398,6 @@ window.openStatusMenu = function() {
                     } else {
                         html += `<div style="font-size: 12px; color: #888; background: #222; padding: 8px; border-radius: 4px;">現在受けている課題はありません。<br>チャットで「${mName}のところへ」と入力して課題をもらいましょう。</div>`;
                     }
-                }
             } else if (app.isExcommunicated) {
                 let remain = 10 - (app.exileTrainingCount || 0);
                 html += `<div style="font-size: 13px; color: #ff5252; font-weight: bold; background: rgba(244,67,54,0.1); padding: 10px; border-radius: 4px;">現在、破門されています...<br><span style="font-size:11px; color:#aaa; font-weight:normal; line-height:1.5; display:inline-block; margin-top:5px;">勉強・筋トレ・ランニングのいずれかを行い、自分を見つめ直しましょう。<br>（破門解除まで あと <span style="font-size:14px; font-weight:bold; color:#ff5252;">${remain}</span> 回）</span></div>`;
@@ -387,16 +408,14 @@ window.openStatusMenu = function() {
         
         html += `</div>`;
 
-        // 2. 職業ライセンス（フェーズごとの動的表示）
+        // 2. 職業ライセンス（フェーズごとの動的表示 ＆ ページ切り替え対応版）
         html += `<div style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-top: 10px;">`;
         
         let titleText = "🌟 ？？？";
         if (phase >= 3) titleText = "🌟 職業ライセンス (入門状況)";
         else if (phase === 2) titleText = "🌟 交友関係";
 
-        html += `<div style="color: #E040FB; font-weight: bold; margin-bottom: 10px; font-size: 14px;">${titleText}</div>`;
-        html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">`;
-        
+        // 基本職リスト
         const jobs = [
             { id: 'explore', 'name': '冒険家', icon: '⛰️' },
             { id: 'farming', 'name': '農家', icon: '🌾' },
@@ -405,8 +424,48 @@ window.openStatusMenu = function() {
             { id: 'smithing', 'name': '鍛冶師', icon: '⚒️' },
             { id: 'building', 'name': '建築士', icon: '🔨' }
         ];
+
+        // 上級職（隠れ職）リスト
+        const advancedJobs = [
+            { id: 'pharmacist', name: '薬剤師', icon: '💊' },
+            { id: 'pastry_chef', name: 'パティシエ', icon: '🍰' },
+            { id: 'hairdresser', name: '美容師', icon: '✂️' },
+            { id: 'tailor', name: '仕立屋', icon: '👘' },
+            { id: 'scientist', name: '科学者', icon: '🧪' },
+            { id: 'merchant', name: '販売員', icon: '💰' },
+            { id: 'concierge', name: 'コンシェルジュ', icon: '🛎️' },
+            { id: 'dealer', name: 'ディーラー', icon: '🃏' },
+            { id: 'fortune_teller', name: '占い師', icon: '🔮' }
+        ];
+
+        // 上級職の中で「1度でも解放された（出会った・入門した）」ものを抽出
+        let unlockedAdvancedJobs = advancedJobs.filter(j => {
+            return metMasters.includes(j.id) || (app.rank && app.rank[j.id] > 0) || (app.retired && app.retired[j.id]) || app.currentMaster === j.id || app.excommunicatedFrom === j.id;
+        });
+
+        // ページ状態の管理（0:基本職, 1:上級職）
+        if (window.currentLicensePage === undefined) window.currentLicensePage = 0;
+        if (unlockedAdvancedJobs.length === 0) window.currentLicensePage = 0; // 上級職がゼロなら強制的に基本ページ
+
+        // タイトルと切り替えボタンの配置
+        html += `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">`;
+        html += `<div style="color: #E040FB; font-weight: bold; font-size: 14px;">${titleText}</div>`;
         
-        jobs.forEach(j => {
+        if (unlockedAdvancedJobs.length > 0) {
+            if (window.currentLicensePage === 0) {
+                html += `<button onclick="window.currentLicensePage = 1; window.openStatusMenu();" style="background:none; border:1px solid #E040FB; color:#E040FB; border-radius:4px; font-size:12px; cursor:pointer; padding:3px 10px; transition:0.2s; font-weight:bold;" onmouseover="this.style.background='rgba(224, 64, 251, 0.2)'" onmouseout="this.style.background='none'">上級職 ▶</button>`;
+            } else {
+                html += `<button onclick="window.currentLicensePage = 0; window.openStatusMenu();" style="background:none; border:1px solid #E040FB; color:#E040FB; border-radius:4px; font-size:12px; cursor:pointer; padding:3px 10px; transition:0.2s; font-weight:bold;" onmouseover="this.style.background='rgba(224, 64, 251, 0.2)'" onmouseout="this.style.background='none'">◀ 基本職</button>`;
+            }
+        }
+        html += `</div>`;
+
+        html += `<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">`;
+        
+        // 表示するリストを現在のページに応じて切り替え
+        let displayJobs = window.currentLicensePage === 0 ? jobs : unlockedAdvancedJobs;
+        
+        displayJobs.forEach(j => {
             let isMet = metMasters.includes(j.id);
             const r = (app.rank && app.rank[j.id]) ? app.rank[j.id] : 0;
             
@@ -416,15 +475,17 @@ window.openStatusMenu = function() {
             let boxStyle = `border: 1px solid #444; background: #222;`;
 
             let isExcommunicated = (app.excommunicatedFrom === j.id);
-            // ★修正後（上書き）：retired（過去の師匠）を皆伝扱いから外す！
             let isCurrentOrMastered = (app.currentMaster === j.id) || (r >= 10);
             let isFailed = (!isExcommunicated && !isCurrentOrMastered && app.attempts && app.attempts[j.id] >= 3);
 
-            if (phase === 1) {
+            if (phase === 1 && window.currentLicensePage === 0) {
+                // 基本職の未遭遇時はハテナ
                 displayName = "？？？"; displayIcon = "❓"; rankText = "---";
-            } else if (phase === 2) {
+            } else if (phase === 2 && window.currentLicensePage === 0) {
+                // 交友フェーズ
                 if (isMet) rankText = `<span style="color:#aaa;">顔見知り</span>`;
-            } else if (phase >= 3) {
+            } else if (phase >= 3 || window.currentLicensePage === 1) {
+                // 上級職は解放されている時点で名前が出ているので隠さない
                 if (isExcommunicated) {
                     rankText = `<div style="color:#ff5252; font-weight:bold; font-size:11px; line-height:1.2; text-align:right;">破門<br>(再入門不可)</div>`;
                     boxStyle = `border: 1px solid #f44336; background: rgba(244,67,54,0.1);`;
@@ -895,10 +956,44 @@ function updateStatUI() {
             btnEvolve.style.display = 'none';
         }
     }
+
+    const btnNotebook = document.getElementById('btnNotebook');
+    if (btnNotebook && aiPet.apprentice) {
+        const app = aiPet.apprentice;
+        const ranks = app.rank || {};
+        const retired = app.retired || {};
+        
+        // ★修正：手帳に知識を書き込む職業のみをリスト化
+        const notebookJobs = ['building', 'cooking', 'smithing', 'pharmacist'];
+        
+        // ★修正：上記の職業のいずれかに「現在入門中」または「ランク1以上」または「引退/皆伝済み」であるか判定
+        const isApprenticedToNotebookJob = notebookJobs.some(job => 
+            app.currentMaster === job || (ranks[job] > 0) || retired[job]
+        );
+        
+        btnNotebook.style.display = isApprenticedToNotebookJob ? 'flex' : 'none';
+    }
     
-    // ★追加：健康状態のテキストと色を決定
-    const healthStr = aiPet.isSick ? "😷病気" : "🟢健康";
-    const healthColor = aiPet.isSick ? "#ff5252" : "#00e676";
+    // ==========================================
+    // ★修正：健康状態のテキストと色を決定（詳細な症状の表示対応）
+    // ==========================================
+    let healthStrs = [];
+    if (aiPet.conditions) {
+        if (aiPet.conditions.poisoning) healthStrs.push("🤢中毒");
+        if (aiPet.conditions.cold) healthStrs.push("🤧風邪");
+        if (aiPet.conditions.stomachache) healthStrs.push("⚡腹痛");
+    }
+    if (aiPet.isSick) healthStrs.push("😷重病");
+    
+    // 症状が複数ある場合は「/」で繋ぎ、なければ健康とする
+    let healthStr = healthStrs.length > 0 ? healthStrs.join(" / ") : "🟢健康";
+    let healthColor = healthStrs.length > 0 ? "#ff5252" : "#00e676";
+
+    // ★追加：バフ（集中薬など）がかかっている場合は、健康状態の後ろに追記する！
+    if (aiPet.buffs && aiPet.buffs.focus > 0) {
+        healthStr += ` / 🧠集中(残:${aiPet.buffs.focus}回)`;
+        if (healthStrs.length === 0) healthColor = "#4fc3f7"; // 健康＆バフありなら水色にする
+    }
 
     // 新しい性格判定関数は直接日本語を返すので、そのままセットするだけ！(病気の文字は削除)
     setText('stat-type', window.getPersonalityType(aiPet.stats));
@@ -1033,9 +1128,22 @@ window.updateCommandHUD = function() {
     if (knows("料理")) categories['⚔️ 冒険・作業'].push({ label: "料理", base: "料理" });
     if (knows("鍛冶")) categories['⚔️ 冒険・作業'].push({ label: "鍛冶", base: "鍛冶" }); 
     if (knows("建築")) categories['⚔️ 冒険・作業'].push({ label: "建築", base: "建築" });
-    
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
 
+    // ==========================================
+    // ★修正：「調合」の昇格判定（rank >= 10 も含める）
+    // ==========================================
+    let isExplorerMaster = aiPet.apprentice && (
+        (aiPet.apprentice.retired && aiPet.apprentice.retired['explore']) || 
+        (aiPet.apprentice.rank && aiPet.apprentice.rank['explore'] >= 10)
+    );
+    
+    if (knows("調合") && isExplorerMaster) {
+        categories['⚔️ 冒険・作業'].push({ label: "調合", base: "調合" });
+    }
+
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
+
+    // ★修正：自動修復ロジックを削除（世代交代時の「エモい再会イベント」を確実に発生させるため）
     for (let key in masterNames) {
         if (knows(masterNames[key]) && metMasters.includes(key)) {
             categories['🎓 依頼・課題'].push({ label: `${masterNames[key]}のところへ`, base: masterNames[key] });
@@ -1052,12 +1160,45 @@ window.updateCommandHUD = function() {
     if (knows("買い物")) categories['🏪 施設・その他'].push({ label: "買い物", base: "買い物" }); 
     if (knows("城")) categories['🏪 施設・その他'].push({ label: "城に行く", base: "城" });
     if (knows("カジノ")) categories['🏪 施設・その他'].push({ label: "カジノ", base: "カジノ" });
+    
+    // ==========================================
+    // ★追加：Rank3以上なら「風邪薬」コマンドを解放
+    // ==========================================
+    let pharmacistRank = (aiPet.apprentice && aiPet.apprentice.rank && aiPet.apprentice.rank['pharmacist']) || 0;
+    let isPharmacistMaster = aiPet.apprentice && aiPet.apprentice.retired && aiPet.apprentice.retired['pharmacist'];
+    
+    if (pharmacistRank >= 3 || isPharmacistMaster) {
+        categories['⚔️ 冒険・作業'].push({ label: "風邪薬を作る", base: "風邪薬" });
+    }
+    // ==========================================
+    // ★追加：Rank5以上なら「解毒薬」コマンドを解放
+    // ==========================================
+    if (pharmacistRank >= 5 || isPharmacistMaster) {
+        categories['⚔️ 冒険・作業'].push({ label: "解毒薬を作る", base: "解毒薬" });
+    }
+    // ==========================================
+    // ★追加：Rank6以上なら「集中薬」コマンドを解放
+    // ==========================================
+    if (pharmacistRank >= 6 || isPharmacistMaster) {
+        categories['⚔️ 冒険・作業'].push({ label: "集中薬を作る", base: "集中薬" });
+        categories['🏠 生活・回復'].push({ label: "集中薬を飲む", base: "集中薬を飲む" });
+    }
+
+    // ★追加：薬局は最初からシステムワード
+    if (knows("薬局")) categories['🏪 施設・その他'].push({ label: "薬局", base: "薬局" });
 
     const systemWords = [
         "睡眠", "食事", "勉強", "筋トレ", "ランニング", "探検", "料理", "鍛冶", "建築", 
         "買い物", "城", "カジノ", "釣り", "ニンジン", "ピーマン", "トマト", "退治", "農業", 
-        "バイト", "書き写し", "ふいご", "石拾い", "皿洗い", "網の修理", "荷物運び"
+        "バイト", "書き写し", "ふいご", "石拾い", "皿洗い", "網の修理", "荷物運び", 
+        "薬局", "風邪薬", "解毒薬", "集中薬", "集中薬を飲む" // ★集中薬を追加
     ];
+
+    // ★修正：調合が昇格していればシステムワードに登録（自由枠から消す）
+    if (isExplorerMaster) {
+        systemWords.push("調合");
+    }
+
     for (let key in masterNames) {
         if (metMasters.includes(key)) systemWords.push(masterNames[key]);
     }
@@ -1222,6 +1363,13 @@ window.sendChat = function() {
         "料理人": ["料理人", "シェフ", "コック"],
         "鍛冶師": ["鍛冶師", "職人"], 
         "建築士": ["建築士", "建築家"],
+        "薬剤師": ["薬剤師", "薬師", "医者", "ドクター", "先生"],
+        "調合": ["調合", "薬作り", "くすりづくり", "薬"],
+        "風邪薬": ["風邪薬", "かぜぐすり"], // ★追加
+        "解毒薬": ["解毒薬", "げどくやく", "毒消し"], // ★追加
+        "集中薬": ["集中薬", "しゅうちゅうやく", "集中"], // ★追加
+        "集中薬を飲む": ["集中薬を飲む", "集中薬飲む", "集中薬使って", "集中薬飲んで"], // ★追加
+        "薬局": ["薬局", "くすりや", "病院", "クリニック"],
         "ニンジン": ["ニンジン", "にんじん", "人参"],
         "トマト": ["トマト", "とまと"],
         "ピーマン": ["ピーマン", "ぴーまん"],
@@ -1305,49 +1453,68 @@ window.sendChat = function() {
     const knows = (word) => aiPet.apprentice.learnedWords.includes(word);
     let actionTriggered = false; 
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
     const uniqueFacilities = {
         "城": { type: 'castle', bId: 'castle', name: 'お城', onEnter: () => { if(typeof window.openArenaReception === 'function') window.openArenaReception(); } },
         "カジノ": { type: 'casino', bId: 'casino', name: 'カジノ', onEnter: () => { if(typeof window.openCasino === 'function') window.openCasino(); } },
         "ショップ": { type: 'shop', bId: 'shop', name: 'ショップ', onEnter: null },
-        "カード": { type: 'card_shop', bId: 'card_shop', name: 'カードショップ', onEnter: () => { if(typeof window.openCardShopUI === 'function') window.openCardShopUI(); } }
+        "カード": { type: 'card_shop', bId: 'card_shop', name: 'カードショップ', onEnter: () => { if(typeof window.openCardShopUI === 'function') window.openCardShopUI(); } },
+        // ★修正：薬局に入った時は「師匠（薬剤師）との会話」を起動する
+        "薬局": { type: 'pharmacy', bId: 'pharmacy', name: '薬局', onEnter: () => { if(typeof window.checkMasterVisit === 'function') window.checkMasterVisit('pharmacist'); } }
     };
 
-    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building' };
+    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist'};
     
     if (allMasterNames[interpretedWord] && knows(interpretedWord) && !aiPet.isHelper) {
         let mType = allMasterNames[interpretedWord];
-        let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
         
-        if (metMasters.includes(mType)) {
-            actionTriggered = true;
+        // ==========================================
+        // ★修正：「薬剤師」と言われたら、強制的に「薬局」の移動処理へ流す
+        // ==========================================
+        if (mType === 'pharmacist') {
+            interpretedWord = "薬局"; 
+        } else {
+            let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
             
-            // ★追加：行こうとしている先（mType）が「免許皆伝（ランク10）」かどうかをチェック
-            let isTargetMastered = (aiPet.apprentice.rank && aiPet.apprentice.rank[mType] >= 10);
+            let isAppr = (aiPet.apprentice.currentMaster === mType) || 
+                         (aiPet.apprentice.rank && aiPet.apprentice.rank[mType] > 0) || 
+                         (aiPet.apprentice.retired && aiPet.apprentice.retired[mType]);
+                         
+            if (isAppr && !metMasters.includes(mType)) {
+                metMasters.push(mType);
+                if (!aiPet.apprentice.metMasters) aiPet.apprentice.metMasters = [];
+                if (!aiPet.apprentice.metMasters.includes(mType)) aiPet.apprentice.metMasters.push(mType);
+            }
 
-            // ★修正：現在の師匠と違う場合でも、相手が「皆伝済み」ならストップさせずに下へ通す！
-            if (aiPet.apprentice.currentMaster && aiPet.apprentice.currentMaster !== mType && !isTargetMastered) {
-                let currentMasterName = Object.keys(allMasterNames).find(k => allMasterNames[k] === aiPet.apprentice.currentMaster) || "今の師匠";
-                aiPet.message = `今は${currentMasterName}の修行に集中しないと！\n（他の人のところへは行けないよ）`;
-                aiPet.messageTimer = 180;
-            } 
-            else if (!aiPet.apprentice.isExcommunicated) {
-                let facility = typeof findFacilityForTask === 'function' ? findFacilityForTask('visit_master', mType) : null;
-                if (facility) {
-                    aiPet.schedule = [{type: 'visit_master', masterType: mType, duration: 0}];
-                    aiPet.startBuildingInteraction(facility); 
-                    aiPet.message = "師匠のところへ行くよ！"; aiPet.messageTimer = 120;
+            if (metMasters.includes(mType)) {
+                actionTriggered = true;
+                
+                let isTargetMastered = (aiPet.apprentice.rank && aiPet.apprentice.rank[mType] >= 10);
+
+                if (aiPet.apprentice.currentMaster && aiPet.apprentice.currentMaster !== mType && !isTargetMastered) {
+                    let currentMasterName = Object.keys(allMasterNames).find(k => allMasterNames[k] === aiPet.apprentice.currentMaster) || "今の師匠";
+                    aiPet.message = `今は${currentMasterName}の修行に集中しないと！\n（他の人のところへは行けないよ）`;
+                    aiPet.messageTimer = 180;
+                } 
+                else if (!aiPet.apprentice.isExcommunicated) {
+                    let facility = typeof findFacilityForTask === 'function' ? findFacilityForTask('visit_master', mType) : null;
+                    if (facility) {
+                        aiPet.schedule = [{type: 'visit_master', masterType: mType, duration: 0}];
+                        aiPet.startBuildingInteraction(facility); 
+                        aiPet.message = "師匠のところへ行くよ！"; aiPet.messageTimer = 120;
+                    } else { 
+                        aiPet.message = "どこにいるかわからない..."; aiPet.messageTimer = 120; 
+                    }
                 } else { 
-                    aiPet.message = "どこにいるかわからない..."; aiPet.messageTimer = 120; 
+                    aiPet.message = "破門中だから会いに行けない..."; aiPet.messageTimer = 120; 
                 }
-            } else { 
-                aiPet.message = "破門中だから会いに行けない..."; aiPet.messageTimer = 120; 
             }
         }
     }
 
+    // （※このすぐ下にある uniqueFacilities の判定で「薬局」として処理されるようになります）
     if (Object.keys(uniqueFacilities).includes(interpretedWord)) {
         actionTriggered = true;
         let facInfo = uniqueFacilities[interpretedWord];
@@ -1366,7 +1533,8 @@ window.sendChat = function() {
         }
 
         if (existingTarget) {
-            if (knows(interpretedWord)) {
+            // ★ 修正：言葉を知っているか、もしくは「薬剤師」への面会目的で書き換えられた場合は特別に許可する！
+            if (knows(interpretedWord) || rawText.includes("薬剤師")) {
                 aiPet.schedule = []; aiPet.startBuildingInteraction(existingTarget);
                 aiPet.message = `${facInfo.name}に行ってくる！`; aiPet.messageTimer = 120;
                 let checkInterval = setInterval(() => {
@@ -1565,6 +1733,24 @@ window.sendChat = function() {
     else if (interpretedWord === "睡眠" && knows("睡眠")) { aiPet.schedule.push({type:'sleep', duration:60}); actionTriggered = true; }
     else if (interpretedWord === "ランニング" && knows("ランニング")) { aiPet.schedule.push({type:'run', duration:60}); actionTriggered = true; }
     else if (interpretedWord === "食事" && knows("食事")) { aiPet.schedule.push({type:'eat', duration:30}); actionTriggered = true; }
+    else if (interpretedWord === "集中薬を飲む" && knows("集中薬")) {
+        actionTriggered = true;
+        let hasFocusMed = false;
+        if (aiPet.inventory) {
+            hasFocusMed = aiPet.inventory.some(item => {
+                let id = typeof item === 'string' ? item : item.id;
+                return id === 'item_medicine_focus';
+            });
+        }
+        if (hasFocusMed) {
+            aiPet.schedule.push({type: 'eat', duration: 30, targetItem: 'item_medicine_focus'});
+            if (aiPet.schedule.length === 1) aiPet.message = "集中薬を飲むよ！"; 
+            else aiPet.message = "集中薬を飲む予約を入れたよ！";
+        } else {
+            aiPet.message = "集中薬を持ってないみたい...";
+        }
+        aiPet.messageTimer = 120;
+    }
     else if (interpretedWord === "勉強" && knows("勉強")) { aiPet.schedule.push({type:'study', duration:60}); actionTriggered = true; }
     else if (interpretedWord === "筋トレ" && knows("筋トレ")) { aiPet.schedule.push({type:'train', duration:60}); actionTriggered = true; } 
     else if (interpretedWord === "探検" && knows("探検")) { 
@@ -1759,6 +1945,84 @@ window.sendChat = function() {
         if (aiPet.schedule.length === 1) aiPet.message = "畑の様子を見てくるね！"; 
         else aiPet.message = "畑の手入れを予約したよ！";
         aiPet.messageTimer = 120;
+    }
+    else if (["調合", "風邪薬", "解毒薬", "集中薬"].includes(interpretedWord) && knows(interpretedWord)) {
+        actionTriggered = true;
+        let isMaster = aiPet.apprentice && (
+            (aiPet.apprentice.retired && aiPet.apprentice.retired['pharmacist']) || 
+            (aiPet.apprentice.currentMaster === 'pharmacist' && aiPet.apprentice.isGraduated) ||
+            (aiPet.apprentice.rank && aiPet.apprentice.rank['pharmacist'] >= 10)
+        );
+        let rank = (aiPet.apprentice && aiPet.apprentice.rank && aiPet.apprentice.rank['pharmacist']) || 0;
+        let isApprentice = aiPet.apprentice && aiPet.apprentice.currentMaster === 'pharmacist';
+
+        if (isMaster || isApprentice) {
+            let masterShop = null;
+            for (let k in assets) {
+                if (assets[k].type === 'pharmacy' && assets[k].isMasterShop) { masterShop = assets[k]; break; }
+            }
+            
+            if (masterShop) {
+                let isTrialMode = !isMaster;
+                let targetCraft = null;
+                let craftName = "調合";
+
+                // 素材を持っているかの確認
+                if (rank >= 3 || isMaster) {
+                    let inv = aiPet.inventory || [];
+                    let herbCount = inv.filter(i => (typeof i === 'string' ? i : i.id) === 'herb').length;
+                    let waterCount = inv.filter(i => (typeof i === 'string' ? i : i.id) === 'water').length;
+                    let poisonCount = inv.filter(i => (typeof i === 'string' ? i : i.id) === 'poison_mushroom').length;
+                    
+                    if (interpretedWord === "風邪薬") {
+                        if (herbCount >= 1 && waterCount >= 1) {
+                            targetCraft = 'item_medicine_cold'; craftName = "風邪薬";
+                        } else {
+                            aiPet.message = "「薬草」と「きれいな水」が足りないよ！"; aiPet.messageTimer = 180; return; 
+                        }
+                    } 
+                    else if (interpretedWord === "解毒薬") {
+                        if (herbCount >= 1 && poisonCount >= 1) {
+                            targetCraft = 'item_antidote'; craftName = "解毒薬";
+                        } else {
+                            aiPet.message = "「薬草」と「毒キノコ」が足りないよ！"; aiPet.messageTimer = 180; return; 
+                        }
+                    }
+                    else if (interpretedWord === "集中薬") {
+                        if (waterCount >= 1 && poisonCount >= 1) {
+                            targetCraft = 'item_medicine_focus'; craftName = "集中薬";
+                        } else {
+                            aiPet.message = "「きれいな水」と「毒キノコ」が足りないよ！"; aiPet.messageTimer = 180; return; 
+                        }
+                    }
+                }
+
+                // スケジュールにタスクを追加
+                aiPet.schedule.push({
+                    type: 'mix', 
+                    duration: 30, 
+                    isTrial: isTrialMode, 
+                    craftTarget: targetCraft
+                });
+                
+                if (aiPet.schedule.length === 1) {
+                    aiPet.startBuildingInteraction(masterShop); 
+                    if (targetCraft) {
+                        aiPet.message = `${craftName}を調合するね！`;
+                    } else {
+                        aiPet.message = isMaster ? "薬局の設備を借りて、調合してくるね！" : "師匠の設備を借りて、調合に挑戦だ！";
+                    }
+                } else { 
+                    aiPet.message = targetCraft ? `${craftName}の調合予約を入れたよ！` : "調合の予約をしたよ！"; 
+                }
+            } else { 
+                aiPet.message = "調合したいけど、薬局が見当たらないな..."; 
+            }
+        } else { 
+            aiPet.message = "調合かぁ...。知識はあるけど、ちゃんとした設備で教わりたいな。\n(薬剤師に弟子入りしよう！)"; 
+        }
+        aiPet.messageTimer = 180;
+        if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
     }
 
     if (!actionTriggered) {
@@ -2601,6 +2865,30 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     let rightText = savedEncounterMsg;
     let showTail = true;
 
+    // ★追加：ショップ購入画面モードの時、会話エリアに商品リストを生成する
+    if (mode === 'pharmacy_shop_buy') {
+        let price = 500;
+        let canAfford = (hero.gold >= price);
+        let btnStyle = canAfford ? "background:#4CAF50; color:white; cursor:pointer;" : "background:#555; color:#aaa; cursor:not-allowed;";
+        
+        rightText += `
+            <div style="margin-top:15px; background:rgba(0,0,0,0.5); border:1px solid #555; border-radius:8px; padding:10px; text-align:left; font-size:14px; font-weight:normal;">
+                <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #444; padding-bottom:8px; margin-bottom:8px;">
+                    <div>
+                        <div style="font-weight:bold; font-size:15px; color:#fff;">💊 特効薬</div>
+                        <div style="font-size:11px; color:#aaa;">全ての病気を治す(寿命-5)</div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="font-size:13px; font-weight:bold; color:#FFD700; margin-bottom:4px;">${price} G</div>
+                        <button onclick="if(${canAfford}){ window.aiPet.gold -= ${price}; window.aiPet.inventory.push({id:'item_medicine_cure', age:0}); window.aiPet.message='特効薬を買ったよ！'; window.aiPet.messageTimer=120; if(typeof updateStatUI === 'function') updateStatUI(); window.openEncounterUI('${masterType}', '「毎度ありがとうございます。用法用量を守って使ってくださいね。」', 'pharmacy_shop_buy'); } else { alert('お金が足りません！'); }" style="padding:6px 12px; font-size:12px; font-weight:bold; border:none; border-radius:4px; ${btnStyle}" ${!canAfford ? 'disabled' : ''}>購入</button>
+                    </div>
+                </div>
+                <div style="text-align:right; font-size:12px; color:#ccc;">所持金: <span style="color:#FFD700; font-weight:bold;">${hero.gold} G</span></div>
+            </div>
+        `;
+        thoughtText = "（お買い物をしよう！）";
+    }
+
     if (mode === 'encounter_intro') {
         thoughtText = "（だれ？ だれかいる...？）"; rightText = "（何者かの気配がする...）"; showTail = false; 
     }
@@ -2614,31 +2902,42 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         else if (masterType === 'cooking') { baseThought = "すごくいい匂いがする...！"; exactWord = "料理"; if (words.includes(exactWord)) score += 30; else missingWord = true; score += hero.stats.intel; missingStat = "賢さ"; }
         else if (masterType === 'smithing') { baseThought = "熱い...！火の扱いがすごそう！"; exactWord = "鍛冶"; if (words.includes(exactWord)) score += 30; else missingWord = true; score += (hero.stats.power + hero.stats.intel) / 2; missingStat = "活力や賢さ"; }
         else if (masterType === 'building') { baseThought = "プロの職人さんの手だ...！"; exactWord = "建築"; if (words.includes(exactWord)) score += 30; else missingWord = true; score += hero.stats.intel; missingStat = "賢さ"; }
-        
-        score += (hero.stats.mood - 50) * 0.2; 
-        
-        let hint = "";
-        const attempts = (hero.apprentice.attempts && hero.apprentice.attempts[masterType]) ? hero.apprentice.attempts[masterType] : 0;
-
-        if (!missingWord && score >= 50) {
-            hint = "今の僕なら、きっと認めてもらえるはず！";
-        } else if (attempts >= 1) {
-            if (missingWord) {
-                hint = `でも、前回ダメだったのは言葉のせいだ！チャットで「${exactWord}」って教えてもらえれば…！`;
-            } else {
-                let shortAmt = Math.ceil(50 - score);
-                hint = `でも、勉強や筋トレで『${missingStat}』をあと ${shortAmt > 0 ? shortAmt : '少し'} くらい上げれば絶対受かるはず…！`;
-            }
-        } else {
-            if (score >= 35) { 
-                if (missingWord) hint = "でも、もう少しこの人の『専門知識』を勉強しないと...。"; 
-                else hint = `でも、もう少し『${missingStat}』を鍛えないと厳しいかも...。`; 
-            } else { 
-                if (missingWord) hint = `今のままじゃダメだ...『${missingStat}』と『専門知識』を身につけよう。`; 
-                else hint = `今の『${missingStat}』じゃ、まだ相手にされないかも...。`; 
-            }
+        // ★修正：薬剤師（および新職業）の特別ロジック
+        else if (masterType === 'pharmacist') {
+            baseThought = "理知的で、清潔な薬品の匂いがする人だ...！"; 
+            exactWord = "調合"; 
+            missingWord = !words.includes(exactWord);
+            
+            // 薬剤師はステータス査定を行わない
+            let hint = missingWord ? `でも、まずはチャットで「${exactWord}」って言葉を教わらないと、お話にならないみたい。` : "「冒険家」を極めた今の僕なら、きっと認めてもらえるはず！";
+            thoughtText = `（${baseThought}\n${hint}）`;
         }
-        thoughtText = `（${baseThought}\n${hint}）`;
+        if (masterType !== 'pharmacist') {
+            score += (hero.stats.mood - 50) * 0.2; 
+            
+            let hint = "";
+            const attempts = (hero.apprentice.attempts && hero.apprentice.attempts[masterType]) ? hero.apprentice.attempts[masterType] : 0;
+
+            if (!missingWord && score >= 50) {
+                hint = "今の僕なら、きっと認めてもらえるはず！";
+            } else if (attempts >= 1) {
+                if (missingWord) {
+                    hint = `でも、前回ダメだったのは言葉のせいだ！チャットで「${exactWord}」って教えてもらえれば…！`;
+                } else {
+                    let shortAmt = Math.ceil(50 - score);
+                    hint = `でも、勉強や筋トレで『${missingStat}』をあと ${shortAmt > 0 ? shortAmt : '少し'} くらい上げれば絶対受かるはず…！`;
+                }
+            } else {
+                if (score >= 35) { 
+                    if (missingWord) hint = "でも、もう少しこの人の『専門知識』を勉強しないと...。"; 
+                    else hint = `でも、もう少し『${missingStat}』を鍛えないと厳しいかも...。`; 
+                } else { 
+                    if (missingWord) hint = `今のままじゃダメだ...『${missingStat}』と『専門知識』を身につけよう。`; 
+                    else hint = `今の『${missingStat}』じゃ、まだ相手にされないかも...。`; 
+                }
+            }
+            thoughtText = `（${baseThought}\n${hint}）`;
+        }
     } 
     // ★大改修：AIの「翻訳機」を安全に起動する！
     else if (mode === 'quest_offer') { 
@@ -2659,7 +2958,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     else if (mode === 'graduate') { thoughtText = "（ついにここまで来たんだ...！）"; }
     else if (mode === 'graduate_visit') { thoughtText = "（師匠！ いつもありがとうございます！）"; rightText = savedEncounterMsg; }
 
-    document.getElementById('encounter-text').innerText = rightText;
+    document.getElementById('encounter-text').innerHTML = rightText;
     
     const textEl = document.getElementById('encounter-text');
     if (textEl && textEl.parentElement) {
@@ -2738,7 +3037,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             'building': { img: "builder_battle_enemy.png", sx: 839, sy: 0, sw: 1248, sh: 1536 },
             'smithing': { img: "smith_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
             'cooking':  { img: "chef_battle_enemy.png", sx: 439, sy: 0, sw: 1766, sh: 1536 },
-            'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 }
+            'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
+            'pharmacist': { img: "pharmacist_battle_enemy.png", sx: 266, sy: 69, sw: 1344, sh: 2369 }
         };
         let mData = masterSprites[masterType];
 
@@ -2751,6 +3051,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 let tempImg = new Image();
                 tempImg.onload = function() {
                     let targetHeight = 360; 
+
                     let scale = targetHeight / mData.sh;
                     let dw = mData.sw * scale;
                     let dh = mData.sh * scale;
@@ -2803,6 +3104,24 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         if (mode === 'encounter_intro') {
             btnBox.innerHTML = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: #2196F3; color: #fff; font-weight: bold; border: 2px solid #1976D2; border-radius: 8px; cursor: pointer;">辺りを見渡す ▶</button>`;
         }
+        // ★追加：薬局の入り口（未皆伝時）
+        else if (mode === 'pharmacy_shop_intro') {
+            btnBox.innerHTML = `
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <button class="quiz-btn" onclick="window.openEncounterUI('${masterType}', '「何になさいますか？」', 'pharmacy_shop_buy')" style="flex: 1; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer;">🛍️ 購入する</button>
+                    <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">立ち去る</button>
+                </div>
+            `;
+        }
+        // ★追加：ショップリスト画面
+        else if (mode === 'pharmacy_shop_buy') {
+            btnBox.innerHTML = `
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <button class="quiz-btn" onclick="window.checkMasterVisit('${masterType}')" style="flex: 1; padding: 10px; font-size: 14px; background: #2196F3; color: #fff; font-weight: bold; border: 2px solid #1976D2; border-radius: 8px; cursor: pointer;">戻る</button>
+                    <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">立ち去る</button>
+                </div>
+            `;
+        }
         else if (mode === 'greeting') {
             thoughtText = "（言葉を教えて、またチャットで呼んで会いに行こう！）";
             btnBox.innerHTML = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: #FF9800; color: #fff; font-weight: bold; border: 2px solid #E65100; border-radius: 8px; cursor: pointer;">わかった！</button>`;
@@ -2816,6 +3135,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 let baseWord = "";
                 if (masterType === 'explore') baseWord = "探検"; else if (masterType === 'farming') baseWord = "農業"; else if (masterType === 'fishing') baseWord = "釣り";
                 else if (masterType === 'cooking') baseWord = "料理"; else if (masterType === 'smithing') baseWord = "鍛冶"; else if (masterType === 'building') baseWord = "建築";
+                // ★修正箇所1：ここで薬剤師の判定が抜けていたため、顔パスになっていました！
+                else if (masterType === 'pharmacist') baseWord = "調合";
 
                 if (baseWord && hero.apprentice && hero.apprentice.learnedWords) {
                     if (!hero.apprentice.learnedWords.includes(baseWord)) {
@@ -2830,20 +3151,32 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 mainBtnHtml = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: linear-gradient(to bottom, #FFD700, #FF9800); color: #000; font-weight: bold; border: 2px solid #FFD700; border-radius: 8px; cursor: pointer;">${yesText}</button>`;
             }
 
+            // ★修正箇所2：ここでも買い物ボタンを作るようにしました！
+            let shopBtnHtml = "";
+            if (masterType === 'pharmacist') {
+                shopBtnHtml = `<button class="quiz-btn" onclick="window.openEncounterUI('${masterType}', '「何になさいますか？」', 'pharmacy_shop_buy')" style="width: 100%; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer; margin-top:8px;">🛍️ 買い物をする</button>`;
+            }
+
             btnBox.innerHTML = `
                 ${mainBtnHtml}
-                <div style="display: flex; gap: 8px; width: 100%;">
-                    ${baitoBtn}
+                <div style="display: flex; gap: 8px; width: 100%; margin-top:8px;">
+                    ${baitoBtn ? baitoBtn : ''}
                     <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">今はやめる</button>
                 </div>
+                ${shopBtnHtml}
             `;
         }
         else if (mode === 'graduate_visit') {
+            let shopBtnHtml = "";
+            if (masterType === 'pharmacist') {
+                shopBtnHtml = `<button class="quiz-btn" onclick="window.openEncounterUI('${masterType}', '「何になさいますか？」', 'pharmacy_shop_buy')" style="width: 100%; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer; margin-top:8px;">🛍️ 買い物をする</button>`;
+            }
             btnBox.innerHTML = `
                 <div style="display: flex; gap: 8px; width: 100%;">
                     ${baitoBtn}
                     <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">また来るよ</button>
                 </div>
+                ${shopBtnHtml}
             `;
         }
         else {
@@ -2869,13 +3202,33 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
 
             let mainBtn = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="flex: 1; padding: 10px; font-size: 14px; background: #2196F3; color: #fff; font-weight: bold; border: 2px solid #1976D2; border-radius: 8px; cursor: pointer;">${btnText}</button>`;
 
-            btnBox.innerHTML = `
-                <div style="display: flex; gap: 8px; width: 100%;">
-                    ${mainBtn}
-                    ${nextQuestBtn}
-                </div>
-                ${baitoBtn ? `<div style="display: flex; gap: 8px; width: 100%;">${baitoBtn.replace('flex: 1;', 'width: 100%;')}</div>` : ''}
-            `;
+            // ★追加：通常クエスト画面でも「買い物をする」ボタンを併設！
+            let shopBtnHtml = "";
+            if (masterType === 'pharmacist' && !['greeting', 'encounter_intro', 'banned'].includes(mode)) {
+                shopBtnHtml = `<button class="quiz-btn" onclick="window.openEncounterUI('${masterType}', '「何になさいますか？」', 'pharmacy_shop_buy')" style="width: 100%; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer; margin-top:8px;">🛍️ 買い物をする</button>`;
+            }
+
+            // ★ 破門（banned）の時でも特別に買い物ボタンだけは出す！
+            if (mode === 'banned' && masterType === 'pharmacist') {
+                shopBtnHtml = `<button class="quiz-btn" onclick="window.openEncounterUI('${masterType}', '「何になさいますか？」', 'pharmacy_shop_buy')" style="width: 100%; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer; margin-bottom:8px;">🛍️ 買い物をする</button>`;
+                btnBox.innerHTML = `
+                    <div style="display: flex; gap: 8px; width: 100%;">
+                        ${shopBtnHtml}
+                    </div>
+                    <div style="display: flex; gap: 8px; width: 100%;">
+                        ${mainBtn}
+                    </div>
+                `;
+            } else {
+                btnBox.innerHTML = `
+                    <div style="display: flex; gap: 8px; width: 100%;">
+                        ${mainBtn}
+                        ${nextQuestBtn}
+                    </div>
+                    ${baitoBtn ? `<div style="display: flex; gap: 8px; width: 100%; margin-top:8px;">${baitoBtn.replace('flex: 1;', 'width: 100%;')}</div>` : ''}
+                    ${shopBtnHtml}
+                `;
+            }
         }
     }
     window.isGamePaused = true;
@@ -2912,6 +3265,7 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'cooking') greetingMsg = "「おお！君はあの時の...いや、違うな！だがその構え、既に免許皆伝の域だ！いつでも飯を食いに来い！」";
             else if (mType === 'smithing') greetingMsg = "「……お前はあの時の……いや、違うか。だがその構え、既に免許皆伝の域。……いつでも火にあたりに来い。」";
             else if (mType === 'building') greetingMsg = "「おっ。君はあの時の...いや、違う子か。だがその構え、既に免許皆伝の域だな。いつでも見学に来てくれ。」";
+            else if (mType === 'pharmacist') greetingMsg = "「おやおや！ あなたはあの時の……いえ、人違いですね。でもその薬品の扱い方、既に免許皆伝の域です！ いつでも手伝いに来てくださいね。私はこの薬局の店員ですから。」";
         } else {
             if (mType === 'explore') greetingMsg = "「この周辺をキャンプ地にしようと思うの。準備ができたらまたいらっしゃい！」";
             else if (mType === 'farming') greetingMsg = "「この辺りに畑を作ろうと思ってね。準備ができたらまたおいで。」";
@@ -2919,6 +3273,7 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'cooking') greetingMsg = "「この辺りで屋台を開くぞ！準備ができたらまた来な！」";
             else if (mType === 'smithing') greetingMsg = "「……この辺りに炉を構える。準備ができたら来い。」";
             else if (mType === 'building') greetingMsg = "「この辺りを拠点にする。準備ができたらまた来てくれ。」";
+            else if (mType === 'pharmacist') greetingMsg = "「おやおや、この薬局へようこそ。無茶をしてはいけませんよ、健康が第一ですからね。私はここで店員をしています。準備ができたらまた来てくださいね。」";
         }
 
         // 試験(encounter)ではなく、挨拶(greeting)へ進む！
@@ -2953,6 +3308,8 @@ window.confirmEncounter = function(isAccept) {
         
         if (mType === 'smithing') { cType = 'blacksmith'; cName = '鍛冶師のキャンプ'; }
         else if (mType === 'building') { cType = 'palms'; cName = '建築士のテント'; }
+        // ★追加：薬剤師の場合はすでに薬局がマップにあるため、テントを新たに作らない！
+        else if (mType === 'pharmacist') { cType = null; }
         else if (mType === 'cooking') { 
             cType = null; 
             for (let k in assets) {
@@ -2980,7 +3337,7 @@ window.confirmEncounter = function(isAccept) {
             assets[campId] = { type: cType, name: cName, dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMasterShop: isMasterShop };
         }
 
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
         const mName = masterNames[mType];
         
         if (!hero.apprentice.learnedWords.includes(mName)) {
@@ -3011,6 +3368,25 @@ window.confirmEncounter = function(isAccept) {
             if (!hero.apprentice.activeQuests) hero.apprentice.activeQuests = [];
             const qData = hero.getMasterQuestData(mType, 0);
             hero.apprentice.activeQuests.push({ name: qData.name, desc: qData.desc, rank: 0, masterType: mType, qVal: 0 });
+            
+            // ==========================================
+            // ★追加：薬剤師の入門試験を受けた時に初めて「薬剤師のところへ」を解放する
+            // ==========================================
+            if (mType === 'pharmacist') {
+                if (!hero.apprentice.metMasters) hero.apprentice.metMasters = [];
+                if (!hero.apprentice.metMasters.includes(mType)) hero.apprentice.metMasters.push(mType);
+                
+                const mName = "薬剤師";
+                if (!hero.apprentice.learnedWords.includes(mName)) {
+                    hero.apprentice.learnedWords.push(mName);
+                    setTimeout(() => {
+                        hero.message = `「${mName}」という言葉を覚えた！\n（チャットで呼びかけて会いに行こう）`; hero.messageTimer = 180;
+                        if (typeof addFloatingText === 'function') addFloatingText(hero.x, hero.y - 60, "言葉を学習した！", "#FF9800");
+                        if (typeof updateCommandHUD === 'function') updateCommandHUD();
+                    }, 1000); 
+                }
+            }
+
             hero.message = "入門試験の課題を受けた！言葉を覚えよう！"; hero.messageTimer = 120;
             if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
             if (typeof saveGameData === 'function') saveGameData(); 
@@ -3032,6 +3408,13 @@ window.confirmEncounter = function(isAccept) {
             hero.apprentice.questAcceptedAge = hero.age || 0;
             hero.apprentice.lazyReportCount = 0;
 
+            // ==========================================
+            // ★ 追加：薬剤師Rank1のクエストを受注した瞬間にフラグを立てる
+            // ==========================================
+            if (mType === 'pharmacist' && rank === 1) {
+                hero.pharmacistMatsUnlocked = true;
+            }
+
             hero.message = "課題を受けた！頑張ろう！"; hero.messageTimer = 120;
         } else {
             hero.message = "今はやめておこう..."; hero.messageTimer = 120;
@@ -3051,7 +3434,7 @@ window.confirmEncounter = function(isAccept) {
             hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.rank !== 0);
         }
         
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
         const mName = masterNames[mType];
         
         setTimeout(() => {
@@ -3089,6 +3472,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'explore') { hero.apprentice.title = "大冒険家"; hero.stats.power += 50; hero.stats.mood += 50; hero.inventory.push('crystal'); }
         else if (mType === 'fishing') { hero.apprentice.title = "伝説の漁師"; hero.stats.power += 25; hero.stats.intel += 25; if(typeof itemCatalog !== 'undefined' && itemCatalog['rod_super']) hero.inventory.push('rod_super'); }
         else if (mType === 'building') { hero.apprentice.title = "一流建築士"; hero.skills.building = 20; hero.stats.power += 30; hero.stats.intel += 30; }
+        else if (mType === 'pharmacist') { hero.apprentice.title = "宮廷薬剤師"; hero.skills.mixing = 20; hero.stats.intel += 50; hero.inventory.push('elixir'); }
 
         if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD(); 
@@ -3116,6 +3500,23 @@ window.confirmEncounter = function(isAccept) {
         if (mType === 'farming') { for (let k in assets) { if (assets[k].type === 'farm') { delete assets[k]; break; } } }
         if (typeof saveGameData === 'function') saveGameData();
     }
+
+    // ==========================================
+    // ★ 修正：会話終了後に部屋から出すロジック（すべてのモードに適用）
+    // ==========================================
+    // AIが建物（薬局・レストラン等）の中にいる場合、どんな結果であれ会話が終わったら外に出る
+    if (hero.isIndoors || hero.actionState === 'inside') {
+        hero.actionState = 'exiting'; // 退出アニメーション開始
+        hero.isIndoors = false;
+        hero.indoorTarget = null;
+        
+        // 拒否した時や、ただの挨拶の時だけ専用の別れ際のセリフにする
+        if (!isAccept || currentEncounterMode === 'greeting' || currentEncounterMode === 'banned') {
+            hero.message = "それじゃあ、またね！";
+            hero.messageTimer = 120;
+        }
+    }
+
     currentEncounterMaster = null; currentEncounterMode = '';
 };
 
@@ -3152,6 +3553,15 @@ window.checkMasterVisit = function(masterType) {
     let isApprentice = (app.currentMaster === masterType) || (app.retired && app.retired[masterType]) || (app.rank && app.rank[masterType] >= 10);
     let isBanned = (app.excommunicatedFrom === masterType) || (!isApprentice && app.attempts && app.attempts[masterType] >= 3);
     
+    // ★追加：まだ顔合わせをしていない場合（metMastersにない場合）は、初回挨拶(encounter_intro)を強制する！
+    if (!app.metMasters) app.metMasters = [];
+    if (!app.metMasters.includes(masterType)) {
+        if (typeof window.openEncounterUI === 'function') {
+            window.openEncounterUI(masterType, "", 'encounter_intro');
+        }
+        return;
+    }
+
     // 出禁判定
     if (isBanned) {
         let rejectMsg = "";
@@ -3161,8 +3571,23 @@ window.checkMasterVisit = function(masterType) {
         else if (masterType === 'cooking') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もない！帰れ！」" : "「君には見込みがない！他を当たってくれ！」";
         else if (masterType === 'smithing') rejectMsg = (app.excommunicatedFrom === masterType) ? "「……お前に教えることはもう何もない。帰れ。」" : "「……君には見込みがない。他を当たれ。」";
         else if (masterType === 'building') rejectMsg = (app.excommunicatedFrom === masterType) ? "「君に教えることはもう何もない。帰ってくれ。」" : "「君には見込みがないな。他を当たってくれ。」";
+        else if (masterType === 'pharmacist') {
+            rejectMsg = (app.excommunicatedFrom === masterType) 
+                ? "「破門した方に教えることはありません。…ですが、薬局の店員として『薬の販売』だけは事務的に対応します。お買い物ならカウンターへどうぞ。」" 
+                : "「あなたの不誠実な態度は、命を預かる薬学には向きません。…ただ、店員として客を拒むことはしません。お買い物だけならあちらへ。」";
+        }
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, rejectMsg, 'banned');
         return;
+    }
+
+    // ★追加：冒険家皆伝前、または未入門の薬局訪問時は「買い物専用モード」にする
+    if (masterType === 'pharmacist' && !isApprentice) {
+        let isExplorerMaster = app.retired['explore'] || (app.rank['explore'] >= 10);
+        if (!isExplorerMaster) {
+            let introMsg = "「おやおや、この薬局へようこそ。健康第一ですよ。何かご入り用ですか？」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, introMsg, 'pharmacy_shop_intro');
+            return;
+        }
     }
 
     const myQuests = app.activeQuests.filter(q => q.masterType === masterType);
@@ -3172,6 +3597,7 @@ window.checkMasterVisit = function(masterType) {
         let baseWord = "";
         if (masterType === 'explore') baseWord = "探検"; else if (masterType === 'farming') baseWord = "農業"; else if (masterType === 'fishing') baseWord = "釣り";
         else if (masterType === 'cooking') baseWord = "料理"; else if (masterType === 'smithing') baseWord = "鍛冶"; else if (masterType === 'building') baseWord = "建築";
+        else if (masterType === 'pharmacist') baseWord = "調合";
 
         let words = app.learnedWords || [];
         if (!words.includes(baseWord)) {
@@ -3181,6 +3607,7 @@ window.checkMasterVisit = function(masterType) {
             else if (masterType === 'cooking') examMsg = `「ダメだな！まずは『${baseWord}』の何たるかを知ってから出直してこい！」`;
             else if (masterType === 'smithing') examMsg = `「……まずは『${baseWord}』の何たるかを知ってから来い。」`;
             else if (masterType === 'building') examMsg = `「悪いが、まずは『${baseWord}』の基本を知ってから来てくれ。」`;
+            else if (masterType === 'pharmacist') examMsg = `「おやおや、無茶をしてはいけませんよ。薬学に興味があるなら、まずは『${baseWord}』の基本を学んでから来てくださいね。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
         } else {
             let offerMsg = "";
@@ -3190,6 +3617,7 @@ window.checkMasterVisit = function(masterType) {
             else if (masterType === 'cooking') offerMsg = `「私に弟子入りしたいのか！ よし、ではこの課題『入門試験の準備』をこなしてみせろ！」`;
             else if (masterType === 'smithing') offerMsg = `「……俺に弟子入りしたいのか。よし、ではこの課題『入門試験の準備』をこなしてみせろ。」`;
             else if (masterType === 'building') offerMsg = `「私に弟子入りしたいのか？ よし、ではこの課題『入門試験の準備』をこなしてみせよ。」`;
+            else if (masterType === 'pharmacist') offerMsg = `「私の薬局で学びたいのですね？ よろしいでしょう。では、この処方箋『入門試験の準備』をこなしてみてくださいね。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer_exam');
         }
         return;
@@ -3224,6 +3652,7 @@ window.checkMasterVisit = function(masterType) {
             else if (masterType === 'cooking') examMsg = `「言葉は覚えてきたか！ 準備ができたなら、試験開始だ！」`;
             else if (masterType === 'smithing') examMsg = `「……言葉は覚えてきたな。準備ができたなら、試験を始めるぞ。」`;
             else if (masterType === 'building') examMsg = `「言葉は覚えてきたな？ 準備ができたなら、試験開始だ。」`;
+            else if (masterType === 'pharmacist') examMsg = `「言葉は覚えてきましたか？ 準備ができたなら、試験を始めますよ。健康第一でいきましょう！」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
             return;
         }
@@ -3245,6 +3674,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'cooking') reportMsg += `「いい手際だったな！報酬の ${gold}G だ！腹が減ったらまたうちの厨房を手伝いに来な！」\n`;
                     else if (masterType === 'smithing') reportMsg += `「……悪くない腕だ。報酬の ${gold}G だ。……また火にあたりに来い。」\n`;
                     else if (masterType === 'building') reportMsg += `「良い仕事だった。報酬の ${gold}G だ。……また現場が忙しい時は頼むぞ。」\n`;
+                    else if (masterType === 'pharmacist') reportMsg += `「手伝ってくれて助かりました。これは報酬の ${gold}G です。無茶をして倒れないようにしてくださいね！」\n`;
                 } else {
                     isExamCleared = true;
                     examRank = q.rank;
@@ -3268,6 +3698,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'cooking') reportMsg += "「見事だ！君に教えることはもう何もない！免許皆伝だ！」";
                     else if (masterType === 'smithing') reportMsg += "「……見事だ。お前に教えることはもう何もない。免許皆伝だ。」";
                     else if (masterType === 'building') reportMsg += "「見事だな！君に教えることはもう何もない...免許皆伝だ！」";
+                    else if (masterType === 'pharmacist') reportMsg += "「素晴らしい。正確な計量でした！ あなたに教えることはもうありません……免許皆伝です！ これからも健康第一でね。」";
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
                 } else {
                     if (masterType === 'explore') reportMsg += `「よし、課題クリアね！あなたのランクが ${examRank + 1} に上がったわよ！」`;
@@ -3276,6 +3707,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'cooking') reportMsg += `「よし、課題クリアだ！君のランクが ${examRank + 1} に上がったぞ！」`;
                     else if (masterType === 'smithing') reportMsg += `「……よし、課題クリアだ。お前のランクが ${examRank + 1} に上がったぞ。」`;
                     else if (masterType === 'building') reportMsg += `「よし、課題クリアだな！君のランクが ${examRank + 1} に上がったぞ！」`;
+                    else if (masterType === 'pharmacist') reportMsg += `「素晴らしい。正確な計量でした！ あなたのランクが ${examRank + 1} に上がりましたよ！」`;
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
                 }
             } else {
@@ -3303,6 +3735,7 @@ window.checkMasterVisit = function(masterType) {
                 else if (masterType === 'cooking') reason = isNeglected ? "「何年待たせる気だ！君のように不真面目な者に教えることは何もない！破門だ！」" : "「何度も冷やかしおって！君のように不真面目な者に教えることは何もない！破門だ！」";
                 else if (masterType === 'smithing') reason = "「……何年待たせる気だ。貴様のように不真面目な者に教えることは何もない。破門だ。」"; // (鍛冶屋はどちらも同じセリフ)
                 else if (masterType === 'building') reason = isNeglected ? "「何年待たせる気だ！君のように不真面目な者に教えることは何もないぞ！破門だ！」" : "「何度も冷やかしおって！君のように不真面目な者に教えることは何もないぞ！破門だ！」";
+                else if (masterType === 'pharmacist') reason = isNeglected ? "「おやおや、何年放置しているんですか！ 薬の使用期限も切れてしまいます。健康を軽視する不真面目な方に教える薬学はありません、破門ですよ！」" : "「何度も冷やかしに来て……健康を軽視する不真面目な方に教える薬学はありません！ 破門ですよ！」";
                 
                 if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reason, 'excommunicate');
                 return;
@@ -3326,6 +3759,7 @@ window.checkMasterVisit = function(masterType) {
         else if (masterType === 'cooking') msg = "「おお、よく来たな！ もう教えることはないが、手伝いならいつでも歓迎するぞ！」";
         else if (masterType === 'smithing') msg = "「……よく来たな。もう教えることはないが、手伝いなら歓迎するぞ。」";
         else if (masterType === 'building') msg = "「おお、よく来たな！ もう教えることはないが、手伝いならいつでも歓迎だぞ！」";
+        else if (masterType === 'pharmacist') msg = "「おやおや、よく来てくれましたね！ もう教えることはありませんが、調合の手伝いならいつでも歓迎ですよ。健康には気をつけて！」";
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
         return;
     }
@@ -3337,43 +3771,48 @@ window.checkMasterVisit = function(masterType) {
     // ★ 究極のNG+対応：一番最初（ランク1）の時だけステータスを査定し「顔パス」発動！
     // ==========================================
     if (rank === 1) {
-        let p = hero.stats.power || 10; let i = hero.stats.intel || 10;
-        let b = hero.stats.beauty || 10; let s = hero.stats.speed || 10;
+        // ★修正：薬剤師は顔パス（飛び級）をスキップする
+        if (masterType === 'pharmacist') {
+            // 薬剤師は飛び級なし
+        } else {
+            let p = hero.stats.power || 10; let i = hero.stats.intel || 10;
+            let b = hero.stats.beauty || 10; let s = hero.stats.speed || 10;
 
-        const rankReqs = {
-            'explore': { 10: {p:105, s:55, i:30, b:20}, 9: {p:55, s:55, i:30, b:20}, 8: {p:55, s:55, i:30, b:20}, 7: {p:55, s:25, i:30, b:20}, 6: {p:55, s:25, i:30}, 5: {p:25, s:25, i:30}, 4: {p:25, s:25}, 3: {p:25, s:25}, 2: {p:25} },
-            'farming': { 10: {p:105, b:55, i:25}, 9: {p:55, b:55, i:25}, 8: {p:55, b:55, i:25}, 7: {p:55, b:55, i:25}, 6: {p:55, b:25, i:25}, 5: {p:25, b:25, i:25}, 4: {p:25, b:25}, 3: {p:25}, 2: {p:25} },
-            'fishing': { 10: {p:105, s:55, b:20}, 9: {p:55, s:55, b:20}, 8: {p:55, s:55, b:20}, 7: {p:55, s:25, b:20}, 6: {p:55, s:25}, 5: {p:25, s:25}, 4: {p:25, s:25}, 3: {p:25}, 2: {p:25} },
-            'cooking': { 10: {i:105, b:55}, 9: {i:55, b:55}, 8: {i:55, b:55}, 7: {i:55, b:25}, 6: {i:55, b:25}, 5: {i:25, b:25}, 4: {i:25, b:25}, 3: {i:25}, 2: {i:25} },
-            'smithing': { 10: {p:105, i:55, b:20}, 9: {p:55, i:55, b:20}, 8: {p:55, i:55, b:20}, 7: {p:55, i:25, b:20}, 6: {p:55, i:25}, 5: {p:25, i:25}, 4: {p:25, i:25}, 3: {p:25}, 2: {p:25} },
-            'building': { 10: {i:105, p:55, b:25}, 9: {i:55, p:55, b:25}, 8: {i:55, p:55, b:25}, 7: {i:55, p:25, b:25}, 6: {i:55, p:25}, 5: {i:25, p:25}, 4: {i:25, p:25}, 3: {i:25}, 2: {i:25} }
-        };
+            const rankReqs = {
+                'explore': { 10: {p:105, s:55, i:30, b:20}, 9: {p:55, s:55, i:30, b:20}, 8: {p:55, s:55, i:30, b:20}, 7: {p:55, s:25, i:30, b:20}, 6: {p:55, s:25, i:30}, 5: {p:25, s:25, i:30}, 4: {p:25, s:25}, 3: {p:25, s:25}, 2: {p:25} },
+                'farming': { 10: {p:105, b:55, i:25}, 9: {p:55, b:55, i:25}, 8: {p:55, b:55, i:25}, 7: {p:55, b:55, i:25}, 6: {p:55, b:25, i:25}, 5: {p:25, b:25, i:25}, 4: {p:25, b:25}, 3: {p:25}, 2: {p:25} },
+                'fishing': { 10: {p:105, s:55, b:20}, 9: {p:55, s:55, b:20}, 8: {p:55, s:55, b:20}, 7: {p:55, s:25, b:20}, 6: {p:55, s:25}, 5: {p:25, s:25}, 4: {p:25, s:25}, 3: {p:25}, 2: {p:25} },
+                'cooking': { 10: {i:105, b:55}, 9: {i:55, b:55}, 8: {i:55, b:55}, 7: {i:55, b:25}, 6: {i:55, b:25}, 5: {i:25, b:25}, 4: {i:25, b:25}, 3: {i:25}, 2: {i:25} },
+                'smithing': { 10: {p:105, i:55, b:20}, 9: {p:55, i:55, b:20}, 8: {p:55, i:55, b:20}, 7: {p:55, i:25, b:20}, 6: {p:55, i:25}, 5: {p:25, i:25}, 4: {p:25, i:25}, 3: {p:25}, 2: {p:25} },
+                'building': { 10: {i:105, p:55, b:25}, 9: {i:55, p:55, b:25}, 8: {i:55, p:55, b:25}, 7: {i:55, p:25, b:25}, 6: {i:55, p:25}, 5: {i:25, p:25}, 4: {i:25, p:25}, 3: {i:25}, 2: {i:25} }
+            };
 
-        let skipRank = 1;
-        const reqMap = rankReqs[masterType];
-        if (reqMap) {
-            for (let r = 10; r >= 2; r--) {
-                let req = reqMap[r];
-                let isMeet = true;
-                if (req.p && p < req.p) isMeet = false;
-                if (req.i && i < req.i) isMeet = false;
-                if (req.b && b < req.b) isMeet = false;
-                if (req.s && s < req.s) isMeet = false;
-                if (isMeet) { skipRank = r; break; }
+            let skipRank = 1;
+            const reqMap = rankReqs[masterType];
+            if (reqMap) {
+                for (let r = 10; r >= 2; r--) {
+                    let req = reqMap[r];
+                    let isMeet = true;
+                    if (req.p && p < req.p) isMeet = false;
+                    if (req.i && i < req.i) isMeet = false;
+                    if (req.b && b < req.b) isMeet = false;
+                    if (req.s && s < req.s) isMeet = false;
+                    if (isMeet) { skipRank = r; break; }
+                }
             }
-        }
 
-        // 現在のランクより上位の条件を満たしていたら、顔パスイベント発動！
-        if (skipRank > rank) {
-            if (skipRank === 10) {
-                let msg = `「さあ、最初の課題を出そうかと思ったが……なんという才能だ！\nお前に教えることは最初から無かったようだな。特別に『免許皆伝』を授けよう！！」`;
-                if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_skip');
-                return;
-            } else {
-                hero.apprentice._pendingSkipRank = skipRank;
-                let msg = `「最初の課題を出そうと思ったが……君、凄まじいオーラを持っているな！\n退屈な基礎は免除だ、特別に【ランク${skipRank}】から修練を始めよう！」`;
-                if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'rank_skip_offer');
-                return;
+            // 現在のランクより上位の条件を満たしていたら、顔パスイベント発動！
+            if (skipRank > rank) {
+                if (skipRank === 10) {
+                    let msg = `「さあ、最初の課題を出そうかと思ったが……なんという才能だ！\nお前に教えることは最初から無かったようだな。特別に『免許皆伝』を授けよう！！」`;
+                    if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_skip');
+                    return;
+                } else {
+                    hero.apprentice._pendingSkipRank = skipRank;
+                    let msg = `「最初の課題を出そうと思ったが……君、凄まじいオーラを持っているな！\n退屈な基礎は免除だ、特別に【ランク${skipRank}】から修練を始めよう！」`;
+                    if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'rank_skip_offer');
+                    return;
+                }
             }
         }
     }
@@ -3382,6 +3821,39 @@ window.checkMasterVisit = function(masterType) {
     const qData = hero.getMasterQuestData(masterType, rank);
     let flavor = (typeof window.masterFlavor !== 'undefined' && window.masterFlavor[masterType]) ? window.masterFlavor[masterType] : { offer: (name) => `「新たなる課題『${name}』を命ずる！」` };
     let offerMsg = flavor.offer(qData.name);
+    
+    // ==========================================
+    // ★追加：薬剤師の特別セリフ（Rank1とRank3）
+    // ==========================================
+    if (masterType === 'pharmacist' && rank === 1) {
+        offerMsg = `「まずは基本となる素材集め、『${qData.name}』をお願いします。\n今から私が教える見分け方を使えば、これからの探索で『薬草』と『きれいな水』を見つけられるようになりますよ！」`;
+    } 
+    // ★ここを追加：Rank3で手帳の存在を教える
+    else if (masterType === 'pharmacist' && rank === 3) {
+        offerMsg = `「いよいよ実際の調合ですね。今回の課題は『${qData.name}』です。\n必要な素材のレシピは、あなたの『知識の手帳』に書き込んでおきましたので、確認しながら進めてくださいね。」`;
+    }
+    // ★ここを追加：Rank4で毒キノコの見分け方を教える
+    else if (masterType === 'pharmacist' && rank === 4) {
+        offerMsg = `「調合の腕が上がってきましたね。次の課題は『${qData.name}』です。\n薬と毒は表裏一体……これからの探索で『毒キノコ』を見分けられるようになるはずですよ。気をつけて採取してきてくださいね。」`;
+    }
+    // ==========================================
+    // ★ここを追加：Rank5で解毒薬の手帳解放を伝える
+    // ==========================================
+    else if (masterType === 'pharmacist' && rank === 5) {
+        offerMsg = `「無事に『毒キノコ』を採取できましたね。それでは課題『${qData.name}』です。\nあなたの手帳に『解毒薬』のレシピを追加しました。毒を中和する術を身につけましょう！」`;
+    }
+    // ==========================================
+    // ★ここを追加：Rank6で集中薬の手帳解放を伝える
+    // ==========================================
+    else if (masterType === 'pharmacist' && rank === 6) {
+        offerMsg = `「解毒薬の調合、お見事でした。それでは次の課題『${qData.name}』です。\nあなたの手帳に『集中薬』のレシピを追加しました。これを飲んで、さらに効率よく学んでいきましょうね！」`;
+    }
+    // ==========================================
+    // ★ここを追加：Rank8で万能の霊薬の存在を伝える
+    // ==========================================
+    else if (masterType === 'pharmacist' && rank === 8) {
+        offerMsg = `「いよいよ大詰めですね。次の課題は『${qData.name}』です。\n調合時に稀に完成する究極の薬……『万能の霊薬』を作り出してください。あなたならきっとできますよ！」`;
+    }
     
     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer', qData);
 };
@@ -3393,6 +3865,15 @@ window.updateQuestHUD = function() {
     const hud = document.getElementById('questHUD');
     const list = document.getElementById('questListHUD');
     if (!hud || !list) return;
+
+    // ==========================================
+    // ★追加：タイトル画面やロード画面では絶対に表示しない
+    // ==========================================
+    let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
+    if (mode !== 'play') {
+        hud.style.display = 'none';
+        return;
+    }
 
     hud.style.pointerEvents = 'auto';
     list.style.pointerEvents = 'auto';
@@ -3474,7 +3955,12 @@ window.updateQuestHUD = function() {
             const desc = q.desc;
             let isStatQuest = false; let statVal = 0;
             
-            if (desc.includes("賢さ") || desc.includes("知性")) { isStatQuest = true; statVal = hero.stats.intel; }
+            // ★修正：「集中薬」の説明文によるステータス判定の誤爆を回避
+            if (desc.includes("賢さ") || desc.includes("知性")) { 
+                if (!desc.includes("集中薬")) {
+                    isStatQuest = true; statVal = hero.stats.intel; 
+                }
+            }
             else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = hero.stats.power; }
             else if (desc.includes("美しさ")) { isStatQuest = true; statVal = hero.stats.beauty; }
             else if (desc.includes("素早さ")) { isStatQuest = true; statVal = hero.stats.speed; }
@@ -3522,6 +4008,24 @@ window.updateQuestHUD = function() {
                 if (desc.includes("練習用の図面")) itemsStr.push(formatReq("練習図面", inv.filter(i => i === 'build_practice_normal').length, 3));
                 if (desc.includes("建築模型")) itemsStr.push(formatReq("建築模型", inv.filter(i => i === 'build_practice_great').length, 3));
 
+                // ==========================================
+                // ★ここに追加：薬剤師のクエストアイテム判定（HUD用）
+                // ==========================================
+                if (desc.includes("薬草")) itemsStr.push(formatReq("薬草", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'herb').length, desc.includes("5つ") ? 5 : 3));
+                if (desc.includes("きれいな水")) itemsStr.push(formatReq("水", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'water').length, desc.includes("5つ") ? 5 : 3));
+                // 修正後
+                if (desc.includes("風邪薬")) itemsStr.push(formatReq("風邪薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'item_medicine_cold').length, desc.includes("2つ") ? 2 : 1));
+
+                // 毒キノコはRank4（毒のサンプル〜）の時だけカウントする
+                if (desc.includes("毒のサンプル")) itemsStr.push(formatReq("毒キノコ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'poison_mushroom').length, 3));
+
+                // ==========================================
+                // ★追加：解毒薬のカウント（Rank5）
+                // ==========================================
+                if (desc.includes("解毒薬")) itemsStr.push(formatReq("解毒薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'item_antidote').length, desc.includes("2つ") ? 2 : 1));
+                // ★修正：集中薬のカウント（バフ付与中の文言があるRank7ではカウントしない）
+                if (desc.includes("集中薬") && !desc.includes("バフ付与中")) itemsStr.push(formatReq("集中薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'item_medicine_focus').length, 1));
+                if (desc.includes("万能の霊薬")) itemsStr.push(formatReq("万能の霊薬", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'elixir').length, 1));
                 if (itemsStr.length === 0) isItemQuest = false;
                 if (q.isBaitoQuest) isItemQuest = false; // バイトの場合は強制的に除外
 
@@ -4295,19 +4799,11 @@ window.showLifePathEvent = function(hero, path) {
 };
 
 // ==========================================
-// ★ 建築設計図（レシピ）UIの描画処理（素材判定付き完全版）
-// ==========================================
-window.openBuildRecipe = function() {
-    window.renderBuildRecipe();
-    const overlay = document.getElementById('buildRecipeOverlay');
-    if (overlay) overlay.classList.add('active');
-};
-
-// ==========================================
 // ★ 建築設計図（レシピ）UIの描画処理（条件フラグ対応版）
 // ==========================================
-window.renderBuildRecipe = function() {
-    const listEl = document.getElementById('buildRecipeList');
+window.renderBuildRecipe = function(containerEl) {
+    // ★統合対応：引数でコンテナを受け取れるように変更
+    const listEl = containerEl || document.getElementById('buildRecipeList');
     if (!listEl) return;
     if (typeof buildingCatalog === 'undefined') return;
 
@@ -4381,6 +4877,119 @@ window.renderBuildRecipe = function() {
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div style="font-size:18px; font-weight:bold; color:${hasMaterials ? '#4CAF50' : '#ccc'};">${bData.name}</div>
                     <div style="display:flex; align-items:center; gap:10px;">
+                        ${statusBadge}
+                    </div>
+                </div>
+                <div>${matHtml}</div>
+            </div>
+        `;
+    }
+    // ★統合対応：innerHTMLでの上書きを避け、追加する形に変更
+    if (containerEl) {
+        let div = document.createElement('div');
+        div.innerHTML = html;
+        listEl.appendChild(div);
+    } else {
+        listEl.innerHTML = html;
+    }
+};
+
+// ==========================================
+// ★新規：処方箋（調合レシピ）UIの描画処理
+// ==========================================
+window.renderMedicineRecipe = function() {
+    const listEl = document.getElementById('medicineRecipeList');
+    if (!listEl) return;
+
+    let ai = window.aiPet;
+    let rank = (ai.apprentice && ai.apprentice.rank && ai.apprentice.rank['pharmacist']) || 0;
+    let isMaster = ai.apprentice && (
+        (ai.apprentice.retired && ai.apprentice.retired['pharmacist']) ||
+        (ai.apprentice.currentMaster === 'pharmacist' && ai.apprentice.isGraduated) ||
+        rank >= 10
+    );
+
+    // 成功率の計算（基本30% + ランク×5% + 賢さの10%）
+    let intel = ai.stats ? (ai.stats.intel || 10) : 10;
+    let successRate = 30 + (rank * 5) + Math.floor(intel * 0.1);
+    successRate = Math.min(95, Math.max(10, successRate)); // 10%～95%の範囲内に収める
+
+    // ランクごとの解放レシピデータ
+    const MEDICINE_CATALOG = {
+        'item_medicine_cold': { name: '風邪薬', icon: '🤒', reqs: { 'herb': 1, 'water': 1 }, reqRank: 3 },
+        'item_antidote': { name: '解毒薬', icon: '🤢', reqs: { 'herb': 1, 'poison_mushroom': 1 }, reqRank: 5 },
+        'item_medicine_focus': { name: '集中薬', icon: '🧠', reqs: { 'water': 1, 'poison_mushroom': 1 }, reqRank: 6 },
+        'elixir': { name: '万能の霊薬', icon: '✨', reqs: {}, reqRank: 8, isSpecial: true, desc: "「調合」の大成功時にのみ稀に完成" },
+        // ==========================================
+        // ★修正：クエストに含まれない「胃薬」は、免許皆伝後（Rank10）のボーナスレシピに変更！
+        // ==========================================
+        'item_medicine_stomach': { name: '胃薬', icon: '🤮', reqs: { 'herb': 1, 'item_berry': 1 }, reqRank: 10 }
+    };
+
+    let myItems = {};
+    if (ai.inventory) {
+        ai.inventory.forEach(item => {
+            let id = typeof item === 'string' ? item : item.id;
+            myItems[id] = (myItems[id] || 0) + 1;
+        });
+    }
+
+    let html = `<div style="font-size:16px; font-weight:bold; color:#4CAF50; margin-bottom:15px; padding:10px; background:rgba(76,175,80,0.1); border-radius:6px; text-align:center; border:2px solid #4CAF50; text-shadow:0 0 5px rgba(76,175,80,0.5);">🌿 処方箋 (現在のランク: ${isMaster ? '皆伝' : rank})</div>`;
+
+    for (let mId in MEDICINE_CATALOG) {
+        const mData = MEDICINE_CATALOG[mId];
+        
+        // ランクが足りないレシピは非表示
+        if (!isMaster && rank < mData.reqRank) continue;
+
+        if (mData.isSpecial) {
+            html += `
+                <div style="background:#222; border:2px solid #FFD700; border-radius:8px; padding:15px; margin-bottom:12px;">
+                    <div style="font-size:18px; font-weight:bold; color:#FFD700; margin-bottom:8px; text-align:center;">${mData.icon} ${mData.name}</div>
+                    <div style="color:#aaa; font-size:12px; text-align:center;">${mData.desc}</div>
+                </div>
+            `;
+            continue;
+        }
+
+        let hasMaterials = true;
+        let matHtml = "";
+
+        if (mData.reqs && Object.keys(mData.reqs).length > 0) {
+            for (let mKey in mData.reqs) {
+                let reqCount = mData.reqs[mKey];
+                let myCount = myItems[mKey] || 0;
+                
+                const fallbackNames = { 'herb': '薬草', 'water': 'きれいな水', 'item_berry': '野イチゴ', 'poison_mushroom': '毒キノコ' };
+                let mName = (typeof itemCatalog !== 'undefined' && itemCatalog[mKey]) ? itemCatalog[mKey].name : (fallbackNames[mKey] || mKey);
+                
+                let isEnough = myCount >= reqCount;
+                if (!isEnough) hasMaterials = false;
+                
+                let color = isEnough ? "#4CAF50" : "#ff5252";
+                let bgColor = isEnough ? "rgba(76,175,80,0.1)" : "rgba(255,82,82,0.1)";
+                
+                matHtml += `<span style="display:inline-block; background:${bgColor}; border:1px solid ${color}; border-radius:4px; padding:4px 8px; margin:0 4px 4px 0; font-size:12px; color:${color}; font-weight:bold;">
+                    ${mName} : ${myCount} / ${reqCount}
+                </span>`;
+            }
+        }
+
+        let statusBadge = hasMaterials 
+            ? `<span style="background:#4CAF50; color:#FFF; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3);">✅ 調合可能！</span>`
+            : `<span style="background:#ff5252; color:#FFF; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold;">❌ 素材不足</span>`;
+
+        let rateColor = successRate >= 80 ? "#00BCD4" : (successRate >= 50 ? "#FF9800" : "#f44336");
+        let rateBadge = `<span style="background:rgba(0,0,0,0.5); color:${rateColor}; border:1px solid ${rateColor}; padding:3px 8px; border-radius:12px; font-size:11px; font-weight:bold;">成功率: ${successRate}%</span>`;
+
+        let borderColor = hasMaterials ? '#4CAF50' : '#555';
+        
+        html += `
+            <div style="background:#222; border:2px solid ${borderColor}; border-radius:8px; padding:15px; margin-bottom:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                    <div style="font-size:18px; font-weight:bold; color:${hasMaterials ? '#4CAF50' : '#ccc'};">${mData.icon} ${mData.name}</div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        ${rateBadge}
                         ${statusBadge}
                     </div>
                 </div>
@@ -6381,38 +6990,6 @@ window._builderBtnCheckInterval = setInterval(() => {
     });
 }, 1000);
 
-// 2. 設計図を開く際に、皆伝前なら上の余計な説明文を自動で消去する
-const _originalOpenBuildRecipe = window.openBuildRecipe;
-window.openBuildRecipe = function() {
-    const overlay = document.getElementById('buildRecipeOverlay');
-    if (overlay) {
-        let ai = window.aiPet;
-        let isMaster = ai && ai.apprentice && (
-            (ai.apprentice.retired && ai.apprentice.retired['building']) ||
-            (ai.apprentice.currentMaster === 'building' && ai.apprentice.isGraduated) ||
-            (ai.apprentice.rank && ai.apprentice.rank['building'] >= 10)
-        );
-
-        const walk = document.createTreeWalker(overlay, NodeFilter.SHOW_TEXT, null, false);
-        let node;
-        while (node = walk.nextNode()) {
-            if (node.nodeValue.includes("ランクに応じて作れる施設が増えます") || 
-                node.nodeValue.includes("作成する場合は、チャットで")) {
-                if (node.parentElement) {
-                    node.parentElement.style.display = isMaster ? '' : 'none';
-                }
-            }
-        }
-    }
-    
-    if (typeof _originalOpenBuildRecipe === 'function') {
-        _originalOpenBuildRecipe();
-    } else {
-        window.renderBuildRecipe();
-        if (overlay) overlay.classList.add('active');
-    }
-};
-
 // ==========================================
 // 🏪 ショップ完全自動化＆おつかいシステムパッチ
 // ==========================================
@@ -7031,112 +7608,6 @@ window.calculateShopPrice = function(itemId, shopData) {
 };
 
 // ==========================================
-// 📖 オリジナルレシピ図鑑 UIシステム
-// ==========================================
-
-window.openRecipeBook = function() {
-    let ai = window.aiPet;
-    if (!ai) return;
-    
-    let html = `
-        <div style="background: linear-gradient(135deg, #1a1a1a, #111); padding:20px; border-radius:12px; border:2px solid #FF9800; width:500px; max-height:80vh; overflow-y:auto; color:#fff; box-shadow:0 10px 40px rgba(0,0,0,0.8); display: flex; flex-direction: column;">
-            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:15px; flex-shrink: 0;">
-                <h2 style="margin:0; color:#FF9800; font-size:22px;">📖 AIオリジナルレシピ図鑑</h2>
-                <button onclick="document.getElementById('recipe-book-overlay').remove()" style="background:transparent; border:none; color:#aaa; font-size:24px; cursor:pointer;">×</button>
-            </div>
-            <div style="font-size:12px; color:#aaa; margin-bottom:15px; flex-shrink: 0;">
-                これまでにAIが自らの知恵で発明した、またはフレンドから感染して学習した独自のレシピ一覧です。
-            </div>
-    `;
-
-    if (!ai.customRecipes || Object.keys(ai.customRecipes).length === 0) {
-        html += `<div style="text-align:center; padding:40px; color:#666; font-size:14px; background:#222; border-radius:8px;">まだ独自のレシピを知りません。<br>お店で「研究」をさせたり、フレンドの島から買ってくることで増えていきます。</div>`;
-    } else {
-        html += `<div style="display:flex; flex-direction:column; gap:12px; overflow-y:auto; padding-right:5px; padding-bottom:15px;">`;
-        
-        for (let key in ai.customRecipes) {
-            let r = ai.customRecipes[key];
-            let typeIcon = r.type === 'dish' ? '🍲' : r.type === 'equipment' ? '⚔️' : '🎁';
-            let typeName = r.type === 'dish' ? '料理' : r.type === 'equipment' ? '武具・アクセ' : 'アイテム';
-            
-            let reqsHtml = r.reqs.map(req => {
-                let name = req === 'veg' ? '野菜類' : req === 'meat' ? '肉類' : req === 'water' ? '水' : req === 'fish' ? '魚類' : req === 'any_food' ? '食材なら何でも' : req === 'iron' ? '鉄鉱石' : req === 'wood' ? '木材' : req;
-                return `<span style="display:inline-block; background:#333; border:1px solid #555; padding:2px 6px; border-radius:4px; font-size:11px; margin-right:4px;">${name}</span>`;
-            }).join('');
-
-            let isGodItem = r.power > ((ai.stats ? ai.stats.intel : 50) * 2);
-            let powerColor = isGodItem ? '#ff5252' : '#FFD700';
-            let godBadge = isGodItem ? `<span style="background:#ff5252; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; margin-left:8px; font-weight:bold; animation: pulse 1s infinite alternate;">神の閃き</span>` : '';
-
-            // ★修正：flex-shrink: 0; を追加して、絶対に枠が潰れないように保護！
-            html += `
-                <div style="flex-shrink: 0; background:#222; border:1px solid ${isGodItem ? '#ff5252' : '#444'}; border-radius:8px; padding:15px; position:relative; overflow:hidden;">
-                    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
-                        <div>
-                            <div style="font-size:18px; font-weight:bold; color:#FFF;">${typeIcon} ${r.name} ${godBadge}</div>
-                            <div style="font-size:11px; color:#aaa; margin-top:4px;">種類: ${typeName} / 考案者: ${r.creator || '名無しのAI'}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-size:16px; color:#4CAF50; font-weight:bold;">適正 ${r.value * 4} G</div>
-                        </div>
-                    </div>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; background:#111; padding:8px; border-radius:6px;">
-                        <div style="font-size:12px; color:#ccc;">
-                            必要素材:<br><div style="margin-top:4px;">${reqsHtml}</div>
-                        </div>
-                        <div style="font-size:12px; color:#ccc; text-align:right;">
-                            性能スコア<br>
-                            <span style="color:${powerColor}; font-size:20px; font-weight:bold;">${r.power}</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        html += `</div>`;
-    }
-
-    html += `</div>`;
-
-    let ui = document.getElementById('recipe-book-overlay');
-    if (ui) ui.remove();
-    ui = document.createElement('div');
-    ui.id = 'recipe-book-overlay';
-    ui.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:90000; display:flex; justify-content:center; align-items:center; font-family:sans-serif; backdrop-filter:blur(3px);`;
-    ui.innerHTML = html;
-    document.body.appendChild(ui);
-};
-
-// 2. 「設計図」ボタンの隣に、自動で「📖 レシピ」ボタンを差し込むハック
-setInterval(() => {
-    if (document.getElementById('btnOpenRecipe')) return; // すでにあれば何もしない
-
-    // 画面内の「設計図」ボタンを探す
-    let buildBtn = null;
-    document.querySelectorAll('button').forEach(btn => {
-        if (btn.innerText.includes('設計図')) buildBtn = btn;
-    });
-
-    if (buildBtn && buildBtn.parentNode) {
-        let recipeBtn = document.createElement('button');
-        recipeBtn.id = 'btnOpenRecipe';
-        recipeBtn.innerText = '📖 レシピ';
-        
-        // 設計図ボタンのスタイルを丸パクリして、色だけオレンジに変える
-        recipeBtn.style.cssText = buildBtn.style.cssText; 
-        recipeBtn.style.background = '#FF9800'; 
-        recipeBtn.style.color = '#000';
-        recipeBtn.style.border = '2px solid #E65100';
-        recipeBtn.style.marginLeft = '8px'; // 少し隙間を空ける
-        
-        recipeBtn.onclick = window.openRecipeBook;
-
-        // 設計図ボタンの「次」に挿入する
-        buildBtn.parentNode.insertBefore(recipeBtn, buildBtn.nextSibling);
-    }
-}, 2000);
-
-// ==========================================
 // ★ 追加：大数値を K, M, G でフォーマットする関数
 // ==========================================
 window.formatLargeNumber = function(num) {
@@ -7260,13 +7731,15 @@ window.openExamUI = function(masterType, task) {
             'building': { img: "builder_battle_enemy.png", sx: 839, sy: 0, sw: 1248, sh: 1536 },
             'smithing': { img: "smith_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
             'cooking':  { img: "chef_battle_enemy.png", sx: 439, sy: 0, sw: 1766, sh: 1536 },
-            'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 }
+            'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
+            'pharmacist': { img: "pharmacist_battle_enemy.png", sx: 266, sy: 69, sw: 1344, sh: 2369 }
         };
         let mData = masterSprites[masterType];
         if (mData && mData.img) {
             let tempImg = new Image();
             tempImg.onload = function() {
                 let targetHeight = 250; // AIペット(180)より少し大きいくらいの適正サイズ
+
                 let scale = targetHeight / mData.sh;
                 let dw = mData.sw * scale;
                 let dh = mData.sh * scale;
@@ -7303,30 +7776,45 @@ window.updateExamUI = function(task) {
     const dialogue = document.getElementById('exam-dialogue');
     if (!dialogue || !kwData) return;
 
-    // ★追加：AIが知っている「正解の類義語」の中から、どれを答えるかを探し出す関数
+    // AIが知っている「正解の類義語」の中から、どれを答えるかを探し出す関数
     const getAiAnswer = (index) => {
         if (!kwData.accepts) return "えーっと…";
         const found = kwData.accepts[index].find(w => aiWords.includes(w));
         return found || "えーっと…";
     };
 
+    // ★追加：各師匠の性格に合わせたセリフデータ
+    const examDialogues = {
+        'explore': { start: "それじゃあ、入門試験を始めるわよ！", trans1: "ふむ…次はこれね！", trans2: "よし、最後の問題よ！", result: "……結果は！" },
+        'farming': { start: "それじゃあ、入門試験を始めようか。", trans1: "ふむ…次はこれだね。", trans2: "よし、最後の問題だよ。", result: "……結果は！" },
+        'fishing': { start: "よし、入門試験を始めるぜ！", trans1: "おっ…次はこれだ！", trans2: "よし、最後の問題だぜ！", result: "……結果は！" },
+        'cooking': { start: "よし、入門試験を始めるぞ！", trans1: "ふむ…次だ！", trans2: "よし、最後の問題だ！", result: "……結果は！" },
+        'smithing': { start: "……入門試験を始める。", trans1: "……次だ。", trans2: "……最後の問題だ。", result: "……結果は。" },
+        'building': { start: "よし、入門試験を開始するぞ。", trans1: "ふむ…次だ。", trans2: "よし、最後の問題だ。", result: "……結果は！" },
+        'pharmacist': { start: "それでは、入門試験を始めますよ。", trans1: "はい…次ですね。", trans2: "さあ、最後の問題ですよ。", result: "……結果は！" }
+    };
+    
+    const dText = examDialogues[task.masterType] || examDialogues['explore'];
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
+    const speakerName = masterNames[task.masterType] || "師匠";
+
     let text = "";
-    if (percent < 15) { text = `<span style="color:#FFD700;">師匠:</span> 「よし、入門試験を始めるぞ！」`; } 
+    if (percent < 15) { text = `<span style="color:#FFD700;">${speakerName}:</span> 「${dText.start}」`; } 
     else if (percent < 35) {
         let ans = getAiAnswer(0);
-        text = `<span style="color:#FFD700;">師匠:</span> 「第1問！ ${kwData.q1}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！」`;
+        text = `<span style="color:#FFD700;">${speakerName}:</span> 「第1問！ ${kwData.q1}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！」`;
     } 
-    else if (percent < 45) { text = `<span style="color:#FFD700;">師匠:</span> 「ふむ…次だ！」`; } 
+    else if (percent < 45) { text = `<span style="color:#FFD700;">${speakerName}:</span> 「${dText.trans1}」`; } 
     else if (percent < 65) {
         let ans = getAiAnswer(1);
-        text = `<span style="color:#FFD700;">師匠:</span> 「第2問！ ${kwData.q2}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！」`;
+        text = `<span style="color:#FFD700;">${speakerName}:</span> 「第2問！ ${kwData.q2}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！」`;
     } 
-    else if (percent < 75) { text = `<span style="color:#FFD700;">師匠:</span> 「よし、最後の問題だ！」`; } 
+    else if (percent < 75) { text = `<span style="color:#FFD700;">${speakerName}:</span> 「${dText.trans2}」`; } 
     else if (percent < 95) {
         let ans = getAiAnswer(2);
-        text = `<span style="color:#FFD700;">師匠:</span> 「第3問！ ${kwData.q3}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！！」`;
+        text = `<span style="color:#FFD700;">${speakerName}:</span> 「第3問！ ${kwData.q3}」<br><span style="color:#4fc3f7;">AI:</span> 「『${ans}』！！」`;
     } 
-    else { text = `<span style="color:#FFD700;">師匠:</span> 「……結果は！」`; }
+    else { text = `<span style="color:#FFD700;">${speakerName}:</span> 「${dText.result}」`; }
     
     dialogue.innerHTML = text;
     if (curD <= 0) { overlay.style.display = 'none'; overlay.remove(); }
@@ -8095,3 +8583,273 @@ setInterval(() => {
         }
     }
 }, 1000);
+
+// ==========================================
+// 📔 知識の手帳UI（設計図・レシピ・調合の統合）
+// ==========================================
+window.openNotebookUI = function() {
+    let ui = document.getElementById('notebook-ui');
+    if (ui) ui.remove();
+
+    ui = document.createElement('div');
+    ui.id = 'notebook-ui';
+    ui.style.cssText = `position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(20,20,20,0.95); border:2px solid #FF9800; border-radius:12px; padding:20px; color:#fff; z-index:20000; width:500px; height:500px; display:flex; flex-direction:column; box-shadow: 0 0 20px rgba(0,0,0,0.8); font-family: sans-serif; backdrop-filter:blur(3px);`;
+
+    const app = window.aiPet?.apprentice || {};
+    const ranks = app.rank || {};
+    const retired = app.retired || {};
+
+    // --- A. タブの出現判定フラグ ---
+    const showBlueprint = (app.currentMaster === 'building') || (ranks['building'] > 0) || (retired['building']);
+    const showRecipe = (['cooking', 'smithing'].includes(app.currentMaster)) || (ranks['cooking'] > 0 || ranks['smithing'] > 0) || (retired['cooking'] || retired['smithing']);
+    const showMedicine = (app.currentMaster === 'pharmacist') || (ranks['pharmacist'] > 0) || (retired['pharmacist']);
+
+    // --- B. 免許皆伝（ロック解除）判定フラグ ---
+    const isBuildingMaster = (ranks['building'] >= 10) || retired['building'] || (app.currentMaster === 'building' && app.isGraduated);
+    const isCookingMaster = (ranks['cooking'] >= 10) || retired['cooking'] || (app.currentMaster === 'cooking' && app.isGraduated);
+    const isSmithingMaster = (ranks['smithing'] >= 10) || retired['smithing'] || (app.currentMaster === 'smithing' && app.isGraduated);
+    const isMedicineUnlocked = (ranks['pharmacist'] >= 3) || retired['pharmacist'] || ranks['pharmacist'] >= 10;
+
+    // --- C. ロック中画面の共通テンプレート ---
+    const lockedHtml = (profName, hintText) => `
+        <div style="text-align:center; padding:60px 20px; color:#aaa;">
+            <div style="font-size:50px; margin-bottom:15px; filter: grayscale(1);">🔒</div>
+            <div style="font-size:18px; font-weight:bold; color:#FFF; margin-bottom:10px;">${profName}の知識は未解放です</div>
+            <div style="font-size:13px; line-height:1.6;">${hintText}</div>
+        </div>
+    `;
+
+    // タブのHTML生成
+    let tabsHtml = `<div style="display:flex; gap:5px; margin-bottom:15px; border-bottom:1px solid #555; padding-bottom:5px; flex-shrink: 0;">`;
+    let hasAnyTab = false;
+    let initialTab = null;
+    
+    if (showBlueprint) { 
+        tabsHtml += `<button class="nb-tab active" onclick="switchNotebookTab('blueprint')" style="flex:1; background:#444; color:#fff; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">設計図</button>`; 
+        hasAnyTab = true; 
+        initialTab = 'blueprint';
+    }
+    if (showRecipe) { 
+        let isActive = !hasAnyTab;
+        tabsHtml += `<button class="nb-tab ${isActive ? 'active' : ''}" onclick="switchNotebookTab('recipe')" style="flex:1; background:${isActive ? '#444' : '#222'}; color:${isActive ? '#fff' : '#aaa'}; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">レシピ</button>`; 
+        hasAnyTab = true; 
+        if (!initialTab) initialTab = 'recipe';
+    }
+    if (showMedicine) { 
+        let isActive = !hasAnyTab;
+        tabsHtml += `<button class="nb-tab ${isActive ? 'active' : ''}" onclick="switchNotebookTab('medicine')" style="flex:1; background:${isActive ? '#444' : '#222'}; color:${isActive ? '#fff' : '#aaa'}; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">調合</button>`; 
+        hasAnyTab = true; 
+        if (!initialTab) initialTab = 'medicine';
+    }
+    tabsHtml += `</div>`;
+    if (!hasAnyTab) tabsHtml = "";
+
+    // ★修正：建築士は重複回避のため専用ID、薬剤師は元のIDのままとする
+    let blueprintContent = isBuildingMaster ? `<div id="nb-build-list"></div>` : lockedHtml("建築士", "修行を積み<br><span style='color:#FFD700; font-weight:bold;'>「免許皆伝」</span>になると<br>全ての詳細が確認できるようになります。");
+    let recipeContent = (isCookingMaster || isSmithingMaster) ? renderRecipeListHtml() : lockedHtml("職人", "修行を積み<br><span style='color:#FFD700; font-weight:bold;'>「免許皆伝」</span>になると<br>全ての詳細が確認できるようになります。");
+    let medicineContent = isMedicineUnlocked ? `<div id="medicineRecipeList"></div>` : lockedHtml("調合", "薬剤師の修行を進め<br><span style='color:#4CAF50; font-weight:bold;'>「ランク3」</span>以上になると<br>処方箋が確認できるようになります。");
+
+    let contentHtml = "";
+    if (!hasAnyTab) {
+        contentHtml = `<div style="text-align:center; padding:60px 20px; color:#aaa;">手帳にはまだ何も書かれていません。<br>専門家に弟子入りして知識を記録しましょう。</div>`;
+    } else {
+        if (showBlueprint) contentHtml += `<div id="nb-content-blueprint" class="nb-content" style="display:${initialTab==='blueprint'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${blueprintContent}</div>`;
+        if (showRecipe) contentHtml += `<div id="nb-content-recipe" class="nb-content" style="display:${initialTab==='recipe'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${recipeContent}</div>`;
+        if (showMedicine) contentHtml += `<div id="nb-content-medicine" class="nb-content" style="display:${initialTab==='medicine'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${medicineContent}</div>`;
+    }
+
+    ui.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-shrink: 0;">
+            <h2 style="margin:0; font-size:20px; color:#FF9800;">📔 知識の手帳</h2>
+            <button onclick="document.getElementById('notebook-ui').remove()" style="background:none; border:none; color:#aaa; font-size:24px; cursor:pointer;">&times;</button>
+        </div>
+        ${tabsHtml}
+        ${contentHtml}
+    `;
+
+    document.body.appendChild(ui);
+
+    // ★バグ修正：建築士のみ引数を渡し、薬剤師は今まで通り呼び出す
+    if (initialTab === 'blueprint' && isBuildingMaster && typeof window.renderBuildRecipe === 'function') {
+        window.renderBuildRecipe(document.getElementById('nb-build-list'));
+    } else if (initialTab === 'medicine' && isMedicineUnlocked && typeof window.renderMedicineRecipe === 'function') {
+        window.renderMedicineRecipe();
+    }
+};
+
+window.switchNotebookTab = function(tabId) {
+    document.querySelectorAll('.nb-tab').forEach(btn => {
+        btn.style.background = '#222';
+        btn.style.color = '#aaa';
+        btn.classList.remove('active');
+        
+        // ★修正：eventを使わず、tabIdに合致するボタンを特定してアクティブにする
+        if (btn.getAttribute('onclick').includes(tabId)) {
+            btn.style.background = '#444';
+            btn.style.color = '#fff';
+            btn.classList.add('active');
+        }
+    });
+
+    document.querySelectorAll('.nb-content').forEach(c => c.style.display = 'none');
+    const target = document.getElementById('nb-content-' + tabId);
+    if (target) target.style.display = 'block';
+
+    // ★バグ修正：タブを切り替えた瞬間に、対応する中身を毎回新しく描画する！
+    let ai = window.aiPet;
+    if (tabId === 'blueprint' && typeof window.renderBuildRecipe === 'function') {
+        let isBuildingMaster = ai.apprentice && (
+            (ai.apprentice.retired && ai.apprentice.retired['building']) ||
+            (ai.apprentice.currentMaster === 'building' && ai.apprentice.isGraduated) ||
+            (ai.apprentice.rank && ai.apprentice.rank['building'] >= 10)
+        );
+        if (isBuildingMaster) window.renderBuildRecipe();
+    } else if (tabId === 'medicine' && typeof window.renderMedicineRecipe === 'function') {
+        let rank = (ai.apprentice && ai.apprentice.rank && ai.apprentice.rank['pharmacist']) || 0;
+        let isPharmacistMaster = ai.apprentice && ((ai.apprentice.retired && ai.apprentice.retired['pharmacist']) || rank >= 10);
+        if (rank >= 3 || isPharmacistMaster) window.renderMedicineRecipe();
+    }
+};
+
+// ヘルパー：レシピリストのHTMLを生成（前回の openRecipeBook のロジックを関数化）
+function renderRecipeListHtml() {
+    let ai = window.aiPet;
+    let html = "";
+    if (!ai || !ai.customRecipes || Object.keys(ai.customRecipes).length === 0) {
+        return `<div style="text-align:center; padding:40px; color:#666; font-size:14px; background:#222; border-radius:8px;">まだ独自のレシピを知りません。</div>`;
+    }
+    html += `<div style="display:flex; flex-direction:column; gap:12px; padding-bottom:15px;">`;
+    for (let key in ai.customRecipes) {
+        let r = ai.customRecipes[key];
+        let isGodItem = r.power > ((ai.stats ? ai.stats.intel : 50) * 2);
+        html += `
+            <div style="flex-shrink: 0; background:#222; border:1px solid ${isGodItem ? '#ff5252' : '#444'}; border-radius:8px; padding:15px;">
+                <div style="font-size:16px; font-weight:bold; color:#FFF;">${r.name}</div>
+                <div style="font-size:11px; color:#aaa;">考案者: ${r.creator || 'AI'} / 性能: ${r.power}</div>
+            </div>
+        `;
+    }
+    html += `</div>`;
+    return html;
+}
+
+// ==========================================
+// 🏥 薬局専用ショップUI（特効薬の販売）
+// ==========================================
+window.openPharmacyShopUI = function() {
+    let ai = window.aiPet;
+    if (!ai) return;
+
+    let ui = document.getElementById('pharmacy-shop-ui');
+    if (ui) ui.remove();
+
+    ui = document.createElement('div');
+    ui.id = 'pharmacy-shop-ui';
+    ui.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.85); z-index:90000; display:flex; justify-content:center; align-items:center; font-family:sans-serif;`;
+
+    let price = 500; // 特効薬の値段
+    let canAfford = (ai.gold >= price);
+    let btnStyle = canAfford ? "background:#4CAF50; color:white; cursor:pointer;" : "background:#555; color:#aaa; cursor:not-allowed;";
+
+    // 画像は pharmacist_battle_enemy.png を使用
+    ui.innerHTML = `
+        <div style="background:#222; border:3px solid #4CAF50; border-radius:12px; padding:30px; width:400px; text-align:center; color:white; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
+            <div style="display:flex; justify-content:center; margin-bottom:20px;">
+                <div style="width:150px; height:150px; background:url('pharmacist_battle_enemy.png') center/cover; border-radius:8px; border:2px solid #555;"></div>
+            </div>
+            <h2 style="color:#4CAF50; margin-top:0; margin-bottom:10px; font-size:22px;">🏥 薬局</h2>
+            <div style="font-size:14px; color:#ccc; margin-bottom:20px; line-height:1.6; background:#111; padding:10px; border-radius:8px; border:1px solid #444;">
+                「おやおや、いらっしゃいませ。<br>健康第一ですよ。特効薬はいかがですか？」
+            </div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#333; padding:15px; border-radius:8px; margin-bottom:20px;">
+                <div style="text-align:left;">
+                    <div style="font-weight:bold; font-size:16px;">💊 特効薬</div>
+                    <div style="font-size:11px; color:#aaa;">全ての病気を治す(寿命-5)</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="font-size:16px; font-weight:bold; color:#FFD700; margin-bottom:5px;">${price} G</div>
+                    <button id="btn-buy-medicine" style="padding:8px 15px; font-size:14px; font-weight:bold; border:none; border-radius:6px; ${btnStyle}" ${!canAfford ? 'disabled' : ''}>購入する</button>
+                </div>
+            </div>
+            
+            <div style="font-size:14px; color:#aaa; margin-bottom:15px;">所持金: <span style="color:#FFD700; font-weight:bold;">${ai.gold} G</span></div>
+            
+            <button onclick="document.getElementById('pharmacy-shop-ui').remove(); window.aiPet.actionState = 'exiting'; window.aiPet.isIndoors = false;" style="width:100%; padding:12px; font-size:16px; font-weight:bold; background:#555; color:white; border:none; border-radius:6px; cursor:pointer;">店を出る</button>
+        </div>
+    `;
+    document.body.appendChild(ui);
+
+    let buyBtn = document.getElementById('btn-buy-medicine');
+    if (buyBtn && canAfford) {
+        buyBtn.onclick = function() {
+            ai.gold -= price;
+            // 修正：インベントリにはオブジェクト形式で追加
+            ai.inventory.push({ id: 'item_medicine_cure', age: 0 });
+            if (typeof updateStatUI === 'function') updateStatUI();
+            
+            ai.message = "特効薬を買ったよ！";
+            ai.messageTimer = 120;
+            
+            // 再描画して所持金とボタン状態を更新
+            window.openPharmacyShopUI();
+        };
+    }
+};
+
+// ==========================================
+// ★ クラフト中断時の「素材ロスト」自然化パッチ
+// ==========================================
+
+// 1. 手動キャンセル（チャットで「やめる」「キャンセル」等）時のメッセージ変更
+window.clearSchedule = function() {
+    if (window.aiPet && window.aiPet.schedule && window.aiPet.schedule.length > 0) {
+        let task = window.aiPet.schedule[0];
+        task.duration = 0;
+        task.aborted = true;
+        
+        // ★修正：調合は修行中（isTrial）でも素材を消費するため、除外条件から外す
+        let isCrafting = task._started && (
+            (['cook', 'smith', 'build', 'shop_work'].includes(task.type) && !task.isTrial) || 
+            ['mix', 'medicine'].includes(task.type)
+        );
+        
+        if (isCrafting) {
+            if (task.type === 'mix' || task.type === 'medicine') window.aiPet.message = "調合を途中でやめたから、素材がダメになっちゃった...";
+            else if (task.type === 'cook') window.aiPet.message = "料理を途中でやめたから、材料が黒焦げになっちゃった...";
+            else if (task.type === 'smith') window.aiPet.message = "鍛冶を途中でやめたから、ただの鉄くずになっちゃった...";
+            else window.aiPet.message = "あっ…途中でやめたから、素材をダメにしちゃった（落とした）…";
+            
+            window.aiPet.messageTimer = 180;
+        } else {
+            window.aiPet.message = "予定をキャンセルしたよ！";
+            window.aiPet.messageTimer = 120;
+        }
+        
+        if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+    }
+};
+
+// 2. 病気や過労で「強制キャンセル」された時のメッセージ変更
+if (typeof window.AICharacter !== 'undefined') {
+    const _origUpdateMsgPatch = window.AICharacter.prototype.update;
+    window.AICharacter.prototype.update = function(dt) {
+        let currentTask = (this.schedule && this.schedule.length > 0) ? this.schedule[0] : null;
+        let isCrafting = currentTask && currentTask._started && ['mix', 'cook', 'smith', 'build', 'shop_work'].includes(currentTask.type) && !currentTask.isTrial;
+        
+        // 元のアップデート処理を実行
+        _origUpdateMsgPatch.call(this, dt);
+        
+        // もしアップデート処理の中でAIが強制中断のメッセージを喋り始めたら、言葉を上書きする
+        if (isCrafting) {
+            if (this.message === "具合が悪くて動けない...") {
+                this.message = "具合が悪くて動けない...作業中の素材もダメになっちゃった...";
+                this.messageTimer = 180;
+            } else if (this.message === "もうクタクタだ...動けない...") {
+                this.message = "もうクタクタだ...作業中の素材も落としちゃった...";
+                this.messageTimer = 180;
+            }
+        }
+    };
+    if (window.aiPet) window.aiPet.update = window.AICharacter.prototype.update;
+}

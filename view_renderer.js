@@ -750,10 +750,13 @@ function drawActionWindow(animType, sceneType) {
     drawCharacterInWindow(animType, cx, cy);
     
     // ★プログレスゲージの描画
-    if ((animType === 'cook' || animType === 'smith' || sceneType === 'building') && aiPet.schedule && aiPet.schedule.length > 0) {
+    const isShowingProgress = (animType === 'cook' || animType === 'smith' || animType === 'mix' || sceneType === 'building' || (aiPet.schedule && aiPet.schedule.length > 0 && aiPet.schedule[0].type === 'mix'));
+
+    if (isShowingProgress && aiPet.schedule && aiPet.schedule.length > 0) {
         const task = aiPet.schedule[0];
         let data = null;
-        if (animType === 'cook') data = task.cookData;
+        if (task.type === 'mix') data = task.mixData; // ★最優先でmix判定を行う
+        else if (animType === 'cook') data = task.cookData;
         else if (animType === 'smith') data = task.smithData;
         else if (sceneType === 'building' || task.type === 'build') data = task.buildData;
         
@@ -783,7 +786,8 @@ function drawActionWindow(animType, sceneType) {
             
             let progress = 1.0 - (task.duration / task.maxDuration);
             progress = Math.max(0, Math.min(1, progress));
-            ctx.fillStyle = animType === 'cook' ? "#FF9800" : (sceneType === 'building' || task.type === 'build' ? "#8BC34A" : "#9E9E9E");
+            // ★修正：調合(mix)の場合は紫色のゲージにする
+            ctx.fillStyle = animType === 'cook' ? "#FF9800" : (task.type === 'mix' || animType === 'mix' ? "#E040FB" : (sceneType === 'building' || task.type === 'build' ? "#8BC34A" : "#9E9E9E"));
             ctx.fillRect(gx, gy, gaugeW * progress, gaugeH);
             ctx.restore();
         }
@@ -791,16 +795,20 @@ function drawActionWindow(animType, sceneType) {
 
     ctx.font = "bold 16px sans-serif"; ctx.textAlign = "center";
     let statusText = "";
+    let isMix = aiPet.schedule && aiPet.schedule.length > 0 && aiPet.schedule[0].type === 'mix';
+
     if (sceneType === 'inside' && target) {
         statusText = `🏠 ${target.name}の中にいます`;
-        if (animType === 'study') statusText = "📖 勉強中...";
-        if (animType === 'train') statusText = "💪 筋トレ中...";
-        if (animType === 'sleep') statusText = "💤 休憩中...";
-        if (animType === 'cook') statusText = "🍳 料理中...";
-        if (animType === 'smith') statusText = "🔨 鍛冶作業中...";
+        if (isMix) statusText = "🧪 調合中...";
+        else if (animType === 'study') statusText = "📖 勉強中...";
+        else if (animType === 'train') statusText = "💪 筋トレ中...";
+        else if (animType === 'sleep') statusText = "💤 休憩中...";
+        else if (animType === 'cook') statusText = "🍳 料理中...";
+        else if (animType === 'smith') statusText = "🔨 鍛冶作業中...";
     }
     else if (sceneType === 'camping' || sceneType === 'building') {
-        if (animType === 'study') statusText = "📖 勉強中...";
+        if (isMix) statusText = "🧪 調合中...";
+        else if (animType === 'study') statusText = "📖 勉強中...";
         else if (animType === 'train') statusText = "💪 筋トレ中...";
         else if (animType === 'sleep') statusText = "💤 休憩中...";
         else if (animType === 'cook') statusText = "🍳 料理中...";

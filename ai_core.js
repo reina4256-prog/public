@@ -55,6 +55,15 @@ window.EXAM_KEYWORDS = {
             ['トンカチ', 'ハンマー', '金槌', 'かなづち', '釘打ち']
         ], 
         q1: "建物の完成図を描いた紙を何と呼ぶ？", q2: "柱や壁の材料になる木の板は？", q3: "釘を打つための道具は？" 
+    },
+    // ★追加: 薬剤師の入門試験
+    'pharmacist': {
+        accepts: [
+            ['薬草', '草', 'ハーブ', '植物'],
+            ['すり鉢', '乳鉢', 'すりばち', '潰す道具'],
+            ['水', 'きれいな水', 'みず', '液体']
+        ],
+        q1: "薬の原料となる植物は？", q2: "薬草をすりつぶす道具は？", q3: "薬を煮出すために必要な液体は？"
     }
 };
 
@@ -94,6 +103,7 @@ function getTaskName(type, task = null) {
     if(type==='fish') return "釣り"; 
     if(type==='cook') return "料理"; 
     if(type==='smith') return "鍛冶"; 
+    if(type==='mix') return "調合"; // ★追加
     // ★修正：建築と拡張の具体的な表示に対応
     if(type==='build') {
         if (task && task.buildData) {
@@ -107,7 +117,7 @@ function getTaskName(type, task = null) {
     if(type==='apprentice_exam' || type==='visit_master') {
         if (task && task.masterType && typeof window.aiPet !== 'undefined') {
             const mType = task.masterType;
-            const mNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士' };
+            const mNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
             const mName = mNames[mType] || '専門家';
             const app = window.aiPet.apprentice || {};
             
@@ -587,6 +597,70 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 setup: function() { aiPet.apprentice.qVal = Math.floor(aiPet.stats.intel) + 50; }, 
                 check: function() { return aiPet.stats.intel >= aiPet.apprentice.qVal; }
             }
+        },
+        'pharmacist': { // 薬剤師のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『植物』『すりつぶす道具』『煮出す液体』について聞かれる。答えとなる言葉を覚えよう。" },
+            1: { 
+                name: "素材の調達", 
+                desc: "冒険で『薬草（herb）』と『きれいな水（water）』を3つずつ集めてくる。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { 
+                    let herbs = aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='herb').length;
+                    let waters = aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='water').length;
+                    return herbs >= 3 && waters >= 3; 
+                }
+            },
+            2: { 
+                name: "はじめての調合", 
+                desc: "薬局の設備を借りて、集めた素材を消費し「調合」を3回行う。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.apprentice.qVal >= 3; }
+            },
+            3: { 
+                name: "風邪薬の納品", 
+                // ★修正：「知識の手帳」を見るように誘導する文言を追加
+                desc: "「知識の手帳」でレシピを確認し、「調合」で作成した『風邪薬』を2つ持ってくる。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='item_medicine_cold').length >= 2; }
+            },
+            4: { 
+                name: "毒の知識", 
+                // ★修正：無粋な（※受注中からドロップ〜）の文章を削除！
+                desc: "毒のサンプルとして、森の探索で採れる『毒キノコ』を3つ集めてくる。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='poison_mushroom').length >= 3; }
+            },
+            5: { 
+                name: "毒消しの作成", 
+                desc: "毒キノコを中和する調合を行い、『解毒薬』を2つ作成し持ってくる。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                // ★修正: 特効薬ではなく item_antidote を要求する
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='item_antidote').length >= 2; }
+            },
+            6: { 
+                name: "集中力を高める薬", 
+                desc: "素材を消費して、一時的に賢さ上昇量を増やす『集中薬』を1つ作成する。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='item_medicine_focus').length >= 1; }
+            },
+            7: { 
+                name: "薬効のテスト", 
+                desc: "AIに『集中薬』を使わせた状態（バフ付与中）で、「勉強」を3回成功させる。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.apprentice.qVal >= 3; }
+            },
+            8: { 
+                name: "究極の調合", 
+                desc: "「調合」を行い、大成功でのみ作成できる『万能の霊薬』を1つ作成する。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='elixir').length >= 1; }
+            },
+            9: { 
+                name: "免許皆伝", 
+                desc: "作成した『万能の霊薬』を師匠に納品する。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='elixir').length >= 1; }
+            }
         }
     };
 
@@ -690,6 +764,10 @@ function findFacilityForTask(taskType, masterType = null) {
         // ★追加：農業は畑に向かう
         priorities = ['farm'];
     }
+    // ★追加：調合は薬局を探す
+    else if (taskType === 'mix') {
+        priorities = ['pharmacy'];
+    }
     // ★追加：釣りは橋などを探す
     else if (taskType === 'fish' || taskType === 'bridge') { priorities = ['bridge', 'sea', 'water']; }
     else if (taskType === 'master_quest' || taskType === 'visit_master') {
@@ -792,22 +870,38 @@ aiPet.updateWeather = function() {
 };
 
 aiPet.consumeFood = function() {
-    if (this.hunger >= 95 && !this.isSick) { this.message = "もうお腹いっぱい！"; return false; }
-    
+    let currentTask = (this.schedule && this.schedule.length > 0) ? this.schedule[0] : null;
+    let targetItemId = (currentTask && currentTask.targetItem) ? currentTask.targetItem : null;
+
+    // 1. 最初にお腹いっぱいかどうかをチェック (特定の薬を使う指定がある場合は満腹でも無視)
+    if (this.hunger >= 95 && !this.isSick && !this.conditions.cold && !this.conditions.stomachache && !targetItemId) { 
+        this.message = "もうお腹いっぱい！"; return false; 
+    }
+
     let bestFood = null; let bestIdx = -1; let maxPriority = -999; let hasFood = false;
 
+    // 2. 持ち物の中から「今食べるべきもの」を1つ選ぶループ
     this.inventory.forEach((itemObj, idx) => {
-        // ★修正: オブジェクト構造に対応 (itemObj.id を使用)
         const key = typeof itemObj === 'string' ? itemObj : itemObj.id;
         const item = itemCatalog[key]; if (!item) return;
         
-        // ① 薬の判定（病気の時のみ最優先で探す）
+        // ★追加: ターゲットアイテムが指定されている場合は絶対最優先！
+        if (targetItemId && key === targetItemId) {
+            hasFood = true;
+            maxPriority = 1000;
+            bestFood = { ...item, id: key };
+            bestIdx = idx;
+            return;
+        }
+        
+        // ① 薬の判定（病気やデバフがある時は最優先で探す）
         if (item.type === 'medicine') {
-            if (this.isSick && key === 'item_medicine_cure') {
+            const needsMedicine = this.isSick || this.conditions.cold || this.conditions.stomachache;
+            if (needsMedicine) {
                 hasFood = true;
-                if (100 > maxPriority) { maxPriority = 100; bestFood = item; bestIdx = idx; } // 優先度MAX
+                if (100 > maxPriority) { maxPriority = 100; bestFood = { ...item, id: key }; bestIdx = idx; }
             }
-            return; // 病気じゃない時は薬は飲まない
+            return;
         }
 
         // ② 通常の食べ物の判定
@@ -818,39 +912,61 @@ aiPet.consumeFood = function() {
         if (item.stats && typeof item.stats.hunger !== 'undefined') { potentialGain = item.stats.hunger; } 
         else { if (item.type === 'dish') potentialGain = 20; else potentialGain = 10; }
         
-        // 満腹にならないかチェック（少し余裕を持たせる）
         if (this.hunger + potentialGain > 100 && this.hunger >= 80) { return; } 
         
         let priority = 0; 
         if (item.type === 'dish') priority = 3; 
         else if (item.type === 'food') priority = 2; 
         else if (item.type === 'ingredient') priority = 1;
-        
-        // ★ ゲテモノ（bad）は優先度を激下げし、他に何もない時の最終手段にする
         if (item.quality === 'bad') priority -= 10;
 
-        if (priority > maxPriority) { maxPriority = priority; bestFood = item; bestIdx = idx; }
+        if (priority > maxPriority) { maxPriority = priority; bestFood = { ...item, id: key }; bestIdx = idx; }
     });
     
+    // 食べるものがなかったら終了
     if (!hasFood || bestIdx === -1) { 
-        if (this.isSick) this.message = "薬がない...";
+        if (this.isSick || this.conditions.cold || this.conditions.stomachache) this.message = "薬がない...";
         else this.message = "食べるものがない..."; 
         return false; 
     }
 
+    // 使うアイテムをインベントリから削除
     this.inventory.splice(bestIdx, 1);
     
     // =======================================
-    // A: 薬を飲んだ時の特殊処理
+    // A: 薬（medicine）を使用した時の特殊処理
     // =======================================
     if (bestFood.type === 'medicine') {
-        this.isSick = false;
-        this.lifespan -= 5; // 寿命がガッツリ削られる
         this.visualAction = 'eat_raw'; 
         this.visualActionTimer = 60;
-        this.message = "特効薬で病気が治った！...(寿命-5)";
-        if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "💊 完治(寿命激減)", "#4CAF50");
         
+        // 特効薬：寿命を削ってすべてを治す
+        if (bestFood.id === 'item_medicine_cure') {
+            this.isSick = false; this.conditions.cold = false; this.conditions.stomachache = false; this.conditions.poisoning = false;
+            this.lifespan -= 5;
+            this.message = "特効薬で全ての不調が治った！...(寿命-5)";
+        } 
+        else if (bestFood.id === 'item_medicine_cold') {
+            this.conditions.cold = false; this.message = "風邪薬を飲んで熱が下がった！";
+        } 
+        else if (bestFood.id === 'item_medicine_stomach') {
+            this.conditions.stomachache = false; this.message = "胃薬を飲んでお腹の痛みが治まった！";
+        } 
+        // ★追加：解毒薬（寿命を削らずに中毒を治す）
+        else if (bestFood.id === 'item_antidote') {
+            this.conditions.poisoning = false;
+            this.message = "解毒薬で体の毒が抜けていった！";
+        }
+        else if (bestFood.id === 'item_medicine_focus') {
+            this.buffs.focus = 5; this.message = "頭が冴え渡ってきた！(集中バフ付与)";
+        } 
+        else if (bestFood.id === 'elixir') {
+            this.isSick = false; this.conditions.cold = false; this.conditions.stomachache = false; this.conditions.poisoning = false;
+            this.lifespan += 10;
+            this.message = "全身に力が漲る！万能の霊薬だ！";
+        }
+        
+        if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "💊 薬を使用した", "#4CAF50");
         if (typeof openInventoryPanel === 'function') {
             const invPanel = document.getElementById('panel-inventory');
             if (invPanel && invPanel.classList.contains('active')) { openInventoryPanel(); }
@@ -861,6 +977,7 @@ aiPet.consumeFood = function() {
     // =======================================
     // B: 通常の食事処理
     // =======================================
+    // (これ以降は、以前からある通常の食事ロジックをそのまま続けます)
     let gainEnergy = 0; let gainHunger = 0;
     
     const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
@@ -887,14 +1004,22 @@ aiPet.consumeFood = function() {
     this.hunger = Math.min(100, this.hunger + gainHunger);
     this.message = `${bestFood.name}を${action}！`; 
 
-    // ★追加: 生魚（dishではない魚）を食べた時の確率病気ペナルティ
+    // ★追加：毒キノコをそのまま食べた場合の100%中毒処理
+    if (bestFood.id === 'poison_mushroom') {
+        this.conditions.poisoning = true;
+        this.stats.mood -= 30; // 機嫌も激減
+        this.message = "ウッ…激しい吐き気が…毒キノコだ！";
+        if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "🤢 中毒になった！", "#9C27B0");
+    }
+
+    // ★修正: 生魚（dishではない魚）を食べた時の確率「腹痛」ペナルティ
     const consumedId = typeof this.inventory[bestIdx] === 'string' ? this.inventory[bestIdx] : this.inventory[bestIdx]?.id;
     if (consumedId && consumedId.startsWith('fish_') && bestFood.type !== 'dish' && bestFood.quality !== 'bad') {
         if (Math.random() < 0.25) { // 25%であたる
-            this.isSick = true;
+            this.conditions.stomachache = true;
             this.stats.mood -= 10;
-            this.message = "ウッ…生魚にあたった…";
-            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "😷 病気になった！", "#E53935");
+            this.message = "ウッ…生魚にあたってお腹が痛い…";
+            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "⚡ 腹痛になった！", "#E53935");
         }
     }
 
@@ -906,10 +1031,10 @@ aiPet.consumeFood = function() {
         this.message = "ウッ…不味いしお腹が痛い…";
         if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "🤢 激マズ...", "#795548");
         
-        // ★ 30%の確率で病気を発症する！
+        // ★ 30%の確率で「腹痛」を発症する！
         if (Math.random() < 0.30) {
-            this.isSick = true;
-            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "😷 病気になった！", "#E53935");
+            this.conditions.stomachache = true;
+            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "⚡ 腹痛になった！", "#E53935");
         }
     }
 
@@ -1514,6 +1639,179 @@ aiPet.processSmithingFinish = function(task) {
     }
 };
 
+// ==========================================
+// ★修正：調合（mix）の開始処理
+// ==========================================
+aiPet.processMixingStart = function(task) {
+    let recipes = [
+        { id: 'item_medicine_cold', name: '風邪薬', req: ['herb', 'water'], minRank: 3 },
+        { id: 'item_antidote', name: '解毒薬', req: ['herb', 'poison_mushroom'], minRank: 5 },
+        { id: 'item_medicine_focus', name: '集中薬', req: ['water', 'poison_mushroom'], minRank: 6 },
+        { id: 'item_medicine_stomach', name: '胃薬', req: ['herb', 'item_berry'], minRank: 10 }
+    ];
+
+    let pRank = (this.apprentice && this.apprentice.rank['pharmacist']) || 1;
+    let targetRecipe = null;
+    let isGeneralMixing = !task.craftTarget || task.craftTarget === "調合" || task.craftTarget === "mix";
+
+    // 素材が足りているかチェックするヘルパー関数
+    const checkMats = (reqs) => {
+        let tempInv = [...this.inventory];
+        for (let reqMat of reqs) {
+            let idx = tempInv.findIndex(itemObj => {
+                if (!itemObj) return false;
+                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                return id === reqMat;
+            });
+            if (idx !== -1) tempInv[idx] = null;
+            else return false;
+        }
+        return true;
+    };
+
+    if (isGeneralMixing) {
+        if (pRank >= 3) {
+            // Rank3以上：「作れるレシピ（ランク条件＋素材あり）」からランダム
+            let available = recipes.filter(r => pRank >= r.minRank && checkMats(r.req));
+            if (available.length > 0) {
+                targetRecipe = available[Math.floor(Math.random() * available.length)];
+            } else {
+                this.message = "作れそうな薬の素材がないみたい...";
+                this.messageTimer = 120;
+                return false;
+            }
+        }
+        // pRank < 3 なら targetRecipe は null のまま進行（素材消費なしの練習）
+    } else {
+        // 個別指定の場合
+        targetRecipe = recipes.find(r => r.id === task.craftTarget);
+        if (!targetRecipe) {
+            this.message = "その薬の作り方がわからないみたい...";
+            this.messageTimer = 120;
+            return false;
+        }
+        // ★微調整：指定された薬の必要ランクを満たしていない場合のブロック
+        if (pRank < targetRecipe.minRank) {
+            this.message = "その薬はまだ難しくて作れないみたい...";
+            this.messageTimer = 120;
+            return false;
+        }
+        if (!checkMats(targetRecipe.req)) {
+            this.message = `${targetRecipe.name}を作る素材が足りないみたい...`;
+            this.messageTimer = 120;
+            return false;
+        }
+    }
+
+    // ターゲットが決まっていれば素材を消費
+    if (targetRecipe) {
+        let consumedIndices = [];
+        let tempInv = [...this.inventory];
+        for (let reqMat of targetRecipe.req) {
+            let idx = tempInv.findIndex(itemObj => {
+                if (!itemObj) return false;
+                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                return id === reqMat;
+            });
+            consumedIndices.push(idx);
+            tempInv[idx] = null;
+        }
+        consumedIndices.sort((a, b) => b - a).forEach(idx => {
+            this.inventory.splice(idx, 1);
+        });
+    }
+
+    // 成功率の計算（賢さと薬剤師ランク依存）
+    let intel = this.stats.intel || 10;
+    let successRate = 0.5 + (intel * 0.005) + (pRank * 0.05);
+    successRate = Math.min(0.95, successRate); // 最大95%
+
+    let isSuccess = Math.random() < successRate;
+    let greatSuccessRate = pRank >= 8 ? (intel * 0.003) + (pRank * 0.01) : 0;
+    let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
+
+    // 大成功時は「万能の霊薬」にすり替える（練習時は除く）
+    let finalTargetId = targetRecipe ? targetRecipe.id : 'practice';
+    let finalTargetName = targetRecipe ? targetRecipe.name : '謎の液体';
+    
+    // isTrial 判定は外して、単純に大成功かつレシピありの場合にすり替え
+    if (isGreatSuccess && targetRecipe) {
+        finalTargetId = 'elixir';
+        finalTargetName = '万能の霊薬';
+    }
+
+    // ゲージ表示用に mixData として保存する
+    task.mixData = {
+        targetId: finalTargetId,
+        targetName: finalTargetName,
+        successRate: successRate,
+        isSuccess: isSuccess,
+        isGreatSuccess: isGreatSuccess,
+        isPractice: !targetRecipe // 練習モードフラグ
+    };
+
+    task._started = true;
+    return true;
+};
+
+// ==========================================
+// ★修正：調合（mix）の完了処理
+// ==========================================
+aiPet.processMixingFinish = function(task) {
+    const d = task.mixData;
+    if (!d) return;
+
+    // ただのアクション（未修得時）は、成功/失敗の判定や成長をせずに終了する
+    if (d.isPractice) {
+        this.message = "調合する真似をして遊んでいるみたいだ！";
+        this.messageTimer = 150;
+        this.visualAction = null;
+        this.actionState = 'idle';
+        return;
+    }
+
+    // 薬剤師スキルの成長（隠しパラメータがあれば）
+    if (!this.skills.mixing) this.skills.mixing = 1;
+
+    if (d.isSuccess) {
+        // ★微調整：デッドコードを削除し、スッキリさせました
+        this.skills.mixing += 0.5;
+        this.stats.intel += 0.5; // 賢さボーナス
+        this.stats.mood += d.isGreatSuccess ? 15 : 5; // 大成功時は機嫌ボーナスUP
+        
+        if (d.isGreatSuccess) {
+            this.message = `大成功！！ 奇跡の薬「${d.targetName}」が完成した！`;
+        } else {
+            this.message = `調合成功！ ${d.targetName}ができた！`;
+        }
+        this.inventory.push(d.targetId);
+        
+        // クエストの進捗カウント（複数クエスト対応版）
+        if (this.apprentice && this.apprentice.activeQuests) {
+            this.apprentice.activeQuests.forEach(q => {
+                if (q.desc.includes(d.targetName) || q.desc.includes('調合')) {
+                    q.qVal = (q.qVal || 0) + 1;
+                }
+            });
+            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        }
+    } else {
+        this.skills.mixing += 0.1;
+        this.message = "調合失敗... 謎の液体になっちゃった...";
+        // data.js に合わせて item_medicine_fail（謎の液体）に変更
+        this.inventory.push('item_medicine_fail'); 
+    }
+    
+    this.messageTimer = 150;
+    this.visualAction = null;
+    this.actionState = 'idle';
+
+    if (typeof openInventoryPanel === 'function') {
+        const invPanel = document.getElementById('panel-inventory');
+        if (invPanel && invPanel.classList.contains('active')) openInventoryPanel();
+    }
+};
+
 aiPet.processFishingFrame = function() {
     if (!this.fishingData) {
         this.fishingData = { phase: 'idle', timer: 0, pos: 100, targetName: null, isSuccess: false, isBreak: false, bestIdx: -1, caughtItem: null };
@@ -1524,21 +1822,23 @@ aiPet.processFishingFrame = function() {
         d.timer++;
         if (d.timer > 60 && Math.random() < 0.01) {
             let bestRod = null; let bestIdx = -1; let rodPriority = { 'rod_super': 3, 'rod_norm': 2, 'rod_old': 1 };
-            this.inventory.forEach((key, idx) => {
+            
+            // ★修正1：インベントリがオブジェクト（{id, age}）化されたことに完全対応
+            this.inventory.forEach((itemObj, idx) => {
+                const key = typeof itemObj === 'string' ? itemObj : itemObj.id;
                 if (rodPriority[key]) {
                     if (!bestRod || rodPriority[key] > rodPriority[bestRod]) { bestRod = key; bestIdx = idx; }
                 }
             });
             
             if (!bestRod) {
-                // ★修正：漁師の弟子なら、釣り竿が壊れてしまっても自動で予備を補充する
+                // ★修正2：漁師の弟子なら、釣り竿が壊れてしまっても自動で予備を補充する
                 if (this.apprentice && this.apprentice.currentMaster === 'fishing') {
-                    this.inventory.push('rod_old');
+                    this.inventory.push({ id: 'rod_old', age: 0 }); // オブジェクトとして追加
                     bestRod = 'rod_old';
                     bestIdx = this.inventory.length - 1;
-                    // （こっそりインベントリに補充してそのまま釣りを開始します）
                 } else {
-                    this.message = "釣り竿がない！"; this.messageTimer = 120;
+                    this.message = "釣り竿がないから釣りができないや..."; this.messageTimer = 150;
                     if (typeof window.clearSchedule === 'function') window.clearSchedule();
                     return;
                 }
@@ -1546,7 +1846,7 @@ aiPet.processFishingFrame = function() {
 
             d.bestIdx = bestIdx;
             
-            let catchRate = 0.4 + (this.stats.power * 0.002);
+            let catchRate = 0.4 + ((this.stats.power || 0) * 0.002);
             if (bestRod === 'rod_norm') catchRate += 0.2;
             if (bestRod === 'rod_super') catchRate += 0.4;
             d.isSuccess = (Math.random() < catchRate);
@@ -1568,9 +1868,9 @@ aiPet.processFishingFrame = function() {
             }
             if (!caughtItem) caughtItem = seasonTable[0].id;
             
-            // ▼▼▼ 新規追加：ステータスが高いと「ヌシ」が掛かるようになる ▼▼▼
+            // ヌシ判定
             if ((this.stats.power || 0) >= 30 && (this.stats.speed || 0) >= 30) {
-                let bossChance = 0.05 + ((this.stats.power || 0) * 0.001); // 5%以上の確率でヌシ
+                let bossChance = 0.05 + ((this.stats.power || 0) * 0.001);
                 if (Math.random() < bossChance) {
                     caughtItem = isSea ? 'fish_boss_sea' : 'fish_boss_river';
                 }
@@ -1579,20 +1879,17 @@ aiPet.processFishingFrame = function() {
             d.caughtItem = caughtItem;
             d.targetName = (typeof itemCatalog !== 'undefined' && itemCatalog[caughtItem]) ? itemCatalog[caughtItem].name : (isSea ? "海のヌシ" : "川のヌシ");
             
-            // ▼▼▼ 新規追加：大物のステータスの壁 ▼▼▼
             d.isBoss = (caughtItem === 'fish_boss_sea' || caughtItem === 'fish_boss_river');
             d.bossFailed = false;
             
             if (d.isBoss) {
                 if ((this.stats.power || 0) < 80 || (this.stats.speed || 0) < 60) {
-                    d.isSuccess = false; // ステータス不足なら絶対に釣れない
-                    d.bossFailed = true; // 大物に逃げられるフラグ
+                    d.isSuccess = false; 
+                    d.bossFailed = true; 
                 } else {
-                    // ステータスを満たしていても釣りにくい（確率半減）
                     d.isSuccess = Math.random() < (catchRate * 0.5);
                 }
             }
-            // ▲▲▲ 新規追加ここまで ▲▲▲
 
             d.phase = 'hit';
             d.timer = 0;
@@ -1611,7 +1908,8 @@ aiPet.processFishingFrame = function() {
                 d.pos = 0;
                 d.phase = 'result';
                 d.timer = 0;
-                this.inventory.push(d.caughtItem);
+                // ★修正3：釣った魚もオブジェクトとしてインベントリに追加
+                this.inventory.push({ id: d.caughtItem, age: 0 });
                 
                 const bMood = (this.getTraitData().statBonus && this.getTraitData().statBonus.mood) ? this.getTraitData().statBonus.mood : 1.0;
                 this.stats.mood += 2 * bMood;
@@ -1619,7 +1917,6 @@ aiPet.processFishingFrame = function() {
                 
                 this.fishingPopup = `✨ ${d.targetName} を釣った！ ✨`;
                 this.fishingPopupTimer = 90;
-                // ★修正：アクションカード「みんなで大漁」を取得
                 if (typeof window.triggerTCGUnlock === 'function') window.triggerTCGUnlock('action_fish', this.generation);
                 
                 if (typeof openInventoryPanel === 'function') {
@@ -1634,14 +1931,13 @@ aiPet.processFishingFrame = function() {
                     }, 1000);
                 }
 
-                // ★ 修正：見事釣り上げた瞬間にクエストの回数をカウント！
                 if (this.apprentice && this.apprentice.activeQuests) {
                     this.apprentice.activeQuests.forEach(q => {
                         if (q.masterType === 'fishing') q.qVal = (q.qVal || 0) + 1;
                     });
                     if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
                 }
-                if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest('fish'); // 👈これを追加！
+                if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest('fish');
             }
         } else {
             d.pos += (0.2 + Math.random() * 0.5);
@@ -1651,12 +1947,11 @@ aiPet.processFishingFrame = function() {
                 d.phase = 'result';
                 d.timer = 0;
                 
-                // ▼▼▼ 新規追加：大物に逃げられた時の激しいペナルティ ▼▼▼
                 if (d.bossFailed || (d.isBoss && !d.isSuccess)) {
                     this.message = "化け物みたいな引きだ...糸が切られた！！";
                     if (!this.godMode) {
-                        this.energy -= 20;  // 激しく体力を消耗
-                        this.stats.mood -= 20; // かなり不機嫌になる
+                        this.energy -= 20; 
+                        this.stats.mood -= 20; 
                     }
                     this.fishingPopupTimer = 90;
                     this.fishingPopup = `❌ ヌシに力負けした...`;
@@ -1665,7 +1960,6 @@ aiPet.processFishingFrame = function() {
                     this.message = failMsgs[Math.floor(Math.random()*failMsgs.length)];
                 }
                 this.messageTimer = 90;
-                // ▲▲▲ 新規追加ここまで ▲▲▲
                 
                 if (d.isBreak) {
                     this.inventory.splice(d.bestIdx, 1);
@@ -1674,14 +1968,13 @@ aiPet.processFishingFrame = function() {
                     }, 1000);
                 }
 
-                // ★ 修正：失敗（逃げられた）しても「釣りをした回数」にはカウント！
                 if (this.apprentice && this.apprentice.activeQuests) {
                     this.apprentice.activeQuests.forEach(q => {
                         if (q.masterType === 'fishing') q.qVal = (q.qVal || 0) + 1;
                     });
                     if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
                 }
-                if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest('fish'); // 👈これを追加！
+                if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest('fish'); 
             }
         }
     } else if (d.phase === 'result') {
@@ -1689,12 +1982,15 @@ aiPet.processFishingFrame = function() {
         if (d.timer > 100) { 
             d.phase = 'idle';
             d.timer = 0;
-            let hasRod = this.inventory.some(k => k.startsWith('rod_'));
             
-            // ★完全修正：1回釣っただけで終わらせない！
-            // 「竿が壊れて無くなった時だけ」現在の釣りを終了して、次の予定へ進む！
+            // ★修正4：インベントリのオブジェクト化に完全対応
+            let hasRod = this.inventory.some(itemObj => {
+                let k = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                return k && k.startsWith('rod_');
+            });
+            
             if (!hasRod && this.schedule && this.schedule.length > 0 && this.schedule[0].type === 'fish') {
-                this.schedule[0].duration = 0; // 現在の釣りタスクのみを完了
+                this.schedule[0].duration = 0; 
                 this.message = "釣り竿がなくなったから切り上げるよ！";
                 this.messageTimer = 120;
             }
@@ -1739,7 +2035,7 @@ aiPet.applyApprenticeship = function(masterType) {
     return true;
 };
 
-// ★大改修：教えた3つの言葉を基準に合否を判定する（類義語対応版）
+// ★大改修：教えた3つの言葉を基準に合否を判定する（類義語対応・師匠ごとの口調完全版）
 aiPet.processApprenticeExamFinish = function(task) {
     const mType = task.masterType;
     const words = this.apprentice.learnedWords || [];
@@ -1752,10 +2048,21 @@ aiPet.processApprenticeExamFinish = function(task) {
     }
     
     if (passed) {
-        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, "「全問正解だ！お前を私の弟子として認めよう！」", 'exam_pass');
+        // ★合格時のセリフを師匠ごとに分岐
+        let passMsg = "「全問正解だ！お前を私の弟子として認めよう！」";
+        if (mType === 'explore') passMsg = "「全問正解ね！ あなたを私の弟子として認めるわ！」";
+        else if (mType === 'farming') passMsg = "「全問正解だね！ 君を私の弟子として認めよう！」";
+        else if (mType === 'fishing') passMsg = "「全問正解だ！ お前さんを俺の弟子として認めるぜ！」";
+        else if (mType === 'cooking') passMsg = "「全問正解だ！ 君を私の弟子として認めよう！」";
+        else if (mType === 'smithing') passMsg = "「……全問正解だ。お前を俺の弟子として認めよう。」";
+        else if (mType === 'building') passMsg = "「全問正解だな！ 君を私の弟子として認めよう！」";
+        else if (mType === 'pharmacist') passMsg = "「全問正解です！ あなたを私の弟子として認めましょう。これから健康第一で学んでいきましょうね！」";
+
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, passMsg, 'exam_pass');
     } else {
         let attempts = this.apprentice.attempts[mType] || 0;
         if (attempts >= 3) {
+            // ★見放された（出禁）時のセリフ
             let retireMsg = "";
             if (mType === 'explore') retireMsg = "「ごめんなさい、自然は甘くないから君を連れて行くわけにはいかないわ。……でも、キャンプに遊びに来るくらいならいつでも歓迎するわよ！」";
             else if (mType === 'farming') retireMsg = "「ごめんね、君にはまだ土と対話する準備ができていないようだ。……でも、うちの野菜が食べたくなったらいつでもおいで。」";
@@ -1763,8 +2070,11 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'cooking') retireMsg = "「ダメだな！君の料理にはソウルが足りない！弟子入りはお断りだ！……だが、腹が減ったらうちの飯を食いに来な！」";
             else if (mType === 'smithing') retireMsg = "「……鉄が泣いている。お前には教えられん。……だが、火にあたりたければ、端に座っているくらいは許そう。」";
             else if (mType === 'building') retireMsg = "「悪いが、君に設計図を引くセンスは感じられないな。……だが、建築に興味があるなら、現場を見学するくらいは構わないぞ。」";
+            else if (mType === 'pharmacist') retireMsg = "「おやおや、何度言っても間違えるようでは、命に関わる薬学を教えるわけにはいきません。弟子入りはお断りです。……でも、ただのお客さんとしてならいつでも歓迎しますよ。」";
+
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, retireMsg, 'banned');
         } else {
+            // ★不合格（やり直し）時のセリフ
             let hintMsg = "";
             if (mType === 'explore') hintMsg = "「まだまだね。私が指定した3つの言葉をもう一度しっかり覚えていらっしゃい。」";
             else if (mType === 'farming') hintMsg = "「まだまだだね。私が指定した3つの言葉をもう一度しっかり覚えておいで。」";
@@ -1772,6 +2082,7 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'cooking') hintMsg = "「なっちゃいないな！私が指定した3つの言葉をもう一度しっかり覚えてこい！」";
             else if (mType === 'smithing') hintMsg = "「……話にならん。俺が指定した3つの言葉をもう一度しっかり覚えてこい。」";
             else if (mType === 'building') hintMsg = "「まだまだだな。私が指定した3つの言葉をもう一度しっかり覚えてきてくれ。」";
+            else if (mType === 'pharmacist') hintMsg = "「知識が不正確ですね、これでは毒になってしまいます。私が指定した3つの言葉をもう一度しっかり覚えてきてくださいね。」";
             
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, hintMsg, 'exam_fail');
         }
@@ -1920,6 +2231,11 @@ aiPet.update = function() {
     if (isNaN(this.stats.beauty)) this.stats.beauty = 10;
     if (isNaN(this.darknessCounter)) this.darknessCounter = 0;
     
+    // ★追加: コンディション（状態異常・バフ）の初期化
+    // ★修正: 中毒（poisoning）を追加
+    if (!this.conditions) this.conditions = { cold: false, stomachache: false, poisoning: false };
+    if (!this.buffs) this.buffs = { focus: 0, tough: 0 }; // ターン数で管理
+
     if (!this.apprentice) this.apprentice = { learnedWords: [], rank: {}, attempts: {} };
     if (!this.apprentice.learnedWords) this.apprentice.learnedWords = [];
 
@@ -2294,9 +2610,48 @@ aiPet.update = function() {
             const bPower = tData.statBonus?.power || 1.0;
 
             // =======================================
+            // ★新規：タスク開始前の必要コスト事前チェック
+            // =======================================
+            if (!task._started && !['sleep', 'rest', 'eat', 'life_slowlife'].includes(task.type)) {
+                let tempDuration = task.duration || 60;
+                if (['visit_master', 'master_quest', 'apprentice_exam'].includes(task.type)) tempDuration = 1;
+                
+                let predictedEnergy = 0; let predictedHunger = 0;
+                let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
+                
+                // 探検と通常タスクで計算式を分けて、消費量を正確に予測
+                if (task.type === 'explore') {
+                    predictedEnergy = (tempDuration / 20) * 2 * consumeRate;
+                    predictedHunger = (tempDuration / 20) * 2 * consumeRate;
+                } else {
+                    // ★完全修正: 実際の毎フレームの消費量（0.005）と予測の計算式を完全に一致させる
+                    predictedEnergy = tempDuration * 0.005 * consumeRate * drainMult; 
+                    predictedHunger = tempDuration * 0.005 * consumeRate * drainMult; 
+                }
+
+                // ギリギリで枯渇しないよう、予測値に +5 程度の余裕を持たせて判定
+                if (!this.godMode && (this.energy < predictedEnergy + 5 || this.hunger < predictedHunger + 5)) {
+                    task.duration = 0; task.aborted = true;
+                    this.actionState = 'idle';
+                    let tName = typeof getTaskName === 'function' ? getTaskName(task.type, task) : task.type;
+                    this.message = `体力かお腹が空いてて「${tName}」はできそうにないや...`;
+                    this.messageTimer = 150;
+                    this.schedule.shift();
+                    if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
+                    return; // ここで弾くため、タスクは開始されません
+                }
+            }
+
+            // =======================================
             // ★タスクの初期化処理
             // =======================================
             if (!task._started) {
+                // ★修正：タスク開始時に一度だけバフを前払い消費する（キャンセルによる無限化防止）
+                if (this.buffs) {
+                    if (this.buffs.focus > 0) this.buffs.focus--;
+                    if (this.buffs.tough > 0) this.buffs.tough--;
+                }
+
                 const instantTasks = ['visit_master', 'apprentice_exam', 'master_quest'];
                 if (instantTasks.includes(task.type) && task.type !== 'apprentice_exam') { task.duration = 1; } 
                 else if (!task.duration || task.duration <= 0) { task.duration = 60; }
@@ -2591,9 +2946,30 @@ aiPet.update = function() {
                     }
 
                     // --- 各種ステータスアップなどのインゲーム処理 ---
-                    if (task.type === 'study') { this.actionState = this.isIndoors ? 'inside' : 'studying'; this.visualAction = 'study'; this.stats.intel += 0.1 * eff * bIntel; }
-                    else if (task.type === 'train') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'train'; this.stats.power += 0.1 * eff * bPower; }
-                    else if (task.type === 'run') { this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'move'; this.stats.speed += 0.1 * eff * bPower; }
+                    if (task.type === 'study') { 
+                        this.actionState = this.isIndoors ? 'inside' : 'studying'; this.visualAction = 'study'; 
+                        let focusMult = (this.buffs && this.buffs.focus > 0) ? 1.5 : 1.0; // ★バフ適用
+                        this.stats.intel += 0.1 * eff * bIntel * focusMult; 
+                        
+                        // ★薬剤師Rank7の進捗
+                        if (task.duration <= 0 && !task.aborted && focusMult > 1.0 && this.apprentice && this.apprentice.activeQuests) {
+                            this.apprentice.activeQuests.forEach(q => {
+                                if (q.masterType === 'pharmacist' && q.desc.includes('集中薬')) q.qVal = (q.qVal || 0) + 1;
+                            });
+                            if (!window.isCatchingUp && typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+                        }
+                    }
+                    else if (task.type === 'train') { 
+                        this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'train'; 
+                        let focusMult = (this.buffs && this.buffs.focus > 0) ? 1.5 : 1.0; // ★集中バフ適用
+                        let toughMult = (this.buffs && this.buffs.tough > 0) ? 1.5 : 1.0; 
+                        this.stats.power += 0.1 * eff * bPower * toughMult * focusMult; 
+                    }
+                    else if (task.type === 'run') { 
+                        this.actionState = this.isIndoors ? 'inside' : 'training'; this.visualAction = 'move'; 
+                        let focusMult = (this.buffs && this.buffs.focus > 0) ? 1.5 : 1.0; // ★集中バフ適用
+                        this.stats.speed += 0.1 * eff * bPower * focusMult; 
+                    }
                     else if (task.type === 'rest' || task.type === 'sleep') { 
                         this.actionState = this.isIndoors ? 'inside' : 'sleeping'; this.visualAction = 'sleep'; this.energy += 1.0 * eff;
                         if (this.energy >= 60 && this.hunger >= 60) { 
@@ -2644,6 +3020,26 @@ aiPet.update = function() {
                             } else if (task.type === 'smith') {
                                 if (typeof this.processSmithingFinish === 'function') this.processSmithingFinish(task);
                             }
+                            // ==========================================
+                            // ★追加：調合(mix)タスクが完了したときの処理をフックする
+                            // ==========================================
+                            else if (task.type === 'mix') {
+                                if (typeof this.processMixingFinish === 'function') this.processMixingFinish(task);
+                            }
+                            if (!window.isCatchingUp) window.updateScheduleList?.();
+                        }
+                    }
+                    // ★追加: 調合タスクの進行
+                    else if (task.type === 'mix') {
+                        this.actionState = this.isIndoors ? 'inside' : 'apprentice_training';
+                        this.visualAction = 'cook'; // ★とりあえずcookアニメーションを流用
+                        let workMsg = "調合中...（分量を間違えないように...）";
+                        if (this.message !== workMsg && !window.isCatchingUp) { this.message = workMsg; this.messageTimer = 120; }
+                        
+                        if (!task.mixData) { if (typeof this.processMixingStart === 'function' && !this.processMixingStart(task)) { task.duration = 0; task.aborted = true; } }
+                        
+                        if (task.duration <= 0 && !task.aborted) {
+                            if (typeof this.processMixingFinish === 'function') this.processMixingFinish(task);
                             if (!window.isCatchingUp) window.updateScheduleList?.();
                         }
                     }
@@ -3076,9 +3472,11 @@ aiPet.update = function() {
             if (currentMode === 'play' && !this.godMode && consumeRate > 0) {
                 if (!['sleep', 'rest', 'eat', 'life_slowlife'].includes(task.type)) {
                     let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
-                    this.energy -= 0.03 * consumeRate * drainMult;
-                    this.hunger -= 0.03 * consumeRate * drainMult;
-                    this.stats.mood -= 0.02 * consumeRate;
+                    // ★修正: 消費量を大幅に緩和（0.03 -> 0.005）
+                    this.energy -= 0.005 * consumeRate * drainMult;
+                    this.hunger -= 0.005 * consumeRate * drainMult;
+                    // 機嫌の低下も少しだけ緩和
+                    this.stats.mood -= 0.01 * consumeRate;
                 } else if (['sleep', 'rest', 'life_slowlife'].includes(task.type)) {
                     this.stats.mood += 0.05 * consumeRate;
                 }
@@ -3090,8 +3488,7 @@ aiPet.update = function() {
             const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
             const idleConsumeRate = tData.consumption !== undefined ? tData.consumption : 1.0;
             if (currentMode === 'play' && !this.godMode && idleConsumeRate > 0) { 
-                this.energy -= 0.02 * idleConsumeRate; 
-                this.hunger -= 0.02 * idleConsumeRate; 
+                // 待機時の体力・満腹度の減少を廃止し、機嫌の自然回復のみ残す
                 this.stats.mood += 0.01 * idleConsumeRate;
             }
         }
@@ -3108,11 +3505,27 @@ aiPet.update = function() {
         }
         this.stats.mood = Math.max(0, Math.min(100, this.stats.mood));
         
-        if (this.isSick) {
+        // ★修正：風邪・腹痛での寿命減少を廃止！ 重病・中毒時のみ「超低速で」寿命が減るように安全化
+        if (this.conditions.cold || this.conditions.stomachache || this.conditions.poisoning || this.isSick) {
             this.stats.mood -= 0.01; 
-            this.lifespan -= 0.005;  
+            
+            // 寿命が削られるのは「中毒(poisoning)」と「重病(isSick)」のみ
+            if (this.conditions.poisoning || this.isSick) {
+                // 減少量を大幅に緩和（0.005 → 0.00005）。これなら放置してもすぐには死にません。
+                this.lifespan -= this.conditions.poisoning ? 0.0001 : 0.00005;  
+            }
+
             if (!isHealing && Math.random() < 0.01 && !window.isCatchingUp && typeof addFloatingText === 'function') {
-                addFloatingText(this.x, this.y - 40, "😷 苦しい...", "#8D6E63");
+                let msg = this.conditions.poisoning ? "🤢 吐き気が..." : (this.conditions.stomachache ? "⚡ お腹痛い..." : (this.conditions.cold ? "🤧 ゴホゴホ..." : "😷 苦しい..."));
+                addFloatingText(this.x, this.y - 40, msg, "#8D6E63");
+            }
+        }
+
+        // 屋外での行動中に雨か雪だと風邪をひく判定
+        if (!this.isIndoors && (this.weather === 'rain' || this.weather === 'snow' || this.weather === 'thunder') && !isHealing) {
+            if (Math.random() < 0.0005) { // じわじわ判定されるため確率は低め
+                this.conditions.cold = true;
+                if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "🤧 風邪をひいた！", "#4fc3f7");
             }
         }
     }
@@ -3338,6 +3751,12 @@ aiPet.executeEnterAction = function() {
         if (this.interactionTarget.type === 'shop') {
             this.actionState = 'inside'; this.isIndoors = true; this.message = "おつかいを始めるよ！";
             if (typeof window.openShopUI === 'function') window.openShopUI(this.interactionTarget);
+            return;
+        }
+        // ★追加: 薬局に入った場合の処理
+        else if (this.interactionTarget.type === 'pharmacy') {
+            this.actionState = 'inside'; this.isIndoors = true; this.message = "薬局にきたよ！";
+            if (typeof window.openPharmacyShopUI === 'function') window.openPharmacyShopUI();
             return;
         }
         
@@ -4172,23 +4591,38 @@ aiPet.processExploration = function() {
         if (Math.random() < dropChance && itemsTable.length > 0) {
             let itemKey = itemsTable[Math.floor(Math.random() * itemsTable.length)]; 
 
-            // ▼▼▼ レアアイテムは「深層（8階以上）」限定のドロップ ▼▼▼
             if (itemKey === 'wood' || itemKey === 'stone') {
                 let isRare = false;
-                
-                // ★修正：安易な救済を消し、元の「8階以上なら50%の確率」というストイックな仕様に戻す
-                if (state.depth >= 8 && Math.random() < 0.5) {
-                    isRare = true; 
-                }
-
-                if (isRare) {
-                    itemKey = itemKey === 'wood' ? 'high_wood' : 'high_stone';
+                if (state.depth >= 8 && Math.random() < 0.5) isRare = true; 
+                if (isRare) itemKey = itemKey === 'wood' ? 'high_wood' : 'high_stone';
+            }
+            
+            // ==========================================
+            // ★新規追加：薬剤師の「薬草」「きれいな水」ドロップ解放
+            // ==========================================
+            if (this.pharmacistMatsUnlocked) {
+                // 35%の確率で、通常のドロップ品が「薬草」か「きれいな水」に置き換わる！
+                if (Math.random() < 0.35) {
+                    itemKey = Math.random() < 0.5 ? 'herb' : 'water';
                 }
             }
-            // ▲▲▲ 新規追加ここまで ▲▲▲
 
-            // カタログに未登録の場合の簡易フォールバック
-            const item = itemCatalog[itemKey] || { name: itemKey === 'high_wood' ? '良質な木材' : (itemKey === 'high_stone' ? '硬い石' : itemKey) }; 
+            // ★新規追加：薬剤師の毒キノコドロップ解放
+            let hasPoisonQuest = this.apprentice && this.apprentice.activeQuests && this.apprentice.activeQuests.some(q => q.masterType === 'pharmacist' && q.desc.includes('毒キノコ'));
+            let isPharmacistMaster = this.apprentice && this.apprentice.rank && this.apprentice.rank['pharmacist'] >= 10;
+            if ((hasPoisonQuest || isPharmacistMaster) && Math.random() < 0.20) {
+                itemKey = 'poison_mushroom';
+            }
+
+            // ★修正：カタログに未登録の場合のフォールバック名を強化
+            const fallbackNames = {
+                'high_wood': '良質な木材',
+                'high_stone': '硬い石',
+                'herb': '薬草',
+                'water': 'きれいな水',
+                'poison_mushroom': '毒キノコ'
+            };
+            const item = itemCatalog[itemKey] || { name: fallbackNames[itemKey] || itemKey }; 
             
             if (item) { 
                 this.inventory.push(itemKey);
@@ -5812,6 +6246,12 @@ window.masterFlavor = {
         offer: (qName) => `「次の設計だ。課題『${qName}』。 完璧な計算と構造美を私に示してくれ。」`,
         report_ok: "「計算通りだな。美しい仕上がりだ。合格！」",
         report_ng: "「設計図からやり直せ。まだ完成には程遠いぞ。」"
+    },
+    // ★追加: 薬剤師のフレーバー
+    'pharmacist': {
+        offer: (qName) => `「次の処方は『${qName}』です。用法用量と、必要な素材を守って進めてくださいね。」`,
+        report_ok: "「素晴らしい。正確な計量でした。合格です。」",
+        report_ng: "「分量が間違っています。これでは毒になってしまいますよ。やり直しです。」"
     }
 };
 
