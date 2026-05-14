@@ -425,6 +425,7 @@ if (typeof aiPet.energy === 'undefined') aiPet.energy = 100;
 if (typeof aiPet.hunger === 'undefined') aiPet.hunger = 100;
 if (typeof aiPet.weather === 'undefined') aiPet.weather = 'sunny';
 if (typeof aiPet.debtTimer === 'undefined') aiPet.debtTimer = 0;
+if (typeof aiPet.tailorUnlocked === 'undefined') aiPet.tailorUnlocked = false; // ★追加：未定義によるエラーを防ぐため明示的に初期化
 
 // ★追加: 既存セーブデータロード時の「弟子入りデータ」欠損対策
 if (!aiPet.apprentice) {
@@ -759,7 +760,8 @@ window.confirmInitialPet = function() {
     
     if (typeof party !== 'undefined') window.party = [];
     
-    if (typeof assets !== 'undefined') {
+    // ★修正：完全なニューゲームの時だけマップを再生成し、引継ぎ時は設定に従うようにガード！
+    if (!isNGPlus && typeof assets !== 'undefined') {
         for (let k in assets) delete assets[k]; 
         if (typeof generateNatureMap === 'function') {
             let newMap = generateNatureMap();
@@ -882,6 +884,7 @@ function applyInitialPet(skinKey) {
     };
     aiPet.actionHistory = { study: 0, train: 0, work: 0, rest: 0, care: 0, free: 0 };
     aiPet.skills = { cooking: 1, smithing: 1, building: 1 };
+    aiPet.tailorUnlocked = false; // ★追加：新しい人生の始まりに確実に初期化
     aiPet.inventory = [];
     aiPet.schedule = [];
     aiPet.actionState = 'idle';

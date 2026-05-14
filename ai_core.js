@@ -64,6 +64,15 @@ window.EXAM_KEYWORDS = {
             ['水', 'きれいな水', 'みず', '液体']
         ],
         q1: "薬の原料となる植物は？", q2: "薬草をすりつぶす道具は？", q3: "薬を煮出すために必要な液体は？"
+    },
+    // ★追加: 仕立屋の入門試験
+    'tailor': {
+        accepts: [
+            ['糸', 'いと', '絹'],
+            ['針', 'はり', '縫い針'],
+            ['リボン', 'アクセサリー', 'ひも']
+        ],
+        q1: "布を作るための細い素材は？", q2: "服を縫い合わせる尖った道具は？", q3: "装飾に使う、首や手首に巻くものは？"
     }
 };
 
@@ -104,6 +113,7 @@ function getTaskName(type, task = null) {
     if(type==='cook') return "料理"; 
     if(type==='smith') return "鍛冶"; 
     if(type==='mix') return "調合"; // ★追加
+    if(type==='tailor') return "裁縫"; // ★追加
     // ★修正：建築と拡張の具体的な表示に対応
     if(type==='build') {
         if (task && task.buildData) {
@@ -117,7 +127,7 @@ function getTaskName(type, task = null) {
     if(type==='apprentice_exam' || type==='visit_master') {
         if (task && task.masterType && typeof window.aiPet !== 'undefined') {
             const mType = task.masterType;
-            const mNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師' };
+            const mNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
             const mName = mNames[mType] || '専門家';
             const app = window.aiPet.apprentice || {};
             
@@ -661,6 +671,23 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='elixir').length >= 1; }
             }
+        },
+        'tailor': { // 仕立屋のクエスト
+            0: { name: "入門試験の準備", desc: "試験では『細い素材』『尖った道具』『装飾に使うもの』について聞かれる。答えとなる言葉を覚えよう。" },
+            1: { name: "色彩の基礎", desc: "『野イチゴ』から色を抽出する裁縫を行い、『染料』を3つ作成し持ってくる。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='dye').length >= 3; } },
+            2: { name: "糸紡ぎ", desc: "『薬草』の繊維を撚り合わせる裁縫を行い、『丈夫な糸』を3つ作成し持ってくる。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='sturdy_thread').length >= 3; } },
+            3: { name: "機織りの技術", desc: "『染料』と『丈夫な糸』を織り上げる裁縫を行い、『色鮮やかな布』を3つ作成し持ってくる。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='colorful_cloth').length >= 3; } },
+            4: { name: "はじめてのお守り", desc: "『色鮮やかな布』と『丈夫な糸』を縫い合わせる裁縫を行い、『てるてる坊主のブローチ』を1つ作成する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='brooch_teruteru').length >= 1; } },
+            5: { name: "探求への祈り", desc: "『色鮮やかな布』に『魔結晶』を飾り付ける裁縫を行い、『探求者のリボン』を1つ作成する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='ribbon_seeker').length >= 1; } },
+            6: { name: "豊穣への祈り", desc: "『色鮮やかな布』と『薬草』を編み込む裁縫を行い、『豊穣のタッセル』を1つ作成する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='tassel_harvest').length >= 1; } },
+            7: { name: "健やかなる体", desc: "『色鮮やかな布』を『きれいな水』で清める裁縫を行い、『健康のミサンガ』を1つ作成する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='misanga_health').length >= 1; } },
+            8: { name: "神秘の織物", desc: "『色鮮やかな布』『染料』『丈夫な糸』をすべて使い、魔力を帯びた特別な『神秘の織物』を1つ作成する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='mystic_fabric').length >= 1; } },
+            9: { 
+                name: "免許皆伝", 
+                desc: "『神秘の織物』に『魔結晶』と『良質な木材』を組み込み、集大成である『悠久の懐中時計』を作成し納品する。", 
+                setup: function() { aiPet.apprentice.qVal = 0; }, 
+                check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='eternal_watch').length >= 1; } 
+            }
         }
     };
 
@@ -768,6 +795,10 @@ function findFacilityForTask(taskType, masterType = null) {
     else if (taskType === 'mix') {
         priorities = ['pharmacy'];
     }
+    // ★追加：裁縫は仕立屋(アトリエ)を探す
+    else if (taskType === 'tailor') {
+        priorities = ['atelier', 'tailor'];
+    }
     // ★追加：釣りは橋などを探す
     else if (taskType === 'fish' || taskType === 'bridge') { priorities = ['bridge', 'sea', 'water']; }
     else if (taskType === 'master_quest' || taskType === 'visit_master') {
@@ -790,6 +821,8 @@ function findFacilityForTask(taskType, masterType = null) {
         else if (masterType === 'explore') priorities = ['mountain', 'skull', 'palms', 'nature']; 
         else if (masterType === 'fishing') priorities = ['bridge', 'sea', 'water'];
         else if (masterType === 'building') priorities = ['palms', 'nature'];
+        else if (masterType === 'pharmacist') priorities = ['pharmacy'];
+        else if (masterType === 'tailor') priorities = ['atelier', 'tailor'];
     }
     
     let bestAsset = null;
@@ -845,6 +878,14 @@ aiPet.getTimePhase = function() {
     return { id: 'night', name: '夜', color: 'rgba(0, 0, 50, 0.5)' };
 };
 
+// ★追加：お守りの+値を取得するヘルパー関数
+aiPet.getAmuletPlus = function(amuletId) {
+    if (!this.inventory) return -1;
+    let item = this.inventory.find(i => (typeof i==='string'?i:i.id) === amuletId);
+    if (!item) return -1;
+    return typeof item === 'string' ? 0 : (item.plus || 0);
+};
+
 aiPet.updateWeather = function() {
     this.weatherTimer++;
     if (this.weatherTimer > 1200) { 
@@ -860,6 +901,15 @@ aiPet.updateWeather = function() {
             if (r < 0.4) next = 'clear'; else if (r < 0.8) next = 'cloudy'; else next = 'rain';
         } else {
             if (r < 0.5) next = 'clear'; else if (r < 0.7) next = 'cloudy'; else next = 'snow';
+        }
+
+        // ★追加：てるてる坊主のブローチによる悪天候回避
+        if (next === 'rain' || next === 'thunder' || next === 'snow') {
+            let teruteruPlus = this.getAmuletPlus('brooch_teruteru');
+            if (teruteruPlus >= 0) {
+                let avoidChance = 0.5 + (teruteruPlus * 0.05); // 基本50%で回避、+1につき5%上昇
+                if (Math.random() < avoidChance) next = 'cloudy'; // 回避したら曇りに
+            }
         }
 
         this.weather = next;
@@ -1004,18 +1054,32 @@ aiPet.consumeFood = function() {
     this.hunger = Math.min(100, this.hunger + gainHunger);
     this.message = `${bestFood.name}を${action}！`; 
 
-    // ★追加：毒キノコをそのまま食べた場合の100%中毒処理
+    // ★追加：毒キノコをそのまま食べた場合の中毒処理（ミサンガで軽減可能）
     if (bestFood.id === 'poison_mushroom') {
-        this.conditions.poisoning = true;
-        this.stats.mood -= 30; // 機嫌も激減
-        this.message = "ウッ…激しい吐き気が…毒キノコだ！";
-        if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "🤢 中毒になった！", "#9C27B0");
+        let poisonChance = 1.0;
+        let healthPlus = typeof this.getAmuletPlus === 'function' ? this.getAmuletPlus('misanga_health') : -1;
+        if (healthPlus >= 0) poisonChance *= Math.max(0, 0.5 - (healthPlus * 0.05));
+
+        if (Math.random() < poisonChance) {
+            this.conditions.poisoning = true;
+            this.stats.mood -= 30; // 機嫌も激減
+            this.message = "ウッ…激しい吐き気が…毒キノコだ！";
+            if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "🤢 中毒になった！", "#9C27B0");
+        } else {
+            this.stats.mood -= 10;
+            this.message = "ウッ…ひどい味だ…でもなんとかお腹は平気みたい。";
+        }
     }
 
     // ★修正: 生魚（dishではない魚）を食べた時の確率「腹痛」ペナルティ
     const consumedId = typeof this.inventory[bestIdx] === 'string' ? this.inventory[bestIdx] : this.inventory[bestIdx]?.id;
     if (consumedId && consumedId.startsWith('fish_') && bestFood.type !== 'dish' && bestFood.quality !== 'bad') {
-        if (Math.random() < 0.25) { // 25%であたる
+        // ★追加：健康のミサンガの効果
+        let sickChance = 0.25;
+        let healthPlus = this.getAmuletPlus('misanga_health');
+        if (healthPlus >= 0) sickChance *= Math.max(0, 0.5 - (healthPlus * 0.05)); // 基本半減
+
+        if (Math.random() < sickChance) { // 25%であたる
             this.conditions.stomachache = true;
             this.stats.mood -= 10;
             this.message = "ウッ…生魚にあたってお腹が痛い…";
@@ -1031,8 +1095,12 @@ aiPet.consumeFood = function() {
         this.message = "ウッ…不味いしお腹が痛い…";
         if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "🤢 激マズ...", "#795548");
         
-        // ★ 30%の確率で「腹痛」を発症する！
-        if (Math.random() < 0.30) {
+        // ★ 30%の確率で「腹痛」を発症する！(健康のミサンガで軽減)
+        let sickChance = 0.30;
+        let healthPlus = this.getAmuletPlus('misanga_health');
+        if (healthPlus >= 0) sickChance *= Math.max(0, 0.5 - (healthPlus * 0.05));
+
+        if (Math.random() < sickChance) {
             this.conditions.stomachache = true;
             if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "⚡ 腹痛になった！", "#E53935");
         }
@@ -1812,6 +1880,182 @@ aiPet.processMixingFinish = function(task) {
     }
 };
 
+// ==========================================
+// ★追加：裁縫（tailor）の開始処理
+// ==========================================
+aiPet.processTailoringStart = function(task) {
+    let recipes = [
+        { id: 'dye', name: '染料', req: ['item_berry'], minRank: 1, isAnyNature: true },
+        { id: 'sturdy_thread', name: '丈夫な糸', req: ['herb'], minRank: 2, isAnyNature: true },
+        { id: 'colorful_cloth', name: '色鮮やかな布', req: ['dye', 'sturdy_thread'], minRank: 3 },
+        { id: 'brooch_teruteru', name: 'てるてる坊主のブローチ', req: ['colorful_cloth', 'sturdy_thread'], minRank: 4 },
+        { id: 'ribbon_seeker', name: '探求者のリボン', req: ['colorful_cloth', 'crystal'], minRank: 5 },
+        { id: 'tassel_harvest', name: '豊穣のタッセル', req: ['colorful_cloth', 'herb'], minRank: 6 },
+        { id: 'misanga_health', name: '健康のミサンガ', req: ['colorful_cloth', 'water'], minRank: 7 },
+        { id: 'mystic_fabric', name: '神秘の織物', req: ['colorful_cloth', 'dye', 'sturdy_thread'], minRank: 8 },
+        { id: 'eternal_watch', name: '悠久の懐中時計', req: ['mystic_fabric', 'crystal', 'high_wood'], minRank: 9 }
+    ];
+
+    let pRank = (this.apprentice && this.apprentice.rank['tailor']) || 0; // ★修正：初期値を0に変更
+    let targetRecipe = null;
+    let isGeneralTailoring = !task.craftTarget || task.craftTarget === "裁縫" || task.craftTarget === "tailor";
+
+    // ★追加：未習得（Rank 0かつ皆伝していない）場合は何もしない（他の未習得ワードと同じ扱いにする）
+    let isMaster = this.apprentice && this.apprentice.retired && this.apprentice.retired['tailor'];
+    if (pRank < 1 && !isMaster) {
+        return false;
+    }
+
+    const checkMats = (r) => {
+        let tempInv = [...this.inventory];
+        let consumed = [];
+        for (let reqMat of r.req) {
+            let idx = tempInv.findIndex(itemObj => {
+                if (!itemObj) return false;
+                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                if (r.isAnyNature) return id === 'item_berry' || id === 'herb'; // 自然素材の簡易代替
+                return id === reqMat;
+            });
+            if (idx !== -1) { consumed.push(idx); tempInv[idx] = null; } 
+            else return null;
+        }
+        return consumed;
+    };
+
+    if (isGeneralTailoring) {
+        if (pRank >= 1) {
+            let available = recipes.filter(r => pRank >= r.minRank && checkMats(r));
+            if (available.length > 0) targetRecipe = available[Math.floor(Math.random() * available.length)];
+            else { this.message = "裁縫できそうな素材がないみたい..."; this.messageTimer = 120; return false; }
+        }
+    } else {
+        targetRecipe = recipes.find(r => r.id === task.craftTarget);
+        if (!targetRecipe) { this.message = "その作り方がわからないみたい..."; this.messageTimer = 120; return false; }
+        if (pRank < targetRecipe.minRank) { this.message = "それはまだ難しくて作れないみたい..."; this.messageTimer = 120; return false; }
+        if (!checkMats(targetRecipe)) { this.message = `${targetRecipe.name}を作る素材が足りないみたい...`; this.messageTimer = 120; return false; }
+    }
+
+    if (targetRecipe) {
+        let consumedIndices = checkMats(targetRecipe);
+        if (consumedIndices) consumedIndices.sort((a, b) => b - a).forEach(idx => this.inventory.splice(idx, 1));
+    }
+
+    let beauty = this.stats.beauty || 10;
+    let baseSuccessRate = 0.5 + (beauty * 0.005) + (pRank * 0.05);
+
+    // ★ +値によるペナルティを二次曲線的に計算（+1につき0.01ベースの2乗倍）
+    let currentPlus = 0;
+    if (targetRecipe) {
+        let isEquip = typeof itemCatalog !== 'undefined' && itemCatalog[targetRecipe.id] && itemCatalog[targetRecipe.id].type === 'equip';
+        if (isEquip) {
+            let existingItem = this.inventory.find(i => (typeof i === 'string' ? i : i.id) === targetRecipe.id);
+            if (existingItem && typeof existingItem !== 'string') {
+                currentPlus = existingItem.plus || 0;
+            }
+        }
+    }
+    
+    let successRate = baseSuccessRate - (Math.pow(currentPlus, 2) * 0.01);
+    successRate = Math.min(0.95, Math.max(0, successRate)); // 上限95%、最低保証なし
+
+    let isSuccess = Math.random() < successRate;
+    let greatSuccessRate = pRank >= 8 ? (beauty * 0.003) + (pRank * 0.01) : 0;
+    let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
+
+    // ★追加：お守り（装備品）の初回作成時は絶対に大成功しないようにする
+    if (targetRecipe) {
+        let isEquip = typeof itemCatalog !== 'undefined' && itemCatalog[targetRecipe.id] && itemCatalog[targetRecipe.id].type === 'equip';
+        if (isEquip) {
+            let hasAmulet = this.inventory.some(i => (typeof i === 'string' ? i : i.id) === targetRecipe.id);
+            if (!hasAmulet) isGreatSuccess = false; 
+        }
+    }
+
+    task.tailorData = {
+        targetId: targetRecipe ? targetRecipe.id : 'dye', // ★フォールバック
+        targetName: targetRecipe ? targetRecipe.name : '謎の布',
+        successRate: successRate, isSuccess: isSuccess, isGreatSuccess: isGreatSuccess
+    };
+
+    task._started = true;
+    return true;
+};
+
+// ==========================================
+// ★追加：裁縫（tailor）の完了処理
+// ==========================================
+aiPet.processTailoringFinish = function(task) {
+    const d = task.tailorData;
+    if (!d) return;
+
+    if (!this.skills.tailoring) this.skills.tailoring = 1;
+
+    if (d.isSuccess) {
+        this.skills.tailoring += 0.5;
+        this.stats.beauty += 0.5;
+        this.stats.mood += d.isGreatSuccess ? 15 : 5;
+        
+        // ★追加：大成功時のボーナス量計算（美しさ100ごとに+1ボーナス）
+        let bonusAmount = 0;
+        if (d.isGreatSuccess) {
+            let beauty = this.stats.beauty || 10;
+            bonusAmount = 1 + Math.floor(beauty / 100);
+            bonusAmount = Math.min(5, bonusAmount); // やりすぎ防止の最大+5上限
+        }
+
+        const amulets = ['brooch_teruteru', 'ribbon_seeker', 'tassel_harvest', 'misanga_health', 'eternal_watch'];
+        let isAmulet = amulets.includes(d.targetId);
+        let upgraded = false;
+        let currentPlus = 0;
+
+        if (isAmulet) {
+            let existingIdx = this.inventory.findIndex(i => (typeof i==='string'?i:i.id) === d.targetId);
+            if (existingIdx !== -1) {
+                let item = this.inventory[existingIdx];
+                let addedPlus = d.isGreatSuccess ? (1 + bonusAmount) : 1; // 大成功で一気に+値上昇
+
+                if (typeof item === 'string') {
+                    item = { id: item, age: 0, plus: addedPlus };
+                    this.inventory[existingIdx] = item;
+                } else {
+                    item.plus = (item.plus || 0) + addedPlus;
+                }
+                currentPlus = item.plus;
+                upgraded = true;
+                
+                this.message = d.isGreatSuccess ? `大成功！！ 「${d.targetName}」が一気に（+${currentPlus}）まで強化された！` : `裁縫成功！ 「${d.targetName}」が（+${currentPlus}）に強化された！`;
+            } else {
+                this.message = `裁縫成功！ ${d.targetName}ができた！`;
+                this.inventory.push({ id: d.targetId, age: 0, plus: 0 }); // 初回作成
+            }
+        } else {
+            // ★素材の場合：完成品の数が増える
+            let addCount = d.isGreatSuccess ? (1 + bonusAmount) : 1;
+            for(let i = 0; i < addCount; i++) {
+                this.inventory.push(d.targetId);
+            }
+            this.message = d.isGreatSuccess ? `大成功！！ 素晴らしい手際で「${d.targetName}」が ${addCount} 個も完成した！` : `裁縫成功！ ${d.targetName}ができた！`;
+        }
+        
+        if (this.apprentice && this.apprentice.activeQuests) {
+            this.apprentice.activeQuests.forEach(q => {
+                if (q.desc.includes(d.targetName) || q.desc.includes('裁縫')) q.qVal = (q.qVal || 0) + 1;
+            });
+            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        }
+    } else {
+        this.skills.tailoring += 0.1;
+        this.message = "裁縫失敗... 糸がこんがらがっちゃった...";
+        this.inventory.push('tangled_thread'); // 失敗アイテム
+    }
+    
+    this.messageTimer = 150; this.visualAction = null; this.actionState = 'idle';
+    if (typeof openInventoryPanel === 'function') {
+        const invPanel = document.getElementById('panel-inventory');
+        if (invPanel && invPanel.classList.contains('active')) openInventoryPanel();
+    }
+};
+
 aiPet.processFishingFrame = function() {
     if (!this.fishingData) {
         this.fishingData = { phase: 'idle', timer: 0, pos: 100, targetName: null, isSuccess: false, isBreak: false, bestIdx: -1, caughtItem: null };
@@ -1913,7 +2157,12 @@ aiPet.processFishingFrame = function() {
                 
                 const bMood = (this.getTraitData().statBonus && this.getTraitData().statBonus.mood) ? this.getTraitData().statBonus.mood : 1.0;
                 this.stats.mood += 2 * bMood;
-                if (!this.godMode) { this.energy -= 1 * (this.getTraitData().consumption || 1.0); this.hunger -= 1 * (this.getTraitData().consumption || 1.0); }
+
+                let watchPlus = this.getAmuletPlus('eternal_watch');
+                let watchMult = 1.0;
+                if (watchPlus >= 0) watchMult = Math.max(0.1, 0.8 - (watchPlus * 0.02)); 
+
+                if (!this.godMode) { this.energy -= 1 * (this.getTraitData().consumption || 1.0) * watchMult; this.hunger -= 1 * (this.getTraitData().consumption || 1.0) * watchMult; }
                 
                 this.fishingPopup = `✨ ${d.targetName} を釣った！ ✨`;
                 this.fishingPopupTimer = 90;
@@ -1949,8 +2198,12 @@ aiPet.processFishingFrame = function() {
                 
                 if (d.bossFailed || (d.isBoss && !d.isSuccess)) {
                     this.message = "化け物みたいな引きだ...糸が切られた！！";
+                    let watchPlus = this.getAmuletPlus('eternal_watch');
+                    let watchMult = 1.0;
+                    if (watchPlus >= 0) watchMult = Math.max(0.1, 0.8 - (watchPlus * 0.02)); 
+                    
                     if (!this.godMode) {
-                        this.energy -= 20; 
+                        this.energy -= 20 * watchMult; 
                         this.stats.mood -= 20; 
                     }
                     this.fishingPopupTimer = 90;
@@ -2057,6 +2310,7 @@ aiPet.processApprenticeExamFinish = function(task) {
         else if (mType === 'smithing') passMsg = "「……全問正解だ。お前を俺の弟子として認めよう。」";
         else if (mType === 'building') passMsg = "「全問正解だな！ 君を私の弟子として認めよう！」";
         else if (mType === 'pharmacist') passMsg = "「全問正解です！ あなたを私の弟子として認めましょう。これから健康第一で学んでいきましょうね！」";
+        else if (mType === 'tailor') passMsg = "「全問正解です。……ふふっ、見事ですね。今日からあなたが私のお弟子さんですよ。」";
 
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, passMsg, 'exam_pass');
     } else {
@@ -2071,6 +2325,7 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'smithing') retireMsg = "「……鉄が泣いている。お前には教えられん。……だが、火にあたりたければ、端に座っているくらいは許そう。」";
             else if (mType === 'building') retireMsg = "「悪いが、君に設計図を引くセンスは感じられないな。……だが、建築に興味があるなら、現場を見学するくらいは構わないぞ。」";
             else if (mType === 'pharmacist') retireMsg = "「おやおや、何度言っても間違えるようでは、命に関わる薬学を教えるわけにはいきません。弟子入りはお断りです。……でも、ただのお客さんとしてならいつでも歓迎しますよ。」";
+            else if (mType === 'tailor') retireMsg = "「糸が絡まってしまっていますね……。あなたにはまだ、この道は早いようです。……でも、気が向いたらまたお話でもしにいらしてくださいね。」";
 
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, retireMsg, 'banned');
         } else {
@@ -2083,7 +2338,8 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'smithing') hintMsg = "「……話にならん。俺が指定した3つの言葉をもう一度しっかり覚えてこい。」";
             else if (mType === 'building') hintMsg = "「まだまだだな。私が指定した3つの言葉をもう一度しっかり覚えてきてくれ。」";
             else if (mType === 'pharmacist') hintMsg = "「知識が不正確ですね、これでは毒になってしまいます。私が指定した3つの言葉をもう一度しっかり覚えてきてくださいね。」";
-            
+            else if (mType === 'tailor') hintMsg = "「少し違いますね……。私が指定した3つの言葉、もう一度結び直していらっしゃい。」";
+
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, hintMsg, 'exam_fail');
         }
     }
@@ -2618,15 +2874,20 @@ aiPet.update = function() {
                 
                 let predictedEnergy = 0; let predictedHunger = 0;
                 let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
+
+                // ★追加：悠久の懐中時計の効果（全体消費量20%軽減）
+                let watchPlus = this.getAmuletPlus('eternal_watch');
+                let watchMult = 1.0;
+                if (watchPlus >= 0) watchMult = Math.max(0.1, 0.8 - (watchPlus * 0.02)); 
                 
                 // 探検と通常タスクで計算式を分けて、消費量を正確に予測
                 if (task.type === 'explore') {
-                    predictedEnergy = (tempDuration / 20) * 2 * consumeRate;
-                    predictedHunger = (tempDuration / 20) * 2 * consumeRate;
+                    predictedEnergy = (tempDuration / 20) * 2 * consumeRate * watchMult;
+                    predictedHunger = (tempDuration / 20) * 2 * consumeRate * watchMult;
                 } else {
                     // ★完全修正: 実際の毎フレームの消費量（0.005）と予測の計算式を完全に一致させる
-                    predictedEnergy = tempDuration * 0.005 * consumeRate * drainMult; 
-                    predictedHunger = tempDuration * 0.005 * consumeRate * drainMult; 
+                    predictedEnergy = tempDuration * 0.005 * consumeRate * drainMult * watchMult; 
+                    predictedHunger = tempDuration * 0.005 * consumeRate * drainMult * watchMult; 
                 }
 
                 // ギリギリで枯渇しないよう、予測値に +5 程度の余裕を持たせて判定
@@ -2696,16 +2957,26 @@ aiPet.update = function() {
                     let normals = validTargets.filter(a => !isDungeon(a, a.uid));
                     let finalTargetWrapped = null;
 
-                    if (dungeons.length > 0 && normals.length > 0) {
-                        if (Math.random() < 0.70) {
+                    // ★修正：森・山の直接指定に対応
+                    if (task.exploreTarget === 'forest') {
+                        let forests = normals.filter(a => a.uid.startsWith('palms') || (a.name && a.name.includes('森')));
+                        if (forests.length > 0) finalTargetWrapped = forests[Math.floor(Math.random() * forests.length)];
+                    } else if (task.exploreTarget === 'mountain') {
+                        let mountains = normals.filter(a => a.uid.startsWith('mountain') || (a.name && a.name.includes('山')));
+                        if (mountains.length > 0) finalTargetWrapped = mountains[Math.floor(Math.random() * mountains.length)];
+                    } else {
+                        // 従来の「探検」の場合はダンジョンが選ばれやすい
+                        if (dungeons.length > 0 && normals.length > 0) {
+                            if (Math.random() < 0.70) {
+                                finalTargetWrapped = dungeons[Math.floor(Math.random() * dungeons.length)];
+                            } else {
+                                finalTargetWrapped = normals[Math.floor(Math.random() * normals.length)];
+                            }
+                        } else if (dungeons.length > 0) {
                             finalTargetWrapped = dungeons[Math.floor(Math.random() * dungeons.length)];
-                        } else {
+                        } else if (normals.length > 0) {
                             finalTargetWrapped = normals[Math.floor(Math.random() * normals.length)];
                         }
-                    } else if (dungeons.length > 0) {
-                        finalTargetWrapped = dungeons[Math.floor(Math.random() * dungeons.length)];
-                    } else if (normals.length > 0) {
-                        finalTargetWrapped = normals[Math.floor(Math.random() * normals.length)];
                     }
 
                     if (finalTargetWrapped) {
@@ -3026,6 +3297,24 @@ aiPet.update = function() {
                             else if (task.type === 'mix') {
                                 if (typeof this.processMixingFinish === 'function') this.processMixingFinish(task);
                             }
+                            // ★追加：裁縫(tailor)タスクが完了したときの処理をフックする
+                            else if (task.type === 'tailor') {
+                                if (typeof this.processTailoringFinish === 'function') this.processTailoringFinish(task);
+                            }
+                            if (!window.isCatchingUp) window.updateScheduleList?.();
+                        }
+                    }
+                    // ★追加: 裁縫タスクの進行
+                    else if (task.type === 'tailor') {
+                        this.actionState = this.isIndoors ? 'inside' : 'apprentice_training';
+                        this.visualAction = 'study'; // とりあえずstudyアニメーションを流用
+                        let workMsg = "裁縫中...（一針ずつ丁寧に...）";
+                        if (this.message !== workMsg && !window.isCatchingUp) { this.message = workMsg; this.messageTimer = 120; }
+                        
+                        if (!task.tailorData) { if (typeof this.processTailoringStart === 'function' && !this.processTailoringStart(task)) { task.duration = 0; task.aborted = true; } }
+                        
+                        if (task.duration <= 0 && !task.aborted) {
+                            if (typeof this.processTailoringFinish === 'function') this.processTailoringFinish(task);
                             if (!window.isCatchingUp) window.updateScheduleList?.();
                         }
                     }
@@ -3472,6 +3761,13 @@ aiPet.update = function() {
             if (currentMode === 'play' && !this.godMode && consumeRate > 0) {
                 if (!['sleep', 'rest', 'eat', 'life_slowlife'].includes(task.type)) {
                     let drainMult = ['train', 'build', 'smith', 'run'].includes(task.type) ? 1.5 : 1.0;
+
+                    // ★追加：悠久の懐中時計の効果（全体消費量20%軽減）
+                    let watchPlus = this.getAmuletPlus('eternal_watch');
+                    if (watchPlus >= 0) {
+                        drainMult *= Math.max(0.1, 0.8 - (watchPlus * 0.02)); 
+                    }
+
                     // ★修正: 消費量を大幅に緩和（0.03 -> 0.005）
                     this.energy -= 0.005 * consumeRate * drainMult;
                     this.hunger -= 0.005 * consumeRate * drainMult;
@@ -3523,7 +3819,12 @@ aiPet.update = function() {
 
         // 屋外での行動中に雨か雪だと風邪をひく判定
         if (!this.isIndoors && (this.weather === 'rain' || this.weather === 'snow' || this.weather === 'thunder') && !isHealing) {
-            if (Math.random() < 0.0005) { // じわじわ判定されるため確率は低め
+            // ★追加：健康のミサンガの効果
+            let coldChance = 0.0005;
+            let healthPlus = this.getAmuletPlus('misanga_health');
+            if (healthPlus >= 0) coldChance *= Math.max(0, 0.5 - (healthPlus * 0.05));
+
+            if (Math.random() < coldChance) { // じわじわ判定されるため確率は低め
                 this.conditions.cold = true;
                 if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "🤧 風邪をひいた！", "#4fc3f7");
             }
@@ -3678,7 +3979,13 @@ aiPet.executeEnterAction = function() {
 
                 let isRare = false;
                 if ((this.stats.beauty || 0) >= 50 && (this.stats.intel || 0) >= 50) {
-                    if (Math.random() < 0.3) isRare = true;
+                    // ★追加：豊穣のタッセルの効果（大成功率+15%〜）
+                    let harvestChance = 0.3;
+                    let harvestPlus = this.getAmuletPlus('tassel_harvest');
+                    if (harvestPlus >= 0) {
+                        harvestChance += 0.15 + (harvestPlus * 0.02); // 基本+15%、+1につき2%増
+                    }
+                    if (Math.random() < harvestChance) isRare = true;
                 }
                 
                 let finalCropId = cropBaseId;
@@ -4109,7 +4416,7 @@ window.toggleInheritance = function(key) {
     window.renderInheritanceShop();
 };
 
-window.executeReincarnation = function() {
+window.executeReincarnation_OLD = function() {
     let totalCost = 0;
     for (let key in inheritanceSelections) {
         if (inheritanceSelections[key]) totalCost += currentInheritanceCosts[key];
@@ -4527,10 +4834,16 @@ aiPet.processExploration = function() {
 
     const fData = facilityData[state.currentFacility] || facilityData['default'];
     const consumeRate = this.getTraitData().consumption || 1.0;
+    
+    // ★追加：悠久の懐中時計の効果
+    let watchPlus = this.getAmuletPlus('eternal_watch');
+    let watchMult = 1.0;
+    if (watchPlus >= 0) watchMult = Math.max(0.1, 0.8 - (watchPlus * 0.02)); 
+
     // ★修正：アクションカード「未知の洞窟探検」を取得
     if (typeof window.triggerTCGUnlock === 'function') window.triggerTCGUnlock('action_cave', this.generation);
     
-    if (!this.godMode) { this.energy -= 2 * consumeRate; this.hunger -= 2 * consumeRate; }
+    if (!this.godMode) { this.energy -= 2 * consumeRate * watchMult; this.hunger -= 2 * consumeRate * watchMult; }
     if (!this.godMode && (this.energy <= 5 || this.hunger <= 5)) { 
         this.message = "疲れたから帰る..."; this.finishExploration(); return; 
     }
@@ -4591,10 +4904,33 @@ aiPet.processExploration = function() {
         if (Math.random() < dropChance && itemsTable.length > 0) {
             let itemKey = itemsTable[Math.floor(Math.random() * itemsTable.length)]; 
 
-            if (itemKey === 'wood' || itemKey === 'stone') {
-                let isRare = false;
-                if (state.depth >= 8 && Math.random() < 0.5) isRare = true; 
-                if (isRare) itemKey = itemKey === 'wood' ? 'high_wood' : 'high_stone';
+            // ★修正：探求者のリボンの効果を全レア素材（魔結晶・魔導書・コイン・良質素材）に適用
+            let rareBonus = 0;
+            if (typeof this.getAmuletPlus === 'function') {
+                let seekerPlus = this.getAmuletPlus('ribbon_seeker');
+                if (seekerPlus >= 0) rareBonus = 0.15 + (seekerPlus * 0.02); // 基本+15%、+1につき2%増
+            }
+
+            if (state.depth >= 8) {
+                let rareChance = 0.5 + rareBonus; // 良質素材の確率 (基本50% + ボーナス)
+                // 確率が跳ね上がりすぎないよう、特別ドロップにはボーナスの半分を加算
+                let crystalProb = 0.15 + (rareBonus * 0.5); // 魔結晶・魔導書 (基本15%)
+                let coinProb = crystalProb + 0.10 + (rareBonus * 0.5); // 古びた硬貨 (基本10%)
+
+                let r = Math.random();
+                if (state.currentFacility === 'mountain') {
+                    if (r < crystalProb) itemKey = 'crystal';       
+                    else if (r < coinProb) itemKey = 'coin';     
+                    else if (itemKey === 'stone' && Math.random() < rareChance) itemKey = 'high_stone';
+                } else if (state.currentFacility === 'palms' || state.currentFacility === 'nature') {
+                    if (r < crystalProb) itemKey = 'book';          
+                    else if (r < coinProb) itemKey = 'coin';     
+                    else if (itemKey === 'wood' && Math.random() < rareChance) itemKey = 'high_wood';
+                } else {
+                    if ((itemKey === 'wood' || itemKey === 'stone') && Math.random() < rareChance) {
+                        itemKey = itemKey === 'wood' ? 'high_wood' : 'high_stone';
+                    }
+                }
             }
             
             // ==========================================
@@ -4614,13 +4950,25 @@ aiPet.processExploration = function() {
                 itemKey = 'poison_mushroom';
             }
 
+            // ==========================================
+            // ★新規追加：仕立屋アンロック用「神秘の霊糸」のドロップ
+            // ==========================================
+            let hasBlueprint = this.inventory && this.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'blueprint_tailor');
+            let hasThread = this.inventory && this.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'mystic_thread');
+            if (hasBlueprint && !hasThread && !this.tailorUnlocked) {
+                if (Math.random() < 0.15) { // 確率で霊糸をドロップ
+                    itemKey = 'mystic_thread';
+                }
+            }
+
             // ★修正：カタログに未登録の場合のフォールバック名を強化
             const fallbackNames = {
                 'high_wood': '良質な木材',
                 'high_stone': '硬い石',
                 'herb': '薬草',
                 'water': 'きれいな水',
-                'poison_mushroom': '毒キノコ'
+                'poison_mushroom': '毒キノコ',
+                'mystic_thread': '神秘の霊糸' // ★追加
             };
             const item = itemCatalog[itemKey] || { name: fallbackNames[itemKey] || itemKey }; 
             
@@ -4646,7 +4994,7 @@ aiPet.processExploration = function() {
         }
     } else { 
         this.message = "敵に遭遇！逃げた！"; 
-        if (!this.godMode) { this.energy -= 5 * consumeRate; this.stats.mood -= 5; } // ★修正：逃走時のストレス増加
+        if (!this.godMode) { this.energy -= 5 * consumeRate * watchMult; this.stats.mood -= 5; } // ★修正：逃走時のストレス増加
     }
 
     const targetAsset = this.interactionTarget;
@@ -6252,6 +6600,12 @@ window.masterFlavor = {
         offer: (qName) => `「次の処方は『${qName}』です。用法用量と、必要な素材を守って進めてくださいね。」`,
         report_ok: "「素晴らしい。正確な計量でした。合格です。」",
         report_ng: "「分量が間違っています。これでは毒になってしまいますよ。やり直しです。」"
+    },
+    // ★追加: 仕立屋のフレーバー
+    'tailor': {
+        offer: (qName) => `「次の修行は『${qName}』です。ひと針ひと針、焦らずに心を込めてくださいね。」`,
+        report_ok: "「まあ……なんて美しい仕上がりでしょう。見事です、合格ですよ。」",
+        report_ng: "「少し糸がほつれていますね……。想いが乱れている証拠です。もう一度やり直しましょう。」"
     }
 };
 
