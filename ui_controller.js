@@ -259,7 +259,7 @@ window.openStatusMenu = function() {
             } else if (app.isGraduated) {
                 html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">今世での修行を終え、立派な達人になりました！<br>（1回の人生で極められる道は1つまでです。余生を満喫しましょう）</span></div>`;
             } else if (app.currentMaster) {
-                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
+                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
                 const mName = masterNames[app.currentMaster] || "不明";
                 const rank = app.rank[app.currentMaster] || 1;
                 
@@ -358,6 +358,27 @@ window.openStatusMenu = function() {
                                     else if (q.rank === 7) itemsStr.push(formatReq("健康のミサンガ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'misanga_health').length, 1));
                                     else if (q.rank === 8) itemsStr.push(formatReq("神秘の織物", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'mystic_fabric').length, 1));
                                     else if (q.rank === 9) itemsStr.push(formatReq("悠久の懐中時計", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'eternal_watch').length, 1));
+                                }
+                                // ==========================================
+                                // ★追加：パティシエのクエスト進捗表示（レストランデータを参照）
+                                // ==========================================
+                                else if (q.masterType === 'pastry_chef') {
+                                    // 自分のレストランのデータを取得
+                                    let myRest = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop);
+                                    let shopRecipes = myRest && myRest.shopData && myRest.shopData.recipes ? myRest.shopData.recipes : {};
+
+                                    if (q.rank === 1) itemsStr.push(formatReq("ハチミツ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'honey').length, 3));
+                                    else if (q.rank === 2) itemsStr.push(formatReq("イチゴ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'strawberry').length, 3));
+                                    else if (q.rank === 3) itemsStr.push(formatReq("ショートケーキの閃き", shopRecipes['dish_strawberry_cake'] ? 1 : 0, 1));
+                                    else if (q.rank === 4) itemsStr.push(formatReq("メロン", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'melon').length, 1));
+                                    else if (q.rank === 5) itemsStr.push(formatReq("メロンパフェの閃き", shopRecipes['dish_melon_parfait'] ? 1 : 0, 1));
+                                    else if (q.rank === 6) itemsStr.push(formatReq("ハチミツプリンの閃き", shopRecipes['dish_honey_pudding'] ? 1 : 0, 1));
+                                    else if (q.rank === 7 || q.rank === 8) {
+                                        let maxMastery = 0;
+                                        for (let k in shopRecipes) { if (shopRecipes[k].mastery > maxMastery) maxMastery = shopRecipes[k].mastery; }
+                                        itemsStr.push(formatReq("最高完成度(%)", maxMastery, q.rank === 7 ? 50 : 100));
+                                    }
+                                    else if (q.rank === 9) itemsStr.push(formatReq("デザートの販売数", q.qVal || 0, 10));
                                 }
 
                                 if (itemsStr.length === 0) isItemQuest = false;
@@ -1182,6 +1203,7 @@ window.updateCommandHUD = function() {
     if (knows("退治")) categories['⚔️ 冒険・作業'].push({ label: "退治して", base: "退治", color: "#ff5252" }); 
     if (knows("釣り")) categories['⚔️ 冒険・作業'].push({ label: "釣り", base: "釣り" });
     if (knows("料理")) categories['⚔️ 冒険・作業'].push({ label: "料理", base: "料理" });
+    if (knows("お菓子作り")) categories['⚔️ 冒険・作業'].push({ label: "お菓子作り", base: "お菓子作り" });
     if (knows("鍛冶")) categories['⚔️ 冒険・作業'].push({ label: "鍛冶", base: "鍛冶" }); 
     if (knows("建築")) categories['⚔️ 冒険・作業'].push({ label: "建築", base: "建築" });
 
@@ -1197,7 +1219,7 @@ window.updateCommandHUD = function() {
         categories['⚔️ 冒険・作業'].push({ label: "調合", base: "調合" });
     }
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
 
     // ★修正：自動修復ロジックを削除（世代交代時の「エモい再会イベント」を確実に発生させるため）
     for (let key in masterNames) {
@@ -1272,8 +1294,8 @@ window.updateCommandHUD = function() {
     if (knows("アトリエ")) categories['🏪 施設・その他'].push({ label: "アトリエ", base: "アトリエ" });
 
     const systemWords = [
-        "睡眠", "食事", "勉強", "筋トレ", "ランニング", "探検", "森", "山", "料理", "鍛冶", "建築",
-        "買い物", "城", "カジノ", "釣り", "ニンジン", "ピーマン", "トマト", "退治", "農業", 
+        "睡眠", "食事", "勉強", "筋トレ", "ランニング", "探検", "森", "山", "料理", "お菓子作り", "鍛冶", "建築",
+        "買い物", "城", "カジノ", "釣り", "ニンジン", "ピーマン", "トマト", "退治", "農業",
         "バイト", "書き写し", "ふいご", "石拾い", "皿洗い", "網の修理", "荷物運び", 
         "薬局", "風邪薬", "解毒薬", "集中薬", "集中薬を飲む",
         "アトリエ", "裁縫", "染料", "丈夫な糸", "色鮮やかな布", "てるてる坊主のブローチ", 
@@ -1447,6 +1469,8 @@ window.sendChat = function() {
         "農家": ["農家", "農民"],
         "漁師": ["漁師", "釣り人"],
         "料理人": ["料理人", "シェフ", "コック"],
+        "パティシエ": ["パティシエ", "お菓子職人"],
+        "お菓子作り": ["お菓子作り", "お菓子", "スイーツ", "デザート", "おかしづくり"],
         "鍛冶師": ["鍛冶師", "職人"], 
         "建築士": ["建築士", "建築家"],
         "薬剤師": ["薬剤師", "薬師", "医者", "ドクター", "先生"],
@@ -1554,7 +1578,7 @@ window.sendChat = function() {
     const knows = (word) => aiPet.apprentice.learnedWords.includes(word);
     let actionTriggered = false; 
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
     const uniqueFacilities = {
@@ -1568,7 +1592,7 @@ window.sendChat = function() {
         "アトリエ": { type: 'atelier', bId: 'atelier', name: 'アトリエ', onEnter: () => { if(typeof window.checkMasterVisit === 'function') window.checkMasterVisit('tailor'); } }
     };
 
-    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor'};
+    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef'};
     
     if (allMasterNames[interpretedWord] && knows(interpretedWord) && !aiPet.isHelper) {
         let mType = allMasterNames[interpretedWord];
@@ -1580,7 +1604,30 @@ window.sendChat = function() {
             interpretedWord = "薬局"; 
         } else if (mType === 'tailor') {
             interpretedWord = "アトリエ";
-        } else {
+        }
+        // else if (mType === 'pastry_chef') {
+        //     // ★追加：パティシエは固有施設がなく「レストラン」に相乗りするため、専用の面会ルートを作る
+        //     actionTriggered = true;
+        //     let isUnlocked = aiPet.pastryChefUnlocked || (window.hero && window.hero.pastryChefUnlocked);
+        //     let hasPhantomRecipe = aiPet.inventory && aiPet.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'phantom_sweets_recipe');
+        //     let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
+        //     let alreadyMet = metMasters.includes('pastry_chef');
+
+        //     // 「レシピ本を持っている（解放済）」か「既に会ったことがある」場合のみ行ける
+        //     if ((isUnlocked && hasPhantomRecipe) || alreadyMet) {
+        //         let facility = typeof findFacilityForTask === 'function' ? findFacilityForTask('visit_master', 'pastry_chef') : null;
+        //         if (facility) {
+        //             aiPet.schedule = [{type: 'visit_master', masterType: 'pastry_chef', duration: 0}];
+        //             aiPet.startBuildingInteraction(facility); 
+        //             aiPet.message = "パティシエさんのところへ行くよ！"; aiPet.messageTimer = 120;
+        //         } else {
+        //             aiPet.message = "パティシエさんがどこにいるかわからない..."; aiPet.messageTimer = 120;
+        //         }
+        //     } else {
+        //         aiPet.message = "パティシエって誰だろう？まだ会ったことがないや..."; aiPet.messageTimer = 120;
+        //     }
+        // }
+        else {
             let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
             
             let isAppr = (aiPet.apprentice.currentMaster === mType) || 
@@ -1874,7 +1921,7 @@ window.sendChat = function() {
         } 
         else { aiPet.message = "一人で出かけるのは危ないかも...\nまずは冒険家を探して、やり方を教わりたいな！"; aiPet.messageTimer = 180; }
     }
-    else if ((interpretedWord === "料理" && knows("料理")) || (interpretedWord === "レストラン" && knows("レストラン"))) {
+    else if ((interpretedWord === "料理" && knows("料理")) || (interpretedWord === "お菓子作り" && knows("お菓子作り")) || (interpretedWord === "レストラン" && knows("レストラン"))) {
         actionTriggered = true;
         let isMaster = aiPet.apprentice && (
             (aiPet.apprentice.retired && aiPet.apprentice.retired['cooking']) || 
@@ -2055,6 +2102,38 @@ window.sendChat = function() {
         if (aiPet.schedule.length === 1) aiPet.message = "畑の様子を見てくるね！"; 
         else aiPet.message = "畑の手入れを予約したよ！";
         aiPet.messageTimer = 120;
+    }
+    // ★追加：お菓子作りコマンドの判定
+    else if (["お菓子作り", "スイーツ"].includes(interpretedWord) && knows(interpretedWord)) {
+        actionTriggered = true;
+        let isMaster = aiPet.apprentice && (
+            (aiPet.apprentice.retired && aiPet.apprentice.retired['pastry_chef']) || 
+            (aiPet.apprentice.currentMaster === 'pastry_chef' && aiPet.apprentice.isGraduated) ||
+            (aiPet.apprentice.rank && aiPet.apprentice.rank['pastry_chef'] >= 10)
+        );
+        let isApprentice = aiPet.apprentice && aiPet.apprentice.currentMaster === 'pastry_chef';
+
+        if (isMaster || isApprentice) {
+            let masterShop = null;
+            for (let k in assets) {
+                if (assets[k].type === 'restaurant') { masterShop = assets[k]; break; }
+            }
+            if (masterShop) {
+                aiPet.schedule.push({ type: 'bake', duration: 30, isTrial: !isMaster });
+                if (aiPet.schedule.length === 1) {
+                    aiPet.startBuildingInteraction(masterShop);
+                    aiPet.message = isMaster ? "レストランのキッチンでスイーツを作るよ！" : "師匠の設備を借りて、お菓子作りの練習だ！";
+                } else {
+                    aiPet.message = "お菓子作りの予約をしたよ！";
+                }
+            } else {
+                aiPet.message = "お菓子作りをしたいけど、レストランが見当たらないな...";
+            }
+        } else {
+            aiPet.message = "お菓子作りかぁ...。やり方はなんとなく分かるけど、ちゃんとした設備で教わりたいな。\n(パティシエに弟子入りしよう！)";
+        }
+        aiPet.messageTimer = 180;
+        if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
     }
     // ▼▼▼ 修正・統合：仕立屋のアクション・素材チェック ▼▼▼
     else if (["裁縫", "染料", "丈夫な糸", "色鮮やかな布", "てるてる坊主のブローチ", "探求者のリボン", "豊穣のタッセル", "健康のミサンガ", "神秘の織物", "悠久の懐中時計"].includes(interpretedWord) && knows(interpretedWord)) {
@@ -3132,8 +3211,18 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             let hint = missingWord ? `でも、まずはチャットで「${exactWord}」って言葉を教わらないと、お話にならないみたい。` : "これまでの修行を積んできた今の僕なら、きっと認めてもらえるはず！";
             thoughtText = `（${baseThought}\n${hint}）`;
         }
-        // ★修正：pharmacistだけでなく、tailorもステータス査定の共通ロジックから除外する
-        if (masterType !== 'pharmacist' && masterType !== 'tailor') {
+        // ★追加：パティシエの特別ロジック
+        else if (masterType === 'pastry_chef') {
+            baseThought = "あま〜い、幸せな匂いがする...！"; 
+            exactWord = "お菓子作り"; 
+            missingWord = !words.includes(exactWord);
+            
+            // パティシエもステータス査定を行わない（上級職）
+            let hint = missingWord ? `でも、まずはチャットで「${exactWord}」って言葉を教わらないと、お話にならないみたい。` : "料理も冒険も農業も極めた今の僕なら、きっと認めてもらえるはず！";
+            thoughtText = `（${baseThought}\n${hint}）`;
+        }
+        // ★修正：pastry_chef（パティシエ）もステータス査定の共通ロジックから除外する
+        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef') {
             score += (hero.stats.mood - 50) * 0.2; 
             
             let hint = "";
@@ -3260,7 +3349,9 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             'cooking':  { img: "chef_battle_enemy.png", sx: 439, sy: 0, sw: 1766, sh: 1536 },
             'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
             'pharmacist': { img: "pharmacist_battle_enemy.png", sx: 266, sy: 69, sw: 1344, sh: 2369 },
-            'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 } 
+            'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
+            // ★追加：パティシエの立ち絵
+            'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 }
         };
         let mData = masterSprites[masterType];
 
@@ -3360,6 +3451,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 // ★修正箇所1：ここで薬剤師の判定が抜けていたため、顔パスになっていました！
                 else if (masterType === 'pharmacist') baseWord = "調合";
                 else if (masterType === 'tailor') baseWord = "裁縫";
+                // ★追加：パティシエのベースワード
+                else if (masterType === 'pastry_chef') baseWord = "お菓子作り";
 
                 if (baseWord && hero.apprentice && hero.apprentice.learnedWords) {
                     if (!hero.apprentice.learnedWords.includes(baseWord)) {
@@ -3490,6 +3583,8 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'building') greetingMsg = "「おっ。君はあの時の...いや、違う子か。だがその構え、既に免許皆伝の域だな。いつでも見学に来てくれ。」";
             else if (mType === 'pharmacist') greetingMsg = "「おやおや！ あなたはあの時の……いえ、人違いですね。でもその薬品の扱い方、既に免許皆伝の域です！ いつでも手伝いに来てくださいね。私はこの薬局の店員ですから。」";
             else if (mType === 'tailor') greetingMsg = "「ふふっ、いらっしゃいませ……あら？ あなたはあの時の……いえ、人違いですね。でもその指先、既に免許皆伝の域。いつでもアトリエに遊びにいらしてくださいね。」";
+            // ★追加
+            else if (mType === 'pastry_chef') greetingMsg = "「いらっしゃい！……おや？君はあの時の……いや、人違いか。でもその甘い香りへの感受性、すでに免許皆伝の域だよ！いつでもティータイムにおいで！」";
         } else {
             if (mType === 'explore') greetingMsg = "「この周辺をキャンプ地にしようと思うの。準備ができたらまたいらっしゃい！」";
             else if (mType === 'farming') greetingMsg = "「この辺りに畑を作ろうと思ってね。準備ができたらまたおいで。」";
@@ -3499,6 +3594,8 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'building') greetingMsg = "「この辺りを拠点にする。準備ができたらまた来てくれ。」";
             else if (mType === 'pharmacist') greetingMsg = "「おやおや、この薬局へようこそ。無茶をしてはいけませんよ、健康が第一ですからね。私はここで店員をしています。準備ができたらまた来てくださいね。」";
             else if (mType === 'tailor') greetingMsg = "「ふふっ、このアトリエへようこそ。あなたが建ててくれたと聞きましたよ。機織りの準備ができたら、またいらしてくださいね。」";
+            // ★追加
+            else if (mType === 'pastry_chef') greetingMsg = "「ようこそスイーツコーナーへ！最高のレシピが君を待っているよ。準備ができたらまた来てね！」";
         }
 
         // 試験(encounter)ではなく、挨拶(greeting)へ進む！
@@ -3533,8 +3630,8 @@ window.confirmEncounter = function(isAccept) {
         
         if (mType === 'smithing') { cType = 'blacksmith'; cName = '鍛冶師のキャンプ'; }
         else if (mType === 'building') { cType = 'palms'; cName = '建築士のテント'; }
-        // ★追加：薬剤師の場合はすでに薬局がマップにあるため、テントを新たに作らない！
-        else if (mType === 'pharmacist') { cType = null; }
+        // ★追加：薬剤師とパティシエは店舗が既に存在するため、テントを作らない
+        else if (mType === 'pharmacist' || mType === 'pastry_chef') { cType = null; }
         else if (mType === 'tailor') { cType = 'atelier'; cName = '仕立屋のアトリエ'; isMasterShop = true; }
         else if (mType === 'cooking') { 
             cType = null; 
@@ -3563,7 +3660,7 @@ window.confirmEncounter = function(isAccept) {
             assets[campId] = { type: cType, name: cName, dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMasterShop: isMasterShop };
         }
 
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
         const mName = masterNames[mType];
         
         if (!hero.apprentice.learnedWords.includes(mName)) {
@@ -3659,7 +3756,7 @@ window.confirmEncounter = function(isAccept) {
             hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.rank !== 0);
         }
         
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
         const mName = masterNames[mType];
         
         setTimeout(() => {
@@ -3803,8 +3900,32 @@ window.checkMasterVisit = function(masterType) {
                 : "「あなたの不誠実な態度は、命を預かる薬学には向きません。…ただ、店員として客を拒むことはしません。お買い物だけならあちらへ。」";
         }
         else if (masterType === 'tailor') rejectMsg = (app.excommunicatedFrom === masterType) ? "「あなたに教えることはもうありません。お引き取りください。」" : "「想いを込められない方に教えることはありません。お引き取りください。」";
+        else if (masterType === 'pastry_chef') rejectMsg = (app.excommunicatedFrom === masterType) ? "「破門した者に教えるレシピはないよ！帰った帰った！」" : "「君には見込みがないみたいだね。他を当たってくれ！」"; // ★追加
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, rejectMsg, 'banned');
         return;
+    }
+
+    // ==========================================
+    // ★追加：料理人から「幻のスイーツレシピ」をもらいパティシエをアンロックするイベント
+    // ==========================================
+    if (masterType === 'cooking' && !hero.pastryChefUnlocked) {
+        let isCookingMaster = app.retired['cooking'] || (app.rank['cooking'] >= 10);
+        let isExploreMaster = app.retired['explore'] || (app.rank['explore'] >= 10);
+        let isFarmingMaster = app.retired['farming'] || (app.rank['farming'] >= 10);
+
+        if (isCookingMaster && isExploreMaster && isFarmingMaster) {
+            hero.pastryChefUnlocked = true;
+            // ★追加：AIのインベントリに「幻のスイーツレシピ」を直接付与
+            if (window.aiPet && window.aiPet.inventory) {
+                window.aiPet.inventory.push('phantom_sweets_recipe');
+                window.aiPet.message = "幻のスイーツレシピを手に入れた！";
+                window.aiPet.messageTimer = 150;
+            }
+            if (typeof saveGameData === 'function') saveGameData();
+            let msg = "「おおっ！お前、料理だけでなく冒険と農業も極めたんだな！\nよし、この『幻のスイーツレシピ』を授けよう。ここから先は『パティシエ』として、甘味の極致を目指してみるのもいいぞ！」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
+            return;
+        }
     }
 
     // ==========================================
@@ -3864,6 +3985,7 @@ window.checkMasterVisit = function(masterType) {
         if (masterType === 'explore') baseWord = "探検"; else if (masterType === 'farming') baseWord = "農業"; else if (masterType === 'fishing') baseWord = "釣り";
         else if (masterType === 'cooking') baseWord = "料理"; else if (masterType === 'smithing') baseWord = "鍛冶"; else if (masterType === 'building') baseWord = "建築";
         else if (masterType === 'pharmacist') baseWord = "調合"; else if (masterType === 'tailor') baseWord = "裁縫";
+        else if (masterType === 'pastry_chef') baseWord = "お菓子作り"; // ★ここを追加！
 
         let words = app.learnedWords || [];
         if (!words.includes(baseWord)) {
@@ -3875,6 +3997,7 @@ window.checkMasterVisit = function(masterType) {
             else if (masterType === 'building') examMsg = `「悪いが、まずは『${baseWord}』の基本を知ってから来てくれ。」`;
             else if (masterType === 'pharmacist') examMsg = `「おやおや、無茶をしてはいけませんよ。薬学に興味があるなら、まずは『${baseWord}』の基本を学んでから来てくださいね。」`;
             else if (masterType === 'tailor') examMsg = `「ふふっ、まずは『${baseWord}』の基本を知ってからいらしてくださいね。」`;
+            else if (masterType === 'pastry_chef') examMsg = `「ノー・スイート！まずは『${baseWord}』の基本を知ってから来なよ！」`; // ★追加
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
         } else {
             let offerMsg = "";
@@ -3886,6 +4009,7 @@ window.checkMasterVisit = function(masterType) {
             else if (masterType === 'building') offerMsg = `「私に弟子入りしたいのか？ よし、ではこの課題『入門試験の準備』をこなしてみせよ。」`;
             else if (masterType === 'pharmacist') offerMsg = `「私の薬局で学びたいのですね？ よろしいでしょう。では、この処方箋『入門試験の準備』をこなしてみてくださいね。」`;
             else if (masterType === 'tailor') offerMsg = `「私に弟子入りしたいのですね？ ふふっ、よろしいですよ。では、この課題『入門試験の準備』をこなしていらっしゃい。」`;
+            else if (masterType === 'pastry_chef') offerMsg = `「私に弟子入りしたいのかい？ いいよ！それじゃあ、この課題『入門試験の準備』をこなしてみせて！」`; // ★追加
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer_exam');
         }
         return;
@@ -3922,6 +4046,7 @@ window.checkMasterVisit = function(masterType) {
             else if (masterType === 'building') examMsg = `「言葉は覚えてきたな？ 準備ができたなら、試験開始だ。」`;
             else if (masterType === 'pharmacist') examMsg = `「言葉は覚えてきましたか？ 準備ができたなら、試験を始めますよ。健康第一でいきましょう！」`;
             else if (masterType === 'tailor') examMsg = `「言葉は覚えてきましたか？ 準備ができたなら、試験を始めましょう。深呼吸して、心を落ち着けてくださいね。」`;
+            else if (masterType === 'pastry_chef') examMsg = `「言葉は覚えてきたかな？ 準備ができたなら、甘くて厳しい試験を開始するよ！」`; // ★追加
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
             return;
         }
@@ -3945,6 +4070,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'building') reportMsg += `「良い仕事だった。報酬の ${gold}G だ。……また現場が忙しい時は頼むぞ。」\n`;
                     else if (masterType === 'pharmacist') reportMsg += `「手伝ってくれて助かりました。これは報酬の ${gold}G です。無茶をして倒れないようにしてくださいね！」\n`;
                     else if (masterType === 'tailor') reportMsg += `「丁寧な仕事でした。報酬の ${gold}G です。いつでもアトリエにいらしてくださいね。」\n`;
+                    else if (masterType === 'pastry_chef') reportMsg += `「手伝いサンキュー！報酬の ${gold}G だよ！疲れたら甘いものでも食べてね！」\n`; // ★追加
                 } else {
                     isExamCleared = true;
                     examRank = q.rank;
@@ -3970,6 +4096,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'building') reportMsg += "「見事だな！君に教えることはもう何もない...免許皆伝だ！」";
                     else if (masterType === 'pharmacist') reportMsg += "「素晴らしい。正確な計量でした！ あなたに教えることはもうありません……免許皆伝です！ これからも健康第一でね。」";
                     else if (masterType === 'tailor') reportMsg += "「まあ……なんて美しい仕上がりでしょう。私から教えることはもうありません……免許皆伝ですよ！ これからも美しい糸を紡いでくださいね。」";
+                    else if (masterType === 'pastry_chef') reportMsg += "「アンビリーバボー！完璧な仕上がりだ！私から教えることはもう何もないよ……免許皆伝！これからもスイーツで世界を笑顔にしてね！」"; // ★追加
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
                 } else {
                     if (masterType === 'explore') reportMsg += `「よし、課題クリアね！あなたのランクが ${examRank + 1} に上がったわよ！」`;
@@ -3980,6 +4107,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'building') reportMsg += `「よし、課題クリアだな！君のランクが ${examRank + 1} に上がったぞ！」`;
                     else if (masterType === 'pharmacist') reportMsg += `「素晴らしい。正確な計量でした！ あなたのランクが ${examRank + 1} に上がりましたよ！」`;
                     else if (masterType === 'tailor') reportMsg += `「まあ……なんて美しい仕上がりでしょう。見事です、合格ですよ！ あなたのランクが ${examRank + 1} に上がりましたよ！」`;
+                    else if (masterType === 'pastry_chef') reportMsg += `「トレビアン！温度管理もデコレーションも完璧だ。君のランクが ${examRank + 1} に上がったよ！」`; // ★追加
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
                 }
             } else {
@@ -4034,6 +4162,7 @@ window.checkMasterVisit = function(masterType) {
         else if (masterType === 'building') msg = "「おお、よく来たな！ もう教えることはないが、手伝いならいつでも歓迎だぞ！」";
         else if (masterType === 'pharmacist') msg = "「おやおや、よく来てくれましたね！ もう教えることはありませんが、調合の手伝いならいつでも歓迎ですよ。健康には気をつけて！」";
         else if (masterType === 'tailor') msg = "「ふふっ、いらっしゃいませ。今日はどんな糸を紡ぎましょうか？ お手伝いならいつでも歓迎しますよ。」";
+        else if (masterType === 'pastry_chef') msg = "「ようこそ最高のパティシエ！君に教えることはもうないけど、手伝いならいつでも歓迎するよ！」"; // ★追加
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
         return;
     }
@@ -4045,8 +4174,8 @@ window.checkMasterVisit = function(masterType) {
     // ★ 究極のNG+対応：一番最初（ランク1）の時だけステータスを査定し「顔パス」発動！
     // ==========================================
     if (rank === 1) {
-        // ★修正：薬剤師と仕立屋は顔パス（飛び級）をスキップする
-        if (masterType === 'pharmacist' || masterType === 'tailor') {
+        // ★修正：薬剤師・仕立屋・パティシエ（上級職）は顔パス（飛び級）をスキップする
+        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef') {
             // 薬剤師と仕立屋は飛び級なし
         } else {
             let p = hero.stats.power || 10; let i = hero.stats.intel || 10;
@@ -4150,6 +4279,30 @@ window.checkMasterVisit = function(masterType) {
             offerMsg = `「素晴らしい手際です。あなたの腕もずいぶん上がりましたね。次の修行は『${qData.name}』。\nこれまでの技を全て注ぎ込み、より高度な織物に挑戦してください。あなたならきっとできますよ。」`;
         } else if (rank === 9) {
             offerMsg = `「いよいよ最後の試練ですね。修行の集大成、『${qData.name}』です。\nあなたの持てる全ての技術と想いを込めて、悠久の懐中時計を作り上げてください。完成を心待ちにしていますよ。」`;
+        }
+    }
+    // ==========================================
+    // ★追加：パティシエの特別セリフ（各ランクの課題内容に合わせた陽気なフレーバー）
+    // ==========================================
+    else if (masterType === 'pastry_chef') {
+        if (rank === 1) {
+            offerMsg = `「スイーツ作りの第一歩は、最高の素材集めから！『${qData.name}』だよ。\n森の奥にある天然のハチミツを集めてきて！甘くてとろけるような最高のやつをね！」`;
+        } else if (rank === 2) {
+            offerMsg = `「ハチミツ、トレビアン！次は『${qData.name}』だよ。\n自分の手で極上のイチゴを育ててみて！酸味と甘味のバランスがスイーツの命だからね！」`;
+        } else if (rank === 3) {
+            offerMsg = `「美味しそうなイチゴ！さあ、いよいよ実践、『${qData.name}』だよ。\n研究開発でイチゴのショートケーキのレシピを閃くの！グラム単位の計量ミスも許されないからね！」`;
+        } else if (rank === 4) {
+            offerMsg = `「ショートケーキの閃き、いいセンスしてる！次は『${qData.name}』だよ。\n今度は少し難しいメロンの栽培に挑戦してみて。最高のティータイムには最高級の果実が必要不可欠だからね！」`;
+        } else if (rank === 5) {
+            offerMsg = `「オーマイガー、なんて立派なメロン！それじゃあ『${qData.name}』にいってみようか。\nこのメロンを主役にしたメロンパフェを閃くんだ！層の重なりこそがパフェの醍醐味だよ！」`;
+        } else if (rank === 6) {
+            offerMsg = `「パフェの構成、ビューティフル！次は『${qData.name}』だよ。\nごまかしの効かない極上ハチミツプリンのレシピを閃いてみて。火加減ひとつで口当たりが変わる繊細なスイーツだよ！」`;
+        } else if (rank === 7) {
+            offerMsg = `「すべてのレシピが出揃ったね！ここからは『${qData.name}』の修行だよ。\nどれでもいいから、レシピの完成度を50%以上まで引き上げてみて！分量と手順を体に叩き込むんだ！」`;
+        } else if (rank === 8) {
+            offerMsg = `「手際が格段に良くなってきたね！いよいよ『${qData.name}』だよ。\nレシピの完成度を100%にするんだ！誰が食べても絶対に笑顔になる、あなただけの究極の配合を見つけ出して！」`;
+        } else if (rank === 9) {
+            offerMsg = `「パーフェクトな配合、見事だよ！いよいよ最後のオーダー、『${qData.name}』！\nあなたのお店でお客さんにデザートを10個販売して！スイーツで世界を救う、あなたの第一歩を見せてちょうだい！」`;
         }
     }
     
@@ -5682,7 +5835,11 @@ window.openShopManagementUI = function(building) {
         // ★修正：品切れで隠されている場合の表示切り替え（分かりやすいバッジ化）
         let invCountDisplay = `<span id="inv-count-${itemId}" style="font-size:18px; font-weight:bold; color:${invCount > 0 ? '#4CAF50' : '#f44336'};">${invCount} 個</span>`;
         
-        if (isHidden) {
+        if (!s.recipes[itemId].learned) {
+            let mastery = s.recipes[itemId].mastery || 0;
+            itemName = `<span style="color:#FF9800;">🧪 ${itemName} (研究中)</span>`;
+            invCountDisplay = `<span id="inv-count-${itemId}" style="font-size:14px; font-weight:bold; color:#FF9800;">${mastery}%</span>`;
+        } else if (isHidden) {
             itemName = `<span style="color:#777; text-decoration:line-through;">${itemName}</span>`;
             invCountDisplay = `<span id="inv-count-${itemId}" style="font-size:13px; font-weight:bold; color:#f44336; background:rgba(244,67,54,0.1); padding:4px 8px; border-radius:4px; border:1px solid #f44336; display:inline-block;">品切・非表示</span>`;
         }
@@ -8160,7 +8317,9 @@ window.openExamUI = function(masterType, task) {
             'cooking':  { img: "chef_battle_enemy.png", sx: 439, sy: 0, sw: 1766, sh: 1536 },
             'explore':  { img: "adventurer_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
             'pharmacist': { img: "pharmacist_battle_enemy.png", sx: 266, sy: 69, sw: 1344, sh: 2369 },
-            'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 }
+            'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
+            // ★追加：パティシエの立ち絵
+            'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 }
         };
         let mData = masterSprites[masterType];
         if (mData && mData.img) {
@@ -8224,7 +8383,7 @@ window.updateExamUI = function(task) {
     };
     
     const dText = examDialogues[task.masterType] || examDialogues['explore'];
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
     const speakerName = masterNames[task.masterType] || "師匠";
 
     let text = "";

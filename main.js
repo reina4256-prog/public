@@ -2635,9 +2635,9 @@ function initAdjustUI() {
             else if (editingTarget === 'map') statusEl.innerText = `Target: ${selectedMapKey || 'None'}`;
             else if (editingTarget === 'card') statusEl.innerText = `Target: ${window.TCG_MASTER ? window.TCG_MASTER[selectedCardKey]?.name : 'None'}`;
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) statusEl.innerText = `Target: ${window.selectedDungeonSpriteKey || 'None'}`;
+            // ★修正：R-ASSETが選ばれた時、新しいスプライトキーを表示する
             else if (editingTarget === 'rasset') {
-                let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['restaurant'] ? window.SHOP_FURNITURE_DATA['restaurant'][window.selectedFurnitureIndex] : null;
-                statusEl.innerText = `Target: ${fData ? fData.name : 'None'} (${window.selectedFurnitureIndex+1})`;
+                statusEl.innerText = `Target: ${window.selectedShopSpriteKey || 'None'}`;
             }
             else if (editingTarget === 'sasset') {
                 let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['smith'] ? window.SHOP_FURNITURE_DATA['smith'][window.selectedFurnitureIndex] : null;
@@ -2721,13 +2721,14 @@ window.getAdjustTarget = function() {
             if (keys.length > 0 && !keys.includes(window.selectedDungeonSpriteKey)) window.selectedDungeonSpriteKey = keys[0];
             target = window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey];
         }
+    // ★大修正：rasset が選ばれたら、新しい物理マップ用素材の配列（4ファイル分すべて）から取得する
     } else if (editingTarget === 'rasset') {
-        if (typeof window.SHOP_FURNITURE_DATA !== 'undefined' && window.SHOP_FURNITURE_DATA['restaurant']) {
-            let list = window.SHOP_FURNITURE_DATA['restaurant'];
-            if (window.selectedFurnitureIndex >= list.length) window.selectedFurnitureIndex = 0;
-            target = list[window.selectedFurnitureIndex];
+        if (typeof window.SHOP_SPRITES !== 'undefined') {
+            const keys = Object.keys(window.SHOP_SPRITES);
+            if (keys.length > 0 && !keys.includes(window.selectedShopSpriteKey)) window.selectedShopSpriteKey = keys[0];
+            target = window.SHOP_SPRITES[window.selectedShopSpriteKey];
         }
-    } else if (editingTarget === 'sasset') {
+    }else if (editingTarget === 'sasset') {
         if (typeof window.SHOP_FURNITURE_DATA !== 'undefined' && window.SHOP_FURNITURE_DATA['smith']) {
             let list = window.SHOP_FURNITURE_DATA['smith'];
             if (window.selectedFurnitureIndex >= list.length) window.selectedFurnitureIndex = 0;
@@ -2832,9 +2833,18 @@ window.addEventListener('keydown', (e) => {
                     if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
                     window.selectedDungeonSpriteKey = keys[idx];
                 }
-            } else if (['rasset', 'sasset'].includes(editingTarget) && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
-                let listKey = editingTarget === 'rasset' ? 'restaurant' : 'smith';
-                let list = window.SHOP_FURNITURE_DATA[listKey];
+            } else if (editingTarget === 'rasset' && typeof window.SHOP_SPRITES !== 'undefined') {
+                const keys = Object.keys(window.SHOP_SPRITES);
+                if (keys.length > 0) {
+                    let currentKey = window.selectedShopSpriteKey || keys[0];
+                    if (!keys.includes(currentKey)) currentKey = keys[0];
+                    let idx = keys.indexOf(currentKey);
+                    if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
+                    window.selectedShopSpriteKey = keys[idx];
+                }
+            } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
+                // (sassetの切り替えはそのまま)
+                let list = window.SHOP_FURNITURE_DATA['smith'];
                 if (list && list.length > 0) {
                     if (isPrev) window.selectedFurnitureIndex = (window.selectedFurnitureIndex - 1 + list.length) % list.length;
                     else window.selectedFurnitureIndex = (window.selectedFurnitureIndex + 1) % list.length;
@@ -3211,12 +3221,13 @@ setInterval(() => {
             // ★修正：野イチゴだけでなく、鉄鉱石やただの石を商品にしている古い鍛冶屋データも強制リセットする！
             if (!a.shopData || (a.shopData.recipes && (a.shopData.recipes['item_berry'] || a.shopData.recipes['iron'] || a.shopData.recipes['stone']))) {
                 a.shopData = {
-                    recipes: isRest ? { 'dish_stirfry': { learned: true, learnedOrder: 1 } } : { 'item_sword_iron': { learned: true, learnedOrder: 1 } },
-                    inventory: isRest ? { 'dish_stirfry': 5 } : { 'item_sword_iron': 3 },
-                    prices: isRest ? { 'dish_stirfry': 50 } : { 'item_sword_iron': 100 },
+                    // ★修正：初期から未完成(mastery:0)でスタート
+                    recipes: isRest ? { 'dish_stirfry': { learned: false, mastery: 0, learnedOrder: 1 } } : { 'eq_sword': { learned: false, mastery: 0, learnedOrder: 1 } },
+                    inventory: {},
+                    prices: isRest ? { 'dish_stirfry': 100 } : { 'eq_sword': 300 },
                     reputation: 10, interiorLevel: 1, totalSales: 0,
                     isOpen: false,
-                    logs: ["お店を新しく建てました！"]
+                    logs: ["お店を新しく建てました！まずは研究開発から始めましょう。"]
                 };
             }
         }

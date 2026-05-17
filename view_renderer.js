@@ -1479,85 +1479,89 @@ window.drawDungeonPreview = function() {
 };
 
 // ==========================================
-// ★追加: 店舗の家具（内装）プレビュー描画
+// ★ R-ASSET (物理マップチップ) プレビュー描画処理
+// ==========================================
+// ==========================================
+// ★ R-ASSET (物理マップチップ) プレビュー描画処理
 // ==========================================
 window.drawFurniturePreview = function() {
-    const shopType = editingTarget === 'rasset' ? 'restaurant' : 'smith';
-    if (typeof window.SHOP_FURNITURE_DATA === 'undefined') return;
-    const list = window.SHOP_FURNITURE_DATA[shopType];
-    if (!list) return;
+    const target = typeof window.getAdjustTarget === 'function' ? window.getAdjustTarget() : null;
+    if (!target) return;
 
-    // お店のプレビュー枠（背景）を画面中央に描画
-    const roomW = 450; // UIの幅に合わせる
-    const roomH = 250; // UIの高さに合わせる
-    const baseX = canvas.width / 2 - roomW / 2;
-    const baseY = canvas.height / 2 - roomH / 2;
+    // キャンバスの中央座標
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
 
     ctx.save();
     
-    // 1. 背景（床と壁）の描画
-    ctx.fillStyle = '#5D4037'; // 画像がない時のフォールバック色
-    ctx.fillRect(baseX, baseY, roomW, roomH);
+    // 背景を少し暗くして見やすくする
+    ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // 基準となる十字線を引く
+    ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(cx - 200, cy); ctx.lineTo(cx + 200, cy); 
+    ctx.moveTo(cx, cy - 200); ctx.lineTo(cx, cy + 200); 
+    ctx.stroke();
+
+    ctx.translate(cx, cy);
+    if (target.rotation) ctx.rotate(target.rotation * Math.PI / 180);
+
+    let scale = target.scale !== undefined ? target.scale : 1.0;
+    let sw = target.sw || 100;
+    let sh = target.sh || 100;
+    let sx = target.sx || 0;
+    let sy = target.sy || 0;
+
+    // ==========================================
+    // 画像オブジェクトの取得と動的ロード処理
+    // ==========================================
+    let imgObj = null;
+    let imgKey = target.img ? target.img.replace('.png', '') : null;
     
-    // 背景画像の動的ロード
-    let bgImg = images['empty_room.png'];
-    if (!bgImg) {
-        bgImg = new Image(); bgImg.src = 'empty_room.png'; images['empty_room.png'] = bgImg;
-    }
-    if (bgImg.complete && bgImg.naturalWidth > 0) {
-        ctx.drawImage(bgImg, baseX, baseY, roomW, roomH);
+    if (imgKey && typeof images !== 'undefined' && images[imgKey]) {
+        imgObj = images[imgKey];
+    } else if (target.img && typeof images !== 'undefined' && images[target.img]) {
+        imgObj = images[target.img];
     }
 
-    // 2. 家具の描画用サブルーチン
-    const drawItem = (f, isSelected) => {
-        let fImg = images[f.img];
-        if (!fImg) {
-            fImg = new Image(); fImg.src = f.img; images[f.img] = fImg;
+    // ★追加：事前読み込み(imageSources)に登録されていない新画像の場合、動的にロードしてキャッシュする！
+    if (!imgObj && target.img) {
+        imgObj = new Image();
+        imgObj.src = target.img;
+        // キャッシュに登録しておく（次回以降は一瞬で描画される）
+        if (typeof images !== 'undefined' && imgKey) {
+            images[imgKey] = imgObj;
         }
-
-        ctx.save();
-        // 家具の配置座標(x, y)へ移動
-        ctx.translate(baseX + f.x, baseY + f.y);
-        ctx.scale(f.scale || 1, f.scale || 1);
-
-        if (fImg.complete && fImg.naturalWidth > 0) {
-            // スプライトシートから sx, sy, sw, sh で切り出して描画
-            ctx.drawImage(fImg, f.sx, f.sy, f.sw, f.sh, 0, 0, f.sw, f.sh);
-        } else {
-            ctx.fillStyle = isSelected ? "rgba(255, 0, 0, 0.5)" : "rgba(100, 100, 100, 0.5)";
-            ctx.fillRect(0, 0, f.sw, f.sh);
-        }
-
-        // 選択中のものは赤枠で囲み、基準点（左上）に緑の十字を描画
-        if (isSelected) {
-            ctx.strokeStyle = 'red';
-            ctx.lineWidth = 2 / (f.scale || 1); // スケールに影響されない線の太さ
-            ctx.strokeRect(0, 0, f.sw, f.sh);
-            
-            ctx.beginPath();
-            ctx.moveTo(-10, 0); ctx.lineTo(10, 0);
-            ctx.moveTo(0, -10); ctx.lineTo(0, 10);
-            ctx.strokeStyle = "lime";
-            ctx.stroke();
-        }
-        ctx.restore();
-    };
-
-    // 3. 未選択の家具を先に描画（奥になる）
-    list.forEach((f, index) => {
-        if (index !== window.selectedFurnitureIndex) drawItem(f, false);
-    });
-    
-    // 4. 選択中の家具を一番手前に描画
-    if (list[window.selectedFurnitureIndex]) {
-        drawItem(list[window.selectedFurnitureIndex], true);
     }
 
-    // 5. 操作説明テキスト
-    ctx.fillStyle = "white";
-    ctx.font = "14px monospace";
-    ctx.textAlign = "left";
-    ctx.fillText(`[${shopType.toUpperCase()}] Tab:家具切替 | 矢印:配置移動 | WASD:切出座標 | QE/ZC:切出サイズ`, baseX, baseY - 10);
+    if (imgObj && imgObj.complete && imgObj.naturalWidth > 0) {
+        // 見下ろし型のマップチップなので、足元（下端の中央）が十字線の交点に来るようにオフセットを計算
+        let drawX = - (sw * scale) / 2;
+        let drawY = - (sh * scale); 
+        
+        ctx.drawImage(imgObj, sx, sy, sw, sh, drawX, drawY, sw * scale, sh * scale);
+    } else {
+        // 画像がロードされていない時のダミー枠（ロード中の場合も一瞬表示される）
+        ctx.fillStyle = "rgba(255, 255, 0, 0.3)";
+        ctx.fillRect(- (sw * scale) / 2, - (sh * scale), sw * scale, sh * scale);
+        ctx.strokeStyle = "yellow";
+        ctx.strokeRect(- (sw * scale) / 2, - (sh * scale), sw * scale, sh * scale);
+    }
 
     ctx.restore();
+
+    // デバッグ用情報のテキスト表示
+    ctx.fillStyle = "#FFD700";
+    ctx.font = "bold 20px monospace";
+    ctx.textAlign = "left";
+    ctx.fillText(`[R-ASSET Preview]`, 20, 50);
+    ctx.fillStyle = "white";
+    ctx.font = "16px monospace";
+    ctx.fillText(`Key : ${window.selectedShopSpriteKey || 'none'}`, 20, 80);
+    ctx.fillText(`Img : ${target.img}`, 20, 105);
+    ctx.fillText(`Cut : X:${sx}, Y:${sy}, W:${sw}, H:${sh}`, 20, 130);
+    ctx.fillText(`Size: Scale ${scale.toFixed(2)}`, 20, 155);
 };

@@ -2283,6 +2283,7 @@ const itemCatalog = {
     item_antidote: { name: "解毒薬", type: 'medicine', value: 150, desc: "毒キノコなどによる中毒状態を治す薬。" },
     item_medicine_fail: { name: "謎の液体", type: 'medicine', value: 1, quality: 'bad', desc: "調合に失敗したドロドロの液体。お腹が痛くなりそう。" },
     elixir: { name: "万能の霊薬", type: 'medicine', value: 1000, desc: "究極の調合が生み出した、命を活性化させる霊薬。" },
+    phantom_sweets_recipe: { name: "幻のスイーツレシピ", type: 'material', value: 0, desc: "料理人から譲り受けた伝説のレシピ本。これがあればパティシエの教えを乞うことができるかもしれない。" },
     seed_carrot: { name: "ニンジンの種", type: 'seed', crop: 'carrot', value: 10, desc: "畑に植えると育つ" },
     seed_pepper: { name: "ピーマンの種", type: 'seed', crop: 'pepper', value: 10, desc: "苦いが栄養満点な野菜が育つ" },
     seed_tomato: { name: "トマトの種", type: 'seed', crop: 'tomato', value: 15, desc: "赤くて可愛い実がなる" },
@@ -2382,7 +2383,17 @@ const itemCatalog = {
     tassel_harvest: { name: "豊穣のタッセル", type: 'equip', stats: { energy: 15 }, value: 300, desc: "豊穣の願いが込められたタッセル。体力が上がる。" },
     misanga_health: { name: "健康のミサンガ", type: 'equip', stats: { power: 15 }, value: 300, desc: "健康を祈って編まれたミサンガ。力が湧いてくる。" },
     eternal_watch: { name: "悠久の懐中時計", type: 'equip', stats: { mood: 30, intel: 30, energy: 30, power: 30 }, value: 1500, desc: "神秘の織物から作られた、体力と満腹度の消費を常に抑える不思議な時計。" },
-    tangled_thread: { name: "絡まった糸", type: 'material', value: 1, quality: 'bad', desc: "裁縫に失敗して絡まってしまった糸。使い道がない。" }
+    tangled_thread: { name: "絡まった糸", type: 'material', value: 1, quality: 'bad', desc: "裁縫に失敗して絡まってしまった糸。使い道がない。" },
+    // ▼ 追加: パティシエ関連素材・スイーツ
+    honey: { name: "ハチミツ", type: 'ingredient', value: 30, desc: "森で採れる甘い蜜。" },
+    seed_strawberry: { name: "イチゴの種", type: 'seed', crop: 'strawberry', value: 20, desc: "甘酸っぱい果実が育つ種。" },
+    strawberry: { name: "イチゴ", type: 'ingredient', value: 60, desc: "真っ赤で甘酸っぱい果実。" },
+    seed_melon: { name: "メロンの種", type: 'seed', crop: 'melon', value: 100, desc: "高級な果実が育つ種。" },
+    melon: { name: "メロン", type: 'ingredient', value: 300, desc: "香りが良く非常に甘い高級果実。" },
+    dish_strawberry_cake: { name: "イチゴのショートケーキ", type: 'dish', stats: { energy: 30, hunger: 50, mood: 20 }, value: 250, desc: "【バフ:腹持ち】しばらくお腹が減りにくくなる。" },
+    dish_melon_parfait: { name: "メロンパフェ", type: 'dish', stats: { energy: 50, hunger: 30, mood: 30 }, value: 600, desc: "【バフ:スタミナ】しばらく体力が減りにくくなる。" },
+    dish_honey_pudding: { name: "極上ハチミツプリン", type: 'dish', stats: { energy: 20, hunger: 20, mood: 50 }, value: 200, desc: "【バフ:ハッピー】しばらく機嫌が最高状態を維持する。" },
+    supreme_sweets: { name: "至高のスイーツ", type: 'dish', stats: { energy: 100, hunger: 100, mood: 100 }, value: 1500, desc: "大成功でのみ作れる、芸術的な究極のスイーツ。" }
 };
 
 const riverFishingTable = {

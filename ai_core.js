@@ -73,6 +73,15 @@ window.EXAM_KEYWORDS = {
             ['リボン', 'アクセサリー', 'ひも']
         ],
         q1: "布を作るための細い素材は？", q2: "服を縫い合わせる尖った道具は？", q3: "装飾に使う、首や手首に巻くものは？"
+    },
+    // ★追加: パティシエの入門試験
+    'pastry_chef': {
+        accepts: [
+            ['砂糖', 'シュガー', '甘み', 'さとう'],
+            ['泡立て器', 'ホイッパー', 'あわだてき', '混ぜる道具'],
+            ['オーブン', '天火', '焼く機械', 'かまど']
+        ],
+        q1: "スイーツに欠かせない甘い調味料は？", q2: "クリームをふんわりさせるための道具は？", q3: "生地をふっくら焼き上げるための機械は？"
     }
 };
 
@@ -114,6 +123,7 @@ function getTaskName(type, task = null) {
     if(type==='smith') return "鍛冶"; 
     if(type==='mix') return "調合"; // ★追加
     if(type==='tailor') return "裁縫"; // ★追加
+    if(type==='bake') return "お菓子作り"; // ★追加：パティシエ
     // ★修正：建築と拡張の具体的な表示に対応
     if(type==='build') {
         if (task && task.buildData) {
@@ -688,6 +698,18 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='eternal_watch').length >= 1; } 
             }
+        },
+        'pastry_chef': { // ★修正：パティシエのクエスト（クリア判定をレストランデータと同期）
+            0: { name: "入門試験の準備", desc: "試験では『甘い調味料』『クリームをふんわりさせる道具』『生地を焼く機械』について聞かれる。答えとなる言葉を覚えよう。" },
+            1: { name: "甘味の探求", desc: "森を探検して『ハチミツ(honey)』を3つ採取してこよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='honey').length >= 3; } },
+            2: { name: "果実の育成", desc: "畑でイチゴの種から『イチゴ(strawberry)』を3つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='strawberry').length >= 3; } },
+            3: { name: "はじめてのスイーツ", desc: "レストランの「研究開発」でイチゴのショートケーキを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_strawberry_cake']; } },
+            4: { name: "高級果実の育成", desc: "畑でメロンの種から『メロン(melon)』を1つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='melon').length >= 1; } },
+            5: { name: "レシピの研究", desc: "レストランの「研究開発」でメロンパフェを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_melon_parfait']; } },
+            6: { name: "熟練の技", desc: "レストランの「研究開発」で極上ハチミツプリンを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_honey_pudding']; } },
+            7: { name: "完璧な配合", desc: "レストランの「研究開発」でいずれかのレシピ完成度を50%以上にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); if (!r || !r.shopData || !r.shopData.recipes) return false; return Object.values(r.shopData.recipes).some(v => v.mastery >= 50); } },
+            8: { name: "完璧な配合", desc: "レストランの「研究開発」でいずれかのレシピ完成度を100%にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); if (!r || !r.shopData || !r.shopData.recipes) return false; return Object.values(r.shopData.recipes).some(v => v.mastery >= 100); } },
+            9: { name: "免許皆伝", desc: "デザートを合計10個お客さんに販売しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.apprentice.qVal >= 10; } }
         }
     };
 
@@ -806,7 +828,7 @@ function findFacilityForTask(taskType, masterType = null) {
         for (let k in assets) {
             if (assets[k].isMasterShop && (
                 (masterType === 'farming' && assets[k].type === 'farm') ||
-                (masterType === 'cooking' && assets[k].type === 'restaurant')
+                ((masterType === 'cooking' || masterType === 'pastry_chef') && assets[k].type === 'restaurant') // ★変更
             )) return assets[k];
         }
 
@@ -816,7 +838,7 @@ function findFacilityForTask(taskType, masterType = null) {
         }
 
         if (masterType === 'farming') priorities = ['farm'];
-        else if (masterType === 'cooking') priorities = ['restaurant', 'house', 'hut', 'castle'];
+        else if (masterType === 'cooking' || masterType === 'pastry_chef') priorities = ['restaurant', 'house', 'hut', 'castle']; // ★変更
         else if (masterType === 'smithing') priorities = ['blacksmith', 'castle'];
         else if (masterType === 'explore') priorities = ['mountain', 'skull', 'palms', 'nature']; 
         else if (masterType === 'fishing') priorities = ['bridge', 'sea', 'water'];
@@ -1594,6 +1616,72 @@ aiPet.processCookingFinish = function(task) {
     }
 };
 
+// ==========================================
+// ★新規追加：お菓子作り（bake）の開始・完了処理
+// ==========================================
+aiPet.processBakingStart = function(task) {
+    // 試作モード（修行中）
+    if (task.isTrial) {
+        let intel = this.stats.intel || 10;
+        let beauty = this.stats.beauty || 10;
+        let successRate = 0.4 + (intel * 0.005) + (beauty * 0.005);
+        successRate = Math.min(0.95, successRate);
+
+        task.bakeData = {
+            targetId: 'food_practice_normal',
+            targetName: '試作スイーツ',
+            successRate: successRate,
+            isSuccess: Math.random() < successRate,
+            isTrial: true
+        };
+        task._started = true;
+        return true;
+    }
+    // 本番モード（第3段階でレシピ指定ロジックを実装します）
+    task.bakeData = {
+        targetId: 'supreme_sweets',
+        targetName: 'スイーツ',
+        successRate: 0.5,
+        isSuccess: true,
+        isTrial: false
+    };
+    task._started = true;
+    return true;
+};
+
+aiPet.processBakingFinish = function(task) {
+    const d = task.bakeData;
+    if (!d) return;
+
+    if (d.isSuccess) {
+        this.stats.mood += 10;
+        this.message = `お菓子作り大成功！「${d.targetName}」ができた！`;
+        this.inventory.push(d.targetId);
+        
+        // クエスト進捗カウント
+        if (this.apprentice && this.apprentice.activeQuests) {
+            this.apprentice.activeQuests.forEach(q => {
+                if (q.desc.includes('お菓子作り') || q.desc.includes('スイーツ')) {
+                    q.qVal = (q.qVal || 0) + 1;
+                }
+            });
+            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        }
+    } else {
+        this.message = "お菓子作り失敗... 黒焦げの塊になっちゃった...";
+        this.inventory.push('burnt_food');
+    }
+    
+    this.messageTimer = 150;
+    this.visualAction = null;
+    this.actionState = 'idle';
+
+    if (typeof openInventoryPanel === 'function') {
+        const invPanel = document.getElementById('panel-inventory');
+        if (invPanel && invPanel.classList.contains('active')) openInventoryPanel();
+    }
+};
+
 aiPet.processSmithingStart = function(task) {
     // ★修正：修行中（isTrial）は実用品を作らず、ステータス依存で「なまくら」か「超高品質な工芸品（非実用）」を作る！
     if (task.isTrial) {
@@ -2311,6 +2399,7 @@ aiPet.processApprenticeExamFinish = function(task) {
         else if (mType === 'building') passMsg = "「全問正解だな！ 君を私の弟子として認めよう！」";
         else if (mType === 'pharmacist') passMsg = "「全問正解です！ あなたを私の弟子として認めましょう。これから健康第一で学んでいきましょうね！」";
         else if (mType === 'tailor') passMsg = "「全問正解です。……ふふっ、見事ですね。今日からあなたが私のお弟子さんですよ。」";
+        else if (mType === 'pastry_chef') passMsg = "「パーフェクト！君の熱意、しっかり受け取ったよ！今日から君を私の弟子として認めるよ！」"; // ★追加
 
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, passMsg, 'exam_pass');
     } else {
@@ -2326,6 +2415,7 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'building') retireMsg = "「悪いが、君に設計図を引くセンスは感じられないな。……だが、建築に興味があるなら、現場を見学するくらいは構わないぞ。」";
             else if (mType === 'pharmacist') retireMsg = "「おやおや、何度言っても間違えるようでは、命に関わる薬学を教えるわけにはいきません。弟子入りはお断りです。……でも、ただのお客さんとしてならいつでも歓迎しますよ。」";
             else if (mType === 'tailor') retireMsg = "「糸が絡まってしまっていますね……。あなたにはまだ、この道は早いようです。……でも、気が向いたらまたお話でもしにいらしてくださいね。」";
+            else if (mType === 'pastry_chef') retireMsg = "「オーマイガー…計量もできないようじゃ、スイーツは作れないよ。弟子入りはお断りだ！……でも、うちのスイーツが食べたくなったらいつでもおいで！」"; // ★追加
 
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, retireMsg, 'banned');
         } else {
@@ -2339,6 +2429,7 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'building') hintMsg = "「まだまだだな。私が指定した3つの言葉をもう一度しっかり覚えてきてくれ。」";
             else if (mType === 'pharmacist') hintMsg = "「知識が不正確ですね、これでは毒になってしまいます。私が指定した3つの言葉をもう一度しっかり覚えてきてくださいね。」";
             else if (mType === 'tailor') hintMsg = "「少し違いますね……。私が指定した3つの言葉、もう一度結び直していらっしゃい。」";
+            else if (mType === 'pastry_chef') hintMsg = "「ノット・スイート！私が指定した3つの言葉をもう一度しっかり覚えてきなよ！」"; // ★追加
 
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, hintMsg, 'exam_fail');
         }
@@ -2654,6 +2745,19 @@ aiPet.update = function() {
             if (typeof window.updateShopUIData === 'function' && shopAsset && !window.isCatchingUp) window.updateShopUIData(shopAsset);
         };
     }
+    // ★追加：新レシピを閃く関数
+    window.generateCustomRecipe = window.generateCustomRecipe || function(shopData) {
+        const isRest = Object.keys(shopData.recipes).some(k => k.includes('dish') || k.includes('baked') || k.includes('cake') || k.includes('pudding') || k.includes('parfait'));
+        let pool = isRest ? ['dish_stirfry', 'dish_salad', 'dish_soup', 'baked_carrot', 'baked_tomato', 'baked_pepper', 'baked_fish', 'dish_strawberry_cake', 'dish_melon_parfait', 'dish_honey_pudding'] : ['eq_sword', 'eq_shield', 'tool_pan', 'eq_staff'];
+        let unlearned = pool.filter(id => !shopData.recipes[id]);
+        if (unlearned.length > 0) {
+            let newId = unlearned[Math.floor(Math.random() * unlearned.length)];
+            shopData.recipes[newId] = { learned: false, mastery: 0, learnedOrder: Object.keys(shopData.recipes).length + 1 };
+            return newId;
+        }
+        return null;
+    };
+
     if (typeof window.checkRecipeMaterials !== 'function') {
         window.checkRecipeMaterials = function(inventory, recipeId, shopType) {
             if (!inventory) return null;
@@ -2664,6 +2768,10 @@ aiPet.update = function() {
             else if (recipeId === 'baked_carrot') reqs = ['carrot']; 
             else if (recipeId === 'baked_fish') reqs = ['fish']; 
             else if (recipeId === 'sashimi') reqs = ['fish', 'fish']; 
+            // ★追加：パティシエレシピ対応
+            else if (recipeId === 'dish_strawberry_cake') reqs = ['strawberry', 'water'];
+            else if (recipeId === 'dish_melon_parfait') reqs = ['melon', 'honey'];
+            else if (recipeId === 'dish_honey_pudding') reqs = ['honey', 'water'];
             else { if (shopType === 'restaurant') reqs = ['any_food', 'any_food']; else reqs = ['iron', 'wood']; }
 
             let consumedIndices = [];
@@ -2787,6 +2895,8 @@ aiPet.update = function() {
                             return true;
                         };
 
+                        let researchingRecipes = Object.keys(s.recipes || {}).filter(k => !s.recipes[k].learned);
+
                         let craftable = knownRecipes.filter(r => {
                             if ((currentStockDict[r] || 0) >= maxPerItem) return false;
                             let consumedIds = typeof window.checkRecipeMaterials === 'function' ? window.checkRecipeMaterials(this.inventory, r, myShop.type) : null;
@@ -2795,20 +2905,43 @@ aiPet.update = function() {
                             return true;
                         });
 
+                        let researchable = researchingRecipes.filter(r => {
+                            let consumedIds = typeof window.checkRecipeMaterials === 'function' ? window.checkRecipeMaterials(this.inventory, r, myShop.type) : null;
+                            if (!consumedIds) return false;
+                            if (!canAffordToConsume(consumedIds)) return false; 
+                            return true;
+                        });
+
                         let hasZeroStockMenu = knownRecipes.some(r => (currentStockDict[r] || 0) === 0);
                         let doResearch = false;
+                        let targetResearchId = null;
+                        let doFlash = false;
 
-                        if (craftable.length === 0) {
-                            if (Math.random() < 0.4) doResearch = true; 
-                        } else if (!hasZeroStockMenu) {
-                            let researchChance = 0.15 + ((this.stats.intel || 10) / 400);
-                            if (researchChance > 0.6) researchChance = 0.6;
-                            if (Math.random() < researchChance) doResearch = true;
+                        // 行動優先度：研究できる未完成レシピを優先
+                        if (researchable.length > 0) {
+                            if (Math.random() < 0.7 || craftable.length === 0) {
+                                doResearch = true;
+                                targetResearchId = researchable[0];
+                            }
                         }
 
-                        if (doResearch) {
-                            this.schedule.unshift({ type: 'shop_research', buildingId: myShop.id || Object.keys(assets).find(k=>assets[k]===myShop), duration: 80 });
-                            window.addShopLog?.(s, "ふと新しいアイデアが降りてきそうだ...新メニューの研究を始めよう！");
+                        if (!doResearch && craftable.length === 0) {
+                            if (Math.random() < 0.4) doFlash = true; 
+                        } else if (!doResearch && !hasZeroStockMenu) {
+                            let researchChance = 0.15 + ((this.stats.intel || 10) / 400);
+                            if (researchChance > 0.6) researchChance = 0.6;
+                            if (Math.random() < researchChance) {
+                                if (researchingRecipes.length === 0) doFlash = true;
+                                else { doResearch = true; targetResearchId = researchable[0]; }
+                            }
+                        }
+
+                        if (doFlash) {
+                            this.schedule.unshift({ type: 'shop_research', buildingId: myShop.id || Object.keys(assets).find(k=>assets[k]===myShop), duration: 80, isFlash: true });
+                            window.addShopLog?.(s, "ふと新しいアイデアが降りてきそうだ...新メニューを閃こう！");
+                        } else if (doResearch && targetResearchId) {
+                            this.schedule.unshift({ type: 'shop_research', buildingId: myShop.id || Object.keys(assets).find(k=>assets[k]===myShop), duration: 80, targetRecipeId: targetResearchId });
+                            window.addShopLog?.(s, `「${typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(targetResearchId) : targetResearchId}」の完成度を上げるための研究を始めるよ！`);
                         } else if (craftable.length > 0) {
                             craftable.sort((a, b) => {
                                 let stockA = currentStockDict[a] || 0;
@@ -2907,6 +3040,29 @@ aiPet.update = function() {
             // ★タスクの初期化処理
             // =======================================
             if (!task._started) {
+                // ★追加：仕込み・研究タスク開始時に素材を確実に消費する
+                if (task.type === 'shop_work' || (task.type === 'shop_research' && !task.isFlash)) {
+                    let sType = myShop ? myShop.type : 'restaurant';
+                    let consumedIds = typeof window.checkRecipeMaterials === 'function' ? window.checkRecipeMaterials(this.inventory, task.targetRecipeId, sType) : null;
+                    if (consumedIds) {
+                        consumedIds.forEach(cId => {
+                            let idx = this.inventory.findIndex(itemObj => {
+                                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
+                                return id === cId;
+                            });
+                            if (idx !== -1) this.inventory.splice(idx, 1);
+                        });
+                    } else {
+                        task.duration = 0; task.aborted = true;
+                        this.actionState = 'idle';
+                        this.message = "研究や仕込みの素材が足りないみたい...";
+                        this.messageTimer = 120;
+                        this.schedule.shift();
+                        if (typeof window.updateScheduleList === 'function' && !window.isCatchingUp) window.updateScheduleList();
+                        return; 
+                    }
+                }
+
                 // ★修正：タスク開始時に一度だけバフを前払い消費する（キャンセルによる無限化防止）
                 if (this.buffs) {
                     if (this.buffs.focus > 0) this.buffs.focus--;
@@ -3177,7 +3333,7 @@ aiPet.update = function() {
                     // アニメーションの設定
                     if (task.type === 'life_author' || task.type === 'writing' || task.type === 'study' || task.type === '荷物整理' || task.type === '作戦会議') { this.visualAction = 'study'; } 
                     else if (task.type === 'eat') { this.actionState = this.isIndoors ? 'inside' : 'eating'; this.visualAction = 'eat_raw'; } 
-                    else if (task.type === 'cook' || task.type === 'shop_work' || task.type === 'smith') { this.visualAction = (myShop?.type === 'smith' || task.type === 'smith') ? 'smith' : 'cook'; }
+                    else if (task.type === 'cook' || task.type === 'shop_work' || task.type === 'smith' || task.type === 'bake') { this.visualAction = (myShop?.type === 'smith' || task.type === 'smith') ? 'smith' : 'cook'; }
                     else if (task.type === 'fish') {
                         this.visualAction = 'fish'; this.actionState = 'fishing';
                         if (typeof this.processFishingFrame === 'function') this.processFishingFrame();
@@ -3288,6 +3444,8 @@ aiPet.update = function() {
                                 if (typeof window.updateShopUIData === 'function' && !window.isCatchingUp) window.updateShopUIData(myShop);
                             } else if (task.type === 'cook') { 
                                 if (typeof this.processCookingFinish === 'function') this.processCookingFinish(task); 
+                            } else if (task.type === 'bake') { 
+                                if (typeof this.processBakingFinish === 'function') this.processBakingFinish(task); 
                             } else if (task.type === 'smith') {
                                 if (typeof this.processSmithingFinish === 'function') this.processSmithingFinish(task);
                             }
@@ -3341,7 +3499,42 @@ aiPet.update = function() {
                     }
                     else if (task.type === 'shop_research') {
                         this.visualAction = 'study';
-                        if (task.duration <= 0 && !task.aborted) { window.addShopLog?.(myShop.shopData, "新しいレシピのヒントを得た！"); if(!window.isCatchingUp) window.updateScheduleList?.(); }
+                        if (task.duration <= 0 && !task.aborted) { 
+                            if (task.isFlash) {
+                                if (typeof window.generateCustomRecipe === 'function') {
+                                    let newId = window.generateCustomRecipe(myShop.shopData);
+                                    if (newId) {
+                                        window.addShopLog?.(myShop.shopData, `新しいアイデア「${typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(newId) : newId}」を閃いた！(完成度0%)`);
+                                    } else {
+                                        window.addShopLog?.(myShop.shopData, "うーん、今は何も閃かなかった...");
+                                    }
+                                }
+                            } else {
+                                let intel = this.stats.intel || 10;
+                                let beauty = this.stats.beauty || 10;
+                                // ★ステータス依存の進行度計算
+                                let gain = Math.floor((intel * 0.5 + beauty * 0.2 + Math.random() * 10) / 2);
+                                let rData = myShop.shopData.recipes[task.targetRecipeId];
+                                
+                                if (gain <= 0) {
+                                    window.addShopLog?.(myShop.shopData, `素材を消費して頑張ったけど、研究開発が進まなかった...`);
+                                    this.message = "失敗しちゃった...素材がもったいない...";
+                                } else if (rData) {
+                                    rData.mastery = (rData.mastery || 0) + gain;
+                                    if (rData.mastery >= 100) {
+                                        rData.mastery = 100;
+                                        rData.learned = true;
+                                        window.addShopLog?.(myShop.shopData, `大成功！「${typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(task.targetRecipeId) : task.targetRecipeId}」のレシピが完成して、お店に出せるようになった！`);
+                                        this.message = "やったー！新メニュー完成！";
+                                    } else {
+                                        window.addShopLog?.(myShop.shopData, `研究が進んだ！「${typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(task.targetRecipeId) : task.targetRecipeId}」の完成度：${rData.mastery}%`);
+                                        this.message = "少しコツが掴めてきたかも！";
+                                    }
+                                }
+                                this.messageTimer = 120;
+                            }
+                            if(!window.isCatchingUp) window.updateScheduleList?.(); 
+                        }
                     }
                     else if (task.type === 'build') {
                         if (task.duration <= 0 && !task.aborted && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
@@ -3932,9 +4125,36 @@ aiPet.executeEnterAction = function() {
     const currentTask = (this.schedule && this.schedule.length > 0) ? this.schedule[0] : null;
 
     if (currentTask && (currentTask.type === 'visit_master' || currentTask.type === 'apprentice_exam')) {
+        // ★修正：パティシエに会いに行った場合は、料理人の介入を防ぐフラグを立てる
+        let isPastryTask = (currentTask.masterType === 'pastry_chef');
+        
         this.actionState = 'inside'; this.indoorTarget = this.interactionTarget; this.isIndoors = true; this.exploreTimer = 0;
-        this.message = "師匠のところに着いたよ！"; this.messageTimer = 120; 
+        this.message = isPastryTask ? "パティシエさんに会いに来たよ！" : "師匠のところに着いたよ！"; 
+        this.messageTimer = 120; 
         currentTask.duration = 0; 
+        
+        // パティシエ初顔合わせ判定
+        if (this.interactionTarget && this.interactionTarget.isMasterShop && this.interactionTarget.type === 'restaurant') {
+            let hasPhantomRecipe = this.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'phantom_sweets_recipe');
+            let isUnlocked = this.pastryChefUnlocked || (window.hero && window.hero.pastryChefUnlocked);
+
+            if (isUnlocked && hasPhantomRecipe) {
+                if (!this.apprentice.metMasters) this.apprentice.metMasters = [];
+                if (!this.apprentice.metMasters.includes('pastry_chef')) {
+                    this._isEncounterPending = true;
+                    setTimeout(() => {
+                        this._isEncounterPending = false;
+                        let encounterMsg = "「やあ！甘い香りに誘われてきちゃったかな？最高のティータイムを約束するよ！」";
+                        if (typeof window.openEncounterUI === 'function') window.openEncounterUI('pastry_chef', encounterMsg, 'encounter_intro'); 
+                    }, 1000);
+                    return; // ★パティシエイベントを優先して終了
+                }
+            }
+        }
+        
+        // ★修正：手動で checkMasterVisit を呼ぶ処理を削除しました！
+        // （duration = 0 に設定されているため、ゲーム本体のメインループが自動的に1回だけ正規の面会処理を呼んでくれます）
+
         return; 
     }
 
@@ -4071,6 +4291,22 @@ aiPet.executeEnterAction = function() {
         if (this.interactionTarget.isMasterShop) {
             this.actionState = 'inside'; this.indoorTarget = this.interactionTarget; this.isIndoors = true; this.exploreTimer = 0;
             this.message = "おじゃまします！"; this.messageTimer = 120;
+
+            // ★追加：料理人のレストランに入った時、「幻のスイーツレシピ」を所持していればパティシエ初顔合わせイベント発生
+            let hasPhantomRecipe = this.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'phantom_sweets_recipe');
+            let isUnlocked = this.pastryChefUnlocked || (window.hero && window.hero.pastryChefUnlocked);
+
+            if (this.interactionTarget.type === 'restaurant' && isUnlocked && hasPhantomRecipe) {
+                if (!this.apprentice.metMasters) this.apprentice.metMasters = [];
+                if (!this.apprentice.metMasters.includes('pastry_chef')) {
+                    this._isEncounterPending = true;
+                    setTimeout(() => {
+                        this._isEncounterPending = false;
+                        let encounterMsg = "「やあ！甘い香りに誘われてきちゃったかな？最高のティータイムを約束するよ！」";
+                        if (typeof window.openEncounterUI === 'function') window.openEncounterUI('pastry_chef', encounterMsg, 'encounter_intro'); 
+                    }, 1000);
+                }
+            }
         } else {
             // 自分の店に入った時は経営開始
             this.actionState = 'inside'; this.indoorTarget = this.interactionTarget; this.isIndoors = true; this.exploreTimer = 0; this.message = "いらっしゃいませ！";
@@ -6606,6 +6842,12 @@ window.masterFlavor = {
         offer: (qName) => `「次の修行は『${qName}』です。ひと針ひと針、焦らずに心を込めてくださいね。」`,
         report_ok: "「まあ……なんて美しい仕上がりでしょう。見事です、合格ですよ。」",
         report_ng: "「少し糸がほつれていますね……。想いが乱れている証拠です。もう一度やり直しましょう。」"
+    },
+    // ★追加: パティシエのフレーバー
+    'pastry_chef': {
+        offer: (qName) => `「次のオーダーは『${qName}』だよ！グラム単位の計量ミスも許されないからね。最高にスイートな結果を期待してるよ！」`,
+        report_ok: "「トレビアン！温度管理もデコレーションも完璧だ。文句なしの合格だよ！」",
+        report_ng: "「オーマイガー…これじゃあスイーツじゃなくてただの甘い塊だよ。計量からやり直し！」"
     }
 };
 
