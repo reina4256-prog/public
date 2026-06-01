@@ -3220,9 +3220,19 @@ setInterval(() => {
             
             // ★修正：野イチゴだけでなく、鉄鉱石やただの石を商品にしている古い鍛冶屋データも強制リセットする！
             if (!a.shopData || (a.shopData.recipes && (a.shopData.recipes['item_berry'] || a.shopData.recipes['iron'] || a.shopData.recipes['stone']))) {
+                
+                let initialRecipes = isRest ? { 'dish_stirfry': { learned: false, mastery: 0, learnedOrder: 1 } } : { 'eq_sword': { learned: false, mastery: 0, learnedOrder: 1 } };
+                let initialProgress = {};
+                
+                // ★追加：過去に倒産して「退避したレシピ」があれば復元する！
+                if (isRest && window.aiPet && window.aiPet.savedRecipeFlags && Object.keys(window.aiPet.savedRecipeFlags).length > 0) {
+                    initialRecipes = JSON.parse(JSON.stringify(window.aiPet.savedRecipeFlags));
+                    initialProgress = JSON.parse(JSON.stringify(window.aiPet.savedRecipes || {}));
+                }
+
                 a.shopData = {
-                    // ★修正：初期から未完成(mastery:0)でスタート
-                    recipes: isRest ? { 'dish_stirfry': { learned: false, mastery: 0, learnedOrder: 1 } } : { 'eq_sword': { learned: false, mastery: 0, learnedOrder: 1 } },
+                    recipes: initialRecipes,
+                    recipeProgress: initialProgress,
                     inventory: {},
                     prices: isRest ? { 'dish_stirfry': 100 } : { 'eq_sword': 300 },
                     reputation: 10, interiorLevel: 1, totalSales: 0,

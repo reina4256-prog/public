@@ -5822,10 +5822,17 @@ window.openShopManagementUI = function(building) {
         if (window.aiPet && window.aiPet.customRecipes && window.aiPet.customRecipes[itemId]) {
             baseValue = window.aiPet.customRecipes[itemId].value * 4;
             isMarketKnown = true;
-        } else if (typeof itemCatalog !== 'undefined' && itemCatalog[itemId] && itemCatalog[itemId].value) {
-            baseValue = itemCatalog[itemId].value * 4;
+        } else if (window.itemCatalog && window.itemCatalog[itemId] && window.itemCatalog[itemId].value) {
+            baseValue = window.itemCatalog[itemId].value * 4;
             isMarketKnown = true;
         }
+
+        // ★追加：AIが学習した「最新の相場」があるならそれを優先表示する
+        if (s.marketPrices && s.marketPrices[itemId]) {
+            baseValue = s.marketPrices[itemId];
+            isMarketKnown = true;
+        }
+
         let marketPriceDisplay = isMarketKnown ? `${baseValue} G` : `<span style="font-size:12px;">未設定(約50G)</span>`;
         
         let priceColor = "#FFD700"; 
@@ -6406,8 +6413,8 @@ window.updateShopUIData = function(building) {
             let baseValue = 50;
             if (window.aiPet && window.aiPet.customRecipes && window.aiPet.customRecipes[itemId]) {
                 baseValue = window.aiPet.customRecipes[itemId].value * 4;
-            } else if (typeof itemCatalog !== 'undefined' && itemCatalog[itemId] && itemCatalog[itemId].value) {
-                baseValue = itemCatalog[itemId].value * 4;
+            } else if (window.itemCatalog && window.itemCatalog[itemId] && window.itemCatalog[itemId].value) {
+                baseValue = window.itemCatalog[itemId].value * 4;
             }
             let priceColor = "#FFD700"; 
             if (price > baseValue * 1.2) priceColor = "#ff5252"; 
@@ -6596,8 +6603,8 @@ window.startShopSimulation = function(building) {
                             let baseValue = 50;
                             if (window.aiPet && window.aiPet.customRecipes && window.aiPet.customRecipes[targetItemId]) {
                                 baseValue = window.aiPet.customRecipes[targetItemId].value * 4;
-                            } else if (typeof itemCatalog !== 'undefined' && itemCatalog[targetItemId] && itemCatalog[targetItemId].value) {
-                                baseValue = itemCatalog[targetItemId].value * 4;
+                            } else if (window.itemCatalog && window.itemCatalog[targetItemId] && window.itemCatalog[targetItemId].value) {
+                                baseValue = window.itemCatalog[targetItemId].value * 4;
                             }
                             
                             let ratio = price / baseValue;
@@ -8089,17 +8096,30 @@ window.addShopLog = function(shopData, text) {
     if (typeof window.updateShopUIData === 'function' && shopAsset) window.updateShopUIData(shopAsset);
 };
 
-// 3. 表示名の解決（図鑑から名前を引っ張ってくる 完全上書き版）
+// 3. 表示名の解決（図鑑・メニューから名前を引っ張ってくる 完全上書き版）
 window.getDisplayShopItemName = function(itemId) {
+    // 1. AIのオリジナルレシピ
     if (window.aiPet && window.aiPet.customRecipes && window.aiPet.customRecipes[itemId]) { return window.aiPet.customRecipes[itemId].name; }
     if (typeof currentMode !== 'undefined' && currentMode === 'visit' && window.myIslandBackupLS) {
          let myRealPet = JSON.parse(window.myIslandBackupLS['ai_pet_data_v1'] || '{}');
          if (myRealPet && myRealPet.customRecipes && myRealPet.customRecipes[itemId]) return myRealPet.customRecipes[itemId].name;
     }
     
-    // 元の処理
+    // 2. レストランのメニューと素材から名前を取得
+    if (window.SHOP_DISH_NAMES && window.SHOP_DISH_NAMES[itemId]) return window.SHOP_DISH_NAMES[itemId];
+    if (window.SHOP_ING_NAMES && window.SHOP_ING_NAMES[itemId]) return window.SHOP_ING_NAMES[itemId];
+
+    // 3. 家具の日本語名
+    const furnitureDict = {
+        'item_table': '木製テーブル', 'item_chair': '木製イス', 'item_stool': '丸イス', 
+        'item_register': 'レジスター', 'item_counter': 'カウンター', 
+        'item_oven': 'オーブン', 'item_fridge': '冷蔵庫', 'item_stove': 'コンロ'
+    };
+    if (furnitureDict[itemId]) return furnitureDict[itemId];
+    
+    // 4. その他の基本アイテム
     if (typeof itemCatalog !== 'undefined' && itemCatalog[itemId] && itemCatalog[itemId].name) return itemCatalog[itemId].name;
-    const dict = { 'item_sword_iron': '鉄の剣', 'item_shield_wood': '木の盾', 'eq_sword': '普通の剣', 'eq_shield': '普通の盾', 'tool_pan': 'フライパン', 'dish_stirfry': '野菜炒め', 'dish_steak': 'ステーキ', 'dish_soup': '特製スープ', 'baked_carrot': '焼きニンジン', 'baked_fish': '焼き魚', 'gold_sword': '金の剣', 'sashimi': 'お刺身' };
+    const dict = { 'item_sword_iron': '鉄の剣', 'item_shield_wood': '木の盾', 'eq_sword': '普通の剣', 'eq_shield': '普通の盾', 'tool_pan': 'フライパン', 'gold_sword': '金の剣', 'sashimi': 'お刺身' };
     return dict[itemId] || itemId;
 };
 

@@ -1481,9 +1481,6 @@ window.drawDungeonPreview = function() {
 // ==========================================
 // ★ R-ASSET (物理マップチップ) プレビュー描画処理
 // ==========================================
-// ==========================================
-// ★ R-ASSET (物理マップチップ) プレビュー描画処理
-// ==========================================
 window.drawFurniturePreview = function() {
     const target = typeof window.getAdjustTarget === 'function' ? window.getAdjustTarget() : null;
     if (!target) return;
@@ -1543,6 +1540,11 @@ window.drawFurniturePreview = function() {
         let drawY = - (sh * scale); 
         
         ctx.drawImage(imgObj, sx, sy, sw, sh, drawX, drawY, sw * scale, sh * scale);
+
+        // ★追加：他の編集画面に合わせて編集枠（赤枠）を描画する
+        ctx.strokeStyle = '#ff5252';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(drawX, drawY, sw * scale, sh * scale);
     } else {
         // 画像がロードされていない時のダミー枠（ロード中の場合も一瞬表示される）
         ctx.fillStyle = "rgba(255, 255, 0, 0.3)";
