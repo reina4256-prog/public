@@ -13218,7 +13218,12 @@ window.openDeckBuilder = function() {
 // ------------------------------------------
 // ① 師匠の免許皆伝（ランク10到達時）
 const _origCheckMasterVisit = window.checkMasterVisit;
-window.checkMasterVisit = function(masterType) {
+window.checkMasterVisit = function(masterType, visitAction) {
+    console.log("[師匠報告デバッグ] TCGフック経由", {
+        師匠: masterType,
+        選択: visitAction
+    });
+
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
     
     if (hero && hero.apprentice && hero.apprentice.activeQuest) {
@@ -13237,7 +13242,7 @@ window.checkMasterVisit = function(masterType) {
     }
     
     // 元の処理を実行（会話UIなどを開く）
-    if (_origCheckMasterVisit) _origCheckMasterVisit(masterType);
+    if (_origCheckMasterVisit) _origCheckMasterVisit(masterType, visitAction);
 };
 
 // ② 城の助っ人（アリーナ終了時にログから検知）

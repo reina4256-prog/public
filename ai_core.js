@@ -127,6 +127,9 @@ function getTaskName(type, task = null) {
     // ★修正：建築と拡張の具体的な表示に対応
     if(type==='build') {
         if (task && task.buildData) {
+            if (task.buildData.isTrial) {
+                return `${task.buildData.targetName || '図面・模型'}作成`;
+            }
             if (task.buildData.isUpgrade) return `${task.buildData.name}拡張`;
             return `${task.buildData.name}建築`;
         }
@@ -701,12 +704,12 @@ aiPet.getMasterQuestData = function(mType, rank) {
         },
         'pastry_chef': { // ★修正：パティシエのクエスト（クリア判定をレストランデータと同期）
             0: { name: "入門試験の準備", desc: "試験では『甘い調味料』『クリームをふんわりさせる道具』『生地を焼く機械』について聞かれる。答えとなる言葉を覚えよう。" },
-            1: { name: "甘味の探求", desc: "森を探検して『ハチミツ(honey)』を3つ採取してこよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='honey').length >= 3; } },
-            2: { name: "果実の育成", desc: "畑でイチゴの種から『イチゴ(strawberry)』を3つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='strawberry').length >= 3; } },
-            3: { name: "はじめてのスイーツ", desc: "レストランの「研究開発」でイチゴのショートケーキを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_strawberry_cake']; } },
-            4: { name: "高級果実の育成", desc: "畑でメロンの種から『メロン(melon)』を1つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='melon').length >= 1; } },
-            5: { name: "レシピの研究", desc: "レストランの「研究開発」でメロンパフェを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_melon_parfait']; } },
-            6: { name: "熟練の技", desc: "レストランの「研究開発」で極上ハチミツプリンを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_honey_pudding']; } },
+            1: { name: "甘味の探求", desc: "森を探検して『ハチミツ(honey)』を3つ採取してこよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryHoneyUnlocked = true; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='honey').length >= 3; } },
+            2: { name: "果実の育成", desc: "畑でイチゴの種から『イチゴ(strawberry)』を3つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryStrawberryUnlocked = true; if (!aiPet.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_strawberry')) aiPet.inventory.push('seed_strawberry'); }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='strawberry').length >= 3; } },
+            3: { name: "はじめてのスイーツ", desc: "レストランの「研究開発」でイチゴのショートケーキを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_strawberry_cake = true; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_strawberry_cake']; } },
+            4: { name: "高級果実の育成", desc: "畑でメロンの種から『メロン(melon)』を1つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryMelonUnlocked = true; if (!aiPet.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_melon')) aiPet.inventory.push('seed_melon'); }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='melon').length >= 1; } },
+            5: { name: "レシピの研究", desc: "レストランの「研究開発」でメロンパフェを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_melon_parfait = true; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_melon_parfait']; } },
+            6: { name: "熟練の技", desc: "レストランの「研究開発」で極上ハチミツプリンを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_honey_pudding = true; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_honey_pudding']; } },
             7: { name: "完璧な配合", desc: "レストランの「研究開発」でいずれかのレシピ完成度を50%以上にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); if (!r || !r.shopData || !r.shopData.recipes) return false; return Object.values(r.shopData.recipes).some(v => v.mastery >= 50); } },
             8: { name: "完璧な配合", desc: "レストランの「研究開発」でいずれかのレシピ完成度を100%にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); if (!r || !r.shopData || !r.shopData.recipes) return false; return Object.values(r.shopData.recipes).some(v => v.mastery >= 100); } },
             9: { name: "免許皆伝", desc: "デザートを合計10個お客さんに販売しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.apprentice.qVal >= 10; } }
@@ -860,8 +863,14 @@ function findFacilityForTask(taskType, masterType = null) {
             if (assets[key].type === type || key.startsWith(type)) {
                 const a = assets[key];
 
+                // ★ 修正：料理タスクでは、免許皆伝後の自店舗と師匠の店を混同しない
+                const isCookingMasterShop = a.type === 'restaurant' && (a.isMasterShop || a.isMobile || (a.name && a.name.includes('料理人')));
+                if (taskType === 'cook' && isCookingMasterShop) {
+                    continue;
+                }
+
                 // ★ 修正：移動レストラン（師匠の店）の利用制限
-                if (a.isMobile && a.type === 'restaurant') {
+                if (isCookingMasterShop) {
                     // 1. 修行中でない、かつ 2. 皆伝もしていない（＝ただの未入門者）は使えない
                     // もしくは、3. すでにランク10（皆伝）に達しているなら、師匠の店は卒業なので使わない
                     if (!isApprenticeButNotGraduated) {
@@ -1536,7 +1545,8 @@ aiPet.processCookingStart = function(task) {
     // --- 以下、通常（皆伝後）の材料チェックロジック ---
     let bestIngredient = null;
     let bestIdx = -1;
-    this.inventory.forEach((key, idx) => {
+    this.inventory.forEach((entry, idx) => {
+        const key = typeof entry === 'string' ? entry : (entry && entry.id ? entry.id : '');
         const item = itemCatalog[key];
         if (item && (item.type === 'ingredient' || item.type === 'food')) {
             if (bestIdx === -1) { bestIngredient = key; bestIdx = idx; }
@@ -2748,7 +2758,12 @@ aiPet.update = function() {
     // ★追加：新レシピを閃く関数
     window.generateCustomRecipe = window.generateCustomRecipe || function(shopData) {
         const isRest = Object.keys(shopData.recipes).some(k => k.includes('dish') || k.includes('baked') || k.includes('cake') || k.includes('pudding') || k.includes('parfait'));
-        let pool = isRest ? ['dish_stirfry', 'dish_salad', 'dish_soup', 'baked_carrot', 'baked_tomato', 'baked_pepper', 'baked_fish', 'dish_strawberry_cake', 'dish_melon_parfait', 'dish_honey_pudding'] : ['eq_sword', 'eq_shield', 'tool_pan', 'eq_staff'];
+        let pool = isRest ? ['dish_stirfry', 'dish_salad', 'dish_soup', 'baked_carrot', 'baked_tomato', 'baked_pepper', 'baked_fish'] : ['eq_sword', 'eq_shield', 'tool_pan', 'eq_staff'];
+        if (isRest && window.aiPet && window.aiPet.pastryRecipeUnlocks) {
+            ['dish_strawberry_cake', 'dish_melon_parfait', 'dish_honey_pudding'].forEach(id => {
+                if (window.aiPet.pastryRecipeUnlocks[id]) pool.push(id);
+            });
+        }
         let unlearned = pool.filter(id => !shopData.recipes[id]);
         if (unlearned.length > 0) {
             let newId = unlearned[Math.floor(Math.random() * unlearned.length)];
@@ -3178,6 +3193,8 @@ aiPet.update = function() {
                             if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_carrot')) intendedSeed = 'seed_carrot';
                             else if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_tomato')) intendedSeed = 'seed_tomato';
                             else if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_pepper')) intendedSeed = 'seed_pepper';
+                            else if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_strawberry')) intendedSeed = 'seed_strawberry';
+                            else if (this.inventory && this.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_melon')) intendedSeed = 'seed_melon';
                         } else { intendedSeed = 'seed_carrot_given'; }
                     }
 
@@ -4196,6 +4213,8 @@ aiPet.executeEnterAction = function() {
                 if (cropBaseId === 'carrot') cropName = "ニンジン";
                 else if (cropBaseId === 'tomato') cropName = "トマト";
                 else if (cropBaseId === 'pepper') cropName = "ピーマン";
+                else if (cropBaseId === 'strawberry') cropName = "イチゴ";
+                else if (cropBaseId === 'melon') cropName = "メロン";
 
                 let isRare = false;
                 if ((this.stats.beauty || 0) >= 50 && (this.stats.intel || 0) >= 50) {
@@ -4357,11 +4376,11 @@ function processWeatherAndDisaster() {
 // ==========================================
 // ★大改修：転生時の「魂の引継ぎショップ」システム (余生システム対応版)
 // ==========================================
-// ★修正：map（マップ引継ぎ）を追加！
-let inheritanceSelections = { stats: false, inventory: false, vocab: false, license: false, personality: false, map: false };
+// ★修正：map（マップ引継ぎ）とgold（所持金引継ぎ）を追加！
+let inheritanceSelections = { stats: false, inventory: false, vocab: false, license: false, personality: false, map: false, gold: false };
 window.inheritanceStatsPercent = 10;
 
-const BASE_INHERITANCE_COSTS = { stats: 500, inventory: 300, vocab: 400, license: 800, personality: 200, map: 300 };
+const BASE_INHERITANCE_COSTS = { stats: 500, inventory: 300, vocab: 400, license: 800, personality: 200, map: 300, gold: 500 };
 let currentInheritanceCosts = { ...BASE_INHERITANCE_COSTS };
 
 window.triggerReincarnation = function() {
@@ -4391,7 +4410,7 @@ window.openInheritanceShop = function() {
         document.body.appendChild(shopUI);
     }
     
-    inheritanceSelections = { stats: false, inventory: false, vocab: false, license: false, personality: false, map: false };
+    inheritanceSelections = { stats: false, inventory: false, vocab: false, license: false, personality: false, map: false, gold: false };
     currentInheritanceCosts = { ...BASE_INHERITANCE_COSTS };
     
     let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
@@ -4500,7 +4519,8 @@ window.renderInheritanceShop = function() {
             ${renderOption('vocab', '語彙・記憶領域の引継ぎ', '前世で教えた言葉と、拡張された記憶容量を最初から持った状態で始まります。', '🗣️')}
             ${renderOption('license', '職業ライセンスの引継ぎ', '師匠から受けたランクや皆伝の証をそのまま持ち越します。', '📜')}
             ${renderOption('personality', '姿と性格の引継ぎ (診断スキップ)', '性格診断をスキップし、前世と全く同じ姿と性格で生まれ変わります。', '🧬')}
-            ${renderOption('map', 'マップの引継ぎ', '前世で開拓したフィールドや施設をそのまま引き継ぎます。<br><span style="color:#FF9800;">※選択しない場合、新しいマップが再生成されます</span>', '🗺️')}
+            ${renderOption('map', 'マップの引継ぎ', '前世で開拓したフィールドや施設をそのまま引き継ぎます。レストランなどの店舗成長と、小屋に増設した金庫もマップの一部として残ります。<br><span style="color:#FF9800;">※選択しない場合、新しいマップが再生成され、金庫は引き継がれません</span>', '🗺️')}
+            ${renderOption('gold', '所持金の引継ぎ', '前世の手持ちゴールドをそのまま持ち越します。<br><span style="color:#FF9800;">※金庫のゴールドはマップの一部です。マップを引き継がない場合、金庫は引き継がれません。</span>', '💰')}
             ${legacyHtml !== "" ? `<div style="margin: 20px 0 10px 0; font-size: 16px; font-weight: bold; color: #00BCD4; border-bottom: 1px solid #00BCD4; padding-bottom: 5px;">🏆 余生の遺産 (選択必須)</div>` + legacyHtml : ""}
         </div>
         <div style="background: #111; padding: 20px; border-top: 2px solid #555; display: flex; justify-content: space-between; align-items: center;">
@@ -4515,7 +4535,7 @@ window.renderInheritanceShop = function() {
 
 // ★追加：実行ボタンを押した際の「ロスト警告ポップアップ」処理
 window.executeReincarnation = function() {
-    const names = { stats: '能力値', inventory: '持ち物', vocab: '語彙・記憶領域', license: '職業ライセンス', personality: '姿と性格', map: 'マップ' };
+    const names = { stats: '能力値', inventory: '持ち物', vocab: '語彙・記憶領域', license: '職業ライセンス', personality: '姿と性格', map: 'マップ', gold: '所持金' };
     let lostList = [];
     for (let key in inheritanceSelections) {
         if (!inheritanceSelections[key] && names[key]) lostList.push(`・${names[key]}`);
@@ -4588,16 +4608,22 @@ window.executeReincarnationFinal = function() {
             speed: Math.floor((window.aiPet.stats.speed || 10) * multiplier)
         };
     }
+
+    if (inheritanceSelections.gold) {
+        inheritedData.gold = window.aiPet.gold || 0;
+    }
     
-    if (!inheritanceSelections.map) {
+    if (inheritanceSelections.map) {
+        inheritedData.keepMap = true;
+        if (typeof saveGameData === 'function') saveGameData();
+    } else {
         inheritedData.resetMap = true;
     }
     
     if (inheritanceSelections.inventory && !inheritanceSelections.map && hut) {
         let rescuedItems = [...hut.storage.warehouse.items, ...hut.storage.freezer.items];
         window.aiPet.inventory = window.aiPet.inventory.concat(rescuedItems);
-        window.aiPet.gold += hut.storage.safe.gold;
-        console.log("📦 倉庫消失回避のため、倉庫・冷凍庫・金庫の中身をすべて手持ちに引き出しました！");
+        console.log("📦 マップを引き継がないため、倉庫・冷凍庫の中身を手持ちに引き出しました。金庫はマップ設備なので引き継ぎません。");
         inheritedData.inventory = [...window.aiPet.inventory];
     } else if (inheritanceSelections.inventory) {
         inheritedData.inventory = [...window.aiPet.inventory];
@@ -4759,6 +4785,10 @@ window.applyInitialPet = function(skinKey) {
             let newMap = generateNatureMap();
             for (let key in newMap) { assets[key] = newMap[key]; }
         }
+    } else if (window.pendingInheritanceData && window.pendingInheritanceData.keepMap) {
+        if (typeof assets !== 'undefined') {
+            localStorage.setItem('map_data_v6', JSON.stringify(assets));
+        }
     }
 
     window.aiPet.legacyProgress = {}; 
@@ -4801,6 +4831,7 @@ window.applyInitialPet = function(skinKey) {
         }
         
         if (data.inventory) window.aiPet.inventory = data.inventory;
+        if (typeof data.gold === 'number') window.aiPet.gold = data.gold;
         if (data.apprentice) {
             if (data.apprentice.learnedWords) window.aiPet.apprentice.learnedWords = data.apprentice.learnedWords;
             if (data.apprentice.baseVocab) window.aiPet.apprentice.baseVocab = data.apprentice.baseVocab; 
@@ -5186,6 +5217,13 @@ aiPet.processExploration = function() {
                 itemKey = 'poison_mushroom';
             }
 
+            // パティシエ修行中は、森でハチミツを採れるようになる
+            const hasHoneyQuest = this.apprentice && this.apprentice.activeQuests && this.apprentice.activeQuests.some(q => q.masterType === 'pastry_chef' && q.rank === 1);
+            const isForestLike = state.currentFacility === 'palms' || state.currentFacility === 'nature';
+            if ((this.pastryHoneyUnlocked || hasHoneyQuest) && isForestLike && Math.random() < 0.35) {
+                itemKey = 'honey';
+            }
+
             // ==========================================
             // ★新規追加：仕立屋アンロック用「神秘の霊糸」のドロップ
             // ==========================================
@@ -5204,7 +5242,8 @@ aiPet.processExploration = function() {
                 'herb': '薬草',
                 'water': 'きれいな水',
                 'poison_mushroom': '毒キノコ',
-                'mystic_thread': '神秘の霊糸' // ★追加
+                'mystic_thread': '神秘の霊糸',
+                'honey': 'ハチミツ'
             };
             const item = itemCatalog[itemKey] || { name: fallbackNames[itemKey] || itemKey }; 
             
@@ -5848,6 +5887,17 @@ aiPet.processBuildingStart = function(task) {
     if (task.isTrial) {
         let intel = this.stats.intel || 10;
         let power = this.stats.power || 10;
+        let tx = this.x;
+        let ty = this.y;
+
+        if (typeof findFacilityForTask === 'function') {
+            const facility = findFacilityForTask('visit_master', 'building');
+            if (facility) {
+                const scale = facility.scale !== undefined ? facility.scale : 0.5;
+                tx = facility.dx + ((facility.sw || 1) * scale) / 2;
+                ty = facility.dy + ((facility.sh || 1) * scale) / 2;
+            }
+        }
         
         // 賢さ（構造計算）と活力（模型を組み上げる体力）から成功率を計算
         let successRate = 0.3 + (intel * 0.005) + (power * 0.005) + ((this.skills.building || 1) * 0.05);
@@ -5875,7 +5925,11 @@ aiPet.processBuildingStart = function(task) {
             successRate: successRate,
             isSuccess: isSuccess,
             isGreatSuccess: isGreatSuccess,
-            isTrial: true
+            isTrial: true,
+            bestX: tx,
+            bestY: ty,
+            walkX: tx,
+            walkY: ty
         };
         return true;
     }

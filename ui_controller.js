@@ -123,7 +123,7 @@ function updateAIStatusText() {
     
     if (aiPet.schedule && aiPet.schedule.length > 0) {
         const currentTask = aiPet.schedule[0];
-        const taskName = (typeof getTaskName === 'function') ? getTaskName(currentTask.type) : currentTask.type;
+        const taskName = (typeof getTaskName === 'function') ? getTaskName(currentTask.type, currentTask) : currentTask.type;
         
         let timeRemaining = currentTask.duration > 0 ? currentTask.duration : 0;
         let maxTime = currentTask.maxDuration || Math.max(1, currentTask.duration);
@@ -177,6 +177,7 @@ function updateAIStatusText() {
 window.openStatusMenu = function() {
     const overlay = document.getElementById('statusOverlay');
     if (!overlay || typeof aiPet === 'undefined' || !aiPet.stats) return;
+    const hero = aiPet;
 
     document.getElementById('s-gen').innerText = aiPet.generation || 1;
     document.getElementById('s-age').innerText = aiPet.age || 0;
@@ -285,8 +286,8 @@ window.openStatusMenu = function() {
                                 }
                             }
                             else if (desc.includes("活力") || desc.includes("パワー") || desc.includes("体力")) { isStatQuest = true; statVal = hero.stats.power; }
-                            else if (desc.includes("美しさ")) { isStatQuest = true; statVal = aiPet.stats.beauty; }
-                            else if (desc.includes("素早さ")) { isStatQuest = true; statVal = aiPet.stats.speed; }
+                            else if (desc.includes("美しさ")) { isStatQuest = true; statVal = hero.stats.beauty; }
+                            else if (desc.includes("素早さ")) { isStatQuest = true; statVal = hero.stats.speed; }
 
                             if (isStatQuest) {
                                 // インフレ対応：上昇量で表示
@@ -906,7 +907,7 @@ function openInventoryPanel() {
 window.updateScheduleList = function() {
     const listEl = document.getElementById('scheduleList'); if(!listEl) return;
     if(!aiPet.schedule || aiPet.schedule.length === 0) { listEl.innerHTML = "<div style='color:#777; padding:10px; font-size:12px;'>予定はありません</div>"; } else {
-        let html = ""; aiPet.schedule.forEach((task, i) => { let tName = (typeof getTaskName === 'function') ? getTaskName(task.type) : task.type; html += `<div style="border-bottom:1px solid #444; padding:8px; font-size:12px;"><span style="color:#00bcd4; font-weight:bold;">${i+1}.</span> ${tName} <span style="color:#aaa; float:right;">(${task.duration}分)</span></div>`; }); 
+        let html = ""; aiPet.schedule.forEach((task, i) => { let tName = (typeof getTaskName === 'function') ? getTaskName(task.type, task) : task.type; html += `<div style="border-bottom:1px solid #444; padding:8px; font-size:12px;"><span style="color:#00bcd4; font-weight:bold;">${i+1}.</span> ${tName} <span style="color:#aaa; float:right;">(${task.duration}分)</span></div>`; }); 
         listEl.innerHTML = html; 
     }
     updateAIStatusText(); 
@@ -1550,7 +1551,17 @@ window.sendChat = function() {
     const forgetMatch = rawText.match(/(.+)を(?:忘|わす)れて/);
     if (forgetMatch) {
         let targetWord = forgetMatch[1].trim();
-        for (let key in dict) { if (dict[key].some(syn => targetWord.includes(syn))) { targetWord = key; break; } }
+        const shopWords = (window.SHOP_AVAILABLE_COMMANDS || []).map(c => c.name);
+        const alreadyKnownExact = aiPet.apprentice.learnedWords.includes(targetWord);
+        const isShopWordExact = shopWords.includes(targetWord);
+        if (!alreadyKnownExact && !isShopWordExact) {
+            for (let key in dict) {
+                if (dict[key].some(syn => targetWord === syn)) {
+                    targetWord = key;
+                    break;
+                }
+            }
+        }
         const index = aiPet.apprentice.learnedWords.indexOf(targetWord);
         if (index !== -1) {
             aiPet.apprentice.learnedWords.splice(index, 1); aiPet.message = `「${targetWord}」だね…うん、忘れたよ。`;
@@ -1796,8 +1807,8 @@ window.sendChat = function() {
         if (!isBuilder) {
             aiPet.message = `まだ素人だから作れないよ...\n(まずは建築士に弟子入りしよう)`; aiPet.messageTimer = 150;
         } else if (!isMaster) {
-            aiPet.schedule.push({type: 'build', targetBuilding: 'farm', duration: 60});
-            aiPet.message = "畑を建てる場所へ向かうよ！"; aiPet.messageTimer = 150;
+            aiPet.schedule.push({type: 'build', duration: 60, isTrial: true});
+            aiPet.message = "師匠のところで建築の練習をするよ！"; aiPet.messageTimer = 150;
         } else {
             aiPet.schedule.push({type: 'build', targetBuilding: 'farm', duration: 60});
             aiPet.message = "畑の建築を予定に追加したよ！\n(他のものは「〇〇を作って」と指示してね)"; aiPet.messageTimer = 150;
@@ -1932,8 +1943,10 @@ window.sendChat = function() {
 
         let myRestaurant = null;
         for (let k in assets) {
-            // ★完全修正：isMobile ではなく isMasterShop フラグで「師匠の店」を除外し、純粋な自分の店だけを探す
-            if (assets[k].type === 'restaurant' && !assets[k].isMasterShop) { myRestaurant = assets[k]; break; }
+            // 師匠の店は旧データだと isMasterShop / isMobile / 名前のどれかで残ることがあるため、すべて除外する。
+            const a = assets[k];
+            const isCookingMasterShop = a && a.type === 'restaurant' && (a.isMasterShop || a.isMobile || (a.name && a.name.includes('料理人')));
+            if (a && a.type === 'restaurant' && !isCookingMasterShop) { myRestaurant = a; break; }
         }
 
         // ★レストラン建築分岐
@@ -1950,10 +1963,9 @@ window.sendChat = function() {
             // ★既存の料理（経営）処理
             if (isMaster) {
                 if (myRestaurant) {
-                    aiPet.schedule.push({type: 'cook', duration: 30});
-                    if (aiPet.schedule.length === 1) {
-                        aiPet.startBuildingInteraction(myRestaurant); aiPet.message = "レストランで料理を作ってくるね！";
-                    } else { aiPet.message = "他にも料理の予約をしたよ！"; }
+                    aiPet.schedule = [];
+                    aiPet.startBuildingInteraction(myRestaurant);
+                    aiPet.message = "レストランの様子を見に行くね！";
                 } else { aiPet.message = "料理は得意だけど、自分のレストランがないと腕を振るえないや。\n(「レストラン」と指示して建築しよう！)"; }
             } else if (isApprentice) {
                 let masterRest = null;
@@ -2048,7 +2060,7 @@ window.sendChat = function() {
             aiPet.messageTimer = 120;
         }
     }
-    else if (["ニンジン", "ピーマン", "トマト"].includes(interpretedWord) && knows(interpretedWord)) {
+    else if (["ニンジン", "ピーマン", "トマト", "イチゴ", "メロン"].includes(interpretedWord) && knows(interpretedWord)) {
         actionTriggered = true;
         let isMasterFarmer = aiPet.apprentice && (
             (aiPet.apprentice.retired && aiPet.apprentice.retired['farming']) || 
@@ -2062,9 +2074,10 @@ window.sendChat = function() {
             return;
         }
 
-        let seedId = interpretedWord === 'ニンジン' ? 'seed_carrot' : interpretedWord === 'ピーマン' ? 'seed_pepper' : 'seed_tomato';
+        let seedId = interpretedWord === 'ニンジン' ? 'seed_carrot' : interpretedWord === 'ピーマン' ? 'seed_pepper' : interpretedWord === 'トマト' ? 'seed_tomato' : interpretedWord === 'イチゴ' ? 'seed_strawberry' : 'seed_melon';
         
-        if (aiPet.inventory && aiPet.inventory.includes(seedId)) {
+        const hasSeed = aiPet.inventory && aiPet.inventory.some(i => (typeof i === 'string' ? i : i.id) === seedId);
+        if (hasSeed) {
             // ★完全修正：種まきもキューに積むだけ！
             aiPet.schedule.push({type: 'farm', intendedSeed: seedId, duration: 60});
             if (aiPet.schedule.length === 1) aiPet.message = `${interpretedWord}を育てに行く！`; 
@@ -3132,16 +3145,6 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
     if (!hero) return;
     
-    if (hero.apprentice && hero.apprentice.activeQuests) {
-        let mainQ = hero.apprentice.activeQuests.find(q => q.masterType === masterType && !q.isBaitoQuest && q.rank === 9);
-        if (mainQ) {
-            const tempQData = typeof hero.getMasterQuestData === 'function' ? hero.getMasterQuestData(masterType, 9) : null;
-            if (tempQData && tempQData.check && tempQData.check()) {
-                mode = 'graduate';
-            }
-        }
-    }
-
     currentEncounterMaster = masterType;
     currentEncounterMode = mode;
     if (message) savedEncounterMsg = message;
@@ -3255,6 +3258,10 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     }
     else if (mode === 'quest_not_clear') { 
         thoughtText = "（まだ条件を満たせていないみたい...！右のリストを確認しよう！）"; 
+    }
+    else if (mode === 'master_visit_choice') {
+        thoughtText = "（今日は何をしようかな...？）";
+        rightText = savedEncounterMsg;
     }
     // ▼▼ 追加した2行 ▼▼
     else if (mode === 'rank_skip_offer') { thoughtText = "（すごい！ 基礎を飛ばして特別扱いだ！）"; }
@@ -3431,6 +3438,25 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             btnBox.innerHTML = `
                 <div style="display: flex; gap: 8px; width: 100%;">
                     <button class="quiz-btn" onclick="window.checkMasterVisit('${masterType}')" style="flex: 1; padding: 10px; font-size: 14px; background: #2196F3; color: #fff; font-weight: bold; border: 2px solid #1976D2; border-radius: 8px; cursor: pointer;">戻る</button>
+                    <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">立ち去る</button>
+                </div>
+            `;
+        }
+        else if (mode === 'master_visit_choice') {
+            let existingBaito = hero.apprentice && hero.apprentice.activeQuests && hero.apprentice.activeQuests.find(q => q.masterType === masterType && q.isBaitoQuest);
+            let isBaitoCleared = existingBaito && existingBaito.qVal >= existingBaito.targetCount;
+            let baitoChoiceBtn = "";
+            if (isBaitoCleared) {
+                baitoChoiceBtn = `<button class="quiz-btn" onclick="window.handleMasterVisitChoice('baito_report')" style="flex: 1; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer;">💰 バイト報告</button>`;
+            } else if (existingBaito) {
+                baitoChoiceBtn = `<button class="quiz-btn" style="flex: 1; padding: 10px; font-size: 14px; background: #555; color: #888; font-weight: bold; border: 2px solid #444; border-radius: 8px; cursor: not-allowed;" disabled>💰 バイト中</button>`;
+            } else {
+                baitoChoiceBtn = `<button class="quiz-btn" onclick="window.startBaito()" style="flex: 1; padding: 10px; font-size: 14px; background: #4CAF50; color: #fff; font-weight: bold; border: 2px solid #388E3C; border-radius: 8px; cursor: pointer;">💰 バイトする</button>`;
+            }
+            btnBox.innerHTML = `
+                <div style="display: flex; gap: 8px; width: 100%;">
+                    <button class="quiz-btn" onclick="window.handleMasterVisitChoice('report')" style="flex: 1; padding: 10px; font-size: 14px; background: #2196F3; color: #fff; font-weight: bold; border: 2px solid #1976D2; border-radius: 8px; cursor: pointer;">📋 報告する</button>
+                    ${baitoChoiceBtn}
                     <button class="quiz-btn" onclick="confirmEncounter(false)" style="flex: 1; padding: 10px; font-size: 14px; background: #666; color: #ddd; border: 2px solid #555; border-radius: 8px; cursor: pointer;">立ち去る</button>
                 </div>
             `;
@@ -3843,12 +3869,40 @@ window.confirmEncounter = function(isAccept) {
     currentEncounterMaster = null; currentEncounterMode = '';
 };
 
+window.handleMasterVisitChoice = function(visitAction) {
+    const masterType = currentEncounterMaster || window._lastVisitedMaster;
+    console.log("[師匠報告デバッグ] 選択ボタンが押されました", {
+        選択: visitAction,
+        現在の師匠: currentEncounterMaster,
+        最後に訪問した師匠: window._lastVisitedMaster,
+        使用する師匠: masterType,
+        現在の会話モード: currentEncounterMode
+    });
+    if (!masterType || typeof window.checkMasterVisit !== 'function') {
+        console.warn("[師匠報告デバッグ] 処理を開始できません", {
+            師匠あり: !!masterType,
+            checkMasterVisitあり: typeof window.checkMasterVisit === 'function'
+        });
+        return;
+    }
+    window.checkMasterVisit(masterType, visitAction);
+};
+
 // ★ AIが師匠の場所に到着した時に呼ばれる処理（クリーンアップ＆掛け合い対応の完全版！）
-window.checkMasterVisit = function(masterType) {
+window.checkMasterVisit = function(masterType, visitAction) {
     if (masterType) window._lastVisitedMaster = masterType;
 
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
-    if (!hero || !hero.apprentice) return;
+    console.log("[師匠報告デバッグ] checkMasterVisit開始", {
+        師匠: masterType,
+        選択: visitAction,
+        heroあり: !!hero,
+        apprenticeあり: !!(hero && hero.apprentice)
+    });
+    if (!hero || !hero.apprentice) {
+        console.warn("[師匠報告デバッグ] heroまたは弟子入り情報がないため終了します");
+        return;
+    }
 
     // ★ 世代交代のクリーンアップ（先代の負の遺産を白紙にする）
     if (hero.apprentice.lastGenId !== hero.generation) {
@@ -3867,6 +3921,13 @@ window.checkMasterVisit = function(masterType) {
     
     const app = hero.apprentice;
     if (!app.activeQuests) app.activeQuests = [];
+    console.log("[師匠報告デバッグ] 現在の弟子入り状態", {
+        現在の師匠: app.currentMaster,
+        ランク: app.rank && app.rank[masterType],
+        破門先: app.excommunicatedFrom,
+        訪問済み師匠: app.metMasters,
+        activeQuests数: app.activeQuests.length
+    });
 
     // 自動修復パッチ
     if (app.attempts && app.attempts[masterType] >= 3 && app.retired && app.retired[masterType]) {
@@ -3978,6 +4039,13 @@ window.checkMasterVisit = function(masterType) {
     }
 
     const myQuests = app.activeQuests.filter(q => q.masterType === masterType);
+    console.log("[師匠報告デバッグ] この師匠の依頼一覧", myQuests.map(q => ({
+        名前: q.name,
+        rank: q.rank,
+        バイト: !!q.isBaitoQuest,
+        qVal: q.qVal,
+        targetCount: q.targetCount
+    })));
 
     if (!isApprentice && myQuests.length === 0) {
         let examMsg = "";
@@ -4017,23 +4085,109 @@ window.checkMasterVisit = function(masterType) {
 
     if (myQuests.length > 0) {
         let clearedQuests = [];
+        let clearedRegularQuests = [];
+        let clearedBaitoQuests = [];
         let notClearedRegularQuests = []; 
         let notClearedBaitoQuests = [];   
         let hasRankZero = false;
 
         myQuests.forEach(q => {
+            console.log("[師匠報告デバッグ] 依頼の達成判定開始", {
+                名前: q.name,
+                rank: q.rank,
+                バイト: !!q.isBaitoQuest,
+                qVal: q.qVal,
+                targetCount: q.targetCount
+            });
             if (q.rank === 0) {
                 hasRankZero = true; 
             } else if (q.isBaitoQuest) {
-                if (q.qVal >= q.targetCount) clearedQuests.push(q);
-                else notClearedBaitoQuests.push(q);
+                if (q.qVal >= q.targetCount) {
+                    clearedQuests.push(q);
+                    clearedBaitoQuests.push(q);
+                    console.log("[師匠報告デバッグ] バイト達成扱い", q.name);
+                }
+                else {
+                    notClearedBaitoQuests.push(q);
+                    console.log("[師匠報告デバッグ] バイト未達成扱い", q.name);
+                }
             } else {
-                const qData = hero.getMasterQuestData(masterType, q.rank);
+                const qData = (typeof hero.getMasterQuestData === 'function') ? hero.getMasterQuestData(masterType, q.rank) : null;
                 app.qVal = q.qVal;
-                if (qData.check()) clearedQuests.push(q);
-                else notClearedRegularQuests.push(q);
+                if (qData && typeof qData.check === 'function' && qData.check()) {
+                    clearedQuests.push(q);
+                    clearedRegularQuests.push(q);
+                    console.log("[師匠報告デバッグ] ランクアップ課題達成扱い", {
+                        名前: q.name,
+                        rank: q.rank,
+                        qDataあり: !!qData
+                    });
+                }
+                else {
+                    notClearedRegularQuests.push(q);
+                    console.log("[師匠報告デバッグ] ランクアップ課題未達成扱い", {
+                        名前: q.name,
+                        rank: q.rank,
+                        qDataあり: !!qData,
+                        checkあり: !!(qData && qData.check)
+                    });
+                }
             }
         });
+        console.log("[師匠報告デバッグ] 達成判定まとめ", {
+            hasRankZero,
+            達成通常数: clearedRegularQuests.length,
+            達成バイト数: clearedBaitoQuests.length,
+            未達成通常数: notClearedRegularQuests.length,
+            未達成バイト数: notClearedBaitoQuests.length
+        });
+
+        const hasRegularRankQuest = myQuests.some(q => !q.isBaitoQuest && q.rank > 0);
+        if (hasRegularRankQuest && !visitAction) {
+            let choiceMsg = "";
+            if (masterType === 'explore') choiceMsg = "「来たのね。課題の報告？ それとも今日は手伝いに来たの？」";
+            else if (masterType === 'farming') choiceMsg = "「おや、来たね。課題を見せるかい？ それとも畑を手伝っていくかい？」";
+            else if (masterType === 'fishing') choiceMsg = "「おう、来たか。課題の報告か？ それとも手伝いか？」";
+            else if (masterType === 'cooking') choiceMsg = "「来たな！課題の報告か？ それとも皿洗いでも手伝っていくか？」";
+            else if (masterType === 'smithing') choiceMsg = "「……来たか。課題を見せるのか、それとも手伝いか。」";
+            else if (masterType === 'building') choiceMsg = "「来たな。課題の報告か？ それとも現場を手伝うか？」";
+            else if (masterType === 'pharmacist') choiceMsg = "「いらっしゃい。課題の報告でしょうか？ それとも薬局を手伝ってくださいますか？」";
+            else if (masterType === 'tailor') choiceMsg = "「いらっしゃいませ。課題を見せてくださる？ それとも少し手伝っていかれますか？」";
+            else if (masterType === 'pastry_chef') choiceMsg = "「来たね！課題の報告？ それとも甘いバイトをしていく？」";
+            else choiceMsg = "「課題の報告ですか？ それとも手伝っていきますか？」";
+
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, choiceMsg, 'master_visit_choice');
+            return;
+        }
+
+        if (visitAction === 'baito_report') {
+            clearedQuests = clearedBaitoQuests;
+            console.log("[師匠報告デバッグ] バイト報告が選ばれました", {
+                報告対象数: clearedQuests.length,
+                報告対象: clearedQuests.map(q => q.name)
+            });
+            if (clearedQuests.length === 0) {
+                let msg = "";
+                if (masterType === 'explore') msg = "「まだ手伝いは終わっていないみたいね。終わったら報告に来てちょうだい。」";
+                else if (masterType === 'farming') msg = "「まだ手伝いは終わっていないようだね。終わったら報告においで。」";
+                else if (masterType === 'fishing') msg = "「おっと、手伝いはまだ終わってねえみたいだな。終わったら報告に来な！」";
+                else if (masterType === 'cooking') msg = "「まだ皿洗いは終わってないみたいだな！片付いたら報告に来い！」";
+                else if (masterType === 'smithing') msg = "「……まだ手伝いは終わっていない。終わったら報告に来い。」";
+                else if (masterType === 'building') msg = "「まだ現場の手伝いは終わっていないようだな。終わったら報告に来てくれ。」";
+                else if (masterType === 'pharmacist') msg = "「まだお手伝いは終わっていないようですね。終わりましたら報告に来てください。」";
+                else if (masterType === 'tailor') msg = "「まだお手伝いは終わっていないようですね。仕上がりましたら報告にいらしてください。」";
+                else if (masterType === 'pastry_chef') msg = "「まだバイトは終わってないみたいだね！仕上がったら甘い報告を待ってるよ！」";
+                else msg = "「まだ手伝いは終わっていないようです。終わったら報告に来てください。」";
+                if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'master_visit_choice');
+                return;
+            }
+        } else if (visitAction === 'report') {
+            clearedQuests = clearedRegularQuests;
+            console.log("[師匠報告デバッグ] ランクアップ報告が選ばれました", {
+                報告対象数: clearedQuests.length,
+                報告対象: clearedQuests.map(q => q.name)
+            });
+        }
 
         // 1. 入門試験本番
         if (hasRankZero) {
@@ -4053,12 +4207,22 @@ window.checkMasterVisit = function(masterType) {
 
         // 2. 達成済みクエストの報告
         if (clearedQuests.length > 0) {
+            console.log("[師匠報告デバッグ] 報告処理に入ります", {
+                選択: visitAction,
+                報告対象数: clearedQuests.length,
+                報告対象: clearedQuests.map(q => ({ 名前: q.name, rank: q.rank, バイト: !!q.isBaitoQuest }))
+            });
             let totalGold = 0;
             let reportMsg = "";
             let isExamCleared = false;
             let examRank = 1;
 
             clearedQuests.forEach(q => {
+                console.log("[師匠報告デバッグ] 報告対象を処理中", {
+                    名前: q.name,
+                    rank: q.rank,
+                    バイト: !!q.isBaitoQuest
+                });
                 if (q.isBaitoQuest) {
                     let gold = 50; 
                     totalGold += gold;
@@ -4074,10 +4238,23 @@ window.checkMasterVisit = function(masterType) {
                 } else {
                     isExamCleared = true;
                     examRank = q.rank;
-                    const qData = hero.getMasterQuestData(masterType, q.rank);
-                    if (typeof qData.onClear === 'function') qData.onClear(); 
+                    const qData = (typeof hero.getMasterQuestData === 'function') ? hero.getMasterQuestData(masterType, q.rank) : null;
+                    console.log("[師匠報告デバッグ] ランクアップ課題のonClear確認", {
+                        名前: q.name,
+                        rank: q.rank,
+                        qDataあり: !!qData,
+                        onClearあり: !!(qData && qData.onClear)
+                    });
+                    if (qData && typeof qData.onClear === 'function') qData.onClear(); 
                 }
                 app.activeQuests = app.activeQuests.filter(activeQ => activeQ !== q);
+            });
+            console.log("[師匠報告デバッグ] 報告対象の処理完了", {
+                totalGold,
+                isExamCleared,
+                examRank,
+                残り依頼数: app.activeQuests.length,
+                reportMsg
             });
 
             if (totalGold > 0) {
@@ -4088,6 +4265,7 @@ window.checkMasterVisit = function(masterType) {
 
             if (isExamCleared) {
                 if (examRank >= 9) {
+                    console.log("[師匠報告デバッグ] 免許皆伝会話を開きます", { 師匠: masterType, examRank, reportMsg });
                     if (masterType === 'explore') reportMsg += "「見事よ！あなたに教えることはもう何もないわ...免許皆伝ね！」";
                     else if (masterType === 'farming') reportMsg += "「見事だ！君に教えることはもう何もない...免許皆伝だよ！」";
                     else if (masterType === 'fishing') reportMsg += "「見事だ！お前さんに教えることはもう何もないぜ...免許皆伝だ！」";
@@ -4099,6 +4277,7 @@ window.checkMasterVisit = function(masterType) {
                     else if (masterType === 'pastry_chef') reportMsg += "「アンビリーバボー！完璧な仕上がりだ！私から教えることはもう何もないよ……免許皆伝！これからもスイーツで世界を笑顔にしてね！」"; // ★追加
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
                 } else {
+                    console.log("[師匠報告デバッグ] ランクアップ会話を開きます", { 師匠: masterType, examRank, reportMsg });
                     if (masterType === 'explore') reportMsg += `「よし、課題クリアね！あなたのランクが ${examRank + 1} に上がったわよ！」`;
                     else if (masterType === 'farming') reportMsg += `「よし、課題クリアだね！君のランクが ${examRank + 1} に上がったよ！」`;
                     else if (masterType === 'fishing') reportMsg += `「よし、課題クリアだ！お前さんのランクが ${examRank + 1} に上がったぜ！」`;
@@ -4111,6 +4290,7 @@ window.checkMasterVisit = function(masterType) {
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
                 }
             } else {
+                console.log("[師匠報告デバッグ] バイト報告会話を開きます", { 師匠: masterType, reportMsg });
                 if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'quest_report');
             }
             app.questAcceptedAge = hero.age || 0;
@@ -4334,21 +4514,12 @@ window.updateQuestHUD = function() {
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
     if (hero && hero.apprentice && !hero.apprentice.activeQuests) hero.apprentice.activeQuests = [];
 
-    // ★修正：ネタバレ防止！「書き写し」という正解ワードを隠しつつ、バイトのヒントに合わせる
+    // ★古いデータの表記ゆれだけ補正する
     if (hero && hero.apprentice && hero.apprentice.activeQuests) {
         hero.apprentice.activeQuests.forEach(q => {
             if (q.masterType === 'building') {
                 if (q.desc.includes('建築（製図）')) {
-                    q.desc = q.desc.replace(/「建築（製図）」/g, '「図面の複製の手伝い」');
-                    q.desc = q.desc.replace(/建築（製図）/g, '図面の複製の手伝い');
-                }
-                if (q.desc.includes('練習用の図面') && q.desc.includes('落書きを避け')) {
-                    q.desc = '手伝いで図面の複製をこなし、成功した「練習用の図面」を3つ持ってこよう。';
-                }
-                
-                // ★追加：「精巧な建築模型」もバイトの手伝いで稀にできることをヒントとして出す！
-                if (q.desc.includes('精巧な建築模型') && q.desc.includes('大成功でのみ作れる')) {
-                    q.desc = '手伝い中に稀に完成する、大成功の「精巧な建築模型」を3つ持ってこよう。';
+                    q.desc = q.desc.replace(/建築（製図）/g, '建築');
                 }
                 // （※もし古いデータが残っていた場合の保険）
                 if (q.desc.includes('3つもらってこよう。')) {
@@ -5917,6 +6088,26 @@ window.openShopManagementUI = function(building) {
     window.startShopSimulation(building);
 };
 
+window.openLegacyShopManagementUI = window.openShopManagementUI;
+
+window.openShopManagementUI = function(building) {
+    if (typeof currentMode !== 'undefined' && currentMode === 'visit') {
+        if (typeof window.openLegacyShopManagementUI === 'function') {
+            return window.openLegacyShopManagementUI(building);
+        }
+        return;
+    }
+
+    window.currentShopManagementBuilding = building || window.currentShopManagementBuilding || null;
+    if (window.shopSimInterval) clearInterval(window.shopSimInterval);
+
+    if (typeof window.openShopMapUI === 'function') {
+        window.openShopMapUI(building);
+    } else if (typeof window.openLegacyShopManagementUI === 'function') {
+        window.openLegacyShopManagementUI(building);
+    }
+};
+
 // ==========================================
 // ★ 仕込み強制完了（超・賢いバランス管理AI搭載版）
 // ==========================================
@@ -6060,14 +6251,18 @@ window.executeForceOpenShop = async function(bId) {
     let failsafe = 0;
     let tempInventory = [...(ai.inventory || [])];
     let newCraftedItems = [];
+    const getItemIdForShopWork = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
 
     // ★ 追加機能：素材を最低「5個」残すためのチェック関数
     const canAffordToConsume = (consumedIds) => {
         let requiredCounts = {};
-        consumedIds.forEach(id => { requiredCounts[id] = (requiredCounts[id] || 0) + 1; });
+        consumedIds.forEach(item => {
+            let id = getItemIdForShopWork(item);
+            if (id) requiredCounts[id] = (requiredCounts[id] || 0) + 1;
+        });
         
         for (let id in requiredCounts) {
-            let currentTotal = tempInventory.filter(item => item === id).length;
+            let currentTotal = tempInventory.filter(item => getItemIdForShopWork(item) === id).length;
             // 消費後の残りが5個未満になってしまうなら「作成ストップ（温存）」と判断
             if (currentTotal - requiredCounts[id] < 5) return false;
         }
@@ -6543,7 +6738,11 @@ window.startShopSimulation = function(building) {
                 myAction = 'study';
             }
 
-            let myConf = (typeof aiConfigs !== 'undefined') ? aiConfigs[myAi.currentSkin || myAi.baseType || 'robot'] : null;
+            let myConf = null;
+            if (typeof aiConfigs !== 'undefined') {
+                const skinKey = myAi.currentSkin || myAi.baseType || 'robot';
+                myConf = aiConfigs[skinKey] || aiConfigs[String(skinKey).split('_')[0]] || aiConfigs.robot || aiConfigs.robot_type1;
+            }
             if (myConf) {
                 let myFrames = (myConf.actions && myConf.actions[myAction]) ? myConf.actions[myAction] : (myConf.actions && myConf.actions.idle) ? myConf.actions.idle : null;
                 if (myFrames && myFrames.length > 0) {
@@ -6794,20 +6993,43 @@ window.startShopSimulation = function(building) {
     }, 100); 
 };
 
+window.finishPlayerShopVisit = function(message = "お店から出たよ！") {
+    const ai = window.aiPet;
+    if (!ai) return;
+
+    const shopTaskTypes = ['cook', 'shop_work', 'shop_research'];
+    ai.schedule = (ai.schedule || []).filter(t => !t || !shopTaskTypes.includes(t.type));
+    if (Array.isArray(ai._stashedTasks)) {
+        ai._stashedTasks = ai._stashedTasks.filter(t => !t || !shopTaskTypes.includes(t.type));
+    }
+    ai.actionState = 'idle';
+    ai.visualAction = null;
+    ai.isIndoors = false;
+    ai.indoorTarget = null;
+    ai.interactionTarget = null;
+    ai.message = message;
+    ai.messageTimer = 150;
+};
+
 window.closeShopUI = function() {
     if (window.shopSimInterval) clearInterval(window.shopSimInterval); 
     const ui = document.getElementById('shop-management-ui');
     if (ui) ui.style.display = 'none';
+
+    if (typeof window.closeShopMapUI === 'function') {
+        window.closeShopMapUI();
+    }
 };
 
 window.exitShopManagement = function() {
-    window.closeShopUI();
+    if (typeof window.closeShopMapUI === 'function') {
+        window.closeShopMapUI();
+    } else {
+        window.closeShopUI();
+    }
     if (window.aiPet) {
         if (typeof window.clearSchedule === 'function') window.clearSchedule();
-        window.aiPet.actionState = 'exiting';
-        window.aiPet.isIndoors = false;
-        window.aiPet.indoorTarget = null;
-        window.aiPet.message = "今日の営業はここまで！";
+        window.finishPlayerShopVisit("今日の営業はここまで！");
         window.aiPet.messageTimer = 180;
     }
 };
@@ -6954,7 +7176,8 @@ window.showReturnUI = function(playerName) {
 
 // 需要と供給による相場計算（ホストの在庫数で価格が乱高下する）
 window.calculateLocalPrice = function(itemId, hostInventory) {
-    let count = hostInventory.filter(i => i === itemId).length;
+    const getItemId = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
+    let count = hostInventory.filter(i => getItemId(i) === itemId).length;
     let baseValue = (typeof itemCatalog !== 'undefined' && itemCatalog[itemId] && itemCatalog[itemId].value) ? itemCatalog[itemId].value * 4 : 50;
     
     // 【相場変動ルール】
@@ -6986,13 +7209,16 @@ window.openVisitorTradingUI = function(building) {
 
     let isRest = building.type === 'restaurant';
     let typeWord = isRest ? '🍳 レストラン (買取中)' : '🔨 鍛冶屋 (買取中)';
+    const getItemId = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
     
     // 自分の荷物の中から、この店に売れるものをピックアップ
     let sellableItems = [];
     myRealPet.inventory.forEach(i => {
-        let c = typeof itemCatalog !== 'undefined' ? itemCatalog[i] : null;
-        if (isRest && c && (c.type === 'dish' || c.type === 'food' || c.type === 'ingredient')) sellableItems.push(i);
-        else if (!isRest && (i.startsWith('item_sword') || i.startsWith('item_shield') || i === 'iron' || i === 'wood' || i === 'stone' || (c && c.type === 'tool'))) sellableItems.push(i);
+        let itemId = getItemId(i);
+        if (!itemId) return;
+        let c = typeof itemCatalog !== 'undefined' ? itemCatalog[itemId] : null;
+        if (isRest && c && (c.type === 'dish' || c.type === 'food' || c.type === 'ingredient')) sellableItems.push(itemId);
+        else if (!isRest && (itemId.startsWith('item_sword') || itemId.startsWith('item_shield') || itemId === 'iron' || itemId === 'wood' || itemId === 'stone' || (c && c.type === 'tool'))) sellableItems.push(itemId);
     });
 
     // アイテムの種類ごとにまとめる
@@ -7058,10 +7284,11 @@ window.openVisitorTradingUI = function(building) {
 window.executeSellToHost = function(itemId, price) {
     let hostId = localStorage.getItem('visiting_player_id'); 
     let myName = localStorage.getItem('my_player_name') || "名無し";
+    const getItemId = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
     
     // 自分の退避データを更新
     let myRealPet = JSON.parse(window.myIslandBackupLS['ai_pet_data_v1']);
-    let idx = myRealPet.inventory.indexOf(itemId);
+    let idx = myRealPet.inventory.findIndex(item => getItemId(item) === itemId);
     
     if (idx > -1) {
         // 自分の荷物から減らして、お金を増やす
@@ -7718,7 +7945,11 @@ window.openShopUI = function(building) {
     };
 
     let avatarHtml = "";
-    let myConf = (typeof aiConfigs !== 'undefined') ? aiConfigs[ai.currentSkin || ai.baseType || 'robot'] : null;
+    let myConf = null;
+    if (typeof aiConfigs !== 'undefined') {
+        const skinKey = ai.currentSkin || ai.baseType || 'robot';
+        myConf = aiConfigs[skinKey] || aiConfigs[String(skinKey).split('_')[0]] || aiConfigs.robot || aiConfigs.robot_type1;
+    }
     if (myConf) {
         let myFrames = (myConf.actions && myConf.actions['idle']) ? myConf.actions['idle'] : null;
         if (myFrames && myFrames.length > 0) {
@@ -7740,6 +7971,9 @@ window.openShopUI = function(building) {
             let myBgStyle = `width:${sw}px; height:${sh}px; background-image:url('${mImgUrl}'); background-position:-${sx}px -${sy}px; background-repeat:no-repeat; transform:scale(${sScale}); transform-origin: center center;`;
             avatarHtml = `<div style="display:flex; justify-content:center; align-items:center; width:100%; height:160px; overflow:hidden;"><div style="${myBgStyle}"></div></div>`;
         }
+    }
+    if (!avatarHtml) {
+        avatarHtml = `<div style="display:flex; justify-content:center; align-items:center; width:100%; height:160px; color:#aaa; font-size:13px;">店内にいます</div>`;
     }
 
     const renderInventory = () => {
@@ -7798,7 +8032,7 @@ window.openShopUI = function(building) {
         <div style="background: linear-gradient(135deg, #1a1a1a, #111); padding:20px; border-radius:12px; border:2px solid #00BCD4; width:650px; color:#fff; box-shadow:0 10px 40px rgba(0,0,0,0.8); display:flex; flex-direction:column;">
             <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #333; padding-bottom:10px; margin-bottom:15px;">
                 <h2 style="margin:0; color:#00BCD4; font-size:22px;">🏪 ローカル取引所</h2>
-                <button id="shop-close-btn" onclick="document.getElementById('player-shop-ui').remove(); if(window.aiPet && window.aiPet.indoorTarget && (window.aiPet.indoorTarget.type==='shop' || window.aiPet.indoorTarget.type==='restaurant' || window.aiPet.indoorTarget.type==='smith')){ window.aiPet.actionState = 'exiting'; window.aiPet.isIndoors = false; window.aiPet.indoorTarget = null; window.aiPet.message='お店から出たよ！'; window.aiPet.messageTimer=150; }" style="background:transparent; border:none; color:#aaa; font-size:24px; cursor:pointer; display:none;">×</button>
+                <button id="shop-close-btn" onclick="document.getElementById('player-shop-ui').remove(); if(window.finishPlayerShopVisit) window.finishPlayerShopVisit('お店から出たよ！');" style="background:transparent; border:none; color:#aaa; font-size:24px; cursor:pointer; display:none;">×</button>
             </div>
             
             <div style="display:flex; gap:20px; height:380px;">
@@ -7883,11 +8117,7 @@ window.openShopUI = function(building) {
             setTimeout(() => {
                 if(document.getElementById('player-shop-ui')){
                     document.getElementById('player-shop-ui').remove();
-                    ai.actionState = 'exiting'; 
-                    ai.isIndoors = false; 
-                    ai.indoorTarget = null; // ★これがないと、出た瞬間にまた吸い込まれます！
-                    ai.message = "お店から出たよ！"; 
-                    ai.messageTimer = 150;
+                    if (window.finishPlayerShopVisit) window.finishPlayerShopVisit("お店から出たよ！");
                 }
             }, 3000);
             return;
@@ -8017,7 +8247,8 @@ window.generateCustomRecipe = function(shopData) {
 
     // ★案1：AIが「今持っている素材」を使って新レシピを開発する
     let inv = ai.inventory || [];
-    let uniqueInv = [...new Set(inv)];
+    const getItemId = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
+    let uniqueInv = [...new Set(inv.map(getItemId).filter(Boolean))];
     let validMats = [];
 
     // ★修正：店舗のタイプによって閃くジャンルを完全に分離！
@@ -8126,6 +8357,7 @@ window.getDisplayShopItemName = function(itemId) {
 // 4. カスタムレシピの素材判定（何が必要かを理解させる 完全上書き版）
 window.checkRecipeMaterials = function(inventory, recipeId, shopType) {
     if (!inventory) return null;
+    const getItemId = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
     
     // 1. カスタムレシピの判定
     let customRecipe = (window.aiPet && window.aiPet.customRecipes) ? window.aiPet.customRecipes[recipeId] : null;
@@ -8147,6 +8379,9 @@ window.checkRecipeMaterials = function(inventory, recipeId, shopType) {
         else if (recipeId === 'baked_carrot') reqs = ['carrot']; 
         else if (recipeId === 'baked_fish') reqs = ['fish']; 
         else if (recipeId === 'sashimi') reqs = ['fish', 'fish']; 
+        else if (recipeId === 'dish_strawberry_cake') reqs = ['strawberry', 'water'];
+        else if (recipeId === 'dish_melon_parfait') reqs = ['melon', 'honey'];
+        else if (recipeId === 'dish_honey_pudding') reqs = ['honey', 'water'];
         else if (recipeId === 'item_sword_iron') reqs = ['iron', 'iron']; 
         else if (recipeId === 'item_shield_wood') reqs = ['wood', 'wood']; 
         else if (recipeId === 'eq_shield') reqs = ['iron', 'wood']; 
@@ -8164,16 +8399,18 @@ window.checkRecipeMaterials = function(inventory, recipeId, shopType) {
         let foundIdx = -1;
         for (let i = 0; i < tempInv.length; i++) {
             let item = tempInv[i]; if (!item) continue;
+            let itemId = getItemId(item);
+            if (!itemId) continue;
             let match = false;
-            if (req === 'veg') match = ['carrot', 'tomato', 'pepper', '七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'berry', 'イチゴ', '春の七草', '野イチゴ'].some(k => item.includes(k));
-            else if (req === 'meat') match = ['meat', '肉', 'chicken', 'beef'].some(k => item.includes(k));
-            else if (req === 'water') match = ['water', '水'].some(k => item.includes(k));
-            else if (req === 'fish') match = ['fish', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ'].some(k => item.includes(k));
-            else if (req === 'carrot') match = item.includes('carrot') || item.includes('ニンジン');
+            if (req === 'veg') match = ['carrot', 'tomato', 'pepper', '七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'berry', 'イチゴ', '春の七草', '野イチゴ'].some(k => itemId.includes(k));
+            else if (req === 'meat') match = ['meat', '肉', 'chicken', 'beef'].some(k => itemId.includes(k));
+            else if (req === 'water') match = ['water', '水'].some(k => itemId.includes(k));
+            else if (req === 'fish') match = ['fish', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ'].some(k => itemId.includes(k));
+            else if (req === 'carrot') match = itemId.includes('carrot') || itemId.includes('ニンジン');
             else if (req === 'any_food') {
-                let c = typeof itemCatalog !== 'undefined' ? itemCatalog[item] : null;
-                match = (c && (c.type === 'food' || c.type === 'ingredient')) || ['七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ', 'イチゴ', '春の七草', '野イチゴ'].some(k => item.includes(k));
-            } else match = item.includes(req);
+                let c = typeof itemCatalog !== 'undefined' ? itemCatalog[itemId] : null;
+                match = (c && (c.type === 'food' || c.type === 'ingredient')) || ['七草', 'キノコ', 'ニンジン', 'ピーマン', 'トマト', 'コイ', 'サケ', 'ザリガニ', 'バス', 'メダカ', 'ワカサギ', 'イワシ', 'マグロ', 'ダイ', 'イカ', 'サンマ', 'イチゴ', '春の七草', '野イチゴ'].some(k => itemId.includes(k));
+            } else match = itemId.includes(req);
             
             if (match) { foundIdx = i; break; }
         }
@@ -8189,7 +8426,8 @@ window.checkRecipeMaterials = function(inventory, recipeId, shopType) {
 const _originalCalculateLocalPrice = window.calculateLocalPrice;
 window.calculateLocalPrice = function(itemId, hostInventory) {
     if (itemId.startsWith('custom_')) {
-        let count = hostInventory.filter(i => i === itemId).length;
+        const getItemId = (item) => (typeof item === 'string') ? item : (item && item.id ? item.id : '');
+        let count = hostInventory.filter(i => getItemId(i) === itemId).length;
         let baseValue = 50;
         if (window.aiPet && window.aiPet.customRecipes && window.aiPet.customRecipes[itemId]) baseValue = window.aiPet.customRecipes[itemId].value * 4;
         let multi = count === 0 ? 2.0 : (count <= 2 ? 1.5 : (count <= 5 ? 1.0 : (count <= 9 ? 0.6 : 0.2)));
@@ -9195,6 +9433,29 @@ setInterval(() => {
 // ==========================================
 // 📔 知識の手帳UI（設計図・レシピ・調合の統合）
 // ==========================================
+window.isRestaurantRecipeNotebookUnlocked = function() {
+    const ai = window.aiPet;
+    if (!ai) return false;
+    const shopData = typeof window.getNotebookRestaurantShopData === 'function' ? window.getNotebookRestaurantShopData() : null;
+    return !!(
+        ai.shopRecipeNotebookUnlocked ||
+        ai.shopTutorialStep >= 2 ||
+        ai.shopTutorialRecipeUnlocked ||
+        (shopData && shopData.recipeProgress && Object.keys(shopData.recipeProgress).length > 0)
+    );
+};
+
+window.getNotebookRestaurantShopData = function() {
+    const targetAssets = typeof assets !== 'undefined' ? assets : (window.assets || {});
+    const currentBuilding = window.currentShopManagementBuilding;
+    if (currentBuilding && currentBuilding.type === 'restaurant' && !currentBuilding.isMasterShop && currentBuilding.shopData) {
+        return currentBuilding.shopData;
+    }
+    const ownRestaurant = Object.values(targetAssets).find(a => a && a.type === 'restaurant' && !a.isMasterShop && a.shopData);
+    if (ownRestaurant && ownRestaurant.shopData) return ownRestaurant.shopData;
+    return window.SHOP_STATE || null;
+};
+
 window.openNotebookUI = function() {
     let ui = document.getElementById('notebook-ui');
     if (ui) ui.remove();
@@ -9209,15 +9470,15 @@ window.openNotebookUI = function() {
 
     // --- A. タブの出現判定フラグ ---
     const showBlueprint = (app.currentMaster === 'building') || (ranks['building'] > 0) || (retired['building']);
-    const showRecipe = (['cooking', 'smithing'].includes(app.currentMaster)) || (ranks['cooking'] > 0 || ranks['smithing'] > 0) || (retired['cooking'] || retired['smithing']);
+    const showRecipe = window.isRestaurantRecipeNotebookUnlocked();
     const showMedicine = (app.currentMaster === 'pharmacist') || (ranks['pharmacist'] > 0) || (retired['pharmacist']);
     // ★追加：仕立屋の手帳フラグ
     const showTailor = (app.currentMaster === 'tailor') || (ranks['tailor'] > 0) || (retired['tailor']);
 
     // --- B. 免許皆伝（ロック解除）判定フラグ ---
     const isBuildingMaster = (ranks['building'] >= 10) || retired['building'] || (app.currentMaster === 'building' && app.isGraduated);
-    const isCookingMaster = (ranks['cooking'] >= 10) || retired['cooking'] || (app.currentMaster === 'cooking' && app.isGraduated);
     const isSmithingMaster = (ranks['smithing'] >= 10) || retired['smithing'] || (app.currentMaster === 'smithing' && app.isGraduated);
+    const isRestaurantRecipeUnlocked = window.isRestaurantRecipeNotebookUnlocked();
     const isMedicineUnlocked = (ranks['pharmacist'] >= 3) || retired['pharmacist'] || ranks['pharmacist'] >= 10;
     // ★追加：仕立屋のロック解除判定（ランク3以上）
     const isTailorUnlocked = (ranks['tailor'] >= 1) || retired['tailor'] || ranks['tailor'] >= 10;
@@ -9265,7 +9526,7 @@ window.openNotebookUI = function() {
 
     // ★修正：建築士は重複回避のため専用ID、薬剤師は元のIDのままとする
     let blueprintContent = isBuildingMaster ? `<div id="nb-build-list"></div>` : lockedHtml("建築士", "修行を積み<br><span style='color:#FFD700; font-weight:bold;'>「免許皆伝」</span>になると<br>全ての詳細が確認できるようになります。");
-    let recipeContent = (isCookingMaster || isSmithingMaster) ? renderRecipeListHtml() : lockedHtml("職人", "修行を積み<br><span style='color:#FFD700; font-weight:bold;'>「免許皆伝」</span>になると<br>全ての詳細が確認できるようになります。");
+    let recipeContent = (isRestaurantRecipeUnlocked || isSmithingMaster) ? renderRecipeListHtml() : lockedHtml("レシピ", "レストランのチュートリアルで<br><span style='color:#FFD700; font-weight:bold;'>料理をひらめく方法</span>を教わると<br>確認できるようになります。");
     let medicineContent = isMedicineUnlocked ? `<div id="medicineRecipeList"></div>` : lockedHtml("調合", "薬剤師の修行を進め<br><span style='color:#4CAF50; font-weight:bold;'>「ランク3」</span>以上になると<br>処方箋が確認できるようになります。");
     // ★追加：仕立屋のコンテンツ
     let tailoringContent = isTailorUnlocked ? `<div id="tailoringRecipeList"></div>` : lockedHtml("裁縫", "仕立屋の修行を進め<br><span style='color:#E040FB; font-weight:bold;'>「ランク3」</span>以上になると<br>型紙が確認できるようになります。");
@@ -9343,22 +9604,60 @@ window.switchNotebookTab = function(tabId) {
 
 // ヘルパー：レシピリストのHTMLを生成（前回の openRecipeBook のロジックを関数化）
 function renderRecipeListHtml() {
-    let ai = window.aiPet;
-    let html = "";
-    if (!ai || !ai.customRecipes || Object.keys(ai.customRecipes).length === 0) {
-        return `<div style="text-align:center; padding:40px; color:#666; font-size:14px; background:#222; border-radius:8px;">まだ独自のレシピを知りません。</div>`;
+    const shopData = typeof window.getNotebookRestaurantShopData === 'function' ? window.getNotebookRestaurantShopData() : null;
+    if (!shopData) {
+        return `<div style="text-align:center; padding:40px; color:#777; font-size:14px; background:#222; border-radius:8px;">自分のレストランが見つかりません。</div>`;
     }
-    html += `<div style="display:flex; flex-direction:column; gap:12px; padding-bottom:15px;">`;
-    for (let key in ai.customRecipes) {
-        let r = ai.customRecipes[key];
-        let isGodItem = r.power > ((ai.stats ? ai.stats.intel : 50) * 2);
+
+    const progress = shopData.recipeProgress || {};
+    const fridge = shopData.fridge || {};
+    const menuList = Array.isArray(shopData.menuList) ? shopData.menuList : [];
+    const recipeKeys = Object.keys(progress);
+
+    if (recipeKeys.length === 0) {
+        return `<div style="text-align:center; padding:40px; color:#777; font-size:14px; background:#222; border-radius:8px; line-height:1.6;">まだひらめいたレシピがありません。<br>レストランで研究開発を進めると、ここに記録されます。</div>`;
+    }
+
+    const getName = (key) => {
+        if (typeof window.getDisplayShopItemName === 'function') return window.getDisplayShopItemName(key);
+        if (window.itemCatalog && window.itemCatalog[key] && window.itemCatalog[key].name) return window.itemCatalog[key].name;
+        return key;
+    };
+    const getIngName = (key) => {
+        if (window.SHOP_ING_NAMES && window.SHOP_ING_NAMES[key]) return window.SHOP_ING_NAMES[key];
+        if (window.itemCatalog && window.itemCatalog[key] && window.itemCatalog[key].name) return window.itemCatalog[key].name;
+        return key;
+    };
+    const costs = window.SHOP_RECIPE_COSTS || {};
+
+    let html = `<div style="display:flex; flex-direction:column; gap:12px; padding-bottom:15px;">`;
+    recipeKeys.sort((a, b) => (progress[b] || 0) - (progress[a] || 0)).forEach(key => {
+        const prog = Math.max(0, Math.min(100, progress[key] || 0));
+        const stock = fridge[key] || 0;
+        const inMenu = menuList.includes(key);
+        const done = prog >= 100;
+        const borderColor = done ? '#4CAF50' : '#00BCD4';
+        const statusText = done ? '完成済み' : (prog > 0 ? '開発中' : 'ひらめき済み');
+        const statusColor = done ? '#4CAF50' : (prog > 0 ? '#00BCD4' : '#FFD700');
+        const ingredients = costs[key] ? costs[key].map(getIngName).join('、') : '不明';
+
         html += `
-            <div style="flex-shrink: 0; background:#222; border:1px solid ${isGodItem ? '#ff5252' : '#444'}; border-radius:8px; padding:15px;">
-                <div style="font-size:16px; font-weight:bold; color:#FFF;">${r.name}</div>
-                <div style="font-size:11px; color:#aaa;">考案者: ${r.creator || 'AI'} / 性能: ${r.power}</div>
+            <div style="flex-shrink:0; background:#222; border:1px solid ${borderColor}; border-radius:8px; padding:14px;">
+                <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:8px;">
+                    <div style="font-size:16px; font-weight:bold; color:#FFF;">${getName(key)}</div>
+                    <div style="font-size:12px; color:${statusColor}; font-weight:bold; white-space:nowrap;">${statusText}</div>
+                </div>
+                <div style="height:8px; background:#111; border-radius:999px; overflow:hidden; border:1px solid #333; margin-bottom:8px;">
+                    <div style="width:${prog}%; height:100%; background:${done ? '#4CAF50' : '#00BCD4'};"></div>
+                </div>
+                <div style="font-size:12px; color:#ccc; line-height:1.6;">
+                    <div>開発度: <span style="color:${statusColor}; font-weight:bold;">${prog}%</span></div>
+                    <div>必要素材: ${ingredients}</div>
+                    <div>在庫: <span style="color:#FFD700; font-weight:bold;">${stock}個</span> / メニュー: <span style="color:${inMenu ? '#4CAF50' : '#888'}; font-weight:bold;">${inMenu ? '提供中' : '未登録'}</span></div>
+                </div>
             </div>
         `;
-    }
+    });
     html += `</div>`;
     return html;
 }

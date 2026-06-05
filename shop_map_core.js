@@ -649,30 +649,43 @@ window.SHOP_SPRITES = {
 };
 
 // ==========================================
-// ★ 修正：最小限のコンパクトな初期物件（12 x 10）
+// ★ チュートリアル開始用：入口・壁・レストラン床だけの初期物件（12 x 10）
 // ==========================================
 const RESTAURANT_MAP_LV1 = [
     [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], 
-    [1, 31, 2, 32, 2, 33, 34, 2, 35, 37, 2, 1], // 奥: 冷蔵庫, オーブン, コンロ, 調理台
-    [1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1], // 厨房通路
-    [1, 2, 2, 2, 11, 13, 2, 2, 2, 2, 2, 1], // レジカウンター(2マス)
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], 
-    [1, 0, 0, 0, 0, 0, 0, 10, 10, 0, 0, 1], // 下向きイス
-    [1, 0, 0, 0, 0, 0, 0, 21, 23, 0, 0, 1], // 机（上段）
-    [1, 0, 0, 0, 0, 0, 0, 24, 26, 0, 0, 1], // 机（下段）
-    [1, 0, 0, 0, 0, 0, 0, 14, 14, 0, 0, 1], // 上向きイス
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 1, 1, 1, 100, 100, 1, 1, 1, 1, 1, 1] // 入り口
 ];
 
+function getDefaultShopTimerValues() {
+    const open = new Date(Date.now() + 5 * 60000);
+    const close = new Date(Date.now() + 35 * 60000);
+    return {
+        openHour: open.getHours(),
+        openMinute: open.getMinutes(),
+        closeHour: close.getHours(),
+        closeMinute: close.getMinutes()
+    };
+}
+
+const initialShopTimer = getDefaultShopTimerValues();
+
 // ★修正：すでにお店のデータがある場合は上書きせず引き継ぐ（コンソールテスト時のリセット防止）
 window.SHOP_STATE = window.SHOP_STATE || {
-    mapWidth: 20, // 拡張時に増加
-    mapHeight: 13,
+    mapWidth: 12, // 拡張時に増加
+    mapHeight: 10,
     maxScore: 20, // レベルに応じて増加するトータルスコア上限
     currentScore: 0, // 現在消費しているスコア
     floorCount: 1, // 階層化対応
     grid: RESTAURANT_MAP_LV1.map(row => [...row]),
-    player: { x: 10, y: 11, face: 'up', action: 'idle', shopState: 'idle', prevShopState: 'idle' }, 
+    player: { x: 5, y: 8, face: 'up', action: 'idle', shopState: 'idle', prevShopState: 'idle' }, 
     npcs: [],
     furniture: [],
     dishes: [], 
@@ -681,11 +694,11 @@ window.SHOP_STATE = window.SHOP_STATE || {
     isBankrupt: false,
     isOpen: false, 
     
-    // ★修正：初期値は現在時刻〜30分後に設定
-    openHour: new Date().getHours(),
-    openMinute: new Date().getMinutes(),
-    closeHour: new Date(Date.now() + 30 * 60000).getHours(),
-    closeMinute: new Date(Date.now() + 30 * 60000).getMinutes(),
+    // ★修正：初期値は現在時刻+5分〜35分後に設定
+    openHour: initialShopTimer.openHour,
+    openMinute: initialShopTimer.openMinute,
+    closeHour: initialShopTimer.closeHour,
+    closeMinute: initialShopTimer.closeMinute,
     announcedOneMinBefore: false,
 
     // ★Phase 4追加：その日の営業の出来事を記憶するフラグ
@@ -695,6 +708,46 @@ window.SHOP_STATE = window.SHOP_STATE || {
     menuList: [], 
     fridge: {},
     recipeProgress: {}
+};
+
+window.resetRestaurantTutorialState = function() {
+    const timer = getDefaultShopTimerValues();
+    window.SHOP_STATE = {
+        mapWidth: 12,
+        mapHeight: 10,
+        maxScore: 20,
+        currentScore: 0,
+        floorCount: 1,
+        currentFloor: '1F',
+        grid: RESTAURANT_MAP_LV1.map(row => [...row]),
+        player: { x: 5, y: 8, face: 'up', action: 'idle', shopState: 'idle', prevShopState: 'idle', currentFloor: '1F' },
+        npcs: [],
+        furniture: [],
+        dishes: [],
+        money: 0,
+        reputation: 100,
+        isBankrupt: false,
+        isOpen: false,
+        openHour: timer.openHour,
+        openMinute: timer.openMinute,
+        closeHour: timer.closeHour,
+        closeMinute: timer.closeMinute,
+        announcedOneMinBefore: false,
+        dailyFlags: { seatShortage: false },
+        logs: [],
+        menuList: [],
+        fridge: {},
+        recipeProgress: {}
+    };
+    if (window.aiPet) {
+        window.aiPet.shopTutorialCompleted = false;
+        window.aiPet.shopTutorialStep = 0;
+        window.aiPet.currentShopTacticName = "AIにまかせる";
+    }
+    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+    if (typeof window.updateShopUI === 'function') window.updateShopUI();
+    if (typeof saveGameData === 'function') saveGameData();
+    console.log("レストランをチュートリアル初期状態に戻しました。");
 };
 
 window.SHOP_TACTIC_CONDITIONS = {
@@ -748,6 +801,12 @@ window.SHOP_RECIPE_COSTS = {
     'dish_honey_pudding':   ['honey', 'egg', 'milk'],
     'dish_pancakes':        ['wheat', 'egg', 'honey'],
     'dish_fruit_tart':      ['wheat', 'strawberry', 'melon']
+};
+
+window.getAvailableShopRecipeKeys = function() {
+    const sweetRecipes = ['dish_strawberry_cake', 'dish_melon_parfait', 'dish_honey_pudding', 'dish_pancakes', 'dish_fruit_tart'];
+    const unlocks = window.aiPet && window.aiPet.pastryRecipeUnlocks ? window.aiPet.pastryRecipeUnlocks : {};
+    return Object.keys(window.SHOP_RECIPE_COSTS).filter(key => !sweetRecipes.includes(key) || !!unlocks[key]);
 };
 
 // ==========================================
@@ -862,7 +921,11 @@ window.toggleShopMinimapModal = function() {
         modal.style.display = modal.style.display === 'none' ? 'flex' : 'none';
         wrapper.style.display = (document.getElementById('shop-modal-log').style.display === 'flex' || document.getElementById('shop-modal-minimap').style.display === 'flex') ? 'flex' : 'none';
         
-        if (modal.style.display === 'flex') window.drawShopMinimap();
+        if (modal.style.display === 'flex') {
+            let legend = document.getElementById('shop-minimap-legend');
+            if (legend && typeof window.getShopMinimapLegendHtml === 'function') legend.innerHTML = window.getShopMinimapLegendHtml();
+            window.drawShopMinimap();
+        }
     }
 };
 
@@ -1081,21 +1144,15 @@ window.initShopTactics = function() {
     if (!window.aiPet.apprentice) window.aiPet.apprentice = {};
     
     if (!window.aiPet.apprentice.learnedWords) {
-        window.aiPet.apprentice.learnedWords = window.SHOP_AVAILABLE_COMMANDS.map(c => c.name);
-    } else {
-        // ★既存のセーブデータにも新アクションを追加するパッチ
-        window.SHOP_AVAILABLE_COMMANDS.forEach(c => {
-            if (!window.aiPet.apprentice.learnedWords.includes(c.name)) {
-                window.aiPet.apprentice.learnedWords.push(c.name);
-            }
-        });
+        window.aiPet.apprentice.learnedWords = [];
+    }
+    if (!window.aiPet.shopTutorialCompleted) {
+        const shopCommandWords = window.SHOP_AVAILABLE_COMMANDS.map(c => c.name);
+        window.aiPet.apprentice.learnedWords = window.aiPet.apprentice.learnedWords.filter(word => !shopCommandWords.includes(word));
     }
     
-    if (!window.aiPet.shopTactics || window.aiPet.shopTactics.length === 0) {
-        window.aiPet.shopTactics = [
-            { name: "カスタム作戦1", rules: [{ condition: "is_closed", action1: "つくる", action2: "" }] },
-            { name: "カスタム作戦2", rules: [{ condition: "is_closed", action1: "おぼえる", action2: "" }] }
-        ];
+    if (!window.aiPet.shopTactics) {
+        window.aiPet.shopTactics = [];
     }
     if (!window.aiPet.currentShopTacticName) {
         window.aiPet.currentShopTacticName = "AIにまかせる";
@@ -1154,7 +1211,56 @@ window.getUnlockedSkins = function() {
     return unlocked.length > 0 ? unlocked : ['robot'];
 };
 
-window.openShopMapUI = function() {
+window.getShopMinimapLegendHtml = function() {
+    const s = window.SHOP_STATE || {};
+    const rows = Array.isArray(s.grid) ? s.grid : [];
+    const hasTile = (ids) => rows.some(row => Array.isArray(row) && row.some(v => ids.includes(v)));
+    const hasNpcState = (states) => Array.isArray(s.npcs) && s.npcs.some(n => n && states.includes(n.state));
+    const mapParts = [
+        '<span style="color:#5D4037;">■壁</span>',
+        '<span style="color:#DEB887;">■床</span>'
+    ];
+    if (window.aiPet && window.aiPet.shopTutorialCompleted) {
+        if (hasTile([2])) mapParts.push('<span style="color:#FFF;">■厨房</span>');
+        if (hasTile([21, 22, 23, 24, 25, 26])) mapParts.push('<span style="color:#FF9800;">■机</span>');
+        if (hasTile([41, 42, 43, 44, 45, 46])) mapParts.push('<span style="color:#BA68C8;">■高級机</span>');
+        if (hasTile([51, 52, 53, 54, 55, 56])) mapParts.push('<span style="color:#E0E0E0;">■大理石机</span>');
+        if (hasTile([10, 14, 15, 16, 17, 61, 62, 63, 64])) mapParts.push('<span style="color:#2196F3;">■椅子</span>');
+        if (hasTile([11, 12])) mapParts.push('<span style="color:#4CAF50;">■レジ/植物</span>');
+        if (hasTile([13, 71, 72])) mapParts.push('<span style="color:#FFEB3B;">■飾</span>');
+        if (hasTile([31, 32, 33, 34, 35, 36, 37, 91, 92, 93, 94, 95, 96, 97])) {
+            mapParts.push('<span style="color:#9E9E9E;">■調理設備</span>');
+        }
+    }
+
+    const actorParts = ['<span style="color:#FFF;">●AI店員</span>'];
+    if (window.aiPet && window.aiPet.shopTutorialCompleted) {
+        if (hasNpcState(['entering', 'walking'])) actorParts.push('<span style="color:#9E9E9E;">●移動客</span>');
+        if (hasNpcState(['ordering'])) actorParts.push('<span style="color:#FFEB3B;">●注文待</span>');
+        if (hasNpcState(['waiting_food'])) actorParts.push('<span style="color:#03A9F4;">●配膳待</span>');
+        if (hasNpcState(['eating'])) actorParts.push('<span style="color:#FF9800;">●食事中</span>');
+        if (hasNpcState(['paying'])) actorParts.push('<span style="color:#4CAF50;">●レジ待</span>');
+        if (hasNpcState(['takeout_waiting'])) actorParts.push('<span style="color:#9C27B0;">●持帰り待</span>');
+        if (hasNpcState(['angry_leaving'])) actorParts.push('<span style="color:#f44336;">●怒帰宅</span>');
+    }
+
+    return `
+        <div style="margin-top:15px; font-size:13px; color:#ddd; display:flex; flex-wrap:wrap; gap:8px; line-height:1.4;">${mapParts.join(' ')}</div>
+        <div style="margin-top:5px; font-size:12px; color:#ddd; display:flex; flex-wrap:wrap; gap:8px; line-height:1.4;">${actorParts.join(' ')}</div>
+    `;
+};
+
+window.openShopMapUI = function(building) {
+    window.currentShopManagementBuilding = building || window.currentShopManagementBuilding || null;
+
+    let compatUI = document.getElementById('shop-management-ui');
+    if (!compatUI) {
+        compatUI = document.createElement('div');
+        compatUI.id = 'shop-management-ui';
+        compatUI.style.display = 'none';
+        document.body.appendChild(compatUI);
+    }
+
     let ui = document.getElementById('shop-map-ui');
     if (!ui) {
         ui = document.createElement('div');
@@ -1163,7 +1269,7 @@ window.openShopMapUI = function() {
         
         ui.innerHTML = `
             <div style="padding: 10px 20px; background: #222; color: #FF9800; border-bottom: 2px solid #555; display: flex; justify-content: space-between; align-items: center; z-index: 50001;">
-                <h2 style="margin: 0; font-size: 24px;">🍳 レストラン (フェーズ3：AI思考可視化＆ミニマップ)</h2>
+                <h2 style="margin: 0; font-size: 24px;">🍳 レストラン</h2>
                 <div style="display:flex; gap:15px; align-items: center;">
                     <div style="font-size: 16px; color: #fff; background: #444; padding: 5px 15px; border-radius: 20px;">
                         評判: <span id="shop-rep-ui" style="color: #4CAF50; font-weight: bold;">100%</span> | 所持金: <span id="shop-money-ui" style="color: #FFD700; font-weight: bold;">0 G</span>
@@ -1171,7 +1277,7 @@ window.openShopMapUI = function() {
                     <button onclick="window.toggleShopMinimapModal();" style="padding: 8px 15px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🗺️ ミニマップ</button>
                     <button onclick="window.toggleRestaurantLogModal();" style="padding: 8px 15px; background: #9C27B0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📜 ログ・状況</button>
                     <button onclick="window.openShopTacticEditor();" style="padding: 8px 15px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⚙️ 作戦変更</button>
-                    <button onclick="window.closeShopMapUI();" style="padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">お店を出る</button>
+                    <button onclick="window.exitShopManagement ? window.exitShopManagement() : window.closeShopMapUI();" style="padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">お店を出る</button>
                 </div>
             </div>
             <div id="shop-map-container" style="flex: 1; overflow: hidden; position: relative; background: #111;">
@@ -1208,15 +1314,7 @@ window.openShopMapUI = function() {
                         <div style="flex:1; display:flex; justify-content:center; align-items:center;">
                             <canvas id="shop-minimap-canvas" width="400" height="260" style="width:100%; max-width:400px; background:#000; border:2px solid #555;"></canvas>
                         </div>
-                        <div style="margin-top:15px; font-size:13px; color:#ddd; display:flex; flex-wrap:wrap; gap:8px; line-height:1.4;">
-                            <span style="color:#5D4037;">■壁</span> <span style="color:#DEB887;">■客席</span> <span style="color:#FFF;">■厨房</span>
-                            <span style="color:#FF9800;">■机</span> <span style="color:#BA68C8;">■高級机</span> <span style="color:#E0E0E0;">■大理石机</span> 
-                            <span style="color:#2196F3;">■椅子</span> <span style="color:#1A237E;">■高級椅子</span> <span style="color:#4CAF50;">■レジ/植物</span> <span style="color:#FFEB3B;">■飾</span>
-                            <span style="color:#9E9E9E;">■調理台</span> <span style="color:#424242;">■コンロ</span> <span style="color:#E91E63;">■オーブン</span> <span style="color:#03A9F4;">■冷蔵庫</span>
-                        </div>
-                        <div style="margin-top:5px; font-size:12px; color:#ddd; display:flex; flex-wrap:wrap; gap:8px; line-height:1.4;">
-                            <span style="color:#FFF;">●AI店員</span> <span style="color:#9E9E9E;">●移動客</span> <span style="color:#FFEB3B;">●注文待</span> <span style="color:#03A9F4;">●配膳待</span> <span style="color:#FF9800;">●食事中</span> <span style="color:#4CAF50;">●レジ待</span> <span style="color:#9C27B0;">●持帰り待</span> <span style="color:#f44336;">●怒帰宅</span>
-                        </div>
+                        <div id="shop-minimap-legend">${window.getShopMinimapLegendHtml()}</div>
                         <button onclick="window.toggleShopMinimapModal()" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>
                     </div>
 
@@ -1225,6 +1323,7 @@ window.openShopMapUI = function() {
         `;
         document.body.appendChild(ui);
     }
+    compatUI.style.display = 'flex';
     ui.style.display = 'flex';
     window.initShopTactics(); 
     
@@ -1240,6 +1339,10 @@ window.openShopMapUI = function() {
 window.closeShopMapUI = function() {
     let ui = document.getElementById('shop-map-ui');
     if (ui) ui.style.display = 'none';
+
+    let compatUI = document.getElementById('shop-management-ui');
+    if (compatUI) compatUI.style.display = 'none';
+
     if (window.shopMapInterval) clearInterval(window.shopMapInterval);
 };
 
@@ -1651,8 +1754,12 @@ window.renderShopMap = function() {
     const drawCharacter = (chara, domPrefix) => {
         let baseSkin = chara.skin || chara.type || 'robot';
         let face = chara.face || 'down';
+        let baseFamily = String(baseSkin).split('_')[0] || 'robot';
         let pKey = `${baseSkin}_${face}`;
+        if (!window.DUNGEON_SPRITES[pKey]) pKey = `${baseFamily}_${face}`;
         if (!window.DUNGEON_SPRITES[pKey]) pKey = `robot_${face}`;
+        if (!window.DUNGEON_SPRITES[pKey]) pKey = Object.keys(window.DUNGEON_SPRITES).find(k => k.startsWith(`${baseFamily}_`)) || Object.keys(window.DUNGEON_SPRITES).find(k => k.startsWith('robot_'));
+        if (!pKey) return;
 
         let domId = `${domPrefix}_${chara.id || 'main'}`;
         currentActiveIds.add(domId);
@@ -1952,47 +2059,55 @@ window.startShopMapLoop = function() {
         let now = new Date();
         let currentHour = now.getHours();
         let currentMinute = now.getMinutes();
-        
-        let openTarget = new Date();
-        openTarget.setHours(s.openHour !== undefined ? s.openHour : 9, s.openMinute !== undefined ? s.openMinute : 0, 0, 0);
-        if (openTarget < now && (currentHour > s.openHour || (currentHour === s.openHour && currentMinute > s.openMinute))) {
-            openTarget.setDate(openTarget.getDate() + 1); 
-        }
-        
-        let oneMinBefore = new Date(openTarget.getTime() - 60 * 1000);
-        if (currentHour === oneMinBefore.getHours() && currentMinute === oneMinBefore.getMinutes()) {
-            if (!s.announcedOneMinBefore) {
-                if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("⏰ 開店1分前になりました。まもなく営業を開始します。AI店員が配置につきます。", "#FF9800");
-                s.announcedOneMinBefore = true;
-            }
-        } else {
-            if (s.announcedOneMinBefore && currentMinute !== oneMinBefore.getMinutes()) {
-                s.announcedOneMinBefore = false;
-            }
-        }
-        
-        if (!s.isOpen) {
-            if (currentHour === s.openHour && currentMinute === s.openMinute) {
-                s.isOpen = true;
-                s.announcedOneMinBefore = false; 
-                
-                // ★修正：開店時にフラグをリセット（＝次の開店までは維持される）
-                if (s.dailyFlags) {
-                    s.dailyFlags.cramped = false;
-                    s.dailyFlags.seatShortage = false;
-                    s.dailyFlags.crampedCount = 0;
-                }
 
-                if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("📢 開店時間になりました！自動タイマーにより営業を開始します！", "#4CAF50");
-                if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
-            }
+        const timerUnlocked = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTimerUnlocked));
+        if (!timerUnlocked) {
+            if (s.isOpen) s.isOpen = false;
+            s.announcedOneMinBefore = false;
         }
         
-        if (s.isOpen) {
-            if (currentHour === s.closeHour && currentMinute === s.closeMinute) {
-                s.isOpen = false;
-                if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("🔒 閉店時間になりました。本日の自動営業を終了します。", "#f44336");
-                if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
+        if (timerUnlocked) {
+            let openTarget = new Date();
+            openTarget.setHours(s.openHour !== undefined ? s.openHour : 9, s.openMinute !== undefined ? s.openMinute : 0, 0, 0);
+            if (openTarget < now && (currentHour > s.openHour || (currentHour === s.openHour && currentMinute > s.openMinute))) {
+                openTarget.setDate(openTarget.getDate() + 1); 
+            }
+            
+            let oneMinBefore = new Date(openTarget.getTime() - 60 * 1000);
+            if (currentHour === oneMinBefore.getHours() && currentMinute === oneMinBefore.getMinutes()) {
+                if (!s.announcedOneMinBefore) {
+                    if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("⏰ 開店1分前になりました。まもなく営業を開始します。AI店員が配置につきます。", "#FF9800");
+                    s.announcedOneMinBefore = true;
+                }
+            } else {
+                if (s.announcedOneMinBefore && currentMinute !== oneMinBefore.getMinutes()) {
+                    s.announcedOneMinBefore = false;
+                }
+            }
+            
+            if (!s.isOpen) {
+                if (currentHour === s.openHour && currentMinute === s.openMinute) {
+                    s.isOpen = true;
+                    s.announcedOneMinBefore = false; 
+                    
+                    // ★修正：開店時にフラグをリセット（＝次の開店までは維持される）
+                    if (s.dailyFlags) {
+                        s.dailyFlags.cramped = false;
+                        s.dailyFlags.seatShortage = false;
+                        s.dailyFlags.crampedCount = 0;
+                    }
+
+                    if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("📢 開店時間になりました！自動タイマーにより営業を開始します！", "#4CAF50");
+                    if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
+                }
+            }
+            
+            if (s.isOpen) {
+                if (currentHour === s.closeHour && currentMinute === s.closeMinute) {
+                    s.isOpen = false;
+                    if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("🔒 閉店時間になりました。本日の自動営業を終了します。", "#f44336");
+                    if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
+                }
             }
         }
         
@@ -2088,11 +2203,18 @@ window.startShopMapLoop = function() {
             let decidedState = null;
             let targetNpc = null;
             
-            let canPrep = Object.keys(window.SHOP_RECIPE_COSTS).some(k => s.recipeProgress[k] >= 100 && window.checkAndConsumeIngredients(k, true));
-            let canResearch = Object.keys(window.SHOP_RECIPE_COSTS).some(k => (s.recipeProgress[k] === undefined || s.recipeProgress[k] < 100) && window.checkAndConsumeIngredients(k, true));
+            const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
+            let canPrep = recipeKeys.some(k => s.recipeProgress[k] >= 100 && window.checkAndConsumeIngredients(k, true));
+            let canResearch = recipeKeys.some(k => (s.recipeProgress[k] === undefined || s.recipeProgress[k] < 100) && window.checkAndConsumeIngredients(k, true));
 
             if (tName === "AIにまかせる") {
-                if (s.isOpen || s.npcs.length > 0) {
+                if (window.aiPet && !window.aiPet.shopTutorialCompleted) {
+                    decidedState = null;
+                    if (p.shopState === 'idle' && Math.random() < 0.02) {
+                        let aiName = window.aiPet.name || "AI店員";
+                        window.showShopFloatingText(p.x, p.y, "まずは料理人から店づくりを教わろう…", "#FFD700", aiName);
+                    }
+                } else if (s.isOpen || s.npcs.length > 0) {
                     let payingNpc = s.npcs.filter(n => n.state === 'paying').sort((a, b) => a.patience - b.patience)[0];
                     if (payingNpc) { targetNpc = payingNpc; decidedState = 'going_to_register'; }
                     else {
@@ -2501,7 +2623,8 @@ window.startShopMapLoop = function() {
             p.timer--;
             if (p.timer <= 0) {
                 let prepped = false;
-                for (let dishKey in window.SHOP_RECIPE_COSTS) {
+                const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
+                for (let dishKey of recipeKeys) {
                     if (s.recipeProgress[dishKey] >= 100 && window.checkAndConsumeIngredients(dishKey, false)) {
                         
                         if (!s.prices) s.prices = {}; 
@@ -2560,7 +2683,8 @@ window.startShopMapLoop = function() {
         else if (p.shopState === 'researching') {
             p.timer--;
             if (p.timer <= 0) {
-                let unlearned = Object.keys(window.SHOP_RECIPE_COSTS).filter(key => s.recipeProgress[key] === undefined);
+                const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
+                let unlearned = recipeKeys.filter(key => s.recipeProgress[key] === undefined);
                 let learnedKey = null;
                 for (let key of unlearned) {
                     // ★修正：レシピを閃く時（未発見）は「素材が揃っているかの確認だけ」で消費はしない（trueに戻す）
@@ -2575,7 +2699,7 @@ window.startShopMapLoop = function() {
                     let ings = window.SHOP_RECIPE_COSTS[learnedKey].map(id => window.SHOP_ING_NAMES[id] || id).join("と");
                     window.showShopFloatingText(p.x, p.y, `なるほど！${ings}から${dishName}のレシピを閃いた！`, '#FFD700');
                 } else {
-                    let developing = Object.keys(window.SHOP_RECIPE_COSTS).filter(key => s.recipeProgress[key] !== undefined && s.recipeProgress[key] < 100);
+                    let developing = recipeKeys.filter(key => s.recipeProgress[key] !== undefined && s.recipeProgress[key] < 100);
                     let devKey = null;
                     for (let key of developing) {
                         if (window.checkAndConsumeIngredients(key, false)) {
@@ -3720,6 +3844,12 @@ window.renderShopTacticEditor = function() {
     let ui = document.getElementById('shop-tactic-editor-ui'); if (!ui) return;
     const s = window.SHOP_STATE; // ★追加：ここで s を定義してあげる
     let idx = window.SHOP_EDITOR_TACTIC_INDEX;
+    const tutorialDone = !!(window.aiPet && window.aiPet.shopTutorialCompleted);
+    const timerUnlocked = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTimerUnlocked));
+    if (!tutorialDone || idx >= window.aiPet.shopTactics.length) {
+        idx = -1;
+        window.SHOP_EDITOR_TACTIC_INDEX = -1;
+    }
     let isDefault = (idx === -1);
     let currentTactic = isDefault ? { name: "AIにまかせる" } : window.aiPet.shopTactics[idx];
 
@@ -3727,7 +3857,12 @@ window.renderShopTacticEditor = function() {
     let cusTabs = window.aiPet.shopTactics.map((t, i) => `<div onclick="window.SHOP_EDITOR_TACTIC_INDEX=${i}; window.renderShopTacticEditor();" style="padding:10px 15px; background:${!isDefault && i===idx ? '#2196F3' : '#1565C0'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[マイ] ${t.name}</div>`).join('');
 
     let rulesHtml = "";
-    if (isDefault) {
+    if (!tutorialDone) {
+        rulesHtml = `<div style="background:#222; padding:15px; border-radius:8px; border:1px solid #FF9800; color:#ccc; line-height:1.6;">
+            まだ店づくりの準備中です。<br>
+            料理人から教わるまでは、AI店員は勝手に営業や作戦行動を始めません。
+        </div>`;
+    } else if (isDefault) {
         rulesHtml = `<div style="background:#222; padding:15px; border-radius:8px; border:1px solid #FF9800; color:#ccc; line-height:1.5;">
             この作戦では、AIは自身で状況を判断し、「調理」「レジ打ち」などを完璧にこなします。<br>
             店が閉まっている時間（かつ客が帰った後）には、自動で「仕込み」「研究」「内装変更」などを気まぐれに行います。
@@ -3766,18 +3901,7 @@ window.renderShopTacticEditor = function() {
         rulesHtml += `<button onclick="window.addShopTacticRule(${idx})" style="width:100%; padding:10px; background:#333; color:#fff; border:1px dashed #FF9800; border-radius:8px; cursor:pointer; margin-top:5px; font-weight:bold;">＋ 新しい優先マニュアルを追加</button>`;
     }
 
-        ui.innerHTML = `
-        <h2 style="color:#FF9800; margin-bottom:10px;">📋 経営マニュアル (AIマインド)</h2>
-        <div style="display:flex; justify-content:center; width:100%; max-width:700px;">
-            <div style="display:flex; border-bottom:2px solid ${isDefault ? '#FF9800' : '#2196F3'};">${defTab}${cusTabs}</div>
-        </div>
-        <div style="background:#111; padding:20px; width:100%; max-width:700px; border-radius:0 0 8px 8px; border:2px solid ${isDefault ? '#FF9800' : '#2196F3'}; border-top:none; box-sizing:border-box;">
-            
-            <div style="margin-bottom:20px; padding:10px; background:#222; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
-                <span style="color:#fff; font-weight:bold;">🕒 現在の営業状態: <span style="color:${window.SHOP_STATE.isOpen ? '#4CAF50' : '#f44336'}">${window.SHOP_STATE.isOpen ? '営業中' : '準備中(閉店)'}</span></span>
-                <button onclick="window.SHOP_STATE.isOpen = !window.SHOP_STATE.isOpen; window.renderShopTacticEditor();" style="padding:8px 15px; background:${window.SHOP_STATE.isOpen ? '#f44336' : '#4CAF50'}; color:#fff; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">${window.SHOP_STATE.isOpen ? '店を閉める' : 'お店を開ける'}</button>
-            </div>
-
+    const timerHtml = timerUnlocked ? `
             <div style="margin-bottom:20px; padding:15px; background:#222; border-radius:8px; border:1px solid #444;">
                 <div style="font-size:14px; color:#FF9800; font-weight:bold; margin-bottom:10px;">⏰ 営業時間自動タイマー設定（3分前バリデーション機能付き）</div>
                 <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
@@ -3795,6 +3919,26 @@ window.renderShopTacticEditor = function() {
                 </div>
                 <div style="font-size:11px; color:#aaa; margin-top:8px;">※開店時間は現在時刻から3分以上先である必要があります。開店1分前に自動でアナウンスが流れます。</div>
             </div>
+    ` : `
+            <div style="margin-bottom:20px; padding:15px; background:#222; border-radius:8px; border:1px solid #555; color:#bbb; line-height:1.6;">
+                <div style="font-size:14px; color:#FF9800; font-weight:bold; margin-bottom:8px;">⏰ 営業時間自動タイマー</div>
+                まだ開店準備のチュートリアル中です。営業時間の設定は、料理人から営業の流れを教わると解放されます。
+            </div>
+    `;
+
+        ui.innerHTML = `
+        <h2 style="color:#FF9800; margin-bottom:10px;">📋 経営マニュアル (AIマインド)</h2>
+        <div style="display:flex; justify-content:center; width:100%; max-width:700px;">
+            <div style="display:flex; border-bottom:2px solid ${isDefault ? '#FF9800' : '#2196F3'};">${defTab}${cusTabs}</div>
+        </div>
+        <div style="background:#111; padding:20px; width:100%; max-width:700px; border-radius:0 0 8px 8px; border:2px solid ${isDefault ? '#FF9800' : '#2196F3'}; border-top:none; box-sizing:border-box;">
+            
+            <div style="margin-bottom:20px; padding:10px; background:#222; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
+                <span style="color:#fff; font-weight:bold;">🕒 現在の営業状態: <span style="color:${window.SHOP_STATE.isOpen ? '#4CAF50' : '#f44336'}">${window.SHOP_STATE.isOpen ? '営業中' : '準備中(閉店)'}</span></span>
+                <button ${timerUnlocked ? `onclick="window.SHOP_STATE.isOpen = !window.SHOP_STATE.isOpen; window.renderShopTacticEditor();"` : 'disabled'} style="padding:8px 15px; background:${timerUnlocked ? (window.SHOP_STATE.isOpen ? '#f44336' : '#4CAF50') : '#555'}; color:#fff; border:none; border-radius:4px; cursor:${timerUnlocked ? 'pointer' : 'not-allowed'}; font-weight:bold;">${timerUnlocked ? (window.SHOP_STATE.isOpen ? '店を閉める' : 'お店を開ける') : '営業は未解放'}</button>
+            </div>
+
+            ${timerHtml}
 
             <div style="margin-bottom:20px; display:flex; justify-content:space-between;">
                 <div><span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span><input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.aiPet.shopTactics[${idx}].name = this.value;"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px;"></div>
@@ -4280,7 +4424,8 @@ window.calcShopSkillMods = function() {
 
     // 「全レシピ完了時」のボーナス変換処理
     let s = window.SHOP_STATE;
-    if (s && s.recipeProgress && Object.keys(window.SHOP_RECIPE_COSTS).every(k => s.recipeProgress[k] >= 100)) {
+    const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
+    if (s && s.recipeProgress && recipeKeys.every(k => s.recipeProgress[k] >= 100)) {
         if (mods.allResearchedBonus === 'ignoreConsume5') mods.ignoreConsumeChance += 0.05;
         if (mods.allResearchedBonus === 'ignoreConsume10') mods.ignoreConsumeChance += 0.10;
         if (mods.allResearchedBonus === 'ignoreConsume15') mods.ignoreConsumeChance += 0.15;
