@@ -661,7 +661,7 @@ const RESTAURANT_MAP_LV1 = [
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
     [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-    [1, 1, 1, 1, 100, 100, 1, 1, 1, 1, 1, 1] // 入り口
+    [1, 1, 1, 1, 100, 100, 100, 1, 1, 1, 1, 1] // 入り口
 ];
 
 function getDefaultShopTimerValues() {
@@ -674,6 +674,65 @@ function getDefaultShopTimerValues() {
         closeMinute: close.getMinutes()
     };
 }
+
+window.syncCurrentShopStateToBuilding = function() {
+    const s = window.SHOP_STATE;
+    if (!s) return;
+    let building = window.currentShopManagementBuilding || null;
+    if (!building && typeof assets !== 'undefined') {
+        building = Object.values(assets).find(a => a && a.shopData === s) || null;
+    }
+    if (building) {
+        building.shopData = s;
+        window.currentShopManagementBuilding = building;
+    }
+};
+
+window.installShopSaveSyncWrapper = function() {
+    if (typeof window.saveGameData !== 'function' || window._shopStateSaveSyncWrapped) return;
+    window._shopStateSaveSyncWrapped = true;
+    const previousShopSaveGameData = window.saveGameData;
+    window.saveGameData = function(...args) {
+        if (typeof window.syncCurrentShopStateToBuilding === 'function') window.syncCurrentShopStateToBuilding();
+        return previousShopSaveGameData.apply(this, args);
+    };
+};
+window.installShopSaveSyncWrapper();
+
+window.ensureRestaurantTutorialWordsLearned = function() {
+    const ai = window.aiPet;
+    if (!ai) return;
+    if (!ai.apprentice) ai.apprentice = {};
+    if (!Array.isArray(ai.apprentice.learnedWords)) ai.apprentice.learnedWords = [];
+    ['かえる', 'おぼえる', 'つくる', 'きく', 'はこぶ', 'うつ', 'ふやす', 'おく', 'やすむ'].forEach(word => {
+        if (!ai.apprentice.learnedWords.includes(word)) ai.apprentice.learnedWords.push(word);
+    });
+};
+
+window.resetShopTimerForVisit = function() {
+    const s = window.SHOP_STATE;
+    if (!s) return;
+    const open = new Date(Date.now() + 5 * 60000);
+    const close = new Date(Date.now() + 35 * 60000);
+    s.isOpen = false;
+    s.announcedOneMinBefore = false;
+    s.nextOpenAt = open.getTime();
+    s.shopTutorialLockAI = false;
+    s.shopTacticEditorPausedAI = false;
+    s.tutorialChef = null;
+    s.openHour = open.getHours();
+    s.openMinute = open.getMinutes();
+    s.closeHour = close.getHours();
+    s.closeMinute = close.getMinutes();
+    s.npcs = [];
+    s.dishes = [];
+    if (s.player) {
+        s.player.shopState = 'idle';
+        s.player.action = 'idle';
+        s.player.targetPos = null;
+        s.player.targetNpcId = null;
+    }
+};
 
 const initialShopTimer = getDefaultShopTimerValues();
 
@@ -737,12 +796,59 @@ window.resetRestaurantTutorialState = function() {
         logs: [],
         menuList: [],
         fridge: {},
-        recipeProgress: {}
+        recipeProgress: {},
+        recipes: {}
     };
+    window.SHOP_STATE.shopTutorialLockAI = false;
+    window.SHOP_STATE.shopTacticEditorPausedAI = false;
+    window.SHOP_STATE.tutorialChef = null;
     if (window.aiPet) {
         window.aiPet.shopTutorialCompleted = false;
         window.aiPet.shopTutorialStep = 0;
+        window.aiPet.shopTutorialIntroDone = false;
+        window.aiPet.shopTutorialLayoutDone = false;
+        window.aiPet.shopTutorialKitchenDone = false;
+        window.aiPet.shopTutorialTableDone = false;
+        window.aiPet.shopTutorialChairDone = false;
+        window.aiPet.shopTutorialRegisterDone = false;
+        window.aiPet.shopTutorialResearchIntroDone = false;
+        window.aiPet.shopTutorialResearchDone = false;
+        window.aiPet.shopTutorialResearchRecipe = null;
+        window.aiPet.shopTutorialPrepIntroDone = false;
+        window.aiPet.shopTutorialPrepDone = false;
+        window.aiPet.shopTutorialPrepRecipe = null;
+        window.aiPet.shopTutorialServiceIntroDone = false;
+        window.aiPet.shopTutorialServiceDone = false;
+        window.aiPet.shopTutorialServiceMindDone = false;
+        window.aiPet.shopTutorialFinalWordsDone = false;
+        window.aiPet.shopTutorialFinalMindStarted = false;
+        window.aiPet.shopTimerUnlocked = false;
+        window.aiPet.shopTutorialTimerSet = false;
+        window.aiPet.shopTutorialCustomerDone = false;
+        window.aiPet.shopTutorialCustomerSpawned = false;
+        window.aiPet.shopTutorialOneMinDialogueDone = false;
+        window.aiPet.shopTutorialLearnedAsk = false;
+        window.aiPet.shopTutorialLearnedCarry = false;
+        window.aiPet.shopTutorialLearnedRegister = false;
+        window.aiPet.shopTutorialServiceWaitLineIndex = 0;
+        window.aiPet.shopTutorialLastWaitLineAt = 0;
+        window.aiPet.shopTutorialMindPhase = 'kitchen';
+        window.aiPet.shopRecipeNotebookUnlocked = false;
+        window.aiPet.shopTutorialRecipeUnlocked = false;
         window.aiPet.currentShopTacticName = "AIにまかせる";
+        window.aiPet.shopTactics = [];
+        window.aiPet.savedRecipes = {};
+        window.aiPet.savedRecipeFlags = {};
+    }
+    window.SHOP_STATE.nextOpenAt = null;
+    if (window.currentShopManagementBuilding) {
+        window.currentShopManagementBuilding.shopData = window.SHOP_STATE;
+    } else if (typeof assets !== 'undefined') {
+        const ownRestaurant = Object.values(assets).find(a => a && a.type === 'restaurant' && !a.isMasterShop);
+        if (ownRestaurant) {
+            ownRestaurant.shopData = window.SHOP_STATE;
+            window.currentShopManagementBuilding = ownRestaurant;
+        }
     }
     if (typeof window.renderShopMap === 'function') window.renderShopMap();
     if (typeof window.updateShopUI === 'function') window.updateShopUI();
@@ -757,6 +863,13 @@ window.SHOP_TACTIC_CONDITIONS = {
     "customer_waiting_register": "レジ待ちの客がいる時",
     "is_closed": "営業時間外（閉店中）の時",
     "has_money_1000": "所持金が1000G以上の時",
+    // ★チュートリアル用：料理人から教わる店づくりの基本条件
+    "missing_kitchen": "厨房がない時",
+    "missing_table": "テーブルがない時",
+    "missing_chair": "椅子がない時",
+    "missing_register": "レジカウンターがない時",
+    "has_researchable_recipe": "ひらめけるレシピがある時",
+    "has_preppable_recipe": "仕込めるレシピがある時",
     // ★Phase 4追加：レイアウト制御用の新条件
     "daily_seat_shortage": "座れない客がいた日",
     "shop_is_plain": "お店が殺風景な時",
@@ -877,12 +990,31 @@ window.addRestaurantLog = function(text, color = "#ddd", speaker = null) {
     const s = window.SHOP_STATE;
     if (s) {
         if (!s.logs) s.logs = [];
+        if (!s.debugLogs) s.debugLogs = [];
         let now = new Date();
         let timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
         let speakerHtml = speaker ? `<span style="color:#FFF; font-weight:bold;">${speaker}:</span> ` : "";
         let logText = `<span style="color:#888; font-size:12px;">[${timeStr}]</span> ${speakerHtml}<span style="color:${color}">${text}</span>`;
+        let plainText = String(text).replace(/<[^>]+>/g, '');
         s.logs.push(logText);
         if (s.logs.length > 100) s.logs.shift();
+        s.debugLogs.push({
+            at: now.toISOString(),
+            time: timeStr,
+            speaker: speaker || '',
+            text: plainText,
+            color,
+            line: `[${now.toISOString()} / ${timeStr}] ${speaker ? speaker + ': ' : ''}${plainText}`,
+            state: {
+                isOpen: !!s.isOpen,
+                open: `${String(s.openHour).padStart(2, '0')}:${String(s.openMinute).padStart(2, '0')}`,
+                close: `${String(s.closeHour).padStart(2, '0')}:${String(s.closeMinute).padStart(2, '0')}`,
+                nextOpenAt: s.nextOpenAt || null,
+                player: s.player ? { x: s.player.x, y: s.player.y, shopState: s.player.shopState, targetPos: s.player.targetPos || null } : null,
+                npcs: Array.isArray(s.npcs) ? s.npcs.map(n => ({ id: n.id, state: n.state, order: n.order, x: n.x, y: n.y })) : []
+            }
+        });
+        if (s.debugLogs.length > 2000) s.debugLogs.shift();
     }
 
     const logArea = document.getElementById('shop-log-area');
@@ -896,6 +1028,70 @@ window.addRestaurantLog = function(text, color = "#ddd", speaker = null) {
     
     while (logArea.children.length > 100) logArea.removeChild(logArea.firstChild);
     logArea.scrollTop = logArea.scrollHeight;
+};
+
+window.downloadRestaurantDebugLog = function() {
+    const s = window.SHOP_STATE || {};
+    const ai = window.aiPet || {};
+    const now = new Date();
+    const lines = [];
+    lines.push('=== Restaurant Debug Log ===');
+    lines.push(`exportedAt: ${now.toISOString()}`);
+    lines.push(`userAgent: ${navigator.userAgent}`);
+    lines.push('');
+    lines.push('--- AI State ---');
+    lines.push(JSON.stringify({
+        name: ai.name,
+        gold: ai.gold,
+        shopTutorialCompleted: ai.shopTutorialCompleted,
+        shopTutorialMindPhase: ai.shopTutorialMindPhase,
+        currentShopTacticName: ai.currentShopTacticName,
+        learnedWords: ai.apprentice && ai.apprentice.learnedWords ? ai.apprentice.learnedWords : [],
+        shopTactics: ai.shopTactics || []
+    }, null, 2));
+    lines.push('');
+    lines.push('--- Shop State ---');
+    lines.push(JSON.stringify({
+        isOpen: s.isOpen,
+        openHour: s.openHour,
+        openMinute: s.openMinute,
+        closeHour: s.closeHour,
+        closeMinute: s.closeMinute,
+        nextOpenAt: s.nextOpenAt,
+        announcedOneMinBefore: s.announcedOneMinBefore,
+        reputation: s.reputation,
+        money: s.money,
+        currentFloor: s.currentFloor,
+        player: s.player,
+        npcs: s.npcs,
+        menuList: s.menuList,
+        fridge: s.fridge,
+        recipeProgress: s.recipeProgress,
+        dailyFlags: s.dailyFlags
+    }, null, 2));
+    lines.push('');
+    lines.push('--- Event Log ---');
+    const debugLogs = Array.isArray(s.debugLogs) ? s.debugLogs : [];
+    if (debugLogs.length > 0) {
+        debugLogs.forEach((entry, idx) => {
+            lines.push(`${String(idx + 1).padStart(4, '0')} ${entry.line || `[${entry.at}] ${entry.speaker ? entry.speaker + ': ' : ''}${entry.text}`}`);
+            if (entry.state) lines.push(`     state=${JSON.stringify(entry.state)}`);
+        });
+    } else if (Array.isArray(s.logs)) {
+        s.logs.forEach((entry, idx) => lines.push(`${String(idx + 1).padStart(4, '0')} ${String(entry).replace(/<[^>]+>/g, '')}`));
+    } else {
+        lines.push('(no logs)');
+    }
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = now.toISOString().replace(/[:.]/g, '-');
+    a.href = url;
+    a.download = `restaurant-debug-${stamp}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
 };
 
 // ==========================================
@@ -987,8 +1183,7 @@ window.drawShopMinimap = function() {
             else if (tile >= 51 && tile <= 56) color = "#E0E0E0"; // ★大理石テーブル（白銀）
             else if ([10, 14, 15, 16, 17].includes(tile)) color = "#2196F3";
             else if (tile >= 61 && tile <= 64) color = "#1A237E"; // ★高級椅子（紺色）
-            else if (tile === 71) color = "#4CAF50"; // ★観葉植物（緑）
-            else if (tile === 72) color = "#FFEB3B"; // ★キャンドル（黄）
+            else if (tile === 71 || tile === 72) color = "#FFEB3B"; // ★飾り
             else if (tile === 31 || tile === 91) color = "#03A9F4"; // 冷蔵庫 / 最新冷蔵庫
             else if (tile === 32 || (tile >= 95 && tile <= 97)) color = "#E91E63"; // オーブン / 伝説の厨房
             else if ([33, 34].includes(tile)) color = "#424242";
@@ -1017,6 +1212,17 @@ window.drawShopMinimap = function() {
     ctx.fill();
     ctx.strokeStyle = "#000";
     ctx.stroke();
+
+    if (s.tutorialChef && window.aiPet && !window.aiPet.shopTutorialCompleted) {
+        let cx = offsetX + s.tutorialChef.x * tileW + tileW / 2;
+        let cy = offsetY + s.tutorialChef.y * tileH + tileH / 2;
+        ctx.fillStyle = "#FF9800";
+        ctx.beginPath();
+        ctx.arc(cx, cy, tileW / 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "#000";
+        ctx.stroke();
+    }
 
     // ★追加：お客さん（NPC）を状態ごとの色で表示
     if (s.npcs && s.npcs.length > 0) {
@@ -1052,36 +1258,1603 @@ window.drawShopMinimap = function() {
 // ★修正：画面にフワッと浮かぶ「心の声」テキスト ＋ 発言者付きログ
 window.showShopFloatingText = function(x, y, text, color = '#FFF', speaker = null) {
     window.addRestaurantLog(text, color, speaker);
-    
-    const gridDiv = document.getElementById('shop-grid');
-    if (!gridDiv) return;
-    
-    const logicalTileX = 250;
-    const logicalTileY = 250;
-    
-    const div = document.createElement('div');
-    div.innerText = text;
-    div.style.position = 'absolute';
-    div.style.left = `${x * logicalTileX + (logicalTileX / 2)}px`; 
-    div.style.top = `${y * logicalTileY - 60}px`;
-    div.style.color = color;
-    div.style.fontSize = '36px'; 
-    div.style.fontWeight = 'bold';
-    div.style.textShadow = '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000';
-    div.style.zIndex = '90000';
-    div.style.pointerEvents = 'none';
-    div.style.whiteSpace = 'nowrap';
-    div.style.transform = 'translate(-50%, 0)';
-    div.style.transition = 'all 2s ease-out';
-    
-    gridDiv.appendChild(div);
+    window.showShopSpeechBubble({ x, y, text, color, speaker, duration: 4200 });
+};
 
-    requestAnimationFrame(() => {
-        div.style.transform = 'translate(-50%, -150px)';
-        div.style.opacity = '0';
+window.showShopSpeechBubble = function({ target = null, x = null, y = null, text = "", color = "#FFF", speaker = null, duration = 4200, sticky = false } = {}) {
+    const s = window.SHOP_STATE;
+    if (!s || !text) return;
+
+    let chara = target;
+    if (!chara) {
+        if (speaker && String(speaker).includes('料理人') && s.tutorialChef) {
+            chara = s.tutorialChef;
+        } else if (x !== null && y !== null && s.player && Math.abs(s.player.x - x) < 0.5 && Math.abs(s.player.y - y) < 0.5) {
+            chara = s.player;
+        } else if (x !== null && y !== null && Array.isArray(s.npcs)) {
+            chara = s.npcs.find(n => Math.abs(n.x - x) < 0.5 && Math.abs(n.y - y) < 0.5);
+        }
+    }
+    if (!chara) {
+        chara = s.player;
+    }
+
+    chara.speechText = text;
+    chara.speechColor = color;
+    chara.speechSpeaker = speaker || null;
+    chara.speechSticky = !!sticky;
+    chara.speechUntil = sticky ? 0 : Date.now() + duration;
+    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+};
+
+window.clearShopSpeechBubble = function(target) {
+    if (!target) return;
+    delete target.speechText;
+    delete target.speechColor;
+    delete target.speechSpeaker;
+    delete target.speechSticky;
+    delete target.speechUntil;
+};
+
+window.ensureShopTutorialSprites = function() {
+    if (typeof window.DUNGEON_SPRITES === 'undefined') return;
+    ['down', 'up', 'left', 'right'].forEach(face => {
+        const key = `tutorial_chef_${face}`;
+        const sourceKey = `chef_${face}`;
+        if (!window.DUNGEON_SPRITES[key] && window.DUNGEON_SPRITES[sourceKey]) {
+            window.DUNGEON_SPRITES[key] = { ...window.DUNGEON_SPRITES[sourceKey] };
+        }
     });
+};
 
-    setTimeout(() => { if (div.parentNode) div.remove(); }, 2000);
+window.ensureShopTutorialChef = function() {
+    const s = window.SHOP_STATE;
+    if (!s || !window.aiPet || window.aiPet.shopTutorialCompleted) return null;
+    if (!s.tutorialChef) {
+        s.tutorialChef = {
+            id: 'tutorial_chef',
+            type: 'tutorial_chef',
+            skin: 'tutorial_chef',
+            x: 4,
+            y: 8,
+            face: 'right',
+            shopState: 'idle',
+            currentFloor: s.currentFloor || '1F',
+            isTutorialGuide: true
+        };
+    }
+    return s.tutorialChef;
+};
+
+window.runShopTutorialDialogue = function(lines, onComplete) {
+    if (!Array.isArray(lines) || lines.length === 0) {
+        if (typeof onComplete === 'function') onComplete();
+        return;
+    }
+    const s = window.SHOP_STATE;
+    if (!s) return;
+    s.shopTutorialSpeaking = true;
+    let idx = 0;
+    const next = () => {
+        const line = lines[idx];
+        if (!line) {
+            s.shopTutorialSpeaking = false;
+            if (typeof onComplete === 'function') onComplete();
+            return;
+        }
+        let target = line.target === 'chef' ? window.ensureShopTutorialChef() : s.player;
+        window.addRestaurantLog(line.text, line.color || '#FFF', line.speaker || (line.target === 'chef' ? '料理人' : (window.aiPet?.name || 'AI店員')));
+        window.showShopSpeechBubble({
+            target,
+            text: line.text,
+            color: line.color || '#FFF',
+            speaker: line.speaker || (line.target === 'chef' ? '料理人' : (window.aiPet?.name || 'AI店員')),
+            sticky: true
+        });
+        idx++;
+        setTimeout(next, line.wait || 3600);
+    };
+    next();
+};
+
+window.learnShopTutorialWord = function(word) {
+    const ai = window.aiPet;
+    if (!ai) return;
+    if (!ai.apprentice) ai.apprentice = {};
+    if (!Array.isArray(ai.apprentice.learnedWords)) ai.apprentice.learnedWords = [];
+    if (!ai.apprentice.learnedWords.includes(word)) {
+        ai.apprentice.learnedWords.push(word);
+    }
+    if (typeof saveGameData === 'function') saveGameData();
+};
+
+window.isShopTutorialActive = function() {
+    return !!(window.aiPet && !window.aiPet.shopTutorialCompleted);
+};
+
+window.isShopTutorialMindActive = function() {
+    const ai = window.aiPet;
+    if (!ai || ai.shopTutorialCompleted || !ai.shopTutorialIntroDone) return false;
+    const phase = ai.shopTutorialMindPhase || 'kitchen';
+    if (phase === 'service') return !!ai.shopTutorialServiceIntroDone && !ai.shopTutorialServiceMindDone;
+    if (['expand', 'decor', 'rest'].includes(phase)) return !!ai.shopTutorialServiceDone && !ai.shopTutorialFinalWordsDone;
+    return ['kitchen', 'table', 'chair', 'register', 'research', 'prep'].includes(phase) && !ai.shopTutorialPrepDone;
+};
+
+window.previewTutorialFurniture = function(items) {
+    const s = window.SHOP_STATE;
+    if (!s) return;
+    s.ghostFurniture = items.map(item => ({ ...item }));
+    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+};
+
+window.placeTutorialFurniture = function(items) {
+    const s = window.SHOP_STATE;
+    if (!s || !s.grid) return;
+    items.forEach(item => {
+        if (s.grid[item.y] && s.grid[item.y][item.x] !== undefined) {
+            s.grid[item.y][item.x] = item.tile;
+        }
+    });
+    if (typeof window.refreshTableTiles === 'function') window.refreshTableTiles(s.grid);
+    const score = Object.values(window.SHOP_FURNITURE_DB || {}).reduce((sum, f) => sum, 0);
+    s.currentScore = 0;
+    const countedTiles = new Set(['31', '32', '33', '34', '21', '22', '23', '24', '25', '26', '10', '14', '15', '16']);
+    s.grid.forEach(row => row.forEach(tile => { if (countedTiles.has(String(tile))) s.currentScore += 1; }));
+    s.ghostFurniture = null;
+    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+};
+
+window.placeShopTutorialRegister = function(onComplete) {
+    const s = window.SHOP_STATE;
+    const ai = window.aiPet;
+    if (!s || !s.grid || !ai) {
+        if (typeof onComplete === 'function') onComplete();
+        return;
+    }
+    const registerItems = [
+        { x: 8, y: 5, key: 'rfur_register_left', tile: 11 },
+        { x: 9, y: 5, key: 'rfur_register_center', tile: 12 },
+        { x: 10, y: 5, key: 'rfur_register_right', tile: 13 }
+    ];
+    if (s.grid[5] && [11, 12, 13].some(t => s.grid.some(row => Array.isArray(row) && row.includes(t)))) {
+        if (typeof onComplete === 'function') onComplete();
+        return;
+    }
+    window.runShopTutorialDialogue([
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'そうだ、もうひとつ大事なもんがある。会計用のレジカウンターだ。' },
+        { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '料理を出したあと、お会計する場所が必要なんだね。' },
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'その通りだ。客席の近くに置いて、客が迷わず会計に来られるようにするぞ。' }
+    ], () => {
+        window.moveShopTutorialPair({ x: 9, y: 6, face: 'up', chefX: 7, chefY: 6, chefFace: 'right' }, () => {
+            window.previewTutorialFurniture(registerItems);
+            setTimeout(() => {
+                window.placeTutorialFurniture(registerItems);
+                if (typeof saveGameData === 'function') saveGameData();
+                if (typeof onComplete === 'function') onComplete();
+            }, 900);
+        });
+    });
+};
+
+window.moveShopPlayerForTutorial = function(target, onArrive) {
+    const s = window.SHOP_STATE;
+    if (!s || !s.player || !target) {
+        if (typeof onArrive === 'function') onArrive();
+        return;
+    }
+    const p = s.player;
+    window.logShopTutorialDebug('AI店員の移動開始', { 移動先: target });
+    p.targetPos = { x: target.x, y: target.y, floor: s.currentFloor || '1F' };
+    p.shopState = 'tutorial_walking';
+    p.action = 'walk';
+    const startedAt = Date.now();
+    const check = () => {
+        if (!window.SHOP_STATE || !window.SHOP_STATE.player) return;
+        const current = window.SHOP_STATE.player;
+        if (current.x === target.x && current.y === target.y) {
+            current.targetPos = null;
+            current.shopState = 'tutorial_waiting';
+            current.action = 'idle';
+            current.face = target.face || current.face || 'up';
+            window.logShopTutorialDebug('AI店員の移動完了', { 移動先: target });
+            if (typeof onArrive === 'function') onArrive();
+        } else if (Date.now() - startedAt > 9000) {
+            current.targetPos = null;
+            current.shopState = 'tutorial_waiting';
+            current.action = 'idle';
+            current.face = target.face || current.face || 'up';
+            window.logShopTutorialDebug('AI店員の移動が時間切れのため演出を継続します', {
+                現在地: { x: current.x, y: current.y },
+                移動先: target
+            });
+            if (typeof onArrive === 'function') onArrive();
+        } else {
+            setTimeout(check, 180);
+        }
+    };
+    check();
+};
+
+window.moveTutorialChefNear = function(target) {
+    const s = window.SHOP_STATE;
+    const chef = window.ensureShopTutorialChef();
+    if (!s || !chef || !target) return;
+
+    let nx = target.chefX !== undefined ? target.chefX : Math.max(1, Math.min(s.mapWidth - 2, target.x - 2));
+    let ny = target.chefY !== undefined ? target.chefY : target.y;
+    if (!s.grid[ny] || s.grid[ny][nx] === 1) {
+        nx = Math.max(1, Math.min(s.mapWidth - 2, target.x + 2));
+    }
+    chef.x = nx;
+    chef.y = Math.max(1, Math.min(s.mapHeight - 2, ny));
+    chef.face = target.chefFace || (chef.x < target.x ? 'right' : 'left');
+    chef.currentFloor = s.currentFloor || '1F';
+};
+
+window.moveTutorialChefForTutorial = function(target, onArrive) {
+    const s = window.SHOP_STATE;
+    const chef = window.ensureShopTutorialChef();
+    if (!s || !chef || !target) {
+        if (typeof onArrive === 'function') onArrive();
+        return;
+    }
+
+    const blockedTiles = [1, 10, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97];
+    const currentTile = s.grid && s.grid[chef.y] ? Number(s.grid[chef.y][chef.x]) : 0;
+    if (blockedTiles.includes(currentTile)) {
+        const fallback = [{ x: 3, y: 7 }, { x: 4, y: 7 }, { x: 7, y: 7 }, { x: 5, y: 4 }, { x: 4, y: 4 }]
+            .find(pos => s.grid[pos.y] && !blockedTiles.includes(Number(s.grid[pos.y][pos.x])));
+        if (fallback) {
+            window.logShopTutorialDebug('料理人が家具上にいたため退避します', { 元位置: { x: chef.x, y: chef.y, tile: currentTile }, 退避先: fallback });
+            chef.x = fallback.x;
+            chef.y = fallback.y;
+        }
+    }
+
+    if (Array.isArray(target.chefPath) && target.chefPath.length > 0) {
+        let pathIndex = 0;
+        const runPath = () => {
+            const point = target.chefPath[pathIndex];
+            window.moveTutorialChefForTutorial({
+                ...target,
+                chefPath: null,
+                chefX: point.x,
+                chefY: point.y,
+                chefFace: point.face || target.chefFace
+            }, () => {
+                pathIndex++;
+                if (pathIndex < target.chefPath.length) runPath();
+                else if (typeof onArrive === 'function') onArrive();
+            });
+        };
+        runPath();
+        return;
+    }
+
+    const baseX = Number.isFinite(Number(target.x)) ? Number(target.x) : (s.player ? s.player.x : 5);
+    const baseY = Number.isFinite(Number(target.y)) ? Number(target.y) : (s.player ? s.player.y : 5);
+    let destX = target.chefX !== undefined && Number.isFinite(Number(target.chefX)) ? Number(target.chefX) : Math.max(1, Math.min(s.mapWidth - 2, baseX - 1));
+    let destY = target.chefY !== undefined && Number.isFinite(Number(target.chefY)) ? Number(target.chefY) : baseY;
+    destX = Math.max(1, Math.min(s.mapWidth - 2, destX));
+    destY = Math.max(1, Math.min(s.mapHeight - 2, destY));
+    if (!s.grid[destY] || s.grid[destY][destX] === 1) {
+        destX = Math.max(1, Math.min(s.mapWidth - 2, baseX - 1));
+        destY = Math.max(1, Math.min(s.mapHeight - 2, baseY));
+    }
+
+    chef.currentFloor = s.currentFloor || '1F';
+    chef.action = 'walk';
+    const finalFace = target.chefFace || (destX < baseX ? 'right' : 'left');
+    window.logShopTutorialDebug('料理人の移動開始', { 移動先: { x: destX, y: destY, face: finalFace }, 元ターゲット: target });
+    const step = () => {
+        if (!window.SHOP_STATE || !window.SHOP_STATE.tutorialChef) return;
+        const c = window.SHOP_STATE.tutorialChef;
+        if (c.x === destX && c.y === destY) {
+            c.action = 'idle';
+            c.face = finalFace;
+            if (typeof window.renderShopMap === 'function') window.renderShopMap();
+            window.logShopTutorialDebug('料理人の移動完了', { 移動先: { x: destX, y: destY, face: finalFace } });
+            if (typeof onArrive === 'function') onArrive();
+            return;
+        }
+
+        let nextStep = null;
+        if (typeof window.getShopNextStep === 'function') {
+            nextStep = window.getShopNextStep(c.x, c.y, destX, destY, c.currentFloor || s.currentFloor || '1F');
+        }
+        if (!nextStep) {
+            const candidates = [];
+            if (c.y > destY) candidates.push({ x: c.x, y: c.y - 1, face: 'up' });
+            if (c.y < destY) candidates.push({ x: c.x, y: c.y + 1, face: 'down' });
+            if (c.x > destX) candidates.push({ x: c.x - 1, y: c.y, face: 'left' });
+            if (c.x < destX) candidates.push({ x: c.x + 1, y: c.y, face: 'right' });
+            nextStep = candidates.find(pos => s.grid[pos.y] && !blockedTiles.includes(Number(s.grid[pos.y][pos.x])));
+        }
+        if (nextStep) {
+            if (nextStep.x > c.x) c.face = 'right';
+            else if (nextStep.x < c.x) c.face = 'left';
+            else if (nextStep.y > c.y) c.face = 'down';
+            else if (nextStep.y < c.y) c.face = 'up';
+            c.x = nextStep.x;
+            c.y = nextStep.y;
+        } else {
+            c.action = 'idle';
+            window.logShopTutorialDebug('料理人の移動経路が見つかりません', { 現在地: { x: c.x, y: c.y }, 目的地: { x: destX, y: destY } });
+            if (typeof onArrive === 'function') onArrive();
+            return;
+        }
+        if (typeof window.renderShopMap === 'function') window.renderShopMap();
+        setTimeout(step, 240);
+    };
+    step();
+};
+
+window.moveShopTutorialPair = function(target, onArrive) {
+    let pending = 2;
+    const done = () => {
+        pending--;
+        if (pending <= 0 && typeof onArrive === 'function') onArrive();
+    };
+    window.moveTutorialChefForTutorial(target, done);
+    window.moveShopPlayerForTutorial(target, done);
+};
+
+window.runAtShopTutorialFocus = function(phase, onReady) {
+    const s = window.SHOP_STATE;
+    const target = window.getShopTutorialFocusTarget(phase);
+    const chef = s ? s.tutorialChef : null;
+    const player = s ? s.player : null;
+    const chefReady = !chef || (chef.x === target.chefX && chef.y === target.chefY);
+    const playerReady = !player || (player.x === target.x && player.y === target.y);
+    if (chefReady && playerReady) {
+        if (chef) chef.face = target.chefFace || chef.face || 'right';
+        if (player) player.face = target.face || player.face || 'up';
+        if (typeof onReady === 'function') onReady();
+        return;
+    }
+    window.moveShopTutorialPair(target, onReady);
+};
+
+window.logShopTutorialDebug = function(label, detail = {}) {
+    const s = window.SHOP_STATE;
+    const ai = window.aiPet;
+    const payload = {
+        フェーズ: ai ? ai.shopTutorialMindPhase : undefined,
+        ステップ: ai ? ai.shopTutorialStep : undefined,
+        レイアウト完了: ai ? ai.shopTutorialLayoutDone : undefined,
+        通常AI停止中: s ? !!s.shopTutorialLockAI : undefined,
+        プレイヤー: s && s.player ? { x: s.player.x, y: s.player.y, 状態: s.player.shopState, 行動: s.player.action, 目標: s.player.targetPos || null } : null,
+        料理人: s && s.tutorialChef ? { x: s.tutorialChef.x, y: s.tutorialChef.y, 向き: s.tutorialChef.face, 行動: s.tutorialChef.action } : null,
+        詳細: detail
+    };
+    console.log(`[レストランチュートリアル] ${label}`, payload);
+};
+
+window.logShopTutorialDebugThrottled = function(key, label, detail = {}, interval = 1200) {
+    window.SHOP_TUTORIAL_DEBUG_LAST = window.SHOP_TUTORIAL_DEBUG_LAST || {};
+    const now = Date.now();
+    if (window.SHOP_TUTORIAL_DEBUG_LAST[key] && now - window.SHOP_TUTORIAL_DEBUG_LAST[key] < interval) return;
+    window.SHOP_TUTORIAL_DEBUG_LAST[key] = now;
+    window.logShopTutorialDebug(label, detail);
+};
+
+window.getShopTutorialFocusTarget = function(phase = null) {
+    const p = phase || window.getShopTutorialMindPhase();
+    const targets = {
+        kitchen: { x: 6, y: 3, face: 'up', chefX: 4, chefY: 4, chefFace: 'right' },
+        table: { x: 7, y: 7, face: 'up', chefX: 5, chefY: 7, chefFace: 'right' },
+        chair: { x: 7, y: 5, face: 'up', chefX: 5, chefY: 7, chefFace: 'right' },
+        expand: { x: 8, y: 7, face: 'right', chefX: 6, chefY: 7, chefFace: 'right' },
+        decor: { x: 3, y: 4, face: 'left', chefX: 5, chefY: 4, chefFace: 'left' },
+        rest: { x: 2, y: 4, face: 'right', chefX: 5, chefY: 4, chefFace: 'left' },
+        prep: {
+            x: 7,
+            y: 3,
+            face: 'up',
+            chefX: 4,
+            chefY: 4,
+            chefFace: 'right',
+            chefPath: [
+                { x: 3, y: 7, face: 'left' },
+                { x: 3, y: 4, face: 'up' },
+                { x: 4, y: 4, face: 'right' }
+            ]
+        },
+        research: {
+            x: 7,
+            y: 3,
+            face: 'up',
+            chefX: 4,
+            chefY: 4,
+            chefFace: 'right',
+            chefPath: [
+                { x: 3, y: 7, face: 'left' },
+                { x: 3, y: 4, face: 'up' },
+                { x: 4, y: 4, face: 'right' }
+            ]
+        }
+    };
+    return targets[p] || targets.kitchen;
+};
+
+window.getShopTutorialMindPhase = function() {
+    const ai = window.aiPet;
+    if (!ai) return 'kitchen';
+    return ai.shopTutorialMindPhase || 'kitchen';
+};
+
+window.getShopTutorialMindGuide = function(phase = null) {
+    const p = phase || window.getShopTutorialMindPhase();
+    const guides = {
+        kitchen: {
+            condition: 'missing_kitchen',
+            action: 'かえる',
+            label: '厨房がない時',
+            intro: 'まずは「厨房がない時」を条件にしろ。そうすりゃAI店員は、店づくりが必要だと判断できる。',
+            prompt: 'AIマインドで「もし 厨房がない時 なら かえる」と設定して、作戦を適用してみろ。',
+            done: 'よし、その条件なら厨房づくりに動ける。実際にやらせてみるぞ！'
+        },
+        table: {
+            condition: 'missing_table',
+            action: 'かえる',
+            label: 'テーブルがない時',
+            intro: '次は客席だ。「テーブルがない時」を条件にすれば、席づくりが必要だと分かる。',
+            prompt: 'AIマインドで「もし テーブルがない時 なら かえる」にしてみろ。',
+            done: 'いいぞ。今度はテーブルを置く動きを見ておけ！'
+        },
+        chair: {
+            condition: 'missing_chair',
+            action: 'かえる',
+            label: '椅子がない時',
+            intro: '最後は椅子だ。テーブルだけじゃ客は座れねえ。「椅子がない時」も覚えておけ。',
+            prompt: 'AIマインドで「もし 椅子がない時 なら かえる」にしてみろ。',
+            done: 'それでいい。席を完成させるぞ！'
+        },
+        register: {
+            condition: 'missing_register',
+            action: 'かえる',
+            label: 'レジカウンターがない時',
+            intro: '料理を出したら終わりじゃねえ。会計用のレジカウンターも店には必要だ。',
+            prompt: 'AIマインドで「もし レジカウンターがない時 なら かえる」にして、会計場所を用意してみろ。',
+            done: 'よし、その条件なら会計場所も忘れず用意できる。レジを置くぞ！'
+        },
+        research: {
+            condition: 'has_researchable_recipe',
+            action: 'おぼえる',
+            label: 'ひらめけるレシピがある時',
+            intro: '次はレシピの研究開発だ。料理は、まず思いついて、研究して、完成させる。',
+            prompt: 'AIマインドで「もし ひらめけるレシピがある時 なら おぼえる」にしてみろ。',
+            done: 'よし、その作戦なら素材からレシピを思いついて研究できる。今回は練習だから一気に完成させるぞ！'
+        },
+        prep: {
+            condition: 'has_preppable_recipe',
+            action: 'つくる',
+            label: '仕込めるレシピがある時',
+            intro: '次は仕込みだ。材料と覚えたレシピがそろっている時だけ、料理は作れる。',
+            prompt: 'AIマインドで「もし 仕込めるレシピがある時 なら つくる」にしてみろ。',
+            done: 'よし、その作戦なら材料がある時だけ仕込みに入れる。厨房で試してみるぞ！'
+        },
+        service: {
+            condition: 'customer_waiting_order',
+            action: 'きく',
+            label: '注文待ちの客がいる時',
+            intro: '接客は優先度が大事だ。客の状態を見て、上から順にやることを決めるんだ。',
+            prompt: 'AIマインドで、注文待ちなら「きく」、料理待ちなら「はこぶ」、レジ待ちなら「うつ」をこの順で設定してみろ。',
+            done: 'よし、その順番なら接客の流れがつながる。次は営業時間を決めて、実際に客を迎えるぞ！',
+            rules: [
+                { condition: 'customer_waiting_order', action: 'きく', label: '注文待ちの客がいる時' },
+                { condition: 'customer_waiting_food', action: 'はこぶ', label: '料理待ちの客がいる時' },
+                { condition: 'customer_waiting_register', action: 'うつ', label: 'レジ待ちの客がいる時' }
+            ]
+        },
+        expand: {
+            condition: 'daily_seat_shortage',
+            action: 'ふやす',
+            label: '座れない客がいた日',
+            intro: '客が増えると、今の席数じゃ足りなくなる日が来る。そういう時に使うのが「ふやす」だ。',
+            prompt: 'AIマインドで「もし 座れない客がいた日 なら ふやす」にして、席を増やす練習をしてみろ。',
+            done: 'いいぞ。これなら席不足を見て、AI店員が席を増やしに動ける！'
+        },
+        decor: {
+            condition: 'shop_is_plain',
+            action: 'おく',
+            label: 'お店が殺風景な時',
+            intro: '料理だけじゃなく、店の雰囲気も大事だ。飾りを置く時は「おく」を使う。',
+            prompt: 'AIマインドで「もし お店が殺風景な時 なら おく」にして、店を少し飾ってみろ。',
+            done: 'その調子だ。客が入りたくなる店にするには、雰囲気づくりも忘れるな！'
+        },
+        rest: {
+            condition: 'is_closed',
+            action: 'やすむ',
+            label: '営業時間外（閉店中）の時',
+            intro: '最後は休むことだ。働きっぱなしじゃ、いい接客もいい料理も続かねえ。',
+            prompt: 'AIマインドで「もし 営業時間外（閉店中）の時 なら やすむ」にして、休憩も作戦に入れてみろ。',
+            done: 'よし。休む判断までできれば、店は長く回せる。最後にひとこと言わせろ。'
+        }
+    };
+    return guides[p] || guides.kitchen;
+};
+
+window.getShopTutorialResearchableRecipe = function() {
+    const s = window.SHOP_STATE;
+    if (!window.aiPet || !s) return null;
+    const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS || {});
+    const preferred = ['baked_carrot', 'baked_pepper', 'baked_tomato', 'dish_salad', 'dish_stirfry', 'dish_soup', 'dish_minestrone'];
+    const ordered = [...preferred.filter(k => recipeKeys.includes(k)), ...recipeKeys.filter(k => !preferred.includes(k))];
+    return ordered.find(key => window.checkAndConsumeIngredients(key, true)) || null;
+};
+
+window.getShopTutorialPreppableRecipe = function() {
+    const s = window.SHOP_STATE;
+    if (!window.aiPet || !s) return null;
+    const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS || {});
+    const preferred = [window.aiPet.shopTutorialResearchRecipe, 'baked_carrot', 'baked_pepper', 'baked_tomato', 'dish_salad', 'dish_stirfry', 'dish_soup', 'dish_minestrone'].filter(Boolean);
+    const ordered = [...preferred.filter(k => recipeKeys.includes(k)), ...recipeKeys.filter(k => !preferred.includes(k))];
+    return ordered.find(key => s.recipeProgress && s.recipeProgress[key] >= 100 && window.checkAndConsumeIngredients(key, true)) || null;
+};
+
+window.getShopRecipeIngredientText = function(recipeKey) {
+    const reqs = window.SHOP_RECIPE_COSTS && window.SHOP_RECIPE_COSTS[recipeKey] ? window.SHOP_RECIPE_COSTS[recipeKey] : [];
+    return reqs.map(id => window.SHOP_ING_NAMES[id] || id).join('、');
+};
+
+window.startRestaurantTutorialResearchIntro = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialResearchDone) return;
+    s.shopTutorialLockAI = true;
+    ai.shopTutorialMindPhase = 'research';
+    if (ai.shopTutorialResearchIntroDone && ai.shopTutorialResearchRecipe) {
+        window.promptShopTutorialMind('research');
+        return;
+    }
+    window.logShopTutorialDebug('研究開発チュートリアルを開始', {});
+    window.runAtShopTutorialFocus('research', () => {
+        const recipeKey = window.getShopTutorialResearchableRecipe();
+        if (!recipeKey) {
+            window.logShopTutorialDebug('研究開発用の素材が不足しています', { inventory: ai.inventory });
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、厨房はできたな。次はレシピを思いつく練習だ。まず持ち物を確認するぞ。' },
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '……今はレシピを考えられる材料が足りねえな。畑や探検で、ニンジンやトマトみたいな食材を集めてこい！' },
+                { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '材料を集めてから、もう一度お店に戻ってくるね。' }
+            ], () => {
+                s.shopTutorialLockAI = false;
+                if (typeof saveGameData === 'function') saveGameData();
+                if (typeof window.exitShopManagement === 'function') window.exitShopManagement();
+                else if (typeof window.closeShopMapUI === 'function') window.closeShopMapUI();
+            });
+            return;
+        }
+
+        ai.shopTutorialResearchRecipe = recipeKey;
+        ai.shopTutorialResearchIntroDone = true;
+        const dishName = window.SHOP_DISH_NAMES[recipeKey] || recipeKey;
+        const ingText = window.getShopRecipeIngredientText(recipeKey);
+        window.learnShopTutorialWord('おぼえる');
+        ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 5);
+        if (typeof saveGameData === 'function') saveGameData();
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '料理は、いきなり仕込めるわけじゃねえ。まず材料からレシピを思いつくんだ。' },
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: `持ち物を見ると「${dishName}」をひらめけそうだ。使う材料は ${ingText} だな。` },
+            { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: 'レシピを思いついて研究する時は「おぼえる」だね。覚えたよ！' }
+        ], () => {
+            window.ensureShopTutorialTactic('research');
+            window.promptShopTutorialMind('research');
+        });
+    });
+};
+
+window.startRestaurantTutorialResearchDemo = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialResearchDone) return;
+    const recipeKey = ai.shopTutorialResearchRecipe || window.getShopTutorialResearchableRecipe();
+    if (!recipeKey) {
+        window.startRestaurantTutorialResearchIntro();
+        return;
+    }
+    s.shopTutorialLockAI = true;
+    if (!s.recipeProgress) s.recipeProgress = {};
+    window.logShopTutorialDebug('研究開発デモを開始', { recipeKey });
+    window.runAtShopTutorialFocus('research', () => {
+        const dishName = window.SHOP_DISH_NAMES[recipeKey] || recipeKey;
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '研究開発は、材料を見てレシピを形にしていく作業だ。' },
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '本番では少しずつ進むが、今回は練習だ。一気に完成させてやる！' }
+        ], () => {
+            const player = s.player;
+            if (player) {
+                player.face = 'up';
+                player.speechText = `${dishName}を研究してみるね！`;
+                player.speechColor = '#00BCD4';
+                player.speechSpeaker = ai.name || 'AI店員';
+                player.speechSticky = true;
+                window.addRestaurantLog(`${dishName}を研究してみるね！`, '#00BCD4', ai.name || 'AI店員');
+            }
+            setTimeout(() => {
+                s.recipeProgress[recipeKey] = 100;
+                ai.shopTutorialResearchDone = true;
+                ai.shopTutorialPrepRecipe = recipeKey;
+                ai.shopTutorialMindPhase = 'prep';
+                ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 6);
+                window.showShopSpeechBubble({ target: s.player, text: `よし！${dishName}のレシピが完成したよ！`, color: '#4CAF50', speaker: ai.name || 'AI店員', sticky: true });
+                window.addRestaurantLog(`よし！${dishName}のレシピが完成したよ！`, '#4CAF50', ai.name || 'AI店員');
+                if (typeof saveGameData === 'function') saveGameData();
+                setTimeout(() => {
+                    window.runShopTutorialDialogue([
+                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、レシピは完成だ。ここまで来て、初めて仕込みができる。' },
+                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '次は完成したレシピを使って料理の在庫を作る。「つくる」を教えてやる。' }
+                    ], () => {
+                        window.startRestaurantTutorialPrepIntro();
+                    });
+                }, 1600);
+            }, 1700);
+        });
+    });
+};
+
+window.startRestaurantTutorialPrepIntro = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialPrepDone) return;
+    s.shopTutorialLockAI = true;
+    ai.shopTutorialMindPhase = 'prep';
+    if (ai.shopTutorialPrepIntroDone && ai.shopTutorialPrepRecipe) {
+        window.promptShopTutorialMind('prep');
+        return;
+    }
+    window.logShopTutorialDebug('仕込みチュートリアルを開始', {});
+    window.runAtShopTutorialFocus('prep', () => {
+        const recipeKey = window.getShopTutorialPreppableRecipe();
+        if (!recipeKey) {
+            window.logShopTutorialDebug('仕込み用の素材が不足しています', { inventory: ai.inventory });
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、厨房はできたな。次は仕込みだ。まず持ち物を確認するぞ。' },
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '……今は仕込める材料が足りねえな。畑や探検で、ニンジンやトマトみたいな食材を集めてこい！' },
+                { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '材料を集めてから、もう一度お店に戻ってくるね。' }
+            ], () => {
+                s.shopTutorialLockAI = false;
+                if (typeof saveGameData === 'function') saveGameData();
+                if (typeof window.exitShopManagement === 'function') window.exitShopManagement();
+                else if (typeof window.closeShopMapUI === 'function') window.closeShopMapUI();
+            });
+            return;
+        }
+
+        ai.shopTutorialPrepRecipe = recipeKey;
+        ai.shopTutorialPrepIntroDone = true;
+        const dishName = window.SHOP_DISH_NAMES[recipeKey] || recipeKey;
+        const ingText = window.getShopRecipeIngredientText(recipeKey);
+        window.learnShopTutorialWord('つくる');
+        ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 7);
+        if (typeof saveGameData === 'function') saveGameData();
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '完成したレシピがあれば、次は仕込みだ。厨房で料理の在庫を作るぞ。' },
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: `今は「${dishName}」を仕込める。材料は ${ingText} だな。` },
+            { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '材料とレシピがそろっている時に「つくる」んだね。覚えたよ！' }
+        ], () => {
+            window.ensureShopTutorialTactic('prep');
+            window.promptShopTutorialMind('prep');
+        });
+    });
+};
+
+window.startRestaurantTutorialPrepDemo = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialPrepDone) return;
+    const recipeKey = ai.shopTutorialPrepRecipe || window.getShopTutorialPreppableRecipe();
+    if (!recipeKey) {
+        window.startRestaurantTutorialPrepIntro();
+        return;
+    }
+    s.shopTutorialLockAI = true;
+    if (!s.recipeProgress) s.recipeProgress = {};
+    s.recipeProgress[recipeKey] = 100;
+    window.logShopTutorialDebug('仕込みデモを開始', { recipeKey });
+    window.runAtShopTutorialFocus('prep', () => {
+        const dishName = window.SHOP_DISH_NAMES[recipeKey] || recipeKey;
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '仕込みは、厨房で材料を使って料理の在庫を作る作業だ。' },
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '今からAI店員にやらせてみろ。材料が減って、冷蔵庫の在庫が増えれば成功だ。' }
+        ], () => {
+            const player = s.player;
+            if (player) {
+                player.face = 'up';
+                player.speechText = `${dishName}を仕込んでみるね！`;
+                player.speechColor = '#00BCD4';
+                player.speechSpeaker = ai.name || 'AI店員';
+                player.speechSticky = true;
+                window.addRestaurantLog(`${dishName}を仕込んでみるね！`, '#00BCD4', ai.name || 'AI店員');
+            }
+            setTimeout(() => {
+                if (window.checkAndConsumeIngredients(recipeKey, false)) {
+                    if (!s.fridge) s.fridge = {};
+                    if (!s.fridge[recipeKey]) s.fridge[recipeKey] = 0;
+                    s.fridge[recipeKey]++;
+                    if (!s.menuList) s.menuList = [];
+                    if (!s.menuList.includes(recipeKey)) s.menuList.push(recipeKey);
+                    window.showShopSpeechBubble({ target: s.player, text: `よし！${dishName}を1つ仕込めたよ！`, color: '#4CAF50', speaker: ai.name || 'AI店員', sticky: true });
+                    window.addRestaurantLog(`よし！${dishName}を1つ仕込めたよ！`, '#4CAF50', ai.name || 'AI店員');
+                    ai.shopTutorialPrepDone = true;
+                    ai.shopTutorialMindPhase = 'service';
+                    ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 6);
+                    s.shopTutorialLockAI = false;
+                    if (typeof saveGameData === 'function') saveGameData();
+                    setTimeout(() => {
+                        window.runShopTutorialDialogue([
+                            { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'いい仕込みだ！今作った在庫は、営業中に客へ出せる。' },
+                            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '次は接客だ。客が来たら注文を聞いて、料理を出し、会計までこなす流れを教えてやる。' }
+                        ], () => {
+                            window.startRestaurantTutorialServiceIntro();
+                        });
+                    }, 1600);
+                } else {
+                    window.logShopTutorialDebug('仕込みデモ中に素材不足になりました', { recipeKey, inventory: ai.inventory });
+                    window.runShopTutorialDialogue([
+                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'む、材料が足りなくなったな。いったん外で食材を集めてこい！' }
+                    ], () => {
+                        s.shopTutorialLockAI = false;
+                        if (typeof saveGameData === 'function') saveGameData();
+                    });
+                }
+            }, 1700);
+        });
+    });
+};
+
+window.startRestaurantTutorialServiceIntro = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialCustomerDone) return;
+    if (ai.shopTutorialServiceIntroDone) return;
+    s.shopTutorialLockAI = true;
+    ai.shopTutorialMindPhase = 'service';
+    ai.shopTimerUnlocked = true;
+    ai.shopTutorialTimerSet = false;
+    ai.shopTutorialOneMinDialogueDone = false;
+    ai.shopTutorialServiceWaitLineIndex = 0;
+    ai.shopTutorialLastWaitLineAt = 0;
+    ai.shopTutorialServiceMindDone = false;
+    ai.currentShopTacticName = "AIにまかせる";
+    if (typeof saveGameData === 'function') saveGameData();
+    window.runShopTutorialDialogue([
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '接客に入る前に、客をさばく言葉を覚えておけ。' },
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '注文待ちの客には「きく」。料理待ちの客には「はこぶ」。会計待ちの客には「うつ」だ。' },
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '大事なのは優先度だ。注文、配膳、会計。この順でAIマインドに並べておけ。' },
+        { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '「きく」「はこぶ」「うつ」だね。順番も覚えたよ！' }
+    ], () => {
+        window.learnShopTutorialWord('きく');
+        window.learnShopTutorialWord('はこぶ');
+        window.learnShopTutorialWord('うつ');
+        ai.shopTutorialLearnedAsk = true;
+        ai.shopTutorialLearnedCarry = true;
+        ai.shopTutorialLearnedRegister = true;
+        ai.shopTutorialServiceIntroDone = true;
+        s.shopTutorialLockAI = false;
+        if (typeof saveGameData === 'function') saveGameData();
+        window.promptShopTutorialMind('service');
+    });
+};
+
+window.spawnShopTutorialCustomer = function() {
+    const s = window.SHOP_STATE;
+    console.log('[レストランチュートリアル] お客さん生成を試みます', {
+        stateあり: !!s,
+        aiあり: !!window.aiPet,
+        生成済み: window.aiPet ? !!window.aiPet.shopTutorialCustomerSpawned : undefined,
+        menuList: s ? s.menuList : undefined,
+        fridge: s ? s.fridge : undefined,
+        isOpen: s ? s.isOpen : undefined
+    });
+    if (!s || !window.aiPet || window.aiPet.shopTutorialCustomerSpawned) return;
+    if ((!s.menuList || s.menuList.length === 0) && s.fridge) {
+        s.menuList = Object.keys(s.fridge).filter(key => s.fridge[key] > 0);
+    }
+    if (!s.menuList || s.menuList.length === 0) {
+        console.warn('[レストランチュートリアル] お客さん生成中止: 提供メニューがありません', { fridge: s.fridge });
+        return;
+    }
+    let seat = null;
+    for (let y = 0; y < s.mapHeight; y++) {
+        for (let x = 0; x < s.mapWidth; x++) {
+            if ([10, 14, 15, 16, 17, 61, 62, 63, 64].includes(s.grid[y][x])) {
+                seat = { x, y, floor: s.currentFloor || '1F' };
+                break;
+            }
+        }
+        if (seat) break;
+    }
+    if (!seat) {
+        for (let y = 0; y < s.mapHeight; y++) {
+            for (let x = 0; x < s.mapWidth; x++) {
+                if ([21, 22, 23, 24, 25, 26].includes(s.grid[y][x])) {
+                    const candidates = [{ x: x, y: y - 1 }, { x: x + 1, y }, { x: x - 1, y }, { x, y: y + 1 }];
+                    seat = candidates.find(pos => s.grid[pos.y] && [0, 2].includes(s.grid[pos.y][pos.x]));
+                    if (seat) {
+                        seat.floor = s.currentFloor || '1F';
+                        break;
+                    }
+                }
+            }
+            if (seat) break;
+        }
+    }
+    if (!seat) {
+        console.warn('[レストランチュートリアル] お客さん生成中止: 座席位置を見つけられません', { grid: s.grid });
+        return;
+    }
+    let exitPos = { x: s.player.x, y: s.player.y };
+    for (let y = 0; y < s.mapHeight; y++) {
+        for (let x = 0; x < s.mapWidth; x++) {
+            if (s.grid[y][x] === 100) {
+                exitPos = { x, y };
+                break;
+            }
+        }
+        if (s.grid[exitPos.y] && s.grid[exitPos.y][exitPos.x] === 100) break;
+    }
+    const order = (s.menuList || []).find(key => s.fridge && s.fridge[key] > 0) || s.menuList[0];
+    if (!order) {
+        console.warn('[レストランチュートリアル] お客さん生成中止: 注文できる料理がありません', { menuList: s.menuList, fridge: s.fridge });
+        return;
+    }
+    s.npcs = s.npcs || [];
+    s.npcs.push({
+        id: 'tutorial_customer_' + Date.now(),
+        skin: 'robot',
+        x: exitPos.x,
+        y: exitPos.y,
+        targetPos: seat,
+        face: 'up',
+        action: 'walk',
+        state: 'moving_to_seat',
+        prevState: 'moving_to_seat',
+        timer: 0,
+        isTakeout: false,
+        order,
+        currentFloor: s.currentFloor || '1F',
+        patience: 999,
+        queueJoinedAt: 0,
+        isRegular: false,
+        msg: 'こんにちは、営業してる？',
+        msgColor: '#fff',
+        intel: 50,
+        isTutorialCustomer: true
+    });
+    window.aiPet.shopTutorialCustomerSpawned = true;
+    const chef = window.ensureShopTutorialChef();
+    if (chef) {
+        const watchSpots = [
+            { x: 3, y: 4, face: 'right' },
+            { x: 4, y: 7, face: 'right' },
+            { x: 7, y: 7, face: 'left' },
+            { x: 3, y: 7, face: 'right' }
+        ];
+        const blocked = new Set([1, 10, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
+        const watch = watchSpots.find(pos => s.grid[pos.y] && !blocked.has(Number(s.grid[pos.y][pos.x])) && Math.abs(pos.x - seat.x) + Math.abs(pos.y - seat.y) > 1);
+        if (watch) {
+            chef.x = watch.x;
+            chef.y = watch.y;
+            chef.face = watch.face;
+        }
+    }
+    console.log('[レストランチュートリアル] お客さんを生成しました', { order, seat, exitPos, npcCount: s.npcs.length });
+    window.addRestaurantLog('お客さんが来たぞ！落ち着いて、さっき教えた流れで迎えるんだ！', '#FFEB3B', '料理人');
+    if (typeof window.showShopSpeechBubble === 'function') {
+        window.showShopSpeechBubble({
+            target: s.tutorialChef,
+            text: 'お客さんが来たぞ！落ち着いて、さっき教えた流れで迎えるんだ！',
+            color: '#FFEB3B',
+            speaker: '料理人',
+            duration: 5200
+        });
+    }
+};
+
+window.updateShopServiceTutorial = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialCompleted || ai.shopTutorialMindPhase !== 'service') return;
+    const customer = Array.isArray(s.npcs) ? s.npcs.find(n => n && n.isTutorialCustomer) : null;
+    if (!customer) {
+        if (ai.shopTutorialCustomerSpawned && ai.shopTutorialLearnedRegister && !ai.shopTutorialCustomerDone) {
+            ai.shopTutorialCustomerDone = true;
+            ai.shopTutorialServiceDone = true;
+            ai.shopTutorialMindPhase = 'expand';
+            ai.shopTimerUnlocked = false;
+            ai.shopTutorialTimerSet = false;
+            s.isOpen = false;
+            s.announcedOneMinBefore = false;
+            s.nextOpenAt = null;
+            const now = new Date();
+            s.openHour = now.getHours();
+            s.openMinute = now.getMinutes();
+            s.closeHour = now.getHours();
+            s.closeMinute = now.getMinutes();
+            s.shopTutorialLockAI = false;
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、初めての接客は合格だ！いったん店を閉めて、次の準備に戻るぞ。' },
+                { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '注文を聞いて、運んで、会計までできたよ！' }
+            ], () => {
+                if (typeof saveGameData === 'function') saveGameData();
+                if (typeof window.renderShopMap === 'function') window.renderShopMap();
+                window.startRestaurantTutorialAfterService();
+            });
+            if (typeof saveGameData === 'function') saveGameData();
+        }
+        return;
+    }
+    if (customer.state === 'seated' && !ai.shopTutorialLearnedAsk) {
+        ai.shopTutorialLearnedAsk = true;
+        window.learnShopTutorialWord('きく');
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '客が席についたな。まずは注文を聞く。「きく」を覚えろ。' },
+            { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '注文を聞く時は「きく」だね。覚えたよ！' }
+        ], () => {
+            if (customer.state === 'seated') {
+                customer.state = 'ordering';
+                customer.timer = 0;
+            }
+        });
+        if (typeof saveGameData === 'function') saveGameData();
+    }
+    if (customer.state === 'seated' && ai.shopTutorialLearnedAsk) {
+        window.logShopTutorialDebug('接客チュートリアル: 着席客を注文待ちに変更', {
+            客: { id: customer.id, x: customer.x, y: customer.y, order: customer.order },
+            AIマインド: ai.currentShopTacticName,
+            学習済み: { きく: !!ai.shopTutorialLearnedAsk, はこぶ: !!ai.shopTutorialLearnedCarry, うつ: !!ai.shopTutorialLearnedRegister }
+        });
+        customer.state = 'ordering';
+        customer.timer = 0;
+    }
+    if (customer.state === 'waiting_for_food' && !ai.shopTutorialLearnedCarry) {
+        ai.shopTutorialLearnedCarry = true;
+        window.learnShopTutorialWord('はこぶ');
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '注文を受けたら、冷蔵庫から料理を出して客へ運ぶ。「はこぶ」だ。' },
+            { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '料理を出す時は「はこぶ」だね。覚えたよ！' }
+        ]);
+        if (typeof saveGameData === 'function') saveGameData();
+    }
+    if (customer.state === 'paying' && !ai.shopTutorialLearnedRegister) {
+        ai.shopTutorialLearnedRegister = true;
+        window.learnShopTutorialWord('うつ');
+        window.runShopTutorialDialogue([
+            { target: 'chef', speaker: '料理人', color: '#FF9800', text: '食べ終わった客は会計に来る。レジで「うつ」、これで代金を受け取る。' },
+            { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '会計は「うつ」だね。覚えたよ！' }
+        ]);
+        if (typeof saveGameData === 'function') saveGameData();
+    }
+};
+
+window.startRestaurantTutorialAfterService = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialCompleted || ai.shopTutorialFinalWordsDone) return;
+    if (ai.shopTutorialFinalMindStarted) {
+        window.promptShopTutorialMind(ai.shopTutorialMindPhase || 'expand');
+        return;
+    }
+    s.shopTutorialLockAI = true;
+    s.isOpen = false;
+    ai.shopTutorialMindPhase = 'expand';
+    ai.shopTutorialFinalMindStarted = true;
+    if (!s.dailyFlags) s.dailyFlags = { seatShortage: false, cramped: false, missingSeats: 0 };
+    s.dailyFlags.seatShortage = true;
+    s.dailyFlags.missingSeats = Math.max(1, s.dailyFlags.missingSeats || 0);
+    if (!Array.isArray(ai.inventory)) ai.inventory = [];
+    ai.inventory.push({ id: 'item_table', name: 'テーブル' });
+    ai.inventory.push({ id: 'item_chair', name: '椅子' });
+    ai.inventory.push({ id: 'item_plant', name: '観葉植物' });
+    window.runShopTutorialDialogue([
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'さて、客を迎えられるようになったら、次は店を育てる番だ。' },
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'まずは席を増やす練習だ。「ふやす」を覚えて、AIマインドに入れてみろ。' },
+        { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: 'お客さんが増えたら「ふやす」だね。覚えたよ！' }
+    ], () => {
+        window.learnShopTutorialWord('ふやす');
+        s.shopTutorialLockAI = false;
+        if (typeof saveGameData === 'function') saveGameData();
+        window.promptShopTutorialMind('expand');
+    });
+};
+
+window.startRestaurantTutorialFinalActionDemo = function(phase) {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || !s.player) return;
+    const p = s.player;
+    s.shopTutorialLockAI = false;
+    s.isOpen = false;
+    p.targetPos = null;
+
+    const findTutorialWorkSpot = (preferred = []) => {
+        const blocked = new Set([1, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 100]);
+        const isFree = (pos) => s.grid[pos.y] && s.grid[pos.y][pos.x] !== undefined && !blocked.has(Number(s.grid[pos.y][pos.x]));
+        for (const pos of preferred) {
+            if (isFree(pos)) return { x: pos.x, y: pos.y, floor: s.currentFloor || '1F' };
+        }
+        for (let y = 2; y < s.mapHeight - 1; y++) {
+            for (let x = 2; x < s.mapWidth - 1; x++) {
+                if (isFree({ x, y })) return { x, y, floor: s.currentFloor || '1F' };
+            }
+        }
+        return { x: p.x, y: p.y, floor: s.currentFloor || '1F' };
+    };
+
+        if (phase === 'expand') {
+            if (!s.dailyFlags) s.dailyFlags = { seatShortage: true, missingSeats: 1 };
+            s.dailyFlags.seatShortage = true;
+            s.dailyFlags.missingSeats = Math.max(1, s.dailyFlags.missingSeats || 0);
+            p.targetPos = findTutorialWorkSpot([{ x: 4, y: 6 }, { x: 4, y: 7 }, { x: 3, y: 6 }, { x: 7, y: 7 }]);
+            p.shopState = 'going_to_add_seat';
+        } else if (phase === 'decor') {
+            p.tutorialDecorPos = findTutorialWorkSpot([{ x: 2, y: 4 }, { x: 2, y: 3 }, { x: 3, y: 4 }, { x: 3, y: 5 }]);
+            p.targetPos = { ...p.tutorialDecorPos };
+            p.shopState = 'going_to_decorate';
+        } else if (phase === 'rest') {
+            p.targetPos = null;
+            p.tutorialDecorPos = null;
+            p.shopState = 'resting';
+            p.timer = 12;
+        }
+
+    const startedAt = Date.now();
+    const waitDone = () => {
+        if (!window.SHOP_STATE || !window.SHOP_STATE.player || !window.aiPet) return;
+        const current = window.SHOP_STATE.player;
+        const done = current.shopState === 'idle' && !current.targetPos;
+        if (!done && Date.now() - startedAt < 12000) {
+            setTimeout(waitDone, 500);
+            return;
+        }
+        s.shopTutorialLockAI = true;
+        current.shopState = 'tutorial_waiting';
+        current.action = 'idle';
+        current.targetPos = null;
+        if (phase === 'expand') {
+            ai.shopTutorialMindPhase = 'decor';
+            window.learnShopTutorialWord('おく');
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'いいぞ。席を増やせたな。次は店の雰囲気づくりだ。「おく」を覚えろ。' },
+                { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '飾りを置く時は「おく」だね。覚えたよ！' }
+            ], () => window.promptShopTutorialMind('decor'));
+        } else if (phase === 'decor') {
+            ai.shopTutorialMindPhase = 'rest';
+            window.learnShopTutorialWord('やすむ');
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '店らしくなってきたな。最後は休むことだ。働きっぱなしじゃ長続きしねえ。' },
+                { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: '休む時は「やすむ」だね。覚えたよ！' }
+            ], () => window.promptShopTutorialMind('rest'));
+        } else {
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、これで基本は全部教えた。あとはお前の店だ。好きに工夫して、いい店にしていけ！' },
+                { target: 'player', speaker: ai.name || 'AI店員', color: '#00BCD4', text: 'ありがとう！自分の店、がんばってみるよ！' }
+            ], () => {
+                s.shopTutorialLockAI = true;
+                s.isOpen = false;
+                s.nextOpenAt = null;
+                const nextOpen = new Date(Date.now() + 10 * 60 * 1000);
+                s.openHour = nextOpen.getHours();
+                s.openMinute = nextOpen.getMinutes();
+                const nextClose = new Date(Date.now() + 40 * 60 * 1000);
+                s.closeHour = nextClose.getHours();
+                s.closeMinute = nextClose.getMinutes();
+                const completeTutorial = () => {
+                    ai.shopTutorialFinalWordsDone = true;
+                    ai.shopTutorialCompleted = true;
+                    window.ensureRestaurantTutorialWordsLearned();
+                    ai.shopTimerUnlocked = true;
+                    ai.shopTutorialMindPhase = 'complete';
+                    s.shopTutorialLockAI = false;
+                    if (window.SHOP_STATE) window.SHOP_STATE.tutorialChef = null;
+                    if (typeof window.syncCurrentShopStateToBuilding === 'function') window.syncCurrentShopStateToBuilding();
+                    if (typeof saveGameData === 'function') saveGameData();
+                    if (typeof window.updateShopUI === 'function') window.updateShopUI();
+                    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+                };
+                if (s.tutorialChef) {
+                    let exit = { x: s.tutorialChef.x, y: s.tutorialChef.y };
+                    for (let y = 0; y < s.mapHeight; y++) {
+                        for (let x = 0; x < s.mapWidth; x++) {
+                            if (s.grid[y] && Number(s.grid[y][x]) === 100) {
+                                exit = { x, y };
+                                break;
+                            }
+                        }
+                        if (s.grid[exit.y] && Number(s.grid[exit.y][exit.x]) === 100) break;
+                    }
+                    const beforeExit = s.grid[exit.y - 1] && Number(s.grid[exit.y - 1][exit.x]) !== 1
+                        ? { x: exit.x, y: exit.y - 1, face: 'down' }
+                        : { x: exit.x, y: exit.y, face: 'down' };
+                    window.moveTutorialChefForTutorial({ x: beforeExit.x, y: beforeExit.y, chefX: beforeExit.x, chefY: beforeExit.y, chefFace: beforeExit.face }, () => {
+                        setTimeout(() => {
+                            window.moveTutorialChefForTutorial({ x: exit.x, y: exit.y, chefX: exit.x, chefY: exit.y, chefFace: 'down' }, () => {
+                                setTimeout(() => {
+                                    completeTutorial();
+                                }, 500);
+                            });
+                        }, 450);
+                    });
+                } else {
+                    completeTutorial();
+                }
+            });
+        }
+        if (typeof saveGameData === 'function') saveGameData();
+    };
+    waitDone();
+};
+
+window.ensureShopTutorialTactic = function(phase = null) {
+    const ai = window.aiPet;
+    if (!ai) return -1;
+    const guide = window.getShopTutorialMindGuide(phase);
+    if (!Array.isArray(ai.shopTactics)) ai.shopTactics = [];
+    let idx = ai.shopTactics.findIndex(t => t && t.isTutorialTactic);
+    if (idx === -1) {
+        ai.shopTactics.unshift({
+            name: '開店準備',
+            isTutorialTactic: true,
+            rules: [{ condition: '', action1: '' }]
+        });
+        idx = 0;
+    }
+    const tactic = ai.shopTactics[idx];
+    tactic.name = '開店準備';
+    tactic.isTutorialTactic = true;
+    const requiredRules = Array.isArray(guide.rules) ? guide.rules : [{ condition: guide.condition, action: guide.action }];
+    if (!Array.isArray(tactic.rules) || tactic.rules.length === 0) {
+        tactic.rules = [{ condition: '', action1: '' }];
+    }
+    tactic.rules = requiredRules.map((rule, i) => tactic.rules[i] || { condition: '', action1: '' });
+    tactic.rules.forEach((rule, i) => {
+        const required = requiredRules[i];
+        if (rule.condition && rule.condition !== required.condition) rule.condition = '';
+        if (rule.action1 && rule.action1 !== required.action) rule.action1 = '';
+    });
+    ai.currentShopTacticName = tactic.name;
+    window.SHOP_EDITOR_TACTIC_INDEX = idx;
+    return idx;
+};
+
+window.promptShopTutorialMind = function(phase = null) {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s) return;
+    const guide = window.getShopTutorialMindGuide(phase);
+    ai.shopTutorialMindPhase = phase || window.getShopTutorialMindPhase();
+    window.ensureShopTutorialTactic(ai.shopTutorialMindPhase);
+    s.shopTutorialLockAI = true;
+    window.logShopTutorialDebug('AIマインド説明前の移動を開始', { フェーズ: ai.shopTutorialMindPhase, 条件: guide.condition, 行動: guide.action });
+    window.runAtShopTutorialFocus(ai.shopTutorialMindPhase, () => {
+        window.logShopTutorialDebug('AIマインド説明前の移動が完了', { フェーズ: ai.shopTutorialMindPhase });
+        const chef = window.ensureShopTutorialChef();
+        if (chef) {
+            chef.speechText = `${guide.intro}\n${guide.prompt}`;
+            chef.speechColor = '#FF9800';
+            chef.speechSpeaker = '料理人';
+            chef.speechSticky = true;
+        }
+        window.addRestaurantLog(guide.intro, '#FF9800', '料理人');
+        window.addRestaurantLog(guide.prompt, '#FF9800', '料理人');
+        if (typeof window.updateShopUI === 'function') window.updateShopUI();
+        setTimeout(() => {
+            window.logShopTutorialDebug('AIマインド画面を開きます', { フェーズ: ai.shopTutorialMindPhase });
+            if (typeof window.openShopTacticEditor === 'function') window.openShopTacticEditor();
+        }, 900);
+    });
+};
+
+window.applyShopTutorialTactic = function(tIdx) {
+    const ai = window.aiPet;
+    if (!ai || !Array.isArray(ai.shopTactics) || !ai.shopTactics[tIdx]) return;
+    const guide = window.getShopTutorialMindGuide();
+    const rule = ai.shopTactics[tIdx].rules && ai.shopTactics[tIdx].rules[0];
+    window.logShopTutorialDebug('AIマインド適用ボタンが押されました', { tacticIndex: tIdx, rule, 正解条件: guide.condition, 正解行動: guide.action });
+    if (!rule || rule.condition !== guide.condition || rule.action1 !== guide.action) {
+        window.logShopTutorialDebug('AIマインド設定が未達成です', { rule, 必要: `もし ${guide.label} なら ${guide.action}` });
+        window.showShopTacticEditorNotice(`料理人の指示どおり「もし ${guide.label} なら ${guide.action}」に設定してください。`, 'error');
+        return;
+    }
+    ai.currentShopTacticName = ai.shopTactics[tIdx].name;
+    if (window.SHOP_STATE) {
+        window.SHOP_STATE.shopTutorialLockAI = true;
+        if (window.SHOP_STATE.player) {
+            window.SHOP_STATE.player.shopState = 'tutorial_waiting';
+            window.SHOP_STATE.player.action = 'idle';
+            window.SHOP_STATE.player.targetPos = null;
+        }
+    }
+    if (typeof saveGameData === 'function') saveGameData();
+    window.closeShopTacticEditor();
+    window.logShopTutorialDebug('AIマインド設定が正しいため配置デモへ進みます', { フェーズ: ai.shopTutorialMindPhase });
+    window.runShopTutorialDialogue([
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: guide.done, wait: 2400 }
+    ], () => {
+        if (ai.shopTutorialMindPhase === 'prep') {
+            window.startRestaurantTutorialPrepDemo();
+        } else {
+            window.startRestaurantTutorialLayoutDemo(ai.shopTutorialMindPhase);
+        }
+    });
+};
+
+window.cloneShopTacticData = function(tactics) {
+    return JSON.parse(JSON.stringify(Array.isArray(tactics) ? tactics : []));
+};
+
+window.getShopEditorTactics = function() {
+    if (!Array.isArray(window.SHOP_EDITOR_DRAFT_TACTICS)) {
+        window.SHOP_EDITOR_DRAFT_TACTICS = window.cloneShopTacticData(window.aiPet ? window.aiPet.shopTactics : []);
+    }
+    return window.SHOP_EDITOR_DRAFT_TACTICS;
+};
+
+window.setShopEditorTacticName = function(tIdx, value) {
+    const tactics = window.getShopEditorTactics();
+    if (tactics[tIdx]) tactics[tIdx].name = value;
+};
+
+window.setShopEditorRuleCondition = function(tIdx, rIdx, value) {
+    window.rememberShopTacticEditorScroll();
+    const tactics = window.getShopEditorTactics();
+    if (tactics[tIdx] && tactics[tIdx].rules && tactics[tIdx].rules[rIdx]) {
+        tactics[tIdx].rules[rIdx].condition = value;
+    }
+    window.renderShopTacticEditor(true);
+};
+
+window.setShopEditorRuleAction = function(tIdx, rIdx, value) {
+    window.rememberShopTacticEditorScroll();
+    const tactics = window.getShopEditorTactics();
+    if (tactics[tIdx] && tactics[tIdx].rules && tactics[tIdx].rules[rIdx]) {
+        tactics[tIdx].rules[rIdx].action1 = value;
+    }
+    window.renderShopTacticEditor(true);
+};
+
+window.rememberShopTacticEditorScroll = function() {
+    const ui = document.getElementById('shop-tactic-editor-ui');
+    const body = document.getElementById('shop-tactic-editor-rules-scroll');
+    window.SHOP_EDITOR_SCROLL_TOP = ui ? ui.scrollTop : 0;
+    window.SHOP_EDITOR_RULE_SCROLL_TOP = body ? body.scrollTop : 0;
+};
+
+window.restoreShopTacticEditorScroll = function() {
+    const ui = document.getElementById('shop-tactic-editor-ui');
+    const body = document.getElementById('shop-tactic-editor-rules-scroll');
+    if (ui && Number.isFinite(window.SHOP_EDITOR_SCROLL_TOP)) ui.scrollTop = window.SHOP_EDITOR_SCROLL_TOP;
+    if (body && Number.isFinite(window.SHOP_EDITOR_RULE_SCROLL_TOP)) body.scrollTop = window.SHOP_EDITOR_RULE_SCROLL_TOP;
+};
+
+window.showShopTacticEditorNotice = function(message, type = 'warn') {
+    window.SHOP_EDITOR_NOTICE = { message, type };
+    const box = document.getElementById('shop-tactic-editor-notice');
+    if (box) {
+        const bg = type === 'error' ? '#3a1717' : '#332600';
+        const border = type === 'error' ? '#f44336' : '#FFC107';
+        const color = type === 'error' ? '#ffcdd2' : '#FFE082';
+        box.style.display = 'block';
+        box.style.background = bg;
+        box.style.borderColor = border;
+        box.style.color = color;
+        box.innerText = message;
+    }
+};
+
+window.commitShopTacticEditor = function() {
+    if (!window.aiPet || !Array.isArray(window.SHOP_EDITOR_DRAFT_TACTICS)) return true;
+    const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
+    const serviceTimerStep = !!(window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service' && window.aiPet.shopTutorialServiceMindDone);
+    const tactics = window.cloneShopTacticData(window.SHOP_EDITOR_DRAFT_TACTICS);
+    const idx = window.SHOP_EDITOR_TACTIC_INDEX;
+    const currentTactic = idx >= 0 ? tactics[idx] : null;
+
+    if (serviceTimerStep && !tutorialMindActive) {
+        const guide = window.getShopTutorialMindGuide('service');
+        const requiredRules = guide.rules;
+        const rules = currentTactic && Array.isArray(currentTactic.rules) ? currentTactic.rules : [];
+        const invalidIndex = requiredRules.findIndex((required, i) => {
+            const rule = rules[i];
+            return !rule || rule.condition !== required.condition || rule.action1 !== required.action;
+        });
+        if (invalidIndex !== -1) {
+            const required = requiredRules[invalidIndex];
+            window.showShopTacticEditorNotice(`優先度${invalidIndex + 1}を「もし ${required.label} なら ${required.action}」に設定してください。`, 'error');
+            return false;
+        }
+        if (!window.saveShopTimerSettings({ silent: true, queueTutorialDialogue: true })) return false;
+        window.aiPet.shopTactics = tactics;
+        if (currentTactic) window.aiPet.currentShopTacticName = currentTactic.name;
+        if (window.SHOP_STATE) {
+            window.SHOP_STATE.shopTutorialLockAI = false;
+            if (window.SHOP_STATE.player && window.SHOP_STATE.player.shopState === 'tutorial_waiting') {
+                window.SHOP_STATE.player.shopState = 'idle';
+                window.SHOP_STATE.player.action = 'idle';
+                window.SHOP_STATE.player.targetPos = null;
+            }
+        }
+        window.logShopTutorialDebug('接客チュートリアル: 営業時間保存後にAIロックを解除', {
+            AIマインド名: currentTactic ? currentTactic.name : null,
+            ルール: currentTactic && currentTactic.rules ? currentTactic.rules.map(r => ({ condition: r.condition, action1: r.action1 })) : []
+        });
+        if (typeof saveGameData === 'function') saveGameData();
+        return true;
+    }
+
+    if (tutorialMindActive) {
+        const guide = window.getShopTutorialMindGuide();
+        const requiredRules = Array.isArray(guide.rules) ? guide.rules : [{ condition: guide.condition, action: guide.action, label: guide.label }];
+        const rules = currentTactic && Array.isArray(currentTactic.rules) ? currentTactic.rules : [];
+        window.logShopTutorialDebug('AIマインドを閉じて保存します', { tacticIndex: idx, rules, 必要: requiredRules });
+        const invalidIndex = requiredRules.findIndex((required, i) => {
+            const rule = rules[i];
+            return !rule || rule.condition !== required.condition || rule.action1 !== required.action;
+        });
+        if (invalidIndex !== -1) {
+            const required = requiredRules[invalidIndex];
+            window.logShopTutorialDebug('AIマインド設定が未達成のため閉じません', { rules, 必要: requiredRules });
+            window.showShopTacticEditorNotice(`優先度${invalidIndex + 1}を「もし ${required.label} なら ${required.action}」に設定してください。`, 'error');
+            return false;
+        }
+        window.aiPet.shopTactics = tactics;
+        window.aiPet.currentShopTacticName = currentTactic.name;
+        if (window.aiPet.shopTutorialMindPhase === 'research') {
+            window.aiPet.shopTutorialResearchIntroDone = true;
+            if (!window.aiPet.shopTutorialResearchRecipe && typeof window.getShopTutorialResearchableRecipe === 'function') {
+                window.aiPet.shopTutorialResearchRecipe = window.getShopTutorialResearchableRecipe();
+            }
+        } else if (window.aiPet.shopTutorialMindPhase === 'prep') {
+            window.aiPet.shopTutorialPrepIntroDone = true;
+            if (!window.aiPet.shopTutorialPrepRecipe && typeof window.getShopTutorialPreppableRecipe === 'function') {
+                window.aiPet.shopTutorialPrepRecipe = window.getShopTutorialPreppableRecipe();
+            }
+        } else if (window.aiPet.shopTutorialMindPhase === 'service') {
+            window.aiPet.shopTutorialServiceMindDone = true;
+            window.aiPet.shopTimerUnlocked = true;
+        }
+        if (typeof saveGameData === 'function') saveGameData();
+        window.logShopTutorialDebug('AIマインド設定を保存し配置デモへ進みます', { フェーズ: window.aiPet.shopTutorialMindPhase });
+        setTimeout(() => {
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: guide.done, wait: 2400 }
+            ], () => {
+                if (window.aiPet.shopTutorialMindPhase === 'research') {
+                    window.startRestaurantTutorialResearchDemo();
+                } else if (window.aiPet.shopTutorialMindPhase === 'prep') {
+                    window.startRestaurantTutorialPrepDemo();
+                } else if (window.aiPet.shopTutorialMindPhase === 'service') {
+                    window.runShopTutorialDialogue([
+                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '接客の作戦はこれでいい。次は店を開ける時間だ。3分以上、4分以内に設定してみろ！' }
+                    ], () => {
+                        if (typeof window.openShopTacticEditor === 'function') window.openShopTacticEditor();
+                    });
+                } else if (['expand', 'decor', 'rest'].includes(window.aiPet.shopTutorialMindPhase)) {
+                    window.startRestaurantTutorialFinalActionDemo(window.aiPet.shopTutorialMindPhase);
+                } else {
+                    window.startRestaurantTutorialLayoutDemo(window.aiPet.shopTutorialMindPhase);
+                }
+            });
+        }, 200);
+        return true;
+    }
+
+    window.aiPet.shopTactics = tactics;
+    if (idx === -1) {
+        window.aiPet.currentShopTacticName = 'AIにまかせる';
+    } else if (currentTactic) {
+        window.aiPet.currentShopTacticName = currentTactic.name;
+    }
+    if (typeof saveGameData === 'function') saveGameData();
+    return true;
+};
+
+window.startRestaurantTutorialIntro = function() {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialCompleted || s.shopTutorialSpeaking) return;
+    if (ai.shopTutorialIntroDone) {
+        if (!ai.shopTutorialLayoutDone) {
+            window.promptShopTutorialMind(ai.shopTutorialMindPhase || 'kitchen');
+        } else if (!ai.shopTutorialResearchDone) {
+            window.startRestaurantTutorialResearchIntro();
+        } else if (!ai.shopTutorialPrepDone) {
+            window.startRestaurantTutorialPrepIntro();
+        } else if (!ai.shopTutorialServiceDone) {
+            if (!ai.shopTutorialServiceIntroDone) window.startRestaurantTutorialServiceIntro();
+            else if (!ai.shopTutorialServiceMindDone) window.promptShopTutorialMind('service');
+        } else if (!ai.shopTutorialFinalWordsDone) {
+            window.startRestaurantTutorialAfterService();
+        }
+        return;
+    }
+
+    const chef = window.ensureShopTutorialChef();
+    if (chef) {
+        chef.x = 4;
+        chef.y = 8;
+        chef.face = 'right';
+    }
+    s.player.x = 6;
+    s.player.y = 8;
+    s.player.face = 'left';
+    s.isOpen = false;
+
+    const aiName = ai.name || 'AI店員';
+    window.runShopTutorialDialogue([
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'おう、いい店じゃないか！開店できるまで準備を手伝ってやろう！\nしっかりついてこい。' },
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'まずは店のレイアウトだ。厨房、テーブル、椅子。こいつらがなきゃ客は呼べねえ。' },
+        { target: 'player', speaker: aiName, color: '#00BCD4', text: 'レイアウト……店の中を「かえる」ってことだね。覚えたよ！' },
+        { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'いい返事だ！今から置き場所を考えて、実際に並べてみろ。半透明に見えるのが、置く前のイメージだ。' }
+    ], () => {
+        window.learnShopTutorialWord('かえる');
+        ai.shopTutorialIntroDone = true;
+        ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 1);
+        ai.shopTutorialMindPhase = 'kitchen';
+        window.ensureShopTutorialTactic('kitchen');
+        if (typeof saveGameData === 'function') saveGameData();
+        window.promptShopTutorialMind('kitchen');
+    });
+};
+
+window.startRestaurantTutorialLayoutDemo = function(phase = null) {
+    const ai = window.aiPet;
+    const s = window.SHOP_STATE;
+    if (!ai || !s || ai.shopTutorialLayoutDone) return;
+    const activePhase = phase || ai.shopTutorialMindPhase || 'kitchen';
+    s.shopTutorialLockAI = true;
+    if (s.player) {
+        s.player.shopState = 'tutorial_waiting';
+        s.player.action = 'idle';
+        s.player.targetPos = null;
+    }
+    window.logShopTutorialDebug('配置デモを開始', { フェーズ: activePhase });
+
+    const steps = [
+        {
+            phase: 'kitchen',
+            text: 'まずは厨房の床を決めるぞ。火と水を使う場所だから、客席の床とは分けておけ。',
+            reply: '床から決めるんだね。厨房っぽくなってきた！',
+            moveTo: { x: 6, y: 3, face: 'up', chefX: 4, chefY: 4, chefFace: 'right' },
+            ghost: [
+                { x: 3, y: 2, key: 'rmap_kitchen_floor', tile: 2 },
+                { x: 4, y: 2, key: 'rmap_kitchen_floor', tile: 2 },
+                { x: 5, y: 2, key: 'rmap_kitchen_floor', tile: 2 },
+                { x: 6, y: 2, key: 'rmap_kitchen_floor', tile: 2 }
+            ]
+        },
+        {
+            phase: 'kitchen',
+            text: 'そこへ冷蔵庫だ。食材を取り出す場所になる。',
+            reply: '食材をしまう場所、ここだね。',
+            moveTo: { x: 5, y: 3, face: 'up', chefX: 4, chefY: 4, chefFace: 'right' },
+            ghost: [{ x: 3, y: 2, key: 'rkit_fridge', tile: 31 }]
+        },
+        {
+            phase: 'kitchen',
+            text: '次はオーブンとコンロだ。コンロは左右で1セット、ここは並べて置くぞ。',
+            reply: '火を使う場所は、厨房床の上にまとめるんだね。',
+            moveTo: { x: 7, y: 3, face: 'up', chefX: 5, chefY: 4, chefFace: 'right' },
+            ghost: [
+                { x: 4, y: 2, key: 'rkit_oven', tile: 32 },
+                { x: 5, y: 2, key: 'rkit_stove_left', tile: 33 },
+                { x: 6, y: 2, key: 'rkit_stove_right', tile: 34 }
+            ]
+        },
+        {
+            phase: 'table',
+            text: '客席はこのテーブルからだ。これは4人掛けの最低サイズだな。',
+            reply: 'ここがお客さんの席になるんだね。',
+            moveTo: { x: 7, y: 7, face: 'up', chefX: 5, chefY: 7, chefFace: 'right' },
+            ghost: [
+                { x: 5, y: 5, key: 'rfur_table_tl', tile: 21 },
+                { x: 6, y: 5, key: 'rfur_table_tr', tile: 23 },
+                { x: 5, y: 6, key: 'rfur_table_bl', tile: 24 },
+                { x: 6, y: 6, key: 'rfur_table_br', tile: 26 }
+            ]
+        },
+        {
+            phase: 'chair',
+            text: '最後に椅子だ。席がなきゃ、客は飯を食えねえからな。',
+            reply: '座れる場所ができた！これならお客さんを呼べそう。',
+            moveTo: { x: 7, y: 5, face: 'up', chefX: 5, chefY: 7, chefFace: 'right' },
+            ghost: [{ x: 5, y: 4, key: 'rfur_chair_down', tile: 10 }]
+        },
+        {
+            phase: 'register',
+            text: '次はレジカウンターだ。客が迷わず会計に来られるよう、客席の近くに置くぞ。',
+            reply: 'ここでお会計するんだね。',
+            moveTo: { x: 9, y: 6, face: 'up', chefX: 7, chefY: 6, chefFace: 'right' },
+            ghost: [
+                { x: 8, y: 5, key: 'rfur_register_left', tile: 11 },
+                { x: 9, y: 5, key: 'rfur_register_center', tile: 12 },
+                { x: 10, y: 5, key: 'rfur_register_right', tile: 13 }
+            ]
+        }
+    ].filter(step => step.phase === activePhase);
+
+    let idx = 0;
+    const run = () => {
+        const step = steps[idx];
+        if (!step) {
+            s.ghostFurniture = null;
+            window.logShopTutorialDebug('配置デモのフェーズが完了', { フェーズ: activePhase });
+            if (activePhase === 'kitchen') {
+                ai.shopTutorialKitchenDone = true;
+                ai.shopTutorialMindPhase = 'table';
+                ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 2);
+                if (typeof saveGameData === 'function') saveGameData();
+                window.promptShopTutorialMind('table');
+                return;
+            }
+            if (activePhase === 'table') {
+                ai.shopTutorialTableDone = true;
+                ai.shopTutorialMindPhase = 'chair';
+                ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 3);
+                if (typeof saveGameData === 'function') saveGameData();
+                window.promptShopTutorialMind('chair');
+                return;
+            }
+            if (activePhase === 'chair') {
+                ai.shopTutorialChairDone = true;
+                ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 4);
+                ai.shopTutorialMindPhase = 'register';
+                if (typeof saveGameData === 'function') saveGameData();
+                window.promptShopTutorialMind('register');
+                return;
+            }
+            if (activePhase === 'register') {
+                ai.shopTutorialRegisterDone = true;
+                ai.shopTutorialLayoutDone = true;
+                s.shopTutorialLockAI = false;
+                ai.shopTutorialStep = Math.max(ai.shopTutorialStep || 0, 5);
+                if (typeof saveGameData === 'function') saveGameData();
+                window.runShopTutorialDialogue([
+                    { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、これで最低限の形にはなったな。配置を変えたい時は「かえる」だ。' },
+                    { target: 'chef', speaker: '料理人', color: '#FF9800', text: '次はレシピを思いつく研究開発だ。材料を見て、作れる料理を考えるぞ。' }
+                ], () => {
+                    window.startRestaurantTutorialResearchIntro();
+                });
+            }
+            return;
+        }
+        window.logShopTutorialDebug('配置ステップ開始', { フェーズ: activePhase, index: idx, 移動先: step.moveTo, 配置予定: step.ghost });
+        window.moveShopTutorialPair(step.moveTo, () => {
+            window.logShopTutorialDebug('配置ステップの移動完了', { フェーズ: activePhase, index: idx });
+            const chef = window.ensureShopTutorialChef();
+            if (chef) {
+                chef.face = step.moveTo.chefFace || chef.face || 'right';
+                chef.speechText = step.text;
+                chef.speechColor = '#FF9800';
+                chef.speechSpeaker = '料理人';
+                chef.speechSticky = true;
+            }
+            if (s.player) {
+                s.player.face = step.moveTo.face || s.player.face || 'up';
+            }
+            window.addRestaurantLog(step.text, '#FF9800', '料理人');
+            setTimeout(() => {
+                if (step.reply && s.player) {
+                    s.player.speechText = step.reply;
+                    s.player.speechColor = '#00BCD4';
+                    s.player.speechSpeaker = ai.name || 'AI店員';
+                    s.player.speechSticky = true;
+                    window.addRestaurantLog(step.reply, '#00BCD4', ai.name || 'AI店員');
+                }
+                window.previewTutorialFurniture(step.ghost);
+                window.logShopTutorialDebug('ゴースト家具を表示', { フェーズ: activePhase, index: idx, 配置予定: step.ghost });
+                setTimeout(() => {
+                    window.placeTutorialFurniture(step.ghost);
+                    window.logShopTutorialDebug('家具を配置しました', { フェーズ: activePhase, index: idx, 配置済み: step.ghost });
+                    idx++;
+                    setTimeout(run, 1000);
+                }, 1500);
+            }, 1200);
+        });
+    };
+    run();
 };
 
 window.checkAndConsumeIngredients = function(dishKey, simulateOnly = false) {
@@ -1089,11 +2862,12 @@ window.checkAndConsumeIngredients = function(dishKey, simulateOnly = false) {
     const requirements = window.SHOP_RECIPE_COSTS[dishKey];
     if (!requirements) return false;
 
+    const itemId = (item) => typeof item === 'string' ? item : (item && item.id);
     let hasAll = true;
     let invCopy = [...window.aiPet.inventory];
     
     for (let req of requirements) {
-        let foundIdx = invCopy.findIndex(item => item && item.id === req);
+        let foundIdx = invCopy.findIndex(item => itemId(item) === req);
         if (foundIdx !== -1) {
             invCopy.splice(foundIdx, 1); 
         } else {
@@ -1112,7 +2886,7 @@ window.checkAndConsumeIngredients = function(dishKey, simulateOnly = false) {
             if (['carrot','pepper','tomato'].includes(req) && Math.random() < (mods.ignoreVegChance || 0)) skip = true;
 
             if (!skip) {
-                let realIdx = window.aiPet.inventory.findIndex(item => item && item.id === req);
+                let realIdx = window.aiPet.inventory.findIndex(item => itemId(item) === req);
                 if (realIdx !== -1) {
                     window.aiPet.inventory.splice(realIdx, 1);
                 }
@@ -1146,7 +2920,9 @@ window.initShopTactics = function() {
     if (!window.aiPet.apprentice.learnedWords) {
         window.aiPet.apprentice.learnedWords = [];
     }
-    if (!window.aiPet.shopTutorialCompleted) {
+    if (window.aiPet.shopTutorialCompleted) {
+        window.ensureRestaurantTutorialWordsLearned();
+    } else {
         const shopCommandWords = window.SHOP_AVAILABLE_COMMANDS.map(c => c.name);
         window.aiPet.apprentice.learnedWords = window.aiPet.apprentice.learnedWords.filter(word => !shopCommandWords.includes(word));
     }
@@ -1156,6 +2932,9 @@ window.initShopTactics = function() {
     }
     if (!window.aiPet.currentShopTacticName) {
         window.aiPet.currentShopTacticName = "AIにまかせる";
+    }
+    if (!window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialIntroDone) {
+        window.ensureShopTutorialTactic(window.aiPet.shopTutorialMindPhase || 'kitchen');
     }
 
     // ★修正：最初からレシピが並ばないように、テストデータや初期値があれば消して空にする
@@ -1220,24 +2999,27 @@ window.getShopMinimapLegendHtml = function() {
         '<span style="color:#5D4037;">■壁</span>',
         '<span style="color:#DEB887;">■床</span>'
     ];
-    if (window.aiPet && window.aiPet.shopTutorialCompleted) {
-        if (hasTile([2])) mapParts.push('<span style="color:#FFF;">■厨房</span>');
-        if (hasTile([21, 22, 23, 24, 25, 26])) mapParts.push('<span style="color:#FF9800;">■机</span>');
-        if (hasTile([41, 42, 43, 44, 45, 46])) mapParts.push('<span style="color:#BA68C8;">■高級机</span>');
-        if (hasTile([51, 52, 53, 54, 55, 56])) mapParts.push('<span style="color:#E0E0E0;">■大理石机</span>');
-        if (hasTile([10, 14, 15, 16, 17, 61, 62, 63, 64])) mapParts.push('<span style="color:#2196F3;">■椅子</span>');
-        if (hasTile([11, 12])) mapParts.push('<span style="color:#4CAF50;">■レジ/植物</span>');
-        if (hasTile([13, 71, 72])) mapParts.push('<span style="color:#FFEB3B;">■飾</span>');
-        if (hasTile([31, 32, 33, 34, 35, 36, 37, 91, 92, 93, 94, 95, 96, 97])) {
-            mapParts.push('<span style="color:#9E9E9E;">■調理設備</span>');
-        }
+    if (hasTile([2])) mapParts.push('<span style="color:#FFF;">■厨房床</span>');
+    if (hasTile([21, 22, 23, 24, 25, 26])) mapParts.push('<span style="color:#FF9800;">■机</span>');
+    if (hasTile([41, 42, 43, 44, 45, 46])) mapParts.push('<span style="color:#BA68C8;">■高級机</span>');
+    if (hasTile([51, 52, 53, 54, 55, 56])) mapParts.push('<span style="color:#E0E0E0;">■大理石机</span>');
+    if (hasTile([10, 14, 15, 16, 17, 61, 62, 63, 64])) mapParts.push('<span style="color:#2196F3;">■椅子</span>');
+    if (hasTile([11, 12, 13])) mapParts.push('<span style="color:#4CAF50;">■レジ</span>');
+    if (hasTile([71, 72])) mapParts.push('<span style="color:#FFEB3B;">■飾</span>');
+    if (hasTile([31])) mapParts.push('<span style="color:#03A9F4;">■冷蔵庫</span>');
+    if (hasTile([32])) mapParts.push('<span style="color:#E91E63;">■オーブン</span>');
+    if (hasTile([33, 34])) mapParts.push('<span style="color:#424242;">■コンロ</span>');
+    if (hasTile([35, 36, 37, 91, 92, 93, 94, 95, 96, 97])) {
+        mapParts.push('<span style="color:#9E9E9E;">■調理設備</span>');
     }
 
     const actorParts = ['<span style="color:#FFF;">●AI店員</span>'];
-    if (window.aiPet && window.aiPet.shopTutorialCompleted) {
-        if (hasNpcState(['entering', 'walking'])) actorParts.push('<span style="color:#9E9E9E;">●移動客</span>');
+    if (s.tutorialChef && window.aiPet && !window.aiPet.shopTutorialCompleted) actorParts.push('<span style="color:#FF9800;">●料理人</span>');
+    const showCustomerLegend = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTutorialMindPhase === 'service'));
+    if (showCustomerLegend) {
+        if (hasNpcState(['entering', 'walking', 'moving_to_seat'])) actorParts.push('<span style="color:#9E9E9E;">●移動客</span>');
         if (hasNpcState(['ordering'])) actorParts.push('<span style="color:#FFEB3B;">●注文待</span>');
-        if (hasNpcState(['waiting_food'])) actorParts.push('<span style="color:#03A9F4;">●配膳待</span>');
+        if (hasNpcState(['waiting_for_food'])) actorParts.push('<span style="color:#03A9F4;">●配膳待</span>');
         if (hasNpcState(['eating'])) actorParts.push('<span style="color:#FF9800;">●食事中</span>');
         if (hasNpcState(['paying'])) actorParts.push('<span style="color:#4CAF50;">●レジ待</span>');
         if (hasNpcState(['takeout_waiting'])) actorParts.push('<span style="color:#9C27B0;">●持帰り待</span>');
@@ -1251,7 +3033,37 @@ window.getShopMinimapLegendHtml = function() {
 };
 
 window.openShopMapUI = function(building) {
+    if (typeof window.installShopSaveSyncWrapper === 'function') window.installShopSaveSyncWrapper();
     window.currentShopManagementBuilding = building || window.currentShopManagementBuilding || null;
+    if (window.currentShopManagementBuilding) {
+        if (window.currentShopManagementBuilding.shopData) {
+            window.SHOP_STATE = window.currentShopManagementBuilding.shopData;
+        } else {
+            window.currentShopManagementBuilding.shopData = window.SHOP_STATE;
+        }
+    }
+    if (!window.SHOP_STATE.currentFloor) window.SHOP_STATE.currentFloor = '1F';
+    if (!Array.isArray(window.SHOP_STATE.grid) || window.SHOP_STATE.grid.length === 0) {
+        window.SHOP_STATE.grid = RESTAURANT_MAP_LV1.map(row => [...row]);
+        window.SHOP_STATE.mapWidth = 12;
+        window.SHOP_STATE.mapHeight = 10;
+    }
+    if (!window.SHOP_STATE.player) window.SHOP_STATE.player = { x: 5, y: 8, face: 'up', action: 'idle', shopState: 'idle', prevShopState: 'idle', currentFloor: '1F' };
+    if (!window.SHOP_STATE.player.currentFloor) window.SHOP_STATE.player.currentFloor = window.SHOP_STATE.currentFloor || '1F';
+    if (window.aiPet && !window.aiPet.shopTutorialCompleted) {
+        window.SHOP_STATE.recipes = {};
+        window.SHOP_STATE.recipeProgress = window.SHOP_STATE.recipeProgress || {};
+        window.SHOP_STATE.menuList = Array.isArray(window.SHOP_STATE.menuList) ? window.SHOP_STATE.menuList.filter(key => typeof key === 'string' && (key.startsWith('dish_') || key.startsWith('baked_'))) : [];
+        window.SHOP_STATE.fridge = window.SHOP_STATE.fridge || {};
+    }
+    if (window.aiPet && window.aiPet.shopTutorialCompleted) {
+        window.ensureRestaurantTutorialWordsLearned();
+        window.resetShopTimerForVisit();
+        window.syncCurrentShopStateToBuilding();
+        if (typeof saveGameData === 'function') saveGameData();
+    }
+    if (typeof window.ensureShopTutorialSprites === 'function') window.ensureShopTutorialSprites();
+    if (typeof window.ensureShopTutorialChef === 'function' && (!window.aiPet || !window.aiPet.shopTutorialCompleted)) window.ensureShopTutorialChef();
 
     let compatUI = document.getElementById('shop-management-ui');
     if (!compatUI) {
@@ -1276,7 +3088,7 @@ window.openShopMapUI = function(building) {
                     </div>
                     <button onclick="window.toggleShopMinimapModal();" style="padding: 8px 15px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🗺️ ミニマップ</button>
                     <button onclick="window.toggleRestaurantLogModal();" style="padding: 8px 15px; background: #9C27B0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📜 ログ・状況</button>
-                    <button onclick="window.openShopTacticEditor();" style="padding: 8px 15px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⚙️ 作戦変更</button>
+                    <button id="shop-tactic-button" onclick="window.openShopTacticEditor();" style="padding: 8px 15px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⚙️ 作戦変更</button>
                     <button onclick="window.exitShopManagement ? window.exitShopManagement() : window.closeShopMapUI();" style="padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">お店を出る</button>
                 </div>
             </div>
@@ -1301,7 +3113,10 @@ window.openShopMapUI = function(building) {
                         <div style="flex:1.5; display:flex; flex-direction:column; border-right:2px dashed #555; padding-right:15px;">
                             <h3 style="color:#FFF; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">📜 お店の記録（心の声）</h3>
                             <div id="shop-log-area" style="flex:1; overflow-y:auto; color:#ddd; line-height:1.6; font-size:14px; padding-right:10px;"></div>
-                            <button onclick="window.toggleRestaurantLogModal()" style="margin-top:15px; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>
+                            <div style="display:flex; gap:10px; margin-top:15px;">
+                                <button onclick="window.downloadRestaurantDebugLog()" style="flex:1; padding:12px; background:#1976D2; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:15px;">ログを書き出す</button>
+                                <button onclick="window.toggleRestaurantLogModal()" style="flex:1; padding:12px; background:#444; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight:bold; font-size:16px;">閉じる</button>
+                            </div>
                         </div>
                         <div style="flex:1; display:flex; flex-direction:column; overflow-y:auto; padding-left:5px;">
                             <h3 style="color:#FFD700; margin-top:0; border-bottom:1px solid #555; padding-bottom:10px;">📊 お店の状況</h3>
@@ -1334,9 +3149,18 @@ window.openShopMapUI = function(building) {
     }
     
     window.startShopMapLoop();
+    requestAnimationFrame(() => {
+        if (typeof window.renderShopMap === 'function') window.renderShopMap();
+    });
+    setTimeout(() => {
+        if (typeof window.renderShopMap === 'function') window.renderShopMap();
+        if (typeof window.startRestaurantTutorialIntro === 'function') window.startRestaurantTutorialIntro();
+    }, 400);
 };
 
 window.closeShopMapUI = function() {
+    if (typeof window.syncCurrentShopStateToBuilding === 'function') window.syncCurrentShopStateToBuilding();
+    if (typeof saveGameData === 'function') saveGameData();
     let ui = document.getElementById('shop-map-ui');
     if (ui) ui.style.display = 'none';
 
@@ -1355,6 +3179,11 @@ window.updateShopUI = function() {
         repEl.style.color = s.reputation < 30 ? '#f44336' : (s.reputation < 70 ? '#FFEB3B' : '#4CAF50');
     }
     if (moneyEl) moneyEl.innerText = `${window.aiPet ? window.aiPet.gold : 0} G`; // ★AIの所持金に統一
+
+    const tutorialDone = !!(window.aiPet && window.aiPet.shopTutorialCompleted);
+    const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
+    const tacticBtn = document.getElementById('shop-tactic-button');
+    if (tacticBtn) tacticBtn.style.display = (tutorialDone || tutorialMindActive) ? 'inline-block' : 'none';
 
     // ==========================================
     // ★ 修正：右カラムの情報を営業状態によって切り替え
@@ -1468,7 +3297,7 @@ window.updateShopUI = function() {
                 displayList.forEach(key => {
                     let dName = window.SHOP_DISH_NAMES[key] || key;
                     let stock = s.fridge[key] || 0;
-                    let price = s.prices[key] || 0; // ★値段を取得
+                    let price = (s.prices && s.prices[key]) || 0; // ★値段を取得
                     if (stock > 0) {
                         stockHtml += `<li>${dName}: <span style="color:#FFD700; font-weight:bold;">${price}G</span> / 在庫 <span style="color:#FFF; font-weight:bold;">${stock}個</span></li>`;
                     } else {
@@ -1529,6 +3358,8 @@ window.updateShopUI = function() {
     // ★ ミニマップが開かれている場合はリアルタイム更新
     let minimapModal = document.getElementById('shop-modal-minimap');
     if (minimapModal && minimapModal.style.display === 'flex') {
+        let legend = document.getElementById('shop-minimap-legend');
+        if (legend && typeof window.getShopMinimapLegendHtml === 'function') legend.innerHTML = window.getShopMinimapLegendHtml();
         window.drawShopMinimap();
     }
 
@@ -1556,6 +3387,13 @@ window.renderShopMap = function() {
     const container = document.getElementById('shop-map-container');
     const gridDiv = document.getElementById('shop-grid');
     if (!gridDiv || !container) return;
+
+    const nowMs = Date.now();
+    [s.player, s.tutorialChef, ...(Array.isArray(s.npcs) ? s.npcs : [])].forEach(chara => {
+        if (chara && chara.speechText && !chara.speechSticky && chara.speechUntil && chara.speechUntil < nowMs) {
+            window.clearShopSpeechBubble(chara);
+        }
+    });
 
     window.updateShopUI(); 
 
@@ -1808,8 +3646,15 @@ window.renderShopMap = function() {
             
             let showBubble = false;
             let bubbleContent = '';
+            let bubbleMode = 'icon';
 
-            if (chara.state === 'ordering' || chara.state === 'waiting_for_food') {
+            if (chara.speechText) {
+                showBubble = true;
+                bubbleMode = 'speech';
+                const safeText = String(chara.speechText).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+                const speakerHtml = chara.speechSpeaker ? `<div style="font-size:15px; color:#666; margin-bottom:6px; font-weight:bold;">${String(chara.speechSpeaker).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : '';
+                bubbleContent = `${speakerHtml}<div style="font-size:22px; line-height:1.5; color:#111; text-align:left; font-weight:bold;">${safeText}</div>`;
+            } else if (chara.state === 'waiting_for_food' || (chara.state === 'ordering' && !chara.isTutorialCustomer)) {
                 showBubble = true;
                 let dishKey = chara.order || 'rdish_steak';
                 let fsp = window.SHOP_SPRITES[dishKey];
@@ -1876,8 +3721,36 @@ window.renderShopMap = function() {
                     }
                 }
                 
-                bubble.style.transform = `translateX(-50%) scale(${invScale})`;
+                let bubbleOffset = 0;
+                if (bubbleMode === 'speech') {
+                    if (chara.isTutorialGuide) bubbleOffset = -115;
+                    else if (chara === s.player || chara.id === 'main') bubbleOffset = 115;
+                }
+                bubble.style.transform = `translateX(calc(-50% + ${bubbleOffset}px)) scale(${invScale})`;
                 bubble.style.transformOrigin = 'bottom center';
+                if (bubbleMode === 'speech') {
+                    bubble.style.width = '360px';
+                    bubble.style.height = 'auto';
+                    bubble.style.minHeight = '0';
+                    bubble.style.maxWidth = '360px';
+                    bubble.style.padding = '16px 18px';
+                    bubble.style.boxSizing = 'border-box';
+                    bubble.style.overflow = 'visible';
+                    bubble.style.borderRadius = '16px';
+                    bubble.style.border = `4px solid ${chara.speechColor || '#555'}`;
+                    bubble.style.boxShadow = '0 6px 16px rgba(0,0,0,0.5)';
+                } else {
+                    bubble.style.width = '120px';
+                    bubble.style.height = '120px';
+                    bubble.style.minHeight = '';
+                    bubble.style.maxWidth = '';
+                    bubble.style.padding = '0';
+                    bubble.style.boxSizing = '';
+                    bubble.style.overflow = 'hidden';
+                    bubble.style.borderRadius = '20px';
+                    bubble.style.border = '4px solid #555';
+                    bubble.style.boxShadow = '';
+                }
                 bubble.innerHTML = bubbleContent;
             } else {
                 if (bubble) bubble.remove();
@@ -1886,9 +3759,13 @@ window.renderShopMap = function() {
     };
 
     if (typeof window.createDungeonSprite === 'function' && typeof window.DUNGEON_SPRITES !== 'undefined') {
+        if (typeof window.ensureShopTutorialSprites === 'function') window.ensureShopTutorialSprites();
         let mySkin = window.aiPet ? (window.aiPet.currentSkin || window.aiPet.type || 'robot') : 'robot';
         if (!s.player.currentFloor || s.player.currentFloor === s.currentFloor) {
             drawCharacter({ ...s.player, skin: mySkin, id: 'main' }, 'shop_player');
+        }
+        if (s.tutorialChef && (!s.tutorialChef.currentFloor || s.tutorialChef.currentFloor === s.currentFloor)) {
+            drawCharacter(s.tutorialChef, 'shop_guide');
         }
     }
 
@@ -2060,35 +3937,68 @@ window.startShopMapLoop = function() {
         let currentHour = now.getHours();
         let currentMinute = now.getMinutes();
 
-        const timerUnlocked = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTimerUnlocked));
+        const serviceTutorialWaitingForTimer = !!(window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service' && !window.aiPet.shopTutorialTimerSet);
+        const timerUnlocked = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTimerUnlocked)) && !serviceTutorialWaitingForTimer;
         if (!timerUnlocked) {
             if (s.isOpen) s.isOpen = false;
             s.announcedOneMinBefore = false;
         }
         
         if (timerUnlocked) {
+            const serviceTutorialActiveForTimer = !!(window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service');
             let openTarget = new Date();
-            openTarget.setHours(s.openHour !== undefined ? s.openHour : 9, s.openMinute !== undefined ? s.openMinute : 0, 0, 0);
-            if (openTarget < now && (currentHour > s.openHour || (currentHour === s.openHour && currentMinute > s.openMinute))) {
-                openTarget.setDate(openTarget.getDate() + 1); 
+            if (serviceTutorialActiveForTimer && s.nextOpenAt) {
+                openTarget = new Date(s.nextOpenAt);
+            } else {
+                openTarget.setHours(s.openHour !== undefined ? s.openHour : 9, s.openMinute !== undefined ? s.openMinute : 0, 0, 0);
+                if (openTarget < now && (currentHour > s.openHour || (currentHour === s.openHour && currentMinute > s.openMinute))) {
+                    openTarget.setDate(openTarget.getDate() + 1);
+                }
             }
             
             let oneMinBefore = new Date(openTarget.getTime() - 60 * 1000);
-            if (currentHour === oneMinBefore.getHours() && currentMinute === oneMinBefore.getMinutes()) {
+            const isOneMinBefore = now >= oneMinBefore && now < openTarget;
+            if (isOneMinBefore) {
                 if (!s.announcedOneMinBefore) {
                     if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("⏰ 開店1分前になりました。まもなく営業を開始します。AI店員が配置につきます。", "#FF9800");
+                    if (serviceTutorialActiveForTimer && !window.aiPet.shopTutorialOneMinDialogueDone && typeof window.runShopTutorialDialogue === 'function') {
+                        window.aiPet.shopTutorialOneMinDialogueDone = true;
+                        window.runShopTutorialDialogue([
+                            { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、あと少しで開店だ。客が来たら、まず席につくまで待て。' },
+                            { target: 'player', speaker: window.aiPet.name || 'AI店員', color: '#00BCD4', text: '席についたら注文を聞くんだね。準備できたよ！' }
+                        ]);
+                    }
                     s.announcedOneMinBefore = true;
                 }
-            } else {
-                if (s.announcedOneMinBefore && currentMinute !== oneMinBefore.getMinutes()) {
+            } else if (!serviceTutorialActiveForTimer) {
+                if (s.announcedOneMinBefore && !isOneMinBefore) {
                     s.announcedOneMinBefore = false;
                 }
             }
             
             if (!s.isOpen) {
-                if (currentHour === s.openHour && currentMinute === s.openMinute) {
+                const tutorialOpenPending = serviceTutorialActiveForTimer && s.nextOpenAt && !s.shopTutorialOpenedForTimer && !window.aiPet.shopTutorialOpenedForTimer;
+                const shouldOpen = serviceTutorialActiveForTimer
+                    ? (tutorialOpenPending && now >= openTarget)
+                    : (currentHour === s.openHour && currentMinute === s.openMinute);
+                if (shouldOpen) {
                     s.isOpen = true;
-                    s.announcedOneMinBefore = false; 
+                    if (!serviceTutorialActiveForTimer) s.announcedOneMinBefore = false; 
+                    if (serviceTutorialActiveForTimer) {
+                        s.shopTutorialOpenedForTimer = true;
+                        window.aiPet.shopTutorialOpenedForTimer = true;
+                        s.nextOpenAt = null;
+                        s.shopTutorialLockAI = false;
+                        if (s.player && s.player.shopState === 'tutorial_waiting') {
+                            s.player.shopState = 'idle';
+                            s.player.action = 'idle';
+                            s.player.targetPos = null;
+                        }
+                        window.logShopTutorialDebug('接客チュートリアル: 開店時にAIロックを解除', {
+                            AIマインド名: window.aiPet.currentShopTacticName,
+                            playerState: s.player ? s.player.shopState : null
+                        });
+                    }
                     
                     // ★修正：開店時にフラグをリセット（＝次の開店までは維持される）
                     if (s.dailyFlags) {
@@ -2098,12 +4008,15 @@ window.startShopMapLoop = function() {
                     }
 
                     if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("📢 開店時間になりました！自動タイマーにより営業を開始します！", "#4CAF50");
+                    if (serviceTutorialActiveForTimer) {
+                        window.spawnShopTutorialCustomer();
+                    }
                     if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
                 }
             }
             
             if (s.isOpen) {
-                if (currentHour === s.closeHour && currentMinute === s.closeMinute) {
+                if (!serviceTutorialActiveForTimer && currentHour === s.closeHour && currentMinute === s.closeMinute) {
                     s.isOpen = false;
                     if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("🔒 閉店時間になりました。本日の自動営業を終了します。", "#f44336");
                     if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
@@ -2126,7 +4039,7 @@ window.startShopMapLoop = function() {
                     newMarket = Math.max(Math.floor(baseVal * 0.5), Math.min(Math.floor(baseVal * 3.0), newMarket)); 
                     
                     s.marketPrices[dishKey] = newMarket;
-                    delete s.prices[dishKey]; 
+                    if (s.prices) delete s.prices[dishKey]; 
                 }
                 s.dailyStats = {}; 
                 if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("本日の営業が終了しました。客の反応を振り返り、最新の相場を学習しました。", "#00BCD4");
@@ -2174,6 +4087,45 @@ window.startShopMapLoop = function() {
         }
 
         const p = s.player;
+        if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service') {
+            window.logShopTutorialDebugThrottled('service_state_snapshot', '接客チュートリアル: 状態スナップショット', {
+                AIマインド名: window.aiPet.currentShopTacticName,
+                isOpen: !!s.isOpen,
+                shopTutorialLockAI: !!s.shopTutorialLockAI,
+                shopTacticEditorPausedAI: !!s.shopTacticEditorPausedAI,
+                shopTutorialSpeaking: !!s.shopTutorialSpeaking,
+                player: {
+                    x: p.x,
+                    y: p.y,
+                    state: p.shopState,
+                    action: p.action,
+                    targetPos: p.targetPos || null,
+                    targetNpcId: p.targetNpcId || null,
+                    stairPath: !!p.stairPath
+                },
+                npcs: (s.npcs || []).map(n => ({
+                    id: n.id,
+                    state: n.state,
+                    order: n.order,
+                    x: n.x,
+                    y: n.y,
+                    targetPos: n.targetPos || null,
+                    tutorial: !!n.isTutorialCustomer
+                }))
+            }, 2000);
+        }
+        if (window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service' && s.shopTutorialLockAI && !s.shopTutorialSpeaking && (s.npcs || []).some(n => ['ordering', 'waiting_for_food', 'paying'].includes(n.state))) {
+            s.shopTutorialLockAI = false;
+            if (p.shopState === 'tutorial_waiting') {
+                p.shopState = 'idle';
+                p.action = 'idle';
+                p.targetPos = null;
+            }
+            window.logShopTutorialDebug('接客チュートリアル: 接客対象がいるためAIロックを自動解除', {
+                playerState: p.shopState,
+                客状態: (s.npcs || []).map(n => ({ id: n.id, state: n.state, order: n.order, x: n.x, y: n.y }))
+            });
+        }
 
         let queueNpcs = s.npcs.filter(n => {
             if (n.isTakeout && ['moving_to_takeout', 'ordering', 'waiting_for_food', 'paying'].includes(n.state)) return true;
@@ -2193,26 +4145,112 @@ window.startShopMapLoop = function() {
             if (p.shopState === 'going_to_research') window.showShopFloatingText(p.x, p.y, "何か新しいレシピはないかな…？", "#00BCD4", aiName);
             if (p.shopState === 'going_to_remodel') window.showShopFloatingText(p.x, p.y, "少しお店の配置を変えてみようかな", "#FF9800", aiName);
             if (p.shopState === 'resting') window.showShopFloatingText(p.x, p.y, "ふぅ、少し休憩…", "#B39DDB", aiName);
-            if (p.shopState === 'delivering') window.showShopFloatingText(p.x, p.y, "お待たせしました！", "#FFF", aiName);
-            if (p.shopState === 'checkout') window.showShopFloatingText(p.x, p.y, "お会計ですね！", "#FFD700", aiName);
             p.prevShopState = p.shopState;
+        }
+
+        if ((s.shopTutorialLockAI || s.shopTacticEditorPausedAI) && !p.targetPos && p.shopState !== 'tutorial_walking') {
+            if (s.shopTutorialLockAI && p.shopState !== 'tutorial_waiting') {
+                window.logShopTutorialDebug('通常AIをチュートリアルロックで停止', { 直前状態: p.shopState });
+            } else if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service') {
+                window.logShopTutorialDebugThrottled('service_ai_locked', '接客チュートリアル: AIが停止フラグで待機中', {
+                    shopTutorialLockAI: !!s.shopTutorialLockAI,
+                    shopTacticEditorPausedAI: !!s.shopTacticEditorPausedAI,
+                    shopTutorialSpeaking: !!s.shopTutorialSpeaking,
+                    playerState: p.shopState,
+                    targetPos: p.targetPos || null,
+                    npcs: (s.npcs || []).map(n => ({ id: n.id, state: n.state, order: n.order, x: n.x, y: n.y, tutorial: !!n.isTutorialCustomer }))
+                }, 1500);
+            }
+            p.shopState = s.shopTutorialLockAI ? 'tutorial_waiting' : 'editor_paused';
+            p.action = 'idle';
         }
 
         if (p.shopState === 'idle') {
             let tName = window.aiPet ? window.aiPet.currentShopTacticName : "AIにまかせる";
             let decidedState = null;
             let targetNpc = null;
+            if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service') {
+                window.logShopTutorialDebugThrottled('service_ai_idle_decision', '接客チュートリアル: AI判断開始', {
+                    AIマインド名: tName,
+                    isOpen: !!s.isOpen,
+                    shopTutorialLockAI: !!s.shopTutorialLockAI,
+                    shopTacticEditorPausedAI: !!s.shopTacticEditorPausedAI,
+                    shopTutorialSpeaking: !!s.shopTutorialSpeaking,
+                    player: { x: p.x, y: p.y, state: p.shopState, targetPos: p.targetPos || null },
+                    npcs: (s.npcs || []).map(n => ({ id: n.id, state: n.state, order: n.order, x: n.x, y: n.y, patience: n.patience, tutorial: !!n.isTutorialCustomer })),
+                    fridge: s.fridge || {},
+                    menuList: s.menuList || []
+                }, 1500);
+            }
             
             const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
             let canPrep = recipeKeys.some(k => s.recipeProgress[k] >= 100 && window.checkAndConsumeIngredients(k, true));
             let canResearch = recipeKeys.some(k => (s.recipeProgress[k] === undefined || s.recipeProgress[k] < 100) && window.checkAndConsumeIngredients(k, true));
+            const getAdjacentServiceSpot = (npc) => {
+                if (!npc || !s.grid) return null;
+                const blocked = new Set([1, 10, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
+                const dirs = [
+                    { x: npc.x, y: npc.y + 1 },
+                    { x: npc.x - 1, y: npc.y },
+                    { x: npc.x + 1, y: npc.y },
+                    { x: npc.x, y: npc.y - 1 }
+                ];
+                return dirs.find(pos => {
+                    if (!s.grid[pos.y] || s.grid[pos.y][pos.x] === undefined) return false;
+                    if (blocked.has(Number(s.grid[pos.y][pos.x]))) return false;
+                    if (s.tutorialChef && s.tutorialChef.x === pos.x && s.tutorialChef.y === pos.y) return false;
+                    if (Array.isArray(s.npcs) && s.npcs.some(n => n !== npc && n.x === pos.x && n.y === pos.y)) return false;
+                    return true;
+                }) || null;
+            };
 
             if (tName === "AIにまかせる") {
                 if (window.aiPet && !window.aiPet.shopTutorialCompleted) {
-                    decidedState = null;
-                    if (p.shopState === 'idle' && Math.random() < 0.02) {
+                    if (window.aiPet.shopTutorialMindPhase === 'service' && (s.isOpen || s.npcs.length > 0)) {
+                        let payingNpc = s.npcs.filter(n => n.state === 'paying').sort((a, b) => a.patience - b.patience)[0];
+                        if (payingNpc) { targetNpc = payingNpc; decidedState = 'going_to_register'; }
+                        else {
+                            let orderNpc = s.npcs.filter(n => n.state === 'ordering').sort((a, b) => a.patience - b.patience)[0];
+                            if (orderNpc && s.fridge[orderNpc.order] > 0) {
+                                targetNpc = orderNpc; decidedState = 'going_to_fridge';
+                            }
+                        }
+                    } else {
+                        decidedState = null;
+                    }
+                    const suppressServiceWaitLines = window.aiPet.shopTutorialMindPhase === 'service' && window.aiPet.shopTutorialTimerSet;
+                    const suppressTutorialAmbientLine = window.aiPet.shopTutorialMindPhase !== 'service';
+                    if (!suppressServiceWaitLines && !suppressTutorialAmbientLine && !decidedState && p.shopState === 'idle' && Math.random() < 0.02) {
                         let aiName = window.aiPet.name || "AI店員";
-                        window.showShopFloatingText(p.x, p.y, "まずは料理人から店づくりを教わろう…", "#FFD700", aiName);
+                        const nowMs = Date.now();
+                        const waitInterval = window.aiPet.shopTutorialMindPhase === 'service' ? 45000 : 15000;
+                        if (!window.aiPet.shopTutorialLastWaitLineAt || nowMs - window.aiPet.shopTutorialLastWaitLineAt > waitInterval) {
+                            window.aiPet.shopTutorialLastWaitLineAt = nowMs;
+                            if (window.aiPet.shopTutorialMindPhase === 'service' && window.aiPet.shopTutorialTimerSet && !s.shopTutorialSpeaking) {
+                                const waitLines = [
+                                    [
+                                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '客が来たら、慌てず席についた客の注文を聞くんだ。' },
+                                        { target: 'player', speaker: aiName, color: '#00BCD4', text: '注文を聞いて、料理を出して、最後は会計だね。' }
+                                    ],
+                                    [
+                                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '料理はもう冷蔵庫に入ってる。注文を受けたら、取り出して運べばいい。' },
+                                        { target: 'player', speaker: aiName, color: '#00BCD4', text: '焼きニンジンの在庫はあるよ。落ち着いて出せそう。' }
+                                    ],
+                                    [
+                                        { target: 'chef', speaker: '料理人', color: '#FF9800', text: '最初の客は緊張するもんだ。だが、流れを守ればちゃんと回る。' },
+                                        { target: 'player', speaker: aiName, color: '#00BCD4', text: 'うん。席、注文、料理、会計の順でやってみる。' }
+                                    ]
+                                ];
+                                const lineIndex = window.aiPet.shopTutorialServiceWaitLineIndex || 0;
+                                window.aiPet.shopTutorialServiceWaitLineIndex = lineIndex + 1;
+                                window.runShopTutorialDialogue(waitLines[lineIndex % waitLines.length]);
+                            } else {
+                                const waitMsg = window.aiPet.shopTutorialMindPhase === 'service'
+                                    ? "開店時間まで、最初のお客さんを迎える準備をしよう…"
+                                    : "まずは料理人から店づくりを教わろう…";
+                                window.showShopFloatingText(p.x, p.y, waitMsg, "#FFD700", aiName);
+                            }
+                        }
                     }
                 } else if (s.isOpen || s.npcs.length > 0) {
                     let payingNpc = s.npcs.filter(n => n.state === 'paying').sort((a, b) => a.patience - b.patience)[0];
@@ -2238,13 +4276,30 @@ window.startShopMapLoop = function() {
                 }
             } else {
                 let activeTactic = window.aiPet.shopTactics.find(t => t.name === tName);
+                if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service') {
+                    window.logShopTutorialDebugThrottled('service_active_tactic', '接客チュートリアル: AIマインド確認', {
+                        AIマインド名: tName,
+                        見つかった: !!activeTactic,
+                        ルール数: activeTactic && activeTactic.rules ? activeTactic.rules.length : 0,
+                        ルール: activeTactic && activeTactic.rules ? activeTactic.rules.map(r => ({ condition: r.condition, action1: r.action1 })) : []
+                    }, 1800);
+                }
                 if (activeTactic && activeTactic.rules) {
-                    for (let rule of activeTactic.rules) {
+                    for (let ruleIndex = 0; ruleIndex < activeTactic.rules.length; ruleIndex++) {
+                        let rule = activeTactic.rules[ruleIndex];
                         let condMet = false;
+                        const hasTile = (tiles) => s.grid && s.grid.some(row => row && row.some(tile => tiles.includes(Number(tile))));
                         if (rule.condition === 'always') condMet = true;
                         else if (rule.condition === 'customer_waiting_register' && s.npcs.some(n => n.state === 'paying')) condMet = true;
                         else if (rule.condition === 'customer_waiting_order' && s.npcs.some(n => n.state === 'ordering')) condMet = true;
+                        else if (rule.condition === 'customer_waiting_food' && s.npcs.some(n => n.state === 'waiting_for_food')) condMet = true;
                         else if (rule.condition === 'is_closed' && !s.isOpen && s.npcs.length === 0) condMet = true;
+                        else if (rule.condition === 'missing_kitchen' && !hasTile([31, 32, 33, 34])) condMet = true;
+                        else if (rule.condition === 'missing_table' && !hasTile([21, 22, 23, 24, 25, 26])) condMet = true;
+                        else if (rule.condition === 'missing_chair' && !hasTile([10, 14, 15, 16])) condMet = true;
+                        else if (rule.condition === 'missing_register' && !hasTile([11, 12, 13])) condMet = true;
+                        else if (rule.condition === 'has_researchable_recipe' && canResearch) condMet = true;
+                        else if (rule.condition === 'has_preppable_recipe' && canPrep) condMet = true;
                         
                         if (!s.isOpen && s.npcs.length === 0) {
                             if (!s.dailyFlags) s.dailyFlags = { seatShortage: false, cramped: false, missingSeats: 0 };
@@ -2255,20 +4310,41 @@ window.startShopMapLoop = function() {
                             if (rule.condition === 'prefer_luxury_decor' || rule.condition === 'prefer_casual_decor') condMet = true;
                         }
 
+                        if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service' && ['customer_waiting_order', 'customer_waiting_food', 'customer_waiting_register'].includes(rule.condition)) {
+                            window.logShopTutorialDebugThrottled(`service_rule_${ruleIndex}_${rule.condition}`, '接客チュートリアル: AIマインド条件判定', {
+                                優先度: ruleIndex + 1,
+                                条件: rule.condition,
+                                行動: rule.action1,
+                                条件成立: condMet,
+                                客状態: (s.npcs || []).map(n => ({ id: n.id, state: n.state, order: n.order, x: n.x, y: n.y, tutorial: !!n.isTutorialCustomer }))
+                            }, 1500);
+                        }
+
                         if (condMet) {
                             let act = rule.action1; 
                             if (rule.condition === 'customer_waiting_register' && act === 'うつ') {
                                 targetNpc = s.npcs.find(n => n.state === 'paying');
                                 if (targetNpc) { decidedState = 'going_to_register'; break; }
                             }
-                            if (rule.condition === 'customer_waiting_order' && act === 'はこぶ') {
+                            if (rule.condition === 'customer_waiting_order' && act === 'きく') {
                                 let orderNpc = s.npcs.filter(n => n.state === 'ordering').sort((a, b) => a.patience - b.patience)[0];
+                                if (orderNpc) {
+                                    window.logShopTutorialDebug('接客チュートリアル: 注文を聞く対象を選択', {
+                                        優先度: ruleIndex + 1,
+                                        客: { id: orderNpc.id, state: orderNpc.state, order: orderNpc.order, x: orderNpc.x, y: orderNpc.y },
+                                        fridge: s.fridge || {}
+                                    });
+                                    targetNpc = orderNpc; decidedState = 'going_to_take_order'; break;
+                                }
+                            }
+                            if (rule.condition === 'customer_waiting_food' && act === 'はこぶ') {
+                                let orderNpc = s.npcs.filter(n => n.state === 'waiting_for_food').sort((a, b) => a.patience - b.patience)[0];
                                 if (orderNpc && s.fridge[orderNpc.order] > 0) {
                                     targetNpc = orderNpc; decidedState = 'going_to_fridge'; break;
                                 }
                             }
                             
-                            if (['is_closed', 'daily_seat_shortage', 'shop_is_plain', 'shop_is_cramped', 'prefer_luxury_decor', 'prefer_casual_decor'].includes(rule.condition) && !s.isOpen && s.npcs.length === 0) {
+                            if (['is_closed', 'missing_kitchen', 'missing_table', 'missing_chair', 'missing_register', 'has_researchable_recipe', 'has_preppable_recipe', 'daily_seat_shortage', 'shop_is_plain', 'shop_is_cramped', 'prefer_luxury_decor', 'prefer_casual_decor'].includes(rule.condition) && !s.isOpen && s.npcs.length === 0) {
                                 if (act === 'つくる' && canPrep) { decidedState = 'going_to_prep'; break; }
                                 if (act === 'おぼえる' && canResearch) { decidedState = 'going_to_research'; break; }
                                 if (act === 'かえる') { 
@@ -2294,10 +4370,45 @@ window.startShopMapLoop = function() {
                         }
                     }
                 }
+                if (window.aiPet && window.aiPet.shopTutorialAllowAmbientWaitLines && !decidedState && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service' && window.aiPet.shopTutorialTimerSet && !s.isOpen && s.npcs.length === 0 && !s.shopTutorialSpeaking) {
+                    const nowMs = Date.now();
+                    if (!window.aiPet.shopTutorialLastWaitLineAt || nowMs - window.aiPet.shopTutorialLastWaitLineAt > 45000) {
+                        const aiName = window.aiPet.name || "AI店員";
+                        const waitLines = [
+                            [
+                                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '開店までに流れを確認しておくぞ。客が来たら、まず席につくまで待て。' },
+                                { target: 'player', speaker: aiName, color: '#00BCD4', text: '席についたら注文を聞くんだね。準備できたよ！' }
+                            ],
+                            [
+                                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '注文を聞いたら、冷蔵庫から料理を取り出して運ぶ。焦らず順番だ。' },
+                                { target: 'player', speaker: aiName, color: '#00BCD4', text: '注文、配膳、会計の順だね。覚えてるよ。' }
+                            ],
+                            [
+                                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '会計待ちの客を放っておくと店が詰まる。レジ待ちは最後まできっちり見ろよ。' },
+                                { target: 'player', speaker: aiName, color: '#00BCD4', text: '最後はレジで「うつ」。ちゃんと見ておくよ。' }
+                            ]
+                        ];
+                        const lineIndex = window.aiPet.shopTutorialServiceWaitLineIndex || 0;
+                        window.aiPet.shopTutorialServiceWaitLineIndex = lineIndex + 1;
+                        window.aiPet.shopTutorialLastWaitLineAt = nowMs;
+                        window.runShopTutorialDialogue(waitLines[lineIndex % waitLines.length]);
+                    }
+                }
             }
 
             if (decidedState === 'going_to_register' && targetNpc) {
                 p.targetNpcId = targetNpc.id; p.targetPos = null; p.shopState = 'going_to_register';
+            } else if (decidedState === 'going_to_take_order' && targetNpc) {
+                p.targetNpcId = targetNpc.id;
+                const serviceSpot = getAdjacentServiceSpot(targetNpc) || { x: targetNpc.x, y: targetNpc.y };
+                window.logShopTutorialDebug('接客チュートリアル: 注文を聞く移動を設定', {
+                    客: { id: targetNpc.id, state: targetNpc.state, order: targetNpc.order, x: targetNpc.x, y: targetNpc.y },
+                    移動先: serviceSpot,
+                    プレイヤー現在地: { x: p.x, y: p.y, floor: p.currentFloor },
+                    料理人: s.tutorialChef ? { x: s.tutorialChef.x, y: s.tutorialChef.y, face: s.tutorialChef.face } : null
+                });
+                p.targetPos = { x: serviceSpot.x, y: serviceSpot.y, floor: targetNpc.currentFloor || s.currentFloor || '1F' };
+                p.shopState = 'going_to_take_order';
             } else if (decidedState === 'going_to_fridge' && targetNpc) {
                 if (s.fridge[targetNpc.order] > 0) s.fridge[targetNpc.order]--; 
                 targetNpc.state = 'waiting_for_food'; p.targetNpcId = targetNpc.id; p.targetPos = null; p.shopState = 'going_to_fridge';
@@ -2322,6 +4433,9 @@ window.startShopMapLoop = function() {
                 p.shopState = 'resting'; p.timer = 10;
             }
         } 
+        else if (p.shopState === 'tutorial_walking' || p.shopState === 'tutorial_waiting') {
+            // チュートリアル演出中は通常の店員AIを走らせず、移動処理だけ下段の共通処理に任せる
+        }
         
         else if (p.shopState === 'speaking') {
             p.timer--;
@@ -2370,13 +4484,59 @@ window.startShopMapLoop = function() {
                     if (s.currentScore + totalCost <= s.maxScore) {
                         let placed = false;
                         window.initShopFloors();
-                        
+                        const isFinalTutorialExpand = !!(window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'expand');
+                        const tryPlaceTutorialSeat = () => {
+                            if (!isFinalTutorialExpand || !s.floorData || !s.floorData['1F']) return false;
+                            const targetGrid = s.floorData['1F'];
+                            const layouts = [
+                                { x: 2, y: 6, chair: 'top' },
+                                { x: 2, y: 5, chair: 'bottom' },
+                                { x: 8, y: 7, chair: 'top' }
+                            ];
+                            for (const layout of layouts) {
+                                const rx = layout.x;
+                                const ry = layout.y;
+                                if (!targetGrid[ry] || !targetGrid[ry + 1]) continue;
+                                if (targetGrid[ry][rx] !== 0 || targetGrid[ry][rx + 1] !== 0 || targetGrid[ry + 1][rx] !== 0 || targetGrid[ry + 1][rx + 1] !== 0) continue;
+                                if (layout.chair === 'top' && (!targetGrid[ry - 1] || targetGrid[ry - 1][rx] !== 0 || targetGrid[ry - 1][rx + 1] !== 0)) continue;
+                                if (layout.chair === 'bottom' && (!targetGrid[ry + 2] || targetGrid[ry + 2][rx] !== 0 || targetGrid[ry + 2][rx + 1] !== 0)) continue;
+                                targetGrid[ry][rx] = tData.tiles.tl;
+                                targetGrid[ry][rx + 1] = tData.tiles.tr;
+                                targetGrid[ry + 1][rx] = tData.tiles.bl;
+                                targetGrid[ry + 1][rx + 1] = tData.tiles.br;
+                                if (layout.chair === 'top') {
+                                    targetGrid[ry - 1][rx] = cData.tiles.down;
+                                    targetGrid[ry - 1][rx + 1] = cData.tiles.down;
+                                } else {
+                                    targetGrid[ry + 2][rx] = cData.tiles.up;
+                                    targetGrid[ry + 2][rx + 1] = cData.tiles.up;
+                                }
+                                s.currentScore += totalCost;
+                                inv.splice(Math.max(tableIdx, chairIdx), 1);
+                                inv.splice(Math.min(tableIdx, chairIdx), 1);
+                                window.refreshTableTiles(targetGrid);
+                                if (s.currentFloor !== '1F') window.changeShopFloor('1F');
+                                window.showShopFloatingText(p.x, p.y, `よし、1Fに席を増やしたぞ！`, "#FF9800", aiName);
+                                if (!s.dailyFlags) s.dailyFlags = { missingSeats: 0 };
+                                s.dailyFlags.missingSeats = Math.max(0, (s.dailyFlags.missingSeats || 0) - 2);
+                                if (s.dailyFlags.missingSeats <= 0) {
+                                    s.dailyFlags.seatShortage = false;
+                                    s.dailyFlags.cramped = false;
+                                }
+                                p.shopState = 'idle';
+                                return true;
+                            }
+                            return false;
+                        };
+                        placed = tryPlaceTutorialSeat();
+                         
                         // ★大改修：1F -> 2F -> B1F の順で空きスペースを探す！
                         let searchFloors = ['1F'];
                         if (s.has2F) searchFloors.push('2F');
                         if (s.hasB1) searchFloors.push('B1F');
 
                         for (let fName of searchFloors) {
+                            if (placed) break;
                             let targetGrid = s.floorData[fName];
                             if (!targetGrid) continue;
                             let fH = targetGrid.length;
@@ -2454,8 +4614,49 @@ window.startShopMapLoop = function() {
         else if (p.shopState === 'decorating') {
             p.timer--;
             if (p.timer <= 0) {
-                window.showShopFloatingText(p.x, p.y, "装飾品を置くのは次フェーズで実装するぞ！", "#00BCD4");
+                const aiName = window.aiPet ? window.aiPet.name || "AI店員" : "AI店員";
+                const inv = window.aiPet && Array.isArray(window.aiPet.inventory) ? window.aiPet.inventory : [];
+                let decorIdx = inv.findIndex(item => item && (item.id === 'item_plant' || item.id === 'item_candle'));
+                let decorId = decorIdx !== -1 ? inv[decorIdx].id : 'item_plant';
+                let decorTile = decorId === 'item_candle' ? 72 : 71;
+                let decorName = decorId === 'item_candle' ? 'キャンドル' : '観葉植物';
+                const blocked = new Set([1, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 100]);
+                const candidates = [
+                    { x: p.x + 1, y: p.y },
+                    { x: p.x - 1, y: p.y },
+                    { x: p.x, y: p.y + 1 },
+                    { x: p.x, y: p.y - 1 },
+                    p.tutorialDecorPos,
+                    { x: 10, y: 4 },
+                    { x: 9, y: 4 },
+                    { x: 10, y: 5 }
+                ].filter(Boolean);
+                let placed = false;
+                let placedPos = null;
+                for (const pos of candidates) {
+                    if (s.grid[pos.y] && s.grid[pos.y][pos.x] !== undefined && !blocked.has(Number(s.grid[pos.y][pos.x]))) {
+                        s.grid[pos.y][pos.x] = decorTile;
+                        placed = true;
+                        placedPos = { x: pos.x, y: pos.y };
+                        if (decorIdx !== -1) inv.splice(decorIdx, 1);
+                        window.showShopFloatingText(pos.x, pos.y, `${decorName}を置いたよ！`, "#00BCD4", aiName);
+                        break;
+                    }
+                }
+                if (!placed) {
+                        window.showShopFloatingText(p.x, p.y, "飾りを置ける場所が見つからないな…", "#FF5252", aiName);
+                }
+                if (placedPos && p.x === placedPos.x && p.y === placedPos.y) {
+                    const stand = candidates.find(pos => pos && !(pos.x === placedPos.x && pos.y === placedPos.y) && s.grid[pos.y] && s.grid[pos.y][pos.x] !== undefined && !blocked.has(Number(s.grid[pos.y][pos.x])));
+                    if (stand) {
+                        p.x = stand.x;
+                        p.y = stand.y;
+                    }
+                }
+                p.tutorialDecorPos = null;
                 p.shopState = 'idle';
+                if (typeof window.refreshShopMiniMapLegend === 'function') window.refreshShopMiniMapLegend();
+                if (typeof window.renderShopMap === 'function') window.renderShopMap();
             }
         }
         else if (p.shopState === 'expanding') {
@@ -2728,6 +4929,12 @@ window.startShopMapLoop = function() {
         // ★ リモデル・撤去系のロジック
         // ==========================================
         else if (p.shopState === 'start_remodeling' || p.shopState === 'force_dismantle') {
+            if (typeof window.isShopTutorialActive === 'function' && window.isShopTutorialActive()) {
+                p.shopState = 'tutorial_waiting';
+                p.targetPos = null;
+                s.ghostFurniture = null;
+                return;
+            }
             let inv = window.aiPet.inventory || [];
             
             let tableIdx = inv.findIndex(item => item && item.id && window.SHOP_FURNITURE_DB[item.id] && window.SHOP_FURNITURE_DB[item.id].type === 'table' && (!p.remodelTheme || window.SHOP_FURNITURE_DB[item.id].tags.includes(p.remodelTheme)));
@@ -3082,7 +5289,7 @@ window.startShopMapLoop = function() {
                     
                     let trait = window.CUSTOMER_TRAITS[npc.skin] || window.CUSTOMER_TRAITS['robot'];
                     let orderCount = trait.appetite || 1;
-                    let soldPrice = (s.prices[npc.order] || 100) * orderCount;
+                    let soldPrice = ((s.prices && s.prices[npc.order]) || 100) * orderCount;
                     
                     let chipBonus = 0;
                     // チップの箇所
@@ -3092,6 +5299,13 @@ window.startShopMapLoop = function() {
                     }
                     
                     let finalEarned = soldPrice + chipBonus;
+                    let aiName = window.aiPet ? window.aiPet.name || "AI店員" : "AI店員";
+                    window.showShopFloatingText(p.x, p.y, `${soldPrice}Gです`, "#FFD700", aiName);
+                    setTimeout(() => {
+                        if (window.SHOP_STATE && window.SHOP_STATE.player) {
+                            window.showShopFloatingText(window.SHOP_STATE.player.x, window.SHOP_STATE.player.y, "ありがとうございました！", "#00BCD4", aiName);
+                        }
+                    }, 900);
                     if (window.aiPet) window.aiPet.gold += finalEarned; 
                     if (s.reputation < 100) s.reputation += 2; 
                     s.totalSales = (s.totalSales || 0) + finalEarned; 
@@ -3129,9 +5343,57 @@ window.startShopMapLoop = function() {
         handleFloorTransition(p); // ★追加：AIの階段処理フック
         if (p.targetPos) {
             let distToTarget = Math.abs(p.x - p.targetPos.x) + Math.abs(p.y - p.targetPos.y);
+            if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service' && p.shopState === 'going_to_take_order') {
+                const npc = s.npcs.find(n => n.id === p.targetNpcId);
+                window.logShopTutorialDebugThrottled('service_take_order_moving', '接客チュートリアル: 注文を聞く移動中', {
+                    現在地: { x: p.x, y: p.y, floor: p.currentFloor },
+                    目的地: p.targetPos,
+                    距離: distToTarget,
+                    階段経路中: !!p.stairPath,
+                    対象客: npc ? { id: npc.id, state: npc.state, order: npc.order, x: npc.x, y: npc.y } : null
+                }, 900);
+            }
             
             // ★修正：階段移動中(!p.stairPath)は到着判定を無視する！
-            if (p.shopState === 'delivering' && distToTarget <= 1 && !p.stairPath) {
+            if (p.shopState === 'going_to_take_order' && p.x === p.targetPos.x && p.y === p.targetPos.y && !p.stairPath) {
+                if (p.targetPos.x > p.x) p.face = 'right';
+                else if (p.targetPos.x < p.x) p.face = 'left';
+                else if (p.targetPos.y > p.y) p.face = 'down';
+                else if (p.targetPos.y < p.y) p.face = 'up';
+
+                const npc = s.npcs.find(n => n.id === p.targetNpcId);
+                const aiName = window.aiPet ? window.aiPet.name || "AI店員" : "AI店員";
+                window.logShopTutorialDebug('接客チュートリアル: 注文を聞く位置に到着', {
+                    対象客: npc ? { id: npc.id, state: npc.state, order: npc.order, x: npc.x, y: npc.y } : null,
+                    プレイヤー: { x: p.x, y: p.y, face: p.face }
+                });
+                if (npc && npc.state === 'ordering') {
+                    const speaker = window.getShopCustomerName(npc.skin);
+                    const dishName = typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(npc.order) : npc.order;
+                    npc.state = 'taking_order';
+                    npc.timer = 0;
+                    window.showShopFloatingText(p.x, p.y, "注文は？", "#00BCD4", aiName);
+                    setTimeout(() => {
+                        if (!window.SHOP_STATE || !window.SHOP_STATE.npcs) return;
+                        const currentNpc = window.SHOP_STATE.npcs.find(n => n.id === npc.id);
+                        if (!currentNpc || currentNpc.state !== 'taking_order') return;
+                        window.showShopFloatingText(currentNpc.x, currentNpc.y, `${dishName}をお願いします！`, "#FFF", speaker);
+                        currentNpc.msg = dishName;
+                        currentNpc.msgColor = "#FFF";
+                        currentNpc.state = 'waiting_for_food';
+                        currentNpc.timer = 0;
+                        currentNpc.patience += 80;
+                        window.logShopTutorialDebug('接客チュートリアル: 注文を受けて配膳待ちへ変更', {
+                            客: { id: currentNpc.id, state: currentNpc.state, order: currentNpc.order, x: currentNpc.x, y: currentNpc.y },
+                            料理名: dishName
+                        });
+                    }, 900);
+                }
+                p.targetPos = null;
+                p.targetNpcId = null;
+                p.shopState = 'idle';
+            }
+            else if (p.shopState === 'delivering' && distToTarget <= 1 && !p.stairPath) {
                 if (p.targetPos.x > p.x) p.face = 'right';
                 else if (p.targetPos.x < p.x) p.face = 'left';
                 else if (p.targetPos.y > p.y) p.face = 'down';
@@ -3140,6 +5402,9 @@ window.startShopMapLoop = function() {
                 p.targetPos = null; p.shopState = 'idle'; 
                 let npc = s.npcs.find(n => n.id === p.targetNpcId);
                 if (npc) {
+                    const aiName = window.aiPet ? window.aiPet.name || "AI店員" : "AI店員";
+                    const dishName = typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(npc.order) : npc.order;
+                    window.showShopFloatingText(p.x, p.y, `おまたせしました。${dishName}です`, "#FFF", aiName);
                     if (npc.isTakeout) { npc.state = 'paying'; npc.timer = 0; npc.patience += 100; } 
                     else {
                         npc.state = 'eating'; npc.timer = 0; npc.patience += 100;
@@ -3156,6 +5421,14 @@ window.startShopMapLoop = function() {
                 p.targetPos = null; p.action = 'idle'; p.stuckTimer = 0;
             } else {
                 let nextStep = window.getShopNextStep(p.x, p.y, p.targetPos.x, p.targetPos.y, p.currentFloor);
+                if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service' && p.shopState === 'going_to_take_order') {
+                    window.logShopTutorialDebugThrottled('service_take_order_next_step', '接客チュートリアル: 注文を聞く経路計算', {
+                        現在地: { x: p.x, y: p.y, floor: p.currentFloor },
+                        目的地: p.targetPos,
+                        次の一歩: nextStep || null,
+                        対象客ID: p.targetNpcId
+                    }, 900);
+                }
                 if (nextStep) {
                     if (nextStep.x > p.x) p.face = 'right'; 
                     else if (nextStep.x < p.x) p.face = 'left'; 
@@ -3165,6 +5438,25 @@ window.startShopMapLoop = function() {
                     p.isMoving = true;
                     p.stuckTimer = 0; // 進めたらリセット
                 } else {
+                    if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service' && p.shopState === 'going_to_take_order') {
+                        window.logShopTutorialDebug('接客チュートリアル: 注文を聞く経路が見つかりません', {
+                            現在地: { x: p.x, y: p.y, floor: p.currentFloor },
+                            目的地: p.targetPos,
+                            対象客ID: p.targetNpcId,
+                            料理人: s.tutorialChef ? { x: s.tutorialChef.x, y: s.tutorialChef.y } : null,
+                            客状態: (s.npcs || []).map(n => ({ id: n.id, state: n.state, x: n.x, y: n.y }))
+                        });
+                    }
+                    if (typeof window.isShopTutorialActive === 'function' && window.isShopTutorialActive()) {
+                        p.targetPos = null;
+                        p.action = 'idle';
+                        p.isMoving = false;
+                        p.stuckTimer = 0;
+                        if (p.shopState !== 'tutorial_walking' && p.shopState !== 'tutorial_waiting') {
+                            p.shopState = 'tutorial_waiting';
+                        }
+                        return;
+                    }
                     // ★追加：導線がない場合、数ターン立ち往生した後に気づいて強制撤去モードへ！
                     p.stuckTimer = (p.stuckTimer || 0) + 1;
                     if (p.stuckTimer > 5) {
@@ -3194,7 +5486,8 @@ window.startShopMapLoop = function() {
         let currentLevel = s.shopLevel || s.interiorLevel || 1;
         let maxCust = window.SHOP_LEVEL_MILESTONES[currentLevel] ? window.SHOP_LEVEL_MILESTONES[currentLevel].maxCustomers : 4;
 
-        if (s.isOpen && s.npcs.length < maxCust && Math.random() < 0.05) {
+        const serviceTutorialActive = window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service';
+        if (!serviceTutorialActive && s.isOpen && s.npcs.length < maxCust && Math.random() < 0.05) {
             if (!s.menuList || s.menuList.length === 0) return;
 
             let skins = window.getUnlockedSkins();
@@ -3295,12 +5588,15 @@ window.startShopMapLoop = function() {
                 if (npc.state === 'ordering') {
                     if (npc.forcedTakeout) {
                         window.showShopFloatingText(npc.x, npc.y, `満席か…仕方ないから${dishName}を持ち帰るよ`, "#FF9800", speaker);
+                    } else if (npc.isTutorialCustomer) {
+                        npc.msg = "";
+                        npc.msgColor = "#FFF";
                     } else {
-                        window.showShopFloatingText(npc.x, npc.y, `すいませーん、${dishName}をお願い！`, "#FFF", speaker);
+                        window.showShopFloatingText(npc.x, npc.y, `${dishName}をお願いします！`, "#FFF", speaker);
                     }
                 }
-                if (npc.state === 'eating') window.showShopFloatingText(npc.x, npc.y, `もぐもぐ…${dishName}、美味しい！`, "#FF9800", speaker);
-                if (npc.state === 'paying') window.showShopFloatingText(npc.x, npc.y, "ごちそうさま！お会計！", "#4fc3f7", speaker);
+                if (npc.state === 'eating') window.showShopFloatingText(npc.x, npc.y, `${dishName}、おいしい！`, "#FF9800", speaker);
+                if (npc.state === 'paying') window.showShopFloatingText(npc.x, npc.y, "会計お願い！", "#4fc3f7", speaker);
                 
                 npc.prevState = npc.state;
             }
@@ -3368,7 +5664,7 @@ window.startShopMapLoop = function() {
             } else if (npc.state === 'moving_to_takeout') {
                 let regFront = getRegisterFrontPos();
                 if (npc.x === regFront.x && npc.y === regFront.y) {
-                    let price = s.prices[npc.order] || 100;
+                    let price = (s.prices && s.prices[npc.order]) || 100;
                     let marketPrice = s.marketPrices ? (s.marketPrices[npc.order] || (typeof window.getDisplayShopItemName === 'function' && window.itemCatalog && window.itemCatalog[npc.order] ? window.itemCatalog[npc.order].value * 4 : 100)) : 100;
                     let trait = window.CUSTOMER_TRAITS[npc.skin] || window.CUSTOMER_TRAITS['robot'];
                     let tolerance = 1.2 + (trait.chipChance || 0) + (npc.isRegular ? 0.3 : 0) + mods.toleranceBonus;
@@ -3412,9 +5708,14 @@ window.startShopMapLoop = function() {
                     }
                 }
             } else if (npc.state === 'seated') {
+                if (npc.isTutorialCustomer) {
+                    npc.action = 'idle';
+                    npc.timer = 0;
+                    continue;
+                }
                 npc.timer++; 
                 if (npc.timer > 10) {
-                    let price = s.prices[npc.order] || 100;
+                    let price = (s.prices && s.prices[npc.order]) || 100;
                     let marketPrice = s.marketPrices ? (s.marketPrices[npc.order] || (typeof window.getDisplayShopItemName === 'function' && window.itemCatalog && window.itemCatalog[npc.order] ? window.itemCatalog[npc.order].value * 4 : 100)) : 100;
                     let trait = window.CUSTOMER_TRAITS[npc.skin] || window.CUSTOMER_TRAITS['robot'];
                     let tolerance = 1.2 + (trait.chipChance || 0) + (npc.isRegular ? 0.3 : 0) + mods.toleranceBonus;
@@ -3439,6 +5740,16 @@ window.startShopMapLoop = function() {
                 }
             } else if (npc.state === 'eating') {
                 npc.timer++; 
+                if (npc.isTutorialCustomer) {
+                    if (npc.timer > 28) {
+                        let regFront = getRegisterFrontPos();
+                        npc.state = 'moving_to_register';
+                        npc.targetPos = { x: regFront.x, y: regFront.y, floor: regFront.floor || s.currentFloor || '1F' };
+                        npc.queueJoinedAt = Date.now();
+                        s.dishes = s.dishes.filter(d => d.npcId !== npc.id);
+                    }
+                    continue;
+                }
                 
                 let trait = window.CUSTOMER_TRAITS[npc.skin] || window.CUSTOMER_TRAITS['robot'];
                 
@@ -3479,7 +5790,9 @@ window.startShopMapLoop = function() {
                         if (s.reputation <= 0) return window.triggerBankrupt(building);
                     }
                     
+                    let regFront = getRegisterFrontPos();
                     npc.state = 'moving_to_register';
+                    npc.targetPos = { x: regFront.x, y: regFront.y, floor: regFront.floor || s.currentFloor || '1F' };
                     npc.queueJoinedAt = Date.now();
                     s.dishes = s.dishes.filter(d => d.npcId !== npc.id);
                     
@@ -3541,6 +5854,9 @@ window.startShopMapLoop = function() {
                     }
                 }
             }
+        }
+        if (typeof window.updateShopServiceTutorial === 'function') {
+            window.updateShopServiceTutorial();
         }
         window.renderShopMap();
     }, 300); 
@@ -3770,6 +6086,16 @@ window.checkShopPathSafety = function(testGrid) {
 
 window.openShopTacticEditor = function() {
     window.initShopTactics();
+    if (window.SHOP_STATE) {
+        window.SHOP_STATE.shopTacticEditorPausedAI = true;
+        if (window.SHOP_STATE.player && !window.SHOP_STATE.shopTutorialLockAI) {
+            window.SHOP_STATE.player.shopState = 'editor_paused';
+            window.SHOP_STATE.player.action = 'idle';
+            window.SHOP_STATE.player.targetPos = null;
+        }
+    }
+    window.SHOP_EDITOR_DRAFT_TACTICS = window.cloneShopTacticData(window.aiPet ? window.aiPet.shopTactics : []);
+    window.SHOP_EDITOR_NOTICE = null;
     let ui = document.getElementById('shop-tactic-editor-ui');
     if (!ui) {
         ui = document.createElement('div'); 
@@ -3783,36 +6109,68 @@ window.openShopTacticEditor = function() {
 };
 
 window.closeShopTacticEditor = function() {
+    window.rememberShopTacticEditorScroll();
+    if (!window.commitShopTacticEditor()) return;
     let ui = document.getElementById('shop-tactic-editor-ui');
     if (ui) ui.style.display = 'none';
+    if (window.SHOP_STATE) {
+        window.SHOP_STATE.shopTacticEditorPausedAI = false;
+        if (window.SHOP_STATE.player && window.SHOP_STATE.player.shopState === 'editor_paused') {
+            window.SHOP_STATE.player.shopState = 'idle';
+            window.SHOP_STATE.player.action = 'idle';
+        }
+    }
+    window.SHOP_EDITOR_DRAFT_TACTICS = null;
+    window.SHOP_EDITOR_NOTICE = null;
+    if (window.SHOP_TUTORIAL_TIMER_DIALOGUE_PENDING && window.aiPet && window.SHOP_STATE) {
+        window.SHOP_TUTORIAL_TIMER_DIALOGUE_PENDING = false;
+        setTimeout(() => {
+            if (!window.aiPet || !window.SHOP_STATE || window.aiPet.shopTutorialCompleted || window.aiPet.shopTutorialMindPhase !== 'service') return;
+            const aiName = window.aiPet.name || 'AI店員';
+            window.aiPet.shopTutorialTimerDialogueDone = true;
+            window.runShopTutorialDialogue([
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'よし、その時間ならちょうどいい。開店までに流れをもう一度確認しておくぞ！', wait: 5200 },
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: 'まずは「きく」だ。客が席についたら、そばまで行って注文を聞く。先に料理を決めつけるなよ。', wait: 7200 },
+                { target: 'player', speaker: aiName, color: '#00BCD4', text: '席についた客のところへ行って、注文を聞くんだね。', wait: 6200 },
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '次は「はこぶ」だ。注文が分かったら、冷蔵庫から料理を取り出して客へ出す。', wait: 7200 },
+                { target: 'player', speaker: aiName, color: '#00BCD4', text: '注文を聞いてから料理を運ぶ。ここが大事なんだね。', wait: 6200 },
+                { target: 'chef', speaker: '料理人', color: '#FF9800', text: '最後は「うつ」。食べ終わった客がレジに来たら会計だ。そこまでやって接客完了だぞ。', wait: 7200 },
+                { target: 'player', speaker: aiName, color: '#00BCD4', text: 'きく、はこぶ、うつ。この順で迎えるよ！', wait: 6200 }
+            ]);
+        }, 250);
+    }
 };
 
 // ★追加：マニュアルの追加と削除機能
 window.addShopTacticRule = function(tIdx) {
     if (tIdx === -1) return;
-    window.aiPet.shopTactics[tIdx].rules.push({ condition: 'always', action1: '' });
+    const tactics = window.getShopEditorTactics();
+    if (!tactics[tIdx]) return;
+    tactics[tIdx].rules.push({ condition: 'always', action1: '' });
     window.renderShopTacticEditor();
 };
 window.removeShopTacticRule = function(tIdx, rIdx) {
-    if (tIdx === -1 || !window.aiPet || !window.aiPet.shopTactics || !window.aiPet.shopTactics[tIdx]) return;
+    const tactics = window.getShopEditorTactics();
+    if (tIdx === -1 || !tactics[tIdx]) return;
     
     // データが壊れている/無い場合は配列を初期化
-    if (!Array.isArray(window.aiPet.shopTactics[tIdx].rules)) {
-        window.aiPet.shopTactics[tIdx].rules = [];
+    if (!Array.isArray(tactics[tIdx].rules)) {
+        tactics[tIdx].rules = [];
     }
-    window.aiPet.shopTactics[tIdx].rules.splice(rIdx, 1);
+    tactics[tIdx].rules.splice(rIdx, 1);
     
     // 全て削除された場合は空枠を1つ残す
-    if (window.aiPet.shopTactics[tIdx].rules.length === 0) {
-        window.aiPet.shopTactics[tIdx].rules.push({ condition: 'always', action1: '' });
+    if (tactics[tIdx].rules.length === 0) {
+        tactics[tIdx].rules.push({ condition: 'always', action1: '' });
     }
     window.renderShopTacticEditor();
 };
 
 // ★新規追加：マニュアルの並び替え（スワップ）機能
 window.moveShopTacticRule = function(tIdx, rIdx, direction) {
-    if (tIdx === -1 || !window.aiPet || !window.aiPet.shopTactics || !window.aiPet.shopTactics[tIdx]) return;
-    let rules = window.aiPet.shopTactics[tIdx].rules;
+    const tactics = window.getShopEditorTactics();
+    if (tIdx === -1 || !tactics[tIdx]) return;
+    let rules = tactics[tIdx].rules;
     if (!Array.isArray(rules)) return;
     
     let newIdx = rIdx + direction;
@@ -3828,11 +6186,12 @@ window.moveShopTacticRule = function(tIdx, rIdx, direction) {
 
 // ★新規追加：マニュアルの挿入機能
 window.insertShopTacticRule = function(tIdx, rIdx) {
-    if (tIdx === -1 || !window.aiPet || !window.aiPet.shopTactics || !window.aiPet.shopTactics[tIdx]) return;
-    let rules = window.aiPet.shopTactics[tIdx].rules;
+    const tactics = window.getShopEditorTactics();
+    if (tIdx === -1 || !tactics[tIdx]) return;
+    let rules = tactics[tIdx].rules;
     if (!Array.isArray(rules)) {
-        window.aiPet.shopTactics[tIdx].rules = [];
-        rules = window.aiPet.shopTactics[tIdx].rules;
+        tactics[tIdx].rules = [];
+        rules = tactics[tIdx].rules;
     }
     
     // 指定したインデックスに空枠を挿入（現在のルールは下に押し出される）
@@ -3840,27 +6199,65 @@ window.insertShopTacticRule = function(tIdx, rIdx) {
     window.renderShopTacticEditor();
 };
 
-window.renderShopTacticEditor = function() {
+window.renderShopTacticEditor = function(restoreScroll = false) {
     let ui = document.getElementById('shop-tactic-editor-ui'); if (!ui) return;
     const s = window.SHOP_STATE; // ★追加：ここで s を定義してあげる
     let idx = window.SHOP_EDITOR_TACTIC_INDEX;
+    const editorTactics = window.getShopEditorTactics();
     const tutorialDone = !!(window.aiPet && window.aiPet.shopTutorialCompleted);
-    const timerUnlocked = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTimerUnlocked));
-    if (!tutorialDone || idx >= window.aiPet.shopTactics.length) {
+    const serviceTimerStep = !!(window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service' && window.aiPet.shopTutorialServiceMindDone);
+    const timerUnlocked = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || serviceTimerStep));
+    const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
+    const showTutorialTactic = tutorialMindActive || serviceTimerStep;
+    if (showTutorialTactic) {
+        idx = editorTactics.findIndex(t => t && t.isTutorialTactic);
+        if (idx === -1) idx = 0;
+        window.SHOP_EDITOR_TACTIC_INDEX = idx;
+    } else if (!tutorialDone || idx >= editorTactics.length) {
         idx = -1;
         window.SHOP_EDITOR_TACTIC_INDEX = -1;
     }
     let isDefault = (idx === -1);
-    let currentTactic = isDefault ? { name: "AIにまかせる" } : window.aiPet.shopTactics[idx];
+    let currentTactic = isDefault ? { name: "AIにまかせる" } : editorTactics[idx];
 
-    let defTab = `<div onclick="window.SHOP_EDITOR_TACTIC_INDEX=-1; window.renderShopTacticEditor();" style="padding:10px 15px; background:${isDefault ? '#FF9800' : '#E65100'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[基本] AIにまかせる</div>`;
-    let cusTabs = window.aiPet.shopTactics.map((t, i) => `<div onclick="window.SHOP_EDITOR_TACTIC_INDEX=${i}; window.renderShopTacticEditor();" style="padding:10px 15px; background:${!isDefault && i===idx ? '#2196F3' : '#1565C0'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[マイ] ${t.name}</div>`).join('');
+    let defTab = showTutorialTactic ? '' : `<div onclick="window.SHOP_EDITOR_TACTIC_INDEX=-1; window.renderShopTacticEditor();" style="padding:10px 15px; background:${isDefault ? '#FF9800' : '#E65100'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[基本] AIにまかせる</div>`;
+    let cusTabs = showTutorialTactic
+        ? `<div style="padding:10px 15px; background:#2196F3; color:white; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[練習] ${currentTactic.name}</div>`
+        : editorTactics.map((t, i) => `<div onclick="window.SHOP_EDITOR_TACTIC_INDEX=${i}; window.renderShopTacticEditor();" style="padding:10px 15px; background:${!isDefault && i===idx ? '#2196F3' : '#1565C0'}; color:white; cursor:pointer; border-radius:8px 8px 0 0; font-weight:bold; margin-right:5px; font-size:12px;">[マイ] ${t.name}</div>`).join('');
 
     let rulesHtml = "";
-    if (!tutorialDone) {
+    if (tutorialMindActive || serviceTimerStep) {
+        const guide = window.getShopTutorialMindGuide();
+        const requiredRules = Array.isArray(guide.rules) ? guide.rules : [{ condition: guide.condition, action: guide.action, label: guide.label }];
+        const getActionOptions = (selected, allowedAction) => `<option value="" ${!selected ? 'selected' : ''}>選んでください</option><option value="${allowedAction}" ${selected === allowedAction ? 'selected' : ''}>${allowedAction}</option>`;
+        const ruleRows = requiredRules.map((required, rIdx) => {
+            const rule = currentTactic.rules[rIdx] || { condition: '', action1: '' };
+            const condOptions = `<option value="" ${!rule.condition ? 'selected' : ''}>選んでください</option><option value="${required.condition}" ${rule.condition === required.condition ? 'selected' : ''}>${required.label}</option>`;
+            const actionOptions = getActionOptions(rule.action1 || '', required.action);
+            return `
+                <div style="display:flex; flex-direction:column; background:#222; padding:12px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
+                    <div style="font-weight:bold; color:#FF9800; font-size:14px; margin-bottom:10px;">優先度 ${rIdx + 1}</div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="color:#aaa;">もし</div>
+                        <select onchange="window.setShopEditorRuleCondition(${idx}, ${rIdx}, this.value);" style="padding:8px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1.5;">${condOptions}</select>
+                        <div style="color:#aaa;">なら</div>
+                        <select onchange="window.setShopEditorRuleAction(${idx}, ${rIdx}, this.value);" style="padding:8px; background:#111; color:#fff; border:1px solid #FFC107; border-radius:4px; flex:1;">${actionOptions}</select>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        const ruleHint = requiredRules.map((r, i) => `優先度${i + 1}: 「もし <span style="color:#4FC3F7; font-weight:bold;">${r.label}</span> なら <span style="color:#81C784; font-weight:bold;">${r.action}</span>」`).join('<br>');
+        rulesHtml = `
+            <div style="background:#222; padding:15px; border-radius:8px; border:1px solid #FF9800; color:#ddd; line-height:1.7; margin-bottom:12px;">
+                <div style="color:#FF9800; font-weight:bold; margin-bottom:6px;">料理人の練習課題</div>
+                ${ruleHint}
+            </div>
+            ${ruleRows}
+        `;
+    } else if (!tutorialDone) {
         rulesHtml = `<div style="background:#222; padding:15px; border-radius:8px; border:1px solid #FF9800; color:#ccc; line-height:1.6;">
             まだ店づくりの準備中です。<br>
-            料理人から教わるまでは、AI店員は勝手に営業や作戦行動を始めません。
+            料理人から教わった条件だけ、順番に設定できます。
         </div>`;
     } else if (isDefault) {
         rulesHtml = `<div style="background:#222; padding:15px; border-radius:8px; border:1px solid #FF9800; color:#ccc; line-height:1.5;">
@@ -3870,6 +6267,11 @@ window.renderShopTacticEditor = function() {
     } else {
         rulesHtml = currentTactic.rules.map((rule, rIdx) => {
                 let condOptions = Object.keys(window.SHOP_TACTIC_CONDITIONS).map(k => `<option value="${k}" ${rule.condition === k ? 'selected' : ''}>${window.SHOP_TACTIC_CONDITIONS[k]}</option>`).join('');
+                let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+                let actionOptions = `<option value="" ${!rule.action1 ? 'selected' : ''}>行動を選ぶ</option>` + window.SHOP_AVAILABLE_COMMANDS
+                    .filter(c => baseWords.includes(c.name))
+                    .map(c => `<option value="${c.name}" ${rule.action1 === c.name ? 'selected' : ''}>${c.name}</option>`)
+                    .join('');
                 return `
                     <div style="display:flex; flex-direction:column; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #555; padding-bottom:5px;">
@@ -3883,16 +6285,9 @@ window.renderShopTacticEditor = function() {
                         </div>
                         <div style="display:flex; align-items:center; gap:8px;">
                             <div style="color:#aaa;">もし</div>
-                            <select onchange="window.aiPet.shopTactics[${idx}].rules[${rIdx}].condition = this.value;" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1.5;">${condOptions}</select>
+                            <select onchange="window.setShopEditorRuleCondition(${idx}, ${rIdx}, this.value);" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1.5;">${condOptions}</select>
                             <div style="color:#aaa;">なら</div>
-                            <div style="position:relative; flex:2;">
-                            <input type="text" value="${rule.action1 || ''}" 
-                                onclick="window.showShopTacticPalette(this, ${rIdx}, ${idx})"
-                                oninput="window.updateShopTacticSuggest(this, ${rIdx}, ${idx})" 
-                                onchange="window.saveShopTacticActionIfValid(this, ${rIdx}, ${idx}, '${rule.action1 || ''}')"
-                                placeholder="行動 (例:つくる)" style="padding:5px; background:#111; color:#fff; border:1px solid #FFC107; border-radius:4px; width:100%; box-sizing:border-box;">
-                            <div id="shop-suggest-box-${rIdx}" class="tactic-suggest-box" style="display:none; position:absolute; top:100%; left:0; width:100%; max-height:150px; overflow-y:auto; background:#111; border:1px solid #555; z-index:100; box-shadow:0 4px 10px rgba(0,0,0,0.8);"></div>
-                        </div>
+                            <select onchange="window.setShopEditorRuleAction(${idx}, ${rIdx}, this.value);" style="padding:5px; background:#111; color:#fff; border:1px solid #FFC107; border-radius:4px; flex:2;">${actionOptions}</select>
                     </div>
                 </div>
             `;
@@ -3903,7 +6298,7 @@ window.renderShopTacticEditor = function() {
 
     const timerHtml = timerUnlocked ? `
             <div style="margin-bottom:20px; padding:15px; background:#222; border-radius:8px; border:1px solid #444;">
-                <div style="font-size:14px; color:#FF9800; font-weight:bold; margin-bottom:10px;">⏰ 営業時間自動タイマー設定（3分前バリデーション機能付き）</div>
+                <div style="font-size:14px; color:#FF9800; font-weight:bold; margin-bottom:10px;">⏰ 営業時間自動タイマー設定${serviceTimerStep ? '（練習：3〜4分後）' : '（3分前バリデーション機能付き）'}</div>
                 <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
                     <div>
                         <span style="color:#ccc; font-size:13px;">開店時間: </span>
@@ -3915,16 +6310,10 @@ window.renderShopTacticEditor = function() {
                         <input type="number" id="input-close-hour" value="${s.closeHour}" min="0" max="23" style="width:50px; background:#111; color:#fff; border:1px solid #555; text-align:center; padding:4px; border-radius:4px;"> 時
                         <input type="number" id="input-close-minute" value="${s.closeMinute}" min="0" max="59" style="width:50px; background:#111; color:#fff; border:1px solid #555; text-align:center; padding:4px; border-radius:4px;"> 分
                     </div>
-                    <button onclick="window.saveShopTimerSettings()" style="padding:6px 15px; background:#FF9800; color:black; border:none; border-radius:4px; cursor:pointer; font-weight:bold; font-size:12px; box-shadow: 0 2px 4px rgba(0,0,0,0.4);">保存して予約する</button>
                 </div>
-                <div style="font-size:11px; color:#aaa; margin-top:8px;">※開店時間は現在時刻から3分以上先である必要があります。開店1分前に自動でアナウンスが流れます。</div>
+                <div style="font-size:11px; color:#aaa; margin-top:8px;">※${serviceTimerStep ? '練習中は開店時間を現在時刻から3分以上、4分以内に設定してください。' : '開店時間は現在時刻から3分以上先である必要があります。'}開店1分前に自動でアナウンスが流れます。</div>
             </div>
-    ` : `
-            <div style="margin-bottom:20px; padding:15px; background:#222; border-radius:8px; border:1px solid #555; color:#bbb; line-height:1.6;">
-                <div style="font-size:14px; color:#FF9800; font-weight:bold; margin-bottom:8px;">⏰ 営業時間自動タイマー</div>
-                まだ開店準備のチュートリアル中です。営業時間の設定は、料理人から営業の流れを教わると解放されます。
-            </div>
-    `;
+    ` : '';
 
         ui.innerHTML = `
         <h2 style="color:#FF9800; margin-bottom:10px;">📋 経営マニュアル (AIマインド)</h2>
@@ -3935,19 +6324,22 @@ window.renderShopTacticEditor = function() {
             
             <div style="margin-bottom:20px; padding:10px; background:#222; border-radius:8px; display:flex; justify-content:space-between; align-items:center;">
                 <span style="color:#fff; font-weight:bold;">🕒 現在の営業状態: <span style="color:${window.SHOP_STATE.isOpen ? '#4CAF50' : '#f44336'}">${window.SHOP_STATE.isOpen ? '営業中' : '準備中(閉店)'}</span></span>
-                <button ${timerUnlocked ? `onclick="window.SHOP_STATE.isOpen = !window.SHOP_STATE.isOpen; window.renderShopTacticEditor();"` : 'disabled'} style="padding:8px 15px; background:${timerUnlocked ? (window.SHOP_STATE.isOpen ? '#f44336' : '#4CAF50') : '#555'}; color:#fff; border:none; border-radius:4px; cursor:${timerUnlocked ? 'pointer' : 'not-allowed'}; font-weight:bold;">${timerUnlocked ? (window.SHOP_STATE.isOpen ? '店を閉める' : 'お店を開ける') : '営業は未解放'}</button>
+                <span style="padding:8px 15px; background:#444; color:#ddd; border-radius:4px; font-weight:bold;">${timerUnlocked ? (serviceTimerStep ? '営業は練習中' : '自動タイマー営業') : '営業は未解放'}</span>
             </div>
 
             ${timerHtml}
 
+            <div id="shop-tactic-editor-notice" style="display:${window.SHOP_EDITOR_NOTICE ? 'block' : 'none'}; margin-bottom:14px; padding:12px 14px; border:1px solid ${window.SHOP_EDITOR_NOTICE?.type === 'error' ? '#f44336' : '#FFC107'}; border-radius:8px; background:${window.SHOP_EDITOR_NOTICE?.type === 'error' ? '#3a1717' : '#332600'}; color:${window.SHOP_EDITOR_NOTICE?.type === 'error' ? '#ffcdd2' : '#FFE082'}; font-weight:bold; line-height:1.5;">${window.SHOP_EDITOR_NOTICE ? window.SHOP_EDITOR_NOTICE.message : ''}</div>
+
             <div style="margin-bottom:20px; display:flex; justify-content:space-between;">
-                <div><span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span><input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.aiPet.shopTactics[${idx}].name = this.value;"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px;"></div>
-                <button onclick="window.aiPet.currentShopTacticName = '${currentTactic.name}'; alert('作戦を「${currentTactic.name}」に切り替えました！');" style="padding:8px 15px; background:#4CAF50; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">✅ この作戦を適用する</button>
+                <div><span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span><input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.setShopEditorTacticName(${idx}, this.value);"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px;"></div>
+                <div style="color:#aaa; font-size:13px;">閉じると、このタブの作戦が保存・適用されます</div>
             </div>
-            <div style="max-height:300px; overflow-y:auto; padding-right:10px;">${rulesHtml}</div>
+            <div id="shop-tactic-editor-rules-scroll" style="max-height:300px; overflow-y:auto; padding-right:10px;">${rulesHtml}</div>
         </div>
-        <button onclick="window.closeShopTacticEditor()" style="margin-top:20px; padding:15px 40px; font-size:18px; font-weight:bold; background:#555; color:white; border:2px solid #777; border-radius:8px; cursor:pointer;">閉じる</button>
+        <button onclick="window.closeShopTacticEditor()" style="margin-top:20px; padding:15px 40px; font-size:18px; font-weight:bold; background:#4CAF50; color:white; border:2px solid #66BB6A; border-radius:8px; cursor:pointer;">保存して閉じる</button>
     `;
+    if (restoreScroll) setTimeout(window.restoreShopTacticEditorScroll, 0);
 };
 
 window.showShopTacticPalette = function(inputElem, rIdx, tIdx) {
@@ -3956,11 +6348,13 @@ window.showShopTacticPalette = function(inputElem, rIdx, tIdx) {
     if (!suggestBox) return;
 
     let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
+    if (tutorialMindActive) baseWords = [window.getShopTutorialMindGuide().action];
     let html = '';
     
     window.SHOP_AVAILABLE_COMMANDS.forEach(c => {
         if (baseWords.includes(c.name)) {
-            html += `<div onclick="window.aiPet.shopTactics[${tIdx}].rules[${rIdx}].action1 = '${c.name}'; window.renderShopTacticEditor();" style="padding:10px; cursor:pointer; border-bottom:1px solid #444; background:#222;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#222'">${c.name}</div>`;
+            html += `<div onclick="window.setShopEditorRuleAction(${tIdx}, ${rIdx}, '${c.name}');" style="padding:10px; cursor:pointer; border-bottom:1px solid #444; background:#222;" onmouseover="this.style.background='#444'" onmouseout="this.style.background='#222'">${c.name}</div>`;
         }
     });
     
@@ -3976,10 +6370,12 @@ window.updateShopTacticSuggest = function(inputElem, rIdx, tIdx) {
 
     if (val.length === 0) { window.showShopTacticPalette(inputElem, rIdx, tIdx); return; }
     let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
+    if (tutorialMindActive) baseWords = [window.getShopTutorialMindGuide().action];
     
     let matches = window.SHOP_AVAILABLE_COMMANDS.filter(c => baseWords.includes(c.name) && c.name.includes(val));
     if (matches.length > 0) {
-        suggestBox.innerHTML = matches.map(c => `<div onclick="window.aiPet.shopTactics[${tIdx}].rules[${rIdx}].action1 = '${c.name}'; window.renderShopTacticEditor();" style="padding:10px; cursor:pointer; background:#222;">${c.name}</div>`).join('');
+        suggestBox.innerHTML = matches.map(c => `<div onclick="window.setShopEditorRuleAction(${tIdx}, ${rIdx}, '${c.name}');" style="padding:10px; cursor:pointer; background:#222;">${c.name}</div>`).join('');
         suggestBox.style.display = 'block';
     } else {
         suggestBox.style.display = 'none';
@@ -3988,13 +6384,18 @@ window.updateShopTacticSuggest = function(inputElem, rIdx, tIdx) {
 
 window.saveShopTacticActionIfValid = function(inputElem, rIdx, tIdx, originalValue) {
     let val = inputElem.value.trim();
-    if (val === '') { window.aiPet.shopTactics[tIdx].rules[rIdx].action1 = ''; window.renderShopTacticEditor(); return; }
+    if (val === '') { window.setShopEditorRuleAction(tIdx, rIdx, ''); return; }
 
     let baseWords = window.aiPet.apprentice && window.aiPet.apprentice.learnedWords ? window.aiPet.apprentice.learnedWords : [];
+    const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
+    if (tutorialMindActive) baseWords = [window.getShopTutorialMindGuide().action];
     if (baseWords.includes(val) && window.SHOP_AVAILABLE_COMMANDS.find(c => c.name === val)) {
-        window.aiPet.shopTactics[tIdx].rules[rIdx].action1 = val;
+        const tactics = window.getShopEditorTactics();
+        if (tactics[tIdx] && tactics[tIdx].rules && tactics[tIdx].rules[rIdx]) {
+            tactics[tIdx].rules[rIdx].action1 = val;
+        }
     } else {
-        alert(`「${val}」はまだ習得していないか、レストランで使えない言葉です！`);
+        window.showShopTacticEditorNotice(`「${val}」はまだ習得していないか、レストランで使えない言葉です。`, 'error');
         inputElem.value = originalValue; 
     }
     window.renderShopTacticEditor();
@@ -4104,7 +6505,7 @@ window.getShopCustomerName = function(skin) {
 };
 
 // ★追加：営業時間タイマーのバリデーション＆保存関数
-window.saveShopTimerSettings = function() {
+window.saveShopTimerSettings = function(options = {}) {
     let oh = parseInt(document.getElementById('input-open-hour').value) || 0;
     let om = parseInt(document.getElementById('input-open-minute').value) || 0;
     let ch = parseInt(document.getElementById('input-close-hour').value) || 0;
@@ -4121,6 +6522,7 @@ window.saveShopTimerSettings = function() {
     
     // 現在時刻からの差分（分）を計算
     let diff = (target - now) / (1000 * 60);
+    const serviceTimerStep = !!(window.aiPet && !window.aiPet.shopTutorialCompleted && window.aiPet.shopTutorialMindPhase === 'service' && window.aiPet.shopTutorialServiceMindDone);
     if (diff < 3) {
         if (typeof window.showGameTutorial === 'function') {
             window.showGameTutorial(
@@ -4128,8 +6530,18 @@ window.saveShopTimerSettings = function() {
                 "開店時間は、現在時刻から見て<span style='color:#FF5252; font-weight:bold;'>【3分以上先】</span>の時間を設定してください。<br>（AI店員が開店準備を整える時間が必要です！）"
             );
         }
-        window.renderShopTacticEditor();
-        return;
+        window.renderShopTacticEditor(true);
+        return false;
+    }
+    if (serviceTimerStep && diff > 4) {
+        if (typeof window.showGameTutorial === 'function') {
+            window.showGameTutorial(
+                "❌ 時間設定エラー",
+                "練習中の開店時間は、現在時刻から<span style='color:#FF5252; font-weight:bold;'>【3分以上、4分以内】</span>にしてください。<br>まずは短い待ち時間で、接客の流れを一緒に確認しましょう。"
+            );
+        }
+        window.renderShopTacticEditor(true);
+        return false;
     }
 
     const s = window.SHOP_STATE;
@@ -4138,14 +6550,29 @@ window.saveShopTimerSettings = function() {
     s.closeHour = ch;
     s.closeMinute = cm;
     s.announcedOneMinBefore = false; // アナウンスフラグリセット
+    s.nextOpenAt = target.getTime();
+    if (serviceTimerStep) {
+        window.aiPet.shopTutorialTimerSet = true;
+        window.aiPet.shopTutorialOneMinDialogueDone = false;
+        window.aiPet.shopTutorialTimerDialogueDone = false;
+        window.aiPet.shopTutorialOpenedForTimer = false;
+        s.shopTutorialOpenedForTimer = false;
+        window.aiPet.shopTutorialServiceWaitLineIndex = 0;
+        window.aiPet.shopTutorialLastWaitLineAt = Date.now();
+        if (options.queueTutorialDialogue) {
+            window.SHOP_TUTORIAL_TIMER_DIALOGUE_PENDING = true;
+        }
+        if (typeof saveGameData === 'function') saveGameData();
+    }
     
-    if (typeof window.showGameTutorial === 'function') {
+    if (!options.silent && typeof window.showGameTutorial === 'function') {
         window.showGameTutorial(
             "⏰ タイマー予約完了",
             `自動営業タイマーをセットしました！<br><br>開店: <span style='color:#4CAF50; font-weight:bold;'>${oh.toString().padStart(2,'0')}:${om.toString().padStart(2,'0')}</span><br>閉店: <span style='color:#ff5252; font-weight:bold;'>${ch.toString().padStart(2,'0')}:${cm.toString().padStart(2,'0')}</span>`
         );
     }
-    window.renderShopTacticEditor();
+    if (!options.silent) window.renderShopTacticEditor(true);
+    return true;
 };
 
 // ==========================================

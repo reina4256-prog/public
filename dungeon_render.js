@@ -178,6 +178,39 @@ window.DUNGEON_SPRITES = {
     },
 
     // キャラクター
+    "chef_down": {
+        "img": "chef_dungeon_walk.png",
+        "sx": 116,
+        "sy": 68,
+        "sw": 453,
+        "sh": 684,
+        "scale": 0.4
+    },
+    "chef_up": {
+        "img": "chef_dungeon_walk.png",
+        "sx": 827,
+        "sy": 68,
+        "sw": 453,
+        "sh": 684,
+        "scale": 0.4
+    },
+    "chef_left": {
+        "img": "chef_dungeon_walk.png",
+        "sx": 827,
+        "sy": 827,
+        "sw": 453,
+        "sh": 684,
+        "scale": 0.4
+    },
+    "chef_right": {
+        "img": "chef_dungeon_walk.png",
+        "sx": 128,
+        "sy": 827,
+        "sw": 453,
+        "sh": 684,
+        "scale": 0.4
+    },
+
     "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_left": { "img": "robot_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
