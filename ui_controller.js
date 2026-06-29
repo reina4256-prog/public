@@ -3,6 +3,20 @@
 // ==========================================
 // ★ 追加：いつでも呼び出せる汎用チュートリアルウィンドウ
 // ==========================================
+window.getQuestInventoryItemId = function(item) {
+    if (typeof item === 'string') return item;
+    return item && typeof item.id === 'string' ? item.id : '';
+};
+
+window.countQuestInventoryItems = function(inventory, ids) {
+    const targets = Array.isArray(ids) ? ids : [ids];
+    return (inventory || []).filter(item => targets.includes(window.getQuestInventoryItemId(item))).length;
+};
+
+window.formatQuestDescription = function(desc) {
+    return String(desc || '').replace(/\s*\((honey|strawberry|melon)\)/g, '');
+};
+
 window.showGameTutorial = function(title, message, callback) {
     // 既に開いていたらスキップ
     if (document.getElementById('in-game-tutorial')) return;
@@ -274,7 +288,8 @@ window.openStatusMenu = function() {
                         
                         currentMasterQuests.forEach((q, idx) => {
                             let progressStr = "";
-                            const desc = q.desc;
+                            const qData = typeof aiPet.getMasterQuestData === 'function' ? aiPet.getMasterQuestData(q.masterType, q.rank) : null;
+                            const desc = window.formatQuestDescription(qData && qData.desc ? qData.desc : q.desc);
                             let isItemQuest = true;
                             
                             let isStatQuest = false;
@@ -334,7 +349,10 @@ window.openStatusMenu = function() {
                                 if (desc.includes("鉄くず")) itemsStr.push(formatReq("鉄くず", inv.filter(i => i === 'scrap_metal').length, 3));
                                 if (desc.includes("芸術品")) itemsStr.push(formatReq("芸術品", inv.filter(i => typeof i === 'string' && i.includes('_art_')).length, 3));
                                 
-                                if (desc.includes("ヌシ")) itemsStr.push(formatReq("ヌシ", inv.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length, 1));
+                                if (desc.includes("ヌシ")) itemsStr.push(formatReq("ヌシ", inv.filter(i => {
+                                    const itemId = (typeof i === 'string' ? i : i.id);
+                                    return itemId === 'fish_boss_river' || itemId === 'fish_boss_sea';
+                                }).length, 1));
                                 else if (desc.includes("魚")) itemsStr.push(formatReq("魚", inv.filter(i => typeof i === 'string' && i.startsWith('fish_')).length, desc.includes("3匹") ? 3 : 1));
                                 
                                 if (desc.includes("質のいい")) itemsStr.push(formatReq("質のいい野菜", inv.filter(i => typeof i === 'string' && i.startsWith('high_')).length, 3));
@@ -364,19 +382,14 @@ window.openStatusMenu = function() {
                                 // ★追加：パティシエのクエスト進捗表示（レストランデータを参照）
                                 // ==========================================
                                 else if (q.masterType === 'pastry_chef') {
-                                    // 自分のレストランのデータを取得
-                                    let myRest = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop);
-                                    let shopRecipes = myRest && myRest.shopData && myRest.shopData.recipes ? myRest.shopData.recipes : {};
-
-                                    if (q.rank === 1) itemsStr.push(formatReq("ハチミツ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'honey').length, 3));
-                                    else if (q.rank === 2) itemsStr.push(formatReq("イチゴ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'strawberry').length, 3));
-                                    else if (q.rank === 3) itemsStr.push(formatReq("ショートケーキの閃き", shopRecipes['dish_strawberry_cake'] ? 1 : 0, 1));
-                                    else if (q.rank === 4) itemsStr.push(formatReq("メロン", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'melon').length, 1));
-                                    else if (q.rank === 5) itemsStr.push(formatReq("メロンパフェの閃き", shopRecipes['dish_melon_parfait'] ? 1 : 0, 1));
-                                    else if (q.rank === 6) itemsStr.push(formatReq("ハチミツプリンの閃き", shopRecipes['dish_honey_pudding'] ? 1 : 0, 1));
+                                    if (q.rank === 1) itemsStr.push(formatReq("ハチミツ", window.countQuestInventoryItems(inv, 'honey'), 3));
+                                    else if (q.rank === 2) itemsStr.push(formatReq("イチゴ", window.countQuestInventoryItems(inv, ['strawberry', 'high_strawberry']), 3));
+                                    else if (q.rank === 3) itemsStr.push(formatReq("イチゴ系スイーツの閃き", window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('strawberry') ? 1 : 0, 1));
+                                    else if (q.rank === 4) itemsStr.push(formatReq("メロン", window.countQuestInventoryItems(inv, ['melon', 'high_melon']), 1));
+                                    else if (q.rank === 5) itemsStr.push(formatReq("メロン系スイーツの閃き", window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('melon') ? 1 : 0, 1));
+                                    else if (q.rank === 6) itemsStr.push(formatReq("ハチミツ系スイーツの閃き", window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('honey') ? 1 : 0, 1));
                                     else if (q.rank === 7 || q.rank === 8) {
-                                        let maxMastery = 0;
-                                        for (let k in shopRecipes) { if (shopRecipes[k].mastery > maxMastery) maxMastery = shopRecipes[k].mastery; }
+                                        let maxMastery = window.getPastryMaxShopRecipeProgress ? window.getPastryMaxShopRecipeProgress() : 0;
                                         itemsStr.push(formatReq("最高完成度(%)", maxMastery, q.rank === 7 ? 50 : 100));
                                     }
                                     else if (q.rank === 9) itemsStr.push(formatReq("デザートの販売数", q.qVal || 0, 10));
@@ -402,7 +415,6 @@ window.openStatusMenu = function() {
 
                             // ★追加：条件達成（クリア）判定を行い、達成していれば緑色のメッセージで上書きする！
                             let isCleared = false;
-                            const qData = typeof aiPet.getMasterQuestData === 'function' ? aiPet.getMasterQuestData(q.masterType, q.rank) : null;
                             
                             // check()関数が正しく判定できるよう、一時的にqValをセットする
                             if (aiPet.apprentice) aiPet.apprentice.qVal = q.qVal; 
@@ -422,7 +434,7 @@ window.openStatusMenu = function() {
                             html += `
                                 <div style="margin-bottom: ${isLast ? '0' : '8px'}; padding-bottom: ${isLast ? '0' : '8px'}; border-bottom: ${isLast ? 'none' : '1px dashed rgba(255,255,255,0.2)'};">
                                     <div style="font-weight:bold; color:#fff; margin-bottom: 3px;">${icon} ${q.name}</div>
-                                    <div style="font-size: 11px; color:#ccc; line-height: 1.4;">${q.desc} <br>${progressStr}</div>
+                                    <div style="font-size: 11px; color:#ccc; line-height: 1.4;">${desc} <br>${progressStr}</div>
                                 </div>
                             `;
                         });
@@ -2767,6 +2779,106 @@ let rouletteState = 'idle';
 let selectedEvoIndex = -1;
 let effectTicks = 0;
 let previousSkin = "";
+let evolutionVideoEl = null;
+let evolutionVideoFallbackTimer = null;
+
+function getEvolutionVideoPath(fromSkin, toSkin) {
+    const from = fromSkin || '';
+    const to = toSkin || '';
+    const base = (to.split('_')[0] || from.split('_')[0] || '').trim();
+    if (!base || !to.startsWith(base + '_')) return "";
+
+    const toSuffix = to.slice(base.length + 1);
+    if (!from || from === base || !from.includes('_')) {
+        return `${base}_evol_to_${toSuffix}.mp4`;
+    }
+
+    if (!from.startsWith(base + '_')) return "";
+    const fromSuffix = from.slice(base.length + 1);
+    return `${base}_evol_from_${fromSuffix}_to_${toSuffix}.mp4`;
+}
+
+function cleanupEvolutionVideo() {
+    if (evolutionVideoFallbackTimer) {
+        clearTimeout(evolutionVideoFallbackTimer);
+        evolutionVideoFallbackTimer = null;
+    }
+    if (evolutionVideoEl) {
+        evolutionVideoEl.pause();
+        evolutionVideoEl.removeAttribute('src');
+        evolutionVideoEl.load();
+        evolutionVideoEl.remove();
+        evolutionVideoEl = null;
+    }
+    const canvas = document.getElementById('evolutionCanvas');
+    if (canvas) canvas.style.display = '';
+}
+
+function finishEvolutionPresentation() {
+    cleanupEvolutionVideo();
+    if (typeof updateStatUI === 'function') updateStatUI();
+    document.getElementById('evolutionOverlay').classList.remove('active');
+    window.isGamePaused = false;
+}
+
+function startFallbackEvolutionEffect() {
+    cleanupEvolutionVideo();
+    rouletteState = 'effect';
+    effectTicks = 0;
+}
+
+function tryStartEvolutionVideo(fromSkin, toSkin) {
+    const src = getEvolutionVideoPath(fromSkin, toSkin);
+    const container = document.getElementById('roulette-container');
+    const canvas = document.getElementById('evolutionCanvas');
+    if (!src || !container) return false;
+
+    cleanupEvolutionVideo();
+    if (canvas) canvas.style.display = 'none';
+
+    const video = document.createElement('video');
+    video.id = 'evolutionVideo';
+    video.src = src;
+    video.preload = 'auto';
+    video.playsInline = true;
+    video.muted = false;
+    video.style.cssText = 'width:100%; max-width:560px; height:300px; object-fit:contain; background:#000; border-radius:8px;';
+    evolutionVideoEl = video;
+    container.appendChild(video);
+
+    let settled = false;
+    const fallback = () => {
+        if (settled) return;
+        settled = true;
+        startFallbackEvolutionEffect();
+    };
+    const playVideo = () => {
+        if (settled) return;
+        settled = true;
+        if (evolutionVideoFallbackTimer) {
+            clearTimeout(evolutionVideoFallbackTimer);
+            evolutionVideoFallbackTimer = null;
+        }
+        const playPromise = video.play();
+        if (playPromise && typeof playPromise.catch === 'function') {
+            playPromise.catch(() => {
+                video.muted = true;
+                const mutedPlayPromise = video.play();
+                if (mutedPlayPromise && typeof mutedPlayPromise.catch === 'function') {
+                    mutedPlayPromise.catch(fallback);
+                }
+            });
+        }
+    };
+
+    video.addEventListener('canplay', playVideo, { once: true });
+    video.addEventListener('error', fallback, { once: true });
+    video.addEventListener('ended', finishEvolutionPresentation, { once: true });
+    evolutionVideoFallbackTimer = setTimeout(fallback, 1200);
+    video.load();
+    rouletteState = 'video';
+    return true;
+}
 
 // ★修正：プリロードも余計なすり替えを削除！
 window.openEvolutionMenu = function() {
@@ -2929,8 +3041,6 @@ function rouletteAnimLoop() {
             
             if (rouletteSpeed < 0.002) {
                 rouletteSpeed = 0;
-                rouletteState = 'effect';
-                effectTicks = 0;
                 
                 let pointerAngle = (-Math.PI / 2) - rouletteRotation;
                 pointerAngle = (pointerAngle % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI);
@@ -2960,9 +3070,15 @@ function rouletteAnimLoop() {
                 if (!aiPet.discoveredMonsters) aiPet.discoveredMonsters = [];
                 if (!aiPet.discoveredMonsters.includes(selectedEvo.next)) aiPet.discoveredMonsters.push(selectedEvo.next);
                 saveGameData();
+
+                if (!tryStartEvolutionVideo(oldSkin, selectedEvo.next)) {
+                    startFallbackEvolutionEffect();
+                }
             }
         }
 
+    } else if (rouletteState === 'video') {
+        // 動画の ended/error/canplay 側で進行する。未配置なら自動で既存演出へ戻る。
     } else if (rouletteState === 'effect') {
         effectTicks++;
         const targetEvo = rouletteCandidates[selectedEvoIndex].next;
@@ -3017,9 +3133,7 @@ function rouletteAnimLoop() {
         }
         
         if (effectTicks > 240) {
-            if (typeof updateStatUI === 'function') updateStatUI();
-            document.getElementById('evolutionOverlay').classList.remove('active');
-            window.isGamePaused = false;
+            finishEvolutionPresentation();
             return; 
         }
     }
@@ -3038,6 +3152,7 @@ window.startEvolutionRoulette = function() {
 };
 
 window.cancelEvolution = function() {
+    cleanupEvolutionVideo();
     document.getElementById('evolutionOverlay').classList.remove('active');
 };
 
@@ -3047,6 +3162,183 @@ window.cancelEvolution = function() {
 let currentEncounterMaster = null;
 let currentEncounterMode = '';
 let savedEncounterMsg = ""; 
+
+function getMasterEncounterArea(masterType, hero) {
+    const target = hero && hero.interactionTarget ? hero.interactionTarget : null;
+    const targetType = target && target.type ? String(target.type) : "";
+    const targetName = target && target.name ? String(target.name) : "";
+
+    if (masterType === 'fishing') {
+        if (targetType === 'sea' || targetName.includes('海')) return 'sea';
+        return 'river';
+    }
+
+    if (masterType === 'explore') {
+        const currentFacility = hero && hero.exploreState && hero.exploreState.currentFacility ? String(hero.exploreState.currentFacility) : "";
+        if (currentFacility === 'mountain' || targetType === 'mountain' || targetName.includes('山')) return 'mountain';
+        return 'forest';
+    }
+
+    return '';
+}
+
+function getMasterEncounterVideoSrc(masterType, hero) {
+    const area = getMasterEncounterArea(masterType, hero);
+    const videoMap = {
+        explore: area === 'mountain' ? 'encount_adventurer_mountain.mp4' : 'encount_adventurer_forest.mp4',
+        fishing: area === 'sea' ? 'encount_fisherman_sea.mp4' : 'encount_fisherman_river.mp4',
+        building: 'encount_builder.mp4',
+        farming: 'encount_farmer.mp4',
+        cooking: 'encount_chef.mp4',
+        smithing: 'encount_smith.mp4'
+    };
+    const src = videoMap[masterType] || null;
+    console.info('[MasterEncounterVideo] resolved source', {
+        masterType,
+        area,
+        src,
+        interactionTarget: hero && hero.interactionTarget ? {
+            type: hero.interactionTarget.type,
+            name: hero.interactionTarget.name
+        } : null,
+        exploreState: hero && hero.exploreState ? {
+            currentFacility: hero.exploreState.currentFacility
+        } : null
+    });
+    return src;
+}
+
+window.playMasterEncounterVideo = function(masterType, onFinished, onFallback) {
+    const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
+    const src = getMasterEncounterVideoSrc(masterType, hero);
+    if (!src) {
+        console.warn('[MasterEncounterVideo] no video mapping; fallback to silhouette intro', { masterType });
+        return false;
+    }
+
+    console.info('[MasterEncounterVideo] attempting playback', {
+        masterType,
+        src,
+        locationHref: window.location && window.location.href
+    });
+
+    let overlay = document.getElementById('master-encounter-video-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'master-encounter-video-overlay';
+        overlay.style.cssText = [
+            'position:fixed',
+            'inset:0',
+            'display:none',
+            'align-items:center',
+            'justify-content:center',
+            'background:#000',
+            'z-index:100000',
+            'overflow:hidden'
+        ].join(';');
+        document.body.appendChild(overlay);
+    }
+
+    overlay.innerHTML = '';
+    const video = document.createElement('video');
+    video.src = src;
+    video.autoplay = true;
+    video.playsInline = true;
+    video.controls = false;
+    video.preload = 'auto';
+    video.style.cssText = 'width:100%;height:100%;object-fit:contain;background:#000;';
+    overlay.appendChild(video);
+
+    let settled = false;
+    const cleanup = (callback) => {
+        if (settled) return;
+        settled = true;
+        console.info('[MasterEncounterVideo] cleanup', {
+            masterType,
+            src,
+            readyState: video.readyState,
+            networkState: video.networkState,
+            currentSrc: video.currentSrc
+        });
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+        if (typeof callback === 'function') callback();
+    };
+    const fallback = (reason, detail) => {
+        if (settled) return;
+        console.warn('[MasterEncounterVideo] fallback to silhouette intro', {
+            masterType,
+            src,
+            reason,
+            detail,
+            readyState: video.readyState,
+            networkState: video.networkState,
+            currentSrc: video.currentSrc,
+            error: video.error ? {
+                code: video.error.code,
+                message: video.error.message
+            } : null
+        });
+        cleanup(onFallback);
+    };
+    const finish = () => {
+        console.info('[MasterEncounterVideo] ended; continue to greeting', {
+            masterType,
+            src,
+            duration: video.duration,
+            currentTime: video.currentTime
+        });
+        cleanup(onFinished);
+    };
+
+    video.addEventListener('ended', finish, { once: true });
+    video.addEventListener('loadedmetadata', () => console.info('[MasterEncounterVideo] loadedmetadata', {
+        masterType,
+        src,
+        duration: video.duration,
+        videoWidth: video.videoWidth,
+        videoHeight: video.videoHeight,
+        currentSrc: video.currentSrc
+    }), { once: true });
+    video.addEventListener('canplay', () => console.info('[MasterEncounterVideo] canplay', {
+        masterType,
+        src,
+        readyState: video.readyState,
+        networkState: video.networkState
+    }), { once: true });
+    video.addEventListener('playing', () => console.info('[MasterEncounterVideo] playing', {
+        masterType,
+        src,
+        muted: video.muted,
+        paused: video.paused
+    }), { once: true });
+    video.addEventListener('error', () => fallback('video error event'), { once: true });
+    video.addEventListener('stalled', () => fallback('video stalled event'), { once: true });
+    video.addEventListener('abort', () => fallback('video abort event'), { once: true });
+
+    overlay.style.display = 'flex';
+    window.isGamePaused = true;
+
+    const playPromise = video.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+        playPromise.catch((err) => fallback('video.play() rejected', {
+            name: err && err.name,
+            message: err && err.message
+        }));
+    }
+    return true;
+};
+
+window.continueMasterEncounterIntroAfterVideo = function(masterType, message = "") {
+    console.info('[MasterEncounterVideo] continue encounter_intro after video', { masterType });
+    currentEncounterMaster = masterType;
+    currentEncounterMode = 'encounter_intro';
+    savedEncounterMsg = message || "";
+    if (typeof window.confirmEncounter === 'function') window.confirmEncounter(true);
+};
 
 // ==========================================
 // ★ 修正：UIからバイトを「クエストとして受注」する機能（ヒント形式版）
@@ -3822,6 +4114,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'building') { hero.apprentice.title = "一流建築士"; hero.skills.building = 20; hero.stats.power += 30; hero.stats.intel += 30; }
         else if (mType === 'pharmacist') { hero.apprentice.title = "宮廷薬剤師"; hero.skills.mixing = 20; hero.stats.intel += 50; hero.inventory.push('elixir'); }
         else if (mType === 'tailor') { hero.apprentice.title = "カリスマ仕立屋"; hero.skills.tailoring = 20; hero.stats.beauty += 50; hero.inventory.push('mystic_fabric'); }
+        else if (mType === 'pastry_chef') { hero.apprentice.title = "グラン・パティシエ"; hero.skills.cooking = Math.max(hero.skills.cooking || 0, 15); hero.skills.pastry = 20; hero.stats.intel += 35; hero.stats.beauty += 35; hero.stats.mood += 20; hero.inventory.push('honey'); }
 
         if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD(); 
@@ -3940,8 +4233,30 @@ window.checkMasterVisit = function(masterType, visitAction) {
     // ★追加：まだ顔合わせをしていない場合（metMastersにない場合）は、初回挨拶(encounter_intro)を強制する！
     if (!app.metMasters) app.metMasters = [];
     if (!app.metMasters.includes(masterType)) {
-        if (typeof window.openEncounterUI === 'function') {
-            window.openEncounterUI(masterType, "", 'encounter_intro');
+        console.info('[MasterEncounterVideo] first encounter detected', {
+            masterType,
+            metMasters: app.metMasters ? app.metMasters.slice() : [],
+            hasPlayer: !!hero,
+            currentMaster: app.currentMaster,
+            rank: app.rank && app.rank[masterType],
+            isRetired: !!(app.retired && app.retired[masterType])
+        });
+        const openFallbackIntro = () => {
+            console.warn('[MasterEncounterVideo] opening fallback encounter_intro', { masterType });
+            if (typeof window.openEncounterUI === 'function') {
+                window.openEncounterUI(masterType, "", 'encounter_intro');
+            }
+        };
+        const continueAfterVideo = () => {
+            console.info('[MasterEncounterVideo] video finished; invoking encounter_intro continuation', { masterType });
+            currentEncounterMaster = masterType;
+            currentEncounterMode = 'encounter_intro';
+            savedEncounterMsg = "";
+            if (typeof window.confirmEncounter === 'function') window.confirmEncounter(true);
+            else openFallbackIntro();
+        };
+        if (typeof window.playMasterEncounterVideo !== 'function' || !window.playMasterEncounterVideo(masterType, continueAfterVideo, openFallbackIntro)) {
+            openFallbackIntro();
         }
         return;
     }
@@ -4470,17 +4785,17 @@ window.checkMasterVisit = function(masterType, visitAction) {
         } else if (rank === 2) {
             offerMsg = `「ハチミツ、トレビアン！次は『${qData.name}』だよ。\n自分の手で極上のイチゴを育ててみて！酸味と甘味のバランスがスイーツの命だからね！」`;
         } else if (rank === 3) {
-            offerMsg = `「美味しそうなイチゴ！さあ、いよいよ実践、『${qData.name}』だよ。\n研究開発でイチゴのショートケーキのレシピを閃くの！グラム単位の計量ミスも許されないからね！」`;
+            offerMsg = `「美味しそうなイチゴ！さあ、いよいよ実践、『${qData.name}』だよ。\n研究開発でイチゴを使ったスイーツのレシピを閃くの！グラム単位の計量ミスも許されないからね！」`;
         } else if (rank === 4) {
-            offerMsg = `「ショートケーキの閃き、いいセンスしてる！次は『${qData.name}』だよ。\n今度は少し難しいメロンの栽培に挑戦してみて。最高のティータイムには最高級の果実が必要不可欠だからね！」`;
+            offerMsg = `「イチゴの甘酸っぱさを活かすなんて、いいセンスしてる！次は『${qData.name}』だよ。\n今度は少し難しいメロンの栽培に挑戦してみて。最高のティータイムには最高級の果実が必要不可欠だからね！」`;
         } else if (rank === 5) {
-            offerMsg = `「オーマイガー、なんて立派なメロン！それじゃあ『${qData.name}』にいってみようか。\nこのメロンを主役にしたメロンパフェを閃くんだ！層の重なりこそがパフェの醍醐味だよ！」`;
+            offerMsg = `「オーマイガー、なんて立派なメロン！それじゃあ『${qData.name}』にいってみようか。\nこのメロンを主役にしたスイーツのレシピを閃くんだ！香りをどう重ねるか、そこが腕の見せどころだよ！」`;
         } else if (rank === 6) {
-            offerMsg = `「パフェの構成、ビューティフル！次は『${qData.name}』だよ。\nごまかしの効かない極上ハチミツプリンのレシピを閃いてみて。火加減ひとつで口当たりが変わる繊細なスイーツだよ！」`;
+            offerMsg = `「メロンの香り、ビューティフル！次は『${qData.name}』だよ。\nハチミツを使ったスイーツのレシピを閃いてみて。甘さの余韻ひとつで、口当たりがまるで変わる繊細な世界だよ！」`;
         } else if (rank === 7) {
-            offerMsg = `「すべてのレシピが出揃ったね！ここからは『${qData.name}』の修行だよ。\nどれでもいいから、レシピの完成度を50%以上まで引き上げてみて！分量と手順を体に叩き込むんだ！」`;
+            offerMsg = `「スイーツの引き出しが増えてきたね！ここからは『${qData.name}』の修行だよ。\nスイーツ系レシピの完成度を50%以上まで引き上げてみて！分量と手順を体に叩き込むんだ！」`;
         } else if (rank === 8) {
-            offerMsg = `「手際が格段に良くなってきたね！いよいよ『${qData.name}』だよ。\nレシピの完成度を100%にするんだ！誰が食べても絶対に笑顔になる、あなただけの究極の配合を見つけ出して！」`;
+            offerMsg = `「手際が格段に良くなってきたね！いよいよ『${qData.name}』だよ。\nスイーツ系レシピの完成度を100%にするんだ！誰が食べても絶対に笑顔になる、あなただけの究極の配合を見つけ出して！」`;
         } else if (rank === 9) {
             offerMsg = `「パーフェクトな配合、見事だよ！いよいよ最後のオーダー、『${qData.name}』！\nあなたのお店でお客さんにデザートを10個販売して！スイーツで世界を救う、あなたの第一歩を見せてちょうだい！」`;
         }
@@ -4558,6 +4873,7 @@ window.updateQuestHUD = function() {
     hero.apprentice.activeQuests.forEach((q, index) => {
         const mType = q.masterType;
         const qData = hero.getMasterQuestData(mType, q.rank);
+        const desc = window.formatQuestDescription(q.desc);
         
         hero.apprentice.qVal = q.qVal;
         
@@ -4574,7 +4890,6 @@ window.updateQuestHUD = function() {
         } else if (isCleared) {
             progressStr = `<div style="font-size: 11px; color: #4CAF50; font-weight: bold; margin-top: 4px;">✅ 条件達成！報告しよう</div>`;
         } else {
-            const desc = q.desc;
             let isStatQuest = false; let statVal = 0;
             
             // ★修正：「集中薬」の説明文によるステータス判定の誤爆を回避
@@ -4631,7 +4946,10 @@ window.updateQuestHUD = function() {
                 if (desc.includes("練習用装備")) itemsStr.push(formatReq("練習用装備", inv.filter(i => typeof i === 'string' && i.includes('_practice_')).length, 3));
                 if (desc.includes("鉄くず")) itemsStr.push(formatReq("鉄くず", inv.filter(i => i === 'scrap_metal').length, 3));
                 if (desc.includes("芸術品")) itemsStr.push(formatReq("芸術品", inv.filter(i => typeof i === 'string' && i.includes('_art_')).length, 3));
-                if (desc.includes("ヌシ")) itemsStr.push(formatReq("ヌシ", inv.filter(i => i === 'fish_boss_river' || i === 'fish_boss_sea').length, 1));
+                if (desc.includes("ヌシ")) itemsStr.push(formatReq("ヌシ", inv.filter(i => {
+                    const itemId = (typeof i === 'string' ? i : i.id);
+                    return itemId === 'fish_boss_river' || itemId === 'fish_boss_sea';
+                }).length, 1));
                 else if (desc.includes("魚")) itemsStr.push(formatReq("魚", inv.filter(i => typeof i === 'string' && i.startsWith('fish_')).length, desc.includes("3匹") ? 3 : 1));
                 if (desc.includes("質のいい")) itemsStr.push(formatReq("上質野菜", inv.filter(i => typeof i === 'string' && i.startsWith('high_')).length, 3));
                 if (desc.includes("普通の試作料理")) itemsStr.push(formatReq("試作料理", inv.filter(i => i === 'food_practice_normal').length, 3));
@@ -4654,6 +4972,19 @@ window.updateQuestHUD = function() {
                     else if (q.rank === 7) itemsStr.push(formatReq("健康のミサンガ", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'misanga_health').length, 1));
                     else if (q.rank === 8) itemsStr.push(formatReq("神秘の織物", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'mystic_fabric').length, 1));
                     else if (q.rank === 9) itemsStr.push(formatReq("悠久の懐中時計", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'eternal_watch').length, 1));
+                }
+                else if (q.masterType === 'pastry_chef') {
+                    if (q.rank === 1) itemsStr.push(formatReq("ハチミツ", window.countQuestInventoryItems(inv, 'honey'), 3));
+                    else if (q.rank === 2) itemsStr.push(formatReq("イチゴ", window.countQuestInventoryItems(inv, ['strawberry', 'high_strawberry']), 3));
+                    else if (q.rank === 3) itemsStr.push(formatReq("イチゴ系スイーツの閃き", window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('strawberry') ? 1 : 0, 1));
+                    else if (q.rank === 4) itemsStr.push(formatReq("メロン", window.countQuestInventoryItems(inv, ['melon', 'high_melon']), 1));
+                    else if (q.rank === 5) itemsStr.push(formatReq("メロン系スイーツの閃き", window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('melon') ? 1 : 0, 1));
+                    else if (q.rank === 6) itemsStr.push(formatReq("ハチミツ系スイーツの閃き", window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('honey') ? 1 : 0, 1));
+                    else if (q.rank === 7 || q.rank === 8) {
+                        let maxMastery = window.getPastryMaxShopRecipeProgress ? window.getPastryMaxShopRecipeProgress() : 0;
+                        itemsStr.push(formatReq("最高完成度(%)", maxMastery, q.rank === 7 ? 50 : 100));
+                    }
+                    else if (q.rank === 9) itemsStr.push(formatReq("デザートの販売数", q.qVal || 0, 10));
                 }
 
                 if (itemsStr.length === 0) isItemQuest = false;
@@ -4696,7 +5027,7 @@ window.updateQuestHUD = function() {
                     <div class="acc-icon" style="font-size: 10px; color: #aaa; padding: 4px;">${initialDisplay === 'none' ? '▼' : '▲'}</div>
                 </div>
                 <div class="quest-content" style="display: ${initialDisplay}; margin-top: 6px; padding-top: 6px; border-top: 1px dashed #444;">
-                    <div style="font-size: 11px; color: #ccc; line-height: 1.4;">${q.desc}</div>
+                    <div style="font-size: 11px; color: #ccc; line-height: 1.4;">${desc}</div>
                     <div style="font-size: 10px; color: #ffeb3b; margin-top: 4px; text-align: right;">※進行中...</div>
                 </div>
             </div>
@@ -6458,6 +6789,7 @@ window.executeForceSellAll = async function(bId) {
     let totalSalesGold = 0;
     let totalRepChange = 0;
     let itemsSold = 0;
+    let pastryQuestSales = 0;
 
     // インベントリから販売する商品を取り除きつつ、売上と評判のシミュレーションを行う
     for (let item of (ai.inventory || [])) {
@@ -6487,6 +6819,7 @@ window.executeForceSellAll = async function(bId) {
                     totalSalesGold += price;
                     totalRepChange += 1; // 売れたら評判が少し上がる
                     itemsSold++;
+                    if (window.isPastryRecipe && window.isPastryRecipe(item)) pastryQuestSales++;
                     sold = true;
                 } else {
                     let repPenalty = 4 - (s.interiorLevel || 1);
@@ -6499,6 +6832,7 @@ window.executeForceSellAll = async function(bId) {
             if (!sold) {
                 totalSalesGold += price;
                 itemsSold++;
+                if (window.isPastryRecipe && window.isPastryRecipe(item)) pastryQuestSales++;
             }
         } else {
             remainingInv.push(item); // メニューにない商品（素材など）は手元に残す
@@ -6509,6 +6843,15 @@ window.executeForceSellAll = async function(bId) {
     ai.inventory = remainingInv;
     ai.gold += totalSalesGold;
     s.totalSales += totalSalesGold;
+    if (pastryQuestSales > 0 && ai.apprentice && ai.apprentice.activeQuests) {
+        ai.apprentice.activeQuests.forEach(q => {
+            if (q.masterType === 'pastry_chef' && q.rank === 9) {
+                q.qVal = (q.qVal || 0) + pastryQuestSales;
+                ai.apprentice.qVal = q.qVal;
+            }
+        });
+        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+    }
     
     let oldRep = s.reputation;
     s.reputation = Math.max(0, Math.min(100, s.reputation + Math.floor(totalRepChange)));
@@ -8230,6 +8573,10 @@ window.generateCustomRecipe = function(shopData) {
             break;
         }
     }
+
+    // 現行レストラン経営は shop_map_core.js の固定レシピ/研究開発に統一する。
+    // 旧システムのランダム文字列レシピは、存在しない inventory 参照や不要なメニュー混入の原因になるため無効化。
+    if (isRest) return null;
     
     // カオスな名前の生成（漢字・記号・カナ混じり）
     const chars = "あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをんアイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン亜伊宇江於加幾久介己差之須世曾多千川手戸奈二奴祢乃波比不部保真見無女毛也由代良利流礼呂和遠ン武神魔殺滅暗炎氷雷光闇光刃剣盾斧槍兜鎧腕靴石木鉄金銀銅鋼水晶幻妖精霊竜獣鬼";
@@ -8298,6 +8645,8 @@ window.generateCustomRecipe = function(shopData) {
     ai.customRecipes[itemId] = recipeData; // 自分の図鑑に保存
     
     if (!shopData.recipes) shopData.recipes = {};
+    if (!shopData.inventory) shopData.inventory = {};
+    if (!shopData.prices) shopData.prices = {};
     shopData.recipes[itemId] = { learned: true }; // 店のメニューに追加
     shopData.inventory[itemId] = 1; // 試作第一号
     shopData.prices[itemId] = price; // 初回価格設定

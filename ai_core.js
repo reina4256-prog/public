@@ -4,6 +4,11 @@ if (typeof window.aiPet === 'undefined') {
     window.aiPet = {};
 }
 
+function getInventoryItemId(item) {
+    if (typeof item === 'string') return item;
+    return item && typeof item.id === 'string' ? item.id : '';
+}
+
 // ==========================================
 // ★追加：入門試験（一問一答）のキーワード定義（類義語・超許容版）
 // ==========================================
@@ -173,6 +178,65 @@ function getTaskName(type, task = null) {
 // ==========================================
 // ★ 修正：師匠クエストの定義データ（英語名削除・アクション誘導版）
 // ==========================================
+window.getPastryShopData = function() {
+    const targetAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
+    let r = Object.values(targetAssets).find(a => a && a.type === 'restaurant' && !a.isMasterShop);
+    return r && r.shopData ? r.shopData : {};
+};
+
+window.getPastryShopRecipeProgress = function(recipeId) {
+    let s = window.getPastryShopData ? window.getPastryShopData() : {};
+    if (s.recipeProgress && s.recipeProgress[recipeId] !== undefined) return Number(s.recipeProgress[recipeId]) || 0;
+    let oldRecipe = s.recipes && s.recipes[recipeId];
+    if (oldRecipe) return Number(oldRecipe.mastery !== undefined ? oldRecipe.mastery : (oldRecipe.learned ? 100 : 0)) || 0;
+    return -1;
+};
+
+window.isPastryRecipe = function(recipeId) {
+    if (!recipeId) return false;
+    if (typeof window.getShopDishCategory === 'function') return window.getShopDishCategory(recipeId) === 'sweets';
+    return /cake|parfait|pudding|pancake|tart|ice|cookie|honey|fruit|strawberry|melon|sweets/.test(recipeId);
+};
+
+window.getPastryShopRecipesByIngredient = function(ingredientId) {
+    const costs = window.SHOP_RECIPE_COSTS || {};
+    return Object.keys(costs).filter(recipeId => {
+        const reqs = costs[recipeId] || [];
+        return window.isPastryRecipe(recipeId) && reqs.includes(ingredientId);
+    });
+};
+
+window.unlockPastryShopRecipesByIngredient = function(ingredientId) {
+    if (!window.aiPet) return;
+    window.aiPet.pastryRecipeUnlocks = window.aiPet.pastryRecipeUnlocks || {};
+    window.getPastryShopRecipesByIngredient(ingredientId).forEach(recipeId => {
+        window.aiPet.pastryRecipeUnlocks[recipeId] = true;
+    });
+};
+
+window.hasPastryShopRecipeWithIngredient = function(ingredientId) {
+    return window.getPastryShopRecipesByIngredient(ingredientId).some(recipeId => window.getPastryShopRecipeProgress(recipeId) >= 0);
+};
+
+window.getPastryMaxShopRecipeProgress = function() {
+    let s = window.getPastryShopData ? window.getPastryShopData() : {};
+    let values = [];
+    if (s.recipeProgress) {
+        values = values.concat(Object.keys(s.recipeProgress)
+            .filter(recipeId => window.isPastryRecipe(recipeId))
+            .map(recipeId => Number(s.recipeProgress[recipeId]) || 0));
+    }
+    if (s.recipes) {
+        values = values.concat(Object.keys(s.recipes)
+            .filter(recipeId => window.isPastryRecipe(recipeId))
+            .map(recipeId => {
+                const v = s.recipes[recipeId];
+                return Number(v && v.mastery !== undefined ? v.mastery : (v && v.learned ? 100 : 0)) || 0;
+            }));
+    }
+    return values.length ? Math.max(...values) : 0;
+};
+
 aiPet.getMasterQuestData = function(mType, rank) {
     const quests = {
         'explore': { // 冒険家のクエスト
@@ -298,12 +362,12 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 desc: "大成功した野菜（質のいい～）を合計3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
                 check: function() { 
-                    return aiPet.inventory.filter(i => i.startsWith('high_')).length >= 3; 
+                    return aiPet.inventory.filter(i => getInventoryItemId(i).startsWith('high_')).length >= 3; 
                 },
                 onClear: function() {
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (aiPet.inventory[i].startsWith('high_')) {
+                        if (getInventoryItemId(aiPet.inventory[i]).startsWith('high_')) {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
@@ -341,11 +405,11 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 name: "初釣果", 
                 desc: "種類は問わない。釣った魚を3匹集めてこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.inventory.filter(i => i.startsWith('fish_')).length >= 3; },
+                check: function() { return aiPet.inventory.filter(i => getInventoryItemId(i).startsWith('fish_')).length >= 3; },
                 onClear: function() { 
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (aiPet.inventory[i].startsWith('fish_')) {
+                        if (getInventoryItemId(aiPet.inventory[i]).startsWith('fish_')) {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
@@ -375,11 +439,16 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 desc: "真の漁師の証として、川か海の「ヌシ」を1匹釣ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; },
                 check: function() { 
-                    return aiPet.inventory.some(i => i === 'fish_boss_river' || i === 'fish_boss_sea');
+                    return aiPet.inventory.some(i => {
+                        const itemId = getInventoryItemId(i);
+                        return itemId === 'fish_boss_river' || itemId === 'fish_boss_sea';
+                    });
                 },
                 onClear: function() {
-                    let idx = aiPet.inventory.indexOf('fish_boss_river');
-                    if (idx === -1) idx = aiPet.inventory.indexOf('fish_boss_sea');
+                    let idx = aiPet.inventory.findIndex(i => {
+                        const itemId = getInventoryItemId(i);
+                        return itemId === 'fish_boss_river' || itemId === 'fish_boss_sea';
+                    });
                     if (idx !== -1) aiPet.inventory.splice(idx, 1);
                 }
             },
@@ -492,11 +561,11 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 // ★修正：バイトではなく「鍛冶」コマンドを促す
                 desc: "「鍛冶」を行って、作った練習用装備（なまくら剣など）を3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.inventory.filter(i => i.includes('_practice_')).length >= 3; },
+                check: function() { return aiPet.inventory.filter(i => getInventoryItemId(i).includes('_practice_')).length >= 3; },
                 onClear: function() { 
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (aiPet.inventory[i].includes('_practice_')) {
+                        if (getInventoryItemId(aiPet.inventory[i]).includes('_practice_')) {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
@@ -526,11 +595,11 @@ aiPet.getMasterQuestData = function(mType, rank) {
                 // ★修正：バイトではなく「鍛冶」コマンドを促す
                 desc: "「鍛冶」を行って、大成功でのみ作れる芸術品（黄金の鍋など）を合計3つ持ってこよう。", 
                 setup: function() { aiPet.apprentice.qVal = 0; }, 
-                check: function() { return aiPet.inventory.filter(i => i.includes('_art_')).length >= 3; },
+                check: function() { return aiPet.inventory.filter(i => getInventoryItemId(i).includes('_art_')).length >= 3; },
                 onClear: function() {
                     let removed = 0;
                     for (let i = aiPet.inventory.length - 1; i >= 0; i--) {
-                        if (aiPet.inventory[i].includes('_art_')) {
+                        if (getInventoryItemId(aiPet.inventory[i]).includes('_art_')) {
                             aiPet.inventory.splice(i, 1); removed++;
                             if (removed >= 3) break;
                         }
@@ -704,14 +773,14 @@ aiPet.getMasterQuestData = function(mType, rank) {
         },
         'pastry_chef': { // ★修正：パティシエのクエスト（クリア判定をレストランデータと同期）
             0: { name: "入門試験の準備", desc: "試験では『甘い調味料』『クリームをふんわりさせる道具』『生地を焼く機械』について聞かれる。答えとなる言葉を覚えよう。" },
-            1: { name: "甘味の探求", desc: "森を探検して『ハチミツ(honey)』を3つ採取してこよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryHoneyUnlocked = true; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='honey').length >= 3; } },
-            2: { name: "果実の育成", desc: "畑でイチゴの種から『イチゴ(strawberry)』を3つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryStrawberryUnlocked = true; if (!aiPet.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_strawberry')) aiPet.inventory.push('seed_strawberry'); }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='strawberry').length >= 3; } },
-            3: { name: "はじめてのスイーツ", desc: "レストランの「研究開発」でイチゴのショートケーキを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_strawberry_cake = true; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_strawberry_cake']; } },
-            4: { name: "高級果実の育成", desc: "畑でメロンの種から『メロン(melon)』を1つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryMelonUnlocked = true; if (!aiPet.inventory.some(i => (typeof i==='string'?i:i.id)==='seed_melon')) aiPet.inventory.push('seed_melon'); }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='melon').length >= 1; } },
-            5: { name: "レシピの研究", desc: "レストランの「研究開発」でメロンパフェを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_melon_parfait = true; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_melon_parfait']; } },
-            6: { name: "熟練の技", desc: "レストランの「研究開発」で極上ハチミツプリンを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_honey_pudding = true; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); return r && r.shopData && r.shopData.recipes && r.shopData.recipes['dish_honey_pudding']; } },
-            7: { name: "完璧な配合", desc: "レストランの「研究開発」でいずれかのレシピ完成度を50%以上にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); if (!r || !r.shopData || !r.shopData.recipes) return false; return Object.values(r.shopData.recipes).some(v => v.mastery >= 50); } },
-            8: { name: "完璧な配合", desc: "レストランの「研究開発」でいずれかのレシピ完成度を100%にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { let r = Object.values(assets).find(a => a.type === 'restaurant' && !a.isMasterShop); if (!r || !r.shopData || !r.shopData.recipes) return false; return Object.values(r.shopData.recipes).some(v => v.mastery >= 100); } },
+            1: { name: "甘味の探求", desc: "森を探検して『ハチミツ』を3つ採取してこよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryHoneyUnlocked = true; }, check: function() { return aiPet.inventory.filter(i => (typeof i==='string'?i:i.id)==='honey').length >= 3; } },
+            2: { name: "果実の育成", desc: "畑でイチゴの種から『イチゴ』を3つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryStrawberryUnlocked = true; if (!aiPet.inventory.some(i => getInventoryItemId(i)==='seed_strawberry')) aiPet.inventory.push('seed_strawberry'); }, check: function() { return aiPet.inventory.filter(i => ['strawberry', 'high_strawberry'].includes(getInventoryItemId(i))).length >= 3; } },
+            3: { name: "はじめてのスイーツ", desc: "レストランの「研究開発」でイチゴを使ったスイーツのレシピを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_strawberry_cake = true; if (window.unlockPastryShopRecipesByIngredient) window.unlockPastryShopRecipesByIngredient('strawberry'); }, check: function() { return window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('strawberry'); } },
+            4: { name: "高級果実の育成", desc: "畑でメロンの種から『メロン』を1つ収穫しよう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryMelonUnlocked = true; if (!aiPet.inventory.some(i => getInventoryItemId(i)==='seed_melon')) aiPet.inventory.push('seed_melon'); }, check: function() { return aiPet.inventory.filter(i => ['melon', 'high_melon'].includes(getInventoryItemId(i))).length >= 1; } },
+            5: { name: "レシピの研究", desc: "レストランの「研究開発」でメロンを使ったスイーツのレシピを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_melon_parfait = true; if (window.unlockPastryShopRecipesByIngredient) window.unlockPastryShopRecipesByIngredient('melon'); }, check: function() { return window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('melon'); } },
+            6: { name: "熟練の技", desc: "レストランの「研究開発」でハチミツを使ったスイーツのレシピを閃こう。", setup: function() { aiPet.apprentice.qVal = 0; aiPet.pastryRecipeUnlocks = aiPet.pastryRecipeUnlocks || {}; aiPet.pastryRecipeUnlocks.dish_honey_pudding = true; if (window.unlockPastryShopRecipesByIngredient) window.unlockPastryShopRecipesByIngredient('honey'); }, check: function() { return window.hasPastryShopRecipeWithIngredient && window.hasPastryShopRecipeWithIngredient('honey'); } },
+            7: { name: "完璧な配合", desc: "レストランの「研究開発」でスイーツ系レシピの完成度を50%以上にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return window.getPastryMaxShopRecipeProgress && window.getPastryMaxShopRecipeProgress() >= 50; } },
+            8: { name: "完璧な配合", desc: "レストランの「研究開発」でスイーツ系レシピの完成度を100%にしよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return window.getPastryMaxShopRecipeProgress && window.getPastryMaxShopRecipeProgress() >= 100; } },
             9: { name: "免許皆伝", desc: "デザートを合計10個お客さんに販売しよう。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.apprentice.qVal >= 10; } }
         }
     };
@@ -2542,7 +2611,26 @@ aiPet.checkEncounter = function() {
             
             setTimeout(() => { 
                 this._isEncounterPending = false; // ★追加：エンカウント予約フラグOFF
-                if (typeof window.openEncounterUI === 'function') window.openEncounterUI(metType, encounterMsg, 'encounter_intro'); 
+                const openFallbackIntro = () => {
+                    console.warn('[MasterEncounterVideo] ai_core fallback encounter_intro', { masterType: metType });
+                    if (typeof window.openEncounterUI === 'function') window.openEncounterUI(metType, encounterMsg, 'encounter_intro');
+                };
+                const continueAfterVideo = () => {
+                    console.info('[MasterEncounterVideo] ai_core video finished; opening greeting flow', { masterType: metType });
+                    if (typeof window.continueMasterEncounterIntroAfterVideo === 'function') {
+                        window.continueMasterEncounterIntroAfterVideo(metType, encounterMsg);
+                    } else {
+                        openFallbackIntro();
+                    }
+                };
+                console.info('[MasterEncounterVideo] ai_core direct encounter_intro route', {
+                    masterType: metType,
+                    hasVideoPlayer: typeof window.playMasterEncounterVideo === 'function',
+                    hasEncounterUI: typeof window.openEncounterUI === 'function'
+                });
+                if (typeof window.playMasterEncounterVideo !== 'function' || !window.playMasterEncounterVideo(metType, continueAfterVideo, openFallbackIntro)) {
+                    openFallbackIntro();
+                }
             }, 1000);
             if (metType === 'cooking') { for (let k in assets) { if (assets[k].type === 'restaurant' && assets[k].isMobile) { delete assets[k]; break; } } }
         }
@@ -5166,6 +5254,11 @@ aiPet.processExploration = function() {
                 let season = this.season || 'spring';
                 itemsTable = (fData.items[season] || []).concat(fData.items.default || []);
             }
+        }
+        const isForestLike = state.currentFacility === 'palms' || state.currentFacility === 'nature';
+        if (isForestLike) {
+            if (this.pastryStrawberryUnlocked && !itemsTable.includes('seed_strawberry')) itemsTable.push('seed_strawberry');
+            if (this.pastryMelonUnlocked && !itemsTable.includes('seed_melon')) itemsTable.push('seed_melon');
         }
 
         if (Math.random() < dropChance && itemsTable.length > 0) {

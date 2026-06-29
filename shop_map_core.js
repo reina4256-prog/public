@@ -675,9 +675,102 @@ function getDefaultShopTimerValues() {
     };
 }
 
+window.createFreshRestaurantShopState = function(options = {}) {
+    const timer = getDefaultShopTimerValues();
+    const savedRecipes = options.preserveRecipes && window.aiPet && window.aiPet.savedRecipes
+        ? JSON.parse(JSON.stringify(window.aiPet.savedRecipes))
+        : {};
+    const savedRecipeFlags = options.preserveRecipes && window.aiPet && window.aiPet.savedRecipeFlags
+        ? JSON.parse(JSON.stringify(window.aiPet.savedRecipeFlags))
+        : {};
+    return {
+        mapWidth: 12,
+        mapHeight: 10,
+        maxScore: 20,
+        currentScore: 0,
+        floorCount: 1,
+        currentFloor: '1F',
+        grid: RESTAURANT_MAP_LV1.map(row => [...row]),
+        player: { x: 5, y: 8, face: 'up', action: 'idle', shopState: 'idle', prevShopState: 'idle', currentFloor: '1F' },
+        npcs: [],
+        furniture: [],
+        dishes: [],
+        money: 0,
+        reputation: 100,
+        isBankrupt: false,
+        isOpen: false,
+        openHour: timer.openHour,
+        openMinute: timer.openMinute,
+        closeHour: timer.closeHour,
+        closeMinute: timer.closeMinute,
+        announcedOneMinBefore: false,
+        dailyFlags: { seatShortage: false },
+        logs: [],
+        menuList: [],
+        fridge: {},
+        recipeProgress: savedRecipes,
+        recipes: savedRecipeFlags,
+        shopTutorialLockAI: false,
+        shopTacticEditorPausedAI: false,
+        tutorialChef: null,
+        nextOpenAt: null
+    };
+};
+
+window.isShopMapUIActive = function() {
+    const ui = document.getElementById('shop-map-ui');
+    return !!ui && ui.style.display !== 'none';
+};
+
+window.hasAnyRestaurantStock = function(s = window.SHOP_STATE) {
+    if (!s || !s.fridge) return false;
+    const stockedKeys = Object.keys(s.fridge).filter(key => Number(s.fridge[key] || 0) > 0);
+    if (stockedKeys.length > 0) {
+        if (!Array.isArray(s.menuList)) s.menuList = [];
+        stockedKeys.forEach(key => {
+            if (!s.menuList.includes(key)) s.menuList.push(key);
+        });
+    }
+    return stockedKeys.length > 0;
+};
+
+window.grantRestaurantRestartEquipment = function(s = window.SHOP_STATE) {
+    if (!window.aiPet || !window.aiPet.shopTutorialCompleted || !s || s.restartEquipmentGranted) return;
+    const isEmptyRestart = (!Array.isArray(s.npcs) || s.npcs.length === 0)
+        && (!Array.isArray(s.dishes) || s.dishes.length === 0)
+        && (!s.fridge || Object.keys(s.fridge).length === 0)
+        && (!Array.isArray(s.menuList) || s.menuList.length === 0)
+        && Array.isArray(s.grid)
+        && !s.grid.some(row => row.some(tile => [10, 11, 12, 13, 14, 15, 16, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34].includes(Number(tile))));
+    if (!isEmptyRestart) return;
+    if (!Array.isArray(window.aiPet.inventory)) window.aiPet.inventory = [];
+    ['item_fridge', 'item_oven', 'item_stove', 'item_table', 'item_chair', 'item_register'].forEach(id => {
+        window.aiPet.inventory.push({ id, age: 0 });
+    });
+    s.reputation = 100;
+    s.restartEquipmentGranted = true;
+    if (typeof window.addRestaurantLog === 'function') {
+        window.addRestaurantLog('再建用の基本設備を受け取りました。冷蔵庫・オーブン・コンロ・机・椅子・レジカウンターを配置できます。', '#4CAF50');
+    }
+};
+
+window.showShopHeavenNotice = function(message, color = '#FF9800') {
+    const old = document.getElementById('shop-heaven-notice');
+    if (old) old.remove();
+    const notice = document.createElement('div');
+    notice.id = 'shop-heaven-notice';
+    notice.style.cssText = `position:fixed; left:18px; bottom:18px; max-width:min(460px, calc(100vw - 36px)); z-index:65000; background:rgba(20,20,24,0.94); color:#fff; border:2px solid ${color}; border-radius:8px; padding:12px 14px; box-shadow:0 8px 28px rgba(0,0,0,0.55); font-weight:bold; line-height:1.5; pointer-events:none;`;
+    notice.innerHTML = `<div style="font-size:12px; color:${color}; margin-bottom:4px;">天の声</div><div style="white-space:pre-line; font-size:14px;">${message}</div>`;
+    document.body.appendChild(notice);
+    setTimeout(() => {
+        if (notice.parentNode) notice.remove();
+    }, 5200);
+};
+
 window.syncCurrentShopStateToBuilding = function() {
     const s = window.SHOP_STATE;
     if (!s) return;
+    if (s.detachedAfterBankruptcy || !window.currentShopManagementBuilding) return;
     let building = window.currentShopManagementBuilding || null;
     if (!building && typeof assets !== 'undefined') {
         building = Object.values(assets).find(a => a && a.shopData === s) || null;
@@ -876,7 +969,16 @@ window.SHOP_TACTIC_CONDITIONS = {
     "shop_is_cramped": "お店が手狭になった時",
     // ★Phase 4.2追加：お店のトーン（テーマ）を指示する条件
     "prefer_luxury_decor": "家具をリッチな雰囲気にしたい時",
-    "prefer_casual_decor": "家具を気軽な雰囲気にしたい時"
+    "prefer_casual_decor": "家具を気軽な雰囲気にしたい時",
+    "remove_decor": "飾りを片付けたい時",
+    "remove_fridge": "冷蔵庫を片付けたい時",
+    "remove_stove": "コンロを片付けたい時",
+    "remove_oven": "オーブンを片付けたい時",
+    "remove_table": "テーブルを片付けたい時",
+    "remove_chair": "椅子を片付けたい時",
+    "remove_register": "レジカウンターを片付けたい時",
+    "remove_wall": "壁を取り払いたい時",
+    "remove_kitchen_floor": "厨房床を普通の床に戻したい時"
 };
 
 window.SHOP_AVAILABLE_COMMANDS = [
@@ -913,7 +1015,30 @@ window.SHOP_RECIPE_COSTS = {
     'dish_melon_parfait':   ['melon', 'milk', 'ice_crystal'], 
     'dish_honey_pudding':   ['honey', 'egg', 'milk'],
     'dish_pancakes':        ['wheat', 'egg', 'honey'],
-    'dish_fruit_tart':      ['wheat', 'strawberry', 'melon']
+    'dish_fruit_tart':      ['wheat', 'strawberry', 'melon'],
+    'dish_honey_toast':     ['honey'],
+    'dish_shaved_ice_honey':['honey'],
+    'dish_honey_milk':      ['honey'],
+
+    // --- 本番経営用：追加レシピ（restaurant_dish3-16系の代表料理） ---
+    'dish_salt_riceball':   ['rice'],
+    'dish_grilled_riceball':['rice'],
+    'dish_fried_rice':      ['rice', 'egg'],
+    'dish_beef_bowl':       ['rice', 'meat'],
+    'dish_bread':           ['wheat'],
+    'dish_hamburger':       ['wheat', 'meat'],
+    'dish_ramen':           ['wheat', 'meat', 'water'],
+    'dish_karaage':         ['meat'],
+    'dish_hamburg_steak':   ['meat', 'egg'],
+    'dish_beef_stew':       ['meat', 'carrot', 'water'],
+    'dish_fried_egg':       ['egg'],
+    'dish_tomato_salad':    ['tomato'],
+    'dish_tomato_soup':     ['tomato', 'water'],
+    'dish_mushroom_soup':   ['mushroom', 'water'],
+    'dish_grilled_salmon':  ['fish_salmon'],
+    'dish_tuna_sashimi':    ['fish_tuna'],
+    'dish_vanilla_ice':     ['milk', 'ice_crystal'],
+    'dish_cookie':          ['wheat', 'egg']
 };
 
 window.getAvailableShopRecipeKeys = function() {
@@ -965,8 +1090,99 @@ window.SHOP_DISH_NAMES = {
     'baked_carrot': '焼きニンジン', 'baked_pepper': '焼きピーマン', 'baked_tomato': '焼きトマト', 'baked_fish': '焼き魚',
     'dish_steak': 'ステーキ', 'dish_curry': 'カレーライス', 'dish_omurice': 'オムライス', 'dish_sushi': 'マグロの握り',
     'dish_strawberry_cake': 'イチゴのショートケーキ', 'dish_melon_parfait': 'メロンパフェ', 'dish_honey_pudding': '極上ハチミツプリン',
-    'dish_pancakes': 'ハチミツパンケーキ', 'dish_fruit_tart': 'フルーツタルト'
+    'dish_pancakes': 'ハチミツパンケーキ', 'dish_fruit_tart': 'フルーツタルト',
+    'dish_salt_riceball': '塩むすび', 'dish_grilled_riceball': '焼きおにぎり',
+    'dish_fried_rice': 'チャーハン', 'dish_beef_bowl': '牛丼',
+    'dish_bread': '食パン', 'dish_hamburger': 'ハンバーガー',
+    'dish_ramen': 'ラーメン', 'dish_karaage': 'からあげ',
+    'dish_hamburg_steak': 'ハンバーグ', 'dish_beef_stew': 'ビーフシチュー',
+    'dish_fried_egg': '目玉焼き', 'dish_tomato_salad': 'トマトサラダ',
+    'dish_tomato_soup': 'トマトスープ', 'dish_mushroom_soup': 'キノコスープ',
+    'dish_grilled_salmon': 'サケの塩焼き', 'dish_tuna_sashimi': 'マグロの刺身',
+    'dish_vanilla_ice': 'バニラアイス', 'dish_cookie': 'クッキー'
 };
+
+Object.assign(window.SHOP_DISH_NAMES, {
+    'dish_meat_riceball': '肉巻きおにぎり', 'dish_egg_rice': 'タマゴかけご飯', 'dish_porridge': 'おかゆ', 'dish_herb_porridge': '七草がゆ', 'dish_egg_porridge': '卵雑炊',
+    'dish_chicken_rice': 'チキンライス', 'dish_hayashi_rice': 'ハヤシライス', 'dish_mushroom_rice': 'キノコご飯', 'dish_tomato_risotto': 'トマトリゾット', 'dish_mushroom_risotto': 'キノコリゾット',
+    'dish_doria': 'ドリア', 'dish_seafood_doria': 'シーフードドリア', 'dish_squid_rice': 'イカ飯', 'dish_salmon_chazuke': 'サケ茶漬け', 'dish_snapper_chazuke': '鯛茶漬け',
+    'dish_sushi_salmon': 'サケの握り', 'dish_sushi_squid': 'イカの握り', 'dish_sushi_saury': 'サンマの押し寿司', 'dish_tuna_bowl': '鉄火丼', 'dish_seafood_bowl': '海鮮丼', 'dish_roastbeef_bowl': 'ローストビーフ丼',
+    'dish_roll_bread': 'ロールパン', 'dish_croissant': 'クロワッサン', 'dish_sandwich': 'サンドイッチ', 'dish_fruit_sandwich': 'フルーツサンド', 'dish_honey_toast': 'ハニートースト',
+    'dish_pizza_toast': 'ピザトースト', 'dish_hotdog': 'ホットドッグ', 'dish_meat_bun': '肉まん', 'dish_pasta_tomato': 'トマトパスタ', 'dish_pasta_mushroom': 'キノコパスタ',
+    'dish_pasta_meat': 'ミートソースパスタ', 'dish_carbonara': 'カルボナーラ', 'dish_pasta_squidink': 'イカスミパスタ', 'dish_pescatore': 'ペスカトーレ', 'dish_pasta_salmon': 'サーモンクリームパスタ',
+    'dish_cold_pasta': '冷製カッペリーニ', 'dish_macaroni_gratin': 'マカロニグラタン', 'dish_seafood_gratin': 'シーフードグラタン', 'dish_pizza': 'ピザ', 'dish_seafood_pizza': 'シーフードピザ',
+    'dish_mushroom_pizza': 'キノコピザ', 'dish_yakisoba': '焼きそば', 'dish_udon': 'うどん', 'dish_moon_udon': '月見うどん', 'dish_meat_udon': '肉うどん', 'dish_cold_udon': '冷やしうどん', 'dish_chashu_ramen': 'チャーシュー麺',
+    'dish_stewed_hamburg': '煮込みハンバーグ', 'dish_stuffed_pepper': 'ピーマンの肉詰め', 'dish_roast_beef': 'ローストビーフ', 'dish_meatball': '肉団子', 'dish_tonkatsu': 'とんかつ',
+    'dish_fried_chicken': 'フライドチキン', 'dish_ginger_pork': '豚の生姜焼き', 'dish_yakitori': '焼き鳥', 'dish_shabu_shabu': 'しゃぶしゃぶ', 'dish_tomato_meatball': 'ミートボールのトマト煮',
+    'dish_herb_chicken': '鶏肉の香草焼き', 'dish_pork_saute': 'ポークソテー', 'dish_beef_carpaccio': '牛肉のカルパッチョ', 'dish_dice_steak': 'サイコロステーキ', 'dish_teriyaki_chicken': '鶏の照り焼き',
+    'dish_roast_chicken': 'ローストチキン', 'dish_sausage': 'ソーセージ', 'dish_bacon': 'ベーコン', 'dish_raw_ham': '生ハム', 'dish_beef_jerky': 'ビーフジャーキー', 'dish_menchi_katsu': 'メンチカツ', 'dish_grilled_meat': '肉の網焼き',
+    'dish_boiled_egg': 'ゆで卵', 'dish_scrambled_egg': 'スクランブルエッグ', 'dish_dashimaki': 'だし巻き卵', 'dish_quiche': 'キッシュ', 'dish_chawanmushi': '茶碗蒸し',
+    'dish_spanish_omelet': 'スパニッシュオムレツ', 'dish_eggs_benedict': 'エッグベネディクト', 'dish_cheese_fondue': 'チーズフォンデュ', 'dish_camembert': 'カマンベールチーズ', 'dish_hot_milk': 'ホットミルク',
+    'dish_milk_porridge': 'ミルク粥', 'dish_poached_egg': 'ポーチドエッグ', 'dish_onsen_tamago': '温泉卵', 'dish_tomato_egg_stirfry': 'トマトと卵の炒め物', 'dish_mayonnaise': 'マヨネーズ',
+    'dish_butter': 'バター', 'dish_plain_omelet': 'プレーンオムレツ', 'dish_cheese_omelet': 'チーズオムレツ', 'dish_yogurt': 'ヨーグルト',
+    'dish_carrot_salad': 'ニンジンサラダ', 'dish_warm_salad': '温野菜サラダ', 'dish_mushroom_salad': 'キノコサラダ', 'dish_capricciosa': 'カプリチョーザサラダ', 'dish_carrot_glace': 'ニンジンのグラッセ',
+    'dish_pepper_ohitashi': 'ピーマンのおひたし', 'dish_milk_soup': 'ミルクスープ', 'dish_consomme': 'コンソメスープ', 'dish_carrot_potage': 'キャロットポタージュ', 'dish_mushroom_potage': 'マッシュルームポタージュ',
+    'dish_tomato_potage': 'トマトポタージュ', 'dish_herb_soup': '春草のスープ', 'dish_tomato_farcie': 'トマトファルシ', 'dish_ratatouille': 'ラタトゥイユ', 'dish_pickles': 'ピクルス', 'dish_veggie_sticks': '野菜スティック', 'dish_foil_mushroom': 'キノコのホイル焼き',
+    'dish_salmon_meuniere': 'サケのムニエル', 'dish_foil_salmon': 'サケのホイル焼き', 'dish_grilled_sardine': 'イワシの塩焼き', 'dish_sardine_ball_soup': 'イワシのつみれ汁', 'dish_fried_sardine': 'イワシのフライ',
+    'dish_grilled_saury': 'サンマの塩焼き', 'dish_saury_tatsuta': 'サンマの竜田揚げ', 'dish_grilled_snapper': 'マダイの塩焼き', 'dish_snapper_carpaccio': 'マダイのカルパッチョ', 'dish_boiled_snapper': 'マダイの煮付け',
+    'dish_tuna_carpaccio': 'マグロのカルパッチョ', 'dish_tuna_katsu': 'マグロカツ', 'dish_tuna_tataki': 'マグロのたたき', 'dish_tuna_salad': 'ツナサラダ', 'dish_marlin_steak': 'カジキマグロのステーキ',
+    'dish_marlin_teriyaki': 'カジキの照り焼き', 'dish_fried_marlin': 'カジキのフライ', 'dish_grilled_squid': 'イカの姿焼き', 'dish_squid_ring': 'イカリングフライ', 'dish_squid_shiokara': 'イカの塩辛',
+    'dish_squid_sashimi': 'イカ刺し', 'dish_squid_pepper_stirfry': 'イカとピーマンの炒め物', 'dish_boiled_crawfish': 'ザリガニのボイル', 'dish_crawfish_soup': 'ザリガニスープ', 'dish_carp_arai': 'コイのあらい',
+    'dish_koikoku': 'コイコク', 'dish_carp_kanroni': 'コイの甘露煮', 'dish_fried_blackbass': 'ブラックバスのフライ', 'dish_blackbass_meuniere': 'ブラックバスのムニエル', 'dish_herb_blackbass': 'ブラックバスの香草焼き',
+    'dish_smelt_tempura': 'ワカサギの天ぷら', 'dish_fried_smelt': 'ワカサギの唐揚げ', 'dish_smelt_marinade': 'ワカサギのマリネ', 'dish_medaka_tsukudani': 'メダカの佃煮', 'dish_seafood_mix_fry': 'シーフードミックスフライ',
+    'dish_acqua_pazza': 'アクアパッツァ', 'dish_bouillabaisse': 'ブイヤベース', 'dish_seared_fish': '魚のあぶり焼き', 'dish_fish_chowder': 'フィッシュチャウダー', 'dish_fried_whitefish': '白身魚のフライ',
+    'dish_sweet_sour_fish': '白身魚の甘酢あん', 'dish_carpaccio_mix': 'カルパッチョ盛り合わせ', 'dish_squid_fritter': 'イカのフリッター',
+    'dish_strawberry_ice': 'イチゴアイス', 'dish_melon_ice': 'メロンアイス', 'dish_sherbet': 'シャーベット', 'dish_shaved_ice_strawberry': 'かき氷（イチゴ）', 'dish_shaved_ice_melon': 'かき氷（メロン）',
+    'dish_shaved_ice_honey': 'ハチミツかき氷', 'dish_crepe': 'クレープ', 'dish_strawberry_crepe': 'イチゴクレープ', 'dish_fruit_crepe': 'フルーツクレープ', 'dish_chiffon_cake': 'シフォンケーキ',
+    'dish_roll_cake': 'ロールケーキ', 'dish_baumkuchen': 'バウムクーヘン', 'dish_melon_pan': 'メロンパン', 'dish_strawberry_tart': 'イチゴタルト', 'dish_madeleine': 'マドレーヌ',
+    'dish_strawberry_cookie': 'イチゴクッキー', 'dish_rusk': 'ラスク', 'dish_donut': 'ドーナツ', 'dish_cream_puff': 'シュークリーム', 'dish_millefeuille': 'ミルフィーユ',
+    'dish_macaron': 'マカロン', 'dish_strawberry_daifuku': 'イチゴ大福', 'dish_shiratama': '白玉団子', 'dish_honey_milk': 'ハニーミルク', 'dish_strawberry_milk': 'イチゴミルク',
+    'dish_melon_milk': 'メロンミルク', 'dish_fresh_water': 'フレッシュウォーター', 'dish_strawberry_juice': 'イチゴジュース', 'dish_melon_juice': 'メロンジュース', 'dish_berry_juice': 'ベリージュース',
+    'dish_mix_juice': 'ミックスジュース', 'dish_fruit_punch': 'フルーツポンチ', 'dish_smoothie': 'スムージー',
+    'dish_french_toast': 'フレンチトースト', 'dish_meat_pie': 'ミートパイ', 'dish_pepper_steak': 'チンジャオロース', 'dish_crawfish_paella': 'ザリガニのパエリア', 'dish_saury_rice': 'サンマの炊き込みご飯',
+    'dish_milk_gelato': 'ミルクジェラート', 'dish_tuna_roll': '鉄火巻き', 'dish_veggie_terrine': '野菜のテリーヌ', 'dish_berry_pancake': 'ベリーパンケーキ', 'dish_mushroom_omelet': 'キノコオムレツ'
+});
+
+window.inferShopRecipeCost = function(dishKey) {
+    const key = String(dishKey || '');
+    const needs = [];
+    const add = (id) => { if (!needs.includes(id)) needs.push(id); };
+    if (/rice|bowl|sushi|chazuke|risotto|doria|paella|riceball|porridge/.test(key)) add('rice');
+    if (/bread|toast|sandwich|burger|hotdog|bun|pasta|pizza|udon|ramen|yakisoba|gratin|pie|cookie|cake|crepe|donut|rusk|tart|madeleine|baumkuchen|macaron/.test(key)) add('wheat');
+    if (/meat|beef|hamburg|pork|chicken|karaage|tonkatsu|yakitori|sausage|bacon|ham|jerky|chashu/.test(key)) add('meat');
+    if (/egg|omelet|tamago|dashimaki|chawanmushi|benedict|mayonnaise|quiche/.test(key)) add('egg');
+    if (/milk|cheese|yogurt|cream|gelato|ice|parfait|fondue|butter/.test(key)) add('milk');
+    if (/ice|shaved|gelato|sherbet/.test(key)) add('ice_crystal');
+    if (/honey/.test(key)) add('honey');
+    if (/strawberry/.test(key)) add('strawberry');
+    if (/melon/.test(key)) add('melon');
+    if (/berry/.test(key)) add('item_berry');
+    if (/carrot/.test(key)) add('carrot');
+    if (/pepper|qingjiao/.test(key)) add('pepper');
+    if (/tomato|ratatouille|farcie/.test(key)) add('tomato');
+    if (/mushroom/.test(key)) add('mushroom');
+    if (/salmon/.test(key)) add('fish_salmon');
+    if (/tuna/.test(key)) add('fish_tuna');
+    if (/snapper/.test(key)) add('fish_snapper');
+    if (/squid/.test(key)) add('fish_squid');
+    if (/saury/.test(key)) add('fish_saury');
+    if (/sardine/.test(key)) add('fish_sardine');
+    if (/marlin/.test(key)) add('fish_marlin');
+    if (/crawfish/.test(key)) add('fish_crawfish');
+    if (/carp|koikoku/.test(key)) add('fish_carp');
+    if (/blackbass/.test(key)) add('fish_blackbass');
+    if (/smelt/.test(key)) add('fish_smelt');
+    if (/medaka/.test(key)) add('fish_medaka');
+    if (/water|soup|chowder|bouillabaisse|consomme|drink|juice|smoothie|punch/.test(key)) add('water');
+    if (needs.length === 0) add('water');
+    return needs.slice(0, 4);
+};
+
+Object.keys(window.SHOP_DISH_NAMES).forEach(key => {
+    if (key.startsWith('dish_') && !window.SHOP_RECIPE_COSTS[key]) {
+        window.SHOP_RECIPE_COSTS[key] = window.inferShopRecipeCost(key);
+    }
+});
 
 window.SHOP_ING_NAMES = {
     // 既存の素材
@@ -977,10 +1193,484 @@ window.SHOP_ING_NAMES = {
     'fish_blackbass': 'ブラックバス', 'fish_medaka': 'メダカ', 'fish_smelt': 'ワカサギ',
     'fish_sardine': 'イワシ', 'fish_tuna': 'マグロ', 'fish_snapper': 'マダイ',
     'fish_squid': 'イカ', 'fish_marlin': 'カジキマグロ', 'fish_saury': 'サンマ',
-    'item_berry': '野イチゴ', 'honey': 'ハチミツ', 'strawberry': 'イチゴ', 'melon': 'メロン',
+    'item_berry': '野イチゴ', 'honey': 'ハチミツ', 'strawberry': 'イチゴ', 'high_strawberry': '質のいいイチゴ', 'melon': 'メロン', 'high_melon': '質のいいメロン',
     
     // ★追加した基本素材
     'meat': 'お肉', 'milk': 'ミルク', 'egg': 'タマゴ', 'wheat': '小麦', 'rice': 'お米'
+};
+
+window.SHOP_DISH_CATEGORY_RULES = [
+    { category: 'sweets', label: 'スイーツ系', match: /cake|parfait|pudding|pancake|tart|ice|cookie|honey|fruit|strawberry|melon/ },
+    { category: 'fish', label: '魚介系', match: /fish|sushi|salmon|tuna|snapper|squid|saury|sardine|carp|marlin|seafood/ },
+    { category: 'meat', label: '肉系', match: /meat|steak|beef|hamburg|karaage|chicken|pork|sausage|bacon/ },
+    { category: 'rice', label: 'ごはん系', match: /rice|curry|omurice|bowl|riceball|porridge|doria|chazuke/ },
+    { category: 'noodle', label: '麺系', match: /ramen|udon|yakisoba|pasta|carbonara/ },
+    { category: 'bread', label: 'パン系', match: /bread|toast|sandwich|burger|hotdog|pizza/ },
+    { category: 'egg', label: '卵・乳製品系', match: /egg|omelet|milk|cheese|yogurt|quiche/ },
+    { category: 'vegetable', label: '野菜系', match: /salad|soup|tomato|carrot|pepper|mushroom|minestrone|stirfry/ }
+];
+
+window.getShopDishCategory = function(dishKey) {
+    const key = String(dishKey || '');
+    const rule = window.SHOP_DISH_CATEGORY_RULES.find(r => r.match.test(key));
+    return rule ? rule.category : 'other';
+};
+
+window.getShopDishCategoryLabel = function(category) {
+    const rule = window.SHOP_DISH_CATEGORY_RULES.find(r => r.category === category);
+    return rule ? rule.label : 'その他';
+};
+
+window.getShopWorkerVitals = function() {
+    const ai = window.aiPet || {};
+    const energy = Math.max(0, Math.min(100, Number(ai.energy ?? 100)));
+    const hunger = Math.max(0, Math.min(100, Number(ai.hunger ?? 100)));
+    ai.energy = energy;
+    ai.hunger = hunger;
+    ai.shopWorkerVitals = { stamina: energy, fullness: hunger };
+    return ai.shopWorkerVitals;
+};
+
+window.giveRestaurantDebugItems = function(kindOrCounts = {}, count = 1) {
+    if (!window.aiPet) return null;
+    if (!Array.isArray(window.aiPet.inventory)) window.aiPet.inventory = [];
+    const aliases = {
+        fridge: 'item_fridge', refrigerator: 'item_fridge', '冷蔵庫': 'item_fridge',
+        oven: 'item_oven', 'オーブン': 'item_oven',
+        stove: 'item_stove', range: 'item_stove', 'コンロ': 'item_stove',
+        register: 'item_register', cashier: 'item_register', counter: 'item_register', 'レジ': 'item_register', 'レジカウンター': 'item_register',
+        table: 'item_table', desk: 'item_table', '机': 'item_table', 'テーブル': 'item_table',
+        chair: 'item_chair', 'イス': 'item_chair', '椅子': 'item_chair',
+        stool: 'item_stool', '丸椅子': 'item_stool', '丸イス': 'item_stool'
+    };
+    const counts = typeof kindOrCounts === 'string'
+        ? { [kindOrCounts]: count }
+        : (kindOrCounts && typeof kindOrCounts === 'object' ? kindOrCounts : {});
+    const added = {};
+    Object.entries(counts).forEach(([key, rawCount]) => {
+        const id = aliases[key] || aliases[String(key).toLowerCase()] || key;
+        if (!window.SHOP_FURNITURE_DB || !window.SHOP_FURNITURE_DB[id]) return;
+        const n = Math.max(0, Math.floor(Number(rawCount || 0)));
+        for (let i = 0; i < n; i++) window.aiPet.inventory.push({ id, age: 0 });
+        if (n > 0) added[id] = (added[id] || 0) + n;
+    });
+    if (typeof window.updateShopUI === 'function') window.updateShopUI();
+    if (typeof updateStatUI === 'function') updateStatUI();
+    if (typeof saveGameData === 'function') saveGameData();
+    console.log('[Restaurant Debug] added furniture:', added);
+    return added;
+};
+
+window.consumeShopWorkerEnergy = function(actionType) {
+    const v = window.getShopWorkerVitals();
+    const costs = {
+        prep: [8, 6], research: [6, 5], serve: [4, 3], register: [3, 2],
+        remodel: [10, 7], decorate: [5, 4], expand: [14, 10], speak: [1, 1]
+    };
+    const cost = costs[actionType] || [3, 2];
+    v.stamina = Math.max(0, v.stamina - cost[0]);
+    v.fullness = Math.max(0, v.fullness - cost[1]);
+    if (window.aiPet) {
+        window.aiPet.energy = v.stamina;
+        window.aiPet.hunger = v.fullness;
+    }
+    return v;
+};
+
+window.recoverShopWorkerEnergy = function(amount = 8) {
+    const v = window.getShopWorkerVitals();
+    v.stamina = Math.min(100, v.stamina + amount);
+    v.fullness = Math.min(100, v.fullness + Math.ceil(amount * 0.75));
+    if (window.aiPet) {
+        window.aiPet.energy = v.stamina;
+        window.aiPet.hunger = v.fullness;
+    }
+    return v;
+};
+
+window.getShopLevelInfo = function() {
+    const s = window.SHOP_STATE || {};
+    s.shopLevel = Math.max(1, Number(s.shopLevel || s.interiorLevel || 1));
+    s.shopExp = Math.max(0, Number(s.shopExp || 0));
+    const milestone = window.SHOP_LEVEL_MILESTONES && window.SHOP_LEVEL_MILESTONES[s.shopLevel] ? window.SHOP_LEVEL_MILESTONES[s.shopLevel] : null;
+    const baseMaxScore = milestone && Number(milestone.maxScore) ? Number(milestone.maxScore) : 20;
+    s.maxScore = Math.max(baseMaxScore, Number(s.maxScore || 0));
+    s.currentScore = Math.max(0, Number(s.currentScore || 0));
+    const nextExp = s.shopLevel * 100;
+    return { level: s.shopLevel, exp: s.shopExp, nextExp, maxScore: s.maxScore, currentScore: s.currentScore };
+};
+
+window.addShopExp = function(amount) {
+    const s = window.SHOP_STATE;
+    if (!s) return;
+    const info = window.getShopLevelInfo();
+    s.shopExp = info.exp + Math.max(0, Number(amount || 0));
+    while (s.shopExp >= s.shopLevel * 100) {
+        s.shopExp -= s.shopLevel * 100;
+        s.shopLevel += 1;
+        if (window.SHOP_LEVEL_MILESTONES && window.SHOP_LEVEL_MILESTONES[s.shopLevel]) {
+            s.maxScore = Math.max(s.maxScore || 0, window.SHOP_LEVEL_MILESTONES[s.shopLevel].maxScore || s.maxScore || 0);
+        }
+    }
+};
+
+window.getCustomerDishPreferences = function(skin, trait) {
+    const fav = trait && trait.favDish ? trait.favDish : 'any';
+    if (Array.isArray(trait && trait.favCategories)) return trait.favCategories;
+    if (fav && fav !== 'any') return [window.getShopDishCategory(fav)];
+    const key = String(skin || '');
+    if (/dragon|magician|spirit/.test(key)) return ['sweets', 'fish', 'meat'];
+    if (/robot|machine/.test(key)) return ['rice', 'meat', 'noodle'];
+    if (/slime|plant|fairy/.test(key)) return ['vegetable', 'sweets'];
+    return ['rice', 'meat', 'vegetable', 'sweets'];
+};
+
+window.chooseShopOrderForCustomer = function(skin, trait) {
+    const s = window.SHOP_STATE || {};
+    const stocked = (s.menuList || []).filter(k => (s.fridge && s.fridge[k] > 0));
+    const candidates = stocked.length ? stocked : (s.menuList || []);
+    if (candidates.length === 0) return null;
+    let prefs = window.getCustomerDishPreferences(skin, trait);
+    if (s.shopTheme === 'ramen') prefs = ['noodle', 'meat', ...prefs];
+    if (s.shopTheme === 'sweets') prefs = ['sweets', ...prefs];
+    const preferred = candidates.filter(k => prefs.includes(window.getShopDishCategory(k)));
+    const pool = preferred.length ? preferred : candidates;
+    return pool[Math.floor(Math.random() * pool.length)];
+};
+
+window.analyzeShopTacticRule = function(rule, ruleIndex, rules) {
+    const cond = rule && rule.condition;
+    const action = rule && rule.action1;
+    const serviceConds = ['customer_waiting_order', 'customer_waiting_food', 'customer_waiting_register'];
+    const prepConds = ['is_closed', 'missing_kitchen', 'missing_table', 'missing_chair', 'missing_register', 'has_researchable_recipe', 'has_preppable_recipe', 'daily_seat_shortage', 'shop_is_plain', 'shop_is_cramped', 'prefer_luxury_decor', 'prefer_casual_decor', 'remove_decor', 'remove_fridge', 'remove_stove', 'remove_oven', 'remove_table', 'remove_chair', 'remove_register', 'remove_wall', 'remove_kitchen_floor'];
+    let timing = '常時';
+    if (serviceConds.includes(cond)) timing = '営業中';
+    else if (prepConds.includes(cond)) timing = '仕込み中';
+
+    const validPairs = {
+        customer_waiting_order: ['きく'],
+        customer_waiting_food: ['はこぶ'],
+        customer_waiting_register: ['うつ'],
+        missing_kitchen: ['かえる'],
+        missing_table: ['かえる'],
+        missing_chair: ['かえる'],
+        missing_register: ['かえる'],
+        has_researchable_recipe: ['おぼえる'],
+        has_preppable_recipe: ['つくる'],
+        daily_seat_shortage: ['ふやす'],
+        shop_is_cramped: ['ふやす'],
+        shop_is_plain: ['おく'],
+        prefer_luxury_decor: ['かえる', 'おく'],
+        prefer_casual_decor: ['かえる', 'おく'],
+        remove_decor: ['かえる'],
+        remove_fridge: ['かえる'],
+        remove_stove: ['かえる'],
+        remove_oven: ['かえる'],
+        remove_table: ['かえる'],
+        remove_chair: ['かえる'],
+        remove_register: ['かえる'],
+        remove_wall: ['かえる'],
+        remove_kitchen_floor: ['かえる'],
+        is_closed: ['やすむ', 'つくる', 'おぼえる', 'かえる', 'ふやす', 'おく', 'いう'],
+        always: ['いう', 'やすむ', 'つくる', 'おぼえる', 'かえる', 'ふやす', 'おく', 'きく', 'はこぶ', 'うつ']
+    };
+    const valid = !!(cond && action && validPairs[cond] && validPairs[cond].includes(action));
+    const special = cond === 'always' || cond === 'is_closed';
+
+    let blockedBy = null;
+    for (let i = 0; i < ruleIndex; i++) {
+        const prev = rules[i] || {};
+        if (prev.condition === 'always') { blockedBy = i + 1; break; }
+        if (prev.condition === 'is_closed' && timing === '仕込み中') { blockedBy = i + 1; break; }
+        if (serviceConds.includes(prev.condition) && prev.condition === cond) { blockedBy = i + 1; break; }
+    }
+
+    return {
+        timing,
+        valid,
+        special,
+        fallback: blockedBy ? `優先度${blockedBy}で止まる可能性` : '条件が外れれば下へ流れます'
+    };
+};
+
+window.renderShopTacticRuleInfo = function(rule, ruleIndex, rules) {
+    const info = window.analyzeShopTacticRule(rule, ruleIndex, rules || []);
+    const validColor = info.valid ? '#4CAF50' : '#FF5252';
+    const validText = info.valid ? (info.special ? '特殊パターンとして有効' : '組み合わせ有効') : '組み合わせ要確認';
+    const flowColor = info.fallback.includes('可能性') ? '#FF9800' : '#90CAF9';
+    return `<div style="margin-top:8px; display:flex; gap:6px; flex-wrap:wrap; font-size:11px;">
+        <span style="padding:3px 7px; border-radius:999px; background:#333; color:#FFF;">${info.timing}</span>
+        <span style="padding:3px 7px; border-radius:999px; background:${validColor}; color:#FFF;">${validText}</span>
+        <span style="padding:3px 7px; border-radius:999px; background:#222; border:1px solid ${flowColor}; color:${flowColor};">${info.fallback}</span>
+    </div>`;
+};
+
+window.escapeShopHtml = function(value) {
+    return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+};
+
+window.getShopCurrentRecipeCandidates = function() {
+    const s = window.SHOP_STATE || {};
+    const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS || {});
+    const researchable = [];
+    const preppable = [];
+    recipeKeys.forEach(key => {
+        const progress = s.recipeProgress ? s.recipeProgress[key] : undefined;
+        const hasIngredients = typeof window.checkAndConsumeIngredients === 'function' ? window.checkAndConsumeIngredients(key, true) : false;
+        const requirements = (window.SHOP_RECIPE_COSTS && window.SHOP_RECIPE_COSTS[key]) || [];
+        const entry = {
+            key,
+            name: (window.SHOP_DISH_NAMES && window.SHOP_DISH_NAMES[key]) || key,
+            progress: progress === undefined ? 0 : progress,
+            hasIngredients,
+            ingredients: requirements.map(id => (window.SHOP_ING_NAMES && window.SHOP_ING_NAMES[id]) || id)
+        };
+        if (hasIngredients && (progress === undefined || progress < 100)) researchable.push(entry);
+        if (hasIngredients && progress >= 100) preppable.push(entry);
+    });
+    return { researchable, preppable };
+};
+
+window.getShopTacticConditionSnapshot = function(condition) {
+    const s = window.SHOP_STATE || {};
+    const npcs = Array.isArray(s.npcs) ? s.npcs : [];
+    const recipeInfo = window.getShopCurrentRecipeCandidates ? window.getShopCurrentRecipeCandidates() : { researchable: [], preppable: [] };
+    const hasTile = (tiles) => !!(s.grid && s.grid.some(row => row && row.some(tile => tiles.includes(Number(tile)))));
+    const decorCount = s.grid ? s.grid.reduce((sum, row) => sum + row.filter(tile => [71, 72].includes(Number(tile))).length, 0) : 0;
+    const dailyFlags = s.dailyFlags || {};
+    const label = (window.SHOP_TACTIC_CONDITIONS && window.SHOP_TACTIC_CONDITIONS[condition]) || condition || '未設定';
+    let met = false;
+    let reason = '';
+
+    if (condition === 'always') { met = true; reason = '常に成立します。'; }
+    else if (condition === 'customer_waiting_register') { met = npcs.some(n => n.state === 'paying'); reason = `レジ待ちの客: ${npcs.filter(n => n.state === 'paying').length}人`; }
+    else if (condition === 'customer_waiting_order') { met = npcs.some(n => n.state === 'ordering'); reason = `注文待ちの客: ${npcs.filter(n => n.state === 'ordering').length}人`; }
+    else if (condition === 'customer_waiting_food') { met = npcs.some(n => n.state === 'waiting_for_food'); reason = `料理待ちの客: ${npcs.filter(n => n.state === 'waiting_for_food').length}人`; }
+    else if (condition === 'is_closed') { met = !s.isOpen && npcs.length === 0; reason = met ? '閉店中で客がいません。' : `営業中または客が残っています（客: ${npcs.length}人）。`; }
+    else if (condition === 'missing_kitchen') {
+        const missing = [];
+        if (!hasTile([31, 91])) missing.push('冷蔵庫');
+        if (!hasTile([32, 95, 96, 97])) missing.push('オーブン');
+        if (!hasTile([33, 34])) missing.push('コンロ');
+        met = missing.length > 0;
+        reason = met ? `不足: ${missing.join('、')}` : '厨房設備があります。';
+    }
+    else if (condition === 'missing_table') { met = !hasTile([21, 22, 23, 24, 25, 26]); reason = met ? 'テーブルがありません。' : 'テーブルがあります。'; }
+    else if (condition === 'missing_chair') { met = !hasTile([10, 14, 15, 16, 17]); reason = met ? '椅子がありません。' : '椅子があります。'; }
+    else if (condition === 'missing_register') { met = !hasTile([11, 12, 13, 92, 93, 94]); reason = met ? 'レジカウンターがありません。' : 'レジカウンターがあります。'; }
+    else if (condition === 'has_researchable_recipe') {
+        met = recipeInfo.researchable.length > 0;
+        const materialSets = recipeInfo.researchable.slice(0, 3).map(r => `素材 ${r.ingredients.join('、') || 'なし'}`).join(' / ');
+        reason = met ? `今の食材でひらめけるレシピがあります（${materialSets}）。料理名はひらめくまで伏せます。` : '今の食材では、ひらめけるレシピがありません。';
+    }
+    else if (condition === 'has_preppable_recipe') {
+        met = recipeInfo.preppable.length > 0;
+        const sample = recipeInfo.preppable.slice(0, 3).map(r => `${r.name}（${r.ingredients.join('、') || '素材なし'}）`).join(' / ');
+        reason = met ? `仕込める候補: ${sample}` : '完成済みレシピと食材がそろっていません。';
+    }
+    else if (window.getShopDismantleTargetForCondition && window.getShopDismantleTargetForCondition(condition)) {
+        const target = window.getShopDismantleTargetForCondition(condition);
+        met = !!(target && hasTile(target.tiles));
+        reason = met ? `${target.label}が配置されています。` : `${target ? target.label : '対象'}は配置されていません。`;
+    }
+    else if (condition === 'daily_seat_shortage') { met = !!(dailyFlags.seatShortage || dailyFlags.missingSeats > 0); reason = `不足席数: ${dailyFlags.missingSeats || 0}`; }
+    else if (condition === 'shop_is_plain') { const need = Math.max(1, Math.floor((s.shopLevel || 1) / 5) + 1); met = decorCount < need; reason = `飾り: ${decorCount}/${need}`; }
+    else if (condition === 'shop_is_cramped') { met = !!(dailyFlags.cramped || dailyFlags.missingSeats > 0); reason = dailyFlags.cramped ? '手狭フラグがあります。' : `不足席数: ${dailyFlags.missingSeats || 0}`; }
+    else if (condition === 'prefer_luxury_decor' || condition === 'prefer_casual_decor') { met = !s.isOpen && npcs.length === 0; reason = '閉店中なら内装方針として使えます。'; }
+    else { reason = 'この条件の診断は未定義です。'; }
+
+    return { label, met, reason, recipeInfo };
+};
+
+window.getShopRouteDiagnostic = function(targetTilesOrPos) {
+    const s = window.SHOP_STATE || {};
+    const p = s.player || {};
+    const grid = s.grid || [];
+    const currentFloor = p.currentFloor || s.currentFloor || '1F';
+    const blocked = new Set([1, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
+    const isFree = (x, y) => grid[y] && grid[y][x] !== undefined && !blocked.has(Number(grid[y][x]));
+    let candidates = [];
+    let targetTiles = [];
+    if (targetTilesOrPos && Number.isFinite(targetTilesOrPos.x) && Number.isFinite(targetTilesOrPos.y)) {
+        candidates = [{ x: targetTilesOrPos.x, y: targetTilesOrPos.y }];
+        targetTiles = [{ x: targetTilesOrPos.x, y: targetTilesOrPos.y, kind: 'target' }];
+    } else {
+        const tiles = Array.isArray(targetTilesOrPos) ? targetTilesOrPos : [];
+        for (let y = 0; y < grid.length; y++) {
+            for (let x = 0; x < (grid[y] || []).length; x++) {
+                if (!tiles.includes(Number(grid[y][x]))) continue;
+                targetTiles.push({ x, y, kind: 'target' });
+                [{ x, y: y + 1 }, { x: x - 1, y }, { x: x + 1, y }, { x, y: y - 1 }]
+                    .filter(pos => isFree(pos.x, pos.y))
+                    .forEach(pos => candidates.push(pos));
+            }
+        }
+    }
+    if (candidates.length === 0) return { reachable: false, targetTiles, candidates: [], text: '対象のそばに立てる空き場所がありません。周囲の家具や飾りを片付ける必要があります。' };
+    const reachable = candidates.find(pos => {
+        if (p.x === pos.x && p.y === pos.y) return true;
+        if (typeof window.getShopNextStep !== 'function') return true;
+        return !!window.getShopNextStep(p.x, p.y, pos.x, pos.y, currentFloor);
+    });
+    if (reachable) return { reachable: true, targetTiles, candidates, reachable, text: '対象のそばまで移動できます。' };
+    return { reachable: false, targetTiles, candidates, text: '対象のそばまで歩いて行けません。通路をふさいでいる家具や飾りを片付ける必要があります。' };
+};
+
+window.setShopAnalysisHighlight = function(route, label) {
+    const s = window.SHOP_STATE;
+    if (!s || !route) return;
+    s.analysisHighlights = {
+        label: label || '解析対象',
+        targetTiles: (route.targetTiles || []).map(pos => ({ x: pos.x, y: pos.y })),
+        candidateTiles: (route.candidates || []).map(pos => ({ x: pos.x, y: pos.y })),
+        reachable: route.reachable ? { x: route.reachable.x, y: route.reachable.y } : null,
+        until: Date.now() + 30000
+    };
+    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+    const modal = document.getElementById('shop-modal-minimap');
+    if (modal && modal.style.display === 'flex' && typeof window.drawShopMinimap === 'function') window.drawShopMinimap();
+};
+
+window.describeShopTacticActionResult = function(rule, snapshot) {
+    const s = window.SHOP_STATE || {};
+    const action = rule && rule.action1;
+    const cond = rule && rule.condition;
+    if (!action) return '行動が未設定なので何もしません。';
+    if (['customer_waiting_order', 'customer_waiting_food', 'customer_waiting_register'].includes(cond)) {
+        if (!s.isOpen) return '接客系の条件なので、閉店中は基本的に発動しません。';
+        if (cond === 'customer_waiting_order' && action === 'きく') return '注文待ちの客へ移動し、注文を聞きます。';
+        if (cond === 'customer_waiting_food' && action === 'はこぶ') return '冷蔵庫へ向かい、注文料理を客へ運びます。';
+        if (cond === 'customer_waiting_register' && action === 'うつ') return 'レジ待ちの客へ向かい、会計します。';
+    }
+    if (cond === 'has_researchable_recipe' && action === 'おぼえる') {
+        const first = snapshot.recipeInfo.researchable[0];
+        const route = window.getShopRouteDiagnostic ? window.getShopRouteDiagnostic([31, 32, 33, 34, 91, 95, 96, 97]) : null;
+        return first ? `研究場所へ向かい、新しいレシピをひらめこうとします。${route ? route.text : ''}` : '候補レシピがないため実行できません。';
+    }
+    if (cond === 'has_preppable_recipe' && action === 'つくる') {
+        const first = snapshot.recipeInfo.preppable[0];
+        const route = window.getShopRouteDiagnostic ? window.getShopRouteDiagnostic([31, 32, 33, 34, 91, 95, 96, 97]) : null;
+        return first ? `厨房へ向かい、${first.name} を仕込みます。${route ? route.text : ''}` : '完成済みレシピと素材がないため実行できません。';
+    }
+    if (window.getShopDismantleTargetForCondition && window.getShopDismantleTargetForCondition(cond) && action === 'かえる') {
+        const target = window.getShopDismantleTargetForCondition(cond);
+        const route = window.getShopRouteDiagnostic ? window.getShopRouteDiagnostic(target.tiles) : null;
+        return `${target.label}を1つ片付けます。${route ? route.text : ''}`;
+    }
+    if (action === 'かえる') return '不足設備の設置、または内装変更を行います。';
+    if (action === 'ふやす') return cond === 'shop_is_cramped' ? '店の拡張を試みます。' : '席やテーブルを増やします。';
+    if (action === 'おく') return '飾りを置いて店の雰囲気を上げます。';
+    if (action === 'やすむ') return 'その場で休み、体力と満腹度を回復します。';
+    if (action === 'いう') return 'ひとこと話します。';
+    return `${action} を実行しようとします。`;
+};
+
+window.analyzeCurrentShopTacticFlow = function() {
+    const tactics = window.getShopEditorTactics ? window.getShopEditorTactics() : (window.aiPet ? window.aiPet.shopTactics : []);
+    const idx = window.SHOP_EDITOR_TACTIC_INDEX;
+    const tactic = idx >= 0 && tactics ? tactics[idx] : null;
+    const s = window.SHOP_STATE || {};
+    const lines = [];
+    if (!tactic || !Array.isArray(tactic.rules)) {
+        lines.push({ level: 'info', title: 'AIにまかせる', text: '基本AIは、接客中は会計・配膳を優先し、閉店中は休憩、仕込み、研究、席増設を自動で選びます。' });
+        return lines;
+    }
+    lines.push({
+        level: 'info',
+        title: `現在の状態`,
+        text: `${s.isOpen ? '営業中' : '閉店中'} / 客 ${(s.npcs || []).length}人 / 体力 ${window.getShopWorkerVitals ? Math.floor(window.getShopWorkerVitals().stamina) : '?'}% / 満腹 ${window.getShopWorkerVitals ? Math.floor(window.getShopWorkerVitals().fullness) : '?'}%`
+    });
+
+    let firstHit = -1;
+    tactic.rules.forEach((rule, i) => {
+        const snapshot = window.getShopTacticConditionSnapshot(rule.condition);
+        const info = window.analyzeShopTacticRule(rule, i, tactic.rules);
+        const validText = info.valid ? '組み合わせ有効' : '組み合わせ要確認';
+        const hit = firstHit === -1 && snapshot.met;
+        if (hit) firstHit = i;
+        let route = null;
+        if (hit && rule.condition === 'has_researchable_recipe' && rule.action1 === 'おぼえる') route = window.getShopRouteDiagnostic ? window.getShopRouteDiagnostic([31, 32, 33, 34, 91, 95, 96, 97]) : null;
+        else if (hit && rule.condition === 'has_preppable_recipe' && rule.action1 === 'つくる') route = window.getShopRouteDiagnostic ? window.getShopRouteDiagnostic([31, 32, 33, 34, 91, 95, 96, 97]) : null;
+        else if (hit && window.getShopDismantleTargetForCondition && window.getShopDismantleTargetForCondition(rule.condition) && rule.action1 === 'かえる') {
+            const target = window.getShopDismantleTargetForCondition(rule.condition);
+            route = target ? window.getShopRouteDiagnostic(target.tiles) : null;
+        }
+        lines.push({
+            level: hit ? 'hit' : (snapshot.met ? 'met' : 'miss'),
+            title: `優先度${i + 1}: ${snapshot.label} → ${rule.action1 || '未設定'}`,
+            text: `${snapshot.met ? '成立' : '不成立'}。${snapshot.reason} / ${validText}。${hit ? window.describeShopTacticActionResult(rule, snapshot) : '上位条件が成立しなければここを見ます。'}`,
+            route,
+            routeLabel: snapshot.label
+        });
+    });
+    if (firstHit === -1) {
+        lines.push({ level: 'warn', title: '発動する条件がありません', text: 'このままだとAI店員は待機しやすくなります。閉店中なら「営業時間外」や「ひらめけるレシピがある時」、営業中なら接客系条件を確認してください。' });
+    }
+    return lines;
+};
+
+window.renderShopTacticAnalysisPanel = function() {
+    const box = document.getElementById('shop-tactic-analysis-panel');
+    if (!box) return;
+    const lines = window.analyzeCurrentShopTacticFlow ? window.analyzeCurrentShopTacticFlow() : [];
+    const colorMap = {
+        hit: { border: '#4CAF50', bg: '#12351a', label: '今回発動' },
+        met: { border: '#FFC107', bg: '#332600', label: '成立中' },
+        miss: { border: '#555', bg: '#1d1d1d', label: '未成立' },
+        warn: { border: '#FF9800', bg: '#35220a', label: '注意' },
+        info: { border: '#2196F3', bg: '#102231', label: '情報' }
+    };
+    box.innerHTML = lines.map((line, idx) => {
+        const c = colorMap[line.level] || colorMap.info;
+        const routeButton = line.route ? `<button onclick="window.setShopAnalysisHighlight(window.analyzeCurrentShopTacticFlow()[${idx}].route, '${window.escapeShopHtml(line.routeLabel || '解析対象')}');" style="margin-top:8px; padding:6px 10px; background:#00BCD4; color:#001018; border:none; border-radius:5px; cursor:pointer; font-weight:bold;">マップで場所を見る</button>` : '';
+        return `<div style="margin-bottom:8px; padding:10px; border:1px solid ${c.border}; background:${c.bg}; border-radius:8px; line-height:1.55;">
+            <div style="display:flex; gap:8px; align-items:center; margin-bottom:4px;">
+                <span style="font-size:11px; padding:2px 6px; border-radius:999px; background:${c.border}; color:#111; font-weight:bold;">${c.label}</span>
+                <span style="font-weight:bold; color:#fff;">${window.escapeShopHtml(line.title)}</span>
+            </div>
+            <div style="color:#ddd; font-size:13px;">${window.escapeShopHtml(line.text)}</div>
+            ${routeButton}
+        </div>`;
+    }).join('');
+    box.style.display = 'block';
+};
+
+window.SHOP_DISMANTLE_TARGETS = {
+    remove_decor: { label: '飾り', tiles: [71, 72], restore: 0, item: { 71: 'item_plant', 72: 'item_candle' } },
+    remove_fridge: { label: '冷蔵庫', tiles: [31, 91], restore: 2, item: { 31: 'item_fridge', 91: 'item_super_fridge' } },
+    remove_stove: { label: 'コンロ', tiles: [33, 34], restore: 2, item: { 33: 'item_stove', 34: 'item_stove' } },
+    remove_oven: { label: 'オーブン', tiles: [32, 95, 96, 97], restore: 2, item: { 32: 'item_oven', 95: 'item_legendary_kitchen', 96: 'item_legendary_kitchen', 97: 'item_legendary_kitchen' } },
+    remove_table: { label: 'テーブル', tiles: [21, 22, 23, 24, 25, 26, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56], restore: 0, item: {} },
+    remove_chair: { label: '椅子', tiles: [10, 14, 15, 16, 17, 61, 62, 63, 64], restore: 0, item: { 17: 'item_stool' } },
+    remove_register: { label: 'レジカウンター', tiles: [11, 12, 13, 92, 93, 94], restore: 0, item: { 11: 'item_register', 12: 'item_register', 13: 'item_register', 92: 'item_lux_counter', 93: 'item_lux_counter', 94: 'item_lux_counter' } },
+    remove_wall: { label: '壁', tiles: [1], restore: 0, item: {} },
+    remove_kitchen_floor: { label: '厨房床', tiles: [2], restore: 0, item: {} }
+};
+
+window.getShopDismantleTargetForCondition = function(condition) {
+    return window.SHOP_DISMANTLE_TARGETS ? window.SHOP_DISMANTLE_TARGETS[condition] : null;
+};
+
+window.dismantleShopTarget = function(condition) {
+    const s = window.SHOP_STATE;
+    const target = window.getShopDismantleTargetForCondition(condition);
+    if (!s || !s.grid || !target) return false;
+    const aiName = window.aiPet ? window.aiPet.name || "AI店員" : "AI店員";
+    for (let y = 1; y < s.grid.length - 1; y++) {
+        for (let x = 1; x < s.grid[y].length - 1; x++) {
+            const tile = Number(s.grid[y][x]);
+            if (!target.tiles.includes(tile)) continue;
+            const itemId = target.item && target.item[tile];
+            s.grid[y][x] = target.restore;
+            if (itemId && window.aiPet && Array.isArray(window.aiPet.inventory)) window.aiPet.inventory.push({ id: itemId, age: 0 });
+            if (typeof window.refreshTableTiles === 'function') window.refreshTableTiles(s.grid);
+            if (typeof window.refreshShopMiniMapLegend === 'function') window.refreshShopMiniMapLegend();
+            window.showShopFloatingText(x, y, `${target.label}を片付けたよ！`, "#FF9800", aiName);
+            return true;
+        }
+    }
+    window.showShopFloatingText(s.player.x, s.player.y, `${target.label}は見つからないな…`, "#FF5252", aiName);
+    return false;
 };
 
 // ==========================================
@@ -2995,35 +3685,42 @@ window.getShopMinimapLegendHtml = function() {
     const rows = Array.isArray(s.grid) ? s.grid : [];
     const hasTile = (ids) => rows.some(row => Array.isArray(row) && row.some(v => ids.includes(v)));
     const hasNpcState = (states) => Array.isArray(s.npcs) && s.npcs.some(n => n && states.includes(n.state));
+    const tag = (color, text) => `<span style="color:${color}; font-weight:bold; text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000;">■${text}</span>`;
+    const dot = (color, text) => `<span style="color:${color}; font-weight:bold; text-shadow:-1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px #000;">●${text}</span>`;
     const mapParts = [
-        '<span style="color:#5D4037;">■壁</span>',
-        '<span style="color:#DEB887;">■床</span>'
+        tag('#5D4037', '壁'),
+        tag('#DEB887', '床')
     ];
-    if (hasTile([2])) mapParts.push('<span style="color:#FFF;">■厨房床</span>');
-    if (hasTile([21, 22, 23, 24, 25, 26])) mapParts.push('<span style="color:#FF9800;">■机</span>');
-    if (hasTile([41, 42, 43, 44, 45, 46])) mapParts.push('<span style="color:#BA68C8;">■高級机</span>');
-    if (hasTile([51, 52, 53, 54, 55, 56])) mapParts.push('<span style="color:#E0E0E0;">■大理石机</span>');
-    if (hasTile([10, 14, 15, 16, 17, 61, 62, 63, 64])) mapParts.push('<span style="color:#2196F3;">■椅子</span>');
-    if (hasTile([11, 12, 13])) mapParts.push('<span style="color:#4CAF50;">■レジ</span>');
-    if (hasTile([71, 72])) mapParts.push('<span style="color:#FFEB3B;">■飾</span>');
-    if (hasTile([31])) mapParts.push('<span style="color:#03A9F4;">■冷蔵庫</span>');
-    if (hasTile([32])) mapParts.push('<span style="color:#E91E63;">■オーブン</span>');
-    if (hasTile([33, 34])) mapParts.push('<span style="color:#424242;">■コンロ</span>');
+    if (hasTile([2])) mapParts.push(tag('#FFF', '厨房床'));
+    if (hasTile([21, 22, 23, 24, 25, 26])) mapParts.push(tag('#FF9800', '机'));
+    if (hasTile([41, 42, 43, 44, 45, 46])) mapParts.push(tag('#BA68C8', '高級机'));
+    if (hasTile([51, 52, 53, 54, 55, 56])) mapParts.push(tag('#E0E0E0', '大理石机'));
+    if (hasTile([10, 14, 15, 16, 17, 61, 62, 63, 64])) mapParts.push(tag('#2196F3', '椅子'));
+    if (hasTile([11, 12, 13])) mapParts.push(tag('#4CAF50', 'レジ'));
+    if (hasTile([71, 72])) mapParts.push(tag('#FFEB3B', '飾'));
+    if (hasTile([31])) mapParts.push(tag('#03A9F4', '冷蔵庫'));
+    if (hasTile([32])) mapParts.push(tag('#E91E63', 'オーブン'));
+    if (hasTile([33, 34])) mapParts.push(tag('#424242', 'コンロ'));
     if (hasTile([35, 36, 37, 91, 92, 93, 94, 95, 96, 97])) {
-        mapParts.push('<span style="color:#9E9E9E;">■調理設備</span>');
+        mapParts.push(tag('#9E9E9E', '調理設備'));
+    }
+    if (s.analysisHighlights) {
+        mapParts.push(tag('#FFEB3B', '解析対象'));
+        mapParts.push(tag('#00BCD4', '候補地'));
+        if (s.analysisHighlights.reachable) mapParts.push(tag('#4CAF50', '到達可能'));
     }
 
-    const actorParts = ['<span style="color:#FFF;">●AI店員</span>'];
-    if (s.tutorialChef && window.aiPet && !window.aiPet.shopTutorialCompleted) actorParts.push('<span style="color:#FF9800;">●料理人</span>');
+    const actorParts = [dot('#FFF', 'AI店員')];
+    if (s.tutorialChef && window.aiPet && !window.aiPet.shopTutorialCompleted) actorParts.push(dot('#FF9800', '料理人'));
     const showCustomerLegend = !!(window.aiPet && (window.aiPet.shopTutorialCompleted || window.aiPet.shopTutorialMindPhase === 'service'));
     if (showCustomerLegend) {
-        if (hasNpcState(['entering', 'walking', 'moving_to_seat'])) actorParts.push('<span style="color:#9E9E9E;">●移動客</span>');
-        if (hasNpcState(['ordering'])) actorParts.push('<span style="color:#FFEB3B;">●注文待</span>');
-        if (hasNpcState(['waiting_for_food'])) actorParts.push('<span style="color:#03A9F4;">●配膳待</span>');
-        if (hasNpcState(['eating'])) actorParts.push('<span style="color:#FF9800;">●食事中</span>');
-        if (hasNpcState(['paying'])) actorParts.push('<span style="color:#4CAF50;">●レジ待</span>');
-        if (hasNpcState(['takeout_waiting'])) actorParts.push('<span style="color:#9C27B0;">●持帰り待</span>');
-        if (hasNpcState(['angry_leaving'])) actorParts.push('<span style="color:#f44336;">●怒帰宅</span>');
+        if (hasNpcState(['entering', 'walking', 'moving_to_seat'])) actorParts.push(dot('#9E9E9E', '移動客'));
+        if (hasNpcState(['ordering'])) actorParts.push(dot('#FFEB3B', '注文待'));
+        if (hasNpcState(['waiting_for_food'])) actorParts.push(dot('#03A9F4', '配膳待'));
+        if (hasNpcState(['eating'])) actorParts.push(dot('#FF9800', '食事中'));
+        if (hasNpcState(['paying'])) actorParts.push(dot('#4CAF50', 'レジ待'));
+        if (hasNpcState(['takeout_waiting'])) actorParts.push(dot('#9C27B0', '持帰り待'));
+        if (hasNpcState(['angry_leaving'])) actorParts.push(dot('#f44336', '怒帰宅'));
     }
 
     return `
@@ -3033,16 +3730,33 @@ window.getShopMinimapLegendHtml = function() {
 };
 
 window.openShopMapUI = function(building) {
+    if (!document.getElementById('shop-analysis-highlight-style')) {
+        const style = document.createElement('style');
+        style.id = 'shop-analysis-highlight-style';
+        style.textContent = `@keyframes shopAnalysisPulse { from { opacity: 0.45; transform: scale(0.96); } to { opacity: 1; transform: scale(1.03); } }`;
+        document.head.appendChild(style);
+    }
     if (typeof window.installShopSaveSyncWrapper === 'function') window.installShopSaveSyncWrapper();
     window.currentShopManagementBuilding = building || window.currentShopManagementBuilding || null;
     if (window.currentShopManagementBuilding) {
         if (window.currentShopManagementBuilding.shopData) {
             window.SHOP_STATE = window.currentShopManagementBuilding.shopData;
+            if (window.SHOP_STATE.isBankrupt || window.SHOP_STATE.detachedAfterBankruptcy) {
+                window.SHOP_STATE = window.createFreshRestaurantShopState({ preserveRecipes: true });
+                window.currentShopManagementBuilding.shopData = window.SHOP_STATE;
+            }
         } else {
+            window.SHOP_STATE = window.createFreshRestaurantShopState({ preserveRecipes: true });
             window.currentShopManagementBuilding.shopData = window.SHOP_STATE;
         }
     }
     if (!window.SHOP_STATE.currentFloor) window.SHOP_STATE.currentFloor = '1F';
+    if (window.aiPet && window.aiPet.shopTutorialCompleted && window.SHOP_STATE) {
+        if (Number(window.SHOP_STATE.reputation || 0) < 100 && !window.hasAnyRestaurantStock(window.SHOP_STATE) && (!window.SHOP_STATE.npcs || window.SHOP_STATE.npcs.length === 0)) {
+            window.SHOP_STATE.reputation = 100;
+        }
+        if (typeof window.grantRestaurantRestartEquipment === 'function') window.grantRestaurantRestartEquipment(window.SHOP_STATE);
+    }
     if (!Array.isArray(window.SHOP_STATE.grid) || window.SHOP_STATE.grid.length === 0) {
         window.SHOP_STATE.grid = RESTAURANT_MAP_LV1.map(row => [...row]);
         window.SHOP_STATE.mapWidth = 12;
@@ -3085,6 +3799,13 @@ window.openShopMapUI = function(building) {
                 <div style="display:flex; gap:15px; align-items: center;">
                     <div style="font-size: 16px; color: #fff; background: #444; padding: 5px 15px; border-radius: 20px;">
                         評判: <span id="shop-rep-ui" style="color: #4CAF50; font-weight: bold;">100%</span> | 所持金: <span id="shop-money-ui" style="color: #FFD700; font-weight: bold;">0 G</span>
+                        <span style="display:block; font-size:12px; margin-top:2px; color:#ddd;">
+                            Lv:<span id="shop-level-ui" style="color:#FFD700; font-weight:bold;">1</span>
+                            EXP:<span id="shop-exp-ui" style="color:#90CAF9; font-weight:bold;">0/100</span>
+                            スコア:<span id="shop-score-ui" style="color:#4FC3F7; font-weight:bold;">0/0</span>
+                            体力:<span id="shop-stamina-ui" style="color:#4CAF50; font-weight:bold;">100</span>
+                            満腹:<span id="shop-fullness-ui" style="color:#FFB74D; font-weight:bold;">100</span>
+                        </span>
                     </div>
                     <button onclick="window.toggleShopMinimapModal();" style="padding: 8px 15px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🗺️ ミニマップ</button>
                     <button onclick="window.toggleRestaurantLogModal();" style="padding: 8px 15px; background: #9C27B0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📜 ログ・状況</button>
@@ -3140,6 +3861,7 @@ window.openShopMapUI = function(building) {
     }
     compatUI.style.display = 'flex';
     ui.style.display = 'flex';
+    window.SHOP_STATE.isActive = true;
     window.initShopTactics(); 
     
     const logArea = document.getElementById('shop-log-area');
@@ -3159,6 +3881,10 @@ window.openShopMapUI = function(building) {
 };
 
 window.closeShopMapUI = function() {
+    if (window.SHOP_STATE) {
+        window.SHOP_STATE.isActive = false;
+        window.SHOP_STATE.isOpen = false;
+    }
     if (typeof window.syncCurrentShopStateToBuilding === 'function') window.syncCurrentShopStateToBuilding();
     if (typeof saveGameData === 'function') saveGameData();
     let ui = document.getElementById('shop-map-ui');
@@ -3172,13 +3898,32 @@ window.closeShopMapUI = function() {
 
 window.updateShopUI = function() {
     const s = window.SHOP_STATE;
+    if (!s) return;
+    if (!s.fridge) s.fridge = {};
+    if (!s.recipeProgress) s.recipeProgress = {};
+    if (!Array.isArray(s.menuList)) s.menuList = [];
+    if (!Array.isArray(s.npcs)) s.npcs = [];
+    if (!Array.isArray(s.dishes)) s.dishes = [];
     const repEl = document.getElementById('shop-rep-ui');
     const moneyEl = document.getElementById('shop-money-ui');
+    s.reputation = Math.max(0, Math.min(100, Number(s.reputation || 0)));
     if (repEl) {
         repEl.innerText = `${s.reputation}%`;
         repEl.style.color = s.reputation < 30 ? '#f44336' : (s.reputation < 70 ? '#FFEB3B' : '#4CAF50');
     }
     if (moneyEl) moneyEl.innerText = `${window.aiPet ? window.aiPet.gold : 0} G`; // ★AIの所持金に統一
+    const levelInfoTop = typeof window.getShopLevelInfo === 'function' ? window.getShopLevelInfo() : { level: s.shopLevel || 1, exp: 0, nextExp: 100 };
+    const vitalsTop = typeof window.getShopWorkerVitals === 'function' ? window.getShopWorkerVitals() : { stamina: 100, fullness: 100 };
+    const levelEl = document.getElementById('shop-level-ui');
+    const expEl = document.getElementById('shop-exp-ui');
+    const scoreEl = document.getElementById('shop-score-ui');
+    const staminaEl = document.getElementById('shop-stamina-ui');
+    const fullnessEl = document.getElementById('shop-fullness-ui');
+    if (levelEl) levelEl.innerText = String(levelInfoTop.level);
+    if (expEl) expEl.innerText = `${levelInfoTop.exp}/${levelInfoTop.nextExp}`;
+    if (scoreEl) scoreEl.innerText = `${levelInfoTop.currentScore || 0}/${levelInfoTop.maxScore || 0}`;
+    if (staminaEl) staminaEl.innerText = `${Math.floor(vitalsTop.stamina)}%`;
+    if (fullnessEl) fullnessEl.innerText = `${Math.floor(vitalsTop.fullness)}%`;
 
     const tutorialDone = !!(window.aiPet && window.aiPet.shopTutorialCompleted);
     const tutorialMindActive = typeof window.isShopTutorialMindActive === 'function' && window.isShopTutorialMindActive();
@@ -3198,6 +3943,8 @@ window.updateShopUI = function() {
         let themeColor = "#FFF";
         if (s.shopTheme === 'luxury') { themeText = "✨三ツ星レストラン（セレブな客が来やすい）✨"; themeColor = "#E040FB"; }
         else if (s.shopTheme === 'casual') { themeText = "🍜大衆食堂（せっかちな客が来やすい）🍜"; themeColor = "#FF9800"; }
+        else if (s.shopTheme === 'ramen') { themeText = "🍜ラーメン店（麺・肉料理を好む客が来やすい）🍜"; themeColor = "#FFB300"; }
+        else if (s.shopTheme === 'sweets') { themeText = "🍰スイーツ店（甘いもの好きが来やすい）🍰"; themeColor = "#EC407A"; }
         
         // ★修正：初期化パッチの実行と、スコア・フロア切り替えUIの追加
         window.initShopFloors();
@@ -3205,10 +3952,14 @@ window.updateShopUI = function() {
         let btn2F = s.has2F ? `<button onclick="window.changeShopFloor('2F')" style="padding:4px 10px; background:${s.currentFloor==='2F'?'#00BCD4':'#444'}; color:#FFF; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">2階</button>` : '';
         let btnB1F = s.hasB1 ? `<button onclick="window.changeShopFloor('B1F')" style="padding:4px 10px; background:${s.currentFloor==='B1F'?'#9C27B0':'#444'}; color:#FFF; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">地下</button>` : '';
 
+        const levelInfo = typeof window.getShopLevelInfo === 'function' ? window.getShopLevelInfo() : { level: s.shopLevel || 1, exp: 0, nextExp: 100 };
+        const vitals = typeof window.getShopWorkerVitals === 'function' ? window.getShopWorkerVitals() : { stamina: 100, fullness: 100 };
         let themeHtml = `<h4 style="color:#FFF; margin:5px 0;">🏰 お店の雰囲気</h4><div style="background:rgba(0,0,0,0.4); padding:8px; border-radius:4px; border-left:3px solid ${themeColor}; color:${themeColor}; font-weight:bold; font-size:14px; margin-bottom:10px;">${themeText}</div>`;
-        
+         
         let floorHtml = `<div style="margin-bottom:15px; padding:8px; background:#222; border-radius:4px; border:1px solid #555;">
-            <div style="color:#00BCD4; font-weight:bold; margin-bottom:8px; font-size:14px;">📊 レイアウトスコア: <span style="color:#FFF;">${s.currentScore} / ${s.maxScore}</span></div>
+            <div style="color:#00BCD4; font-weight:bold; margin-bottom:6px; font-size:14px;">🏅 レストランLv: <span style="color:#FFF;">${levelInfo.level}</span> / 経験値: <span style="color:#FFF;">${levelInfo.exp} / ${levelInfo.nextExp}</span></div>
+            <div style="color:#00BCD4; font-weight:bold; margin-bottom:6px; font-size:14px;">📊 レイアウトスコア: <span style="color:#FFF;">${levelInfo.currentScore || 0} / ${levelInfo.maxScore || 0}</span></div>
+            <div style="color:#4CAF50; font-weight:bold; margin-bottom:8px; font-size:14px;">🔋 体力: <span style="color:#FFF;">${Math.floor(vitals.stamina)}%</span> / 🍙 満腹度: <span style="color:#FFF;">${Math.floor(vitals.fullness)}%</span></div>
             <div style="display:flex; gap:10px; align-items:center;">
                 <span style="color:#ccc; font-size:12px;">フロア切替:</span> ${btn1F} ${btn2F} ${btnB1F}
             </div>
@@ -3225,8 +3976,9 @@ window.updateShopUI = function() {
             let invCounts = {};
             if (window.aiPet && window.aiPet.inventory) {
                 window.aiPet.inventory.forEach(item => {
-                    if (item && item.id && window.SHOP_ING_NAMES[item.id]) {
-                        invCounts[item.id] = (invCounts[item.id] || 0) + 1;
+                    const id = typeof item === 'string' ? item : (item && item.id);
+                    if (id && window.SHOP_ING_NAMES[id]) {
+                        invCounts[id] = (invCounts[id] || 0) + 1;
                     }
                 });
             }
@@ -3238,18 +3990,47 @@ window.updateShopUI = function() {
             if(Object.keys(invCounts).length === 0) invHtml += `<span style="color:#888;">なし</span>`;
             invHtml += `</div>`;
 
+            let furnitureCounts = {};
+            let unlockedFurniture = [];
+            const shopLvForFurniture = (typeof window.getShopLevelInfo === 'function' ? window.getShopLevelInfo().level : (s.shopLevel || 1));
+            if (window.aiPet && Array.isArray(window.aiPet.inventory)) {
+                window.aiPet.inventory.forEach(item => {
+                    const id = item && item.id ? item.id : item;
+                    if (id && window.SHOP_FURNITURE_DB && window.SHOP_FURNITURE_DB[id]) {
+                        furnitureCounts[id] = (furnitureCounts[id] || 0) + 1;
+                    }
+                });
+            }
+            if (window.SHOP_FURNITURE_DB) {
+                Object.keys(window.SHOP_FURNITURE_DB).forEach(id => {
+                    const data = window.SHOP_FURNITURE_DB[id];
+                    if ((data.reqLv || 1) <= shopLvForFurniture) unlockedFurniture.push(id);
+                });
+            }
+            let furnitureHtml = `<h4 style="color:#64B5F6; margin:15px 0 5px 0;">🪑 手持ち家具・解放済み家具</h4><div style="display:flex; flex-wrap:wrap; gap:5px;">`;
+            if (unlockedFurniture.length === 0) {
+                furnitureHtml += `<span style="color:#888;">解放済み家具なし</span>`;
+            } else {
+                unlockedFurniture.forEach(id => {
+                    const name = typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(id) : id;
+                    const count = furnitureCounts[id] || 0;
+                    furnitureHtml += `<span style="background:rgba(0,0,0,0.5); border:1px solid ${count > 0 ? '#64B5F6' : '#444'}; padding:3px 6px; border-radius:4px; color:${count > 0 ? '#FFF' : '#999'};">${name}: <span style="color:${count > 0 ? '#FFD700' : '#777'}; font-weight:bold;">${count}</span></span>`;
+                });
+            }
+            furnitureHtml += `</div>`;
+
             // 2. レシピ開発度と在庫
             let recipeHtml = `<h4 style="color:#FFC107; margin:15px 0 5px 0;">💡 レシピ開発・在庫状況</h4><ul style="margin:0; padding-left:20px; line-height:1.8;">`;
             
             // ★修正：閃いている（progressが存在する）レシピだけをリストアップする
-            let discoveredRecipes = Object.keys(s.recipeProgress);
+            let discoveredRecipes = Object.keys(s.recipeProgress || {});
             if (discoveredRecipes.length === 0) {
                 recipeHtml += `<li style="color:#aaa;">まだひらめいたレシピがありません</li>`;
             } else {
                 for (let key of discoveredRecipes) {
                     let dName = window.SHOP_DISH_NAMES[key] || key;
                     let prog = s.recipeProgress[key] || 0;
-                    let stock = s.fridge[key] || 0;
+                    let stock = (s.fridge && s.fridge[key]) || 0;
                     if (prog >= 100) {
                         recipeHtml += `<li>${dName}: <span style="color:#4CAF50; font-weight:bold;">完成 (在庫: ${stock}個)</span></li>`;
                     } else {
@@ -3259,7 +4040,7 @@ window.updateShopUI = function() {
             }
             recipeHtml += `</ul>`;
 
-            dashHtml = invHtml + recipeHtml;
+            dashHtml += invHtml + furnitureHtml + recipeHtml;
 
         } else {
             // -----------------------------
@@ -3296,7 +4077,7 @@ window.updateShopUI = function() {
             } else {
                 displayList.forEach(key => {
                     let dName = window.SHOP_DISH_NAMES[key] || key;
-                    let stock = s.fridge[key] || 0;
+                    let stock = (s.fridge && s.fridge[key]) || 0;
                     let price = (s.prices && s.prices[key]) || 0; // ★値段を取得
                     if (stock > 0) {
                         stockHtml += `<li>${dName}: <span style="color:#FFD700; font-weight:bold;">${price}G</span> / 在庫 <span style="color:#FFF; font-weight:bold;">${stock}個</span></li>`;
@@ -3589,6 +4370,63 @@ window.renderShopMap = function() {
         });
     }
 
+    if (s.analysisHighlights && (!s.analysisHighlights.until || s.analysisHighlights.until > Date.now())) {
+        const highlightGroups = [
+            { key: 'targetTiles', color: '#FFEB3B', label: '対象' },
+            { key: 'candidateTiles', color: '#00BCD4', label: '立てる場所' }
+        ];
+        highlightGroups.forEach(group => {
+            (s.analysisHighlights[group.key] || []).forEach((pos, idx) => {
+                let domId = `shop_analysis_${group.key}_${idx}`;
+                currentActiveIds.add(domId);
+                let h = document.getElementById(domId);
+                if (!h) {
+                    h = document.createElement('div');
+                    h.id = domId;
+                    h.style.position = 'absolute';
+                    h.style.pointerEvents = 'none';
+                    h.style.boxSizing = 'border-box';
+                    h.style.border = `10px solid ${group.color}`;
+                    h.style.borderRadius = '20px';
+                    h.style.boxShadow = `0 0 35px ${group.color}, inset 0 0 28px ${group.color}`;
+                    h.style.background = 'rgba(255,255,255,0.06)';
+                    h.style.zIndex = 9998;
+                    h.style.animation = 'shopAnalysisPulse 0.9s infinite alternate';
+                    gridDiv.appendChild(h);
+                }
+                h.style.left = `${pos.x * logicalTileX + 12}px`;
+                h.style.top = `${pos.y * logicalTileY + 12}px`;
+                h.style.width = `${logicalTileX - 24}px`;
+                h.style.height = `${logicalTileY - 24}px`;
+            });
+        });
+        if (s.analysisHighlights.reachable) {
+            let domId = 'shop_analysis_reachable';
+            currentActiveIds.add(domId);
+            let h = document.getElementById(domId);
+            if (!h) {
+                h = document.createElement('div');
+                h.id = domId;
+                h.style.position = 'absolute';
+                h.style.pointerEvents = 'none';
+                h.style.boxSizing = 'border-box';
+                h.style.border = '12px solid #4CAF50';
+                h.style.borderRadius = '50%';
+                h.style.boxShadow = '0 0 42px #4CAF50, inset 0 0 28px #4CAF50';
+                h.style.background = 'rgba(76,175,80,0.18)';
+                h.style.zIndex = 9999;
+                h.style.animation = 'shopAnalysisPulse 0.7s infinite alternate';
+                gridDiv.appendChild(h);
+            }
+            h.style.left = `${s.analysisHighlights.reachable.x * logicalTileX + 28}px`;
+            h.style.top = `${s.analysisHighlights.reachable.y * logicalTileY + 28}px`;
+            h.style.width = `${logicalTileX - 56}px`;
+            h.style.height = `${logicalTileY - 56}px`;
+        }
+    } else if (s.analysisHighlights && s.analysisHighlights.until && s.analysisHighlights.until <= Date.now()) {
+        s.analysisHighlights = null;
+    }
+
     const drawCharacter = (chara, domPrefix) => {
         let baseSkin = chara.skin || chara.type || 'robot';
         let face = chara.face || 'down';
@@ -3796,6 +4634,14 @@ window.startShopMapLoop = function() {
     window.shopMapInterval = setInterval(() => {
         const s = window.SHOP_STATE;
         if (!s || !s.grid) return; 
+        if (typeof window.isShopMapUIActive === 'function' && !window.isShopMapUIActive()) {
+            s.isActive = false;
+            s.isOpen = false;
+            clearInterval(window.shopMapInterval);
+            window.shopMapInterval = null;
+            return;
+        }
+        s.isActive = true;
 
         s.mapHeight = s.grid.length;
         s.mapWidth = s.grid[0].length;
@@ -3805,13 +4651,49 @@ window.startShopMapLoop = function() {
 
         // ★ 最強の動的座標ルックアップ関数群（全フロア横断版）
         const getTargetPos = (types, offsetY = 1) => {
-            let fGrid = s.floorData ? s.floorData[s.currentFloor] : s.grid;
+            const blocked = new Set([1, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
+            const isWalkableTile = (grid, x, y, allowTargetTile = false) => {
+                if (!grid || !grid[y] || grid[y][x] === undefined) return false;
+                const tile = Number(grid[y][x]);
+                if (allowTargetTile && types.includes(tile)) return true;
+                return !blocked.has(tile);
+            };
+            const makeCandidateList = (grid, x, y, floorName) => {
+                const raw = [];
+                if (offsetY === 0) raw.push({ x, y, floor: floorName, allowTargetTile: true });
+                raw.push({ x, y: y + offsetY, floor: floorName });
+                raw.push({ x, y: y + 1, floor: floorName });
+                raw.push({ x: x - 1, y, floor: floorName });
+                raw.push({ x: x + 1, y, floor: floorName });
+                raw.push({ x, y: y - 1, floor: floorName });
+                const seen = new Set();
+                return raw.filter(pos => {
+                    const key = `${pos.floor}:${pos.x}:${pos.y}`;
+                    if (seen.has(key)) return false;
+                    seen.add(key);
+                    return isWalkableTile(grid, pos.x, pos.y, !!pos.allowTargetTile);
+                });
+            };
+            const pickReachable = (candidates) => {
+                if (!candidates.length) return null;
+                const p = s.player || {};
+                const sameFloor = candidates.filter(pos => pos.floor === (p.currentFloor || s.currentFloor || '1F'));
+                const crossFloor = candidates.filter(pos => pos.floor !== (p.currentFloor || s.currentFloor || '1F'));
+                const ordered = [...sameFloor, ...crossFloor];
+                return ordered.find(pos => {
+                    if (pos.floor !== (p.currentFloor || s.currentFloor || '1F')) return true;
+                    if (p.x === pos.x && p.y === pos.y) return true;
+                    if (typeof window.getShopNextStep !== 'function') return true;
+                    return !!window.getShopNextStep(p.x, p.y, pos.x, pos.y, pos.floor);
+                }) || ordered[0] || null;
+            };
+            let fGrid = s.grid || (s.floorData ? s.floorData[s.currentFloor] : null);
             if (fGrid) {
-                for(let y=0; y<s.mapHeight; y++) {
-                    for(let x=0; x<s.mapWidth; x++) {
-                        if(types.includes(fGrid[y][x])) {
-                            let ty = Math.max(0, Math.min(s.mapHeight - 1, y + offsetY));
-                            if (fGrid[ty][x] !== 1) return { x: x, y: ty, floor: s.currentFloor };
+                for(let y=0; y<fGrid.length; y++) {
+                    for(let x=0; x<(fGrid[y] || []).length; x++) {
+                        if(types.includes(Number(fGrid[y][x]))) {
+                            const picked = pickReachable(makeCandidateList(fGrid, x, y, s.currentFloor));
+                            if (picked) return { x: picked.x, y: picked.y, floor: picked.floor };
                         }
                     }
                 }
@@ -3822,9 +4704,9 @@ window.startShopMapLoop = function() {
                     let oGrid = s.floorData[fName];
                     for(let y=0; y<oGrid.length; y++) {
                         for(let x=0; x<oGrid[0].length; x++) {
-                            if(types.includes(oGrid[y][x])) {
-                                let ty = Math.max(0, Math.min(oGrid.length - 1, y + offsetY));
-                                if (oGrid[ty][x] !== 1) return { x: x, y: ty, floor: fName };
+                            if(types.includes(Number(oGrid[y][x]))) {
+                                const picked = pickReachable(makeCandidateList(oGrid, x, y, fName));
+                                if (picked) return { x: picked.x, y: picked.y, floor: picked.floor };
                             }
                         }
                     }
@@ -3961,6 +4843,7 @@ window.startShopMapLoop = function() {
             if (isOneMinBefore) {
                 if (!s.announcedOneMinBefore) {
                     if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("⏰ 開店1分前になりました。まもなく営業を開始します。AI店員が配置につきます。", "#FF9800");
+                    if (typeof window.showShopHeavenNotice === 'function') window.showShopHeavenNotice('開店1分前になりました。まもなく営業を開始します。AI店員が配置につきます。', '#FF9800');
                     if (serviceTutorialActiveForTimer && !window.aiPet.shopTutorialOneMinDialogueDone && typeof window.runShopTutorialDialogue === 'function') {
                         window.aiPet.shopTutorialOneMinDialogueDone = true;
                         window.runShopTutorialDialogue([
@@ -3982,7 +4865,19 @@ window.startShopMapLoop = function() {
                     ? (tutorialOpenPending && now >= openTarget)
                     : (currentHour === s.openHour && currentMinute === s.openMinute);
                 if (shouldOpen) {
+                    const hasStockToOpen = serviceTutorialActiveForTimer || (typeof window.hasAnyRestaurantStock === 'function' && window.hasAnyRestaurantStock(s));
+                    if (!hasStockToOpen) {
+                        s.isOpen = false;
+                        const blockKey = `${openTarget.getFullYear()}-${openTarget.getMonth()}-${openTarget.getDate()}-${s.openHour}-${s.openMinute}`;
+                        if (s.openBlockedNoStockKey !== blockKey) {
+                            s.openBlockedNoStockKey = blockKey;
+                            if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog('在庫がないため、今日の自動開店を見送りました。料理を1つ以上仕込むと次回から開店できます。', '#FF9800');
+                            if (typeof window.showShopHeavenNotice === 'function') window.showShopHeavenNotice('在庫がないため、開店を見送りました。\n料理を1つ以上仕込むと営業できます。', '#FF9800');
+                        }
+                        if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
+                    } else {
                     s.isOpen = true;
+                    s.openBlockedNoStockKey = null;
                     if (!serviceTutorialActiveForTimer) s.announcedOneMinBefore = false; 
                     if (serviceTutorialActiveForTimer) {
                         s.shopTutorialOpenedForTimer = true;
@@ -4008,10 +4903,12 @@ window.startShopMapLoop = function() {
                     }
 
                     if (typeof window.addRestaurantLog === 'function') window.addRestaurantLog("📢 開店時間になりました！自動タイマーにより営業を開始します！", "#4CAF50");
+                    if (typeof window.showShopHeavenNotice === 'function') window.showShopHeavenNotice('開店時間になりました。営業を開始します。', '#4CAF50');
                     if (serviceTutorialActiveForTimer) {
                         window.spawnShopTutorialCustomer();
                     }
                     if (document.getElementById('shop-tactic-editor-ui')?.style.display === 'flex') window.renderShopTacticEditor();
+                    }
                 }
             }
             
@@ -4060,18 +4957,28 @@ window.startShopMapLoop = function() {
                 }
                 s.dailyFlags.crampedCount = 0; // 翌日のためにリセット
 
-                let totalSeats = 0, luxuryCount = 0, casualCount = 0;
+                let totalSeats = 0, luxuryCount = 0, casualCount = 0, counterCount = 0, stoolCount = 0;
                 for(let ry = 0; ry < s.mapHeight; ry++) {
                     for(let rx = 0; rx < s.mapWidth; rx++) {
                         let t = s.grid[ry][rx];
                         if ([10, 14, 15, 16, 21, 22, 23, 24, 25, 26].includes(t)) { totalSeats++; } 
-                        else if ([17, 35, 36, 37].includes(t)) { totalSeats++; casualCount++; } 
+                        else if ([17, 35, 36, 37].includes(t)) {
+                            totalSeats++; casualCount++;
+                            if (t === 17) stoolCount++;
+                            if ([35, 36, 37].includes(t)) counterCount++;
+                        } 
                         else if ((t >= 41 && t <= 46) || (t >= 51 && t <= 56) || (t >= 61 && t <= 64) || [71, 72].includes(t)) { totalSeats++; luxuryCount++; } 
                     }
                 }
-                
+                const knownRecipes = Object.keys(s.recipeProgress || {}).filter(k => s.recipeProgress[k] >= 0);
+                const hasRecipeCategory = (category) => knownRecipes.some(k => window.getShopDishCategory && window.getShopDishCategory(k) === category);
+                const hasRamenMenu = knownRecipes.some(k => /ramen|karaage|fried_rice|gyoza/.test(k));
+                const hasSweetsMenu = hasRecipeCategory('sweets');
+                 
                 if (totalSeats > 0) {
-                    if (luxuryCount / totalSeats >= 0.6) { s.shopTheme = 'luxury'; }
+                    if (hasRamenMenu && counterCount >= 2 && stoolCount >= 2) { s.shopTheme = 'ramen'; }
+                    else if (hasSweetsMenu && luxuryCount / totalSeats >= 0.4) { s.shopTheme = 'sweets'; }
+                    else if (luxuryCount / totalSeats >= 0.6) { s.shopTheme = 'luxury'; }
                     else if (casualCount / totalSeats >= 0.6) { s.shopTheme = 'casual'; }
                     else { s.shopTheme = 'normal'; }
                 } else {
@@ -4262,17 +5169,19 @@ window.startShopMapLoop = function() {
                         }
                     }
                 } else if (!s.isOpen && s.npcs.length === 0) {
-                    let choices = ['resting', 'resting'];
-                    
-                    // ★修正：手狭フラグがON、または不足席があるなら、高確率で拡張や増席を狙い続ける！
-                    if (s.dailyFlags && (s.dailyFlags.cramped || s.dailyFlags.missingSeats > 0)) {
-                        choices.push('going_to_add_seat', 'going_to_add_seat', 'going_to_add_seat');
-                    }
+                    const vitals = typeof window.getShopWorkerVitals === 'function' ? window.getShopWorkerVitals() : { stamina: 100, fullness: 100 };
+                    const needsSeat = !!(s.dailyFlags && (s.dailyFlags.cramped || s.dailyFlags.missingSeats > 0 || s.dailyFlags.seatShortage));
+                    const canPlaceMore = Number(s.currentScore || 0) < Number(s.maxScore || 0);
+                    const shouldFixLayout = !s.layoutPerfect && !canPlaceMore;
 
-                    if (!s.layoutPerfect) choices.push('going_to_remodel');
-                    if (canPrep) choices.push('going_to_prep', 'going_to_prep', 'going_to_prep');
-                    if (canResearch) choices.push('going_to_research', 'going_to_research');
-                    decidedState = choices[Math.floor(Math.random() * choices.length)];
+                    if (vitals.stamina <= 20 || vitals.fullness <= 20) decidedState = 'resting';
+                    else if (canPrep) decidedState = 'going_to_prep';
+                    else if (canResearch) decidedState = 'going_to_research';
+                    else if (needsSeat && canPlaceMore) decidedState = 'going_to_add_seat';
+                    else if (needsSeat && !canPlaceMore) decidedState = 'going_to_expand_floor';
+                    else if (shouldFixLayout) decidedState = 'going_to_remodel';
+                    else if (canPlaceMore && Math.random() < 0.18) decidedState = 'going_to_add_seat';
+                    else decidedState = 'resting';
                 }
             } else {
                 let activeTactic = window.aiPet.shopTactics.find(t => t.name === tName);
@@ -4294,18 +5203,23 @@ window.startShopMapLoop = function() {
                         else if (rule.condition === 'customer_waiting_order' && s.npcs.some(n => n.state === 'ordering')) condMet = true;
                         else if (rule.condition === 'customer_waiting_food' && s.npcs.some(n => n.state === 'waiting_for_food')) condMet = true;
                         else if (rule.condition === 'is_closed' && !s.isOpen && s.npcs.length === 0) condMet = true;
-                        else if (rule.condition === 'missing_kitchen' && !hasTile([31, 32, 33, 34])) condMet = true;
+                        else if (rule.condition === 'missing_kitchen' && (!hasTile([31, 91]) || !hasTile([32, 95, 96, 97]) || !hasTile([33, 34]))) condMet = true;
                         else if (rule.condition === 'missing_table' && !hasTile([21, 22, 23, 24, 25, 26])) condMet = true;
                         else if (rule.condition === 'missing_chair' && !hasTile([10, 14, 15, 16])) condMet = true;
-                        else if (rule.condition === 'missing_register' && !hasTile([11, 12, 13])) condMet = true;
+                        else if (rule.condition === 'missing_register' && !hasTile([11, 12, 13, 92, 93, 94])) condMet = true;
                         else if (rule.condition === 'has_researchable_recipe' && canResearch) condMet = true;
                         else if (rule.condition === 'has_preppable_recipe' && canPrep) condMet = true;
+                        else if (window.getShopDismantleTargetForCondition && window.getShopDismantleTargetForCondition(rule.condition)) {
+                            const dTarget = window.getShopDismantleTargetForCondition(rule.condition);
+                            if (dTarget && hasTile(dTarget.tiles)) condMet = true;
+                        }
                         
                         if (!s.isOpen && s.npcs.length === 0) {
                             if (!s.dailyFlags) s.dailyFlags = { seatShortage: false, cramped: false, missingSeats: 0 };
+                            const decorCount = s.grid ? s.grid.reduce((sum, row) => sum + row.filter(tile => [71, 72].includes(Number(tile))).length, 0) : 0;
                             // ★修正：フラグだけでなく「不足席数があるか」でも判定！
                             if (rule.condition === 'daily_seat_shortage' && (s.dailyFlags.seatShortage || s.dailyFlags.missingSeats > 0)) condMet = true;
-                            if (rule.condition === 'shop_is_plain') condMet = true; 
+                            if (rule.condition === 'shop_is_plain' && decorCount < Math.max(1, Math.floor((s.shopLevel || 1) / 5) + 1)) condMet = true; 
                             if (rule.condition === 'shop_is_cramped' && (s.dailyFlags.cramped || s.dailyFlags.missingSeats > 0)) condMet = true;
                             if (rule.condition === 'prefer_luxury_decor' || rule.condition === 'prefer_casual_decor') condMet = true;
                         }
@@ -4344,13 +5258,18 @@ window.startShopMapLoop = function() {
                                 }
                             }
                             
-                            if (['is_closed', 'missing_kitchen', 'missing_table', 'missing_chair', 'missing_register', 'has_researchable_recipe', 'has_preppable_recipe', 'daily_seat_shortage', 'shop_is_plain', 'shop_is_cramped', 'prefer_luxury_decor', 'prefer_casual_decor'].includes(rule.condition) && !s.isOpen && s.npcs.length === 0) {
+                            if (['is_closed', 'missing_kitchen', 'missing_table', 'missing_chair', 'missing_register', 'has_researchable_recipe', 'has_preppable_recipe', 'daily_seat_shortage', 'shop_is_plain', 'shop_is_cramped', 'prefer_luxury_decor', 'prefer_casual_decor', 'remove_decor', 'remove_fridge', 'remove_stove', 'remove_oven', 'remove_table', 'remove_chair', 'remove_register', 'remove_wall', 'remove_kitchen_floor'].includes(rule.condition) && !s.isOpen && s.npcs.length === 0) {
                                 if (act === 'つくる' && canPrep) { decidedState = 'going_to_prep'; break; }
                                 if (act === 'おぼえる' && canResearch) { decidedState = 'going_to_research'; break; }
                                 if (act === 'かえる') { 
-                                    if (rule.condition === 'prefer_luxury_decor') decidedState = 'going_to_remodel_luxury';
+                                    if (window.getShopDismantleTargetForCondition && window.getShopDismantleTargetForCondition(rule.condition)) {
+                                        p.dismantleCondition = rule.condition;
+                                        decidedState = 'force_dismantle';
+                                    }
+                                    else if (rule.condition === 'prefer_luxury_decor') decidedState = 'going_to_remodel_luxury';
                                     else if (rule.condition === 'prefer_casual_decor') decidedState = 'going_to_remodel_casual';
                                     else decidedState = 'going_to_remodel';
+                                    p.remodelCondition = rule.condition;
                                     break; 
                                 }
                                 if (act === 'やすむ') { decidedState = 'resting'; break; }
@@ -4421,6 +5340,8 @@ window.startShopMapLoop = function() {
                 if (decidedState === 'going_to_remodel_luxury') p.remodelTheme = 'luxury';
                 if (decidedState === 'going_to_remodel_casual') p.remodelTheme = 'casual';
                 p.targetPos = null; p.shopState = 'going_to_remodel';
+            } else if (decidedState === 'force_dismantle') {
+                p.targetPos = null; p.shopState = 'force_dismantle'; p.timer = 1;
             } else if (decidedState === 'going_to_add_seat') {
                 p.targetPos = null; p.shopState = 'going_to_add_seat';
             } else if (decidedState === 'going_to_decorate') {
@@ -4442,6 +5363,7 @@ window.startShopMapLoop = function() {
             if (p.timer <= 0) p.shopState = 'idle';
         }
         else if (p.shopState === 'resting') {
+            if (typeof window.recoverShopWorkerEnergy === 'function') window.recoverShopWorkerEnergy(4);
             p.timer--;
             if (p.timer <= 0) p.shopState = 'idle';
         }
@@ -4523,6 +5445,8 @@ window.startShopMapLoop = function() {
                                     s.dailyFlags.seatShortage = false;
                                     s.dailyFlags.cramped = false;
                                 }
+                                if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('remodel');
+                                if (typeof window.addShopExp === 'function') window.addShopExp(4);
                                 p.shopState = 'idle';
                                 return true;
                             }
@@ -4584,7 +5508,9 @@ window.startShopMapLoop = function() {
                                                 s.dailyFlags.seatShortage = false; 
                                                 s.dailyFlags.cramped = false;
                                             }
-                                            
+                                            if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('remodel');
+                                            if (typeof window.addShopExp === 'function') window.addShopExp(4);
+                                             
                                             p.shopState = 'idle';
                                             break;
                                         }
@@ -4654,6 +5580,8 @@ window.startShopMapLoop = function() {
                     }
                 }
                 p.tutorialDecorPos = null;
+                if (placed && typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('decorate');
+                if (placed && typeof window.addShopExp === 'function') window.addShopExp(3);
                 p.shopState = 'idle';
                 if (typeof window.refreshShopMiniMapLegend === 'function') window.refreshShopMiniMapLegend();
                 if (typeof window.renderShopMap === 'function') window.renderShopMap();
@@ -4761,6 +5689,8 @@ window.startShopMapLoop = function() {
                 }
                 
                 p.shopState = 'idle';
+                if (expanded && typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('expand');
+                if (expanded && typeof window.addShopExp === 'function') window.addShopExp(10);
             }
         }
         // ==========================================
@@ -4862,6 +5792,8 @@ window.startShopMapLoop = function() {
                         prepped = true;
                         let dishName = window.SHOP_DISH_NAMES[dishKey] || dishKey;
                         window.showShopFloatingText(p.x, p.y, `よし！${dishName}を仕込んだぞ！`, '#4CAF50');
+                        if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('prep');
+                        if (typeof window.addShopExp === 'function') window.addShopExp(6);
                         break;
                     }
                 }
@@ -4899,6 +5831,8 @@ window.startShopMapLoop = function() {
                     let dishName = window.SHOP_DISH_NAMES[learnedKey] || learnedKey;
                     let ings = window.SHOP_RECIPE_COSTS[learnedKey].map(id => window.SHOP_ING_NAMES[id] || id).join("と");
                     window.showShopFloatingText(p.x, p.y, `なるほど！${ings}から${dishName}のレシピを閃いた！`, '#FFD700');
+                    if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('research');
+                    if (typeof window.addShopExp === 'function') window.addShopExp(8);
                 } else {
                     let developing = recipeKeys.filter(key => s.recipeProgress[key] !== undefined && s.recipeProgress[key] < 100);
                     let devKey = null;
@@ -4917,6 +5851,8 @@ window.startShopMapLoop = function() {
                         } else {
                             window.showShopFloatingText(p.x, p.y, `${dishName}の開発が進んだ！(${s.recipeProgress[devKey]}%)`, '#00BCD4');
                         }
+                        if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('research');
+                        if (typeof window.addShopExp === 'function') window.addShopExp(8);
                     } else {
                         window.showShopFloatingText(p.x, p.y, `うーん、研究に使える素材がないな…`, '#FF5252');
                     }
@@ -4935,7 +5871,84 @@ window.startShopMapLoop = function() {
                 s.ghostFurniture = null;
                 return;
             }
+            if (p.shopState === 'force_dismantle' && p.dismantleCondition) {
+                if (typeof window.dismantleShopTarget === 'function') window.dismantleShopTarget(p.dismantleCondition);
+                p.dismantleCondition = null;
+                p.shopState = 'idle';
+                p.targetPos = null;
+                s.ghostFurniture = null;
+                if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('remodel');
+                if (typeof window.addShopExp === 'function') window.addShopExp(2);
+                return;
+            }
             let inv = window.aiPet.inventory || [];
+
+            const hasAnyShopTile = (tiles) => Array.isArray(s.grid) && s.grid.some(row => row && row.some(tile => tiles.includes(Number(tile))));
+            const tryPlaceDirectFurniture = (itemIds, label) => {
+                const ids = itemIds.filter(id => id && window.SHOP_FURNITURE_DB && window.SHOP_FURNITURE_DB[id]);
+                const itemIdx = inv.findIndex(item => item && ids.includes(item.id));
+                if (itemIdx === -1) return false;
+                const item = inv[itemIdx];
+                const fData = window.SHOP_FURNITURE_DB[item.id];
+                const tiles = fData.tiles || {};
+                const tileRows = [];
+                if (tiles.single !== undefined) tileRows.push([tiles.single]);
+                else if (tiles.left !== undefined && tiles.right !== undefined && tiles.center === undefined) tileRows.push([tiles.left, tiles.right]);
+                else if (tiles.left !== undefined && tiles.center !== undefined && tiles.right !== undefined) tileRows.push([tiles.left, tiles.center, tiles.right]);
+                if (tileRows.length === 0) return false;
+                const h = tileRows.length;
+                const w = tileRows[0].length;
+                const cost = Number(fData.cost || 0);
+                if (Number(s.currentScore || 0) + cost > Number(s.maxScore || 0)) {
+                    window.showShopFloatingText(p.x, p.y, `${label}を置くレイアウトスコアが足りないみたい...`, '#FF5252');
+                    p.shopState = 'idle';
+                    return true;
+                }
+                const yStart = 1;
+                const yEnd = s.mapHeight - 1;
+                for (let y = yStart; y <= yEnd - h; y++) {
+                    for (let x = 1; x <= s.mapWidth - 1 - w; x++) {
+                        let canPlace = true;
+                        for (let dy = 0; dy < h; dy++) {
+                            for (let dx = 0; dx < w; dx++) {
+                                if (!s.grid[y + dy] || Number(s.grid[y + dy][x + dx]) !== 0) canPlace = false;
+                            }
+                        }
+                        if (!canPlace) continue;
+                        const testGrid = s.grid.map(row => [...row]);
+                        for (let dy = 0; dy < h; dy++) {
+                            for (let dx = 0; dx < w; dx++) testGrid[y + dy][x + dx] = tileRows[dy][dx];
+                        }
+                        if (typeof window.checkShopPathSafety === 'function' && !window.checkShopPathSafety(testGrid)) continue;
+                        s.grid = testGrid;
+                        s.currentScore = Number(s.currentScore || 0) + cost;
+                        inv.splice(itemIdx, 1);
+                        p.shopState = 'idle';
+                        p.targetPos = null;
+                        p.remodelCondition = null;
+                        s.ghostFurniture = null;
+                        if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('remodel');
+                        if (typeof window.addShopExp === 'function') window.addShopExp(3);
+                        if (typeof window.renderShopMap === 'function') window.renderShopMap();
+                        window.showShopFloatingText(p.x, p.y, `${label}を配置したよ！`, '#4CAF50');
+                        return true;
+                    }
+                }
+                window.showShopFloatingText(p.x, p.y, `${label}を置ける場所が見つからないみたい...`, '#FF5252');
+                p.shopState = 'idle';
+                return true;
+            };
+
+            if (p.shopState === 'start_remodeling' && p.remodelCondition === 'missing_kitchen') {
+                if (!hasAnyShopTile([31, 91]) && tryPlaceDirectFurniture(['item_fridge', 'item_super_fridge'], '冷蔵庫')) return;
+                if (!hasAnyShopTile([32, 95, 96, 97]) && tryPlaceDirectFurniture(['item_oven', 'item_legendary_kitchen'], 'オーブン')) return;
+                if (!hasAnyShopTile([33, 34]) && tryPlaceDirectFurniture(['item_stove'], 'コンロ')) return;
+                p.remodelCondition = null;
+            }
+            if (p.shopState === 'start_remodeling' && p.remodelCondition === 'missing_register') {
+                if (!hasAnyShopTile([11, 12, 13, 92, 93, 94]) && tryPlaceDirectFurniture(['item_register', 'item_lux_counter'], 'レジカウンター')) return;
+                p.remodelCondition = null;
+            }
             
             let tableIdx = inv.findIndex(item => item && item.id && window.SHOP_FURNITURE_DB[item.id] && window.SHOP_FURNITURE_DB[item.id].type === 'table' && (!p.remodelTheme || window.SHOP_FURNITURE_DB[item.id].tags.includes(p.remodelTheme)));
             let chairIdx = inv.findIndex(item => item && item.id && window.SHOP_FURNITURE_DB[item.id] && window.SHOP_FURNITURE_DB[item.id].type === 'chair' && (!p.remodelTheme || window.SHOP_FURNITURE_DB[item.id].tags.includes(p.remodelTheme)));
@@ -5309,10 +6322,22 @@ window.startShopMapLoop = function() {
                     if (window.aiPet) window.aiPet.gold += finalEarned; 
                     if (s.reputation < 100) s.reputation += 2; 
                     s.totalSales = (s.totalSales || 0) + finalEarned; 
+                    if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('register');
+                    if (typeof window.addShopExp === 'function') window.addShopExp(10);
                     
                     if (!s.dailyStats) s.dailyStats = {};
                     if (!s.dailyStats[npc.order]) s.dailyStats[npc.order] = { sold: 0, angry: 0 };
                     s.dailyStats[npc.order].sold += orderCount;
+                    if (window.aiPet && window.isPastryRecipe && window.isPastryRecipe(npc.order)) {
+                        const activeQuests = window.aiPet.apprentice && window.aiPet.apprentice.activeQuests ? window.aiPet.apprentice.activeQuests : [];
+                        activeQuests.forEach(q => {
+                            if (q.masterType === 'pastry_chef' && q.rank === 9) {
+                                q.qVal = (q.qVal || 0) + orderCount;
+                                window.aiPet.apprentice.qVal = q.qVal;
+                            }
+                        });
+                        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+                    }
 
                     if (!s.loyalty) s.loyalty = {};
                     let wasRegular = (s.loyalty[npc.skin] || 0) >= (trait.loyaltyReq || 3);
@@ -5373,6 +6398,7 @@ window.startShopMapLoop = function() {
                     npc.state = 'taking_order';
                     npc.timer = 0;
                     window.showShopFloatingText(p.x, p.y, "注文は？", "#00BCD4", aiName);
+                    if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('serve');
                     setTimeout(() => {
                         if (!window.SHOP_STATE || !window.SHOP_STATE.npcs) return;
                         const currentNpc = window.SHOP_STATE.npcs.find(n => n.id === npc.id);
@@ -5405,6 +6431,8 @@ window.startShopMapLoop = function() {
                     const aiName = window.aiPet ? window.aiPet.name || "AI店員" : "AI店員";
                     const dishName = typeof window.getDisplayShopItemName === 'function' ? window.getDisplayShopItemName(npc.order) : npc.order;
                     window.showShopFloatingText(p.x, p.y, `おまたせしました。${dishName}です`, "#FFF", aiName);
+                    if (typeof window.consumeShopWorkerEnergy === 'function') window.consumeShopWorkerEnergy('serve');
+                    if (typeof window.addShopExp === 'function') window.addShopExp(3);
                     if (npc.isTakeout) { npc.state = 'paying'; npc.timer = 0; npc.patience += 100; } 
                     else {
                         npc.state = 'eating'; npc.timer = 0; npc.patience += 100;
@@ -5420,6 +6448,18 @@ window.startShopMapLoop = function() {
             } else if (!p.stairPath && p.x === p.targetPos.x && p.y === p.targetPos.y) { 
                 p.targetPos = null; p.action = 'idle'; p.stuckTimer = 0;
             } else {
+                const blockedDestTiles = new Set([1, 10, 11, 12, 13, 14, 15, 16, 17, 21, 22, 23, 24, 25, 26, 31, 32, 33, 34, 35, 36, 37, 41, 42, 43, 44, 45, 46, 51, 52, 53, 54, 55, 56, 61, 62, 63, 64, 71, 72, 81, 82, 83, 84, 85, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97]);
+                const activeGrid = s.grid || ((s.floorData && s.floorData[p.currentFloor]) ? s.floorData[p.currentFloor] : null);
+                if (activeGrid && p.targetPos && activeGrid[p.targetPos.y] && blockedDestTiles.has(Number(activeGrid[p.targetPos.y][p.targetPos.x]))) {
+                    const around = [
+                        { x: p.targetPos.x, y: p.targetPos.y + 1, floor: p.targetPos.floor || p.currentFloor },
+                        { x: p.targetPos.x - 1, y: p.targetPos.y, floor: p.targetPos.floor || p.currentFloor },
+                        { x: p.targetPos.x + 1, y: p.targetPos.y, floor: p.targetPos.floor || p.currentFloor },
+                        { x: p.targetPos.x, y: p.targetPos.y - 1, floor: p.targetPos.floor || p.currentFloor }
+                    ].filter(pos => activeGrid[pos.y] && activeGrid[pos.y][pos.x] !== undefined && !blockedDestTiles.has(Number(activeGrid[pos.y][pos.x])));
+                    const reachable = around.find(pos => p.x === pos.x && p.y === pos.y) || around.find(pos => window.getShopNextStep(p.x, p.y, pos.x, pos.y, pos.floor || p.currentFloor));
+                    if (reachable) p.targetPos = reachable;
+                }
                 let nextStep = window.getShopNextStep(p.x, p.y, p.targetPos.x, p.targetPos.y, p.currentFloor);
                 if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service' && p.shopState === 'going_to_take_order') {
                     window.logShopTutorialDebugThrottled('service_take_order_next_step', '接客チュートリアル: 注文を聞く経路計算', {
@@ -5507,8 +6547,10 @@ window.startShopMapLoop = function() {
             if (!s.loyalty) s.loyalty = {};
             let isRegular = (s.loyalty[skin] || 0) >= (trait.loyaltyReq || 3);
             
-            let order = trait.favDish;
-            if (order === 'any' || !s.menuList.includes(order)) {
+            let order = typeof window.chooseShopOrderForCustomer === 'function'
+                ? window.chooseShopOrderForCustomer(skin, trait)
+                : trait.favDish;
+            if (!order || order === 'any' || !s.menuList.includes(order)) {
                 order = s.menuList[Math.floor(Math.random() * s.menuList.length)];
             }
             
@@ -5831,7 +6873,10 @@ window.startShopMapLoop = function() {
                 if (!npc.stairPath && npc.x === npc.targetPos.x && npc.y === npc.targetPos.y) {
                     if (npc.state === 'angry_leaving' || npc.state === 'angry_leaving_full') { 
                         s.reputation -= 10; 
-                        if (s.reputation <= 0) { s.reputation = 0; s.isBankrupt = true; } 
+                        if (s.reputation <= 0) {
+                            s.reputation = 0;
+                            return window.triggerBankrupt(building);
+                        } 
                     }
                     s.npcs.splice(i, 1);
                 } else {
@@ -5847,7 +6892,10 @@ window.startShopMapLoop = function() {
                         if (npc.stuckTimer > 10) {
                             if (npc.state === 'angry_leaving' || npc.state === 'angry_leaving_full') { 
                                 s.reputation -= 10; 
-                                if (s.reputation <= 0) { s.reputation = 0; s.isBankrupt = true; } 
+                                if (s.reputation <= 0) {
+                                    s.reputation = 0;
+                                    return window.triggerBankrupt(building);
+                                } 
                             }
                             s.npcs.splice(i, 1);
                         }
@@ -5864,14 +6912,18 @@ window.startShopMapLoop = function() {
 
 window.getShopNextStep = function(startX, startY, targetX, targetY, currentFloor = '1F') {
     const s = window.SHOP_STATE;
-    let grid = (s.floorData && s.floorData[currentFloor]) ? s.floorData[currentFloor] : s.grid;
+    const activeFloor = s.currentFloor || '1F';
+    let grid = (currentFloor === activeFloor || !currentFloor) ? s.grid : ((s.floorData && s.floorData[currentFloor]) ? s.floorData[currentFloor] : s.grid);
+    if (!grid || !grid.length || !grid[0]) return null;
+    const width = grid[0].length;
+    const height = grid.length;
     
     // ★追加：開始地点がマップ外（暗闇）にはみ出ている場合は、即座に探索を中止してエラー（クラッシュ）を完全に防ぐ！
-    if (startX < 0 || startX >= s.mapWidth || startY < 0 || startY >= s.mapHeight) {
+    if (startX < 0 || startX >= width || startY < 0 || startY >= height) {
         return null;
     }
     
-    let distMap = Array.from({length: s.mapHeight}, () => new Array(s.mapWidth).fill(Infinity));
+    let distMap = Array.from({length: height}, () => new Array(width).fill(Infinity));
     distMap[startY][startX] = 0;
     
     let queue = [{x: startX, y: startY, cost: 0, firstStep: null}];
@@ -5888,7 +6940,7 @@ window.getShopNextStep = function(startX, startY, targetX, targetY, currentFloor
             let nx = cur.x + d.dx;
             let ny = cur.y + d.dy;
             
-            if (nx >= 0 && nx < s.mapWidth && ny >= 0 && ny < s.mapHeight) {
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
                 let tile = grid[ny][nx];
                 if (tile === 1) continue; 
                 // ★修正：新家具に加え、すべての階段配置マス（81〜85, 87〜90）を「壁・障害物」として認識させ、めり込みを防ぐ！
@@ -6272,6 +7324,7 @@ window.renderShopTacticEditor = function(restoreScroll = false) {
                     .filter(c => baseWords.includes(c.name))
                     .map(c => `<option value="${c.name}" ${rule.action1 === c.name ? 'selected' : ''}>${c.name}</option>`)
                     .join('');
+                let ruleInfoHtml = typeof window.renderShopTacticRuleInfo === 'function' ? window.renderShopTacticRuleInfo(rule, rIdx, currentTactic.rules) : '';
                 return `
                     <div style="display:flex; flex-direction:column; background:#222; padding:10px; border-radius:8px; margin-bottom:10px; border:1px solid #444;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; border-bottom:1px dashed #555; padding-bottom:5px;">
@@ -6288,7 +7341,8 @@ window.renderShopTacticEditor = function(restoreScroll = false) {
                             <select onchange="window.setShopEditorRuleCondition(${idx}, ${rIdx}, this.value);" style="padding:5px; background:#111; color:#fff; border:1px solid #555; border-radius:4px; flex:1.5;">${condOptions}</select>
                             <div style="color:#aaa;">なら</div>
                             <select onchange="window.setShopEditorRuleAction(${idx}, ${rIdx}, this.value);" style="padding:5px; background:#111; color:#fff; border:1px solid #FFC107; border-radius:4px; flex:2;">${actionOptions}</select>
-                    </div>
+                        </div>
+                        ${ruleInfoHtml}
                 </div>
             `;
         }).join('');
@@ -6331,10 +7385,14 @@ window.renderShopTacticEditor = function(restoreScroll = false) {
 
             <div id="shop-tactic-editor-notice" style="display:${window.SHOP_EDITOR_NOTICE ? 'block' : 'none'}; margin-bottom:14px; padding:12px 14px; border:1px solid ${window.SHOP_EDITOR_NOTICE?.type === 'error' ? '#f44336' : '#FFC107'}; border-radius:8px; background:${window.SHOP_EDITOR_NOTICE?.type === 'error' ? '#3a1717' : '#332600'}; color:${window.SHOP_EDITOR_NOTICE?.type === 'error' ? '#ffcdd2' : '#FFE082'}; font-weight:bold; line-height:1.5;">${window.SHOP_EDITOR_NOTICE ? window.SHOP_EDITOR_NOTICE.message : ''}</div>
 
-            <div style="margin-bottom:20px; display:flex; justify-content:space-between;">
+            <div style="margin-bottom:20px; display:flex; justify-content:space-between; gap:12px; align-items:center; flex-wrap:wrap;">
                 <div><span style="font-weight:bold; color:#fff; margin-right:10px;">作戦名:</span><input type="text" value="${currentTactic.name}" ${isDefault ? 'disabled' : `onchange="window.setShopEditorTacticName(${idx}, this.value);"`} style="padding:5px; background:#222; color:${isDefault ? '#888' : '#fff'}; border:1px solid #555; border-radius:4px;"></div>
-                <div style="color:#aaa; font-size:13px;">閉じると、このタブの作戦が保存・適用されます</div>
+                <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                    ${!isDefault && tutorialDone ? `<button onclick="window.renderShopTacticAnalysisPanel();" style="padding:8px 14px; background:#673AB7; color:white; border:1px solid #9575CD; border-radius:6px; cursor:pointer; font-weight:bold;">🔎 条件解析</button>` : ''}
+                    <div style="color:#aaa; font-size:13px;">閉じると、このタブの作戦が保存・適用されます</div>
+                </div>
             </div>
+            <div id="shop-tactic-analysis-panel" style="display:none; margin-bottom:14px; max-height:260px; overflow-y:auto; padding:10px; border:1px solid #673AB7; background:#120d1f; border-radius:8px;"></div>
             <div id="shop-tactic-editor-rules-scroll" style="max-height:300px; overflow-y:auto; padding-right:10px;">${rulesHtml}</div>
         </div>
         <button onclick="window.closeShopTacticEditor()" style="margin-top:20px; padding:15px 40px; font-size:18px; font-weight:bold; background:#4CAF50; color:white; border:2px solid #66BB6A; border-radius:8px; cursor:pointer;">保存して閉じる</button>
@@ -6413,6 +7471,38 @@ if (!window._shopTacticSuggestListenerAdded) {
 // ==========================================
 // ★ 倒産＆救済の実行ロジック
 // ==========================================
+window.showRestaurantBankruptcyNotice = function(message) {
+    const old = document.getElementById('restaurant-bankruptcy-notice');
+    if (old) old.remove();
+    const notice = document.createElement('div');
+    notice.id = 'restaurant-bankruptcy-notice';
+    notice.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,0.82); z-index:90000; display:flex; align-items:center; justify-content:center; padding:24px; box-sizing:border-box;';
+    notice.innerHTML = `
+        <div style="width:min(560px, 100%); background:#171717; border:3px solid #f44336; border-radius:10px; box-shadow:0 18px 60px rgba(0,0,0,0.7); color:#fff; padding:24px; text-align:left;">
+            <div style="font-size:28px; font-weight:bold; color:#ff5252; margin-bottom:14px; text-align:center;">経営破綻</div>
+            <div style="white-space:pre-line; line-height:1.7; font-size:15px; background:#222; border:1px solid #555; border-radius:8px; padding:16px;">${message}</div>
+            <button onclick="document.getElementById('restaurant-bankruptcy-notice')?.remove();" style="margin-top:18px; width:100%; padding:12px; background:#f44336; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer;">閉じる</button>
+        </div>
+    `;
+    document.body.appendChild(notice);
+};
+
+window.triggerBankrupt = function(building) {
+    const s = building && building.shopData ? building.shopData : window.SHOP_STATE;
+    if (!s) return;
+    s.reputation = 0;
+    s.isBankrupt = true;
+    s.isOpen = false;
+    if (Array.isArray(s.npcs)) s.npcs = [];
+    if (Array.isArray(s.dishes)) s.dishes = [];
+    if (typeof window.addRestaurantLog === 'function') {
+        window.addRestaurantLog('経営破綻しました。対応を選んでください。', '#ff5252');
+    }
+    if (typeof window.renderShopMap === 'function') window.renderShopMap();
+    if (typeof window.updateShopUI === 'function') window.updateShopUI();
+    if (typeof window.syncCurrentShopStateToBuilding === 'function') window.syncCurrentShopStateToBuilding();
+};
+
 window.executeBailout = function(bId, cost) {
     let myHut = Object.values(assets).find(a => a.type === 'hut');
     if (myHut && myHut.storage && myHut.storage.safe) {
@@ -6435,6 +7525,7 @@ window.executeBailout = function(bId, cost) {
 window.executeBankrupt = function(bId) {
     let building = assets[bId];
     if (!building || !building.shopData) return;
+    const bankruptMessage = "経営破綻により、お店は差し押さえられ、手持ちの資金と食材を全て失いました…。\n（※マイホームの金庫や倉庫の中身は無事です）";
 
     // 1. 苦労して覚えたレシピだけは脳内に退避
     if (!window.aiPet.savedRecipes) window.aiPet.savedRecipes = {};
@@ -6455,6 +7546,14 @@ window.executeBankrupt = function(bId) {
     }
 
     // 3. お店をマップから更地にする
+    building.shopData.detachedAfterBankruptcy = true;
+    if (window.SHOP_STATE === building.shopData) {
+        window.SHOP_STATE = window.createFreshRestaurantShopState({ preserveRecipes: true });
+        window.SHOP_STATE.isActive = false;
+    }
+    if (window.currentShopManagementBuilding === building) {
+        window.currentShopManagementBuilding = null;
+    }
     delete assets[bId];
 
     // 4. 外に放り出す
@@ -6466,8 +7565,9 @@ window.executeBankrupt = function(bId) {
     window.closeShopMapUI();
     if (typeof updateStatUI === 'function') updateStatUI();
     if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+    if (typeof saveGameData === 'function') saveGameData();
     
-    alert("経営破綻により、お店は差し押さえられ、手持ちの資金と食材を全て失いました…。\n（※マイホームの金庫や倉庫の中身は無事です）");
+    window.showRestaurantBankruptcyNotice(bankruptMessage);
 };
 
 // ==========================================
