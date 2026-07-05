@@ -558,6 +558,42 @@ function drawAsset(a, key) {
 // ==========================================
 // ★究極進化：必要な瞬間に画像を裏でロードする（Just-In-Time ローダー）
 // ==========================================
+function getCosmeticFilter(targetPet, baseFilter) {
+    const hue = typeof window.getCosmeticHue === 'function'
+        ? window.getCosmeticHue(targetPet)
+        : (targetPet && targetPet.cosmetic ? Number(targetPet.cosmetic.hue || 0) : 0);
+    const hueFilter = hue ? `hue-rotate(${hue}deg)` : '';
+    if (!baseFilter || baseFilter === 'none') return hueFilter || 'none';
+    return hueFilter ? `${baseFilter} ${hueFilter}` : baseFilter;
+}
+
+function drawCosmeticAura(targetPet, cx, cy, drawW, drawH) {
+    const aura = targetPet && targetPet.cosmetic ? targetPet.cosmetic.aura : 'none';
+    if (!aura || aura === 'none') return;
+    const tick = (targetPet.tick || Date.now() / 16);
+    const colors = { sparkle: '#fff176', heart: '#ff80ab', music: '#80d8ff', bubble: '#b3e5fc' };
+    const glyphs = { sparkle: '*', heart: '♡', music: '♪', bubble: '○' };
+    const color = (targetPet.cosmetic && targetPet.cosmetic.auraColor) || colors[aura] || '#fff';
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.shadowBlur = 8;
+    for (let i = 0; i < 8; i++) {
+        const rise = ((tick + i * 13) % 90) / 90;
+        const t = tick * 0.055 + i * 1.35 + rise * Math.PI * 2;
+        const radius = drawW * (0.34 + Math.sin(t * 1.7) * 0.06) * (1 - rise * 0.28);
+        const px = cx + Math.cos(t) * radius;
+        const py = (cy + drawH * 0.42) + ((cy - drawH * 0.62) - (cy + drawH * 0.42)) * rise;
+        const pColor = typeof window.getCosmeticAuraColor === 'function' ? window.getCosmeticAuraColor(targetPet, i) : color;
+        ctx.fillStyle = pColor;
+        ctx.shadowColor = pColor;
+        ctx.globalAlpha = 0.12 + (1 - rise) * 0.78;
+        ctx.fillText(glyphs[aura] || '*', px, py);
+    }
+    ctx.restore();
+}
+
 function drawAICharacter() {
     let targetPet = window.aiPet;
     if (!targetPet) return; 
@@ -626,23 +662,30 @@ function drawAICharacter() {
         ctx.save(); ctx.translate(px, py); if (targetPet.flip) ctx.scale(-1, 1);
         
         // ★追加・修正：防衛戦のフィルターと行動済みフィルターの適用
+        let baseFilter = 'none';
         if (currentMode === 'defense') {
             if (targetPet.team === 'enemy') {
-                ctx.filter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(3)'; // 敵の色
+                baseFilter = 'brightness(0.6) sepia(1) hue-rotate(-50deg) saturate(3)'; // 敵の色
             } else if (targetPet.hasActed) {
-                ctx.filter = 'brightness(0.4)'; // ★味方の行動済みの色（かなり暗く）
+                baseFilter = 'brightness(0.4)'; // ★味方の行動済みの色（かなり暗く）
             } else {
-                ctx.filter = 'none'; // 通常
+                baseFilter = 'none'; // 通常
             }
         }
         else if (targetPet.isSick) {
             // ★追加：育成モードで病気の場合は、毒々しい紫色（または青緑色）のフィルターをかける
-            ctx.filter = 'sepia(0.8) hue-rotate(250deg) saturate(2) brightness(0.8)';
+            baseFilter = 'sepia(0.8) hue-rotate(250deg) saturate(2) brightness(0.8)';
         } else {
-            ctx.filter = 'none'; // 通常
+            baseFilter = 'none'; // 通常
         }
-        
-        ctx.drawImage(img, f.sx || 0, f.sy || 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH); ctx.restore();
+        if (typeof window.drawCosmeticImageOnContext === 'function') {
+            window.drawCosmeticImageOnContext(ctx, img, f.sx || 0, f.sy || 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH, targetPet, baseFilter);
+        } else {
+            ctx.filter = getCosmeticFilter(targetPet, baseFilter);
+            ctx.drawImage(img, f.sx || 0, f.sy || 0, sw, sh, -drawW/2, -drawH/2, drawW, drawH);
+        }
+        ctx.restore();
+        drawCosmeticAura(targetPet, px, py, drawW, drawH);
     }
 }
 
@@ -925,13 +968,15 @@ function drawCharacterInWindow(action, cx, cy, targetPet) {
         ctx.save(); ctx.translate(cx, cy); 
 
         // ★追加：行動済みの場合はPIP（ワイプ）内でも暗くする
-        if (currentMode === 'defense' && targetPet.hasActed) {
-            ctx.filter = 'brightness(0.4)';
+        const baseFilter = (currentMode === 'defense' && targetPet.hasActed) ? 'brightness(0.4)' : 'none';
+        if (typeof window.drawCosmeticImageOnContext === 'function') {
+            window.drawCosmeticImageOnContext(ctx, img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH, targetPet, baseFilter);
         } else {
-            ctx.filter = 'none';
+            ctx.filter = getCosmeticFilter(targetPet, baseFilter);
+            ctx.drawImage(img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH);
         }
-
-        ctx.drawImage(img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH); ctx.restore();
+        ctx.restore();
+        drawCosmeticAura(targetPet, cx, cy, drawW, drawH);
     }
 }
 

@@ -403,6 +403,7 @@ let aiPet = savedPet || {
     message: "", messageTimer: 0,
     schedule: [], lastSaveTime: Date.now(), flip: false,
     weather: 'sunny', weatherTimer: 0,
+    cosmetic: { hue: 0, aura: 'none', hueCount: 0, auraApplied: false, totalComboApplied: false },
     idleTimer: 0, actionState: 'idle', 
     interactionTarget: null, interactionTimer: 0, visualScale: 1.0,
 
@@ -426,6 +427,17 @@ if (typeof aiPet.hunger === 'undefined') aiPet.hunger = 100;
 if (typeof aiPet.weather === 'undefined') aiPet.weather = 'sunny';
 if (typeof aiPet.debtTimer === 'undefined') aiPet.debtTimer = 0;
 if (typeof aiPet.tailorUnlocked === 'undefined') aiPet.tailorUnlocked = false; // ★追加：未定義によるエラーを防ぐため明示的に初期化
+if (typeof aiPet.hairdresserUnlocked === 'undefined') aiPet.hairdresserUnlocked = false;
+if (typeof aiPet.hairdresserFlowerRumorUnlocked === 'undefined') aiPet.hairdresserFlowerRumorUnlocked = false;
+if (typeof aiPet.hairdresserFlowerFound === 'undefined') aiPet.hairdresserFlowerFound = false;
+if (typeof aiPet.hairdresserBlueprintUnlocked === 'undefined') aiPet.hairdresserBlueprintUnlocked = false;
+if (typeof aiPet.hairdresserDresserUnlocked === 'undefined') aiPet.hairdresserDresserUnlocked = false;
+if (!aiPet.cosmetic) aiPet.cosmetic = { hue: 0, aura: 'none', hueCount: 0, auraApplied: false, totalComboApplied: false };
+if (typeof aiPet.cosmetic.hue === 'undefined') aiPet.cosmetic.hue = 0;
+if (typeof aiPet.cosmetic.aura === 'undefined') aiPet.cosmetic.aura = 'none';
+if (typeof aiPet.cosmetic.hueCount === 'undefined') aiPet.cosmetic.hueCount = 0;
+if (typeof aiPet.cosmetic.auraApplied === 'undefined') aiPet.cosmetic.auraApplied = false;
+if (typeof aiPet.cosmetic.totalComboApplied === 'undefined') aiPet.cosmetic.totalComboApplied = false;
 
 // ★追加: 既存セーブデータロード時の「弟子入りデータ」欠損対策
 if (!aiPet.apprentice) {

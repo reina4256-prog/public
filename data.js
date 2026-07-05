@@ -47,6 +47,7 @@ const defaultCatalog = {
   "shop":{"img":"field_3","sx":749,"sy":86,"sw":231,"sh":237,"type":"building","name":"ショップ","scale":0.5},
   "pharmacy":{"img":"field_3","sx":749,"sy":86,"sw":231,"sh":237,"type":"building","name":"薬局","scale":0.5},
   "atelier":{"img":"field_3","sx":749,"sy":86,"sw":231,"sh":237,"type":"building","name":"アトリエ","scale":0.5},
+  "salon":{"img":"field_3","sx":749,"sy":86,"sw":231,"sh":237,"type":"building","name":"美容室","scale":0.5},
   // ★追加：カード屋（今回はshopの画像「field_3」の右側あたりを流用して表示）
   "card_shop":{"img":"field_3","sx":749,"sy":86,"sw":231,"sh":237,"type":"building","name":"カード屋","scale":0.45},
   "blacksmith":{"img":"field_4","sx":271,"sy":365,"sw":241,"sh":248,"type":"building","name":"鍛冶屋","scale":0.5},
@@ -2385,6 +2386,14 @@ const itemCatalog = {
     eternal_watch: { name: "悠久の懐中時計", type: 'equip', stats: { mood: 30, intel: 30, energy: 30, power: 30 }, value: 1500, desc: "神秘の織物から作られた、体力と満腹度の消費を常に抑える不思議な時計。" },
     tangled_thread: { name: "絡まった糸", type: 'material', value: 1, quality: 'bad', desc: "裁縫に失敗して絡まってしまった糸。使い道がない。" },
     // ▼ 追加: パティシエ関連素材・スイーツ
+    phantom_dye_flower: { name: "幻の染料花", type: 'material', value: 300, desc: "美容室を建てるために必要な、虹色の色素を秘めた花。" },
+    blueprint_salon: { name: "美容室の図面", type: 'material', value: 100, desc: "建築士が引いてくれた、美容室を建てるための設計図。" },
+    pure_spring_water: { name: "清らかな湧き水", type: 'material', value: 80, desc: "カラー剤のベースになる透き通った湧き水。" },
+    aroma_herb: { name: "アロマハーブ", type: 'material', value: 60, desc: "ふんわり甘い香りを放つ美容用のハーブ。" },
+    high_aroma_herb: { name: "質のいいアロマハーブ", type: 'material', value: 120, desc: "大成功！香りがひときわ豊かな美容用ハーブ。" },
+    seed_aroma_herb: { name: "アロマハーブの種", type: 'seed', crop: 'aroma_herb', value: 30, desc: "美容師の修行に使う香り高いハーブの種。" },
+    rainbow_drop: { name: "虹色のしずく", type: 'material', value: 600, desc: "深い探索でまれに見つかる究極の染料素材。" },
+    ultimate_beauty_kit: { name: "究極の美容アイテム", type: 'material', value: 1800, desc: "すべてのカラーとオーラを引き出す美容師の集大成。" },
     honey: { name: "ハチミツ", type: 'ingredient', value: 30, desc: "森で採れる甘い蜜。" },
     seed_strawberry: { name: "イチゴの種", type: 'seed', crop: 'strawberry', value: 20, desc: "甘酸っぱい果実が育つ種。" },
     strawberry: { name: "イチゴ", type: 'ingredient', value: 60, desc: "真っ赤で甘酸っぱい果実。" },
@@ -2677,6 +2686,7 @@ const buildingCatalog = {
   restaurant: { name: "レストラン", reqIntel: 40, reqBuildLevel: 3, cost: { energy: 50 }, materials: { stone: 5, wood: 5 }, breakChance: 0.001 },
   shop: { name: "ショップ", reqIntel: 45, reqBuildLevel: 4, cost: { energy: 40 }, materials: { stone: 5, wood: 3 }, breakChance: 0.001 },
   atelier: { name: "アトリエ", reqIntel: 55, reqBuildLevel: 4, cost: { energy: 45 }, materials: { blueprint_tailor: 1, mystic_thread: 1 }, breakChance: 0.001, reqFlag: 'tailorUnlocked' },
+  salon: { name: "美容室", reqIntel: 70, reqBuildLevel: 5, cost: { energy: 55 }, materials: { phantom_dye_flower: 1, blueprint_salon: 1 }, breakChance: 0.001, reqFlag: 'hairdresserUnlocked' },
   blacksmith: { name: "鍛冶屋", reqIntel: 50, reqBuildLevel: 5, cost: { energy: 60 }, materials: { stone: 10, iron: 5 }, breakChance: 0.001 },
   casino: { name: "カジノ", reqIntel: 80, reqBuildLevel: 6, cost: { energy: 80 }, materials: { stone: 10, wood: 10, coin: 5 }, breakChance: 0.0005 },
   castle: { name: "お城", reqIntel: 100, reqBuildLevel: 8, cost: { energy: 90 }, materials: { stone: 20, wood: 10, iron: 5 }, breakChance: 0.0005 },
@@ -2685,7 +2695,8 @@ const buildingCatalog = {
   // ★追加：小屋の拡張ストレージ設備（上限なしで増築可能）
   freezer: { name: "冷凍庫", reqIntel: 50, reqBuildLevel: 2, cost: { energy: 40 }, materials: { iron: 5, stone: 2 }, isUpgrade: true, targetFacility: 'hut' },
   warehouse: { name: "倉庫", reqIntel: 40, reqBuildLevel: 2, cost: { energy: 40 }, materials: { wood: 10 }, isUpgrade: true, targetFacility: 'hut' },
-  safe: { name: "金庫", reqIntel: 100, reqBuildLevel: 4, cost: { energy: 60 }, materials: { iron: 10, coin: 2 }, isUpgrade: true, targetFacility: 'hut' }
+  safe: { name: "金庫", reqIntel: 100, reqBuildLevel: 4, cost: { energy: 60 }, materials: { iron: 10, coin: 2 }, isUpgrade: true, targetFacility: 'hut' },
+  dresser: { name: "ドレッサー", reqIntel: 70, reqBuildLevel: 4, cost: { energy: 35 }, materials: { wood: 5, aroma_herb: 2 }, isUpgrade: true, targetFacility: 'hut', reqFlag: 'hairdresserDresserUnlocked' }
 };
 const recipeCatalog = [ { id: 'dish_salad', name: "フレッシュサラダ", ingredients: { carrot: 1, tomato: 1 } }, { id: 'dish_stirfry', name: "野菜炒め", ingredients: { carrot: 1, pepper: 1 } }, { id: 'dish_soup', name: "ミネストローネ", ingredients: { tomato: 1, pepper: 1 } }, { id: 'baked_carrot', name: "焼きニンジン", ingredients: { carrot: 1 }, type: 'simple' }, { id: 'baked_pepper', name: "焼きピーマン", ingredients: { pepper: 1 }, type: 'simple' }, { id: 'baked_tomato', name: "焼きトマト", ingredients: { tomato: 1 }, type: 'simple' }, { id: 'baked_fish', name: "焼き魚", ingredients: { fish: 1 }, type: 'simple' } ];
 const craftCatalog = [ { id: 'eq_sword', name: "鉄の剣", materials: { iron: 5, wood: 2 } }, { id: 'eq_shield', name: "鉄の盾", materials: { iron: 4, stone: 4 } }, { id: 'eq_staff', name: "魔法の杖", materials: { wood: 5, crystal: 1 } }, { id: 'eq_crown', name: "王冠", materials: { coin: 5, crystal: 2 } }, { id: 'tool_pan', name: "フライパン", materials: { iron: 2, wood: 1 } } ];

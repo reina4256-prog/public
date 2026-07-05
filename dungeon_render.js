@@ -5352,6 +5352,33 @@ window.updateDungeonUI = function() {
                 pDiv.style.left = `${s.player.x * logicalTileX + offsetX}px`; 
                 pDiv.style.top = `${s.player.y * logicalTileY + offsetY}px`; 
             }
+            if (window.aiPet && window.aiPet.cosmetic) {
+                const hue = typeof window.getCosmeticHue === 'function' ? window.getCosmeticHue(window.aiPet) : Number(window.aiPet.cosmetic.hue || 0);
+                pDiv.style.filter = hue ? `hue-rotate(${hue}deg)` : '';
+                let auraLayer = pDiv.querySelector('.dg-cosmetic-aura');
+                const aura = window.aiPet.cosmetic.aura || 'none';
+                if (aura && aura !== 'none') {
+                    if (!document.getElementById('dg-cosmetic-aura-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'dg-cosmetic-aura-style';
+                        style.textContent = '@keyframes dgAuraRise{0%{transform:translate(-50%,0) rotate(0deg);opacity:.9}50%{transform:translate(35%,-70%) rotate(180deg);opacity:.55}100%{transform:translate(-50%,-145%) rotate(360deg);opacity:0}}';
+                        document.head.appendChild(style);
+                    }
+                    if (!auraLayer) {
+                        auraLayer = document.createElement('div');
+                        auraLayer.className = 'dg-cosmetic-aura';
+                        auraLayer.style.cssText = 'position:absolute; inset:-35% -25%; pointer-events:none; filter:none;';
+                        pDiv.appendChild(auraLayer);
+                    }
+                    const glyphs = { sparkle: '*', heart: '♡', music: '♪', bubble: '○' };
+                    auraLayer.innerHTML = Array.from({ length: 7 }, (_, i) => {
+                        const color = typeof window.getCosmeticAuraColor === 'function' ? window.getCosmeticAuraColor(window.aiPet, i) : (window.aiPet.cosmetic.auraColor || '#fff176');
+                        return `<span style="position:absolute; left:50%; bottom:8%; color:${color}; text-shadow:0 0 6px ${color}; font-weight:bold; animation:dgAuraRise 1.8s linear infinite; animation-delay:${i * -0.24}s;">${glyphs[aura] || '*'}</span>`;
+                    }).join('');
+                } else if (auraLayer) {
+                    auraLayer.remove();
+                }
+            }
 
             pDiv.classList.remove('anim-atk-up', 'anim-atk-down', 'anim-atk-left', 'anim-atk-right', 'anim-damage', 'anim-knockback', 'anim-levelup', 'anim-magic');
             void pDiv.offsetWidth; 

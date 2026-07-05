@@ -13,6 +13,163 @@ window.countQuestInventoryItems = function(inventory, ids) {
     return (inventory || []).filter(item => targets.includes(window.getQuestInventoryItemId(item))).length;
 };
 
+window.getDresserLevel = function() {
+    if (typeof assets === 'undefined') return 0;
+    let level = 0;
+    Object.values(assets).forEach(a => {
+        if (!a) return;
+        if (a.type === 'dresser') level = Math.max(level, a.level || 1);
+        if (a.type === 'hut' && a.storage && a.storage.dresser) {
+            level = Math.max(level, a.storage.dresser.level || 0);
+        }
+    });
+    return level;
+};
+
+window.getDresserUnlockedColors = function(level) {
+    const palette = [
+        '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#00ffff',
+        '#ff00ff', '#ff9800', '#ff80ab', '#ffffff', '#ffd700',
+        '#8bc34a', '#9c27b0', '#03a9f4', '#795548', '#607d8b',
+        '#f44336', '#4caf50', '#3f51b5', '#cddc39', '#e91e63'
+    ];
+    return palette.slice(0, Math.max(3, Math.min(palette.length, Number(level || 0) + 2)));
+};
+
+window.getCosmeticHue = function(targetPet) {
+    const cosmetic = targetPet && targetPet.cosmetic ? targetPet.cosmetic : {};
+    if (Array.isArray(cosmetic.rainbowColors) && cosmetic.rainbowColors.length > 0) {
+        return 0;
+    }
+    return Number(cosmetic.hue || 0);
+};
+
+window.getCosmeticAuraColor = function(targetPet, index = 0) {
+    const cosmetic = targetPet && targetPet.cosmetic ? targetPet.cosmetic : {};
+    const colors = Array.isArray(cosmetic.auraColors) && cosmetic.auraColors.length > 0
+        ? cosmetic.auraColors
+        : [cosmetic.auraColor || '#fff176'];
+    return colors[index % colors.length] || '#fff176';
+};
+
+window.drawCosmeticImageOnContext = function(ctx, img, sx, sy, sw, sh, dx, dy, dw, dh, targetPet, baseFilter = 'none') {
+    const cosmetic = targetPet && targetPet.cosmetic ? targetPet.cosmetic : {};
+    const rainbowColors = Array.isArray(cosmetic.rainbowColors)
+        ? cosmetic.rainbowColors.filter(c => /^#[0-9a-f]{6}$/i.test(String(c))).slice(0, 7)
+        : [];
+    if (rainbowColors.length < 2) {
+        ctx.save();
+        const hue = typeof window.getCosmeticHue === 'function' ? window.getCosmeticHue(targetPet) : Number(cosmetic.hue || 0);
+        const hueFilter = hue ? `hue-rotate(${hue}deg)` : '';
+        ctx.filter = baseFilter && baseFilter !== 'none'
+            ? (hueFilter ? `${baseFilter} ${hueFilter}` : baseFilter)
+            : (hueFilter || 'none');
+        ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
+        ctx.restore();
+        return;
+    }
+
+    const hexToRgb = (hex) => {
+        const n = parseInt(String(hex).replace('#', ''), 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    const rgbToHsl = (r, g, b) => {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        let h = 0, s = 0;
+        const l = (max + min) / 2;
+        if (max !== min) {
+            const d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+            else if (max === g) h = ((b - r) / d + 2) / 6;
+            else h = ((r - g) / d + 4) / 6;
+        }
+        return [h * 360, s, l];
+    };
+    const cache = window._cosmeticRainbowImageCache || (window._cosmeticRainbowImageCache = new Map());
+    const key = `${img.src || ''}|${sx}|${sy}|${sw}|${sh}|${rainbowColors.join(',')}`;
+    let recolored = cache.get(key);
+    if (!recolored) {
+        recolored = document.createElement('canvas');
+        recolored.width = Math.max(1, Math.round(sw));
+        recolored.height = Math.max(1, Math.round(sh));
+        const rctx = recolored.getContext('2d');
+        rctx.drawImage(img, sx, sy, sw, sh, 0, 0, recolored.width, recolored.height);
+        try {
+            const imageData = rctx.getImageData(0, 0, recolored.width, recolored.height);
+            const data = imageData.data;
+            const targets = rainbowColors.map(hexToRgb);
+            for (let i = 0; i < data.length; i += 4) {
+                if (data[i + 3] < 8) continue;
+                const [h, s, l] = rgbToHsl(data[i], data[i + 1], data[i + 2]);
+                let group = 0;
+                if (s < 0.16) group = l < 0.30 ? 6 : (l > 0.72 ? 5 : 4);
+                else group = Math.min(5, Math.floor(((h + 20) % 360) / 60));
+                const [tr, tg, tb] = targets[group % targets.length];
+                const shade = Math.max(0.34, Math.min(1.25, 0.48 + l * 0.95));
+                data[i] = Math.max(0, Math.min(255, Math.round(tr * shade)));
+                data[i + 1] = Math.max(0, Math.min(255, Math.round(tg * shade)));
+                data[i + 2] = Math.max(0, Math.min(255, Math.round(tb * shade)));
+            }
+            rctx.putImageData(imageData, 0, 0);
+            if (cache.size > 24) cache.delete(cache.keys().next().value);
+            cache.set(key, recolored);
+        } catch (e) {
+            recolored = null;
+        }
+    }
+
+    ctx.save();
+    if (baseFilter && baseFilter !== 'none') ctx.filter = baseFilter;
+    ctx.drawImage(recolored || img, recolored ? 0 : sx, recolored ? 0 : sy, recolored ? recolored.width : sw, recolored ? recolored.height : sh, dx, dy, dw, dh);
+    ctx.restore();
+};
+
+window.getHairdresserQuestProgress = function(hero, q) {
+    const inv = (hero && hero.inventory) || [];
+    const cosmetic = (hero && hero.cosmetic) || {};
+    const hasDresser = typeof window.hasBuiltDresser === 'function'
+        ? window.hasBuiltDresser()
+        : (typeof assets !== 'undefined' && Object.values(assets).some(a => a && a.type === 'dresser'));
+    const hueCount = cosmetic.hueCount || 0;
+    const hasHue = Number(cosmetic.hue || 0) !== 0 || hueCount > 0;
+    const hasAura = !!cosmetic.auraApplied || (cosmetic.aura && cosmetic.aura !== 'none');
+
+    if (!q || q.masterType !== 'hairdresser') return null;
+    if (q.rank === 7) return { name: '虹色カラーチェンジ', current: cosmetic.rainbowColorApplied ? 1 : 0, req: 1 };
+    if (q.rank === 8) return { name: '虹色カラーとオーラ', current: (cosmetic.rainbowColorApplied && cosmetic.rainbowAuraApplied) ? 1 : 0, req: 1 };
+    if (q.rank === 1) return { name: '清らかな湧き水', current: window.countQuestInventoryItems(inv, 'pure_spring_water'), req: 1 };
+    if (q.rank === 2) return { name: 'アロマハーブ', current: window.countQuestInventoryItems(inv, ['aroma_herb', 'high_aroma_herb']), req: 3 };
+    if (q.rank === 3) return { name: 'ドレッサー', current: hasDresser ? 1 : 0, req: 1 };
+    if (q.rank === 4) return { name: 'カラーチェンジ', current: Math.min(hueCount, 1), req: 1 };
+    if (q.rank === 5) return { name: 'オーラ付与', current: hasAura ? 1 : 0, req: 1 };
+    if (q.rank === 6) return { name: '虹色のしずく', current: window.countQuestInventoryItems(inv, 'rainbow_drop'), req: 1 };
+    if (q.rank === 7) return { name: 'カラーチェンジ', current: hueCount, req: 3 };
+    if (q.rank === 8) return { name: 'トータルコーデ', current: (hasHue && hasAura) ? 1 : 0, req: 1 };
+    if (q.rank === 9) {
+        const level = typeof window.getDresserLevel === 'function' ? window.getDresserLevel() : 0;
+        const steps = (level >= 10 ? 1 : 0) + (cosmetic.rank9ColorAppliedAfterLevel10 ? 1 : 0) + (cosmetic.rank9AuraAppliedAfterLevel10 ? 1 : 0);
+        return { name: 'Lv10後のカラー・オーラ', current: Math.min(steps, 3), req: 3 };
+    }
+    return null;
+};
+
+window.getHairdresserQuestProgressList = function(hero, q) {
+    const cosmetic = (hero && hero.cosmetic) || {};
+    if (!q || q.masterType !== 'hairdresser') return [];
+    if (q.rank === 9) {
+        const level = typeof window.getDresserLevel === 'function' ? window.getDresserLevel() : 0;
+        return [
+            { name: 'ドレッサーLv', current: Math.min(level, 10), req: 10 },
+            { name: '7色カラー(Lv10後)', current: cosmetic.rank9ColorAppliedAfterLevel10 ? 1 : 0, req: 1 },
+            { name: '7色オーラ(Lv10後)', current: cosmetic.rank9AuraAppliedAfterLevel10 ? 1 : 0, req: 1 }
+        ];
+    }
+    const single = window.getHairdresserQuestProgress(hero, q);
+    return single ? [single] : [];
+};
+
 window.formatQuestDescription = function(desc) {
     return String(desc || '').replace(/\s*\((honey|strawberry|melon)\)/g, '');
 };
@@ -274,7 +431,7 @@ window.openStatusMenu = function() {
             } else if (app.isGraduated) {
                 html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">今世での修行を終え、立派な達人になりました！<br>（1回の人生で極められる道は1つまでです。余生を満喫しましょう）</span></div>`;
             } else if (app.currentMaster) {
-                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
+                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
                 const mName = masterNames[app.currentMaster] || "不明";
                 const rank = app.rank[app.currentMaster] || 1;
                 
@@ -393,6 +550,12 @@ window.openStatusMenu = function() {
                                         itemsStr.push(formatReq("最高完成度(%)", maxMastery, q.rank === 7 ? 50 : 100));
                                     }
                                     else if (q.rank === 9) itemsStr.push(formatReq("デザートの販売数", q.qVal || 0, 10));
+                                }
+                                else if (q.masterType === 'hairdresser') {
+                                    const hps = window.getHairdresserQuestProgressList
+                                        ? window.getHairdresserQuestProgressList(hero, q)
+                                        : (window.getHairdresserQuestProgress ? [window.getHairdresserQuestProgress(hero, q)].filter(Boolean) : []);
+                                    hps.forEach(hp => itemsStr.push(formatReq(hp.name, hp.current, hp.req)));
                                 }
 
                                 if (itemsStr.length === 0) isItemQuest = false;
@@ -591,7 +754,7 @@ function drawStatusIconOnCanvas(canvas, type) {
 
     const actionData = conf.actions['idle'];
     if (!actionData || actionData.length === 0) return;
-    const f = actionData[0];
+    const f = actionData[Math.floor(Date.now() / 220) % actionData.length] || actionData[0];
 
     const scale = Math.min(canvas.width / f.sw, canvas.height / f.sh) * 0.9;
     const drawW = f.sw * scale;
@@ -600,7 +763,28 @@ function drawStatusIconOnCanvas(canvas, type) {
     const dy = (canvas.height - drawH) / 2;
 
     ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh, dx, dy, drawW, drawH);
+    if (typeof window.drawCosmeticImageOnContext === 'function') {
+        window.drawCosmeticImageOnContext(ctx, img, f.sx, f.sy, f.sw, f.sh, dx, dy, drawW, drawH, window.aiPet);
+    } else {
+        ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh, dx, dy, drawW, drawH);
+    }
+    if (typeof window.drawCosmeticAuraOnContext === 'function') {
+        window.drawCosmeticAuraOnContext(ctx, window.aiPet, canvas.width / 2, canvas.height / 2, drawW, drawH);
+    }
+    if (!canvas._statusCosmeticAnim) {
+        canvas._statusCosmeticAnim = true;
+        const loop = () => {
+            const overlay = document.getElementById('statusOverlay');
+            if (!document.body.contains(canvas) || !overlay || !overlay.classList.contains('active')) {
+                canvas._statusCosmeticAnim = false;
+                canvas._statusCosmeticAnimId = null;
+                return;
+            }
+            drawStatusIconOnCanvas(canvas, type);
+            canvas._statusCosmeticAnimId = requestAnimationFrame(loop);
+        };
+        canvas._statusCosmeticAnimId = requestAnimationFrame(loop);
+    }
 }
 
 function openBuildMenuPanel() {
@@ -1180,6 +1364,9 @@ window.updateCommandHUD = function() {
 
     const knows = (word) => aiPet.apprentice.learnedWords && aiPet.apprentice.learnedWords.includes(word);
     let metMasters = (aiPet.apprentice && aiPet.apprentice.metMasters) ? aiPet.apprentice.metMasters : [];
+    const hairdresserRank = (aiPet.apprentice && aiPet.apprentice.rank && aiPet.apprentice.rank['hairdresser']) || 0;
+    const isHairdresserMaster = !!(aiPet.apprentice && aiPet.apprentice.retired && aiPet.apprentice.retired['hairdresser']);
+    const hasDresserBuilt = typeof window.hasBuiltDresser === 'function' && window.hasBuiltDresser();
 
     // ==========================================
     // ★修正：下にあった計算式を上に引っ張り上げました！
@@ -1219,6 +1406,15 @@ window.updateCommandHUD = function() {
     if (knows("お菓子作り")) categories['⚔️ 冒険・作業'].push({ label: "お菓子作り", base: "お菓子作り" });
     if (knows("鍛冶")) categories['⚔️ 冒険・作業'].push({ label: "鍛冶", base: "鍛冶" }); 
     if (knows("建築")) categories['⚔️ 冒険・作業'].push({ label: "建築", base: "建築" });
+    const canUseHairdresserAction = aiPet.apprentice && (
+        (aiPet.apprentice.metMasters && aiPet.apprentice.metMasters.includes('hairdresser')) ||
+        aiPet.apprentice.currentMaster === 'hairdresser' ||
+        (aiPet.apprentice.rank && aiPet.apprentice.rank['hairdresser'] > 0) ||
+        (aiPet.apprentice.retired && aiPet.apprentice.retired['hairdresser'])
+    );
+    if (knows("ヘアメイク") && canUseHairdresserAction) categories['⚔️ 冒険・作業'].push({ label: "ヘアメイク", base: "ヘアメイク" });
+    if (knows("カラーチェンジ") && hasDresserBuilt && (hairdresserRank >= 4 || isHairdresserMaster)) categories['⚔️ 冒険・作業'].push({ label: "カラーチェンジ", base: "カラーチェンジ" });
+    if (knows("オーラ") && hasDresserBuilt && (hairdresserRank >= 5 || isHairdresserMaster)) categories['⚔️ 冒険・作業'].push({ label: "オーラ", base: "オーラ" });
 
     // ==========================================
     // ★修正：「調合」の昇格判定（rank >= 10 も含める）
@@ -1232,7 +1428,7 @@ window.updateCommandHUD = function() {
         categories['⚔️ 冒険・作業'].push({ label: "調合", base: "調合" });
     }
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
 
     // ★修正：自動修復ロジックを削除（世代交代時の「エモい再会イベント」を確実に発生させるため）
     for (let key in masterNames) {
@@ -1318,6 +1514,12 @@ window.updateCommandHUD = function() {
     // ★修正：調合が昇格していればシステムワードに登録（自由枠から消す）
     if (isExplorerMaster) {
         systemWords.push("調合");
+    }
+    if (hasDresserBuilt && (hairdresserRank >= 4 || isHairdresserMaster)) {
+        systemWords.push("カラーチェンジ");
+    }
+    if (hasDresserBuilt && (hairdresserRank >= 5 || isHairdresserMaster)) {
+        systemWords.push("オーラ");
     }
 
     for (let key in masterNames) {
@@ -1488,6 +1690,10 @@ window.sendChat = function() {
         "建築士": ["建築士", "建築家"],
         "薬剤師": ["薬剤師", "薬師", "医者", "ドクター", "先生"],
         "仕立屋": ["仕立屋", "裁縫師", "服屋", "アトリエ"],
+        "美容師": ["美容師", "ヘアドレッサー"],
+        "ヘアメイク": ["ヘアメイク", "スタイリング", "ヘアセット", "髪型", "髪を切って", "髪を染めて"],
+        "カラーチェンジ": ["カラーチェンジ", "カラー変更", "色変更", "色を変えて", "髪色変更", "髪色を変えて"],
+        "オーラ": ["オーラ", "エフェクト", "きらきら", "ハート", "おんぷ", "パーティクル"],
         "裁縫": ["裁縫", "縫い物", "服作り", "編み物", "服を作って"],
         "調合": ["調合", "薬作り", "くすりづくり", "薬"],
         "風邪薬": ["風邪薬", "かぜぐすり"], // ★追加
@@ -1496,6 +1702,7 @@ window.sendChat = function() {
         "集中薬を飲む": ["集中薬を飲む", "集中薬飲む", "集中薬使って", "集中薬飲んで"], // ★追加
         "薬局": ["薬局", "くすりや", "病院", "クリニック"],
         "アトリエ": ["アトリエ", "仕立て", "仕立屋", "服屋"],
+        "美容室": ["美容室", "サロン", "ヘアサロン"],
         "裁縫": ["裁縫", "縫い", "編み", "ミシン", "服作り"],
         "染料": ["染料", "せんりょう"],
         "丈夫な糸": ["丈夫な糸", "じょうぶないと"],
@@ -1600,8 +1807,38 @@ window.sendChat = function() {
 
     const knows = (word) => aiPet.apprentice.learnedWords.includes(word);
     let actionTriggered = false; 
+    const triggerSmithingIntroFromBasicCommand = () => {
+        if (!['睡眠', '勉強', '筋トレ', 'ランニング'].includes(interpretedWord)) return false;
+        if (!aiPet.apprentice || aiPet.isHelper) return false;
+        if (aiPet.apprentice.currentMaster || aiPet.apprentice.isGraduated) return false;
+        if (!aiPet.apprentice.metMasters) aiPet.apprentice.metMasters = [];
+        if (aiPet.apprentice.metMasters.includes('smithing')) return false;
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
+        actionTriggered = true;
+        aiPet.schedule = [];
+        aiPet.currentTask = null;
+        aiPet.actionState = 'idle';
+        aiPet.isIndoors = false;
+        aiPet.message = "（火の気配がする...！）";
+        aiPet.messageTimer = 120;
+        const encounterMsg = "「……鍛えているのか。なら、火の扱いも覚えておけ。」";
+        const openFallbackIntro = () => {
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI('smithing', encounterMsg, 'encounter_intro');
+        };
+        const continueAfterVideo = () => {
+            if (typeof window.continueMasterEncounterIntroAfterVideo === 'function') {
+                window.continueMasterEncounterIntroAfterVideo('smithing', encounterMsg);
+            } else {
+                openFallbackIntro();
+            }
+        };
+        if (typeof window.playMasterEncounterVideo !== 'function' || !window.playMasterEncounterVideo('smithing', continueAfterVideo, openFallbackIntro)) {
+            openFallbackIntro();
+        }
+        return true;
+    };
+
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
     const uniqueFacilities = {
@@ -1612,10 +1849,12 @@ window.sendChat = function() {
         // ★修正：薬局に入った時は「師匠（薬剤師）との会話」を起動する
         "薬局": { type: 'pharmacy', bId: 'pharmacy', name: '薬局', onEnter: () => { if(typeof window.checkMasterVisit === 'function') window.checkMasterVisit('pharmacist'); } },
         // ★追加：アトリエに入った時は「師匠（仕立屋）との会話」を起動する
-        "アトリエ": { type: 'atelier', bId: 'atelier', name: 'アトリエ', onEnter: () => { if(typeof window.checkMasterVisit === 'function') window.checkMasterVisit('tailor'); } }
+        "アトリエ": { type: 'atelier', bId: 'atelier', name: 'アトリエ', onEnter: () => { if(typeof window.checkMasterVisit === 'function') window.checkMasterVisit('tailor'); } },
+        "美容室": { type: 'salon', bId: 'salon', name: '美容室', onEnter: () => { if(typeof window.checkMasterVisit === 'function') window.checkMasterVisit('hairdresser'); } },
+        "ドレッサー": { type: 'dresser', bId: 'dresser', name: 'ドレッサー', onEnter: () => { if(typeof window.openHairdresserUI === 'function') window.openHairdresserUI(); } }
     };
 
-    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef'};
+    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef', '美容師': 'hairdresser'};
     
     if (allMasterNames[interpretedWord] && knows(interpretedWord) && !aiPet.isHelper) {
         let mType = allMasterNames[interpretedWord];
@@ -1627,6 +1866,8 @@ window.sendChat = function() {
             interpretedWord = "薬局"; 
         } else if (mType === 'tailor') {
             interpretedWord = "アトリエ";
+        } else if (mType === 'hairdresser') {
+            interpretedWord = "美容室";
         }
         // else if (mType === 'pastry_chef') {
         //     // ★追加：パティシエは固有施設がなく「レストラン」に相乗りするため、専用の面会ルートを作る
@@ -1709,7 +1950,7 @@ window.sendChat = function() {
 
         if (existingTarget) {
             // ★ 修正：言葉を知っているか、もしくは「薬剤師」「仕立屋」への面会目的で書き換えられた場合は特別に許可する！
-            if (knows(interpretedWord) || rawText.includes("薬剤師") || rawText.includes("仕立屋") || rawText.includes("アトリエ")) {
+            if (knows(interpretedWord) || rawText.includes("薬剤師") || rawText.includes("仕立屋") || rawText.includes("アトリエ") || rawText.includes("美容師") || rawText.includes("美容室") || rawText.includes("サロン")) {
                 aiPet.schedule = []; aiPet.startBuildingInteraction(existingTarget);
                 aiPet.message = `${facInfo.name}に行ってくる！`; aiPet.messageTimer = 120;
                 let checkInterval = setInterval(() => {
@@ -1905,8 +2146,14 @@ window.sendChat = function() {
         }
     }
     // ▲▲▲ 追加ここまで ▲▲▲
-    else if (interpretedWord === "睡眠" && knows("睡眠")) { aiPet.schedule.push({type:'sleep', duration:60}); actionTriggered = true; }
-    else if (interpretedWord === "ランニング" && knows("ランニング")) { aiPet.schedule.push({type:'run', duration:60}); actionTriggered = true; }
+    else if (interpretedWord === "睡眠" && knows("睡眠")) {
+        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'sleep', duration:60});
+        actionTriggered = true;
+    }
+    else if (interpretedWord === "ランニング" && knows("ランニング")) {
+        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'run', duration:60});
+        actionTriggered = true;
+    }
     else if (interpretedWord === "食事" && knows("食事")) { aiPet.schedule.push({type:'eat', duration:30}); actionTriggered = true; }
     else if (interpretedWord === "集中薬を飲む" && knows("集中薬")) {
         actionTriggered = true;
@@ -1926,8 +2173,14 @@ window.sendChat = function() {
         }
         aiPet.messageTimer = 120;
     }
-    else if (interpretedWord === "勉強" && knows("勉強")) { aiPet.schedule.push({type:'study', duration:60}); actionTriggered = true; }
-    else if (interpretedWord === "筋トレ" && knows("筋トレ")) { aiPet.schedule.push({type:'train', duration:60}); actionTriggered = true; } 
+    else if (interpretedWord === "勉強" && knows("勉強")) {
+        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'study', duration:60});
+        actionTriggered = true;
+    }
+    else if (interpretedWord === "筋トレ" && knows("筋トレ")) {
+        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'train', duration:60});
+        actionTriggered = true;
+    } 
     else if (["探検", "森", "山"].includes(interpretedWord) && knows(interpretedWord)) { 
         actionTriggered = true; 
         let canExplore = false;
@@ -2072,7 +2325,7 @@ window.sendChat = function() {
             aiPet.messageTimer = 120;
         }
     }
-    else if (["ニンジン", "ピーマン", "トマト", "イチゴ", "メロン"].includes(interpretedWord) && knows(interpretedWord)) {
+    else if (["ニンジン", "ピーマン", "トマト", "イチゴ", "メロン", "アロマハーブ"].includes(interpretedWord) && knows(interpretedWord)) {
         actionTriggered = true;
         let isMasterFarmer = aiPet.apprentice && (
             (aiPet.apprentice.retired && aiPet.apprentice.retired['farming']) || 
@@ -2086,7 +2339,7 @@ window.sendChat = function() {
             return;
         }
 
-        let seedId = interpretedWord === 'ニンジン' ? 'seed_carrot' : interpretedWord === 'ピーマン' ? 'seed_pepper' : interpretedWord === 'トマト' ? 'seed_tomato' : interpretedWord === 'イチゴ' ? 'seed_strawberry' : 'seed_melon';
+        let seedId = interpretedWord === 'ニンジン' ? 'seed_carrot' : interpretedWord === 'ピーマン' ? 'seed_pepper' : interpretedWord === 'トマト' ? 'seed_tomato' : interpretedWord === 'イチゴ' ? 'seed_strawberry' : interpretedWord === 'アロマハーブ' ? 'seed_aroma_herb' : 'seed_melon';
         
         const hasSeed = aiPet.inventory && aiPet.inventory.some(i => (typeof i === 'string' ? i : i.id) === seedId);
         if (hasSeed) {
@@ -2159,6 +2412,73 @@ window.sendChat = function() {
         }
         aiPet.messageTimer = 180;
         if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+    }
+    // ★追加：美容師の専用アクション。解放前に覚えた場合は自由ワード扱いのままにする
+    else if (interpretedWord === "ヘアメイク" && knows(interpretedWord) && aiPet.apprentice && (
+        (aiPet.apprentice.metMasters && aiPet.apprentice.metMasters.includes('hairdresser')) ||
+        (aiPet.apprentice.currentMaster === 'hairdresser') ||
+        (aiPet.apprentice.rank && aiPet.apprentice.rank['hairdresser'] > 0) ||
+        (aiPet.apprentice.retired && aiPet.apprentice.retired['hairdresser'])
+    )) {
+        actionTriggered = true;
+        let salon = typeof findFacilityForTask === 'function' ? findFacilityForTask('visit_master', 'hairdresser') : null;
+        if (!salon || salon.type === 'virtual_master') {
+            salon = null;
+            for (let k in assets) {
+                if (assets[k].type === 'salon' && !assets[k].isMobile) { salon = assets[k]; break; }
+            }
+        }
+
+        if (salon) {
+            aiPet.schedule = [{ type: 'visit_master', masterType: 'hairdresser', duration: 0 }];
+            aiPet.startBuildingInteraction(salon);
+            aiPet.message = "美容室でヘアメイクしてくるね！";
+        } else {
+            aiPet.message = "ヘアメイクしたいけど、美容室がまだないみたい...";
+        }
+        aiPet.messageTimer = 150;
+    }
+    else if (interpretedWord === "カラーチェンジ" && knows(interpretedWord) && aiPet.apprentice && (
+        (aiPet.apprentice.rank && aiPet.apprentice.rank['hairdresser'] >= 4) ||
+        (aiPet.apprentice.retired && aiPet.apprentice.retired['hairdresser'])
+    )) {
+        actionTriggered = true;
+        let hut = null;
+        for (let k in assets) {
+            if (assets[k].type === 'hut' && !assets[k].isMobile) { hut = assets[k]; break; }
+        }
+
+        if (!hut) {
+            aiPet.message = "カラーチェンジしたいけど、小屋がまだないみたい...";
+        } else if (typeof window.hasBuiltDresser === 'function' && !window.hasBuiltDresser()) {
+            aiPet.message = "カラーチェンジには、小屋にドレッサーが必要みたい。";
+        } else {
+            aiPet.schedule = [{ type: 'hairdresser_color', duration: 0 }];
+            aiPet.startBuildingInteraction(hut);
+            aiPet.message = "小屋のドレッサーでカラーチェンジしてくるね！";
+        }
+        aiPet.messageTimer = 150;
+    }
+    else if (interpretedWord === "オーラ" && knows(interpretedWord) && aiPet.apprentice && (
+        (aiPet.apprentice.rank && aiPet.apprentice.rank['hairdresser'] >= 5) ||
+        (aiPet.apprentice.retired && aiPet.apprentice.retired['hairdresser'])
+    )) {
+        actionTriggered = true;
+        let hut = null;
+        for (let k in assets) {
+            if (assets[k].type === 'hut' && !assets[k].isMobile) { hut = assets[k]; break; }
+        }
+
+        if (!hut) {
+            aiPet.message = "オーラを整えたいけど、小屋がまだないみたい...";
+        } else if (typeof window.hasBuiltDresser === 'function' && !window.hasBuiltDresser()) {
+            aiPet.message = "オーラの調整には、小屋にドレッサーが必要みたい。";
+        } else {
+            aiPet.schedule = [{ type: 'hairdresser_aura', duration: 0 }];
+            aiPet.startBuildingInteraction(hut);
+            aiPet.message = "小屋のドレッサーでオーラを整えてくるね！";
+        }
+        aiPet.messageTimer = 150;
     }
     // ▼▼▼ 修正・統合：仕立屋のアクション・素材チェック ▼▼▼
     else if (["裁縫", "染料", "丈夫な糸", "色鮮やかな布", "てるてる坊主のブローチ", "探求者のリボン", "豊穣のタッセル", "健康のミサンガ", "神秘の織物", "悠久の懐中時計"].includes(interpretedWord) && knows(interpretedWord)) {
@@ -2928,7 +3248,34 @@ window.openEvolutionMenu = function() {
 };
 
 // ★究極修正：進化後の画像をストレートに描画し、未調整時の枠サイズも自動補正する完全版！
-function drawCharacterSprite(ctx, type, cx, cy, maxW, maxH, isSilhouette, alpha = 1.0) {
+window.drawCosmeticAuraOnContext = function(ctx, targetPet, cx, cy, drawW, drawH) {
+    const cosmetic = targetPet && targetPet.cosmetic ? targetPet.cosmetic : {};
+    const aura = cosmetic.aura || 'none';
+    if (!aura || aura === 'none') return;
+    const color = cosmetic.auraColor || (aura === 'heart' ? '#ff80ab' : aura === 'music' ? '#80d8ff' : '#fff176');
+    const glyphs = { sparkle: '*', heart: '♡', music: '♪', bubble: '○' };
+    const tick = Date.now() / 16;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.shadowBlur = 8;
+    for (let i = 0; i < 7; i++) {
+        const rise = ((tick + i * 13) % 90) / 90;
+        const angle = tick * 0.055 + i * 1.35 + rise * Math.PI * 2;
+        const radius = drawW * (0.34 + Math.sin(angle * 1.7) * 0.06) * (1 - rise * 0.28);
+        const px = cx + Math.cos(angle) * radius;
+        const py = (cy + drawH * 0.42) + ((cy - drawH * 0.62) - (cy + drawH * 0.42)) * rise;
+        const pColor = typeof window.getCosmeticAuraColor === 'function' ? window.getCosmeticAuraColor(targetPet, i) : color;
+        ctx.fillStyle = pColor;
+        ctx.shadowColor = pColor;
+        ctx.globalAlpha = 0.12 + (1 - rise) * 0.78;
+        ctx.fillText(glyphs[aura] || '*', px, py);
+    }
+    ctx.restore();
+};
+
+function drawCharacterSprite(ctx, type, cx, cy, maxW, maxH, isSilhouette, alpha = 1.0, applyCosmetic = true) {
     let conf = aiConfigs[type];
     if(!conf) return;
     if (conf.img && aiConfigs[conf.img] && aiConfigs[conf.img].actions) conf = aiConfigs[conf.img];
@@ -2949,7 +3296,8 @@ function drawCharacterSprite(ctx, type, cx, cy, maxW, maxH, isSilhouette, alpha 
     if (!img.complete || img.naturalWidth === 0) return;
     
     // 基本の座標を取得
-    let f = (conf.actions && conf.actions.idle && conf.actions.idle.length > 0) ? conf.actions.idle[0] : {sx:0, sy:0, sw:300, sh:300};
+    const idleFrames = (conf.actions && conf.actions.idle && conf.actions.idle.length > 0) ? conf.actions.idle : [{sx:0, sy:0, sw:300, sh:300}];
+    let f = idleFrames[Math.floor(Date.now() / 220) % idleFrames.length] || idleFrames[0];
     
     // ==========================================
     // ★天才的な安全装置：
@@ -2970,10 +3318,26 @@ function drawCharacterSprite(ctx, type, cx, cy, maxW, maxH, isSilhouette, alpha 
     ctx.globalAlpha = alpha;
     if (isSilhouette) {
         ctx.filter = "brightness(0)"; 
+        ctx.translate(cx, cy);
+        ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh, -drawW/2, -drawH/2, drawW, drawH);
+        ctx.restore();
+    } else if (applyCosmetic && typeof window.drawCosmeticImageOnContext === 'function') {
+        ctx.translate(cx, cy);
+        window.drawCosmeticImageOnContext(ctx, img, f.sx, f.sy, f.sw, f.sh, -drawW/2, -drawH/2, drawW, drawH, window.aiPet);
+        ctx.restore();
+    } else if (applyCosmetic && window.aiPet && window.aiPet.cosmetic && (typeof window.getCosmeticHue === 'function' ? window.getCosmeticHue(window.aiPet) : Number(window.aiPet.cosmetic.hue || 0))) {
+        ctx.filter = `hue-rotate(${typeof window.getCosmeticHue === 'function' ? window.getCosmeticHue(window.aiPet) : Number(window.aiPet.cosmetic.hue || 0)}deg)`;
+        ctx.translate(cx, cy);
+        ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh, -drawW/2, -drawH/2, drawW, drawH);
+        ctx.restore();
+    } else {
+        ctx.translate(cx, cy);
+        ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh, -drawW/2, -drawH/2, drawW, drawH);
+        ctx.restore();
     }
-    ctx.translate(cx, cy);
-    ctx.drawImage(img, f.sx, f.sy, f.sw, f.sh, -drawW/2, -drawH/2, drawW, drawH);
-    ctx.restore();
+    if (!isSilhouette && applyCosmetic && typeof window.drawCosmeticAuraOnContext === 'function') {
+        window.drawCosmeticAuraOnContext(ctx, window.aiPet, cx, cy, drawW, drawH);
+    }
 }
 
 function rouletteAnimLoop() {
@@ -3190,7 +3554,11 @@ function getMasterEncounterVideoSrc(masterType, hero) {
         building: 'encount_builder.mp4',
         farming: 'encount_farmer.mp4',
         cooking: 'encount_chef.mp4',
-        smithing: 'encount_smith.mp4'
+        smithing: 'encount_smith.mp4',
+        pharmacist: 'encount_pharmacist.mp4',
+        tailor: 'encount_tailor.mp4',
+        pastry_chef: 'encount_pastry_chef.mp4',
+        hairdresser: 'encount_hairdresser.mp4'
     };
     const src = videoMap[masterType] || null;
     console.info('[MasterEncounterVideo] resolved source', {
@@ -3516,8 +3884,17 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             let hint = missingWord ? `でも、まずはチャットで「${exactWord}」って言葉を教わらないと、お話にならないみたい。` : "料理も冒険も農業も極めた今の僕なら、きっと認めてもらえるはず！";
             thoughtText = `（${baseThought}\n${hint}）`;
         }
+        // ★追加：美容師の特別ロジック
+        else if (masterType === 'hairdresser') {
+            baseThought = "ふわっと甘くて、カラフルな空気がする人だ...！"; 
+            exactWord = "ヘアメイク"; 
+            missingWord = !words.includes(exactWord);
+            
+            let hint = missingWord ? `でも、まずはチャットで「${exactWord}」って言葉を教わらないと、お話にならないみたい。` : "冒険も農業も建築も極めた今の僕なら、きっと認めてもらえるはず！";
+            thoughtText = `（${baseThought}\n${hint}）`;
+        }
         // ★修正：pastry_chef（パティシエ）もステータス査定の共通ロジックから除外する
-        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef') {
+        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef' && masterType !== 'hairdresser') {
             score += (hero.stats.mood - 50) * 0.2; 
             
             let hint = "";
@@ -3606,7 +3983,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
-        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
 
         const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
         if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
@@ -3614,7 +3991,18 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         } else { ctx.fillStyle = "#333"; ctx.fillRect(0, 0, canvas.width, canvas.height); }
 
         let skin = hero.currentSkin || 'robot'; 
-        if (typeof drawCharacterSprite === 'function') drawCharacterSprite(ctx, skin, canvas.width / 2, canvas.height / 2 + 20, 160, 160, false, 1.0);
+        const drawEncounterHero = () => {
+            if (!document.body.contains(canvas)) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
+                const crop = getCrop(bgImg);
+                ctx.drawImage(bgImg, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, canvas.width, canvas.height);
+            }
+            if (typeof drawCharacterSprite === 'function') drawCharacterSprite(ctx, skin, canvas.width / 2, canvas.height / 2 + 20, 160, 160, false, 1.0);
+            canvas._encounterAnimId = requestAnimationFrame(drawEncounterHero);
+        };
+        if (canvas._encounterAnimId) cancelAnimationFrame(canvas._encounterAnimId);
+        drawEncounterHero();
     }
 
     // ② 右側のキャンバス描画
@@ -3650,7 +4038,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             'pharmacist': { img: "pharmacist_battle_enemy.png", sx: 266, sy: 69, sw: 1344, sh: 2369 },
             'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             // ★追加：パティシエの立ち絵
-            'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 }
+            'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
+            'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
         };
         let mData = masterSprites[masterType];
 
@@ -3771,6 +4160,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 else if (masterType === 'tailor') baseWord = "裁縫";
                 // ★追加：パティシエのベースワード
                 else if (masterType === 'pastry_chef') baseWord = "お菓子作り";
+                else if (masterType === 'hairdresser') baseWord = "ヘアメイク";
 
                 if (baseWord && hero.apprentice && hero.apprentice.learnedWords) {
                     if (!hero.apprentice.learnedWords.includes(baseWord)) {
@@ -3903,6 +4293,7 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'tailor') greetingMsg = "「ふふっ、いらっしゃいませ……あら？ あなたはあの時の……いえ、人違いですね。でもその指先、既に免許皆伝の域。いつでもアトリエに遊びにいらしてくださいね。」";
             // ★追加
             else if (mType === 'pastry_chef') greetingMsg = "「いらっしゃい！……おや？君はあの時の……いや、人違いか。でもその甘い香りへの感受性、すでに免許皆伝の域だよ！いつでもティータイムにおいで！」";
+            else if (mType === 'hairdresser') greetingMsg = "「やっほ〜！今日も最高にカワイイね♡ もっと盛っちゃう？」";
         } else {
             if (mType === 'explore') greetingMsg = "「この周辺をキャンプ地にしようと思うの。準備ができたらまたいらっしゃい！」";
             else if (mType === 'farming') greetingMsg = "「この辺りに畑を作ろうと思ってね。準備ができたらまたおいで。」";
@@ -3914,6 +4305,7 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'tailor') greetingMsg = "「ふふっ、このアトリエへようこそ。あなたが建ててくれたと聞きましたよ。機織りの準備ができたら、またいらしてくださいね。」";
             // ★追加
             else if (mType === 'pastry_chef') greetingMsg = "「ようこそスイーツコーナーへ！最高のレシピが君を待っているよ。準備ができたらまた来てね！」";
+            else if (mType === 'hairdresser') greetingMsg = "「サロンへようこそ〜！準備ができたら、めいっぱいカワイくしちゃうね♡」";
         }
 
         // 試験(encounter)ではなく、挨拶(greeting)へ進む！
@@ -3951,6 +4343,7 @@ window.confirmEncounter = function(isAccept) {
         // ★追加：薬剤師とパティシエは店舗が既に存在するため、テントを作らない
         else if (mType === 'pharmacist' || mType === 'pastry_chef') { cType = null; }
         else if (mType === 'tailor') { cType = 'atelier'; cName = '仕立屋のアトリエ'; isMasterShop = true; }
+        else if (mType === 'hairdresser') { cType = 'salon'; cName = '美容室'; isMasterShop = true; }
         else if (mType === 'cooking') { 
             cType = null; 
             for (let k in assets) {
@@ -3978,7 +4371,7 @@ window.confirmEncounter = function(isAccept) {
             assets[campId] = { type: cType, name: cName, dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMasterShop: isMasterShop };
         }
 
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
         const mName = masterNames[mType];
         
         if (!hero.apprentice.learnedWords.includes(mName)) {
@@ -4054,7 +4447,6 @@ window.confirmEncounter = function(isAccept) {
             if (mType === 'pharmacist' && rank === 1) {
                 hero.pharmacistMatsUnlocked = true;
             }
-
             hero.message = "課題を受けた！頑張ろう！"; hero.messageTimer = 120;
         } else {
             hero.message = "今はやめておこう..."; hero.messageTimer = 120;
@@ -4074,7 +4466,7 @@ window.confirmEncounter = function(isAccept) {
             hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.rank !== 0);
         }
         
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
         const mName = masterNames[mType];
         
         setTimeout(() => {
@@ -4115,6 +4507,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'pharmacist') { hero.apprentice.title = "宮廷薬剤師"; hero.skills.mixing = 20; hero.stats.intel += 50; hero.inventory.push('elixir'); }
         else if (mType === 'tailor') { hero.apprentice.title = "カリスマ仕立屋"; hero.skills.tailoring = 20; hero.stats.beauty += 50; hero.inventory.push('mystic_fabric'); }
         else if (mType === 'pastry_chef') { hero.apprentice.title = "グラン・パティシエ"; hero.skills.cooking = Math.max(hero.skills.cooking || 0, 15); hero.skills.pastry = 20; hero.stats.intel += 35; hero.stats.beauty += 35; hero.stats.mood += 20; hero.inventory.push('honey'); }
+        else if (mType === 'hairdresser') { hero.apprentice.title = "カリスマ美容師"; hero.skills.beauty = Math.max(hero.skills.beauty || 0, 20); hero.stats.beauty += 60; hero.stats.mood += 30; hero.inventory.push('ultimate_beauty_kit'); }
 
         if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD(); 
@@ -4277,6 +4670,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         }
         else if (masterType === 'tailor') rejectMsg = (app.excommunicatedFrom === masterType) ? "「あなたに教えることはもうありません。お引き取りください。」" : "「想いを込められない方に教えることはありません。お引き取りください。」";
         else if (masterType === 'pastry_chef') rejectMsg = (app.excommunicatedFrom === masterType) ? "「破門した者に教えるレシピはないよ！帰った帰った！」" : "「君には見込みがないみたいだね。他を当たってくれ！」"; // ★追加
+        else if (masterType === 'hairdresser') rejectMsg = (app.excommunicatedFrom === masterType) ? "「今日は盛れない気分かも…。またいつかね。」" : "「まだサロンの準備ができてないみたい〜。」";
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, rejectMsg, 'banned');
         return;
     }
@@ -4299,6 +4693,23 @@ window.checkMasterVisit = function(masterType, visitAction) {
             }
             if (typeof saveGameData === 'function') saveGameData();
             let msg = "「おおっ！お前、料理だけでなく冒険と農業も極めたんだな！\nよし、この『幻のスイーツレシピ』を授けよう。ここから先は『パティシエ』として、甘味の極致を目指してみるのもいいぞ！」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
+            return;
+        }
+    }
+
+    // ==========================================
+    // ★追加：農家から「幻の染料花」の噂を聞くイベント（3職皆伝が条件）
+    // ==========================================
+    if (masterType === 'farming' && !hero.hairdresserFlowerRumorUnlocked) {
+        let isFarmingMaster = app.retired['farming'] || (app.rank['farming'] >= 10);
+        let isExploreMaster = app.retired['explore'] || (app.rank['explore'] >= 10);
+        let isBuildMaster = app.retired['building'] || (app.rank['building'] >= 10);
+
+        if (isFarmingMaster && isExploreMaster && isBuildMaster) {
+            hero.hairdresserFlowerRumorUnlocked = true;
+            if (typeof saveGameData === 'function') saveGameData();
+            let msg = "「おや、君は冒険も建築も極めたんだね。たいしたものだよ。\nそういえば森の奥に『幻の染料花』っていう、虹みたいな色をした不思議な花が咲くことがあるらしいんだ。\n美容室を作るなら、きっと役に立つはずだよ。森を探してみるといい。」";
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
             return;
         }
@@ -4343,6 +4754,30 @@ window.checkMasterVisit = function(masterType, visitAction) {
         }
     }
 
+    // ==========================================
+    // ★追加：建築士に幻の染料花を見せて「美容室」をアンロックするイベント
+    // ==========================================
+    if (masterType === 'building' && !hero.hairdresserUnlocked) {
+        let hasFlower = hero.inventory && hero.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'phantom_dye_flower');
+        let hasSalonBlueprint = hero.inventory && hero.inventory.some(i => (typeof i === 'string' ? i : i.id) === 'blueprint_salon');
+
+        if (hasFlower) {
+            if (!hero.inventory) hero.inventory = [];
+            if (!hasSalonBlueprint) hero.inventory.push({ id: 'blueprint_salon', age: 0 });
+            hero.hairdresserBlueprintUnlocked = true;
+            hero.hairdresserUnlocked = true;
+            if (hero.apprentice && hero.apprentice.learnedWords && !hero.apprentice.learnedWords.includes("美容室")) {
+                hero.apprentice.learnedWords.push("美容室");
+            }
+            if (typeof saveGameData === 'function') saveGameData();
+            if (typeof updateCommandHUD === 'function') updateCommandHUD();
+
+            let msg = "「おおっ！ それは『幻の染料花』じゃないか！\nその色を活かすなら、普通の店では物足りないな。よし、私が『美容室の図面』を引いてやろう。\nこの図面と幻の染料花があれば、美容室を建築できるようになるぞ！」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
+            return;
+        }
+    }
+
     // ★追加：冒険家皆伝前、または未入門の薬局訪問時は「買い物専用モード」にする
     if (masterType === 'pharmacist' && !isApprentice) {
         let isExplorerMaster = app.retired['explore'] || (app.rank['explore'] >= 10);
@@ -4369,6 +4804,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         else if (masterType === 'cooking') baseWord = "料理"; else if (masterType === 'smithing') baseWord = "鍛冶"; else if (masterType === 'building') baseWord = "建築";
         else if (masterType === 'pharmacist') baseWord = "調合"; else if (masterType === 'tailor') baseWord = "裁縫";
         else if (masterType === 'pastry_chef') baseWord = "お菓子作り"; // ★ここを追加！
+        else if (masterType === 'hairdresser') baseWord = "ヘアメイク";
 
         let words = app.learnedWords || [];
         if (!words.includes(baseWord)) {
@@ -4381,6 +4817,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'pharmacist') examMsg = `「おやおや、無茶をしてはいけませんよ。薬学に興味があるなら、まずは『${baseWord}』の基本を学んでから来てくださいね。」`;
             else if (masterType === 'tailor') examMsg = `「ふふっ、まずは『${baseWord}』の基本を知ってからいらしてくださいね。」`;
             else if (masterType === 'pastry_chef') examMsg = `「ノー・スイート！まずは『${baseWord}』の基本を知ってから来なよ！」`; // ★追加
+            else if (masterType === 'hairdresser') examMsg = `「まずは『${baseWord}』のこと、チャットで覚えてから来てね♡」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
         } else {
             let offerMsg = "";
@@ -4393,6 +4830,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'pharmacist') offerMsg = `「私の薬局で学びたいのですね？ よろしいでしょう。では、この処方箋『入門試験の準備』をこなしてみてくださいね。」`;
             else if (masterType === 'tailor') offerMsg = `「私に弟子入りしたいのですね？ ふふっ、よろしいですよ。では、この課題『入門試験の準備』をこなしていらっしゃい。」`;
             else if (masterType === 'pastry_chef') offerMsg = `「私に弟子入りしたいのかい？ いいよ！それじゃあ、この課題『入門試験の準備』をこなしてみせて！」`; // ★追加
+            else if (masterType === 'hairdresser') offerMsg = `「弟子入りしたいの？いいよ〜！まずは『入門試験の準備』から始めよっ♡」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer_exam');
         }
         return;
@@ -4469,6 +4907,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'pharmacist') choiceMsg = "「いらっしゃい。課題の報告でしょうか？ それとも薬局を手伝ってくださいますか？」";
             else if (masterType === 'tailor') choiceMsg = "「いらっしゃいませ。課題を見せてくださる？ それとも少し手伝っていかれますか？」";
             else if (masterType === 'pastry_chef') choiceMsg = "「来たね！課題の報告？ それとも甘いバイトをしていく？」";
+            else if (masterType === 'hairdresser') choiceMsg = "「来た来た〜！課題の報告？ それともサロンを手伝ってくれる？」";
             else choiceMsg = "「課題の報告ですか？ それとも手伝っていきますか？」";
 
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, choiceMsg, 'master_visit_choice');
@@ -4492,6 +4931,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                 else if (masterType === 'pharmacist') msg = "「まだお手伝いは終わっていないようですね。終わりましたら報告に来てください。」";
                 else if (masterType === 'tailor') msg = "「まだお手伝いは終わっていないようですね。仕上がりましたら報告にいらしてください。」";
                 else if (masterType === 'pastry_chef') msg = "「まだバイトは終わってないみたいだね！仕上がったら甘い報告を待ってるよ！」";
+                else if (masterType === 'hairdresser') msg = "「まだ仕上げ中みたい〜。終わったら見せてね♡」";
                 else msg = "「まだ手伝いは終わっていないようです。終わったら報告に来てください。」";
                 if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'master_visit_choice');
                 return;
@@ -4516,6 +4956,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'pharmacist') examMsg = `「言葉は覚えてきましたか？ 準備ができたなら、試験を始めますよ。健康第一でいきましょう！」`;
             else if (masterType === 'tailor') examMsg = `「言葉は覚えてきましたか？ 準備ができたなら、試験を始めましょう。深呼吸して、心を落ち着けてくださいね。」`;
             else if (masterType === 'pastry_chef') examMsg = `「言葉は覚えてきたかな？ 準備ができたなら、甘くて厳しい試験を開始するよ！」`; // ★追加
+            else if (masterType === 'hairdresser') examMsg = `「準備できた？それじゃ、カワイイ入門試験を始めるよっ♡」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
             return;
         }
@@ -4590,6 +5031,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                     else if (masterType === 'pharmacist') reportMsg += "「素晴らしい。正確な計量でした！ あなたに教えることはもうありません……免許皆伝です！ これからも健康第一でね。」";
                     else if (masterType === 'tailor') reportMsg += "「まあ……なんて美しい仕上がりでしょう。私から教えることはもうありません……免許皆伝ですよ！ これからも美しい糸を紡いでくださいね。」";
                     else if (masterType === 'pastry_chef') reportMsg += "「アンビリーバボー！完璧な仕上がりだ！私から教えることはもう何もないよ……免許皆伝！これからもスイーツで世界を笑顔にしてね！」"; // ★追加
+                    else if (masterType === 'hairdresser') reportMsg += "「きゃ〜っ、最高にカワイイ！もう免許皆伝だよ♡ これからは好きなカラーもオーラも盛り放題っ！」";
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
                 } else {
                     console.log("[師匠報告デバッグ] ランクアップ会話を開きます", { 師匠: masterType, examRank, reportMsg });
@@ -4602,6 +5044,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                     else if (masterType === 'pharmacist') reportMsg += `「素晴らしい。正確な計量でした！ あなたのランクが ${examRank + 1} に上がりましたよ！」`;
                     else if (masterType === 'tailor') reportMsg += `「まあ……なんて美しい仕上がりでしょう。見事です、合格ですよ！ あなたのランクが ${examRank + 1} に上がりましたよ！」`;
                     else if (masterType === 'pastry_chef') reportMsg += `「トレビアン！温度管理もデコレーションも完璧だ。君のランクが ${examRank + 1} に上がったよ！」`; // ★追加
+                    else if (masterType === 'hairdresser') reportMsg += `「きゃ〜っ！超絶カワイイ〜♡ ランクが ${examRank + 1} に上がったよ！」`;
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
                 }
             } else {
@@ -4658,6 +5101,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         else if (masterType === 'pharmacist') msg = "「おやおや、よく来てくれましたね！ もう教えることはありませんが、調合の手伝いならいつでも歓迎ですよ。健康には気をつけて！」";
         else if (masterType === 'tailor') msg = "「ふふっ、いらっしゃいませ。今日はどんな糸を紡ぎましょうか？ お手伝いならいつでも歓迎しますよ。」";
         else if (masterType === 'pastry_chef') msg = "「ようこそ最高のパティシエ！君に教えることはもうないけど、手伝いならいつでも歓迎するよ！」"; // ★追加
+        else if (masterType === 'hairdresser') msg = "「やっほ〜！今日も最高にカワイイね♡ もっと盛っちゃう？」";
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
         return;
     }
@@ -4670,7 +5114,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
     // ==========================================
     if (rank === 1) {
         // ★修正：薬剤師・仕立屋・パティシエ（上級職）は顔パス（飛び級）をスキップする
-        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef') {
+        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef' || masterType === 'hairdresser') {
             // 薬剤師と仕立屋は飛び級なし
         } else {
             let p = hero.stats.power || 10; let i = hero.stats.intel || 10;
@@ -4756,7 +5200,13 @@ window.checkMasterVisit = function(masterType, visitAction) {
     // ★追加：仕立屋の特別セリフ（各ランクでの手帳解放と世界観の反映）
     // ==========================================
     else if (masterType === 'tailor') {
-        if (rank === 1) {
+        if (rank === 7) {
+            offerMsg = `「虹色、めちゃカワの予感〜♡ 次のミッションは『${qData.name}』だよっ！\n『虹色のしずく』を使って、7色まで盛れるカラーチェンジを試してみて。使ったらしずくは消えちゃうから、気合い入れてね♡」`;
+        } else if (rank === 8) {
+            offerMsg = `「その虹色カラー、超いい感じ〜♡ 次は『${qData.name}』！\nもう一度『虹色のしずく』を用意して、今度はオーラも7色で盛ってみよっ。カラーとオーラ、両方キラキラなら完璧〜！」`;
+        } else if (rank === 9) {
+            offerMsg = `「ついに最後の仕上げだよっ！『${qData.name}』！\nドレッサーをレベル10まで育てて、カラーチェンジとオーラを両方まとってみて。そこまで盛れたら『究極の美容アイテム』が生まれるはず♡」`;
+        } else if (rank === 1) {
             offerMsg = `「まずは色彩の基礎、『${qData.name}』から始めましょう。\n自然の草花から美しい色を抽出するのです。焦らず、素材の色と向き合ってくださいね。」`;
         } else if (rank === 2) {
             offerMsg = `「美しい色ができましたね。次は『${qData.name}』です。\n素材を撚り合わせて、丈夫な一本の糸に仕上げましょう。あなたの芯の強さが問われますよ。」`;
@@ -4798,6 +5248,36 @@ window.checkMasterVisit = function(masterType, visitAction) {
             offerMsg = `「手際が格段に良くなってきたね！いよいよ『${qData.name}』だよ。\nスイーツ系レシピの完成度を100%にするんだ！誰が食べても絶対に笑顔になる、あなただけの究極の配合を見つけ出して！」`;
         } else if (rank === 9) {
             offerMsg = `「パーフェクトな配合、見事だよ！いよいよ最後のオーダー、『${qData.name}』！\nあなたのお店でお客さんにデザートを10個販売して！スイーツで世界を救う、あなたの第一歩を見せてちょうだい！」`;
+        }
+    }
+    // ==========================================
+    // ★追加：美容師の特別セリフ（各ランクの解放とフレーバー）
+    // ==========================================
+    else if (masterType === 'hairdresser') {
+        if (rank === 7) {
+            offerMsg = `「虹色、めちゃカワの予感〜♡ 次のミッションは『${qData.name}』だよっ！\n『虹色のしずく』を使って、7色まで盛れるカラーチェンジを試してみて。使ったらしずくは消えちゃうから、気合い入れてね♡」`;
+        } else if (rank === 8) {
+            offerMsg = `「その虹色カラー、超いい感じ〜♡ 次は『${qData.name}』！\nもう一度『虹色のしずく』を用意して、今度はオーラも7色で盛ってみよっ。カラーとオーラ、両方キラキラなら完璧〜！」`;
+        } else if (rank === 9) {
+            offerMsg = `「ついに最後の仕上げだよっ！『${qData.name}』！\nドレッサーをレベル10まで育てて、カラーチェンジとオーラを両方まとってみて。そこまで盛れたら『究極の美容アイテム』が生まれるはず♡」`;
+        } else if (rank === 1) {
+            offerMsg = `「やっほ〜！まずは『${qData.name}』だよっ♡\n森や湧き水の気配がする場所で『清らかな湧き水』を探してきて。カラー剤のベースにすると、透明感がぜんぜん違うの〜！」`;
+        } else if (rank === 2) {
+            offerMsg = `「お水、きらきらでカワイイ〜♡ 次は『${qData.name}』！\n『アロマハーブの種』を渡しておくね。これから森でも見つかるようになるから、足りなくなったら探してみて♡ 畑で育てて、ふわっといい香りを3つ収穫してきて！」`;
+        } else if (rank === 3) {
+            offerMsg = `「香りまで盛れてきたねっ！次のミッションは『${qData.name}』だよ♡\n建築士のセンスを活かして、小屋に『ドレッサー』を置けるようにしておいたよ。おうちでもカワイイを作れるって最強〜！」`;
+        } else if (rank === 4) {
+            offerMsg = `「ドレッサー、めちゃカワ〜♡ ここから本番、『${qData.name}』！\nカラーチェンジを解放するね。スライダーで色をくるっと変えて、自分だけの雰囲気を試してみよっ！」`;
+        } else if (rank === 5) {
+            offerMsg = `「その色、似合ってる〜！次は『${qData.name}』だよっ♡\n今度はオーラを解放するね。きらきら、ハート、おんぷ……気分に合わせてまとっちゃお！」`;
+        } else if (rank === 6) {
+            offerMsg = `「オーラまで出てきたら、もう主役級だね♡ 次は『${qData.name}』！\n深い場所には『虹色のしずく』っていうレア素材があるんだって。究極カラーのために探してきて！」`;
+        } else if (rank === 7) {
+            offerMsg = `「虹色の気配、最高〜！次のミッションは『${qData.name}』だよっ。\nカラーチェンジを合計3回試して、いろんなスタイルを研究してみて。センスは試した数だけ育つの♡」`;
+        } else if (rank === 8) {
+            offerMsg = `「かなり盛れてきたね〜♡ 次は『${qData.name}』！\nカラーとオーラ、両方を合わせてトータルコーデしてみて。全身の雰囲気までカワイくまとめるのが美容師だよっ！」`;
+        } else if (rank === 9) {
+            offerMsg = `「ついに最後の仕上げだよっ！『${qData.name}』！\n虹色のしずくと香りの素材を使って、究極の美容アイテムを完成させよ♡ できたらぜったい超絶カワイイ〜！」`;
         }
     }
     
@@ -4985,6 +5465,12 @@ window.updateQuestHUD = function() {
                         itemsStr.push(formatReq("最高完成度(%)", maxMastery, q.rank === 7 ? 50 : 100));
                     }
                     else if (q.rank === 9) itemsStr.push(formatReq("デザートの販売数", q.qVal || 0, 10));
+                }
+                else if (q.masterType === 'hairdresser') {
+                    const hps = window.getHairdresserQuestProgressList
+                        ? window.getHairdresserQuestProgressList(hero, q)
+                        : (window.getHairdresserQuestProgress ? [window.getHairdresserQuestProgress(hero, q)].filter(Boolean) : []);
+                    hps.forEach(hp => itemsStr.push(formatReq(hp.name, hp.current, hp.req)));
                 }
 
                 if (itemsStr.length === 0) isItemQuest = false;
@@ -5796,7 +6282,60 @@ window.renderBuildRecipe = function(containerEl) {
         });
     }
 
-    let html = `<div style="font-size:16px; font-weight:bold; color:#FFD700; margin-bottom:15px; padding:10px; background:rgba(255,215,0,0.1); border-radius:6px; text-align:center; border:2px solid #FFD700; text-shadow:0 0 5px rgba(255,215,0,0.5);">✨ 建築士 免許皆伝 ✨</div>`;
+    const getHutStorage = () => {
+        if (typeof assets === 'undefined') return null;
+        for (let k in assets) {
+            const a = assets[k];
+            if (a && a.type === 'hut' && a.storage) return a.storage;
+        }
+        return null;
+    };
+    const hutStorage = getHutStorage();
+    const getBuiltCount = (bId) => {
+        if (typeof assets === 'undefined') return 0;
+        return Object.values(assets).filter(a => {
+            if (!a || a.isMobile) return false;
+            if (a.type === bId) return true;
+            if (bId === 'blacksmith' && a.type === 'smith') return true;
+            if (bId === 'smith' && a.type === 'blacksmith') return true;
+            return false;
+        }).length;
+    };
+    const getBuiltInfo = (bId) => {
+        const count = getBuiltCount(bId);
+        if (count <= 0) return '未設置';
+        if (count === 1) return '設置済み';
+        return `${count}個設置済み`;
+    };
+    const getUpgradeInfo = (bId) => {
+        if (!hutStorage) return '';
+        if (bId === 'freezer' && hutStorage.freezer) {
+            const s = hutStorage.freezer;
+            return `Lv.${s.level || 0} / 保管 ${s.items ? s.items.length : 0}/${s.capacity || 0}`;
+        }
+        if (bId === 'warehouse' && hutStorage.warehouse) {
+            const s = hutStorage.warehouse;
+            return `Lv.${s.level || 0} / 保管 ${s.items ? s.items.length : 0}/${s.capacity || 0}`;
+        }
+        if (bId === 'safe' && hutStorage.safe) {
+            const s = hutStorage.safe;
+            return `Lv.${s.level || 0} / 預金 ${window.formatLargeNumber ? window.formatLargeNumber(s.gold || 0) : (s.gold || 0)}/${window.formatLargeNumber ? window.formatLargeNumber(s.capacity || 0) : (s.capacity || 0)}G`;
+        }
+        if (bId === 'dresser' && hutStorage.dresser) {
+            const level = hutStorage.dresser.level || 0;
+            const colors = typeof window.getDresserUnlockedColors === 'function' ? window.getDresserUnlockedColors(level).length : Math.max(0, Math.min(20, level + 2));
+            return `Lv.${level} / 解放色 ${colors}色`;
+        }
+        return '';
+    };
+
+    let html = `
+        <div style="font-size:16px; font-weight:bold; color:#FFD700; margin-bottom:12px; padding:10px; background:rgba(255,215,0,0.1); border-radius:6px; text-align:center; border:2px solid #FFD700; text-shadow:0 0 5px rgba(255,215,0,0.5);">✨ 建築士 免許皆伝 ✨</div>
+        <div style="display:flex; gap:8px; align-items:center; margin-bottom:12px; background:#151515; border:1px solid #444; border-radius:6px; padding:8px;">
+            <span style="font-size:14px; color:#aaa;">検索</span>
+            <input id="build-recipe-search" type="text" placeholder="施設名・素材名で検索" style="flex:1; min-width:0; box-sizing:border-box; height:34px; border-radius:5px; border:1px solid #555; background:#222; color:#fff; padding:0 10px;">
+        </div>
+    `;
 
     for (let bId in buildingCatalog) {
         const bData = buildingCatalog[bId];
@@ -5827,16 +6366,28 @@ window.renderBuildRecipe = function(containerEl) {
             matHtml = `<span style="color:#888; font-size:12px;">素材不要</span>`;
         }
 
+        const categoryLabel = bData.isUpgrade ? '設置物' : '建造物';
+        const actionLabel = bData.isUpgrade ? '拡張可能！' : '建築可能！';
+        const upgradeInfo = bData.isUpgrade ? getUpgradeInfo(bId) : '';
+        const builtInfo = bData.isUpgrade ? '' : getBuiltInfo(bId);
+        const materialNames = bData.materials ? Object.keys(bData.materials).map(mKey => (typeof itemCatalog !== 'undefined' && itemCatalog[mKey]) ? itemCatalog[mKey].name : mKey).join(' ') : '';
         let statusBadge = hasMaterials 
-            ? `<span style="background:#4CAF50; color:#FFF; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3);">✅ 建築可能！</span>`
+            ? `<span style="background:#4CAF50; color:#FFF; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold; box-shadow:0 2px 4px rgba(0,0,0,0.3);">✅ ${actionLabel}</span>`
             : `<span style="background:#ff5252; color:#FFF; padding:4px 10px; border-radius:12px; font-size:12px; font-weight:bold;">❌ 素材不足</span>`;
 
         let borderColor = hasMaterials ? '#4CAF50' : '#555';
         
         html += `
-            <div style="background:#222; border:2px solid ${borderColor}; border-radius:8px; padding:15px; margin-bottom:12px;">
+            <div class="build-recipe-card" data-search="${`${bData.name} ${categoryLabel} ${builtInfo} ${materialNames}`.toLowerCase()}" style="background:#222; border:2px solid ${borderColor}; border-radius:8px; padding:15px; margin-bottom:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                    <div style="font-size:18px; font-weight:bold; color:${hasMaterials ? '#4CAF50' : '#ccc'};">${bData.name}</div>
+                    <div>
+                        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                            <span style="font-size:18px; font-weight:bold; color:${hasMaterials ? '#4CAF50' : '#ccc'};">${bData.name}</span>
+                            <span style="display:inline-block; background:${bData.isUpgrade ? 'rgba(79,195,247,0.16)' : 'rgba(255,183,77,0.16)'}; border:1px solid ${bData.isUpgrade ? '#4fc3f7' : '#ffb74d'}; color:${bData.isUpgrade ? '#80d8ff' : '#ffcc80'}; border-radius:999px; padding:2px 8px; font-size:11px; font-weight:bold;">${categoryLabel}</span>
+                        </div>
+                        ${upgradeInfo ? `<div style="font-size:12px; color:#ddd; margin-top:5px;">${upgradeInfo}</div>` : ''}
+                        ${builtInfo ? `<div style="font-size:12px; color:${getBuiltCount(bId) > 0 ? '#ddd' : '#888'}; margin-top:5px;">${builtInfo}</div>` : ''}
+                    </div>
                     <div style="display:flex; align-items:center; gap:10px;">
                         ${statusBadge}
                     </div>
@@ -5847,11 +6398,21 @@ window.renderBuildRecipe = function(containerEl) {
     }
     // ★統合対応：innerHTMLでの上書きを避け、追加する形に変更
     if (containerEl) {
+        listEl.innerHTML = '';
         let div = document.createElement('div');
         div.innerHTML = html;
         listEl.appendChild(div);
     } else {
         listEl.innerHTML = html;
+    }
+    const searchInput = listEl.querySelector('#build-recipe-search');
+    if (searchInput) {
+        searchInput.oninput = () => {
+            const q = searchInput.value.trim().toLowerCase();
+            listEl.querySelectorAll('.build-recipe-card').forEach(card => {
+                card.style.display = !q || (card.dataset.search || '').includes(q) ? '' : 'none';
+            });
+        };
     }
 };
 
@@ -8899,7 +9460,7 @@ window.openExamUI = function(masterType, task) {
         else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
-        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
 
         const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
         if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
@@ -8911,9 +9472,20 @@ window.openExamUI = function(masterType, task) {
 
         // 2. AIペットの描画（左側）
         let skin = window.aiPet.currentSkin || 'robot'; 
-        if (typeof drawCharacterSprite === 'function') {
-            drawCharacterSprite(ctx, skin, canvas.width * 0.25, canvas.height / 2 + 30, 180, 180, false, 1.0);
-        }
+        const drawExamHero = () => {
+            if (!document.body.contains(canvas)) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
+                const crop = getCrop(bgImg);
+                ctx.drawImage(bgImg, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, canvas.width, canvas.height);
+            }
+            if (typeof drawCharacterSprite === 'function') {
+                drawCharacterSprite(ctx, skin, canvas.width * 0.25, canvas.height / 2 + 30, 180, 180, false, 1.0);
+            }
+            canvas._examAnimId = requestAnimationFrame(drawExamHero);
+        };
+        if (canvas._examAnimId) cancelAnimationFrame(canvas._examAnimId);
+        drawExamHero();
 
         // 3. 師匠の描画（★直接描画法：AIペットと同じキャンバスに描くから絶対にズレない！）
         const masterSprites = {
@@ -8926,7 +9498,8 @@ window.openExamUI = function(masterType, task) {
             'pharmacist': { img: "pharmacist_battle_enemy.png", sx: 266, sy: 69, sw: 1344, sh: 2369 },
             'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             // ★追加：パティシエの立ち絵
-            'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 }
+            'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
+            'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
         };
         let mData = masterSprites[masterType];
         if (mData && mData.img) {
@@ -8990,7 +9563,7 @@ window.updateExamUI = function(task) {
     };
     
     const dText = examDialogues[task.masterType] || examDialogues['explore'];
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
     const speakerName = masterNames[task.masterType] || "師匠";
 
     let text = "";
@@ -9938,7 +10511,7 @@ window.switchNotebookTab = function(tabId) {
             (ai.apprentice.currentMaster === 'building' && ai.apprentice.isGraduated) ||
             (ai.apprentice.rank && ai.apprentice.rank['building'] >= 10)
         );
-        if (isBuildingMaster) window.renderBuildRecipe();
+        if (isBuildingMaster) window.renderBuildRecipe(document.getElementById('nb-build-list'));
     } else if (tabId === 'medicine' && typeof window.renderMedicineRecipe === 'function') {
         let rank = (ai.apprentice && ai.apprentice.rank && ai.apprentice.rank['pharmacist']) || 0;
         let isPharmacistMaster = ai.apprentice && ((ai.apprentice.retired && ai.apprentice.retired['pharmacist']) || rank >= 10);
@@ -10131,3 +10704,348 @@ if (typeof window.AICharacter !== 'undefined') {
     };
     if (window.aiPet) window.aiPet.update = window.AICharacter.prototype.update;
 }
+window.openHairdresserUI = function(mode = 'full') {
+    const ai = window.aiPet;
+    if (!ai) return;
+    if (typeof window.isHairdresserCustomizationUnlocked === 'function' && !window.isHairdresserCustomizationUnlocked()) {
+        alert("ドレッサーを設置して、美容師の修行を進めると使えるよ。");
+        return;
+    }
+    if (!ai.cosmetic) ai.cosmetic = { hue: 0, aura: 'none', hueCount: 0, auraApplied: false, totalComboApplied: false };
+    const old = document.getElementById('hairdresser-ui');
+    if (old) old.remove();
+
+    const ui = document.createElement('div');
+    ui.id = 'hairdresser-ui';
+    ui.style.cssText = 'position:fixed; inset:0; z-index:70000; background:rgba(0,0,0,0.72); display:flex; align-items:center; justify-content:center; font-family:sans-serif; padding:16px; box-sizing:border-box;';
+    const hue = Number(ai.cosmetic.hue || 0);
+    const aura = ai.cosmetic.aura || 'none';
+    const auraColor = ai.cosmetic.auraColor || '#fff176';
+    const entryCosmetic = JSON.parse(JSON.stringify(ai.cosmetic || {}));
+    const colorOnly = mode === 'color';
+    const auraOnly = mode === 'aura';
+    const editLabel = auraOnly ? 'オーラを編集中' : (colorOnly ? 'カラーチェンジを編集中' : 'カラーとオーラを編集中');
+    ui.innerHTML = `
+        <div style="width:min(940px,96vw); max-height:92vh; overflow:auto; background:#17171d; color:#fff; border:2px solid #ff80ab; border-radius:8px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.45); box-sizing:border-box;">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;">
+                <div style="font-weight:bold; font-size:18px;">ドレッサー</div>
+                <button id="hairdresser-leave-top" style="padding:8px 12px; border-radius:6px; border:1px solid #555; background:#252532; color:#fff; cursor:pointer;">小屋からでる</button>
+            </div>
+            <div style="display:grid; grid-template-columns:minmax(170px,240px) minmax(0,1fr); gap:18px; align-items:stretch;">
+                <div style="background:#101016; border:1px solid #333; border-radius:8px; padding:12px; display:grid; place-items:center; min-height:300px;">
+                    <canvas id="hairdresser-preview" width="220" height="260" style="width:100%; max-width:220px; image-rendering:pixelated;"></canvas>
+                </div>
+                <div style="display:grid; grid-template-columns:minmax(0,1fr) minmax(120px,145px); gap:14px; min-width:0;">
+                    <div style="display:grid; gap:10px;">
+                        <div id="hairdresser-edit-label" style="font-size:13px; color:#ff80ab; font-weight:bold;">${editLabel}</div>
+                        <div id="hairdresser-color-plane" style="height:240px; border-radius:6px; border:1px solid #333; cursor:crosshair; position:relative; background:linear-gradient(90deg, red, yellow, lime, cyan, blue, magenta, red); overflow:hidden;">
+                            <div style="position:absolute; inset:0; background:linear-gradient(180deg, rgba(255,255,255,0), #fff); pointer-events:none;"></div>
+                            <div id="hairdresser-picker-dot" style="position:absolute; width:14px; height:14px; border:2px solid #111; outline:2px solid #fff; border-radius:50%; transform:translate(-50%,-50%); pointer-events:none;"></div>
+                        </div>
+                        <input id="hairdresser-hue" type="range" min="0" max="360" value="${hue}" style="width:100%;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <div id="hairdresser-swatch" style="width:42px; height:32px; border-radius:6px; border:1px solid #555; background:#fff;"></div>
+                            <span id="hairdresser-hue-label" style="font-size:12px; color:#bbb;">${hue}°</span>
+                        </div>
+                        <div id="hairdresser-unlocked-colors" style="display:flex; flex-wrap:wrap; gap:6px;"></div>
+                        <div id="hairdresser-rainbow-colors" style="display:none; flex-wrap:wrap; gap:6px; padding:8px; border:1px solid #444; border-radius:6px; background:#101016;"></div>
+                    </div>
+                    <div style="display:grid; align-content:start; gap:10px;">
+                        <input id="hairdresser-hex" value="#000000" readonly style="width:100%; box-sizing:border-box; height:36px; background:#f8f8f8; color:#111; border:1px solid #ccc; border-radius:6px; padding:0 10px; font-size:14px;">
+                        <select style="width:100%; box-sizing:border-box; height:36px; background:#252532; color:#fff; border:1px solid #555; border-radius:6px; padding:0 10px;">
+                            <option>RGB</option>
+                        </select>
+                        <label style="display:grid; grid-template-columns:minmax(0,1fr) 22px; gap:6px; align-items:center;"><input id="hairdresser-r" readonly style="width:100%; box-sizing:border-box; height:36px; background:#fff; color:#111; border:1px solid #ccc; border-radius:6px; padding:0 8px;"><span>赤</span></label>
+                        <label style="display:grid; grid-template-columns:minmax(0,1fr) 22px; gap:6px; align-items:center;"><input id="hairdresser-g" readonly style="width:100%; box-sizing:border-box; height:36px; background:#fff; color:#111; border:1px solid #ccc; border-radius:6px; padding:0 8px;"><span>緑</span></label>
+                        <label style="display:grid; grid-template-columns:minmax(0,1fr) 22px; gap:6px; align-items:center;"><input id="hairdresser-b" readonly style="width:100%; box-sizing:border-box; height:36px; background:#fff; color:#111; border:1px solid #ccc; border-radius:6px; padding:0 8px;"><span>青</span></label>
+                        <label style="display:${colorOnly ? 'none' : 'grid'}; gap:8px; margin-top:6px;">
+                            <span style="font-size:13px; color:#80d8ff;">オーラ</span>
+                            <select id="hairdresser-aura" style="width:100%; box-sizing:border-box; height:36px; background:#252532; color:#fff; border:1px solid #555; border-radius:6px; padding:0 10px;">
+                        <option value="none"${aura === 'none' ? ' selected' : ''}>なし</option>
+                        <option value="sparkle"${aura === 'sparkle' ? ' selected' : ''}>きらきら</option>
+                        <option value="heart"${aura === 'heart' ? ' selected' : ''}>ハート</option>
+                        <option value="music"${aura === 'music' ? ' selected' : ''}>おんぷ</option>
+                        <option value="bubble"${aura === 'bubble' ? ' selected' : ''}>バブル</option>
+                            </select>
+                        </label>
+                        <label style="display:none; gap:8px;">
+                            <span style="font-size:13px; color:#80d8ff;">オーラ色</span>
+                            <input id="hairdresser-aura-color" type="color" value="${auraColor}" style="width:100%; height:38px; box-sizing:border-box; background:#252532; border:1px solid #555; border-radius:6px; padding:2px;">
+                        </label>
+                    </div>
+                </div>
+                <div style="grid-column:1 / -1; display:flex; gap:10px; justify-content:flex-end;">
+                    <button id="hairdresser-reset-original" style="padding:10px 14px; border-radius:6px; border:1px solid #555; background:#252532; color:#fff; cursor:pointer;">初期色</button>
+                    <button id="hairdresser-reset-entry" style="padding:10px 14px; border-radius:6px; border:1px solid #555; background:#252532; color:#fff; cursor:pointer;">入室時</button>
+                    <button id="hairdresser-apply" style="padding:10px 18px; border-radius:6px; border:0; background:#ff80ab; color:#111; font-weight:bold; cursor:pointer;">適用</button>
+                </div>
+            </div>
+        </div>`;
+    document.body.appendChild(ui);
+
+    const hueInput = document.getElementById('hairdresser-hue');
+    const hueLabel = document.getElementById('hairdresser-hue-label');
+    const auraInput = document.getElementById('hairdresser-aura');
+    const auraColorInput = document.getElementById('hairdresser-aura-color');
+    const colorPlane = document.getElementById('hairdresser-color-plane');
+    const dot = document.getElementById('hairdresser-picker-dot');
+    const swatch = document.getElementById('hairdresser-swatch');
+    const preview = document.getElementById('hairdresser-preview');
+    const previewCtx = preview.getContext('2d');
+    const rgbInputs = {
+        r: document.getElementById('hairdresser-r'),
+        g: document.getElementById('hairdresser-g'),
+        b: document.getElementById('hairdresser-b')
+    };
+    const hexInput = document.getElementById('hairdresser-hex');
+    const unlockedColorsBox = document.getElementById('hairdresser-unlocked-colors');
+    const rainbowColorsBox = document.getElementById('hairdresser-rainbow-colors');
+    const hasRainbowDrop = (ai.inventory || []).some(i => window.getQuestInventoryItemId(i) === 'rainbow_drop');
+    const dresserLevel = typeof window.getDresserLevel === 'function' ? window.getDresserLevel() : 1;
+    const unlockedColors = typeof window.getDresserUnlockedColors === 'function' ? window.getDresserUnlockedColors(dresserLevel) : ['#ff0000', '#00ff00', '#0000ff'];
+    const freeColor = false;
+    let selectedRainbowSlot = 0;
+    let rainbowEnabled = hasRainbowDrop && (auraOnly
+        ? Array.isArray(ai.cosmetic.auraColors) && ai.cosmetic.auraColors.length > 0
+        : Array.isArray(ai.cosmetic.rainbowColors) && ai.cosmetic.rainbowColors.length > 0);
+    let lightness = 50;
+    const hexToRgb = (hex) => {
+        const m = String(hex || '').match(/^#?([0-9a-f]{6})$/i);
+        if (!m) return [255, 241, 118];
+        const n = parseInt(m[1], 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    const rgbToHue = (r, g, b) => {
+        r /= 255; g /= 255; b /= 255;
+        const max = Math.max(r, g, b), min = Math.min(r, g, b);
+        if (max === min) return 0;
+        let h = 0;
+        if (max === r) h = (60 * ((g - b) / (max - min)) + 360) % 360;
+        else if (max === g) h = 60 * ((b - r) / (max - min)) + 120;
+        else h = 60 * ((r - g) / (max - min)) + 240;
+        return Math.round(h);
+    };
+    if (auraOnly) {
+        const [ar, ag, ab] = hexToRgb(auraColor);
+        hueInput.value = rgbToHue(ar, ag, ab);
+        lightness = Math.round((Math.max(ar, ag, ab) / 255) * 50 + 35);
+    }
+
+    const hslToRgb = (h, s, l) => {
+        s /= 100; l /= 100;
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+        const m = l - c / 2;
+        let r = 0, g = 0, b = 0;
+        if (h < 60) { r = c; g = x; }
+        else if (h < 120) { r = x; g = c; }
+        else if (h < 180) { g = c; b = x; }
+        else if (h < 240) { g = x; b = c; }
+        else if (h < 300) { r = x; b = c; }
+        else { r = c; b = x; }
+        return [r, g, b].map(v => Math.round((v + m) * 255));
+    };
+    const toHex = (v) => v.toString(16).padStart(2, '0');
+    const selectHex = (hex) => {
+        const [r, g, b] = hexToRgb(hex);
+        hueInput.value = rgbToHue(r, g, b);
+        lightness = Math.max(35, Math.round((Math.max(r, g, b) / 255) * 100));
+        refreshColor();
+    };
+    const nearestUnlocked = (hex) => {
+        if (freeColor) return hex;
+        const [r, g, b] = hexToRgb(hex);
+        let best = unlockedColors[0];
+        let bestScore = Infinity;
+        unlockedColors.forEach(c => {
+            const [cr, cg, cb] = hexToRgb(c);
+            const score = (r - cr) ** 2 + (g - cg) ** 2 + (b - cb) ** 2;
+            if (score < bestScore) { bestScore = score; best = c; }
+        });
+        return best;
+    };
+    if (unlockedColorsBox) {
+        unlockedColorsBox.innerHTML = unlockedColors.map(c => `<button type="button" data-color="${c}" title="${c}" style="width:28px; height:28px; border-radius:6px; border:1px solid #555; background:${c}; cursor:pointer;"></button>`).join('');
+        unlockedColorsBox.querySelectorAll('button').forEach(btn => {
+            btn.onclick = () => {
+                const slot = rainbowColorsBox ? rainbowColorsBox.querySelector(`[data-rainbow-slot="${selectedRainbowSlot}"]`) : null;
+                if (slot && hasRainbowDrop) {
+                    rainbowEnabled = true;
+                    slot.dataset.color = btn.dataset.color;
+                    slot.style.background = btn.dataset.color;
+                    drawPreview();
+                } else {
+                    selectHex(btn.dataset.color);
+                }
+            };
+        });
+    }
+    if (rainbowColorsBox && hasRainbowDrop) {
+        rainbowColorsBox.style.display = 'flex';
+        rainbowColorsBox.innerHTML = `<div style="width:100%; font-size:12px; color:#ffd54f;">虹色のしずく使用時: 7色まで指定できます</div>` +
+            Array.from({ length: 7 }, (_, i) => `<input type="color" value="${(auraOnly ? (ai.cosmetic.auraColors || []) : (ai.cosmetic.rainbowColors || []))[i] || unlockedColors[i % unlockedColors.length] || '#ffffff'}" style="width:32px; height:32px; padding:0; border:1px solid #555; background:#252532;">`).join('');
+    }
+    if (rainbowColorsBox && hasRainbowDrop) {
+        const savedRainbow = auraOnly ? (ai.cosmetic.auraColors || []) : (ai.cosmetic.rainbowColors || []);
+        const colorControl = (i) => {
+            const value = savedRainbow[i] || unlockedColors[i % unlockedColors.length] || '#ffffff';
+            const safeValue = unlockedColors.includes(value) ? value : nearestUnlocked(value);
+            return `<button type="button" data-rainbow-color data-rainbow-slot="${i}" data-color="${safeValue}" title="部位${i + 1}" style="width:36px; height:36px; border:2px solid ${i === selectedRainbowSlot ? '#fff' : '#555'}; border-radius:4px; background:${safeValue}; cursor:pointer;"></button>`;
+        };
+        rainbowColorsBox.innerHTML = `<div style="width:100%; font-size:12px; color:#ffd54f;">変えたい部位を選び、上の解放色をクリック</div>` +
+            Array.from({ length: 7 }, (_, i) => colorControl(i)).join('');
+        rainbowColorsBox.querySelectorAll('[data-rainbow-color]').forEach(el => {
+            el.onclick = () => {
+                selectedRainbowSlot = Number(el.dataset.rainbowSlot || 0);
+                rainbowColorsBox.querySelectorAll('[data-rainbow-color]').forEach(slot => {
+                    slot.style.borderColor = Number(slot.dataset.rainbowSlot || 0) === selectedRainbowSlot ? '#fff' : '#555';
+                });
+            };
+        });
+    }
+    const drawPreview = () => {
+        previewCtx.clearRect(0, 0, preview.width, preview.height);
+        const typeToDraw = ai.currentSkin || ai.baseType || 'robot';
+        const conf = typeof aiConfigs !== 'undefined' ? aiConfigs[typeToDraw] : null;
+        const actionFrames = conf && conf.actions && conf.actions.idle ? conf.actions.idle : (typeof createDefaultFrames === 'function' ? createDefaultFrames().idle : [{ sx: 0, sy: 0, sw: 300, sh: 300 }]);
+        const frame = actionFrames[0] || { sx: 0, sy: 0, sw: 300, sh: 300 };
+        const imgKey = (conf && conf.img) ? conf.img : typeToDraw;
+        const img = typeof images !== 'undefined' ? images[imgKey] : null;
+        if (img && img.complete && img.naturalWidth > 0) {
+            const scale = Math.min(190 / frame.sw, 230 / frame.sh);
+            const dw = frame.sw * scale;
+            const dh = frame.sh * scale;
+            const selectedRainbow = rainbowColorsBox ? Array.from(rainbowColorsBox.querySelectorAll('[data-rainbow-color]')).map(input => input.dataset.color || input.value).slice(0, 7) : [];
+            const previewHue = auraOnly ? Number(ai.cosmetic.hue || 0) : (Number(hueInput.value) || 0);
+            const previewPetForImage = {
+                cosmetic: {
+                    hue: previewHue,
+                    rainbowColors: (!auraOnly && hasRainbowDrop && rainbowEnabled) ? selectedRainbow : (ai.cosmetic.rainbowColors || [])
+                }
+            };
+            if (typeof window.drawCosmeticImageOnContext === 'function') {
+                window.drawCosmeticImageOnContext(previewCtx, img, frame.sx || 0, frame.sy || 0, frame.sw || 300, frame.sh || 300, (preview.width - dw) / 2, preview.height - dh - 8, dw, dh, previewPetForImage);
+            } else {
+                previewCtx.save();
+                previewCtx.filter = `hue-rotate(${previewHue}deg)`;
+                previewCtx.drawImage(img, frame.sx || 0, frame.sy || 0, frame.sw || 300, frame.sh || 300, (preview.width - dw) / 2, preview.height - dh - 8, dw, dh);
+                previewCtx.restore();
+            }
+            if (typeof window.drawCosmeticAuraOnContext === 'function') {
+                const previewPet = {
+                    cosmetic: {
+                        aura: auraInput ? auraInput.value : (ai.cosmetic.aura || 'none'),
+                        auraColor: auraOnly ? hexInput.value : (auraColorInput ? auraColorInput.value : (ai.cosmetic.auraColor || '#fff176')),
+                        auraColors: auraOnly && rainbowColorsBox && rainbowEnabled ? selectedRainbow : (ai.cosmetic.auraColors || [])
+                    }
+                };
+                window.drawCosmeticAuraOnContext(previewCtx, previewPet, preview.width / 2, preview.height - dh / 2 - 8, dw, dh);
+            }
+        } else {
+            previewCtx.fillStyle = '#ff80ab';
+            previewCtx.font = 'bold 64px sans-serif';
+            previewCtx.textAlign = 'center';
+            previewCtx.fillText('AI', preview.width / 2, preview.height / 2);
+        }
+    };
+    const refreshColor = () => {
+        const nextHue = Number(hueInput.value) || 0;
+        const [r, g, b] = hslToRgb(nextHue, 100, lightness);
+        const hex = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        hueLabel.textContent = `${nextHue}°`;
+        rgbInputs.r.value = r;
+        rgbInputs.g.value = g;
+        rgbInputs.b.value = b;
+        hexInput.value = hex;
+        swatch.style.background = hex;
+        dot.style.left = `${(nextHue / 360) * 100}%`;
+        dot.style.top = `${100 - lightness}%`;
+        drawPreview();
+    };
+    hueInput.oninput = refreshColor;
+    if (auraInput) auraInput.onchange = drawPreview;
+    if (auraColorInput) auraColorInput.oninput = drawPreview;
+    colorPlane.onclick = (ev) => {
+        const rect = colorPlane.getBoundingClientRect();
+        const x = Math.max(0, Math.min(rect.width, ev.clientX - rect.left));
+        const y = Math.max(0, Math.min(rect.height, ev.clientY - rect.top));
+        hueInput.value = Math.round((x / rect.width) * 360);
+        lightness = Math.round(100 - (y / rect.height) * 100);
+        refreshColor();
+        if (!freeColor) selectHex(nearestUnlocked(hexInput.value));
+    };
+    document.getElementById('hairdresser-leave-top').onclick = () => ui.remove();
+    const syncFromCosmetic = () => {
+        const current = ai.cosmetic || {};
+        const currentHue = Number(current.hue || 0);
+        hueInput.value = currentHue;
+        lightness = 50;
+        if (auraInput) auraInput.value = current.aura || 'none';
+        if (auraColorInput) auraColorInput.value = current.auraColor || '#fff176';
+        refreshColor();
+        if (rainbowColorsBox && hasRainbowDrop) {
+            const savedRainbow = auraOnly ? (current.auraColors || []) : (current.rainbowColors || []);
+            rainbowEnabled = savedRainbow.length > 0;
+            rainbowColorsBox.querySelectorAll('[data-rainbow-color]').forEach((slot, i) => {
+                const nextColor = unlockedColors.includes(savedRainbow[i]) ? savedRainbow[i] : (unlockedColors[i % unlockedColors.length] || '#ff0000');
+                slot.dataset.color = nextColor;
+                slot.style.background = nextColor;
+            });
+            drawPreview();
+        }
+    };
+    document.getElementById('hairdresser-reset-original').onclick = () => {
+        hueInput.value = 0;
+        lightness = 50;
+        if (auraInput) auraInput.value = 'none';
+        if (auraColorInput) auraColorInput.value = '#fff176';
+        ai.cosmetic = {
+            hue: 0,
+            aura: 'none',
+            auraColor: '#fff176',
+            hueCount: ai.cosmetic ? (ai.cosmetic.hueCount || 0) : 0,
+            auraApplied: !!(ai.cosmetic && ai.cosmetic.auraApplied),
+            totalComboApplied: !!(ai.cosmetic && ai.cosmetic.totalComboApplied),
+            rainbowColorApplied: !!(ai.cosmetic && ai.cosmetic.rainbowColorApplied),
+            rainbowAuraApplied: !!(ai.cosmetic && ai.cosmetic.rainbowAuraApplied),
+            rank9ColorAppliedAfterLevel10: !!(ai.cosmetic && ai.cosmetic.rank9ColorAppliedAfterLevel10),
+            rank9AuraAppliedAfterLevel10: !!(ai.cosmetic && ai.cosmetic.rank9AuraAppliedAfterLevel10)
+        };
+        rainbowEnabled = false;
+        if (rainbowColorsBox && hasRainbowDrop) {
+            rainbowColorsBox.querySelectorAll('[data-rainbow-color]').forEach((slot, i) => {
+                const nextColor = unlockedColors[i % unlockedColors.length] || '#ff0000';
+                slot.dataset.color = nextColor;
+                slot.style.background = nextColor;
+            });
+        }
+        refreshColor();
+        if (typeof saveGameData === 'function') saveGameData();
+    };
+    document.getElementById('hairdresser-reset-entry').onclick = () => {
+        ai.cosmetic = JSON.parse(JSON.stringify(entryCosmetic || {}));
+        if (!ai.cosmetic.hue && ai.cosmetic.hue !== 0) ai.cosmetic.hue = 0;
+        if (!ai.cosmetic.aura) ai.cosmetic.aura = 'none';
+        if (!ai.cosmetic.auraColor) ai.cosmetic.auraColor = '#fff176';
+        rainbowEnabled = hasRainbowDrop && (auraOnly
+            ? Array.isArray(ai.cosmetic.auraColors) && ai.cosmetic.auraColors.length > 0
+            : Array.isArray(ai.cosmetic.rainbowColors) && ai.cosmetic.rainbowColors.length > 0);
+        syncFromCosmetic();
+        if (typeof saveGameData === 'function') saveGameData();
+    };
+    document.getElementById('hairdresser-apply').onclick = () => {
+        const rainbowColors = rainbowColorsBox
+            ? Array.from(rainbowColorsBox.querySelectorAll('[data-rainbow-color]')).map(input => input.dataset.color || input.value).slice(0, 7)
+            : [];
+        const nextHue = auraOnly ? (ai.cosmetic.hue || 0) : hueInput.value;
+        const nextAura = colorOnly ? (ai.cosmetic.aura || 'none') : (auraInput ? auraInput.value : (ai.cosmetic.aura || 'none'));
+        const nextAuraColor = auraOnly ? hexInput.value : (auraColorInput ? auraColorInput.value : (ai.cosmetic.auraColor || '#fff176'));
+        window.applyHairdresserCosmetic?.(nextHue, nextAura, nextAuraColor, {
+            mode,
+            colorHex: hexInput.value,
+            rainbowColors: hasRainbowDrop && rainbowEnabled ? rainbowColors : []
+        });
+        ui.remove();
+    };
+    refreshColor();
+};
