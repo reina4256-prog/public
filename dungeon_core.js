@@ -63,6 +63,20 @@ window.triggerDungeonInspiration = function(wordId) {
     window.updateDungeonUI(); // 即座にUI(使える言葉リスト)に反映
 };
 
+// HPが30%以下になった経路に関係なく、「にげる」「かいふく」を閃かせる共通判定
+window.checkDungeonLowHpInspiration = function(player = null) {
+    const dungeonPlayer = window.DUNGEON_STATE && window.DUNGEON_STATE.player;
+    const target = player || dungeonPlayer;
+    if (!dungeonPlayer || target !== dungeonPlayer) return false;
+    if (!target || !Number.isFinite(target.hp) || !Number.isFinite(target.maxHp) || target.maxHp <= 0) return false;
+    if (target.hp > target.maxHp * 0.3) return false;
+    if (typeof window.triggerDungeonInspiration !== 'function') return false;
+
+    window.triggerDungeonInspiration('flee');
+    window.triggerDungeonInspiration('heal');
+    return true;
+};
+
 window.dungeonAutoInterval = null;
 
 
@@ -302,6 +316,7 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     
     dungeonUI.style.display = 'flex';
     window.addDungeonLog(`=== ${pName} の冒険が始まった ===`, titleColor); 
+    window.checkDungeonLowHpInspiration(s.player);
     
     document.getElementById('dg-chat-input').addEventListener('keydown', function(e) {
         if (e.key === 'Enter') window.processDungeonChat();
@@ -938,6 +953,12 @@ window.openDungeonTacticEditor = function() {
 window.closeDungeonTacticEditor = function() {
     let ui = document.getElementById('dungeon-tactic-editor-ui');
     if (ui) ui.style.display = 'none';
+    if (window._myHomeWaitingDungeonTacticSave) {
+        window._myHomeWaitingDungeonTacticSave = false;
+        if (window.aiPet) window.aiPet.myHomeTacticCreated = true;
+        if (typeof window.renderMyHomeQuestHUD === 'function') window.renderMyHomeQuestHUD();
+        if (typeof saveGameData === 'function') saveGameData();
+    }
     
     // AIの待機状態を解除して小屋から出させる（終了シグナルを送信）
     if (window.aiPet && window.aiPet.schedule && window.aiPet.schedule.length > 0) {

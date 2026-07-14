@@ -2475,7 +2475,7 @@ function initAdjustUI() {
                 <label style="cursor:pointer; color:#FF9800;"><input type="radio" name="adjTarget" value="afld"> ARENA-FLD</label>
             </div>
             <div style="margin-top: 5px;">
-                <label style="margin-right:10px; cursor:pointer; color:#E040FB;"><input type="radio" name="adjTarget" value="rasset"> R-ASSET</label>
+                <label style="margin-right:10px; cursor:pointer; color:#E040FB;"><input type="radio" name="adjTarget" value="rasset"> ASSET</label>
                 <label style="margin-right:10px; cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> S-ASSET</label>
                 <label style="cursor:pointer; color:#FF5722;"><input type="radio" name="adjTarget" value="title"> TITLE</label>
             </div>
@@ -2684,6 +2684,19 @@ function initAdjustUI() {
     }, 100);
 }
 
+window.getCombinedAdjustAssetKeys = function() {
+    const keys = [];
+    if (typeof window.SHOP_SPRITES !== 'undefined') keys.push(...Object.keys(window.SHOP_SPRITES));
+    if (typeof window.MYHOME_SPRITES !== 'undefined') keys.push(...Object.keys(window.MYHOME_SPRITES));
+    return keys;
+};
+
+window.getCombinedAdjustAsset = function(key) {
+    if (typeof window.SHOP_SPRITES !== 'undefined' && window.SHOP_SPRITES[key]) return window.SHOP_SPRITES[key];
+    if (typeof window.MYHOME_SPRITES !== 'undefined' && window.MYHOME_SPRITES[key]) return window.MYHOME_SPRITES[key];
+    return null;
+};
+
 window.getAdjustTarget = function() {
     if (typeof currentMode === 'undefined' || currentMode !== 'ai_adjust') return null;
     let target = null;
@@ -2721,12 +2734,11 @@ window.getAdjustTarget = function() {
             if (keys.length > 0 && !keys.includes(window.selectedDungeonSpriteKey)) window.selectedDungeonSpriteKey = keys[0];
             target = window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey];
         }
-    // ★大修正：rasset が選ばれたら、新しい物理マップ用素材の配列（4ファイル分すべて）から取得する
     } else if (editingTarget === 'rasset') {
-        if (typeof window.SHOP_SPRITES !== 'undefined') {
-            const keys = Object.keys(window.SHOP_SPRITES);
-            if (keys.length > 0 && !keys.includes(window.selectedShopSpriteKey)) window.selectedShopSpriteKey = keys[0];
-            target = window.SHOP_SPRITES[window.selectedShopSpriteKey];
+        const keys = window.getCombinedAdjustAssetKeys ? window.getCombinedAdjustAssetKeys() : [];
+        if (keys.length > 0) {
+            if (!keys.includes(window.selectedShopSpriteKey)) window.selectedShopSpriteKey = keys[0];
+            target = window.getCombinedAdjustAsset(window.selectedShopSpriteKey);
         }
     }else if (editingTarget === 'sasset') {
         if (typeof window.SHOP_FURNITURE_DATA !== 'undefined' && window.SHOP_FURNITURE_DATA['smith']) {
@@ -2766,7 +2778,11 @@ window.addEventListener('keydown', (e) => {
                     console.log("▼▼▼ TCG_MASTER ▼▼▼\n" + JSON.stringify(window.TCG_MASTER, null, 4)); alert("カードデータをコンソールに出力しました！");
                 } else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') { // ★修正
                     console.log("▼▼▼ DUNGEON_SPRITES ▼▼▼\n" + JSON.stringify(window.DUNGEON_SPRITES, null, 4)); alert("ダンジョン素材をコンソールに出力しました！");
-                } else if (['rasset', 'sasset'].includes(editingTarget) && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
+                } else if (editingTarget === 'rasset') {
+                    console.log("■■■ SHOP_SPRITES ■■■\n" + JSON.stringify(window.SHOP_SPRITES || {}, null, 4));
+                    console.log("■■■ MYHOME_SPRITES ■■■\n" + JSON.stringify(window.MYHOME_SPRITES || {}, null, 4));
+                    alert("ASSET用スプライト定義をコンソールに出力しました。");
+                } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                     console.log("▼▼▼ SHOP_FURNITURE_DATA ▼▼▼\n" + JSON.stringify(window.SHOP_FURNITURE_DATA, null, 4)); alert("家具配置データをコンソールに出力しました！\nこれを ui_controller.js に貼り付けてください。");
                 } else if (editingTarget === 'title') {
                     console.log("▼▼▼ TITLE_SCREEN_DATA ▼▼▼\n" + JSON.stringify(window.TITLE_SCREEN_DATA, null, 4)); alert("タイトルキャラの座標・切り抜きデータをコンソールに出力しました！");
@@ -2834,7 +2850,7 @@ window.addEventListener('keydown', (e) => {
                     window.selectedDungeonSpriteKey = keys[idx];
                 }
             } else if (editingTarget === 'rasset' && typeof window.SHOP_SPRITES !== 'undefined') {
-                const keys = Object.keys(window.SHOP_SPRITES);
+                const keys = window.getCombinedAdjustAssetKeys ? window.getCombinedAdjustAssetKeys() : Object.keys(window.SHOP_SPRITES);
                 if (keys.length > 0) {
                     let currentKey = window.selectedShopSpriteKey || keys[0];
                     if (!keys.includes(currentKey)) currentKey = keys[0];
@@ -2966,6 +2982,7 @@ window.addEventListener('keydown', (e) => {
         if (ui && ui.style.display !== 'none' && window.aiPet && window.aiPet.indoorTarget) {
             if (typeof window.openShopManagementUI === 'function') window.openShopManagementUI(window.aiPet.indoorTarget);
         }
+        if (editingTarget === 'rasset' && typeof window.renderMyHomeMap === 'function') window.renderMyHomeMap();
     }
 });
 

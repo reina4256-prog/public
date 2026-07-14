@@ -5,6 +5,8 @@
   "main": "electron_main.js",
   "scripts": {
     "start": "electron .",
+    "start:web": "node browser_server.js",
+    "start:web:lan": "node browser_server.js --host 0.0.0.0",
     "build": "electron-builder --windows"
   },
   "build": {

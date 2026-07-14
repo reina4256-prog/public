@@ -678,10 +678,9 @@ window.dealDungeonDamage = function(attacker, defender) {
     if (!aIsPlayer && typeof window.triggerDungeonInspiration === 'function') {
         window.triggerDungeonInspiration('attack');
 
-        // 追加：HPが30%以下になったら「逃げる」「回復する」を閃く
-        if (defender.hp <= defender.maxHp * 0.3) {
-            window.triggerDungeonInspiration('flee');
-            window.triggerDungeonInspiration('heal');
+        // HP低下の原因を問わない共通判定（通常攻撃直後もここで確認）
+        if (typeof window.checkDungeonLowHpInspiration === 'function') {
+            window.checkDungeonLowHpInspiration(defender);
         }
         
         // 追加：正面以外から殴られたら「向き」を変えることを閃く

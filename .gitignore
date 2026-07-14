@@ -1,2 +1,6 @@
 node_modules/
 dist/
+
+# Local Codex project context
+AGENTS.md
+docs/CURRENT_IMPLEMENTATION.md

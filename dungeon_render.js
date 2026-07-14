@@ -211,6 +211,41 @@ window.DUNGEON_SPRITES = {
         "scale": 0.4
     },
 
+    // コンシェルジュ
+    "concierge_down": {
+        "img": "concierge_dungeon_walk.png",
+        "sx": 179,
+        "sy": 42,
+        "sw": 453,
+        "sh": 1348,
+        "scale": 0.25000000000000006
+    },
+    "concierge_up": {
+        "img": "concierge_dungeon_walk.png",
+        "sx": 864,
+        "sy": 42,
+        "sw": 453,
+        "sh": 1348,
+        "scale": 0.25000000000000006
+    },
+    "concierge_left": {
+        "img": "concierge_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 42,
+        "sw": 453,
+        "sh": 1348,
+        "scale": 0.25000000000000006
+    },
+    "concierge_right": {
+        "img": "concierge_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 42,
+        "sw": 453,
+        "sh": 1348,
+        "scale": 0.25000000000000006
+    },
+
+
     "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_left": { "img": "robot_dungeon_walk.png", "sx": 1749, "sy": 796, "sw": 374, "sh": 669, "scale": 0.4 },
@@ -5352,32 +5387,8 @@ window.updateDungeonUI = function() {
                 pDiv.style.left = `${s.player.x * logicalTileX + offsetX}px`; 
                 pDiv.style.top = `${s.player.y * logicalTileY + offsetY}px`; 
             }
-            if (window.aiPet && window.aiPet.cosmetic) {
-                const hue = typeof window.getCosmeticHue === 'function' ? window.getCosmeticHue(window.aiPet) : Number(window.aiPet.cosmetic.hue || 0);
-                pDiv.style.filter = hue ? `hue-rotate(${hue}deg)` : '';
-                let auraLayer = pDiv.querySelector('.dg-cosmetic-aura');
-                const aura = window.aiPet.cosmetic.aura || 'none';
-                if (aura && aura !== 'none') {
-                    if (!document.getElementById('dg-cosmetic-aura-style')) {
-                        const style = document.createElement('style');
-                        style.id = 'dg-cosmetic-aura-style';
-                        style.textContent = '@keyframes dgAuraRise{0%{transform:translate(-50%,0) rotate(0deg);opacity:.9}50%{transform:translate(35%,-70%) rotate(180deg);opacity:.55}100%{transform:translate(-50%,-145%) rotate(360deg);opacity:0}}';
-                        document.head.appendChild(style);
-                    }
-                    if (!auraLayer) {
-                        auraLayer = document.createElement('div');
-                        auraLayer.className = 'dg-cosmetic-aura';
-                        auraLayer.style.cssText = 'position:absolute; inset:-35% -25%; pointer-events:none; filter:none;';
-                        pDiv.appendChild(auraLayer);
-                    }
-                    const glyphs = { sparkle: '*', heart: '♡', music: '♪', bubble: '○' };
-                    auraLayer.innerHTML = Array.from({ length: 7 }, (_, i) => {
-                        const color = typeof window.getCosmeticAuraColor === 'function' ? window.getCosmeticAuraColor(window.aiPet, i) : (window.aiPet.cosmetic.auraColor || '#fff176');
-                        return `<span style="position:absolute; left:50%; bottom:8%; color:${color}; text-shadow:0 0 6px ${color}; font-weight:bold; animation:dgAuraRise 1.8s linear infinite; animation-delay:${i * -0.24}s;">${glyphs[aura] || '*'}</span>`;
-                    }).join('');
-                } else if (auraLayer) {
-                    auraLayer.remove();
-                }
+            if (window.aiPet && typeof window.applyDungeonWalkCosmetics === 'function') {
+                window.applyDungeonWalkCosmetics(pDiv, window.aiPet, pKey);
             }
 
             pDiv.classList.remove('anim-atk-up', 'anim-atk-down', 'anim-atk-left', 'anim-atk-right', 'anim-damage', 'anim-knockback', 'anim-levelup', 'anim-magic');
@@ -6116,6 +6127,83 @@ window.createDungeonSprite = function(spriteKey, logicalY, brightness = 1.0, isE
     inner.style.transformOrigin = isOverlay ? 'bottom center' : 'center center'; 
     
     return div;
+};
+
+window.applyDungeonWalkCosmetics = function(spriteDiv, targetPet, spriteKey) {
+    if (!spriteDiv || !targetPet || !targetPet.cosmetic) return;
+    const cosmetic = targetPet.cosmetic || {};
+    const inner = spriteDiv.firstElementChild;
+    const sp = window.DUNGEON_SPRITES && window.DUNGEON_SPRITES[spriteKey];
+    if (!inner || !sp) return;
+
+    const baseFilter = String(inner.style.filter || '').replace(/\s*hue-rotate\([^)]*\)/g, '').trim();
+    const rainbowColors = Array.isArray(cosmetic.rainbowColors)
+        ? cosmetic.rainbowColors.filter(color => /^#[0-9a-f]{6}$/i.test(String(color))).slice(0, 7)
+        : [];
+    let cosmeticCanvas = inner.querySelector(':scope > .dungeon-walk-cosmetic-canvas');
+
+    if (rainbowColors.length >= 2 && typeof window.drawCosmeticImageOnContext === 'function') {
+        if (!cosmeticCanvas) {
+            cosmeticCanvas = document.createElement('canvas');
+            cosmeticCanvas.className = 'dungeon-walk-cosmetic-canvas';
+            cosmeticCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;pointer-events:none;';
+            inner.style.position = 'relative';
+            inner.prepend(cosmeticCanvas);
+        }
+        cosmeticCanvas.width = Math.max(1, Math.round(sp.sw || 1));
+        cosmeticCanvas.height = Math.max(1, Math.round(sp.sh || 1));
+        inner.style.filter = baseFilter;
+        const imageCache = window._dungeonWalkCosmeticImages || (window._dungeonWalkCosmeticImages = {});
+        const imageUrl = sp.img;
+        let img = typeof images !== 'undefined' ? images[imageUrl] : null;
+        if (!img) {
+            img = imageCache[imageUrl];
+            if (!img) {
+                img = new Image();
+                imageCache[imageUrl] = img;
+                img.onload = () => {
+                    if (spriteDiv.isConnected) window.applyDungeonWalkCosmetics(spriteDiv, targetPet, spriteKey);
+                };
+                img.src = imageUrl;
+            }
+        }
+        if (img && img.complete && img.naturalWidth > 0) {
+            const canvasCtx = cosmeticCanvas.getContext('2d');
+            canvasCtx.clearRect(0, 0, cosmeticCanvas.width, cosmeticCanvas.height);
+            window.drawCosmeticImageOnContext(canvasCtx, img, sp.sx || 0, sp.sy || 0, sp.sw || 1, sp.sh || 1, 0, 0, cosmeticCanvas.width, cosmeticCanvas.height, targetPet);
+            inner.style.backgroundImage = 'none';
+        }
+    } else {
+        if (cosmeticCanvas) cosmeticCanvas.remove();
+        const hue = typeof window.getCosmeticHue === 'function' ? window.getCosmeticHue(targetPet) : Number(cosmetic.hue || 0);
+        inner.style.filter = [baseFilter, hue ? `hue-rotate(${hue}deg)` : ''].filter(Boolean).join(' ');
+    }
+
+    let auraLayer = spriteDiv.querySelector(':scope > .dg-cosmetic-aura');
+    const aura = cosmetic.aura || 'none';
+    if (aura && aura !== 'none') {
+        if (!document.getElementById('dg-cosmetic-aura-style')) {
+            const style = document.createElement('style');
+            style.id = 'dg-cosmetic-aura-style';
+            style.textContent = '@keyframes dgAuraRise{0%{transform:translate(-50%,0) rotate(0deg);opacity:.9}50%{transform:translate(35%,-70%) rotate(180deg);opacity:.55}100%{transform:translate(-50%,-145%) rotate(360deg);opacity:0}}';
+            document.head.appendChild(style);
+        }
+        if (!auraLayer) {
+            auraLayer = document.createElement('div');
+            auraLayer.className = 'dg-cosmetic-aura';
+            spriteDiv.appendChild(auraLayer);
+        }
+        const visualWidth = Math.max(24, (sp.sw || 1) * (sp.scale || 1));
+        const visualHeight = Math.max(24, (sp.sh || 1) * (sp.scale || 1));
+        auraLayer.style.cssText = `position:absolute;left:50%;top:50%;width:${visualWidth * 1.5}px;height:${visualHeight * 1.5}px;transform:translate(-50%,-50%);pointer-events:none;filter:none;z-index:2;overflow:visible;`;
+        const glyphs = { sparkle: '*', heart: '♡', music: '♪', bubble: '○' };
+        auraLayer.innerHTML = Array.from({ length: 7 }, (_, i) => {
+            const color = typeof window.getCosmeticAuraColor === 'function' ? window.getCosmeticAuraColor(targetPet, i) : (cosmetic.auraColor || '#fff176');
+            return `<span style="position:absolute;left:50%;bottom:8%;color:${color};text-shadow:0 0 6px ${color};font-weight:bold;animation:dgAuraRise 1.8s linear infinite;animation-delay:${i * -0.24}s;">${glyphs[aura] || '*'}</span>`;
+        }).join('');
+    } else if (auraLayer) {
+        auraLayer.remove();
+    }
 };
 
 // ==========================================

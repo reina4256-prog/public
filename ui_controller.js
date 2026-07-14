@@ -431,7 +431,7 @@ window.openStatusMenu = function() {
             } else if (app.isGraduated) {
                 html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">今世での修行を終え、立派な達人になりました！<br>（1回の人生で極められる道は1つまでです。余生を満喫しましょう）</span></div>`;
             } else if (app.currentMaster) {
-                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
+                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
                 const mName = masterNames[app.currentMaster] || "不明";
                 const rank = app.rank[app.currentMaster] || 1;
                 
@@ -1428,7 +1428,7 @@ window.updateCommandHUD = function() {
         categories['⚔️ 冒険・作業'].push({ label: "調合", base: "調合" });
     }
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
 
     // ★修正：自動修復ロジックを削除（世代交代時の「エモい再会イベント」を確実に発生させるため）
     for (let key in masterNames) {
@@ -1635,7 +1635,7 @@ window.chatHistoryIndex = -1;
             'INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 
             '#questHUD', '#questListHUD', 
             '#commandHUD', '#aiStatus', '.panel-view',
-            '#encounterOverlay', '#examOverlay', '#shop-management-ui', '#player-shop-ui', '#recipe-book-overlay',
+            '#encounterOverlay', '#examOverlay', '#myhome-map-ui', '#shop-management-ui', '#player-shop-ui', '#recipe-book-overlay',
             '[id*="-modal"]', '[id*="-ui"]', '#in-game-tutorial'
         ];
 
@@ -1838,7 +1838,7 @@ window.sendChat = function() {
         return true;
     };
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
     const uniqueFacilities = {
@@ -1854,7 +1854,82 @@ window.sendChat = function() {
         "ドレッサー": { type: 'dresser', bId: 'dresser', name: 'ドレッサー', onEnter: () => { if(typeof window.openHairdresserUI === 'function') window.openHairdresserUI(); } }
     };
 
-    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef', '美容師': 'hairdresser'};
+    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef', '美容師': 'hairdresser', 'コンシェルジュ': 'concierge'};
+
+    const routeToMyHomeConcierge = (action = 'visit') => {
+        let hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
+        if (!hut && typeof assets !== 'undefined') {
+            for (let k in assets) {
+                if (assets[k] && assets[k].type === 'hut' && !assets[k].isMobile) { hut = assets[k]; break; }
+            }
+        }
+        if (hut) {
+            window.pendingMyHomeConciergeVisit = true;
+            window.pendingMyHomeConciergeAction = action;
+            aiPet.schedule = [{type: 'visit_master', masterType: 'concierge', duration: 0, myHomeAction: action}];
+            aiPet.startBuildingInteraction(hut);
+            const actionLabels = {
+                clean: "マイホームを掃除しに向かうよ！",
+                warehouse: "倉庫を拡張しにマイホームへ向かうよ！",
+                freezer: "冷凍庫を拡張しにマイホームへ向かうよ！",
+                safe: "金庫を拡張しにマイホームへ向かうよ！",
+                store_item: "倉庫へアイテムをしまいに向かうよ！",
+                store_food: "冷凍庫へ食べ物をしまいに向かうよ！",
+                store_money: "金庫へお金を預けに向かうよ！",
+                store_random: "空きのある収納へしまいに向かうよ！",
+                withdraw_random: "収納から取り出しに向かうよ！",
+                dresser: "ドレッサーへ向かうよ！",
+                dresser_color: "ドレッサーでカラーチェンジするよ！",
+                dresser_aura: "ドレッサーでオーラを整えるよ！",
+                strategy: "作戦会議に向かうよ！",
+                bed: "ベッドへ向かうよ！",
+                eat: "食事できる場所へ向かうよ！",
+                study: "勉強できる場所へ向かうよ！",
+                train: "筋トレできる場所へ向かうよ！",
+                run: "ランニングできる場所へ向かうよ！",
+                upgrade: "家具をアップグレードしにマイホームへ向かうよ！"
+            };
+            aiPet.message = actionLabels[action] || "コンシェルジュのいるマイホームへ向かうよ！";
+            aiPet.messageTimer = 120;
+        } else {
+            aiPet.message = "マイホームが見つからないみたい...";
+            aiPet.messageTimer = 120;
+        }
+        input.value = "";
+        input.focus();
+    };
+
+    if (aiPet.conciergeEncountered || aiPet.conciergeUnlocked || (window.hero && (window.hero.conciergeEncountered || window.hero.conciergeUnlocked))) {
+        const homeCommandText = `${rawText || ''} ${interpretedWord || ''}`;
+        const myHomeActionMap = [
+            { action: 'visit', words: ['コンシェルジュ', 'メイド', '管理人'] },
+            { action: 'clean', words: ['掃除', '清掃'] },
+            { action: 'dresser_color', words: ['カラーチェンジ'] },
+            { action: 'dresser_aura', words: ['オーラ'] },
+            { action: 'dresser', words: ['ドレッサー'] },
+            { action: 'withdraw_random', words: ['取り出す', '取出す', '出す'] },
+            { action: 'store_item', words: ['アイテム'] },
+            { action: 'store_food', words: ['食べ物', '食材'] },
+            { action: 'store_money', words: ['お金', '資産'] },
+            { action: 'store_random', words: ['入れる', 'しまう'] },
+            { action: 'warehouse', words: ['倉庫'] },
+            { action: 'freezer', words: ['冷凍庫', '冷蔵庫'] },
+            { action: 'safe', words: ['金庫'] },
+            { action: 'strategy', words: ['作戦会議', '作戦', 'ホワイトボード'] },
+            { action: 'bed', words: ['睡眠', '寝る', 'ベッド'] },
+            { action: 'eat', words: ['食事', 'ごはん', 'ご飯'] },
+            { action: 'study', words: ['勉強', '学習'] },
+            { action: 'train', words: ['筋トレ', 'トレーニング'] },
+            { action: 'run', words: ['ランニング', '走る', 'ジョギング'] },
+            { action: 'upgrade', words: ['アップグレード', '強化', '改装'] }
+        ];
+        const matchedHomeAction = myHomeActionMap.find(entry => entry.words.some(word => homeCommandText.includes(word)));
+        if (matchedHomeAction) {
+            actionTriggered = true;
+            routeToMyHomeConcierge(matchedHomeAction.action);
+            return;
+        }
+    }
     
     if (allMasterNames[interpretedWord] && knows(interpretedWord) && !aiPet.isHelper) {
         let mType = allMasterNames[interpretedWord];
@@ -1915,6 +1990,10 @@ window.sendChat = function() {
                     aiPet.messageTimer = 180;
                 } 
                 else if (!aiPet.apprentice.isExcommunicated) {
+                    if (mType === 'concierge' && (aiPet.conciergeEncountered || aiPet.conciergeUnlocked || (window.hero && (window.hero.conciergeEncountered || window.hero.conciergeUnlocked)))) {
+                        routeToMyHomeConcierge('visit');
+                        return;
+                    }
                     let facility = typeof findFacilityForTask === 'function' ? findFacilityForTask('visit_master', mType) : null;
                     if (facility) {
                         aiPet.schedule = [{type: 'visit_master', masterType: mType, duration: 0}];
@@ -3558,7 +3637,8 @@ function getMasterEncounterVideoSrc(masterType, hero) {
         pharmacist: 'encount_pharmacist.mp4',
         tailor: 'encount_tailor.mp4',
         pastry_chef: 'encount_pastry_chef.mp4',
-        hairdresser: 'encount_hairdresser.mp4'
+        hairdresser: 'encount_hairdresser.mp4',
+        concierge: 'encount_concierge.mp4'
     };
     const src = videoMap[masterType] || null;
     console.info('[MasterEncounterVideo] resolved source', {
@@ -3812,6 +3892,15 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     const overlay = document.getElementById('encounterOverlay');
     if (!overlay) return;
     overlay.classList.add('active');
+    if (masterType === 'concierge' && window.myHomeMapOpen) {
+        const homeUi = document.getElementById('myhome-map-ui');
+        if (homeUi) homeUi.style.zIndex = '80000';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.zIndex = '120000';
+        overlay.style.pointerEvents = 'auto';
+        if (overlay.parentNode) document.body.appendChild(overlay);
+    }
     
     let thoughtText = "（なんだかすごそうな人だ...！）";
     let rightText = savedEncounterMsg;
@@ -3894,7 +3983,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             thoughtText = `（${baseThought}\n${hint}）`;
         }
         // ★修正：pastry_chef（パティシエ）もステータス査定の共通ロジックから除外する
-        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef' && masterType !== 'hairdresser') {
+        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef' && masterType !== 'hairdresser' && masterType !== 'concierge') {
             score += (hero.stats.mood - 50) * 0.2; 
             
             let hint = "";
@@ -3983,7 +4072,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
-        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser' || masterType === 'concierge') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
 
         const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
         if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
@@ -4039,7 +4128,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             // ★追加：パティシエの立ち絵
             'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
-            'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
+            'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
+            'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
         };
         let mData = masterSprites[masterType];
 
@@ -4052,6 +4142,9 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 let tempImg = new Image();
                 tempImg.onload = function() {
                     let targetHeight = 360; 
+                    if (mData.sx + mData.sw > tempImg.naturalWidth || mData.sy + mData.sh > tempImg.naturalHeight) {
+                        mData = { ...mData, sx: 0, sy: 0, sw: tempImg.naturalWidth, sh: tempImg.naturalHeight };
+                    }
 
                     let scale = targetHeight / mData.sh;
                     let dw = mData.sw * scale;
@@ -4161,6 +4254,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 // ★追加：パティシエのベースワード
                 else if (masterType === 'pastry_chef') baseWord = "お菓子作り";
                 else if (masterType === 'hairdresser') baseWord = "ヘアメイク";
+                else if (masterType === 'concierge') baseWord = "掃除";
 
                 if (baseWord && hero.apprentice && hero.apprentice.learnedWords) {
                     if (!hero.apprentice.learnedWords.includes(baseWord)) {
@@ -4294,6 +4388,7 @@ window.confirmEncounter = function(isAccept) {
             // ★追加
             else if (mType === 'pastry_chef') greetingMsg = "「いらっしゃい！……おや？君はあの時の……いや、人違いか。でもその甘い香りへの感受性、すでに免許皆伝の域だよ！いつでもティータイムにおいで！」";
             else if (mType === 'hairdresser') greetingMsg = "「やっほ〜！今日も最高にカワイイね♡ もっと盛っちゃう？」";
+            else if (mType === 'concierge') greetingMsg = "「お帰りなさいませ。新たな生を歩むAI様を、再びこのマイホームでお迎えできましたこと、心よりうれしく存じます。前世と変わらず、何なりとお申し付けくださいませ。」";
         } else {
             if (mType === 'explore') greetingMsg = "「この周辺をキャンプ地にしようと思うの。準備ができたらまたいらっしゃい！」";
             else if (mType === 'farming') greetingMsg = "「この辺りに畑を作ろうと思ってね。準備ができたらまたおいで。」";
@@ -4306,6 +4401,7 @@ window.confirmEncounter = function(isAccept) {
             // ★追加
             else if (mType === 'pastry_chef') greetingMsg = "「ようこそスイーツコーナーへ！最高のレシピが君を待っているよ。準備ができたらまた来てね！」";
             else if (mType === 'hairdresser') greetingMsg = "「サロンへようこそ〜！準備ができたら、めいっぱいカワイくしちゃうね♡」";
+            else if (mType === 'concierge') greetingMsg = "「いらっしゃいませ。管理人室の準備が整いましたら、いつでもお声がけくださいませ。」";
         }
 
         // 試験(encounter)ではなく、挨拶(greeting)へ進む！
@@ -4320,6 +4416,9 @@ window.confirmEncounter = function(isAccept) {
     if (!hero) return;
 
     const mType = currentEncounterMaster;
+    const resumeMyHomeEntry = mType === 'concierge' && currentEncounterMode === 'greeting'
+        ? window.pendingMyHomeEntryAfterConciergeEncounter
+        : null;
 
     // ★ 初顔合わせ（挨拶）
     if (currentEncounterMode === 'greeting') {
@@ -4344,6 +4443,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'pharmacist' || mType === 'pastry_chef') { cType = null; }
         else if (mType === 'tailor') { cType = 'atelier'; cName = '仕立屋のアトリエ'; isMasterShop = true; }
         else if (mType === 'hairdresser') { cType = 'salon'; cName = '美容室'; isMasterShop = true; }
+        else if (mType === 'concierge') { cType = null; }
         else if (mType === 'cooking') { 
             cType = null; 
             for (let k in assets) {
@@ -4371,7 +4471,7 @@ window.confirmEncounter = function(isAccept) {
             assets[campId] = { type: cType, name: cName, dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMasterShop: isMasterShop };
         }
 
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
         const mName = masterNames[mType];
         
         if (!hero.apprentice.learnedWords.includes(mName)) {
@@ -4466,7 +4566,7 @@ window.confirmEncounter = function(isAccept) {
             hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.rank !== 0);
         }
         
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
         const mName = masterNames[mType];
         
         setTimeout(() => {
@@ -4508,6 +4608,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'tailor') { hero.apprentice.title = "カリスマ仕立屋"; hero.skills.tailoring = 20; hero.stats.beauty += 50; hero.inventory.push('mystic_fabric'); }
         else if (mType === 'pastry_chef') { hero.apprentice.title = "グラン・パティシエ"; hero.skills.cooking = Math.max(hero.skills.cooking || 0, 15); hero.skills.pastry = 20; hero.stats.intel += 35; hero.stats.beauty += 35; hero.stats.mood += 20; hero.inventory.push('honey'); }
         else if (mType === 'hairdresser') { hero.apprentice.title = "カリスマ美容師"; hero.skills.beauty = Math.max(hero.skills.beauty || 0, 20); hero.stats.beauty += 60; hero.stats.mood += 30; hero.inventory.push('ultimate_beauty_kit'); }
+        else if (mType === 'concierge') { hero.apprentice.title = "極上のコンシェルジュ"; hero.skills.concierge = 20; hero.stats.intel += 30; hero.stats.beauty += 30; hero.stats.mood += 40; }
 
         if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD(); 
@@ -4515,8 +4616,14 @@ window.confirmEncounter = function(isAccept) {
 
         if (typeof hero.determineLifePath === 'function') {
             const chosenPath = hero.determineLifePath();
+            hero._lifePathEventPending = true;
             setTimeout(() => {
-                if (typeof window.showLifePathEvent === 'function') window.showLifePathEvent(hero, chosenPath);
+                if (typeof window.showLifePathEvent === 'function') {
+                    window.showLifePathEvent(hero, chosenPath);
+                } else {
+                    hero.lifePath = chosenPath;
+                    hero._lifePathEventPending = false;
+                }
             }, 800);
         }
     }
@@ -4540,7 +4647,14 @@ window.confirmEncounter = function(isAccept) {
     // ★ 修正：会話終了後に部屋から出すロジック（すべてのモードに適用）
     // ==========================================
     // AIが建物（薬局・レストラン等）の中にいる場合、どんな結果であれ会話が終わったら外に出る
-    if (hero.isIndoors || hero.actionState === 'inside') {
+    if (window.myHomeMapOpen) {
+        hero.actionState = 'inside';
+        hero.isIndoors = true;
+        hero.indoorTarget = { type: 'hut', name: 'マイホーム' };
+        const homeUi = document.getElementById('myhome-map-ui');
+        if (homeUi) homeUi.style.zIndex = '8990';
+    }
+    else if (hero.isIndoors || hero.actionState === 'inside') {
         hero.actionState = 'exiting'; // 退出アニメーション開始
         hero.isIndoors = false;
         hero.indoorTarget = null;
@@ -4553,6 +4667,13 @@ window.confirmEncounter = function(isAccept) {
     }
 
     currentEncounterMaster = null; currentEncounterMode = '';
+    if (mType === 'concierge' && resumeMyHomeEntry) {
+        window.pendingMyHomeEntryAfterConciergeEncounter = null;
+        window._conciergeEncounterInProgress = false;
+        setTimeout(() => resumeMyHomeEntry(), 160);
+    } else if (mType === 'concierge' && !window.pendingMyHomeEntryAfterConciergeEncounter) {
+        window._conciergeEncounterInProgress = false;
+    }
 };
 
 window.handleMasterVisitChoice = function(visitAction) {
@@ -4779,6 +4900,41 @@ window.checkMasterVisit = function(masterType, visitAction) {
     }
 
     // ★追加：冒険家皆伝前、または未入門の薬局訪問時は「買い物専用モード」にする
+    if (!hero.conciergeUnlocked && typeof window.isConciergeBaseUnlockReady === 'function' && window.isConciergeBaseUnlockReady()) {
+        const isExploreMaster = typeof window.isMasterLicenseComplete === 'function' && window.isMasterLicenseComplete('explore');
+        const isBuildMaster = typeof window.isMasterLicenseComplete === 'function' && window.isMasterLicenseComplete('building');
+        const isHairMaster = typeof window.isMasterLicenseComplete === 'function' && window.isMasterLicenseComplete('hairdresser');
+        const hasRouteLog = typeof window.hasInventoryItem === 'function' && window.hasInventoryItem('concierge_route_log');
+        const hasHouseKey = typeof window.hasInventoryItem === 'function' && window.hasInventoryItem('concierge_house_key');
+
+        if (masterType === 'explore' && isExploreMaster && !hasRouteLog) {
+            if (typeof window.giveInventoryItemOnce === 'function') window.giveInventoryItemOnce('concierge_route_log');
+            hero.conciergeRouteLogReceived = true;
+            if (typeof saveGameData === 'function') saveGameData();
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, "「マイホームの導線を整えたいの？ それなら、この巡回記録を持っていきなさい。島を案内するプロに必要な視点が詰まっているわ。」", 'graduate_visit');
+            return;
+        }
+
+        if (masterType === 'building' && isBuildMaster && !hasHouseKey) {
+            if (typeof window.giveInventoryItemOnce === 'function') window.giveInventoryItemOnce('concierge_house_key');
+            hero.conciergeHouseKeyReceived = true;
+            if (typeof saveGameData === 'function') saveGameData();
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, "「倉庫、金庫、冷凍庫、ドレッサーまで揃えたか。なら、この管理人室の鍵を預けよう。住まいを任せられる専門家を招けるはずだ。」", 'graduate_visit');
+            return;
+        }
+
+        if (masterType === 'hairdresser' && isHairMaster && hasRouteLog && hasHouseKey && !hero.conciergeIntroduced) {
+            hero.conciergeIntroduced = true;
+            if (!app.learnedWords) app.learnedWords = [];
+            if (!app.learnedWords.includes('コンシェルジュ')) app.learnedWords.push('コンシェルジュ');
+            if (!app.metMasters) app.metMasters = [];
+            if (typeof saveGameData === 'function') saveGameData();
+            if (typeof updateCommandHUD === 'function') updateCommandHUD();
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, "「その鍵と巡回記録、そろったんだね。だったらマイホームに戻ってみて。最高のおもてなしを知ってる人が、きっと待ってるよ。」", 'graduate_visit');
+            return;
+        }
+    }
+
     if (masterType === 'pharmacist' && !isApprentice) {
         let isExplorerMaster = app.retired['explore'] || (app.rank['explore'] >= 10);
         if (!isExplorerMaster) {
@@ -4805,6 +4961,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         else if (masterType === 'pharmacist') baseWord = "調合"; else if (masterType === 'tailor') baseWord = "裁縫";
         else if (masterType === 'pastry_chef') baseWord = "お菓子作り"; // ★ここを追加！
         else if (masterType === 'hairdresser') baseWord = "ヘアメイク";
+        else if (masterType === 'concierge') baseWord = "掃除";
 
         let words = app.learnedWords || [];
         if (!words.includes(baseWord)) {
@@ -4818,6 +4975,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'tailor') examMsg = `「ふふっ、まずは『${baseWord}』の基本を知ってからいらしてくださいね。」`;
             else if (masterType === 'pastry_chef') examMsg = `「ノー・スイート！まずは『${baseWord}』の基本を知ってから来なよ！」`; // ★追加
             else if (masterType === 'hairdresser') examMsg = `「まずは『${baseWord}』のこと、チャットで覚えてから来てね♡」`;
+            else if (masterType === 'concierge') examMsg = `「まずは『${baseWord}』の基本をお覚えくださいませ。お声がけは、それからでございます。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
         } else {
             let offerMsg = "";
@@ -4831,6 +4989,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'tailor') offerMsg = `「私に弟子入りしたいのですね？ ふふっ、よろしいですよ。では、この課題『入門試験の準備』をこなしていらっしゃい。」`;
             else if (masterType === 'pastry_chef') offerMsg = `「私に弟子入りしたいのかい？ いいよ！それじゃあ、この課題『入門試験の準備』をこなしてみせて！」`; // ★追加
             else if (masterType === 'hairdresser') offerMsg = `「弟子入りしたいの？いいよ〜！まずは『入門試験の準備』から始めよっ♡」`;
+            else if (masterType === 'concierge') offerMsg = `「弟子入りをご希望でございますね。まずは『入門試験の準備』から始めましょう。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer_exam');
         }
         return;
@@ -5032,6 +5191,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                     else if (masterType === 'tailor') reportMsg += "「まあ……なんて美しい仕上がりでしょう。私から教えることはもうありません……免許皆伝ですよ！ これからも美しい糸を紡いでくださいね。」";
                     else if (masterType === 'pastry_chef') reportMsg += "「アンビリーバボー！完璧な仕上がりだ！私から教えることはもう何もないよ……免許皆伝！これからもスイーツで世界を笑顔にしてね！」"; // ★追加
                     else if (masterType === 'hairdresser') reportMsg += "「きゃ〜っ、最高にカワイイ！もう免許皆伝だよ♡ これからは好きなカラーもオーラも盛り放題っ！」";
+                    else if (masterType === 'concierge') reportMsg += "「見事でございます。AI様の住まいは、極上のおもてなしを備えた空間となりました。免許皆伝でございます。」";
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
                 } else {
                     console.log("[師匠報告デバッグ] ランクアップ会話を開きます", { 師匠: masterType, examRank, reportMsg });
@@ -5045,6 +5205,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                     else if (masterType === 'tailor') reportMsg += `「まあ……なんて美しい仕上がりでしょう。見事です、合格ですよ！ あなたのランクが ${examRank + 1} に上がりましたよ！」`;
                     else if (masterType === 'pastry_chef') reportMsg += `「トレビアン！温度管理もデコレーションも完璧だ。君のランクが ${examRank + 1} に上がったよ！」`; // ★追加
                     else if (masterType === 'hairdresser') reportMsg += `「きゃ〜っ！超絶カワイイ〜♡ ランクが ${examRank + 1} に上がったよ！」`;
+                    else if (masterType === 'concierge') reportMsg += `「素晴らしいお仕事ぶりです。ランクが ${examRank + 1} に上がりました。」`;
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
                 }
             } else {
@@ -5114,7 +5275,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
     // ==========================================
     if (rank === 1) {
         // ★修正：薬剤師・仕立屋・パティシエ（上級職）は顔パス（飛び級）をスキップする
-        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef' || masterType === 'hairdresser') {
+        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef' || masterType === 'hairdresser' || masterType === 'concierge') {
             // 薬剤師と仕立屋は飛び級なし
         } else {
             let p = hero.stats.power || 10; let i = hero.stats.intel || 10;
@@ -5280,7 +5441,21 @@ window.checkMasterVisit = function(masterType, visitAction) {
             offerMsg = `「ついに最後の仕上げだよっ！『${qData.name}』！\n虹色のしずくと香りの素材を使って、究極の美容アイテムを完成させよ♡ できたらぜったい超絶カワイイ〜！」`;
         }
     }
-    
+    else if (masterType === 'concierge') {
+        const lines = {
+            1: `「本日の課題は『${qData.name}』でございます。まずはお部屋を整えるところから始めましょう。床に落ちたものを丁寧に拾えば、空間も心もすっきりいたします。」`,
+            2: `「次は『${qData.name}』でございます。こちらにベッドをご用意しました。『ベッド』とお声がけいただければ、空いている場所へ設置いたします。」`,
+            3: `「収納は暮らしの品格でございます。『${qData.name}』では、倉庫と冷凍庫へ実際に物をしまっていただきます。」`,
+            4: `「良いおもてなしには、良い準備が必要です。『${qData.name}』ではホワイトボードで作戦を整えましょう。」`,
+            5: `「お部屋の快適さは、目に見えない心配りの積み重ねでございます。『${qData.name}』、環境スコアを高めてまいりましょう。」`,
+            6: `「大切な資産は、静かにきちんと守るもの。『${qData.name}』では金庫へGoldをお預けくださいませ。」`,
+            7: `「家具に手を入れると、空間の表情が変わります。『${qData.name}』、アップグレードを試してみましょう。」`,
+            8: `「いよいよ実践のおもてなしです。『${qData.name}』では来客を迎え、心を込めて接客していただきます。」`,
+            9: `「最後の仕上げでございます。『${qData.name}』、観葉植物とキャンドルで極上のくつろぎを完成させましょう。」`
+        };
+        offerMsg = lines[rank] || `「本日の課題は『${qData.name}』でございます。より快適な住環境を目指して、共に参りましょう。」`;
+    }
+
     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer', qData);
 };
 
@@ -5472,12 +5647,19 @@ window.updateQuestHUD = function() {
                         : (window.getHairdresserQuestProgress ? [window.getHairdresserQuestProgress(hero, q)].filter(Boolean) : []);
                     hps.forEach(hp => itemsStr.push(formatReq(hp.name, hp.current, hp.req)));
                 }
+                else if (q.masterType === 'concierge' && q.rank === 3) {
+                    const flags = hero.myHomeQuestStorageDeposits || {};
+                    itemsStr.push(formatReq('倉庫に収納', flags.warehouse ? 1 : 0, 1));
+                    itemsStr.push(formatReq('冷凍庫に収納', flags.freezer ? 1 : 0, 1));
+                }
 
                 if (itemsStr.length === 0) isItemQuest = false;
                 if (q.isBaitoQuest) isItemQuest = false; // バイトの場合は強制的に除外
 
                 if (isItemQuest) {
-                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">収集: ${itemsStr.join(' <span style="color:#aaa;">,</span> ')}</div>`;
+                    const progressLabel = q.masterType === 'concierge' && q.rank === 3 ? '進行' : '収集';
+                    const separator = q.masterType === 'concierge' && q.rank === 3 ? '<br>' : ' <span style="color:#aaa;">,</span> ';
+                    progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">${progressLabel}: ${itemsStr.join(separator)}</div>`;
                 } else if (q.qVal >= 0) {
                     let reqCount = q.targetCount;
                     if (!q.isBaitoQuest) {
@@ -5527,6 +5709,7 @@ window.updateQuestHUD = function() {
     
     list.innerHTML = newHtml;
     list.scrollTop = currentScrollTop;
+    if (window.myHomeMapOpen && typeof window.renderMyHomeQuestHUD === 'function') window.renderMyHomeQuestHUD();
 
     if (anyCleared) {
         hud.style.border = "2px solid #4CAF50";
@@ -6223,25 +6406,41 @@ window.showLifePathEvent = function(hero, path) {
         message = "「厳しい修行もこれで終わりだね！<br>これからは難しいことはやめて、あなたと一緒に<span style='color:#8BC34A;'>『のんびりスローライフ』</span>を楽しむよ！」<br><br><span style='font-size:12px; color:#aaa;'>(※今後の行動方針が『スローライフ』に固定されました)</span>";
     }
 
-    // 既存のチュートリアルUIを流用してリッチに表示！
-    if (typeof window.showGameTutorial === 'function') {
-        window.showGameTutorial(`✨ ${title} ✨`, message, () => {
-            hero.message = "これからもよろしくね！";
-            hero.messageTimer = 180;
-            // ★追加：AIに「余生の目標」をセットし、自動行動を解禁する
-            hero.lifePath = path;
-            hero.legacyProgress = {}; // 進捗を0%にリセット
-            if (hero.schedule) hero.schedule = []; // 今の予定を全てキャンセルして余生に集中
-            
-            // ★追加：ダイアログの裏で動いていた行動を確実にリセットし、姿勢を初期化する！
+    const finishLifePathEvent = () => {
+        hero.message = "これからもよろしくね！";
+        hero.messageTimer = 180;
+        hero.lifePath = path;
+        if (hero.apprentice) hero.apprentice.lifePath = path;
+        hero.legacyProgress = {};
+        if (hero.schedule) hero.schedule = [];
+        hero.idleTimer = 0;
+        hero._lifePathEventPending = false;
+
+        if (window.myHomeMapOpen) {
+            hero.isIndoors = true;
+            hero.actionState = 'inside';
+            hero.visualAction = null;
+            hero.indoorTarget = { type: 'hut', name: 'マイホーム' };
+            const homeUi = document.getElementById('myhome-map-ui');
+            if (homeUi) homeUi.style.zIndex = '8990';
+            if (typeof window.activateMyHomeLifePath === 'function') window.activateMyHomeLifePath(path);
+        } else {
             hero.actionState = 'idle';
             hero.visualAction = null;
             hero.isIndoors = false;
             hero.indoorTarget = null;
-            hero.idleTimer = 0;
-            if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
-            if (typeof updateAIStatusText === 'function') updateAIStatusText();
-        });
+        }
+
+        if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
+        if (typeof updateAIStatusText === 'function') updateAIStatusText();
+        if (typeof saveGameData === 'function') saveGameData();
+    };
+
+    // 既存のチュートリアルUIを流用してリッチに表示！
+    if (typeof window.showGameTutorial === 'function') {
+        window.showGameTutorial(`✨ ${title} ✨`, message, finishLifePathEvent);
+    } else {
+        finishLifePathEvent();
     }
 };
 
@@ -9431,6 +9630,15 @@ window.openExamUI = function(masterType, task) {
         overlay.style.cssText = `position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.9); z-index:90000; display:flex; flex-direction:column; justify-content:center; align-items:center; color:white; font-family:sans-serif;`;
         document.body.appendChild(overlay);
     }
+    if (masterType === 'concierge' && window.myHomeMapOpen) {
+        const homeUi = document.getElementById('myhome-map-ui');
+        if (homeUi) homeUi.style.zIndex = '80000';
+        overlay.style.position = 'fixed';
+        overlay.style.inset = '0';
+        overlay.style.zIndex = '120000';
+        overlay.style.pointerEvents = 'auto';
+        if (overlay.parentNode) document.body.appendChild(overlay);
+    }
     
     // ★大修正：余計なimgタグや2枚目のCanvasを全廃止！HTMLを極限までシンプルにしました。
     overlay.innerHTML = `
@@ -9460,7 +9668,7 @@ window.openExamUI = function(masterType, task) {
         else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
-        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser' || masterType === 'concierge') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
 
         const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
         if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
@@ -9472,6 +9680,20 @@ window.openExamUI = function(masterType, task) {
 
         // 2. AIペットの描画（左側）
         let skin = window.aiPet.currentSkin || 'robot'; 
+        const drawExamMaster = () => {
+            const img = canvas._examMasterImage;
+            const data = canvas._examMasterData;
+            if (!img || !data || !img.complete || !img.naturalWidth) return;
+            const targetHeight = 250;
+            const scale = targetHeight / data.sh;
+            const dw = data.sw * scale;
+            const dh = data.sh * scale;
+            ctx.save();
+            ctx.translate(550, 340);
+            ctx.scale(-1, 1);
+            ctx.drawImage(img, data.sx, data.sy, data.sw, data.sh, -dw / 2, -dh, dw, dh);
+            ctx.restore();
+        };
         const drawExamHero = () => {
             if (!document.body.contains(canvas)) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -9482,6 +9704,7 @@ window.openExamUI = function(masterType, task) {
             if (typeof drawCharacterSprite === 'function') {
                 drawCharacterSprite(ctx, skin, canvas.width * 0.25, canvas.height / 2 + 30, 180, 180, false, 1.0);
             }
+            drawExamMaster();
             canvas._examAnimId = requestAnimationFrame(drawExamHero);
         };
         if (canvas._examAnimId) cancelAnimationFrame(canvas._examAnimId);
@@ -9499,26 +9722,19 @@ window.openExamUI = function(masterType, task) {
             'tailor': { img: "tailor_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             // ★追加：パティシエの立ち絵
             'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
-            'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
+            'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
+            'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
         };
         let mData = masterSprites[masterType];
         if (mData && mData.img) {
             let tempImg = new Image();
             tempImg.onload = function() {
-                let targetHeight = 250; // AIペット(180)より少し大きいくらいの適正サイズ
-
-                let scale = targetHeight / mData.sh;
-                let dw = mData.sw * scale;
-                let dh = mData.sh * scale;
-                
-                ctx.save();
-                // 座標指定：右側(x=550)の、AIと同じくらいの足元の高さ(y=340)に設定
-                ctx.translate(550, 340); 
-                ctx.scale(-1, 1); // 左右反転させてAIの方を向かせる
-                
-                // 中心が足元になるように描画
-                ctx.drawImage(tempImg, mData.sx, mData.sy, mData.sw, mData.sh, -dw/2, -dh, dw, dh);
-                ctx.restore();
+                if (mData.sx + mData.sw > tempImg.naturalWidth || mData.sy + mData.sh > tempImg.naturalHeight) {
+                    mData = { ...mData, sx: 0, sy: 0, sw: tempImg.naturalWidth, sh: tempImg.naturalHeight };
+                }
+                canvas._examMasterImage = tempImg;
+                canvas._examMasterData = mData;
+                drawExamMaster();
             };
             tempImg.src = mData.img;
         }
@@ -9559,11 +9775,12 @@ window.updateExamUI = function(task) {
         'smithing': { start: "……入門試験を始める。", trans1: "……次だ。", trans2: "……最後の問題だ。", result: "……結果は。" },
         'building': { start: "よし、入門試験を開始するぞ。", trans1: "ふむ…次だ。", trans2: "よし、最後の問題だ。", result: "……結果は！" },
         'pharmacist': { start: "それでは、入門試験を始めますよ。", trans1: "はい…次ですね。", trans2: "さあ、最後の問題ですよ。", result: "……結果は！" },
-        'tailor': { start: "それでは、入門試験を始めましょう。", trans1: "ふふっ…次はこれですね。", trans2: "よし、最後の問題です。", result: "……結果は！" }
+        'tailor': { start: "それでは、入門試験を始めましょう。", trans1: "ふふっ…次はこれですね。", trans2: "よし、最後の問題です。", result: "……結果は！" },
+        'concierge': { start: "それでは、入門試験を始めさせていただきます。落ち着いてお答えくださいませ。", trans1: "よろしいですね。続いて、住まいを整えるための問題でございます。", trans2: "最後の確認でございます。休息に欠かせないものを思い出してくださいませ。", result: "お疲れさまでございました。結果を確認いたします。" }
     };
     
     const dText = examDialogues[task.masterType] || examDialogues['explore'];
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
     const speakerName = masterNames[task.masterType] || "師匠";
 
     let text = "";
@@ -9880,7 +10097,7 @@ window.updateExamUI = function(task) {
     document.addEventListener('mousedown', function(e) {
         const protectedAreas = [
             '#questHUD', '#questListHUD', '.panel-view', '#commandHUD', '#aiStatus',
-            '#encounterOverlay', '#examOverlay', '#shop-management-ui', '#player-shop-ui', '#recipe-book-overlay',
+            '#encounterOverlay', '#examOverlay', '#myhome-map-ui', '#shop-management-ui', '#player-shop-ui', '#recipe-book-overlay',
             '#tcg-auto-build-modal', '#tcg-battle-ui', '#tcg-main-menu', '#tcg-online-lobby', '#tcg-deck-builder',
             '#in-game-tutorial', 'BUTTON', 'SELECT', 'INPUT'
         ];
@@ -10724,12 +10941,14 @@ window.openHairdresserUI = function(mode = 'full') {
     const entryCosmetic = JSON.parse(JSON.stringify(ai.cosmetic || {}));
     const colorOnly = mode === 'color';
     const auraOnly = mode === 'aura';
+    const openedFromMyHome = !!window.myHomeMapOpen;
+    const closeLabel = openedFromMyHome ? '閉じる' : '小屋からでる';
     const editLabel = auraOnly ? 'オーラを編集中' : (colorOnly ? 'カラーチェンジを編集中' : 'カラーとオーラを編集中');
     ui.innerHTML = `
         <div style="width:min(940px,96vw); max-height:92vh; overflow:auto; background:#17171d; color:#fff; border:2px solid #ff80ab; border-radius:8px; padding:18px; box-shadow:0 12px 40px rgba(0,0,0,0.45); box-sizing:border-box;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:14px;">
                 <div style="font-weight:bold; font-size:18px;">ドレッサー</div>
-                <button id="hairdresser-leave-top" style="padding:8px 12px; border-radius:6px; border:1px solid #555; background:#252532; color:#fff; cursor:pointer;">小屋からでる</button>
+                <button id="hairdresser-leave-top" style="padding:8px 12px; border-radius:6px; border:1px solid #555; background:#252532; color:#fff; cursor:pointer;">${closeLabel}</button>
             </div>
             <div style="display:grid; grid-template-columns:minmax(170px,240px) minmax(0,1fr); gap:18px; align-items:stretch;">
                 <div style="background:#101016; border:1px solid #333; border-radius:8px; padding:12px; display:grid; place-items:center; min-height:300px;">

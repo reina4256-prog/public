@@ -2406,6 +2406,10 @@ const itemCatalog = {
     dish_honey_pudding: { name: "極上ハチミツプリン", type: 'dish', stats: { energy: 20, hunger: 20, mood: 50 }, value: 200, desc: "【バフ:ハッピー】しばらく機嫌が最高状態を維持する。" },
     supreme_sweets: { name: "至高のスイーツ", type: 'dish', stats: { energy: 100, hunger: 100, mood: 100 }, value: 1500, desc: "大成功でのみ作れる、芸術的な究極のスイーツ。" }
 };
+window.itemCatalog = itemCatalog;
+
+itemCatalog.concierge_route_log = { name: "案内人の巡回記録", type: 'key', value: 0, desc: "冒険家から受け取った、島の生活動線が書き込まれた記録。" };
+itemCatalog.concierge_house_key = { name: "管理人室の鍵", type: 'key', value: 0, desc: "建築士から受け取った、マイホームを整えるための特別な鍵。" };
 
 const riverFishingTable = {
     spring: [ { id: 'trash_boot', prob: 15 }, { id: 'fish_medaka', prob: 40 }, { id: 'fish_crawfish', prob: 30 }, { id: 'fish_carp', prob: 15 } ],

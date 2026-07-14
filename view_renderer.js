@@ -567,18 +567,19 @@ function getCosmeticFilter(targetPet, baseFilter) {
     return hueFilter ? `${baseFilter} ${hueFilter}` : baseFilter;
 }
 
-function drawCosmeticAura(targetPet, cx, cy, drawW, drawH) {
+function drawCosmeticAura(targetPet, cx, cy, drawW, drawH, renderCtx) {
+    const auraCtx = renderCtx || ctx;
     const aura = targetPet && targetPet.cosmetic ? targetPet.cosmetic.aura : 'none';
     if (!aura || aura === 'none') return;
     const tick = (targetPet.tick || Date.now() / 16);
     const colors = { sparkle: '#fff176', heart: '#ff80ab', music: '#80d8ff', bubble: '#b3e5fc' };
     const glyphs = { sparkle: '*', heart: '♡', music: '♪', bubble: '○' };
     const color = (targetPet.cosmetic && targetPet.cosmetic.auraColor) || colors[aura] || '#fff';
-    ctx.save();
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.shadowBlur = 8;
+    auraCtx.save();
+    auraCtx.textAlign = 'center';
+    auraCtx.textBaseline = 'middle';
+    auraCtx.font = 'bold 14px sans-serif';
+    auraCtx.shadowBlur = 8;
     for (let i = 0; i < 8; i++) {
         const rise = ((tick + i * 13) % 90) / 90;
         const t = tick * 0.055 + i * 1.35 + rise * Math.PI * 2;
@@ -586,12 +587,12 @@ function drawCosmeticAura(targetPet, cx, cy, drawW, drawH) {
         const px = cx + Math.cos(t) * radius;
         const py = (cy + drawH * 0.42) + ((cy - drawH * 0.62) - (cy + drawH * 0.42)) * rise;
         const pColor = typeof window.getCosmeticAuraColor === 'function' ? window.getCosmeticAuraColor(targetPet, i) : color;
-        ctx.fillStyle = pColor;
-        ctx.shadowColor = pColor;
-        ctx.globalAlpha = 0.12 + (1 - rise) * 0.78;
-        ctx.fillText(glyphs[aura] || '*', px, py);
+        auraCtx.fillStyle = pColor;
+        auraCtx.shadowColor = pColor;
+        auraCtx.globalAlpha = 0.12 + (1 - rise) * 0.78;
+        auraCtx.fillText(glyphs[aura] || '*', px, py);
     }
-    ctx.restore();
+    auraCtx.restore();
 }
 
 function drawAICharacter() {
@@ -922,7 +923,8 @@ function drawActionWindow(animType, sceneType) {
 // ==========================================
 // ★ワイプ内描画も動的ロード対応！
 // ==========================================
-function drawCharacterInWindow(action, cx, cy, targetPet) {
+function drawCharacterInWindow(action, cx, cy, targetPet, renderCtx) {
+    const characterCtx = renderCtx || ctx;
     if (!targetPet) targetPet = typeof aiPet !== 'undefined' ? aiPet : window.aiPet;
     if (!targetPet) return; 
     
@@ -965,20 +967,25 @@ function drawCharacterInWindow(action, cx, cy, targetPet) {
     
     let sc = 0.3; const drawW = (f.sw || 300) * sc; const drawH = (f.sh || 300) * sc;
     if (img && img.complete && img.naturalWidth !== 0) {
-        ctx.save(); ctx.translate(cx, cy); 
+        characterCtx.save(); characterCtx.translate(cx, cy);
 
         // ★追加：行動済みの場合はPIP（ワイプ）内でも暗くする
         const baseFilter = (currentMode === 'defense' && targetPet.hasActed) ? 'brightness(0.4)' : 'none';
         if (typeof window.drawCosmeticImageOnContext === 'function') {
-            window.drawCosmeticImageOnContext(ctx, img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH, targetPet, baseFilter);
+            window.drawCosmeticImageOnContext(characterCtx, img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH, targetPet, baseFilter);
         } else {
-            ctx.filter = getCosmeticFilter(targetPet, baseFilter);
-            ctx.drawImage(img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH);
+            characterCtx.filter = getCosmeticFilter(targetPet, baseFilter);
+            characterCtx.drawImage(img, f.sx || 0, f.sy || 0, f.sw || 300, f.sh || 300, -drawW/2, -drawH/2, drawW, drawH);
         }
-        ctx.restore();
-        drawCosmeticAura(targetPet, cx, cy, drawW, drawH);
+        characterCtx.restore();
+        drawCosmeticAura(targetPet, cx, cy, drawW, drawH, characterCtx);
     }
 }
+
+window.drawActionCharacterOnContext = function(renderCtx, action, cx, cy, targetPet) {
+    if (!renderCtx) return;
+    drawCharacterInWindow(action, cx, cy, targetPet, renderCtx);
+};
 
 function drawFarmStatus(a) {
     const cx = a.dx + (a.sw * (a.scale || 0.5)) / 2;

@@ -3459,6 +3459,7 @@ window.processDungeonTurn = async function() {
 
         if (s.isAuto || s.turnPassed) {
             window.applyDungeonTurnStartEffects(s);
+            if (typeof window.checkDungeonLowHpInspiration === 'function') window.checkDungeonLowHpInspiration(s.player);
             if (s.player.hp <= 0) throw "dead";
 
             const ai = window.aiPet; 
@@ -3490,6 +3491,7 @@ window.processDungeonTurn = async function() {
             for (let actStep = 0; actStep < actionCount; actStep++) {
                 if (s.player.hp <= 0) break; 
                 let result = await window.executeDungeonPlayerAction(s, actStep, actionCount);
+                if (typeof window.checkDungeonLowHpInspiration === 'function') window.checkDungeonLowHpInspiration(s.player);
                 
                 let waitTime = 150;
                 if (s.player.levelUpAnim) waitTime = 800; else if (s.player.magicAnim) waitTime = 500;
@@ -3504,6 +3506,7 @@ window.processDungeonTurn = async function() {
             }
 
             if (s.player.hp > 0) await window.executeDungeonEnemyTurn(s, activeTraits);
+            if (typeof window.checkDungeonLowHpInspiration === 'function') window.checkDungeonLowHpInspiration(s.player);
 
             s.turnCount = (s.turnCount || 0) + 1;
             let spawnRate = s.player._isGrinding ? 12 : Math.max(15, 40 - Math.floor(s.floor / 2)); 
@@ -3577,6 +3580,7 @@ window.processDungeonTurn = async function() {
     } catch (e) {
         if (e !== "dead") console.error("【DungeonTurnエラー】処理中にエラーが発生しました:", e); 
     } finally { 
+        if (typeof window.checkDungeonLowHpInspiration === 'function') window.checkDungeonLowHpInspiration(s.player);
         if (s.player.hp <= 0) {
             window.addDungeonLog(`${window.aiPet.name || "AI"} は倒れてしまった...`, '#ff5252');
             if (s.isAuto) window.toggleDungeonAuto(); 
@@ -3598,6 +3602,7 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
     let turnStartStatus = JSON.parse(JSON.stringify(s.player.status || {}));
 
     for (let e of s.enemies) {
+        if (typeof window.checkDungeonLowHpInspiration === 'function') window.checkDungeonLowHpInspiration(s.player);
         if (e.hp <= 0) continue;
 
         // ★ ゴースト系特性：王の威厳
@@ -4377,6 +4382,8 @@ window.executeDungeonEnemyTurn = async function(s, activeTraits) {
             }
         }
     }
+
+    if (typeof window.checkDungeonLowHpInspiration === 'function') window.checkDungeonLowHpInspiration(s.player);
 
     // ▼ ここから下をすべて追加！
     // ==========================================

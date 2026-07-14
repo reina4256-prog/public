@@ -4478,6 +4478,10 @@ window.renderShopMap = function() {
                 pDiv.style.top = `${chara.y * logicalTileY + offsetY}px`; 
             }
 
+            if ((chara.id === 'main' || chara === s.player) && window.aiPet && typeof window.applyDungeonWalkCosmetics === 'function') {
+                window.applyDungeonWalkCosmetics(pDiv, window.aiPet, pKey);
+            }
+
             let bubbleId = domId + '_bubble';
             let bubble = document.getElementById(bubbleId);
             const charaImgInner = pDiv.querySelector('div') || pDiv.firstChild; 

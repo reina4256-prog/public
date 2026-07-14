@@ -101,6 +101,17 @@ window.EXAM_KEYWORDS = {
 };
 
 // ★完全安全化: 特性データの取得エラーをゼロにする
+window.EXAM_KEYWORDS.concierge = {
+    accepts: [
+        ['おもてなし', '接客', 'サービス', 'ホスピタリティ'],
+        ['家具', 'インテリア', '調度品'],
+        ['ベッド', '寝具', '布団']
+    ],
+    q1: "お客様に快適に過ごしていただくための心遣いを何と言う？",
+    q2: "家の中に置く、生活を便利にする道具の総称は？",
+    q3: "一日の疲れを癒やし、眠るための家具は？"
+};
+
 aiPet.getTraitData = function() {
     if (typeof charaTraits === 'undefined') return { consumption: 1.0, statBonus: { power: 1.0, intel: 1.0, mood: 1.0 } };
     
@@ -807,6 +818,88 @@ aiPet.getMasterQuestData = function(mType, rank) {
         }
     };
 
+    quests.concierge = {
+        0: { name: "入門試験の準備", desc: "試験では『快適に過ごしてもらうための心遣い』『生活を便利にする道具の総称』『寝るための必需品』について聞かれる。答えとなる言葉を覚えよう。" },
+        1: { name: "清掃の基本", desc: "マイホームの屋内で掃除を3回行う。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return (aiPet.apprentice.qVal || 0) >= 3; } },
+        2: { name: "休息空間の構築", desc: "小屋にベッドを用意し、睡眠をとる。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return (typeof window.hasMyHomeFurniture === 'function' && window.hasMyHomeFurniture('bed')) || (aiPet.apprentice.qVal || 0) >= 1; } },
+        3: { name: "収納術の基礎", desc: "小屋に倉庫または冷凍庫を設置する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return typeof window.hasMyHomeStorageLevel === 'function' && (window.hasMyHomeStorageLevel('warehouse') || window.hasMyHomeStorageLevel('freezer')); } },
+        4: { name: "作戦の拠点", desc: "小屋に作戦会議室またはテーブルを用意する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return typeof window.hasMyHomeFurniture === 'function' && (window.hasMyHomeFurniture('strategy_table') || window.hasMyHomeFurniture('table')); } },
+        5: { name: "空間の美化", desc: "マイホームの環境スコアを一定以上にする。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return typeof window.getMyHomeEnvironmentScore === 'function' && window.getMyHomeEnvironmentScore() >= 5; } },
+        6: { name: "資産の管理", desc: "小屋に金庫を設置し、Goldを収納する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return typeof window.hasMyHomeStorageLevel === 'function' && window.hasMyHomeStorageLevel('safe') && window.getMyHomeSafeGold && window.getMyHomeSafeGold() > 0; } },
+        7: { name: "高級家具への挑戦", desc: "家具をアップグレードし、高級ベッド相当の快適さを作る。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return typeof window.getMyHomeFurnitureLevel === 'function' && window.getMyHomeFurnitureLevel('bed') >= 2; } },
+        8: { name: "最高のおもてなし", desc: "マイホームで接客アクションを成功させる。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return (aiPet.apprentice.qVal || 0) >= 1; } },
+        9: { name: "免許皆伝", desc: "ベッド、倉庫、冷凍庫、金庫、作戦会議室を揃え、家具レベル合計を高める。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return typeof window.isConciergeFinalRoomReady === 'function' && window.isConciergeFinalRoomReady(); } }
+    };
+
+    quests.concierge = {
+        0: { name: "入門試験の準備", desc: "試験では『快適に過ごしてもらうための心遣い』『生活を便利にする道具の総称』『寝るための必需品』について聞かれる。答えとなる言葉を覚えよう。" },
+        1: {
+            name: "清掃の基本",
+            desc: "マイホームの屋内で掃除を行い、落ちているアイテムを3つ回収する。",
+            setup: function() { aiPet.apprentice.qVal = 0; if (window.spawnMyHomeDailyDrops) window.spawnMyHomeDailyDrops(true); },
+            check: function() { return (aiPet.apprentice.qVal || 0) >= 3; }
+        },
+        2: {
+            name: "休息空間の構築",
+            desc: "コンシェルジュから受け取ったベッドを配置し、睡眠をとる。",
+            setup: function() { aiPet.apprentice.qVal = 0; aiPet.myHomeBedKitReceived = true; },
+            check: function() { return typeof window.hasMyHomeFurniture === 'function' && window.hasMyHomeFurniture('bed') && (aiPet.apprentice.qVal || 0) >= 1; }
+        },
+        3: {
+            name: "収納術の基礎",
+            desc: "この課題を受けた後に、倉庫と冷凍庫へそれぞれアイテムを1つ入れる。",
+            setup: function() { aiPet.apprentice.qVal = 0; aiPet.myHomeQuestStorageDeposits = { warehouse: false, freezer: false }; },
+            check: function() { const f = aiPet.myHomeQuestStorageDeposits || {}; return !!(f.warehouse && f.freezer); }
+        },
+        4: {
+            name: "作戦の拠点",
+            desc: "作戦会議室のホワイトボードで、カスタム作戦を1つ作成する。",
+            setup: function() { aiPet.apprentice.qVal = 0; aiPet.myHomeTacticCreated = false; },
+            check: function() { return !!aiPet.myHomeTacticCreated; }
+        },
+        5: {
+            name: "空間の美化",
+            desc: "掃除や家具配置でマイホームの環境スコアを一定以上にする。",
+            setup: function() { aiPet.apprentice.qVal = 0; },
+            check: function() { return typeof window.getMyHomeEnvironmentScore === 'function' && window.getMyHomeEnvironmentScore() >= 12; }
+        },
+        6: {
+            name: "資産の管理",
+            desc: "この課題を受けた後に、金庫へGoldを預ける。",
+            setup: function() { aiPet.apprentice.qVal = 0; aiPet.myHomeQuestSafeDeposit = false; },
+            check: function() { return !!aiPet.myHomeQuestSafeDeposit; }
+        },
+        7: {
+            name: "高級家具への挑戦",
+            desc: "アップグレードを指示し、家具を1つ強化する。",
+            setup: function() { aiPet.apprentice.qVal = 0; aiPet.myHomeFurnitureUpgradedAfterQuest = false; },
+            check: function() { return !!aiPet.myHomeFurnitureUpgradedAfterQuest; }
+        },
+        8: {
+            name: "最高のおもてなし",
+            desc: "マイホームを訪れた来客に接客を行う。",
+            setup: function() { aiPet.apprentice.qVal = 0; aiPet.myHomeHospitalityDone = false; },
+            check: function() { return !!aiPet.myHomeHospitalityDone || (aiPet.apprentice.qVal || 0) >= 1; }
+        },
+        9: {
+            name: "免許皆伝",
+            desc: "コンシェルジュから受け取った観葉植物とキャンドルをマイホームに配置する。",
+            setup: function() {
+                aiPet.apprentice.qVal = 0;
+                if (!Array.isArray(aiPet.inventory)) aiPet.inventory = [];
+                const ids = aiPet.inventory.map(item => typeof item === 'string' ? item : item && item.id);
+                if (!ids.includes('item_plant')) aiPet.inventory.push({ id: 'item_plant', name: '観葉植物' });
+                if (!ids.includes('item_candle')) aiPet.inventory.push({ id: 'item_candle', name: 'キャンドル' });
+            },
+            check: function() {
+                const state = window.ensureMyHomeIndoorState ? window.ensureMyHomeIndoorState() : null;
+                const decor = state && state.decorQuest;
+                const hasObjects = state && Array.isArray(state.objects) && state.objects.some(o => o && o.id === 'decor_plant') && state.objects.some(o => o && o.id === 'decor_candle');
+                return !!((decor && decor.plant && decor.candle) || hasObjects);
+            }
+        }
+    };
+
     if (mType === 'hairdresser' && rank === 7) {
         return { name: "虹色のセンス", desc: "虹色のしずくを使って、7色まで指定できるカラーチェンジを実行する。", setup: function() { aiPet.apprentice.qVal = 0; }, check: function() { return aiPet.cosmetic && aiPet.cosmetic.rainbowColorApplied; } };
     }
@@ -971,6 +1064,7 @@ function findFacilityForTask(taskType, masterType = null) {
         else if (masterType === 'pharmacist') priorities = ['pharmacy'];
         else if (masterType === 'tailor') priorities = ['atelier', 'tailor'];
         else if (masterType === 'hairdresser') priorities = ['salon', 'hut', 'house'];
+        else if (masterType === 'concierge') priorities = ['hut', 'house'];
     }
     
     let bestAsset = null;
@@ -2535,6 +2629,7 @@ aiPet.processApprenticeExamFinish = function(task) {
         else if (mType === 'pastry_chef') passMsg = "「パーフェクト！君の熱意、しっかり受け取ったよ！今日から君を私の弟子として認めるよ！」"; // ★追加
         else if (mType === 'hairdresser') passMsg = "「きゃ〜っ、ぜんぶ正解！今日からうちのお弟子さんだよっ♡」";
 
+        if (mType === 'concierge') passMsg = "「全問正解でございます。これより、AI様の暮らしを整える作法をお伝えいたします。」";
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, passMsg, 'exam_pass');
     } else {
         let attempts = this.apprentice.attempts[mType] || 0;
@@ -2552,6 +2647,7 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'pastry_chef') retireMsg = "「オーマイガー…計量もできないようじゃ、スイーツは作れないよ。弟子入りはお断りだ！……でも、うちのスイーツが食べたくなったらいつでもおいで！」"; // ★追加
             else if (mType === 'hairdresser') retireMsg = "「え〜ん、今日はちょっと相性が合わなかったかもぉ…。またカワイイ気分になったら来てね♡」";
 
+            if (mType === 'concierge') retireMsg = "「申し訳ございません。今はまだ、お屋敷を任せる準備が整っていないようです。またお越しくださいませ。」";
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, retireMsg, 'banned');
         } else {
             // ★不合格（やり直し）時のセリフ
@@ -2567,6 +2663,7 @@ aiPet.processApprenticeExamFinish = function(task) {
             else if (mType === 'pastry_chef') hintMsg = "「ノット・スイート！私が指定した3つの言葉をもう一度しっかり覚えてきなよ！」"; // ★追加
             else if (mType === 'hairdresser') hintMsg = "「惜しい〜！『ハサミ』『クシ』『カラー』、この3つをもう一回おさらいしよっ♡」";
 
+            if (mType === 'concierge') hintMsg = "「惜しゅうございます。『おもてなし』『家具』『ベッド』を、もう一度おさらいくださいませ。」";
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(mType, hintMsg, 'exam_fail');
         }
     }
@@ -4018,11 +4115,16 @@ aiPet.update = function() {
                 
                 // ★完全修正：タスクが完了し、かつ「中に入っている」場合は、次のタスクへ進む前に外へ出る（exiting）状態に移行させる
                 // ※ただし探索など「引き続き中にとどまる」特殊タスクは除外
-                const waitingExit = !isShopTask && task._started && task.type !== 'explore' && task.type !== 'apprentice_exam' && this.isIndoors;
+                const waitingExit = !isShopTask && !task.myHomeIndoor && task._started && task.type !== 'explore' && task.type !== 'apprentice_exam' && this.isIndoors;
 
                 if (!waitingExit || this.actionState === 'exiting') {
                     if (task.duration <= 0 && !task.aborted) {
-                        if (task.type === 'build' && typeof this.processBuildingFinish === 'function') this.processBuildingFinish(task);
+                        if (task.type === 'build' && typeof this.processBuildingFinish === 'function') {
+                            this.processBuildingFinish(task);
+                            if (task.myHomeIndoor && typeof window.finishMyHomeFurnitureUpgrade === 'function') {
+                                window.finishMyHomeFurnitureUpgrade(task);
+                            }
+                        }
                         if (task.type.startsWith('life_') && typeof this.processLifePathFinish === 'function') this.processLifePathFinish(task);
 
                         // 連続睡眠ボーナス
@@ -4070,9 +4172,23 @@ aiPet.update = function() {
 
                         const mType = task.masterType || this.apprentice?.currentMaster;
                         if (task.type === 'visit_master' || task.type === 'master_quest' || task.type === 'apprentice_exam') {
-                            if (task.type === 'visit_master' && mType) window.checkMasterVisit?.(mType);
+                            if (task.type === 'visit_master' && mType) {
+                                if (mType === 'concierge' && typeof window.openMyHomeMapUI === 'function' && window.isMyHomeIndoorUnlocked?.()) {
+                                    const myHomeAction = task.myHomeAction || window.pendingMyHomeConciergeAction || 'visit';
+                                    window.pendingMyHomeConciergeAction = null;
+                                    window.openMyHomeMapUI({ visitConcierge: myHomeAction === 'visit' || myHomeAction === 'exam_finish', action: myHomeAction });
+                                } else {
+                                    window.checkMasterVisit?.(mType);
+                                }
+                            }
                             else if (task.type === 'master_quest') this.processApprenticeQuestFinish?.(task);
-                            else if (task.type === 'apprentice_exam') this.processApprenticeExamFinish?.(task);
+                            else if (task.type === 'apprentice_exam') {
+                                if (mType === 'concierge' && typeof window.openMyHomeMapUI === 'function' && window.isMyHomeIndoorUnlocked?.()) {
+                                    window.openMyHomeMapUI({ visitConcierge: true, action: 'exam_finish', preservePosition: true });
+                                } else {
+                                    this.processApprenticeExamFinish?.(task);
+                                }
+                            }
                         }
                         else if (task.type === 'hairdresser_color') {
                             if (typeof window.openHairdresserUI === 'function') window.openHairdresserUI('color');
@@ -4107,6 +4223,28 @@ aiPet.update = function() {
                             });
                             if(!window.isCatchingUp) window.updateQuestHUD?.();
                         }
+                        if (task.myHomeIndoor && this.apprentice && this.apprentice.activeQuests) {
+                            this.apprentice.activeQuests.forEach(q => {
+                                if (q.masterType === 'concierge' && q.rank === 2 && task.myHomeAction === 'bed') {
+                                    q.qVal = Math.max(q.qVal || 0, 1);
+                                }
+                            });
+                            if (!window.isCatchingUp) {
+                                const completedName = task.type === 'sleep' ? '睡眠' :
+                                    task.type === 'eat' ? '食事' :
+                                    task.type === 'study' ? '勉強' :
+                                    task.type === 'train' ? '筋トレ' :
+                                    task.type === 'run' ? 'ランニング' :
+                                    task.type === 'build' && task.buildData ? `${task.buildData.name}の拡張` :
+                                    String(task.type || '').startsWith('life_') && typeof getTaskName === 'function' ? getTaskName(task.type, task) : '行動';
+                                window.setMyHomeChatMessage?.(`${completedName}を終えました。`);
+                                window.showMyHomeBubble?.(`${completedName}が終わったよ！`);
+                                window.addMyHomeLog?.(`${completedName}を終えました。`);
+                                window.updateQuestHUD?.();
+                                window.renderMyHomeQuestHUD?.();
+                                window.renderMyHomeActionHUD?.();
+                            }
+                        }
                         if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest(task.type);
                         
                         if (this.apprentice && this.apprentice.isExcommunicated) {
@@ -4136,6 +4274,11 @@ aiPet.update = function() {
                     if (isShopTask) { 
                         this.actionState = 'inside'; this.exploreTimer = 0; 
                     } 
+                    else if (task.myHomeIndoor && window.myHomeMapOpen) {
+                        this.indoorTarget = null;
+                        this.isIndoors = true;
+                        this.actionState = 'inside';
+                    }
                     else { 
                         this.indoorTarget = null; this.isIndoors = false; this.actionState = 'idle'; 
                     }
@@ -4518,6 +4661,16 @@ aiPet.executeEnterAction = function() {
         this.isIndoors = true; 
         this.indoorTarget = this.interactionTarget; 
         this.exploreTimer = 0;
+        if (this.interactionTarget.type === 'hut' && typeof window.tryTriggerConciergeHomeEncounter === 'function') {
+            window.tryTriggerConciergeHomeEncounter();
+        }
+
+        if (this.interactionTarget.type === 'hut' && window.pendingMyHomeConciergeVisit && typeof window.openMyHomeMapUI === 'function' && window.isMyHomeIndoorUnlocked?.()) {
+            const myHomeAction = window.pendingMyHomeConciergeAction || 'visit';
+            window.pendingMyHomeConciergeVisit = false;
+            window.pendingMyHomeConciergeAction = null;
+            window.openMyHomeMapUI({ visitConcierge: myHomeAction === 'visit' || myHomeAction === 'exam_finish', action: myHomeAction });
+        }
         
         let msg = "中に入ったよ";
         if (this.interactionTarget.type === 'castle') msg = "城の中を探索中...";
@@ -4562,6 +4715,8 @@ const BASE_INHERITANCE_COSTS = { stats: 500, inventory: 300, vocab: 400, license
 let currentInheritanceCosts = { ...BASE_INHERITANCE_COSTS };
 
 window.triggerReincarnation = function() {
+    window.isFastForwardLife = false;
+    if (typeof window.prepareMyHomeForReincarnation === 'function') window.prepareMyHomeForReincarnation();
     if (typeof window.generateCardFromAI === 'function') window.generateCardFromAI(window.aiPet);
     setTimeout(() => { window.openInheritanceShop(); }, 2500); 
 };
@@ -4982,6 +5137,30 @@ window.applyInheritedPet = function(skinKey, data) {
 const _legacy_originalApplyInitialPet = typeof originalApplyInitialPet !== 'undefined' ? originalApplyInitialPet : window.applyInitialPet;
 window.applyInitialPet = function(skinKey) {
     _legacy_originalApplyInitialPet(skinKey);
+
+    const inheritedCosmetic = window.pendingInheritanceData && window.pendingInheritanceData.cosmetic;
+    window.aiPet.cosmetic = inheritedCosmetic
+        ? JSON.parse(JSON.stringify(inheritedCosmetic))
+        : {
+            hue: 0,
+            aura: 'none',
+            auraColor: '#fff176',
+            hueCount: 0,
+            auraApplied: false,
+            totalComboApplied: false
+        };
+    window.aiPet.schedule = [];
+    window.aiPet._stashedTasks = [];
+    window.aiPet.pathQueue = [];
+    window.aiPet.currentTask = null;
+    window.aiPet.actionState = 'idle';
+    window.aiPet.visualAction = 'idle';
+    window.aiPet.isIndoors = false;
+    window.aiPet.indoorTarget = null;
+    window.aiPet.interactionTarget = null;
+    window.aiPet.exploreState = null;
+    window.aiPet.fishingData = null;
+    window.aiPet.visualScale = 1.0;
     
     if (window.aiPet && window.aiPet.stats) {
         if (window.aiPet.stats.beauty === undefined || isNaN(window.aiPet.stats.beauty) || window.aiPet.stats.beauty === 0) window.aiPet.stats.beauty = 10;
@@ -6214,20 +6393,6 @@ aiPet.processBuildingStart = function(task) {
     }
     if (!bData) { this.message = "建て方がわからない..."; this.messageTimer = 120; return false; }
 
-    // ★修正：修行中の素材自動補充ロジックもオブジェクト対応にする
-    if (this.apprentice && this.apprentice.currentMaster === 'building') {
-        if (!this.inventory) this.inventory = [];
-        if (bData.materials) {
-            for (let mKey in bData.materials) {
-                let req = bData.materials[mKey];
-                // カウント処理をオブジェクトの .id を見るように修正
-                while (this.inventory.filter(item => (typeof item === 'string' ? item : item.id) === mKey).length < req) { 
-                    this.inventory.push({ id: mKey, age: 0 }); // 文字列ではなくオブジェクトをpushする
-                }
-            }
-        }
-    }
-
     // ★修正：所持数のカウント処理
     let myItems = {};
     if (this.inventory) {
@@ -7170,6 +7335,12 @@ window.masterFlavor = {
     }
 };
 
+window.masterFlavor.concierge = {
+    offer: (qName) => `「本日の課題は『${qName}』でございます。より快適な住環境を目指して、共に参りましょう。」`,
+    report_ok: "「素晴らしいお仕事ぶりです。この空間がまた一つ、洗練されましたね。」",
+    report_ng: "「少々ホスピタリティが足りないようです。もう一度、基礎から見直してまいりましょう。」"
+};
+
 window.hasBuiltDresser = function() {
     if (typeof assets === 'undefined') return false;
     return Object.values(assets).some(a => {
@@ -7177,6 +7348,147 @@ window.hasBuiltDresser = function() {
         if (a.type === 'dresser') return true;
         return !!(a.type === 'hut' && a.storage && a.storage.dresser && (a.storage.dresser.level || 0) > 0);
     });
+};
+
+window.getMyHomeAsset = function() {
+    if (typeof assets === 'undefined') return null;
+    return Object.values(assets).find(a => a && a.type === 'hut' && !a.isMobile) || null;
+};
+
+window.hasMyHomeStorageLevel = function(storageType, minLevel = 1) {
+    const hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
+    return !!(hut && hut.storage && hut.storage[storageType] && (hut.storage[storageType].level || 0) >= minLevel);
+};
+
+window.getMyHomeSafeGold = function() {
+    const hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
+    return hut && hut.storage && hut.storage.safe ? (hut.storage.safe.gold || 0) : 0;
+};
+
+window.getMyHomeFurnitureLevel = function(furnitureType) {
+    const hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
+    if (!hut) return 0;
+    if (hut.storage && hut.storage[furnitureType]) return hut.storage[furnitureType].level || 0;
+    if (Array.isArray(hut.furniture)) {
+        return hut.furniture.reduce((max, f) => f && f.type === furnitureType ? Math.max(max, f.level || 1) : max, 0);
+    }
+    return 0;
+};
+
+window.hasMyHomeFurniture = function(furnitureType, minLevel = 1) {
+    return window.getMyHomeFurnitureLevel(furnitureType) >= minLevel;
+};
+
+window.getMyHomeEnvironmentScore = function() {
+    const hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
+    if (!hut) return 0;
+    let score = 0;
+    if (hut.storage) {
+        ['warehouse', 'freezer', 'safe', 'dresser'].forEach(key => {
+            score += Math.min(3, hut.storage[key] && hut.storage[key].level ? hut.storage[key].level : 0);
+        });
+    }
+    if (Array.isArray(hut.furniture)) {
+        hut.furniture.forEach(f => {
+            if (!f) return;
+            score += f.decor ? 2 : 1;
+            score += Math.max(0, (f.level || 1) - 1);
+        });
+    }
+    if (window.aiPet && window.aiPet.myHomeCleanCount) score += Math.min(5, window.aiPet.myHomeCleanCount);
+    return score;
+};
+
+window.isConciergeBaseUnlockReady = function() {
+    return !!(
+        window.hasMyHomeStorageLevel && window.hasMyHomeStorageLevel('warehouse') &&
+        window.hasMyHomeStorageLevel('safe') &&
+        window.hasMyHomeStorageLevel('freezer') &&
+        window.hasBuiltDresser && window.hasBuiltDresser()
+    );
+};
+
+window.isMasterLicenseComplete = function(masterType) {
+    const app = window.aiPet && window.aiPet.apprentice;
+    return !!(app && ((app.retired && app.retired[masterType]) || (app.rank && (app.rank[masterType] || 0) >= 10)));
+};
+
+window.hasInventoryItem = function(itemId) {
+    const inv = window.aiPet && window.aiPet.inventory ? window.aiPet.inventory : [];
+    return inv.some(i => getInventoryItemId(i) === itemId);
+};
+
+window.giveInventoryItemOnce = function(itemId) {
+    if (!window.aiPet) return false;
+    if (!window.aiPet.inventory) window.aiPet.inventory = [];
+    if (window.hasInventoryItem && window.hasInventoryItem(itemId)) return false;
+    window.aiPet.inventory.push({ id: itemId, age: 0 });
+    return true;
+};
+
+window.isConciergeFinalRoomReady = function() {
+    const hasStorage = window.hasMyHomeStorageLevel &&
+        window.hasMyHomeStorageLevel('warehouse') &&
+        window.hasMyHomeStorageLevel('freezer') &&
+        window.hasMyHomeStorageLevel('safe');
+    const hasCoreFurniture = window.hasMyHomeFurniture &&
+        window.hasMyHomeFurniture('bed') &&
+        (window.hasMyHomeFurniture('strategy_table') || window.hasMyHomeFurniture('table'));
+    const totalLevel = ['warehouse', 'freezer', 'safe', 'dresser', 'bed', 'strategy_table', 'table']
+        .reduce((sum, key) => sum + (window.getMyHomeFurnitureLevel ? window.getMyHomeFurnitureLevel(key) : 0), 0);
+    return !!(hasStorage && hasCoreFurniture && totalLevel >= 10);
+};
+
+window.tryTriggerConciergeHomeEncounter = function(options = {}) {
+    const hero = window.aiPet;
+    if (!hero) return false;
+    const generation = Math.max(1, Number(hero.generation) || 1);
+    const isFirstEncounter = !(hero.conciergeUnlocked || hero.conciergeEncountered);
+
+    if (!isFirstEncounter) {
+        if (!options.fromMyHomeMap) return false;
+        if (Number(hero.conciergeEncounterGeneration) === generation) {
+            if (window._conciergeEncounterInProgress) {
+                if (typeof options.onComplete === 'function') window.pendingMyHomeEntryAfterConciergeEncounter = options.onComplete;
+                return true;
+            }
+            return false;
+        }
+    } else {
+        if (!hero.conciergeIntroduced) return false;
+        if (!window.hasInventoryItem || !window.hasInventoryItem('concierge_route_log') || !window.hasInventoryItem('concierge_house_key')) return false;
+        if (!window.isConciergeBaseUnlockReady || !window.isConciergeBaseUnlockReady()) return false;
+    }
+
+    hero.conciergeEncountered = true;
+    hero.conciergeUnlocked = true;
+    hero.conciergeEncounterGeneration = generation;
+    if (typeof window.ensureMyHomeIndoorState === 'function') window.ensureMyHomeIndoorState();
+    if (!hero.apprentice) hero.apprentice = { rank: {}, metMasters: [], learnedWords: [], activeQuests: [], attempts: {}, retired: {} };
+    if (!hero.apprentice.metMasters) hero.apprentice.metMasters = [];
+    if (!hero.apprentice.metMasters.includes('concierge')) hero.apprentice.metMasters.push('concierge');
+    if (!hero.apprentice.learnedWords) hero.apprentice.learnedWords = [];
+    if (!hero.apprentice.learnedWords.includes('コンシェルジュ')) hero.apprentice.learnedWords.push('コンシェルジュ');
+    if (typeof saveGameData === 'function') saveGameData();
+
+    const msg = isFirstEncounter
+        ? "「いらっしゃいませ、AI様。これより、このマイホームが心からくつろげる場所となるよう、誠心誠意お仕えいたします。」"
+        : "「お帰りなさいませ。新たな生を歩み始めたAI様を、再びこのマイホームでお迎えできましたこと、心よりうれしく存じます。前世と変わらず、何なりとお申し付けくださいませ。」";
+    window._conciergeEncounterInProgress = true;
+    if (typeof options.onComplete === 'function') window.pendingMyHomeEntryAfterConciergeEncounter = options.onComplete;
+    const openIntro = () => {
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI('concierge', msg, 'encounter_intro');
+    };
+    const openGreeting = () => {
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI('concierge', msg, 'greeting');
+    };
+    if (typeof window.playMasterEncounterVideo === 'function') {
+        const played = window.playMasterEncounterVideo('concierge', openGreeting, isFirstEncounter ? openIntro : openGreeting);
+        if (played === false) (isFirstEncounter ? openIntro : openGreeting)();
+    } else {
+        (isFirstEncounter ? openIntro : openGreeting)();
+    }
+    return true;
 };
 
 window.isHairdresserCustomizationUnlocked = function() {
@@ -7232,6 +7544,9 @@ window.applyHairdresserCosmetic = function(hue, aura, auraColor = null, options 
     window.aiPet.cosmetic.totalComboApplied = nextHue !== 0 && nextAura !== 'none';
     window.aiPet.message = "カワイイを更新したよ♡";
     window.aiPet.messageTimer = 120;
+    if (typeof window.renderMyHomeMap === 'function' && window.myHomeMapOpen) window.renderMyHomeMap();
+    if (typeof window.renderShopMap === 'function' && document.getElementById('shop-map-ui')) window.renderShopMap();
+    if (typeof window.updateDungeonUI === 'function' && document.getElementById('dg-map-container')) window.updateDungeonUI();
     if (typeof saveGameData === 'function') saveGameData();
     return true;
 };
