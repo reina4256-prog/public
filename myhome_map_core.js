@@ -723,7 +723,8 @@
 
     function getActiveMyHomeHospitalityQuest() {
         const ai = window.aiPet || window.hero || {};
-        const quest = getCurrentConciergeQuest(8);
+        const quests = ai.apprentice && Array.isArray(ai.apprentice.activeQuests) ? ai.apprentice.activeQuests : [];
+        const quest = getCurrentConciergeQuest(8) || quests.find(q => q && q.isMasterSpecialQuest && q.eventType === 'hospitality' && !q.completed);
         if (!quest || ai.myHomeHospitalityDone || Number(quest.qVal || 0) >= 1) return null;
         return quest;
     }
@@ -781,6 +782,9 @@
             if (ai.apprentice) ai.apprentice.qVal = 1;
             if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
             renderMyHomeQuestHUD();
+        }
+        if (typeof window.recordMasterSpecialQuestProgress === 'function') {
+            window.recordMasterSpecialQuestProgress('hospitality', 'myhome_hospitality', { hero: ai });
         }
         setMyHomeChatMessage('来客は満足して帰りました。コンシェルジュに報告しましょう。');
         addMyHomeLog('来客が満足して帰りました。', '来客');

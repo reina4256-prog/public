@@ -42,6 +42,7 @@ if (typeof window.DUNGEON_SPRITES !== 'undefined') {
     window.DUNGEON_SPRITES["arena_pastry_chef"] = { "img": "pastry_chef_battle_enemy.png", "sx": 933, "sy": 69, "sw": 991, "sh": 1499, "scale": 0.15 };
     window.DUNGEON_SPRITES["arena_hairdresser"] = { "img": "hairdresser_battle_enemy.png", "sx": 925, "sy": 17, "sw": 991, "sh": 1540, "scale": 0.15 };
     window.DUNGEON_SPRITES["arena_concierge"] = { "img": "concierge_battle_enemy.png", "sx": 925, "sy": 17, "sw": 991, "sh": 1540, "scale": 0.15 };
+    window.DUNGEON_SPRITES["arena_dealer"] = { "img": "dealer_battle_enemy.png", "sx": 925, "sy": 17, "sw": 991, "sh": 1540, "scale": 0.15 };
 
     // 🤖 Robot Tree (20種 - 座標調整版)
     window.DUNGEON_SPRITES["arena_robot_type1"] = { "img": "robot_type1_battle_enemy.png", "sx": 588, "sy": 3, "sw": 1302, "sh": 1784, "scale": 0.15 };

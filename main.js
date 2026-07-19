@@ -93,7 +93,7 @@ window.updateTcgButtonAppearance = function() {
     // 現在の所持枚数をチェック
     const collectionCount = (window.TCG && window.TCG.myCollection) ? window.TCG.myCollection.length : 0;
 
-    if (collectionCount >= 60) {
+    if (typeof window.isTCGCardGameUnlocked === 'function' && window.isTCGCardGameUnlocked()) {
         // TCG解禁後（本来の姿）
         btn.innerHTML = '🃏 TCG';
         btn.style.background = '#9C27B0'; // 元の紫カラー
@@ -440,7 +440,8 @@ function createPalette() {
 // ★ AI調整用の直接入力UIパネル（家具エディタ機能追加版）
 // ==========================================
 window.editingTarget = 'ai'; window.selectedCardKey = ''; window.selectedDungeonSpriteKey = 'skull_floor'; 
-window.selectedFurnitureIndex = 0; window.copiedFrameData = null; 
+window.selectedFurnitureIndex = 0; window.copiedFrameData = null;
+window.cardAdjustScope = 'both';
 // ★タイトル画面調整用データ
 window.selectedTitleCharKey = 'robot';
 window.bgTitleImg = new Image(); window.bgTitleImg.src = 'bg_game_title.png';
@@ -2451,6 +2452,85 @@ window.TITLE_SCREEN_DATA = {
 // ==========================================
 // ★ AI調整用の直接入力UIパネル（追加表示ボタン追加版）
 // ==========================================
+const CARD_ARTWORK_ADJUST_FIELDS = ['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY'];
+const CARD_MEMORY_ARTWORK_ADJUST_FIELDS = CARD_ARTWORK_ADJUST_FIELDS.map(field => getMemoryArtworkFieldName(field));
+
+function getMemoryArtworkFieldName(field) {
+    return 'memory' + field.charAt(0).toUpperCase() + field.slice(1);
+}
+
+function getCardAdjustScope() {
+    return ['both', 'card', 'memory'].includes(window.cardAdjustScope) ? window.cardAdjustScope : 'both';
+}
+
+function getCardArtworkAdjustValue(target, field) {
+    if (!target) return undefined;
+    if (getCardAdjustScope() === 'memory') {
+        const memoryField = getMemoryArtworkFieldName(field);
+        return target[memoryField] !== undefined ? target[memoryField] : target[field];
+    }
+    return target[field];
+}
+
+function setCardArtworkAdjustValue(target, field, value) {
+    if (!target) return;
+    const scope = getCardAdjustScope();
+    const memoryField = getMemoryArtworkFieldName(field);
+    if (scope === 'memory') {
+        target[memoryField] = value;
+        return;
+    }
+    target[field] = value;
+    // 思い出専用値があるカードを「両方」で操作した場合は、操作した項目を再び揃える。
+    if (scope === 'both' && target[memoryField] !== undefined) target[memoryField] = value;
+}
+
+function readAdjustFrameValue(target, field) {
+    return editingTarget === 'card' && CARD_ARTWORK_ADJUST_FIELDS.includes(field)
+        ? getCardArtworkAdjustValue(target, field)
+        : target ? target[field] : undefined;
+}
+
+function writeAdjustFrameValue(target, field, value) {
+    if (!target) return;
+    if (editingTarget === 'card' && CARD_ARTWORK_ADJUST_FIELDS.includes(field)) {
+        setCardArtworkAdjustValue(target, field, value);
+    } else {
+        target[field] = value;
+    }
+}
+
+function createTCGArtworkAdjustmentExport(masterTable) {
+    const exportFields = CARD_ARTWORK_ADJUST_FIELDS.concat(CARD_MEMORY_ARTWORK_ADJUST_FIELDS);
+    const adjustments = {};
+    Object.entries(masterTable || {}).forEach(([cardId, card]) => {
+        if (!card || typeof card !== 'object') return;
+        const artwork = {};
+        exportFields.forEach(field => {
+            if (Object.prototype.hasOwnProperty.call(card, field) && card[field] !== undefined) artwork[field] = card[field];
+        });
+        if (Object.keys(artwork).length > 0) adjustments[cardId] = artwork;
+    });
+    return adjustments;
+}
+
+window.exportTCGMasterAdjustmentData = function() {
+    if (!window.TCG_MASTER) return false;
+
+    const fullMasterText = `window.TCG_MASTER = ${JSON.stringify(window.TCG_MASTER, null, 4)};`;
+    const artworkAdjustments = createTCGArtworkAdjustmentExport(window.TCG_MASTER);
+    const adjustmentPatchText = `Object.entries(${JSON.stringify(artworkAdjustments, null, 4)}).forEach(([cardId, artwork]) => {\n    if (window.TCG_MASTER[cardId]) Object.assign(window.TCG_MASTER[cardId], artwork);\n});`;
+    const memoryAdjustedIds = Object.entries(artworkAdjustments)
+        .filter(([, artwork]) => CARD_MEMORY_ARTWORK_ADJUST_FIELDS.some(field => artwork[field] !== undefined))
+        .map(([cardId]) => cardId);
+
+    console.log(`▼▼▼ TCG_MASTER 全体（window.TCG_MASTERへ貼り替え用）▼▼▼\n${fullMasterText}`);
+    console.log(`▼▼▼ カード・思い出の調整値のみ（全カード定義の後への追記用・推奨）▼▼▼\n${adjustmentPatchText}`);
+    console.log(`思い出専用の調整値あり: ${memoryAdjustedIds.length}件${memoryAdjustedIds.length ? `\n${memoryAdjustedIds.join(', ')}` : ''}`);
+    alert(`カード・思い出の調整データをF12コンソールへ出力しました。\n思い出専用の調整値: ${memoryAdjustedIds.length}件`);
+    return true;
+};
+
 function initAdjustUI() {
     const panel = document.createElement('div'); panel.id = 'ai-adjust-panel';
     panel.style.cssText = `position:fixed; bottom:20px; right:20px; background:rgba(0,0,0,0.85); color:white; padding:15px; border-radius:8px; display:none; z-index:9999; font-family:monospace; box-shadow:0 4px 10px rgba(0,0,0,0.5); width:320px;`;
@@ -2499,7 +2579,7 @@ function initAdjustUI() {
                 </div>
             `).join('')}
             
-            <div style="display:flex; align-items:center;">
+            <div id="direct-input-rotation-wrap" style="display:flex; align-items:center;">
                 <label style="width:55px;">ROT: </label>
                 <input type="number" step="1" id="direct-input-rotation" style="width:70px; background:#222; color:#fff; border:1px solid #555; padding:4px; border-radius:3px;">
             </div>
@@ -2508,6 +2588,20 @@ function initAdjustUI() {
                 <label style="width:55px; color:#ff9800;">HIDE: </label>
                 <input type="checkbox" id="direct-input-hide" style="cursor:pointer; width:16px; height:16px;">
             </div>
+        </div>
+
+        <div id="card-adjust-scope-wrap" style="display:none; margin-top:10px; padding:8px; border:1px solid #795548; border-radius:5px; background:rgba(121,85,72,.18);">
+            <div style="color:#ffe0b2; font-size:11px; font-weight:bold; margin-bottom:6px;">調整する表示</div>
+            <div style="display:flex; gap:5px;">
+                <label style="flex:1; cursor:pointer; text-align:center; padding:4px 2px; border-radius:4px; background:#5d4037;"><input type="radio" name="cardAdjustScope" value="both" checked> 両方</label>
+                <label style="flex:1; cursor:pointer; text-align:center; padding:4px 2px; border-radius:4px; background:#4a2737;"><input type="radio" name="cardAdjustScope" value="card"> カード</label>
+                <label style="flex:1; cursor:pointer; text-align:center; padding:4px 2px; border-radius:4px; background:#3e3428;"><input type="radio" name="cardAdjustScope" value="memory"> 思い出</label>
+            </div>
+        </div>
+
+        <div id="card-adjust-key-help" style="display:none; margin-top:10px; padding:7px 9px; border:1px solid #E91E63; border-radius:5px; background:rgba(233,30,99,.12); color:#ffd4e2; font-size:11px; line-height:1.5;">
+            CARD: V/B＝横スケール　N/M＝縦スケール<br>WASD＝切り抜き位置　QE/ZC＝切り抜きサイズ
+            <br>Ctrl/Shift＋S＝カード・思い出調整値をF12へ出力
         </div>
 
         <div id="title-bulk-hide-btns" style="margin-top:12px; display:none; grid-template-columns: 1fr 1fr; gap:6px; border-top:1px dashed #555; padding-top:10px;">
@@ -2524,10 +2618,22 @@ function initAdjustUI() {
     `;
     document.body.appendChild(panel);
 
+    const cardPreview = document.createElement('div');
+    cardPreview.id = 'card-adjust-live-preview';
+    cardPreview.style.cssText = 'position:fixed;right:370px;bottom:20px;width:550px;max-height:calc(100vh - 40px);box-sizing:border-box;overflow:auto;background:rgba(8,8,10,.94);color:#fff;padding:14px;border:1px solid #555;border-right:none;border-radius:10px 0 0 10px;display:none;z-index:9998;font-family:sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.65);pointer-events:none;';
+    document.body.appendChild(cardPreview);
+
     document.querySelectorAll('input[name="adjTarget"]').forEach(el => el.addEventListener('change', e => {
         editingTarget = e.target.value;
         if (editingTarget === 'card' && !selectedCardKey && typeof window.TCG_MASTER !== 'undefined') selectedCardKey = Object.keys(window.TCG_MASTER)[0];
         window.selectedFurnitureIndex = 0; 
+        if (typeof render === 'function') render();
+    }));
+
+    document.querySelectorAll('input[name="cardAdjustScope"]').forEach(el => el.addEventListener('change', e => {
+        window.cardAdjustScope = e.target.value;
+        const preview = document.getElementById('card-adjust-live-preview');
+        if (preview) preview.dataset.previewHash = '';
         if (typeof render === 'function') render();
     }));
 
@@ -2552,7 +2658,7 @@ function initAdjustUI() {
                     if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
                         target.scale = val;
                     } else {
-                        target[f] = val;
+                        writeAdjustFrameValue(target, f, val);
                     }
                     if(typeof render === 'function') render(); 
                 }
@@ -2607,7 +2713,12 @@ function initAdjustUI() {
     document.getElementById('adj-btn-copy').onclick = function() {
          const target = getAdjustTarget();
          if(target) {
-             window.copiedFrameData = { sx: target.sx, sy: target.sy, sw: target.sw, sh: target.sh, scaleX: target.scaleX, scaleY: target.scaleY, scale: target.scale, rotation: target.rotation };
+             window.copiedFrameData = {
+                 sx: readAdjustFrameValue(target, 'sx'), sy: readAdjustFrameValue(target, 'sy'),
+                 sw: readAdjustFrameValue(target, 'sw'), sh: readAdjustFrameValue(target, 'sh'),
+                 scaleX: readAdjustFrameValue(target, 'scaleX'), scaleY: readAdjustFrameValue(target, 'scaleY'),
+                 scale: target.scale, rotation: target.rotation
+             };
              this.innerText = 'Copied!'; this.style.background = '#2e8b57'; setTimeout(() => { this.innerText = 'Copy'; this.style.background = '#444'; }, 1000);
          }
     };
@@ -2615,9 +2726,10 @@ function initAdjustUI() {
     document.getElementById('adj-btn-paste').onclick = function() {
          const target = getAdjustTarget();
          if(target && window.copiedFrameData) {
-             target.sx = window.copiedFrameData.sx; target.sy = window.copiedFrameData.sy; target.sw = window.copiedFrameData.sw; target.sh = window.copiedFrameData.sh;
-             if(window.copiedFrameData.scaleX !== undefined) target.scaleX = window.copiedFrameData.scaleX;
-             if(window.copiedFrameData.scaleY !== undefined) target.scaleY = window.copiedFrameData.scaleY;
+             writeAdjustFrameValue(target, 'sx', window.copiedFrameData.sx); writeAdjustFrameValue(target, 'sy', window.copiedFrameData.sy);
+             writeAdjustFrameValue(target, 'sw', window.copiedFrameData.sw); writeAdjustFrameValue(target, 'sh', window.copiedFrameData.sh);
+             if(window.copiedFrameData.scaleX !== undefined) writeAdjustFrameValue(target, 'scaleX', window.copiedFrameData.scaleX);
+             if(window.copiedFrameData.scaleY !== undefined) writeAdjustFrameValue(target, 'scaleY', window.copiedFrameData.scaleY);
              if(window.copiedFrameData.scale !== undefined) target.scale = window.copiedFrameData.scale;
              if(window.copiedFrameData.rotation !== undefined) target.rotation = window.copiedFrameData.rotation;
              if(typeof render === 'function') render(); if(typeof saveGameData === 'function') saveGameData();
@@ -2628,12 +2740,16 @@ function initAdjustUI() {
     setInterval(() => {
         const p = document.getElementById('ai-adjust-panel'); if (!p) return;
         document.getElementsByName('adjTarget').forEach(r => { if (r.value === editingTarget) r.checked = true; });
+        document.getElementsByName('cardAdjustScope').forEach(r => { r.checked = r.value === getCardAdjustScope(); });
 
         const statusEl = document.getElementById('ai-adjust-status');
         if (statusEl) {
             if (editingTarget === 'ai') statusEl.innerText = `Target: ${selectedAIType || 'None'}`;
             else if (editingTarget === 'map') statusEl.innerText = `Target: ${selectedMapKey || 'None'}`;
-            else if (editingTarget === 'card') statusEl.innerText = `Target: ${window.TCG_MASTER ? window.TCG_MASTER[selectedCardKey]?.name : 'None'}`;
+            else if (editingTarget === 'card') {
+                const scopeLabel = { both: '両方', card: 'カード', memory: '思い出' }[getCardAdjustScope()];
+                statusEl.innerText = `Target: ${window.TCG_MASTER ? window.TCG_MASTER[selectedCardKey]?.name : 'None'} / ${scopeLabel}`;
+            }
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) statusEl.innerText = `Target: ${window.selectedDungeonSpriteKey || 'None'}`;
             // ★修正：R-ASSETが選ばれた時、新しいスプライトキーを表示する
             else if (editingTarget === 'rasset') {
@@ -2667,7 +2783,8 @@ function initAdjustUI() {
                         if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
                             el.value = target.scale !== undefined ? target.scale : 1;
                         } else { 
-                            el.value = target[f] !== undefined ? target[f] : (f.includes('scale') ? 1 : 0); 
+                            const value = readAdjustFrameValue(target, f);
+                            el.value = value !== undefined ? value : (f.includes('scale') ? 1 : 0);
                         }
                     }
                 });
@@ -2678,11 +2795,129 @@ function initAdjustUI() {
                 // ★修正：grid形式にしたボタンコンテナを表示
                 const bulkBtns = document.getElementById('title-bulk-hide-btns');
                 if (bulkBtns) bulkBtns.style.display = (editingTarget === 'title') ? 'grid' : 'none';
-                
+
+                const rotationWrap = document.getElementById('direct-input-rotation-wrap');
+                if (rotationWrap) rotationWrap.style.display = (editingTarget === 'card') ? 'none' : 'flex';
+                const cardScopeWrap = document.getElementById('card-adjust-scope-wrap');
+                if (cardScopeWrap) cardScopeWrap.style.display = (editingTarget === 'card') ? 'block' : 'none';
+                const cardKeyHelp = document.getElementById('card-adjust-key-help');
+                if (cardKeyHelp) cardKeyHelp.style.display = (editingTarget === 'card') ? 'block' : 'none';
+
             } else { p.style.display = 'none'; }
         } else { p.style.display = 'none'; }
+
+        if (typeof window.updateCardAdjustPreview === 'function') window.updateCardAdjustPreview();
     }, 100);
 }
+
+function escapeAdjustPreviewHtml(value) {
+    return String(value === undefined || value === null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function createCardAdjustPreviewCard(masterId, master) {
+    const baseCost = master.baseCost !== undefined ? master.baseCost : (master.cost || 0);
+    const baseHp = master.baseHp !== undefined ? master.baseHp : (master.hp || 0);
+    const baseDmg = master.baseDmg !== undefined ? master.baseDmg : (master.damage || master.attack || 0);
+    return Object.assign({}, master, {
+        uid: `debug_preview_${masterId}`,
+        masterId,
+        name: master.name || masterId,
+        type: master.type || 'item',
+        cost: baseCost,
+        hp: baseHp,
+        maxHp: baseHp,
+        damage: baseDmg,
+        attack: baseDmg,
+        skillName: master.skillName || '',
+        skillCost: master.skillCost || 0,
+        acquiredGeneration: 1
+    });
+}
+
+window.updateCardAdjustPreview = function(force) {
+    const preview = document.getElementById('card-adjust-live-preview');
+    if (!preview) return;
+
+    const shouldShow = typeof currentMode !== 'undefined'
+        && currentMode === 'ai_adjust'
+        && editingTarget === 'card'
+        && !!window.showAdjustUI
+        && typeof window.TCG_MASTER !== 'undefined'
+        && !!window.TCG_MASTER[selectedCardKey];
+    if (!shouldShow) {
+        preview.style.display = 'none';
+        preview.dataset.previewHash = '';
+        return;
+    }
+
+    const master = window.TCG_MASTER[selectedCardKey];
+    const scope = getCardAdjustScope();
+    const previewHash = JSON.stringify([
+        selectedCardKey, scope, master.image || master.img || '', master.sx, master.sy,
+        master.sw, master.sh, master.scaleX, master.scaleY,
+        master.memorySx, master.memorySy, master.memorySw, master.memorySh,
+        master.memoryScaleX, master.memoryScaleY,
+        master.baseCost, master.baseHp, master.baseDmg
+    ]);
+    preview.style.display = 'block';
+    if (!force && preview.dataset.previewHash === previewHash) return;
+    preview.dataset.previewHash = previewHash;
+
+    const card = createCardAdjustPreviewCard(selectedCardKey, master);
+    let cardHtml = '<div style="color:#ff8a80;padding:20px;">カード表示を生成できません</div>';
+    const originalUnlockCheck = window.isTCGCardGameUnlocked;
+    try {
+        // 調整時は現在の進行状況に関係なく、完成後のカード枠を確認できるようにする。
+        window.isTCGCardGameUnlocked = () => true;
+        if (typeof window.renderCardHTML === 'function') cardHtml = window.renderCardHTML(card);
+    } catch (error) {
+        console.warn('Card adjust preview failed:', error);
+    } finally {
+        if (originalUnlockCheck) window.isTCGCardGameUnlocked = originalUnlockCheck;
+        else delete window.isTCGCardGameUnlocked;
+    }
+
+    const memoryListHtml = typeof window.renderMemoryArtworkPreview === 'function'
+        ? window.renderMemoryArtworkPreview(card, false)
+        : '<div style="height:155px;display:flex;align-items:center;justify-content:center;background:#211;color:#ff8a80;">思い出表示を生成できません</div>';
+    const memoryDetailHtml = typeof window.renderMemoryArtworkPreview === 'function'
+        ? window.renderMemoryArtworkPreview(card, true)
+        : '<div style="height:310px;display:flex;align-items:center;justify-content:center;background:#211;color:#ff8a80;">思い出表示を生成できません</div>';
+
+    preview.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px;padding-bottom:8px;border-bottom:1px solid #555;">
+            <strong style="font-size:15px;color:#ffd54f;">🃏 カード／📖 思い出 実表示プレビュー</strong>
+            <span style="font-size:11px;color:#aaa;white-space:nowrap;">${escapeAdjustPreviewHtml(master.name || selectedCardKey)}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:145px minmax(0,1fr);gap:14px;align-items:start;">
+            <div>
+                <div style="font-size:11px;color:${scope === 'memory' ? '#888' : '#ff80ab'};font-weight:${scope === 'memory' ? 'normal' : 'bold'};margin-bottom:6px;">カード枠（完成形）${scope === 'card' ? '［調整中］' : scope === 'both' ? '［同時調整］' : ''}</div>
+                <div style="width:130px;height:188px;overflow:visible;">
+                    <div style="width:180px;height:260px;transform:scale(.72);transform-origin:top left;">${cardHtml}</div>
+                </div>
+            </div>
+            <div style="min-width:0;">
+                <div style="font-size:11px;color:${scope === 'card' ? '#888' : '#ffd180'};font-weight:${scope === 'card' ? 'normal' : 'bold'};margin-bottom:6px;">思い出・アルバム一覧${scope === 'memory' ? '［調整中］' : scope === 'both' ? '［同時調整］' : ''}</div>
+                <div style="width:100%;height:155px;overflow:hidden;border:2px solid #76552f;border-radius:8px;background:#21190f;box-sizing:border-box;">${memoryListHtml}</div>
+                <div style="font-size:11px;color:${scope === 'card' ? '#888' : '#ffd180'};font-weight:${scope === 'card' ? 'normal' : 'bold'};margin:12px 0 6px;">思い出・詳細画面（実寸760pxを50%表示）</div>
+                <div style="width:380px;max-width:100%;height:155px;overflow:hidden;border:2px solid #76552f;border-radius:8px;background:#21190f;box-sizing:border-box;">
+                    <div style="width:760px;height:310px;transform:scale(.5);transform-origin:top left;">${memoryDetailHtml}</div>
+                </div>
+            </div>
+        </div>
+        <div style="margin-top:10px;padding-top:8px;border-top:1px dashed #444;font-size:11px;line-height:1.5;color:#bbb;">
+            ${scope === 'both'
+                ? '両方を調整中：操作した項目をカードと思い出へ同じ値で反映します。'
+                : scope === 'card'
+                    ? 'カードのみ調整中：思い出の専用値には影響しません。'
+                    : '思い出のみ調整中：専用値がない項目はカード値を初期値として使用します。'}
+        </div>`;
+};
 
 window.getCombinedAdjustAssetKeys = function() {
     const keys = [];
@@ -2762,6 +2997,18 @@ window.addEventListener('keydown', (e) => {
     const repeatableKeys = ['w', 'a', 's', 'd', 'q', 'e', 'z', 'c', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
     if (e.repeat && e.key && !repeatableKeys.includes(e.key.toLowerCase()) && !repeatableKeys.includes(e.key)) return;
 
+    // CARD調整の出力は、数値入力欄にフォーカスが残っていても実行できるよう先に処理する。
+    const isCardExportShortcut = isDevMode
+        && currentMode === 'ai_adjust'
+        && editingTarget === 'card'
+        && e.key && e.key.toLowerCase() === 's'
+        && (e.ctrlKey || e.metaKey || e.shiftKey);
+    if (isCardExportShortcut) {
+        e.preventDefault();
+        window.exportTCGMasterAdjustmentData();
+        return;
+    }
+
     if (document.activeElement && (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'TEXTAREA')) {
         if (document.activeElement === document.getElementById('chatInput')) { if (e.key === 'Enter') { e.preventDefault(); sendChat(); return; } }
         return;
@@ -2775,7 +3022,7 @@ window.addEventListener('keydown', (e) => {
             if (currentMode === 'editor' || currentMode === 'grazing_editor') exportMapData();
             else if (currentMode === 'ai_adjust') {
                 if (editingTarget === 'card' && typeof window.TCG_MASTER !== 'undefined') {
-                    console.log("▼▼▼ TCG_MASTER ▼▼▼\n" + JSON.stringify(window.TCG_MASTER, null, 4)); alert("カードデータをコンソールに出力しました！");
+                    window.exportTCGMasterAdjustmentData();
                 } else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && typeof window.DUNGEON_SPRITES !== 'undefined') { // ★修正
                     console.log("▼▼▼ DUNGEON_SPRITES ▼▼▼\n" + JSON.stringify(window.DUNGEON_SPRITES, null, 4)); alert("ダンジョン素材をコンソールに出力しました！");
                 } else if (editingTarget === 'rasset') {
@@ -2881,32 +3128,46 @@ window.addEventListener('keydown', (e) => {
         if (e.key.toLowerCase() === 'v') { 
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = Math.max(0.01, (aiConfigs[selectedAIType].scale||0.25) - 0.05);
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = Math.max(0.01, (catalog[selectedMapKey].scale||1.0) - 0.05);
-            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = Math.max(0.01, (window.TCG_MASTER[selectedCardKey].scaleX||1.0) - 0.05);
+            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) {
+                const card = window.TCG_MASTER[selectedCardKey];
+                setCardArtworkAdjustValue(card, 'scaleX', Math.max(0.01, (Number(getCardArtworkAdjustValue(card, 'scaleX')) || 1.0) - 0.05));
+            }
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.01, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05);
             else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.01, (t.scale||1.0) - 0.05); }
         }
         if (e.key.toLowerCase() === 'b') { 
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = (aiConfigs[selectedAIType].scale||0.25) + 0.05;
             else if (editingTarget === 'map' && catalog[selectedMapKey]) catalog[selectedMapKey].scale = (catalog[selectedMapKey].scale||1.0) + 0.05;
-            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) window.TCG_MASTER[selectedCardKey].scaleX = (window.TCG_MASTER[selectedCardKey].scaleX||1.0) + 0.05;
+            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) {
+                const card = window.TCG_MASTER[selectedCardKey];
+                setCardArtworkAdjustValue(card, 'scaleX', (Number(getCardArtworkAdjustValue(card, 'scaleX')) || 1.0) + 0.05);
+            }
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05;
             else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
         }
 
-        // ★追加: Nキー（左回転）と Mキー（右回転）5度ずつ回転
+        // CARDではN/Mを縦スケール専用にする。その他の調整対象では従来通り回転。
         if (e.key.toLowerCase() === 'n') { 
+            if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) {
+                const card = window.TCG_MASTER[selectedCardKey];
+                setCardArtworkAdjustValue(card, 'scaleY', Math.max(0.01, (Number(getCardArtworkAdjustValue(card, 'scaleY')) || 1.0) - 0.05));
+                e.preventDefault(); render(); return;
+            }
             let applyRot = (obj) => { obj.rotation = ((obj.rotation || 0) - 5) % 360; };
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) applyRot(aiConfigs[selectedAIType]);
             else if (editingTarget === 'map' && catalog[selectedMapKey]) applyRot(catalog[selectedMapKey]);
-            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) applyRot(window.TCG_MASTER[selectedCardKey]);
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) applyRot(window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]);
             else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
         }
         if (e.key.toLowerCase() === 'm') { 
+            if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) {
+                const card = window.TCG_MASTER[selectedCardKey];
+                setCardArtworkAdjustValue(card, 'scaleY', (Number(getCardArtworkAdjustValue(card, 'scaleY')) || 1.0) + 0.05);
+                e.preventDefault(); render(); return;
+            }
             let applyRot = (obj) => { obj.rotation = ((obj.rotation || 0) + 5) % 360; };
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) applyRot(aiConfigs[selectedAIType]);
             else if (editingTarget === 'map' && catalog[selectedMapKey]) applyRot(catalog[selectedMapKey]);
-            else if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) applyRot(window.TCG_MASTER[selectedCardKey]);
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) applyRot(window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]);
             else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
         }
@@ -2927,12 +3188,16 @@ window.addEventListener('keydown', (e) => {
 
     if (e.ctrlKey || e.metaKey) {
         if (e.key.toLowerCase() === 'c') {
-            window.copiedFrameData = { sx: target.sx, sy: target.sy, sw: target.sw, sh: target.sh };
+            window.copiedFrameData = {
+                sx: readAdjustFrameValue(target, 'sx'), sy: readAdjustFrameValue(target, 'sy'),
+                sw: readAdjustFrameValue(target, 'sw'), sh: readAdjustFrameValue(target, 'sh')
+            };
             console.log("Frame Copied:", window.copiedFrameData); e.preventDefault(); return;
         }
         if (e.key.toLowerCase() === 'v') {
             if (window.copiedFrameData) {
-                target.sx = window.copiedFrameData.sx; target.sy = window.copiedFrameData.sy; target.sw = window.copiedFrameData.sw; target.sh = window.copiedFrameData.sh;
+                writeAdjustFrameValue(target, 'sx', window.copiedFrameData.sx); writeAdjustFrameValue(target, 'sy', window.copiedFrameData.sy);
+                writeAdjustFrameValue(target, 'sw', window.copiedFrameData.sw); writeAdjustFrameValue(target, 'sh', window.copiedFrameData.sh);
                 console.log("Frame Pasted!"); saveGameData(); render();
             }
             e.preventDefault(); return;
@@ -2941,15 +3206,15 @@ window.addEventListener('keydown', (e) => {
 
     const step = e.shiftKey ? 10 : 1; const key = e.key.toLowerCase();
     
-    if (key === 'w') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dy -= step; else target.sy -= step; }
-    if (key === 's') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dy += step; else target.sy += step; }
-    if (key === 'a') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dx -= step; else target.sx -= step; }
-    if (key === 'd') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dx += step; else target.sx += step; }
+    if (key === 'w') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dy -= step; else writeAdjustFrameValue(target, 'sy', (Number(readAdjustFrameValue(target, 'sy')) || 0) - step); }
+    if (key === 's') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dy += step; else writeAdjustFrameValue(target, 'sy', (Number(readAdjustFrameValue(target, 'sy')) || 0) + step); }
+    if (key === 'a') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dx -= step; else writeAdjustFrameValue(target, 'sx', (Number(readAdjustFrameValue(target, 'sx')) || 0) - step); }
+    if (key === 'd') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.dx += step; else writeAdjustFrameValue(target, 'sx', (Number(readAdjustFrameValue(target, 'sx')) || 0) + step); }
     
-    if (key === 'q') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale = Math.max(0.1, target.scale - 0.05); else target.sw -= step; }
-    if (key === 'e') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale += 0.05; else target.sw += step; }
-    if (key === 'z') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale = Math.max(0.1, target.scale - 0.05); else target.sh -= step; }
-    if (key === 'c') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale += 0.05; else target.sh += step; }
+    if (key === 'q') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale = Math.max(0.1, target.scale - 0.05); else writeAdjustFrameValue(target, 'sw', (Number(readAdjustFrameValue(target, 'sw')) || 0) - step); }
+    if (key === 'e') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale += 0.05; else writeAdjustFrameValue(target, 'sw', (Number(readAdjustFrameValue(target, 'sw')) || 0) + step); }
+    if (key === 'z') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale = Math.max(0.1, target.scale - 0.05); else writeAdjustFrameValue(target, 'sh', (Number(readAdjustFrameValue(target, 'sh')) || 0) - step); }
+    if (key === 'c') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale += 0.05; else writeAdjustFrameValue(target, 'sh', (Number(readAdjustFrameValue(target, 'sh')) || 0) + step); }
     
     // ★追加：家具・タイトルキャラの配置位置（X/Y）の調整（矢印キー）
     if (['rasset', 'sasset', 'title'].includes(editingTarget)) {

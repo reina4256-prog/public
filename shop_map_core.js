@@ -5758,7 +5758,11 @@ window.startShopMapLoop = function() {
             p.timer--;
             if (p.timer <= 0) {
                 let prepped = false;
-                const recipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
+                const availableRecipeKeys = typeof window.getAvailableShopRecipeKeys === 'function' ? window.getAvailableShopRecipeKeys() : Object.keys(window.SHOP_RECIPE_COSTS);
+                const activeSpecialTargets = window.aiPet && window.aiPet.apprentice && Array.isArray(window.aiPet.apprentice.activeQuests)
+                    ? window.aiPet.apprentice.activeQuests.filter(q => q && q.isMasterSpecialQuest && q.eventType === 'cook_recipe' && !q.completed).map(q => q.targetId)
+                    : [];
+                const recipeKeys = [...activeSpecialTargets.filter(key => availableRecipeKeys.includes(key)), ...availableRecipeKeys.filter(key => !activeSpecialTargets.includes(key))];
                 for (let dishKey of recipeKeys) {
                     if (s.recipeProgress[dishKey] >= 100 && window.checkAndConsumeIngredients(dishKey, false)) {
                         
@@ -5784,6 +5788,9 @@ window.startShopMapLoop = function() {
 
                         if (!s.fridge[dishKey]) s.fridge[dishKey] = 0;
                         s.fridge[dishKey]++;
+                        if (typeof window.recordMasterSpecialQuestProgress === 'function') {
+                            window.recordMasterSpecialQuestProgress('cook_recipe', dishKey, { hero: window.aiPet, actualItemId: dishKey, addProofItem: true });
+                        }
 
                         // 在庫を増やす箇所（s.fridge[dishKey]++ の直後に追加）
                         if (Math.random() < mods.prepBonusChance) {

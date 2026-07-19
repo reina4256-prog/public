@@ -245,6 +245,40 @@ window.DUNGEON_SPRITES = {
         "scale": 0.25000000000000006
     },
 
+    // ディーラー
+    "dealer_down": {
+        "img": "dealer_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "dealer_up": {
+        "img": "dealer_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "dealer_left": {
+        "img": "dealer_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "dealer_right": {
+        "img": "dealer_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
 
     "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },

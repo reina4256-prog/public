@@ -1,11 +1,18 @@
-// ui_controller.js : UI操作 (Fixed Version v45 - Absolute UI Safety & Evolution Button Fix)
+﻿// ui_controller.js : UI操作 (Fixed Version v45 - Absolute UI Safety & Evolution Button Fix)
 
 // ==========================================
 // ★ 追加：いつでも呼び出せる汎用チュートリアルウィンドウ
 // ==========================================
 window.getQuestInventoryItemId = function(item) {
-    if (typeof item === 'string') return item;
-    return item && typeof item.id === 'string' ? item.id : '';
+    let current = item;
+    for (let depth = 0; depth < 4; depth++) {
+        if (typeof current === 'string') return current;
+        if (!current || typeof current !== 'object') return '';
+        if (typeof current.id === 'string') return current.id;
+        // 旧不具合で { id: { id: 'item_id', ... }, age: 0 } になった所持品も読めるようにする。
+        current = current.id;
+    }
+    return '';
 };
 
 window.countQuestInventoryItems = function(inventory, ids) {
@@ -438,7 +445,7 @@ window.openStatusMenu = function() {
                 html += `<div style="font-size: 13px; color: #fff; margin-bottom: 8px;">専門家: <span style="color:#FFC107; font-weight:bold;">${mName} (ランク ${rank})</span></div>`;
                 
                 // ★完全修正：activeQuests から現在の師匠の課題（本業＆バイト）を抽出して描画！
-                let currentMasterQuests = (app.activeQuests || []).filter(q => q.masterType === app.currentMaster && q.rank !== 0);
+                let currentMasterQuests = (app.activeQuests || []).filter(q => q.masterType === app.currentMaster && q.rank !== 0 && !q.isMasterSpecialQuest);
 
                     if (currentMasterQuests.length > 0) {
                         html += `<div style="background: #222; padding: 8px; border-radius: 4px; border-left: 3px solid #FFC107;">`;
@@ -2777,12 +2784,6 @@ window.openCasino = function() {
         window.audioManager.playBGM('card_lobby');
     }
     
-    // カジノ来店フラグ（念のための直接付与）
-    if (window.aiPet) {
-        window.aiPet.visitedCasino = true;
-        if (typeof saveGameData === 'function') saveGameData();
-    }
-
     // 1. TCGデータがまだ無い、または60枚未満の場合は「入場拒否」の演出（alert廃止）
     if (!window.TCG || !window.TCG.myCollection || window.TCG.myCollection.length < 60) {
         let count = window.TCG ? (window.TCG.myCollection ? window.TCG.myCollection.length : 0) : 0;
@@ -2812,10 +2813,10 @@ window.openCasino = function() {
                 <div style="font-size: 16px; color: #ddd; line-height: 1.6; margin-bottom: 20px; background: #111; padding: 15px; border-radius: 8px;">
                     「ここは特別な『カードゲーム』の闘技場だ。<br>
                     参加するには、カード化された『思い出』が<br>
-                    <span style="color:#ff5252; font-weight:bold;">最低でも60個</span> 必要だぞ」
+                    <span style="color:#ff5252; font-weight:bold;">最低でも60枚</span> 必要だぞ」
                 </div>
                 <div style="font-size: 18px; font-weight: bold; margin-bottom: 25px;">
-                    現在: <span style="color: ${count >= 60 ? '#4CAF50' : '#ff5252'};">${count} / 60個</span>
+                    現在: <span style="color: ${count >= 60 ? '#4CAF50' : '#ff5252'};">${count} / 60枚</span>
                 </div>
                 <button onclick="document.getElementById('casino-reject-popup').style.opacity='0'; setTimeout(()=>document.getElementById('casino-reject-popup').remove(), 300);" 
                         style="padding: 12px 30px; font-size: 18px; font-weight: bold; background: #FF9800; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;"
@@ -2834,6 +2835,11 @@ window.openCasino = function() {
         
         return;
     }
+
+    // 60枚を満たして実際にロビーへ入れた時だけ、TCG公開条件を永続化する。
+    if (window.aiPet) window.aiPet.visitedCasino = true;
+    if (typeof window.markTCGCasinoVisited === 'function') window.markTCGCasinoVisited();
+    if (typeof saveGameData === 'function') saveGameData();
 
     // 2. AIをカジノ内で「待機状態」にして、勝手に出ないようにする
     if (window.aiPet) {
@@ -2879,7 +2885,7 @@ window.openCasino = function() {
         </p>
         
         <div style="display:flex; flex-direction:column; gap:20px; width: 450px; max-width: 90%;">
-            <button onclick="document.getElementById('casino-lobby-ui').style.display='none'; window.openDeckBuilder();" 
+            <button onclick="document.getElementById('casino-lobby-ui').style.display='none'; window.openDeckBuilder('casino');"
                 style="padding:15px; font-size:20px; font-weight:bold; background:#2196F3; color:white; border:3px solid #FFF; border-radius:8px; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 🗃️ コレクション / デッキ編成
             </button>
@@ -3638,7 +3644,8 @@ function getMasterEncounterVideoSrc(masterType, hero) {
         tailor: 'encount_tailor.mp4',
         pastry_chef: 'encount_pastry_chef.mp4',
         hairdresser: 'encount_hairdresser.mp4',
-        concierge: 'encount_concierge.mp4'
+        concierge: 'encount_concierge.mp4',
+        dealer: 'encount_dealer.mp4'
     };
     const src = videoMap[masterType] || null;
     console.info('[MasterEncounterVideo] resolved source', {
@@ -4129,7 +4136,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             // ★追加：パティシエの立ち絵
             'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
-            'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
+            'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
+            'dealer': { img: "dealer_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
         };
         let mData = masterSprites[masterType];
 
@@ -4181,7 +4189,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         const hideBaitoModes = [
             'excommunicate', 'retire', 'exam_fail', 'banned', 
             'graduate', 'rank_up', 'quest_report', 'exam_pass',
-            'quest_offer', 'quest_offer_exam', 'encounter', 'encounter_intro'
+            'quest_offer', 'quest_offer_exam', 'master_special_offer', 'encounter', 'encounter_intro'
         ];
         
         if (!hideBaitoModes.includes(mode)) {
@@ -4239,7 +4247,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             thoughtText = "（言葉を教えて、またチャットで呼んで会いに行こう！）";
             btnBox.innerHTML = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: #FF9800; color: #fff; font-weight: bold; border: 2px solid #E65100; border-radius: 8px; cursor: pointer;">わかった！</button>`;
         }
-        else if (mode === 'encounter' || mode === 'quest_offer' || mode === 'quest_offer_exam') {
+        else if (mode === 'encounter' || mode === 'quest_offer' || mode === 'quest_offer_exam' || mode === 'master_special_offer') {
             let yesText = mode === 'encounter' ? "試験を開始する" : "課題を受ける";
             let mainBtnHtml = "";
             let canTakeExam = true;
@@ -4554,6 +4562,23 @@ window.confirmEncounter = function(isAccept) {
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
         if (typeof saveGameData === 'function') saveGameData(); 
     }
+    else if (currentEncounterMode === 'master_special_offer') {
+        if (isAccept && window._pendingMasterSpecialQuest && window._pendingMasterSpecialQuest.masterType === mType) {
+            if (!hero.apprentice.activeQuests) hero.apprentice.activeQuests = [];
+            const pending = window._pendingMasterSpecialQuest;
+            const duplicate = hero.apprentice.activeQuests.some(q => q && q.isMasterSpecialQuest && q.masterType === mType && Number(q.generation) === Number(pending.generation));
+            if (!duplicate) hero.apprentice.activeQuests.push(pending);
+            if (pending.eventType === 'hospitality') hero.myHomeHospitalityDone = false;
+            hero.message = '師匠から特別な仕事を託された。';
+            hero.messageTimer = 150;
+        } else {
+            hero.message = '今は引き受けず、また改めて訪ねることにした。';
+            hero.messageTimer = 120;
+        }
+        window._pendingMasterSpecialQuest = null;
+        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        if (typeof saveGameData === 'function') saveGameData();
+    }
     else if (currentEncounterMode === 'quest_not_clear') {
         hero.message = "引き続き課題を頑張ろう..."; hero.messageTimer = 120;
     }
@@ -4613,6 +4638,11 @@ window.confirmEncounter = function(isAccept) {
         if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD(); 
         if (typeof saveGameData === 'function') saveGameData();
+
+        // 免許皆伝が確定した瞬間に、対応する人物カード（60枚未満なら思い出）を1枚だけ獲得する。
+        if (typeof window.unlockMasterPersonCard === 'function') {
+            window.unlockMasterPersonCard(mType, hero.generation || 1);
+        }
 
         if (typeof hero.determineLifePath === 'function') {
             const chosenPath = hero.determineLifePath();
@@ -4693,6 +4723,455 @@ window.handleMasterVisitChoice = function(visitAction) {
         return;
     }
     window.checkMasterVisit(masterType, visitAction);
+};
+
+// ==========================================
+// 免許皆伝後・次世代限定の「師匠からの特別依頼」
+// ==========================================
+const MASTER_SPECIAL_QUEST_TYPES = Object.freeze([
+    'explore', 'farming', 'fishing', 'cooking', 'smithing', 'building',
+    'pharmacist', 'pastry_chef', 'hairdresser', 'tailor', 'concierge'
+]);
+
+const MASTER_SPECIAL_DIALOGUE = Object.freeze({
+    explore: {
+        offer: name => `「免許皆伝のその先で、もう一つ頼みがあるの。今から探検へ出て『${name}』を見つけてきなさい。手元にある物ではだめよ。新しい景色の中で拾ってくることね。」`,
+        incomplete: '「まだ新しい発見を持ち帰れていないようね。自分の足で探検して、見つけてきなさい。」',
+        complete: '「よく見つけたわね。そう、その目よ。道を極めた後も未知を追う姿……私はきっと忘れないわ。」',
+        empty: '「今の島には、あなたに頼める新しい探索先がないようね。景色が変わったら、また顔を見せなさい。」'
+    },
+    farming: {
+        offer: name => `「また一つ、畑仕事を頼んでもいいかい。今から種をまいて『${name}』を育てておいで。前に採った物ではなく、君がこれから育てた実を見せておくれ。」`,
+        incomplete: '「まだ畑から新しい実りは届いていないようだね。焦らず、種から大事に育てておいで。」',
+        complete: '「うん、よく育っている。世代が変わっても、君の手のぬくもりは土に残るんだね。この実りは忘れないよ。」',
+        empty: '「今の畑では、改めて頼める作物がないようだね。育てられる物が増えたら、またおいで。」'
+    },
+    fishing: {
+        offer: name => `「お前さん、もう一度腕を見せてくれや。今から竿を出して『${name}』を釣ってきな！ 昔の獲物じゃなく、今日の水面から引き上げたやつだぜ。」`,
+        incomplete: '「まだ新しい獲物の気配がしねえな。水面とにらめっこして、自分の竿で釣り上げてきな！」',
+        complete: '「こいつは見事だ！ 世代を越えても、その竿さばきは鈍っちゃいねえ。今日の一匹、俺は忘れねえぜ！」',
+        empty: '「今は狙わせられる魚がいねえみたいだな。季節か釣り場が変わったら、また来な！」'
+    },
+    cooking: {
+        offer: name => `「もう一度、君の料理を食わせてくれ！ 今から『${name}』を一皿作って持ってこい。作り置きではなく、火と向き合って新しく仕上げるんだぞ！」`,
+        incomplete: '「まだ出来たての香りがしないぞ！ 指定した料理を新しく作り、使わずに一皿持ってこい！」',
+        complete: '「うまい！ 腕を極めた後も、君の料理は前へ進んでいる。この味と今日の仕事、私は忘れないぞ！」',
+        empty: '「今の君に頼める料理が見つからないな。完成したレシピが増えたら、また腕を見せに来い！」'
+    },
+    smithing: {
+        offer: name => `「……もう一度、火に向き合え。今から『${name}』を打って持ってこい。以前の品ではなく、お前が新たに鍛えた一品だ。」`,
+        incomplete: '「……新しい鉄の響きがしない。指定した品を打ち、失わずに持ってこい。」',
+        complete: '「……いい仕事だ。火も鉄も、お前のことを覚えている。俺も、この一打を忘れない。」',
+        empty: '「……今は頼める鍛造品がない。打てる物が増えたら、また来い。」'
+    },
+    building: {
+        offer: name => `「君の今の腕で、もう一つ形にしてほしい。これから『${name}』を完成させてきてくれ。すでにある物ではなく、新しい仕事としてだ。」`,
+        incomplete: '「現場はまだ完成していないようだな。指定した仕事を終えてから、もう一度来てくれ。」',
+        complete: '「見事な仕上がりだ。世代を越えても、君の仕事はこの島の景色になる。今日の現場は忘れないぞ。」',
+        empty: '「今の島では、新しく任せられる現場がないようだ。建てられる物や設備が変わったら、また来てくれ。」'
+    },
+    pharmacist: {
+        offer: name => `「おやおや、もう一度だけ調合をお願いしてもよいですか。今から『${name}』を新しく作って持ってきてください。作り置きではなく、正確に量った一服をお願いしますね。」`,
+        incomplete: '「まだ新しく調合した薬がありませんね。慌てず正確に作り、使わずに持ってきてください。健康第一ですよ。」',
+        complete: '「素晴らしい調合です。世代が変わっても、命に向き合う丁寧さは変わりませんね。この一服のこと、忘れませんよ。」',
+        empty: '「今の処方箋では、改めてお願いできる薬がないようです。作れる薬が増えたら、また来てくださいね。」'
+    },
+    pastry_chef: {
+        offer: name => `「トレビアン！ 君の今の甘さを見せてよ。今から『${name}』を新しく作って、一皿持ってきて！ 作り置きじゃなく、今日生まれたスイーツでお願いね！」`,
+        incomplete: '「ノー・スイート！ まだ出来たての甘い香りが届いてないよ。指定のスイーツを作って、その一皿を持ってきて！」',
+        complete: '「アンビリーバボー！ 世代を越えて、さらに幸せな甘さになったね。今日の一皿、絶対に忘れないよ！」',
+        empty: '「今は君に頼める完成済みのスイーツがないみたい！ 新しいレシピが仕上がったら、またティータイムにおいで！」'
+    },
+    hairdresser: {
+        offer: name => `「ねえねえ、今のカワイイをもっと更新しよっ♡ ${name}してきて！ 受ける前の仕上がりじゃなく、ここから新しく盛るのがポイントだよ〜！」`,
+        incomplete: '「まだ新しいカワイイが足りないかも〜！ お願いした分を更新してから、もう一回来てね♡」',
+        complete: '「きゃ〜っ、最高にカワイイ！ 世代が変わってもセンスはずっとキラキラだね♡ 今日のスタイル、絶対忘れないよ！」',
+        empty: '「今はこれ以上お願いできる盛りポイントがないみたい〜。ドレッサーやスタイルが変わったら、また来てね♡」'
+    },
+    tailor: {
+        offer: name => `「ふふっ、今のあなたの指先でもう一仕事お願いできますか。${name}、その仕上がりを見せてください。これから重ねるひと針を楽しみにしていますね。」`,
+        incomplete: '「まだ新しいひと針が重なっていないようですね。指定したお守りを仕立ててから、またいらしてください。」',
+        complete: '「まあ……美しい仕上がりです。世代を越えても、糸に込める想いは続いているのですね。この仕事、忘れませんよ。」',
+        empty: '「今はお願いできるお守りがないようですね。仕立てられる物が増えたら、またアトリエへいらしてください。」'
+    },
+    concierge: {
+        offer: name => `「AI様、最後にもう一つだけお願いがございます。${name}。今この時から整えた、新しいおもてなしを拝見させてくださいませ。」`,
+        incomplete: '「まだお願いしたおもてなしには届いていないようでございます。どうぞ焦らず、マイホームを整えてくださいませ。」',
+        complete: '「お見事でございます。世代を越えてなお、この家を思うお心は変わりません。今日のおもてなしを、私は忘れません。」',
+        empty: '「ただいまは、これ以上お願いできるお仕事がございません。住まいの様子が変わりましたら、改めてお申し付けくださいませ。」'
+    }
+});
+
+const MASTER_SPECIAL_VISIT_CHOICE = Object.freeze({
+    explore: '「特別な仕事の報告か、手伝いの話ね。今日はどちらの用かしら？」',
+    farming: '「特別な仕事と畑の手伝い、どちらの話をしに来たんだい？」',
+    fishing: '「例の仕事の報告か、いつもの手伝いか。お前さん、今日はどっちだ？」',
+    cooking: '「特別な一皿の報告か、厨房の手伝いか！ 今日はどちらだ？」',
+    smithing: '「……例の仕事か、炉の手伝いか。用件を言え。」',
+    building: '「特別な現場の報告か、いつもの手伝いか。今日はどちらかな？」',
+    pharmacist: '「特別な処方のご報告ですか、それとも薬局のお手伝いでしょうか？」',
+    pastry_chef: '「スペシャルな一皿の報告？ それともスイートなお手伝い？ 今日はどっちかな！」',
+    hairdresser: '「特別なカワイイの報告？ それともサロンのお手伝い？ どっちにする〜♡」',
+    tailor: '「特別な仕立てのご報告ですか、それともアトリエのお手伝いでしょうか？」',
+    concierge: '「特別なおもてなしのご報告でしょうか。それとも、別のお手伝いをお申し付けになりますか？」'
+});
+
+window.getMasterSpecialItemName = function(itemId) {
+    if (window.itemCatalog && window.itemCatalog[itemId] && window.itemCatalog[itemId].name) return window.itemCatalog[itemId].name;
+    if (typeof itemCatalog !== 'undefined' && itemCatalog[itemId] && itemCatalog[itemId].name) return itemCatalog[itemId].name;
+    if (window.SHOP_DISH_NAMES && window.SHOP_DISH_NAMES[itemId]) return window.SHOP_DISH_NAMES[itemId];
+    if (typeof buildingCatalog !== 'undefined' && buildingCatalog[itemId] && buildingCatalog[itemId].name) return buildingCatalog[itemId].name;
+    return itemId;
+};
+
+window.getMasterPersonCards = function(masterType) {
+    const masterId = window.MASTER_PERSON_CARD_MAP && window.MASTER_PERSON_CARD_MAP[masterType];
+    const collection = window.TCG && Array.isArray(window.TCG.myCollection) ? window.TCG.myCollection : [];
+    return masterId ? collection.filter(card => card && card.masterId === masterId) : [];
+};
+
+window.hasMasterPersonRewardForGeneration = function(masterType, generation) {
+    const targetGeneration = Math.max(1, Number(generation) || 1);
+    return window.getMasterPersonCards(masterType).some(card => Math.max(1, Number(card.acquiredGeneration) || 1) === targetGeneration);
+};
+
+window.ensureMasterSpecialQuestEligibility = function(hero, masterType) {
+    if (!hero || !hero.apprentice || !MASTER_SPECIAL_QUEST_TYPES.includes(masterType)) return false;
+    const app = hero.apprentice;
+    const generation = Math.max(1, Number(hero.generation) || 1);
+    if (!app.specialQuestEligibleGeneration) app.specialQuestEligibleGeneration = {};
+    if (Number(app.specialQuestEligibleGeneration[masterType]) === generation) return true;
+
+    // 旧セーブ救済：前世以前の記録があり、今世で皆伝状況を引き継いでいる場合も対象にする。
+    const isMastered = !!((app.retired && app.retired[masterType]) || (app.rank && Number(app.rank[masterType] || 0) >= 10));
+    const existingRewards = window.getMasterPersonCards(masterType);
+    const hasPastReward = existingRewards.some(card => Math.max(1, Number(card.acquiredGeneration) || 1) < generation);
+    const isLegacySaveWithoutReward = generation > 1 && existingRewards.length === 0;
+    if (isMastered && (hasPastReward || isLegacySaveWithoutReward) && !window.hasMasterPersonRewardForGeneration(masterType, generation)) {
+        app.specialQuestEligibleGeneration[masterType] = generation;
+        return true;
+    }
+    return false;
+};
+
+function getMasterSpecialAssets() {
+    if (typeof assets !== 'undefined') return assets;
+    return window.assets || {};
+}
+
+function randomMasterSpecialEntry(entries) {
+    return entries && entries.length ? entries[Math.floor(Math.random() * entries.length)] : null;
+}
+
+function getMasterSpecialKnownRecipes(wantsSweet) {
+    const shopData = typeof window.getNotebookRestaurantShopData === 'function' ? window.getNotebookRestaurantShopData() : window.SHOP_STATE;
+    const progress = shopData && shopData.recipeProgress ? shopData.recipeProgress : {};
+    return Object.keys(progress).filter(key => {
+        if (Number(progress[key] || 0) < 100) return false;
+        const isSweet = typeof window.isPastryRecipe === 'function'
+            ? window.isPastryRecipe(key)
+            : ['dish_strawberry_cake', 'dish_melon_parfait', 'dish_honey_pudding', 'dish_pancakes', 'dish_fruit_tart', 'dish_honey_toast', 'dish_shaved_ice_honey', 'dish_honey_milk', 'dish_vanilla_ice', 'dish_cookie'].includes(key);
+        return wantsSweet ? isSweet : !isSweet;
+    });
+}
+
+window.createMasterSpecialQuest = function(hero, masterType) {
+    if (!hero || !hero.apprentice) return null;
+    const generation = Math.max(1, Number(hero.generation) || 1);
+    const inventoryIds = (hero.inventory || []).map(window.getQuestInventoryItemId);
+    const worldAssets = getMasterSpecialAssets();
+    const quest = {
+        isMasterSpecialQuest: true,
+        rank: -1,
+        masterType,
+        generation,
+        qVal: 0,
+        targetCount: 1,
+        acceptedAt: Date.now(),
+        proofToken: `master_special_${masterType}_${generation}_${Date.now()}_${Math.floor(Math.random() * 100000)}`
+    };
+    let target = null;
+
+    if (masterType === 'explore') {
+        const season = hero.season || 'spring';
+        const facilityKeys = new Set(Object.values(worldAssets).map(a => a && a.type).filter(Boolean));
+        if (facilityKeys.has('nature')) facilityKeys.add('palms');
+        const candidates = [];
+        if (typeof facilityData !== 'undefined') {
+            facilityKeys.forEach(key => {
+                const data = facilityData[key];
+                if (!data || !data.items || key === 'skull' || key === 'crystal') return;
+                if (Array.isArray(data.items)) candidates.push(...data.items);
+                else candidates.push(...(data.items.default || []), ...(data.items[season] || []));
+            });
+        }
+        target = randomMasterSpecialEntry([...new Set(candidates)]);
+        if (target) Object.assign(quest, { eventType: 'explore_item', targetId: target, targetName: window.getMasterSpecialItemName(target), requiresProof: true });
+    } else if (masterType === 'farming') {
+        const hasFarm = Object.values(worldAssets).some(a => a && a.type === 'farm');
+        const crops = hasFarm ? ['carrot'] : [];
+        const seedMap = { seed_tomato: 'tomato', seed_pepper: 'pepper', seed_strawberry: 'strawberry', seed_melon: 'melon', seed_aroma_herb: 'aroma_herb' };
+        Object.keys(seedMap).forEach(seedId => {
+            const planted = Object.values(worldAssets).some(a => a && a.type === 'farm' && a.plantedCrop === seedId);
+            if (inventoryIds.includes(seedId) || planted) crops.push(seedMap[seedId]);
+        });
+        target = randomMasterSpecialEntry([...new Set(crops)]);
+        if (target) Object.assign(quest, { eventType: 'harvest', targetId: target, targetName: window.getMasterSpecialItemName(target), requiresProof: true });
+    } else if (masterType === 'fishing') {
+        const season = hero.season || 'spring';
+        const types = new Set(Object.values(worldAssets).map(a => a && a.type).filter(Boolean));
+        const fish = [];
+        if ((types.has('water') || types.has('bridge')) && typeof riverFishingTable !== 'undefined') fish.push(...((riverFishingTable[season] || riverFishingTable.spring || []).map(x => x.id)));
+        if (types.has('sea') && typeof seaFishingTable !== 'undefined') fish.push(...((seaFishingTable[season] || seaFishingTable.spring || []).map(x => x.id)));
+        target = randomMasterSpecialEntry([...new Set(fish.filter(id => id && id.startsWith('fish_')))]);
+        if (target) Object.assign(quest, { eventType: 'fish', targetId: target, targetName: window.getMasterSpecialItemName(target), requiresProof: true });
+    } else if (masterType === 'cooking' || masterType === 'pastry_chef') {
+        target = randomMasterSpecialEntry(getMasterSpecialKnownRecipes(masterType === 'pastry_chef'));
+        if (target) Object.assign(quest, { eventType: 'cook_recipe', targetId: target, targetName: window.getMasterSpecialItemName(target), requiresProof: true });
+    } else if (masterType === 'smithing') {
+        target = randomMasterSpecialEntry(['eq_sword', 'eq_shield', 'tool_pan']);
+        if (target) Object.assign(quest, { eventType: 'smith', targetId: target, targetName: window.getMasterSpecialItemName(target), requiresProof: true });
+    } else if (masterType === 'building') {
+        const repeatable = new Set(['farm', 'bridge']);
+        const candidates = [];
+        if (typeof buildingCatalog !== 'undefined') {
+            Object.keys(buildingCatalog).forEach(key => {
+                const data = buildingCatalog[key];
+                if (!data || data.isUpgrade) return;
+                if (Number(data.reqBuildLevel || 0) > Number((hero.skills && hero.skills.building) || 0)) return;
+                if (Number(data.reqIntel || 0) > Number((hero.stats && hero.stats.intel) || 0)) return;
+                if (data.reqFlag && !hero[data.reqFlag]) return;
+                if (!repeatable.has(key) && Object.values(worldAssets).some(a => a && a.type === key)) return;
+                candidates.push(key);
+            });
+        }
+        target = randomMasterSpecialEntry(candidates);
+        if (target) {
+            Object.assign(quest, { eventType: 'building', targetId: target, targetName: window.getMasterSpecialItemName(target) });
+        } else if (typeof buildingCatalog !== 'undefined') {
+            const upgrades = Object.keys(buildingCatalog).filter(key => {
+                const data = buildingCatalog[key];
+                return data && data.isUpgrade && (!data.reqFlag || hero[data.reqFlag]) && Object.values(worldAssets).some(a => a && a.type === data.targetFacility);
+            });
+            target = randomMasterSpecialEntry(upgrades);
+            if (target) {
+                const data = buildingCatalog[target];
+                const host = Object.values(worldAssets).find(a => a && a.type === data.targetFacility);
+                const baseline = host && host.storage && host.storage[target] ? Number(host.storage[target].level || 0) : 0;
+                Object.assign(quest, { eventType: 'building_upgrade', targetId: target, targetName: `${data.name}を現在より1段階拡張`, baseline, targetLevel: baseline + 1 });
+            }
+        }
+    } else if (masterType === 'pharmacist') {
+        target = randomMasterSpecialEntry(['item_medicine_cold', 'item_antidote', 'item_medicine_focus', 'item_medicine_stomach']);
+        if (target) Object.assign(quest, { eventType: 'mix', targetId: target, targetName: window.getMasterSpecialItemName(target), requiresProof: true });
+    } else if (masterType === 'hairdresser') {
+        const level = typeof window.getDresserLevel === 'function' ? window.getDresserLevel() : 0;
+        if (level < 18) {
+            Object.assign(quest, { eventType: 'building_upgrade', targetId: 'dresser', targetName: 'ドレッサーのランクを現在より1上げる', baseline: level, targetLevel: level + 1 });
+            target = 'dresser';
+        } else {
+            Object.assign(quest, { eventType: 'hair_full_refresh', targetId: 'hair_full_refresh', targetName: '新しいカラーとオーラを一度ずつ施す', colorDone: false, auraDone: false });
+            target = 'hair_full_refresh';
+        }
+    } else if (masterType === 'tailor') {
+        const amulets = ['brooch_teruteru', 'ribbon_seeker', 'tassel_harvest', 'misanga_health', 'eternal_watch'];
+        const baseRate = 0.5 + (Number((hero.stats && hero.stats.beauty) || 10) * 0.005) + (Number((hero.apprentice.rank && hero.apprentice.rank.tailor) || 10) * 0.05);
+        const entries = amulets.map(id => {
+            const item = (hero.inventory || []).find(i => window.getQuestInventoryItemId(i) === id);
+            const plus = item ? (typeof item === 'string' ? 0 : Number(item.plus || 0)) : -1;
+            return { id, plus, canRaise: Math.min(0.95, Math.max(0, baseRate - (Math.pow(Math.max(0, plus), 2) * 0.01))) > 0 };
+        });
+        const upgradable = entries.filter(entry => entry.canRaise);
+        const picked = randomMasterSpecialEntry(upgradable.length ? upgradable : entries);
+        if (picked) {
+            const isRecraft = upgradable.length === 0;
+            Object.assign(quest, {
+                eventType: isRecraft ? 'tailor_recraft' : 'tailor',
+                targetId: picked.id,
+                targetName: isRecraft ? `${window.getMasterSpecialItemName(picked.id)}を新しくもう一つ仕立てる` : `${window.getMasterSpecialItemName(picked.id)}を現在より1段階仕立て上げる`,
+                baseline: picked.plus,
+                targetPlus: isRecraft ? 0 : picked.plus + 1
+            });
+            target = picked.id;
+        }
+    } else if (masterType === 'concierge') {
+        if (typeof window.getMyHomeEnvironmentScore === 'function') {
+            const score = window.getMyHomeEnvironmentScore();
+            Object.assign(quest, { eventType: 'environment_score', targetId: 'myhome_environment', targetName: `環境スコアを現在の${score}から${score + 3}まで上げる`, baseline: score, targetLevel: score + 3 });
+            target = 'myhome_environment';
+        } else {
+            Object.assign(quest, { eventType: 'hospitality', targetId: 'myhome_hospitality', targetName: '来客を一度、心を込めてもてなす' });
+            target = 'myhome_hospitality';
+        }
+    }
+
+    if (!target) return null;
+    quest.name = '師匠からの特別な仕事';
+    quest.desc = `免許皆伝の師匠から託された仕事。受注後に「${quest.targetName}」を成し遂げ、師匠本人へ報告しよう。`;
+    return quest;
+};
+
+window.findMasterSpecialProofIndex = function(hero, quest) {
+    if (!hero || !quest || !quest.proofToken) return -1;
+    return (hero.inventory || []).findIndex(item => {
+        let current = item;
+        // 旧不具合で証明付きアイテム全体が id の中へ包まれたセーブも、そのまま報告可能にする。
+        for (let depth = 0; depth < 4 && current && typeof current === 'object'; depth++) {
+            if (current.masterSpecialProof === quest.proofToken) {
+                return !quest.proofItemId || window.getQuestInventoryItemId(current) === quest.proofItemId;
+            }
+            current = current.id;
+        }
+        return false;
+    });
+};
+
+function markMasterSpecialProof(hero, quest, actualItemId, addProofItem) {
+    if (!hero || !quest || !actualItemId) return false;
+    if (!hero.inventory) hero.inventory = [];
+    quest.proofItemId = actualItemId;
+    if (addProofItem) {
+        hero.inventory.push({ id: actualItemId, age: 0, masterSpecialProof: quest.proofToken });
+        return true;
+    }
+    for (let i = hero.inventory.length - 1; i >= 0; i--) {
+        const item = hero.inventory[i];
+        if (window.getQuestInventoryItemId(item) !== actualItemId) continue;
+        if (item && typeof item === 'object' && item.masterSpecialProof) continue;
+        hero.inventory[i] = typeof item === 'string'
+            ? { id: item, age: 0, masterSpecialProof: quest.proofToken }
+            : Object.assign({}, item, { masterSpecialProof: quest.proofToken });
+        return true;
+    }
+    return false;
+}
+
+window.recordMasterSpecialQuestProgress = function(eventType, targetId, details = {}) {
+    const hero = details.hero || window.aiPet;
+    if (!hero || !hero.apprentice || !Array.isArray(hero.apprentice.activeQuests)) return false;
+    const generation = Math.max(1, Number(hero.generation) || 1);
+    const quests = hero.apprentice.activeQuests.filter(q => q && q.isMasterSpecialQuest && Number(q.generation) === generation && q.eventType === eventType && q.targetId === targetId);
+    if (quests.length === 0) return false;
+    let progressed = false;
+
+    quests.forEach(quest => {
+        if (quest.completed) {
+            if (!quest.requiresProof || window.findMasterSpecialProofIndex(hero, quest) >= 0) return;
+            quest.completed = false;
+            quest.qVal = 0;
+        }
+        if (eventType === 'tailor' && Number(details.plus) < Number(quest.targetPlus)) return;
+        if (eventType === 'building_upgrade' && Number(details.level) < Number(quest.targetLevel)) return;
+        if (eventType === 'hair_full_refresh') {
+            if (details.color) quest.colorDone = true;
+            if (details.aura) quest.auraDone = true;
+            quest.qVal = (quest.colorDone ? 1 : 0) + (quest.auraDone ? 1 : 0);
+            quest.completed = quest.qVal >= 2;
+            progressed = true;
+        } else {
+            const actualItemId = details.actualItemId || targetId;
+            if (quest.requiresProof && !markMasterSpecialProof(hero, quest, actualItemId, !!details.addProofItem)) return;
+            quest.qVal = 1;
+            quest.completed = true;
+            progressed = true;
+        }
+    });
+    if (!progressed) return false;
+    if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+    if (typeof saveGameData === 'function') saveGameData();
+    return true;
+};
+
+window.isMasterSpecialQuestComplete = function(hero, quest) {
+    if (!hero || !quest || !quest.isMasterSpecialQuest) return false;
+    if (quest.eventType === 'environment_score') {
+        return typeof window.getMyHomeEnvironmentScore === 'function' && window.getMyHomeEnvironmentScore() >= Number(quest.targetLevel || 0);
+    }
+    if (quest.eventType === 'building_upgrade') {
+        if (quest.targetId === 'dresser' && typeof window.getDresserLevel === 'function') return window.getDresserLevel() >= Number(quest.targetLevel || 0);
+    }
+    if (quest.eventType === 'hair_full_refresh') return !!quest.colorDone && !!quest.auraDone;
+    if (quest.requiresProof) return !!quest.completed && window.findMasterSpecialProofIndex(hero, quest) >= 0;
+    return !!quest.completed;
+};
+
+window.getMasterSpecialQuestProgressText = function(hero, quest) {
+    if (!quest) return '';
+    if (quest.eventType === 'environment_score') {
+        const current = typeof window.getMyHomeEnvironmentScore === 'function' ? window.getMyHomeEnvironmentScore() : 0;
+        return `環境スコア: ${Math.min(current, quest.targetLevel)} / ${quest.targetLevel}`;
+    }
+    if (quest.eventType === 'building_upgrade' && quest.targetId === 'dresser') {
+        const current = typeof window.getDresserLevel === 'function' ? window.getDresserLevel() : 0;
+        return `ドレッサーLv: ${Math.min(current, quest.targetLevel)} / ${quest.targetLevel}`;
+    }
+    if (quest.eventType === 'hair_full_refresh') return `カラー: ${quest.colorDone ? '達成' : '未達'} / オーラ: ${quest.auraDone ? '達成' : '未達'}`;
+    if (quest.eventType === 'tailor') return `仕立て上げ: ${quest.completed ? 1 : 0} / 1`;
+    if (quest.eventType === 'tailor_recraft') return `新しい仕立て: ${quest.completed ? 1 : 0} / 1`;
+    return `受注後の成果: ${window.isMasterSpecialQuestComplete(hero, quest) ? 1 : 0} / 1`;
+};
+
+window.tryHandleMasterSpecialVisit = function(hero, masterType, visitAction) {
+    if (!hero || !hero.apprentice || !MASTER_SPECIAL_QUEST_TYPES.includes(masterType)) return false;
+    const app = hero.apprentice;
+    const generation = Math.max(1, Number(hero.generation) || 1);
+    const active = (app.activeQuests || []).find(q => q && q.isMasterSpecialQuest && q.masterType === masterType && Number(q.generation) === generation);
+    const baito = (app.activeQuests || []).find(q => q && q.masterType === masterType && q.isBaitoQuest);
+    const dialogue = MASTER_SPECIAL_DIALOGUE[masterType];
+
+    if (active) {
+        if (visitAction === 'baito_report') return false;
+        if (!visitAction && baito) {
+            window.openEncounterUI(masterType, MASTER_SPECIAL_VISIT_CHOICE[masterType], 'master_visit_choice');
+            return true;
+        }
+        if (!window.isMasterSpecialQuestComplete(hero, active)) {
+            window.openEncounterUI(masterType, dialogue.incomplete, 'master_special_incomplete');
+            return true;
+        }
+
+        let proofIndex = -1;
+        if (active.requiresProof) {
+            proofIndex = window.findMasterSpecialProofIndex(hero, active);
+            if (proofIndex < 0) {
+                active.completed = false;
+                active.qVal = 0;
+                window.openEncounterUI(masterType, dialogue.incomplete, 'master_special_incomplete');
+                return true;
+            }
+        }
+
+        const reward = typeof window.unlockMasterPersonCard === 'function' ? window.unlockMasterPersonCard(masterType, generation) : null;
+        if (!reward) {
+            window.openEncounterUI(masterType, '「せっかくの仕事だが、今は記録を残せないようだ。少し時間を置いて、もう一度来てほしい。」', 'master_special_incomplete');
+            return true;
+        }
+        if (proofIndex >= 0) hero.inventory.splice(proofIndex, 1);
+        app.activeQuests = app.activeQuests.filter(q => q !== active);
+        if (!app.specialQuestRewardedGeneration) app.specialQuestRewardedGeneration = {};
+        app.specialQuestRewardedGeneration[masterType] = generation;
+        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        if (typeof updateStatUI === 'function') updateStatUI();
+        if (typeof saveGameData === 'function') saveGameData();
+        window.openEncounterUI(masterType, dialogue.complete, 'master_special_report');
+        return true;
+    }
+
+    if (!window.ensureMasterSpecialQuestEligibility(hero, masterType)) return false;
+    if (window.hasMasterPersonRewardForGeneration(masterType, generation)) return false;
+    if (Number(app.specialQuestRewardedGeneration && app.specialQuestRewardedGeneration[masterType]) === generation) return false;
+    if (visitAction === 'baito_report') return false;
+
+    const pending = window._pendingMasterSpecialQuest && window._pendingMasterSpecialQuest.masterType === masterType
+        ? window._pendingMasterSpecialQuest
+        : window.createMasterSpecialQuest(hero, masterType);
+    if (!pending) {
+        window.openEncounterUI(masterType, dialogue.empty, 'master_special_empty');
+        return true;
+    }
+    window._pendingMasterSpecialQuest = pending;
+    window.openEncounterUI(masterType, dialogue.offer(pending.targetName), 'master_special_offer');
+    return true;
 };
 
 // ★ AIが師匠の場所に到着した時に呼ばれる処理（クリーンアップ＆掛け合い対応の完全版！）
@@ -4944,7 +5423,11 @@ window.checkMasterVisit = function(masterType, visitAction) {
         }
     }
 
-    const myQuests = app.activeQuests.filter(q => q.masterType === masterType);
+    if (typeof window.tryHandleMasterSpecialVisit === 'function' && window.tryHandleMasterSpecialVisit(hero, masterType, visitAction)) {
+        return;
+    }
+
+    const myQuests = app.activeQuests.filter(q => q.masterType === masterType && !q.isMasterSpecialQuest);
     console.log("[師匠報告デバッグ] この師匠の依頼一覧", myQuests.map(q => ({
         名前: q.name,
         rank: q.rank,
@@ -5263,6 +5746,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         else if (masterType === 'tailor') msg = "「ふふっ、いらっしゃいませ。今日はどんな糸を紡ぎましょうか？ お手伝いならいつでも歓迎しますよ。」";
         else if (masterType === 'pastry_chef') msg = "「ようこそ最高のパティシエ！君に教えることはもうないけど、手伝いならいつでも歓迎するよ！」"; // ★追加
         else if (masterType === 'hairdresser') msg = "「やっほ〜！今日も最高にカワイイね♡ もっと盛っちゃう？」";
+        else if (masterType === 'concierge') msg = "「お帰りなさいませ。修行は終わりましても、AI様をお迎えする務めに終わりはございません。何なりとお申し付けくださいませ。」";
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
         return;
     }
@@ -5527,20 +6011,27 @@ window.updateQuestHUD = function() {
 
     hero.apprentice.activeQuests.forEach((q, index) => {
         const mType = q.masterType;
-        const qData = hero.getMasterQuestData(mType, q.rank);
+        const isMasterSpecial = !!q.isMasterSpecialQuest;
+        const qData = isMasterSpecial ? null : hero.getMasterQuestData(mType, q.rank);
         const desc = window.formatQuestDescription(q.desc);
         
         hero.apprentice.qVal = q.qVal;
         
         let isCleared = false;
-        if (q.rank === 0) isCleared = false;
+        if (isMasterSpecial) isCleared = typeof window.isMasterSpecialQuestComplete === 'function' && window.isMasterSpecialQuestComplete(hero, q);
+        else if (q.rank === 0) isCleared = false;
         else if (q.isBaitoQuest) isCleared = q.qVal >= q.targetCount;
         else isCleared = (qData && qData.check ? qData.check() : false);
         
         if (isCleared) anyCleared = true;
 
         let progressStr = "";
-        if (q.rank === 0) {
+        if (isMasterSpecial) {
+            const specialProgress = typeof window.getMasterSpecialQuestProgressText === 'function' ? window.getMasterSpecialQuestProgressText(hero, q) : '';
+            progressStr = isCleared
+                ? `<div style="font-size: 11px; color: #4CAF50; font-weight: bold; margin-top: 4px;">✅ 条件達成！${q.masterType === 'concierge' ? 'コンシェルジュ' : '師匠'}へ報告しよう</div>`
+                : `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">${specialProgress}</div>`;
+        } else if (q.rank === 0) {
             progressStr = `<div style="font-size: 11px; color: #FF9800; margin-top: 4px;">準備ができたら『話を聞いてみる』を押そう</div>`;
         } else if (isCleared) {
             progressStr = `<div style="font-size: 11px; color: #4CAF50; font-weight: bold; margin-top: 4px;">✅ 条件達成！報告しよう</div>`;
@@ -5680,7 +6171,7 @@ window.updateQuestHUD = function() {
             }
         }
         
-        let qTitle = `📜 ${q.name}`;
+        let qTitle = `${isMasterSpecial ? '✨' : '📜'} ${q.name}`;
         let initialDisplay = openStates[qTitle] !== undefined 
             ? openStates[qTitle] 
             : (hero.apprentice.activeQuests.length > 2 ? 'none' : 'block');
@@ -6117,7 +6608,7 @@ window.showTCGMenu = function() {
                 🃏 TCGメニュー
             </div>
             
-            <button onclick="document.getElementById('tcg-main-menu').style.display='none'; openDeckBuilder();" 
+            <button onclick="document.getElementById('tcg-main-menu').style.display='none'; openDeckBuilder('field');"
                 style="padding:12px; background:#2196F3; color:#fff; border:2px solid #fff; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px;">
                 🗃️ コレクション / 編成
             </button>
@@ -6842,15 +7333,11 @@ window.renderTailoringRecipe = function() {
     listEl.innerHTML = html;
 };
 
-// ★追加：カジノに入ったときにフラグを立てるパッチ
+// カジノ入場処理の互換ラッパー（来店フラグは正式入場後に本体側で記録する）
 if (typeof window.openCasino === 'function' && !window._casinoHookedForCardShop) {
     const _baseOpenCasino = window.openCasino;
     window.openCasino = function() {
-        if (window.aiPet) {
-            window.aiPet.visitedCasino = true; // 来店フラグ付与
-            if (typeof saveGameData === 'function') saveGameData();
-        }
-        _baseOpenCasino();
+        return _baseOpenCasino.apply(this, arguments);
     };
     window._casinoHookedForCardShop = true;
 }
@@ -8753,7 +9240,10 @@ window.unlockSupportCard = function(cardId, generation) {
     const newCard = {
         uid: 'card_' + Date.now() + Math.floor(Math.random()*1000),
         masterId: cardId,
-        name: cardName,
+        // 周回強化値は対戦相手に見せる表示名から分離して保持する。
+        name: masterData.name,
+        internalName: cardName,
+        supportBonusLevel: bonusLevel,
         type: masterData.type,
         cost: enhancedCost,
         hp: enhancedHp,
@@ -8765,16 +9255,18 @@ window.unlockSupportCard = function(cardId, generation) {
         image: masterData.image,
         imageIndex: masterData.imageIndex,
         sx: masterData.sx, sy: masterData.sy, sw: masterData.sw, sh: masterData.sh,
-        scaleX: masterData.scaleX, scaleY: masterData.scaleY
+        scaleX: masterData.scaleX, scaleY: masterData.scaleY,
+        acquiredGeneration: Math.max(1, Number(generation) || 1)
     };
     
     window.TCG.myCollection.push(newCard);
+    if (typeof window.saveTCGData === 'function') window.saveTCGData();
     if (typeof saveGameData === 'function') saveGameData();
 
     // ⑤ 画面にカード獲得演出を表示（★思い出/カードのテキスト分岐を復活！）
     if (typeof window.showCardUnlockPopup === 'function') {
         // 現在の所持枚数をチェックして、60枚未満なら「思い出」扱いにする
-        const isUnlocked = window.TCG.myCollection.length >= 60;
+        const isUnlocked = typeof window.isTCGCardGameUnlocked === 'function' && window.isTCGCardGameUnlocked();
         let msg = "";
 
         if (isUnlocked) {
@@ -8791,9 +9283,9 @@ window.unlockSupportCard = function(cardId, generation) {
         
         window.showCardUnlockPopup(newCard, msg);
     } else if (typeof window.showGameTutorial === 'function') {
-        const isUnlocked = window.TCG.myCollection.length >= 60;
+        const isUnlocked = typeof window.isTCGCardGameUnlocked === 'function' && window.isTCGCardGameUnlocked();
         const title = isUnlocked ? "🃏 カード獲得！" : "📖 思い出を記録！";
-        const desc = isUnlocked ? `${cardName} を手に入れた！` : `${cardName} の思い出を記録した！`;
+        const desc = isUnlocked ? `${masterData.name} を手に入れた！` : `${masterData.name} の思い出を記録した！`;
         window.showGameTutorial(title, desc);
     }
 
@@ -9723,7 +10215,8 @@ window.openExamUI = function(masterType, task) {
             // ★追加：パティシエの立ち絵
             'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
-            'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
+            'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
+            'dealer': { img: "dealer_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
         };
         let mData = masterSprites[masterType];
         if (mData && mData.img) {

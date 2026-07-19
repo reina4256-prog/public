@@ -79,7 +79,7 @@
                     <button id="btnInventory" class="quiz-btn" style="background:#E91E63;" onclick="switchRightPanel('inventory')">🎒 持ち物</button>
                     <button id="btnPokedex" class="quiz-btn" style="background:#3F51B5;" onclick="openPokedex()">📖 図鑑</button> 
                     <button id="btnNotebook" class="quiz-btn" style="background:#607D8B;" onclick="window.openNotebookUI()">📔 手帳</button>
-                    <button id="btnTcgDeck" class="quiz-btn" style="background:#9C27B0;" onclick="window.openDeckBuilder()">🃏 TCG</button>
+                    <button id="btnTcgDeck" class="quiz-btn" style="background:#9C27B0;" onclick="window.openDeckBuilder('field')">🃏 TCG</button>
                     <button id="btnMusicHall" class="quiz-btn" style="background:#607D8B; color:white;" onclick="window.openMusicHall()">🎵 音楽館</button>
                     <button id="btn-menu-friend" class="quiz-btn" style="background:#E040FB; color:white;" onclick="window.openFriendListUI()">🤝 フレンド</button>
                     <button id="btn-menu-rescue" class="quiz-btn hidden-feature" style="background:#FF5722; color:white;" onclick="switchRightPanel('rescue')">🆘 救済</button>
@@ -542,7 +542,7 @@
     </div>
 </div>
 <div id="controls-help" style="position:fixed; bottom:10px; right:10px; background:rgba(0,0,0,0.7); padding:5px; border-radius:4px; font-size:12px; color:#fff; display:none;">
-        [Editor] WASD:移動 QE/ZC:変形 R:反転 Del:削除 Enter:保存 Shift+S:保存
+        [Editor] WASD:移動 QE/ZC:変形 R:反転 Del:削除 Enter:保存 Ctrl/Shift+S:コンソール出力
     </div>
 
     <script type="module" src="cloud_manager.js"></script>
