@@ -12,6 +12,15 @@ window.audioManager = {
     currentBGMType: null,
     isPlayingTitle: false,
 
+    unlockBGM: function(trackKey) {
+        if (typeof window.aiPet === 'undefined') return;
+        if (!window.aiPet.unlockedBGMs) window.aiPet.unlockedBGMs = [];
+        if (!window.aiPet.unlockedBGMs.includes(trackKey)) {
+            window.aiPet.unlockedBGMs.push(trackKey);
+            if (typeof window.saveGameData === 'function') window.saveGameData();
+        }
+    },
+
     // --- タイトル画面専用の再生処理 ---
     playTitleMusic: function(unlockedSpeciesArray = []) {
         if (this.isPlayingTitle) return;
@@ -51,15 +60,11 @@ window.audioManager = {
 
         let playPromise = this.currentAudio.play();
         if (playPromise !== undefined) {
-            playPromise.catch(e => console.log("[BGM] タイトル曲の自動再生待機中:", e));
-        }
-
-        if (typeof window.aiPet !== 'undefined') {
-            if (!window.aiPet.unlockedBGMs) window.aiPet.unlockedBGMs = [];
-            if (!window.aiPet.unlockedBGMs.includes(trackKey)) {
-                window.aiPet.unlockedBGMs.push(trackKey);
-                if (typeof window.saveGameData === 'function') window.saveGameData();
-            }
+            playPromise
+                .then(() => this.unlockBGM(trackKey))
+                .catch(e => console.log("[BGM] タイトル曲の自動再生待機中:", e));
+        } else {
+            this.unlockBGM(trackKey);
         }
     },
 
@@ -72,7 +77,8 @@ window.audioManager = {
     },
 
     // --- 通常のインゲームBGM処理 ---
-    playBGM: function(type) {
+    playBGM: function(type, options) {
+        options = options && typeof options === 'object' ? options : {};
         // ★修正：進化キャラ名をベース種族に変換する処理から、
         // title_, personality, inheritance（引継ぎ）を除外してそのまま鳴らす
         if (!type.startsWith('title_') && type !== 'personality' && type !== 'inheritance') {
@@ -92,35 +98,37 @@ window.audioManager = {
         const src = `./bgm_${type}.mp3`; 
         
         this.currentAudio = new Audio(src);
-        this.currentAudio.loop = true;
+        this.currentAudio.loop = options.loop !== false;
         this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
-        
-        let playPromise = this.currentAudio.play();
         let targetAudioRef = this.currentAudio; // ★追加：今のオーディオ参照を記憶しておく
+        if (!targetAudioRef.loop) {
+            targetAudioRef.addEventListener('ended', () => {
+                if (this.currentAudio !== targetAudioRef) return;
+                this.currentAudio = null;
+                this.currentBGMType = null;
+                if (typeof options.onEnded === 'function') options.onEnded();
+            }, { once: true });
+        }
+
+        let playPromise = targetAudioRef.play();
         
         if (playPromise !== undefined) {
-            playPromise.catch(e => {
-                // ★大修正：曲の連続切り替えによる意図的な中断（AbortError）は正常な挙動なので無視する！
-                if (e.name === 'AbortError') return;
-                
-                console.log(`[BGM] ユーザー操作待ち、または再生エラーのため保留しました: ${e.name}`);
-                
-                // ★大修正：エラーが起きた曲が「今まさに管理している最新の曲」である場合のみnullにする（多重再生バグ防止）
-                if (this.currentAudio === targetAudioRef) {
-                    this.currentAudio = null; 
-                }
-            });
-        }
-        
-        // ==========================================
-        // ★絶対仕様：鳴らした曲は、それがどんなBGMであれ「すべて」音楽館の履歴に登録する！
-        // ==========================================
-        if (typeof window.aiPet !== 'undefined') {
-            if (!window.aiPet.unlockedBGMs) window.aiPet.unlockedBGMs = [];
-            if (!window.aiPet.unlockedBGMs.includes(type)) {
-                window.aiPet.unlockedBGMs.push(type);
-                if (typeof window.saveGameData === 'function') window.saveGameData();
-            }
+            playPromise
+                .then(() => this.unlockBGM(type))
+                .catch(e => {
+                    // ★大修正：曲の連続切り替えによる意図的な中断（AbortError）は正常な挙動なので無視する！
+                    if (e.name === 'AbortError') return;
+
+                    console.log(`[BGM] ユーザー操作待ち、または再生エラーのため保留しました: ${e.name}`);
+
+                    // ★大修正：エラーが起きた曲が「今まさに管理している最新の曲」である場合のみnullにする（多重再生バグ防止）
+                    if (this.currentAudio === targetAudioRef) {
+                        this.currentAudio = null;
+                        this.currentBGMType = null;
+                    }
+                });
+        } else {
+            this.unlockBGM(type);
         }
     },
     
@@ -418,6 +426,10 @@ let aiPet = savedPet || {
         learnedWords: []         // チャットで教えられて記憶した言葉
     }
 };
+
+// classic script のグローバル let は window のプロパティにならない。
+// UI / Debug / クラウド側は window.aiPet を参照するため、起動時から同じ実体を共有する。
+window.aiPet = aiPet;
 
 // 互換性チェック
 if (!aiPet.inventory) aiPet.inventory = [];

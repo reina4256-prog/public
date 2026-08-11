@@ -14,16 +14,17 @@ window.saveTCGData = function() {
     localStorage.setItem('tcg_data_v1', JSON.stringify(window.TCG));
 };
 
-// TCGの公開条件は「思い出60枚以上」かつ「条件達成後にカジノへ正式入場済み」。
+// TCGの公開条件は「思い出60枚以上」「建設済みカジノへの来店済み」「Dealer Rank 6」。
 window.isTCGCardGameUnlocked = function() {
     const count = window.TCG && Array.isArray(window.TCG.myCollection) ? window.TCG.myCollection.length : 0;
-    return count >= 60 && !!(window.TCG && window.TCG.hasVisitedCasino);
+    const dealerReady = typeof window.isDealerDeckBuildingUnlocked === 'function'
+        ? window.isDealerDeckBuildingUnlocked()
+        : !!(window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.rank && Number(window.aiPet.apprentice.rank.dealer) >= 6);
+    return count >= 60 && !!(window.TCG && window.TCG.hasVisitedCasino) && dealerReady;
 };
 
 window.markTCGCasinoVisited = function() {
     if (!window.TCG) return false;
-    const count = Array.isArray(window.TCG.myCollection) ? window.TCG.myCollection.length : 0;
-    if (count < 60) return false;
     if (!window.TCG.hasVisitedCasino) {
         window.TCG.hasVisitedCasino = true;
         window.saveTCGData();
@@ -2067,6 +2068,70 @@ window.getTCGDisplayName = function(card) {
         displayName = master && master.name ? master.name : displayName;
     }
     return String(displayName).replace(/\s*\+\d+\s*$/, '');
+};
+
+window.TCG_DECK_COPY_LIMIT = 4;
+
+window.getTCGDeckCopyKey = function(card) {
+    if (!card) return '';
+    const master = card.masterId && window.TCG_MASTER ? window.TCG_MASTER[card.masterId] : null;
+    const name = master && master.name
+        ? master.name
+        : (typeof window.getTCGDisplayName === 'function' ? window.getTCGDisplayName(card) : card.name);
+    return String(name || '').replace(/\s*\+\d+\s*$/, '').trim();
+};
+
+window.getTCGDeckCopyLimitStatus = function(deckUids) {
+    const collection = window.TCG && Array.isArray(window.TCG.myCollection) ? window.TCG.myCollection : [];
+    const cardsByUid = new Map(collection.filter(Boolean).map(card => [card.uid, card]));
+    const counts = new Map();
+    const missingUids = [];
+    (Array.isArray(deckUids) ? deckUids : []).forEach(uid => {
+        const card = cardsByUid.get(uid);
+        if (!card) {
+            missingUids.push(uid);
+            return;
+        }
+        const key = window.getTCGDeckCopyKey(card);
+        if (!key) return;
+        counts.set(key, (counts.get(key) || 0) + 1);
+    });
+    const violations = [...counts.entries()]
+        .filter(([, count]) => count > window.TCG_DECK_COPY_LIMIT)
+        .map(([name, count]) => ({ name, count, limit: window.TCG_DECK_COPY_LIMIT }))
+        .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name, 'ja'));
+    return { valid: violations.length === 0 && missingUids.length === 0, counts, violations, missingUids };
+};
+
+window.isTCGPlayableDeck = function(deckUids) {
+    return Array.isArray(deckUids)
+        && deckUids.length >= 60
+        && window.getTCGDeckCopyLimitStatus(deckUids).valid;
+};
+
+window.canAddTCGCardToDeck = function(uid, deckUids) {
+    const collection = window.TCG && Array.isArray(window.TCG.myCollection) ? window.TCG.myCollection : [];
+    const card = collection.find(entry => entry && entry.uid === uid);
+    if (!card) return { allowed: false, name: '', count: 0, limit: window.TCG_DECK_COPY_LIMIT };
+    const key = window.getTCGDeckCopyKey(card);
+    const status = window.getTCGDeckCopyLimitStatus(deckUids);
+    const count = status.counts.get(key) || 0;
+    return { allowed: count < window.TCG_DECK_COPY_LIMIT, name: key, count, limit: window.TCG_DECK_COPY_LIMIT };
+};
+
+window.showTCGDeckRuleNotice = function(message) {
+    if (typeof document === 'undefined') return;
+    const container = document.getElementById('tcg-deck-builder') || document.body;
+    if (!container) return;
+    const old = document.getElementById('tcg-deck-rule-notice');
+    if (old) old.remove();
+    const notice = document.createElement('div');
+    notice.id = 'tcg-deck-rule-notice';
+    notice.setAttribute('role', 'status');
+    notice.textContent = String(message || 'デッキの枚数制限を確認してください。');
+    notice.style.cssText = 'position:absolute;top:18%;left:50%;transform:translateX(-50%);z-index:100000;padding:14px 22px;border:2px solid #ffca55;border-radius:10px;background:rgba(82,24,27,.97);color:#fff1c4;font-size:15px;font-weight:bold;box-shadow:0 8px 28px rgba(0,0,0,.65);pointer-events:none;';
+    container.appendChild(notice);
+    setTimeout(() => notice.remove(), 2600);
 };
 
 window.normalizeTCGSupportCardIdentity = function(card) {
@@ -4445,6 +4510,12 @@ window.generateCardFromAI = function(aiPet) {
         finalDmg = masterData.baseDmg > 0 ? masterData.baseDmg + Math.min(maxBonusLimit, rawDmgBonus) : 0;
     }
 
+    const acquiredGeneration = Math.max(1, Number(aiPet.generation) || 1);
+    const existingGenerationCard = window.TCG && Array.isArray(window.TCG.myCollection)
+        ? window.TCG.myCollection.find(card => card && card.masterId === masterId && Math.max(1, Number(card.acquiredGeneration) || 1) === acquiredGeneration)
+        : null;
+    if (existingGenerationCard) return existingGenerationCard;
+
     const newCard = {
         uid: 'card_' + Date.now() + '_' + Math.floor(Math.random() * 1000), 
         masterId: masterId, name: masterData.name, type: masterData.type,
@@ -4455,7 +4526,7 @@ window.generateCardFromAI = function(aiPet) {
         ability: masterData.ability, image: masterData.image, imageIndex: masterData.imageIndex,
         sx: masterData.sx, sy: masterData.sy, sw: masterData.sw, sh: masterData.sh,
         scaleX: masterData.scaleX, scaleY: masterData.scaleY, evolvesFrom: masterData.evolvesFrom,
-        acquiredGeneration: Math.max(1, Number(aiPet.generation) || 1)
+        acquiredGeneration: acquiredGeneration
     };
 
     window.TCG.myCollection.push(newCard);
@@ -4816,7 +4887,7 @@ window.openDeckBuilder = function() {
                 <div style="display:flex; flex-direction:column;">
                     <h2 id="db-title-text" style="margin: 0 0 5px 0; color: #FFF; font-size: 22px;">
                         ${uiTitle} <span style="font-size: 16px; margin-left: 15px; background: #1B5E20; padding: 5px 10px; border-radius: 20px;">
-                        現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit})
+                        現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit}${isUnlocked ? '・同一名4枚まで' : ''})
                         </span>
                     </h2>
                     ${isUnlocked ? `
@@ -4870,7 +4941,7 @@ window.openDeckBuilder = function() {
         document.body.appendChild(builderUI);
     } else {
         const titleSpan = document.getElementById('db-title-text');
-        if (titleSpan) titleSpan.innerHTML = `${uiTitle} <span style="font-size: 16px; margin-left: 15px; background: #1B5E20; padding: 5px 10px; border-radius: 20px;">現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit})</span>`;
+        if (titleSpan) titleSpan.innerHTML = `${uiTitle} <span style="font-size: 16px; margin-left: 15px; background: #1B5E20; padding: 5px 10px; border-radius: 20px;">現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit}${isUnlocked ? '・同一名4枚まで' : ''})</span>`;
         const saveBtn = document.getElementById('db-save-btn');
         if (saveBtn) saveBtn.innerText = uiSaveBtn;
         const colHeader = document.getElementById('db-col-header');
@@ -5000,8 +5071,17 @@ window.refreshDeckBuilderView = function() {
 window.toggleCardInDeck = function(uid) {
     const index = window.TCG.editingDeck.indexOf(uid);
     if (index > -1) window.TCG.editingDeck.splice(index, 1);
-    else window.TCG.editingDeck.push(uid); 
+    else {
+        const deckMode = typeof window.isTCGCardGameUnlocked === 'function' && window.isTCGCardGameUnlocked();
+        const check = window.canAddTCGCardToDeck(uid, window.TCG.editingDeck);
+        if (deckMode && !check.allowed) {
+            window.showTCGDeckRuleNotice(`「${check.name}」は能力が異なるカードを含めて4枚までです。`);
+            return false;
+        }
+        window.TCG.editingDeck.push(uid);
+    }
     window.refreshDeckBuilderView();
+    return true;
 };
 
 window.saveDeck = function() {
@@ -5022,9 +5102,28 @@ window.saveDeck = function() {
         else showMessage(`⚠️ アルバムを完成させるには、記憶が最低60個必要です！<br><span style="font-size:16px;">（現在は ${window.TCG.editingDeck.length} 個です）</span>`, true);
         return;
     }
+    if (isUnlocked) {
+        const copyStatus = window.getTCGDeckCopyLimitStatus(window.TCG.editingDeck);
+        if (!copyStatus.valid) {
+            const violation = copyStatus.violations[0];
+            const detail = violation
+                ? `「${violation.name}」が${violation.count}枚入っています。`
+                : '所持していないカードが含まれています。';
+            showMessage(`⚠️ 同一名のカードは能力が異なっても4枚までです。<br><span style="font-size:16px;">${detail}</span>`, true);
+            return false;
+        }
+    }
     
     window.TCG.decks[window.TCG.currentDeckIndex || 0] = [...window.TCG.editingDeck]; 
     window.saveTCGData();
+    if (window.aiPet && typeof window.ensureDealerCasinoState === 'function') {
+        const progress = window.ensureDealerCasinoState(window.aiPet);
+        progress.savedDeckCount = (Number(progress.savedDeckCount) || 0) + 1;
+        const dealerRank = window.aiPet.apprentice && window.aiPet.apprentice.rank ? Number(window.aiPet.apprentice.rank.dealer) || 0 : 0;
+        if (dealerRank >= 6) progress.deckBuiltAtRank6 = true;
+        if (typeof window.saveGameData === 'function') window.saveGameData();
+        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+    }
     
     // ★修正：保存しても外には出ず、ポップアップだけ出して編成を続けられるようにする
     if(isUnlocked) showMessage(`🎉 デッキ ${(window.TCG.currentDeckIndex || 0) + 1} を保存しました！`);
@@ -5452,9 +5551,9 @@ window.renderBattleBoard = function() {
     // 手札: 重なり40% (overlap=0.4)、最大スケール0.8
     const handL = calcLayout(p.hand.length, handAreaW, footerH - 20, 0.4, 0.8);
     // プレイヤー盤面: 重なり10% (overlap=0.1)、最大スケール0.7
-    const pFieldL = calcLayout(p.field.length, fieldAreaW, fieldH - 20, 0.1, 0.7);
+    const pFieldL = calcLayout(p.field.length, fieldAreaW, fieldH - 20, 0.1, 0.72);
     // CPU盤面: 重なり10% (overlap=0.1)、最大スケール0.7
-    const cFieldL = calcLayout(cpu.field.length, fieldAreaW, fieldH - 20, 0.1, 0.7);
+    const cFieldL = calcLayout(cpu.field.length, fieldAreaW, fieldH - 20, 0.1, 0.6);
 
     // ==========================================
     // 手札のHTML生成 (絶対配置)
@@ -5585,12 +5684,15 @@ window.renderBattleBoard = function() {
     // ▼▼▼ フィールドゾーンの描画HTML生成 ▼▼▼
     const createFieldZoneHtml = (isPlayer) => {
         let owner = isPlayer ? p : cpu;
-        let fieldData = window.TCG_BATTLE.currentField;
+        const zoneId = isPlayer ? 'p-field-zone' : 'c-field-zone';
+        let fieldData = typeof window.getTCGFieldData === 'function'
+            ? window.getTCGFieldData(isPlayer ? 'player' : 'cpu')
+            : (isPlayer ? window.TCG_BATTLE.currentField : window.TCG_BATTLE.cpuField);
         
         if (fieldData && fieldData.owner === owner) {
             let cardHtml = window.renderCardHTML(fieldData.card);
             return `
-            <div style="position: absolute; left: 20px; display:flex; flex-direction:column; align-items:center; z-index: 40;" title="${fieldData.card.name}">
+            <div id="${zoneId}" style="position: absolute; left: 20px; display:flex; flex-direction:column; align-items:center; z-index: 40;" title="${fieldData.card.name}">
                 <div style="transform: scale(0.55); transform-origin: top left; width: 99px; height: 143px; pointer-events:none; filter: drop-shadow(0 0 10px #4DB6AC); z-index:50;">
                     ${cardHtml}
                 </div>
@@ -5598,7 +5700,7 @@ window.renderBattleBoard = function() {
             </div>`;
         } else {
             return `
-            <div style="position: absolute; left: 20px; width: 100px; height: 140px; border: 2px dashed ${isPlayer ? '#00BCD4' : '#ff5252'}; border-radius: 8px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); z-index: 40;">
+            <div id="${zoneId}" style="position: absolute; left: 20px; width: 100px; height: 140px; border: 2px dashed ${isPlayer ? '#00BCD4' : '#ff5252'}; border-radius: 8px; display: flex; justify-content: center; align-items: center; background: rgba(0,0,0,0.3); z-index: 40;">
                 <span style="color: ${isPlayer ? '#00BCD4' : '#ff5252'}; font-weight: bold; font-size: 12px; opacity: 0.5;">フィールド</span>
             </div>`;
         }
@@ -6162,7 +6264,8 @@ window.executeRealEndTurn = function() {
 
 window.endTurn = function() {
     window.TCG_BATTLE.selectedAttackerIndex = -1; window.TCG_BATTLE.player.actionUsed = false; window.renderBattleBoard();
-    if (window.TCG_BATTLE.player.currentMana >= 1 && !window.TCG_BATTLE._skipDefendHint) {
+    const defendCost = window.getTCGGuardCost ? window.getTCGGuardCost() : 1;
+    if (window.TCG_BATTLE.player.currentMana >= defendCost && !window.TCG_BATTLE._skipDefendHint) {
         const canDefendCard = window.TCG_BATTLE.player.field.find(c => !c.isDefending && c.ability !== "taunt" && c.ability !== "pure_aegis" && !c.isDead && c.status !== "stunned");
         if (canDefendCard) { window.showDefendHintModal(window.executeRealEndTurn); return; }
     }
@@ -6325,11 +6428,20 @@ window.autoBuildDeck = function() {
         modal.id = 'tcg-auto-build-modal';
         modal.style.cssText = `
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); z-index: 30000;
+            background: rgba(0,0,0,0.85);
             display: flex; justify-content: center; align-items: center;
         `;
-        document.body.appendChild(modal);
     }
+
+    // デッキ編成画面（現在 z-index: 60000）より必ず手前に表示する。
+    // 再利用時も body の末尾へ移し、同じ階層の要素が増えても操作を塞がれないようにする。
+    const deckBuilder = document.getElementById('tcg-deck-builder');
+    const deckBuilderZIndex = deckBuilder
+        ? (parseInt(window.getComputedStyle(deckBuilder).zIndex, 10) || 60000)
+        : 60000;
+    modal.style.zIndex = String(Math.max(deckBuilderZIndex + 1000, 70000));
+    modal.style.pointerEvents = 'auto';
+    document.body.appendChild(modal);
     
     const speciesList = [
         { id: 'robot', name: '🤖 ロボット' }, { id: 'dragon', name: '🐉 ドラゴン' },
@@ -6420,6 +6532,27 @@ window.autoBuildDeck = function() {
 window.executeAutoBuildLogic = function(selectedTypes, concept) {
     let myCards = [...window.TCG.myCollection];
     let selectedUids = [];
+    const selectedCopyCounts = new Map();
+    const canAppendCards = cards => {
+        const additions = new Map();
+        for (const card of cards) {
+            if (!card || selectedUids.includes(card.uid)) return false;
+            const key = window.getTCGDeckCopyKey(card);
+            additions.set(key, (additions.get(key) || 0) + 1);
+        }
+        return [...additions.entries()].every(([key, count]) =>
+            (selectedCopyCounts.get(key) || 0) + count <= window.TCG_DECK_COPY_LIMIT
+        );
+    };
+    const appendCards = cards => {
+        if (!canAppendCards(cards)) return false;
+        cards.forEach(card => {
+            const key = window.getTCGDeckCopyKey(card);
+            selectedUids.push(card.uid);
+            selectedCopyCounts.set(key, (selectedCopyCounts.get(key) || 0) + 1);
+        });
+        return true;
+    };
 
     // 1. プール分け（指定された系統か、それ以外か）
     let pool = myCards.filter(c => {
@@ -6494,10 +6627,10 @@ window.executeAutoBuildLogic = function(selectedTypes, concept) {
         
         // 手札事故防止：コスト1（基本種）を最優先で1枚確保
         if (selectedUids.length === 0) {
-            let oneManaIdx = remainingPool.findIndex(c => (c.cost || 0) === 1 && !c.evolvesFrom);
+            let oneManaIdx = remainingPool.findIndex(c => (c.cost || 0) === 1 && !c.evolvesFrom && canAppendCards([c]));
             if (oneManaIdx !== -1) {
                 let c = remainingPool.splice(oneManaIdx, 1)[0];
-                selectedUids.push(c.uid);
+                appendCards([c]);
             }
         }
 
@@ -6507,18 +6640,18 @@ window.executeAutoBuildLogic = function(selectedTypes, concept) {
             if (card.evolvesFrom) {
                 let chain = tryExtractChain(card, remainingPool);
                 if (chain) {
-                    if (selectedUids.length + chain.length <= 60) {
+                    if (selectedUids.length + chain.length <= 60 && canAppendCards(chain)) {
                         chain.forEach(c => {
-                            selectedUids.push(c.uid);
                             if (c !== card) {
                                 let idx = remainingPool.findIndex(rc => rc.uid === c.uid);
                                 if (idx !== -1) remainingPool.splice(idx, 1);
                             }
                         });
+                        appendCards(chain);
                     }
                 } 
             } else {
-                selectedUids.push(card.uid);
+                appendCards([card]);
             }
         }
     };
@@ -6531,7 +6664,7 @@ window.executeAutoBuildLogic = function(selectedTypes, concept) {
     if (selectedUids.length < 60) {
         for (let c of myCards) {
             if (selectedUids.length < 60 && !selectedUids.includes(c.uid)) {
-                selectedUids.push(c.uid);
+                appendCards([c]);
             }
         }
     }
@@ -6545,6 +6678,9 @@ window.executeAutoBuildLogic = function(selectedTypes, concept) {
         let msgText = "✨ コンセプトに合わせて最強デッキを編成しました！";
         if (lackCount > 0) {
             msgText += `<br><span style="color:#FFC107; font-size:16px;">※指定系統や進化元カードが不足していたため、<br>他のカードで <b>${lackCount}枚分</b> 埋め合わせました。</span>`;
+        }
+        if (selectedUids.length < 60) {
+            msgText += `<br><span style="color:#ff9d9d; font-size:16px;">同一名4枚制限を守って60枚にできませんでした。別名のカードをさらに集めてください。</span>`;
         }
         msgText += `<br><span style="font-size:14px;">（問題なければ右上の『デッキを保存』を押してください）</span>`;
 
@@ -6918,7 +7054,7 @@ window.openDeckBuilder = function(returnDestination) {
                 <div style="display:flex; flex-direction:column;">
                     <h2 id="db-title-text" style="margin: 0 0 5px 0; color: #FFF; font-size: 22px;">
                         ${uiTitle} <span style="font-size: 16px; margin-left: 15px; background: #1B5E20; padding: 5px 10px; border-radius: 20px;">
-                        現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit})
+                        現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit}${isUnlocked ? '・同一名4枚まで' : ''})
                         </span>
                     </h2>
                     ${isUnlocked ? `
@@ -6986,7 +7122,7 @@ window.openDeckBuilder = function(returnDestination) {
         document.body.appendChild(builderUI);
     } else {
         const titleSpan = document.getElementById('db-title-text');
-        if (titleSpan) titleSpan.innerHTML = `${uiTitle} <span style="font-size: 16px; margin-left: 15px; background: #1B5E20; padding: 5px 10px; border-radius: 20px;">現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit})</span>`;
+        if (titleSpan) titleSpan.innerHTML = `${uiTitle} <span style="font-size: 16px; margin-left: 15px; background: #1B5E20; padding: 5px 10px; border-radius: 20px;">現在: <span id="db-count" style="color:#FFD700; font-weight:bold; font-size:20px;">0</span> ${uiCountUnit} (最低60${uiCountUnit}${isUnlocked ? '・同一名4枚まで' : ''})</span>`;
         const saveBtn = document.getElementById('db-save-btn');
         if (saveBtn) saveBtn.innerText = uiSaveBtn;
         const colHeader = document.getElementById('db-col-header');
@@ -7041,6 +7177,17 @@ window.saveDeck = function() {
         else showMessage(`⚠️ アルバムを完成させるには、記憶が最低60個必要です！<br><span style="font-size:16px;">（現在は ${window.TCG.editingDeck.length} 個です）</span>`, true);
         return;
     }
+    if (isUnlocked) {
+        const copyStatus = window.getTCGDeckCopyLimitStatus(window.TCG.editingDeck);
+        if (!copyStatus.valid) {
+            const violation = copyStatus.violations[0];
+            const detail = violation
+                ? `「${violation.name}」が${violation.count}枚入っています。`
+                : '所持していないカードが含まれています。';
+            showMessage(`⚠️ 同一名のカードは能力が異なっても4枚までです。<br><span style="font-size:16px;">${detail}</span>`, true);
+            return false;
+        }
+    }
     
     let nameInput = document.getElementById('db-deck-name-input');
     if (nameInput) window.TCG.deckNames[window.TCG.currentDeckIndex || 0] = nameInput.value;
@@ -7051,6 +7198,7 @@ window.saveDeck = function() {
     let dName = window.TCG.deckNames[window.TCG.currentDeckIndex || 0] || `デッキ ${(window.TCG.currentDeckIndex || 0) + 1}`;
     if(isUnlocked) showMessage(`🎉 「${dName}」 を保存しました！`);
     else showMessage("🎉 思い出のアルバムが保存されました！");
+    return true;
 };
 
 // ③ バトル開始前のデッキ選択UIのリッチ化（詳細表示ボタン追加）
@@ -7304,7 +7452,7 @@ window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
         player: { hp: 200, maxMana: 0, currentMana: 0, deck: [], hand: [], field: [], actionUsed: false, graveyard: [] },
         cpu:    { hp: 200, maxMana: 0, currentMana: 0, deck: [], hand: [], field: [], actionUsed: false, graveyard: [] },
         turn: 1, selectedAttackerIndex: -1, selectedHandCardIndex: -1, _skipDefendHint: false,
-        currentField: null, targetingHandIndex: -1,
+        currentField: null, cpuField: null, targetingHandIndex: -1,
         firstPlayer: 'player', isEnemyTurn: false, isAnimating: true, isAuto: false,
         battleLog: [] // ログ初期化
     };
@@ -8390,7 +8538,7 @@ window.playCard = function(handIndex) {
         window.showVFX(`p-card-${p.field.length - 1}`, 'heal', '召喚!');
         window.triggerPlayEffect(card, true);
 
-        if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card.ability === "field_forest" && ["spirit", "seed", "beetle"].includes(card.type.split('_')[0])) {
+        if (window.hasActiveTCGFieldAbility && window.hasActiveTCGFieldAbility("field_forest") && ["spirit", "seed", "beetle"].includes(card.type.split('_')[0])) {
             card.maxHp += 20; card.hp += 20;
         }
 
@@ -12065,8 +12213,9 @@ window.selectPlayerCard = function(index) {
     if (window.TCG_BATTLE.isEnemyTurn) {
         if (window.TCG_BATTLE.isIntercepting) {
             if (window.TCG_BATTLE.interceptPhase === 'adding') {
-                if (p.currentMana >= 1 && targetCard.ability !== "taunt" && targetCard.ability !== "pure_aegis" && !targetCard.isDefending && !targetCard.hasPermanentTaunt) {
-                    p.currentMana -= 1; targetCard.isDefending = true;
+                const guardCost = window.getTCGGuardCost ? window.getTCGGuardCost() : 1;
+                if (p.currentMana >= guardCost && targetCard.ability !== "taunt" && targetCard.ability !== "pure_aegis" && !targetCard.isDefending && !targetCard.hasPermanentTaunt) {
+                    p.currentMana -= guardCost; targetCard.isDefending = true;
                     window.showVFX(`p-card-${index}`, 'heal', '防御!'); 
                     window.renderBattleBoard();
                     
@@ -12143,12 +12292,12 @@ window.selectPlayerCard = function(index) {
         if (targetCard.ability === "taunt" || targetCard.ability === "pure_aegis" || targetCard.hasPermanentTaunt) {
             window.showBattleMessage(`このカードは永続的な【守護】を持っています。`, false, 1500);
         } else if (targetCard.isDefending) { 
-            let defCost = (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card.ability === "field_castle") ? 0 : 1;
+            let defCost = (window.hasActiveTCGFieldAbility && window.hasActiveTCGFieldAbility("field_castle")) ? 0 : 1;
             p.currentMana += defCost; targetCard.isDefending = false;
             window.showBattleMessage(`🛡️ 防御姿勢を解除し、${defCost}マナ戻りました。`, false, 1500); 
             window.renderBattleBoard();
         } else {
-            let defCost = (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card.ability === "field_castle") ? 0 : 1;
+            let defCost = (window.hasActiveTCGFieldAbility && window.hasActiveTCGFieldAbility("field_castle")) ? 0 : 1;
             if (p.currentMana >= defCost) {
                 p.currentMana -= defCost; targetCard.isDefending = true; 
                 window.showVFX(`p-card-${index}`, 'heal', '防御!'); 
@@ -13424,8 +13573,8 @@ window.showCardDetailModal = function(ownerTypeOrCard, indexOrFromGacha) {
         if (ownerTypeOrCard === 'player') card = window.TCG_BATTLE.player.field[index];
         else if (ownerTypeOrCard === 'cpu') card = window.TCG_BATTLE.cpu.field[index];
         else if (ownerTypeOrCard === 'player_hand') card = window.TCG_BATTLE.player.hand[index];
-        else if (ownerTypeOrCard === 'player_field') card = window.TCG_BATTLE.currentField.card;
-        else if (ownerTypeOrCard === 'cpu_field') card = window.TCG_BATTLE.currentField.card;
+        else if (ownerTypeOrCard === 'player_field') card = window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.card;
+        else if (ownerTypeOrCard === 'cpu_field') card = window.TCG_BATTLE.cpuField && window.TCG_BATTLE.cpuField.card;
     } else {
         card = ownerTypeOrCard;
         fromGacha = indexOrFromGacha === true;
@@ -13914,7 +14063,9 @@ window.renderBattleBoard = function() {
     // フィールドゾーンを描画し直す内部関数
     const createFieldZoneHtml = (isPlayerOwner) => {
         let owner = isPlayerOwner ? p : cpu;
-        let fieldData = window.TCG_BATTLE.currentField;
+        let fieldData = typeof window.getTCGFieldData === 'function'
+            ? window.getTCGFieldData(isPlayerOwner ? 'player' : 'cpu')
+            : (isPlayerOwner ? window.TCG_BATTLE.currentField : window.TCG_BATTLE.cpuField);
         
         const zoneId = isPlayerOwner ? 'p-field-zone' : 'c-field-zone';
         
@@ -13981,7 +14132,10 @@ window.executeAttack = function(targetType, enemyIndex) {
     }
 
     // ★ フィールドへの攻撃処理
-    if (targetType === 'field' && window.TCG_BATTLE.currentField) {
+    const targetFieldData = typeof window.getTCGFieldData === 'function'
+        ? window.getTCGFieldData(isPlayer ? 'cpu' : 'player')
+        : (isPlayer ? window.TCG_BATTLE.cpuField : window.TCG_BATTLE.currentField);
+    if (targetType === 'field' && targetFieldData) {
         const attackerCard = (isPlayer ? p : cpu).field[attackerIndex];
         let dmgToTarget = attackerCard.damage;
         
@@ -13992,7 +14146,7 @@ window.executeAttack = function(targetType, enemyIndex) {
             window.showVFX(`${isPlayer ? 'p' : 'c'}-card-${attackerIndex}`, 'heal', '火力UP');
         }
 
-        const fieldCard = window.TCG_BATTLE.currentField.card;
+        const fieldCard = targetFieldData.card;
         const targetHtmlId = isPlayer ? 'c-field-zone' : 'p-field-zone';
         
         fieldCard.hp -= dmgToTarget;
@@ -14008,8 +14162,9 @@ window.executeAttack = function(targetType, enemyIndex) {
                 const ui = document.getElementById('tcg-battle-ui'); 
                 if (ui) { ui.classList.remove('screen-shake-effect'); void ui.offsetWidth; ui.classList.add('screen-shake-effect'); }
                 
-                window.TCG_BATTLE.currentField.owner.graveyard.push(fieldCard);
-                window.TCG_BATTLE.currentField = null;
+                targetFieldData.owner.graveyard.push(fieldCard);
+                if (isPlayer) window.TCG_BATTLE.cpuField = null;
+                else window.TCG_BATTLE.currentField = null;
                 window.renderBattleBoard();
             }, 800);
         }
@@ -14067,7 +14222,10 @@ window._decideAITarget = function(attackerObj, defenderObj) {
         candidates.push({ type: 'card', index: defenderObj.field.indexOf(c) });
     });
 
-    if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === defenderObj) {
+    const defenderField = typeof window.getTCGFieldData === 'function'
+        ? window.getTCGFieldData(defenderObj)
+        : (defenderObj === window.TCG_BATTLE.cpu ? window.TCG_BATTLE.cpuField : window.TCG_BATTLE.currentField);
+    if (defenderField) {
         // フィールドカードがあれば候補に入れる（少し確率を高めにしておく）
         candidates.push({ type: 'field', index: 0 });
         candidates.push({ type: 'field', index: 0 }); 
@@ -14101,7 +14259,7 @@ window.renderBattleBoard = function() {
     const pFieldZone = document.getElementById('p-field-zone');
     const cFieldZone = document.getElementById('c-field-zone');
     
-    if (pFieldZone && !pFieldZone.querySelector('.field-magnifier') && window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === window.TCG_BATTLE.player) {
+    if (pFieldZone && !pFieldZone.querySelector('.field-magnifier') && window.TCG_BATTLE.currentField) {
         const mag = document.createElement('div');
         mag.className = 'field-magnifier';
         mag.style.cssText = `position:absolute; top:-10px; right:-10px; background:#222; color:#00BCD4; border:2px solid #00BCD4; border-radius:50%; width:32px; height:32px; display:flex; justify-content:center; align-items:center; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.8); z-index:60;`;
@@ -14110,7 +14268,7 @@ window.renderBattleBoard = function() {
         pFieldZone.appendChild(mag);
     }
     
-    if (cFieldZone && !cFieldZone.querySelector('.field-magnifier') && window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === window.TCG_BATTLE.cpu) {
+    if (cFieldZone && !cFieldZone.querySelector('.field-magnifier') && window.TCG_BATTLE.cpuField) {
         const mag = document.createElement('div');
         mag.className = 'field-magnifier';
         mag.style.cssText = `position:absolute; top:-10px; right:-10px; background:#222; color:#ff5252; border:2px solid #ff5252; border-radius:50%; width:32px; height:32px; display:flex; justify-content:center; align-items:center; font-size:16px; font-weight:bold; cursor:pointer; box-shadow:0 2px 5px rgba(0,0,0,0.8); z-index:60;`;
@@ -14271,9 +14429,16 @@ window.showDeckCardActionMenu = function(uid, isDeckArea) {
         const idx = window.TCG.editingDeck.indexOf(uid);
         if (idx !== -1) window.TCG.editingDeck.splice(idx, 1);
     } else {
-        window.TCG.editingDeck.push(uid); 
+        const deckMode = typeof window.isTCGCardGameUnlocked === 'function' && window.isTCGCardGameUnlocked();
+        const check = window.canAddTCGCardToDeck(uid, window.TCG.editingDeck);
+        if (deckMode && !check.allowed) {
+            window.showTCGDeckRuleNotice(`「${check.name}」は能力が異なるカードを含めて4枚までです。`);
+            return false;
+        }
+        window.TCG.editingDeck.push(uid);
     }
     window.refreshDeckBuilderView();
+    return true;
 };
 
 if (!window._originalStartBattle_Base) window._originalStartBattle_Base = window.startBattle;
@@ -14343,13 +14508,17 @@ window.renderBattleBoard = function() {
         } catch (e) { return ''; }
     };
 
-    const pFace = document.getElementById('player-face');
-    if (pFace && pFace.nextElementSibling) {
-        const pBoard = pFace.nextElementSibling; pBoard.style.position = 'relative'; pBoard.insertAdjacentHTML('beforeend', createPersonZoneHtml(true));
-    }
     const cFace = document.getElementById('cpu-face');
     if (cFace && cFace.nextElementSibling) {
-        const cBoard = cFace.nextElementSibling; cBoard.style.position = 'relative'; cBoard.insertAdjacentHTML('beforeend', createPersonZoneHtml(false));
+        const boardStage = cFace.nextElementSibling;
+        const cBoard = boardStage.children && boardStage.children[0];
+        const pBoard = boardStage.children && boardStage.children[1];
+        if (cBoard && pBoard) {
+            cBoard.style.position = 'relative';
+            pBoard.style.position = 'relative';
+            cBoard.insertAdjacentHTML('beforeend', createPersonZoneHtml(false));
+            pBoard.insertAdjacentHTML('beforeend', createPersonZoneHtml(true));
+        }
     }
 };
 
@@ -14500,7 +14669,8 @@ window.executePersonSkill = function(skillIndex, targetCard, isPlayer, isPlayerT
     } else if (personCard.masterId === 'person_builder') {
         if (skillIndex === 0 && targetCard) { targetCard.isDefending = true; targetCard._builder_guarded = true; window.showVFX(tId, 'heal', '守護'); }
         else if (skillIndex === 1) { 
-            if (window.TCG_BATTLE.currentField && window.TCG_BATTLE.currentField.owner === owner) { window.TCG_BATTLE.currentField.card.hp += 50; window.showVFX(isPlayer?'p-field-zone':'c-field-zone', 'heal', 50); }
+            const ownerField = window.getTCGFieldData ? window.getTCGFieldData(owner) : (isPlayer ? window.TCG_BATTLE.currentField : window.TCG_BATTLE.cpuField);
+            if (ownerField) { ownerField.card.hp += 50; window.showVFX(isPlayer?'p-field-zone':'c-field-zone', 'heal', 50); }
             else { owner.hp += 40; window.showVFX(isPlayer?'player-face':'cpu-face', 'heal', 40); }
         }
     } else if (personCard.masterId === 'person_chef') {
@@ -15651,57 +15821,710 @@ window.startPlayerTurn = function(...args) {
     return window._orig_startPlayerTurn_V12.apply(this, args);
 };
 
+// ======================================================================
+// Shared legal-action helpers for player/CPU parity
+// ======================================================================
+(function installTCGLegalActionHelpers() {
+    const isAlive = card => !!(card && !card.isDead && Number(card.hp) > 0);
+
+    function getContext(side) {
+        const battle = window.TCG_BATTLE;
+        if (!battle || !battle.player || !battle.cpu) return null;
+        const ownerSide = side === 'cpu' ? 'cpu' : 'player';
+        const enemySide = ownerSide === 'cpu' ? 'player' : 'cpu';
+        return {
+            battle,
+            side: ownerSide,
+            enemySide,
+            owner: battle[ownerSide],
+            enemy: battle[enemySide],
+            isPlayer: ownerSide === 'player'
+        };
+    }
+
+    function getNPCStrategy() {
+        const profile = typeof window.getActiveTCGNPCDeckProfile === 'function'
+            ? window.getActiveTCGNPCDeckProfile()
+            : null;
+        return profile && profile.strategy ? profile.strategy : {};
+    }
+
+    function strategyValue(group, key, fallback = 0) {
+        const value = group && group[key];
+        return Number.isFinite(Number(value)) ? Number(value) : fallback;
+    }
+
+    function scoreNPCStrategyAction(action) {
+        const strategy = getNPCStrategy();
+        const ability = action && action.card && action.card.ability;
+        return strategyValue(strategy.actionBias, action && action.kind)
+            + strategyValue(strategy.abilityBias, ability);
+    }
+
+    function scoreNPCStrategyAttack(attacker, target) {
+        const focus = getNPCStrategy().attackFocus || {};
+        const targetKey = target.type === 'player' || target.type === 'cpu' ? 'leader' : target.type;
+        let score = strategyValue(focus, targetKey);
+        if (target.card && Number(target.card.damage || 0) >= Number(attacker.hp || 0)) {
+            score += strategyValue(focus, 'risk');
+        }
+        return score;
+    }
+
+    function getCardType(card) {
+        const master = card && window.TCG_MASTER ? window.TCG_MASTER[card.masterId] : null;
+        return (master && master.type) || (card && card.type) || '';
+    }
+
+    function getCardCost(owner, card) {
+        const cost = typeof window.getActualCost === 'function'
+            ? window.getActualCost(owner, card)
+            : Number(card && card.cost);
+        return Math.max(0, Number.isFinite(Number(cost)) ? Number(cost) : 0);
+    }
+
+    function getFieldCard(side) {
+        const context = getContext(side);
+        if (!context) return null;
+        const fieldData = typeof window.getTCGFieldData === 'function'
+            ? window.getTCGFieldData(context.owner)
+            : (context.side === 'cpu' ? context.battle.cpuField : context.battle.currentField);
+        return fieldData && fieldData.card ? fieldData.card : null;
+    }
+
+    function getSkillTargetKind(skill) {
+        const explicit = String(skill && skill.target || '');
+        if (explicit === 'ally') return 'ally';
+        if (explicit === 'enemy') return 'enemy';
+        if (['all_allies', 'player', 'hand_select', 'deck_order'].includes(explicit)) return 'none';
+        const desc = String(skill && skill.desc || '');
+        if (/敵(?:モンスター)?1体|敵1体|指定した敵/.test(desc)) return 'enemy';
+        if (/味方1体|行動済みの味方|指定した味方/.test(desc)) return 'ally';
+        return 'none';
+    }
+
+    function scoreSupportTarget(card, target) {
+        if (!target) return -9999;
+        const missingHp = Math.max(0, Number(target.maxHp || target.hp || 0) - Number(target.hp || 0));
+        const damage = Math.max(0, Number(target.damage || 0));
+        switch (card.ability) {
+            case 'item_hp_up': return 55 + damage + missingHp * 0.3;
+            case 'item_taunt': return Number(target.hp || 0) * 1.2 - damage * 0.25;
+            case 'item_heal_cleanse': return missingHp * 2 + (target.status ? 90 : 0) - (missingHp === 0 && !target.status ? 100 : 0);
+            case 'action_atk_up': return 60 + damage + (target.canAttack ? 35 : 0);
+            default: return 40 + damage;
+        }
+    }
+
+    function getSupportTargets(side, card) {
+        const context = getContext(side);
+        if (!context) return [];
+        let targets = context.owner.field.filter(isAlive);
+        if (card.ability === 'item_taunt') {
+            targets = targets.filter(target => !target.isDefending && !target.hasPermanentTaunt && target.ability !== 'taunt' && target.ability !== 'pure_aegis');
+        }
+        return targets.sort((a, b) => scoreSupportTarget(card, b) - scoreSupportTarget(card, a));
+    }
+
+    window.getTCGGuardCost = function() {
+        return window.hasActiveTCGFieldAbility && window.hasActiveTCGFieldAbility('field_castle') ? 0 : 1;
+    };
+
+    window.getTCGLegalGuardActions = function(side, options = {}) {
+        const context = getContext(side);
+        if (!context) return [];
+        const cost = window.getTCGGuardCost();
+        if (context.owner.currentMana < cost) return [];
+        return context.owner.field
+            .filter(isAlive)
+            .filter(card => card.status !== 'stunned')
+            .filter(card => !card.isDefending && !card.hasPermanentTaunt && card.ability !== 'taunt' && card.ability !== 'pure_aegis')
+            .filter(card => options.allowReady || !card.canAttack || Number(card.damage || 0) <= 0)
+            .map(card => ({ kind: 'guard', side: context.side, card, cost }));
+    };
+
+    window.applyTCGGuardAction = function(action, quiet = false) {
+        const context = action && getContext(action.side);
+        if (!context || !isAlive(action.card)) return false;
+        const legal = window.getTCGLegalGuardActions(action.side, { allowReady: true }).some(candidate => candidate.card === action.card);
+        if (!legal) return false;
+        context.owner.currentMana -= action.cost;
+        action.card.isDefending = true;
+        if (!quiet && typeof window.showBattleMessage === 'function') {
+            window.showBattleMessage(`🛡️ ${action.card.name}が${action.cost ? '1マナを使って' : '城の加護で'}守護についた！`, false, 1300, context.side === 'cpu', true);
+        }
+        if (typeof window.showVFX === 'function') {
+            const index = context.owner.field.indexOf(action.card);
+            window.showVFX(`${context.side === 'cpu' ? 'c' : 'p'}-card-${index}`, 'heal', '守護');
+        }
+        if (context.side === 'cpu' && typeof window.announceTCGOpponentAction === 'function') {
+            window.announceTCGOpponentAction(
+                action.dialogueMode === 'intercept' ? 'tcg_guard_intercept' : 'tcg_guard_prepare',
+                { card: action.card.name || 'このカード', mana: action.cost },
+                action.dialogueMode === 'intercept' ? 2100 : 1900
+            );
+        }
+        if (typeof window.renderBattleBoard === 'function') window.renderBattleBoard();
+        return true;
+    };
+
+    window.isTCGPiercingAttacker = function(card) {
+        return !!(card && (
+            card._smith_trample ||
+            ['pierce_recoil', 'flight', 'god_strike', 'dimension_drill', 'piercing_juggernaut'].includes(card.ability)
+        ));
+    };
+
+    window.getTCGLegalAttackTargets = function(side, attackerCard) {
+        const context = getContext(side);
+        if (!context || !isAlive(attackerCard)) return [];
+        const enemyField = context.enemy.field.filter(isAlive);
+        const piercing = window.isTCGPiercingAttacker(attackerCard);
+        const guards = enemyField.filter(card => card.ability === 'taunt' || card.ability === 'pure_aegis' || card.isDefending || card.hasPermanentTaunt);
+        if (guards.length && !piercing) {
+            return guards.map(card => ({ type: 'card', index: context.enemy.field.indexOf(card), card }));
+        }
+        const targets = [{ type: context.side === 'cpu' ? 'player' : 'cpu', index: 0, card: null }];
+        enemyField.filter(card => card.ability !== 'stealth').forEach(card => {
+            targets.push({ type: 'card', index: context.enemy.field.indexOf(card), card });
+        });
+        const enemyPerson = context.battle.currentPerson && context.battle.currentPerson[context.enemySide];
+        if (isAlive(enemyPerson)) targets.push({ type: 'person', index: 0, card: enemyPerson });
+        const enemyFieldCard = getFieldCard(context.enemySide);
+        if (isAlive(enemyFieldCard)) targets.push({ type: 'field', index: 0, card: enemyFieldCard });
+        return targets;
+    };
+
+    function scoreAttackTarget(attacker, target, context) {
+        const damage = Math.max(0, Number(attacker.damage || 0));
+        if (target.type === 'player' || target.type === 'cpu') {
+            const lethal = damage >= Number(context.enemy.hp || 0);
+            return (lethal ? 10000 : 110) + damage + Math.max(0, 80 - Number(context.enemy.hp || 0));
+        }
+        const card = target.card;
+        if (!card) return -9999;
+        const hp = Math.max(0, Number(card.hp || 0));
+        const retaliation = target.type === 'card' ? Math.max(0, Number(card.damage || 0)) : 0;
+        let score = 70 + Math.max(0, Number(card.damage || 0)) * 1.7;
+        if (damage >= hp) score += target.type === 'person' ? 260 : 190;
+        else score += Math.min(damage, hp) * 0.6;
+        if (target.type === 'field') score += 70;
+        if (retaliation >= Number(attacker.hp || 0)) score -= 120;
+        if (card.ability === 'counter_attack' || card.ability === 'void_counter') score -= 50;
+        return score;
+    }
+
+    window.chooseTCGNPCAttackTarget = function(attackerCard) {
+        const context = getContext('cpu');
+        const targets = window.getTCGLegalAttackTargets('cpu', attackerCard);
+        if (!context || !targets.length) return { type: 'player', index: 0 };
+        const focus = getNPCStrategy().attackFocus || {};
+        const randomness = Math.max(0, strategyValue(focus, 'randomness', 8));
+        return targets
+            .map(target => ({
+                ...target,
+                score: scoreAttackTarget(attackerCard, target, context)
+                    + scoreNPCStrategyAttack(attackerCard, target)
+                    + Math.random() * randomness
+            }))
+            .sort((a, b) => b.score - a.score)[0];
+    };
+
+    function scorePersonSkillTarget(skill, target, mode, meta) {
+        const desc = String(skill.desc || '');
+        const missingHp = target ? Math.max(0, Number(target.maxHp || target.hp || 0) - Number(target.hp || 0)) : 0;
+        let score = 45 - Math.max(0, Number(skill.cost || 0)) * 2;
+        if (mode === 'interrupt') score -= 15;
+        if (target) {
+            score += Math.max(0, Number(target.damage || 0)) * 0.8;
+            if (meta && meta.attacker === target) score += 55;
+            if (/回復|全回復|HP/.test(desc)) score += missingHp * 1.8 - (missingHp === 0 ? 55 : 0);
+            if (/状態異常|解除/.test(desc)) score += target.status ? 80 : -25;
+            if (/再行動|行動回数|行動済み/.test(desc)) score += target.canAttack ? -35 : 90;
+            if (/攻撃力|武器|貫通|VIP/.test(desc)) score += target.canAttack ? 55 : 20;
+            if (/守護|無効|結界|シールド/.test(desc)) score += mode === 'interrupt' ? 100 : 45;
+            if (/ダメージ|破壊|戻す|魅了|ダウン|打ち消/.test(desc)) {
+                score += 70;
+                const numberMatch = desc.match(/(\d+)\s*ダメージ/);
+                if (numberMatch && Number(numberMatch[1]) >= Number(target.hp || Infinity)) score += 220;
+            }
+        } else {
+            if (/ドロー|サーチ|交換|並べ替え|最大マナ/.test(desc)) score += mode === 'main' ? 65 : -45;
+            if (/味方全体|全員|号令|結界/.test(desc)) score += mode === 'interrupt' ? 80 : 45;
+        }
+        return score;
+    }
+
+    window.getTCGLegalPersonSkillActions = function(side, mode = 'main', meta = {}) {
+        const context = getContext(side);
+        if (!context || !context.battle.currentPerson) return [];
+        const personCard = context.battle.currentPerson[context.side];
+        if (!isAlive(personCard)) return [];
+        if (context.battle.personSkillUsed && context.battle.personSkillUsed[context.side]) return [];
+        const master = window.TCG_MASTER && window.TCG_MASTER[personCard.masterId];
+        const skills = master && (master.personSkills || master.skills) || [];
+        const actions = [];
+        skills.forEach((skill, skillIndex) => {
+            const cost = Math.max(0, Number(skill.cost || 0));
+            if (context.owner.currentMana < cost) return;
+            const targetKind = getSkillTargetKind(skill);
+            let targets = [null];
+            if (targetKind === 'enemy') {
+                targets = mode === 'interrupt' && isAlive(meta.attacker)
+                    ? [meta.attacker]
+                    : context.enemy.field.filter(isAlive);
+            } else if (targetKind === 'ally') {
+                const intended = meta.intendedTarget;
+                targets = intended && context.owner.field.includes(intended) && isAlive(intended)
+                    ? [intended]
+                    : context.owner.field.filter(isAlive);
+            }
+            targets.forEach(target => {
+                const strategy = getNPCStrategy();
+                actions.push({
+                    kind: 'person_skill',
+                    side: context.side,
+                    personCard,
+                    skill,
+                    skillIndex,
+                    target,
+                    isAllyTarget: targetKind !== 'enemy',
+                    cost,
+                    score: scorePersonSkillTarget(skill, target, mode, meta)
+                        + strategyValue(strategy.personSkill, mode)
+                });
+            });
+        });
+        return actions.sort((a, b) => b.score - a.score);
+    };
+
+    window.executeTCGNPCPersonSkillAction = async function(action) {
+        const context = action && getContext(action.side);
+        if (!context || context.side !== 'cpu') return false;
+        const personCard = context.battle.currentPerson && context.battle.currentPerson.cpu;
+        if (!isAlive(personCard) || context.owner.currentMana < action.cost) return false;
+        const previousEnemyTurn = context.battle.isEnemyTurn;
+        const previousTurnMarker = context.battle._lastEnemyTurnState;
+        try {
+            context.battle.isEnemyTurn = true;
+            window.executePersonSkill(action.skillIndex, action.target || null, false, !!action.isAllyTarget);
+        } finally {
+            context.battle.isEnemyTurn = previousEnemyTurn;
+            if (!context.battle.personSkillUsed) context.battle.personSkillUsed = { player: false, cpu: false };
+            context.battle.personSkillUsed.cpu = true;
+            context.battle._lastEnemyTurnState = previousTurnMarker === undefined ? previousEnemyTurn : previousTurnMarker;
+        }
+        await (window.tcgSleep ? window.tcgSleep(450) : Promise.resolve());
+        return true;
+    };
+
+    window.tryUseTCGNPCPersonSkill = async function(mode = 'main', meta = {}) {
+        const actions = window.getTCGLegalPersonSkillActions('cpu', mode, meta);
+        const minimumScore = mode === 'interrupt' ? 60 : 35;
+        if (!actions.length || actions[0].score < minimumScore) return false;
+        const action = actions[0];
+        const used = await window.executeTCGNPCPersonSkillAction(action);
+        if (used && typeof window.announceTCGOpponentAction === 'function') {
+            window.announceTCGOpponentAction(
+                mode === 'interrupt' ? 'tcg_person_interrupt' : 'tcg_person_skill',
+                {
+                    card: action.personCard && action.personCard.name || '人物カード',
+                    skill: action.skill && action.skill.name || '人物スキル',
+                    target: action.target && action.target.name || '盤面'
+                },
+                mode === 'interrupt' ? 2300 : 2000
+            );
+            if (action.personCard && action.personCard.isDead) {
+                window.announceTCGOpponentAction('tcg_trigger', {
+                    card: action.personCard.name || '人物カード',
+                    source: action.personCard.name || '人物カード',
+                    effect: `${action.personCard.name || '人物カード'}が自らのスキルの反動で倒れた`
+                }, 2100);
+            }
+        }
+        return used;
+    };
+
+    function getDefensiveReserve() {
+        const context = getContext('cpu');
+        if (!context) return 0;
+        const threats = context.enemy.field.filter(card => isAlive(card) && Number(card.damage || 0) > 0);
+        if (!threats.length) return 0;
+        const defense = getNPCStrategy().defense || {};
+        const permitsGuard = !Number.isFinite(Number(defense.guardLimit)) || Number(defense.guardLimit) > 0;
+        let reserve = permitsGuard && window.getTCGLegalGuardActions('cpu', { allowReady: true }).length ? window.getTCGGuardCost() : 0;
+        const skillActions = window.getTCGLegalPersonSkillActions('cpu', 'interrupt', { attacker: threats[0] }).filter(action => action.score >= 60);
+        if (skillActions.length) reserve = Math.max(reserve, skillActions[0].cost);
+        if (reserve > 0) reserve = Math.max(0, reserve + strategyValue(defense, 'reserveBonus'));
+        return Math.min(Number(context.owner.currentMana || 0), reserve);
+    }
+
+    function scoreSupportCard(context, card, target) {
+        const ability = card.ability;
+        if (target) return 65 + scoreSupportTarget(card, target);
+        if (ability === 'item_mana_boost') return 180;
+        if (ability === 'item_draw' || ability === 'action_draw_3' || ability === 'action_search_evo') return 105;
+        if (ability === 'action_heal_face') return Number(context.owner.hp || 0) < 150 ? 130 : 20;
+        if (ability === 'action_heal_all') {
+            const damaged = context.owner.field.filter(card => isAlive(card) && Number(card.hp) < Number(card.maxHp || card.hp)).length;
+            return Number(context.owner.hp || 0) < 160 || damaged ? 135 : 15;
+        }
+        return 55;
+    }
+
+    window.getTCGLegalMainActions = function(side, options = {}) {
+        const context = getContext(side);
+        if (!context) return [];
+        const reserve = options.reserveDefense && context.side === 'cpu' ? getDefensiveReserve() : 0;
+        const spendableMana = Math.max(0, Number(context.owner.currentMana || 0) - reserve);
+        const activePerson = context.battle.currentPerson && context.battle.currentPerson[context.side];
+        const activeField = getFieldCard(context.side);
+        const actions = [];
+        context.owner.hand.forEach(card => {
+            if (!card) return;
+            card.type = getCardType(card);
+            const cost = getCardCost(context.owner, card);
+            if (cost > spendableMana) return;
+            if (card.type === 'action' && context.owner.actionUsed) return;
+            if (card.type === 'person') {
+                if (context.side === 'cpu' && context.battle._tcgCpuPersonPlayedThisTurn) return;
+                if (isAlive(activePerson)) {
+                    const activeMaxHp = Math.max(1, Number(activePerson.maxHp || activePerson.hp || 1));
+                    if (Number(activePerson.hp || 0) > activeMaxHp * 0.35) return;
+                }
+                actions.push({ kind: 'person', side: context.side, card, cost, score: (isAlive(activePerson) ? 105 : 145) - cost * 2 });
+                return;
+            }
+            if (card.type === 'field') {
+                if (context.side === 'cpu' && context.battle._tcgCpuFieldPlayedThisTurn) return;
+                if (activeField && (activeField.masterId || activeField.name) === (card.masterId || card.name)) return;
+                let score = activeField ? 70 : 115;
+                const race = String(card.ability || '');
+                if (race === 'field_forest' && context.owner.field.some(unit => ['spirit', 'seed', 'beetle'].includes(String(unit.type || '').split('_')[0]))) score += 35;
+                actions.push({ kind: 'field', side: context.side, card, cost, score });
+                return;
+            }
+            if (card.type === 'item' || card.type === 'action') {
+                let target = null;
+                if (window.requiresTarget && window.requiresTarget(card)) {
+                    target = getSupportTargets(context.side, card)[0] || null;
+                    if (!target || scoreSupportTarget(card, target) < 0) return;
+                }
+                actions.push({ kind: 'support', side: context.side, card, target, cost, score: scoreSupportCard(context, card, target) });
+                return;
+            }
+            if (card.evolvesFrom) {
+                const targets = context.owner.field.filter(isAlive).filter(target => window.checkCanEvolve && window.checkCanEvolve(target, card));
+                targets.forEach(target => {
+                    const targetMaster = window.TCG_MASTER && window.TCG_MASTER[target.masterId];
+                    const statGain = Math.max(0, Number(card.damage || 0) - Number(targetMaster && targetMaster.baseDmg || target.damage || 0));
+                    actions.push({ kind: 'evolve', side: context.side, card, target, cost, score: 135 + statGain + (target.canAttack ? 35 : 0) });
+                });
+                return;
+            }
+            const unlocksEvolution = context.owner.hand.some(evo => evo && evo.evolvesFrom && window.checkCanEvolve && window.checkCanEvolve(card, evo));
+            actions.push({
+                kind: 'summon',
+                side: context.side,
+                card,
+                cost,
+                score: 65 + (card.ability === 'haste' ? 65 : 0) + (unlocksEvolution ? 55 : 0) + Math.max(0, Number(card.damage || 0)) * 0.25 - cost
+            });
+        });
+        actions.forEach(action => {
+            action.score += scoreNPCStrategyAction(action);
+        });
+        return actions.sort((a, b) => b.score - a.score || a.cost - b.cost);
+    };
+
+    function initializeBattleCard(card) {
+        const master = card && window.TCG_MASTER ? window.TCG_MASTER[card.masterId] : null;
+        if (card.maxHp === undefined) card.maxHp = Number(card.hp !== undefined ? card.hp : master && master.baseHp || 0);
+        if (card.hp === undefined) card.hp = card.maxHp;
+        if (card.damage === undefined) card.damage = Number(master && master.baseDmg || 0);
+        card.isDead = false;
+    }
+
+    function animateNPCPlay(card, callback) {
+        return new Promise(resolve => {
+            const finish = () => {
+                callback();
+                setTimeout(resolve, 450);
+            };
+            if (typeof window.animateCardPlay === 'function') window.animateCardPlay(card, false, finish);
+            else finish();
+        });
+    }
+
+    window.executeTCGMainAction = async function(action) {
+        const context = action && getContext(action.side);
+        if (!context) return false;
+        const handIndex = context.owner.hand.indexOf(action.card);
+        if (handIndex < 0) return false;
+        const cost = getCardCost(context.owner, action.card);
+        if (context.owner.currentMana < cost) return false;
+        if (action.card.type === 'action' && context.owner.actionUsed) return false;
+        context.owner.currentMana -= cost;
+        context.owner.hand.splice(handIndex, 1);
+        if (action.card.type === 'action') context.owner.actionUsed = true;
+        if (typeof window.renderBattleBoard === 'function') window.renderBattleBoard();
+
+        await animateNPCPlay(action.card, () => {
+            const card = action.card;
+            initializeBattleCard(card);
+            if (action.kind === 'person') {
+                if (typeof window.ensurePersonSystemInitialized === 'function') window.ensurePersonSystemInitialized();
+                const previous = context.battle.currentPerson && context.battle.currentPerson[context.side];
+                if (previous && context.owner.graveyard) context.owner.graveyard.push(previous);
+                card.type = 'person';
+                if (typeof window.applyPersonLevelBonus === 'function') window.applyPersonLevelBonus(card);
+                card.hp = card.maxHp;
+                context.battle.currentPerson[context.side] = card;
+                if (context.side === 'cpu') context.battle._tcgCpuPersonPlayedThisTurn = true;
+                if (!context.battle.personSkillUsed) context.battle.personSkillUsed = { player: false, cpu: false };
+                context.battle.personSkillUsed[context.side] = false;
+                if (window.announceTCGOpponentCardPlay && context.side === 'cpu') window.announceTCGOpponentCardPlay(card, 'person');
+            } else if (action.kind === 'field') {
+                window.playFieldCard(card, context.isPlayer);
+                if (context.side === 'cpu') context.battle._tcgCpuFieldPlayedThisTurn = true;
+            } else if (action.kind === 'support') {
+                if (window.announceTCGOpponentCardPlay && context.side === 'cpu') window.announceTCGOpponentCardPlay(card, card.type);
+                if (typeof window.executeSupportCard === 'function') window.executeSupportCard(card, action.target || null, context.isPlayer);
+                else {
+                    card.isDead = true;
+                    context.owner.graveyard.push(card);
+                    if (window.triggerPlayEffect) window.triggerPlayEffect(card, context.isPlayer);
+                }
+            } else if (action.kind === 'evolve') {
+                const targetIndex = context.owner.field.indexOf(action.target);
+                if (targetIndex < 0 || !window.checkCanEvolve(action.target, card)) {
+                    context.owner.hand.push(card);
+                    context.owner.currentMana += cost;
+                    return;
+                }
+                const previous = action.target;
+                const previousMaster = window.TCG_MASTER && window.TCG_MASTER[previous.masterId];
+                const hpDifference = Number(previous.hp || 0) - Number(previous.maxHp || previous.hp || 0);
+                const damageDifference = Number(previous.damage || 0) - Number(previousMaster && previousMaster.baseDmg || previous.damage || 0);
+                card.canAttack = !!previous.canAttack;
+                card.hasPermanentTaunt = !!previous.hasPermanentTaunt;
+                card.isDefending = !!previous.isDefending;
+                card.hp = Math.max(1, Number(card.maxHp || card.hp || 1) + hpDifference);
+                if (card.hp > card.maxHp) card.maxHp = card.hp;
+                card.damage = Math.max(0, Number(card.damage || 0) + damageDifference);
+                context.owner.field[targetIndex] = card;
+                if (window.announceTCGOpponentCardPlay && context.side === 'cpu') window.announceTCGOpponentCardPlay(card, 'evolve', previous);
+                if (window.triggerPlayEffect) window.triggerPlayEffect(card, context.isPlayer);
+            } else if (action.kind === 'summon') {
+                card.canAttack = card.ability === 'haste';
+                card.isDefending = false;
+                context.owner.field.push(card);
+                if (window.hasActiveTCGFieldAbility && window.hasActiveTCGFieldAbility('field_forest') && ['spirit', 'seed', 'beetle'].includes(String(card.type || '').split('_')[0])) {
+                    card.maxHp += 20;
+                    card.hp += 20;
+                }
+                if (window.announceTCGOpponentCardPlay && context.side === 'cpu') window.announceTCGOpponentCardPlay(card, 'summon');
+                if (window.triggerPlayEffect) window.triggerPlayEffect(card, context.isPlayer);
+            }
+            if (typeof window.renderBattleBoard === 'function') window.renderBattleBoard();
+        });
+        return true;
+    };
+
+    window.runTCGNPCMainPhase = async function() {
+        let safety = 0;
+        while (window.TCG_BATTLE && !window.TCG_BATTLE.isEnded && safety++ < 30) {
+            await window.tryUseTCGNPCPersonSkill('main');
+            const actions = window.getTCGLegalMainActions('cpu', { reserveDefense: true });
+            if (!actions.length) break;
+            if (!await window.executeTCGMainAction(actions[0])) break;
+        }
+    };
+
+    window.applyTCGNPCGuardPlan = function() {
+        const context = getContext('cpu');
+        if (!context) return 0;
+        const threats = context.enemy.field.filter(card => isAlive(card) && Number(card.damage || 0) > 0);
+        if (!threats.length) return 0;
+        const defense = getNPCStrategy().defense || {};
+        const configuredLimit = Number.isFinite(Number(defense.guardLimit)) ? Math.max(0, Number(defense.guardLimit)) : threats.length;
+        const guardLimit = Math.min(threats.length, configuredLimit);
+        const reservedSkill = window.getTCGLegalPersonSkillActions('cpu', 'interrupt', { attacker: threats[0] }).find(action => action.score >= 60);
+        const skillReserve = reservedSkill ? reservedSkill.cost : 0;
+        let applied = 0;
+        while (applied < guardLimit) {
+            const actions = window.getTCGLegalGuardActions('cpu', { allowReady: false });
+            const affordable = actions.filter(action => context.owner.currentMana - action.cost >= skillReserve);
+            if (!affordable.length) break;
+            affordable.sort((a, b) => (Number(b.card.hp || 0) - Number(b.card.damage || 0) * 0.25) - (Number(a.card.hp || 0) - Number(a.card.damage || 0) * 0.25));
+            affordable[0].dialogueMode = 'prepare';
+            if (!window.applyTCGGuardAction(affordable[0])) break;
+            applied++;
+        }
+        return applied;
+    };
+
+    window.resolveTCGNPCDefenseIntercept = async function(meta) {
+        const context = getContext('cpu');
+        if (!context || !meta || !isAlive(meta.attacker) || window.isTCGPiercingAttacker(meta.attacker)) return { targetType: meta.targetType, targetIndex: meta.targetIndex };
+        const intendedTarget = meta.targetType === 'card' ? context.owner.field[meta.targetIndex] : null;
+        await window.tryUseTCGNPCPersonSkill('interrupt', { attacker: meta.attacker, intendedTarget });
+
+        if (!isAlive(meta.attacker) || !context.enemy.field.includes(meta.attacker)) return { cancelled: true, reason: 'attacker_removed' };
+        if (meta.attacker.status === 'stunned') {
+            meta.attacker.canAttack = false;
+            return { cancelled: true, reason: 'stunned' };
+        }
+        if (meta.attacker.status === 'charmed') {
+            meta.attacker.status = null;
+            meta.attacker.canAttack = false;
+            context.enemy.hp -= Math.max(0, Number(meta.attacker.damage || 0));
+            if (window.showVFX) {
+                window.showVFX('player-face', 'slash');
+                window.showVFX('player-face', 'damage', meta.attacker.damage);
+            }
+            return { cancelled: true, reason: 'charmed' };
+        }
+
+        let guards = context.owner.field.filter(card => isAlive(card) && (card.ability === 'taunt' || card.ability === 'pure_aegis' || card.isDefending || card.hasPermanentTaunt));
+        const incomingDamage = Math.max(0, Number(meta.attacker.damage || 0));
+        const currentBestScore = guards.reduce((best, card) => Math.max(best, Number(card.hp || 0) + Number(card.damage || 0) * 0.7), -Infinity);
+        const defense = getNPCStrategy().defense || {};
+        const permitsGuard = !Number.isFinite(Number(defense.guardLimit)) || Number(defense.guardLimit) > 0;
+        const guardActions = (permitsGuard ? window.getTCGLegalGuardActions('cpu', { allowReady: true }) : [])
+            .map(action => ({ ...action, score: Number(action.card.hp || 0) + Number(action.card.damage || 0) * 0.7 + (Number(action.card.hp || 0) > incomingDamage ? 55 : 0) }))
+            .sort((a, b) => b.score - a.score);
+        let guardAdded = false;
+        const interceptThreshold = strategyValue(defense, 'interceptThreshold', 20);
+        if (guardActions.length && (!guards.length || guardActions[0].score > currentBestScore + interceptThreshold)) {
+            guardActions[0].dialogueMode = 'intercept';
+            window.applyTCGGuardAction(guardActions[0]);
+            guardAdded = true;
+            guards = context.owner.field.filter(card => isAlive(card) && (card.ability === 'taunt' || card.ability === 'pure_aegis' || card.isDefending || card.hasPermanentTaunt));
+        }
+        if (!guards.length) return { targetType: meta.targetType, targetIndex: meta.targetIndex };
+        guards.sort((a, b) => {
+            const scoreA = (Number(a.hp || 0) > incomingDamage ? 80 : 0) + Number(a.damage || 0) - Math.max(0, incomingDamage - Number(a.hp || 0));
+            const scoreB = (Number(b.hp || 0) > incomingDamage ? 80 : 0) + Number(b.damage || 0) - Math.max(0, incomingDamage - Number(b.hp || 0));
+            return scoreB - scoreA;
+        });
+        return { targetType: 'card', targetIndex: context.owner.field.indexOf(guards[0]), guardAdded };
+    };
+})();
+
 // =====================================
 // ④ 敵ターンの攻撃ループ（王の裁き対策＆手動戦闘処理）
 // =====================================
 window.executeCPUTurn = async function(isFirstTurn = false) {
     window.TCG_BATTLE.isEnemyTurn = true; window.TCG_BATTLE.isAnimating = true;
     const p = window.TCG_BATTLE.player; const cpu = window.TCG_BATTLE.cpu;
+    const announceCpuEffect = (card, effect, duration = 1900) => {
+        if (typeof window.announceTCGOpponentAction === 'function') {
+            window.announceTCGOpponentAction('tcg_trigger', {
+                card: card && card.name || 'カード',
+                source: card && card.name || 'カード',
+                effect
+            }, duration);
+        }
+    };
     window.showBattleMessage(`🤖 [思考ログ] 敵のターン処理を開始...`, false, 0, true);
 
     if (p.tempDamageReduction === undefined) p.tempDamageReduction = 0;
 
     if (!isFirstTurn && window.TCG_BATTLE.firstPlayer === 'cpu') window.TCG_BATTLE.turn++;
-    if (cpu.maxMana < 10) cpu.maxMana++; cpu.currentMana = cpu.maxMana; cpu.actionUsed = false; 
+    if (cpu.maxMana < 10) cpu.maxMana++; cpu.currentMana = cpu.maxMana; cpu.actionUsed = false;
+    if (!window.TCG_BATTLE.personSkillUsed) window.TCG_BATTLE.personSkillUsed = { player: false, cpu: false };
+    window.TCG_BATTLE.personSkillUsed.cpu = false;
+    window.TCG_BATTLE._tcgCpuPersonPlayedThisTurn = false;
+    window.TCG_BATTLE._tcgCpuFieldPlayedThisTurn = false;
+    if (window.TCG_BATTLE.captainGuard) window.TCG_BATTLE.captainGuard.cpu = false;
 
-    if ((!isFirstTurn || window.TCG_BATTLE.firstPlayer === 'player') && cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift());
+    let drewTurnCard = false;
+    if ((!isFirstTurn || window.TCG_BATTLE.firstPlayer === 'player') && cpu.deck.length > 0) {
+        cpu.hand.push(cpu.deck.shift());
+        drewTurnCard = true;
+    }
+    if (typeof window.announceTCGOpponentAction === 'function') {
+        window.announceTCGOpponentAction('tcg_turn_start', {
+            mana: cpu.currentMana,
+            count: drewTurnCard ? 1 : 0,
+            effect: drewTurnCard ? 'カードを1枚引いた' : '先攻のためドローを見送った'
+        }, 1900);
+    }
 
     cpu.field.forEach((c, i) => {
         if (c.isDead) return;
-        if (c.ability === "start_draw" && !c.isDead) { if (cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift()); window.showVFX(`c-card-${i}`, 'heal', 'Draw'); }
-        if (c.ability === "infinite_gear" && !c.isDead) { while(cpu.hand.length < 5 && cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift()); window.showVFX(`c-card-${i}`, 'heal', 'Draw'); }
-        if (c.ability === "star_breath" && !c.isDead) { cpu.maxMana = Math.min(10, cpu.maxMana+2); cpu.currentMana = Math.min(10, cpu.currentMana+2); cpu.hp += 30; window.showVFX('cpu-face', 'heal', 30); }
-        if (c.ability === "heaven_judgement" && !c.isDead) { p.hp -= 20; window.showVFX('player-face', 'damage', 20); p.field.forEach((f, fi) => { if(!f.isDead){ f.hp -= 20; window.showVFX(`p-card-${fi}`, 'damage', 20); if(window.checkDeath) window.checkDeath(f, p, `p-card-${fi}`, cpu); } }); }
+        if (c.ability === "start_draw" && !c.isDead) {
+            if (cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift());
+            window.showVFX(`c-card-${i}`, 'heal', 'Draw');
+            announceCpuEffect(c, `${c.name}の能力でカードを1枚引いた`);
+        }
+        if (c.ability === "infinite_gear" && !c.isDead) {
+            const before = cpu.hand.length;
+            while(cpu.hand.length < 5 && cpu.deck.length > 0) cpu.hand.push(cpu.deck.shift());
+            window.showVFX(`c-card-${i}`, 'heal', 'Draw');
+            announceCpuEffect(c, `${c.name}の無限機関で手札を${cpu.hand.length - before}枚補充した`);
+        }
+        if (c.ability === "star_breath" && !c.isDead) {
+            cpu.maxMana = Math.min(10, cpu.maxMana+2); cpu.currentMana = Math.min(10, cpu.currentMana+2); cpu.hp += 30;
+            window.showVFX('cpu-face', 'heal', 30);
+            announceCpuEffect(c, `${c.name}の星の息吹でマナとHPを回復した`);
+        }
+        if (c.ability === "heaven_judgement" && !c.isDead) {
+            p.hp -= 20; window.showVFX('player-face', 'damage', 20);
+            p.field.forEach((f, fi) => { if(!f.isDead){ f.hp -= 20; window.showVFX(`p-card-${fi}`, 'damage', 20); if(window.checkDeath) window.checkDeath(f, p, `p-card-${fi}`, cpu); } });
+            announceCpuEffect(c, `${c.name}の天上の裁きが敵陣全体へ20ダメージを与えた`, 2100);
+        }
     });
 
-    cpu.field.forEach(card => card.canAttack = true); window.renderBattleBoard(); await window.tcgSleep(1000);
+    cpu.field.forEach(card => {
+        if (!card || card.isDead) return;
+        if (card.isDefending && !card.hasPermanentTaunt && card.ability !== 'taunt' && card.ability !== 'pure_aegis') {
+            card.isDefending = false;
+            announceCpuEffect(card, `${card.name}の一時的な守護が解除された`);
+        }
+        card.canAttack = true;
+        card._doubleStrikeUsed = false;
+    });
+    window.renderBattleBoard();
+    window.showBattleMessage(`🤖 [思考ログ] メインフェーズ：召喚・進化・支援を検討...`, false, 0, true);
+    await window.runTCGNPCMainPhase();
+    window.renderBattleBoard();
+    await window.tcgSleep(700);
 
-    for (let cpuIndex = 0; cpuIndex < cpu.field.length; cpuIndex++) {
+    let cpuAttackSafety = 0;
+    while (cpuAttackSafety++ < 40) {
+        let cpuIndex = cpu.field.findIndex(card => card && card.canAttack && card.damage > 0 && !card.isDead && card.hp > 0 && card.status !== 'stunned');
+        if (cpuIndex < 0) {
+            // 再行動スキル、追加ドロー、速攻召喚が発生し得るため、戦闘後にも合法行動を再評価する。
+            await window.runTCGNPCMainPhase();
+            const gainedAttack = cpu.field.some(card => card && card.canAttack && card.damage > 0 && !card.isDead && card.hp > 0 && card.status !== 'stunned');
+            if (!gainedAttack) break;
+            continue;
+        }
         let cpuCard = cpu.field[cpuIndex];
-        if (!cpuCard || !cpuCard.canAttack || cpuCard.damage <= 0 || cpuCard.isDead) continue;
 
         window.showBattleMessage(`🤖 [思考ログ] 『${cpuCard.name}』の攻撃準備...`, false, 0, true);
 
         if (cpuCard.status === "charmed") {
             cpuCard.status = null; cpuCard.canAttack = false; cpu.hp -= cpuCard.damage;
             window.showVFX('cpu-face', 'slash'); window.showVFX('cpu-face', 'damage', cpuCard.damage);
+            announceCpuEffect(cpuCard, `${cpuCard.name}が魅了され、自分のリーダーを攻撃してしまった`, 2200);
             window.renderBattleBoard();
             if (cpu.hp <= 0) { cpu.hp = 0; window.renderBattleBoard(); window.showBattleMessage("🎉 YOU WIN!!\n敵リーダーのHPが0になりました！", false, 5000); setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000); return; }
             await window.tcgSleep(800); continue;
         }
-        if (cpuCard.status === "stunned") continue;
-
         p.field = p.field.filter(c => c && !c.isDead && c.hp > 0); cpu.field = cpu.field.filter(c => c && !c.isDead && c.hp > 0);
         window.TCG_BATTLE.selectedAttackerIndex = cpuIndex; window.renderBattleBoard();
 
-        const isPierce = cpuCard.ability === "pierce_recoil" || cpuCard.ability === "flight" || cpuCard.ability === "god_strike" || cpuCard.ability === "dimension_drill" || cpuCard.ability === "piercing_juggernaut";
+        const isPierce = window.isTCGPiercingAttacker ? window.isTCGPiercingAttacker(cpuCard) : (cpuCard.ability === "pierce_recoil" || cpuCard.ability === "flight");
 
-        let aiTarget = window._decideAITarget ? window._decideAITarget(cpu, p) : {type: 'player', index: 0};
+        let aiTarget = window.chooseTCGNPCAttackTarget ? window.chooseTCGNPCAttackTarget(cpuCard) : {type: 'player', index: 0};
         let finalTargetType = aiTarget.type; let finalTargetIndex = aiTarget.index;
 
         if (finalTargetType === 'card' && (!p.field[finalTargetIndex] || p.field[finalTargetIndex].isDead || p.field[finalTargetIndex].hp <= 0)) {
             finalTargetType = 'player'; finalTargetIndex = 0;
-        } else if (finalTargetType === 'person' && (!window.TCG_BATTLE.currentPerson || window.TCG_BATTLE.currentPerson.player.isDead || window.TCG_BATTLE.currentPerson.player.hp <= 0)) {
+        } else if (finalTargetType === 'person' && (!window.TCG_BATTLE.currentPerson || !window.TCG_BATTLE.currentPerson.player || window.TCG_BATTLE.currentPerson.player.isDead || window.TCG_BATTLE.currentPerson.player.hp <= 0)) {
             finalTargetType = 'player'; finalTargetIndex = 0;
         }
         
@@ -15734,11 +16557,15 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                             <button onclick="window.cancelInterrupt()" style="margin-top:10px; padding:10px; font-size:14px; font-weight:bold; background:#444; color:#bbb; border:none; border-radius:8px; cursor:pointer;">割り込まない</button>
                         `; document.body.appendChild(ui); 
                     });
-                    if (pResult === 'used') { await window.tcgSleep(900); }
+                    if (pResult === 'used') {
+                        announceCpuEffect(cpuCard, `こちらの攻撃へ人物スキルで割り込まれた`, 2000);
+                        await window.tcgSleep(900);
+                    }
                 }
             }
 
             if (cpuCard.isDead || cpuCard.hp <= 0) {
+                announceCpuEffect(cpuCard, `${cpuCard.name}が割り込みで戦場を離れ、攻撃が不発になった`, 2200);
                 window.showBattleMessage("💥 攻撃元の敵が消滅し、不発に終わった！", false, 1500, false, true);
                 window.TCG_BATTLE.selectedAttackerIndex = -1; window.renderBattleBoard(); await window.tcgSleep(1000); continue; 
             }
@@ -15746,7 +16573,7 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
             window.showBattleMessage(`🤖 [思考ログ] ターゲットの生存確認を行います...`, false, 0, true);
             if (finalTargetType === 'card' && (!p.field[finalTargetIndex] || p.field[finalTargetIndex].isDead)) {
                 finalTargetType = 'player'; finalTargetIndex = 0; targetNameStr = 'あなた (リーダー)';
-            } else if (finalTargetType === 'person' && (!window.TCG_BATTLE.currentPerson || window.TCG_BATTLE.currentPerson.player.isDead)) {
+            } else if (finalTargetType === 'person' && (!window.TCG_BATTLE.currentPerson || !window.TCG_BATTLE.currentPerson.player || window.TCG_BATTLE.currentPerson.player.isDead)) {
                 finalTargetType = 'player'; finalTargetIndex = 0; targetNameStr = 'あなた (リーダー)';
             }
 
@@ -15754,7 +16581,8 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
             const getTauntIndices = () => { let idxs = []; p.field.forEach((c, i) => { if (c && !c.isDead && (c.ability === "taunt" || c.ability === "pure_aegis" || c.isDefending)) idxs.push(i); }); return idxs; };
             const getCanTaunt = () => p.field.some(c => c && !c.isDead && !c.isDefending && c.ability !== "taunt" && c.ability !== "pure_aegis" && c.status !== "stunned");
             
-            let tauntIndices = getTauntIndices(); let canTaunt = getCanTaunt(); let hasMana = p.currentMana >= 1;
+            const guardCost = window.getTCGGuardCost ? window.getTCGGuardCost() : 1;
+            let tauntIndices = getTauntIndices(); let canTaunt = getCanTaunt(); let hasMana = p.currentMana >= guardCost;
 
             if (hasMana && canTaunt) {
                 window.TCG_BATTLE.isIntercepting = true; window.TCG_BATTLE.interceptPhase = 'asking'; window.renderBattleBoard();
@@ -15767,7 +16595,7 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                         <div style="font-size:18px; color:#fff;">${cpuCard.name}<br><span style="color:#ff5252;">${cpuCard.damage} ダメージ</span></div>
                         <div style="font-size:13px; color:#FFEB3B; background:rgba(0,0,0,0.5); padding:5px; margin:10px 0; border:1px solid #FFC107;">🎯 狙い: ${targetNameStr}</div>
                         <p style="color:#ddd; font-size:13px;">マナを消費して「守護」を追加しますか？</p>
-                        <button onclick="document.getElementById('tcg-intercept-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('add');" style="padding:10px; background:#00BCD4; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:10px;">🛡️ 守護を追加 (1M)</button>
+                        <button onclick="document.getElementById('tcg-intercept-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('add');" style="padding:10px; background:#00BCD4; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer; width:100%; margin-bottom:10px;">🛡️ 守護を追加 (${guardCost}M)</button>
                         <button onclick="document.getElementById('tcg-intercept-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('skip');" style="padding:10px; background:#555; color:#fff; border-radius:8px; font-weight:bold; cursor:pointer; width:100%;">追加しない</button>
                     `; document.body.appendChild(ui);
                 });
@@ -15783,7 +16611,10 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
                         //     <button onclick="document.getElementById('tcg-target-taunt-ui').remove(); window.TCG_BATTLE.interceptResolve('cancel');" style="padding:8px 20px; background:#555; color:#fff; border-radius:8px; cursor:pointer;">キャンセル</button>
                         // `; document.body.appendChild(ui);
                     });
-                    if (addResult === 'added') { tauntIndices = getTauntIndices(); }
+                    if (addResult === 'added') {
+                        tauntIndices = getTauntIndices();
+                        announceCpuEffect(cpuCard, `プレイヤーが攻撃宣言に割り込み、新しい守護を追加した`, 2000);
+                    }
                 }
             }
 
@@ -15817,6 +16648,14 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
             dmg = Math.max(0, dmg - p.tempDamageReduction); window.showBattleMessage(`🛡️ 陣形指示! ダメージ軽減: ${cpuCard.damage} -> ${dmg}`, false, 800, false, true);
         }
 
+        if (window.announceTCGOpponentAttack) {
+            let announcedTarget = null;
+            if (finalTargetType === 'card') announcedTarget = p.field[finalTargetIndex] || null;
+            else if (finalTargetType === 'person' && tempPerson) announcedTarget = tempPerson.player || tempPerson;
+            else if (finalTargetType === 'field' && window.TCG_BATTLE.currentField) announcedTarget = window.TCG_BATTLE.currentField.card || null;
+            window.announceTCGOpponentAttack(cpuCard, finalTargetType, announcedTarget);
+        }
+
         if (finalTargetType === 'player') {
             window.showBattleMessage(`⚔️ ${cpuCard.name} -> リーダー (${dmg} dmg)`, false, 800, false, true); p.hp -= dmg; window.showVFX('player-face', 'slash'); window.showVFX('player-face', 'damage', dmg);
         } else if (finalTargetType === 'card' && p.field[finalTargetIndex]) {
@@ -15841,49 +16680,68 @@ window.executeCPUTurn = async function(isFirstTurn = false) {
         window.TCG_BATTLE.selectedAttackerIndex = -1; window.renderBattleBoard();
 
         if ((cpuCard.ability === "double_strike" || cpuCard.hasDoubleStrike) && cpuCard.canAttack && !cpuCard.isDead && cpuCard.hp > 0 && !cpuCard._doubleStrikeUsed) {
-            window.showBattleMessage(`🤖 『${cpuCard.name}』は連撃により再度攻撃態勢に入った！`, false, 0, true); cpuCard._doubleStrikeUsed = true; cpuIndex--; 
-        }
+            window.showBattleMessage(`🤖 『${cpuCard.name}』は連撃により再度攻撃態勢に入った！`, false, 0, true);
+            announceCpuEffect(cpuCard, `${cpuCard.name}が連撃で再び攻撃態勢に入った`, 1900);
+            cpuCard._doubleStrikeUsed = true;
+        } else cpuCard.canAttack = false;
     }
 
-    // --- 召喚フェーズ・ターン終了処理は省略なし ---
-    window.showBattleMessage(`🤖 [思考ログ] 召喚フェーズへ移行...`, false, 0, true);
-    let cardsToPlay = [];
-    for (let i = cpu.hand.length - 1; i >= 0; i--) {
-        let card = cpu.hand[i]; let actualCost = window.getActualCost(cpu, card);
-        if (cpu.currentMana >= actualCost) {
-            if (card.type === 'action' && cpu.actionUsed) continue;
-            if (card.evolvesFrom) {
-                let targetIndex = cpu.field.findIndex(c => window.checkCanEvolve ? window.checkCanEvolve(c, card) : (c.type === card.evolvesFrom));
-                if (targetIndex !== -1) { cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isEvo: true, targetIndex: targetIndex }); cpu.currentMana -= actualCost; cpu.hand.splice(i, 1); }
-            } else { cardsToPlay.push({ handIndex: i, card: card, cost: actualCost, isEvo: false }); cpu.currentMana -= actualCost; cpu.hand.splice(i, 1); if (card.type === 'action') cpu.actionUsed = true; }
-        }
-    }
-    if (cardsToPlay.length > 0) window.renderBattleBoard(); 
-    for (let idx = 0; idx < cardsToPlay.length; idx++) {
-        let playData = cardsToPlay[idx]; let card = playData.card;
-        await new Promise(resolve => {
-            if (window.animateCardPlay) { window.animateCardPlay(card, false, () => { _processCPUSummon(card, playData); setTimeout(resolve, 1000); }); } else { _processCPUSummon(card, playData); setTimeout(resolve, 1000); }
-        });
-    }
-    function _processCPUSummon(card, playData) {
-        if (playData.isEvo) { let prevCard = cpu.field[playData.targetIndex]; card.canAttack = prevCard ? prevCard.canAttack : false; cpu.field[playData.targetIndex] = card; if(window.triggerPlayEffect) window.triggerPlayEffect(card, false); } 
-        else { if (card.type === 'item' || card.type === 'action') { card.isDead = true; cpu.graveyard.push(card); if(window.triggerPlayEffect) window.triggerPlayEffect(card, false); } else { card.canAttack = false; cpu.field.push(card); if(window.triggerPlayEffect) window.triggerPlayEffect(card, false); } }
-    }
+    const plannedGuards = window.applyTCGNPCGuardPlan();
 
     cpu.field.forEach((c, i) => {
-        if (c.isDead) return; c.status = null; c._doubleStrikeUsed = false; 
-        if (c.ability === "burn_field" || c.ability === "cataclysm") { let dmg = c.ability === "cataclysm" ? 20 : 10; p.field.forEach((ec, eidx) => { if(!ec.isDead) { ec.hp -= dmg; window.showVFX(`p-card-${eidx}`, 'damage', dmg); if(window.checkDeath) window.checkDeath(ec, p, `p-card-${eidx}`, cpu); } }); }
-        if (c.ability === "absolute_sanctuary") { cpu.field.forEach((ac, aidx) => { if(!ac.isDead) { ac.hp += 20; window.showVFX(`c-card-${aidx}`, 'heal', '聖域'); } }); }
-        if (c.ability === "raise_dead" && cpu.graveyard.length > 0) { let res = cpu.graveyard.shift(); res.isDead = false; res.hp = Math.floor((res.maxHp||50)/2); cpu.field.push(res); }
-        if (c.ability === "end_heal") { c.hp += 20; window.showVFX(`c-card-${i}`, 'heal', 20); }
-        if (c.ability === "cyber_miracle") { cpu.field.forEach((f, fi) => { if(!f.isDead){ f.hp += 100; window.showVFX(`c-card-${fi}`, 'heal', '回復'); } }); }
-        if (c.ability === "event_horizon") { const aliveEnemies = p.field.filter(e => !e.isDead); if (aliveEnemies.length > 0) { let target = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)]; target.isDead = true; p.deck.push(target); window.showVFX(`p-card-${p.field.indexOf(target)}`, 'slash', 'バウンス'); } }
-        if (c.ability === "divine_grace" && cpu.graveyard && cpu.graveyard.length > 0) { let resCard = cpu.graveyard.shift(); resCard.isDead = false; resCard.hp = window.TCG_MASTER[resCard.masterId] ? window.TCG_MASTER[resCard.masterId].baseHp : 50; cpu.field.push(resCard); window.showVFX('cpu-face', 'heal', '蘇生'); }
+        if (c.isDead) return;
+        const clearedStatus = c.status;
+        c.status = null; c._doubleStrikeUsed = false;
+        if (clearedStatus) announceCpuEffect(c, `${c.name}の${clearedStatus}状態が解除された`);
+        if (c.ability === "burn_field" || c.ability === "cataclysm") {
+            let dmg = c.ability === "cataclysm" ? 20 : 10;
+            p.field.forEach((ec, eidx) => { if(!ec.isDead) { ec.hp -= dmg; window.showVFX(`p-card-${eidx}`, 'damage', dmg); if(window.checkDeath) window.checkDeath(ec, p, `p-card-${eidx}`, cpu); } });
+            announceCpuEffect(c, `${c.name}が敵陣全体へ${dmg}ダメージを与えた`);
+        }
+        if (c.ability === "absolute_sanctuary") {
+            cpu.field.forEach((ac, aidx) => { if(!ac.isDead) { ac.hp += 20; window.showVFX(`c-card-${aidx}`, 'heal', '聖域'); } });
+            announceCpuEffect(c, `${c.name}の絶対聖域が味方全体を20回復した`);
+        }
+        if (c.ability === "raise_dead" && cpu.graveyard.length > 0) {
+            let res = cpu.graveyard.shift(); res.isDead = false; res.hp = Math.floor((res.maxHp||50)/2); cpu.field.push(res);
+            announceCpuEffect(c, `${c.name}が${res.name}を墓地から蘇生した`, 2100);
+        }
+        if (c.ability === "end_heal") {
+            c.hp += 20; window.showVFX(`c-card-${i}`, 'heal', 20);
+            announceCpuEffect(c, `${c.name}がターン終了時にHPを20回復した`);
+        }
+        if (c.ability === "cyber_miracle") {
+            cpu.field.forEach((f, fi) => { if(!f.isDead){ f.hp += 100; window.showVFX(`c-card-${fi}`, 'heal', '回復'); } });
+            announceCpuEffect(c, `${c.name}の奇跡で味方全体を100回復した`, 2100);
+        }
+        if (c.ability === "event_horizon") {
+            const aliveEnemies = p.field.filter(e => !e.isDead);
+            if (aliveEnemies.length > 0) {
+                let target = aliveEnemies[Math.floor(Math.random() * aliveEnemies.length)]; target.isDead = true; p.deck.push(target); window.showVFX(`p-card-${p.field.indexOf(target)}`, 'slash', 'バウンス');
+                announceCpuEffect(c, `${c.name}が${target.name}を山札へ戻した`, 2100);
+            }
+        }
+        if (c.ability === "divine_grace" && cpu.graveyard && cpu.graveyard.length > 0) {
+            let resCard = cpu.graveyard.shift(); resCard.isDead = false; resCard.hp = window.TCG_MASTER[resCard.masterId] ? window.TCG_MASTER[resCard.masterId].baseHp : 50; cpu.field.push(resCard); window.showVFX('cpu-face', 'heal', '蘇生');
+            announceCpuEffect(c, `${c.name}の神の恩寵で${resCard.name}を蘇生した`, 2100);
+        }
     });
     p.field = p.field.filter(c => c && !c.isDead && c.hp > 0); cpu.field = cpu.field.filter(c => c && !c.isDead && c.hp > 0);
 
     if (p.hp <= 0) { p.hp = 0; window.renderBattleBoard(); window.showBattleMessage("💀 YOU LOSE...\nプレイヤーのHPが0になりました。", true, 5000); setTimeout(() => document.getElementById('tcg-battle-ui').style.display = 'none', 5000); return; }
 
+    if (typeof window.announceTCGOpponentAction === 'function') {
+        const hasReservedMana = cpu.currentMana > 0;
+        window.announceTCGOpponentAction(hasReservedMana ? 'tcg_turn_end' : 'tcg_trigger', {
+            mana: cpu.currentMana,
+            count: plannedGuards,
+            effect: plannedGuards > 0
+                ? `${plannedGuards}体を守護につけてターンを終了した`
+                : hasReservedMana
+                    ? `${cpu.currentMana}マナを残してターンを終了した`
+                    : `マナを使い切ってターンを終了した`
+        }, 1900);
+    }
     window.showBattleMessage(`🤖 [思考ログ] 敵ターン終了。`, false, 0, true);
     p.tempDamageReduction = 0; window.startPlayerTurn(false);
 };
@@ -16498,12 +17356,17 @@ window.renderBattleBoard = function() {
 // ① カジノ入室時のロビーBGM再生（フック）
 const _orig_openCasino_bgm = window.openCasino;
 window.openCasino = function() {
-    if (_orig_openCasino_bgm) _orig_openCasino_bgm.apply(this, arguments);
-    if (window.audioManager) window.audioManager.playBGM('card_lobby');
+    const result = _orig_openCasino_bgm ? _orig_openCasino_bgm.apply(this, arguments) : undefined;
+    if (result !== false && window.audioManager) window.audioManager.playBGM('card_lobby');
+    return result;
 };
 
 // ② ご提示いただいた退出処理（育成BGMへの復帰を追加）
 window.exitCasino = function() {
+    if (window.casinoMapOpen && typeof window.closeCasinoMapUI === 'function') {
+        window.closeCasinoMapUI();
+        return;
+    }
     const casinoUI = document.getElementById('casino-lobby-ui');
     if (casinoUI) casinoUI.style.display = 'none';
     
@@ -16692,18 +17555,24 @@ window.endTCGBattle = function(isWin) {
         let titleColor = isWin ? '#FFD700' : '#f44336';
         let titleText = isWin ? '🎉 YOU WIN!!' : '💀 YOU LOSE...';
         let subText = isWin ? '見事、相手のHPを0にしました！' : '無念...プレイヤーのHPが尽きました。';
+        const directMasterConversation = !!(window.DEALER_TCG_CONTEXT && window.DEALER_TCG_CONTEXT.returnMode === 'conversation');
+        const tableReturnButton = directMasterConversation ? '' : `
+                    <button onclick="window.closeTCGBattle('table')" style="padding: 15px; font-size: 18px; font-weight: bold; background: #2196F3; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🃏 TCGテーブル（準備画面）へ戻る
+                    </button>`;
 
         resultUI.innerHTML = `
             <div style="background: #2a2a2a; border: 4px solid ${titleColor}; border-radius: 12px; padding: 40px; width: 500px; text-align: center; color: white; font-family: sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform: scale(0.9); transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
                 <h1 style="color: ${titleColor}; font-size: 40px; margin-top: 0; text-shadow: 0 0 20px ${titleColor};">${titleText}</h1>
                 <p style="font-size: 18px; color: #ddd; margin-bottom: 40px;">${subText}</p>
-                
+
                 <div style="display: flex; flex-direction: column; gap: 15px;">
-                    <button onclick="window.closeTCGBattle('lobby')" style="padding: 15px; font-size: 18px; font-weight: bold; background: #2196F3; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        🎰 カジノロビーに戻る
+                    <button onclick="window.replayLastTCGBattle()" style="padding: 15px; font-size: 18px; font-weight: bold; background: linear-gradient(180deg,#d79b2d,#8e5412); color: #1b0803; border: 2px solid #ffe08a; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        ⚔️ 同じ条件でもう一度バトル
                     </button>
-                    <button onclick="window.closeTCGBattle('field')" style="padding: 15px; font-size: 18px; font-weight: bold; background: #4CAF50; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                        🏝️ 島（育成画面）に戻る
+                    ${tableReturnButton}
+                    <button onclick="window.closeTCGBattle('lobby')" style="padding: 15px; font-size: 18px; font-weight: bold; background: #555; color: white; border: 2px solid #888; border-radius: 8px; cursor: pointer; transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                        🎰 カジノへ戻る
                     </button>
                 </div>
             </div>
@@ -16727,19 +17596,42 @@ window.closeTCGBattle = function(destination) {
     // ★修正：バトル画面を閉じる（!important 指定を解除して確実に消す）
     let battleUI = document.getElementById('tcg-battle-ui');
     if (battleUI) {
-        battleUI.style.removeProperty('display');
-        battleUI.style.display = 'none';
+        if (destination === 'replay') {
+            // 旧バトルの遅延タイマーに新しい盤面を消されないよう、再戦中は強制表示を維持する。
+            battleUI.style.setProperty('display', 'flex', 'important');
+        } else {
+            battleUI.style.removeProperty('display');
+            battleUI.style.display = 'none';
+        }
     }
 
-    if (destination === 'lobby') {
+    if (destination === 'replay') {
+        return;
+    } else if (destination === 'lobby' || destination === 'table') {
         // カジノロビーに戻る
         if (window.audioManager) window.audioManager.playBGM('card_lobby');
-        let casinoUI = document.getElementById('casino-lobby-ui');
-        if (casinoUI) casinoUI.style.display = 'flex';
+        if (destination === 'lobby') {
+            let casinoUI = document.getElementById('casino-lobby-ui');
+            if (casinoUI) casinoUI.style.display = 'flex';
+        }
     } else {
         // 島に戻る (退出処理を呼ぶことでメインBGMに戻り、AIも行動を再開する)
         window.exitCasino(); 
     }
+};
+
+// 直前に確定した自分のデッキ・対戦相手・カジノ課題コンテキストで新しい一戦を始める。
+window.replayLastTCGBattle = function() {
+    const setup = window.LAST_TCG_BATTLE_SETUP;
+    if (!setup || !Number.isInteger(setup.selectedDeckIndex) || setup.selectedDeckIndex < 0) return false;
+
+    const nextCasinoContext = setup.dealerContext
+        ? Object.assign({}, setup.dealerContext, { recorded: false })
+        : null;
+    window.closeTCGBattle('replay');
+    window.DEALER_TCG_CONTEXT = nextCasinoContext;
+    window.startBattle(setup.enemyData || null, setup.selectedDeckIndex);
+    return true;
 };
 
 // ⑧ （おまけ）音楽館の曲名登録
@@ -16868,13 +17760,15 @@ window.cancelDeckSelection = function() {
 const _orig_openCasino_Final = window.openCasino;
 window.openCasino = function() {
     // 既存のオープン処理を実行
-    if (_orig_openCasino_Final) _orig_openCasino_Final.apply(this, arguments);
+    const result = _orig_openCasino_Final ? _orig_openCasino_Final.apply(this, arguments) : undefined;
+    if (result === false) return false;
 
     let casinoUI = document.getElementById('casino-lobby-ui');
     if (casinoUI) {
         // ロビーのボタンから「display='none'」を削除して、画面が消えないようにするハック
         casinoUI.innerHTML = casinoUI.innerHTML.replace(/document\.getElementById\('casino-lobby-ui'\)\.style\.display='none';\s*/g, '');
     }
+    return result;
 };
 
 // 2. キャンセル時の処理（モーダルを消すだけ。ロビーは裏にあるのでそのまま表示される）
@@ -16905,7 +17799,13 @@ window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
         `;
         for (let i = 0; i < 3; i++) {
             let deck = window.TCG.decks[i] || [];
-            let isValid = deck.length >= 60;
+            let isValid = window.isTCGPlayableDeck(deck);
+            const limitStatus = window.getTCGDeckCopyLimitStatus(deck);
+            const invalidLabel = deck.length < 60
+                ? '未編成'
+                : limitStatus.violations.length
+                    ? '同一名4枚制限を超過'
+                    : 'カード情報を確認してください';
             let dName = window.TCG.deckNames ? window.TCG.deckNames[i] : `デッキ ${i + 1}`;
             let bg = isValid ? '#333' : '#222';
             let color = isValid ? '#FFF' : '#666';
@@ -16915,7 +17815,7 @@ window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
                     <button onclick="if(${isValid}) { document.getElementById('tcg-deck-select-modal').style.display='none'; window.startBattle(window._tempEnemyData, ${i}); }" 
                             style="flex:1; padding:15px; background:${bg}; color:${color}; border:2px solid ${isValid ? '#4CAF50' : '#444'}; border-radius:8px; font-size:18px; font-weight:bold; cursor:${cursor}; transition:0.2s;"
                             onmouseover="if(${isValid}) this.style.transform='scale(1.02)'" onmouseout="if(${isValid}) this.style.transform='scale(1)'">
-                        ${dName} ${isValid ? `(${deck.length}枚)` : '(未編成)'}
+                        ${dName} ${isValid ? `(${deck.length}枚)` : `(${invalidLabel})`}
                     </button>
                     <button onclick="window.showDeckDetailModal(${i})" style="padding:15px 20px; background:#2196F3; color:#fff; border:2px solid #1976D2; border-radius:8px; font-weight:bold; cursor:pointer; transition:0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">詳細 🔍</button>
                 </div>
@@ -16932,18 +17832,20 @@ window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
     }
     
     // --- 【フェーズ2】実際のバトル開始 ---
+    let deckIdx = selectedDeckIndex;
+    if (!window.isTCGPlayableDeck(window.TCG.decks[deckIdx])) {
+        window.showTCGDeckRuleNotice('60枚以上かつ、同一名4枚までのデッキを選んでください。');
+        return;
+    }
     // ★ デッキが決まった「今」、初めてロビーを消してBGMを鳴らす！
     if (lobby) lobby.style.display = 'none';
     if (window.audioManager) window.audioManager.playBGM('card_main');
-
-    let deckIdx = selectedDeckIndex;
-    if (!window.TCG.decks[deckIdx] || window.TCG.decks[deckIdx].length < 60) return;
 
     window.TCG_BATTLE = {
         player: { hp: 200, maxMana: 0, currentMana: 0, deck: [], hand: [], field: [], actionUsed: false, graveyard: [] },
         cpu:    { hp: 200, maxMana: 0, currentMana: 0, deck: [], hand: [], field: [], actionUsed: false, graveyard: [] },
         turn: 1, selectedAttackerIndex: -1, selectedHandCardIndex: -1, _skipDefendHint: false,
-        currentField: null, targetingHandIndex: -1,
+        currentField: null, cpuField: null, targetingHandIndex: -1,
         firstPlayer: 'player', isEnemyTurn: false, isAnimating: true, isAuto: false,
         battleLog: [], isEnded: false
     };
@@ -16994,6 +17896,16 @@ window.startBattle = function(enemyData = null, selectedDeckIndex = -1) {
             });
         }
     }
+
+    // リザルトから同じ条件で再戦できるよう、確定済みのデッキ番号と対戦相手を保存する。
+    // カジノ課題の記録フラグは、再戦時に新しい一戦として false へ戻して復元する。
+    window.LAST_TCG_BATTLE_SETUP = {
+        enemyData,
+        selectedDeckIndex: deckIdx,
+        dealerContext: window.DEALER_TCG_CONTEXT
+            ? Object.assign({}, window.DEALER_TCG_CONTEXT, { recorded: false })
+            : null
+    };
 
     window.renderBattleBoard();
 
@@ -17271,7 +18183,10 @@ window.MASTER_PERSON_CARD_MAP = Object.assign({}, window.MASTER_PERSON_CARD_MAP 
     scientist: "person_scientist",
     fortune_teller: "person_fortune_teller",
     fortuneteller: "person_fortune_teller",
-    fortune: "person_fortune_teller"
+    fortune: "person_fortune_teller",
+    soldier: "person_soldier",
+    captain: "person_captain",
+    king: "person_king"
 });
 
 window.createPersonCardInstance = function(masterId, generation) {
@@ -17303,7 +18218,7 @@ window.createPersonCardInstance = function(masterId, generation) {
     };
 };
 
-window.unlockMasterPersonCard = function(masterType, generation) {
+window.unlockMasterPersonCard = function(masterType, generation, options = {}) {
     const masterId = window.MASTER_PERSON_CARD_MAP[masterType];
     if (!masterId || !window.TCG_MASTER || !window.TCG_MASTER[masterId]) return null;
     if (!window.TCG) window.TCG = { myCollection: [], decks: [[]] };
@@ -17335,15 +18250,46 @@ window.unlockMasterPersonCard = function(masterType, generation) {
     else if (typeof saveGameData === "function") saveGameData();
 
     const isCardGameUnlocked = window.isTCGCardGameUnlocked();
-    const message = isCardGameUnlocked
+    const message = options.message || (isCardGameUnlocked
         ? `🎓 ${newCard.name}の人物カードを獲得した！`
-        : `✨ ${newCard.name}との免許皆伝の思い出を記録した！`;
-    if (typeof window.showCardUnlockPopup === "function") window.showCardUnlockPopup(newCard, message);
-    else if (typeof window.showGameTutorial === "function") {
+        : `✨ ${newCard.name}との免許皆伝の思い出を記録した！`);
+    if (!options.suppressPopup && typeof window.showCardUnlockPopup === "function") window.showCardUnlockPopup(newCard, message);
+    else if (!options.suppressPopup && typeof window.showGameTutorial === "function") {
         window.showGameTutorial(isCardGameUnlocked ? "🃏 人物カード獲得！" : "📖 思い出を記録！", message);
     }
     if (typeof window.updateTcgButtonAppearance === "function") window.updateTcgButtonAppearance();
     return newCard;
+};
+
+window.unlockCastlePersonCards = function(generation) {
+    const targetGeneration = Math.max(1, Number(generation) || 1);
+    const castlePeople = ["soldier", "captain", "king"];
+    const newlyUnlocked = [];
+
+    castlePeople.forEach(masterType => {
+        const masterId = window.MASTER_PERSON_CARD_MAP[masterType];
+        const alreadyOwned = !!(window.TCG && Array.isArray(window.TCG.myCollection) && window.TCG.myCollection.some(card =>
+            card && card.masterId === masterId
+            && Math.max(1, Number(card.acquiredGeneration) || 1) === targetGeneration
+        ));
+        const card = window.unlockMasterPersonCard(masterType, targetGeneration, { suppressPopup: true });
+        if (card && !alreadyOwned) newlyUnlocked.push(card);
+    });
+
+    if (newlyUnlocked.length > 0) {
+        const names = newlyUnlocked.map(card => card.name).join("・");
+        const isCardGameUnlocked = window.isTCGCardGameUnlocked();
+        const message = isCardGameUnlocked
+            ? `🏰 城への初入場で、${names}の人物カードを獲得した！`
+            : `🏰 城への初入場で、${names}との思い出を記録した！`;
+        const representativeCard = newlyUnlocked[newlyUnlocked.length - 1];
+        if (typeof window.showCardUnlockPopup === "function") window.showCardUnlockPopup(representativeCard, message);
+        else if (typeof window.showGameTutorial === "function") {
+            window.showGameTutorial(isCardGameUnlocked ? "🃏 人物カード獲得！" : "📖 思い出を記録！", message);
+        }
+    }
+
+    return newlyUnlocked;
 };
 
 const ADVANCED_PERSON_CARD_ID_SET = new Set(window.ADVANCED_PERSON_CARD_IDS);
@@ -17450,6 +18396,15 @@ window.consumeAdvancedDamageShield = function(card, vfxId) {
     }
     if (vfxId && typeof window.showVFX === "function") window.showVFX(vfxId, "buff", "無効");
     if (typeof window.showBattleMessage === "function") window.showBattleMessage("🔮 星の結界がダメージを無効化した！", false, 1200);
+    const battle = window.TCG_BATTLE;
+    const cpuPerson = battle && battle.currentPerson && battle.currentPerson.cpu;
+    if (battle && (battle.cpu.field.includes(card) || cpuPerson === card) && typeof window.announceTCGOpponentAction === 'function') {
+        window.announceTCGOpponentAction('tcg_trigger', {
+            card: card.name || '守護対象',
+            source: card.name || '守護対象',
+            effect: `${card.name || 'カード'}の星の結界がダメージを無効化した`
+        }, 2000);
+    }
     return true;
 };
 
@@ -17846,6 +18801,10 @@ function cleanupAdvancedTurnEffects(side) {
     if (person) cards.push(person);
     cards.forEach(card => {
         if (!card) return;
+        const expiredEffects = [];
+        if (card._advancedStatusImmune) expiredEffects.push('状態異常無効');
+        if (card._advancedDamageShield) expiredEffects.push('星の結界');
+        if (card._advancedOverclock) expiredEffects.push('オーバークロック');
         restoreAdvancedProtectionAccessors(card);
         delete card._advancedStatusImmune;
         delete card._advancedDamageShield;
@@ -17856,6 +18815,13 @@ function cleanupAdvancedTurnEffects(side) {
         }
         if (Array.isArray(card.badges)) {
             card.badges = card.badges.filter(b => !["状態異常無効", "星の結界", "オーバークロック"].includes(b));
+        }
+        if (side === 'cpu' && expiredEffects.length && typeof window.announceTCGOpponentAction === 'function') {
+            window.announceTCGOpponentAction('tcg_trigger', {
+                card: card.name || 'カード',
+                source: card.name || 'カード',
+                effect: `${card.name || 'カード'}の${expiredEffects.join('・')}がターン開始時に解除された`
+            }, 2000);
         }
     });
 }
@@ -17914,6 +18880,54 @@ window.executeAttack = function(targetType, enemyIndex) {
     const result = _advancedExecuteAttack.apply(this, arguments);
     if (attacker) attacker.damage = originalDamage;
     return result;
+};
+
+// プレイヤーの攻撃宣言にもCPU側の人物スキル・守護割り込みを適用する。
+const _npcDefenseExecuteAttack = window.executeAttack;
+window.executeAttack = async function(targetType, enemyIndex) {
+    const battle = window.TCG_BATTLE;
+    if (!battle || battle.isEnemyTurn || battle.personTargetingIndex !== undefined && battle.personTargetingIndex !== -1) {
+        return _npcDefenseExecuteAttack.apply(this, arguments);
+    }
+    const attackerIndex = battle.selectedAttackerIndex;
+    const attacker = attackerIndex >= 0 ? battle.player.field[attackerIndex] : null;
+    if (!attacker || battle._npcDefenseResolving) return;
+
+    battle._npcDefenseResolving = true;
+    battle.isAnimating = true;
+    let defenseResult;
+    try {
+        defenseResult = await window.resolveTCGNPCDefenseIntercept({ attacker, targetType, targetIndex: enemyIndex });
+    } finally {
+        battle._npcDefenseResolving = false;
+        battle.isAnimating = false;
+    }
+
+    if (!defenseResult || defenseResult.cancelled || battle.isEnded || !battle.player.field.includes(attacker) || attacker.isDead || attacker.hp <= 0) {
+        battle.selectedAttackerIndex = -1;
+        const reason = defenseResult && defenseResult.reason;
+        if (reason === 'charmed') window.showBattleMessage(`💕 ${attacker.name}は割り込みで魅了され、味方リーダーを攻撃した！`, true, 1800);
+        else if (reason === 'stunned') window.showBattleMessage(`🪨 ${attacker.name}は割り込みで行動不能になり、攻撃できなかった！`, true, 1800);
+        else window.showBattleMessage(`💥 ${attacker.name}は割り込みで戦場を離れ、攻撃は不発になった！`, false, 1800, true);
+        window.renderBattleBoard();
+        return;
+    }
+
+    const resolvedType = defenseResult.targetType === undefined ? targetType : defenseResult.targetType;
+    const resolvedIndex = defenseResult.targetIndex === undefined ? enemyIndex : defenseResult.targetIndex;
+    if (resolvedType === 'card' && (resolvedType !== targetType || resolvedIndex !== enemyIndex)) {
+        const guard = battle.cpu.field[resolvedIndex];
+        if (guard) {
+            window.showBattleMessage(`🛡️ ${guard.name}が攻撃へ割り込んだ！`, false, 1300, true, true);
+            if (!defenseResult.guardAdded && typeof window.announceTCGOpponentAction === 'function') {
+                window.announceTCGOpponentAction('tcg_guard_intercept', {
+                    card: guard.name || '守護カード',
+                    target: attacker.name || '攻撃カード'
+                }, 2100);
+            }
+        }
+    }
+    return _npcDefenseExecuteAttack.call(this, resolvedType, resolvedIndex);
 };
 
 const _advancedGetCardBadgeInfo = window.getCardBadgeInfo;
@@ -18327,6 +19341,1407 @@ console.log("✨ 上級職人物カード9枚・免許皆伝取得・共通ス�
         if (album) album.remove();
         const result = openCardDeckBuilder.apply(this, arguments);
         installDeckBuilderTabs();
+        return result;
+    };
+})();
+
+// ======================================================================
+// TCG battle presentation / dual-field integration
+// ======================================================================
+(function() {
+    function escapeBattleText(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function normalizeDualFields() {
+        const battle = window.TCG_BATTLE;
+        if (!battle || !battle.player || !battle.cpu) return;
+
+        if (battle.currentField && battle.currentField.owner === battle.cpu) {
+            if (!battle.cpuField) battle.cpuField = battle.currentField;
+            battle.currentField = null;
+        }
+        if (battle.currentField && !battle.currentField.owner) battle.currentField.owner = battle.player;
+        if (battle.cpuField && !battle.cpuField.owner) battle.cpuField.owner = battle.cpu;
+
+        // 古いCPU処理がフィールドカードをモンスター列へ入れた場合の安全移行。
+        [battle.player, battle.cpu].forEach((owner, ownerIndex) => {
+            if (!owner || !Array.isArray(owner.field)) return;
+            for (let i = owner.field.length - 1; i >= 0; i--) {
+                const card = owner.field[i];
+                const master = card && window.TCG_MASTER ? window.TCG_MASTER[card.masterId] : null;
+                if (!card || (card.type !== 'field' && (!master || master.type !== 'field'))) continue;
+                owner.field.splice(i, 1);
+                card.type = 'field';
+                const slotKey = ownerIndex === 0 ? 'currentField' : 'cpuField';
+                if (battle[slotKey] && battle[slotKey].card !== card && owner.graveyard) {
+                    owner.graveyard.push(battle[slotKey].card);
+                }
+                battle[slotKey] = { card, owner };
+            }
+        });
+    }
+
+    function fieldIdentity(fieldData) {
+        const card = fieldData && fieldData.card;
+        if (!card) return '';
+        return String(card.masterId || card.name || card.ability || '');
+    }
+
+    window.getTCGFieldData = function(sideOrOwner) {
+        normalizeDualFields();
+        const battle = window.TCG_BATTLE;
+        if (!battle) return null;
+        if (sideOrOwner === 'cpu' || sideOrOwner === battle.cpu) return battle.cpuField || null;
+        return battle.currentField || null;
+    };
+
+    window.getActiveTCGFieldCards = function(uniqueOnly) {
+        normalizeDualFields();
+        const battle = window.TCG_BATTLE;
+        if (!battle) return [];
+        const active = [battle.currentField, battle.cpuField].filter(fieldData => fieldData && fieldData.card);
+        if (!uniqueOnly) return active;
+        const seen = new Set();
+        return active.filter(fieldData => {
+            const identity = fieldIdentity(fieldData);
+            if (identity && seen.has(identity)) return false;
+            if (identity) seen.add(identity);
+            return true;
+        });
+    };
+
+    window.hasActiveTCGFieldAbility = function(ability) {
+        return window.getActiveTCGFieldCards(true).some(fieldData => fieldData.card.ability === ability);
+    };
+
+    window.playFieldCard = function(card, isPlayer) {
+        const battle = window.TCG_BATTLE;
+        if (!battle || !card) return;
+        normalizeDualFields();
+        const owner = isPlayer ? battle.player : battle.cpu;
+        const slotKey = isPlayer ? 'currentField' : 'cpuField';
+        const previous = battle[slotKey];
+        const newIdentity = fieldIdentity({ card });
+        const duplicateAlreadyActive = window.getActiveTCGFieldCards(false).some(fieldData => {
+            return fieldData !== previous && fieldIdentity(fieldData) === newIdentity;
+        }) || (!!previous && fieldIdentity(previous) === newIdentity);
+
+        if (previous && previous.card && owner.graveyard) owner.graveyard.push(previous.card);
+        battle[slotKey] = { card, owner };
+
+        window.showBattleMessage(`🗺️ フィールド展開：\n『${card.name}』！`, false, 2500, !isPlayer);
+        if (!isPlayer && window.announceTCGOpponentCardPlay) {
+            window.announceTCGOpponentCardPlay(card, 'field');
+        }
+
+        // 同一カードが相手側にもある場合、展開時効果は二重適用しない。
+        if (!duplicateAlreadyActive && card.ability === 'field_forest') {
+            const buffRaces = ['spirit', 'seed', 'beetle'];
+            [
+                { owner: battle.player, prefix: 'p' },
+                { owner: battle.cpu, prefix: 'c' }
+            ].forEach(entry => {
+                entry.owner.field.forEach((unit, index) => {
+                    if (buffRaces.includes(String(unit.type || '').split('_')[0])) {
+                        unit.maxHp += 20;
+                        unit.hp += 20;
+                        window.showVFX(`${entry.prefix}-card-${index}`, 'heal', '森の加護');
+                    }
+                });
+            });
+        } else if (!duplicateAlreadyActive && card.ability === 'field_mana') {
+            window.showBattleMessage(`💎 結晶の鉱脈！\nお互いの最大マナが ＋2 される！`, false, 2500, !isPlayer);
+            [battle.player, battle.cpu].forEach(ownerState => {
+                if (ownerState.maxMana === undefined) ownerState.maxMana = 1;
+                ownerState.maxMana = Math.min(12, ownerState.maxMana + 2);
+                ownerState.currentMana = Math.min(ownerState.maxMana, ownerState.currentMana + 2);
+            });
+            window.showVFX(isPlayer ? 'player-face' : 'cpu-face', 'heal', 'マナ活性!');
+        }
+        window.renderBattleBoard();
+    };
+
+    window.triggerFieldEffects = async function(timing, isPlayerTurn) {
+        const battle = window.TCG_BATTLE;
+        if (!battle) return;
+        const p = battle.player;
+        const cpu = battle.cpu;
+        const activeObj = isPlayerTurn ? p : cpu;
+        const activeFace = isPlayerTurn ? 'player-face' : 'cpu-face';
+        const sleep = window.tcgSleep || (ms => new Promise(resolve => setTimeout(resolve, ms)));
+        const activeFields = window.getActiveTCGFieldCards(true);
+        const announceCpuFieldEffect = (fieldCard, effect, duration = 2000) => {
+            if (!isPlayerTurn && typeof window.announceTCGOpponentAction === 'function') {
+                window.announceTCGOpponentAction('tcg_trigger', {
+                    card: fieldCard && fieldCard.name || 'フィールド',
+                    field: fieldCard && fieldCard.name || 'フィールド',
+                    source: fieldCard && fieldCard.name || 'フィールド',
+                    effect
+                }, duration);
+            }
+        };
+
+        for (const fieldData of activeFields) {
+            const fAbility = fieldData.card.ability;
+            if (timing === 'start' && fAbility === 'field_casino') {
+                window.showBattleMessage(`🎰 カジノ効果発動！\n(ギャンブル判定中...)`, false, 1500, !isPlayerTurn);
+                await sleep(1000);
+                if (Math.random() < 0.5) {
+                    if (activeObj.deck.length > 0) {
+                        const drawnCard = activeObj.deck.shift();
+                        activeObj.hand.push(drawnCard);
+                        window.showVFX(activeFace, 'heal', '大当たり!');
+                        window.showBattleMessage(`🎯 カジノ大当たり！カードを1枚引いた！`, false, 2000, !isPlayerTurn);
+                        announceCpuFieldEffect(fieldData.card, `${fieldData.card.name}が大当たりし、カードを1枚引いた`, 2100);
+                        if (isPlayerTurn) {
+                            const reveal = document.createElement('div');
+                            reveal.className = 'tcg-field-card-reveal';
+                            reveal.style.cssText = 'position:fixed;top:45%;left:50%;transform:translate(-50%,-50%);z-index:50000;pointer-events:none;text-align:center;transition:.3s;opacity:0;display:flex;flex-direction:column;align-items:center;';
+                            reveal.innerHTML = `<div style="font-size:26px;font-weight:bold;color:#FFD700;text-shadow:0 0 10px #000;background:rgba(0,0,0,.7);padding:5px 15px;border-radius:20px;border:2px solid #FFD700;margin-bottom:50px;">🎰 大当たり！！</div><div style="transform:scale(1.3);filter:drop-shadow(0 0 20px #FFD700);transform-origin:center top;">${window.renderCardHTML(drawnCard)}</div>`;
+                            document.body.appendChild(reveal);
+                            setTimeout(() => { reveal.style.opacity = '1'; }, 50);
+                            setTimeout(() => { reveal.style.opacity = '0'; reveal.style.transform = 'translate(-50%,-50%) translateY(-20px)'; }, 1700);
+                            setTimeout(() => reveal.remove(), 2000);
+                        }
+                    } else {
+                        announceCpuFieldEffect(fieldData.card, `${fieldData.card.name}が大当たりしたが、山札にカードがなかった`);
+                    }
+                } else {
+                    activeObj.hp -= 10;
+                    window.showVFX(activeFace, 'slash');
+                    window.showVFX(activeFace, 'damage', 10);
+                    window.showBattleMessage(`💥 カジノ大ハズレ... リーダーに10ダメージ！`, true, 2000, !isPlayerTurn);
+                    announceCpuFieldEffect(fieldData.card, `${fieldData.card.name}が大ハズレし、リーダーが10ダメージを受けた`, 2100);
+                    const board = document.getElementById('tcg-battle-ui');
+                    if (board) {
+                        board.classList.remove('tcg-field-shake');
+                        void board.offsetWidth;
+                        board.classList.add('tcg-field-shake');
+                    }
+                }
+                window.renderBattleBoard();
+                await sleep(1500);
+            } else if (timing === 'start' && fAbility === 'field_mana') {
+                if (activeObj.maxMana >= 10) {
+                    activeObj.maxMana = 12;
+                    activeObj.currentMana = 12;
+                    announceCpuFieldEffect(fieldData.card, `${fieldData.card.name}が最大マナを12まで活性化した`);
+                }
+            } else if (timing === 'end' && fAbility === 'field_miasma') {
+                window.showBattleMessage(`☠️ 瘴気の沼！\nターン終了時、全員に10ダメージ！`, false, 2000, !isPlayerTurn);
+                announceCpuFieldEffect(fieldData.card, `${fieldData.card.name}の瘴気が全員へ10ダメージを与えた`, 2100);
+                await sleep(1000);
+                const destroyedCpuCards = [];
+                [p, cpu].forEach((ownerState, ownerIndex) => {
+                    ownerState.hp -= 10;
+                    window.showVFX(ownerIndex ? 'cpu-face' : 'player-face', 'damage', 10);
+                    ownerState.field.forEach((unit, index) => {
+                        unit.hp -= 10;
+                        window.showVFX(ownerIndex ? `c-card-${index}` : `p-card-${index}`, 'damage', 10);
+                        if (unit.hp <= 0) {
+                            unit.isDead = true;
+                            if (ownerIndex) destroyedCpuCards.push(unit);
+                        }
+                    });
+                });
+                p.field = p.field.filter(unit => !unit.isDead);
+                cpu.field = cpu.field.filter(unit => !unit.isDead);
+                if (typeof window.announceTCGOpponentAction === 'function') {
+                    destroyedCpuCards.forEach(unit => {
+                        window.announceTCGOpponentAction('tcg_trigger', {
+                            card: unit.name || 'カード',
+                            source: unit.name || 'カード',
+                            effect: `${unit.name || 'カード'}が瘴気のダメージで破壊された`
+                        }, 1900);
+                    });
+                }
+                window.renderBattleBoard();
+                await sleep(1500);
+            }
+        }
+
+        if (p.hp <= 0) p.hp = 0;
+        if (cpu.hp <= 0) cpu.hp = 0;
+        if ((p.hp <= 0 || cpu.hp <= 0) && window.renderBattleBoard) window.renderBattleBoard();
+    };
+
+    window.createTCGOpponentProfile = function(enemyData) {
+        const context = window.DEALER_TCG_CONTEXT || {};
+        const opponentType = (enemyData && enemyData.opponentType) || context.opponentType || '';
+        const masterType = (enemyData && enemyData.masterType) || context.masterType || '';
+        const rawName = enemyData && enemyData.playerName ? enemyData.playerName : '名もなきCPU';
+        if (opponentType === 'dealer' || rawName === 'ディーラー') {
+            const dealerProfile = typeof window.getCasinoMasterProfile === 'function' ? window.getCasinoMasterProfile('dealer') : null;
+            return { type: 'dealer', masterType: 'dealer', name: 'ディーラー', image: dealerProfile && dealerProfile.image, icon: '🃏', voice: 'dealer' };
+        }
+        if (masterType) {
+            const masterProfile = typeof window.getCasinoMasterProfile === 'function' ? window.getCasinoMasterProfile(masterType) : null;
+            if (masterProfile) {
+                return {
+                    type: 'master',
+                    masterType,
+                    name: masterProfile.name || rawName,
+                    image: masterProfile.image,
+                    icon: '🎴',
+                    voice: masterType
+                };
+            }
+        }
+        if (opponentType === 'self' || /^もう一人の自分/.test(rawName)) {
+            return { type: 'self', name: rawName, icon: '🪞', voice: 'rival' };
+        }
+        if (opponentType && opponentType !== 'guest') {
+            return { type: opponentType, name: rawName, icon: '🎴', voice: 'rival' };
+        }
+        return { type: 'cpu', name: rawName, icon: enemyData ? '🎴' : '🤖', voice: 'generic' };
+    };
+
+    function getOpponentProfile() {
+        const battle = window.TCG_BATTLE;
+        return battle && battle.opponentProfile
+            ? battle.opponentProfile
+            : window.createTCGOpponentProfile(null);
+    }
+
+    function ensurePerspectiveStyle() {
+        if (document.getElementById('tcg-perspective-battle-style')) return;
+        const style = document.createElement('style');
+        style.id = 'tcg-perspective-battle-style';
+        style.textContent = `
+            #tcg-battle-ui .tcg-battle-shell{background:linear-gradient(180deg,#070809 0,#101416 58%,#060708 100%)!important}
+            #tcg-battle-ui .tcg-opponent-hud{position:relative;z-index:35;background:linear-gradient(90deg,rgba(21,8,12,.98),rgba(5,5,7,.96) 42%,rgba(13,8,4,.98))!important;border-bottom:1px solid #bd3e4d!important;box-shadow:0 8px 22px rgba(0,0,0,.48)}
+            #tcg-battle-ui .tcg-opponent-profile{display:flex;align-items:center;gap:10px;min-width:0}
+            #tcg-battle-ui .tcg-opponent-avatar{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;overflow:hidden;border:2px solid #d95060;border-radius:50%;background:#211117;color:#fff;font-size:25px;box-shadow:0 0 0 2px rgba(0,0,0,.75),0 0 16px rgba(255,82,82,.26)}
+            #tcg-battle-ui .tcg-opponent-avatar.is-dealer{background-color:#201017;background-image:url("dealer_battle_enemy.png");background-repeat:no-repeat;background-size:219px 119px;background-position:-82px 0}
+            #tcg-battle-ui .tcg-opponent-avatar.is-master{border-color:#d9ae59;background:#170b0f}#tcg-battle-ui .tcg-opponent-avatar.is-master img{width:100%;height:100%;object-fit:cover;object-position:center 12%}
+            #tcg-battle-ui .tcg-opponent-copy{display:grid;gap:1px;min-width:0}.tcg-opponent-copy small{color:#bb8790;font-size:9px;font-weight:900;letter-spacing:.18em}.tcg-opponent-copy strong{overflow:hidden;color:#fff;text-overflow:ellipsis;white-space:nowrap;font-size:19px}.tcg-opponent-copy b{color:#ff6876;font-size:25px;line-height:1;text-shadow:1px 1px #fff}
+            #tcg-battle-ui .tcg-opponent-stats{display:flex;align-items:center;gap:9px;color:#ffd55c;font-size:15px;font-weight:900;white-space:nowrap}.tcg-opponent-stats span{padding:4px 7px;border:1px solid rgba(255,213,92,.16);border-radius:7px;background:rgba(0,0,0,.25)}
+            #tcg-battle-ui .tcg-perspective-stage{perspective:1050px!important;perspective-origin:50% 100%;transform-style:preserve-3d;padding:0!important;overflow:hidden;background:radial-gradient(ellipse at 50% 88%,rgba(36,94,82,.24),transparent 48%),linear-gradient(180deg,#070909 0,#101312 58%,#050606 100%)!important;isolation:isolate}
+            #tcg-battle-ui .tcg-perspective-stage:before{content:"";position:absolute;left:3%;right:3%;bottom:0;height:28%;background:radial-gradient(ellipse at 50% 100%,rgba(227,164,81,.12),transparent 68%);pointer-events:none}
+            #tcg-battle-ui .tcg-table-surface{position:absolute;inset:-5% 2.2% 1.5%;display:flex;flex-direction:column;gap:7px;padding:9px 10px 14px;border:1px solid rgba(210,171,111,.62);border-radius:18px;background:
+                linear-gradient(90deg,transparent 0 9.8%,rgba(207,164,102,.11) 10%,transparent 10.2% 89.8%,rgba(207,164,102,.11) 90%,transparent 90.2%),
+                repeating-linear-gradient(90deg,transparent 0 16.55%,rgba(198,158,101,.075) 16.66%,transparent 16.78% 33.2%),
+                radial-gradient(ellipse at 50% 72%,rgba(31,94,78,.5),rgba(12,37,34,.92) 55%,rgba(31,16,18,.96) 100%);
+                box-shadow:inset 0 0 70px rgba(0,0,0,.62),0 28px 55px rgba(0,0,0,.62),0 0 0 4px rgba(20,10,8,.7);transform-origin:50% 100%;transform:rotateX(21deg) translateZ(-8px) scaleX(.985);transform-style:preserve-3d;backface-visibility:hidden}
+            #tcg-battle-ui .tcg-table-surface:before{content:"";position:absolute;inset:8px;border:1px solid rgba(232,193,126,.15);border-radius:12px;pointer-events:none}
+            #tcg-battle-ui .tcg-table-surface:after{content:"";position:absolute;left:1.5%;right:1.5%;top:47%;height:2px;background:linear-gradient(90deg,transparent,rgba(231,194,129,.35) 12%,rgba(255,225,164,.62) 50%,rgba(231,194,129,.35) 88%,transparent);box-shadow:0 0 16px rgba(225,184,116,.24);pointer-events:none}
+            #tcg-battle-ui .tcg-perspective-zone{position:relative;overflow:visible!important;border:1px solid rgba(192,151,103,.3)!important;border-radius:12px;background:rgba(8,15,14,.22)!important;box-shadow:inset 0 0 34px rgba(0,0,0,.26);transform:none!important;transform-style:preserve-3d;backface-visibility:hidden}
+            #tcg-battle-ui .tcg-zone-opponent{flex:.92 1 0!important;z-index:1;background:linear-gradient(180deg,rgba(68,24,29,.31),rgba(27,28,25,.18))!important}
+            #tcg-battle-ui .tcg-zone-player{flex:1.08 1 0!important;z-index:2;margin:0!important;background:linear-gradient(180deg,rgba(19,49,44,.18),rgba(10,70,61,.27))!important}
+            #tcg-battle-ui .tcg-perspective-zone>.tcg-card-wrap{top:50%!important;bottom:auto!important;margin-top:-130px!important;transform-origin:center center!important;transition:transform .2s cubic-bezier(.2,.8,.4,1),filter .2s!important}
+            #tcg-battle-ui .tcg-zone-opponent>.tcg-card-wrap{rotate:calc(180deg + var(--tcg-card-lean,0deg));filter:drop-shadow(0 -10px 9px rgba(0,0,0,.52))}
+            #tcg-battle-ui .tcg-zone-opponent .tcg-card-wrap [title="詳細を見る"]{rotate:180deg}
+            #tcg-battle-ui .tcg-zone-player>.tcg-card-wrap{top:44%!important;rotate:var(--tcg-card-lean,0deg);filter:drop-shadow(0 12px 9px rgba(0,0,0,.42))}
+            #tcg-battle-ui .tcg-board-field-zone,#tcg-battle-ui .tcg-board-person-zone{position:absolute!important;top:50%!important;bottom:auto!important;translate:0 -50%;z-index:45}
+            #tcg-battle-ui .tcg-board-field-zone{left:18px!important;right:auto!important}
+            #tcg-battle-ui .tcg-board-person-zone{left:auto!important;right:18px!important}
+            #tcg-battle-ui .tcg-zone-player>.tcg-board-field-zone,#tcg-battle-ui .tcg-zone-player>.tcg-board-person-zone{top:43%!important}
+            #tcg-battle-ui .tcg-zone-opponent>#c-field-zone[title]>:first-child,#tcg-battle-ui .tcg-zone-opponent>#c-person-zone[title]>:first-child{transform-origin:center center!important;rotate:180deg}
+            #tcg-battle-ui .tcg-player-console{position:relative;z-index:30;background:linear-gradient(180deg,rgba(3,7,8,.98),#050505)!important;box-shadow:0 -10px 26px rgba(0,0,0,.55)}
+            #tcg-battle-ui .tcg-opponent-dialogue{position:absolute;top:68px;left:74px;z-index:80;display:none;max-width:min(520px,58vw);padding:11px 15px 12px;border:1px solid #d6b06b;border-radius:4px 16px 16px 16px;background:linear-gradient(135deg,rgba(26,15,12,.96),rgba(8,9,12,.96));box-shadow:0 9px 24px rgba(0,0,0,.55),inset 0 1px rgba(255,255,255,.08);pointer-events:none;animation:tcgDialogueIn .22s ease-out}
+            #tcg-battle-ui .tcg-opponent-dialogue:before{content:"";position:absolute;left:-10px;top:0;border-width:0 10px 11px 0;border-style:solid;border-color:transparent #d6b06b transparent transparent}
+            #tcg-battle-ui .tcg-dialogue-name{display:block;margin-bottom:3px;color:#e2bd73;font-size:10px;font-weight:900;letter-spacing:.16em}.tcg-dialogue-text{color:#fff6e6;font-size:14px;font-weight:700;line-height:1.55;text-shadow:0 1px #000}
+            #tcg-battle-ui.tcg-field-shake{animation:tcgFieldShake .35s linear}
+            @keyframes tcgDialogueIn{from{opacity:0;transform:translateY(-8px) scale(.97)}to{opacity:1;transform:none}}
+            @keyframes tcgFieldShake{0%,100%{transform:none}20%{transform:translateX(9px)}40%{transform:translateX(-8px)}60%{transform:translateX(5px)}80%{transform:translateX(-3px)}}
+            @media(max-width:760px),(max-height:650px){
+                #tcg-battle-ui .tcg-opponent-avatar{width:40px;height:40px;flex-basis:40px}
+                #tcg-battle-ui .tcg-opponent-avatar.is-dealer{background-size:174px 95px;background-position:-65px 0}
+                #tcg-battle-ui .tcg-opponent-copy small{display:none}.tcg-opponent-copy strong{font-size:15px}.tcg-opponent-copy b{font-size:20px}
+                #tcg-battle-ui .tcg-opponent-stats{gap:4px;font-size:11px}.tcg-opponent-stats span{padding:3px 4px}
+                #tcg-battle-ui .tcg-perspective-stage{perspective:820px!important}
+                #tcg-battle-ui .tcg-table-surface{inset:-3% 1% 1%;padding:6px;gap:4px;transform:rotateX(15deg) translateZ(-4px) scaleX(.995)}
+                #tcg-battle-ui .tcg-board-field-zone{left:8px!important}
+                #tcg-battle-ui .tcg-board-person-zone{right:8px!important}
+                #tcg-battle-ui .tcg-opponent-dialogue{left:52px;max-width:72vw;padding:8px 11px}.tcg-dialogue-text{font-size:12px}
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    function applyTCGBattlePresentation() {
+        const battleUI = document.getElementById('tcg-battle-ui');
+        const battle = window.TCG_BATTLE;
+        if (!battleUI || !battle || !battle.player || !battle.cpu) return;
+        // renderBattleBoard() は直下に <style> と実盤面 <div> をこの順で生成する。
+        // firstElementChild は <style> なので、cpu-face を先頭に持つ実盤面を明示的に探す。
+        const shell = Array.from(battleUI.children || []).find(child => {
+            return child
+                && child.tagName === 'DIV'
+                && child.children
+                && child.children.length >= 3
+                && child.firstElementChild
+                && child.firstElementChild.id === 'cpu-face';
+        });
+        if (!shell || shell.children.length < 3) return;
+        ensurePerspectiveStyle();
+        normalizeDualFields();
+
+        const header = shell.children[0];
+        const stage = shell.children[1];
+        const footer = shell.children[2];
+        if (!header || !stage || !footer) return;
+        shell.classList.add('tcg-battle-shell');
+        header.classList.add('tcg-opponent-hud');
+        stage.classList.add('tcg-perspective-stage');
+        footer.classList.add('tcg-player-console');
+
+        // 両陣営を別々に傾けず、一枚の共通テーブル面へ載せる。
+        let tableSurface = Array.from(stage.children || []).find(child => {
+            return child && child.classList && child.classList.contains('tcg-table-surface');
+        });
+        let opponentZone;
+        let playerZone;
+        if (tableSurface) {
+            opponentZone = tableSurface.children[0];
+            playerZone = tableSurface.children[1];
+        } else {
+            if (stage.children.length < 2) return;
+            opponentZone = stage.children[0];
+            playerZone = stage.children[1];
+            tableSurface = document.createElement('div');
+            tableSurface.className = 'tcg-table-surface';
+            stage.appendChild(tableSurface);
+            tableSurface.appendChild(opponentZone);
+            tableSurface.appendChild(playerZone);
+        }
+        if (!opponentZone || !playerZone) return;
+        opponentZone.classList.add('tcg-perspective-zone', 'tcg-zone-opponent');
+        playerZone.classList.add('tcg-perspective-zone', 'tcg-zone-player');
+
+        // 旧レイアウトでは人物枠が手札側やステージ直下に追加される場合があった。
+        // 描画のたびに盤面側へ回収し、フィールド枠と反対側へ固定する。
+        const playerPersonZone = shell.querySelector('#p-person-zone');
+        const cpuPersonZone = shell.querySelector('#c-person-zone');
+        if (cpuPersonZone && cpuPersonZone.parentElement !== opponentZone) opponentZone.appendChild(cpuPersonZone);
+        if (playerPersonZone && playerPersonZone.parentElement !== playerZone) playerZone.appendChild(playerPersonZone);
+        [
+            [opponentZone.querySelector('#c-field-zone'), 'tcg-board-field-zone'],
+            [playerZone.querySelector('#p-field-zone'), 'tcg-board-field-zone'],
+            [cpuPersonZone, 'tcg-board-person-zone'],
+            [playerPersonZone, 'tcg-board-person-zone']
+        ].forEach(([zoneElement, className]) => {
+            if (zoneElement) zoneElement.classList.add(className);
+        });
+
+        const profile = getOpponentProfile();
+        const avatarClass = profile.type === 'dealer' ? ' is-dealer' : profile.type === 'master' ? ' is-master' : '';
+        const avatarContent = profile.type === 'dealer'
+            ? ''
+            : profile.image
+                ? `<img src="${escapeBattleText(profile.image)}" alt="">`
+                : escapeBattleText(profile.icon || '🎴');
+        header.innerHTML = `
+            <div class="tcg-opponent-profile">
+                <span class="tcg-opponent-avatar${avatarClass}" aria-label="${escapeBattleText(profile.name)}">${avatarContent}</span>
+                <span class="tcg-opponent-copy"><small>OPPONENT</small><strong>${escapeBattleText(profile.name)}</strong><b>HP: ${battle.cpu.hp}</b></span>
+            </div>
+            <div class="tcg-opponent-stats">
+                <span>💎 ${battle.cpu.currentMana}/${battle.cpu.maxMana}</span>
+                <span>🎴 山札 ${battle.cpu.deck.length}</span>
+                <span>🖐 手札 ${battle.cpu.hand.length}</span>
+                <button onclick="event.stopPropagation();window.showGraveyard('cpu')" style="font-size:11px;background:#342c2d;color:#fff;border:1px solid #72575b;border-radius:6px;padding:4px 7px;cursor:pointer;">💀 ${battle.cpu.graveyard.length}</button>
+            </div>`;
+
+        [opponentZone, playerZone].forEach((zone, zoneIndex) => {
+            const cards = Array.from(zone.children || []).filter(cardElement => {
+                return cardElement
+                    && cardElement.classList
+                    && cardElement.classList.contains('tcg-card-wrap');
+            });
+            const zoneWidth = zone.clientWidth
+                || tableSurface.clientWidth
+                || Math.max(320, (window.innerWidth || 1280) * 0.94);
+            const sideReserve = zoneWidth <= 760 ? 112 : 145;
+            const availableWidth = Math.max(180, zoneWidth - sideReserve * 2);
+            const cardMetrics = cards.map(cardElement => {
+                const scaleMatch = String(cardElement.style.transform || '').match(/scale\(([\d.]+)\)/);
+                const scale = scaleMatch ? Number(scaleMatch[1]) : (zoneIndex === 0 ? 0.6 : 0.72);
+                return {
+                    element: cardElement,
+                    visualWidth: 180 * (Number.isFinite(scale) ? scale : 1)
+                };
+            });
+            const maxVisualWidth = cardMetrics.reduce((max, metric) => Math.max(max, metric.visualWidth), 0);
+            const step = cards.length > 1
+                ? Math.max(0, Math.min(maxVisualWidth * 0.88, (availableWidth - maxVisualWidth) / (cards.length - 1)))
+                : 0;
+            const occupiedWidth = maxVisualWidth + step * Math.max(0, cards.length - 1);
+            const visualStart = sideReserve + Math.max(0, (availableWidth - occupiedWidth) / 2);
+
+            cards.forEach((cardElement, index) => {
+                const middle = (cards.length - 1) / 2;
+                const direction = index - middle;
+                const maxLean = zoneIndex === 0 ? 3.2 : 2.2;
+                const lean = Math.max(-maxLean, Math.min(maxLean, direction * 1.1));
+                const metric = cardMetrics[index];
+                const left = visualStart + index * step - (180 - metric.visualWidth) / 2;
+                cardElement.style.left = `${Math.round(left)}px`;
+                cardElement.style.transformOrigin = 'center center';
+                cardElement.style.setProperty('--tcg-card-lean', `${lean.toFixed(1)}deg`);
+                // 向きは初回スタイル計算からCSSで固定し、再描画時の回転を見せない。
+                cardElement.style.removeProperty('rotate');
+            });
+        });
+
+        // フィールド・人物カードはステータスラベルや虫眼鏡を正位置のまま残し、
+        // カード絵の部分だけを相手向きにする。
+        ['#c-field-zone', '#c-person-zone'].forEach(selector => {
+            const zone = opponentZone.querySelector(selector);
+            if (zone && zone.title && zone.firstElementChild) {
+                zone.firstElementChild.style.removeProperty('rotate');
+            }
+        });
+
+        let dialogue = shell.querySelector('#tcg-opponent-dialogue');
+        if (!dialogue) {
+            dialogue = document.createElement('div');
+            dialogue.id = 'tcg-opponent-dialogue';
+            dialogue.className = 'tcg-opponent-dialogue';
+            dialogue.innerHTML = '<span class="tcg-dialogue-name"></span><span class="tcg-dialogue-text"></span>';
+            shell.appendChild(dialogue);
+        }
+        const activeDialogue = battle.opponentDialogue;
+        if (activeDialogue && activeDialogue.expiresAt > Date.now()) {
+            dialogue.querySelector('.tcg-dialogue-name').textContent = profile.name;
+            dialogue.querySelector('.tcg-dialogue-text').textContent = activeDialogue.text;
+            dialogue.style.display = 'block';
+        } else {
+            dialogue.style.display = 'none';
+        }
+    }
+
+    function showNextTCGOpponentDialogue(battle, item) {
+        if (!battle || !item || window.TCG_BATTLE !== battle) return;
+        const duration = Math.max(1200, Number(item.duration) || 2200);
+        const token = (battle._opponentDialogueToken || 0) + 1;
+        battle._opponentDialogueToken = token;
+        battle.opponentDialogue = {
+            text: String(item.text),
+            expiresAt: Date.now() + duration
+        };
+        applyTCGBattlePresentation();
+        setTimeout(() => {
+            if (window.TCG_BATTLE !== battle || battle._opponentDialogueToken !== token) return;
+            battle.opponentDialogue = null;
+            const next = Array.isArray(battle._opponentDialogueQueue)
+                ? battle._opponentDialogueQueue.shift()
+                : null;
+            if (next && !battle.isEnded) showNextTCGOpponentDialogue(battle, next);
+            else {
+                const dialogue = document.getElementById('tcg-opponent-dialogue');
+                if (dialogue) dialogue.style.display = 'none';
+            }
+        }, duration);
+    }
+
+    window.showTCGOpponentDialogue = function(text, duration, options) {
+        const battle = window.TCG_BATTLE;
+        if (!battle || !text) return;
+        const settings = options || {};
+        const item = { text: String(text), duration: Math.max(1200, Number(duration) || 2200) };
+        if (settings.priority) {
+            battle._opponentDialogueQueue = [];
+            battle.opponentDialogue = null;
+            battle._opponentDialogueToken = (battle._opponentDialogueToken || 0) + 1;
+            showNextTCGOpponentDialogue(battle, item);
+            return;
+        }
+        if (battle.opponentDialogue && battle.opponentDialogue.expiresAt > Date.now()) {
+            if (!Array.isArray(battle._opponentDialogueQueue)) battle._opponentDialogueQueue = [];
+            const last = battle._opponentDialogueQueue[battle._opponentDialogueQueue.length - 1];
+            if (!last || last.text !== item.text) battle._opponentDialogueQueue.push(item);
+            return;
+        }
+        showNextTCGOpponentDialogue(battle, item);
+    };
+
+    const GENERIC_TCG_ACTION_LINES = {
+        tcg_summon: 'モンスター『{card}』を召喚！',
+        tcg_evolve: '『{name}』を『{card}』へ進化！',
+        tcg_person: '人物カード『{card}』を配置！',
+        tcg_field: 'フィールドカード『{card}』を展開！',
+        tcg_action: 'アクションカード『{card}』を発動！',
+        tcg_support: 'サポートカード『{card}』を使用！',
+        tcg_person_skill: '人物スキル「{skill}」を発動！',
+        tcg_person_interrupt: 'その行動に割り込み、人物スキル「{skill}」を発動！',
+        tcg_guard_prepare: '『{card}』に守護を付与してターンを終える！',
+        tcg_guard_intercept: '『{card}』を守護に入れ、攻撃へ割り込む！',
+        tcg_turn_start: 'こちらのターンだ。次の一手を始めよう！',
+        tcg_turn_end: 'ここでターン終了。残したマナも防御に使う！',
+        tcg_trigger: '{effect}！　効果を次の一手につなげる！',
+        win: 'この勝負はこちらの勝ちだ！',
+        loss: '見事な勝負だった。今回はそちらの勝ちだ！'
+    };
+
+    function formatGenericTCGActionLine(template, details) {
+        const values = Object.assign({
+            card: 'このカード',
+            name: 'このカード',
+            target: '相手',
+            skill: '人物スキル',
+            effect: '効果が発動した',
+            mana: '',
+            count: '',
+            reason: ''
+        }, details || {});
+        return String(template || '').replace(/\{(card|name|target|skill|effect|mana|count|reason)\}/g, (_, key) => String(values[key]));
+    }
+
+    window.announceTCGOpponentAction = function(event, details, duration, options) {
+        const battle = window.TCG_BATTLE;
+        if (!battle || !event) return;
+        const profile = getOpponentProfile();
+        let line = '';
+        if (profile.masterType && typeof window.getCasinoMasterGameDialogue === 'function') {
+            line = window.getCasinoMasterGameDialogue(profile.masterType, event, details || {});
+        } else {
+            line = formatGenericTCGActionLine(GENERIC_TCG_ACTION_LINES[event] || GENERIC_TCG_ACTION_LINES.tcg_trigger, details);
+        }
+        if (line) window.showTCGOpponentDialogue(line, duration || 1900, options);
+    };
+
+    window.announceTCGOpponentCardPlay = function(card, action, previousCard) {
+        if (!card || !window.TCG_BATTLE) return;
+        const name = card.name || 'カード';
+        const eventMap = {
+            summon: 'tcg_summon',
+            evolve: 'tcg_evolve',
+            person: 'tcg_person',
+            field: 'tcg_field',
+            action: 'tcg_action',
+            item: 'tcg_support',
+            support: 'tcg_support'
+        };
+        window.announceTCGOpponentAction(eventMap[action] || 'tcg_summon', {
+            card: name,
+            action,
+            name: previousCard && previousCard.name ? previousCard.name : '進化元'
+        }, 1900);
+    };
+
+    const checkDeathBeforeOpponentDialogue = window.checkDeath;
+    window.checkDeath = function(card, owner) {
+        const battle = window.TCG_BATTLE;
+        const wasDead = !!(card && card.isDead);
+        const hpBefore = Number(card && card.hp);
+        const result = checkDeathBeforeOpponentDialogue
+            ? checkDeathBeforeOpponentDialogue.apply(this, arguments)
+            : undefined;
+        if (!battle || !card || wasDead || battle.isEnded) return result;
+        const cpuPerson = battle.currentPerson && battle.currentPerson.cpu;
+        const belongsToCpu = owner === battle.cpu || card === cpuPerson;
+        if (!belongsToCpu) return result;
+        if (card.isDead) {
+            window.announceTCGOpponentAction('tcg_trigger', {
+                card: card.name || 'カード',
+                source: card.name || 'カード',
+                effect: `${card.name || 'カード'}が破壊された`
+            }, 1900);
+            const deathEffectMap = {
+                curse_death: `${card.name || 'カード'}の死の呪いが相手リーダーへ50ダメージを与えた`,
+                death_bomb: `${card.name || 'カード'}の誘爆が相手リーダーへ20ダメージを与えた`,
+                burst_spores: `${card.name || 'カード'}の破裂胞子が味方全体を回復・強化した`,
+                nova_burst: `${card.name || 'カード'}の超新星爆発が敵全体へダメージを与えた`,
+                mass_bounce: `${card.name || 'カード'}の全バウンスが敵全体を山札へ戻した`
+            };
+            if (deathEffectMap[card.ability]) {
+                window.announceTCGOpponentAction('tcg_trigger', {
+                    card: card.name || 'カード',
+                    source: card.name || 'カード',
+                    effect: deathEffectMap[card.ability]
+                }, 2100);
+            }
+        } else if (hpBefore <= 0 && Number(card.hp) > 0) {
+            window.announceTCGOpponentAction('tcg_trigger', {
+                card: card.name || 'カード',
+                source: card.name || 'カード',
+                effect: `${card.name || 'カード'}が墓地へ行かず復活した`
+            }, 2100);
+        }
+        return result;
+    };
+
+    const endBattleBeforeOpponentDialogue = window.endTCGBattle;
+    window.endTCGBattle = function(isWin) {
+        const battle = window.TCG_BATTLE;
+        if (battle && !battle.isEnded) {
+            window.announceTCGOpponentAction(isWin ? 'loss' : 'win', {
+                effect: isWin ? 'プレイヤーが勝利した' : '対戦相手が勝利した'
+            }, 4200, { priority: true });
+        }
+        return endBattleBeforeOpponentDialogue
+            ? endBattleBeforeOpponentDialogue.apply(this, arguments)
+            : undefined;
+    };
+
+    window.announceTCGOpponentAttack = function(card, targetType, target) {
+        if (!card || !window.TCG_BATTLE) return;
+        const profile = getOpponentProfile();
+        let targetLabel = 'プレイヤー本人（直接攻撃）';
+        if (targetType === 'card') targetLabel = `カード『${target && target.name ? target.name : '味方カード'}』`;
+        else if (targetType === 'person') targetLabel = `人物カード『${target && target.name ? target.name : '人物'}』`;
+        else if (targetType === 'field') targetLabel = `フィールドカード『${target && target.name ? target.name : 'フィールド'}』`;
+        const line = profile.masterType && typeof window.getCasinoMasterGameDialogue === 'function'
+            ? window.getCasinoMasterGameDialogue(profile.masterType, 'tcg_attack', {
+                card: card.name || 'このカード',
+                target: targetLabel
+            })
+            : `『${card.name || 'このカード'}』で${targetLabel}を攻撃！`;
+        window.showTCGOpponentDialogue(line, 1700);
+    };
+
+    function announceOpponentDamage(amount) {
+        const battle = window.TCG_BATTLE;
+        if (!battle || battle.isEnded) return;
+        const now = Date.now();
+        if (now - (battle._lastOpponentDamageDialogueAt || 0) < 1100) return;
+        battle._lastOpponentDamageDialogueAt = now;
+        const profile = getOpponentProfile();
+        let line;
+        if (profile.masterType && typeof window.getCasinoMasterGameDialogue === 'function') {
+            line = window.getCasinoMasterGameDialogue(profile.masterType, 'tcg_damaged', { damage: amount });
+        } else {
+            line = `${amount}ダメージか……まだ終わらない！`;
+        }
+        window.showTCGOpponentDialogue(line, 1700);
+    }
+
+    function announceOpponentSituation() {
+        const battle = window.TCG_BATTLE;
+        if (!battle || battle.isEnded || !battle.player || !battle.cpu) return;
+        const profile = getOpponentProfile();
+        if (!profile.masterType || typeof window.getCasinoMasterGameDialogue !== 'function') return;
+        const situation = battle.cpu.hp > 0 && battle.cpu.hp < 50
+            ? 'pinch'
+            : battle.player.hp > 0 && battle.player.hp < 50
+                ? 'chance'
+                : 'normal';
+        if (battle._opponentSituationDialogueState === situation) return;
+        battle._opponentSituationDialogueState = situation;
+        if (situation === 'pinch') {
+            window.showTCGOpponentDialogue(window.getCasinoMasterGameDialogue(profile.masterType, 'tcg_pinch'), 2200);
+        } else if (situation === 'chance') {
+            window.showTCGOpponentDialogue(window.getCasinoMasterGameDialogue(profile.masterType, 'tcg_chance'), 2200);
+        }
+    }
+
+    const renderBeforePerspective = window.renderBattleBoard;
+    window.renderBattleBoard = function() {
+        const battleBeforeRender = window.TCG_BATTLE;
+        const cpuFieldBefore = battleBeforeRender && battleBeforeRender.cpuField && battleBeforeRender.cpuField.card;
+        normalizeDualFields();
+        const result = renderBeforePerspective ? renderBeforePerspective.apply(this, arguments) : undefined;
+        if (battleBeforeRender && cpuFieldBefore && !battleBeforeRender.cpuField && !battleBeforeRender.isEnded) {
+            window.announceTCGOpponentAction('tcg_trigger', {
+                card: cpuFieldBefore.name || 'フィールド',
+                field: cpuFieldBefore.name || 'フィールド',
+                source: cpuFieldBefore.name || 'フィールド',
+                effect: `フィールド${cpuFieldBefore.name ? `『${cpuFieldBefore.name}』` : ''}が破壊された`
+            }, 2100);
+        }
+        applyTCGBattlePresentation();
+        announceOpponentSituation();
+        return result;
+    };
+
+    const startBeforePerspective = window.startBattle;
+    window.startBattle = function(enemyData, selectedDeckIndex) {
+        const result = startBeforePerspective ? startBeforePerspective.apply(this, arguments) : undefined;
+        if (window.TCG_BATTLE && window.TCG_BATTLE.player) {
+            window.TCG_BATTLE.cpuField = window.TCG_BATTLE.cpuField || null;
+            window.TCG_BATTLE.opponentProfile = window.createTCGOpponentProfile(enemyData || null);
+            window.renderBattleBoard();
+            const profile = window.TCG_BATTLE.opponentProfile;
+            if (profile && profile.masterType && typeof window.getCasinoMasterGameDialogue === 'function') {
+                window.showTCGOpponentDialogue(window.getCasinoMasterGameDialogue(profile.masterType, 'start'), 3000);
+            }
+        }
+        return result;
+    };
+
+    const showVFXBeforeOpponentDialogue = window.showVFX;
+    window.showVFX = function(targetId, type, text) {
+        const result = showVFXBeforeOpponentDialogue
+            ? showVFXBeforeOpponentDialogue.apply(this, arguments)
+            : undefined;
+        if (targetId === 'cpu-face' && type === 'damage' && Number(text) > 0) {
+            announceOpponentDamage(Number(text));
+        }
+        return result;
+    };
+})();
+
+// ======================================================================
+// Dealer Rank 6-8：カジノTCG接続
+// ======================================================================
+(function() {
+    const originalFinalSaveDeck = window.saveDeck;
+    window.saveDeck = function() {
+        const before = window.TCG && window.TCG.decks ? JSON.stringify(window.TCG.decks) : '';
+        const result = originalFinalSaveDeck ? originalFinalSaveDeck.apply(this, arguments) : undefined;
+        const after = window.TCG && window.TCG.decks ? JSON.stringify(window.TCG.decks) : '';
+        const hasValidSavedDeck = !!(window.TCG && window.isTCGPlayableDeck(window.TCG.editingDeck));
+        if ((before !== after || hasValidSavedDeck) && window.aiPet && typeof window.ensureDealerCasinoState === 'function') {
+            const progress = window.ensureDealerCasinoState(window.aiPet);
+            progress.savedDeckCount = (Number(progress.savedDeckCount) || 0) + 1;
+            const rank = window.aiPet.apprentice && window.aiPet.apprentice.rank ? Number(window.aiPet.apprentice.rank.dealer) || 0 : 0;
+            if (rank >= 6) progress.deckBuiltAtRank6 = true;
+            if (typeof window.saveGameData === 'function') window.saveGameData();
+            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
+        }
+        return result;
+    };
+
+    const MASTER_DECK_BASE_COPIES = Object.freeze([4, 4, 4, 4, 4, 4, 4, 3, 3]);
+    const MASTER_DECK_CATEGORY_COUNTS = Object.freeze({ person: 4, monster: 44, field: 2, action: 6, item: 4 });
+
+    function masterDeckProfile(name, species, fieldId, baseCardIds, evolutionCards, actionCards, itemCards, strategy) {
+        return Object.freeze({
+            name,
+            species,
+            fieldCards: Object.freeze([[fieldId, MASTER_DECK_CATEGORY_COUNTS.field]]),
+            baseCards: Object.freeze(baseCardIds.map((masterId, index) => Object.freeze([masterId, MASTER_DECK_BASE_COPIES[index]]))),
+            evolutionCards: Object.freeze(evolutionCards.map(entry => Object.freeze(entry.slice()))),
+            actionCards: Object.freeze(actionCards.map(entry => Object.freeze(entry.slice()))),
+            itemCards: Object.freeze(itemCards.map(entry => Object.freeze(entry.slice()))),
+            strategy: Object.freeze(strategy)
+        });
+    }
+
+    // 人物4 / 単一種族モンスター44（基本形34・進化形10）/ フィールド2 / 行動6 / アイテム4。
+    // 進化形は [4,3,2,1] を基本とし、二段進化の採用数が直前段階を超えないようにする。
+    window.TCG_MASTER_DECK_PROFILES = Object.freeze({
+        explore: masterDeckProfile(
+            '冒険家', 'beetle', 'support_1',
+            ['beetle_7', 'beetle_8', 'beetle_9', 'beetle_12', 'beetle_0', 'beetle_5', 'beetle_2', 'beetle_10', 'beetle_3'],
+            [['beetle_type2_0', 4], ['beetle_type2_3_0', 3], ['beetle_type5_0', 2], ['beetle_type5_2_0', 1]],
+            [['support_8', 4], ['support_2', 2]], [['support_9', 2], ['support_12', 2]],
+            {
+                actionBias: { evolve: 42, summon: 14, person: 12, field: 14, support: 10 },
+                abilityBias: { action_search_evo: 55, draw_card: 18, stealth: 12, haste: 10, fossilize: 12 },
+                attackFocus: { leader: 6, card: 12, person: 25, field: 15, risk: -5, randomness: 7 },
+                personSkill: { main: 18, interrupt: 8 }, defense: { reserveBonus: 0, guardLimit: 2, interceptThreshold: 20 }
+            }
+        ),
+        farming: masterDeckProfile(
+            '農家', 'seed', 'support_1',
+            ['seed_3', 'seed_8', 'seed_2', 'seed_7', 'seed_10', 'seed_12', 'seed_0', 'seed_5', 'seed_14'],
+            [['seed_type5_0', 4], ['seed_type5_2_0', 3], ['seed_type3_0', 2], ['seed_type3_2_0', 1]],
+            [['support_11', 4], ['support_14', 2]], [['support_6', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 28, evolve: 14, person: 20, field: 34, support: 30 },
+                abilityBias: { action_heal_face: 55, action_heal_all: 48, item_heal_cleanse: 42, mana_ramp: 24, life_drain: 20, taunt: 18 },
+                attackFocus: { leader: -18, card: 22, person: 8, field: 8, risk: -28, randomness: 4 },
+                personSkill: { main: 32, interrupt: 30 }, defense: { reserveBonus: 1, guardLimit: 3, interceptThreshold: 5 }
+            }
+        ),
+        fishing: masterDeckProfile(
+            '漁師', 'bird', 'support_13',
+            ['bird_5', 'bird_11', 'bird_6', 'bird_4', 'bird_12', 'bird_3', 'bird_9', 'bird_14', 'bird_2'],
+            [['bird_type2_0', 4], ['bird_type2_2_0', 3], ['bird_type5_0', 2], ['bird_type5_2_0', 1]],
+            [['support_2', 4], ['support_5', 2]], [['support_9', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 22, evolve: 20, person: 18, field: 24, support: 22 },
+                abilityBias: { action_draw_3: 46, item_draw: 34, flight: 22, stealth: 20, charm_enemy: 18, rebirth: 18 },
+                attackFocus: { leader: 18, card: 10, person: 18, field: 22, risk: -8, randomness: 8 },
+                personSkill: { main: 22, interrupt: 28 }, defense: { reserveBonus: 0, guardLimit: 2, interceptThreshold: 18 }
+            }
+        ),
+        cooking: masterDeckProfile(
+            '料理人', 'dragon', 'support_13',
+            ['dragon_0', 'dragon_1', 'dragon_3', 'dragon_4', 'dragon_7', 'dragon_9', 'dragon_12', 'dragon_14', 'dragon_13'],
+            [['dragon_type4_0', 4], ['dragon_type4_2_0', 3], ['dragon_type3_0', 2], ['dragon_type3_2_0', 1]],
+            [['support_5', 4], ['support_14', 2]], [['support_0', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 18, evolve: 34, person: 20, field: 20, support: 20 },
+                abilityBias: { action_atk_up: 52, action_heal_all: 34, haste: 24, double_strike: 25, piercing_juggernaut: 32, cataclysm: 34 },
+                attackFocus: { leader: 42, card: 8, person: 12, field: 10, risk: 8, randomness: 5 },
+                personSkill: { main: 34, interrupt: 8 }, defense: { reserveBonus: 0, guardLimit: 1, interceptThreshold: 45 }
+            }
+        ),
+        smithing: masterDeckProfile(
+            '鍛冶師', 'machine', 'support_13',
+            ['machine_0', 'machine_8', 'machine_12', 'machine_13', 'machine_7', 'machine_5', 'machine_10', 'machine_2', 'machine_6'],
+            [['machine_type4_0', 4], ['machine_type4_2_0', 3], ['machine_type1_0', 2], ['machine_type1_2_0', 1]],
+            [['support_5', 4], ['support_8', 2]], [['support_0', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 30, evolve: 28, person: 10, field: 18, support: 18 },
+                abilityBias: { action_atk_up: 55, haste: 35, death_bomb: 30, piercing_juggernaut: 38, doomsday_detonation: 35, item_hp_up: 18 },
+                attackFocus: { leader: 38, card: 12, person: 8, field: 24, risk: 24, randomness: 3 },
+                personSkill: { main: 24, interrupt: 5 }, defense: { reserveBonus: 0, guardLimit: 1, interceptThreshold: 55 }
+            }
+        ),
+        building: masterDeckProfile(
+            '建築士', 'stone', 'support_4',
+            ['stone_8', 'stone_14', 'stone_1', 'stone_2', 'stone_5', 'stone_10', 'stone_11', 'stone_4', 'stone_6'],
+            [['stone_type5_0', 4], ['stone_type5_2_0', 3], ['stone_type3_0', 2], ['stone_type3_2_0', 1]],
+            [['support_14', 4], ['support_11', 2]], [['support_3', 4]],
+            {
+                actionBias: { summon: 26, evolve: 20, person: 25, field: 58, support: 28 },
+                abilityBias: { field_castle: 48, item_taunt: 58, taunt: 36, counter_attack: 32, action_heal_all: 38, absolute_sanctuary: 25 },
+                attackFocus: { leader: -12, card: 38, person: 24, field: 26, risk: -35, randomness: 2 },
+                personSkill: { main: 38, interrupt: 55 }, defense: { reserveBonus: 2, guardLimit: 4, interceptThreshold: 0 }
+            }
+        ),
+        pharmacist: masterDeckProfile(
+            '薬剤師', 'seed', 'support_10',
+            ['seed_1', 'seed_10', 'seed_13', 'seed_2', 'seed_8', 'seed_7', 'seed_11', 'seed_5', 'seed_12'],
+            [['seed_type1_0', 4], ['seed_type1_2_0', 3], ['seed_type4_0', 2], ['seed_type2_0', 1]],
+            [['support_14', 4], ['support_11', 2]], [['support_6', 4]],
+            {
+                actionBias: { summon: 18, evolve: 24, person: 34, field: 35, support: 42 },
+                abilityBias: { item_heal_cleanse: 72, action_heal_all: 50, action_heal_face: 45, venom_strike: 32, life_drain: 34, devour: 20 },
+                attackFocus: { leader: 0, card: 30, person: 22, field: 12, risk: -22, randomness: 4 },
+                personSkill: { main: 58, interrupt: 62 }, defense: { reserveBonus: 2, guardLimit: 3, interceptThreshold: 5 }
+            }
+        ),
+        tailor: masterDeckProfile(
+            '仕立屋', 'balloon', 'support_4',
+            ['balloon_8', 'balloon_2', 'balloon_5', 'balloon_7', 'balloon_4', 'balloon_14', 'balloon_0', 'balloon_12', 'balloon_10'],
+            [['balloon_type5_0', 4], ['balloon_type5_2_0', 3], ['balloon_type2_0', 2], ['balloon_type2_2_0', 1]],
+            [['support_14', 4], ['support_11', 2]], [['support_0', 4]],
+            {
+                actionBias: { summon: 26, evolve: 18, person: 30, field: 46, support: 34 },
+                abilityBias: { item_hp_up: 64, action_heal_all: 42, taunt: 32, debuff_attack: 24, absolute_sanctuary: 30, thorns: 28 },
+                attackFocus: { leader: -5, card: 28, person: 20, field: 16, risk: -30, randomness: 3 },
+                personSkill: { main: 55, interrupt: 50 }, defense: { reserveBonus: 2, guardLimit: 4, interceptThreshold: 0 }
+            }
+        ),
+        pastry_chef: masterDeckProfile(
+            'パティシエ', 'spirit', 'support_1',
+            ['spirit_0', 'spirit_1', 'spirit_2', 'spirit_6', 'spirit_8', 'spirit_10', 'spirit_13', 'spirit_14', 'spirit_9'],
+            [['spirit_type2_0', 4], ['spirit_type2_2_0', 3], ['spirit_type4_0', 2], ['spirit_type4_2_0', 1]],
+            [['support_5', 4], ['support_14', 2]], [['support_0', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 42, evolve: 16, person: 38, field: 35, support: 28 },
+                abilityBias: { action_atk_up: 50, action_heal_all: 36, wind_blessing: 30, burst_spores: 32, double_strike: 22, heal_self: 18 },
+                attackFocus: { leader: 24, card: 16, person: 10, field: 8, risk: -5, randomness: 6 },
+                personSkill: { main: 62, interrupt: 18 }, defense: { reserveBonus: 0, guardLimit: 2, interceptThreshold: 25 }
+            }
+        ),
+        hairdresser: masterDeckProfile(
+            '美容師', 'balloon', 'support_7',
+            ['balloon_8', 'balloon_7', 'balloon_4', 'balloon_14', 'balloon_9', 'balloon_11', 'balloon_13', 'balloon_2', 'balloon_1'],
+            [['balloon_type2_0', 4], ['balloon_type2_2_0', 3], ['balloon_type3_0', 2], ['balloon_type3_2_0', 1]],
+            [['support_2', 4], ['support_8', 2]], [['support_9', 4]],
+            {
+                actionBias: { summon: 20, evolve: 24, person: 45, field: 38, support: 24 },
+                abilityBias: { debuff_attack: 46, charm_enemy: 58, mass_charm: 54, item_draw: 28, action_draw_3: 25, magic_reflect: 18 },
+                attackFocus: { leader: 4, card: 22, person: 52, field: 18, risk: -12, randomness: 9 },
+                personSkill: { main: 78, interrupt: 58 }, defense: { reserveBonus: 1, guardLimit: 2, interceptThreshold: 12 }
+            }
+        ),
+        concierge: masterDeckProfile(
+            'コンシェルジュ', 'robot', 'support_4',
+            ['robot_0', 'robot_2', 'robot_5', 'robot_8', 'robot_10', 'robot_12', 'robot_14', 'robot_7', 'robot_9'],
+            [['robot_type2_0', 4], ['robot_type2_2_0', 3], ['robot_type5_0', 2], ['robot_type5_4_0', 1]],
+            [['support_14', 4], ['support_2', 2]], [['support_3', 2], ['support_6', 2]],
+            {
+                actionBias: { summon: 28, evolve: 20, person: 42, field: 52, support: 40 },
+                abilityBias: { item_taunt: 48, item_heal_cleanse: 62, action_heal_all: 52, aoe_heal_play: 38, star_hope: 35, eternal_rebirth: 30, taunt: 26 },
+                attackFocus: { leader: -8, card: 32, person: 30, field: 22, risk: -28, randomness: 2 },
+                personSkill: { main: 70, interrupt: 76 }, defense: { reserveBonus: 2, guardLimit: 4, interceptThreshold: 0 }
+            }
+        ),
+        dealer: masterDeckProfile(
+            'ディーラー', 'magician', 'support_7',
+            ['magician_8', 'magician_9', 'magician_7', 'magician_5', 'magician_0', 'magician_3', 'magician_12', 'magician_14', 'magician_4'],
+            [['magician_type5_0', 4], ['magician_type5_2_0', 3], ['magician_type2_0', 2], ['magician_type2_2_0', 1]],
+            [['support_2', 4], ['support_8', 2]], [['support_9', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 16, evolve: 24, person: 48, field: 48, support: 42 },
+                abilityBias: { action_draw_3: 48, action_search_evo: 34, item_draw: 42, item_mana_boost: 44, draw_card: 30, mana_refund: 28, time_manipulation: 25 },
+                attackFocus: { leader: 18, card: 18, person: 24, field: 26, risk: 0, randomness: 22 },
+                personSkill: { main: 72, interrupt: 24 }, defense: { reserveBonus: 0, guardLimit: 2, interceptThreshold: 25 }
+            }
+        ),
+        fortune_teller: masterDeckProfile(
+            '占い師', 'ghost', 'support_10',
+            ['ghost_5', 'ghost_11', 'ghost_0', 'ghost_4', 'ghost_8', 'ghost_9', 'ghost_12', 'ghost_6', 'ghost_13'],
+            [['ghost_type1_0', 4], ['ghost_type1_2_0', 3], ['ghost_type3_0', 2], ['ghost_type3_2_0', 1]],
+            [['support_2', 4], ['support_8', 2]], [['support_9', 4]],
+            {
+                actionBias: { summon: 18, evolve: 26, person: 50, field: 42, support: 30 },
+                abilityBias: { discard_hand: 52, curse_death: 46, soul_drain: 38, charm_enemy: 35, stealth: 22, item_draw: 25 },
+                attackFocus: { leader: 10, card: 18, person: 48, field: 20, risk: -18, randomness: 5 },
+                personSkill: { main: 82, interrupt: 88 }, defense: { reserveBonus: 2, guardLimit: 3, interceptThreshold: 0 }
+            }
+        ),
+        scientist: masterDeckProfile(
+            '科学者', 'robot', 'support_13',
+            ['robot_0', 'robot_2', 'robot_3', 'robot_4', 'robot_7', 'robot_14', 'robot_1', 'robot_6', 'robot_13'],
+            [['robot_type3_0', 4], ['robot_type3_3_0', 3], ['robot_type4_0', 2], ['robot_type4_2_0', 1]],
+            [['support_8', 4], ['support_2', 2]], [['support_12', 4]],
+            {
+                actionBias: { summon: 20, evolve: 52, person: 46, field: 48, support: 38 },
+                abilityBias: { item_mana_boost: 64, action_search_evo: 62, mana_ramp: 38, start_draw: 34, event_horizon: 38, snipe_play: 24, double_strike: 20 },
+                attackFocus: { leader: 28, card: 20, person: 30, field: 34, risk: -2, randomness: 1 },
+                personSkill: { main: 76, interrupt: 20 }, defense: { reserveBonus: 0, guardLimit: 1, interceptThreshold: 38 }
+            }
+        ),
+        salesperson: masterDeckProfile(
+            '販売員', 'machine', 'support_7',
+            ['machine_0', 'machine_5', 'machine_8', 'machine_12', 'machine_10', 'machine_11', 'machine_14', 'machine_7', 'machine_2'],
+            [['machine_type5_0', 4], ['machine_type5_2_0', 3], ['machine_type2_0', 2], ['machine_type2_2_0', 1]],
+            [['support_2', 4], ['support_5', 2]], [['support_9', 2], ['support_12', 2]],
+            {
+                actionBias: { summon: 40, evolve: 16, person: 44, field: 36, support: 36 },
+                abilityBias: { mana_refund: 58, death_bomb: 34, item_draw: 38, item_mana_boost: 42, action_draw_3: 35, aoe_heal_play: 20, time_manipulation: 18 },
+                attackFocus: { leader: 30, card: 14, person: 18, field: 24, risk: 18, randomness: 10 },
+                personSkill: { main: 74, interrupt: 30 }, defense: { reserveBonus: 0, guardLimit: 1, interceptThreshold: 42 }
+            }
+        ),
+        soldier: masterDeckProfile(
+            '兵士', 'beetle', 'support_1',
+            ['beetle_11', 'beetle_9', 'beetle_12', 'beetle_0', 'beetle_3', 'beetle_6', 'beetle_14', 'beetle_4', 'beetle_13'],
+            [['beetle_type4_0', 4], ['beetle_type4_2_0', 1], ['beetle_type1_0', 3], ['beetle_type5_0', 2]],
+            [['support_5', 4], ['support_2', 2]], [['support_0', 4]],
+            {
+                actionBias: { summon: 52, evolve: 14, person: 30, field: 18, support: 18 },
+                abilityBias: { haste: 58, trample: 48, action_atk_up: 42, perfect_predation: 30, impregnable_armor: 22 },
+                attackFocus: { leader: 72, card: -5, person: 0, field: 5, risk: 48, randomness: 3 },
+                personSkill: { main: 62, interrupt: -10 }, defense: { reserveBonus: 0, guardLimit: 0, interceptThreshold: 90 }
+            }
+        ),
+        captain: masterDeckProfile(
+            '隊長', 'bird', 'support_4',
+            ['bird_11', 'bird_2', 'bird_7', 'bird_3', 'bird_10', 'bird_13', 'bird_0', 'bird_4', 'bird_14'],
+            [['bird_type4_0', 4], ['bird_type4_2_0', 3], ['bird_type3_0', 2], ['bird_type3_3_0', 1]],
+            [['support_5', 4], ['support_2', 2]], [['support_3', 4]],
+            {
+                actionBias: { summon: 46, evolve: 24, person: 42, field: 42, support: 24 },
+                abilityBias: { double_strike: 50, flight: 24, taunt: 28, action_atk_up: 45, item_taunt: 34, cataclysm: 25 },
+                attackFocus: { leader: 32, card: 34, person: 26, field: 18, risk: 2, randomness: 2 },
+                personSkill: { main: 78, interrupt: 48 }, defense: { reserveBonus: 1, guardLimit: 3, interceptThreshold: 8 }
+            }
+        ),
+        king: masterDeckProfile(
+            '王様', 'dragon', 'support_4',
+            ['dragon_0', 'dragon_2', 'dragon_6', 'dragon_8', 'dragon_10', 'dragon_13', 'dragon_1', 'dragon_12', 'dragon_14'],
+            [['dragon_type5_0', 4], ['dragon_type5_2_0', 3], ['dragon_type2_0', 2], ['dragon_type2_2_0', 1]],
+            [['support_5', 4], ['support_8', 2]], [['support_12', 2], ['support_0', 2]],
+            {
+                actionBias: { summon: 24, evolve: 44, person: 58, field: 60, support: 30 },
+                abilityBias: { field_castle: 48, item_mana_boost: 42, mana_ramp: 38, action_atk_up: 44, taunt: 32, pure_aegis: 40, wrath: 25 },
+                attackFocus: { leader: 48, card: 28, person: 45, field: 36, risk: -10, randomness: 0 },
+                personSkill: { main: 88, interrupt: 82 }, defense: { reserveBonus: 2, guardLimit: 4, interceptThreshold: 0 }
+            }
+        )
+    });
+
+    function normalizeMasterDeckType(masterType) {
+        const aliases = {
+            sales: 'salesperson', shop_clerk: 'salesperson', fortuneteller: 'fortune_teller', fortune: 'fortune_teller'
+        };
+        const key = String(masterType || '');
+        return aliases[key] || key;
+    }
+
+    window.getTCGMasterDeckProfile = function(masterType) {
+        return window.TCG_MASTER_DECK_PROFILES[normalizeMasterDeckType(masterType)] || null;
+    };
+
+    window.getActiveTCGNPCDeckProfile = function() {
+        const battle = window.TCG_BATTLE;
+        const masterType = battle && battle.opponentProfile && battle.opponentProfile.masterType
+            ? battle.opponentProfile.masterType
+            : window.DEALER_TCG_CONTEXT && window.DEALER_TCG_CONTEXT.masterType;
+        return window.getTCGMasterDeckProfile(masterType);
+    };
+
+    function plannedProfileEntries(profile) {
+        return {
+            monster: profile.baseCards.concat(profile.evolutionCards),
+            field: profile.fieldCards,
+            action: profile.actionCards,
+            item: profile.itemCards
+        };
+    }
+
+    window.validateMasterFixedTCGDeckProfile = function(masterType) {
+        const canonicalType = normalizeMasterDeckType(masterType);
+        const profile = window.getTCGMasterDeckProfile(canonicalType);
+        const masterCards = window.TCG_MASTER || {};
+        const personMasterId = window.MASTER_PERSON_CARD_MAP && window.MASTER_PERSON_CARD_MAP[canonicalType];
+        const issues = [];
+        if (!profile) return { valid: false, masterType: canonicalType, issues: ['専用デッキプロフィールがありません。'] };
+        if (!personMasterId || !masterCards[personMasterId] || masterCards[personMasterId].type !== 'person') {
+            issues.push('本人の人物カードが見つかりません。');
+        }
+        if (profile.baseCards.length !== MASTER_DECK_BASE_COPIES.length) issues.push('基本形カードの種類数が不正です。');
+
+        const entries = plannedProfileEntries(profile);
+        const categoryTotals = { person: 0, monster: 0, field: 0, action: 0, item: 0 };
+        const canonicalCounts = new Map();
+        const monsterTypeCounts = new Map();
+        let baseMonsterCount = 0;
+        let evolutionMonsterCount = 0;
+
+        const registerCard = (masterId, count, expectedCategory) => {
+            const card = masterCards[masterId];
+            if (!card) {
+                issues.push(`未定義カード: ${masterId}`);
+                return;
+            }
+            if (!Number.isInteger(count) || count < 1 || count > window.TCG_DECK_COPY_LIMIT) {
+                issues.push(`${masterId} の採用枚数が不正です。`);
+            }
+            const actualCategory = ['field', 'action', 'item', 'person'].includes(card.type) ? card.type : 'monster';
+            if (actualCategory !== expectedCategory) issues.push(`${masterId} のカード分類が ${expectedCategory} ではありません。`);
+            categoryTotals[expectedCategory] += count;
+            const copyKey = window.getTCGDeckCopyKey({ masterId, name: card.name });
+            canonicalCounts.set(copyKey, (canonicalCounts.get(copyKey) || 0) + count);
+            if (expectedCategory === 'monster') {
+                const rootSpecies = String(card.type || '').split('_')[0];
+                if (rootSpecies !== profile.species) issues.push(`${masterId} は主軸種族 ${profile.species} ではありません。`);
+                monsterTypeCounts.set(card.type, (monsterTypeCounts.get(card.type) || 0) + count);
+                if (card.evolvesFrom) evolutionMonsterCount += count;
+                else baseMonsterCount += count;
+            }
+        };
+
+        if (personMasterId && masterCards[personMasterId]) registerCard(personMasterId, MASTER_DECK_CATEGORY_COUNTS.person, 'person');
+        Object.entries(entries).forEach(([category, plans]) => plans.forEach(([masterId, count]) => registerCard(masterId, count, category)));
+        Object.entries(MASTER_DECK_CATEGORY_COUNTS).forEach(([category, expected]) => {
+            if (categoryTotals[category] !== expected) issues.push(`${category} が ${categoryTotals[category]} 枚です（規定 ${expected} 枚）。`);
+        });
+        if (evolutionMonsterCount > baseMonsterCount) issues.push('進化形の総数が基本形を上回っています。');
+        profile.evolutionCards.forEach(([masterId, count]) => {
+            const card = masterCards[masterId];
+            if (!card || !card.evolvesFrom) return;
+            const sourceCount = monsterTypeCounts.get(card.evolvesFrom) || 0;
+            if (count > sourceCount) issues.push(`${masterId} が進化元 ${card.evolvesFrom} より多く採用されています。`);
+        });
+        canonicalCounts.forEach((count, name) => {
+            if (count > window.TCG_DECK_COPY_LIMIT) issues.push(`同名カード「${name}」が ${count} 枚あります。`);
+        });
+        return {
+            valid: issues.length === 0,
+            masterType: canonicalType,
+            profile,
+            personMasterId,
+            counts: categoryTotals,
+            baseMonsterCount,
+            evolutionMonsterCount,
+            issues
+        };
+    };
+
+    window.validateAllMasterFixedTCGDeckProfiles = function() {
+        return Object.keys(window.TCG_MASTER_DECK_PROFILES).map(masterType => window.validateMasterFixedTCGDeckProfile(masterType));
+    };
+
+    window.createMasterFixedTCGDeck = function(masterType) {
+        const validation = window.validateMasterFixedTCGDeckProfile(masterType);
+        if (!validation.valid) {
+            console.error(`[TCG] ${validation.masterType} の固定デッキを生成できません。`, validation.issues);
+            return [];
+        }
+        const masterCards = window.TCG_MASTER || {};
+        const deck = [];
+        const appendEntries = entries => entries.forEach(([masterId, count]) => {
+            const master = masterCards[masterId];
+            for (let copy = 0; copy < count; copy++) {
+                deck.push({ masterId, name: master.name, hp: master.baseHp, damage: master.baseDmg });
+            }
+        });
+        appendEntries([[validation.personMasterId, MASTER_DECK_CATEGORY_COUNTS.person]]);
+        const entries = plannedProfileEntries(validation.profile);
+        appendEntries(entries.monster);
+        appendEntries(entries.field);
+        appendEntries(entries.action);
+        appendEntries(entries.item);
+        return deck;
+    };
+
+    window.createDealerFixedTCGDeck = function() {
+        return window.createMasterFixedTCGDeck('dealer');
+    };
+
+    function savedDeckAsEnemy(index) {
+        const uids = window.TCG && window.TCG.decks ? (window.TCG.decks[index] || []) : [];
+        return uids.map(uid => {
+            const owned = window.TCG.myCollection.find(card => card.uid === uid);
+            if (!owned || !window.TCG_MASTER[owned.masterId]) return null;
+            const master = window.TCG_MASTER[owned.masterId];
+            return {
+                masterId: owned.masterId,
+                name: owned.name || master.name,
+                hp: Number(owned.hp) || master.baseHp,
+                damage: Number(owned.damage) || master.baseDmg
+            };
+        }).filter(Boolean);
+    }
+
+    function escapeCasinoTcgText(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    window.closeCasinoTCGMenu = function() {
+        const overlay = document.getElementById('casino-tcg-menu-ui');
+        if (!overlay) return;
+        if (typeof overlay.close === 'function' && overlay.open) overlay.close();
+        overlay.remove();
+    };
+
+    function casinoTcgModal(title, content) {
+        window.closeCasinoTCGMenu();
+        const overlay = document.createElement('dialog');
+        overlay.id = 'casino-tcg-menu-ui';
+        overlay.setAttribute('aria-label', title);
+        overlay.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;max-width:none;max-height:none;margin:0;padding:0;border:0;z-index:2147483000;background:radial-gradient(circle at 50% 42%,#174d38 0,#07140f 52%,#020403 100%);color:#fff;display:grid;place-items:center;font-family:"Yu Gothic UI","Meiryo",sans-serif;box-sizing:border-box;';
+        overlay.innerHTML = `<style>
+            #casino-tcg-menu-ui::backdrop{background:rgba(0,0,0,.86);backdrop-filter:blur(3px)}
+            #casino-tcg-menu-ui *{box-sizing:border-box}
+            .casino-tcg-shell{position:relative;width:min(980px,95vw);max-height:94vh;padding:9px;border:1px solid #f2cc77;border-radius:30px;background:linear-gradient(135deg,#68381d 0,#241008 28%,#7a4624 50%,#241008 72%,#68381d 100%);box-shadow:0 0 0 3px #170904,0 28px 90px #000,0 0 55px rgba(218,174,79,.2);overflow:hidden}
+            .casino-tcg-shell:before{content:"";position:absolute;inset:4px;border:1px solid rgba(255,225,151,.36);border-radius:26px;pointer-events:none}
+            .casino-tcg-inner{position:relative;max-height:calc(94vh - 18px);overflow:auto;border:2px solid #070b08;border-radius:22px;background:#07130e;box-shadow:0 0 0 1px rgba(255,222,137,.26) inset}
+            .casino-tcg-head{display:flex;align-items:center;gap:18px;padding:20px 24px 18px;background:linear-gradient(180deg,#181711,#090b09);border-bottom:1px solid rgba(229,190,103,.36)}
+            .casino-tcg-emblem{position:relative;width:68px;height:54px;flex:0 0 68px}
+            .casino-tcg-emblem i{position:absolute;display:grid;place-items:center;width:36px;height:49px;border:2px solid #f4e4c4;border-radius:6px;background:linear-gradient(145deg,#fffdf6,#d8cbb2);color:#161713;font:900 21px Georgia,serif;box-shadow:0 5px 12px rgba(0,0,0,.5)}
+            .casino-tcg-emblem i:first-child{left:7px;top:4px;transform:rotate(-13deg);color:#9a2335}.casino-tcg-emblem i:last-child{right:7px;top:1px;transform:rotate(11deg);color:#171b24}
+            .casino-tcg-title{min-width:0}.casino-tcg-title small{display:block;margin-bottom:3px;color:#d8ad55;font-size:10px;font-weight:900;letter-spacing:.25em}.casino-tcg-title h2{margin:0;color:#fff2ca;font-family:Georgia,"Yu Mincho",serif;font-size:clamp(24px,3vw,34px);letter-spacing:.06em;text-shadow:0 2px 0 #000}.casino-tcg-title p{margin:5px 0 0;color:#aeb9b2;font-size:12px}
+            .casino-tcg-close{appearance:none;margin-left:auto;padding:9px 14px;border:1px solid #9b7144;border-radius:9px;background:linear-gradient(180deg,#44261a,#1e100c);color:#f5dfbd;font-weight:bold;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.08)}.casino-tcg-close:hover{filter:brightness(1.18)}
+            .casino-tcg-statusbar{display:flex;align-items:stretch;gap:8px;padding:12px 22px;background:#0b1712;border-bottom:1px solid rgba(255,255,255,.08)}
+            .casino-tcg-status{display:flex;align-items:baseline;gap:5px;min-width:120px;padding:8px 12px;border:1px solid rgba(213,178,97,.28);border-radius:9px;background:rgba(0,0,0,.28)}.casino-tcg-status small{margin-right:auto;color:#91a49a;font-size:9px;font-weight:800;letter-spacing:.12em}.casino-tcg-status b{color:#ffda78;font:900 18px Georgia,serif}.casino-tcg-status em{color:#839188;font-size:10px;font-style:normal}
+            .casino-tcg-memory{position:relative;flex:1;min-width:150px;overflow:hidden}.casino-tcg-memory:after{content:"";position:absolute;left:0;bottom:0;width:var(--memory-progress);height:2px;background:linear-gradient(90deg,#59d6b0,#e8cd71);box-shadow:0 0 8px #59d6b0}
+            .casino-tcg-felt{position:relative;padding:20px 22px 24px;background:radial-gradient(ellipse at 50% 40%,rgba(40,132,91,.8),rgba(8,66,45,.96) 66%,#053222 100%);box-shadow:inset 0 15px 42px rgba(0,0,0,.35)}
+            .casino-tcg-felt:before{content:"♠   ♥   ♣   ♦";position:absolute;inset:0;display:grid;place-items:center;color:rgba(255,255,255,.025);font:900 clamp(70px,14vw,150px) Georgia,serif;letter-spacing:.08em;white-space:pre;pointer-events:none}
+            .casino-tcg-notice{position:relative;display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:10px 13px;border:1px solid rgba(255,210,112,.6);border-radius:10px;background:rgba(60,34,12,.9);color:#ffe1a0;font-size:12px;box-shadow:0 5px 18px rgba(0,0,0,.25)}.casino-tcg-notice b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:#d39c38;color:#241407}
+            .casino-tcg-grid{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:14px}
+            .casino-tcg-choice{appearance:none;position:relative;display:grid;grid-template-columns:82px minmax(0,1fr) 22px;align-items:center;gap:14px;min-height:154px;padding:18px;border:1px solid rgba(239,204,119,.58);border-radius:14px;background:linear-gradient(145deg,rgba(9,31,25,.96),rgba(7,17,14,.96));color:#fff;text-align:left;cursor:pointer;overflow:hidden;box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.28);transition:transform .18s,border-color .18s,box-shadow .18s,filter .18s}.casino-tcg-choice:before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,255,255,.055);border-radius:10px;pointer-events:none}.casino-tcg-choice:hover{transform:translateY(-4px);border-color:#ffe094;box-shadow:inset 0 1px rgba(255,255,255,.1),0 14px 28px rgba(0,0,0,.38),0 0 20px rgba(238,201,108,.13)}
+            .casino-tcg-choice.is-locked{cursor:not-allowed;filter:saturate(.45);border-color:rgba(164,170,164,.25)}.casino-tcg-choice.is-locked:hover{transform:none;box-shadow:inset 0 1px rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.28)}
+            .casino-tcg-cardfan{position:relative;width:76px;height:92px}.casino-tcg-cardfan i{position:absolute;left:18px;top:5px;display:grid;place-items:center;width:50px;height:72px;border:2px solid #f5ead3;border-radius:7px;background:linear-gradient(145deg,#fffdf7,#d9ceb8);color:#24271f;font:900 20px Georgia,serif;box-shadow:0 7px 14px rgba(0,0,0,.5)}.casino-tcg-cardfan i:nth-child(1){left:3px;top:13px;transform:rotate(-14deg);color:#9c2636}.casino-tcg-cardfan i:nth-child(2){left:13px;top:7px;transform:rotate(-4deg);color:#171c1a}.casino-tcg-cardfan i:nth-child(3){transform:rotate(8deg);background:repeating-linear-gradient(45deg,#203e5a 0,#203e5a 4px,#315d78 4px,#315d78 8px);color:#f7d77a;text-shadow:0 1px #000}
+            .casino-tcg-copy{display:grid;gap:5px;min-width:0}.casino-tcg-copy small{color:#d6aa54;font-size:9px;font-weight:900;letter-spacing:.18em}.casino-tcg-copy strong{color:#fff1c8;font-size:18px}.casino-tcg-copy span{color:#b7c6be;font-size:11px;line-height:1.55}.casino-tcg-copy b{justify-self:start;margin-top:3px;padding:4px 8px;border:1px solid rgba(116,226,182,.42);border-radius:999px;background:rgba(35,124,91,.27);color:#8ee3c0;font-size:10px}.casino-tcg-choice.is-locked .casino-tcg-copy b{border-color:rgba(174,179,176,.28);background:rgba(90,94,91,.18);color:#a7afaa}
+            .casino-tcg-arrow{color:#f0c668;font:32px Georgia,serif}.casino-tcg-choice.is-locked .casino-tcg-arrow{color:#6e7872}
+            .casino-tcg-mirror{position:relative;margin-top:14px;padding:16px 18px 18px;border:1px solid rgba(166,139,224,.48);border-radius:14px;background:linear-gradient(135deg,rgba(20,22,41,.93),rgba(13,29,29,.95));box-shadow:inset 0 1px rgba(255,255,255,.07),0 8px 24px rgba(0,0,0,.25)}
+            .casino-tcg-mirror-head{display:flex;align-items:center;gap:12px}.casino-tcg-mirror-mark{display:grid;place-items:center;width:44px;height:56px;border:2px solid #d9d0f0;border-radius:7px;background:linear-gradient(145deg,#453b68,#17152b);color:#d9c7ff;font:900 20px Georgia,serif;box-shadow:0 5px 13px #000}.casino-tcg-mirror-copy{min-width:0}.casino-tcg-mirror-copy small{display:block;color:#a998dd;font-size:9px;font-weight:900;letter-spacing:.18em}.casino-tcg-mirror-copy strong{display:block;margin-top:3px;color:#eee7ff;font-size:17px}.casino-tcg-rank-tag{margin-left:auto;padding:5px 9px;border:1px solid rgba(207,190,255,.35);border-radius:999px;color:#cdbdf7;font-size:10px;font-weight:bold}
+            .casino-tcg-decks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.casino-tcg-deck{appearance:none;display:grid;grid-template-columns:30px 1fr;gap:8px;align-items:center;min-width:0;padding:10px;border:1px solid rgba(211,195,255,.34);border-radius:9px;background:rgba(7,8,18,.6);color:#f1edff;text-align:left;cursor:pointer;transition:transform .15s,border-color .15s,background .15s}.casino-tcg-deck:hover{transform:translateY(-2px);border-color:#d6c4ff;background:rgba(54,41,86,.78)}.casino-tcg-deck i{display:grid;place-items:center;width:27px;height:36px;border:1px solid #d8cdee;border-radius:4px;background:#2d2850;color:#d9ccff;font:900 12px Georgia,serif}.casino-tcg-deck span{min-width:0}.casino-tcg-deck strong{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}.casino-tcg-deck small{color:#a9a1bf;font-size:9px}.casino-tcg-empty{grid-column:1/-1;padding:12px;border:1px dashed rgba(196,186,220,.28);border-radius:8px;color:#aaa4b8;font-size:11px;text-align:center}
+            .casino-tcg-guests{position:relative;margin-top:14px;padding:16px 18px 18px;border:1px solid rgba(222,176,82,.5);border-radius:14px;background:linear-gradient(135deg,rgba(48,31,13,.88),rgba(8,34,25,.94));box-shadow:inset 0 1px rgba(255,255,255,.07),0 8px 24px rgba(0,0,0,.25)}.casino-tcg-guest-head{display:flex;align-items:center;gap:12px}.casino-tcg-guest-head span:first-child{display:grid;place-items:center;width:44px;height:44px;border:2px solid #e0bd72;border-radius:50%;background:#20140b;color:#ffd77c;font-size:22px}.casino-tcg-guest-head small{display:block;color:#d9ae59;font-size:9px;font-weight:900;letter-spacing:.18em}.casino-tcg-guest-head strong{display:block;margin-top:3px;color:#fff0c7;font-size:17px}.casino-tcg-guest-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:13px}.casino-tcg-guest{appearance:none;display:grid;grid-template-columns:46px minmax(0,1fr);align-items:center;gap:9px;min-width:0;padding:9px;border:1px solid rgba(230,193,111,.34);border-radius:10px;background:rgba(5,20,14,.66);color:#fff;text-align:left;cursor:pointer;transition:transform .15s,border-color .15s,background .15s}.casino-tcg-guest:hover:not(:disabled){transform:translateY(-2px);border-color:#f3d58f;background:rgba(31,64,45,.85)}.casino-tcg-guest:disabled{opacity:.45;cursor:not-allowed}.casino-tcg-guest-avatar{display:block;width:42px;height:42px;overflow:hidden;border:2px solid #d9ae59;border-radius:50%;background:#170b0f}.casino-tcg-guest-avatar img{width:100%;height:100%;object-fit:cover;object-position:center 12%}.casino-tcg-guest-copy{display:grid;gap:2px;min-width:0}.casino-tcg-guest-copy strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff0c7;font-size:12px}.casino-tcg-guest-copy small{color:#9db7aa;font-size:9px}
+            @media(max-width:720px){.casino-tcg-shell{width:min(560px,96vw);max-height:96vh}.casino-tcg-inner{max-height:calc(96vh - 18px)}.casino-tcg-head{padding:16px}.casino-tcg-title p{display:none}.casino-tcg-statusbar{padding:10px 14px;overflow-x:auto}.casino-tcg-status{min-width:112px}.casino-tcg-felt{padding:14px}.casino-tcg-grid{grid-template-columns:1fr}.casino-tcg-choice{min-height:132px}.casino-tcg-decks,.casino-tcg-guest-list{grid-template-columns:1fr}}
+            @media(max-width:430px){.casino-tcg-emblem{display:none}.casino-tcg-head{gap:8px}.casino-tcg-title h2{font-size:22px}.casino-tcg-close{padding:8px 10px}.casino-tcg-choice{grid-template-columns:66px minmax(0,1fr) 16px;padding:13px;gap:9px}.casino-tcg-cardfan{transform:scale(.82);transform-origin:left center;width:62px}.casino-tcg-copy strong{font-size:16px}.casino-tcg-mirror{padding:13px}.casino-tcg-rank-tag{font-size:9px}}
+        </style>
+        <div class="casino-tcg-shell"><div class="casino-tcg-inner">
+            <header class="casino-tcg-head">
+                <span class="casino-tcg-emblem" aria-hidden="true"><i>♥</i><i>♠</i></span>
+                <div class="casino-tcg-title"><small>CASINO CARD LOUNGE</small><h2>${title}</h2><p>思い出を束ねたデッキで、次の勝負へ。</p></div>
+                <button type="button" class="casino-tcg-close" onclick="window.closeCasinoTCGMenu()">× 閉じる</button>
+            </header>
+            ${content}
+        </div></div>`;
+        overlay.addEventListener('cancel', event => {
+            event.preventDefault();
+            window.closeCasinoTCGMenu();
+        });
+        document.body.appendChild(overlay);
+        if (typeof overlay.showModal === 'function') {
+            try { overlay.showModal(); }
+            catch (error) { console.warn('TCGテーブルをtop layerへ移動できませんでした。', error); overlay.setAttribute('open', ''); }
+        } else {
+            overlay.setAttribute('open', '');
+        }
+    }
+
+    window.openCasinoTCGMenu = function() {
+        const hero = window.aiPet || {};
+        const rank = hero.apprentice && hero.apprentice.rank ? Number(hero.apprentice.rank.dealer) || 0 : 0;
+        const dealerMastered = rank >= 10 || !!(hero.apprentice && hero.apprentice.retired && hero.apprentice.retired.dealer);
+        const memories = window.TCG && Array.isArray(window.TCG.myCollection) ? window.TCG.myCollection.length : 0;
+        const deckBuilderUnlocked = rank >= 6 && memories >= 60;
+        const validDecks = [0, 1, 2].filter(index => window.TCG && window.TCG.decks && window.isTCGPlayableDeck(window.TCG.decks[index] || []));
+        const selfOptions = validDecks.map(index => {
+            const name = escapeCasinoTcgText(window.TCG.deckNames && window.TCG.deckNames[index] ? window.TCG.deckNames[index] : `デッキ ${index + 1}`);
+            return `<button type="button" class="casino-tcg-deck" onclick="window.startCasinoSelfDeckBattle(${index})"><i>60</i><span><strong>${name}</strong><small>このデッキを対戦相手にする</small></span></button>`;
+        }).join('');
+        const requirement = memories < 60
+            ? `<div class="casino-tcg-notice"><b>!</b><span>TCGで遊ぶには思い出が60枚必要です。あと <strong>${Math.max(0, 60 - memories)}枚</strong> 集めましょう。</span></div>`
+            : '';
+        const deckHint = rank < 6 ? 'Dealer Rank 6で解放' : (memories < 60 ? `思い出 ${memories} / 60枚` : '60枚デッキを編成');
+        const dealerLocked = rank < 7 || !validDecks.length;
+        const dealerHint = rank < 7 ? 'Dealer Rank 7で解放' : (!validDecks.length ? '保存済みの60枚デッキが必要' : 'コイン消費なし・対戦できます');
+        const mirrorEmpty = rank < 8
+            ? 'Dealer Rank 8到達後、保存済み60枚デッキから選べます。'
+            : '対戦相手にできる60枚デッキがありません。先にデッキを保存してください。';
+        const guestUnlocked = (dealerMastered || rank >= 7) && validDecks.length > 0;
+        const eligibleGuests = typeof window.getCasinoEligibleGameMasters === 'function'
+            ? window.getCasinoEligibleGameMasters()
+            : [];
+        const guestOptions = eligibleGuests.map(visitor => {
+            const avatar = typeof window.renderCasinoMasterAvatar === 'function'
+                ? window.renderCasinoMasterAvatar(visitor.masterType, 'casino-tcg-guest-avatar')
+                : '';
+            return `<button type="button" class="casino-tcg-guest" ${guestUnlocked ? `onclick="window.startCasinoTableMasterTCGBattle('${escapeCasinoTcgText(visitor.id)}')"` : 'disabled'}>${avatar}<span class="casino-tcg-guest-copy"><strong>${escapeCasinoTcgText(visitor.name || '来店師匠')}</strong><small>${guestUnlocked ? '会話済み・本日来店中' : '保存済み60枚デッキが必要'}</small></span></button>`;
+        }).join('');
+        const memoryProgress = Math.max(0, Math.min(100, memories / 60 * 100));
+        const content = `
+            <div class="casino-tcg-statusbar">
+                <span class="casino-tcg-status"><small>DEALER RANK</small><b>${rank}</b><em>/ 9</em></span>
+                <span class="casino-tcg-status casino-tcg-memory" style="--memory-progress:${memoryProgress}%"><small>MEMORIES</small><b>${memories}</b><em>/ 60</em></span>
+                <span class="casino-tcg-status"><small>READY DECKS</small><b>${validDecks.length}</b><em>/ 3</em></span>
+            </div>
+            <main class="casino-tcg-felt">
+                ${requirement}
+                <div class="casino-tcg-grid">
+                    <button type="button" class="casino-tcg-choice${deckBuilderUnlocked ? '' : ' is-locked'}" ${deckBuilderUnlocked ? 'onclick="window.closeCasinoTCGMenu();window.openDeckBuilder(\'casino\')"' : 'disabled'}>
+                        <span class="casino-tcg-cardfan" aria-hidden="true"><i>♦</i><i>✦</i><i>60</i></span>
+                        <span class="casino-tcg-copy"><small>YOUR DECK · RANK 6</small><strong>デッキを編成</strong><span>集めたカードから、勝負に使う60枚を組み上げます。</span><b>${deckHint}</b></span><span class="casino-tcg-arrow">›</span>
+                    </button>
+                    <button type="button" class="casino-tcg-choice${dealerLocked ? ' is-locked' : ''}" ${dealerLocked ? 'disabled' : 'onclick="window.startCasinoDealerTCGBattle()"'}>
+                        <span class="casino-tcg-cardfan" aria-hidden="true"><i>♣</i><i>D</i><i>VS</i></span>
+                        <span class="casino-tcg-copy"><small>HOUSE DECK · RANK 7</small><strong>ディーラーに挑戦</strong><span>ディーラーが操る固定60枚デッキとの真剣勝負。</span><b>${dealerHint}</b></span><span class="casino-tcg-arrow">›</span>
+                    </button>
+                </div>
+                <section class="casino-tcg-guests">
+                    <div class="casino-tcg-guest-head"><span aria-hidden="true">♟</span><span><small>MASTER GUESTS</small><strong>来店中の師匠と対戦</strong></span><span class="casino-tcg-rank-tag">会話済みのみ</span></div>
+                    <div class="casino-tcg-guest-list">${guestOptions || '<div class="casino-tcg-empty">現在来店中で、これまでに会話したことのある師匠はいません。</div>'}</div>
+                </section>
+                <section class="casino-tcg-mirror">
+                    <div class="casino-tcg-mirror-head"><span class="casino-tcg-mirror-mark" aria-hidden="true">↔</span><span class="casino-tcg-mirror-copy"><small>MIRROR MATCH</small><strong>自分のデッキと対戦</strong></span><span class="casino-tcg-rank-tag">DEALER RANK 8</span></div>
+                    <div class="casino-tcg-decks">${rank >= 8 && selfOptions ? selfOptions : `<div class="casino-tcg-empty">${mirrorEmpty}</div>`}</div>
+                </section>
+            </main>`;
+        casinoTcgModal('TCG TABLE', content);
+    };
+
+    window.startCasinoDealerTCGBattle = function() {
+        const hero = window.aiPet || {};
+        const rank = hero.apprentice && hero.apprentice.rank ? Number(hero.apprentice.rank.dealer) || 0 : 0;
+        const deck = window.createDealerFixedTCGDeck();
+        if (rank < 7 || deck.length < 60) return;
+        const menu = document.getElementById('casino-tcg-menu-ui');
+        if (menu) menu.remove();
+        window.DEALER_TCG_CONTEXT = {
+            mode: 'dealer',
+            opponentType: 'dealer',
+            opponentId: 'dealer',
+            opponentName: 'ディーラー',
+            masterType: 'dealer',
+            returnMode: 'table',
+            recorded: false
+        };
+        window.startBattle({ playerName: 'ディーラー', opponentType: 'dealer', deck }, -1);
+    };
+
+    window.startCasinoSelfDeckBattle = function(index) {
+        const hero = window.aiPet || {};
+        const rank = hero.apprentice && hero.apprentice.rank ? Number(hero.apprentice.rank.dealer) || 0 : 0;
+        const sourceDeck = window.TCG && window.TCG.decks ? (window.TCG.decks[Number(index)] || []) : [];
+        if (rank < 8 || !window.isTCGPlayableDeck(sourceDeck)) return;
+        const deck = savedDeckAsEnemy(Number(index));
+        if (deck.length < 60) return;
+        const name = window.TCG.deckNames && window.TCG.deckNames[index] ? window.TCG.deckNames[index] : `自作デッキ ${Number(index) + 1}`;
+        const menu = document.getElementById('casino-tcg-menu-ui');
+        if (menu) menu.remove();
+        window.DEALER_TCG_CONTEXT = {
+            mode: 'self',
+            opponentType: 'self',
+            opponentId: `self_deck_${Number(index)}`,
+            opponentName: `もう一人の自分（${name}）`,
+            enemyDeckIndex: Number(index),
+            returnMode: 'table',
+            recorded: false
+        };
+        window.startBattle({ playerName: `もう一人の自分（${name}）`, opponentType: 'self', deck }, -1);
+    };
+
+    window.startCasinoTableMasterTCGBattle = function(visitorId) {
+        const hero = window.aiPet || {};
+        const rank = hero.apprentice && hero.apprentice.rank ? Number(hero.apprentice.rank.dealer) || 0 : 0;
+        const dealerMastered = rank >= 10 || !!(hero.apprentice && hero.apprentice.retired && hero.apprentice.retired.dealer);
+        const validDecks = [0, 1, 2].filter(index => window.TCG && window.TCG.decks && window.isTCGPlayableDeck(window.TCG.decks[index] || []));
+        const visitors = typeof window.getCasinoEligibleGameMasters === 'function' ? window.getCasinoEligibleGameMasters() : [];
+        const visitor = visitors.find(entry => entry && entry.id === visitorId);
+        const deck = window.createMasterFixedTCGDeck(visitor && visitor.masterType);
+        if (!visitor || (!dealerMastered && rank < 7) || !validDecks.length || deck.length < 60) return false;
+        window.closeCasinoTCGMenu();
+        return window.startCasinoGuestTCGBattle(visitor, deck);
+    };
+
+    window.startCasinoGuestTCGBattle = function(visitor, deck) {
+        if (!visitor || !Array.isArray(deck) || deck.length < 60) return false;
+        const launchContext = typeof window.getCasinoCardGameContext === 'function'
+            ? window.getCasinoCardGameContext()
+            : { source: 'table' };
+        window.DEALER_TCG_CONTEXT = {
+            mode: 'guest',
+            opponentType: visitor.kind || 'guest',
+            opponentId: visitor.id,
+            opponentName: visitor.name || 'カジノの客',
+            masterType: visitor.masterType || '',
+            returnMode: launchContext.source === 'conversation' ? 'conversation' : 'table',
+            recorded: false
+        };
+        window.startBattle({
+            playerName: visitor.name || 'カジノの客',
+            opponentType: visitor.kind || 'guest',
+            opponentId: visitor.id,
+            masterType: visitor.masterType || '',
+            deck
+        }, -1);
+        if (typeof window.clearCasinoCardGameContext === 'function') window.clearCasinoCardGameContext();
+        return true;
+    };
+
+    const originalDealerEndTCGBattle = window.endTCGBattle;
+    window.endTCGBattle = function(isWin) {
+        const context = window.DEALER_TCG_CONTEXT;
+        if (context && !context.recorded) {
+            context.recorded = true;
+            if (typeof window.recordDealerCasinoGameResult === 'function') {
+                window.recordDealerCasinoGameResult('tcg', isWin ? 'win' : 'loss', {
+                    mode: context.mode,
+                    opponentType: context.opponentType,
+                    opponentId: context.opponentId,
+                    opponentName: context.opponentName,
+                    masterType: context.masterType || '',
+                    netCoins: 0
+                });
+            }
+        }
+        return originalDealerEndTCGBattle ? originalDealerEndTCGBattle.apply(this, arguments) : undefined;
+    };
+
+    const originalDealerCloseTCGBattle = window.closeTCGBattle;
+    window.closeTCGBattle = function(destination) {
+        const context = window.DEALER_TCG_CONTEXT;
+        const wasCasinoBattle = !!context;
+        const resolvedDestination = context && context.returnMode === 'conversation' && destination === 'table'
+            ? 'lobby'
+            : destination;
+        const result = originalDealerCloseTCGBattle ? originalDealerCloseTCGBattle.call(this, resolvedDestination) : undefined;
+        if (resolvedDestination !== 'replay') window.DEALER_TCG_CONTEXT = null;
+        if (wasCasinoBattle && (resolvedDestination === 'lobby' || resolvedDestination === 'table') && window.casinoMapOpen) {
+            const map = document.getElementById('casino-map-ui');
+            if (map) map.style.display = 'flex';
+            if (window.audioManager) window.audioManager.playBGM('card_lobby');
+            if (resolvedDestination === 'table' && typeof window.openCasinoTCGMenu === 'function') {
+                window.openCasinoTCGMenu();
+            }
+        }
+        return result;
+    };
+
+    const originalCasinoCloseDeckBuilder = window.closeDeckBuilder;
+    window.closeDeckBuilder = function() {
+        const destination = window._deckBuilderReturnDestination || 'field';
+        const result = originalCasinoCloseDeckBuilder ? originalCasinoCloseDeckBuilder.apply(this, arguments) : undefined;
+        if (destination === 'casino' && window.casinoMapOpen) {
+            const map = document.getElementById('casino-map-ui');
+            if (map) map.style.display = 'flex';
+            if (window.audioManager) window.audioManager.playBGM('card_lobby');
+        }
         return result;
     };
 })();

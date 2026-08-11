@@ -348,9 +348,9 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
             if (reachedFloor >= 10) itemsReward.push('mat_castle_2');
             if (reachedFloor >= 20) itemsReward.push('mat_castle_3');
         } else if (s.mapType === 'crystal') {
-            if (reachedFloor >= 5) itemsReward.push('mat_casino_1');
-            if (reachedFloor >= 10) itemsReward.push('mat_casino_2');
-            if (reachedFloor >= 20) itemsReward.push('mat_casino_3');
+            if (reachedFloor >= 5 && (!window.canReceiveCasinoMaterial || window.canReceiveCasinoMaterial('mat_casino_1'))) itemsReward.push('mat_casino_1');
+            if (reachedFloor >= 10 && (!window.canReceiveCasinoMaterial || window.canReceiveCasinoMaterial('mat_casino_2'))) itemsReward.push('mat_casino_2');
+            if (reachedFloor >= 20 && (!window.canReceiveCasinoMaterial || window.canReceiveCasinoMaterial('mat_casino_3'))) itemsReward.push('mat_casino_3');
             if (reachedFloor >= 25) itemsReward.push('mat_card_1');
         }
     }
@@ -361,6 +361,28 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
     }
     
     if (window.aiPet) {
+        const freshnessNow = Date.now();
+        const originalInventory = Array.isArray(window.aiPet.inventory) ? [...window.aiPet.inventory] : [];
+        const reuseOriginalItem = itemId => {
+            const idx = originalInventory.findIndex(item => (typeof item === 'string' ? item : item && item.id) === itemId);
+            if (idx < 0) return null;
+            return originalInventory.splice(idx, 1)[0];
+        };
+        const createFreshItem = itemId => {
+            const item = { id: itemId, age: 0, freshnessStartedAt: freshnessNow };
+            return typeof window.normalizeInventoryFreshnessItem === 'function'
+                ? window.normalizeInventoryFreshnessItem(item, { now: freshnessNow })
+                : item;
+        };
+        const createSkullReturnedItem = itemId => {
+            const existing = reuseOriginalItem(itemId);
+            if (existing !== null) {
+                return typeof window.resumeInventoryItemFreshness === 'function'
+                    ? window.resumeInventoryItemFreshness(existing, freshnessNow)
+                    : existing;
+            }
+            return createFreshItem(itemId);
+        };
         if (typeof window.aiPet.gold === 'undefined') window.aiPet.gold = 0;
         window.aiPet.gold += goldReward;
         
@@ -375,10 +397,9 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
         // ★大改修：クリスタルダンジョンでも生還すれば道中のアイテムを持ち帰れる！
         if (!isGameOver || isRescued) {
             if (s.mapType === 'skull') {
-                // ★ 持ち帰る時に「鮮度(age: 0)」のオブジェクト形式に再変換して村へ返す！
-                window.aiPet.inventory = s.player.tempInventory.map(i => ({ id: i, age: 0 })); 
+                window.aiPet.inventory = s.player.tempInventory.map(createSkullReturnedItem);
             } else if (s.mapType === 'crystal') {
-                s.player.tempInventory.forEach(item => window.aiPet.inventory.push({ id: item, age: 0 }));
+                s.player.tempInventory.forEach(item => window.aiPet.inventory.push(createFreshItem(item)));
             }
         } else {
             if (s.mapType === 'skull') {
@@ -387,7 +408,14 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
             // クリスタルで死んだ場合は、元々のインベントリは失われない
         }
         
-        itemsReward.forEach(item => window.aiPet.inventory.push({ id: item, age: 0 })); 
+        itemsReward.forEach(item => window.aiPet.inventory.push(createFreshItem(item)));
+
+        // ダンジョン内で拾った薬草なども、育成画面へ戻る時点で思い出獲得を再判定する。
+        if (typeof window.triggerTCGUnlock === 'function') {
+            const generation = window.aiPet.generation || 1;
+            new Set(window.aiPet.inventory.map(item => typeof item === 'string' ? item : item && item.id).filter(Boolean))
+                .forEach(itemId => window.triggerTCGUnlock(itemId, generation));
+        }
         if (typeof saveGameData === 'function') saveGameData();
         
         if (typeof updateStatUI === 'function') updateStatUI();
@@ -704,8 +732,9 @@ if (localStorage.getItem('rescue_waiting_map')) {
 (function() {
     if (typeof window.aiPet === 'undefined') return;
 
-    if (!window.aiPet._dungeonPatchApplied) {
-        window.aiPet._dungeonPatchApplied = true;
+    // セーブされる aiPet 上のフラグではなく、このページ読み込み中だけのフラグで多重化を防ぐ。
+    if (!window.__dungeonPatchApplied) {
+        window.__dungeonPatchApplied = true;
 
         // ダンジョン突入処理の共通関数
         const handleDungeonEntry = function(context) {
@@ -774,6 +803,13 @@ if (typeof window._originalOpenDungeonUI === 'undefined' && typeof window.openDu
             window.aiPet.message = "ここから先は危険だ...\n（※入るには「冒険家」の免許皆伝が必要です）";
             window.aiPet.messageTimer = 180;
             return; 
+        }
+
+        // 入場アクションウィンドウを開く直前に、場所の思い出を記録する。
+        if (typeof window.triggerTCGUnlock === 'function') {
+            const generation = window.aiPet ? window.aiPet.generation : 1;
+            if (dungeonType === 'skull') window.triggerTCGUnlock('visit_cave', generation);
+            if (dungeonType === 'crystal') window.triggerTCGUnlock('visit_mine', generation);
         }
         
         window._originalOpenDungeonUI(dungeonType, startFloor);

@@ -2428,9 +2428,9 @@ const facilityData = {
     skull: { name: "魔王の洞窟", stat: 'power', difficulty: 15, maxDepth: 10, items: { default: ['stone', 'iron', 'sword'], winter: ['ice_crystal', 'stone', 'iron'] } },
     castle: { name: "王城", stat: 'intel', difficulty: 3, maxDepth: 5, items: { default: ['coin', 'book', 'seed_tomato'] } },
     casino: { name: "カジノ跡地", stat: 'mood', difficulty: 4, maxDepth: 5, items: { default: ['coin', 'gem'] } }, 
-    palms: { name: "迷いの森", stat: 'mood', difficulty: 2, maxDepth: 8, durability: 5, depletedType: 'grass1', items: { default: ['wood', 'seed_carrot', 'seed_pepper'], spring: ['herb_spring', 'wood'], summer: ['bug_beetle', 'wood'], autumn: ['wood'], winter: ['wood'] } },
+    palms: { name: "迷いの森", stat: 'mood', difficulty: 2, maxDepth: 15, durability: 5, depletedType: 'grass1', items: { default: ['wood', 'seed_carrot', 'seed_pepper'], spring: ['herb_spring', 'wood'], summer: ['bug_beetle', 'wood'], autumn: ['wood'], winter: ['wood'] } },
     crystal: { name: "水晶鉱脈", stat: 'intel', difficulty: 8, maxDepth: 20, items: { default: ['stone', 'crystal', 'iron'] } },
-    mountain: { name: "険しい山", stat: 'power', difficulty: 4, maxDepth: 5, durability: 5, depletedType: 'grass1', items: { default: ['stone', 'iron'], autumn: ['mushroom', 'stone'], summer: ['bug_beetle', 'stone'] } },
+    mountain: { name: "険しい山", stat: 'power', difficulty: 4, maxDepth: 15, durability: 5, depletedType: 'grass1', items: { default: ['stone', 'iron'], autumn: ['mushroom', 'stone'], summer: ['bug_beetle', 'stone'] } },
     default: { name: "建物", stat: 'power', difficulty: 1, maxDepth: 3, items: { default: ['stone'] } }
 };
 
@@ -2692,7 +2692,7 @@ const buildingCatalog = {
   atelier: { name: "アトリエ", reqIntel: 55, reqBuildLevel: 4, cost: { energy: 45 }, materials: { blueprint_tailor: 1, mystic_thread: 1 }, breakChance: 0.001, reqFlag: 'tailorUnlocked' },
   salon: { name: "美容室", reqIntel: 70, reqBuildLevel: 5, cost: { energy: 55 }, materials: { phantom_dye_flower: 1, blueprint_salon: 1 }, breakChance: 0.001, reqFlag: 'hairdresserUnlocked' },
   blacksmith: { name: "鍛冶屋", reqIntel: 50, reqBuildLevel: 5, cost: { energy: 60 }, materials: { stone: 10, iron: 5 }, breakChance: 0.001 },
-  casino: { name: "カジノ", reqIntel: 80, reqBuildLevel: 6, cost: { energy: 80 }, materials: { stone: 10, wood: 10, coin: 5 }, breakChance: 0.0005 },
+  casino: { name: "カジノ", reqIntel: 80, reqBuildLevel: 6, cost: { energy: 80 }, materials: { mat_casino_1: 1, mat_casino_2: 1, mat_casino_3: 1 }, breakChance: 0.0005, reqFlag: 'casinoRecipeUnlocked' },
   castle: { name: "お城", reqIntel: 100, reqBuildLevel: 8, cost: { energy: 90 }, materials: { stone: 20, wood: 10, iron: 5 }, breakChance: 0.0005 },
   // ★追加：カードショップ（カジノ来店フラグが必要。クリスタル迷宮25Fの素材を要求）
   card_shop: { name: "カード屋", reqIntel: 120, reqBuildLevel: 9, cost: { energy: 90 }, materials: { stone: 20, wood: 20, mat_card_1: 1 }, breakChance: 0.0005, reqFlag: 'visitedCasino' },

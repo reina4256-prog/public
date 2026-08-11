@@ -228,14 +228,17 @@ aiPet.checkCastleQuest = function() {
 aiPet.workFarm = function() {
     const farm = this.interactionTarget;
     if (!farm || farm.type !== 'farm') return;
+    let completedFarmMemoryAction = false;
 
     if (this.intendedSeed) {
         farm.waterLevel = 100; farm.pestState = false; farm.pestTimer = 0; farm.careCount = 0; farm.isDead = false; farm.isEaten = false;
+        delete farm.pestStartedAt;
         
         if (this.intendedSeed === 'seed_carrot_given') {
             // ★特別仕様の作物としてマーキング
             farm.plantedCrop = 'carrot_special'; 
             farm.growth = 0;
+            completedFarmMemoryAction = true;
             this.message = `支給されたニンジンの種を植えたよ！`; 
         } else {
             // 通常の種
@@ -244,6 +247,7 @@ aiPet.workFarm = function() {
                 this.inventory.splice(seedIndex, 1);
                 farm.plantedCrop = this.intendedSeed.replace('seed_', '');
                 farm.growth = 0;
+                completedFarmMemoryAction = true;
                 this.message = `${itemCatalog[farm.plantedCrop].name}の種を植えたよ！`;
             }
         }
@@ -264,11 +268,14 @@ aiPet.workFarm = function() {
             
             farm.plantedCrop = null; farm.growth = 0; 
             farm.isDead = false; farm.isEaten = false; farm.pestState = false;
+            farm.pestTimer = 0; delete farm.pestStartedAt;
             this.messageTimer = 120;
         } 
         // 2. 害虫退治
         else if (this.intendedAction === 'pest_control' && farm.pestState) {
             farm.pestState = false; farm.pestTimer = 0; farm.careCount = (farm.careCount || 0) + 2; 
+            delete farm.pestStartedAt;
+            completedFarmMemoryAction = true;
             this.message = "害虫・害獣を退治したよ！"; this.messageTimer = 120; this.intendedAction = null;
         } 
         // 3. 収穫
@@ -289,6 +296,8 @@ aiPet.workFarm = function() {
             this.messageTimer = 150; 
             farm.plantedCrop = null; farm.growth = 0; 
             farm.isDead = false; farm.isEaten = false; farm.pestState = false; farm.careCount = 0;
+            farm.pestTimer = 0; delete farm.pestStartedAt;
+            completedFarmMemoryAction = true;
         } 
         // 4. 水やり・手入れ
         else {
@@ -296,6 +305,7 @@ aiPet.workFarm = function() {
             farm.growth += 20; 
             if (farm.growth > 100) farm.growth = 100;
             farm.careCount = (farm.careCount || 0) + 1;
+            completedFarmMemoryAction = true;
             this.message = "畑に水をやり、手入れをしたよ"; this.messageTimer = 120;
         }
         
@@ -309,8 +319,7 @@ aiPet.workFarm = function() {
     // ==========================================
     // ★カード解禁・保存処理
     // ==========================================
-    if (typeof window.triggerTCGUnlock === 'function') {
-        // 「収穫したよ！」という合図（action_farm）だけを送る
+    if (completedFarmMemoryAction && typeof window.triggerTCGUnlock === 'function') {
         window.triggerTCGUnlock('action_farm', this.generation);
     }
 

@@ -83,8 +83,10 @@ function createWindow () {
   // ゲームのindex.htmlを読み込む
   win.loadFile('index.html');
 
-  // ★追加：起動時に自動で開発者ツール(DevTools)を開く
-  win.webContents.openDevTools();
+  // 開発時だけDevToolsを開き、配布版ではゲーム画面だけを表示する
+  if (!app.isPackaged) {
+    win.webContents.openDevTools();
+  }
 
   // F11キーでフルスクリーン切替、ESCキーで解除する処理を追加
   win.webContents.on('before-input-event', (event, input) => {

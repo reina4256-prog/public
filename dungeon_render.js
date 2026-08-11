@@ -279,6 +279,329 @@ window.DUNGEON_SPRITES = {
         "scale": 0.25000000000000006
     },
 
+    // 冒険家
+    "adventurer_down": {
+        "img": "adventurer_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "adventurer_up": {
+        "img": "adventurer_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "adventurer_left": {
+        "img": "adventurer_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "adventurer_right": {
+        "img": "adventurer_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 漁師
+    "fisherman_down": {
+        "img": "fisherman_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "fisherman_up": {
+        "img": "fisherman_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "fisherman_left": {
+        "img": "fisherman_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "fisherman_right": {
+        "img": "fisherman_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 鍛冶士
+    "smith_down": {
+        "img": "smith_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "smith_up": {
+        "img": "smith_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "smith_left": {
+        "img": "smith_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "smith_right": {
+        "img": "smith_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 建築士
+    "builder_down": {
+        "img": "builder_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "builder_up": {
+        "img": "builder_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "builder_left": {
+        "img": "builder_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "builder_right": {
+        "img": "builder_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 農家
+    "farmer_down": {
+        "img": "farmer_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "farmer_up": {
+        "img": "farmer_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "farmer_left": {
+        "img": "farmer_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "farmer_right": {
+        "img": "farmer_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 薬剤師
+    "pharmacist_down": {
+        "img": "pharmacist_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "pharmacist_up": {
+        "img": "pharmacist_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "pharmacist_left": {
+        "img": "pharmacist_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "pharmacist_right": {
+        "img": "pharmacist_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 美容師
+    "hairdresser_down": {
+        "img": "hairdresser_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "hairdresser_up": {
+        "img": "hairdresser_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "hairdresser_left": {
+        "img": "hairdresser_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "hairdresser_right": {
+        "img": "hairdresser_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 仕立屋
+    "tailor_down": {
+        "img": "tailor_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "tailor_up": {
+        "img": "tailor_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "tailor_left": {
+        "img": "tailor_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "tailor_right": {
+        "img": "tailor_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // パティシエ
+    "pastry_chef_down": {
+        "img": "pastry_chef_dungeon_walk.png",
+        "sx": 170,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "pastry_chef_up": {
+        "img": "pastry_chef_dungeon_walk.png",
+        "sx": 850,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "pastry_chef_left": {
+        "img": "pastry_chef_dungeon_walk.png",
+        "sx": 1563,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+    "pastry_chef_right": {
+        "img": "pastry_chef_dungeon_walk.png",
+        "sx": 2195,
+        "sy": 30,
+        "sw": 512,
+        "sh": 1503,
+        "scale": 0.25000000000000006
+    },
+
+    // 占い師
+    "fortune_teller_down": { "img": "fortune_teller_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "fortune_teller_up": { "img": "fortune_teller_dungeon_walk.png", "sx": 704, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "fortune_teller_left": { "img": "fortune_teller_dungeon_walk.png", "sx": 1408, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "fortune_teller_right": { "img": "fortune_teller_dungeon_walk.png", "sx": 2112, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+
+    // 科学者
+    "scientist_down": { "img": "scientist_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "scientist_up": { "img": "scientist_dungeon_walk.png", "sx": 704, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "scientist_left": { "img": "scientist_dungeon_walk.png", "sx": 1408, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "scientist_right": { "img": "scientist_dungeon_walk.png", "sx": 2112, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+
+    // 販売員
+    "merchant_down": { "img": "merchant_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "merchant_up": { "img": "merchant_dungeon_walk.png", "sx": 704, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "merchant_left": { "img": "merchant_dungeon_walk.png", "sx": 1408, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "merchant_right": { "img": "merchant_dungeon_walk.png", "sx": 2112, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
 
     "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },

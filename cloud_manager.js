@@ -17,6 +17,11 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); 
 
+// 認証オブジェクトを公開せず、ゲーム側から副作用なくログイン状態だけ確認できる入口。
+window.isOnlineAccountLoggedIn = function() {
+    return !!auth.currentUser;
+};
+
 // ★追加：データ通信を節約するためのキャッシュ（一時保存）領域
 const dataCache = {
     tcgMarket: { items: [], lastFetch: 0 },
@@ -27,6 +32,21 @@ const dataCache = {
     defenseRank: {}  // ★追加：防衛戦ランキング用（モードごとに動的追加）
 };
 const CACHE_LIFETIME = 3 * 60 * 1000; // キャッシュの有効期限（3分 = 180,000ミリ秒）
+
+// 保護テスト中の状態をランキングや他プレイヤーのデータへ混ぜない。
+// 認証と読み取りは許可し、ゲーム進行を書き換える通信だけを止める。
+function blockDebugTestCloudWrite(actionName, silent = false) {
+    let isActive = false;
+    try {
+        const session = JSON.parse(localStorage.getItem('debug_test_session_v1') || 'null');
+        isActive = !!(session && session.active);
+    } catch (error) {}
+    if (!isActive) return false;
+
+    console.warn(`[Debug Test] ${actionName} を停止しました。`);
+    if (!silent) alert(`保護テスト中は「${actionName}」を実行できません。\n通常セーブへ戻してから実行してください。`);
+    return true;
+}
 
 // ==========================================
 // 🔐 新規アカウント作成処理
@@ -256,6 +276,7 @@ window.registerPlayerName = async function() {
 // ☁️ [NEW] セーブデータをクラウドにバックアップする機能
 // ==========================================
 window.backupSaveDataToCloud = async function() {
+    if (blockDebugTestCloudWrite('クラウドバックアップ')) return false;
     const user = auth.currentUser;
     if (!user) return alert("ログインが必要です！");
 
@@ -295,6 +316,7 @@ window.backupSaveDataToCloud = async function() {
 // ☁️ [NEW] セーブデータをクラウドからロード（復元）する機能
 // ==========================================
 window.restoreSaveDataFromCloud = async function() {
+    if (blockDebugTestCloudWrite('クラウドからの復元')) return false;
     const user = auth.currentUser;
     if (!user) return alert("ログインが必要です！");
 
@@ -333,6 +355,7 @@ window.restoreSaveDataFromCloud = async function() {
 // ☁️ 以前までの酒場＆デッキ機能（そのまま）
 // ==========================================
 window.uploadMyAIToCloud = async function() {
+    if (blockDebugTestCloudWrite('酒場AIの公開', true)) return false;
     if (typeof window.aiPet === 'undefined' || !window.aiPet.stats) return;
     let myPlayerId = localStorage.getItem('my_player_id');
     if (!myPlayerId) {
@@ -375,6 +398,7 @@ window.fetchCloudAIs = async function(forceRefresh = false) {
 };
 
 window.uploadMyDeckToCloud = async function(myId, uploadData) {
+    if (blockDebugTestCloudWrite('オンラインデッキの公開')) return false;
     try { await setDoc(doc(db, "tcg_online_decks", myId), uploadData); return true; } catch (error) { return false; }
 };
 
@@ -408,6 +432,7 @@ window.fetchOnlineDecks = async function(forceRefresh = false) {
 // 修正箇所①：スカルダンジョンの記録が更新されないバグの修正
 // ---------------------------------------------------------
 window.updateDungeonRanking = async function(mapType, reachedFloor, aiLevel = 1) {
+    if (blockDebugTestCloudWrite('ダンジョンランキング更新', true)) return false;
     const user = auth.currentUser;
     if (!user) return; 
 
@@ -651,6 +676,7 @@ window.openPlayerDetail = async function(playerId, mapType) {
 
 // 倒れた時に救助要請を出す
 window.requestRescue = async function(mapType, floor) {
+    if (blockDebugTestCloudWrite('救助要請')) return false;
     const user = auth.currentUser;
     if (!user) return false;
 
@@ -701,6 +727,7 @@ window.fetchRescueRequests = async function(mapType) {
 
 // 対象のプレイヤーを救助したことをサーバーに報告する
 window.completeRescue = async function(requesterId) {
+    if (blockDebugTestCloudWrite('救助完了報告')) return false;
     try {
         // ステータスを 'rescued' に更新する
         await setDoc(doc(db, "rescue_requests", requesterId), { status: 'rescued' }, { merge: true });
@@ -741,6 +768,7 @@ setInterval(() => {
 // ==========================================
 
 window.updateArenaRanking = async function(reachedWave, partyData) {
+    if (blockDebugTestCloudWrite('アリーナランキング更新', true)) return false;
     const user = auth.currentUser;
     if (!user) return; 
 
@@ -807,6 +835,7 @@ window.fetchArenaRanking = async function(mode = 'normal', forceRefresh = false)
 
 // フレンドがテイクアウトしたアイテムを、相手のクラウドデータに送る
 window.sendItemToFriend = async function(friendId, friendName, itemId, price = 0) {
+    if (blockDebugTestCloudWrite('フレンドへのアイテム送信')) return false;
     if (!friendId) return;
     let itemName = window.getDisplayShopItemName ? window.getDisplayShopItemName(itemId) : itemId;
     if (typeof addFloatingText === 'function' && window.aiPet) addFloatingText(window.aiPet.x, window.aiPet.y - 80, `🎁 ${friendName}にお土産を渡した！`, "#E040FB");
@@ -856,6 +885,7 @@ window.sendItemToFriend = async function(friendId, friendName, itemId, price = 0
 
 // フレンドがイートインした時に、相手のクラウドデータのステータス（体力・満腹度）を回復させる
 window.sendFoodEffectToFriend = async function(friendId, friendName, itemId, price = 0) {
+    if (blockDebugTestCloudWrite('フレンドへの料理効果送信')) return false;
     if (!friendId) return;
     let itemName = window.getDisplayShopItemName ? window.getDisplayShopItemName(itemId) : itemId;
     if (typeof addFloatingText === 'function' && window.aiPet) addFloatingText(window.aiPet.x, window.aiPet.y - 80, `✨ ${friendName}の元気が回復した！`, "#E040FB");
@@ -989,6 +1019,7 @@ window.openFriendListUI = function() {
 
 // 取引記録をホストの郵便受けに送信
 window.sendTradeToHost = async function(hostId, visitorName, tradeType, itemId, price) {
+    if (blockDebugTestCloudWrite('訪問先との取引')) return false;
     if (!hostId) return;
     try {
         const docRef = doc(db, "trade_mailbox", hostId);
@@ -1002,6 +1033,7 @@ window.sendTradeToHost = async function(hostId, visitorName, tradeType, itemId, 
 
 // ログイン時に溜まった取引を精算
 window.processTradeMailbox = async function() {
+    if (blockDebugTestCloudWrite('取引メールの精算', true)) return false;
     let myId = localStorage.getItem('my_player_id');
     if (!myId) return;
 
@@ -1117,6 +1149,7 @@ if (typeof window.originalSendChat === 'undefined') {
 // 🃏 TCG オンラインマーケット機能
 // ==========================================
 window.uploadTCGMarketItem = async function(cardData, price) {
+    if (blockDebugTestCloudWrite('TCGマーケットへの出品')) return false;
     const user = auth.currentUser;
     if (!user) return false;
     const playerName = localStorage.getItem('my_player_name') || "名無し";
@@ -1159,6 +1192,7 @@ window.fetchTCGMarketItems = async function(forceRefresh = false) {
 };
 
 window.buyTCGMarketItem = async function(docId, cardData, price, sellerId) {
+    if (blockDebugTestCloudWrite('TCGマーケットでの購入')) return false;
     const user = auth.currentUser;
     if (!user) return false;
     try {
@@ -1176,6 +1210,7 @@ window.buyTCGMarketItem = async function(docId, cardData, price, sellerId) {
 };
 
 window.cancelTCGMarketItem = async function(docId) {
+    if (blockDebugTestCloudWrite('TCGマーケット出品の取消')) return false;
     try { await deleteDoc(doc(db, "tcg_market", docId)); return true; } 
     catch(e) { console.error(e); return false; }
 };
@@ -1184,6 +1219,7 @@ window.cancelTCGMarketItem = async function(docId) {
 // 🛡️ 防衛戦：オンラインランキング機能
 // ==========================================
 window.updateDefenseRanking = async function(mode, wave, partyData) {
+    if (blockDebugTestCloudWrite('防衛戦ランキング更新', true)) return false;
     const user = auth.currentUser;
     if (!user) return;
     const playerName = localStorage.getItem('my_player_name') || "名無し";
@@ -1364,6 +1400,7 @@ window.showContinueLoginChoice = function() {
 
 // 3. 【実際の初期化処理】（フロー完了後に呼ばれる）
 window.executeNewGameInitialization = async function(isOffline) {
+    if (blockDebugTestCloudWrite('ニューゲームの初期化')) return false;
     if (isOffline) {
         window.skipAutoLogin = true;
         try { await signOut(auth); } catch(e){}

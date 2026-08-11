@@ -423,7 +423,8 @@
     function addInventoryItem(itemId) {
         const ai = window.aiPet || window.hero || {};
         if (!Array.isArray(ai.inventory)) ai.inventory = [];
-        ai.inventory.push({ id: itemId, age: 0 });
+        const item = { id: itemId, age: 0, freshnessStartedAt: Date.now() };
+        ai.inventory.push(typeof window.normalizeInventoryFreshnessItem === 'function' ? window.normalizeInventoryFreshnessItem(item) : item);
         if (typeof saveGameData === 'function') saveGameData();
         renderMyHomeInventoryPanel();
     }
@@ -1443,6 +1444,9 @@
 
     function startMyHomeScheduledAction(type, label, duration = 60, myHomeAction = type) {
         const ai = window.aiPet || window.hero || {};
+        if ((type === 'sleep' || type === 'rest') && typeof window.triggerTCGUnlock === 'function') {
+            window.triggerTCGUnlock('action_camp', ai.generation || 1);
+        }
         if (!Array.isArray(ai.schedule)) ai.schedule = [];
         ai.schedule = ai.schedule.filter(task => !(task && task.myHomeIndoor && String(task.type || '').startsWith('life_')));
         const visualMap = { sleep: 'sleep', eat: 'eat_raw', study: 'study', train: 'train', run: 'move' };
@@ -1553,7 +1557,10 @@
                 if (!selected) {
                     setMyHomeChatMessage(`${label}は空です。`);
                 } else {
-                    const [item] = box.items.splice(selected.index, 1);
+                    let [item] = box.items.splice(selected.index, 1);
+                    if (kind === 'freezer' && typeof window.resumeInventoryItemFreshness === 'function') {
+                        item = window.resumeInventoryItemFreshness(item);
+                    }
                     if (!Array.isArray(ai.inventory)) ai.inventory = [];
                     ai.inventory.push(item);
                     const itemName = getItemName(item);
@@ -1573,7 +1580,10 @@
                     if (!selected) {
                         setMyHomeChatMessage(kind === 'freezer' ? 'しまえる食べ物を持っていません。' : 'しまえるアイテムを持っていません。');
                     } else {
-                        const [item] = ai.inventory.splice(selected.index, 1);
+                        let [item] = ai.inventory.splice(selected.index, 1);
+                        if (kind === 'freezer' && typeof window.freezeInventoryItemFreshness === 'function') {
+                            item = window.freezeInventoryItemFreshness(item);
+                        }
                         box.items.push(item);
                         if (!ai.myHomeQuestStorageDeposits) ai.myHomeQuestStorageDeposits = {};
                         ai.myHomeQuestStorageDeposits[kind] = true;
@@ -2231,6 +2241,10 @@
     window.openMyHomeMapUI = function(options = {}) {
         if (!window.isMyHomeIndoorUnlocked()) return false;
         const state = window.ensureMyHomeIndoorState();
+        const ai = window.aiPet || window.hero || {};
+        if (typeof window.triggerTCGUnlock === 'function') {
+            window.triggerTCGUnlock('visit_forest', ai.generation || 1);
+        }
         let ui = document.getElementById('myhome-map-ui');
         if (!ui) {
             ui = document.createElement('div');

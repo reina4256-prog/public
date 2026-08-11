@@ -2555,7 +2555,7 @@ function initAdjustUI() {
                 <label style="cursor:pointer; color:#FF9800;"><input type="radio" name="adjTarget" value="afld"> ARENA-FLD</label>
             </div>
             <div style="margin-top: 5px;">
-                <label style="margin-right:10px; cursor:pointer; color:#E040FB;"><input type="radio" name="adjTarget" value="rasset"> ASSET</label>
+                <label style="margin-right:10px; cursor:pointer; color:#E040FB;"><input type="radio" name="adjTarget" value="rasset"> ASSET（店舗・家・カジノ・トランプ）</label>
                 <label style="margin-right:10px; cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> S-ASSET</label>
                 <label style="cursor:pointer; color:#FF5722;"><input type="radio" name="adjTarget" value="title"> TITLE</label>
             </div>
@@ -2923,12 +2923,14 @@ window.getCombinedAdjustAssetKeys = function() {
     const keys = [];
     if (typeof window.SHOP_SPRITES !== 'undefined') keys.push(...Object.keys(window.SHOP_SPRITES));
     if (typeof window.MYHOME_SPRITES !== 'undefined') keys.push(...Object.keys(window.MYHOME_SPRITES));
+    if (typeof window.CASINO_SPRITES !== 'undefined') keys.push(...Object.keys(window.CASINO_SPRITES));
     return keys;
 };
 
 window.getCombinedAdjustAsset = function(key) {
     if (typeof window.SHOP_SPRITES !== 'undefined' && window.SHOP_SPRITES[key]) return window.SHOP_SPRITES[key];
     if (typeof window.MYHOME_SPRITES !== 'undefined' && window.MYHOME_SPRITES[key]) return window.MYHOME_SPRITES[key];
+    if (typeof window.CASINO_SPRITES !== 'undefined' && window.CASINO_SPRITES[key]) return window.CASINO_SPRITES[key];
     return null;
 };
 
@@ -3028,6 +3030,7 @@ window.addEventListener('keydown', (e) => {
                 } else if (editingTarget === 'rasset') {
                     console.log("■■■ SHOP_SPRITES ■■■\n" + JSON.stringify(window.SHOP_SPRITES || {}, null, 4));
                     console.log("■■■ MYHOME_SPRITES ■■■\n" + JSON.stringify(window.MYHOME_SPRITES || {}, null, 4));
+                    console.log("■■■ CASINO_SPRITES（トランプ切り抜きを含む） ■■■\n" + JSON.stringify(window.CASINO_SPRITES || {}, null, 4));
                     alert("ASSET用スプライト定義をコンソールに出力しました。");
                 } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                     console.log("▼▼▼ SHOP_FURNITURE_DATA ▼▼▼\n" + JSON.stringify(window.SHOP_FURNITURE_DATA, null, 4)); alert("家具配置データをコンソールに出力しました！\nこれを ui_controller.js に貼り付けてください。");
@@ -3248,6 +3251,7 @@ window.addEventListener('keydown', (e) => {
             if (typeof window.openShopManagementUI === 'function') window.openShopManagementUI(window.aiPet.indoorTarget);
         }
         if (editingTarget === 'rasset' && typeof window.renderMyHomeMap === 'function') window.renderMyHomeMap();
+        if (editingTarget === 'rasset' && typeof window.renderCasinoMap === 'function') window.renderCasinoMap();
     }
 });
 

@@ -355,6 +355,7 @@ function updateAIStatusText() {
 window.openStatusMenu = function() {
     const overlay = document.getElementById('statusOverlay');
     if (!overlay || typeof aiPet === 'undefined' || !aiPet.stats) return;
+    window.unlockTutorialEntry?.('basics.abilities');
     const hero = aiPet;
 
     document.getElementById('s-gen').innerText = aiPet.generation || 1;
@@ -438,7 +439,7 @@ window.openStatusMenu = function() {
             } else if (app.isGraduated) {
                 html += `<div style="font-size: 13px; color: #FFD700; font-weight: bold; text-align: center; padding: 10px; background: rgba(255,215,0,0.1); border-radius: 4px;">✨ 免許皆伝 ✨<br><span style="font-size:11px; color:#ccc; font-weight:normal;">今世での修行を終え、立派な達人になりました！<br>（1回の人生で極められる道は1つまでです。余生を満喫しましょう）</span></div>`;
             } else if (app.currentMaster) {
-                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
+                const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
                 const mName = masterNames[app.currentMaster] || "不明";
                 const rank = app.rank[app.currentMaster] || 1;
                 
@@ -1435,7 +1436,7 @@ window.updateCommandHUD = function() {
         categories['⚔️ 冒険・作業'].push({ label: "調合", base: "調合" });
     }
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
 
     // ★修正：自動修復ロジックを削除（世代交代時の「エモい再会イベント」を確実に発生させるため）
     for (let key in masterNames) {
@@ -1740,7 +1741,9 @@ window.sendChat = function() {
         "橋": ["橋", "はし", "ブリッジ"],
         "小屋": ["小屋", "家", "こや", "いえ", "ハウス"],
         "城": ["城", "お城", "キャッスル", "闘技場", "アリーナ"],
-        "カジノ": ["カジノ", "スロット", "ギャンブル", "遊んで", "あそんで"],
+        // Dealer試験用の独立語彙。カジノの類義語にすると、学習直後に施設移動へ誤爆する。
+        "スロット": ["スロット", "スロットマシン"],
+        "カジノ": ["カジノ", "ギャンブル", "遊んで", "あそんで"],
         "ショップ": ["ショップ", "買い物", "かいもの", "お店", "店", "買いたい"],
         "カード": ["カード", "カードダス", "カードショップ", "トレカ", "パック"], 
         "レストラン": ["レストラン", "食堂", "ご飯屋"],
@@ -1817,6 +1820,7 @@ window.sendChat = function() {
     const triggerSmithingIntroFromBasicCommand = () => {
         if (!['睡眠', '勉強', '筋トレ', 'ランニング'].includes(interpretedWord)) return false;
         if (!aiPet.apprentice || aiPet.isHelper) return false;
+        if (!Array.isArray(aiPet.apprentice.learnedWords) || aiPet.apprentice.learnedWords.length < 3) return false;
         if (aiPet.apprentice.currentMaster || aiPet.apprentice.isGraduated) return false;
         if (!aiPet.apprentice.metMasters) aiPet.apprentice.metMasters = [];
         if (aiPet.apprentice.metMasters.includes('smithing')) return false;
@@ -1845,7 +1849,7 @@ window.sendChat = function() {
         return true;
     };
 
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
     const uniqueFacilities = {
@@ -1861,7 +1865,7 @@ window.sendChat = function() {
         "ドレッサー": { type: 'dresser', bId: 'dresser', name: 'ドレッサー', onEnter: () => { if(typeof window.openHairdresserUI === 'function') window.openHairdresserUI(); } }
     };
 
-    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef', '美容師': 'hairdresser', 'コンシェルジュ': 'concierge'};
+    const allMasterNames = { '冒険家': 'explore', '農家': 'farming', '漁師': 'fishing', '料理人': 'cooking', '鍛冶師': 'smithing', '建築士': 'building', '薬剤師': 'pharmacist', '仕立屋': 'tailor', 'パティシエ': 'pastry_chef', '美容師': 'hairdresser', 'コンシェルジュ': 'concierge', 'ディーラー': 'dealer'};
 
     const routeToMyHomeConcierge = (action = 'visit') => {
         let hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
@@ -1950,6 +1954,8 @@ window.sendChat = function() {
             interpretedWord = "アトリエ";
         } else if (mType === 'hairdresser') {
             interpretedWord = "美容室";
+        } else if (mType === 'dealer') {
+            interpretedWord = "カジノ";
         }
         // else if (mType === 'pastry_chef') {
         //     // ★追加：パティシエは固有施設がなく「レストラン」に相乗りするため、専用の面会ルートを作る
@@ -2269,12 +2275,13 @@ window.sendChat = function() {
     } 
     else if (["探検", "森", "山"].includes(interpretedWord) && knows(interpretedWord)) { 
         actionTriggered = true; 
-        let canExplore = false;
-        if (aiPet.apprentice) {
-            if (aiPet.apprentice.currentMaster === 'explore') canExplore = true; 
-            if (aiPet.apprentice.rank && aiPet.apprentice.rank['explore'] >= 10) canExplore = true; 
-            if (aiPet.apprentice.retired && aiPet.apprentice.retired['explore']) canExplore = true; 
-        }
+        let canExplore = typeof window.canUseNormalExploration === 'function'
+            ? window.canUseNormalExploration(aiPet)
+            : !!(aiPet.apprentice && (
+                aiPet.apprentice.currentMaster === 'explore' ||
+                (aiPet.apprentice.rank && aiPet.apprentice.rank['explore'] >= 10) ||
+                (aiPet.apprentice.retired && aiPet.apprentice.retired['explore'])
+            ));
         if (canExplore) { 
             let taskData = { type: 'explore', duration: 60 };
             if (interpretedWord === "森") taskData.exploreTarget = 'forest';
@@ -2774,6 +2781,9 @@ window.sendChat = function() {
 // ★究極改修：カジノ入室時の専用ロビーとAI連動処理（リッチUI版）
 // ==========================================
 window.openCasino = function() {
+    if (typeof window.openCasinoMapUI === 'function') {
+        return window.openCasinoMapUI();
+    }
     // ▼▼▼ 追加：カジノに足を踏み入れた時のカードアンロック ▼▼▼
     if (window.aiPet && typeof window.triggerTCGUnlock === 'function') {
         window.triggerTCGUnlock('visit_casino', window.aiPet.generation);
@@ -2784,59 +2794,8 @@ window.openCasino = function() {
         window.audioManager.playBGM('card_lobby');
     }
     
-    // 1. TCGデータがまだ無い、または60枚未満の場合は「入場拒否」の演出（alert廃止）
-    if (!window.TCG || !window.TCG.myCollection || window.TCG.myCollection.length < 60) {
-        let count = window.TCG ? (window.TCG.myCollection ? window.TCG.myCollection.length : 0) : 0;
-        
-        // メッセージを出して、AIを外に追い出す
-        if (window.aiPet) {
-            window.aiPet.message = "まだ入れないみたい...";
-            window.aiPet.messageTimer = 180;
-            window.aiPet.actionState = 'exiting'; 
-            window.aiPet.isIndoors = false;
-        }
-        
-        // ★修正：alertの代わりに、画面中央にリッチなポップアップを出す
-        let popup = document.createElement('div');
-        popup.id = 'casino-reject-popup';
-        popup.style.cssText = `
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(0,0,0,0.85); z-index: 60000;
-            display: flex; justify-content: center; align-items: center;
-            opacity: 0; transition: opacity 0.3s ease;
-        `;
-        
-        popup.innerHTML = `
-            <div style="background: #2a2a2a; border: 4px solid #FFC107; border-radius: 12px; padding: 30px; width: 450px; text-align: center; color: white; font-family: sans-serif; box-shadow: 0 10px 40px rgba(0,0,0,0.8); transform: scale(0.9); transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
-                <div style="font-size: 50px; margin-bottom: 15px;">🛑</div>
-                <h2 style="color: #FFC107; margin-top: 0; margin-bottom: 20px;">カジノの闘技場</h2>
-                <div style="font-size: 16px; color: #ddd; line-height: 1.6; margin-bottom: 20px; background: #111; padding: 15px; border-radius: 8px;">
-                    「ここは特別な『カードゲーム』の闘技場だ。<br>
-                    参加するには、カード化された『思い出』が<br>
-                    <span style="color:#ff5252; font-weight:bold;">最低でも60枚</span> 必要だぞ」
-                </div>
-                <div style="font-size: 18px; font-weight: bold; margin-bottom: 25px;">
-                    現在: <span style="color: ${count >= 60 ? '#4CAF50' : '#ff5252'};">${count} / 60枚</span>
-                </div>
-                <button onclick="document.getElementById('casino-reject-popup').style.opacity='0'; setTimeout(()=>document.getElementById('casino-reject-popup').remove(), 300);" 
-                        style="padding: 12px 30px; font-size: 18px; font-weight: bold; background: #FF9800; color: white; border: 2px solid #FFF; border-radius: 8px; cursor: pointer; transition: 0.2s;"
-                        onmouseover="this.style.background='#F57C00'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='#FF9800'; this.style.transform='scale(1)';">
-                    わかった
-                </button>
-            </div>
-        `;
-        document.body.appendChild(popup);
-        
-        // アニメーション発動
-        setTimeout(() => {
-            popup.style.opacity = '1';
-            popup.firstElementChild.style.transform = 'scale(1)';
-        }, 50);
-        
-        return;
-    }
-
-    // 60枚を満たして実際にロビーへ入れた時だけ、TCG公開条件を永続化する。
+    // カジノへの来店は思い出の枚数に関係なく記録する。
+    // 60枚条件はDealer修行途中のTCG解放側で判定する。
     if (window.aiPet) window.aiPet.visitedCasino = true;
     if (typeof window.markTCGCasinoVisited === 'function') window.markTCGCasinoVisited();
     if (typeof saveGameData === 'function') saveGameData();
@@ -3004,31 +2963,40 @@ window.addScheduleFromInput = function(type) {
 
 window.loadDebugData = function() {
     if (typeof aiPet === 'undefined') return;
-    if(document.getElementById('dbg-gen')) document.getElementById('dbg-gen').value = aiPet.generation || 1;
-    if(document.getElementById('dbg-age')) document.getElementById('dbg-age').value = aiPet.age || 0;
-    if(document.getElementById('dbg-hour')) document.getElementById('dbg-hour').value = aiPet.debugHour || 12;
+    const debugValue = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+    if(document.getElementById('dbg-gen')) document.getElementById('dbg-gen').value = debugValue(aiPet.generation, 1);
+    if(document.getElementById('dbg-age')) document.getElementById('dbg-age').value = debugValue(aiPet.age, 0);
+    if(document.getElementById('dbg-hour')) document.getElementById('dbg-hour').value = debugValue(aiPet.debugHour, 12);
     
     if(document.getElementById('dbg-season')) document.getElementById('dbg-season').value = aiPet.season || 'spring';
 
-    if(document.getElementById('dbg-energy')) document.getElementById('dbg-energy').value = Math.floor(aiPet.energy || 100);
-    if(document.getElementById('dbg-hunger')) document.getElementById('dbg-hunger').value = Math.floor(aiPet.hunger || 100);
-    if(document.getElementById('dbg-lifespan')) document.getElementById('dbg-lifespan').value = aiPet.lifespan || 100;
-    if(document.getElementById('dbg-intel')) document.getElementById('dbg-intel').value = Math.floor((aiPet.stats && aiPet.stats.intel) || 10);
-    if(document.getElementById('dbg-power')) document.getElementById('dbg-power').value = Math.floor((aiPet.stats && aiPet.stats.power) || 10);
-    if(document.getElementById('dbg-mood')) document.getElementById('dbg-mood').value = Math.floor((aiPet.stats && aiPet.stats.mood) || 100);
+    if(document.getElementById('dbg-energy')) document.getElementById('dbg-energy').value = Math.floor(debugValue(aiPet.energy, 100));
+    if(document.getElementById('dbg-hunger')) document.getElementById('dbg-hunger').value = Math.floor(debugValue(aiPet.hunger, 100));
+    if(document.getElementById('dbg-lifespan')) document.getElementById('dbg-lifespan').value = debugValue(aiPet.lifespan, 100);
+    if(document.getElementById('dbg-intel')) document.getElementById('dbg-intel').value = Math.floor(debugValue(aiPet.stats && aiPet.stats.intel, 10));
+    if(document.getElementById('dbg-power')) document.getElementById('dbg-power').value = Math.floor(debugValue(aiPet.stats && aiPet.stats.power, 10));
+    if(document.getElementById('dbg-mood')) document.getElementById('dbg-mood').value = Math.floor(debugValue(aiPet.stats && aiPet.stats.mood, 100));
 
-    if(document.getElementById('dbg-stat-beauty')) document.getElementById('dbg-stat-beauty').value = Math.floor((aiPet.stats && aiPet.stats.beauty) || 10);
+    if(document.getElementById('dbg-stat-beauty')) document.getElementById('dbg-stat-beauty').value = Math.floor(debugValue(aiPet.stats && aiPet.stats.beauty, 10));
     // ★追加: デバッグ画面を開く際に SPEED を読み込む
-    if(document.getElementById('dbg-stat-speed')) document.getElementById('dbg-stat-speed').value = Math.floor((aiPet.stats && aiPet.stats.speed) || 10);
-    if(document.getElementById('dbg-darkness')) document.getElementById('dbg-darkness').value = Math.floor(aiPet.darknessCounter || 0);
-    if(document.getElementById('dbg-gold')) document.getElementById('dbg-gold').value = aiPet.gold || 0;
+    if(document.getElementById('dbg-stat-speed')) document.getElementById('dbg-stat-speed').value = Math.floor(debugValue(aiPet.stats && aiPet.stats.speed, 10));
+    if(document.getElementById('dbg-darkness')) document.getElementById('dbg-darkness').value = Math.floor(debugValue(aiPet.darknessCounter, 0));
+    if(document.getElementById('dbg-gold')) document.getElementById('dbg-gold').value = debugValue(aiPet.gold, 0);
 
     if(document.getElementById('dbg-skill-cook')) document.getElementById('dbg-skill-cook').value = (aiPet.skills && aiPet.skills.cooking) ? aiPet.skills.cooking : 1;
     if(document.getElementById('dbg-skill-smith')) document.getElementById('dbg-skill-smith').value = (aiPet.skills && aiPet.skills.smithing) ? aiPet.skills.smithing : 1;
     if(document.getElementById('dbg-skill-build')) document.getElementById('dbg-skill-build').value = (aiPet.skills && aiPet.skills.building) ? aiPet.skills.building : 1;
 
     const godCheck = document.getElementById('dbg-god-mode');
-    if (godCheck) aiPet.godMode = godCheck.checked;
+    if (godCheck) godCheck.checked = !!aiPet.godMode;
+
+    const exploreDropMode = document.getElementById('dbg-explore-drop-mode');
+    if (exploreDropMode) {
+        const isProtectedTest = typeof window.isDebugTestModeActive === 'function' && window.isDebugTestModeActive();
+        exploreDropMode.value = isProtectedTest ? (aiPet.debugExploreDropMode || 'normal') : 'normal';
+        exploreDropMode.disabled = !isProtectedTest;
+        exploreDropMode.title = isProtectedTest ? '' : '保護テスト中だけ変更できます';
+    }
 
     const sel = document.getElementById('dbg-char-select');
     if (sel) {
@@ -3081,34 +3049,40 @@ window.loadDebugData = function() {
 
 window.saveDebugData = function() {
     if (typeof aiPet === 'undefined') return;
-    
-    aiPet.generation = parseInt(document.getElementById('dbg-gen').value) || 1;
-    aiPet.age = parseInt(document.getElementById('dbg-age').value) || 0;
-    aiPet.debugHour = parseInt(document.getElementById('dbg-hour').value) || 12;
+    const readDebugNumber = (id, fallback, integer = false) => {
+        const input = document.getElementById(id);
+        const value = input ? Number(input.value) : NaN;
+        if (!Number.isFinite(value)) return fallback;
+        return integer ? Math.trunc(value) : value;
+    };
+
+    aiPet.generation = readDebugNumber('dbg-gen', 1, true);
+    aiPet.age = readDebugNumber('dbg-age', 0, true);
+    aiPet.debugHour = readDebugNumber('dbg-hour', 12, true);
     
     const seasonSelect = document.getElementById('dbg-season');
     if (seasonSelect) aiPet.season = seasonSelect.value;
 
-    aiPet.energy = parseInt(document.getElementById('dbg-energy').value) || 100;
-    aiPet.hunger = parseInt(document.getElementById('dbg-hunger').value) || 100;
-    aiPet.lifespan = parseInt(document.getElementById('dbg-lifespan').value) || 100;
+    aiPet.energy = readDebugNumber('dbg-energy', 100, true);
+    aiPet.hunger = readDebugNumber('dbg-hunger', 100, true);
+    aiPet.lifespan = readDebugNumber('dbg-lifespan', 100, true);
     
     if (!aiPet.stats) aiPet.stats = { intel: 10, power: 10, mood: 100, beauty: 10 };
-    aiPet.stats.intel = parseInt(document.getElementById('dbg-intel').value) || 10;
-    aiPet.stats.power = parseInt(document.getElementById('dbg-power').value) || 10;
-    aiPet.stats.mood = parseInt(document.getElementById('dbg-mood').value) || 100;
+    aiPet.stats.intel = readDebugNumber('dbg-intel', 10, true);
+    aiPet.stats.power = readDebugNumber('dbg-power', 10, true);
+    aiPet.stats.mood = readDebugNumber('dbg-mood', 100, true);
 
     const beautyInput = document.getElementById('dbg-stat-beauty');
-    if(beautyInput) aiPet.stats.beauty = parseFloat(beautyInput.value) || 10;
+    if(beautyInput) aiPet.stats.beauty = readDebugNumber('dbg-stat-beauty', 10);
 
     // ★追加: 保存時に SPEED をデータに反映する
     const speedInput = document.getElementById('dbg-stat-speed');
-    if(speedInput) aiPet.stats.speed = parseFloat(speedInput.value) || 10;
+    if(speedInput) aiPet.stats.speed = readDebugNumber('dbg-stat-speed', 10);
 
     const darkInput = document.getElementById('dbg-darkness');
-    if(darkInput) aiPet.darknessCounter = parseFloat(darkInput.value) || 0;
+    if(darkInput) aiPet.darknessCounter = readDebugNumber('dbg-darkness', 0);
 
-    aiPet.gold = parseInt(document.getElementById('dbg-gold').value) || 0;
+    aiPet.gold = readDebugNumber('dbg-gold', 0, true);
     if (!aiPet.skills) aiPet.skills = { cooking: 1, smithing: 1, building: 1 };
     aiPet.skills.cooking = parseFloat(document.getElementById('dbg-skill-cook').value) || 1;
     aiPet.skills.smithing = parseFloat(document.getElementById('dbg-skill-smith').value) || 1;
@@ -3117,6 +3091,10 @@ window.saveDebugData = function() {
 
     const godCheck = document.getElementById('dbg-god-mode');
     if (godCheck) aiPet.godMode = godCheck.checked;
+
+    const exploreDropMode = document.getElementById('dbg-explore-drop-mode');
+    const isProtectedTest = typeof window.isDebugTestModeActive === 'function' && window.isDebugTestModeActive();
+    aiPet.debugExploreDropMode = (isProtectedTest && exploreDropMode) ? exploreDropMode.value : 'normal';
 
     const sel = document.getElementById('dbg-char-select');
     if (sel && sel.value) { aiPet.currentSkin = sel.value; }
@@ -3894,14 +3872,15 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     
     currentEncounterMaster = masterType;
     currentEncounterMode = mode;
+    window._dealerPurchaseMenuSnapshot = null;
     if (message) savedEncounterMsg = message;
     
     const overlay = document.getElementById('encounterOverlay');
     if (!overlay) return;
     overlay.classList.add('active');
-    if (masterType === 'concierge' && window.myHomeMapOpen) {
-        const homeUi = document.getElementById('myhome-map-ui');
-        if (homeUi) homeUi.style.zIndex = '80000';
+    if ((masterType === 'concierge' && window.myHomeMapOpen) || window.casinoMapOpen) {
+        const indoorUi = document.getElementById(window.casinoMapOpen ? 'casino-map-ui' : 'myhome-map-ui');
+        if (indoorUi) indoorUi.style.zIndex = '80000';
         overlay.style.position = 'fixed';
         overlay.style.inset = '0';
         overlay.style.zIndex = '120000';
@@ -3989,8 +3968,15 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             let hint = missingWord ? `でも、まずはチャットで「${exactWord}」って言葉を教わらないと、お話にならないみたい。` : "冒険も農業も建築も極めた今の僕なら、きっと認めてもらえるはず！";
             thoughtText = `（${baseThought}\n${hint}）`;
         }
+        else if (masterType === 'dealer') {
+            baseThought = "冷静な微笑みの奥で、すべての確率を読まれているみたい...！";
+            exactWord = "遊ぶ";
+            missingWord = !words.includes(exactWord);
+            let hint = missingWord ? `まずはチャットで「${exactWord}」という言葉を覚えないと、テーブルには着けないみたい。` : "このカジノで積んだ記憶なら、勝負を楽しめるはず！";
+            thoughtText = `（${baseThought}\n${hint}）`;
+        }
         // ★修正：pastry_chef（パティシエ）もステータス査定の共通ロジックから除外する
-        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef' && masterType !== 'hairdresser' && masterType !== 'concierge') {
+        if (masterType !== 'pharmacist' && masterType !== 'tailor' && masterType !== 'pastry_chef' && masterType !== 'hairdresser' && masterType !== 'concierge' && masterType !== 'dealer') {
             score += (hero.stats.mood - 50) * 0.2; 
             
             let hint = "";
@@ -4033,6 +4019,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
     else if (mode === 'graduate_skip') { thoughtText = "（えっ！？ いきなり免許皆伝！？ やったー！）"; }
     // ▲▲ 追加した2行 ▲▲
     else if (mode === 'quest_offer_exam') { thoughtText = "（これが弟子入りのための課題...！まずは言葉を覚えよう！）"; rightText = savedEncounterMsg; }
+    else if (mode === 'casino_visitor_game') { thoughtText = "（師匠と何で遊ぼうかな？）"; rightText = savedEncounterMsg; }
     else if (mode === 'quest_report' || mode === 'rank_up') { thoughtText = "（うまくできたかな...？）"; }
     else if (mode === 'exam_pass') { thoughtText = "（やったー！弟子入りだ！）"; }
     else if (mode === 'exam_fail' || mode === 'retire' || mode === 'banned') { thoughtText = "（だめだったか...）"; }
@@ -4079,7 +4066,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
-        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser' || masterType === 'concierge') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser' || masterType === 'concierge' || masterType === 'dealer' || masterType === 'fortune_teller' || masterType === 'scientist' || masterType === 'salesperson') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
 
         const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
         if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
@@ -4137,7 +4124,10 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             'pastry_chef': { img: "pastry_chef_battle_enemy.png", sx: 933, sy: 69, sw: 991, sh: 1499 },
             'hairdresser': { img: "hairdresser_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
             'concierge': { img: "concierge_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
-            'dealer': { img: "dealer_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 }
+            'dealer': { img: "dealer_battle_enemy.png", sx: 925, sy: 17, sw: 991, sh: 1540 },
+            'fortune_teller': { img: "fortune_teller_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
+            'scientist': { img: "scientist_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 },
+            'salesperson': { img: "merchant_battle_enemy.png", sx: 794, sy: 0, sw: 1344, sh: 1536 }
         };
         let mData = masterSprites[masterType];
 
@@ -4182,6 +4172,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         btnBox.style.flexDirection = 'column';
         btnBox.style.gap = '8px';
         btnBox.style.width = '65%';
+        btnBox.style.height = 'auto';
+        btnBox.style.flex = '0 0 auto';
 
         let baitoBtn = "";
         let isMastered = hero.apprentice && ((hero.apprentice.retired && hero.apprentice.retired[masterType]) || (hero.apprentice.rank && hero.apprentice.rank[masterType] >= 10));
@@ -4189,7 +4181,8 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
         const hideBaitoModes = [
             'excommunicate', 'retire', 'exam_fail', 'banned', 
             'graduate', 'rank_up', 'quest_report', 'exam_pass',
-            'quest_offer', 'quest_offer_exam', 'master_special_offer', 'encounter', 'encounter_intro'
+            'quest_offer', 'quest_offer_exam', 'master_special_offer', 'encounter', 'encounter_intro',
+            'casino_visitor_game'
         ];
         
         if (!hideBaitoModes.includes(mode)) {
@@ -4247,6 +4240,22 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
             thoughtText = "（言葉を教えて、またチャットで呼んで会いに行こう！）";
             btnBox.innerHTML = `<button class="quiz-btn" onclick="confirmEncounter(true)" style="padding: 12px; font-size: 16px; background: #FF9800; color: #fff; font-weight: bold; border: 2px solid #E65100; border-radius: 8px; cursor: pointer;">わかった！</button>`;
         }
+        else if (mode === 'casino_visitor_game') {
+            const availability = typeof window.getCasinoVisitorGameAvailability === 'function'
+                ? window.getCasinoVisitorGameAvailability()
+                : { poker: false, daifugo: false, tcg: false, slot: false };
+            const gameButton = (game, label, color, enabled) => `<button class="quiz-btn" ${enabled ? `onclick="window.chooseCasinoVisitorGame('${game}')"` : 'disabled'} style="flex:1 1 120px;min-width:120px;height:44px;min-height:44px;max-height:44px;padding:8px 9px;font-size:14px;background:${enabled ? color : '#444'};color:${enabled ? '#fff' : '#999'};font-weight:bold;border:2px solid ${enabled ? 'rgba(255,255,255,.28)' : '#555'};border-radius:8px;cursor:${enabled ? 'pointer' : 'not-allowed'};">${label}</button>`;
+            const needsPreparation = !availability.poker || !availability.daifugo || !availability.tcg || !availability.slot;
+            btnBox.innerHTML = `
+                <div style="display:flex;flex-wrap:wrap;gap:8px;width:100%;">
+                    ${gameButton('poker', '♠ ポーカー', '#315d83', availability.poker)}
+                    ${gameButton('daifugo', '♣ 大富豪', '#7b3b75', availability.daifugo)}
+                    ${gameButton('tcg', '🃏 TCG', '#7a571b', availability.tcg)}
+                    ${gameButton('slot', '🎰 スロット対戦', '#8a4f19', availability.slot)}
+                </div>
+                ${needsPreparation ? '<div style="font-size:11px;color:#bbb;line-height:1.4;">遊べないゲームは、トランプ・デッキ・スロット台2台の準備を確認してください。</div>' : ''}
+                <button class="quiz-btn" onclick="window.closeCasinoVisitorConversation()" style="width:100%;height:42px;min-height:42px;max-height:42px;padding:8px 10px;font-size:14px;background:#666;color:#ddd;border:2px solid #555;border-radius:8px;cursor:pointer;">また遊ぼうね</button>`;
+        }
         else if (mode === 'encounter' || mode === 'quest_offer' || mode === 'quest_offer_exam' || mode === 'master_special_offer') {
             let yesText = mode === 'encounter' ? "試験を開始する" : "課題を受ける";
             let mainBtnHtml = "";
@@ -4263,6 +4272,7 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 else if (masterType === 'pastry_chef') baseWord = "お菓子作り";
                 else if (masterType === 'hairdresser') baseWord = "ヘアメイク";
                 else if (masterType === 'concierge') baseWord = "掃除";
+                else if (masterType === 'dealer') baseWord = "遊ぶ";
 
                 if (baseWord && hero.apprentice && hero.apprentice.learnedWords) {
                     if (!hero.apprentice.learnedWords.includes(baseWord)) {
@@ -4356,8 +4366,129 @@ window.openEncounterUI = function(masterType, message, mode = 'encounter', qData
                 `;
             }
         }
+        const dealerTalkMenuModes = ['master_visit_choice', 'graduate_visit'];
+        if (masterType === 'dealer' && window.casinoMapOpen && dealerTalkMenuModes.includes(mode)) {
+            const dealerProgress = typeof window.ensureDealerCasinoState === 'function'
+                ? window.ensureDealerCasinoState(hero)
+                : (hero.dealerProgress || {});
+            const dealerRank = hero.apprentice && hero.apprentice.rank
+                ? Number(hero.apprentice.rank.dealer) || 0
+                : 0;
+            const cardGamesUnlocked = dealerRank >= 3 || !!dealerProgress.pokerUnlocked || !!dealerProgress.daifugoUnlocked;
+            const ownsTrump = Object.keys(dealerProgress.purchasedTrumpDecks || {}).length > 0;
+            const cardGameButton = cardGamesUnlocked && ownsTrump
+                ? '<button class="quiz-btn" onclick="window.openDealerCardGamesFromTalk()" style="width:100%;height:58px;min-height:58px;max-height:58px;padding:5px 6px;font-size:12px;line-height:1.25;background:linear-gradient(180deg,#3d527d,#243a64);color:#fff;font-weight:bold;border:2px solid #7797d0;border-radius:8px;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.25);">🃏 トランプゲームで遊ぶ</button>'
+                : '';
+            const dealerActionColumns = cardGameButton ? 'repeat(2,minmax(0,1fr))' : '1fr';
+            btnBox.insertAdjacentHTML('beforeend', `
+                <div style="display:grid;grid-template-columns:${dealerActionColumns};gap:8px;width:100%;margin-top:8px;">
+                    <button class="quiz-btn" onclick="window.openDealerPurchaseMenuFromTalk()" style="width:100%;height:58px;min-height:58px;max-height:58px;padding:5px 6px;font-size:12px;line-height:1.25;background:linear-gradient(180deg,#9a6a19,#68420e);color:#fff4c2;font-weight:bold;border:2px solid #d3a33f;border-radius:8px;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.14),0 4px 12px rgba(0,0,0,.25);">🛍️ 購入する</button>
+                    ${cardGameButton}
+                </div>`);
+        }
     }
     window.isGamePaused = true;
+};
+
+window.openDealerPurchaseMenuFromTalk = function() {
+    const hero = window.aiPet || ((typeof party !== 'undefined' && party.length > 0) ? party[0] : null);
+    const btnBox = document.getElementById('encounter-buttons');
+    const textEl = document.getElementById('encounter-text');
+    if (!hero || !btnBox || currentEncounterMaster !== 'dealer' || !window.casinoMapOpen) return false;
+
+    const app = hero.apprentice || {};
+    const rank = app.rank ? Math.max(0, Number(app.rank.dealer) || 0) : 0;
+    const dealerMastered = rank >= 10 || !!(app.retired && app.retired.dealer);
+    const rankTwoQuestActive = Array.isArray(app.activeQuests)
+        && app.activeQuests.some(quest => quest && quest.masterType === 'dealer' && Number(quest.rank) === 2);
+    const trumpShopAvailable = rank > 2 || rankTwoQuestActive;
+
+    window._dealerPurchaseMenuSnapshot = {
+        buttons: btnBox.innerHTML,
+        text: textEl ? textEl.innerHTML : ''
+    };
+    if (textEl) textEl.innerHTML = '「何を購入する？」';
+
+    const purchaseButton = (label, onclick, background, border) => `<button class="quiz-btn" onclick="${onclick}" style="width:100%;height:50px;min-height:50px;max-height:50px;padding:6px;font-size:12px;line-height:1.25;background:${background};color:#fff;font-weight:bold;border:2px solid ${border};border-radius:8px;cursor:pointer;box-shadow:inset 0 1px rgba(255,255,255,.12),0 4px 12px rgba(0,0,0,.24);">${label}</button>`;
+    const options = [
+        purchaseButton('🪙 コイン', "if(typeof window.openCasinoCoinShop === 'function') window.openCasinoCoinShop();", 'linear-gradient(180deg,#9a6a19,#68420e)', '#d3a33f')
+    ];
+    if (trumpShopAvailable) {
+        options.push(purchaseButton('🃏 トランプ', "if(typeof window.openCasinoTrumpShop === 'function') window.openCasinoTrumpShop();", 'linear-gradient(180deg,#6f3653,#452034)', '#a85c82'));
+    }
+    if (dealerMastered) {
+        options.push(purchaseButton('🎰 設備', "if(typeof window.openCasinoEquipmentShop === 'function') window.openCasinoEquipmentShop();", 'linear-gradient(180deg,#80611d,#4b3210)', '#d8af4f'));
+        options.push(purchaseButton('🃏 トランプゲーム', "if(typeof window.openCasinoTrumpGameShop === 'function') window.openCasinoTrumpGameShop();", 'linear-gradient(180deg,#60305d,#381936)', '#ac65a7'));
+    }
+
+    const purchaseColumns = options.length === 1 ? '1fr' : 'repeat(2,minmax(0,1fr))';
+    btnBox.innerHTML = `
+        <div style="display:grid;grid-template-columns:${purchaseColumns};gap:8px;width:100%;">${options.join('')}</div>
+        <button class="quiz-btn" onclick="window.closeDealerPurchaseMenuFromTalk()" style="width:100%;height:44px;min-height:44px;max-height:44px;padding:7px 10px;font-size:13px;background:#555;color:#eee;border:2px solid #777;border-radius:8px;cursor:pointer;">← 会話に戻る</button>`;
+    return true;
+};
+
+window.closeDealerPurchaseMenuFromTalk = function() {
+    const snapshot = window._dealerPurchaseMenuSnapshot;
+    const btnBox = document.getElementById('encounter-buttons');
+    const textEl = document.getElementById('encounter-text');
+    if (!snapshot || !btnBox) return false;
+    btnBox.innerHTML = snapshot.buttons;
+    if (textEl) textEl.innerHTML = snapshot.text;
+    window._dealerPurchaseMenuSnapshot = null;
+    return true;
+};
+
+// Rank 3以降のトランプゲームは、ディーラー会話からゲーム選択メニューを経由して開始する。
+window.openDealerCardGamesFromTalk = function() {
+    const hero = window.aiPet || ((typeof party !== 'undefined' && party.length > 0) ? party[0] : null);
+    if (!hero) return;
+
+    const progress = typeof window.ensureDealerCasinoState === 'function'
+        ? window.ensureDealerCasinoState(hero)
+        : (hero.dealerProgress || {});
+    const rank = hero.apprentice && hero.apprentice.rank ? Number(hero.apprentice.rank.dealer) || 0 : 0;
+    const ownsTrump = Object.keys(progress.purchasedTrumpDecks || {}).length > 0;
+    const hasCardGame = rank >= 3 || !!progress.pokerUnlocked || !!progress.daifugoUnlocked;
+    if (!hasCardGame || !ownsTrump || typeof window.openCasinoCardGameMenu !== 'function') {
+        if (typeof window.addCasinoLog === 'function') window.addCasinoLog('トランプゲームを開始できませんでした。解放状況と購入済みトランプを確認してください。');
+        return;
+    }
+    if (typeof window.setCasinoCardGameContext === 'function') {
+        window.setCasinoCardGameContext({ source: 'table', lockedVisitors: [] });
+    }
+
+    // 会話を正規の終了経路で閉じてから、次のイベントループでポーカーを開く。
+    // 同じクリック処理内で2枚の全画面UIを切り替えた際の描画停止を避ける。
+    if (typeof window.confirmEncounter === 'function') {
+        window.confirmEncounter(false);
+    } else {
+        const encounterOverlay = document.getElementById('encounterOverlay');
+        if (encounterOverlay) encounterOverlay.classList.remove('active');
+        window.isGamePaused = false;
+        currentEncounterMaster = null;
+        currentEncounterMode = '';
+    }
+    setTimeout(() => {
+        const casinoUi = document.getElementById('casino-map-ui');
+        if (casinoUi) casinoUi.style.zIndex = '8990';
+        hero.actionState = 'inside';
+        hero.isIndoors = true;
+        hero.indoorTarget = { type: 'casino', name: 'カジノ' };
+        window.isGamePaused = false;
+        window._dealerEncounterInProgress = false;
+        try {
+            window.openCasinoCardGameMenu();
+        } catch (error) {
+            console.error('トランプゲーム選択画面を開けませんでした。', error);
+            if (typeof window.addCasinoLog === 'function') window.addCasinoLog('トランプゲーム選択画面の表示に失敗しました。コンソールのエラーを確認してください。');
+        }
+    }, 0);
+};
+
+// 旧ボタン名を参照する保存済みDOMや拡張コード向けの互換入口。
+window.openDealerPokerFromTalk = function() {
+    window.openDealerCardGamesFromTalk();
 };
 
 // ==========================================
@@ -4397,6 +4528,7 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'pastry_chef') greetingMsg = "「いらっしゃい！……おや？君はあの時の……いや、人違いか。でもその甘い香りへの感受性、すでに免許皆伝の域だよ！いつでもティータイムにおいで！」";
             else if (mType === 'hairdresser') greetingMsg = "「やっほ〜！今日も最高にカワイイね♡ もっと盛っちゃう？」";
             else if (mType === 'concierge') greetingMsg = "「お帰りなさいませ。新たな生を歩むAI様を、再びこのマイホームでお迎えできましたこと、心よりうれしく存じます。前世と変わらず、何なりとお申し付けくださいませ。」";
+            else if (mType === 'dealer') greetingMsg = "「お帰りなさい、カジノ支配人。今宵も確率の向こう側を見せてもらえるかしら？」";
         } else {
             if (mType === 'explore') greetingMsg = "「この周辺をキャンプ地にしようと思うの。準備ができたらまたいらっしゃい！」";
             else if (mType === 'farming') greetingMsg = "「この辺りに畑を作ろうと思ってね。準備ができたらまたおいで。」";
@@ -4410,6 +4542,7 @@ window.confirmEncounter = function(isAccept) {
             else if (mType === 'pastry_chef') greetingMsg = "「ようこそスイーツコーナーへ！最高のレシピが君を待っているよ。準備ができたらまた来てね！」";
             else if (mType === 'hairdresser') greetingMsg = "「サロンへようこそ〜！準備ができたら、めいっぱいカワイくしちゃうね♡」";
             else if (mType === 'concierge') greetingMsg = "「いらっしゃいませ。管理人室の準備が整いましたら、いつでもお声がけくださいませ。」";
+            else if (mType === 'dealer') greetingMsg = "「ようこそ、VIPルームへ。あなたの記憶（カード）と運、ここで試してみませんか？」";
         }
 
         // 試験(encounter)ではなく、挨拶(greeting)へ進む！
@@ -4427,11 +4560,16 @@ window.confirmEncounter = function(isAccept) {
     const resumeMyHomeEntry = mType === 'concierge' && currentEncounterMode === 'greeting'
         ? window.pendingMyHomeEntryAfterConciergeEncounter
         : null;
+    const resumeCasinoEntry = mType === 'dealer' && currentEncounterMode === 'greeting'
+        ? window.pendingCasinoEntryAfterDealerEncounter
+        : null;
 
     // ★ 初顔合わせ（挨拶）
     if (currentEncounterMode === 'greeting') {
         if (!hero.apprentice.metMasters) hero.apprentice.metMasters = [];
+        const isFirstMasterMeeting = hero.apprentice.metMasters.length === 0;
         if (!hero.apprentice.metMasters.includes(mType)) hero.apprentice.metMasters.push(mType);
+        if (isFirstMasterMeeting) window.unlockTutorialEntry?.('work.apprenticeship.first_master');
 
         let tx = hero.x, ty = hero.y;
         for(let i = 0; i < 100; i++) {
@@ -4452,6 +4590,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'tailor') { cType = 'atelier'; cName = '仕立屋のアトリエ'; isMasterShop = true; }
         else if (mType === 'hairdresser') { cType = 'salon'; cName = '美容室'; isMasterShop = true; }
         else if (mType === 'concierge') { cType = null; }
+        else if (mType === 'dealer') { cType = null; }
         else if (mType === 'cooking') { 
             cType = null; 
             for (let k in assets) {
@@ -4479,7 +4618,7 @@ window.confirmEncounter = function(isAccept) {
             assets[campId] = { type: cType, name: cName, dx: tx, dy: ty, sw: 100, sh: 100, scale: 0.6, isMasterShop: isMasterShop };
         }
 
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
         const mName = masterNames[mType];
         
         if (!hero.apprentice.learnedWords.includes(mName)) {
@@ -4591,7 +4730,7 @@ window.confirmEncounter = function(isAccept) {
             hero.apprentice.activeQuests = hero.apprentice.activeQuests.filter(q => q.rank !== 0);
         }
         
-        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
+        const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
         const mName = masterNames[mType];
         
         setTimeout(() => {
@@ -4634,6 +4773,7 @@ window.confirmEncounter = function(isAccept) {
         else if (mType === 'pastry_chef') { hero.apprentice.title = "グラン・パティシエ"; hero.skills.cooking = Math.max(hero.skills.cooking || 0, 15); hero.skills.pastry = 20; hero.stats.intel += 35; hero.stats.beauty += 35; hero.stats.mood += 20; hero.inventory.push('honey'); }
         else if (mType === 'hairdresser') { hero.apprentice.title = "カリスマ美容師"; hero.skills.beauty = Math.max(hero.skills.beauty || 0, 20); hero.stats.beauty += 60; hero.stats.mood += 30; hero.inventory.push('ultimate_beauty_kit'); }
         else if (mType === 'concierge') { hero.apprentice.title = "極上のコンシェルジュ"; hero.skills.concierge = 20; hero.stats.intel += 30; hero.stats.beauty += 30; hero.stats.mood += 40; }
+        else if (mType === 'dealer') { hero.apprentice.title = "カジノ支配人"; hero.stats.intel += 40; }
 
         if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD(); 
@@ -4642,6 +4782,12 @@ window.confirmEncounter = function(isAccept) {
         // 免許皆伝が確定した瞬間に、対応する人物カード（60枚未満なら思い出）を1枚だけ獲得する。
         if (typeof window.unlockMasterPersonCard === 'function') {
             window.unlockMasterPersonCard(mType, hero.generation || 1);
+        }
+        // ディーラー免許皆伝後の余生タスクは屋外で始める。
+        // カジノを残したまま余生イベントを出すと、決定後に表示と屋内状態が食い違うため、
+        // 共通の正式な退出処理を先に通してから余生イベントを表示する。
+        if (mType === 'dealer' && window.casinoMapOpen && typeof window.closeCasinoMapUI === 'function') {
+            window.closeCasinoMapUI();
         }
 
         if (typeof hero.determineLifePath === 'function') {
@@ -4684,6 +4830,13 @@ window.confirmEncounter = function(isAccept) {
         const homeUi = document.getElementById('myhome-map-ui');
         if (homeUi) homeUi.style.zIndex = '8990';
     }
+    else if (window.casinoMapOpen) {
+        hero.actionState = 'inside';
+        hero.isIndoors = true;
+        hero.indoorTarget = { type: 'casino', name: 'カジノ' };
+        const casinoUi = document.getElementById('casino-map-ui');
+        if (casinoUi) casinoUi.style.zIndex = '8990';
+    }
     else if (hero.isIndoors || hero.actionState === 'inside') {
         hero.actionState = 'exiting'; // 退出アニメーション開始
         hero.isIndoors = false;
@@ -4703,6 +4856,12 @@ window.confirmEncounter = function(isAccept) {
         setTimeout(() => resumeMyHomeEntry(), 160);
     } else if (mType === 'concierge' && !window.pendingMyHomeEntryAfterConciergeEncounter) {
         window._conciergeEncounterInProgress = false;
+    } else if (mType === 'dealer' && resumeCasinoEntry) {
+        window.pendingCasinoEntryAfterDealerEncounter = null;
+        window._dealerEncounterInProgress = false;
+        setTimeout(() => resumeCasinoEntry(), 160);
+    } else if (mType === 'dealer' && !window.pendingCasinoEntryAfterDealerEncounter) {
+        window._dealerEncounterInProgress = false;
     }
 };
 
@@ -5082,8 +5241,33 @@ window.recordMasterSpecialQuestProgress = function(eventType, targetId, details 
     return true;
 };
 
+// 旧建築完了処理では建物だけが配置され、建築士の特別依頼へ完了通知が届かなかった。
+// 建物UIDに保存されている完成時刻が受注時刻以降なら、現在のセーブを安全に復旧する。
+window.recoverMasterSpecialBuildingQuest = function(hero, quest) {
+    if (!hero || !quest || quest.completed || quest.eventType !== 'building' || !quest.targetId) return false;
+    const acceptedAt = Number(quest.acceptedAt);
+    if (!Number.isFinite(acceptedAt) || acceptedAt <= 0) return false;
+
+    const prefix = `build_${quest.targetId}_`;
+    const recoveredEntry = Object.entries(getMasterSpecialAssets()).find(([uid, asset]) => {
+        if (!asset || asset.type !== quest.targetId || !String(uid).startsWith(prefix)) return false;
+        const completedAt = Number(String(uid).slice(prefix.length));
+        return Number.isFinite(completedAt) && completedAt >= acceptedAt;
+    });
+    if (!recoveredEntry) return false;
+
+    quest.qVal = 1;
+    quest.completed = true;
+    quest.recoveredFromBuildUid = recoveredEntry[0];
+    if (typeof saveGameData === 'function') saveGameData();
+    return true;
+};
+
 window.isMasterSpecialQuestComplete = function(hero, quest) {
     if (!hero || !quest || !quest.isMasterSpecialQuest) return false;
+    if (quest.eventType === 'building' && !quest.completed) {
+        window.recoverMasterSpecialBuildingQuest(hero, quest);
+    }
     if (quest.eventType === 'environment_score') {
         return typeof window.getMyHomeEnvironmentScore === 'function' && window.getMyHomeEnvironmentScore() >= Number(quest.targetLevel || 0);
     }
@@ -5275,6 +5459,33 @@ window.checkMasterVisit = function(masterType, visitAction) {
         return;
     }
 
+    // 冒険家・建築士皆伝後、実際に両岸を渡れる2連橋を完成させてから素材情報を解放する。
+    if (typeof window.syncCasinoLegacyProgress === 'function') window.syncCasinoLegacyProgress();
+    const explorerMastered = !!((app.retired && app.retired.explore) || (app.rank && Number(app.rank.explore) >= 10));
+    const builderMastered = !!((app.retired && app.retired.building) || (app.rank && Number(app.rank.building) >= 10));
+    if (masterType === 'explore' && explorerMastered && builderMastered && !hero.casinoMaterialRumorHeard) {
+        const bridgeReady = typeof window.isCasinoBridgeRouteComplete === 'function' && window.isCasinoBridgeRouteComplete();
+        if (bridgeReady) {
+            hero.casinoMaterialRumorHeard = true;
+            if (typeof saveGameData === 'function') saveGameData();
+            const msg = "「あの二つの橋、ちゃんと対岸までつながったのね。なら水晶の迷宮へ行ってみなさい。5階の『幻惑のグラス』、10階の『輝くカジノチップ』、20階の『真理のダイス』――三つが揃えば、建築士がカジノの設計を仕上げられるはずよ。」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
+            return;
+        }
+    }
+    if (masterType === 'building' && hero.casinoMaterialRumorHeard && !hero.casinoRecipeUnlocked) {
+        const materialsReady = typeof window.hasAllCasinoMaterials === 'function' && window.hasAllCasinoMaterials();
+        if (materialsReady) {
+            hero.casinoRecipeUnlocked = true;
+            if (app.learnedWords && !app.learnedWords.includes('カジノ')) app.learnedWords.push('カジノ');
+            if (typeof saveGameData === 'function') saveGameData();
+            if (typeof updateCommandHUD === 'function') updateCommandHUD();
+            const msg = "「幻惑のグラス、輝くカジノチップ、真理のダイス――三つとも揃えたのか！ よし、確率と記憶を遊びに変える『カジノ』の設計図を完成させた。これで建築レシピに追加されたぞ。」";
+            if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
+            return;
+        }
+    }
+
     // ==========================================
     // ★追加：料理人から「幻のスイーツレシピ」をもらいパティシエをアンロックするイベント
     // ==========================================
@@ -5445,6 +5656,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         else if (masterType === 'pastry_chef') baseWord = "お菓子作り"; // ★ここを追加！
         else if (masterType === 'hairdresser') baseWord = "ヘアメイク";
         else if (masterType === 'concierge') baseWord = "掃除";
+        else if (masterType === 'dealer') baseWord = "遊ぶ";
 
         let words = app.learnedWords || [];
         if (!words.includes(baseWord)) {
@@ -5459,6 +5671,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'pastry_chef') examMsg = `「ノー・スイート！まずは『${baseWord}』の基本を知ってから来なよ！」`; // ★追加
             else if (masterType === 'hairdresser') examMsg = `「まずは『${baseWord}』のこと、チャットで覚えてから来てね♡」`;
             else if (masterType === 'concierge') examMsg = `「まずは『${baseWord}』の基本をお覚えくださいませ。お声がけは、それからでございます。」`;
+            else if (masterType === 'dealer') examMsg = `「テーブルへ着く前に、まずは『${baseWord}』という言葉を覚えてきて。ゲームはそれからよ。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
         } else {
             let offerMsg = "";
@@ -5473,6 +5686,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'pastry_chef') offerMsg = `「私に弟子入りしたいのかい？ いいよ！それじゃあ、この課題『入門試験の準備』をこなしてみせて！」`; // ★追加
             else if (masterType === 'hairdresser') offerMsg = `「弟子入りしたいの？いいよ〜！まずは『入門試験の準備』から始めよっ♡」`;
             else if (masterType === 'concierge') offerMsg = `「弟子入りをご希望でございますね。まずは『入門試験の準備』から始めましょう。」`;
+            else if (masterType === 'dealer') offerMsg = `「私のゲームを学びたいのね。まずは『入門試験の準備』。三枚の問いに、正しい答えを揃えてみせて。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, offerMsg, 'quest_offer_exam');
         }
         return;
@@ -5599,6 +5813,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             else if (masterType === 'tailor') examMsg = `「言葉は覚えてきましたか？ 準備ができたなら、試験を始めましょう。深呼吸して、心を落ち着けてくださいね。」`;
             else if (masterType === 'pastry_chef') examMsg = `「言葉は覚えてきたかな？ 準備ができたなら、甘くて厳しい試験を開始するよ！」`; // ★追加
             else if (masterType === 'hairdresser') examMsg = `「準備できた？それじゃ、カワイイ入門試験を始めるよっ♡」`;
+            else if (masterType === 'dealer') examMsg = `「ベットは知識と度胸。三枚の問いを配るわ――ショーダウンといきましょう。」`;
             if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, examMsg, 'encounter');
             return;
         }
@@ -5675,6 +5890,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                     else if (masterType === 'pastry_chef') reportMsg += "「アンビリーバボー！完璧な仕上がりだ！私から教えることはもう何もないよ……免許皆伝！これからもスイーツで世界を笑顔にしてね！」"; // ★追加
                     else if (masterType === 'hairdresser') reportMsg += "「きゃ〜っ、最高にカワイイ！もう免許皆伝だよ♡ これからは好きなカラーもオーラも盛り放題っ！」";
                     else if (masterType === 'concierge') reportMsg += "「見事でございます。AI様の住まいは、極上のおもてなしを備えた空間となりました。免許皆伝でございます。」";
+                    else if (masterType === 'dealer') reportMsg += "「見事なプレイングです。すべてのテーブルがあなたを支配人と認めたわ。免許皆伝よ。」";
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'graduate');
                 } else {
                     console.log("[師匠報告デバッグ] ランクアップ会話を開きます", { 師匠: masterType, examRank, reportMsg });
@@ -5689,6 +5905,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
                     else if (masterType === 'pastry_chef') reportMsg += `「トレビアン！温度管理もデコレーションも完璧だ。君のランクが ${examRank + 1} に上がったよ！」`; // ★追加
                     else if (masterType === 'hairdresser') reportMsg += `「きゃ〜っ！超絶カワイイ〜♡ ランクが ${examRank + 1} に上がったよ！」`;
                     else if (masterType === 'concierge') reportMsg += `「素晴らしいお仕事ぶりです。ランクが ${examRank + 1} に上がりました。」`;
+                    else if (masterType === 'dealer') reportMsg += `「見事なプレイングです。ランク ${examRank + 1} のテーブルへ進みなさい。」`;
                     if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, reportMsg, 'rank_up');
                 }
             } else {
@@ -5747,6 +5964,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
         else if (masterType === 'pastry_chef') msg = "「ようこそ最高のパティシエ！君に教えることはもうないけど、手伝いならいつでも歓迎するよ！」"; // ★追加
         else if (masterType === 'hairdresser') msg = "「やっほ〜！今日も最高にカワイイね♡ もっと盛っちゃう？」";
         else if (masterType === 'concierge') msg = "「お帰りなさいませ。修行は終わりましても、AI様をお迎えする務めに終わりはございません。何なりとお申し付けくださいませ。」";
+        else if (masterType === 'dealer') msg = "「お帰りなさい、カジノ支配人。ポーカー、大富豪、TCG――今夜はどの勝負を選ぶ？」";
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI(masterType, msg, 'graduate_visit');
         return;
     }
@@ -5759,7 +5977,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
     // ==========================================
     if (rank === 1) {
         // ★修正：薬剤師・仕立屋・パティシエ（上級職）は顔パス（飛び級）をスキップする
-        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef' || masterType === 'hairdresser' || masterType === 'concierge') {
+        if (masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'pastry_chef' || masterType === 'hairdresser' || masterType === 'concierge' || masterType === 'dealer') {
             // 薬剤師と仕立屋は飛び級なし
         } else {
             let p = hero.stats.power || 10; let i = hero.stats.intel || 10;
@@ -5947,6 +6165,8 @@ window.checkMasterVisit = function(masterType, visitAction) {
 // ★ マルチ対応＆アコーディオン型 クエストHUD更新（インフレ対応・差分表示版）
 // ==========================================
 window.updateQuestHUD = function() {
+    // カジノは独自の全画面マップを維持するため、通常HUDの可否に関係なく先に同期する。
+    if (window.casinoMapOpen && typeof window.renderCasinoQuestHUD === 'function') window.renderCasinoQuestHUD();
     const hud = document.getElementById('questHUD');
     const list = document.getElementById('questListHUD');
     if (!hud || !list) return;
@@ -6077,11 +6297,11 @@ window.updateQuestHUD = function() {
                 // ★素材系アイテムの判定（「集め」など収集ワードがある場合のみカウントする汎用処理）
                 const isGathering = desc.includes("集め") || desc.includes("採れ");
                 
-                if (desc.includes("良質な木材") && isGathering) itemsStr.push(formatReq("良質な木材", inv.filter(i => i === 'high_wood').length, 3));
-                else if (desc.includes("木材") && isGathering) itemsStr.push(formatReq("木材", inv.filter(i => i === 'wood').length, desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)));
+                if (desc.includes("良質な木材") && isGathering) itemsStr.push(formatReq("良質な木材", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'high_wood').length, 3));
+                else if (desc.includes("木材") && isGathering) itemsStr.push(formatReq("木材", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'wood').length, desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)));
                 
-                if (desc.includes("硬い石") && isGathering) itemsStr.push(formatReq("硬い石", inv.filter(i => i === 'high_stone').length, 3));
-                else if (desc.includes("石") && isGathering) itemsStr.push(formatReq("石", inv.filter(i => i === 'stone').length, desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)));
+                if (desc.includes("硬い石") && isGathering) itemsStr.push(formatReq("硬い石", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'high_stone').length, 3));
+                else if (desc.includes("石") && isGathering) itemsStr.push(formatReq("石", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'stone').length, desc.includes("10個") ? 10 : (desc.includes("5つ") ? 5 : 3)));
                 
                 if (desc.includes("薬草") && isGathering) itemsStr.push(formatReq("薬草", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'herb').length, desc.includes("5つ") ? 5 : 3));
                 if (desc.includes("きれいな水") && isGathering) itemsStr.push(formatReq("水", inv.filter(i => (typeof i === 'string' ? i : i.id) === 'water').length, desc.includes("5つ") ? 5 : 3));
@@ -6834,35 +7054,39 @@ window.processTutorialQueue = function() {
 };
 
 // ==========================================
-// ★変更：カード初獲得時のチュートリアル（順番待ちシステム連携版）
+// ★変更：思い出の初獲得とカード正式解放を分けたチュートリアル
 // ==========================================
 let tcgUnlockCheck = setInterval(() => {
-    // コレクションに1枚でもカードが入ったら
-    if (typeof window.TCG !== 'undefined' && window.TCG.myCollection && window.TCG.myCollection.length > 0) {
-        
-        // チュートリアル履歴をチェック（v2に変更したため、コマンド不要で強制的にテストできます！）
-        if (!localStorage.getItem('tcg_tutorial_done_v2')) {
-            localStorage.setItem('tcg_tutorial_done_v2', 'true');
-            
-            // 順番待ちシステムにカードゲームのチュートリアルを登録！
+    if (typeof window.TCG === 'undefined' || !Array.isArray(window.TCG.myCollection)) return;
+
+    const hasMemories = window.TCG.myCollection.length > 0;
+    const legacyTutorialDone = !!localStorage.getItem('tcg_tutorial_done_v2');
+    if (hasMemories && !localStorage.getItem('memory_tutorial_done_v1')) {
+        localStorage.setItem('memory_tutorial_done_v1', 'true');
+        window.unlockTutorialEntry?.('collections.memories', { viewed: true, silent: true });
+        if (!legacyTutorialDone && typeof window.showGameTutorial === 'function') {
             window.showGameTutorial(
-                "機能解放：カードゲーム 🃏", 
-                "冒険や日々の生活の中で、AIの記憶が<span style='color:#FF9800; font-weight:bold;'>「カード」</span>として形に残るようになりました！<br><br>画面右下のボタンから、集めたカードを眺めたり、デッキを組んでバトルして遊びましょう！",
-                () => {
-                    // ★ チュートリアルを「わかった！」で閉じた瞬間に、右下にボタンを出現させる！
-                    // window.initTCGMenu();
-                }
+                "新機能：思い出アルバム 📖",
+                "冒険や日々の暮らしで心に残った出来事が、<span style='color:#FF9800; font-weight:bold;'>「思い出」</span>として記録されました！<br><br>画面右下の「思い出アルバム」から、これまでの歩みを振り返ることができます。"
             );
-        } else {
-            // 既にチュートリアル済みなら、即座にボタンを表示
-            if (!document.getElementById('tcg-launcher-btn')) {
-                // window.initTCGMenu();
-            }
         }
-        
-        // 監視ループを終了
-        clearInterval(tcgUnlockCheck);
     }
+
+    const isCardGameUnlocked = hasMemories
+        && typeof window.isTCGCardGameUnlocked === 'function'
+        && window.isTCGCardGameUnlocked();
+    if (isCardGameUnlocked && !localStorage.getItem('tcg_card_tutorial_done_v3')) {
+        localStorage.setItem('tcg_card_tutorial_done_v3', 'true');
+        window.unlockTutorialEntry?.('collections.cards', { viewed: true, silent: true });
+        if (!legacyTutorialDone && typeof window.showGameTutorial === 'function') {
+            window.showGameTutorial(
+                "機能解放：カードゲーム 🃏",
+                "集めてきた<span style='color:#FF9800; font-weight:bold;'>思い出</span>を、カードとして使えるようになりました！<br><br>デッキを組み、カードバトルに挑戦してみましょう！"
+            );
+        }
+    }
+
+    if (localStorage.getItem('tcg_card_tutorial_done_v3')) clearInterval(tcgUnlockCheck);
 }, 1000);
 
 // ==========================================
@@ -7333,7 +7557,7 @@ window.renderTailoringRecipe = function() {
     listEl.innerHTML = html;
 };
 
-// カジノ入場処理の互換ラッパー（来店フラグは正式入場後に本体側で記録する）
+// カジノ入場処理の互換ラッパー（来店フラグは建設済みカジノへの入場成功後に本体側で記録する）
 if (typeof window.openCasino === 'function' && !window._casinoHookedForCardShop) {
     const _baseOpenCasino = window.openCasino;
     window.openCasino = function() {
@@ -9201,6 +9425,7 @@ window.calculateShopPrice = function(itemId, shopData) {
 window.unlockSupportCard = function(cardId, generation) {
     if (!window.TCG) window.TCG = { myCollection: [], decks: [[]] };
     if (!window.TCG.myCollection) window.TCG.myCollection = [];
+    const targetGeneration = Math.max(1, Number(generation) || 1);
     
     // ① マスターデータの存在チェック
     let masterData = null;
@@ -9210,16 +9435,20 @@ window.unlockSupportCard = function(cardId, generation) {
     if (!masterData || !['item', 'action', 'field'].includes(masterData.type)) return;
 
     // ② 世代ごとの獲得履歴をチェック
-    let historyKey = 'unlocked_cards_gen_' + generation;
+    let historyKey = 'unlocked_cards_gen_' + targetGeneration;
     let history = JSON.parse(localStorage.getItem(historyKey) || '[]');
-    
-    if (history.includes(cardId)) return; 
+
+    const alreadyOwnedThisGeneration = window.TCG.myCollection.some(card =>
+        card && card.masterId === cardId
+        && Math.max(1, Number(card.acquiredGeneration) || 1) === targetGeneration
+    );
+    if (history.includes(cardId) || alreadyOwnedThisGeneration) return;
     
     history.push(cardId);
     localStorage.setItem(historyKey, JSON.stringify(history));
 
     // ③ 世代に応じたスケーリング（強化）計算
-    let bonusLevel = Math.max(0, parseInt(generation) - 1); 
+    let bonusLevel = Math.max(0, targetGeneration - 1);
     
     // ▼▼▼ 修正：HPバフは「フィールドカード」専用にする！ ▼▼▼
     let enhancedHp = masterData.baseHp;
@@ -9256,7 +9485,7 @@ window.unlockSupportCard = function(cardId, generation) {
         imageIndex: masterData.imageIndex,
         sx: masterData.sx, sy: masterData.sy, sw: masterData.sw, sh: masterData.sh,
         scaleX: masterData.scaleX, scaleY: masterData.scaleY,
-        acquiredGeneration: Math.max(1, Number(generation) || 1)
+        acquiredGeneration: targetGeneration
     };
     
     window.TCG.myCollection.push(newCard);
@@ -9272,12 +9501,12 @@ window.unlockSupportCard = function(cardId, generation) {
         if (isUnlocked) {
             // TCG解放後（カードとして認識）
             msg = bonusLevel > 0 
-                ? `✨ 第${generation}世代 ボーナス強化適用カードを獲得！ ✨`
+                ? `✨ 第${targetGeneration}世代 ボーナス強化適用カードを獲得！ ✨`
                 : `✨ 新しいサポートカードのアイデアをひらめいた！ ✨`;
         } else {
             // TCG未解放時（思い出として記録）
             msg = bonusLevel > 0 
-                ? `✨ 第${generation}世代 強化された特別な思い出を記録！ ✨`
+                ? `✨ 第${targetGeneration}世代 強化された特別な思い出を記録！ ✨`
                 : `✨ AIとの新しい思い出がアルバムに追加された！ ✨`;
         }
         
@@ -10160,7 +10389,7 @@ window.openExamUI = function(masterType, task) {
         else if (masterType === 'farming') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: img.width/2, sy: 0, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'smithing') { bgImgKey = 'field_bg'; getCrop = (img) => { return { sx: 0, sy: img.height/2, sw: img.width/2, sh: img.height/2 }; }; } 
         else if (masterType === 'fishing') { bgImgKey = 'fishing_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width, sh: img.height/2 }; }; } 
-        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser' || masterType === 'concierge') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
+        else if (masterType === 'cooking' || masterType === 'pharmacist' || masterType === 'tailor' || masterType === 'hairdresser' || masterType === 'concierge' || masterType === 'dealer') { bgImgKey = 'room_bg'; getCrop = (img) => { return { sx: 0, sy: 0, sw: img.width/2, sh: img.height }; }; }
 
         const bgImg = typeof images !== 'undefined' ? images[bgImgKey] : null;
         if (bgImg && bgImg.complete && bgImg.naturalWidth > 0) {
@@ -10269,11 +10498,12 @@ window.updateExamUI = function(task) {
         'building': { start: "よし、入門試験を開始するぞ。", trans1: "ふむ…次だ。", trans2: "よし、最後の問題だ。", result: "……結果は！" },
         'pharmacist': { start: "それでは、入門試験を始めますよ。", trans1: "はい…次ですね。", trans2: "さあ、最後の問題ですよ。", result: "……結果は！" },
         'tailor': { start: "それでは、入門試験を始めましょう。", trans1: "ふふっ…次はこれですね。", trans2: "よし、最後の問題です。", result: "……結果は！" },
-        'concierge': { start: "それでは、入門試験を始めさせていただきます。落ち着いてお答えくださいませ。", trans1: "よろしいですね。続いて、住まいを整えるための問題でございます。", trans2: "最後の確認でございます。休息に欠かせないものを思い出してくださいませ。", result: "お疲れさまでございました。結果を確認いたします。" }
+        'concierge': { start: "それでは、入門試験を始めさせていただきます。落ち着いてお答えくださいませ。", trans1: "よろしいですね。続いて、住まいを整えるための問題でございます。", trans2: "最後の確認でございます。休息に欠かせないものを思い出してくださいませ。", result: "お疲れさまでございました。結果を確認いたします。" },
+        'dealer': { start: "三枚の問いを配るわ。ショーダウンといきましょう。", trans1: "一枚目は通過。次のカードよ。", trans2: "これがリバー。最後の問いよ。", result: "ベット締め切り。答えを開きましょう。" }
     };
     
     const dText = examDialogues[task.masterType] || examDialogues['explore'];
-    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ' };
+    const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
     const speakerName = masterNames[task.masterType] || "師匠";
 
     let text = "";
@@ -10908,6 +11138,32 @@ window.openMusicHall = function() {
                 'card_chance': '一転攻勢の輝き（チャンス）',
                 'card_victory': '勝利の記憶（リザルト）',
                 'card_lose': '敗北の静寂（リザルト）',
+                'daifugo_main': '大富豪（ゲーム中）',
+                'daifugo_win': '大富豪（勝利）',
+                'daifugo_lose': '大富豪（敗北）',
+                'poker_main': 'ポーカー（ゲーム中）',
+                'poker_win': 'ポーカー（勝利）',
+                'poker_lose': 'ポーカー（敗北）',
+                'indian_main': 'インディアンポーカー（ゲーム中）',
+                'indian_win': 'インディアンポーカー（勝利）',
+                'indian_lose': 'インディアンポーカー（敗北）',
+                'texas_main': 'テキサスホールデム（ゲーム中）',
+                'texas_win': 'テキサスホールデム（勝利）',
+                'texas_lose': 'テキサスホールデム（敗北）',
+                'slot_main': 'スロット（通常）',
+                'slot_reach': 'スロット（リーチ）',
+                'slot_free': 'スロット（フリースピン）',
+                'slot_cherry': 'スロット（チェリー当たり）',
+                'slot_lemon': 'スロット（レモン当たり）',
+                'slot_plum': 'スロット（プラム当たり）',
+                'slot_watermelon': 'スロット（スイカ当たり）',
+                'slot_bell': 'スロット（ベル当たり）',
+                'slot_clover': 'スロット（クローバー当たり）',
+                'slot_dia': 'スロット（ダイヤモンド当たり）',
+                'slot_bar': 'スロット（BAR当たり）',
+                'slot_seven': 'スロット（7当たり）',
+                'slot_wild': 'スロット（WILD当たり）',
+                'slot_scatter': 'スロット（SCATTER当たり）',
                 'defense_start': '襲撃の予感（防衛戦）',
                 'defense_lobby': '戦士たちの集い（ロビー）',
                 'defense_main_theme': '島を防衛せよ！（防衛戦）',

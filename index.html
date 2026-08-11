@@ -79,6 +79,7 @@
                     <button id="btnInventory" class="quiz-btn" style="background:#E91E63;" onclick="switchRightPanel('inventory')">🎒 持ち物</button>
                     <button id="btnPokedex" class="quiz-btn" style="background:#3F51B5;" onclick="openPokedex()">📖 図鑑</button> 
                     <button id="btnNotebook" class="quiz-btn" style="background:#607D8B;" onclick="window.openNotebookUI()">📔 手帳</button>
+                    <button id="btnTutorial" class="quiz-btn" style="background:#355C7D;" onclick="window.openTutorialArchive()">📘 チュートリアル</button>
                     <button id="btnTcgDeck" class="quiz-btn" style="background:#9C27B0;" onclick="window.openDeckBuilder('field')">🃏 TCG</button>
                     <button id="btnMusicHall" class="quiz-btn" style="background:#607D8B; color:white;" onclick="window.openMusicHall()">🎵 音楽館</button>
                     <button id="btn-menu-friend" class="quiz-btn" style="background:#E040FB; color:white;" onclick="window.openFriendListUI()">🤝 フレンド</button>
@@ -235,6 +236,47 @@
     <div id="debugOverlay" class="overlay">
         <div class="quiz-card" style="width: 800px; max-height: 90vh; overflow-y: auto; text-align:left;">
             <h2 style="text-align:center; color:#FF9800; border-bottom:1px solid #555; padding-bottom:10px;">🛠 統合デバッグコンソール</h2>
+
+            <button class="dbg-accordion">🧪 保護テスト環境</button>
+            <div class="dbg-panel">
+                <div style="padding:12px; display:flex; flex-direction:column; gap:10px; background:#151515; border:1px solid #5C6BC0; border-radius:5px;">
+                    <div id="dbg-test-status" style="padding:9px; background:#222; border-left:4px solid #607D8B; color:#ddd; font-size:12px; line-height:1.6;">
+                        状態を確認しています…
+                    </div>
+                    <div style="font-size:12px; color:#bbb; line-height:1.6;">
+                        開始時に現在の通常セーブを別領域へ退避します。テスト中の自動セーブはテスト側だけに蓄積され、終了時に通常セーブへ戻せます。
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                        <label for="dbg-test-scenario" style="font-size:12px; color:#ddd;">再現条件:</label>
+                        <select id="dbg-test-scenario" style="flex:1; min-width:260px; background:#292929; color:white; border:1px solid #666; padding:7px;">
+                            <option value="explore_rank3_start">冒険家 Rank 3：木材・石 0 / 5</option>
+                            <option value="explore_rank3_almost">冒険家 Rank 3：木材・石 4 / 5</option>
+                            <option value="explore_rank8_start">冒険家 Rank 8：深層素材 0 / 3</option>
+                        </select>
+                        <button id="dbg-test-start" onclick="window.startDebugTestScenario()" style="background:#3949AB; color:white; border:none; border-radius:4px; padding:8px 14px; cursor:pointer; font-weight:bold;">この条件で開始</button>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; padding:8px; background:#202020; border-radius:4px;">
+                        <label for="dbg-explore-drop-mode" style="font-size:12px; color:#ddd;">森・山の探検ドロップ:</label>
+                        <select id="dbg-explore-drop-mode" style="flex:1; min-width:260px; background:#292929; color:white; border:1px solid #666; padding:6px;">
+                            <option value="normal">通常抽選</option>
+                            <option value="quest_only">現在の冒険家課題素材だけ（確率は通常）</option>
+                            <option value="quest_guaranteed">現在の冒険家課題素材を各階で確定（能力の壁は残す）</option>
+                        </select>
+                        <span style="font-size:11px; color:#9FA8DA;">変更後、画面下の「保存して再開」で反映</span>
+                    </div>
+                    <div style="padding:8px; background:#202020; border-radius:4px; display:flex; flex-direction:column; gap:7px;">
+                        <button id="dbg-test-autonomous-explore" onclick="window.runDebugAutonomousExploreTest()" style="background:#6A1B9A; color:white; border:none; border-radius:4px; padding:8px; cursor:pointer; font-weight:bold;">実際の自律判断で「探検」を今すぐ試す</button>
+                        <div style="font-size:11px; color:#CE93D8;">待機時間と行動抽選だけを固定し、資格・学習語・開始前消費・目的地選択は本番の自律探検経路を使います。</div>
+                        <div id="dbg-test-autonomous-status" style="font-size:11px; color:#ddd;">実行結果: 未実行</div>
+                    </div>
+                    <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                        <button id="dbg-test-checkpoint-save" onclick="window.saveDebugTestCheckpoint()" style="flex:1; min-width:180px; background:#00897B; color:white; border:none; border-radius:4px; padding:8px; cursor:pointer;">現在位置を再開地点に保存</button>
+                        <button id="dbg-test-checkpoint-load" onclick="window.loadDebugTestCheckpoint()" style="flex:1; min-width:180px; background:#546E7A; color:white; border:none; border-radius:4px; padding:8px; cursor:pointer;">再開地点へ戻す</button>
+                    </div>
+                    <button id="dbg-test-restore" onclick="window.restoreDebugMainSave()" style="background:#F57C00; color:white; border:none; border-radius:4px; padding:9px; cursor:pointer; font-weight:bold;">テストを終了して通常セーブへ戻る</button>
+                    <div style="font-size:11px; color:#FFCC80;">テスト中はクラウドバックアップ・ランキング・取引など、外部データを書き換える操作を停止します。</div>
+                </div>
+            </div>
 
             <button class="dbg-accordion">⚠️ システム ＆ リセット</button>
             <div class="dbg-panel">
@@ -556,6 +598,7 @@
     <script src="dungeon_generator.js"></script>
     <script src="dungeon_render.js"></script>
     <script src="myhome_map_core.js"></script>
+    <script src="casino_map_core.js"></script>
     <script src="dungeon_turn.js"></script>
     <script src="dungeon_core.js"></script>
     <script src="shop_map_core.js"></script>
@@ -565,10 +608,13 @@
     <script src="feature_grazing.js"></script>
     <script src="view_renderer.js"></script>
     <script src="ui_controller.js"></script>
+    <script src="tutorial_core.js"></script>
     <script src="tcg_core.js"></script>
+    <script src="tcg_tag_core.js"></script>
     <script src="feature_arena.js"></script>
     <script src="feature_defense.js"></script>
     <script src="main.js"></script>
+    <script src="debug_test_core.js"></script>
 
     <div id="loginBonusOverlay" class="overlay">
         <div class="quiz-card" style="width: 400px; text-align: center; background: #1a1a1a; border: 2px solid #FFD700;">

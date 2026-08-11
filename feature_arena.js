@@ -2027,7 +2027,11 @@ window.getFailureAction = function(p) {
 // 1. 受付画面 ＆ AIマインドエディタ
 // ==========================================
 window.openArenaReception = function() {
-    if (window.aiPet && typeof window.triggerTCGUnlock === 'function') window.triggerTCGUnlock('visit_castle', window.aiPet.generation);
+    if (window.aiPet) {
+        const generation = window.aiPet.generation || 1;
+        if (typeof window.triggerTCGUnlock === 'function') window.triggerTCGUnlock('visit_castle', generation);
+        if (typeof window.unlockCastlePersonCards === 'function') window.unlockCastlePersonCards(generation);
+    }
     window.initTactics();
     if (typeof window.ARENA_RECEPTION_STATE === 'undefined' || !window.ARENA_RECEPTION_STATE) window.ARENA_RECEPTION_STATE = { party: [], available: [] };
     

@@ -3034,6 +3034,7 @@ window.startRestaurantTutorialFinalActionDemo = function(phase) {
                 const completeTutorial = () => {
                     ai.shopTutorialFinalWordsDone = true;
                     ai.shopTutorialCompleted = true;
+                    window.unlockTutorialEntry?.('business.restaurant', { viewed: true });
                     window.ensureRestaurantTutorialWordsLearned();
                     ai.shopTimerUnlocked = true;
                     ai.shopTutorialMindPhase = 'complete';
