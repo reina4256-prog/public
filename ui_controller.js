@@ -1853,7 +1853,7 @@ window.sendChat = function() {
     const myMasterName = aiPet.apprentice.currentMaster ? masterNames[aiPet.apprentice.currentMaster] : null;
 
     const uniqueFacilities = {
-        "城": { type: 'castle', bId: 'castle', name: 'お城', onEnter: () => { if(typeof window.openArenaReception === 'function') window.openArenaReception(); } },
+        "城": { type: 'castle', bId: 'castle', name: 'お城', onEnter: () => { if(typeof window.openCastleMapUI === 'function') window.openCastleMapUI(); } },
         "カジノ": { type: 'casino', bId: 'casino', name: 'カジノ', onEnter: () => { if(typeof window.openCasino === 'function') window.openCasino(); } },
         "ショップ": { type: 'shop', bId: 'shop', name: 'ショップ', onEnter: null },
         "カード": { type: 'card_shop', bId: 'card_shop', name: 'カードショップ', onEnter: () => { if(typeof window.openCardShopUI === 'function') window.openCardShopUI(); } },

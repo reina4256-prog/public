@@ -156,15 +156,11 @@ window.showDefenseMessage = async function(text, color) {
 };
 
 window.startDefenseMonitor = function() {
-    setInterval(() => {
-        // ★追加：デバッグで襲撃イベントOFFに設定されている場合はスキップ
-        if (window.DEFENSE_STATE && window.DEFENSE_STATE.noAttack) return;
-        
-        if (window.DEFENSE_STATE.isActive || window.DEFENSE_STATE.isEmergency) return;
-        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
-        let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
-        if (hasCastle && Math.random() < window.DEFENSE_CONFIG.triggerChance) window.triggerEmergency();
-    }, 60000); 
+    // 防衛戦は王様から受注する。城の配置だけでは自動発生させない。
+    if (window.DEFENSE_STATE && window.DEFENSE_STATE._monitorTimer) {
+        clearInterval(window.DEFENSE_STATE._monitorTimer);
+        window.DEFENSE_STATE._monitorTimer = null;
+    }
 };
 
 window.triggerEmergency = function() {
@@ -245,72 +241,6 @@ window.triggerEmergency = function() {
             }
         }
     }, 30000); 
-};
-
-if (typeof window.originalOpenArenaReception === 'undefined') {
-    window.originalOpenArenaReception = window.openArenaReception;
-}
-window.openArenaReception = function() {
-    if (window.DEFENSE_STATE.isActive) return; 
-
-    // ★追加：ロビーBGMを再生（襲撃BGMなどを上書き）
-    if (window.audioManager) {
-        window.audioManager.playBGM('defense_lobby');
-    }
-
-    let currentWave = window.aiPet.defenseWave || 1;
-    let isEndlessUnlocked = currentWave > 10;
-    let isEmergency = window.DEFENSE_STATE.isEmergency;
-
-    let arenaHtml = `<button onclick="this.parentElement.parentElement.remove(); window.originalOpenArenaReception();" style="padding:15px; font-size:20px; font-weight:bold; background:#1976D2; color:white; border:3px solid #2196F3; border-radius:8px; cursor:pointer; width:100%; margin-bottom:15px;">⚔️ 闘技場（アリーナ）</button>`;
-
-    let emergencyHtml = isEmergency ?
-        `<button onclick="this.parentElement.parentElement.remove(); window.openDefenseSortieUI('normal');" style="padding:15px; font-size:20px; font-weight:bold; background:#b71c1c; color:white; border:3px solid #ff5252; border-radius:8px; cursor:pointer; box-shadow: 0 0 15px rgba(255,0,0,0.5); width:100%; margin-bottom:15px;">🚨 緊急防衛クエストに出撃</button>` :
-        `<div style="padding:15px; font-size:18px; color:#888; background:#222; border:2px dashed #444; border-radius:8px; text-align:center; margin-bottom:15px;">現在、島の平和は保たれています</div>`;
-
-    let endlessHtml = isEndlessUnlocked ?
-        `<button onclick="this.parentElement.parentElement.remove(); window.openDefenseSortieUI('endless');" style="padding:15px; font-size:20px; font-weight:bold; background:#4A148C; color:white; border:3px solid #E040FB; border-radius:8px; cursor:pointer; box-shadow: 0 0 15px rgba(224,64,251,0.5); width:100%; margin-bottom:15px;">♾️ エンドレス防衛戦（限界突破）</button>` :
-        `<div style="padding:15px; font-size:16px; color:#555; background:#111; border:2px solid #333; border-radius:8px; text-align:center; margin-bottom:15px;">🔒 エンドレス防衛戦（WAVE10クリアで解放）</div>`;
-
-    let choiceUi = document.createElement('div');
-    choiceUi.id = 'castle-reception-overlay'; // ★追加: 削除しやすいようにIDを付与
-    choiceUi.style.cssText = `position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.9); z-index: 55000; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; font-family: sans-serif;`;
-    choiceUi.innerHTML = `
-        <div style="background:#1a1a1a; border:4px solid #FFD700; border-radius:12px; padding:30px; width:80%; max-width:500px; text-align:center; box-shadow:0 10px 30px rgba(0,0,0,0.8);">
-            <h2 style="color:#FFD700; font-size:32px; margin-top:0; margin-bottom:25px; border-bottom:2px solid #444; padding-bottom:10px;">🏰 王城 総合受付</h2>
-            ${arenaHtml}
-            ${emergencyHtml}
-            ${endlessHtml}
-            <button onclick="this.parentElement.parentElement.remove(); document.getElementById('dungeon-ranking-ui').classList.add('active'); window.switchRankingCategory('defense');" style="padding:15px; font-size:18px; font-weight:bold; background:#004D40; color:#fff; border:2px solid #00695C; border-radius:8px; cursor:pointer; width:100%; margin-bottom:20px;">👥 フレンド模擬戦（ランキングから選択）</button>
-            <button onclick="window.exitCastleReception();" style="padding:12px; font-size:16px; background:#444; color:white; border:2px solid #777; border-radius:8px; cursor:pointer; width:100%;">退出する</button>
-        </div>
-    `;
-    document.body.appendChild(choiceUi);
-};
-
-// ★追加: 城から完全に退出してAIを自由行動に戻す処理
-window.exitCastleReception = function() {
-    let ui = document.getElementById('castle-reception-overlay');
-    if (ui) ui.remove(); // UIを閉じる
-
-    // ★追加：城から出たら、育成モードのキャラクターBGMに戻す
-    if (window.audioManager) {
-        window.audioManager.restoreMainBGM();
-    }
-
-    if (window.aiPet) {
-        window.aiPet.isIndoors = false;     // 屋内判定を解除
-        window.aiPet.indoorTarget = null;   // ターゲット施設を解除
-        window.aiPet.actionState = 'idle';  // 行動状態をアイドルに戻す
-        window.aiPet.visualAction = 'idle'; // アニメーションを元に戻す
-        window.aiPet.message = "お城から出たよ！";
-        window.aiPet.messageTimer = 120;
-        
-        // 出てすぐに再入室しないよう、少しだけキャラクターを下にずらす
-        window.aiPet.y += 20; 
-        
-        if (typeof saveGameData === 'function') saveGameData();
-    }
 };
 
 window.assignSkillsToUnit = function(unit, pwr, int) {
@@ -596,6 +526,24 @@ window.openDefenseSortieUI = function(mode) {
     window.renderDefenseSortieUI();
 };
 
+window.cancelDefenseSortieToCastle = function() {
+    const ui = document.getElementById('defense-sortie-ui');
+    if (ui) ui.remove();
+    const returnToCastle = !!(window.DEFENSE_STATE && window.DEFENSE_STATE.castleQuestOrigin);
+    const isMock = !!(window.DEFENSE_STATE && window.DEFENSE_STATE.nextMode === 'mock');
+    if (window.DEFENSE_STATE) {
+        window.DEFENSE_STATE.nextMode = null;
+        window.DEFENSE_STATE.castleQuestOrigin = false;
+    }
+    if (returnToCastle && typeof window.returnToCastleMap === 'function') window.returnToCastleMap('king');
+    else if (isMock) {
+        const rankingUi = document.getElementById('dungeon-ranking-ui');
+        if (rankingUi) rankingUi.classList.add('active');
+        if (typeof window.switchRankingCategory === 'function') window.switchRankingCategory('defense');
+    }
+    else if (window.audioManager) window.audioManager.restoreMainBGM();
+};
+
 window.renderDefenseSortieUI = function() {
     let ui = document.getElementById('defense-sortie-ui'); if (!ui) return;
     let max = window.DEFENSE_CONFIG.maxDeploy; let party = window.DEFENSE_STATE.preDeployed; let roster = window.DEFENSE_STATE.availableRoster;
@@ -646,7 +594,7 @@ window.renderDefenseSortieUI = function() {
     let btnText = isMock ? '⚔️ 模擬戦開始' : '⚔️ 出撃する';
 
     ui.innerHTML = `
-        <button onclick="document.getElementById('defense-sortie-ui').remove(); window.openArenaReception();" style="position:absolute; top:20px; right:20px; background:#444; border:none; padding:10px 20px; color:white; border-radius:8px; cursor:pointer; font-weight:bold;">キャンセル</button>
+        <button onclick="window.cancelDefenseSortieToCastle();" style="position:absolute; top:20px; right:20px; background:#444; border:none; padding:10px 20px; color:white; border-radius:8px; cursor:pointer; font-weight:bold;">キャンセル</button>
         ${headerInfo}
         <div style="display:flex; width:95%; max-width:1000px; gap:20px; margin-bottom:30px;">
             <div style="flex:1; background:rgba(0,0,0,0.5); padding:20px; border-radius:12px; border:2px solid #555;"><div style="font-size:18px; color:#4fc3f7; margin-bottom:15px; font-weight:bold;">▼ 迎撃部隊（最大 ${max} 体）</div><div style="display:flex; gap:10px; flex-wrap:wrap;">${partyHtml}</div></div>
@@ -1550,7 +1498,7 @@ window.endDefenseBattle = async function(isWin) {
             <div style="background:#222; border:4px solid #00E5FF; border-radius:12px; padding:40px; text-align:center; box-shadow:0 0 30px #00E5FF; width:80%; max-width:600px;">
                 <h1 style="color:#00E5FF; font-size:36px; margin-bottom:10px;">${isWin ? '🎉 模擬戦 勝利！' : '💀 模擬戦 敗北...'}</h1>
                 <p style="color:#fff; font-size:18px; margin-bottom:30px;">${tName} のパーティとの戦闘訓練が終了しました。</p>
-                <button onclick="window.closeDefenseResult(); window.openArenaReception();" style="padding:15px 50px; font-size:22px; font-weight:bold; background:#004D40; color:white; border:none; border-radius:8px; cursor:pointer;">受付へ戻る</button>
+                <button onclick="window.closeDefenseResult();" style="padding:15px 50px; font-size:22px; font-weight:bold; background:#004D40; color:white; border:none; border-radius:8px; cursor:pointer;">ランキングへ戻る</button>
             </div>
         `;
     } else if (window.DEFENSE_STATE.mode === 'endless') {
@@ -1571,7 +1519,7 @@ window.endDefenseBattle = async function(isWin) {
                     <div style="color:#FFD700; font-size:42px; font-weight:bold; text-shadow:0 0 10px #FFD700;">WAVE ${reachedWave}</div>
                     ${isNewRecord ? `<div style="color:#ff5252; font-weight:bold; margin-top:10px; animation:shake-hit 0.5s infinite;">🏆 NEW RECORD!</div>` : ''}
                 </div>
-                <button onclick="window.closeDefenseResult()" style="padding:15px 50px; font-size:22px; font-weight:bold; background:#4A148C; color:white; border:none; border-radius:8px; cursor:pointer;">島へ戻る</button>
+                <button onclick="window.closeDefenseResult()" style="padding:15px 50px; font-size:22px; font-weight:bold; background:#4A148C; color:white; border:none; border-radius:8px; cursor:pointer;">王様のもとへ戻る</button>
             </div>
         `;
     } else {
@@ -1595,7 +1543,7 @@ window.showDefenseResultUI = function(overlay) {
             <div style="background:#111; border:2px solid #555; border-radius:8px; padding:20px; margin-bottom:30px;">
                 <div style="color:#aaa; font-size:16px;">クリアしたウェーブ</div><div style="color:#FF5252; font-size:36px; font-weight:bold;">WAVE ${currentWave}</div>
             </div>
-            <button onclick="window.closeDefenseResult()" style="padding:15px 50px; font-size:22px; font-weight:bold; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">島へ戻る</button>
+            <button onclick="window.closeDefenseResult()" style="padding:15px 50px; font-size:22px; font-weight:bold; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">王様のもとへ戻る</button>
         </div>
     `;
 };
@@ -1606,7 +1554,7 @@ window.showRebuildUI = function(overlay) {
     let currentMoney = (window.aiPet && window.aiPet.gold) ? window.aiPet.gold : 0;
 
     if (destroyed.length === 0) {
-        overlay.innerHTML = `<div style="background:#222; border:4px solid #F44336; border-radius:12px; padding:40px; text-align:center;"><h1 style="color:#F44336;">防衛戦終了</h1><p style="color:#fff;">破壊された施設はありませんでした。</p><button onclick="window.closeDefenseResult()" style="padding:15px 40px; font-size:20px; cursor:pointer;">島へ戻る</button></div>`;
+        overlay.innerHTML = `<div style="background:#222; border:4px solid #F44336; border-radius:12px; padding:40px; text-align:center;"><h1 style="color:#F44336;">防衛戦終了</h1><p style="color:#fff;">破壊された施設はありませんでした。</p><button onclick="window.closeDefenseResult()" style="padding:15px 40px; font-size:20px; cursor:pointer;">王様のもとへ戻る</button></div>`;
         return;
     }
 
@@ -1734,8 +1682,18 @@ window.executeAbandon = function() {
 };
 
 window.closeDefenseResult = function() {
+    const returnToCastle = !!(window.DEFENSE_STATE && window.DEFENSE_STATE.castleQuestOrigin);
+    const returnToRanking = !returnToCastle && !!(window.DEFENSE_STATE && window.DEFENSE_STATE.mode === 'mock');
     let overlay = document.getElementById('def-result-overlay'); if (overlay) overlay.remove();
-    window._executeGiveUp(); 
+    window._executeGiveUp();
+    if (returnToCastle) {
+        window.DEFENSE_STATE.castleQuestOrigin = false;
+        if (typeof window.returnToCastleMap === 'function') window.returnToCastleMap('king');
+    } else if (returnToRanking) {
+        const rankingUi = document.getElementById('dungeon-ranking-ui');
+        if (rankingUi) rankingUi.classList.add('active');
+        if (typeof window.switchRankingCategory === 'function') window.switchRankingCategory('defense');
+    }
 };
 
 window.giveUpDefense = function(skipConfirm = false) {
@@ -1745,7 +1703,7 @@ window.giveUpDefense = function(skipConfirm = false) {
     
     let isMock = window.DEFENSE_STATE.mode === 'mock';
     let titleTxt = isMock ? "模擬戦の終了" : "撤退の確認";
-    let descTxt = isMock ? "模擬戦を中止して受付に戻りますか？<br>（※ペナルティはありません）" : "城を捨てて撤退しますか？<br>（※城は破壊され、敗北扱いになります）";
+    let descTxt = isMock ? "模擬戦を中止してランキングへ戻りますか？<br>（※ペナルティはありません）" : "城を捨てて撤退しますか？<br>（※城は破壊され、敗北扱いになります）";
     let btnTxt = isMock ? "中止する" : "撤退する";
     let btnColor = isMock ? "#006064" : "#b71c1c";
     let bdColor = isMock ? "#00E5FF" : "#ff5252";
@@ -1876,11 +1834,11 @@ window.renderDefenseRankingList = async function(mode = 'normal') {
     list.innerHTML = html;
 };
 
-// 🛡️ 防衛モニター（襲撃判定）の起動処理
+// 🛡️ 旧防衛モニターの停止状態を確定する
 if (!window._defenseMonitorStarted) {
     window.startDefenseMonitor();
     window._defenseMonitorStarted = true;
-    console.log("Defense monitor started.");
+    console.log("Automatic defense monitor is disabled; defense quests start from the King.");
 }
 
 // ==========================================
@@ -2031,27 +1989,11 @@ window.isFreeExploring = function() {
 
 // 2. 襲撃モニターの完全上書き
 window.startDefenseMonitor = function() {
-    // 既存のタイマーがあれば消す
+    // 防衛戦は王様から受注する。城の配置だけでは自動発生させない。
     if (window.DEFENSE_STATE && window.DEFENSE_STATE._monitorTimer) {
         clearInterval(window.DEFENSE_STATE._monitorTimer);
+        window.DEFENSE_STATE._monitorTimer = null;
     }
-    
-    let timerId = setInterval(() => {
-        if (!window.DEFENSE_STATE) return;
-        // デバッグで襲撃OFFならスキップ
-        if (window.DEFENSE_STATE.noAttack) return;
-        // 既に襲撃中・防衛戦中ならスキップ
-        if (window.DEFENSE_STATE.isActive || window.DEFENSE_STATE.isEmergency) return;
-        
-        // ★追加：自由行動中でなければ襲撃は発生させない！！
-        if (!window.isFreeExploring()) return;
-
-        let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
-        let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
-        if (hasCastle && Math.random() < window.DEFENSE_CONFIG.triggerChance) window.triggerEmergency();
-    }, 60000); 
-    
-    if (window.DEFENSE_STATE) window.DEFENSE_STATE._monitorTimer = timerId;
 };
 
 // 3. 襲撃イベント本体の完全上書き

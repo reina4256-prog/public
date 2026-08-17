@@ -3159,6 +3159,10 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
                 }
             }
             
+            if (typeof window.triggerTCGSupportActionUnlock === 'function') {
+                window.triggerTCGSupportActionUnlock('synthesize', (window.aiPet && window.aiPet.generation) || 1);
+            }
+
             // ★大修正：素材とベースの正確な更新処理（スマート乗り換え対応）
             if (matItem.isEquipped && !baseItem.isEquipped) {
                 s.player[matItem.slot] = newEquipStr; 
@@ -3245,6 +3249,9 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
             s.player.tempInventory.splice(s.player._targetItemIdx, 1); 
             s.player.lostItems = s.player.lostItems || []; s.player.lostItems.push(itemKey); // ★化石の記憶用のロスト記録
             window.addDungeonLog(`${aiName} は ${eff.logName} を投げた！`, '#00BCD4');
+            if (typeof window.triggerTCGSupportActionUnlock === 'function') {
+                window.triggerTCGSupportActionUnlock('throw', (window.aiPet && window.aiPet.generation) || 1);
+            }
             
             // ★追加：未識別アイテムを投げた瞬間に「しらべる」「なまえをつける」を閃く
             if (s.sessionItemDict && s.sessionItemDict[parsedItem.baseId] && s.aiMemory && !s.aiMemory.identified.includes(parsedItem.baseId)) {
@@ -3429,6 +3436,9 @@ window.executeDungeonPlayerAction = async function(s, actStep, actionCount) {
         let targetToRescue = s.rescueTargets.find(t => t.x === s.player.x && t.y === s.player.y && !t.rescued);
         if (targetToRescue) {
             targetToRescue.rescued = true; window.addDungeonLog(`倒れていた ${targetToRescue.name} を救助した！！`, '#FFEB3B');
+            if (typeof window.triggerTCGSupportActionUnlock === 'function') {
+                window.triggerTCGSupportActionUnlock('rescue', (window.aiPet && window.aiPet.generation) || 1);
+            }
             if (typeof window.completeRescue === 'function') window.completeRescue(targetToRescue.id);
             s.player.hp = s.player.maxHp; s.player.hunger = maxH; window.addDungeonLog(`感謝の光に包まれ、体力と満腹度が全回復した！✨`, '#4CAF50');
         }

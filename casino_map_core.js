@@ -145,6 +145,15 @@
                     });
                     partner.plays = Math.max(partner.plays, partner.wins + partner.losses + partner.draws);
                 });
+                if (!stats.pvp || typeof stats.pvp !== 'object' || Array.isArray(stats.pvp)) stats.pvp = {};
+                ['single', 'tag'].forEach(mode => {
+                    if (!stats.pvp[mode] || typeof stats.pvp[mode] !== 'object') stats.pvp[mode] = {};
+                    const record = stats.pvp[mode];
+                    ['plays', 'wins', 'losses', 'draws'].forEach(counter => {
+                        record[counter] = Math.max(0, Math.floor(Number(record[counter]) || 0));
+                    });
+                    record.plays = Math.max(record.plays, record.wins + record.losses + record.draws);
+                });
             }
         });
         progress.casinoRecordVersion = 2;
@@ -7020,7 +7029,8 @@
                 netCoins: Number(source.netCoins) || 0,
                 opponents: source.opponents && typeof source.opponents === 'object' ? source.opponents : {},
                 modes: source.modes && typeof source.modes === 'object' ? source.modes : {},
-                partners: source.partners && typeof source.partners === 'object' ? source.partners : {}
+                partners: source.partners && typeof source.partners === 'object' ? source.partners : {},
+                pvp: source.pvp && typeof source.pvp === 'object' ? source.pvp : {}
             };
             game.plays = Math.max(game.plays, game.wins + game.losses + game.draws);
             return game;
@@ -7202,13 +7212,15 @@
         };
         const single = normalize(tcg.modes.single);
         const tag = normalize(tcg.modes.tag);
+        const pvpSingle = normalize(tcg.pvp && tcg.pvp.single);
+        const pvpTag = normalize(tcg.pvp && tcg.pvp.tag);
         const modeCard = (label, mark, record) => `<article class="cr-tcg-mode"><i>${mark}</i><span><small>${label}</small><strong>${formatCasinoRecordRate(record.wins, record.plays)}</strong><em>${record.wins}勝 ${record.losses}敗 ${record.draws}分 ／ ${record.plays}戦</em></span></article>`;
         const partners = Object.values(tcg.partners || {}).filter(record => record && Number(record.plays) > 0).sort((a, b) => Number(b.plays) - Number(a.plays));
         const partnerRows = partners.map(record => {
             const normalized = normalize(record);
             return `<tr><td><strong>${escapeCasinoRecordHtml(record.name || record.id || '相棒')}</strong><small>タッグ相棒</small></td><td><b>${formatCasinoRecordRate(normalized.wins, normalized.plays)}</b></td><td><span class="cr-wdl"><i>${normalized.wins}勝</i><em>${normalized.losses}敗</em><u>${normalized.draws}分</u></span></td><td>${normalized.plays}</td></tr>`;
         }).join('');
-        return `<section class="cr-tcg-breakdown"><div class="cr-tcg-modes">${modeCard('シングル戦', '1v1', single)}${modeCard('タッグ戦', '2v2', tag)}</div>${partnerRows ? `<div class="cr-table-wrap"><table class="cr-table cr-partner-table"><thead><tr><th>相棒</th><th>勝率</th><th>勝敗</th><th>対戦数</th></tr></thead><tbody>${partnerRows}</tbody></table></div>` : '<div class="cr-opponent-empty">タッグ戦の相棒別記録はまだありません。</div>'}</section>`;
+        return `<section class="cr-tcg-breakdown"><div class="cr-tcg-modes">${modeCard('通常シングル戦', '1v1', single)}${modeCard('通常タッグ戦', '2v2', tag)}${modeCard('オンライン・シングル', 'P2P', pvpSingle)}${modeCard('オンライン・タッグ', 'P2P', pvpTag)}</div>${partnerRows ? `<div class="cr-table-wrap"><table class="cr-table cr-partner-table"><thead><tr><th>相棒</th><th>勝率</th><th>勝敗</th><th>対戦数</th></tr></thead><tbody>${partnerRows}</tbody></table></div>` : '<div class="cr-opponent-empty">通常タッグ戦の相棒別記録はまだありません。</div>'}</section>`;
     }
 
     function casinoRecordStyleHtml() {

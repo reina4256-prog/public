@@ -2212,8 +2212,8 @@ window.renderArenaReception = function() {
     }
 
     ui.innerHTML = `
-        <h1 style="color:#ff5252; font-size:36px; margin-top:30px; text-shadow: 0 0 10px red;">⚔️ 闘技場 受付 ⚔️</h1>
-        <p style="font-size:14px; color:#ccc; margin-bottom:10px;">全滅すれば寿命が削られるデスマッチ...。挑む覚悟はあるか？</p>
+        <h1 style="color:#ff5252; font-size:36px; margin-top:30px; text-shadow: 0 0 10px red;">⚔️ 隊長の闘技場クエスト ⚔️</h1>
+        <p style="font-size:14px; color:#ccc; margin-bottom:10px;">隊長「準備と作戦を整えろ。出陣するなら、ここで編成を決めるんだ。」</p>
         
         <div style="margin-bottom:20px; background:#111; padding:10px 20px; border-radius:8px; border:2px solid #555; display:flex; gap:15px; justify-content:center; align-items:center;">
             <span style="color:#FFD700; font-weight:bold;">挑戦モード:</span>
@@ -2229,7 +2229,7 @@ window.renderArenaReception = function() {
         </div>
         <div style="display:flex; gap:20px;">
             <button onclick="window.commitArenaBattle()" style="padding:15px 40px; font-size:22px; font-weight:bold; background:#b71c1c; color:white; border:3px solid #ff5252; border-radius:8px; cursor:pointer; box-shadow: 0 0 15px rgba(255,0,0,0.5);">出陣する</button>
-            <button onclick="document.getElementById('arena-reception-ui').style.display='none'; window.exitArenaFacility();" style="padding:15px 40px; font-size:22px; font-weight:bold; background:#444; color:white; border:3px solid #777; border-radius:8px; cursor:pointer;">やめておく</button>
+            <button onclick="document.getElementById('arena-reception-ui').style.display='none'; window.cancelArenaQuestPreparation();" style="padding:15px 40px; font-size:22px; font-weight:bold; background:#444; color:white; border:3px solid #777; border-radius:8px; cursor:pointer;">隊長のもとへ戻る</button>
         </div>
     `;
     ui.style.display = 'flex';
@@ -3695,7 +3695,11 @@ window.processArenaTurn = async function() {
                     } else if ((p.mp || 0) < skill.cost) {
                         state.log.push(`<span style="color:#888;">💦 ${p.name} は「${chosenSkillName}」を使おうとしたがMPが足りず戸惑っている...！</span>`); render(); await wait(600); 
                     } else {
-                        state.log.push(`<span style="color:#4fc3f7; font-weight:bold;">⚔️ ${p.name} は「${chosenSkillName}」を使った！</span>`); render(); await wait(400);
+                        state.log.push(`<span style="color:#4fc3f7; font-weight:bold;">⚔️ ${p.name} は「${chosenSkillName}」を使った！</span>`);
+                        if (typeof window.triggerTCGSupportActionUnlock === 'function') {
+                            window.triggerTCGSupportActionUnlock(chosenSkillName, (window.aiPet && window.aiPet.generation) || 1);
+                        }
+                        render(); await wait(400);
                         p.mp -= skill.cost;
 
                         if (skill.type === "move") {
@@ -4863,8 +4867,8 @@ window.processArenaTurn = async function() {
                         <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">惜しくもフレンドの幻影に敗れてしまった。<br>※フレンドバトルでの寿命ペナルティはありません。</div>
                         <div style="margin-bottom: 30px;"><button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button></div>
                         <div style="display:flex; gap:20px; justify-content:center;">
-                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
-                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('captain');" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">隊長のもとへ戻る</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('outside');" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
                         </div>
                     </div>
                 `;
@@ -4887,8 +4891,8 @@ window.processArenaTurn = async function() {
                         <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">見事、フレンドの幻影に打ち勝った！<br>他のプレイヤーにも挑戦してみよう！</div>
                         <div style="margin-bottom: 30px;"><button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button></div>
                         <div style="display:flex; gap:20px; justify-content:center;">
-                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
-                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('captain');" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">隊長のもとへ戻る</button>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('outside');" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
                         </div>
                     </div>
                 `;
@@ -4930,8 +4934,8 @@ window.processArenaTurn = async function() {
                             <div style="color:#aaa; font-size:16px; margin-bottom:30px; background:#222; padding:10px; border-radius:4px;">立ちはだかる全 ${state.bossQueue.length} 体のボスを完全撃破した！闘技場の覇者よ、見事なり！<br>多様な進化体や新たな戦術を編み出し、他のプレイヤーの記録や己の限界に挑み続けよう！</div>
                             <div style="margin-bottom: 30px;"><button onclick="window.toggleArenaResultLog()" style="padding:12px 24px; font-size:16px; font-weight:bold; background:#9C27B0; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer;">📜 最後の戦闘ログを確認</button></div>
                             <div style="display:flex; gap:20px; justify-content:center;">
-                                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
-                                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
+                                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('captain');" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">隊長のもとへ戻る</button>
+                                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('outside');" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
                             </div>
                         </div>
                     `;
@@ -5086,8 +5090,8 @@ window.endArena = function(isGiveUp) {
             </div>
 
             <div style="display:flex; gap:20px; justify-content:center;">
-                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.openArenaReception();" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">受付（ロビー）へ戻る</button>
-                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.exitArenaFacility();" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('captain');" style="padding:15px 30px; font-size:18px; background:#2196F3; color:white; border:none; border-radius:8px; cursor:pointer;">隊長のもとへ戻る</button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove(); window.finishArenaActivity('outside');" style="padding:15px 30px; font-size:18px; background:#4CAF50; color:white; border:none; border-radius:8px; cursor:pointer;">城の外へ出る</button>
             </div>
         </div>
     `;
@@ -5242,6 +5246,12 @@ window.openArenaPlayerDetail = function(index) {
 // ★ 新規追加：闘技場（城）からAIを確実に退出させる処理
 // ==========================================
 window.exitArenaFacility = function() {
+    if (window._castleArenaQuestOrigin && typeof window.returnToCastleMap === 'function') {
+        window._castleArenaQuestOrigin = false;
+        if (window.ARENA_RECEPTION_STATE) window.ARENA_RECEPTION_STATE.castleQuestOrigin = false;
+        window.returnToCastleMap('captain');
+        return;
+    }
     if (window.aiPet) {
         // AIの状態を「退出中」に変更し、建物内のターゲットを消去する
         window.aiPet.actionState = 'exiting';
@@ -5262,6 +5272,27 @@ window.exitArenaFacility = function() {
             window.updateScheduleList();
         }
     }
+};
+
+window.cancelArenaQuestPreparation = function() {
+    if (window._castleArenaQuestOrigin && typeof window.returnToCastleMap === 'function') {
+        window.returnToCastleMap('captain');
+    } else {
+        window.exitArenaFacility();
+    }
+};
+
+window.finishArenaActivity = function(destination) {
+    const fromCastleQuest = !!window._castleArenaQuestOrigin;
+    if (destination === 'outside') {
+        window._castleArenaQuestOrigin = false;
+        if (window.ARENA_RECEPTION_STATE) window.ARENA_RECEPTION_STATE.castleQuestOrigin = false;
+        if (fromCastleQuest && typeof window.closeCastleMapUI === 'function') window.closeCastleMapUI();
+        else window.exitArenaFacility();
+        return;
+    }
+    if (fromCastleQuest && typeof window.returnToCastleMap === 'function') window.returnToCastleMap('captain');
+    else window.openArenaReception();
 };
 
 window.skipArenaWave = async function() {
@@ -5524,7 +5555,8 @@ window.abortArenaToLobby = function() {
                 state.healPots = 3;
                 document.getElementById('arena-battle-ui').style.display = 'none';
                 if (document.getElementById('arena-interval-ui')) document.getElementById('arena-interval-ui').style.display = 'none';
-                window.openArenaReception();
+                if (window._castleArenaQuestOrigin && typeof window.returnToCastleMap === 'function') window.returnToCastleMap('captain');
+                else window.openArenaReception();
             }},
             { text: "戦い続ける", color: "#444", action: () => {} }
         ]

@@ -67,6 +67,11 @@
         });
     }
 
+    window.getCasinoTCGOnlineCpuCandidates = function () {
+        return tagCandidates().map(entry => JSON.parse(JSON.stringify(entry)));
+    };
+    window.getCasinoTCGPlayableDeckIndexes = function () { return playableDeckIndexes().slice(); };
+
     function avatarHtml(candidate, className) {
         if (typeof window.renderCasinoMasterAvatar === 'function') {
             return window.renderCasinoMasterAvatar(candidate.masterType, className || 'ctg-avatar');
@@ -124,6 +129,7 @@
             <div class="ctg-grid">
                 <button class="ctg-mode" onclick="window.closeCasinoTCGMenu();window.openCasinoSingleTCGMenu()"><i>1v1</i><span><strong>シングル戦</strong><span>これまで通り、ひとりの相手と勝負します。</span><b>通常ルール</b></span></button>
                 <button class="ctg-mode" ${tagReady ? 'onclick="window.openCasinoTagSetup()"' : 'disabled'}><i>2v2</i><span><strong>タッグ戦</strong><span>相棒と共有HPを守り、交互に行動する4人対戦です。</span><b>${tagReady ? '免許皆伝ルール' : (decks.length ? '現在は参加者が足りません' : '保存済み60枚デッキが必要です')}</b></span></button>
+                <button class="ctg-mode" ${decks.length ? 'onclick="window.closeCasinoTCGMenu();window.openCasinoTCGOnlineMenu()"' : 'disabled'}><i>ONLINE</i><span><strong>オンライン対戦</strong><span>ルームコードでシングル戦・タッグ戦を遊びます。空席は師匠CPUが担当します。</span><b>${decks.length ? 'フルメッシュ P2P' : '保存済み60枚デッキが必要です'}</b></span></button>
             </div>
             <p class="ctg-note">タッグ戦では、ディーラーと現在来店中の師匠から相棒を1人選びます。残った候補から対戦相手2人が決まります。</p>
         </div>`);
@@ -217,6 +223,26 @@
     function alliedActors(unit) { return teamActors(unit.team); }
     function enemyActors(unit) { return teamActors(unit.team === 'player' ? 'enemy' : 'player'); }
     function currentActor() { const battle = state(); return battle && battle.actors[battle.order[battle.cursor]]; }
+    function localActorId() {
+        const battle = state();
+        return battle && battle.networkMode ? battle.localActorId : 'player';
+    }
+    function actionActorId() {
+        const battle = state();
+        return battle && (battle._networkIntentActorId || localActorId());
+    }
+    function actionActor() { return actor(actionActorId()); }
+    function isNetworkClient() {
+        const battle = state();
+        return !!(battle && battle.networkMode && !battle.isNetworkAuthority);
+    }
+    function forwardNetworkIntent(type, payload) {
+        if (!isNetworkClient()) return false;
+        if (typeof window.sendCasinoTCGNetworkIntent === 'function') {
+            window.sendCasinoTCGNetworkIntent(Object.assign({ type }, payload || {}));
+        }
+        return true;
+    }
     function livingCards(unit) { return (unit && unit.field || []).filter(card => card && !card.isDead); }
     function allTeamCards(teamId, includePerson) {
         const cards = [];
@@ -273,18 +299,24 @@
     }
 
     function buildActor(id, team, role, participant, deckSources) {
+        participant = participant || {};
         const profile = profileFor(participant.masterType);
         const deck = shuffle(deckSources.map((source, index) => runtimeCard(source, id, index)));
+        const participantData = Object.assign({}, participant);
+        delete participantData.deck;
         return {
             id, team, role,
-            participant: Object.assign({}, participant),
+            participant: participantData,
             masterType: participant.masterType || '',
-            name: role === 'player' ? ((window.aiPet && window.aiPet.name) || 'あなた') : (participant.name || profile.casino.name || '師匠'),
+            name: participant.name || (role === 'player' ? ((window.aiPet && window.aiPet.name) || 'あなた') : (profile.casino.name || '師匠')),
             image: role === 'player' ? '' : (profile.casino.image || ''),
             strategy: profile.deck.strategy || {},
             deck, hand: [], field: [], person: null, graveyard: [],
             maxMana: 0, currentMana: 0, actionUsed: false, personSkillUsed: false,
-            isHuman: role === 'player', turnCount: 0
+            isHuman: participant.isHuman == null ? role === 'player' : !!participant.isHuman,
+            controllerId: participant.controllerId || '',
+            fallbackCpu: participant.fallbackCpu || null,
+            turnCount: 0
         };
     }
 
@@ -307,7 +339,7 @@
     }
 
     function openingHand(unit) {
-        if (unit.role === 'player') {
+        if (unit.isHuman) {
             const cheapIndex = unit.deck.findIndex(card => card.cost <= 1 && card.type !== 'field');
             if (cheapIndex >= 0) unit.hand.push(unit.deck.splice(cheapIndex, 1)[0]);
         }
@@ -342,6 +374,61 @@
             teams: {
                 player: { id: 'player', label: 'あなたのチーム', hp: MAX_HP, maxHp: MAX_HP, field: null, turnsThisRound: 0, captainGuard: false },
                 enemy: { id: 'enemy', label: '相手チーム', hp: MAX_HP, maxHp: MAX_HP, field: null, turnsThisRound: 0, captainGuard: false }
+            },
+            order, cursor: 0, turnNumber: 0, round: 1,
+            firstActorId: order[0], playerTeamWonCoin,
+            isAnimating: true, isEnded: false, autoPlayer: false,
+            selectedAttacker: null, pendingTarget: null, pendingPersonSkill: null,
+            allyHandOpen: false, log: [], dialogueQueue: [], dialogueBusy: false,
+            resultRecorded: false, lastAction: '', effectDepth: 0
+        };
+        Object.values(actors).forEach(openingHand);
+        return battle;
+    }
+
+    function createNetworkBattle(setup) {
+        const seats = Array.isArray(setup && setup.seats) ? setup.seats : [];
+        const expectedIds = setup && setup.mode === 'single'
+            ? ['player', 'enemy1']
+            : ['player', 'ally', 'enemy1', 'enemy2'];
+        if (seats.length !== expectedIds.length) return null;
+        const actors = {};
+        for (const actorId of expectedIds) {
+            const seat = seats.find(entry => entry && entry.actorId === actorId);
+            if (!seat || !Array.isArray(seat.deck)) return null;
+            const team = actorId === 'player' || actorId === 'ally' ? 'player' : 'enemy';
+            const role = actorId === 'player' ? 'player' : actorId === 'ally' ? 'ally' : 'enemy';
+            actors[actorId] = buildActor(actorId, team, role, seat, seat.deck);
+        }
+        if (Object.values(actors).some(unit => unit.deck.length < 60)) return null;
+        const teamActorIds = setup.mode === 'single'
+            ? { player: ['player'], enemy: ['enemy1'] }
+            : { player: ['player', 'ally'], enemy: ['enemy1', 'enemy2'] };
+        const playerOrder = teamActorIds.player.slice();
+        const enemyOrder = teamActorIds.enemy.slice();
+        if (playerOrder.length > 1 && Math.random() < 0.5) playerOrder.reverse();
+        if (enemyOrder.length > 1 && Math.random() < 0.5) enemyOrder.reverse();
+        const playerTeamWonCoin = Math.random() < 0.5;
+        const order = [];
+        const first = playerTeamWonCoin ? playerOrder : enemyOrder;
+        const second = playerTeamWonCoin ? enemyOrder : playerOrder;
+        for (let i = 0; i < Math.max(first.length, second.length); i++) {
+            if (first[i]) order.push(first[i]);
+            if (second[i]) order.push(second[i]);
+        }
+        const maxHp = setup.mode === 'single' ? 200 : 400;
+        const battle = {
+            version: 2,
+            networkMode: setup.mode,
+            networkRoomCode: setup.roomCode || '',
+            isNetworkAuthority: true,
+            localActorId: setup.localActorId || 'player',
+            setup: JSON.parse(JSON.stringify(Object.assign({}, setup, { seats: seats.map(seat => Object.assign({}, seat, { deck: [] })) }))),
+            actors,
+            teamActorIds,
+            teams: {
+                player: { id: 'player', label: 'あなたのチーム', hp: maxHp, maxHp, field: null, turnsThisRound: 0, captainGuard: false },
+                enemy: { id: 'enemy', label: '相手チーム', hp: maxHp, maxHp, field: null, turnsThisRound: 0, captainGuard: false }
             },
             order, cursor: 0, turnNumber: 0, round: 1,
             firstActorId: order[0], playerTeamWonCoin,
@@ -422,7 +509,9 @@
         layer.id = 'ctgb-opening-cinematic';
         layer.className = 'ctgb-cinematic-layer';
         layer.style.setProperty('--ctgb-glow', '#ffad21');
-        layer.innerHTML = '<div class="ctgb-cinematic-title">TAG BATTLE START!!<small>2 VS 2 CARD DUEL</small></div>';
+        layer.innerHTML = battle.networkMode === 'single'
+            ? '<div class="ctgb-cinematic-title">ONLINE BATTLE START!!<small>1 VS 1 CARD DUEL</small></div>'
+            : '<div class="ctgb-cinematic-title">TAG BATTLE START!!<small>2 VS 2 CARD DUEL</small></div>';
         document.body.appendChild(layer);
         await wait(40);
         layer.classList.add('is-show');
@@ -434,9 +523,10 @@
         void layer.offsetWidth;
         layer.classList.add('is-show');
         await wait(2200);
-        const playerFirst = battle.playerTeamWonCoin;
-        layer.style.setProperty('--ctgb-glow', playerFirst ? '#22e4ef' : '#ff405e');
-        layer.innerHTML = `<div class="ctgb-cinematic-title" style="top:50%">${playerFirst ? 'YOUR TEAM FIRST!' : 'OPPONENT TEAM FIRST!'}<small>${playerFirst ? 'あなたのチームが先攻' : '相手チームが先攻'}</small></div>`;
+        const local = battle.actors[localActorId()] || battle.actors.player;
+        const localTeamWonCoin = battle.playerTeamWonCoin === (!local || local.team === 'player');
+        layer.style.setProperty('--ctgb-glow', localTeamWonCoin ? '#22e4ef' : '#ff405e');
+        layer.innerHTML = `<div class="ctgb-cinematic-title" style="top:50%">${localTeamWonCoin ? 'YOUR TEAM FIRST!' : 'OPPONENT TEAM FIRST!'}<small>${localTeamWonCoin ? 'あなたのチームが先攻' : '相手チームが先攻'}</small></div>`;
         void layer.offsetWidth;
         layer.classList.add('is-show');
         await wait(1050);
@@ -451,8 +541,9 @@
         const old = document.getElementById('ctgb-turn-cinematic');
         if (old) old.remove();
         const layer = document.createElement('div');
-        const label = unit.id === 'player' ? 'YOUR TURN' : unit.id === 'ally' ? 'ALLY TURN' : 'ENEMY TURN';
-        const color = unit.team === 'player' ? '#22dcea' : '#ff4c68';
+        const local = battle.actors[localActorId()] || battle.actors.player;
+        const label = unit.id === localActorId() ? 'YOUR TURN' : local && unit.team === local.team ? 'ALLY TURN' : 'ENEMY TURN';
+        const color = local && unit.team === local.team ? '#22dcea' : '#ff4c68';
         layer.id = 'ctgb-turn-cinematic';
         layer.className = 'ctgb-cinematic-layer';
         layer.style.setProperty('--ctgb-glow', color);
@@ -570,13 +661,18 @@
         const sovereign = livingCards(unit).some(entry => entry.ability === 'mana_sovereign');
         if (sovereign) cost = Math.floor(cost / 2);
         if ((card.type === 'action' || card.type === 'item') && livingCards(unit).some(entry => entry.ability === 'aura_action_cost')) cost -= 1;
-        return Math.max(0, cost);
+        cost = Math.max(0, cost);
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        return supportExpansion && typeof supportExpansion.adjustCost === 'function'
+            ? supportExpansion.adjustCost(unit, card, cost)
+            : cost;
     }
 
     function isMonster(card) { return card && !['person', 'field', 'action', 'item'].includes(card.type); }
     function evolutionCandidates(unit, card) {
         if (!unit || !card || !card.evolvesFrom) return [];
-        return unit.field.map((base, index) => ({ base, index })).filter(entry => entry.base && !entry.base.isDead && entry.base.type === card.evolvesFrom);
+        return unit.field.map((base, index) => ({ base, index })).filter(entry => entry.base && !entry.base.isDead && !entry.base.cannotEvolve
+            && (entry.base.type === card.evolvesFrom || entry.base._supportEvolutionType === card.evolvesFrom));
     }
 
     function canEvolve(unit, card) {
@@ -596,7 +692,8 @@
 
     function guardsFor(teamId) {
         return allTeamCards(teamId, false).filter(entry => entry.card.ability === 'taunt' || entry.card.hasPermanentTaunt
-            || entry.card.ability === 'pure_aegis' || entry.card.isDefending || entry.card._builder_guarded);
+            || entry.card.ability === 'pure_aegis' || entry.card.isDefending || entry.card._builder_guarded)
+            .filter(entry => !entry.card._supportEntangled);
     }
 
     function legalAttackTargets(attackerUnit, attackerCard) {
@@ -617,15 +714,37 @@
         return `${target.zone}:${target.actor.id}:${target.card._tagId}`;
     }
 
+    function targetFromSelectableKey(key) {
+        const battle = state();
+        const parts = String(key || '').split(':');
+        if (!battle || !parts[0]) return null;
+        if (parts[0] === 'leader') return { actor: null, card: null, zone: 'leader', team: parts[1] };
+        if (parts[0] === 'field') {
+            const team = battle.teams[parts[1]];
+            return team && team.field ? { actor: null, card: team.field, zone: 'field', team: parts[1] } : null;
+        }
+        if (parts[0] === 'actor') {
+            const unit = battle.actors[parts[1]];
+            return unit ? { actor: unit, card: null, zone: 'actor', team: unit.team } : null;
+        }
+        const unit = battle.actors[parts[1]];
+        if (!unit) return null;
+        let card = livingCards(unit).find(entry => entry._tagId === parts[2]);
+        if (!card && unit.person && unit.person._tagId === parts[2]) card = unit.person;
+        return card ? { actor: unit, card, zone: parts[0], team: unit.team } : null;
+    }
+
     function playerCanAct() {
         const battle = state();
         const current = currentActor();
-        return !!(battle && !battle.isEnded && !battle.isAnimating && current && current.id === 'player' && !battle.autoPlayer);
+        const controlled = actionActorId();
+        return !!(battle && !battle.isEnded && !battle.isAnimating && current && current.id === controlled
+            && current.isHuman && !(battle.autoPlayer && controlled === localActorId()));
     }
 
     function avatarHtml(unit) {
-        const avatar = unit.role === 'player'
-            ? '<span class="ctgb-avatar ctgb-player-avatar">♛</span>'
+        const avatar = unit.isHuman
+            ? `<span class="ctgb-avatar ctgb-player-avatar">${unit.id === localActorId() ? '♛' : '♟'}</span>`
             : (typeof window.renderCasinoMasterAvatar === 'function'
                 ? window.renderCasinoMasterAvatar(unit.masterType, 'ctgb-avatar')
                 : '<span class="ctgb-avatar">♟</span>');
@@ -657,7 +776,7 @@
         const cards = livingCards(unit).map(card => {
             const target = battle.pendingTarget && battle.pendingTarget.find(entry => entry.card === card);
             const selected = battle.selectedAttacker && battle.selectedAttacker.card === card;
-            const clickableAttacker = playerCanAct() && unit.id === 'player' && card.canAttack && card.status !== 'stunned' && card.status !== 'fossilized';
+            const clickableAttacker = playerCanAct() && unit.id === localActorId() && card.canAttack && card.status !== 'stunned' && card.status !== 'fossilized';
             const click = target
                 ? `window.selectCasinoTagTarget('${esc(selectableKey(target))}')`
                 : clickableAttacker ? `window.selectCasinoTagAttacker('${unit.id}','${card._tagId}')` : '';
@@ -681,7 +800,7 @@
         const personTarget = battle.pendingTarget && battle.pendingTarget.find(target => target.zone === 'person' && target.actor.id === unit.id);
         const skills = unit.person && window.TCG_MASTER && window.TCG_MASTER[unit.person.masterId]
             ? (window.TCG_MASTER[unit.person.masterId].personSkills || window.TCG_MASTER[unit.person.masterId].skills || []) : [];
-        const skillButtons = unit.id === 'player' && active && active.id === 'player' && !unit.personSkillUsed && !battle.isAnimating && !battle.autoPlayer
+        const skillButtons = unit.id === localActorId() && active && active.id === unit.id && !unit.personSkillUsed && !battle.isAnimating && !battle.autoPlayer
             ? `<div class="ctgb-person-skills">${skills.map((skill, index) => `<button class="ctgb-small-btn" ${unit.currentMana >= Number(skill.cost || 0) ? `onclick="window.openCasinoTagPersonSkill(${index})"` : 'disabled'} title="${esc(skill.desc || '')}">${esc(skill.name)} ${Number(skill.cost) || 0}M</button>`).join('')}</div>` : '';
         const person = unit.person && !unit.person.isDead
             ? `<div class="ctgb-board-object ctgb-person-object${personTarget ? ' is-clickable' : ''}" data-card-id="${esc(unit.person._tagId)}" ${personTarget ? `onclick="window.selectCasinoTagTarget('${esc(selectableKey(personTarget))}')"` : ''}><div class="ctgb-cardscale">${renderNativeCard(unit.person)}</div>${magnifierHtml(unit.person)}</div>`
@@ -702,20 +821,30 @@
     function teamSummaryHtml(teamId) {
         const battle = state();
         const team = battle.teams[teamId];
+        const local = battle.actors[localActorId()];
+        const localTeam = local ? local.team : 'player';
+        const visualSide = teamId === localTeam ? 'player' : 'enemy';
         const leaderTarget = battle.pendingTarget && battle.pendingTarget.find(target => target.zone === 'leader' && target.team === teamId);
-        return `<div class="ctgb-team-summary ${teamId}${leaderTarget ? ' is-target' : ''}" data-team-leader="${teamId}" ${leaderTarget ? `onclick="window.selectCasinoTagTarget('${esc(selectableKey(leaderTarget))}')"` : ''}><small>${teamId === 'enemy' ? 'OPPONENT TEAM' : 'YOUR TEAM'}</small><strong>${esc(team.label)}</strong><b>HP: ${Math.max(0, team.hp)} / ${team.maxHp}</b></div>`;
+        return `<div class="ctgb-team-summary ${visualSide}${leaderTarget ? ' is-target' : ''}" data-team-leader="${teamId}" ${leaderTarget ? `onclick="window.selectCasinoTagTarget('${esc(selectableKey(leaderTarget))}')"` : ''}><small>${visualSide === 'enemy' ? 'OPPONENT TEAM' : 'YOUR TEAM'}</small><strong>${esc(visualSide === 'enemy' ? '相手チーム' : 'あなたのチーム')}</strong><b>HP: ${Math.max(0, team.hp)} / ${team.maxHp}</b></div>`;
     }
 
     function teamZoneHtml(teamId) {
         const battle = state();
-        const actorIds = teamId === 'enemy' ? ['enemy1', 'enemy2'] : ['ally', 'player'];
+        const local = battle.actors[localActorId()];
+        const localTeam = local ? local.team : 'player';
+        const actorIds = battle.teamActorIds[teamId].slice();
+        if (teamId === localTeam) actorIds.sort((a, b) => (a === localActorId() ? 1 : 0) - (b === localActorId() ? 1 : 0));
         const units = actorIds.map(id => battle.actors[id]);
-        return `<section class="ctgb-team-zone is-${teamId}"><span class="ctgb-zone-caption">${teamId === 'enemy' ? '相手チームの場' : 'あなたのチームの場'}</span>${fieldColumnHtml(teamId)}${boardLaneHtml(units[0])}${boardLaneHtml(units[1])}${personColumnHtml(units[0])}${personColumnHtml(units[1])}</section>`;
+        const fillers = units.length === 1 ? '<div class="ctgb-board-lane"><span class="ctgb-board-empty">シングル戦</span></div>' : '';
+        const personFillers = units.length === 1 ? '<div class="ctgb-side-column"><div class="ctgb-board-object ctgb-person-object">—</div></div>' : '';
+        const visualSide = teamId === localTeam ? 'player' : 'enemy';
+        return `<section class="ctgb-team-zone is-${visualSide}"><span class="ctgb-zone-caption">${visualSide === 'enemy' ? '相手チームの場' : 'あなたのチームの場'}</span>${fieldColumnHtml(teamId)}${units.map(boardLaneHtml).join('')}${fillers}${units.map(personColumnHtml).join('')}${personFillers}</section>`;
     }
 
     function handHtml() {
         const battle = state();
-        const unit = battle.actors.player;
+        const unit = battle.actors[localActorId()];
+        if (!unit) return '';
         const enabled = playerCanAct() && !battle.pendingTarget && !battle.selectedAttacker;
         return unit.hand.map((card, index) => {
             const cost = actualCost(unit, card);
@@ -728,7 +857,9 @@
 
     function allyHandHtml() {
         const battle = state();
-        const ally = battle.actors.ally;
+        const local = battle.actors[localActorId()];
+        const ally = local && teamActors(local.team).find(unit => unit.id !== local.id);
+        if (!ally) return '<span style="color:#888;font-size:9px">シングル戦</span>';
         if (!battle.allyHandOpen) return `<span style="color:#bba9d0;font-size:9px">${esc(ally.name)}の手札 ${ally.hand.length}枚</span>`;
         return ally.hand.map(card => `<span class="ctgb-ally-card" data-card-id="${esc(card._tagId)}" title="${esc(card.name)}・${actualCost(ally, card)}M"><span class="ctgb-cardscale">${renderNativeCard(card)}</span><span class="ctgb-cost">${actualCost(ally, card)}</span>${magnifierHtml(card)}</span>`).join('') || '<span style="font-size:9px;color:#888">手札なし</span>';
     }
@@ -747,16 +878,24 @@
             document.body.appendChild(ui);
         }
         const active = currentActor();
+        const local = battle.actors[localActorId()] || battle.actors.player;
+        const localTeamId = local ? local.team : 'player';
+        const enemyTeamId = localTeamId === 'player' ? 'enemy' : 'player';
+        const localUnits = teamActors(localTeamId).slice().sort((a, b) => (a.id === localActorId() ? 1 : 0) - (b.id === localActorId() ? 1 : 0));
+        const enemyUnits = teamActors(enemyTeamId);
         const order = battle.order.map((id, index) => `<span class="${index === battle.cursor ? 'is-current' : ''}">${index + 1} ${esc(battle.actors[id].name)}</span>`).join('');
-        const inactiveActionLabel = active && active.id === 'player' ? '処理中…' : active ? `${esc(active.name)}のターン` : '進行中…';
-        ui.innerHTML = `${battleStyle()}<header class="ctgb-enemy-console">${teamSummaryHtml('enemy')}<div class="ctgb-roster">${actorHudHtml(battle.actors.enemy1)}${actorHudHtml(battle.actors.enemy2)}</div><div class="ctgb-controls"><button class="ctgb-small-btn${battle.autoPlayer ? ' is-on' : ''}" onclick="window.toggleCasinoTagAuto()">AUTO ${battle.autoPlayer ? 'ON' : 'OFF'}</button></div></header>
-            <div class="ctgb-orderbar"><span class="ctgb-top-title">TAG TEAM TCG · ROUND ${battle.round}</span><div class="ctgb-order">${order}</div></div>
+        const inactiveActionLabel = active && active.id === localActorId() ? '処理中…' : active ? `${esc(active.name)}のターン` : '進行中…';
+        const timer = battle.networkMode && battle.networkDeadline ? `<span class="ctgb-network-timer" data-deadline="${Number(battle.networkDeadline)}">--</span>` : '';
+        ui.innerHTML = `${battleStyle()}<header class="ctgb-enemy-console">${teamSummaryHtml(enemyTeamId)}<div class="ctgb-roster">${enemyUnits.map(actorHudHtml).join('')}</div><div class="ctgb-controls">${battle.networkMode ? '<span class="ctgb-small-btn">P2P</span>' : `<button class="ctgb-small-btn${battle.autoPlayer ? ' is-on' : ''}" onclick="window.toggleCasinoTagAuto()">AUTO ${battle.autoPlayer ? 'ON' : 'OFF'}</button>`}</div></header>
+            <div class="ctgb-orderbar"><span class="ctgb-top-title">${battle.networkMode === 'single' ? 'ONLINE SINGLE' : 'TAG TEAM TCG'} · ROUND ${battle.round}</span>${timer}<div class="ctgb-order">${order}</div></div>
             <main class="ctgb-stage">
-                <div class="ctgb-table-surface">${teamZoneHtml('enemy')}${teamZoneHtml('player')}</div>
+                <div class="ctgb-table-surface">${teamZoneHtml(enemyTeamId)}${teamZoneHtml(localTeamId)}</div>
                 <div class="ctgb-center"><span class="ctgb-turn">${active ? `${esc(active.name)} のターン` : ''}</span></div>
                 <div id="ctgb-bubble" class="ctgb-bubble"></div><div id="ctgb-transient"></div>
             </main>
-            <footer class="ctgb-player-console"><div class="ctgb-player-status">${teamSummaryHtml('player')}<div class="ctgb-roster">${actorHudHtml(battle.actors.ally)}${actorHudHtml(battle.actors.player)}</div></div><div class="ctgb-hand-area"><div class="ctgb-ally-hand"><button onclick="window.toggleCasinoTagAllyHand()">相棒の手札 ${battle.allyHandOpen ? '▲' : '▼'}</button>${allyHandHtml()}</div><div class="ctgb-hand">${handHtml()}</div></div><div class="ctgb-actions">${playerCanAct() && battle.pendingTarget ? '<button class="ctgb-end" onclick="window.cancelCasinoTagTarget()">対象選択をやめる</button>' : playerCanAct() ? '<button class="ctgb-end" onclick="window.endCasinoTagPlayerTurn()">ターン終了 ➜</button>' : `<button class="ctgb-end" disabled>${inactiveActionLabel}</button>`}<button class="ctgb-forfeit" onclick="window.requestCasinoTagForfeit()">投了する</button></div></footer>`;
+            <footer class="ctgb-player-console"><div class="ctgb-player-status">${teamSummaryHtml(localTeamId)}<div class="ctgb-roster">${localUnits.map(actorHudHtml).join('')}</div></div><div class="ctgb-hand-area"><div class="ctgb-ally-hand"><button onclick="window.toggleCasinoTagAllyHand()">相棒の手札 ${battle.allyHandOpen ? '▲' : '▼'}</button>${allyHandHtml()}</div><div class="ctgb-hand">${handHtml()}</div></div><div class="ctgb-actions">${playerCanAct() && battle.pendingTarget ? '<button class="ctgb-end" onclick="window.cancelCasinoTagTarget()">対象選択をやめる</button>' : playerCanAct() ? '<button class="ctgb-end" onclick="window.endCasinoTagPlayerTurn()">ターン終了 ➜</button>' : `<button class="ctgb-end" disabled>${inactiveActionLabel}</button>`}<button class="ctgb-forfeit" onclick="window.requestCasinoTagForfeit()">投了する</button></div></footer>`;
+        if (battle.networkDefense && battle.networkDefense.actorId === localActorId()) renderNetworkDefenseOverlay();
+        if (battle.networkMode && battle.isNetworkAuthority && typeof window.onCasinoTCGNetworkStateChanged === 'function') window.onCasinoTCGNetworkStateChanged();
     };
 
     function toast(message, duration) {
@@ -768,7 +907,7 @@
 
     async function dialogue(unit, event, details, priority, allowEnded) {
         const battle = state();
-        if (!battle || !unit || unit.role === 'player') return;
+        if (!battle || !unit || unit.isHuman) return;
         const text = typeof window.getCasinoMasterGameDialogue === 'function'
             ? window.getCasinoMasterGameDialogue(unit.masterType, event, details || {})
             : '';
@@ -811,6 +950,7 @@
 
     window.toggleCasinoTagAuto = function () {
         const battle = state(); if (!battle || battle.isEnded) return;
+        if (battle.networkMode) return;
         battle.autoPlayer = !battle.autoPlayer;
         window.renderCasinoTCGTagBattle();
         const active = currentActor();
@@ -841,9 +981,153 @@
         return true;
     };
 
-    window.selectCasinoTagAttacker = function (actorId, cardId) {
+    window.startCasinoTCGNetworkBattleEngine = function (setup) {
+        const battle = createNetworkBattle(setup || {});
+        if (!battle) return false;
+        const single = document.getElementById('tcg-battle-ui'); if (single) single.remove();
+        const map = document.getElementById('casino-map-ui'); if (map) map.style.display = 'none';
+        window.DEALER_TCG_CONTEXT = null;
+        window.TCG_BATTLE = null;
+        window.TCG_TAG_BATTLE = battle;
+        if (window.audioManager) window.audioManager.playBGM('card_main');
+        window.renderCasinoTCGTagBattle();
+        (async () => {
+            await showTagBattleOpening(battle);
+            if (state() !== battle || battle.isEnded) return;
+            await Promise.all(Object.values(battle.actors).filter(unit => !unit.isHuman).map(unit => dialogue(unit, 'start', {}, 1)));
+            if (state() === battle && !battle.isEnded) beginTurn();
+        })();
+        return true;
+    };
+
+    window.exportCasinoTCGNetworkSnapshot = function () {
         const battle = state();
-        if (!playerCanAct() || actorId !== 'player') return;
+        if (!battle || !battle.networkMode) return null;
+        const refs = {
+            pendingTargetKeys: Array.isArray(battle.pendingTarget) ? battle.pendingTarget.map(selectableKey) : [],
+            selectedAttacker: battle.selectedAttacker ? { actorId: battle.selectedAttacker.actor.id, cardId: battle.selectedAttacker.card._tagId } : null,
+            pendingPlay: battle.pendingPlay ? { actorId: battle.pendingPlay.unit.id, handIndex: battle.pendingPlay.handIndex } : null,
+            pendingPersonSkill: battle.pendingPersonSkill ? { actorId: battle.pendingPersonSkill.unit.id, index: battle.pendingPersonSkill.index } : null
+        };
+        const transient = ['pendingTarget', 'selectedAttacker', 'pendingPlay', 'pendingPersonSkill'];
+        const saved = {};
+        transient.forEach(key => { saved[key] = battle[key]; battle[key] = null; });
+        let data;
+        try {
+            const omitted = new Set(['_networkIntentActorId', '_defenseResolve', '_defenseOptions', '_defenseContext', '_defenseActorId']);
+            data = JSON.parse(JSON.stringify(battle, (key, value) => omitted.has(key) || key === 'dialogueQueue' || typeof value === 'function' ? undefined : value));
+        } finally {
+            transient.forEach(key => { battle[key] = saved[key]; });
+        }
+        data.networkRefs = refs;
+        return data;
+    };
+
+    window.installCasinoTCGNetworkSnapshot = function (snapshot, localId, authority) {
+        if (!snapshot) return false;
+        const battle = typeof snapshot === 'string' ? JSON.parse(snapshot) : JSON.parse(JSON.stringify(snapshot));
+        if (!battle.networkMode) return false;
+        const refs = battle.networkRefs || {};
+        delete battle.networkRefs;
+        battle.localActorId = localId || battle.localActorId || 'player';
+        battle.isNetworkAuthority = !!authority;
+        battle.dialogueQueue = [];
+        battle.dialogueBusy = false;
+        battle.pendingTarget = null;
+        battle.selectedAttacker = null;
+        battle.pendingPlay = null;
+        battle.pendingPersonSkill = null;
+        window.TCG_BATTLE = null;
+        window.TCG_TAG_BATTLE = battle;
+        const localUnit = battle.actors[battle.localActorId];
+        if (battle.isEnded && battle.winnerTeam) {
+            battle.result = battle.winnerTeam === 'draw' ? 'draw' : localUnit && battle.winnerTeam === localUnit.team ? 'win' : 'loss';
+        }
+        if (Array.isArray(refs.pendingTargetKeys)) battle.pendingTarget = refs.pendingTargetKeys.map(targetFromSelectableKey).filter(Boolean);
+        if (refs.selectedAttacker) {
+            const unit = battle.actors[refs.selectedAttacker.actorId];
+            const card = unit && livingCards(unit).find(entry => entry._tagId === refs.selectedAttacker.cardId);
+            if (card) battle.selectedAttacker = { actor: unit, card };
+        }
+        if (refs.pendingPlay) {
+            const unit = battle.actors[refs.pendingPlay.actorId];
+            if (unit) battle.pendingPlay = { unit, handIndex: Number(refs.pendingPlay.handIndex) };
+        }
+        if (refs.pendingPersonSkill) {
+            const unit = battle.actors[refs.pendingPersonSkill.actorId];
+            if (unit) battle.pendingPersonSkill = { unit, index: Number(refs.pendingPersonSkill.index) };
+        }
+        const map = document.getElementById('casino-map-ui'); if (map) map.style.display = 'none';
+        window.renderCasinoTCGTagBattle();
+        if (battle.isEnded) schedule(showResultPanel, 20);
+        return true;
+    };
+
+    window.applyCasinoTCGNetworkIntent = function (actorId, intent) {
+        const battle = state();
+        const unit = battle && battle.actors[actorId];
+        if (!battle || !battle.networkMode || !battle.isNetworkAuthority || !unit || !intent) return false;
+        if (unit.controllerId && intent.controllerId && unit.controllerId !== intent.controllerId) return false;
+        battle._networkIntentActorId = actorId;
+        try {
+            if (intent.type === 'select_attacker') window.selectCasinoTagAttacker(actorId, intent.cardId);
+            else if (intent.type === 'select_target') window.selectCasinoTagTarget(intent.key);
+            else if (intent.type === 'cancel_target') window.cancelCasinoTagTarget();
+            else if (intent.type === 'play_card') window.playCasinoTagCard(Number(intent.handIndex), intent.expansionChoices || null);
+            else if (intent.type === 'person_skill') window.openCasinoTagPersonSkill(Number(intent.index));
+            else if (intent.type === 'end_turn') window.endCasinoTagPlayerTurn();
+            else if (intent.type === 'defense') window.resolveCasinoTagDefense(Number(intent.index));
+            else if (intent.type === 'forfeit') window.confirmCasinoTagForfeit();
+            else return false;
+        } finally {
+            delete battle._networkIntentActorId;
+        }
+        return true;
+    };
+
+    window.replaceCasinoTCGNetworkSeatWithCpu = function (actorId, fallback) {
+        const battle = state();
+        const unit = battle && battle.actors[actorId];
+        if (!battle || !battle.networkMode || !unit) return false;
+        fallback = fallback || unit.fallbackCpu || {};
+        unit.isHuman = false;
+        unit.controllerId = '';
+        unit.fallbackCpu = fallback;
+        unit.participant = Object.assign({}, unit.participant, fallback, { isHuman: false, controllerId: '' });
+        if (fallback.name) unit.name = fallback.name;
+        if (fallback.masterType) {
+            unit.masterType = fallback.masterType;
+            const profile = profileFor(fallback.masterType);
+            unit.image = profile.casino.image || unit.image;
+            unit.strategy = profile.deck.strategy || {};
+        }
+        window.renderCasinoTCGTagBattle();
+        if (battle.isNetworkAuthority && currentActor() === unit && !battle.isAnimating) runCpuTurn(unit);
+        return true;
+    };
+
+    window.promoteCasinoTCGNetworkAuthority = function (localId) {
+        const battle = state();
+        if (!battle || !battle.networkMode) return false;
+        battle.localActorId = localId || battle.localActorId;
+        battle.isNetworkAuthority = true;
+        battle.isAnimating = false;
+        battle.networkDefense = null;
+        battle.pendingTarget = null;
+        battle.pendingPlay = null;
+        battle.pendingPersonSkill = null;
+        battle.selectedAttacker = null;
+        window.renderCasinoTCGTagBattle();
+        const unit = currentActor();
+        if (unit && !unit.isHuman) runCpuTurn(unit);
+        else if (unit && typeof window.onCasinoTCGNetworkTurnReady === 'function') window.onCasinoTCGNetworkTurnReady(unit, battle);
+        return true;
+    };
+
+    window.selectCasinoTagAttacker = function (actorId, cardId) {
+        if (forwardNetworkIntent('select_attacker', { actorId, cardId })) return;
+        const battle = state();
+        if (!playerCanAct() || actorId !== actionActorId()) return;
         const unit = actor(actorId);
         const card = livingCards(unit).find(entry => entry._tagId === cardId);
         if (!card || !card.canAttack || card.status === 'stunned' || card.status === 'fossilized') return;
@@ -853,6 +1137,7 @@
     };
 
     window.cancelCasinoTagTarget = function () {
+        if (forwardNetworkIntent('cancel_target')) return;
         const battle = state();
         if (!battle || battle.isAnimating) return;
         battle.selectedAttacker = null; battle.pendingTarget = null; battle.pendingPlay = null; battle.pendingPersonSkill = null;
@@ -860,6 +1145,7 @@
     };
 
     window.selectCasinoTagTarget = function (key) {
+        if (forwardNetworkIntent('select_target', { key })) return;
         const battle = state();
         if (!battle || !battle.pendingTarget) return;
         const target = battle.pendingTarget.find(entry => selectableKey(entry) === key);
@@ -904,6 +1190,7 @@
     };
 
     window.endCasinoTagPlayerTurn = function () {
+        if (forwardNetworkIntent('end_turn')) return;
         const battle = state();
         if (!playerCanAct()) return;
         battle.selectedAttacker = null;
@@ -916,12 +1203,16 @@
         const battle = state(); if (!battle || battle.isEnded) return;
         const root = document.getElementById('tcg-tag-battle-ui'); if (!root) return;
         const overlay = document.createElement('div'); overlay.className = 'ctgb-overlay';
-        overlay.innerHTML = `<div class="ctgb-panel"><h3>タッグ戦を投了しますか？</h3><p>この対戦は敗北として記録され、対戦相手2人・相棒との戦績にも反映されます。</p><div class="ctgb-panel-buttons"><button onclick="this.closest('.ctgb-overlay').remove()">続ける</button><button onclick="window.confirmCasinoTagForfeit()">投了する</button></div></div>`;
+        overlay.innerHTML = `<div class="ctgb-panel"><h3>対戦を投了しますか？</h3><p>${battle.networkMode ? 'あなたのチームの敗北として対戦を終了します。' : 'この対戦は敗北として記録され、対戦相手2人・相棒との戦績にも反映されます。'}</p><div class="ctgb-panel-buttons"><button onclick="this.closest('.ctgb-overlay').remove()">続ける</button><button onclick="window.confirmCasinoTagForfeit()">投了する</button></div></div>`;
         root.appendChild(overlay);
     };
 
     window.confirmCasinoTagForfeit = function () {
-        finishBattle('enemy', '投了');
+        if (forwardNetworkIntent('forfeit')) return;
+        const battle = state();
+        const unit = actionActor();
+        const losingTeam = unit ? unit.team : 'player';
+        finishBattle(losingTeam === 'player' ? 'enemy' : 'player', '投了');
     };
 
     function healTeam(teamId, amount) {
@@ -935,6 +1226,10 @@
         const team = state().teams[teamId];
         const before = team.hp;
         let damage = Math.max(0, Math.floor(Number(amount) || 0));
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.beforeTagTeamDamage === 'function') {
+            damage = supportExpansion.beforeTagTeamDamage(team, damage);
+        }
         if (team.captainGuard) damage = Math.max(0, damage - 10);
         team.hp -= damage;
         if (before > 100 && team.hp <= 100 && !team.pinchAnnounced) {
@@ -985,10 +1280,16 @@
 
     async function destroyCard(card, sourceUnit, reason) {
         if (!card || card.isDead) return false;
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.preventTagDestroy === 'function' && supportExpansion.preventTagDestroy(card, reason)) {
+            toast(`${card.name}は護りの衣で効果を防いだ！`, 700);
+            return false;
+        }
         card.isDead = true;
         const originalOwner = ownerOf(card);
         removeFromZones(card, reason === 'replace');
         if (originalOwner && !originalOwner.graveyard.includes(card)) originalOwner.graveyard.push(card);
+        if (supportExpansion && typeof supportExpansion.onTagCardDestroyed === 'function') supportExpansion.onTagCardDestroyed(card, originalOwner, reason);
         const enemyTeam = originalOwner && originalOwner.team === 'player' ? 'enemy' : 'player';
         const ownTeam = originalOwner && originalOwner.team;
         const ability = card.ability;
@@ -1028,6 +1329,11 @@
     function moveCardToDeck(card) {
         const originalOwner = ownerOf(card);
         if (!originalOwner) return false;
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.preventTagBounce === 'function' && supportExpansion.preventTagBounce(card)) {
+            toast(`${card.name}は護りの衣で山札戻しを防いだ！`, 700);
+            return false;
+        }
         removeFromZones(card);
         originalOwner.graveyard = originalOwner.graveyard.filter(entry => entry !== card);
         card.isDead = false; card.canAttack = false; card.status = null;
@@ -1038,6 +1344,11 @@
     function moveCardToHand(card) {
         const originalOwner = ownerOf(card);
         if (!originalOwner) return false;
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.preventTagBounce === 'function' && supportExpansion.preventTagBounce(card)) {
+            toast(`${card.name}は護りの衣で手札戻しを防いだ！`, 700);
+            return false;
+        }
         removeFromZones(card);
         originalOwner.graveyard = originalOwner.graveyard.filter(entry => entry !== card);
         card.isDead = false; card.canAttack = false; card.status = null;
@@ -1117,9 +1428,16 @@
     async function resolveAttack(attackerUnit, attackerCard, target) {
         const battle = state();
         if (!battle || battle.isEnded || !livingCards(attackerUnit).includes(attackerCard)) return;
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.redirectTagConfusedAttack === 'function') {
+            target = supportExpansion.redirectTagConfusedAttack({
+                battle, unit: attackerUnit, card: attackerCard, target,
+                legalTargets: () => legalAttackTargets(attackerUnit, attackerCard)
+            });
+        }
         const defended = await resolveDefenseIntercept(attackerUnit, attackerCard, target);
         if (battle.isEnded || !livingCards(attackerUnit).includes(attackerCard)) return;
-        if (attackerCard.status === 'stunned' || attackerCard.status === 'fossilized') {
+        if (attackerCard.status === 'stunned' || attackerCard.status === 'fossilized' || attackerCard._supportEntangled) {
             attackerCard.canAttack = false;
             toast(`${attackerCard.name}は行動不能になり、攻撃できない！`, 800);
             return;
@@ -1195,7 +1513,7 @@
             target.card.maxHp = Math.max(1, target.card.maxHp - dealt); target.card.hp = Math.min(target.card.hp, target.card.maxHp);
         }
         if (target.card && target.card.ability === 'thorns' && dealt > 0 && livingCards(attackerUnit).includes(attackerCard)) await dealCardDamage(attackerCard, 20, ownerOf(target.card), { noEvasion: true });
-        if (target.card && target.card.ability === 'counter_attack' && dealt > 0 && livingCards(attackerUnit).includes(attackerCard)) await dealCardDamage(attackerCard, Number(target.card.damage) || 0, ownerOf(target.card), { noEvasion: true });
+        if (target.card && (target.card.ability === 'counter_attack' || target.card._supportCounter) && dealt > 0 && livingCards(attackerUnit).includes(attackerCard)) await dealCardDamage(attackerCard, Number(target.card.damage) || 0, ownerOf(target.card), { noEvasion: true });
         if (attackerCard.ability === 'pierce_recoil' && livingCards(attackerUnit).includes(attackerCard)) await dealCardDamage(attackerCard, 10, attackerUnit, { noEvasion: true });
         if (targetDied && attackerCard.ability === 'devour' && !attackerCard.isDead) { attackerCard.maxHp += 20; attackerCard.hp += 20; attackerCard.damage += 10; }
         if (targetDied && attackerCard.ability === 'apex_predator' && !attackerCard.isDead) { attackerCard.maxHp *= 2; attackerCard.hp = attackerCard.maxHp; attackerCard.damage *= 2; }
@@ -1217,12 +1535,12 @@
 
     function canGuard(unit) {
         const cost = guardCost();
-        return unit.currentMana >= cost && livingCards(unit).some(card => !card.isDefending && card.status !== 'stunned' && card.status !== 'fossilized');
+        return unit.currentMana >= cost && livingCards(unit).some(card => !card.isDefending && card.status !== 'stunned' && card.status !== 'fossilized' && !card._supportEntangled);
     }
 
     async function cpuGuard(unit) {
         if (!canGuard(unit)) return null;
-        const candidates = livingCards(unit).filter(card => !card.isDefending && card.status !== 'stunned' && card.status !== 'fossilized')
+        const candidates = livingCards(unit).filter(card => !card.isDefending && card.status !== 'stunned' && card.status !== 'fossilized' && !card._supportEntangled)
             .sort((a, b) => b.hp - a.hp);
         const chosen = candidates[0];
         if (!chosen) return null;
@@ -1235,7 +1553,7 @@
 
     function playerDefenseOptions(unit) {
         const options = [];
-        if (canGuard(unit)) livingCards(unit).filter(card => !card.isDefending && card.status !== 'stunned' && card.status !== 'fossilized').forEach(card => options.push({ type: 'guard', card }));
+        if (canGuard(unit)) livingCards(unit).filter(card => !card.isDefending && card.status !== 'stunned' && card.status !== 'fossilized' && !card._supportEntangled).forEach(card => options.push({ type: 'guard', card }));
         if (unit.person && !unit.personSkillUsed) {
             const master = window.TCG_MASTER && window.TCG_MASTER[unit.person.masterId];
             (master && (master.personSkills || master.skills) || []).forEach((skill, index) => {
@@ -1267,14 +1585,46 @@
         return `⚔ ${Math.max(0, Number(target.card.damage) || 0)}　♥ ${Math.max(0, target.card.hp)} / ${Math.max(0, target.card.maxHp)}`;
     }
 
-    function askPlayerDefense(attackerUnit, attackerCard, originalTarget) {
+    function renderNetworkDefenseOverlay() {
         const battle = state();
-        const unit = battle.actors.player;
+        const request = battle && battle.networkDefense;
+        if (!battle || !request || request.actorId !== localActorId()) return;
+        const root = document.getElementById('tcg-tag-battle-ui');
+        if (!root || document.getElementById('ctgb-defense')) return;
+        const guardButtons = (request.options || []).map((option, index) => option.type === 'guard'
+            ? `<button class="ctgb-defense-choice" onclick="window.resolveCasinoTagDefense(${index})"><strong>🛡 ${esc(option.name)}</strong><span>${guardCost()}M</span><small>⚔ ${option.damage || 0}　♥ ${option.hp || 0} / ${option.maxHp || 0}</small></button>` : '').join('');
+        const skillButtons = (request.options || []).map((option, index) => option.type === 'skill'
+            ? `<button class="ctgb-defense-choice" onclick="window.resolveCasinoTagDefense(${index})"><strong>👤 ${esc(option.name)}</strong><span>${option.cost || 0}M</span><small>${esc(option.desc || '人物カードの割り込み効果')}</small></button>` : '').join('');
+        const overlay = document.createElement('div'); overlay.className = 'ctgb-overlay'; overlay.id = 'ctgb-defense';
+        overlay.innerHTML = `<div class="ctgb-panel"><h3>相手の攻撃に割り込みますか？</h3><div class="ctgb-defense-flow"><div class="ctgb-defense-unit is-attacker"><small>攻撃カード</small><strong>${esc(request.attackerName)}「${esc(request.attackerCardName)}」</strong><span>⚔ ${request.attackerDamage || 0}</span></div><div class="ctgb-defense-arrow">➜</div><div class="ctgb-defense-unit is-target"><small>現在の攻撃対象</small><strong>${esc(request.targetName)}</strong><span>${esc(request.targetStats || '')}</span></div></div>${guardButtons ? `<h4>守護に出すモンスターを選択</h4><div class="ctgb-defense-choices">${guardButtons}</div>` : ''}${skillButtons ? `<h4>人物カードで割り込む</h4><div class="ctgb-defense-choices">${skillButtons}</div>` : ''}<button class="ctgb-defense-skip" onclick="window.resolveCasinoTagDefense(-1)">何もしない</button></div>`;
+        root.appendChild(overlay);
+    }
+
+    function askHumanDefense(unit, attackerUnit, attackerCard, originalTarget) {
+        const battle = state();
         const options = playerDefenseOptions(unit);
-        if (!options.length || battle.autoPlayer) return Promise.resolve(null);
+        if (!options.length) return Promise.resolve(null);
         return new Promise(resolve => {
             battle._defenseResolve = resolve;
+            battle._defenseActorId = unit.id;
             battle._defenseContext = { attackerUnit, attackerCard, originalTarget };
+            if (battle.networkMode) {
+                battle._defenseOptions = options;
+                battle.networkDefense = {
+                    actorId: unit.id,
+                    attackerName: attackerUnit.name,
+                    attackerCardName: attackerCard.name,
+                    attackerDamage: Math.max(0, Number(attackerCard.damage) || 0),
+                    targetName: defenseTargetName(originalTarget),
+                    targetStats: defenseTargetStats(originalTarget),
+                    options: options.map(option => option.type === 'guard'
+                        ? { type: 'guard', name: option.card.name, damage: option.card.damage, hp: option.card.hp, maxHp: option.card.maxHp }
+                        : { type: 'skill', name: option.skill.name, cost: Number(option.skill.cost) || 0, desc: option.skill.desc || '' })
+                };
+                window.renderCasinoTCGTagBattle();
+                if (typeof window.onCasinoTCGNetworkDefenseRequested === 'function') window.onCasinoTCGNetworkDefenseRequested(unit, battle);
+                return;
+            }
             const root = document.getElementById('tcg-tag-battle-ui');
             if (!root) {
                 battle._defenseResolve = null; battle._defenseContext = null;
@@ -1294,27 +1644,38 @@
     }
 
     window.resolveCasinoTagDefense = async function (index) {
+        if (forwardNetworkIntent('defense', { index: Number(index) })) return;
         const battle = state();
         if (!battle || !battle._defenseResolve) return;
         const resolve = battle._defenseResolve;
         const options = battle._defenseOptions || [];
         const context = battle._defenseContext;
-        battle._defenseResolve = null; battle._defenseOptions = null; battle._defenseContext = null;
+        const unit = battle.actors[battle._defenseActorId || actionActorId()];
+        battle._defenseResolve = null; battle._defenseOptions = null; battle._defenseContext = null; battle._defenseActorId = null;
+        battle.networkDefense = null;
         const overlay = document.getElementById('ctgb-defense'); if (overlay) overlay.remove();
         const choice = options[Number(index)];
+        const resumeNetworkTimer = () => {
+            const current = currentActor();
+            if (battle.networkMode && current && current.isHuman && typeof window.onCasinoTCGNetworkDefenseResolved === 'function') {
+                window.onCasinoTCGNetworkDefenseResolved(current, battle);
+            }
+        };
         if (choice && choice.type === 'guard') {
-            const unit = battle.actors.player;
             unit.currentMana -= guardCost(); choice.card.isDefending = true;
             window.renderCasinoTCGTagBattle();
             toast(`${choice.card.name}を守護化！`, 600);
             await wait(180);
+            resumeNetworkTimer();
             resolve({ guarded: true, guardTarget: { actor: unit, card: choice.card, zone: 'card', team: unit.team } });
             return;
         }
         if (choice && choice.type === 'skill') {
-            await executePersonSkill(battle.actors.player, choice.index, null, { intercept: true, attacker: context.attackerCard });
+            await executePersonSkill(unit, choice.index, null, { intercept: true, attacker: context.attackerCard });
+            resumeNetworkTimer();
             resolve({ skill: true }); return;
         }
+        resumeNetworkTimer();
         resolve(null);
     };
 
@@ -1322,24 +1683,16 @@
         const battle = state();
         const defendingTeam = attackerUnit.team === 'player' ? 'enemy' : 'player';
         let redirectTarget = null;
-        if (defendingTeam === 'player') {
-            if (battle.autoPlayer) {
-                const player = battle.actors.player;
-                if (!player.personSkillUsed) await attemptCpuPersonSkill(player, true, attackerCard);
-                if (Math.random() < 0.68) redirectTarget = await cpuGuard(player);
-            } else {
-                const response = await askPlayerDefense(attackerUnit, attackerCard, originalTarget);
+        for (const defender of teamActors(defendingTeam)) {
+            if (defender.isHuman && !(defender.id === 'player' && battle.autoPlayer && !battle.networkMode)) {
+                const response = await askHumanDefense(defender, attackerUnit, attackerCard, originalTarget);
                 if (response && response.guardTarget) redirectTarget = response.guardTarget;
-            }
-            if (battle.isEnded) return originalTarget;
-            const ally = battle.actors.ally;
-            if (!ally.personSkillUsed) await attemptCpuPersonSkill(ally, true, attackerCard);
-            if (!redirectTarget && Math.random() < 0.58) redirectTarget = await cpuGuard(ally);
-        } else {
-            for (const defender of [battle.actors.enemy1, battle.actors.enemy2]) {
+            } else {
                 if (!defender.personSkillUsed) await attemptCpuPersonSkill(defender, true, attackerCard);
                 if (!redirectTarget && Math.random() < 0.58) redirectTarget = await cpuGuard(defender);
             }
+            if (battle.isEnded) return originalTarget;
+            if (redirectTarget) break;
         }
         if (redirectTarget) {
             const legal = legalAttackTargets(attackerUnit, attackerCard);
@@ -1365,12 +1718,37 @@
         return [];
     }
 
-    window.playCasinoTagCard = function (handIndex) {
+    function supportExpansionContext(unit, card, choices) {
+        return {
+            battle: state(), unit, card, choices,
+            allTeamCards, teamActors,
+            helpers: {
+                allTeamCards, teamActors, enemyActors, ownerOf, destroyCard, dealCardDamage,
+                damageTeam, healTeam, healCard, clearStatus, moveCardToDeck, removeFromZones,
+                cleanDeadCards, actualCost, isMonster, boardLimit: BOARD_LIMIT
+            }
+        };
+    }
+
+    window.playCasinoTagCard = async function (handIndex, suppliedExpansionChoices) {
         const battle = state();
-        const unit = battle && battle.actors.player;
+        const unit = battle && actionActor();
         if (!unit || !playerCanAct()) return;
         const card = unit.hand[Number(handIndex)];
         if (!card) return;
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && supportExpansion.isExpansionCard(card)) {
+            const choices = suppliedExpansionChoices || await supportExpansion.prepareTagChoices(supportExpansionContext(unit, card, null));
+            if (!choices) { toast(`${card.name}を使える対象がいません。`, 900); return; }
+            if (forwardNetworkIntent('play_card', { handIndex: Number(handIndex), expansionChoices: choices })) return;
+            if (!unit.hand.includes(card) || !playerCanAct()) return;
+            battle.isAnimating = true;
+            playCard(unit, Number(handIndex), { expansionChoices: choices }).then(() => {
+                if (!battle.isEnded) { battle.isAnimating = false; window.renderCasinoTCGTagBattle(); }
+            });
+            return;
+        }
+        if (forwardNetworkIntent('play_card', { handIndex: Number(handIndex) })) return;
         const targets = playTargets(unit, card);
         if (card.evolvesFrom && !targets.length) {
             toast(`進化元（${card.evolvesFrom}）が場にいないため、このカードは出せません。`, 1000);
@@ -1420,7 +1798,7 @@
                 if (!selected) return false;
                 evolutionIndex = selected.index;
             } else {
-                if (unit.id === 'player' && candidates.length > 1) return false;
+                if (unit.isHuman && candidates.length > 1) return false;
                 evolutionIndex = candidates[0].index;
             }
         } else if (isMonster(card) && unit.field.length >= BOARD_LIMIT) return false;
@@ -1453,6 +1831,9 @@
             const originalOwner = ownerOf(card) || unit;
             card.isDead = true;
             originalOwner.graveyard.push(card);
+            const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+            if (card._supportBanishAfterUse) { delete card._supportBanishAfterUse; card._supportBanishOnGrave = true; }
+            if (supportExpansion && typeof supportExpansion.onTagCardDestroyed === 'function') supportExpansion.onTagCardDestroyed(card, originalOwner, 'support_used');
             refundMana(unit, card, cost);
         } else {
             if (evolutionIndex >= 0) {
@@ -1471,6 +1852,8 @@
             }
             await activatePlayEffect(card, unit, target);
         }
+        if (unit._supportStrategyTax && (isMonster(card) ? 'monster' : card.type) === unit._supportStrategyTax.type) delete unit._supportStrategyTax;
+        delete card._supportFreeOnce; delete card._supportBounceTax; delete card._supportRunDiscount;
         toast(`${unit.name}が「${card.name}」を使用！`, 700);
         await dialogue(unit, 'play', { card: card.name }, 2);
         await cleanDeadCards(unit);
@@ -1490,7 +1873,13 @@
         const ownTeam = unit.team;
         const enemyTeam = ownTeam === 'player' ? 'enemy' : 'player';
         const ability = card.ability;
-        if (ability === 'draw_card') drawCard(unit, { count: 1 });
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && supportExpansion.isExpansionCard(card)) {
+            const context = supportExpansionContext(unit, card, target && target.expansionChoices);
+            if (!context.choices && typeof supportExpansion.autoTagChoices === 'function') context.choices = supportExpansion.autoTagChoices(context);
+            await supportExpansion.resolveTagEffect(context);
+        }
+        else if (ability === 'draw_card') drawCard(unit, { count: 1 });
         else if (ability === 'heal_self') healTeam(ownTeam, 10);
         else if (ability === 'mana_ramp') {
             unit.maxMana = Math.min(fieldManaCap(), unit.maxMana + 1); unit.currentMana = Math.min(fieldManaCap(), unit.currentMana + 1);
@@ -1584,8 +1973,9 @@
     }
 
     window.openCasinoTagPersonSkill = function (index) {
+        if (forwardNetworkIntent('person_skill', { index: Number(index) })) return;
         const battle = state();
-        const unit = battle && battle.actors.player;
+        const unit = battle && actionActor();
         const skill = skillData(unit, index);
         if (!unit || !skill || !playerCanAct() || unit.personSkillUsed || unit.currentMana < Number(skill.cost || 0)) return;
         const side = skillTargetSide(skill);
@@ -1621,7 +2011,12 @@
         options = options || {};
         const battle = state();
         const skill = skillData(unit, index);
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
         if (!battle || !skill || !unit.person || unit.personSkillUsed || unit.currentMana < Number(skill.cost || 0)) return false;
+        if (supportExpansion && typeof supportExpansion.canUseTagPersonSkill === 'function' && !supportExpansion.canUseTagPersonSkill(unit, index)) {
+            toast('王冠では同じ人物スキルを2回使えません。', 850);
+            return false;
+        }
         if (!target) target = preferredSkillTarget(unit, skill, options.attacker);
         const side = skillTargetSide(skill);
         if (side && (!target || !target.card)) return false;
@@ -1715,6 +2110,7 @@
         }
         await cleanDeadCards(unit);
         checkBattleEnd('人物スキル');
+        if (supportExpansion && typeof supportExpansion.afterTagPersonSkill === 'function') supportExpansion.afterTagPersonSkill(unit, index);
         await wait(220);
         return true;
     }
@@ -1809,13 +2205,13 @@
         unit.actionUsed = false; unit.personSkillUsed = false;
         unit._allZeroCost = false;
         livingCards(unit).forEach(card => {
-            card.isDefending = card.ability === 'taunt' || card.ability === 'pure_aegis' || !!card.hasPermanentTaunt;
+            card.isDefending = card.ability === 'taunt' || card.ability === 'pure_aegis' || card.ability === 'support_wall_guard' || !!card.hasPermanentTaunt;
             delete card._builder_guarded; delete card._smith_buffed; delete card._smith_trample; delete card._captain_double;
             delete card._advancedStatusImmune; delete card._advancedDamageShield; delete card._advancedOverclock;
             card._tagAttacksThisTurn = 0;
             if (card.status === 'stunned' || card.status === 'fossilized') {
                 card.canAttack = false; card._tagClearStatusAtEnd = true;
-            } else card.canAttack = true;
+            } else card.canAttack = !['support_wall_guard', 'support_seed_wait'].includes(card.ability) && !card._supportEntangled && !card._supportRescuedDisabled;
         });
         state().teams[unit.team].captainGuard = false;
     }
@@ -1823,20 +2219,32 @@
     async function beginTurn() {
         const battle = state();
         if (!battle || battle.isEnded) return;
+        if (battle.networkMode && !battle.isNetworkAuthority) return;
         const unit = currentActor();
+        if (battle.networkMode && typeof window.onCasinoTCGNetworkTurnStarting === 'function') window.onCasinoTCGNetworkTurnStarting(unit, battle);
         battle.isAnimating = true;
         battle.selectedAttacker = null; battle.pendingTarget = null; battle.pendingPlay = null; battle.pendingPersonSkill = null;
         window.renderCasinoTCGTagBattle();
         await showTagTurnCutin(unit);
         if (state() !== battle || battle.isEnded) return;
+        const isSupportExtraTurn = !!unit._supportStartingExtraTurn;
+        delete unit._supportStartingExtraTurn;
         cleanupAtTurnStart(unit);
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.onTagTurnStart === 'function') {
+            supportExpansion.onTagTurnStart(supportExpansionContext(unit, null, null));
+        }
         const team = battle.teams[unit.team];
-        if (team.turnsThisRound === 0) await teamFieldTiming(unit.team, 'start', unit);
+        if (!isSupportExtraTurn && team.turnsThisRound === 0) await teamFieldTiming(unit.team, 'start', unit);
         await cleanDeadCards(unit);
         if (checkBattleEnd('フィールド開始時効果')) return;
-        unit.maxMana = Math.min(fieldManaCap(), unit.maxMana + 1);
-        unit.currentMana = unit.maxMana;
-        if (battle.turnNumber > 0) drawCard(unit, { normal: true, count: 1 });
+        if (isSupportExtraTurn) {
+            unit.currentMana = 3;
+        } else {
+            unit.maxMana = Math.min(fieldManaCap(), unit.maxMana + 1);
+            unit.currentMana = unit.maxMana;
+            if (battle.turnNumber > 0) drawCard(unit, { normal: true, count: 1 });
+        }
         if (battle.isEnded) return;
         await startCardEffects(unit);
         await cleanDeadCards(unit);
@@ -1846,7 +2254,10 @@
         window.renderCasinoTCGTagBattle();
         toast(`${unit.name}のターン`, 600);
         await dialogue(unit, 'turn_start', { mana: unit.currentMana }, 1);
-        if (unit.id !== 'player' || battle.autoPlayer) runCpuTurn(unit);
+        if (battle.networkMode && unit.isHuman && typeof window.onCasinoTCGNetworkTurnReady === 'function') {
+            window.onCasinoTCGNetworkTurnReady(unit, battle);
+        }
+        if (!unit.isHuman || (!battle.networkMode && unit.id === 'player' && battle.autoPlayer)) runCpuTurn(unit);
     }
 
     async function advanceTurn() {
@@ -1863,9 +2274,22 @@
         battle.teams[unit.team].captainGuard = false;
         const team = battle.teams[unit.team];
         team.turnsThisRound++;
-        if (team.turnsThisRound >= 2) await teamFieldTiming(unit.team, 'end', unit);
+        if (team.turnsThisRound >= teamActors(unit.team).length) await teamFieldTiming(unit.team, 'end', unit);
         await cleanDeadCards(unit);
         if (checkBattleEnd('ターン終了効果')) return;
+        const supportExpansion = window.TCG_SUPPORT_EXPANSION;
+        if (supportExpansion && typeof supportExpansion.onTagTurnEnd === 'function') {
+            supportExpansion.onTagTurnEnd(supportExpansionContext(unit, null, null));
+        }
+        if (supportExpansion && typeof supportExpansion.consumeTagExtraTurn === 'function' && supportExpansion.consumeTagExtraTurn(unit)) {
+            battle.turnNumber++;
+            unit._supportStartingExtraTurn = true;
+            battle.mobileFocusActorId = null;
+            window.renderCasinoTCGTagBattle();
+            await wait(260);
+            beginTurn();
+            return;
+        }
         battle.turnNumber++;
         battle.cursor = (battle.cursor + 1) % battle.order.length;
         if (battle.cursor === 0) {
@@ -2047,17 +2471,18 @@
         if (battle._defenseResolve) {
             const resolve = battle._defenseResolve; battle._defenseResolve = null; resolve(null);
         }
-        const result = winner === 'draw' ? 'draw' : winner === 'player' ? 'win' : 'loss';
+        battle.winnerTeam = winner;
+        const local = battle.actors[localActorId()] || battle.actors.player;
+        const result = winner === 'draw' ? 'draw' : local && winner === local.team ? 'win' : 'loss';
         battle.result = result; battle.resultReason = reason || '';
-        recordTagResult(result);
+        if (!battle.networkMode) recordTagResult(result);
+        else if (typeof window.onCasinoTCGNetworkBattleEnded === 'function') window.onCasinoTCGNetworkBattleEnded(winner, reason || '');
         window.renderCasinoTCGTagBattle();
         toast(result === 'win' ? 'VICTORY！' : result === 'loss' ? 'DEFEAT…' : 'DRAW', 1200);
         await wait(700);
-        const allyEvent = result === 'draw' ? 'draw' : result === 'win' ? 'win' : 'loss';
-        const enemyEvent = result === 'draw' ? 'draw' : result === 'win' ? 'loss' : 'win';
-        await dialogue(battle.actors.ally, allyEvent, {}, 20, true);
-        await dialogue(battle.actors.enemy1, enemyEvent, {}, 19, true);
-        await dialogue(battle.actors.enemy2, enemyEvent, {}, 18, true);
+        for (const unit of Object.values(battle.actors)) {
+            if (!unit.isHuman) await dialogue(unit, winner === 'draw' ? 'draw' : unit.team === winner ? 'win' : 'loss', {}, 20, true);
+        }
         showResultPanel();
     }
 
@@ -2069,7 +2494,12 @@
         const title = battle.result === 'win' ? '勝利' : battle.result === 'loss' ? '敗北' : '引き分け';
         const color = battle.result === 'win' ? '#ffe077' : battle.result === 'loss' ? '#ff9797' : '#9bddff';
         const panel = document.createElement('div'); panel.className = 'ctgb-overlay'; panel.id = 'ctgb-result';
-        panel.innerHTML = `<div class="ctgb-panel" style="text-align:center"><small style="color:#b9a8c7;letter-spacing:.2em">TAG TEAM RESULT</small><h3 style="font-size:34px;color:${color};margin-top:5px">${title}</h3><p>${esc(battle.resultReason || '決着')}</p><p>${esc(battle.actors.player.name)} ＆ ${esc(battle.actors.ally.name)}<br>VS<br>${esc(battle.actors.enemy1.name)} ＆ ${esc(battle.actors.enemy2.name)}</p><div class="ctgb-panel-buttons" style="justify-content:center"><button onclick="window.closeCasinoTCGTagBattle('replay')">同じ条件で再戦</button><button onclick="window.closeCasinoTCGTagBattle('reselect')">編成を選び直す</button><button onclick="window.closeCasinoTCGTagBattle('table')">TCGロビーへ</button></div></div>`;
+        const playerNames = teamActors('player').map(unit => unit.name).join(' ＆ ');
+        const enemyNames = teamActors('enemy').map(unit => unit.name).join(' ＆ ');
+        const buttons = battle.networkMode
+            ? '<button onclick="window.requestCasinoTCGNetworkRematch()">再戦ロビーへ</button><button onclick="window.closeCasinoTCGNetworkMatch()">対戦を終了</button>'
+            : '<button onclick="window.closeCasinoTCGTagBattle(\'replay\')">同じ条件で再戦</button><button onclick="window.closeCasinoTCGTagBattle(\'reselect\')">編成を選び直す</button><button onclick="window.closeCasinoTCGTagBattle(\'table\')">TCGロビーへ</button>';
+        panel.innerHTML = `<div class="ctgb-panel" style="text-align:center"><small style="color:#b9a8c7;letter-spacing:.2em">${battle.networkMode ? 'ONLINE RESULT' : 'TAG TEAM RESULT'}</small><h3 style="font-size:34px;color:${color};margin-top:5px">${title}</h3><p>${esc(battle.resultReason || '決着')}</p><p>${esc(playerNames)}<br>VS<br>${esc(enemyNames)}</p><div class="ctgb-panel-buttons" style="justify-content:center">${buttons}</div></div>`;
         root.appendChild(panel);
         if (window.audioManager) window.audioManager.playBGM(battle.result === 'win' ? 'card_victory' : battle.result === 'loss' ? 'card_lose' : 'card_lobby');
     }

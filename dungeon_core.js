@@ -17,6 +17,7 @@ window.DUNGEON_AVAILABLE_COMMANDS = [
 
 window.DUNGEON_STATE = {
     active: false, isAuto: false, mapWidth: 30, mapHeight: 30, floor: 1, mapType: 'skull',
+    turnCount: 0, floorTurn: 0,
     player: { x: 15, y: 15, hp: 100, maxHp: 100, face: 'down', type: 'robot', skin: 'robot', attackAnim: false, atkBuff: 0, defBuff: 0, hunger: 100, level: 1, exp: 0, nextExp: 20, tempInventory: [] },
     enemies: [], grid: [], log: []
 };
@@ -114,6 +115,8 @@ window.openDungeonUI = function(mapType = 'skull', startFloor = null) {
     // ★追加: デバッグの階層指定があれば優先、無ければ1階から
     let floor = startFloor || (window.dungeonState && window.dungeonState.floor) || 1;
     s.mapType = mapType; s.floor = floor;
+    // 新しい探索では、前回の全滅・帰還時点の風進行を持ち越さない。
+    s.turnCount = 0; s.floorTurn = 0;
     if (window.dungeonState) window.dungeonState = null; // リセット
     
     let currentSkin = 'robot'; let currentType = 'robot';

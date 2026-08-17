@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
 // ★修正：getDoc（データを読み込む部品）を追加しました
 import { getFirestore, doc, setDoc, getDocs, getDoc, collection, query, where, orderBy, limit, deleteDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBRumWspj5cJVyAMGqeZOtptQntL1oJasE",
@@ -17,9 +17,87 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app); 
 
+const CLOUD_TAVERN_UPLOAD_INTERVAL_MS = 30000;
+let cloudTavernUploadTimer = null;
+let p2pMatchmakingSessionActive = false;
+
+function isRegularOnlineUser(user = auth.currentUser) {
+    return !!(user && !user.isAnonymous);
+}
+
+function requireRegularOnlineUser(actionName, options = {}) {
+    const user = auth.currentUser;
+    if (isRegularOnlineUser(user)) return user;
+    if (!options.silent) {
+        const message = actionName
+            ? `${actionName}を利用するには通常アカウントでのログインが必要です。`
+            : 'このオンライン機能を利用するには通常アカウントでのログインが必要です。';
+        if (typeof window.showGameAlert === 'function') window.showGameAlert(message);
+        else alert(message);
+    }
+    return null;
+}
+
+function stopCloudTavernUploadTimer() {
+    if (cloudTavernUploadTimer) clearInterval(cloudTavernUploadTimer);
+    cloudTavernUploadTimer = null;
+}
+
+function startCloudTavernUploadTimer() {
+    stopCloudTavernUploadTimer();
+    if (!isRegularOnlineUser()) return;
+    cloudTavernUploadTimer = setInterval(() => {
+        if (!isRegularOnlineUser()) {
+            stopCloudTavernUploadTimer();
+            return;
+        }
+        let mode = 'unknown';
+        try { mode = currentMode; } catch (error) {}
+        if (mode === 'play' && typeof window.uploadMyAIToCloud === 'function') {
+            window.uploadMyAIToCloud();
+        }
+    }, CLOUD_TAVERN_UPLOAD_INTERVAL_MS);
+}
+
 // 認証オブジェクトを公開せず、ゲーム側から副作用なくログイン状態だけ確認できる入口。
 window.isOnlineAccountLoggedIn = function() {
-    return !!auth.currentUser;
+    return isRegularOnlineUser();
+};
+
+// P2P対戦は通常アカウント未登録でも利用できる。匿名認証は既存クラウド機能へは通さない。
+window.ensureP2PMatchmakingSession = async function() {
+    p2pMatchmakingSessionActive = true;
+    let user = auth.currentUser;
+    try {
+        if (!user) {
+            const credential = await signInAnonymously(auth);
+            user = credential.user;
+        }
+    } catch (error) {
+        p2pMatchmakingSessionActive = false;
+        throw error;
+    }
+    return {
+        uid: user.uid,
+        isAnonymous: !!user.isAnonymous,
+        isRegularAccount: isRegularOnlineUser(user)
+    };
+};
+
+window.endP2PMatchmakingSession = async function() {
+    p2pMatchmakingSessionActive = false;
+    if (!auth.currentUser || !auth.currentUser.isAnonymous) return false;
+    await signOut(auth);
+    return true;
+};
+
+window.getFirebaseAppForP2P = function() {
+    return app;
+};
+
+window.getP2PMatchmakingSessionInfo = function() {
+    const user = auth.currentUser;
+    return user ? { uid: user.uid, isAnonymous: !!user.isAnonymous, isRegularAccount: isRegularOnlineUser(user) } : null;
 };
 
 // ★追加：データ通信を節約するためのキャッシュ（一時保存）領域
@@ -103,6 +181,8 @@ window.handleLogin = async function() {
 window.handleSignOut = async function() {
     try {
         await signOut(auth);
+        localStorage.removeItem('my_player_id');
+        stopCloudTavernUploadTimer();
         alert("ログアウトしました。");
     } catch (error) {
         console.error("ログアウトエラー:", error);
@@ -120,7 +200,7 @@ onAuthStateChanged(auth, (user) => {
     const guestMenu = document.getElementById('authGuestMenu');
     const loggedInMenu = document.getElementById('authLoggedInMenu');
 
-    if (user) {
+    if (isRegularOnlineUser(user)) {
         console.log("✅ 現在ログイン中のユーザー:", user.uid);
         localStorage.setItem('my_player_id', user.uid); 
         
@@ -133,15 +213,21 @@ onAuthStateChanged(auth, (user) => {
         }
         if (guestMenu) guestMenu.style.display = "none";
         if (loggedInMenu) loggedInMenu.style.display = "flex";
+        startCloudTavernUploadTimer();
         
     } else {
-        console.log("❌ ログアウト状態です");
+        console.log(user && user.isAnonymous ? "🎮 P2P用の匿名セッションです" : "❌ ログアウト状態です");
+        localStorage.removeItem('my_player_id');
+        stopCloudTavernUploadTimer();
         if (loginBtn) {
             loginBtn.innerHTML = "🔐 ログイン";
             loginBtn.style.background = "#2196F3";
         }
         if (guestMenu) guestMenu.style.display = "block";
         if (loggedInMenu) loggedInMenu.style.display = "none";
+        if (user && user.isAnonymous && !p2pMatchmakingSessionActive) {
+            signOut(auth).catch(error => console.warn('古い匿名セッションの終了に失敗しました。', error));
+        }
         
         // パスワード入力欄などをリセット
         const errorMsg = document.getElementById('authErrorMessage');
@@ -178,6 +264,7 @@ window.showCustomAlert = function(title, message, callback) {
 
 // ログイン直後に、名前が登録されているかチェックする
 window.checkAndPromptPlayerName = async function(user) {
+    if (!isRegularOnlineUser(user)) return false;
     try {
         const docRef = doc(db, "player_profiles", user.uid);
         const docSnap = await getDoc(docRef);
@@ -219,7 +306,7 @@ window.registerPlayerName = async function() {
         return;
     }
 
-    const user = auth.currentUser;
+    const user = isRegularOnlineUser() ? auth.currentUser : null;
     if (!user) {
         // ★修正：ゲスト状態での登録。文言を分かりやすく変更！
         localStorage.setItem('my_player_name', inputName);
@@ -277,8 +364,8 @@ window.registerPlayerName = async function() {
 // ==========================================
 window.backupSaveDataToCloud = async function() {
     if (blockDebugTestCloudWrite('クラウドバックアップ')) return false;
-    const user = auth.currentUser;
-    if (!user) return alert("ログインが必要です！");
+    const user = requireRegularOnlineUser('クラウドバックアップ', { silent: false });
+    if (!user) return false;
 
     try {
         // 現在のゲームの状態を念のためローカルにセーブしておく
@@ -317,8 +404,8 @@ window.backupSaveDataToCloud = async function() {
 // ==========================================
 window.restoreSaveDataFromCloud = async function() {
     if (blockDebugTestCloudWrite('クラウドからの復元')) return false;
-    const user = auth.currentUser;
-    if (!user) return alert("ログインが必要です！");
+    const user = requireRegularOnlineUser('クラウドからの復元', { silent: false });
+    if (!user) return false;
 
     if (!confirm("⚠️ クラウドのデータで、現在のゲームデータを【上書き】します。\n（現在のプレイ状況は消えます）本当によろしいですか？")) {
         return;
@@ -356,12 +443,10 @@ window.restoreSaveDataFromCloud = async function() {
 // ==========================================
 window.uploadMyAIToCloud = async function() {
     if (blockDebugTestCloudWrite('酒場AIの公開', true)) return false;
+    const user = requireRegularOnlineUser('酒場AIの公開', { silent: true });
+    if (!user) return false;
     if (typeof window.aiPet === 'undefined' || !window.aiPet.stats) return;
-    let myPlayerId = localStorage.getItem('my_player_id');
-    if (!myPlayerId) {
-        myPlayerId = 'player_' + Date.now() + Math.floor(Math.random() * 1000);
-        localStorage.setItem('my_player_id', myPlayerId);
-    }
+    const myPlayerId = user.uid;
     const cloudData = {
         playerId: myPlayerId,
         playerName: localStorage.getItem('my_player_name') || "名無し", // ★これを追加！
@@ -372,10 +457,17 @@ window.uploadMyAIToCloud = async function() {
         title: (window.aiPet.apprentice && window.aiPet.apprentice.title) ? window.aiPet.apprentice.title : "",
         lastUpdated: Date.now()
     };
-    try { await setDoc(doc(db, "tavern_ais", myPlayerId), cloudData); } catch (error) { }
+    try {
+        await setDoc(doc(db, "tavern_ais", myPlayerId), cloudData);
+        return true;
+    } catch (error) {
+        console.error('酒場AI公開エラー:', error);
+        return false;
+    }
 };
 
 window.fetchCloudAIs = async function(forceRefresh = false) {
+    if (!requireRegularOnlineUser('酒場AIの取得', { silent: true })) return [];
     if (!forceRefresh && Date.now() - dataCache.tavernAIs.lastFetch < CACHE_LIFETIME) {
         console.log("酒場AI: キャッシュから取得 (通信量0)");
         return dataCache.tavernAIs.items;
@@ -399,10 +491,14 @@ window.fetchCloudAIs = async function(forceRefresh = false) {
 
 window.uploadMyDeckToCloud = async function(myId, uploadData) {
     if (blockDebugTestCloudWrite('オンラインデッキの公開')) return false;
-    try { await setDoc(doc(db, "tcg_online_decks", myId), uploadData); return true; } catch (error) { return false; }
+    const user = requireRegularOnlineUser('オンラインデッキの公開', { silent: true });
+    if (!user) return false;
+    uploadData = Object.assign({}, uploadData, { playerId: user.uid });
+    try { await setDoc(doc(db, "tcg_online_decks", user.uid), uploadData); return true; } catch (error) { return false; }
 };
 
 window.fetchOnlineDecks = async function(forceRefresh = false) {
+    if (!requireRegularOnlineUser('オンラインデッキの取得', { silent: true })) return [];
     if (!forceRefresh && Date.now() - dataCache.onlineDecks.lastFetch < CACHE_LIFETIME) {
         console.log("TCGデッキ: キャッシュから取得 (通信量0)");
         return dataCache.onlineDecks.items;
@@ -433,7 +529,7 @@ window.fetchOnlineDecks = async function(forceRefresh = false) {
 // ---------------------------------------------------------
 window.updateDungeonRanking = async function(mapType, reachedFloor, aiLevel = 1) {
     if (blockDebugTestCloudWrite('ダンジョンランキング更新', true)) return false;
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('ダンジョンランキング更新', { silent: true });
     if (!user) return; 
 
     const playerName = localStorage.getItem('my_player_name') || "名無し";
@@ -482,6 +578,7 @@ window.updateDungeonRanking = async function(mapType, reachedFloor, aiLevel = 1)
 };
 
 window.fetchDungeonRanking = async function(mapType, forceRefresh = false) {
+    if (!requireRegularOnlineUser('ダンジョンランキング取得', { silent: true })) return [];
     if (!dataCache.dungeonRank[mapType]) dataCache.dungeonRank[mapType] = { items: [], lastFetch: 0 };
     
     if (!forceRefresh && Date.now() - dataCache.dungeonRank[mapType].lastFetch < CACHE_LIFETIME) {
@@ -593,6 +690,7 @@ window.renderDungeonRankingList = async function(mapType) {
 // ★ 詳細パネルを表示する関数（ダンジョン用：フレンド＆訪問ボタン追加版）
 // -------------------------------
 window.openPlayerDetail = async function(playerId, mapType) {
+    if (!requireRegularOnlineUser('プレイヤー詳細取得', { silent: true })) return false;
     const detailArea = document.getElementById('ranking-detail-area');
     const content = document.getElementById('ranking-detail-content');
     const title = document.getElementById('ranking-detail-title');
@@ -677,7 +775,7 @@ window.openPlayerDetail = async function(playerId, mapType) {
 // 倒れた時に救助要請を出す
 window.requestRescue = async function(mapType, floor) {
     if (blockDebugTestCloudWrite('救助要請')) return false;
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('救助要請', { silent: true });
     if (!user) return false;
 
     const playerName = localStorage.getItem('my_player_name') || "名無し";
@@ -709,7 +807,9 @@ window.requestRescue = async function(mapType, floor) {
 
 // 現在出ている救助要請（自分以外）を取得する
 window.fetchRescueRequests = async function(mapType) {
-    const myId = auth.currentUser ? auth.currentUser.uid : null;
+    const user = requireRegularOnlineUser('救助要請取得', { silent: true });
+    if (!user) return [];
+    const myId = user.uid;
     try {
         const q = query(collection(db, "rescue_requests"), where("mapType", "==", mapType), where("status", "==", "waiting"));
         const querySnapshot = await getDocs(q);
@@ -728,6 +828,7 @@ window.fetchRescueRequests = async function(mapType) {
 // 対象のプレイヤーを救助したことをサーバーに報告する
 window.completeRescue = async function(requesterId) {
     if (blockDebugTestCloudWrite('救助完了報告')) return false;
+    if (!requireRegularOnlineUser('救助完了報告', { silent: true })) return false;
     try {
         // ステータスを 'rescued' に更新する
         await setDoc(doc(db, "rescue_requests", requesterId), { status: 'rescued' }, { merge: true });
@@ -739,7 +840,7 @@ window.completeRescue = async function(requesterId) {
 
 // 自分が救助されたかどうか（定期的に）チェックする
 window.checkMyRescueStatus = async function() {
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('救助状態確認', { silent: true });
     if (!user) return false;
 
     // そもそも救助待ち状態でなければチェックしない
@@ -757,19 +858,13 @@ window.checkMyRescueStatus = async function() {
     }
 };
 
-setInterval(() => {
-    // 【絶対安全装置】
-    let mode = 'unknown'; try { mode = currentMode; } catch(e) {}
-    if (mode === 'play') { window.uploadMyAIToCloud(); }
-}, 30000);
-
 // ==========================================
 // ⚔️ 闘技場（アリーナ）：オンラインランキング機能
 // ==========================================
 
 window.updateArenaRanking = async function(reachedWave, partyData) {
     if (blockDebugTestCloudWrite('アリーナランキング更新', true)) return false;
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('アリーナランキング更新', { silent: true });
     if (!user) return; 
 
     const playerName = localStorage.getItem('my_player_name') || "名無し";
@@ -803,6 +898,7 @@ window.updateArenaRanking = async function(reachedWave, partyData) {
 };
 
 window.fetchArenaRanking = async function(mode = 'normal', forceRefresh = false) {
+    if (!requireRegularOnlineUser('アリーナランキング取得', { silent: true })) return [];
     if (!dataCache.arenaRank[mode]) dataCache.arenaRank[mode] = { items: [], lastFetch: 0 };
     
     if (!forceRefresh && Date.now() - dataCache.arenaRank[mode].lastFetch < CACHE_LIFETIME) {
@@ -836,6 +932,7 @@ window.fetchArenaRanking = async function(mode = 'normal', forceRefresh = false)
 // フレンドがテイクアウトしたアイテムを、相手のクラウドデータに送る
 window.sendItemToFriend = async function(friendId, friendName, itemId, price = 0) {
     if (blockDebugTestCloudWrite('フレンドへのアイテム送信')) return false;
+    if (!requireRegularOnlineUser('フレンドへのアイテム送信', { silent: true })) return false;
     if (!friendId) return;
     let itemName = window.getDisplayShopItemName ? window.getDisplayShopItemName(itemId) : itemId;
     if (typeof addFloatingText === 'function' && window.aiPet) addFloatingText(window.aiPet.x, window.aiPet.y - 80, `🎁 ${friendName}にお土産を渡した！`, "#E040FB");
@@ -886,6 +983,7 @@ window.sendItemToFriend = async function(friendId, friendName, itemId, price = 0
 // フレンドがイートインした時に、相手のクラウドデータのステータス（体力・満腹度）を回復させる
 window.sendFoodEffectToFriend = async function(friendId, friendName, itemId, price = 0) {
     if (blockDebugTestCloudWrite('フレンドへの料理効果送信')) return false;
+    if (!requireRegularOnlineUser('フレンドへの料理効果送信', { silent: true })) return false;
     if (!friendId) return;
     let itemName = window.getDisplayShopItemName ? window.getDisplayShopItemName(itemId) : itemId;
     if (typeof addFloatingText === 'function' && window.aiPet) addFloatingText(window.aiPet.x, window.aiPet.y - 80, `✨ ${friendName}の元気が回復した！`, "#E040FB");
@@ -941,6 +1039,7 @@ window.sendFoodEffectToFriend = async function(friendId, friendName, itemId, pri
 
 // 指定した他プレイヤーのセーブデータをクラウドから取得する
 window.fetchPlayerSaveData = async function(playerId) {
+    if (!requireRegularOnlineUser('プレイヤーデータ取得', { silent: true })) return null;
     try {
         const docRef = doc(db, "user_save_data", playerId);
         const docSnap = await getDoc(docRef);
@@ -1020,6 +1119,7 @@ window.openFriendListUI = function() {
 // 取引記録をホストの郵便受けに送信
 window.sendTradeToHost = async function(hostId, visitorName, tradeType, itemId, price) {
     if (blockDebugTestCloudWrite('訪問先との取引')) return false;
+    if (!requireRegularOnlineUser('訪問先との取引', { silent: true })) return false;
     if (!hostId) return;
     try {
         const docRef = doc(db, "trade_mailbox", hostId);
@@ -1034,8 +1134,9 @@ window.sendTradeToHost = async function(hostId, visitorName, tradeType, itemId, 
 // ログイン時に溜まった取引を精算
 window.processTradeMailbox = async function() {
     if (blockDebugTestCloudWrite('取引メールの精算', true)) return false;
-    let myId = localStorage.getItem('my_player_id');
-    if (!myId) return;
+    const user = requireRegularOnlineUser('取引メールの精算', { silent: true });
+    if (!user) return false;
+    let myId = user.uid;
 
     try {
         const docRef = doc(db, "trade_mailbox", myId);
@@ -1113,7 +1214,7 @@ window.showTradeReportUI = function(reportHtml, totalProfit) {
 };
 
 onAuthStateChanged(auth, (user) => {
-    if (user) setTimeout(() => { if (typeof window.processTradeMailbox === 'function') window.processTradeMailbox(); }, 5000);
+    if (isRegularOnlineUser(user)) setTimeout(() => { if (typeof window.processTradeMailbox === 'function') window.processTradeMailbox(); }, 5000);
 });
 
 // ★チャット指示のキャッチ
@@ -1150,7 +1251,7 @@ if (typeof window.originalSendChat === 'undefined') {
 // ==========================================
 window.uploadTCGMarketItem = async function(cardData, price) {
     if (blockDebugTestCloudWrite('TCGマーケットへの出品')) return false;
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('TCGマーケットへの出品', { silent: true });
     if (!user) return false;
     const playerName = localStorage.getItem('my_player_name') || "名無し";
     const docId = 'market_' + Date.now() + '_' + Math.floor(Math.random() * 1000);
@@ -1167,6 +1268,7 @@ window.uploadTCGMarketItem = async function(cardData, price) {
 };
 
 window.fetchTCGMarketItems = async function(forceRefresh = false) {
+    if (!requireRegularOnlineUser('TCGマーケット取得', { silent: true })) return [];
     // ★追加: キャッシュが有効（3分以内）なら、データベース通信をせずにキャッシュを返す
     if (!forceRefresh && Date.now() - dataCache.tcgMarket.lastFetch < CACHE_LIFETIME) {
         console.log("TCGマーケット: キャッシュからデータを取得しました (通信量0)");
@@ -1193,7 +1295,7 @@ window.fetchTCGMarketItems = async function(forceRefresh = false) {
 
 window.buyTCGMarketItem = async function(docId, cardData, price, sellerId) {
     if (blockDebugTestCloudWrite('TCGマーケットでの購入')) return false;
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('TCGマーケットでの購入', { silent: true });
     if (!user) return false;
     try {
         // 先に市場から削除（購入成立）
@@ -1211,6 +1313,7 @@ window.buyTCGMarketItem = async function(docId, cardData, price, sellerId) {
 
 window.cancelTCGMarketItem = async function(docId) {
     if (blockDebugTestCloudWrite('TCGマーケット出品の取消')) return false;
+    if (!requireRegularOnlineUser('TCGマーケット出品の取消', { silent: true })) return false;
     try { await deleteDoc(doc(db, "tcg_market", docId)); return true; } 
     catch(e) { console.error(e); return false; }
 };
@@ -1220,7 +1323,7 @@ window.cancelTCGMarketItem = async function(docId) {
 // ==========================================
 window.updateDefenseRanking = async function(mode, wave, partyData) {
     if (blockDebugTestCloudWrite('防衛戦ランキング更新', true)) return false;
-    const user = auth.currentUser;
+    const user = requireRegularOnlineUser('防衛戦ランキング更新', { silent: true });
     if (!user) return;
     const playerName = localStorage.getItem('my_player_name') || "名無し";
     const collectionName = mode === 'endless' ? "defense_rankings_endless" : "defense_rankings_normal";
@@ -1243,6 +1346,7 @@ window.updateDefenseRanking = async function(mode, wave, partyData) {
 };
 
 window.fetchDefenseRanking = async function(mode = 'normal', forceRefresh = false) {
+    if (!requireRegularOnlineUser('防衛戦ランキング取得', { silent: true })) return [];
     if (!dataCache.defenseRank[mode]) dataCache.defenseRank[mode] = { items: [], lastFetch: 0 };
     if (!forceRefresh && Date.now() - dataCache.defenseRank[mode].lastFetch < CACHE_LIFETIME) {
         console.log(`防衛戦(${mode}): キャッシュから取得 (通信量0)`);
@@ -1267,6 +1371,7 @@ window.fetchDefenseRanking = async function(mode = 'normal', forceRefresh = fals
 window.silentSignOutForNewGame = async function() {
     window.skipAutoLogin = true; 
     try { await signOut(auth); } catch (e) {}
+    stopCloudTavernUploadTimer();
     localStorage.removeItem('my_player_name');
     localStorage.removeItem('my_player_id');
 };
@@ -1315,10 +1420,7 @@ window.performSteamAutoLogin = async function() {
     }
 };
 
-// ファイル読み込み時に自動でログインを実行する
-setTimeout(() => {
-    window.performSteamAutoLogin();
-}, 1000); // 起動直後の安全のために1秒後に実行
+// Steam連携はタイトル画面でプレイヤーが選択した時だけ実行する。
 
 // ==========================================
 // 🛡️ [究極版] ゲーム開始フロー＆アカウント統合制御システム
@@ -1388,8 +1490,11 @@ window.showNewGameLoginChoice = function() {
 window.showContinueLoginChoice = function() {
     let buttons = [
         { text: '✉️ ログイン・登録して遊ぶ', color: '#4CAF50', action: () => window.showEmailRegistrationUI(false) },
-        { text: '📴 そのまま（オフライン）で遊ぶ', color: '#444', action: () => {
+        { text: '📴 そのまま（オフライン）で遊ぶ', color: '#444', action: async () => {
             window.skipAutoLogin = true;
+            try { await signOut(auth); } catch (e) {}
+            stopCloudTavernUploadTimer();
+            localStorage.removeItem('my_player_id');
             window.forceResetArenaForLoad(); // ★オフライン進行時もリセット
             window.startActualGame(false);
         }},
@@ -1404,6 +1509,7 @@ window.executeNewGameInitialization = async function(isOffline) {
     if (isOffline) {
         window.skipAutoLogin = true;
         try { await signOut(auth); } catch(e){}
+        stopCloudTavernUploadTimer();
         localStorage.removeItem('my_player_name');
         localStorage.removeItem('my_player_id');
     }
@@ -1565,7 +1671,7 @@ window.showEmailRegistrationUI = function(isNewGame) {
 
 // 6. 【ソフトゲート】オフライン時のオンライン機能へのアクセス制御
 window.checkOnlineFeatureAccess = function() {
-    if (auth && auth.currentUser) return true; // ログイン済みなら通す
+    if (isRegularOnlineUser()) return true; // 通常アカウントでログイン済みなら通す
     
     window.showRichChoiceDialog(
         "🔐 オンライン機能",

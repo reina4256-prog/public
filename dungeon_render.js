@@ -585,23 +585,39 @@ window.DUNGEON_SPRITES = {
         "scale": 0.25000000000000006
     },
 
+    // 王城の人物（4方向シートは 2760x1504、1方向あたり 690x1504）
+    "king_down": { "img": "king_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "king_up": { "img": "king_dungeon_walk.png", "sx": 690, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "king_right": { "img": "king_dungeon_walk.png", "sx": 1380, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "king_left": { "img": "king_dungeon_walk.png", "sx": 2070, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+
+    "captain_down": { "img": "captain_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "captain_up": { "img": "captain_dungeon_walk.png", "sx": 690, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "captain_right": { "img": "captain_dungeon_walk.png", "sx": 1380, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "captain_left": { "img": "captain_dungeon_walk.png", "sx": 2070, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+
+    "soldier_down": { "img": "soldier_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "soldier_up": { "img": "soldier_dungeon_walk.png", "sx": 690, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "soldier_right": { "img": "soldier_dungeon_walk.png", "sx": 1380, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "soldier_left": { "img": "soldier_dungeon_walk.png", "sx": 2070, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+
     // 占い師
-    "fortune_teller_down": { "img": "fortune_teller_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "fortune_teller_up": { "img": "fortune_teller_dungeon_walk.png", "sx": 704, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "fortune_teller_left": { "img": "fortune_teller_dungeon_walk.png", "sx": 1408, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "fortune_teller_right": { "img": "fortune_teller_dungeon_walk.png", "sx": 2112, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "fortune_teller_down": { "img": "fortune_teller_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "fortune_teller_up": { "img": "fortune_teller_dungeon_walk.png", "sx": 690, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "fortune_teller_right": { "img": "fortune_teller_dungeon_walk.png", "sx": 1380, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "fortune_teller_left": { "img": "fortune_teller_dungeon_walk.png", "sx": 2070, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
 
     // 科学者
-    "scientist_down": { "img": "scientist_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "scientist_up": { "img": "scientist_dungeon_walk.png", "sx": 704, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "scientist_left": { "img": "scientist_dungeon_walk.png", "sx": 1408, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "scientist_right": { "img": "scientist_dungeon_walk.png", "sx": 2112, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "scientist_down": { "img": "scientist_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "scientist_up": { "img": "scientist_dungeon_walk.png", "sx": 690, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "scientist_right": { "img": "scientist_dungeon_walk.png", "sx": 1380, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "scientist_left": { "img": "scientist_dungeon_walk.png", "sx": 2070, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
 
     // 販売員
-    "merchant_down": { "img": "merchant_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "merchant_up": { "img": "merchant_dungeon_walk.png", "sx": 704, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "merchant_left": { "img": "merchant_dungeon_walk.png", "sx": 1408, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
-    "merchant_right": { "img": "merchant_dungeon_walk.png", "sx": 2112, "sy": 0, "sw": 704, "sh": 1536, "scale": 0.25 },
+    "merchant_down": { "img": "merchant_dungeon_walk.png", "sx": 0, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "merchant_up": { "img": "merchant_dungeon_walk.png", "sx": 690, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "merchant_right": { "img": "merchant_dungeon_walk.png", "sx": 1380, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
+    "merchant_left": { "img": "merchant_dungeon_walk.png", "sx": 2070, "sy": 0, "sw": 690, "sh": 1504, "scale": 0.25, "sourceW": 2760, "sourceH": 1504 },
 
     "robot_down": { "img": "robot_dungeon_walk.png", "sx": 688, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },
     "robot_up": { "img": "robot_dungeon_walk.png", "sx": 1754, "sy": 76, "sw": 408, "sh": 626, "scale": 0.4 },

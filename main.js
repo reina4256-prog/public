@@ -439,7 +439,8 @@ function createPalette() {
 // ==========================================
 // ★ AI調整用の直接入力UIパネル（家具エディタ機能追加版）
 // ==========================================
-window.editingTarget = 'ai'; window.selectedCardKey = ''; window.selectedDungeonSpriteKey = 'skull_floor'; 
+window.editingTarget = 'ai'; window.selectedCardKey = ''; window.selectedDungeonSpriteKey = 'skull_floor';
+window.selectedCastleSpriteKey = window.selectedCastleSpriteKey || 'castle_throne_floor';
 window.selectedFurnitureIndex = 0; window.copiedFrameData = null;
 window.cardAdjustScope = 'both';
 // ★タイトル画面調整用データ
@@ -2559,6 +2560,9 @@ function initAdjustUI() {
                 <label style="margin-right:10px; cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> S-ASSET</label>
                 <label style="cursor:pointer; color:#FF5722;"><input type="radio" name="adjTarget" value="title"> TITLE</label>
             </div>
+            <div style="margin-top: 5px;">
+                <label style="margin-right:10px; cursor:pointer; color:#FFD166;"><input type="radio" name="adjTarget" value="casset"> CASTLE（城マップチップ）</label>
+            </div>
         </div>
         <div id="ai-adjust-status" style="margin-bottom:10px; font-size:12px; color:#00ff00;"></div>
         <div style="margin:10px 0; display:flex; align-items:center;" id="adj-act-wrap">
@@ -2642,7 +2646,7 @@ function initAdjustUI() {
     });
 
     document.getElementById('direct-input-image').addEventListener('input', e => {
-        const target = getAdjustTarget(); if (target) { target.image = e.target.value; if(target.img !== undefined) target.img = e.target.value; if(typeof render === 'function') render(); }
+        const target = getAdjustTarget(); if (target) { target.image = e.target.value; if(target.img !== undefined) target.img = e.target.value; if(typeof render === 'function') render(); if (editingTarget === 'casset' && typeof window.renderCastleMap === 'function') window.renderCastleMap(true); }
     });
     document.getElementById('direct-input-image').addEventListener('change', () => { if(typeof saveGameData === 'function') saveGameData(); });
 
@@ -2655,12 +2659,13 @@ function initAdjustUI() {
                     let val = parseFloat(e.target.value);
                     if (isNaN(val)) val = f.includes('scale') ? 1 : 0;
 
-                    if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
+                    if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) {
                         target.scale = val;
                     } else {
                         writeAdjustFrameValue(target, f, val);
                     }
-                    if(typeof render === 'function') render(); 
+                    if(typeof render === 'function') render();
+                    if (editingTarget === 'casset' && typeof window.renderCastleMap === 'function') window.renderCastleMap(true);
                 }
             });
             input.addEventListener('change', () => { if(typeof saveGameData === 'function') saveGameData(); });
@@ -2730,10 +2735,11 @@ function initAdjustUI() {
              writeAdjustFrameValue(target, 'sw', window.copiedFrameData.sw); writeAdjustFrameValue(target, 'sh', window.copiedFrameData.sh);
              if(window.copiedFrameData.scaleX !== undefined) writeAdjustFrameValue(target, 'scaleX', window.copiedFrameData.scaleX);
              if(window.copiedFrameData.scaleY !== undefined) writeAdjustFrameValue(target, 'scaleY', window.copiedFrameData.scaleY);
-             if(window.copiedFrameData.scale !== undefined) target.scale = window.copiedFrameData.scale;
-             if(window.copiedFrameData.rotation !== undefined) target.rotation = window.copiedFrameData.rotation;
-             if(typeof render === 'function') render(); if(typeof saveGameData === 'function') saveGameData();
-             this.innerText = 'Pasted!'; this.style.background = '#b22222'; setTimeout(() => { this.innerText = 'Paste'; this.style.background = '#444'; }, 1000);
+              if(window.copiedFrameData.scale !== undefined) target.scale = window.copiedFrameData.scale;
+              if(window.copiedFrameData.rotation !== undefined) target.rotation = window.copiedFrameData.rotation;
+              if(typeof render === 'function') render(); if(typeof saveGameData === 'function') saveGameData();
+              if (editingTarget === 'casset' && typeof window.renderCastleMap === 'function') window.renderCastleMap(true);
+              this.innerText = 'Pasted!'; this.style.background = '#b22222'; setTimeout(() => { this.innerText = 'Paste'; this.style.background = '#444'; }, 1000);
          }
     };
 
@@ -2754,6 +2760,9 @@ function initAdjustUI() {
             // ★修正：R-ASSETが選ばれた時、新しいスプライトキーを表示する
             else if (editingTarget === 'rasset') {
                 statusEl.innerText = `Target: ${window.selectedShopSpriteKey || 'None'}`;
+            }
+            else if (editingTarget === 'casset') {
+                statusEl.innerText = `Target: ${window.selectedCastleSpriteKey || 'None'}`;
             }
             else if (editingTarget === 'sasset') {
                 let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['smith'] ? window.SHOP_FURNITURE_DATA['smith'][window.selectedFurnitureIndex] : null;
@@ -2780,7 +2789,7 @@ function initAdjustUI() {
                 ['sx', 'sy', 'sw', 'sh', 'scaleX', 'scaleY', 'rotation'].forEach(f => {
                     const el = document.getElementById('direct-input-' + f);
                     if (el && document.activeElement !== el) {
-                        if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'sasset', 'title'].includes(editingTarget)) {
+                        if (f === 'scaleX' && ['dmap', 'dchr', 'achr', 'afld', 'rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) {
                             el.value = target.scale !== undefined ? target.scale : 1;
                         } else { 
                             const value = readAdjustFrameValue(target, f);
@@ -2977,6 +2986,12 @@ window.getAdjustTarget = function() {
             if (!keys.includes(window.selectedShopSpriteKey)) window.selectedShopSpriteKey = keys[0];
             target = window.getCombinedAdjustAsset(window.selectedShopSpriteKey);
         }
+    } else if (editingTarget === 'casset') {
+        const keys = typeof window.CASTLE_SPRITES !== 'undefined' ? Object.keys(window.CASTLE_SPRITES) : [];
+        if (keys.length > 0) {
+            if (!keys.includes(window.selectedCastleSpriteKey)) window.selectedCastleSpriteKey = keys[0];
+            target = window.CASTLE_SPRITES[window.selectedCastleSpriteKey];
+        }
     }else if (editingTarget === 'sasset') {
         if (typeof window.SHOP_FURNITURE_DATA !== 'undefined' && window.SHOP_FURNITURE_DATA['smith']) {
             let list = window.SHOP_FURNITURE_DATA['smith'];
@@ -3032,6 +3047,9 @@ window.addEventListener('keydown', (e) => {
                     console.log("■■■ MYHOME_SPRITES ■■■\n" + JSON.stringify(window.MYHOME_SPRITES || {}, null, 4));
                     console.log("■■■ CASINO_SPRITES（トランプ切り抜きを含む） ■■■\n" + JSON.stringify(window.CASINO_SPRITES || {}, null, 4));
                     alert("ASSET用スプライト定義をコンソールに出力しました。");
+                } else if (editingTarget === 'casset') {
+                    console.log("■■■ CASTLE_SPRITES（城マップチップ） ■■■\n" + JSON.stringify(window.CASTLE_SPRITES || {}, null, 4));
+                    alert("城マップチップの切り取り定義をコンソールに出力しました。");
                 } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                     console.log("▼▼▼ SHOP_FURNITURE_DATA ▼▼▼\n" + JSON.stringify(window.SHOP_FURNITURE_DATA, null, 4)); alert("家具配置データをコンソールに出力しました！\nこれを ui_controller.js に貼り付けてください。");
                 } else if (editingTarget === 'title') {
@@ -3108,6 +3126,15 @@ window.addEventListener('keydown', (e) => {
                     if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
                     window.selectedShopSpriteKey = keys[idx];
                 }
+            } else if (editingTarget === 'casset' && typeof window.CASTLE_SPRITES !== 'undefined') {
+                const keys = Object.keys(window.CASTLE_SPRITES);
+                if (keys.length > 0) {
+                    let currentKey = window.selectedCastleSpriteKey || keys[0];
+                    if (!keys.includes(currentKey)) currentKey = keys[0];
+                    let idx = keys.indexOf(currentKey);
+                    if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
+                    window.selectedCastleSpriteKey = keys[idx];
+                }
             } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
                 // (sassetの切り替えはそのまま)
                 let list = window.SHOP_FURNITURE_DATA['smith'];
@@ -3136,7 +3163,7 @@ window.addEventListener('keydown', (e) => {
                 setCardArtworkAdjustValue(card, 'scaleX', Math.max(0.01, (Number(getCardArtworkAdjustValue(card, 'scaleX')) || 1.0) - 0.05));
             }
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = Math.max(0.01, (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) - 0.05);
-            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.01, (t.scale||1.0) - 0.05); }
+            else if (['rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = Math.max(0.01, (t.scale||1.0) - 0.05); }
         }
         if (e.key.toLowerCase() === 'b') { 
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) aiConfigs[selectedAIType].scale = (aiConfigs[selectedAIType].scale||0.25) + 0.05;
@@ -3146,7 +3173,7 @@ window.addEventListener('keydown', (e) => {
                 setCardArtworkAdjustValue(card, 'scaleX', (Number(getCardArtworkAdjustValue(card, 'scaleX')) || 1.0) + 0.05);
             }
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale = (window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey].scale||1.0) + 0.05;
-            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
+            else if (['rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) t.scale = (t.scale||1.0) + 0.05; }
         }
 
         // CARDではN/Mを縦スケール専用にする。その他の調整対象では従来通り回転。
@@ -3160,7 +3187,7 @@ window.addEventListener('keydown', (e) => {
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) applyRot(aiConfigs[selectedAIType]);
             else if (editingTarget === 'map' && catalog[selectedMapKey]) applyRot(catalog[selectedMapKey]);
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) applyRot(window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]);
-            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
+            else if (['rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
         }
         if (e.key.toLowerCase() === 'm') { 
             if (editingTarget === 'card' && window.TCG_MASTER[selectedCardKey]) {
@@ -3172,7 +3199,7 @@ window.addEventListener('keydown', (e) => {
             if (editingTarget === 'ai' && aiConfigs[selectedAIType]) applyRot(aiConfigs[selectedAIType]);
             else if (editingTarget === 'map' && catalog[selectedMapKey]) applyRot(catalog[selectedMapKey]);
             else if (['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget) && window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]) applyRot(window.DUNGEON_SPRITES[window.selectedDungeonSpriteKey]);
-            else if (['rasset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
+            else if (['rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) { let t = getAdjustTarget(); if (t) applyRot(t); }
         }
     }
 
@@ -3220,7 +3247,7 @@ window.addEventListener('keydown', (e) => {
     if (key === 'c') { if(currentMode === 'editor' || currentMode === 'grazing_editor') target.scale += 0.05; else writeAdjustFrameValue(target, 'sh', (Number(readAdjustFrameValue(target, 'sh')) || 0) + step); }
     
     // ★追加：家具・タイトルキャラの配置位置（X/Y）の調整（矢印キー）
-    if (['rasset', 'sasset', 'title'].includes(editingTarget)) {
+    if (['rasset', 'casset', 'sasset', 'title'].includes(editingTarget)) {
         if (e.key === 'ArrowUp') { target.y -= step; e.preventDefault(); }
         if (e.key === 'ArrowDown') { target.y += step; e.preventDefault(); }
         if (e.key === 'ArrowLeft') { target.x -= step; e.preventDefault(); }
@@ -3245,13 +3272,14 @@ window.addEventListener('keydown', (e) => {
     render();
     
     // ★追加：家具の編集中に、開いている店舗UIがあれば即座に再描画して反映させる
-    if (['rasset', 'sasset'].includes(editingTarget)) {
+    if (['rasset', 'casset', 'sasset'].includes(editingTarget)) {
         let ui = document.getElementById('shop-management-ui');
         if (ui && ui.style.display !== 'none' && window.aiPet && window.aiPet.indoorTarget) {
             if (typeof window.openShopManagementUI === 'function') window.openShopManagementUI(window.aiPet.indoorTarget);
         }
         if (editingTarget === 'rasset' && typeof window.renderMyHomeMap === 'function') window.renderMyHomeMap();
         if (editingTarget === 'rasset' && typeof window.renderCasinoMap === 'function') window.renderCasinoMap();
+        if (editingTarget === 'casset' && typeof window.renderCastleMap === 'function') window.renderCastleMap(true);
     }
 });
 
@@ -3777,12 +3805,12 @@ window.debugStartArena = function() {
     let currentAssets = (typeof assets !== 'undefined') ? assets : (window.assets || {});
     let hasCastle = Object.values(currentAssets).some(a => a && a.type === 'castle');
     if (!hasCastle) {
-        if (!confirm("⚠️ 城が建っていません！\nエラーになる可能性がありますが、強制的にアリーナ受付を開きますか？")) return;
+        if (!confirm("⚠️ 城が建っていません！\nエラーになる可能性がありますが、強制的に隊長の闘技場クエスト準備を開きますか？")) return;
     }
 
     if (typeof window.openArenaReception === 'function') {
         window.openArenaReception();
-        alert(`アリーナ受付を開きました。\nパーティを編成して「出陣する」を押すと、指定したWAVE ${wave} からスタートします！`);
+        alert(`隊長の闘技場クエスト準備を開きました。\nパーティを編成して「出陣する」を押すと、指定したWAVE ${wave} からスタートします！`);
     }
 };
 

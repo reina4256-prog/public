@@ -1,0 +1,32 @@
+{
+  "rules": {
+    "tcg_p2p_rooms": {
+      "$roomCode": {
+        ".read": "auth != null && $roomCode.matches(/^[A-HJ-NP-Z2-9]{6}$/)",
+        ".write": "auth != null && $roomCode.matches(/^[A-HJ-NP-Z2-9]{6}$/)",
+        "meta": {
+          ".validate": "!newData.exists() || (newData.hasChildren(['protocol', 'mode', 'hostPeerId', 'status', 'createdAt', 'expiresAt']) && newData.child('protocol').isNumber() && (newData.child('mode').val() == 'single' || newData.child('mode').val() == 'tag') && newData.child('hostPeerId').isString() && newData.child('status').val() == 'lobby' && newData.child('createdAt').isNumber() && newData.child('expiresAt').isNumber())"
+        },
+        "members": {
+          "$peerId": {
+            ".validate": "!newData.exists() || (newData.hasChildren(['name', 'joinedAt', 'protocol']) && newData.child('name').isString() && newData.child('name').val().length <= 40 && newData.child('joinedAt').isNumber() && newData.child('protocol').val() == 1)"
+          }
+        },
+        "signals": {
+          "$targetPeerId": {
+            "$senderPeerId": {
+              ".validate": "!newData.exists() || newData.child('offer').exists() || newData.child('answer').exists() || newData.child('candidates').exists()"
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+    "$other": {
+      ".read": false,
+      ".write": false
+    }
+  }
+}

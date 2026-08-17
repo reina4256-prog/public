@@ -4608,6 +4608,9 @@ aiPet.update = function() {
                             }
                         }
                         if (typeof window.progressDailyQuest === 'function') window.progressDailyQuest(task.type);
+                        if (typeof window.triggerTCGSupportActionUnlock === 'function') {
+                            window.triggerTCGSupportActionUnlock(task.type, this.generation || 1);
+                        }
                         
                         if (this.apprentice && this.apprentice.isExcommunicated) {
                             if (['study', 'train', 'run'].includes(task.type)) {

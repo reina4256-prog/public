@@ -490,7 +490,7 @@ function render() {
     if ((currentMode === 'ai_adjust' || currentMode === 'editor') && editingTarget === 'map' && selectedMapKey) drawMapPreview();
     if (currentMode === 'ai_adjust' && editingTarget === 'card' && selectedCardKey) drawCardPreview();
     if (currentMode === 'ai_adjust' && ['dmap', 'dgim', 'dtrap', 'ditem', 'dchr', 'achr', 'afld'].includes(editingTarget)) drawDungeonPreview();
-    if (currentMode === 'ai_adjust' && (editingTarget === 'rasset' || editingTarget === 'sasset')) if (typeof window.drawFurniturePreview === 'function') window.drawFurniturePreview();
+    if (currentMode === 'ai_adjust' && ['rasset', 'casset', 'sasset'].includes(editingTarget)) if (typeof window.drawFurniturePreview === 'function') window.drawFurniturePreview();
     if (currentMode === 'ai_adjust') drawAdjustUI();
     if (currentMode === 'grazing' || (currentMode === 'play' && typeof party !== 'undefined' && party.length > 1)) drawPartyPIPs();
 }
@@ -1096,6 +1096,9 @@ function drawAdjustUI() {
     if (editingTarget === 'ai') { targetName = `AI: ${selectedAIType}`; } 
     else if (editingTarget === 'map') { targetName = `MAP: ${selectedMapKey}`; }
     else if (editingTarget === 'card') { targetName = `CARD: ${window.TCG_MASTER[selectedCardKey]?.name || selectedCardKey}`; }
+    else if (editingTarget === 'casset') { targetName = `CASTLE: ${window.selectedCastleSpriteKey || ''}`; }
+    else if (editingTarget === 'rasset') { targetName = `ROOM: ${window.selectedShopSpriteKey || ''}`; }
+    else if (editingTarget === 'sasset') { targetName = `FURNITURE: ${window.selectedFurnitureIndex ?? ''}`; }
     
     if (!target) { ctx.fillStyle = "white"; ctx.fillText("ターゲットが選択されていません", x, y); ctx.restore(); return; }
     ctx.font = "bold 16px monospace"; ctx.fillStyle = "#4CAF50"; ctx.fillText(`■ 調整モード: ${targetName}`, x, y); y += 30;
@@ -1115,6 +1118,10 @@ function drawAdjustUI() {
         ctx.font = "14px monospace"; ctx.fillStyle = "#FF9800"; ctx.fillText(`Card 切替: (Tabキー)`, x, y); y += lineHeight;
         ctx.fillStyle = "cyan"; ctx.fillText(`Scale X: ${(target.scaleX||1.0).toFixed(2)} (V/Bキー)`, x, y); y += lineHeight;
         ctx.fillStyle = "pink"; ctx.fillText(`Scale Y: ${(target.scaleY||1.0).toFixed(2)} (N/Mキー)`, x, y); y += lineHeight;
+    } else if (['rasset', 'casset', 'sasset'].includes(editingTarget)) {
+        ctx.font = "14px monospace"; ctx.fillStyle = "#FF9800"; ctx.fillText(`素材切替: (Tab / . / , キー)`, x, y); y += lineHeight;
+        const sc = target.scale !== undefined ? target.scale : 1.0;
+        ctx.fillStyle = "cyan"; ctx.fillText(`Scale : ${sc.toFixed(2)}倍 (V/Bキー)`, x, y); y += lineHeight;
     }
     
     // 共通の座標・サイズ表示
@@ -1611,10 +1618,14 @@ window.drawFurniturePreview = function() {
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 20px monospace";
     ctx.textAlign = "left";
-    ctx.fillText(`[R-ASSET Preview]`, 20, 50);
+    const previewLabel = (typeof editingTarget !== 'undefined' && editingTarget === 'casset') ? 'CASTLE-ASSET' : 'R-ASSET';
+    ctx.fillText(`[${previewLabel} Preview]`, 20, 50);
     ctx.fillStyle = "white";
     ctx.font = "16px monospace";
-    ctx.fillText(`Key : ${window.selectedShopSpriteKey || 'none'}`, 20, 80);
+    const previewKey = (typeof editingTarget !== 'undefined' && editingTarget === 'casset')
+        ? window.selectedCastleSpriteKey
+        : window.selectedShopSpriteKey;
+    ctx.fillText(`Key : ${previewKey || 'none'}`, 20, 80);
     ctx.fillText(`Img : ${target.img}`, 20, 105);
     ctx.fillText(`Cut : X:${sx}, Y:${sy}, W:${sw}, H:${sh}`, 20, 130);
     ctx.fillText(`Size: Scale ${scale.toFixed(2)}`, 20, 155);

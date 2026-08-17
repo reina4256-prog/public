@@ -1,6 +1,6 @@
 # ゲーム仕様書インデックス
 
-更新日: 2026-08-11
+更新日: 2026-08-12
 
 ## この仕様書群の役割
 
@@ -59,10 +59,12 @@
 | TCG | [`casino/tcg.md`](casino/tcg.md) |
 | 闘技場 | [`castle/arena.md`](castle/arena.md) |
 | 防衛戦 | [`castle/defense.md`](castle/defense.md) |
+| 城の屋内マップ | [`castle/indoor_map.md`](castle/indoor_map.md) |
 | フレンド、酒場、島訪問 | [`online/friends_tavern_and_visits.md`](online/friends_tavern_and_visits.md) |
 | ランキング | [`online/rankings_and_async_battles.md`](online/rankings_and_async_battles.md) |
 | 売買、競売、郵便受け | [`online/trading_auction_and_mailbox.md`](online/trading_auction_and_mailbox.md) |
 | ダンジョン救助 | [`online/dungeon_rescue.md`](online/dungeon_rescue.md) |
+| TCGリアルタイムP2P対戦 | [`online/tcg_realtime_p2p.md`](online/tcg_realtime_p2p.md) |
 | セーブ互換・移行 | [`internal/save_data_and_migration.md`](internal/save_data_and_migration.md) |
 | Electron、Steam、Web起動 | [`internal/runtime_platform_and_audio.md`](internal/runtime_platform_and_audio.md) |
 | オンライン中核、販売、運営費、ローカライズ | [`internal/online_release_and_localization_strategy.md`](internal/online_release_and_localization_strategy.md) |
@@ -77,13 +79,14 @@
 | 通常探検 | 実装済み | 詳細仕様を試作済み。高優先度5項目は決定・反映済み。耐久度、デイリー二重進捗等は継続検討 |
 | 基本職6種 | 実装済み | 冒険家、農家、漁師、料理人、鍛冶師、建築士 |
 | 上級職6種 | 実装済み | 薬剤師、仕立屋、パティシエ、美容師、コンシェルジュ、ディーラー |
-| 占い師 | 未実装・構想段階 | TCG人物カードは先行実装 |
-| 科学者 | 未実装・構想段階 | TCG人物カードは先行実装 |
-| 販売員 | 未実装・構想段階 | TCG人物カードは先行実装 |
+| 占い師 | 一部実装 | 城内NPC・通常会話とTCG人物カードを先行実装。弟子入り・Rank課題は未実装 |
+| 科学者 | 一部実装 | 城内NPC・通常会話とTCG人物カードを先行実装。弟子入り・Rank課題は未実装 |
+| 販売員 | 一部実装 | 城内NPC・通常会話とTCG人物カードを先行実装。弟子入り・Rank課題は未実装 |
 | スカル／クリスタルダンジョン | 実装済み | 共通ローグライク基盤を共有 |
 | カジノ | 一部実装 | ディーラー進行、4種トランプ、スロット、シングルTCG、免許皆伝後のTCGタッグ戦は実装済み |
-| 闘技場／防衛戦 | 実装済み | オンラインランキング連携あり |
-| オンライン要素 | 実装済み・一部要確認 | Firebase非同期連携。実機総合検証が必要 |
+| 城の屋内マップ | 実装済み | 3×2の6室を扉遷移なしで構成。チャット移動、6NPC、受注元復帰、専用マップチップ調整に対応 |
+| 闘技場／防衛戦 | 実装済み | 隊長／王様から受注。防衛戦の自動発生と王城総合受付は廃止。オンラインランキング連携あり |
+| オンライン要素 | 実装済み・一部要確認 | Firebase非同期連携とTCGフルメッシュP2P。実Firebase・複数PC検証が必要 |
 | オンライン中核・販売・ローカライズ再設計 | 一部実装 | Steam優先。非同期島社会と最低6言語を目標に基盤再設計予定 |
 
 ## 主な実装所有ファイル
@@ -100,8 +103,10 @@
 | `dungeon_*.js` | ダンジョン生成、戦闘、ターン、描画、アイテム、特性 |
 | `casino_map_core.js` | カジノ進行、屋内マップ、設備、スロット、トランプ連携 |
 | `tcg_core.js` | 思い出カード、デッキ、TCG、カードショップ・競売 |
+| `tcg_tag_core.js` / `tcg_p2p_core.js` | ローカル／オンラインのタッグ系ルール、WebRTC対戦、ホスト移行 |
 | `feature_pokedex.js` / `feature_grazing.js` | 図鑑と放牧 |
 | `feature_arena.js` / `feature_defense.js` | 闘技場と防衛戦 |
+| `castle_map_core.js` | 城内連続マップ、チャット移動、6NPC、王様／隊長クエスト導線 |
 | `cloud_manager.js` | 認証、クラウドセーブ、オンライン通信、キャッシュ |
 
 ## 既知の資料上の注意
