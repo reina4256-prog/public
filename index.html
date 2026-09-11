@@ -278,6 +278,35 @@
                 </div>
             </div>
 
+            <button class="dbg-accordion">🗺 施設初期マップ配置</button>
+            <div class="dbg-panel">
+                <div style="padding:12px;display:flex;flex-direction:column;gap:9px;background:#151515;border:1px solid #00838F;border-radius:5px;">
+                    <div style="font-size:12px;color:#ddd;line-height:1.6;">マイホーム、レストラン、鍛冶屋、城、カジノの初期配置と構造解放段階を、通常セーブを変更せず編集します。</div>
+                    <button onclick="window.openFacilityTemplateEditor()" style="padding:10px;background:#00838F;color:white;border:0;border-radius:5px;cursor:pointer;font-weight:bold;">共通マップ配置エディタを開く</button>
+                    <div style="font-size:11px;color:#80DEEA;">編集中に Ctrl + Shift + E で、選択中の配置JSONをF12コンソールへ出力できます。</div>
+                </div>
+            </div>
+
+            <button class="dbg-accordion">⚒️ 鍛冶屋経営</button>
+            <div class="dbg-panel">
+                <div style="padding:12px;display:flex;flex-direction:column;gap:9px;background:#151515;border:1px solid #A66A1F;border-radius:5px;">
+                    <div style="font-size:12px;color:#ddd;line-height:1.6;">所有している鍛冶屋の経営Lvを設定します。到達Lvに応じた店舗拡張・階層・設備解放も反映します。Lvを下げても、獲得済みの設備と拡張は削除しません。</div>
+                    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                        <label for="dbg-blacksmith-level" style="font-size:12px;color:#ddd;">鍛冶屋Lv:</label>
+                        <input type="number" id="dbg-blacksmith-level" value="1" min="1" max="30" step="1" style="width:70px;background:#292929;color:white;border:1px solid #777;padding:7px;text-align:center;border-radius:4px;">
+                        <button onclick="window.applyDebugBlacksmithLevel()" style="background:#A66A1F;color:white;border:none;border-radius:4px;padding:8px 14px;cursor:pointer;font-weight:bold;">設定</button>
+                    </div>
+                    <div id="dbg-blacksmith-level-status" style="font-size:11px;color:#FFD180;">状態を確認しています…</div>
+                    <div style="height:1px;background:#5D4037;margin:3px 0;"></div>
+                    <div style="font-size:12px;color:#ddd;line-height:1.6;">現在の設備配置を使い、素材・在庫・売上・評判を開始前へ戻す動線テストです。AI店員の階層移動だけ暗転します。</div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button onclick="window.startDebugBlacksmithRouteTest('preparation')" style="flex:1;min-width:130px;background:#6D4C41;color:white;border:none;border-radius:4px;padding:8px 12px;cursor:pointer;font-weight:bold;">仕込み動線テスト</button>
+                        <button onclick="window.startDebugBlacksmithRouteTest('sale')" style="flex:1;min-width:130px;background:#8D6E63;color:white;border:none;border-radius:4px;padding:8px 12px;cursor:pointer;font-weight:bold;">販売動線テスト</button>
+                    </div>
+                    <div id="dbg-blacksmith-route-status" style="font-size:11px;color:#80DEEA;">閉店中に実行してください。</div>
+                </div>
+            </div>
+
             <button class="dbg-accordion">⚠️ システム ＆ リセット</button>
             <div class="dbg-panel">
                 <div style="padding:10px; display:flex; flex-direction:column; gap:5px;">
@@ -587,9 +616,13 @@
         [Editor] WASD:移動 QE/ZC:変形 R:反転 Del:削除 Enter:保存 Ctrl/Shift+S:コンソール出力
     </div>
 
+    <script src="localization_catalog.js"></script>
+    <script src="localization_audit_core.js"></script>
+    <script src="localization_core.js"></script>
     <script type="module" src="cloud_manager.js"></script>
     <script src="data.js"></script>
     <script src="system.js"></script>
+    <script src="game_settings_core.js"></script>
     <script src="ai_core.js"></script>
     <script src="feature_dungeon.js"></script>
     <script src="dungeon_traits.js"></script>
@@ -608,6 +641,7 @@
     <script src="feature_grazing.js"></script>
     <script src="view_renderer.js"></script>
     <script src="ui_controller.js"></script>
+    <script src="blacksmith_map_core.js"></script>
     <script src="tutorial_core.js"></script>
     <script src="tcg_core.js"></script>
     <script src="tcg_support_expansion.js"></script>
@@ -616,6 +650,7 @@
     <script src="feature_arena.js"></script>
     <script src="feature_defense.js"></script>
     <script src="castle_map_core.js"></script>
+    <script src="facility_template_editor.js"></script>
     <script src="main.js"></script>
     <script src="debug_test_core.js"></script>
 

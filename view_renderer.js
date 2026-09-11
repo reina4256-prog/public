@@ -166,8 +166,9 @@ function render() {
         const TEXT_X = canvas.width * 0.95;   
         const TITLE_Y = canvas.height * 0.25; 
         const SUB_Y = canvas.height * 0.35;   
-        const MENU1_Y = canvas.height * 0.75; 
-        const MENU2_Y = canvas.height * 0.85; 
+        const MENU1_Y = canvas.height * 0.68;
+        const MENU2_Y = canvas.height * 0.78;
+        const MENU3_Y = canvas.height * 0.88;
 
         // 1. タイトルロゴ
         ctx.font = 'bold 80px sans-serif'; 
@@ -200,6 +201,12 @@ function render() {
         else { ctx.fillStyle = hoverCont ? `rgba(255, 215, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`; ctx.strokeStyle = hoverCont ? '#553300' : '#000000'; }
         ctx.strokeText('つづきから', TEXT_X, MENU2_Y);
         ctx.fillText('つづきから', TEXT_X, MENU2_Y);
+
+        let hoverSettings = (window.titleMenuHover === 5);
+        ctx.fillStyle = hoverSettings ? `rgba(255, 215, 0, ${alpha})` : `rgba(255, 255, 255, ${alpha})`;
+        ctx.strokeStyle = hoverSettings ? '#553300' : '#000000';
+        ctx.strokeText('ゲーム設定', TEXT_X, MENU3_Y);
+        ctx.fillText('ゲーム設定', TEXT_X, MENU3_Y);
 
         // ==========================================
         // ★ リッチな確認ダイアログ（はじめから押下時）
@@ -1098,7 +1105,7 @@ function drawAdjustUI() {
     else if (editingTarget === 'card') { targetName = `CARD: ${window.TCG_MASTER[selectedCardKey]?.name || selectedCardKey}`; }
     else if (editingTarget === 'casset') { targetName = `CASTLE: ${window.selectedCastleSpriteKey || ''}`; }
     else if (editingTarget === 'rasset') { targetName = `ROOM: ${window.selectedShopSpriteKey || ''}`; }
-    else if (editingTarget === 'sasset') { targetName = `FURNITURE: ${window.selectedFurnitureIndex ?? ''}`; }
+    else if (editingTarget === 'sasset') { targetName = `BLACKSMITH: ${window.selectedBlacksmithSpriteKey || ''}`; }
     
     if (!target) { ctx.fillStyle = "white"; ctx.fillText("ターゲットが選択されていません", x, y); ctx.restore(); return; }
     ctx.font = "bold 16px monospace"; ctx.fillStyle = "#4CAF50"; ctx.fillText(`■ 調整モード: ${targetName}`, x, y); y += 30;
@@ -1549,7 +1556,7 @@ window.drawFurniturePreview = function() {
     const cy = canvas.height / 2;
 
     ctx.save();
-    
+
     // 背景を少し暗くして見やすくする
     ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -1558,8 +1565,8 @@ window.drawFurniturePreview = function() {
     ctx.strokeStyle = "rgba(255, 0, 0, 0.8)";
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(cx - 200, cy); ctx.lineTo(cx + 200, cy); 
-    ctx.moveTo(cx, cy - 200); ctx.lineTo(cx, cy + 200); 
+    ctx.moveTo(cx - 200, cy); ctx.lineTo(cx + 200, cy);
+    ctx.moveTo(cx, cy - 200); ctx.lineTo(cx, cy + 200);
     ctx.stroke();
 
     ctx.translate(cx, cy);
@@ -1570,13 +1577,28 @@ window.drawFurniturePreview = function() {
     let sh = target.sh || 100;
     let sx = target.sx || 0;
     let sy = target.sy || 0;
+    const isBlacksmithAsset = typeof editingTarget !== 'undefined' && editingTarget === 'sasset';
+    const blacksmithSpriteKey = isBlacksmithAsset ? (window.selectedBlacksmithSpriteKey || '') : '';
+    const isBlacksmithTile = blacksmithSpriteKey.startsWith('bmap_') || target.tileFill === true;
+    const previewTile = Math.max(80, Math.min(250, canvas.width * 0.32, canvas.height * 0.42));
+    let scaleX = scale;
+    let scaleY = scale;
+    if (isBlacksmithAsset) {
+        scaleX = scale * previewTile / Math.max(1, sw);
+        scaleY = isBlacksmithTile ? scale * previewTile / Math.max(1, sh) : scaleX;
+        ctx.fillStyle = 'rgba(255,255,255,0.06)';
+        ctx.fillRect(-previewTile / 2, -previewTile, previewTile, previewTile);
+        ctx.strokeStyle = 'rgba(128,222,234,0.9)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-previewTile / 2, -previewTile, previewTile, previewTile);
+    }
 
     // ==========================================
     // 画像オブジェクトの取得と動的ロード処理
     // ==========================================
     let imgObj = null;
     let imgKey = target.img ? target.img.replace('.png', '') : null;
-    
+
     if (imgKey && typeof images !== 'undefined' && images[imgKey]) {
         imgObj = images[imgKey];
     } else if (target.img && typeof images !== 'undefined' && images[target.img]) {
@@ -1595,21 +1617,21 @@ window.drawFurniturePreview = function() {
 
     if (imgObj && imgObj.complete && imgObj.naturalWidth > 0) {
         // 見下ろし型のマップチップなので、足元（下端の中央）が十字線の交点に来るようにオフセットを計算
-        let drawX = - (sw * scale) / 2;
-        let drawY = - (sh * scale); 
-        
-        ctx.drawImage(imgObj, sx, sy, sw, sh, drawX, drawY, sw * scale, sh * scale);
+        let drawX = - (sw * scaleX) / 2;
+        let drawY = - (sh * scaleY);
+
+        ctx.drawImage(imgObj, sx, sy, sw, sh, drawX, drawY, sw * scaleX, sh * scaleY);
 
         // ★追加：他の編集画面に合わせて編集枠（赤枠）を描画する
         ctx.strokeStyle = '#ff5252';
         ctx.lineWidth = 2;
-        ctx.strokeRect(drawX, drawY, sw * scale, sh * scale);
+        ctx.strokeRect(drawX, drawY, sw * scaleX, sh * scaleY);
     } else {
         // 画像がロードされていない時のダミー枠（ロード中の場合も一瞬表示される）
         ctx.fillStyle = "rgba(255, 255, 0, 0.3)";
-        ctx.fillRect(- (sw * scale) / 2, - (sh * scale), sw * scale, sh * scale);
+        ctx.fillRect(- (sw * scaleX) / 2, - (sh * scaleY), sw * scaleX, sh * scaleY);
         ctx.strokeStyle = "yellow";
-        ctx.strokeRect(- (sw * scale) / 2, - (sh * scale), sw * scale, sh * scale);
+        ctx.strokeRect(- (sw * scaleX) / 2, - (sh * scaleY), sw * scaleX, sh * scaleY);
     }
 
     ctx.restore();
@@ -1618,13 +1640,15 @@ window.drawFurniturePreview = function() {
     ctx.fillStyle = "#FFD700";
     ctx.font = "bold 20px monospace";
     ctx.textAlign = "left";
-    const previewLabel = (typeof editingTarget !== 'undefined' && editingTarget === 'casset') ? 'CASTLE-ASSET' : 'R-ASSET';
+    const previewLabel = (typeof editingTarget !== 'undefined' && editingTarget === 'casset')
+        ? 'CASTLE-ASSET'
+        : isBlacksmithAsset ? 'BLACKSMITH-ASSET' : 'R-ASSET';
     ctx.fillText(`[${previewLabel} Preview]`, 20, 50);
     ctx.fillStyle = "white";
     ctx.font = "16px monospace";
     const previewKey = (typeof editingTarget !== 'undefined' && editingTarget === 'casset')
         ? window.selectedCastleSpriteKey
-        : window.selectedShopSpriteKey;
+        : isBlacksmithAsset ? window.selectedBlacksmithSpriteKey : window.selectedShopSpriteKey;
     ctx.fillText(`Key : ${previewKey || 'none'}`, 20, 80);
     ctx.fillText(`Img : ${target.img}`, 20, 105);
     ctx.fillText(`Cut : X:${sx}, Y:${sy}, W:${sw}, H:${sh}`, 20, 130);

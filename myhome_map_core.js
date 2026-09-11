@@ -311,7 +311,11 @@
 
     window.isMyHomeIndoorUnlocked = function() {
         const hero = window.aiPet || window.hero;
-        return !!(hero && (hero.conciergeEncountered || hero.conciergeUnlocked));
+        return !!(
+            hero &&
+            (hero.conciergeEncountered || hero.conciergeUnlocked) &&
+            getMyHomeHutAsset()
+        );
     };
 
     function setMyHomeChatMessage(text) {

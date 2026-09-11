@@ -1,6 +1,7 @@
 // electron_main.js
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const steamworks = require('steamworks.js');
 
 // Steamworksの初期化 (AppID 480はテスト用)
@@ -62,6 +63,48 @@ ipcMain.on('clear-achievement', (event, achievementId) => {
 // ★追加：ゲーム内から「終了」を指示された時の処理
 ipcMain.on('quit-app', () => {
   app.quit();
+});
+
+function auditOutputDirectory() {
+  if (!app.isPackaged) return path.join(__dirname, '.localization-audit');
+  const safeAppName = String(app.getName() || 'AI Pet Game').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_');
+  return path.join(app.getPath('documents'), safeAppName, 'localization-audit');
+}
+
+function safeAuditLocale(value) {
+  const locale = String(value || 'unknown').replace(/[^A-Za-z0-9-]/g, '');
+  return locale.slice(0, 20) || 'unknown';
+}
+
+// ローカライズ監査は現在の画面だけをローカル保存する。ゲームのセーブデータには触れない。
+ipcMain.handle('localization-audit:capture', async (event, report) => {
+  try {
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) throw new Error('監査対象のゲーム画面が見つかりません。');
+
+    const serialized = JSON.stringify(report || {}, null, 2);
+    if (Buffer.byteLength(serialized, 'utf8') > 512 * 1024) {
+      throw new Error('監査レポートが上限サイズを超えました。');
+    }
+
+    const outputDirectory = auditOutputDirectory();
+    await fs.promises.mkdir(outputDirectory, { recursive: true });
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const locale = safeAuditLocale(report && report.locale);
+    const basename = `${timestamp}_${locale}`;
+    const screenshotPath = path.join(outputDirectory, `${basename}.png`);
+    const reportPath = path.join(outputDirectory, `${basename}.json`);
+    const image = await win.webContents.capturePage();
+
+    await Promise.all([
+      fs.promises.writeFile(screenshotPath, image.toPNG()),
+      fs.promises.writeFile(reportPath, serialized, 'utf8')
+    ]);
+    return { ok: true, screenshotPath, reportPath, outputDirectory };
+  } catch (error) {
+    console.error('ローカライズ監査の保存に失敗しました:', error);
+    return { ok: false, error: error && error.message ? error.message : String(error) };
+  }
 });
 
 function createWindow () {

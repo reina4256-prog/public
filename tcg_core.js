@@ -6726,7 +6726,7 @@ window._applyTCGFakeUI = function(observerInstance) {
     allTextElements.forEach(el => {
         // 子要素を持たない（テキストのみの）要素を狙う
         if (el.childNodes.length === 1 && el.childNodes[0].nodeType === 3) { 
-            const t = el.innerText.trim();
+            const t = window.getLocalizedSourceText ? window.getLocalizedSourceText(el).trim() : el.innerText.trim();
             
             if (!isUnlocked) {
                 // 解放前
@@ -6745,7 +6745,7 @@ window._applyTCGFakeUI = function(observerInstance) {
     // 3. 対戦機能のボタンを丸ごと隠す
     const buttons = document.querySelectorAll('button');
     buttons.forEach(btn => {
-        const t = btn.innerText.trim();
+        const t = window.getLocalizedSourceText ? window.getLocalizedSourceText(btn).trim() : btn.innerText.trim();
         if (t.includes('世界のプレイヤーと対戦') || t.includes('名もなきCPUと練習') || t.includes('デッキをオンライン登録')) {
             btn.style.display = isUnlocked ? 'block' : 'none';
         }

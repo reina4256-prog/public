@@ -27,7 +27,7 @@
 | ディーラー | 実装済み | [`advanced/dealer.md`](advanced/dealer.md) |
 | 占い師 | 未実装・構想段階 | [`advanced/fortune_teller.md`](advanced/fortune_teller.md) |
 | 科学者 | 未実装・構想段階 | [`advanced/scientist.md`](advanced/scientist.md) |
-| 販売員 | 未実装・構想段階 | [`advanced/salesperson.md`](advanced/salesperson.md) |
+| 販売員 | 一部実装・将来仕様確定 | [`advanced/salesperson.md`](advanced/salesperson.md) |
 
 ## 仕様の所有関係
 

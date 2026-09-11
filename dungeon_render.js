@@ -350,34 +350,34 @@ window.DUNGEON_SPRITES = {
     // 鍛冶士
     "smith_down": {
         "img": "smith_dungeon_walk.png",
-        "sx": 170,
-        "sy": 30,
-        "sw": 512,
-        "sh": 1503,
+        "sx": 69,
+        "sy": 200,
+        "sw": 721,
+        "sh": 1281,
         "scale": 0.25000000000000006
     },
     "smith_up": {
         "img": "smith_dungeon_walk.png",
-        "sx": 850,
-        "sy": 30,
-        "sw": 512,
-        "sh": 1503,
+        "sx": 858,
+        "sy": 200,
+        "sw": 721,
+        "sh": 1281,
         "scale": 0.25000000000000006
     },
     "smith_left": {
         "img": "smith_dungeon_walk.png",
-        "sx": 1563,
-        "sy": 30,
-        "sw": 512,
-        "sh": 1503,
+        "sx": 2109,
+        "sy": 200,
+        "sw": 721,
+        "sh": 1281,
         "scale": 0.25000000000000006
     },
     "smith_right": {
         "img": "smith_dungeon_walk.png",
-        "sx": 2195,
-        "sy": 30,
-        "sw": 512,
-        "sh": 1503,
+        "sx": 1563,
+        "sy": 200,
+        "sw": 721,
+        "sh": 1281,
         "scale": 0.25000000000000006
     },
 

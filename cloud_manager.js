@@ -1224,6 +1224,7 @@ if (typeof window.originalSendChat === 'undefined') {
         let input = document.getElementById('chatInput');
         if (input) {
             let text = input.value.trim();
+            if (window.GameI18n) text = window.GameI18n.toJapaneseInput(text);
             if (text && text.includes('ショップ') && (text.includes('おつかい') || text.includes('売って') || text.includes('買って') || text.includes('行って'))) {
                 let building = null;
                 for (let k in window.assets) { if (window.assets[k].type === 'shop') { building = window.assets[k]; break; } }

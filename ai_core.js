@@ -2974,6 +2974,46 @@ aiPet.processApprenticeExamFinish = function(task) {
 aiPet.assignApprenticeQuest = function() {};
 aiPet.checkExcommunication = function() {};
 
+// 鍛冶師の初回遭遇は、育成画面から生活行動を指示した時だけ判定する。
+window.tryTriggerSmithingIntroFromBasicAction = function(actionWord, options = {}) {
+    const hero = options.hero || window.aiPet || window.hero;
+    if (!hero || hero.isHelper || !['睡眠', '食事', '勉強', '筋トレ', 'ランニング'].includes(actionWord)) return false;
+    if (window.myHomeMapOpen) return false;
+    const apprentice = hero.apprentice;
+    if (!apprentice || !Array.isArray(apprentice.learnedWords) || apprentice.learnedWords.length < 3) return false;
+    if (apprentice.currentMaster || apprentice.isGraduated || hero._isEncounterPending) return false;
+    if ((apprentice.retired && apprentice.retired.smithing) || (apprentice.rank && Number(apprentice.rank.smithing) >= 10)) return false;
+    if (!Array.isArray(apprentice.metMasters)) apprentice.metMasters = [];
+    if (apprentice.metMasters.includes('smithing')) return false;
+
+    hero.schedule = [];
+    hero.currentTask = null;
+    hero.actionState = 'idle';
+    hero.isIndoors = false;
+    hero.indoorTarget = null;
+    hero._isEncounterPending = true;
+    hero.message = "（火の気配がする...！）";
+    hero.messageTimer = 120;
+    const encounterMsg = "「……鍛えているのか。なら、火の扱いも覚えておけ。」";
+    const openFallbackIntro = () => {
+        hero._isEncounterPending = false;
+        if (typeof window.openEncounterUI === 'function') window.openEncounterUI('smithing', encounterMsg, 'encounter_intro');
+    };
+    const continueAfterVideo = () => {
+        hero._isEncounterPending = false;
+        if (typeof window.continueMasterEncounterIntroAfterVideo === 'function') {
+            window.continueMasterEncounterIntroAfterVideo('smithing', encounterMsg);
+        } else {
+            openFallbackIntro();
+        }
+    };
+    if (typeof window.playMasterEncounterVideo !== 'function' || !window.playMasterEncounterVideo('smithing', continueAfterVideo, openFallbackIntro)) {
+        openFallbackIntro();
+    }
+    if (typeof saveGameData === 'function') saveGameData();
+    return true;
+};
+
 // ==========================================
 // ★ 修正：空気を読むランダムエンカウント（乱入防止完全版）
 // ==========================================
@@ -5335,6 +5375,25 @@ window.executeReincarnationFinal = function() {
     }
 
     const inheritedData = {};
+
+    const shouldKeepConciergePresence = !!(
+        inheritanceSelections.map &&
+        inheritanceSelections.license &&
+        (window.aiPet.conciergeEncountered || window.aiPet.conciergeUnlocked)
+    );
+    if (shouldKeepConciergePresence) {
+        inheritedData.conciergePresence = {
+            encountered: !!window.aiPet.conciergeEncountered,
+            unlocked: !!window.aiPet.conciergeUnlocked,
+            introduced: !!window.aiPet.conciergeIntroduced,
+            routeLogReceived: !!window.aiPet.conciergeRouteLogReceived,
+            houseKeyReceived: !!window.aiPet.conciergeHouseKeyReceived,
+            encounterGeneration: Math.max(0, Number(window.aiPet.conciergeEncounterGeneration) || 0)
+        };
+        if (window.aiPet.myHomeIndoor) {
+            inheritedData.myHomeIndoor = JSON.parse(JSON.stringify(window.aiPet.myHomeIndoor));
+        }
+    }
     
     // ==========================================
     // ★大修正：音楽館の履歴と「図鑑（これまでの姿）」は絶対に次世代へ引き継ぐ！
@@ -5535,9 +5594,10 @@ window.applyInheritedPet = function(skinKey, data) {
 // 既存のユーザーラッパー関数を上書き
 const _legacy_originalApplyInitialPet = typeof originalApplyInitialPet !== 'undefined' ? originalApplyInitialPet : window.applyInitialPet;
 window.applyInitialPet = function(skinKey) {
+    const inheritanceData = window.pendingInheritanceData || null;
     _legacy_originalApplyInitialPet(skinKey);
 
-    const inheritedCosmetic = window.pendingInheritanceData && window.pendingInheritanceData.cosmetic;
+    const inheritedCosmetic = inheritanceData && inheritanceData.cosmetic;
     window.aiPet.cosmetic = inheritedCosmetic
         ? JSON.parse(JSON.stringify(inheritedCosmetic))
         : {
@@ -5560,20 +5620,45 @@ window.applyInitialPet = function(skinKey) {
     window.aiPet.exploreState = null;
     window.aiPet.fishingData = null;
     window.aiPet.visualScale = 1.0;
+    window.pendingMyHomeConciergeVisit = false;
+    window.pendingMyHomeConciergeAction = null;
+    window.pendingMyHomeEntryAfterConciergeEncounter = null;
+    window._conciergeEncounterInProgress = false;
+
+    const conciergePresence = inheritanceData && inheritanceData.conciergePresence;
+    if (conciergePresence) {
+        window.aiPet.conciergeEncountered = !!conciergePresence.encountered;
+        window.aiPet.conciergeUnlocked = !!conciergePresence.unlocked;
+        window.aiPet.conciergeIntroduced = !!conciergePresence.introduced;
+        window.aiPet.conciergeRouteLogReceived = !!conciergePresence.routeLogReceived;
+        window.aiPet.conciergeHouseKeyReceived = !!conciergePresence.houseKeyReceived;
+        window.aiPet.conciergeEncounterGeneration = Math.max(0, Number(conciergePresence.encounterGeneration) || 0);
+        if (inheritanceData.myHomeIndoor) {
+            window.aiPet.myHomeIndoor = JSON.parse(JSON.stringify(inheritanceData.myHomeIndoor));
+        }
+    } else {
+        window.aiPet.conciergeEncountered = false;
+        window.aiPet.conciergeUnlocked = false;
+        window.aiPet.conciergeIntroduced = false;
+        window.aiPet.conciergeRouteLogReceived = false;
+        window.aiPet.conciergeHouseKeyReceived = false;
+        delete window.aiPet.conciergeEncounterGeneration;
+        delete window.aiPet.myHomeIndoor;
+    }
     
     if (window.aiPet && window.aiPet.stats) {
         if (window.aiPet.stats.beauty === undefined || isNaN(window.aiPet.stats.beauty) || window.aiPet.stats.beauty === 0) window.aiPet.stats.beauty = 10;
         if (window.aiPet.stats.speed === undefined || isNaN(window.aiPet.stats.speed) || window.aiPet.stats.speed === 0) window.aiPet.stats.speed = 10;
     }
 
-    if (window.pendingInheritanceData && window.pendingInheritanceData.resetMap) {
+    if (inheritanceData && inheritanceData.resetMap) {
         localStorage.removeItem('map_data_v6');
         if (typeof assets !== 'undefined' && typeof generateNatureMap === 'function') {
             for (let key in assets) { delete assets[key]; }
             let newMap = generateNatureMap();
             for (let key in newMap) { assets[key] = newMap[key]; }
         }
-    } else if (window.pendingInheritanceData && window.pendingInheritanceData.keepMap) {
+    } else if (inheritanceData && inheritanceData.keepMap) {
         if (typeof assets !== 'undefined') {
             localStorage.setItem('map_data_v6', JSON.stringify(assets));
         }
@@ -5594,8 +5679,8 @@ window.applyInitialPet = function(skinKey) {
         }
     });
     
-    if (window.pendingInheritanceData) {
-        const data = window.pendingInheritanceData;
+    if (inheritanceData) {
+        const data = inheritanceData;
         
         // ==========================================
         // ★究極修正9：初期化関数の中で、保護した図鑑と音楽を確実に上書き(統合)する！

@@ -42,12 +42,14 @@ body {
 /* ステータス: gapやpadding、font-sizeを調整して1行に収める */
 #aiStatus {
     background: rgba(0,0,0,0.6); padding: 8px 5px; border-radius: 8px; 
-    display: flex; gap: 2px; font-size: 12px; font-weight: bold; border: 1px solid #444;
-    width: 800px; box-sizing: border-box; justify-content: space-between; flex-wrap: nowrap; overflow: hidden;
+    display: grid; gap: 2px; font-size: 12px; font-weight: bold; border: 1px solid #444;
+    grid-template-columns: 1.4fr 1.6fr repeat(9, minmax(0, 0.72fr)) 1.3fr 1.45fr 1.2fr 1.1fr;
+    width: 800px; box-sizing: border-box; align-items: start; overflow: hidden;
 }
-.stat-box { display: flex; flex-direction: column; align-items: center; min-width: 35px; }
-.stat-label { font-size: 9px; color: #aaa; margin-bottom: 2px;}
-.stat-val { font-size: 1.1em; color: #fff; }
+.stat-box { display: flex; flex-direction: column; align-items: center; min-width: 0; width: 100%; }
+.stat-label { display: block; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; font-size: 8px; line-height: 1.1; color: #aaa; margin-bottom: 2px; }
+.stat-val { display: block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: center; line-height: 1.15; font-size: 1.1em; color: #fff; }
+html:not([lang="ja"]) #aiStatus .stat-val { font-size: 10px !important; }
 
 #canvas-wrapper {
     position: relative; width: 800px; height: 480px;
@@ -278,7 +280,7 @@ canvas { display: block; width: 100%; height: 100%; object-fit: contain; }
     /* ★追加：ステータスバーがスマホ幅で文字潰れしないように横スクロール対応 */
     #aiStatus {
         overflow-x: auto;
-        justify-content: flex-start;
+        grid-template-columns: 80px 95px repeat(9, 55px) 85px 100px 80px 70px;
         gap: 15px;
         padding-bottom: 5px;
     }
@@ -342,4 +344,347 @@ body {
     height: 100%;
     object-fit: contain; /* アスペクト比を維持して最大化 */
     display: block;
+}
+
+/* 知識の手帳：見開き本とページ端のしおり */
+.knowledge-notebook-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 28px 92px 28px 28px;
+    box-sizing: border-box;
+    background: rgba(12, 9, 7, 0.76);
+    backdrop-filter: blur(4px);
+    font-family: "Yu Mincho", "Hiragino Mincho ProN", Georgia, serif;
+}
+
+.knowledge-notebook-frame {
+    position: relative;
+    width: min(930px, calc(100vw - 150px));
+    height: min(650px, calc(100vh - 56px));
+    min-height: 430px;
+    padding: 18px;
+    box-sizing: border-box;
+    border: 3px solid #3c2415;
+    border-radius: 18px 12px 12px 18px;
+    background:
+        linear-gradient(90deg, rgba(255,255,255,.08), transparent 8%, transparent 92%, rgba(0,0,0,.18)),
+        #704423;
+    box-shadow: 0 24px 55px rgba(0,0,0,.72), inset 0 0 0 3px rgba(238,188,105,.18);
+}
+
+.nb-book-spread {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 10px 7px 7px 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,.46);
+}
+
+.nb-book-spread::after {
+    content: "";
+    position: absolute;
+    z-index: 4;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    width: 24px;
+    transform: translateX(-50%);
+    pointer-events: none;
+    background: linear-gradient(90deg, transparent, rgba(76,51,31,.22) 34%, rgba(49,30,18,.36) 50%, rgba(255,255,255,.22) 66%, transparent);
+}
+
+.nb-paper-page {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    color: #3e3024;
+    background:
+        repeating-linear-gradient(0deg, transparent 0 27px, rgba(103,77,48,.08) 28px),
+        radial-gradient(circle at 28% 18%, rgba(255,255,255,.52), transparent 38%),
+        #eee1bd;
+}
+
+.nb-paper-left {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 56px 56px 44px 44px;
+    text-align: center;
+    box-shadow: inset -12px 0 20px rgba(86,57,34,.11);
+}
+
+.nb-paper-right {
+    padding: 34px 35px 38px 47px;
+    box-shadow: inset 12px 0 20px rgba(86,57,34,.09);
+}
+
+.nb-book-emblem {
+    font-size: 62px;
+    filter: drop-shadow(0 3px 1px rgba(68,41,20,.2));
+}
+
+.nb-paper-left h2 {
+    margin: 12px 0 8px;
+    color: #5b331c;
+    font-size: clamp(28px, 3vw, 42px);
+    letter-spacing: .14em;
+    text-shadow: 0 1px rgba(255,255,255,.7);
+}
+
+.nb-paper-left p {
+    max-width: 280px;
+    margin: 24px 0;
+    font-size: 15px;
+    line-height: 1.9;
+}
+
+.nb-ornament {
+    color: #9a6a3f;
+    letter-spacing: .35em;
+}
+
+.nb-current-section {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 170px;
+    justify-content: center;
+    margin-top: 8px;
+    padding: 10px 18px;
+    border-top: 1px solid rgba(91,51,28,.35);
+    border-bottom: 1px solid rgba(91,51,28,.35);
+    font-size: 20px;
+}
+
+.nb-page-number {
+    position: absolute;
+    bottom: 14px;
+    left: 0;
+    right: 0;
+    color: #806d58;
+    text-align: center;
+    font-size: 12px;
+}
+
+.nb-content-scroll {
+    height: 100%;
+    overflow-y: auto;
+    padding: 0 10px 24px 0;
+    box-sizing: border-box;
+    scrollbar-color: #9c7955 transparent;
+    scrollbar-width: thin;
+}
+
+.nb-content {
+    min-height: 100%;
+    color: #3e3024;
+}
+
+.nb-page-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid rgba(91,51,28,.38);
+}
+
+.nb-page-heading span { font-size: 28px; }
+.nb-page-heading h3 {
+    margin: 0;
+    color: #5b331c;
+    font-size: 25px;
+    letter-spacing: .12em;
+}
+
+.nb-bookmarks {
+    position: absolute;
+    z-index: 8;
+    top: 42px;
+    right: -88px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nb-bookmark {
+    position: relative;
+    width: 92px;
+    min-height: 48px;
+    padding: 8px 10px 8px 17px;
+    border: 2px solid rgba(48,30,19,.55);
+    border-left: 0;
+    border-radius: 0 9px 9px 0;
+    background: color-mix(in srgb, var(--bookmark-color) 78%, #2d2118);
+    box-shadow: 4px 4px 8px rgba(0,0,0,.34);
+    color: rgba(255,255,255,.82);
+    cursor: pointer;
+    font: 700 14px/1.15 "Yu Gothic", sans-serif;
+    text-align: left;
+    transition: transform .16s ease, filter .16s ease, color .16s ease;
+}
+
+.nb-bookmark-icon {
+    display: block;
+    margin-bottom: 3px;
+    font-size: 18px;
+}
+.nb-bookmark-label { display: block; }
+
+.nb-bookmark:hover,
+.nb-bookmark:focus-visible { transform: translateX(5px); filter: brightness(1.16); }
+.nb-bookmark.active {
+    transform: translateX(8px);
+    filter: brightness(1.22);
+    color: #fff;
+    box-shadow: 5px 5px 10px rgba(0,0,0,.44), inset 4px 0 rgba(255,239,196,.42);
+}
+
+.nb-close-button {
+    position: absolute;
+    z-index: 12;
+    top: -15px;
+    right: -17px;
+    width: 38px;
+    height: 38px;
+    border: 2px solid #f0d8a7;
+    border-radius: 50%;
+    background: #4d2f1d;
+    box-shadow: 0 4px 10px rgba(0,0,0,.45);
+    color: #fff7e6;
+    cursor: pointer;
+    font-size: 27px;
+    line-height: 31px;
+}
+
+.nb-recipe-list {
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+    padding-bottom: 12px;
+}
+
+.nb-recipe-card {
+    padding: 13px 14px;
+    border: 1px solid #a68b63;
+    border-left: 5px solid #c6923c;
+    border-radius: 5px 9px 9px 5px;
+    background: rgba(255,250,229,.64);
+    box-shadow: 0 2px 4px rgba(76,51,31,.12);
+}
+
+.nb-recipe-card.complete { border-left-color: #4c8a5a; }
+.nb-recipe-card.developing { border-left-color: #3d8291; }
+.nb-recipe-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+}
+.nb-recipe-name { color: #3b2a1d; font-size: 17px; font-weight: 700; }
+.nb-recipe-name small {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 7px;
+    border: 1px solid #b18a50;
+    border-radius: 999px;
+    color: #79562d;
+    font: 700 10px/1.2 "Yu Gothic", sans-serif;
+    vertical-align: 2px;
+}
+.nb-recipe-status { color: #83622f; font: 700 12px/1.4 "Yu Gothic", sans-serif; white-space: nowrap; }
+.nb-recipe-card.complete .nb-recipe-status { color: #3f764d; }
+.nb-recipe-card.developing .nb-recipe-status { color: #2d7483; }
+.nb-progress-track {
+    height: 7px;
+    margin: 9px 0;
+    overflow: hidden;
+    border: 1px solid rgba(83,61,40,.3);
+    border-radius: 999px;
+    background: rgba(83,61,40,.13);
+}
+.nb-progress-track > div { height: 100%; background: #c6923c; }
+.nb-recipe-card.complete .nb-progress-track > div { background: #579466; }
+.nb-recipe-card.developing .nb-progress-track > div { background: #4c91a0; }
+.nb-recipe-details { color: #5d4b3b; font: 12px/1.75 "Yu Gothic", sans-serif; }
+.nb-recipe-details strong { color: #3f3024; }
+
+.nb-empty-note,
+.nb-empty-page,
+.nb-locked-page {
+    padding: 50px 18px;
+    color: #796751;
+    text-align: center;
+    font: 14px/1.8 "Yu Gothic", sans-serif;
+}
+.nb-lock-icon { margin-bottom: 14px; font-size: 46px; filter: sepia(.5); }
+.nb-lock-title { margin-bottom: 10px; color: #4b3928; font-size: 18px; font-weight: 700; }
+.nb-lock-hint span { color: #8a5b25; font-weight: 700; }
+
+/* 既存の各レシピ描画を紙面の配色へ馴染ませる */
+#notebook-ui #build-recipe-search,
+#notebook-ui input[type="text"] {
+    border-color: #a68b63 !important;
+    background: rgba(255,252,237,.72) !important;
+    color: #3e3024 !important;
+}
+#notebook-ui .build-recipe-card,
+#notebook-ui #medicineRecipeList > div,
+#notebook-ui #tailoringRecipeList > div {
+    background-color: rgba(255,250,229,.62) !important;
+    color: #3e3024 !important;
+}
+
+@media (max-width: 760px), (max-height: 520px) {
+    .knowledge-notebook-overlay { padding: 18px 18px 76px; }
+    .knowledge-notebook-frame {
+        width: min(570px, calc(100vw - 28px));
+        height: min(680px, calc(100vh - 92px));
+        min-height: 330px;
+        padding: 12px;
+    }
+    .nb-book-spread { display: block; }
+    .nb-book-spread::after,
+    .nb-paper-left { display: none; }
+    .nb-paper-right {
+        width: 100%;
+        height: 100%;
+        padding: 25px 24px 34px;
+        box-sizing: border-box;
+    }
+    .nb-bookmarks {
+        top: auto;
+        right: 4px;
+        bottom: -64px;
+        left: 4px;
+        flex-direction: row;
+        gap: 5px;
+        overflow-x: auto;
+        padding: 0 2px 4px;
+    }
+    .nb-bookmark {
+        flex: 0 0 auto;
+        width: auto;
+        min-width: 82px;
+        min-height: 48px;
+        padding: 7px 10px;
+        border: 2px solid rgba(48,30,19,.55);
+        border-radius: 0 0 9px 9px;
+        text-align: center;
+    }
+    .nb-bookmark-icon,
+    .nb-bookmark-label { display: inline; }
+    .nb-bookmark-icon { margin: 0 5px 0 0; }
+    .nb-bookmark:hover,
+    .nb-bookmark:focus-visible,
+    .nb-bookmark.active { transform: translateY(4px); }
+    .nb-close-button { top: -14px; right: -12px; }
 }

@@ -20,15 +20,15 @@ setTimeout(() => {
         shopData: { recipes: {}, inventory: {}, prices: {}, reputation: 10, interiorLevel: 1, totalSales: 0, isOpen: false }
     };
 
-    targetCatalog['smith'] = {
-        name: '鍛冶屋', type: 'smith',
+    targetCatalog['blacksmith'] = {
+        name: '鍛冶屋', type: 'blacksmith',
         img: 'field_4', sx: 271, sy: 365, sw: 241, sh: 248, scale: 0.5,
         materials: { 'stone': 5, 'iron': 5 }, 
         reqBuildLevel: 3,
         isIndoors: true,
-        bgImage: 'empty_room.png', 
-        shopData: { recipes: {}, inventory: {}, prices: {}, reputation: 10, interiorLevel: 1, totalSales: 0, isOpen: false }
+        bgImage: 'empty_room.png'
     };
+    targetCatalog['smith'] = targetCatalog['blacksmith'];
 
     targetCatalog['shop'] = {
         name: 'ショップ', type: 'shop',
@@ -39,7 +39,6 @@ setTimeout(() => {
         bgImage: 'empty_room.png',
         shopData: { recipes: {}, inventory: {}, prices: {}, reputation: 10, interiorLevel: 1, totalSales: 0, isOpen: false }
     };
-    targetCatalog['blacksmith'] = targetCatalog['smith'];
 }, 1000);
 
 window.getPersonalityType = function(stats) {
@@ -2557,7 +2556,7 @@ function initAdjustUI() {
             </div>
             <div style="margin-top: 5px;">
                 <label style="margin-right:10px; cursor:pointer; color:#E040FB;"><input type="radio" name="adjTarget" value="rasset"> ASSET（店舗・家・カジノ・トランプ）</label>
-                <label style="margin-right:10px; cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> S-ASSET</label>
+                <label style="margin-right:10px; cursor:pointer; color:#7C4DFF;"><input type="radio" name="adjTarget" value="sasset"> BLACKSMITH（鍛冶屋マップチップ）</label>
                 <label style="cursor:pointer; color:#FF5722;"><input type="radio" name="adjTarget" value="title"> TITLE</label>
             </div>
             <div style="margin-top: 5px;">
@@ -2765,8 +2764,8 @@ function initAdjustUI() {
                 statusEl.innerText = `Target: ${window.selectedCastleSpriteKey || 'None'}`;
             }
             else if (editingTarget === 'sasset') {
-                let fData = window.SHOP_FURNITURE_DATA && window.SHOP_FURNITURE_DATA['smith'] ? window.SHOP_FURNITURE_DATA['smith'][window.selectedFurnitureIndex] : null;
-                statusEl.innerText = `Target: ${fData ? fData.name : 'None'} (${window.selectedFurnitureIndex+1})`;
+                const sprite = window.BLACKSMITH_SPRITES && window.BLACKSMITH_SPRITES[window.selectedBlacksmithSpriteKey];
+                statusEl.innerText = `Target: ${sprite ? sprite.name : 'None'} (${window.selectedBlacksmithSpriteKey || ''})`;
             }
             else if (editingTarget === 'title') {
                 statusEl.innerText = `Target: ${window.selectedTitleCharKey}`;
@@ -2993,10 +2992,10 @@ window.getAdjustTarget = function() {
             target = window.CASTLE_SPRITES[window.selectedCastleSpriteKey];
         }
     }else if (editingTarget === 'sasset') {
-        if (typeof window.SHOP_FURNITURE_DATA !== 'undefined' && window.SHOP_FURNITURE_DATA['smith']) {
-            let list = window.SHOP_FURNITURE_DATA['smith'];
-            if (window.selectedFurnitureIndex >= list.length) window.selectedFurnitureIndex = 0;
-            target = list[window.selectedFurnitureIndex];
+        const keys = typeof window.BLACKSMITH_SPRITES !== 'undefined' ? Object.keys(window.BLACKSMITH_SPRITES) : [];
+        if (keys.length > 0) {
+            if (!keys.includes(window.selectedBlacksmithSpriteKey)) window.selectedBlacksmithSpriteKey = keys[0];
+            target = window.BLACKSMITH_SPRITES[window.selectedBlacksmithSpriteKey];
         }
     } else if (editingTarget === 'title') {
         target = window.TITLE_SCREEN_DATA[window.selectedTitleCharKey];
@@ -3050,8 +3049,8 @@ window.addEventListener('keydown', (e) => {
                 } else if (editingTarget === 'casset') {
                     console.log("■■■ CASTLE_SPRITES（城マップチップ） ■■■\n" + JSON.stringify(window.CASTLE_SPRITES || {}, null, 4));
                     alert("城マップチップの切り取り定義をコンソールに出力しました。");
-                } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
-                    console.log("▼▼▼ SHOP_FURNITURE_DATA ▼▼▼\n" + JSON.stringify(window.SHOP_FURNITURE_DATA, null, 4)); alert("家具配置データをコンソールに出力しました！\nこれを ui_controller.js に貼り付けてください。");
+                } else if (editingTarget === 'sasset' && typeof window.BLACKSMITH_SPRITES !== 'undefined') {
+                    console.log("■■■ BLACKSMITH_SPRITES（鍛冶屋マップチップ） ■■■\n" + JSON.stringify(window.BLACKSMITH_SPRITES, null, 4)); alert("鍛冶屋マップチップの切り取り定義をコンソールに出力しました。");
                 } else if (editingTarget === 'title') {
                     console.log("▼▼▼ TITLE_SCREEN_DATA ▼▼▼\n" + JSON.stringify(window.TITLE_SCREEN_DATA, null, 4)); alert("タイトルキャラの座標・切り抜きデータをコンソールに出力しました！");
                 } else { if(typeof exportAIConfig === 'function') exportAIConfig(); }
@@ -3135,12 +3134,13 @@ window.addEventListener('keydown', (e) => {
                     if (isPrev) idx = (idx - 1 + keys.length) % keys.length; else idx = (idx + 1) % keys.length;
                     window.selectedCastleSpriteKey = keys[idx];
                 }
-            } else if (editingTarget === 'sasset' && typeof window.SHOP_FURNITURE_DATA !== 'undefined') {
-                // (sassetの切り替えはそのまま)
-                let list = window.SHOP_FURNITURE_DATA['smith'];
-                if (list && list.length > 0) {
-                    if (isPrev) window.selectedFurnitureIndex = (window.selectedFurnitureIndex - 1 + list.length) % list.length;
-                    else window.selectedFurnitureIndex = (window.selectedFurnitureIndex + 1) % list.length;
+            } else if (editingTarget === 'sasset' && typeof window.BLACKSMITH_SPRITES !== 'undefined') {
+                const keys = Object.keys(window.BLACKSMITH_SPRITES);
+                if (keys.length > 0) {
+                    let index = keys.indexOf(window.selectedBlacksmithSpriteKey);
+                    if (index < 0) index = 0;
+                    index = isPrev ? (index - 1 + keys.length) % keys.length : (index + 1) % keys.length;
+                    window.selectedBlacksmithSpriteKey = keys[index];
                 }
             } else if (editingTarget === 'title') {
                 const keys = Object.keys(window.TITLE_SCREEN_DATA);
@@ -3279,6 +3279,7 @@ window.addEventListener('keydown', (e) => {
         }
         if (editingTarget === 'rasset' && typeof window.renderMyHomeMap === 'function') window.renderMyHomeMap();
         if (editingTarget === 'rasset' && typeof window.renderCasinoMap === 'function') window.renderCasinoMap();
+        if (editingTarget === 'sasset' && typeof window.renderBlacksmithMap === 'function') window.renderBlacksmithMap();
         if (editingTarget === 'casset' && typeof window.renderCastleMap === 'function') window.renderCastleMap(true);
     }
 });
@@ -3420,6 +3421,8 @@ canvas.addEventListener('mousedown', (e) => {
             } else {
                 window.startActualGame(false);
             }
+        } else if (window.titleMenuHover === 5) {
+            if (typeof window.openGameSettings === 'function') window.openGameSettings();
         }
         return;
     }
@@ -3467,12 +3470,14 @@ canvas.addEventListener('mousemove', (e) => {
         }
 
         const TEXT_X = canvas.width * 0.95;   
-        const MENU1_Y = canvas.height * 0.75; 
-        const MENU2_Y = canvas.height * 0.85; 
+        const MENU1_Y = canvas.height * 0.68;
+        const MENU2_Y = canvas.height * 0.78;
+        const MENU3_Y = canvas.height * 0.88;
 
-        if (mx > TEXT_X - 250 && mx < TEXT_X + 20) {
+        if (mx > TEXT_X - 360 && mx < TEXT_X + 20) {
             if (my > MENU1_Y - 30 && my < MENU1_Y + 30) window.titleMenuHover = 1; 
             if (my > MENU2_Y - 30 && my < MENU2_Y + 30) window.titleMenuHover = 2; 
+            if (my > MENU3_Y - 30 && my < MENU3_Y + 30) window.titleMenuHover = 5;
         }
         return; 
     }
@@ -3529,8 +3534,8 @@ setInterval(() => {
     if (typeof assets === 'undefined') return;
     for (let k in assets) {
         let a = assets[k];
-        if (a.type === 'restaurant' || a.type === 'smith') {
-            let isRest = a.type === 'restaurant';
+        if (a.type === 'restaurant') {
+            let isRest = true;
             
             // ★修正：野イチゴだけでなく、鉄鉱石やただの石を商品にしている古い鍛冶屋データも強制リセットする！
             if (!a.shopData || (a.shopData.recipes && (a.shopData.recipes['item_berry'] || a.shopData.recipes['iron'] || a.shopData.recipes['stone']))) {
@@ -4032,11 +4037,11 @@ window.drawStudioLogo = function() {
     ctx.fillText(text, 0, 0);
     ctx.restore();
 
-    // --- Click to Start の点滅アニメーション ---
+    // --- クリック開始案内の点滅アニメーション ---
     let alpha = (Math.sin(Date.now() / 400) + 1) / 2; // 0.0 ~ 1.0を波打つ
     ctx.font = '16px sans-serif';
     ctx.fillStyle = `rgba(200, 200, 200, ${alpha})`;
-    ctx.fillText("- Click to Start -", cx, canvas.height - 50);
+    ctx.fillText("- クリックして開始 -", cx, canvas.height - 50);
 };
 
 // ==========================================

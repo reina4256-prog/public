@@ -490,7 +490,7 @@
     }
 
     function renderLobby() {
-        if (!net.lobby) return;
+        if (!net.lobby || net.started) return;
         closeDialogs();
         const ids = actorIds(net.lobby.mode);
         const candidates = Array.isArray(net.lobby.cpuCandidates) && net.lobby.cpuCandidates.length ? net.lobby.cpuCandidates : cpuCandidates();

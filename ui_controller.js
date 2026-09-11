@@ -295,6 +295,12 @@ function applyTranslations() {
     for (let id in map) { const el = document.getElementById(id); if (el) el.innerText = map[id]; }
 }
 
+window.addEventListener('game-language-changed', () => {
+    applyTranslations();
+    updateStatUI();
+    updateCommandHUD();
+});
+
 function updateAIStatusText() {
     const el = document.getElementById('ai-status-text');
     if (!el || typeof aiPet === 'undefined') return;
@@ -1191,7 +1197,12 @@ function updateStatUI() {
     // データが空っぽならエラーにならないように即リターン（安全装置）
     if (!aiPet.stats) return; 
 
-    const setText = (id, val) => { const el = document.getElementById(id); if(el) el.innerText = val; };
+    const setText = (id, val) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.innerText = val;
+        el.title = String(val);
+    };
     
     const timeEl = document.getElementById('stat-time');
     if (timeEl) {
@@ -1205,7 +1216,8 @@ function updateStatUI() {
         else if (aiPet.season === 'autumn') seasonStr = "🍂 秋";
         else if (aiPet.season === 'winter') seasonStr = "⛄ 冬";
         
-        timeEl.innerText = `${seasonStr} ${timeStr}`;
+        const localizedSeason = window.GameI18n ? window.GameI18n.translate(seasonStr) : seasonStr;
+        timeEl.innerText = `${localizedSeason} ${timeStr}`;
     }
 
     setText('stat-gen', aiPet.generation || 1);
@@ -1666,14 +1678,15 @@ window.chatHistoryIndex = -1;
 window.sendChat = function() {
     const input = document.getElementById('chatInput');
     if (!input) return;
-    const rawText = input.value.trim();
+    const enteredText = input.value.trim();
+    const rawText = window.GameI18n ? window.GameI18n.toJapaneseInput(enteredText) : enteredText;
     if (!rawText) return;
     
-    const existingIndex = window.chatHistory.indexOf(rawText);
+    const existingIndex = window.chatHistory.indexOf(enteredText);
     if (existingIndex !== -1) {
         window.chatHistory.splice(existingIndex, 1);
     }
-    window.chatHistory.push(rawText);
+    window.chatHistory.push(enteredText);
     if (window.chatHistory.length > 50) window.chatHistory.shift();
     localStorage.setItem('ai_pet_chat_history', JSON.stringify(window.chatHistory));
     
@@ -1818,35 +1831,10 @@ window.sendChat = function() {
     const knows = (word) => aiPet.apprentice.learnedWords.includes(word);
     let actionTriggered = false; 
     const triggerSmithingIntroFromBasicCommand = () => {
-        if (!['睡眠', '勉強', '筋トレ', 'ランニング'].includes(interpretedWord)) return false;
-        if (!aiPet.apprentice || aiPet.isHelper) return false;
-        if (!Array.isArray(aiPet.apprentice.learnedWords) || aiPet.apprentice.learnedWords.length < 3) return false;
-        if (aiPet.apprentice.currentMaster || aiPet.apprentice.isGraduated) return false;
-        if (!aiPet.apprentice.metMasters) aiPet.apprentice.metMasters = [];
-        if (aiPet.apprentice.metMasters.includes('smithing')) return false;
-
-        actionTriggered = true;
-        aiPet.schedule = [];
-        aiPet.currentTask = null;
-        aiPet.actionState = 'idle';
-        aiPet.isIndoors = false;
-        aiPet.message = "（火の気配がする...！）";
-        aiPet.messageTimer = 120;
-        const encounterMsg = "「……鍛えているのか。なら、火の扱いも覚えておけ。」";
-        const openFallbackIntro = () => {
-            if (typeof window.openEncounterUI === 'function') window.openEncounterUI('smithing', encounterMsg, 'encounter_intro');
-        };
-        const continueAfterVideo = () => {
-            if (typeof window.continueMasterEncounterIntroAfterVideo === 'function') {
-                window.continueMasterEncounterIntroAfterVideo('smithing', encounterMsg);
-            } else {
-                openFallbackIntro();
-            }
-        };
-        if (typeof window.playMasterEncounterVideo !== 'function' || !window.playMasterEncounterVideo('smithing', continueAfterVideo, openFallbackIntro)) {
-            openFallbackIntro();
-        }
-        return true;
+        const triggered = typeof window.tryTriggerSmithingIntroFromBasicAction === 'function'
+            && window.tryTriggerSmithingIntroFromBasicAction(interpretedWord, { hero: aiPet });
+        if (triggered) actionTriggered = true;
+        return triggered;
     };
 
     const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
@@ -1909,6 +1897,14 @@ window.sendChat = function() {
         input.value = "";
         input.focus();
     };
+
+    // マイホーム屋内が解放済みでも、育成画面からの生活行動指示では
+    // マイホームへの移動より先に鍛冶師との初回遭遇を判定する。
+    if (knows(interpretedWord) && triggerSmithingIntroFromBasicCommand()) {
+        input.value = "";
+        input.focus();
+        return;
+    }
 
     if (aiPet.conciergeEncountered || aiPet.conciergeUnlocked || (window.hero && (window.hero.conciergeEncountered || window.hero.conciergeUnlocked))) {
         const homeCommandText = `${rawText || ''} ${interpretedWord || ''}`;
@@ -2239,14 +2235,17 @@ window.sendChat = function() {
     }
     // ▲▲▲ 追加ここまで ▲▲▲
     else if (interpretedWord === "睡眠" && knows("睡眠")) {
-        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'sleep', duration:60});
+        aiPet.schedule.push({type:'sleep', duration:60});
         actionTriggered = true;
     }
     else if (interpretedWord === "ランニング" && knows("ランニング")) {
-        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'run', duration:60});
+        aiPet.schedule.push({type:'run', duration:60});
         actionTriggered = true;
     }
-    else if (interpretedWord === "食事" && knows("食事")) { aiPet.schedule.push({type:'eat', duration:30}); actionTriggered = true; }
+    else if (interpretedWord === "食事" && knows("食事")) {
+        aiPet.schedule.push({type:'eat', duration:30});
+        actionTriggered = true;
+    }
     else if (interpretedWord === "集中薬を飲む" && knows("集中薬")) {
         actionTriggered = true;
         let hasFocusMed = false;
@@ -2266,11 +2265,11 @@ window.sendChat = function() {
         aiPet.messageTimer = 120;
     }
     else if (interpretedWord === "勉強" && knows("勉強")) {
-        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'study', duration:60});
+        aiPet.schedule.push({type:'study', duration:60});
         actionTriggered = true;
     }
     else if (interpretedWord === "筋トレ" && knows("筋トレ")) {
-        if (!triggerSmithingIntroFromBasicCommand()) aiPet.schedule.push({type:'train', duration:60});
+        aiPet.schedule.push({type:'train', duration:60});
         actionTriggered = true;
     } 
     else if (["探検", "森", "山"].includes(interpretedWord) && knows(interpretedWord)) { 
@@ -2354,14 +2353,17 @@ window.sendChat = function() {
         let mySmith = null;
         for (let k in assets) {
             // ★完全修正：師匠の店を除外し、純粋な自分の鍛冶屋だけを探す
-            if ((assets[k].type === 'smith' || assets[k].type === 'blacksmith') && !assets[k].isMasterShop) { mySmith = assets[k]; break; }
+            const isSmithCamp = assets[k] && ['師匠のキャンプ', '鍛冶師のキャンプ'].includes(assets[k].name);
+            if ((assets[k].type === 'smith' || assets[k].type === 'blacksmith') && !assets[k].isMasterShop && !isSmithCamp) { mySmith = assets[k]; break; }
         }
 
         // ★鍛冶屋建築分岐
         if (interpretedWord === "鍛冶屋" && !mySmith) {
             let isMasterBuilder = aiPet.apprentice && ((aiPet.apprentice.retired && aiPet.apprentice.retired['building']) || (aiPet.apprentice.currentMaster === 'building' && aiPet.apprentice.isGraduated) || (aiPet.apprentice.rank && aiPet.apprentice.rank['building'] >= 10));
-            if (isMasterBuilder) {
-                aiPet.schedule.push({type: 'build', targetBuilding: 'smith', duration: 60});
+            if (!isMaster) {
+                aiPet.message = "自分の鍛冶屋を持つには、まず鍛冶師の免許皆伝が必要だよ。";
+            } else if (isMasterBuilder) {
+                aiPet.schedule.push({type: 'build', targetBuilding: 'blacksmith', duration: 60});
                 aiPet.message = "鍛冶屋の建築を予定に追加したよ！";
             } else {
                 aiPet.message = "まだ修行中の身だから、鍛冶屋は作れないよ...\n(まずは建築士の免許皆伝を目指そう！)";
@@ -2371,16 +2373,17 @@ window.sendChat = function() {
             // ★既存の鍛冶（経営）処理
             if (isMaster) {
                 if (mySmith) {
-                    aiPet.schedule.push({type: 'smith', duration: 60});
-                    if (aiPet.schedule.length === 1) {
-                        aiPet.startBuildingInteraction(mySmith); aiPet.message = "自分の工房で腕を振るってくるよ！";
-                    } else { aiPet.message = "他にも鍛冶の予約をしたよ！"; }
+                    aiPet.schedule = [];
+                    aiPet.startBuildingInteraction(mySmith);
+                    aiPet.message = "鍛冶屋の様子を見に行くね！";
                 } else { aiPet.message = "鍛冶の腕はあるけど、自分の「鍛冶屋」がないと何も打てないや。\n(「鍛冶屋」と指示して建築しよう！)"; }
             } else if (isApprentice) {
                 let masterCamp = null;
                 for (let k in assets) {
                     // ★修正：移動フラグ(isMobile)の条件を消し、確実に「師匠のキャンプ」を探し出す！
-                    if (k === 'blacksmith_master_camp' || (assets[k].type === 'blacksmith' && assets[k].name === '師匠のキャンプ')) { masterCamp = assets[k]; break; }
+                    const isSmithCampKey = k === 'blacksmith_master_camp' || k.startsWith('smithing_master_camp');
+                    const isSmithCampName = assets[k].type === 'blacksmith' && ['師匠のキャンプ', '鍛冶師のキャンプ'].includes(assets[k].name);
+                    if (isSmithCampKey || isSmithCampName) { masterCamp = assets[k]; break; }
                 }
                 if (masterCamp) {
                     aiPet.schedule.push({type: 'smith', duration: 60, isTrial: true}); 
@@ -2818,7 +2821,7 @@ window.openCasino = function() {
     let onlineRegisterFunc = "alert('デッキ登録機能が見つかりません');";
     
     buttons.forEach(btn => {
-        const text = btn.innerText.trim();
+        const text = window.getLocalizedSourceText ? window.getLocalizedSourceText(btn).trim() : btn.innerText.trim();
         if (text.includes('世界のプレイヤーと対戦')) {
             onlineMatchFunc = btn.getAttribute('onclick') || onlineMatchFunc;
         }
@@ -2964,6 +2967,7 @@ window.addScheduleFromInput = function(type) {
 window.loadDebugData = function() {
     if (typeof aiPet === 'undefined') return;
     const debugValue = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
+    if (typeof window.refreshDebugBlacksmithLevelUI === 'function') window.refreshDebugBlacksmithLevelUI();
     if(document.getElementById('dbg-gen')) document.getElementById('dbg-gen').value = debugValue(aiPet.generation, 1);
     if(document.getElementById('dbg-age')) document.getElementById('dbg-age').value = debugValue(aiPet.age, 0);
     if(document.getElementById('dbg-hour')) document.getElementById('dbg-hour').value = debugValue(aiPet.debugHour, 12);
@@ -6442,7 +6446,7 @@ window.startVoiceRecognition = function() {
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = 'ja-JP'; 
+    recognition.lang = window.GameI18n ? window.GameI18n.speechLanguage : 'ja-JP';
     recognition.interimResults = false; 
     recognition.maxAlternatives = 1;
 
@@ -7573,7 +7577,6 @@ if (typeof window.openCasino === 'function' && !window._casinoHookedForCardShop)
 
 // アセット画像をコード側で読み込む
 const imgRestAsset = new Image(); imgRestAsset.src = 'restaurant_asset.png'; // image_1.png
-const imgSmithAsset = new Image(); imgSmithAsset.src = 'smith_asset.png'; // image_2.png
 
 // ==========================================
 // 🎨 ハウジングシステム（Canvas描画）
@@ -7626,24 +7629,6 @@ window.renderRestaurantInterior = function(ctx, building) {
     }
 };
 
-// 鍛冶屋の内装描画
-window.renderSmithInterior = function(ctx, building) {
-    if (!building || !building.shopData) return;
-    const s = building.shopData;
-
-    // 1. 金床とハンマー (レベル1〜)
-    drawAssetWithWhiteTransparency(ctx, imgSmithAsset, 0, 0, 200, 200, 100, 200, 200, 200);
-
-    // 2. 武器棚 (レベル1〜)
-    drawAssetWithWhiteTransparency(ctx, imgSmithAsset, 200, 0, 300, 200, 450, 150, 300, 200);
-
-    // 3. 巨大な炉 (レベル2〜)
-    if (s.interiorLevel >= 2) {
-        drawAssetWithWhiteTransparency(ctx, imgSmithAsset, 500, 0, 200, 200, 300, 80, 200, 200);
-    }
-};
-
-
 // ==========================================
 // 🏪 店舗経営UI （イス追加・イートイン座標修正版）
 // ==========================================
@@ -7682,11 +7667,6 @@ window.SHOP_FURNITURE_DATA = {
         },
         { "name": "暖炉", "img": "restaurant_asset.png", "sx": 490, "sy": 629, "sw": 776, "sh": 875, "x": 188, "y": 111, "scale": 0.1, "reqLv": 2 },
         { "name": "酒樽", "img": "restaurant_asset.png", "sx": 1546, "sy": 745, "sw": 776, "sh": 736, "x": 252, "y": 78, "scale": 0.1, "reqLv": 3 }
-    ],
-    "smith": [
-        { "name": "金床", "img": "smith_asset.png", "sx": 527, "sy": 223, "sw": 292, "sh": 271, "x": 161, "y": 78, "scale": 0.2499999999999999, "reqLv": 1 },
-        { "name": "武器棚", "img": "smith_asset.png", "sx": 1800, "sy": 211, "sw": 467, "sh": 485, "x": 290, "y": 62, "scale": 0.2499999999999999, "reqLv": 1 },
-        { "name": "炉", "img": "smith_asset.png", "sx": 886, "sy": 538, "sw": 407, "sh": 447, "x": 233, "y": 121, "scale": 0.1999999999999999, "reqLv": 2 }
     ]
 };
 
@@ -7746,7 +7726,7 @@ window.openShopManagementUI = function(building) {
 
     let housingHtml = `<div style="position:relative; width:100%; height:250px; flex-shrink:0; background: url('empty_room.png') center/cover no-repeat #5D4037; border:2px solid #555; border-radius:8px; overflow:hidden; margin-bottom:15px; box-shadow: inset 0 0 20px rgba(0,0,0,0.8);">`;
     
-    let furnitureList = isRest ? window.SHOP_FURNITURE_DATA['restaurant'] : window.SHOP_FURNITURE_DATA['smith'];
+    let furnitureList = isRest ? window.SHOP_FURNITURE_DATA['restaurant'] : [];
     if (furnitureList) {
         furnitureList.forEach(f => {
             if (s.interiorLevel >= f.reqLv) {
@@ -9622,7 +9602,8 @@ window._builderBtnCheckInterval = setInterval(() => {
     
     // 画面内の「設計図」と書かれたボタンを探して、条件に合わせて隠す/表示する
     document.querySelectorAll('button').forEach(btn => {
-        if (btn.innerText.includes('設計図')) {
+        const sourceText = window.getLocalizedSourceText ? window.getLocalizedSourceText(btn) : btn.innerText;
+        if (sourceText.includes('設計図')) {
             if (!isBuilder) {
                 btn.style.display = 'none'; // 弟子入り前・関係ない職の時は隠す
             } else {
@@ -11078,7 +11059,8 @@ window.openHutStorageUI = function(hutAsset) {
 
     let bubble = document.getElementById('storage-speech-bubble');
     if (bubble) {
-        if (bubble.innerText !== msg) {
+        const bubbleSource = window.getLocalizedSourceText ? window.getLocalizedSourceText(bubble) : bubble.innerText;
+        if (bubbleSource !== msg) {
             bubble.style.transform = 'translateY(5px)'; // メッセージ更新時にピコッと動かす
             setTimeout(() => { bubble.style.transform = 'translateY(0)'; }, 100);
         }
@@ -11110,8 +11092,10 @@ window.openMusicHall = function() {
 
     // 音量スライダーの初期化
     const slider = document.getElementById('bgm-volume-slider');
-    if (slider && window.aiPet) {
-        slider.value = window.aiPet.bgmVolume !== undefined ? window.aiPet.bgmVolume : 0.5;
+    if (slider) {
+        slider.value = window.GameSettings
+            ? window.GameSettings.getBgmVolume()
+            : (window.aiPet && window.aiPet.bgmVolume !== undefined ? window.aiPet.bgmVolume : 0.5);
     }
 
     // 解放済みリストの描画
@@ -11319,7 +11303,7 @@ setInterval(() => {
 }, 1000);
 
 // ==========================================
-// 📔 知識の手帳UI（設計図・レシピ・調合の統合）
+// 📔 知識の手帳UI（見開き本・しおり式カテゴリ）
 // ==========================================
 window.isRestaurantRecipeNotebookUnlocked = function() {
     const ai = window.aiPet;
@@ -11344,157 +11328,159 @@ window.getNotebookRestaurantShopData = function() {
     return window.SHOP_STATE || null;
 };
 
+window.isBlacksmithRecipeNotebookUnlocked = function() {
+    const ai = window.aiPet;
+    if (!ai) return false;
+    // blacksmithTutorialCompleted は専用フラグ導入前の入店済みセーブを静かに救済する。
+    return ai.blacksmithRecipeNotebookUnlocked === true || ai.blacksmithTutorialCompleted === true;
+};
+
+window.getNotebookBlacksmithState = function() {
+    const currentBuilding = window.currentBlacksmithBuilding;
+    if (currentBuilding && currentBuilding.blacksmithBusiness) return currentBuilding.blacksmithBusiness;
+    if (window.BLACKSMITH_STATE) return window.BLACKSMITH_STATE;
+    const targetAssets = typeof assets !== 'undefined' ? assets : (window.assets || {});
+    const ownBlacksmith = Object.values(targetAssets).find(asset => asset
+        && (asset.type === 'smith' || asset.type === 'blacksmith')
+        && !asset.isMasterShop
+        && !['師匠のキャンプ', '鍛冶師のキャンプ'].includes(asset.name)
+        && asset.blacksmithBusiness);
+    if (ownBlacksmith) return ownBlacksmith.blacksmithBusiness;
+    if (window.aiPet?.savedBlacksmithRecipes) {
+        return { recipes: window.aiPet.savedBlacksmithRecipes, stock: {} };
+    }
+    return null;
+};
+
+function escapeNotebookText(value) {
+    return String(value ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
 window.openNotebookUI = function() {
     let ui = document.getElementById('notebook-ui');
     if (ui) ui.remove();
 
     ui = document.createElement('div');
     ui.id = 'notebook-ui';
-    ui.style.cssText = `position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(20,20,20,0.95); border:2px solid #FF9800; border-radius:12px; padding:20px; color:#fff; z-index:20000; width:500px; height:500px; display:flex; flex-direction:column; box-shadow: 0 0 20px rgba(0,0,0,0.8); font-family: sans-serif; backdrop-filter:blur(3px);`;
+    ui.className = 'knowledge-notebook-overlay';
 
     const app = window.aiPet?.apprentice || {};
     const ranks = app.rank || {};
     const retired = app.retired || {};
 
-    // --- A. タブの出現判定フラグ ---
     const showBlueprint = (app.currentMaster === 'building') || (ranks['building'] > 0) || (retired['building']);
-    const showRecipe = window.isRestaurantRecipeNotebookUnlocked();
+    const showCooking = window.isRestaurantRecipeNotebookUnlocked();
+    const showBlacksmith = window.isBlacksmithRecipeNotebookUnlocked();
     const showMedicine = (app.currentMaster === 'pharmacist') || (ranks['pharmacist'] > 0) || (retired['pharmacist']);
-    // ★追加：仕立屋の手帳フラグ
     const showTailor = (app.currentMaster === 'tailor') || (ranks['tailor'] > 0) || (retired['tailor']);
 
-    // --- B. 免許皆伝（ロック解除）判定フラグ ---
     const isBuildingMaster = (ranks['building'] >= 10) || retired['building'] || (app.currentMaster === 'building' && app.isGraduated);
-    const isSmithingMaster = (ranks['smithing'] >= 10) || retired['smithing'] || (app.currentMaster === 'smithing' && app.isGraduated);
-    const isRestaurantRecipeUnlocked = window.isRestaurantRecipeNotebookUnlocked();
     const isMedicineUnlocked = (ranks['pharmacist'] >= 3) || retired['pharmacist'] || ranks['pharmacist'] >= 10;
-    // ★追加：仕立屋のロック解除判定（ランク3以上）
     const isTailorUnlocked = (ranks['tailor'] >= 1) || retired['tailor'] || ranks['tailor'] >= 10;
 
-    // --- C. ロック中画面の共通テンプレート ---
     const lockedHtml = (profName, hintText) => `
-        <div style="text-align:center; padding:60px 20px; color:#aaa;">
-            <div style="font-size:50px; margin-bottom:15px; filter: grayscale(1);">🔒</div>
-            <div style="font-size:18px; font-weight:bold; color:#FFF; margin-bottom:10px;">${profName}の知識は未解放です</div>
-            <div style="font-size:13px; line-height:1.6;">${hintText}</div>
+        <div class="nb-locked-page">
+            <div class="nb-lock-icon">🔒</div>
+            <div class="nb-lock-title">${profName}の知識は未解放です</div>
+            <div class="nb-lock-hint">${hintText}</div>
         </div>
     `;
 
-    // タブのHTML生成
-    let tabsHtml = `<div style="display:flex; gap:5px; margin-bottom:15px; border-bottom:1px solid #555; padding-bottom:5px; flex-shrink: 0;">`;
-    let hasAnyTab = false;
-    let initialTab = null;
-    
-    if (showBlueprint) { 
-        tabsHtml += `<button class="nb-tab active" onclick="switchNotebookTab('blueprint')" style="flex:1; background:#444; color:#fff; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">設計図</button>`; 
-        hasAnyTab = true; 
-        initialTab = 'blueprint';
-    }
-    if (showRecipe) { 
-        let isActive = !hasAnyTab;
-        tabsHtml += `<button class="nb-tab ${isActive ? 'active' : ''}" onclick="switchNotebookTab('recipe')" style="flex:1; background:${isActive ? '#444' : '#222'}; color:${isActive ? '#fff' : '#aaa'}; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">レシピ</button>`; 
-        hasAnyTab = true; 
-        if (!initialTab) initialTab = 'recipe';
-    }
-    if (showMedicine) { 
-        let isActive = !hasAnyTab;
-        tabsHtml += `<button class="nb-tab ${isActive ? 'active' : ''}" onclick="switchNotebookTab('medicine')" style="flex:1; background:${isActive ? '#444' : '#222'}; color:${isActive ? '#fff' : '#aaa'}; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">調合</button>`; 
-        hasAnyTab = true; 
-        if (!initialTab) initialTab = 'medicine';
-    }
-    // ★追加：仕立屋（裁縫）タブ
-    if (showTailor) { 
-        let isActive = !hasAnyTab;
-        tabsHtml += `<button class="nb-tab ${isActive ? 'active' : ''}" onclick="switchNotebookTab('tailoring')" style="flex:1; background:${isActive ? '#444' : '#222'}; color:${isActive ? '#fff' : '#aaa'}; border:none; padding:10px; cursor:pointer; font-weight:bold; border-radius:4px 4px 0 0;">裁縫</button>`; 
-        hasAnyTab = true; 
-        if (!initialTab) initialTab = 'tailoring';
-    }
-    tabsHtml += `</div>`;
-    if (!hasAnyTab) tabsHtml = "";
-
-    // ★修正：建築士は重複回避のため専用ID、薬剤師は元のIDのままとする
-    let blueprintContent = isBuildingMaster ? `<div id="nb-build-list"></div>` : lockedHtml("建築士", "修行を積み<br><span style='color:#FFD700; font-weight:bold;'>「免許皆伝」</span>になると<br>全ての詳細が確認できるようになります。");
-    let recipeContent = (isRestaurantRecipeUnlocked || isSmithingMaster) ? renderRecipeListHtml() : lockedHtml("レシピ", "レストランのチュートリアルで<br><span style='color:#FFD700; font-weight:bold;'>料理をひらめく方法</span>を教わると<br>確認できるようになります。");
-    let medicineContent = isMedicineUnlocked ? `<div id="medicineRecipeList"></div>` : lockedHtml("調合", "薬剤師の修行を進め<br><span style='color:#4CAF50; font-weight:bold;'>「ランク3」</span>以上になると<br>処方箋が確認できるようになります。");
-    // ★追加：仕立屋のコンテンツ
-    let tailoringContent = isTailorUnlocked ? `<div id="tailoringRecipeList"></div>` : lockedHtml("裁縫", "仕立屋の修行を進め<br><span style='color:#E040FB; font-weight:bold;'>「ランク3」</span>以上になると<br>型紙が確認できるようになります。");
-
-    let contentHtml = "";
-    if (!hasAnyTab) {
-        contentHtml = `<div style="text-align:center; padding:60px 20px; color:#aaa;">手帳にはまだ何も書かれていません。<br>専門家に弟子入りして知識を記録しましょう。</div>`;
-    } else {
-        if (showBlueprint) contentHtml += `<div id="nb-content-blueprint" class="nb-content" style="display:${initialTab==='blueprint'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${blueprintContent}</div>`;
-        if (showRecipe) contentHtml += `<div id="nb-content-recipe" class="nb-content" style="display:${initialTab==='recipe'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${recipeContent}</div>`;
-        if (showMedicine) contentHtml += `<div id="nb-content-medicine" class="nb-content" style="display:${initialTab==='medicine'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${medicineContent}</div>`;
-        // ★追加：仕立屋の表示エリア
-        if (showTailor) contentHtml += `<div id="nb-content-tailoring" class="nb-content" style="display:${initialTab==='tailoring'?'block':'none'}; overflow-y:auto; flex:1; padding-right:5px;">${tailoringContent}</div>`;
-    }
+    const categories = [
+        showBlueprint && {
+            id: 'blueprint', icon: '📐', label: '設計図', color: '#b85f3a',
+            content: isBuildingMaster ? '<div id="nb-build-list"></div>' : lockedHtml('建築士', '修行を積み<br><span>「免許皆伝」</span>になると<br>全ての詳細が確認できるようになります。')
+        },
+        showCooking && {
+            id: 'cooking', icon: '🍳', label: '料理', color: '#d78b35', content: renderRecipeListHtml()
+        },
+        showBlacksmith && {
+            id: 'blacksmith', icon: '⚒️', label: '鍛冶', color: '#65727c', content: renderBlacksmithRecipeListHtml()
+        },
+        showMedicine && {
+            id: 'medicine', icon: '🧪', label: '調合', color: '#4d8f68',
+            content: isMedicineUnlocked ? '<div id="medicineRecipeList"></div>' : lockedHtml('調合', '薬剤師の修行を進め<br><span>「ランク3」</span>以上になると<br>処方箋が確認できるようになります。')
+        },
+        showTailor && {
+            id: 'tailoring', icon: '🧵', label: '裁縫', color: '#9a5c86',
+            content: isTailorUnlocked ? '<div id="tailoringRecipeList"></div>' : lockedHtml('裁縫', '仕立屋の修行を進め<br><span>「ランク3」</span>以上になると<br>型紙が確認できるようになります。')
+        }
+    ].filter(Boolean);
+    const initialCategory = categories[0] || null;
+    const bookmarksHtml = categories.map(category => `<button type="button" class="nb-bookmark${category === initialCategory ? ' active' : ''}" data-notebook-section="${category.id}" style="--bookmark-color:${category.color}"><span class="nb-bookmark-icon">${category.icon}</span><span class="nb-bookmark-label">${category.label}</span></button>`).join('');
+    const contentHtml = categories.length
+        ? categories.map(category => `<section id="nb-content-${category.id}" class="nb-content" data-notebook-page="${category.id}" style="display:${category === initialCategory ? 'block' : 'none'}"><div class="nb-page-heading"><span>${category.icon}</span><h3>${category.label}</h3></div>${category.content}</section>`).join('')
+        : '<section class="nb-content nb-empty-page" style="display:block;">手帳にはまだ何も書かれていません。<br>専門家に弟子入りして知識を記録しましょう。</section>';
 
     ui.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-shrink: 0;">
-            <h2 style="margin:0; font-size:20px; color:#FF9800;">📔 知識の手帳</h2>
-            <button onclick="document.getElementById('notebook-ui').remove()" style="background:none; border:none; color:#aaa; font-size:24px; cursor:pointer;">&times;</button>
+        <div class="knowledge-notebook-frame" role="dialog" aria-modal="true" aria-label="知識の手帳">
+            <button type="button" class="nb-close-button" aria-label="閉じる">×</button>
+            <nav class="nb-bookmarks" aria-label="手帳のしおり">${bookmarksHtml}</nav>
+            <div class="nb-book-spread">
+                <section class="nb-paper-page nb-paper-left">
+                    <div class="nb-book-emblem">📔</div>
+                    <h2>知識の手帳</h2>
+                    <div class="nb-ornament">◆　◆　◆</div>
+                    <p>しおりを選んで、書き留めた知識を開きます。</p>
+                    <div class="nb-current-section"><span>${initialCategory?.icon || '✒️'}</span><strong id="nb-current-section-label">${initialCategory?.label || '未記入'}</strong></div>
+                    <div class="nb-page-number">— 1 —</div>
+                </section>
+                <section class="nb-paper-page nb-paper-right">
+                    <div class="nb-content-scroll">${contentHtml}</div>
+                    <div class="nb-page-number">— 2 —</div>
+                </section>
+            </div>
         </div>
-        ${tabsHtml}
-        ${contentHtml}
     `;
 
     document.body.appendChild(ui);
-
-    // ★バグ修正：建築士のみ引数を渡し、薬剤師は今まで通り呼び出す
-    if (initialTab === 'blueprint' && isBuildingMaster && typeof window.renderBuildRecipe === 'function') {
-        window.renderBuildRecipe(document.getElementById('nb-build-list'));
-    } else if (initialTab === 'medicine' && isMedicineUnlocked && typeof window.renderMedicineRecipe === 'function') {
-        window.renderMedicineRecipe();
-    } else if (initialTab === 'tailoring' && isTailorUnlocked && typeof window.renderTailoringRecipe === 'function') {
-        window.renderTailoringRecipe(); // ★追加: 初期タブが裁縫だった時の描画
-    }
+    ui.querySelector('.nb-close-button')?.addEventListener('click', () => ui.remove());
+    ui.addEventListener('click', event => {
+        if (event.target === ui) ui.remove();
+    });
+    ui.querySelectorAll('[data-notebook-section]').forEach(button => {
+        button.addEventListener('click', () => window.switchNotebookTab(button.dataset.notebookSection));
+    });
+    if (initialCategory) renderNotebookSection(initialCategory.id);
 };
 
 window.switchNotebookTab = function(tabId) {
-    document.querySelectorAll('.nb-tab').forEach(btn => {
-        btn.style.background = '#222';
-        btn.style.color = '#aaa';
-        btn.classList.remove('active');
-        
-        // ★修正：eventを使わず、tabIdに合致するボタンを特定してアクティブにする
-        if (btn.getAttribute('onclick').includes(tabId)) {
-            btn.style.background = '#444';
-            btn.style.color = '#fff';
-            btn.classList.add('active');
-        }
-    });
-
-    document.querySelectorAll('.nb-content').forEach(c => c.style.display = 'none');
-    const target = document.getElementById('nb-content-' + tabId);
+    const ui = document.getElementById('notebook-ui');
+    if (!ui) return;
+    ui.querySelectorAll('.nb-bookmark').forEach(button => button.classList.toggle('active', button.dataset.notebookSection === tabId));
+    ui.querySelectorAll('.nb-content').forEach(content => content.style.display = 'none');
+    const target = ui.querySelector('#nb-content-' + tabId);
     if (target) target.style.display = 'block';
-
-    // ★バグ修正：タブを切り替えた瞬間に、対応する中身を毎回新しく描画する！
-    let ai = window.aiPet;
-    if (tabId === 'blueprint' && typeof window.renderBuildRecipe === 'function') {
-        let isBuildingMaster = ai.apprentice && (
-            (ai.apprentice.retired && ai.apprentice.retired['building']) ||
-            (ai.apprentice.currentMaster === 'building' && ai.apprentice.isGraduated) ||
-            (ai.apprentice.rank && ai.apprentice.rank['building'] >= 10)
-        );
-        if (isBuildingMaster) window.renderBuildRecipe(document.getElementById('nb-build-list'));
-    } else if (tabId === 'medicine' && typeof window.renderMedicineRecipe === 'function') {
-        let rank = (ai.apprentice && ai.apprentice.rank && ai.apprentice.rank['pharmacist']) || 0;
-        let isPharmacistMaster = ai.apprentice && ((ai.apprentice.retired && ai.apprentice.retired['pharmacist']) || rank >= 10);
-        if (rank >= 3 || isPharmacistMaster) window.renderMedicineRecipe();
-    } else if (tabId === 'tailoring' && typeof window.renderTailoringRecipe === 'function') {
-        // ★追加: タブ切り替え時の裁縫レシピ描画
-        let rank = (ai.apprentice && ai.apprentice.rank && ai.apprentice.rank['tailor']) || 0;
-        let isTailorMaster = ai.apprentice && ((ai.apprentice.retired && ai.apprentice.retired['tailor']) || rank >= 10);
-        if (rank >= 1 || isTailorMaster) window.renderTailoringRecipe();
-    }
+    const bookmark = ui.querySelector(`.nb-bookmark[data-notebook-section="${tabId}"]`);
+    const label = ui.querySelector('#nb-current-section-label');
+    const icon = ui.querySelector('.nb-current-section span');
+    if (label && bookmark) label.textContent = bookmark.querySelector('.nb-bookmark-label')?.textContent.trim() || bookmark.textContent.trim();
+    if (icon && bookmark) icon.textContent = bookmark.querySelector('.nb-bookmark-icon')?.textContent || '✒️';
+    renderNotebookSection(tabId);
 };
 
-// ヘルパー：レシピリストのHTMLを生成（前回の openRecipeBook のロジックを関数化）
+function renderNotebookSection(tabId) {
+    const ai = window.aiPet;
+    if (!ai) return;
+    if (tabId === 'blueprint' && typeof window.renderBuildRecipe === 'function') {
+        const app = ai.apprentice || {};
+        const rank = app.rank || {};
+        const retired = app.retired || {};
+        const isBuildingMaster = retired.building || (app.currentMaster === 'building' && app.isGraduated) || rank.building >= 10;
+        if (isBuildingMaster) window.renderBuildRecipe(document.getElementById('nb-build-list'));
+    } else if (tabId === 'medicine' && typeof window.renderMedicineRecipe === 'function') {
+        const rank = ai.apprentice?.rank?.pharmacist || 0;
+        if (rank >= 3 || ai.apprentice?.retired?.pharmacist) window.renderMedicineRecipe();
+    } else if (tabId === 'tailoring' && typeof window.renderTailoringRecipe === 'function') {
+        const rank = ai.apprentice?.rank?.tailor || 0;
+        if (rank >= 1 || ai.apprentice?.retired?.tailor) window.renderTailoringRecipe();
+    }
+}
+
 function renderRecipeListHtml() {
     const shopData = typeof window.getNotebookRestaurantShopData === 'function' ? window.getNotebookRestaurantShopData() : null;
     if (!shopData) {
-        return `<div style="text-align:center; padding:40px; color:#777; font-size:14px; background:#222; border-radius:8px;">自分のレストランが見つかりません。</div>`;
+        return '<div class="nb-empty-note">自分のレストランが見つかりません。</div>';
     }
 
     const progress = shopData.recipeProgress || {};
@@ -11503,7 +11489,7 @@ function renderRecipeListHtml() {
     const recipeKeys = Object.keys(progress);
 
     if (recipeKeys.length === 0) {
-        return `<div style="text-align:center; padding:40px; color:#777; font-size:14px; background:#222; border-radius:8px; line-height:1.6;">まだひらめいたレシピがありません。<br>レストランで研究開発を進めると、ここに記録されます。</div>`;
+        return '<div class="nb-empty-note">まだひらめいたレシピがありません。<br>レストランで研究開発を進めると、ここに記録されます。</div>';
     }
 
     const getName = (key) => {
@@ -11518,36 +11504,65 @@ function renderRecipeListHtml() {
     };
     const costs = window.SHOP_RECIPE_COSTS || {};
 
-    let html = `<div style="display:flex; flex-direction:column; gap:12px; padding-bottom:15px;">`;
+    let html = '<div class="nb-recipe-list">';
     recipeKeys.sort((a, b) => (progress[b] || 0) - (progress[a] || 0)).forEach(key => {
         const prog = Math.max(0, Math.min(100, progress[key] || 0));
         const stock = fridge[key] || 0;
         const inMenu = menuList.includes(key);
         const done = prog >= 100;
-        const borderColor = done ? '#4CAF50' : '#00BCD4';
         const statusText = done ? '完成済み' : (prog > 0 ? '開発中' : 'ひらめき済み');
-        const statusColor = done ? '#4CAF50' : (prog > 0 ? '#00BCD4' : '#FFD700');
         const ingredients = costs[key] ? costs[key].map(getIngName).join('、') : '不明';
 
         html += `
-            <div style="flex-shrink:0; background:#222; border:1px solid ${borderColor}; border-radius:8px; padding:14px;">
-                <div style="display:flex; justify-content:space-between; gap:10px; align-items:flex-start; margin-bottom:8px;">
-                    <div style="font-size:16px; font-weight:bold; color:#FFF;">${getName(key)}</div>
-                    <div style="font-size:12px; color:${statusColor}; font-weight:bold; white-space:nowrap;">${statusText}</div>
+            <article class="nb-recipe-card ${done ? 'complete' : (prog > 0 ? 'developing' : 'discovered')}">
+                <div class="nb-recipe-title-row">
+                    <div class="nb-recipe-name">${escapeNotebookText(getName(key))}</div>
+                    <div class="nb-recipe-status">${statusText}</div>
                 </div>
-                <div style="height:8px; background:#111; border-radius:999px; overflow:hidden; border:1px solid #333; margin-bottom:8px;">
-                    <div style="width:${prog}%; height:100%; background:${done ? '#4CAF50' : '#00BCD4'};"></div>
+                <div class="nb-progress-track">
+                    <div style="width:${prog}%"></div>
                 </div>
-                <div style="font-size:12px; color:#ccc; line-height:1.6;">
-                    <div>開発度: <span style="color:${statusColor}; font-weight:bold;">${prog}%</span></div>
-                    <div>必要素材: ${ingredients}</div>
-                    <div>在庫: <span style="color:#FFD700; font-weight:bold;">${stock}個</span> / メニュー: <span style="color:${inMenu ? '#4CAF50' : '#888'}; font-weight:bold;">${inMenu ? '提供中' : '未登録'}</span></div>
+                <div class="nb-recipe-details">
+                    <div>開発度：<strong>${prog}%</strong></div>
+                    <div>必要素材：${escapeNotebookText(ingredients)}</div>
+                    <div>在庫：<strong>${stock}個</strong> ／ メニュー：<strong>${inMenu ? '提供中' : '未登録'}</strong></div>
                 </div>
-            </div>
+            </article>
         `;
     });
     html += `</div>`;
     return html;
+}
+
+function renderBlacksmithRecipeListHtml() {
+    const state = window.getNotebookBlacksmithState();
+    if (!state) return '<div class="nb-empty-note">自分の鍛冶屋の記録が見つかりません。</div>';
+    const catalog = window.BLACKSMITH_RECIPE_CATALOG || {};
+    const equipmentCatalog = window.BLACKSMITH_EQUIPMENT_CATALOG || {};
+    const recipes = state.recipes || {};
+    const discoveredIds = Object.keys(catalog).filter(id => recipes[id]?.discovered === true || Number(recipes[id]?.mastery) > 0);
+    if (!discoveredIds.length) {
+        return '<div class="nb-empty-note">まだひらめいたレシピがありません。<br>鍛冶屋で素材と必要設備を揃えて仕込みをすると、ここに記録されます。</div>';
+    }
+    const getName = id => window.itemCatalog?.[id]?.name || id;
+    const categoryNames = { weapon: '武器', armor: '防具', goods: '雑貨' };
+    discoveredIds.sort((a, b) => (Number(recipes[b]?.mastery) || 0) - (Number(recipes[a]?.mastery) || 0));
+    let html = '<div class="nb-recipe-list">';
+    discoveredIds.forEach(id => {
+        const recipe = catalog[id];
+        const progress = Math.max(0, Math.min(100, Number(recipes[id]?.mastery) || 0));
+        const done = progress >= 100;
+        const statusText = done ? '完成済み' : (progress > 0 ? '開発中' : 'ひらめき済み');
+        const materialText = Object.entries(recipe.materials || {}).map(([materialId, count]) => `${getName(materialId)}×${count}`).join('、');
+        const equipmentText = (recipe.equipment || []).map(equipmentId => equipmentCatalog[equipmentId]?.name || equipmentId).join('、');
+        const stock = Math.max(0, Number(state.stock?.[id]) || 0);
+        html += `<article class="nb-recipe-card ${done ? 'complete' : (progress > 0 ? 'developing' : 'discovered')}">
+            <div class="nb-recipe-title-row"><div class="nb-recipe-name">${escapeNotebookText(getName(id))}<small>${categoryNames[recipe.category] || recipe.category}</small></div><div class="nb-recipe-status">${statusText}</div></div>
+            <div class="nb-progress-track"><div style="width:${progress}%"></div></div>
+            <div class="nb-recipe-details"><div>完成度：<strong>${progress}%</strong></div><div>必要素材：${escapeNotebookText(materialText)}</div><div>必要設備：${escapeNotebookText(equipmentText)}</div><div>在庫：<strong>${stock}個</strong></div></div>
+        </article>`;
+    });
+    return `${html}</div>`;
 }
 
 // ==========================================

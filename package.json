@@ -7,7 +7,11 @@
     "start": "electron .",
     "start:web": "node browser_server.js",
     "start:web:lan": "node browser_server.js --host 0.0.0.0",
-    "build": "electron-builder --windows"
+    "build": "electron-builder --windows",
+    "i18n:extract": "node scripts/i18n/extract_catalog.js",
+    "i18n:translate": "node scripts/i18n/translate_catalog.js",
+    "i18n:build": "node scripts/i18n/build_runtime_catalog.js",
+    "i18n:check": "node scripts/i18n/check_localization.js"
   },
   "build": {
     "appId": "com.yourname.aipetgame",

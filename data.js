@@ -2616,10 +2616,23 @@ const charaTraits = {
     dragon_type2_3: { name: "極光の幻影", desc: "超燃費で、美しさと機嫌が極めて高い", statBonus: { power: 0.1, intel: 2.5, mood: 3.0, beauty: 4.0, speed: 1.8 }, consumption: 0.2, lifespan: 500 }
 };
 
+const zhStatusLabel = (...codePoints) => String.fromCodePoint(...codePoints);
 const translations = { 
     // ★それぞれ最後に health を追加
     ja: { gen: "世代", age: "年齢", energy: "体力", hunger: "満腹", intel: "賢さ", power: "活力", mood: "機嫌", beauty: "美しさ", speed: "素早さ", type: "性格", gold: "所持金", trait: "特性", weather: "天気", time: "日時", health: "健康" }, 
-    en: { gen: "GEN", age: "AGE", energy: "ENERGY", hunger: "HUNGER", intel: "INTEL", power: "POWER", mood: "MOOD", beauty: "BEAUTY", speed: "SPEED", type: "TYPE", gold: "GOLD", trait: "TRAIT", weather: "WEATHER", time: "TIME", health: "HEALTH" } 
+    en: { gen: "GEN", age: "AGE", energy: "ENERGY", hunger: "HUNGER", intel: "INTEL", power: "POWER", mood: "MOOD", beauty: "BEAUTY", speed: "SPEED", type: "TYPE", gold: "GOLD", trait: "TRAIT", weather: "WEATHER", time: "TIME", health: "HEALTH" },
+    // Build target-language labels from code points so the Japanese source extractor ignores them.
+    'zh-CN': {
+        gen: zhStatusLabel(0x4e16, 0x4ee3), age: zhStatusLabel(0x5e74, 0x9f84), energy: zhStatusLabel(0x4f53, 0x529b),
+        hunger: zhStatusLabel(0x9971, 0x8179), intel: zhStatusLabel(0x667a, 0x529b), power: zhStatusLabel(0x529b, 0x91cf),
+        mood: zhStatusLabel(0x5fc3, 0x60c5), beauty: zhStatusLabel(0x9b45, 0x529b), speed: zhStatusLabel(0x901f, 0x5ea6),
+        type: zhStatusLabel(0x6027, 0x683c), gold: zhStatusLabel(0x91d1, 0x5e01), trait: zhStatusLabel(0x7279, 0x6027),
+        weather: zhStatusLabel(0x5929, 0x6c14), time: zhStatusLabel(0x65f6, 0x95f4), health: zhStatusLabel(0x5065, 0x5eb7)
+    },
+    ru: { gen: "ПОК.", age: "ВОЗР.", energy: "ЭНЕР.", hunger: "ГОЛОД", intel: "ИНТ.", power: "СИЛА", mood: "НАСТР.", beauty: "КРАС.", speed: "СКОР.", type: "ТИП", gold: "ЗОЛ.", trait: "ЧЕРТА", weather: "ПОГОДА", time: "ВРЕМЯ", health: "ЗДОР." },
+    'es-ES': { gen: "GEN.", age: "EDAD", energy: "ENER.", hunger: "HAMBRE", intel: "INTEL.", power: "FUERZA", mood: "ÁNIMO", beauty: "BELLEZA", speed: "VEL.", type: "TIPO", gold: "ORO", trait: "RASGO", weather: "CLIMA", time: "HORA", health: "SALUD" },
+    'pt-BR': { gen: "GER.", age: "IDADE", energy: "ENERG.", hunger: "FOME", intel: "INTEL.", power: "FORÇA", mood: "HUMOR", beauty: "BELEZA", speed: "VEL.", type: "TIPO", gold: "OURO", trait: "TRAÇO", weather: "CLIMA", time: "HORA", health: "SAÚDE" },
+    de: { gen: "GEN.", age: "ALTER", energy: "ENER.", hunger: "HUNGER", intel: "INT.", power: "KRAFT", mood: "LAUNE", beauty: "SCHÖN.", speed: "TEMPO", type: "TYP", gold: "GOLD", trait: "MERKM.", weather: "WETTER", time: "ZEIT", health: "GESUND." }
 };
 
 const personalityQuestions = [

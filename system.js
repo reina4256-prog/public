@@ -12,6 +12,13 @@ window.audioManager = {
     currentBGMType: null,
     isPlayingTitle: false,
 
+    getVolume: function() {
+        if (window.GameSettings && typeof window.GameSettings.getBgmVolume === 'function') {
+            return window.GameSettings.getBgmVolume();
+        }
+        return (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
+    },
+
     unlockBGM: function(trackKey) {
         if (typeof window.aiPet === 'undefined') return;
         if (!window.aiPet.unlockedBGMs) window.aiPet.unlockedBGMs = [];
@@ -56,7 +63,7 @@ window.audioManager = {
         
         this.currentAudio = new Audio(src);
         this.currentAudio.loop = true; 
-        this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
+        this.currentAudio.volume = this.getVolume();
 
         let playPromise = this.currentAudio.play();
         if (playPromise !== undefined) {
@@ -99,7 +106,7 @@ window.audioManager = {
         
         this.currentAudio = new Audio(src);
         this.currentAudio.loop = options.loop !== false;
-        this.currentAudio.volume = (typeof aiPet !== 'undefined' && aiPet.bgmVolume !== undefined) ? aiPet.bgmVolume : 0.5;
+        this.currentAudio.volume = this.getVolume();
         let targetAudioRef = this.currentAudio; // ★追加：今のオーディオ参照を記憶しておく
         if (!targetAudioRef.loop) {
             targetAudioRef.addEventListener('ended', () => {
@@ -140,8 +147,13 @@ window.audioManager = {
     },
     
     setVolume: function(v) {
-        if (typeof aiPet !== 'undefined') aiPet.bgmVolume = v;
-        if (this.currentAudio) this.currentAudio.volume = v;
+        const volume = Math.max(0, Math.min(1, Number(v) || 0));
+        if (window.GameSettings && typeof window.GameSettings.setBgmVolume === 'function') {
+            window.GameSettings.setBgmVolume(volume);
+            return;
+        }
+        if (typeof aiPet !== 'undefined') aiPet.bgmVolume = volume;
+        if (this.currentAudio) this.currentAudio.volume = volume;
     },
     
     restoreMainBGM: function() {
@@ -181,16 +193,18 @@ var BANKRUPTCY_LIMIT = -3000;
 var DEBT_TIME_LIMIT = 72 * 60; 
 
 // --- 言語設定 ---
-var currentLang = (navigator.language || navigator.userLanguage || 'ja').startsWith('ja') ? 'ja' : 'en';
+// 表示言語の判定・保存・全画面翻訳は localization_core.js が所有する。
+var currentLang = window.GameI18n
+    ? window.GameI18n.language
+    : ((navigator.language || navigator.userLanguage || 'ja').startsWith('ja') ? 'ja' : 'en');
 
 function t(key) {
-    if (typeof translations !== 'undefined' && translations[currentLang] && translations[currentLang][key]) {
-        return translations[currentLang][key];
-    }
-    if (typeof translations !== 'undefined' && translations.ja && translations.ja[key]) {
-        return translations.ja[key];
-    }
-    return key;
+    const japaneseSource = (typeof translations !== 'undefined' && translations.ja && translations.ja[key])
+        ? translations.ja[key]
+        : key;
+    if (window.GameI18n) return window.GameI18n.translate(japaneseSource);
+    if (typeof translations !== 'undefined' && translations[currentLang] && translations[currentLang][key]) return translations[currentLang][key];
+    return japaneseSource;
 }
 
 // カタログ読み込み

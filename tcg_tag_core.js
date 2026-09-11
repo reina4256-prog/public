@@ -1137,7 +1137,6 @@
     };
 
     window.cancelCasinoTagTarget = function () {
-        if (forwardNetworkIntent('cancel_target')) return;
         const battle = state();
         if (!battle || battle.isAnimating) return;
         battle.selectedAttacker = null; battle.pendingTarget = null; battle.pendingPlay = null; battle.pendingPersonSkill = null;

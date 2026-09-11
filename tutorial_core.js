@@ -108,6 +108,22 @@
             paragraphs: [
                 'レストランでは、仕込み、開店、接客、片付け、休息という流れを意識します。お客さんの様子と店の在庫を見ながら、AIに覚えた言葉で方針を伝えましょう。'
             ]
+        },
+        {
+            id: 'business.blacksmith_bankruptcy',
+            category: '仕事',
+            section: '鍛冶屋',
+            title: '鍛冶屋の評判と経営破綻',
+            paragraphs: [
+                '鍛冶屋の評判は、レベルごとの上限まで増えます。お客様を待たせすぎたり、市場相場に対して高すぎる価格になったりすると評判が下がります。',
+                '評判が0になると経営破綻です。現在の鍛冶屋Lv×5000Gをマイホームの金庫から支払えば、Lvを維持して評判を上限まで回復できます。',
+                '倒産を受け入れると店はマップからなくなり、手持ちGold、鍛冶素材、店の在庫や成長を失います。覚えたレシピ、永久解放した模様替え、マイホームの金庫と倉庫は残り、再建後は基本設備つきのLv1・評判40/40から始まります。'
+            ],
+            visuals: [
+                { scene: 'normal', title: '通常営業：評判と待機人数', caption: '評判と、店内・店外で待っているお客様を同時に確認します。' },
+                { scene: 'warning', title: '評判警告：待たされたお客様', caption: '忍耐力はお客様ごとに異なります。怒って帰ると評判と常連度が下がります。' },
+                { scene: 'bankruptcy', title: '経営破綻：救済か倒産', caption: '金庫から救済するか、店を手放してLv1から再建するかを選びます。' }
+            ]
         }
     ];
 
@@ -245,6 +261,19 @@
             .tutorial-tip-list { display:grid; gap:9px; margin-top:18px; }
             .tutorial-tip { padding:10px 12px; border-left:4px solid #5c92c2; border-radius:5px; background:#202832; }
             .tutorial-tip strong { color:#ffcf72; }
+            .tutorial-visual-list { display:grid; gap:16px; margin-top:22px; }
+            .tutorial-visual-card { width:100%; overflow:hidden; padding:0; border:2px solid #506b86; border-radius:12px; color:#eee; background:#11151a; text-align:left; cursor:zoom-in; box-shadow:0 8px 24px rgba(0,0,0,.35); }
+            .tutorial-visual-card:hover { border-color:#8fc9ff; }
+            .tutorial-visual-card h4 { margin:0; padding:11px 13px 4px; color:#ffcf72; font-size:16px; }
+            .tutorial-visual-card p { margin:0!important; padding:3px 13px 12px; color:#b9c4ce; font-size:12px; }
+            .tutorial-visual-stage { display:flex; justify-content:center; overflow:auto; padding:10px; background:radial-gradient(circle,#293039,#0b0d10); }
+            #tutorial-visual-lightbox { position:fixed; inset:0; z-index:120200; display:flex; align-items:center; justify-content:center; padding:18px; box-sizing:border-box; background:rgba(0,0,0,.92); }
+            .tutorial-visual-lightbox-panel { width:min(980px,98vw); max-height:96vh; display:flex; flex-direction:column; overflow:hidden; border:3px solid #729bc1; border-radius:16px; color:#fff; background:#12161b; box-shadow:0 24px 80px #000; }
+            .tutorial-visual-lightbox-header,.tutorial-visual-lightbox-footer { display:flex; align-items:center; gap:10px; padding:12px 15px; background:#202b36; }
+            .tutorial-visual-lightbox-header h3 { flex:1; margin:0; color:#cce6ff; }
+            .tutorial-visual-lightbox-stage { overflow:auto; display:flex; justify-content:center; padding:18px; background:#080a0c; }
+            .tutorial-visual-lightbox-footer { justify-content:space-between; color:#b9c4ce; font-size:13px; }
+            .tutorial-visual-lightbox-footer button,.tutorial-visual-lightbox-header button { padding:8px 13px; border:1px solid #71869d; border-radius:8px; color:#fff; background:#303b47; cursor:pointer; }
             .tutorial-archive-empty { color:#aeb8c2; text-align:center; padding:50px 20px; }
             #tutorial-unlock-toast { position:fixed; left:50%; bottom:86px; z-index:120100; max-width:min(520px, calc(100vw - 24px)); box-sizing:border-box; padding:11px 16px; border:1px solid #7fb4e3; border-radius:22px; color:#e6f4ff; background:rgba(25,42,58,.96); box-shadow:0 7px 24px rgba(0,0,0,.45); opacity:0; transform:translate(-50%, 12px); pointer-events:none; transition:opacity .25s, transform .25s; text-align:center; }
             #tutorial-unlock-toast.visible { opacity:1; transform:translate(-50%, 0); }
@@ -302,6 +331,53 @@
         return categories;
     }
 
+    function closeTutorialVisualLightbox() {
+        document.getElementById('tutorial-visual-lightbox')?.remove();
+    }
+
+    function openTutorialVisualLightbox(entry, startIndex) {
+        closeTutorialVisualLightbox();
+        let index = Math.max(0, Math.min(entry.visuals.length - 1, Number(startIndex) || 0));
+        const overlay = document.createElement('div');
+        overlay.id = 'tutorial-visual-lightbox';
+        const render = () => {
+            const visual = entry.visuals[index];
+            overlay.replaceChildren();
+            const panel = document.createElement('section');
+            panel.className = 'tutorial-visual-lightbox-panel';
+            const header = document.createElement('header');
+            header.className = 'tutorial-visual-lightbox-header';
+            const heading = document.createElement('h3');
+            heading.textContent = visual.title;
+            const close = document.createElement('button');
+            close.type = 'button';
+            close.textContent = '✕ 閉じる';
+            close.addEventListener('click', closeTutorialVisualLightbox);
+            header.append(heading, close);
+            const stage = document.createElement('div');
+            stage.className = 'tutorial-visual-lightbox-stage';
+            if (typeof window.renderBlacksmithTutorialVisual === 'function') window.renderBlacksmithTutorialVisual(stage, visual.scene, { large: true });
+            const footer = document.createElement('footer');
+            footer.className = 'tutorial-visual-lightbox-footer';
+            const previous = document.createElement('button');
+            previous.textContent = '← 前へ';
+            previous.disabled = index === 0;
+            previous.addEventListener('click', () => { index -= 1; render(); });
+            const caption = document.createElement('span');
+            caption.textContent = `${index + 1}/${entry.visuals.length}　${visual.caption}`;
+            const next = document.createElement('button');
+            next.textContent = '次へ →';
+            next.disabled = index === entry.visuals.length - 1;
+            next.addEventListener('click', () => { index += 1; render(); });
+            footer.append(previous, caption, next);
+            panel.append(header, stage, footer);
+            overlay.appendChild(panel);
+        };
+        overlay.addEventListener('click', event => { if (event.target === overlay) closeTutorialVisualLightbox(); });
+        document.body.appendChild(overlay);
+        render();
+    }
+
     function renderDetail(container, entry) {
         container.replaceChildren();
         if (!entry) {
@@ -330,6 +406,26 @@
                 strong.textContent = `${label}：`;
                 tip.append(strong, document.createTextNode(text));
                 list.appendChild(tip);
+            });
+            container.appendChild(list);
+        }
+        if (entry.visuals && entry.visuals.length > 0) {
+            const list = document.createElement('div');
+            list.className = 'tutorial-visual-list';
+            entry.visuals.forEach((visual, index) => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'tutorial-visual-card';
+                const heading = document.createElement('h4');
+                heading.textContent = visual.title;
+                const stage = document.createElement('div');
+                stage.className = 'tutorial-visual-stage';
+                if (typeof window.renderBlacksmithTutorialVisual === 'function') window.renderBlacksmithTutorialVisual(stage, visual.scene);
+                const caption = document.createElement('p');
+                caption.textContent = `${visual.caption}（クリックで拡大）`;
+                card.append(heading, stage, caption);
+                card.addEventListener('click', () => openTutorialVisualLightbox(entry, index));
+                list.appendChild(card);
             });
             container.appendChild(list);
         }
@@ -424,6 +520,12 @@
 
     window.openTutorialArchive = function() {
         createArchiveUI();
+        const blacksmithUi = document.getElementById('blacksmith-management-ui');
+        const blacksmithUiVisible = !!blacksmithUi && blacksmithUi.style.display !== 'none';
+        if (blacksmithUiVisible && window.BLACKSMITH_STATE && !window.TUTORIAL_ARCHIVE_PAUSE_STATE) {
+            window.TUTORIAL_ARCHIVE_PAUSE_STATE = { blacksmithPaused: !!window.BLACKSMITH_STATE.paused };
+            window.BLACKSMITH_STATE.paused = true;
+        }
         const overlay = document.getElementById('tutorial-archive-overlay');
         overlay.classList.add('active');
         overlay.setAttribute('aria-hidden', 'false');
@@ -431,10 +533,15 @@
     };
 
     window.closeTutorialArchive = function() {
+        closeTutorialVisualLightbox();
         const overlay = document.getElementById('tutorial-archive-overlay');
         if (!overlay) return;
         overlay.classList.remove('active');
         overlay.setAttribute('aria-hidden', 'true');
+        if (window.TUTORIAL_ARCHIVE_PAUSE_STATE && window.BLACKSMITH_STATE) {
+            window.BLACKSMITH_STATE.paused = window.TUTORIAL_ARCHIVE_PAUSE_STATE.blacksmithPaused;
+        }
+        window.TUTORIAL_ARCHIVE_PAUSE_STATE = null;
     };
 
     window.syncTutorialArchiveFromLegacy = function() {
@@ -461,6 +568,9 @@
             }
             if (pet.shopTutorialCompleted) {
                 window.unlockTutorialEntry('business.restaurant', { viewed: true, silent: true });
+            }
+            if (pet.blacksmithTutorialCompleted) {
+                window.unlockTutorialEntry('business.blacksmith_bankruptcy', { viewed: true, silent: true });
             }
             if (metMasters.length > 0) {
                 window.unlockTutorialEntry('work.apprenticeship.first_master', { viewed: true, silent: true });
@@ -490,7 +600,9 @@
     };
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') window.closeTutorialArchive();
+        if (event.key !== 'Escape') return;
+        if (document.getElementById('tutorial-visual-lightbox')) closeTutorialVisualLightbox();
+        else window.closeTutorialArchive();
     });
 
     function initializeTutorialArchive() {
