@@ -9,6 +9,7 @@ const uiControllerSource = fs.readFileSync(path.join(__dirname, '..', 'ui_contro
 let saveCount = 0;
 const context = {
     console,
+    GameShell: { enterFacility() {}, leaveScene() {}, isPaused: () => false, deferScene: callback => callback() },
     Math,
     Date,
     JSON,

@@ -60,6 +60,7 @@
             </div>
 
             <div id="canvas-wrapper" class="fullscreen-mode">
+                <div id="scene-host" hidden></div>
                 <canvas id="gameCanvas" width="800" height="480"></canvas>
                 <div id="weatherOverlay"></div>
                 <div id="disasterOverlay" style="display: none;"></div>
@@ -74,6 +75,8 @@
                     <button id="btnEvolve" class="quiz-btn" style="background: linear-gradient(45deg, #FFC107, #FF9800); color:black; display:none;" onclick="openEvolutionMenu()">✨ 進化可能！</button>
                     <button id="btnLogin" class="quiz-btn" style="background:#2196F3;" onclick="document.getElementById('loginOverlay').classList.add('active')">🔐 ログイン</button>
                     <button id="btnStatus" class="quiz-btn" style="background:#8BC34A;" onclick="openStatusMenu()">📊 ステータス</button>
+                    <button id="btnGameLog" class="quiz-btn" style="background:#546e7a;" onclick="window.GameLog.open()">📜 ログ・状況</button>
+                    <button id="btnResidents" class="quiz-btn" style="background:#376a72;" onclick="window.ResidentUI.roster()">住人名簿</button>
                     <button id="btnDailyQuest" class="quiz-btn" style="background:#4CAF50;" onclick="openDailyQuest()">📋 デイリー</button>
                     <button id="btnSchedule" class="quiz-btn" style="background:#00bcd4;" onclick="switchRightPanel('schedule')">📅 予定</button>
                     <button id="btnInventory" class="quiz-btn" style="background:#E91E63;" onclick="switchRightPanel('inventory')">🎒 持ち物</button>
@@ -621,8 +624,12 @@
     <script src="localization_core.js"></script>
     <script type="module" src="cloud_manager.js"></script>
     <script src="data.js"></script>
+    <script src="resident_core.js"></script>
     <script src="system.js"></script>
+    <script src="game_shell.js"></script>
+    <script src="game_log.js"></script>
     <script src="game_settings_core.js"></script>
+    <script src="craft_core.js"></script>
     <script src="ai_core.js"></script>
     <script src="feature_dungeon.js"></script>
     <script src="dungeon_traits.js"></script>
@@ -631,6 +638,10 @@
     <script src="dungeon_generator.js"></script>
     <script src="dungeon_render.js"></script>
     <script src="myhome_map_core.js"></script>
+    <script src="resident_ui.js"></script>
+    <script src="schedule_core.js"></script>
+    <script src="schedule_runtime.js"></script>
+    <script src="schedule_ui.js"></script>
     <script src="casino_map_core.js"></script>
     <script src="dungeon_turn.js"></script>
     <script src="dungeon_core.js"></script>
@@ -789,6 +800,7 @@
     <div id="panel-schedule" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
         <div class="quiz-card" style="width: 450px; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #00bcd4; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
             <h2 class="panel-header" style="color:#00bcd4; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">📅 予定表</h2>
+            <button class="quiz-btn" onclick="window.ScheduleUI.open()">日課</button>
             <div style="background:#333; padding:15px; border-radius:8px; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
                 <span style="font-size:14px; color:#ddd; font-weight:bold;">実行時間:</span>
                 <input type="number" id="scheduleTimeInput" value="60" step="10" min="10" style="width:70px; padding:5px; font-size:16px; border-radius:4px; border:none;">

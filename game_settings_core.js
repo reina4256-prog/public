@@ -2,7 +2,7 @@
     'use strict';
 
     const STORAGE_KEY = 'ai_pet_game_settings_v1';
-    const DEFAULTS = Object.freeze({ bgmVolume: 0.5 });
+    const DEFAULTS = Object.freeze({ bgmVolume: 0.5, showOfflineExitNotice: true });
     let settings = loadSettings();
 
     function clampVolume(value) {
@@ -17,7 +17,8 @@
             ? window.aiPet.bgmVolume
             : DEFAULTS.bgmVolume;
         return {
-            bgmVolume: clampVolume(saved && saved.bgmVolume !== undefined ? saved.bgmVolume : legacyVolume)
+            bgmVolume: clampVolume(saved && saved.bgmVolume !== undefined ? saved.bgmVolume : legacyVolume),
+            showOfflineExitNotice: saved?.showOfflineExitNotice !== false
         };
     }
 
@@ -113,6 +114,7 @@
                 </div>
 
                 <div id="game-settings-notice" style="min-height:20px;margin-top:13px;color:#ffb4a7;font-size:12px;line-height:1.5;"></div>
+                <label><input type="checkbox" id="game-settings-offline-notice">終了時にオフライン進行の説明を表示</label>
                 <button type="button" id="game-settings-close" class="quiz-btn" style="display:block;min-width:180px;margin:10px auto 0;background:#4c5664;">設定を閉じる</button>
             </div>`;
     }
@@ -133,6 +135,7 @@
     function closeGameSettings() {
         const overlay = document.getElementById('game-settings-overlay');
         if (overlay) overlay.remove();
+        if (overlay) window.GameShell?.endExclusive(overlay);
         if (typeof window.render === 'function') window.render();
     }
 
@@ -146,6 +149,10 @@
         overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483600;display:grid;place-items:center;padding:18px;box-sizing:border-box;background:rgba(3,6,11,.86);backdrop-filter:blur(7px);';
         overlay.innerHTML = settingsMarkup();
         document.body.appendChild(overlay);
+        window.GameShell?.beginExclusive(overlay, 'settings');
+        const offlineNotice = overlay.querySelector('#game-settings-offline-notice');
+        offlineNotice.checked = settings.showOfflineExitNotice;
+        offlineNotice.onchange = () => { settings.showOfflineExitNotice = offlineNotice.checked; saveSettings(); };
 
         const language = overlay.querySelector('#game-settings-language');
         populateLanguageSelect(language);

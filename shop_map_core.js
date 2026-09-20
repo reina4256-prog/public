@@ -1677,6 +1677,8 @@ window.dismantleShopTarget = function(condition) {
 // ★ 修正：ログ記録と表示機能（発言者対応）
 // ==========================================
 window.addRestaurantLog = function(text, color = "#ddd", speaker = null) {
+    window.GameLog?.importRestaurant();
+    window.GameLog?.add(String(text).replace(/<[^>]+>/g, ''), { speaker: speaker || 'ai', scene: 'restaurant' });
     const s = window.SHOP_STATE;
     if (s) {
         if (!s.logs) s.logs = [];
@@ -3799,19 +3801,15 @@ window.openShopMapUI = function(building) {
                 <h2 style="margin: 0; font-size: 24px;">🍳 レストラン</h2>
                 <div style="display:flex; gap:15px; align-items: center;">
                     <div style="font-size: 16px; color: #fff; background: #444; padding: 5px 15px; border-radius: 20px;">
-                        評判: <span id="shop-rep-ui" style="color: #4CAF50; font-weight: bold;">100%</span> | 所持金: <span id="shop-money-ui" style="color: #FFD700; font-weight: bold;">0 G</span>
+                        評判: <span id="shop-rep-ui" style="color: #4CAF50; font-weight: bold;">100%</span>
                         <span style="display:block; font-size:12px; margin-top:2px; color:#ddd;">
                             Lv:<span id="shop-level-ui" style="color:#FFD700; font-weight:bold;">1</span>
                             EXP:<span id="shop-exp-ui" style="color:#90CAF9; font-weight:bold;">0/100</span>
                             スコア:<span id="shop-score-ui" style="color:#4FC3F7; font-weight:bold;">0/0</span>
-                            体力:<span id="shop-stamina-ui" style="color:#4CAF50; font-weight:bold;">100</span>
-                            満腹:<span id="shop-fullness-ui" style="color:#FFB74D; font-weight:bold;">100</span>
                         </span>
                     </div>
                     <button onclick="window.toggleShopMinimapModal();" style="padding: 8px 15px; background: #FF9800; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">🗺️ ミニマップ</button>
-                    <button onclick="window.toggleRestaurantLogModal();" style="padding: 8px 15px; background: #9C27B0; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">📜 ログ・状況</button>
                     <button id="shop-tactic-button" onclick="window.openShopTacticEditor();" style="padding: 8px 15px; background: #2196F3; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">⚙️ 作戦変更</button>
-                    <button onclick="window.exitShopManagement ? window.exitShopManagement() : window.closeShopMapUI();" style="padding: 8px 15px; background: #f44336; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">お店を出る</button>
                 </div>
             </div>
             <div id="shop-map-container" style="flex: 1; overflow: hidden; position: relative; background: #111;">
@@ -3862,6 +3860,32 @@ window.openShopMapUI = function(building) {
     }
     compatUI.style.display = 'flex';
     ui.style.display = 'flex';
+    window.restaurantExitTarget = null;
+    window.GameShell.enterFacility('restaurant', ui, {
+        chat: text => {
+            const word = window.GameI18n ? window.GameI18n.toJapaneseInput(text.trim()) : text.trim();
+            if (['出る', 'でる', '外に出る', '退出', 'exit', 'leave'].includes(word.toLowerCase())) {
+                window.requestRestaurantExit();
+            } else if (['やめる', '中止', 'キャンセル', 'stop', 'cancel'].includes(word.toLowerCase())) {
+                window.restaurantExitTarget = null;
+                window.SHOP_STATE.player.targetPos = null;
+                window.SHOP_STATE.player.shopState = 'idle';
+                window.SHOP_STATE.player.action = 'idle';
+            } else {
+                window.learnIndoorChatWord(text, message => window.showShopSpeechBubble({ text: message, target: window.SHOP_STATE.player }));
+            }
+            return true;
+        },
+        resize: () => window.renderShopMap(),
+        resume: () => window.renderShopMap()
+    });
+    document.getElementById('shop-modals-wrapper')?.setAttribute('data-game-exclusive', '');
+    if (window.aiPet) {
+        window.aiPet.schedule = (window.aiPet.schedule || []).filter(task => !['shop_research', 'shop_work'].includes(task.type));
+        window.aiPet._stashedTasks = (window.aiPet._stashedTasks || []).filter(task => !['shop_research', 'shop_work'].includes(task.type));
+        window.aiPet.shopThinkTimer = 0;
+        window.updateScheduleList?.();
+    }
     window.SHOP_STATE.isActive = true;
     window.initShopTactics(); 
     
@@ -3875,21 +3899,44 @@ window.openShopMapUI = function(building) {
     requestAnimationFrame(() => {
         if (typeof window.renderShopMap === 'function') window.renderShopMap();
     });
-    setTimeout(() => {
+    window.GameShell.deferScene(() => {
         if (typeof window.renderShopMap === 'function') window.renderShopMap();
         if (typeof window.startRestaurantTutorialIntro === 'function') window.startRestaurantTutorialIntro();
     }, 400);
 };
 
+window.requestRestaurantExit = function() {
+    if (!window.isShopMapUIActive() || window.GameShell.isPaused()) return;
+    const s = window.SHOP_STATE;
+    const grid = s.currentFloor === '1F' ? s.grid : s.floorData?.['1F'];
+    const exits = [];
+    (grid || []).forEach((row, y) => row.forEach((tile, x) => { if (tile === 100) exits.push({ x, y, floor: '1F' }); }));
+    const exit = exits.find(pos => s.player.currentFloor !== '1F' || (pos.x === s.player.x && pos.y === s.player.y) || window.getShopNextStep(s.player.x, s.player.y, pos.x, pos.y, '1F'));
+    if (!exit) {
+        window.showShopSpeechBubble({ text: 'そこへ向かう道が見つかりません。' });
+        return;
+    }
+    window.restaurantExitTarget = exit;
+    window.showShopSpeechBubble({ text: '出口へ向かうよ。' });
+};
+
 window.closeShopMapUI = function() {
+    window.restaurantExitTarget = null;
     if (window.SHOP_STATE) {
         window.SHOP_STATE.isActive = false;
         window.SHOP_STATE.isOpen = false;
+        const player = window.SHOP_STATE.player;
+        if (player?.shopState === 'tutorial_walking' && player.targetPos) {
+            player.targetPos = null; player.stairPath = null; player.finalTargetPos = null;
+            player.shopState = 'idle'; player.action = 'idle';
+            window.clearShopSpeechBubble(player);
+        }
     }
     if (typeof window.syncCurrentShopStateToBuilding === 'function') window.syncCurrentShopStateToBuilding();
     if (typeof saveGameData === 'function') saveGameData();
     let ui = document.getElementById('shop-map-ui');
     if (ui) ui.style.display = 'none';
+    window.GameShell.leaveScene('restaurant');
 
     let compatUI = document.getElementById('shop-management-ui');
     if (compatUI) compatUI.style.display = 'none';
@@ -3897,7 +3944,7 @@ window.closeShopMapUI = function() {
     if (window.shopMapInterval) clearInterval(window.shopMapInterval);
 };
 
-window.updateShopUI = function() {
+window.updateShopUI = function(options = {}) {
     const s = window.SHOP_STATE;
     if (!s) return;
     if (!s.fridge) s.fridge = {};
@@ -3936,7 +3983,7 @@ window.updateShopUI = function() {
     // ==========================================
     let dashArea = document.getElementById('shop-dashboard-area');
     let modal = document.getElementById('shop-modal-log');
-    if (dashArea && modal && modal.style.display !== 'none') {
+    if (dashArea && modal && (modal.style.display !== 'none' || options.dashboard)) {
         let dashHtml = "";
         
         // ★Phase 4.2追加：現在のお店のテーマ（トーン比率）の表示
@@ -4637,6 +4684,7 @@ window.startShopMapLoop = function() {
     let prevIsOpen = window.SHOP_STATE ? window.SHOP_STATE.isOpen : false;
 
     window.shopMapInterval = setInterval(() => {
+        if (window.GameShell && window.GameShell.isPaused()) return;
         const s = window.SHOP_STATE;
         if (!s || !s.grid) return; 
         if (typeof window.isShopMapUIActive === 'function' && !window.isShopMapUIActive()) {
@@ -4999,6 +5047,11 @@ window.startShopMapLoop = function() {
         }
 
         const p = s.player;
+        if (window.restaurantExitTarget) {
+            p.shopState = 'tutorial_walking';
+            if (!p.stairPath) p.targetPos = { ...window.restaurantExitTarget };
+            p.action = 'walk';
+        }
         if (window.aiPet && window.aiPet.shopTutorialMindPhase === 'service') {
             window.logShopTutorialDebugThrottled('service_state_snapshot', '接客チュートリアル: 状態スナップショット', {
                 AIマインド名: window.aiPet.currentShopTacticName,
@@ -6915,7 +6968,11 @@ window.startShopMapLoop = function() {
                 }
             }
         }
-        if (typeof window.updateShopServiceTutorial === 'function') {
+        if (window.restaurantExitTarget && !p.stairPath && p.currentFloor === '1F' && p.x === window.restaurantExitTarget.x && p.y === window.restaurantExitTarget.y) {
+            window.exitShopManagement();
+            return;
+        }
+        if (!window.restaurantExitTarget && typeof window.updateShopServiceTutorial === 'function') {
             window.updateShopServiceTutorial();
         }
         window.renderShopMap();

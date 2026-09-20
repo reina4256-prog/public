@@ -409,7 +409,8 @@
 
     function handleCastleChat(forcedText) {
         const input = document.getElementById('castle-chat-input');
-        const rawText = String(forcedText !== undefined ? forcedText : (input ? input.value : '')).trim();
+        const enteredText = String(forcedText !== undefined ? forcedText : (input ? input.value : '')).trim();
+        const rawText = window.GameI18n ? window.GameI18n.toJapaneseInput(enteredText) : enteredText;
         if (!rawText) return;
         if (input && forcedText === undefined) input.value = '';
         window._blockChatFocus = true;
@@ -426,11 +427,11 @@
         }
 
         const found = findNpcFromCommand(rawText);
+        const learning = window.learnIndoorChatWord(found ? found[1].name : rawText, message => {
+            setCastleMessage(message); showPlayerBubble(message, 5000);
+        }, { command: !!found });
+        if (learning.blocked) return;
         if (!found) {
-            const message = '誰のところへ向かうか分からなかったよ。王様、隊長、兵士、占い師、科学者、販売員の名前で教えてね。';
-            setCastleMessage(message);
-            showPlayerBubble('行き先をもう一度教えてね', 3000);
-            addCastleLog(message);
             if (input) input.focus();
             return;
         }

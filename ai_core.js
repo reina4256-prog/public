@@ -49,7 +49,7 @@ const INVENTORY_FRESHNESS_HOUR_MS = 60 * 60 * 1000;
 // 食材の鮮度はゲーム更新回数ではなく、最初に所持品へ入った実時刻から数える。
 // 旧セーブには取得時刻がないため、移行後に初めて触れた時刻を起算点にする。
 window.normalizeInventoryFreshnessItem = function(item, options = {}) {
-    const now = Number.isFinite(Number(options.now)) ? Number(options.now) : Date.now();
+    const now = Number.isFinite(Number(options.now)) ? Number(options.now) : (window.GameShell ? window.GameShell.worldNow() : Date.now());
     let normalized = typeof item === 'string' ? { id: item, age: 0 } : item;
 
     // 旧処理で二重化された所持品は、内側の付加情報ごと元の形へ戻す。
@@ -82,7 +82,7 @@ window.normalizeInventoryFreshnessItem = function(item, options = {}) {
     return normalized;
 };
 
-window.freezeInventoryItemFreshness = function(item, now = Date.now()) {
+window.freezeInventoryItemFreshness = function(item, now = window.GameShell ? window.GameShell.worldNow() : Date.now()) {
     const normalized = window.normalizeInventoryFreshnessItem(item, { now });
     if (normalized && typeof normalized === 'object') {
         normalized.freshnessFrozenAt = now;
@@ -91,7 +91,7 @@ window.freezeInventoryItemFreshness = function(item, now = Date.now()) {
     return normalized;
 };
 
-window.resumeInventoryItemFreshness = function(item, now = Date.now()) {
+window.resumeInventoryItemFreshness = function(item, now = window.GameShell ? window.GameShell.worldNow() : Date.now()) {
     return window.normalizeInventoryFreshnessItem(item, { now, resume: true });
 };
 
@@ -1255,6 +1255,7 @@ function findFacilityForTask(taskType, masterType = null) {
         for (let key in assets) { 
             if (assets[key].type === type || key.startsWith(type)) {
                 const a = assets[key];
+                if (a.type === 'hut' && window.Residents?.isResidentHome(window.aiPet, a, assets)) continue;
 
                 // ★ 修正：料理タスクでは、免許皆伝後の自店舗と師匠の店を混同しない
                 const isCookingMasterShop = a.type === 'restaurant' && (a.isMasterShop || a.isMobile || (a.name && a.name.includes('料理人')));
@@ -1345,6 +1346,7 @@ aiPet.updateWeather = function() {
 
 aiPet.consumeFood = function() {
     let currentTask = (this.schedule && this.schedule.length > 0) ? this.schedule[0] : null;
+    if (currentTask?.routineKey) return window.ScheduleRuntime.consumeLiveMeal(currentTask);
     let targetItemId = (currentTask && currentTask.targetItem) ? currentTask.targetItem : null;
 
     // 1. 最初にお腹いっぱいかどうかをチェック (特定の薬を使う指定がある場合は満腹でも無視)
@@ -1411,32 +1413,28 @@ aiPet.consumeFood = function() {
     // A: 薬（medicine）を使用した時の特殊処理
     // =======================================
     if (bestFood.type === 'medicine') {
+        window.ScheduleCore.medicineEffect(this, bestFood.id);
         this.visualAction = 'eat_raw'; 
         this.visualActionTimer = 60;
         
         // 特効薬：寿命を削ってすべてを治す
         if (bestFood.id === 'item_medicine_cure') {
-            this.isSick = false; this.conditions.cold = false; this.conditions.stomachache = false; this.conditions.poisoning = false;
-            this.lifespan -= 5;
             this.message = "特効薬で全ての不調が治った！...(寿命-5)";
         } 
         else if (bestFood.id === 'item_medicine_cold') {
-            this.conditions.cold = false; this.message = "風邪薬を飲んで熱が下がった！";
+            this.message = "風邪薬を飲んで熱が下がった！";
         } 
         else if (bestFood.id === 'item_medicine_stomach') {
-            this.conditions.stomachache = false; this.message = "胃薬を飲んでお腹の痛みが治まった！";
+            this.message = "胃薬を飲んでお腹の痛みが治まった！";
         } 
         // ★追加：解毒薬（寿命を削らずに中毒を治す）
         else if (bestFood.id === 'item_antidote') {
-            this.conditions.poisoning = false;
             this.message = "解毒薬で体の毒が抜けていった！";
         }
         else if (bestFood.id === 'item_medicine_focus') {
-            this.buffs.focus = 5; this.message = "頭が冴え渡ってきた！(集中バフ付与)";
+            this.message = "頭が冴え渡ってきた！(集中バフ付与)";
         } 
         else if (bestFood.id === 'elixir') {
-            this.isSick = false; this.conditions.cold = false; this.conditions.stomachache = false; this.conditions.poisoning = false;
-            this.lifespan += 10;
             this.message = "全身に力が漲る！万能の霊薬だ！";
         }
         
@@ -1452,37 +1450,20 @@ aiPet.consumeFood = function() {
     // B: 通常の食事処理
     // =======================================
     // (これ以降は、以前からある通常の食事ロジックをそのまま続けます)
-    let gainEnergy = 0; let gainHunger = 0;
-    
     const tData = typeof this.getTraitData === 'function' ? this.getTraitData() : {};
-    const bIntel = (tData.statBonus && tData.statBonus.intel) ? tData.statBonus.intel : 1.0;
-    const bPower = (tData.statBonus && tData.statBonus.power) ? tData.statBonus.power : 1.0;
-    const bMood = (tData.statBonus && tData.statBonus.mood) ? tData.statBonus.mood : 1.0;
-
-    if (bestFood.stats) {
-        if (bestFood.stats.energy) gainEnergy += bestFood.stats.energy; 
-        gainHunger += (bestFood.stats.hunger || 20);
-        if (bestFood.stats.power) this.stats.power += bestFood.stats.power * bPower; 
-        if (bestFood.stats.intel) this.stats.intel += bestFood.stats.intel * bIntel; 
-        if (bestFood.stats.mood) this.stats.mood += bestFood.stats.mood * bMood;
-    } else { 
-        gainHunger += 10; gainEnergy += 5; 
-    }
+    window.ScheduleCore.nutritionEffect(this, bestFood, tData);
     
     let action = "食べた";
     if (bestFood.type === 'dish') { this.visualAction = 'eat_dish'; action = "食べた"; } 
     else { this.visualAction = 'eat_raw'; action = "丸かじりした"; }
     
     this.visualActionTimer = 60;
-    this.energy = Math.min(100, this.energy + gainEnergy); 
-    this.hunger = Math.min(100, this.hunger + gainHunger);
     this.message = `${bestFood.name}を${action}！`; 
 
     // ★追加：毒キノコをそのまま食べた場合の中毒処理（ミサンガで軽減可能）
     if (bestFood.id === 'poison_mushroom') {
-        let poisonChance = 1.0;
         let healthPlus = typeof this.getAmuletPlus === 'function' ? this.getAmuletPlus('misanga_health') : -1;
-        if (healthPlus >= 0) poisonChance *= Math.max(0, 0.5 - (healthPlus * 0.05));
+        let poisonChance = window.ScheduleCore.foodRisk(1, healthPlus);
 
         if (Math.random() < poisonChance) {
             this.conditions.poisoning = true;
@@ -1496,12 +1477,11 @@ aiPet.consumeFood = function() {
     }
 
     // ★修正: 生魚（dishではない魚）を食べた時の確率「腹痛」ペナルティ
-    const consumedId = typeof this.inventory[bestIdx] === 'string' ? this.inventory[bestIdx] : this.inventory[bestIdx]?.id;
+    const consumedId = bestFood.id;
     if (consumedId && consumedId.startsWith('fish_') && bestFood.type !== 'dish' && bestFood.quality !== 'bad') {
         // ★追加：健康のミサンガの効果
-        let sickChance = 0.25;
         let healthPlus = this.getAmuletPlus('misanga_health');
-        if (healthPlus >= 0) sickChance *= Math.max(0, 0.5 - (healthPlus * 0.05)); // 基本半減
+        let sickChance = window.ScheduleCore.foodRisk(.25, healthPlus);
 
         if (Math.random() < sickChance) { // 25%であたる
             this.conditions.stomachache = true;
@@ -1520,9 +1500,8 @@ aiPet.consumeFood = function() {
         if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 60, "🤢 激マズ...", "#795548");
         
         // ★ 30%の確率で「腹痛」を発症する！(健康のミサンガで軽減)
-        let sickChance = 0.30;
         let healthPlus = this.getAmuletPlus('misanga_health');
-        if (healthPlus >= 0) sickChance *= Math.max(0, 0.5 - (healthPlus * 0.05));
+        let sickChance = window.ScheduleCore.foodRisk(.30, healthPlus);
 
         if (Math.random() < sickChance) {
             this.conditions.stomachache = true;
@@ -1824,6 +1803,7 @@ window.getNormalExplorationResourceForecast = function(hero, maxDepth = 15) {
 
 // ★修正: 性格と言葉の学習度、そして「余生ルート」に基づいた自律行動
 aiPet.performIdleAction = function() {
+    if (this.routine?.enabled) return;
     const traitData = typeof this.getTraitData === 'function' ? (this.getTraitData() || {}) : {};
     const rawIdleConsumeRate = traitData.consumption !== undefined ? Number(traitData.consumption) : 1.0;
     const idleConsumeRate = Number.isFinite(rawIdleConsumeRate) ? Math.max(0, rawIdleConsumeRate) : 1.0;
@@ -2295,371 +2275,82 @@ aiPet.processSmithingFinish = function(task) {
 // ★修正：調合（mix）の開始処理
 // ==========================================
 aiPet.processMixingStart = function(task) {
-    let recipes = [
-        { id: 'item_medicine_cold', name: '風邪薬', req: ['herb', 'water'], minRank: 3 },
-        { id: 'item_antidote', name: '解毒薬', req: ['herb', 'poison_mushroom'], minRank: 5 },
-        { id: 'item_medicine_focus', name: '集中薬', req: ['water', 'poison_mushroom'], minRank: 6 },
-        { id: 'item_medicine_stomach', name: '胃薬', req: ['herb', 'item_berry'], minRank: 10 }
-    ];
-
-    let pRank = (this.apprentice && this.apprentice.rank['pharmacist']) || 1;
-    let targetRecipe = null;
-    let isGeneralMixing = !task.craftTarget || task.craftTarget === "調合" || task.craftTarget === "mix";
-
-    // 素材が足りているかチェックするヘルパー関数
-    const checkMats = (reqs) => {
-        let tempInv = [...this.inventory];
-        for (let reqMat of reqs) {
-            let idx = tempInv.findIndex(itemObj => {
-                if (!itemObj) return false;
-                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
-                return id === reqMat;
-            });
-            if (idx !== -1) tempInv[idx] = null;
-            else return false;
-        }
-        return true;
-    };
-
-    if (isGeneralMixing) {
-        if (pRank >= 3) {
-            // Rank3以上：「作れるレシピ（ランク条件＋素材あり）」からランダム
-            let available = recipes.filter(r => pRank >= r.minRank && checkMats(r.req));
-            if (available.length > 0) {
-                const specialMixQuest = this.apprentice && Array.isArray(this.apprentice.activeQuests)
-                    ? this.apprentice.activeQuests.find(q => q && q.isMasterSpecialQuest && q.eventType === 'mix' && !q.completed)
-                    : null;
-                targetRecipe = (specialMixQuest && available.find(r => r.id === specialMixQuest.targetId)) || available[Math.floor(Math.random() * available.length)];
-            } else {
-                this.message = "作れそうな薬の素材がないみたい...";
-                this.messageTimer = 120;
-                return false;
-            }
-        }
-        // pRank < 3 なら targetRecipe は null のまま進行（素材消費なしの練習）
-    } else {
-        // 個別指定の場合
-        targetRecipe = recipes.find(r => r.id === task.craftTarget);
-        if (!targetRecipe) {
-            this.message = "その薬の作り方がわからないみたい...";
-            this.messageTimer = 120;
-            return false;
-        }
-        // ★微調整：指定された薬の必要ランクを満たしていない場合のブロック
-        if (pRank < targetRecipe.minRank) {
-            this.message = "その薬はまだ難しくて作れないみたい...";
-            this.messageTimer = 120;
-            return false;
-        }
-        if (!checkMats(targetRecipe.req)) {
-            this.message = `${targetRecipe.name}を作る素材が足りないみたい...`;
-            this.messageTimer = 120;
-            return false;
-        }
-    }
-
-    // ターゲットが決まっていれば素材を消費
-    if (targetRecipe) {
-        let consumedIndices = [];
-        let tempInv = [...this.inventory];
-        for (let reqMat of targetRecipe.req) {
-            let idx = tempInv.findIndex(itemObj => {
-                if (!itemObj) return false;
-                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
-                return id === reqMat;
-            });
-            consumedIndices.push(idx);
-            tempInv[idx] = null;
-        }
-        consumedIndices.sort((a, b) => b - a).forEach(idx => {
-            this.inventory.splice(idx, 1);
-        });
-    }
-
-    // 成功率の計算（賢さと薬剤師ランク依存）
-    let intel = this.stats.intel || 10;
-    let successRate = 0.5 + (intel * 0.005) + (pRank * 0.05);
-    successRate = Math.min(0.95, successRate); // 最大95%
-
-    let isSuccess = Math.random() < successRate;
-    let greatSuccessRate = pRank >= 8 ? (intel * 0.003) + (pRank * 0.01) : 0;
-    let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
-
-    // 大成功時は「万能の霊薬」にすり替える（練習時は除く）
-    let finalTargetId = targetRecipe ? targetRecipe.id : 'practice';
-    let finalTargetName = targetRecipe ? targetRecipe.name : '謎の液体';
-    
-    // isTrial 判定は外して、単純に大成功かつレシピありの場合にすり替え
-    if (isGreatSuccess && targetRecipe) {
-        finalTargetId = 'elixir';
-        finalTargetName = '万能の霊薬';
-    }
-
-    // ゲージ表示用に mixData として保存する
-    task.mixData = {
-        targetId: finalTargetId,
-        targetName: finalTargetName,
-        successRate: successRate,
-        isSuccess: isSuccess,
-        isGreatSuccess: isGreatSuccess,
-        isPractice: !targetRecipe // 練習モードフラグ
-    };
-
-    task._started = true;
-    return true;
-};
-
-// ==========================================
-// ★修正：調合（mix）の完了処理
-// ==========================================
-aiPet.processMixingFinish = function(task) {
-    const d = task.mixData;
-    if (!d) return;
-
-    // ただのアクション（未修得時）は、成功/失敗の判定や成長をせずに終了する
-    if (d.isPractice) {
-        this.message = "調合する真似をして遊んでいるみたいだ！";
-        this.messageTimer = 150;
-        this.visualAction = null;
-        this.actionState = 'idle';
-        return;
-    }
-
-    // 薬剤師スキルの成長（隠しパラメータがあれば）
-    if (!this.skills.mixing) this.skills.mixing = 1;
-
-    if (d.isSuccess) {
-        // ★微調整：デッドコードを削除し、スッキリさせました
-        this.skills.mixing += 0.5;
-        this.stats.intel += 0.5; // 賢さボーナス
-        this.stats.mood += d.isGreatSuccess ? 15 : 5; // 大成功時は機嫌ボーナスUP
-        
-        if (d.isGreatSuccess) {
-            this.message = `大成功！！ 奇跡の薬「${d.targetName}」が完成した！`;
-        } else {
-            this.message = `調合成功！ ${d.targetName}ができた！`;
-        }
-        this.inventory.push(d.targetId);
-        if (typeof window.recordMasterSpecialQuestProgress === 'function') {
-            window.recordMasterSpecialQuestProgress('mix', d.targetId, { hero: this, actualItemId: d.targetId });
-        }
-        
-        // クエストの進捗カウント（複数クエスト対応版）
-        if (this.apprentice && this.apprentice.activeQuests) {
-            this.apprentice.activeQuests.forEach(q => {
-                if (q.desc.includes(d.targetName) || q.desc.includes('調合')) {
-                    q.qVal = (q.qVal || 0) + 1;
-                }
-            });
-            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
-        }
-    } else {
-        this.skills.mixing += 0.1;
-        this.message = "調合失敗... 謎の液体になっちゃった...";
-        // data.js に合わせて item_medicine_fail（謎の液体）に変更
-        this.inventory.push('item_medicine_fail'); 
-    }
-    
-    this.messageTimer = 150;
-    this.visualAction = null;
-    this.actionState = 'idle';
-
-    if (typeof openInventoryPanel === 'function') {
-        const invPanel = document.getElementById('panel-inventory');
-        if (invPanel && invPanel.classList.contains('active')) openInventoryPanel();
-    }
-};
-
-// ==========================================
-// ★追加：裁縫（tailor）の開始処理
-// ==========================================
-aiPet.processTailoringStart = function(task) {
-    let recipes = [
-        { id: 'dye', name: '染料', req: ['item_berry'], minRank: 1, isAnyNature: true },
-        { id: 'sturdy_thread', name: '丈夫な糸', req: ['herb'], minRank: 2, isAnyNature: true },
-        { id: 'colorful_cloth', name: '色鮮やかな布', req: ['dye', 'sturdy_thread'], minRank: 3 },
-        { id: 'brooch_teruteru', name: 'てるてる坊主のブローチ', req: ['colorful_cloth', 'sturdy_thread'], minRank: 4 },
-        { id: 'ribbon_seeker', name: '探求者のリボン', req: ['colorful_cloth', 'crystal'], minRank: 5 },
-        { id: 'tassel_harvest', name: '豊穣のタッセル', req: ['colorful_cloth', 'herb'], minRank: 6 },
-        { id: 'misanga_health', name: '健康のミサンガ', req: ['colorful_cloth', 'water'], minRank: 7 },
-        { id: 'mystic_fabric', name: '神秘の織物', req: ['colorful_cloth', 'dye', 'sturdy_thread'], minRank: 8 },
-        { id: 'eternal_watch', name: '悠久の懐中時計', req: ['mystic_fabric', 'crystal', 'high_wood'], minRank: 9 }
-    ];
-
-    let pRank = (this.apprentice && this.apprentice.rank['tailor']) || 0; // ★修正：初期値を0に変更
-    let targetRecipe = null;
-    let isGeneralTailoring = !task.craftTarget || task.craftTarget === "裁縫" || task.craftTarget === "tailor";
-
-    // ★追加：未習得（Rank 0かつ皆伝していない）場合は何もしない（他の未習得ワードと同じ扱いにする）
-    let isMaster = this.apprentice && this.apprentice.retired && this.apprentice.retired['tailor'];
-    if (pRank < 1 && !isMaster) {
+    const target = !task.craftTarget || ['調合', 'mix'].includes(task.craftTarget) ? null : task.craftTarget;
+    const data = window.CraftCore.start(this, 'mix', target);
+    const name = id => typeof itemCatalog !== 'undefined' ? itemCatalog[id]?.name || id : id;
+    if (data.error) {
+        this.message = data.error === 'recipe' ? "その薬の作り方がわからないみたい..."
+            : data.error === 'rank' ? "その薬はまだ難しくて作れないみたい..."
+            : target ? `${name(target)}を作る素材が足りないみたい...` : "作れそうな薬の素材がないみたい...";
+        this.messageTimer = 120;
         return false;
     }
-
-    const checkMats = (r) => {
-        let tempInv = [...this.inventory];
-        let consumed = [];
-        for (let reqMat of r.req) {
-            let idx = tempInv.findIndex(itemObj => {
-                if (!itemObj) return false;
-                let id = typeof itemObj === 'string' ? itemObj : itemObj.id;
-                if (r.isAnyNature) return id === 'item_berry' || id === 'herb'; // 自然素材の簡易代替
-                return id === reqMat;
-            });
-            if (idx !== -1) { consumed.push(idx); tempInv[idx] = null; } 
-            else return null;
-        }
-        return consumed;
-    };
-
-    if (isGeneralTailoring) {
-        if (pRank >= 1) {
-            let available = recipes.filter(r => pRank >= r.minRank && checkMats(r));
-            if (available.length > 0) {
-                const specialTailorQuest = this.apprentice && Array.isArray(this.apprentice.activeQuests)
-                    ? this.apprentice.activeQuests.find(q => q && q.isMasterSpecialQuest && (q.eventType === 'tailor' || q.eventType === 'tailor_recraft') && !q.completed)
-                    : null;
-                targetRecipe = (specialTailorQuest && available.find(r => r.id === specialTailorQuest.targetId)) || available[Math.floor(Math.random() * available.length)];
-            }
-            else { this.message = "裁縫できそうな素材がないみたい..."; this.messageTimer = 120; return false; }
-        }
-    } else {
-        targetRecipe = recipes.find(r => r.id === task.craftTarget);
-        if (!targetRecipe) { this.message = "その作り方がわからないみたい..."; this.messageTimer = 120; return false; }
-        if (pRank < targetRecipe.minRank) { this.message = "それはまだ難しくて作れないみたい..."; this.messageTimer = 120; return false; }
-        if (!checkMats(targetRecipe)) { this.message = `${targetRecipe.name}を作る素材が足りないみたい...`; this.messageTimer = 120; return false; }
-    }
-
-    if (targetRecipe) {
-        let consumedIndices = checkMats(targetRecipe);
-        if (consumedIndices) consumedIndices.sort((a, b) => b - a).forEach(idx => this.inventory.splice(idx, 1));
-    }
-
-    let beauty = this.stats.beauty || 10;
-    let baseSuccessRate = 0.5 + (beauty * 0.005) + (pRank * 0.05);
-
-    // ★ +値によるペナルティを二次曲線的に計算（+1につき0.01ベースの2乗倍）
-    let currentPlus = 0;
-    const specialRecraftQuest = this.apprentice && Array.isArray(this.apprentice.activeQuests)
-        ? this.apprentice.activeQuests.find(q => q && q.isMasterSpecialQuest && q.eventType === 'tailor_recraft' && targetRecipe && q.targetId === targetRecipe.id)
-        : null;
-    const forceNewCopy = !!specialRecraftQuest;
-    if (targetRecipe) {
-        let isEquip = typeof itemCatalog !== 'undefined' && itemCatalog[targetRecipe.id] && itemCatalog[targetRecipe.id].type === 'equip';
-        if (isEquip && !forceNewCopy) {
-            let existingItem = this.inventory.find(i => (typeof i === 'string' ? i : i.id) === targetRecipe.id);
-            if (existingItem && typeof existingItem !== 'string') {
-                currentPlus = existingItem.plus || 0;
-            }
-        }
-    }
-    
-    let successRate = baseSuccessRate - (Math.pow(currentPlus, 2) * 0.01);
-    successRate = Math.min(0.95, Math.max(0, successRate)); // 上限95%、最低保証なし
-
-    let isSuccess = Math.random() < successRate;
-    let greatSuccessRate = pRank >= 8 ? (beauty * 0.003) + (pRank * 0.01) : 0;
-    let isGreatSuccess = isSuccess && (Math.random() < greatSuccessRate);
-
-    // ★追加：お守り（装備品）の初回作成時は絶対に大成功しないようにする
-    if (targetRecipe) {
-        let isEquip = typeof itemCatalog !== 'undefined' && itemCatalog[targetRecipe.id] && itemCatalog[targetRecipe.id].type === 'equip';
-        if (isEquip) {
-            let hasAmulet = this.inventory.some(i => (typeof i === 'string' ? i : i.id) === targetRecipe.id);
-            if (!hasAmulet) isGreatSuccess = false; 
-        }
-    }
-
-    task.tailorData = {
-        targetId: targetRecipe ? targetRecipe.id : 'dye', // ★フォールバック
-        targetName: targetRecipe ? targetRecipe.name : '謎の布',
-        successRate: successRate, isSuccess: isSuccess, isGreatSuccess: isGreatSuccess,
-        forceNewCopy: forceNewCopy
-    };
-
+    data.targetName = data.isPractice ? '謎の液体' : name(data.targetId);
+    task.mixData = data;
     task._started = true;
     return true;
 };
 
-// ==========================================
-// ★追加：裁縫（tailor）の完了処理
-// ==========================================
+aiPet.processMixingFinish = function(task) {
+    const d = task.mixData;
+    const result = window.CraftCore.finish(this, 'mix', d);
+    if (!result) return;
+    if (result.practice) {
+        this.message = "調合する真似をして遊んでいるみたいだ！";
+    } else if (result.success) {
+        this.message = d.isGreatSuccess ? `大成功！！ 奇跡の薬「${d.targetName}」が完成した！` : `調合成功！ ${d.targetName}ができた！`;
+        window.recordMasterSpecialQuestProgress?.('mix', d.targetId, { hero: this, actualItemId: d.targetId });
+        window.updateQuestHUD?.();
+    } else {
+        this.message = "調合失敗... 謎の液体になっちゃった...";
+    }
+    this.messageTimer = 150; this.visualAction = null; this.actionState = 'idle';
+    if (typeof openInventoryPanel === 'function' && document.getElementById('panel-inventory')?.classList.contains('active')) openInventoryPanel();
+};
+
+aiPet.processTailoringStart = function(task) {
+    const target = !task.craftTarget || ['裁縫', 'tailor'].includes(task.craftTarget) ? null : task.craftTarget;
+    const data = window.CraftCore.start(this, 'tailor', target, {
+        isEquipment: id => typeof itemCatalog !== 'undefined' && itemCatalog[id]?.type === 'equip'
+    });
+    const name = id => typeof itemCatalog !== 'undefined' ? itemCatalog[id]?.name || id : id;
+    if (data.error) {
+        if (data.error === 'rank' && !data.targetId) return false;
+        this.message = data.error === 'recipe' ? "その作り方がわからないみたい..."
+            : data.error === 'rank' ? "それはまだ難しくて作れないみたい..."
+            : target ? `${name(target)}を作る素材が足りないみたい...` : "裁縫できそうな素材がないみたい...";
+        this.messageTimer = 120;
+        return false;
+    }
+    data.targetName = name(data.targetId);
+    task.tailorData = data;
+    task._started = true;
+    return true;
+};
+
 aiPet.processTailoringFinish = function(task) {
     const d = task.tailorData;
-    if (!d) return;
-
-    if (!this.skills.tailoring) this.skills.tailoring = 1;
-
-    if (d.isSuccess) {
-        this.skills.tailoring += 0.5;
-        this.stats.beauty += 0.5;
-        this.stats.mood += d.isGreatSuccess ? 15 : 5;
-        
-        // ★追加：大成功時のボーナス量計算（美しさ100ごとに+1ボーナス）
-        let bonusAmount = 0;
-        if (d.isGreatSuccess) {
-            let beauty = this.stats.beauty || 10;
-            bonusAmount = 1 + Math.floor(beauty / 100);
-            bonusAmount = Math.min(5, bonusAmount); // やりすぎ防止の最大+5上限
-        }
-
-        const amulets = ['brooch_teruteru', 'ribbon_seeker', 'tassel_harvest', 'misanga_health', 'eternal_watch'];
-        let isAmulet = amulets.includes(d.targetId);
-        let upgraded = false;
-        let currentPlus = 0;
-
-        if (isAmulet) {
-            let existingIdx = d.forceNewCopy ? -1 : this.inventory.findIndex(i => (typeof i==='string'?i:i.id) === d.targetId);
-            if (d.forceNewCopy) {
-                this.inventory.push({ id: d.targetId, age: 0, plus: 0 });
-                this.message = `裁縫成功！ ${d.targetName}を新しくもう一つ仕立てた！`;
-            } else if (existingIdx !== -1) {
-                let item = this.inventory[existingIdx];
-                let addedPlus = d.isGreatSuccess ? (1 + bonusAmount) : 1; // 大成功で一気に+値上昇
-
-                if (typeof item === 'string') {
-                    item = { id: item, age: 0, plus: addedPlus };
-                    this.inventory[existingIdx] = item;
-                } else {
-                    item.plus = (item.plus || 0) + addedPlus;
-                }
-                currentPlus = item.plus;
-                upgraded = true;
-                
-                this.message = d.isGreatSuccess ? `大成功！！ 「${d.targetName}」が一気に（+${currentPlus}）まで強化された！` : `裁縫成功！ 「${d.targetName}」が（+${currentPlus}）に強化された！`;
-            } else {
-                this.message = `裁縫成功！ ${d.targetName}ができた！`;
-                this.inventory.push({ id: d.targetId, age: 0, plus: 0 }); // 初回作成
-            }
+    const result = window.CraftCore.finish(this, 'tailor', d);
+    if (!result) return;
+    if (result.success) {
+        if (result.amulet && d.forceNewCopy) {
+            this.message = `裁縫成功！ ${d.targetName}を新しくもう一つ仕立てた！`;
+        } else if (result.upgraded) {
+            const currentPlus = result.plus;
+            this.message = d.isGreatSuccess ? `大成功！！ 「${d.targetName}」が一気に（+${currentPlus}）まで強化された！` : `裁縫成功！ 「${d.targetName}」が（+${currentPlus}）に強化された！`;
+        } else if (result.amulet) {
+            this.message = `裁縫成功！ ${d.targetName}ができた！`;
         } else {
-            // ★素材の場合：完成品の数が増える
-            let addCount = d.isGreatSuccess ? (1 + bonusAmount) : 1;
-            for(let i = 0; i < addCount; i++) {
-                this.inventory.push(d.targetId);
-            }
+            const addCount = result.count;
             this.message = d.isGreatSuccess ? `大成功！！ 素晴らしい手際で「${d.targetName}」が ${addCount} 個も完成した！` : `裁縫成功！ ${d.targetName}ができた！`;
         }
-        if (isAmulet && typeof window.recordMasterSpecialQuestProgress === 'function') {
-            window.recordMasterSpecialQuestProgress(d.forceNewCopy ? 'tailor_recraft' : 'tailor', d.targetId, { hero: this, plus: currentPlus });
-        }
-        
-        if (this.apprentice && this.apprentice.activeQuests) {
-            this.apprentice.activeQuests.forEach(q => {
-                if (q.desc.includes(d.targetName) || q.desc.includes('裁縫')) q.qVal = (q.qVal || 0) + 1;
-            });
-            if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
-        }
+        if (result.amulet) window.recordMasterSpecialQuestProgress?.(d.forceNewCopy ? 'tailor_recraft' : 'tailor', d.targetId, { hero: this, plus: result.plus });
+        window.updateQuestHUD?.();
     } else {
-        this.skills.tailoring += 0.1;
         this.message = "裁縫失敗... 糸がこんがらがっちゃった...";
-        this.inventory.push('tangled_thread'); // 失敗アイテム
     }
-    
     this.messageTimer = 150; this.visualAction = null; this.actionState = 'idle';
-    if (typeof openInventoryPanel === 'function') {
-        const invPanel = document.getElementById('panel-inventory');
-        if (invPanel && invPanel.classList.contains('active')) openInventoryPanel();
-    }
+    if (typeof openInventoryPanel === 'function' && document.getElementById('panel-inventory')?.classList.contains('active')) openInventoryPanel();
 };
 
 aiPet.processFishingFrame = function() {
@@ -3157,6 +2848,7 @@ aiPet.processApprenticeQuestFinish = function(task) {
 };
 
 aiPet.update = function() {
+    if (this.pendingInheritanceData || window.GameShell?.currentScene === 'resident-home') return;
     const shouldAnimate = (currentMode === 'play') || (currentMode === 'grazing') || (currentMode === 'ai_adjust' && isTestPlaying);
     if (!shouldAnimate || isRouletteSpinning) return;
 
@@ -3428,7 +3120,7 @@ aiPet.update = function() {
 
     const isCurrentlyWorking = this.schedule.length > 0 && (this.schedule[0].type === 'shop_work' || this.schedule[0].type === 'shop_research');
 
-    if (myShop && (this.actionState === 'idle' || this.actionState === 'inside' || this.actionState === 'studying') && !isCurrentlyWorking) {
+    if (myShop && !this.routine?.enabled && !window.isShopMapUIActive?.() && (this.actionState === 'idle' || this.actionState === 'inside' || this.actionState === 'studying') && !isCurrentlyWorking) {
         if (typeof this.shopThinkTimer === 'undefined') this.shopThinkTimer = 0;
         this.shopThinkTimer++;
         
@@ -3571,7 +3263,7 @@ aiPet.update = function() {
     }
 
     if ((currentMode === 'play' || currentMode === 'grazing')) {
-        if (myShop) {
+        if (myShop && !this.routine?.enabled) {
             if (!this._stashedTasks) this._stashedTasks = [];
             for (let i = this.schedule.length - 1; i >= 0; i--) {
                 const t = this.schedule[i];
@@ -3613,6 +3305,7 @@ aiPet.update = function() {
             // =======================================
             if (!task._started && !isRecoveryTaskOrRoute(task) && task.type !== 'life_slowlife') {
                 let tempDuration = task.duration || 60;
+                if (task.routineKey) tempDuration = Math.min(60, tempDuration);
                 if (['visit_master', 'master_quest', 'apprentice_exam'].includes(task.type)) tempDuration = 1;
                 
                 let predictedEnergy = 0; let predictedHunger = 0;
@@ -3706,10 +3399,7 @@ aiPet.update = function() {
                 }
 
                 // ★修正：タスク開始時に一度だけバフを前払い消費する（キャンセルによる無限化防止）
-                if (this.buffs) {
-                    if (this.buffs.focus > 0) this.buffs.focus--;
-                    if (this.buffs.tough > 0) this.buffs.tough--;
-                }
+                window.ScheduleCore.startBuffs(this);
 
                 const instantTasks = ['visit_master', 'apprentice_exam', 'master_quest'];
                 if (instantTasks.includes(task.type) && task.type !== 'apprentice_exam') { task.duration = 1; } 
@@ -3973,9 +3663,10 @@ aiPet.update = function() {
                     let fType = task.type;
                     if (task.type === 'fish') fType = 'bridge';
                     let facility = task.type.startsWith('shop_') ? assets[task.buildingId] : findFacilityForTask(fType, task.masterType);
+                    if (task.routineKey) facility = task.routineDestination === 'current' ? null : Object.values(assets).find(asset => asset.instanceId === task.routineDestination);
                     if ((task.type === 'hairdresser_color' || task.type === 'hairdresser_aura') && !facility) {
                         for (let k in assets) {
-                            if (assets[k].type === 'hut' && !assets[k].isMobile) {
+                            if (assets[k].type === 'hut' && !assets[k].isMobile && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) {
                                 facility = assets[k];
                                 break;
                             }
@@ -4059,9 +3750,7 @@ aiPet.update = function() {
                         
                         // ★薬剤師Rank7の進捗
                         if (task.duration <= 0 && !task.aborted && focusMult > 1.0 && this.apprentice && this.apprentice.activeQuests) {
-                            this.apprentice.activeQuests.forEach(q => {
-                                if (q.masterType === 'pharmacist' && q.desc.includes('集中薬')) q.qVal = (q.qVal || 0) + 1;
-                            });
+                            window.ScheduleCore.completeFocusedStudy(this);
                             if (!window.isCatchingUp && typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
                         }
                     }
@@ -4530,16 +4219,8 @@ aiPet.update = function() {
                         if (task.type.startsWith('life_') && typeof this.processLifePathFinish === 'function') this.processLifePathFinish(task);
 
                         // 連続睡眠ボーナス
-                        if (task.type === 'sleep' || task.type === 'rest') {
-                            if (this.energy >= 60 && this.hunger >= 60) {
-                                this.consecutiveSleepCount = (this.consecutiveSleepCount || 0) + 1;
-                                if (this.consecutiveSleepCount >= 2) {
-                                    this.stats.beauty += (this.consecutiveSleepCount * 2);
+                        if (window.ScheduleCore.completeSleep(this, task.type, isRecoveryTaskOrRoute(task)) > 0) {
                                     if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "💖 美容ボーナス!", "#FF4081");
-                                }
-                            }
-                        } else if (!isRecoveryTaskOrRoute(task)) {
-                            this.consecutiveSleepCount = 0; 
                         }
 
                         // 闇落ちポイント加算
@@ -4552,18 +4233,14 @@ aiPet.update = function() {
 
                         if (this.activeBooks && this.activeBooks.length > 0) {
                             let consumedIds = []; 
-                            this.activeBooks.forEach(b => {
-                                if (b.charges > 0) {
-                                    b.charges--; this.stats[b.stat] += b.val;
+                            window.ScheduleCore.completeBooks(this).forEach(b => {
                                     let statName = b.stat === 'power' ? '活力' : b.stat === 'intel' ? '賢さ' : b.stat === 'speed' ? '素早さ' : '美しさ';
                                     if (typeof addFloatingText === 'function' && !window.isCatchingUp) addFloatingText(this.x, this.y - 60, `📖秘伝書(${statName} +${b.val})`, "#2196F3");
                                     if (b.charges <= 0) {
                                         if(!window.isCatchingUp){ this.message = "秘伝書の内容を全て吸収した！"; this.messageTimer = 180; }
                                         consumedIds.push(b.id);
                                     }
-                                }
                             });
-                            this.activeBooks = this.activeBooks.filter(b => b.charges > 0);
                             
                             if (consumedIds.length > 0) {
                                 let legacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
@@ -4652,23 +4329,14 @@ aiPet.update = function() {
                             window.triggerTCGSupportActionUnlock(task.type, this.generation || 1);
                         }
                         
-                        if (this.apprentice && this.apprentice.isExcommunicated) {
-                            if (['study', 'train', 'run'].includes(task.type)) {
-                                this.apprentice.exileTrainingCount = (this.apprentice.exileTrainingCount || 0) + 1;
-                                if (this.apprentice.exileTrainingCount >= 10) {
-                                    this.apprentice.isExcommunicated = false;
-                                    this.apprentice.exileTrainingCount = 0;
-                                    if (this.apprentice.excommunicatedFrom) {
-                                        this.apprentice.attempts[this.apprentice.excommunicatedFrom] = 3; 
-                                    }
+                        if (window.ScheduleCore.completeExile(this, task.type)) {
                                     this.message = "心を入れ替えて頑張った！悪い噂も消えたかな...！";
                                     this.messageTimer = 180;
                                     if (typeof addFloatingText === 'function' && !window.isCatchingUp) {
                                         addFloatingText(this.x, this.y - 60, "✨ 破門状態 解除！ ✨", "#4CAF50");
                                     }
-                                }
-                            }
                         }
+                        window.ScheduleRuntime?.completeLiveTask(task);
                     }
                     
                     // ここでタスクをスケジュールから削除
@@ -5085,6 +4753,10 @@ aiPet.executeEnterAction = function() {
         this.isIndoors = true; 
         this.indoorTarget = this.interactionTarget; 
         this.exploreTimer = 0;
+        if (this.interactionTarget.type === 'hut' && window.Residents?.isResidentHome(this, this.interactionTarget, assets)) {
+            window.openResidentHomeUI(this.interactionTarget);
+            return;
+        }
         if (this.interactionTarget.type === 'hut' && typeof window.tryTriggerConciergeHomeEncounter === 'function') {
             window.tryTriggerConciergeHomeEncounter();
         }
@@ -5139,6 +4811,8 @@ const BASE_INHERITANCE_COSTS = { stats: 500, inventory: 300, vocab: 400, license
 let currentInheritanceCosts = { ...BASE_INHERITANCE_COSTS };
 
 window.triggerReincarnation = function() {
+    window._residentDeathShopOpened = true;
+    window.disposeResidentHome?.();
     window.isFastForwardLife = false;
     if (typeof window.prepareMyHomeForReincarnation === 'function') window.prepareMyHomeForReincarnation();
     if (typeof window.generateCardFromAI === 'function') window.generateCardFromAI(window.aiPet);
@@ -5146,6 +4820,7 @@ window.triggerReincarnation = function() {
 };
 
 window.openInheritanceShop = function() {
+    window._residentDeathShopOpened = true;
     window.isGamePaused = true;
     
     if (window.audioManager) {
@@ -5211,8 +4886,8 @@ window.renderInheritanceShop = function() {
     // ★追加：金庫のゴールドを合算する
     let hut = null;
     let _assets = typeof assets !== 'undefined' ? assets : window.assets;
-    for(let k in _assets) { if(_assets[k].storage) hut = _assets[k]; }
-    let safeGold = hut && hut.storage.safe ? hut.storage.safe.gold : 0;
+    hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
+    let safeGold = hut?.storage?.safe?.gold || 0;
     let totalAvailGold = window.aiPet.gold + safeGold;
     
     const isAffordable = totalAvailGold >= totalCost;
@@ -5338,7 +5013,7 @@ window.executeReincarnation = function() {
         warnUI.innerHTML = `
             <div style="background:#222; border:2px solid #ff5252; border-radius:12px; padding:30px; max-width:500px; text-align:center;">
                 <h3 style="color:#ff5252; margin-top:0;">⚠️ 最終確認</h3>
-                <p style="font-size:16px;">以下の要素は次の世代へ持ち込まれず、失われますがよろしいですか？</p>
+                <p style="font-size:16px;">以下は次世代へ引き継ぎません。本人の能力・知識と選ばなかった個人財産は前世住人に残ります。マップを引き継がない場合、救出しない建物内の財産は失われます。</p>
                 <div style="background:#111; padding:15px; border-radius:8px; text-align:left; color:#ccc; margin-bottom:20px; font-size:15px; line-height:1.6;">
                     ${lostList.join('<br>')}
                 </div>
@@ -5356,99 +5031,105 @@ window.executeReincarnation = function() {
 
 // ★追加：実際の決済・救済・転生処理
 window.executeReincarnationFinal = function() {
+    if (window.aiPet.pendingInheritanceData) { window.resumeResidentSuccession(); return; }
+    const source = JSON.parse(JSON.stringify(window.aiPet));
+    const worldDraft = JSON.parse(JSON.stringify(assets));
+    window.Residents.ensure(source, worldDraft);
     let totalCost = 0;
     for (let key in inheritanceSelections) { if (inheritanceSelections[key]) totalCost += currentInheritanceCosts[key]; }
     
     let hut = null;
-    let _assets = typeof assets !== 'undefined' ? assets : window.assets;
-    for(let k in _assets) { if(_assets[k].storage) hut = _assets[k]; }
-    let safeGold = hut && hut.storage.safe ? hut.storage.safe.gold : 0;
+    let _assets = worldDraft;
+    hut = window.Residents.homeAsset(source, worldDraft);
+    let safeGold = hut?.storage?.safe?.gold || 0;
     
-    if (window.aiPet.gold + safeGold < totalCost) { alert("ゴールドが足りません！"); return; }
+    if (source.gold + safeGold < totalCost) { window.ResidentUI.notify("ゴールドが足りません！"); return; }
     
-    if (window.aiPet.gold >= totalCost) {
-        window.aiPet.gold -= totalCost;
+    if (source.gold >= totalCost) {
+        source.gold -= totalCost;
     } else {
-        let rem = totalCost - window.aiPet.gold;
-        window.aiPet.gold = 0;
+        let rem = totalCost - source.gold;
+        source.gold = 0;
         hut.storage.safe.gold -= rem;
     }
 
+    source.memoryCapacity = typeof window.aiPet.getMaxVocabulary === 'function' ? window.aiPet.getMaxVocabulary() : 3;
+    const personalSource = JSON.parse(JSON.stringify(source));
     const inheritedData = {};
 
     const shouldKeepConciergePresence = !!(
         inheritanceSelections.map &&
         inheritanceSelections.license &&
-        (window.aiPet.conciergeEncountered || window.aiPet.conciergeUnlocked)
+        (source.conciergeEncountered || source.conciergeUnlocked)
     );
     if (shouldKeepConciergePresence) {
         inheritedData.conciergePresence = {
-            encountered: !!window.aiPet.conciergeEncountered,
-            unlocked: !!window.aiPet.conciergeUnlocked,
-            introduced: !!window.aiPet.conciergeIntroduced,
-            routeLogReceived: !!window.aiPet.conciergeRouteLogReceived,
-            houseKeyReceived: !!window.aiPet.conciergeHouseKeyReceived,
-            encounterGeneration: Math.max(0, Number(window.aiPet.conciergeEncounterGeneration) || 0)
+            encountered: !!source.conciergeEncountered,
+            unlocked: !!source.conciergeUnlocked,
+            introduced: !!source.conciergeIntroduced,
+            routeLogReceived: !!source.conciergeRouteLogReceived,
+            houseKeyReceived: !!source.conciergeHouseKeyReceived,
+            encounterGeneration: Math.max(0, Number(source.conciergeEncounterGeneration) || 0)
         };
-        if (window.aiPet.myHomeIndoor) {
-            inheritedData.myHomeIndoor = JSON.parse(JSON.stringify(window.aiPet.myHomeIndoor));
+        if (source.myHomeIndoor) {
+            inheritedData.myHomeIndoor = JSON.parse(JSON.stringify(source.myHomeIndoor));
         }
     }
     
     // ==========================================
     // ★大修正：音楽館の履歴と「図鑑（これまでの姿）」は絶対に次世代へ引き継ぐ！
     // ==========================================
-    inheritedData.unlockedBGMs = window.aiPet.unlockedBGMs ? [...window.aiPet.unlockedBGMs] : [];
-    inheritedData.discoveredMonsters = window.aiPet.discoveredMonsters ? [...window.aiPet.discoveredMonsters] : [];
+    inheritedData.unlockedBGMs = source.unlockedBGMs ? [...source.unlockedBGMs] : [];
+    inheritedData.discoveredMonsters = source.discoveredMonsters ? [...source.discoveredMonsters] : [];
 
     if (inheritanceSelections.stats) {
         let multiplier = window.inheritanceStatsPercent / 100;
         inheritedData.stats = {
-            intel: Math.floor(window.aiPet.stats.intel * multiplier),
-            power: Math.floor(window.aiPet.stats.power * multiplier),
-            beauty: Math.floor(window.aiPet.stats.beauty * multiplier),
-            speed: Math.floor((window.aiPet.stats.speed || 10) * multiplier)
+            intel: Math.floor(source.stats.intel * multiplier),
+            power: Math.floor(source.stats.power * multiplier),
+            beauty: Math.floor(source.stats.beauty * multiplier),
+            speed: Math.floor((source.stats.speed || 10) * multiplier)
         };
     }
 
     if (inheritanceSelections.gold) {
         const remainingSafeGold = hut && hut.storage && hut.storage.safe ? (hut.storage.safe.gold || 0) : 0;
-        inheritedData.gold = (window.aiPet.gold || 0) + (inheritanceSelections.map ? 0 : remainingSafeGold);
+        inheritedData.gold = (source.gold || 0) + (inheritanceSelections.map ? 0 : remainingSafeGold);
     }
     
     if (inheritanceSelections.map) {
         inheritedData.keepMap = true;
-        inheritedData.casinoCoins = Math.max(0, Math.floor(Number(window.aiPet.casinoCoins) || 0));
-        inheritedData.dealerProgress = window.aiPet.dealerProgress ? JSON.parse(JSON.stringify(window.aiPet.dealerProgress)) : null;
-        if (typeof saveGameData === 'function') saveGameData();
+        inheritedData.casinoCoins = Math.max(0, Math.floor(Number(source.casinoCoins) || 0));
+        inheritedData.dealerProgress = source.dealerProgress ? JSON.parse(JSON.stringify(source.dealerProgress)) : null;
+
     } else {
         inheritedData.resetMap = true;
     }
     
     if (inheritanceSelections.inventory && !inheritanceSelections.map && hut) {
         let rescuedItems = [
-            ...hut.storage.warehouse.items,
-            ...hut.storage.freezer.items.map(item => window.resumeInventoryItemFreshness(item))
+            ...(hut.storage?.warehouse?.items || []),
+            ...(hut.storage?.freezer?.items || []).map(item => window.resumeInventoryItemFreshness(item))
         ];
-        window.aiPet.inventory = window.aiPet.inventory.concat(rescuedItems);
+        source.inventory = source.inventory.concat(rescuedItems);
         console.log("📦 マップを引き継がないため、倉庫・冷凍庫の中身を手持ちに引き出しました。金庫はマップ設備なので引き継ぎません。");
-        inheritedData.inventory = [...window.aiPet.inventory];
+        inheritedData.inventory = [...source.inventory];
     } else if (inheritanceSelections.inventory) {
-        inheritedData.inventory = [...window.aiPet.inventory];
+        inheritedData.inventory = [...source.inventory];
     }
 
-    if (inheritanceSelections.vocab && window.aiPet.apprentice) {
+    if (inheritanceSelections.vocab && source.apprentice) {
         inheritedData.apprentice = { 
-            learnedWords: [...window.aiPet.apprentice.learnedWords],
+            learnedWords: [...source.apprentice.learnedWords],
             baseVocab: typeof window.aiPet.getMaxVocabulary === 'function' ? window.aiPet.getMaxVocabulary() : 3
         };
     }
-    if (inheritanceSelections.license && window.aiPet.apprentice) {
+    if (inheritanceSelections.license && source.apprentice) {
         if (!inheritedData.apprentice) inheritedData.apprentice = {};
-        inheritedData.apprentice.rank = JSON.parse(JSON.stringify(window.aiPet.apprentice.rank || {}));
-        inheritedData.apprentice.retired = JSON.parse(JSON.stringify(window.aiPet.apprentice.retired || {}));
-        if (window.aiPet.apprentice.isGraduated && window.aiPet.apprentice.currentMaster) {
-            inheritedData.apprentice.retired[window.aiPet.apprentice.currentMaster] = true;
+        inheritedData.apprentice.rank = JSON.parse(JSON.stringify(source.apprentice.rank || {}));
+        inheritedData.apprentice.retired = JSON.parse(JSON.stringify(source.apprentice.retired || {}));
+        if (source.apprentice.isGraduated && source.apprentice.currentMaster) {
+            inheritedData.apprentice.retired[source.apprentice.currentMaster] = true;
         }
         const specialQuestMasters = ['explore', 'farming', 'fishing', 'cooking', 'smithing', 'building', 'pharmacist', 'pastry_chef', 'hairdresser', 'tailor', 'concierge'];
         inheritedData.apprentice.specialQuestEligibleMasters = specialQuestMasters.filter(masterType =>
@@ -5456,16 +5137,16 @@ window.executeReincarnationFinal = function() {
         );
     }
     if (inheritanceSelections.personality) {
-        const baseSkin = window.aiPet.baseType || window.aiPet.currentSkin || 'robot';
+        const baseSkin = source.baseType || source.currentSkin || 'robot';
         inheritedData.skin = baseSkin;
         inheritedData.baseType = baseSkin;
-        if (window.aiPet.personality) inheritedData.personality = window.aiPet.personality;
-        const hairdresserMastered = !!(window.aiPet.apprentice && (
-            (window.aiPet.apprentice.retired && window.aiPet.apprentice.retired.hairdresser) ||
-            (window.aiPet.apprentice.rank && (window.aiPet.apprentice.rank.hairdresser || 0) >= 10)
+        if (source.personality) inheritedData.personality = source.personality;
+        const hairdresserMastered = !!(source.apprentice && (
+            (source.apprentice.retired && source.apprentice.retired.hairdresser) ||
+            (source.apprentice.rank && (source.apprentice.rank.hairdresser || 0) >= 10)
         ));
-        if (hairdresserMastered && window.aiPet.cosmetic) {
-            inheritedData.cosmetic = JSON.parse(JSON.stringify(window.aiPet.cosmetic));
+        if (hairdresserMastered && source.cosmetic) {
+            inheritedData.cosmetic = JSON.parse(JSON.stringify(source.cosmetic));
         }
     }
 
@@ -5480,18 +5161,36 @@ window.executeReincarnationFinal = function() {
     oldLegacy.books.forEach(b => {
         if (inheritanceSelections[b.id]) { b.charges = 10; newLegacy.books.push(b); }
     });
-    localStorage.setItem('ai_legacy_data', JSON.stringify(newLegacy));
-
-    window.aiPet.generation++;
-    document.getElementById('inheritance-shop-ui').style.display = 'none';
-    window.pendingInheritanceData = inheritedData;
-    if (typeof window.clearSchedule === 'function') window.clearSchedule();
-
-    if (inheritanceSelections.personality || inheritanceSelections['disciple']) {
-        window.applyInheritedPet(inheritedData.discipleSkin || inheritedData.skin || 'robot', inheritedData);
-    } else {
-        if (typeof startPersonalityTest === 'function') startPersonalityTest();
+    const prepared = window.Residents.prepareSuccession(personalSource,
+        { ...source, generation: source.generation + 1 }, inheritanceSelections,
+        'succession:' + personalSource.personId);
+    prepared.inventory = inheritedData.inventory || [];
+    prepared.gold = typeof inheritedData.gold === 'number' ? inheritedData.gold : 0;
+    prepared.pendingInheritanceData = { ...inheritedData,
+        residentAutoSkin: !!(inheritanceSelections.personality || inheritanceSelections.disciple) };
+    prepared.schedule = [];
+    try {
+        window.Residents.saveWorld(prepared, worldDraft, localStorage, newLegacy);
+    } catch (error) {
+        console.error(error);
+        window.ResidentUI.notify('保存できませんでした。もう一度お試しください。');
+        return;
     }
+    Object.assign(window.aiPet, prepared);
+    for (const key of Object.keys(assets)) delete assets[key];
+    Object.assign(assets, worldDraft);
+    window.pendingInheritanceData = prepared.pendingInheritanceData;
+    document.getElementById('inheritance-shop-ui').style.display = 'none';
+    window.resumeResidentSuccession();
+};
+
+window.resumeResidentSuccession = function() {
+    const data = window.aiPet.pendingInheritanceData;
+    if (!data || window._residentSuccessionResuming) return;
+    window._residentSuccessionResuming = true;
+    window.pendingInheritanceData = data;
+    if (data.residentAutoSkin) window.applyInheritedPet(data.discipleSkin || data.skin || 'robot', data);
+    else if (typeof startPersonalityTest === 'function') startPersonalityTest();
 };
 
 window.toggleInheritance = function(key) {
@@ -5501,74 +5200,7 @@ window.toggleInheritance = function(key) {
     window.renderInheritanceShop();
 };
 
-window.executeReincarnation_OLD = function() {
-    let totalCost = 0;
-    for (let key in inheritanceSelections) {
-        if (inheritanceSelections[key]) totalCost += currentInheritanceCosts[key];
-    }
-    if (window.aiPet.gold < totalCost) { alert("ゴールドが足りません！"); return; }
-    window.aiPet.gold -= totalCost;
-
-    const inheritedData = {};
-    if (inheritanceSelections.stats) {
-        let multiplier = window.inheritanceStatsPercent / 100;
-        inheritedData.stats = {
-            intel: Math.floor(window.aiPet.stats.intel * multiplier),
-            power: Math.floor(window.aiPet.stats.power * multiplier),
-            beauty: Math.floor(window.aiPet.stats.beauty * multiplier),
-            speed: Math.floor((window.aiPet.stats.speed || 10) * multiplier) // ★追加
-        };
-    }
-    if (inheritanceSelections.inventory) inheritedData.inventory = [...window.aiPet.inventory];
-    if (inheritanceSelections.vocab && window.aiPet.apprentice) {
-        inheritedData.apprentice = { 
-            learnedWords: [...window.aiPet.apprentice.learnedWords],
-            baseVocab: typeof window.aiPet.getMaxVocabulary === 'function' ? window.aiPet.getMaxVocabulary() : 3
-        };
-    }
-    if (inheritanceSelections.license && window.aiPet.apprentice) {
-        if (!inheritedData.apprentice) inheritedData.apprentice = {};
-        inheritedData.apprentice.rank = JSON.parse(JSON.stringify(window.aiPet.apprentice.rank || {}));
-        inheritedData.apprentice.retired = JSON.parse(JSON.stringify(window.aiPet.apprentice.retired || {}));
-        if (window.aiPet.apprentice.isGraduated && window.aiPet.apprentice.currentMaster) {
-            inheritedData.apprentice.retired[window.aiPet.apprentice.currentMaster] = true;
-        }
-    }
-    if (inheritanceSelections.personality) {
-        inheritedData.skin = window.aiPet.currentSkin;
-        inheritedData.baseType = window.aiPet.baseType;
-    }
-
-    // ★追加：マップ引継ぎが選ばれていない場合、リセットフラグを立てる！
-    if (!inheritanceSelections.map) {
-        inheritedData.resetMap = true;
-    }
-
-    // ★追加：レガシーの精算（選ばれなかったものは消滅）
-    let oldLegacy = JSON.parse(localStorage.getItem('ai_legacy_data') || '{"monuments":[], "books":[], "disciple":null}');
-    let newLegacy = { monuments: [], books: [], disciple: null };
-    
-    if (inheritanceSelections['disciple'] && oldLegacy.disciple) {
-        inheritedData.discipleSkin = oldLegacy.disciple.skin;
-        inheritedData.discipleStats = oldLegacy.disciple.stats;
-    }
-    oldLegacy.monuments.forEach(m => { if (inheritanceSelections[m.id]) newLegacy.monuments.push(m); });
-    oldLegacy.books.forEach(b => {
-        if (inheritanceSelections[b.id]) { b.charges = 10; newLegacy.books.push(b); } // 10回チャージ付与
-    });
-    localStorage.setItem('ai_legacy_data', JSON.stringify(newLegacy));
-
-    window.aiPet.generation++;
-    document.getElementById('inheritance-shop-ui').style.display = 'none';
-    window.pendingInheritanceData = inheritedData;
-    if (typeof window.clearSchedule === 'function') window.clearSchedule();
-
-    if (inheritanceSelections.personality || inheritanceSelections['disciple']) {
-        window.applyInheritedPet(inheritedData.discipleSkin || inheritedData.skin || 'robot', inheritedData);
-    } else {
-        if (typeof startPersonalityTest === 'function') startPersonalityTest();
-    }
-};
+window.executeReincarnation_OLD = function() { return window.executeReincarnationFinal(); };
 
 window.applyInheritedPet = function(skinKey, data) {
     window.applyInitialPet(skinKey); 
@@ -5595,6 +5227,7 @@ window.applyInheritedPet = function(skinKey, data) {
 const _legacy_originalApplyInitialPet = typeof originalApplyInitialPet !== 'undefined' ? originalApplyInitialPet : window.applyInitialPet;
 window.applyInitialPet = function(skinKey) {
     const inheritanceData = window.pendingInheritanceData || null;
+    const residentRollback = inheritanceData ? { hero: JSON.parse(JSON.stringify(window.aiPet)), map: JSON.parse(JSON.stringify(assets)) } : null;
     _legacy_originalApplyInitialPet(skinKey);
 
     const inheritedCosmetic = inheritanceData && inheritanceData.cosmetic;
@@ -5652,15 +5285,10 @@ window.applyInitialPet = function(skinKey) {
     }
 
     if (inheritanceData && inheritanceData.resetMap) {
-        localStorage.removeItem('map_data_v6');
         if (typeof assets !== 'undefined' && typeof generateNatureMap === 'function') {
             for (let key in assets) { delete assets[key]; }
             let newMap = generateNatureMap();
             for (let key in newMap) { assets[key] = newMap[key]; }
-        }
-    } else if (inheritanceData && inheritanceData.keepMap) {
-        if (typeof assets !== 'undefined') {
-            localStorage.setItem('map_data_v6', JSON.stringify(assets));
         }
     }
 
@@ -5729,9 +5357,24 @@ window.applyInitialPet = function(skinKey) {
             }
         }
         window.pendingInheritanceData = null;
+        delete window.aiPet.pendingInheritanceData;
+        window._residentSuccessionResuming = false;
+        window._residentDeathShopOpened = false;
     }
     
-    saveGameData();
+    try { saveGameData(); } catch (error) {
+        if (!residentRollback) throw error;
+        for (const key of Object.keys(window.aiPet)) if (typeof window.aiPet[key] !== 'function') delete window.aiPet[key];
+        Object.assign(window.aiPet, residentRollback.hero);
+        for (const key of Object.keys(assets)) delete assets[key];
+        Object.assign(assets, residentRollback.map);
+        window.pendingInheritanceData = window.aiPet.pendingInheritanceData;
+        window._residentSuccessionResuming = true;
+        window.ResidentUI.notify('保存できませんでした。もう一度お試しください。', () => {
+            window._residentSuccessionResuming = false; window.resumeResidentSuccession();
+        });
+        return;
+    }
     if(typeof updateStatUI === 'function') updateStatUI();
     if(typeof updateCommandHUD === 'function') updateCommandHUD();
 };
@@ -7172,7 +6815,7 @@ aiPet.processBuildingStart = function(task) {
     if (bData.isUpgrade) {
         let targetAsset = null;
         for (let k in assets) {
-            if (assets[k].type === bData.targetFacility && !assets[k].isMobile) { targetAsset = assets[k]; break; }
+            if (assets[k].type === bData.targetFacility && !assets[k].isMobile && !(bData.targetFacility === 'hut' && window.Residents?.isResidentHome(this, assets[k], assets))) { targetAsset = assets[k]; break; }
         }
         if (!targetAsset) {
             this.message = `拡張元の施設（${bData.targetFacility}）が見つからないよ...`; this.messageTimer = 120; return false;
@@ -7789,6 +7432,7 @@ window.hasBuiltDresser = function() {
 };
 
 window.getMyHomeAsset = function() {
+    if (window.Residents && typeof assets !== 'undefined') return window.Residents.homeAsset(window.aiPet, assets);
     if (typeof assets === 'undefined') return null;
     return Object.values(assets).find(a => a && a.type === 'hut' && !a.isMobile) || null;
 };
@@ -7902,6 +7546,7 @@ window.tryTriggerConciergeHomeEncounter = function(options = {}) {
     hero.conciergeUnlocked = true;
     hero.conciergeEncounterGeneration = generation;
     if (typeof window.ensureMyHomeIndoorState === 'function') window.ensureMyHomeIndoorState();
+    if (isFirstEncounter) window.prepareMyHomeIntroEscort?.();
     if (!hero.apprentice) hero.apprentice = { rank: {}, metMasters: [], learnedWords: [], activeQuests: [], attempts: {}, retired: {} };
     if (!hero.apprentice.metMasters) hero.apprentice.metMasters = [];
     const isFirstMasterMeeting = hero.apprentice.metMasters.length === 0;
@@ -7916,6 +7561,8 @@ window.tryTriggerConciergeHomeEncounter = function(options = {}) {
         : "「お帰りなさいませ。新たな生を歩み始めたAI様を、再びこのマイホームでお迎えできましたこと、心よりうれしく存じます。前世と変わらず、何なりとお申し付けくださいませ。」";
     window._conciergeEncounterInProgress = true;
     if (typeof options.onComplete === 'function') window.pendingMyHomeEntryAfterConciergeEncounter = options.onComplete;
+    else if (isFirstEncounter) window.pendingMyHomeEntryAfterConciergeEncounter = () => window.startMyHomeIntroEscort?.();
+    if (isFirstEncounter && !window.myHomeMapOpen) window.openMyHomeMapUI?.({ skipEncounter: true, preservePosition: true });
     const openIntro = () => {
         if (typeof window.openEncounterUI === 'function') window.openEncounterUI('concierge', msg, 'encounter_intro');
     };

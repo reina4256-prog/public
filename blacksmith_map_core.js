@@ -2374,6 +2374,7 @@
     }
 
     function tickBlacksmith() {
+        if (window.GameShell && window.GameShell.isPaused()) return;
         const state = window.BLACKSMITH_STATE;
         if (!state || state.paused || state.isBankrupt || window.BLACKSMITH_EDITOR || window.BLACKSMITH_TACTIC_EDITOR || window.BLACKSMITH_PRODUCTION_EDITOR) return;
         state.tick += 1;
@@ -4408,6 +4409,17 @@
         state.isOpen = !!state.isOpen;
         const ui = ensureUi();
         ui.style.display = 'flex';
+        window.GameShell.enterFacility('blacksmith', ui, {
+            chat: text => {
+                window.learnIndoorChatWord(text, message => {
+                    customerSpeech(state, state.player, message, '#80d8ff', window.aiPet?.name || 'AI');
+                    renderBlacksmith();
+                });
+                return true;
+            },
+            resize: () => updateBlacksmithCamera(state),
+            resume: () => renderBlacksmith()
+        });
         if (window.aiPet) {
             window.aiPet.blacksmithRecipeNotebookUnlocked = true;
             window.aiPet.actionState = 'inside';
@@ -4425,8 +4437,8 @@
         }
         renderBlacksmith();
         document.getElementById('blacksmith-tutorial-modal')?.remove();
-        if (!state.tutorial.completed) setTimeout(() => resumeBlacksmithTutorial(state), 250);
-        else if (!state.shopNamePrompted) setTimeout(() => openBlacksmithShopNameDialog(state), 250);
+        if (!state.tutorial.completed) window.GameShell.deferScene(() => resumeBlacksmithTutorial(state), 250);
+        else if (!state.shopNamePrompted) window.GameShell.deferScene(() => openBlacksmithShopNameDialog(state), 250);
         save();
         return true;
     };
@@ -4449,6 +4461,7 @@
         window.BLACKSMITH_PANEL_STATE = { minimap: false, logStatus: false, recipes: false };
         window.BLACKSMITH_LAST_CAMERA_TRANSFORM = null;
         clearBlacksmithTutorialDialogue();
+        window.GameShell?.leaveScene('blacksmith');
         if (window.aiPet) {
             window.aiPet.actionState = 'idle';
             window.aiPet.visualAction = null;

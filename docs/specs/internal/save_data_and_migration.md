@@ -21,7 +21,20 @@
 
 ## 主要状態
 
+- 住人の日課 `routineState.craft` は調合・裁縫の消費済み材料に対応する確定抽選結果と `effectsApplied` を保持する。`craftPhase`・`transitionMs`・`seconds` で入場／作業／退場を再開し、再読込で材料を再消費したり成果を再付与したりしない。技能は本人の `profile.skills`、成果物は本人の `possessions.inventory` に保存する。新フィールドのない旧セーブは従来どおり読み込める。
+
+- 主人公と住人は `routine.version/enabled/days` に日課、`routineState` に日付・区間キー、作業時間、食事実行済み、経路・位置、失敗状態を保存する。日課未設定の旧セーブに予定を自動生成しない。前世の日課は前世住人へ保持し、新主人公やニューゲーム主人公へ自動採用しない。
+- 主人公のプレイ中の日課は `routineLive` と通常タスクの `routineKey` で所有区間を記録する。マイホーム内の日課タスクは再読込後に同じタスクと室内位置を復元し、新しいタスクを重ねて作らない。日課編集の保存は以前の日課所有タスクを候補データ側で解除してから確定し、手動タスクを保持する。
+- 消費済み秘伝書ID `consumedLegacyBookIds` と `activeBooks` の残り回数は、人物保存を確定点として `residentWorldCommit.legacy` へ含め、`ai_legacy_data` の更新失敗時にも再読込で復旧する。無関係な遺産の項目は変更しない。
+- `timeProgress` は最終精算境界、未読報告、適用前の入力・結果・マップを持つ `pending` を保存する。`Residents.saveWorld` のコミット点を使い、結果保存に失敗した場合は保存済み結果を再適用する。保留中に通常自動保存で精算記録を上書きしない。規則の範囲と未接続部分は [`../core/ai_words_and_tasks.md`](../core/ai_words_and_tasks.md) を参照する。
+
+- `aiPet.residentState`（version 1）: 住人基盤。`lineageId`、`islandId`、`currentPersonId`、`generationPeople`、`people`、`completedTransactions` を既存の `ai_pet_data_v1` 内に保存する。新しいlocalStorageキーは増やさず、既存のクラウド／保護テストのAI保存経路へ含める。
+- `aiPet.personId` は現世代の安定人物ID。`assets[*].instanceId` は配置物の安定ID。起動・通常保存時に欠損だけ補完し、名前・姿・座標から個体を同一視しない。未知の住人スキーマ版やID衝突は例外として処理を止め、自動初期化・上書きしない。
+- 住人用APIは [`../core/island_residents.md`](../core/island_residents.md) を正本とする。個人Gold取引はAI保存一回が成功してからメモリへ反映する。純粋な世代交代候補APIを既存の引継ぎ導線へ接続し、建物収納退避と複数キー反映を保存ジャーナルで復旧する。
 - `aiPet`: 育成、能力、欲求、姿、世代、職業、言葉、所持品、カジノ進行。
+- `aiPet.gameLog` / `gameLogHomeImported`: 共通会話ログと旧マイホームログの移行済み印。詳細は [`../core/ai_words_and_tasks.md`](../core/ai_words_and_tasks.md) を参照する。
+- `aiPet.myHomeIndoor.introEscort`: 初対面の挨拶／同行段階とコンシェルジュの復帰先。旧セーブは未設定のまま通常入場できる。`dropClockOffsetMs` は共有停止時間を掃除対象の生成周期から除外する補正値で、未設定時は0として扱う。
+- シーンDOMと停止トークンは実行中だけの状態で、セーブへ直列化しない。保存前に共有停止中の鮮度・来客期限を補正する。マイホームへの新しい入場では中断前の退出フラグを解除し、古い退出処理を再実行しない。
 - `assets`: 島地形、施設、収納、店舗状態。
 - `grazingData`: 放牧。
 - `tcgData` / `TCG.myCollection`: 思い出、デッキ、戦績。
@@ -30,6 +43,9 @@
 - `game_tutorial_archive_v1`: チュートリアル項目ごとの解放・閲覧日時。本文や攻略条件は含めない。
 
 ## 互換原則
+
+- 住人を含む世代交代は `ai_pet_data_v1.residentWorldCommit` を確定点とし、マップと遺産キーへの反映を起動時に再開する。`pendingInheritanceData` が残る間は世界を進めず、次世代の姿選択から再開する。入居枠と住人の活動・所持品も同じ主人公保存領域に保持する。
+- ニューゲームは住人名簿・個人財産・知識を残し、住居と活動を解除して全員を待機へ戻す。住人削除は設定の完全初期化だけで行う。詳細は [`../core/island_residents.md`](../core/island_residents.md) を参照する。
 
 - 旧文字列所持品と新オブジェクト所持品を両方受け入れ、必要時にメタデータ付きへ正規化する。
 - 鮮度開始時刻がない旧品は移行時点から新鮮として開始する。

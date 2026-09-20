@@ -61,7 +61,11 @@ ipcMain.on('clear-achievement', (event, achievementId) => {
 });
 
 // ★追加：ゲーム内から「終了」を指示された時の処理
+let quitApproved = false;
+const quitReady = new WeakSet();
+ipcMain.on('quit-handler-ready', event => quitReady.add(event.sender));
 ipcMain.on('quit-app', () => {
+  quitApproved = true;
   app.quit();
 });
 
@@ -125,6 +129,12 @@ function createWindow () {
 
   // ゲームのindex.htmlを読み込む
   win.loadFile('index.html');
+  win.on('close', event => {
+    if (!quitApproved && quitReady.has(win.webContents) && !win.webContents.isDestroyed() && !win.webContents.isCrashed()) {
+      event.preventDefault();
+      win.webContents.send('request-game-quit');
+    }
+  });
 
   // 開発時だけDevToolsを開き、配布版ではゲーム画面だけを表示する
   if (!app.isPackaged) {

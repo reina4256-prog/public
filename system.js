@@ -368,6 +368,7 @@ function generateNatureMap() {
 }
 
 // データの読み込み
+if (window.Residents) window.Residents.recoverStorage(localStorage);
 let assets = JSON.parse(localStorage.getItem('map_data_v6')) || generateNatureMap();
 
 if (assets) {
@@ -444,6 +445,8 @@ let aiPet = savedPet || {
 // classic script のグローバル let は window のプロパティにならない。
 // UI / Debug / クラウド側は window.aiPet を参照するため、起動時から同じ実体を共有する。
 window.aiPet = aiPet;
+window.pendingInheritanceData = aiPet.pendingInheritanceData || null;
+if (window.Residents) window.Residents.ensure(aiPet, assets);
 
 // 互換性チェック
 if (!aiPet.inventory) aiPet.inventory = [];
@@ -534,11 +537,17 @@ const weatherTypes = [
 
 // 3. 既存の saveGameData 関数を上書き（grazingDataの保存を追加）
 function saveGameData() {
+    if (window.aiPet?.timeProgress?.pending) return;
+    if (window.GameShell) window.GameShell.flushPausedTime();
+    if (window.Residents) window.Residents.ensure(aiPet, assets);
     aiPet.lastSaveTime = Date.now();
     localStorage.setItem('map_catalog_v1', JSON.stringify(catalog));
     localStorage.setItem('ai_configs_v8', JSON.stringify(aiConfigs));
-    localStorage.setItem('map_data_v6', JSON.stringify(assets));
-    localStorage.setItem('ai_pet_data_v1', JSON.stringify(aiPet));
+    if (window.Residents) window.Residents.saveWorld(aiPet, assets);
+    else {
+        localStorage.setItem('map_data_v6', JSON.stringify(assets));
+        localStorage.setItem('ai_pet_data_v1', JSON.stringify(aiPet));
+    }
     // ▼ 追加
     localStorage.setItem('grazing_data_v1', JSON.stringify(grazingData));
 }
@@ -561,42 +570,7 @@ function getAssetKey(targetAsset) {
 }
 
 function processOfflineProgression() {
-    const now = Date.now(); const lastTime = aiPet.lastSaveTime; let elapsedMin = Math.floor((now - lastTime) / (1000 * 60));
-    if (elapsedMin < 0) elapsedMin = 0; if (elapsedMin <= 0) return; 
-    let reportLog = []; let totalTimeSpent = 0;
-    const offlineHungerRate = 0.5 + (aiPet.stats.power * 0.005); const offlineEnergyRate = 0.5;
-
-    while (elapsedMin > 0 && aiPet.schedule.length > 0) {
-        if (aiPet.energy <= 5 || aiPet.hunger <= 5) { reportLog.push("⛔ [中断] 限界で動けませんでした..."); break; }
-        const task = aiPet.schedule[0]; const spend = Math.min(task.duration, elapsedMin);
-        task.duration -= spend; elapsedMin -= spend; totalTimeSpent += spend;
-
-        if (task.type !== 'project') {
-            if (task.type !== 'rest') { aiPet.energy -= spend * offlineEnergyRate; aiPet.hunger -= spend * offlineHungerRate; } 
-            else { 
-                const effData = (typeof getActionEfficiency !== 'undefined') ? getActionEfficiency('rest') : {rate:1};
-                aiPet.energy += spend * 1.0 * effData.rate; aiPet.hunger -= spend * 0.2; 
-            }
-        }
-        
-        if (task.duration <= 0) aiPet.schedule.shift();
-    }
-    
-    if (aiPet.gold < 0) {
-        aiPet.debtTimer += Math.floor(totalTimeSpent); 
-    } else {
-        aiPet.debtTimer = 0;
-    }
-
-    if (totalTimeSpent > 0 && document.getElementById('reportOverlay')) {
-        const contentEl = document.getElementById('reportContent'); 
-        const overlayEl = document.getElementById('reportOverlay');
-        if (contentEl && overlayEl) { 
-            contentEl.innerText = `経過時間: ${totalTimeSpent}分\n(オフライン進行しました)`; 
-            overlayEl.classList.add('active'); 
-        }
-    }
-    aiPet.lastSaveTime = Date.now(); saveGameData();
+    window.ScheduleRuntime?.boot();
 }
 
 function downloadJSON(data, filename) {

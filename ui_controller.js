@@ -26,7 +26,7 @@ window.getDresserLevel = function() {
     Object.values(assets).forEach(a => {
         if (!a) return;
         if (a.type === 'dresser') level = Math.max(level, a.level || 1);
-        if (a.type === 'hut' && a.storage && a.storage.dresser) {
+        if (a.type === 'hut' && !window.Residents?.isResidentHome(window.aiPet, a, assets) && a.storage && a.storage.dresser) {
             level = Math.max(level, a.storage.dresser.level || 0);
         }
     });
@@ -304,6 +304,7 @@ window.addEventListener('game-language-changed', () => {
 function updateAIStatusText() {
     const el = document.getElementById('ai-status-text');
     if (!el || typeof aiPet === 'undefined') return;
+    window.GameLog?.observe(aiPet);
     
     if (aiPet.schedule && aiPet.schedule.length > 0) {
         const currentTask = aiPet.schedule[0];
@@ -850,7 +851,7 @@ function openInventoryPanel() {
     let myHut = null;
     let _assets = typeof assets !== 'undefined' ? assets : window.assets;
     for (let k in _assets) { 
-        if (_assets[k].type === 'hut') { 
+        if (_assets[k].type === 'hut' && !window.Residents?.isResidentHome(window.aiPet, _assets[k], _assets)) {
             if (!myHut) myHut = _assets[k];
             if (_assets[k].storage) {
                 myHut = _assets[k];
@@ -1394,7 +1395,7 @@ window.updateCommandHUD = function() {
     let maxWords = (typeof aiPet.getMaxVocabulary === 'function') ? aiPet.getMaxVocabulary() : 5;
 
     // ★修正：判定条件に maxWords を追加し、容量が増えた瞬間も確実に再描画させる！
-    const stateStr = JSON.stringify(aiPet.apprentice.learnedWords) + "_" + metMasters.join(',') + "_" + (aiPet.gold < 0 ? aiPet.debtTimer : 0) + "_" + maxWords;
+    const stateStr = JSON.stringify(aiPet.apprentice.learnedWords) + "_" + metMasters.join(',') + "_" + (aiPet.gold < 0 ? aiPet.debtTimer : 0) + "_" + maxWords + "_" + (window.GameShell?.currentScene || 'island');
     
     if (hud.dataset.state === stateStr) {
         return; // データに変化がなければ再描画をストップし、操作を邪魔しない
@@ -1407,6 +1408,7 @@ window.updateCommandHUD = function() {
     const categories = {
         '🏠 生活・回復': [], '💪 育成・訓練': [], '🎓 依頼・課題': [], '⚔️ 冒険・作業': [], '🏪 施設・その他': [], '🗣️ 自由な言葉': []
     };
+    if (window.myHomeMapOpen || window.GameShell?.currentScene === 'restaurant') categories['🏪 施設・その他'].push({ label: '出る', base: '出る' });
 
     if (knows("睡眠")) categories['🏠 生活・回復'].push({ label: "睡眠", base: "睡眠" });
     if (knows("食事")) categories['🏠 生活・回復'].push({ label: "食事", base: "食事" });
@@ -1675,12 +1677,52 @@ window.chatHistoryIndex = -1;
 // ==========================================
 // ★ チャット送信処理（超・賢い意図解釈システム＆誤爆修正版！）
 // ==========================================
+// Indoor entry points share the island vocabulary limits and feedback wording.
+window.learnIndoorChatWord = function(text, say, options = {}) {
+    const raw = String(text || '').trim();
+    const word = window.GameI18n ? window.GameI18n.toJapaneseInput(raw) : raw;
+    const ai = window.aiPet;
+    if (!word || !ai) return { blocked: true };
+    if (!ai.apprentice) ai.apprentice = {};
+    const words = ai.apprentice.learnedWords ||= [];
+    const reply = message => {
+        ai.message = message; ai.messageTimer = 180;
+        say?.(message);
+        window.GameLog?.observe(ai);
+    };
+    const forgotten = word.match(/^(.+)を(?:忘|わす)れて$/);
+    if (forgotten) {
+        const target = forgotten[1].trim();
+        const index = words.indexOf(target);
+        if (index >= 0) words.splice(index, 1);
+        reply(index >= 0 ? `「${target}」だね…うん、忘れたよ。` : `えっ？「${target}」なんて知らないよ？`);
+        if (typeof saveGameData === 'function') saveGameData();
+        window.updateCommandHUD?.();
+        return { blocked: true, word };
+    }
+    if (words.includes(word)) {
+        if (!options.command) reply('？（何を言っているのかわからないみたい...）');
+        return { blocked: false, learned: false, word };
+    }
+    if (words.length >= (ai.getMaxVocabulary?.() || 5)) {
+        reply(`頭がいっぱいで「${word}」は覚えられないや…\n（いらない言葉を「〇〇を忘れて」と言ってね）`);
+        return { blocked: true, word };
+    }
+    words.push(word);
+    reply(`「${word}」…！\nよく分からないけど、言葉を覚えたよ！`);
+    if (typeof saveGameData === 'function') saveGameData();
+    window.updateCommandHUD?.();
+    return { blocked: false, learned: true, word };
+};
+
 window.sendChat = function() {
+    if (window.GameShell && window.GameShell.isPaused()) return;
     const input = document.getElementById('chatInput');
     if (!input) return;
     const enteredText = input.value.trim();
     const rawText = window.GameI18n ? window.GameI18n.toJapaneseInput(enteredText) : enteredText;
     if (!rawText) return;
+    window.GameLog?.add(enteredText, { speaker: 'player', literal: true });
     
     const existingIndex = window.chatHistory.indexOf(enteredText);
     if (existingIndex !== -1) {
@@ -1691,6 +1733,11 @@ window.sendChat = function() {
     localStorage.setItem('ai_pet_chat_history', JSON.stringify(window.chatHistory));
     
     window.chatHistoryIndex = -1;
+
+    if (window.GameShell && window.GameShell.routeChat(enteredText)) {
+        input.value = '';
+        return;
+    }
 
     if (rawText === "やめる" || rawText === "中止" || rawText === "キャンセル" || rawText.toLowerCase() === "stop" || rawText.toLowerCase() === "cancel") {
         if(typeof window.clearSchedule === 'function') window.clearSchedule();
@@ -1859,7 +1906,7 @@ window.sendChat = function() {
         let hut = typeof window.getMyHomeAsset === 'function' ? window.getMyHomeAsset() : null;
         if (!hut && typeof assets !== 'undefined') {
             for (let k in assets) {
-                if (assets[k] && assets[k].type === 'hut' && !assets[k].isMobile) { hut = assets[k]; break; }
+                if (assets[k] && assets[k].type === 'hut' && !assets[k].isMobile && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) { hut = assets[k]; break; }
             }
         }
         if (hut) {
@@ -2099,7 +2146,7 @@ window.sendChat = function() {
         
         let myHut = null;
         for (let k in assets) {
-            if (assets[k].type === 'hut') { myHut = assets[k]; break; }
+            if (assets[k].type === 'hut' && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) { myHut = assets[k]; break; }
         }
 
         // ①「小屋」と指示され、既に小屋がある場合は「整理(出し入れ)」に向かう
@@ -2164,7 +2211,7 @@ window.sendChat = function() {
         actionTriggered = true;
         let myHut = null;
         for (let k in assets) {
-            if (assets[k].type === 'hut') { myHut = assets[k]; break; }
+            if (assets[k].type === 'hut' && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) { myHut = assets[k]; break; }
         }
 
         if (myHut) {
@@ -2541,7 +2588,7 @@ window.sendChat = function() {
         actionTriggered = true;
         let hut = null;
         for (let k in assets) {
-            if (assets[k].type === 'hut' && !assets[k].isMobile) { hut = assets[k]; break; }
+            if (assets[k].type === 'hut' && !assets[k].isMobile && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) { hut = assets[k]; break; }
         }
 
         if (!hut) {
@@ -2562,7 +2609,7 @@ window.sendChat = function() {
         actionTriggered = true;
         let hut = null;
         for (let k in assets) {
-            if (assets[k].type === 'hut' && !assets[k].isMobile) { hut = assets[k]; break; }
+            if (assets[k].type === 'hut' && !assets[k].isMobile && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) { hut = assets[k]; break; }
         }
 
         if (!hut) {
@@ -2651,7 +2698,7 @@ window.sendChat = function() {
                 // スケジュールにタスクを追加
                 aiPet.schedule.push({
                     type: 'tailor', 
-                    duration: 30, 
+                    duration: window.CraftCore.durationSeconds,
                     isTrial: isTrialMode, 
                     craftTarget: targetCraft
                 });
@@ -2698,7 +2745,7 @@ window.sendChat = function() {
                 let craftName = "調合";
 
                 // 素材を持っているかの確認
-                if (rank >= 3 || isMaster) {
+                if (rank >= 2 || isMaster) {
                     let inv = aiPet.inventory || [];
                     let herbCount = inv.filter(i => (typeof i === 'string' ? i : i.id) === 'herb').length;
                     let waterCount = inv.filter(i => (typeof i === 'string' ? i : i.id) === 'water').length;
@@ -2730,7 +2777,7 @@ window.sendChat = function() {
                 // スケジュールにタスクを追加
                 aiPet.schedule.push({
                     type: 'mix', 
-                    duration: 30, 
+                    duration: window.CraftCore.durationSeconds,
                     isTrial: isTrialMode, 
                     craftTarget: targetCraft
                 });
@@ -3206,6 +3253,7 @@ function finishEvolutionPresentation() {
     if (typeof updateStatUI === 'function') updateStatUI();
     document.getElementById('evolutionOverlay').classList.remove('active');
     window.isGamePaused = false;
+    if (window.myHomeMapOpen) window.renderMyHomeMap?.();
 }
 
 function startFallbackEvolutionEffect() {
@@ -3871,6 +3919,11 @@ window.requestNextQuest = function() {
 // ★ UI描画（バイト・連続受注・AI掛け合い・師匠立ち絵完全対応版！）
 // ==========================================
 window.openEncounterUI = function(masterType, message, mode = 'encounter', qData = null) {
+    if (window.GameLog && message) {
+        const plainMessage = document.createElement('template');
+        plainMessage.innerHTML = String(message).replace(/<br\s*\/?>/gi, '\n');
+        window.GameLog.add(plainMessage.content.textContent, { speaker: masterType });
+    }
     const hero = (typeof party !== 'undefined' && party.length > 0) ? party[0] : window.aiPet;
     if (!hero) return;
     
@@ -6424,7 +6477,6 @@ window.updateQuestHUD = function() {
     
     list.innerHTML = newHtml;
     list.scrollTop = currentScrollTop;
-    if (window.myHomeMapOpen && typeof window.renderMyHomeQuestHUD === 'function') window.renderMyHomeQuestHUD();
 
     if (anyCleared) {
         hud.style.border = "2px solid #4CAF50";
@@ -7204,7 +7256,7 @@ window.renderBuildRecipe = function(containerEl) {
         if (typeof assets === 'undefined') return null;
         for (let k in assets) {
             const a = assets[k];
-            if (a && a.type === 'hut' && a.storage) return a.storage;
+            if (a && a.type === 'hut' && !window.Residents?.isResidentHome(window.aiPet, a, assets) && a.storage) return a.storage;
         }
         return null;
     };
@@ -7356,7 +7408,7 @@ window.renderMedicineRecipe = function() {
 
     // ランクごとの解放レシピデータ
     const MEDICINE_CATALOG = {
-        'item_medicine_cold': { name: '風邪薬', icon: '🤒', reqs: { 'herb': 1, 'water': 1 }, reqRank: 3 },
+        'item_medicine_cold': { name: '風邪薬', icon: '🤒', reqs: { 'herb': 1, 'water': 1 }, reqRank: 2 },
         'item_antidote': { name: '解毒薬', icon: '🤢', reqs: { 'herb': 1, 'poison_mushroom': 1 }, reqRank: 5 },
         'item_medicine_focus': { name: '集中薬', icon: '🧠', reqs: { 'water': 1, 'poison_mushroom': 1 }, reqRank: 6 },
         'elixir': { name: '万能の霊薬', icon: '✨', reqs: {}, reqRank: 8, isSpecial: true, desc: "「調合」の大成功時にのみ稀に完成" },
@@ -8462,6 +8514,7 @@ window.startShopSimulation = function(building) {
     window.shopNPCs = [];
 
     window.shopSimInterval = setInterval(() => {
+        if (window.GameShell && window.GameShell.isPaused()) return;
         const npcContainer = document.getElementById('shop-npc-container');
         if (!npcContainer) return; 
         
@@ -10311,19 +10364,63 @@ window.clearSteamAchievement = function(id) {
 // 🚪 PCゲーム用：ゲーム終了機能
 // ==========================================
 window.quitGame = function() {
-    if (confirm("ゲームを終了してデスクトップに戻りますか？\n（※クラウドへのセーブはお済みですか？）")) {
+    const U = window.ResidentUI;
+    if (document.getElementById('offline-exit-notice')) return;
+    const finish = () => U.safe(() => {
+        if (window.aiPet?.timeProgress?.pending) throw new Error('settlement_pending');
+        if (window.ScheduleRuntime && !window.ScheduleRuntime.absent) window.ScheduleRuntime.state(window.aiPet).checkpoint = Date.now();
+        saveGameData();
         if (typeof require !== 'undefined') {
             const { ipcRenderer } = require('electron');
             ipcRenderer.send('quit-app');
         } else {
-            window.close(); // ブラウザテスト用の予備
+            window.close();
         }
-    }
+    });
+    if (window.GameSettings?.get('showOfflineExitNotice') === false) { finish(); return; }
+    const view = U.modal('終了'); view.root.id = 'offline-exit-notice';
+    U.element('p', '不在中も年齢・寿命と鮮度は進みます。日課の行動は直近７日分まで精算します。', view.card);
+    U.button(view.card, '保存して終了', finish);
+};
+if (typeof require !== 'undefined') {
+    try {
+        const { ipcRenderer } = require('electron');
+        ipcRenderer.on('request-game-quit', () => window.quitGame());
+        ipcRenderer.send('quit-handler-ready');
+    } catch (error) { console.error(error); }
 };
 
 // ==========================================
 // ★ 修正：入門試験用の一問一答UI表示＆更新（師匠直接描画・完全解決版）
 // ==========================================
+window.startApprenticeExamProgress = function(task, overlay) {
+    if (!window.GameShell) return;
+    if (window.myHomeMapOpen && task.masterType === 'concierge') {
+        window.startMyHomeExamProgress?.(task, overlay);
+        return;
+    }
+    const ai = window.aiPet;
+    window.GameShell.setExclusiveUpdate(overlay, () => {
+        if (window.aiPet !== ai || ai.schedule?.[0] !== task || task.aborted) {
+            if (ai.schedule?.[0] === task) ai.schedule.shift();
+            overlay.remove();
+            window.GameShell.endExclusive(overlay);
+            return;
+        }
+        task.duration = Math.max(0, task.duration - 1);
+        window.updateExamUI(task);
+        if (task.duration > 0) return;
+        ai.schedule.shift();
+        ai.visualAction = null;
+        ai.actionState = ai.isIndoors ? 'inside' : 'idle';
+        ai.processApprenticeExamFinish(task);
+        overlay.remove();
+        window.updateScheduleList?.();
+        window.GameShell.syncOverlays();
+        window.GameShell.endExclusive(overlay);
+    });
+};
+
 window.openExamUI = function(masterType, task) {
     let overlay = document.getElementById('examOverlay');
     if (!overlay) {
@@ -10342,6 +10439,8 @@ window.openExamUI = function(masterType, task) {
         if (overlay.parentNode) document.body.appendChild(overlay);
     }
     
+    window.startApprenticeExamProgress(task, overlay);
+
     // ★大修正：余計なimgタグや2枚目のCanvasを全廃止！HTMLを極限までシンプルにしました。
     overlay.innerHTML = `
         <div style="width:700px; height:450px; position:relative; border:4px solid #FFD700; border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,0.8); background:#333; overflow:hidden;">
@@ -10447,7 +10546,7 @@ window.openExamUI = function(masterType, task) {
 window.updateExamUI = function(task) {
     const overlay = document.getElementById('examOverlay');
     if (!overlay || overlay.style.display === 'none') {
-        if (task.maxDuration === task.duration + 1) window.openExamUI(task.masterType, task);
+        if (task.duration > 0) window.openExamUI(task.masterType, task);
         else return;
     }
     
@@ -10833,6 +10932,7 @@ window.updateExamUI = function(task) {
 // 📦 小屋専用：スマートストレージ管理UI
 // ==========================================
 window.openHutStorageUI = function(hutAsset) {
+    if (window.Residents?.isResidentHome(window.aiPet, hutAsset, assets)) return window.openResidentHomeUI(hutAsset);
     if (!hutAsset || !hutAsset.storage) return;
     
     let ui = document.getElementById('hut-storage-ui');
@@ -10916,6 +11016,7 @@ window.openHutStorageUI = function(hutAsset) {
 // ==========================================
 window.openHutStorageUI = function(hutAsset) {
     let ai = window.aiPet;
+    if (window.Residents?.isResidentHome(ai, hutAsset, assets)) return window.openResidentHomeUI(hutAsset);
     if (!ai || !hutAsset || !hutAsset.storage) return;
 
     let s = hutAsset.storage;
@@ -11635,6 +11736,10 @@ window.openPharmacyShopUI = function() {
 
 // 1. 手動キャンセル（チャットで「やめる」「キャンセル」等）時のメッセージ変更
 window.clearSchedule = function() {
+    if (window.myHomeMapOpen) {
+        window.cancelMyHomeAction?.();
+        return;
+    }
     if (window.aiPet && window.aiPet.schedule && window.aiPet.schedule.length > 0) {
         let task = window.aiPet.schedule[0];
         task.duration = 0;
@@ -11689,7 +11794,7 @@ window.openHairdresserUI = function(mode = 'full') {
     const ai = window.aiPet;
     if (!ai) return;
     if (typeof window.isHairdresserCustomizationUnlocked === 'function' && !window.isHairdresserCustomizationUnlocked()) {
-        alert("ドレッサーを設置して、美容師の修行を進めると使えるよ。");
+        window.showGameTutorial('ドレッサー', 'ドレッサーを設置して、美容師の修行を進めると使えるよ。');
         return;
     }
     if (!ai.cosmetic) ai.cosmetic = { hue: 0, aura: 'none', hueCount: 0, auraApplied: false, totalComboApplied: false };

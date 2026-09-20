@@ -4812,7 +4812,7 @@ window.showCardUnlockPopup = function(card, titleText = "カードを獲得し�
     popup.innerHTML = `
         <h2 style="color: #FFD700; text-shadow: 0 0 15px #FF9800; font-size: 28px; font-weight: bold; margin: 0 0 80px 0; z-index: 10; text-align: center;">${titleText}</h2>
         <div style="transform: scale(1.5); box-shadow: 0 0 40px rgba(255,215,0,0.6); border-radius: 12px; margin-bottom: 90px; z-index: 5;">${window.renderCardHTML(card)}</div>
-        <button onclick="document.getElementById('tcg-unlock-popup').style.opacity = '0'; setTimeout(()=>document.getElementById('tcg-unlock-popup').style.pointerEvents = 'none', 500);" 
+        <button onclick="window.closeCardUnlockPopup()"
             style="padding: 15px 40px; font-size: 20px; font-weight: bold; background: #FF9800; color: white; border: 3px solid #FFF; border-radius: 12px; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.6); z-index: 10; transition: transform 0.1s;"
             onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
             ${btnText}
@@ -4820,6 +4820,13 @@ window.showCardUnlockPopup = function(card, titleText = "カードを獲得し�
     `;
     popup.style.pointerEvents = 'auto';
     setTimeout(() => popup.style.opacity = '1', 50);
+};
+
+window.closeCardUnlockPopup = function() {
+    const popup = document.getElementById('tcg-unlock-popup');
+    if (!popup) return;
+    popup.remove();
+    window.GameShell?.endExclusive(popup);
 };
 
 window.openCardBinder = function() {

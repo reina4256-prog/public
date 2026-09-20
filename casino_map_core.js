@@ -7576,10 +7576,13 @@
         if (!text) return;
         addLog(`指示: ${text}`);
         if (resolveCasinoPlacementReply(text)) return;
+        text = window.GameI18n ? window.GameI18n.toJapaneseInput(text.trim()) : text.trim();
         const state = window.ensureCasinoIndoorState();
         const visitor = state && Array.isArray(state.visitors)
             ? state.visitors.find(entry => entry && entry.name && text.includes(entry.name))
             : null;
+        const isCommand = /来客.*設定|ゲーム設定|おく|置く|スロット|テーブル|椅子|いす|イス|ディーラー|支配人|コイン|チップ|トランプ|カード|売場|買い物|購入|設備|大富豪|ポーカー|ホールデム|TCG|tcg|デッキ/.test(text);
+        if (!visitor && isCommand && window.learnIndoorChatWord(text, message => sayCasino(message, '#80d8ff', 5000), { command: true }).blocked) return;
         if (/来客.*設定|ゲーム設定/.test(text)) {
             sayCasino('来客の得意ゲーム設定を開くね！');
             if (typeof window.openCasinoVisitorSettings === 'function') window.openCasinoVisitorSettings();
@@ -7611,7 +7614,7 @@
         } else if (/TCG|tcg|デッキ|カードゲーム|^カード$/.test(text)) {
             window.handleCasinoEquipmentChat('tcg_table');
         } else {
-            sayCasino('「おく、ディーラー、コイン購入、トランプ購入、設備、スロット、ポーカー、大富豪、TCG、来客ゲーム設定」のように指示してね。', '#ff9800', 5200);
+            window.learnIndoorChatWord(text, message => sayCasino(message, '#80d8ff', 5000));
         }
     }
     window.handleCasinoChat = handleChat;

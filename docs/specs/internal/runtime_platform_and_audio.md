@@ -21,6 +21,8 @@
 
 ## Electron・Steam
 
+- 通常のゲーム内終了はゲーム内確認画面から保存後に実行する。初期値有効の端末設定 `終了時にオフライン進行の説明を表示` で説明を省略できる。Electronの通常クローズは、rendererの終了ハンドラー登録後に `request-game-quit` を送り、保存後の `quit-app` だけが終了を確定する。renderer未準備・クラッシュ時は通常クローズを妨げない。OS強制終了やブラウザによる破棄で専用画面を保証しない。
+
 - `electron_main.js` がウィンドウ、フルスクリーン、Steamworksブリッジ、終了処理を所有する。
 - 開発ビルドだけDevToolsを開き、パッケージ版では自動表示しない。
 - Windows `dir` ビルドは `signAndEditExecutable: false`。現在の友人配布ビルドは未署名で、カスタムEXEメタデータを埋め込まない。

@@ -20,6 +20,7 @@
     const VISITOR_SEAT_POS = { x: 6, y: 5, dir: 'left' };
     const VISITOR_STEP_MS = 220;
     const VISITOR_MEAL_MS = 2600;
+    let moveRevision = 0;
 
     window.MYHOME_SPRITES = window.MYHOME_SPRITES || {
         hmap_floor: { img: "restaurant_mapchip.png", sx: 172, sy: 158, sw: 216, sh: 195, scale: 1, sourceW: 2816, sourceH: 1536 },
@@ -239,8 +240,8 @@
         return div;
     }
 
-    function resolveMyHomePlayerSpriteKey(dir = 'down') {
-        const ai = window.aiPet || window.hero || {};
+    function resolveMyHomePlayerSpriteKey(dir = 'down', targetPet = null) {
+        const ai = targetPet || window.aiPet || window.hero || {};
         const skin = ai.currentSkin || ai.type || ai.baseType || 'robot';
         const baseFamily = String(skin).split('_')[0] || 'robot';
         const candidates = [
@@ -319,8 +320,9 @@
     };
 
     function setMyHomeChatMessage(text) {
-        const el = document.getElementById('myhome-chat-message');
-        if (el) el.textContent = text || '';
+        const ai = window.aiPet || window.hero;
+        if (ai) { ai.message = text || ''; ai.messageTimer = text ? 100 : 0; }
+        if (text) showMyHomeBubble(text);
     }
 
     function getItemId(item) {
@@ -350,14 +352,9 @@
     }
 
     function addMyHomeLog(text, speaker = 'AI') {
-        const state = window.ensureMyHomeIndoorState();
-        const timeStr = new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' });
-        const safeText = String(text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        const safeSpeaker = String(speaker || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        state.logs.push(`<span style="color:#888;font-size:12px;">[${timeStr}]</span> <b style="color:#f7e4ba;">${safeSpeaker}</b> ${safeText}`);
-        if (state.logs.length > 100) state.logs.shift();
-        renderMyHomeLogPanel();
+        window.GameLog?.add(text, { speaker, scene: 'myhome' });
     }
+
 
     function showMyHomeBubble(text, color = '#00bcd4', duration = 2400) {
         const state = window.ensureMyHomeIndoorState();
@@ -484,7 +481,8 @@
 
     window.spawnMyHomeDailyDrops = function(force = false) {
         const state = window.ensureMyHomeIndoorState();
-        const cycle = Math.floor(Date.now() / (12 * 60 * 60 * 1000));
+        const now = window.GameShell ? window.GameShell.worldNow() : Date.now();
+        const cycle = Math.floor((now - (Number(state.dropClockOffsetMs) || 0)) / (12 * 60 * 60 * 1000));
         if (!force && state.lastDropCycle === cycle) return;
         state.lastDropCycle = cycle;
         if (force) state.drops = [];
@@ -500,61 +498,8 @@
     };
 
     function renderMyHomeQuestHUD() {
-        const ui = document.getElementById('myhome-map-ui');
-        if (!ui) return;
-        let hud = document.getElementById('myhome-quest-hud');
-        if (!hud) {
-            hud = document.createElement('div');
-            hud.id = 'myhome-quest-hud';
-            hud.style.cssText = 'position:absolute;right:16px;top:118px;width:min(330px,calc(100vw - 32px));z-index:24;background:rgba(20,18,24,0.74);border:1px solid rgba(247,228,186,0.45);border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35);font-size:12px;line-height:1.45;';
-            ui.appendChild(hud);
-        }
-        const q = getCurrentConciergeQuest();
-        const score = window.getMyHomeEnvironmentScore ? window.getMyHomeEnvironmentScore() : 0;
-        if (!q) {
-            hud.innerHTML = `<div style="color:#f7e4ba;font-weight:bold;margin-bottom:4px;">環境スコア: ${score}</div><div style="color:#ccc;">受注中のコンシェルジュ課題はありません。</div>`;
-            return;
-        }
-        const progress = typeof q.qVal !== 'undefined' ? `進行: ${q.qVal}` : '';
-        hud.innerHTML = `<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px;"><b style="color:#f7e4ba;">${q.name}</b><span style="color:#9ee493;">環境 ${score}</span></div><div style="color:#fff;">${q.desc || ''}</div><div style="color:#9ee493;margin-top:4px;">${progress}</div>`;
+        if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
     }
-
-    renderMyHomeQuestHUD = function() {
-        const ui = document.getElementById('myhome-map-ui');
-        if (!ui) return;
-        let hud = document.getElementById('myhome-quest-hud');
-        if (!hud) {
-            hud = document.createElement('div');
-            hud.id = 'myhome-quest-hud';
-            hud.style.cssText = 'position:absolute;right:16px;top:118px;width:min(330px,calc(100vw - 32px));z-index:24;background:rgba(15,15,20,0.88);border:2px solid #FFC107;border-radius:8px;padding:10px;box-shadow:0 0 12px rgba(255,193,7,0.25);font-size:12px;line-height:1.45;';
-            ui.appendChild(hud);
-        }
-        const q = getCurrentConciergeQuest();
-        if (!q) {
-            hud.style.display = 'none';
-            return;
-        }
-        const hero = window.aiPet || window.hero || {};
-        const qData = hero.getMasterQuestData ? hero.getMasterQuestData('concierge', q.rank) : null;
-        const isCleared = qData && qData.check ? qData.check() : false;
-        const desc = typeof window.formatQuestDescription === 'function' ? window.formatQuestDescription(q.desc || '') : (q.desc || '');
-        const score = window.getMyHomeEnvironmentScore ? window.getMyHomeEnvironmentScore() : 0;
-        const storageFlags = hero.myHomeQuestStorageDeposits || {};
-        const progress = q.rank === 3
-            ? `<span style="display:block;">倉庫に収納: ${storageFlags.warehouse ? '<b style="color:#4CAF50;">1 / 1</b>' : '0 / 1'}</span><span style="display:block;">冷凍庫に収納: ${storageFlags.freezer ? '<b style="color:#4CAF50;">1 / 1</b>' : '0 / 1'}</span>`
-            : (typeof q.qVal !== 'undefined' ? `進行: ${Math.floor(q.qVal)}${q.rank === 1 ? ' / 3' : ''}` : '');
-        hud.style.display = 'block';
-        hud.style.border = `2px solid ${isCleared ? '#4CAF50' : '#FFC107'}`;
-        hud.style.boxShadow = isCleared ? '0 0 15px rgba(76,175,80,0.4)' : '0 0 12px rgba(255,193,7,0.25)';
-        hud.innerHTML = `
-            <div style="font-size:12px;font-weight:bold;color:${isCleared ? '#4CAF50' : '#FFC107'};margin-bottom:5px;">📜 ${q.name}</div>
-            <div style="font-size:11px;color:#ccc;line-height:1.45;">${desc}</div>
-            <div style="display:flex;justify-content:space-between;gap:8px;margin-top:6px;font-size:11px;color:#FF9800;">
-                <span>${progress}${isCleared ? '<span style="display:block;color:#4CAF50;font-weight:bold;">条件達成！報告しよう</span>' : ''}</span>
-                <span>環境 ${score}</span>
-            </div>
-        `;
-    };
     window.renderMyHomeQuestHUD = renderMyHomeQuestHUD;
 
     function renderMyHomeInventoryPanel() {
@@ -608,7 +553,7 @@
         }
         if (typeof assets !== 'undefined') {
             for (const k in assets) {
-                if (assets[k] && assets[k].type === 'hut' && !assets[k].isMobile) return assets[k];
+                if (assets[k] && assets[k].type === 'hut' && !assets[k].isMobile && !window.Residents?.isResidentHome(window.aiPet, assets[k], assets)) return assets[k];
             }
         }
         return null;
@@ -810,6 +755,7 @@
     }
 
     function updateMyHomeVisitor() {
+        if (window.GameShell && window.GameShell.isPaused()) return;
         if (!window.myHomeMapOpen) return;
         const state = window.ensureMyHomeIndoorState();
         const spawned = maybeSpawnMyHomeVisitor();
@@ -883,79 +829,11 @@
     }
 
     function renderMyHomeWordsPanel() {
-        const list = document.getElementById('myhome-words-list');
-        if (!list) return;
-        const ai = window.aiPet || window.hero || {};
-        const allWords = getMyHomeKnownWords();
-        const maxWords = typeof ai.getMaxVocabulary === 'function' ? ai.getMaxVocabulary() : 5;
-        const homeWords = new Set([
-            'コンシェルジュ', '掃除', '倉庫', '冷凍庫', '金庫', 'ドレッサー',
-            '作戦', '会議', 'ホワイトボード', 'テーブル', 'マイホーム', '小屋',
-            '睡眠', '食事', '家具', 'おもてなし', 'ベッド', 'アイテム', '食べ物',
-            'お金', '入れる', 'しまう', '出す', '取り出す', 'カラーチェンジ', 'オーラ',
-            'アップグレード', '強化', '改装'
-        ]);
-        const groups = [
-            { title: '🏠 マイホーム', test: word => homeWords.has(word) || ['倉庫', '冷凍庫', '金庫', 'ドレッサー', '作戦', '掃除', 'コンシェルジュ'].some(key => String(word).includes(key)) },
-            { title: '🧰 生活・回復', test: word => ['睡眠', '食事', '料理', 'お菓子作り', '調合', 'ヘアメイク', 'カラーチェンジ', 'オーラ'].includes(word) },
-            { title: '💪 育成・訓練', test: word => ['勉強', '筋トレ', 'ランニング'].includes(word) },
-            { title: '🎓 依頼・課題', test: word => String(word).includes('のところへ') || ['冒険家', '農家', '漁師', '料理人', '鍛冶師', '建築士', '美容師', '薬剤師', '仕立屋', 'パティシエ'].includes(word) },
-            { title: '📚 その他', test: () => true }
-        ];
-        const words = myHomeWordFilter === 'home'
-            ? allWords.filter(word => groups[0].test(word))
-            : allWords.slice();
-        const used = new Set();
-        const makeChip = word => `<button type="button" class="myhome-word-chip" data-word="${String(word).replace(/"/g, '&quot;')}" style="background:rgba(255,255,255,0.12);color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:999px;padding:5px 8px;cursor:pointer;font-size:12px;">${word}</button>`;
-        let html = `
-            <div style="position:sticky;top:-10px;background:rgba(20,18,24,0.92);padding:0 0 8px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,0.12);">
-                <div style="font-size:12px;color:#f7e4ba;margin-bottom:7px;">🧠 記憶容量: <b>${allWords.length}</b> / <b>${maxWords}</b> 語</div>
-                <div style="display:flex;gap:6px;">
-                    <button type="button" id="myhome-filter-home" style="flex:1;background:${myHomeWordFilter === 'home' ? '#2e8b57' : 'rgba(255,255,255,0.12)'};color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:6px;padding:6px;cursor:pointer;font-size:12px;">マイホーム</button>
-                    <button type="button" id="myhome-filter-all" style="flex:1;background:${myHomeWordFilter === 'all' ? '#2e8b57' : 'rgba(255,255,255,0.12)'};color:#fff;border:1px solid rgba(255,255,255,0.22);border-radius:6px;padding:6px;cursor:pointer;font-size:12px;">全言葉</button>
-                </div>
-            </div>
-        `;
-        if (!words.length) {
-            html += '<div style="color:#ccc;font-size:12px;">このフィルターに表示できる言葉はまだありません。</div>';
-        } else {
-            groups.forEach(group => {
-                const groupWords = words.filter(word => !used.has(word) && group.test(word));
-                groupWords.forEach(word => used.add(word));
-                if (!groupWords.length) return;
-                html += `<div style="margin:10px 0 5px;color:#f7e4ba;font-size:12px;font-weight:bold;">${group.title}</div>`;
-                html += `<div style="display:flex;flex-wrap:wrap;gap:6px;">${groupWords.map(makeChip).join('')}</div>`;
-            });
-        }
-        list.innerHTML = html;
-        const homeFilter = document.getElementById('myhome-filter-home');
-        const allFilter = document.getElementById('myhome-filter-all');
-        if (homeFilter) homeFilter.addEventListener('click', () => { myHomeWordFilter = 'home'; renderMyHomeWordsPanel(); });
-        if (allFilter) allFilter.addEventListener('click', () => { myHomeWordFilter = 'all'; renderMyHomeWordsPanel(); });
-        list.querySelectorAll('.myhome-word-chip').forEach(btn => {
-            btn.addEventListener('click', () => {
-                handleMyHomeChat(btn.dataset.word || '');
-            });
-        });
+        if (typeof window.updateCommandHUD === 'function') window.updateCommandHUD();
     }
 
     function rememberMyHomeWord(rawText) {
-        const word = String(rawText || '').trim();
-        if (!word) return false;
-        const ai = window.aiPet || window.hero || {};
-        const words = getMyHomeKnownWords();
-        if (words.includes(word)) return false;
-        const maxWords = typeof ai.getMaxVocabulary === 'function' ? ai.getMaxVocabulary() : 5;
-        if (words.length >= maxWords) {
-            setMyHomeChatMessage(`これ以上は覚えられません。「忘れて」と伝えて整理してください。`);
-            return false;
-        }
-        words.push(word);
-        if (typeof saveGameData === 'function') saveGameData();
-        if (typeof updateCommandHUD === 'function') updateCommandHUD();
-        renderMyHomeWordsPanel();
-        setMyHomeChatMessage(`「${word}」を覚えました。`);
-        return true;
+        return !window.learnIndoorChatWord(rawText, setMyHomeChatMessage, { command: !!getMyHomeCommandTarget(rawText) }).blocked;
     }
 
     function forgetMyHomeWord(rawText) {
@@ -1225,72 +1103,16 @@
     }
 
     function renderMyHomeActionHUD() {
-        const ui = document.getElementById('myhome-map-ui');
-        if (!ui) return;
-        let hud = document.getElementById('myhome-action-hud');
-        const ai = window.aiPet || window.hero || {};
-        const task = ai.schedule && ai.schedule[0] && ai.schedule[0].myHomeIndoor ? ai.schedule[0] : null;
-        if (!task) {
-            if (hud) hud.style.display = 'none';
-            const actionWindow = document.getElementById('myhome-action-window');
-            if (actionWindow) actionWindow.style.display = 'none';
-            return;
-        }
-        if (!hud) {
-            hud = document.createElement('div');
-            hud.id = 'myhome-action-hud';
-            hud.style.cssText = 'position:absolute;right:16px;top:242px;width:min(330px,calc(100vw - 32px));z-index:31;background:rgba(10,18,24,0.86);border:1px solid #00bcd4;border-radius:8px;padding:12px;box-shadow:0 0 14px rgba(0,188,212,0.25);font-family:sans-serif;';
-            ui.appendChild(hud);
-        }
-        const maxTime = task.maxDuration || Math.max(1, task.duration || 1);
-        const remain = Math.max(0, task.duration || 0);
-        const pct = Math.max(0, Math.min(100, 100 - (remain / maxTime) * 100));
-        hud.style.display = 'block';
-        const isLifePathTask = String(task.type || '').startsWith('life_');
-        hud.innerHTML = `
-            <div style="color:#00e5ff;font-weight:bold;font-size:13px;margin-bottom:8px;">▶ CURRENT STATUS</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
-                <span style="font-weight:bold;color:#fff;">${getMyHomeActionTaskName(task)}</span>
-                <span style="color:#ffc107;font-size:12px;font-weight:bold;background:rgba(255,193,7,0.18);padding:2px 8px;border-radius:10px;">⏳ 残り ${remain} 分</span>
-            </div>
-            <div style="margin-top:10px;background:#222;height:8px;border-radius:4px;overflow:hidden;border:1px solid #444;">
-                <div style="background:linear-gradient(90deg,#00bcd4,#4fc3f7);width:${pct}%;height:100%;transition:width .5s;"></div>
-            </div>
-            ${isLifePathTask
-                ? '<div style="margin-top:10px;color:#b39ddb;font-size:11px;text-align:right;">余生の行動は自動で続きます</div>'
-                : '<div style="margin-top:12px;text-align:right;"><button type="button" onclick="window.cancelMyHomeAction && window.cancelMyHomeAction();" style="background:#d32f2f;color:#fff;border:1px solid #b71c1c;padding:6px 14px;border-radius:4px;cursor:pointer;font-size:12px;font-weight:bold;">■ 行動を中止する</button></div>'}
-        `;
-        renderMyHomeActionWindow();
+        if (typeof updateAIStatusText === 'function') updateAIStatusText();
+        const task = window.aiPet?.schedule?.[0];
+        if (task?.myHomeIndoor) renderMyHomeActionWindow();
+        else document.getElementById('myhome-action-window')?.remove();
     }
 
     window.renderMyHomeActionHUD = renderMyHomeActionHUD;
 
     function renderMyHomeLifePathHUD() {
-        const ui = document.getElementById('myhome-map-ui');
-        if (!ui) return;
-        const ai = window.aiPet || window.hero || {};
-        const app = ai.apprentice || {};
-        const path = getMyHomeLifePath(ai);
-        const isRetired = !!(path || app.isGraduated);
-        let hud = document.getElementById('myhome-life-path-hud');
-        if (!isRetired) {
-            if (hud) hud.remove();
-            return;
-        }
-        if (!hud) {
-            hud = document.createElement('div');
-            hud.id = 'myhome-life-path-hud';
-            hud.style.cssText = 'position:absolute;left:16px;top:118px;width:min(330px,calc(100vw - 32px));z-index:25;background:rgba(24,14,36,0.9);border:2px solid #9c27b0;border-radius:8px;padding:11px;box-shadow:0 0 16px rgba(156,39,176,0.3);font-family:sans-serif;box-sizing:border-box;';
-            ui.appendChild(hud);
-        }
-        const info = MY_HOME_LIFE_PATHS[path];
-        const fastForwarding = !!window.isFastForwardLife;
-        const titleText = app.title ? `称号：${app.title}` : '免許皆伝';
-        hud.innerHTML = `
-            <div style="color:#ffd54f;font-size:12px;font-weight:bold;">✨ ${titleText}</div>
-            <div style="margin-top:5px;color:#fff;font-size:14px;font-weight:bold;">${info ? `${info.icon} 余生：${info.name}` : '🌟 これからの生き方を考えています'}</div>
-            ${info ? `<button id="btn-myhome-fast-forward-life" type="button" onclick="window.toggleMyHomeLifeFastForward && window.toggleMyHomeLifeFastForward();" style="width:100%;margin-top:9px;padding:8px;border:1px solid rgba(255,255,255,.35);border-radius:6px;color:#fff;background:${fastForwarding ? 'linear-gradient(45deg,#f44336,#e91e63)' : 'linear-gradient(45deg,#673ab7,#9c27b0)'};font-weight:bold;cursor:pointer;">${fastForwarding ? '▶ 余生の早送りを止める' : '⏩ 余生を早送りする'}</button>` : ''}
-        `;
+        if (typeof updateAIStatusText === 'function') updateAIStatusText();
     }
 
     window.renderMyHomeLifePathHUD = renderMyHomeLifePathHUD;
@@ -1307,23 +1129,7 @@
     };
 
     function renderMyHomeStatusBar() {
-        const ui = document.getElementById('myhome-map-ui');
-        const source = document.getElementById('aiStatus');
-        if (!ui || !source) return;
-        let bar = document.getElementById('myhome-status-bar');
-        if (!bar) {
-            bar = document.createElement('div');
-            bar.id = 'myhome-status-bar';
-            bar.style.cssText = 'position:absolute;left:16px;right:16px;top:50px;min-height:52px;z-index:23;display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;padding:5px 10px;box-sizing:border-box;background:rgba(8,10,12,0.9);border:1px solid #34383c;border-radius:7px;font-family:sans-serif;';
-            ui.appendChild(bar);
-        }
-        const clone = source.cloneNode(true);
-        clone.removeAttribute('id');
-        clone.querySelectorAll('#btn-fast-forward-life').forEach(el => el.remove());
-        clone.querySelectorAll('[id]').forEach(el => el.removeAttribute('id'));
-        clone.querySelectorAll('.online-indicator').forEach(el => el.remove());
-        clone.style.cssText = 'display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;width:100%;';
-        bar.replaceChildren(...Array.from(clone.childNodes));
+        if (typeof updateStatUI === 'function') updateStatUI();
     }
 
     window.cancelMyHomeAction = function() {
@@ -1366,6 +1172,7 @@
     }
 
     function ensureMyHomeLifePathTask() {
+        if (window.aiPet?.myHomeExiting || window.aiPet?.myHomeIndoor?.introEscort) return false;
         if (!window.myHomeMapOpen || window.isGamePaused) return false;
         const ai = window.aiPet || window.hero || {};
         const path = getMyHomeLifePath(ai);
@@ -1434,6 +1241,7 @@
     function ensureMyHomeActionHudTimer() {
         if (window.myHomeActionHudTimer) return;
         window.myHomeActionHudTimer = setInterval(() => {
+            if (window.GameShell && window.GameShell.isPaused()) return;
             if (!window.myHomeMapOpen) {
                 clearInterval(window.myHomeActionHudTimer);
                 window.myHomeActionHudTimer = null;
@@ -1443,6 +1251,7 @@
             renderMyHomeActionHUD();
             renderMyHomeLifePathHUD();
             renderMyHomeStatusBar();
+            window.renderMyHomeMap();
         }, 500);
     }
 
@@ -1462,6 +1271,7 @@
             myHomeAction,
             _started: true
         });
+        window.ScheduleRuntime?.adoptHomeTask(ai.schedule[0]);
         ai.isIndoors = true;
         ai.actionState = 'inside';
         ai.indoorTarget = { type: 'hut', name: 'マイホーム' };
@@ -1933,6 +1743,8 @@
     }
 
     function moveMyHomePlayerTo(stop, path, afterMove) {
+        const revision = ++moveRevision;
+        if (window.aiPet) window.aiPet.myHomeExiting = false;
         const state = window.ensureMyHomeIndoorState();
         if (window.myHomeMoveTimer) clearInterval(window.myHomeMoveTimer);
         let route = Array.isArray(path) ? path : findMyHomePath(state, state.player, stop);
@@ -1944,6 +1756,7 @@
         }
         window.renderMyHomeMap();
         window.myHomeMoveTimer = setInterval(() => {
+            if (window.GameShell && window.GameShell.isPaused()) return;
             const p = state.player;
             if ((p.x === stop.x && p.y === stop.y) || pathIndex >= route.length) {
                 clearInterval(window.myHomeMoveTimer);
@@ -1955,7 +1768,7 @@
                     window.aiPet.visualAction = 'idle';
                 }
                 window.renderMyHomeMap();
-                if (typeof afterMove === 'function') setTimeout(afterMove, 120);
+                if (typeof afterMove === 'function') window.GameShell.deferScene(() => { if (revision === moveRevision) afterMove(); }, 120);
                 return;
             }
             const next = route[pathIndex];
@@ -1973,12 +1786,31 @@
     }
 
     function handleMyHomeChat(forcedText) {
-        const input = document.getElementById('myhome-chat-input');
+        if (window.GameShell && window.GameShell.isPaused()) return;
+        const input = document.getElementById('chatInput');
         if (!input) return;
-        const rawText = String(forcedText !== undefined ? forcedText : input.value).trim();
+        const enteredText = String(forcedText !== undefined ? forcedText : input.value).trim();
+        const rawText = window.GameI18n ? window.GameI18n.toJapaneseInput(enteredText) : enteredText;
         if (!rawText) return;
-        window._blockChatFocus = true;
+        window._blockChatFocus = false;
         if (forcedText === undefined) input.value = '';
+        if (window.aiPet?.myHomeIndoor?.introEscort) {
+            setMyHomeChatMessage('コンシェルジュについていこう。');
+            return;
+        }
+        if (['出る', 'でる', '外に出る', '退出', 'exit', 'leave'].includes(rawText.toLowerCase())) {
+            window.requestMyHomeExit();
+            return;
+        }
+        if (['やめる', '中止', 'キャンセル', 'stop', 'cancel'].includes(rawText.toLowerCase())) {
+            if (window.myHomeMoveTimer) clearInterval(window.myHomeMoveTimer);
+            window.myHomeMoveTimer = null;
+            moveRevision++;
+            if (window.aiPet) window.aiPet.myHomeExiting = false;
+            if (window.aiPet) window.aiPet.myHomeMoving = false;
+            window.cancelMyHomeAction();
+            return;
+        }
         if (forgetMyHomeWord(rawText)) {
             input.focus();
             return;
@@ -2003,10 +1835,17 @@
             addMyHomeLog('ドレッサーの指示待ちをキャンセルしました。');
         }
         const target = getMyHomeCommandTarget(rawText);
+        if (!target && getMyHomeKnownWords().some(word => rawText === word || rawText === word + 'のところへ')) {
+            window.requestMyHomeExit(() => {
+                input.value = enteredText;
+                window.sendChat();
+            });
+            return;
+        }
         const wordToRemember = target
             ? (target.kind === 'concierge' ? (target.action === 'clean' ? '掃除' : 'コンシェルジュ') : target.label)
             : rawText;
-        rememberMyHomeWord(wordToRemember);
+        if (!rememberMyHomeWord(wordToRemember)) return;
         if (!target) {
             input.focus();
             return;
@@ -2022,6 +1861,11 @@
             return;
         }
         if (target.kind === 'panel') {
+            if (target.panel === 'log') { window.GameLog?.open(); return; }
+            if (target.panel !== 'log' && typeof window.switchRightPanel === 'function') {
+                window.switchRightPanel('inventory');
+                return;
+            }
             const panel = document.getElementById(target.panel === 'log' ? 'myhome-log-panel' : 'myhome-inventory-panel');
             if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
             if (target.panel === 'log') renderMyHomeLogPanel();
@@ -2065,90 +1909,7 @@
         input.focus();
     }
 
-    function setupMyHomeChatUI(ui) {
-        if (!ui || ui._myHomeChatReady) {
-            renderMyHomeWordsPanel();
-            return;
-        }
-        ui._myHomeChatReady = true;
-        const input = ui.querySelector('#myhome-chat-input');
-        const send = ui.querySelector('#myhome-chat-send');
-        const toggle = ui.querySelector('#myhome-words-toggle');
-        const close = ui.querySelector('#myhome-words-close');
-        const panel = ui.querySelector('#myhome-words-panel');
-        const topBar = ui.firstElementChild;
-        const exitButton = topBar ? topBar.querySelector('button') : null;
-        const stopMainFocus = e => {
-            window._blockChatFocus = true;
-            e.stopPropagation();
-        };
-        if (topBar && exitButton && !document.getElementById('myhome-log-toggle')) {
-            const actions = document.createElement('div');
-            actions.style.cssText = 'display:flex;align-items:center;gap:8px;';
-            const logBtn = document.createElement('button');
-            logBtn.id = 'myhome-log-toggle';
-            logBtn.type = 'button';
-            logBtn.textContent = '会話ログ';
-            logBtn.style.cssText = 'background:#2d4f6c;color:#fff;border:1px solid #8fb9e0;border-radius:6px;padding:6px 10px;cursor:pointer;';
-            const invBtn = document.createElement('button');
-            invBtn.id = 'myhome-inventory-toggle';
-            invBtn.type = 'button';
-            invBtn.textContent = '持ち物';
-            invBtn.style.cssText = 'background:#4f5f2d;color:#fff;border:1px solid #d2d68c;border-radius:6px;padding:6px 10px;cursor:pointer;';
-            exitButton.parentNode.insertBefore(actions, exitButton);
-            actions.appendChild(logBtn);
-            actions.appendChild(invBtn);
-            actions.appendChild(exitButton);
-            logBtn.addEventListener('click', e => {
-                stopMainFocus(e);
-                const logPanel = document.getElementById('myhome-log-panel');
-                if (logPanel) logPanel.style.display = logPanel.style.display === 'none' ? 'block' : 'none';
-                renderMyHomeLogPanel();
-            });
-            invBtn.addEventListener('click', e => {
-                stopMainFocus(e);
-                const invPanel = document.getElementById('myhome-inventory-panel');
-                if (invPanel) invPanel.style.display = invPanel.style.display === 'none' ? 'block' : 'none';
-                renderMyHomeInventoryPanel();
-            });
-        }
-        if (!document.getElementById('myhome-log-panel')) {
-            const logPanel = document.createElement('div');
-            logPanel.id = 'myhome-log-panel';
-            logPanel.style.cssText = 'display:none;position:absolute;right:16px;top:104px;width:min(430px,calc(100vw - 32px));max-height:48vh;overflow:auto;z-index:30;background:rgba(20,18,24,0.82);border:1px solid rgba(143,185,224,0.55);border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35);font-size:12px;line-height:1.5;';
-            ui.appendChild(logPanel);
-        }
-        if (!document.getElementById('myhome-inventory-panel')) {
-            const invPanel = document.createElement('div');
-            invPanel.id = 'myhome-inventory-panel';
-            invPanel.style.cssText = 'display:none;position:absolute;left:16px;top:58px;width:min(320px,calc(100vw - 32px));max-height:52vh;overflow:auto;z-index:30;background:rgba(20,18,24,0.78);border:1px solid rgba(210,214,140,0.55);border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35);font-size:12px;line-height:1.5;';
-            ui.appendChild(invPanel);
-        }
-        if (input) {
-            input.addEventListener('mousedown', stopMainFocus, true);
-            input.addEventListener('focus', () => { window._blockChatFocus = true; });
-            input.addEventListener('keydown', e => {
-                e.stopPropagation();
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleMyHomeChat();
-                }
-            });
-        }
-        if (send) send.addEventListener('click', e => { stopMainFocus(e); handleMyHomeChat(); });
-        if (toggle) toggle.addEventListener('click', e => {
-            stopMainFocus(e);
-            if (panel) panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            renderMyHomeWordsPanel();
-            if (input) input.focus();
-        });
-        if (close) close.addEventListener('click', e => {
-            stopMainFocus(e);
-            if (panel) panel.style.display = 'none';
-            if (input) input.focus();
-        });
-        renderMyHomeWordsPanel();
-    }
+    // The shell owns chat, vocabulary, status and log controls.
 
     function runMyHomeEntryAction(action, entryOptions = {}) {
         if (!action || action === 'visit' || action === 'exam_finish') {
@@ -2182,8 +1943,89 @@
         handleMyHomeChat(commandByAction[action] || action);
     }
 
+    window.requestMyHomeExit = function(afterExit) {
+        if (!window.myHomeMapOpen || window.GameShell.isPaused()) return false;
+        const state = window.ensureMyHomeIndoorState();
+        if (state.introEscort) return false;
+        const route = findMyHomePath(state, state.player, ENTRANCE_POS);
+        if (!route.length && (state.player.x !== ENTRANCE_POS.x || state.player.y !== ENTRANCE_POS.y)) {
+            setMyHomeChatMessage('そこへ向かう道が見つかりません。');
+            return false;
+        }
+        window.cancelMyHomeAction();
+        setMyHomeChatMessage('入り口へ向かいます。');
+        moveMyHomePlayerTo({ ...ENTRANCE_POS, dir: 'down' }, route, () => {
+            addMyHomeLog('マイホームから出ました。');
+            window.closeMyHomeMapUI();
+            if (typeof afterExit === 'function') afterExit();
+        });
+        window.aiPet.myHomeExiting = true;
+        return true;
+    };
+    window.startMyHomeRoutineAction = action => runMyHomeEntryAction(action);
+    window.cancelMyHomeRoutineMovement = function() {
+        moveRevision++;
+        if (window.myHomeMoveTimer) clearInterval(window.myHomeMoveTimer);
+        window.myHomeMoveTimer = null;
+    };
+
+    window.prepareMyHomeIntroEscort = function() {
+        const state = window.ensureMyHomeIndoorState();
+        if (state.introEscort) return;
+        state.introEscort = { phase: 'greeting', target: { ...state.concierge } };
+        state.player = { ...ENTRANCE_POS };
+        state.concierge = { x: ENTRANCE_POS.x, y: ENTRANCE_POS.y - 1, dir: 'down' };
+    };
+
+    window.startMyHomeIntroEscort = function(onComplete) {
+        const state = window.ensureMyHomeIndoorState();
+        if (!state.introEscort || !window.myHomeMapOpen) return;
+        const escort = state.introEscort;
+        escort.phase = 'walking';
+        const revision = ++moveRevision;
+        if (window.myHomeMoveTimer) clearInterval(window.myHomeMoveTimer);
+        window.aiPet.myHomeMoving = true;
+        window.aiPet.visualAction = 'move';
+        window.myHomeMoveTimer = setInterval(() => {
+            if (window.GameShell.isPaused() || revision !== moveRevision) return;
+            const leader = state.concierge;
+            const follower = state.player;
+            if (leader.x === escort.target.x && leader.y === escort.target.y) {
+                const stop = { x: leader.x, y: leader.y + 1, dir: 'up' };
+                if (follower.x !== stop.x || follower.y !== stop.y) {
+                    const step = findMyHomePath(state, follower, stop)[0];
+                    if (!step) return;
+                    follower.dir = getMyHomeStepDir(follower, step);
+                    follower.x = step.x; follower.y = step.y;
+                } else {
+                    clearInterval(window.myHomeMoveTimer);
+                    window.myHomeMoveTimer = null;
+                    leader.dir = 'down'; follower.dir = 'up';
+                    delete state.introEscort;
+                    window.aiPet.myHomeMoving = false;
+                    window.aiPet.visualAction = 'idle';
+                    if (typeof saveGameData === 'function') saveGameData();
+                    if (onComplete) window.GameShell.deferScene(onComplete);
+                }
+            } else {
+                const step = findMyHomePath(state, leader, escort.target, [follower])[0];
+                if (!step || (state.visitor && step.x === state.visitor.x && step.y === state.visitor.y)) return;
+                const oldLeader = { x: leader.x, y: leader.y };
+                leader.dir = getMyHomeStepDir(leader, step);
+                leader.x = step.x; leader.y = step.y;
+                follower.dir = getMyHomeStepDir(follower, oldLeader);
+                follower.x = oldLeader.x; follower.y = oldLeader.y;
+            }
+            window.aiPet.myHomeDirection = follower.dir;
+            window.renderMyHomeMap();
+        }, VISITOR_STEP_MS);
+        window.renderMyHomeMap();
+    };
+
     window.closeMyHomeMapUI = function() {
+        moveRevision++;
         const ai = window.aiPet || window.hero || {};
+        ai.myHomeExiting = false;
         const hadActiveTask = Array.isArray(ai.schedule) && ai.schedule.some(task => task && task.myHomeIndoor);
         if (Array.isArray(ai.schedule)) ai.schedule = ai.schedule.filter(task => !(task && task.myHomeIndoor));
         ai.visualAction = null;
@@ -2197,6 +2039,7 @@
             if (overlay) overlay.remove();
         });
         const ui = document.getElementById('myhome-map-ui');
+        if (window.GameShell) window.GameShell.leaveScene('myhome');
         if (ui) ui.remove();
         window.myHomeMapOpen = false;
         window._blockChatFocus = false;
@@ -2208,15 +2051,18 @@
         window.myHomeActionHudTimer = null;
         if (hadActiveTask && typeof updateScheduleList === 'function') updateScheduleList();
         if (typeof updateUI === 'function') updateUI();
+        if (typeof updateStatUI === 'function') updateStatUI();
         if (typeof saveGameData === 'function') saveGameData();
     };
 
     window.prepareMyHomeForReincarnation = function() {
+        moveRevision++;
         ['myhome-storage-detail-ui', 'hairdresser-ui'].forEach(id => {
             const overlay = document.getElementById(id);
             if (overlay) overlay.remove();
         });
         const ui = document.getElementById('myhome-map-ui');
+        if (window.GameShell) window.GameShell.leaveScene('myhome');
         if (ui) ui.remove();
         window.myHomeMapOpen = false;
         window._blockChatFocus = false;
@@ -2246,87 +2092,59 @@
         if (!window.isMyHomeIndoorUnlocked()) return false;
         const state = window.ensureMyHomeIndoorState();
         const ai = window.aiPet || window.hero || {};
-        if (typeof window.triggerTCGUnlock === 'function') {
-            window.triggerTCGUnlock('visit_forest', ai.generation || 1);
-        }
+        if (typeof window.triggerTCGUnlock === 'function') window.triggerTCGUnlock('visit_forest', ai.generation || 1);
         let ui = document.getElementById('myhome-map-ui');
+        const freshEntry = !ui;
+        if (freshEntry) ai.myHomeExiting = false;
         if (!ui) {
+            const origin = { x: ai.x, y: ai.y, camera: typeof camera !== 'undefined' ? { ...camera } : null };
             ui = document.createElement('div');
             ui.id = 'myhome-map-ui';
-            ui.style.cssText = `
-                position:fixed;
-                inset:0;
-                z-index:8990;
-                background:#101018;
-                color:#fff;
-                display:flex;
-                flex-direction:column;
-                font-family:'MS Gothic', monospace;
-            `;
-            ui.innerHTML = `
-                <div style="height:42px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:#211b25;border-bottom:2px solid #6d5848;">
-                    <div style="font-weight:bold;color:#f7e4ba;">マイホーム</div>
-                    <button onclick="window.closeMyHomeMapUI()" style="background:#4b3740;color:#fff;border:1px solid #c8a96a;border-radius:6px;padding:6px 12px;cursor:pointer;">閉じる</button>
-                </div>
-                <div id="myhome-map-container" style="flex:1;position:relative;overflow:hidden;background:#17151b;">
-                    <div id="myhome-grid" style="position:absolute;left:0;top:0;transform-origin:top left;"></div>
-                </div>
-                <div id="myhome-chat-panel" style="position:absolute;left:16px;bottom:16px;width:min(520px,calc(100vw - 32px));z-index:20;background:rgba(20,18,24,0.78);border:1px solid rgba(247,228,186,0.45);border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35);">
-                    <div style="display:flex;gap:8px;align-items:center;">
-                        <input id="myhome-chat-input" autocomplete="off" placeholder="マイホームで話しかける..." style="flex:1;min-width:0;background:rgba(0,0,0,0.62);color:#fff;border:1px solid rgba(255,255,255,0.28);border-radius:6px;padding:9px 10px;font-size:14px;outline:none;">
-                        <button id="myhome-chat-send" type="button" style="background:#2e8b57;color:#fff;border:0;border-radius:6px;padding:9px 14px;font-weight:bold;cursor:pointer;">送信</button>
-                        <button id="myhome-words-toggle" type="button" style="background:rgba(255,255,255,0.14);color:#fff;border:1px solid rgba(255,255,255,0.25);border-radius:6px;padding:9px 10px;cursor:pointer;">言葉</button>
-                    </div>
-                    <div id="myhome-chat-message" style="margin-top:6px;min-height:18px;color:#f7e4ba;font-size:12px;"></div>
-                </div>
-                <div id="myhome-words-panel" style="display:none;position:absolute;right:16px;bottom:16px;width:min(340px,calc(100vw - 32px));max-height:42vh;overflow:auto;z-index:21;background:rgba(20,18,24,0.72);border:1px solid rgba(247,228,186,0.45);border-radius:8px;padding:10px;box-shadow:0 8px 24px rgba(0,0,0,0.35);">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:#f7e4ba;font-weight:bold;">
-                        <span>覚えている言葉</span>
-                        <button id="myhome-words-close" type="button" style="background:transparent;color:#fff;border:0;font-size:18px;cursor:pointer;line-height:1;">×</button>
-                    </div>
-                    <div id="myhome-words-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
-                </div>
-            `;
-            document.body.appendChild(ui);
-            const exitButton = ui.querySelector('button');
-            setupMyHomeChatUI(ui);
-            if (exitButton) exitButton.textContent = '出る';
-        } else if (!document.getElementById('myhome-grid')) {
-            const container = document.getElementById('myhome-map-container');
-            if (container) {
-                container.innerHTML = '<div id="myhome-grid" style="position:absolute;left:0;top:0;transform-origin:top left;"></div>';
-            }
+            ui.style.cssText = 'position:absolute;inset:0;background:#101018;color:#fff;display:flex;flex-direction:column;';
+            ui.innerHTML = '<div id="myhome-map-container" style="flex:1;position:relative;overflow:hidden;background:#17151b;"><div id="myhome-grid" style="position:absolute;left:0;top:0;transform-origin:top left;"></div></div>';
+            window.GameShell.enterScene('myhome', ui, {
+                chat: handleMyHomeChat,
+                resize: () => window.renderMyHomeMap(),
+                resume: () => window.renderMyHomeMap(),
+                dispose: () => {
+                    ai.x = origin.x;
+                    ai.y = origin.y;
+                    if (origin.camera && typeof camera !== 'undefined') Object.assign(camera, origin.camera);
+                }
+            });
+            if (typeof window.switchRightPanel === 'function') window.switchRightPanel('default');
         }
         window.myHomeMapOpen = true;
-        window._blockChatFocus = true;
+        ai.isIndoors = true;
+        ai.actionState = 'inside';
+        ai.indoorTarget = { type: 'hut', name: 'マイホーム' };
+        window._blockChatFocus = false;
         if (typeof window.spawnMyHomeDailyDrops === 'function') window.spawnMyHomeDailyDrops();
-        setupMyHomeChatUI(ui);
-        if ((options.action === 'clean' || options.visitConcierge || options.action) && !options.preservePosition) {
+        if (freshEntry && !options.preservePosition && !state.introEscort) {
             state.player = { ...ENTRANCE_POS };
-            if (window.aiPet) {
-                window.aiPet.myHomeDirection = ENTRANCE_POS.dir;
-                window.aiPet.myHomeMoving = false;
-                window.aiPet.visualAction = 'idle';
-            }
+            ai.myHomeDirection = ENTRANCE_POS.dir;
+            ai.myHomeMoving = false;
+            ai.visualAction = 'idle';
         }
         window.renderMyHomeMap();
         renderMyHomeStatusBar();
-        renderMyHomeLifePathHUD();
         ensureMyHomeLifePathTask();
         renderMyHomeActionHUD();
         ensureMyHomeActionHudTimer();
         ensureMyHomeVisitorTimer();
         const runEntryAction = () => {
-            if (!window.myHomeMapOpen || !document.getElementById('myhome-map-ui')) return;
-            if (options.action === 'clean') {
-                performMyHomeClean();
+            if (!window.myHomeMapOpen) return;
+            if (state.introEscort) {
+                window.startMyHomeIntroEscort(() => {
+                    if (options.action && !['visit', 'exam_finish'].includes(options.action)) runMyHomeEntryAction(options.action, { preservePosition: true });
+                });
             } else if (options.visitConcierge || options.action) {
-                runMyHomeEntryAction(options.action || 'visit', options);
+                runMyHomeEntryAction(options.action || 'visit', { ...options, preservePosition: !freshEntry || !!options.preservePosition });
             }
         };
-        const encounterTriggered = typeof window.tryTriggerConciergeHomeEncounter === 'function'
+        const encounterTriggered = !options.skipEncounter && typeof window.tryTriggerConciergeHomeEncounter === 'function'
             && window.tryTriggerConciergeHomeEncounter({ fromMyHomeMap: true, onComplete: runEntryAction });
-        if (!encounterTriggered) setTimeout(runEntryAction, 160);
+        if (!encounterTriggered && !options.skipEncounter) window.GameShell.deferScene(runEntryAction, 160);
         return true;
     };
 
@@ -2355,7 +2173,7 @@
         const gridDiv = document.getElementById('myhome-grid');
         if (!container || !gridDiv) return;
         const state = window.ensureMyHomeIndoorState();
-        maybeSpawnMyHomeVisitor();
+        if (!window.GameShell || !window.GameShell.isPaused()) maybeSpawnMyHomeVisitor();
         if (gridDiv.dataset.rendererVersion !== '2') {
             gridDiv.replaceChildren();
             gridDiv.dataset.rendererVersion = '2';
@@ -2525,6 +2343,35 @@
         return from.dir || 'down';
     }
 
+    window.startMyHomeExamProgress = function(task, overlay) {
+        if (!window.myHomeMapOpen || task.masterType !== 'concierge' || !window.GameShell) return;
+        const ai = window.aiPet;
+        const home = document.getElementById('myhome-map-ui');
+        window.GameShell.setExclusiveUpdate(overlay, () => {
+            if (window.aiPet !== ai || !window.myHomeMapOpen || !home?.isConnected ||
+                ai.schedule?.[0] !== task || task.aborted) {
+                if (ai.schedule?.[0] === task) ai.schedule.shift();
+                overlay.remove();
+                window.GameShell.endExclusive(overlay);
+                return;
+            }
+            task.duration = Math.max(0, task.duration - 1);
+            window.updateExamUI(task);
+            if (task.duration > 0) return;
+            // Consume only this exam. Do not run ordinary task rewards or world ticks.
+            ai.schedule.shift();
+            ai.visualAction = null;
+            ai.actionState = 'inside';
+            ai.isIndoors = true;
+            ai.indoorTarget = 'hut';
+            ai.processApprenticeExamFinish(task);
+            window.updateScheduleList?.();
+            // Acquire the result-dialogue pause before releasing the exam owner.
+            window.GameShell.syncOverlays();
+            window.GameShell.endExclusive(overlay);
+        });
+    };
+
     function runMyHomeConciergeAction(action) {
         const ai = window.aiPet || window.hero;
         if (action === 'exam_finish') {
@@ -2539,48 +2386,18 @@
         bringMyHomeDialogueToFront();
     }
 
-    window.startMyHomeMoveToConcierge = function(action = 'visit', moveOptions = {}) {
+    window.startMyHomeMoveToConcierge = function(action = 'visit') {
         const state = window.ensureMyHomeIndoorState();
-        if (window.myHomeMoveTimer) clearInterval(window.myHomeMoveTimer);
         const target = state.concierge || { x: 5, y: 3 };
-        const stop = { x: target.x, y: target.y + 1 };
-        if (!moveOptions.preservePosition) state.player = { ...ENTRANCE_POS };
+        const stop = { x: target.x, y: target.y + 1, dir: 'up' };
         const path = findMyHomePath(state, state.player, stop);
-        let pathIndex = 0;
-        if (window.aiPet) {
-            window.aiPet.myHomeMoving = true;
-            window.aiPet.myHomeDirection = state.player.dir;
-            window.aiPet.visualAction = 'move';
+        if (!path.length && (state.player.x !== stop.x || state.player.y !== stop.y)) {
+            setMyHomeChatMessage('そこへ向かう道が見つかりません。');
+            return;
         }
-        window.renderMyHomeMap();
-        window.myHomeMoveTimer = setInterval(() => {
-            const p = state.player;
-            if ((p.x === stop.x && p.y === stop.y) || pathIndex >= path.length) {
-                clearInterval(window.myHomeMoveTimer);
-                window.myHomeMoveTimer = null;
-                p.dir = 'up';
-                if (window.aiPet) {
-                    window.aiPet.myHomeMoving = false;
-                    window.aiPet.myHomeDirection = 'up';
-                    window.aiPet.visualAction = 'idle';
-                }
-                window.renderMyHomeMap();
-                setTimeout(() => runMyHomeConciergeAction(action), 120);
-                return;
-            }
-            const next = path[pathIndex];
-            if (state.visitor && next && state.visitor.x === next.x && state.visitor.y === next.y) return;
-            pathIndex += 1;
-            p.dir = getMyHomeStepDir(p, next);
-            p.x = next.x;
-            p.y = next.y;
-            if (window.aiPet) {
-                window.aiPet.myHomeDirection = p.dir;
-                window.aiPet.visualAction = 'move';
-            }
-            window.renderMyHomeMap();
-        }, 220);
+        moveMyHomePlayerTo(stop, path, () => runMyHomeConciergeAction(action));
     };
+
 
     window.openMyHomeConciergeRoute = function() {
         window.pendingMyHomeConciergeVisit = true;
@@ -2603,14 +2420,8 @@
         }
     };
 
-    const originalUpdateQuestHUDForMyHome = window.updateQuestHUD;
-    if (typeof originalUpdateQuestHUDForMyHome === 'function') {
-        window.updateQuestHUD = function() {
-            const result = originalUpdateQuestHUDForMyHome.apply(this, arguments);
-            if (window.myHomeMapOpen && typeof window.renderMyHomeQuestHUD === 'function') window.renderMyHomeQuestHUD();
-            return result;
-        };
-    }
+    // Quest HUD is shared with the island; no recursive wrapper is needed.
+
 
     window.resetConciergeBeforeApprentice = function() {
         const ai = window.aiPet || window.hero;
@@ -2637,5 +2448,211 @@
         if (typeof saveGameData === 'function') saveGameData();
         console.log('コンシェルジュ弟子入り前の状態に戻しました。');
         return true;
+    };
+    // Resident houses share this module's room geometry, sprites and pathfinding.
+    const residentBeds = [2, 4, 6, 8].map((x, slot) => ({ id: 'bed_' + slot, key: 'hfur_bed', x, y: 1, name: 'ベッド' }));
+    const residentFurniture = [
+        { id: 'warehouse', key: 'hfur_warehouse', x: 2, y: 5, name: '倉庫' },
+        { id: 'freezer', key: 'hfur_freezer', x: 4, y: 5, name: '冷凍庫' },
+        { id: 'safe', key: 'hfur_safe', x: 7, y: 5, name: '金庫' },
+        { id: 'dresser', key: 'hfur_dresser', x: 9, y: 5, name: 'ドレッサー' }
+    ];
+    const residentRoom = { width: MAP_W, height: MAP_H, grid: MYHOME_MAP_LV1, objects: [...residentBeds, ...residentFurniture] };
+    let residentVisit = null;
+    window.getVisitedResidentHomeId = () => residentVisit?.buildingId || null;
+    window.residentIndoorPath = (from, to) => findMyHomePath(residentRoom, from, to);
+    function residentOccupants() {
+        if (!residentVisit) return [];
+        return Object.values(window.aiPet.residentState.people).filter(p => p.home?.buildingId === residentVisit.buildingId);
+    }
+    function residentStorage(kind) {
+        const ui = window.ResidentUI;
+        const view = ui.modal(kind === 'dresser' ? 'ドレッサー' : '住人を選択');
+        const people = residentOccupants().filter(p => kind !== 'dresser' || p.location?.kind === 'home');
+        if (!people.length) ui.element('p', '対象の住人はいません。', view.card);
+        for (const person of people) {
+            const row = ui.element('div', undefined, view.card);
+            ui.literal('p', ui.name(person), row); ui.element('span', ui.place(person), row);
+            ui.literal('p', (person.possessions.warehouse?.length || 0) + '/10 · ' + (person.possessions.freezer?.length || 0) + '/10', row);
+            ui.button(row, kind === 'dresser' ? '外見を変更' : '詳しく見る', () => {
+                if (kind !== 'dresser') { ui.showPerson(person.personId, kind === 'safe' ? null : kind); return; }
+                const edit = ui.modal('外見を変更');
+                const label = ui.element('label', '色合い', edit.card);
+                const input = ui.element('input', undefined, label); input.type = 'range'; input.min = 0; input.max = 359;
+                input.value = person.profile.cosmetic?.hue || 0;
+                const auraLabel = ui.element('label', 'オーラ', edit.card);
+                const aura = ui.element('select', undefined, auraLabel);
+                for (const [value, text] of [['none', 'なし'], ['sparkle', 'きらきら'], ['heart', 'ハート'], ['music', 'おんぷ'], ['bubble', 'バブル']]) {
+                    const option = ui.element('option', text, aura); option.value = value; option.selected = value === (person.profile.cosmetic?.aura || 'none');
+                }
+                ui.button(edit.card, '保存', () => ui.safe(() => {
+                    const draft = JSON.parse(JSON.stringify(window.aiPet));
+                    const target = draft.residentState.people[person.personId];
+                    if (target.location?.kind !== 'home' || target.home?.buildingId !== residentVisit?.buildingId) return;
+                    target.profile.cosmetic = { ...(target.profile.cosmetic || {}), hue: Number(input.value), aura: aura.value, auraApplied: aura.value !== 'none' };
+                    window.Residents.saveWorld(draft, assets); window.aiPet.residentState = draft.residentState;
+                    edit.close(); window.renderResidentHome();
+                }));
+            });
+        }
+    }
+    function requestResidentFurniture(kind, selected) {
+        if (!residentVisit) return;
+        residentVisit.path = []; residentVisit.arrive = null;
+        const ui = window.ResidentUI;
+        const people = residentOccupants();
+        const person = selected || (people.length === 1 ? people[0] : null);
+        residentVisit.choice?.remove();
+        residentVisit.pendingFurniture = null;
+        if (!person) {
+            const panel = ui.element('div', undefined, residentVisit.root);
+            panel.className = 'resident-name-question'; residentVisit.choice = panel;
+            ui.element('p', people.length ? '誰の？ 名前を教えてね。' : '対象の住人はいません。', panel);
+            residentVisit.pendingFurniture = kind;
+            for (const candidate of people) {
+                const pick = ui.button(panel, '', () => requestResidentFurniture(kind, candidate));
+                pick.dataset.i18nSkip = '';
+                pick.textContent = ui.name(candidate) + ' · ' + (candidate.home.slot + 1);
+            }
+            return;
+        }
+        const object = kind === 'bed' ? residentBeds[person.home.slot] : residentFurniture.find(f => f.id === kind);
+        if (!object) return;
+        moveResidentVisitor({ x: object.x, y: object.y + 1 }, () => {
+            const current = window.aiPet.residentState.people[person.personId];
+            if (current?.home?.buildingId !== residentVisit?.buildingId) return;
+            if (kind === 'dresser') residentStorage(kind);
+            else ui.showPerson(person.personId, ['bed', 'safe'].includes(kind) ? null : kind);
+        });
+    }
+    function moveResidentVisitor(goal, callback) {
+        if (!residentVisit || window.GameShell.isPaused()) return;
+        const path = findMyHomePath(residentRoom, residentVisit.player, goal);
+        if (!path.length && (goal.x !== residentVisit.player.x || goal.y !== residentVisit.player.y)) return;
+        residentVisit.path = path; residentVisit.arrive = callback; residentVisit.elapsed = 0;
+    }
+    function closeResidentHome(save = true) {
+        if (!residentVisit) return;
+        residentVisit = null;
+        window.GameShell.leaveScene('resident-home');
+        const hero = window.aiPet; hero.isIndoors = false; hero.indoorTarget = null;
+        hero.interactionTarget = null; hero.exploreState = null; hero.actionState = 'idle';
+        if (save) saveGameData();
+    }
+    window.disposeResidentHome = () => closeResidentHome(false);
+    window.stepResidentHome = function(ms) {
+        if (!residentVisit || window.GameShell.isPaused()) return;
+        if (!Object.values(assets).some(a => a.instanceId === residentVisit.buildingId)) { closeResidentHome(); return; }
+        residentVisit.elapsed += ms;
+        if (residentVisit.elapsed < 220) return;
+        residentVisit.elapsed = 0;
+        if (residentVisit.path.length) {
+            const step = residentVisit.path.shift();
+            residentVisit.player.dir = getMyHomeStepDir(residentVisit.player, step);
+            Object.assign(residentVisit.player, step);
+        } else if (residentVisit.arrive) {
+            const callback = residentVisit.arrive; residentVisit.arrive = null; callback();
+        }
+    };
+    window.openResidentHomeUI = function(hut) {
+        if (!window.Residents.isResidentHome(window.aiPet, hut, assets)) return false;
+        if (residentVisit) return true;
+        const root = document.createElement('div'); root.id = 'resident-home-ui';
+        root.style.cssText = 'position:absolute;inset:0;overflow:hidden;background:#17151b;';
+        const grid = document.createElement('div'); grid.style.cssText = 'position:absolute;transform-origin:top left;'; root.appendChild(grid);
+        residentVisit = { buildingId: hut.instanceId, root, grid, player: { ...ENTRANCE_POS }, path: [], elapsed: 0, nodes: new Map() };
+        const controls = document.createElement('div'); controls.className = 'resident-home-controls'; root.appendChild(controls);
+        window.ResidentUI.button(controls, '住人名簿', () => window.ResidentUI.roster());
+        window.ResidentUI.button(controls, '外に出る', () => moveResidentVisitor(ENTRANCE_POS, closeResidentHome));
+        const origin = { x: window.aiPet.x, y: window.aiPet.y, camera: typeof camera !== 'undefined' ? { ...camera } : null };
+        window.GameShell.enterScene('resident-home', root, {
+            resize: () => window.renderResidentHome(), resume: () => window.renderResidentHome(),
+            chat: text => {
+                // Resolve player-created names before translating command aliases.
+                if (residentVisit.pendingFurniture) {
+                    const matches = residentOccupants().filter(p => window.ResidentUI.name(p) === text.trim());
+                    if (matches.length === 1) { requestResidentFurniture(residentVisit.pendingFurniture, matches[0]); return true; }
+                }
+                const raw = window.GameI18n ? window.GameI18n.toJapaneseInput(text.trim()) : text.trim();
+                const normalized = raw.toLowerCase();
+                const matches = word => normalized === word || normalized === (window.translateGameText?.(word) || word).toLowerCase();
+                if (['出る', 'でる', '外に出る', '島'].some(matches)) moveResidentVisitor(ENTRANCE_POS, closeResidentHome);
+                else if (matches('住人名簿')) window.ResidentUI.roster();
+                else if (['やめる', '中止', 'キャンセル'].some(matches)) { residentVisit.path = []; residentVisit.arrive = null; residentVisit.pendingFurniture = null; residentVisit.choice?.remove(); }
+                else {
+                    const object = residentFurniture.find(f => matches(f.name) || raw === f.name + 'のところへ');
+                    if (matches('ベッド')) requestResidentFurniture('bed');
+                    else if (object) requestResidentFurniture(object.id);
+                    else if (residentVisit.pendingFurniture) return true;
+                    else if (getMyHomeKnownWords().some(word => raw === word || raw === word + 'のところへ')) {
+                        moveResidentVisitor(ENTRANCE_POS, () => {
+                            closeResidentHome();
+                            const input = document.getElementById('chatInput');
+                            if (input) { input.value = text; window.sendChat(); }
+                        });
+                    } else {
+                        window.learnIndoorChatWord(text, message => {
+                            window.renderResidentHome();
+                            const player = residentVisit?.nodes.get('player');
+                            if (!player) return;
+                            player.querySelector('.resident-learning-bubble')?.remove();
+                            const bubble = document.createElement('div');
+                            bubble.className = 'resident-learning-bubble';
+                            bubble.textContent = window.GameI18n ? window.GameI18n.translate(message) : message;
+                            bubble.style.cssText = 'position:absolute;bottom:100%;left:50%;transform:translateX(-50%);width:440px;padding:20px;background:white;color:#222;border:4px solid #80d8ff;border-radius:16px;font-size:26px;white-space:pre-wrap;z-index:5000;';
+                            player.appendChild(bubble);
+                            setTimeout(() => bubble.remove(), 5000);
+                        });
+                    }
+                }
+                return true;
+            },
+            dispose: () => { window.aiPet.x = origin.x; window.aiPet.y = origin.y; if (origin.camera && typeof camera !== 'undefined') Object.assign(camera, origin.camera); residentVisit = null; }
+        });
+        window.aiPet.isIndoors = true; window.aiPet.actionState = 'inside'; window.aiPet.indoorTarget = hut;
+        root.addEventListener('click', event => {
+            if (event.target.closest('button') || !residentVisit) return;
+            const rect = grid.getBoundingClientRect();
+            const goal = { x: Math.floor((event.clientX - rect.left) / (TILE_W * .4)), y: Math.floor((event.clientY - rect.top) / (TILE_H * .4)) };
+            const object = residentFurniture.find(f => f.x === goal.x && f.y === goal.y);
+            if (object) moveResidentVisitor({ x: goal.x, y: goal.y + 1 }, () => residentStorage(object.id));
+            else if (goal.y === 9 && goal.x >= 4 && goal.x <= 6) moveResidentVisitor(ENTRANCE_POS, closeResidentHome);
+            else if (goal.x > 0 && goal.x < 11 && goal.y > 0 && goal.y < 9 && !residentRoom.objects.some(f => f.x === goal.x && f.y === goal.y)) moveResidentVisitor(goal);
+        });
+        window.renderResidentHome(); return true;
+    };
+    window.renderResidentHome = function() {
+        if (!residentVisit) return;
+        const { grid, root, player, nodes } = residentVisit;
+        const active = new Set();
+        const put = (key, build) => {
+            active.add(key); const previous = nodes.get(key); const node = build(previous);
+            if (!node) return; if (!previous) grid.appendChild(node); nodes.set(key, node);
+        };
+        grid.style.width = `${MAP_W * TILE_W}px`; grid.style.height = `${MAP_H * TILE_H}px`;
+        grid.style.transform = `translate(${root.clientWidth / 2 - (player.x + .5) * TILE_W * .4}px, ${root.clientHeight / 2 - (player.y + .5) * TILE_H * .4}px) scale(.4)`;
+        for (let y = 0; y < MAP_H; y++) for (let x = 0; x < MAP_W; x++) put('tile_' + x + '_' + y, old => createSpriteDiv(MYHOME_MAP_LV1[y][x] === 1 ? 'hmap_wall' : 'hmap_floor', 'myhome-tile', x, y, y * 100 + x, old));
+        for (const object of residentRoom.objects) put(object.id, old => createSpriteDiv(object.key, 'myhome-furniture', object.x, object.y, 1200 + object.y * 20, old));
+        for (const person of residentOccupants()) {
+            const slot = person.home.slot;
+            put('theme_' + slot, old => {
+                const node = old || document.createElement('div');
+                node.style.cssText = `position:absolute;left:${(1 + slot * 2) * TILE_W}px;top:${TILE_H}px;width:${TILE_W * 2}px;height:${TILE_H * 3}px;background:hsla(${person.roomTheme?.hue || 0},65%,55%,.2);pointer-events:none;z-index:1100;`;
+                return node;
+            });
+            if (person.location?.kind !== 'home') continue;
+            put(person.personId, old => {
+                const key = resolveMyHomePlayerSpriteKey('down', person.profile);
+                const node = createDungeonCharacterDiv(key, person.location.x, person.location.y, 2100 + person.location.y * 20, old);
+                if (node) { window.applyDungeonWalkCosmetics?.(node, person.profile, key); node.title = window.ResidentUI.name(person); }
+                return node;
+            });
+        }
+        put('player', old => {
+            const key = resolveMyHomePlayerSpriteKey(player.dir);
+            const node = createDungeonCharacterDiv(key, player.x, player.y, 2400 + player.y * 20, old);
+            if (node) window.applyDungeonWalkCosmetics?.(node, window.aiPet, key); return node;
+        });
+        for (const [key, node] of nodes) if (!active.has(key)) { node.remove(); nodes.delete(key); }
     };
 })();

@@ -336,10 +336,15 @@ function render() {
         if (window.DEFENSE_STATE.attackHighlights) window.DEFENSE_STATE.attackHighlights.forEach(g => drawGridHighlight(g.x, g.y, "rgba(244, 67, 54, 0.5)"));
     }
 
+    if (!isDefense && currentMode === 'play' && window.ResidentUI) {
+        for (const actor of window.ResidentUI.actors()) objectAssets.push({ key: actor.personId, data: { dy: actor.y, residentActor: actor } });
+    }
     objectAssets.sort((a, b) => a.data.dy - b.data.dy);
     
     objectAssets.forEach(item => {
-        if (item.data.isDefenseUnit) {
+        if (item.data.residentActor) {
+            drawAICharacter(item.data.residentActor);
+        } else if (item.data.isDefenseUnit) {
             let mainPetBackup = window.aiPet;
             window.aiPet = item.data.unit; window.aiPet.currentSkin = item.data.unit.skin; 
             drawAICharacter();
@@ -602,8 +607,7 @@ function drawCosmeticAura(targetPet, cx, cy, drawW, drawH, renderCtx) {
     auraCtx.restore();
 }
 
-function drawAICharacter() {
-    let targetPet = window.aiPet;
+function drawAICharacter(targetPet = window.aiPet) {
     if (!targetPet) return; 
     
     let typeToDraw = 'robot';

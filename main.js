@@ -190,7 +190,7 @@ window.startActualGame = function(isNewGameMenuClicked) {
         window.aiPet.visualAction = 'idle';
         window.aiPet.isIndoors = false; // ★追加：建物内フラグを強制解除
         window.aiPet.indoorTarget = null; // ★追加：ターゲット解除
-        window.aiPet.schedule = []; 
+        window.aiPet.schedule = window.aiPet.schedule || [];
         window.aiPet.pathQueue = []; // 念のため移動経路も完全に消去
         window.aiPet.frameIndex = 0;
         
@@ -3004,6 +3004,7 @@ window.getAdjustTarget = function() {
 };
 
 window.addEventListener('keydown', (e) => {
+    if (window.GameShell && window.GameShell.exclusiveOpen) return;
     if (e.shiftKey && (e.code === 'KeyD' || (e.key && e.key.toLowerCase() === 'd'))) { 
         e.preventDefault(); isDevMode = !isDevMode; const nav = document.getElementById('nav'); if (nav) nav.style.display = isDevMode ? 'flex' : 'none'; 
         if (isDevMode) { if (document.activeElement) document.activeElement.blur(); } else { const chatInput = document.getElementById('chatInput'); if (chatInput) chatInput.focus(); }
@@ -3497,9 +3498,19 @@ window.onload = () => {
     const nav = document.getElementById('nav'); if (nav) nav.style.display = 'none'; 
     // ★修正：勝手にプレイ画面に切り替わる古い処理を削除（タイトル画面を維持します）
     // if (!window.isGamePaused) switchMode('play'); 
-    if(typeof processOfflineProgression === 'function') processOfflineProgression();
+    if(!window.aiPet?.pendingInheritanceData && typeof processOfflineProgression === 'function') processOfflineProgression();
     
     setInterval(() => { 
+        if (window.ScheduleRuntime && !window.ScheduleRuntime.tick()) return;
+        if (currentMode === 'play' && window.aiPet?.isReincarnating && !window.aiPet.pendingInheritanceData && !window._residentDeathShopOpened && (!window.aiPet.timeProgress?.report || window.aiPet.timeProgress.report.acknowledged)) {
+            window.openInheritanceShop();
+            return;
+        }
+        if (currentMode === 'play' && window.aiPet?.pendingInheritanceData) {
+            window.resumeResidentSuccession?.();
+            return;
+        }
+        if (window.GameShell?.tickExclusive()) return;
         if (typeof window.isGamePaused !== 'undefined' && window.isGamePaused) {
             const canvasEl = document.getElementById('gameCanvas');
             if (canvasEl) { const ctxEl = canvasEl.getContext('2d'); ctxEl.fillStyle = '#222'; ctxEl.fillRect(0, 0, canvasEl.width, canvasEl.height); }
@@ -3513,12 +3524,18 @@ window.onload = () => {
         }
 
         // （以下、既存の処理が続きます）
+        const scheduledHero = currentMode === 'play' && window.ScheduleRuntime?.advance(Date.now(), 50);
+        if (currentMode === 'play' && window.GameShell?.currentScene === 'resident-home') {
+            window.ResidentUI.tick(50);
+            return;
+        }
         if (currentMode === 'grazing') { if (typeof updateGrazingLoop === 'function') updateGrazingLoop(); } 
-        else {
+        else if (!scheduledHero) {
             if (typeof party !== 'undefined' && party.length > 0) {
                 let activeBackup = window.aiPet; party.forEach(pet => { window.aiPet = pet; if (pet.update) pet.update(); }); window.aiPet = activeBackup; 
             } else if(typeof aiPet !== 'undefined' && aiPet.update) aiPet.update(); 
         }
+        if (currentMode === 'play' && window.ResidentUI) window.ResidentUI.tick(50);
         render(); 
         if (currentMode !== 'grazing' && typeof updateStatUI === 'function') updateStatUI(); 
     }, 50); 
@@ -3566,41 +3583,7 @@ setInterval(() => {
 // ==========================================
 // ★新規追加：別タブ（バックグラウンド）での進行処理
 // ==========================================
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        // タブが隠れた時間を記録
-        window.bgTimeStart = Date.now();
-    } else {
-        // タブに戻ってきた時の処理
-        if (window.bgTimeStart && window.aiPet && typeof window.aiPet.update === 'function') {
-            let elapsedMs = Date.now() - window.bgTimeStart;
-            let missedFrames = Math.floor(elapsedMs / 16.666); // 60fps換算で失われたフレーム数を計算
-            
-            // 5秒以上（約300フレーム）離れていた場合のみ一気に処理を進める
-            if (missedFrames > 300) {
-                // 最大1時間分（216,000フレーム）まで許容して高速処理
-                let catchUpFrames = Math.min(missedFrames, 216000);
-                console.log(`[Background Sync] バックグラウンドで ${Math.floor(elapsedMs/1000)}秒 経過。${catchUpFrames}フレーム分を処理します。`);
-                
-                // ★重要：描画系の処理をスキップしてブラウザのフリーズを防ぐフラグ
-                window.isCatchingUp = true; 
-                for (let i = 0; i < catchUpFrames; i++) {
-                    window.aiPet.update();
-                }
-                window.isCatchingUp = false; // フラグ解除
-                
-                // キャッチアップ完了後にUIを1回だけ一括更新
-                if (typeof window.updateScheduleList === 'function') window.updateScheduleList();
-                if (typeof window.updateStatusUI === 'function') window.updateStatusUI();
-                if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
-                if (typeof window.addFloatingText === 'function') {
-                    window.addFloatingText(window.aiPet.x, window.aiPet.y - 60, "⏰ 経過時間を処理しました！", "#FFC107");
-                }
-            }
-            window.bgTimeStart = null;
-        }
-    }
-});
+// Hidden tabs and sleep gaps are settled once by ScheduleRuntime.
 
 // =========================================
 // ★ 統合デバッグ用関数群

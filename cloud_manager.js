@@ -1507,6 +1507,11 @@ window.showContinueLoginChoice = function() {
 // 3. 【実際の初期化処理】（フロー完了後に呼ばれる）
 window.executeNewGameInitialization = async function(isOffline) {
     if (blockDebugTestCloudWrite('ニューゲームの初期化')) return false;
+    const residentRestart = window.Residents && window.aiPet ? window.Residents.newGameArchive(window.aiPet) : null;
+    if (residentRestart) {
+        try { localStorage.setItem('ai_pet_data_v1', JSON.stringify(residentRestart)); }
+        catch (error) { console.error(error); window.ResidentUI.notify('保存できませんでした。もう一度お試しください。'); return false; }
+    }
     if (isOffline) {
         window.skipAutoLogin = true;
         try { await signOut(auth); } catch(e){}
@@ -1517,11 +1522,19 @@ window.executeNewGameInitialization = async function(isOffline) {
     
     // 古いデータの破壊
     const safeKeys = ['bgm_volume', 'se_volume'];
+    if (residentRestart) safeKeys.push('ai_pet_data_v1');
     for (let i = localStorage.length - 1; i >= 0; i--) {
         let k = localStorage.key(i);
         if (!safeKeys.includes(k)) localStorage.removeItem(k);
     }
     localStorage.setItem('force_first_play', 'true');
+
+    if (residentRestart) Object.assign(window.aiPet, residentRestart);
+    window.disposeResidentHome?.();
+    delete window.aiPet.pendingInheritanceData;
+    window.pendingInheritanceData = null;
+    window._residentSuccessionResuming = false;
+    window._residentDeathShopOpened = false;
 
     if (typeof assets !== 'undefined') {
         for (let k in assets) delete assets[k];
