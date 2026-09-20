@@ -78,6 +78,8 @@
 | ダンジョン救助 | [`online/dungeon_rescue.md`](online/dungeon_rescue.md) |
 | TCGリアルタイムP2P対戦 | [`online/tcg_realtime_p2p.md`](online/tcg_realtime_p2p.md) |
 | セーブ互換・移行 | [`internal/save_data_and_migration.md`](internal/save_data_and_migration.md) |
+| Steam体験版、製品版とのビルド分離、データ引継ぎ | [`internal/steam_demo_and_full_release.md`](internal/steam_demo_and_full_release.md) |
+| ログイン・ログアウト、オンライン無効構成の認証境界 | [`online/online_foundation.md`](online/online_foundation.md) |
 | Electron、Steam、Web起動 | [`internal/runtime_platform_and_audio.md`](internal/runtime_platform_and_audio.md) |
 | オンライン中核、販売、運営費、ローカライズ | [`internal/online_release_and_localization_strategy.md`](internal/online_release_and_localization_strategy.md) |
 | デバッグ、検証支援 | [`internal/debug_and_testing.md`](internal/debug_and_testing.md) |
@@ -86,6 +88,7 @@
 
 | 領域 | 状態 | 備考 |
 |---|---|---|
+| Steam体験版・製品版分離 | 未実装・構想段階 | 1世代限定、能力上限は暫定150、進化不可。基本職はRank 8報告まで、Rank 9不可、能力上限での課題停滞は許容。余生・世代引継ぎ画面を非公開とし寿命で体験終了・保存。製品版タイトルで任意読込みまたは新規開始を選択し、寿命到達済みデータは世代引継ぎ画面から開始。詳細相談中、実装は仕様整理後 |
 | 基本育成・進化・世代交代 | 実装済み | 継続的に調整中 |
 | 共通ゲームシェル・画面遷移 | 一部実装 | 島・マイホーム・レストラン・鍛冶屋の中央表示、共通コマンド・ログ・クエストHUD、シーン／停止所有を実装。城・カジノ・ダンジョンは未移行 |
 | 過去世代の島住人 | 一部実装 | 世代登録・保存復旧・検索付き名簿・４人小屋・島内移動・基本日課／不在精算を実装。工程６の全付随効果と職業実技は未完了。住人用上級職実技は各職業仕様で確定。工程７と城移行は保留 |
@@ -110,7 +113,7 @@
 | 城の屋内マップ | 実装済み | 3×2の6室を扉遷移なしで構成。チャット移動、6NPC、受注元復帰、専用マップチップ調整に対応 |
 | 闘技場／防衛戦 | 実装済み | 隊長／王様から受注。防衛戦の自動発生と王城総合受付は廃止。オンラインランキング連携あり |
 | オンライン要素 | 実装済み・一部要確認 | Firebase非同期連携とTCGフルメッシュP2P。実Firebase・複数PC検証が必要 |
-| オンライン中核・販売・ローカライズ再設計 | 一部実装 | Steam優先。初期7言語の表示・入力基盤、6言語の機械翻訳初稿、タイトル設定、漏れ検査を実装。人手LQAは未完了 |
+| オンライン中核・販売・ローカライズ再設計 | 一部実装 | Steam優先。体験版はオンライン非表示・無効、製品版もオンラインなしで配布できる構成を予定（発売時の採否は未決定）。オフライン構成の認証選択・名前登録省略と製品版のログアウトボタンを予定。初期7言語基盤実装、人手LQA未完了 |
 
 ## 主な実装所有ファイル
 
