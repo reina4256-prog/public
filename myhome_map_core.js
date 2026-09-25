@@ -1844,7 +1844,7 @@
         }
         const wordToRemember = target
             ? (target.kind === 'concierge' ? (target.action === 'clean' ? '掃除' : 'コンシェルジュ') : target.label)
-            : rawText;
+            : enteredText;
         if (!rememberMyHomeWord(wordToRemember)) return;
         if (!target) {
             input.focus();

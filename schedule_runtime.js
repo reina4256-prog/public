@@ -172,6 +172,7 @@
         }
         const home = Object.values(map).find(a => a.instanceId === hero.residentState?.protagonistHomeId);
         actor.freezer = C.clone(home?.storage?.freezer?.items || []);
+        window.DemoRules?.bindStats(actor);
         return actor;
     }
     function applyHero(hero, actor, map) {
@@ -259,6 +260,7 @@
         }
         state(hero).checkpoint = to;
         hero.lastSaveTime = to;
+        if (window.DemoRules?.enabled && report.deathAt !== undefined) window.DemoRules.markEnded(hero, report.deathAt);
         return report;
     }
     function commitLive(draft, map) {
@@ -277,7 +279,20 @@
         commitLive(pending.result, pending.map);
     }
     function settle(now = Date.now()) {
+        if (window.demoImportReloadPending) return;
         const hero = window.aiPet;
+        if (window.DemoRules?.enabled && hero) {
+            const elapsed = Math.max(0, now - state(hero).checkpoint);
+            const seen = new WeakSet();
+            window.DemoSave.rebase(hero, elapsed, seen);
+            window.DemoSave.rebase(world(), elapsed, seen);
+            state(hero).checkpoint = now;
+            state(hero).report = null;
+            delete state(hero).pending;
+            cancelLiveHero(hero);
+            return;
+        }
+        if (hero?.demoImport?.pending || ((window.DemoRules?.enabled || hero?.demoImport) && hero?.demoProgress?.ended && hero.isReincarnating)) return;
         if (!hero || hero.pendingInheritanceData) return;
         recover();
         const from = state(hero).checkpoint;
@@ -313,6 +328,7 @@
         lastTick = Date.now();
     }
     function tick(now = Date.now()) {
+        if (window.demoImportReloadPending) return false;
         if (blocked || document.hidden) return false;
         const hero = window.aiPet; if (!hero) return true;
         const elapsed = now - lastTick;
@@ -328,6 +344,7 @@
         return true;
     }
     function advance(now, ms) {
+        if (window.DemoRules?.enabled) return false;
         ms = stepMs;
         const hero = window.aiPet;
         if (!hero || hero.isReincarnating || hero.pendingInheritanceData) return false;
@@ -363,6 +380,7 @@
         delete hero.routineLive;
     }
     function planLiveHero(now = Date.now()) {
+        if (window.DemoRules?.enabled) return;
         const hero = window.aiPet;
         if (!hero) return;
         if (!hero.routine?.enabled) { cancelLiveHero(hero); return; }
@@ -454,7 +472,7 @@
         return result;
     }
     function visibility() {
-        if (!started) return;
+        if (!started || window.demoImportReloadPending) return;
         if (document.hidden) {
             hiddenAt = Date.now();
             window.GameShell?.suspendPauseClock(true);
@@ -467,7 +485,7 @@
         }
     }
     document.addEventListener('visibilitychange', visibility);
-    window.addEventListener('pagehide', () => { if (started && !document.hidden) { state(window.aiPet).checkpoint = Date.now(); try { window.Residents.saveWorld(window.aiPet, world()); } catch (error) { console.error(error); } } });
+    window.addEventListener('pagehide', () => { if (started && !document.hidden && !window.demoImportReloadPending) { state(window.aiPet).checkpoint = Date.now(); try { window.Residents.saveWorld(window.aiPet, world()); } catch (error) { console.error(error); } } });
     window.ScheduleRuntime = { boot, tick, advance, settle, simulate, context, heroActor, residentActor, state, planLiveHero, cancelLiveHero, adoptHomeTask, completeLiveTask, consumeLiveMeal,
         get absent() { return document.hidden || hiddenAt !== null || blocked; } };
 })();

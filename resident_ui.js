@@ -160,6 +160,7 @@
         }
     }
     function roster() {
+        if (Number(window.aiPet?.generation || 1) < 2) return;
         const state = R.ensure(window.aiPet, assets);
         const view = modal('住人名簿');
         view.card.classList.add('resident-directory');

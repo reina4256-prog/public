@@ -65,6 +65,7 @@ const checkLoad = () => {
 };
 
 window.checkLoginBonus = function() {
+    if (window.DemoRules?.enabled) return;
     if (!window.aiPet || !window.aiPet.id) return;
     const today = new Date().toLocaleDateString('ja-JP'); 
     const lastLoginDate = localStorage.getItem('last_login_date');
@@ -118,6 +119,7 @@ function startGameSequence() {
 }
 
 window.startActualGame = function(isNewGameMenuClicked) {
+    if (!isNewGameMenuClicked && window.DemoTransfer?.resumeBoundary()) return;
     // ★追加：ゲーム本編に入ったらタイトルBGMを止める
     if (window.audioManager && window.audioManager.stopTitleMusic) {
         window.audioManager.stopTitleMusic();
@@ -275,6 +277,7 @@ window.startActualGame = function(isNewGameMenuClicked) {
 };
 
 window.getDailyQuests = function() {
+    if (window.DemoRules?.enabled) return { quests: [] };
     const today = new Date().toLocaleDateString('ja-JP');
     let dailyData = JSON.parse(localStorage.getItem('daily_quests') || 'null');
     if (!dailyData || dailyData.date !== today) {
@@ -285,6 +288,7 @@ window.getDailyQuests = function() {
 };
 
 window.progressDailyQuest = function(actionType) {
+    if (window.DemoRules?.enabled) return;
     if (actionType === 'rest') actionType = 'sleep';
     let data = window.getDailyQuests(); let updated = false;
     data.quests.forEach(q => {
@@ -300,7 +304,7 @@ window.progressDailyQuest = function(actionType) {
     }
 };
 
-window.openDailyQuest = function() { window.renderDailyQuestUI(); const overlay = document.getElementById('dailyQuestOverlay'); if (overlay) overlay.classList.add('active'); };
+window.openDailyQuest = function() { if (window.DemoRules?.enabled) return; window.renderDailyQuestUI(); const overlay = document.getElementById('dailyQuestOverlay'); if (overlay) overlay.classList.add('active'); };
 
 window.renderDailyQuestUI = function() {
     const data = window.getDailyQuests(); const container = document.getElementById('dailyQuestContent'); if (!container) return;
@@ -319,6 +323,7 @@ window.renderDailyQuestUI = function() {
 };
 
 window.claimDailyReward = function(index) {
+    if (window.DemoRules?.enabled) return;
     let data = window.getDailyQuests(); let q = data.quests[index];
     if (q && q.current >= q.target && !q.rewarded) {
         q.rewarded = true;
@@ -411,6 +416,7 @@ window.switchMode = function(mode) {
 function createPalette() {
     const el = document.getElementById('palette'); if(!el) return; el.innerHTML = '';
     for (let id in catalog) {
+        if (window.DemoRules?.enabled && id === 'pharmacy') continue;
         if (currentMode === 'grazing_editor') {
             const itemType = catalog[id].type;
             if (itemType === 'building' && typeof grazingData !== 'undefined' && !grazingData.discoveredFacilities.includes(id)) continue; 
@@ -3390,7 +3396,7 @@ canvas.addEventListener('mousedown', (e) => {
             if (window.titleMenuHover === 3) { 
                 window.titleConfirmMode = false;
                 
-                if (localStorage.getItem('my_player_id')) {
+                if ((!window.GameRelease || window.GameRelease.online) && localStorage.getItem('my_player_id')) {
                     if (typeof window.showCustomAlert === 'function') {
                         window.showCustomAlert("⚠️ プレイ制限", "現在オンラインアカウントで連携中です。\n誤操作によるデータ消失を防ぐため、「はじめから」は選択できません。\n\n既存のデータで遊ぶ場合は「つづきから」を選択してください。");
                     }
@@ -3501,6 +3507,10 @@ window.onload = () => {
     if(!window.aiPet?.pendingInheritanceData && typeof processOfflineProgression === 'function') processOfflineProgression();
     
     setInterval(() => { 
+        if (currentMode === 'play' && window.DemoRules?.ended(window.aiPet)) {
+            window.DemoTransfer?.showEnd();
+            return;
+        }
         if (window.ScheduleRuntime && !window.ScheduleRuntime.tick()) return;
         if (currentMode === 'play' && window.aiPet?.isReincarnating && !window.aiPet.pendingInheritanceData && !window._residentDeathShopOpened && (!window.aiPet.timeProgress?.report || window.aiPet.timeProgress.report.acknowledged)) {
             window.openInheritanceShop();

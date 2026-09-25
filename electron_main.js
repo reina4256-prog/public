@@ -2,6 +2,13 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { getProfile, getUserDataPath } = require('./release_profiles');
+const releaseArgument = process.argv.find(arg => arg.startsWith('--release-profile='));
+const releaseName = app.isPackaged ? require('./package.json').gameReleaseProfile || 'full'
+  : releaseArgument ? releaseArgument.split('=')[1] : 'full';
+const releaseProfile = getProfile(releaseName);
+app.setPath('userData', getUserDataPath(app.getPath('userData'), releaseProfile, path));
+ipcMain.on('get-release-profile', event => { event.returnValue = releaseProfile; });
 const steamworks = require('steamworks.js');
 
 // Steamworksの初期化 (AppID 480はテスト用)

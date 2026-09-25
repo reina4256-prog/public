@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AI育成ゲーム - 転生編</title>
+    <script src="release_config.js"></script>
     <link rel="stylesheet" href="style.css">
     <style>
         .hidden-feature { display: none !important; }
@@ -99,6 +100,16 @@
                     <input type="text" id="chatInput" placeholder="AIにチャットで指示を出す...">
                     
                     <button id="btnVoice" class="quiz-btn" style="background:#2196F3; padding: 0 10px;" onclick="startVoiceRecognition()" title="音声で指示">🎙️</button>
+                    <select id="voiceLanguage" title="音声認識の言語" aria-label="音声認識の言語" style="max-width:120px;">
+                        <option value="">表示言語と同じ</option>
+                        <option value="ja-JP" data-i18n-skip>日本語</option>
+                        <option value="en-US" data-i18n-skip>English</option>
+                        <option value="zh-CN" data-i18n-skip>简体中文</option>
+                        <option value="ru-RU" data-i18n-skip>Русский</option>
+                        <option value="es-ES" data-i18n-skip>Español</option>
+                        <option value="pt-BR" data-i18n-skip>Português (Brasil)</option>
+                        <option value="de-DE" data-i18n-skip>Deutsch</option>
+                    </select>
                     <button id="btnSend" class="quiz-btn" style="background:#4CAF50;" onclick="sendChat()">送信</button>
                 </div>
             </div>
@@ -622,7 +633,10 @@
     <script src="localization_catalog.js"></script>
     <script src="localization_audit_core.js"></script>
     <script src="localization_core.js"></script>
-    <script type="module" src="cloud_manager.js"></script>
+    <script src="game_startup.js"></script>
+    <script src="demo_core.js"></script>
+    <script src="demo_save_core.js"></script>
+    <script type="module" src="online_bootstrap.js"></script>
     <script src="data.js"></script>
     <script src="resident_core.js"></script>
     <script src="system.js"></script>
@@ -664,6 +678,7 @@
     <script src="facility_template_editor.js"></script>
     <script src="main.js"></script>
     <script src="debug_test_core.js"></script>
+    <script src="demo_transfer.js"></script>
 
     <div id="loginBonusOverlay" class="overlay">
         <div class="quiz-card" style="width: 400px; text-align: center; background: #1a1a1a; border: 2px solid #FFD700;">
@@ -800,7 +815,7 @@
     <div id="panel-schedule" class="overlay" style="justify-content: flex-start; padding-left: 8vw; background: rgba(0,0,0,0.5);">
         <div class="quiz-card" style="width: 450px; display: flex; flex-direction: column; background: #1a1a1a; border: 3px solid #00bcd4; box-shadow: 10px 10px 30px rgba(0,0,0,0.8);">
             <h2 class="panel-header" style="color:#00bcd4; margin-top:0; border-bottom:2px solid #444; padding-bottom:10px;">📅 予定表</h2>
-            <button class="quiz-btn" onclick="window.ScheduleUI.open()">日課</button>
+            <button class="quiz-btn" data-full-only onclick="window.ScheduleUI.open()">日課</button>
             <div style="background:#333; padding:15px; border-radius:8px; margin-bottom:15px; display:flex; align-items:center; gap:10px;">
                 <span style="font-size:14px; color:#ddd; font-weight:bold;">実行時間:</span>
                 <input type="number" id="scheduleTimeInput" value="60" step="10" min="10" style="width:70px; padding:5px; font-size:16px; border-radius:4px; border:none;">

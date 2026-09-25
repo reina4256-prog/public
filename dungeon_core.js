@@ -519,7 +519,7 @@ window.closeDungeonUI = function(isGameOver = false, isRescued = false) {
     if (isGameOver && !isRescued) {
         actionButtons = `
             <div style="display:flex; gap:15px; justify-content:center; margin-top:25px;">
-                <button onclick="window.sendRescueRequest('${s.mapType}', ${s.floor})" 
+                <button data-online-only onclick="window.sendRescueRequest('${s.mapType}', ${s.floor})"
                         style="padding:15px 20px; font-size:18px; font-weight:bold; background:#2196F3; color:white; border:2px solid #FFF; border-radius:8px; cursor:pointer; box-shadow:0 4px 0 #0D47A1;">
                     🆘 救助を要請する
                 </button>
@@ -725,7 +725,7 @@ window.cancelRescueRequest = function() {
 };
 
 // ゲーム読み込み時に救助待ち状態なら画面をロックする（main.jsなどの初期化処理に後で追加します）
-if (localStorage.getItem('rescue_waiting_map')) {
+if ((!window.GameRelease || window.GameRelease.online) && localStorage.getItem('rescue_waiting_map')) {
     setTimeout(window.showRescueWaitingScreen, 1000);
 }
 

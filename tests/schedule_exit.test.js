@@ -4,13 +4,13 @@ const vm = require('node:vm');
 const { EventEmitter } = require('node:events');
 const ipcMain = new EventEmitter(); ipcMain.handle = () => {};
 const app = new EventEmitter(); let quit = 0, win;
-Object.assign(app, { isPackaged: true, whenReady: () => ({ then: callback => callback() }), quit: () => quit++ });
+Object.assign(app, { isPackaged: true, getPath: () => '/test/userData', setPath() {}, whenReady: () => ({ then: callback => callback() }), quit: () => quit++ });
 class BrowserWindow extends EventEmitter {
     constructor() { super(); win = this; this.webContents = new EventEmitter(); Object.assign(this.webContents, { isDestroyed: () => false, isCrashed: () => false, send: channel => { this.sent = channel; } }); }
     setMenuBarVisibility() {} loadFile() {} isFullScreen() { return false; } setFullScreen() {}
     static getAllWindows() { return [win]; }
 }
-vm.runInNewContext(fs.readFileSync('electron_main.js', 'utf8'), { require: name => name === 'electron' ? { ipcMain, app, BrowserWindow } : name === 'steamworks.js' ? { init: () => null, electronEnableSteamOverlay() {} } : require(name),
+vm.runInNewContext(fs.readFileSync('electron_main.js', 'utf8'), { require: name => name === 'electron' ? { ipcMain, app, BrowserWindow } : name === 'steamworks.js' ? { init: () => null, electronEnableSteamOverlay() {} } : require(name.startsWith('./') ? '../' + name.slice(2) : name),
     __dirname: process.cwd(), process, console: { log() {}, error() {} } });
 let prevented = 0;
 win.emit('close', { preventDefault() { prevented++; } }); assert.equal(prevented, 0, 'unready renderer can close');

@@ -275,12 +275,28 @@
         return parts.join('');
     }
 
-    function toJapaneseInput(value) {
+    function toJapaneseInput(value, sources) {
         const text = String(value || '').trim();
-        if (!text || currentLocale === 'ja') return text;
-        const compiled = compileLocale(currentLocale);
-        const source = compiled.reverse.get(text.toLocaleLowerCase(currentLocale)) || text;
-        return LEGACY_SOURCE_ALIASES[source] || source;
+        if (!text) return text;
+        const normalize = word => word.normalize('NFKC').toLowerCase().replace(/[.!。！]+$/u, '').trim();
+        const key = normalize(text);
+        const locales = [currentLocale, ...Object.keys(LANGUAGES).filter(locale => locale !== currentLocale)];
+        if (sources) {
+            // Only known command aliases are canonicalized. User-created prose/names stay literal.
+            for (const source of sources) if (normalize(source) === key) return source;
+            for (const locale of locales) {
+                const catalog = compileLocale(locale).catalog;
+                for (const source of sources) {
+                    if (catalog[source] && normalize(catalog[source]) === key) return source;
+                }
+            }
+            return text;
+        }
+        for (const locale of locales) {
+            const source = compileLocale(locale).reverse.get(text.toLocaleLowerCase(locale));
+            if (source) return LEGACY_SOURCE_ALIASES[source] || source;
+        }
+        return text;
     }
 
     function installObserver() {

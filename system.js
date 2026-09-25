@@ -364,12 +364,14 @@ function generateNatureMap() {
         }
     }
 
+    window.DemoRules?.hideFacilities(newAssets, true);
     return newAssets;
 }
 
 // データの読み込み
 if (window.Residents) window.Residents.recoverStorage(localStorage);
 let assets = JSON.parse(localStorage.getItem('map_data_v6')) || generateNatureMap();
+window.DemoRules?.hideFacilities(assets);
 
 if (assets) {
     for (let key in assets) {
@@ -445,6 +447,7 @@ let aiPet = savedPet || {
 // classic script のグローバル let は window のプロパティにならない。
 // UI / Debug / クラウド側は window.aiPet を参照するため、起動時から同じ実体を共有する。
 window.aiPet = aiPet;
+window.DemoRules?.bindStats(aiPet);
 window.pendingInheritanceData = aiPet.pendingInheritanceData || null;
 if (window.Residents) window.Residents.ensure(aiPet, assets);
 
@@ -537,6 +540,7 @@ const weatherTypes = [
 
 // 3. 既存の saveGameData 関数を上書き（grazingDataの保存を追加）
 function saveGameData() {
+    if (window.demoImportReloadPending) return;
     if (window.aiPet?.timeProgress?.pending) return;
     if (window.GameShell) window.GameShell.flushPausedTime();
     if (window.Residents) window.Residents.ensure(aiPet, assets);
@@ -838,7 +842,7 @@ window.confirmInitialPet = function() {
             if (typeof checkLoginBonus === 'function') checkLoginBonus();
             
             // ★究極修正4：引継ぎ（NG+）なら絶対に名前入力をスキップする！
-            if (isNGPlus || localStorage.getItem('my_player_name')) {
+            if ((window.GameRelease && !window.GameRelease.online) || isNGPlus || localStorage.getItem('my_player_name')) {
                 document.body.classList.remove('is-naming');
                 window.isNamingPhase = false;
             } else {

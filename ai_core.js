@@ -366,6 +366,7 @@ window.getPastryMaxShopRecipeProgress = function() {
 };
 
 aiPet.getMasterQuestData = function(mType, rank) {
+    if (window.DemoRules?.questBlocked(mType, rank)) return window.DemoRules.lockedQuest();
     const quests = {
         'explore': { // 冒険家のクエスト
             0: { name: "入門試験の準備", desc: "試験では『位置を知る道具』『飲み物』『方角を知る道具』について聞かれる。答えとなる言葉を覚えよう。" },
@@ -1461,7 +1462,7 @@ aiPet.consumeFood = function() {
     this.message = `${bestFood.name}を${action}！`; 
 
     // ★追加：毒キノコをそのまま食べた場合の中毒処理（ミサンガで軽減可能）
-    if (bestFood.id === 'poison_mushroom') {
+    if (!window.DemoRules?.enabled && bestFood.id === 'poison_mushroom') {
         let healthPlus = typeof this.getAmuletPlus === 'function' ? this.getAmuletPlus('misanga_health') : -1;
         let poisonChance = window.ScheduleCore.foodRisk(1, healthPlus);
 
@@ -1478,7 +1479,7 @@ aiPet.consumeFood = function() {
 
     // ★修正: 生魚（dishではない魚）を食べた時の確率「腹痛」ペナルティ
     const consumedId = bestFood.id;
-    if (consumedId && consumedId.startsWith('fish_') && bestFood.type !== 'dish' && bestFood.quality !== 'bad') {
+    if (!window.DemoRules?.enabled && consumedId && consumedId.startsWith('fish_') && bestFood.type !== 'dish' && bestFood.quality !== 'bad') {
         // ★追加：健康のミサンガの効果
         let healthPlus = this.getAmuletPlus('misanga_health');
         let sickChance = window.ScheduleCore.foodRisk(.25, healthPlus);
@@ -1503,7 +1504,7 @@ aiPet.consumeFood = function() {
         let healthPlus = this.getAmuletPlus('misanga_health');
         let sickChance = window.ScheduleCore.foodRisk(.30, healthPlus);
 
-        if (Math.random() < sickChance) {
+        if (!window.DemoRules?.enabled && Math.random() < sickChance) {
             this.conditions.stomachache = true;
             if (!window.isCatchingUp && typeof addFloatingText === 'function') addFloatingText(this.x, this.y - 80, "⚡ 腹痛になった！", "#E53935");
         }
@@ -2848,6 +2849,7 @@ aiPet.processApprenticeQuestFinish = function(task) {
 };
 
 aiPet.update = function() {
+    if (window.DemoRules?.ended(this)) { window.DemoRules.markEnded(this); return; }
     if (this.pendingInheritanceData || window.GameShell?.currentScene === 'resident-home') return;
     const shouldAnimate = (currentMode === 'play') || (currentMode === 'grazing') || (currentMode === 'ai_adjust' && isTestPlaying);
     if (!shouldAnimate || isRouletteSpinning) return;
@@ -4422,7 +4424,7 @@ aiPet.update = function() {
         }
 
         // 屋外での行動中に雨か雪だと風邪をひく判定
-        if (!this.isIndoors && (this.weather === 'rain' || this.weather === 'snow' || this.weather === 'thunder') && !isHealing) {
+        if (!window.DemoRules?.enabled && !this.isIndoors && (this.weather === 'rain' || this.weather === 'snow' || this.weather === 'thunder') && !isHealing) {
             // ★追加：健康のミサンガの効果
             let coldChance = 0.0005;
             let healthPlus = this.getAmuletPlus('misanga_health');
@@ -4811,6 +4813,7 @@ const BASE_INHERITANCE_COSTS = { stats: 500, inventory: 300, vocab: 400, license
 let currentInheritanceCosts = { ...BASE_INHERITANCE_COSTS };
 
 window.triggerReincarnation = function() {
+    if (window.DemoRules?.enabled) { window.DemoRules.markEnded(window.aiPet); window.DemoTransfer?.showEnd(); return; }
     window._residentDeathShopOpened = true;
     window.disposeResidentHome?.();
     window.isFastForwardLife = false;
@@ -4820,6 +4823,7 @@ window.triggerReincarnation = function() {
 };
 
 window.openInheritanceShop = function() {
+    if (window.DemoRules?.enabled) { window.DemoTransfer?.showEnd(); return; }
     window._residentDeathShopOpened = true;
     window.isGamePaused = true;
     
@@ -4980,6 +4984,7 @@ window.renderInheritanceShop = function() {
 
 // ★追加：実行ボタンを押した際の「ロスト警告ポップアップ」処理
 window.executeReincarnation = function() {
+    if (window.DemoRules?.enabled) return;
     const names = { stats: '能力値', inventory: '持ち物', vocab: '語彙・記憶領域', license: '職業ライセンス', personality: '姿と性格', map: 'マップ', gold: '所持金' };
     let lostList = [];
     for (let key in inheritanceSelections) {
@@ -5031,6 +5036,7 @@ window.executeReincarnation = function() {
 
 // ★追加：実際の決済・救済・転生処理
 window.executeReincarnationFinal = function() {
+    if (window.DemoRules?.enabled) return;
     if (window.aiPet.pendingInheritanceData) { window.resumeResidentSuccession(); return; }
     const source = JSON.parse(JSON.stringify(window.aiPet));
     const worldDraft = JSON.parse(JSON.stringify(assets));
@@ -5185,6 +5191,7 @@ window.executeReincarnationFinal = function() {
 };
 
 window.resumeResidentSuccession = function() {
+    if (window.DemoRules?.enabled) return;
     const data = window.aiPet.pendingInheritanceData;
     if (!data || window._residentSuccessionResuming) return;
     window._residentSuccessionResuming = true;
@@ -5525,6 +5532,7 @@ aiPet.updateDiscipleUI = function(task) {
 
 // ★究極改修: 多段階・クロス進化・分岐進化に完全対応した進化判定
 aiPet.getAvailableEvolutions = function() {
+    if (window.DemoRules?.enabled) return [];
     // 現在の姿（Skin）を基準にする。初期状態なら baseType を参照。
     let current = this.currentSkin || this.baseType || 'robot';
 
@@ -5553,6 +5561,7 @@ aiPet.getAvailableEvolutions = function() {
 };
 
 aiPet.startBuildingInteraction = function(targetAsset) {
+    if (window.DemoRules?.enabled && targetAsset?.type === 'pharmacy') return;
     this.interactionTarget = targetAsset;
     const aScale = targetAsset.scale !== undefined ? targetAsset.scale : 0.5;
     let tx = targetAsset.dx + (targetAsset.sw * aScale)/2;
@@ -6168,89 +6177,7 @@ setTimeout(() => {
 
             // 2. 言葉を知らない（新規）場合のみ、視覚的なチュートリアルを開始
             // ※念のため hasTutorialPlayed が未定義の場合をケア
-            if (isNewGame && (typeof hasTutorialPlayed === 'undefined' || !hasTutorialPlayed)) {
-                window.hasTutorialPlayed = true;
-                
-                // UIがすべて出揃った頃（約5.5秒後）にチュートリアルを出す
-                setTimeout(() => {
-                    window.aiPet.message = "何をすればいいかわかりません…\n言葉を教えてください！";
-                    window.aiPet.messageTimer = 300;
-                    
-                    const tutBox = document.createElement('div');
-                    tutBox.id = 'in-game-tutorial';
-                    tutBox.style.position = 'absolute';
-                    tutBox.style.top = '40%';
-                    tutBox.style.left = '50%';
-                    tutBox.style.transform = 'translate(-50%, -50%)';
-                    tutBox.style.background = 'rgba(20, 20, 20, 0.95)';
-                    tutBox.style.border = '2px solid #FF9800';
-                    tutBox.style.borderRadius = '8px';
-                    tutBox.style.padding = '20px';
-                    tutBox.style.color = '#fff';
-                    tutBox.style.width = '320px';
-                    tutBox.style.textAlign = 'center';
-                    tutBox.style.boxShadow = '0 0 20px rgba(255, 152, 0, 0.5)';
-                    tutBox.style.zIndex = '10000';
-                    tutBox.style.opacity = '0'; // フワッと出すために初期は0
-                    tutBox.style.transition = 'opacity 1s ease';
-                    
-                    tutBox.innerHTML = `
-                        <div style="color: #FF9800; font-size: 18px; font-weight: bold; margin-bottom: 10px;">📖 チュートリアル</div>
-                        <div style="font-size: 14px; line-height: 1.6; margin-bottom: 15px; color: #ddd;">
-                            AIはまだ言葉を知らないため、どう行動していいか分からず戸惑っています。<br><br>
-                            画面下のチャット欄から、あなたが思いつく<span style="color:#4fc3f7; font-weight:bold; font-size:16px;">「好きな言葉」</span>を入力して、AIに最初の言葉を教えてあげましょう！
-                        </div>
-                        <button id="tut-close-btn" class="tut-btn" style="background: #FF9800; color: #fff; border: none; padding: 10px 30px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s;">わかった！</button>
-                    `;
-                    document.body.appendChild(tutBox);
-                    window.unlockTutorialEntry?.('basics.first_word', { viewed: true, silent: true });
-                    
-                    setTimeout(() => { tutBox.style.opacity = '1'; }, 100);
-                    
-                    // 「わかった！」ボタンを押したらフワッと消す
-                    document.getElementById('tut-close-btn').onclick = () => {
-                        tutBox.style.opacity = '0';
-                        setTimeout(() => { if (tutBox.parentNode) tutBox.parentNode.removeChild(tutBox); }, 1000);
-                    };
-                    
-                    const chatInput = document.getElementById('chatInput');
-                    if (chatInput) chatInput.classList.add('tutorial-highlight');
-
-                    let guide = document.createElement('div');
-                    guide.id = 'chat-tutorial-guide';
-                    guide.innerHTML = '▼ ここに「好きな言葉」を入力して送信 ▼';
-                    guide.style.position = 'absolute';
-                    guide.style.bottom = '55px';
-                    guide.style.left = '50%';
-                    guide.style.transform = 'translateX(-50%)';
-                    guide.style.background = '#FF9800';
-                    guide.style.color = '#fff';
-                    guide.style.padding = '8px 16px';
-                    guide.style.borderRadius = '20px';
-                    guide.style.fontWeight = 'bold';
-                    guide.style.fontSize = '14px';
-                    guide.style.zIndex = '9999';
-                    guide.style.pointerEvents = 'none';
-                    guide.style.animation = 'bouncePointer 1s infinite';
-                    guide.style.opacity = '0'; 
-                    guide.style.transition = 'opacity 1s ease';
-                    document.body.appendChild(guide);
-                    
-                    setTimeout(() => { guide.style.opacity = '1'; }, 100);
-
-                    // AIが言葉を覚えた瞬間に、光と矢印をフワッと消す
-                    let guideCheck = setInterval(() => {
-                        if (window.aiPet && window.aiPet.apprentice && window.aiPet.apprentice.learnedWords.length > 0) {
-                            guide.style.opacity = '0';
-                            setTimeout(() => { if (guide.parentNode) guide.parentNode.removeChild(guide); }, 1000);
-                            
-                            if (chatInput) chatInput.classList.remove('tutorial-highlight');
-                            clearInterval(guideCheck);
-                        }
-                    }, 1000);
-
-                }, 5500); // UI表示演出完了に合わせて実行
-            }
+            if (isNewGame) window.unlockTutorialEntry?.('basics.first_word', { silent: true });
             
             // ★超重要：保留されずにここまで到達した（＝名前入力が終わった）時だけ監視を終了する！
             clearInterval(uiRevealCheck); 
@@ -6357,6 +6284,7 @@ window.giveOsusowake = function() {
 // ★ 新機能：AIの余生ルート決定エンジン
 // ==========================================
 aiPet.determineLifePath = function() {
+    if (window.DemoRules?.enabled) return null;
     const h = this.actionHistory || { study: 0, train: 0, work: 0, rest: 0, care: 0, free: 0 };
     
     // 各ルートのスコア（適性）を計算する

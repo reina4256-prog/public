@@ -4446,7 +4446,7 @@ window.checkDeath = function(card, owner, htmlId, enemyOwner = null) {
 // ==========================================
 // 3. 引退したAIからカードを生成する関数 (究極バランス版)
 // ==========================================
-window.generateCardFromAI = function(aiPet) {
+window.generateCardFromAI = function(aiPet, options = {}) {
     let rawRace = aiPet.currentSkin || aiPet.baseType || 'robot';
     const isEvolved = rawRace.includes('_type'); // 進化種族かどうかの判定
 
@@ -4529,6 +4529,7 @@ window.generateCardFromAI = function(aiPet) {
         acquiredGeneration: acquiredGeneration
     };
 
+    if (options.preview) return newCard;
     window.TCG.myCollection.push(newCard);
     window.saveTCGData();
 
@@ -13376,7 +13377,7 @@ window.openCardShopUI = function() {
                         onmouseover="if(${canDraw}) this.style.transform='scale(1.05)'" onmouseout="if(${canDraw}) this.style.transform='scale(1)'">
                     カードパックを引く (100 G)
                 </button>
-                <button onclick="document.getElementById('tcg-shop-ui').style.display='none'; window.openCardMarketUI();" 
+                <button data-online-only onclick="document.getElementById('tcg-shop-ui').style.display='none'; window.openCardMarketUI();"
                         style="padding:15px; font-size:18px; font-weight:bold; background:#4CAF50; color:white; border:2px solid #81C784; border-radius:8px; cursor:pointer; transition:0.2s;"
                         onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                     オンライン・カード市場

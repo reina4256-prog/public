@@ -4,6 +4,7 @@ const path = require('path');
 
 const ROOT = path.resolve(__dirname);
 const args = process.argv.slice(2);
+const { getProfile } = require('./release_profiles');
 
 function readArg(name, fallback) {
   const inline = args.find(arg => arg.startsWith(`${name}=`));
@@ -13,7 +14,8 @@ function readArg(name, fallback) {
 }
 
 const host = readArg('--host', process.env.HOST || '127.0.0.1');
-const port = Number(readArg('--port', process.env.PORT || '4173'));
+const releaseProfile = getProfile(readArg('--release-profile', 'full'));
+const port = Number(readArg('--port', process.env.PORT || (releaseProfile.edition === 'demo' ? '4174' : '4173')));
 
 const mimeTypes = {
   '.html': 'text/html; charset=utf-8',
@@ -84,6 +86,14 @@ const server = http.createServer((request, response) => {
     pathname = decodeURIComponent(new URL(request.url || '/', 'http://localhost').pathname);
   } catch (error) {
     return sendText(response, 400, 'Bad request');
+  }
+
+  if (pathname === '/release_config.js') {
+    const script = `Object.defineProperty(window, 'GameRelease', { value: Object.freeze(${JSON.stringify(releaseProfile)}), writable: false, configurable: false });\n`
+      + `document.documentElement.dataset.online = String(window.GameRelease.online);\n`
+      + `document.documentElement.dataset.edition = window.GameRelease.edition;\n`;
+    response.writeHead(200, { 'Content-Type': mimeTypes['.js'], 'Cache-Control': 'no-store' });
+    return response.end(request.method === 'HEAD' ? undefined : script);
   }
 
   const relativePath = pathname.replace(/^[/\\]+/, '') || 'index.html';

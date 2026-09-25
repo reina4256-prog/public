@@ -182,49 +182,12 @@ window.formatQuestDescription = function(desc) {
 };
 
 window.showGameTutorial = function(title, message, callback) {
-    // 既に開いていたらスキップ
-    if (document.getElementById('in-game-tutorial')) return;
-
-    // ボタンのホバー効果用CSS
-    if (!document.getElementById('tutorial-css')) {
-        const style = document.createElement('style');
-        style.id = 'tutorial-css';
-        style.innerHTML = `.tut-btn:hover { background: #e68a00 !important; }`;
-        document.head.appendChild(style);
-    }
-
-    const tutBox = document.createElement('div');
-    tutBox.id = 'in-game-tutorial';
-    tutBox.style.position = 'absolute';
-    tutBox.style.top = '40%';
-    tutBox.style.left = '50%';
-    tutBox.style.transform = 'translate(-50%, -50%)';
-    tutBox.style.background = 'rgba(20, 20, 20, 0.95)';
-    tutBox.style.border = '2px solid #FF9800';
-    tutBox.style.borderRadius = '8px';
-    tutBox.style.padding = '20px';
-    tutBox.style.color = '#fff';
-    tutBox.style.width = '320px';
-    tutBox.style.textAlign = 'center';
-    tutBox.style.boxShadow = '0 0 20px rgba(255, 152, 0, 0.5)';
-    tutBox.style.zIndex = '10000';
-
-    tutBox.innerHTML = `
-        <div style="color: #FF9800; font-size: 18px; font-weight: bold; margin-bottom: 10px;">📖 ${title}</div>
-        <div style="font-size: 14px; line-height: 1.6; margin-bottom: 20px; color: #ddd;">
-            ${message}
-        </div>
-        <button id="tut-close-btn" class="tut-btn" style="background: #FF9800; color: #fff; border: none; padding: 10px 30px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 15px; transition: 0.2s;">わかった！</button>
-    `;
-    document.body.appendChild(tutBox);
-
-    document.getElementById('tut-close-btn').onclick = () => {
-        if (tutBox.parentNode) tutBox.parentNode.removeChild(tutBox);
-        if (callback) callback(); // 閉じた後に何か実行したい場合は実行
-    };
+    // Tutorial content belongs to the archive; preserve event continuations.
+    if (typeof callback === 'function') callback();
 };
 
 window.switchRightPanel = function(panelId) {
+    if (window.DemoRules?.enabled && panelId === 'rescue') return;
     // 1. 旧仕様の右パネル（side-panelなど）の制御
     const panels = document.querySelectorAll('.panel-view');
     panels.forEach(p => p.classList.remove('active'));
@@ -448,7 +411,8 @@ window.openStatusMenu = function() {
             } else if (app.currentMaster) {
                 const masterNames = { 'explore': '冒険家', 'farming': '農家', 'fishing': '漁師', 'cooking': '料理人', 'smithing': '鍛冶師', 'building': '建築士', 'pharmacist': '薬剤師', 'tailor': '仕立屋', 'pastry_chef': 'パティシエ', 'hairdresser': '美容師', 'concierge': 'コンシェルジュ', 'dealer': 'ディーラー' };
                 const mName = masterNames[app.currentMaster] || "不明";
-                const rank = app.rank[app.currentMaster] || 1;
+                const actualRank = app.rank[app.currentMaster] || 1;
+                const rank = window.DemoRules?.questBlocked(app.currentMaster, actualRank) ? 8 : actualRank;
                 
                 html += `<div style="font-size: 13px; color: #fff; margin-bottom: 8px;">専門家: <span style="color:#FFC107; font-weight:bold;">${mName} (ランク ${rank})</span></div>`;
                 
@@ -689,7 +653,8 @@ window.openStatusMenu = function() {
         
         displayJobs.forEach(j => {
             let isMet = metMasters.includes(j.id);
-            const r = (app.rank && app.rank[j.id]) ? app.rank[j.id] : 0;
+            const actualRank = (app.rank && app.rank[j.id]) ? app.rank[j.id] : 0;
+            const r = window.DemoRules?.questBlocked(j.id, actualRank) ? 8 : actualRank;
             
             let displayName = isMet ? j.name : "？？？";
             let displayIcon = isMet ? j.icon : "❓";
@@ -1193,6 +1158,7 @@ function updateShopGold() {
 }
 
 function updateStatUI() {
+    document.documentElement.dataset.generation = String(window.aiPet?.generation || 1);
     if (typeof aiPet === 'undefined') return;
     
     // データが空っぽならエラーにならないように即リターン（安全装置）
@@ -1551,7 +1517,7 @@ window.updateCommandHUD = function() {
     if (aiPet.apprentice.learnedWords) {
         aiPet.apprentice.learnedWords.forEach(word => {
             if (!systemWords.includes(word)) {
-                categories['🗣️ 自由な言葉'].push({ label: word, base: word, color: "#9C27B0" }); 
+                categories['🗣️ 自由な言葉'].push({ label: word, base: word, color: "#9C27B0", literal: true });
             }
         });
     }
@@ -1572,14 +1538,15 @@ window.updateCommandHUD = function() {
             html += `<div style="display:flex; flex-wrap:wrap; gap:6px; align-items: flex-start;">`; // ★ 折り返し時の挙動を安定させる
             categories[cat].forEach(c => {
                 totalCmds++;
-                let label = c.label;
-                let baseWord = c.base;
+                const escape = value => String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+                let label = escape(c.label);
+                let baseWord = escape(JSON.stringify(c.base));
                 let bgColor = c.color || "#2a2a2a";
                 let textColor = c.color ? "#fff" : "#ddd";
                 let borderColor = c.color ? (c.color === '#9C27B0' ? '#7B1FA2' : '#b71c1c') : "#555";
                 
                 html += `<button type="button" style="background: ${bgColor}; color: ${textColor}; border: 1px solid ${borderColor}; padding: 6px 10px; border-radius: 6px; cursor: pointer; font-size: 12px; transition: all 0.1s; box-shadow: 0 2px rgba(0,0,0,0.5); white-space: nowrap;" 
-                        onmousedown="this.style.transform='translateY(2px)'; this.style.boxShadow='none'; document.getElementById('chatInput').value='${baseWord}'; window.sendChat();" 
+                        ${c.literal ? 'data-i18n-skip' : ''} onmousedown="this.style.transform='translateY(2px)'; this.style.boxShadow='none'; document.getElementById('chatInput').value=${baseWord}; window.sendChat();"
                         onmouseup="this.style.transform='translateY(0)'; this.style.boxShadow='0 2px rgba(0,0,0,0.5)';">${label}</button>`;
             });
             html += `</div>`;
@@ -1677,77 +1644,7 @@ window.chatHistoryIndex = -1;
 // ==========================================
 // ★ チャット送信処理（超・賢い意図解釈システム＆誤爆修正版！）
 // ==========================================
-// Indoor entry points share the island vocabulary limits and feedback wording.
-window.learnIndoorChatWord = function(text, say, options = {}) {
-    const raw = String(text || '').trim();
-    const word = window.GameI18n ? window.GameI18n.toJapaneseInput(raw) : raw;
-    const ai = window.aiPet;
-    if (!word || !ai) return { blocked: true };
-    if (!ai.apprentice) ai.apprentice = {};
-    const words = ai.apprentice.learnedWords ||= [];
-    const reply = message => {
-        ai.message = message; ai.messageTimer = 180;
-        say?.(message);
-        window.GameLog?.observe(ai);
-    };
-    const forgotten = word.match(/^(.+)を(?:忘|わす)れて$/);
-    if (forgotten) {
-        const target = forgotten[1].trim();
-        const index = words.indexOf(target);
-        if (index >= 0) words.splice(index, 1);
-        reply(index >= 0 ? `「${target}」だね…うん、忘れたよ。` : `えっ？「${target}」なんて知らないよ？`);
-        if (typeof saveGameData === 'function') saveGameData();
-        window.updateCommandHUD?.();
-        return { blocked: true, word };
-    }
-    if (words.includes(word)) {
-        if (!options.command) reply('？（何を言っているのかわからないみたい...）');
-        return { blocked: false, learned: false, word };
-    }
-    if (words.length >= (ai.getMaxVocabulary?.() || 5)) {
-        reply(`頭がいっぱいで「${word}」は覚えられないや…\n（いらない言葉を「〇〇を忘れて」と言ってね）`);
-        return { blocked: true, word };
-    }
-    words.push(word);
-    reply(`「${word}」…！\nよく分からないけど、言葉を覚えたよ！`);
-    if (typeof saveGameData === 'function') saveGameData();
-    window.updateCommandHUD?.();
-    return { blocked: false, learned: true, word };
-};
-
-window.sendChat = function() {
-    if (window.GameShell && window.GameShell.isPaused()) return;
-    const input = document.getElementById('chatInput');
-    if (!input) return;
-    const enteredText = input.value.trim();
-    const rawText = window.GameI18n ? window.GameI18n.toJapaneseInput(enteredText) : enteredText;
-    if (!rawText) return;
-    window.GameLog?.add(enteredText, { speaker: 'player', literal: true });
-    
-    const existingIndex = window.chatHistory.indexOf(enteredText);
-    if (existingIndex !== -1) {
-        window.chatHistory.splice(existingIndex, 1);
-    }
-    window.chatHistory.push(enteredText);
-    if (window.chatHistory.length > 50) window.chatHistory.shift();
-    localStorage.setItem('ai_pet_chat_history', JSON.stringify(window.chatHistory));
-    
-    window.chatHistoryIndex = -1;
-
-    if (window.GameShell && window.GameShell.routeChat(enteredText)) {
-        input.value = '';
-        return;
-    }
-
-    if (rawText === "やめる" || rawText === "中止" || rawText === "キャンセル" || rawText.toLowerCase() === "stop" || rawText.toLowerCase() === "cancel") {
-        if(typeof window.clearSchedule === 'function') window.clearSchedule();
-        input.value = ""; input.focus(); return;
-    }
-
-    if (!aiPet.apprentice) aiPet.apprentice = {};
-    if (!aiPet.apprentice.learnedWords) aiPet.apprentice.learnedWords = [];
-
-    const dict = {
+ window.GameCommandAliases = {
         "冒険家": ["冒険家", "冒険者"],
         "農家": ["農家", "農民"],
         "漁師": ["漁師", "釣り人"],
@@ -1820,6 +1717,84 @@ window.sendChat = function() {
         "作戦": ["作戦", "戦術", "さくせん", "マインド"]
     };
 
+// Indoor entry points share the island vocabulary limits and feedback wording.
+window.learnIndoorChatWord = function(text, say, options = {}) {
+    const raw = String(text || '').trim();
+    const aliases = window.GameCommandAliases;
+    const normalized = window.GameI18n?.toJapaneseInput(raw,
+        [...Object.keys(aliases), ...Object.values(aliases).flat(), ...(window.SHOP_AVAILABLE_COMMANDS || []).map(command => command.name)]) || raw;
+    const word = Object.keys(aliases).find(key => key === normalized || aliases[key].includes(normalized)) || normalized;
+    const ai = window.aiPet;
+    if (!word || !ai) return { blocked: true };
+    if (!ai.apprentice) ai.apprentice = {};
+    const words = ai.apprentice.learnedWords ||= [];
+    const reply = message => {
+        ai.message = message; ai.messageTimer = 180;
+        say?.(message);
+        window.GameLog?.observe(ai);
+    };
+    const forgotten = word.match(/^(.+)を(?:忘|わす)れて$/);
+    if (forgotten) {
+        const target = forgotten[1].trim();
+        const index = words.indexOf(target);
+        if (index >= 0) words.splice(index, 1);
+        reply(index >= 0 ? `「${target}」だね…うん、忘れたよ。` : `えっ？「${target}」なんて知らないよ？`);
+        if (typeof saveGameData === 'function') saveGameData();
+        window.updateCommandHUD?.();
+        return { blocked: true, word };
+    }
+    if (words.includes(word)) {
+        if (!options.command) reply('？（何を言っているのかわからないみたい...）');
+        return { blocked: false, learned: false, word };
+    }
+    if (words.length >= (ai.getMaxVocabulary?.() || 5)) {
+        reply(`頭がいっぱいで「${word}」は覚えられないや…\n（いらない言葉を「〇〇を忘れて」と言ってね）`);
+        return { blocked: true, word };
+    }
+    words.push(word);
+    reply(`「${word}」…！\nよく分からないけど、言葉を覚えたよ！`);
+    if (typeof saveGameData === 'function') saveGameData();
+    window.updateCommandHUD?.();
+    return { blocked: false, learned: true, word };
+};
+
+window.sendChat = function() {
+    if (window.GameShell && window.GameShell.isPaused()) return;
+    const input = document.getElementById('chatInput');
+    if (!input) return;
+    const enteredText = input.value.trim();
+    let rawText = enteredText;
+    if (!rawText) return;
+    window.GameLog?.add(enteredText, { speaker: 'player', literal: true });
+
+    const existingIndex = window.chatHistory.indexOf(enteredText);
+    if (existingIndex !== -1) {
+        window.chatHistory.splice(existingIndex, 1);
+    }
+    window.chatHistory.push(enteredText);
+    if (window.chatHistory.length > 50) window.chatHistory.shift();
+    localStorage.setItem('ai_pet_chat_history', JSON.stringify(window.chatHistory));
+
+    window.chatHistoryIndex = -1;
+
+    if (window.GameShell && window.GameShell.routeChat(enteredText)) {
+        input.value = '';
+        return;
+    }
+
+    const stopWord = window.GameI18n?.toJapaneseInput(rawText, ['やめる', '中止', 'キャンセル']) || rawText;
+    if (stopWord === "やめる" || stopWord === "中止" || stopWord === "キャンセル" || stopWord.toLowerCase() === "stop" || stopWord.toLowerCase() === "cancel") {
+        if(typeof window.clearSchedule === 'function') window.clearSchedule();
+        input.value = ""; input.focus(); return;
+    }
+
+    if (!aiPet.apprentice) aiPet.apprentice = {};
+    if (!aiPet.apprentice.learnedWords) aiPet.apprentice.learnedWords = [];
+
+    const dict = window.GameCommandAliases;
+
+    rawText = window.GameI18n?.toJapaneseInput(enteredText,
+        [...Object.keys(dict), ...Object.values(dict).flat(), ...(window.SHOP_AVAILABLE_COMMANDS || []).map(command => command.name)]) || enteredText;
     let interpretedWord = rawText;
     let isInterpreted = false;
 
@@ -2864,8 +2839,8 @@ window.openCasino = function() {
 
     // 4. 既存のボタンに仕込まれた「オンライン対戦機能」を抽出して再利用するハック
     const buttons = document.querySelectorAll('button');
-    let onlineMatchFunc = "alert('オンライン対戦機能が見つかりません');";
-    let onlineRegisterFunc = "alert('デッキ登録機能が見つかりません');";
+    let onlineMatchFunc = 'window.showGameAlert(' + JSON.stringify('オンライン対戦機能が見つかりません').replace(/"/g, '&quot;') + ');';
+    let onlineRegisterFunc = 'window.showGameAlert(' + JSON.stringify('デッキ登録機能が見つかりません').replace(/"/g, '&quot;') + ');';
     
     buttons.forEach(btn => {
         const text = window.getLocalizedSourceText ? window.getLocalizedSourceText(btn).trim() : btn.innerText.trim();
@@ -2899,7 +2874,7 @@ window.openCasino = function() {
                 🗃️ コレクション / デッキ編成
             </button>
             
-            <button onclick="document.getElementById('casino-lobby-ui').style.display='none'; ${onlineMatchFunc}" 
+            <button data-online-only onclick="document.getElementById('casino-lobby-ui').style.display='none'; ${onlineMatchFunc}"
                 style="padding:15px; font-size:20px; font-weight:bold; background:#E91E63; color:white; border:3px solid #FFF; border-radius:8px; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 🌐 世界のプレイヤーと対戦
             </button>
@@ -2909,7 +2884,7 @@ window.openCasino = function() {
                 ⚔️ 名もなきCPUと練習
             </button>
 
-            <button onclick="${onlineRegisterFunc}" 
+            <button data-online-only onclick="${onlineRegisterFunc}"
                 style="padding:15px; font-size:18px; font-weight:bold; background:#9C27B0; color:white; border:3px solid #FFF; border-radius:8px; cursor:pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: 0.2s;" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
                 ☁️ デッキをオンライン登録
             </button>
@@ -3317,6 +3292,7 @@ function tryStartEvolutionVideo(fromSkin, toSkin) {
 
 // ★修正：プリロードも余計なすり替えを削除！
 window.openEvolutionMenu = function() {
+    if (window.DemoRules?.enabled) return;
     const evos = typeof aiPet !== 'undefined' && aiPet.getAvailableEvolutions ? aiPet.getAvailableEvolutions() : [];
     if (evos.length === 0) return;
     
@@ -3621,6 +3597,7 @@ function rouletteAnimLoop() {
 }
 
 window.startEvolutionRoulette = function() {
+    if (window.DemoRules?.enabled) return;
     document.getElementById('btnStartRoulette').style.display = 'none';
     document.getElementById('btnCancelEvolution').style.display = 'none';
     
@@ -3919,6 +3896,11 @@ window.requestNextQuest = function() {
 // ★ UI描画（バイト・連続受注・AI掛け合い・師匠立ち絵完全対応版！）
 // ==========================================
 window.openEncounterUI = function(masterType, message, mode = 'encounter', qData = null) {
+    if (window.DemoRules?.enabled && masterType === 'pharmacist') return;
+    if (window.DemoRules?.enabled && (['graduate', 'graduate_skip'].includes(mode)
+        || (mode === 'quest_offer' && window.DemoRules.questBlocked(masterType, window.aiPet?.apprentice?.rank?.[masterType])))) {
+        mode = 'quest_not_clear'; message = window.DemoRules.limitMessage; qData = null;
+    }
     if (window.GameLog && message) {
         const plainMessage = document.createElement('template');
         plainMessage.innerHTML = String(message).replace(/<br\s*\/?>/gi, '\n');
@@ -4552,6 +4534,7 @@ window.openDealerPokerFromTalk = function() {
 // ★ クエスト・会話の処理（マルチクエスト＆完全対応版！）
 // ==========================================
 window.confirmEncounter = function(isAccept) {
+    if (window.DemoRules?.enabled && ['graduate', 'graduate_skip'].includes(currentEncounterMode)) return;
     // ダイアログを閉じる際に立ち絵をスッと消去する
     const hideMasterImg = () => {
         let masterImgBox = document.getElementById('encounter-master-canvas');
@@ -4736,6 +4719,7 @@ window.confirmEncounter = function(isAccept) {
         if (isAccept) {
             if (!hero.apprentice.activeQuests) hero.apprentice.activeQuests = [];
             const rank = hero.apprentice.rank[mType] || 1;
+            if (window.DemoRules?.questBlocked(mType, rank)) return;
             const qData = hero.getMasterQuestData(mType, rank);
             qData.setup(); 
             
@@ -4800,14 +4784,14 @@ window.confirmEncounter = function(isAccept) {
         if (typeof saveGameData === 'function') saveGameData();
     }
     else if (currentEncounterMode === 'rank_up') {
-        hero.apprentice.rank[mType] = (hero.apprentice.rank[mType] || 1) + 1;
+        hero.apprentice.rank[mType] = Math.min(window.DemoRules?.enabled ? 9 : Infinity, (hero.apprentice.rank[mType] || 1) + 1);
         hero.apprentice.activeQuest = null; 
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
         if (typeof saveGameData === 'function') saveGameData(); 
     }
     // ★追加：顔パス（ランクスキップ）を受諾した時の処理
     else if (currentEncounterMode === 'rank_skip_offer') {
-        hero.apprentice.rank[mType] = hero.apprentice._pendingSkipRank || 1;
+        hero.apprentice.rank[mType] = window.DemoRules ? window.DemoRules.maxSkipRank(hero.apprentice._pendingSkipRank || 1) : hero.apprentice._pendingSkipRank || 1;
         delete hero.apprentice._pendingSkipRank;
         hero.apprentice.activeQuest = null; 
         if (typeof window.updateQuestHUD === 'function') window.updateQuestHUD();
@@ -5934,7 +5918,12 @@ window.checkMasterVisit = function(masterType, visitAction) {
             }
 
             if (isExamCleared) {
-                if (examRank >= 9) {
+                if (window.DemoRules?.questBlocked(masterType, examRank + 1) && examRank === 8) {
+                    app.rank[masterType] = 9;
+                    app.activeQuest = null;
+                    saveGameData();
+                    window.openEncounterUI(masterType, window.DemoRules.limitMessage, 'quest_report');
+                } else if (examRank >= 9) {
                     console.log("[師匠報告デバッグ] 免許皆伝会話を開きます", { 師匠: masterType, examRank, reportMsg });
                     if (masterType === 'explore') reportMsg += "「見事よ！あなたに教えることはもう何もないわ...免許皆伝ね！」";
                     else if (masterType === 'farming') reportMsg += "「見事だ！君に教えることはもう何もない...免許皆伝だよ！」";
@@ -6028,6 +6017,10 @@ window.checkMasterVisit = function(masterType, visitAction) {
 
     // 4. 新規課題の提示
     const rank = app.rank[masterType] || 1;
+    if (window.DemoRules?.questBlocked(masterType, rank)) {
+        window.openEncounterUI(masterType, window.DemoRules.limitMessage, 'quest_not_clear');
+        return;
+    }
 
     // ==========================================
     // ★ 究極のNG+対応：一番最初（ランク1）の時だけステータスを査定し「顔パス」発動！
@@ -6064,6 +6057,7 @@ window.checkMasterVisit = function(masterType, visitAction) {
             }
 
             // 現在のランクより上位の条件を満たしていたら、顔パスイベント発動！
+            if (window.DemoRules) skipRank = window.DemoRules.maxSkipRank(skipRank);
             if (skipRank > rank) {
                 if (skipRank === 10) {
                     let msg = `「さあ、最初の課題を出そうかと思ったが……なんという才能だ！\nお前に教えることは最初から無かったようだな。特別に『免許皆伝』を授けよう！！」`;
@@ -6493,12 +6487,12 @@ window.updateQuestHUD = function() {
 window.startVoiceRecognition = function() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-        alert("お使いのブラウザは音声認識に対応していません。Chrome等の最新ブラウザをご利用ください。");
+        window.ResidentUI.notify("お使いのブラウザは音声認識に対応していません。Chrome等の最新ブラウザをご利用ください。");
         return;
     }
 
     const recognition = new SpeechRecognition();
-    recognition.lang = window.GameI18n ? window.GameI18n.speechLanguage : 'ja-JP';
+    recognition.lang = document.getElementById('voiceLanguage')?.value || window.GameI18n?.speechLanguage || 'ja-JP';
     recognition.interimResults = false; 
     recognition.maxAlternatives = 1;
 
@@ -6526,7 +6520,7 @@ window.startVoiceRecognition = function() {
     recognition.onerror = function(event) {
         console.warn("音声認識エラー:", event.error);
         if (event.error === 'not-allowed') {
-            alert("マイクの使用が許可されていません。ブラウザの設定を確認してください。");
+            window.ResidentUI.notify("マイクの使用が許可されていません。ブラウザの設定を確認してください。");
         }
     };
 
@@ -6889,7 +6883,7 @@ window.showTCGMenu = function() {
                 🗃️ コレクション / 編成
             </button>
             
-            <button onclick="document.getElementById('tcg-main-menu').style.display='none'; openOnlineMatchLobby();" 
+            <button data-online-only onclick="document.getElementById('tcg-main-menu').style.display='none'; openOnlineMatchLobby();"
                 style="padding:12px; background:#E91E63; color:#fff; border:2px solid #fff; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px; box-shadow: 0 0 10px rgba(233,30,99,0.8);">
                 🌐 世界のプレイヤーと対戦
             </button>
@@ -6899,7 +6893,7 @@ window.showTCGMenu = function() {
                 ⚔️ 名もなきCPUと練習
             </button>
             
-            <button onclick="document.getElementById('tcg-main-menu').style.display='none'; uploadMyDeck();" 
+            <button data-online-only onclick="document.getElementById('tcg-main-menu').style.display='none'; uploadMyDeck();"
                 style="padding:12px; background:#9C27B0; color:#fff; border:2px solid #fff; border-radius:8px; font-weight:bold; cursor:pointer; font-size:16px;">
                 ☁️ デッキをオンライン登録
             </button>
@@ -7042,71 +7036,9 @@ window.isTutorialPlaying = false;
 window.tutQueueTimer = null;
 
 // 既存のチュートリアル関数を「順番待ち対応版」に上書き！
-window.showGameTutorial = function(title, message, callback) {
-    // リクエストをキュー（待ち行列）に追加
-    window.tutorialQueue.push({title, message, callback});
-    window.processTutorialQueue();
-};
-
 window.processTutorialQueue = function() {
-    // 既に何かのチュートリアルが再生中、またはキューが空なら何もしない
-    if (window.isTutorialPlaying || window.tutorialQueue.length === 0) return;
-    
-    // 画面が他のポップアップやイベントで塞がっていないかチェック
-    const cardPopup = document.getElementById('tcg-unlock-popup');
-    const encOverlay = document.getElementById('encounterOverlay');
-    
-    const isCardPopupOpen = cardPopup && cardPopup.style.pointerEvents === 'auto';
-    const isEncounterOpen = encOverlay && encOverlay.classList.contains('active');
-    
-    if (isCardPopupOpen || isEncounterOpen) {
-        // 画面が塞がっている場合は、1秒後に再確認する（空気を読んで待機！）
-        clearTimeout(window.tutQueueTimer);
-        window.tutQueueTimer = setTimeout(window.processTutorialQueue, 1000);
-        return;
-    }
-
-    // 画面が完全に空いたので、チュートリアルを再生開始！
-    window.isTutorialPlaying = true;
-    const tut = window.tutorialQueue.shift();
-
-    const tutBox = document.createElement('div');
-    tutBox.id = 'in-game-tutorial';
-    tutBox.style.cssText = `
-        position: fixed; top: 40%; left: 50%; transform: translate(-50%, -50%);
-        background: rgba(20, 20, 20, 0.95); border: 2px solid #FF9800;
-        border-radius: 12px; padding: 25px; color: #fff; width: 320px;
-        text-align: center; box-shadow: 0 0 40px rgba(255, 152, 0, 0.8);
-        z-index: 100000; opacity: 0; transition: all 0.5s ease;
-    `;
-    tutBox.innerHTML = `
-        <div style="color: #FF9800; font-size: 20px; font-weight: bold; margin-bottom: 15px;">${tut.title}</div>
-        <div style="font-size: 15px; line-height: 1.6; margin-bottom: 25px; color: #ddd; text-align: left;">
-            ${tut.message}
-        </div>
-        <button id="tut-close-btn" style="background: #FF9800; color: #fff; border: 2px solid #fff; padding: 12px 35px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-            わかった！
-        </button>
-    `;
-    document.body.appendChild(tutBox);
-    
-    setTimeout(() => { tutBox.style.opacity = '1'; }, 50);
-
-    // 「わかった！」を押した時の処理
-    document.getElementById('tut-close-btn').onclick = () => {
-        tutBox.style.opacity = '0';
-        tutBox.style.transform = 'translate(-50%, -60%)'; // 少し上にフワッと消える演出
-        setTimeout(() => {
-            if (tutBox.parentNode) tutBox.parentNode.removeChild(tutBox);
-            
-            if (tut.callback) tut.callback(); // ★ チュートリアル完了時の処理（ボタン出現など）を実行！
-            
-            window.isTutorialPlaying = false;
-            // 次のチュートリアルが待っていれば0.5秒後に呼び出す
-            clearTimeout(window.tutQueueTimer);
-            window.tutQueueTimer = setTimeout(window.processTutorialQueue, 500); 
-        }, 500);
-    };
+    while (window.tutorialQueue.length) window.tutorialQueue.shift().callback?.();
+    window.isTutorialPlaying = false;
 };
 
 // ==========================================
@@ -7149,6 +7081,7 @@ let tcgUnlockCheck = setInterval(() => {
 // ★ 新機能：AIの余生決断イベント表示
 // ==========================================
 window.showLifePathEvent = function(hero, path) {
+    if (window.DemoRules?.enabled) return;
     let title = "";
     let message = "";
     
@@ -11183,6 +11116,7 @@ window.openHutStorageUI = function(hutAsset) {
 };
 
 window.openMusicHall = function() {
+    if (window.DemoRules?.enabled) return;
     const overlay = document.getElementById('musicHallOverlay');
     if (!overlay) return;
 
@@ -11670,6 +11604,7 @@ function renderBlacksmithRecipeListHtml() {
 // 🏥 薬局専用ショップUI（特効薬の販売）
 // ==========================================
 window.openPharmacyShopUI = function() {
+    if (window.DemoRules?.enabled) return;
     let ai = window.aiPet;
     if (!ai) return;
 

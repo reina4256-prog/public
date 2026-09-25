@@ -8,6 +8,7 @@
     const reasons = { resources: '体力・満腹度不足', sick: '病気', food_missing: '食料不足', facility_missing: '施設がありません', route_missing: '到達できません', travel_short: '移動時間不足', work_short: '作業時間不足', completed: '完了', spoiled: '腐敗', unavailable: '利用条件を満たしていません。', invalid: '時刻・重複・行動の設定を確認してください。' };
     const clock = n => String(Math.floor(n / 60)).padStart(2, '0') + ':' + String(n % 60).padStart(2, '0');
     function open(personId) {
+        if (window.DemoRules?.enabled) return;
         const U = window.ResidentUI, hero = window.aiPet;
         const person = hero.residentState?.people[personId];
         const owner = person || hero;
@@ -147,6 +148,7 @@
     }
     let reportView;
     function report() {
+        if (window.DemoRules?.enabled) return;
         if (reportView && !reportView.root.isConnected) reportView = null;
         const data = window.aiPet?.timeProgress?.report;
         if (!data || data.acknowledged || reportView) return;

@@ -156,7 +156,12 @@
     }
 
     function getUnlockedEntries(archive) {
-        return CATALOG.filter(entry => archive.entries[entry.id]);
+        return CATALOG.filter(entry => archive.entries[entry.id] && isEntryAvailable(entry.id));
+    }
+
+    function isEntryAvailable(id) {
+        if (window.DemoRules?.enabled && id === 'systems.rescue') return false;
+        return id !== 'systems.online' || !window.GameRelease || window.GameRelease.online;
     }
 
     function getUnreadCount(archive) {
@@ -188,6 +193,7 @@
     }
 
     window.unlockTutorialEntry = function(id, options = {}) {
+        if (!isEntryAvailable(id)) return false;
         const entry = catalogById.get(id);
         if (!entry) {
             console.warn(`[Tutorial Archive] 未登録の項目です: ${id}`);
@@ -439,7 +445,7 @@
         const archive = readArchive();
         const entries = getUnlockedEntries(archive);
         const preferred = catalogById.has(preferredId) && archive.entries[preferredId] ? preferredId : selectedTutorialId;
-        selectedTutorialId = preferred && archive.entries[preferred] ? preferred : (entries[0] ? entries[0].id : null);
+        selectedTutorialId = entries.some(entry => entry.id === preferred) ? preferred : (entries[0] ? entries[0].id : null);
         if (selectedTutorialId && overlay.classList.contains('active') && !archive.entries[selectedTutorialId].viewedAt) {
             archive.entries[selectedTutorialId].viewedAt = Date.now();
             writeArchive(archive);

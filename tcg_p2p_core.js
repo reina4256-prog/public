@@ -4,6 +4,7 @@
 // ==========================================
 (function () {
     'use strict';
+    if (window.GameRelease && !window.GameRelease.online) return;
 
     const DATABASE_URL = 'https://ai-pet-game-default-rtdb.asia-southeast1.firebasedatabase.app';
     const DATABASE_MODULE_URL = 'https://www.gstatic.com/firebasejs/10.8.1/firebase-database.js';

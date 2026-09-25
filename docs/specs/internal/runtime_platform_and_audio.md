@@ -5,6 +5,7 @@
 ## 実行環境
 
 - `npm start` はElectron/Steam向けの標準起動。
+- 版別ビルド、オンライン有無、体験版の開発起動コマンドは [Steam体験版・製品版仕様](steam_demo_and_full_release.md) を参照する。
 - `npm run start:web` は `127.0.0.1:4173` で同じゲームを配信する。
 - `npm run start:web:lan` はLAN検証用に `0.0.0.0` へバインドする。
 - `browser_server.js` は依存なしの静的サーバーで、MIME、Range、パス包含、no-storeへ対応する。
@@ -26,7 +27,7 @@
 - `electron_main.js` がウィンドウ、フルスクリーン、Steamworksブリッジ、終了処理を所有する。
 - 開発ビルドだけDevToolsを開き、パッケージ版では自動表示しない。
 - Windows `dir` ビルドは `signAndEditExecutable: false`。現在の友人配布ビルドは未署名で、カスタムEXEメタデータを埋め込まない。
-- 配布単位は `dist/win-unpacked` フォルダ全体で、EXE単体ではない。
+- 配布単位は `dist/<profile>/win-unpacked` フォルダ全体で、EXE単体ではない。profileは `full`、`full-offline`、`demo`。
 - 現状は画像・動画・音声を広く同梱するため約5.7GiBで、サイズ最適化は未完了。
 
 ## Electronローカライズ監査

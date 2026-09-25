@@ -878,3 +878,32 @@ body {
     .resident-directory-split.show-detail .resident-directory-list { display: none; }
     .resident-directory-assignment > button:first-child { display: inline-block; }
 }
+/* Release capability gates also cover UI created after startup. */
+#demo-import-button { display: none; position: fixed; right: 20px; bottom: 16px; z-index: 500; }
+body.mode-title #demo-import-button { display: block; }
+html[data-edition="demo"] #btnEvolve,
+html[data-edition="demo"] #evolutionOverlay,
+html[data-edition="demo"] #inheritance-shop-ui,
+html[data-edition="demo"] #reincarnation-warn-ui {
+    display: none !important;
+}
+html[data-online="false"] [data-online-only],
+html[data-online="false"] #btnLogin,
+html[data-online="false"] #top-online-status,
+html[data-online="false"] #btn-menu-friend,
+html[data-online="false"] #btn-menu-tavern,
+html[data-online="false"] #btn-menu-ranking,
+html[data-online="false"] #loginOverlay,
+html[data-online="false"] #playerNameOverlay,
+html[data-online="false"] #dungeon-ranking-ui {
+    display: none !important;
+}
+html:not([data-generation]) #btnResidents,
+html[data-generation="1"] #btnResidents { display: none !important; }
+html[data-edition="demo"] #btnDailyQuest,
+html[data-edition="demo"] #btnMusicHall,
+html[data-edition="demo"] #btn-menu-rescue,
+html[data-edition="demo"] #panel-rescue,
+html[data-edition="demo"] #dailyQuestOverlay,
+html[data-edition="demo"] #loginBonusOverlay,
+html[data-edition="demo"] [data-full-only] { display: none !important; }
