@@ -40,6 +40,8 @@
 
 ## 共通音声
 
+- マップ生成とBGM本体は `island_shared.js` を通常版と比較版で共有する。比較版の起動・保存・生活更新の分離範囲は [言葉の比較実験版](../core/experimental_word_learning.md#既存島での比較起動) を参照。
+
 - `audioManager` がBGM停止、再生、通常曲復元、再生済み解放を扱う。
 - 各コンテンツは入場・状態・結果・退出で所有BGMを要求し、退出時に通常曲へ戻す。
 - 音楽館のプレイヤー向け仕様は `collections/music_hall.md`。

@@ -19,7 +19,7 @@ const imageSources = {
 window.dynamicImageCatalog = {}; 
 
 try {
-    const savedCustomImages = JSON.parse(localStorage.getItem('custom_images_v1'));
+    const savedCustomImages = window.WordIslandMode ? null : JSON.parse(localStorage.getItem('custom_images_v1'));
     if (savedCustomImages) { for (let key in savedCustomImages) { imageSources[key] = savedCustomImages[key]; } }
 } catch(e) {}
 
@@ -51386,7 +51386,7 @@ allMonstersKeys.forEach(key => {
 
 let aiConfigs = Object.assign({}, characterConfigs, mapChipConfigs);
 try {
-    const savedConfigs = JSON.parse(localStorage.getItem('ai_configs_v8'));
+    const savedConfigs = window.WordIslandMode ? null : JSON.parse(localStorage.getItem('ai_configs_v8'));
     if (savedConfigs) {
         for (let key in savedConfigs) {
             // ★保存データがあっても、現在のリスト(charaTraitsとmapChipConfigs)にないものは徹底的に無視する！

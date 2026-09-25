@@ -1,0 +1,116 @@
+{
+  "experienceMeanings": {
+    "work": ["仕事", "手伝い", "work", "helping", "帮工", "работа", "trabajo", "trabalho", "Arbeit"],
+    "work:explore": ["荷物運び", "荷物を運ぶ", "carrying supplies", "搬运物资", "переноска припасов", "llevar provisiones", "carregar suprimentos", "Vorräte tragen"],
+    "work:farming": ["石拾い", "畑の石を拾う", "picking up stones", "捡石头", "сбор камней", "recoger piedras", "recolher pedras", "Steine sammeln"],
+    "work:fishing": ["網修理", "網を直す", "mending nets", "修补渔网", "починка сетей", "reparar redes", "consertar redes", "Netze flicken"],
+    "work:cooking": ["皿洗い", "器を洗う", "washing dishes", "洗碗", "мытьё посуды", "lavar platos", "lavar louça", "Geschirr spülen"],
+    "work:smithing": ["ふいご", "火を保つ", "tending the fire", "维持炉火", "поддержание огня", "avivar el fuego", "manter o fogo", "das Feuer schüren"],
+    "work:building": ["図面写し", "図面を書き写す", "copying plans", "临摹图纸", "копирование чертежей", "copiar planos", "copiar plantas", "Baupläne abzeichnen"]
+  },
+  "meanings": {
+    "berry": ["木の実", "きのみ", "berry", "berries", "浆果", "ягода", "ягоды", "baya", "bayas", "fruta", "Beere"],
+    "food": ["食べ物", "food", "食物", "еда", "comida", "Essen"],
+    "eat": ["食べる", "eat", "吃", "есть", "comer", "essen"],
+    "hungry": ["おなかがすいた", "お腹がすいた", "hungry", "饿", "голод", "hambre", "fome", "hungrig"],
+    "tired": ["疲れた", "疲れている", "tired", "累", "устал", "cansado", "müde"],
+    "rest": ["休む", "休憩", "rest", "休息", "отдых", "descansar", "ausruhen"],
+    "sit": ["座る", "sit", "坐", "сидеть", "sentarse", "sentar", "sitzen"],
+    "sleep": ["眠る", "寝る", "sleep", "睡觉", "спать", "dormir", "schlafen"],
+    "wake": ["起きる", "wake", "醒来", "проснуться", "despertar", "acordar", "aufwachen"],
+    "walk": ["歩く", "散歩", "散歩する", "walk", "散步", "гулять", "pasear", "passear", "spazieren"],
+    "sweet": ["甘い", "sweet", "甜", "сладкий", "dulce", "doce", "süß"],
+    "bitter": ["苦い", "bitter", "苦", "горький", "amargo"],
+    "comfortable": ["心地よい", "comfortable", "舒服", "уютно", "cómodo", "confortável", "gemütlich"],
+    "painful": ["つらい", "painful", "难受", "тяжело", "doloroso", "schmerzhaft"],
+    "happy": ["うれしい", "嬉しい", "happy", "开心", "рад", "feliz", "froh"],
+    "sad": ["悲しい", "悲しかった", "sad", "难过", "грустно", "triste", "traurig"],
+    "like": ["好き", "like", "喜欢", "нравится", "gustar", "gostar", "mögen"],
+    "dislike": ["嫌い", "dislike", "讨厌", "не нравится", "disgustar", "não gostar", "nicht mögen"],
+    "success": ["うまくいく", "成功", "success", "成功", "успех", "éxito", "sucesso", "Erfolg"],
+    "failure": ["うまくいかない", "失敗", "failure", "失败", "неудача", "fracaso", "fracasso", "Misserfolg"]
+  },
+  "deictic": ["これ", "それ", "this", "这个", "это", "esto", "isto", "das"],
+  "patterns": {
+    "ja": [
+      {"id":"work_past","pattern":"^(?:どんな(?:仕事|手伝い)(?:を)?した|何(?:を)?手伝った)(?:の|んですか|か)?$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","requiresQuestion":true,"pattern":"^(?<meaning>荷物運び|石拾い|網修理|皿洗い|ふいご|図面写し)(?:を)?(?:また)?(?:やりたい|したい)(?:の|か)?$","frame":{"kind":"question","subject":"self","meaning":"$meaning","slot":"work_again","relations":["question"]}},
+      {"id":"greeting_morning", "pattern":"^(?:おはよ(?:う|ー|～|〜)*|おはようございます)$", "frame":{"kind":"greeting","relations":["report"]}},
+      {"id":"berry_observation", "pattern":"^(?:そこに|ここに|あそこに)?木の実(?:が)?(?:落ちている|落ちてる|ある)(?:ね|よ|よね)?$", "frame":{"kind":"report","meaning":"berry","aspect":"observation","relations":["report"]}},
+      {"id":"sour_question", "requiresQuestion":true, "pattern":"^(?:すっぱくない|酸っぱくない)(?:の|かな)?$", "frame":{"kind":"question","meaning":"eat","detail":"sour","slot":"sour_evaluation","relations":["question","negation"]}},
+      {"id":"rest_value", "pattern":"^(?:休む|やすむ)(?:こと|の)は大事(?:だよ|だね|だ|です)?$", "frame":{"kind":"report","meaning":"rest","detail":"importance","relations":["report"]}},
+      {"id":"rest_comfort", "pattern":"^横になると(?:気持ちいい|きもちいい|心地よい)(?:よね|ね|よ)?$", "frame":{"kind":"report","meaning":"comfortable","conditionMeaning":"rest","aspect":"rest_comfort","relations":["report","condition"]}},
+      {"id":"rest_explanation", "pattern":"^(?:うん[、, ]*)?体力や眠気が回復するから(?:ね)?$", "frame":{"kind":"report","meaning":"rest","detail":"recovery_explanation","relations":["report","reason"]}},
+      {"id":"yes_reply_priority", "pattern":"^(?:うん|そう|そうだよ|そうだね|はい|そうそう)$", "frame":{"kind":"reply","answer":"yes","relations":["report"]}},
+      {"id":"no_reply_priority", "pattern":"^(?:違う|ちがう|違うよ|ちがうよ|ううん)$", "frame":{"kind":"reply","answer":"no","relations":["report","negation"]}},
+      {"id":"taste_now", "requiresQuestion":true, "pattern":"^(?:(?:この|その|あの)?木の実(?:は|って))?(?:おいしい|美味しい)(?:の|かな)?$", "frame":{"kind":"question","slot":"taste_now","meaning":"eat","relations":["question"]}},
+      {"id":"rest_result", "requiresQuestion":true, "pattern":"^(?:しっかり|ゆっくり|ちゃんと|十分|よく)?(?:休めた|休んだ|やすめた|やすんだ|休めました|疲れ(?:は|が)?(?:とれた|取れた)|元気になった)(?:の|かな|か)?$", "frame":{"kind":"question","slot":"rest_result","meaning":"rest","relations":["question"]}},
+      {"id":"name_question", "pattern":"^(?:これ|それ)(?:は)?(?:何|なに|なんて呼ぶの|何て呼ぶの)$", "frame":{"kind":"question","target":"これ","slot":"name","relations":["question"]}},
+      {"id":"activity_now", "pattern":"^(?:今は?|いまは?)?(?:何|なに)(?:を)?(?:してる|している)(?:の)?$", "frame":{"kind":"question","slot":"current_activity","relations":["question"]}},
+      {"id":"retract_explanation", "pattern":"^さっきの説明は(?:間違えた|間違いだった)$", "frame":{"kind":"correction","relations":["correction"]}},
+      {"id":"name", "pattern":"^(?<target>これ|それ|木の実)を[、, ]*[「『]?(?<word>[^「」『』、,]{1,24}?)[」』]?(?:って|と)呼(?:ぼう|ぶよ|ぶんだよ)$", "frame":{"kind":"naming","target":"$target","word":"$word","relations":["naming"]}},
+      {"id":"conditional_rest", "pattern":"^疲れたら[、, ]*(?:少し)?休んで(?:ね)?$", "frame":{"kind":"request","meaning":"rest","conditionMeaning":"tired","relations":["request","condition"]}},
+      {"id":"after_eat_walk", "pattern":"^食べ終わったら[、, ]*(?:一緒に)?散歩(?:しよう|しようよ|に行こう)$", "frame":{"kind":"invitation","meaning":"walk","conditionMeaning":"eat","relations":["invitation","sequence"]}},
+      {"id":"rest_request", "pattern":"^(?:(?:今から|いまから)[、, ]*)?(?:木陰で[、, ]*)?(?:少し|ちょっと)?(?:休んで|やすんで)(?:ね|ください)?$", "frame":{"kind":"request","meaning":"rest","relations":["request"]}},
+      {"id":"rest_invitation", "pattern":"^(?:少し|ちょっと|一緒に)?(?:休もう|休もうよ|休憩しよう)$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"walk_invitation", "pattern":"^(?:一緒に)?散歩(?:しよう|しようよ|に行こう)$", "frame":{"kind":"invitation","meaning":"walk","relations":["invitation"]}},
+      {"id":"do_not_eat", "pattern":"^(?<target>それ|これ|木の実)(?:は|を)食べないで(?:ね)?$", "frame":{"kind":"request","meaning":"eat","target":"$target","polarity":"negative","relations":["request","negation"]}},
+      {"id":"not_dislike", "pattern":"^(?:(?<target>木の実)は)?嫌い(?:じゃない|ではない)$", "frame":{"kind":"report","meaning":"dislike","target":"$target","polarity":"negative","relations":["report","negation"]}},
+      {"id":"not_now", "pattern":"^今は(?:食べたくない|いらない)$", "frame":{"kind":"report","meaning":"eat","polarity":"negative","time":"now","aspect":"desire","relations":["report","negation","time"]}},
+      {"id":"preference", "pattern":"^(?:私は|わたしは)?(?<target>.+?)(?:が|は)(?<meaning>好き|嫌い)(?:だよ|です|だ)?$", "frame":{"kind":"report","meaning":"$meaning","target":"$target","aspect":"preference","relations":["report"]}},
+      {"id":"real_life_sad", "pattern":"^今日は(?<detail>.+?)で失敗して悲しかった$", "frame":{"kind":"report","meaning":"sad","detail":"$detail","time":"past_today","relations":["report","time","reason"]}},
+      {"id":"sad_report", "pattern":"^(?:私は|わたしは)?(?<meaning>悲しい|うれしい|嬉しい|疲れた)(?:よ|です)?$", "frame":{"kind":"report","meaning":"$meaning","relations":["report"]}},
+      {"id":"past_sad", "pattern":"^昨日は悲しかった(?:よ)?$", "frame":{"kind":"report","meaning":"sad","time":"yesterday","relations":["report","time"]}},
+      {"id":"taste_question", "requiresQuestion":true, "pattern":"^(?:(?:この|その|あの)?木の実(?:は|って))?(?:おいしかった|美味しかった)(?:の|かな)?$", "frame":{"kind":"question","slot":"taste_evaluation","meaning":"eat","relations":["question"]}},
+      {"id":"activity_question", "pattern":"^何を(?:してた|していた|していたの)$", "frame":{"kind":"question","slot":"past_activity","relations":["question","time"]}},
+      {"id":"reason_question", "pattern":"^(?:どうして|なぜ)休んだ(?:の)?$", "frame":{"kind":"question","meaning":"rest","slot":"reason","relations":["question","reason"]}},
+      {"id":"name_description", "pattern":"^(?:これは|それは)[「『]?(?<word>[\\p{L}\\p{N}ー]{1,16})[」』]?(?:だよ|っていうんだ|という名前だよ)$", "frame":{"kind":"naming","target":"これ","word":"$word","relations":["naming"]}},
+      {"id":"name_answer", "pattern":"^[「『]?(?<word>[\\p{L}\\p{N}ー]{1,16})[」』]?(?:だよ|っていうんだ|という名前だよ)$", "frame":{"kind":"naming","target":"これ","word":"$word","shortAnswer":true,"relations":["naming"]}},
+      {"id":"yes_reply", "pattern":"^(?:うん|そう|そうだよ|はい|そうそう)$", "frame":{"kind":"reply","answer":"yes","relations":["report"]}},
+      {"id":"no_reply", "pattern":"^(?:違う|ちがう|違うよ|ちがうよ|ううん)$", "frame":{"kind":"reply","answer":"no","relations":["report","negation"]}}
+    ],
+    "en": [
+      {"id":"work_past","pattern":"^what (?:work did you do|did you help with)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","pattern":"^(?:do you want to|would you like to) (?:do (?:that|it)|help) again$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
+      {"id":"rest", "pattern":"^(?:let's rest|let us rest)$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"rest_request", "pattern":"^(?:please rest|rest a little)$", "frame":{"kind":"request","meaning":"rest","relations":["request"]}},
+      {"id":"sad", "pattern":"^i(?: am|'m) sad$", "frame":{"kind":"report","meaning":"sad","relations":["report"]}},
+      {"id":"like", "pattern":"^i like berries$", "frame":{"kind":"report","meaning":"like","target":"berries","relations":["report"]}}
+    ],
+    "zh-CN": [
+      {"id":"work_past","pattern":"^你?(?:做了什么工作|帮了什么忙)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","pattern":"^你?(?:还想|想再)(?:帮忙|做一次)吗?$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
+      {"id":"rest", "pattern":"^(?:休息一下吧|一起休息吧)$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"sad", "pattern":"^我很难过$", "frame":{"kind":"report","meaning":"sad","relations":["report"]}},
+      {"id":"like", "pattern":"^我喜欢浆果$", "frame":{"kind":"report","meaning":"like","target":"浆果","relations":["report"]}}
+    ],
+    "ru": [
+      {"id":"work_past","pattern":"^какую работу ты (?:сделал|выполнил)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","pattern":"^ты хочешь (?:помочь|попробовать) (?:снова|ещё раз)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
+      {"id":"rest", "pattern":"^давай отдохнём$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"sad", "pattern":"^мне грустно$", "frame":{"kind":"report","meaning":"sad","relations":["report"]}},
+      {"id":"like", "pattern":"^мне нравятся ягоды$", "frame":{"kind":"report","meaning":"like","target":"ягоды","relations":["report"]}}
+    ],
+    "es-ES": [
+      {"id":"work_past","pattern":"^¿?qué (?:trabajo hiciste|hiciste para ayudar)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","pattern":"^¿?quieres (?:ayudar|hacerlo) (?:otra vez|de nuevo)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
+      {"id":"rest", "pattern":"^descansemos un poco$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"sad", "pattern":"^estoy triste$", "frame":{"kind":"report","meaning":"sad","relations":["report"]}},
+      {"id":"like", "pattern":"^me gustan las bayas$", "frame":{"kind":"report","meaning":"like","target":"bayas","relations":["report"]}}
+    ],
+    "pt-BR": [
+      {"id":"work_past","pattern":"^que trabalho você fez$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","pattern":"^você quer (?:ajudar|fazer isso) de novo$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
+      {"id":"rest", "pattern":"^vamos descansar um pouco$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"sad", "pattern":"^estou triste$", "frame":{"kind":"report","meaning":"sad","relations":["report"]}},
+      {"id":"like", "pattern":"^eu gosto de fruta$", "frame":{"kind":"report","meaning":"like","target":"fruta","relations":["report"]}}
+    ],
+    "de": [
+      {"id":"work_past","pattern":"^welche arbeit hast du gemacht$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
+      {"id":"work_again","pattern":"^möchtest du (?:noch einmal|wieder) (?:helfen|das machen)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
+      {"id":"rest", "pattern":"^ruhen wir uns etwas aus$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
+      {"id":"sad", "pattern":"^ich bin traurig$", "frame":{"kind":"report","meaning":"sad","relations":["report"]}},
+      {"id":"like", "pattern":"^ich mag beeren$", "frame":{"kind":"report","meaning":"like","target":"Beere","relations":["report"]}}
+    ]
+  }
+}

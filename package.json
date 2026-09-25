@@ -4,6 +4,10 @@
   "description": "",
   "main": "electron_main.js",
   "scripts": {
+    "start:words": "node scripts/experimental/launch.js",
+    "start:word": "node scripts/experimental/launch.js",
+    "start:web:words": "node scripts/experimental/serve.js",
+    "test:words": "node --test tests/experimental_word_learning.test.js tests/experimental_word_electron.test.js tests/experimental_word_island.test.js",
     "start": "electron .",
     "start:web": "node browser_server.js",
     "start:web:lan": "node browser_server.js --host 0.0.0.0",
