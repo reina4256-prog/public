@@ -14,6 +14,121 @@ const focus = (state, scene = 'clearing', count = 1) => api.perceive(state, {
     scene, attention: Array.from({ length: count }, (_, i) => ({ id: `berry:${i + 1}`, meaning: 'berry' }))
 });
 
+test('external reports distinguish heard time, event, feeling and unresolved real details', () => {
+    const state = create(), world = worldApi.create();
+    const knowledge = JSON.stringify(state.knowledge), experiences = JSON.stringify(world.experiences);
+    const result = say(state, '昨日は量子実験で失敗して悲しかった', { at: 123 });
+    const u = result.understandings[0];
+    assert.deepEqual(u.known, { meaning: 'sad', eventMeaning: 'failure' });
+    assert.equal(u.subject, 'player'); assert.equal(u.eventTime, 'yesterday');
+    assert.deepEqual(u.unresolved, [{ type: 'detail', token: '量子実験' }]);
+    assert.equal(u.reportSource.heardAt, 123);
+    assert.equal(worldApi.respond(world, result, state).message, 'heard_feeling_partial');
+    assert.equal(state.context.lastOutput.topic, null);
+    assert.equal(JSON.stringify(state.knowledge), knowledge);
+    assert.equal(JSON.stringify(world.experiences), experiences);
+    const prior = state.records.length;
+    const echo = say(state, 'そう、その話');
+    assert.equal(echo.understandings[0].reportReference.inputId, result.input.id);
+    assert.equal(echo.understandings[0].eventTime, 'yesterday');
+    assert.equal(echo.understandings[0].complete, false);
+    assert.equal(state.records.length, prior);
+    assert.equal(worldApi.respond(world, echo, state).message, 'heard_feeling_partial');
+});
+
+test('event-to-feeling continuation keeps original report through JSON and never creates own work', () => {
+    let state = create(); const world = worldApi.create();
+    const event = say(state, '昨日は仕事で失敗した', { at: 321 });
+    assert.equal(worldApi.respond(world, event, state).message, 'heard_event_partial');
+    state = JSON.parse(JSON.stringify(state));
+    const extension = say(state, 'それで悲しかった');
+    const u = extension.understandings[0];
+    assert.equal(u.known.meaning, 'sad'); assert.equal(u.eventTime, 'yesterday');
+    assert.equal(u.timeSource, 'report_reference'); assert.equal(u.reportReference.inputId, event.input.id);
+    assert.equal(u.reportReference.heardAt, 321); assert.equal(u.unresolved[0].token, '仕事');
+    worldApi.respond(world, extension, state);
+    const echo = say(state, 'そのことだよ'); worldApi.respond(world, echo, state);
+    assert.equal(echo.understandings[0].reportReference.inputId, event.input.id);
+    assert.equal(world.experiences.length, 0); assert.equal(state.records.length, 2);
+    assert.ok(worldApi.validContext(state, world));
+    const damaged = JSON.parse(JSON.stringify(state));
+    damaged.context.turns.at(-1).understandings[0].reportReference.inputId = 'input:999';
+    assert.equal(worldApi.validContext(damaged, world), false);
+    delete state.context.lastOutput;
+    assert.ok(worldApi.validContext(state, world));
+});
+
+test('all eight settings preserve report comprehension independently of spoken expression', () => {
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+        const state = create({ foundation, life, speech }), world = worldApi.create();
+        const before = JSON.stringify(state.knowledge);
+        const report = say(state, '今日は仕事で失敗して悲しかった');
+        const response = worldApi.respond(world, report, state);
+        assert.equal(response.message === 'heard_feeling_partial', foundation && life && speech === 'short');
+        const echo = say(state, 'その話だよ');
+        assert.equal(!!echo.understandings[0].reportReference, foundation && life);
+        assert.equal(JSON.stringify(state.knowledge), before);
+        assert.equal(world.experiences.length, 0);
+    }
+});
+
+test('report continuation does not cross speaker, topic, unknown relation or unsupported scope', () => {
+    for (const interruption of ['今何してるの？', 'よく分からない言葉', '悲しくない', '彼は悲しかった', '悲しかったら休もう', '悲しかった。うれしい']) {
+        const state = create(), world = worldApi.create();
+        worldApi.respond(world, say(state, '昨日は悲しかった'), state);
+        worldApi.respond(world, say(state, interruption), state);
+        assert.equal(say(state, 'その話だよ').understandings[0].reportReference, undefined, interruption);
+    }
+    const state = create(); say(state, '昨日は悲しかった');
+    assert.equal(say(state, 'その話だよ', { speaker: 'other' }).understandings[0].reportReference, undefined);
+    for (const text of ['私は昨日は仕事で失敗して悲しかった？', '彼は今日は仕事で失敗して悲しかった',
+        '今日は彼が仕事で失敗して悲しかった', 'そのことで悲しかったら休もう']) {
+        assert.notEqual(say(create(), text).understandings[0].kind, 'report', text);
+    }
+});
+
+test('past and present contrast remains separate and unknown details do not become known by echo', () => {
+    const state = create();
+    const result = say(state, '昨日は悲しかったけど、今はうれしい');
+    assert.equal(result.understandings.length, 2);
+    assert.deepEqual(result.understandings.map(u => [u.known.meaning, u.eventTime]), [['sad', 'yesterday'], ['happy', 'now']]);
+    assert.equal(say(state, 'その話だよ').understandings[0].reportReference, undefined);
+    for (const text of ['今日は仕事で成功してうれしかった', '今はつらい', '私は疲れている']) {
+        const s = create(), w = worldApi.create(), r = say(s, text);
+        assert.equal(r.understandings[0].kind, 'report', text);
+        assert.ok(['heard_feeling_partial', 'heard_feeling'].includes(worldApi.respond(w, r, s).message));
+    }
+});
+
+test('report ellipsis stops at intervening observations and old reports gain no retroactive source', () => {
+    const state = create(), world = worldApi.create();
+    worldApi.respond(world, say(state, '昨日は悲しかった'), state);
+    const event = { id: 6, kind: 'experience', activity: 'eat', target: 'berry:1' };
+    world.experiences.push({ ...event, kind: 'eat' });
+    worldApi.onArrival(world, state, event);
+    assert.equal(say(state, 'その話だよ').understandings[0].reportReference, undefined);
+    const old = create(); say(old, '昨日は悲しかった');
+    delete old.context.turns[0].understandings[0].reportSource;
+    assert.equal(say(old, 'その話だよ').understandings[0].reportReference, undefined);
+    const punctuated = create(); say(punctuated, '昨日は仕事で失敗した');
+    assert.equal(say(punctuated, 'それで悲しかった。').understandings[0].eventTime, 'yesterday');
+});
+
+test('seven languages share report continuation and retain the original input evidence', () => {
+    const cases = [['ja', '悲しい', 'そう、その話'], ['en', 'I am sad', "Yes, that is what I meant"],
+        ['zh-CN', '我很难过', '对，我说的就是这件事'], ['ru', 'мне грустно', 'да, я об этом'],
+        ['es-ES', 'estoy triste', 'sí, a eso me refiero'], ['pt-BR', 'estou triste', 'sim, é disso que estou falando'],
+        ['de', 'ich bin traurig', 'ja, das meine ich']];
+    for (const [locale, text, followup] of cases) {
+        const state = create(), world = worldApi.create();
+        const first = say(state, text, { locale }); worldApi.respond(world, first, state);
+        const next = say(state, followup, { locale });
+        assert.equal(next.understandings[0].reportReference?.inputId, first.input.id, locale);
+        assert.equal(next.input.raw, followup); assert.equal(state.records.length, 1);
+        assert.equal(worldApi.respond(world, next, state).message, 'receive_sadness');
+    }
+});
+
 test('context clarification composes meaning, ellipsis and paraphrase with the delivered life topic', () => {
     const state = create(), world = worldApi.create();
     const ask = text => worldApi.respond(world, say(state, text), state);

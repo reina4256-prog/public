@@ -67,7 +67,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             await js('document.querySelector("#app > form").requestSubmit()');
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
-            await chat('今何してるの？'); await chat('一息って？');
+            await chat('今何してるの？'); await chat('もう一度教えて'); await chat('一息って？');
             assert.ok(await js('document.querySelector("#conversation").textContent.includes("少し何もせず休む")'));
             assert.equal(snapshot.state.context.lastOutput.source.message, 'taking_break');
             await window.loadURL(url); await paintClock(); await sleep(600);
@@ -89,7 +89,24 @@ if (!process.versions.electron || process.type !== 'browser') {
                 snapshot.world.experiences.at(-1).id);
             assert.equal(snapshot.world.experiences.filter(e => e.kind === 'eat').length, 1);
             assert.ok(await js('document.querySelector("#conversation").textContent.includes("甘くておいしかった")'));
-            await sleep(1200); // Hidden native compositor needs time to paint the new chat.
+            await chat('昨日は仕事で失敗した');
+            const reportId = snapshot.state.context.turns.at(-1).id;
+            const ownExperiences = snapshot.world.experiences.length;
+            await chat('それで悲しかった');
+            assert.ok(await js('document.querySelector("#conversation").textContent.includes("詳しいことはまだ分からない")'));
+            assert.equal(snapshot.state.context.turns.at(-1).understandings[0].eventTime, 'yesterday');
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            await chat('そう、その話');
+            assert.equal(snapshot.state.context.turns.at(-1).understandings[0].reportReference.inputId, reportId);
+            assert.equal(snapshot.world.experiences.length, ownExperiences);
+            assert.equal(snapshot.state.context.lastOutput.topic, null);
+            assert.equal(await js('document.querySelectorAll("#conversation .conversation-help").length'), 0);
+            // A reload in a hidden native window can leave an old compositor surface.
+            // Resize and request a capture while keeping the test window hidden.
+            window.setSize(1281, 800);
+            await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true });
+            await sleep(1200);
             const screenshot = path.resolve(__dirname, '../../tests/word-context-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage()).toPNG());
             assert.equal(JSON.stringify(snapshot.world.island.assets), initialMap);

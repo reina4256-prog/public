@@ -142,6 +142,9 @@
         chat: '声をかける', send: '送る', diagnostics: '検証用：理解と学習の内訳',
         attend: 'こちらに視線を向けている。', acknowledge: 'うん、聞いているよ。',
         uncertain: 'まだ、よく分からない。', answer_unknown: 'まだ、答えが分からない。',
+        heard_feeling_partial: '詳しいことはまだ分からないけれど、話してくれた気持ちは受け取ったよ。',
+        heard_feeling: '話してくれた気持ち、聞いているよ。',
+        heard_event_partial: 'うまくいったかどうかは伝わったよ。詳しい出来事は、まだ分からない。',
         receive_sadness: '悲しい気持ち、伝わったよ。', failed: '読み込みに失敗しました。ページを開き直してください。'
     };
     let state;
@@ -466,8 +469,10 @@
         const reply = worldApi.respond(world, result, state);
         showReply(reply);
         window.ExperimentalWordNotebook.rememberQuestion(state, result, reply);
+        const partialReportExplained = result.understandings.length === 1
+            && ['heard_feeling_partial', 'heard_event_partial'].includes(reply.message);
         const hint = result.learning.some(item => item.updated.length) ? 'receivedName'
-            : result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
+            : !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
         if (hint) record('guidance', { key: hint, text: displayText(hint) });
         renderNotebook();

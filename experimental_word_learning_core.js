@@ -85,12 +85,39 @@
         return null;
     }
 
+    function feelingReport(part, question, locale) {
+        if (locale !== 'ja' || question) return null;
+        const event = /^(?:(?:私は|わたしは)[、,\s]*)?(今日|昨日|さっき)(?:は)?(?<detail>[^、,。！？!?はが]+?)で(?<event>失敗した|うまくいかなかった|成功した|うまくいった)(?:んだ|よ|んだよ)?$/u.exec(normalize(part));
+        if (event) return { kind: 'report', aspect: 'external_event', meaning: /失敗|いかなかった/u.test(event.groups.event) ? 'failure' : 'success',
+            detail: event.groups.detail, time: { 今日: 'past_today', 昨日: 'yesterday', さっき: 'past' }[event[1]],
+            relations: ['report', 'time'], catalogRule: 'external_event_report' };
+        const match = /^(?:(?:私は|わたしは)[、,\s]*)?(?:(今日|昨日|今|さっき)(?:は)?[、,\s]*)?(?:(?<detail>[^、,。！？!?はが]+?)で(?<event>失敗して|うまくいかなくて|成功して|うまくいって))?(?<feeling>悲しかった|うれしかった|嬉しかった|つらかった|疲れていた|悲しい|うれしい|嬉しい|つらい|疲れた|疲れている)(?:んだ|です|よ|んだよ)?$/u.exec(normalize(part));
+        if (!match) return null;
+        const meanings = { 悲しかった: 'sad', 悲しい: 'sad', うれしかった: 'happy', 嬉しかった: 'happy',
+            うれしい: 'happy', 嬉しい: 'happy', つらかった: 'painful', つらい: 'painful',
+            疲れた: 'tired', 疲れていた: 'tired', 疲れている: 'tired' };
+        const past = /かった|ていた/u.test(match.groups.feeling);
+        const time = { 今日: past ? 'past_today' : 'today', 昨日: 'yesterday', 今: 'now', さっき: 'past' }[match[1]] || (past ? 'past' : 'unspecified');
+        return { kind: 'report', aspect: 'feeling', meaning: meanings[match.groups.feeling], time,
+            ...(match.groups.event ? { eventMeaning: /失敗|いかなく/u.test(match.groups.event) ? 'failure' : 'success', detail: match.groups.detail } : {}),
+            relations: ['report', ...(time !== 'unspecified' ? ['time'] : []), ...(match.groups.event ? ['reason'] : [])],
+            catalogRule: 'feeling_report' };
+    }
+
     function interpret(text, locale, catalog) {
         // Raw input is kept separately. Only the parser uses normalized text.
+        const contrast = locale === 'ja' && /^(.+?)(?:けど|けれど)[、,\s]*(.+?)[。]?$/u.exec(text.trim());
+        if (contrast && feelingReport(contrast[1], false, locale) && feelingReport(contrast[2], false, locale)) {
+            return contrast.slice(1).map(part => { const frame = feelingReport(part, false, locale);
+                return { ...frame, span: part, relations: [...frame.relations, 'contrast'] }; });
+        }
         const parts = text.match(/[^。！？!?\n]+[！？!?]?/gu) || [];
         return parts.map(rawPart => {
             const question = /[?？]$/u.test(rawPart.trim());
             const part = rawPart.trim().replace(/[！？!?]$/u, '').trim();
+            const feeling = feelingReport(part, question, locale);
+            if (feeling) return { ...feeling, span: part };
+            if (question && feelingReport(part, false, locale)) return { kind: 'unknown', span: rawPart.trim(), relations: [] };
             const situation = situationQuestion(part, question, locale);
             if (situation) return { ...situation, span: part };
             for (const rule of catalog.patterns[locale] || []) {
@@ -153,7 +180,7 @@
         const missingRelations = required.filter(id => !understands(state, 'relations', id));
         unresolved.push(...missingRelations.map(id => ({ type: 'relation', id })));
         const known = {};
-        for (const field of ['meaning', 'conditionMeaning']) {
+        for (const field of ['meaning', 'conditionMeaning', 'eventMeaning']) {
             if (!frame[field]) continue;
             const id = Object.hasOwn(catalog.meanings, frame[field]) || Object.hasOwn(catalog.experienceMeanings || {}, frame[field])
                 ? frame[field] : lexicalMeaning(frame[field], catalog);
@@ -242,7 +269,7 @@
         const last = understandings[understandings.length - 1];
         if (last.kind === 'question') return { intent: 'answer_unknown', action: null };
         if (last.kind === 'correction') return { intent: last.complete ? 'acknowledge' : 'uncertain', action: null };
-        if (last.kind === 'report' && last.known.meaning === 'sad' && last.polarity === 'positive') {
+        if (['report', 'report_continuation'].includes(last.kind) && last.known.meaning === 'sad' && last.polarity === 'positive') {
             return { intent: 'receive_sadness', action: null };
         }
         if (last.complete) return { intent: 'acknowledge', action: null };
@@ -289,6 +316,42 @@
             span: raw, catalogRule: 'context_detail', contextReference: clone(focus) };
     }
 
+    // Reports are heard evidence, separate from the character's delivered speech or
+    // observations. Only the immediately preceding speaker report can supply ellipsis.
+    function reportContinuation(state, raw, input) {
+        const forms = {
+            ja: /^(?:そう[、,\s]*)?(?:そのこと|その話|さっきの話)(?:だよ|です)?[。.]?$/u,
+            en: /^(?:yes,? )?that(?:'s| is) what i meant[.]?$/iu,
+            'zh-CN': /^(?:对[，,]?)?我说的就是这件事[。]?$/u,
+            ru: /^да,? я об этом[.]?$/iu,
+            'es-ES': /^sí,? a eso me refiero[.]?$/iu,
+            'pt-BR': /^sim,? é disso que estou falando[.]?$/iu,
+            de: /^ja,? das meine ich[.]?$/iu
+        };
+        const echo = forms[input.locale]?.test(normalize(raw));
+        const extension = input.locale === 'ja' && /^(?:それで|そのことで)[、,\s]*(.+)$/u.exec(normalize(raw).replace(/。$/u, ''));
+        const feeling = extension && feelingReport(extension[1], false, 'ja');
+        if (!echo && feeling?.aspect !== 'feeling') return null;
+        const previous = state.context.turns.at(-1);
+        const u = previous?.understandings.length === 1 && previous.understandings[0];
+        if (state.context.lastOutput && state.context.lastOutput.inputId !== previous?.id) return null;
+        if (previous?.speaker !== input.speaker || !u || !['report', 'report_continuation'].includes(u.kind)
+            || u.subject !== input.speaker || u.polarity !== 'positive'
+            || !['sad', 'happy', 'painful', 'tired', 'failure', 'success'].includes(u.known.meaning)
+            || u.unresolved.some(item => item.type !== 'detail') || !u.reportSource) return null;
+        const reference = { inputId: u.reportReference?.inputId || u.reportSource.inputId,
+            previousInputId: previous.id, speaker: input.speaker, kind: 'speaker_report',
+            heardAt: u.reportReference?.heardAt ?? u.reportSource.heardAt, eventTime: u.eventTime };
+        const source = state.records.find(r => r.id === reference.inputId && r.speaker === input.speaker && !r.retractedBy);
+        if (!source) return null;
+        const inheritsTime = feeling && feeling.time === 'past' && ['past_today', 'yesterday', 'past'].includes(u.eventTime);
+        return { ...(feeling || { kind: 'report_continuation', meaning: u.known.meaning,
+            eventMeaning: u.known.eventMeaning, time: u.eventTime, relations: ['report', ...(u.eventTime !== 'unspecified' ? ['time'] : [])] }),
+            ...(inheritsTime ? { time: u.eventTime, timeSource: 'report_reference' } : {}),
+            aspect: feeling ? 'feeling' : u.aspect, span: raw, catalogRule: 'report_continuation', reportReference: reference,
+            inheritedDetails: clone(u.unresolved), ...(feeling ? { relations: [...new Set([...feeling.relations, 'reason'])] } : {}) };
+    }
+
     function receive(state, raw, catalog, options = {}) {
         if (typeof raw !== 'string' || !raw.trim() || raw.length > 1000) throw new Error('Invalid input');
         const input = { id: `input:${++state.serial}`, raw, locale: options.locale || 'ja',
@@ -307,10 +370,11 @@
         const delivered = state.context.lastOutput;
         const answer = (!delivered || (delivered.inputId === previous?.id && delivered.deliveryKind === 'speech')) && previous?.answer;
         const followup = contextQuestion(state, raw, input.locale, input.speaker, catalog);
+        const reportFollowup = reportContinuation(state, raw, input);
         const interpretations = repeats && answer && previous.speaker === input.speaker
             ? [{ kind: 'question', slot: 'repeat_answer', subject: 'self', relations: ['question'],
                 span: raw, catalogRule: 'context_repeat', replyTo: previous.id }]
-            : followup ? [followup] : interpret(raw, input.locale, catalog);
+            : followup ? [followup] : reportFollowup ? [reportFollowup] : interpret(raw, input.locale, catalog);
         if (!interpretations.length) interpretations.push({ kind: 'unknown', span: raw, relations: [] });
         interpretations.forEach((frame, index) => {
             if (frame.catalogRule === 'rest_explanation' && !state.context.turns.at(-1)?.understandings.some(u => u.known.meaning === 'rest')) {
@@ -350,6 +414,18 @@
             }
         });
         const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog));
+        understandings.forEach((u, index) => {
+            const frame = interpretations[index];
+            if (frame.reportReference) {
+                u.reportReference = clone(frame.reportReference);
+                if (frame.timeSource) u.timeSource = frame.timeSource;
+                u.unresolved.push(...frame.inheritedDetails);
+                u.complete = u.unresolved.length === 0;
+            }
+            if (['report', 'report_continuation'].includes(u.kind)) {
+                u.reportSource = { kind: 'speaker_report', inputId: input.id, heardAt: input.at };
+            }
+        });
         if (followup && interpretations[0] === followup) {
             const u = understandings[0];
             u.contextReference = clone(followup.contextReference);

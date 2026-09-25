@@ -271,6 +271,15 @@
         const knows = id => state.knowledge.meanings.some(entry => entry.id === id);
         world.reaction = !u.complete ? 'uncertain' : 'attend';
         if (result.reaction.intent === 'receive_sadness') world.reaction = 'care';
+        if (['report', 'report_continuation'].includes(u.kind) && u.subject === result.input.speaker
+            && u.aspect === 'external_event' && ['failure', 'success'].includes(u.known.meaning)) {
+            return { message: canSpeak ? 'heard_event_partial' : 'attend' };
+        }
+        if (['report', 'report_continuation'].includes(u.kind) && u.subject === result.input.speaker
+            && u.polarity === 'positive' && ['sad', 'happy', 'painful', 'tired'].includes(u.known.meaning)) {
+            return { message: !canSpeak ? 'attend' : u.unresolved.length ? 'heard_feeling_partial'
+                : u.known.meaning === 'sad' ? 'receive_sadness' : 'heard_feeling' };
+        }
         if (u.kind === 'greeting' && u.complete) return { message: canSpeak ? 'good_morning' : 'attend' };
         if (u.kind === 'question' && u.questionSlot === 'sour_evaluation' && u.known.meaning === 'eat'
             && u.relations.includes('negation')) {
@@ -412,6 +421,16 @@
         return null;
     }
     function validContext(state, world) {
+        for (const turn of state.context?.turns || []) {
+            for (const u of turn.understandings || []) {
+                const ref = u.reportReference;
+                if (!ref) continue;
+                const record = state.records.find(r => r.id === ref.inputId && r.speaker === ref.speaker && !r.retractedBy);
+                if (ref.kind !== 'speaker_report' || ref.speaker !== turn.speaker || !Number.isFinite(ref.heardAt)
+                    || !record || record.heardAt !== ref.heardAt
+                    || !record.understandings.some(item => item.kind === 'report' && item.subject === ref.speaker)) return false;
+            }
+        }
         const focus = state.context?.lastOutput;
         if (focus === undefined) return true; // Do not manufacture context for old saves.
         if (!focus || !Number.isInteger(focus.serial) || focus.serial > state.serial || focus.serial < 0
