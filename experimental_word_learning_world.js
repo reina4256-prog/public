@@ -146,6 +146,34 @@
     }
 
     function respond(world, result, state) {
+        const u = result.understandings.at(-1);
+        const turn = state.context.turns.find(item => item.id === result.input.id);
+        if (u.complete && u.questionSlot === 'repeat_answer') {
+            const previous = state.context.turns.find(item => item.id === u.answerReference?.turnId);
+            if (previous?.answer && previous.speaker === result.input.speaker) {
+                if (turn) turn.answer = JSON.parse(JSON.stringify(previous.answer));
+                world.reactionTime = 5;
+                return JSON.parse(JSON.stringify(previous.answer.response));
+            }
+            return { message: 'answer_unknown' };
+        }
+        const response = respondCurrent(world, result, state);
+        // Keep only an actually expressed, fully understood self-answer. This is
+        // conversational evidence, never a new experience or a player report.
+        if (turn && result.understandings.length === 1 && u.complete && u.kind === 'question'
+            && ['current_activity', 'past_activity', 'attention', 'destination', 'work_past', 'work_again',
+                'taste_evaluation', 'taste_now', 'rest_result', 'reason'].includes(u.questionSlot)
+            && u.subject === 'self' && state.settings.speech === 'short'
+            && !response.observation && !['answer_unknown', 'attend', 'taste_unsure'].includes(response.message)) {
+            turn.answer = { subject: u.subject, eventTime: u.eventTime,
+                source: { inputId: result.input.id, questionSlot: u.questionSlot,
+                    experienceId: response.experienceId || null, answeredAt: result.input.at },
+                response: JSON.parse(JSON.stringify(response)) };
+        }
+        return response;
+    }
+
+    function respondCurrent(world, result, state) {
         world.pause = world.island ? 0 : 5; world.reactionTime = 5;
         const u = result.understandings.at(-1);
         const canSpeak = state.settings.speech === 'short';

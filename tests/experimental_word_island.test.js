@@ -197,6 +197,10 @@ test('demonstrated work grounds words, recall, willingness and autonomous choice
     assert.equal(JSON.stringify(state.knowledge), knowledge, 'replayed result adds no evidence');
     assert.equal(ask('何をしたの？').message, 'work_did_cooking');
     assert.equal(ask('さっき何してた？').message, 'work_did_cooking');
+    const repeated = ask('もう一度教えて');
+    assert.equal(repeated.message, 'work_did_cooking');
+    assert.equal(repeated.experienceId, world.experiences.at(-1).id);
+    assert.equal(JSON.stringify(state.knowledge), knowledge);
     assert.equal(ask('皿洗いをまたしたい？').master, 'cooking');
     const before = JSON.stringify({ interest: world.careers.people.cooking.interest, destination: world.destination, knowledge: state.knowledge });
     assert.equal(ask('またやりたい？').message, 'work_again');

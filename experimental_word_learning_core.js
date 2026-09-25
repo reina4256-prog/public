@@ -259,7 +259,22 @@
         if (typeof raw !== 'string' || !raw.trim() || raw.length > 1000) throw new Error('Invalid input');
         const input = { id: `input:${++state.serial}`, raw, locale: options.locale || 'ja',
             speaker: options.speaker || 'player', at: options.at ?? Date.now(), scene: state.context.scene };
-        const interpretations = interpret(raw, input.locale, catalog);
+        const repeatForms = {
+            ja: /^(?:さっきの(?:話|答え)を)?(?:もう一度|もういちど|もう一回)(?:教えて|言って|聞かせて)(?:くれる|ください)?[？?。]?$/u,
+            en: /^(?:please )?(?:say|tell me) (?:that|it) again[?.]?$/iu,
+            'zh-CN': /^(?:请)?再说一遍[？?。]?$/u,
+            ru: /^повтори(?:,? пожалуйста)?[?.]?$/iu,
+            es: /^rep[ií]telo(?:,? por favor)?[?.]?$/iu,
+            'pt-BR': /^repita(?:,? por favor)?[?.]?$/iu,
+            de: /^sag das (?:bitte )?noch einmal[?.]?$/iu
+        };
+        const previous = state.context.turns.at(-1);
+        const repeats = repeatForms[input.locale]?.test(normalize(raw));
+        const answer = previous?.answer;
+        const interpretations = repeats && answer && previous.speaker === input.speaker
+            ? [{ kind: 'question', slot: 'repeat_answer', subject: 'self', relations: ['question'],
+                span: raw, catalogRule: 'context_repeat', replyTo: previous.id }]
+            : interpret(raw, input.locale, catalog);
         if (!interpretations.length) interpretations.push({ kind: 'unknown', span: raw, relations: [] });
         interpretations.forEach((frame, index) => {
             if (frame.catalogRule === 'rest_explanation' && !state.context.turns.at(-1)?.understandings.some(u => u.known.meaning === 'rest')) {
@@ -299,6 +314,10 @@
             }
         });
         const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog));
+        if (interpretations[0]?.catalogRule === 'context_repeat') {
+            understandings[0].answerReference = { turnId: previous.id, subject: answer.subject,
+                eventTime: answer.eventTime, source: answer.source };
+        }
         understandings.forEach((u, index) => {
             const frame = interpretations[index];
             if (frame.kind !== 'reply' || u.kind !== 'reply') return;
@@ -350,7 +369,7 @@
             || understandings.some(u => u.kind === 'report' && Object.keys(u.known).length > 0);
         if (selected) state.records.push({ id: input.id, speaker: input.speaker, heardAt: input.at,
             understandings: clone(understandings), source: 'speaker_report' });
-        const turn = { id: input.id, understandings: clone(understandings), expression: clone(expression) };
+        const turn = { id: input.id, speaker: input.speaker, understandings: clone(understandings), expression: clone(expression) };
         state.context.turns.push(turn);
         state.context.turns = state.context.turns.slice(-RULES.contextLimit);
         return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression };

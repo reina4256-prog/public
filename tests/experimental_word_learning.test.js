@@ -14,6 +14,41 @@ const focus = (state, scene = 'clearing', count = 1) => api.perceive(state, {
     scene, attention: Array.from({ length: count }, (_, i) => ({ id: `berry:${i + 1}`, meaning: 'berry' }))
 });
 
+test('explicit follow-ups retain the expressed answer without replacing its time or experience', () => {
+    for (const [locale, text] of [['ja', 'もう一度教えて'], ['en', 'say that again'], ['zh-CN', '再说一遍'],
+        ['ru', 'повтори'], ['es', 'repítelo'], ['pt-BR', 'repita'], ['de', 'sag das noch einmal']]) {
+        const state = create(); const world = worldApi.create();
+        world.history.push({ mode: 'eat', target: 'berry:1' });
+        const first = worldApi.respond(world, say(state, '何をしたの？'), state);
+        const knowledge = JSON.stringify(state.knowledge); const records = JSON.stringify(state.records);
+        world.history.push({ mode: 'rest', target: 'shade' });
+        const restored = JSON.parse(JSON.stringify(state));
+        const result = say(restored, text, { locale });
+        assert.equal(result.understandings[0].answerReference.eventTime, 'past');
+        assert.deepEqual(worldApi.respond(world, result, restored), first);
+        assert.equal(JSON.stringify(restored.knowledge), knowledge);
+        assert.equal(JSON.stringify(restored.records), records);
+        assert.equal(worldApi.respond(world, say(restored, '何をしたの？'), restored).message, 'rested');
+    }
+});
+
+test('follow-ups do not borrow answers across unknown turns, speakers or starting settings', () => {
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+        const state = create({ foundation, life, speech }); const world = worldApi.create();
+        world.history.push({ mode: 'eat' });
+        worldApi.respond(world, say(state, '何をしたの？'), state);
+        const result = say(state, 'もう一度教えて');
+        assert.equal(result.understandings[0].questionSlot === 'repeat_answer', foundation && life && speech === 'short');
+    }
+    for (const intervening of [true, false]) {
+        const state = create(); const world = worldApi.create(); world.history.push({ mode: 'eat' });
+        worldApi.respond(world, say(state, '何をしたの？'), state);
+        if (intervening) worldApi.respond(world, say(state, '未知の話題です'), state);
+        const result = say(state, 'もう一度教えて', intervening ? {} : { speaker: 'other' });
+        assert.notEqual(result.understandings[0].questionSlot, 'repeat_answer');
+    }
+});
+
 test('situation questions compose address, time, predicate and endings without teaching facts', () => {
     for (const prefix of ['', 'ねえ、', '君は今、', 'あなたはいま']) {
         for (const ending of ['？', 'の？', 'のかな？', 'んですか', 'のでしょうか']) {
