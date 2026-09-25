@@ -1,4 +1,10 @@
 {
+  "contextAliases": {
+    "rest": ["一息", "ひと息", "ひといき", "休んでいる", "休んでる", "休む", "休憩", "a break", "taking a break", "resting", "休息", "отдых", "отдыхаешь", "descanso", "descansando", "pausa", "ausruhen", "pause"],
+    "relief": ["ほっとした", "ほっとする", "relieved", "松了一口气", "облегчение", "aliviado", "erleichtert"],
+    "eat": ["食べている", "食べてる", "eating"],
+    "walk": ["歩いている", "歩いてる", "walking"]
+  },
   "experienceMeanings": {
     "work": ["仕事", "手伝い", "work", "helping", "帮工", "работа", "trabajo", "trabalho", "Arbeit"],
     "work:explore": ["荷物運び", "荷物を運ぶ", "carrying supplies", "搬运物资", "переноска припасов", "llevar provisiones", "carregar suprimentos", "Vorräte tragen"],

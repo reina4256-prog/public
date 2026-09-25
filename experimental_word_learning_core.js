@@ -173,7 +173,7 @@
             relations: required.filter(id => !missingRelations.includes(id)), unresolved,
             complete: unresolved.length === 0,
             // Scope is only attached when the corresponding relation is understood.
-            subject: relationReady ? (frame.subject || speaker) : null,
+            subject: relationReady ? (frame.subject || (frame.kind === 'question' ? 'self' : speaker)) : null,
             polarity: required.includes('negation') && missingRelations.includes('negation') ? 'unknown' : (frame.polarity || 'positive'),
             eventTime: frame.time && understands(state, 'relations', 'time') ? frame.time : 'unspecified',
             aspect: relationReady ? (frame.aspect || null) : null,
@@ -255,6 +255,40 @@
         return { channel: 'speech', message: reaction.intent };
     }
 
+    // Resolve an omitted topic against one delivered output, not a search through
+    // unrelated memories. Surface forms only propose a reading; knowledge gates it.
+    function contextQuestion(state, raw, locale, speaker, catalog) {
+        const focus = state.context.lastOutput;
+        if (!focus?.topic || focus.serial !== state.serial - 1 || focus.listener !== speaker
+            || focus.subject !== 'self') return null;
+        const forms = {
+            ja: /^(?:ねえ[、,\s]*)?(?:さっきの)?(?:(?:それ|今の話)(?:って|は)(?:どういうこと|何のこと)|(?:つまり[、,\s]*|それは)?(.+?)(?:って(?:どういうこと|何|なに)?|ということ|ってこと|なの|の|ですか|かな))[？?]?$/u,
+            en: /^(?:what do you mean by (.+?)|does that mean (.+?)|is it (.+?)|what does that mean)[?.]?$/iu,
+            'zh-CN': /^(?:那是什么意思|(.+?)是什么意思|是说(.+?)吗|(.+?)吗)[？?。]?$/u,
+            ru: /^(?:что значит (.+?)|то есть (.+?)|это (.+?)|что это значит)[?.]?$/iu,
+            'es-ES': /^(?:¿?qué significa eso|¿?qué significa (.+?)|¿?quieres decir (.+?)|¿?es (.+?))[?。.]?$/iu,
+            'pt-BR': /^(?:o que significa (.+?)|quer dizer (.+?)|é (.+?)|o que isso significa)[?.]?$/iu,
+            de: /^(?:was bedeutet das|was bedeutet (.+?)|heißt das (.+?)|ist es (.+?))[?.]?$/iu
+        };
+        const match = forms[locale === 'es' ? 'es-ES' : locale]?.exec(normalize(raw))
+            || (locale === 'ja' && /^[^？?。！!\n]+[？?]$/u.test(raw) ? [raw, normalize(raw).slice(0, -1)] : null);
+        if (!match) return null;
+        const token = match.slice(1).find(Boolean);
+        const aliases = catalog.contextAliases || {};
+        const meaning = token ? lexicalMeaning(token, catalog)
+            || Object.keys(aliases).find(id => aliases[id].some(form => normalize(form) === token)) : focus.topic;
+        // An unsupported clause must not lose its subject, negation or condition.
+        if (!meaning) return null;
+        const compatible = meaning === focus.topic || focus.meanings.includes(meaning)
+            || (meaning === 'sweet' && focus.topic === 'eat')
+            || (meaning === 'work' && focus.topic.startsWith('work:'))
+            || (meaning === 'relief' && focus.source.kind === 'observation' && ['eat', 'rest'].includes(focus.topic));
+        if (!compatible) return null;
+        return { kind: 'question', slot: 'context_detail', subject: 'self', meaning,
+            time: focus.eventTime, relations: ['question', ...(focus.eventTime === 'past' ? ['time'] : [])],
+            span: raw, catalogRule: 'context_detail', contextReference: clone(focus) };
+    }
+
     function receive(state, raw, catalog, options = {}) {
         if (typeof raw !== 'string' || !raw.trim() || raw.length > 1000) throw new Error('Invalid input');
         const input = { id: `input:${++state.serial}`, raw, locale: options.locale || 'ja',
@@ -269,12 +303,14 @@
             de: /^sag das (?:bitte )?noch einmal[?.]?$/iu
         };
         const previous = state.context.turns.at(-1);
-        const repeats = repeatForms[input.locale]?.test(normalize(raw));
-        const answer = previous?.answer;
+        const repeats = repeatForms[input.locale === 'es-ES' ? 'es' : input.locale]?.test(normalize(raw));
+        const delivered = state.context.lastOutput;
+        const answer = (!delivered || (delivered.inputId === previous?.id && delivered.deliveryKind === 'speech')) && previous?.answer;
+        const followup = contextQuestion(state, raw, input.locale, input.speaker, catalog);
         const interpretations = repeats && answer && previous.speaker === input.speaker
             ? [{ kind: 'question', slot: 'repeat_answer', subject: 'self', relations: ['question'],
                 span: raw, catalogRule: 'context_repeat', replyTo: previous.id }]
-            : interpret(raw, input.locale, catalog);
+            : followup ? [followup] : interpret(raw, input.locale, catalog);
         if (!interpretations.length) interpretations.push({ kind: 'unknown', span: raw, relations: [] });
         interpretations.forEach((frame, index) => {
             if (frame.catalogRule === 'rest_explanation' && !state.context.turns.at(-1)?.understandings.some(u => u.known.meaning === 'rest')) {
@@ -314,6 +350,16 @@
             }
         });
         const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog));
+        if (followup && interpretations[0] === followup) {
+            const u = understandings[0];
+            u.contextReference = clone(followup.contextReference);
+            for (const id of followup.contextReference.requiredMeanings) {
+                if (!understands(state, 'meanings', id) && !u.unresolved.some(item => item.token === id)) {
+                    u.unresolved.push({ type: 'meaning', field: 'context', token: id });
+                }
+            }
+            u.complete = u.unresolved.length === 0;
+        }
         if (interpretations[0]?.catalogRule === 'context_repeat') {
             understandings[0].answerReference = { turnId: previous.id, subject: answer.subject,
                 eventTime: answer.eventTime, source: answer.source };

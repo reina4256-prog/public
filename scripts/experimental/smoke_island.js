@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -34,7 +34,10 @@ if (!process.versions.electron || process.type !== 'browser') {
                 preload: path.join(__dirname, 'preload.js') } });
         window.webContents.on('console-message', (_event, level, message) => { if (level >= 3) failures.push(message); });
         await window.loadURL(url);
-        const js = code => window.webContents.executeJavaScript(code, true);
+        const js = async code => {
+            try { return await window.webContents.executeJavaScript(code, true); }
+            catch (error) { throw new Error(`${error.message}\nRenderer code: ${code}\nConsole: ${JSON.stringify(failures)}`); }
+        };
         // Hidden native windows throttle rAF even with backgroundThrottling:false.
         // Use a real-time timer for the test's paint scheduling; tick still runs once per frame.
         const paintClock = () => js('window.requestAnimationFrame = callback => setTimeout(() => callback(performance.now()), 16); void 0');
@@ -55,6 +58,46 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
+        if (process.argv.includes('--context')) {
+            // Disposable fixture only: keep the actor idle while testing chat, then
+            // let the real single tick complete a meal and publish its observation.
+            nextLoad = structuredClone(snapshot);
+            Object.assign(nextLoad.world, { mode: 'idle', dwell: 60, attention: null, destination: null });
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
+            assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
+            await chat('今何してるの？'); await chat('一息って？');
+            assert.ok(await js('document.querySelector("#conversation").textContent.includes("少し何もせず休む")'));
+            assert.equal(snapshot.state.context.lastOutput.source.message, 'taking_break');
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            await chat('つまり休んでいるということ？');
+            assert.equal(snapshot.state.context.turns.at(-1).understandings[0].questionSlot, 'context_detail');
+            nextLoad = structuredClone(snapshot);
+            Object.assign(nextLoad.world, { mode: 'eat', dwell: .2, harvest: 1, fruit: 1, attention: 'berry:1',
+                activityStart: nextLoad.world.elapsed, activityBefore: { hunger: .8, fatigue: .2 },
+                mealTaste: { quality: 'sweet', pleasant: true }, hunger: .8 });
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            await sleep(700);
+            await chat('ほっとしたの？');
+            assert.ok(await js('Array.from(document.querySelectorAll("#conversation .observation-line")).some(line => line.textContent.includes("気持ちや理由はまだ分からない"))'));
+            assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
+            await chat('おいしかった？'); await chat('甘いの？');
+            assert.equal(snapshot.state.context.turns.at(-1).understandings[0].contextReference.evidence.experienceId,
+                snapshot.world.experiences.at(-1).id);
+            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'eat').length, 1);
+            assert.ok(await js('document.querySelector("#conversation").textContent.includes("甘くておいしかった")'));
+            await sleep(1200); // Hidden native compositor needs time to paint the new chat.
+            const screenshot = path.resolve(__dirname, '../../tests/word-context-smoke.png');
+            fs.writeFileSync(screenshot, (await window.webContents.capturePage()).toPNG());
+            assert.equal(JSON.stringify(snapshot.world.island.assets), initialMap);
+            assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, context: true, initial, screenshot, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--careers')) {
             nextLoad = structuredClone(snapshot); nextLoad.world.hunger = .1; nextLoad.world.fatigue = .1;
             // Set only visit history in the disposable fixture; the live loop chooses and walks.

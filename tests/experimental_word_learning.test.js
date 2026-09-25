@@ -14,6 +14,158 @@ const focus = (state, scene = 'clearing', count = 1) => api.perceive(state, {
     scene, attention: Array.from({ length: count }, (_, i) => ({ id: `berry:${i + 1}`, meaning: 'berry' }))
 });
 
+test('context clarification composes meaning, ellipsis and paraphrase with the delivered life topic', () => {
+    const state = create(), world = worldApi.create();
+    const ask = text => worldApi.respond(world, say(state, text), state);
+    assert.equal(ask('今何してるの？').message, 'taking_break');
+    const before = JSON.stringify({ knowledge: state.knowledge, records: state.records, world });
+    for (const text of ['一息って？', 'ひと息ってどういうこと？', 'つまり休んでいるということ？', 'それってどういうこと？', '休憩？']) {
+        const result = say(state, text);
+        assert.equal(result.understandings[0].complete, true, text);
+        assert.equal(result.understandings[0].questionSlot, 'context_detail', text);
+        assert.equal(worldApi.respond(world, result, state).message, 'break_explained');
+        assert.equal(state.context.lastOutput.source.message, 'taking_break');
+    }
+    assert.equal(JSON.stringify({ knowledge: state.knowledge, records: state.records, world }), before);
+    assert.equal(ask('もう一度教えて').message, 'break_explained');
+});
+
+test('context taste confirmation keeps the original experience across newer meals and save resumption', () => {
+    const state = create(), world = worldApi.create();
+    world.experiences.push({ id: 8, kind: 'eat', target: 'berry:1', taste: { quality: 'sweet', pleasant: true } });
+    assert.equal(worldApi.respond(world, say(state, 'おいしかった？'), state).message, 'tasted_good');
+    world.experiences.push({ id: 9, kind: 'eat', target: 'berry:2', taste: { quality: 'bitter', pleasant: false } });
+    const restored = JSON.parse(JSON.stringify(state));
+    const result = say(restored, '甘いの？');
+    assert.equal(result.understandings[0].contextReference.evidence.experienceId, 8);
+    assert.equal(result.understandings[0].eventTime, 'past');
+    assert.equal(worldApi.respond(world, result, restored).message, 'tasted_good');
+    assert.equal(worldApi.respond(world, say(restored, 'おいしかった？'), restored).message, 'taste_unsure');
+    assert.equal(say(restored, '甘いの？').understandings[0].contextReference, undefined);
+});
+
+test('all locales share semantic context resolution and retain raw input', () => {
+    const cases = [
+        ['ja', '一息って？', '甘いの？', 'それってどういうこと？'], ['en', 'What do you mean by a break?', 'Is it sweet?', 'What does that mean?'],
+        ['zh-CN', '休息是什么意思？', '甜吗？', '那是什么意思？'], ['ru', 'Что значит отдых?', 'Это сладкий?', 'Что это значит?'],
+        ['es-ES', '¿Qué significa descanso?', '¿Es dulce?', '¿Qué significa eso?'], ['pt-BR', 'O que significa pausa?', 'É doce?', 'O que isso significa?'],
+        ['de', 'Was bedeutet Pause?', 'Ist es süß?', 'Was bedeutet das?']
+    ];
+    for (const [locale, rest, sweet, omitted] of cases) {
+        const state = create(), world = worldApi.create();
+        worldApi.respond(world, say(state, '今何してるの？'), state);
+        let result = say(state, rest, { locale });
+        assert.equal(result.input.raw, rest);
+        assert.equal(worldApi.respond(world, result, state).message, 'break_explained', locale);
+        assert.equal(worldApi.respond(world, say(state, omitted, { locale }), state).message, 'break_explained', locale);
+        world.mode = 'eat'; world.mealTaste = { quality: 'sweet', pleasant: true };
+        worldApi.respond(world, say(state, 'おいしい？'), state);
+        result = say(state, sweet, { locale });
+        assert.equal(result.understandings[0].complete, true, locale);
+        assert.equal(worldApi.respond(world, result, state).message, 'tastes_good', locale);
+    }
+});
+
+test('all eight settings preserve unknown meanings, relations and gesture expression in follow-ups', () => {
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+        const state = create({ foundation, life, speech }), world = worldApi.create();
+        const knowledge = JSON.stringify(state.knowledge);
+        worldApi.respond(world, say(state, '今何してるの？'), state);
+        const result = say(state, '一息って？');
+        const response = worldApi.respond(world, result, state);
+        assert.equal(response.message === 'break_explained', foundation && life && speech === 'short');
+        assert.equal(JSON.stringify(state.knowledge), knowledge);
+    }
+    const state = create(), world = worldApi.create();
+    worldApi.respond(world, say(state, '今何してるの？'), state);
+    state.knowledge.meanings = state.knowledge.meanings.filter(m => m.id !== 'rest');
+    const result = say(state, '一息って？');
+    assert.equal(result.understandings[0].complete, false);
+    assert.notEqual(worldApi.respond(world, result, state).message, 'break_explained');
+});
+
+test('context does not strip other subjects, negation, conditions, unknown clauses or new times', () => {
+    for (const text of ['私は休んでいるの？', 'プレイヤーは休んでいるの？', '休んでいないの？',
+        '疲れたら休むってこと？', '一息って？私は悲しい', '休むし魔法を使うってこと？', '今も甘いの？', '昨日も一息って？']) {
+        const state = create(), world = worldApi.create();
+        worldApi.respond(world, say(state, '今何してるの？'), state);
+        assert.ok(!say(state, text).understandings.some(u => u.contextReference), text);
+    }
+    for (const intervening of ['私は悲しい', '未知のこと', 'おはよう']) {
+        const state = create(), world = worldApi.create();
+        worldApi.respond(world, say(state, '今何してるの？'), state);
+        worldApi.respond(world, say(state, intervening), state);
+        assert.equal(say(state, '一息って？').understandings[0].contextReference, undefined);
+    }
+    const state = create(), world = worldApi.create();
+    worldApi.respond(world, say(state, '今何してるの？'), state);
+    assert.equal(say(state, '一息って？', { speaker: 'other' }).understandings[0].contextReference, undefined);
+});
+
+test('observation provenance never becomes the character claiming a feeling or reason', () => {
+    const state = create(), world = worldApi.create();
+    worldApi.respond(world, say(state, '今何してるの？'), state);
+    const event = { id: 6, kind: 'experience', activity: 'eat', target: 'berry:1' };
+    world.experiences.push({ ...event, kind: 'eat' });
+    assert.equal(worldApi.onArrival(world, state, event).observation, true);
+    const saved = JSON.parse(JSON.stringify(state));
+    assert.notEqual(say(saved, 'もう一度教えて').understandings[0].questionSlot, 'repeat_answer');
+    const result = say(state, 'ほっとしたの？');
+    assert.equal(result.understandings[0].contextReference.source.kind, 'observation');
+    assert.equal(result.understandings[0].complete, false, 'no relief meaning is secretly taught');
+    assert.deepEqual(worldApi.respond(world, result, state), { message: 'observed_feeling_unknown', observation: true });
+    assert.ok(!state.context.turns.at(-1).answer);
+    worldApi.onArrival(world, state, event);
+    const factual = say(state, 'それってどういうこと？');
+    assert.equal(worldApi.respond(world, factual, state).message, 'ate');
+    assert.equal(state.context.lastOutput.source.kind, 'observation', 'original source survives a grounded factual answer');
+});
+
+test('current sensory statements become past clarification if the referenced activity changed', () => {
+    const state = create(), world = worldApi.create();
+    world.mode = 'eat'; world.mealTaste = { quality: 'sweet', pleasant: true };
+    worldApi.respond(world, say(state, 'おいしい？'), state);
+    world.mode = 'move'; world.activityStart = 10; world.mealTaste = null;
+    const result = say(state, '甘いの？');
+    assert.equal(result.understandings[0].contextReference.eventTime, 'present', 'original time is retained');
+    assert.equal(worldApi.respond(world, result, state).message, 'tasted_good', 'not a claim about current food');
+});
+
+test('an omitted taste topic can use the observed meal but cannot invent its missing taste', () => {
+    for (const hasTaste of [true, false]) {
+        const state = create(), world = worldApi.create();
+        const event = { id: 1, kind: 'experience', activity: 'eat', target: 'berry:1',
+            ...(hasTaste ? { taste: { quality: 'sweet', pleasant: true } } : {}) };
+        world.experiences.push({ ...event, kind: 'eat' });
+        worldApi.onArrival(world, state, event);
+        const result = say(state, '甘いの？');
+        assert.equal(result.understandings[0].contextReference.source.kind, 'observation');
+        assert.equal(worldApi.respond(world, result, state).message, hasTaste ? 'tasted_good' : 'taste_unsure');
+        if (hasTaste) {
+            assert.equal(worldApi.respond(world, say(state, 'それってどういうこと？'), state).message, 'tasted_good');
+            assert.equal(state.context.lastOutput.source.kind, 'observation');
+        }
+    }
+});
+
+test('context save validation rejects malformed or missing evidence and leaves legacy context absent', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create(), world = worldApi.create();
+    const save = { version: 1, appearance: 'robot', state, world };
+    assert.ok(valid(save)); assert.equal(state.context.lastOutput, undefined);
+    worldApi.respond(world, say(state, '今何してるの？'), state);
+    assert.ok(valid(JSON.parse(JSON.stringify(save))));
+    for (const mutate of [f => { f.meanings = null; }, f => { f.source.kind = 'player_report'; },
+        f => { f.evidence.experienceId = 999; }, f => { f.serial++; }]) {
+        const damaged = JSON.parse(JSON.stringify(save)); mutate(damaged.state.context.lastOutput);
+        assert.equal(!!valid(damaged), false);
+    }
+    delete state.context.lastOutput;
+    world.mode = 'eat'; world.activityStart = 9;
+    worldApi.respond(world, say(state, 'もう一度教えて'), state);
+    assert.equal(state.context.lastOutput.topic, null, 'a legacy answer cannot manufacture a snapshot of its original context');
+});
+
 test('explicit follow-ups retain the expressed answer without replacing its time or experience', () => {
     for (const [locale, text] of [['ja', 'もう一度教えて'], ['en', 'say that again'], ['zh-CN', '再说一遍'],
         ['ru', 'повтори'], ['es', 'repítelo'], ['pt-BR', 'repita'], ['de', 'sag das noch einmal']]) {

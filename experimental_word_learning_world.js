@@ -145,6 +145,86 @@
         return { message: state.settings.speech === 'short' ? message : 'attend' };
     }
 
+    function rememberOutput(world, state, response, input = null, event = null, inherited = null) {
+        const copy = value => JSON.parse(JSON.stringify(value));
+        const observation = !!response.observation || ['ate_gesture', 'woke_gesture'].includes(response.message);
+        const source = { kind: observation ? 'observation' : 'speech', inputId: input?.id || null,
+            eventId: event?.id ?? null, at: world.elapsed, message: response.message };
+        let focus = { topic: null, subject: response.message === 'player_likes_berry' ? 'player' : 'self', meanings: [], requiredMeanings: [], source };
+        if (inherited) {
+            focus = copy(inherited);
+            focus.response = copy(response);
+            if (['tastes_good', 'tasted_good'].includes(response.message) && !focus.meanings.includes('sweet')) {
+                focus.meanings.push('sweet'); focus.requiredMeanings.push('sweet');
+            }
+        }
+        else {
+            const groups = [
+                ['rest', ['taking_break', 'took_break', 'resting', 'rested', 'rest_helped', 'woke_gesture']],
+                ['eat', ['eating', 'ate', 'tastes_good', 'tasted_good', 'ate_gesture']],
+                ['walk', ['walking', 'walked']],
+                ['berry', ['looking_berry', 'looked_berry', 'known_berry']],
+                ['rest', ['looking_rest', 'looked_rest']], ['walk', ['looking_walk', 'looked_walk']]
+            ];
+            focus.topic = groups.find(([, messages]) => messages.includes(response.message))?.[0] || null;
+            const work = response.master || (response.message === 'work' ? world.careers?.current : null);
+            if (work && (response.message.startsWith('work_did_') || response.message.startsWith('master_result_')
+                || ['work', 'master_try', 'work_again', 'work_other', 'work_hungry', 'work_tired'].includes(response.message))) focus.topic = `work:${work}`;
+            focus.eventTime = event?.kind === 'experience' || /^(?:took_break|rested|rest_helped|ate|tasted_good|walked|looked_|work_did_|master_result_)/u.test(response.message) ? 'past' : 'present';
+            const experience = response.experienceId != null ? world.experiences.find(e => e.id === response.experienceId)
+                : event?.kind === 'experience' ? world.experiences.find(e => e.id === event.id)
+                : ['tasted_good', 'rest_helped'].includes(response.message)
+                    ? [...world.experiences].reverse().find(e => e.kind === (response.message === 'tasted_good' ? 'eat' : 'rest')) : null;
+            focus.evidence = { experienceId: experience?.id ?? null,
+                activity: copy(experience || (focus.eventTime === 'past' ? world.history.at(-1) : null)
+                    || { mode: world.mode, target: world.attention, start: world.activityStart, end: world.elapsed,
+                        ...(world.mode === 'eat' && world.mealTaste ? { taste: world.mealTaste } : {}) }) };
+            focus.meanings = focus.topic ? [focus.topic] : [];
+            if (['tastes_good', 'tasted_good'].includes(response.message)) focus.meanings.push('sweet');
+            focus.requiredMeanings = [...focus.meanings];
+            if (response.message === 'rest_helped') focus.requiredMeanings.push('tired');
+            if (focus.topic?.startsWith('work:')) focus.requiredMeanings.push('work');
+            focus.response = copy(response);
+        }
+        focus.serial = state.serial; focus.listener = input?.speaker || 'player'; focus.inputId = input?.id || null;
+        focus.deliveryKind = observation ? 'observation' : 'speech';
+        state.context.lastOutput = focus;
+    }
+
+    function answerContext(world, state, u) {
+        const focus = u.contextReference;
+        if (!focus || !u.relations.includes('question')) return { message: 'attend' };
+        if (focus.source.kind === 'observation' && u.unresolved.some(item => item.token === 'relief')) {
+            return { message: 'observed_feeling_unknown', observation: true };
+        }
+        if (!u.complete || state.settings.speech !== 'short') return { message: 'attend' };
+        const message = focus.response.message;
+        if (u.known.meaning === 'sweet' && !focus.meanings.includes('sweet')) {
+            const taste = focus.evidence.activity.taste;
+            return { message: taste?.quality === 'sweet' && taste.pleasant ? 'tasted_good' : 'taste_unsure',
+                experienceId: focus.evidence.experienceId };
+        }
+        if (['taking_break', 'took_break', 'break_explained'].includes(message)) {
+            return { message: 'break_explained' };
+        }
+        if (focus.topic.startsWith('work:') && focus.evidence.experienceId !== null
+            && /^(?:work_did_|master_result_)/u.test(message)) {
+            return { message: `work_did_${focus.topic.slice(5)}`, master: focus.topic.slice(5), experienceId: focus.evidence.experienceId };
+        }
+        if (focus.deliveryKind === 'observation') {
+            if (focus.evidence.experienceId === null) return { message: 'answer_unknown' };
+            return { message: focus.topic === 'eat' ? 'ate' : focus.topic === 'rest' ? 'rested' : 'answer_unknown',
+                experienceId: focus.evidence.experienceId };
+        }
+        const former = { tastes_good: 'tasted_good', eating: 'ate', resting: 'rested', walking: 'walked',
+            looking_berry: 'looked_berry', looking_rest: 'looked_rest', looking_walk: 'looked_walk' };
+        if (former[message] && focus.eventTime === 'present'
+            && (world.mode !== focus.evidence.activity.mode || world.activityStart !== focus.evidence.activity.start)) {
+            return { ...focus.response, message: former[message] };
+        }
+        return JSON.parse(JSON.stringify(focus.response));
+    }
+
     function respond(world, result, state) {
         const u = result.understandings.at(-1);
         const turn = state.context.turns.find(item => item.id === result.input.id);
@@ -153,22 +233,33 @@
             if (previous?.answer && previous.speaker === result.input.speaker) {
                 if (turn) turn.answer = JSON.parse(JSON.stringify(previous.answer));
                 world.reactionTime = 5;
+                const original = state.context.lastOutput;
+                rememberOutput(world, state, previous.answer.response, result.input, null,
+                    original?.topic ? original : null);
+                if (!original?.topic) state.context.lastOutput.topic = null;
                 return JSON.parse(JSON.stringify(previous.answer.response));
             }
             return { message: 'answer_unknown' };
         }
-        const response = respondCurrent(world, result, state);
+        const response = u.contextReference ? answerContext(world, state, u) : respondCurrent(world, result, state);
+        if (u.contextReference) { world.reactionTime = 5; world.reaction = u.complete ? 'attend' : 'uncertain'; }
         // Keep only an actually expressed, fully understood self-answer. This is
         // conversational evidence, never a new experience or a player report.
         if (turn && result.understandings.length === 1 && u.complete && u.kind === 'question'
             && ['current_activity', 'past_activity', 'attention', 'destination', 'work_past', 'work_again',
-                'taste_evaluation', 'taste_now', 'rest_result', 'reason'].includes(u.questionSlot)
+                'taste_evaluation', 'taste_now', 'rest_result', 'reason', 'context_detail'].includes(u.questionSlot)
             && u.subject === 'self' && state.settings.speech === 'short'
             && !response.observation && !['answer_unknown', 'attend', 'taste_unsure'].includes(response.message)) {
             turn.answer = { subject: u.subject, eventTime: u.eventTime,
                 source: { inputId: result.input.id, questionSlot: u.questionSlot,
                     experienceId: response.experienceId || null, answeredAt: result.input.at },
                 response: JSON.parse(JSON.stringify(response)) };
+        }
+        rememberOutput(world, state, response, result.input, null,
+            u.contextReference && u.complete && !response.observation
+                && !['attend', 'answer_unknown', 'taste_unsure'].includes(response.message) ? u.contextReference : null);
+        if (result.understandings.length !== 1 || !u.complete || (u.subject !== 'self' && !u.contextReference)) {
+            state.context.lastOutput.topic = null;
         }
         return response;
     }
@@ -264,6 +355,14 @@
         return { message: result.expression.message };
     }
     function onArrival(world, state, event) {
+        const response = arrivalReply(world, state, event);
+        if (response) {
+            if (['ate_gesture', 'woke_gesture'].includes(response.message)) response.observation = true;
+            rememberOutput(world, state, response, null, event);
+        }
+        return response;
+    }
+    function arrivalReply(world, state, event) {
         if (!event) return null;
         if (event.kind === 'arrive' && world.island && careers?.jobId(event.target)) {
             const reply = careers.arrive(world, event);
@@ -312,5 +411,20 @@
         }
         return null;
     }
-    return Object.freeze({ PLACES, create, approach, tick, perception, respond, onArrival, setNavigation });
+    function validContext(state, world) {
+        const focus = state.context?.lastOutput;
+        if (focus === undefined) return true; // Do not manufacture context for old saves.
+        if (!focus || !Number.isInteger(focus.serial) || focus.serial > state.serial || focus.serial < 0
+            || typeof focus.listener !== 'string' || !['self', 'player'].includes(focus.subject)
+            || !['speech', 'observation'].includes(focus.deliveryKind)
+            || !['speech', 'observation'].includes(focus.source?.kind) || !Number.isFinite(focus.source.at)
+            || !Array.isArray(focus.meanings) || !Array.isArray(focus.requiredMeanings)
+            || !focus.meanings.every(id => typeof id === 'string') || !focus.requiredMeanings.every(id => typeof id === 'string')) return false;
+        if (focus.topic === null) return true;
+        return typeof focus.topic === 'string' && focus.meanings.includes(focus.topic)
+            && ['present', 'past'].includes(focus.eventTime) && typeof focus.response?.message === 'string'
+            && !!focus.evidence?.activity && (focus.evidence.experienceId === null
+                || world.experiences.some(e => e.id === focus.evidence.experienceId));
+    }
+    return Object.freeze({ PLACES, create, approach, tick, perception, respond, onArrival, setNavigation, validContext });
 });

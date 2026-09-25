@@ -126,6 +126,8 @@
         going_walk: '歩くところへ向かっているよ。', not_going: '今はどこへも向かっていないよ。',
         eating: '今は食べているよ。', ate: 'さっきは食べていたよ。',
         taking_break: '今はひと息ついているよ。', took_break: 'さっきはひと息ついていたよ。',
+        break_explained: '少し何もせず休む、という意味で言ったよ。',
+        observed_feeling_unknown: 'そう見えたけれど、本人の気持ちや理由はまだ分からない。',
         suggestion_reason: '休もうって聞いて、行ってみようと思ったんだ。',
         player_likes_berry: '木の実、好きって言っていたね。',
         foundation: '理解の土台', life: '生活知識', speech: '発話の形式',

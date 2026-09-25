@@ -141,6 +141,14 @@ test('six masters are encountered through actual arrival; all eight settings can
             assert.equal(resumed.careers.people[id].outcomes.length, 1);
             until(world, state, e => e?.kind === 'experience' && e.activity === 'work');
             assert.equal(world.careers.people[id].completed, 1);
+            const clarification = core.receive(state, `${catalog.experienceMeanings[`work:${id}`][0]}って？`, catalog, { locale: 'ja' });
+            assert.equal(clarification.understandings[0].contextReference.source.kind, 'observation');
+            assert.equal(clarification.understandings[0].complete, foundation);
+            const clarified = worldApi.respond(world, clarification, state);
+            if (foundation && speech === 'short') {
+                assert.equal(clarified.message, `work_did_${id}`);
+                assert.equal(clarified.experienceId, world.experiences.at(-1).id);
+            } else assert.equal(clarified.message, 'attend');
             assert.ok(valid({ version: 1, appearance: 'robot', state, world }));
         }
         assert.equal(state.encounters.length, 6);
