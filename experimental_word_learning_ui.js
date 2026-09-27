@@ -3,6 +3,12 @@
     const api = window.ExperimentalWordLearning;
     const app = document.getElementById('app');
     const labels = {
+        reason_pairing: '完了した休息と、実際に選んだ声かけを教示と照合している。本人の回答とは別の記録。',
+        note_reason_demo: '休息の選択について教わった例：',
+        note_reason_question_learned: 'この相手・言語・表現で、休息の理由を尋ねる問いだと分かった。理由の理解や答えは別に確かめる。',
+        note_reason_learned: '問いから実際に選んだ声かけへのつながりを理解した。この相手・言語・表現と休息に限る。すべての動機が分かったわけではない。',
+        selected_reason: 'この声かけを選んで休んだことは、思い出せるよ：',
+        reason_help: '休む・お願い・誘いを先に学びます。印なしのお願いを選んで休息を完了したら、その声かけを右側にした理由質問の例を教えます。誘いでも別の休息を完了して同じ手順を行います。問いを学んだら、理由説明の印で両方の選択を別々の完了休息に照合します。次の休息へ向かう前に教えてください。印は教示操作で、本人の回答や当時の理由を後付けするものではありません。',
         bodyHunger: '空腹',
         bodyEnergy: '体力',
         word_situated: 'ここで教わった意味と結び付けて考えているよ。ほかでも同じかは、まだ分からない。',
@@ -403,6 +409,7 @@
     node('p', t('time_help'), guide);
     node('p', t('condition_help'), guide);
     node('p', t('sequence_help'), guide);
+    node('p', t('reason_help'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;
@@ -438,7 +445,7 @@
             node('span', t(reply.npc), line);
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
         }
-        record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + displayText(reply.message) });
+        record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + displayText(reply.message) + (reply.literal || '') });
         bubble.replaceChildren(); bubble.hidden = false;
         const line = node('p', undefined, conversation);
         if (reply.observation) line.className = 'observation-line';
@@ -449,6 +456,9 @@
             node('span', t(reply.message), line);
         } else {
             node('span', t(reply.message), bubble); line.textContent = t(reply.message);
+            if (reply.literal) for (const parent of [bubble, line]) {
+                const quotation = node('span', reply.literal, parent); quotation.setAttribute('data-i18n-skip', '');
+            }
         }
         world.speech = { until: world.elapsed + 7, target: reply.target || null };
         if (reply.target) { world.reaction = 'recognize'; world.reactionTime = 5; }
@@ -548,6 +558,11 @@
         fetch(file).then(response => { if (!response.ok) throw new Error('Load failed'); return response.json(); })
     )).then(([data, visuals]) => {
         catalog = data;
+        const locale = window.GameI18n.language, reasonForms = catalog.reasonTeaching[locale];
+        if (reasonForms) for (const stage of ['question', 'reason']) for (const kind of ['request', 'invitation']) {
+            const example = node('p', `${reasonForms[stage]}「${reasonForms.utterance}」→「${catalog.proposalTeaching[locale][kind].utterance}」`, guide);
+            example.setAttribute('data-i18n-skip', '');
+        }
         view = new window.ExperimentalWordView(canvas, visuals, () => { imageFailure = true; });
         if (window.wordStorage) {
             try {

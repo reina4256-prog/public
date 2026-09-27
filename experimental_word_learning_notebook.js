@@ -15,10 +15,11 @@
             const label = event?.relationLabels?.find(l => l.inputId === evidence.inputId);
             if (!label) continue;
             const learned = state.knowledge.relations.some(r => r.source === 'experienced_relation'
-                && r.evidence.includes(evidence.inputId));
+                && r.evidence.includes(evidence.inputId) || label.slot === 'reason' && r.source === 'initial' && r.id === label.relation);
             const proposal = ['request', 'invitation'].includes(label.relation);
-            result.push({ group: 'names', message: label.relation === 'sequence' ? 'note_sequence_demo' : label.relation === 'condition' ? 'note_condition_demo' : label.relation === 'time' ? 'note_time_demo' : label.relation === 'negation' ? 'note_negation_demo' : label.relation === 'report' ? 'note_report_demo' : proposal ? 'note_proposal_demo' : label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
-                detail: label.relation === 'sequence' ? (learned ? 'note_sequence_learned' : 'note_sequence_pairing')
+            result.push({ group: 'names', message: label.slot === 'reason' ? 'note_reason_demo' : label.relation === 'sequence' ? 'note_sequence_demo' : label.relation === 'condition' ? 'note_condition_demo' : label.relation === 'time' ? 'note_time_demo' : label.relation === 'negation' ? 'note_negation_demo' : label.relation === 'report' ? 'note_report_demo' : proposal ? 'note_proposal_demo' : label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
+                detail: label.slot === 'reason' ? (learned ? label.relation === 'question' ? 'note_reason_question_learned' : 'note_reason_learned' : 'reason_pairing')
+                    : label.relation === 'sequence' ? (learned ? 'note_sequence_learned' : 'note_sequence_pairing')
                     : label.relation === 'condition' ? (learned ? 'note_condition_learned' : 'note_condition_pairing')
                     : label.relation === 'time' ? (learned ? 'note_time_learned' : 'note_time_pairing')
                     : label.relation === 'negation' ? (learned ? 'note_negation_learned' : 'note_negation_pairing')

@@ -267,7 +267,25 @@
             ...(phase ? { phase } : {}), form: normalize(item.utterance), utterance: item.utterance, span: text };
     }
 
+    function reasonFrame(text, locale, catalog) {
+        const item = catalog.reasonTeaching?.[locale];
+        if (!item) return null;
+        const form = normalize(item.utterance);
+        if (normalize(text) === form) return { kind: 'question', slot: 'reason', meaning: 'rest',
+            subject: 'self', form, relations: ['question', 'reason'], span: text };
+        for (const stage of ['question', 'reason']) for (const choice of ['request', 'invitation']) {
+            const proposal = catalog.proposalTeaching[locale][choice].utterance;
+            if (text.trim() !== `${item[stage]}「${item.utterance}」→「${proposal}」`) continue;
+            return { kind: 'reason_demonstration', stage, slot: 'reason', meaning: 'rest', subject: 'self',
+                form, question: item.utterance, answer: proposal, choice,
+                relations: stage === 'question' ? ['question'] : ['question', 'reason'], span: text };
+        }
+        return null;
+    }
+
     function interpret(text, locale, catalog) {
+        const reason = reasonFrame(text, locale, catalog);
+        if (reason) return [reason];
         const sequential = sequenceFrame(text, locale, catalog);
         if (sequential) return [sequential];
         const conditional = conditionFrame(text, locale, catalog);
@@ -516,13 +534,16 @@
     function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
-        const applies = entry => entry.scope?.kind === (['sequence_demonstration', 'sequential_proposal'].includes(frame.kind)
+        const applies = entry => entry.scope?.kind === (frame.kind === 'reason_demonstration' ? 'question' : ['sequence_demonstration', 'sequential_proposal'].includes(frame.kind)
             ? entry.id === 'request' ? 'request' : 'sequential_proposal' : ['condition_demonstration', 'conditional_proposal'].includes(frame.kind)
             ? entry.id === 'request' ? 'request' : 'conditional_proposal' : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
             : ['report_demonstration', 'negation_demonstration', 'time_demonstration'].includes(frame.kind) ? 'report' : frame.kind) && entry.scope.locale === locale
             && entry.scope.speaker === speaker && (entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
+                : entry.id === 'reason'
+                    ? frame.slot === 'reason' && entry.scope.slot === 'reason' && entry.scope.meaning === 'rest'
+                        && entry.scope.form === frame.form && frame.meaning === 'rest'
                 : entry.id === 'sequence'
                     ? entry.scope.form === frame.form && entry.scope.proposalForm === frame.proposalForm
                         && entry.scope.eventMeaning === frame.eventMeaning && entry.scope.meaning === frame.meaning
@@ -912,5 +933,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame });
 });

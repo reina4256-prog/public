@@ -254,7 +254,8 @@
             return response;
         }
         if (relationLearning.offer(world, state, result)) {
-            const response = { message: result.relationLearning.adopted.relation === 'sequence'
+            const response = { message: result.relationLearning.adopted.slot === 'reason' ? 'reason_pairing'
+                : result.relationLearning.adopted.relation === 'sequence'
                 ? result.relationLearning.relationAcquired ? 'sequence_learned' : 'sequence_pairing'
                 : result.relationLearning.adopted.relation === 'condition' ? 'condition_pairing' : result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
                 ? 'question_pairing' : ['request', 'invitation'].includes(result.relationLearning.adopted.relation)
@@ -292,7 +293,7 @@
                 'taste_evaluation', 'taste_now', 'rest_result', 'reason', 'context_detail'].includes(u.questionSlot)
             && u.subject === 'self' && state.settings.speech === 'short'
             && !response.observation && !['answer_unknown', 'attend', 'taste_unsure'].includes(response.message)) {
-            turn.answer = { subject: u.subject, eventTime: u.eventTime,
+            turn.answer = { subject: u.subject, eventTime: response.eventTime || u.eventTime,
                 source: { inputId: result.input.id, questionSlot: u.questionSlot,
                     experienceId: response.experienceId || null, answeredAt: result.input.at },
                 response: JSON.parse(JSON.stringify(response)) };
@@ -382,10 +383,17 @@
                 if (!links.length && target.startsWith('berry:') && knows('berry')) return { message: canSpeak ? 'known_berry' : 'looking' };
             }
             if (u.questionSlot === 'reason' && knows('rest')) {
-                const rest = [...world.history].reverse().find(item => item.mode === 'rest');
-                const reasons = world.mode === 'rest' ? world.reasons : rest?.reasons;
-                if (reasons?.some(reason => reason.kind === 'understood_suggestion')) {
-                    return { message: canSpeak ? 'suggestion_reason' : 'attend' };
+                const rest = state.experiences?.filter(e => e.activity === 'rest').at(-1);
+                const source = state.selectionSources?.find(s => s.input.id === rest?.choiceSource?.inputId);
+                const review = rest?.relationLabels?.find(l => l.slot === 'reason' && l.relation === 'reason'
+                    && l.locale === result.input.locale && l.speaker === result.input.speaker);
+                if (source && review && source.input.locale === result.input.locale && source.input.speaker === result.input.speaker
+                    && world.mode !== 'rest' && !(world.mode === 'move' && world.destination === 'shade')
+                    && !world.history.some(h => h.mode === 'rest' && h.start >= rest.end)) {
+                    return { message: canSpeak ? 'selected_reason' : 'attend',
+                        experienceId: rest.id, eventTime: 'past',
+                        choiceSource: copy(rest.choiceSource), reviewedBy: review.inputId,
+                        literal: canSpeak ? source.input.raw : undefined };
                 }
             }
             return { message: canSpeak ? 'answer_unknown' : 'attend' };
@@ -596,6 +604,17 @@
     }
     function validContext(state, world) {
         for (const turn of state.context?.turns || []) {
+            const answer = turn.answer, response = answer?.response;
+            if (response?.message === 'selected_reason') {
+                const event = state.experiences?.find(e => e.id === response.experienceId);
+                const source = state.selectionSources?.find(s => s.input.id === response.choiceSource?.inputId);
+                const review = event?.relationLabels?.find(l => l.inputId === response.reviewedBy
+                    && l.slot === 'reason' && l.relation === 'reason');
+                if (!event || !source || !review || answer.subject !== 'self' || answer.eventTime !== 'past'
+                    || answer.source?.experienceId !== event.id || response.eventTime !== 'past'
+                    || !equal(response.choiceSource, event.choiceSource) || response.literal !== source.input.raw
+                    || review.speaker !== turn.speaker || Number(review.inputId.slice(6)) >= Number(turn.id.slice(6))) return false;
+            }
             for (const u of turn.understandings || []) {
                 const ref = u.reportReference;
                 if (!ref) continue;

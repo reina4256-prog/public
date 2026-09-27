@@ -14853,5 +14853,11 @@
   "さっきはひと息ついていたよ。": "Ich habe vorhin eine kleine Pause gemacht.",
   "知っている動作と説明の言葉を照らし合わせている。説明全体は、まだ分かっていない。": "Vergleicht eine vertraute Handlung mit den Worten der Erklärung. Die ganze Erklärung ist noch nicht verstanden.",
   "この説明を聞きながら動作を確かめた。言い回しの働きは、まだ確かめている途中。": "Ich habe die Handlung beim Hören dieser Erklärung überprüft. Ich erkunde noch, wie diese Formulierung funktioniert.",
-  "食事と休息で聞いた説明から、知っている動作に呼び方を結ぶ言い回しが分かってきた。同じ相手・言語の短い説明で使える。": "Durch Erklärungen beim Essen und Ausruhen verstehe ich allmählich, wie eine Bezeichnung mit einer vertrauten Handlung verbunden wird. Ich kann das für kurze Erklärungen derselben Person in derselben Sprache nutzen."
+  "食事と休息で聞いた説明から、知っている動作に呼び方を結ぶ言い回しが分かってきた。同じ相手・言語の短い説明で使える。": "Durch Erklärungen beim Essen und Ausruhen verstehe ich allmählich, wie eine Bezeichnung mit einer vertrauten Handlung verbunden wird. Ich kann das für kurze Erklärungen derselben Person in derselben Sprache nutzen.",
+  "完了した休息と、実際に選んだ声かけを教示と照合している。本人の回答とは別の記録。": "Vergleicht das Beispiel mit einer beendeten Ruhepause und dem tatsächlich gewählten Vorschlag. Diese Aufzeichnung ist keine eigene Antwort.",
+  "休息の選択について教わった例：": "Gelerntes Beispiel zur Entscheidung, sich auszuruhen:",
+  "この相手・言語・表現で、休息の理由を尋ねる問いだと分かった。理由の理解や答えは別に確かめる。": "Bei dieser Person, Sprache und Formulierung erkenne ich eine Frage nach dem Grund meiner Ruhepause. Den Grund zu verstehen und die Antwort zu kennen, wird getrennt geprüft.",
+  "問いから実際に選んだ声かけへのつながりを理解した。この相手・言語・表現と休息に限る。すべての動機が分かったわけではない。": "Ich verstehe die Verbindung zwischen der Frage und dem tatsächlich gewählten Vorschlag. Das gilt nur für diese Person, Sprache, Formulierung und Ruhepause. Nicht alle Beweggründe sind damit geklärt.",
+  "この声かけを選んで休んだことは、思い出せるよ：": "Ich erinnere mich, dass ich diesen Vorschlag gewählt und mich ausgeruht habe:",
+  "休む・お願い・誘いを先に学びます。印なしのお願いを選んで休息を完了したら、その声かけを右側にした理由質問の例を教えます。誘いでも別の休息を完了して同じ手順を行います。問いを学んだら、理由説明の印で両方の選択を別々の完了休息に照合します。次の休息へ向かう前に教えてください。印は教示操作で、本人の回答や当時の理由を後付けするものではありません。": "Lerne zuerst Ausruhen, Bitten und Einladungen. Nachdem eine Bitte ohne Markierung gewählt und die Ruhepause beendet wurde, zeige das Fragebeispiel mit diesem Vorschlag rechts. Wiederhole dies mit einer Einladung und einer anderen beendeten Ruhepause. Nach dem Lernen der Frage ordnest du beide Entscheidungen mit der Erklärungsmarkierung getrennten beendeten Ruhepausen zu. Unterrichte vor dem Weg zur nächsten Ruhepause. Die Markierungen dienen dem Lehren und erzeugen weder eigene Antworten noch nachträgliche Beweggründe."
 }

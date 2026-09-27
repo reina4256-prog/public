@@ -1,4 +1,13 @@
 {
+  "reasonTeaching": {
+    "ja": { "question": "【理由質問】", "reason": "【理由説明】", "utterance": "どうして休んだの？" },
+    "en": { "question": "【Reason question】", "reason": "【Reason explanation】", "utterance": "Why did you rest?" },
+    "zh-CN": { "question": "【原因提问】", "reason": "【原因说明】", "utterance": "你为什么休息了？" },
+    "ru": { "question": "【Вопрос о причине】", "reason": "【Объяснение причины】", "utterance": "Почему ты отдыхал?" },
+    "es-ES": { "question": "【Pregunta sobre el motivo】", "reason": "【Explicación del motivo】", "utterance": "¿Por qué descansaste?" },
+    "pt-BR": { "question": "【Pergunta sobre o motivo】", "reason": "【Explicação do motivo】", "utterance": "Por que você descansou?" },
+    "de": { "question": "【Frage nach dem Grund】", "reason": "【Erklärung des Grundes】", "utterance": "Warum hast du dich ausgeruht?" }
+  },
   "sequenceTeaching": {
     "ja": { "before": "【順序・未完了】", "after": "【順序・完了】", "utterance": "あなたが食べ終わったら、休んでね" },
     "en": { "before": "【Sequence: unfinished】", "after": "【Sequence: finished】", "utterance": "After you finish eating, please rest" },

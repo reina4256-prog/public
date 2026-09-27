@@ -107,6 +107,168 @@ function arriveAtSelectedRest(state, world) {
     assert.fail('selected rest was not reached');
 }
 const selectionSave = (state, world) => JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+const reasonDemo = (locale, stage, choice) => {
+    const item = catalog.reasonTeaching[locale];
+    return `${item[stage]}「${item.utterance}」→「${catalog.proposalTeaching[locale][choice].utterance}」`;
+};
+function completeSelectedRest(state, world, choice = 'request', locale = 'ja') {
+    const result = labelLife(state, world, catalog.proposalTeaching[locale][choice].utterance, { locale });
+    assert.equal(world.mode, 'move');
+    arriveAtSelectedRest(state, world); world.dwell = .1; finishLife(state, world);
+    return result;
+}
+
+test('3c3d2: seven languages and eight starts separately teach reason questions, links and bounded recall', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.reasonTeaching)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            prepareSequence(state, world, locale);
+            for (const stage of ['question', 'reason']) for (const choice of ['request', 'invitation']) {
+                completeSelectedRest(state, world, choice, locale);
+                const originals = JSON.stringify(state.selectionSources);
+                const result = labelLife(state, world, reasonDemo(locale, stage, choice), { locale });
+                assert.ok(result.relationLearning, `${locale}/${foundation}/${life}/${stage}/${choice}`);
+                assert.equal(result.relationLearning.adopted.slot, 'reason');
+                const snapshot = selectionSave(state, world);
+                assert.ok(valid(snapshot), `save ${locale}/${stage}/${choice}`);
+                ({ state, world } = snapshot);
+                assert.equal(JSON.stringify(state.selectionSources), originals);
+                const evidence = JSON.stringify(state.knowledge.relationEvidence);
+                labelLife(state, world, reasonDemo(locale, stage, choice), { locale });
+                assert.equal(JSON.stringify(state.knowledge.relationEvidence), evidence, 'repeat does not add evidence');
+                if (!foundation && stage === 'question') {
+                    assert.equal(state.knowledge.relations.some(r => r.id === 'reason'), false);
+                    assert.equal(say(state, catalog.reasonTeaching[locale].utterance, { locale }).understandings[0].complete, false);
+                }
+            }
+            const result = say(state, catalog.reasonTeaching[locale].utterance, { locale });
+            assert.equal(result.understandings[0].complete, true);
+            const response = worldApi.respond(world, result, state);
+            assert.equal(response.message, speech === 'short' ? 'selected_reason' : 'attend');
+            if (speech === 'short') assert.equal(response.literal, catalog.proposalTeaching[locale].invitation.utterance);
+            assert.ok(valid(selectionSave(state, world)), 'answer provenance survives JSON');
+            if (speech === 'short') {
+                for (const mutate of [r => { r.literal = 'forged'; }, r => { r.reviewedBy = 'input:1'; },
+                    r => { r.choiceSource.inputId = 'input:1'; }, r => { r.experienceId = -1; }]) {
+                    const forged = selectionSave(state, world);
+                    mutate(forged.state.context.turns.at(-1).answer.response); assert.equal(valid(forged), false);
+                }
+            }
+            if (!foundation) {
+                assert.deepEqual(result.understandings[0].relationReferences.map(r => r.id).sort(), ['question', 'reason']);
+                assert.equal(notebookApi.entries(state).filter(e => e.detail === 'note_reason_learned').length, 2);
+                assert.equal(say(state, questionForms[locale][0], { locale }).understandings[0].complete, false);
+                assert.equal(say(state, catalog.reasonTeaching[locale].utterance, { locale, speaker: 'friend' }).understandings[0].complete, false);
+            }
+            const before = JSON.stringify(state.knowledge);
+            notebookApi.entries(state); for (let i = 0; i < 12; i++) say(state, 'unrecognized-example');
+            assert.deepEqual(state.knowledge.relationEvidence, JSON.parse(before).relationEvidence);
+            assert.ok(valid(selectionSave(state, world)), 'context eviction preserves teaching sources');
+            // The learnt direction is not awareness of a new choice without its own review.
+            completeSelectedRest(state, world, 'request', locale);
+            assert.equal(worldApi.respond(world, say(state, catalog.reasonTeaching[locale].utterance, { locale }), state).message,
+                speech === 'short' ? 'answer_unknown' : 'attend');
+        }
+    }
+});
+
+test('3c3d2: missing prerequisites, unfinished, autonomous, mismatched and foreign sources never teach reasons', () => {
+    for (const locale of Object.keys(catalog.reasonTeaching)) {
+        const state = create({ foundation: false }), world = worldApi.create();
+        assert.equal(labelLife(state, world, reasonDemo(locale, 'reason', 'request'), { locale }).relationLearning, undefined);
+        prepareSequence(state, world, locale);
+        // Current-activity question learning cannot supply the reason-question scope.
+        for (const [i, activity] of ['eat', 'rest'].entries()) {
+            startRelationActivity(state, world, activity);
+            labelLife(state, world, demo(questionForms[locale][0], questionForms[locale][i + 1]), { locale }); finishLife(state, world);
+        }
+        completeSelectedRest(state, world, 'request', locale);
+        assert.equal(labelLife(state, world, reasonDemo(locale, 'reason', 'request'), { locale }).relationLearning, undefined);
+        for (const options of [{ locale, speaker: 'friend' }, { locale: locale === 'ja' ? 'en' : 'ja' }]) {
+            assert.equal(labelLife(state, world, reasonDemo(options.locale, 'question', 'request'), options).relationLearning, undefined);
+        }
+        assert.equal(labelLife(state, world, reasonDemo(locale, 'question', 'invitation'), { locale }).relationLearning, undefined);
+        labelLife(state, world, reasonDemo(locale, 'question', 'request'), { locale });
+        for (let i = 0; i < 2; i++) {
+            completeSelectedRest(state, world, 'request', locale);
+            labelLife(state, world, reasonDemo(locale, 'question', 'request'), { locale });
+        }
+        assert.equal(state.knowledge.relations.some(r => r.scope?.slot === 'reason'), false);
+        labelLife(state, world, catalog.proposalTeaching[locale].invitation.utterance, { locale });
+        assert.equal(labelLife(state, world, reasonDemo(locale, 'question', 'invitation'), { locale }).relationLearning, undefined);
+        arriveAtSelectedRest(state, world);
+        assert.equal(labelLife(state, world, reasonDemo(locale, 'question', 'invitation'), { locale }).relationLearning, undefined);
+        worldApi.approach(world, 'path');
+        assert.equal(labelLife(state, world, reasonDemo(locale, 'question', 'invitation'), { locale }).relationLearning, undefined);
+    }
+    const state = create(), world = worldApi.create();
+    startRelationActivity(state, world, 'rest'); finishLife(state, world);
+    assert.equal(labelLife(state, world, reasonDemo('ja', 'reason', 'request')).relationLearning, undefined);
+});
+
+test('3c3d2: saves reject changed teaching directions, original selections, prerequisites and scopes', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    prepareSequence(state, world);
+    for (const stage of ['question', 'reason']) for (const choice of ['request', 'invitation']) {
+        completeSelectedRest(state, world, choice); labelLife(state, world, reasonDemo('ja', stage, choice));
+    }
+    const saved = selectionSave(state, world); assert.ok(valid(saved));
+    const labels = (v, fn) => { for (const e of [...v.state.experiences, ...v.world.experiences])
+        for (const l of e.relationLabels || []) if (l.slot === 'reason') fn(l); };
+    for (const mutate of [
+        v => labels(v, l => { l.raw = 'changed'; }),
+        v => labels(v, l => { l.choice = 'invitation'; }),
+        v => labels(v, l => { l.answer = 'unknown'; }),
+        v => labels(v, l => { l.at = l.start; }),
+        v => labels(v, l => { l.eventReference.experienceId = -1; }),
+        v => labels(v, l => { l.choiceSource.inputId = 'input:1'; }),
+        v => labels(v, l => { l.basis.source = 'initial'; }),
+        v => labels(v, l => { l.proposalBasis = []; }),
+        v => labels(v, l => { if (l.relation === 'reason') l.questionBasis.scope.slot = 'current_activity'; }),
+        v => labels(v, l => { l.understanding.complete = !l.understanding.complete; }),
+        v => { v.state.knowledge.relations.find(r => r.id === 'reason').scope.meaning = 'eat'; },
+        v => { v.state.selectionSources[0].input.raw = 'changed'; },
+        v => { v.state.knowledge.relationEvidence.find(e => e.slot === 'reason').choice = 'invitation'; }
+    ]) {
+        const value = structuredClone(saved); mutate(value); assert.equal(valid(value), false);
+    }
+});
+
+test('3c3d2: later teaching preserves original basis and cannot turn testimony or an intervening rest into a choice', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    assert.equal(labelLife(state, world, reasonDemo('ja', 'question', 'request')).relationLearning, undefined);
+    assert.equal(state.knowledge.meanings.length, 0);
+    prepareSequence(state, world);
+    for (const choice of ['request', 'invitation']) {
+        completeSelectedRest(state, world, choice);
+        labelLife(state, world, reasonDemo('ja', 'question', choice));
+    }
+    completeSelectedRest(state, world);
+    const originals = structuredClone(state.selectionSources);
+    const sources = structuredClone(state.experiences);
+    labelLife(state, world, '疲れたから休んだんだね');
+    assert.deepEqual(state.selectionSources, originals);
+    assert.deepEqual(state.experiences, sources, 'a speaker explanation does not rewrite own experience');
+    // Refreshing a known prerequisite during a later rest does not rewrite the earlier basis.
+    labelLife(state, world, catalog.proposalTeaching.ja.invitation.utterance);
+    arriveAtSelectedRest(state, world); labelLife(state, world, '休む');
+    assert.equal(labelLife(state, world, reasonDemo('ja', 'reason', 'request')).relationLearning, undefined);
+    world.dwell = .1; finishLife(state, world);
+    labelLife(state, world, reasonDemo('ja', 'reason', 'invitation'));
+    completeSelectedRest(state, world); labelLife(state, world, reasonDemo('ja', 'reason', 'request'));
+    assert.equal(say(state, catalog.reasonTeaching.ja.utterance).understandings[0].complete, true);
+    assert.ok(valid(selectionSave(state, world)));
+    assert.deepEqual(state.selectionSources.slice(0, originals.length), originals);
+    const evidence = structuredClone(state.knowledge.relationEvidence);
+    for (const raw of ['どうして歩いたの？', 'どうして休んだの？\n一緒に休もう', '疲れたから休んだんだね']) {
+        const result = labelLife(state, world, raw);
+        assert.equal(result.understandings.every(u => u.complete), false);
+        assert.deepEqual(state.knowledge.relationEvidence, evidence);
+    }
+});
 
 test('3c3d1: eight starts and seven languages retain the selected input and its original basis through rest and restart', () => {
     const { valid } = require('../scripts/experimental/storage');
@@ -1122,6 +1284,11 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
             assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world }))); finishLife(state, world);
             labelLife(state, world, sequenceDemo(locale, 'after'), { locale });
             assert.equal(say(state, catalog.sequenceTeaching[locale].utterance, { locale }).understandings[0].complete, true);
+            for (const stage of ['question', 'reason']) for (const choice of ['request', 'invitation']) {
+                completeSelectedRest(state, world, choice, locale);
+                labelLife(state, world, reasonDemo(locale, stage, choice), { locale });
+            }
+            assert.equal(say(state, catalog.reasonTeaching[locale].utterance, { locale }).understandings[0].complete, true);
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);

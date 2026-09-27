@@ -53,6 +53,7 @@
                     .some(event => event.id === e.experienceId && event.end <= at));
     }
     function validLabel(label, state, catalog) {
+        if (label?.slot === 'reason') return validReasonLabel(label, state, catalog);
         if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation', 'time', 'condition', 'sequence'].includes(label.relation) || label.speaker !== 'player'
             || !locales.includes(label.locale) || !/^input:[1-9]\d*$/.test(label.inputId)
             || Number(label.inputId.slice(6)) > state.serial || !Number.isFinite(label.heardAt)
@@ -214,6 +215,88 @@
         }
         return validBasis(label.basis, label.meaning, label.at, state);
     }
+    // These labels refer to an already completed rest and its retained choice.
+    // They are later teaching, not edits to what the child knew when choosing.
+    function validReasonLabel(label, state, catalog) {
+        if (!Array.isArray(state.selectionSources)) return false;
+        const event = state.experiences?.find(e => e.id === label.eventReference?.experienceId);
+        const source = state.selectionSources.find(s => s?.input?.id === label.choiceSource?.inputId);
+        const relation = label.relation, u = label.understanding;
+        if (!['question', 'reason'].includes(relation) || label.speaker !== 'player' || !locales.includes(label.locale)
+            || !/^input:[1-9]\d*$/.test(label.inputId) || Number(label.inputId.slice(6)) > state.serial
+            || !Number.isFinite(label.heardAt) || !Number.isFinite(label.at) || typeof label.scene !== 'string'
+            || label.subject !== 'self' || label.meaning !== 'rest' || label.activity !== 'rest' || label.target !== 'shade'
+            || !event || event.kind !== 'experience' || event.activity !== 'rest' || event.target !== 'shade'
+            || !equal(label.eventReference, { experienceId: event.id, start: event.start, end: event.end })
+            || label.start !== event.start || label.at < event.end
+            || state.experiences.some(e => e.activity === 'rest' && e.id !== event.id && e.start >= event.end && e.start < label.at)
+            || !source || !equal(event.choiceSource, label.choiceSource)
+            || source.selectedAt !== label.choiceSource.selectedAt || source.input.locale !== label.locale
+            || source.input.speaker !== label.speaker || source.frame?.kind !== label.choice || source.frame?.utterance !== label.answer
+            || state.selectionSources.some(s => s?.input?.id === label.inputId)
+            || !equal(label.basis, source.meaningBasis) || !equal(label.proposalBasis, source.relationBasis)
+            || Number(source.input.id.slice(6)) >= Number(label.inputId.slice(6))
+            || !validBasis(label.basis, 'rest', source.selectedAt, state)
+            || typeof label.raw !== 'string' || typeof label.form !== 'string'
+            || !u || u.known?.meaning !== 'rest'
+            || !(equal(u.unresolved, [{ type: 'relation', id: relation }]) || equal(u.unresolved, []))
+            || u.complete !== (u.unresolved.length === 0)
+            || u.kind !== (u.complete ? 'reason_demonstration' : 'partial')
+            || !equal(u.relations, relation === 'reason' ? ['question', ...(u.complete ? ['reason'] : [])]
+                : u.complete ? ['question'] : [])) return false;
+        if (relation === 'reason') {
+            const q = label.questionBasis;
+            if (q?.id !== 'question' || !state.knowledge.relations.some(r => equal(r, q))
+                || (q.source === 'initial' ? !state.settings.foundation
+                    : q.scope?.kind !== 'question' || q.scope.slot !== 'reason' || q.scope.form !== label.form
+                        || q.scope.locale !== label.locale || q.scope.speaker !== label.speaker
+                        || !Array.isArray(q.evidence) || !q.evidence.every(id => Number(id.slice(6)) < Number(label.inputId.slice(6))
+                            && state.experiences.some(e => e.relationLabels?.some(l => l.inputId === id && l.at <= label.at))))) return false;
+        } else if (label.questionBasis !== null) return false;
+        if (catalog) {
+            const frame = core.reasonFrame(label.raw, label.locale, catalog);
+            const proposal = core.proposalFrame(label.answer, label.locale, catalog);
+            if (frame?.kind !== 'reason_demonstration' || frame.stage !== relation || frame.form !== label.form
+                || frame.question !== label.question || frame.answer !== label.answer || frame.choice !== label.choice
+                || proposal?.kind !== source.frame.kind || !equal(proposal, { ...source.frame, span: label.answer })) return false;
+            const snapshot = core.create(state.settings, catalog);
+            snapshot.knowledge.meanings = [copy(label.basis)];
+            snapshot.knowledge.relations = copy(state.knowledge.relations.filter(r => r.source === 'initial'
+                || Array.isArray(r.evidence) && r.evidence.every(id => Number(id.slice(6)) < Number(label.inputId.slice(6))
+                    && state.experiences.some(e => e.relationLabels?.some(l => l.inputId === id && l.at <= label.at)))));
+            const replay = core.receive(snapshot, label.raw, catalog, { locale: label.locale, speaker: label.speaker, at: label.heardAt });
+            if (!equal(replay.understandings[0], u)) return false;
+        }
+        return true;
+    }
+    function offerReason(world, state, result) {
+        const frame = result.interpretations[0], u = result.understandings[0];
+        if (result.interpretations.length !== 1 || result.input.speaker !== 'player'
+            || !(equal(u.unresolved, [{ type: 'relation', id: frame.stage }]) || u.complete)) return false;
+        const event = state.experiences?.filter(e => e.activity === 'rest').at(-1);
+        const source = state.selectionSources?.find(s => s.input.id === event?.choiceSource?.inputId);
+        const physical = event && world.experiences.find(e => e.id === event.id);
+        // Once another rest has begun, the unqualified example cannot reach back.
+        if (!source || !physical || world.mode === 'rest' || world.mode === 'move' && world.destination === 'shade'
+            || world.history.some(h => h.mode === 'rest' && h.start >= event.end)
+            || event.relationLabels?.some(l => l.slot === 'reason' && l.relation === frame.stage)) return false;
+        const label = { relation: frame.stage, slot: 'reason', inputId: result.input.id, raw: result.input.raw,
+            locale: result.input.locale, speaker: result.input.speaker, heardAt: result.input.at,
+            at: world.elapsed, start: event.start, activity: 'rest', target: 'shade', subject: 'self', scene: result.input.scene,
+            meaning: 'rest', form: frame.form, question: frame.question, answer: frame.answer, choice: frame.choice,
+            eventReference: { experienceId: event.id, start: event.start, end: event.end }, choiceSource: copy(event.choiceSource),
+            basis: copy(source.meaningBasis), proposalBasis: copy(source.relationBasis),
+            questionBasis: frame.stage === 'reason' ? copy(state.knowledge.relations.find(r => r.id === 'question'
+                && (r.source === 'initial' || r.scope?.slot === 'reason' && r.scope.form === frame.form
+                    && r.scope.locale === result.input.locale && r.scope.speaker === result.input.speaker)) || null) : null,
+            understanding: copy(u) };
+        if (!validReasonLabel(label, state)) return false;
+        (event.relationLabels ||= []).push(copy(label)); (physical.relationLabels ||= []).push(copy(label));
+        const learning = learn(state);
+        result.relationLearning = { candidates: [copy(label)], adopted: copy(label), updated: learning.updated,
+            relationAcquired: learning.relationAcquired };
+        return true;
+    }
     function offerSequence(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
         if (result.interpretations.length !== 1 || result.input.speaker !== 'player'
@@ -259,6 +342,7 @@
     }
     function offer(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
+        if (frame.kind === 'reason_demonstration') return offerReason(world, state, result);
         if (frame.kind === 'sequence_demonstration') return offerSequence(world, state, result);
         const relation = frame.kind === 'condition_demonstration' ? 'condition' : frame.kind === 'time_demonstration' ? 'time' : frame.kind === 'negation_demonstration' ? 'negation'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
@@ -341,11 +425,12 @@
         return (state.experiences || []).flatMap(event => (event.relationLabels || [])
             .filter(l => validLabel(l, state, catalog) && event.kind === 'experience'
                 && event.activity === l.activity && event.target === l.target && event.start === l.start
-                && (l.relation === 'sequence' ? l.phase === 'after'
+                && (l.slot === 'reason' ? l.at >= event.end : l.relation === 'sequence' ? l.phase === 'after'
                     ? l.eventReference.experienceId === event.id && l.at >= event.end : l.at < event.end
                     : event.end >= l.at) && Number.isFinite(event.end))
             .map(l => ({ relation: l.relation, experienceId: event.id, inputId: l.inputId,
                 locale: l.locale, speaker: l.speaker, ...(l.relation === 'naming' ? { word: l.word }
+                    : l.slot === 'reason' ? { slot: 'reason', form: l.form, choice: l.choice, choiceSource: copy(l.choiceSource) }
                     : l.relation === 'sequence' ? { form: l.form, roles: copy(l.roles), proposalForm: l.proposalForm,
                         phase: l.phase, eventReference: copy(l.eventReference), eventMeaning: l.eventMeaning,
                         eventSubject: l.eventSubject, application: l.application }
@@ -361,6 +446,15 @@
     function acquired(evidence) {
         const pairs = [];
         for (const locale of locales) {
+            for (const relation of ['question', 'reason']) {
+                const items = evidence.filter(e => e.relation === relation && e.slot === 'reason' && e.locale === locale);
+                const request = items.find(e => e.choice === 'request');
+                const invitation = items.find(e => e.choice === 'invitation' && request && e.form === request.form
+                    && e.experienceId !== request.experienceId && e.choiceSource.inputId !== request.choiceSource.inputId);
+                if (request && invitation) pairs.push({ id: relation, source: 'experienced_relation',
+                    scope: { kind: 'question', slot: 'reason', locale, speaker: 'player', meaning: 'rest', form: request.form },
+                    evidence: [request.inputId, invitation.inputId] });
+            }
             const after = evidence.find(e => e.relation === 'sequence' && e.locale === locale && e.phase === 'after');
             const before = after && evidence.find(e => e.relation === 'sequence' && e.phase === 'before'
                 && e.locale === locale && e.inputId === after.eventReference.inputId && e.experienceId === after.experienceId);
@@ -410,7 +504,7 @@
                 scope: { kind: 'word_explanation', locale, speaker: 'player', meanings: ['eat', 'rest'] }, evidence: [eat.inputId, rest.inputId] });
             // The same open question must have contrasting, witnessed answers.
             // A repeated fixed response does not demonstrate an answer slot.
-            const questions = evidence.filter(e => e.relation === 'question' && e.locale === locale);
+            const questions = evidence.filter(e => e.relation === 'question' && e.slot === 'current_activity' && e.locale === locale);
             for (const form of new Set(questions.map(e => e.form))) {
                 const answers = ['eat', 'rest'].map(meaning => questions.find(e => e.form === form && e.meaning === meaning));
                 if (answers.every(Boolean)) pairs.push({ id: 'question', source: 'experienced_relation',
@@ -432,8 +526,8 @@
         return pairs;
     }
     const evidenceKey = e => JSON.stringify([e?.relation, e?.locale, e?.form || null, e?.meaning, e?.demonstratedStatus || null,
-        ...(e?.relation === 'sequence' ? [e.experienceId, e.phase] : [])]);
-    const labelKey = l => l?.relation === 'sequence' ? `${l.relation}:${l.phase}` : l?.relation;
+        ...(e?.slot === 'reason' ? [e.slot, e.choice] : e?.relation === 'sequence' ? [e.experienceId, e.phase] : [])]);
+    const labelKey = l => l?.slot === 'reason' ? `${l.relation}:reason` : l?.relation === 'sequence' ? `${l.relation}:${l.phase}` : l?.relation;
     function learn(state) {
         const offered = candidates(state), updated = [];
         for (const item of offered) {
@@ -492,7 +586,7 @@
             || world.relationLabels.length > 8 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
             || new Set(world.relationLabels.map(labelKey)).size !== world.relationLabels.length
             || !world.relationLabels.every(l => validLabel(l, state, catalog)
-                && (l.relation !== 'sequence' || l.phase === 'before')
+                && l.slot !== 'reason' && (l.relation !== 'sequence' || l.phase === 'before')
                 && l.at <= world.elapsed && l.start === world.activityStart
                 && l.activity === world.mode && l.target === world.attention
                 && (l.relation !== 'condition' || l.observation.before === world.activityBefore?.fatigue
@@ -500,7 +594,7 @@
         for (const event of state.experiences || []) {
             if (event.relationLabels === undefined) continue;
             const originals = world.experiences.filter(e => e.id === event.id);
-            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 9
+            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 11
                 || event.relationLabels.filter(l => isProposal(l?.relation)).length > 1
                 || new Set(event.relationLabels.map(labelKey)).size !== event.relationLabels.length
                 || originals.length !== 1 || !equal(originals[0].relationLabels, event.relationLabels)
@@ -508,7 +602,9 @@
                 || originals[0].kind !== event.activity || originals[0].target !== event.target
                 || originals[0].start !== event.start || originals[0].end !== event.end
                 || !event.relationLabels.every(l => validLabel(l, state, catalog) && l.start === event.start
-                    && (l.relation === 'sequence' ? l.phase === 'after'
+                    && (l.slot === 'reason' ? l.at >= event.end && l.at <= world.elapsed
+                        && !world.history.some(h => h.mode === 'rest' && h.start >= event.end && h.start < l.at)
+                        : l.relation === 'sequence' ? l.phase === 'after'
                         ? l.eventReference.experienceId === event.id && l.at >= event.end && l.at <= world.elapsed
                         : l.at < event.end : l.at <= event.end) && l.activity === event.activity && l.target === event.target
                     && (l.relation !== 'condition' || l.observation.before === event.before?.fatigue
