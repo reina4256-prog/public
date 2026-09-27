@@ -2319,6 +2319,84 @@ test('report continuation does not cross speaker, topic, unknown relation or uns
     }
 });
 
+test('3c3f1: seven-language feeling clauses retain independent unknowns and sources across eight starts', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const [locale, form] of Object.entries(catalog.feelingContrast)) {
+        for (const foundation of [true, false]) for (const life of [true, false]) for (const speech of ['short', 'gesture']) {
+            const state = create({ foundation, life, speech }), world = worldApi.create();
+            const before = JSON.stringify(state.knowledge), experiences = JSON.stringify(state.experiences);
+            const text = form.past + form.join + form.present;
+            for (let repeat = 0; repeat < 3; repeat++) {
+                const result = say(state, text, { locale, at: 123 + repeat });
+                assert.equal(result.understandings.length, 2);
+                for (const [index, u] of result.understandings.entries()) {
+                    assert.equal(u.complete, foundation && life);
+                    assert.equal(u.subject, foundation ? 'player' : null);
+                    assert.equal(u.eventTime, foundation ? ['yesterday', 'now'][index] : 'unspecified');
+                    assert.equal(u.known.meaning, life ? ['sad', 'happy'][index] : undefined);
+                    assert.deepEqual(u.unresolved.filter(x => x.type === 'relation').map(x => x.id), foundation ? [] : ['report', 'time', 'contrast']);
+                    assert.equal(u.clauseSource.input.raw, text);
+                    assert.equal(u.clauseSource.input.at, 123 + repeat);
+                    assert.equal(u.clauseSource.index, index);
+                    assert.equal(u.clauseSource.frame.time, ['yesterday', 'now'][index]);
+                }
+                worldApi.respond(world, result, state);
+                assert.equal(JSON.stringify(state.knowledge), before);
+                assert.equal(JSON.stringify(state.experiences), experiences);
+                assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+            }
+            const saved = JSON.stringify({ version: 1, appearance: 'robot', state, world });
+            for (const mutate of [
+                s => { s.context.turns[0].understandings[0].clauseSource.index = 1; },
+                s => { s.context.turns[0].understandings[0].clauseSource.frame.time = 'now'; },
+                s => { s.context.turns[0].understandings[0].clauseSource.input.raw += '?'; },
+                s => { s.context.turns[0].understandings[0].clauseSource.input.speaker = 'visitor'; },
+                s => { delete s.context.turns[0].understandings[0].clauseSource; }
+            ]) {
+                const value = JSON.parse(saved); mutate(value.state); assert.equal(valid(value), false);
+            }
+        }
+    }
+});
+
+test('3c3f1: unknown contrast preserves understood clauses without borrowing scoped rest relations', () => {
+    for (const [locale, form] of Object.entries(catalog.feelingContrast)) {
+        const state = create();
+        state.knowledge.relations = state.knowledge.relations.filter(r => r.id !== 'contrast');
+        const result = say(state, form.past + form.join + form.present, { locale, speaker: 'visitor' });
+        assert.deepEqual(result.understandings.map(u => [u.kind, u.subject, u.eventTime, u.complete]),
+            [['partial', 'visitor', 'yesterday', false], ['partial', 'visitor', 'now', false]]);
+        assert.ok(result.understandings.every(u => u.unresolved.length === 1 && u.unresolved[0].id === 'contrast'));
+        const scoped = create({ foundation: false });
+        const world = worldApi.create();
+        for (const subject of ['self', 'player']) {
+            startRelationActivity(scoped, world, 'rest');
+            labelLife(scoped, world, reportDemo(locale, subject), { locale }); finishLife(scoped, world);
+        }
+        const partial = say(scoped, form.past + form.join + form.present, { locale });
+        assert.ok(partial.understandings.every(u => u.subject === null && u.unresolved.some(x => x.id === 'report')));
+        for (const text of [form.past + form.join + form.present + '?', '【' + form.past + form.join + form.present + '】', form.past + '\n' + form.present]) {
+            assert.equal(api.interpret(text, locale, catalog).some(f => f.catalogRule === 'feeling_contrast'), false);
+        }
+    }
+});
+
+test('3c3f1: sources survive context eviction while legacy saves remain unchanged', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create(), world = worldApi.create(), form = catalog.feelingContrast.en;
+    const result = say(state, form.past + form.join + form.present, { locale: 'en' });
+    const original = JSON.stringify(state.records);
+    for (let i = 0; i < 12; i++) say(state, 'glorp', { locale: 'en' });
+    assert.equal(state.context.turns.some(t => t.id === result.input.id), false);
+    assert.equal(JSON.stringify(state.records), original);
+    const value = selectionSave(state, world); assert.ok(valid(value));
+    value.state.records[0].understandings[1].clauseSource = null;
+    assert.equal(valid(value), false);
+    const legacy = selectionSave(state, world);
+    for (const record of legacy.state.records) for (const u of record.understandings) delete u.clauseSource;
+    const before = JSON.stringify(legacy); assert.ok(valid(legacy)); assert.equal(JSON.stringify(legacy), before);
+});
+
 test('past and present contrast remains separate and unknown details do not become known by echo', () => {
     const state = create();
     const result = say(state, '昨日は悲しかったけど、今はうれしい');

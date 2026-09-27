@@ -283,7 +283,17 @@
         return null;
     }
 
+    function feelingContrast(text, locale, catalog) {
+        const item = catalog.feelingContrast?.[locale];
+        if (!item || normalize(text) !== normalize(item.past + item.join + item.present)) return null;
+        return [item.past, item.present].map((span, index) => ({ kind: 'report', aspect: 'feeling',
+            meaning: index === 0 ? 'sad' : 'happy', time: index === 0 ? 'yesterday' : 'now',
+            relations: ['report', 'time', 'contrast'], span, catalogRule: 'feeling_contrast' }));
+    }
+
     function interpret(text, locale, catalog) {
+        const feelings = feelingContrast(text, locale, catalog);
+        if (feelings) return feelings;
         const reason = reasonFrame(text, locale, catalog);
         if (reason) return [reason];
         const sequential = sequenceFrame(text, locale, catalog);
@@ -637,15 +647,19 @@
         if (frame.detail) unresolved.push({ type: 'detail', token: frame.detail });
         if (frame.kind === 'unknown') unresolved.push({ type: 'utterance', token: frame.span });
         const relationReady = missingRelations.length === 0 && frame.kind !== 'unknown';
+        // An unknown connection does not erase an understood report's subject.
+        // The whole clause remains partial until that connection is understood.
+        const reportReady = frame.kind === 'report' && required.includes('contrast')
+            && !missingRelations.includes('report');
         const result = {
             kind: relationReady ? frame.kind : 'partial', known, target, ...(applications.length ? { applications } : {}),
             relations: required.filter(id => !missingRelations.includes(id)), unresolved,
             complete: unresolved.length === 0,
             // Scope is only attached when the corresponding relation is understood.
-            subject: relationReady ? (frame.subject || (frame.kind === 'question' ? 'self' : speaker)) : null,
+            subject: relationReady || reportReady ? (frame.subject || (frame.kind === 'question' ? 'self' : speaker)) : null,
             polarity: required.includes('negation') && missingRelations.includes('negation') ? 'unknown' : (frame.polarity || 'positive'),
             eventTime: frame.time && required.includes('time') && !missingRelations.includes('time') ? frame.time : 'unspecified',
-            aspect: relationReady ? (frame.aspect || null) : null,
+            aspect: relationReady || reportReady ? (frame.aspect || null) : null,
             conditionStatus: frame.conditionMeaning ? 'unknown' : null,
             questionSlot: relationReady && frame.kind === 'question' ? frame.slot : null
         };
@@ -875,6 +889,11 @@
         const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog, input.locale));
         understandings.forEach((u, index) => {
             const frame = interpretations[index];
+            if (frame.catalogRule === 'feeling_contrast') {
+                // Parsed source and understood content are distinct. In particular,
+                // this source cannot supply missing meanings or report/time knowledge.
+                u.clauseSource = { input: clone(input), index, frame: clone(frame) };
+            }
             // Splitting sentences does not establish the scope of a condition,
             // contrast or correction. Keep recognized content, but do not act on
             // an isolated proposal or retract evidence through an isolated reply.
@@ -980,7 +999,30 @@
         return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression, lifeLabel };
     }
 
+    function validClauseSources(state, catalog) {
+        for (const item of [...state.context.turns, ...state.records]) {
+            if (!Array.isArray(item?.understandings) || item.understandings.some(u => !u)) return false;
+            const clauses = item.understandings.filter(u => u.clauseSource !== undefined);
+            if (!clauses.length) continue; // Old saves keep their original representation.
+            if (clauses.length !== 2 || item.understandings.length !== 2) return false;
+            const input = clauses[0].clauseSource?.input;
+            if (!input || input.id !== item.id || input.speaker !== item.speaker
+                || !/^input:[1-9]\d*$/.test(input.id) || Number(input.id.slice(6)) > state.serial
+                || typeof input.raw !== 'string' || typeof input.scene !== 'string'
+                || !Number.isFinite(input.at) || (item.heardAt !== undefined && item.heardAt !== input.at)) return false;
+            const frames = feelingContrast(input.raw, input.locale, catalog);
+            if (!frames || !clauses.every((u, index) => {
+                const source = u.clauseSource;
+                return source?.index === index && JSON.stringify(source.input) === JSON.stringify(input)
+                    && JSON.stringify(source.frame) === JSON.stringify(frames[index]);
+            })) return false;
+            const record = state.records.find(r => r.id === item.id);
+            if (record && JSON.stringify(record.understandings) !== JSON.stringify(item.understandings)) return false;
+        }
+        return true;
+    }
+
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame });
+        wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame, feelingContrast, validClauseSources });
 });

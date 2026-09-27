@@ -37,6 +37,7 @@ function valid(value) {
         && lifeLearning.valid(s, w)
         && relationLearning.valid(s, w, require('../../experimental_word_learning_catalog.json'))
         && core.validWordLearning(s, require('../../experimental_word_learning_catalog.json'))
+        && core.validClauseSources(s, require('../../experimental_word_learning_catalog.json'))
         && worldApi.validContext(s, w)
         && worldApi.validSelections(s, w, require('../../experimental_word_learning_catalog.json'))
         && (w.island === undefined || (navigation.valid(w.island)

@@ -1,4 +1,13 @@
 {
+  "feelingContrast": {
+    "ja": { "past": "昨日は悲しかった", "present": "今はうれしい", "join": "けど、" },
+    "en": { "past": "I was sad yesterday", "present": "I am happy now", "join": ", but " },
+    "zh-CN": { "past": "我昨天很难过", "present": "我现在很开心", "join": "，但是" },
+    "ru": { "past": "Вчера мне было грустно", "present": "Сейчас мне радостно", "join": ", но " },
+    "es-ES": { "past": "Ayer estaba triste", "present": "Ahora estoy feliz", "join": ", pero " },
+    "pt-BR": { "past": "Ontem eu estava triste", "present": "Agora estou feliz", "join": ", mas " },
+    "de": { "past": "Gestern war ich traurig", "present": "Jetzt bin ich glücklich", "join": ", aber " }
+  },
   "correctionTeaching": {
     "ja": { "source": "【訂正元】", "replacement": "【取り下げて置換】", "exampleSource": "ぽぽは休むことだよ", "exampleReplacement": "さっき間違えた。ぽぽは食べることだよ" },
     "en": { "source": "【Correction source】", "replacement": "【Withdraw and replace】", "exampleSource": "\"popo\" means \"rest\"", "exampleReplacement": "I was wrong. \"popo\" means \"eat\"" },

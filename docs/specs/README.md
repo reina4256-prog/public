@@ -87,7 +87,9 @@
 
 ## コンテンツ状態
 
-最新の現在地は3c3e2（訂正教示・限定習得）の限定範囲完了、次は3c3f（対比）。一意な原説明選択→取り下げ／置換の二段階教示と実訂正を分離し、原input・当時のbasis・限定scope・元経験を保持する。新方式148件・旧版2件・七言語14,791文・実Electron --correctionsを確認。詳細は[正本3c3e2節](core/experimental_word_learning.md#文の関係の習得の小単位3c3e2訂正教示と限定習得)と[工程表](../WORD_DEMO_ROADMAP.md)。ID 3未完、ID 4へ進まない。以下の各限定範囲は維持する。
+現在地は3c3f1（対比二節の前提基盤）まで。七言語の固定二節・独立した部分理解・原入力と節の保存検査を追加し、八設定×七言語の自動検証と日本語八設定の実Electronを確認。次は3c3f2（未知側の感情語／感情報告report・timeの前提学習）、その後3c3f3（対比教示・限定習得）。対比習得とID 3全体は未完、ID 4へ進まない。入口・限界は[正本3c3f1節](core/experimental_word_learning.md#文の関係の習得の小単位3c3f1対比二節の前提基盤)。以下の既存限定範囲は維持する。
+
+3c3e2（訂正教示・限定習得）は限定範囲完了。一意な原説明選択→取り下げ／置換の二段階教示と実訂正を分離し、原input・当時のbasis・限定scope・元経験を保持する。新方式148件・旧版2件・七言語14,791文・実Electron --correctionsを確認。詳細は[正本3c3e2節](core/experimental_word_learning.md#文の関係の習得の小単位3c3e2訂正教示と限定習得)と[工程表](../WORD_DEMO_ROADMAP.md)。ID 3未完、ID 4へ進まない。以下の各限定範囲は維持する。
 
 3c3d2は限定範囲完了。ユーザーの例1とCodexの実Electron --reasonsで例1〜3・途中／完了保存再開・ノート・しぐさを確認。今後の実働確認はCodex担当。入口と未対応は[正本3c3d2節](core/experimental_word_learning.md#文の関係の習得の小単位3c3d2理由質問と選択理由の限定習得)、確認範囲は[理由の試遊記録](../WORD_REASON_PLAYTEST.md)。
 

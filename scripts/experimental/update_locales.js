@@ -168,6 +168,13 @@ const rows = [
  ['読み込みに失敗しました。ページを開き直してください。', 'Loading failed. Please reopen the page.', '加载失败。请重新打开页面。', 'Не удалось загрузить. Откройте страницу заново.', 'Error al cargar. Vuelve a abrir la página.', 'Falha ao carregar. Abra a página novamente.', 'Laden fehlgeschlagen. Bitte öffne die Seite erneut.']
 ];
 const locales = ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'];
+const feelingContrast = require('../../experimental_word_learning_catalog.json').feelingContrast;
+for (const part of ['past', 'present', 'combined']) {
+    rows.push(locales.map(locale => {
+        const form = feelingContrast[locale];
+        return part === 'combined' ? form.past + form.join + form.present : form[part];
+    }));
+}
 locales.forEach((locale, index) => {
     const file = path.resolve(__dirname, '../../locales', `${locale}.json`);
     const catalog = JSON.parse(fs.readFileSync(file, 'utf8'));

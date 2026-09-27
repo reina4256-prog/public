@@ -14863,5 +14863,8 @@
   "原説明と置換先を照合している。教示だけでは説明を取り下げない。": "Matching the original explanation with its replacement. Teaching alone does not withdraw it.",
   "訂正について教わった例：": "Example taught about correction:",
   "この語・相手・言語・場面・対象・表現で、原説明を置き換える関係を理解した。実際の訂正は別に受け取る。": "I understand how this wording replaces the original explanation for this word, speaker, language, scene and target. An actual correction is received separately.",
-  "食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。": "First learn eat, rest and short explanations. In the same scene and with the same target as the original explanation, show its exact text after the correction-source marker inside « ». Then show the withdrawal-and-replacement sentence. Teaching does not change the explanation. Afterwards, send the correction without a marker. Replace the example word with the word you taught."
+  "食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。": "First learn eat, rest and short explanations. In the same scene and with the same target as the original explanation, show its exact text after the correction-source marker inside « ». Then show the withdrawal-and-replacement sentence. Teaching does not change the explanation. Afterwards, send the correction without a marker. Replace the example word with the word you taught.",
+  "昨日は悲しかった": "I was sad yesterday",
+  "今はうれしい": "I am happy now",
+  "昨日は悲しかったけど、今はうれしい": "I was sad yesterday, but I am happy now"
 }

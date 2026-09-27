@@ -14863,5 +14863,8 @@
   "原説明と置換先を照合している。教示だけでは説明を取り下げない。": "Gleicht die ursprüngliche Erklärung mit ihrem Ersatz ab. Das Beispiel allein nimmt sie nicht zurück.",
   "訂正について教わった例：": "Gelerntes Beispiel zur Korrektur:",
   "この語・相手・言語・場面・対象・表現で、原説明を置き換える関係を理解した。実際の訂正は別に受け取る。": "Ich verstehe das Ersetzen der ursprünglichen Erklärung für dieses Wort, diese Person, Sprache, Situation, dieses Ziel und diese Formulierung. Die eigentliche Korrektur wird gesondert mitgeteilt.",
-  "食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。": "Lerne zuerst Essen, Ausruhen und kurze Erklärungen. Zeige in derselben Situation und mit demselben Ziel den genauen ursprünglichen Text nach der Markierung für die ursprüngliche Erklärung in « ». Zeige dann den Satz zum Zurücknehmen und Ersetzen. Das Beispiel ändert die Erklärung nicht. Sende danach die Korrektur ohne Markierung. Ersetze das Beispielwort durch das von dir gelehrte Wort."
+  "食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。": "Lerne zuerst Essen, Ausruhen und kurze Erklärungen. Zeige in derselben Situation und mit demselben Ziel den genauen ursprünglichen Text nach der Markierung für die ursprüngliche Erklärung in « ». Zeige dann den Satz zum Zurücknehmen und Ersetzen. Das Beispiel ändert die Erklärung nicht. Sende danach die Korrektur ohne Markierung. Ersetze das Beispielwort durch das von dir gelehrte Wort.",
+  "昨日は悲しかった": "Gestern war ich traurig",
+  "今はうれしい": "Jetzt bin ich glücklich",
+  "昨日は悲しかったけど、今はうれしい": "Gestern war ich traurig, aber Jetzt bin ich glücklich"
 }
