@@ -35,6 +35,171 @@ function finishLife(state, world) {
     }
     assert.fail('completion missing');
 }
+
+test('ID 2 end to end: life experience, bounded word use, correction and reload across eight starts', () => {
+    const storage = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        let { state, world } = lifeFixture('rest', { foundation, life, speech });
+        for (const raw of ['休む', '眠る', '"疲れた"']) labelLife(state, world, raw);
+        finishLife(state, world);
+        const meaningBefore = JSON.stringify(state.knowledge.meanings);
+        const experiencesBefore = JSON.stringify(state.experiences);
+        const relationsBefore = JSON.stringify(state.knowledge.relations);
+        const definition = labelLife(state, world, 'ぽぽは休むことだよ');
+        assert.equal(definition.understandings[0].complete, foundation);
+        if (!foundation) {
+            assert.equal(state.knowledge.wordExplanations, undefined);
+            assert.equal(say(state, '「ぽぽ」しよう').understandings[0].complete, false);
+        } else {
+            assert.equal(definition.learning[0].updated.length, 1);
+            assert.equal(say(state, 'ぽぽは休むことだよ').learning[0].updated.length, 0);
+            const applied = say(state, '「ぽぽ」しよう');
+            assert.equal(applied.understandings[0].known.meaning, 'rest');
+            assert.equal(applied.understandings[0].applications[0].candidates[0].inputId, definition.input.id);
+            const response = worldApi.respond(world, applied, state);
+            assert.equal(response.message, speech === 'short' ? 'join' : 'attend');
+            // Persist a definition before correcting it, not just after.
+            const value = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+            assert.ok(storage.valid(value)); ({ state, world } = value);
+            const correction = labelLife(state, world, 'さっき間違えた。ぽぽは休むことじゃなくて、眠ることだよ');
+            assert.equal(correction.understandings[0].corrects, definition.input.id);
+            assert.equal(state.knowledge.wordExplanations[0].retractedBy, correction.input.id);
+            assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, 'sleep');
+            assert.ok(notebookApi.entries(state).some(e => e.withdrawn && e.literal === 'ぽぽ → 休む'));
+            assert.ok(notebookApi.entries(state).some(e => !e.withdrawn && e.literal === 'ぽぽ → 眠る'));
+            const notes = notebookApi.displayEntries(notebookApi.groupedEntries(state), 12);
+            assert.ok(notes.findIndex(e => e.sourceId === definition.input.id) < notes.findIndex(e => e.corrects === definition.input.id));
+            assert.ok(storage.valid(JSON.parse(JSON.stringify(value))));
+        }
+        assert.equal(JSON.stringify(state.knowledge.meanings), meaningBefore);
+        assert.equal(JSON.stringify(state.experiences), experiencesBefore);
+        assert.equal(JSON.stringify(state.knowledge.relations), relationsBefore);
+    }
+});
+
+test('word application respects speaker, scene, individual scope and never reinforces itself', () => {
+    const state = create(); focus(state);
+    say(state, 'ぽぽは休むことだよ');
+    const before = JSON.stringify(state.knowledge);
+    for (let i = 0; i < 15; i++) { say(state, 'ぽぽ'); notebookApi.entries(state); }
+    assert.equal(JSON.stringify(state.knowledge), before);
+    assert.equal(say(state, 'ぽぽ', { speaker: 'friend' }).understandings[0].known.meaning, undefined);
+    focus(state, 'elsewhere');
+    assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, 'rest'); // same individual
+    api.perceive(state, { scene: 'elsewhere', attention: [{ id: 'berry:2', meaning: 'berry' }] });
+    assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, undefined);
+    say(state, 'ぽぽは眠ることだよ');
+    assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, 'sleep');
+    focus(state); // original object and scene retain the original supported explanation
+    assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, 'rest');
+});
+
+test('explicit replacement can revise an individual naming source without deleting the object experience', () => {
+    const { state, world } = lifeFixture('eat', { life: true });
+    focus(state); const name = say(state, 'これをぽぽって呼ぼう');
+    api.perceive(state, { scene: 'clearing', attention: [{ id: 'berry:2', meaning: 'berry' }] });
+    assert.equal(say(state, 'さっきは間違えた。ぽぽは休むことだよ').understandings[0].complete, false);
+    assert.equal(state.knowledge.associations[0].evidence[0].retractedBy, undefined);
+    focus(state);
+    finishLife(state, world);
+    const experiences = JSON.stringify(state.experiences);
+    const correction = say(state, 'さっきは間違えた。ぽぽは休むことだよ');
+    assert.equal(correction.understandings[0].corrects, name.input.id);
+    assert.equal(state.knowledge.associations[0].evidence[0].retractedBy, correction.input.id);
+    assert.equal(JSON.stringify(state.experiences), experiences);
+    assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, 'rest');
+    assert.ok(api.validWordLearning(JSON.parse(JSON.stringify(state))));
+});
+
+test('corrections target only one supported explanation; ambiguity and unknown relations remain unresolved', () => {
+    const state = create(); focus(state);
+    say(state, 'ぽぽは休むことだよ'); say(state, 'ぽぽは木の実のことだよ');
+    const before = JSON.stringify(state.knowledge);
+    assert.equal(say(state, 'ぽぽ').understandings[0].complete, false);
+    assert.equal(say(state, 'さっき間違えた。ぽぽは眠ることだよ').understandings[0].complete, false);
+    assert.equal(JSON.stringify(state.knowledge), before);
+    const fixed = say(state, 'さっき間違えた。ぽぽは休むことじゃなくて、眠ることだよ');
+    assert.ok(fixed.understandings[0].complete);
+    assert.equal(state.knowledge.wordExplanations.filter(e => !e.retractedBy).length, 2);
+    assert.ok(state.knowledge.wordExplanations.some(e => e.meaning === 'berry' && !e.retractedBy));
+    assert.equal(say(state, 'ぽぽ').understandings[0].complete, false); // still two valid meanings
+    for (const options of [{ speaker: 'friend' }, {}]) {
+        const result = say(state, 'さっき間違えた。ぽぽは未知の動作のことだよ', options);
+        assert.equal(result.understandings[0].complete, false);
+    }
+    assert.equal(state.knowledge.wordExplanations.length, 3);
+    state.knowledge.relations = state.knowledge.relations.filter(r => r.id !== 'correction');
+    assert.equal(say(state, 'さっき間違えた。ぽぽは木の実のことじゃなくて、食べることだよ').understandings[0].complete, false);
+    assert.equal(state.knowledge.wordExplanations.length, 3);
+});
+
+test('seven language definitions, applications and corrections preserve literal words and scope', () => {
+    for (const [locale, define, use, correct] of [
+        ['ja', 'ぽぽは休むことだよ', '「ぽぽ」しよう', 'さっき間違えた。ぽぽは眠ることだよ'],
+        ['en', '"ぽぽ" means "rest"', 'let\'s "ぽぽ"', 'I was wrong. "ぽぽ" means "sleep"'],
+        ['zh-CN', '“ぽぽ”的意思是“休息”', '一起“ぽぽ”吧', '刚才说错了。“ぽぽ”的意思是“睡觉”'],
+        ['ru', '"ぽぽ" значит "отдых"', 'давай "ぽぽ"', 'Я ошибся. "ぽぽ" значит "спать"'],
+        ['es-ES', '"ぽぽ" significa "descansar"', 'vamos a "ぽぽ"', 'Me equivoqué. "ぽぽ" significa "dormir"'],
+        ['pt-BR', '"ぽぽ" significa "descansar"', 'vamos "ぽぽ"', 'Eu errei. "ぽぽ" significa "dormir"'],
+        ['de', '"ぽぽ" bedeutet "ausruhen"', 'lass uns "ぽぽ"', 'Ich habe mich geirrt. "ぽぽ" bedeutet "schlafen"']
+    ]) {
+        const state = create();
+        const first = say(state, define, { locale });
+        assert.equal(first.learning[0].updated.length, 1, locale);
+        assert.equal(say(state, use, { locale }).understandings[0].known.meaning, 'rest', locale);
+        assert.equal(say(state, correct, { locale }).understandings[0].corrects, first.input.id, locale);
+        assert.equal(say(state, 'ぽぽ', { locale }).understandings[0].known.meaning, 'sleep', locale);
+        assert.equal(state.knowledge.wordExplanations[1].word, 'ぽぽ');
+        assert.ok(api.validWordLearning(JSON.parse(JSON.stringify(state))), locale);
+    }
+});
+
+test('word save validation rejects broken provenance and correction chains without upgrading legacy saves', () => {
+    const state = create(); say(state, 'ぽぽは休むことだよ');
+    say(state, 'さっき間違えた。ぽぽは眠ることだよ');
+    assert.ok(api.validWordLearning(state));
+    for (const mutate of [s => s.knowledge.wordExplanations[0].speaker = 'someone',
+        s => s.knowledge.wordExplanations[0].scope.scene = 'other',
+        s => s.knowledge.wordExplanations[1].corrects = 'input:999',
+        s => s.knowledge.wordExplanations[0].retractedBy = 'input:999',
+        s => s.records.splice(0, 1), s => s.knowledge.wordExplanations[1].basis.id = 'sweet',
+        s => s.knowledge.wordExplanations.push(s.knowledge.wordExplanations[0])]) {
+        const altered = JSON.parse(JSON.stringify(state)); mutate(altered);
+        assert.equal(api.validWordLearning(altered), false);
+    }
+    const old = create(); const before = JSON.stringify(old);
+    assert.ok(api.validWordLearning(old)); assert.equal(JSON.stringify(old), before);
+});
+
+test('word definitions cannot smuggle negation, unknown senses or hypothetical actions into use', () => {
+    const state = create(); say(state, 'ぽぽは休むことだよ');
+    for (const raw of ['ぽぽは未知の感覚のことだよ', '休むは食べることだよ', 'ぽぽは休むことだよ？',
+        '「ぽぽ」しないで', '疲れたら「ぽぽ」しよう', 'あの人が「ぽぽ」しよう', '「ぽぽ」しよう。知らないこともして']) {
+        const result = say(state, raw);
+        assert.ok(result.understandings.some(u => !u.complete), raw);
+        assert.ok(!result.learning.some(l => l.updated.length), raw);
+    }
+    assert.equal(state.knowledge.wordExplanations.length, 1);
+});
+
+test('contrast correction and conflicting individual explanations cannot silently revive old meanings', () => {
+    const state = create(); focus(state);
+    say(state, 'これをぽぽって呼ぼう'); say(state, 'ぽぽは休むことだよ');
+    assert.equal(say(state, 'ぽぽ').understandings[0].complete, false);
+    say(state, 'ぽぽは木の実のことじゃなくて、眠ることだよ');
+    assert.ok(state.knowledge.associations[0].evidence[0].retractedBy);
+    assert.equal(say(state, 'ぽぽ').understandings[0].complete, false, 'other explanation still competes');
+    const second = say(state, 'ぽぽは休むことじゃなくて、眠ることだよ');
+    assert.ok(second.understandings[0].complete);
+    assert.equal(say(state, 'ぽぽ').understandings[0].known.meaning, 'sleep');
+    const unchanged = JSON.stringify(state.knowledge);
+    say(state, 'さっき間違えた。ぽぽは眠ることだよ');
+    assert.equal(JSON.stringify(state.knowledge), unchanged);
+    assert.ok(api.validWordLearning(state));
+    // Moving to another individual in the same scene does not expand the scope.
+    api.perceive(state, { scene: 'clearing', attention: [{ id: 'berry:2', meaning: 'berry' }] });
+    assert.equal(api.wordApplication(state, 'ぽぽ', 'player').adopted, null);
+});
 test('life labels connect objects actions and senses across eight starts only on completion', () => {
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
         for (const activity of ['eat', 'rest']) {

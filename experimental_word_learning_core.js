@@ -205,6 +205,167 @@
         return state.knowledge[type].some(entry => entry.id === id);
     }
 
+    // A definition is heard evidence about a word, not a new sensory experience.
+    // Its scope is evidence of use here; it makes no claim about everyone else.
+    function wordFrame(raw, locale) {
+        const forms = {
+            ja: /^(?:(さっき(?:は|の説明は)?間違えた)[。\s、,]*)?[「"]?([\p{L}\p{N}ー]{1,16})[」"]?は[「"]?([^。！？!?\n]+?)[」"]?(?:のこと|こと)(?:だよ|です|だ)[。]?$/u,
+            en: /^(?:(i was wrong)[.,]\s*)?"([^"\n]{1,24})" means "([^"\n]+)"[.]?$/iu,
+            'zh-CN': /^(?:(刚才说错了)[，,。\s]*)?[“"]([^”"\n]{1,24})[”"]的意思是[“"]([^”"\n]+)[”"][。]?$/u,
+            ru: /^(?:(я ошибся)[.,]\s*)?"([^"\n]{1,24})" значит "([^"\n]+)"[.]?$/iu,
+            'es-ES': /^(?:(me equivoqué)[.,]\s*)?"([^"\n]{1,24})" significa "([^"\n]+)"[.]?$/iu,
+            'pt-BR': /^(?:(eu errei)[.,]\s*)?"([^"\n]{1,24})" significa "([^"\n]+)"[.]?$/iu,
+            de: /^(?:(ich habe mich geirrt)[.,]\s*)?"([^"\n]{1,24})" bedeutet "([^"\n]+)"[.]?$/iu
+        };
+        const match = forms[locale]?.exec(raw.trim());
+        if (!match) return null;
+        const contrast = locale === 'ja' && /^(.+?)(?:のこと|こと)?じゃなくて[、,\s]*(.+)$/u.exec(match[3]);
+        return { kind: match[1] || contrast ? 'word_correction' : 'word_explanation', word: match[2],
+            meaning: contrast ? contrast[2] : match[3], ...(contrast ? { oldMeaning: contrast[1] } : {}),
+            relations: ['naming', ...(match[1] || contrast ? ['correction'] : []), ...(contrast ? ['negation', 'contrast'] : [])],
+            span: raw, catalogRule: 'word_explanation' };
+    }
+
+    function wordScope(state, entry, speaker) {
+        const attention = state.context.attention;
+        if (entry.speaker !== speaker) return false;
+        if (entry.scope.targets.length && attention.length) {
+            return entry.scope.targets.some(id => attention.some(item => item.id === id));
+        }
+        return entry.scope.scene === state.context.scene;
+    }
+
+    function wordApplication(state, word, speaker) {
+        const candidates = (state.knowledge.wordExplanations || []).filter(entry => !entry.retractedBy
+            && normalize(entry.word) === normalize(word) && wordScope(state, entry, speaker));
+        const meanings = [...new Set(candidates.map(entry => entry.meaning))];
+        const individualConflict = candidates.length && state.knowledge.associations.some(link =>
+            normalize(link.word) === normalize(word) && link.speaker === speaker && link.evidence.some(e => !e.retractedBy
+                && wordScope(state, { speaker: link.speaker, scope: { scene: e.scene, targets: [link.target] } }, speaker)));
+        return { candidates: candidates.map(entry => ({ meaning: entry.meaning, inputId: entry.inputId,
+            scope: clone(entry.scope) })), adopted: meanings.length === 1 && !individualConflict ? meanings[0] : null,
+            ...(individualConflict ? { unresolvedIndividual: true } : {}),
+            updated: [], relationAcquired: false };
+    }
+
+    function wordUseFrame(raw, locale) {
+        // Quoted custom action names reuse the known invitation relation. Other
+        // subjects, clauses, conditions and negation must not be stripped away.
+        const forms = {
+            ja: /^[「"]([^」"\n]+)[」"](?:を)?しよう[。]?$/u,
+            en: /^let's "([^"\n]+)"[.]?$/iu,
+            'zh-CN': /^一起[“"]([^”"\n]+)[”"]吧[。]?$/u,
+            ru: /^давай "([^"\n]+)"[.]?$/iu,
+            'es-ES': /^vamos a "([^"\n]+)"[.]?$/iu,
+            'pt-BR': /^vamos "([^"\n]+)"[.]?$/iu,
+            de: /^lass uns "([^"\n]+)"[.]?$/iu
+        };
+        const match = forms[locale]?.exec(raw.trim());
+        return match ? { kind: 'invitation', meaning: match[1], relations: ['invitation'],
+            span: raw, catalogRule: 'word_use' } : null;
+    }
+
+    function updateWordExplanation(state, frame, u, input, catalog) {
+        const output = { candidates: [], adopted: null, updated: [], relationAcquired: false };
+        if (!['word_explanation', 'word_correction'].includes(frame.kind)) return output;
+        // Definitions cannot replace built-in words or silently introduce unknown concepts.
+        const allowed = ['berry', 'food', 'eat', 'sweet', 'hungry', 'rest', 'sleep', 'tired',
+            ...Object.keys(catalog.experienceMeanings || {})];
+        if (lexicalMeaning(frame.word, catalog) || !allowed.includes(u.known.meaning)) {
+            u.unresolved.push({ type: 'word_definition' }); u.complete = false;
+        }
+        if (!u.complete) return output;
+        const entries = state.knowledge.wordExplanations || [];
+        const scope = { scene: state.context.scene, targets: state.context.attention.map(item => item.id) };
+        let old = null;
+        if (frame.kind === 'word_correction') {
+            const matches = entries.filter(entry => !entry.retractedBy && normalize(entry.word) === normalize(frame.word)
+                && wordScope(state, entry, input.speaker)
+                && (!frame.oldMeaning || entry.meaning === lexicalMeaning(frame.oldMeaning, catalog)));
+            // Individual names remain individual. An explicit correction may refer
+            // to that explanation, but never turns its object into a whole species.
+            for (const link of state.knowledge.associations) {
+                if (normalize(link.word) !== normalize(frame.word) || link.speaker !== input.speaker) continue;
+                for (const evidence of link.evidence) {
+                    const record = state.records.find(r => r.id === evidence.inputId);
+                    if (evidence.retractedBy || record?.retractedBy || !record?.understandings[0]?.complete
+                        || !wordScope(state, { speaker: link.speaker,
+                            scope: { scene: evidence.scene, targets: [link.target] } }, input.speaker)) continue;
+                    const oldMeaning = link.target.startsWith('berry:') ? 'berry' : null;
+                    if (frame.oldMeaning && lexicalMeaning(frame.oldMeaning, catalog) !== oldMeaning) continue;
+                    matches.push({ inputId: evidence.inputId, link, evidence, record });
+                }
+            }
+            if (matches.length !== 1) {
+                u.unresolved.push({ type: 'correction_target' }); u.complete = false; return output;
+            }
+            old = matches[0];
+            if (old.meaning === u.known.meaning) {
+                u.unresolved.push({ type: 'correction_unchanged' }); u.complete = false; return output;
+            }
+        }
+        output.candidates = [{ word: frame.word, meaning: u.known.meaning, scope: clone(scope) }];
+        output.adopted = { ...output.candidates[0], status: 'tentative' };
+        if (!old && entries.some(entry => !entry.retractedBy && normalize(entry.word) === normalize(frame.word)
+            && entry.meaning === u.known.meaning && entry.speaker === input.speaker
+            && JSON.stringify(entry.scope) === JSON.stringify(scope))) return output;
+        const entry = { inputId: input.id, heardAt: input.at, word: frame.word, explainedAs: frame.meaning, meaning: u.known.meaning,
+            speaker: input.speaker, scope, basis: clone(state.knowledge.meanings.find(m => m.id === u.known.meaning)) };
+        if (old) {
+            if (old.evidence) {
+                old.evidence.retractedBy = input.id; old.record.retractedBy = input.id;
+                if (!old.link.evidence.some(e => !e.retractedBy)) old.link.status = 'candidate';
+            } else old.retractedBy = input.id;
+            entry.corrects = old.inputId; u.corrects = old.inputId;
+            output.retraction = old.inputId;
+        }
+        state.knowledge.wordExplanations ||= [];
+        state.knowledge.wordExplanations.push(entry);
+        output.updated.push({ inputId: input.id, meaning: entry.meaning });
+        return output;
+    }
+
+    function validWordLearning(state) {
+        const entries = state.knowledge.wordExplanations;
+        if (entries === undefined) return true; // Old saves are not retroactively taught.
+        if (!Array.isArray(entries) || new Set(entries.map(e => e?.inputId)).size !== entries.length) return false;
+        return entries.every(entry => {
+            if (!entry || typeof entry.word !== 'string' || !entry.word.trim() || typeof entry.explainedAs !== 'string' || typeof entry.speaker !== 'string'
+                || !/^input:[1-9]\d*$/.test(entry.inputId) || !Number.isFinite(entry.heardAt) || typeof entry.scope?.scene !== 'string'
+                || !Array.isArray(entry.scope.targets) || !entry.scope.targets.every(id => typeof id === 'string')
+                || entry.basis?.id !== entry.meaning) return false;
+            const current = state.knowledge.meanings.find(m => m.id === entry.meaning);
+            if (!current || current.source !== entry.basis.source) return false;
+            if (current.evidence && !Array.isArray(entry.basis.evidence)) return false;
+            if (entry.basis.evidence && (!Array.isArray(entry.basis.evidence) || !entry.basis.evidence.length
+                || !entry.basis.evidence.every(e => current.evidence?.some(original => JSON.stringify(e) === JSON.stringify(original))))) return false;
+            const records = state.records.filter(r => r.id === entry.inputId);
+            const u = records[0]?.understandings[0];
+            if (records.length !== 1 || records[0].understandings.length !== 1
+                || records[0].speaker !== entry.speaker || records[0].heardAt !== entry.heardAt
+                || !u?.complete || !['word_explanation', 'word_correction'].includes(u.kind)
+                || u.corrects !== entry.corrects
+                || u.subject !== entry.speaker || !u.relations?.includes('naming')
+                || (entry.corrects && (u.kind !== 'word_correction' || !u.relations.includes('correction')))
+                || u.known.meaning !== entry.meaning || JSON.stringify(u.wordExplanation) !== JSON.stringify({
+                    word: entry.word, explainedAs: entry.explainedAs, scope: entry.scope, basis: entry.basis })) return false;
+            if (entry.corrects) {
+                const old = entries.find(e => e.inputId === entry.corrects);
+                const oldLinks = state.knowledge.associations.filter(link => link.speaker === entry.speaker
+                    && normalize(link.word) === normalize(entry.word)
+                    && link.evidence.some(e => e.inputId === entry.corrects && e.retractedBy === entry.inputId));
+                const oldRecord = state.records.find(r => r.id === entry.corrects);
+                if (old ? old.retractedBy !== entry.inputId || old.speaker !== entry.speaker
+                    || normalize(old.word) !== normalize(entry.word)
+                    : oldLinks.length !== 1 || oldRecord?.retractedBy !== entry.inputId) return false;
+                if (u.corrects !== entry.corrects
+                    || Number(entry.corrects.split(':')[1]) >= Number(entry.inputId.split(':')[1])) return false;
+            }
+            if (entry.retractedBy && !entries.some(e => e.inputId === entry.retractedBy && e.corrects === entry.inputId)) return false;
+            return true;
+        });
+    }
+
     function resolveTarget(state, token, speaker, catalog, individualOnly = false) {
         if (!token || catalog.deictic.includes(token)) {
             const candidates = state.context.attention.map(item => ({ id: item.id, source: 'attention' }));
@@ -231,12 +392,15 @@
         const required = [...(frame.relations || [])];
         const missingRelations = required.filter(id => !understands(state, 'relations', id));
         unresolved.push(...missingRelations.map(id => ({ type: 'relation', id })));
-        const known = {};
-        for (const field of ['meaning', 'conditionMeaning', 'eventMeaning']) {
+        const known = {}, applications = [];
+        for (const field of ['meaning', 'conditionMeaning', 'eventMeaning', 'oldMeaning']) {
             if (!frame[field]) continue;
             const id = Object.hasOwn(catalog.meanings, frame[field]) || Object.hasOwn(catalog.experienceMeanings || {}, frame[field])
                 ? frame[field] : lexicalMeaning(frame[field], catalog);
+            const application = !id && !['word_explanation', 'word_correction'].includes(frame.kind)
+                ? wordApplication(state, frame[field], speaker) : null;
             if (id && understands(state, 'meanings', id)) known[field] = id;
+            else if (application?.adopted) { known[field] = application.adopted; applications.push({ field, ...application }); }
             else unresolved.push({ type: 'meaning', field, token: frame[field] });
         }
         let target = null;
@@ -248,7 +412,7 @@
         if (frame.kind === 'unknown') unresolved.push({ type: 'utterance', token: frame.span });
         const relationReady = missingRelations.length === 0 && frame.kind !== 'unknown';
         const result = {
-            kind: relationReady ? frame.kind : 'partial', known, target,
+            kind: relationReady ? frame.kind : 'partial', known, target, ...(applications.length ? { applications } : {}),
             relations: required.filter(id => !missingRelations.includes(id)), unresolved,
             complete: unresolved.length === 0,
             // Scope is only attached when the corresponding relation is understood.
@@ -423,7 +587,8 @@
         const answer = (!delivered || (delivered.inputId === previous?.id && delivered.deliveryKind === 'speech')) && previous?.answer;
         const followup = contextQuestion(state, raw, input.locale, input.speaker, catalog);
         const reportFollowup = reportContinuation(state, raw, input);
-        const interpretations = repeats && answer && previous.speaker === input.speaker
+        const definition = wordFrame(raw, input.locale) || wordUseFrame(raw, input.locale);
+        const interpretations = definition ? [definition] : repeats && answer && previous.speaker === input.speaker
             ? [{ kind: 'question', slot: 'repeat_answer', subject: 'self', relations: ['question'],
                 span: raw, catalogRule: 'context_repeat', replyTo: previous.id }]
             : followup ? [followup] : reportFollowup ? [reportFollowup] : interpret(raw, input.locale, catalog);
@@ -453,6 +618,11 @@
                 return;
             }
             if (frame.kind !== 'unknown') return;
+            const applied = wordApplication(state, frame.span, input.speaker);
+            if (applied.candidates.length) {
+                interpretations[index] = { kind: 'word_reference', meaning: frame.span, span: frame.span, relations: [] };
+                return;
+            }
             const pending = state.context.pendingQuestion;
             if (pending?.kind === 'ask_name' && pending.speaker === input.speaker && state.serial <= pending.expires
                 && state.context.attention.some(item => item.id === pending.target)
@@ -509,6 +679,13 @@
             state.context.pendingQuestion = null;
         });
         const learning = interpretations.map((frame, index) => {
+            if (['word_explanation', 'word_correction'].includes(frame.kind)) {
+                const result = updateWordExplanation(state, frame, understandings[index], input, catalog);
+                const entry = state.knowledge.wordExplanations?.find(e => e.inputId === input.id);
+                if (entry) understandings[index].wordExplanation = clone({ word: entry.word, explainedAs: entry.explainedAs,
+                    scope: entry.scope, basis: entry.basis });
+                return result;
+            }
             const candidates = formCandidates(state, frame, understandings[index], input, catalog);
             const adopted = adoptCandidate(candidates);
             const updated = updateLinks(state, candidates, adopted, input);
@@ -557,5 +734,6 @@
     }
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
-        adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning });
+        adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
+        wordFrame, wordApplication, validWordLearning });
 });

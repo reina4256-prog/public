@@ -5,6 +5,11 @@
     const labels = {
         bodyHunger: '空腹',
         bodyEnergy: '体力',
+        word_situated: 'ここで教わった意味と結び付けて考えているよ。ほかでも同じかは、まだ分からない。',
+        word_corrected: '前の説明を言い直したんだね。自分で経験したことは残して、今の説明と分けて考えるよ。',
+        word_scope_unknown: 'どの説明につながるのか、まだはっきり分からない。',
+        note_word_explained: '知っている意味と結び付けた説明。この相手・対象・場面で聞いたこととして覚えている。',
+        note_word_withdrawn: '相手が言い直した説明。今の説明とは分けて残し、自分の経験は消さない。',
         work_did_explore: '荷物を運んだよ。',
         work_did_farming: '畑の石を拾ったよ。',
         work_did_fishing: '網の破れを直したよ。',
@@ -303,7 +308,7 @@
             const items = entries.filter(entry => entry.group === group);
             if (!items.length) continue;
             node('h3', t(group), notebook);
-            for (const entry of items.slice(-noteLimit).reverse()) {
+            for (const entry of window.ExperimentalWordNotebook.displayEntries(items, noteLimit)) {
                 const card = node('article', undefined, notebook); card.className = 'note-card';
                 const text = node(entry.withdrawn ? 's' : 'p', t(entry.message), card);
                 if (entry.literal !== undefined) {

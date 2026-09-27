@@ -279,6 +279,10 @@
         const knows = id => state.knowledge.meanings.some(entry => entry.id === id);
         world.reaction = !u.complete ? 'uncertain' : 'attend';
         if (result.reaction.intent === 'receive_sadness') world.reaction = 'care';
+        if (['word_explanation', 'word_correction', 'word_reference'].includes(u.kind)) {
+            return { message: !canSpeak ? 'attend' : !u.complete ? 'word_scope_unknown'
+                : u.kind === 'word_correction' ? 'word_corrected' : 'word_situated' };
+        }
         if (['report', 'report_continuation'].includes(u.kind) && u.subject === result.input.speaker
             && u.aspect === 'external_event' && ['failure', 'success'].includes(u.known.meaning)) {
             return { message: canSpeak ? 'heard_event_partial' : 'attend' };

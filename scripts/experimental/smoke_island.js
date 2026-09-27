@@ -93,10 +93,39 @@ if (!process.versions.electron || process.type !== 'browser') {
             await chat('休めた？');
             assert.equal(snapshot.state.context.turns.at(-1).answer.response.message, 'rest_helped');
             assert.ok(snapshot.state.knowledge.meanings.some(m => m.id === 'rest' && m.source === 'experienced_life'));
+            if (process.argv.includes('--learning')) {
+                const knownBefore = JSON.stringify(snapshot.state.knowledge.meanings);
+                const experiencesBefore = JSON.stringify(snapshot.state.experiences);
+                await chat('ぽぽは休むことだよ');
+                const original = snapshot.state.knowledge.wordExplanations[0].inputId;
+                await chat('「ぽぽ」しよう');
+                assert.equal(snapshot.state.context.turns.at(-1).understandings[0].known.meaning, 'rest');
+                await window.loadURL(url); await paintClock(); await sleep(600);
+                await js('document.querySelector("#app > form").requestSubmit()');
+                await chat('さっき間違えた。ぽぽは休むことじゃなくて、木の実のことだよ');
+                assert.equal(snapshot.state.knowledge.wordExplanations[1].corrects, original);
+                assert.ok(await js('document.querySelector("#conversation").textContent.includes("前の説明を言い直した")'));
+                await chat('ぽぽ');
+                assert.equal(snapshot.state.context.turns.at(-1).understandings[0].known.meaning, 'berry');
+                assert.equal(JSON.stringify(snapshot.state.knowledge.meanings), knownBefore);
+                assert.equal(JSON.stringify(snapshot.state.experiences), experiencesBefore);
+                const explanations = JSON.stringify(snapshot.state.knowledge.wordExplanations);
+                await window.loadURL(url); await paintClock(); await sleep(600);
+                await js('document.querySelector("#app > form").requestSubmit()');
+                await chat('ぽぽ');
+                assert.equal(snapshot.state.context.turns.at(-1).understandings[0].known.meaning, 'berry');
+                assert.equal(JSON.stringify(snapshot.state.knowledge.wordExplanations), explanations);
+            }
             await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.includes("この子のノート")).click()');
             assert.ok(await js('document.body.textContent.includes("行動中に聞いた言葉と")'));
+            if (process.argv.includes('--learning')) {
+                assert.ok(await js('Array.from(document.querySelectorAll("#notebook s")).some(e=>e.textContent.includes("ぽぽ → 休む"))'));
+                assert.ok(await js('document.querySelector("#notebook").textContent.includes("ぽぽ → 木の実")'));
+                await js('Array.from(document.querySelectorAll("#notebook .note-card")).find(e=>e.textContent.includes("ぽぽ → 休む")).scrollIntoView({block:"start"})');
+            }
             window.setSize(1281, 800); await sleep(500);
-            const screenshot = path.resolve(__dirname, '../../tests/word-life-smoke.png');
+            const screenshot = path.resolve(__dirname, process.argv.includes('--learning')
+                ? '../../tests/word-learning-smoke.png' : '../../tests/word-life-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
             const meanings = JSON.stringify(snapshot.state.knowledge.meanings);
             await window.loadURL(url); await paintClock(); await sleep(600);

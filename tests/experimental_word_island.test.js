@@ -172,6 +172,21 @@ test('six masters are encountered through actual arrival; all eight settings can
                 assert.equal(clarified.message, `work_did_${id}`);
                 assert.equal(clarified.experienceId, world.experiences.at(-1).id);
             } else assert.equal(clarified.message, 'attend');
+            const originalKnowledge = JSON.stringify(state.knowledge.meanings);
+            // Completion clears attention: use distinct words here. Reusing the
+            // same word for different jobs in that empty context must stay ambiguous.
+            const word = `ぽぽ${Object.keys(jobs).indexOf(id)}`;
+            const definition = core.receive(state, `${word}は${catalog.experienceMeanings[`work:${id}`][0]}のことだよ`, catalog);
+            assert.equal(definition.understandings[0].complete, foundation);
+            if (foundation) {
+                const application = core.receive(state, word, catalog);
+                assert.equal(application.understandings[0].known.meaning, `work:${id}`);
+                assert.equal(state.knowledge.wordExplanations.at(-1).basis.evidence[0].experienceId, world.experiences.at(-1).id);
+                const corrected = core.receive(state, `さっき間違えた。${word}は仕事のことだよ`, catalog);
+                assert.equal(corrected.understandings[0].corrects, definition.input.id);
+                assert.equal(core.receive(state, word, catalog).understandings[0].known.meaning, 'work');
+            }
+            assert.equal(JSON.stringify(state.knowledge.meanings), originalKnowledge);
             assert.ok(valid({ version: 1, appearance: 'robot', state, world }));
         }
         assert.equal(state.encounters.length, 6);

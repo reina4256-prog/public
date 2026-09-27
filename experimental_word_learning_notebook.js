@@ -10,6 +10,11 @@
         const organizedReports = new Set(state.notes.map(n => n.sourceId).filter(id => id !== undefined));
         const organizedExperiences = new Set(state.notes.map(n => n.experienceId).filter(id => id !== undefined));
         const knows = id => state.knowledge.meanings.some(m => m.id === id);
+        for (const entry of state.knowledge.wordExplanations || []) {
+            result.push({ group: 'names', message: 'note_name', literal: `${entry.word} → ${entry.explainedAs}`, target: entry.meaning,
+                detail: entry.retractedBy ? 'note_word_withdrawn' : 'note_word_explained', withdrawn: !!entry.retractedBy,
+                sourceId: entry.inputId, corrects: entry.corrects || null, organized: organizedReports.has(entry.inputId) });
+        }
         for (const meaning of state.knowledge.meanings) {
             if (meaning.source === 'experienced_life') {
                 for (const evidence of meaning.evidence) result.push({ group: 'names', message: 'note_name',
@@ -31,6 +36,7 @@
             const withdrawn = active.length === 0;
             result.push({ group: 'names', message: 'note_name', literal: link.word, target: link.target,
                 detail: withdrawn ? 'note_withdrawn' : link.confirmedBy ? 'note_name_confirmed' : 'note_name_scope', withdrawn,
+                ...(link.evidence.length === 1 ? { sourceId: link.evidence[0].inputId } : {}),
                 organized: (withdrawn ? link.evidence : active).some(e => organizedReports.has(e.inputId)) });
         }
         for (const record of state.records) {
@@ -71,13 +77,24 @@
     function groupedEntries(state) {
         const groups = new Map();
         for (const entry of entries(state)) {
-            const key = JSON.stringify([entry.group, entry.message, entry.literal, entry.target, entry.detail, !!entry.withdrawn]);
+            const key = JSON.stringify([entry.group, entry.message, entry.literal, entry.target, entry.detail, !!entry.withdrawn,
+                entry.corrects !== undefined ? entry.sourceId : null]);
             if (!groups.has(key)) groups.set(key, { ...entry, items: [], count: 0 });
             const group = groups.get(key);
             group.items.push(entry); group.count++;
             group.organized = group.items.every(item => item.organized);
         }
         return [...groups.values()];
+    }
+    function displayEntries(entries, limit) {
+        const pending = entries.slice(-limit).reverse(), result = [];
+        // Keep the usual newest-first notebook, but a visible correction follows
+        // its struck-out source. Reading or sorting never changes saved records.
+        while (pending.length) {
+            const index = pending.findIndex(entry => !entry.corrects || !pending.some(old => old.sourceId === entry.corrects));
+            result.push(pending.splice(index < 0 ? 0 : index, 1)[0]);
+        }
+        return result;
     }
     function rememberQuestion(state, result, reply) {
         const u = result.understandings.at(-1);
@@ -87,5 +104,5 @@
             state.notebookQuestions.push({ inputId: result.input.id, raw: result.input.raw });
         }
     }
-    return Object.freeze({ entries, groupedEntries, rememberQuestion });
+    return Object.freeze({ entries, groupedEntries, displayEntries, rememberQuestion });
 });
