@@ -1,4 +1,13 @@
 {
+  "reportTeaching": {
+    "ja": {"self": {"marker": "【報告・あなた】", "utterance": "あなたは休んでいる"}, "player": {"marker": "【報告・私】", "utterance": "私は休んでいる"}},
+    "en": {"self": {"marker": "【Report: you】", "utterance": "You are resting"}, "player": {"marker": "【Report: me】", "utterance": "I am resting"}},
+    "zh-CN": {"self": {"marker": "【报告·你】", "utterance": "你在休息"}, "player": {"marker": "【报告·我】", "utterance": "我在休息"}},
+    "ru": {"self": {"marker": "【Сообщение: ты】", "utterance": "Ты отдыхаешь"}, "player": {"marker": "【Сообщение: я】", "utterance": "Я отдыхаю"}},
+    "es-ES": {"self": {"marker": "【Informe: tú】", "utterance": "Tú estás descansando"}, "player": {"marker": "【Informe: yo】", "utterance": "Yo estoy descansando"}},
+    "pt-BR": {"self": {"marker": "【Relato: você】", "utterance": "Você está descansando"}, "player": {"marker": "【Relato: eu】", "utterance": "Eu estou descansando"}},
+    "de": {"self": {"marker": "【Bericht: du】", "utterance": "Du ruhst dich aus"}, "player": {"marker": "【Bericht: ich】", "utterance": "Ich ruhe mich aus"}}
+  },
   "proposalTeaching": {
     "ja": {"request": {"marker": "【お願い】", "utterance": "休んでね"}, "invitation": {"marker": "【誘い】", "utterance": "一緒に休もう"}},
     "en": {"request": {"marker": "【Request】", "utterance": "Please rest"}, "invitation": {"marker": "【Invitation】", "utterance": "Let's rest together"}},

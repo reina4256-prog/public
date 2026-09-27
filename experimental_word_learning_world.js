@@ -235,7 +235,8 @@
         if (relationLearning.offer(world, state, result)) {
             const response = { message: result.relationLearning.adopted.relation === 'question'
                 ? 'question_pairing' : ['request', 'invitation'].includes(result.relationLearning.adopted.relation)
-                    ? 'proposal_pairing' : 'relation_pairing', observation: true };
+                    ? 'proposal_pairing' : result.relationLearning.adopted.relation === 'report'
+                        ? 'report_pairing' : 'relation_pairing', observation: true };
             rememberOutput(world, state, response, result.input);
             return response;
         }
@@ -289,6 +290,9 @@
         const knows = id => state.knowledge.meanings.some(entry => entry.id === id);
         world.reaction = !u.complete ? 'uncertain' : 'attend';
         if (result.reaction.intent === 'receive_sadness') world.reaction = 'care';
+        if (u.kind === 'report' && u.complete && u.aspect === 'activity_report') {
+            return { message: canSpeak ? (u.subject === 'self' ? 'heard_report_self' : 'heard_report_player') : 'attend' };
+        }
         if (['word_explanation', 'word_correction', 'word_reference'].includes(u.kind)) {
             return { message: !canSpeak ? 'attend' : !u.complete ? 'word_scope_unknown'
                 : u.kind === 'word_correction' ? 'word_corrected' : 'word_situated' };

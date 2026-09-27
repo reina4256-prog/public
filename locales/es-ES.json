@@ -1,4 +1,11 @@
 {
+  "誰についての報告かを、示された役割と自分の休息に照らして確かめている。相手の体験を確かめたことにはしない。": "Comprueba de quién trata el informe mediante los roles indicados y su propio descanso. Esto no verifica la experiencia de la otra persona.",
+  "報告の主体を示して教わった言葉：": "Palabras enseñadas indicando el sujeto del informe:",
+  "休む意味と報告の主体を対応付けた教示。自分と相手についての報告の違いは、まだ確かめている途中。": "Enseñanza que relaciona el significado de descansar con el sujeto del informe. Aún se comprueba la diferencia entre informes sobre mí y sobre la otra persona.",
+  "自分と相手についての報告を区別できた。同じ相手・言語・確認した表現に限る。相手の報告は自分の実体験ではなく、内容が事実かは未確認。": "Distingue informes sobre mí y sobre la otra persona. Solo para la misma persona, idioma y expresiones comprobadas. Su informe no es mi propia experiencia y su veracidad no está confirmada.",
+  "休息中に【報告・あなた】「あなたは休んでいる」、別の休息中に【報告・私】「私は休んでいる」で報告の主体を教えられます。印は教示操作です。休む意味が既知である必要があり、相手の体験や未知の説明語を理解したことにはしません。": "Durante un descanso, usa 【Informe: tú】「Tú estás descansando」; durante otro, 【Informe: yo】「Yo estoy descansando」 para enseñar el sujeto del informe. Las marcas son controles de enseñanza. Debe conocer ya el significado de descansar; esto no implica comprender la experiencia ajena ni palabras explicativas desconocidas.",
+  "私が休んでいる、という話だね。": "Dices que estoy descansando.",
+  "あなたが休んでいる、という話だね。": "Dices que estás descansando.",
   "示された役割と言葉を、今の休息と照らし合わせている。言葉に従ったことや、一緒に休んだことにはしない。": "Compara los roles y las palabras mostrados con este descanso. Esto no significa que haya obedecido ni descansado junto al jugador.",
   "役割を示して教わった言葉：": "Palabras enseñadas con roles explícitos:",
   "自分の休息と結び付けた教示。お願いと誘いの違いは、まだ確かめている途中。": "Un ejemplo vinculado al descanso propio. La diferencia entre una petición y una invitación sigue en estudio.",

@@ -39,6 +39,13 @@
         note_question_pairing: '問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。',
         note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
         question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
+        report_pairing: '誰についての報告かを、示された役割と自分の休息に照らして確かめている。相手の体験を確かめたことにはしない。',
+        note_report_demo: '報告の主体を示して教わった言葉：',
+        note_report_pairing: '休む意味と報告の主体を対応付けた教示。自分と相手についての報告の違いは、まだ確かめている途中。',
+        note_report_learned: '自分と相手についての報告を区別できた。同じ相手・言語・確認した表現に限る。相手の報告は自分の実体験ではなく、内容が事実かは未確認。',
+        report_demo_guide: '休息中に【報告・あなた】「あなたは休んでいる」、別の休息中に【報告・私】「私は休んでいる」で報告の主体を教えられます。印は教示操作です。休む意味が既知である必要があり、相手の体験や未知の説明語を理解したことにはしません。',
+        heard_report_self: '私が休んでいる、という話だね。',
+        heard_report_player: 'あなたが休んでいる、という話だね。',
         proposal_pairing: '示された役割と言葉を、今の休息と照らし合わせている。言葉に従ったことや、一緒に休んだことにはしない。',
         note_proposal_demo: '役割を示して教わった言葉：',
         note_proposal_pairing: '自分の休息と結び付けた教示。お願いと誘いの違いは、まだ確かめている途中。',
@@ -364,6 +371,7 @@
     node('p', t('life_label_guide'), guide);
     node('p', t('question_demo_guide'), guide);
     node('p', t('proposal_demo_guide'), guide);
+    node('p', t('report_demo_guide'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

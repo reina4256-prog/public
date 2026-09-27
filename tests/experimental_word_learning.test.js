@@ -64,6 +64,177 @@ const proposalDemo = (locale, kind) => {
     const item = catalog.proposalTeaching[locale][kind];
     return `${item.marker}「${item.utterance}」`;
 };
+const reportDemo = (locale, subject) => {
+    const item = catalog.reportTeaching[locale][subject];
+    return `${item.marker}「${item.utterance}」`;
+};
+test('3b3: report subject contrast across eight starts and seven locales survives pending and acquired saves', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.reportTeaching)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            if (!life) {
+                startRelationActivity(state, world, 'rest'); labelLife(state, world, questionForms[locale][2], { locale }); finishLife(state, world);
+            }
+            const meanings = JSON.stringify(state.knowledge.meanings);
+            for (const [index, subject] of ['self', 'player'].entries()) {
+                startRelationActivity(state, world, 'rest');
+                const result = labelLife(state, world, reportDemo(locale, subject), { locale });
+                assert.equal(result.interpretations[0].kind, 'report_demonstration');
+                assert.equal(result.understandings[0].complete, foundation);
+                assert.equal(state.records.length, 0, 'a teaching example is not an actual report');
+                assert.equal(state.context.turns.at(-1).answer, undefined);
+                if (!foundation) {
+                    assert.equal(result.relationLearning.adopted.roles.contentSubject, subject);
+                    assert.equal(result.relationLearning.adopted.roles.verified, false);
+                    assert.equal(state.knowledge.relations.length, 0);
+                }
+                const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                assert.ok(valid(saved), `pending ${locale}`); ({ state, world } = saved);
+                finishLife(state, world); assert.ok(valid({ ...saved, state, world }), `completed ${locale}`);
+                if (!foundation) assert.equal(state.knowledge.relations.length, index * 2);
+            }
+            const learned = JSON.stringify([state.knowledge.relations, state.knowledge.relationEvidence]), origins = JSON.stringify(state.experiences);
+            for (const subject of ['self', 'player']) {
+                world.mode = 'observe'; world.destination = null;
+                const before = JSON.stringify([world.hunger, world.fatigue, world.interests, world.experiences]);
+                const raw = catalog.reportTeaching[locale][subject].utterance;
+                const result = say(state, raw, { locale }), u = result.understandings[0];
+                assert.equal(u.complete, true); assert.equal(u.kind, 'report'); assert.equal(u.subject, subject);
+                assert.deepEqual(u.roles, { reporter: 'player', contentSubject: subject, status: 'reported', verified: false });
+                assert.equal(u.eventTime, 'unspecified'); assert.equal(u.reportSource.inputId, result.input.id);
+                assert.equal(worldApi.respond(world, result, state).message, speech === 'gesture' ? 'attend' : `heard_report_${subject}`);
+                assert.equal(world.mode, 'observe'); assert.equal(world.destination, null);
+                assert.equal(JSON.stringify([world.hunger, world.fatigue, world.interests, world.experiences]), before);
+                assert.equal(state.records.at(-1).source, 'speaker_report');
+                assert.equal(state.records.at(-1).understandings[0].subject, subject);
+                assert.equal(state.records.at(-1).understandings[0].reportSource.raw, raw);
+                assert.equal(labelLife(state, world, reportDemo(locale, subject), { locale }).relationLearning, undefined);
+                if (!foundation) {
+                    assert.equal(u.relationReferences[0].evidence.length, 2);
+                    assert.equal(say(state, raw, { locale, speaker: 'friend' }).understandings[0].complete, false);
+                    assert.equal(say(state, raw, { locale: locale === 'ja' ? 'en' : 'ja' }).understandings[0].complete, false);
+                    assert.ok(notebookApi.entries(state).some(e => e.detail === 'note_report_learned'));
+                }
+            }
+            const knowledge = JSON.stringify(state.knowledge);
+            notebookApi.entries(state); relationLearning.learn(state);
+            assert.equal(JSON.stringify(state.knowledge), knowledge);
+            assert.equal(JSON.stringify([state.knowledge.relations, state.knowledge.relationEvidence]), learned);
+            assert.equal(JSON.stringify(state.knowledge.meanings), meanings);
+            assert.equal(JSON.stringify(state.experiences), origins);
+            assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+        }
+    }
+});
+
+test('3b3: no role learning from repetition, raw reports, same-rest contrast, unknown content or interruption', () => {
+    const state = create({ foundation: false }), world = worldApi.create();
+    startRelationActivity(state, world, 'rest');
+    for (const raw of ['あなたは休んでいる', '私は休んでいる', '【報告・私】「あなたは休んでいる」',
+        '【報告・あなた】「何してる？」→「休む」', '【報告・私】「私は未知している」']) {
+        assert.equal(labelLife(state, world, raw).relationLearning, undefined);
+    }
+    assert.equal(labelLife(state, world, reportDemo('ja', 'self'), { speaker: 'friend' }).relationLearning, undefined);
+    labelLife(state, world, reportDemo('ja', 'self'));
+    assert.equal(labelLife(state, world, reportDemo('ja', 'player')).relationLearning, undefined);
+    finishLife(state, world);
+    for (let i = 0; i < 2; i++) {
+        startRelationActivity(state, world, 'rest');
+        for (let j = 0; j < 3; j++) labelLife(state, world, reportDemo('ja', 'self'));
+        finishLife(state, world);
+    }
+    assert.equal(state.knowledge.relationEvidence.length, 1); assert.equal(state.knowledge.relations.length, 0);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo('en', 'player'), { locale: 'en' }); finishLife(state, world);
+    assert.equal(state.knowledge.relations.length, 0, 'different locales do not combine');
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo('ja', 'player'));
+    worldApi.approach(world, 'path'); assert.deepEqual(world.relationLabels, []);
+    startRelationActivity(state, world, 'eat'); assert.equal(labelLife(state, world, reportDemo('ja', 'player')).relationLearning, undefined);
+    startRelationActivity(state, world, 'rest'); focus(state);
+    assert.equal(labelLife(state, world, reportDemo('ja', 'player')).relationLearning, undefined);
+    api.perceive(state, { scene: 'shade', attention: [{ id: 'shade', meaning: 'rest' }, { id: 'berry:1', meaning: 'berry' }] });
+    assert.equal(labelLife(state, world, reportDemo('ja', 'player')).relationLearning, undefined);
+    const unknown = lifeFixture('rest', { foundation: false });
+    api.perceive(unknown.state, worldApi.perception(unknown.world)); labelLife(unknown.state, unknown.world, '休む');
+    assert.equal(labelLife(unknown.state, unknown.world, reportDemo('ja', 'self')).relationLearning, undefined);
+    finishLife(unknown.state, unknown.world); assert.equal(unknown.state.knowledge.relationEvidence.length, 0);
+});
+
+test('3b3: seven-language unknown, conditional, negative, third-person and question boundaries remain unresolved', () => {
+    const rejected = {
+        ja: ['私は休んでいない', '疲れたら私は休む', '彼は休んでいる', '私は未知している', '昨日私は休んでいた', '悲しい'],
+        en: ['I am not resting', 'If tired, I rest', 'He is resting', 'I am glorping', 'I rested yesterday'],
+        'zh-CN': ['我没在休息', '累了我就休息', '他在休息', '我在咕噜', '我昨天休息了'],
+        ru: ['Я не отдыхаю', 'Если устану, отдохну', 'Он отдыхает', 'Я глорпаю', 'Я отдыхал вчера'],
+        'es-ES': ['Yo no estoy descansando', 'Si me canso, descanso', 'Él está descansando', 'Yo estoy glorpando', 'Ayer descansé'],
+        'pt-BR': ['Eu não estou descansando', 'Se ficar cansado, descanso', 'Ele está descansando', 'Eu estou glorpando', 'Eu descansei ontem'],
+        de: ['Ich ruhe mich nicht aus', 'Wenn ich müde bin, ruhe ich mich aus', 'Er ruht sich aus', 'Ich glorpe', 'Gestern habe ich geruht']
+    };
+    for (const [locale, forms] of Object.entries(rejected)) {
+        const state = create({ foundation: false }), world = worldApi.create();
+        for (const subject of ['player', 'self']) {
+            startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo(locale, subject), { locale }); finishLife(state, world);
+        }
+        const evidence = JSON.stringify(state.knowledge.relationEvidence);
+        for (const raw of [...forms, `${catalog.reportTeaching[locale].self.utterance}?`]) {
+            world.mode = 'observe'; world.destination = null;
+            const result = labelLife(state, world, raw, { locale });
+            assert.ok(result.understandings.some(u => !u.complete), raw); assert.equal(world.destination, null);
+            startRelationActivity(state, world, 'rest');
+            assert.equal(labelLife(state, world, `${catalog.reportTeaching[locale].self.marker}「${raw}」`, { locale }).relationLearning, undefined);
+        }
+        assert.equal(JSON.stringify(state.knowledge.relationEvidence), evidence);
+        assert.deepEqual([...new Set(state.knowledge.relations.map(r => r.id))], ['report']);
+    }
+});
+
+test('3b through-check: all roles and 3a coexist across eight starts and seven languages; forged saves fail', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.reportTeaching)) {
+            const state = create({ foundation, life, speech }), world = worldApi.create();
+            const [q, eat, rest] = questionForms[locale];
+            if (!life) for (const [activity, raw] of [['eat', eat], ['rest', rest]]) {
+                startRelationActivity(state, world, activity); labelLife(state, world, raw, { locale }); finishLife(state, world);
+            }
+            startRelationActivity(state, world, 'eat'); labelLife(state, world, relationForms[locale][0], { locale });
+            labelLife(state, world, demo(q, eat), { locale }); finishLife(state, world);
+            startRelationActivity(state, world, 'rest'); labelLife(state, world, relationForms[locale][1], { locale });
+            labelLife(state, world, demo(q, rest), { locale }); labelLife(state, world, proposalDemo(locale, 'request'), { locale });
+            labelLife(state, world, reportDemo(locale, 'self'), { locale });
+            if (!foundation) assert.equal(world.relationLabels.length, 4);
+            const pending = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(structuredClone(pending)));
+            finishLife(state, world);
+            startRelationActivity(state, world, 'rest'); labelLife(state, world, proposalDemo(locale, 'invitation'), { locale });
+            labelLife(state, world, reportDemo(locale, 'player'), { locale }); finishLife(state, world);
+            if (!foundation) assert.equal(state.knowledge.relations.length, 6);
+            for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
+                catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
+                assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
+            }
+            const value = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(structuredClone(value)));
+            if (foundation) continue;
+            const last = state.experiences.length - 1;
+            for (const mutate of [
+                v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.roles.verified = true; },
+                v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.form = 'other'; },
+                v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.meaning = 'eat'; },
+                v => { v.state.knowledge.relationEvidence.find(e => e.relation === 'report').experienceId = 'missing'; },
+                v => { for (const e of [v.world.experiences[last], v.state.experiences[last]]) e.relationLabels[1].roles.contentSubject = 'self'; },
+                v => { for (const e of [v.world.experiences[last], v.state.experiences[last]]) e.relationLabels[1].raw = reportDemo(locale, 'self'); },
+                v => { for (const e of [v.world.experiences[last], v.state.experiences[last]]) e.relationLabels[1].basis.id = 'eat'; },
+                v => { for (const e of [v.world.experiences[last], v.state.experiences[last]]) e.relationLabels[1].inputId = e.relationLabels[0].inputId; },
+                v => { v.state.experiences[last].relationLabels.pop(); },
+                v => { v.state.knowledge.relationEvidence.push(v.state.knowledge.relationEvidence.at(-1)); },
+                v => { v.state.records.find(r => r.understandings[0].aspect === 'activity_report').understandings[0].roles.verified = true; },
+                v => { v.state.records.find(r => r.understandings[0].aspect === 'activity_report').understandings[0].reportSource.contentSubject = 'other'; },
+                v => { v.state.records.find(r => r.understandings[0].aspect === 'activity_report').understandings[0].reportSource.raw = 'unknown'; },
+                v => { v.state.records.find(r => r.understandings[0].aspect === 'activity_report').understandings[0].reportSource.inputId = 'input:99999'; },
+                v => { v.state.records.find(r => r.understandings[0].aspect === 'activity_report').source = 'experience'; }
+            ]) { const changed = structuredClone(value); mutate(changed); assert.equal(!!valid(changed), false, locale); }
+        }
+    }
+});
 test('3b2: role contrast grounds scoped requests and invitations across eight starts and seven languages', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {

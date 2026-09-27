@@ -13,7 +13,7 @@
     const fits = (activity, target) => activity === 'eat' ? /^berry:[1-9]\d*$/.test(target)
         : activity === 'rest' && target === 'shade';
     function validLabel(label, state, catalog) {
-        if (!label || !['naming', 'question', 'request', 'invitation'].includes(label.relation) || label.speaker !== 'player'
+        if (!label || !['naming', 'question', 'request', 'invitation', 'report'].includes(label.relation) || label.speaker !== 'player'
             || !locales.includes(label.locale) || !/^input:[1-9]\d*$/.test(label.inputId)
             || Number(label.inputId.slice(6)) > state.serial || !Number.isFinite(label.heardAt)
             || !Number.isFinite(label.at) || !Number.isFinite(label.start) || label.at < label.start
@@ -28,6 +28,16 @@
             if (frame?.kind !== 'word_explanation' || frame.word !== label.word || !label.word) return false;
             if (catalog && (core.lexicalMeaning(frame.meaning, catalog) !== label.meaning
                 || core.lexicalMeaning(frame.word, catalog))) return false;
+        } else if (label.relation === 'report') {
+            if (label.meaning !== 'rest' || !['self', 'player'].includes(label.roles?.contentSubject)
+                || !equal(label.roles, { reporter: 'player', contentSubject: label.roles.contentSubject,
+                    status: 'reported', verified: false }) || typeof label.form !== 'string' || !label.form
+                || typeof label.utterance !== 'string') return false;
+            if (catalog) {
+                const frame = core.reportFrame(label.raw, label.locale, catalog);
+                if (frame?.kind !== 'report_demonstration' || frame.form !== label.form
+                    || frame.utterance !== label.utterance || !equal(frame.roles, label.roles)) return false;
+            }
         } else if (isProposal(label.relation)) {
             const roles = { proposer: 'player', addressee: 'self',
                 actors: label.relation === 'request' ? ['self'] : ['player', 'self'],
@@ -60,9 +70,10 @@
     function offer(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
         const relation = frame.kind === 'proposal_demonstration' ? frame.proposalKind
-            : frame.kind === 'question_demonstration' ? 'question' : 'naming';
+            : frame.kind === 'question_demonstration' ? 'question'
+            : frame.kind === 'report_demonstration' ? 'report' : 'naming';
         if (result.interpretations.length !== 1 || result.input.speaker !== 'player'
-            || !['word_explanation', 'question_demonstration', 'proposal_demonstration'].includes(frame.kind) || u.known.meaning !== world.mode
+            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration'].includes(frame.kind) || u.known.meaning !== world.mode
             || !u.unresolved.some(item => item.type === 'relation' && item.id === relation)
             || u.unresolved.some(item => item.type !== 'relation' || item.id !== relation)
             || !fits(world.mode, world.attention) || state.context.attention.length !== 1
@@ -77,7 +88,7 @@
             locale: result.input.locale, speaker: result.input.speaker, heardAt: result.input.at,
             at: world.elapsed, start: world.activityStart, activity: world.mode, target: world.attention,
             subject: 'self', scene: result.input.scene, ...(relation === 'naming' ? { word: frame.word }
-                : isProposal(relation) ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles) }
+                : isProposal(relation) || relation === 'report' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles) }
                 : { question: frame.question, answer: frame.answer, form: frame.form, slot: frame.slot,
                     roles: { questioner: 'player', answerer: 'self', demonstrator: 'player', actualAnswer: false } }), meaning: u.known.meaning,
             basis: copy(basis), understanding: copy(u) };
@@ -87,6 +98,10 @@
         world.relationLabels ||= [];
         // A single rest cannot serve as both sides of the role contrast.
         if (isProposal(relation) && world.relationLabels.some(l => isProposal(l.relation) && l.relation !== relation)) return false;
+        // A retained report label grounds the known action in the child's rest.
+        // Its content about the player remains testimony, never a player experience.
+        if (relation === 'report' && world.relationLabels.some(l => l.relation === 'report'
+            && l.roles.contentSubject !== label.roles.contentSubject)) return false;
         if (!world.relationLabels.some(l => l.relation === relation)) world.relationLabels.push(label);
         // Keep the first pairing; a different word in the same activity is not independent evidence.
         result.relationLearning = { candidates: [copy(label)], adopted: copy(world.relationLabels.find(l => l.relation === relation)), updated: [], relationAcquired: false };
@@ -105,12 +120,21 @@
                 && event.end >= l.at && Number.isFinite(event.end))
             .map(l => ({ relation: l.relation, experienceId: event.id, inputId: l.inputId,
                 locale: l.locale, speaker: l.speaker, ...(l.relation === 'naming' ? { word: l.word }
-                    : isProposal(l.relation) ? { form: l.form, roles: copy(l.roles) }
+                    : isProposal(l.relation) || l.relation === 'report' ? { form: l.form, roles: copy(l.roles) }
                     : { form: l.form, slot: l.slot }), meaning: l.meaning })));
     }
     function acquired(evidence) {
         const pairs = [];
         for (const locale of locales) {
+            // The contrast is who the reported action belongs to, not two actions
+            // or a count of repetitions. Both inputs explicitly teach that role.
+            const reports = evidence.filter(e => e.relation === 'report' && e.locale === locale);
+            const self = reports.find(e => e.roles.contentSubject === 'self');
+            const player = reports.find(e => e.roles.contentSubject === 'player' && self
+                && e.experienceId !== self.experienceId);
+            if (self && player) for (const item of [self, player]) pairs.push({ id: 'report', source: 'experienced_relation',
+                scope: { kind: 'report', locale, speaker: 'player', meaning: 'rest', form: item.form,
+                    roles: copy(item.roles) }, evidence: [self.inputId, player.inputId] });
             const items = evidence.filter(e => e.relation === 'naming' && e.locale === locale);
             const eat = items.find(e => e.meaning === 'eat');
             const rest = items.find(e => e.meaning === 'rest' && (!eat || wordKey(e.word) !== wordKey(eat.word)));
@@ -155,6 +179,23 @@
             relations: added, relationAcquired: added.length > 0 };
     }
     function valid(state, world, catalog) {
+        // Keep heard reports distinct from the child's experience even after reload.
+        for (const record of [...state.records, ...state.context.turns]) {
+            for (const u of record.understandings || []) {
+                if (u.kind !== 'report' || u.aspect !== 'activity_report') continue;
+                const source = u.reportSource;
+                if (record.source !== undefined && record.source !== 'speaker_report') return false;
+                if (!source || source.kind !== 'speaker_report' || source.inputId !== record.id
+                    || !Number.isFinite(source.heardAt) || source.reporter !== record.speaker
+                    || source.contentSubject !== u.subject || typeof source.raw !== 'string'
+                    || (record.heardAt !== undefined && record.heardAt !== source.heardAt)
+                    || !equal(u.roles, { reporter: record.speaker, contentSubject: u.subject, status: 'reported', verified: false })) return false;
+                if (catalog) {
+                    const frame = core.reportFrame(source.raw, source.locale, catalog);
+                    if (frame?.kind !== 'report' || (frame.subject === 'player' ? record.speaker : frame.subject) !== u.subject) return false;
+                }
+            }
+        }
         if (state.knowledge.relations.some(r => !['initial', 'experienced_relation'].includes(r.source)
             || (r.source === 'initial' && !state.settings.foundation))) return false;
         if (new Set(state.knowledge.relations.map(r => JSON.stringify([r.id, r.scope])))
@@ -163,7 +204,7 @@
             ...(state.experiences || []).flatMap(e => Array.isArray(e.relationLabels) ? e.relationLabels : [])];
         if (new Set(allLabels.map(l => l?.inputId)).size !== allLabels.length) return false;
         if (world.relationLabels !== undefined && (!Array.isArray(world.relationLabels)
-            || world.relationLabels.length > 3 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
+            || world.relationLabels.length > 4 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
             || new Set(world.relationLabels.map(l => l?.relation)).size !== world.relationLabels.length
             || !world.relationLabels.every(l => validLabel(l, state, catalog)
                 && l.at <= world.elapsed && l.start === world.activityStart
@@ -171,7 +212,7 @@
         for (const event of state.experiences || []) {
             if (event.relationLabels === undefined) continue;
             const originals = world.experiences.filter(e => e.id === event.id);
-            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 3
+            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 4
                 || event.relationLabels.filter(l => isProposal(l?.relation)).length > 1
                 || new Set(event.relationLabels.map(l => l?.relation)).size !== event.relationLabels.length
                 || originals.length !== 1 || !equal(originals[0].relationLabels, event.relationLabels)

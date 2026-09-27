@@ -188,7 +188,25 @@
         return null;
     }
 
+    function reportFrame(text, locale, catalog) {
+        const forms = catalog.reportTeaching?.[locale];
+        if (!forms) return null;
+        const key = value => value.normalize('NFKC').trim().toLocaleLowerCase();
+        for (const subject of ['self', 'player']) {
+            const { marker, utterance } = forms[subject];
+            const demo = text.trim() === `${marker}「${utterance}」`;
+            if (!demo && key(text) !== key(utterance)) continue;
+            return { kind: demo ? 'report_demonstration' : 'report', subject,
+                meaning: 'rest', aspect: 'activity_report', relations: ['report'],
+                roles: { reporter: 'player', contentSubject: subject, status: 'reported', verified: false },
+                form: key(utterance), utterance, span: text };
+        }
+        return null;
+    }
+
     function interpret(text, locale, catalog) {
+        const report = reportFrame(text, locale, catalog);
+        if (report) return [report];
         const proposal = proposalFrame(text, locale, catalog);
         if (proposal) return [proposal];
         if (text.includes('【') || text.includes('】')) return [{ kind: 'unknown', span: text, relations: [] }];
@@ -428,10 +446,11 @@
         const unresolved = [];
         const required = [...(frame.relations || [])];
         const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question'
-            : frame.kind === 'proposal_demonstration' ? frame.proposalKind : frame.kind) && entry.scope.locale === locale
+            : frame.kind === 'proposal_demonstration' ? frame.proposalKind
+            : frame.kind === 'report_demonstration' ? 'report' : frame.kind) && entry.scope.locale === locale
             && entry.scope.speaker === speaker && (entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
-                : ['request', 'invitation'].includes(entry.id)
+                : ['request', 'invitation', 'report'].includes(entry.id)
                     ? entry.scope.form === frame.form && frame.meaning === 'rest'
                         && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                     : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
@@ -473,8 +492,13 @@
             && required.includes(entry.id) && !missingRelations.includes(entry.id)
             && applies(entry));
         if (relationReferences.length) result.relationReferences = clone(relationReferences);
-        if (relationReady && frame.roles) result.roles = { ...clone(frame.roles), proposer: speaker,
-            actors: frame.roles.actors.map(actor => actor === 'player' ? speaker : actor) };
+        if (relationReady && frame.roles) {
+            if (frame.roles.reporter) {
+                result.subject = frame.subject === 'player' ? speaker : frame.subject;
+                result.roles = { ...clone(frame.roles), reporter: speaker, contentSubject: result.subject };
+            } else result.roles = { ...clone(frame.roles), proposer: speaker,
+                actors: frame.roles.actors.map(actor => actor === 'player' ? speaker : actor) };
+        }
         return result;
     }
 
@@ -698,6 +722,8 @@
             }
             if (['report', 'report_continuation'].includes(u.kind)) {
                 u.reportSource = { kind: 'speaker_report', inputId: input.id, heardAt: input.at };
+                if (frame.aspect === 'activity_report') Object.assign(u.reportSource,
+                    { raw: input.raw, locale: input.locale, reporter: input.speaker, contentSubject: u.subject });
             }
         });
         if (followup && interpretations[0] === followup) {
@@ -787,5 +813,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame });
 });
