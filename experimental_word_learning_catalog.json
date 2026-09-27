@@ -1,4 +1,13 @@
 {
+  "negationTeaching": {
+    "ja": {"positive":{"marker":"【否定対照・肯定】"},"negative":{"marker":"【否定対照・否定】","utterance":"あなたは休んでいない"}},
+    "en": {"positive":{"marker":"【Negation contrast: positive】"},"negative":{"marker":"【Negation contrast: negative】","utterance":"You are not resting"}},
+    "zh-CN": {"positive":{"marker":"【否定对照·肯定】"},"negative":{"marker":"【否定对照·否定】","utterance":"你没有在休息"}},
+    "ru": {"positive":{"marker":"【Сопоставление отрицания: утверждение】"},"negative":{"marker":"【Сопоставление отрицания: отрицание】","utterance":"Ты не отдыхаешь"}},
+    "es-ES": {"positive":{"marker":"【Contraste de negación: afirmación】"},"negative":{"marker":"【Contraste de negación: negación】","utterance":"Tú no estás descansando"}},
+    "pt-BR": {"positive":{"marker":"【Contraste de negação: afirmação】"},"negative":{"marker":"【Contraste de negação: negação】","utterance":"Você não está descansando"}},
+    "de": {"positive":{"marker":"【Verneinungsvergleich: Bejahung】"},"negative":{"marker":"【Verneinungsvergleich: Verneinung】","utterance":"Du ruhst dich nicht aus"}}
+  },
   "reportTeaching": {
     "ja": {"self": {"marker": "【報告・あなた】", "utterance": "あなたは休んでいる"}, "player": {"marker": "【報告・私】", "utterance": "私は休んでいる"}},
     "en": {"self": {"marker": "【Report: you】", "utterance": "You are resting"}, "player": {"marker": "【Report: me】", "utterance": "I am resting"}},

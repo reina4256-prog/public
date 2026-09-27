@@ -204,7 +204,26 @@
         return null;
     }
 
+    function negationFrame(text, locale, catalog) {
+        const forms = catalog.negationTeaching?.[locale];
+        if (!forms) return null;
+        const key = value => value.normalize('NFKC').trim().toLocaleLowerCase();
+        const positive = catalog.reportTeaching[locale].self;
+        for (const polarity of ['positive', 'negative']) {
+            const item = forms[polarity], utterance = polarity === 'positive' ? positive.utterance : item.utterance;
+            const demo = text.trim() === `${item.marker}「${utterance}」`;
+            if (!demo && (polarity === 'positive' || key(text) !== key(utterance))) continue;
+            return { kind: demo ? 'negation_demonstration' : 'report', subject: 'self', meaning: 'rest',
+                aspect: 'activity_report', relations: ['report', 'negation'], polarity,
+                roles: { reporter: 'player', contentSubject: 'self', status: 'reported', verified: false },
+                reportForm: key(positive.utterance), form: key(utterance), utterance, span: text };
+        }
+        return null;
+    }
+
     function interpret(text, locale, catalog) {
+        const negation = negationFrame(text, locale, catalog);
+        if (negation) return [negation];
         const report = reportFrame(text, locale, catalog);
         if (report) return [report];
         const proposal = proposalFrame(text, locale, catalog);
@@ -447,11 +466,15 @@
         const required = [...(frame.relations || [])];
         const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
-            : frame.kind === 'report_demonstration' ? 'report' : frame.kind) && entry.scope.locale === locale
+            : ['report_demonstration', 'negation_demonstration'].includes(frame.kind) ? 'report' : frame.kind) && entry.scope.locale === locale
             && entry.scope.speaker === speaker && (entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
+                : entry.id === 'negation'
+                    ? entry.scope.form === frame.form && entry.scope.polarity === frame.polarity
+                        && entry.scope.reportForm === frame.reportForm && frame.meaning === 'rest'
+                        && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                 : ['request', 'invitation', 'report'].includes(entry.id)
-                    ? entry.scope.form === frame.form && frame.meaning === 'rest'
+                    ? entry.scope.form === (entry.id === 'report' ? frame.reportForm || frame.form : frame.form) && frame.meaning === 'rest'
                         && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                     : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
         const missingRelations = required.filter(id => !state.knowledge.relations.some(entry => entry.id === id
@@ -813,5 +836,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame });
 });

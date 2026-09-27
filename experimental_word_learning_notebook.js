@@ -17,8 +17,9 @@
             const learned = state.knowledge.relations.some(r => r.source === 'experienced_relation'
                 && r.evidence.includes(evidence.inputId));
             const proposal = ['request', 'invitation'].includes(label.relation);
-            result.push({ group: 'names', message: label.relation === 'report' ? 'note_report_demo' : proposal ? 'note_proposal_demo' : label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
-                detail: label.relation === 'report' ? (learned ? 'note_report_learned' : 'note_report_pairing')
+            result.push({ group: 'names', message: label.relation === 'negation' ? 'note_negation_demo' : label.relation === 'report' ? 'note_report_demo' : proposal ? 'note_proposal_demo' : label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
+                detail: label.relation === 'negation' ? (learned ? 'note_negation_learned' : 'note_negation_pairing')
+                    : label.relation === 'report' ? (learned ? 'note_report_learned' : 'note_report_pairing')
                     : proposal ? (learned ? 'note_proposal_learned' : 'note_proposal_pairing')
                     : label.relation === 'question' ? (learned ? 'note_question_learned' : 'note_question_pairing')
                     : learned ? 'note_relation_learned' : 'note_relation_pairing', sourceId: label.inputId,

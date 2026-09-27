@@ -39,6 +39,12 @@
         note_question_pairing: '問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。',
         note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
         question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
+        negation_pairing: '休んでいる場面と休んでいない場面を、同じ休むという意味に照らして確かめている。',
+        note_negation_demo: '肯定と否定を対照して教わった言葉：',
+        note_negation_pairing: '自分の活動と教示を対応付けた。休むことの肯定と否定の違いは、まだ確かめている途中。',
+        note_negation_learned: '休むことの肯定と否定を区別できた。同じ相手・言語・自分についての二表現に限る。休んでいないことから、別の行動や希望は決めない。',
+        heard_report_not_resting: 'ぼくが休んでいない、という話だね。',
+        negation_help: '報告の主体と食べる・休むを知ったあと、休息中に【否定対照・肯定】「あなたは休んでいる」、別の食事中に【否定対照・否定】「あなたは休んでいない」と教えられます。これは場面の対照で、停止命令や時点の教示ではありません。',
         report_pairing: '誰についての報告かを、示された役割と自分の休息に照らして確かめている。相手の体験を確かめたことにはしない。',
         note_report_demo: '報告の主体を示して教わった言葉：',
         note_report_pairing: '休む意味と報告の主体を対応付けた教示。自分と相手についての報告の違いは、まだ確かめている途中。',
@@ -372,6 +378,7 @@
     node('p', t('question_demo_guide'), guide);
     node('p', t('proposal_demo_guide'), guide);
     node('p', t('report_demo_guide'), guide);
+    node('p', t('negation_help'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

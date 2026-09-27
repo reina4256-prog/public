@@ -12,8 +12,17 @@
     const isProposal = relation => ['request', 'invitation'].includes(relation);
     const fits = (activity, target) => activity === 'eat' ? /^berry:[1-9]\d*$/.test(target)
         : activity === 'rest' && target === 'shade';
+    function validBasis(basis, meaning, at, state) {
+        const known = state.knowledge.meanings.find(m => m.id === meaning);
+        if (!known || basis?.id !== meaning || known.source !== basis.source) return false;
+        if (known.source === 'initial') return state.settings.life && equal(basis, known);
+        return known.source === 'experienced_life' && Array.isArray(basis.evidence)
+            && basis.evidence.length > 0 && basis.evidence.every(e =>
+                known.evidence.some(item => equal(item, e)) && (state.experiences || [])
+                    .some(event => event.id === e.experienceId && event.end <= at));
+    }
     function validLabel(label, state, catalog) {
-        if (!label || !['naming', 'question', 'request', 'invitation', 'report'].includes(label.relation) || label.speaker !== 'player'
+        if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation'].includes(label.relation) || label.speaker !== 'player'
             || !locales.includes(label.locale) || !/^input:[1-9]\d*$/.test(label.inputId)
             || Number(label.inputId.slice(6)) > state.serial || !Number.isFinite(label.heardAt)
             || !Number.isFinite(label.at) || !Number.isFinite(label.start) || label.at < label.start
@@ -22,7 +31,29 @@
         if (label.understanding?.complete !== false || label.understanding.kind !== 'partial'
             || label.understanding.known?.meaning !== label.meaning
             || !equal(label.understanding.unresolved, [{ type: 'relation', id: label.relation }])) return false;
-        if (label.meaning !== label.activity || label.basis?.id !== label.meaning) return false;
+        if (label.basis?.id !== label.meaning) return false;
+        if (label.relation === 'negation') {
+            if (label.meaning !== 'rest' || !['positive', 'negative'].includes(label.polarity)
+                || label.understanding.polarity !== 'unknown' || !equal(label.understanding.relations, ['report'])
+                || label.activity !== (label.polarity === 'positive' ? 'rest' : 'eat')
+                || !validBasis(label.observationBasis, label.activity, label.at, state)
+                || !equal(label.roles, { reporter: 'player', contentSubject: 'self', status: 'reported', verified: false })
+                || typeof label.form !== 'string' || typeof label.reportForm !== 'string'
+                || !label.reportBasis || label.reportBasis.id !== 'report'
+                || !state.knowledge.relations.some(r => equal(r, label.reportBasis))
+                || (label.reportBasis.source !== 'initial' && (label.reportBasis.scope?.form !== label.reportForm
+                    || label.reportBasis.scope?.kind !== 'report' || label.reportBasis.scope?.meaning !== 'rest'
+                    || label.reportBasis.scope?.locale !== label.locale || label.reportBasis.scope?.speaker !== label.speaker
+                    || !equal(label.reportBasis.scope?.roles, label.roles)
+                    || !label.reportBasis.evidence.every(id => state.experiences.some(e => e.end <= label.start
+                        && e.relationLabels?.some(l => l.inputId === id)))))) return false;
+            if (catalog) {
+                const frame = core.negationFrame(label.raw, label.locale, catalog);
+                if (frame?.kind !== 'negation_demonstration' || frame.form !== label.form
+                    || frame.reportForm !== label.reportForm || frame.polarity !== label.polarity
+                    || frame.utterance !== label.utterance || !equal(frame.roles, label.roles)) return false;
+            }
+        } else if (label.meaning !== label.activity) return false;
         if (label.relation === 'naming') {
             const frame = core.wordFrame(label.raw, label.locale);
             if (frame?.kind !== 'word_explanation' || frame.word !== label.word || !label.word) return false;
@@ -49,7 +80,7 @@
                 if (frame?.kind !== 'proposal_demonstration' || frame.proposalKind !== label.relation
                     || frame.form !== label.form || frame.utterance !== label.utterance || !equal(frame.roles, label.roles)) return false;
             }
-        } else {
+        } else if (label.relation === 'question') {
             if (label.slot !== 'current_activity' || typeof label.form !== 'string' || !label.form
                 || label.roles?.questioner !== 'player' || label.roles?.answerer !== 'self'
                 || label.roles?.demonstrator !== 'player' || label.roles?.actualAnswer !== false) return false;
@@ -59,21 +90,17 @@
                     || frame.answer !== label.answer || core.lexicalMeaning(frame.answer, catalog) !== label.meaning) return false;
             }
         }
-        const known = state.knowledge.meanings.find(m => m.id === label.meaning);
-        if (!known || known.source !== label.basis.source) return false;
-        if (known.source === 'initial') return state.settings.life && equal(label.basis, known);
-        return known.source === 'experienced_life' && Array.isArray(label.basis.evidence)
-            && label.basis.evidence.length > 0 && label.basis.evidence.every(e =>
-                known.evidence.some(item => equal(item, e)) && (state.experiences || [])
-                    .some(event => event.id === e.experienceId && event.end <= label.at));
+        return validBasis(label.basis, label.meaning, label.at, state);
     }
     function offer(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
-        const relation = frame.kind === 'proposal_demonstration' ? frame.proposalKind
+        const relation = frame.kind === 'negation_demonstration' ? 'negation'
+            : frame.kind === 'proposal_demonstration' ? frame.proposalKind
             : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'report_demonstration' ? 'report' : 'naming';
         if (result.interpretations.length !== 1 || result.input.speaker !== 'player'
-            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration'].includes(frame.kind) || u.known.meaning !== world.mode
+            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration', 'negation_demonstration'].includes(frame.kind)
+            || (relation === 'negation' ? world.mode !== (frame.polarity === 'positive' ? 'rest' : 'eat') : u.known.meaning !== world.mode)
             || !u.unresolved.some(item => item.type === 'relation' && item.id === relation)
             || u.unresolved.some(item => item.type !== 'relation' || item.id !== relation)
             || !fits(world.mode, world.attention) || state.context.attention.length !== 1
@@ -88,6 +115,12 @@
             locale: result.input.locale, speaker: result.input.speaker, heardAt: result.input.at,
             at: world.elapsed, start: world.activityStart, activity: world.mode, target: world.attention,
             subject: 'self', scene: result.input.scene, ...(relation === 'naming' ? { word: frame.word }
+                : relation === 'negation' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles),
+                    polarity: frame.polarity, reportForm: frame.reportForm,
+                    observationBasis: copy(state.knowledge.meanings.find(m => m.id === world.mode) || null),
+                    reportBasis: copy(state.knowledge.relations.find(r => r.id === 'report' && (r.source === 'initial'
+                        || r.scope?.form === frame.reportForm && r.scope.locale === result.input.locale
+                            && r.scope.speaker === result.input.speaker)) || null) }
                 : isProposal(relation) || relation === 'report' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles) }
                 : { question: frame.question, answer: frame.answer, form: frame.form, slot: frame.slot,
                     roles: { questioner: 'player', answerer: 'self', demonstrator: 'player', actualAnswer: false } }), meaning: u.known.meaning,
@@ -120,12 +153,23 @@
                 && event.end >= l.at && Number.isFinite(event.end))
             .map(l => ({ relation: l.relation, experienceId: event.id, inputId: l.inputId,
                 locale: l.locale, speaker: l.speaker, ...(l.relation === 'naming' ? { word: l.word }
+                    : l.relation === 'negation' ? { form: l.form, roles: copy(l.roles), polarity: l.polarity, reportForm: l.reportForm }
                     : isProposal(l.relation) || l.relation === 'report' ? { form: l.form, roles: copy(l.roles) }
                     : { form: l.form, slot: l.slot }), meaning: l.meaning })));
     }
     function acquired(evidence) {
         const pairs = [];
         for (const locale of locales) {
+            // Negation contrasts the same predicate being present and absent.
+            // Eating only witnesses absence of rest during this bounded activity;
+            // it is not the meaning of "not resting" or evidence of a desire.
+            const positive = evidence.find(e => e.relation === 'negation' && e.locale === locale && e.polarity === 'positive');
+            const negative = evidence.find(e => e.relation === 'negation' && e.locale === locale && e.polarity === 'negative'
+                && positive && e.reportForm === positive.reportForm && e.experienceId !== positive.experienceId);
+            if (positive && negative) for (const item of [positive, negative]) pairs.push({ id: 'negation', source: 'experienced_relation',
+                scope: { kind: 'report', locale, speaker: 'player', meaning: 'rest', form: item.form,
+                    roles: copy(item.roles), polarity: item.polarity, reportForm: item.reportForm },
+                evidence: [positive.inputId, negative.inputId] });
             // The contrast is who the reported action belongs to, not two actions
             // or a count of repetitions. Both inputs explicitly teach that role.
             const reports = evidence.filter(e => e.relation === 'report' && e.locale === locale);
@@ -191,8 +235,9 @@
                     || (record.heardAt !== undefined && record.heardAt !== source.heardAt)
                     || !equal(u.roles, { reporter: record.speaker, contentSubject: u.subject, status: 'reported', verified: false })) return false;
                 if (catalog) {
-                    const frame = core.reportFrame(source.raw, source.locale, catalog);
-                    if (frame?.kind !== 'report' || (frame.subject === 'player' ? record.speaker : frame.subject) !== u.subject) return false;
+                    const frame = core.negationFrame(source.raw, source.locale, catalog) || core.reportFrame(source.raw, source.locale, catalog);
+                    if (frame?.kind !== 'report' || (frame.subject === 'player' ? record.speaker : frame.subject) !== u.subject
+                        || u.polarity !== (frame.polarity || 'positive') || u.eventTime !== 'unspecified') return false;
                 }
             }
         }
@@ -204,7 +249,7 @@
             ...(state.experiences || []).flatMap(e => Array.isArray(e.relationLabels) ? e.relationLabels : [])];
         if (new Set(allLabels.map(l => l?.inputId)).size !== allLabels.length) return false;
         if (world.relationLabels !== undefined && (!Array.isArray(world.relationLabels)
-            || world.relationLabels.length > 4 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
+            || world.relationLabels.length > 5 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
             || new Set(world.relationLabels.map(l => l?.relation)).size !== world.relationLabels.length
             || !world.relationLabels.every(l => validLabel(l, state, catalog)
                 && l.at <= world.elapsed && l.start === world.activityStart
@@ -212,7 +257,7 @@
         for (const event of state.experiences || []) {
             if (event.relationLabels === undefined) continue;
             const originals = world.experiences.filter(e => e.id === event.id);
-            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 4
+            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 5
                 || event.relationLabels.filter(l => isProposal(l?.relation)).length > 1
                 || new Set(event.relationLabels.map(l => l?.relation)).size !== event.relationLabels.length
                 || originals.length !== 1 || !equal(originals[0].relationLabels, event.relationLabels)

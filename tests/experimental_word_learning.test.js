@@ -68,6 +68,169 @@ const reportDemo = (locale, subject) => {
     const item = catalog.reportTeaching[locale][subject];
     return `${item.marker}「${item.utterance}」`;
 };
+const negationDemo = (locale, polarity) => {
+    const item = catalog.negationTeaching[locale][polarity];
+    return `${item.marker}「${item.utterance || catalog.reportTeaching[locale].self.utterance}」`;
+};
+function prepareNegation(state, world, locale = 'ja') {
+    if (!state.settings.life) for (const [activity, raw] of [['eat', questionForms[locale][1]], ['rest', questionForms[locale][2]]]) {
+        startRelationActivity(state, world, activity); labelLife(state, world, raw, { locale }); finishLife(state, world);
+    }
+    if (!state.settings.foundation) for (const subject of ['self', 'player']) {
+        startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo(locale, subject), { locale }); finishLife(state, world);
+    }
+}
+test('3c1: predicate polarity contrast across eight starts and seven languages retains sources and save boundaries', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.negationTeaching)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            prepareNegation(state, world, locale);
+            const meanings = JSON.stringify(state.knowledge.meanings), recordCount = state.records.length;
+            for (const [activity, polarity] of [['rest', 'positive'], ['eat', 'negative']]) {
+                startRelationActivity(state, world, activity);
+                const result = labelLife(state, world, negationDemo(locale, polarity), { locale });
+                assert.equal(result.interpretations[0].kind, 'negation_demonstration');
+                assert.equal(result.understandings[0].complete, foundation);
+                assert.equal(state.records.length, recordCount, 'teaching is not a report');
+                if (!foundation) {
+                    assert.equal(result.understandings[0].polarity, 'unknown');
+                    assert.equal(result.relationLearning.adopted.polarity, polarity);
+                    assert.equal(result.relationLearning.adopted.observationBasis.id, activity);
+                }
+                const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                assert.ok(valid(saved), `pending ${locale} ${polarity}`); ({ state, world } = saved);
+                finishLife(state, world); assert.ok(valid({ ...saved, state, world }));
+                if (!foundation) assert.equal(state.knowledge.relations.filter(r => r.id === 'negation').length, polarity === 'positive' ? 0 : 2);
+            }
+            const knowledge = JSON.stringify(state.knowledge), origins = JSON.stringify(state.experiences);
+            world.mode = 'observe'; world.destination = null;
+            const before = JSON.stringify([world.hunger, world.fatigue, world.interests, world.experiences]);
+            const result = say(state, catalog.negationTeaching[locale].negative.utterance, { locale }), u = result.understandings[0];
+            assert.equal(u.complete, true); assert.equal(u.kind, 'report'); assert.equal(u.subject, 'self');
+            assert.equal(u.known.meaning, 'rest'); assert.equal(u.polarity, 'negative'); assert.equal(u.eventTime, 'unspecified');
+            assert.equal(u.roles.verified, false); assert.equal(result.reaction.action, null);
+            assert.equal(worldApi.respond(world, result, state).message, speech === 'gesture' ? 'attend' : 'heard_report_not_resting');
+            assert.equal(world.mode, 'observe'); assert.equal(world.destination, null);
+            assert.equal(JSON.stringify([world.hunger, world.fatigue, world.interests, world.experiences]), before);
+            assert.equal(state.records.at(-1).source, 'speaker_report');
+            assert.equal(u.reportSource.raw, catalog.negationTeaching[locale].negative.utterance);
+            if (!foundation) {
+                assert.deepEqual(u.relationReferences.map(r => r.id).sort(), ['negation', 'report']);
+                assert.ok(notebookApi.entries(state).some(e => e.detail === 'note_negation_learned'));
+                assert.equal(say(state, catalog.negationTeaching[locale].negative.utterance, { locale, speaker: 'friend' }).understandings[0].complete, false);
+            }
+            relationLearning.learn(state); notebookApi.entries(state);
+            assert.equal(JSON.stringify(state.knowledge), knowledge); assert.equal(JSON.stringify(state.experiences), origins);
+            assert.equal(JSON.stringify(state.knowledge.meanings), meanings);
+            assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+        }
+    }
+});
+test('3c1: report and both action meanings must precede contrast; repetition, mismatch and interruption cannot teach negation', () => {
+    const state = create({ foundation: false }), world = worldApi.create();
+    startRelationActivity(state, world, 'rest');
+    assert.equal(labelLife(state, world, negationDemo('ja', 'positive')).relationLearning, undefined);
+    prepareNegation(state, world);
+    for (const [activity, polarity] of [['rest', 'negative'], ['eat', 'positive']]) {
+        startRelationActivity(state, world, activity);
+        assert.equal(labelLife(state, world, negationDemo('ja', polarity)).relationLearning, undefined);
+    }
+    for (let i = 0; i < 3; i++) {
+        startRelationActivity(state, world, 'rest');
+        labelLife(state, world, negationDemo('ja', 'positive')); labelLife(state, world, negationDemo('ja', 'positive'));
+        finishLife(state, world);
+    }
+    assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'negation').length, 1);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'negation'), false);
+    startRelationActivity(state, world, 'eat');
+    assert.equal(labelLife(state, world, negationDemo('ja', 'negative'), { speaker: 'friend' }).relationLearning, undefined);
+    assert.equal(labelLife(state, world, catalog.negationTeaching.ja.negative.utterance).relationLearning, undefined);
+    api.perceive(state, { scene: 'clearing', attention: [{ id: world.attention, meaning: 'berry' }, { id: 'other', meaning: 'berry' }] });
+    assert.equal(labelLife(state, world, negationDemo('ja', 'negative')).relationLearning, undefined);
+    api.perceive(state, worldApi.perception(world)); labelLife(state, world, negationDemo('ja', 'negative'));
+    assert.equal(worldApi.approach(world, 'path'), false, 'eating cannot be interrupted by approach');
+    const interrupted = create({ foundation: false }), interruptedWorld = worldApi.create();
+    prepareNegation(interrupted, interruptedWorld); startRelationActivity(interrupted, interruptedWorld, 'rest');
+    labelLife(interrupted, interruptedWorld, negationDemo('ja', 'positive'));
+    assert.equal(worldApi.approach(interruptedWorld, 'path'), true); assert.deepEqual(interruptedWorld.relationLabels, []);
+    assert.equal(interrupted.knowledge.relationEvidence.some(e => e.relation === 'negation'), false);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'negation'), false);
+    const unknown = create({ foundation: false, life: false }), otherWorld = worldApi.create();
+    startRelationActivity(unknown, otherWorld, 'rest'); labelLife(unknown, otherWorld, '休む'); finishLife(unknown, otherWorld);
+    for (const subject of ['self', 'player']) {
+        startRelationActivity(unknown, otherWorld, 'rest'); labelLife(unknown, otherWorld, reportDemo('ja', subject)); finishLife(unknown, otherWorld);
+    }
+    startRelationActivity(unknown, otherWorld, 'eat'); labelLife(unknown, otherWorld, '食べる');
+    assert.equal(labelLife(unknown, otherWorld, negationDemo('ja', 'negative')).relationLearning, undefined);
+    finishLife(unknown, otherWorld);
+    assert.equal(unknown.knowledge.relationEvidence.some(e => e.relation === 'negation'), false, 'same completion cannot supply missing action knowledge');
+});
+test('3c1: scoped negation never grants time, conditions, sequence, reasons, correction or contrast', () => {
+    for (const locale of Object.keys(catalog.negationTeaching)) {
+        const state = create({ foundation: false }), world = worldApi.create(); prepareNegation(state, world, locale);
+        for (const [activity, polarity] of [['rest', 'positive'], ['eat', 'negative']]) {
+            startRelationActivity(state, world, activity); labelLife(state, world, negationDemo(locale, polarity), { locale }); finishLife(state, world);
+        }
+        const evidence = JSON.stringify(state.knowledge.relationEvidence);
+        const raw = catalog.negationTeaching[locale].negative.utterance;
+        for (const text of [`${raw}?`, `${raw} unknown`, `unknown ${raw}`, `「${raw}」`,
+            '昨日あなたは休んでいない', '私は休んでいない', 'あなたは食べていない', '休まないで',
+            '疲れたら休んでね', '食べ終わったら散歩しよう', 'どうして休んだの？', 'さっきの説明は間違えた', '木の実は嫌いじゃない']) {
+            world.mode = 'observe'; world.destination = null;
+            const result = labelLife(state, world, text, { locale });
+            assert.equal(result.understandings.every(u => u.complete), false, `${locale} ${text}`);
+            assert.equal(world.destination, null); assert.equal(result.relationLearning, undefined);
+        }
+        assert.equal(JSON.stringify(state.knowledge.relationEvidence), evidence);
+        assert.deepEqual([...new Set(state.knowledge.relations.map(r => r.id))].sort(), ['negation', 'report']);
+    }
+});
+test('3c1: saved polarity, predicate, teaching source, action basis and report basis cannot be replaced', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create(); prepareNegation(state, world);
+    for (const [activity, polarity] of [['rest', 'positive'], ['eat', 'negative']]) {
+        startRelationActivity(state, world, activity); labelLife(state, world, negationDemo('ja', polarity)); finishLife(state, world);
+    }
+    say(state, catalog.negationTeaching.ja.negative.utterance);
+    const saved = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(saved));
+    const changeLabels = (v, change) => { for (const events of [v.state.experiences, v.world.experiences]) change(events.at(-1).relationLabels[0]); };
+    for (const mutate of [
+        v => changeLabels(v, l => { l.polarity = 'positive'; }),
+        v => changeLabels(v, l => { l.raw = negationDemo('ja', 'positive'); }),
+        v => changeLabels(v, l => { l.reportForm = 'other'; }),
+        v => changeLabels(v, l => { l.meaning = 'eat'; }),
+        v => changeLabels(v, l => { l.roles.contentSubject = 'player'; }),
+        v => changeLabels(v, l => { l.observationBasis = l.basis; }),
+        v => changeLabels(v, l => { l.understanding.polarity = 'negative'; }),
+        v => changeLabels(v, l => { l.reportBasis = { id: 'report', source: 'initial' }; }),
+        v => changeLabels(v, l => { l.reportBasis.evidence = ['input:999']; }),
+        v => { v.state.knowledge.relations.find(r => r.id === 'negation').scope.polarity = 'other'; },
+        v => { v.state.knowledge.relationEvidence.at(-1).experienceId = v.state.knowledge.relationEvidence.at(-2).experienceId; },
+        v => { v.state.records.at(-1).understandings[0].polarity = 'positive'; },
+        v => { v.state.records.at(-1).understandings[0].reportSource.raw = catalog.reportTeaching.ja.self.utterance; },
+        v => { v.state.records.at(-1).understandings[0].eventTime = 'now'; }
+    ]) { const broken = structuredClone(saved); mutate(broken); assert.equal(!!valid(broken), false); }
+});
+
+test('3c1: contrast is order independent and does not combine languages or acquire report and negation together', () => {
+    const state = create({ foundation: false }), world = worldApi.create();
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo('ja', 'self')); finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo('ja', 'player'));
+    assert.equal(labelLife(state, world, negationDemo('ja', 'positive')).relationLearning, undefined);
+    finishLife(state, world);
+    assert.equal(state.knowledge.relationEvidence.some(e => e.relation === 'negation'), false);
+    prepareNegation(state, world, 'en');
+    startRelationActivity(state, world, 'eat'); labelLife(state, world, negationDemo('ja', 'negative')); finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, negationDemo('en', 'positive'), { locale: 'en' }); finishLife(state, world);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'negation'), false);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, negationDemo('ja', 'positive')); finishLife(state, world);
+    assert.equal(say(state, catalog.negationTeaching.ja.negative.utterance).understandings[0].complete, true);
+    assert.equal(say(state, catalog.negationTeaching.en.negative.utterance, { locale: 'en' }).understandings[0].complete, false);
+    const { valid } = require('../scripts/experimental/storage');
+    assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+});
+
 test('3b3: report subject contrast across eight starts and seven locales survives pending and acquired saves', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
@@ -208,13 +371,19 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
             startRelationActivity(state, world, 'rest'); labelLife(state, world, proposalDemo(locale, 'invitation'), { locale });
             labelLife(state, world, reportDemo(locale, 'player'), { locale }); finishLife(state, world);
             if (!foundation) assert.equal(state.knowledge.relations.length, 6);
+            for (const [activity, polarity] of [['rest', 'positive'], ['eat', 'negative']]) {
+                startRelationActivity(state, world, activity); labelLife(state, world, negationDemo(locale, polarity), { locale });
+                assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world })));
+                finishLife(state, world);
+            }
+            assert.equal(say(state, catalog.negationTeaching[locale].negative.utterance, { locale }).understandings[0].complete, true);
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
             }
             const value = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(structuredClone(value)));
             if (foundation) continue;
-            const last = state.experiences.length - 1;
+            const last = state.experiences.length - 3;
             for (const mutate of [
                 v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.roles.verified = true; },
                 v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.form = 'other'; },
