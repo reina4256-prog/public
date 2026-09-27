@@ -244,7 +244,9 @@
     function respond(world, result, state, catalog) {
         if (result.interpretations[0]?.kind === 'feeling_teaching') {
             const accepted = catalog && feelingLearning.offer(world, state, result, catalog);
-            const response = { message: accepted ? 'feeling_teaching_received' : 'feeling_teaching_unmatched', observation: true };
+            const contrast = ['retain', 'difference', 'noncausal'].includes(result.interpretations[0].stage);
+            const response = { message: accepted ? contrast ? 'contrast_teaching_received' : 'feeling_teaching_received'
+                : 'feeling_teaching_unmatched', observation: true };
             rememberOutput(world, state, response, result.input);
             return response;
         }

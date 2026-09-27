@@ -294,6 +294,13 @@
     function feelingTeaching(text, locale, catalog) {
         const forms = catalog.feelingTeaching?.[locale], pair = catalog.feelingContrast?.[locale];
         if (!forms || !pair) return null;
+        for (const stage of ['retain', 'difference', 'noncausal']) {
+            const marker = catalog.contrastTeaching?.[locale]?.[stage];
+            const utterance = pair.past + pair.join + pair.present;
+            if (marker && text === marker + '«' + utterance + '»') {
+                return { kind: 'feeling_teaching', stage, index: -1, utterance, span: text, relations: [] };
+            }
+        }
         for (const stage of ['source', 'sad', 'happy', 'report', 'yesterday', 'now']) {
             const prefix = forms[stage] + '«';
             if (!text.startsWith(prefix) || !text.endsWith('»')) continue;
@@ -315,6 +322,7 @@
     function feelingApplies(entry, type, id, frame, speaker, locale) {
         return entry.type === type && entry.id === id && frame.kind === 'report' && frame.aspect === 'feeling'
             && ['feeling_contrast', 'feeling_single'].includes(frame.catalogRule)
+            && (id !== 'contrast' || frame.catalogRule === 'feeling_contrast')
             && entry.scope.locale === locale && entry.scope.speaker === speaker
             && entry.scope.form === normalize(frame.span) && entry.scope.meaning === frame.meaning
             && entry.scope.time === frame.time;
@@ -713,6 +721,8 @@
         if (relationReferences.length) result.relationReferences = clone(relationReferences);
         const feelingReferences = taught.filter(e => feelingApplies(e, e.type, e.id, frame, speaker, locale));
         if (feelingReferences.length) result.feelingReferences = clone(feelingReferences);
+        const connection = feelingReferences.find(e => e.id === 'contrast');
+        if (connection) result.contrastConnection = clone(connection.scope.connection);
         if ((relationReady || reportReady) && ['feeling_contrast', 'feeling_single'].includes(frame.catalogRule)) {
             result.testimony = { reporter: speaker, contentSubject: speaker, status: 'reported', verified: false };
         }

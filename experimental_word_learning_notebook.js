@@ -14,6 +14,12 @@
             const stage = event.frame.stage;
             const learned = ['sad', 'happy'].includes(stage) || state.settings.foundation
                 || state.feelingLearning.knowledge.some(e => e.evidence.includes(event.input.id));
+            if (['retain', 'difference', 'noncausal'].includes(stage)) {
+                const complete = state.feelingLearning.events.some(e => e.sourceId === event.sourceId && e.frame.stage === 'noncausal');
+                result.push({ group: 'names', message: complete ? 'note_contrast_learned' : 'note_contrast_pairing',
+                    literal: event.input.raw, detail: 'note_contrast_scope', sourceId: event.input.id, organized: false });
+                continue;
+            }
             result.push({ group: 'names', message: stage === 'source' ? 'note_feeling_teaching'
                 : learned ? 'note_feeling_learned' : 'note_feeling_pairing', literal: event.input.raw,
                 detail: 'note_feeling_scope', sourceId: event.input.id, organized: false });

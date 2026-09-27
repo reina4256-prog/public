@@ -11,6 +11,11 @@
         note_feeling_pairing: 'もう一方の節の教示と、まだ照合している。',
         note_feeling_scope: '同じ相手・言語・二表現に限る。相手の気持ちの真偽や、自分の感情体験を確かめた記録ではない。',
         feeling_guide: '気持ちの二節を一度伝え、原文を選び、語・話し手・時点の順に教える。印は教示操作で、対比の習得は含まない。',
+        contrast_teaching_received: '選んだ原文に結び付けて、二つの報告のつながりを段階ごとに記録している。',
+        note_contrast_pairing: '両方の報告を残すこと、気持ちの違い、原因を述べないことを、まだ照合している。',
+        note_contrast_learned: '両方の報告を残し、気持ちの違いを対比するつながりを、この表現に限って理解している。',
+        note_contrast_scope: '同じ相手・言語のこの二節に限る。過去の報告を訂正せず、気持ちが変わった原因や真偽、自分の体験を確かめたものではない。',
+        contrast_guide: '各節の語・話し手・時点を教えた後、同じ原文について次の三つを順に教える。両方を残し、違いを対比し、原因の説明にはしない。印は教示操作で、自由な対比表現へは広がらない。',
         note_correction_demo: '訂正について教わった例：',
         note_correction_learned: 'この語・相手・言語・場面・対象・表現で、原説明を置き換える関係を理解した。実際の訂正は別に受け取る。',
         correction_help: '食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。',
@@ -580,6 +585,13 @@
                 feelingForms.report + '«' + feelingPair.past + '»', feelingForms.report + '«' + feelingPair.present + '»',
                 feelingForms.yesterday + '«' + feelingPair.past + '»', feelingForms.now + '«' + feelingPair.present + '»'];
             for (const text of examples) node('p', text, guide).setAttribute('data-i18n-skip', '');
+            const contrastForms = catalog.contrastTeaching[window.GameI18n.language];
+            if (contrastForms) {
+                node('p', t('contrast_guide'), guide);
+                for (const stage of ['retain', 'difference', 'noncausal']) {
+                    node('p', contrastForms[stage] + '«' + full + '»', guide).setAttribute('data-i18n-skip', '');
+                }
+            }
         }
         const correctionForms = catalog.correctionTeaching[window.GameI18n.language];
         if (correctionForms) for (const phase of ['source', 'replacement']) {

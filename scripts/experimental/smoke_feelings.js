@@ -1,6 +1,6 @@
 'use strict';
 // Normal renderer submissions and isolated disk saves; never edits player data.
-module.exports = async function ({ js, window, url, paintClock, sleep, read, load }) {
+module.exports = async function ({ js, window, url, paintClock, sleep, read, load, contrasts = false }) {
     const assert = require('node:assert/strict');
     const fs = require('node:fs');
     const path = require('node:path');
@@ -10,6 +10,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
     const p = catalog.feelingContrast.ja, f = catalog.feelingTeaching.ja, full = p.past + p.join + p.present;
     const texts = [full, `${f.source}«${full}»`, `${f.sad}«${p.past}»`, `${f.happy}«${p.present}»`,
         `${f.report}«${p.past}»`, `${f.report}«${p.present}»`, `${f.yesterday}«${p.past}»`, `${f.now}«${p.present}»`];
+    if (contrasts) for (const stage of ['retain', 'difference', 'noncausal']) texts.push(`${catalog.contrastTeaching.ja[stage]}«${full}»`);
     const chat = async text => {
         for (let i = 0; i < 10 && await js('document.hidden'); i++) {
             await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true });
@@ -38,12 +39,24 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
         value.state = core.create({ foundation, life, speech }, catalog);
         await resume(value);
         const before = JSON.stringify(read().state.knowledge);
+        if (contrasts) {
+            await chat(texts[8]); await sync();
+            assert.equal(read().state.feelingLearning, undefined, 'no source cannot teach contrast');
+        }
         for (let step = 0; step < texts.length; step++) {
             await chat(texts[step]); await sync();
             assert.ok(valid(read()), `step ${step}`);
                 if (step) assert.equal(read().state.feelingLearning.events.length, step,
                     JSON.stringify({ foundation, life, speech, step, state: read().state.context, last: read().state.feelingLearning.events.at(-1) }));
-            if ([2, 4, 5, 7].includes(step)) {
+            if (contrasts && step === 7) {
+                const retained = JSON.stringify(read().state.feelingLearning);
+                await chat(texts[10]); await sync();
+                assert.equal(JSON.stringify(read().state.feelingLearning), retained, 'last stage alone cannot teach contrast');
+            }
+            if (contrasts && step >= 8 && !foundation) {
+                assert.equal(read().state.feelingLearning.knowledge.filter(e => e.id === 'contrast').length, step === 10 ? 2 : 0);
+            }
+            if ([2, 4, 5, 7, 8, 9, 10].includes(step)) {
                 const retained = JSON.stringify(read().state.feelingLearning);
                 await resume();
                 assert.equal(JSON.stringify(read().state.feelingLearning), retained);
@@ -51,35 +64,43 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
         }
         const retained = JSON.stringify(read().state.feelingLearning);
         await chat(texts[2]); await chat(texts[7]); await sync();
+        if (contrasts) { await chat(texts[8]); await chat(texts[10]); await sync(); }
         assert.equal(JSON.stringify(read().state.feelingLearning), retained);
         await chat(full); await sync();
         const parts = read().state.context.turns.at(-1).understandings;
         assert.deepEqual(parts.map(u => u.known.meaning), ['sad', 'happy']);
         assert.deepEqual(parts.map(u => u.subject), ['player', 'player']);
         assert.deepEqual(parts.map(u => u.eventTime), ['yesterday', 'now']);
-        assert.ok(parts.every(u => u.complete === foundation && u.testimony.verified === false));
+        assert.ok(parts.every(u => u.complete === (foundation || contrasts) && u.testimony.verified === false));
+        if (contrasts && !foundation) {
+            assert.ok(parts.every(u => u.contrastConnection.replaces === false && u.contrastConnection.causalClaim === false));
+            assert.ok(read().state.feelingLearning.events[0].original.understandings.every(u => !u.relations.includes('contrast')));
+        }
         assert.equal(JSON.stringify(read().state.knowledge), before);
         assert.deepEqual(read().state.experiences, baseline.state.experiences);
         assert.ok(valid(read()));
         await js('document.querySelector("button[aria-controls=notebook]").click()');
-        assert.ok(await js(`document.querySelector('#notebook').textContent.includes(${JSON.stringify(texts[7])})`));
+        assert.ok(await js(`document.querySelector('#notebook').textContent.includes(${JSON.stringify(texts.at(-1))})`));
+        console.log(JSON.stringify({ contrasts, foundation, life, speech, verified: true }));
     }
-    await js(`Array.from(document.querySelectorAll('#notebook .note-card')).find(card => card.textContent.includes(${JSON.stringify(texts[7])})).scrollIntoView({block:'start'}); void 0`);
-    window.setSize(1320, 850); await sleep(600);
+    window.setSize(1320, contrasts ? 1100 : 850); await sleep(200);
+    await js(`Array.from(document.querySelectorAll('#notebook .note-card')).find(card => card.textContent.includes(${JSON.stringify(texts.at(-1))})).scrollIntoView({block:'start'}); void 0`);
+    await sleep(600);
     await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true });
     await sleep(600);
-    const screenshot = path.resolve(__dirname, '../../tests/word-feelings-smoke.png');
+    const screenshot = path.resolve(__dirname, contrasts ? '../../tests/word-contrasts-smoke.png' : '../../tests/word-feelings-smoke.png');
     fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
     await js('document.querySelector("button[aria-controls=conversation]").click()');
     await chat(full); await sync();
+    window.setSize(1340, 850); await sleep(200);
     await js('document.querySelector("#conversation").scrollTop = document.querySelector("#conversation").scrollHeight');
-    window.setSize(1340, 850); await sleep(600);
+    await sleep(600);
     await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true });
     await sleep(600);
-    const conversationScreenshot = path.resolve(__dirname, '../../tests/word-feelings-conversation-smoke.png');
+    const conversationScreenshot = path.resolve(__dirname, contrasts ? '../../tests/word-contrasts-conversation-smoke.png' : '../../tests/word-feelings-conversation-smoke.png');
     fs.writeFileSync(conversationScreenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
     assert.equal(await js('typeof aiPet.update'), 'undefined');
     assert.ok(await js('audioManager.currentAudio?.readyState >= 2'));
     assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
-    console.log(JSON.stringify({ eightStarts: true, stagedRestarts: true, screenshot, conversationScreenshot }));
+    console.log(JSON.stringify({ contrasts, eightStarts: true, stagedRestarts: true, screenshot, conversationScreenshot }));
 };

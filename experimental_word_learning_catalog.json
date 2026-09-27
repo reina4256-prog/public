@@ -1,4 +1,13 @@
 {
+  "contrastTeaching": {
+    "ja": { "retain": "【両方の報告を残す】", "difference": "【併記でなく気持ちの違いを対比】", "noncausal": "【原因の説明にはしない】" },
+    "en": { "retain": "【Keep both reports】", "difference": "【Contrast feelings, not just list them】", "noncausal": "【Do not explain a cause】" },
+    "zh-CN": { "retain": "【保留两项报告】", "difference": "【对比感受差异而非仅仅并列】", "noncausal": "【不作为原因说明】" },
+    "ru": { "retain": "【Сохранить оба сообщения】", "difference": "【Противопоставить чувства, а не просто перечислить】", "noncausal": "【Не объяснять причину】" },
+    "es-ES": { "retain": "【Conservar ambos mensajes】", "difference": "【Contrastar sentimientos, no solo enumerarlos】", "noncausal": "【No explicar una causa】" },
+    "pt-BR": { "retain": "【Manter os dois relatos】", "difference": "【Contrastar sentimentos, não apenas listar】", "noncausal": "【Não explicar uma causa】" },
+    "de": { "retain": "【Beide Berichte beibehalten】", "difference": "【Gefühle gegenüberstellen, nicht nur aufzählen】", "noncausal": "【Keine Ursache erklären】" }
+  },
   "feelingTeaching": {
     "ja": { "source": "【感情の原文】", "sad": "【悲しいの語】", "happy": "【うれしいの語】", "report": "【話し手の気持ち】", "yesterday": "【原報告の昨日】", "now": "【原報告の今】" },
     "en": { "source": "【Feeling source】", "sad": "【Word for sadness】", "happy": "【Word for happiness】", "report": "【Speaker's feeling】", "yesterday": "【Yesterday in the source report】", "now": "【Now in the source report】" },

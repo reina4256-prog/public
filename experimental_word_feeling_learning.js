@@ -10,6 +10,11 @@
     const serial = input => Number(input.id.slice(6));
     const key = value => value.normalize('NFKC').trim().toLocaleLowerCase();
     const locales = ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'];
+    const contrastStages = ['retain', 'difference', 'noncausal'];
+    function contentUnderstanding(state, source, knowledge, catalog) {
+        const before = prior(state, knowledge);
+        return source.frames.map(frame => core.understand(before, frame, source.input.speaker, catalog, source.input.locale));
+    }
     function prior(state, knowledge) {
         const value = core.create(state.settings, { meanings: { sad: [], happy: [] }, patterns: [] });
         value.feelingLearning = { knowledge: copy(knowledge) };
@@ -42,6 +47,9 @@
             const frame = source.frames[index];
             const entry = { type, id, source: 'feeling_teaching', scope: { locale: source.input.locale,
                 speaker: source.input.speaker, form: key(frame.span), meaning: frame.meaning, time: frame.time }, evidence };
+            if (id === 'contrast') entry.scope.connection = { kind: 'contrast', sourceId: source.input.id,
+                form: key(source.input.raw), retainedClauses: [0, 1], difference: ['sad', 'happy'],
+                replaces: false, causalClaim: false };
             if (!knowledge.some(e => e.type === type && e.id === id && equal(e.scope, entry.scope))) knowledge.push(entry);
         };
         for (const event of events) {
@@ -51,7 +59,7 @@
             const frame = core.feelingTeaching(event.input.raw, event.input.locale, catalog);
             if (!frame || !equal(frame, event.frame) || !equal(event.basis, core.feelingBasis(prior(state, knowledge)))) return null;
             if (frame.stage === 'source') {
-                if (event.sourceId !== undefined || event.understanding !== undefined) return null;
+                if (event.sourceId !== undefined || event.understanding !== undefined || event.understandings !== undefined) return null;
                 const source = event.original;
                 if (!source || !validInput(source.input, state) || serial(source.input) >= serial(event.input)
                     || ids.has(source.input.id)
@@ -73,21 +81,37 @@
                 if (!source || source.input.locale !== event.input.locale || event.input.at < source.input.at
                     || source.input.scene !== event.input.scene
                     || samples.some(s => s.sourceId === event.sourceId && s.frame.stage === frame.stage && s.frame.index === frame.index)) return null;
-                const content = source.frames[frame.index];
-                const u = core.understand(prior(state, knowledge), content, event.input.speaker, catalog, event.input.locale);
-                if (!equal(u, event.understanding)) return null;
-                if (frame.stage === 'report' && u.known.meaning !== content.meaning) return null;
-                if (['yesterday', 'now'].includes(frame.stage)
-                    && (u.known.meaning !== content.meaning || !u.relations.includes('report'))) return null;
-                samples.push(event);
-                if (['sad', 'happy'].includes(frame.stage)) add('meaning', frame.stage, source, frame.index, [event.input.id]);
-                if (frame.stage === 'report') {
-                    const pair = samples.filter(s => s.sourceId === event.sourceId && s.frame.stage === 'report');
-                    if (pair.length === 2) for (const index of [0, 1]) add('relation', 'report', source, index, pair.map(s => s.input.id));
-                }
-                if (['yesterday', 'now'].includes(frame.stage)) {
-                    const pair = samples.filter(s => s.sourceId === event.sourceId && ['yesterday', 'now'].includes(s.frame.stage));
-                    if (pair.length === 2) for (const index of [0, 1]) add('relation', 'time', source, index, pair.map(s => s.input.id));
+                if (contrastStages.includes(frame.stage)) {
+                    if (event.understanding !== undefined) return null;
+                    const parts = contentUnderstanding(state, source, knowledge, catalog);
+                    if (!equal(parts, event.understandings) || parts.some((u, i) =>
+                        u.known.meaning !== source.frames[i].meaning || u.subject !== source.input.speaker
+                        || u.eventTime !== source.frames[i].time || !u.relations.includes('report')
+                        || !u.relations.includes('time') || u.unresolved.some(e => e.type !== 'relation' || e.id !== 'contrast'))) return null;
+                    const previous = samples.filter(s => s.sourceId === event.sourceId && contrastStages.includes(s.frame.stage));
+                    if (previous.length !== contrastStages.indexOf(frame.stage)) return null;
+                    samples.push(event);
+                    if (frame.stage === 'noncausal') for (const index of [0, 1]) {
+                        add('relation', 'contrast', source, index, [...previous, event].map(s => s.input.id));
+                    }
+                } else {
+                    if (event.understandings !== undefined) return null;
+                    const content = source.frames[frame.index];
+                    const u = core.understand(prior(state, knowledge), content, event.input.speaker, catalog, event.input.locale);
+                    if (!equal(u, event.understanding)) return null;
+                    if (frame.stage === 'report' && u.known.meaning !== content.meaning) return null;
+                    if (['yesterday', 'now'].includes(frame.stage)
+                        && (u.known.meaning !== content.meaning || !u.relations.includes('report'))) return null;
+                    samples.push(event);
+                    if (['sad', 'happy'].includes(frame.stage)) add('meaning', frame.stage, source, frame.index, [event.input.id]);
+                    if (frame.stage === 'report') {
+                        const pair = samples.filter(s => s.sourceId === event.sourceId && s.frame.stage === 'report');
+                        if (pair.length === 2) for (const index of [0, 1]) add('relation', 'report', source, index, pair.map(s => s.input.id));
+                    }
+                    if (['yesterday', 'now'].includes(frame.stage)) {
+                        const pair = samples.filter(s => s.sourceId === event.sourceId && ['yesterday', 'now'].includes(s.frame.stage));
+                        if (pair.length === 2) for (const index of [0, 1]) add('relation', 'time', source, index, pair.map(s => s.input.id));
+                    }
                 }
             }
             const turn = state.context.turns.find(t => t.id === event.input.id);
@@ -115,7 +139,8 @@
             if (sources.length !== 1) return false;
             const source = sources[0].original;
             event.sourceId = source.input.id;
-            event.understanding = core.understand(prior(state, current.knowledge), source.frames[frame.index], result.input.speaker, catalog, result.input.locale);
+            if (contrastStages.includes(frame.stage)) event.understandings = contentUnderstanding(state, source, current.knowledge, catalog);
+            else event.understanding = core.understand(prior(state, current.knowledge), source.frames[frame.index], result.input.speaker, catalog, result.input.locale);
         }
         const events = [...current.events, event], knowledge = replay(state, world, catalog, events);
         if (!knowledge) return false;
@@ -128,7 +153,7 @@
             const learning = state.feelingLearning;
             let expected = [];
             if (learning !== undefined) {
-                if (!Array.isArray(learning?.events) || !learning.events.length || learning.events.length > 49
+                if (!Array.isArray(learning?.events) || !learning.events.length || learning.events.length > 70
                     || !Array.isArray(learning.knowledge)) return false;
                 expected = replay(state, world, catalog, learning.events);
                 if (expected === null || !equal(expected, learning.knowledge)) return false;
