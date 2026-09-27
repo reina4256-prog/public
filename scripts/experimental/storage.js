@@ -5,6 +5,7 @@ const navigation = require('../../experimental_word_island_navigation');
 const careers = require('../../experimental_word_careers');
 const worldApi = require('../../experimental_word_learning_world');
 const lifeLearning = require('../../experimental_word_life_learning');
+const relationLearning = require('../../experimental_word_relation_learning');
 const core = require('../../experimental_word_learning_core');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
@@ -34,6 +35,7 @@ function valid(value) {
         && careers.valid(w)
         && careers.validLearning(s)
         && lifeLearning.valid(s, w)
+        && relationLearning.valid(s, w, require('../../experimental_word_learning_catalog.json'))
         && core.validWordLearning(s)
         && worldApi.validContext(s, w)
         && (w.island === undefined || (navigation.valid(w.island)

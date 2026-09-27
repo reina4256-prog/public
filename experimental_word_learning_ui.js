@@ -31,6 +31,9 @@
         life_label_received: 'その言葉を聞きながら、今の動作や感覚に注意を向けている。',
         life_label_guide: '空腹・疲れの語は引用符で囲むと、プレイヤー自身の報告と区別できます。',
         note_life_learned: '行動中に聞いた言葉と、自分で確かめた経験が結び付いた。ほかの場面への応用は、まだ確かめていない。',
+        relation_pairing: '知っている動作と説明の言葉を照らし合わせている。説明全体は、まだ分かっていない。',
+        note_relation_pairing: 'この説明を聞きながら動作を確かめた。言い回しの働きは、まだ確かめている途中。',
+        note_relation_learned: '食事と休息で聞いた説明から、知っている動作に呼び方を結ぶ言い回しが分かってきた。同じ相手・言語の短い説明で使える。',
         title: 'ことばと、小さな暮らし',
         masterPlaces: '島で働く人たち', masterVisit: '会いに行くよう誘う', pointed_master: '働いている人の方を指さした。',
         master_explore: '冒険家', master_farming: '農家', master_fishing: '漁師',
@@ -482,7 +485,7 @@
         const partialReportExplained = result.understandings.length === 1
             && ['heard_feeling_partial', 'heard_event_partial'].includes(reply.message);
         const hint = result.learning.some(item => item.updated.length) ? 'receivedName'
-            : !result.lifeLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
+            : !result.lifeLearning && !result.relationLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
         if (hint) record('guidance', { key: hint, text: displayText(hint) });
         renderNotebook();

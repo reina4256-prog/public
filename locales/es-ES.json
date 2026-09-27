@@ -14806,5 +14806,8 @@
   "今は食べているよ。": "Ahora estoy comiendo.",
   "さっきは食べていたよ。": "Antes estaba comiendo.",
   "今はひと息ついているよ。": "Estoy tomando un pequeño descanso.",
-  "さっきはひと息ついていたよ。": "Estaba tomando un pequeño descanso."
+  "さっきはひと息ついていたよ。": "Estaba tomando un pequeño descanso.",
+  "知っている動作と説明の言葉を照らし合わせている。説明全体は、まだ分かっていない。": "Compara una acción conocida con las palabras de la explicación. Aún no entiende la explicación completa.",
+  "この説明を聞きながら動作を確かめた。言い回しの働きは、まだ確かめている途中。": "Comprobé la acción mientras escuchaba esta explicación. Aún estoy descubriendo cómo funciona esa forma de expresarse.",
+  "食事と休息で聞いた説明から、知っている動作に呼び方を結ぶ言い回しが分かってきた。同じ相手・言語の短い説明で使える。": "Las explicaciones que escuché al comer y descansar me ayudaron a entender cómo unir un nombre con una acción conocida. Puedo usarlo en explicaciones breves de la misma persona y en el mismo idioma."
 }

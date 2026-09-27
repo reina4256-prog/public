@@ -14806,5 +14806,8 @@
   "今は食べているよ。": "I am eating now.",
   "さっきは食べていたよ。": "I was eating earlier.",
   "今はひと息ついているよ。": "I am taking a little break.",
-  "さっきはひと息ついていたよ。": "I was taking a little break."
+  "さっきはひと息ついていたよ。": "I was taking a little break.",
+  "知っている動作と説明の言葉を照らし合わせている。説明全体は、まだ分かっていない。": "Comparing a familiar action with the words of the explanation. The whole explanation is not understood yet.",
+  "この説明を聞きながら動作を確かめた。言い回しの働きは、まだ確かめている途中。": "I checked the action while hearing this explanation. I am still working out how the phrasing works.",
+  "食事と休息で聞いた説明から、知っている動作に呼び方を結ぶ言い回しが分かってきた。同じ相手・言語の短い説明で使える。": "From explanations heard while eating and resting, I began to understand phrasing that links a name to a familiar action. I can use it for short explanations from the same person in the same language."
 }

@@ -17,7 +17,7 @@
   "meanings": {
     "berry": ["木の実", "きのみ", "berry", "berries", "浆果", "ягода", "ягоды", "baya", "bayas", "fruta", "Beere"],
     "food": ["食べ物", "food", "食物", "еда", "comida", "Essen"],
-    "eat": ["食べる", "eat", "吃", "есть", "comer", "essen"],
+    "eat": ["食べる", "eat", "吃", "есть", "comer", "essen", "speisen"],
     "hungry": ["おなかがすいた", "お腹がすいた", "hungry", "饿", "голод", "hambre", "fome", "hungrig"],
     "tired": ["疲れた", "疲れている", "tired", "累", "устал", "cansado", "müde"],
     "rest": ["休む", "休憩", "rest", "休息", "отдых", "descansar", "ausruhen"],

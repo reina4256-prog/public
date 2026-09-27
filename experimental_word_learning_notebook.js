@@ -10,6 +10,16 @@
         const organizedReports = new Set(state.notes.map(n => n.sourceId).filter(id => id !== undefined));
         const organizedExperiences = new Set(state.notes.map(n => n.experienceId).filter(id => id !== undefined));
         const knows = id => state.knowledge.meanings.some(m => m.id === id);
+        for (const evidence of state.knowledge.relationEvidence) {
+            const event = (state.experiences || []).find(e => e.id === evidence.experienceId);
+            const label = event?.relationLabels?.find(l => l.inputId === evidence.inputId);
+            if (!label) continue;
+            const learned = state.knowledge.relations.some(r => r.source === 'experienced_relation'
+                && r.evidence.includes(evidence.inputId));
+            result.push({ group: 'names', message: 'note_name', literal: label.raw,
+                detail: learned ? 'note_relation_learned' : 'note_relation_pairing', sourceId: label.inputId,
+                experienceId: event.id, organized: organizedExperiences.has(event.id) });
+        }
         for (const entry of state.knowledge.wordExplanations || []) {
             result.push({ group: 'names', message: 'note_name', literal: `${entry.word} → ${entry.explainedAs}`, target: entry.meaning,
                 detail: entry.retractedBy ? 'note_word_withdrawn' : 'note_word_explained', withdrawn: !!entry.retractedBy,

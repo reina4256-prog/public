@@ -387,10 +387,13 @@
         return { candidates, adopted: relevant.length === 1 ? relevant[0] : candidates.length === 1 ? candidates[0] : null };
     }
 
-    function understand(state, frame, speaker, catalog) {
+    function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
-        const missingRelations = required.filter(id => !understands(state, 'relations', id));
+        const missingRelations = required.filter(id => !state.knowledge.relations.some(entry => entry.id === id
+            && (entry.source !== 'experienced_relation' || (entry.scope.kind === frame.kind
+                && entry.scope.locale === locale && entry.scope.speaker === speaker
+                && entry.scope.meanings.includes(lexicalMeaning(frame.meaning, catalog))))));
         unresolved.push(...missingRelations.map(id => ({ type: 'relation', id })));
         const known = {}, applications = [];
         for (const field of ['meaning', 'conditionMeaning', 'eventMeaning', 'oldMeaning']) {
@@ -423,6 +426,10 @@
             conditionStatus: frame.conditionMeaning ? 'unknown' : null,
             questionSlot: relationReady && frame.kind === 'question' ? frame.slot : null
         };
+        const relationReferences = state.knowledge.relations.filter(entry => entry.source === 'experienced_relation'
+            && required.includes(entry.id) && !missingRelations.includes(entry.id)
+            && entry.scope.kind === frame.kind && entry.scope.locale === locale && entry.scope.speaker === speaker);
+        if (relationReferences.length) result.relationReferences = clone(relationReferences);
         return result;
     }
 
@@ -635,7 +642,7 @@
                 interpretations[index] = { kind: 'reference', target: frame.span, span: frame.span, relations: [] };
             }
         });
-        const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog));
+        const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog, input.locale));
         understandings.forEach((u, index) => {
             const frame = interpretations[index];
             if (frame.reportReference) {
@@ -735,5 +742,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning });
 });
