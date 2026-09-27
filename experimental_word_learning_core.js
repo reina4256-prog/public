@@ -291,9 +291,46 @@
             relations: ['report', 'time', 'contrast'], span, catalogRule: 'feeling_contrast' }));
     }
 
+    function feelingTeaching(text, locale, catalog) {
+        const forms = catalog.feelingTeaching?.[locale], pair = catalog.feelingContrast?.[locale];
+        if (!forms || !pair) return null;
+        for (const stage of ['source', 'sad', 'happy', 'report', 'yesterday', 'now']) {
+            const prefix = forms[stage] + '«';
+            if (!text.startsWith(prefix) || !text.endsWith('»')) continue;
+            const utterance = text.slice(prefix.length, -1);
+            const full = pair.past + pair.join + pair.present;
+            const index = utterance === pair.past ? 0 : utterance === pair.present ? 1 : -1;
+            if (stage === 'source' ? utterance !== full : index < 0
+                || ['sad', 'yesterday'].includes(stage) && index !== 0
+                || ['happy', 'now'].includes(stage) && index !== 1) return null;
+            return { kind: 'feeling_teaching', stage, index, utterance, span: text, relations: [] };
+        }
+        return null;
+    }
+    function feelingBasis(state) {
+        return { meanings: state.knowledge.meanings.filter(m => m.source === 'initial' && ['sad', 'happy'].includes(m.id)).map(clone).sort((a, b) => a.id.localeCompare(b.id)),
+            relations: state.knowledge.relations.filter(r => r.source === 'initial' && ['report', 'time', 'contrast'].includes(r.id)).map(clone).sort((a, b) => a.id.localeCompare(b.id)),
+            taught: clone(state.feelingLearning?.knowledge || []) };
+    }
+    function feelingApplies(entry, type, id, frame, speaker, locale) {
+        return entry.type === type && entry.id === id && frame.kind === 'report' && frame.aspect === 'feeling'
+            && ['feeling_contrast', 'feeling_single'].includes(frame.catalogRule)
+            && entry.scope.locale === locale && entry.scope.speaker === speaker
+            && entry.scope.form === normalize(frame.span) && entry.scope.meaning === frame.meaning
+            && entry.scope.time === frame.time;
+    }
+
     function interpret(text, locale, catalog) {
+        const teaching = feelingTeaching(text, locale, catalog);
+        if (teaching) return [teaching];
         const feelings = feelingContrast(text, locale, catalog);
         if (feelings) return feelings;
+        const pair = catalog.feelingContrast?.[locale];
+        if (pair) {
+            const frames = feelingContrast(pair.past + pair.join + pair.present, locale, catalog);
+            const single = frames.find(f => normalize(f.span) === normalize(text));
+            if (single) return [{ ...single, relations: ['report', 'time'], catalogRule: 'feeling_single' }];
+        }
         const reason = reasonFrame(text, locale, catalog);
         if (reason) return [reason];
         const sequential = sequenceFrame(text, locale, catalog);
@@ -585,6 +622,10 @@
     }
 
     function understand(state, frame, speaker, catalog, locale) {
+        if (frame.kind === 'feeling_teaching') return { kind: 'partial', known: {}, target: null,
+            relations: [], unresolved: [{ type: 'teaching_operation' }], complete: false,
+            subject: null, polarity: 'positive', eventTime: 'unspecified', aspect: null,
+            conditionStatus: null, questionSlot: null };
         const unresolved = [];
         const required = [...(frame.relations || [])];
         const applies = entry => entry.scope?.kind === (entry.id === 'naming' && ['word_correction', 'correction_demonstration'].includes(frame.kind)
@@ -625,8 +666,10 @@
                     ? entry.scope.form === (entry.id === 'report' ? frame.reportForm || frame.form : frame.proposalForm || frame.form) && frame.meaning === 'rest'
                         && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                     : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
+        const taught = state.feelingLearning?.knowledge || [];
         const missingRelations = required.filter(id => !state.knowledge.relations.some(entry => entry.id === id
-            && (entry.source !== 'experienced_relation' || applies(entry))));
+            && (entry.source !== 'experienced_relation' || applies(entry)))
+            && !taught.some(e => feelingApplies(e, 'relation', id, frame, speaker, locale)));
         unresolved.push(...missingRelations.map(id => ({ type: 'relation', id })));
         const known = {}, applications = [];
         for (const field of ['meaning', 'conditionMeaning', 'eventMeaning', 'oldMeaning']) {
@@ -635,7 +678,8 @@
                 ? frame[field] : lexicalMeaning(frame[field], catalog);
             const application = !id && !['word_explanation', 'word_correction'].includes(frame.kind)
                 ? wordApplication(state, frame[field], speaker) : null;
-            if (id && understands(state, 'meanings', id)) known[field] = id;
+            if (id && (understands(state, 'meanings', id)
+                || field === 'meaning' && taught.some(e => feelingApplies(e, 'meaning', id, frame, speaker, locale)))) known[field] = id;
             else if (application?.adopted) { known[field] = application.adopted; applications.push({ field, ...application }); }
             else unresolved.push({ type: 'meaning', field, token: frame[field] });
         }
@@ -649,7 +693,7 @@
         const relationReady = missingRelations.length === 0 && frame.kind !== 'unknown';
         // An unknown connection does not erase an understood report's subject.
         // The whole clause remains partial until that connection is understood.
-        const reportReady = frame.kind === 'report' && required.includes('contrast')
+        const reportReady = frame.kind === 'report' && (required.includes('contrast') || frame.catalogRule === 'feeling_single')
             && !missingRelations.includes('report');
         const result = {
             kind: relationReady ? frame.kind : 'partial', known, target, ...(applications.length ? { applications } : {}),
@@ -667,6 +711,11 @@
             && required.includes(entry.id) && !missingRelations.includes(entry.id)
             && applies(entry));
         if (relationReferences.length) result.relationReferences = clone(relationReferences);
+        const feelingReferences = taught.filter(e => feelingApplies(e, e.type, e.id, frame, speaker, locale));
+        if (feelingReferences.length) result.feelingReferences = clone(feelingReferences);
+        if ((relationReady || reportReady) && ['feeling_contrast', 'feeling_single'].includes(frame.catalogRule)) {
+            result.testimony = { reporter: speaker, contentSubject: speaker, status: 'reported', verified: false };
+        }
         if (relationReady && frame.roles) {
             if (frame.roles.reporter) {
                 result.subject = frame.subject === 'player' ? speaker : frame.subject;
@@ -893,6 +942,11 @@
                 // Parsed source and understood content are distinct. In particular,
                 // this source cannot supply missing meanings or report/time knowledge.
                 u.clauseSource = { input: clone(input), index, frame: clone(frame) };
+                u.feelingBasis = feelingBasis(state);
+            }
+            if (frame.catalogRule === 'feeling_single') {
+                u.feelingSource = { input: clone(input), frame: clone(frame) };
+                u.feelingBasis = feelingBasis(state);
             }
             // Splitting sentences does not establish the scope of a condition,
             // contrast or correction. Keep recognized content, but do not act on
@@ -1024,5 +1078,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame, feelingContrast, validClauseSources });
+        wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame, feelingContrast, feelingTeaching, feelingBasis, validClauseSources });
 });

@@ -1,4 +1,11 @@
 {
+  "この表現の語・関係を限定的に理解している。": "Understands the words or relation within this expression’s limited scope.",
+  "もう一方の節の教示と、まだ照合している。": "Still matching this teaching with the teaching for the other clause.",
+  "原文に結び付けて、気持ちの語・話し手・時点を段階ごとに記録している。": "Recording the feeling words, speaker and times in separate stages linked to the original text.",
+  "この教示に必要な原文や前提を照合できなかった。": "Could not match the original text or prerequisites needed for this teaching.",
+  "気持ちの報告を教わった記録": "Record of teaching about reported feelings",
+  "同じ相手・言語・二表現に限る。相手の気持ちの真偽や、自分の感情体験を確かめた記録ではない。": "Limited to the same speaker, language and two expressions. This does not verify their feelings or establish a feeling experienced by the child.",
+  "気持ちの二節を一度伝え、原文を選び、語・話し手・時点の順に教える。印は教示操作で、対比の習得は含まない。": "Say the two feeling clauses once, select the original text, then teach the words, speaker and times in order. Markers are teaching controls; this does not teach contrast.",
   "食事中の言葉を覚えて、同じ食事の完了後へのお願いかどうか確かめている。": "Remembering the words heard during the meal and checking whether the request applies after that same meal is finished.",
   "同じ食事の前後を照合し、食べ終えた後への休息のお願いだと分かった。": "Compared before and after the same meal and understood the request to rest after finishing it.",
   "食べ終えた後に休んでほしいんだね。いつ休むかは、また自分で考えるね。": "You want me to rest after I finish eating. I will decide for myself when to rest.",

@@ -4,6 +4,13 @@
     const app = document.getElementById('app');
     const labels = {
         correction_pairing: '原説明と置換先を照合している。教示だけでは説明を取り下げない。',
+        feeling_teaching_received: '原文に結び付けて、気持ちの語・話し手・時点を段階ごとに記録している。',
+        feeling_teaching_unmatched: 'この教示に必要な原文や前提を照合できなかった。',
+        note_feeling_teaching: '気持ちの報告を教わった記録',
+        note_feeling_learned: 'この表現の語・関係を限定的に理解している。',
+        note_feeling_pairing: 'もう一方の節の教示と、まだ照合している。',
+        note_feeling_scope: '同じ相手・言語・二表現に限る。相手の気持ちの真偽や、自分の感情体験を確かめた記録ではない。',
+        feeling_guide: '気持ちの二節を一度伝え、原文を選び、語・話し手・時点の順に教える。印は教示操作で、対比の習得は含まない。',
         note_correction_demo: '訂正について教わった例：',
         note_correction_learned: 'この語・相手・言語・場面・対象・表現で、原説明を置き換える関係を理解した。実際の訂正は別に受け取る。',
         correction_help: '食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。',
@@ -545,13 +552,13 @@
         record('understanding', { result });
         const message = node('p', input.value, conversation);
         message.dataset.speaker = 'player'; message.setAttribute('data-i18n-skip', '');
-        const reply = worldApi.respond(world, result, state);
+        const reply = worldApi.respond(world, result, state, catalog);
         showReply(reply);
         window.ExperimentalWordNotebook.rememberQuestion(state, result, reply);
         const partialReportExplained = result.understandings.length === 1
             && ['heard_feeling_partial', 'heard_event_partial'].includes(reply.message);
         const hint = result.learning.some(item => item.updated.length) ? 'receivedName'
-            : !result.lifeLearning && !result.relationLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
+            : !result.lifeLearning && !result.relationLearning && !result.feelingLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
         if (hint) record('guidance', { key: hint, text: displayText(hint) });
         renderNotebook();
@@ -563,6 +570,17 @@
         fetch(file).then(response => { if (!response.ok) throw new Error('Load failed'); return response.json(); })
     )).then(([data, visuals]) => {
         catalog = data;
+        const feelingForms = catalog.feelingTeaching[window.GameI18n.language];
+        const feelingPair = catalog.feelingContrast[window.GameI18n.language];
+        if (feelingForms && feelingPair) {
+            node('p', t('feeling_guide'), guide);
+            const full = feelingPair.past + feelingPair.join + feelingPair.present;
+            const examples = [full, feelingForms.source + '«' + full + '»',
+                feelingForms.sad + '«' + feelingPair.past + '»', feelingForms.happy + '«' + feelingPair.present + '»',
+                feelingForms.report + '«' + feelingPair.past + '»', feelingForms.report + '«' + feelingPair.present + '»',
+                feelingForms.yesterday + '«' + feelingPair.past + '»', feelingForms.now + '«' + feelingPair.present + '»'];
+            for (const text of examples) node('p', text, guide).setAttribute('data-i18n-skip', '');
+        }
         const correctionForms = catalog.correctionTeaching[window.GameI18n.language];
         if (correctionForms) for (const phase of ['source', 'replacement']) {
             const example = node('p', `${correctionForms[phase]}«${correctionForms[phase === 'source' ? 'exampleSource' : 'exampleReplacement']}»`, guide);

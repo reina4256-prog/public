@@ -3,7 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
-if (process.argv.includes('--contrast-basis') && !process.argv.includes('--boundaries')) process.argv.push('--boundaries');
+if ((process.argv.includes('--contrast-basis') || process.argv.includes('--feelings')) && !process.argv.includes('--boundaries')) process.argv.push('--boundaries');
 if (process.argv.includes('--corrections') && !process.argv.includes('--correction-basis')) process.argv.push('--correction-basis');
 if (process.argv.includes('--correction-basis') && !process.argv.includes('--relations')) process.argv.push('--relations');
 if (!process.versions.electron || process.type !== 'browser') {
@@ -61,6 +61,13 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
+        if (process.argv.includes('--feelings')) {
+            await require('./smoke_feelings')({ js, window, url, paintClock, sleep,
+                read: () => snapshot, load: value => { nextLoad = value; } });
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, feelings: true, initial, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--contrast-basis')) {
             await require('./smoke_contrast_basis')({ js, window, url, paintClock, sleep,
                 read: () => snapshot, load: value => { nextLoad = value; } });

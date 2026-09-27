@@ -10,6 +10,14 @@
         const organizedReports = new Set(state.notes.map(n => n.sourceId).filter(id => id !== undefined));
         const organizedExperiences = new Set(state.notes.map(n => n.experienceId).filter(id => id !== undefined));
         const knows = id => state.knowledge.meanings.some(m => m.id === id);
+        for (const event of state.feelingLearning?.events || []) {
+            const stage = event.frame.stage;
+            const learned = ['sad', 'happy'].includes(stage) || state.settings.foundation
+                || state.feelingLearning.knowledge.some(e => e.evidence.includes(event.input.id));
+            result.push({ group: 'names', message: stage === 'source' ? 'note_feeling_teaching'
+                : learned ? 'note_feeling_learned' : 'note_feeling_pairing', literal: event.input.raw,
+                detail: 'note_feeling_scope', sourceId: event.input.id, organized: false });
+        }
         for (const lesson of state.correctionLessons || []) {
             for (const sample of [lesson.source, lesson.replacement].filter(Boolean)) result.push({ group: 'names',
                 message: 'note_correction_demo', literal: sample.input.raw,

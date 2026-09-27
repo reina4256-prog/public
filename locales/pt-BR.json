@@ -1,4 +1,11 @@
 {
+  "この表現の語・関係を限定的に理解している。": "Entende as palavras ou a relação dentro do alcance limitado desta expressão.",
+  "もう一方の節の教示と、まだ照合している。": "Ainda está comparando com o ensino da outra oração.",
+  "原文に結び付けて、気持ちの語・話し手・時点を段階ごとに記録している。": "As palavras de sentimentos, quem fala e os tempos são registrados em etapas separadas, ligados ao texto original.",
+  "この教示に必要な原文や前提を照合できなかった。": "Não foi possível conferir o texto original ou os conhecimentos prévios necessários para este ensino.",
+  "気持ちの報告を教わった記録": "Registro de ensino sobre sentimentos relatados",
+  "同じ相手・言語・二表現に限る。相手の気持ちの真偽や、自分の感情体験を確かめた記録ではない。": "Limitado à mesma pessoa, idioma e duas expressões. Não confirma os sentimentos dela nem estabelece uma experiência emocional própria da criança.",
+  "気持ちの二節を一度伝え、原文を選び、語・話し手・時点の順に教える。印は教示操作で、対比の習得は含まない。": "Diga as duas orações uma vez, selecione o texto original e ensine as palavras, quem fala e os tempos, nessa ordem. As marcas controlam o ensino; não ensinam contraste.",
   "食事中の言葉を覚えて、同じ食事の完了後へのお願いかどうか確かめている。": "Lembra as palavras ouvidas durante a refeição e verifica se o pedido se aplica após terminar essa mesma refeição.",
   "同じ食事の前後を照合し、食べ終えた後への休息のお願いだと分かった。": "Comparou o antes e o depois da mesma refeição e entendeu o pedido para descansar após terminá-la.",
   "食べ終えた後に休んでほしいんだね。いつ休むかは、また自分で考えるね。": "Você quer que eu descanse depois de comer. Vou decidir por conta própria quando descansar.",

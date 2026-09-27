@@ -1,4 +1,13 @@
 {
+  "feelingTeaching": {
+    "ja": { "source": "【感情の原文】", "sad": "【悲しいの語】", "happy": "【うれしいの語】", "report": "【話し手の気持ち】", "yesterday": "【原報告の昨日】", "now": "【原報告の今】" },
+    "en": { "source": "【Feeling source】", "sad": "【Word for sadness】", "happy": "【Word for happiness】", "report": "【Speaker's feeling】", "yesterday": "【Yesterday in the source report】", "now": "【Now in the source report】" },
+    "zh-CN": { "source": "【感情原文】", "sad": "【难过的词】", "happy": "【开心的词】", "report": "【说话者的感受】", "yesterday": "【原报告中的昨天】", "now": "【原报告中的现在】" },
+    "ru": { "source": "【Исходное сообщение о чувствах】", "sad": "【Слово о грусти】", "happy": "【Слово о радости】", "report": "【Чувство говорящего】", "yesterday": "【Вчера в исходном сообщении】", "now": "【Сейчас в исходном сообщении】" },
+    "es-ES": { "source": "【Mensaje de sentimientos original】", "sad": "【Palabra de tristeza】", "happy": "【Palabra de alegría】", "report": "【Sentimiento de quien habla】", "yesterday": "【Ayer en el mensaje original】", "now": "【Ahora en el mensaje original】" },
+    "pt-BR": { "source": "【Relato de sentimentos original】", "sad": "【Palavra de tristeza】", "happy": "【Palavra de alegria】", "report": "【Sentimento de quem fala】", "yesterday": "【Ontem no relato original】", "now": "【Agora no relato original】" },
+    "de": { "source": "【Ursprünglicher Gefühlsbericht】", "sad": "【Wort für Traurigkeit】", "happy": "【Wort für Freude】", "report": "【Gefühl der sprechenden Person】", "yesterday": "【Gestern im ursprünglichen Bericht】", "now": "【Jetzt im ursprünglichen Bericht】" }
+  },
   "feelingContrast": {
     "ja": { "past": "昨日は悲しかった", "present": "今はうれしい", "join": "けど、" },
     "en": { "past": "I was sad yesterday", "present": "I am happy now", "join": ", but " },

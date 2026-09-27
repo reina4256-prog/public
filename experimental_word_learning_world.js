@@ -2,10 +2,11 @@
     const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_careers') : root.ExperimentalWordCareers,
         typeof module === 'object' && module.exports ? require('./experimental_word_life_learning') : root.ExperimentalWordLifeLearning,
         typeof module === 'object' && module.exports ? require('./experimental_word_relation_learning') : root.ExperimentalWordRelationLearning,
-        typeof module === 'object' && module.exports ? require('./experimental_word_learning_core') : root.ExperimentalWordLearning);
+        typeof module === 'object' && module.exports ? require('./experimental_word_learning_core') : root.ExperimentalWordLearning,
+        typeof module === 'object' && module.exports ? require('./experimental_word_feeling_learning') : root.ExperimentalWordFeelingLearning);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordWorld = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (careers, lifeLearning, relationLearning, core) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (careers, lifeLearning, relationLearning, core, feelingLearning) {
     'use strict';
     const copy = value => JSON.parse(JSON.stringify(value));
     const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
@@ -240,7 +241,13 @@
         return JSON.parse(JSON.stringify(focus.response));
     }
 
-    function respond(world, result, state) {
+    function respond(world, result, state, catalog) {
+        if (result.interpretations[0]?.kind === 'feeling_teaching') {
+            const accepted = catalog && feelingLearning.offer(world, state, result, catalog);
+            const response = { message: accepted ? 'feeling_teaching_received' : 'feeling_teaching_unmatched', observation: true };
+            rememberOutput(world, state, response, result.input);
+            return response;
+        }
         if (result.interpretations.length === 1 && result.interpretations[0].kind === 'sequential_proposal'
             && result.understandings[0].complete) {
             const response = { message: state.settings.speech === 'short' ? 'sequence_understood' : 'attend' };

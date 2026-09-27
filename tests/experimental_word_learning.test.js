@@ -25,7 +25,7 @@ function lifeFixture(activity = 'eat', options = {}) {
 }
 function labelLife(state, world, text, options) {
     const result = say(state, text, options);
-    worldApi.respond(world, result, state);
+    worldApi.respond(world, result, state, catalog);
     return result;
 }
 function finishLife(state, world) {
@@ -1300,6 +1300,10 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
             labelLife(state, world, `${correction.replacement}«${replacementText}»`, { locale });
             assert.equal(labelLife(state, world, replacementText, { locale }).understandings[0].corrects, originalInput);
             assert.equal(JSON.stringify(state.experiences), preserved);
+            const beforeFeelings = JSON.stringify(state.knowledge);
+            teachFeelings(state, world, locale);
+            assert.equal(JSON.stringify(state.knowledge), beforeFeelings);
+            assert.equal(JSON.stringify(state.experiences), preserved);
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
@@ -2319,6 +2323,159 @@ test('report continuation does not cross speaker, topic, unknown relation or uns
     }
 });
 
+function feelingInputs(locale) {
+    const p = catalog.feelingContrast[locale], f = catalog.feelingTeaching[locale], full = p.past + p.join + p.present;
+    return [full, `${f.source}«${full}»`, `${f.sad}«${p.past}»`, `${f.happy}«${p.present}»`,
+        `${f.report}«${p.past}»`, `${f.report}«${p.present}»`, `${f.yesterday}«${p.past}»`, `${f.now}«${p.present}»`];
+}
+function teachFeelings(state, world, locale = 'ja') {
+    for (const text of feelingInputs(locale)) labelLife(state, world, text, { locale });
+}
+test('3c3f2: eight starts and seven languages learn bounded words, report and time separately with restart', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const locale of Object.keys(catalog.feelingContrast)) {
+        for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            const initial = JSON.stringify(state.knowledge), body = JSON.stringify(world), texts = feelingInputs(locale);
+            for (let i = 0; i < texts.length; i++) {
+                const result = labelLife(state, world, texts[i], { locale });
+                if (i) assert.ok(result.feelingLearning, `${locale}: step ${i}`);
+                const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                assert.ok(valid(saved), `${locale}: step ${i} save`);
+                ({ state, world } = saved);
+                const frames = api.feelingContrast(texts[0], locale, catalog);
+                const parts = frames.map(f => api.understand(state, f, 'player', catalog, locale));
+                assert.deepEqual(parts.map(u => u.known.meaning), [life || i >= 2 ? 'sad' : undefined, life || i >= 3 ? 'happy' : undefined]);
+                assert.deepEqual(parts.map(u => u.subject), foundation || i >= 5 ? ['player', 'player'] : [null, null]);
+                assert.deepEqual(parts.map(u => u.eventTime), foundation || i >= 7 ? ['yesterday', 'now'] : ['unspecified', 'unspecified']);
+                assert.equal(parts.every(u => u.relations.includes('contrast')), foundation);
+            }
+            const journal = JSON.stringify(state.feelingLearning), original = structuredClone(state.feelingLearning.events[0].original);
+            for (const text of texts.slice(1)) labelLife(state, world, text, { locale });
+            assert.equal(JSON.stringify(state.feelingLearning), journal, 'repetition adds nothing');
+            const result = labelLife(state, world, texts[0], { locale });
+            assert.ok(result.understandings.every(u => u.complete === foundation));
+            for (const text of [catalog.feelingContrast[locale].past, catalog.feelingContrast[locale].present]) {
+                const report = labelLife(state, world, text, { locale });
+                assert.equal(report.understandings[0].complete, true);
+                assert.equal(report.understandings[0].subject, 'player');
+                assert.ok(valid(selectionSave(state, world)));
+            }
+            for (let i = 0; i < 12; i++) say(state, 'glorp', { locale });
+            assert.deepEqual(state.feelingLearning.events[0].original, original);
+            assert.equal(JSON.stringify(state.knowledge), initial);
+            assert.equal(state.experiences, undefined);
+            const unchanged = JSON.parse(body);
+            for (const key of ['experiences', 'history', 'hunger', 'fatigue', 'mode', 'reasons']) assert.deepEqual(world[key], unchanged[key]);
+            assert.ok(valid(selectionSave(state, world)));
+            const entries = notebookApi.entries(state);
+            assert.equal(entries.filter(e => e.detail === 'note_feeling_scope').length, 7);
+            assert.equal(JSON.stringify(state.feelingLearning), journal);
+        }
+    }
+});
+test('3c3f2: no learning from missing, ambiguous, expired, foreign or mismatched sources or unknown prerequisites', () => {
+    for (const locale of Object.keys(catalog.feelingContrast)) {
+        const texts = feelingInputs(locale);
+        for (const setup of ['missing', 'repeated', 'expired', 'other', 'legacy']) {
+            const state = create({ foundation: false, life: false }), world = worldApi.create();
+            if (setup !== 'missing') labelLife(state, world, texts[0], { locale, speaker: setup === 'other' ? 'visitor' : 'player' });
+            if (setup === 'repeated') labelLife(state, world, texts[0], { locale });
+            if (setup === 'expired') for (let i = 0; i < 9; i++) say(state, 'glorp');
+            if (setup === 'legacy') for (const u of state.context.turns.at(-1).understandings) delete u.feelingBasis;
+            labelLife(state, world, texts[1], { locale });
+            assert.equal(state.feelingLearning, undefined, setup);
+        }
+        const state = create({ foundation: false, life: false }), world = worldApi.create();
+        for (const text of texts.slice(0, 2)) labelLife(state, world, text, { locale });
+        const sourceOnly = JSON.stringify(state.feelingLearning);
+        for (const text of texts.slice(4)) labelLife(state, world, text, { locale });
+        labelLife(state, world, texts[2], { locale, speaker: 'visitor' });
+        labelLife(state, world, texts[2], { locale: locale === 'en' ? 'ja' : 'en' });
+        labelLife(state, world, texts[2] + '?', { locale });
+        assert.equal(JSON.stringify(state.feelingLearning), sourceOnly);
+        api.perceive(state, { scene: 'elsewhere', attention: [] });
+        labelLife(state, world, texts[2], { locale });
+        assert.equal(JSON.stringify(state.feelingLearning), sourceOnly);
+        api.perceive(state, { scene: 'clearing', attention: [] });
+        for (const text of texts.slice(2)) labelLife(state, world, text, { locale });
+        assert.equal(state.feelingLearning.knowledge.length, 6);
+        const foreign = say(state, texts[0], { locale, speaker: 'visitor' });
+        assert.ok(foreign.understandings.every(u => !u.known.meaning && u.subject === null));
+        for (const text of ['悲しい', '今は悲しい', '昨日はうれしかった', 'あなたは今うれしい', '今はうれしくない', '今はうれしい？']) {
+            assert.equal(say(state, text).understandings.some(u => u.feelingReferences?.length), false, text);
+        }
+    }
+});
+test('3c3f2: saving rejects changes to source, teaching time, historical basis, scope and derived knowledge', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    teachFeelings(state, world);
+    labelLife(state, world, feelingInputs('ja')[0]);
+    const saved = selectionSave(state, world); assert.ok(valid(saved));
+    const changes = [
+        s => { s.feelingLearning.events[0].original.input.raw += '?'; },
+        s => { s.feelingLearning.events[0].original.input.at = 101; },
+        s => { s.feelingLearning.events[0].original.input.speaker = 'visitor'; },
+        s => { s.feelingLearning.events[0].original.frames[0].time = 'now'; },
+        s => { s.feelingLearning.events[0].original.understandings[0].known.meaning = 'sad'; },
+        s => { s.feelingLearning.events[2].basis.taught = []; },
+        s => { s.feelingLearning.events[2].input.id = s.feelingLearning.events[1].input.id; },
+        s => { s.feelingLearning.events[2].input.scene = 'other'; },
+        s => { s.feelingLearning.events[2].input.locale = 'en'; },
+        s => { s.feelingLearning.events[2].input.at = 99; },
+        s => { s.feelingLearning.events[2].at = 999; },
+        s => { s.feelingLearning.events[2].sourceId = 'input:999'; },
+        s => { s.feelingLearning.events[3].understanding.subject = 'self'; },
+        s => { s.feelingLearning.events.splice(1, 1); },
+        s => { s.feelingLearning.knowledge[0].scope.speaker = 'self'; },
+        s => { s.feelingLearning.knowledge[0].evidence = []; },
+        s => { s.feelingLearning.knowledge[0].id = 'contrast'; },
+        s => { s.feelingLearning.knowledge.push(s.feelingLearning.knowledge[0]); },
+        s => { s.context.turns.at(-1).understandings[0].feelingBasis.taught = []; },
+        s => { s.context.turns.at(-1).understandings[0].feelingReferences[0].scope.locale = 'en'; },
+        s => { delete s.context.turns.at(-1).understandings[0].feelingBasis; delete s.context.turns.at(-1).understandings[0].feelingReferences; },
+        s => { s.context.turns.at(-1).understandings[0].testimony.verified = true; },
+        s => { delete s.feelingLearning; }
+    ];
+    for (const mutate of changes) {
+        const value = structuredClone(saved); mutate(value.state);
+        assert.equal(valid(value), false, mutate.toString());
+    }
+});
+test('3c3f2: multiple locales and later teaching preserve earlier bases and original reports', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    for (const locale of Object.keys(catalog.feelingContrast)) {
+        teachFeelings(state, world, locale);
+        assert.ok(valid(selectionSave(state, world)), locale);
+    }
+    const retained = JSON.stringify(state.feelingLearning);
+    for (const locale of Object.keys(catalog.feelingContrast)) {
+        labelLife(state, world, feelingInputs(locale)[0], { locale });
+        assert.ok(valid(selectionSave(state, world)), locale);
+    }
+    assert.equal(JSON.stringify(state.feelingLearning), retained);
+    assert.equal(state.knowledge.meanings.length, 0);
+    assert.equal(state.knowledge.relations.length, 0);
+});
+test('3c3f2: paired labels can reverse within a stage; reading and bodily learning do not rewrite testimony', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create(), texts = feelingInputs('ja');
+    for (const i of [0, 1, 3, 2, 5, 4, 7]) labelLife(state, world, texts[i]);
+    assert.equal(notebookApi.entries(state).some(e => e.message === 'note_feeling_pairing'), true);
+    labelLife(state, world, texts[6]);
+    assert.equal(state.feelingLearning.knowledge.length, 6);
+    const retained = JSON.stringify(state.feelingLearning);
+    for (let i = 0; i < 3; i++) notebookApi.entries(state);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, '休む'); finishLife(state, world);
+    assert.ok(valid(selectionSave(state, world)));
+    assert.equal(JSON.stringify(state.feelingLearning), retained);
+    const original = state.feelingLearning.events[0].original;
+    assert.ok(original.understandings.every(u => !u.known.meaning && u.subject === null));
+    assert.ok(state.experiences.every(e => e.activity === 'rest'));
+});
+
 test('3c3f1: seven-language feeling clauses retain independent unknowns and sources across eight starts', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const [locale, form] of Object.entries(catalog.feelingContrast)) {
@@ -2393,7 +2550,9 @@ test('3c3f1: sources survive context eviction while legacy saves remain unchange
     value.state.records[0].understandings[1].clauseSource = null;
     assert.equal(valid(value), false);
     const legacy = selectionSave(state, world);
-    for (const record of legacy.state.records) for (const u of record.understandings) delete u.clauseSource;
+    for (const record of legacy.state.records) for (const u of record.understandings) {
+        delete u.clauseSource; delete u.feelingBasis;
+    }
     const before = JSON.stringify(legacy); assert.ok(valid(legacy)); assert.equal(JSON.stringify(legacy), before);
 });
 
