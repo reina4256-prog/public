@@ -234,7 +234,8 @@
     function respond(world, result, state) {
         if (relationLearning.offer(world, state, result)) {
             const response = { message: result.relationLearning.adopted.relation === 'question'
-                ? 'question_pairing' : 'relation_pairing', observation: true };
+                ? 'question_pairing' : ['request', 'invitation'].includes(result.relationLearning.adopted.relation)
+                    ? 'proposal_pairing' : 'relation_pairing', observation: true };
             rememberOutput(world, state, response, result.input);
             return response;
         }

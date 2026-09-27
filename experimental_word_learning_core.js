@@ -171,7 +171,27 @@
             meaning: answer, slot: frame.slot, relations: ['question'], span: text };
     }
 
+    function proposalFrame(text, locale, catalog) {
+        const forms = catalog.proposalTeaching?.[locale];
+        if (!forms) return null;
+        for (const relation of ['request', 'invitation']) {
+            const { marker, utterance } = forms[relation];
+            const demo = text.trim() === `${marker}「${utterance}」`;
+            if (!demo && normalize(text) !== normalize(utterance)) continue;
+            const roles = { proposer: 'player', addressee: 'self',
+                actors: relation === 'request' ? ['self'] : ['player', 'self'],
+                status: 'proposed', actualParticipation: false };
+            return { kind: demo ? 'proposal_demonstration' : relation, proposalKind: relation,
+                meaning: 'rest', relations: [relation], subject: 'self', roles,
+                form: normalize(utterance), utterance, span: text };
+        }
+        return null;
+    }
+
     function interpret(text, locale, catalog) {
+        const proposal = proposalFrame(text, locale, catalog);
+        if (proposal) return [proposal];
+        if (text.includes('【') || text.includes('】')) return [{ kind: 'unknown', span: text, relations: [] }];
         if (text.includes('→')) return [questionDemonstration(text, locale, catalog)
             || { kind: 'unknown', span: text, relations: [] }];
         // Raw input is kept separately. Only the parser uses normalized text.
@@ -407,10 +427,14 @@
     function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
-        const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question' : frame.kind) && entry.scope.locale === locale
+        const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question'
+            : frame.kind === 'proposal_demonstration' ? frame.proposalKind : frame.kind) && entry.scope.locale === locale
             && entry.scope.speaker === speaker && (entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
-                : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
+                : ['request', 'invitation'].includes(entry.id)
+                    ? entry.scope.form === frame.form && frame.meaning === 'rest'
+                        && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
+                    : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
         const missingRelations = required.filter(id => !state.knowledge.relations.some(entry => entry.id === id
             && (entry.source !== 'experienced_relation' || applies(entry))));
         unresolved.push(...missingRelations.map(id => ({ type: 'relation', id })));
@@ -449,6 +473,8 @@
             && required.includes(entry.id) && !missingRelations.includes(entry.id)
             && applies(entry));
         if (relationReferences.length) result.relationReferences = clone(relationReferences);
+        if (relationReady && frame.roles) result.roles = { ...clone(frame.roles), proposer: speaker,
+            actors: frame.roles.actors.map(actor => actor === 'player' ? speaker : actor) };
         return result;
     }
 
@@ -761,5 +787,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame });
 });

@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -58,14 +58,15 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
-        if (process.argv.includes('--relations') || process.argv.includes('--questions')) {
+        if (process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals')) {
             const questions = process.argv.includes('--questions');
+            const proposals = process.argv.includes('--proposals');
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             const resume = async () => {
                 await window.loadURL(url); await paintClock(); await sleep(600);
                 await js('document.querySelector("#app > form").requestSubmit()'); await sleep(150);
             };
-            for (const [index, activity] of ['eat', 'rest'].entries()) {
+            for (const [index, activity] of (proposals ? ['rest', 'rest'] : ['eat', 'rest']).entries()) {
                 nextLoad = structuredClone(snapshot);
                 nextLoad.state.settings.foundation = false;
                 if (index === 0) nextLoad.state.knowledge.relations = [];
@@ -75,7 +76,8 @@ if (!process.versions.electron || process.type !== 'browser') {
                     mealTaste: activity === 'eat' ? { quality: 'sweet', pleasant: true } : null });
                 await resume();
                 assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
-                await chat(questions ? `「何してる？」→「${index === 0 ? '食べる' : '休む'}」`
+                await chat(proposals ? index === 0 ? '【お願い】「休んでね」' : '【誘い】「一緒に休もう」'
+                    : questions ? `「何してる？」→「${index === 0 ? '食べる' : '休む'}」`
                     : index === 0 ? 'もぐは食べることだよ' : 'ぽぽは休むことだよ');
                 assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
                 assert.equal(snapshot.world.relationLabels.length, 1);
@@ -85,12 +87,19 @@ if (!process.versions.electron || process.type !== 'browser') {
                 await sleep(4500);
                 await chat('こんにちは'); // Flush the completed single-tick experience to the store.
                 assert.equal(snapshot.state.knowledge.relationEvidence.length, index + 1);
-                assert.equal(snapshot.state.knowledge.relations.length, index);
+                assert.equal(snapshot.state.knowledge.relations.length, proposals ? index * 2 : index);
             }
             const origins = JSON.stringify(snapshot.state.experiences);
-            await chat(questions ? '何してる？' : 'ぽぽは休むことだよ');
+            await chat(proposals ? '休んでね' : questions ? '何してる？' : 'ぽぽは休むことだよ');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, true);
-            if (questions) {
+            if (proposals) {
+                assert.deepEqual(snapshot.state.context.turns.at(-1).understandings[0].roles.actors, ['self']);
+                await chat('一緒に休もう');
+                const u = snapshot.state.context.turns.at(-1).understandings[0];
+                assert.equal(u.complete, true); assert.deepEqual(u.roles.actors, ['player', 'self']);
+                assert.equal(u.roles.actualParticipation, false);
+                assert.equal(snapshot.state.knowledge.wordExplanations, undefined);
+            } else if (questions) {
                 assert.equal(snapshot.state.knowledge.wordExplanations, undefined);
                 assert.equal(snapshot.state.context.turns.at(-1).answer.source.questionSlot, 'current_activity');
                 assert.equal(snapshot.state.knowledge.relations[0].id, 'question');
@@ -99,20 +108,21 @@ if (!process.versions.electron || process.type !== 'browser') {
             await chat('休めた？');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
             await js('document.querySelector("button[aria-controls=notebook]").click()');
-            assert.ok(await js(`document.querySelector("#notebook").textContent.includes(${JSON.stringify(questions
-                ? '同じ相手・言語・問いに限る' : '同じ相手・言語の短い説明で使える')})`));
+            assert.ok(await js(`document.querySelector("#notebook").textContent.includes(${JSON.stringify(proposals
+                ? '共同体験の記録ではない' : questions ? '同じ相手・言語・問いに限る' : '同じ相手・言語の短い説明で使える')})`));
             window.setSize(1281, 800); await sleep(500);
-            const screenshot = path.resolve(__dirname, questions ? '../../tests/word-questions-smoke.png' : '../../tests/word-relations-smoke.png');
+            const screenshot = path.resolve(__dirname, proposals ? '../../tests/word-proposals-smoke.png'
+                : questions ? '../../tests/word-questions-smoke.png' : '../../tests/word-relations-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
             const knowledge = JSON.stringify(snapshot.state.knowledge);
             await resume();
             assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);
             assert.equal(JSON.stringify(snapshot.state.experiences), origins);
-            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'eat').length, 1);
-            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, 1);
+            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'eat').length, proposals ? 0 : 1);
+            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, proposals ? 2 : 1);
             assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
             assert.deepEqual(failures, []);
-            console.log(JSON.stringify({ ok: true, relations: true, questions, initial, screenshot, profile: directory }));
+            console.log(JSON.stringify({ ok: true, relations: true, questions, proposals, initial, screenshot, profile: directory }));
             return;
         }
         if (process.argv.includes('--life')) {

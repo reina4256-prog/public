@@ -1,4 +1,9 @@
 {
+  "示された役割と言葉を、今の休息と照らし合わせている。言葉に従ったことや、一緒に休んだことにはしない。": "Compara los roles y las palabras mostrados con este descanso. Esto no significa que haya obedecido ni descansado junto al jugador.",
+  "役割を示して教わった言葉：": "Palabras enseñadas con roles explícitos:",
+  "自分の休息と結び付けた教示。お願いと誘いの違いは、まだ確かめている途中。": "Un ejemplo vinculado al descanso propio. La diferencia entre una petición y una invitación sigue en estudio.",
+  "自分に休んでほしいお願いと、相手と一緒に休む誘いを区別できた。同じ相手・言語・確認した表現に限る。参加は提案であり、共同体験の記録ではない。": "Distingue una petición para que descanse de una invitación a descansar juntos. Solo para la misma persona, idioma y expresiones comprobadas. La participación es una propuesta, no un registro de una experiencia compartida.",
+  "休息中に【お願い】「休んでね」、別の休息中に【誘い】「一緒に休もう」で役割を教えられます。印は教示用の操作で、実際の声かけは引用内の文です。休む意味を知っている必要があります。": "Durante un descanso, enseña los roles con 【Petición】「Descansa, por favor」; durante otro, usa 【Invitación】「Vamos a descansar juntos」. Las marcas son controles de enseñanza; el texto entre comillas es la frase real. Debe conocer ya el significado de descansar.",
   "教わった問いと答えの例：": "Ejemplo de pregunta y respuesta:",
   "示された問いと答えの組を、今の動作と照らし合わせている。本人が答えたわけではない。": "Compara el ejemplo de pregunta y respuesta con su acción actual. No ha respondido por su cuenta.",
   "問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。": "Comprobó la acción al escuchar un ejemplo de pregunta y respuesta. Aún está descubriendo la función de la pregunta.",

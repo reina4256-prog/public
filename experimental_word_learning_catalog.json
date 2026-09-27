@@ -1,4 +1,13 @@
 {
+  "proposalTeaching": {
+    "ja": {"request": {"marker": "【お願い】", "utterance": "休んでね"}, "invitation": {"marker": "【誘い】", "utterance": "一緒に休もう"}},
+    "en": {"request": {"marker": "【Request】", "utterance": "Please rest"}, "invitation": {"marker": "【Invitation】", "utterance": "Let's rest together"}},
+    "zh-CN": {"request": {"marker": "【请求】", "utterance": "请休息吧"}, "invitation": {"marker": "【邀请】", "utterance": "一起休息吧"}},
+    "ru": {"request": {"marker": "【Просьба】", "utterance": "Отдохни, пожалуйста"}, "invitation": {"marker": "【Приглашение】", "utterance": "Давай отдохнём вместе"}},
+    "es-ES": {"request": {"marker": "【Petición】", "utterance": "Descansa, por favor"}, "invitation": {"marker": "【Invitación】", "utterance": "Vamos a descansar juntos"}},
+    "pt-BR": {"request": {"marker": "【Pedido】", "utterance": "Descanse, por favor"}, "invitation": {"marker": "【Convite】", "utterance": "Vamos descansar juntos"}},
+    "de": {"request": {"marker": "【Bitte】", "utterance": "Ruh dich bitte aus"}, "invitation": {"marker": "【Einladung】", "utterance": "Lass uns zusammen ausruhen"}}
+  },
   "contextAliases": {
     "rest": ["一息", "ひと息", "ひといき", "休んでいる", "休んでる", "休む", "休憩", "a break", "taking a break", "resting", "休息", "отдых", "отдыхаешь", "descanso", "descansando", "pausa", "ausruhen", "pause"],
     "relief": ["ほっとした", "ほっとする", "relieved", "松了一口气", "облегчение", "aliviado", "erleichtert"],

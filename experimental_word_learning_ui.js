@@ -39,6 +39,11 @@
         note_question_pairing: '問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。',
         note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
         question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
+        proposal_pairing: '示された役割と言葉を、今の休息と照らし合わせている。言葉に従ったことや、一緒に休んだことにはしない。',
+        note_proposal_demo: '役割を示して教わった言葉：',
+        note_proposal_pairing: '自分の休息と結び付けた教示。お願いと誘いの違いは、まだ確かめている途中。',
+        note_proposal_learned: '自分に休んでほしいお願いと、相手と一緒に休む誘いを区別できた。同じ相手・言語・確認した表現に限る。参加は提案であり、共同体験の記録ではない。',
+        proposal_demo_guide: '休息中に【お願い】「休んでね」、別の休息中に【誘い】「一緒に休もう」で役割を教えられます。印は教示用の操作で、実際の声かけは引用内の文です。休む意味を知っている必要があります。',
         title: 'ことばと、小さな暮らし',
         masterPlaces: '島で働く人たち', masterVisit: '会いに行くよう誘う', pointed_master: '働いている人の方を指さした。',
         master_explore: '冒険家', master_farming: '農家', master_fishing: '漁師',
@@ -358,6 +363,7 @@
     if (window.WordIslandMode) node('p', t('playGuideText'), guide);
     node('p', t('life_label_guide'), guide);
     node('p', t('question_demo_guide'), guide);
+    node('p', t('proposal_demo_guide'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

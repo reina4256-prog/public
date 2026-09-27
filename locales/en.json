@@ -1,4 +1,9 @@
 {
+  "示された役割と言葉を、今の休息と照らし合わせている。言葉に従ったことや、一緒に休んだことにはしない。": "Comparing the demonstrated roles and words with this rest. This does not mean the child obeyed or rested together with the player.",
+  "役割を示して教わった言葉：": "Words taught with explicit roles:",
+  "自分の休息と結び付けた教示。お願いと誘いの違いは、まだ確かめている途中。": "A teaching example linked to my own rest. The difference between a request and an invitation is still being explored.",
+  "自分に休んでほしいお願いと、相手と一緒に休む誘いを区別できた。同じ相手・言語・確認した表現に限る。参加は提案であり、共同体験の記録ではない。": "Distinguished a request for me to rest from an invitation to rest together. Limited to the same person, language and demonstrated expressions. Participation is proposed, not a record of a shared experience.",
+  "休息中に【お願い】「休んでね」、別の休息中に【誘い】「一緒に休もう」で役割を教えられます。印は教示用の操作で、実際の声かけは引用内の文です。休む意味を知っている必要があります。": "During one rest, teach roles with 【Request】「Please rest」; during another, use 【Invitation】「Let's rest together」. The markers are teaching controls; the quoted text is the actual phrase. The meaning of rest must already be known.",
   "教わった問いと答えの例：": "A demonstrated question and answer:",
   "示された問いと答えの組を、今の動作と照らし合わせている。本人が答えたわけではない。": "They are comparing the demonstrated question and answer with their current action. They have not answered it themselves.",
   "問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。": "Checked the action while hearing an example question and answer. Still exploring what the question does.",
