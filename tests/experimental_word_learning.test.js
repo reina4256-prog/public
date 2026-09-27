@@ -80,6 +80,145 @@ function prepareNegation(state, world, locale = 'ja') {
         startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo(locale, subject), { locale }); finishLife(state, world);
     }
 }
+const timeDemo = (locale, time) => {
+    const item = catalog.timeTeaching[locale][time]; return `${item.marker}「${item.utterance}」`;
+};
+test('3c2: one original rest changes from present to past across eight starts and seven languages', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.timeTeaching)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            prepareNegation(state, world, locale);
+            const meanings = JSON.stringify(state.knowledge.meanings), count = state.records.length;
+            for (const time of ['now', 'past']) {
+                startRelationActivity(state, world, 'rest');
+                const result = labelLife(state, world, timeDemo(locale, time), { locale, at: 1000 + state.serial });
+                assert.equal(result.interpretations[0].kind, 'time_demonstration');
+                assert.equal(result.understandings[0].complete, foundation);
+                assert.equal(state.records.length, count, 'demonstration is not testimony');
+                if (!foundation) {
+                    const label = result.relationLearning.adopted;
+                    assert.equal(label.eventTime, time); assert.equal(label.understanding.eventTime, 'unspecified');
+                    if (time === 'past') {
+                        assert.ok(label.eventReference.end <= label.start);
+                        assert.notEqual(label.heardAt, label.eventReference.end);
+                        assert.equal(label.eventReference.experienceId, state.knowledge.relationEvidence.find(e => e.relation === 'time').experienceId);
+                    }
+                }
+                const saved = structuredClone({ version: 1, appearance: 'robot', state, world });
+                assert.ok(valid(saved), `${locale} ${time} pending`); ({ state, world } = saved);
+                finishLife(state, world); assert.ok(valid({ ...saved, state, world }));
+                if (!foundation) assert.equal(state.knowledge.relations.filter(r => r.id === 'time').length, time === 'now' ? 0 : 2);
+            }
+            const knowledge = JSON.stringify(state.knowledge), experiences = JSON.stringify(state.experiences);
+            world.mode = 'observe'; world.destination = null;
+            const body = JSON.stringify([world.hunger, world.fatigue, world.interests, world.experiences]);
+            for (const time of ['now', 'past']) {
+                const result = say(state, catalog.timeTeaching[locale][time].utterance, { locale, at: 9000 }), u = result.understandings[0];
+                assert.equal(u.complete, true); assert.equal(u.subject, 'self'); assert.equal(u.eventTime, time);
+                assert.equal(u.roles.verified, false); assert.equal(u.reportSource.heardAt, 9000);
+                assert.equal(result.reaction.action, null);
+                const response = worldApi.respond(world, result, state);
+                assert.equal(response.message, speech === 'gesture' ? 'attend' : time === 'past' ? 'heard_report_past' : 'heard_report_self');
+                assert.equal(state.records.at(-1).source, 'speaker_report');
+                if (!foundation) assert.deepEqual(u.relationReferences.map(r => r.id).sort(), ['report', 'time']);
+            }
+            assert.equal(JSON.stringify([world.hunger, world.fatigue, world.interests, world.experiences]), body);
+            assert.equal(world.destination, null);
+            relationLearning.learn(state); notebookApi.entries(state);
+            assert.equal(JSON.stringify(state.knowledge), knowledge); assert.equal(JSON.stringify(state.experiences), experiences);
+            assert.equal(JSON.stringify(state.knowledge.meanings), meanings);
+            if (!foundation) assert.ok(notebookApi.entries(state).some(e => e.detail === 'note_time_learned'));
+            assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world })));
+        }
+    }
+});
+test('3c2: time scope does not erase negation, subjects, speakers, extra clauses or missing relations', () => {
+    for (const locale of Object.keys(catalog.timeTeaching)) {
+        const state = create({ foundation: false }), world = worldApi.create(); prepareNegation(state, world, locale);
+        for (const time of ['now', 'past']) {
+            startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo(locale, time), { locale }); finishLife(state, world);
+        }
+        for (const time of ['now', 'past']) {
+            const forms = catalog.timeTeaching[locale][time];
+            for (const text of [forms.player, forms.negative, forms.playerNegative]) {
+                const u = say(state, text, { locale }).understandings[0];
+                assert.equal(u.complete, false); assert.equal(u.eventTime, 'unspecified');
+                assert.ok(u.unresolved.some(e => e.id === 'time'));
+                if (text !== forms.player) { assert.equal(u.polarity, 'unknown'); assert.ok(u.unresolved.some(e => e.id === 'negation')); }
+            }
+            for (const text of [forms.utterance + '?', forms.utterance + ' xyz']) assert.equal(say(state, text, { locale }).understandings[0].complete, false);
+            assert.equal(say(state, forms.utterance, { locale, speaker: 'friend' }).understandings[0].complete, false);
+        }
+        for (const [activity, polarity] of [['rest', 'positive'], ['eat', 'negative']]) {
+            startRelationActivity(state, world, activity); labelLife(state, world, negationDemo(locale, polarity), { locale }); finishLife(state, world);
+        }
+        const u = say(state, catalog.timeTeaching[locale].past.negative, { locale }).understandings[0];
+        assert.equal(u.complete, false); assert.equal(u.eventTime, 'unspecified'); assert.equal(u.polarity, 'unknown');
+        assert.deepEqual([...new Set(state.knowledge.relations.map(r => r.id))].sort(), ['negation', 'report', 'time']);
+    }
+});
+test('3c2: no past without retained present; repetition, ambiguity, wrong activity and interrupted teaching do not acquire time', () => {
+    const state = create({ foundation: false }), world = worldApi.create(); prepareNegation(state, world);
+    startRelationActivity(state, world, 'rest');
+    assert.equal(labelLife(state, world, timeDemo('ja', 'past')).relationLearning, undefined);
+    assert.equal(labelLife(state, world, timeDemo('ja', 'now'), { speaker: 'friend' }).relationLearning, undefined);
+    state.context.attention.push({ id: 'berry:1', meaning: 'berry' });
+    assert.equal(labelLife(state, world, timeDemo('ja', 'now')).relationLearning, undefined);
+    api.perceive(state, worldApi.perception(world));
+    labelLife(state, world, timeDemo('ja', 'now')); labelLife(state, world, timeDemo('ja', 'now'));
+    assert.equal(labelLife(state, world, timeDemo('ja', 'past')).relationLearning, undefined);
+    finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo('ja', 'now')); finishLife(state, world);
+    assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'time').length, 1);
+    startRelationActivity(state, world, 'eat'); assert.equal(labelLife(state, world, timeDemo('ja', 'past')).relationLearning, undefined); finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo('ja', 'past'));
+    worldApi.approach(world, 'berry:1');
+    assert.equal(world.relationLabels.length, 0); assert.equal(state.knowledge.relations.some(r => r.id === 'time'), false);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo('ja', 'past')); finishLife(state, world);
+    assert.equal(state.knowledge.relations.filter(r => r.id === 'time').length, 2, 'repeated present did not replace the retained source');
+});
+test('3c2: missing meaning and report cannot be learned in the same completion; languages do not combine', () => {
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, '休む');
+    assert.equal(labelLife(state, world, timeDemo('ja', 'now')).relationLearning, undefined); finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo('ja', 'self')); finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, reportDemo('ja', 'player'));
+    assert.equal(labelLife(state, world, timeDemo('ja', 'now')).relationLearning, undefined); finishLife(state, world);
+    prepareNegation(state, world, 'en');
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo('ja', 'now')); finishLife(state, world);
+    startRelationActivity(state, world, 'rest'); assert.equal(labelLife(state, world, timeDemo('en', 'past'), { locale: 'en' }).relationLearning, undefined);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'time'), false);
+});
+test('3c2: save validation rejects altered time, original event, prerequisite, input and report source', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false }), world = worldApi.create(); prepareNegation(state, world);
+    for (const time of ['now', 'past']) { startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo('ja', time)); finishLife(state, world); }
+    say(state, catalog.timeTeaching.ja.past.utterance);
+    const saved = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(saved));
+    const change = (v, fn) => {
+        for (const e of [...v.state.experiences, ...v.world.experiences]) for (const l of e.relationLabels || []) if (l.relation === 'time' && l.eventTime === 'past') fn(l);
+    };
+    for (const mutate of [
+        v => change(v, l => { l.eventReference.end += 1; }),
+        v => change(v, l => { l.eventReference.experienceId = -1; }),
+        v => change(v, l => { l.eventReference.inputId = l.inputId; }),
+        v => change(v, l => { l.raw = timeDemo('ja', 'now'); }),
+        v => change(v, l => { l.understanding.eventTime = 'past'; }),
+        v => change(v, l => { l.reportBasis.scope.roles.contentSubject = 'player'; }),
+        v => change(v, l => { l.roles.contentSubject = 'player'; }),
+        v => { v.state.knowledge.relations.find(r => r.id === 'time').scope.eventTime = 'past'; },
+        v => { v.state.records.at(-1).understandings[0].eventTime = 'now'; },
+        v => { v.state.records.at(-1).understandings[0].reportSource.raw = catalog.timeTeaching.ja.now.utterance; },
+        v => { v.state.records.at(-1).understandings[0].reportSource.heardAt += 1; }
+    ]) { const bad = structuredClone(saved); mutate(bad); assert.equal(valid(bad), false, mutate.toString()); }
+    startRelationActivity(state, world, 'rest');
+    const clean = create({ foundation: false }), other = worldApi.create(); prepareNegation(clean, other);
+    startRelationActivity(clean, other, 'rest'); labelLife(clean, other, timeDemo('ja', 'now'));
+    const pending = { version: 1, appearance: 'robot', state: clean, world: other }; assert.ok(valid(pending));
+    pending.world.relationLabels[0].eventReference.start += 1; assert.equal(valid(pending), false);
+});
+
 test('3c1: predicate polarity contrast across eight starts and seven languages retains sources and save boundaries', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
@@ -377,13 +516,18 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
                 finishLife(state, world);
             }
             assert.equal(say(state, catalog.negationTeaching[locale].negative.utterance, { locale }).understandings[0].complete, true);
+            for (const time of ['now', 'past']) {
+                startRelationActivity(state, world, 'rest'); labelLife(state, world, timeDemo(locale, time), { locale });
+                assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world }))); finishLife(state, world);
+            }
+            assert.equal(say(state, catalog.timeTeaching[locale].past.utterance, { locale }).understandings[0].eventTime, 'past');
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
             }
             const value = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(structuredClone(value)));
             if (foundation) continue;
-            const last = state.experiences.length - 3;
+            const last = state.experiences.findIndex(e => e.relationLabels?.some(l => l.relation === 'report' && l.roles.contentSubject === 'player'));
             for (const mutate of [
                 v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.roles.verified = true; },
                 v => { v.state.knowledge.relations.find(r => r.id === 'report').scope.form = 'other'; },

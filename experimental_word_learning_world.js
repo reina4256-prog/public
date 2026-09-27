@@ -233,7 +233,7 @@
 
     function respond(world, result, state) {
         if (relationLearning.offer(world, state, result)) {
-            const response = { message: result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
+            const response = { message: result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
                 ? 'question_pairing' : ['request', 'invitation'].includes(result.relationLearning.adopted.relation)
                     ? 'proposal_pairing' : result.relationLearning.adopted.relation === 'report'
                         ? 'report_pairing' : 'relation_pairing', observation: true };
@@ -291,6 +291,7 @@
         world.reaction = !u.complete ? 'uncertain' : 'attend';
         if (result.reaction.intent === 'receive_sadness') world.reaction = 'care';
         if (u.kind === 'report' && u.complete && u.aspect === 'activity_report') {
+            if (u.eventTime === 'past') return { message: canSpeak ? 'heard_report_past' : 'attend' };
             return { message: canSpeak ? (u.polarity === 'negative' ? 'heard_report_not_resting'
                 : u.subject === 'self' ? 'heard_report_self' : 'heard_report_player') : 'attend' };
         }

@@ -39,6 +39,12 @@
         note_question_pairing: '問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。',
         note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
         question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
+        time_pairing: '休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。',
+        note_time_demo: '現在と過去を教わった言葉：',
+        note_time_pairing: '教示を元の休息に対応付けた。現在と過去の違いは、まだ確かめている途中。',
+        note_time_learned: '同じ休息の現在と過去を区別できた。同じ相手・言語・自分についての肯定二表現に限る。相手の経験や否定文へは広げない。',
+        heard_report_past: 'さっきの休息についての話なんだね。',
+        time_help: '報告の主体と休む意味を知ったあと、休息中に【時点・現在】「あなたはいま休んでいる」と教え、後の休息中に最初に教えた休息を指して【時点・過去】「あなたはさっき休んでいた」と教えられます。両方の休息完了後に二表現を照合します。',
         negation_pairing: '休んでいる場面と休んでいない場面を、同じ休むという意味に照らして確かめている。',
         note_negation_demo: '肯定と否定を対照して教わった言葉：',
         note_negation_pairing: '自分の活動と教示を対応付けた。休むことの肯定と否定の違いは、まだ確かめている途中。',
@@ -379,6 +385,7 @@
     node('p', t('proposal_demo_guide'), guide);
     node('p', t('report_demo_guide'), guide);
     node('p', t('negation_help'), guide);
+    node('p', t('time_help'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

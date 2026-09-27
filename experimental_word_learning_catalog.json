@@ -1,4 +1,118 @@
 {
+  "timeTeaching": {
+  "ja": {
+    "now": {
+      "marker": "【時点・現在】",
+      "utterance": "あなたはいま休んでいる",
+      "negative": "あなたはいま休んでいない",
+      "player": "私はいま休んでいる",
+      "playerNegative": "私はいま休んでいない"
+    },
+    "past": {
+      "marker": "【時点・過去】",
+      "utterance": "あなたはさっき休んでいた",
+      "negative": "あなたはさっき休んでいなかった",
+      "player": "私はさっき休んでいた",
+      "playerNegative": "私はさっき休んでいなかった"
+    }
+  },
+  "en": {
+    "now": {
+      "marker": "【Time: now】",
+      "utterance": "You are resting now",
+      "negative": "You are not resting now",
+      "player": "I am resting now",
+      "playerNegative": "I am not resting now"
+    },
+    "past": {
+      "marker": "【Time: past】",
+      "utterance": "You were resting earlier",
+      "negative": "You were not resting earlier",
+      "player": "I was resting earlier",
+      "playerNegative": "I was not resting earlier"
+    }
+  },
+  "zh-CN": {
+    "now": {
+      "marker": "【时间·现在】",
+      "utterance": "你现在在休息",
+      "negative": "你现在没有在休息",
+      "player": "我现在在休息",
+      "playerNegative": "我现在没有在休息"
+    },
+    "past": {
+      "marker": "【时间·过去】",
+      "utterance": "你刚才在休息",
+      "negative": "你刚才没有在休息",
+      "player": "我刚才在休息",
+      "playerNegative": "我刚才没有在休息"
+    }
+  },
+  "ru": {
+    "now": {
+      "marker": "【Время: сейчас】",
+      "utterance": "Ты сейчас отдыхаешь",
+      "negative": "Ты сейчас не отдыхаешь",
+      "player": "Я сейчас отдыхаю",
+      "playerNegative": "Я сейчас не отдыхаю"
+    },
+    "past": {
+      "marker": "【Время: раньше】",
+      "utterance": "Ты недавно отдыхал",
+      "negative": "Ты недавно не отдыхал",
+      "player": "Я недавно отдыхал",
+      "playerNegative": "Я недавно не отдыхал"
+    }
+  },
+  "es-ES": {
+    "now": {
+      "marker": "【Tiempo: ahora】",
+      "utterance": "Tú estás descansando ahora",
+      "negative": "Tú no estás descansando ahora",
+      "player": "Yo estoy descansando ahora",
+      "playerNegative": "Yo no estoy descansando ahora"
+    },
+    "past": {
+      "marker": "【Tiempo: antes】",
+      "utterance": "Tú estabas descansando antes",
+      "negative": "Tú no estabas descansando antes",
+      "player": "Yo estaba descansando antes",
+      "playerNegative": "Yo no estaba descansando antes"
+    }
+  },
+  "pt-BR": {
+    "now": {
+      "marker": "【Tempo: agora】",
+      "utterance": "Você está descansando agora",
+      "negative": "Você não está descansando agora",
+      "player": "Eu estou descansando agora",
+      "playerNegative": "Eu não estou descansando agora"
+    },
+    "past": {
+      "marker": "【Tempo: antes】",
+      "utterance": "Você estava descansando antes",
+      "negative": "Você não estava descansando antes",
+      "player": "Eu estava descansando antes",
+      "playerNegative": "Eu não estava descansando antes"
+    }
+  },
+  "de": {
+    "now": {
+      "marker": "【Zeit: jetzt】",
+      "utterance": "Du ruhst dich jetzt aus",
+      "negative": "Du ruhst dich jetzt nicht aus",
+      "player": "Ich ruhe mich jetzt aus",
+      "playerNegative": "Ich ruhe mich jetzt nicht aus"
+    },
+    "past": {
+      "marker": "【Zeit: vorher】",
+      "utterance": "Du hast dich vorhin ausgeruht",
+      "negative": "Du hast dich vorhin nicht ausgeruht",
+      "player": "Ich habe mich vorhin ausgeruht",
+      "playerNegative": "Ich habe mich vorhin nicht ausgeruht"
+    }
+  }
+},
   "negationTeaching": {
     "ja": {"positive":{"marker":"【否定対照・肯定】"},"negative":{"marker":"【否定対照・否定】","utterance":"あなたは休んでいない"}},
     "en": {"positive":{"marker":"【Negation contrast: positive】"},"negative":{"marker":"【Negation contrast: negative】","utterance":"You are not resting"}},

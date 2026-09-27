@@ -22,7 +22,7 @@
                     .some(event => event.id === e.experienceId && event.end <= at));
     }
     function validLabel(label, state, catalog) {
-        if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation'].includes(label.relation) || label.speaker !== 'player'
+        if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation', 'time'].includes(label.relation) || label.speaker !== 'player'
             || !locales.includes(label.locale) || !/^input:[1-9]\d*$/.test(label.inputId)
             || Number(label.inputId.slice(6)) > state.serial || !Number.isFinite(label.heardAt)
             || !Number.isFinite(label.at) || !Number.isFinite(label.start) || label.at < label.start
@@ -32,7 +32,39 @@
             || label.understanding.known?.meaning !== label.meaning
             || !equal(label.understanding.unresolved, [{ type: 'relation', id: label.relation }])) return false;
         if (label.basis?.id !== label.meaning) return false;
-        if (label.relation === 'negation') {
+        if (label.relation === 'time') {
+            if (label.meaning !== 'rest' || label.activity !== 'rest' || !['now', 'past'].includes(label.eventTime)
+                || label.understanding.eventTime !== 'unspecified' || label.understanding.polarity !== 'positive'
+                || !equal(label.understanding.relations, ['report'])
+                || !equal(label.roles, { reporter: 'player', contentSubject: 'self', status: 'reported', verified: false })
+                || !label.reportBasis || label.reportBasis.id !== 'report'
+                || !state.knowledge.relations.some(r => equal(r, label.reportBasis))
+                || (label.reportBasis.source !== 'initial' && (label.reportBasis.scope?.form !== label.reportForm
+                    || label.reportBasis.scope?.kind !== 'report' || label.reportBasis.scope?.meaning !== 'rest'
+                    || label.reportBasis.scope?.locale !== label.locale || label.reportBasis.scope?.speaker !== label.speaker
+                    || !equal(label.reportBasis.scope?.roles, label.roles)
+                    || !label.reportBasis.evidence.every(id => state.experiences.some(e => e.end <= label.start
+                        && e.relationLabels?.some(l => l.inputId === id)))))) return false;
+            if (label.eventTime === 'now') {
+                if (!equal(label.eventReference, { experienceId: null, inputId: label.inputId, start: label.start, end: null })) return false;
+            } else {
+                const ref = label.eventReference;
+                const event = state.experiences.find(e => e.id === ref?.experienceId);
+                const original = event?.relationLabels?.find(l => l.inputId === ref.inputId);
+                if (!event || event.kind !== 'experience' || event.activity !== 'rest' || event.target !== 'shade'
+                    || event.start !== ref.start || event.end !== ref.end || event.end > label.start
+                    || original?.relation !== 'time' || original.eventTime !== 'now'
+                    || original.locale !== label.locale || original.speaker !== label.speaker
+                    || Number(original.inputId.slice(6)) >= Number(label.inputId.slice(6))
+                    || !equal(original.reportBasis, label.reportBasis)) return false;
+            }
+            if (catalog) {
+                const frame = core.timeFrame(label.raw, label.locale, catalog);
+                if (frame?.kind !== 'time_demonstration' || frame.form !== label.form || frame.time !== label.eventTime
+                    || frame.reportForm !== label.reportForm || frame.utterance !== label.utterance
+                    || !equal(frame.roles, label.roles)) return false;
+            }
+        } else if (label.relation === 'negation') {
             if (label.meaning !== 'rest' || !['positive', 'negative'].includes(label.polarity)
                 || label.understanding.polarity !== 'unknown' || !equal(label.understanding.relations, ['report'])
                 || label.activity !== (label.polarity === 'positive' ? 'rest' : 'eat')
@@ -94,12 +126,12 @@
     }
     function offer(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
-        const relation = frame.kind === 'negation_demonstration' ? 'negation'
+        const relation = frame.kind === 'time_demonstration' ? 'time' : frame.kind === 'negation_demonstration' ? 'negation'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
             : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'report_demonstration' ? 'report' : 'naming';
         if (result.interpretations.length !== 1 || result.input.speaker !== 'player'
-            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration', 'negation_demonstration'].includes(frame.kind)
+            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration', 'negation_demonstration', 'time_demonstration'].includes(frame.kind)
             || (relation === 'negation' ? world.mode !== (frame.polarity === 'positive' ? 'rest' : 'eat') : u.known.meaning !== world.mode)
             || !u.unresolved.some(item => item.type === 'relation' && item.id === relation)
             || u.unresolved.some(item => item.type !== 'relation' || item.id !== relation)
@@ -111,10 +143,27 @@
         if (relation === 'question' && state.knowledge.relations.some(r => r.id === 'question'
             && r.scope?.locale === result.input.locale && r.scope?.form === frame.form)) return false;
         const basis = state.knowledge.meanings.find(m => m.id === u.known.meaning);
+        // The past teaching explicitly revisits the retained labelled rest, which
+        // must have been labelled while it was present. Another rest provides
+        // the teaching occasion, never the past event or a repetition bonus.
+        const retained = state.knowledge.relationEvidence.find(e => e.relation === 'time' && e.eventTime === 'now'
+            && e.locale === result.input.locale && e.speaker === result.input.speaker);
+        const previous = relation === 'time' && frame.time === 'past'
+            ? state.experiences.find(e => e.id === retained?.experienceId && e.end <= world.activityStart) : null;
+        const original = previous?.relationLabels?.find(l => l.relation === 'time' && l.eventTime === 'now'
+            && l.locale === result.input.locale && l.speaker === result.input.speaker);
+        if (relation === 'time' && frame.time === 'past' && !original) return false;
         const label = { relation, inputId: result.input.id, raw: result.input.raw,
             locale: result.input.locale, speaker: result.input.speaker, heardAt: result.input.at,
             at: world.elapsed, start: world.activityStart, activity: world.mode, target: world.attention,
             subject: 'self', scene: result.input.scene, ...(relation === 'naming' ? { word: frame.word }
+                : relation === 'time' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles),
+                    eventTime: frame.time, reportForm: frame.reportForm,
+                    eventReference: previous ? { experienceId: previous.id, inputId: original.inputId, start: previous.start, end: previous.end }
+                        : { experienceId: null, inputId: result.input.id, start: world.activityStart, end: null },
+                    reportBasis: copy(state.knowledge.relations.find(r => r.id === 'report' && (r.source === 'initial'
+                        || r.scope?.form === frame.reportForm && r.scope.locale === result.input.locale
+                            && r.scope.speaker === result.input.speaker)) || null) }
                 : relation === 'negation' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles),
                     polarity: frame.polarity, reportForm: frame.reportForm,
                     observationBasis: copy(state.knowledge.meanings.find(m => m.id === world.mode) || null),
@@ -153,6 +202,8 @@
                 && event.end >= l.at && Number.isFinite(event.end))
             .map(l => ({ relation: l.relation, experienceId: event.id, inputId: l.inputId,
                 locale: l.locale, speaker: l.speaker, ...(l.relation === 'naming' ? { word: l.word }
+                    : l.relation === 'time' ? { form: l.form, roles: copy(l.roles), eventTime: l.eventTime,
+                        reportForm: l.reportForm, eventReference: copy(l.eventReference) }
                     : l.relation === 'negation' ? { form: l.form, roles: copy(l.roles), polarity: l.polarity, reportForm: l.reportForm }
                     : isProposal(l.relation) || l.relation === 'report' ? { form: l.form, roles: copy(l.roles) }
                     : { form: l.form, slot: l.slot }), meaning: l.meaning })));
@@ -160,6 +211,14 @@
     function acquired(evidence) {
         const pairs = [];
         for (const locale of locales) {
+            const present = evidence.find(e => e.relation === 'time' && e.locale === locale && e.eventTime === 'now');
+            const past = evidence.find(e => e.relation === 'time' && e.locale === locale && e.eventTime === 'past'
+                && present && e.eventReference.inputId === present.inputId && e.eventReference.experienceId === present.experienceId
+                && e.experienceId !== present.experienceId);
+            if (present && past) for (const item of [present, past]) pairs.push({ id: 'time', source: 'experienced_relation',
+                scope: { kind: 'report', locale, speaker: 'player', meaning: 'rest', form: item.form,
+                    roles: copy(item.roles), polarity: 'positive', reportForm: item.reportForm, eventTime: item.eventTime },
+                evidence: [present.inputId, past.inputId] });
             // Negation contrasts the same predicate being present and absent.
             // Eating only witnesses absence of rest during this bounded activity;
             // it is not the meaning of "not resting" or evidence of a desire.
@@ -235,9 +294,9 @@
                     || (record.heardAt !== undefined && record.heardAt !== source.heardAt)
                     || !equal(u.roles, { reporter: record.speaker, contentSubject: u.subject, status: 'reported', verified: false })) return false;
                 if (catalog) {
-                    const frame = core.negationFrame(source.raw, source.locale, catalog) || core.reportFrame(source.raw, source.locale, catalog);
+                    const frame = core.timeFrame(source.raw, source.locale, catalog) || core.negationFrame(source.raw, source.locale, catalog) || core.reportFrame(source.raw, source.locale, catalog);
                     if (frame?.kind !== 'report' || (frame.subject === 'player' ? record.speaker : frame.subject) !== u.subject
-                        || u.polarity !== (frame.polarity || 'positive') || u.eventTime !== 'unspecified') return false;
+                        || u.polarity !== (frame.polarity || 'positive') || u.eventTime !== (frame.time || 'unspecified')) return false;
                 }
             }
         }
@@ -249,7 +308,7 @@
             ...(state.experiences || []).flatMap(e => Array.isArray(e.relationLabels) ? e.relationLabels : [])];
         if (new Set(allLabels.map(l => l?.inputId)).size !== allLabels.length) return false;
         if (world.relationLabels !== undefined && (!Array.isArray(world.relationLabels)
-            || world.relationLabels.length > 5 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
+            || world.relationLabels.length > 6 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
             || new Set(world.relationLabels.map(l => l?.relation)).size !== world.relationLabels.length
             || !world.relationLabels.every(l => validLabel(l, state, catalog)
                 && l.at <= world.elapsed && l.start === world.activityStart
@@ -257,7 +316,7 @@
         for (const event of state.experiences || []) {
             if (event.relationLabels === undefined) continue;
             const originals = world.experiences.filter(e => e.id === event.id);
-            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 5
+            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 6
                 || event.relationLabels.filter(l => isProposal(l?.relation)).length > 1
                 || new Set(event.relationLabels.map(l => l?.relation)).size !== event.relationLabels.length
                 || originals.length !== 1 || !equal(originals[0].relationLabels, event.relationLabels)

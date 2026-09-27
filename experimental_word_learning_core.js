@@ -221,7 +221,28 @@
         return null;
     }
 
+    function timeFrame(text, locale, catalog) {
+        const forms = catalog.timeTeaching?.[locale];
+        if (!forms) return null;
+        const key = value => value.normalize('NFKC').trim().toLocaleLowerCase();
+        for (const time of ['now', 'past']) for (const subject of ['self', 'player']) for (const polarity of ['positive', 'negative']) {
+            const item = forms[time];
+            const utterance = item[subject === 'self' ? polarity === 'positive' ? 'utterance' : 'negative'
+                : polarity === 'positive' ? 'player' : 'playerNegative'];
+            const demo = subject === 'self' && polarity === 'positive' && text.trim() === `${item.marker}「${utterance}」`;
+            if (!demo && key(text) !== key(utterance)) continue;
+            return { kind: demo ? 'time_demonstration' : 'report', subject, meaning: 'rest', time, polarity,
+                aspect: 'activity_report', relations: ['report', 'time', ...(polarity === 'negative' ? ['negation'] : [])],
+                roles: { reporter: 'player', contentSubject: subject, status: 'reported', verified: false },
+                reportForm: key(catalog.reportTeaching[locale][subject].utterance),
+                form: key(utterance), utterance, span: text };
+        }
+        return null;
+    }
+
     function interpret(text, locale, catalog) {
+        const temporal = timeFrame(text, locale, catalog);
+        if (temporal) return [temporal];
         const negation = negationFrame(text, locale, catalog);
         if (negation) return [negation];
         const report = reportFrame(text, locale, catalog);
@@ -466,9 +487,13 @@
         const required = [...(frame.relations || [])];
         const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
-            : ['report_demonstration', 'negation_demonstration'].includes(frame.kind) ? 'report' : frame.kind) && entry.scope.locale === locale
+            : ['report_demonstration', 'negation_demonstration', 'time_demonstration'].includes(frame.kind) ? 'report' : frame.kind) && entry.scope.locale === locale
             && entry.scope.speaker === speaker && (entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
+                : entry.id === 'time'
+                    ? entry.scope.form === frame.form && entry.scope.eventTime === frame.time
+                        && entry.scope.polarity === frame.polarity && entry.scope.reportForm === frame.reportForm
+                        && frame.meaning === 'rest' && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                 : entry.id === 'negation'
                     ? entry.scope.form === frame.form && entry.scope.polarity === frame.polarity
                         && entry.scope.reportForm === frame.reportForm && frame.meaning === 'rest'
@@ -506,7 +531,7 @@
             // Scope is only attached when the corresponding relation is understood.
             subject: relationReady ? (frame.subject || (frame.kind === 'question' ? 'self' : speaker)) : null,
             polarity: required.includes('negation') && missingRelations.includes('negation') ? 'unknown' : (frame.polarity || 'positive'),
-            eventTime: frame.time && understands(state, 'relations', 'time') ? frame.time : 'unspecified',
+            eventTime: frame.time && required.includes('time') && !missingRelations.includes('time') ? frame.time : 'unspecified',
             aspect: relationReady ? (frame.aspect || null) : null,
             conditionStatus: frame.conditionMeaning ? 'unknown' : null,
             questionSlot: relationReady && frame.kind === 'question' ? frame.slot : null
@@ -836,5 +861,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame });
 });
