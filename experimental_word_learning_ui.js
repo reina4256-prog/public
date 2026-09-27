@@ -40,6 +40,13 @@
         note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
         question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
         time_pairing: '休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。',
+        sequence_pairing: '食事中の言葉を覚えて、同じ食事の完了後へのお願いかどうか確かめている。',
+        sequence_learned: '同じ食事の前後を照合し、食べ終えた後への休息のお願いだと分かった。',
+        sequence_understood: '食べ終えた後に休んでほしいんだね。いつ休むかは、また自分で考えるね。',
+        note_sequence_demo: '食事の前後とお願いを教わった言葉：',
+        note_sequence_pairing: '未完了の食事と教示を対応付けた。同じ食事が完了した後の教示を、まだ照合している。',
+        note_sequence_learned: '同じ食事の未完了と完了を照合し、食後への休息のお願いだと分かった。同じ相手・言語・表現に限る。実行や予約とは別。',
+        sequence_help: '食べる・休む・お願いを知ったあと、食事中に【順序・未完了】「あなたが食べ終わったら、休んでね」、その食事の完了後、次の食事が始まる前に【順序・完了】「あなたが食べ終わったら、休んでね」と教えられます。印は同じ食事を指す教示操作で、休息の実行や予約にはしません。',
         condition_pairing: '疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。',
         note_condition_demo: '条件と適用先を教わった言葉：',
         note_condition_pairing: '休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。',
@@ -395,6 +402,7 @@
     node('p', t('negation_help'), guide);
     node('p', t('time_help'), guide);
     node('p', t('condition_help'), guide);
+    node('p', t('sequence_help'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

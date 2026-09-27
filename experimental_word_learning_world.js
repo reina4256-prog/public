@@ -232,6 +232,12 @@
     }
 
     function respond(world, result, state) {
+        if (result.interpretations.length === 1 && result.interpretations[0].kind === 'sequential_proposal'
+            && result.understandings[0].complete) {
+            const response = { message: state.settings.speech === 'short' ? 'sequence_understood' : 'attend' };
+            rememberOutput(world, state, response, result.input);
+            return response;
+        }
         const judgment = relationLearning.conditionJudgment(world, state, result);
         if (judgment) {
             const response = { message: state.settings.speech === 'short' ? `condition_${judgment.status}` : 'attend' };
@@ -239,7 +245,9 @@
             return response;
         }
         if (relationLearning.offer(world, state, result)) {
-            const response = { message: result.relationLearning.adopted.relation === 'condition' ? 'condition_pairing' : result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
+            const response = { message: result.relationLearning.adopted.relation === 'sequence'
+                ? result.relationLearning.relationAcquired ? 'sequence_learned' : 'sequence_pairing'
+                : result.relationLearning.adopted.relation === 'condition' ? 'condition_pairing' : result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
                 ? 'question_pairing' : ['request', 'invitation'].includes(result.relationLearning.adopted.relation)
                     ? 'proposal_pairing' : result.relationLearning.adopted.relation === 'report'
                         ? 'report_pairing' : 'relation_pairing', observation: true };

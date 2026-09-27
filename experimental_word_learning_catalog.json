@@ -1,4 +1,13 @@
 {
+  "sequenceTeaching": {
+    "ja": { "before": "【順序・未完了】", "after": "【順序・完了】", "utterance": "あなたが食べ終わったら、休んでね" },
+    "en": { "before": "【Sequence: unfinished】", "after": "【Sequence: finished】", "utterance": "After you finish eating, please rest" },
+    "zh-CN": { "before": "【顺序·未完成】", "after": "【顺序·已完成】", "utterance": "你吃完以后，请休息" },
+    "ru": { "before": "【Порядок: не завершено】", "after": "【Порядок: завершено】", "utterance": "После того как закончишь есть, пожалуйста, отдохни" },
+    "es-ES": { "before": "【Secuencia: sin terminar】", "after": "【Secuencia: terminada】", "utterance": "Después de que termines de comer, por favor descansa" },
+    "pt-BR": { "before": "【Sequência: não concluída】", "after": "【Sequência: concluída】", "utterance": "Depois que você terminar de comer, por favor descanse" },
+    "de": { "before": "【Reihenfolge: nicht beendet】", "after": "【Reihenfolge: beendet】", "utterance": "Nachdem du fertig gegessen hast, ruh dich bitte aus" }
+  },
   "conditionTeaching": {
     "ja": { "met": "【条件・該当】", "unmet": "【条件・非該当】", "utterance": "あなたが疲れていたら、休んでね" },
     "en": { "met": "【Condition: met】", "unmet": "【Condition: unmet】", "utterance": "If you are tired, please rest" },

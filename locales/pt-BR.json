@@ -1,4 +1,11 @@
 {
+  "食事中の言葉を覚えて、同じ食事の完了後へのお願いかどうか確かめている。": "Lembra as palavras ouvidas durante a refeição e verifica se o pedido se aplica após terminar essa mesma refeição.",
+  "同じ食事の前後を照合し、食べ終えた後への休息のお願いだと分かった。": "Comparou o antes e o depois da mesma refeição e entendeu o pedido para descansar após terminá-la.",
+  "食べ終えた後に休んでほしいんだね。いつ休むかは、また自分で考えるね。": "Você quer que eu descanse depois de comer. Vou decidir por conta própria quando descansar.",
+  "食事の前後とお願いを教わった言葉：": "Palavras usadas para ensinar a sequência da refeição e o pedido:",
+  "未完了の食事と教示を対応付けた。同じ食事が完了した後の教示を、まだ照合している。": "Relacionou o ensinamento a uma refeição ainda não concluída. Ainda está conferindo o ensinamento dado após terminar essa mesma refeição.",
+  "同じ食事の未完了と完了を照合し、食後への休息のお願いだと分かった。同じ相手・言語・表現に限る。実行や予約とは別。": "Comparou a mesma refeição ainda não concluída e concluída e entendeu o pedido para descansar depois. Limitado à mesma pessoa, idioma e expressão. Executar ou agendar a ação é uma decisão separada.",
+  "食べる・休む・お願いを知ったあと、食事中に【順序・未完了】「あなたが食べ終わったら、休んでね」、その食事の完了後、次の食事が始まる前に【順序・完了】「あなたが食べ終わったら、休んでね」と教えられます。印は同じ食事を指す教示操作で、休息の実行や予約にはしません。": "Depois de aprender a comer, descansar e entender pedidos, ensine 【Sequência: não concluída】「Depois que você terminar de comer, por favor descanse」 durante uma refeição e 【Sequência: concluída】「Depois que você terminar de comer, por favor descanse」 após terminá-la, antes de começar outra. As marcas são uma operação de ensino sobre a mesma refeição. Elas não executam nem agendam o descanso.",
   "疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。": "Compara a sensação de cansaço com um pedido para descansar se estiver cansado. Ainda está entendendo como a condição funciona.",
   "条件と適用先を教わった言葉：": "Palavras usadas para ensinar uma condição e a que ela se aplica:",
   "休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。": "Relacionou o ensinamento às sensações durante o descanso. Ainda compara os casos em que a condição é atendida e os em que não é.",

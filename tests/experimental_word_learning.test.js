@@ -86,6 +86,156 @@ const timeDemo = (locale, time) => {
 const conditionDemo = (locale, status) => {
     const item = catalog.conditionTeaching[locale]; return `${item[status]}「${item.utterance}」`;
 };
+const sequenceDemo = (locale, phase) => {
+    const item = catalog.sequenceTeaching[locale]; return `${item[phase]}「${item.utterance}」`;
+};
+function prepareSequence(state, world, locale = 'ja') {
+    if (!state.settings.life) for (const [activity, raw] of [['eat', questionForms[locale][1]], ['rest', questionForms[locale][2]]]) {
+        startRelationActivity(state, world, activity); labelLife(state, world, raw, { locale }); finishLife(state, world);
+    }
+    if (!state.settings.foundation) for (const kind of ['request', 'invitation']) {
+        startRelationActivity(state, world, 'rest'); labelLife(state, world, proposalDemo(locale, kind), { locale }); finishLife(state, world);
+    }
+}
+test('3c3c: eight starts and seven languages connect the same meal before/after with real prerequisite learning and JSON restart', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.sequenceTeaching)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            prepareSequence(state, world, locale);
+            startRelationActivity(state, world, 'eat');
+            const before = labelLife(state, world, sequenceDemo(locale, 'before'), { locale });
+            assert.equal(before.understandings[0].complete, foundation);
+            if (!foundation) {
+                const l = before.relationLearning.adopted;
+                assert.equal(l.basis.id, 'rest'); assert.equal(l.eventBasis.id, 'eat');
+                assert.equal(l.proposalBasis.id, 'request'); assert.equal(l.eventReference.end, null);
+                assert.deepEqual(l.understanding.unresolved, [{ type: 'relation', id: 'sequence' }]);
+            }
+            // Independent later evidence for an already known prerequisite must
+            // not replace the snapshot used by the unfinished-meal teaching.
+            if (!life) labelLife(state, world, questionForms[locale][1], { locale });
+            let saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world })); assert.ok(valid(saved), 'pending save');
+            ({ state, world } = saved);
+            const event = finishLife(state, world);
+            saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world })); assert.ok(valid(saved), 'completed meal without after teaching');
+            ({ state, world } = saved);
+            const oldEvent = JSON.parse(JSON.stringify(state.experiences.at(-1)));
+            world.elapsed += .2;
+            const mode = world.mode, destination = world.destination;
+            const after = labelLife(state, world, sequenceDemo(locale, 'after'), { locale });
+            if (!foundation) {
+                assert.equal(after.relationLearning.relationAcquired, true);
+                const ref = after.relationLearning.adopted.eventReference;
+                assert.deepEqual(ref, { experienceId: event.id, inputId: before.input.id, start: event.start, end: event.end });
+                assert.ok(after.relationLearning.adopted.at > ref.end);
+                const latest = state.experiences.at(-1);
+                assert.deepEqual({ ...latest, relationLabels: latest.relationLabels.slice(0, -1) }, oldEvent);
+                assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'sequence').length, 2);
+                assert.deepEqual([...new Set(state.knowledge.relations.map(r => r.id))].sort(), ['invitation', 'request', 'sequence']);
+                assert.equal(notebookApi.entries(state).filter(e => e.detail === 'note_sequence_learned').length, 2);
+            }
+            const result = say(state, catalog.sequenceTeaching[locale].utterance, { locale });
+            const response = worldApi.respond(world, result, state);
+            assert.equal(result.understandings[0].complete, true);
+            if (!foundation) assert.deepEqual(result.understandings[0].relationReferences.map(r => r.id).sort(), ['request', 'sequence']);
+            assert.equal(response.message, speech === 'short' ? 'sequence_understood' : 'attend');
+            assert.equal(world.mode, mode); assert.equal(world.destination, destination);
+            saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world })); assert.ok(valid(saved), 'learned save');
+            const evidence = JSON.stringify(state.knowledge.relationEvidence);
+            labelLife(state, world, sequenceDemo(locale, 'after'), { locale });
+            notebookApi.entries(state); startRelationActivity(state, world, 'rest'); finishLife(state, world); relationLearning.learn(state);
+            assert.equal(JSON.stringify(state.knowledge.relationEvidence), evidence);
+        }
+    }
+});
+test('3c3c: reverse, repetition, another meal, missing attention and interruption do not make a sequence', () => {
+    const state = create({ foundation: false }), world = worldApi.create(); prepareSequence(state, world);
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'after')).relationLearning, undefined);
+    startRelationActivity(state, world, 'eat');
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'after')).relationLearning, undefined);
+    state.context.attention = [];
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'before')).relationLearning, undefined);
+    api.perceive(state, worldApi.perception(world));
+    const before = labelLife(state, world, sequenceDemo('ja', 'before'));
+    for (let i = 0; i < 3; i++) labelLife(state, world, sequenceDemo('ja', 'before'));
+    assert.equal(world.relationLabels.filter(l => l.relation === 'sequence').length, 1);
+    assert.equal(world.relationLabels.at(-1).inputId, before.input.id);
+    assert.equal(worldApi.approach(world, 'shade'), false, 'existing meals cannot be interrupted by approach');
+    finishLife(state, world);
+    startRelationActivity(state, world, 'eat'); finishLife(state, world);
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'after')).relationLearning, undefined, 'another meal cannot replace the original');
+    for (let i = 0; i < 2; i++) {
+        startRelationActivity(state, world, 'eat'); labelLife(state, world, sequenceDemo('ja', 'before')); finishLife(state, world);
+    }
+    assert.equal(state.knowledge.relations.some(r => r.id === 'sequence'), false, 'meal counts without a linked after teaching are insufficient');
+    startRelationActivity(state, world, 'eat'); labelLife(state, world, sequenceDemo('ja', 'before'));
+    // Simulate a discarded activity; it has no completed source to teach from.
+    world.mode = 'idle'; world.elapsed += .1; worldApi.approach(world, 'shade');
+    assert.equal(world.relationLabels.length, 0);
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'after')).relationLearning, undefined);
+    startRelationActivity(state, world, 'eat'); labelLife(state, world, sequenceDemo('ja', 'before')); finishLife(state, world);
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'after')).relationLearning.relationAcquired, true, 'a later valid pair can recover');
+});
+test('3c3c: unknown and simultaneous prerequisites, other speakers and languages stay outside the learned scope', () => {
+    for (const locale of Object.keys(catalog.sequenceTeaching)) {
+        const state = create({ foundation: false, life: false }), world = worldApi.create();
+        startRelationActivity(state, world, 'eat'); labelLife(state, world, questionForms[locale][1], { locale });
+        assert.equal(labelLife(state, world, sequenceDemo(locale, 'before'), { locale }).relationLearning, undefined);
+        finishLife(state, world); prepareSequence(state, world, locale);
+        startRelationActivity(state, world, 'rest');
+        assert.equal(labelLife(state, world, sequenceDemo(locale, 'before'), { locale }).relationLearning, undefined); finishLife(state, world);
+        startRelationActivity(state, world, 'eat');
+        assert.equal(labelLife(state, world, sequenceDemo(locale, 'before'), { locale, speaker: 'friend' }).relationLearning, undefined);
+        labelLife(state, world, sequenceDemo(locale, 'before'), { locale }); finishLife(state, world);
+        assert.equal(labelLife(state, world, sequenceDemo(locale, 'after'), { locale, speaker: 'friend' }).relationLearning, undefined);
+        const other = locale === 'en' ? 'ja' : 'en';
+        assert.equal(labelLife(state, world, sequenceDemo(other, 'after'), { locale: other }).relationLearning, undefined);
+        labelLife(state, world, sequenceDemo(locale, 'after'), { locale });
+        const raw = catalog.sequenceTeaching[locale].utterance;
+        for (const invalid of [`${raw}?`, `${raw}\nunknown`, `unknown\n${raw}`, `${raw}\n${catalog.proposalTeaching[locale].invitation.utterance}`]) {
+            const result = labelLife(state, world, invalid, { locale });
+            assert.ok(result.understandings.some(u => !u.complete)); assert.notEqual(world.mode, 'move');
+        }
+        assert.equal(say(state, raw, { locale, speaker: 'friend' }).understandings[0].complete, false);
+        assert.equal(say(state, catalog.sequenceTeaching[other].utterance, { locale: other }).understandings[0].complete, false);
+        assert.equal(say(state, '食べ終わったら散歩しよう').understandings[0].complete, false);
+        assert.equal(state.knowledge.relations.some(r => ['condition', 'time', 'negation', 'reason', 'contrast'].includes(r.id)), false);
+    }
+    const state = create({ foundation: false }), world = worldApi.create();
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, proposalDemo('ja', 'request')); finishLife(state, world);
+    startRelationActivity(state, world, 'eat');
+    assert.equal(labelLife(state, world, sequenceDemo('ja', 'before')).relationLearning, undefined);
+});
+test('3c3c: pending and completed saves reject forged input, reference, order, prerequisites and scope', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create(); prepareSequence(state, world);
+    startRelationActivity(state, world, 'eat'); labelLife(state, world, sequenceDemo('ja', 'before'));
+    for (const change of [l => { l.phase = 'after'; }, l => { l.raw = sequenceDemo('ja', 'after'); },
+        l => { l.eventBasis.evidence[0].experienceId = -1; }, l => { l.proposalBasis.scope.form = 'other'; },
+        l => { l.eventReference.end = 0; }, l => { l.understanding.known.eventMeaning = 'rest'; }]) {
+        const v = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world })); change(v.world.relationLabels.at(-1)); assert.equal(valid(v), false);
+    }
+    finishLife(state, world); world.elapsed += .2; labelLife(state, world, sequenceDemo('ja', 'after'));
+    const saved = JSON.stringify({ version: 1, appearance: 'robot', state, world }); assert.ok(valid(JSON.parse(saved)));
+    const labels = (v, change) => {
+        for (const e of [...v.state.experiences, ...v.world.experiences]) for (const l of e.relationLabels || []) if (l.relation === 'sequence') change(l);
+    };
+    for (const change of [
+        v => labels(v, l => { l.raw = sequenceDemo('ja', l.phase === 'before' ? 'after' : 'before'); }),
+        v => labels(v, l => { l.eventSubject = 'player'; }),
+        v => labels(v, l => { if (l.phase === 'after') l.eventReference.experienceId = -1; }),
+        v => labels(v, l => { if (l.phase === 'after') l.eventReference.end += 1; }),
+        v => labels(v, l => { if (l.phase === 'after') l.at = l.start; }),
+        v => labels(v, l => { if (l.phase === 'after') l.inputId = l.eventReference.inputId; }),
+        v => { v.state.knowledge.relationEvidence.find(e => e.relation === 'sequence').experienceId = -1; },
+        v => { v.state.knowledge.relations.find(r => r.id === 'sequence').scope.application = 'immediate'; },
+        v => { v.world.experiences.at(-1).relationLabels.pop(); }
+    ]) { const v = JSON.parse(saved); change(v); assert.equal(valid(v), false); }
+    // Later meals must not invalidate an earlier, correctly heard teaching.
+    startRelationActivity(state, world, 'eat'); finishLife(state, world);
+    assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+});
 const tiredForms = { ja: '疲れた', en: 'tired', 'zh-CN': '累', ru: 'устал', 'es-ES': 'cansado', 'pt-BR': 'cansado', de: 'müde' };
 function conditionRest(state, world, fatigue = .8) {
     startRelationActivity(state, world, 'rest');
@@ -808,6 +958,10 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
                 assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world }))); finishLife(state, world);
             }
             assert.equal(say(state, catalog.conditionTeaching[locale].utterance, { locale }).understandings[0].complete, true);
+            startRelationActivity(state, world, 'eat'); labelLife(state, world, sequenceDemo(locale, 'before'), { locale });
+            assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world }))); finishLife(state, world);
+            labelLife(state, world, sequenceDemo(locale, 'after'), { locale });
+            assert.equal(say(state, catalog.sequenceTeaching[locale].utterance, { locale }).understandings[0].complete, true);
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);

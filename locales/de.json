@@ -1,4 +1,11 @@
 {
+  "食事中の言葉を覚えて、同じ食事の完了後へのお願いかどうか確かめている。": "Merkt sich die während des Essens gehörten Worte und prüft, ob die Bitte für die Zeit nach derselben Mahlzeit gilt.",
+  "同じ食事の前後を照合し、食べ終えた後への休息のお願いだと分かった。": "Hat dieselbe Mahlzeit vor und nach ihrem Ende verglichen und die Bitte verstanden, sich danach auszuruhen.",
+  "食べ終えた後に休んでほしいんだね。いつ休むかは、また自分で考えるね。": "Du möchtest, dass ich mich nach dem Essen ausruhe. Wann ich mich ausruhe, entscheide ich selbst.",
+  "食事の前後とお願いを教わった言葉：": "Worte zum Lehren der Reihenfolge von Essen und Bitte:",
+  "未完了の食事と教示を対応付けた。同じ食事が完了した後の教示を、まだ照合している。": "Die Erklärung wurde mit einer noch nicht beendeten Mahlzeit verknüpft. Die Erklärung nach dem Ende derselben Mahlzeit wird noch abgeglichen.",
+  "同じ食事の未完了と完了を照合し、食後への休息のお願いだと分かった。同じ相手・言語・表現に限る。実行や予約とは別。": "Hat dieselbe Mahlzeit vor und nach ihrem Ende verglichen und die Bitte verstanden, sich danach auszuruhen. Gilt nur für dieselbe Person, Sprache und Formulierung. Ausführung und Planung sind getrennte Entscheidungen.",
+  "食べる・休む・お願いを知ったあと、食事中に【順序・未完了】「あなたが食べ終わったら、休んでね」、その食事の完了後、次の食事が始まる前に【順序・完了】「あなたが食べ終わったら、休んでね」と教えられます。印は同じ食事を指す教示操作で、休息の実行や予約にはしません。": "Nachdem Essen, Ausruhen und Bitten gelernt wurden, lehre während einer Mahlzeit 【Reihenfolge: nicht beendet】「Nachdem du fertig gegessen hast, ruh dich bitte aus」 und nach ihrem Ende, bevor die nächste Mahlzeit beginnt, 【Reihenfolge: beendet】「Nachdem du fertig gegessen hast, ruh dich bitte aus」. Die Markierungen dienen zum Lehren anhand derselben Mahlzeit. Sie führen keine Ruhepause aus und planen sie auch nicht.",
   "疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。": "Vergleicht das Gefühl der Müdigkeit mit der Bitte, sich bei Müdigkeit auszuruhen. Erkundet noch, wie die Bedingung wirkt.",
   "条件と適用先を教わった言葉：": "Worte, mit denen eine Bedingung und ihr Bezug vermittelt wurden:",
   "休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。": "Die Erklärung wurde den Empfindungen beim Ausruhen zugeordnet. Fälle mit erfüllter und nicht erfüllter Bedingung werden noch verglichen.",

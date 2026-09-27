@@ -17,8 +17,9 @@
             const learned = state.knowledge.relations.some(r => r.source === 'experienced_relation'
                 && r.evidence.includes(evidence.inputId));
             const proposal = ['request', 'invitation'].includes(label.relation);
-            result.push({ group: 'names', message: label.relation === 'condition' ? 'note_condition_demo' : label.relation === 'time' ? 'note_time_demo' : label.relation === 'negation' ? 'note_negation_demo' : label.relation === 'report' ? 'note_report_demo' : proposal ? 'note_proposal_demo' : label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
-                detail: label.relation === 'condition' ? (learned ? 'note_condition_learned' : 'note_condition_pairing')
+            result.push({ group: 'names', message: label.relation === 'sequence' ? 'note_sequence_demo' : label.relation === 'condition' ? 'note_condition_demo' : label.relation === 'time' ? 'note_time_demo' : label.relation === 'negation' ? 'note_negation_demo' : label.relation === 'report' ? 'note_report_demo' : proposal ? 'note_proposal_demo' : label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
+                detail: label.relation === 'sequence' ? (learned ? 'note_sequence_learned' : 'note_sequence_pairing')
+                    : label.relation === 'condition' ? (learned ? 'note_condition_learned' : 'note_condition_pairing')
                     : label.relation === 'time' ? (learned ? 'note_time_learned' : 'note_time_pairing')
                     : label.relation === 'negation' ? (learned ? 'note_negation_learned' : 'note_negation_pairing')
                     : label.relation === 'report' ? (learned ? 'note_report_learned' : 'note_report_pairing')
