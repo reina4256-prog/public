@@ -40,6 +40,14 @@
         note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
         question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
         time_pairing: '休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。',
+        condition_pairing: '疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。',
+        note_condition_demo: '条件と適用先を教わった言葉：',
+        note_condition_pairing: '休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。',
+        note_condition_learned: '疲れた場合への休息のお願いだと分かった。同じ相手・言語・表現に限る。今の状態の判断や従うかどうかは別で、予約にはしない。',
+        condition_met: '疲れた場合に休んでほしいんだね。今の感覚は当てはまりそう。',
+        condition_unmet: '疲れた場合に休んでほしいんだね。今の感覚は当てはまらなさそう。',
+        condition_unknown: '疲れた場合に休んでほしいんだね。今、当てはまるかは分からない。',
+        condition_help: '疲れ・休む・お願いを知ったあと、疲れの強い休息中に【条件・該当】「あなたが疲れていたら、休んでね」、疲れの少ない別の休息中に【条件・非該当】「あなたが疲れていたら、休んでね」と教えられます。両方の休息完了後に照合します。印は教示操作で、今すぐの要求や予約ではありません。',
         note_time_demo: '現在と過去を教わった言葉：',
         note_time_pairing: '教示を元の休息に対応付けた。現在と過去の違いは、まだ確かめている途中。',
         note_time_learned: '同じ休息の現在と過去を区別できた。同じ相手・言語・自分についての肯定二表現に限る。相手の経験や否定文へは広げない。',
@@ -386,6 +394,7 @@
     node('p', t('report_demo_guide'), guide);
     node('p', t('negation_help'), guide);
     node('p', t('time_help'), guide);
+    node('p', t('condition_help'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

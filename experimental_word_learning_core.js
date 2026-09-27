@@ -240,7 +240,23 @@
         return null;
     }
 
+    function conditionFrame(text, locale, catalog) {
+        const item = catalog.conditionTeaching?.[locale];
+        if (!item) return null;
+        const status = ['met', 'unmet'].find(id => text.trim() === `${item[id]}「${item.utterance}」`);
+        if (!status && normalize(text) !== normalize(item.utterance)) return null;
+        const proposal = proposalFrame(catalog.proposalTeaching[locale].request.utterance, locale, catalog);
+        return { kind: status ? 'condition_demonstration' : 'conditional_proposal', subject: 'self',
+            meaning: 'rest', conditionMeaning: 'tired', relations: ['request', 'condition'],
+            proposalKind: 'request', proposalForm: proposal.form, roles: proposal.roles,
+            conditionSubject: 'self', application: 'when_met', duration: 'unspecified',
+            ...(status ? { demonstratedStatus: status } : {}), form: normalize(item.utterance),
+            utterance: item.utterance, span: text };
+    }
+
     function interpret(text, locale, catalog) {
+        const conditional = conditionFrame(text, locale, catalog);
+        if (conditional) return [conditional];
         const temporal = timeFrame(text, locale, catalog);
         if (temporal) return [temporal];
         const negation = negationFrame(text, locale, catalog);
@@ -485,11 +501,17 @@
     function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
-        const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question'
+        const applies = entry => entry.scope?.kind === (['condition_demonstration', 'conditional_proposal'].includes(frame.kind)
+            ? entry.id === 'request' ? 'request' : 'conditional_proposal' : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
             : ['report_demonstration', 'negation_demonstration', 'time_demonstration'].includes(frame.kind) ? 'report' : frame.kind) && entry.scope.locale === locale
             && entry.scope.speaker === speaker && (entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
+                : entry.id === 'condition'
+                    ? entry.scope.form === frame.form && entry.scope.proposalForm === frame.proposalForm
+                        && entry.scope.conditionMeaning === frame.conditionMeaning && entry.scope.meaning === frame.meaning
+                        && entry.scope.conditionSubject === frame.conditionSubject && entry.scope.application === frame.application
+                        && entry.scope.duration === frame.duration && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                 : entry.id === 'time'
                     ? entry.scope.form === frame.form && entry.scope.eventTime === frame.time
                         && entry.scope.polarity === frame.polarity && entry.scope.reportForm === frame.reportForm
@@ -499,7 +521,7 @@
                         && entry.scope.reportForm === frame.reportForm && frame.meaning === 'rest'
                         && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                 : ['request', 'invitation', 'report'].includes(entry.id)
-                    ? entry.scope.form === (entry.id === 'report' ? frame.reportForm || frame.form : frame.form) && frame.meaning === 'rest'
+                    ? entry.scope.form === (entry.id === 'report' ? frame.reportForm || frame.form : frame.proposalForm || frame.form) && frame.meaning === 'rest'
                         && JSON.stringify(entry.scope.roles) === JSON.stringify(frame.roles)
                     : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
         const missingRelations = required.filter(id => !state.knowledge.relations.some(entry => entry.id === id
@@ -869,5 +891,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame });
 });

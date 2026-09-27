@@ -1,4 +1,12 @@
 {
+  "疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。": "Vergleicht das Gefühl der Müdigkeit mit der Bitte, sich bei Müdigkeit auszuruhen. Erkundet noch, wie die Bedingung wirkt.",
+  "条件と適用先を教わった言葉：": "Worte, mit denen eine Bedingung und ihr Bezug vermittelt wurden:",
+  "休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。": "Die Erklärung wurde den Empfindungen beim Ausruhen zugeordnet. Fälle mit erfüllter und nicht erfüllter Bedingung werden noch verglichen.",
+  "疲れた場合への休息のお願いだと分かった。同じ相手・言語・表現に限る。今の状態の判断や従うかどうかは別で、予約にはしない。": "Die Bitte, sich bei Müdigkeit auszuruhen, wurde verstanden — nur für dieselbe Person, Sprache und Formulierung. Den aktuellen Zustand einzuschätzen und der Bitte zu folgen sind getrennte Entscheidungen. Es wird keine Handlung vorgemerkt.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまりそう。": "Du möchtest, dass ich mich ausruhe, wenn ich müde bin. Mein jetziges Gefühl scheint dazu zu passen.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまらなさそう。": "Du möchtest, dass ich mich ausruhe, wenn ich müde bin. Mein jetziges Gefühl scheint nicht dazu zu passen.",
+  "疲れた場合に休んでほしいんだね。今、当てはまるかは分からない。": "Du möchtest, dass ich mich ausruhe, wenn ich müde bin. Ich weiß nicht, ob das jetzt zutrifft.",
+  "疲れ・休む・お願いを知ったあと、疲れの強い休息中に【条件・該当】「あなたが疲れていたら、休んでね」、疲れの少ない別の休息中に【条件・非該当】「あなたが疲れていたら、休んでね」と教えられます。両方の休息完了後に照合します。印は教示操作で、今すぐの要求や予約ではありません。": "Nachdem Müdigkeit, Ausruhen und Bitten bekannt sind, verwende 【Bedingung: erfüllt】「Wenn du müde bist, ruh dich bitte aus」 beim Ausruhen mit starker Müdigkeit und 【Bedingung: nicht erfüllt】「Wenn du müde bist, ruh dich bitte aus」 bei einer anderen Ruhephase mit geringer Müdigkeit. Nach beiden Ruhephasen werden die Beispiele verglichen. Die Markierungen dienen dem Lernen; sie sind keine sofortigen Aufforderungen oder vorgemerkten Handlungen.",
   "休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。": "Prüft die Erklärung während der Ruhe und den späteren Rückblick anhand des Zeitpunkts der ursprünglichen Erfahrung.",
   "現在と過去を教わった言葉：": "Gelernte Sätze über Gegenwart und Vergangenheit:",
   "教示を元の休息に対応付けた。現在と過去の違いは、まだ確かめている途中。": "Die Erklärung wurde mit der ursprünglichen Ruhe verbunden. Der Unterschied zwischen Gegenwart und Vergangenheit wird noch geprüft.",

@@ -1,4 +1,13 @@
 {
+  "conditionTeaching": {
+    "ja": { "met": "【条件・該当】", "unmet": "【条件・非該当】", "utterance": "あなたが疲れていたら、休んでね" },
+    "en": { "met": "【Condition: met】", "unmet": "【Condition: unmet】", "utterance": "If you are tired, please rest" },
+    "zh-CN": { "met": "【条件·符合】", "unmet": "【条件·不符合】", "utterance": "如果你累了，请休息" },
+    "ru": { "met": "【Условие: выполнено】", "unmet": "【Условие: не выполнено】", "utterance": "Если ты устал, пожалуйста, отдохни" },
+    "es-ES": { "met": "【Condición: cumplida】", "unmet": "【Condición: no cumplida】", "utterance": "Si estás cansado, por favor descansa" },
+    "pt-BR": { "met": "【Condição: atendida】", "unmet": "【Condição: não atendida】", "utterance": "Se você estiver cansado, por favor descanse" },
+    "de": { "met": "【Bedingung: erfüllt】", "unmet": "【Bedingung: nicht erfüllt】", "utterance": "Wenn du müde bist, ruh dich bitte aus" }
+  },
   "timeTeaching": {
   "ja": {
     "now": {

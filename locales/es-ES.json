@@ -1,4 +1,12 @@
 {
+  "疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。": "Compara la sensación de cansancio con una petición de descansar si hay cansancio. Aún está aprendiendo cómo funciona la condición.",
+  "条件と適用先を教わった言葉：": "Palabras usadas para enseñar una condición y a qué se aplica:",
+  "休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。": "Relacionó la enseñanza con las sensaciones durante el descanso. Aún compara los casos en que se cumple la condición y los que no.",
+  "疲れた場合への休息のお願いだと分かった。同じ相手・言語・表現に限る。今の状態の判断や従うかどうかは別で、予約にはしない。": "Entendió la petición de descansar si está cansado, limitada al mismo interlocutor, idioma y expresión. Evaluar el estado actual y decidir si seguirla son cosas separadas. No se programa ninguna acción.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまりそう。": "Quieres que descanse si estoy cansado. Lo que siento ahora parece encajar.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまらなさそう。": "Quieres que descanse si estoy cansado. Lo que siento ahora no parece encajar.",
+  "疲れた場合に休んでほしいんだね。今、当てはまるかは分からない。": "Quieres que descanse si estoy cansado. No sé si eso se cumple ahora.",
+  "疲れ・休む・お願いを知ったあと、疲れの強い休息中に【条件・該当】「あなたが疲れていたら、休んでね」、疲れの少ない別の休息中に【条件・非該当】「あなたが疲れていたら、休んでね」と教えられます。両方の休息完了後に照合します。印は教示操作で、今すぐの要求や予約ではありません。": "Tras aprender el cansancio, el descanso y las peticiones, enseña 【Condición: cumplida】「Si estás cansado, por favor descansa」 durante un descanso con mucho cansancio, y 【Condición: no cumplida】「Si estás cansado, por favor descansa」 durante otro descanso con poco cansancio. Los ejemplos se comparan al terminar ambos descansos. Las marcas son controles de enseñanza, no peticiones inmediatas ni acciones programadas.",
   "休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。": "Compara la enseñanza durante el descanso y su recuerdo posterior con el momento de la experiencia original.",
   "現在と過去を教わった言葉：": "Frases enseñadas sobre presente y pasado:",
   "教示を元の休息に対応付けた。現在と過去の違いは、まだ確かめている途中。": "La enseñanza se vinculó al descanso original. Aún se comprueba la diferencia entre presente y pasado.",

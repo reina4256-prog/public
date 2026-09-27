@@ -232,8 +232,14 @@
     }
 
     function respond(world, result, state) {
+        const judgment = relationLearning.conditionJudgment(world, state, result);
+        if (judgment) {
+            const response = { message: state.settings.speech === 'short' ? `condition_${judgment.status}` : 'attend' };
+            rememberOutput(world, state, response, result.input);
+            return response;
+        }
         if (relationLearning.offer(world, state, result)) {
-            const response = { message: result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
+            const response = { message: result.relationLearning.adopted.relation === 'condition' ? 'condition_pairing' : result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'
                 ? 'question_pairing' : ['request', 'invitation'].includes(result.relationLearning.adopted.relation)
                     ? 'proposal_pairing' : result.relationLearning.adopted.relation === 'report'
                         ? 'report_pairing' : 'relation_pairing', observation: true };

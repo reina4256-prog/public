@@ -12,6 +12,37 @@
     const isProposal = relation => ['request', 'invitation'].includes(relation);
     const fits = (activity, target) => activity === 'eat' ? /^berry:[1-9]\d*$/.test(target)
         : activity === 'rest' && target === 'shade';
+    // A bounded sensory check while attending to one's rest, not a global
+    // numeric truth oracle. The middle band and absent attention stay unknown.
+    const fatigueStatus = fatigue => fatigue >= .55 ? 'met' : fatigue <= .25 ? 'unmet' : 'unknown';
+    function sensation(world, state) {
+        if (world.mode !== 'rest' || world.attention !== 'shade' || state.context.attention.length !== 1
+            || state.context.attention[0].id !== 'shade' || !state.knowledge.meanings.some(m => m.id === 'tired')
+            || !Number.isFinite(world.fatigue) || !Number.isFinite(world.activityBefore?.fatigue)) return null;
+        return { source: 'self_sensation', subject: 'self', activity: 'rest', target: 'shade',
+            start: world.activityStart, at: world.elapsed, before: world.activityBefore.fatigue,
+            fatigue: world.fatigue, status: fatigueStatus(world.fatigue) };
+    }
+    function validSensation(sample) {
+        return sample?.source === 'self_sensation' && sample.subject === 'self'
+            && sample.activity === 'rest' && sample.target === 'shade'
+            && Number.isFinite(sample.start) && Number.isFinite(sample.at) && sample.at >= sample.start
+            && Number.isFinite(sample.before) && sample.before >= 0 && sample.before <= 1
+            && Number.isFinite(sample.fatigue) && sample.fatigue >= 0 && sample.fatigue <= sample.before
+            && sample.status === fatigueStatus(sample.fatigue);
+    }
+    function conditionJudgment(world, state, result) {
+        const frame = result.interpretations[0], u = result.understandings[0];
+        if (result.interpretations.length !== 1 || frame.kind !== 'conditional_proposal' || !u.complete) return null;
+        const observation = sensation(world, state);
+        const judgment = { inputId: result.input.id, raw: result.input.raw, locale: result.input.locale,
+            speaker: result.input.speaker, heardAt: result.input.at, at: world.elapsed,
+            status: observation?.status || 'unknown', observation, application: 'when_met', duration: 'unspecified' };
+        result.conditionJudgment = copy(judgment);
+        const turn = state.context.turns.find(t => t.id === result.input.id);
+        if (turn) turn.conditionJudgment = copy(judgment);
+        return judgment;
+    }
     function validBasis(basis, meaning, at, state) {
         const known = state.knowledge.meanings.find(m => m.id === meaning);
         if (!known || basis?.id !== meaning || known.source !== basis.source) return false;
@@ -22,7 +53,7 @@
                     .some(event => event.id === e.experienceId && event.end <= at));
     }
     function validLabel(label, state, catalog) {
-        if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation', 'time'].includes(label.relation) || label.speaker !== 'player'
+        if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation', 'time', 'condition'].includes(label.relation) || label.speaker !== 'player'
             || !locales.includes(label.locale) || !/^input:[1-9]\d*$/.test(label.inputId)
             || Number(label.inputId.slice(6)) > state.serial || !Number.isFinite(label.heardAt)
             || !Number.isFinite(label.at) || !Number.isFinite(label.start) || label.at < label.start
@@ -32,7 +63,30 @@
             || label.understanding.known?.meaning !== label.meaning
             || !equal(label.understanding.unresolved, [{ type: 'relation', id: label.relation }])) return false;
         if (label.basis?.id !== label.meaning) return false;
-        if (label.relation === 'time') {
+        if (label.relation === 'condition') {
+            const basis = label.proposalBasis;
+            if (label.meaning !== 'rest' || label.activity !== 'rest' || label.conditionMeaning !== 'tired'
+                || label.conditionSubject !== 'self' || label.application !== 'when_met' || label.duration !== 'unspecified'
+                || !['met', 'unmet'].includes(label.demonstratedStatus)
+                || !validSensation(label.observation) || label.observation.status !== label.demonstratedStatus
+                || label.observation.start !== label.start || label.observation.at !== label.at
+                || label.understanding.known.conditionMeaning !== 'tired' || label.understanding.conditionStatus !== 'unknown'
+                || !equal(label.understanding.relations, ['request'])
+                || !validBasis(label.conditionBasis, 'tired', label.at, state)
+                || !equal(label.roles, { proposer: 'player', addressee: 'self', actors: ['self'], status: 'proposed', actualParticipation: false })
+                || basis?.id !== 'request' || !state.knowledge.relations.some(r => equal(r, basis))
+                || (basis.source !== 'initial' && (basis.scope?.kind !== 'request' || basis.scope?.meaning !== 'rest'
+                    || basis.scope?.form !== label.proposalForm || basis.scope?.locale !== label.locale
+                    || basis.scope?.speaker !== label.speaker || !equal(basis.scope.roles, label.roles)
+                    || !basis.evidence.every(id => state.experiences.some(e => e.end <= label.start
+                        && e.relationLabels?.some(l => l.inputId === id)))))) return false;
+            if (catalog) {
+                const frame = core.conditionFrame(label.raw, label.locale, catalog);
+                if (frame?.kind !== 'condition_demonstration' || frame.form !== label.form
+                    || frame.utterance !== label.utterance || frame.demonstratedStatus !== label.demonstratedStatus
+                    || frame.proposalForm !== label.proposalForm || !equal(frame.roles, label.roles)) return false;
+            }
+        } else if (label.relation === 'time') {
             if (label.meaning !== 'rest' || label.activity !== 'rest' || !['now', 'past'].includes(label.eventTime)
                 || label.understanding.eventTime !== 'unspecified' || label.understanding.polarity !== 'positive'
                 || !equal(label.understanding.relations, ['report'])
@@ -126,12 +180,12 @@
     }
     function offer(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
-        const relation = frame.kind === 'time_demonstration' ? 'time' : frame.kind === 'negation_demonstration' ? 'negation'
+        const relation = frame.kind === 'condition_demonstration' ? 'condition' : frame.kind === 'time_demonstration' ? 'time' : frame.kind === 'negation_demonstration' ? 'negation'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
             : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'report_demonstration' ? 'report' : 'naming';
         if (result.interpretations.length !== 1 || result.input.speaker !== 'player'
-            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration', 'negation_demonstration', 'time_demonstration'].includes(frame.kind)
+            || !['word_explanation', 'question_demonstration', 'proposal_demonstration', 'report_demonstration', 'negation_demonstration', 'time_demonstration', 'condition_demonstration'].includes(frame.kind)
             || (relation === 'negation' ? world.mode !== (frame.polarity === 'positive' ? 'rest' : 'eat') : u.known.meaning !== world.mode)
             || !u.unresolved.some(item => item.type === 'relation' && item.id === relation)
             || u.unresolved.some(item => item.type !== 'relation' || item.id !== relation)
@@ -157,6 +211,14 @@
             locale: result.input.locale, speaker: result.input.speaker, heardAt: result.input.at,
             at: world.elapsed, start: world.activityStart, activity: world.mode, target: world.attention,
             subject: 'self', scene: result.input.scene, ...(relation === 'naming' ? { word: frame.word }
+                : relation === 'condition' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles),
+                    conditionMeaning: frame.conditionMeaning, conditionSubject: frame.conditionSubject,
+                    application: frame.application, duration: frame.duration, demonstratedStatus: frame.demonstratedStatus,
+                    observation: sensation(world, state), proposalForm: frame.proposalForm,
+                    conditionBasis: copy(state.knowledge.meanings.find(m => m.id === 'tired') || null),
+                    proposalBasis: copy(state.knowledge.relations.find(r => r.id === 'request' && (r.source === 'initial'
+                        || r.scope?.form === frame.proposalForm && r.scope.locale === result.input.locale
+                            && r.scope.speaker === result.input.speaker)) || null) }
                 : relation === 'time' ? { form: frame.form, utterance: frame.utterance, roles: copy(frame.roles),
                     eventTime: frame.time, reportForm: frame.reportForm,
                     eventReference: previous ? { experienceId: previous.id, inputId: original.inputId, start: previous.start, end: previous.end }
@@ -202,6 +264,9 @@
                 && event.end >= l.at && Number.isFinite(event.end))
             .map(l => ({ relation: l.relation, experienceId: event.id, inputId: l.inputId,
                 locale: l.locale, speaker: l.speaker, ...(l.relation === 'naming' ? { word: l.word }
+                    : l.relation === 'condition' ? { form: l.form, roles: copy(l.roles), proposalForm: l.proposalForm,
+                        conditionMeaning: l.conditionMeaning, conditionSubject: l.conditionSubject,
+                        application: l.application, duration: l.duration, demonstratedStatus: l.demonstratedStatus }
                     : l.relation === 'time' ? { form: l.form, roles: copy(l.roles), eventTime: l.eventTime,
                         reportForm: l.reportForm, eventReference: copy(l.eventReference) }
                     : l.relation === 'negation' ? { form: l.form, roles: copy(l.roles), polarity: l.polarity, reportForm: l.reportForm }
@@ -211,6 +276,14 @@
     function acquired(evidence) {
         const pairs = [];
         for (const locale of locales) {
+            const met = evidence.find(e => e.relation === 'condition' && e.locale === locale && e.demonstratedStatus === 'met');
+            const unmet = evidence.find(e => e.relation === 'condition' && e.locale === locale && e.demonstratedStatus === 'unmet'
+                && met && e.form === met.form && e.proposalForm === met.proposalForm && e.experienceId !== met.experienceId);
+            if (met && unmet) pairs.push({ id: 'condition', source: 'experienced_relation',
+                scope: { kind: 'conditional_proposal', locale, speaker: 'player', meaning: 'rest', form: met.form,
+                    roles: copy(met.roles), proposalForm: met.proposalForm, conditionMeaning: 'tired',
+                    conditionSubject: 'self', application: 'when_met', duration: 'unspecified' },
+                evidence: [met.inputId, unmet.inputId] });
             const present = evidence.find(e => e.relation === 'time' && e.locale === locale && e.eventTime === 'now');
             const past = evidence.find(e => e.relation === 'time' && e.locale === locale && e.eventTime === 'past'
                 && present && e.eventReference.inputId === present.inputId && e.eventReference.experienceId === present.experienceId
@@ -266,7 +339,7 @@
         }
         return pairs;
     }
-    const evidenceKey = e => JSON.stringify([e?.relation, e?.locale, e?.form || null, e?.meaning]);
+    const evidenceKey = e => JSON.stringify([e?.relation, e?.locale, e?.form || null, e?.meaning, e?.demonstratedStatus || null]);
     function learn(state) {
         const offered = candidates(state), updated = [];
         for (const item of offered) {
@@ -282,6 +355,20 @@
             relations: added, relationAcquired: added.length > 0 };
     }
     function valid(state, world, catalog) {
+        for (const turn of state.context.turns) {
+            const j = turn.conditionJudgment;
+            if (j === undefined) continue;
+            const frame = catalog && core.conditionFrame(j.raw, j.locale, catalog);
+            if (j.inputId !== turn.id || j.speaker !== turn.speaker || !Number.isFinite(j.heardAt)
+                || !Number.isFinite(j.at) || j.at > world.elapsed || j.application !== 'when_met' || j.duration !== 'unspecified'
+                || turn.understandings.length !== 1 || !turn.understandings[0].complete
+                || turn.understandings[0].kind !== 'conditional_proposal'
+                || !['met', 'unmet', 'unknown'].includes(j.status)
+                || (j.observation === null ? j.status !== 'unknown' : !validSensation(j.observation)
+                    || j.observation.at !== j.at || j.observation.status !== j.status)
+                || (catalog && (frame?.kind !== 'conditional_proposal'
+                    || !core.receive(copy(state), j.raw, catalog, { speaker: j.speaker, locale: j.locale }).understandings[0].complete))) return false;
+        }
         // Keep heard reports distinct from the child's experience even after reload.
         for (const record of [...state.records, ...state.context.turns]) {
             for (const u of record.understandings || []) {
@@ -308,15 +395,17 @@
             ...(state.experiences || []).flatMap(e => Array.isArray(e.relationLabels) ? e.relationLabels : [])];
         if (new Set(allLabels.map(l => l?.inputId)).size !== allLabels.length) return false;
         if (world.relationLabels !== undefined && (!Array.isArray(world.relationLabels)
-            || world.relationLabels.length > 6 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
+            || world.relationLabels.length > 7 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
             || new Set(world.relationLabels.map(l => l?.relation)).size !== world.relationLabels.length
             || !world.relationLabels.every(l => validLabel(l, state, catalog)
                 && l.at <= world.elapsed && l.start === world.activityStart
-                && l.activity === world.mode && l.target === world.attention))) return false;
+                && l.activity === world.mode && l.target === world.attention
+                && (l.relation !== 'condition' || l.observation.before === world.activityBefore?.fatigue
+                    && l.observation.fatigue >= world.fatigue)))) return false;
         for (const event of state.experiences || []) {
             if (event.relationLabels === undefined) continue;
             const originals = world.experiences.filter(e => e.id === event.id);
-            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 6
+            if (!Array.isArray(event.relationLabels) || !event.relationLabels.length || event.relationLabels.length > 7
                 || event.relationLabels.filter(l => isProposal(l?.relation)).length > 1
                 || new Set(event.relationLabels.map(l => l?.relation)).size !== event.relationLabels.length
                 || originals.length !== 1 || !equal(originals[0].relationLabels, event.relationLabels)
@@ -324,7 +413,10 @@
                 || originals[0].kind !== event.activity || originals[0].target !== event.target
                 || originals[0].start !== event.start || originals[0].end !== event.end
                 || !event.relationLabels.every(l => validLabel(l, state, catalog) && l.start === event.start
-                    && l.at <= event.end && l.activity === event.activity && l.target === event.target)) return false;
+                    && l.at <= event.end && l.activity === event.activity && l.target === event.target
+                    && (l.relation !== 'condition' || l.observation.before === event.before?.fatigue
+                        && l.observation.before === originals[0].before?.fatigue
+                        && l.observation.fatigue >= event.after?.fatigue && equal(event.after, originals[0].after)))) return false;
         }
         if (world.experiences.some(e => e.relationLabels !== undefined
             && !(state.experiences || []).some(event => event.id === e.id && equal(event.relationLabels, e.relationLabels)))) return false;
@@ -336,5 +428,5 @@
             .every(r => expected.some(e => equal(e, r)))
             && expected.every(e => state.knowledge.relations.some(r => r.source === 'initial' && r.id === e.id || equal(r, e)));
     }
-    return Object.freeze({ offer, finish, learn, valid });
+    return Object.freeze({ offer, finish, learn, valid, conditionJudgment });
 });

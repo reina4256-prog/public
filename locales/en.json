@@ -1,4 +1,12 @@
 {
+  "疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。": "Comparing the feeling of tiredness with a request to rest if tired. Still exploring how the condition works.",
+  "条件と適用先を教わった言葉：": "Words used to teach a condition and what it applies to:",
+  "休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。": "Linked the teaching to sensations during rest. Still comparing cases where the condition is met and unmet.",
+  "疲れた場合への休息のお願いだと分かった。同じ相手・言語・表現に限る。今の状態の判断や従うかどうかは別で、予約にはしない。": "Understood the request to rest if tired, limited to the same speaker, language and expression. Judging the current state and choosing whether to follow are separate. No action is scheduled.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまりそう。": "You want me to rest if I am tired. What I feel now seems to fit.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまらなさそう。": "You want me to rest if I am tired. What I feel now does not seem to fit.",
+  "疲れた場合に休んでほしいんだね。今、当てはまるかは分からない。": "You want me to rest if I am tired. I cannot tell whether that applies now.",
+  "疲れ・休む・お願いを知ったあと、疲れの強い休息中に【条件・該当】「あなたが疲れていたら、休んでね」、疲れの少ない別の休息中に【条件・非該当】「あなたが疲れていたら、休んでね」と教えられます。両方の休息完了後に照合します。印は教示操作で、今すぐの要求や予約ではありません。": "After learning tiredness, resting and requests, teach 【Condition: met】「If you are tired, please rest」 during a rest with strong tiredness, and 【Condition: unmet】「If you are tired, please rest」 during a separate rest with little tiredness. The examples are compared after both rests end. These markers are teaching controls, not immediate requests or scheduled actions.",
   "休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。": "Checking the teaching during rest and its later recollection against the time of the original experience.",
   "現在と過去を教わった言葉：": "Words taught about present and past:",
   "教示を元の休息に対応付けた。現在と過去の違いは、まだ確かめている途中。": "Linked the teaching to the original rest. Still checking the difference between present and past.",

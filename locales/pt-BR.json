@@ -1,4 +1,12 @@
 {
+  "疲れの感覚と、疲れた場合への休息のお願いを照らし合わせている。まだ条件の働きを確かめている途中。": "Compara a sensação de cansaço com um pedido para descansar se estiver cansado. Ainda está entendendo como a condição funciona.",
+  "条件と適用先を教わった言葉：": "Palavras usadas para ensinar uma condição e a que ela se aplica:",
+  "休息中の感覚と教示を対応付けた。条件に当てはまる場合と当てはまらない場合を、まだ照合している。": "Relacionou o ensinamento às sensações durante o descanso. Ainda compara os casos em que a condição é atendida e os em que não é.",
+  "疲れた場合への休息のお願いだと分かった。同じ相手・言語・表現に限る。今の状態の判断や従うかどうかは別で、予約にはしない。": "Entendeu o pedido para descansar se estiver cansado, limitado à mesma pessoa, idioma e expressão. Avaliar o estado atual e decidir se vai atender ao pedido são coisas separadas. Nenhuma ação é agendada.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまりそう。": "Você quer que eu descanse se estiver cansado. O que sinto agora parece se encaixar.",
+  "疲れた場合に休んでほしいんだね。今の感覚は当てはまらなさそう。": "Você quer que eu descanse se estiver cansado. O que sinto agora não parece se encaixar.",
+  "疲れた場合に休んでほしいんだね。今、当てはまるかは分からない。": "Você quer que eu descanse se estiver cansado. Não sei se isso se aplica agora.",
+  "疲れ・休む・お願いを知ったあと、疲れの強い休息中に【条件・該当】「あなたが疲れていたら、休んでね」、疲れの少ない別の休息中に【条件・非該当】「あなたが疲れていたら、休んでね」と教えられます。両方の休息完了後に照合します。印は教示操作で、今すぐの要求や予約ではありません。": "Depois de aprender cansaço, descanso e pedidos, ensine 【Condição: atendida】「Se você estiver cansado, por favor descanse」 durante um descanso com muito cansaço, e 【Condição: não atendida】「Se você estiver cansado, por favor descanse」 durante outro descanso com pouco cansaço. Os exemplos são comparados após os dois descansos terminarem. As marcas são controles de ensino, não pedidos imediatos nem ações agendadas.",
   "休息中の教示と、その休息を振り返る教示を、元の経験の時点に照らして確かめている。": "Confere o ensinamento durante o descanso e sua lembrança posterior com o momento da experiência original.",
   "現在と過去を教わった言葉：": "Frases ensinadas sobre presente e passado:",
   "教示を元の休息に対応付けた。現在と過去の違いは、まだ確かめている途中。": "O ensinamento foi ligado ao descanso original. A diferença entre presente e passado ainda está sendo conferida.",

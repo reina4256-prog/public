@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -58,6 +58,76 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
+        if (process.argv.includes('--conditions')) {
+            const catalog = require('../../experimental_word_learning_catalog.json');
+            const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
+            const resume = async () => {
+                await window.loadURL(url); await paintClock(); await sleep(600);
+                await js('document.querySelector("#app > form").requestSubmit()'); await sleep(150);
+            };
+            const condition = catalog.conditionTeaching.ja;
+            const lessons = [
+                ['休む', '「疲れた」'],
+                ['【お願い】「休んでね」'], ['【誘い】「一緒に休もう」'],
+                [`${condition.met}「${condition.utterance}」`], [`${condition.unmet}「${condition.utterance}」`]
+            ];
+            for (const [index, inputs] of lessons.entries()) {
+                nextLoad = structuredClone(snapshot);
+                if (index === 0) {
+                    nextLoad.state.settings.foundation = false; nextLoad.state.settings.life = false;
+                    nextLoad.state.knowledge.relations = []; nextLoad.state.knowledge.meanings = [];
+                }
+                const fatigue = index === 4 ? .2 : .8;
+                Object.assign(nextLoad.world, { mode: 'rest', dwell: 3, attention: 'shade', destination: null,
+                    activityStart: nextLoad.world.elapsed, activityBefore: { hunger: .2, fatigue }, hunger: .2, fatigue });
+                await resume();
+                assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
+                for (const raw of inputs) await chat(raw);
+                if (index >= 3) {
+                    assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
+                    assert.equal(snapshot.world.relationLabels[0].relation, 'condition');
+                    assert.equal(snapshot.world.relationLabels[0].observation.status, index === 3 ? 'met' : 'unmet');
+                }
+                const pending = JSON.stringify({ life: snapshot.world.lifeLabels, relations: snapshot.world.relationLabels });
+                await resume();
+                assert.equal(JSON.stringify({ life: snapshot.world.lifeLabels, relations: snapshot.world.relationLabels }), pending);
+                await sleep(4500); await chat('こんにちは');
+                assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, index + 1);
+                if (index === 0) assert.deepEqual(snapshot.state.knowledge.meanings.map(m => m.id).sort(), ['rest', 'tired']);
+                if (index < 4) assert.equal(snapshot.state.knowledge.relations.some(r => r.id === 'condition'), false);
+            }
+            assert.equal(snapshot.state.knowledge.relations.filter(r => r.id === 'condition').length, 1);
+            const knowledge = JSON.stringify(snapshot.state.knowledge), origins = JSON.stringify(snapshot.state.experiences);
+            for (const [mode, fatigue, status] of [['rest', .8, 'met'], ['rest', .2, 'unmet'], ['rest', .4, 'unknown'], ['observe', .8, 'unknown']]) {
+                nextLoad = structuredClone(snapshot);
+                Object.assign(nextLoad.world, { mode, dwell: 60, attention: 'shade', destination: null,
+                    activityStart: nextLoad.world.elapsed, activityBefore: { hunger: .2, fatigue }, hunger: .2, fatigue });
+                await resume(); await chat(condition.utterance);
+                const turn = snapshot.state.context.turns.at(-1);
+                assert.equal(turn.understandings[0].complete, true); assert.equal(turn.conditionJudgment.status, status);
+                assert.equal(turn.conditionJudgment.observation === null, mode === 'observe');
+                assert.equal(snapshot.world.mode, mode); assert.equal(snapshot.world.destination, null);
+                assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);
+                const judgment = JSON.stringify(turn.conditionJudgment);
+                await resume(); assert.equal(JSON.stringify(snapshot.state.context.turns.at(-1).conditionJudgment), judgment);
+            }
+            await js('document.querySelector("button[aria-controls=notebook]").click()');
+            assert.ok(await js('document.querySelector("#notebook").textContent.includes("予約にはしない")'));
+            for (const marker of [condition.met, condition.unmet]) {
+                assert.ok(await js(`document.querySelector('#notebook').textContent.includes(${JSON.stringify(marker)})`));
+            }
+            await js('Array.from(document.querySelectorAll("#notebook .note-card")).find(node => node.textContent.includes("条件と適用先")).scrollIntoView({block:"start"})');
+            window.setSize(1281, 800); await sleep(500);
+            const screenshot = path.resolve(__dirname, '../../tests/word-conditions-smoke.png');
+            fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
+            await resume();
+            assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge); assert.equal(JSON.stringify(snapshot.state.experiences), origins);
+            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, 5);
+            assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, conditions: true, initial, screenshot, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--boundaries')) {
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             const resume = async () => {

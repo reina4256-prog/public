@@ -83,6 +83,194 @@ function prepareNegation(state, world, locale = 'ja') {
 const timeDemo = (locale, time) => {
     const item = catalog.timeTeaching[locale][time]; return `${item.marker}「${item.utterance}」`;
 };
+const conditionDemo = (locale, status) => {
+    const item = catalog.conditionTeaching[locale]; return `${item[status]}「${item.utterance}」`;
+};
+const tiredForms = { ja: '疲れた', en: 'tired', 'zh-CN': '累', ru: 'устал', 'es-ES': 'cansado', 'pt-BR': 'cansado', de: 'müde' };
+function conditionRest(state, world, fatigue = .8) {
+    startRelationActivity(state, world, 'rest');
+    world.fatigue = fatigue; world.activityBefore.fatigue = fatigue;
+}
+function prepareCondition(state, world, locale = 'ja') {
+    if (!state.knowledge.meanings.some(m => m.id === 'rest')) {
+        conditionRest(state, world); labelLife(state, world, questionForms[locale][2], { locale }); finishLife(state, world);
+    }
+    if (!state.knowledge.meanings.some(m => m.id === 'tired')) {
+        conditionRest(state, world); labelLife(state, world, `「${tiredForms[locale]}」`, { locale }); finishLife(state, world);
+    }
+    if (!state.settings.foundation) for (const kind of ['request', 'invitation']) {
+        conditionRest(state, world); labelLife(state, world, proposalDemo(locale, kind), { locale }); finishLife(state, world);
+    }
+}
+test('3c3b: condition contrasts across eight starts and seven languages preserve prerequisites, sources and restart', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.conditionTeaching)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            prepareCondition(state, world, locale);
+            const prerequisites = structuredClone(state.knowledge);
+            for (const [status, fatigue] of [['met', .8], ['unmet', .2]]) {
+                conditionRest(state, world, fatigue);
+                const result = labelLife(state, world, conditionDemo(locale, status), { locale });
+                assert.equal(result.understandings[0].complete, foundation);
+                assert.equal(result.understandings[0].conditionStatus, 'unknown');
+                if (!foundation) {
+                    const label = world.relationLabels[0];
+                    assert.equal(label.relation, 'condition'); assert.equal(label.observation.status, status);
+                    assert.equal(label.conditionBasis.id, 'tired'); assert.equal(label.proposalBasis.id, 'request');
+                    assert.deepEqual(label.understanding.unresolved, [{ type: 'relation', id: 'condition' }]);
+                    assert.equal(state.knowledge.relations.some(r => r.id === 'condition'), false);
+                }
+                let saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                assert.ok(valid(saved), `${locale}/${status}/pending`); ({ state, world } = saved);
+                finishLife(state, world);
+                saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                assert.ok(valid(saved), `${locale}/${status}/completed`); ({ state, world } = saved);
+            }
+            if (!foundation) {
+                assert.deepEqual([...new Set(state.knowledge.relations.map(r => r.id))].sort(), ['condition', 'invitation', 'request']);
+                assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'condition').length, 2);
+                assert.ok(notebookApi.entries(state).some(e => e.detail === 'note_condition_learned'));
+            }
+            assert.deepEqual(state.knowledge.meanings, prerequisites.meanings);
+            const knowledge = JSON.stringify(state.knowledge), experiences = JSON.stringify(state.experiences);
+            for (const [fatigue, expected] of [[.8, 'met'], [.2, 'unmet'], [.4, 'unknown']]) {
+                conditionRest(state, world, fatigue);
+                const result = say(state, catalog.conditionTeaching[locale].utterance, { locale });
+                assert.equal(result.understandings[0].complete, true);
+                const response = worldApi.respond(world, result, state);
+                assert.equal(result.conditionJudgment.status, expected);
+                assert.equal(result.understandings[0].conditionStatus, 'unknown', 'recognition is separate from sensory judgment');
+                assert.equal(response.message, speech === 'short' ? `condition_${expected}` : 'attend');
+                assert.equal(world.mode, 'rest'); assert.equal(world.destination, null);
+                assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+            }
+            state.context.attention = [];
+            const unseen = labelLife(state, world, catalog.conditionTeaching[locale].utterance, { locale });
+            assert.equal(unseen.conditionJudgment.status, 'unknown'); assert.equal(unseen.conditionJudgment.observation, null);
+            assert.equal(JSON.stringify(state.knowledge), knowledge); assert.equal(JSON.stringify(state.experiences), experiences);
+        }
+    }
+});
+test('3c3b: wrong states, uncertain sensations, speakers, interruption and repeated teaching do not supply a contrast', () => {
+    const state = create({ foundation: false }), world = worldApi.create(); prepareCondition(state, world);
+    for (const [status, fatigue] of [['met', .2], ['unmet', .8], ['met', .4], ['unmet', .4]]) {
+        conditionRest(state, world, fatigue); assert.equal(labelLife(state, world, conditionDemo('ja', status)).relationLearning, undefined);
+        finishLife(state, world);
+    }
+    conditionRest(state, world);
+    assert.equal(labelLife(state, world, conditionDemo('ja', 'met'), { speaker: 'friend' }).relationLearning, undefined);
+    state.context.attention.push({ id: 'berry:1', meaning: 'berry' });
+    assert.equal(labelLife(state, world, conditionDemo('ja', 'met')).relationLearning, undefined);
+    api.perceive(state, worldApi.perception(world)); labelLife(state, world, conditionDemo('ja', 'met'));
+    worldApi.approach(world, 'berry:1'); assert.equal(world.relationLabels.length, 0);
+    assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'condition').length, 0);
+    for (let i = 0; i < 3; i++) {
+        conditionRest(state, world); labelLife(state, world, conditionDemo('ja', 'met'));
+        labelLife(state, world, conditionDemo('ja', 'met')); finishLife(state, world);
+    }
+    assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'condition').length, 1);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'condition'), false);
+    conditionRest(state, world, .2); labelLife(state, world, conditionDemo('ja', 'unmet')); finishLife(state, world);
+    const knowledge = JSON.stringify(state.knowledge);
+    for (let i = 0; i < 3; i++) { notebookApi.entries(state); relationLearning.learn(state); }
+    assert.equal(JSON.stringify(state.knowledge), knowledge);
+});
+test('3c3b: a single rest, simultaneous prerequisite acquisition and different languages cannot teach the condition', () => {
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    conditionRest(state, world); labelLife(state, world, '休む'); labelLife(state, world, '「疲れた」');
+    assert.equal(labelLife(state, world, conditionDemo('ja', 'met')).relationLearning, undefined); finishLife(state, world);
+    conditionRest(state, world); labelLife(state, world, proposalDemo('ja', 'request')); finishLife(state, world);
+    conditionRest(state, world); labelLife(state, world, proposalDemo('ja', 'invitation'));
+    assert.equal(labelLife(state, world, conditionDemo('ja', 'met')).relationLearning, undefined); finishLife(state, world);
+    assert.equal(state.knowledge.relationEvidence.some(e => e.relation === 'condition'), false);
+    prepareCondition(state, world, 'en');
+    conditionRest(state, world); labelLife(state, world, conditionDemo('ja', 'met'));
+    // Even two matching states during one long rest are one teaching opportunity.
+    world.fatigue = .2; labelLife(state, world, conditionDemo('ja', 'unmet')); finishLife(state, world);
+    assert.equal(state.knowledge.relationEvidence.filter(e => e.relation === 'condition').length, 1);
+    conditionRest(state, world, .2); labelLife(state, world, conditionDemo('en', 'unmet'), { locale: 'en' }); finishLife(state, world);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'condition'), false);
+    conditionRest(state, world, .2); labelLife(state, world, conditionDemo('ja', 'unmet')); finishLife(state, world);
+    assert.equal(say(state, catalog.conditionTeaching.ja.utterance).understandings[0].complete, true);
+    assert.equal(say(state, catalog.conditionTeaching.en.utterance, { locale: 'en' }).understandings[0].complete, false);
+});
+test('3c3b: reversed contrasts retain exact scope and cannot schedule actions or erase other clauses', () => {
+    for (const locale of Object.keys(catalog.conditionTeaching)) {
+        const state = create({ foundation: false }), world = worldApi.create(); prepareCondition(state, world, locale);
+        for (const [status, fatigue] of [['unmet', .2], ['met', .8]]) {
+            conditionRest(state, world, fatigue); labelLife(state, world, conditionDemo(locale, status), { locale }); finishLife(state, world);
+        }
+        const raw = catalog.conditionTeaching[locale].utterance;
+        for (const [text, options] of [[raw, { speaker: 'friend' }], [`${raw}?`, {}], [`${raw}\n${catalog.proposalTeaching[locale].request.utterance}`, {}]]) {
+            const result = labelLife(state, world, text, { locale, ...options });
+            assert.ok(result.understandings.some(u => !u.complete)); assert.equal(result.conditionJudgment, undefined);
+            assert.notEqual(world.mode, 'move'); assert.equal(world.destination, null);
+        }
+        const result = labelLife(state, world, raw, { locale });
+        assert.equal(result.understandings[0].complete, true); assert.equal(result.conditionJudgment.status, 'unknown');
+        assert.equal(result.conditionJudgment.observation, null);
+        const knowledge = JSON.stringify(state.knowledge);
+        for (let i = 0; i < 10; i++) worldApi.tick(world, .1);
+        assert.equal(world.destination, null); assert.equal(JSON.stringify(state.knowledge), knowledge);
+        assert.deepEqual(result.understandings[0].relationReferences.map(r => r.id).sort(), ['condition', 'request']);
+    }
+});
+test('3c3b: pending and completed saves reject forged sensations, prerequisites, scope and source links', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create(); prepareCondition(state, world);
+    conditionRest(state, world); labelLife(state, world, conditionDemo('ja', 'met'));
+    const pending = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(pending));
+    for (const mutate of [l => { l.observation.status = 'unmet'; }, l => { l.observation.before = .9; },
+        l => { l.conditionBasis.evidence[0].experienceId = -1; }, l => { l.proposalBasis.scope.form = 'other'; },
+        l => { l.demonstratedStatus = 'unmet'; }, l => { l.observation.at += 1; }]) {
+        const bad = structuredClone(pending); mutate(bad.world.relationLabels[0]); assert.equal(valid(bad), false);
+    }
+    finishLife(state, world); conditionRest(state, world, .2); labelLife(state, world, conditionDemo('ja', 'unmet')); finishLife(state, world);
+    conditionRest(state, world); labelLife(state, world, catalog.conditionTeaching.ja.utterance);
+    const saved = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(saved));
+    const change = (v, fn) => {
+        for (const e of [...v.state.experiences, ...v.world.experiences]) for (const l of e.relationLabels || []) if (l.relation === 'condition') fn(l);
+    };
+    for (const mutate of [
+        v => change(v, l => { l.raw = conditionDemo('ja', 'unmet'); }),
+        v => change(v, l => { l.observation.subject = 'player'; }),
+        v => change(v, l => { l.observation.before = .9; }),
+        v => change(v, l => { l.conditionSubject = 'player'; }),
+        v => change(v, l => { l.proposalForm = 'other'; }),
+        v => change(v, l => { l.application = 'always'; }),
+        v => change(v, l => { l.understanding.conditionStatus = 'met'; }),
+        v => change(v, l => { l.roles.actualParticipation = true; }),
+        v => { v.state.knowledge.relationEvidence.find(e => e.relation === 'condition').experienceId = -1; },
+        v => { v.state.knowledge.relations.find(r => r.id === 'condition').scope.duration = 'forever'; },
+        v => { v.state.context.turns.at(-1).conditionJudgment.status = 'unmet'; },
+        v => { v.state.context.turns.at(-1).conditionJudgment.observation = null; },
+        v => { v.state.context.turns.at(-1).conditionJudgment.raw = '休んでね'; },
+        v => { v.state.context.turns.at(-1).conditionJudgment.inputId = 'input:9999'; }
+    ]) { const bad = structuredClone(saved); mutate(bad); assert.equal(valid(bad), false, mutate.toString()); }
+});
+test('3c3b: unknown tiredness cannot be obtained from a condition or the same completion, and thresholds keep an unknown band', () => {
+    for (const locale of Object.keys(catalog.conditionTeaching)) {
+        const state = create({ foundation: false, life: false }), world = worldApi.create();
+        conditionRest(state, world); labelLife(state, world, questionForms[locale][2], { locale }); finishLife(state, world);
+        for (const kind of ['request', 'invitation']) {
+            conditionRest(state, world); labelLife(state, world, proposalDemo(locale, kind), { locale }); finishLife(state, world);
+        }
+        conditionRest(state, world); labelLife(state, world, `「${tiredForms[locale]}」`, { locale });
+        assert.equal(labelLife(state, world, conditionDemo(locale, 'met'), { locale }).relationLearning, undefined);
+        finishLife(state, world);
+        assert.equal(state.knowledge.relationEvidence.some(e => e.relation === 'condition'), false);
+        assert.ok(state.knowledge.meanings.some(m => m.id === 'tired'));
+        for (const [fatigue, status] of [[.55, 'met'], [.25, 'unmet']]) {
+            conditionRest(state, world, fatigue); labelLife(state, world, conditionDemo(locale, status), { locale }); finishLife(state, world);
+        }
+        for (const fatigue of [.549999, .250001]) {
+            conditionRest(state, world, fatigue);
+            assert.equal(labelLife(state, world, catalog.conditionTeaching[locale].utterance, { locale }).conditionJudgment.status, 'unknown');
+        }
+        assert.equal(state.knowledge.relations.some(r => ['negation', 'time', 'sequence', 'reason', 'correction', 'contrast'].includes(r.id)), false);
+    }
+});
 test('3c3a: disconnected clauses cannot dispatch a final proposal across eight starts and seven locales', () => {
     const { valid } = require('../scripts/experimental/storage');
     const forms = {
@@ -612,6 +800,14 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
                 assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world }))); finishLife(state, world);
             }
             assert.equal(say(state, catalog.timeTeaching[locale].past.utterance, { locale }).understandings[0].eventTime, 'past');
+            if (!life) {
+                conditionRest(state, world); labelLife(state, world, `「${tiredForms[locale]}」`, { locale }); finishLife(state, world);
+            }
+            for (const [status, fatigue] of [['met', .8], ['unmet', .2]]) {
+                conditionRest(state, world, fatigue); labelLife(state, world, conditionDemo(locale, status), { locale });
+                assert.ok(valid(structuredClone({ version: 1, appearance: 'robot', state, world }))); finishLife(state, world);
+            }
+            assert.equal(say(state, catalog.conditionTeaching[locale].utterance, { locale }).understandings[0].complete, true);
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
