@@ -1,8 +1,9 @@
 (function (root, factory) {
-    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_careers') : root.ExperimentalWordCareers);
+    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_careers') : root.ExperimentalWordCareers,
+        typeof module === 'object' && module.exports ? require('./experimental_word_life_learning') : root.ExperimentalWordLifeLearning);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordWorld = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (careers) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (careers, lifeLearning) {
     'use strict';
     const PLACES = Object.freeze([
         { id: 'berry:1', meaning: 'berry', x: .28, y: .65 },
@@ -28,6 +29,7 @@
             world.history.push({ mode: world.mode, target: world.attention, start: world.activityStart,
                 end: world.elapsed, reasons: JSON.parse(JSON.stringify(world.reasons)) });
         }
+        world.lifeLabels = [];
         world.destination = id; world.mode = 'move'; world.attention = null;
         if (world.island) world.route = route;
         world.activityStart = world.elapsed;
@@ -89,6 +91,7 @@
                 if (kind === 'eat' && world.mealTaste) {
                     experience.taste = { ...world.mealTaste }; world.mealTaste = null;
                 }
+                lifeLearning.finish(world, experience);
                 world.experiences.push(experience);
                 if (kind === 'rest') world.sleepCount++;
                 if (experience.before && (kind === 'eat' ? experience.before.hunger > world.hunger : experience.before.fatigue > world.fatigue)) world.recovery[kind] = experience.id;
@@ -226,6 +229,11 @@
     }
 
     function respond(world, result, state) {
+        if (lifeLearning.offer(world, state, result)) {
+            const response = { message: 'life_label_received', observation: true };
+            rememberOutput(world, state, response, result.input);
+            return response;
+        }
         const u = result.understandings.at(-1);
         const turn = state.context.turns.find(item => item.id === result.input.id);
         if (u.complete && u.questionSlot === 'repeat_answer') {
@@ -390,6 +398,7 @@
             state.experiences ||= [];
             if (!state.experiences.some(e => e.id === event.id)) state.experiences.push(JSON.parse(JSON.stringify(event)));
             careers?.learn(state, event);
+            lifeLearning.learn(state, event.id);
             if (event.activity === 'rest') {
                 // Index retained sources; sleep never invents missing meanings or rewrites reports.
                 const sources = state.records.filter(r => !r.retractedBy && !state.notes.some(n => n.sourceId === r.id));

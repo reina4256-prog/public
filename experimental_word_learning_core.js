@@ -39,13 +39,13 @@
         const event = events[0];
         if (!Number.isInteger(event.id) || !Number.isFinite(event.start)
             || !Number.isFinite(event.end) || event.end < event.start) return [];
-        return rules.filter(rule => rule.demonstration && event.kind === 'experience'
+        return rules.filter(rule => rule.resolve ? !!rule.resolve(event) : rule.demonstration && event.kind === 'experience'
             && event.activity === rule.activity && event.demonstration === rule.demonstration
             && event.result === rule.result && event.master === rule.master)
             .map(rule => ({ id: rule.id, source: rule.source, experienceId,
                 master: event.master, demonstration: event.demonstration,
-                scope: { subject: 'self', activity: event.activity, result: event.result,
-                    ...(event.master ? { master: event.master } : {}) } }));
+                scope: { subject: 'self', activity: event.activity, ...(event.result !== undefined ? { result: event.result } : {}),
+                    ...(event.master ? { master: event.master } : {}), ...(rule.resolve ? rule.resolve(event) : {}) } }));
     }
 
     function learnExperience(state, experienceId, rules) {
@@ -77,7 +77,8 @@
                 .some(candidate => candidate.id === meaning.id && candidate.source === meaning.source
                     && candidate.master === evidence.master && candidate.demonstration === evidence.demonstration
                     // Older demonstrated-work saves have no scope; do not invent one on load.
-                    && (evidence.scope === undefined || evidence.scope
+                    && ((evidence.scope === undefined && !rules.some(rule => rule.id === candidate.id
+                        && rule.source === candidate.source && rule.requireScope)) || evidence.scope
                         && Object.keys(evidence.scope).length === Object.keys(candidate.scope).length
                         && Object.entries(candidate.scope).every(([key, value]) => evidence.scope[key] === value)))));
     }
@@ -545,7 +546,14 @@
         const turn = { id: input.id, speaker: input.speaker, understandings: clone(understandings), expression: clone(expression) };
         state.context.turns.push(turn);
         state.context.turns = state.context.turns.slice(-RULES.contextLimit);
-        return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression };
+        // An isolated label is a sensory pairing opportunity, not sentence comprehension.
+        const quotedLabel = /^(?:\u300c([^\u300d]+)\u300d|"([^"]+)"|\u201c([^\u201d]+)\u201d)$/u.exec(raw.trim());
+        const labelText = quotedLabel ? quotedLabel.slice(1).find(Boolean) : raw;
+        const lifeLabel = input.speaker === 'player' ? Object.entries(catalog.meanings)
+            .filter(([id, forms]) => (quotedLabel || !['hungry', 'tired'].includes(id))
+                && forms.some(form => normalize(form) === normalize(labelText)))
+            .map(([id]) => id) : [];
+        return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression, lifeLabel };
     }
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,

@@ -1,4 +1,8 @@
 {
+  "空腹・疲れの語は引用符で囲むと、プレイヤー自身の報告と区別できます。": "Setze Wörter für Hunger oder Müdigkeit in Anführungszeichen, um das Lehren eines Wortes vom Berichten eigener Empfindungen zu unterscheiden.",
+  "その言葉を聞きながら、今の動作や感覚に注意を向けている。": "Beim Hören des Wortes richtet sich die Aufmerksamkeit auf die eigene Handlung oder Empfindung.",
+  "行動中に聞いた言葉と、自分で確かめた経験が結び付いた。ほかの場面への応用は、まだ確かめていない。": "Ein während der Handlung gehörtes Wort wurde mit der eigenen Erfahrung verknüpft. Seine Anwendung in anderen Situationen ist noch nicht bestätigt.",
+  "指さしたものに近づいたら、呼び方を教えてみてください。食事中に「木の実」「食べる」「甘い」、休息中に「休む」など、一語ずつ伝えると、行動を終えた経験と言葉が結び付きます。質問や否定とは区別します。": "Sobald sich dein Gegenüber dem gezeigten Gegenstand nähert, kannst du dessen Namen nennen. Sage beim Essen einzelne Wörter wie „Beere“, „essen“ oder „süß“, beim Ausruhen „ausruhen“. So werden Wörter mit der abgeschlossenen Erfahrung verknüpft. Fragen und Verneinungen werden getrennt behandelt.",
   "詳しいことはまだ分からないけれど、話してくれた気持ちは受け取ったよ。": "Die Einzelheiten verstehe ich noch nicht, aber ich höre, welche Gefühle du mir beschreibst.",
   "話してくれた気持ち、聞いているよ。": "Ich höre zu, wenn du mir von deinen Gefühlen erzählst.",
   "うまくいったかどうかは伝わったよ。詳しい出来事は、まだ分からない。": "Ich habe verstanden, ob es geklappt hat. Die Einzelheiten verstehe ich noch nicht.",

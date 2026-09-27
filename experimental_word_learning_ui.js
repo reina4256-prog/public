@@ -23,6 +23,9 @@
         work_hungry: 'また考えたいけれど、今はお腹がすいている。',
         work_tired: 'また考えたいけれど、今は疲れている。',
         note_work_learned: '師匠の言葉と、自分で手伝った経験が結び付いた。',
+        life_label_received: 'その言葉を聞きながら、今の動作や感覚に注意を向けている。',
+        life_label_guide: '空腹・疲れの語は引用符で囲むと、プレイヤー自身の報告と区別できます。',
+        note_life_learned: '行動中に聞いた言葉と、自分で確かめた経験が結び付いた。ほかの場面への応用は、まだ確かめていない。',
         title: 'ことばと、小さな暮らし',
         masterPlaces: '島で働く人たち', masterVisit: '会いに行くよう誘う', pointed_master: '働いている人の方を指さした。',
         master_explore: '冒険家', master_farming: '農家', master_fishing: '漁師',
@@ -93,7 +96,7 @@
         note_empty: 'まだ書き留めたことはありません。近くのものを指さしたり、食事や休息を見守ったりしてみてください。',
         note_more: '前の記録も読む',
         playGuide: '遊びの手がかり',
-        playGuideText: '指さしたものに近づいたら、呼び方を教えてみてください。短い声かけを一つずつ。食べたり休んだりしたあとにも、ノートに経験が残ります。',
+        playGuideText: '指さしたものに近づいたら、呼び方を教えてみてください。食事中に「木の実」「食べる」「甘い」、休息中に「休む」など、一語ずつ伝えると、行動を終えた経験と言葉が結び付きます。質問や否定とは区別します。',
         noteGuide: 'この子に残った経験や考えを、読める文にしています。開いたり読み返したりしても、学習は増えません。',
         receivedName: '呼び方として受け取りました。ノートで確かめられます。',
         receivedPartial: '今回の声かけは、まだ十分には伝わっていません。短く言い換えたり、指さしてから話しかけたりしてみてください。',
@@ -339,6 +342,8 @@
     conversationButton.addEventListener('click', () => setNotebook(false));
     const guide = node('div', undefined, conversation); guide.className = 'play-guide';
     node('strong', t('playGuide'), guide); node('p', t(window.WordIslandMode ? 'islandGuide' : 'playGuideText'), guide);
+    if (window.WordIslandMode) node('p', t('playGuideText'), guide);
+    node('p', t('life_label_guide'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;
@@ -472,7 +477,7 @@
         const partialReportExplained = result.understandings.length === 1
             && ['heard_feeling_partial', 'heard_event_partial'].includes(reply.message);
         const hint = result.learning.some(item => item.updated.length) ? 'receivedName'
-            : !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
+            : !result.lifeLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
         if (hint) record('guidance', { key: hint, text: displayText(hint) });
         renderNotebook();

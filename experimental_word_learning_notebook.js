@@ -11,6 +11,11 @@
         const organizedExperiences = new Set(state.notes.map(n => n.experienceId).filter(id => id !== undefined));
         const knows = id => state.knowledge.meanings.some(m => m.id === id);
         for (const meaning of state.knowledge.meanings) {
+            if (meaning.source === 'experienced_life') {
+                for (const evidence of meaning.evidence) result.push({ group: 'names', message: 'note_name',
+                    literal: evidence.scope.label, target: evidence.scope.target, detail: 'note_life_learned',
+                    organized: organizedExperiences.has(evidence.experienceId) });
+            }
             if (meaning.source !== 'demonstrated_work' || !meaning.id.startsWith('work:')) continue;
             result.push({ group: 'names', message: `work_did_${meaning.id.slice(5)}`, target: meaning.id,
                 detail: 'note_work_learned', organized: meaning.evidence.some(e => organizedExperiences.has(e.experienceId)) });

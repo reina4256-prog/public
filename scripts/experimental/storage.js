@@ -4,6 +4,7 @@ const path = require('node:path');
 const navigation = require('../../experimental_word_island_navigation');
 const careers = require('../../experimental_word_careers');
 const worldApi = require('../../experimental_word_learning_world');
+const lifeLearning = require('../../experimental_word_life_learning');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
     const s = value?.state, w = value?.world;
@@ -31,6 +32,7 @@ function valid(value) {
         && Number.isInteger(w.fruit) && w.fruit >= 0 && w.fruit <= 3
         && careers.valid(w)
         && careers.validLearning(s)
+        && lifeLearning.valid(s, w)
         && worldApi.validContext(s, w)
         && (w.island === undefined || (navigation.valid(w.island)
             && (w.island.volume === undefined || (Number.isFinite(w.island.volume) && w.island.volume >= 0 && w.island.volume <= 1))

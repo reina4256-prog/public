@@ -74,6 +74,29 @@ test('all eight settings reach food and rest on the island, with grounded notebo
         worldApi.tick(world, 20, true); assert.equal(world.elapsed, before);
     }
 });
+test('autonomous island life reaches labelled experiences in all eight starts and enables grounded answers', () => {
+    worldApi.setNavigation(navigation.route);
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+        const state = core.create({ foundation, life, speech }, catalog), world = worldApi.create();
+        navigation.attach(world, island()); world.hunger = .8;
+        until(world, state, e => e?.kind === 'eat_start');
+        for (const raw of ['木の実', '食べる', '甘い']) {
+            const result = core.receive(state, raw, catalog);
+            worldApi.respond(world, result, state); assert.ok(result.lifeLearning);
+        }
+        const event = until(world, state, e => e?.kind === 'experience' && e.activity === 'eat');
+        const save = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+        assert.ok(valid(save));
+        const result = core.receive(save.state, 'おいしかった？', catalog);
+        const answer = worldApi.respond(save.world, result, save.state);
+        assert.equal(result.understandings[0].complete, foundation);
+        if (foundation && speech === 'short') assert.equal(answer.message, 'tasted_good');
+        assert.equal(save.state.knowledge.relations.length > 0, foundation);
+        assert.equal(save.world.experiences.filter(e => e.id === event.id).length, 1);
+        assert.equal(save.state.knowledge.meanings.find(m => m.id === 'eat').source, life ? 'initial' : 'experienced_life');
+    }
+});
+
 test('legacy prototype records and in-progress meal survive attachment without replaying consumption', () => {
     const state = core.create({ foundation: true, life: true, speech: 'short' }, catalog);
     const world = worldApi.create(); world.mode = 'eat'; world.harvest = 1; world.fruit = 1;

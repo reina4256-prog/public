@@ -14,6 +14,109 @@ const focus = (state, scene = 'clearing', count = 1) => api.perceive(state, {
     scene, attention: Array.from({ length: count }, (_, i) => ({ id: `berry:${i + 1}`, meaning: 'berry' }))
 });
 
+const lifeLearning = require('../experimental_word_life_learning');
+function lifeFixture(activity = 'eat', options = {}) {
+    const state = create({ life: false, ...options }), world = worldApi.create();
+    Object.assign(world, { mode: activity, elapsed: 10, activityStart: 10, dwell: 1,
+        attention: activity === 'eat' ? 'berry:1' : 'shade', hunger: .8, fatigue: .8,
+        harvest: 1, activityBefore: { hunger: .8, fatigue: .8 },
+        mealTaste: activity === 'eat' ? { quality: 'sweet', pleasant: true } : null });
+    return { state, world };
+}
+function labelLife(state, world, text, options) {
+    const result = say(state, text, options);
+    worldApi.respond(world, result, state);
+    return result;
+}
+function finishLife(state, world) {
+    for (let i = 0; i < 100; i++) {
+        const event = worldApi.tick(world, .1);
+        if (event) { worldApi.onArrival(world, state, event); return event; }
+    }
+    assert.fail('completion missing');
+}
+test('life labels connect objects actions and senses across eight starts only on completion', () => {
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const activity of ['eat', 'rest']) {
+            const { state, world } = lifeFixture(activity, { foundation, life, speech });
+            const relations = JSON.stringify(state.knowledge.relations);
+            const ids = activity === 'eat' ? ['berry', 'food', 'eat', 'sweet', 'hungry'] : ['rest', 'sleep', 'tired'];
+            for (const id of ids) {
+                const word = catalog.meanings[id][0];
+                const result = labelLife(state, world, ['hungry', 'tired'].includes(id) ? `"${word}"` : word);
+                assert.ok(result.lifeLearning);
+                assert.equal(state.knowledge.meanings.some(m => m.id === id), life);
+            }
+            const event = finishLife(state, world);
+            for (const id of ids) {
+                const meaning = state.knowledge.meanings.find(m => m.id === id);
+                assert.equal(meaning.source, life ? 'initial' : 'experienced_life');
+                if (!life) {
+                    assert.equal(meaning.evidence[0].experienceId, event.id);
+                    assert.equal(meaning.evidence[0].scope.target, event.target);
+                    assert.equal(meaning.evidence[0].scope.subject, 'self');
+                }
+            }
+            assert.equal(JSON.stringify(state.knowledge.relations), relations);
+            assert.ok(lifeLearning.valid(state, world));
+            const before = JSON.stringify(state);
+            lifeLearning.learn(state, event.id); notebookApi.entries(state);
+            assert.equal(JSON.stringify(state), before);
+        }
+    }
+});
+test('life learning rejects questions reports negation conditions wrong senses and absent labels', () => {
+    for (const raw of ['甘い？', '甘くない', '私は甘いものが好き', '疲れたら休んで', '甘い 食べる', '食べるよ', '疲れた', 'おなかがすいた']) {
+        const { state, world } = lifeFixture();
+        assert.equal(labelLife(state, world, raw).lifeLearning, undefined);
+        finishLife(state, world);
+        assert.equal(state.knowledge.meanings.length, 0);
+    }
+    for (const change of [{ mode: 'observe' }, { attention: 'berry:2', mode: 'rest' }, { mealTaste: null }, { mealTaste: { quality: 'bitter' } }]) {
+        const { state, world } = lifeFixture(); Object.assign(world, change);
+        assert.equal(labelLife(state, world, '甘い').lifeLearning, undefined);
+    }
+    const { state, world } = lifeFixture();
+    assert.equal(labelLife(state, world, '甘い', { speaker: 'someone' }).lifeLearning, undefined);
+    finishLife(state, world); assert.equal(state.knowledge.meanings.length, 0);
+});
+test('life labels use existing seven language terms and keep relations unknown', () => {
+    for (const [locale, raw] of [['ja', '甘い'], ['en', 'sweet'], ['zh-CN', '甜'], ['ru', 'сладкий'], ['es-ES', 'dulce'], ['pt-BR', 'doce'], ['de', 'süß']]) {
+        const { state, world } = lifeFixture('eat', { foundation: false });
+        labelLife(state, world, raw, { locale }); finishLife(state, world);
+        assert.equal(state.knowledge.meanings[0].id, 'sweet');
+        assert.equal(state.knowledge.meanings[0].evidence[0].scope.label, raw);
+        assert.equal(state.knowledge.relations.length, 0);
+    }
+});
+test('life labels survive mid-action saving, reject altered sources and do not retrofit old experiences', () => {
+    const store = require('../scripts/experimental/storage');
+    let { state, world } = lifeFixture();
+    labelLife(state, world, '甘い'); labelLife(state, world, '甘い');
+    assert.equal(world.lifeLabels.length, 1);
+    let value = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+    assert.ok(store.valid(value));
+    ({ state, world } = value); const event = finishLife(state, world);
+    assert.ok(store.valid(value));
+    for (const mutate of [v => v.state.knowledge.meanings[0].evidence[0].scope.subject = 'player',
+        v => delete v.state.knowledge.meanings[0].evidence[0].scope,
+        v => v.state.experiences[0].lifeLabels[0].target = 'berry:2',
+        v => v.world.experiences[0].taste.quality = 'bitter',
+        v => v.state.experiences[0].lifeLabels = {}]) {
+        const altered = JSON.parse(JSON.stringify(value)); mutate(altered); assert.equal(store.valid(altered), false);
+    }
+    delete state.experiences[0].lifeLabels; delete world.experiences[0].lifeLabels;
+    state.knowledge.meanings = [];
+    assert.equal(lifeLearning.learn(state, event.id).updated.length, 0);
+    assert.ok(store.valid(value));
+});
+test('interrupted rest drops pending life labels and does not teach from later rest', () => {
+    const { state, world } = lifeFixture('rest'); labelLife(state, world, '休む');
+    assert.ok(worldApi.approach(world, 'path'));
+    assert.deepEqual(world.lifeLabels, []);
+    assert.equal(state.knowledge.meanings.length, 0);
+});
+
 test('shared experience learning separates candidates, adoption and updates without teaching relations', () => {
     const rule = { id: 'eat', source: 'test_demonstration', activity: 'eat',
         demonstration: 'test_label', result: 'test_finished' };

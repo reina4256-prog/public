@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -58,6 +58,57 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
+        if (process.argv.includes('--life')) {
+            nextLoad = structuredClone(snapshot);
+            nextLoad.state.settings.life = false; nextLoad.state.knowledge.meanings = [];
+            Object.assign(nextLoad.world, { mode: 'observe', dwell: 5, attention: 'berry:1',
+                destination: null, hunger: .8, fatigue: .2 });
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            await sleep(300);
+            const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
+            assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
+            for (const raw of ['木の実', '食べる', '甘い']) await chat(raw);
+            assert.equal(snapshot.world.mode, 'eat');
+            assert.equal(snapshot.world.lifeLabels.length, 3);
+            assert.equal(snapshot.state.knowledge.meanings.length, 0);
+            const labels = JSON.stringify(snapshot.world.lifeLabels);
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            assert.equal(JSON.stringify(snapshot.world.lifeLabels), labels);
+            await sleep(6500);
+            await chat('おいしかった？');
+            assert.ok(await js('document.querySelector("#conversation").textContent.includes("甘くておいしかった")'));
+            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'eat').length, 1);
+            for (const id of ['berry', 'eat', 'sweet']) {
+                const meaning = snapshot.state.knowledge.meanings.find(m => m.id === id);
+                assert.equal(meaning.source, 'experienced_life'); assert.equal(meaning.evidence.length, 1);
+            }
+            nextLoad = structuredClone(snapshot);
+            Object.assign(nextLoad.world, { mode: 'rest', dwell: 2, attention: 'shade', destination: null,
+                activityStart: nextLoad.world.elapsed, activityBefore: { hunger: .3, fatigue: .8 }, fatigue: .8 });
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            await chat('休む'); await chat('"疲れた"'); await sleep(3200);
+            await chat('休めた？');
+            assert.equal(snapshot.state.context.turns.at(-1).answer.response.message, 'rest_helped');
+            assert.ok(snapshot.state.knowledge.meanings.some(m => m.id === 'rest' && m.source === 'experienced_life'));
+            await js('Array.from(document.querySelectorAll("button")).find(b=>b.textContent.includes("この子のノート")).click()');
+            assert.ok(await js('document.body.textContent.includes("行動中に聞いた言葉と")'));
+            window.setSize(1281, 800); await sleep(500);
+            const screenshot = path.resolve(__dirname, '../../tests/word-life-smoke.png');
+            fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
+            const meanings = JSON.stringify(snapshot.state.knowledge.meanings);
+            await window.loadURL(url); await paintClock(); await sleep(600);
+            await js('document.querySelector("#app > form").requestSubmit()');
+            assert.equal(JSON.stringify(snapshot.state.knowledge.meanings), meanings);
+            assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, 1);
+            assert.equal(JSON.stringify(snapshot.world.island.assets), initialMap);
+            assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, life: true, initial, screenshot, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--context')) {
             // Disposable fixture only: keep the actor idle while testing chat, then
             // let the real single tick complete a meal and publish its observation.

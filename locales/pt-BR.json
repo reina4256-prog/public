@@ -1,4 +1,8 @@
 {
+  "空腹・疲れの語は引用符で囲むと、プレイヤー自身の報告と区別できます。": "Coloque palavras de fome ou cansaço entre aspas para distinguir o ensino de uma palavra de um relato sobre suas próprias sensações.",
+  "その言葉を聞きながら、今の動作や感覚に注意を向けている。": "Ao ouvir essa palavra, presta atenção à ação ou sensação atual.",
+  "行動中に聞いた言葉と、自分で確かめた経験が結び付いた。ほかの場面への応用は、まだ確かめていない。": "Uma palavra ouvida durante uma ação foi associada à própria experiência. Seu uso em outras situações ainda não foi confirmado.",
+  "指さしたものに近づいたら、呼び方を教えてみてください。食事中に「木の実」「食べる」「甘い」、休息中に「休む」など、一語ずつ伝えると、行動を終えた経験と言葉が結び付きます。質問や否定とは区別します。": "Quando se aproximar do que você apontou, tente ensinar o nome. Diga uma palavra por vez, como “fruta”, “comer” ou “doce” durante a refeição, ou “descansar” durante o descanso, para associar as palavras à experiência concluída. Perguntas e negações são tratadas separadamente.",
   "詳しいことはまだ分からないけれど、話してくれた気持ちは受け取ったよ。": "Ainda não entendo os detalhes, mas ouvi o que você contou sobre seus sentimentos.",
   "話してくれた気持ち、聞いているよ。": "Estou ouvindo o que você conta sobre seus sentimentos.",
   "うまくいったかどうかは伝わったよ。詳しい出来事は、まだ分からない。": "Entendi se deu certo ou não. Ainda não entendo os detalhes do que aconteceu.",
