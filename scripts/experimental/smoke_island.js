@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -58,6 +58,51 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
+        if (process.argv.includes('--boundaries')) {
+            const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
+            const resume = async () => {
+                await window.loadURL(url); await paintClock(); await sleep(600);
+                await js('document.querySelector("#app > form").requestSubmit()'); await sleep(150);
+            };
+            nextLoad = structuredClone(snapshot);
+            Object.assign(nextLoad.world, { mode: 'observe', dwell: 60, attention: 'shade',
+                destination: null, hunger: .2, fatigue: .2 });
+            await resume();
+            assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
+            const groundedKnowledge = () => JSON.stringify({ ...snapshot.state.knowledge,
+                associations: snapshot.state.knowledge.associations.filter(a => a.evidence.length) });
+            const knowledge = groundedKnowledge();
+            for (const raw of ['疲れたら。少し休もう', '食べ終わったら\n少し休もう', 'でも。少し休もう']) {
+                await chat(raw);
+                const u = snapshot.state.context.turns.at(-1).understandings.at(-1);
+                assert.equal(u.complete, false); assert.ok(u.unresolved.some(item => item.type === 'clause_scope'));
+                assert.equal(snapshot.world.destination, null);
+                assert.equal(groundedKnowledge(), knowledge);
+            }
+            await chat('これをぽぽって呼ぼう');
+            const original = snapshot.state.records.at(-1).id;
+            const name = JSON.stringify(snapshot.state.knowledge.associations.find(a => a.word === 'ぽぽ'));
+            await chat('もし違うなら。さっきの説明は間違えた');
+            assert.equal(snapshot.state.records.find(r => r.id === original).retractedBy, undefined);
+            assert.equal(JSON.stringify(snapshot.state.knowledge.associations.find(a => a.word === 'ぽぽ')), name);
+            const unresolved = JSON.stringify(snapshot.state.context.turns.at(-1).understandings);
+            await resume();
+            assert.equal(JSON.stringify(snapshot.state.context.turns.at(-1).understandings), unresolved);
+            assert.equal(JSON.stringify(snapshot.state.knowledge.associations.find(a => a.word === 'ぽぽ')), name);
+            await chat('これをももって呼ぼう');
+            await chat('さっきの説明は間違えた');
+            assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, true);
+            await chat('少し休もう');
+            assert.equal(snapshot.world.destination, 'shade');
+            assert.equal(snapshot.world.reasons[0].kind, 'understood_suggestion');
+            window.setSize(1281, 800); await sleep(500);
+            const screenshot = path.resolve(__dirname, '../../tests/word-boundaries-smoke.png');
+            fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
+            assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, boundaries: true, initial, screenshot, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times')) {
             const questions = process.argv.includes('--questions');
             const proposals = process.argv.includes('--proposals');

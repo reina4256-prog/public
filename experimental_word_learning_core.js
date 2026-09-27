@@ -762,6 +762,14 @@
         const understandings = interpretations.map(frame => understand(state, frame, input.speaker, catalog, input.locale));
         understandings.forEach((u, index) => {
             const frame = interpretations[index];
+            // Splitting sentences does not establish the scope of a condition,
+            // contrast or correction. Keep recognized content, but do not act on
+            // an isolated proposal or retract evidence through an isolated reply.
+            // An explicitly parsed whole-input definition remains one frame.
+            if (interpretations.length > 1 && ['request', 'invitation', 'correction', 'reply'].includes(frame.kind)) {
+                u.unresolved.push({ type: 'clause_scope' });
+                u.complete = false;
+            }
             if (frame.reportReference) {
                 u.reportReference = clone(frame.reportReference);
                 if (frame.timeSource) u.timeSource = frame.timeSource;
@@ -790,7 +798,7 @@
         }
         understandings.forEach((u, index) => {
             const frame = interpretations[index];
-            if (frame.kind !== 'reply' || u.kind !== 'reply') return;
+            if (frame.kind !== 'reply' || u.kind !== 'reply' || !u.complete) return;
             u.answer = frame.answer; u.replyTo = frame.replyTo;
             const link = state.knowledge.associations.find(a => a.word === frame.replyTo.word
                 && a.target === frame.replyTo.target && a.speaker === input.speaker);
@@ -821,7 +829,7 @@
         // Retraction applies only to the latest understood naming explanation, never
         // to all past knowledge. A missing or ambiguous antecedent remains unresolved.
         understandings.forEach((u, index) => {
-            if (u.kind !== 'correction') return;
+            if (u.kind !== 'correction' || !u.complete) return;
             const previous = state.context.turns.at(-1);
             const record = previous && state.records.find(r => r.id === previous.id && r.speaker === input.speaker
                 && !r.retractedBy && r.understandings.length === 1 && r.understandings[0].kind === 'naming');

@@ -83,6 +83,97 @@ function prepareNegation(state, world, locale = 'ja') {
 const timeDemo = (locale, time) => {
     const item = catalog.timeTeaching[locale][time]; return `${item.marker}「${item.utterance}」`;
 };
+test('3c3a: disconnected clauses cannot dispatch a final proposal across eight starts and seven locales', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const forms = {
+        ja: ['疲れたら', '食べ終わったら', 'その理由なら', '訂正すると', 'でも', '少し休もう'],
+        en: ['If you are tired', 'After eating', 'Because of that', 'To correct that', 'But', "let's rest"],
+        'zh-CN': ['如果你累了', '吃完以后', '因为这件事', '更正一下', '但是', '一起休息吧'],
+        ru: ['Если ты устал', 'После еды', 'По этой причине', 'Поправка', 'Но', 'давай отдохнём'],
+        'es-ES': ['Si estás cansado', 'Después de comer', 'Por esa razón', 'Para corregir eso', 'Pero', 'descansemos un poco'],
+        'pt-BR': ['Se você estiver cansado', 'Depois de comer', 'Por esse motivo', 'Para corrigir isso', 'Mas', 'vamos descansar um pouco'],
+        de: ['Wenn du müde bist', 'Nach dem Essen', 'Aus diesem Grund', 'Zur Korrektur', 'Aber', 'ruhen wir uns etwas aus']
+    };
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const [locale, formsInLocale] of Object.entries(forms)) {
+            const options = { foundation, life, speech }, proposal = formsInLocale.at(-1);
+            const singleState = create(options), singleWorld = worldApi.create();
+            const single = say(singleState, proposal, { locale });
+            worldApi.respond(singleWorld, single, singleState);
+            assert.equal(single.understandings[0].complete, foundation && life);
+            assert.equal(singleWorld.destination, foundation && life ? 'shade' : null);
+            for (const prefix of formsInLocale.slice(0, -1)) for (const separator of ['\n', '。']) {
+                let state = create(options), world = worldApi.create();
+                const before = JSON.stringify(state.knowledge);
+                for (let repeat = 0; repeat < 2; repeat++) {
+                    const result = say(state, prefix + separator + proposal, { locale });
+                    assert.equal(result.interpretations.length, 2);
+                    assert.equal(result.understandings.at(-1).complete, false, `${locale}: ${prefix}`);
+                    assert.ok(result.understandings.at(-1).unresolved.some(u => u.type === 'clause_scope'));
+                    worldApi.respond(world, result, state);
+                    assert.equal(world.destination, null, `${locale}: ${prefix}`);
+                    assert.equal(JSON.stringify(state.knowledge), before);
+                    assert.equal(world.experiences.length, 0);
+                    const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                    assert.ok(valid(saved));
+                    ({ state, world } = saved);
+                }
+            }
+        }
+    }
+});
+
+test('3c3a: a disconnected retraction cannot invalidate the preceding name or confirmation', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const speech of ['gesture', 'short']) for (const raw of [
+        'もし違うなら。さっきの説明は間違えた', 'さっきの説明は間違えた。とは言っていない',
+        'その場合だけ\nううん', 'ううん\nとは言っていない'
+    ]) {
+        const state = create({ speech }), world = worldApi.create(); focus(state);
+        const original = say(state, 'これをぽぽって呼ぼう');
+        state.context.pendingQuestion = { kind: 'confirm_name', speaker: 'player', word: 'ぽぽ',
+            target: 'berry:1', inputId: original.input.id, expires: state.serial + 3 };
+        const before = JSON.stringify(state.knowledge.associations[0]);
+        const result = say(state, raw);
+        assert.ok(result.understandings.some(u => u.unresolved.some(item => item.type === 'clause_scope')));
+        assert.equal(state.records[0].retractedBy, undefined, raw);
+        assert.equal(JSON.stringify(state.knowledge.associations[0]), before, raw);
+        assert.ok(state.knowledge.associations.slice(1).every(link => link.evidence.length === 0));
+        assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+    }
+});
+
+test('3c3a: bounded condition, sequence, reason, correction and contrast do not acquire themselves', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const cases = [
+        ['condition', '疲れたら休んでね'], ['sequence', '食べ終わったら散歩しよう'],
+        ['reason', 'どうして休んだの？'], ['correction', 'さっきの説明は間違えた'],
+        ['contrast', '昨日は悲しかったけど、今はうれしい']
+    ];
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const [relation, raw] of cases) {
+            const state = create({ foundation, life, speech }), world = worldApi.create();
+            const before = JSON.stringify(state.knowledge);
+            for (let repeat = 0; repeat < 3; repeat++) {
+                const result = say(state, raw);
+                assert.ok(result.interpretations.some(f => f.relations.includes(relation)));
+                if (!foundation) assert.ok(result.understandings.some(u => u.unresolved.some(r => r.id === relation)));
+                if (['condition', 'sequence'].includes(relation)) assert.equal(result.understandings[0].conditionStatus, 'unknown');
+                if (relation === 'correction') assert.equal(result.understandings[0].complete, false);
+                if (relation === 'contrast' && foundation && life) {
+                    assert.deepEqual(result.understandings.map(u => [u.subject, u.eventTime, u.known.meaning]),
+                        [['player', 'yesterday', 'sad'], ['player', 'now', 'happy']]);
+                }
+                worldApi.respond(world, result, state);
+                assert.equal(world.destination, null);
+                assert.equal(JSON.stringify(state.knowledge), before);
+                assert.equal(world.experiences.length, 0);
+                assert.ok(valid(JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }))));
+            }
+        }
+    }
+});
+
 test('3c2: one original rest changes from present to past across eight starts and seven languages', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
