@@ -379,6 +379,21 @@
         return entry.scope.scene === state.context.scene;
     }
 
+    function correctionFrame(raw, locale, catalog) {
+        const marks = catalog.correctionTeaching?.[locale];
+        if (!marks) return null;
+        for (const phase of ['source', 'replacement']) {
+            const prefix = `${marks[phase]}«`;
+            if (!raw.startsWith(prefix) || !raw.endsWith('»')) continue;
+            const utterance = raw.slice(prefix.length, -1), content = wordFrame(utterance, locale);
+            if (!content || content.kind !== (phase === 'source' ? 'word_explanation' : 'word_correction')
+                || content.oldMeaning) return null;
+            return { ...content, kind: 'correction_demonstration', phase, utterance,
+                relations: ['naming'], span: raw, catalogRule: 'correction_teaching' };
+        }
+        return null;
+    }
+
     function wordApplication(state, word, speaker) {
         const candidates = (state.knowledge.wordExplanations || []).filter(entry => !entry.retractedBy
             && normalize(entry.word) === normalize(word) && wordScope(state, entry, speaker));
@@ -444,6 +459,10 @@
                 u.unresolved.push({ type: 'correction_target' }); u.complete = false; return output;
             }
             old = matches[0];
+            const learned = u.relationReferences?.find(r => r.id === 'correction');
+            if (learned && (old.inputId !== learned.scope.original || old.input?.locale !== input.locale)) {
+                u.unresolved.push({ type: 'correction_target' }); u.complete = false; return output;
+            }
             if (old.meaning === u.known.meaning) {
                 u.unresolved.push({ type: 'correction_unchanged' }); u.complete = false; return output;
             }
@@ -507,6 +526,18 @@
             }
             if (entry.corrects) {
                 const old = entries.find(e => e.inputId === entry.corrects);
+                if (!state.settings.foundation) {
+                    const ref = u.relationReferences?.find(r => r.id === 'correction');
+                    if (!ref || !state.knowledge.relations.some(r => JSON.stringify(r) === JSON.stringify(ref))
+                        || ref.scope.original !== entry.corrects || !entry.input
+                        || !ref.evidence.every(id => Number(id.slice(6)) < Number(entry.inputId.slice(6)))) return false;
+                    const prior = clone(state);
+                    prior.context.scene = entry.scope.scene;
+                    prior.context.attention = entry.scope.targets.map(id => ({ id }));
+                    prior.knowledge.relations = [ref];
+                    if (catalog && !understand(prior, wordFrame(entry.input.raw, entry.input.locale),
+                        entry.speaker, catalog, entry.input.locale).relations.includes('correction')) return false;
+                }
                 const oldLinks = state.knowledge.associations.filter(link => link.speaker === entry.speaker
                     && normalize(link.word) === normalize(entry.word)
                     && link.evidence.some(e => e.inputId === entry.corrects && e.retractedBy === entry.inputId));
@@ -546,13 +577,18 @@
     function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
-        const applies = entry => entry.scope?.kind === (entry.id === 'naming' && frame.kind === 'word_correction'
+        const applies = entry => entry.scope?.kind === (entry.id === 'naming' && ['word_correction', 'correction_demonstration'].includes(frame.kind)
             ? 'word_explanation' : frame.kind === 'reason_demonstration' ? 'question' : ['sequence_demonstration', 'sequential_proposal'].includes(frame.kind)
             ? entry.id === 'request' ? 'request' : 'sequential_proposal' : ['condition_demonstration', 'conditional_proposal'].includes(frame.kind)
             ? entry.id === 'request' ? 'request' : 'conditional_proposal' : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
             : ['report_demonstration', 'negation_demonstration', 'time_demonstration'].includes(frame.kind) ? 'report' : frame.kind) && entry.scope.locale === locale
-            && entry.scope.speaker === speaker && (entry.id === 'question'
+            && entry.scope.speaker === speaker && (entry.id === 'correction'
+                ? !frame.oldMeaning && entry.scope.form === normalize(frame.span)
+                    && entry.scope.word === normalize(frame.word) && entry.scope.meaning === lexicalMeaning(frame.meaning, catalog)
+                    && entry.scope.scene === state.context.scene
+                    && JSON.stringify(entry.scope.targets) === JSON.stringify(state.context.attention.map(a => a.id))
+                : entry.id === 'question'
                 ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
                 : entry.id === 'reason'
                     ? frame.slot === 'reason' && entry.scope.slot === 'reason' && entry.scope.meaning === 'rest'
@@ -788,7 +824,7 @@
         const answer = (!delivered || (delivered.inputId === previous?.id && delivered.deliveryKind === 'speech')) && previous?.answer;
         const followup = contextQuestion(state, raw, input.locale, input.speaker, catalog);
         const reportFollowup = reportContinuation(state, raw, input);
-        const definition = wordFrame(raw, input.locale) || wordUseFrame(raw, input.locale);
+        const definition = correctionFrame(raw, input.locale, catalog) || wordFrame(raw, input.locale) || wordUseFrame(raw, input.locale);
         const interpretations = definition ? [definition] : repeats && answer && previous.speaker === input.speaker
             ? [{ kind: 'question', slot: 'repeat_answer', subject: 'self', relations: ['question'],
                 span: raw, catalogRule: 'context_repeat', replyTo: previous.id }]
@@ -946,5 +982,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame });
+        wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame });
 });

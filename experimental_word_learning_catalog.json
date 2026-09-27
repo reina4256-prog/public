@@ -1,4 +1,13 @@
 {
+  "correctionTeaching": {
+    "ja": { "source": "【訂正元】", "replacement": "【取り下げて置換】", "exampleSource": "ぽぽは休むことだよ", "exampleReplacement": "さっき間違えた。ぽぽは食べることだよ" },
+    "en": { "source": "【Correction source】", "replacement": "【Withdraw and replace】", "exampleSource": "\"popo\" means \"rest\"", "exampleReplacement": "I was wrong. \"popo\" means \"eat\"" },
+    "zh-CN": { "source": "【订正原文】", "replacement": "【撤回并替换】", "exampleSource": "“popo”的意思是“休息”", "exampleReplacement": "刚才说错了。“popo”的意思是“吃”" },
+    "ru": { "source": "【Исходное объяснение】", "replacement": "【Отозвать и заменить】", "exampleSource": "\"popo\" значит \"отдых\"", "exampleReplacement": "Я ошибся. \"popo\" значит \"есть\"" },
+    "es-ES": { "source": "【Explicación original】", "replacement": "【Retirar y sustituir】", "exampleSource": "\"popo\" significa \"descansar\"", "exampleReplacement": "Me equivoqué. \"popo\" significa \"comer\"" },
+    "pt-BR": { "source": "【Explicação original】", "replacement": "【Retirar e substituir】", "exampleSource": "\"popo\" significa \"descansar\"", "exampleReplacement": "Eu errei. \"popo\" significa \"comer\"" },
+    "de": { "source": "【Ursprüngliche Erklärung】", "replacement": "【Zurücknehmen und ersetzen】", "exampleSource": "\"popo\" bedeutet \"ausruhen\"", "exampleReplacement": "Ich habe mich geirrt. \"popo\" bedeutet \"speisen\"" }
+  },
   "reasonTeaching": {
     "ja": { "question": "【理由質問】", "reason": "【理由説明】", "utterance": "どうして休んだの？" },
     "en": { "question": "【Reason question】", "reason": "【Reason explanation】", "utterance": "Why did you rest?" },

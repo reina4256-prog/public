@@ -1289,6 +1289,17 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
                 labelLife(state, world, reasonDemo(locale, stage, choice), { locale });
             }
             assert.equal(say(state, catalog.reasonTeaching[locale].utterance, { locale }).understandings[0].complete, true);
+            const correction = catalog.correctionTeaching[locale];
+            // Use a fresh word to avoid earlier activity-specific explanations.
+            const newWord = locale === 'ja' ? 'るる' : 'lulu';
+            const originalText = correction.exampleSource.replace(locale === 'ja' ? 'ぽぽ' : 'popo', newWord);
+            const replacementText = correction.exampleReplacement.replace(locale === 'ja' ? 'ぽぽ' : 'popo', newWord);
+            const preserved = JSON.stringify(state.experiences);
+            const originalInput = labelLife(state, world, originalText, { locale }).input.id;
+            labelLife(state, world, `${correction.source}«${originalText}»`, { locale });
+            labelLife(state, world, `${correction.replacement}«${replacementText}»`, { locale });
+            assert.equal(labelLife(state, world, replacementText, { locale }).understandings[0].corrects, originalInput);
+            assert.equal(JSON.stringify(state.experiences), preserved);
             for (const raw of [q, catalog.proposalTeaching[locale].request.utterance, catalog.proposalTeaching[locale].invitation.utterance,
                 catalog.reportTeaching[locale].self.utterance, catalog.reportTeaching[locale].player.utterance, relationForms[locale][1]]) {
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
@@ -1595,6 +1606,148 @@ test('3b1: naming and question sources coexist and saves reject forged roles, sc
         v => { v.state.knowledge.relationEvidence.push(v.state.knowledge.relationEvidence[1]); }
     ]) {
         const changed = JSON.parse(JSON.stringify(value)); mutate(changed); assert.equal(!!valid(changed), false);
+    }
+});
+
+function correctionFixture(options = {}, locale = 'ja') {
+    const state = create({ foundation: false, ...options }), world = worldApi.create();
+    if (!state.settings.life) for (const [i, activity] of ['eat', 'rest'].entries()) {
+        startRelationActivity(state, world, activity);
+        labelLife(state, world, questionForms[locale][i + 1], { locale }); finishLife(state, world);
+    }
+    if (!state.settings.foundation) for (const [i, activity] of ['eat', 'rest'].entries()) {
+        startRelationActivity(state, world, activity);
+        labelLife(state, world, relationForms[locale][i], { locale }); finishLife(state, world);
+    }
+    api.perceive(state, { scene: 'clearing', attention: [] });
+    const forms = catalog.correctionTeaching[locale];
+    const old = labelLife(state, world, forms.exampleSource, { locale });
+    const source = `${forms.source}«${forms.exampleSource}»`, replacement = `${forms.replacement}«${forms.exampleReplacement}»`;
+    return { state, world, forms, old, source, replacement };
+}
+test('3c3e2: teaching and actual correction stay separate across eight starts and seven languages', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(relationForms)) {
+            let { state, world, forms, old, source, replacement } = correctionFixture({ foundation, life, speech }, locale);
+            const origins = JSON.stringify(state.experiences), original = structuredClone(state.knowledge.wordExplanations);
+            assert.ok(labelLife(state, world, source, { locale }).relationLearning, `source ${locale}`);
+            const reload = () => {
+                const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+                assert.ok(valid(saved), `${foundation}:${life}:${speech}:${locale}`); ({ state, world } = saved);
+            };
+            reload();
+            assert.ok(labelLife(state, world, replacement, { locale }).relationLearning, `replacement ${locale}`);
+            assert.deepEqual(state.knowledge.wordExplanations, original);
+            assert.equal(state.knowledge.relations.filter(r => r.id === 'correction').length, 1);
+            const relations = JSON.stringify(state.knowledge.relations);
+            labelLife(state, world, source, { locale }); labelLife(state, world, replacement, { locale });
+            assert.equal(JSON.stringify(state.knowledge.relations), relations);
+            reload();
+            if (!foundation) {
+                assert.equal(say(state, forms.exampleReplacement, { locale, speaker: 'friend' }).understandings[0].complete, false);
+                api.perceive(state, { scene: 'other', attention: [] });
+                assert.equal(say(state, forms.exampleReplacement, { locale }).understandings[0].complete, false);
+                api.perceive(state, { scene: 'clearing', attention: [] });
+                assert.equal(state.knowledge.relations.some(r => ['negation', 'contrast'].includes(r.id)), false);
+            }
+            const result = labelLife(state, world, forms.exampleReplacement, { locale });
+            assert.equal(result.understandings[0].corrects, old.input.id);
+            assert.equal(state.knowledge.wordExplanations[0].retractedBy, result.input.id);
+            assert.equal(JSON.stringify(state.experiences), origins);
+            reload();
+            for (let i = 0; i < 20; i++) labelLife(state, world, 'unknown xyz', { locale });
+            reload();
+            assert.equal(notebookApi.entries(state).filter(e => e.message === 'note_correction_demo').length, 2);
+        }
+    }
+});
+test('3c3e2: incomplete, ambiguous, foreign, unknown and legacy sources cannot teach or retract', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const failure of ['reverse', 'unknown', 'speaker', 'locale', 'scope', 'ambiguous', 'legacy', 'changed']) {
+        const { state, world, forms, source, replacement } = correctionFixture();
+        if (failure === 'ambiguous') labelLife(state, world, 'ぽぽは食べることだよ');
+        if (failure === 'legacy') {
+            delete state.knowledge.wordExplanations[0].input;
+            for (const r of state.records) if (r.understandings[0].wordExplanation) delete r.understandings[0].wordExplanation.input;
+        }
+        if (failure !== 'reverse') labelLife(state, world, source);
+        if (failure === 'scope') api.perceive(state, { scene: 'elsewhere', attention: [] });
+        if (failure === 'changed') labelLife(state, world, 'ぽぽは食べることだよ');
+        labelLife(state, world, failure === 'unknown' ? replacement.replace('食べる', '謎めく') : replacement,
+            failure === 'speaker' ? { speaker: 'friend' } : failure === 'locale' ? { locale: 'en' } : {});
+        assert.equal(state.knowledge.relations.some(r => r.id === 'correction'), false, failure);
+        assert.ok(state.knowledge.wordExplanations.every(e => !e.retractedBy), failure);
+        assert.ok(valid({ version: 1, appearance: 'robot', state, world }), failure);
+    }
+});
+test('3c3e2: saved source, teaching time, basis, direction and acquired scope reject edits', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const { state, world, source, replacement, forms } = correctionFixture({ life: false });
+    labelLife(state, world, source); labelLife(state, world, replacement);
+    labelLife(state, world, forms.exampleReplacement);
+    const value = { version: 1, appearance: 'robot', state, world };
+    assert.ok(valid(value));
+    for (const mutate of [
+        v => v.state.correctionLessons[0].original.input.raw = 'changed',
+        v => v.state.correctionLessons[0].source.input.locale = 'en',
+        v => v.state.correctionLessons[0].replacement.input.raw = source,
+        v => v.state.correctionLessons[0].replacement.at = -1,
+        v => v.state.correctionLessons[0].source.namingBasis = [],
+        v => v.state.correctionLessons[0].replacement.basis.evidence = [],
+        v => v.state.correctionLessons[0].replacement.scope.scene = 'elsewhere',
+        v => v.state.correctionLessons[0].replacement.understanding.known.meaning = 'rest',
+        v => v.state.knowledge.relations.find(r => r.id === 'correction').scope.original = 'input:1',
+        v => delete v.state.records.at(-1).understandings[0].relationReferences,
+        v => v.state.correctionLessons.push(structuredClone(v.state.correctionLessons[0]))
+    ]) { const edited = structuredClone(value); mutate(edited); assert.equal(valid(edited), false); }
+});
+test('3c3e2: prerequisites, exact source and unchanged replacement cannot be supplied by teaching marks', () => {
+    const forms = catalog.correctionTeaching.ja;
+    for (const options of [{ foundation: false, life: false }, { foundation: false, life: true }]) {
+        const state = create(options), world = worldApi.create();
+        for (const text of [forms.exampleSource, `${forms.source}«${forms.exampleSource}»`,
+            `${forms.replacement}«${forms.exampleReplacement}»`]) labelLife(state, world, text);
+        assert.equal(state.correctionLessons, undefined);
+        assert.equal(state.knowledge.relations.length, 0);
+        assert.equal(state.knowledge.wordExplanations, undefined);
+    }
+    const { state, world, source, replacement } = correctionFixture();
+    labelLife(state, world, source.replace('休む', '食べる'));
+    assert.equal(state.correctionLessons, undefined);
+    labelLife(state, world, source);
+    labelLife(state, world, replacement.replace('食べる', '休む'));
+    assert.equal(state.correctionLessons[0].replacement, undefined);
+    labelLife(state, world, replacement);
+    for (const raw of ['さっき間違えた。もぐは食べることだよ', 'ぽぽは休むことじゃなくて、食べることだよ',
+        'さっき間違えた。ぽぽは眠ることだよ', 'さっきの説明は間違えた', '雨なら。さっき間違えた。ぽぽは食べることだよ']) {
+        assert.equal(labelLife(state, world, raw).understandings.every(u => u.complete), false, raw);
+        assert.equal(state.knowledge.wordExplanations[0].retractedBy, undefined);
+    }
+    assert.equal(labelLife(state, world, forms.exampleReplacement).understandings[0].complete, true);
+});
+test('3c3e2: later experience cannot rewrite teaching basis and the opposite replacement needs its own lesson', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const { state, world, source, replacement } = correctionFixture({ life: false });
+    labelLife(state, world, source);
+    const originalSource = structuredClone(state.correctionLessons[0].source);
+    startRelationActivity(state, world, 'rest'); labelLife(state, world, '休む'); finishLife(state, world);
+    assert.deepEqual(state.correctionLessons[0].source, originalSource);
+    assert.equal(state.knowledge.relations.some(r => r.id === 'correction'), false);
+    api.perceive(state, { scene: 'clearing', attention: [] });
+    labelLife(state, world, replacement);
+    assert.ok(valid({ version: 1, appearance: 'robot', state, world }));
+    for (const locale of Object.keys(relationForms)) {
+        const fixture = correctionFixture({}, locale), forms = catalog.correctionTeaching[locale];
+        const rest = api.wordFrame(forms.exampleSource, locale).meaning;
+        const eat = api.wordFrame(forms.exampleReplacement, locale).meaning;
+        const raw = forms.exampleSource.replace(rest, eat).replace(locale === 'ja' ? 'ぽぽ' : 'popo', 'mimi');
+        const correction = forms.exampleReplacement.replace(eat, rest).replace(locale === 'ja' ? 'ぽぽ' : 'popo', 'mimi');
+        const old = labelLife(fixture.state, fixture.world, raw, { locale });
+        labelLife(fixture.state, fixture.world, `${forms.source}«${raw}»`, { locale });
+        labelLife(fixture.state, fixture.world, `${forms.replacement}«${correction}»`, { locale });
+        assert.equal(labelLife(fixture.state, fixture.world, correction, { locale }).understandings[0].corrects, old.input.id);
+        assert.ok(valid({ version: 1, appearance: 'robot', state: fixture.state, world: fixture.world }));
     }
 });
 

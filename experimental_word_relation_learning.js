@@ -52,6 +52,95 @@
                 known.evidence.some(item => equal(item, e)) && (state.experiences || [])
                     .some(event => event.id === e.experienceId && event.end <= at));
     }
+    // These lessons reference heard explanations, never new bodily experiences.
+    const correctionScope = state => ({ scene: state.context.scene, targets: state.context.attention.map(a => a.id) });
+    function explanationsAt(state, word, speaker, serial) {
+        return (state.knowledge.wordExplanations || []).filter(e => wordKey(e.word) === wordKey(word) && e.speaker === speaker
+            && Number(e.inputId.slice(6)) < serial && (!e.retractedBy || Number(e.retractedBy.slice(6)) >= serial)
+            && core.wordScope(state, e, speaker));
+    }
+    function correctionEvidence(lesson) {
+        return { relation: 'correction', inputId: lesson.replacement.input.id, sourceId: lesson.source.input.id,
+            original: lesson.original.inputId, locale: lesson.source.input.locale, speaker: 'player',
+            word: wordKey(lesson.original.word), meaning: lesson.replacement.understanding.known.meaning,
+            form: wordKey(lesson.replacement.frame.utterance), scope: copy(lesson.source.scope) };
+    }
+    function validCorrectionLesson(lesson, state, world, catalog) {
+        if (!lesson?.source || !lesson.original || !core.validWordLearning(state, catalog)) return false;
+        const original = state.knowledge.wordExplanations?.find(e => e.inputId === lesson.original.inputId);
+        if (!original?.input) return false;
+        const snapshot = copy(original); delete snapshot.retractedBy;
+        if (!equal(snapshot, lesson.original)) return false;
+        const source = lesson.source, replacement = lesson.replacement;
+        for (const [phase, sample] of [['source', source], ['replacement', replacement]]) {
+            if (sample === undefined && phase === 'replacement') continue;
+            const input = sample?.input, serial = Number(input?.id?.slice(6));
+            if (!input || !/^input:[1-9]\d*$/.test(input.id) || serial > state.serial
+                || input.speaker !== 'player' || !locales.includes(input.locale) || !Number.isFinite(input.at)
+                || !Number.isFinite(sample.at) || sample.at > world.elapsed || sample.at < 0
+                || typeof sample.scope?.scene !== 'string' || !Array.isArray(sample.scope.targets)
+                || !sample.scope.targets.every(t => typeof t === 'string') || input.scene !== sample.scope.scene
+                || !['eat', 'rest'].includes(sample.understanding?.known?.meaning)
+                || !validBasis(sample.basis, sample.understanding.known.meaning, sample.at, state)
+                || !Array.isArray(sample.namingBasis) || sample.namingBasis.length !== 1
+                || !sample.namingBasis.every(b => b.id === 'naming' && state.knowledge.relations.some(r => equal(b, r))
+                    && (b.source === 'initial' || b.evidence.every(id => Number(id.slice(6)) < serial
+                        && state.experiences.some(e => e.end <= sample.at && e.relationLabels?.some(l => l.inputId === id)))))) return false;
+            const frame = catalog ? core.correctionFrame(input.raw, input.locale, catalog) : sample.frame;
+            if (!frame || frame.phase !== phase || !equal(frame, sample.frame)
+                || wordKey(frame.word) !== wordKey(original.word)) return false;
+            const prior = copy(state);
+            prior.context.scene = sample.scope.scene;
+            prior.context.attention = sample.scope.targets.map(id => ({ id }));
+            prior.knowledge.meanings = [copy(sample.basis)];
+            prior.knowledge.relations = copy(sample.namingBasis);
+            if (catalog && !equal(core.understand(prior, frame, input.speaker, catalog, input.locale), sample.understanding)) return false;
+            if (!sample.understanding.complete || sample.understanding.kind !== 'correction_demonstration') return false;
+            const turn = state.context.turns.find(t => t.id === input.id);
+            if (turn && (turn.speaker !== input.speaker || !equal(turn.understandings, [sample.understanding]))) return false;
+            const matches = explanationsAt(prior, original.word, input.speaker, serial);
+            if (matches.length !== 1 || matches[0].inputId !== original.inputId
+                || state.knowledge.associations.some(a => wordKey(a.word) === wordKey(original.word)
+                    && a.speaker === input.speaker && a.evidence.some(e => Number(e.inputId.slice(6)) < serial
+                        && (!e.retractedBy || Number(e.retractedBy.slice(6)) >= serial)))) return false;
+        }
+        if (source.input.locale !== original.input.locale || source.frame.utterance !== original.input.raw
+            || source.understanding.known.meaning !== original.meaning || source.input.at < original.heardAt) return false;
+        return !replacement || replacement.input.locale === source.input.locale
+            && Number(replacement.input.id.slice(6)) > Number(source.input.id.slice(6))
+            && replacement.input.at >= source.input.at && replacement.at >= source.at
+            && equal(replacement.scope, source.scope) && replacement.understanding.known.meaning !== original.meaning;
+    }
+    function offerCorrection(world, state, result) {
+        const frame = result.interpretations[0], u = result.understandings[0];
+        if (result.input.speaker !== 'player' || !u.complete || !['eat', 'rest'].includes(u.known.meaning)) return false;
+        const matches = explanationsAt(state, frame.word, result.input.speaker, state.serial);
+        if (matches.length !== 1 || !matches[0].input || matches[0].input.locale !== result.input.locale) return false;
+        const original = copy(matches[0]); delete original.retractedBy;
+        const lessons = state.correctionLessons || [];
+        const sample = { input: copy(result.input), frame: copy(frame), understanding: copy(u), at: world.elapsed,
+            scope: correctionScope(state), basis: copy(state.knowledge.meanings.find(m => m.id === u.known.meaning)),
+            namingBasis: copy(state.knowledge.relations.filter(r => r.id === 'naming'
+                && (r.source === 'initial' || u.relationReferences?.some(ref => equal(ref, r))))) };
+        let lesson;
+        if (frame.phase === 'source') {
+            if (lessons.some(l => l.original.inputId === original.inputId && equal(l.source.scope, sample.scope))) return false;
+            lesson = { original, source: sample };
+        } else {
+            const pending = lessons.filter(l => !l.replacement && l.original.inputId === original.inputId
+                && l.source.input.locale === result.input.locale && equal(l.source.scope, sample.scope));
+            if (pending.length !== 1) return false;
+            lesson = { ...copy(pending[0]), replacement: sample };
+        }
+        if (!validCorrectionLesson(lesson, state, world)) return false;
+        state.correctionLessons ||= [];
+        if (frame.phase === 'source') state.correctionLessons.push(lesson);
+        else state.correctionLessons[state.correctionLessons.findIndex(l => l.source.input.id === lesson.source.input.id)] = lesson;
+        const learning = learn(state);
+        result.relationLearning = { candidates: [copy(lesson)], adopted: { relation: 'correction', ...copy(lesson) },
+            updated: learning.updated, relationAcquired: learning.relationAcquired };
+        return true;
+    }
     function validLabel(label, state, catalog) {
         if (label?.slot === 'reason') return validReasonLabel(label, state, catalog);
         if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation', 'time', 'condition', 'sequence'].includes(label.relation) || label.speaker !== 'player'
@@ -342,6 +431,7 @@
     }
     function offer(world, state, result) {
         const frame = result.interpretations[0], u = result.understandings[0];
+        if (frame.kind === 'correction_demonstration') return offerCorrection(world, state, result);
         if (frame.kind === 'reason_demonstration') return offerReason(world, state, result);
         if (frame.kind === 'sequence_demonstration') return offerSequence(world, state, result);
         const relation = frame.kind === 'condition_demonstration' ? 'condition' : frame.kind === 'time_demonstration' ? 'time' : frame.kind === 'negation_demonstration' ? 'negation'
@@ -422,7 +512,8 @@
         world.relationLabels = [];
     }
     function candidates(state, catalog) {
-        return (state.experiences || []).flatMap(event => (event.relationLabels || [])
+        return [...(state.correctionLessons || []).filter(l => l.replacement
+            && validCorrectionLesson(l, state, { elapsed: Infinity }, catalog)).map(correctionEvidence), ...(state.experiences || []).flatMap(event => (event.relationLabels || [])
             .filter(l => validLabel(l, state, catalog) && event.kind === 'experience'
                 && event.activity === l.activity && event.target === l.target && event.start === l.start
                 && (l.slot === 'reason' ? l.at >= event.end : l.relation === 'sequence' ? l.phase === 'after'
@@ -441,10 +532,13 @@
                         reportForm: l.reportForm, eventReference: copy(l.eventReference) }
                     : l.relation === 'negation' ? { form: l.form, roles: copy(l.roles), polarity: l.polarity, reportForm: l.reportForm }
                     : isProposal(l.relation) || l.relation === 'report' ? { form: l.form, roles: copy(l.roles) }
-                    : { form: l.form, slot: l.slot }), meaning: l.meaning })));
+                    : { form: l.form, slot: l.slot }), meaning: l.meaning })))];
     }
     function acquired(evidence) {
         const pairs = [];
+        for (const e of evidence.filter(e => e.relation === 'correction')) pairs.push({ id: 'correction', source: 'experienced_relation',
+            scope: { kind: 'word_correction', locale: e.locale, speaker: e.speaker, word: e.word, meaning: e.meaning,
+                form: e.form, original: e.original, ...copy(e.scope) }, evidence: [e.sourceId, e.inputId] });
         for (const locale of locales) {
             for (const relation of ['question', 'reason']) {
                 const items = evidence.filter(e => e.relation === relation && e.slot === 'reason' && e.locale === locale);
@@ -526,7 +620,7 @@
         return pairs;
     }
     const evidenceKey = e => JSON.stringify([e?.relation, e?.locale, e?.form || null, e?.meaning, e?.demonstratedStatus || null,
-        ...(e?.slot === 'reason' ? [e.slot, e.choice] : e?.relation === 'sequence' ? [e.experienceId, e.phase] : [])]);
+        ...(e?.relation === 'correction' ? [e.original, e.scope] : e?.slot === 'reason' ? [e.slot, e.choice] : e?.relation === 'sequence' ? [e.experienceId, e.phase] : [])]);
     const labelKey = l => l?.slot === 'reason' ? `${l.relation}:reason` : l?.relation === 'sequence' ? `${l.relation}:${l.phase}` : l?.relation;
     function learn(state) {
         const offered = candidates(state), updated = [];
@@ -543,6 +637,11 @@
             relations: added, relationAcquired: added.length > 0 };
     }
     function valid(state, world, catalog) {
+        if (state.correctionLessons !== undefined && (!Array.isArray(state.correctionLessons)
+            || !state.correctionLessons.every(l => validCorrectionLesson(l, state, world, catalog)))) return false;
+        const correctionIds = (state.correctionLessons || []).flatMap(l => [l.source.input.id, ...(l.replacement ? [l.replacement.input.id] : [])]);
+        if (new Set(correctionIds).size !== correctionIds.length
+            || state.records.some(r => correctionIds.includes(r.id))) return false;
         for (const turn of state.context.turns) {
             const j = turn.conditionJudgment;
             if (j === undefined) continue;
@@ -581,6 +680,7 @@
             .size !== state.knowledge.relations.length) return false;
         const allLabels = [...(Array.isArray(world.relationLabels) ? world.relationLabels : []),
             ...(state.experiences || []).flatMap(e => Array.isArray(e.relationLabels) ? e.relationLabels : [])];
+        if (allLabels.some(l => correctionIds.includes(l?.inputId))) return false;
         if (new Set(allLabels.map(l => l?.inputId)).size !== allLabels.length) return false;
         if (world.relationLabels !== undefined && (!Array.isArray(world.relationLabels)
             || world.relationLabels.length > 8 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1

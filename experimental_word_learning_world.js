@@ -254,7 +254,8 @@
             return response;
         }
         if (relationLearning.offer(world, state, result)) {
-            const response = { message: result.relationLearning.adopted.slot === 'reason' ? 'reason_pairing'
+            const response = { message: result.relationLearning.adopted.relation === 'correction' ? 'correction_pairing'
+                : result.relationLearning.adopted.slot === 'reason' ? 'reason_pairing'
                 : result.relationLearning.adopted.relation === 'sequence'
                 ? result.relationLearning.relationAcquired ? 'sequence_learned' : 'sequence_pairing'
                 : result.relationLearning.adopted.relation === 'condition' ? 'condition_pairing' : result.relationLearning.adopted.relation === 'time' ? 'time_pairing' : result.relationLearning.adopted.relation === 'negation' ? 'negation_pairing' : result.relationLearning.adopted.relation === 'question'

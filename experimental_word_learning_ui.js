@@ -3,6 +3,10 @@
     const api = window.ExperimentalWordLearning;
     const app = document.getElementById('app');
     const labels = {
+        correction_pairing: '原説明と置換先を照合している。教示だけでは説明を取り下げない。',
+        note_correction_demo: '訂正について教わった例：',
+        note_correction_learned: 'この語・相手・言語・場面・対象・表現で、原説明を置き換える関係を理解した。実際の訂正は別に受け取る。',
+        correction_help: '食べる・休むと短い説明を先に学びます。通常の説明を聞いた同じ場面・対象で、原文を訂正元の印と« »で囲んで示し、次に取り下げて置換する文を示します。教示では説明を変えません。その後、印なしの訂正文を伝えます。例の語は自分の教えた語に変えてください。',
         reason_pairing: '完了した休息と、実際に選んだ声かけを教示と照合している。本人の回答とは別の記録。',
         note_reason_demo: '休息の選択について教わった例：',
         note_reason_question_learned: 'この相手・言語・表現で、休息の理由を尋ねる問いだと分かった。理由の理解や答えは別に確かめる。',
@@ -410,6 +414,7 @@
     node('p', t('condition_help'), guide);
     node('p', t('sequence_help'), guide);
     node('p', t('reason_help'), guide);
+    node('p', t('correction_help'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;
@@ -558,6 +563,11 @@
         fetch(file).then(response => { if (!response.ok) throw new Error('Load failed'); return response.json(); })
     )).then(([data, visuals]) => {
         catalog = data;
+        const correctionForms = catalog.correctionTeaching[window.GameI18n.language];
+        if (correctionForms) for (const phase of ['source', 'replacement']) {
+            const example = node('p', `${correctionForms[phase]}«${correctionForms[phase === 'source' ? 'exampleSource' : 'exampleReplacement']}»`, guide);
+            example.setAttribute('data-i18n-skip', '');
+        }
         const locale = window.GameI18n.language, reasonForms = catalog.reasonTeaching[locale];
         if (reasonForms) for (const stage of ['question', 'reason']) for (const kind of ['request', 'invitation']) {
             const example = node('p', `${reasonForms[stage]}「${reasonForms.utterance}」→「${catalog.proposalTeaching[locale][kind].utterance}」`, guide);

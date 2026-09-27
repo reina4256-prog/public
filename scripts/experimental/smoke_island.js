@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+if (process.argv.includes('--corrections') && !process.argv.includes('--correction-basis')) process.argv.push('--correction-basis');
 if (process.argv.includes('--correction-basis') && !process.argv.includes('--relations')) process.argv.push('--relations');
 if (!process.versions.electron || process.type !== 'browser') {
     const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
@@ -284,6 +285,24 @@ if (!process.versions.electron || process.type !== 'browser') {
                 assert.deepEqual(snapshot.state.knowledge.wordExplanations[0], entry);
                 assert.ok(valid(snapshot));
             }
+            if (process.argv.includes('--corrections')) {
+                const { valid } = require('./storage');
+                const forms = require('../../experimental_word_learning_catalog.json').correctionTeaching.ja;
+                const original = structuredClone(snapshot.state.knowledge.wordExplanations[0]);
+                await chat(`${forms.source}«${forms.exampleSource}»`);
+                assert.equal(snapshot.state.correctionLessons.length, 1);
+                assert.equal(snapshot.state.correctionLessons[0].replacement, undefined);
+                assert.ok(valid(snapshot)); await resume();
+                await chat(`${forms.replacement}«${forms.exampleReplacement}»`);
+                assert.equal(snapshot.state.knowledge.relations.filter(r => r.id === 'correction').length, 1);
+                assert.deepEqual(snapshot.state.knowledge.wordExplanations[0], original);
+                assert.ok(valid(snapshot)); await resume();
+                await chat(forms.exampleReplacement);
+                assert.equal(snapshot.state.knowledge.wordExplanations[1].corrects, original.inputId);
+                assert.equal(JSON.stringify(snapshot.state.experiences), origins);
+                assert.ok(valid(snapshot)); await resume();
+                assert.equal(snapshot.state.knowledge.wordExplanations.length, 2);
+            }
             await chat('休めた？');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
             await js('document.querySelector("button[aria-controls=notebook]").click()');
@@ -291,9 +310,22 @@ if (!process.versions.electron || process.type !== 'browser') {
                 ? '共同体験の記録ではない' : questions ? '同じ相手・言語・問いに限る' : '同じ相手・言語の短い説明で使える')})`));
             window.setSize(1281, 800); await sleep(500);
             const screenshot = path.resolve(__dirname, times ? '../../tests/word-times-smoke.png' : negations ? '../../tests/word-negations-smoke.png' : reports ? '../../tests/word-reports-smoke.png' : proposals ? '../../tests/word-proposals-smoke.png'
-                : questions ? '../../tests/word-questions-smoke.png' : process.argv.includes('--correction-basis')
+                : questions ? '../../tests/word-questions-smoke.png' : process.argv.includes('--corrections') ? '../../tests/word-corrections-smoke.png' : process.argv.includes('--correction-basis')
                     ? '../../tests/word-correction-basis-smoke.png' : '../../tests/word-relations-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
+            if (process.argv.includes('--corrections')) {
+                assert.ok(await js('document.querySelector("#notebook s")?.textContent.includes("ぽぽ → 休む")'));
+                assert.ok(await js(`document.querySelector('#notebook').textContent.includes('【取り下げて置換】')`));
+                await js(`Array.from(document.querySelectorAll('button')).find(button => button.textContent === 'ひと休み・再開').click()`);
+                window.setSize(1320, 850); await sleep(400);
+                await js(`Array.from(document.querySelectorAll('#notebook .note-card')).find(card => card.textContent.includes('【取り下げて置換】')).scrollIntoView({block:'start'}); void 0`);
+                window.setSize(1340, 850); await sleep(600);
+                const noteView = await js(`(() => { const note = document.querySelector('#notebook'), card = Array.from(note.querySelectorAll('.note-card')).find(card => card.textContent.includes('【取り下げて置換】')); note.scrollTop += card.getBoundingClientRect().top - note.getBoundingClientRect().top; const rect = card.getBoundingClientRect(), panel = note.getBoundingClientRect(); return { top:rect.top, bottom:rect.bottom, panelTop:panel.top, panelBottom:panel.bottom, scroll:note.scrollTop }; })()`);
+                assert.ok(noteView.top >= noteView.panelTop - 1 && noteView.bottom <= noteView.panelBottom + 1, JSON.stringify(noteView));
+                await sleep(500);
+                fs.writeFileSync(path.resolve(__dirname, '../../tests/word-corrections-teaching-smoke.png'),
+                    (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
+            }
             const knowledge = JSON.stringify(snapshot.state.knowledge);
             await resume();
             assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);

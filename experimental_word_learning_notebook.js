@@ -10,6 +10,11 @@
         const organizedReports = new Set(state.notes.map(n => n.sourceId).filter(id => id !== undefined));
         const organizedExperiences = new Set(state.notes.map(n => n.experienceId).filter(id => id !== undefined));
         const knows = id => state.knowledge.meanings.some(m => m.id === id);
+        for (const lesson of state.correctionLessons || []) {
+            for (const sample of [lesson.source, lesson.replacement].filter(Boolean)) result.push({ group: 'names',
+                message: 'note_correction_demo', literal: sample.input.raw,
+                detail: lesson.replacement ? 'note_correction_learned' : 'correction_pairing', organized: false });
+        }
         for (const evidence of state.knowledge.relationEvidence) {
             const event = (state.experiences || []).find(e => e.id === evidence.experienceId);
             const label = event?.relationLabels?.find(l => l.inputId === evidence.inputId);
