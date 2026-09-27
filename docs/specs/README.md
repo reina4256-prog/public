@@ -87,6 +87,8 @@
 
 ## コンテンツ状態
 
+最新の現在地は3c3e1（訂正前提の基盤）完了、次は3c3e2（訂正教示・限定習得）。範囲付きnamingを訂正の説明部分へ適用し、新規独自語説明の原inputを保持する。correction自体は未習得のまま。新方式143件・旧版2件・七言語14,787文・実Electron --correction-basisを確認。詳細は[正本3c3e1節](core/experimental_word_learning.md#文の関係の習得の小単位3c3e1訂正前提の説明理解と原入力)と[工程表](../WORD_DEMO_ROADMAP.md)。3c3e／ID 3未完、ID 4へ進まない。以下の3c3d2等の完了範囲は維持する。
+
 現在地は3c3d2の限定範囲完了、次は3c3e（訂正）。ユーザーの例1は期待どおり。Codexの専用一時プロファイルによる実Electron --reasonsで例1〜3・途中／完了保存再開・ノート・しぐさを確認。新方式141件・旧版2件・七言語14,787文を再通過。ゲーム本体の補修なし。今後の実働確認はCodex担当。入口と未対応は[正本3c3d2節](core/experimental_word_learning.md#文の関係の習得の小単位3c3d2理由質問と選択理由の限定習得)、確認範囲は[理由の試遊記録](../WORD_REASON_PLAYTEST.md)。ID 3全体は未完、ID 4へ進まない。
 
 ID 3c3cは限定範囲完了。ユーザーの[Web実画面3例](../WORD_SEQUENCE_PLAYTEST.md)はノート・元文への返答・別行動文の未理解が期待どおり。Electron保存再開は今回の実画面対象外。入口・成立条件・保存・未対応の正本は[3c3c節](core/experimental_word_learning.md#文の関係の習得の小単位3c3c同じ食事の未完了完了と休息提案)。補修なしで3c3dへ進行。ID 3全体未完、ID 4へ進まない。

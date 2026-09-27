@@ -453,7 +453,7 @@
         if (!old && entries.some(entry => !entry.retractedBy && normalize(entry.word) === normalize(frame.word)
             && entry.meaning === u.known.meaning && entry.speaker === input.speaker
             && JSON.stringify(entry.scope) === JSON.stringify(scope))) return output;
-        const entry = { inputId: input.id, heardAt: input.at, word: frame.word, explainedAs: frame.meaning, meaning: u.known.meaning,
+        const entry = { inputId: input.id, heardAt: input.at, input: clone(input), word: frame.word, explainedAs: frame.meaning, meaning: u.known.meaning,
             speaker: input.speaker, scope, basis: clone(state.knowledge.meanings.find(m => m.id === u.known.meaning)) };
         if (old) {
             if (old.evidence) {
@@ -469,7 +469,7 @@
         return output;
     }
 
-    function validWordLearning(state) {
+    function validWordLearning(state, catalog) {
         const entries = state.knowledge.wordExplanations;
         if (entries === undefined) return true; // Old saves are not retroactively taught.
         if (!Array.isArray(entries) || new Set(entries.map(e => e?.inputId)).size !== entries.length) return false;
@@ -492,7 +492,19 @@
                 || u.subject !== entry.speaker || !u.relations?.includes('naming')
                 || (entry.corrects && (u.kind !== 'word_correction' || !u.relations.includes('correction')))
                 || u.known.meaning !== entry.meaning || JSON.stringify(u.wordExplanation) !== JSON.stringify({
-                    word: entry.word, explainedAs: entry.explainedAs, scope: entry.scope, basis: entry.basis })) return false;
+                    word: entry.word, explainedAs: entry.explainedAs, scope: entry.scope, basis: entry.basis,
+                    ...(entry.input ? { input: entry.input } : {}) })) return false;
+            // Legacy explanations have no retained raw input. Validate them as
+            // before, but never invent a language or an original utterance.
+            if (entry.input !== undefined) {
+                const input = entry.input;
+                if (!input || input.id !== entry.inputId || input.at !== entry.heardAt
+                    || input.speaker !== entry.speaker || input.scene !== entry.scope.scene || typeof input.raw !== 'string'
+                    || !['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].includes(input.locale)) return false;
+                const frame = wordFrame(input.raw, input.locale);
+                if (!frame || frame.word !== entry.word || frame.meaning !== entry.explainedAs
+                    || frame.kind !== u.kind || (catalog && lexicalMeaning(frame.meaning, catalog) !== entry.meaning)) return false;
+            }
             if (entry.corrects) {
                 const old = entries.find(e => e.inputId === entry.corrects);
                 const oldLinks = state.knowledge.associations.filter(link => link.speaker === entry.speaker
@@ -534,7 +546,8 @@
     function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
-        const applies = entry => entry.scope?.kind === (frame.kind === 'reason_demonstration' ? 'question' : ['sequence_demonstration', 'sequential_proposal'].includes(frame.kind)
+        const applies = entry => entry.scope?.kind === (entry.id === 'naming' && frame.kind === 'word_correction'
+            ? 'word_explanation' : frame.kind === 'reason_demonstration' ? 'question' : ['sequence_demonstration', 'sequential_proposal'].includes(frame.kind)
             ? entry.id === 'request' ? 'request' : 'sequential_proposal' : ['condition_demonstration', 'conditional_proposal'].includes(frame.kind)
             ? entry.id === 'request' ? 'request' : 'conditional_proposal' : frame.kind === 'question_demonstration' ? 'question'
             : frame.kind === 'proposal_demonstration' ? frame.proposalKind
@@ -881,7 +894,7 @@
                 const result = updateWordExplanation(state, frame, understandings[index], input, catalog);
                 const entry = state.knowledge.wordExplanations?.find(e => e.inputId === input.id);
                 if (entry) understandings[index].wordExplanation = clone({ word: entry.word, explainedAs: entry.explainedAs,
-                    scope: entry.scope, basis: entry.basis });
+                    scope: entry.scope, basis: entry.basis, input: entry.input });
                 return result;
             }
             const candidates = formCandidates(state, frame, understandings[index], input, catalog);

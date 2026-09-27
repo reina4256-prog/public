@@ -3,6 +3,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
+if (process.argv.includes('--correction-basis') && !process.argv.includes('--relations')) process.argv.push('--relations');
 if (!process.versions.electron || process.type !== 'browser') {
     const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
     const child = require('node:child_process').spawn(require('electron'), [__filename, ...process.argv.slice(2)], { env, stdio: 'inherit', windowsHide: true });
@@ -262,6 +263,27 @@ if (!process.versions.electron || process.type !== 'browser') {
                 assert.equal(snapshot.state.knowledge.relations[0].id, 'question');
                 assert.equal(snapshot.world.destination, null);
             } else assert.equal(snapshot.state.knowledge.wordExplanations.length, 1);
+            if (process.argv.includes('--correction-basis')) {
+                const { valid } = require('./storage');
+                const entry = structuredClone(snapshot.state.knowledge.wordExplanations[0]);
+                assert.equal(entry.input.raw, 'ぽぽは休むことだよ');
+                assert.equal(entry.input.locale, 'ja');
+                const knowledge = JSON.stringify(snapshot.state.knowledge);
+                for (let i = 0; i < 3; i++) {
+                    await chat('さっき間違えた。ぽぽは食べることだよ');
+                    const u = snapshot.state.context.turns.at(-1).understandings[0];
+                    assert.deepEqual(u.relations, ['naming']);
+                    assert.deepEqual(u.unresolved, [{ type: 'relation', id: 'correction' }]);
+                    assert.equal(u.complete, false);
+                    assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);
+                    assert.ok(valid(snapshot));
+                }
+                await resume();
+                assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);
+                assert.equal(JSON.stringify(snapshot.state.experiences), origins);
+                assert.deepEqual(snapshot.state.knowledge.wordExplanations[0], entry);
+                assert.ok(valid(snapshot));
+            }
             await chat('休めた？');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
             await js('document.querySelector("button[aria-controls=notebook]").click()');
@@ -269,7 +291,8 @@ if (!process.versions.electron || process.type !== 'browser') {
                 ? '共同体験の記録ではない' : questions ? '同じ相手・言語・問いに限る' : '同じ相手・言語の短い説明で使える')})`));
             window.setSize(1281, 800); await sleep(500);
             const screenshot = path.resolve(__dirname, times ? '../../tests/word-times-smoke.png' : negations ? '../../tests/word-negations-smoke.png' : reports ? '../../tests/word-reports-smoke.png' : proposals ? '../../tests/word-proposals-smoke.png'
-                : questions ? '../../tests/word-questions-smoke.png' : '../../tests/word-relations-smoke.png');
+                : questions ? '../../tests/word-questions-smoke.png' : process.argv.includes('--correction-basis')
+                    ? '../../tests/word-correction-basis-smoke.png' : '../../tests/word-relations-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
             const knowledge = JSON.stringify(snapshot.state.knowledge);
             await resume();

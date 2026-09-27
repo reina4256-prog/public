@@ -1598,6 +1598,89 @@ test('3b1: naming and question sources coexist and saves reject forged roles, sc
     }
 });
 
+test('3c3e1: learned naming recognizes only the explanation component of replacement across eight starts and seven locales', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const prefixes = { ja: 'さっき間違えた。', en: 'I was wrong. ', 'zh-CN': '刚才说错了，',
+        ru: 'Я ошибся. ', 'es-ES': 'Me equivoqué. ', 'pt-BR': 'Eu errei. ', de: 'Ich habe mich geirrt. ' };
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const [locale, forms] of Object.entries(relationForms)) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            if (!life) for (const [i, activity] of ['eat', 'rest'].entries()) {
+                startRelationActivity(state, world, activity);
+                labelLife(state, world, questionForms[locale][i + 1], { locale }); finishLife(state, world);
+            }
+            if (!foundation) for (const [i, activity] of ['eat', 'rest'].entries()) {
+                startRelationActivity(state, world, activity);
+                labelLife(state, world, forms[i], { locale }); finishLife(state, world);
+            }
+            api.perceive(state, { scene: 'clearing', attention: [] });
+            const old = labelLife(state, world, forms[1], { locale });
+            const original = JSON.stringify(state.experiences);
+            const knowledge = JSON.stringify(state.knowledge);
+            const oldWord = api.wordFrame(forms[1], locale).word;
+            const eatWord = api.wordFrame(forms[0], locale).word;
+            const correction = prefixes[locale] + forms[0].replace(eatWord, oldWord);
+            const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+            assert.ok(valid(saved)); ({ state, world } = saved);
+            for (let i = 0; i < 3; i++) {
+                const result = labelLife(state, world, correction, { locale });
+                const u = result.understandings[0];
+                assert.equal(u.known.meaning, 'eat'); assert.ok(u.relations.includes('naming'));
+                if (!foundation) {
+                    assert.deepEqual(u.unresolved, [{ type: 'relation', id: 'correction' }]);
+                    assert.equal(u.complete, false);
+                    assert.equal(u.relationReferences[0].scope.kind, 'word_explanation');
+                    assert.equal(JSON.stringify(state.knowledge), knowledge);
+                } else if (!i) {
+                    assert.equal(u.corrects, old.input.id);
+                    assert.equal(state.knowledge.wordExplanations.at(-1).input.raw, correction);
+                }
+            }
+            assert.equal(JSON.stringify(state.experiences), original);
+            const reloaded = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+            assert.ok(valid(reloaded), `${locale}:${foundation}:${life}:${speech}`);
+            if (!foundation) {
+                assert.equal(state.knowledge.relations.some(r => ['correction', 'negation', 'contrast'].includes(r.id)), false);
+                assert.equal(say(state, correction, { locale, speaker: 'friend' }).understandings[0].relations.includes('naming'), false);
+                const foreign = locale === 'en' ? 'de' : 'en';
+                assert.equal(say(state, prefixes[foreign] + relationForms[foreign][0], { locale: foreign }).understandings[0].relations.includes('naming'), false);
+                assert.equal(say(state, prefixes[locale] + forms[0].replace(questionForms[locale][1], 'unknownzz'), { locale }).understandings[0].relations.includes('naming'), false);
+            }
+        }
+    }
+});
+
+test('3c3e1: explanation input provenance survives context eviction, corrections and legacy loading', () => {
+    const state = create();
+    const first = say(state, 'ぽぽは休むことだよ', { at: 11 });
+    say(state, 'さっき間違えた。ぽぽは食べることだよ', { at: 22 });
+    for (let i = 0; i < 20; i++) say(state, 'こんにちは');
+    assert.ok(!state.context.turns.some(t => t.id === first.input.id));
+    assert.deepEqual(state.knowledge.wordExplanations[0].input, first.input);
+    assert.ok(api.validWordLearning(state, catalog));
+    for (const mutate of [
+        s => delete s.knowledge.wordExplanations[0].input,
+        s => s.knowledge.wordExplanations[0].input.raw = 'ぽぽは食べることだよ',
+        s => s.knowledge.wordExplanations[0].input.locale = 'en',
+        s => s.knowledge.wordExplanations[0].input.at = 99,
+        s => s.knowledge.wordExplanations[0].input.scene = 'elsewhere',
+        s => s.records[0].understandings[0].wordExplanation.input.speaker = 'friend'
+    ]) {
+        const altered = structuredClone(state); mutate(altered);
+        assert.equal(api.validWordLearning(altered, catalog), false);
+    }
+    // A synchronized edited source still has to parse to the retained meaning.
+    const forged = structuredClone(state);
+    forged.knowledge.wordExplanations[0].input.raw = 'ぽぽは食べることだよ';
+    forged.records[0].understandings[0].wordExplanation.input.raw = 'ぽぽは食べることだよ';
+    assert.equal(api.validWordLearning(forged, catalog), false);
+    const legacy = structuredClone(state);
+    for (const entry of legacy.knowledge.wordExplanations) delete entry.input;
+    for (const record of legacy.records) delete record.understandings[0].wordExplanation.input;
+    const before = JSON.stringify(legacy);
+    assert.ok(api.validWordLearning(legacy, catalog)); assert.equal(JSON.stringify(legacy), before);
+});
+
 test('3a: grounded naming relations retain unknown history across eight starts and seven languages', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
