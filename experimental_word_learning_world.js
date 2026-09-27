@@ -1,11 +1,14 @@
 (function (root, factory) {
     const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_careers') : root.ExperimentalWordCareers,
         typeof module === 'object' && module.exports ? require('./experimental_word_life_learning') : root.ExperimentalWordLifeLearning,
-        typeof module === 'object' && module.exports ? require('./experimental_word_relation_learning') : root.ExperimentalWordRelationLearning);
+        typeof module === 'object' && module.exports ? require('./experimental_word_relation_learning') : root.ExperimentalWordRelationLearning,
+        typeof module === 'object' && module.exports ? require('./experimental_word_learning_core') : root.ExperimentalWordLearning);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordWorld = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (careers, lifeLearning, relationLearning) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (careers, lifeLearning, relationLearning, core) {
     'use strict';
+    const copy = value => JSON.parse(JSON.stringify(value));
+    const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     const PLACES = Object.freeze([
         { id: 'berry:1', meaning: 'berry', x: .28, y: .65 },
         { id: 'shade', meaning: 'rest', x: .76, y: .57 },
@@ -93,13 +96,19 @@
                 if (kind === 'eat' && world.mealTaste) {
                     experience.taste = { ...world.mealTaste }; world.mealTaste = null;
                 }
+                // A selected proposal is one retained contribution, not a claim
+                // to know every motive or to have understood a reason relation.
+                const choice = kind === 'rest' && world.reasons.find(r => r.kind === 'understood_suggestion'
+                    && r.target === 'shade' && r.selectionSource);
+                if (choice) experience.choiceSource = copy(choice.selectionSource);
                 lifeLearning.finish(world, experience);
                 relationLearning.finish(world, experience);
                 world.experiences.push(experience);
                 if (kind === 'rest') world.sleepCount++;
                 if (experience.before && (kind === 'eat' ? experience.before.hunger > world.hunger : experience.before.fatigue > world.fatigue)) world.recovery[kind] = experience.id;
                 world.mode = 'idle'; world.dwell = 3; world.attention = null;
-                world.history.push({ mode: kind, target: experience.target, start: experience.start, end: experience.end, reasons: world.reasons });
+                world.history.push({ mode: kind, target: experience.target, start: experience.start, end: experience.end,
+                    experienceId: experience.id, reasons: copy(world.reasons) });
                 return { ...experience, kind: 'experience', activity: kind };
             }
             const candidates = places(world).filter(p => p.id !== world.attention);
@@ -396,14 +405,135 @@
             && !u.conditionStatus && ['rest', 'walk'].includes(u.known.meaning)) {
             const interested = world.mode === 'eat' || world.mode === 'work' || (world.attention?.startsWith('berry:') && world.dwell > 4);
             if (!interested) {
-                approach(world, u.known.meaning === 'rest' ? 'shade' : 'path', 'understood_suggestion');
+                if (!approach(world, u.known.meaning === 'rest' ? 'shade' : 'path', 'understood_suggestion')) {
+                    return { message: state.settings.speech === 'short' ? 'answer_unknown' : 'attend' };
+                }
                 world.reasons[0].inputId = result.input.id;
+                retainSelection(state, world, result);
                 return { message: state.settings.speech === 'short' ? 'join' : 'attend' };
             }
             if (world.mode === 'work') return { message: 'work', observation: true };
             return { message: state.settings.speech === 'short' ? 'keep_looking' : 'looking' };
         }
         return { message: result.expression.message };
+    }
+    function retainSelection(state, world, result) {
+        const u = result.understandings[0], frame = result.interpretations[0];
+        // This preparatory unit retains direct rest proposals only. Indirect
+        // word applications and unresolved clauses are not retroactively taught.
+        if (result.interpretations.length !== 1 || !u.complete || u.known.meaning !== 'rest'
+            || !['request', 'invitation'].includes(u.kind) || u.applications || u.target
+            || u.polarity !== 'positive' || u.conditionStatus || u.eventTime !== 'unspecified'
+            || u.relations.length !== 1 || u.relations[0] !== u.kind
+            || state.selectionSources?.some(s => s.input.id === result.input.id)) return;
+        const meaningBasis = state.knowledge.meanings.find(m => m.id === 'rest');
+        const relationBasis = state.knowledge.relations.filter(r => r.id === u.kind
+            && (r.source === 'initial' || u.relationReferences?.some(ref => equal(ref, r))));
+        if (!meaningBasis || !relationBasis.length) return;
+        const source = { kind: 'selected_proposal', subject: 'self', target: 'shade', selectedAt: world.elapsed,
+            input: copy(result.input), frame: copy(frame), understanding: copy(u),
+            meaningBasis: copy(meaningBasis), relationBasis: copy(relationBasis) };
+        state.selectionSources ||= [];
+        state.selectionSources.push(source);
+        world.reasons[0].selectionSource = { inputId: source.input.id, selectedAt: source.selectedAt };
+    }
+
+    function validSelections(state, world, catalog) {
+        const sources = state.selectionSources;
+        if (sources !== undefined && (!Array.isArray(sources)
+            || new Set(sources.map(s => s?.input?.id)).size !== sources.length)) return false;
+        const inputNumber = id => typeof id === 'string' && /^input:[1-9]\d*$/.test(id) ? Number(id.slice(6)) : NaN;
+        const validRef = (ref, at) => ref && equal(ref, { inputId: ref.inputId, selectedAt: ref.selectedAt })
+            && Number.isFinite(ref.selectedAt) && ref.selectedAt <= at
+            && sources?.some(s => s.input.id === ref.inputId && s.selectedAt === ref.selectedAt);
+        for (const source of sources || []) {
+            const input = source?.input, u = source?.understanding, basis = source?.meaningBasis;
+            if (source?.kind !== 'selected_proposal' || source.subject !== 'self' || source.target !== 'shade'
+                || !Number.isFinite(source.selectedAt) || source.selectedAt < 0 || source.selectedAt > world.elapsed
+                || !Number.isInteger(inputNumber(input?.id)) || inputNumber(input.id) > state.serial
+                || typeof input.raw !== 'string' || !input.raw.trim() || input.raw.length > 1000
+                || !['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].includes(input.locale)
+                || typeof input.speaker !== 'string' || !input.speaker || typeof input.scene !== 'string'
+                || !Number.isFinite(input.at) || !u?.complete || u.known?.meaning !== 'rest'
+                || !['request', 'invitation'].includes(u.kind) || u.applications || u.target
+                || u.polarity !== 'positive' || u.conditionStatus || u.eventTime !== 'unspecified'
+                || !equal(u.relations, [u.kind]) || !equal(u.unresolved, []) || basis?.id !== 'rest'
+                || !Array.isArray(source.relationBasis) || !source.relationBasis.length) return false;
+            const current = state.knowledge.meanings.find(m => m.id === 'rest');
+            if (!current || basis.source !== current.source) return false;
+            if (basis.source === 'initial') {
+                if (!state.settings.life || !equal(basis, current)) return false;
+            } else if (basis.source !== 'experienced_life' || !Array.isArray(basis.evidence) || !basis.evidence.length
+                || !basis.evidence.every(e => current.evidence?.some(item => equal(item, e))
+                    && inputNumber(e.scope?.inputId) < inputNumber(input.id)
+                    && state.experiences?.some(event => event.id === e.experienceId && event.end <= source.selectedAt))) return false;
+            for (const relation of source.relationBasis) {
+                if (relation?.id !== u.kind || !state.knowledge.relations.some(r => equal(r, relation))) return false;
+                if (relation.source === 'initial') {
+                    if (!state.settings.foundation) return false;
+                } else if (relation.source !== 'experienced_relation' || !Array.isArray(relation.evidence)
+                    || !relation.evidence.length || !relation.evidence.every(id => inputNumber(id) < inputNumber(input.id)
+                        && state.experiences?.some(e => e.end <= source.selectedAt
+                            && e.relationLabels?.some(l => l.inputId === id)))) return false;
+            }
+            // Reparse against the retained knowledge, never today's broader
+            // knowledge. This checks original locale, scope, roles and direction.
+            const snapshot = core.create({ ...state.settings, foundation: false, life: false }, catalog);
+            snapshot.serial = inputNumber(input.id) - 1;
+            snapshot.context.scene = input.scene;
+            snapshot.knowledge.meanings = [copy(basis)];
+            snapshot.knowledge.relations = copy(source.relationBasis);
+            const replay = core.receive(snapshot, input.raw, catalog, { locale: input.locale, speaker: input.speaker, at: input.at });
+            if (!equal(replay.input, input) || !equal(replay.interpretations, [source.frame])
+                || !equal(replay.understandings, [u])) return false;
+        }
+        const validReasons = (reasons, at, target) => Array.isArray(reasons) && reasons.every(reason =>
+            reason && (reason.selectionSource === undefined || (reason.kind === 'understood_suggestion'
+                && reason.target === 'shade' && target === 'shade' && reason.inputId === reason.selectionSource?.inputId
+                && validRef(reason.selectionSource, at))));
+        const reachedRest = (ref, start) => world.history.some(h => h?.mode === 'move' && h.target === 'shade'
+            && h.start === ref.selectedAt && h.end === start
+            && h.reasons?.some(r => equal(r.selectionSource, ref)));
+        if (!validReasons(world.reasons, world.elapsed, world.mode === 'move' ? world.destination
+            : world.mode === 'rest' ? world.attention : world.reasons.find(r => r?.selectionSource)?.target)) return false;
+        for (const reason of world.reasons) if (reason.selectionSource) {
+            if (world.mode === 'move' && reason.selectionSource.selectedAt !== world.activityStart) return false;
+            if (world.mode === 'rest' && !reachedRest(reason.selectionSource, world.activityStart)) return false;
+        }
+        for (const history of world.history) {
+            if (!history || !Array.isArray(history.reasons)) return false;
+            // The existing idle history carries the just-finished action's
+            // reasons until the next choice; it is not another rest experience.
+            if (!validReasons(history.reasons, history.start, history.mode === 'idle' && history.target === null
+                ? history.reasons?.find(r => r?.selectionSource)?.target : history.target)) return false;
+            for (const reason of history.reasons) if (reason.selectionSource) {
+                if (!Number.isFinite(history.start) || !Number.isFinite(history.end)
+                    || history.end < history.start || history.end > world.elapsed) return false;
+                if (history.mode === 'move' && reason.selectionSource.selectedAt !== history.start) return false;
+                if (history.mode === 'rest' && !reachedRest(reason.selectionSource, history.start)) return false;
+            }
+        }
+        const stateEvents = state.experiences || [];
+        for (const event of world.experiences) {
+            const saved = stateEvents.filter(e => e.id === event.id);
+            if (event.choiceSource === undefined && saved.every(e => e.choiceSource === undefined)) continue;
+            if (event.kind !== 'rest' || event.target !== 'shade' || !validRef(event.choiceSource, event.start)
+                || !Number.isFinite(event.start) || !Number.isFinite(event.end)
+                || event.end <= event.start || event.end > world.elapsed
+                || !reachedRest(event.choiceSource, event.start)
+                || saved.length !== 1 || saved[0].kind !== 'experience' || saved[0].activity !== 'rest'
+                || !['choiceSource', 'start', 'end', 'target'].every(k => equal(saved[0][k], event[k]))) return false;
+            const histories = world.history.filter(h => h.experienceId === event.id);
+            if (histories.length !== 1 || histories[0].mode !== 'rest'
+                || !['start', 'end', 'target'].every(k => histories[0][k] === event[k])
+                || histories[0].reasons.filter(r => equal(r.selectionSource, event.choiceSource)).length !== 1) return false;
+        }
+        // A removed original or an added one-sided reference is not a valid save.
+        return stateEvents.every(e => e.choiceSource === undefined
+            || world.experiences.some(original => original.id === e.id && equal(original.choiceSource, e.choiceSource)))
+            && world.history.every(h => h.experienceId === undefined || !h.reasons.some(r => r.selectionSource)
+                || world.experiences.some(e => e.id === h.experienceId && h.mode === 'rest' && equal(e.choiceSource,
+                    h.reasons.find(r => r.selectionSource).selectionSource)));
     }
     function onArrival(world, state, event) {
         const response = arrivalReply(world, state, event);
@@ -489,5 +619,5 @@
             && !!focus.evidence?.activity && (focus.evidence.experienceId === null
                 || world.experiences.some(e => e.id === focus.evidence.experienceId));
     }
-    return Object.freeze({ PLACES, create, approach, tick, perception, respond, onArrival, setNavigation, validContext });
+    return Object.freeze({ PLACES, create, approach, tick, perception, respond, onArrival, setNavigation, validContext, validSelections });
 });

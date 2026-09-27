@@ -38,6 +38,7 @@ function valid(value) {
         && relationLearning.valid(s, w, require('../../experimental_word_learning_catalog.json'))
         && core.validWordLearning(s)
         && worldApi.validContext(s, w)
+        && worldApi.validSelections(s, w, require('../../experimental_word_learning_catalog.json'))
         && (w.island === undefined || (navigation.valid(w.island)
             && (w.island.volume === undefined || (Number.isFinite(w.island.volume) && w.island.volume >= 0 && w.island.volume <= 1))
             && (w.route === undefined || (Array.isArray(w.route) && w.route.length < 2000 && w.route.every(p => p && Number.isFinite(p.x) && Number.isFinite(p.y))))))

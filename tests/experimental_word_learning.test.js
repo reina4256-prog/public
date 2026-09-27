@@ -97,6 +97,166 @@ function prepareSequence(state, world, locale = 'ja') {
         startRelationActivity(state, world, 'rest'); labelLife(state, world, proposalDemo(locale, kind), { locale }); finishLife(state, world);
     }
 }
+function arriveAtSelectedRest(state, world) {
+    for (let i = 0; i < 2000; i++) {
+        const event = worldApi.tick(world, .1);
+        if (event) worldApi.onArrival(world, state, event);
+        api.perceive(state, worldApi.perception(world));
+        if (world.mode === 'rest') return;
+    }
+    assert.fail('selected rest was not reached');
+}
+const selectionSave = (state, world) => JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+
+test('3c3d1: eight starts and seven languages retain the selected input and its original basis through rest and restart', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        for (const locale of Object.keys(catalog.proposalTeaching)) for (const kind of ['request', 'invitation']) {
+            let state = create({ foundation, life, speech }), world = worldApi.create();
+            prepareSequence(state, world, locale);
+            const relations = JSON.stringify(state.knowledge.relations), evidence = JSON.stringify(state.knowledge.relationEvidence);
+            const result = say(state, catalog.proposalTeaching[locale][kind].utterance, { locale, at: 1234 });
+            assert.equal(worldApi.respond(world, result, state).message, speech === 'short' ? 'join' : 'attend');
+            const source = JSON.parse(JSON.stringify(state.selectionSources[0]));
+            assert.deepEqual(source.input, result.input);
+            assert.deepEqual(source.understanding, result.understandings[0]);
+            assert.equal(source.selectedAt, world.elapsed);
+            assert.equal(source.input.at, 1234, 'heard time is not life time');
+            assert.equal(source.understanding.roles.actualParticipation, false);
+            let saved = selectionSave(state, world); assert.ok(valid(saved), 'moving save');
+            ({ state, world } = saved);
+            arriveAtSelectedRest(state, world);
+            saved = selectionSave(state, world); assert.ok(valid(saved), 'resting save');
+            ({ state, world } = saved);
+            // Later evidence for rest cannot replace what was known at choice.
+            if (!life) labelLife(state, world, questionForms[locale][2], { locale });
+            world.dwell = .1; finishLife(state, world);
+            const original = world.experiences.at(-1), retained = state.experiences.at(-1);
+            assert.deepEqual(retained.choiceSource, { inputId: source.input.id, selectedAt: source.selectedAt });
+            assert.deepEqual(original.choiceSource, retained.choiceSource);
+            assert.deepEqual(state.selectionSources[0], source);
+            assert.ok(source.selectedAt <= retained.start && retained.start < retained.end);
+            saved = selectionSave(state, world); assert.ok(valid(saved), 'completed save');
+            ({ state, world } = saved);
+            for (let n = 0; n < 15; n++) say(state, 'unrecognized-example', { locale });
+            notebookApi.entries(state);
+            assert.deepEqual(state.selectionSources[0], source, 'context eviction does not erase the selected original');
+            assert.equal(JSON.stringify(state.knowledge.relations), relations);
+            assert.equal(JSON.stringify(state.knowledge.relationEvidence), evidence, 'selection does not teach reason or strengthen relations');
+            for (let n = 0; n < 40; n++) {
+                const event = worldApi.tick(world, .1);
+                if (event) worldApi.onArrival(world, state, event);
+            }
+            assert.ok(valid(selectionSave(state, world)), 'next autonomous action save');
+        }
+    }
+});
+
+test('3c3d1: unchosen, unknown, teaching, conditional and other scoped inputs never become selection sources', () => {
+    for (const locale of Object.keys(catalog.proposalTeaching)) {
+        for (const [options, text, speaker] of [
+            [{ foundation: false }, catalog.proposalTeaching[locale].request.utterance, 'player'],
+            [{ life: false }, catalog.proposalTeaching[locale].request.utterance, 'player'],
+            [{}, proposalDemo(locale, 'request'), 'player'],
+            [{}, catalog.conditionTeaching[locale].utterance, 'player'],
+            [{}, catalog.sequenceTeaching[locale].utterance, 'player'],
+        ]) {
+            const state = create(options), world = worldApi.create();
+            labelLife(state, world, text, { locale, speaker });
+            assert.equal(state.selectionSources, undefined); assert.equal(world.destination, null);
+        }
+        const state = create({ foundation: false }), world = worldApi.create(); prepareSequence(state, world, locale);
+        const other = locale === 'ja' ? 'en' : 'ja';
+        labelLife(state, world, catalog.proposalTeaching[locale].request.utterance, { locale, speaker: 'friend' });
+        labelLife(state, world, catalog.proposalTeaching[other].request.utterance, { locale: other });
+        assert.equal(state.selectionSources, undefined);
+        Object.assign(world, { mode: 'observe', attention: 'berry:1', dwell: 8 });
+        labelLife(state, world, catalog.proposalTeaching[locale].request.utterance, { locale });
+        assert.equal(state.selectionSources, undefined, 'heard but not chosen');
+    }
+});
+
+test('3c3d1: interruption and failed navigation cannot create completed selection evidence or rewrite old reasons', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create(), world = worldApi.create();
+    labelLife(state, world, catalog.proposalTeaching.ja.request.utterance);
+    const source = structuredClone(state.selectionSources[0]);
+    arriveAtSelectedRest(state, world); worldApi.approach(world, 'path');
+    assert.equal(world.experiences.some(e => e.choiceSource), false);
+    assert.deepEqual(state.selectionSources[0], source);
+    assert.ok(valid(selectionSave(state, world)), 'interrupted rest saves as an uncompleted choice');
+    const blocked = worldApi.create(); blocked.island = { places: worldApi.PLACES };
+    blocked.reasons = [{ kind: 'curiosity', target: 'path' }];
+    const old = structuredClone(blocked), fresh = create();
+    worldApi.setNavigation(() => null);
+    try {
+        const result = say(fresh, catalog.proposalTeaching.ja.request.utterance);
+        assert.equal(worldApi.respond(blocked, result, fresh).message, 'answer_unknown');
+        assert.deepEqual({ ...blocked, reactionTime: old.reactionTime }, old); assert.equal(fresh.selectionSources, undefined);
+    } finally { worldApi.setNavigation(null); }
+});
+
+test('3c3d1: selected sources and completed links reject altered input, knowledge, roles, time and origin', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create({ foundation: false, life: false }), world = worldApi.create();
+    prepareSequence(state, world);
+    labelLife(state, world, catalog.proposalTeaching.ja.request.utterance);
+    arriveAtSelectedRest(state, world); world.dwell = .1; finishLife(state, world);
+    const saved = selectionSave(state, world); assert.ok(valid(saved));
+    const changeSource = change => v => change(v.state.selectionSources[0]);
+    const changes = [
+        changeSource(s => { s.input.raw = 'あなたが食べ終わったら、休んでね'; }),
+        changeSource(s => { s.input.locale = 'en'; }), changeSource(s => { s.input.speaker = 'friend'; }),
+        changeSource(s => { s.input.id = 'input:999999'; }), changeSource(s => { s.selectedAt = -1; }),
+        changeSource(s => { s.understanding.roles.actualParticipation = true; }),
+        changeSource(s => { s.frame.kind = 'report'; }), changeSource(s => { s.understanding.complete = false; }),
+        changeSource(s => { s.meaningBasis.evidence = []; }), changeSource(s => { s.relationBasis = []; }),
+        changeSource(s => { s.relationBasis = [null]; }),
+        changeSource(s => { s.relationBasis[0].scope.speaker = 'friend'; }),
+        v => { delete v.state.selectionSources; }, v => { v.state.selectionSources.push(structuredClone(v.state.selectionSources[0])); },
+        v => { v.world.experiences.at(-1).choiceSource.inputId = 'input:1'; },
+        v => { delete v.state.experiences.at(-1).choiceSource; },
+        v => { v.world.history.at(-1).start += .1; },
+        v => { v.world.history.at(-1).reasons = []; },
+        v => { v.world.history.at(-1).reasons = [null]; },
+        v => { v.world.history.find(h => h.mode === 'move').end = v.world.elapsed + 1; },
+        v => { v.world.experiences.pop(); },
+        v => { v.state.experiences.at(-1).choiceSource.selectedAt += .1; },
+    ];
+    for (const change of changes) { const altered = structuredClone(saved); change(altered); assert.equal(valid(altered), false, String(change)); }
+    const old = selectionSave(create(), worldApi.create());
+    assert.ok(valid(old)); assert.equal(old.state.selectionSources, undefined, 'old saves stay without invented sources');
+});
+
+test('3c3d1: later choices, ordinary autonomous rest and source repetition never replace a completed rest origin', () => {
+    const { valid } = require('../scripts/experimental/storage');
+    const state = create(), world = worldApi.create();
+    const result = say(state, '少し休もう');
+    worldApi.respond(world, result, state);
+    const firstSource = structuredClone(state.selectionSources[0]);
+    arriveAtSelectedRest(state, world); world.dwell = .1; finishLife(state, world);
+    const first = structuredClone(world.experiences.at(-1));
+    worldApi.respond(world, result, state);
+    assert.equal(state.selectionSources.length, 1, 'reusing an old processing result cannot add a source');
+    arriveAtSelectedRest(state, world); world.dwell = .1; finishLife(state, world);
+    assert.equal(world.experiences.at(-1).choiceSource, undefined, 'an old input is not new evidence');
+    labelLife(state, world, catalog.proposalTeaching.ja.request.utterance, { at: 200 });
+    arriveAtSelectedRest(state, world); world.dwell = .1; finishLife(state, world);
+    assert.equal(state.selectionSources.length, 2);
+    assert.deepEqual(state.selectionSources[0], firstSource);
+    assert.deepEqual(world.experiences[0], first);
+    const saved = selectionSave(state, world); assert.ok(valid(saved));
+    const swapped = structuredClone(saved);
+    swapped.world.experiences.at(-1).choiceSource = structuredClone(first.choiceSource);
+    swapped.state.experiences.at(-1).choiceSource = structuredClone(first.choiceSource);
+    swapped.world.history.at(-1).reasons = structuredClone(swapped.world.history.find(h => h.experienceId === first.id).reasons);
+    assert.equal(valid(swapped), false, 'two-sided changes cannot attach a different choice to this rest');
+    worldApi.approach(world, 'shade', 'experienced_recovery');
+    arriveAtSelectedRest(state, world); world.dwell = .1; finishLife(state, world);
+    assert.equal(world.experiences.at(-1).choiceSource, undefined, 'autonomous recovery does not borrow an earlier utterance');
+    assert.ok(valid(selectionSave(state, world)));
+});
+
 test('3c3c: eight starts and seven languages connect the same meal before/after with real prerequisite learning and JSON restart', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
