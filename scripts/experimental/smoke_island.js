@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--reasons') || process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -58,6 +58,13 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
+        if (process.argv.includes('--reasons')) {
+            await require('./smoke_reasons')({ js, window, url, paintClock, sleep,
+                read: () => snapshot, load: value => { nextLoad = value; } });
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, reasons: true, initial, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--conditions')) {
             const catalog = require('../../experimental_word_learning_catalog.json');
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
