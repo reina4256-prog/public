@@ -1,4 +1,9 @@
 {
+  "教わった問いと答えの例：": "A demonstrated question and answer:",
+  "示された問いと答えの組を、今の動作と照らし合わせている。本人が答えたわけではない。": "They are comparing the demonstrated question and answer with their current action. They have not answered it themselves.",
+  "問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。": "Checked the action while hearing an example question and answer. Still exploring what the question does.",
+  "同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。": "Examples with different answers for different actions helped them understand a question about their current action. Limited to the same speaker, language and question.",
+  "質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。": "Show a question example as “What are you doing?”→“eat”. During rest, pair the same question with “rest” to connect it with known actions.",
   "ここで教わった意味と結び付けて考えているよ。ほかでも同じかは、まだ分からない。": "I'm connecting it with the meaning I learned here. I don't yet know whether it means the same elsewhere.",
   "前の説明を言い直したんだね。自分で経験したことは残して、今の説明と分けて考えるよ。": "You've corrected your earlier explanation. I'll keep my own experiences and consider them separately from this explanation.",
   "どの説明につながるのか、まだはっきり分からない。": "I'm not yet sure which explanation this connects to.",

@@ -156,7 +156,24 @@
             catalogRule: 'feeling_report' };
     }
 
+    // A displayed dialogue example is not a question addressed to the child or
+    // a report by the player. The two quoted roles stay inside one input.
+    function questionDemonstration(text, locale, catalog) {
+        const quoted = '(?:「([^」\\n]+)」|"([^"\\n]+)"|“([^”\\n]+)”)';
+        const match = new RegExp(`^${quoted}\\s*→\\s*${quoted}$`, 'u').exec(text.trim());
+        if (!match) return null;
+        const question = match.slice(1, 4).find(Boolean), answer = match.slice(4, 7).find(Boolean);
+        if (question.includes('→')) return null;
+        const frames = interpret(question, locale, catalog), frame = frames[0];
+        if (frames.length !== 1 || frame.kind !== 'question' || frame.slot !== 'current_activity'
+            || frame.meaning || frame.time || frame.relations.length !== 1 || frame.relations[0] !== 'question') return null;
+        return { kind: 'question_demonstration', question, answer, form: normalize(frame.span),
+            meaning: answer, slot: frame.slot, relations: ['question'], span: text };
+    }
+
     function interpret(text, locale, catalog) {
+        if (text.includes('→')) return [questionDemonstration(text, locale, catalog)
+            || { kind: 'unknown', span: text, relations: [] }];
         // Raw input is kept separately. Only the parser uses normalized text.
         const contrast = locale === 'ja' && /^(.+?)(?:けど|けれど)[、,\s]*(.+?)[。]?$/u.exec(text.trim());
         if (contrast && feelingReport(contrast[1], false, locale) && feelingReport(contrast[2], false, locale)) {
@@ -390,10 +407,12 @@
     function understand(state, frame, speaker, catalog, locale) {
         const unresolved = [];
         const required = [...(frame.relations || [])];
+        const applies = entry => entry.scope?.kind === (frame.kind === 'question_demonstration' ? 'question' : frame.kind) && entry.scope.locale === locale
+            && entry.scope.speaker === speaker && (entry.id === 'question'
+                ? entry.scope.slot === frame.slot && entry.scope.form === (frame.form || normalize(frame.span))
+                : entry.scope.meanings?.includes(lexicalMeaning(frame.meaning, catalog)));
         const missingRelations = required.filter(id => !state.knowledge.relations.some(entry => entry.id === id
-            && (entry.source !== 'experienced_relation' || (entry.scope.kind === frame.kind
-                && entry.scope.locale === locale && entry.scope.speaker === speaker
-                && entry.scope.meanings.includes(lexicalMeaning(frame.meaning, catalog))))));
+            && (entry.source !== 'experienced_relation' || applies(entry))));
         unresolved.push(...missingRelations.map(id => ({ type: 'relation', id })));
         const known = {}, applications = [];
         for (const field of ['meaning', 'conditionMeaning', 'eventMeaning', 'oldMeaning']) {
@@ -428,7 +447,7 @@
         };
         const relationReferences = state.knowledge.relations.filter(entry => entry.source === 'experienced_relation'
             && required.includes(entry.id) && !missingRelations.includes(entry.id)
-            && entry.scope.kind === frame.kind && entry.scope.locale === locale && entry.scope.speaker === speaker);
+            && applies(entry));
         if (relationReferences.length) result.relationReferences = clone(relationReferences);
         return result;
     }
@@ -742,5 +761,5 @@
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
-        wordFrame, wordApplication, validWordLearning, lexicalMeaning });
+        wordFrame, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration });
 });

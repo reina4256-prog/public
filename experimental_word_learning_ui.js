@@ -34,6 +34,11 @@
         relation_pairing: '知っている動作と説明の言葉を照らし合わせている。説明全体は、まだ分かっていない。',
         note_relation_pairing: 'この説明を聞きながら動作を確かめた。言い回しの働きは、まだ確かめている途中。',
         note_relation_learned: '食事と休息で聞いた説明から、知っている動作に呼び方を結ぶ言い回しが分かってきた。同じ相手・言語の短い説明で使える。',
+        question_pairing: '示された問いと答えの組を、今の動作と照らし合わせている。本人が答えたわけではない。',
+        note_question_demo: '教わった問いと答えの例：',
+        note_question_pairing: '問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。',
+        note_question_learned: '同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。',
+        question_demo_guide: '質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。',
         title: 'ことばと、小さな暮らし',
         masterPlaces: '島で働く人たち', masterVisit: '会いに行くよう誘う', pointed_master: '働いている人の方を指さした。',
         master_explore: '冒険家', master_farming: '農家', master_fishing: '漁師',
@@ -352,6 +357,7 @@
     node('strong', t('playGuide'), guide); node('p', t(window.WordIslandMode ? 'islandGuide' : 'playGuideText'), guide);
     if (window.WordIslandMode) node('p', t('playGuideText'), guide);
     node('p', t('life_label_guide'), guide);
+    node('p', t('question_demo_guide'), guide);
     const form = node('form', undefined, chatPanel); form.className = 'chat-form';
     const label = node('label', t('chat'), form);
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;

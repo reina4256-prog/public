@@ -73,6 +73,7 @@
       {"id":"no_reply", "pattern":"^(?:違う|ちがう|違うよ|ちがうよ|ううん)$", "frame":{"kind":"reply","answer":"no","relations":["report","negation"]}}
     ],
     "en": [
+      {"id":"activity_now","pattern":"^what are you doing$","frame":{"kind":"question","subject":"self","slot":"current_activity","relations":["question"]}},
       {"id":"work_past","pattern":"^what (?:work did you do|did you help with)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
       {"id":"work_again","pattern":"^(?:do you want to|would you like to) (?:do (?:that|it)|help) again$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
       {"id":"rest", "pattern":"^(?:let's rest|let us rest)$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
@@ -81,6 +82,7 @@
       {"id":"like", "pattern":"^i like berries$", "frame":{"kind":"report","meaning":"like","target":"berries","relations":["report"]}}
     ],
     "zh-CN": [
+      {"id":"activity_now","pattern":"^你在做什么$","frame":{"kind":"question","subject":"self","slot":"current_activity","relations":["question"]}},
       {"id":"work_past","pattern":"^你?(?:做了什么工作|帮了什么忙)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
       {"id":"work_again","pattern":"^你?(?:还想|想再)(?:帮忙|做一次)吗?$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
       {"id":"rest", "pattern":"^(?:休息一下吧|一起休息吧)$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
@@ -88,6 +90,7 @@
       {"id":"like", "pattern":"^我喜欢浆果$", "frame":{"kind":"report","meaning":"like","target":"浆果","relations":["report"]}}
     ],
     "ru": [
+      {"id":"activity_now","pattern":"^что ты делаешь$","frame":{"kind":"question","subject":"self","slot":"current_activity","relations":["question"]}},
       {"id":"work_past","pattern":"^какую работу ты (?:сделал|выполнил)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
       {"id":"work_again","pattern":"^ты хочешь (?:помочь|попробовать) (?:снова|ещё раз)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
       {"id":"rest", "pattern":"^давай отдохнём$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
@@ -95,6 +98,7 @@
       {"id":"like", "pattern":"^мне нравятся ягоды$", "frame":{"kind":"report","meaning":"like","target":"ягоды","relations":["report"]}}
     ],
     "es-ES": [
+      {"id":"activity_now","pattern":"^¿?qué estás haciendo$","frame":{"kind":"question","subject":"self","slot":"current_activity","relations":["question"]}},
       {"id":"work_past","pattern":"^¿?qué (?:trabajo hiciste|hiciste para ayudar)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
       {"id":"work_again","pattern":"^¿?quieres (?:ayudar|hacerlo) (?:otra vez|de nuevo)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
       {"id":"rest", "pattern":"^descansemos un poco$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
@@ -102,6 +106,7 @@
       {"id":"like", "pattern":"^me gustan las bayas$", "frame":{"kind":"report","meaning":"like","target":"bayas","relations":["report"]}}
     ],
     "pt-BR": [
+      {"id":"activity_now","pattern":"^o que você está fazendo$","frame":{"kind":"question","subject":"self","slot":"current_activity","relations":["question"]}},
       {"id":"work_past","pattern":"^que trabalho você fez$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
       {"id":"work_again","pattern":"^você quer (?:ajudar|fazer isso) de novo$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
       {"id":"rest", "pattern":"^vamos descansar um pouco$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},
@@ -109,6 +114,7 @@
       {"id":"like", "pattern":"^eu gosto de fruta$", "frame":{"kind":"report","meaning":"like","target":"fruta","relations":["report"]}}
     ],
     "de": [
+      {"id":"activity_now","pattern":"^was machst du$","frame":{"kind":"question","subject":"self","slot":"current_activity","relations":["question"]}},
       {"id":"work_past","pattern":"^welche arbeit hast du gemacht$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_past","relations":["question","time"],"time":"past"}},
       {"id":"work_again","pattern":"^möchtest du (?:noch einmal|wieder) (?:helfen|das machen)$","frame":{"kind":"question","subject":"self","meaning":"work","slot":"work_again","relations":["question"]}},
       {"id":"rest", "pattern":"^ruhen wir uns etwas aus$", "frame":{"kind":"invitation","meaning":"rest","relations":["invitation"]}},

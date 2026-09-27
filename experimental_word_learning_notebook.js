@@ -16,8 +16,9 @@
             if (!label) continue;
             const learned = state.knowledge.relations.some(r => r.source === 'experienced_relation'
                 && r.evidence.includes(evidence.inputId));
-            result.push({ group: 'names', message: 'note_name', literal: label.raw,
-                detail: learned ? 'note_relation_learned' : 'note_relation_pairing', sourceId: label.inputId,
+            result.push({ group: 'names', message: label.relation === 'question' ? 'note_question_demo' : 'note_name', literal: label.raw,
+                detail: label.relation === 'question' ? (learned ? 'note_question_learned' : 'note_question_pairing')
+                    : learned ? 'note_relation_learned' : 'note_relation_pairing', sourceId: label.inputId,
                 experienceId: event.id, organized: organizedExperiences.has(event.id) });
         }
         for (const entry of state.knowledge.wordExplanations || []) {

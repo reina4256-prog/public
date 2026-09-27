@@ -22,7 +22,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -58,7 +58,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(initial.imagesLoaded, initial.totalImages);
         assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
-        if (process.argv.includes('--relations')) {
+        if (process.argv.includes('--relations') || process.argv.includes('--questions')) {
+            const questions = process.argv.includes('--questions');
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             const resume = async () => {
                 await window.loadURL(url); await paintClock(); await sleep(600);
@@ -74,7 +75,8 @@ if (!process.versions.electron || process.type !== 'browser') {
                     mealTaste: activity === 'eat' ? { quality: 'sweet', pleasant: true } : null });
                 await resume();
                 assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
-                await chat(index === 0 ? 'もぐは食べることだよ' : 'ぽぽは休むことだよ');
+                await chat(questions ? `「何してる？」→「${index === 0 ? '食べる' : '休む'}」`
+                    : index === 0 ? 'もぐは食べることだよ' : 'ぽぽは休むことだよ');
                 assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
                 assert.equal(snapshot.world.relationLabels.length, 1);
                 assert.equal(snapshot.state.knowledge.relations.length, 0);
@@ -86,15 +88,21 @@ if (!process.versions.electron || process.type !== 'browser') {
                 assert.equal(snapshot.state.knowledge.relations.length, index);
             }
             const origins = JSON.stringify(snapshot.state.experiences);
-            await chat('ぽぽは休むことだよ');
+            await chat(questions ? '何してる？' : 'ぽぽは休むことだよ');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, true);
-            assert.equal(snapshot.state.knowledge.wordExplanations.length, 1);
+            if (questions) {
+                assert.equal(snapshot.state.knowledge.wordExplanations, undefined);
+                assert.equal(snapshot.state.context.turns.at(-1).answer.source.questionSlot, 'current_activity');
+                assert.equal(snapshot.state.knowledge.relations[0].id, 'question');
+                assert.equal(snapshot.world.destination, null);
+            } else assert.equal(snapshot.state.knowledge.wordExplanations.length, 1);
             await chat('休めた？');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].complete, false);
             await js('document.querySelector("button[aria-controls=notebook]").click()');
-            assert.ok(await js('document.querySelector("#notebook").textContent.includes("同じ相手・言語の短い説明で使える")'));
+            assert.ok(await js(`document.querySelector("#notebook").textContent.includes(${JSON.stringify(questions
+                ? '同じ相手・言語・問いに限る' : '同じ相手・言語の短い説明で使える')})`));
             window.setSize(1281, 800); await sleep(500);
-            const screenshot = path.resolve(__dirname, '../../tests/word-relations-smoke.png');
+            const screenshot = path.resolve(__dirname, questions ? '../../tests/word-questions-smoke.png' : '../../tests/word-relations-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
             const knowledge = JSON.stringify(snapshot.state.knowledge);
             await resume();
@@ -104,7 +112,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, 1);
             assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));
             assert.deepEqual(failures, []);
-            console.log(JSON.stringify({ ok: true, relations: true, initial, screenshot, profile: directory }));
+            console.log(JSON.stringify({ ok: true, relations: true, questions, initial, screenshot, profile: directory }));
             return;
         }
         if (process.argv.includes('--life')) {

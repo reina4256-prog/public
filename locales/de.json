@@ -1,4 +1,9 @@
 {
+  "教わった問いと答えの例：": "Gezeigtes Frage-Antwort-Beispiel:",
+  "示された問いと答えの組を、今の動作と照らし合わせている。本人が答えたわけではない。": "Vergleicht das gezeigte Frage-Antwort-Paar mit der eigenen Tätigkeit. Es ist keine selbst gegebene Antwort.",
+  "問いと答えの例を聞きながら動作を確かめた。問いの働きは、まだ確かめている途中。": "Hat die Tätigkeit mit einem Frage-Antwort-Beispiel abgeglichen. Die Funktion der Frage wird noch erkundet.",
+  "同じ問いへの答えが動作によって変わる例から、今の行動を尋ねる働きが分かってきた。同じ相手・言語・問いに限る。": "Beispiele mit je nach Tätigkeit wechselnden Antworten halfen, die Frage nach der aktuellen Tätigkeit zu verstehen. Gilt nur für dieselbe Person, Sprache und Frage.",
+  "質問の例は「何してる？」→「食べる」の形で示せます。同じ問いを休息中は「休む」と組にし、既知の動作と照らし合わせます。": "Zeige ein Beispiel wie “Was machst du?”→“speisen”. Verbinde dieselbe Frage beim Ausruhen mit “ausruhen”, um sie mit bekannten Tätigkeiten abzugleichen.",
   "ここで教わった意味と結び付けて考えているよ。ほかでも同じかは、まだ分からない。": "Ich verbinde es mit der Bedeutung, die ich hier gelernt habe. Ob es anderswo dasselbe bedeutet, weiß ich noch nicht.",
   "前の説明を言い直したんだね。自分で経験したことは残して、今の説明と分けて考えるよ。": "Du hast deine frühere Erklärung korrigiert. Ich behalte meine eigenen Erfahrungen und betrachte sie getrennt von dieser Erklärung.",
   "どの説明につながるのか、まだはっきり分からない。": "Ich bin noch nicht sicher, mit welcher Erklärung das zusammenhängt.",
