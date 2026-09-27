@@ -1,8 +1,9 @@
 (function (root, factory) {
-    const api = factory();
+    const api = factory(typeof module === 'object' && module.exports
+        ? require('./experimental_word_learning_core') : root.ExperimentalWordLearning);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordCareers = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (core) {
     'use strict';
     // Introductory work only. No legacy vocabulary gate, entrance exam or Rank grants.
     const JOBS = Object.freeze({
@@ -77,19 +78,12 @@
     }
     // A demonstrated label and the actor's completed action are both required.
     // Existing saves without a demonstration are not retroactively taught words.
+    const learningRules = Object.entries(JOBS).flatMap(([master, job]) =>
+        ['work', `work:${master}`].map(id => ({ id, source: 'demonstrated_work', activity: 'work',
+            master, result: job.result, demonstration: `work_label_${master}` })));
     function learn(state, event) {
-        if (event.activity !== 'work' || event.demonstration !== `work_label_${event.master}` || !Object.hasOwn(JOBS, event.master)
-            || event.result !== JOBS[event.master].result) return;
-        for (const id of ['work', `work:${event.master}`]) {
-            let meaning = state.knowledge.meanings.find(m => m.id === id);
-            if (!meaning) {
-                meaning = { id, source: 'demonstrated_work', evidence: [] };
-                state.knowledge.meanings.push(meaning);
-            }
-            if (meaning.source === 'demonstrated_work' && !meaning.evidence.some(e => e.experienceId === event.id)) {
-                meaning.evidence.push({ experienceId: event.id, master: event.master, demonstration: event.demonstration });
-            }
-        }
+        // Resolve the retained original, rather than trusting a replayed event payload.
+        return core.learnExperience(state, event.id, learningRules);
     }
     function willingness(world, id) {
         if (!world.careers?.people[id]?.completed) return 'work_untried';
@@ -98,13 +92,7 @@
         return world.careers.people[id].interest >= .08 ? 'work_again' : 'work_other';
     }
     function validLearning(state) {
-        return state.knowledge.meanings.filter(m => m.source === 'demonstrated_work').every(m =>
-            (m.id === 'work' || Object.hasOwn(JOBS, m.id.slice(5)) && m.id.startsWith('work:')) &&
-            Array.isArray(m.evidence) && m.evidence.length > 0 && m.evidence.every(source =>
-                source && source.demonstration === `work_label_${source.master}` &&
-                (m.id === 'work' || m.id === `work:${source.master}`) &&
-                state.experiences?.some(e => e.id === source.experienceId && e.master === source.master &&
-                    e.activity === 'work' && e.demonstration === source.demonstration && e.result === JOBS[source.master]?.result)));
+        return core.validExperienceLearning(state, learningRules);
     }
     function answer(world, state, u) {
         const slots = ['work_past', 'work_again', 'work_current'];

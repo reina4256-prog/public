@@ -31,6 +31,57 @@
         };
     }
 
+    // Domain adapters describe an explicit label paired with a completed experience.
+    // Neither parser recognition nor selecting a candidate supplies that evidence.
+    function experienceCandidates(state, experienceId, rules) {
+        const events = (state.experiences || []).filter(event => event.id === experienceId);
+        if (events.length !== 1) return [];
+        const event = events[0];
+        if (!Number.isInteger(event.id) || !Number.isFinite(event.start)
+            || !Number.isFinite(event.end) || event.end < event.start) return [];
+        return rules.filter(rule => rule.demonstration && event.kind === 'experience'
+            && event.activity === rule.activity && event.demonstration === rule.demonstration
+            && event.result === rule.result && event.master === rule.master)
+            .map(rule => ({ id: rule.id, source: rule.source, experienceId,
+                master: event.master, demonstration: event.demonstration,
+                scope: { subject: 'self', activity: event.activity, result: event.result,
+                    ...(event.master ? { master: event.master } : {}) } }));
+    }
+
+    function learnExperience(state, experienceId, rules) {
+        const candidates = experienceCandidates(state, experienceId, rules);
+        // Conflicting mappings are retained as candidates, never decided by order.
+        const adopted = candidates.filter(candidate => candidates.filter(item => item.id === candidate.id).length === 1);
+        const updated = [];
+        for (const candidate of adopted) {
+            let meaning = state.knowledge.meanings.find(item => item.id === candidate.id);
+            if (meaning && meaning.source !== candidate.source) continue;
+            if (!meaning) {
+                meaning = { id: candidate.id, source: candidate.source, evidence: [] };
+                state.knowledge.meanings.push(meaning);
+            }
+            if (meaning.evidence.some(item => item.experienceId === experienceId)) continue;
+            const { id, source, ...evidence } = candidate;
+            meaning.evidence.push(clone(evidence));
+            updated.push({ id, experienceId });
+        }
+        return { candidates, adopted, updated, relationAcquired: false };
+    }
+
+    function validExperienceLearning(state, rules) {
+        const sources = new Set(rules.map(rule => rule.source));
+        return state.knowledge.meanings.filter(item => sources.has(item.source)).every(meaning =>
+            Array.isArray(meaning.evidence) && meaning.evidence.length > 0
+            && new Set(meaning.evidence.map(item => item?.experienceId)).size === meaning.evidence.length
+            && meaning.evidence.every(evidence => evidence && experienceCandidates(state, evidence.experienceId, rules)
+                .some(candidate => candidate.id === meaning.id && candidate.source === meaning.source
+                    && candidate.master === evidence.master && candidate.demonstration === evidence.demonstration
+                    // Older demonstrated-work saves have no scope; do not invent one on load.
+                    && (evidence.scope === undefined || evidence.scope
+                        && Object.keys(evidence.scope).length === Object.keys(candidate.scope).length
+                        && Object.entries(candidate.scope).every(([key, value]) => evidence.scope[key] === value)))));
+    }
+
     function perceive(state, { scene, attention }) {
         if (typeof scene !== 'string' || !scene || !Array.isArray(attention)
             || attention.some(item => !item || typeof item.id !== 'string' || typeof item.meaning !== 'string')) {
@@ -498,5 +549,5 @@
     }
 
     return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
-        adoptCandidate, updateLinks, assessTransfer });
+        adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning });
 });

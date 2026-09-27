@@ -14,6 +14,59 @@ const focus = (state, scene = 'clearing', count = 1) => api.perceive(state, {
     scene, attention: Array.from({ length: count }, (_, i) => ({ id: `berry:${i + 1}`, meaning: 'berry' }))
 });
 
+test('shared experience learning separates candidates, adoption and updates without teaching relations', () => {
+    const rule = { id: 'eat', source: 'test_demonstration', activity: 'eat',
+        demonstration: 'test_label', result: 'test_finished' };
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
+        const state = create({ foundation, life, speech });
+        const relations = JSON.stringify(state.knowledge.relations);
+        const event = { id: 1, kind: 'experience', activity: 'eat', start: 3, end: 8,
+            demonstration: 'test_label', result: 'test_finished' };
+        assert.equal(api.learnExperience(state, 1, [rule]).updated.length, 0, 'no original experience');
+        state.experiences = [event];
+        const before = JSON.stringify(state.knowledge);
+        assert.equal(api.experienceCandidates(state, 1, [rule]).length, 1);
+        assert.equal(JSON.stringify(state.knowledge), before, 'forming candidates is read-only');
+        const ambiguous = api.learnExperience(state, 1, [rule, { ...rule, source: 'conflicting' }]);
+        assert.equal(ambiguous.adopted.length, 0);
+        assert.equal(JSON.stringify(state.knowledge), before);
+        const learned = api.learnExperience(state, 1, [rule]);
+        assert.equal(learned.adopted.length, 1);
+        assert.equal(learned.updated.length, life ? 0 : 1, 'initial knowledge is not relabelled');
+        assert.equal(learned.relationAcquired, false);
+        assert.equal(JSON.stringify(state.knowledge.relations), relations);
+        const restored = JSON.parse(JSON.stringify(state));
+        assert.equal(api.learnExperience(restored, 1, [rule]).updated.length, 0);
+        assert.ok(api.validExperienceLearning(restored, [rule]));
+        if (!life) {
+            assert.deepEqual(restored.knowledge.meanings[0].evidence[0].scope,
+                { subject: 'self', activity: 'eat', result: 'test_finished' });
+            restored.knowledge.meanings[0].evidence[0].scope.subject = 'player';
+            assert.equal(api.validExperienceLearning(restored, [rule]), false);
+        }
+    }
+});
+
+test('experience learning rejects missing labels, unfinished events and ambiguous original IDs', () => {
+    const state = create({ life: false });
+    const rule = { id: 'eat', source: 'test_demonstration', activity: 'eat', demonstration: 'test_label', result: 'done' };
+    const event = { id: 1, kind: 'experience', activity: 'eat', demonstration: 'test_label', result: 'done', start: 2, end: 7 };
+    for (const change of [{ demonstration: null }, { kind: 'speaker_report' }, { result: 'other' }, { end: 1 }, { end: undefined }]) {
+        state.experiences = [{ ...event, ...change }];
+        assert.equal(api.learnExperience(state, 1, [rule]).updated.length, 0);
+    }
+    state.experiences = [event, { ...event }];
+    assert.equal(api.learnExperience(state, 1, [rule]).updated.length, 0);
+    state.experiences = [event]; api.learnExperience(state, 1, [rule]);
+    const evidence = state.knowledge.meanings[0].evidence;
+    evidence.push({ ...evidence[0] });
+    assert.equal(api.validExperienceLearning(state, [rule]), false);
+    evidence.pop(); delete evidence[0].scope;
+    assert.ok(api.validExperienceLearning(state, [rule]), 'old evidence stays valid without manufactured scope');
+    state.experiences[0].demonstration = null;
+    assert.equal(api.validExperienceLearning(state, [rule]), false);
+});
+
 test('external reports distinguish heard time, event, feeling and unresolved real details', () => {
     const state = create(), world = worldApi.create();
     const knowledge = JSON.stringify(state.knowledge), experiences = JSON.stringify(world.experiences);
