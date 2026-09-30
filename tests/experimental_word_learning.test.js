@@ -1241,7 +1241,7 @@ test('3b3: seven-language unknown, conditional, negative, third-person and quest
     }
 });
 
-test('3b through-check: all roles and 3a coexist across eight starts and seven languages; forged saves fail', () => {
+test('3c3g: all ID 3 relations coexist across eight starts and seven languages; restart and forged saves', () => {
     const { valid } = require('../scripts/experimental/storage');
     for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['gesture', 'short']) {
         for (const locale of Object.keys(catalog.reportTeaching)) {
@@ -1311,6 +1311,21 @@ test('3b through-check: all roles and 3a coexist across eight starts and seven l
                 assert.equal(say(state, raw, { locale }).understandings[0].complete, true, `${locale}: ${raw}`);
             }
             const value = { version: 1, appearance: 'robot', state, world }; assert.ok(valid(structuredClone(value)));
+            const resumed = JSON.parse(JSON.stringify(value));
+            assert.ok(valid(resumed));
+            const beforeNotebook = JSON.stringify(resumed);
+            const notes = notebookApi.entries(resumed.state);
+            assert.ok(notes.some(e => e.message === 'note_contrast_learned'));
+            if (!foundation) for (const detail of ['note_sequence_learned', 'note_condition_learned', 'note_time_learned', 'note_negation_learned', 'note_reason_learned']) {
+                assert.ok(notes.some(e => e.detail === detail), `${locale}: ${detail}`);
+            }
+            assert.equal(JSON.stringify(resumed), beforeNotebook);
+            const applied = labelLife(resumed.state, resumed.world, feelingInputs(locale)[0], { locale });
+            assert.ok(applied.understandings.every(u => u.complete && !u.testimony.verified));
+            assert.deepEqual(resumed.state.knowledge, state.knowledge);
+            assert.deepEqual(resumed.state.feelingLearning, state.feelingLearning);
+            assert.deepEqual(resumed.state.experiences, state.experiences);
+            assert.ok(valid(resumed));
             if (foundation) continue;
             const last = state.experiences.findIndex(e => e.relationLabels?.some(l => l.relation === 'report' && l.roles.contentSubject === 'player'));
             for (const mutate of [
