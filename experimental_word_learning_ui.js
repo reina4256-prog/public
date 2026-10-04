@@ -299,6 +299,8 @@
     node('h2', t('gameTitle'), titleMenu); node('p', t('gameSubtitle'), titleMenu);
     const newGame = node('button', t('newGame'), titleMenu); newGame.id = 'word-new-game'; newGame.disabled = true;
     const continueGame = node('button', t('continueGame'), titleMenu); continueGame.id = 'word-continue'; continueGame.disabled = true;
+    const titleStatus = node('span', '', titleMenu); titleStatus.className = 'word-title-error';
+    titleStatus.setAttribute('role', 'status'); titleStatus.hidden = true;
     const resetDialog = node('dialog'); resetDialog.className = 'word-reset';
     const resetHeading = node('h2', t('resetHeading'), resetDialog); resetHeading.id = 'word-reset-heading';
     resetDialog.setAttribute('aria-labelledby', resetHeading.id);
@@ -307,11 +309,13 @@
     const resetAccept = node('button', t('resetAccept'), resetDialog); resetAccept.id = 'word-reset-accept';
     const setupBack = node('button', t('backTitle'), settings); setupBack.type = 'button'; setupBack.hidden = !window.WordIslandMode;
     if (window.WordIslandMode) {
+        app.classList.add('title-active');
         node('p', t('provisionalSetup'), setupCopy);
         settings.hidden = setupCopy.hidden = true;
         header.querySelector('h1').textContent = t('gameTitle'); document.title = t('gameTitle');
     }
     function showTitle() {
+        app.classList.add('title-active');
         screen = 'title'; settings.hidden = setupCopy.hidden = true; titleScreen.hidden = false;
         logoButton.hidden = true; titleMenu.hidden = false;
         continueGame.disabled = !restored || saveBlocked;
@@ -319,6 +323,7 @@
         newGame.focus();
     }
     function showSetup() {
+        app.classList.remove('title-active');
         screen = 'setup'; titleScreen.hidden = true; settings.hidden = setupCopy.hidden = false;
         [appearance, foundation, life, speech].forEach(select => { select.disabled = false; });
         start.textContent = t('start'); appearance.focus();
@@ -340,7 +345,9 @@
         try { if (window.wordStorage) written = window.wordStorage.save(pending).ok; }
         catch (_) { written = false; }
         if (!written) {
-            saveBlocked = true; saveBadge.textContent = t('saveFailed'); resetDialog.close(); showTitle(); return;
+            saveBlocked = true; saveBadge.textContent = t('saveFailed');
+            titleStatus.textContent = t('saveFailed'); titleStatus.hidden = false;
+            resetDialog.close(); showTitle(); return;
         }
         restored = null; state = world = null;
         appearance.value = 'robot'; foundation.value = life.value = 'yes'; speech.value = 'short';
@@ -605,6 +612,7 @@
         report = window.ExperimentalWordReport.create({ state, world, appearance: appearance.value, locale: window.GameI18n.language, resumed: !!restored });
         settings.hidden = true; setupCopy.hidden = true; session.hidden = false;
         titleScreen.hidden = true; screen = 'playing';
+        app.classList.remove('title-active');
         app.classList.add('playing'); input.focus({ preventScroll: true });
         save();
     }
@@ -706,7 +714,10 @@
                     foundation.value = restored.state.settings.foundation ? 'yes' : 'no';
                     life.value = restored.state.settings.life ? 'yes' : 'no'; speech.value = restored.state.settings.speech;
                 }
-            } catch (_) { saveBlocked = true; saveBadge.textContent = t('saveFailed'); }
+            } catch (_) {
+                saveBlocked = true; saveBadge.textContent = t('saveFailed');
+                titleStatus.textContent = t('saveFailed'); titleStatus.hidden = false;
+            }
         }
         start.disabled = saveBlocked; newGame.disabled = saveBlocked;
         if (screen === 'title') continueGame.disabled = !restored || saveBlocked;

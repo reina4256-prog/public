@@ -23,10 +23,15 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     };
     const saved = () => JSON.parse(fs.readFileSync(path.join(directory, 'word-life.json'), 'utf8'));
     await waitReady();
+    assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), false);
+    const bounds = await js('(()=>{const r=document.querySelector(".word-title").getBoundingClientRect();return {x:r.x,y:r.y,width:r.width,height:r.height,viewportWidth:innerWidth,viewportHeight:innerHeight}})()');
+    assert.ok(bounds.x === 0 && bounds.y === 0 && Math.abs(bounds.width - bounds.viewportWidth) < 1
+        && Math.abs(bounds.height - bounds.viewportHeight) < 1, JSON.stringify(bounds));
     assert.equal(await js('document.querySelector("#app > form").checkVisibility()'), false);
     assert.equal(fs.existsSync(path.join(directory, 'word-life.json')), false);
     await capture('word-logo-smoke.png');
     await click('.word-logo');
+    assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), false);
     assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
     for (let i = 0; i < 50 && !await js('audioManager.currentAudio?.readyState >= 2'); i++) await sleep(100);
     assert.ok(await js('audioManager.currentAudio?.src.endsWith("bgm_title_main.mp3") && audioManager.currentAudio.readyState >= 2'));
@@ -36,6 +41,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     await click('#word-reset-cancel');
     assert.equal(fs.existsSync(path.join(directory, 'word-life.json')), false);
     await click('#word-new-game'); await click('#word-reset-accept');
+    assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), true);
     assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .5 });
     assert.ok(valid(saved()));
     await click('#app > form button[type="button"]');
@@ -58,6 +64,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     assert.equal(await js('document.querySelector("dialog").open'), false);
     assert.deepEqual(saved(), before);
     await click('#word-continue');
+    assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), true);
     const resumed = read();
     assert.deepEqual(resumed.state.records, before.state.records);
     assert.deepEqual(resumed.state.notes, before.state.notes);
@@ -89,4 +96,10 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     assert.ok(valid(fresh));
     assert.equal(await js('typeof aiPet.update'), 'undefined');
     assert.equal(await js('localStorage.getItem("ai_pet_data_v1") || localStorage.getItem("ai_pet_data")'), null);
+    // Hiding the header must not hide the reason a failed save cannot be resumed.
+    fs.writeFileSync(path.join(directory, 'word-life.json'), '{invalid', 'utf8');
+    await window.loadURL(url); await paintClock(); await sleep(800); await click('.word-logo');
+    assert.equal(await js('document.querySelector("#word-new-game").disabled && document.querySelector("#word-continue").disabled'), true);
+    assert.equal(await js('document.querySelector(".word-title-error").checkVisibility()'), true);
+    assert.equal(fs.readFileSync(path.join(directory, 'word-life.json'), 'utf8'), '{invalid');
 };

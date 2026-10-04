@@ -74,6 +74,10 @@ summary { cursor: pointer; }
 .word-reset { max-width: min(550px, 92vw); max-height: 90dvh; overflow: auto; background: #fffdf7; color: #294c43; border: 2px solid #96aca0; border-radius: 14px; padding: 22px; }
 .word-reset::backdrop { background: #000b; }
 .word-reset button { margin: 5px; }
+main.title-active { max-width: none; height: 100vh; height: 100dvh; margin: 0; padding: 0; overflow: hidden; }
+main.title-active > .game-header { display: none; }
+main.title-active .word-title { height: 100%; max-height: none; aspect-ratio: auto; }
+.word-title-error { position: absolute; left: 4%; bottom: 3%; max-width: 65%; padding: 10px; background: #050505cc; color: #fff; font-size: .85rem; }
 @media (max-width: 900px) {
     main { padding: 8px; }
     .game-header { gap: 7px; }
