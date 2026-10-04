@@ -10,6 +10,10 @@ const core = require('../../experimental_word_learning_core');
 const feelingLearning = require('../../experimental_word_feeling_learning');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
+    // Persist the confirmed reset even if the player quits before choosing a child.
+    if (value?.pendingNewGame === true) return value.version === 1
+        && Object.keys(value).every(key => ['version', 'pendingNewGame', 'volume'].includes(key))
+        && Number.isFinite(value.volume) && value.volume >= 0 && value.volume <= 1;
     const s = value?.state, w = value?.world;
     return value?.version === 1 && ['robot', 'spirit', 'seed'].includes(value.appearance)
         && s?.version === 1 && typeof s.settings?.foundation === 'boolean'

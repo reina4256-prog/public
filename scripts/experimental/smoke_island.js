@@ -43,13 +43,31 @@ if (!process.versions.electron || process.type !== 'browser') {
         };
         // Hidden native windows throttle rAF even with backgroundThrottling:false.
         // Use a real-time timer for the test's paint scheduling; tick still runs once per frame.
-        const paintClock = () => js('window.requestAnimationFrame = callback => setTimeout(() => callback(performance.now()), 16); void 0');
+        const paintClock = () => js(`window.requestAnimationFrame = callback => setTimeout(() => callback(performance.now()), 16);
+            window.smokeBeginSession = () => {
+                if (document.querySelector('#app').classList.contains('playing')) return;
+                document.querySelector('.word-logo').click();
+                const resume = document.querySelector('#word-continue');
+                if (!resume.disabled) resume.click();
+                else {
+                    document.querySelector('#word-new-game').click();
+                    document.querySelector('#word-reset-accept').click();
+                    document.querySelector('#app > form').requestSubmit();
+                }
+            }; void 0`);
         await paintClock();
+        if (process.argv.includes('--title')) {
+            await require('./smoke_title')({ js, window, url, paintClock, sleep, directory,
+                read: () => snapshot });
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, title: true, profile: directory }));
+            return;
+        }
         for (let i = 0; i < 100; i++) {
-            if (await js('!!document.querySelector("#app > form button:not(:disabled)")')) break;
+            if (await js('!!document.querySelector("#word-new-game:not(:disabled)")')) break;
             await sleep(100);
         }
-        await js('document.querySelector("#app > form").requestSubmit()');
+        await js('window.smokeBeginSession()');
         await sleep(1200);
         assert.ok(snapshot?.world?.island, 'start saved the actual island');
         const initialMap = JSON.stringify(snapshot.world.island.assets);
@@ -95,7 +113,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             const resume = async () => {
                 await window.loadURL(url); await paintClock(); await sleep(600);
-                await js('document.querySelector("#app > form").requestSubmit()'); await sleep(150);
+                await js('window.smokeBeginSession()'); await sleep(150);
             };
             const condition = catalog.conditionTeaching.ja;
             const lessons = [
@@ -164,7 +182,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             const resume = async () => {
                 await window.loadURL(url); await paintClock(); await sleep(600);
-                await js('document.querySelector("#app > form").requestSubmit()'); await sleep(150);
+                await js('window.smokeBeginSession()'); await sleep(150);
             };
             nextLoad = structuredClone(snapshot);
             Object.assign(nextLoad.world, { mode: 'observe', dwell: 60, attention: 'shade',
@@ -214,7 +232,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             const resume = async () => {
                 await window.loadURL(url); await paintClock(); await sleep(600);
-                await js('document.querySelector("#app > form").requestSubmit()'); await sleep(150);
+                await js('window.smokeBeginSession()'); await sleep(150);
             };
             for (const [index, activity] of (times ? ['rest', 'rest', 'rest', 'rest'] : negations ? ['rest', 'rest', 'rest', 'eat'] : proposals || reports ? ['rest', 'rest'] : ['eat', 'rest']).entries()) {
                 nextLoad = structuredClone(snapshot);
@@ -366,7 +384,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             Object.assign(nextLoad.world, { mode: 'observe', dwell: 5, attention: 'berry:1',
                 destination: null, hunger: .8, fatigue: .2 });
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             await sleep(300);
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
@@ -376,7 +394,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.equal(snapshot.state.knowledge.meanings.length, 0);
             const labels = JSON.stringify(snapshot.world.lifeLabels);
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             assert.equal(JSON.stringify(snapshot.world.lifeLabels), labels);
             await sleep(6500);
             await chat('おいしかった？');
@@ -390,7 +408,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             Object.assign(nextLoad.world, { mode: 'rest', dwell: 2, attention: 'shade', destination: null,
                 activityStart: nextLoad.world.elapsed, activityBefore: { hunger: .3, fatigue: .8 }, fatigue: .8 });
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             await chat('休む'); await chat('"疲れた"'); await sleep(3200);
             await chat('休めた？');
             assert.equal(snapshot.state.context.turns.at(-1).answer.response.message, 'rest_helped');
@@ -403,7 +421,7 @@ if (!process.versions.electron || process.type !== 'browser') {
                 await chat('「ぽぽ」しよう');
                 assert.equal(snapshot.state.context.turns.at(-1).understandings[0].known.meaning, 'rest');
                 await window.loadURL(url); await paintClock(); await sleep(600);
-                await js('document.querySelector("#app > form").requestSubmit()');
+                await js('window.smokeBeginSession()');
                 await chat('さっき間違えた。ぽぽは休むことじゃなくて、木の実のことだよ');
                 assert.equal(snapshot.state.knowledge.wordExplanations[1].corrects, original);
                 assert.ok(await js('document.querySelector("#conversation").textContent.includes("前の説明を言い直した")'));
@@ -413,7 +431,7 @@ if (!process.versions.electron || process.type !== 'browser') {
                 assert.equal(JSON.stringify(snapshot.state.experiences), experiencesBefore);
                 const explanations = JSON.stringify(snapshot.state.knowledge.wordExplanations);
                 await window.loadURL(url); await paintClock(); await sleep(600);
-                await js('document.querySelector("#app > form").requestSubmit()');
+                await js('window.smokeBeginSession()');
                 await chat('ぽぽ');
                 assert.equal(snapshot.state.context.turns.at(-1).understandings[0].known.meaning, 'berry');
                 assert.equal(JSON.stringify(snapshot.state.knowledge.wordExplanations), explanations);
@@ -431,7 +449,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             fs.writeFileSync(screenshot, (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
             const meanings = JSON.stringify(snapshot.state.knowledge.meanings);
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             assert.equal(JSON.stringify(snapshot.state.knowledge.meanings), meanings);
             assert.equal(snapshot.world.experiences.filter(e => e.kind === 'rest').length, 1);
             assert.equal(JSON.stringify(snapshot.world.island.assets), initialMap);
@@ -446,14 +464,14 @@ if (!process.versions.electron || process.type !== 'browser') {
             nextLoad = structuredClone(snapshot);
             Object.assign(nextLoad.world, { mode: 'idle', dwell: 60, attention: null, destination: null });
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             const chat = text => js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)}; document.querySelector('.chat-form').requestSubmit()`);
             assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
             await chat('今何してるの？'); await chat('もう一度教えて'); await chat('一息って？');
             assert.ok(await js('document.querySelector("#conversation").textContent.includes("少し何もせず休む")'));
             assert.equal(snapshot.state.context.lastOutput.source.message, 'taking_break');
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             await chat('つまり休んでいるということ？');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].questionSlot, 'context_detail');
             nextLoad = structuredClone(snapshot);
@@ -461,7 +479,7 @@ if (!process.versions.electron || process.type !== 'browser') {
                 activityStart: nextLoad.world.elapsed, activityBefore: { hunger: .8, fatigue: .2 },
                 mealTaste: { quality: 'sweet', pleasant: true }, hunger: .8 });
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             await sleep(700);
             await chat('ほっとしたの？');
             assert.ok(await js('Array.from(document.querySelectorAll("#conversation .observation-line")).some(line => line.textContent.includes("気持ちや理由はまだ分からない"))'));
@@ -478,7 +496,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.ok(await js('document.querySelector("#conversation").textContent.includes("詳しいことはまだ分からない")'));
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].eventTime, 'yesterday');
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             await chat('そう、その話');
             assert.equal(snapshot.state.context.turns.at(-1).understandings[0].reportReference.inputId, reportId);
             assert.equal(snapshot.world.experiences.length, ownExperiences);
@@ -503,7 +521,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             nextLoad.world.island.places.forEach(p => { nextLoad.world.visited[p.id] = nextLoad.world.elapsed; });
             delete nextLoad.world.visited['master:farming'];
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
             assert.equal(await js('document.querySelectorAll(".body-status meter").length'), 2);
             for (let i = 0; i < 55; i++) {
@@ -524,7 +542,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             const screenshot = path.resolve(__dirname, '../../tests/word-careers-smoke.png');
             fs.writeFileSync(screenshot, (await window.webContents.capturePage()).toPNG());
             await window.loadURL(url); await paintClock(); await sleep(600);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await js('window.smokeBeginSession()');
             assert.equal(JSON.stringify(snapshot.world.island.assets), initialMap);
             assert.equal(snapshot.world.careers.people.farming.completed, 1);
             assert.equal(snapshot.state.encounters.filter(e => e.master === 'farming').length, 1);
@@ -535,7 +553,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         // Save a ready-to-observe body state in this disposable profile, keeping real map routes/UI.
         nextLoad = structuredClone(snapshot); nextLoad.world.hunger = .8;
         await window.loadURL(url); await paintClock(); await sleep(600);
-        await js('document.querySelector("#app > form").requestSubmit()');
+        await js('window.smokeBeginSession()');
         await js('document.querySelector(".scene-controls button").click()');
         for (let i = 0; i < 50; i++) {
             await sleep(1000);
@@ -557,7 +575,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         fs.writeFileSync(screenshot, (await window.webContents.capturePage()).toPNG());
         const records = snapshot.state.records.length;
         await window.loadURL(url); await paintClock(); await sleep(600);
-        await js('document.querySelector("#app > form").requestSubmit()');
+        await js('window.smokeBeginSession()');
         assert.equal(JSON.stringify(snapshot.world.island.assets), initialMap);
         assert.equal(snapshot.state.records.length, records);
         assert.ok(await js('Array.from({length:localStorage.length},(_,i)=>localStorage.key(i)).every(k=>!["ai_pet_data_v1","map_data_v6"].includes(k))'));

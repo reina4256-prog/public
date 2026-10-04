@@ -3,6 +3,13 @@
     const api = window.ExperimentalWordLearning;
     const app = document.getElementById('app');
     const labels = {
+        gameTitle: 'AIテラリウム', gameSubtitle: '- 観測者の島 -',
+        logoStart: '- クリックして開始 -', newGame: 'はじめから',
+        continueGame: 'つづきから', backTitle: 'タイトルへ戻る',
+        resetHeading: '新しい子との暮らしを始めますか？',
+        resetCopy: '今の子・経験・ノート・島の保存を初期化します。言語と音量は引き継ぎます。',
+        resetAccept: '初期化して始める', resetCancel: '今の暮らしを残す',
+        provisionalSetup: '開始時の設問は準備中です。今回は姿と言葉の初期設定を選んで始めます。',
         correction_pairing: '原説明と置換先を照合している。教示だけでは説明を取り下げない。',
         feeling_teaching_received: '原文に結び付けて、気持ちの語・話し手・時点を段階ごとに記録している。',
         feeling_teaching_unmatched: 'この教示に必要な原文や前提を照合できなかった。',
@@ -237,6 +244,8 @@
     let controlFeedback = null;
     let report = null;
     let exporting = false;
+    let screen = window.WordIslandMode ? 'logo' : 'setup';
+    let environmentVolume = .5;
     function record(kind, data) {
         report?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
     }
@@ -280,6 +289,78 @@
     const speech = select(settings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
     const start = node('button', t('start'), settings);
     start.disabled = true;
+    const titleScreen = node('section'); titleScreen.className = 'word-title';
+    titleScreen.hidden = !window.WordIslandMode;
+    const logoButton = node('button', undefined, titleScreen); logoButton.className = 'word-logo';
+    logoButton.type = 'button'; logoButton.setAttribute('aria-label', t('logoStart'));
+    const logoCanvas = node('canvas', undefined, logoButton); logoCanvas.width = 1280; logoCanvas.height = 720;
+    logoCanvas.setAttribute('aria-hidden', 'true');
+    const titleMenu = node('div', undefined, titleScreen); titleMenu.className = 'word-title-menu'; titleMenu.hidden = true;
+    node('h2', t('gameTitle'), titleMenu); node('p', t('gameSubtitle'), titleMenu);
+    const newGame = node('button', t('newGame'), titleMenu); newGame.id = 'word-new-game'; newGame.disabled = true;
+    const continueGame = node('button', t('continueGame'), titleMenu); continueGame.id = 'word-continue'; continueGame.disabled = true;
+    const resetDialog = node('dialog'); resetDialog.className = 'word-reset';
+    const resetHeading = node('h2', t('resetHeading'), resetDialog); resetHeading.id = 'word-reset-heading';
+    resetDialog.setAttribute('aria-labelledby', resetHeading.id);
+    node('p', t('resetCopy'), resetDialog);
+    const resetCancel = node('button', t('resetCancel'), resetDialog); resetCancel.id = 'word-reset-cancel';
+    const resetAccept = node('button', t('resetAccept'), resetDialog); resetAccept.id = 'word-reset-accept';
+    const setupBack = node('button', t('backTitle'), settings); setupBack.type = 'button'; setupBack.hidden = !window.WordIslandMode;
+    if (window.WordIslandMode) {
+        node('p', t('provisionalSetup'), setupCopy);
+        settings.hidden = setupCopy.hidden = true;
+        header.querySelector('h1').textContent = t('gameTitle'); document.title = t('gameTitle');
+    }
+    function showTitle() {
+        screen = 'title'; settings.hidden = setupCopy.hidden = true; titleScreen.hidden = false;
+        logoButton.hidden = true; titleMenu.hidden = false;
+        continueGame.disabled = !restored || saveBlocked;
+        newGame.disabled = !catalog || saveBlocked;
+        newGame.focus();
+    }
+    function showSetup() {
+        screen = 'setup'; titleScreen.hidden = true; settings.hidden = setupCopy.hidden = false;
+        [appearance, foundation, life, speech].forEach(select => { select.disabled = false; });
+        start.textContent = t('start'); appearance.focus();
+    }
+    logoButton.addEventListener('click', () => {
+        showTitle();
+        if (window.audioManager) {
+            window.aiPet.bgmVolume = environmentVolume;
+            window.audioManager.playTitleMusic();
+        }
+    });
+    setupBack.addEventListener('click', showTitle);
+    newGame.addEventListener('click', () => { resetDialog.showModal(); resetCancel.focus(); });
+    resetCancel.addEventListener('click', () => resetDialog.close());
+    resetDialog.addEventListener('close', () => newGame.focus());
+    resetAccept.addEventListener('click', () => {
+        const pending = { version: 1, pendingNewGame: true, volume: environmentVolume };
+        let written = true;
+        try { if (window.wordStorage) written = window.wordStorage.save(pending).ok; }
+        catch (_) { written = false; }
+        if (!written) {
+            saveBlocked = true; saveBadge.textContent = t('saveFailed'); resetDialog.close(); showTitle(); return;
+        }
+        restored = null; state = world = null;
+        appearance.value = 'robot'; foundation.value = life.value = 'yes'; speech.value = 'short';
+        resetDialog.close(); showSetup();
+    });
+    continueGame.addEventListener('click', () => { if (restored && !saveBlocked) beginSession(); });
+    function drawLogo(time) {
+        if (screen !== 'logo') return;
+        const ctx = logoCanvas.getContext('2d'), cx = 640, cy = 360;
+        ctx.fillStyle = '#050505'; ctx.fillRect(0, 0, 1280, 720);
+        ctx.font = 'bold 50px serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = 'rgba(255,255,255,.9)'; ctx.fillText('Two-Sided Studio', cx, cy - 30);
+        ctx.beginPath(); ctx.moveTo(cx - 250, cy); ctx.lineTo(cx + 250, cy);
+        ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.save(); ctx.translate(cx, cy + 30); ctx.scale(1, -1);
+        ctx.fillStyle = 'rgba(255,255,255,.15)'; ctx.fillText('Two-Sided Studio', 0, 0); ctx.restore();
+        const alpha = matchMedia('(prefers-reduced-motion: reduce)').matches ? .85 : .35 + .65 * (Math.sin(time / 400) + 1) / 2;
+        ctx.font = '16px sans-serif'; ctx.fillStyle = `rgba(200,200,200,${alpha})`;
+        ctx.fillText(displayText('logoStart'), cx, 670);
+    }
     const session = node('section'); session.hidden = true;
     session.className = 'living-space';
     const stage = node('div', undefined, session); stage.className = 'stage';
@@ -308,7 +389,7 @@
         const volumeLabel = node('label', t('volume'), controls); volumeLabel.className = 'volume-control';
         volume = node('input', undefined, volumeLabel); volume.type = 'range';
         volume.min = '0'; volume.max = '1'; volume.step = '.05'; volume.value = '.5';
-        volume.addEventListener('input', () => { if (world) { view.volume(world, Number(volume.value)); save(); } });
+        volume.addEventListener('input', () => { if (world) { environmentVolume = Number(volume.value); view.volume(world, environmentVolume); save(); } });
         masterChoice = node('select', undefined, navigationControls);
         masterChoice.className = 'master-choice'; masterChoice.setAttribute('aria-label', t('masterPlaces'));
         for (const id of Object.keys(window.ExperimentalWordCareers.JOBS)) {
@@ -482,6 +563,7 @@
         conversation.scrollTop = conversation.scrollHeight;
     }
     function animate(time) {
+        drawLogo(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && !document.hidden) {
             const holding = paused || exporting || !!input.value.trim();
@@ -511,18 +593,24 @@
         }
         requestAnimationFrame(animate);
     }
-    settings.addEventListener('submit', event => {
-        event.preventDefault();
+    function beginSession() {
+        if (!catalog || screen === 'playing' || saveBlocked) return;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         world = restored?.world || worldApi.create();
         if (restored) appearance.value = restored.appearance;
         view.start?.(world, appearance.value);
+        if (!restored && volume) view.volume(world, environmentVolume);
         if (volume) volume.value = String(world.island.volume ?? .5);
         updatePerception();
         report = window.ExperimentalWordReport.create({ state, world, appearance: appearance.value, locale: window.GameI18n.language, resumed: !!restored });
         settings.hidden = true; setupCopy.hidden = true; session.hidden = false;
+        titleScreen.hidden = true; screen = 'playing';
         app.classList.add('playing'); input.focus({ preventScroll: true });
         save();
+    }
+    settings.addEventListener('submit', event => {
+        event.preventDefault();
+        if (screen === 'setup') beginSession();
     });
     function pointAt(target, key) {
         if (!debugControls || paused) return;
@@ -609,7 +697,9 @@
                 const result = window.wordStorage.load();
                 if (!result.ok) throw new Error('load');
                 restored = result.value;
+                if (restored?.pendingNewGame) { environmentVolume = restored.volume; restored = null; }
                 if (restored) {
+                    environmentVolume = restored.world.island?.volume ?? .5;
                     start.textContent = t('continue');
                     [appearance, foundation, life, speech].forEach(select => { select.disabled = true; });
                     appearance.value = restored.appearance;
@@ -618,6 +708,8 @@
                 }
             } catch (_) { saveBlocked = true; saveBadge.textContent = t('saveFailed'); }
         }
-        start.disabled = false; requestAnimationFrame(animate);
+        start.disabled = saveBlocked; newGame.disabled = saveBlocked;
+        if (screen === 'title') continueGame.disabled = !restored || saveBlocked;
+        requestAnimationFrame(animate);
     }).catch(() => node('p', t('failed')));
 })();

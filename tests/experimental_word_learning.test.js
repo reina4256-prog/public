@@ -14,6 +14,34 @@ const focus = (state, scene = 'clearing', count = 1) => api.perceive(state, {
     scene, attention: Array.from({ length: count }, (_, i) => ({ id: `berry:${i + 1}`, meaning: 'berry' }))
 });
 
+test('confirmed new-game marker persists without a child and rejects mixed or invalid reset data', () => {
+    const { valid, createStore } = require('../scripts/experimental/storage');
+    const pending = { version: 1, pendingNewGame: true, volume: .25 };
+    assert.equal(valid(pending), true);
+    for (const invalid of [{ ...pending, volume: -1 }, { ...pending, volume: 2 },
+        { ...pending, volume: '0.25' }, { ...pending, state: create() },
+        { ...pending, world: worldApi.create() }, { ...pending, version: 2 }]) {
+        assert.equal(valid(invalid), false);
+    }
+    const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'word-new-game-test-'));
+    try {
+        const active = { version: 1, appearance: 'robot', state: create(), world: worldApi.create() };
+        const store = createStore(directory);
+        assert.equal(store.save(active).ok, true);
+        assert.equal(store.save(pending).ok, true);
+        assert.deepEqual(createStore(directory).load(), { ok: true, value: pending });
+        assert.equal(createStore(directory).save(active).ok, true);
+        assert.deepEqual(createStore(directory).load().value, active);
+    } finally {
+        // Known individual files only; no recursive filesystem removal.
+        for (const file of ['word-life.json', 'word-life.json.backup']) {
+            const target = path.join(directory, file);
+            if (fs.existsSync(target)) fs.unlinkSync(target);
+        }
+        fs.rmdirSync(directory);
+    }
+});
+
 const lifeLearning = require('../experimental_word_life_learning');
 function lifeFixture(activity = 'eat', options = {}) {
     const state = create({ life: false, ...options }), world = worldApi.create();

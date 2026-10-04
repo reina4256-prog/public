@@ -30,10 +30,10 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
         const before = value ? null : retained();
         await window.loadURL(url); await paintClock();
         for (let i = 0; i < 100; i++) {
-            if (await js('!!document.querySelector("#app > form button:not(:disabled)")')) break;
+            if (await js('!!document.querySelector("#word-new-game:not(:disabled)")')) break;
             await sleep(100);
         }
-        await js('document.querySelector("#app > form").requestSubmit()'); await sleep(100); await sync();
+        await js('window.smokeBeginSession()'); await sleep(100); await sync();
         assert.ok(valid(read()));
         if (before) assert.equal(retained(), before, 'restart must preserve sources and knowledge');
         assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);

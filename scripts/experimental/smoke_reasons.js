@@ -14,7 +14,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
     const resume = async value => {
         if (value) load(value);
         await window.loadURL(url); await paintClock(); await sleep(600);
-        await js('document.querySelector("#app > form").requestSubmit()'); await sleep(100);
+        await js('window.smokeBeginSession()'); await sleep(100);
         assert.ok(valid(read()), 'renderer save remains valid');
         assert.equal(await js('document.querySelector(".master-choice").checkVisibility()'), false);
         assert.equal(await js('document.querySelector(".session-badge").textContent.includes("停止")'), false);

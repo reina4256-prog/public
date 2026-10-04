@@ -9,6 +9,7 @@
     "start:web:words": "node scripts/experimental/serve.js",
     "test:words": "node --test tests/experimental_word_learning.test.js tests/experimental_word_electron.test.js tests/experimental_word_island.test.js",
     "test:words:id3": "node scripts/experimental/smoke_island.js --id3",
+    "test:words:title": "node scripts/experimental/smoke_island.js --title",
     "start": "electron .",
     "start:web": "node browser_server.js",
     "start:web:lan": "node browser_server.js --host 0.0.0.0",

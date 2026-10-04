@@ -20,7 +20,7 @@ function createServer() {
         let name;
         try { name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).slice(1) || 'experimental_word_island.html'; }
         catch (_) { response.writeHead(400).end(); return; }
-        const sharedAsset = /^[a-zA-Z0-9_-]+\.png$/.test(name) || /^bgm_(robot|spirit|seed)\.mp3$/.test(name);
+        const sharedAsset = /^[a-zA-Z0-9_-]+\.png$/.test(name) || /^bgm_(robot|spirit|seed|title_main)\.mp3$/.test(name);
         if (!['GET', 'HEAD'].includes(request.method) || (!files.has(name) && !sharedAsset)) {
             response.writeHead(404).end(); return;
         }
