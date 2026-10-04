@@ -1,6 +1,5 @@
 'use strict';
-// WIP checkpoint: full Electron run and visual verification remain pending.
-// See docs/WORD_DEMO_ROADMAP.md, 2026-09-30 checkpoint, before reporting completion.
+// Full ID 3 regression; game scope and remaining work are owned by the spec.
 // One continuous renderer session: only initial settings and activity conditions
 // are arranged in the isolated profile. All evidence comes from normal inputs
 // and real single-loop activity completion, never from an injected learned save.
@@ -112,7 +111,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
     const correction = catalog.correctionTeaching.ja;
     const sourceText = correction.exampleSource.replace('ぽぽ', 'るる');
     const replacement = correction.exampleReplacement.replace('ぽぽ', 'るる');
-    const sourceId = (await chat(sourceText)).input.id;
+    const sourceId = (await chat(sourceText)).id;
     await chat(`${correction.source}«${sourceText}»`); await resume();
     await chat(`${correction.replacement}«${replacement}»`); await resume();
     assert.equal((await chat(replacement)).understandings[0].corrects, sourceId);
@@ -137,6 +136,9 @@ module.exports = async function ({ js, window, url, paintClock, sleep, read, loa
     await chat(full);
     const evidence = retained();
     await js('document.querySelector("button[aria-controls=notebook]").click()');
+    // The normal notebook initially shows only twelve entries per group.
+    // Use its own paging control before checking sources from earlier lessons.
+    await js('while (document.querySelector("#notebook > button")) document.querySelector("#notebook > button").click()');
     for (const text of [sourceText, replacement, condition.met, sequence.before, sequence.after, reason.reason, catalog.contrastTeaching.ja.noncausal]) {
         assert.ok(await js(`document.querySelector('#notebook').textContent.includes(${JSON.stringify(text)})`), text);
     }
