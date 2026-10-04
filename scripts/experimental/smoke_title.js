@@ -17,20 +17,23 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const click = selector => js(`document.querySelector(${JSON.stringify(selector)}).click()`);
     const answerQuestions = async answers => {
         for (const answer of answers) {
-            await click(`.word-questions fieldset input[value="${answer}"]`);
-            await js('document.querySelector("#app > form").requestSubmit()');
+            await click(`.word-questions fieldset button[data-answer="${answer}"]`);
         }
         assert.equal(await js('document.querySelector(".word-meeting").open'), true);
-        const before = read().world.elapsed;
-        const body = [read().world.hunger, read().world.fatigue, read().world.event];
+        const before = structuredClone(saved());
+        assert.equal(before.pendingNewGame, true);
+        assert.equal(await js('document.querySelector(".living-space").checkVisibility()'), false);
         await js('document.querySelector(".word-meeting").requestClose()');
         assert.equal(await js('document.querySelector(".word-meeting").open'), true);
         await sleep(500);
         await js('window.dispatchEvent(new Event("beforeunload"))');
-        assert.equal(read().world.elapsed, before);
-        assert.deepEqual([read().world.hunger, read().world.fatigue, read().world.event], body);
-        assert.deepEqual(read().state.startOrigin.answers, answers);
+        assert.deepEqual(saved(), before);
+        await click('#word-meeting-retry');
+        assert.equal(await js('document.querySelector(".question-count").textContent'), '1 / 7');
+        assert.deepEqual(saved(), before);
+        for (const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
         await click('#word-meeting-begin');
+        assert.deepEqual(read().state.startOrigin.answers, answers);
     };
     const capture = async name => {
         // First capture wakes the hidden compositor; capture its subsequent paint.
@@ -59,7 +62,8 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     await click('#word-reset-cancel');
     assert.equal(fs.existsSync(path.join(directory, 'word-life.json')), false);
     await click('#word-new-game'); await click('#word-reset-accept');
-    assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), true);
+    assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), false);
+    assert.equal(await js('audioManager.currentBGMType'), 'personality');
     assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .5 });
     assert.ok(valid(saved()));
     await js('Array.from(document.querySelectorAll("#app > form > button")).at(-1).click()');
@@ -127,36 +131,54 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(read()?.pendingNewGame, true);
         assert.equal(await js('Array.from(document.querySelectorAll(".word-questions select")).every(e=>!e.checkVisibility())'), true);
         const answers = [i % 3, i & 1 ? 1 : 0, i % 3, i % 3, i % 3, i & 2 ? 0 : 1, i & 4 ? 0 : 1];
+        if (i === 5) answers.splice(0, 5, 2, 2, 2, 2, 0);
         // Advance, go back, and verify both the choice and its localized label survive.
-        await click(`fieldset input[value="${answers[0]}"]`);
+        await click(`fieldset button[data-answer="${answers[0]}"]`);
         await js('document.querySelector(".word-questions").requestSubmit()');
         await click('.word-questions > button[type="button"]'); await sleep(80);
-        assert.equal(await js('Number(document.querySelector("fieldset input:checked").value)'), answers[0]);
+        assert.equal(await js('Number(document.querySelector("fieldset button[aria-pressed=true]").dataset.answer)'), answers[0]);
         const text = await js('document.querySelector("fieldset legend").textContent');
         const translated = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../locales/' + locales[i] + '.json'), 'utf8'));
         assert.equal(text, translated[questions.questions[0].text]);
         if (i === 6) await capture('word-start-questions-smoke.png');
         // Meeting screenshot is captured before dismissing it.
         for (const answer of answers) {
-            await click(`fieldset input[value="${answer}"]`);
-            await js('document.querySelector(".word-questions").requestSubmit()');
+            await click(`fieldset button[data-answer="${answer}"]`);
         }
-        const expected = questions.resolve(answers), started = structuredClone(read());
+        const pending = structuredClone(saved()); assert.equal(pending.pendingNewGame, true);
+        if (i === 6) await capture('word-meeting-smoke.png');
+        await sleep(100); await js('window.dispatchEvent(new Event("beforeunload"))');
+        assert.deepEqual(saved(), pending);
+        assert.equal(await js('document.querySelector("#word-meeting-begin").getBoundingClientRect().bottom <= innerHeight'), true);
+        await click('#word-meeting-begin');
+        const started = structuredClone(read()), expected = questions.resolve(answers, started.state.startOrigin.draw);
         assert.deepEqual(started.state.settings, expected.settings);
         assert.equal(started.appearance, expected.appearance); skins.add(started.appearance);
         assert.ok(valid(started));
-        const elapsed = started.world.elapsed;
-        if (i === 6) await capture('word-meeting-smoke.png');
-        await sleep(100); await js('window.dispatchEvent(new Event("beforeunload"))');
-        assert.equal(read().world.elapsed, elapsed);
-        assert.equal(await js('document.querySelector("#word-meeting-begin").getBoundingClientRect().bottom <= innerHeight'), true);
-        await click('#word-meeting-begin');
         await reload(); await click('.word-logo'); await click('#word-continue');
         assert.deepEqual(read().state.startOrigin, started.state.startOrigin);
         assert.deepEqual(read().state.settings, expected.settings);
         assert.equal(await js('document.querySelector(".word-meeting").open'), false);
     }
     assert.equal(skins.size, 3);
+    // Repeating a tied answer set can change the appearance before any child save.
+    await reload(); await click('.word-logo'); await click('#word-new-game'); await click('#word-reset-accept');
+    await js('window.originalQuestionRandom=Math.random; Math.random=()=>0; void 0');
+    const tied = [0,0,0,2,0,1,1], pending = structuredClone(saved());
+    for (const answer of tied) await click(`fieldset button[data-answer="${answer}"]`);
+    const first = await js('document.querySelector(".word-questions select").value');
+    await click('#word-meeting-retry'); await js('Math.random=()=>.99; void 0');
+    for (const answer of tied) await click(`fieldset button[data-answer="${answer}"]`);
+    assert.notEqual(await js('document.querySelector(".word-questions select").value'), first);
+    assert.deepEqual(saved(), pending);
+    assert.equal(await js('audioManager.currentBGMType'), 'personality');
+    for (let i = 0; i < 50 && !await js('audioManager.currentAudio.readyState >= 2'); i++) await sleep(100);
+    assert.equal(await js('audioManager.currentAudio.src.endsWith("bgm_personality.mp3") && audioManager.currentAudio.loop && audioManager.currentAudio.readyState >= 2'), true);
+    await js('Math.random=window.originalQuestionRandom; void 0');
+    // Quitting at the preview keeps the reset marker, never a discarded child.
+    await js('window.dispatchEvent(new Event("beforeunload"))'); await reload(); await click('.word-logo');
+    assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
+    assert.deepEqual(saved(), pending);
     // Hiding the header must not hide the reason a failed save cannot be resumed.
     fs.writeFileSync(path.join(directory, 'word-life.json'), '{invalid', 'utf8');
     await window.loadURL(url); await paintClock(); await sleep(800); await click('.word-logo');

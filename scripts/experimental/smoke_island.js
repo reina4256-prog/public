@@ -53,9 +53,7 @@ if (!process.versions.electron || process.type !== 'browser') {
                     document.querySelector('#word-new-game').click();
                     document.querySelector('#word-reset-accept').click();
                     for (const answer of [0,1,1,1,0,0,0]) {
-                        const radio = document.querySelector('.word-questions fieldset input[value="'+answer+'"]');
-                        radio.checked = true; radio.dispatchEvent(new Event('change'));
-                        document.querySelector('#app > form').requestSubmit();
+                        document.querySelector('.word-questions fieldset button[data-answer="'+answer+'"]').click();
                     }
                     document.querySelector('#word-meeting-begin').click();
                 }

@@ -11,7 +11,7 @@
         resetAccept: '初期化して始める', resetCancel: '今の暮らしを残す',
         questionIntro: '日常の場面で、自分ならどうするかを選んでください。正解はありません。回答と出会いの対応は試作中です。',
         questionPrevious: '前の問いへ', questionNext: '次の問いへ', questionMeet: 'この子に会う',
-        questionHeading: '日常の小さな問い', meetingHeading: 'はじめまして', meetingBegin: '一緒に暮らし始める',
+        questionHeading: '✨ 最初の質問', meetingHeading: 'はじめまして', meetingBegin: 'この姿で始める', meetingRetry: 'やり直す',
         meetingWords: 'こんにちは。', meetingSound: '……ん。',
         meetingRobot: '小さく首を傾け、こちらへ向き直った。',
         meetingSpirit: 'ふわりと揺れ、こちらへ近づいた。',
@@ -298,15 +298,15 @@
     const life = select(internalSettings, 'life', [['yes', 'lifeOn'], ['no', 'lifeOff']]);
     const speech = select(internalSettings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
     const questionsApi = window.ExperimentalWordStartQuestions;
-    let answers = [], questionIndex = 0;
+    let answers = [], questionIndex = 0, appearanceDraw = 0;
     settings.className = 'word-questions';
     node('h2', t('questionHeading'), settings);
-    node('p', t('questionIntro'), settings);
+    node('p', t('questionIntro'), settings).hidden = true;
     const questionCount = node('p', '', settings); questionCount.className = 'question-count';
     const questionField = node('fieldset', undefined, settings);
     const previousQuestion = node('button', t('questionPrevious'), settings); previousQuestion.type = 'button';
     const start = node('button', t('start'), settings);
-    start.disabled = true;
+    start.disabled = true; start.hidden = true;
     function renderQuestion() {
         const question = questionsApi.questions[questionIndex];
         questionCount.textContent = `${questionIndex + 1} / ${questionsApi.questions.length}`;
@@ -314,12 +314,12 @@
         const legend = node('legend', question.text, questionField);
         legend.tabIndex = -1;
         question.choices.forEach((text, index) => {
-            const label = node('label', undefined, questionField);
-            const radio = node('input', undefined, label);
-            radio.type = 'radio'; radio.name = question.id; radio.value = String(index);
-            radio.checked = answers[questionIndex] === index;
-            node('span', text, label);
-            radio.addEventListener('change', () => { answers[questionIndex] = index; start.disabled = !catalog; });
+            const button = node('button', text, questionField); button.type = 'button';
+            button.dataset.answer = String(index); button.setAttribute('aria-pressed', String(answers[questionIndex] === index));
+            button.disabled = !catalog || saveBlocked;
+            button.addEventListener('click', () => {
+                answers[questionIndex] = index; start.disabled = false; settings.requestSubmit(start);
+            });
         });
         previousQuestion.disabled = questionIndex === 0;
         start.textContent = t(questionIndex === questionsApi.questions.length - 1 ? 'questionMeet' : 'questionNext');
@@ -335,6 +335,7 @@
     meetingCanvas.setAttribute('aria-hidden', 'true');
     const meetingVoice = node('p', '', meeting), meetingGesture = node('p', '', meeting);
     const meetingBegin = node('button', t('meetingBegin'), meeting); meetingBegin.type = 'button'; meetingBegin.id = 'word-meeting-begin';
+    const meetingRetry = node('button', t('meetingRetry'), meeting); meetingRetry.type = 'button'; meetingRetry.id = 'word-meeting-retry';
     let meetingImage = null;
     let meetingVisuals = null;
     function drawMeeting(time) {
@@ -351,7 +352,12 @@
     }
     meeting.addEventListener('cancel', event => event.preventDefault());
     meetingBegin.addEventListener('click', () => {
-        meeting.close(); screen = 'playing'; lastFrame = null; input.focus({ preventScroll: true });
+        if (screen !== 'meeting') return;
+        meeting.close(); beginSession(); lastFrame = null;
+    });
+    meetingRetry.addEventListener('click', () => {
+        if (screen !== 'meeting') return;
+        meeting.close(); meetingImage = null; answers = []; questionIndex = 0; showSetup();
     });
     const titleScreen = node('section'); titleScreen.className = 'word-title';
     titleScreen.hidden = !window.WordIslandMode;
@@ -372,24 +378,32 @@
     const resetCancel = node('button', t('resetCancel'), resetDialog); resetCancel.id = 'word-reset-cancel';
     const resetAccept = node('button', t('resetAccept'), resetDialog); resetAccept.id = 'word-reset-accept';
     const setupBack = node('button', t('backTitle'), settings); setupBack.type = 'button'; setupBack.hidden = !window.WordIslandMode;
+    settings.appendChild(questionCount);
     if (window.WordIslandMode) {
         app.classList.add('title-active');
         settings.hidden = setupCopy.hidden = true;
         header.querySelector('h1').textContent = t('gameTitle'); document.title = t('gameTitle');
-    }
+    } else app.classList.add('onboarding-active');
     function showTitle() {
+        app.classList.remove('onboarding-active');
         app.classList.add('title-active');
         screen = 'title'; settings.hidden = setupCopy.hidden = true; titleScreen.hidden = false;
         logoButton.hidden = true; titleMenu.hidden = false;
         continueGame.disabled = !restored || saveBlocked;
         newGame.disabled = !catalog || saveBlocked;
         newGame.focus();
+        if (window.audioManager) { window.aiPet.bgmVolume = environmentVolume; window.audioManager.playTitleMusic(); }
     }
     function showSetup() {
         app.classList.remove('title-active');
+        app.classList.add('onboarding-active');
         screen = 'setup'; titleScreen.hidden = true; settings.hidden = false; setupCopy.hidden = true;
         [appearance, foundation, life, speech].forEach(select => { select.disabled = false; });
         renderQuestion();
+        if (window.audioManager) {
+            window.aiPet.bgmVolume = environmentVolume;
+            window.audioManager.stopTitleMusic(); window.audioManager.playBGM('personality');
+        }
     }
     logoButton.addEventListener('click', () => {
         showTitle();
@@ -669,7 +683,7 @@
         if (!catalog || screen === 'playing' || saveBlocked) return;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
-        if (newMeeting) state.startOrigin = { version: 1, answers: answers.slice() };
+        if (newMeeting) state.startOrigin = { version: 2, answers: answers.slice(), draw: appearanceDraw };
         world = restored?.world || worldApi.create();
         if (restored) appearance.value = restored.appearance;
         view.start?.(world, appearance.value);
@@ -680,17 +694,9 @@
         settings.hidden = true; setupCopy.hidden = true; session.hidden = false;
         titleScreen.hidden = true; screen = 'playing';
         app.classList.remove('title-active');
+        app.classList.remove('onboarding-active');
         app.classList.add('playing'); input.focus({ preventScroll: true });
         save();
-        if (newMeeting) {
-            screen = 'meeting';
-            meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
-            meetingImage.onerror = () => { imageFailure = true; };
-            meetingVoice.textContent = t(state.settings.speech === 'short' ? 'meetingWords' : 'meetingSound');
-            meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value]);
-            view.draw(world, appearance.value, true);
-            meeting.showModal(); meetingBegin.focus();
-        }
     }
     settings.addEventListener('submit', event => {
         event.preventDefault();
@@ -700,11 +706,17 @@
         if (answers[questionIndex] === undefined) return;
         if (questionIndex < questionsApi.questions.length - 1) { questionIndex++; renderQuestion(); return; }
         if (!questionsApi.validAnswers(answers)) return;
-        const initial = questionsApi.resolve(answers);
+        appearanceDraw = Math.random();
+        const initial = questionsApi.resolve(answers, appearanceDraw);
         appearance.value = initial.appearance;
         foundation.value = initial.settings.foundation ? 'yes' : 'no';
         life.value = initial.settings.life ? 'yes' : 'no'; speech.value = initial.settings.speech;
-        beginSession();
+        screen = 'meeting'; settings.hidden = true;
+        meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
+        meetingImage.onerror = () => { imageFailure = true; };
+        meetingVoice.textContent = t(initial.settings.speech === 'short' ? 'meetingWords' : 'meetingSound');
+        meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value]);
+        meeting.showModal(); meetingBegin.focus();
     });
     function pointAt(target, key) {
         if (!debugControls || paused) return;

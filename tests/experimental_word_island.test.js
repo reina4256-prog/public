@@ -127,7 +127,7 @@ test('comparison entry loads shared renderer but no legacy AI, save or life loop
         assert.match(html, /view_renderer.js/); assert.match(html, /island_shared.js/);
         assert.doesNotMatch(html, /(?:system|main|ai_core|schedule_runtime|cloud_manager)\.js/);
         for (const match of html.matchAll(/(?:src|href)="([^"]+)"/g)) assert.equal((await fetch(`${url}/${match[1]}`)).status, 200);
-        for (const species of ['robot', 'spirit', 'seed']) {
+        for (const species of ['robot', 'spirit', 'seed', 'personality']) {
             const response = await fetch(`${url}/bgm_${species}.mp3`, { headers: { Range: 'bytes=0-31' } });
             assert.equal(response.status, 206); assert.equal((await response.arrayBuffer()).byteLength, 32);
             assert.equal(response.headers.get('content-type'), 'audio/mpeg');

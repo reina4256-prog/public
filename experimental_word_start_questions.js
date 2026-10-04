@@ -19,23 +19,26 @@
         return Array.isArray(answers) && answers.length === questions.length
             && questions.every((_, i) => Number.isInteger(answers[i]) && answers[i] >= 0 && answers[i] < 3);
     }
-    function resolve(answers) {
+    function resolve(answers, draw = 0) {
         if (!validAnswers(answers)) throw new Error('Invalid start answers');
+        if (!Number.isFinite(draw) || draw < 0 || draw >= 1) throw new Error('Invalid start draw');
         // Appearance uses five everyday preferences. Each knowledge/expression axis
         // has its own input; no axis is inferred from species or another axis.
         const votes = [0, 0, 0];
         const skins = ['robot', 'seed', 'spirit'];
         const routing = [[0, 1, 2], [1, 0, 2], [1, 0, 2], [1, 0, 2], [0, 0, 1]];
         answers.slice(0, 5).forEach((answer, i) => { votes[routing[i][answer]]++; });
-        return { appearance: skins[votes.indexOf(Math.max(...votes))],
+        const candidates = skins.filter((_, i) => votes[i] === Math.max(...votes));
+        return { appearance: candidates[Math.floor(draw * candidates.length)],
             settings: { foundation: answers[1] !== 0, life: answers[5] !== 1,
                 speech: answers[6] === 0 ? 'short' : 'gesture' } };
     }
     function validOrigin(origin, settings, appearance) {
         if (origin === undefined) return true; // Earlier saves stay unchanged.
-        if (!origin || origin.version !== 1 || !validAnswers(origin.answers)
-            || Object.keys(origin).some(key => !['version', 'answers'].includes(key))) return false;
-        const result = resolve(origin.answers);
+        if (!origin || ![1, 2].includes(origin.version) || !validAnswers(origin.answers)
+            || Object.keys(origin).some(key => !(origin.version === 1 ? ['version', 'answers'] : ['version', 'answers', 'draw']).includes(key))
+            || (origin.version === 2 && (!Number.isFinite(origin.draw) || origin.draw < 0 || origin.draw >= 1))) return false;
+        const result = resolve(origin.answers, origin.version === 2 ? origin.draw : 0);
         return result.appearance === appearance && Object.keys(result.settings)
             .every(key => result.settings[key] === settings?.[key]);
     }

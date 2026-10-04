@@ -44,3 +44,14 @@ test('start provenance rejects incomplete or altered answers, while older starts
     assert.equal(questions.validOrigin(origin, result.settings, 'spirit'), false);
     assert.equal(questions.validOrigin({ ...origin, experience: true }, result.settings, result.appearance), false);
 });
+
+test('legacy-style tied appearance draws change only the preview species and preserve old provenance', () => {
+    const answers = [0, 0, 0, 2, 0, 1, 1]; // robot=2, seed=2, spirit=1
+    const first = questions.resolve(answers, 0), second = questions.resolve(answers, .99);
+    assert.notEqual(first.appearance, second.appearance);
+    assert.deepEqual(first.settings, second.settings);
+    assert.equal(questions.validOrigin({ version: 2, answers, draw: .99 }, second.settings, second.appearance), true);
+    assert.equal(questions.validOrigin({ version: 1, answers }, first.settings, first.appearance), true);
+    assert.equal(questions.validOrigin({ version: 2, answers, draw: 1 }, second.settings, second.appearance), false);
+    assert.equal(questions.validOrigin({ version: 2, answers }, second.settings, second.appearance), false);
+});
