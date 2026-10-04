@@ -8,6 +8,7 @@ const lifeLearning = require('../../experimental_word_life_learning');
 const relationLearning = require('../../experimental_word_relation_learning');
 const core = require('../../experimental_word_learning_core');
 const feelingLearning = require('../../experimental_word_feeling_learning');
+const startQuestions = require('../../experimental_word_start_questions');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
     // Persist the confirmed reset even if the player quits before choosing a child.
@@ -18,6 +19,7 @@ function valid(value) {
     return value?.version === 1 && ['robot', 'spirit', 'seed'].includes(value.appearance)
         && s?.version === 1 && typeof s.settings?.foundation === 'boolean'
         && typeof s.settings?.life === 'boolean' && ['short', 'gesture'].includes(s.settings.speech)
+        && startQuestions.validOrigin(s.startOrigin, s.settings, value.appearance)
         && ['meanings', 'relations', 'associations', 'relationEvidence'].every(k => Array.isArray(s.knowledge?.[k]))
         && [...s.knowledge.meanings, ...s.knowledge.relations].every(e => typeof e?.id === 'string')
         && s.knowledge.associations.every(e => typeof e?.word === 'string' && typeof e.target === 'string' && Array.isArray(e.evidence) && e.evidence.every(item => item && typeof item === 'object'))

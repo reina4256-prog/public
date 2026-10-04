@@ -9,7 +9,7 @@ const files = new Set(['experimental_word_learning.html', 'experimental_word_lea
     'experimental_word_careers.js', 'experimental_word_life_learning.js', 'experimental_word_relation_learning.js', 'experimental_word_feeling_learning.js',
     'experimental_word_learning_notebook.js',
     'experimental_word_learning_report.js',
-    'experimental_word_learning_ui.js', 'experimental_word_learning_core.js',
+    'experimental_word_learning_ui.js', 'experimental_word_start_questions.js', 'experimental_word_learning_core.js',
     'experimental_word_learning_catalog.json', 'localization_core.js', 'localization_catalog.js',
     'experimental_word_learning_world.js', 'experimental_word_learning_view.js', 'experimental_word_learning_visuals.json',
     'robot.png', 'spirit.png', 'seed.png', 'field_2.png']);

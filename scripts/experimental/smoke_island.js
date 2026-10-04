@@ -25,7 +25,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--reasons') || process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--title') || process.argv.includes('--reasons') || process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -52,7 +52,12 @@ if (!process.versions.electron || process.type !== 'browser') {
                 else {
                     document.querySelector('#word-new-game').click();
                     document.querySelector('#word-reset-accept').click();
-                    document.querySelector('#app > form').requestSubmit();
+                    for (const answer of [0,1,1,1,0,0,0]) {
+                        const radio = document.querySelector('.word-questions fieldset input[value="'+answer+'"]');
+                        radio.checked = true; radio.dispatchEvent(new Event('change'));
+                        document.querySelector('#app > form').requestSubmit();
+                    }
+                    document.querySelector('#word-meeting-begin').click();
                 }
             }; void 0`);
         await paintClock();

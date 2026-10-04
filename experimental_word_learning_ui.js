@@ -9,7 +9,13 @@
         resetHeading: '新しい子との暮らしを始めますか？',
         resetCopy: '今の子・経験・ノート・島の保存を初期化します。言語と音量は引き継ぎます。',
         resetAccept: '初期化して始める', resetCancel: '今の暮らしを残す',
-        provisionalSetup: '開始時の設問は準備中です。今回は姿と言葉の初期設定を選んで始めます。',
+        questionIntro: '日常の場面で、自分ならどうするかを選んでください。正解はありません。回答と出会いの対応は試作中です。',
+        questionPrevious: '前の問いへ', questionNext: '次の問いへ', questionMeet: 'この子に会う',
+        questionHeading: '日常の小さな問い', meetingHeading: 'はじめまして', meetingBegin: '一緒に暮らし始める',
+        meetingWords: 'こんにちは。', meetingSound: '……ん。',
+        meetingRobot: '小さく首を傾け、こちらへ向き直った。',
+        meetingSpirit: 'ふわりと揺れ、こちらへ近づいた。',
+        meetingSeed: '葉をそっと揺らし、こちらを見上げた。',
         correction_pairing: '原説明と置換先を照合している。教示だけでは説明を取り下げない。',
         feeling_teaching_received: '原文に結び付けて、気持ちの語・話し手・時点を段階ごとに記録している。',
         feeling_teaching_unmatched: 'この教示に必要な原文や前提を照合できなかった。',
@@ -272,6 +278,7 @@
     const saveBadge = node('span', t(window.wordStorage ? 'autosave' : 'sessionOnly'), header); saveBadge.className = 'session-badge';
     saveBadge.setAttribute('role', 'status');
     const setupCopy = node('div'); setupCopy.className = 'setup-copy';
+    setupCopy.hidden = true;
     node('p', t('intro'), setupCopy).className = 'intro';
     node('p', t(window.wordStorage ? 'savedNotice' : 'notice'), setupCopy);
     const language = node('select', undefined, header);
@@ -282,13 +289,70 @@
     });
     language.value = window.GameI18n.language;
     language.addEventListener('change', () => window.GameI18n.setLanguage(language.value));
+    window.addEventListener('game-language-changed', () => { language.value = window.GameI18n.language; });
     const settings = node('form');
-    const appearance = select(settings, 'appearance', [['robot', 'robot'], ['spirit', 'spirit'], ['seed', 'seed']]);
-    const foundation = select(settings, 'foundation', [['yes', 'foundationOn'], ['no', 'foundationOff']]);
-    const life = select(settings, 'life', [['yes', 'lifeOn'], ['no', 'lifeOff']]);
-    const speech = select(settings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
+    // Internal compatibility controls for focused regression scenarios, never shown.
+    const internalSettings = node('div', undefined, settings); internalSettings.hidden = true;
+    const appearance = select(internalSettings, 'appearance', [['robot', 'robot'], ['spirit', 'spirit'], ['seed', 'seed']]);
+    const foundation = select(internalSettings, 'foundation', [['yes', 'foundationOn'], ['no', 'foundationOff']]);
+    const life = select(internalSettings, 'life', [['yes', 'lifeOn'], ['no', 'lifeOff']]);
+    const speech = select(internalSettings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
+    const questionsApi = window.ExperimentalWordStartQuestions;
+    let answers = [], questionIndex = 0;
+    settings.className = 'word-questions';
+    node('h2', t('questionHeading'), settings);
+    node('p', t('questionIntro'), settings);
+    const questionCount = node('p', '', settings); questionCount.className = 'question-count';
+    const questionField = node('fieldset', undefined, settings);
+    const previousQuestion = node('button', t('questionPrevious'), settings); previousQuestion.type = 'button';
     const start = node('button', t('start'), settings);
     start.disabled = true;
+    function renderQuestion() {
+        const question = questionsApi.questions[questionIndex];
+        questionCount.textContent = `${questionIndex + 1} / ${questionsApi.questions.length}`;
+        questionField.replaceChildren();
+        const legend = node('legend', question.text, questionField);
+        legend.tabIndex = -1;
+        question.choices.forEach((text, index) => {
+            const label = node('label', undefined, questionField);
+            const radio = node('input', undefined, label);
+            radio.type = 'radio'; radio.name = question.id; radio.value = String(index);
+            radio.checked = answers[questionIndex] === index;
+            node('span', text, label);
+            radio.addEventListener('change', () => { answers[questionIndex] = index; start.disabled = !catalog; });
+        });
+        previousQuestion.disabled = questionIndex === 0;
+        start.textContent = t(questionIndex === questionsApi.questions.length - 1 ? 'questionMeet' : 'questionNext');
+        start.disabled = !catalog || answers[questionIndex] === undefined;
+        legend.focus();
+    }
+    previousQuestion.addEventListener('click', () => { if (questionIndex > 0) { questionIndex--; renderQuestion(); } });
+    renderQuestion();
+    const meeting = node('dialog'); meeting.className = 'word-reset word-meeting';
+    const meetingHeading = node('h2', t('meetingHeading'), meeting); meetingHeading.id = 'word-meeting-heading';
+    meeting.setAttribute('aria-labelledby', meetingHeading.id);
+    const meetingCanvas = node('canvas', undefined, meeting); meetingCanvas.width = 300; meetingCanvas.height = 210;
+    meetingCanvas.setAttribute('aria-hidden', 'true');
+    const meetingVoice = node('p', '', meeting), meetingGesture = node('p', '', meeting);
+    const meetingBegin = node('button', t('meetingBegin'), meeting); meetingBegin.type = 'button'; meetingBegin.id = 'word-meeting-begin';
+    let meetingImage = null;
+    let meetingVisuals = null;
+    function drawMeeting(time) {
+        if (!meeting.open || !meetingImage?.complete || !meetingImage.naturalWidth) return;
+        const context = meetingCanvas.getContext('2d'), skin = appearance.value;
+        const f = meetingVisuals[skin].actions.idle[0];
+        const scale = Math.min(130 / f.sw, 150 / f.sh);
+        const movement = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : Math.sin(time / 700) * 3;
+        context.clearRect(0, 0, 300, 210);
+        context.save(); context.translate(150, 185 + movement);
+        if (skin === 'robot') context.rotate(movement / 80);
+        context.drawImage(meetingImage, f.sx, f.sy, f.sw, f.sh, -f.sw * scale / 2, -f.sh * scale, f.sw * scale, f.sh * scale);
+        context.restore();
+    }
+    meeting.addEventListener('cancel', event => event.preventDefault());
+    meetingBegin.addEventListener('click', () => {
+        meeting.close(); screen = 'playing'; lastFrame = null; input.focus({ preventScroll: true });
+    });
     const titleScreen = node('section'); titleScreen.className = 'word-title';
     titleScreen.hidden = !window.WordIslandMode;
     const logoButton = node('button', undefined, titleScreen); logoButton.className = 'word-logo';
@@ -301,7 +365,7 @@
     const continueGame = node('button', t('continueGame'), titleMenu); continueGame.id = 'word-continue'; continueGame.disabled = true;
     const titleStatus = node('span', '', titleMenu); titleStatus.className = 'word-title-error';
     titleStatus.setAttribute('role', 'status'); titleStatus.hidden = true;
-    const resetDialog = node('dialog'); resetDialog.className = 'word-reset';
+    const resetDialog = node('dialog'); resetDialog.className = 'word-reset'; resetDialog.id = 'word-reset-dialog';
     const resetHeading = node('h2', t('resetHeading'), resetDialog); resetHeading.id = 'word-reset-heading';
     resetDialog.setAttribute('aria-labelledby', resetHeading.id);
     node('p', t('resetCopy'), resetDialog);
@@ -310,7 +374,6 @@
     const setupBack = node('button', t('backTitle'), settings); setupBack.type = 'button'; setupBack.hidden = !window.WordIslandMode;
     if (window.WordIslandMode) {
         app.classList.add('title-active');
-        node('p', t('provisionalSetup'), setupCopy);
         settings.hidden = setupCopy.hidden = true;
         header.querySelector('h1').textContent = t('gameTitle'); document.title = t('gameTitle');
     }
@@ -324,9 +387,9 @@
     }
     function showSetup() {
         app.classList.remove('title-active');
-        screen = 'setup'; titleScreen.hidden = true; settings.hidden = setupCopy.hidden = false;
+        screen = 'setup'; titleScreen.hidden = true; settings.hidden = false; setupCopy.hidden = true;
         [appearance, foundation, life, speech].forEach(select => { select.disabled = false; });
-        start.textContent = t('start'); appearance.focus();
+        renderQuestion();
     }
     logoButton.addEventListener('click', () => {
         showTitle();
@@ -338,7 +401,7 @@
     setupBack.addEventListener('click', showTitle);
     newGame.addEventListener('click', () => { resetDialog.showModal(); resetCancel.focus(); });
     resetCancel.addEventListener('click', () => resetDialog.close());
-    resetDialog.addEventListener('close', () => newGame.focus());
+    resetDialog.addEventListener('close', () => { if (screen === 'title') newGame.focus(); });
     resetAccept.addEventListener('click', () => {
         const pending = { version: 1, pendingNewGame: true, volume: environmentVolume };
         let written = true;
@@ -350,6 +413,7 @@
             resetDialog.close(); showTitle(); return;
         }
         restored = null; state = world = null;
+        answers = []; questionIndex = 0;
         appearance.value = 'robot'; foundation.value = life.value = 'yes'; speech.value = 'short';
         resetDialog.close(); showSetup();
     });
@@ -571,8 +635,9 @@
     }
     function animate(time) {
         drawLogo(time);
+        drawMeeting(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
-        if (world && view && !document.hidden) {
+        if (world && view && screen === 'playing' && !document.hidden) {
             const holding = paused || exporting || !!input.value.trim();
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
@@ -603,6 +668,8 @@
     function beginSession() {
         if (!catalog || screen === 'playing' || saveBlocked) return;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
+        const newMeeting = !restored && questionsApi.validAnswers(answers);
+        if (newMeeting) state.startOrigin = { version: 1, answers: answers.slice() };
         world = restored?.world || worldApi.create();
         if (restored) appearance.value = restored.appearance;
         view.start?.(world, appearance.value);
@@ -615,10 +682,29 @@
         app.classList.remove('title-active');
         app.classList.add('playing'); input.focus({ preventScroll: true });
         save();
+        if (newMeeting) {
+            screen = 'meeting';
+            meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
+            meetingImage.onerror = () => { imageFailure = true; };
+            meetingVoice.textContent = t(state.settings.speech === 'short' ? 'meetingWords' : 'meetingSound');
+            meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value]);
+            view.draw(world, appearance.value, true);
+            meeting.showModal(); meetingBegin.focus();
+        }
     }
     settings.addEventListener('submit', event => {
         event.preventDefault();
-        if (screen === 'setup') beginSession();
+        if (screen !== 'setup' || !catalog || saveBlocked) return;
+        // Dedicated smoke harnesses can initialize exact legacy comparison fixtures.
+        if (debugControls && event.submitter === null && answers.length === 0) { beginSession(); return; }
+        if (answers[questionIndex] === undefined) return;
+        if (questionIndex < questionsApi.questions.length - 1) { questionIndex++; renderQuestion(); return; }
+        if (!questionsApi.validAnswers(answers)) return;
+        const initial = questionsApi.resolve(answers);
+        appearance.value = initial.appearance;
+        foundation.value = initial.settings.foundation ? 'yes' : 'no';
+        life.value = initial.settings.life ? 'yes' : 'no'; speech.value = initial.settings.speech;
+        beginSession();
     });
     function pointAt(target, key) {
         if (!debugControls || paused) return;
@@ -671,6 +757,7 @@
         fetch(file).then(response => { if (!response.ok) throw new Error('Load failed'); return response.json(); })
     )).then(([data, visuals]) => {
         catalog = data;
+        meetingVisuals = visuals;
         const feelingForms = catalog.feelingTeaching[window.GameI18n.language];
         const feelingPair = catalog.feelingContrast[window.GameI18n.language];
         if (feelingForms && feelingPair) {
@@ -719,7 +806,7 @@
                 titleStatus.textContent = t('saveFailed'); titleStatus.hidden = false;
             }
         }
-        start.disabled = saveBlocked; newGame.disabled = saveBlocked;
+        renderQuestion(); start.disabled ||= saveBlocked; newGame.disabled = saveBlocked;
         if (screen === 'title') continueGame.disabled = !restored || saveBlocked;
         requestAnimationFrame(animate);
     }).catch(() => node('p', t('failed')));

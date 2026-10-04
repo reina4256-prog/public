@@ -74,6 +74,16 @@ summary { cursor: pointer; }
 .word-reset { max-width: min(550px, 92vw); max-height: 90dvh; overflow: auto; background: #fffdf7; color: #294c43; border: 2px solid #96aca0; border-radius: 14px; padding: 22px; }
 .word-reset::backdrop { background: #000b; }
 .word-reset button { margin: 5px; }
+.word-questions { max-width: 720px; margin: 20px auto; }
+.word-questions fieldset { border: 0; padding: 0; margin: 20px 0; }
+.word-questions legend { font-size: 1.15rem; font-weight: 600; margin-bottom: 18px; }
+.word-questions fieldset label { display: flex; flex-direction: row; align-items: center; gap: 12px; padding: 14px; border: 1px solid #96aca0; border-radius: 12px; cursor: pointer; }
+.word-questions input[type="radio"] { width: 20px; height: 20px; flex: 0 0 20px; margin: 0; }
+.word-questions label:has(input:checked) { background: #e5efdc; }
+.word-questions > button { margin: 5px; }
+.question-count { color: #65715e; }
+.word-meeting { text-align: center; }
+.word-meeting canvas { display: block; width: min(300px, 100%); height: auto; margin: auto; background: #edf2e6; border-radius: 50%; }
 main.title-active { max-width: none; height: 100vh; height: 100dvh; margin: 0; padding: 0; overflow: hidden; }
 main.title-active > .game-header { display: none; }
 main.title-active .word-title { height: 100%; max-height: none; aspect-ratio: auto; }
