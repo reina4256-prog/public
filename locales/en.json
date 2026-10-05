@@ -1,4 +1,8 @@
 {
+  "サインする": "Sign",
+  "書き直す": "Rewrite",
+  "サイン": "Signature",
+  "サインを消す": "Clear signature",
   "開始時の設問は準備中です。今回は姿と言葉の初期設定を選んで始めます。": "The opening questions are being prepared. For now, choose an appearance and initial language settings to begin.",
   "今の子・経験・ノート・島の保存を初期化します。言語と音量は引き継ぎます。": "This resets the saved child, experiences, notebook, and island. Language and volume are kept.",
   "今の暮らしを残す": "Keep the current life",

@@ -74,23 +74,46 @@ summary { cursor: pointer; }
 .word-reset { max-width: min(550px, 92vw); max-height: 90dvh; overflow: auto; background: #fffdf7; color: #294c43; border: 2px solid #96aca0; border-radius: 14px; padding: 22px; }
 .word-reset::backdrop { background: #000b; }
 .word-reset button { margin: 5px; }
-main.onboarding-active { max-width: none; min-height: 100dvh; display: grid; place-items: center; background: #000; padding: 20px; }
+main.onboarding-active { max-width: none; min-height: 100dvh; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, #102635, #030912 70%); padding: 20px; }
 main.onboarding-active > .game-header { display: none; }
-.word-questions { width: min(615px, 100%); max-height: 90dvh; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto minmax(0, 1fr) auto auto; overflow: hidden; margin: 0; padding: 30px; background: #333; color: #fff; border: 1px solid #444; border-radius: 10px; text-align: center; box-shadow: 0 0 35px #111; }
+.word-questions { position: relative; isolation: isolate; width: min(720px, 100%); max-height: 90dvh; display: grid; grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto auto; overflow: hidden; margin: 0; padding: 84px 48px 32px; background: #080f1b; color: #eafaff; border: 1px solid #6bcde949; border-radius: 2px; text-align: center; box-shadow: 0 0 70px #28b8ef12; }
+.document-frame { position: absolute; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
 .word-questions h2 { grid-column: 1 / -1; color: #4fc3f7; border-bottom: 2px solid #444; margin: 12px 0; padding-bottom: 12px; font-size: 24px; }
 .word-questions fieldset { grid-column: 1 / -1; border: 0; padding: 0; margin: 12px 0; min-width: 0; min-height: 0; overflow-y: auto; }
-.word-questions legend { font-size: 18px; font-weight: bold; margin-bottom: 30px; width: 100%; line-height: 1.5; }
-.word-questions fieldset button { display: block; width: 100%; margin: 12px 0; padding: 15px 20px; background: #333; color: #fff; border: 1px solid #555; border-radius: 4px; font-size: 16px; font-weight: bold; }
-.word-questions fieldset button:hover, .word-questions fieldset button:focus-visible { background: #444; }
-.word-questions > button { margin: 5px; background: #555; border-color: #666; font-size: 14px; }
+.word-questions legend { font-size: 21px; font-weight: normal; margin-bottom: 30px; width: 100%; line-height: 1.7; text-shadow: 0 0 22px #83e8ff40; }
+.word-questions legend:focus { outline: none; }
+.word-questions fieldset button { display: block; width: 100%; margin: 14px 0; padding: 18px 24px; background: #16313e60; color: #eafaff; border: 1px solid #77d9f34a; border-radius: 1px; font-size: 16px; font-weight: normal; transition: background .15s, box-shadow .15s; }
+.word-questions fieldset button:hover, .word-questions fieldset button:focus-visible { background: #23546c80; border-color: #91e6fa; box-shadow: 0 0 20px #4bd6ff20, inset 3px 0 #a5efff; outline: 1px solid #91e6fa; outline-offset: 3px; }
+.word-questions > button { margin: 5px; background: transparent; border-color: #6bb8cb45; color: #a7c8d6; font-size: 14px; }
 .question-count { grid-column: 1 / -1; color: #aaa; margin: 15px 0 0; font-size: 14px; }
-.word-meeting { width: min(565px, 90vw); max-height: 90dvh; text-align: center; padding: 30px; background: #333; color: #fff; border: 1px solid #444; border-radius: 10px; }
-.word-meeting::backdrop { background: #000; }
-.word-meeting h2 { color: #ffd700; border-bottom: 2px solid #444; padding-bottom: 12px; }
-.word-meeting canvas { display: block; width: min(180px, 100%); height: auto; margin: 24px auto; background: #111; border: 2px solid #444; border-radius: 8px; }
-.word-meeting p { color: #ccc; }
-.word-meeting button { width: 160px; min-height: 45px; font-size: 16px; border: 1px solid #555; border-radius: 4px; font-weight: bold; background: #4caf50; color: white; }
-.word-meeting #word-meeting-retry { background: #555; }
+.word-meeting { position: relative; isolation: isolate; width: min(640px, 92vw); max-width: 92vw; max-height: 94dvh; text-align: center; padding: 68px 36px 24px; background: #080f1b; color: #eafaff; border: 1px solid #6bcde949; border-radius: 2px; box-shadow: 0 0 70px #28b8ef12; }
+.word-meeting[open] { animation: document-reveal .35s ease-out; }
+@keyframes document-reveal { from { opacity: 0; } to { opacity: 1; } }
+.word-meeting::backdrop { background: radial-gradient(ellipse at 50% 40%, #102635, #030912 70%); }
+.word-meeting h2 { color: #b6f2ff; font-size: 24px; font-weight: normal; margin: 0; text-shadow: 0 0 20px #74daff60; }
+.word-meeting .meeting-character { display: block; width: 200px; max-width: 100%; height: auto; margin: 4px auto; background: radial-gradient(ellipse, #64d7ff16, transparent 70%); }
+.word-meeting p { color: #bdd8e2; margin: 8px 0; line-height: 1.5; }
+.word-meeting label { display: block; font-size: 13px; color: #8cc9db; letter-spacing: .15em; margin: 20px 0 8px; }
+#word-signature { display: block; width: 100%; height: 88px; margin: 0 auto 12px; background: #040d18; border: 1px solid #79d5ed55; border-bottom-color: #b4edff; touch-action: none; cursor: crosshair; }
+#word-signature:focus-visible { outline: 1px solid #b4edff; outline-offset: 3px; }
+.word-meeting button { min-height: 44px; font-size: 16px; border: 1px solid #77d9f35c; border-radius: 1px; background: #204758; color: #eafaff; padding: 10px 20px; }
+.word-meeting #word-meeting-retry, .word-meeting #word-signature-clear { background: transparent; color: #a7c8d6; }
+.word-meeting #word-signature-clear { display: block; margin: 0 auto 12px; font-size: 13px; min-height: 32px; padding: 5px 12px; }
+.word-meeting button:disabled { opacity: .35; cursor: default; }
+.word-meeting.signed { animation: document-seal .45s ease-out; }
+@keyframes document-seal { 45% { box-shadow: 0 0 100px #8feaff88; border-color: #dcfaff; } }
+@media (max-width: 650px), (max-height: 650px) {
+    main.onboarding-active { padding: 10px; }
+    .word-questions { padding: 65px 26px 20px; }
+    .word-questions legend { font-size: 18px; margin-bottom: 20px; }
+    .word-questions fieldset button { padding: 14px 16px; }
+    .word-meeting { padding: 62px 24px 18px; }
+    .word-meeting .meeting-character { width: 125px; }
+    .word-meeting h2 { font-size: 21px; }
+    .word-meeting label { margin-top: 12px; }
+    #word-signature { height: 66px; }
+}
+@media (prefers-reduced-motion: reduce) { .word-meeting[open], .word-meeting.signed { animation: none; } }
 main.title-active { max-width: none; height: 100vh; height: 100dvh; margin: 0; padding: 0; overflow: hidden; }
 main.title-active > .game-header { display: none; }
 main.title-active .word-title { height: 100%; max-height: none; aspect-ratio: auto; }

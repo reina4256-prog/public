@@ -11,7 +11,8 @@
         resetAccept: '初期化して始める', resetCancel: '今の暮らしを残す',
         questionIntro: '日常の場面で、自分ならどうするかを選んでください。正解はありません。回答と出会いの対応は試作中です。',
         questionPrevious: '前の問いへ', questionNext: '次の問いへ', questionMeet: 'この子に会う',
-        questionHeading: '✨ 最初の質問', meetingHeading: 'はじめまして', meetingBegin: 'この姿で始める', meetingRetry: 'やり直す',
+        meetingHeading: 'はじめまして', meetingBegin: 'サインする', meetingRetry: '書き直す',
+        signature: 'サイン', signatureClear: 'サインを消す',
         meetingWords: 'こんにちは。', meetingSound: '……ん。',
         meetingRobot: '小さく首を傾け、こちらへ向き直った。',
         meetingSpirit: 'ふわりと揺れ、こちらへ近づいた。',
@@ -299,12 +300,43 @@
     const speech = select(internalSettings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
     const questionsApi = window.ExperimentalWordStartQuestions;
     let answers = [], questionIndex = 0, appearanceDraw = 0;
+    // Decorative geometry only: questions remain native text/buttons for localization
+    // and keyboard access. No new raster asset or character hint is used here.
+    function documentFrame(parent, completed) {
+        const canvas = node('canvas', undefined, parent); canvas.className = 'document-frame';
+        canvas.setAttribute('aria-hidden', 'true');
+        const draw = () => {
+            const { width, height } = parent.getBoundingClientRect();
+            if (!width || !height) return;
+            const ratio = Math.min(devicePixelRatio || 1, 2);
+            canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
+            const c = canvas.getContext('2d'); c.scale(ratio, ratio);
+            const wash = c.createLinearGradient(0, 0, width, height);
+            wash.addColorStop(0, '#102733'); wash.addColorStop(1, '#080f1b');
+            c.fillStyle = wash; c.fillRect(0, 0, width, height);
+            c.strokeStyle = '#70d9f038'; c.lineWidth = 1;
+            c.strokeRect(12.5, 12.5, width - 25, height - 25);
+            c.strokeStyle = '#83e8ff'; c.shadowColor = '#49ceff'; c.shadowBlur = 9;
+            for (const [x, y, sx, sy] of [[12,12,1,1],[width-12,12,-1,1],[12,height-12,1,-1],[width-12,height-12,-1,-1]]) {
+                c.beginPath(); c.moveTo(x, y+sy*24); c.lineTo(x,y); c.lineTo(x+sx*24,y); c.stroke();
+            }
+            for (let i = 0; i < questionsApi.questions.length; i++) {
+                const x = width / 2 + (i - 3) * 25;
+                c.fillStyle = i < completed() ? '#a5efff' : '#254351';
+                c.shadowBlur = i < completed() ? 12 : 0;
+                c.fillRect(x - 6, 32, 12, 3);
+            }
+            c.shadowBlur = 0; c.strokeStyle = '#72d5ea24';
+            c.beginPath(); c.moveTo(34, 55.5); c.lineTo(width-34,55.5); c.stroke();
+        };
+        new ResizeObserver(draw).observe(parent);
+        return draw;
+    }
     settings.className = 'word-questions';
-    node('h2', t('questionHeading'), settings);
+    const drawQuestionFrame = documentFrame(settings, () => questionIndex);
     node('p', t('questionIntro'), settings).hidden = true;
     const questionCount = node('p', '', settings); questionCount.className = 'question-count';
     const questionField = node('fieldset', undefined, settings);
-    const previousQuestion = node('button', t('questionPrevious'), settings); previousQuestion.type = 'button';
     const start = node('button', t('start'), settings);
     start.disabled = true; start.hidden = true;
     function renderQuestion() {
@@ -321,21 +353,70 @@
                 answers[questionIndex] = index; start.disabled = false; settings.requestSubmit(start);
             });
         });
-        previousQuestion.disabled = questionIndex === 0;
+        drawQuestionFrame();
+        questionField.getAnimations().forEach(animation => animation.cancel());
+        if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            questionField.animate([{ opacity: .25, transform: 'translateY(5px)' }, { opacity: 1, transform: 'translateY(0)' }], { duration: 220 });
+        }
         start.textContent = t(questionIndex === questionsApi.questions.length - 1 ? 'questionMeet' : 'questionNext');
         start.disabled = !catalog || answers[questionIndex] === undefined;
         legend.focus();
     }
-    previousQuestion.addEventListener('click', () => { if (questionIndex > 0) { questionIndex--; renderQuestion(); } });
     renderQuestion();
     const meeting = node('dialog'); meeting.className = 'word-reset word-meeting';
+    const drawMeetingFrame = documentFrame(meeting, () => questionsApi.questions.length);
     const meetingHeading = node('h2', t('meetingHeading'), meeting); meetingHeading.id = 'word-meeting-heading';
     meeting.setAttribute('aria-labelledby', meetingHeading.id);
     const meetingCanvas = node('canvas', undefined, meeting); meetingCanvas.width = 300; meetingCanvas.height = 210;
+    meetingCanvas.className = 'meeting-character';
     meetingCanvas.setAttribute('aria-hidden', 'true');
     const meetingVoice = node('p', '', meeting), meetingGesture = node('p', '', meeting);
+    const signatureLabel = node('label', t('signature'), meeting); signatureLabel.htmlFor = 'word-signature';
+    const signatureCanvas = node('canvas', undefined, meeting); signatureCanvas.id = 'word-signature';
+    signatureCanvas.width = 720; signatureCanvas.height = 160; signatureCanvas.tabIndex = 0;
+    signatureCanvas.setAttribute('aria-label', t('signature'));
+    const signatureClear = node('button', t('signatureClear'), meeting); signatureClear.type = 'button'; signatureClear.id = 'word-signature-clear';
     const meetingBegin = node('button', t('meetingBegin'), meeting); meetingBegin.type = 'button'; meetingBegin.id = 'word-meeting-begin';
     const meetingRetry = node('button', t('meetingRetry'), meeting); meetingRetry.type = 'button'; meetingRetry.id = 'word-meeting-retry';
+    // Signature is transient ceremony data, never knowledge, experience, or a name.
+    // Keeping normalized strokes also preserves the drawing when the layout changes.
+    let signatureStrokes = [], activeSignaturePointer = null;
+    function drawSignature() {
+        const c = signatureCanvas.getContext('2d'); c.clearRect(0, 0, 720, 160);
+        c.strokeStyle = '#b0f2ff'; c.fillStyle = '#b0f2ff'; c.lineWidth = 2.8;
+        c.lineCap = c.lineJoin = 'round'; c.shadowColor = '#56d8ff'; c.shadowBlur = 7;
+        for (const stroke of signatureStrokes) {
+            if (stroke.length === 1) { c.beginPath(); c.arc(stroke[0].x*720,stroke[0].y*160,1.4,0,Math.PI*2); c.fill(); }
+            else { c.beginPath(); stroke.forEach((p,i) => c[i ? 'lineTo' : 'moveTo'](p.x*720,p.y*160)); c.stroke(); }
+        }
+        meetingBegin.disabled = signatureStrokes.length === 0 || activeSignaturePointer !== null || screen !== 'meeting';
+        signatureClear.disabled = signatureStrokes.length === 0 || screen !== 'meeting';
+    }
+    function signaturePoint(event) {
+        const r = signatureCanvas.getBoundingClientRect();
+        return { x: Math.max(0,Math.min(1,(event.clientX-r.left)/r.width)), y: Math.max(0,Math.min(1,(event.clientY-r.top)/r.height)) };
+    }
+    signatureCanvas.addEventListener('pointerdown', event => {
+        if (screen !== 'meeting' || activeSignaturePointer !== null || event.button !== 0) return;
+        event.preventDefault(); activeSignaturePointer = event.pointerId;
+        signatureCanvas.setPointerCapture(event.pointerId);
+        signatureStrokes.push([signaturePoint(event)]); drawSignature();
+    });
+    signatureCanvas.addEventListener('pointermove', event => {
+        if (event.pointerId !== activeSignaturePointer) return;
+        const samples = event.getCoalescedEvents?.();
+        for (const sample of samples?.length ? samples : [event]) signatureStrokes.at(-1).push(signaturePoint(sample));
+        drawSignature();
+    });
+    function endSignature(event) {
+        if (event.pointerId !== activeSignaturePointer) return;
+        activeSignaturePointer = null; drawSignature();
+    }
+    ['pointerup','pointercancel','lostpointercapture'].forEach(type => signatureCanvas.addEventListener(type, endSignature));
+    signatureClear.addEventListener('click', () => {
+        if (screen !== 'meeting') return;
+        signatureStrokes = []; activeSignaturePointer = null; drawSignature(); signatureCanvas.focus();
+    });
     let meetingImage = null;
     let meetingVisuals = null;
     function drawMeeting(time) {
@@ -352,12 +433,18 @@
     }
     meeting.addEventListener('cancel', event => event.preventDefault());
     meetingBegin.addEventListener('click', () => {
-        if (screen !== 'meeting') return;
-        meeting.close(); beginSession(); lastFrame = null;
+        if (screen !== 'meeting' || !signatureStrokes.length || activeSignaturePointer !== null) return;
+        screen = 'signing'; drawSignature(); meetingRetry.disabled = true;
+        meeting.classList.add('signed');
+        setTimeout(() => {
+            meeting.close(); meeting.classList.remove('signed');
+            signatureStrokes = []; drawSignature(); beginSession(); lastFrame = null;
+        }, matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 450);
     });
     meetingRetry.addEventListener('click', () => {
         if (screen !== 'meeting') return;
         meeting.close(); meetingImage = null; answers = []; questionIndex = 0; showSetup();
+        signatureStrokes = []; activeSignaturePointer = null; drawSignature();
     });
     const titleScreen = node('section'); titleScreen.className = 'word-title';
     titleScreen.hidden = !window.WordIslandMode;
@@ -716,7 +803,8 @@
         meetingImage.onerror = () => { imageFailure = true; };
         meetingVoice.textContent = t(initial.settings.speech === 'short' ? 'meetingWords' : 'meetingSound');
         meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value]);
-        meeting.showModal(); meetingBegin.focus();
+        signatureStrokes = []; activeSignaturePointer = null; meetingRetry.disabled = false;
+        meeting.showModal(); drawMeetingFrame(); drawSignature(); signatureCanvas.focus();
     });
     function pointAt(target, key) {
         if (!debugControls || paused) return;

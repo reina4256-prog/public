@@ -15,6 +15,48 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     };
     const reload = async () => { await window.loadURL(url); await paintClock(); await waitReady(); };
     const click = selector => js(`document.querySelector(${JSON.stringify(selector)}).click()`);
+    const sign = async () => {
+        assert.equal(await js('document.querySelector("#word-meeting-begin").disabled'), true);
+        await js('document.querySelector("#word-signature").scrollIntoView({block:"center"})');
+        await sleep(80);
+        const r = await js('(()=>{const r=document.querySelector("#word-signature").getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height}})()');
+        // CDP delivers trusted browser input even while this dedicated window is hidden.
+        window.webContents.debugger.attach('1.3');
+        try {
+            for (const [type,x,y] of [['mousePressed',.2,.6],['mouseMoved',.35,.25],['mouseMoved',.55,.7],['mouseReleased',.55,.7]]) {
+                await window.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
+                    type,button:'left',buttons:type === 'mouseReleased' ? 0 : 1,clickCount:1,x:r.x+r.width*x,y:r.y+r.height*y
+                });
+            }
+        } finally { window.webContents.debugger.detach(); }
+        await sleep(50);
+        if (await js('document.querySelector("#word-meeting-begin").disabled')) {
+            await capture('word-signature-failure.png');
+            assert.fail(JSON.stringify({r,hit:await js(`document.elementFromPoint(${r.x+r.width*.2},${r.y+r.height*.6})?.id`)}));
+        }
+    };
+    const waitStarted = async () => {
+        for (let i = 0; i < 40; i++) {
+            if (await js('document.querySelector("#app").classList.contains("playing")')) return;
+            await sleep(100);
+        }
+        assert.fail('signature confirmation did not start the session');
+    };
+    const touchSign = async () => {
+        const r = await js('(()=>{const r=document.querySelector("#word-signature").getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height}})()');
+        window.webContents.debugger.attach('1.3');
+        try {
+            for (const [type,x,y] of [['touchStart',.65,.6],['touchMove',.8,.3],['touchEnd',0,0]]) {
+                await window.webContents.debugger.sendCommand('Input.dispatchTouchEvent', {
+                    type, touchPoints: type === 'touchEnd' ? [] : [{x:r.x+r.width*x,y:r.y+r.height*y,id:1}]
+                });
+            }
+        } finally { window.webContents.debugger.detach(); }
+        assert.equal(await js('document.querySelector("#word-meeting-begin").disabled'), false);
+    };
+    const confirmSignature = async () => {
+        await sign(); await click('#word-meeting-begin'); await waitStarted();
+    };
     const answerQuestions = async answers => {
         for (const answer of answers) {
             await click(`.word-questions fieldset button[data-answer="${answer}"]`);
@@ -32,7 +74,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(await js('document.querySelector(".question-count").textContent'), '1 / 7');
         assert.deepEqual(saved(), before);
         for (const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
-        await click('#word-meeting-begin');
+        await confirmSignature();
         assert.deepEqual(read().state.startOrigin.answers, answers);
     };
     const capture = async name => {
@@ -119,11 +161,12 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     assert.equal(await js('typeof aiPet.update'), 'undefined');
     assert.equal(await js('localStorage.getItem("ai_pet_data_v1") || localStorage.getItem("ai_pet_data")'), null);
     // Actual public controls: eight independent starts, all seven display languages,
-    // back navigation, unanswered guards, meeting freeze, and restart provenance.
+    // unanswered guards, signature gate, meeting freeze, and restart provenance.
     const locales = ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de', 'ja'];
     const skins = new Set();
     for (let i = 0; i < locales.length; i++) {
         await reload(); await click('.word-logo');
+        if (i === 7) { await window.setSize(1180, 800); await sleep(100); }
         await js(`GameI18n.setLanguage(${JSON.stringify(locales[i])})`);
         await click('#word-new-game'); await click('#word-reset-accept'); await sleep(80);
         assert.equal(await js('document.querySelector(".word-questions > button:not([type])").disabled'), true);
@@ -132,25 +175,33 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(await js('Array.from(document.querySelectorAll(".word-questions select")).every(e=>!e.checkVisibility())'), true);
         const answers = [i % 3, i & 1 ? 1 : 0, i % 3, i % 3, i % 3, i & 2 ? 0 : 1, i & 4 ? 0 : 1];
         if (i === 5) answers.splice(0, 5, 2, 2, 2, 2, 0);
-        // Advance, go back, and verify both the choice and its localized label survive.
-        await click(`fieldset button[data-answer="${answers[0]}"]`);
-        await js('document.querySelector(".word-questions").requestSubmit()');
-        await click('.word-questions > button[type="button"]'); await sleep(80);
-        assert.equal(await js('Number(document.querySelector("fieldset button[aria-pressed=true]").dataset.answer)'), answers[0]);
+        assert.equal(await js('document.querySelector(".word-questions h2")'), null);
+        assert.equal(await js('document.querySelectorAll(".word-questions > button[type=button]").length'), 1);
         const text = await js('document.querySelector("fieldset legend").textContent');
         const translated = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../locales/' + locales[i] + '.json'), 'utf8'));
         assert.equal(text, translated[questions.questions[0].text]);
         if (i === 6) await capture('word-start-questions-smoke.png');
+        if (i === 7) await capture('word-document-questions-smoke.png');
         // Meeting screenshot is captured before dismissing it.
         for (const answer of answers) {
             await click(`fieldset button[data-answer="${answer}"]`);
         }
         const pending = structuredClone(saved()); assert.equal(pending.pendingNewGame, true);
+        // Empty cannot start; erasing affects only the signature and keeps the partner.
+        await click('#word-meeting-begin'); assert.deepEqual(saved(), pending);
+        await sign(); await click('#word-signature-clear');
+        assert.equal(await js('document.querySelector("#word-meeting-begin").disabled'), true);
+        assert.deepEqual(saved(), pending);
+        await sign();
+        if (i === 0) await touchSign(); // a second stroke preserves the mouse signature
         if (i === 6) await capture('word-meeting-smoke.png');
+        if (i === 7) await capture('word-document-signature-smoke.png');
         await sleep(100); await js('window.dispatchEvent(new Event("beforeunload"))');
         assert.deepEqual(saved(), pending);
         assert.equal(await js('document.querySelector("#word-meeting-begin").getBoundingClientRect().bottom <= innerHeight'), true);
         await click('#word-meeting-begin');
+        await click('#word-meeting-begin'); // repeated confirmation is ignored
+        await waitStarted();
         const started = structuredClone(read()), expected = questions.resolve(answers, started.state.startOrigin.draw);
         assert.deepEqual(started.state.settings, expected.settings);
         assert.equal(started.appearance, expected.appearance); skins.add(started.appearance);

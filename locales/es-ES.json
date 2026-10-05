@@ -1,4 +1,8 @@
 {
+  "サインする": "Firmar",
+  "書き直す": "Volver a escribir",
+  "サイン": "Firma",
+  "サインを消す": "Borrar firma",
   "開始時の設問は準備中です。今回は姿と言葉の初期設定を選んで始めます。": "Las preguntas iniciales están en preparación. Por ahora, elige la apariencia y los ajustes iniciales del lenguaje.",
   "今の子・経験・ノート・島の保存を初期化します。言語と音量は引き継ぎます。": "Se reiniciarán el niño, las experiencias, el cuaderno y la isla guardados. Se conservarán el idioma y el volumen.",
   "今の暮らしを残す": "Conservar la vida actual",

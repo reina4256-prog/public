@@ -44,7 +44,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         // Hidden native windows throttle rAF even with backgroundThrottling:false.
         // Use a real-time timer for the test's paint scheduling; tick still runs once per frame.
         const paintClock = () => js(`window.requestAnimationFrame = callback => setTimeout(() => callback(performance.now()), 16);
-            window.smokeBeginSession = () => {
+            window.smokeBeginSession = async () => {
                 if (document.querySelector('#app').classList.contains('playing')) return;
                 document.querySelector('.word-logo').click();
                 const resume = document.querySelector('#word-continue');
@@ -55,7 +55,12 @@ if (!process.versions.electron || process.type !== 'browser') {
                     for (const answer of [0,1,1,1,0,0,0]) {
                         document.querySelector('.word-questions fieldset button[data-answer="'+answer+'"]').click();
                     }
+                    const signature = document.querySelector('#word-signature'), r = signature.getBoundingClientRect();
+                    signature.setPointerCapture = () => {};
+                    for (const type of ['pointerdown','pointerup']) signature.dispatchEvent(new PointerEvent(type,
+                        { pointerId:1, button:0, clientX:r.left+r.width/2, clientY:r.top+r.height/2 }));
                     document.querySelector('#word-meeting-begin').click();
+                    await new Promise(resolve => setTimeout(resolve, 550));
                 }
             }; void 0`);
         await paintClock();
