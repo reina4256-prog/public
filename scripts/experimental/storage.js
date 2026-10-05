@@ -16,7 +16,7 @@ function valid(value) {
         && Object.keys(value).every(key => ['version', 'pendingNewGame', 'volume'].includes(key))
         && Number.isFinite(value.volume) && value.volume >= 0 && value.volume <= 1;
     const s = value?.state, w = value?.world;
-    return value?.version === 1 && ['robot', 'spirit', 'seed'].includes(value.appearance)
+    return value?.version === 1 && startQuestions.appearances.includes(value.appearance)
         && s?.version === 1 && typeof s.settings?.foundation === 'boolean'
         && typeof s.settings?.life === 'boolean' && ['short', 'gesture'].includes(s.settings.speech)
         && startQuestions.validOrigin(s.startOrigin, s.settings, value.appearance)

@@ -18,15 +18,18 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const sign = async () => {
         assert.equal(await js('document.querySelector("#word-meeting-begin").disabled'), true);
         await js('document.querySelector("#word-signature").scrollIntoView({block:"center"})');
-        await sleep(80);
+        await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true});
+        await sleep(350);
         const r = await js('(()=>{const r=document.querySelector("#word-signature").getBoundingClientRect();return {x:r.left,y:r.top,width:r.width,height:r.height}})()');
         // CDP delivers trusted browser input even while this dedicated window is hidden.
         window.webContents.debugger.attach('1.3');
         try {
+            await window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
             for (const [type,x,y] of [['mousePressed',.2,.6],['mouseMoved',.35,.25],['mouseMoved',.55,.7],['mouseReleased',.55,.7]]) {
                 await window.webContents.debugger.sendCommand('Input.dispatchMouseEvent', {
                     type,button:'left',buttons:type === 'mouseReleased' ? 0 : 1,clickCount:1,x:r.x+r.width*x,y:r.y+r.height*y
                 });
+                await sleep(50);
             }
         } finally { window.webContents.debugger.detach(); }
         await sleep(50);
@@ -57,7 +60,15 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const confirmSignature = async () => {
         await sign(); await click('#word-meeting-begin'); await waitStarted();
     };
-    const answerQuestions = async answers => {
+    const chooseAppearance = async (answers, skin) => {
+        const pool=questions.appearanceWeights(answers), total=pool.reduce((sum,item)=>sum+item.weight,0);
+        const index=pool.findIndex(item=>item.id===skin);
+        const draw=(pool.slice(0,index).reduce((sum,item)=>sum+item.weight,0)+pool[index].weight/2)/total;
+        await js(`window.originalStartRandom=Math.random;Math.random=()=>${draw};void 0`);
+    };
+    const restoreRandom = () => js('Math.random=window.originalStartRandom;void 0');
+    const answerQuestions = async (answers, skin) => {
+        await chooseAppearance(answers,skin);
         for (const answer of answers) {
             await click(`.word-questions fieldset button[data-answer="${answer}"]`);
         }
@@ -74,6 +85,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(await js('document.querySelector(".question-count").textContent'), '1 / 7');
         assert.deepEqual(saved(), before);
         for (const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
+        await restoreRandom();
         await confirmSignature();
         assert.deepEqual(read().state.startOrigin.answers, answers);
     };
@@ -113,7 +125,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     await reload(); await click('.word-logo');
     assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
     await click('#word-new-game'); await click('#word-reset-accept');
-    await answerQuestions([2,2,2,2,0,0,0]);
+    await answerQuestions([2,2,2,2,0,0,0], 'spirit');
     await js('document.querySelector(".chat-form textarea").value="hello"; document.querySelector(".chat-form").requestSubmit()');
     await js('document.querySelector(".scene-controls > button").click()');
     await js('const v=document.querySelector(".volume-control input"); v.value=".25"; v.dispatchEvent(new Event("input")); GameI18n.setLanguage("de"); window.dispatchEvent(new Event("beforeunload"));');
@@ -151,7 +163,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     assert.equal(await js('GameI18n.language'), 'de');
     assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
     await click('#word-new-game'); await click('#word-reset-accept');
-    await answerQuestions([0,1,1,1,0,0,0]);
+    await answerQuestions([0,1,1,1,0,0,0], 'robot');
     const fresh = read();
     assert.equal(fresh.appearance, 'robot'); assert.equal(fresh.state.context.turns.length, 0);
     assert.equal(fresh.state.records.length, 0); assert.equal(fresh.state.notes.length, 0);
@@ -183,10 +195,12 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         if (i === 6) await capture('word-start-questions-smoke.png');
         if (i === 7) await capture('word-document-questions-smoke.png');
         // Meeting screenshot is captured before dismissing it.
+        await chooseAppearance(answers,['robot','seed','spirit'][i%3]);
         for (const answer of answers) {
             await click(`fieldset button[data-answer="${answer}"]`);
         }
         const pending = structuredClone(saved()); assert.equal(pending.pendingNewGame, true);
+        await restoreRandom();
         // Empty cannot start; erasing affects only the signature and keeps the partner.
         await click('#word-meeting-begin'); assert.deepEqual(saved(), pending);
         await sign(); await click('#word-signature-clear');
@@ -212,6 +226,47 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(await js('document.querySelector(".word-meeting").open'), false);
     }
     assert.equal(skins.size, 3);
+    // Every base species uses the public questions/signature path, then resumes
+    // the same child and island in this temporary profile. No player save is used.
+    for (const [i,skin] of questions.appearances.entries()) {
+        await reload(); await click('.word-logo');
+        await js(`GameI18n.setLanguage(${JSON.stringify(locales[i%7])})`);
+        await click('#word-new-game'); await click('#word-reset-accept');
+        const answers=[i%3,i&1?1:0,1,2,0,i&2?0:1,i&4?0:1];
+        await chooseAppearance(answers,skin);
+        for(const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
+        await restoreRandom();
+        assert.equal(await js('document.querySelector(".word-questions select").value'),skin);
+        await confirmSignature();
+        for(let j=0;j<60 && !await js(`images[${JSON.stringify(skin)}]?.complete && images[${JSON.stringify(skin)}]?.naturalWidth && audioManager.currentAudio?.readyState>=2`);j++) await sleep(100);
+        assert.equal(await js(`images[${JSON.stringify(skin)}].naturalWidth>0 && aiPet.baseType===${JSON.stringify(skin)} && audioManager.currentAudio.src.endsWith(${JSON.stringify('bgm_'+skin+'.mp3')})`),true);
+        const started=structuredClone(read());
+        assert.equal(started.appearance,skin); assert.equal(started.state.startOrigin.version,3); assert.ok(valid(started));
+        if(skin==='dragon') await capture('word-dragon-living-smoke.png');
+        await reload(); await click('.word-logo'); await click('#word-continue');
+        assert.equal(read().appearance,skin);
+        assert.deepEqual(read().state.startOrigin,started.state.startOrigin);
+        assert.deepEqual(read().state.notes,started.state.notes);
+        assert.deepEqual(read().world.island.assets,started.world.island.assets);
+    }
+    // Old three-species provenance is validated with its original mapping,
+    // never with the new eleven-species weights or a new random draw.
+    const legacyBase=structuredClone(saved());
+    for(const version of [1,2]) {
+        const fixture=structuredClone(legacyBase), draw=.99;
+        const answers=fixture.state.startOrigin.answers;
+        const compatible=questions.resolve(answers,version===1?0:draw,version);
+        fixture.appearance=compatible.appearance; fixture.state.settings=compatible.settings;
+        fixture.state.startOrigin={version,answers}; if(version===2)fixture.state.startOrigin.draw=draw;
+        assert.ok(valid(fixture));
+        // Unload the prior test child first: its beforeunload save must not
+        // overwrite the compatibility fixture we are about to install.
+        await window.loadURL('about:blank');
+        fs.writeFileSync(path.join(directory,'word-life.json'),JSON.stringify(fixture));
+        await reload(); await click('.word-logo'); await click('#word-continue');
+        assert.equal(read().appearance,compatible.appearance);
+        assert.deepEqual(read().state.startOrigin,fixture.state.startOrigin);
+    }
     // Repeating a tied answer set can change the appearance before any child save.
     await reload(); await click('.word-logo'); await click('#word-new-game'); await click('#word-reset-accept');
     await js('window.originalQuestionRandom=Math.random; Math.random=()=>0; void 0');

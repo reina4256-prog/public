@@ -17,8 +17,8 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
     for (const [id, job] of Object.entries(window.ExperimentalWordCareers.JOBS)) {
         const img = new Image(); img.onerror = onError; img.src = job.image; masterImages[id] = img;
     }
-    // Load only images needed by the island and the three supported appearances.
-    for (const key of ['field', 'terrain', 'field_3', 'field_4', 'field_5', 'field_6', 'robot', 'spirit', 'seed']) {
+    // Load only the island and supported base appearances; no evolution or old AI.
+    for (const key of ['field', 'terrain', 'field_3', 'field_4', 'field_5', 'field_6', ...Object.keys(visuals)]) {
         const img = new Image(); images[key] = img; totalImages++;
         img.onload = () => { imagesLoaded++; };
         img.onerror = () => { imagesLoaded++; onError(); };

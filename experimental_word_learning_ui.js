@@ -17,6 +17,7 @@
         meetingRobot: '小さく首を傾け、こちらへ向き直った。',
         meetingSpirit: 'ふわりと揺れ、こちらへ近づいた。',
         meetingSeed: '葉をそっと揺らし、こちらを見上げた。',
+        meetingOther: 'こちらを見て、小さく体を揺らした。',
         correction_pairing: '原説明と置換先を照合している。教示だけでは説明を取り下げない。',
         feeling_teaching_received: '原文に結び付けて、気持ちの語・話し手・時点を段階ごとに記録している。',
         feeling_teaching_unmatched: 'この教示に必要な原文や前提を照合できなかった。',
@@ -194,6 +195,8 @@
         notice: 'この子を見守りながら、気になったことを話しかけてみてください。今は保存できません。ページを閉じたり再読み込みすると、この時間は失われます。',
         intro: '歩いたり、立ち止まったり。あなたの言葉と、この子の経験が少しずつつながります。',
         appearance: '出会う子の姿', robot: 'ロボット', spirit: '精霊', seed: '植物',
+        ghost: '幽霊', stone: 'ゴーレム', magician: '魔法使い', beetle: 'カブトムシ',
+        balloon: '風船', bird: '鳥', machine: 'ぜんまい', dragon: 'ドラゴン',
         point: '木の実を指さす', shade: '木陰を指さす', pause: 'ひと休み・再開',
         idle: 'あたりを眺めている。', move: '気になる場所へ歩いている。',
         rest: '木陰で横になっている。', looking: '木の実をじっと見ている。',
@@ -294,7 +297,7 @@
     const settings = node('form');
     // Internal compatibility controls for focused regression scenarios, never shown.
     const internalSettings = node('div', undefined, settings); internalSettings.hidden = true;
-    const appearance = select(internalSettings, 'appearance', [['robot', 'robot'], ['spirit', 'spirit'], ['seed', 'seed']]);
+    const appearance = select(internalSettings, 'appearance', window.ExperimentalWordStartQuestions.appearances.map(id => [id, id]));
     const foundation = select(internalSettings, 'foundation', [['yes', 'foundationOn'], ['no', 'foundationOff']]);
     const life = select(internalSettings, 'life', [['yes', 'lifeOn'], ['no', 'lifeOff']]);
     const speech = select(internalSettings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
@@ -770,7 +773,7 @@
         if (!catalog || screen === 'playing' || saveBlocked) return;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
-        if (newMeeting) state.startOrigin = { version: 2, answers: answers.slice(), draw: appearanceDraw };
+        if (newMeeting) state.startOrigin = { version: 3, answers: answers.slice(), draw: appearanceDraw };
         world = restored?.world || worldApi.create();
         if (restored) appearance.value = restored.appearance;
         view.start?.(world, appearance.value);
@@ -802,7 +805,7 @@
         meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
         meetingImage.onerror = () => { imageFailure = true; };
         meetingVoice.textContent = t(initial.settings.speech === 'short' ? 'meetingWords' : 'meetingSound');
-        meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value]);
+        meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value] || 'meetingOther');
         signatureStrokes = []; activeSignaturePointer = null; meetingRetry.disabled = false;
         meeting.showModal(); drawMeetingFrame(); drawSignature(); signatureCanvas.focus();
     });

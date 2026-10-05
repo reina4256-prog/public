@@ -19,7 +19,17 @@
         return Array.isArray(answers) && answers.length === questions.length
             && questions.every((_, i) => Number.isInteger(answers[i]) && answers[i] >= 0 && answers[i] < 3);
     }
-    function resolve(answers, draw = 0) {
+    const appearances = ['robot', 'seed', 'spirit', 'ghost', 'stone', 'magician', 'beetle', 'balloon', 'bird', 'machine', 'dragon'];
+    function appearanceWeights(answers) {
+        if (!validAnswers(answers)) throw new Error('Invalid start answers');
+        const votes = [0, 0, 0];
+        const routing = [[0, 1, 2], [1, 0, 2], [1, 0, 2], [1, 0, 2], [0, 0, 1]];
+        answers.slice(0, 5).forEach((answer, i) => { votes[routing[i][answer]]++; });
+        // Provisional appearance affinity only. Never affects knowledge or ability.
+        const groups = [0, 1, 2, 2, 0, 2, 0, 1, 1, 0];
+        return appearances.map((id, i) => ({ id, weight: id === 'dragon' ? .25 : 1 + votes[groups[i]] }));
+    }
+    function resolve(answers, draw = 0, version = 3) {
         if (!validAnswers(answers)) throw new Error('Invalid start answers');
         if (!Number.isFinite(draw) || draw < 0 || draw >= 1) throw new Error('Invalid start draw');
         // Appearance uses five everyday preferences. Each knowledge/expression axis
@@ -29,18 +39,25 @@
         const routing = [[0, 1, 2], [1, 0, 2], [1, 0, 2], [1, 0, 2], [0, 0, 1]];
         answers.slice(0, 5).forEach((answer, i) => { votes[routing[i][answer]]++; });
         const candidates = skins.filter((_, i) => votes[i] === Math.max(...votes));
-        return { appearance: candidates[Math.floor(draw * candidates.length)],
+        let appearance = candidates[Math.floor(draw * candidates.length)];
+        if (version === 3) {
+            const pool = appearanceWeights(answers), total = pool.reduce((sum, item) => sum + item.weight, 0);
+            let threshold = draw * total;
+            appearance = pool.at(-1).id;
+            for (const item of pool) { threshold -= item.weight; if (threshold < 0) { appearance = item.id; break; } }
+        } else if (![1, 2].includes(version)) throw new Error('Invalid start version');
+        return { appearance,
             settings: { foundation: answers[1] !== 0, life: answers[5] !== 1,
                 speech: answers[6] === 0 ? 'short' : 'gesture' } };
     }
     function validOrigin(origin, settings, appearance) {
         if (origin === undefined) return true; // Earlier saves stay unchanged.
-        if (!origin || ![1, 2].includes(origin.version) || !validAnswers(origin.answers)
+        if (!origin || ![1, 2, 3].includes(origin.version) || !validAnswers(origin.answers)
             || Object.keys(origin).some(key => !(origin.version === 1 ? ['version', 'answers'] : ['version', 'answers', 'draw']).includes(key))
-            || (origin.version === 2 && (!Number.isFinite(origin.draw) || origin.draw < 0 || origin.draw >= 1))) return false;
-        const result = resolve(origin.answers, origin.version === 2 ? origin.draw : 0);
+            || (origin.version !== 1 && (!Number.isFinite(origin.draw) || origin.draw < 0 || origin.draw >= 1))) return false;
+        const result = resolve(origin.answers, origin.version === 1 ? 0 : origin.draw, origin.version);
         return result.appearance === appearance && Object.keys(result.settings)
             .every(key => result.settings[key] === settings?.[key]);
     }
-    return { questions, validAnswers, resolve, validOrigin };
+    return { questions, appearances, appearanceWeights, validAnswers, resolve, validOrigin };
 });

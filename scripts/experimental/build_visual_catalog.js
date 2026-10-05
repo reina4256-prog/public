@@ -9,7 +9,7 @@ const start = source.indexOf(marker) + marker.length;
 const end = source.indexOf('\n};', start) + 2;
 const configs = JSON.parse(source.slice(start, end));
 const result = {};
-for (const id of ['robot', 'spirit', 'seed']) {
+for (const id of require('../../experimental_word_start_questions').appearances) {
     result[id] = { image: `${id}.png`, actions: {} };
     for (const action of ['idle', 'move', 'sleep']) result[id].actions[action] = configs[id].actions[action];
 }
