@@ -13,10 +13,6 @@ window.aiPet = aiPet;
 window.ExperimentalWordView = function (surface, visuals, onError) {
     surface.width = 800; surface.height = 480;
     const sources = { ...imageSources };
-    const masterImages = {};
-    for (const [id, job] of Object.entries(window.ExperimentalWordCareers.JOBS)) {
-        const img = new Image(); img.onerror = onError; img.src = job.image; masterImages[id] = img;
-    }
     // Load only the island and supported base appearances; no evolution or old AI.
     for (const key of ['field', 'terrain', 'field_3', 'field_4', 'field_5', 'field_6', ...Object.keys(visuals)]) {
         const img = new Image(); images[key] = img; totalImages++;
@@ -48,15 +44,9 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         render();
         const context = surface.getContext('2d');
         for (const place of world.island.places.slice(3)) {
-            const id = window.ExperimentalWordCareers.jobId(place.id), job = window.ExperimentalWordCareers.JOBS[id];
-            const img = masterImages[id];
-            if (!img?.complete || !img.naturalWidth) continue;
-            const h = 62, w = job.sw / 1536 * h;
-            context.drawImage(img, job.sx, 0, job.sw, 1536,
-                place.x * 800 - camera.x + 28 - w / 2, place.y * 480 - camera.y - h + 15, w, h);
             if (world.destination === place.id && world.mode === 'move') {
                 context.beginPath(); context.strokeStyle = '#ffe08a'; context.lineWidth = 2;
-                context.ellipse(place.x * 800 - camera.x + 28, place.y * 480 - camera.y + 15, 20, 8, 0, 0, Math.PI * 2); context.stroke();
+                context.ellipse(place.x * 800 - camera.x, place.y * 480 - camera.y + 15, 20, 8, 0, 0, Math.PI * 2); context.stroke();
             }
         }
         // Small ground markers expose real places to pointing without replacing the map art.
@@ -77,7 +67,7 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         const scale = Math.min(rect.width / surface.width, rect.height / surface.height);
         const x = (event.clientX - rect.left - (rect.width - surface.width * scale) / 2) / scale + camera.x;
         const y = (event.clientY - rect.top - (rect.height - surface.height * scale) / 2) / scale + camera.y;
-        const person = world.island.places.slice(3).find(p => Math.abs(p.x * 800 + 28 - x) < 28 && y > p.y * 480 - 50 && y < p.y * 480 + 25);
+        const person = world.island.places.slice(3).find(p => Math.hypot(p.x * 800 - x, p.y * 480 + 15 - y) < 28);
         if (person) return person.id;
         return world.island.places.slice(0, 2).find(p => {
             const a = assets[p.assetKey];

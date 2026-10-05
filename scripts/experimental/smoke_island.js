@@ -25,7 +25,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--title') || process.argv.includes('--reasons') || process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
+        const url = `http://127.0.0.1:${server.address().port}/${process.argv.includes('--masters') || process.argv.includes('--title') || process.argv.includes('--reasons') || process.argv.includes('--conditions') || process.argv.includes('--boundaries') || process.argv.includes('--careers') || process.argv.includes('--context') || process.argv.includes('--life') || process.argv.includes('--relations') || process.argv.includes('--questions') || process.argv.includes('--proposals') || process.argv.includes('--reports') || process.argv.includes('--negations') || process.argv.includes('--times') ? '' : '?debug=1'}`;
         const store = require('./storage').createStore(directory);
         ipcMain.on('word-life-load', event => {
             event.returnValue = nextLoad ? { ok: true, value: nextLoad } : store.load();
@@ -64,6 +64,13 @@ if (!process.versions.electron || process.type !== 'browser') {
                 }
             }; void 0`);
         await paintClock();
+        if (process.argv.includes('--masters')) {
+            await require('./smoke_masters')({ js, window, url, paintClock, sleep,
+                read: () => snapshot, load: value => { nextLoad = value; } });
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, masters: true, profile: directory }));
+            return;
+        }
         if (process.argv.includes('--title')) {
             await require('./smoke_title')({ js, window, url, paintClock, sleep, directory,
                 read: () => snapshot });
@@ -85,7 +92,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         const initial = await js('({imagesLoaded,totalImages,assets:Object.keys(assets).length,actor:{x:aiPet.x,y:aiPet.y},bgm:audioManager.currentBGMType,ready:audioManager.currentAudio?.readyState,legacy:typeof aiPet.update})');
         assert.equal(initial.imagesLoaded, initial.totalImages);
-        assert.equal(initial.bgm, 'robot'); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
+        assert.equal(initial.bgm, snapshot.appearance); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
         if (process.argv.includes('--id3')) {
             await require('./smoke_id3')({ js, window, url, paintClock, sleep,
@@ -534,6 +541,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.equal(await js('document.querySelectorAll(".body-status meter").length'), 2);
             for (let i = 0; i < 55; i++) {
                 await sleep(1000);
+                await js('if(document.querySelector("#word-master-dialog")?.open) document.querySelector("#word-master-close").click()');
                 if (snapshot.world.careers?.people.farming?.completed) break;
             }
             assert.equal(snapshot.world.careers?.people.farming?.completed, 1);

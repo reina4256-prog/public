@@ -28,7 +28,7 @@
         person.lastArrival = event.id;
         person.visits++; world.dwell = 8;
         return { message: first ? 'master_meet' : 'master_return', master: id,
-            npc: first ? `master_intro_${id}` : null, observation: true };
+            npc: `master_intro_${id}`, observation: true };
     }
     function tick(world) {
         const id = jobId(world.attention);

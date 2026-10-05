@@ -11,6 +11,22 @@ const core = require('../experimental_word_learning_core');
 const notebook = require('../experimental_word_learning_notebook');
 const catalog = require('../experimental_word_learning_catalog.json');
 const { valid } = require('../scripts/experimental/storage');
+test('island view keeps master place pointing without loading or drawing master portraits', () => {
+    const loaded = [], drawn = [];
+    const ctx = { beginPath() {}, ellipse() {}, stroke() {}, arc() {}, fill() {}, drawImage(...args) { drawn.push(args); } };
+    const surface = { width:800, height:480, getContext:() => ctx,
+        getBoundingClientRect:() => ({ left:0, top:0, width:800, height:480 }) };
+    const env = vm.createContext({ window:{ ExperimentalWordCareers:require('../experimental_word_careers'), ExperimentalWordWorld:{ setNavigation() {} }, WordIslandNavigation:{ route() {} } },
+        defaultCatalog:{}, imageSources:{ robot:'robot.png' }, camera:{ x:0, y:0 }, render() {},
+        aiConfigs:{ robot:{ actions:{ idle:[{}] } } }, Image:class { set src(value) { loaded.push(value); } } });
+    vm.runInContext(fs.readFileSync(path.join(root, 'experimental_word_island_view.js'), 'utf8'), env);
+    const view = new env.window.ExperimentalWordView(surface, {robot:{}}, () => {});
+    const world = { x:.5,y:.5,mode:'idle',elapsed:0,fruit:0,island:{places:[{id:'berry:1',x:.1,y:.1},{id:'shade',x:.2,y:.2},{id:'path'}, {id:'master:farming',x:.5,y:.5}] } };
+    view.draw(world, 'robot', true);
+    assert.equal(loaded.some(file => file?.includes('battle_enemy')), false);
+    assert.deepEqual(drawn, []);
+    assert.equal(view.hit(world, {clientX:400,clientY:255}), 'master:farming');
+});
 function context() {
     const context = vm.createContext({ window: { WordIslandMode: true }, console, setTimeout() {},
         localStorage: { getItem() { throw new Error('Legacy storage read'); }, setItem() { throw new Error('Legacy storage write'); } } });

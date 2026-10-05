@@ -53,12 +53,12 @@
         work_did_cooking: '使った器を洗ったよ。',
         work_did_smithing: '風を送って、火を保ったよ。',
         work_did_building: '図面を書き写したよ。',
-        work_label_explore: 'これは荷物を運ぶ手伝いだよ。一緒に運んでみよう。',
+        work_label_explore: 'これは荷物を運ぶ手伝いよ。私と一緒に運んでみましょう。',
         work_label_farming: 'これは畑の石を拾う手伝いだよ。一緒に拾ってみよう。',
-        work_label_fishing: 'これは網の破れを直す手伝いだよ。一緒に直してみよう。',
-        work_label_cooking: 'これは使った器を洗う手伝いだよ。一緒に洗ってみよう。',
-        work_label_smithing: 'これは風を送って火を保つ手伝いだよ。一緒にやってみよう。',
-        work_label_building: 'これは図面を書き写す手伝いです。一緒に写してみましょう。',
+        work_label_fishing: 'これは網の破れを直す手伝いだ。俺と一緒に直してみな！',
+        work_label_cooking: 'これは使った器を洗う手伝いだ！私と一緒に洗ってみよう！',
+        work_label_smithing: '……風を送って火を保つ手伝いだ。俺のそばでやってみろ。',
+        work_label_building: 'これは図面を書き写す手伝いだ。私と一緒に写してみよう。',
         work_untried: 'まだ、その手伝いはやったことがないよ。',
         work_again: 'また、あの手伝いをやってみたい。',
         work_other: '今は、ほかのこともやってみたい。',
@@ -125,12 +125,13 @@
         master_defer: '少し見てから、その場を離れた。',
         work: '教わりながら、手伝いに取り組んでいる。',
         finish_work: '今の手伝いが終わるまで、少し待ってね。',
-        master_intro_explore: '森を調べているところだよ。荷物を運ぶところ、見ていくかい？',
-        master_intro_farming: '畑の石を取り除いているんだ。やってみたくなったら、一緒にやろう。',
-        master_intro_fishing: '網の破れを直しているところだ。そばで見ていていいよ。',
-        master_intro_cooking: '使った器を洗っているんだ。手伝いたくなったら、やり方を見せるよ。',
-        master_intro_smithing: '火に風を送っている。やってみるなら、そばについて教えるぞ。',
-        master_intro_building: '図面を書き写しているところです。興味があれば、一緒に線を引いてみましょう。',
+        masterClose: '閉じる',
+        master_intro_explore: 'あら、森の探検に興味があるのね。私は今、探検の支度をしているところよ。荷物を運ぶところ、見ていく？',
+        master_intro_farming: 'やあ、土いじりに興味があるのかい？私は畑の石を取り除いているんだ。やってみたくなったら、一緒にやろう。',
+        master_intro_fishing: 'おう、網の破れを直しているところだ。俺のそばで見ていきな！ハッハッハ！',
+        master_intro_cooking: 'いらっしゃい！私は使った器を洗っているところだ！手伝いたくなったら、やり方を見せるぞ！',
+        master_intro_smithing: '……俺は火に風を送っている。やってみるなら、そばについて教えよう。',
+        master_intro_building: 'ん？君も建築に興味があるのか？私は図面を書き写しているところだ。興味があれば、一緒に線を引いてみよう。',
         master_result_explore: '教わりながら荷物を運び、探検の支度をひとつ手伝った。',
         master_result_farming: '教わりながら畑の石を拾い、耕す場所をひとつ片づけた。',
         master_result_fishing: '教わりながら網の破れをひとつ直した。',
@@ -571,7 +572,7 @@
         masterVisit = node('button', t('masterVisit'), navigationControls); masterVisit.type = 'button';
         masterVisit.addEventListener('click', () => pointAt(masterChoice.value, 'pointed_master'));
     }
-    const pause = node('button', t('pause'), controls); pause.type = 'button'; pause.setAttribute('aria-pressed', 'false');
+    const pause = node('button', t('pause'), controls); pause.type = 'button'; pause.id = 'word-pause'; pause.setAttribute('aria-pressed', 'false');
     const exportButton = node('button', t('exportReport'), controls); exportButton.type = 'button';
     exportButton.setAttribute('title', t('reportScope'));
     const reportHelp = node('p', t('reportScope'), setupCopy);
@@ -709,12 +710,48 @@
     function updatePerception() {
         api.perceive(state, worldApi.perception(world));
     }
+    const masterDialog = node('dialog'); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
+    const masterPortrait = node('canvas', undefined, masterDialog); masterPortrait.width = 720; masterPortrait.height = 300;
+    masterPortrait.setAttribute('aria-hidden', 'true');
+    const masterName = node('h2', '', masterDialog); masterName.id = 'word-master-name';
+    const masterText = node('p', '', masterDialog); masterText.id = 'word-master-text';
+    masterDialog.setAttribute('aria-labelledby', masterName.id); masterDialog.setAttribute('aria-describedby', masterText.id);
+    const masterClose = node('button', t('masterClose'), masterDialog); masterClose.type = 'button'; masterClose.id = 'word-master-close';
+    let masterFocus = null, masterImage = null, dialogMaster = null;
+    masterClose.addEventListener('click', () => masterDialog.close());
+    masterDialog.addEventListener('close', () => {
+        lastFrame = null;
+        if (masterFocus?.isConnected) masterFocus.focus({ preventScroll: true });
+        else input.focus({ preventScroll: true });
+    });
+    function openMaster(reply) {
+        dialogMaster = reply.master;
+        masterName.textContent = t(`master_${reply.master}`); masterText.textContent = t(reply.npc);
+        masterImage = new Image(); masterImage.onerror = () => { imageFailure = true; };
+        masterImage.src = window.ExperimentalWordCareers.JOBS[reply.master].image;
+        masterFocus = document.activeElement; masterDialog.showModal(); masterClose.focus();
+        drawMaster();
+    }
+    function drawMaster() {
+        if (!masterDialog.open) return;
+        const c = masterPortrait.getContext('2d'); c.clearRect(0, 0, 720, 300);
+        const hero = images[appearance.value], f = aiConfigs[appearance.value].actions.idle[0];
+        if (hero?.complete && hero.naturalWidth) {
+            const scale = Math.min(150 / f.sw, 160 / f.sh);
+            c.drawImage(hero, f.sx, f.sy, f.sw, f.sh, 170 - f.sw * scale / 2, 290 - f.sh * scale, f.sw * scale, f.sh * scale);
+        }
+        if (masterImage?.complete && masterImage.naturalWidth) {
+            const job = window.ExperimentalWordCareers.JOBS[dialogMaster], h = 285, w = job.sw / 1536 * h;
+            c.drawImage(masterImage, job.sx, 0, job.sw, 1536, 540 - w / 2, 300 - h, w, h);
+        }
+    }
     function showReply(reply) {
         if (reply.npc) {
             const line = node('p', undefined, conversation); line.className = 'master-line';
             node('strong', t(`master_${reply.master}`), line); node('br', undefined, line);
             node('span', t(reply.npc), line);
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
+            if (window.WordIslandMode) openMaster(reply);
         }
         record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + displayText(reply.message) + (reply.literal || '') });
         bubble.replaceChildren(); bubble.hidden = false;
@@ -738,9 +775,10 @@
     function animate(time) {
         drawLogo(time);
         drawMeeting(time);
+        if (window.WordIslandMode) drawMaster();
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
-            const holding = paused || exporting || !!input.value.trim();
+            const holding = paused || masterDialog.open || exporting || !!input.value.trim();
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
