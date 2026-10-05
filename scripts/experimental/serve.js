@@ -14,14 +14,21 @@ const files = new Set(['experimental_word_learning.html', 'experimental_word_lea
     'experimental_word_learning_world.js', 'experimental_word_learning_view.js', 'experimental_word_learning_visuals.json',
     'robot.png', 'spirit.png', 'seed.png', 'field_2.png']);
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-    '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.mp3': 'audio/mpeg' };
-function createServer() {
+    '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
+const encounterVideos = new Set(Object.values(require('../../experimental_word_careers').VIDEOS));
+function createServer(options = {}) {
     return http.createServer((request, response) => {
         let name;
         try { name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).slice(1) || 'experimental_word_island.html'; }
         catch (_) { response.writeHead(400).end(); return; }
+        if (name === 'experimental_word_encounter_videos.json' && ['GET', 'HEAD'].includes(request.method)) {
+            const available = options.encounterVideos === false ? [] : [...encounterVideos].filter(file => fs.existsSync(path.join(ROOT, file)));
+            const body = JSON.stringify(available);
+            response.writeHead(200, { 'Content-Type': mime['.json'], 'Cache-Control': 'no-store' });
+            response.end(request.method === 'HEAD' ? undefined : body); return;
+        }
         const sharedAsset = /^[a-zA-Z0-9_-]+\.png$/.test(name) || /^bgm_(robot|spirit|seed|ghost|stone|magician|beetle|balloon|bird|machine|dragon|title_main|personality)\.mp3$/.test(name);
-        if (!['GET', 'HEAD'].includes(request.method) || (!files.has(name) && !sharedAsset)) {
+        if (!['GET', 'HEAD'].includes(request.method) || (!files.has(name) && !sharedAsset && !(encounterVideos.has(name) && options.encounterVideos !== false))) {
             response.writeHead(404).end(); return;
         }
         fs.stat(path.join(ROOT, name), (error, stat) => {

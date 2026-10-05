@@ -74,12 +74,33 @@ summary { cursor: pointer; }
 .word-reset { max-width: min(550px, 92vw); max-height: 90dvh; overflow: auto; background: #fffdf7; color: #294c43; border: 2px solid #96aca0; border-radius: 14px; padding: 22px; }
 .word-reset::backdrop { background: #000b; }
 .word-reset button { margin: 5px; }
-.word-master { width: min(760px, 94vw); max-height: 94dvh; overflow: auto; padding: 20px; border: 2px solid #8aaec0; border-radius: 14px; background: #12202c; color: #f3f6f8; box-shadow: 0 15px 80px #0009; }
+.word-master { width: min(700px, 96vw); height: min(520px, 94dvh); max-height: 94dvh; overflow: auto; padding: 0; border: 2px solid #aaa; border-radius: 12px; background: #141414; color: #333; box-shadow: 0 0 25px #000e; }
+.word-master[open] { display: grid; grid-template-columns: 1fr 1.3fr; }
 .word-master::backdrop { background: #000b; }
-.word-master canvas { display: block; width: 100%; height: auto; max-height: 40dvh; object-fit: contain; }
-.word-master h2 { margin: 12px 0; color: #ffe08a; }
-.word-master p { margin: 12px 0 20px; white-space: pre-wrap; }
-.word-master button { display: block; margin-left: auto; min-width: 120px; }
+.word-master-left { position: relative; display: flex; justify-content: center; align-items: center; background: #111; border-right: 3px solid #444; min-width: 0; padding-top: 50px; }
+.word-master-left canvas { width: 100%; max-width: 280px; height: auto; border: 4px solid white; border-radius: 8px; pointer-events: none; }
+.word-master .word-master-thought { position: absolute; top: 25px; left: 7.5%; width: 85%; margin: 0; padding: 12px; border-radius: 20px; background: white; font-size: 14px; font-weight: bold; text-align: center; z-index: 2; }
+.word-master-thought::after { content: ''; position: absolute; bottom: -14px; left: 50%; width: 12px; height: 12px; background: white; border-radius: 50%; box-shadow: -7px 17px 0 -2px white, -13px 31px 0 -3px white; }
+.word-master-right { position: relative; min-width: 0; overflow: hidden; background: #2a2a2a; padding: 35px; display: flex; flex-direction: column; justify-content: space-between; }
+.word-master .word-master-speech { position: relative; margin: 0; padding: 25px; width: 65%; min-width: 180px; background: white; border-radius: 20px 0 20px 20px; font-size: 17px; font-weight: bold; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; z-index: 3; }
+.word-master-speech::after { content: ''; position: absolute; right: -17px; top: 32px; border-left: 18px solid white; border-top: 17px solid transparent; pointer-events: none; }
+.word-master-right canvas { position: absolute; top: 115px; right: -25px; width: 280px; height: 280px; object-fit: contain; pointer-events: none; z-index: 1; }
+.word-master-right button { position: relative; width: 65%; min-width: 180px; margin-top: 20px; background: #ff9800; border: 2px solid #e57700; font-weight: bold; z-index: 5; touch-action: manipulation; pointer-events: auto; }
+.word-master[data-phase='silhouette'] .word-master-speech::after { display: none; }
+.word-master-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: black; }
+.word-master-skip { position: absolute; right: 20px; bottom: 20px; z-index: 6; touch-action: manipulation; }
+.word-master .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 620px) {
+    .word-master-right { padding: 18px; }
+    .word-master .word-master-speech { width: 85%; min-width: 0; padding: 16px; font-size: 14px; }
+    .word-master .word-master-thought { font-size: 12px; padding: 10px; }
+    .word-master-right canvas { top: 160px; right: 0; width: min(230px, 100%); height: 230px; }
+    .word-master-right button { width: 100%; min-width: 0; }
+}
+@media (max-height: 580px) {
+    .word-master-right { min-height: 430px; }
+    .word-master-left { min-height: 430px; }
+}
 main.onboarding-active { max-width: none; min-height: 100dvh; display: grid; place-items: center; background: radial-gradient(ellipse at 50% 40%, #102635, #030912 70%); padding: 20px; }
 main.onboarding-active > .game-header { display: none; }
 .word-questions { position: relative; isolation: isolate; width: min(720px, 100%); max-height: 90dvh; display: grid; grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto auto; overflow: hidden; margin: 0; padding: 84px 48px 32px; background: #080f1b; color: #eafaff; border: 1px solid #6bcde949; border-radius: 2px; text-align: center; box-shadow: 0 0 70px #28b8ef12; }

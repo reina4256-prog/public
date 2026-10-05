@@ -15,6 +15,8 @@
         building: { location: 'ground', action: 'study', seconds: 18, effort: .03, result: 'plan_copied', image: 'builder_battle_enemy.png', sx: 839, sw: 1248 }
     });
     const jobId = target => typeof target === 'string' && target.startsWith('master:') && Object.hasOwn(JOBS, target.slice(7)) ? target.slice(7) : null;
+    const VIDEOS = Object.freeze({ explore: 'encount_adventurer_forest.mp4', farming: 'encount_farmer.mp4',
+        fishing: 'encount_fisherman_river.mp4', cooking: 'encount_chef.mp4', smithing: 'encount_smith.mp4', building: 'encount_builder.mp4' });
     function ensure(world) {
         world.careers ||= { version: 1, people: {}, current: null };
         return world.careers;
@@ -130,5 +132,5 @@
             world.activityBefore && Number.isFinite(world.activityBefore.completed) &&
             Number.isFinite(world.activityBefore.hunger) && Number.isFinite(world.activityBefore.fatigue));
     }
-    return Object.freeze({ JOBS, jobId, ensure, arrive, tick, choose, reply, valid, validLearning, learn, willingness, answer });
+    return Object.freeze({ JOBS, VIDEOS, jobId, ensure, arrive, tick, choose, reply, valid, validLearning, learn, willingness, answer });
 });

@@ -126,6 +126,8 @@
         work: '教わりながら、手伝いに取り組んでいる。',
         finish_work: '今の手伝いが終わるまで、少し待ってね。',
         masterClose: '閉じる',
+        masterContinue: 'わかった！', masterReveal: '話を聞く', masterSkip: 'スキップ',
+        masterPresence: '（何者かの気配がする……）',
         master_intro_explore: 'あら、森の探検に興味があるのね。私は今、探検の支度をしているところよ。荷物を運ぶところ、見ていく？',
         master_intro_farming: 'やあ、土いじりに興味があるのかい？私は畑の石を取り除いているんだ。やってみたくなったら、一緒にやろう。',
         master_intro_fishing: 'おう、網の破れを直しているところだ。俺のそばで見ていきな！ハッハッハ！',
@@ -710,39 +712,123 @@
     function updatePerception() {
         api.perceive(state, worldApi.perception(world));
     }
-    const masterDialog = node('dialog'); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
-    const masterPortrait = node('canvas', undefined, masterDialog); masterPortrait.width = 720; masterPortrait.height = 300;
+    // Keep the modal out of the playing grid and its clipped/scrolling ancestors.
+    const masterDialog = node('dialog', undefined, document.body); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
+    const masterLeft = node('div', undefined, masterDialog); masterLeft.className = 'word-master-left';
+    const masterThought = node('p', '', masterLeft); masterThought.className = 'word-master-thought';
+    const masterHero = node('canvas', undefined, masterLeft); masterHero.width = 280; masterHero.height = 200;
+    masterHero.setAttribute('aria-hidden', 'true');
+    const masterRight = node('div', undefined, masterDialog); masterRight.className = 'word-master-right';
+    const masterName = node('h2', '', masterRight); masterName.id = 'word-master-name'; masterName.className = 'visually-hidden';
+    const masterText = node('p', '', masterRight); masterText.id = 'word-master-text'; masterText.className = 'word-master-speech';
+    const masterPortrait = node('canvas', undefined, masterRight); masterPortrait.width = 400; masterPortrait.height = 400;
     masterPortrait.setAttribute('aria-hidden', 'true');
-    const masterName = node('h2', '', masterDialog); masterName.id = 'word-master-name';
-    const masterText = node('p', '', masterDialog); masterText.id = 'word-master-text';
     masterDialog.setAttribute('aria-labelledby', masterName.id); masterDialog.setAttribute('aria-describedby', masterText.id);
-    const masterClose = node('button', t('masterClose'), masterDialog); masterClose.type = 'button'; masterClose.id = 'word-master-close';
-    let masterFocus = null, masterImage = null, dialogMaster = null;
-    masterClose.addEventListener('click', () => masterDialog.close());
+    const masterClose = node('button', t('masterContinue'), masterRight); masterClose.type = 'button'; masterClose.id = 'word-master-close';
+    const masterVideo = node('video', undefined, masterDialog); masterVideo.className = 'word-master-video';
+    masterVideo.playsInline = true; masterVideo.preload = 'auto'; masterVideo.hidden = true;
+    const masterSkip = node('button', t('masterSkip'), masterDialog); masterSkip.type = 'button'; masterSkip.id = 'word-master-skip'; masterSkip.className = 'word-master-skip'; masterSkip.hidden = true;
+    let masterFocus = null, masterImage = null, dialogMaster = null, masterBackground = null;
+    let masterPhase = 'closed', masterReply = null, masterToken = 0, videoAbort = null, videoWatch = null;
+    function clearMasterVideo() {
+        videoAbort?.abort(); videoAbort = null;
+        clearInterval(videoWatch); videoWatch = null;
+        masterVideo.pause(); masterVideo.removeAttribute('src'); masterVideo.load();
+        masterVideo.hidden = masterSkip.hidden = true;
+    }
+    function masterConversation(silhouette = false) {
+        if (!masterDialog.open) return;
+        masterPhase = silhouette ? 'silhouette' : 'conversation';
+        masterDialog.dataset.phase = masterPhase; clearMasterVideo();
+        masterLeft.hidden = masterRight.hidden = false;
+        masterText.textContent = t(silhouette ? 'masterPresence' : masterReply.npc);
+        // Show the existing observed reaction; don't invent understanding or a new preference.
+        masterThought.textContent = t(masterReply.message);
+        masterClose.textContent = t(silhouette ? 'masterReveal' : 'masterContinue');
+        masterClose.disabled = false; masterClose.focus({ preventScroll: true }); drawMaster(performance.now());
+    }
+    function advanceMaster() {
+        if (!masterDialog.open) return;
+        if (masterPhase === 'silhouette') masterConversation();
+        else if (masterPhase === 'conversation') masterDialog.close();
+    }
+    masterClose.addEventListener('click', advanceMaster);
+    // Touch/pointer activation stays independent of life simulation and click synthesis.
+    masterClose.addEventListener('pointerup', event => {
+        if (event.button === 0 && masterPhase === 'conversation') masterDialog.close();
+    });
+    masterSkip.addEventListener('click', () => masterConversation());
+    masterDialog.addEventListener('cancel', event => {
+        if (masterPhase !== 'conversation') { event.preventDefault(); masterConversation(); }
+    });
     masterDialog.addEventListener('close', () => {
+        masterPhase = 'closed'; masterToken++; clearMasterVideo();
         lastFrame = null;
         if (masterFocus?.isConnected) masterFocus.focus({ preventScroll: true });
         else input.focus({ preventScroll: true });
     });
+    async function masterIntroduction(token) {
+        const src = window.ExperimentalWordCareers.VIDEOS[dialogMaster];
+        videoAbort = new AbortController();
+        const timeout = setTimeout(() => videoAbort?.abort(), 5000);
+        try {
+            const response = await fetch('experimental_word_encounter_videos.json', { signal: videoAbort.signal, cache: 'no-store' });
+            const available = response.ok ? await response.json() : [];
+            if (token !== masterToken || !masterDialog.open) return;
+            if (!Array.isArray(available) || !available.includes(src)) { masterConversation(true); return; }
+            masterVideo.src = src; masterVideo.volume = environmentVolume;
+            masterPhase = 'video'; masterDialog.dataset.phase = masterPhase;
+            masterVideo.hidden = masterSkip.hidden = false; masterSkip.focus({ preventScroll: true });
+            let progress = performance.now(), lastTime = 0;
+            videoWatch = setInterval(() => {
+                if (masterVideo.currentTime > lastTime) { lastTime = masterVideo.currentTime; progress = performance.now(); }
+                if (performance.now() - progress > 8000) masterConversation(true);
+            }, 250);
+            await masterVideo.play();
+        } catch (_) {
+            if (token === masterToken && masterDialog.open && ['loading','video'].includes(masterPhase)) masterConversation(true);
+        } finally { clearTimeout(timeout); }
+    }
+    masterVideo.addEventListener('ended', () => { if (masterPhase === 'video') masterConversation(); });
+    masterVideo.addEventListener('error', () => { if (masterPhase === 'video') masterConversation(true); });
     function openMaster(reply) {
-        dialogMaster = reply.master;
-        masterName.textContent = t(`master_${reply.master}`); masterText.textContent = t(reply.npc);
+        dialogMaster = reply.master; masterReply = reply; masterToken++;
+        masterName.textContent = t(`master_${reply.master}`);
         masterImage = new Image(); masterImage.onerror = () => { imageFailure = true; };
         masterImage.src = window.ExperimentalWordCareers.JOBS[reply.master].image;
+        const background = dialogMaster === 'fishing' ? 'fishing_bg' : dialogMaster === 'cooking' ? 'room_bg' : 'field_bg';
+        masterBackground = new Image(); masterBackground.src = imageSources[background];
         masterFocus = document.activeElement; masterDialog.showModal(); masterClose.focus();
-        drawMaster();
+        if (reply.message === 'master_meet') {
+            masterPhase = 'loading'; masterDialog.dataset.phase = masterPhase;
+            masterLeft.hidden = masterRight.hidden = true; masterVideo.hidden = true;
+            masterSkip.hidden = false; masterSkip.focus({ preventScroll: true });
+            void masterIntroduction(masterToken);
+        } else masterConversation();
     }
-    function drawMaster() {
-        if (!masterDialog.open) return;
-        const c = masterPortrait.getContext('2d'); c.clearRect(0, 0, 720, 300);
-        const hero = images[appearance.value], f = aiConfigs[appearance.value].actions.idle[0];
+    function drawMaster(time = performance.now()) {
+        if (!masterDialog.open || !['silhouette','conversation'].includes(masterPhase)) return;
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const frames = aiConfigs[appearance.value].actions.idle;
+        const frame = reduced ? 0 : Math.floor(time / 250) % frames.length;
+        masterHero.dataset.frame = String(frame);
+        const c = masterHero.getContext('2d'); c.clearRect(0, 0, 280, 200);
+        if (masterBackground?.complete && masterBackground.naturalWidth) {
+            const w = masterBackground.naturalWidth, h = masterBackground.naturalHeight;
+            const crop = dialogMaster === 'fishing' ? [0,0,w,h/2] : dialogMaster === 'cooking' ? [0,0,w/2,h]
+                : dialogMaster === 'farming' ? [w/2,0,w/2,h/2] : dialogMaster === 'smithing' ? [0,h/2,w/2,h/2] : [w/2,h/2,w/2,h/2];
+            c.drawImage(masterBackground, ...crop, 0, 0, 280, 200);
+        }
+        const hero = images[appearance.value], f = frames[frame];
         if (hero?.complete && hero.naturalWidth) {
             const scale = Math.min(150 / f.sw, 160 / f.sh);
-            c.drawImage(hero, f.sx, f.sy, f.sw, f.sh, 170 - f.sw * scale / 2, 290 - f.sh * scale, f.sw * scale, f.sh * scale);
+            c.drawImage(hero, f.sx, f.sy, f.sw, f.sh, 140 - f.sw * scale / 2, 190 - f.sh * scale, f.sw * scale, f.sh * scale);
         }
+        const portrait = masterPortrait.getContext('2d'); portrait.clearRect(0,0,400,400);
         if (masterImage?.complete && masterImage.naturalWidth) {
-            const job = window.ExperimentalWordCareers.JOBS[dialogMaster], h = 285, w = job.sw / 1536 * h;
-            c.drawImage(masterImage, job.sx, 0, job.sw, 1536, 540 - w / 2, 300 - h, w, h);
+            const job = window.ExperimentalWordCareers.JOBS[dialogMaster], h = 360 + (reduced ? 0 : Math.sin(time/700)*2), w = job.sw / 1536 * h;
+            portrait.save(); if (masterPhase === 'silhouette') portrait.filter = 'brightness(0)';
+            portrait.drawImage(masterImage, job.sx, 0, job.sw, 1536, (400-w)/2, 400-h, w, h); portrait.restore();
         }
     }
     function showReply(reply) {
@@ -775,7 +861,7 @@
     function animate(time) {
         drawLogo(time);
         drawMeeting(time);
-        if (window.WordIslandMode) drawMaster();
+        if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
             const holding = paused || masterDialog.open || exporting || !!input.value.trim();

@@ -154,6 +154,25 @@ test('comparison entry loads shared renderer but no legacy AI, save or life loop
     } finally { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); }
 });
 
+test('master intro videos are discoverable and range-served, with a missing-video fallback manifest', async () => {
+    for (const present of [true,false]) {
+        const server = require('../scripts/experimental/serve').createServer({encounterVideos:present});
+        await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+        const url = `http://127.0.0.1:${server.address().port}`;
+        try {
+            const videos = Object.values(require('../experimental_word_careers').VIDEOS);
+            const list = await (await fetch(`${url}/experimental_word_encounter_videos.json`)).json();
+            const available = present ? videos.filter(file=>fs.existsSync(path.join(root,file))) : [];
+            assert.deepEqual(list, available);
+            for(const video of videos) {
+                const response=await fetch(`${url}/${video}`,{headers:{Range:'bytes=0-31'}});
+                assert.equal(response.status,available.includes(video)?206:404);
+                if(available.includes(video)) { assert.equal(response.headers.get('content-type'),'video/mp4'); assert.equal((await response.arrayBuffer()).byteLength,32); }
+            }
+            assert.equal((await fetch(`${url}/robot_evol_to_type1.mp4`)).status,404,'unrelated legacy video stays excluded');
+        } finally { server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); }
+    }
+});
 test('six masters are encountered through actual arrival; all eight settings can try their work', () => {
     const jobs = require('../experimental_word_careers').JOBS;
     worldApi.setNavigation(navigation.route);
