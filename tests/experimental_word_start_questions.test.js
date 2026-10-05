@@ -68,7 +68,7 @@ test('eleven appearances remain reachable with every answer set; dragon is rarer
         assert.ok(dragon.weight / total < .01);
         let offset = 0, expectedSettings;
         for (const item of pool) {
-            const draw = (offset+item.weight/2)/total, result = questions.resolve(answers,draw);
+            const draw = (offset+item.weight/2)/total, result = questions.resolve(answers,draw,3);
             assert.equal(result.appearance,item.id);
             assert.equal(questions.validOrigin({version:3,answers,draw},result.settings,item.id),true);
             if (expectedSettings) assert.deepEqual(result.settings,expectedSettings);
@@ -79,8 +79,30 @@ test('eleven appearances remain reachable with every answer set; dragon is rarer
         }
     }
     assert.equal(skins.size,11); assert.equal(settings.size,8);
-    assert.equal(questions.resolve([0,0,0,0,0,0,0],1-Number.EPSILON).appearance,'dragon');
-    assert.throws(()=>questions.resolve([0,0,0,0,0,0,0],0,4));
+    assert.equal(questions.resolve([0,0,0,0,0,0,0],1-Number.EPSILON,3).appearance,'dragon');
+    assert.throws(()=>questions.resolve([0,0,0,0,0,0,0],0,5));
+});
+
+test('same answers fix species; all eleven retain eight starts and scarce dragon patterns',()=>{
+    const counts=new Map(), starts=new Map();
+    for(let n=0;n<3**7;n++) {
+        let rest=n;
+        const answers=Array.from({length:7},()=>{const a=rest%3;rest=Math.floor(rest/3);return a;});
+        const first=questions.resolve(answers);
+        for(const draw of [0,.01,.5,.99,1-Number.EPSILON]) assert.deepEqual(questions.resolve(answers,draw),first);
+        assert.deepEqual(questions.resolve(JSON.parse(JSON.stringify(answers))),first);
+        assert.ok(questions.validOrigin({version:4,answers},first.settings,first.appearance));
+        assert.equal(questions.validOrigin({version:4,answers,draw:.5},first.settings,first.appearance),false);
+        assert.equal(questions.validOrigin({version:4,answers},first.settings,'unknown'),false);
+        const state=core.create(first.settings,catalog);
+        assert.deepEqual(state.records,[]); assert.deepEqual(state.notes,[]);
+        counts.set(first.appearance,(counts.get(first.appearance)||0)+1);
+        if(!starts.has(first.appearance))starts.set(first.appearance,new Set());
+        starts.get(first.appearance).add(JSON.stringify(first.settings));
+    }
+    assert.equal(counts.size,11); assert.equal(counts.get('dragon'),18);
+    assert.ok([...counts].filter(([skin])=>skin!=='dragon').every(([,count])=>count>18));
+    assert.ok([...starts.values()].every(set=>set.size===8));
 });
 
 test('eleven base appearances have valid existing frames and sound assets without legacy ability import', () => {

@@ -60,15 +60,17 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const confirmSignature = async () => {
         await sign(); await click('#word-meeting-begin'); await waitStarted();
     };
-    const chooseAppearance = async (answers, skin) => {
-        const pool=questions.appearanceWeights(answers), total=pool.reduce((sum,item)=>sum+item.weight,0);
-        const index=pool.findIndex(item=>item.id===skin);
-        const draw=(pool.slice(0,index).reduce((sum,item)=>sum+item.weight,0)+pool[index].weight/2)/total;
-        await js(`window.originalStartRandom=Math.random;Math.random=()=>${draw};void 0`);
+    const answersFor = (skin, settings) => {
+        for (let n=0;n<3**7;n++) {
+            let rest=n;
+            const answers=Array.from({length:7},()=>{const a=rest%3;rest=Math.floor(rest/3);return a;});
+            const result=questions.resolve(answers);
+            if (result.appearance===skin && JSON.stringify(result.settings)===JSON.stringify(settings)) return answers;
+        }
+        assert.fail('No public answers for '+skin+' and '+JSON.stringify(settings));
     };
-    const restoreRandom = () => js('Math.random=window.originalStartRandom;void 0');
     const answerQuestions = async (answers, skin) => {
-        await chooseAppearance(answers,skin);
+        answers=answersFor(skin,questions.resolve(answers).settings);
         for (const answer of answers) {
             await click(`.word-questions fieldset button[data-answer="${answer}"]`);
         }
@@ -85,7 +87,6 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(await js('document.querySelector(".question-count").textContent'), '1 / 7');
         assert.deepEqual(saved(), before);
         for (const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
-        await restoreRandom();
         await confirmSignature();
         assert.deepEqual(read().state.startOrigin.answers, answers);
     };
@@ -120,8 +121,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     assert.equal(await js('audioManager.currentBGMType'), 'personality');
     assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .5 });
     assert.ok(valid(saved()));
-    await js('Array.from(document.querySelectorAll("#app > form > button")).at(-1).click()');
-    assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
+    assert.equal(await js('document.querySelectorAll(".word-questions > button[type=button]").length'),0);
     await reload(); await click('.word-logo');
     assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
     await click('#word-new-game'); await click('#word-reset-accept');
@@ -188,19 +188,18 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         const answers = [i % 3, i & 1 ? 1 : 0, i % 3, i % 3, i % 3, i & 2 ? 0 : 1, i & 4 ? 0 : 1];
         if (i === 5) answers.splice(0, 5, 2, 2, 2, 2, 0);
         assert.equal(await js('document.querySelector(".word-questions h2")'), null);
-        assert.equal(await js('document.querySelectorAll(".word-questions > button[type=button]").length'), 1);
+        assert.equal(await js('document.querySelectorAll(".word-questions > button[type=button]").length'), 0);
         const text = await js('document.querySelector("fieldset legend").textContent');
         const translated = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../locales/' + locales[i] + '.json'), 'utf8'));
         assert.equal(text, translated[questions.questions[0].text]);
         if (i === 6) await capture('word-start-questions-smoke.png');
         if (i === 7) await capture('word-document-questions-smoke.png');
         // Meeting screenshot is captured before dismissing it.
-        await chooseAppearance(answers,['robot','seed','spirit'][i%3]);
+        answers.splice(0,7,...answersFor(['robot','seed','spirit'][i%3],questions.resolve(answers).settings));
         for (const answer of answers) {
             await click(`fieldset button[data-answer="${answer}"]`);
         }
         const pending = structuredClone(saved()); assert.equal(pending.pendingNewGame, true);
-        await restoreRandom();
         // Empty cannot start; erasing affects only the signature and keeps the partner.
         await click('#word-meeting-begin'); assert.deepEqual(saved(), pending);
         await sign(); await click('#word-signature-clear');
@@ -216,7 +215,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         await click('#word-meeting-begin');
         await click('#word-meeting-begin'); // repeated confirmation is ignored
         await waitStarted();
-        const started = structuredClone(read()), expected = questions.resolve(answers, started.state.startOrigin.draw);
+        const started = structuredClone(read()), expected = questions.resolve(answers);
         assert.deepEqual(started.state.settings, expected.settings);
         assert.equal(started.appearance, expected.appearance); skins.add(started.appearance);
         assert.ok(valid(started));
@@ -232,16 +231,14 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         await reload(); await click('.word-logo');
         await js(`GameI18n.setLanguage(${JSON.stringify(locales[i%7])})`);
         await click('#word-new-game'); await click('#word-reset-accept');
-        const answers=[i%3,i&1?1:0,1,2,0,i&2?0:1,i&4?0:1];
-        await chooseAppearance(answers,skin);
+        const answers=answersFor(skin,{foundation:!!(i&1),life:!!(i&2),speech:i&4?'short':'gesture'});
         for(const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
-        await restoreRandom();
         assert.equal(await js('document.querySelector(".word-questions select").value'),skin);
         await confirmSignature();
         for(let j=0;j<60 && !await js(`images[${JSON.stringify(skin)}]?.complete && images[${JSON.stringify(skin)}]?.naturalWidth && audioManager.currentAudio?.readyState>=2`);j++) await sleep(100);
         assert.equal(await js(`images[${JSON.stringify(skin)}].naturalWidth>0 && aiPet.baseType===${JSON.stringify(skin)} && audioManager.currentAudio.src.endsWith(${JSON.stringify('bgm_'+skin+'.mp3')})`),true);
         const started=structuredClone(read());
-        assert.equal(started.appearance,skin); assert.equal(started.state.startOrigin.version,3); assert.ok(valid(started));
+        assert.equal(started.appearance,skin); assert.equal(started.state.startOrigin.version,4); assert.ok(valid(started));
         if(skin==='dragon') await capture('word-dragon-living-smoke.png');
         await reload(); await click('.word-logo'); await click('#word-continue');
         assert.equal(read().appearance,skin);
@@ -252,12 +249,12 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     // Old three-species provenance is validated with its original mapping,
     // never with the new eleven-species weights or a new random draw.
     const legacyBase=structuredClone(saved());
-    for(const version of [1,2]) {
+    for(const version of [1,2,3]) {
         const fixture=structuredClone(legacyBase), draw=.99;
         const answers=fixture.state.startOrigin.answers;
         const compatible=questions.resolve(answers,version===1?0:draw,version);
         fixture.appearance=compatible.appearance; fixture.state.settings=compatible.settings;
-        fixture.state.startOrigin={version,answers}; if(version===2)fixture.state.startOrigin.draw=draw;
+        fixture.state.startOrigin={version,answers}; if(version!==1)fixture.state.startOrigin.draw=draw;
         assert.ok(valid(fixture));
         // Unload the prior test child first: its beforeunload save must not
         // overwrite the compatibility fixture we are about to install.
@@ -267,7 +264,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(read().appearance,compatible.appearance);
         assert.deepEqual(read().state.startOrigin,fixture.state.startOrigin);
     }
-    // Repeating a tied answer set can change the appearance before any child save.
+    // The same answers keep the species even with different random sources.
     await reload(); await click('.word-logo'); await click('#word-new-game'); await click('#word-reset-accept');
     await js('window.originalQuestionRandom=Math.random; Math.random=()=>0; void 0');
     const tied = [0,0,0,2,0,1,1], pending = structuredClone(saved());
@@ -275,7 +272,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const first = await js('document.querySelector(".word-questions select").value');
     await click('#word-meeting-retry'); await js('Math.random=()=>.99; void 0');
     for (const answer of tied) await click(`fieldset button[data-answer="${answer}"]`);
-    assert.notEqual(await js('document.querySelector(".word-questions select").value'), first);
+    assert.equal(await js('document.querySelector(".word-questions select").value'), first);
     assert.deepEqual(saved(), pending);
     assert.equal(await js('audioManager.currentBGMType'), 'personality');
     for (let i = 0; i < 50 && !await js('audioManager.currentAudio.readyState >= 2'); i++) await sleep(100);

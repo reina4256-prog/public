@@ -29,7 +29,19 @@
         const groups = [0, 1, 2, 2, 0, 2, 0, 1, 1, 0];
         return appearances.map((id, i) => ({ id, weight: id === 'dragon' ? .25 : 1 + votes[groups[i]] }));
     }
-    function resolve(answers, draw = 0, version = 3) {
+    function fixedAppearance(answers) {
+        const code = answers.slice(0, 5).reduce((sum, answer, i) => sum + answer * 3 ** i, 0);
+        // Two mixed-answer patterns out of 243: scarce combinations, not a roll.
+        // Both foundation starts remain possible. This correspondence is provisional.
+        if ([17, 91].includes(code)) return 'dragon';
+        const weights = appearanceWeights(answers);
+        const families = [['robot', 'stone', 'beetle', 'machine'], ['seed', 'balloon', 'bird'], ['spirit', 'ghost', 'magician']];
+        const scores = families.map(family => weights.find(item => item.id === family[0]).weight);
+        const tied = families.filter((_, i) => scores[i] === Math.max(...scores));
+        const family = tied[code % tied.length];
+        return family[code % family.length];
+    }
+    function resolve(answers, draw = 0, version = 4) {
         if (!validAnswers(answers)) throw new Error('Invalid start answers');
         if (!Number.isFinite(draw) || draw < 0 || draw >= 1) throw new Error('Invalid start draw');
         // Appearance uses five everyday preferences. Each knowledge/expression axis
@@ -45,17 +57,18 @@
             let threshold = draw * total;
             appearance = pool.at(-1).id;
             for (const item of pool) { threshold -= item.weight; if (threshold < 0) { appearance = item.id; break; } }
-        } else if (![1, 2].includes(version)) throw new Error('Invalid start version');
+        } else if (version === 4) appearance = fixedAppearance(answers);
+        else if (![1, 2].includes(version)) throw new Error('Invalid start version');
         return { appearance,
             settings: { foundation: answers[1] !== 0, life: answers[5] !== 1,
                 speech: answers[6] === 0 ? 'short' : 'gesture' } };
     }
     function validOrigin(origin, settings, appearance) {
         if (origin === undefined) return true; // Earlier saves stay unchanged.
-        if (!origin || ![1, 2, 3].includes(origin.version) || !validAnswers(origin.answers)
-            || Object.keys(origin).some(key => !(origin.version === 1 ? ['version', 'answers'] : ['version', 'answers', 'draw']).includes(key))
-            || (origin.version !== 1 && (!Number.isFinite(origin.draw) || origin.draw < 0 || origin.draw >= 1))) return false;
-        const result = resolve(origin.answers, origin.version === 1 ? 0 : origin.draw, origin.version);
+        if (!origin || ![1, 2, 3, 4].includes(origin.version) || !validAnswers(origin.answers)
+            || Object.keys(origin).some(key => !([1, 4].includes(origin.version) ? ['version', 'answers'] : ['version', 'answers', 'draw']).includes(key))
+            || ([2, 3].includes(origin.version) && (!Number.isFinite(origin.draw) || origin.draw < 0 || origin.draw >= 1))) return false;
+        const result = resolve(origin.answers, [1, 4].includes(origin.version) ? 0 : origin.draw, origin.version);
         return result.appearance === appearance && Object.keys(result.settings)
             .every(key => result.settings[key] === settings?.[key]);
     }

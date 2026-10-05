@@ -302,7 +302,7 @@
     const life = select(internalSettings, 'life', [['yes', 'lifeOn'], ['no', 'lifeOff']]);
     const speech = select(internalSettings, 'speech', [['short', 'short'], ['gesture', 'gesture']]);
     const questionsApi = window.ExperimentalWordStartQuestions;
-    let answers = [], questionIndex = 0, appearanceDraw = 0;
+    let answers = [], questionIndex = 0;
     // Decorative geometry only: questions remain native text/buttons for localization
     // and keyboard access. No new raster asset or character hint is used here.
     function documentFrame(parent, completed) {
@@ -467,7 +467,6 @@
     node('p', t('resetCopy'), resetDialog);
     const resetCancel = node('button', t('resetCancel'), resetDialog); resetCancel.id = 'word-reset-cancel';
     const resetAccept = node('button', t('resetAccept'), resetDialog); resetAccept.id = 'word-reset-accept';
-    const setupBack = node('button', t('backTitle'), settings); setupBack.type = 'button'; setupBack.hidden = !window.WordIslandMode;
     settings.appendChild(questionCount);
     if (window.WordIslandMode) {
         app.classList.add('title-active');
@@ -502,7 +501,6 @@
             window.audioManager.playTitleMusic();
         }
     });
-    setupBack.addEventListener('click', showTitle);
     newGame.addEventListener('click', () => { resetDialog.showModal(); resetCancel.focus(); });
     resetCancel.addEventListener('click', () => resetDialog.close());
     resetDialog.addEventListener('close', () => { if (screen === 'title') newGame.focus(); });
@@ -773,7 +771,7 @@
         if (!catalog || screen === 'playing' || saveBlocked) return;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
-        if (newMeeting) state.startOrigin = { version: 3, answers: answers.slice(), draw: appearanceDraw };
+        if (newMeeting) state.startOrigin = { version: 4, answers: answers.slice() };
         world = restored?.world || worldApi.create();
         if (restored) appearance.value = restored.appearance;
         view.start?.(world, appearance.value);
@@ -796,8 +794,7 @@
         if (answers[questionIndex] === undefined) return;
         if (questionIndex < questionsApi.questions.length - 1) { questionIndex++; renderQuestion(); return; }
         if (!questionsApi.validAnswers(answers)) return;
-        appearanceDraw = Math.random();
-        const initial = questionsApi.resolve(answers, appearanceDraw);
+        const initial = questionsApi.resolve(answers);
         appearance.value = initial.appearance;
         foundation.value = initial.settings.foundation ? 'yes' : 'no';
         life.value = initial.settings.life ? 'yes' : 'no'; speech.value = initial.settings.speech;
