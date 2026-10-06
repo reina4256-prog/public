@@ -4,6 +4,8 @@
   "description": "",
   "main": "electron_main.js",
   "scripts": {
+    "start:words:constellation": "node scripts/experimental/constellation.js",
+    "test:words:constellation": "node scripts/experimental/constellation.js --smoke",
     "start:words:diary": "node scripts/experimental/diary.js",
     "test:words:diary": "node scripts/experimental/diary.js --smoke",
     "start:words": "node scripts/experimental/launch.js",

@@ -1,0 +1,42 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; color: #e6edf7; background: #091322; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 1240px; padding: 28px; margin: auto; }
+h1 { font-size: clamp(24px, 4vw, 36px); margin: 0 0 12px; font-weight: 500; }
+h2 { font-size: 20px; font-weight: 500; }
+p { line-height: 1.75; overflow-wrap: anywhere; }
+.guide, .legend { color: #b5c3d7; }
+.controls { display: flex; flex-wrap: wrap; align-items: end; gap: 16px; margin: 20px 0; }
+label { display: grid; gap: 8px; flex: 1 1 200px; min-width: 0; }
+select { width: 100%; min-width: 0; }
+button, select { font: inherit; color: inherit; background: #15283e; border: 1px solid #7892ae; border-radius: 9px; padding: 10px 14px; cursor: pointer; max-width: 100%; white-space: normal; }
+button:hover { background: #26435d; }
+:focus-visible { outline: 3px solid #ffe49c; outline-offset: 4px; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(290px, 1fr); gap: 22px; }
+.sky { position: relative; min-width: 0; height: 470px; border: 1px solid #36516c; border-radius: 24px; background: radial-gradient(ellipse at 48% 52%, #243c54 0%, #101f33 45%, #0b1525 100%); overflow: hidden; }
+.sky::before { content: ''; position: absolute; inset: 0; opacity: .3; background-image: radial-gradient(#d9e6ff 1px, transparent 1px); background-size: 43px 61px; pointer-events: none; }
+svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.edge { cursor: pointer; }
+.edge .hit { stroke: transparent; stroke-width: 20; }
+.edge .thread { stroke: #7ba1b9; stroke-width: 1.7; }
+.edge.pending .thread { stroke-dasharray: 5 7; opacity: .45; }
+.edge.active .thread { stroke: #f4dca2; stroke-width: 3; filter: drop-shadow(0 0 5px #ffd08a); }
+.edge.selected .thread { stroke: #bce5ff; stroke-width: 3; }
+.edge .spark { stroke: #fff7d7; stroke-width: 5; stroke-dasharray: 8 100; opacity: 0; pointer-events: none; }
+.sky.playing .edge.active .spark { opacity: 1; animation: travel 1.8s linear 2; }
+@keyframes travel { from { stroke-dashoffset: 108; } to { stroke-dashoffset: 0; } }
+.star { position: absolute; transform: translate(-50%, -50%); width: 136px; background: #10243bd9; padding: 14px 8px; border-color: #627d99; }
+.star::before { content: '✦'; display: block; font-size: 25px; color: #d3e7f6; }
+.star.active { box-shadow: 0 0 25px #e5bb6166; border-color: #f4dca2; }
+.star.active::before { color: #ffe7a8; }
+.star.pending { border-style: dashed; color: #a9bbcf; }
+.star[aria-pressed=true] { outline: 2px solid #bce5ff; outline-offset: 3px; }
+.detail { background: #122236; border: 1px solid #36516c; border-radius: 20px; padding: 20px; min-width: 0; }
+.record { border-top: 1px solid #41556c; margin-top: 18px; padding-top: 12px; }
+.record blockquote { margin: 12px 0; padding-left: 14px; border-left: 2px solid #d6be82; line-height: 1.8; }
+.record-links { display: flex; flex-wrap: wrap; gap: 8px; }
+.record-links button { font-size: 14px; }
+.state { min-height: 3.5em; color: #ffe4a7; }
+@media (max-width: 800px) { main { padding: 18px; } .layout { grid-template-columns: 1fr; } .sky { height: 420px; } }
+@media (max-width: 450px) { .star { width: 104px; font-size: 14px; } .sky { height: 380px; } }
+@media (prefers-reduced-motion: reduce) { .sky.playing .edge.active .spark { animation: none; opacity: 0; } }
