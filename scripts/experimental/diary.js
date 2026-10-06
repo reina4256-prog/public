@@ -172,6 +172,71 @@ if (!process.versions.electron || process.type !== 'browser') {
             if (fixture.event.activity === 'eat') assert.deepEqual(entry.captured.sensation.taste, fixture.event.taste);
         }
         assert.deepEqual(completionResult.removed, ['undefined', 'undefined']);
+        // Actual career starts/completions and learning in disposable Node
+        // memory. The renderer receives only snapshots and independent parts.
+        const careers = require('../../experimental_word_careers');
+        const makeWorkCompletion = (master, demonstrated, state = core.create({ speech:'gesture' }, wordCatalog)) => {
+            const world = worldApi.create();
+            Object.assign(world, { mode:'observe', attention:`master:${master}`, elapsed:1, dwell:0,
+                hunger:.1, fatigue:.1 });
+            careers.arrive(world, { id:0, target:world.attention });
+            world.careers.people[master].completed = (state.experiences || []).filter(e => e.master === master).length;
+            world.dwell = 0;
+            const start = careers.tick(world);
+            assert.equal(start.kind, 'work_start');
+            if (demonstrated) worldApi.onArrival(world, state, start);
+            world.dwell = 0; world.elapsed = 20;
+            world.event = Math.max(world.event, ...(state.experiences || []).map(e => e.id));
+            const event = careers.tick(world), before = JSON.parse(JSON.stringify(state.knowledge));
+            worldApi.onArrival(world, state, event);
+            return { snapshot:{ event, before, after:JSON.parse(JSON.stringify(state.knowledge)) }, state };
+        };
+        const workFixtures = Object.keys(careers.JOBS).flatMap(master => {
+            const fresh = makeWorkCompletion(master, true);
+            return [makeWorkCompletion(master, false).snapshot, fresh.snapshot,
+                makeWorkCompletion(master, true, fresh.state).snapshot];
+        });
+        const firstWork = makeWorkCompletion('farming', true);
+        workFixtures.push(makeWorkCompletion('fishing', true, firstWork.state).snapshot);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_work.js'), 'utf8'));
+        const workResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(workFixtures)};
+            const results = fixtures.map(value => {
+                const buffer = ExperimentalWordDiaryCandidates.create();
+                const source = JSON.stringify(value);
+                const accepted = ExperimentalWordDiaryWork.capture(buffer, value.event, value.before, value.after);
+                const original = buffer.read();
+                const sourcePreserved = source === JSON.stringify(value);
+                value.after.meanings.push({ id:'unrelated', source:'initial' });
+                const repeated = ExperimentalWordDiaryWork.capture(buffer, value.event, value.before, value.after);
+                value.event.result = 'changed';
+                buffer.read()[0].captured.sources.reasons[0].kind = 'changed';
+                return { accepted, repeated, original, entries:buffer.read(), sourcePreserved };
+            });
+            delete globalThis.ExperimentalWordDiaryWork;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { results, removed:[typeof ExperimentalWordDiaryWork, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        for (const [index, result] of workResult.results.entries()) {
+            assert.equal(result.accepted, true);
+            assert.equal(result.repeated, false);
+            assert.equal(result.sourcePreserved, true);
+            assert.deepEqual(result.entries, result.original);
+            const entry = result.entries[0], fixture = workFixtures[index];
+            assert.equal(entry.sourceId, fixture.event.id);
+            assert.deepEqual(entry.captured.sources, { before:fixture.event.before, after:fixture.event.after,
+                result:fixture.event.result, demonstration:fixture.event.demonstration, reasons:fixture.event.reasons });
+            const u = entry.captured.understanding;
+            assert.deepEqual(Object.keys(u), ['point', 'activity', 'task']);
+            for (const aspect of ['activity', 'task']) {
+                assert.equal(u[aspect].status, index < 18 && index % 3 === 0 ? 'unrecognized' : 'recognized');
+                if (u[aspect].known.length) assert.equal(u[aspect].known[0].acquired,
+                    index < 18 ? index % 3 === 2 ? 'before_completion' : 'at_completion'
+                        : aspect === 'activity' ? 'before_completion' : 'at_completion');
+            }
+        }
+        assert.deepEqual(workResult.removed, ['undefined', 'undefined']);
         const results = [];
         const originals = new Map();
         const source = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary.js'), 'utf8');
@@ -269,7 +334,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.deepEqual(errors, []);
         fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(results, null, 2));
         console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7,
-            completionCases:completionResult.results.length, profile:directory })); app.quit();
+            completionCases:completionResult.results.length, workCompletionCases:workResult.results.length, profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
