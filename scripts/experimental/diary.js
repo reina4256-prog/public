@@ -35,6 +35,26 @@ if (!process.versions.electron || process.type !== 'browser') {
         await window.webContents.debugger.sendCommand('CSS.enable');
         await settle();
         await js(`localStorage.setItem('preview-sentinel','keep'); sessionStorage.setItem('preview-sentinel','keep'); void 0`);
+        // Exercise the independent clock in the real renderer only during smoke.
+        // It is intentionally absent from both preview HTML and game HTML.
+        const clockSource = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_clock.js'), 'utf8');
+        await js(clockSource);
+        const clockResult = await js(`(() => {
+            const clock = ExperimentalWordDiaryClock;
+            const partial = { dayIndex: 0, elapsedMs: clock.DAY_MS - 100 };
+            const stopped = clock.STOP_REASONS.map(reason => clock.advance(partial, 86400000, { [reason]: true }));
+            const overlapping = clock.advance(partial, 200, { manualPaused: true, encounterOpen: false });
+            const sleep = clock.advance(partial, 200);
+            const resumed = clock.advance(JSON.parse(JSON.stringify(partial)), 50);
+            delete globalThis.ExperimentalWordDiaryClock;
+            return { stopped, overlapping, sleep, resumed, partial };
+        })()`);
+        const partial = { dayIndex: 0, elapsedMs: 1499900 };
+        for (const stopped of clockResult.stopped) assert.deepEqual(stopped, { state:partial, crossedDays:0 });
+        assert.deepEqual(clockResult.overlapping, { state:partial, crossedDays:0 });
+        assert.deepEqual(clockResult.sleep, { state:{ dayIndex:1, elapsedMs:100 }, crossedDays:1 });
+        assert.deepEqual(clockResult.resumed, { state:{ dayIndex:0, elapsedMs:1499950 }, crossedDays:0 });
+        assert.deepEqual(clockResult.partial, partial);
         const results = [];
         const originals = new Map();
         const source = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary.js'), 'utf8');
@@ -129,7 +149,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelector('#diary-sample').value`), 'berry');
         assert.deepEqual(errors, []);
         fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(results, null, 2));
-        console.log(JSON.stringify({ ok:true, cases:results.length, profile:directory })); app.quit();
+        console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
