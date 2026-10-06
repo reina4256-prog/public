@@ -115,6 +115,63 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.deepEqual(questionResult.entries[0].captured.understanding, questionFixtures[0].result.understandings.at(-1));
         assert.equal(questionResult.entries[0].sourceId, questionFixtures[0].result.input.id);
         assert.deepEqual(questionResult.removed, ['undefined', 'undefined']);
+        // Complete actual food/rest events in disposable Node state. Only their
+        // before/after learning snapshots and the independent adapter enter the
+        // renderer; this is not live diary generation or a player save test.
+        const makeCompletion = (activity, labelled, options = {}) => {
+            const state = core.create({ life:false, ...options }, wordCatalog), world = worldApi.create();
+            Object.assign(world, { mode:activity, attention:activity === 'eat' ? 'berry:1' : 'shade',
+                harvest:1, elapsed:1, activityStart:1, dwell:.1, hunger:.8, fatigue:.7,
+                activityBefore:{ hunger:.8, fatigue:.7 } });
+            if (activity === 'eat') world.mealTaste = { quality:'sweet', pleasant:true };
+            if (labelled) for (const raw of activity === 'eat' ? ['eat', 'sweet', '"hungry"'] : ['rest', '"tired"']) {
+                const result = core.receive(state, raw, wordCatalog, { locale:'en' });
+                worldApi.respond(world, result, state);
+                assert.ok(result.lifeLearning);
+            }
+            world.pause = 0;
+            const event = worldApi.tick(world, .1), before = JSON.parse(JSON.stringify(state.knowledge));
+            assert.equal(event.kind, 'experience');
+            worldApi.onArrival(world, state, event);
+            return { event, before, after:state.knowledge };
+        };
+        const completionFixtures = ['eat', 'rest'].flatMap(activity => [makeCompletion(activity, false),
+            makeCompletion(activity, true), makeCompletion(activity, true, { life:true, speech:'gesture' })]);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_experiences.js'), 'utf8'));
+        const completionResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(completionFixtures)};
+            const results = fixtures.map(value => {
+                const buffer = ExperimentalWordDiaryCandidates.create();
+                const source = JSON.stringify(value);
+                const accepted = ExperimentalWordDiaryExperiences.capture(buffer, value.event, value.before, value.after);
+                const original = buffer.read();
+                value.after.meanings.push({ id:'unrelated', source:'initial' });
+                const repeated = ExperimentalWordDiaryExperiences.capture(buffer, value.event, value.before, value.after);
+                buffer.read()[0].captured.sensation.after.fatigue = 1;
+                return { accepted, repeated, original, entries:buffer.read(),
+                    sourcePreserved:source === JSON.stringify({ ...value,
+                        after:{ ...value.after, meanings:value.after.meanings.filter(m=>m.id !== 'unrelated') } }) };
+            });
+            delete globalThis.ExperimentalWordDiaryExperiences;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { results, removed:[typeof ExperimentalWordDiaryExperiences, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        for (const [index, result] of completionResult.results.entries()) {
+            assert.equal(result.accepted, true);
+            assert.equal(result.repeated, false);
+            assert.equal(result.sourcePreserved, true);
+            assert.deepEqual(result.entries, result.original);
+            const entry = result.entries[0], fixture = completionFixtures[index];
+            assert.equal(entry.sourceId, fixture.event.id);
+            assert.deepEqual(entry.captured.sensation.before, fixture.event.before);
+            assert.deepEqual(entry.captured.sensation.after, fixture.event.after);
+            assert.equal(entry.captured.understanding.recovery.status, index % 3 === 0 ? 'unrecognized' : 'recognized');
+            if (index % 3 !== 0) assert.ok(entry.captured.understanding.recovery.known.every(item =>
+                item.acquired === (index % 3 === 2 ? 'before_completion' : 'at_completion')));
+            if (fixture.event.activity === 'eat') assert.deepEqual(entry.captured.sensation.taste, fixture.event.taste);
+        }
+        assert.deepEqual(completionResult.removed, ['undefined', 'undefined']);
         const results = [];
         const originals = new Map();
         const source = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary.js'), 'utf8');
@@ -211,7 +268,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelector('#diary-sample').value`), 'berry');
         assert.deepEqual(errors, []);
         fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(results, null, 2));
-        console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7, profile:directory })); app.quit();
+        console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7,
+            completionCases:completionResult.results.length, profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
