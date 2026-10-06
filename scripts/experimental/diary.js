@@ -79,6 +79,42 @@ if (!process.versions.electron || process.type !== 'browser') {
             captured:{ target:'berry:1', taste:'sweet', known:[] } });
         assert.deepEqual(candidateResult.entries.map(item => item.kind), ['experience', 'teaching', 'question']);
         assert.equal(candidateResult.removed, 'undefined');
+        // Actual parser/reply results from disposable Node state. Only the
+        // question adapter and buffer enter the renderer, never the game world.
+        const core = require('../../experimental_word_learning_core');
+        const worldApi = require('../../experimental_word_learning_world');
+        const wordCatalog = require('../../experimental_word_learning_catalog.json');
+        const questionInput = '\u3069\u3046\u3057\u3066\u4f11\u3093\u3060\u306e\uff1f';
+        const makeQuestion = (options = {}, text = questionInput) => {
+            const state = core.create(options, wordCatalog);
+            const result = core.receive(state, text, wordCatalog, { at: 100 });
+            return { result, reply: worldApi.respond(worldApi.create(), result, state) };
+        };
+        const questionFixtures = [makeQuestion(), makeQuestion({ speech: 'gesture' }),
+            makeQuestion({ foundation: false, life: false }), makeQuestion({}, 'unsupported input')];
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_questions.js'), 'utf8'));
+        const questionResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(questionFixtures)};
+            const buffer = ExperimentalWordDiaryCandidates.create();
+            const accepted = fixtures.map(value => ExperimentalWordDiaryQuestions.capture(buffer, value.result, value.reply));
+            const original = buffer.read();
+            fixtures[0].result.understandings.at(-1).known.meaning = 'sweet';
+            const repeated = ExperimentalWordDiaryQuestions.capture(buffer, fixtures[0].result, fixtures[0].reply);
+            buffer.read()[0].captured.answer = 'found';
+            const entries = buffer.read();
+            delete globalThis.ExperimentalWordDiaryQuestions;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { accepted, original, repeated, entries,
+                removed: [typeof ExperimentalWordDiaryQuestions, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        assert.deepEqual(questionResult.accepted, [true, false, false, false]);
+        assert.equal(questionResult.repeated, false);
+        assert.deepEqual(questionResult.entries, questionResult.original);
+        assert.equal(questionResult.entries[0].captured.raw, questionInput);
+        assert.deepEqual(questionResult.entries[0].captured.understanding, questionFixtures[0].result.understandings.at(-1));
+        assert.equal(questionResult.entries[0].sourceId, questionFixtures[0].result.input.id);
+        assert.deepEqual(questionResult.removed, ['undefined', 'undefined']);
         const results = [];
         const originals = new Map();
         const source = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary.js'), 'utf8');
@@ -175,7 +211,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelector('#diary-sample').value`), 'berry');
         assert.deepEqual(errors, []);
         fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(results, null, 2));
-        console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, profile:directory })); app.quit();
+        console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7, profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
