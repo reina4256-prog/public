@@ -92,6 +92,13 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         const initial = await js('({imagesLoaded,totalImages,assets:Object.keys(assets).length,actor:{x:aiPet.x,y:aiPet.y},bgm:audioManager.currentBGMType,ready:audioManager.currentAudio?.readyState,legacy:typeof aiPet.update})');
         assert.equal(initial.imagesLoaded, initial.totalImages);
+        if (process.argv.includes('--memory-sources')) {
+            await require('./smoke_memory_sources')({ js, window, url, paintClock, sleep,
+                read: () => snapshot, load: value => { nextLoad = value; } });
+            assert.deepEqual(failures, []);
+            console.log(JSON.stringify({ ok: true, memorySources: true, profile: directory }));
+            return;
+        }
         assert.equal(initial.bgm, snapshot.appearance); assert.ok(initial.ready >= 2); assert.equal(initial.legacy, 'undefined');
         assert.ok(initial.assets > 300);
         if (process.argv.includes('--id3')) {

@@ -104,11 +104,11 @@
                 ? kind === 'eat' ? (named ? 'note_ate' : 'note_ate_sensation') : (named ? 'note_rested' : 'note_rest_sensation')
                 : kind === 'eat' ? 'note_tried_eat' : 'note_tried_rest',
                 detail: experience.taste?.quality === 'sweet' && knows('sweet') ? 'note_experienced_sweet' : 'note_experienced',
-                organized: organizedExperiences.has(experience.id) });
+                experienceId: experience.id, organized: organizedExperiences.has(experience.id) });
         }
         for (const question of state.notebookQuestions || []) {
             result.push({ group: 'questions', message: 'note_question', literal: question.raw,
-                detail: 'note_no_answer', organized: false });
+                sourceId: question.inputId, detail: 'note_no_answer', organized: false });
         }
         return result;
     }

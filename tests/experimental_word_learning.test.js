@@ -3106,6 +3106,42 @@ test('natural rest question and a berry-name answer bind to the actual experienc
     assert.equal(worldApi.respond(world, say(state, 'ゆっくり休めた？'), state).message, 'rest_helped');
 });
 
+test('completed recovery answers and notebook entries retain the same original experience through save/reload', () => {
+    const state = create(), world = worldApi.create();
+    world.hunger = .8; world.fatigue = .8;
+    for (let i = 0; i < 5000 && !['eat', 'rest'].every(kind => world.experiences.some(e => e.kind === kind)); i++) {
+        const event = worldApi.tick(world, .1);
+        if (event) worldApi.onArrival(world, state, event);
+    }
+    for (const [kind, phrase] of [['eat', 'おいしかった？'], ['rest', '休めた？']]) {
+        const original = world.experiences.filter(e => e.kind === kind).at(-1);
+        assert.ok(original);
+        const reply = worldApi.respond(world, say(state, phrase), state);
+        assert.equal(reply.experienceId, original.id);
+        assert.equal(reply.eventTime, 'past');
+        assert.equal(state.context.turns.at(-1).answer.source.experienceId, original.id);
+        assert.equal(state.context.lastOutput.evidence.experienceId, original.id);
+        const before = JSON.stringify(state);
+        const entry = notebookApi.entries(state).find(e => e.experienceId === original.id && e.group === 'experiences');
+        assert.ok(entry);
+        notebookApi.groupedEntries(state);
+        assert.equal(JSON.stringify(state), before, 'reading adds no evidence or recall');
+    }
+    const saved = JSON.parse(JSON.stringify({ version: 1, appearance: 'robot', state, world }));
+    assert.ok(require('../scripts/experimental/storage').valid(saved));
+    assert.deepEqual(notebookApi.entries(saved.state), notebookApi.entries(state));
+    const original = world.experiences.filter(e => e.kind === 'rest').at(-1);
+    original.id = 0;
+    assert.equal(worldApi.respond(world, say(state, '休めた？'), state).experienceId, 0);
+    assert.equal(state.context.turns.at(-1).answer.source.experienceId, 0);
+    delete original.id;
+    const legacy = worldApi.respond(world, say(state, '休めた？'), state);
+    assert.equal(legacy.message, 'rest_helped');
+    assert.equal(Object.hasOwn(legacy, 'experienceId'), false, 'legacy source IDs are not fabricated');
+    const restored = JSON.parse(JSON.stringify(state));
+    assert.deepEqual(notebookApi.entries(restored), notebookApi.entries(state));
+});
+
 test('notebook reading preserves sources, never turns co-occurrence into learned names', () => {
     const state = create();
     assert.deepEqual(notebookApi.entries(state), []);
@@ -3203,6 +3239,7 @@ test('notebook only retains unanswered questions the character actually understo
     notebookApi.rememberQuestion(state, result, reply);
     assert.equal(state.notebookQuestions.length, 1);
     assert.equal(notebookApi.entries(state)[0].literal, 'どうして休んだの？');
+    assert.equal(notebookApi.entries(state)[0].sourceId, result.input.id);
     const unknown = say(state, '全く対応していない文');
     notebookApi.rememberQuestion(state, unknown, { message: 'answer_unknown' });
     assert.equal(state.notebookQuestions.length, 1);

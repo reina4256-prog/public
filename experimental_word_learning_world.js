@@ -305,7 +305,7 @@
             && !response.observation && !['answer_unknown', 'attend', 'taste_unsure'].includes(response.message)) {
             turn.answer = { subject: u.subject, eventTime: response.eventTime || u.eventTime,
                 source: { inputId: result.input.id, questionSlot: u.questionSlot,
-                    experienceId: response.experienceId || null, answeredAt: result.input.at },
+                    experienceId: response.experienceId ?? null, answeredAt: result.input.at },
                 response: JSON.parse(JSON.stringify(response)) };
         }
         rememberOutput(world, state, response, result.input, null,
@@ -373,7 +373,8 @@
                 const current = u.questionSlot === 'taste_now' && world.mode === 'eat';
                 const taste = current ? world.mealTaste : meal?.taste;
                 if (taste?.quality === 'sweet' && taste.pleasant && knows('sweet')) {
-                    return { message: canSpeak ? (current ? 'tastes_good' : 'tasted_good') : 'pleased_gesture' };
+                    return { message: canSpeak ? (current ? 'tastes_good' : 'tasted_good') : 'pleased_gesture',
+                        ...(!current && meal?.id !== undefined ? { experienceId: meal.id, eventTime: 'past' } : {}) };
                 }
                 if (!meal && !current) return { message: canSpeak ? 'not_eaten_yet' : 'attend' };
                 return { message: canSpeak ? 'taste_unsure' : 'attend' };
@@ -381,7 +382,8 @@
             if (u.questionSlot === 'rest_result') {
                 const rest = [...world.experiences].reverse().find(e => e.kind === 'rest');
                 if (rest?.before && rest.after.fatigue < rest.before.fatigue && knows('tired')) {
-                    return { message: canSpeak ? 'rest_helped' : 'pleased_gesture' };
+                    return { message: canSpeak ? 'rest_helped' : 'pleased_gesture',
+                        ...(rest.id !== undefined ? { experienceId: rest.id, eventTime: 'past' } : {}) };
                 }
                 return { message: canSpeak ? 'answer_unknown' : 'attend' };
             }
