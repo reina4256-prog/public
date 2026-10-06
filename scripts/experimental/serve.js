@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const ROOT = path.resolve(__dirname, '../..');
 const files = new Set(['experimental_word_learning.html', 'experimental_word_learning.css',
+    'assets/fonts/diary/Yomogi-Regular.ttf', 'assets/fonts/diary/LXGWWenKai-Regular.ttf', 'assets/fonts/diary/Caveat.ttf',
     'experimental_word_diary.html', 'experimental_word_diary.css', 'experimental_word_diary.js',
     'experimental_word_island.html', 'experimental_word_island_boot.js', 'experimental_word_island_view.js',
     'experimental_word_island_navigation.js', 'data.js', 'island_shared.js', 'view_renderer.js',
@@ -15,7 +16,7 @@ const files = new Set(['experimental_word_learning.html', 'experimental_word_lea
     'experimental_word_learning_world.js', 'experimental_word_learning_view.js', 'experimental_word_learning_visuals.json',
     'robot.png', 'spirit.png', 'seed.png', 'field_2.png']);
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-    '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
+    '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
 const encounterVideos = new Set(Object.values(require('../../experimental_word_careers').VIDEOS));
 function createServer(options = {}) {
     return http.createServer((request, response) => {

@@ -1,4 +1,7 @@
 :root { color-scheme: light; font-family: Georgia, 'Yu Mincho', 'Noto Serif CJK JP', serif; color: #463b32; background: #e6e0d5; }
+@font-face { font-family: DiaryYomogi; src: url('assets/fonts/diary/Yomogi-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: DiaryWenKai; src: url('assets/fonts/diary/LXGWWenKai-Regular.ttf') format('truetype'); font-display: swap; }
+@font-face { font-family: DiaryCaveat; src: url('assets/fonts/diary/Caveat.ttf') format('truetype'); font-weight: 400 700; font-display: swap; }
 * { box-sizing: border-box; }
 body { margin: 0; }
 main { max-width: 980px; margin: auto; padding: 26px 20px 40px; }
@@ -11,14 +14,19 @@ button:disabled { opacity: .4; }
 button:not(:disabled), select { cursor: pointer; }
 :focus-visible { outline: 3px solid #8e5d35; outline-offset: 3px; }
 .book { width: min(100%, 640px); margin: 0 auto; }
+.book { font-family: DiaryCaveat, cursive; }
+html:lang(ja) .book { font-family: DiaryYomogi, cursive; }
+html:lang(zh-CN) .book { font-family: DiaryWenKai, cursive; }
 .diary-page { position: relative; background: #fff9e9; padding: 24px 30px 22px 44px; border: 1px solid #cdbfa7; border-radius: 3px 12px 12px 3px; box-shadow: 2px 6px 16px #66574025, inset 14px 0 18px -15px #88735780; }
 .diary-page::before { content: ''; position: absolute; left: 26px; top: 0; bottom: 0; border-left: 1px solid #c8ac9d66; }
 .diary-page[hidden] { display: none; }
-.date { font-size: 17px; margin: 0 0 12px; border-bottom: 1px solid #cdbfa7; padding-bottom: 10px; font-weight: normal; }
+.date { font-size: 22px; margin: 0 0 12px; border-bottom: 1px solid #cdbfa7; padding-bottom: 10px; font-weight: normal; }
 .drawing { width: 100%; height: 205px; display: block; }
 .blank-caption { font: 13px/1.5 system-ui, sans-serif; min-height: 22px; margin: 0 0 12px; color: #827263; }
 .diary-text { height: 270px; width: 100%; margin: 0; font-size: 18px; line-height: 1.9; letter-spacing: .04em; white-space: pre-wrap; overflow-wrap: anywhere; }
 .diary-text.vertical { writing-mode: vertical-rl; text-orientation: mixed; }
+.diary-text.vertical .diary-sentence { display: block; white-space: normal; }
+html:not(:lang(ja)):not(:lang(zh-CN)) .diary-text { font-size: 23px; line-height: 1.55; letter-spacing: .015em; }
 .continuation .diary-text { height: 490px; }
 .page-number { margin: 16px 0 0; text-align: center; font: 13px/1.5 system-ui, sans-serif; color: #827263; }
 .navigation { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 20px; font: 14px/1.5 system-ui, sans-serif; }

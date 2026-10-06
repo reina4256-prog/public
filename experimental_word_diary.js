@@ -8,7 +8,13 @@
         berry: '見本：木の実を食べた日', net: '見本：網の結び目がほどけた日',
         naming: '見本：実を見ながら名前を教わった日', heard: '見本：話を聞いた日（絵なし）',
         partial: '見本：まだ一日の途中（絵なし）', long: '見本：長い日の続きページ',
-        day: '見本の一日 {{0}}', continued: '見本の一日 {{0}}・続き',
+        day: '{{0}}月{{1}}日', continued: '{{0}}月{{1}}日・続き',
+        dateGuide: '日付も見本です。ゲーム内の暦とはつながっていません。',
+        selfRobot: '見本：自分の姿（ロボット）', selfDragon: '見本：自分の姿（ドラゴン）',
+        meeting: '見本：農家の師匠と会った日',
+        selfRobotText: '自分の頭には、二本のアンテナがある。胸には四角いところがある。自分の姿を描いてみた。',
+        selfDragonText: '自分には角と羽としっぽがある。羽を広げてみた。自分の姿を描いてみた。',
+        meetingText: '農家の師匠に会った。麦わら帽子をかぶっていた。手には長い道具を持っていた。畑で、その道具を動かすところを見た。',
         page: '{{0}} / {{1}} ページ', previous: '前の見本ページ', next: '次の見本ページ',
         unfinished: '一日の途中の見本。絵の場所は、まだ空欄です。',
         noDrawing: '絵の候補がない日の見本。本文だけを残します。',
@@ -33,7 +39,10 @@
         { id: 'heard', day: 4, drawing: null, text: ['heardText'] },
         { id: 'partial', day: 5, drawing: null, text: ['partialText'] },
         // Expanded layout stress fixture, not a proposal for real record aggregation.
-        { id: 'long', day: 6, drawing: 'net', text: Array.from({ length: 4 }, () => ['longA', 'longB', 'longC', 'longD', 'longE', 'longF']).flat() }
+        { id: 'long', day: 6, drawing: 'net', text: Array.from({ length: 4 }, () => ['longA', 'longB', 'longC', 'longD', 'longE', 'longF']).flat() },
+        { id: 'selfRobot', day: 7, drawing: 'robot', text: ['selfRobotText'] },
+        { id: 'selfDragon', day: 8, drawing: 'dragon', text: ['selfDragonText'] },
+        { id: 'meeting', day: 9, drawing: 'meeting', text: ['meetingText'] }
     ];
     const root = document.getElementById('diary-preview');
     const t = (key, ...values) => window.GameI18n.translate(S[key]).replace(/\{\{(\d+)\}\}/g, (_, index) => String(values[Number(index)]));
@@ -68,6 +77,43 @@
             if (fill) { c.fillStyle = fill; c.beginPath(); points.forEach(([px, py], i) => i ? c.lineTo(px, py) : c.moveTo(px, py)); c.fill(); }
             line(points, color);
         }
+        function robot(x, y, scale = 1) {
+            c.save(); c.translate(x, y); c.scale(scale, scale);
+            const blue = '#708f9c';
+            line([[-31, -45], [-30, -84], [29, -86], [32, -45], [-31, -45]], blue);
+            line([[-27, -86], [-31, -104]], blue); oval(-31, -108, 3, 3, blue);
+            line([[24, -86], [29, -104]], blue); oval(29, -108, 3, 3, blue);
+            oval(-13, -65, 5, 6, blue, '#a9c6cf60'); oval(13, -65, 5, 6, blue, '#a9c6cf60');
+            line([[-12, -51], [13, -51]], blue);
+            line([[-24, -41], [26, -41], [26, 10], [-25, 10], [-24, -41]], blue);
+            line([[-13, -29], [13, -29], [12, -8], [-13, -8], [-13, -29]], blue);
+            line([[-25, -31], [-39, -11], [-36, 4]], blue); oval(-36, 7, 5, 6, blue);
+            line([[26, -30], [39, -11], [38, 5]], blue); oval(38, 8, 5, 6, blue);
+            line([[-15, 11], [-17, 31], [-30, 32], [-30, 37], [-8, 38]], blue);
+            line([[14, 11], [17, 31], [29, 32], [30, 37], [9, 38]], blue);
+            c.restore();
+        }
+        function farmer(x, y) {
+            c.save(); c.translate(x, y);
+            oval(0, -62, 23, 26, '#a98667', '#e5c7a260');
+            // Existing master's straw hat, blue overalls and hoe; no encounter-state lookup.
+            line([[-24, -82], [-17, -102], [17, -102], [25, -81]], '#b79852');
+            oval(0, -81, 39, 7, '#b79852', '#dfcc8650');
+            line([[-22, -87], [22, -87]], '#ba7051');
+            line([[-18, -74], [-8, -79], [0, -75], [8, -79], [19, -73]], '#746450');
+            oval(-9, -62, 1.2, 2, '#746450'); oval(9, -62, 1.2, 2, '#746450');
+            line([[-7, -46], [1, -44], [8, -47]], '#746450');
+            line([[-20, -35], [-27, 21], [27, 21], [20, -35]], '#aa8b6b');
+            line([[-14, -34], [-12, -14], [12, -14], [15, -34]], '#73909c');
+            line([[-13, -14], [-15, 20], [15, 20], [13, -14]], '#73909c');
+            line([[-20, -28], [-39, -4], [-51, -7]], '#aa8b6b');
+            line([[20, -28], [38, -9], [34, 9]], '#aa8b6b');
+            line([[-12, 22], [-16, 46], [-26, 48], [-5, 48]], '#746450');
+            line([[12, 22], [16, 46], [27, 48], [5, 48]], '#746450');
+            line([[-51, -71], [-53, 51]], '#aa8052');
+            line([[-55, -73], [-76, -65], [-72, -57], [-52, -65]], '#839094');
+            c.restore();
+        }
         if (kind === 'berry') {
             line([[190, 161], [218, 104], [247, 70], [276, 53]], '#678350');
             line([[219, 105], [182, 89], [159, 63]], '#678350');
@@ -86,6 +132,26 @@
             line([[192, 91], [213, 102], [204, 122], [185, 117], [194, 101], [222, 130], [245, 161]], '#aa8052');
             line([[190, 105], [171, 138], [145, 145], [130, 138]], '#aa8052');
             line([[240, 164], [259, 172], [277, 165]], '#aa8052');
+        } else if (kind === 'robot') {
+            robot(210, 144);
+        } else if (kind === 'meeting') {
+            robot(139, 152, .78); farmer(286, 134);
+            line([[103, 188], [205, 185], [340, 187]], '#adac83');
+        } else if (kind === 'dragon') {
+            const grey = '#879097', gold = '#ba9b50';
+            line([[181, 99], [132, 61], [124, 103], [143, 90], [151, 115], [174, 101]], gold);
+            line([[245, 100], [284, 68], [305, 101], [278, 94], [272, 121], [250, 104]], gold);
+            line([[181, 143], [152, 160], [124, 151], [140, 174], [178, 169], [192, 157]], grey);
+            oval(216, 124, 34, 43, grey, '#e0ddca50'); oval(222, 127, 17, 31, gold, '#dfcc8650');
+            oval(216, 66, 36, 29, grey, '#e0ddca50');
+            line([[190, 43], [178, 18], [205, 38]], gold);
+            line([[229, 37], [239, 14], [248, 47]], gold);
+            oval(205, 64, 3, 5, '#6e929a'); oval(234, 64, 3, 5, '#6e929a');
+            line([[210, 80], [222, 83], [236, 79]], grey);
+            line([[186, 105], [177, 127], [189, 129]], grey);
+            line([[246, 103], [256, 125], [245, 132]], grey);
+            line([[200, 158], [191, 182], [214, 182]], grey);
+            line([[237, 158], [240, 181], [260, 180]], grey);
         }
     }
     function showPage() {
@@ -95,25 +161,35 @@
     }
     function paginate() {
         const fixture = fixtures.find(item => item.id === sampleId);
+        const month = ['ja', 'zh-CN'].includes(window.GameI18n.language) ? 4
+            : new Intl.DateTimeFormat(window.GameI18n.language, { month: 'long', day: 'numeric', timeZone: 'UTC' })
+                .formatToParts(new Date(Date.UTC(2000, 3, fixture.day))).find(part => part.type === 'month').value;
         const text = fixture.text.map(key => t(key)).join('\n\n');
         const units = [...new Intl.Segmenter(window.GameI18n.language, { granularity: 'grapheme' }).segment(text)].map(item => item.segment);
+        const vertical = ['ja', 'zh-CN'].includes(window.GameI18n.language);
+        const sentenceSegmenter = new Intl.Segmenter(window.GameI18n.language, { granularity: 'sentence' });
+        function setText(body, value) {
+            if (!vertical) { body.textContent = value; return; }
+            body.replaceChildren();
+            for (const { segment } of sentenceSegmenter.segment(value)) element('span', segment, body, 'diary-sentence');
+        }
         book.replaceChildren(); pages = [];
         let offset = 0;
         while (offset < units.length || pages.length === 0) {
             const first = pages.length === 0;
             const page = element('article', undefined, book, 'diary-page' + (first ? '' : ' continuation'));
-            element('h2', t(first ? 'day' : 'continued', fixture.day), page, 'date');
+            element('h2', t(first ? 'day' : 'continued', month, fixture.day), page, 'date');
             if (first) {
                 const canvas = element('canvas', undefined, page, 'drawing'); canvas.width = 840; canvas.height = 410;
                 if (fixture.drawing) { canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', t('drawing', t(fixture.id))); draw(canvas, fixture.drawing); }
                 else canvas.setAttribute('aria-hidden', 'true');
                 element('p', fixture.drawing ? '' : t(fixture.id === 'partial' ? 'unfinished' : 'noDrawing'), page, 'blank-caption');
             }
-            const body = element('div', '', page, 'diary-text' + (['ja', 'zh-CN'].includes(window.GameI18n.language) ? ' vertical' : ''));
+            const body = element('div', '', page, 'diary-text' + (vertical ? ' vertical' : ''));
             let low = 0, high = units.length - offset;
             while (low < high) {
                 const mid = Math.ceil((low + high) / 2);
-                body.textContent = units.slice(offset, offset + mid).join('');
+                setText(body, units.slice(offset, offset + mid).join(''));
                 if (body.scrollWidth <= body.clientWidth + 1 && body.scrollHeight <= body.clientHeight + 1) low = mid;
                 else high = mid - 1;
             }
@@ -126,7 +202,7 @@
                     if ((vertical ? /[。！？\n]/u : /\s/u).test(units[offset + end - 1])) { count = end; break; }
                 }
             }
-            body.textContent = units.slice(offset, offset + count).join(''); offset += count;
+            setText(body, units.slice(offset, offset + count).join('')); offset += count;
             pages.push(page);
         }
         pages.forEach((page, i) => element('p', t('page', i + 1, pages.length), page, 'page-number'));
@@ -135,6 +211,7 @@
     function render() {
         root.replaceChildren(); document.title = t('title');
         element('h1', t('title'), root); element('p', t('guide'), root, 'guide');
+        element('p', t('dateGuide'), root, 'guide');
         const controls = element('div', undefined, root, 'controls');
         const languageLabel = element('label', t('language'), controls);
         const language = element('select', undefined, languageLabel); language.id = 'diary-language';
@@ -157,5 +234,6 @@
     window.addEventListener('game-language-changed', render);
     let resizeTimer;
     window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(paginate, 100); });
+    document.fonts.addEventListener('loadingdone', () => { if (book) paginate(); });
     document.fonts.ready.then(render);
 })();
