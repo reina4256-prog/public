@@ -1,0 +1,26 @@
+:root { color-scheme: light; font-family: Georgia, 'Yu Mincho', 'Noto Serif CJK JP', serif; color: #463b32; background: #e6e0d5; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 980px; margin: auto; padding: 26px 20px 40px; }
+h1 { font-size: 24px; margin: 0 0 12px; font-weight: normal; }
+.guide { font: 14px/1.7 system-ui, sans-serif; max-width: 760px; }
+.controls { display: flex; flex-wrap: wrap; gap: 12px 24px; margin: 20px 0; font: 14px/1.5 system-ui, sans-serif; }
+label { display: flex; flex-direction: column; gap: 6px; max-width: 100%; }
+select, button { font: inherit; color: inherit; background: #fffaf0; border: 1px solid #9a8974; border-radius: 5px; padding: 9px 12px; min-height: 44px; max-width: 100%; }
+button:disabled { opacity: .4; }
+button:not(:disabled), select { cursor: pointer; }
+:focus-visible { outline: 3px solid #8e5d35; outline-offset: 3px; }
+.book { width: min(100%, 640px); margin: 0 auto; }
+.diary-page { position: relative; background: #fff9e9; padding: 24px 30px 22px 44px; border: 1px solid #cdbfa7; border-radius: 3px 12px 12px 3px; box-shadow: 2px 6px 16px #66574025, inset 14px 0 18px -15px #88735780; }
+.diary-page::before { content: ''; position: absolute; left: 26px; top: 0; bottom: 0; border-left: 1px solid #c8ac9d66; }
+.diary-page[hidden] { display: none; }
+.date { font-size: 17px; margin: 0 0 12px; border-bottom: 1px solid #cdbfa7; padding-bottom: 10px; font-weight: normal; }
+.drawing { width: 100%; height: 205px; display: block; }
+.blank-caption { font: 13px/1.5 system-ui, sans-serif; min-height: 22px; margin: 0 0 12px; color: #827263; }
+.diary-text { height: 270px; width: 100%; margin: 0; font-size: 18px; line-height: 1.9; letter-spacing: .04em; white-space: pre-wrap; overflow-wrap: anywhere; }
+.diary-text.vertical { writing-mode: vertical-rl; text-orientation: mixed; }
+.continuation .diary-text { height: 490px; }
+.page-number { margin: 16px 0 0; text-align: center; font: 13px/1.5 system-ui, sans-serif; color: #827263; }
+.navigation { display: flex; align-items: center; justify-content: center; gap: 14px; margin-top: 20px; font: 14px/1.5 system-ui, sans-serif; }
+.status { text-align: center; font: 14px/1.7 system-ui, sans-serif; margin: 16px auto; }
+@media(max-width: 480px) { main { padding: 18px 12px 30px; } .diary-page { padding: 20px 18px 20px 32px; } .diary-page::before { left: 19px; } .drawing { height: 180px; } .controls { gap: 12px; } h1 { font-size: 22px; } }

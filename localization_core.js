@@ -55,6 +55,7 @@
     }
 
     function initialLocale() {
+        if (document.documentElement.hasAttribute('data-i18n-ephemeral')) return resolveLocale(document.documentElement.lang);
         try {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) return resolveLocale(saved);
@@ -351,7 +352,9 @@
         window.currentLang = next;
         translationCache.clear();
         document.documentElement.lang = next;
-        try { localStorage.setItem(STORAGE_KEY, next); } catch (_) {}
+        if (!document.documentElement.hasAttribute('data-i18n-ephemeral')) {
+            try { localStorage.setItem(STORAGE_KEY, next); } catch (_) {}
+        }
         refreshRecordedText();
         window.dispatchEvent(new CustomEvent('game-language-changed', { detail: { language: next } }));
     }

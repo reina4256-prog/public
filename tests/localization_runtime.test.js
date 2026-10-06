@@ -91,4 +91,20 @@ assert.strictEqual(canvasAuditRecords.length, 1);
 assert.strictEqual(canvasAuditRecords[0].source, exact);
 assert.strictEqual(canvasAuditRecords[0].translated, 'Evolution available');
 
+window.GameI18n.setLanguage('de');
+assert.strictEqual(storage.get('ai_pet_language'), 'de', 'ordinary game locale still persists');
+root.lang = 'ja';
+root.hasAttribute = name => name === 'data-i18n-ephemeral';
+let sampleStorageCalls = 0;
+context.localStorage = {
+    getItem: () => { sampleStorageCalls++; return 'de'; },
+    setItem: () => { sampleStorageCalls++; }
+};
+vm.runInNewContext(fs.readFileSync('localization_core.js', 'utf8'), context);
+assert.strictEqual(window.GameI18n.language, 'ja', 'ephemeral sample uses its own initial language');
+window.GameI18n.setLanguage('en');
+assert.strictEqual(window.GameI18n.translate(exact), 'Evolution available');
+assert.strictEqual(storage.get('ai_pet_language'), 'de', 'sample language does not change game preference');
+assert.strictEqual(sampleStorageCalls, 0, 'sample never reads or writes saved language');
+
 console.log('localization runtime tests passed');
