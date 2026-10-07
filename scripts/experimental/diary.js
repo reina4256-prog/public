@@ -229,6 +229,81 @@ if (!process.versions.electron || process.type !== 'browser') {
             }
         }
         assert.deepEqual(relationResult.removed, ['undefined', 'undefined']);
+        // 3b1 examples: acceptance-time copies, not an actual child answer.
+        const exampleForms = {
+            ja:['\u4f55\u3057\u3066\u308b\uff1f','\u98df\u3079\u308b','\u4f11\u3080'], en:['What are you doing?','eat','rest'],
+            'zh-CN':['你在做什么？','吃','休息'], ru:['Что ты делаешь?','есть','отдых'],
+            'es-ES':['¿Qué estás haciendo?','comer','descansar'],
+            'pt-BR':['O que você está fazendo?','comer','descansar'], de:['Was machst du?','speisen','ausruhen']
+        };
+        const exampleText = (locale = 'ja', activity = 'rest') => `「${exampleForms[locale][0]}」→「${exampleForms[locale][activity === 'eat' ? 1 : 2]}」`;
+        const exampleFixtures = [];
+        for (const locale of Object.keys(exampleForms)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const activity of ['eat','rest']) {
+                const value = makeRelationState(activity, { foundation,life,speech });
+                const heard = hearRelation(value, exampleText(locale,activity), locale);
+                assert.equal(value.state.context.turns.at(-1).answer, undefined);
+                exampleFixtures.push({ values:[heard], expected:[!foundation && life] });
+            }
+        const repeatedExampleState = makeRelationState();
+        exampleFixtures.push({ values:[hearRelation(repeatedExampleState,exampleText()),
+            hearRelation(repeatedExampleState,exampleText())], expected:[true,true] });
+        assert.equal(repeatedExampleState.world.relationLabels.length,1);
+        const completedExampleState = makeRelationState(), firstExample = hearRelation(completedExampleState,exampleText());
+        completedExampleState.world.pause = 0;
+        worldApi.onArrival(completedExampleState.world,completedExampleState.state,worldApi.tick(completedExampleState.world,.1));
+        Object.assign(completedExampleState.world,{ mode:'eat', attention:'berry:1', activityStart:completedExampleState.world.elapsed,
+            dwell:.1,harvest:1,mealTaste:{quality:'sweet',pleasant:true},activityBefore:{hunger:.8,fatigue:completedExampleState.world.fatigue} });
+        core.perceive(completedExampleState.state,{scene:'clearing',attention:[{id:'berry:1',meaning:'berry'}]});
+        const secondExample = hearRelation(completedExampleState,exampleText('ja','eat'));
+        completedExampleState.world.pause = 0;
+        worldApi.onArrival(completedExampleState.world,completedExampleState.state,worldApi.tick(completedExampleState.world,.1));
+        assert.ok(completedExampleState.state.knowledge.relations.some(r=>r.id==='question' && r.source==='experienced_relation'));
+        exampleFixtures.push({values:[firstExample,secondExample,hearRelation(completedExampleState,exampleText('ja','eat'))],expected:[true,true,false]});
+        const interruptedExampleState = makeRelationState(), interruptedExample = hearRelation(interruptedExampleState,exampleText());
+        worldApi.approach(interruptedExampleState.world,'path');
+        assert.deepEqual(interruptedExampleState.world.relationLabels,[]);
+        exampleFixtures.push({values:[interruptedExample],expected:[true]});
+        exampleFixtures.push({values:[hearRelation(makeRelationState('eat'),exampleText())],expected:[false]});
+        exampleFixtures.push({values:[hearRelation(makeRelationState(),exampleText(),'ja','visitor')],expected:[false]});
+        const ambiguousExampleState = makeRelationState();
+        ambiguousExampleState.state.context.attention.push({id:'berry:1',meaning:'berry'});
+        exampleFixtures.push({values:[hearRelation(ambiguousExampleState,exampleText())],expected:[false]});
+        const missingExample = JSON.parse(JSON.stringify(firstExample)); missingExample.beforeKnowledge.meanings=[];
+        exampleFixtures.push({values:[missingExample],expected:[false]});
+        const actualAnswerExample = JSON.parse(JSON.stringify(firstExample)); actualAnswerExample.result.relationLearning.candidates[0].roles.actualAnswer=true;
+        exampleFixtures.push({values:[actualAnswerExample],expected:[false]});
+        exampleFixtures.push({values:[hearRelation(makeRelationState(),exampleForms.ja[0])],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_question_examples.js'),'utf8'));
+        const exampleResult = await js(`(() => {
+            const fixtures=${JSON.stringify(exampleFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryQuestionExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.pairing.candidates[0].roles.actualAnswer=true;
+                    fixture.values[0].beforeKnowledge.meanings.push({id:'later',source:'initial'}); }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryQuestionExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryQuestionExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of exampleResult.results.entries()) {
+            assert.deepEqual(result.accepted,exampleFixtures[index].expected,`question example ${index}`);
+            assert.ok(result.repeated.every(value=>value===false));
+            assert.equal(result.sourcePreserved,true); assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                assert.equal(entry.kind,'teaching');
+                assert.deepEqual(entry.captured.understanding.unresolved,[{type:'relation',id:'question'}]);
+                assert.equal(entry.captured.pairing.candidates[0].roles.actualAnswer,false);
+                assert.equal(entry.captured.pairing.candidates[0].inputId,entry.sourceId);
+            }
+        }
+        assert.deepEqual(exampleResult.results[112].entries.map(e=>e.captured.pairing.adopted.inputId),['input:1','input:1']);
+        assert.deepEqual(exampleResult.removed,['undefined','undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -626,7 +701,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             nameCases:nameResult.results.length, nameInputs:nameFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             definitionCases:definitionResult.results.length, definitionInputs:definitionFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             lifeLabelCases:labelResult.results.length, lifeLabelInputs:labelFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            relationLabelCases:relationResult.results.length, relationLabelInputs:relationFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            relationLabelCases:relationResult.results.length, relationLabelInputs:relationFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            questionExampleCases:exampleResult.results.length, questionExampleInputs:exampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
