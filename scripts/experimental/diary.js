@@ -146,6 +146,89 @@ if (!process.versions.electron || process.type !== 'browser') {
             worldApi.respond(value.world, result, value.state);
             return { context, beforeKnowledge, result };
         };
+        // Unknown explanation-relation teaching: real receive/respond in Node
+        // memory, copied acceptance-time material only in the renderer.
+        const makeRelationState = (activity = 'rest', options = {}) => {
+            const value = makeLabelState(activity, { foundation:false, life:true, ...options });
+            core.perceive(value.state, { scene:'clearing', attention:[{ id:value.world.attention,
+                meaning:activity === 'eat' ? 'berry' : 'rest' }] });
+            return value;
+        };
+        const hearRelation = (value, raw, locale = 'ja', speaker = 'player') => {
+            const { state, world } = value;
+            const context = JSON.parse(JSON.stringify({ scene:state.context.scene, attention:state.context.attention,
+                mode:world.mode, target:world.attention, activityStart:world.activityStart, elapsed:world.elapsed }));
+            const beforeKnowledge = JSON.parse(JSON.stringify(state.knowledge));
+            const result = core.receive(state, raw, wordCatalog, { locale, speaker, at:100 + state.serial });
+            worldApi.respond(world, result, state, wordCatalog);
+            return { context, beforeKnowledge, result };
+        };
+        const relationFixtures = [];
+        for (const [locale, forms] of Object.entries(wordCatalog.correctionTeaching)) {
+            for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+                for (const activity of ['eat', 'rest']) {
+                    const raw = activity === 'rest' ? forms.exampleSource : forms.exampleReplacement.replace(/^.*?[.\u3002]\s*/u, '');
+                    relationFixtures.push({ values:[hearRelation(makeRelationState(activity, { foundation, life, speech }), raw, locale)],
+                        expected:[!foundation && life] });
+                }
+            }
+        }
+        const relationText = wordCatalog.correctionTeaching.ja.exampleSource;
+        const repeatedRelationState = makeRelationState();
+        relationFixtures.push({ values:[hearRelation(repeatedRelationState, relationText), hearRelation(repeatedRelationState, relationText),
+            hearRelation(repeatedRelationState, relationText.replace(/\u307d\u307d/u, 'ruru'))], expected:[true, true, true] });
+        assert.equal(repeatedRelationState.world.relationLabels.length, 1);
+        const completedRelationState = makeRelationState(), originalRelation = hearRelation(completedRelationState, relationText);
+        completedRelationState.world.pause = 0;
+        worldApi.onArrival(completedRelationState.world, completedRelationState.state, worldApi.tick(completedRelationState.world, .1));
+        Object.assign(completedRelationState.world, { mode:'eat', attention:'berry:1', activityStart:completedRelationState.world.elapsed,
+            dwell:.1, harvest:1, mealTaste:{ quality:'sweet', pleasant:true }, activityBefore:{ hunger:.8, fatigue:completedRelationState.world.fatigue } });
+        core.perceive(completedRelationState.state, { scene:'clearing', attention:[{ id:'berry:1', meaning:'berry' }] });
+        const secondRelation = hearRelation(completedRelationState,
+            wordCatalog.correctionTeaching.ja.exampleReplacement.replace(/^.*?[.\u3002]\s*/u, '').replace(/\u307d\u307d/u, 'mogu'));
+        completedRelationState.world.pause = 0;
+        worldApi.onArrival(completedRelationState.world, completedRelationState.state, worldApi.tick(completedRelationState.world, .1));
+        assert.ok(completedRelationState.state.knowledge.relations.some(r => r.id === 'naming' && r.source === 'experienced_relation'));
+        assert.equal((completedRelationState.state.knowledge.wordExplanations || []).length, 0);
+        relationFixtures.push({ values:[originalRelation, secondRelation], expected:[true, true] });
+        const interruptedRelationState = makeRelationState(), interruptedRelation = hearRelation(interruptedRelationState, relationText);
+        interruptedRelationState.world.mode = 'observe'; interruptedRelationState.world.relationLabels = [];
+        relationFixtures.push({ values:[interruptedRelation], expected:[true] });
+        relationFixtures.push({ values:[hearRelation(makeRelationState('eat'), relationText)], expected:[false] });
+        relationFixtures.push({ values:[hearRelation(makeRelationState(), relationText, 'ja', 'visitor')], expected:[false] });
+        const ambiguousRelationState = makeRelationState();
+        ambiguousRelationState.state.context.attention.push({ id:'berry:1', meaning:'berry' });
+        relationFixtures.push({ values:[hearRelation(ambiguousRelationState, relationText)], expected:[false] });
+        const missingRelation = JSON.parse(JSON.stringify(originalRelation)); missingRelation.beforeKnowledge.meanings = [];
+        relationFixtures.push({ values:[missingRelation], expected:[false] });
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_relation_labels.js'), 'utf8'));
+        const relationResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(relationFixtures)};
+            const results = fixtures.map(fixture => {
+                const buffer = ExperimentalWordDiaryCandidates.create(), source = JSON.stringify(fixture);
+                const capture = value => ExperimentalWordDiaryRelationLabels.capture(buffer, value.result, value.context, value.beforeKnowledge);
+                const accepted = fixture.values.map(capture), original = buffer.read();
+                const sourcePreserved = source === JSON.stringify(fixture), repeated = fixture.values.map(capture);
+                if (original.length) { buffer.read()[0].captured.sources.input.raw = 'changed';
+                    fixture.values[0].beforeKnowledge.meanings.push({ id:'later', source:'initial' }); }
+                return { accepted, repeated, original, entries:buffer.read(), sourcePreserved };
+            });
+            delete globalThis.ExperimentalWordDiaryRelationLabels;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { results, removed:[typeof ExperimentalWordDiaryRelationLabels, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        for (const [index, result] of relationResult.results.entries()) {
+            assert.deepEqual(result.accepted, relationFixtures[index].expected, `relation teaching ${index}`);
+            assert.ok(result.repeated.every(value => value === false));
+            assert.equal(result.sourcePreserved, true); assert.deepEqual(result.entries, result.original);
+            for (const entry of result.entries) {
+                assert.equal(entry.captured.understanding.complete, false);
+                assert.deepEqual(entry.captured.understanding.unresolved, [{ type:'relation', id:'naming' }]);
+                assert.equal(entry.captured.pairing.candidates[0].inputId, entry.sourceId);
+            }
+        }
+        assert.deepEqual(relationResult.removed, ['undefined', 'undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -542,7 +625,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             completionCases:completionResult.results.length, workCompletionCases:workResult.results.length,
             nameCases:nameResult.results.length, nameInputs:nameFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             definitionCases:definitionResult.results.length, definitionInputs:definitionFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            lifeLabelCases:labelResult.results.length, lifeLabelInputs:labelFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            lifeLabelCases:labelResult.results.length, lifeLabelInputs:labelFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            relationLabelCases:relationResult.results.length, relationLabelInputs:relationFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
