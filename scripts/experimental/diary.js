@@ -115,6 +115,71 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.deepEqual(questionResult.entries[0].captured.understanding, questionFixtures[0].result.understandings.at(-1));
         assert.equal(questionResult.entries[0].sourceId, questionFixtures[0].result.input.id);
         assert.deepEqual(questionResult.removed, ['undefined', 'undefined']);
+        // Naming results come from disposable Node state. The renderer gets
+        // copied input/attention/understanding only, with no actor or save bridge.
+        const makeNameState = (options = {}, attention = [{ id:'berry:1', meaning:'berry' }]) => {
+            const state = core.create(options, wordCatalog);
+            core.perceive(state, { scene:'clearing', attention });
+            return state;
+        };
+        const hearName = (state, raw = '\u3053\u308c\u3092\u300c\u3053\u308d\u300d\u3068\u547c\u3076\u3088') => {
+            const context = JSON.parse(JSON.stringify({ scene:state.context.scene, attention:state.context.attention }));
+            return { context, result:core.receive(state, raw, wordCatalog, { at:100 + state.serial }) };
+        };
+        const nameFixtures = [];
+        for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+            nameFixtures.push({ values:[hearName(makeNameState({ foundation, life, speech }))], expected:[foundation] });
+        }
+        const repeatedNameState = makeNameState();
+        nameFixtures.push({ values:[hearName(repeatedNameState), hearName(repeatedNameState)], expected:[true, true] });
+        assert.equal(repeatedNameState.knowledge.associations[0].evidence.length, 1);
+        assert.equal(repeatedNameState.records.length, 1);
+        nameFixtures.push({ values:[hearName(makeNameState({}, [{ id:'berry:1', meaning:'berry' },
+            { id:'berry:2', meaning:'berry' }]))], expected:[false] });
+        nameFixtures.push({ values:[hearName(makeNameState(), '\u3053\u308d')], expected:[false] });
+        nameFixtures.push({ values:[hearName(makeNameState(), '\u307d\u307d\u306f\u4f11\u3080\u3053\u3068\u3060\u3088')], expected:[false] });
+        const correctedNameState = makeNameState(), originalName = hearName(correctedNameState);
+        const correctedName = hearName(correctedNameState, '\u3055\u3063\u304d\u9593\u9055\u3048\u305f\u3002\u3053\u308d\u306f\u6728\u306e\u5b9f\u306e\u3053\u3068\u3060\u3088');
+        assert.ok(correctedName.result.learning[0].retraction);
+        nameFixtures.push({ values:[originalName, correctedName], expected:[true, false] });
+        const differentNameState = makeNameState(), firstIndividual = hearName(differentNameState);
+        core.perceive(differentNameState, { scene:'shore', attention:[{ id:'berry:2', meaning:'berry' }] });
+        nameFixtures.push({ values:[firstIndividual, hearName(differentNameState)], expected:[true, true] });
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_names.js'), 'utf8'));
+        const nameResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(nameFixtures)};
+            const results = fixtures.map(fixture => {
+                const buffer = ExperimentalWordDiaryCandidates.create();
+                const before = JSON.stringify(fixture.values);
+                const accepted = fixture.values.map(value => ExperimentalWordDiaryNames.capture(buffer, value.result, value.context));
+                const original = buffer.read();
+                const repeated = fixture.values.map(value => ExperimentalWordDiaryNames.capture(buffer, value.result, value.context));
+                const untouched = JSON.stringify(fixture.values) === before;
+                fixture.values[0].result.input.raw = 'later edit';
+                if (original.length) buffer.read()[0].captured.sources.input.raw = 'view edit';
+                return { accepted, repeated, untouched, original, entries:buffer.read() };
+            });
+            delete globalThis.ExperimentalWordDiaryNames;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { results, removed:[typeof ExperimentalWordDiaryNames, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        for (const [index, result] of nameResult.results.entries()) {
+            assert.deepEqual(result.accepted, nameFixtures[index].expected);
+            assert.ok(result.repeated.every(value => value === false));
+            assert.equal(result.untouched, true);
+            assert.deepEqual(result.entries, result.original);
+            const accepted = nameFixtures[index].values.filter((_value, i) => nameFixtures[index].expected[i]);
+            assert.deepEqual(result.entries.map(entry => entry.sourceId), accepted.map(value => value.result.input.id));
+            for (const [i, entry] of result.entries.entries()) {
+                assert.equal(entry.kind, 'teaching');
+                assert.deepEqual(entry.captured.sources.input, accepted[i].result.input);
+                assert.deepEqual(entry.captured.sources.attention, accepted[i].context.attention);
+                assert.deepEqual(entry.captured.understanding, accepted[i].result.understandings[0]);
+                assert.deepEqual(entry.captured.association, accepted[i].result.learning[0]);
+            }
+        }
+        assert.deepEqual(nameResult.removed, ['undefined', 'undefined']);
         // Complete actual food/rest events in disposable Node state. Only their
         // before/after learning snapshots and the independent adapter enter the
         // renderer; this is not live diary generation or a player save test.
@@ -334,7 +399,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.deepEqual(errors, []);
         fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(results, null, 2));
         console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7,
-            completionCases:completionResult.results.length, workCompletionCases:workResult.results.length, profile:directory })); app.quit();
+            completionCases:completionResult.results.length, workCompletionCases:workResult.results.length,
+            nameCases:nameResult.results.length, nameInputs:nameFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
