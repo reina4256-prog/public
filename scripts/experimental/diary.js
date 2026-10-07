@@ -126,6 +126,77 @@ if (!process.versions.electron || process.type !== 'browser') {
             const context = JSON.parse(JSON.stringify({ scene:state.context.scene, attention:state.context.attention }));
             return { context, result:core.receive(state, raw, wordCatalog, { at:100 + state.serial }) };
         };
+        const hearDefinition = (state, raw, locale = 'ja', speaker = 'player') => {
+            const context = JSON.parse(JSON.stringify({ scene:state.context.scene, attention:state.context.attention }));
+            const beforeKnowledge = JSON.parse(JSON.stringify(state.knowledge));
+            return { context, beforeKnowledge, result:core.receive(state, raw, wordCatalog, { locale, speaker, at:100 + state.serial }) };
+        };
+        const definitionFixtures = [];
+        for (const [locale, forms] of Object.entries(wordCatalog.correctionTeaching)) {
+            for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+                definitionFixtures.push({ values:[hearDefinition(makeNameState({ foundation, life, speech }), forms.exampleSource, locale)],
+                    expected:[foundation && life] });
+            }
+        }
+        const definitionText = wordCatalog.correctionTeaching.ja.exampleSource;
+        const repeatedDefinitionState = makeNameState();
+        definitionFixtures.push({ values:[hearDefinition(repeatedDefinitionState, definitionText),
+            hearDefinition(repeatedDefinitionState, definitionText)], expected:[true, true] });
+        assert.equal(repeatedDefinitionState.knowledge.wordExplanations.length, 1);
+        assert.equal(repeatedDefinitionState.records.length, 1);
+        const correctedDefinitionState = makeNameState();
+        const originalDefinition = hearDefinition(correctedDefinitionState, definitionText);
+        const correctedDefinition = hearDefinition(correctedDefinitionState, wordCatalog.correctionTeaching.ja.exampleReplacement);
+        assert.ok(correctedDefinition.result.learning[0].retraction);
+        definitionFixtures.push({ values:[originalDefinition, correctedDefinition], expected:[true, false] });
+        const scopedDefinitionState = makeNameState(), firstDefinition = hearDefinition(scopedDefinitionState, definitionText);
+        core.perceive(scopedDefinitionState, { scene:'shore', attention:[{ id:'berry:2', meaning:'berry' }] });
+        const otherDefinition = hearDefinition(scopedDefinitionState, definitionText, 'ja', 'visitor');
+        core.perceive(scopedDefinitionState, { scene:'shade', attention:[] });
+        definitionFixtures.push({ values:[firstDefinition, otherDefinition, hearDefinition(scopedDefinitionState, definitionText)], expected:[true, true, true] });
+        const appliedDefinitionState = makeNameState(); hearDefinition(appliedDefinitionState, definitionText);
+        const appliedDefinition = hearDefinition(appliedDefinitionState, core.wordFrame(definitionText, 'ja').word);
+        assert.equal(appliedDefinition.result.understandings[0].known.meaning, 'rest');
+        definitionFixtures.push({ values:[appliedDefinition], expected:[false] });
+        const missingDefinitionBasis = hearDefinition(makeNameState(), definitionText);
+        missingDefinitionBasis.beforeKnowledge.meanings = [];
+        definitionFixtures.push({ values:[missingDefinitionBasis], expected:[false] });
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_definitions.js'), 'utf8'));
+        const definitionResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(definitionFixtures)};
+            const results = fixtures.map(fixture => {
+                const buffer = ExperimentalWordDiaryCandidates.create();
+                const before = JSON.stringify(fixture.values);
+                const capture = value => ExperimentalWordDiaryDefinitions.capture(buffer, value.result, value.context, value.beforeKnowledge);
+                const accepted = fixture.values.map(capture), original = buffer.read();
+                const repeated = fixture.values.map(capture);
+                const untouched = JSON.stringify(fixture.values) === before;
+                fixture.values[0].result.input.raw = 'later edit';
+                if (original.length) buffer.read()[0].captured.basis.source = 'view edit';
+                return { accepted, repeated, untouched, original, entries:buffer.read() };
+            });
+            delete globalThis.ExperimentalWordDiaryDefinitions;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { results, removed:[typeof ExperimentalWordDiaryDefinitions, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        for (const [index, result] of definitionResult.results.entries()) {
+            assert.deepEqual(result.accepted, definitionFixtures[index].expected);
+            assert.ok(result.repeated.every(value => value === false));
+            assert.equal(result.untouched, true);
+            assert.deepEqual(result.entries, result.original);
+            const values = definitionFixtures[index].values.filter((_value, i) => definitionFixtures[index].expected[i]);
+            assert.deepEqual(result.entries.map(entry => entry.sourceId), values.map(value => value.result.input.id));
+            for (const [i, entry] of result.entries.entries()) {
+                assert.equal(entry.kind, 'teaching');
+                assert.deepEqual(entry.captured.sources.input, values[i].result.input);
+                assert.deepEqual(entry.captured.sources.attention, values[i].context.attention);
+                assert.deepEqual(entry.captured.understanding, values[i].result.understandings[0]);
+                assert.deepEqual(entry.captured.basis, values[i].beforeKnowledge.meanings.find(item => item.id === entry.captured.understanding.known.meaning));
+                assert.deepEqual(entry.captured.explanation, values[i].result.learning[0]);
+            }
+        }
+        assert.deepEqual(definitionResult.removed, ['undefined', 'undefined']);
         const nameFixtures = [];
         for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
             nameFixtures.push({ values:[hearName(makeNameState({ foundation, life, speech }))], expected:[foundation] });
@@ -367,9 +438,11 @@ if (!process.versions.electron || process.type !== 'browser') {
                         await settle();
                         const visiblePoint = await js(`(() => { const r=document.querySelector('#diary-next').getBoundingClientRect(); return {x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}; })()`);
                         window.webContents.sendInputEvent({ type:'mouseMove', ...visiblePoint });
+                        await settle();
                         window.webContents.sendInputEvent({ type:'mouseDown', ...visiblePoint, button:'left', clickCount:1 });
-                        window.webContents.sendInputEvent({ type:'mouseUp', ...visiblePoint, button:'left', clickCount:1 });
                         await js('new Promise(resolve => setTimeout(resolve, 30))');
+                        window.webContents.sendInputEvent({ type:'mouseUp', ...visiblePoint, button:'left', clickCount:1 });
+                        await settle();
                         assert.equal(await js(`[...document.querySelectorAll('.diary-page')].findIndex(p=>!p.hidden)`), i, `${width}/${locale}/${sample}: mouse page ${i}`);
                     }
                     for (let i = data.count - 2; i >= 0; i--) {
@@ -400,7 +473,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         fs.writeFileSync(path.join(directory, 'results.json'), JSON.stringify(results, null, 2));
         console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7,
             completionCases:completionResult.results.length, workCompletionCases:workResult.results.length,
-            nameCases:nameResult.results.length, nameInputs:nameFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            nameCases:nameResult.results.length, nameInputs:nameFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            definitionCases:definitionResult.results.length, definitionInputs:definitionFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
