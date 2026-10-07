@@ -131,6 +131,73 @@ if (!process.versions.electron || process.type !== 'browser') {
             const beforeKnowledge = JSON.parse(JSON.stringify(state.knowledge));
             return { context, beforeKnowledge, result:core.receive(state, raw, wordCatalog, { locale, speaker, at:100 + state.serial }) };
         };
+        const makeLabelState = (activity = 'eat', options = {}) => {
+            const state = core.create({ life:false, ...options }, wordCatalog), world = worldApi.create();
+            Object.assign(world, { mode:activity, attention:activity === 'eat' ? 'berry:1' : 'shade',
+                elapsed:1, activityStart:1, dwell:.1, harvest:1, hunger:.8, fatigue:.7,
+                activityBefore:{ hunger:.8, fatigue:.7 } });
+            if (activity === 'eat') world.mealTaste = { quality:'sweet', pleasant:true };
+            return { state, world };
+        };
+        const hearLabel = (value, raw, locale = 'ja', speaker = 'player') => {
+            const context = JSON.parse(JSON.stringify({ ...value.world, scene:value.state.context.scene }));
+            const beforeKnowledge = JSON.parse(JSON.stringify(value.state.knowledge));
+            const result = core.receive(value.state, raw, wordCatalog, { locale, speaker, at:100 + value.state.serial });
+            worldApi.respond(value.world, result, value.state);
+            return { context, beforeKnowledge, result };
+        };
+        const labelFixtures = [];
+        for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
+            for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+                labelFixtures.push({ values:[hearLabel(makeLabelState('eat', { foundation, life, speech }),
+                    wordCatalog.meanings.sweet[index], locale)], expected:[true], statuses:[life ? 'recognized' : 'unrecognized'] });
+            }
+        }
+        for (const meaning of ['berry', 'food', 'eat', 'sweet', 'hungry', 'rest', 'sleep', 'tired']) {
+            const raw = wordCatalog.meanings[meaning][0];
+            labelFixtures.push({ values:[hearLabel(makeLabelState(['rest', 'sleep', 'tired'].includes(meaning) ? 'rest' : 'eat'),
+                ['hungry', 'tired'].includes(meaning) ? `"${raw}"` : raw)], expected:[true], statuses:['unrecognized'] });
+        }
+        const repeatedLabelState = makeLabelState();
+        labelFixtures.push({ values:[hearLabel(repeatedLabelState, wordCatalog.meanings.sweet[0]),
+            hearLabel(repeatedLabelState, wordCatalog.meanings.sweet[0])], expected:[true, true], statuses:['unrecognized', 'unrecognized'] });
+        assert.equal(repeatedLabelState.world.lifeLabels.length, 1);
+        const completedLabelState = makeLabelState(), originalLabel = hearLabel(completedLabelState, wordCatalog.meanings.sweet[0]);
+        completedLabelState.world.pause = 0;
+        worldApi.onArrival(completedLabelState.world, completedLabelState.state, worldApi.tick(completedLabelState.world, .1));
+        assert.ok(completedLabelState.state.knowledge.meanings.some(item => item.id === 'sweet'));
+        labelFixtures.push({ values:[originalLabel], expected:[true], statuses:['unrecognized'] });
+        for (const [raw, locale, speaker] of [[wordCatalog.meanings.food.at(-1), 'de', 'player'],
+            [wordCatalog.meanings.sweet[0] + '?', 'ja', 'player'], [wordCatalog.meanings.sweet[0], 'ja', 'visitor']]) {
+            labelFixtures.push({ values:[hearLabel(makeLabelState(), raw, locale, speaker)], expected:[false], statuses:[] });
+        }
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_life_learning.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_life_labels.js'), 'utf8'));
+        const labelResult = await js(`(() => {
+            const fixtures = ${JSON.stringify(labelFixtures)};
+            const results = fixtures.map(fixture => {
+                const buffer = ExperimentalWordDiaryCandidates.create(), source = JSON.stringify(fixture);
+                const capture = value => ExperimentalWordDiaryLifeLabels.capture(buffer, value.result, value.context, value.beforeKnowledge);
+                const accepted = fixture.values.map(capture), original = buffer.read();
+                const sourcePreserved = source === JSON.stringify(fixture);
+                const repeated = fixture.values.map(capture);
+                if (original.length) { buffer.read()[0].captured.sources.input.raw = 'changed';
+                    fixture.values[0].beforeKnowledge.meanings.push({ id:'later', source:'initial' }); }
+                return { accepted, repeated, original, entries:buffer.read(), sourcePreserved };
+            });
+            delete globalThis.ExperimentalWordDiaryLifeLabels;
+            delete globalThis.ExperimentalWordLifeLearning;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return { results, removed:[typeof ExperimentalWordDiaryLifeLabels, typeof ExperimentalWordLifeLearning, typeof ExperimentalWordDiaryCandidates] };
+        })()`);
+        for (const [index, result] of labelResult.results.entries()) {
+            assert.deepEqual(result.accepted, labelFixtures[index].expected);
+            assert.ok(result.repeated.every(value => value === false));
+            assert.equal(result.sourcePreserved, true); assert.deepEqual(result.entries, result.original);
+            assert.deepEqual(result.entries.map(entry => entry.captured.understanding.status), labelFixtures[index].statuses);
+        }
+        assert.deepEqual(labelResult.removed, ['undefined', 'undefined', 'undefined']);
         const definitionFixtures = [];
         for (const [locale, forms] of Object.entries(wordCatalog.correctionTeaching)) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -474,7 +541,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         console.log(JSON.stringify({ ok:true, cases:results.length, clockCases:7, candidateChecks:6, questionChecks:7,
             completionCases:completionResult.results.length, workCompletionCases:workResult.results.length,
             nameCases:nameResult.results.length, nameInputs:nameFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            definitionCases:definitionResult.results.length, definitionInputs:definitionFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            definitionCases:definitionResult.results.length, definitionInputs:definitionFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            lifeLabelCases:labelResult.results.length, lifeLabelInputs:labelFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
