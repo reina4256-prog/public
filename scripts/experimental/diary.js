@@ -1070,6 +1070,46 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:knownTimeFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(knownTimeFixtures.map(f=>f.group))].map(group=>[group,
                 knownTimeFixtures.filter(f=>f.group===group).length]))}}));
+        const timeReportFixtures = require('./diary_time_report_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_time_reports.js'),'utf8'));
+        const timeReportResult = await js(`(() => {
+            const fixtures=${JSON.stringify(timeReportFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryTimeReports.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.verified=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryTimeReports;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryTimeReports,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of timeReportResult.results.entries()) {
+            assert.deepEqual(result.accepted,timeReportFixtures[index].expected,'ordinary time report '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'report'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.polarity,'positive'); assert.equal(data.understanding.subject,'self');
+                assert.deepEqual(data.roles,data.understanding.roles); assert.equal(data.roles.verified,false);
+                assert.deepEqual(data.reportSource,data.understanding.reportSource);
+                assert.equal(data.reportSource.raw,data.sources.input.raw);
+                assert.equal(data.understanding.complete,true); assert.equal(data.understanding.eventTime,data.sources.frame.time);
+                for(const field of ['eventReference','pastReference','observationBasis']) assert.equal(data[field],undefined);
+                assert.equal(data.understanding.eventReference,undefined); assert.equal(data.sources.referencedExperience,undefined);
+                assert.deepEqual(data.understanding.relationReferences||[],data.relationBasis.filter(r=>r.source==='experienced_relation'));
+            }
+        }
+        assert.deepEqual(timeReportResult.removed,['undefined','undefined']);
+        console.log(JSON.stringify({ordinaryTimeReports:{cases:timeReportFixtures.length,
+            inputs:timeReportFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(timeReportFixtures.map(f=>f.group))].map(group=>[group,
+                timeReportFixtures.filter(f=>f.group===group).length]))}}));
         const negationReportFixtures = require('./diary_negation_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_negation_reports.js'),'utf8'));
