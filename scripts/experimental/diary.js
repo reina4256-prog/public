@@ -670,6 +670,122 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const index of [154,156])
             assert.deepEqual(knownProposalResult.results[index].entries.map(e=>e.sourceId),['input:1','input:2','input:3']);
         assert.deepEqual(knownProposalResult.removed,['undefined','undefined']);
+        // Known 3b3 teaching is separate from unknown-side learning labels and
+        // ordinary speaker reports. The renderer receives only copied fixtures.
+        const knownReportFixtures = [];
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const subject of ['self','player']) {
+                const value=makeRelationState('rest',{foundation,life,speech});
+                const heard=hearRelation(value,reportText(subject,locale),locale);
+                assert.equal(value.world.mode,'rest'); assert.equal(value.world.destination,null);
+                knownReportFixtures.push({values:[heard],expected:[foundation && life]});
+            }
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) for (const speech of ['short','gesture']) {
+            const value=makeRelationState('rest',{speech});
+            const first=hearRelation(value,reportText('self',locale),locale);
+            finishKnownActivity(value); startKnownActivity(value,'rest');
+            const second=hearRelation(value,reportText('player',locale),locale);
+            finishKnownActivity(value); startKnownActivity(value,'rest');
+            assert.equal(value.state.experiences.length,2);
+            assert.ok(value.state.experiences.every(e=>e.activity==='rest' && e.target==='shade'
+                && e.relationLabels.every(l=>l.subject==='self' && l.roles.verified===false)));
+            knownReportFixtures.push({values:[first,second],expected:[false,false]});
+            for (const subject of ['self','player']) {
+                const heard=hearRelation(value,reportText(subject,locale),locale);
+                assert.equal(heard.result.relationLearning,undefined);
+                assert.equal(heard.result.understandings[0].relationReferences[0].source,'experienced_relation');
+                assert.equal(heard.result.understandings[0].reportSource,undefined);
+                knownReportFixtures.push({values:[heard],expected:[true]});
+                const ordinary=hearRelation(value,wordCatalog.reportTeaching[locale][subject].utterance,locale);
+                assert.equal(ordinary.result.understandings[0].reportSource.kind,'speaker_report');
+                knownReportFixtures.push({values:[ordinary],expected:[false]});
+            }
+        }
+        const knownReportRepeats=[];
+        for (const subject of ['self','player']) {
+            const value=makeRelationState('rest',{foundation:true});
+            const knowledge=JSON.stringify(value.state.knowledge);
+            const first=hearRelation(value,reportText(subject)),second=hearRelation(value,reportText(subject));
+            const other=hearRelation(value,reportText(subject==='self'?'player':'self'));
+            assert.equal(JSON.stringify(value.state.knowledge),knowledge);
+            assert.deepEqual(value.state.records,[]); assert.equal(value.world.relationLabels,undefined);
+            knownReportRepeats.push(knownReportFixtures.length);
+            knownReportFixtures.push({values:[first,second,other],expected:[true,true,true]});
+            finishKnownActivity(value); startKnownActivity(value,'rest'); worldApi.approach(value.world,'path');
+            value.state.knowledge.meanings=[]; value.state.knowledge.relations=[];
+            knownReportFixtures.push({values:[first],expected:[true]});
+        }
+        const knownReportFirst=knownReportFixtures[12].values[0];
+        const knownReportScoped=knownReportFixtures[113].values[0];
+        for (const mutate of [v=>{v.beforeKnowledge.meanings=[];},v=>{v.beforeKnowledge.relations=[];},
+            v=>{v.context.scene='other';},v=>{v.context.target='berry:2';},v=>{v.context.elapsed=0;},
+            v=>{v.result.input.id='input:0';},v=>{v.result.understandings[0].complete=false;},
+            v=>{v.result.understandings[0].roles.verified=true;},
+            v=>{v.result.interpretations[0].roles.contentSubject='player';},
+            v=>{v.result.interpretations[0].span='other';},v=>{v.result.relationLearning={candidates:[]};},
+            v=>{v.result.understandings[0].reportSource={kind:'speaker_report'};},
+            v=>{v.result.understandings[0].eventTime='now';},
+            v=>{v.result.understandings[0].subject='player';}]) {
+            const invalid=JSON.parse(JSON.stringify(knownReportFirst)); mutate(invalid);
+            knownReportFixtures.push({values:[invalid],expected:[false]});
+        }
+        for (const mutate of [v=>{v.beforeKnowledge.relations[0].scope.form='other';},
+            v=>{v.beforeKnowledge.relations[0].scope.locale='other';},
+            v=>{v.beforeKnowledge.relations[0].scope.speaker='visitor';},
+            v=>{v.beforeKnowledge.relations[0].scope.kind='request';},
+            v=>{v.beforeKnowledge.relations[0].scope.meaning='eat';},
+            v=>{v.beforeKnowledge.relations[0].scope.roles.verified=true;},
+            v=>{v.result.understandings[0].relationReferences=[];},
+            v=>{v.result.understandings[0].relationReferences[0].evidence=[];}]) {
+            const invalid=JSON.parse(JSON.stringify(knownReportScoped)); mutate(invalid);
+            knownReportFixtures.push({values:[invalid],expected:[false]});
+        }
+        const knownAmbiguousReport=makeRelationState('rest',{foundation:true});
+        knownAmbiguousReport.state.context.attention.push({id:'berry:1',meaning:'berry'});
+        knownReportFixtures.push({values:[hearRelation(knownAmbiguousReport,reportText())],expected:[false]});
+        knownReportFixtures.push({values:[hearRelation(makeRelationState('eat',{foundation:true}),reportText())],expected:[false]});
+        knownReportFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),reportText(),'ja','visitor')],expected:[false]});
+        for (const raw of [wordCatalog.reportTeaching.ja.self.utterance,wordCatalog.reportTeaching.ja.player.utterance,
+            exampleText(),relationText,proposalText()])
+            knownReportFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),raw)],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_report_examples.js'),'utf8'));
+        const knownReportResult=await js(`(() => {
+            const fixtures=${JSON.stringify(knownReportFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryKnownReportExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.verified=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownReportExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownReportExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of knownReportResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownReportFixtures[index].expected,'known report example '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const captured=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(captured.understanding.complete,true);
+                assert.equal(captured.roles.status,'reported'); assert.equal(captured.roles.verified,false);
+                assert.equal(captured.roles.reporter,'player');
+                assert.equal(captured.understanding.reportSource,undefined);
+                assert.equal(captured.understanding.eventTime,'unspecified');
+                assert.deepEqual(captured.roles,captured.understanding.roles);
+                assert.deepEqual(captured.roles,captured.sources.frame.roles);
+                assert.equal(captured.sources.input.id,entry.sourceId);
+                assert.deepEqual(captured.relationBasis.filter(r=>r.source==='experienced_relation'),
+                    captured.understanding.relationReferences||[]);
+            }
+        }
+        for (const index of knownReportRepeats)
+            assert.deepEqual(knownReportResult.results[index].entries.map(e=>e.sourceId),['input:1','input:2','input:3']);
+        assert.deepEqual(knownReportResult.removed,['undefined','undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -1072,7 +1188,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             knownQuestionExampleCases:knownExampleResult.results.length, knownQuestionExampleInputs:knownExampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             proposalExampleCases:proposalResult.results.length, proposalExampleInputs:proposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             knownProposalExampleCases:knownProposalResult.results.length, knownProposalExampleInputs:knownProposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            reportExampleCases:reportResult.results.length, reportExampleInputs:reportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            reportExampleCases:reportResult.results.length, reportExampleInputs:reportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            knownReportExampleCases:knownReportResult.results.length, knownReportExampleInputs:knownReportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
