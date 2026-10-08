@@ -1070,6 +1070,47 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:knownTimeFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(knownTimeFixtures.map(f=>f.group))].map(group=>[group,
                 knownTimeFixtures.filter(f=>f.group===group).length]))}}));
+        const conditionFixtures = require('./diary_condition_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_condition_examples.js'),'utf8'));
+        const conditionResult = await js(`(() => {
+            const fixtures=${JSON.stringify(conditionFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryConditionExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.sources.observation.status='changed';
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryConditionExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryConditionExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of conditionResult.results.entries()) {
+            assert.deepEqual(result.accepted,conditionFixtures[index].expected,'unknown condition teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.conditionStatus,'unknown'); assert.equal(data.understanding.complete,false);
+                assert.equal(data.understanding.subject,null); assert.equal(data.understanding.roles,undefined);
+                assert.equal(data.sources.frame.roles.actualParticipation,false);
+                assert.equal(data.sources.observation.status,data.sources.frame.demonstratedStatus);
+                assert.equal(data.conditionBasis.id,'tired'); assert.equal(data.proposalBasis.id,'request');
+                assert.deepEqual(data.pairing.candidates[0].understanding,data.understanding);
+                assert.deepEqual(data.understanding.relationReferences||[],
+                    data.proposalBasis.source==='experienced_relation'?[data.proposalBasis]:[]);
+                assert.equal(data.conditionJudgment,undefined); assert.equal(data.sources.referencedExperience,undefined);
+            }
+        }
+        assert.deepEqual(conditionResult.removed,['undefined','undefined']);
+        console.log(JSON.stringify({unknownConditionTeaching:{cases:conditionFixtures.length,
+            inputs:conditionFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(conditionFixtures.map(f=>f.group))].map(group=>[group,
+                conditionFixtures.filter(f=>f.group===group).length]))}}));
         const timeReportFixtures = require('./diary_time_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_time_reports.js'),'utf8'));
