@@ -1022,6 +1022,54 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:timeFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(timeFixtures.map(f=>f.group))].map(group=>[group,
                 timeFixtures.filter(f=>f.group===group).length]))}}));
+        const knownTimeFixtures = require('./diary_known_time_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_time_examples.js'),'utf8'));
+        const knownTimeResult = await js(`(() => {
+            const fixtures=${JSON.stringify(knownTimeFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryKnownTimeExamples.capture(buffer,value.result,value.context,value.beforeKnowledge,value.beforeExperiences);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.understanding.eventTime='changed';
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].beforeExperiences=[];
+                    fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownTimeExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownTimeExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of knownTimeResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownTimeFixtures[index].expected,'known time teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.complete,true); assert.equal(data.understanding.eventTime,data.sources.frame.time);
+                assert.equal(data.understanding.reportSource,undefined); assert.equal(data.roles.verified,false);
+                assert.equal(data.pairing,undefined);
+                if(data.pastReference.status==='source_matched') {
+                    const ref=data.pastReference.eventReference;
+                    assert.equal(data.sources.referencedExperience.id,ref.experienceId);
+                    assert.ok(ref.end<=data.sources.activity.start); assert.notEqual(ref.start,data.sources.activity.start);
+                    assert.notEqual(ref.inputId,entry.sourceId);
+                    assert.equal(data.sources.referenceLabel.understanding.eventTime,'unspecified');
+                    assert.equal(data.sources.referenceLabel.understanding.roles,undefined);
+                } else {
+                    assert.equal(data.pastReference.status,data.sources.frame.time==='now'?'not_applicable':'unidentified');
+                    assert.equal(data.pastReference.eventReference,null); assert.equal(data.sources.referencedExperience,null);
+                    assert.equal(data.sources.referenceLabel,null); assert.equal(data.sources.referenceEvidence,null);
+                }
+            }
+        }
+        assert.deepEqual(knownTimeResult.removed,['undefined','undefined']);
+        console.log(JSON.stringify({knownTimeTeaching:{cases:knownTimeFixtures.length,
+            inputs:knownTimeFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(knownTimeFixtures.map(f=>f.group))].map(group=>[group,
+                knownTimeFixtures.filter(f=>f.group===group).length]))}}));
         const negationReportFixtures = require('./diary_negation_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_negation_reports.js'),'utf8'));
