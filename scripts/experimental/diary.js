@@ -465,6 +465,110 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.deepEqual(proposalResult.results[index].entries.map(e=>e.captured.pairing.adopted.inputId),['input:1','input:1']);
         }
         assert.deepEqual(proposalResult.removed,['undefined','undefined']);
+        // Unknown 3b3 subject teaching is unverified source material. The child's
+        // completed rests support the role contrast, never a player's real rest.
+        const reportText = (subject = 'self', locale = 'ja') => {
+            const form = wordCatalog.reportTeaching[locale][subject];
+            return `${form.marker}「${form.utterance}」`;
+        };
+        const reportFixtures = [];
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const subject of ['self','player'])
+                reportFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation,life,speech}),
+                    reportText(subject,locale),locale)],expected:[!foundation && life]});
+        for (const subject of ['self','player']) {
+            const value=makeRelationState(), first=hearRelation(value,reportText(subject));
+            const second=hearRelation(value,reportText(subject));
+            const mixed=hearRelation(value,reportText(subject==='self'?'player':'self'));
+            assert.equal(mixed.result.relationLearning,undefined); assert.equal(value.world.relationLabels.length,1);
+            reportFixtures.push({values:[first,second,mixed],expected:[true,true,false]});
+        }
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) for (const speech of ['short','gesture']) {
+            const value=makeRelationState('rest',{speech});
+            const first=hearRelation(value,reportText('self',locale),locale);
+            value.world.pause=0; worldApi.onArrival(value.world,value.state,worldApi.tick(value.world,.1));
+            Object.assign(value.world,{mode:'rest',attention:'shade',activityStart:value.world.elapsed,dwell:.1,
+                activityBefore:{hunger:value.world.hunger,fatigue:value.world.fatigue}});
+            core.perceive(value.state,{scene:'clearing',attention:[{id:'shade',meaning:'rest'}]});
+            const second=hearRelation(value,reportText('player',locale),locale);
+            value.world.pause=0; worldApi.onArrival(value.world,value.state,worldApi.tick(value.world,.1));
+            assert.ok(value.state.knowledge.relations.some(r=>r.id==='report' && r.source==='experienced_relation'));
+            assert.equal(value.state.experiences.length,2);
+            assert.ok(value.state.experiences.every(e=>e.activity==='rest' && e.target==='shade'
+                && e.relationLabels.every(l=>l.subject==='self' && l.roles.verified===false)));
+            Object.assign(value.world,{mode:'rest',attention:'shade',activityStart:value.world.elapsed,dwell:.1});
+            core.perceive(value.state,{scene:'clearing',attention:[{id:'shade',meaning:'rest'}]});
+            reportFixtures.push({values:[first,second,hearRelation(value,reportText('self',locale),locale),
+                hearRelation(value,reportText('player',locale),locale)],expected:[true,true,false,false]});
+            for (const subject of ['self','player']) {
+                const ordinary=hearRelation(value,wordCatalog.reportTeaching[locale][subject].utterance,locale);
+                assert.equal(ordinary.result.understandings[0].reportSource.kind,'speaker_report');
+                reportFixtures.push({values:[ordinary],expected:[false]});
+            }
+        }
+        const interruptedReport=makeRelationState(), reportFirst=hearRelation(interruptedReport,reportText());
+        worldApi.approach(interruptedReport.world,'path');
+        assert.deepEqual(interruptedReport.world.relationLabels,[]);
+        assert.equal((interruptedReport.state.experiences||[]).length,0);
+        reportFixtures.push({values:[reportFirst],expected:[true]});
+        reportFixtures.push({values:[hearRelation(makeRelationState('eat'),reportText())],expected:[false]});
+        reportFixtures.push({values:[hearRelation(makeRelationState(),reportText(),'ja','visitor')],expected:[false]});
+        const ambiguousReport=makeRelationState(); ambiguousReport.state.context.attention.push({id:'berry:1',meaning:'berry'});
+        reportFixtures.push({values:[hearRelation(ambiguousReport,reportText())],expected:[false]});
+        for (const mutate of [v=>{v.beforeKnowledge.meanings=[];},v=>{v.context.scene='other';},
+            v=>{v.context.target='berry:1';},v=>{v.context.activityStart=2;},
+            v=>{v.result.relationLearning.candidates[0].inputId='input:9';},
+            v=>{v.result.relationLearning.candidates[0].utterance='other';},
+            v=>{v.result.relationLearning.candidates[0].roles.verified=true;},
+            v=>{v.result.relationLearning.adopted.roles.contentSubject='player';},
+            v=>{v.result.interpretations[0].roles.status='observed';},
+            v=>{v.result.understandings[0].subject='self';},
+            v=>{v.result.understandings[0].roles=v.result.interpretations[0].roles;},
+            v=>{v.result.relationLearning.updated=['report'];}]) {
+            const invalid=JSON.parse(JSON.stringify(reportFirst)); mutate(invalid);
+            reportFixtures.push({values:[invalid],expected:[false]});
+        }
+        for (const raw of [wordCatalog.reportTeaching.ja.self.utterance,wordCatalog.reportTeaching.ja.player.utterance,
+            exampleText(),relationText,proposalText(),reportText()+'。甘い','【報告・私】「未知」'])
+            reportFixtures.push({values:[hearRelation(makeRelationState(),raw)],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_report_examples.js'),'utf8'));
+        const reportResult=await js(`(() => {
+            const fixtures=${JSON.stringify(reportFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryReportExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.sources.frame.roles.verified=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryReportExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryReportExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of reportResult.results.entries()) {
+            assert.deepEqual(result.accepted,reportFixtures[index].expected,'report example '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured,label=data.pairing.candidates[0];
+                assert.equal(entry.kind,'teaching'); assert.equal(data.understanding.complete,false);
+                assert.deepEqual(data.understanding.unresolved,[{type:'relation',id:'report'}]);
+                assert.equal(data.understanding.subject,null); assert.equal(data.understanding.roles,undefined);
+                assert.equal(data.understanding.reportSource,undefined); assert.equal(data.understanding.eventTime,'unspecified');
+                assert.equal(label.subject,'self'); assert.equal(label.roles.reporter,'player');
+                assert.equal(label.roles.verified,false); assert.equal(label.roles.status,'reported');
+                assert.equal(label.inputId,entry.sourceId); assert.equal(label.raw,data.sources.input.raw);
+                assert.deepEqual(data.sources.frame.roles,label.roles);
+            }
+        }
+        for (const index of [112,113]) {
+            assert.deepEqual(reportResult.results[index].entries.map(e=>e.sourceId),['input:1','input:2']);
+            assert.deepEqual(reportResult.results[index].entries.map(e=>e.captured.pairing.adopted.inputId),['input:1','input:1']);
+        }
+        assert.deepEqual(reportResult.removed,['undefined','undefined']);
         // Known 3b2 teaching uses its input-time bases, not unknown-side labels
         // or the direct proposal selection history. Only copies enter the renderer.
         const knownProposalFixtures = [];
@@ -967,7 +1071,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             questionExampleCases:exampleResult.results.length, questionExampleInputs:exampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             knownQuestionExampleCases:knownExampleResult.results.length, knownQuestionExampleInputs:knownExampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             proposalExampleCases:proposalResult.results.length, proposalExampleInputs:proposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            knownProposalExampleCases:knownProposalResult.results.length, knownProposalExampleInputs:knownProposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            knownProposalExampleCases:knownProposalResult.results.length, knownProposalExampleInputs:knownProposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            reportExampleCases:reportResult.results.length, reportExampleInputs:reportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
