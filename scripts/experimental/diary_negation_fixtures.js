@@ -135,4 +135,4 @@ function fixtures() {
     }
     return result;
 }
-module.exports = { fixtures };
+module.exports = { fixtures, setup, start, hear, finish, learnReport, demo };

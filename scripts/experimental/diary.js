@@ -943,6 +943,44 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:negationFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(negationFixtures.map(f=>f.group))].map(group=>[group,
                 negationFixtures.filter(f=>f.group===group).length]))}}));
+        const knownNegationFixtures = require('./diary_known_negation_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_negation_examples.js'),'utf8'));
+        const knownNegationResult = await js(`(() => {
+            const fixtures=${JSON.stringify(knownNegationFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryKnownNegationExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.verified=true;
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownNegationExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownNegationExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of knownNegationResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownNegationFixtures[index].expected,'known negation teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.polarity,data.sources.frame.polarity);
+                assert.equal(data.understanding.subject,'self'); assert.deepEqual(data.roles,data.understanding.roles);
+                assert.equal(data.roles.verified,false); assert.equal(data.understanding.reportSource,undefined);
+                assert.equal(data.understanding.complete,true); assert.equal(data.understanding.eventTime,'unspecified');
+                assert.equal(data.observationBasis.id,data.sources.activity.mode);
+                assert.deepEqual(data.understanding.relationReferences||[],data.relationBasis.filter(r=>r.source==='experienced_relation'));
+            }
+        }
+        assert.deepEqual(knownNegationResult.removed,['undefined','undefined']);
+        console.log(JSON.stringify({knownNegationTeaching:{cases:knownNegationFixtures.length,
+            inputs:knownNegationFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(knownNegationFixtures.map(f=>f.group))].map(group=>[group,
+                knownNegationFixtures.filter(f=>f.group===group).length]))}}));
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
