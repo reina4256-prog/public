@@ -1189,6 +1189,48 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:conditionProposalFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(conditionProposalFixtures.map(f=>f.group))].map(group=>[group,
                 conditionProposalFixtures.filter(f=>f.group===group).length]))}}));
+        const sequenceFixtures = require('./diary_sequence_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(`globalThis.ExperimentalWordDiarySequenceCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_sequence_examples.js'),'utf8'));
+        const sequenceResult = await js(`(() => {
+            const fixtures=${JSON.stringify(sequenceFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiarySequenceExamples.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeExperiences);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.understanding.complete=true;
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiarySequenceExamples;
+            delete globalThis.ExperimentalWordDiarySequenceCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiarySequenceExamples,typeof ExperimentalWordDiaryCandidates,typeof ExperimentalWordDiarySequenceCatalog]};
+        })()`);
+        for (const [index,result] of sequenceResult.results.entries()) {
+            assert.deepEqual(result.accepted,sequenceFixtures[index].expected,'sequence teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.complete,false); assert.equal(data.understanding.roles,undefined);
+                assert.deepEqual(data.understanding.unresolved,[{type:'relation',id:'sequence'}]);
+                assert.equal(data.pairing.candidates[0].roles.actualParticipation,false);
+                if(data.sources.frame.phase==='after') {
+                    assert.equal(data.pairing.relationAcquired,true);
+                    assert.deepEqual(data.basis,data.sources.referenceLabel.basis);
+                    assert.equal(data.pairing.candidates[0].eventReference.experienceId,data.sources.referencedExperience.id);
+                }
+            }
+        }
+        assert.deepEqual(sequenceResult.removed,['undefined','undefined','undefined']);
+        console.log(JSON.stringify({sequenceTeaching:{cases:sequenceFixtures.length,
+            inputs:sequenceFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(sequenceFixtures.map(f=>f.group))].map(group=>[group,
+                sequenceFixtures.filter(f=>f.group===group).length]))}}));
         const timeReportFixtures = require('./diary_time_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_time_reports.js'),'utf8'));
