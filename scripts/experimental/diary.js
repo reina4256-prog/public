@@ -981,6 +981,47 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:knownNegationFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(knownNegationFixtures.map(f=>f.group))].map(group=>[group,
                 knownNegationFixtures.filter(f=>f.group===group).length]))}}));
+        const timeFixtures = require('./diary_time_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_time_examples.js'),'utf8'));
+        const timeResult = await js(`(() => {
+            const fixtures=${JSON.stringify(timeFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryTimeExamples.capture(buffer,value.result,value.context,value.beforeKnowledge,value.beforeExperiences);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.understanding.eventTime='changed';
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].beforeExperiences=[];
+                    fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryTimeExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryTimeExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of timeResult.results.entries()) {
+            assert.deepEqual(result.accepted,timeFixtures[index].expected,'time teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured,label=data.pairing.candidates[0];
+                assert.equal(entry.kind,'teaching'); assert.equal(data.understanding.complete,false);
+                assert.equal(data.understanding.eventTime,'unspecified'); assert.equal(data.understanding.subject,null);
+                assert.equal(data.understanding.roles,undefined); assert.equal(data.understanding.reportSource,undefined);
+                assert.equal(data.sources.frame.roles.verified,false); assert.equal(label.inputId,entry.sourceId);
+                if(data.sources.frame.time==='past') {
+                    assert.equal(data.sources.referencedExperience.id,label.eventReference.experienceId);
+                    assert.ok(label.eventReference.end<=data.sources.activity.start);
+                    assert.notEqual(label.eventReference.inputId,entry.sourceId);
+                } else assert.equal(data.sources.referencedExperience,null);
+            }
+        }
+        assert.deepEqual(timeResult.removed,['undefined','undefined']);
+        console.log(JSON.stringify({timeTeaching:{cases:timeFixtures.length,
+            inputs:timeFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(timeFixtures.map(f=>f.group))].map(group=>[group,
+                timeFixtures.filter(f=>f.group===group).length]))}}));
         const negationReportFixtures = require('./diary_negation_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_negation_reports.js'),'utf8'));
