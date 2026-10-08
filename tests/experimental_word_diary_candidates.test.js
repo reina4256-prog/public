@@ -3,12 +3,12 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const api = require('../experimental_word_diary_candidates');
 
-test('candidate capture keeps teaching, own experience and unanswered question separate, including ID zero', () => {
+test('candidate capture keeps teaching, own experience, unanswered question and heard report separate, including ID zero', () => {
     const buffer = api.create();
-    for (const [occurrenceId, kind] of ['teaching', 'experience', 'question'].entries()) {
+    for (const [occurrenceId, kind] of ['teaching', 'experience', 'question', 'report'].entries()) {
         assert.equal(buffer.retain({ occurrenceId, kind, sourceId: 0, captured: { understood: false } }), true);
     }
-    assert.deepEqual(buffer.read().map(item => item.kind), ['teaching', 'experience', 'question']);
+    assert.deepEqual(buffer.read().map(item => item.kind), ['teaching', 'experience', 'question', 'report']);
     assert.ok(buffer.read().every(item => item.sourceId === 0 && !item.captured.understood));
 });
 
@@ -51,7 +51,7 @@ test('incomplete provenance is rejected without inventing a source or retaining 
     const buffer = api.create();
     const valid = { occurrenceId: 0, kind: 'question', sourceId: 0, captured: {} };
     for (const invalid of [{ ...valid, sourceId: null }, { ...valid, occurrenceId: '' },
-        { ...valid, kind: 'report' }, { ...valid, captured: null }]) {
+        { ...valid, kind: 'unsupported' }, { ...valid, captured: null }]) {
         assert.throws(() => buffer.retain(invalid), TypeError);
     }
     assert.deepEqual(buffer.read(), []);

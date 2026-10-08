@@ -786,6 +786,123 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const index of knownReportRepeats)
             assert.deepEqual(knownReportResult.results[index].entries.map(e=>e.sourceId),['input:1','input:2','input:3']);
         assert.deepEqual(knownReportResult.removed,['undefined','undefined']);
+        // Ordinary testimony has its own diary kind. It needs knowledge, not a
+        // matching rest scene; no game world or save bridge enters the renderer.
+        const testimonyFixtures = [];
+        const ordinaryText = (subject='self',locale='ja') => wordCatalog.reportTeaching[locale][subject].utterance;
+        const hearTestimony = (value,raw=ordinaryText(),locale='ja',speaker='player') => {
+            const before={mode:value.world.mode,destination:value.world.destination,hunger:value.world.hunger,
+                fatigue:value.world.fatigue,experiences:JSON.stringify(value.world.experiences),
+                knowledge:JSON.stringify(value.state.knowledge),count:(value.state.experiences||[]).length};
+            const heard=hearRelation(value,raw,locale,speaker);
+            assert.deepEqual({mode:value.world.mode,destination:value.world.destination,hunger:value.world.hunger,
+                fatigue:value.world.fatigue,experiences:JSON.stringify(value.world.experiences),
+                knowledge:JSON.stringify(value.state.knowledge),count:(value.state.experiences||[]).length},before);
+            return heard;
+        };
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const subject of ['self','player']) {
+                const value={state:core.create({foundation,life,speech},wordCatalog),world:worldApi.create()};
+                testimonyFixtures.push({values:[hearTestimony(value,ordinaryText(subject,locale),locale)],expected:[foundation&&life]});
+            }
+        let scopedTestimony;
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) for (const speech of ['short','gesture']) {
+            const value=makeRelationState('rest',{speech});
+            const before=hearTestimony(value,ordinaryText('self',locale),locale);
+            hearRelation(value,reportText('self',locale),locale); finishKnownActivity(value); startKnownActivity(value,'rest');
+            hearRelation(value,reportText('player',locale),locale); finishKnownActivity(value);
+            assert.equal(value.state.experiences.length,2);
+            testimonyFixtures.push({values:[before],expected:[false]});
+            for (const subject of ['self','player']) {
+                const heard=hearTestimony(value,ordinaryText(subject,locale),locale);
+                if(locale==='ja'&&speech==='short'&&subject==='self') scopedTestimony=heard;
+                testimonyFixtures.push({values:[heard],expected:[true]});
+            }
+            const alternate=locale==='ja'?'en':'ja';
+            testimonyFixtures.push({values:[hearTestimony(value,ordinaryText('self',alternate),alternate)],expected:[false]});
+            testimonyFixtures.push({values:[hearTestimony(value,ordinaryText('self',locale),locale,'visitor')],expected:[false]});
+        }
+        for (const mode of ['rest','eat','move','idle']) for (const attention of [[],[{id:'shade',meaning:'rest'}],
+            [{id:'shade',meaning:'rest'},{id:'berry:1',meaning:'berry'}]]) for (const subject of ['self','player']) {
+            const value=makeRelationState('rest',{foundation:true});
+            Object.assign(value.world,{mode,attention:mode==='eat'?'berry:1':null});
+            core.perceive(value.state,{scene:'clearing',attention});
+            testimonyFixtures.push({values:[hearTestimony(value,ordinaryText(subject))],expected:[true]});
+        }
+        for (const locale of Object.keys(wordCatalog.reportTeaching)) {
+            const value=makeRelationState('eat',{foundation:true});
+            testimonyFixtures.push({values:[hearTestimony(value,'  '+ordinaryText('self',locale).toLocaleUpperCase()+'  ',locale)],expected:[true]});
+        }
+        const testimonyRepeats=[];
+        for (const subject of ['self','player']) {
+            const value=makeRelationState('rest',{foundation:true});
+            const first=hearTestimony(value,ordinaryText(subject)),second=hearTestimony(value,ordinaryText(subject));
+            const other=hearTestimony(value,ordinaryText(subject==='self'?'player':'self'));
+            testimonyRepeats.push(testimonyFixtures.length);
+            testimonyFixtures.push({values:[first,second,other],expected:[true,true,true]});
+            finishKnownActivity(value); startKnownActivity(value,'rest'); worldApi.approach(value.world,'path');
+            value.state.knowledge.meanings=[]; value.state.knowledge.relations=[];
+            testimonyFixtures.push({values:[first],expected:[true]});
+        }
+        for (const mutate of [v=>{v.beforeKnowledge.meanings=[];},v=>{v.beforeKnowledge.relations=[];},
+            v=>{v.context.scene='other';},v=>{v.result.input.id='input:0';},v=>{v.result.input.at++;},
+            v=>{v.result.input.raw='other';},v=>{v.result.input.locale='en';},v=>{v.result.input.speaker='visitor';},
+            v=>{v.result.interpretations[0].kind='report_demonstration';},v=>{v.result.interpretations[0].span='other';},
+            v=>{v.result.interpretations[0].roles.verified=true;},v=>{v.result.interpretations[0].relations.push('negation');},
+            v=>{v.result.understandings[0].complete=false;},v=>{v.result.understandings[0].roles.contentSubject='player';},
+            v=>{v.result.understandings[0].eventTime='now';},v=>{delete v.result.understandings[0].reportSource;},
+            ...['inputId','heardAt','raw','locale','reporter','contentSubject','kind'].map(field=>v=>{
+                v.result.understandings[0].reportSource[field]='other';}),
+            ...['form','speaker','locale','kind','meaning'].map(field=>v=>{v.beforeKnowledge.relations[0].scope[field]='other';}),
+            v=>{v.beforeKnowledge.relations[0].scope.roles.verified=true;},
+            v=>{v.result.understandings[0].relationReferences=[];},v=>{v.result.understandings[0].relationReferences[0].evidence=[];},
+            v=>{v.result.understandings[0].reportReference={inputId:'input:1'};},
+            v=>{v.result.interpretations.push(JSON.parse(JSON.stringify(v.result.interpretations[0])));}]) {
+            const invalid=JSON.parse(JSON.stringify(scopedTestimony)); mutate(invalid);
+            testimonyFixtures.push({values:[invalid],expected:[false]});
+        }
+        for (const raw of [reportText('self'),reportText('player'),wordCatalog.negationTeaching.ja.negative.utterance,
+            wordCatalog.timeTeaching.ja.now.utterance,wordCatalog.timeTeaching.ja.past.utterance,
+            wordCatalog.feelingContrast.ja.past,exampleText(),relationText,proposalText(),ordinaryText()+'?'])
+            testimonyFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),raw)],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_reports.js'),'utf8'));
+        const testimonyResult=await js(`(() => {
+            const fixtures=${JSON.stringify(testimonyFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryReports.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.verified=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryReports;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryReports,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of testimonyResult.results.entries()) {
+            assert.deepEqual(result.accepted,testimonyFixtures[index].expected,'ordinary report '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const captured=entry.captured;
+                assert.equal(entry.kind,'report'); assert.equal(captured.understanding.complete,true);
+                assert.equal(captured.roles.status,'reported'); assert.equal(captured.roles.verified,false);
+                assert.equal(captured.understanding.eventTime,'unspecified');
+                assert.deepEqual(captured.roles,captured.understanding.roles);
+                assert.deepEqual(captured.reportSource,captured.understanding.reportSource);
+                assert.equal(captured.reportSource.inputId,entry.sourceId);
+                assert.equal(captured.reportSource.raw,captured.sources.input.raw);
+                assert.equal(captured.reportSource.heardAt,captured.sources.input.at);
+                assert.deepEqual(captured.relationBasis.filter(r=>r.source==='experienced_relation'),
+                    captured.understanding.relationReferences||[]);
+            }
+        }
+        for (const index of testimonyRepeats)
+            assert.equal(new Set(testimonyResult.results[index].entries.map(e=>e.sourceId)).size,3);
+        assert.deepEqual(testimonyResult.removed,['undefined','undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -1189,7 +1306,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             proposalExampleCases:proposalResult.results.length, proposalExampleInputs:proposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             knownProposalExampleCases:knownProposalResult.results.length, knownProposalExampleInputs:knownProposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             reportExampleCases:reportResult.results.length, reportExampleInputs:reportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            knownReportExampleCases:knownReportResult.results.length, knownReportExampleInputs:knownReportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            knownReportExampleCases:knownReportResult.results.length, knownReportExampleInputs:knownReportFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            ordinaryReportCases:testimonyResult.results.length, ordinaryReportInputs:testimonyFixtures.reduce((sum,fixture)=>sum+fixture.values.length,0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });

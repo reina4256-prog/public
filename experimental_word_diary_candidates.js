@@ -23,7 +23,7 @@
     }
     function validate(candidate) {
         if (!candidate || !id(candidate.occurrenceId)
-            || !['experience', 'teaching', 'question'].includes(candidate.kind)
+            || !['experience', 'teaching', 'question', 'report'].includes(candidate.kind)
             || !id(candidate.sourceId) || !candidate.captured
             || typeof candidate.captured !== 'object' || Array.isArray(candidate.captured)
             || !jsonData(candidate)) {
