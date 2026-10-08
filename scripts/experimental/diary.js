@@ -304,6 +304,82 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         assert.deepEqual(exampleResult.results[112].entries.map(e=>e.captured.pairing.adopted.inputId),['input:1','input:1']);
         assert.deepEqual(exampleResult.removed,['undefined','undefined']);
+        // Known examples have no relationLearning label or new personal answer.
+        const knownExampleFixtures = [];
+        for (const locale of Object.keys(exampleForms)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const activity of ['eat','rest']) {
+                knownExampleFixtures.push({values:[hearRelation(makeRelationState(activity,{foundation,life,speech}),
+                    exampleText(locale,activity),locale)],expected:[foundation && life]});
+            }
+        const startKnownActivity = (value, activity) => {
+            Object.assign(value.world,{mode:activity,attention:activity==='eat'?'berry:1':'shade',
+                activityStart:value.world.elapsed,dwell:.1,harvest:1,hunger:.8,fatigue:.7,
+                activityBefore:{hunger:.8,fatigue:.7},mealTaste:{quality:'sweet',pleasant:true}});
+            core.perceive(value.state,{scene:'clearing',attention:[{id:value.world.attention,meaning:activity==='eat'?'berry':'rest'}]});
+        };
+        const finishKnownActivity = value => {
+            value.world.pause=0; worldApi.onArrival(value.world,value.state,worldApi.tick(value.world,.1));
+        };
+        for (const locale of Object.keys(exampleForms)) for (const speech of ['short','gesture']) {
+            const value=makeRelationState('rest',{speech});
+            hearRelation(value,exampleText(locale),locale); finishKnownActivity(value); startKnownActivity(value,'eat');
+            hearRelation(value,exampleText(locale,'eat'),locale); finishKnownActivity(value);
+            assert.ok(value.state.knowledge.relations.some(r=>r.id==='question' && r.source==='experienced_relation'));
+            for (const activity of ['eat','rest']) {
+                startKnownActivity(value,activity);
+                knownExampleFixtures.push({values:[hearRelation(value,exampleText(locale,activity),locale)],expected:[true]});
+            }
+        }
+        const knownRepeatedState=makeRelationState('rest',{foundation:true});
+        const knownFirst=hearRelation(knownRepeatedState,exampleText());
+        knownExampleFixtures.push({values:[knownFirst,hearRelation(knownRepeatedState,exampleText())],expected:[true,true]});
+        assert.deepEqual(knownRepeatedState.state.records,[]);
+        assert.equal(knownRepeatedState.state.context.turns.at(-1).answer,undefined);
+        finishKnownActivity(knownRepeatedState); startKnownActivity(knownRepeatedState,'rest');
+        worldApi.approach(knownRepeatedState.world,'path');
+        knownExampleFixtures.push({values:[knownFirst],expected:[true]});
+        knownExampleFixtures.push({values:[firstExample],expected:[false]});
+        knownExampleFixtures.push({values:[hearRelation(makeRelationState('eat',{foundation:true}),exampleText())],expected:[false]});
+        knownExampleFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),exampleText(),'ja','visitor')],expected:[false]});
+        const knownAmbiguous=makeRelationState('rest',{foundation:true});
+        knownAmbiguous.state.context.attention.push({id:'berry:1',meaning:'berry'});
+        knownExampleFixtures.push({values:[hearRelation(knownAmbiguous,exampleText())],expected:[false]});
+        const knownMissing=JSON.parse(JSON.stringify(knownFirst)); knownMissing.beforeKnowledge.relations=[];
+        knownExampleFixtures.push({values:[knownMissing],expected:[false]});
+        const knownScoped=JSON.parse(JSON.stringify(knownExampleFixtures[112].values[0]));
+        knownScoped.beforeKnowledge.relations.find(r=>r.id==='question').scope.speaker='visitor';
+        knownExampleFixtures.push({values:[knownScoped],expected:[false]});
+        knownExampleFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),exampleForms.ja[0])],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_question_examples.js'),'utf8'));
+        const knownExampleResult=await js(`(() => {
+            const fixtures=${JSON.stringify(knownExampleFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryKnownQuestionExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.actualAnswer=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownQuestionExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownQuestionExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for(const [index,result] of knownExampleResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownExampleFixtures[index].expected,`known question example ${index}`);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for(const entry of result.entries) {
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.captured.understanding.complete,true);
+                assert.equal(entry.captured.roles.actualAnswer,false); assert.equal(entry.captured.roles.answerer,'self');
+                assert.equal(entry.captured.sources.input.id,entry.sourceId);
+                assert.ok(entry.captured.relationBasis.length);
+            }
+        }
+        assert.deepEqual(knownExampleResult.results[140].entries.map(e=>e.sourceId),['input:1','input:2']);
+        assert.deepEqual(knownExampleResult.removed,['undefined','undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -702,7 +778,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             definitionCases:definitionResult.results.length, definitionInputs:definitionFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             lifeLabelCases:labelResult.results.length, lifeLabelInputs:labelFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             relationLabelCases:relationResult.results.length, relationLabelInputs:relationFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            questionExampleCases:exampleResult.results.length, questionExampleInputs:exampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            questionExampleCases:exampleResult.results.length, questionExampleInputs:exampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            knownQuestionExampleCases:knownExampleResult.results.length, knownQuestionExampleInputs:knownExampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
