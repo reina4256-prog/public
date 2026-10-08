@@ -380,6 +380,91 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         assert.deepEqual(knownExampleResult.results[140].entries.map(e=>e.sourceId),['input:1','input:2']);
         assert.deepEqual(knownExampleResult.removed,['undefined','undefined']);
+        // 3b2 unknown relations: the marked proposal remains source material.
+        const proposalText = (kind = 'request', locale = 'ja') => {
+            const form = wordCatalog.proposalTeaching[locale][kind];
+            return form.marker + '「' + form.utterance + '」';
+        };
+        const proposalFixtures = [];
+        for (const locale of Object.keys(wordCatalog.proposalTeaching)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const kind of ['request','invitation']) {
+                proposalFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation,life,speech}),
+                    proposalText(kind,locale),locale)],expected:[!foundation && life]});
+            }
+        for (const kind of ['request','invitation']) {
+            const value=makeRelationState(), first=hearRelation(value,proposalText(kind));
+            const second=hearRelation(value,proposalText(kind));
+            const mixed=hearRelation(value,proposalText(kind==='request'?'invitation':'request'));
+            assert.equal(value.world.relationLabels.length,1); assert.equal(mixed.result.relationLearning,undefined);
+            proposalFixtures.push({values:[first,second,mixed],expected:[true,true,false]});
+        }
+        for (const locale of Object.keys(wordCatalog.proposalTeaching)) for (const speech of ['short','gesture']) {
+            const value=makeRelationState('rest',{speech});
+            const first=hearRelation(value,proposalText('request',locale),locale);
+            finishKnownActivity(value); startKnownActivity(value,'rest');
+            const second=hearRelation(value,proposalText('invitation',locale),locale);
+            finishKnownActivity(value); startKnownActivity(value,'rest');
+            for (const kind of ['request','invitation'])
+                assert.ok(value.state.knowledge.relations.some(r=>r.id===kind && r.source==='experienced_relation'));
+            assert.ok(value.state.experiences.every(e=>e.relationLabels.every(l=>l.roles.actualParticipation===false)));
+            proposalFixtures.push({values:[first,second,hearRelation(value,proposalText('request',locale),locale),
+                hearRelation(value,proposalText('invitation',locale),locale)],expected:[true,true,false,false]});
+        }
+        const interruptedProposal=makeRelationState(), proposalFirst=hearRelation(interruptedProposal,proposalText());
+        worldApi.approach(interruptedProposal.world,'path');
+        assert.deepEqual(interruptedProposal.world.relationLabels,[]);
+        assert.equal((interruptedProposal.state.experiences||[]).length,0);
+        proposalFixtures.push({values:[proposalFirst],expected:[true]});
+        proposalFixtures.push({values:[hearRelation(makeRelationState('eat'),proposalText())],expected:[false]});
+        proposalFixtures.push({values:[hearRelation(makeRelationState(),proposalText(),'ja','visitor')],expected:[false]});
+        const ambiguousProposal=makeRelationState(); ambiguousProposal.state.context.attention.push({id:'berry:1',meaning:'berry'});
+        proposalFixtures.push({values:[hearRelation(ambiguousProposal,proposalText())],expected:[false]});
+        for (const mutate of [v=>{v.beforeKnowledge.meanings=[];}, v=>{v.context.scene='other';},
+            v=>{v.context.activityStart=2;}, v=>{v.result.relationLearning.candidates[0].inputId='input:99';},
+            v=>{v.result.relationLearning.candidates[0].roles.actualParticipation=true;},
+            v=>{v.result.relationLearning.adopted.roles.actors=['player'];}]) {
+            const invalid=JSON.parse(JSON.stringify(proposalFirst)); mutate(invalid);
+            proposalFixtures.push({values:[invalid],expected:[false]});
+        }
+        for (const raw of [wordCatalog.proposalTeaching.ja.request.utterance,wordCatalog.proposalTeaching.ja.invitation.utterance,
+            exampleText(),relationText,proposalText()+'。甘い'])
+            proposalFixtures.push({values:[hearRelation(makeRelationState(),raw)],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_proposal_examples.js'),'utf8'));
+        const proposalResult=await js(`(() => {
+            const fixtures=${JSON.stringify(proposalFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryProposalExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.sources.frame.roles.actualParticipation=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryProposalExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryProposalExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of proposalResult.results.entries()) {
+            assert.deepEqual(result.accepted,proposalFixtures[index].expected,'proposal example '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const label=entry.captured.pairing.candidates[0];
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.captured.understanding.complete,false);
+                assert.deepEqual(entry.captured.understanding.unresolved,[{type:'relation',id:label.relation}]);
+                assert.equal(entry.captured.understanding.roles,undefined);
+                assert.equal(label.roles.actualParticipation,false); assert.equal(label.roles.status,'proposed');
+                assert.equal(label.inputId,entry.sourceId); assert.equal(label.raw,entry.captured.sources.input.raw);
+                assert.deepEqual(entry.captured.sources.frame.roles,label.roles);
+            }
+        }
+        for (const index of [112,113]) {
+            assert.deepEqual(proposalResult.results[index].entries.map(e=>e.sourceId),['input:1','input:2']);
+            assert.deepEqual(proposalResult.results[index].entries.map(e=>e.captured.pairing.adopted.inputId),['input:1','input:1']);
+        }
+        assert.deepEqual(proposalResult.removed,['undefined','undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -779,7 +864,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             lifeLabelCases:labelResult.results.length, lifeLabelInputs:labelFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             relationLabelCases:relationResult.results.length, relationLabelInputs:relationFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             questionExampleCases:exampleResult.results.length, questionExampleInputs:exampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            knownQuestionExampleCases:knownExampleResult.results.length, knownQuestionExampleInputs:knownExampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            knownQuestionExampleCases:knownExampleResult.results.length, knownQuestionExampleInputs:knownExampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            proposalExampleCases:proposalResult.results.length, proposalExampleInputs:proposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
