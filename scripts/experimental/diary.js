@@ -465,6 +465,107 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.deepEqual(proposalResult.results[index].entries.map(e=>e.captured.pairing.adopted.inputId),['input:1','input:1']);
         }
         assert.deepEqual(proposalResult.removed,['undefined','undefined']);
+        // Known 3b2 teaching uses its input-time bases, not unknown-side labels
+        // or the direct proposal selection history. Only copies enter the renderer.
+        const knownProposalFixtures = [];
+        for (const locale of Object.keys(wordCatalog.proposalTeaching)) for (const foundation of [false,true])
+            for (const life of [false,true]) for (const speech of ['short','gesture']) for (const kind of ['request','invitation']) {
+                const value=makeRelationState('rest',{foundation,life,speech});
+                const heard=hearRelation(value,proposalText(kind,locale),locale);
+                assert.equal(value.world.mode,'rest'); assert.equal(value.world.destination,null);
+                assert.equal((value.state.selectionSources||[]).length,0);
+                knownProposalFixtures.push({values:[heard],expected:[foundation && life]});
+            }
+        for (const locale of Object.keys(wordCatalog.proposalTeaching)) for (const speech of ['short','gesture']) {
+            const value=makeRelationState('rest',{speech});
+            const first=hearRelation(value,proposalText('request',locale),locale);
+            finishKnownActivity(value); startKnownActivity(value,'rest');
+            const second=hearRelation(value,proposalText('invitation',locale),locale);
+            finishKnownActivity(value); startKnownActivity(value,'rest');
+            knownProposalFixtures.push({values:[first,second],expected:[false,false]});
+            for (const kind of ['request','invitation']) {
+                const heard=hearRelation(value,proposalText(kind,locale),locale);
+                assert.equal(heard.result.relationLearning,undefined);
+                assert.equal(heard.result.understandings[0].relationReferences[0].source,'experienced_relation');
+                assert.equal((value.state.selectionSources||[]).length,0);
+                knownProposalFixtures.push({values:[heard],expected:[true]});
+            }
+        }
+        for (const kind of ['request','invitation']) {
+            const value=makeRelationState('rest',{foundation:true});
+            const first=hearRelation(value,proposalText(kind)), second=hearRelation(value,proposalText(kind));
+            const other=hearRelation(value,proposalText(kind==='request'?'invitation':'request'));
+            assert.deepEqual(value.state.records,[]); assert.equal(value.world.relationLabels,undefined);
+            knownProposalFixtures.push({values:[first,second,other],expected:[true,true,true]});
+            finishKnownActivity(value); startKnownActivity(value,'rest'); worldApi.approach(value.world,'path');
+            value.state.knowledge.meanings=[]; value.state.knowledge.relations=[];
+            knownProposalFixtures.push({values:[first],expected:[true]});
+        }
+        const knownProposalFirst=knownProposalFixtures[12].values[0];
+        const knownProposalScoped=knownProposalFixtures[113].values[0];
+        for (const mutate of [v=>{v.beforeKnowledge.meanings=[];},v=>{v.beforeKnowledge.relations=[];},
+            v=>{v.context.scene='other';},v=>{v.context.target='berry:2';},v=>{v.context.elapsed=0;},
+            v=>{v.result.input.id='input:0';},v=>{v.result.understandings[0].complete=false;},
+            v=>{v.result.understandings[0].roles.actualParticipation=true;},
+            v=>{v.result.interpretations[0].roles.actors=['player'];},
+            v=>{v.result.interpretations[0].span='other';},v=>{v.result.relationLearning={candidates:[]};}]) {
+            const invalid=JSON.parse(JSON.stringify(knownProposalFirst)); mutate(invalid);
+            knownProposalFixtures.push({values:[invalid],expected:[false]});
+        }
+        for (const mutate of [v=>{v.beforeKnowledge.relations[0].scope.form='other';},
+            v=>{v.beforeKnowledge.relations[0].scope.locale='other';},
+            v=>{v.beforeKnowledge.relations[0].scope.speaker='visitor';},
+            v=>{v.beforeKnowledge.relations[0].scope.kind='report';},
+            v=>{v.beforeKnowledge.relations[0].scope.meaning='eat';},
+            v=>{v.beforeKnowledge.relations[0].scope.roles.actualParticipation=true;},
+            v=>{v.result.understandings[0].relationReferences=[];},
+            v=>{v.result.understandings[0].relationReferences[0].evidence=[];}]) {
+            const invalid=JSON.parse(JSON.stringify(knownProposalScoped)); mutate(invalid);
+            knownProposalFixtures.push({values:[invalid],expected:[false]});
+        }
+        const knownAmbiguousProposal=makeRelationState('rest',{foundation:true});
+        knownAmbiguousProposal.state.context.attention.push({id:'berry:1',meaning:'berry'});
+        knownProposalFixtures.push({values:[hearRelation(knownAmbiguousProposal,proposalText())],expected:[false]});
+        knownProposalFixtures.push({values:[hearRelation(makeRelationState('eat',{foundation:true}),proposalText())],expected:[false]});
+        knownProposalFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),proposalText(),'ja','visitor')],expected:[false]});
+        for (const raw of [wordCatalog.proposalTeaching.ja.request.utterance,wordCatalog.proposalTeaching.ja.invitation.utterance,
+            exampleText(),relationText])
+            knownProposalFixtures.push({values:[hearRelation(makeRelationState('rest',{foundation:true}),raw)],expected:[false]});
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_proposal_examples.js'),'utf8'));
+        const knownProposalResult=await js(`(() => {
+            const fixtures=${JSON.stringify(knownProposalFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryKnownProposalExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.actualParticipation=true;
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownProposalExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownProposalExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of knownProposalResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownProposalFixtures[index].expected,'known proposal example '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const captured=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(captured.understanding.complete,true);
+                assert.equal(captured.roles.status,'proposed'); assert.equal(captured.roles.actualParticipation,false);
+                assert.deepEqual(captured.roles,captured.understanding.roles);
+                assert.deepEqual(captured.roles,captured.sources.frame.roles);
+                assert.equal(captured.sources.input.id,entry.sourceId);
+                const references=captured.relationBasis.filter(r=>r.source==='experienced_relation');
+                assert.deepEqual(references,captured.understanding.relationReferences||[]);
+            }
+        }
+        for (const index of [154,156])
+            assert.deepEqual(knownProposalResult.results[index].entries.map(e=>e.sourceId),['input:1','input:2','input:3']);
+        assert.deepEqual(knownProposalResult.removed,['undefined','undefined']);
         const labelFixtures = [];
         for (const [index, locale] of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'].entries()) {
             for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
@@ -865,7 +966,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             relationLabelCases:relationResult.results.length, relationLabelInputs:relationFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             questionExampleCases:exampleResult.results.length, questionExampleInputs:exampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
             knownQuestionExampleCases:knownExampleResult.results.length, knownQuestionExampleInputs:knownExampleFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
-            proposalExampleCases:proposalResult.results.length, proposalExampleInputs:proposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
+            proposalExampleCases:proposalResult.results.length, proposalExampleInputs:proposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0),
+            knownProposalExampleCases:knownProposalResult.results.length, knownProposalExampleInputs:knownProposalFixtures.reduce((sum, fixture) => sum + fixture.values.length, 0), profile:directory })); app.quit();
     }).catch(error => { console.error(error); app.exit(1); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => { if (server) { server.closeAllConnections(); server.close(); } });
