@@ -142,4 +142,4 @@ function fixtures() {
     }
     return result;
 }
-module.exports = { fixtures };
+module.exports = { fixtures, prepare, start, hear, demo };

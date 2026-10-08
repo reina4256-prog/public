@@ -1111,6 +1111,45 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:conditionFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(conditionFixtures.map(f=>f.group))].map(group=>[group,
                 conditionFixtures.filter(f=>f.group===group).length]))}}));
+        const knownConditionFixtures = require('./diary_known_condition_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_condition_examples.js'),'utf8'));
+        const knownConditionResult = await js(`(() => {
+            const fixtures=${JSON.stringify(knownConditionFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=value=>ExperimentalWordDiaryKnownConditionExamples.capture(buffer,value.result,value.context,value.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.sources.observation.status='changed';
+                    fixture.values[0].beforeKnowledge.relations=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownConditionExamples;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownConditionExamples,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index,result] of knownConditionResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownConditionFixtures[index].expected,'known condition teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.conditionStatus,'unknown'); assert.equal(data.understanding.complete,true);
+                assert.equal(data.understanding.subject,'self'); assert.equal(data.roles.actualParticipation,false);
+                assert.equal(data.sources.observation.status,data.sources.frame.demonstratedStatus);
+                assert.equal(data.basis.id,'rest'); assert.equal(data.conditionBasis.id,'tired');
+                assert.deepEqual(data.understanding.relationReferences||[],data.relationBasis.filter(r=>r.source==='experienced_relation'));
+                assert.equal(data.conditionJudgment,undefined); assert.equal(data.pairing,undefined);
+                assert.equal(data.sources.referencedExperience,undefined);
+            }
+        }
+        assert.deepEqual(knownConditionResult.removed,['undefined','undefined']);
+        console.log(JSON.stringify({knownConditionTeaching:{cases:knownConditionFixtures.length,
+            inputs:knownConditionFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(knownConditionFixtures.map(f=>f.group))].map(group=>[group,
+                knownConditionFixtures.filter(f=>f.group===group).length]))}}));
         const timeReportFixtures = require('./diary_time_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_time_reports.js'),'utf8'));
