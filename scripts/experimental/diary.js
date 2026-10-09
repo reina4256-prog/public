@@ -1316,6 +1316,48 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:reasonQuestionFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(reasonQuestionFixtures.map(f=>f.group))].map(group=>[group,
                 reasonQuestionFixtures.filter(f=>f.group===group).length]))}}));
+        const knownReasonQuestionFixtures = require('./diary_known_reason_question_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryKnownReasonQuestionCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_reason_question_examples.js'),'utf8'));
+        const knownReasonQuestionResult = await js(`(() => {
+            const fixtures=${JSON.stringify(knownReasonQuestionFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiaryKnownReasonQuestionExamples.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeExperiences,v.beforeSelections);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.understanding.complete=false;
+                    buffer.read()[0].captured.questionBasis=[];
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownReasonQuestionExamples;
+            delete globalThis.ExperimentalWordDiaryKnownReasonQuestionCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownReasonQuestionExamples,typeof ExperimentalWordDiaryCandidates,typeof ExperimentalWordDiaryKnownReasonQuestionCatalog]};
+        })()`);
+        for (const [index,result] of knownReasonQuestionResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownReasonQuestionFixtures[index].expected,'known reason question teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.complete,true); assert.equal(data.understanding.subject,'self');
+                assert.equal(data.questionBasis.length,1); assert.equal(data.pairing.relationAcquired,false);
+                assert.deepEqual(data.understanding.unresolved,[]);
+                assert.equal(data.sources.selectionSource.understanding.roles.actualParticipation,false);
+                assert.deepEqual(data.basis,data.sources.selectionSource.meaningBasis);
+                assert.equal(data.pairing.candidates[0].eventReference.experienceId,data.sources.referencedExperience.id);
+                for(const key of ['answer','actualAnswer','reasonBasis','conditionJudgment','sequenceJudgment']) assert.equal(data[key],undefined);
+            }
+        }
+        assert.deepEqual(knownReasonQuestionResult.removed,['undefined','undefined','undefined']);
+        console.log(JSON.stringify({knownReasonQuestionTeaching:{cases:knownReasonQuestionFixtures.length,
+            inputs:knownReasonQuestionFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(knownReasonQuestionFixtures.map(f=>f.group))].map(group=>[group,
+                knownReasonQuestionFixtures.filter(f=>f.group===group).length]))}}));
         const knownSequenceFixtures = require('./diary_known_sequence_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(`globalThis.ExperimentalWordDiaryKnownSequenceCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
