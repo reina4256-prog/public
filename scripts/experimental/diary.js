@@ -1231,6 +1231,51 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:sequenceFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(sequenceFixtures.map(f=>f.group))].map(group=>[group,
                 sequenceFixtures.filter(f=>f.group===group).length]))}}));
+        const sequenceProposalFixtures = require('./diary_sequence_proposal_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(`globalThis.ExperimentalWordDiarySequenceProposalCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_sequence_proposals.js'),'utf8'));
+        const sequenceProposalResult = await js(`(() => {
+            const fixtures=${JSON.stringify(sequenceProposalFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiarySequenceProposals.capture(buffer,v.result,v.context,v.beforeKnowledge);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.actualParticipation=true;
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiarySequenceProposals;
+            delete globalThis.ExperimentalWordDiarySequenceProposalCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiarySequenceProposals,typeof ExperimentalWordDiaryCandidates,typeof ExperimentalWordDiarySequenceProposalCatalog]};
+        })()`);
+        for (const [index,result] of sequenceProposalResult.results.entries()) {
+            assert.deepEqual(result.accepted,sequenceProposalFixtures[index].expected,'ordinary sequence proposal '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            if(sequenceProposalFixtures[index].group==='later-real-basis-originals-preserved') {
+                assert.notDeepEqual(result.entries[0].captured.basis,result.entries[1].captured.basis);
+                assert.deepEqual(result.entries[0].captured.relationBasis,result.entries[1].captured.relationBasis);
+            }
+            for (const entry of result.entries) {
+                const data=entry.captured;
+                assert.equal(entry.kind,'proposal'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.complete,true); assert.equal(data.roles.actualParticipation,false);
+                assert.deepEqual(data.understanding.relations,['request','sequence']);
+                assert.deepEqual(data.understanding.relationReferences || [],data.relationBasis.filter(r=>r.source==='experienced_relation'));
+                assert.equal(data.basis.id,'rest'); assert.equal(data.eventBasis.id,'eat');
+                for(const field of ['pairing','conditionJudgment','sequenceJudgment','completionReference','eventReference','relationAcquired'])
+                    assert.equal(data[field],undefined);
+                assert.equal(data.sources.referencedExperience,undefined); assert.equal(data.sources.referenceLabel,undefined);
+            }
+        }
+        assert.deepEqual(sequenceProposalResult.removed,['undefined','undefined','undefined']);
+        console.log(JSON.stringify({sequenceProposals:{cases:sequenceProposalFixtures.length,
+            inputs:sequenceProposalFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(sequenceProposalFixtures.map(f=>f.group))].map(group=>[group,
+                sequenceProposalFixtures.filter(f=>f.group===group).length]))}}));
         const knownSequenceFixtures = require('./diary_known_sequence_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(`globalThis.ExperimentalWordDiaryKnownSequenceCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
