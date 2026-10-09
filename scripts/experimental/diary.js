@@ -1231,6 +1231,58 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:sequenceFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(sequenceFixtures.map(f=>f.group))].map(group=>[group,
                 sequenceFixtures.filter(f=>f.group===group).length]))}}));
+        const knownSequenceFixtures = require('./diary_known_sequence_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryKnownSequenceCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
+        await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_known_sequence_examples.js'),'utf8'));
+        const knownSequenceResult = await js(`(() => {
+            const fixtures=${JSON.stringify(knownSequenceFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiaryKnownSequenceExamples.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeExperiences);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.roles.actualParticipation=true;
+                    fixture.values[0].beforeKnowledge.meanings=[]; fixture.values[0].result.input.raw='changed'; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryKnownSequenceExamples;
+            delete globalThis.ExperimentalWordDiaryKnownSequenceCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryKnownSequenceExamples,typeof ExperimentalWordDiaryCandidates,typeof ExperimentalWordDiaryKnownSequenceCatalog]};
+        })()`);
+        for (const [index,result] of knownSequenceResult.results.entries()) {
+            assert.deepEqual(result.accepted,knownSequenceFixtures[index].expected,'known sequence teaching '+index);
+            assert.ok(result.repeated.every(value=>value===false)); assert.equal(result.sourcePreserved,true);
+            assert.deepEqual(result.entries,result.original);
+            for (const entry of result.entries) {
+                const data=entry.captured,group=knownSequenceFixtures[index].group;
+                assert.equal(entry.kind,'teaching'); assert.equal(entry.sourceId,data.sources.input.id);
+                assert.equal(data.understanding.complete,true); assert.equal(data.roles.actualParticipation,false);
+                assert.equal(data.pairing,undefined); assert.deepEqual(data.understanding.unresolved,[]);
+                assert.deepEqual(data.understanding.relations,['request','sequence']);
+                if(data.completionReference.status==='source_matched') {
+                    assert.equal(data.sources.referenceLabel.understanding.complete,false);
+                    assert.equal(data.completionReference.eventReference.experienceId,data.sources.referencedExperience.id);
+                    assert.equal(data.completionReference.eventReference.inputId,data.sources.referenceLabel.inputId);
+                } else assert.equal(data.completionReference.eventReference,null);
+                if(data.sources.frame.phase==='before') assert.equal(data.completionReference.status,'not_applicable');
+                if(['initial-after-unidentified','new-meal-no-borrowed-reference','no-original-unidentified','locale-scope'].includes(group)) {
+                    assert.equal(data.completionReference.status,'unidentified');
+                    assert.equal(data.sources.referencedExperience,null); assert.equal(data.sources.referenceLabel,null);
+                }
+                if(group==='later-real-basis-nonreplacement') {
+                    assert.notDeepEqual(data.basis,data.sources.referenceLabel.basis);
+                    assert.equal(data.sources.referenceLabel.understanding.roles,undefined);
+                    assert.deepEqual(data.sources.referenceLabel.understanding.unresolved,[{type:'relation',id:'sequence'}]);
+                }
+            }
+        }
+        assert.deepEqual(knownSequenceResult.removed,['undefined','undefined','undefined']);
+        console.log(JSON.stringify({knownSequenceTeaching:{cases:knownSequenceFixtures.length,
+            inputs:knownSequenceFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(knownSequenceFixtures.map(f=>f.group))].map(group=>[group,
+                knownSequenceFixtures.filter(f=>f.group===group).length]))}}));
         const timeReportFixtures = require('./diary_time_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_time_reports.js'),'utf8'));
