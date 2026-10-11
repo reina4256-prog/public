@@ -1571,6 +1571,47 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:knownCorrectionFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(knownCorrectionFixtures.map(f=>f.group))].map(group=>[group,
                 knownCorrectionFixtures.filter(f=>f.group===group).length]))}}));
+        const actualCorrectionFixtures = require('./diary_actual_correction_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryCorrectionsCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_corrections.js'), 'utf8'));
+        const actualCorrectionResult = await js(`(() => {
+            const fixtures=${JSON.stringify(actualCorrectionFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiaryCorrections.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeExperiences,v.beforeLessons,v.beforeRecords);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.understanding.complete=false;
+                    fixture.values[0].result.input.raw='changed'; fixture.values[0].beforeKnowledge.meanings=[]; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryCorrections;
+            delete globalThis.ExperimentalWordDiaryCorrectionsCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryCorrections,typeof ExperimentalWordDiaryCandidates,typeof ExperimentalWordDiaryCorrectionsCatalog]};
+        })()`);
+        for (const [index, result] of actualCorrectionResult.results.entries()) {
+            assert.deepEqual(result.accepted, actualCorrectionFixtures[index].expected, 'actual correction ' + index);
+            assert.ok(result.repeated.every(value => value === false)); assert.equal(result.sourcePreserved, true);
+            assert.deepEqual(result.entries, result.original);
+            for (const entry of result.entries) {
+                const data = entry.captured;
+                assert.equal(entry.kind, 'teaching'); assert.equal(entry.sourceId, data.sources.input.id);
+                assert.equal(data.understanding.complete, true); assert.deepEqual(data.understanding.relations, ['naming', 'correction']);
+                assert.equal(data.correction.retraction, data.sources.original.inputId);
+                assert.equal(data.correction.relationAcquired, false);
+                assert.equal(data.sources.original.retractedBy, undefined);
+                assert.equal(data.sources.original.corrects, undefined);
+                if(data.correctionBasis[0].source==='experienced_relation') assert.ok(data.sources.correctionLesson);
+                else assert.equal(data.sources.correctionLesson, null);
+            }
+        }
+        assert.deepEqual(actualCorrectionResult.removed, ['undefined', 'undefined', 'undefined']);
+        console.log(JSON.stringify({actualCorrectionExamples:{cases:actualCorrectionFixtures.length,
+            inputs:actualCorrectionFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(actualCorrectionFixtures.map(f=>f.group))].map(group=>[group,
+                actualCorrectionFixtures.filter(f=>f.group===group).length]))}}));
         const knownSequenceFixtures = require('./diary_known_sequence_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(`globalThis.ExperimentalWordDiaryKnownSequenceCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
