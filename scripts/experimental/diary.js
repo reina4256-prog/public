@@ -1492,6 +1492,45 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:reasonAnswerFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(reasonAnswerFixtures.map(f=>f.group))].map(group=>[group,
                 reasonAnswerFixtures.filter(f=>f.group===group).length]))}}));
+        const correctionFixtures = require('./diary_correction_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryCorrectionCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_correction_examples.js'), 'utf8'));
+        const correctionResult = await js(`(() => {
+            const fixtures=${JSON.stringify(correctionFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiaryCorrectionExamples.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeExperiences,v.beforeLessons,v.beforeRecords);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.understanding.complete=false;
+                    fixture.values[0].result.input.raw='changed'; fixture.values[0].beforeKnowledge.meanings=[]; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryCorrectionExamples;
+            delete globalThis.ExperimentalWordDiaryCorrectionCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryCorrectionExamples,typeof ExperimentalWordDiaryCandidates,typeof ExperimentalWordDiaryCorrectionCatalog]};
+        })()`);
+        for (const [index, result] of correctionResult.results.entries()) {
+            assert.deepEqual(result.accepted, correctionFixtures[index].expected, 'correction example ' + index);
+            assert.ok(result.repeated.every(value => value === false)); assert.equal(result.sourcePreserved, true);
+            assert.deepEqual(result.entries, result.original);
+            for (const entry of result.entries) {
+                const data = entry.captured;
+                assert.equal(entry.kind, 'teaching'); assert.equal(entry.sourceId, data.sources.input.id);
+                assert.equal(data.understanding.complete, true); assert.deepEqual(data.understanding.relations, ['naming']);
+                assert.equal(data.correctionKnownBefore, false); assert.equal(data.sources.original.retractedBy, undefined);
+                if (data.sources.frame.phase === 'source') {
+                    assert.equal(data.pairing.relationAcquired, false); assert.equal(data.pairing.candidates[0].replacement, undefined);
+                } else { assert.equal(data.pairing.relationAcquired, true); assert.ok(data.sources.sourceTeaching); }
+            }
+        }
+        assert.deepEqual(correctionResult.removed, ['undefined', 'undefined', 'undefined']);
+        console.log(JSON.stringify({correctionExamples:{cases:correctionFixtures.length,
+            inputs:correctionFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(correctionFixtures.map(f=>f.group))].map(group=>[group,
+                correctionFixtures.filter(f=>f.group===group).length]))}}));
         const knownSequenceFixtures = require('./diary_known_sequence_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_diary_candidates.js'),'utf8'));
         await js(`globalThis.ExperimentalWordDiaryKnownSequenceCatalog=${JSON.stringify(require('../../experimental_word_learning_catalog.json'))};`);
