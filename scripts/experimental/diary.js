@@ -1843,6 +1843,54 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:contrastFeelingReportFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(contrastFeelingReportFixtures.map(f=>f.group))].map(group=>[group,
                 contrastFeelingReportFixtures.filter(f=>f.group===group).length]))}}));
+        const ordinaryProposalFixtures = require('./diary_proposal_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_learning_core.js'), 'utf8')
+            .replace('root.ExperimentalWordLearning = api', 'root.ExperimentalWordDiaryProposalCore = api'));
+        await js(`globalThis.ExperimentalWordDiaryProposalCatalog=${JSON.stringify(wordCatalog)};`);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_proposals.js'), 'utf8'));
+        for (let offset = 0; offset < ordinaryProposalFixtures.length; offset += 32) {
+            const batch = ordinaryProposalFixtures.slice(offset, offset + 32);
+            const results = await js(`(() => {
+                const fixtures=${JSON.stringify(batch)};
+                return fixtures.map(fixture=>{
+                    const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                    const capture=v=>ExperimentalWordDiaryProposals.capture(buffer,v.result,v.context,v.beforeKnowledge,v.decision);
+                    const accepted=fixture.values.map(capture),original=buffer.read(),sourcePreserved=source===JSON.stringify(fixture);
+                    const repeated=fixture.values.map(capture);
+                    if(original.length) {
+                        buffer.read()[0].captured.decision.outcome='changed';
+                        fixture.values[0].result.input.raw='changed'; fixture.values[0].decision.after.reasons=[];
+                    }
+                    return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+                });
+            })()`);
+            for (const [index, result] of results.entries()) {
+                assert.deepEqual(result.accepted, batch[index].expected, 'ordinary proposal ' + (offset + index));
+                assert.ok(result.repeated.every(v => v === false)); assert.equal(result.sourcePreserved, true);
+                assert.deepEqual(result.original, result.entries);
+                for (const entry of result.entries) {
+                    const data = entry.captured;
+                    assert.equal(entry.kind, 'proposal'); assert.equal(entry.sourceId, data.sources.input.id);
+                    assert.equal(data.understanding.complete, true);
+                    if (data.basis.id === 'walk' || data.decision.outcome !== 'approaching') assert.equal(data.decision.selectedSource, null);
+                    if (data.sources.frame.roles) assert.equal(data.understanding.roles.actualParticipation, false);
+                    else assert.equal(data.understanding.roles, undefined);
+                }
+            }
+        }
+        assert.deepEqual(await js(`(() => {
+            delete globalThis.ExperimentalWordDiaryProposals;
+            delete globalThis.ExperimentalWordDiaryProposalCore;
+            delete globalThis.ExperimentalWordDiaryProposalCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return [typeof ExperimentalWordDiaryProposals,typeof ExperimentalWordDiaryProposalCore,
+                typeof ExperimentalWordDiaryProposalCatalog,typeof ExperimentalWordDiaryCandidates];
+        })()`), ['undefined', 'undefined', 'undefined', 'undefined']);
+        console.log(JSON.stringify({ordinaryProposals:{cases:ordinaryProposalFixtures.length,
+            inputs:ordinaryProposalFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(ordinaryProposalFixtures.map(f=>f.group))].map(group=>[group,
+                ordinaryProposalFixtures.filter(f=>f.group===group).length]))}}));
         const remainingTimeFixtures = require('./diary_remaining_time_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
         await js(`globalThis.ExperimentalWordDiaryRemainingTimeReportsCatalog=${JSON.stringify(wordCatalog)};`);
