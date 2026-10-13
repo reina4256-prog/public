@@ -156,8 +156,7 @@ function fixtures() {
             const invalid = copy(template); mutate(invalid); add('review-time-and-actual-reply-contradictions', [invalid], [false]);
         }
     }
-    // User explicitly deferred the upstream zero-duration rest-start mismatch.
-    // Preserve its observed behavior; this is a known defect, not a new rule.
+    // 4d12an repairs the deferred zero-duration start as one history/answer/save flow.
     for (const foundation of [false, true]) {
         const zero = existing.setup({ foundation }); prepareReason(zero); reviewed(zero);
         reason.select(zero, 'request', 'ja', false);
@@ -168,8 +167,8 @@ function fixtures() {
         assert.equal(zero.world.elapsed, zero.world.activityStart);
         worldApi.approach(zero.world, 'path');
         const oldAnswer = hear(zero, catalog.reasonTeaching.ja.utterance);
-        assert.equal(oldAnswer.reply.message, 'selected_reason');
-        add('known-upstream-zero-duration-rest-start-deferred', [oldAnswer], [true]);
+        assert.equal(oldAnswer.reply.message, 'answer_unknown');
+        add('zero-duration-rest-start-does-not-reach-back', [oldAnswer], [false]);
     }
     return output;
 }

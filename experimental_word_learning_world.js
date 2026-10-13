@@ -30,10 +30,14 @@
         if (!places(world).some(p => p.id === id)) return false;
         const route = world.island && navigation ? navigation(world, id) : null;
         if (world.island && !route) return false;
-        if (world.mode !== 'move' && world.elapsed > world.activityStart) {
+        if (world.mode !== 'move' && (world.elapsed > world.activityStart
+            || world.mode === 'rest' && world.elapsed === world.activityStart)) {
             world.history.push({ mode: world.mode, target: world.attention, start: world.activityStart,
-                end: world.elapsed, reasons: JSON.parse(JSON.stringify(world.reasons)) });
+                end: world.elapsed, reasons: JSON.parse(JSON.stringify(world.reasons)),
+                ...(world.mode === 'rest' ? { startInputSerial: world.restStartOrder?.start === world.activityStart
+                    ? world.restStartOrder.inputSerial : null } : {}) });
         }
+        delete world.restStartOrder;
         world.lifeLabels = [];
         world.relationLabels = [];
         world.destination = id; world.mode = 'move'; world.attention = null;
@@ -109,7 +113,10 @@
                 if (experience.before && (kind === 'eat' ? experience.before.hunger > world.hunger : experience.before.fatigue > world.fatigue)) world.recovery[kind] = experience.id;
                 world.mode = 'idle'; world.dwell = 3; world.attention = null;
                 world.history.push({ mode: kind, target: experience.target, start: experience.start, end: experience.end,
-                    experienceId: experience.id, reasons: copy(world.reasons) });
+                    experienceId: experience.id, reasons: copy(world.reasons),
+                    ...(kind === 'rest' && world.restStartOrder?.start === experience.start
+                        ? { startInputSerial: world.restStartOrder.inputSerial } : {}) });
+                delete world.restStartOrder;
                 return { ...experience, kind: 'experience', activity: kind };
             }
             const candidates = places(world).filter(p => p.id !== world.attention);
@@ -305,7 +312,8 @@
             && !response.observation && !['answer_unknown', 'attend', 'taste_unsure'].includes(response.message)) {
             turn.answer = { subject: u.subject, eventTime: response.eventTime || u.eventTime,
                 source: { inputId: result.input.id, questionSlot: u.questionSlot,
-                    experienceId: response.experienceId ?? null, answeredAt: result.input.at },
+                    experienceId: response.experienceId ?? null, answeredAt: result.input.at,
+                    ...(response.message === 'selected_reason' ? { activityAt: world.elapsed } : {}) },
                 response: JSON.parse(JSON.stringify(response)) };
         }
         rememberOutput(world, state, response, result.input, null,
@@ -459,6 +467,25 @@
     }
 
     function validSelections(state, world, catalog) {
+        if (world.restStartOrder !== undefined) {
+            const order = world.restStartOrder;
+            if (world.mode !== 'rest' || world.attention !== 'shade' || !order
+                || order.start !== world.activityStart || order.start !== world.lastRest
+                || !Number.isInteger(order.inputSerial) || order.inputSerial < 0 || order.inputSerial > state.serial
+                || !Number.isInteger(order.eventId) || order.eventId < 1 || order.eventId > world.event
+                || !world.history.some(h => h.mode === 'move' && h.target === 'shade' && h.end === order.start)) return false;
+        }
+        for (const h of world.history) {
+            if (h?.mode !== 'rest') {
+                if (h?.startInputSerial !== undefined) return false;
+                continue;
+            }
+            if (!Number.isFinite(h.start) || !Number.isFinite(h.end) || h.start < 0
+                || h.end < h.start || h.end > world.elapsed || h.target !== 'shade'
+                || h.end === h.start && (h.experienceId !== undefined || h.startInputSerial === undefined)
+                || h.startInputSerial !== undefined && h.startInputSerial !== null && (!Number.isInteger(h.startInputSerial)
+                    || h.startInputSerial < 0 || h.startInputSerial > state.serial)) return false;
+        }
         const sources = state.selectionSources;
         if (sources !== undefined && (!Array.isArray(sources)
             || new Set(sources.map(s => s?.input?.id)).size !== sources.length)) return false;
@@ -556,6 +583,16 @@
                     h.reasons.find(r => r.selectionSource).selectionSource)));
     }
     function onArrival(world, state, event) {
+        // Record reception order only for an actual arrival. Re-reading an
+        // event cannot move its start past a later teaching or answer.
+        if (event?.kind === 'arrive' && event.target === 'shade' && world.mode === 'rest'
+            && world.attention === 'shade' && world.activityStart === world.lastRest
+            && event.id === world.event
+            && world.history.at(-1)?.mode === 'move' && world.history.at(-1)?.target === 'shade'
+            && world.history.at(-1)?.end === world.activityStart
+            && world.restStartOrder === undefined) {
+            world.restStartOrder = { start: world.activityStart, inputSerial: state.serial, eventId: event.id };
+        }
         const response = arrivalReply(world, state, event);
         if (response) {
             if (['ate_gesture', 'woke_gesture'].includes(response.message)) response.observation = true;
@@ -624,8 +661,13 @@
                     && l.slot === 'reason' && l.relation === 'reason');
                 if (!event || !source || !review || answer.subject !== 'self' || answer.eventTime !== 'past'
                     || answer.source?.experienceId !== event.id || response.eventTime !== 'past'
+                    || !/^input:[1-9]\d*$/.test(answer.source?.inputId)
+                    || Number(answer.source.inputId.slice(6)) > Number(turn.id.slice(6))
                     || !equal(response.choiceSource, event.choiceSource) || response.literal !== source.input.raw
-                    || review.speaker !== turn.speaker || Number(review.inputId.slice(6)) >= Number(turn.id.slice(6))) return false;
+                    || review.speaker !== turn.speaker || Number(review.inputId.slice(6)) >= Number(answer.source.inputId.slice(6))
+                    || answer.source.activityAt !== undefined && (!Number.isFinite(answer.source.activityAt)
+                        || answer.source.activityAt < event.end || answer.source.activityAt > world.elapsed)
+                    || relationLearning.restStartedBefore(world, event, answer.source?.activityAt, answer.source?.inputId)) return false;
             }
             for (const u of turn.understandings || []) {
                 const ref = u.reportReference;

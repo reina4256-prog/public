@@ -73,7 +73,7 @@
                     !== experiences.find(e => e.relationLabels?.some(l => l.inputId === basis.evidence[1]))?.id)
             && equal(u.relationReferences || [], basis.source === 'initial' ? [] : [basis]);
     }
-    function validQuestionLabel(label, event, selections, knowledge, experiences, currentId) {
+    function validQuestionLabel(label, event, selections, knowledge, experiences, currentId, context) {
         const item = catalog?.reasonTeaching?.[label?.locale], source = selections.find(s => s?.input?.id === label?.choiceSource?.inputId);
         const proposal = catalog?.proposalTeaching?.[label?.locale]?.[label?.choice];
         return item && proposal && event?.kind === 'experience' && event.activity === 'rest' && event.target === 'shade'
@@ -83,6 +83,9 @@
             && Number.isFinite(serial(label.inputId)) && serial(label.inputId) <= serial(currentId)
             && typeof label.scene === 'string' && Number.isFinite(label.heardAt) && Number.isFinite(label.at)
             && label.at >= event.end && label.start === event.start && label.activity === 'rest'
+            && !context.history.some(h => h.mode === 'rest' && h.start >= event.end
+                && (h.start < label.at || h.start === label.at
+                    && (Number.isInteger(h.startInputSerial) ? h.startInputSerial < serial(label.inputId) : h.end === h.start)))
             && label.target === 'shade' && label.subject === 'self' && label.meaning === 'rest'
             && label.form === normalize(item.utterance) && label.question === item.utterance && label.answer === proposal.utterance
             && typeof label.raw === 'string' && label.raw.trim() === `${item.question}「${item.utterance}」→「${proposal.utterance}」`
@@ -119,7 +122,7 @@
             const sources = selections.filter(s => s?.input?.id === label?.choiceSource?.inputId);
             return labels.length === 1 && sources.length === 1 && serial(id) < serial(inputId) && label.at <= at
                 && label.locale === basis.scope.locale && label.form === basis.scope.form && partial(label.understanding)
-                && validQuestionLabel(label, event, selections, knowledge, experiences, inputId)
+                && validQuestionLabel(label, event, selections, knowledge, experiences, inputId, context)
                 && matchedExperience(event, sources[0], context)
                 && knowledge.relationEvidence.filter(e => e.inputId === id && e.slot === 'reason' && e.relation === 'question').length === 1
                 && knowledge.relationEvidence.some(e => equal(e, evidenceFor(label, event))) ? { event, label } : null;
@@ -181,6 +184,9 @@
             && Number.isFinite(serial(label.inputId)) && serial(label.inputId) <= serial(currentId)
             && typeof label.scene === 'string' && Number.isFinite(label.heardAt) && Number.isFinite(label.at)
             && label.at >= event.end && label.start === event.start && label.activity === 'rest'
+            && !context.history.some(h => h.mode === 'rest' && h.start >= event.end
+                && (h.start < label.at || h.start === label.at
+                    && (Number.isInteger(h.startInputSerial) ? h.startInputSerial < serial(label.inputId) : h.end === h.start)))
             && label.target === 'shade' && label.subject === 'self' && label.meaning === 'rest'
             && label.form === normalize(item.utterance) && label.question === item.utterance && label.answer === proposal.utterance
             && typeof label.raw === 'string' && label.raw.trim() === `${item.reason}「${item.utterance}」→「${proposal.utterance}」`

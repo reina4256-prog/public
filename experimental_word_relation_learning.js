@@ -15,6 +15,15 @@
     // A bounded sensory check while attending to one's rest, not a global
     // numeric truth oracle. The middle band and absent attention stay unknown.
     const fatigueStatus = fatigue => fatigue >= .55 ? 'met' : fatigue <= .25 ? 'unmet' : 'unknown';
+    // New starts retain input order; legacy histories retain their original
+    // time-only boundary. No order is reconstructed for old saves.
+    function restStartedBefore(world, event, at, inputId) {
+        const serial = /^input:[1-9]\d*$/.test(inputId) ? Number(inputId.slice(6)) : null;
+        return world.history.some(h => h.mode === 'rest' && h.start >= event.end
+            && (Number.isInteger(h.startInputSerial) && serial !== null
+                ? h.startInputSerial < serial : at !== undefined && (h.start < at
+                    || h.start === at && h.end === h.start)));
+    }
     function sensation(world, state) {
         if (world.mode !== 'rest' || world.attention !== 'shade' || state.context.attention.length !== 1
             || state.context.attention[0].id !== 'shade' || !state.knowledge.meanings.some(m => m.id === 'tired')
@@ -141,8 +150,8 @@
             updated: learning.updated, relationAcquired: learning.relationAcquired };
         return true;
     }
-    function validLabel(label, state, catalog) {
-        if (label?.slot === 'reason') return validReasonLabel(label, state, catalog);
+    function validLabel(label, state, catalog, world) {
+        if (label?.slot === 'reason') return validReasonLabel(label, state, catalog, world);
         if (!label || !['naming', 'question', 'request', 'invitation', 'report', 'negation', 'time', 'condition', 'sequence'].includes(label.relation) || label.speaker !== 'player'
             || !locales.includes(label.locale) || !/^input:[1-9]\d*$/.test(label.inputId)
             || Number(label.inputId.slice(6)) > state.serial || !Number.isFinite(label.heardAt)
@@ -306,7 +315,7 @@
     }
     // These labels refer to an already completed rest and its retained choice.
     // They are later teaching, not edits to what the child knew when choosing.
-    function validReasonLabel(label, state, catalog) {
+    function validReasonLabel(label, state, catalog, world) {
         if (!Array.isArray(state.selectionSources)) return false;
         const event = state.experiences?.find(e => e.id === label.eventReference?.experienceId);
         const source = state.selectionSources.find(s => s?.input?.id === label.choiceSource?.inputId);
@@ -323,6 +332,7 @@
             || source.selectedAt !== label.choiceSource.selectedAt || source.input.locale !== label.locale
             || source.input.speaker !== label.speaker || source.frame?.kind !== label.choice || source.frame?.utterance !== label.answer
             || state.selectionSources.some(s => s?.input?.id === label.inputId)
+            || world && restStartedBefore(world, event, label.at, label.inputId)
             || !equal(label.basis, source.meaningBasis) || !equal(label.proposalBasis, source.relationBasis)
             || Number(source.input.id.slice(6)) >= Number(label.inputId.slice(6))
             || !validBasis(label.basis, 'rest', source.selectedAt, state)
@@ -379,7 +389,7 @@
                 && (r.source === 'initial' || r.scope?.slot === 'reason' && r.scope.form === frame.form
                     && r.scope.locale === result.input.locale && r.scope.speaker === result.input.speaker)) || null) : null,
             understanding: copy(u) };
-        if (!validReasonLabel(label, state)) return false;
+        if (!validReasonLabel(label, state, undefined, world)) return false;
         (event.relationLabels ||= []).push(copy(label)); (physical.relationLabels ||= []).push(copy(label));
         const learning = learn(state);
         result.relationLearning = { candidates: [copy(label)], adopted: copy(label), updated: learning.updated,
@@ -685,7 +695,7 @@
         if (world.relationLabels !== undefined && (!Array.isArray(world.relationLabels)
             || world.relationLabels.length > 8 || world.relationLabels.filter(l => isProposal(l?.relation)).length > 1
             || new Set(world.relationLabels.map(labelKey)).size !== world.relationLabels.length
-            || !world.relationLabels.every(l => validLabel(l, state, catalog)
+            || !world.relationLabels.every(l => validLabel(l, state, catalog, world)
                 && l.slot !== 'reason' && (l.relation !== 'sequence' || l.phase === 'before')
                 && l.at <= world.elapsed && l.start === world.activityStart
                 && l.activity === world.mode && l.target === world.attention
@@ -701,9 +711,9 @@
                 || (state.experiences || []).filter(e => e.id === event.id).length !== 1
                 || originals[0].kind !== event.activity || originals[0].target !== event.target
                 || originals[0].start !== event.start || originals[0].end !== event.end
-                || !event.relationLabels.every(l => validLabel(l, state, catalog) && l.start === event.start
+                || !event.relationLabels.every(l => validLabel(l, state, catalog, world) && l.start === event.start
                     && (l.slot === 'reason' ? l.at >= event.end && l.at <= world.elapsed
-                        && !world.history.some(h => h.mode === 'rest' && h.start >= event.end && h.start < l.at)
+                        && !restStartedBefore(world, event, l.at, l.inputId)
                         : l.relation === 'sequence' ? l.phase === 'after'
                         ? l.eventReference.experienceId === event.id && l.at >= event.end && l.at <= world.elapsed
                         : l.at < event.end : l.at <= event.end) && l.activity === event.activity && l.target === event.target
@@ -721,5 +731,5 @@
             .every(r => expected.some(e => equal(e, r)))
             && expected.every(e => state.knowledge.relations.some(r => r.source === 'initial' && r.id === e.id || equal(r, e)));
     }
-    return Object.freeze({ offer, finish, learn, valid, conditionJudgment });
+    return Object.freeze({ offer, finish, learn, valid, conditionJudgment, restStartedBefore });
 });

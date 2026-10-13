@@ -63,7 +63,7 @@
                     !== experiences.find(e => e.relationLabels?.some(l => l.inputId === basis.evidence[1]))?.id)
             && equal(u.relationReferences || [], basis.source === 'initial' ? [] : [basis]);
     }
-    function validLabel(label, event, selections, knowledge, experiences, currentId) {
+    function validLabel(label, event, selections, knowledge, experiences, currentId, context) {
         const item = catalog?.reasonTeaching?.[label?.locale], source = selections.find(s => s?.input?.id === label?.choiceSource?.inputId);
         const proposal = catalog?.proposalTeaching?.[label?.locale]?.[label?.choice];
         return item && proposal && event?.kind === 'experience' && event.activity === 'rest' && event.target === 'shade'
@@ -73,6 +73,9 @@
             && Number.isFinite(serial(label.inputId)) && serial(label.inputId) <= serial(currentId)
             && typeof label.scene === 'string' && Number.isFinite(label.heardAt) && Number.isFinite(label.at)
             && label.at >= event.end && label.start === event.start && label.activity === 'rest'
+            && !context.history.some(h => h.mode === 'rest' && h.start >= event.end
+                && (h.start < label.at || h.start === label.at
+                    && (Number.isInteger(h.startInputSerial) ? h.startInputSerial < serial(label.inputId) : h.end === h.start)))
             && label.target === 'shade' && label.subject === 'self' && label.meaning === 'rest'
             && label.form === normalize(item.utterance) && label.question === item.utterance && label.answer === proposal.utterance
             && typeof label.raw === 'string' && label.raw.trim() === `${item.question}「${item.utterance}」→「${proposal.utterance}」`
@@ -115,7 +118,7 @@
                     && r.scope.form === frame.form && r.scope.locale === input.locale && r.scope.speaker === input.speaker))) return false;
         const event = beforeExperiences.filter(e => e.activity === 'rest').at(-1);
         const physical = context.experiences.filter(e => e.id === event?.id);
-        if (!validLabel(label, event, beforeSelections, beforeKnowledge, beforeExperiences, input.id)
+        if (!validLabel(label, event, beforeSelections, beforeKnowledge, beforeExperiences, input.id, context)
             || beforeExperiences.filter(e => e.id === event.id).length !== 1 || physical.length !== 1
             || physical[0].kind !== 'rest' || !['target', 'start', 'end', 'before', 'after', 'choiceSource', 'relationLabels']
                 .every(k => equal(physical[0][k], event[k]))
@@ -138,7 +141,7 @@
             const original = beforeExperiences.find(v => v.id === e.experienceId);
             const originalLabel = original?.relationLabels?.find(l => l.inputId === e.inputId);
             if (serial(e.inputId) >= serial(input.id) || !validLabel(originalLabel, original, beforeSelections,
-                beforeKnowledge, beforeExperiences, input.id) || !equal(e, evidenceFor(originalLabel, original))) return false;
+                beforeKnowledge, beforeExperiences, input.id, context) || !equal(e, evidenceFor(originalLabel, original))) return false;
         }
         const updated = relevant.some(e => e.choice === label.choice) ? [] : [evidenceFor(label, event)];
         const all = [...relevant, ...updated], request = all.find(e => e.choice === 'request');

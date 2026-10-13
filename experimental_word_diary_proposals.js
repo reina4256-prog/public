@@ -12,7 +12,7 @@
     const serial = id => typeof id === 'string' && /^input:[1-9]\d*$/.test(id) ? Number(id.slice(6)) : NaN;
     const simpleRules = ['rest', 'rest_request', 'rest_invitation', 'walk_invitation'];
     const actionFields = ['mode', 'destination', 'attention', 'dwell', 'elapsed', 'activityStart', 'reasons',
-        'experiences', 'hunger', 'fatigue', 'x', 'y', 'island', 'route', 'history', 'lifeLabels', 'relationLabels'];
+        'experiences', 'hunger', 'fatigue', 'x', 'y', 'island', 'route', 'history', 'lifeLabels', 'relationLabels', 'restStartOrder'];
     const snapshot = world => Object.fromEntries(actionFields.filter(key => world[key] !== undefined)
         .map(key => [key, copy(world[key])]));
     function basisValid(basis, meaning, input, at) {
@@ -94,10 +94,13 @@
                 || !equal(after.lifeLabels, []) || !equal(after.relationLabels, [])
                 || before.island && (!before.island.places?.some(p => p.id === target) || !after.route)) return false;
             const history = copy(before.history);
-            if (before.mode !== 'move' && before.elapsed > before.activityStart)
+            if (before.mode !== 'move' && (before.elapsed > before.activityStart
+                || before.mode === 'rest' && before.elapsed === before.activityStart))
                 history.push({ mode: before.mode, target: before.attention, start: before.activityStart,
-                    end: before.elapsed, reasons: copy(before.reasons) });
-            if (!equal(after.history, history)) return false;
+                    end: before.elapsed, reasons: copy(before.reasons),
+                    ...(before.mode === 'rest' ? { startInputSerial: before.restStartOrder?.start === before.activityStart
+                        ? before.restStartOrder.inputSerial : null } : {}) });
+            if (!equal(after.history, history) || after.restStartOrder !== undefined) return false;
             if (frame.meaning === 'rest') {
                 selectedSource = { kind: 'selected_proposal', subject: 'self', target: 'shade', selectedAt: before.elapsed,
                     input, frame, understanding: u, meaningBasis: basis, relationBasis };
