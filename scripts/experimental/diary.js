@@ -1843,6 +1843,52 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:contrastFeelingReportFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(contrastFeelingReportFixtures.map(f=>f.group))].map(group=>[group,
                 contrastFeelingReportFixtures.filter(f=>f.group===group).length]))}}));
+        const generalCorrectionFixtures = require('./diary_general_correction_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryGeneralCorrectionsCatalog=${JSON.stringify(wordCatalog)};`);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_general_corrections.js'), 'utf8'));
+        let generalCorrectionCount = 0;
+        for (let offset = 0; offset < generalCorrectionFixtures.length; offset += 32) {
+            const batch = await js(`(() => {
+                const fixtures=${JSON.stringify(generalCorrectionFixtures.slice(offset, offset + 32))};
+                return fixtures.map(fixture=>{
+                    const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                    const capture=v=>ExperimentalWordDiaryGeneralCorrections.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeExperiences,v.beforeRecords);
+                    const accepted=fixture.values.map(capture),original=buffer.read();
+                    const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                    if(original.length) { buffer.read()[0].captured.sources.original.basis={};
+                        fixture.values[0].result.input.raw='changed'; fixture.values[0].beforeKnowledge.meanings=[]; }
+                    return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+                });
+            })()`);
+            for (const [index, result] of batch.entries()) {
+                assert.deepEqual(result.accepted, generalCorrectionFixtures[offset + index].expected, 'general correction ' + (offset + index));
+                assert.ok(result.repeated.every(value => value === false)); assert.equal(result.sourcePreserved, true);
+                assert.deepEqual(result.entries, result.original);
+                for (const entry of result.entries) {
+                    const d = entry.captured;
+                    assert.equal(entry.kind, 'teaching'); assert.equal(entry.sourceId, d.sources.input.id);
+                    assert.equal(d.understanding.complete, true);
+                    assert.deepEqual(d.namingBasis, [{ id: 'naming', source: 'initial' }]);
+                    assert.deepEqual(d.correctionBasis, [{ id: 'correction', source: 'initial' }]);
+                    assert.equal(d.correction.retraction, d.sources.original.inputId);
+                    assert.equal(d.sources.original.corrects, undefined); assert.equal(d.sources.original.retractedBy, undefined);
+                    for (const field of ['ownFeeling', 'experience', 'calendarDate', 'cause', 'relationAcquired']) assert.equal(field in d, false);
+                }
+            }
+            generalCorrectionCount += batch.length;
+        }
+        assert.equal(generalCorrectionCount, generalCorrectionFixtures.length);
+        assert.deepEqual(await js(`(() => {
+            delete globalThis.ExperimentalWordDiaryGeneralCorrections;
+            delete globalThis.ExperimentalWordDiaryGeneralCorrectionsCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return [typeof ExperimentalWordDiaryGeneralCorrections,typeof ExperimentalWordDiaryGeneralCorrectionsCatalog,typeof ExperimentalWordDiaryCandidates];
+        })()`), ['undefined', 'undefined', 'undefined']);
+        console.log(JSON.stringify({generalCorrections:{cases:generalCorrectionFixtures.length,
+            inputs:generalCorrectionFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(generalCorrectionFixtures.map(f=>f.group))].map(group=>[group,
+                generalCorrectionFixtures.filter(f=>f.group===group).length]))}}));
         const externalReportFixtures = require('./diary_external_report_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
         await js(`globalThis.ExperimentalWordDiaryFeelingCatalog=${JSON.stringify(wordCatalog)};`);
