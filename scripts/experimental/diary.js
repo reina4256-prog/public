@@ -1746,6 +1746,59 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:feelingReportFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(feelingReportFixtures.map(f=>f.group))].map(group=>[group,
                 feelingReportFixtures.filter(f=>f.group===group).length]))}}));
+        const feelingContrastFixtures = require('./diary_feeling_contrast_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryFeelingCatalog=${JSON.stringify(wordCatalog)};`);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_feeling_contrast_examples.js'), 'utf8'));
+        const feelingContrastResult = await js(`(() => {
+            const fixtures=${JSON.stringify(feelingContrastFixtures)};
+            const results=fixtures.map(fixture=>{
+                const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                const capture=v=>ExperimentalWordDiaryFeelingContrastExamples.capture(buffer,v.result,v.context,v.beforeKnowledge,v.beforeFeelingLearning,v.beforeTurns,v.beforeRecords);
+                const accepted=fixture.values.map(capture),original=buffer.read();
+                const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                if(original.length) { buffer.read()[0].captured.contentUnderstandings[0].subject='self';
+                    fixture.values[0].result.input.raw='changed'; fixture.values[0].beforeFeelingLearning.events=[]; }
+                return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+            });
+            delete globalThis.ExperimentalWordDiaryFeelingContrastExamples;
+            delete globalThis.ExperimentalWordDiaryFeelingCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return {results,removed:[typeof ExperimentalWordDiaryFeelingContrastExamples,typeof ExperimentalWordDiaryFeelingCatalog,typeof ExperimentalWordDiaryCandidates]};
+        })()`);
+        for (const [index, result] of feelingContrastResult.results.entries()) {
+            assert.deepEqual(result.accepted, feelingContrastFixtures[index].expected, 'feeling contrast teaching ' + index);
+            assert.ok(result.repeated.every(value => value === false)); assert.equal(result.sourcePreserved, true);
+            assert.deepEqual(result.entries, result.original);
+            for (const entry of result.entries) {
+                const d = entry.captured, stage = d.sources.frame.stage;
+                assert.equal(entry.kind, 'teaching'); assert.equal(entry.sourceId, d.sources.input.id);
+                assert.ok(['retain', 'difference', 'noncausal'].includes(stage)); assert.equal(d.understanding.complete, false);
+                assert.equal(d.meaningKnownBefore, true); assert.equal(d.reportKnownBefore, true);
+                assert.equal(d.timeKnownBefore, true); assert.equal(d.contrastKnownBefore, false);
+                assert.equal(d.relationAcquired, stage === 'noncausal'); assert.equal(d.pairing.updated.length, stage === 'noncausal' ? 2 : 0);
+                assert.equal(d.contentUnderstandings.length, 2);
+                for (const [clauseIndex, u] of d.contentUnderstandings.entries()) {
+                    assert.equal(u.subject, 'player'); assert.equal(u.complete, false); assert.equal(u.testimony.verified, false);
+                    assert.equal(u.eventTime, clauseIndex ? 'now' : 'yesterday'); assert.equal(u.known.meaning, clauseIndex ? 'happy' : 'sad');
+                    assert.deepEqual(u.relations, ['report', 'time']); assert.deepEqual(u.unresolved, [{type:'relation',id:'contrast'}]);
+                    assert.equal(d.sources.original.understandings[clauseIndex].subject, null);
+                    assert.equal(d.sources.original.understandings[clauseIndex].eventTime, 'unspecified');
+                }
+                for (const e of d.pairing.updated) {
+                    assert.equal(e.id, 'contrast'); assert.equal(e.evidence.length, 3); assert.equal(e.evidence[2], entry.sourceId);
+                    assert.deepEqual(e.scope.connection.retainedClauses, [0, 1]); assert.equal(e.scope.connection.replaces, false);
+                    assert.equal(e.scope.connection.causalClaim, false); assert.equal(e.scope.connection.sourceId, d.sources.original.input.id);
+                }
+                assert.equal(d.sources.selection.original.input.id, d.pairing.adopted.sourceId);
+                assert.equal('ownFeeling' in d, false); assert.equal('experience' in d, false);
+            }
+        }
+        assert.deepEqual(feelingContrastResult.removed, ['undefined', 'undefined', 'undefined']);
+        console.log(JSON.stringify({feelingContrastExamples:{cases:feelingContrastFixtures.length,
+            inputs:feelingContrastFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(feelingContrastFixtures.map(f=>f.group))].map(group=>[group,
+                feelingContrastFixtures.filter(f=>f.group===group).length]))}}));
         const feelingTimeFixtures = require('./diary_feeling_time_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
         await js(`globalThis.ExperimentalWordDiaryFeelingCatalog=${JSON.stringify(wordCatalog)};`);
