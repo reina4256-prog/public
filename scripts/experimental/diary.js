@@ -1843,6 +1843,50 @@ if (!process.versions.electron || process.type !== 'browser') {
             inputs:contrastFeelingReportFixtures.reduce((sum,f)=>sum+f.values.length,0),
             groups:Object.fromEntries([...new Set(contrastFeelingReportFixtures.map(f=>f.group))].map(group=>[group,
                 contrastFeelingReportFixtures.filter(f=>f.group===group).length]))}}));
+        const remainingTimeFixtures = require('./diary_remaining_time_report_fixtures').fixtures();
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
+        await js(`globalThis.ExperimentalWordDiaryRemainingTimeReportsCatalog=${JSON.stringify(wordCatalog)};`);
+        await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_remaining_time_reports.js'), 'utf8'));
+        for (let offset = 0; offset < remainingTimeFixtures.length; offset += 32) {
+            const batch = await js(`(() => {
+                const fixtures=${JSON.stringify(remainingTimeFixtures.slice(offset, offset + 32))};
+                return fixtures.map(fixture=>{
+                    const buffer=ExperimentalWordDiaryCandidates.create(),source=JSON.stringify(fixture);
+                    const capture=v=>ExperimentalWordDiaryRemainingTimeReports.capture(buffer,v.result,v.context,v.beforeKnowledge);
+                    const accepted=fixture.values.map(capture),original=buffer.read();
+                    const sourcePreserved=source===JSON.stringify(fixture),repeated=fixture.values.map(capture);
+                    if(original.length) { buffer.read()[0].captured.roles.verified=true;
+                        fixture.values[0].result.input.raw='changed'; fixture.values[0].beforeKnowledge.relations=[]; }
+                    return {accepted,repeated,original,entries:buffer.read(),sourcePreserved};
+                });
+            })()`);
+            for (const [index, result] of batch.entries()) {
+                assert.deepEqual(result.accepted, remainingTimeFixtures[offset + index].expected, 'remaining time report ' + (offset + index));
+                assert.ok(result.repeated.every(value => value === false)); assert.equal(result.sourcePreserved, true);
+                assert.deepEqual(result.entries, result.original);
+                for (const entry of result.entries) {
+                    const d=entry.captured;
+                    assert.equal(entry.kind,'report'); assert.equal(entry.sourceId,d.sources.input.id);
+                    assert.equal(d.understanding.complete,true); assert.equal(d.roles.verified,false);
+                    assert.equal(d.roles.contentSubject,d.sources.frame.subject);
+                    assert.equal(d.understanding.eventTime,d.sources.frame.time);
+                    assert.equal(d.understanding.polarity,d.sources.frame.polarity);
+                    assert.deepEqual(d.reportSource,d.understanding.reportSource);
+                    assert.deepEqual(d.understanding.relationReferences||[],d.relationBasis.filter(r=>r.source==='experienced_relation'));
+                    for(const field of ['eventReference','pastReference','observationBasis','experience','calendarDate']) assert.equal(field in d,false);
+                }
+            }
+        }
+        assert.deepEqual(await js(`(() => {
+            delete globalThis.ExperimentalWordDiaryRemainingTimeReports;
+            delete globalThis.ExperimentalWordDiaryRemainingTimeReportsCatalog;
+            delete globalThis.ExperimentalWordDiaryCandidates;
+            return [typeof ExperimentalWordDiaryRemainingTimeReports,typeof ExperimentalWordDiaryRemainingTimeReportsCatalog,typeof ExperimentalWordDiaryCandidates];
+        })()`), ['undefined','undefined','undefined']);
+        console.log(JSON.stringify({remainingTimeReports:{cases:remainingTimeFixtures.length,
+            inputs:remainingTimeFixtures.reduce((sum,f)=>sum+f.values.length,0),
+            groups:Object.fromEntries([...new Set(remainingTimeFixtures.map(f=>f.group))].map(group=>[group,
+                remainingTimeFixtures.filter(f=>f.group===group).length]))}}));
         const remainingCorrectionFixtures = require('./diary_remaining_correction_fixtures').fixtures();
         await js(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_diary_candidates.js'), 'utf8'));
         await js(`globalThis.ExperimentalWordDiaryRemainingCorrectionsCatalog=${JSON.stringify(wordCatalog)};`);
