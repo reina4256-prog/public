@@ -3,9 +3,23 @@
 // historical reading, runtime diary integration, or user acceptance.
 const fs = require('node:fs');
 const path = require('node:path');
+const { createHash } = require('node:crypto');
 const ROOT = path.resolve(__dirname, '../..');
 const SPEC = 'docs/specs/core/experimental_word_learning.md';
 const AUDIT_SPEC = 'docs/specs/core/experimental_word_diary_audit.md';
+// Manually recorded source-boundary reviews, not a result of structural checks.
+// The owning specification records exactly which source and owner passages
+// were read. Other adapters and historical references remain pending.
+const boundaryReviews = new Map([
+    ['4d11', 'd60bcf7e4d72bbb2994aec60d7850b15f9e040999fbcd91b302fab8a7f73260c'],
+    ['4d12a', '1c6fb5664389217923c0212bb79d84acaee4b83b1c47870e1ba6a4d2a167b671'],
+    ['4d12b', '5d7ec203d035aa094227dcaaf700a59480ddb79c6704179a7acd8d3b0aaaed74'],
+    ['4d12c', '4e6ad6bcc39ff55744752bef45726b607f5e2868f825ce3f70c1489a26c36287'],
+    ['4d12d', '0a5aadc81ea2e976562f202706f00e1fd2ad76b2cf137e4a39d5bff45e111a6a'],
+    ['4d12e', 'f8a9b069e3cc233ce58f9d2cb4fdec49460d589097002432d996f0c670582bf4'],
+    ['4d12f', '30d8493a13e6e8227d6ab1826f76c2ce6c2f3cbfabc832587e394009e33db558'],
+    ['4d12g', '15234f8e9df8ada82f09b7634b7a1da211c7ba7b7bd259baa35d6f4a993b99d4']
+]);
 const definitions = [
     ['4d1', 'candidates', 'create', 0],
     ['4d2', 'questions', 'capture', 3],
@@ -89,7 +103,7 @@ function localFile(relative) {
     if (!resolved.startsWith(ROOT + path.sep)) throw new TypeError('Invalid audit reference');
     return resolved;
 }
-function audit(rows = inventory()) {
+function audit(rows = inventory(), readAdapterSource = null) {
     const errors = [];
     const read = relative => {
         try { return fs.readFileSync(localFile(relative), 'utf8'); }
@@ -102,7 +116,7 @@ function audit(rows = inventory()) {
     const checked = rows.map(row => {
         if (ids.has(row.id) || files.has(row.file)) errors.push({ code: 'duplicate_owner', id: row.id });
         ids.add(row.id); files.add(row.file);
-        const source = read(row.file), test = read(row.test);
+        const source = readAdapterSource ? readAdapterSource(row.file) : read(row.file), test = read(row.test);
         const match = source.match(new RegExp(`function ${row.api}\\(([^)]*)\\)`));
         const arity = match ? match[1].split(',').filter(item => item.trim()).length : null;
         if (arity !== row.arity || !source.includes(`{ ${row.api} }`)) errors.push({ code: 'api_contract', id: row.id });
@@ -111,9 +125,17 @@ function audit(rows = inventory()) {
         if (!spec.includes(`diary_${row.slug}`)) errors.push({ code: 'missing_scope_reference', id: row.id });
         if (!roadmap.includes(`| ${row.id} |`) && !roadmap.includes(`| **${row.id}** |`)) errors.push({ code: 'missing_step_reference', id: row.id });
         const confirmed = definitions.some(([id, slug, api, expectedArity]) => id === row.id
-            && slug === row.slug && api === row.api && expectedArity === row.arity);
+            && slug === row.slug && api === row.api && expectedArity === row.arity
+            && row.file === `experimental_word_diary_${slug}.js`
+            && row.test === `tests/experimental_word_diary_${slug}.test.js`);
+        const fingerprint = createHash('sha256').update(source.replace(/\r\n/g, '\n')).digest('hex');
+        const boundaryReviewed = confirmed && arity === row.arity && boundaryReviews.get(row.id) === fingerprint;
         return { ...row, structuralContractChecked: arity === row.arity, boundarySpec: SPEC,
-            scopeUserConfirmed: confirmed, auditSemanticReview: 'pending', runtimeDiaryConnected: false };
+            scopeUserConfirmed: confirmed,
+            auditSemanticReview: boundaryReviewed ? 'capture_boundary_reviewed' : 'pending',
+            reviewRecord: boundaryReviewed ? AUDIT_SPEC + '#ao-source-review-record' : null,
+            reviewedSourceCommit: boundaryReviewed ? 'b260bac' : null,
+            runtimeDiaryConnected: false };
     });
     // One directory, file names only. Never recurse into unrelated directories.
     for (const name of fs.readdirSync(ROOT)) {
@@ -136,7 +158,9 @@ function audit(rows = inventory()) {
     for (const issue of issues) if (!auditSpec.includes(`| ${issue.id} |`)) errors.push({ code: 'missing_pending_reference', id: issue.id });
     return { structuralOk: errors.length === 0, errors, rows: checked,
         crossFileCorrection: { id: '4d12an', references: crossFiles, test: restTest, scopeConfirmed: true },
-        counts: { confirmedScopes: 51, visibleSlots: 52, mappedOwners: rows.length + 1, aoConfirmed: false },
+        counts: { confirmedScopes: 51, visibleSlots: 52, mappedOwners: rows.length + 1,
+            reviewedCaptureBoundaries: checked.filter(row => row.auditSemanticReview === 'capture_boundary_reviewed').length,
+            aoConfirmed: false },
         unresolved: issues, eligibleForAoCompletion: false,
         whole4d12Complete: false, whole4dComplete: false, wholeID4Complete: false };
 }

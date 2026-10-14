@@ -14,7 +14,9 @@ test('structural reconciliation preserves confirmed scopes and cannot certify se
     assert.equal(report.counts.confirmedScopes, 51);
     assert.equal(report.counts.visibleSlots, 52);
     assert.equal(report.counts.aoConfirmed, false);
-    assert.ok(report.rows.every(row => row.scopeUserConfirmed && row.auditSemanticReview === 'pending' && !row.runtimeDiaryConnected));
+    assert.ok(report.rows.every(row => row.scopeUserConfirmed && !row.runtimeDiaryConnected));
+    assert.ok(report.rows.some(row => row.auditSemanticReview === 'pending'));
+    assert.ok(report.rows.some(row => row.auditSemanticReview === 'capture_boundary_reviewed' && row.reviewRecord));
     for (const key of ['eligibleForAoCompletion', 'whole4d12Complete', 'whole4dComplete', 'wholeID4Complete']) {
         assert.equal(report[key], false);
     }
@@ -42,6 +44,38 @@ test('duplicate ownership and a changed API contract are rejected without rewrit
     assert.ok(report.errors.some(error => error.code === 'duplicate_owner'));
     assert.ok(report.errors.some(error => error.code === 'api_contract' && error.id === '4d1'));
     assert.equal(report.structuralOk, false);
+});
+
+test('a manually reviewed boundary is not transferred to altered adapter ownership or API metadata', () => {
+    for (const change of [row => { row.arity += 1; }, row => { row.slug = 'unreviewed'; },
+        row => { row.file = 'experimental_word_diary_reports.js'; },
+        row => { row.test = 'tests/experimental_word_diary_reports.test.js'; }]) {
+        const rows = inventory(), row = rows.find(item => item.id === '4d12g');
+        change(row);
+        const checked = audit(rows).rows.find(item => item.id === '4d12g');
+        assert.equal(checked.scopeUserConfirmed, false);
+        assert.equal(checked.auditSemanticReview, 'pending');
+        assert.equal(checked.reviewRecord, null);
+    }
+    assert.equal(audit().rows.find(item => item.id === '4d12g').auditSemanticReview, 'capture_boundary_reviewed');
+    assert.equal(audit().whole4d12Complete, false);
+});
+
+test('a same-API source change cannot keep an old manual boundary review', () => {
+    const report = audit(inventory(), file => {
+        const source = fs.readFileSync(localFile(file), 'utf8');
+        return file === 'experimental_word_diary_negation_reports.js'
+            ? source.replace('return buffer.retain(', 'return false && buffer.retain(') : source;
+    });
+    assert.equal(report.structuralOk, true);
+    const row = report.rows.find(item => item.id === '4d12g');
+    assert.equal(row.structuralContractChecked, true);
+    assert.equal(row.scopeUserConfirmed, true);
+    assert.equal(row.auditSemanticReview, 'pending');
+    assert.equal(row.reviewRecord, null);
+    assert.equal(row.reviewedSourceCommit, null);
+    assert.equal(report.eligibleForAoCompletion, false);
+    assert.equal(audit().rows.find(item => item.id === '4d12g').reviewedSourceCommit, 'b260bac');
 });
 
 test('a missing fixture or invalid reference remains an error, never a repaired or guessed reference', () => {

@@ -2,6 +2,8 @@
 
 ## 現在の実装仕様
 
+- 2026-10-15同じaoの継続進捗：構造監査／保留一覧の途中成果はユーザーOK確認済み。ao全体の実装後OKではなくap分割／移動なし。今回は4d11／4d12a〜gの八capture原文と所有入口の該当枝・正本を直接読み、下の原文照合記録へ限定結果を追加。監査の八行だけを手動記録のcapture_boundary_reviewedへ、その他はpending・全文再読／意味上最終照合未完・終了資格falseを維持する。既存51確認を増減しない。
+
 2026-10-15、ユーザー「提案された内容はOKです。実装にすすんでください」で、既存入口と独立受け渡し部品の最終照合・未対応保留一覧の整備、入口ごとの担当・成立境界・検証根拠・残る不足の対応付け、未回答や新理解規則を自動採用しない成立条件／終了条件案を採用。今回の対象採用を実装後OKにしない。
 
 内容規則と全API内訳・全途中修正検証詳細の正本は引き続き[日記節・コード対応表](experimental_word_learning.md#最新の実装範囲次チャット)。本書は照合状況を所有し、その本文を置換／要約して条件を失わせない。従前119開始文継続文と全参照先の意味内容再読は未完。機械検査・原文保持・見出し一覧・省略出力は意味内容読了の証拠にならない。
@@ -28,6 +30,29 @@
 これは対応索引であり、各部品の細かい成立条件を統一／置換する表ではない。機械照合は既存入口の意味上の網羅判定を行わず、既存の通常回答・確認・挨拶・語の応用等も無条件に採用／永久対象外にしない。
 
 ### 未対応保留と照合未完の扱い
+
+### ao直接原文照合記録
+
+<a id="ao-source-review-record"></a>
+
+2026-10-15同じao継続。b260bac途中成果への「OKです」は途中成果限定確認、ao全体の実装後OK未受領・ap分割／移動なし。以下は今回実際に読んだcapture関数の入口境界を正本の対応表・既存所有入口と照合した記録。機械構造検査で読了としたものではなく、全過去参照全文の意味再読や全入口の最終照合も未完のまま。
+
+| 記号 | 全文確認したcapture原文 | 原文を照合した所有入口・正本 | 今回の意味上の確認と残る境界 |
+| --- | --- | --- | --- |
+| 4d11 | `experimental_word_diary_proposal_examples.js` | `core.proposalFrame/understand`・`relation.offer/validLabel`の該当枝・正本3b2／対応表 | 当時partialでroles未付与と原資料proposedを分離。今回候補と最初の採用資料を別保持。同休息のお願い誘い混在はownerが拒否、今回受理を新共同参加にしない |
+| 4d12a | `experimental_word_diary_known_proposal_examples.js` | 同上 | 入力前初期／当該scope既知、completeとrelationReferencesを照合。理解済みでもactualParticipation=false。通常声かけと教示を混同しない |
+| 4d12b | `experimental_word_diary_report_examples.js` | `core.reportFrame/understand`・`relation.offer/validLabel`の該当枝・正本3b3／対応表 | frame内容主体とlabel.subject=self（観測する休息主体）は別。当時subject/aspect=null・rolesなしを原資料から補わない。同休息異主体の受理拒否はowner担当 |
+| 4d12c | `experimental_word_diary_known_report_examples.js` | 同上 | complete教示でreportSourceなし。初期／既存scopeとreferencesを照合し、通常speaker_reportから教示を再構成しない |
+| 4d12d | `experimental_word_diary_reports.js` | `core.reportFrame/understand/receive`の該当枝・既読`world.respond`・正本3b3／対応表 | 教示ではなく通常肯定report・speaker_reportを別区分へ。現在rest／shade注目を条件にせず聞いた場面だけ保持、発話能力や報告の真偽を成立根拠にしない |
+| 4d12e | `experimental_word_diary_negation_examples.js` | `core.negationFrame/understand`・`relation.offer/validLabel`の該当枝・正本3c1／対応表 | 肯定rest/shade・否定eat/berryは教示対照の観測条件。当時polarity=unknown・report既知／negation不足。非休息を食事という意味や休みたくない希望へ補わない |
+| 4d12f | `experimental_word_diary_known_negation_examples.js` | 同上 | 観測活動意味も既知、reportFormと否定form/polarityのscopeを区別。当時completeを保持するが教示にspeaker_reportを付与しない |
+| 4d12g | `experimental_word_diary_negation_reports.js` | `core.negationFrame/understand/receive`の該当枝・既読`world.respond`・正本3c1／対応表 | 通常本人rest否定一表現。教示と違いeat意味・現在活動／一意注目を条件にしない。reported/verified=false、時点unspecified、当時理解と原聞いた時刻を分離 |
+
+上の八つで今回読み取った該当境界に新しいコード／正本不一致は見つかっていない。ただし各検証fixtureの全API内訳・過去参照全文、全所有入口・全adapterの意味照合を終えたことにはしない。`auditSemanticReview=capture_boundary_reviewed` はこの狭い読取結果だけ、`reviewRecord` は本節参照、未読部品はpendingを保持。構造検査からこの状態へ自動昇格しない。仮の登録API／slug改変にはこの読取状態を引き継がせず、前確認51・ao未完は別に保持する。
+
+読取対象はb260bac時点の原文。各captureのUTF-8本文（CRLFだけLFへ正規化）のSHA256を手動読取記録へ結び、同じ引数数でも本文が変われば今回読取状態をpendingへ戻す。これは以前のユーザー限定確認の取消ではない。所有入口は本節記載の該当枝を直接読んだ範囲のみで、その後の変更や未読分まで意味確認済みにしない。ハッシュ一致自体を原文の意味読了の証拠にせず、今回実際に読んだ八ファイルだけ登録する。
+
+### 未対応保留一覧（従前の全保留は参照先全文に保持）
 
 | 識別子 | 具体事項 | 現在の扱い・必要な次判断 | 所有先 |
 | --- | --- | --- | --- |
@@ -58,6 +83,10 @@
 これは読取済み所有関数から得た具体的な残件であり、全過去参照・全所有関数の意味確認は未完。実装不足か、候補を作らない既存境界か、新しい相談が必要かの最終分類を自動で決めない。
 
 ### 検証記録（構造監査実装の段階）
+
+- 最終差分レビューで正本file／fixtureの組も手動読取状態の引継ぎ条件へ明示し、API／slug／file／fixture四種の登録変更を同一項目で拒否確認、専用八件・JS二本を再通過。文書追記patchの読取行を短い誤表記で指定した一回はverification failedで書込なし、固定の節見出しへの挿入へ補修。機能の不通過ではない。
+
+- 同じaoの直接原文照合追加後：専用検査は八件session862433終了0、JS二本構文・七言語14,957文sessione751cd終了0。登録API／slug変更と、同一API本文変更の注入（元ファイル非変更）の二項目を追加して、古い手動読取状態を新しい資料へ転用しないことを確認。前回の従前872件通過は保持するが今回は再実行していない。通常ゲームUI・文法知識保存・catalog/runtime・九見本星座は非変更。
 
 - 専用六件通過：51枠と今回意味照合未完の分離、部品欠落時の未分類検出、重複担当／API引数改変拒否、fixture欠落／不正参照拒否、再監査／返却コピー編集後の原inventoryと読取対象SHA256不変、実ローカルHTTPで50部品＋監査工具＋本書の52要求404と既存二HTML要求200。部品の成立挙動の再確認や実renderer検証ではない。
 - 従前 `npm run test:words` 872件終了0、変更JS二本 `node --check`、七言語14,957文 `npm run i18n:check` 通過。新しいゲーム表示文はなくcatalog／runtime変更なし。新六件は別の `test:words:diary:audit` で実施し、従前872件に含まれたと表記しない。
