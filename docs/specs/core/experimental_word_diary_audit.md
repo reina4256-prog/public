@@ -2,6 +2,11 @@
 
 ## 現在の実装仕様
 
+- 2026-10-15最新・同じao：正本全499832文字、工程表全600236文字（旧開始文・継続文と936df00／an確認済み次ao全文、同じao実末尾を含む）、索引全188569文字を原文の連続小範囲で意味再読補完。対象関連の直接参照先（理由／順序playtest、旧AI、住人、Steam分離、日記字体READMEと三OFL、外部参考二件の本文）も確認。索引の別領域への一般ルーティングや外部論文の引用文献を無制限に再帰展開した読了ではない。省略出力は該当原文を再取得して補い、保持検査・ハッシュで読了を認定していない。
+- 50独立部品の全ヘルパー／create・capture原文と所有入口の該当成立枝を正本へ照合。手動記録を50capture境界へ追加し、所有側七ファイルの読取本文にも結び付けた。所有側変更時は全capture読取状態をpendingへ戻す保守的な扱いで、従前51ユーザー限定確認は取消さない。これは本人日記の本接続や全ての自由入力の網羅確認ではない。各fixtureの全本文を読み直したという主張でもなく、正本にある全API内訳・途中検証詳細と既存の挙動検証結果を保持する。
+- ユーザーが今回の具体的な二点に「その扱いでよい」「それぞれ維持でよい」と回答。下の未対応入口は個別の担当不足として残し、新成立規則を採用せず後続相談する。身振り問い／後日休息追記／経験由来訂正の新適用は従前の未決定／未回答／別途相談を各々維持。この扱い確認をao実装後OKへ拡張しない。
+- 監査のledgerは従前14識別子をすべて保持。historical_readingはreviewed_related_sources、entry_semanticsはreviewed_existing_boundariesへ今回の限定到達を明記し、その他12保留をunresolvedへ返す。二項目の到達を未対応実装の完了や4d12／4d／ID4終了へ広げず、eligibleForAoCompletion／aoConfirmedは引き続きfalse。52枠51確認済み・残り1〜4中心2・予測52〜55／子41〜44非正式・追加分割なし。
+
 - 2026-10-15同じaoの継続進捗：構造監査／保留一覧の途中成果はユーザーOK確認済み。ao全体の実装後OKではなくap分割／移動なし。今回は4d11／4d12a〜gの八capture原文と所有入口の該当枝・正本を直接読み、下の原文照合記録へ限定結果を追加。監査の八行だけを手動記録のcapture_boundary_reviewedへ、その他はpending・全文再読／意味上最終照合未完・終了資格falseを維持する。既存51確認を増減しない。
 
 2026-10-15、ユーザー「提案された内容はOKです。実装にすすんでください」で、既存入口と独立受け渡し部品の最終照合・未対応保留一覧の整備、入口ごとの担当・成立境界・検証根拠・残る不足の対応付け、未回答や新理解規則を自動採用しない成立条件／終了条件案を採用。今回の対象採用を実装後OKにしない。
@@ -34,6 +39,39 @@
 ### ao直接原文照合記録
 
 <a id="ao-source-review-record"></a>
+
+### 2026-10-15の追加直接照合（最新）
+
+既存の下の八行の記録はそのまま保持し、追加42部品の全文読取と該当所有枝の意味照合を補完した。原本文はca35c7e時点（八行の従前読取原文はb260bac時点）で、ゲーム実装936df00の成立条件を変更しない。所有側はcoreの入力・解釈・理解・学習・原資料保持、world全文、relationの全成立枝・候補・習得・検証、life／feeling／careers全文、storage全文を直接確認した。下の表のまとめは正本の条件・全API内訳の置換ではない。
+
+| 追加範囲 | 該当所有入口 | 原文で照合した境界 |
+| --- | --- | --- |
+| 4d1〜4 | 候補create/retain、core.receive/react、world.tick/onArrival、careers.tick/learn | コピー保持と同出所再受信抑止、答え不明の問い、本人食事休息完了と当時理解、六職完了と実演によるwork二項を区別。感覚変化を理由や感情へ補わない |
+| 4d5〜10 | core.receive/understand/updateLinks/updateWordExplanation、life.offer、relation.offer/validLabel | 個体一意名付け、既知意味による独自語説明、生活一語教示、関係未知の説明、質問教示の未知／既知を分離。更新なしの新入力と同入力再受信を区別、引用答えは本人実回答ではない |
+| 4d12h〜j | core.timeFrame、relation.offer/validLabel/acquired | 現在／過去教示の原休息と当時basis、既知側のsource_matched／unidentified／存在矛盾拒否、通常本人肯定二報告の相対時点を分離 |
+| 4d12k〜m | core.conditionFrame、relation.sensation/conditionJudgment/offer/validLabel | 条件教示と構文理解、原教示観測と今回判断を分離。中間帯unknownと未観測null、条件既知でも判断未生成の境界を維持 |
+| 4d12n〜p | core.sequenceFrame、relation.offerSequence/validLabel/acquired、world.respond | 原食事before/after同出所と開始前根拠を照合。既知教示の現在根拠と原食事資料、通常順序提案と具体完了判断・予約実行を分離 |
+| 4d12q〜u | core.reasonFrame、relation.offerReason/validReasonLabel、world.retainSelection/respond/validContext | 原選択入力・原完了休息・当時意味提案根拠、question/reason教示の未知／既知と今回根拠、本人実selected_reason回答を分離。anの開始入力順を保持 |
+| 4d12v〜x | core.correctionFrame/updateWordExplanation、relation.offerCorrection/validCorrectionLesson | source/replacement二教示と印なし実訂正を分離。初期既知の再教示は非習得、経験由来訂正は原限定scopeとlesson照合、原説明一意性を保持 |
+| 4d12y〜af | core.feelingTeaching/understand、feeling.offer/replay/valid | 操作partial、選択原二節当時理解、今回内容理解を分離。未知語／初期既知語、report/timeの片側保持と両側更新、retain→difference→noncausal限定対比を照合。本人身体経験・真偽・因果を新造しない |
+| 4d12ag〜ai | core.feelingContrast/feelingReport/reportContinuation/receive、feeling.valid | 固定単独節と固定二節通常報告、既存1c単独出来事感情／続報の担当分離。原receiptと直前receiptを別保持、確認echoだけは新候補なし、原相対時点と今回聞いた時刻を分離 |
+| 4d12aj〜ak | core.wordFrame/wordScope/updateWordExplanation/validWordLearning | 生活八語＋仕事七の通常置換、x担当eat/rest、個体名・再訂正連鎖・日本語旧意味明示否定対比の担当を分離。平坦原receiptで連鎖・取り下げ先を照合しノートから再構成しない |
+| 4d12al〜am | core.timeFrame/interpret/understand、world.respondCurrent/approach/validSelections | al六時点主体極性組合せとj二組合せ、通常休息お願い誘い／日本語散策とm/pを分離。理解と今回approaching／continuing／not_startedを別保持、未開始を本人拒否へ読み替えない |
+
+照合した採用済み境界について今回の新しいコード／正本不一致は見つかっていない。全理解規則・全自由入力が完成したという意味ではない。anの零経過補修は既存の936df00確認を引継ぎ、再確認の依頼をしない。
+
+### 担当不足として残す具体入口（扱い確認済み・新成立未採用）
+
+| 入口 | 現在の担当との区別 | 現在の扱い・次の相談点 |
+| --- | --- | --- |
+| 成功した本人回答 | uの実selected_reason以外。現在／過去活動、注目、行先、仕事振り返り／再試行、味、休息結果などworld.respondの実answer保持 | 当時理解と実回答原資料を渡す日記候補部品は未対応。入口ごとの対象・必要根拠・既存4d2との担当分離を後続相談 |
+| 聞き返し・省略意味確認 | core.contextQuestion/context_repeat、world.answerContext／repeat_answer。答え不明の問いやuの原回答と同一ではない | 原回答／本人発話と観察描写の区別、再送を新記録とするか等は未採用。前回答を今回の新実経験にしない |
+| 語の応用・個体参照 | core.wordApplication/wordUseFrame/word_reference/reference。4d5/6の今回教示やamの直接提案とは別 | 原説明や同じ個体の参照、今回理解・判断の受け渡し成立は個別相談。amへ間接語応用を自動包含しない |
+| 通常確認・取り下げ・挨拶 | 名付けへのyes/no reply、直前名付けのcorrection、greeting。x/aj/akの語義訂正とは別 | 新候補／確認状態更新／取り下げをどう区別するか未採用。通常確認を新独立教示・新経験にしない |
+| 固定範囲外の報告・組合せ | 木の実観察、休息の大事さ／快適さ／回復説明、好悪・現在希望、任意感情二節など。d/g/j/al/ag/ah/aiの限定担当以外 | 各入口の部分理解・主体・極性・時点・出所と複数節scopeを個別相談。aiの固定1c境界やah固定二節を任意報告へ自動拡張しない |
+| 固定範囲外の提案 | 対象付き否定食事お願い、食後散策、任意条件／動作／他言語散策など。m/p/am以外 | 当時構文理解と判断／実行を区別して対象成立を後続相談。解析できる形だけで受け渡し成立や従否を作らない |
+
+これらを残すことは永久対象外決定ではない。今回の二点へのユーザー回答は扱いの確認で、新文法・候補生成・本接続保存の実装承認やao実装後OKではない。
 
 2026-10-15同じao継続。b260bac途中成果への「OKです」は途中成果限定確認、ao全体の実装後OK未受領・ap分割／移動なし。以下は今回実際に読んだcapture関数の入口境界を正本の対応表・既存所有入口と照合した記録。機械構造検査で読了としたものではなく、全過去参照全文の意味再読や全入口の最終照合も未完のまま。
 
@@ -83,6 +121,11 @@
 これは読取済み所有関数から得た具体的な残件であり、全過去参照・全所有関数の意味確認は未完。実装不足か、候補を作らない既存境界か、新しい相談が必要かの最終分類を自動で決めない。
 
 ### 検証記録（構造監査実装の段階）
+
+- 最新文書保持検査：ca35c7e索引973行／工程表3457行／正本2520行／本書110行の全旧行を除外なしで順序保持、本工程表旧122textブロック全文保持と追加同ao123の実末尾配置確認終了0。原文意味再読の証拠とは別。今回対象6ファイルのみcommit/push、現在ao採用範囲実装検証仕様引継ぎ更新限定完了・同じao自由フィードバック実装後OK未受領、4d12／4d／ID4全体未完。
+
+- 2026-10-15最新・50capture／所有側照合追加後：専用9件は最終再実行終了0（2405ms）、従前test:words872件session62811終了0（149873ms）、七言語14,957文session46470終了0、変更JS二本構文・diff検査通過。前51確認／可視化52／担当51／手動capture50／所有七読取記録／ledger14と他12保留／全終了資格falseを確認。新一件は所有coreの応答枝変更をファイル非変更の注入で与え、capture50とentry_semanticsをpending/incompleteへ戻し従前確認を取消さないことを検査。最後のentry_semantics連動追加後も専用9を再通過。専用9は従前872へ混算しない。
+- 今回の原文再読時の省略出力はfeeling_words全文と索引124000〜128000を再取得して補完。推測所有四パス不存在は実relation/life/feeling/careersへ補修、書込なし。保持検査・ハッシュは読了へ不使用。旧API内訳・全途中補修詳細はそのまま保持。ゲームコード・文法知識・表示・catalog/runtime・実ユーザー保存非変更、追加実renderer／本人日記生成保存再開／配布版検証は未実施。
 
 - 最終差分レビューで正本file／fixtureの組も手動読取状態の引継ぎ条件へ明示し、API／slug／file／fixture四種の登録変更を同一項目で拒否確認、専用八件・JS二本を再通過。文書追記patchの読取行を短い誤表記で指定した一回はverification failedで書込なし、固定の節見出しへの挿入へ補修。機能の不通過ではない。
 

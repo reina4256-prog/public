@@ -15,13 +15,14 @@ test('structural reconciliation preserves confirmed scopes and cannot certify se
     assert.equal(report.counts.visibleSlots, 52);
     assert.equal(report.counts.aoConfirmed, false);
     assert.ok(report.rows.every(row => row.scopeUserConfirmed && !row.runtimeDiaryConnected));
-    assert.ok(report.rows.some(row => row.auditSemanticReview === 'pending'));
-    assert.ok(report.rows.some(row => row.auditSemanticReview === 'capture_boundary_reviewed' && row.reviewRecord));
+    assert.equal(report.counts.reviewedCaptureBoundaries, 50);
+    assert.ok(report.rows.every(row => row.auditSemanticReview === 'capture_boundary_reviewed' && row.reviewRecord));
+    assert.ok(report.ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed'));
     for (const key of ['eligibleForAoCompletion', 'whole4d12Complete', 'whole4dComplete', 'wholeID4Complete']) {
         assert.equal(report[key], false);
     }
     for (const id of ['historical_reading', 'entry_semantics', 'gesture_questions', 'later_rest_answer', 'ao_feedback_acceptance']) {
-        assert.ok(report.unresolved.some(issue => issue.id === id));
+        assert.ok(report.ledger.some(issue => issue.id === id));
     }
 });
 
@@ -89,6 +90,21 @@ test('a missing fixture or invalid reference remains an error, never a repaired 
     }
 });
 
+test('an owner change invalidates source reconciliation without revoking confirmed scopes', () => {
+    const report = audit(inventory(), file => {
+        const source = fs.readFileSync(localFile(file), 'utf8');
+        return file === 'experimental_word_learning_core.js'
+            ? source.replace("return { intent: 'answer_unknown', action: null }", "return { intent: 'acknowledge', action: null }") : source;
+    });
+    assert.equal(report.structuralOk, true);
+    assert.equal(report.counts.confirmedScopes, 51);
+    assert.equal(report.counts.reviewedCaptureBoundaries, 0);
+    assert.ok(report.rows.every(row => row.scopeUserConfirmed && row.auditSemanticReview === 'pending'));
+    assert.equal(report.ownerBoundaries.find(owner => owner.file === 'experimental_word_learning_core.js').review, 'pending');
+    assert.ok(report.unresolved.some(issue => issue.id === 'entry_semantics' && issue.status === 'incomplete'));
+    assert.equal(report.eligibleForAoCompletion, false);
+});
+
 test('caller edits and repeated audits do not change the inventory or consulted files', () => {
     const references = [...inventory().flatMap(row => [row.file, row.test]),
         'docs/specs/core/experimental_word_learning.md', 'docs/WORD_DEMO_ROADMAP.md',
@@ -101,7 +117,7 @@ test('caller edits and repeated audits do not change the inventory or consulted 
     const rows = inventory(); rows[0].file = 'edited';
     assert.equal(inventory()[0].id, '4d1');
     assert.equal(audit().rows[0].id, '4d1');
-    assert.ok(audit().unresolved.some(issue => issue.id === 'historical_reading'));
+    assert.ok(audit().ledger.some(issue => issue.id === 'historical_reading'));
     assert.deepEqual(hashes(), before);
 });
 
