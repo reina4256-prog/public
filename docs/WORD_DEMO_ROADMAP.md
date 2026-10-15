@@ -624,6 +624,8 @@ ID 1・2は下記の対応範囲で実装・通し検証済み。ID 3〜10は未
 | 4d12au（同枠最終・上の旧未採用行より優先） | 既存日本語単独木の実観察報告の当時理解・実応答を独立report候補へ | 対象成立条件個別採用・実装Codex検証仕様引継ぎ更新限定完了、全1005／別監査15／六JS七言語14957／一時renderer515通過。次同じau内自由フィードバック必要修正実装後OK未受領、58枠57確認済み残数予測据置全体未完・次記号追加移動なし。全13群API途中詳細は正本au節所有 |
 | 4d12au（最新確認・上の旧行より優先） | 既存日本語単独木の実観察報告を独立report候補へ渡す限定範囲 | 83a54d1実装・Codex検証・ユーザー実装後OK限定確認済み。全1005／監査15／六JS七言語14957／renderer515と全13群API途中詳細保持、本人日記生成保存再開配布本接続未完 |
 | 4d12av | 残る入口の一系統選定・具体範囲と個別成立相談から採用範囲実装検証確認まで | 次予定・対象理解規則未採用未着手。他の固定範囲外報告提案・今回範囲外挨拶等は個別相談、一括採用永久対象外決定なし。59枠58確認済み最終総数未確定全体未完、残入口相談のため予定一枠追加・旧予測58／子47を59／子48へ非正式下限再整合 |
+| 4d12av（同じ枠の採用範囲） | 既存日本語単独休息快適さrest_comfort報告の独立受け渡し | ユーザー「はい、それぞれOKです」で対象成立条件個別採用、diary_rest_comfort_reports.capture三引数を実装検証中。comfortable/rest/report/condition当時complete・実応答・unknown条件を分離、本人快感休息完了回復因果真偽非補完。実装後OK未受領・同じav継続、59枠58確認済み残数予測据置全体未完・追加分割移動なし。全API途中詳細は正本av節所有 |
+| 4d12av（同枠最終検証） | 採用済み既存日本語単独休息快適さ報告の独立report候補 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1023／監査16／六JS七言語14957／一時renderer233通過。次同じav内自由フィードバック必要修正実装後OK未受領、59枠58確認済み残り予測1中心1予測最終59／子48非正式据置全体未完・追加分割移動なし。全14群API1421改変拒否・全途中詳細は正本av節所有 |
 
 - 4d12は関係既知側お願い誘い／他関係感情訂正等の未対応教示と通常声かけ等の境界を正本日記節・コード対応表・所有入口から照合する管理枠。列挙を全対象の実装承認や体験版対象外決定にしない。4d11の限定規則を自動拡張せず、引用答えを本人実回答・師匠台詞全文を本人理解へ変換しない。
 - 各回答・途中引継ぎ・再開文に「現在の記号／限定範囲の完了と大区分全体の未完／次の記号／残件・未採用」を明記する。ID3の3b2は所有する学習入口、ID4の4d11は日記への独立受け渡し工程で、番号の意味を混同しない。
@@ -3810,4 +3812,20 @@ au木の実報告、at挨拶別資料、as名付け確認取り下げ別資料�
 前回全1005件（988＋au17）session25487終了0・89643.5297ms／別監査15件session45444終了0・16134.7784ms／JS六本構文・七言語14,957文通過。13群152原121成立API表・27種3267改変拒否、12新input反復別候補・原partial非遡及・コピー独立元資料非変更・知識経験選択出所非増加を保持。一時Electronは制限内session44322 GPU -1073741515／ERR_FAILED(-2)終了1非通過→権限付きTemp/word-berry-report-preview-teKD9x session26564終了0、152＋三種363改変＝515ケース、九global除去local/session各au-sentinel不変保存bridge未定義・auto-review拒否なし。通常HTTP70要求404／二HTML200・errors[]も保持。初回専用17の16通過1不通過は八設定fixtureがfoundationだけで成立と誤認したため、所有非変更でfoundation&&lifeへ補修して17通過1289.528ms。初回文書patchの工程表見出し不一致は全体無変更拒否・実見出しへ補修。stage・原文保持・commit push結果を含む全途中詳細を正本au節／同au継続文／latest handoffへ非削除非置換保持してください。at全988／監査14／renderer147九群API551改変拒否・as全975／renderer159全17群・ar全952／renderer448全28群・aq全917／renderer310全26群・ap全887／renderer410以下全従前詳細も保持します。
 
 今回の確認移動更新は文書のみ・実働再検査なし。原資料はNode専用メモリ実生成、rendererはコピー上照合で、本人日記生成保存再開・配布版未完を保持してください。ゲーム呼出本文文章化集約途中記録印象絵暦保存本接続未接続、新表示文なしcatalog/runtime非変更・原五区分候補部品非変更。旧AI旧保存実ユーザー保存九見本星座は非操作非置換、今回移動は私の明示です。途中保存を移動合図にせず、固定入力や検証手順を私へ求めないでください。対象外%SystemDrive%/非操作commit対象外・handoffローカルGit対象外です。
+```
+
+## 同じ4d12av内の継続文（2026-10-16・採用範囲実装検証限定完了、移動指示ではない）
+
+```text
+実装基点83a54d1（ゲーム所有コード最終936df00）、前確認移動push29bfc03。今回の実装commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdのlatestを参照。auまで実装後OK限定確認済み、今回avはユーザー「はい、それぞれOKです」で対象範囲と成立記録条件を個別採用し、採用範囲の実装・Codex検証・仕様引継ぎ更新限定完了。実装後OK未受領、次同じav内自由フィードバック・必要修正・実装後OK確認。途中保存を移動合図にせず、次記号追加や移動なし、固定入力や検証手順をユーザーへ求めない。
+
+正本experimental_word_learning.mdのdiary-rest-comfort-reports-av節・日記節コード対応表、experimental_word_diary_audit.md最新と具体未対応入口、docs/CURRENT_IMPLEMENTATION.md、索引・工程表・従前136開始文継続文全参照先の全条件確認状態未決定未回答未完保留全API内訳全途中修正検証詳細を非削除非置換で保持。最新ao/ap/aq/ar/as/at/au人間OKを旧固定未受領より優先し再確認不要。ao原文意味再読50部品全文所有七入口照合は従前到達として引継ぎ、保持検査ハッシュ省略出力を意味読了にせず各fixture全文や無制限再帰読了を主張しない。
+
+avは既存日本語単独rest_comfort「横になると気持ちいい／きもちいい／心地よい」と既存終助詞だけ。diary_rest_comfort_reports.capture(buffer,result,receipt)三引数一時APIは既存candidates.create()へ独立report候補を渡す。comfortable/rest/report/condition当時completeとsubject=実話者・positive/unspecified・speaker_report、実heard_rest_comfort/attendを分離コピー。conditionStatus=unknownはunknownのままで、当時completeから条件成立判断・本人快感休息完了経験・回復因果・真偽確認を補わない。status=reported・verified/newTeaching/newLearning/newExperience=false、実report/condition限定scopeを転移せず新文法理解習得規則なし。原input/frame・聞いたscene/attention・前後world・入力前knowledge・当時understanding/reportSource・実response/actualSpeechを分離。beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond後afterState/afterWorld/replyをコピー上既存receive/respondで全文照合、欠損矛盾非補完。整合性照合であり真正性認証機構や実ゲーム資料供給本配線ではない。同input非増加非上書き、新input別候補・後知識原partial非遡及。本文集約4e未決定、一時receipt保存形式非採用・ゲーム呼出なし。
+
+au木の実報告、at挨拶別資料、as確認取り下げ別資料、ar参照引用付き休息誘い、aq反復別資料／意味確認成功回答、ap直接質問九入口、4d2答え不明、u原理由回答、am直接提案、x/aj/ak語義訂正の担当境界を維持。他の休息大事さ回復説明・好悪希望・固定範囲外報告提案・今回範囲外挨拶等は個別相談、一括採用永久対象外決定なし。身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談を保持。59枠58確認済み最終総数未確定、残り予測1中心1予測最終59／子48は非正式可視化下限整合のみ据置・終了確約なし、追加分割なし9大区分4a〜4i／親4d1〜12維持4d12／4d／ID4全体未完。
+
+今回全1023件（1005＋av18）session58497終了0・70587.1967ms／別監査16件終了0・3488.3047ms／変更六JS構文七言語14,957文・diff通過。14群86原49成立API表・29種1421改変拒否、12新input反復別候補・原partial非遡及・コピー編集独立原資料非変更・知識経験選択出所非増加。独立一時Electronは制限内GPU -1073741515／ERR_FAILED(-2)終了1非通過→権限付きTemp/word-rest-comfort-report-preview-BgKKVF session7660終了0、86＋三種147改変＝233ケース、九global除去local/session各av-sentinel不変保存bridge未定義・auto-review拒否なし。通常HTTP73要求404／二HTML200・構造errors[]と固定ao50capture所有七ledger14／ap〜av別担当を保持。avの実装後OK未受領を機械検査から昇格させない。初回fixture非公開condition.learn TypeErrorは公開prepare/start/hear/demo実finishへ補修、二つの推測fixtureパス不存在読取は書込なし実scripts/experimentalへ補修。最終文書patch初回同じ正本への重複Update指定で全体無変更拒否・単一Updateへ分割補修。全API表と途中補修stage原文保持commit/push結果は正本av節／latest handoffへ保持。
+
+au全1005／別監査15／六JS七言語14957／renderer515全13群API3267改変拒否と全途中詳細、at全988／監査14／renderer147九群API551改変拒否、as全975／renderer159全17群、ar全952／renderer448全28群、aq全917／renderer310全26群、ap全887／renderer410以下全従前詳細非削除非置換。29bfc03の共有四文書旧全行（索引1017／工程表3814／正本2742／照合一覧205、LF分割末尾空要素込み）と従前136text全文順序保持検査は意味読了認定ではない。今回追加137継続文は同じav内で移動合図なし。本人日記生成保存再開配布本接続未完、新表示文なしcatalog/runtime非変更・再構築不要、原五区分部品非変更。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外。
 ```

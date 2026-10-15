@@ -22,6 +22,10 @@
 
 ## 現在の実装仕様
 
+- av採用範囲実装Codex検証限定完了：全1023／別監査16・六JS七言語14957／一時renderer233通過、14群API・1421資料改変拒否・全途中補修は[正本av節](experimental_word_learning.md#diary-rest-comfort-reports-av)所有。固定ao50capture所有七ledger14・ap〜au担当非変更と最新人間OK優先を維持。今回のav担当追加は構造errors[]と73要求404／二HTML200だけで意味読了や人間OKを認定しない。av実装後OK未受領同じav内自由フィードバック必要修正、59枠58確認済み残数予測据置全体未完・追加分割移動なし。旧具体未対応一覧と全条件API途中詳細保留非削除非置換、本人日記生成保存再開配布未完。
+
+- 2026-10-16同じ4d12av：既存日本語単独rest_comfortだけ対象成立条件個別採用。独立diary_rest_comfort_reportsを別supplemental担当avへ追加し、固定ao50capture所有七ledger14とap/aq/ar/as/at/au担当・最新人間OKを保持する。内容と全途中検証詳細の正本は[av節](experimental_word_learning.md#diary-rest-comfort-reports-av)。旧具体未対応一覧は履歴として全保持し今回限定採用を優先、休息大事さ回復説明・好悪希望その他の報告提案挨拶は個別相談で一括採用永久対象外なし。59枠58確認済み・残数予測据置全体未完、av実装後OK未受領同じav内検証継続。三保留・全従前条件API途中詳細未決定未回答未完保留非削除非置換、本接続生成保存再開配布未完・構造一致は意味読了人間OKを認定しない。
+
 - 83a54d1固定supplementalOwnersのau implementationAcceptance=not_receivedも今回人間OK前資料として保持し、最新58確認59枠とau確認済みを優先する。ao固定51/52/ao=false・capture50所有七ledger14・ap/aq/ar/as/at/au別担当は変更しない。ao_feedback_acceptance既受領と他11保留維持、具体残入口一覧を一括採用や永久対象外決定へ置換しない。
 
 - 944b267固定supplementalOwnersのar implementationAcceptance=not_receivedも今回人間OK前資料として保持し、最新55確認56枠とar確認済みを優先する。ao固定51/52/ao=false・capture50／所有七／ledger14・ap/aq/ar別担当は変更しない。ao_feedback_acceptance既受領と他11保留維持、原具体未対応一覧を全入口採用や永久対象外決定へ置換しない。
