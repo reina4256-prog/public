@@ -153,7 +153,9 @@ function supplementalInventory() {
     return [{ id: '4d12ap', slug: 'answers', api: 'capture', arity: 3,
         file: 'experimental_word_diary_answers.js', test: 'tests/experimental_word_diary_answers.test.js' },
     { id: '4d12aq', slug: 'followups', api: 'capture', arity: 3,
-        file: 'experimental_word_diary_followups.js', test: 'tests/experimental_word_diary_followups.test.js' }];
+        file: 'experimental_word_diary_followups.js', test: 'tests/experimental_word_diary_followups.test.js' },
+    { id: '4d12ar', slug: 'references', api: 'capture', arity: 3,
+        file: 'experimental_word_diary_references.js', test: 'tests/experimental_word_diary_references.test.js' }];
 }
 function localFile(relative) {
     if (typeof relative !== 'string' || !relative || relative.includes('\\')
@@ -219,7 +221,7 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
             scopeAdopted: supplementalInventory().some(original => Object.keys(original).every(key => original[key] === row[key])),
             implementationAcceptance: 'not_received', auditSemanticReview: 'pending' };
     });
-    if (supplemental.length !== 2) errors.push({ code: 'supplemental_inventory_count', expected: 2, actual: supplemental.length });
+    if (supplemental.length !== 3) errors.push({ code: 'supplemental_inventory_count', expected: 3, actual: supplemental.length });
     // One directory, file names only. Never recurse into unrelated directories.
     for (const name of fs.readdirSync(ROOT)) {
         if (/^experimental_word_diary_[a-z_]+\.js$/.test(name) && !files.has(name)

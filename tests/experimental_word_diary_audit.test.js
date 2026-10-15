@@ -42,7 +42,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-    assert.equal(report.supplementalOwners.length, 2);
+    assert.equal(report.supplementalOwners.length, 3);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -66,6 +66,18 @@ test('aq supplemental ownership preserves ap and ao while checking follow-up API
     const changed = supplementalInventory(); changed[1].arity++;
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12aq'));
     assert.equal(report.counts.reviewedCaptureBoundaries, 50); assert.equal(report.ledger.length, 14);
+});
+
+test('ar supplemental ownership checks reference journal APIs without replacing ao, ap or aq evidence', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    assert.equal(report.supplementalOwners[2].id, '4d12ar');
+    assert.equal(report.supplementalOwners[2].scopeAdopted, true);
+    assert.equal(report.supplementalOwners[2].implementationAcceptance, 'not_received');
+    assert.equal(report.counts.reviewedCaptureBoundaries, 50); assert.equal(report.ledger.length, 14);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12ar'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === 'experimental_word_diary_references.js'));
+    const changed = supplementalInventory(); changed[2].arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12ar'));
 });
 
 test('duplicate ownership and a changed API contract are rejected without rewriting the source', () => {
@@ -165,6 +177,7 @@ test('existing diary adapters and the new audit remain outside the game server a
         for (const name of [...inventory().map(row => row.file), ...supplementalInventory().map(row => row.file),
             'scripts/experimental/diary_answer_fixtures.js', 'scripts/experimental/diary_answer_smoke.js',
             'scripts/experimental/diary_followup_fixtures.js', 'scripts/experimental/diary_followup_smoke.js', 'scripts/experimental/diary_audit.js',
+            'scripts/experimental/diary_reference_fixtures.js', 'scripts/experimental/diary_reference_smoke.js',
             'docs/specs/core/experimental_word_diary_audit.md']) {
             assert.equal(await status(name), 404, name);
         }
