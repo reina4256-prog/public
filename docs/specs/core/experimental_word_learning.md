@@ -595,6 +595,39 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-sour-questions-be"></a>
+
+- be最終実装Codex検証仕様引継ぎ更新限定完了：全1226（従前1204＋be22）session35350終了0・dot1226（工具に時間集計なし、終了取得chunkff8512）。別監査25 chunk3d9569終了0・4670.6232ms、変更六JS構文七言語14957 chunkb71b76終了0・diff --check通過。独立一時renderer248 chunkf56bc9終了0。実装後OK未受領・次も同じbe内自由フィードバック必要修正と実装後OK確認まで継続。68枠67確認済み子57残り1〜4中心2最終68〜71子57〜60中心69子58据置、減算追加枠移動なし4d12/4d/ID4全体未完。本人日記生成保存再開配布本接続未完・新表示文catalog/runtimeゲーム所有936df00原五区分候補非変更。
+- be専用22＝下の17実所有fixture/API群＋五横断。92原資料52成立（uncertain30／unknown_taste_word22）、31種×52＝1612今回資料改変拒否＋四種末尾食事／sweet資料改変拒否＝計1616拒否。五横断は①今回資料改変拒否、②12新input別資料と同input非増加非上書き・後食事でも原uncertain非書換え、③後知識後食事で原前提不足非遡及、④末尾eat資料の前後矛盾拒否と返却コピー編集独立、⑤非JSON循環等拒否とjournal契約。31種は原input ID/時刻/raw/話者/locale/scene、当時complete true化／複数frame、独立input/knowledge/context、前serial/attention、後serial、実reply/後world時刻/実turn話者、前world／後state欠損、主体/aspect/極性/相対時点/questionSlot/架空target、架空turn.answer/後world架空経験、未解決消去/意味sour化/conditionStatus met化/後pending改変。四種は前world食事欠損・後world食事欠損・前末尾eat味改変・前stateのsweet削除。原資料非変更、knowledge/state.experiences/selectionSources/world.experiencesとmode/destination/attention/history/reasons/activityStart非変更通過。返却record・meal・供給資料の編集は独立、原五区分bufferは新kind投入を拒否する。供給資料を一貫して作り替えた偽造を認証する機構ではない。
+- 実食事開始完了と実question／negation教示習得は専用Nodeメモリで既存所有receive/respond/tick/onArrivalを使用、所有コードをfixture期待へ合わせた変更なし。末尾eatはworld.experiencesから取った供給資料であり、今回replyがexperienceIdやeventTimeを持たなければ付与しない。甘さ応答へpleasant／現在mealTaste／一意注目を新条件にしない。sour未理解と実応答の意味を分離し、相手への正解否定・本人の酸味認識へ変換しない。questionのcurrent_activity限定scope／negationのreport限定scopeを今回へ転移しない。
+- be独立一時renderer：92原＋今回実話者／実reply／独立inputContext三種156改変＝248ケース。制限内session56152はGPU -1073741515二回とERR_FAILED(-2)取得chunk961fe7、最終chunkea86a9終了1非通過。権限付きTemp/word-sour-question-preview-Quie1b chunkf56bc9終了0・auto-review拒否なしを最終結果とする。非表示空白ページ専用一時profileへコピー供給し、rendererコピー上既存receive/respond全文照合・同input非増加非上書き・返却コピー編集独立・元資料sourceStable・八global除去local/session各be-sentinel不変保存bridge未定義を通過。本人日記生成保存再開配布版や実ユーザー保存の検証ではなく、旧AI旧保存九見本星座非操作非置換。
+- 別監査25通過、固定ao50capture所有七ledger14＋supplemental16 errors[]（chunk1df18b）。通常HTTP旧97＋be部品fixture/smoke三本＝100要求404／既存二HTML200。担当欠落と三引数API改変拒否、固定ao51/52/ao=falseと旧ap〜bd未受領資料を改変せず最新ao〜bd人間OK優先・再確認不要。capture所有変更時pendingへの戻し、ao_feedback_acceptance既受領他11保留を維持する。監査総数期待15→16は今回監査実行前更新、監査不通過なし。専用初回steps未定義準備時停止→補助配列初期化、次22中21通過1不通過の疑問符後空白期待補修→22通過968.7866msを区別し、途中不通過を隠さない。全1204監査24六JS七言語14957renderer445全19群3304拒否とbd全API途中詳細、bc以下全従前詳細・ay空腹補修前全1084と補修後専用20renderer171区別は今回結果に置換せず非削除保持。従前153/154開始文継続文と全参照先条件確認状態API途中詳細保留を非削除非置換保持、保持検査を意味読了にせず各fixture全文／無制限再帰読了を主張しない。対象11のみstage commit push・同じbe継続155実末尾／原文保持の最終結果はlatest handoff参照。
+
+| be実所有fixture/API群 | 原資料 | 成立 |
+| --- | ---: | ---: |
+| 八設定 | 8 | 1 |
+| 二語面×任意語尾三種×疑問符二種×食事資料有無 | 24 | 24 |
+| 七入力locale・文型非新設 | 7 | 1 |
+| 他言語文型非新設 | 3 | 0 |
+| 疑問符欠損・複数節等範囲外 | 7 | 0 |
+| 既存先頭空白成立／疑問符後空白未知空節 | 3 | 2 |
+| 他担当入口 | 11 | 0 |
+| eat/question/negation前提欠損 | 3 | 0 |
+| 実完了食事三味×pleasant二値 | 6 | 6 |
+| sweet既知を資料成立必須にしない | 1 | 1 |
+| 最初のsweetでなく末尾eat | 1 | 1 |
+| 他経験前の末尾eat保持 | 1 | 1 |
+| 現在食事を完了食事へ変換しない | 1 | 1 |
+| 五活動×食事資料有無 | 10 | 10 |
+| 別話者・空注目・別場面 | 4 | 4 |
+| 実question経験限定scope非転移 | 1 | 0 |
+| 実negation経験限定scope非転移 | 1 | 0 |
+
+- 2026-10-16同じ4d12be対象／成立保持条件個別採用：ユーザー「はい、それぞれ採用でOKです」。既存日本語sour_question単独「すっぱくない／酸っぱくない」＋任意「の／かな」＋既存疑問符だけ。既存interpret/normalize境界を維持、新文型他言語文型理解習得規則非追加。当時eat意味と当該question/negation関係既知、単独question/questionSlot=sour_evaluation/subject=self・unresolved=[{type:detail,token:sour}]だけ・complete=falseを要求する。既存positive/unspecified・aspect/target/conditionStatus=nullを保持し、表面「ない」からpolarityをnegativeへ書き換えず、sour理解・酸味否定判断・本人味覚経験・回答成功を補わない。speech=shortで既存実respondのunknown_taste_word／uncertainだけを独立別資料へ渡す。身振りattendや前提不足は今回成立外、身振り問い全設定拡張未決定を維持する。
+- 一時API experimental_word_diary_sour_questions.create/capture(buffer,result,receipt)三引数独立journal、kind=sour_question_response／occurrenceId=sour_question:今回input ID／sourceId=今回input ID。既存turn.answer列挙外かつcomplete=falseのためturnAnswer=null、原五区分候補非変更・actualAnswer=trueや架空answer非新造。原input/frame・聞いたscene/attention・前後world・入力前knowledge・当時understanding・実response/actualSpeechと、当時worldが供給する末尾eat資料（なければnull）を分離コピーする。原資料のないexperienceId/時点/出所を補わない。unknown_taste_wordは当時sweet意味既知＋末尾eat.taste.quality=sweetという既存条件だけ、pleasantや現在mealTasteを追加条件にしない。それ以外は既存uncertain、未食事・他味・sweet未習得を同じ原因と断定せず資料ごと保持する。
+- receiptはbeforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond後afterState/afterWorld/reply。使い捨てコピー上既存receive/respondで結果全文と前後state/world/reply全文を照合し、原ID=before.serial+1・欠損矛盾非補完。供給資料整合照合であり真正性認証／実ゲーム資料供給本配線ではない。同input非増加非上書き・新input別資料、後知識後食事で原未成立非遡及原候補非書換え・実question/negation限定scope非転移、新教示学習経験なし。保存形式本文候補化文章化集約4e本接続非採用、本人日記生成保存再開配布本接続未完。bd名前問い・ap九直接質問・aq再応答・4d2答え不明・u原理由回答とbc以下各担当を非変更。他九入口外質問／任意感情報告組合せ／範囲外否定お願い／食後散策自由形／最終入口照合は個別相談、一括採用永久対象外なし。原質問後日休息追記未回答・経験由来訂正新scope別途相談を保持。
+- be専用22項目通過968.7866ms（chunk4141e5終了0）。初回は経験由来否定fixtureのsteps未定義で準備時TypeError停止、共用hearへ補助配列初期化を追加。次は22中21通過1不通過：疑問符後空白を単独成立と誤認、既存interpretが未知空節を残すため期待falseへ補修し、先頭空白だけの成立を別検査へ追加。所有コードをfixture期待へ合わせて変更していない。17実所有fixture/API群と五横断、全API内訳と最終全体監査renderer結果は後続記録へ保存する。今回新表示文なしcatalog/runtime非変更。実装後OK未受領・同じbe内継続、68枠67確認済み子57残り1〜4中心2最終68〜71子57〜60中心69子58据置、対象採用実装検証だけで減算追加枠移動なし全体未完。
+
 <a id="diary-name-questions-bd"></a>
 
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で59b093eの4d12bd採用範囲へ実装後OKと移動を明示。既存日本語名前の問いへの実発話独立別資料は実装Codex検証ユーザー実装後OK限定確認済み。次4d12beは残る入口一系統選定・具体範囲と個別成立相談（対象理解規則未採用未着手）。残入口相談のためbe予定一枠追加68枠67確認済み子57最終総数未確定。bd一工程分だけ残り1〜5中心3から機械差引0〜4中心2、be予定最低一枠へ下限整合して現在残り1〜4中心2・予測最終68〜71子57〜60中心69子58。旧予測67〜71子56〜60は履歴として非削除保持し、下限変更理由は今回のbe予定追加、上限中心は据置。旧1中心1も当時予定枠下限履歴として保持。進捗最終回答へ確認数残り幅中心変更理由継続表示、短縮一括採用永久対象外終了確約なし9大区分4a〜4i親4d1〜12維持4d12/4d/ID4全体未完。従前153全文全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換・最新ao〜bd人間OK優先再確認不要、ao意味再読50部品全文所有七照合従前到達維持・保持検査ハッシュ省略出力は意味読了ではない。全1204監査24六JS七言語14957renderer445全19群142原101成立3304拒否と全途中詳細／bc以下全従前詳細／空腹補修前全1084と補修後専用20renderer171区別保持。今回文書のみ実働再検査なし、本人日記生成保存再開配布本接続未完・各担当三保留維持。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外。移動は今回ユーザー明示・途中保存移動合図なし。
@@ -1758,6 +1791,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_sour_questions.create/capture（4d12be・最終検証） | [be節](#diary-sour-questions-be)が対象成立と17群92原52成立1616改変拒否・全途中補修検証詳細を所有。三引数独立journal、sour未理解と実応答・末尾eat資料を分離 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了。全1226監査25六JS七言語14957renderer248通過、実装後OK未受領同じbe継続。68枠67確認済み子57残り1〜4中心2最終68〜71子57〜60中心69子58据置全体未完・本接続生成保存再開配布未完 |
+| diary_sour_questions.create/capture（独立・4d12be） | [be節](#diary-sour-questions-be)の既存日本語酸味問い部分理解・三引数一時journal。sour未理解と実unknown_taste_word/uncertain・末尾eat資料を分離コピー全文照合 | 対象成立個別採用・専用22通過、監査全体renderer検証中・実装後OK未受領同じbe継続。turn.answer原五区分候補非変更・新理解規則なし保存形式本接続非採用、全途中詳細はbe節所有 |
 | diary_name_questions.create/capture（独立・4d12bd） | [bd節](#diary-name-questions-bd)の名前の問い実発話別資料・三引数一時journal。原名付けactive evidence／confirmedBy原確認と今回理解応答を分離照合 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1204監査24六JS七言語14957renderer445・専用25通過。実装後OK未受領同じbd継続。turn.answer／原五区分候補非変更・保存形式本接続非採用。全19群API内訳全途中詳細はbd節所有 |
 | diary_name_questions.create/capture（4d12bd・最新確認） | [bd節](#diary-name-questions-bd)の三引数一時journal・原名付け確認と当時理解実応答の分離照合、turn.answer非新造を限定担当として維持 | 59b093e実装Codex検証ユーザー実装後OK限定確認済み。全1204監査24六JS七言語14957renderer445全19群3304拒否全途中詳細保持。次be対象理解規則未採用未着手68枠67確認済み残り1〜4中心2最終68〜71子57〜60中心69子58、旧未受領は履歴として保持・本接続生成保存再開配布未完 |
 | diary_after_eat_walk_proposals.capture（4d12bc・最新確認） | [bc節](#diary-after-eat-walk-proposals-bc)の三引数一時API・unknown条件実話者roles未生成／実応答活動分離を限定担当として維持 | 025d591実装Codex検証ユーザー実装後OK限定確認済み。全1179監査23六JS七言語14957renderer905全17群6200改変拒否と全途中詳細保持。次bd対象理解規則未採用未着手67枠66確認済み残り1〜5中心3予測最終67〜71子56〜60中心69子58、旧未受領は履歴として保持・本接続生成保存再開配布未完 |
