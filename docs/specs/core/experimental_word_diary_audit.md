@@ -2,6 +2,10 @@
 
 ## 現在の実装仕様
 
+- 2026-10-16 aq最終監査11件session65056終了0・10234.2801ms、全917件session99887終了0・70269.3115ms／六JS構文七言語14957／専用一時renderer310通過。監査errors[]、固定ao50capture所有七ledger14・51/52/ao=falseとap別担当を保持、aq別担当欠落／三引数API改変拒否の一項目追加。HTTPは58要求404と既存二HTML200。原資料hash不変対象へaq部品/testを追加、意味読了や本人日記本接続保存完成の認定なし。内容全26群APIと途中補修詳細は正本aq節所有、前回887/監査10/renderer410等と全従前条件詳細非削除保持。aq採用範囲実装Codex検証仕様引継ぎ更新限定完了・同じaq内自由フィードバック必要修正実装後OK未受領、54枠53確認済み残数据置全体未完・移動なし、最新ao/ap人間確認優先。
+
+- 2026-10-16同じ4d12aq：既存1a/1b repeat_answer／context_detail実再応答の対象と成立記録条件をユーザー「はい、それぞれ採用でOKです」で個別採用。独立diary_followupsとfixture/test/非表示一時renderer工具を追加中。新supplemental担当aqは固定ao50capture／所有七／ledger14とap担当を保持して追加し、範囲採用と実装後OKを別状態で検査する。反復は候補を増やさない別資料、意味確認成功回答は別question候補、原観察出所と当時資料を保持。内容／API／全途中詳細は[正本aq節](experimental_word_learning.md#diary-followups-aq)所有、下の旧具体未対応一覧は履歴として全保持し今回限定採用を優先。他未対応は個別相談・三保留維持、ao/ap実装後OKを固定未受領表示より優先。現在aq最終検証中実装後OK未受領同じaq継続、54枠53確認済み残数据置全体未完・途中保存移動合図なし。
+
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で60732f2の4d12ap採用範囲へ実装後OKと移動を明示。ap9入口独立受け渡しは実装・Codex検証・実装後OK限定確認済み、次aqは残る入口の一系統選定具体範囲個別成立相談（対象／理解規則未採用未着手）。最新は53確認済み54枠・残り1〜2中心1予測最終54〜55／子43〜44非正式の可視化下限整合のみ、9大区分／親番号維持・4d12／4d／ID4全体未完。60732f2のsupplementalOwnersのap implementationAcceptance=not_receivedは今回OK前の固定検証資料であり、今回人間確認を優先しコードは変更しない。ao固定51/52/ao=falseとledger14も保持、ao_feedback_acceptanceは既に受領済み・他11保留は維持し、機械旧出力からao/ap未完へ戻して再確認しない。九入口の成立条件と全API途中詳細は正本ap節所有、具体残入口は個別相談のまま。今回確認移動文書のみ実働再検査なし・前回全887／監査10／六JS／七言語14957／renderer410等全詳細非削除非置換。旧AI旧保存実ユーザー保存九見本星座非操作非置換・対象外%SystemDrive%/非操作commit対象外、途中保存移動合図なし・今回移動はユーザー明示。
 
 - 2026-10-16同じ4d12ap：既存直接質問9入口への本人実回答の対象／成立条件をユーザーが個別採用、独立diary_answers.captureと専用fixture／検証を追加。成立条件と全API検証内訳は[正本ap節](experimental_word_learning.md#diary-direct-answers-ap)所有。下の「成功した本人回答」のうち9入口だけが今回採用範囲となり、context_detail／repeat_answer／uの理由回答は別担当、その他入口保留と全原一覧を非削除維持。aoの固定50capture・所有七変更時pending・ledger14・確認51可視化52ao=falseはOK前資料のまま、実際の最新はao実装後OK52確認53枠。新しいap担当は監査supplementalOwnersに別掲し、欠落／API／テスト登録／正本工程表参照を検査するが実装後OKを自動認定しない。ap実装後OK未受領・同じap継続・4d12／4d／ID4全体未完、残数予測据置・移動なし。

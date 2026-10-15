@@ -151,7 +151,9 @@ function inventory() {
 // intact. Later adopted work has a separate inventory and acceptance status.
 function supplementalInventory() {
     return [{ id: '4d12ap', slug: 'answers', api: 'capture', arity: 3,
-        file: 'experimental_word_diary_answers.js', test: 'tests/experimental_word_diary_answers.test.js' }];
+        file: 'experimental_word_diary_answers.js', test: 'tests/experimental_word_diary_answers.test.js' },
+    { id: '4d12aq', slug: 'followups', api: 'capture', arity: 3,
+        file: 'experimental_word_diary_followups.js', test: 'tests/experimental_word_diary_followups.test.js' }];
 }
 function localFile(relative) {
     if (typeof relative !== 'string' || !relative || relative.includes('\\')
@@ -208,7 +210,7 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
         const source = readAdapterSource ? readAdapterSource(row.file) : read(row.file), test = read(row.test);
         const match = source.match(new RegExp(`function ${row.api}\\(([^)]*)\\)`));
         const arity = match ? match[1].split(',').filter(item => item.trim()).length : null;
-        if (arity !== row.arity || !source.includes(`{ ${row.api} }`)) errors.push({ code: 'api_contract', id: row.id });
+        if (arity !== row.arity || !new RegExp(`return Object\\.freeze\\(\\{[^}]*\\b${row.api}\\b[^}]*\\}\\)`).test(source)) errors.push({ code: 'api_contract', id: row.id });
         if (!test.includes(path.basename(row.file, '.js'))
             || !packageScripts['test:words'].split(/\s+/).includes(row.test)) errors.push({ code: 'missing_test_registration', id: row.id });
         if (!spec.includes(`diary_${row.slug}`)) errors.push({ code: 'missing_scope_reference', id: row.id });
@@ -217,7 +219,7 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
             scopeAdopted: supplementalInventory().some(original => Object.keys(original).every(key => original[key] === row[key])),
             implementationAcceptance: 'not_received', auditSemanticReview: 'pending' };
     });
-    if (supplemental.length !== 1) errors.push({ code: 'supplemental_inventory_count', expected: 1, actual: supplemental.length });
+    if (supplemental.length !== 2) errors.push({ code: 'supplemental_inventory_count', expected: 2, actual: supplemental.length });
     // One directory, file names only. Never recurse into unrelated directories.
     for (const name of fs.readdirSync(ROOT)) {
         if (/^experimental_word_diary_[a-z_]+\.js$/.test(name) && !files.has(name)

@@ -595,6 +595,49 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-followups-aq"></a>
+
+- 2026-10-16 aq最終検証確定：test:words全917件（従前887＋aq30）session99887終了0・70269.3115ms、別監査11件（従前10＋aq担当一項目）session65056終了0・10234.2801ms、七言語14,957文同session終了0、変更JS六本node --check・通常diff --check通過。構造監査errors[]／固定ao確認51可視化52 ao=false／capture50所有七ledger14とap別担当を保持し、aqを別supplemental担当へ追加。最新人間確認ao/ap済み53確認54枠を旧機械未受領表示より優先する。HTTPは旧55＋aq部品／fixture／smoke三つの58要求404と既存二HTML200を監査で確認。aq採用範囲実装・Codex検証・仕様引継ぎ更新限定完了、次同じaq内自由フィードバック必要修正実装後OK（未受領）・次記号追加移動なし。
+- aq専用Nodeの最終内訳：140原ケース85成立（意味確認50／反復35）。各成立へ27種2295資料改変拒否、topicのある原表示81件へ六種486改変拒否、原表示に経験参照のある41件へ欠損／重複82拒否。12連続新input反復を別資料へ保持し元ap候補一件非増加非上書き、原回答ID/answeredAt非変更、同input非増加、返却コピー編集独立・原資料非変更、後知識で原候補非書戻しも検査。原ケース／API群内訳は下表（計26群）であり、30はこれら26群と四つの横断test項目の数。前回ap全887／監査10／六JS／七言語14957／renderer410と全API途中詳細を非削除保持し、今回結果で置換しない。
+
+| aq実所有処理fixture/API群 | 原ケース | 成立 |
+| --- | ---: | ---: |
+| 八設定×反復／明示意味確認／省略意味確認 | 24 | 3 |
+| 七言語明示反復 | 7 | 7 |
+| 七言語明示／省略意味確認 | 14 | 14 |
+| 七言語の味確認 | 7 | 7 |
+| 観察直後は本人回答反復にしない | 7 | 0 |
+| 観察した原食事への事実回答 | 7 | 7 |
+| 本人回答後も観察原出所保持 | 7 | 7 |
+| 観察由来の本人事実回答の反復 | 7 | 7 |
+| 既存日本語別名四表現 | 4 | 4 |
+| 六職完了描写への意味確認 | 6 | 6 |
+| 六職意味確認回答の反復 | 6 | 6 |
+| 活動変更後の原表示時点と過去形回答 | 2 | 2 |
+| 未対応主体否定条件複数節時点表現 | 7 | 0 |
+| 間に別入力三種×反復／意味確認 | 6 | 0 |
+| 別話者×反復／意味確認 | 2 | 0 |
+| ap／4d2／uの原質問・挨拶・提案と担当分離 | 5 | 0 |
+| 観察由来の気持ち問い | 1 | 0 |
+| 原食事の味欠損 | 1 | 0 |
+| 意味確認に必要な語の不足 | 1 | 0 |
+| 旧型原lastOutputなしの既存反復 | 1 | 1 |
+| 旧型原topicなしの意味確認 | 1 | 0 |
+| 経験由来current_activity質問scopeの非転移と旧入力非遡及 | 2 | 0 |
+| 同scopeでの反復非成立 | 1 | 0 |
+| 実休息で習得した生活語を用いる意味確認 | 1 | 1 |
+| ap九入口の原回答反復（生活知識設定差を含む11資料） | 11 | 11 |
+| u実selected_reasonお願い／誘い原回答の反復 | 2 | 2 |
+
+- aq専用一時Electron：scripts/experimental/diary_followup_smoke.jsの非表示空白ページ／独立一時profile、Node専用メモリで実生成した140原資料と話者／実回答改変170＝310ケースをrendererのコピー上の既存処理で照合。候補と反復資料の再受信非増加非上書き、返却コピー編集独立、原資料非変更sourceStable、local/session sentinel不変、九global除去と保存bridge未定義を通過。制限内session80931はGPU -1073741515連続／ERR_FAILED(-2)で終了1・非通過。権限付きTemp/word-followup-preview-t0zkXOは終了0（auto-review拒否なし）を最終結果とする。本人日記生成保存再開／配布版／実ユーザー保存検証ではなく、九見本星座は非操作非置換。ゲーム所有最終936df00非変更、新表示文なしcatalog/runtime非変更・本接続未完。原文保持検査とcommit/push結果はlatest handoff優先。
+
+- 2026-10-16・同じ4d12aq対象／成立・記録条件個別採用：ユーザー「はい、それぞれ採用でOKです」。既存1a/1bのrepeat_answerとcontext_detailへの実再応答だけを独立受け渡しする。既存七言語文型／知識scope／当時理解を用い、新文法・理解習得規則を追加しない。直接質問九入口はap、答え不明は4d2、原selected_reason実回答はuを維持し、aqはそれらの原回答を参照する今回の再応答を区別する。通常確認取り下げ挨拶・語応用個体参照・固定範囲外報告提案ほかは個別相談を保持、身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談は非変更。
+- aq一時API：experimental_word_diary_followups.create()は既存candidates.createのretain/readと独立のretainRepetition/readRepetitionsを持つ一時メモリjournalを作る。capture(buffer,result,receipt)三引数は、新しい意味確認への成功回答をkind=question／self_clarification:今回input IDでretainし、単なる反復はself_repeat:今回input IDの別資料へretainRepetitionする。返値trueはそれぞれの新受渡し成立で、候補追加の有無はread／readRepetitionsを区別する。反復は元候補を増加・更新せず、元候補が未受渡しでも架空の元候補を生成しない。新inputの意味確認は別候補、同input再受信再読は両資料とも非増加非上書き。一時journal／receiptを保存形式に採用せず、既存候補部品とゲーム所有コードは非変更。
+- aq receiptは実receive直前beforeState/beforeWorldと、実respond直後reply/turn全文/answer/afterWorldをコピーした資料に、今回input・入力前inputKnowledge・originalOutput・previousTurnの独立コピーを加える。今回input ID=入力前serial+1、raw/locale/speaker/at/scene、当時単独question complete self、原表示／直前turnと独立資料一致を要求。使い捨てコピー上の既存receive/respondによりresult・実turn全文・実answer/reply・応答後worldを照合し、前後validContextも検査する。原資料は供給時点のコピーであり、ノート・後知識・現在活動から過去資料を再構成しない。整合する資料の独立受け渡しであり、実ゲームからの資料供給本配線や認証機構ではない。
+- aq保持内容：原input/frame、直前turn、原lastOutput（原sourceと最後deliveryKindを別保持）、原出所の活動snapshot／原経験、今回質問時活動／入力前知識／当時理解、実保持answerとreplyを分離コピーする。原経験参照はworld.experiencesの同ID一意と原snapshot一致を照合し、欠損競合を補わない。原観察から既存処理が事実回答をした場合もsource.kind=observationを保持、観察だけの応答／未回答／attend／taste_unsure／身振りは成功本人回答にしない。反復answer.source.inputId/answeredAtは原回答のまま、今回input ID/atと区別。古いlastOutputなしの既存反復はnullのまま受け渡し、当時活動を新造しない。現在活動が変わって既存処理が過去形で説明した場合も原表示時点を改変しない。本人感情理由・完了経験・学習興味予約を追加しない。
+- aq実装検証途中：新adapter／実所有処理fixture／専用test／非表示一時renderer工具と監査別supplemental担当を追加中。専用30項目通過（140原ケース85成立＝意味確認50／反復35、26群）。初回は六職fixtureのarrive後dwell未リセット・誤master名adventuring→実exploreへ補修し、経験由来current_activity質問scopeをcontext_detail/repeat_answerへ自動転移するテスト期待を不成立へ修正（所有コード非変更）。初回専用30の28通過2不通過から、反復では既存処理が今回input.at／原表示listener等を元answerへ残さない点を独立input/originalOutput/previousTurnコピー照合で補修。続く入力前meanings単独改変の未検出はinputKnowledge独立コピー照合で補修。観察だけで直前turnなしの改変fixtureがcopy(undefined)で失敗した点は空配列に重複IDを供給する検査へ補修。最終専用30通過1183.3989ms。推測した短縮reason/rest_start fixture二パスの不存在読取失敗は書込なし、実reason_question／known_reason_explanationへ補修。監査patch初回が同形の旧50部品API検査行へ当たった点は即時元へ戻し、supplemental側だけ複数export検査へ変更。これらを最終全体／renderer検証成功と混同しない。
+- 現在aq実装・最終検証中、自由フィードバック実装後OK未受領・同じaq継続、54枠53確認済み残り1〜2中心1予測54〜55／子43〜44非正式据置追加分割なし。9大区分親番号維持4d12／4d／ID4全体未完。ao/ap最新実装後OKを旧固定未受領表示より優先し、固定50所有七ledger14・ap別担当も維持。従前125/126開始文継続文と全参照先全条件確認状態全API内訳途中詳細未決定未回答未完保留非削除非置換、ao意味再読と50部品所有入口照合補完を引継ぎ、保持検査を意味読了にしない。新表示文なしcatalog/runtime非変更、本人日記生成保存再開配布未完・ゲーム呼出文章化集約途中記録絵暦保存本接続未接続、旧AI旧保存実ユーザー保存九見本星座非操作非置換・対象外%SystemDrive%/非操作commit対象外・途中保存移動合図なし。
+
 <a id="diary-direct-answers-ap"></a>
 
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で4d12ap採用範囲の実装後OKと移動を明示。60732f2の既存直接質問9入口への本人実回答独立受け渡しは実装・Codex検証・ユーザー実装後OK限定確認済み。次4d12aqは残る入口の一系統選定・具体範囲と個別成立相談（対象／理解規則未採用未着手）。聞返し・省略意味確認、語応用／個体参照、通常確認取り下げ挨拶、固定範囲外報告提案、9入口外の回答等は個別相談候補で自動採用なし。54枠（53確認済み＋aq予定）最終総数未確定、ap一工程確認分だけ旧残り1〜3中心1から機械差引0〜2中心0、aq予定最低1へ下限整合して残り1〜2中心1・予測最終54〜55／子43〜44非正式の可視化下限整合のみ・追加分割増加なし。9大区分4a〜4i親4d1〜12維持、4d12／4d／ID4全体未完。従前125開始文継続文全参照先の全条件確認状態未決定未回答未完保留全API内訳全途中修正検証詳細非削除非置換、今回OKを旧ap未受領より優先。前回全887／別監査10／六JS／七言語14957／専用一時Electron410と全内訳を引継ぎ、今回確認移動は文書のみ実働再検査なし。本人日記本接続生成保存再開配布未完、身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談、旧AI旧保存実ユーザー保存九見本星座非操作非置換を保持。対象外%SystemDrive%/非操作commit対象外、途中保存移動合図なし・今回ユーザー明示移動。
@@ -1242,6 +1285,7 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_followups.create/capture（独立・4d12aq） | 既存repeat_answer／context_detail当時completeと実再応答。原表示出所／原answer参照／入力前知識と今回input理解回答をコピー上の既存所有処理で照合 | 対象成立記録条件個別採用・実装検証中、三引数captureと一時journal。反復は別資料のみ・意味確認成功回答は別question候補、原経験非増加。4d2/u/ap担当維持、新文法保存形式本接続非採用・実装後OK未受領同じaq継続。全API途中詳細はaq節所有 |
 | diary_answers.capture（独立・4d12ap） | 既存直接質問9入口の当時単独completeと実turn.answer。原input/frame／入力前知識／当時理解／実応答turn／活動履歴経験参照をコピー上の既存receive/respondで照合し別保持 | 対象成立条件個別採用・実装専用15項目通過、三引数一時API保存形式非採用。実装後OK未受領・同じap内継続。4d2／u／聞返し省略意味確認非重複、身振り問い未決定・後日休息追記未回答・経験由来訂正新scope別途相談維持。本接続本人日記生成保存再開配布未検証。全内訳途中補修はap最新節所有 |
 | diary_answers.capture（4d12ap・最新確認） | 上の三引数一時APIと9入口の当時理解／実回答／原参照資料の限定担当を維持 | 60732f2実装・Codex検証・ユーザー実装後OK限定確認済み、旧未受領記述は確認前履歴として全文保持。全887／別監査10／六JS／七言語14957／一時renderer410と全API内訳途中詳細保持。次aq対象理解規則未採用未着手、本人日記本接続生成保存再開配布未完 |
 | scripts/experimental/diary_audit.js（開発専用・4d12ao） | 50部品＋an横断補修の担当／API引数数／専用テスト登録／正本工程表参照の読取構造監査。従前51限定確認と今回auditSemanticReview=pendingを分離、未分類／重複／欠落等を検出 | 対象成立終了条件案採用・構造監査実装専用六件／従前872件／JS二本／七言語14,957文通過。全文意味内容再読と全入口意味照合は未完、自由フィードバック実装後OK未受領。新理解規則／本人日記本接続／保存形式非採用、全体未完。全成立API途中詳細は従前各行所有、保留一覧は補助仕様を参照 |
