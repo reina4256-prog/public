@@ -42,7 +42,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-    assert.equal(report.supplementalOwners.length, 3);
+    assert.equal(report.supplementalOwners.length, 4);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -78,6 +78,19 @@ test('ar supplemental ownership checks reference journal APIs without replacing 
     assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === 'experimental_word_diary_references.js'));
     const changed = supplementalInventory(); changed[2].arity++;
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12ar'));
+});
+
+test('as supplemental ownership checks separate name-response material without recertifying prior acceptance', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    assert.equal(report.supplementalOwners[3].id, '4d12as');
+    assert.equal(report.supplementalOwners[3].scopeAdopted, true);
+    assert.equal(report.supplementalOwners[3].implementationAcceptance, 'not_received');
+    assert.equal(report.supplementalOwners[3].runtimeDiaryConnected, false);
+    assert.equal(report.counts.reviewedCaptureBoundaries, 50); assert.equal(report.ledger.length, 14);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12as'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === 'experimental_word_diary_name_responses.js'));
+    const changed = supplementalInventory(); changed[3].arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12as'));
 });
 
 test('duplicate ownership and a changed API contract are rejected without rewriting the source', () => {
@@ -178,6 +191,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_answer_fixtures.js', 'scripts/experimental/diary_answer_smoke.js',
             'scripts/experimental/diary_followup_fixtures.js', 'scripts/experimental/diary_followup_smoke.js', 'scripts/experimental/diary_audit.js',
             'scripts/experimental/diary_reference_fixtures.js', 'scripts/experimental/diary_reference_smoke.js',
+            'scripts/experimental/diary_name_response_fixtures.js', 'scripts/experimental/diary_name_response_smoke.js',
             'docs/specs/core/experimental_word_diary_audit.md']) {
             assert.equal(await status(name), 404, name);
         }

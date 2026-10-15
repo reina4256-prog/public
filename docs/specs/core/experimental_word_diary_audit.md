@@ -1,5 +1,9 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-16 as最終：全975／別監査13／六JS構文／七言語14957／独立一時renderer159通過。固定ao50capture所有七ledger14・ap/aq/arを保持しasを別supplementalへ追加、欠落／API改変・通常HTTP64要求404／二HTML200・errors[]を検査した。意味読了や人間OK自動認定なし、最新ao/ap/aq/ar人間実装後OKを固定not_receivedより優先し再確認不要。内容17群72原29成立・全API／途中補修は[正本as節](experimental_word_learning.md#diary-name-responses-as)所有、従前全952／監査12／renderer448と全28群API以下非削除非置換保持。現在as採用範囲実装Codex検証仕様引継ぎ更新限定完了、次同じas内自由フィードバック必要修正実装後OK未受領、56枠55確認済み残数予測据置全体未完・移動なし。
+
+- 2026-10-16同じ4d12as：通常確認・取り下げ・挨拶の旧残件のうち、個体名付けへのreply=yes／reply=no／直前名付けcorrectionだけをユーザーが対象成立条件個別採用。独立diary_name_responses別資料部品を実装検証中、[正本as節](experimental_word_learning.md#diary-name-responses-as)が内容・一時APIを所有する。原名付け候補非書換え・独立教示新経験非増加、挨拶その他未対応は個別相談。固定ao50所有七ledger14とap/aq/ar担当は保持してas別supplementalを追加する。as実装後OK未受領・同じas内継続56枠55確認済み残数予測据置全体未完・移動なし、旧残件一覧は時点履歴として全保持し最新限定採用を優先。全従前本文条件API途中詳細保留非削除非置換・最新ao/ap/aq/ar人間OK優先再確認不要。
+
 ## 現在の実装仕様
 
 - 944b267固定supplementalOwnersのar implementationAcceptance=not_receivedも今回人間OK前資料として保持し、最新55確認56枠とar確認済みを優先する。ao固定51/52/ao=false・capture50／所有七／ledger14・ap/aq/ar別担当は変更しない。ao_feedback_acceptance既受領と他11保留維持、原具体未対応一覧を全入口採用や永久対象外決定へ置換しない。
