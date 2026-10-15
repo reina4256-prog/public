@@ -595,6 +595,39 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-negated-preference-reports-ba"></a>
+
+- 2026-10-16 ba最終実装Codex検証仕様引継ぎ更新限定完了：全1132（従前1109＋ba23）session55994終了0・dot1132（今回工具に時間集計出力なし）、別監査21 session58333終了0・16026.368ms、六JS構文／七言語14957 chunk5c6b97終了0、独立一時renderer268 session37582終了0、diff --check通過。17群106原54成立・1566改変拒否と全途中詳細は以下へ非削除保持。実装後OK未受領、次同じba内自由フィードバック必要修正実装後OK確認。64枠63確認済み子53最終総数未確定、残り4〜8中心6予測最終67〜71子56〜60中心69子58据置、減算追加枠移動なし4d12/4d/ID4全体未完。最新ao〜az人間OK・従前145/146全文全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換。全1109／監査20／六JS七言語14957／renderer547全19群3509改変拒否とay以下全従前詳細・空腹補修前全1084／補修後専用20renderer171区別を今回結果で置換しない。本人日記生成保存再開配布本接続未完、各担当三保留維持・新表示文なしcatalog/runtimeゲーム所有936df00非変更。
+
+- ba専用23＝下の17実所有fixture/API群＋六横断（29種資料改変拒否／12新input別候補と同input非増加非上書き／後知識原partial非遡及／一般対象省略対象dislike否定保持／後注目非遡及／非JSON循環等拒否）。106原資料54成立、29種×54＝1566改変拒否。今回改変29種は原input ID/時刻/raw/話者/locale/scene、当時complete／複数frame、独立input/knowledge/context、前serial/attention、後serial/実turn話者、実reply/後world、前world／後state欠損、reportSource聞いた時刻、主体/aspect/極性/相対時点/意味、前world注目／後world架空経験、conditionStatus／採用target ID差替え。返却コピー編集独立・元資料非変更、knowledge／state.experiences／selectionSources／world.experiences非増加を確認。実report/negation習得は既存教示と実完了処理で生成し、新scopeへ転移しない。
+
+| ba実所有処理fixture/API群 | 原資料 | 成立 |
+| --- | ---: | ---: |
+| 八設定 | 8 | 2 |
+| 既存四語面×発話二設定 | 8 | 8 |
+| 七入力locale・他言語文型新造なし | 7 | 1 |
+| 他言語文型非新設 | 3 | 0 |
+| 四語面の疑問／二種複数節 | 12 | 0 |
+| 四語面の句点後空白未知空節 | 4 | 0 |
+| 四語面の前後空白／終端句点／感嘆符 | 12 | 12 |
+| 他担当・今回範囲外 | 9 | 0 |
+| 明示一般対象・四注目条件×発話二設定 | 8 | 8 |
+| 省略対象・四注目条件×発話二設定 | 8 | 4 |
+| 活動五種×発話二設定・好きや中止非認定 | 10 | 10 |
+| 空腹0〜1五値・満腹話者真偽非認定 | 5 | 5 |
+| dislike／berry／report／negation必須欠損 | 4 | 0 |
+| 初期知識別話者×発話二設定 | 2 | 2 |
+| 省略対象ではberry意味非要求×発話二設定 | 2 | 2 |
+| 実report経験限定scope非転移×発話二設定 | 2 | 0 |
+| 実negation経験限定scope非転移×発話二設定 | 2 | 0 |
+
+- ba独立一時Electron：Node専用メモリ実生成106原＋今回話者／実reply／独立inputContext三種162改変＝268ケース。非表示空白ページ専用一時profileへコピー供給、rendererコピー上既存receive/respond全文照合・同input非増加非上書き・返却コピー編集独立元資料sourceStable・九global除去local/session各ba-sentinel不変保存bridge未定義を通過。制限内chunk3a53baはGPU -1073741515六回／GPU isn't usable終了1非通過、権限付きTemp/word-negated-preference-report-preview-dJQVl3 session37582終了0（auto-review拒否なし）を最終結果とする。本人日記生成保存再開配布版や実ユーザー保存検証ではなく、九見本星座非操作非置換。
+- ba別監査21項目session58333終了0・16026.368ms。固定ao50capture所有七ledger14とap〜az担当非変更、ba別supplemental追加（計12）、担当欠落／三引数API改変拒否、構造errors[]と通常HTTP旧85＋ba部品fixture/smoke三本＝88要求404／既存二HTML200。旧固定not_receivedから確認済み部品の再確認を求めない。六JS構文／七言語14957／diff --checkはchunk5c6b97終了0、新表示文なしcatalog/runtime非変更再構築不要・ゲーム所有936df00非変更。全体test:wordsはsession55994進行中、まだ最終結果にしない。
+
+- 2026-10-16同じ4d12ba対象／成立保持条件個別採用：ユーザー「はい、どちらも採用でOKです」。既存日本語not_dislike単独「木の実は嫌いじゃない／嫌いではない」「嫌いじゃない／嫌いではない」だけの独立report候補。新文型／理解習得規則／他言語文型非追加、既存解析正規化境界を維持。入力当時dislike/report/negation既知・単独report/complete=true/unresolved=[]・主体=実話者・negative/unspecified・aspect=null/conditionStatus=null・実speaker_reportと既存resolveTargetの一意採用を要求。明示木の実は既知一般意味source=explicitで注目個体へ限定せず、対象省略target=nullは入力当時attention一意のsource=attentionを保持する。省略対象をberryに限定せず、berry意味既知を省略形の新条件にしない。dislikeの否定報告をlike・本人好悪希望満腹拒否食事中止や話者真偽へ変換しない。azのdislike肯定・locale aspect／一般対象個体名evidence分離は別担当非変更、ay以下全担当三保留維持。他の否定お願い食後散策質問報告組合せ等は個別相談・一括採用永久対象外なし。
+- ba一時API experimental_word_diary_negated_preference_reports.capture(buffer,result,receipt)三引数は既存candidates.create()へkind=report／occurrenceId=negated_preference_report:今回input IDを渡す。原input/frame・聞いたscene/attention・前後world・入力前knowledge・当時understanding/reportSource・実response/actualSpeechを分離コピー。実acknowledge/attendを保持しstatus=reported、verified/newTeaching/newLearning/newExperience=false。receiptのbeforeState/beforeWorld、独立input/inputKnowledge/inputContextと実respond後afterState/afterWorld/replyをコピー上既存receive/respondで結果全文と前後state/world/reply全文照合、原ID=before.serial+1・欠損矛盾非補完。供給資料整合照合であり真正性認証や本配線ではない。同input非増加非上書き・新input別候補・後知識後注目で原未成立非遡及原候補非書換え、実report/negation経験限定scope非転移。本文集約4e未決定・一時receipt保存形式非採用ゲーム呼出なし・本人日記生成保存再開配布本接続未完。
+- 専用初回21項目通過1045.4686ms、一般対象／省略対象とdislike否定の保持・後注目非遡及の二横断追加後23項目通過1009.4015ms、不通過なし。17実所有fixture/API群＋六横断、全体／監査／一時renderer検証は次工程で未実施。全1109／監査20／六JS七言語14957／renderer547全19群3509改変拒否とay以下全従前API途中詳細・空腹補修前全1084／補修後専用20renderer171区別を非削除非置換保持。最新ao〜az人間OK優先再確認不要・ao意味再読50部品所有七照合は従前到達維持、保持検査省略出力を意味読了にしない。64枠63確認済み子53最終総数未確定、残り4〜8中心6予測最終67〜71子56〜60中心69子58据置、ba実装後OK未受領同じba継続・追加枠減算移動なし全体未完。新表示文なしcatalog/runtime非変更再構築不要・ゲーム所有最終936df00非変更、旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外・途中保存移動合図なし。
+
 <a id="diary-preference-reports-az"></a>
 
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で5b96010の4d12az採用範囲へ実装後OKと移動を明示。既存日本語preference好き嫌い／他六言語like固定好悪報告の独立report候補は実装Codex検証ユーザー実装後OK限定確認済み。次4d12ba残入口一系統選定具体範囲個別成立相談（対象理解規則未採用未着手）。好悪否定not_dislike／否定お願い／食後散策／既存9入口外質問／任意感情報告組合せ等は個別相談、一括採用永久対象外決定なし。ba予定一枠追加・64枠63確認済み子53最終総数未確定、az一工程分だけ残り5〜9中心7から4〜8中心6へ差引・予測最終67〜71子56〜60中心69子58据置。進捗最終回答へ残り目安継続表示・短縮終了確約なし9大区分親番号維持4d12/4d/ID4全体未完。従前145全文全参照先条件確認状態未決定未回答未完保留全API内訳全途中修正検証詳細を非削除非置換保持、最新ao〜az人間OKを旧未受領より優先再確認不要。ao意味再読50部品所有七入口照合従前到達維持・保持検査ハッシュ省略出力は意味読了ではない。全1109監査20六JS七言語14957renderer547全19群3509改変拒否と全途中詳細、ay以下全従前詳細（空腹補修前全1084／補修後専用20renderer171区別）保持。一般対象／個体名evidence・locale aspect・嫌い意味の肯定報告・実応答分離と三引数一時APIの限定担当非変更、全担当三保留維持。今回確認移動文書のみ実働再検査なし、本接続本人日記生成保存再開配布未完、旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外・途中保存移動合図なし。
@@ -1610,6 +1643,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_negated_preference_reports.capture（4d12ba・同枠最終検証） | [ba節](#diary-negated-preference-reports-ba)の既存日本語not_dislike単独報告三引数一時API・当時dislike否定／一般対象省略対象／実応答分離 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1132監査21六JS七言語14957renderer268全17群1566改変拒否全途中詳細保持。実装後OK未受領同じba継続、64枠63確認済み残り4〜8中心6予測最終67〜71据置全体未完・本接続生成保存再開配布未完 |
+| diary_negated_preference_reports.capture（独立・4d12ba） | [ba節](#diary-negated-preference-reports-ba)の既存日本語not_dislike単独報告・三引数一時API。dislike否定／一般対象と省略attention一意対象／実応答を分離 | 対象成立条件個別採用・専用23通過、監査全体renderer検証前・実装後OK未受領同じba継続。好き本人希望真偽行動非補完・本接続生成保存再開配布未完、他入口個別相談各担当三保留維持 |
 | diary_preference_reports.capture（4d12az・最新確認） | [az節](#diary-preference-reports-az)の既存好悪報告三引数一時API・一般対象個体evidence／意味極性／locale aspectと実応答の分離を限定担当として維持 | 5b96010実装Codex検証ユーザー実装後OK限定確認済み。全1109監査20六JS七言語14957renderer547全19群3509改変拒否全途中詳細保持。次ba対象理解規則未採用未着手64枠63確認済み残り4〜8中心6予測最終67〜71子56〜60中心69子58、旧未受領は履歴として全保持・本接続生成保存再開配布未完 |
 | diary_preference_reports.capture（4d12az・同枠最終検証） | [az節](#diary-preference-reports-az)の既存好悪報告三引数一時API・当時理解／一般対象個体evidence／実応答分離 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1109監査20六JS七言語14957renderer547・19群184原121成立3509改変拒否と全途中詳細保持。実装後OK未受領同じaz内自由フィードバック必要修正、63枠62確認済み残り5〜9中心7据置全体未完・本接続生成保存再開配布未完 |
 | diary_preference_reports.capture（独立・4d12az） | [az節](#diary-preference-reports-az)の既存日本語preference好き嫌いと他六言語like固定報告。三引数一時API・当時complete・一般対象／個体参照／意味極性／locale aspectと実応答を分離 | 対象成立個別採用・専用25通過、監査全体renderer検証中・実装後OK未受領同じaz継続。本人好悪真偽行動非補完・本接続本人日記生成保存再開配布未完、他入口個別相談・各担当三保留維持 |
