@@ -597,6 +597,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 <a id="diary-negated-preference-reports-ba"></a>
 
+- 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で01403baの4d12ba採用範囲へ実装後OKと移動を明示。既存日本語not_dislike単独報告の独立report候補は実装Codex検証ユーザー実装後OK限定確認済み。次4d12bb残入口一系統選定具体範囲個別成立相談（対象理解規則未採用未着手）。否定お願い食後散策既存九入口外質問任意感情報告組合せ等は個別相談・一括採用永久対象外なし。bb予定一枠追加・65枠64確認済み子54最終総数未確定、ba一工程分だけ残り4〜8中心6から3〜7中心5へ差引・予測最終67〜71子56〜60中心69子58据置。進捗最終回答へ残り目安継続表示・短縮終了確約なし9大区分親番号維持4d12/4d/ID4全体未完。従前147全文全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換、最新ao〜ba人間OK優先再確認不要・ao意味再読50部品所有七入口照合従前到達維持、保持検査ハッシュ省略出力は意味読了ではない。全1132監査21六JS七言語14957renderer268全17群1566改変拒否と全途中詳細・az以下全従前詳細と空腹補修前全1084／補修後専用20renderer171区別保持。ba一般意味対象source=explicit／省略attention一意source=attentionとdislike否定・実応答分離、三引数コピー全文照合同input非増加非上書き原未成立非遡及経験scope非転移本接続保存形式非採用と全担当三保留非変更。今回文書のみ実働再検査なし、本接続本人日記生成保存再開配布未完・旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外・途中保存移動合図なし。
+
 - 2026-10-16 ba最終実装Codex検証仕様引継ぎ更新限定完了：全1132（従前1109＋ba23）session55994終了0・dot1132（今回工具に時間集計出力なし）、別監査21 session58333終了0・16026.368ms、六JS構文／七言語14957 chunk5c6b97終了0、独立一時renderer268 session37582終了0、diff --check通過。17群106原54成立・1566改変拒否と全途中詳細は以下へ非削除保持。実装後OK未受領、次同じba内自由フィードバック必要修正実装後OK確認。64枠63確認済み子53最終総数未確定、残り4〜8中心6予測最終67〜71子56〜60中心69子58据置、減算追加枠移動なし4d12/4d/ID4全体未完。最新ao〜az人間OK・従前145/146全文全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換。全1109／監査20／六JS七言語14957／renderer547全19群3509改変拒否とay以下全従前詳細・空腹補修前全1084／補修後専用20renderer171区別を今回結果で置換しない。本人日記生成保存再開配布本接続未完、各担当三保留維持・新表示文なしcatalog/runtimeゲーム所有936df00非変更。
 
 - ba専用23＝下の17実所有fixture/API群＋六横断（29種資料改変拒否／12新input別候補と同input非増加非上書き／後知識原partial非遡及／一般対象省略対象dislike否定保持／後注目非遡及／非JSON循環等拒否）。106原資料54成立、29種×54＝1566改変拒否。今回改変29種は原input ID/時刻/raw/話者/locale/scene、当時complete／複数frame、独立input/knowledge/context、前serial/attention、後serial/実turn話者、実reply/後world、前world／後state欠損、reportSource聞いた時刻、主体/aspect/極性/相対時点/意味、前world注目／後world架空経験、conditionStatus／採用target ID差替え。返却コピー編集独立・元資料非変更、knowledge／state.experiences／selectionSources／world.experiences非増加を確認。実report/negation習得は既存教示と実完了処理で生成し、新scopeへ転移しない。
@@ -1643,6 +1645,7 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_negated_preference_reports.capture（4d12ba・最新確認） | [ba節](#diary-negated-preference-reports-ba)の三引数一時API・一般意味対象省略一意注目対象／dislike否定／実応答分離を限定担当として維持 | 01403ba実装Codex検証ユーザー実装後OK限定確認済み。全1132監査21六JS七言語14957renderer268全17群1566改変拒否全途中詳細保持。次bb対象理解規則未採用未着手65枠64確認済み残り3〜7中心5予測最終67〜71子56〜60中心69子58、旧未受領は履歴として保持・本接続生成保存再開配布未完 |
 | diary_negated_preference_reports.capture（4d12ba・同枠最終検証） | [ba節](#diary-negated-preference-reports-ba)の既存日本語not_dislike単独報告三引数一時API・当時dislike否定／一般対象省略対象／実応答分離 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1132監査21六JS七言語14957renderer268全17群1566改変拒否全途中詳細保持。実装後OK未受領同じba継続、64枠63確認済み残り4〜8中心6予測最終67〜71据置全体未完・本接続生成保存再開配布未完 |
 | diary_negated_preference_reports.capture（独立・4d12ba） | [ba節](#diary-negated-preference-reports-ba)の既存日本語not_dislike単独報告・三引数一時API。dislike否定／一般対象と省略attention一意対象／実応答を分離 | 対象成立条件個別採用・専用23通過、監査全体renderer検証前・実装後OK未受領同じba継続。好き本人希望真偽行動非補完・本接続生成保存再開配布未完、他入口個別相談各担当三保留維持 |
 | diary_preference_reports.capture（4d12az・最新確認） | [az節](#diary-preference-reports-az)の既存好悪報告三引数一時API・一般対象個体evidence／意味極性／locale aspectと実応答の分離を限定担当として維持 | 5b96010実装Codex検証ユーザー実装後OK限定確認済み。全1109監査20六JS七言語14957renderer547全19群3509改変拒否全途中詳細保持。次ba対象理解規則未採用未着手64枠63確認済み残り4〜8中心6予測最終67〜71子56〜60中心69子58、旧未受領は履歴として全保持・本接続生成保存再開配布未完 |
