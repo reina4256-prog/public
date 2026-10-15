@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で025d591の4d12bc採用範囲へ実装後OKと移動を明示。既存日本語食後散策誘いの独立proposal候補は実装Codex検証ユーザー実装後OK限定確認済み。次4d12bd残入口一系統選定具体範囲個別成立相談（対象理解規則未採用未着手）。残入口相談のためbd予定一枠追加67枠66確認済み子56最終総数未確定、bc一工程分だけ残り2〜6中心4から1〜5中心3へ差引・予測最終67〜71子56〜60中心69子58据置。進捗最終回答へ確認数残り幅中心変更理由継続表示、短縮一括採用永久対象外終了確約なし9大区分親番号維持4d12/4d/ID4全体未完。従前151全文全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換・最新ao〜bc人間OK優先再確認不要、ao意味再読50部品所有七照合従前到達維持。全1179監査23六JS七言語14957renderer905全17群6200改変拒否全途中詳細とbb以下全従前詳細／空腹補修前全1084と補修後専用20renderer171区別保持。今回文書のみ実働再検査なし、本人日記生成保存再開配布本接続未完・各担当三保留維持。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外。今回移動ユーザー明示・途中保存移動合図なし。
+
 - 2026-10-16同じbc最終：採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1179／別監査23／六JS構文七言語14957／独立一時renderer905通過。[正本bc節](specs/core/experimental_word_learning.md#diary-after-eat-walk-proposals-bc)へ17群305原200成立・6200改変拒否とGPU失敗成功等の全途中詳細を非削除保存。実装後OK未受領・次同じbc内自由フィードバック必要修正、66枠65確認済み子55残り2〜6中心4予測最終67〜71子56〜60中心69子58据置、対象成立採用だけでは減算追加枠移動なし全体未完。従前149/150全文全参照先条件確認状態API途中詳細保留非削除非置換・最新ao〜bb人間OK優先、本人日記生成保存再開配布本接続未完・途中保存移動合図なし。
 
 - 2026-10-16同じ4d12bc：ユーザー「どちらも採用でOKです」で既存日本語食後散策誘いの対象／成立保持条件個別採用、独立diary_after_eat_walk_proposals実装検証中。[正本bc節](specs/core/experimental_word_learning.md#diary-after-eat-walk-proposals-bc)が三引数一時APIと全検証途中詳細を所有。unknown条件実話者roles未生成／実応答活動分離、条件成立原食事共同参加予約従否非補完・新理解規則なし。専用23通過17群305原200成立6200改変拒否、実装後OK未受領同じbc継続。66枠65確認済み子55最終総数未確定、残り2〜6中心4予測最終67〜71子56〜60中心69子58据置、対象成立採用だけでは減算追加枠移動なし全体未完。従前149/150全文全参照先条件確認状態API途中詳細保留非削除非置換・最新ao〜bb人間OK優先、全担当三保留本接続生成保存再開配布未完維持。
@@ -589,6 +591,8 @@ ID 1・2は下記の対応範囲で実装・通し検証済み。ID 3〜10は未
 
 | 記号 | 独立部品／範囲 | 状態 |
 | --- | --- | --- |
+| 4d12bc（最新確認・旧未受領行より優先） | 既存日本語食後散策誘いの独立proposal候補・unknown条件実話者roles未生成／実応答活動分離 | 025d591実装Codex検証ユーザー実装後OK限定確認済み。全1179監査23六JS七言語14957renderer905全17群6200改変拒否全途中詳細保持、本接続本人日記生成保存再開配布未完 |
+| 4d12bd | 残る入口一系統選定・具体範囲と個別成立相談から採用範囲実装検証確認まで | 次予定・対象理解規則未採用未着手。九入口外質問・任意感情報告組合せ・今回範囲外否定お願い・食後散策自由形・最終入口照合等は個別相談、一括採用永久対象外なし。残入口相談のため一枠追加67枠66確認済み子56最終総数未確定、残り1〜5中心3予測最終67〜71子56〜60中心69子58非正式・終了確約なし全体未完 |
 | 4d12bc（同枠最終検証・旧途中行より優先） | 既存日本語食後散策誘いの独立proposal候補・三引数一時API・unknown条件と実応答活動分離 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1179／別監査23／六JS七言語14957／renderer905全17群6200改変拒否と全途中詳細保持。実装後OK未受領同じbc内自由フィードバック必要修正、66枠65確認済み残り2〜6中心4予測最終67〜71据置全体未完 |
 | 4d12bc（同枠最新・旧未採用行より優先） | 既存日本語食後散策誘いの独立proposal候補・三引数一時API・unknown条件と実応答活動分離 | 対象成立保持条件個別採用・専用23通過、全体監査renderer検証前・実装後OK未受領同じbc継続。66枠65確認済み残り2〜6中心4予測最終67〜71据置全体未完、追加枠減算移動なし |
 | 4d12ba（最新確認・旧未受領行より優先） | 既存日本語not_dislike単独報告の独立report候補・一般意味対象と省略一意注目対象／dislike否定／実応答分離 | 01403ba実装Codex検証ユーザー実装後OK限定確認済み。全1132監査21六JS七言語14957renderer268全17群1566改変拒否全途中詳細保持、本接続本人日記生成保存再開配布未完 |
@@ -4281,4 +4285,40 @@ bb一般意味対象source=explicit／指示attention一意source=attentionと�
 66枠65確認済み＋同じbc・子55最終総数未確定、残り2〜6中心4・予測最終67〜71子56〜60中心69子58据置。bb一工程分だけ前回差引済み、bc実装後OK未受領のため今回減算追加枠見積り変更移動なし。進捗最終回答へ確認数残り幅中心変更理由を継続表示、短縮要望終了確約なし9大区分4a〜4i親4d1〜12維持4d12/4d/ID4全体未完です。
 
 本人日記生成保存再開配布本接続未完、原五区分候補部品非変更、新表示文なしcatalog/runtime非変更再構築不要・ゲーム所有最終936df00非変更。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外、handoffローカルGit対象外です。今回は採用後のbc独立部品実装検証であり、前回確認移動の文書のみ実働再検査なしという記録を置換しません。同じbc内自由フィードバック必要修正実装後OKへ続け、途中保存を移動合図にしません。
+```
+
+### 2026-10-16残数更新（4d12bc確認済み・次bd未採用）
+
+bc一工程の実装後OKを限定受領し、残り作業予測2〜6中心4から1〜5中心3へ一工程分だけ差引。予測最終67〜71／4d12子56〜60中心69／子58は据置。既存九入口外質問・任意感情報告組合せ・最終入口照合・今回範囲外否定お願い・食後散策自由形等の残入口個別相談のため正式工程へbd予定一枠追加し67枠（66確認済み＋bd予定）子56とする。予定枠追加と残数差引を混同しない。最終総数未確定・統合分割追加あり、一括採用永久対象外決定や終了確約なし。進捗最終回答へ現在確認数／残り幅中心／変更理由を継続表示、短縮依頼ではない。9大区分4a〜4i親4d1〜12維持4d12/4d/ID4全体未完。
+
+## 次チャットに貼る文章（2026-10-16・025d591／4d12bc確認済み・次4d12bd）
+
+```text
+実装最新025d591（ゲーム所有コード最終936df00）、確認移動文書の最新push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12bcは採用範囲の実装・Codex検証・ユーザー実装後OK限定確認済み。次4d12bdは残る入口一系統の選定・具体範囲と個別成立相談（対象／理解規則未採用未着手）です。
+
+まずdocs/CURRENT_IMPLEMENTATION.md、docs/specs/README.md、docs/WORD_DEMO_ROADMAP.mdの最新進行・工程表・残数更新と、実末尾「025d591／bc確認済み・次bd」の開始文全文を読んで引き継いでください。正本experimental_word_learning.mdの日記節・コード対応表・diary-after-eat-walk-proposals-bcとbb/ba/az/ay/ax/aw/av/au/at/as/ar/aq/ap以下、experimental_word_diary_audit.mdの最新照合記録と具体未対応入口も参照してください。
+
+従前151開始文継続文と全参照先の全維持条件・確認状態・未決定未回答未完保留・全API内訳・全途中修正検証詳細を非削除非置換で保持し、最新ao/ap/aq/ar/as/at/au/av/aw/ax/ay/az/ba/bb/bc人間確認を優先してください。ao原文意味再読・50部品全文所有七入口照合は従前到達として引継ぎ、保持検査ハッシュ省略出力を意味読了にせず各fixture全文や無制限再帰読了を主張しないでください。
+
+bcは既存日本語after_eat_walk単独「食べ終わったら」＋既存読点／コンマ／空白（なし含む）＋任意「一緒に」＋「散歩しよう／散歩しようよ／散歩に行こう」だけ。疑問符でも既存invitationを保つ場合を含め、既存解析正規化境界を非変更、新文型他言語文型理解習得規則非追加です。入力当時walk/eatと当該invitation/sequence既知・単独invitation/complete=true/unresolved=[]・known.meaning=walk/conditionMeaning=eat・positive/unspecified・aspect=null/target=null/conditionStatus=unknown・subject=実話者とroles未生成を保持してください。自己食事主体・共同参加者・原食事・食事完了条件成立・予約・従否・散策開始完了経験を補わない条件です。現所有応答はsequential_proposal専用枝でも直接提案実行枝でもなく末尾expressionのacknowledge/attend。理解と実活動前後を分離しstatus=understood・compliance=null/actionDecisionRecorded=false・newTeaching/newLearning/newExperience=falseです。
+
+experimental_word_diary_after_eat_walk_proposals.capture(buffer,result,receipt)三引数一時APIが既存candidates.create()へkind=proposal／occurrenceId=after_eat_walk:今回input ID／sourceId=今回input IDを渡します。原input/frame・聞いたscene/attention・前後world・入力前knowledge・当時understanding・実response/actualSpeechを分離コピーします。receiptのbeforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond後afterState/afterWorld/replyを使い捨てコピー上既存receive/respondでresultと前後state/world/reply全文照合、原ID=before.serial+1・欠損矛盾非補完です。供給資料整合照合であり真正性認証や実ゲーム資料供給本配線ではありません。同input非増加非上書き・新input別候補・後知識後食事完了で原未成立非遡及原候補非書換え、実食後休息sequence／rest限定invitation経験scope非転移、一時receipt保存形式非採用ゲーム呼出なし・本文集約4e未決定を正本のまま保持してください。
+
+bbの一般意味対象source=explicit／指示attention一意source=attention・既存subject・否定お願い理解と実応答活動分離、compliance=null/actionDecisionRecorded=false・三引数全文コピー照合非増加非上書き原未成立非遡及scope非転移本接続保存形式非採用を保持してください。ba一般対象省略一意対象dislike否定、az一般対象個体名原evidence・日本語aspect=preference／他六言語null・dislike肯定、ay現在希望negative/now/desire、ax回復説明complete=false/recovery_explanation未理解と直前原資料（awだけや同話者へ限定せずreason既知を具体回復因果本人経験真偽や直前への明示因果参照へ変換しない）、aw importance未理解、av unknown条件、au木の実、at挨拶別資料、as確認取り下げ別資料、ar参照引用休息誘い、aq反復別資料意味確認成功回答、ap九直接質問、4d2答え不明、u原理由回答、p食後休息、am直接休息散策、x/aj/ak語義訂正の各担当境界を維持してください。
+
+既存九入口外質問・任意感情報告組合せ・今回範囲外否定お願い・食後散策自由形・最終入口照合等を一括採用や永久対象外にせず、bd一系統の具体範囲と成立条件を先に提示してください。身振り問い未決定・原質問への後日休息追記未回答・経験由来訂正新scope別途相談を維持してください。確認済み部品九見本星座を再確認からやり直さないでください。
+
+67枠（66確認済み＋bd予定）・正式子56／最終総数未確定。残入口相談のためbd予定一枠追加、bc一工程確認分だけ残り2〜6中心4から1〜5中心3へ差引・予測最終67〜71子56〜60中心69子58据置です。旧1中心1は当時予定枠下限履歴として非削除保持し現在予測と区別してください。中心仮内訳は既存九入口外質問／任意感情報告組合せ／最終入口照合です。統合分割追加あり他対象成立一括承認終了確約なし。進捗最終回答へ確認数／残り幅中心／変更理由を継続表示してください。短縮要望ではありません。9大区分4a〜4i親4d1〜12維持4d12/4d/ID4全体未完です。
+
+固定ao51/52/ao=false／ao_feedback_acceptance未受領と025d591のap〜bc supplemental implementationAcceptance=not_receivedは各OK前資料です。最新人間確認66／67枠とao〜bc実装後OKを優先し旧未受領から再確認を求めないでください。capture50／所有七原文変更時pendingへの戻し、ledger14識別子と具体未対応一覧各別担当を保持し、ao_feedback_acceptance既受領他11保留維持です。
+
+全1179（従前1156＋bc23）session79850終了0・dot1179工具時間集計なし、別監査23 session78610終了0・24231.3359ms、六JS構文七言語14957 session40109終了0・diff --check通過を保持してください。専用23初回通過2095.841ms、不通過なし、17実所有fixture/API群305原200成立・31種6200改変拒否と全API内訳は正本bc節へ非削除保持。31種は原input ID/時刻/raw/話者/locale/scene、当時complete／複数frame、独立input/knowledge/context、前serial/attention、後serial/実turn話者、実reply/後world、前world／後state欠損、主体/aspect/極性/相対時点/意味、前world注目／後world架空経験、conditionStatusのmet化／null化、conditionMeaning差替え、共同actors役割新造、target新造です。六横断は資料改変拒否／12新input別候補同input非増加非上書き／後知識原partial非遡及／unknown条件実話者roles未生成保持／実食事完了後原候補非書換え原partial非遡及／非JSON循環等拒否。返却コピー編集独立元資料非変更、knowledge/state.experiences/selectionSources/world.experiencesとmode/destination/attention/history/reasons/activityStart非変更通過。実食事と実sequence/invitation教示習得は専用Nodeメモリで既存所有処理使用、所有コードをfixture期待へ合わせた変更なし。初回仮scripts下test二名不存在読取書込なし→tests実名補修、監査総数期待13→14実行前更新不通過なしも保持してください。
+
+独立一時rendererは305原＋今回話者／実reply／独立inputContext三種600改変＝905ケース。非表示空白ページ専用一時profileへコピー供給、rendererコピー上既存receive/respond全文照合・同input非増加非上書き・返却コピー編集独立元資料sourceStable・九global除去local/session各bc-sentinel不変保存bridge未定義通過。制限内session23616 GPU -1073741515二回／ERR_FAILED(-2)終了1非通過→権限付きTemp/word-after-eat-walk-proposal-preview-Z1JemQ session58640終了0auto-review拒否なし。固定ao50capture所有七ledger14＋supplemental14 errors[]／HTTP94要求404二HTML200です。本人日記生成保存再開配布版や実ユーザー保存の検証ではありません。
+
+025d591（Add after-eating walk diary proposals for 4d12bc）対象11だけstage chunk66b823終了0・cached diff --check/stat/name-only確認、417追記4削除・共有四文書は追記のみ、commit chunk4328ff終了0、origin/main push860e3d3..025d591 chunk13d7a8終了0auto-review拒否なしを保持してください。860e3d3共有四旧全行1059/4255/3019/249と150text全文順序保持／151同じbc継続実末尾配置・構造errors[]の最終保持検査は意味読了認定ではありません。
+
+bb全1156監査22六JS七言語14957renderer544全18群190原118成立28種3304改変拒否と全途中fixture監査GPU配置補修stage/push詳細、ba全1132監査21renderer268全17群1566改変拒否と専用21→23／GPU失敗成功／stage/push全途中詳細、az全1109監査20renderer547全19群3509改変拒否と全途中詳細、ay空腹補修前全1084と補修後専用20／renderer171全16群928改変拒否の区別を保持し今回結果で置換しないでください。ax全1064監査18renderer251全19群2438改変拒否、aw全1040監査17renderer293全13群1885改変拒否、av全1023監査16renderer233全14群1421改変拒否、au全1005監査15renderer515全13群3267改変拒否、at全988監査14renderer147九群551改変拒否、as全975renderer159全17群、ar全952renderer448全28群、aq全917renderer310全26群、ap全887renderer410以下全従前条件API途中詳細も非削除非置換保持します。
+
+今回確認移動は文書のみ・実働再検査なし。本人日記生成保存再開配布本接続未完、原資料Node専用メモリ実生成rendererコピー上照合、ゲーム呼出本文文章化集約途中記録印象絵暦保存本接続未接続・新表示文なしcatalog/runtime非変更・原五区分候補非変更を保持してください。旧AI旧保存実ユーザー保存九見本星座非操作非置換。採用後は実装から実装後OKまで同じチャットで進め、途中保存を移動合図にせず、固定入力や検証手順を私へ求めないでください。今回移動は私の明示です。対象外%SystemDrive%/非操作commit対象外・handoffローカルGit対象外です。
 ```
