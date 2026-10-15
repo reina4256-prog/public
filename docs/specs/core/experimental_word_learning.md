@@ -595,6 +595,35 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-berry-reports-au"></a>
+
+- 2026-10-16 au最終検証確定：test:words登録全1005件（従前988＋au17）session25487終了0・89643.5297ms、別監査15件（従前14＋au担当一項目）session45444終了0・16134.7784ms、六JS構文と七言語14,957文通過。採用範囲の実装・Codex検証・仕様引継ぎ更新は限定完了。次は同じau内自由フィードバック・必要修正・実装後OK未受領。58枠57確認済み・残り予測1中心1予測最終58／子47非正式据置、追加分割移動なし・9大区分4a〜4i／親4d1〜12維持4d12／4d／ID4全体未完。前回全988／監査14／六JS七言語14957／renderer147九群API・551改変拒否と全途中詳細、as全975／renderer159全17群、ar全952／renderer448全28群、aq全917／renderer310全26群、ap全887／renderer410以下全従前詳細を今回結果で置換せず保持。最新ao/ap/aq/ar/as/at人間OKを旧固定未受領より優先し再確認不要。
+- au専用17項目は下の13実所有処理fixture/API群＋四横断。152原ケース121成立、27種×121成立＝3267今回資料改変拒否。原input ID/時刻/raw/話者/locale/scene、当時complete／複数frame、独立input/knowledge/context、前serial/attention、後serial/実turn話者、実reply/後world、前world／後state欠損、reportSource聞いた時刻／主体／aspect／極性／相対時点／意味、前world注目／後world架空経験を検査した。12新input反復別候補と同input非増加非上書き、原partial非遡及、コピー編集独立・元資料非変更、knowledge／state.experiences／selectionSources／world.experiences非増加、非JSON循環等拒否を確認。八設定fixture補修後専用17通過1289.528ms、全体1005件と一時renderer515でも通過した。
+
+| au実所有処理fixture/API群 | 原ケース | 成立 |
+| --- | ---: | ---: |
+| 八設定 | 8 | 2 |
+| 既存日本語の場所接頭四種×助詞二種×動詞三種×終助詞四種 | 96 | 96 |
+| 発話二設定×world注目なし／shade／berry:1／berry:99 | 8 | 8 |
+| 観察食事休息仕事散策の活動五種 | 5 | 5 |
+| 七入力locale・他言語文型新造なし | 7 | 1 |
+| 既存外の英語中国語ドイツ語文を新設しない | 3 | 0 |
+| 他担当・疑問・複数節・句点後空白の未知空節 | 10 | 0 |
+| 単独前後空白・終端句点・感嘆符 | 3 | 3 |
+| 初期理解の別話者・発話二設定 | 2 | 2 |
+| 注目対象なし・時刻から新事実を補わない | 2 | 2 |
+| 実果実数ゼロでも実see_berryを真偽認定にしない・発話二設定 | 2 | 2 |
+| 実report習得・生活発話四設定のscope非転移 | 4 | 0 |
+| 必須意味berryまたは関係report欠損 | 2 | 0 |
+
+- au専用一時ElectronはNode専用メモリで実生成した152原資料＋話者／実reply／独立inputContextの三種363改変＝515ケースを非表示空白ページ・独立一時profileへ供給。rendererコピー上既存receive/respond照合、再受信非増加非上書き、返却コピー編集独立・元資料非変更sourceStable、九global除去、local/session各au-sentinel不変・保存bridge未定義を通過。制限内session44322はGPU -1073741515／ERR_FAILED(-2)終了1非通過、権限付きTemp/word-berry-report-preview-teKD9x session26564終了0・auto-review拒否なしを最終結果とする。原資料生成はNode専用メモリでrendererはコピー上照合、本人日記生成保存再開・配布版・実ユーザー保存の検証ではない。
+- au監査は固定ao50capture所有七ledger14とap/aq/ar/as/atを保持し別supplemental担当auを追加。欠落／三引数API改変拒否一項目を増やし、構造errors[]・通常HTTPは旧67＋au部品／fixture／smoke三本＝70要求404と既存二HTML200を検査。機械から意味読了や人間OKを認定しない。今回変更六JSは新部品／fixture／test／smokeと監査工具／test。ゲーム所有最終936df00非変更、原五区分部品と新表示文catalog/runtime非変更・再構築不要。対象関連文書旧全行／旧134text全文保持検査・commit push結果はlatest handoff優先、保持検査は意味読了認定ではない。対象外%SystemDrive%/非操作commit対象外、旧AI旧保存実ユーザー保存九見本星座非操作非置換、本人日記生成保存再開配布未完・途中保存移動合図なし。
+
+- 2026-10-16同じ4d12au対象／成立条件個別採用：ユーザー「はい、それぞれ採用でOKです」。既存日本語berry_observationに一致する単独木の実観察報告だけを独立report候補へ渡す。新文法・理解習得規則・他言語文型を追加しない。疑問形／複数節／休息説明／好悪希望／他報告提案は個別相談のまま一括採用永久対象外なし。at挨拶別資料・as名付け確認取り下げ・ar参照引用付き休息誘い・aq反復別資料意味確認回答・ap九入口・4d2答え不明・u原理由回答・am直接提案・x/aj/ak語義訂正を非変更、身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談維持。
+- au一時API experimental_word_diary_berry_reports.capture(buffer,result,receipt)三引数は既存candidates.create()へkind=report／occurrenceId=berry_report:今回input IDを渡す。原input/frame・聞いたscene/attention・前後world・入力前knowledge・当時understanding/reportSource・実response/actualSpeechを分離コピー、status=reported／verified=false／newTeaching/newLearning/newExperience=false。receiptのbeforeState/beforeWorld、独立input/inputKnowledge/inputContextと実respond後afterState/afterWorld/replyをコピー上既存receive/respondで全文照合。単独当時report/complete/observation/berry・主体=実話者・positive/unspecified・speaker_report原input ID/聞いた時刻を要求、欠損矛盾は補わない。実see_berry/heard_berry/attendを別保持し、注目も発話も報告真偽確認や本人観察完了経験へ変換しない。実果実数ゼロでも既存応答がsee_berryならそのまま保持し新事実を認定しない。これは供給資料整合の照合であり真正性認証機構ではない。
+- au同input再受信再読非増加非上書き、新input成立報告は別候補、後知識による原partial非遡及・原候補非書換え。本文反復集約は4e未決定、一時receipt保存形式非採用・ゲーム呼出なし・旧五区分部品非変更、本人日記生成保存再開配布本接続未完。既存report経験習得scopeを木の実報告へ転移せず、生活意味berryとreport関係の当時既知を個別に要求する。
+- au専用初回17項目16通過1不通過は八設定fixtureがfoundationだけで成立と誤認した点。実所有understandのberry意味不足を確認しfoundation&&lifeへfixtureだけ補修、17再通過1289.528ms。ゲーム所有コード／理解規則を期待に合わせて変更なし。文書初回patchは工程表見出し不一致で全体無変更拒否、実見出しへ補修。現在同じau内監査一時renderer全体検証中、au実装後OK未受領・58枠57確認済み残数予測据置全体未完、次記号追加移動なし。全従前条件API途中詳細確認状態保留非削除非置換・最新ao/ap/aq/ar/as/at人間OK優先、対象外%SystemDrive%/非操作commit対象外・旧AI旧保存実ユーザー保存九見本星座非操作非置換、途中保存移動合図なし。
+
 <a id="diary-greetings-at"></a>
 
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」で24eaa4dの4d12at採用範囲へ実装後OKと移動を明示。既存日本語朝挨拶の独立別資料は実装・Codex検証・ユーザー実装後OK限定確認済み。次4d12auは残る入口の一系統選定・具体範囲と個別成立相談（対象／理解規則未採用未着手）。固定範囲外報告提案・今回範囲外の挨拶等は個別相談候補で一括採用永久対象外決定なし。残入口の個別相談のためau予定一枠を追加し58枠（57確認済み＋au予定）最終総数未確定。at一工程確認分だけ旧残り予測1中心1から機械差引0中心0だが予定最低1へ再整合、残り予測1中心1・予測最終58／子47へ更新。旧予測57／子46を一枠上回る理由はこの残件で、非正式可視化下限整合のみ・終了確約なし。9大区分4a〜4i親4d1〜12維持4d12／4d／ID4全体未完。従前133開始文継続文全参照先の全維持条件確認状態未決定未回答未完保留全API内訳全途中修正検証詳細を非削除非置換保持、最新ao/ap/aq/ar/as/at人間OKを旧固定未受領表示より優先し再確認不要。ao原文意味再読50部品全文所有入口照合を引継ぎ、保持検査ハッシュ省略出力を意味読了にしない。前回全988／別監査14／六JS七言語14957／独立一時renderer147と九群API・551改変拒否・全途中補修詳細、as全975／renderer159全17群、ar全952／renderer448全28群、aq/ap以下全従前詳細を保持。今回は確認移動文書のみ実働再検査なし。at挨拶別資料、as確認取り下げ別資料、ar参照引用休息誘い、aq反復別資料／意味確認成功回答、ap九入口、4d2答え不明、u原理由回答、am直接提案、x/aj/ak語義訂正の担当を維持。身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談維持。本人日記生成保存再開配布本接続未完・旧AI旧保存実ユーザー保存九見本星座非操作非置換・対象外%SystemDrive%/非操作commit対象外・handoffローカルGit対象外。途中保存移動合図なし、今回移動はユーザー明示。
@@ -1397,6 +1426,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_berry_reports.capture（4d12au・同枠最終検証） | [au節](#diary-berry-reports-au)の既存日本語単独木の実報告・三引数一時API。当時理解・speaker_report・実発話／身振りを分離して独立report候補へ | 採用範囲実装Codex検証仕様引継ぎ更新限定完了、全1005／監査15／六JS七言語14957／renderer515・13群API3267改変拒否通過。次同じau内自由フィードバック必要修正実装後OK未受領・全体未完、本接続生成保存再開配布未完 |
+| diary_berry_reports.capture（独立・4d12au） | 既存日本語単独berry_observationの当時complete・実speaker_reportとsee_berry/heard_berry/attendを分離して既存五区分のreportへ。三引数一時API・コピー上既存receive/respondで前後資料全文照合 | 対象成立条件個別採用・実装検証中、実装後OK未受領同じau継続。[au節](#diary-berry-reports-au)が全API途中詳細を所有。真偽本人経験非補完・本接続生成保存再開配布未完、他残入口個別相談三保留維持 |
 | diary_greetings.create/capture（4d12at・最新確認） | [at節](#diary-greetings-at)の独立greeting一時journal・三引数API・当時理解／実発話身振り分離を限定担当として維持 | 24eaa4d実装Codex検証ユーザー実装後OK限定確認済み。全988／監査14／六JS七言語14957／renderer147と九群API途中詳細保持。次au対象理解規則未採用未着手、旧未受領行は履歴として全保持・本人日記生成保存再開配布未完 |
 | diary_greetings.create/capture（4d12at・同枠最終検証） | 既存日本語朝挨拶の当時理解と実good_morning／attendを分離する独立別資料、原五区分候補非変更 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了・全988／別監査14／六JS七言語14957／一時renderer147通過。[at節](#diary-greetings-at)へ全API途中詳細保持。実装後OK未受領・同じat内自由フィードバック必要修正、本人日記生成保存再開配布未完 |
 | diary_greetings.create/capture（独立・4d12at） | 既存日本語単独greeting_morningと当時complete・実good_morning／attend。入力前独立資料と実応答前後をコピー上既存処理で全文照合、実発話と身振りを分離する独立greeting資料 | 対象成立条件個別採用・実装検証中、三引数一時API保存形式非採用・五区分候補非変更。九群60原29成立・19種551改変拒否・一時renderer147／別監査14通過、全API途中詳細は[at節](#diary-greetings-at)所有。実装後OK未受領・同じat継続、本人日記生成保存再開配布未完 |
