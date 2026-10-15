@@ -595,6 +595,31 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-greetings-at"></a>
+
+- 2026-10-16 at最終検証確定：test:words登録全988件（従前975＋at13）session13895終了0・82026.4411ms、別監査14件終了0・2652.706ms、変更六JS構文・七言語14,957文通過。九群60原29成立／19種551改変拒否／独立一時renderer147と全API途中補修詳細は下記へ非削除保持。採用範囲実装・Codex検証・仕様引継ぎ更新限定完了、次同じat内自由フィードバック必要修正実装後OK未受領。57枠56確認済み・残り予測1中心1予測57／子46非正式据置、追加分割移動なし4d12／4d／ID4全体未完。最新ao/ap/aq/ar/as人間OKを固定旧未受領表示より優先し再確認不要。原文保持検査とcommit/push結果はlatest handoff優先、意味読了認定と分離する。ゲーム所有最終936df00非変更・旧五区分候補非変更、新表示文なしcatalog/runtime非変更・本人日記生成保存再開配布未完。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外、全従前条件API途中詳細確認状態保留非削除非置換、途中保存移動合図なし。
+
+- 2026-10-16同じ4d12at対象／成立条件個別採用：ユーザー「はい、どちらも採用OKです」。既存日本語greeting_morningだけで、単独frameと当時greeting/complete、実respondのgood_morningまたはattendを独立別資料へ渡す。新文型／他言語挨拶／理解習得規則を追加せず、経験reportの限定scopeを挨拶へ転移しない。実発話と身振りを区別し、新教示・学習・完了経験・感情・実際に朝だった事実を生成しない。既存五区分候補は非変更、固定外報告提案等の残件は個別相談・永久対象外決定なし。as/ar/aq/ap/4d2/u/am/x/aj/akの担当、身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談を保持。
+- at一時API experimental_word_diary_greetings.create()は独立greeting journal、capture(buffer,result,receipt)三引数。occurrenceId=greeting:今回input ID、原input/frame／場面注目／入力前knowledge／当時understanding／実response／actualSpeechと前後worldを分離コピー。receiptのbeforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond後afterState/afterWorld/replyを使い捨てコピー上の既存receive/respondで全文照合する。入力IDはbefore.serial+1、単独既存文型・当時complete・実応答の一致を要求し、欠損や不整合を補わない。これは供給資料整合の照合であり真正性認証機構ではない。newTeaching/newLearning/newExperience/morningVerified=false。同input再受信再読非増加非上書き、新input成立挨拶は別資料、後知識で原partial入力非遡及。本文反復集約は4e未決定、一時journal/receipt保存形式非採用・ゲーム呼出なし・本人日記生成保存再開配布未完。
+- at専用初回12項目は10通過2不通過：fixtureで「 おはよう。 」を単独成立と誤認したが既存interpretは句点後空白を未知空節へ分割するため不成立として残し、単独の前後空白／終端句点を別成立検査へ修正。空attentionを空配列へ変更する同値改変も実push改変へ補修。所有コードを期待へ合わせた変更なし。続いて実report習得scope非転移を追加し専用13項目通過425.9203ms。PSの日本語stdinが?へ変わった診断は書込なしで無効、既存UTF-8 fixtureのrawをASCII stdinから参照する読取へ補修。推測したdiary_report_example_fixtures.js不存在読取は書込なし、rgで実diary_negation_report_fixtures.js→diary_negation_fixtures.jsのlearnReportへ補修。現在同じat内監査一時renderer全体検証中・実装後OK未受領、57枠56確認済み・残り予測1中心1予測57／子46非正式据置全体未完追加分割移動なし。最新ao/ap/aq/ar/as人間OKと全従前本文条件API途中補修検証詳細保留を非削除非置換保持。
+
+- at専用検証の実所有処理fixture/API内訳（九群・60原ケース29成立、専用13項目＝九群＋四横断）：
+
+| at実所有処理fixture/API群 | 原ケース | 成立 |
+| --- | ---: | ---: |
+| 八設定 | 8 | 4 |
+| 既存日本語別名と単独前後空白・終端句点・感嘆符、発話二設定 | 18 | 18 |
+| 七入力locale・他言語文型新造なし | 7 | 1 |
+| 他六言語の朝挨拶文は新設しない | 6 | 0 |
+| 他担当・疑問・複数節・句点後空白の未知空節 | 11 | 0 |
+| 初期理解の別話者・発話二設定 | 2 | 2 |
+| 注目対象なし・時刻から朝事実を補わない | 2 | 2 |
+| 休息中・発話二設定 | 2 | 2 |
+| 実report習得・生活発話四設定のscope非転移 | 4 | 0 |
+
+- 今回資料19種×29成立＝551改変拒否。原input ID/時刻/raw/話者/locale/scene、当時complete／複数frame、独立input/knowledge/context、前serial/attention、後serial/実turn話者、実reply/後world、前world／後state欠損を別検査。同input非増加非上書き・12新input反復を別資料へ保持、後から検証メモリの初期知識を供給しても原partial資料非遡及、返却コピー編集独立・原資料非変更、meanings/relationsを含むknowledge・state/world経験・selectionSources非増加、五区分候補bufferへの誤投入拒否と非JSON循環等拒否を確認。入力前knowledgeは全項目の今回理解を意味しない。
+- at専用一時Electronは非表示空白ページ／独立一時profileへNodeメモリ実生成60原資料＋話者／実reply／独立inputContextの三種87改変＝147ケースを供給。コピー上既存receive/respond照合・再受信非増加非上書き・原資料非変更sourceStable・コピー編集独立・八global除去・local/session各at-sentinel不変・保存bridge未定義を通過。制限内はGPU -1073741515連続／ERR_FAILED(-2)終了1非通過、権限付きTemp/word-greeting-preview-daNovU session20961終了0・auto-review拒否なしを最終結果とする。本人日記生成保存再開・配布版・実ユーザー保存の検証ではない。別監査14項目終了0・2652.706ms、通常HTTPは旧64＋at部品／fixture／smoke三本＝67要求404と既存二HTML200。固定ao50capture所有七ledger14／ap/aq/ar/as別担当非変更・atを別supplementalへ追加、構造errors[]・六JS構文・七言語14,957文通過。新表示文なしcatalog/runtime非変更・再構築不要。全体988件の検証結果は後続最終確定を優先する。
+
 <a id="diary-name-responses-as"></a>
 
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします」でac19324の4d12as採用範囲へ実装後OKと移動を明示。個体名付けへの通常確認reply=yes／reply=no・直前名付けcorrectionの独立別資料は実装・Codex検証・ユーザー実装後OK限定確認済み。次4d12atは残る入口の一系統選定・具体範囲と個別成立相談（対象／理解規則未採用未着手）。挨拶・固定範囲外報告提案等は個別相談候補で一括採用永久対象外決定なし。残入口の個別相談が必要なためat予定一枠を追加し57枠（56確認済み＋at予定）最終総数未確定。as一工程確認分だけ旧残り予測1中心1から機械差引0中心0だが予定最低1へ再整合し、残り予測1中心1・予測最終57／子46へ更新。旧予測56／子45を一枠上回る追加理由はこの残件であり、非正式可視化下限のみ・終了確約なし。9大区分4a〜4i親4d1〜12維持4d12／4d／ID4全体未完。従前131開始文継続文全参照先全条件確認状態未決定未回答未完保留全API内訳全途中修正検証詳細非削除非置換、最新ao/ap/aq/ar/as人間OKを旧固定未受領表示より優先し再確認不要。ao原文意味再読50部品全文所有入口照合を引継ぎ、保持検査ハッシュ省略出力を意味読了にしない。前回全975／別監査13／六JS七言語14957／独立一時renderer159と全17群API途中詳細、ar全952／renderer448全28群API・aq/ap以下全詳細保持、今回確認移動は文書のみ実働再検査なし。as確認取り下げ別資料、ar参照引用誘い、aq反復別資料と意味確認成功回答、ap九入口、4d2答え不明、u原理由回答、am直接提案、x/aj/ak語義訂正の担当維持。身振り問い未決定・原質問後日休息追記未回答・経験由来訂正新scope別途相談維持。本人日記生成保存再開配布本接続未完、旧AI旧保存実ユーザー保存九見本星座非操作非置換・対象外%SystemDrive%/非操作commit対象外。途中保存移動合図なし・今回移動はユーザー明示。
@@ -1370,6 +1395,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_greetings.create/capture（4d12at・同枠最終検証） | 既存日本語朝挨拶の当時理解と実good_morning／attendを分離する独立別資料、原五区分候補非変更 | 採用範囲実装Codex検証仕様引継ぎ更新限定完了・全988／別監査14／六JS七言語14957／一時renderer147通過。[at節](#diary-greetings-at)へ全API途中詳細保持。実装後OK未受領・同じat内自由フィードバック必要修正、本人日記生成保存再開配布未完 |
+| diary_greetings.create/capture（独立・4d12at） | 既存日本語単独greeting_morningと当時complete・実good_morning／attend。入力前独立資料と実応答前後をコピー上既存処理で全文照合、実発話と身振りを分離する独立greeting資料 | 対象成立条件個別採用・実装検証中、三引数一時API保存形式非採用・五区分候補非変更。九群60原29成立・19種551改変拒否・一時renderer147／別監査14通過、全API途中詳細は[at節](#diary-greetings-at)所有。実装後OK未受領・同じat継続、本人日記生成保存再開配布未完 |
 | diary_name_responses.create/capture（4d12as・最新確認） | [as節](#diary-name-responses-as)の独立confirmation/retraction一時journal・三引数API・原名付け確認取り下げ実照合を限定担当として維持 | ac19324実装Codex検証ユーザー実装後OK限定確認済み。全975／監査13／六JS七言語14957／renderer159と全17群API途中詳細保持。次at対象理解規則未採用未着手、旧未受領行は履歴として全保持・本人日記生成保存再開配布未完 |
 | diary_name_responses.create/capture（独立・4d12as） | 原名付け一意根拠・実直前確認・今回yes/noまたは直前correctionと実confirmedBy／原根拠record.retractedByの別資料。三引数一時API、原候補非変更・別有効根拠保持。詳細は[as節](#diary-name-responses-as) | 採用範囲実装Codex検証限定完了・実装後OK未受領。同input非増加非上書き、新独立教示新経験非生成、本文集約保存形式非採用・実ゲーム資料供給本配線／本人日記生成保存再開配布未完。挨拶他未対応は個別相談・担当境界保留維持 |
 | diary_references.create/capture（4d12ar・最新確認） | 下の一時journal／三引数APIと原説明名付け訂正連鎖・今回参照理解判断の限定担当を維持 | 944b267実装Codex検証ユーザー実装後OK限定確認済み。全952／監査12／六JS／七言語14957／renderer448と全28群API途中詳細保持。次as対象理解規則未採用未着手、旧未受領行は履歴として全保持・本人日記生成保存再開配布未完 |
