@@ -147,6 +147,12 @@ function inventory() {
         file: `experimental_word_diary_${slug}.js`,
         test: `tests/experimental_word_diary_${slug}.test.js` }));
 }
+// Keep the ao snapshot (50 capture boundaries, 14 ledger IDs, 51/52 counts)
+// intact. Later adopted work has a separate inventory and acceptance status.
+function supplementalInventory() {
+    return [{ id: '4d12ap', slug: 'answers', api: 'capture', arity: 3,
+        file: 'experimental_word_diary_answers.js', test: 'tests/experimental_word_diary_answers.test.js' }];
+}
 function localFile(relative) {
     if (typeof relative !== 'string' || !relative || relative.includes('\\')
         || relative.split('/').some(part => !part || part === '..' || part === '.')
@@ -157,7 +163,7 @@ function localFile(relative) {
     if (!resolved.startsWith(ROOT + path.sep)) throw new TypeError('Invalid audit reference');
     return resolved;
 }
-function audit(rows = inventory(), readAdapterSource = null) {
+function audit(rows = inventory(), readAdapterSource = null, supplemental = supplementalInventory()) {
     const errors = [];
     const read = relative => {
         try { return fs.readFileSync(localFile(relative), 'utf8'); }
@@ -196,6 +202,22 @@ function audit(rows = inventory(), readAdapterSource = null) {
             reviewedSourceCommit: boundaryReviewed ? earlierReviews.has(row.id) ? 'b260bac' : 'ca35c7e' : null,
             runtimeDiaryConnected: false };
     });
+    const supplementalOwners = supplemental.map(row => {
+        if (ids.has(row.id) || files.has(row.file)) errors.push({ code: 'duplicate_owner', id: row.id });
+        ids.add(row.id); files.add(row.file);
+        const source = readAdapterSource ? readAdapterSource(row.file) : read(row.file), test = read(row.test);
+        const match = source.match(new RegExp(`function ${row.api}\\(([^)]*)\\)`));
+        const arity = match ? match[1].split(',').filter(item => item.trim()).length : null;
+        if (arity !== row.arity || !source.includes(`{ ${row.api} }`)) errors.push({ code: 'api_contract', id: row.id });
+        if (!test.includes(path.basename(row.file, '.js'))
+            || !packageScripts['test:words'].split(/\s+/).includes(row.test)) errors.push({ code: 'missing_test_registration', id: row.id });
+        if (!spec.includes(`diary_${row.slug}`)) errors.push({ code: 'missing_scope_reference', id: row.id });
+        if (!roadmap.includes(`| ${row.id} |`)) errors.push({ code: 'missing_step_reference', id: row.id });
+        return { ...row, structuralContractChecked: arity === row.arity, runtimeDiaryConnected: false,
+            scopeAdopted: supplementalInventory().some(original => Object.keys(original).every(key => original[key] === row[key])),
+            implementationAcceptance: 'not_received', auditSemanticReview: 'pending' };
+    });
+    if (supplemental.length !== 1) errors.push({ code: 'supplemental_inventory_count', expected: 1, actual: supplemental.length });
     // One directory, file names only. Never recurse into unrelated directories.
     for (const name of fs.readdirSync(ROOT)) {
         if (/^experimental_word_diary_[a-z_]+\.js$/.test(name) && !files.has(name)
@@ -218,7 +240,7 @@ function audit(rows = inventory(), readAdapterSource = null) {
         issues.find(issue => issue.id === 'entry_semantics').status = 'incomplete';
     }
     for (const issue of issues) if (!auditSpec.includes(`| ${issue.id} |`)) errors.push({ code: 'missing_pending_reference', id: issue.id });
-    return { structuralOk: errors.length === 0, errors, rows: checked,
+    return { structuralOk: errors.length === 0, errors, rows: checked, supplementalOwners,
         crossFileCorrection: { id: '4d12an', references: crossFiles, test: restTest, scopeConfirmed: true },
         counts: { confirmedScopes: 51, visibleSlots: 52, mappedOwners: rows.length + 1,
             reviewedCaptureBoundaries: checked.filter(row => row.auditSemanticReview === 'capture_boundary_reviewed').length,
@@ -232,4 +254,4 @@ if (require.main === module) {
     process.stdout.write(JSON.stringify(report, null, 2) + '\n');
     process.exitCode = report.structuralOk ? 0 : 1;
 }
-module.exports = { inventory, audit, localFile };
+module.exports = { inventory, audit, localFile, supplementalInventory };

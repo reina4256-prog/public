@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const http = require('node:http');
 const { createHash } = require('node:crypto');
-const { inventory, audit, localFile } = require('../scripts/experimental/diary_audit');
+const { inventory, audit, localFile, supplementalInventory } = require('../scripts/experimental/diary_audit');
 const { createServer } = require('../scripts/experimental/serve');
 
 test('structural reconciliation preserves confirmed scopes and cannot certify semantic reading or completion', () => {
@@ -35,6 +35,23 @@ test('an adapter omitted from the ledger is reported rather than permanently exc
     assert.equal(report.eligibleForAoCompletion, false);
     assert.equal(report.counts.confirmedScopes, 51);
     assert.equal(report.counts.mappedOwners, 50);
+});
+
+test('ap supplemental ownership is checked without rewriting the fixed ao snapshot or certifying user acceptance', () => {
+    const report = audit();
+    assert.deepEqual(report.errors, []);
+    assert.equal(report.rows.length, 50);
+    assert.equal(report.ledger.length, 14);
+    assert.equal(report.supplementalOwners.length, 1);
+    assert.equal(report.supplementalOwners[0].id, '4d12ap');
+    assert.equal(report.supplementalOwners[0].scopeAdopted, true);
+    assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
+    assert.equal(report.supplementalOwners[0].runtimeDiaryConnected, false);
+    const missing = audit(inventory(), null, []);
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === 'experimental_word_diary_answers.js'));
+    assert.ok(missing.errors.some(e => e.code === 'supplemental_inventory_count'));
+    const changed = supplementalInventory(); changed[0].arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12ap'));
 });
 
 test('duplicate ownership and a changed API contract are rejected without rewriting the source', () => {
@@ -107,6 +124,7 @@ test('an owner change invalidates source reconciliation without revoking confirm
 
 test('caller edits and repeated audits do not change the inventory or consulted files', () => {
     const references = [...inventory().flatMap(row => [row.file, row.test]),
+        ...supplementalInventory().flatMap(row => [row.file, row.test]),
         'docs/specs/core/experimental_word_learning.md', 'docs/WORD_DEMO_ROADMAP.md',
         'docs/specs/core/experimental_word_diary_audit.md', 'package.json'];
     const hashes = () => references.map(file => createHash('sha256').update(fs.readFileSync(localFile(file))).digest('hex'));
@@ -130,7 +148,8 @@ test('existing diary adapters and the new audit remain outside the game server a
                 response.resume(); response.on('end', () => resolve(response.statusCode));
             }).on('error', reject);
         });
-        for (const name of [...inventory().map(row => row.file), 'scripts/experimental/diary_audit.js',
+        for (const name of [...inventory().map(row => row.file), ...supplementalInventory().map(row => row.file),
+            'scripts/experimental/diary_answer_fixtures.js', 'scripts/experimental/diary_answer_smoke.js', 'scripts/experimental/diary_audit.js',
             'docs/specs/core/experimental_word_diary_audit.md']) {
             assert.equal(await status(name), 404, name);
         }
