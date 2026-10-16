@@ -42,7 +42,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-    assert.equal(report.supplementalOwners.length, 17);
+    assert.equal(report.supplementalOwners.length, 18);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -306,6 +306,17 @@ test('bf supplemental ownership preserves general feeling contrast boundaries an
     const changed = supplementalInventory(); changed[16].arity++;
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12bf'));
 });
+test('bg supplemental ownership separates meaning-only partial pairs from complete bf reports', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    assert.equal(report.supplementalOwners[17].id, '4d12bg');
+    assert.equal(report.supplementalOwners[17].scopeAdopted, true);
+    assert.equal(report.supplementalOwners[17].implementationAcceptance, 'not_received');
+    assert.equal(report.supplementalOwners[17].runtimeDiaryConnected, false);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12bg'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === 'experimental_word_diary_partial_feeling_contrasts.js'));
+    const changed = supplementalInventory(); changed[17].arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12bg'));
+});
 test('be supplemental ownership preserves partial sour questions and fixed prior acceptance snapshots', () => {
     const report = audit(); assert.deepEqual(report.errors, []);
     assert.equal(report.supplementalOwners[15].id, '4d12be');
@@ -362,6 +373,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_name_question_fixtures.js', 'scripts/experimental/diary_name_question_smoke.js',
             'scripts/experimental/diary_sour_question_fixtures.js', 'scripts/experimental/diary_sour_question_smoke.js',
             'scripts/experimental/diary_general_feeling_contrast_fixtures.js', 'scripts/experimental/diary_general_feeling_contrast_smoke.js',
+            'scripts/experimental/diary_partial_feeling_contrast_fixtures.js', 'scripts/experimental/diary_partial_feeling_contrast_smoke.js',
             'docs/specs/core/experimental_word_diary_audit.md']) {
             assert.equal(await status(name), 404, name);
         }
