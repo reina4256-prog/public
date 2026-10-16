@@ -1,0 +1,46 @@
+'use strict';
+// Existing owner forms in disposable memory; no game or player save access.
+const original = require('./diary_rest_value_report_fixtures');
+const { setup, hearValue, core, catalog, raw } = original;
+function fixtures() {
+    const all = [], add = (group, value, expected) => all.push({ group, value, expected });
+    const make = (mask, speech = 'short') => {
+        const v = setup({ speech });
+        for (const [bit, id] of ['rest', 'report'].entries()) if (mask & (1 << bit)) {
+            const key = bit === 0 ? 'meanings' : 'relations';
+            v.state.knowledge[key] = v.state.knowledge[key].filter(e => e.id !== id);
+        }
+        return v;
+    };
+    for (const verb of ['\u4f11\u3080', '\u3084\u3059\u3080']) for (const noun of ['\u3053\u3068', '\u306e'])
+        for (const suffix of ['', '\u3060\u3088', '\u3060\u306d', '\u3060', '\u3067\u3059'])
+            for (const speech of ['short', 'gesture']) for (let mask = 0; mask < 4; mask++)
+                add('existing-forms-knowledge-matrix', hearValue(make(mask, speech), `${verb}${noun}\u306f\u5927\u4e8b${suffix}`), mask !== 0);
+    for (const f of original.fixtures()) add(`aw:${f.group}`, f.value,
+        f.group.includes('scope-not-transferred') || f.group === 'missing-required-meaning-or-relation'
+        || f.group === 'eight-settings' && !f.expected);
+    for (let mask = 1; mask < 4; mask++) for (const speech of ['short', 'gesture']) {
+        for (const mode of ['observe', 'eat', 'rest', 'work', 'walk']) {
+            const v = make(mask, speech); v.world.mode = mode;
+            core.perceive(v.state, { scene: 'shore', attention: [] });
+            add('missing-knowledge-activity-empty-attention', hearValue(v), true);
+        }
+        for (const fatigue of [0, .2, .4, .8, 1]) {
+            const v = make(mask, speech); v.world.fatigue = fatigue;
+            add('missing-knowledge-fatigue-no-importance-inference', hearValue(v), true);
+        }
+        add('missing-knowledge-actual-speaker', hearValue(make(mask, speech), raw, { speaker: 'visitor', at: 987654321 }), true);
+        for (const locale of Object.keys(catalog.patterns))
+            add('missing-knowledge-locale', hearValue(make(mask, speech), raw, { locale }), locale === 'ja');
+        for (const text of [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`])
+            add('missing-knowledge-single-punctuation', hearValue(make(mask, speech), text), true);
+        for (const text of [`${raw}\uff1f`, `${raw}\u3002${raw}`, `${raw}\n${raw}`, ` ${raw}\u3002 `,
+            'Rest is important', '\u4f11\u606f\u5f88\u91cd\u8981', 'Ruhe ist wichtig',
+            '\u4f11\u3080\u306e\u306f\u5927\u4e8b\u306d', '\u6a2a\u306b\u306a\u308b\u3068\u6c17\u6301\u3061\u3044\u3044',
+            '\u4f53\u529b\u3084\u7720\u6c17\u304c\u56de\u5fa9\u3059\u308b\u304b\u3089', '\u6728\u306e\u5b9f\u304c\u3042\u308b',
+            '\u304a\u306f\u3088\u3046', '\u3046\u3093', '\u4f11\u3082\u3046', '\u4eca\u306f\u3046\u308c\u3057\u3044'])
+            add('missing-knowledge-other-owners-and-outside-forms', hearValue(make(mask, speech), text), false);
+    }
+    return all;
+}
+module.exports = { fixtures, setup, hearValue, core, catalog, raw };

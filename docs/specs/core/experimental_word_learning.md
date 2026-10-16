@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-16・4d12bp対象／成立保持をユーザー「はい、どちらも採用でOKです」で個別採用。採用範囲・API・検証詳細は[日記bp節](#diary-incomplete-rest-value-reports-bp)。最新ao〜bo人間OK優先、従前全参照条件確認状態API途中詳細保留とay補修前後区別非削除非置換。79枠78確認済み正式子68、作業仮1〜7中心4／総残数最低1上限中心未確定据置、採用による減算追加枠移動なし全体未完。
+
 - 2026-10-16最新確認／区切り：ユーザー「OKです。次チャットをおねがいします。」でb97ed3aの4d12bo採用範囲へ実装後OKと移動を明示。単独休息快適さ報告の必要意味／関係不足・原理解出所欠落unknown条件保持の独立report資料候補は実装・Codex検証・ユーザー実装後OK限定確認済み。次4d12bpは残入口をap〜boの既存限定担当と再照合し、一系統の選定・具体範囲と成立条件を個別相談（対象／理解規則未採用未着手）。79枠（78確認済み＋bp相談予定）正式子68最終総数未確定。bo一工程確認分だけ作業仮見積り2〜8工程中心5から1〜7工程中心4へ機械差引、追加分割増加なし。相談分割前提の参考で確定総残数ではない。総残数最低1（bp予定）／上限中心未確定、予測最終下限79子68／上限中心未確定。旧下限78子67から一枠増加はbp相談予定枠のため、旧残り1を総残数へ戻さず旧全予測履歴非削除保持。短縮一括採用永久対象外終了確約なし、9大区分4a〜4i親4d1〜12維持4d12/4d/ID4全体未完。従前175同じbo継続全文と174/173/172/171/170/169/168/167以下全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換、最新ao〜bo人間OK優先・旧not_receivedから再確認不要。全1498監査35六JS七言語14957renderer4022・21群1550原824成立38種31312拒否と全API途中詳細／bn以下全従前詳細／ay補修前全1084と補修後専用20renderer171区別保持。今回確認移動は文書のみ実働再検査なし、各担当三保留・本人日記生成保存再開配布本接続未完。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外、移動は今回ユーザー明示・途中保存移動合図なし。
 
 - 2026-10-15最新確認／区切り：ユーザー「OKです。次のチャットをおねがいします」で4d12ao採用範囲の実装後OKと移動を明示。81d033b（origin/mainへpush済み）の入口最終照合／未対応保留一覧・開発監査は採用範囲実装・Codex検証・実装後OK限定確認済み。次4d12apは残る入口の一系統選定・具体範囲と個別成立相談（対象／理解規則未採用・未着手）、成功回答・聞返し・語応用／個体参照・通常確認取り下げ挨拶・固定範囲外報告提案等は相談候補で自動採用なし。53枠（52確認済み＋ap予定）・最終総数未確定、9大区分4a〜4i／親4d1〜12維持、4d12／4d／ID4全体未完。ao一工程確認分だけ残り1〜4中心2から機械差引0〜3中心1、ap予定最低1へ下限整合し残り1〜3中心1、予測最終53〜55／子42〜44は可視化下限整合のみ非正式・追加分割増加なし。対象関連の正本499832／工程表600236／索引188569文字の原文意味再読、直接参照先と50部品全文／該当所有境界照合補完を引継ぎ、保持検査を読了にしない。各fixture全本文再読や索引別領域／外部引用文献の無制限再帰読了・全自由入力対応へ拡張なし。具体未対応の個別後続相談と身振り問い／後日休息追記／経験由来訂正新適用の各保留維持確認を保持。従前123開始文継続文と全参照先の全条件確認状態未決定未回答未完保留全API内訳全途中修正検証詳細非削除非置換、最新確認を旧OK未受領／ao継続未移動より優先。今回確認移動文書のみ・実働再検査コード表示七言語runtime保存変更なし、前回専用9／従前872／JS二本七言語14957と全検証詳細保持、本人日記生成保存再開配布未完・旧AI旧保存実ユーザー保存九見本星座非操作非置換。今回移動はユーザー明示、途中保存は移動合図なし、対象外%SystemDrive%/非操作commit対象外。
@@ -596,6 +598,22 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 ### ノートの日記帳表現・素朴な絵の方針（2026-10-06・壁打ち継続）
 
 #### 最新の実装範囲・次チャット
+
+<a id="diary-incomplete-rest-value-reports-bp"></a>
+
+- bp採用範囲実装Codex検証仕様引継ぎ更新限定完了。全1523（従前1498＋bp25）session73761最終chunka87245終了0・129889.6258ms／Temp/word-bp-full-test.log。別監査36最終chunk68023e終了0・8049.5061ms／Temp/word-bp-audit-final.log、六JS構文七言語14957 chunk6e02eb終了0、独立renderer1134 session75301最終chunk2f4381終了0。実装後OK未受領同じbp内自由フィードバック必要修正継続、79枠78確認済み子68・仮1〜7中心4／総残数最低1上限中心未確定据置、採用実装検証だけで減算追加枠移動なし全体未完。最新ao〜bo人間OK・従前全参照条件状態API途中詳細保留とay補修前後区別非削除非置換。
+- bp専用初回24 chunk18a30e終了0・3528.2105ms、既存26担当横断一項目を追加して専用25＋監査36＝61 session15779最終chunk39a9e3終了0・41047.46ms。20実所有fixture/API群474原220成立38種8360改変拒否（38×220）、全26既存担当へ220×26＝5720呼出false・原資料不変。所有core/world/catalogを期待へ合わせて変更していない。
+- 群別原数/成立数：既存20形発話知識有無160/120、aw八設定8/6・既存形40/0・locale7/0・外国語3/0・疑問複数節4/0・句読点3/0・他担当10/0・実話者2/0・無対象2/0・活動10/0・疲労5/0・必須要素欠損2/2・実report scope2/2、今回不足×活動空注目30/30・疲労30/30・実話者6/6・locale42/6・句読点18/18・他担当範囲外90/0。aw旧負例の明示不足だけ今回採用しaw担当非変更。
+- 38改変種全内訳：原input ID/at/raw/speaker/locale/scene、当時complete／frame追加、独立input時刻/knowledge関係/context scene、前serial/attention・後serial、実reply/後world時刻/実turn話者、前world/後state欠損、reportSource捏造・主体/aspect/極性/時点/known意味、前world注目/後world経験、当時kind/unresolved/relations、frame catalogRule/meaning/aspect、conditionStatusのmet化・known.detailのimportance理解捏造・frame.detail改変、testimony捏造・turn.answer捏造。五横断は26担当非重複、38種改変拒否、十二新input別候補と同input非増加非上書き・原資料遅延供給欠損非補完・返却コピー独立、後知識原候補非書換え原非遡及と新inputだけaw成立（importanceは未理解のまま）、非JSON循環拒否。knowledge/experiences/selectionSourcesと前後world経験非増加も確認。
+- 固定ao50capture所有七ledger14＋supplemental27 errors[]、bp担当欠落・三引数API改変拒否。HTTPテスト初回61／別36再実行chunk1412a5では今回bp部品とfixture/smokeまで129要求404・既存二HTML200。監査明示リストにbn/bo fixture/smoke四本が未列挙だったため今回補完し、最終36 chunk68023eで133要求404・既存二HTML200を確認。従前bo文書の130要求表記は当時記録として非削除保持し、今回初回129／補完後133と区別する。ゲームserver allowlistやゲーム所有コード非変更。構造一致は意味読了人間OKではない。
+- 独立renderer474原＋実話者／実reply／独立inputContext三種660改変＝1134ケース。制限内session31094 GPU -1073741515五回／ERR_FAILED(-2)、最終chunka8163c終了1非通過。権限付きTemp/word-incomplete-rest-value-report-preview-rE38D6 session75301 chunk657c9a結果／最終chunk2f4381終了0・auto-review拒否なし。非表示空白ページへNode専用メモリ実所有資料コピー供給、rendererコピー上receive/respond全文照合・非増加非上書き・返却コピー独立sourceStable・九global除去local/session各bp-sentinel不変bridge未定義通過。本人日記生成保存再開配布／実ユーザー保存検証ではない。
+- 初回作成中renderer雛形の一括文字置換でsandboxがsandbpxとなった箇所は実行前に手動補正、制限内GPU失敗はこの誤記による失敗ではない。専用初回から通過、他fixture期待合わせ補修なし。六JSは新部品fixture/test/smoke＋監査工具/test、新ゲーム表示文なし翻訳追加再構築不要。全従前検証内訳途中詳細と全保留／最新ao〜bo人間OKを保持し、本接続生成保存再開配布未完・三保留維持。最終原文保持・対象11だけstage cached diff commit/push結果はlatest handoffを参照。
+
+- 2026-10-16・4d12bp：対象と成立保持条件を個別採用。既存日本語単独frame.kind=report/catalogRule=rest_value/meaning=rest/detail=importance、「休む／やすむ」×「こと／の」×「は大事」×語尾（なし／だよ／だね／だ／です）の20形。入力前rest意味または当該report関係が一つ以上適用不能（両方不足・実経験由来限定scope非適用を含む）の資料だけ。両方適用可能でimportanceだけ未理解はaw維持。新文型他言語疑問複数節・回復説明・他報告提案不足は今回一括採用せず永久対象外決定もしない。新理解習得規則なし。
+- 独立experimental_word_diary_incomplete_rest_value_reports.capture(buffer,result,receipt)三引数一時API、既存diary_candidatesへkind=report/occurrenceId=incomplete_rest_value_report:今回input ID/sourceId=今回input ID。一input一資料候補、reportは資料区分で本人の報告理解成立ではない。原input/frame・scene/attention・入力前knowledge/context・前後state/world・当時understanding/known/unresolved原順・kind/complete=false・主体極性時点aspect/conditionStatus・原reportSource有無・実replyを分離コピー。report不足時partial/subject=nullと出所欠落を原frameや話者から補わず、意味不足時known.meaning欠落、importance未理解とaspect/conditionStatus=nullを保持する。
+- meaningKnownBeforeはrestの当時適用可能boolean、relationsKnownBeforeとmissingMeaningsBefore原不足配列/missingRelationsBefore関係ID配列を分離。語義ID存在だけでscope適用可能にせず、重要性理解・回復因果・本人快感休息完了経験・真偽確認を補わない。speech/gesture/message非条件、newTeaching/newLearning/newExperience=false。
+- receiptはbeforeState/beforeWorld・独立input/inputKnowledge/inputContext・実respond後afterState/afterWorld/reply。入力ID=before.serial+1、使い捨てコピー上既存receive/respondで結果・前後state/world・実reply全文照合、欠損矛盾非補完。真正性認証や本配線ではない。同input非増加非上書き／新input別候補／後知識原候補非書換え非遡及／原資料遅延供給／返却コピー独立原資料不変。原五区分turn.answer非変更、一時receipt保存形式非採用、本接続生成保存再開配布未完。
+- 相談前chunkdd14aa終了0：20形×発話2×rest/report有無4＝160実所有資料、awのみ40成立、不足120はap〜bo全26担当3120呼出false・原160JSON不変、aw実report限定scope二資料も52拒否。これは相談前既存境界照合で新部品検証ではない。読取catalog仮.js不存在は非書込、実.json補正。bp実装検証結果は後続追記、実装後OK未受領同じbp継続。79枠78確認済み子68仮1〜7中心4据置・全体未完、全従前条件API途中詳細全保留・最新ao〜bo人間OK維持。
 
 <a id="diary-incomplete-rest-comfort-reports-bo"></a>
 
@@ -1954,6 +1972,7 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_incomplete_rest_value_reports.capture（独立・4d12bp） | [bp節](#diary-incomplete-rest-value-reports-bp)の三引数一時API。単独休息大事さ報告のrest意味／report関係不足と原理解出所欠落・importance未理解・実応答を分離保持 | 採用範囲実装Codex検証限定完了。専用25全1523監査36六JS七言語14957renderer1134・20群474原220成立38種8360拒否と26担当5720拒否。実装後OK未受領同じbp継続79枠78確認済み子68仮1〜7中心4据置、aw維持・本接続生成保存再開配布未完 |
 | diary_incomplete_berry_reports.capture（独立・4d12bn） | [bn節](#diary-incomplete-berry-reports-bn)の三引数一時API。単独木の実報告の必要意味／関係不足と当時原理解出所欠落・実応答を分離保持 | 対象成立個別採用・専用24通過20群1118原672成立35種23520拒否。理解済みau担当維持、新理解規則なし。実装後OK未受領同じbn継続、全体検証結果はbn節所有、本接続生成保存再開配布全体未完 |
 | diary_external_event_contrasts.capture（独立・4d12bm） | [bm節](#diary-external-event-contrasts-bm)の三引数一時API。external_event節入り日本語対比二節・必要知識有無と当時理解出所有無実応答の分離、欠落非補完 | 採用範囲実装Codex検証限定完了・専用53全1449監査33六JS七言語14957renderer7585。48群3859原1242成立57種66883改変拒否と全API途中詳細をbm節に保持。実装後OK未受領同じbm継続76枠75確認済み子65、作業仮見積り4〜10中心7／総残数最低1上限中心未確定据置・本接続生成保存再開配布全体未完 |
 | diary_incomplete_event_feeling_contrasts.capture（独立・4d12bl） | [bl節](#diary-incomplete-event-feeling-contrasts-bl)の三引数一時供給。出来事詳細付き感情二節の必要意味関係不足、当時known/unresolved/report/partial/completeと原出所の有無・実応答を分離、欠落非補完 | 対象成立二点採用・採用範囲実装Codex検証限定完了。全1396監査32六JS七言語14957renderer3983・32群2474原503成立55種26611拒否全API途中詳細保持。実装後OK未受領同じbl継続75枠74確認済み子64、作業仮見積り5〜11中心8／総残数最低1上限中心未確定据置。本接続生成保存再開配布未完 |
