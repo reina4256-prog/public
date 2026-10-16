@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-17最新：bu対象・成立保持を個別採用。[対象付き否定食事お願いの不足資料](core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)を独立実装・Codex検証完了。84枠83確認済み正式子73、bu実装後OK未受領。最新ao〜bt人間OK維持、暫定残5〜10中心8（bt確認後）据置・全体未完。以下のbu未採用は過去状態。
+
 - 2026-10-17最新：befca21の4d12btへ実装後OKと次チャット移動を受領。83枠83確認済み正式子72、最新ao〜bt人間OK。次buは対象／理解規則未採用未着手の相談予定記号のみ、正式枠追加なし。[暫定目安](../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)はあと5〜10工程程度・中心8（bt確認後の粗い計画、全件再算定ではない）。毎回の全量再計算を要求せず基準日と据置／変更理由を継続表示。全体未完、今回文書のみ。
 
 - 2026-10-17最新：4d12bt対象・成立保持を個別採用。[所有仕様](core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)は既存日本語単独not_dislike報告のdislike/report/negation不足資料を担当。対象だけ未解決は保留。採用範囲実装Codex検証完了、専用39・全Node1721・七言語14957・別run renderer3085通過。83枠82確認済み正式子72、実装後OK未受領、総残数再算定なし・全体未完。以下のbt未採用は過去記録として保持。

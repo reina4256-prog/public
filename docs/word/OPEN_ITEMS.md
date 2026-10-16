@@ -36,6 +36,8 @@
 
 ## 次の実装を決めるとき
 
+2026-10-17最新：ユーザーがbu対象・成立保持を個別採用。[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)の既存do_not_eatのeat/request/negation不足資料だけを担当追加。対象だけ不足・他入口・本文集約・保存形式・本接続は保留を維持。84枠83確認済み正式子73、bu採用範囲実装・Codex検証完了・実装後OK未受領。暫定残5〜10中心8（bt確認後）据置・全体未完。以下のbu未採用は過去状態。
+
 2026-10-17最新：ユーザー「どちらも採用でOKです。」でbtの既存日本語not_dislike単独報告のdislike/report/negation不足資料と成立保持を個別採用。[bt所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)を優先。対象だけ未解決は引き続き保留。他入口・本文集約・保存形式・本接続は採用しない。befca21のbtは今回ユーザー実装後OK受領済み。83枠83確認済み正式子72。
 
 btまで実装後OK受領済み、次チャット移動を明示。次buは残入口をap〜bt担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。bt確認前の継続案内はGit befca21版に保持。

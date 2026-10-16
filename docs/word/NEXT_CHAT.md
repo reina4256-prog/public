@@ -1,5 +1,7 @@
 # 次チャットの開始文
 
+2026-10-17最新：このチャットでbu対象・成立保持をユーザーが個別採用。[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)と[現在作業](../CURRENT_IMPLEMENTATION.md)を優先し、同じbuの実装・検証・実装後OK確認を継続する。84枠83確認済み正式子73、bu実装後OK未受領。暫定残5〜10中心8（bt確認後）据置・全体未完。以下の移動時開始文は過去状態であり、今回の途中保存は移動合図ではない。
+
 2026-10-17：ユーザーがbefca21のbtへ実装後OKと次チャット移動を明示。従前の継続案内全文はGit befca21版へ保持。「4b12の暫定残件」は会話の文脈上4d12として扱い、目安の再掲を依頼された。
 
 ```text

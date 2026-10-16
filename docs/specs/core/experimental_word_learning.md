@@ -606,6 +606,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-incomplete-negated-requests-bu"></a>
+
+##### 4d12bu：対象付き否定食事お願いの意味・関係不足（2026-10-17）
+
+- ユーザー「はい、どちらも採用でOKです」で対象と成立・保持条件を個別採用。既存日本語単独request/catalogRule=do_not_eat/meaning=eat、「これ／それ／木の実」＋「は／を」＋「食べないで」＋任意「ね」の既存解析正規化だけ。疑問符でも既存requestのままなら対象。入力前eat意味またはrequest/negation関係が一つ以上適用不能でcomplete=falseの資料を担当し、複数不足・実経験由来限定scope非適用・対象不足併存を含む。対象だけ未解決は今回非成立・保留、完全理解はbb担当維持。新文型・他言語文型・新理解習得規則を追加しない。他未採用入口を永久対象外にしない。
+- `diary_incomplete_negated_requests.capture(buffer,result,receipt)`三引数独立一時API。kind=proposalは資料区分でお願い理解・行動判断成立ではない。原input/frame・入力前knowledge/context・対象候補と根拠・当時understanding・前後state/world・実replyを分離コピー。関係不足時partial/subject=null、negation不足時polarity=unknownを保持。eatだけ不足なら原request/実話者subject/negativeを保持する。eventTime=unspecified、aspect/conditionStatus=null、対象adopted欠落を補完しない。木の実の一般意味対象と指示語の当時一意注目対象を区別し、指示対象へberry意味既知を要求しない。
+- 原ID=before.serial+1と独立input/inputKnowledge/inputContextを照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。資料整合照合であり真正性認証ではない。同input非増加非上書き・新input別候補・遅延原資料供給・返却コピー独立・原資料不変・後知識後注目非遡及を維持。compliance=null/actionDecisionRecorded=false、newTeaching/newLearning/newExperience=false。実応答／発話能力・活動・空腹を食事中止／従否／本人希望好悪／満腹／予約／新経験へ変換せず、既存subjectを実行主体self認定へ流用しない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。本人日記生成保存再開配布未完、全14保留と各担当三保留維持。84枠（83確認済み＋bu作業中）・正式子73、最新ao〜bt人間OK維持。bu実装後OK未受領、全体未完。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は採用だけで減算せず据置。専用・全Node・七言語・別run関連rendererのCodex検証完了。
+
+- bu専用初回word-verification-5FVVElは41通過・44342ms・終了0、34群2654原1601成立・38種60838改変拒否。その後、関係既知時話者保持／活動状態不変と対象採用・候補根拠二種改変拒否を追加。全回帰word-verification-PO2nFMのbu最終検査は同じ41項目、40種64040改変拒否・既存31担当49631拒否。全群件数・API原出力は各runの000／007/stdout.logへ非削除保存。全回帰の全Node1763（ゲーム1708＋監査41＋工具14）・283493ms、変更六JS構文、七言語14957通過。制限内rendererはGPU -1073741515六回・1794ms終了1、PO2nFM全体incompleteを保持。権限付き別run weTJ5Iはrenderer7457・7829ms終了0、ログ識別名だけbtRendererからbuRendererへ修正し、最終権限付き別run dgzPiLで構文と7457ケース（2654原＋実話者／実reply／独立inputContext三種4803改変）再通過・8764ms終了0。九global除去・一時local/session各bu-sentinel不変・保存bridge未定義を確認。auto-review拒否なし。本人日記生成保存再開配布・実UI音声・実ユーザー保存の検証ではない。新ゲーム表示文なし、翻訳追加再構築不要。所有理解基盤やfixture期待値を検証へ合わせる補修なし。
+
 <a id="diary-incomplete-negated-preference-reports-bt"></a>
 
 ##### 4d12bt：単独否定好悪報告の意味・関係不足（2026-10-17）

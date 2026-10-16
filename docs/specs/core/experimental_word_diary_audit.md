@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-17最新：bu対象・成立保持を個別採用。[bu所有仕様](experimental_word_learning.md#diary-incomplete-negated-requests-bu)が既存do_not_eatのeat/request/negation不足を所有。supplemental32担当、固定ao50と所有基盤は非変更。対象だけ不足は保留・完全理解bb担当維持。84枠83確認済み正式子73、bu採用範囲実装・Codex検証完了・実装後OK未受領。暫定残5〜10中心8（bt確認後）据置、全保留・全体未完。旧未採用記録は過去状態。
+
 - 2026-10-17最新：befca21のbt実装後OKと移動を受領、83枠83確認済み子72・最新ao〜bt人間OK。次buはap〜bt担当差引後の一系統を個別相談する予定のみ、対象／理解規則未採用未着手。全入口最終意味照合は未完。[計画用暫定目安](../../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)は5〜10工程程度・中心8、既存残入口五区分から置く粗い作業目安で正式実装残数ではない。固定監査・登録数非変更、全保留維持。
 
 - 2026-10-17最新：bt対象・成立保持を個別採用。[所有仕様](experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)の既存単独not_dislikeのdislike/report/negation不足資料をsupplemental第31担当として追加。完全理解ba、肯定好悪az/bs、希望ay/brほかap〜bs担当を維持。固定ao50・所有七・ledger14は非変更。対象だけ未解決・全入口最終照合・全従前保留は維持。採用範囲実装Codex検証完了、全Node1721（監査40含む）・七言語14957・別run renderer3085通過。83枠82確認済み正式子72、実装後OK未受領・総残数再算定なし。

@@ -87,6 +87,9 @@
 | 4d12br | incomplete_desire_reports.capture (3) | [source](../../experimental_word_diary_incomplete_desire_reports.js) | [test](../../tests/experimental_word_diary_incomplete_desire_reports.test.js) |
 | 4d12bs | incomplete_preference_reports.capture (3) | [source](../../experimental_word_diary_incomplete_preference_reports.js) | [test](../../tests/experimental_word_diary_incomplete_preference_reports.test.js) |
 | 4d12bt | incomplete_negated_preference_reports.capture (3) | [source](../../experimental_word_diary_incomplete_negated_preference_reports.js) | [test](../../tests/experimental_word_diary_incomplete_negated_preference_reports.test.js) |
+| 4d12bu | incomplete_negated_requests.capture (3) | [source](../../experimental_word_diary_incomplete_negated_requests.js) | [test](../../tests/experimental_word_diary_incomplete_negated_requests.test.js) |
+
+2026-10-17最新：全82登録（supplemental32）、84枠83確認済み正式子73。[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)は個別採用・採用範囲実装・Codex検証完了、実装後OK未受領。最新ao〜bt人間OK維持。以下の81登録／83枠は前回状態。
 
 2026-10-17最新：登録は81（従前80＋bt）。確認枠は83枠83確認済み正式子72で登録数とは別。btは[否定好悪不足資料の所有節](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)を参照。bt実装後OK受領済み、最新ao〜bt人間OK維持。
 
