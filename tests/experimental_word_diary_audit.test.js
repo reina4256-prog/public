@@ -53,7 +53,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-    assert.equal(report.supplementalOwners.length, 28);
+    assert.equal(report.supplementalOwners.length, 29);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -448,6 +448,18 @@ test('bq ownership preserves incomplete recovery explanation material and requir
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12bq'));
 });
 
+test('incomplete desire material has a separate adopted three-argument boundary', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12br');
+    assert.equal(owner.scopeAdopted, true); assert.equal(owner.implementationAcceptance, 'not_received');
+    assert.equal(owner.runtimeDiaryConnected, false); assert.equal(owner.arity, 3);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12br'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter'
+        && e.reference === 'experimental_word_diary_incomplete_desire_reports.js'));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12br').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12br'));
+});
+
 test('caller edits and repeated audits do not change the inventory or consulted files', () => {
     const references = [...inventory().flatMap(row => [row.file, row.test]),
         ...supplementalInventory().flatMap(row => [row.file, row.test]),
@@ -503,6 +515,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_incomplete_rest_comfort_report_fixtures.js', 'scripts/experimental/diary_incomplete_rest_comfort_report_smoke.js',
             'scripts/experimental/diary_incomplete_rest_value_report_fixtures.js', 'scripts/experimental/diary_incomplete_rest_value_report_smoke.js',
             'scripts/experimental/diary_incomplete_rest_explanation_report_fixtures.js', 'scripts/experimental/diary_incomplete_rest_explanation_report_smoke.js',
+            'scripts/experimental/diary_incomplete_desire_report_fixtures.js', 'scripts/experimental/diary_incomplete_desire_report_smoke.js',
             'docs/specs/core/experimental_word_diary_audit.md']) {
             assert.equal(await status(name), 404, name);
         }
