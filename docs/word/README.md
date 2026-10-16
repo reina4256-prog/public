@@ -6,6 +6,8 @@
 
 ## 現在地
 
+- 2026-10-17最新：1755137のbuへ実装後OKと次チャット移動を受領。[次チャット開始文](NEXT_CHAT.md)と[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)。84枠84確認済み正式子73、最新ao〜bu人間OK。次bvはap〜bu担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10中心8（基準2026-10-17 bt確認後）は範囲変更なし据置、全体未完。今回文書のみ。最新commit/push結果は[現在作業](../CURRENT_IMPLEMENTATION.md)を参照、以下は過去状態。
+
 - 2026-10-17最新：bu対象・成立保持を個別採用。[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)。既存対象付き否定食事お願いのeat/request/negation不足資料を採用範囲実装・Codex検証完了、対象だけ不足は保留・完全理解bb維持。84枠83確認済み正式子73、bu実装後OK未受領。暫定残5〜10中心8（bt確認後）据置・全体未完。以下は前回状態。
 
 - 2026-10-17最新：bt対象／成立保持を個別採用、[否定好悪報告の意味・関係不足](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)は採用範囲の実装・Codex検証完了。専用39・全Node1721・七言語14957・別run関連renderer3085通過。btはユーザー実装後OK確認済み。

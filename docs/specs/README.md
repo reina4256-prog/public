@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-17最新：1755137の4d12buへユーザー実装後OKと次チャット移動を受領。84枠84確認済み正式子73、最新ao〜bu人間OK。[bu所有仕様](core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)・[次チャット](../word/NEXT_CHAT.md)。次bvはap〜bu担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10中心8（2026-10-17 bt確認後）は範囲・分割の変更がないため据置。全体未完、今回文書のみ。以下の未受領は過去状態。
+
 - 2026-10-17最新：bu対象・成立保持を個別採用。[対象付き否定食事お願いの不足資料](core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)を独立実装・Codex検証完了。84枠83確認済み正式子73、bu実装後OK未受領。最新ao〜bt人間OK維持、暫定残5〜10中心8（bt確認後）据置・全体未完。以下のbu未採用は過去状態。
 
 - 2026-10-17最新：befca21の4d12btへ実装後OKと次チャット移動を受領。83枠83確認済み正式子72、最新ao〜bt人間OK。次buは対象／理解規則未採用未着手の相談予定記号のみ、正式枠追加なし。[暫定目安](../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)はあと5〜10工程程度・中心8（bt確認後の粗い計画、全件再算定ではない）。毎回の全量再計算を要求せず基準日と据置／変更理由を継続表示。全体未完、今回文書のみ。

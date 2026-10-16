@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-10-17最新：bu実装後OK受領済み、最新ao〜bu人間OK。全82登録（supplemental32）、84枠84確認済み正式子73。[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)。次bvは未採用未着手の相談予定記号のみ、登録・正式枠追加なし。以下の未受領／旧登録数は過去状態。
+
 機械登録に基づく所在一覧。登録の一致を意味読了へ昇格しない。最新ao〜bt人間OKは[現行索引](README.md)を優先し、詳細な対象・成立条件・例外は各所有仕様を読む。
 
 全81登録と横断補修anを区別する。anの零経過休息開始順・理由教示回答・保存の所有は[正本](../specs/core/experimental_word_learning.md)のan節と`tests/experimental_word_rest_start.test.js`、aoは[監査仕様](../specs/core/experimental_word_diary_audit.md)。83枠83確認済みと登録数を混同しない。

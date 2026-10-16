@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-17最新：1755137のbu採用範囲にユーザー実装後OKと移動を受領。84枠84確認済み正式子73、最新ao〜bu人間OKを旧not_receivedより優先。[bu所有仕様](experimental_word_learning.md#diary-incomplete-negated-requests-bu)。次bvはap〜bu担当差引後の一系統を個別相談、対象／理解規則未採用未着手。supplemental32・固定監査非変更、全14保留維持・全入口最終意味照合未完。暫定残5〜10中心8（bt確認後）は範囲変更なし据置、全体未完。今回文書のみでゲーム検証再実行なし。
+
 - 2026-10-17最新：bu対象・成立保持を個別採用。[bu所有仕様](experimental_word_learning.md#diary-incomplete-negated-requests-bu)が既存do_not_eatのeat/request/negation不足を所有。supplemental32担当、固定ao50と所有基盤は非変更。対象だけ不足は保留・完全理解bb担当維持。84枠83確認済み正式子73、bu採用範囲実装・Codex検証完了・実装後OK未受領。暫定残5〜10中心8（bt確認後）据置、全保留・全体未完。旧未採用記録は過去状態。
 
 - 2026-10-17最新：befca21のbt実装後OKと移動を受領、83枠83確認済み子72・最新ao〜bt人間OK。次buはap〜bt担当差引後の一系統を個別相談する予定のみ、対象／理解規則未採用未着手。全入口最終意味照合は未完。[計画用暫定目安](../../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)は5〜10工程程度・中心8、既存残入口五区分から置く粗い作業目安で正式実装残数ではない。固定監査・登録数非変更、全保留維持。

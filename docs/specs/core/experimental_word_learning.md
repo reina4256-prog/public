@@ -610,6 +610,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 ##### 4d12bu：対象付き否定食事お願いの意味・関係不足（2026-10-17）
 
+- 2026-10-17最新確認：ユーザー「OKです。次チャットをおねがいします。」で1755137のbu採用範囲へ実装後OKと移動を明示。実装・Codex検証・ユーザー実装後OK限定確認済み、84枠84確認済み正式子73、最新ao〜bu人間OK。以下の未受領／同じbu継続は過去状態として保持。次bvは残入口をap〜bu担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ。対象／理解規則未採用未着手、正式枠追加なし。対象だけ不足ほか全保留維持、暫定残5〜10中心8（bt確認後）は範囲・分割変更なし据置、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。
+
 - ユーザー「はい、どちらも採用でOKです」で対象と成立・保持条件を個別採用。既存日本語単独request/catalogRule=do_not_eat/meaning=eat、「これ／それ／木の実」＋「は／を」＋「食べないで」＋任意「ね」の既存解析正規化だけ。疑問符でも既存requestのままなら対象。入力前eat意味またはrequest/negation関係が一つ以上適用不能でcomplete=falseの資料を担当し、複数不足・実経験由来限定scope非適用・対象不足併存を含む。対象だけ未解決は今回非成立・保留、完全理解はbb担当維持。新文型・他言語文型・新理解習得規則を追加しない。他未採用入口を永久対象外にしない。
 - `diary_incomplete_negated_requests.capture(buffer,result,receipt)`三引数独立一時API。kind=proposalは資料区分でお願い理解・行動判断成立ではない。原input/frame・入力前knowledge/context・対象候補と根拠・当時understanding・前後state/world・実replyを分離コピー。関係不足時partial/subject=null、negation不足時polarity=unknownを保持。eatだけ不足なら原request/実話者subject/negativeを保持する。eventTime=unspecified、aspect/conditionStatus=null、対象adopted欠落を補完しない。木の実の一般意味対象と指示語の当時一意注目対象を区別し、指示対象へberry意味既知を要求しない。
 - 原ID=before.serial+1と独立input/inputKnowledge/inputContextを照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。資料整合照合であり真正性認証ではない。同input非増加非上書き・新input別候補・遅延原資料供給・返却コピー独立・原資料不変・後知識後注目非遡及を維持。compliance=null/actionDecisionRecorded=false、newTeaching/newLearning/newExperience=false。実応答／発話能力・活動・空腹を食事中止／従否／本人希望好悪／満腹／予約／新経験へ変換せず、既存subjectを実行主体self認定へ流用しない。
