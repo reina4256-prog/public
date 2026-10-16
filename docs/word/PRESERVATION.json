@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "sourceCommit": "e54d423",
+  "documents": [
+    {
+      "file": "docs/specs/README.md",
+      "sourceBytes": 577331,
+      "sourceSha256": "ca217722740135729fc13f6da2e47a91e37afde45c13ae848d965fe48b35b456",
+      "retention": "all original lines in order; roadmap 181 text blocks unchanged"
+    },
+    {
+      "file": "docs/WORD_DEMO_ROADMAP.md",
+      "sourceBytes": 2166702,
+      "sourceSha256": "0e08d9d9157dcf3d4347de9c96f8c6a1f26a2b0e3b466a59f380b85da190d8bf",
+      "retention": "all original lines in order; roadmap 181 text blocks unchanged"
+    },
+    {
+      "file": "docs/specs/core/experimental_word_learning.md",
+      "sourceBytes": 1613972,
+      "sourceSha256": "32f61ed23d60719064c50a7a5616895369b938bfe09c3fc18fb626dda6584d03",
+      "retention": "all original lines in order; roadmap 181 text blocks unchanged"
+    },
+    {
+      "file": "docs/specs/core/experimental_word_diary_audit.md",
+      "sourceBytes": 142627,
+      "sourceSha256": "b31be1de024eea42b6e05ba6ef8b90cf1ef28d11d5f120d510920f6dab3b755d",
+      "retention": "all original lines in order; roadmap 181 text blocks unchanged"
+    }
+  ],
+  "localHandoff": {
+    "file": "docs/.local-history/CURRENT_IMPLEMENTATION-before-organization-2026-10-17.md",
+    "bytes": 2074609,
+    "sha256": "d2a050e6882a4c1a19fe69cac81875d6091ca9beb367514c710616ad5b7bf08a",
+    "gitTracked": false
+  },
+  "semanticReadingCertified": false
+}

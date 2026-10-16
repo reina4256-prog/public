@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+> 2026-10-17整理：[現行索引](../../word/README.md)と[現在の保留表](../../word/OPEN_ITEMS.md)から必要節を読む。br実装後OK受領済み・最新ao〜br人間OK優先。元の全14保留／固定監査状態／全原文は過去資料として保持し、構造監査から意味読了・人間OK・全体完了へ自動昇格しない。検証運用は[実行条件とログ](../../word/VALIDATION.md)。
+
 - br最終：全1589／別監査38／七JS構文七言語14957／独立renderer3397通過。固定ao50capture所有七ledger14＋supplemental29 errors[]・br欠落三引数API改変拒否、通常HTTP139要求404・二HTML200、ゲームallowlist非変更。[正本br節](experimental_word_learning.md#diary-incomplete-desire-reports-br)に24群1549原616成立・23408改変拒否・28担当17248拒否と全API途中詳細を保持。監査初回固定28漏れをaudit／テスト双方29へ補正した前後を区別。構造一致は意味読了人間OKではなく最新ao〜bq人間OK優先、br実装後OK未受領同じbr81枠80確認済み子70仮0〜5中心2据置全体未完。全従前条件API途中詳細全保留／ay補修前後区別非削除非置換、本接続生成保存再開配布未完。
 
 - 2026-10-17・4d12br対象／成立保持を個別採用。diary_incomplete_desire_reports三引数担当を別supplemental29へ追加、固定ao50capture所有七ledger14・ap〜bq非変更。[正本br節](experimental_word_learning.md#diary-incomplete-desire-reports-br)が既存not_now単独報告の必要意味関係不足・原理解出所欠落保持と全検証詳細を所有。bq横断は歴史27担当集合を先頭27へ固定して元10827拒否を維持。専用29初回通過、監査全体renderer検証これから・実装後OK未受領同じbr、81枠80確認済み子70仮0〜5中心2据置全体未完。構造一致は意味読了人間OKではなく、最新ao〜bq人間OKと全14保留・全従前条件API途中詳細／ay補修前後区別を非削除非置換保持、本接続生成保存再開配布未完。

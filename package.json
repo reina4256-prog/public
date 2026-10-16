@@ -4,6 +4,8 @@
   "description": "",
   "main": "electron_main.js",
   "scripts": {
+    "verify:words": "node scripts/verification/word_checks.js",
+    "verify:words:plan": "node scripts/verification/word_checks.js --plan",
     "audit:words:diary": "node scripts/experimental/diary_audit.js",
     "test:words:diary:audit": "node --test tests/experimental_word_diary_audit.test.js",
     "start:words:constellation": "node scripts/experimental/constellation.js",

@@ -44,6 +44,8 @@
 
 ## 検証経路
 
+- 新方式の変更依存先検証・節目の全回帰・詳細ログと未実行範囲の記録は[新方式の検証方針](../../word/VALIDATION.md)を所有先とする。`npm run verify:words:plan`で対象を確認し、`npm run verify:words`または`--full`で原ログ・集計を保存する。
+
 - JavaScript構文は変更ファイルごとに `node --check`。
 - テキスト・Markdownを含む差分は `git diff --check` とリンク検査。
 - 状態ロジックは必要に応じNode VMハーネスで実コード関数を読み込み検証する。
