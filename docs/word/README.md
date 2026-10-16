@@ -2,13 +2,15 @@
 
 2026-10-17の資料・検証整理により追加。このファイルは参照の入口であり、ゲーム内容の成立条件はリンク先の所有仕様に従う。
 
-2026-10-17：ユーザーが5dd4a25のbsへ実装後OKと次チャット移動を明示。[次チャット開始文](NEXT_CHAT.md)と[bs所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)を参照。次btは相談予定記号のみ、対象／理解規則未採用未着手。
+2026-10-17：bsの実装後OKを維持し、ユーザーがbtの対象／成立保持を個別採用。[同じbtの継続案内](NEXT_CHAT.md)と[bt所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)を参照。
 
 ## 現在地
 
-- ゲーム実装最新5dd4a25、ゲーム所有core/world最終936df00。移動文書commit/push結果は[現在作業](../CURRENT_IMPLEMENTATION.md)を参照。
+- 2026-10-17最新：bt対象／成立保持を個別採用、[否定好悪報告の意味・関係不足](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)は採用範囲の実装・Codex検証完了。専用39・全Node1721・七言語14957・別run関連renderer3085通過。bt実装後OK未受領。
+
+- btの最新commit/push結果は[現在作業](../CURRENT_IMPLEMENTATION.md)を参照。従前ゲーム実装5dd4a25・確認移動文書ac12086、ゲーム所有core/world最終936df00を維持。
 - bsまでの採用範囲は実装・Codex検証・ユーザー実装後OK確認済み。最新ao〜bs人間OKを旧固定監査のnot_received／ao=falseより優先し、再確認を求めない。
-- 82枠82確認済み、正式子71。4d12／4d／ID4全体未完。次btは残入口の再照合と一系統の個別相談から。正式枠追加・総残数再算定なし。
+- 83枠82確認済み、正式子72。採用されたbtの一枠一子だけ追加。同じbtで実装後のフィードバック・OK確認を待つ。4d12／4d／ID4全体未完、総残数再算定なし。
 - 旧仮0〜5工程・中心2はbr確認前の過去予測。今回は総残数を再算定しない。ID4本接続・本文・絵・暦・保存・成長等を4d12の残数に混算しない。
 
 ## 読む順序

@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-17最新：ユーザー「どちらも採用でOKです。」で4d12bt対象・成立保持を個別採用。[所有仕様](specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)の既存日本語not_dislike単独報告のdislike/report/negation不足資料は採用範囲実装・Codex検証完了。専用39・全Node1721・七言語14957・別run renderer3085通過。対象だけ未解決は保留。bt採用の一枠一子追加により83枠82確認済み正式子72、実装後OK未受領・総残数再算定なし。最新ao〜bs人間OKと全保留維持、4d12/4d/ID4全体未完。本接続・本文・保存再開配布未完。以下の未採用と全181textは過去原文として保持し、移動せず同じbtを継続。
+
 - 2026-10-17最新：ユーザー「OKです。次チャットをおねがいします。」で5dd4a25のbs採用範囲へ実装後OKと移動を明示。[所有仕様](specs/core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)、[短い開始文](word/NEXT_CHAT.md)を優先する。82枠82確認済み正式子71、次btは相談予定記号のみで正式枠追加・総残数再算定なし。残入口をap〜bs担当と再照合し、一系統の具体範囲・成立保持を個別相談（対象／理解規則未採用未着手）。確認済みを再確認せず、全従前保留・全体未完を維持。今回文書のみ実働再検証なし。以下の確認待ち・移動前表示と全181textは過去原文として保持。
 
 - 2026-10-17：4d12bsの対象・成立保持をユーザーが個別採用。既存好悪報告のmeaning/report不足を独立資料として保持する。[所有仕様](specs/core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)。82枠（81確認済み＋bs確認待ち）・正式子71。総残数再算定なし、全体未完、bs実装後OK未受領、今回移動指示なし。brまでの確認・全過去本文・全181開始継続文と全保留を保持。
@@ -7,6 +9,7 @@
 | 工程 | 今回の限定担当 | 状態 |
 | --- | --- | --- |
 | 4d12bs | diary_incomplete_preference_reports：既存単独好悪報告の意味／report不足、対象未解決併存は原まま保持、対象だけ未解決は保留 | 採用範囲実装Codex検証完了・実装後OK未受領 |
+| 4d12bt | diary_incomplete_negated_preference_reports：既存日本語単独not_dislikeのdislike／report・negation不足、対象不足併存保持・対象だけ不足保留 | 採用範囲実装Codex検証完了。専用39・全Node1721・七言語14957・別run renderer3085通過、実装後OK未受領 |
 
 > 整理後の次チャット開始文は[短い開始文](word/NEXT_CHAT.md)に分離。2026-10-17ユーザーが継続・移動を明示。br確認済み、次bsは残入口再照合と一系統の個別相談から（対象／理解規則未採用未着手）。全181旧本文は履歴として保持。
 

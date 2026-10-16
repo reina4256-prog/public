@@ -36,8 +36,10 @@
 
 ## 次の実装を決めるとき
 
-bsは実装後OK受領済み。次btは相談予定記号のみで対象／理解規則未採用未着手、正式枠追加なし。残入口をap〜bs担当と再照合して一系統を個別相談する。
+2026-10-17最新：ユーザー「どちらも採用でOKです。」でbtの既存日本語not_dislike単独報告のdislike/report/negation不足資料と成立保持を個別採用。[bt所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)を優先。対象だけ未解決は引き続き保留。他入口・本文集約・保存形式・本接続は採用しない。83枠82確認済み正式子72、実装後OK未受領、総残数再算定なし。
 
-2026-10-17：bsの既存単独好悪報告meaning/report不足の対象・成立保持を個別採用。[所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)。対象だけ未解決の好悪報告、ba範囲の理解不足、その他残入口は保留。bs採用を他入口の一括採用・永久対象外・全体完了へ変換しない。
+bsまで実装後OK受領済み。同じbt内で実装後フィードバック・必要修正・OK確認を受ける。次系統へ自動移行しない。bt未採用だった移動時の原文はGit ac12086版に保持。
 
-今回の整理はゲームの次範囲の採用ではない。整理後は4d12残入口を既存担当と再照合し、対象・成立保持を相談する。4全体、5、6以降へ進むときも、それぞれの未決定を事前に解消する。ID4他残件と4d12残数を混算しない。
+bsの既存単独好悪報告meaning/report不足は[bs所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)、否定好悪の理解不足はbtが担当。対象だけ未解決の好悪報告・その他残入口は保留。各採用を他入口の一括採用・永久対象外・全体完了へ変換しない。
+
+次の未採用範囲も4d12残入口を既存担当と再照合し、対象・成立保持を個別相談する。4全体、5、6以降へ進むときも、それぞれの未決定を事前に解消する。ID4他残件と4d12残数を混算しない。

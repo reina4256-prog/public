@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-17最新：bt対象・成立保持を個別採用。[所有仕様](experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)の既存単独not_dislikeのdislike/report/negation不足資料をsupplemental第31担当として追加。完全理解ba、肯定好悪az/bs、希望ay/brほかap〜bs担当を維持。固定ao50・所有七・ledger14は非変更。対象だけ未解決・全入口最終照合・全従前保留は維持。採用範囲実装Codex検証完了、全Node1721（監査40含む）・七言語14957・別run renderer3085通過。83枠82確認済み正式子72、実装後OK未受領・総残数再算定なし。
+
 - 2026-10-17最新確認：5dd4a25のbs採用範囲にユーザー実装後OKと次チャット移動を受領。[bs所有仕様](experimental_word_learning.md#diary-incomplete-preference-reports-bs)。82枠82確認済み子71、最新ao〜bs人間OKを旧未受領より優先する。次btは相談予定記号のみ、ap〜bs担当を差し引いて一系統の対象・成立保持を個別相談。対象／理解規則未採用未着手、正式枠追加・総残数再算定なし。全入口照合と全保留・全体未完を維持、今回文書のみ。
 
 - 2026-10-17：bsは[所有仕様](experimental_word_learning.md#diary-incomplete-preference-reports-bs)の対象・成立保持を個別採用、採用範囲実装Codex検証完了。固定ao50・所有七・ledger14を変えずsupplemental第30担当に追加。az成立済み・ba否定・ay/br希望・ap〜br他担当を維持。対象だけ未解決は保留、全入口最終意味照合と全従前保留は未完。82枠81確認済み子71、bs実装後OK未受領、総残数再算定なし。

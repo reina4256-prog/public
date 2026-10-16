@@ -606,6 +606,21 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-incomplete-negated-preference-reports-bt"></a>
+
+##### 4d12bt：単独否定好悪報告の意味・関係不足（2026-10-17）
+
+- ユーザー「どちらも採用でOKです。」で対象範囲と成立・保持条件を個別採用。既存日本語単独report/catalogRule=not_dislike/meaning=dislike、既存「木の実は嫌いじゃない／嫌いではない」「嫌いじゃない／嫌いではない」と既存解析の正規化範囲だけ。入力前dislike意味または当該report/negation関係が一つ以上適用不能でcomplete=falseの資料を担当。複数不足・実経験由来限定scope非適用を含む。対象不足併存は保持、対象だけ未解決は非成立・保留。対象berryの意味不足はtarget不足でありdislike意味不足へ読み替えない。完全理解はba、肯定好悪はaz/bs、現在希望はay/br、その他ap〜bs担当を維持。新文型・他言語文型・新理解習得規則は追加しない。
+- `experimental_word_diary_incomplete_negated_preference_reports.capture(buffer,result,receipt)`三引数独立一時API。kind=reportは資料区分で本人理解成立ではない。原input/frame・入力前knowledge/context・当時understanding/known/unresolved・対象候補と採用根拠・前後state/world・実replyを分離コピー。原不足meaning配列とreport/negation関係ID配列を分離保持。関係不足時kind=partial/subject=null/aspect=null/reportSource欠落、negation不足時polarity=unknownを補完しない。dislike意味だけ不足なら原reportSourceとnegativeを保持。eventTime=unspecified/aspect=null/conditionStatus=nullを維持。一般対象source=explicit・省略対象source=attentionと一意性を既存resolveTargetのまま保持し、省略形にberry意味既知を要求しない。
+- 独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。欠損矛盾非補完、資料整合照合で真正性認証ではない。一input一資料、同input非増加非上書き、新input別候補、後知識後注目で原資料非遡及。返却コピー独立・元資料不変。実応答／発話能力を好き・本人好悪希望・満腹・話者真偽・拒否行動・食事中止・新教示学習経験へ変換せずnewTeaching/newLearning/newExperience=false。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。本人日記生成保存再開配布未完、各担当三保留と全14保留維持。未採用入口を永久対象外へ移さない。最新ao〜bs人間OK維持。bt採用により83枠（82確認済み＋bt作業中）・正式子72、総残数再算定なし、4d12/4d/ID4全体未完。実装後OK未受領、同じbtを継続。
+- 初回専用検証はword-verification-O3IIlYで通過。全回帰・関連renderer・最終文書検証は実行前。所有core/world/catalog・表示文・locale・保存形式・ゲーム呼出非変更。
+- 専用39項目・17754ms、32群1162原641成立、38種24358改変拒否、既存30担当19230拒否。四既存語面×八知識組合せ×二発話設定、対象不足併存／対象だけ不足、一般対象／省略対象、七locale・実話者・活動／空腹非推論・実report/negation限定scope非転移、既存ba完全理解資料担当維持を検査。全API群別件数はO3IIlY/000/stdout.logへ保存。
+- 全回帰初回word-verification-Ij3Epkの途中全出力で監査31失敗を検出。工程表に専用表行がなくmissing_step_referenceとなったため担当行を追記。初回失敗を非削除保持し、独立word-verification-4YDnduで監査40項目通過・17492ms・終了0。ゲーム所有core/world/catalog・fixture期待値を変える補修ではない。全回帰最終結果とrendererは未確定。
+- 初回全回帰Ij3Epk最終は1721中1690通過31失敗・299201ms終了1、七言語／renderer未実行。修正後全回帰jCg1mKは別runへ保存。文書98RGPQは共有四旧全行・181text・handoff二本hash保持、現行七文書リンクerrors[]・監査errors[]・diff通過。MvfKvhのgit show既定buffer不足、TCwGyMの共有四本文拡大検査で検出した既存アンカー不一致18件は失敗原ログ保持。98RGPQでその18件（二参照）がac12086と完全一致し今回増加なしを別確認、既存アンカー不一致自体は未修復。保持検査は意味読了ではない。
+- 最終採用範囲実装Codex検証完了。word-verification-jCg1mKは全Node1721（ゲーム1667＋監査40＋工具14）通過・303473ms、変更六JS構文・七言語14957通過。rendererは制限内GPU -1073741515六回・2114ms終了1でrun全体incompleteを維持。権限付き別run word-verification-bTTdMzでrenderer3085（1162原＋実話者／実reply／独立inputContext三種1923改変）通過・4603ms終了0、auto-review拒否なし。九global除去、専用一時local/session sentinel不変・保存bridge未定義を確認。全回帰成功部分とrenderer別run成功を区別し、初回失敗を置換しない。
+- 最終文書更新後は保持・リンク・監査・diffを再確認する。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。83枠82確認済み正式子72、実装後OK未受領の同じbtを継続、総残数再算定なし・全体未完。
+
 <a id="diary-incomplete-preference-reports-bs"></a>
 
 ##### 4d12bs：単独好悪報告の意味・report関係不足（2026-10-17）
