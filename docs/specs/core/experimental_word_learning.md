@@ -606,6 +606,20 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-incomplete-preference-reports-bs"></a>
+
+##### 4d12bs：単独好悪報告の意味・report関係不足（2026-10-17）
+
+- ユーザー「はい、どちらも採用でOKです」で対象と成立・保持条件を個別採用。採用範囲実装・Codex検証完了、実装後OK未受領。brまでの実装後OKを維持する。82枠（81確認済み＋bs確認待ち）・正式子71、総残数と旧仮予測の再算定なし。4d12／4d／ID4全体未完。
+- azと同じ既存単独文型：日本語catalogRule=preferenceの好き／嫌い、他六言語catalogRule=likeの既存固定報告。入力前の好悪meaningまたは当該report関係が一つ以上適用不能でcomplete=falseの資料を担当。複数不足・実経験由来限定scope非適用を含む。対象未解決の併存は保持するが、対象未解決だけの資料は今回非成立・保留。完全理解はaz、not_dislikeはba、not_nowはay/brを維持し、新文型・理解習得規則を追加しない。
+- `diary_incomplete_preference_reports.capture(buffer,result,receipt)`は三引数独立一時API。kind=reportは資料区分で本人の報告理解成立ではない。原input/frame、入力前knowledge/context、当時understanding、対象候補／採用とevidence、前後state/world、実replyを分離コピー。report不足時のkind=partial、subject/aspect=null、reportSource欠落は補完しない。日本語preferenceと他localeのaspect=null、positive/unspecified、嫌いの肯定報告を保持する。
+- コピー上の既存receive/respondで結果・前後状態・実応答を全文照合。原ID=before.serial+1、独立input/inputKnowledge/inputContext一致を要求する資料整合照合であり真正性認証ではない。同入力非増加・非上書き、新入力別候補、後知識・後注目・後名付けで原資料へ遡及しない。実応答と発話能力を理解・本人好悪・真偽・食事中止・新学習・新経験へ変換しない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。本人日記生成保存再開配布未完、全従前保留維持。他の未採用入口を永久対象外にしない。
+- 専用初回は移植元eat/desire guard残存で37中26失敗11通過（session52973最終chunk1e9428）。削除修正後word-verification-6pjqIyで37通過・30817ms、原ログ保存済み。初回直接実行の完全原ログは永続保存できておらずtool出力のみ。初回失敗を後続成功で置換しない。さらに完全理解の全az原資料の担当維持と対象だけ未解決の非遡及二件を追加し、最終専用39。
+- 最終検証：word-verification-O51mCxの全Node1681（ゲーム1628＝従前1589＋bs39、監査39、工具14）通過・297714ms、不通過取消skipなし。七言語14957と変更JS六本構文・リンク通過。32群960原589成立、38種22382改変拒否、既存29担当17081拒否。七言語知識行列、日本語既存主語助詞語尾、対象不足併存／対象だけ不足、実名付け根拠／同名競合、実report限定scope非転移、活動五種／空腹五値、実話者、正規化・疑問複数節・他担当境界をfixtureで確認。全32群の件数と各API途中原出力はrunの007/stdout.logへ保存。
+- 同runのrendererはGPU -1073741515六回・終了1、summary=incompleteを維持。権限付き別run word-verification-X3o7Tnで2727（960原＋実話者／実reply／独立context改変1767）通過・11308ms、session6559最終chunk54c599終了0。非表示専用一時profile、コピー上receive/respond全文照合・同入力非増加非上書き・返却コピー独立・原資料sourceStable・九global除去・local/session各bs-sentinel不変・保存bridge未定義。auto-review拒否なし。ゲームUI音声・本人日記生成保存再開配布／実ユーザー保存の検証ではない。新ゲーム表示文なし、翻訳追加再構築不要。ログはdocs/.local-history/verification-runs/へ非公開保持。
+- 文書最終検査：word-verification-HU2Derで短い索引六文書リンクerrors[]・共有四文書の旧全行保持・工程表181text全文不変・旧handoff保管hash不変・diff通過。その直前word-verification-3HdB48は旧au一行の状態語をbs用置換が拾い原文保持失敗。HEADの原一行へ復元し再通過、初回失敗ログを保持。保持検査を意味読了へ変換しない。
+
 <a id="diary-incomplete-desire-reports-br"></a>
 
 - br採用範囲実装Codex検証仕様引継ぎ更新限定完了：全1589（従前1560＋br29）session88641最終chunkb0bd0e終了0・495092.269ms／Temp/word-br-full-test-limited.log、並列数2で全同登録を再実行し1589通過・不通過取消skipなし。別監査38 session68706最終chunkdf1e24終了0・26158.9412ms、七JS最終構文chunk4aec34終了0、七言語14957／diff chunk320c60終了0。独立renderer3397 session65252結果chunk8e6172・最終chunk604473終了0、Temp/word-incomplete-desire-report-preview-RXClfB・auto-review拒否なし。初回監査固定数漏れ／全体初回中断／renderer制限内失敗は以下と181に非削除保持。新ゲーム表示文なし翻訳追加再構築不要、所有core/world/catalog/runtime非変更。

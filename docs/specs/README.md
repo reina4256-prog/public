@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-17：4d12bsの対象・成立保持を個別採用、採用範囲実装Codex検証完了。[所有仕様](core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)。82枠81確認済み正式子71、bs実装後OK未受領。brまでの確認と全従前保留を維持、全体未完。
+
 > 2026-10-17整理：新方式の通常入口は[短い現行索引](../word/README.md)→[維持条件・保留](../word/OPEN_ITEMS.md)→今回の所有仕様節。検証は[実行条件とログ](../word/VALIDATION.md)。新方式以外は本書の[読み分け表](#読み分け表)へ。br実装後OK受領済み、最新ao〜br人間OK優先。以下の過去進行・全原文は保持し、通常開始で全履歴の再帰読取を要求しない。
 
 - br最終：専用29・全1589／別監査38／七JS構文七言語14957／独立renderer3397通過。[正本br節](core/experimental_word_learning.md#diary-incomplete-desire-reports-br)に24群1549原616成立・38種23408改変拒否・既存28担当17248拒否・HTTP139と全API途中詳細（初回監査登録数漏れ／全体初回中断／renderer制限内失敗を含む）を保持。採用範囲実装Codex検証限定完了、実装後OK未受領同じbr継続。81枠80確認済み子70仮0〜5中心2／総残数最低1上限中心未確定据置全体未完、減算追加枠移動なし。最新ao〜bq人間OK・全従前条件API途中詳細全保留／ay補修前後区別非削除非置換、本接続生成保存再開配布未完。

@@ -2,7 +2,7 @@
 
 機械登録に基づく所在一覧。登録の一致を意味読了へ昇格しない。最新ao〜br人間OKは[現行索引](README.md)を優先し、詳細な対象・成立条件・例外は各所有仕様を読む。
 
-全79登録と横断補修anを区別する。anの零経過休息開始順・理由教示回答・保存の所有は[正本](../specs/core/experimental_word_learning.md)のan節と`tests/experimental_word_rest_start.test.js`、aoは[監査仕様](../specs/core/experimental_word_diary_audit.md)。81確認枠と登録数を混同しない。
+全80登録と横断補修anを区別する。anの零経過休息開始順・理由教示回答・保存の所有は[正本](../specs/core/experimental_word_learning.md)のan節と`tests/experimental_word_rest_start.test.js`、aoは[監査仕様](../specs/core/experimental_word_diary_audit.md)。81確認枠と登録数を混同しない。
 
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
@@ -85,5 +85,6 @@
 | 4d12bp | incomplete_rest_value_reports.capture (3) | [source](../../experimental_word_diary_incomplete_rest_value_reports.js) | [test](../../tests/experimental_word_diary_incomplete_rest_value_reports.test.js) |
 | 4d12bq | incomplete_rest_explanation_reports.capture (3) | [source](../../experimental_word_diary_incomplete_rest_explanation_reports.js) | [test](../../tests/experimental_word_diary_incomplete_rest_explanation_reports.test.js) |
 | 4d12br | incomplete_desire_reports.capture (3) | [source](../../experimental_word_diary_incomplete_desire_reports.js) | [test](../../tests/experimental_word_diary_incomplete_desire_reports.test.js) |
+| 4d12bs | incomplete_preference_reports.capture (3) | [source](../../experimental_word_diary_incomplete_preference_reports.js) | [test](../../tests/experimental_word_diary_incomplete_preference_reports.test.js) |
 
 各部品名を[内容正本](../specs/core/experimental_word_learning.md)内で検索し、その所有節・コード対応表・指定された原資料だけを読む。ap〜brのうちbrは[専用節](../specs/core/experimental_word_learning.md#diary-incomplete-desire-reports-br)、ayは[現在希望報告](../specs/core/experimental_word_learning.md#diary-desire-reports-ay)。残入口相談では既存担当との非重複を先に照合する。
