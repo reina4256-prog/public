@@ -610,6 +610,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 ##### 4d12bs：単独好悪報告の意味・report関係不足（2026-10-17）
 
+- 2026-10-17最新確認：ユーザー「OKです。次チャットをおねがいします。」で5dd4a25のbs採用範囲へ実装後OKと移動を明示。実装・Codex検証・ユーザー実装後OK限定確認済み。82枠82確認済み正式子71。以下の未受領／確認待ちは確認前の履歴として保持する。次4d12btは相談予定の記号のみで正式枠追加なし。残入口をap〜bs担当と再照合し、一系統の具体範囲・成立保持条件を個別相談する（対象／理解規則未採用未着手）。対象だけ未解決の好悪報告等を一括採用・永久対象外にせず、全保留・全体未完を維持。今回文書のみ、ゲーム全回帰・renderer再実行なし。
+
 - ユーザー「はい、どちらも採用でOKです」で対象と成立・保持条件を個別採用。採用範囲実装・Codex検証完了、実装後OK未受領。brまでの実装後OKを維持する。82枠（81確認済み＋bs確認待ち）・正式子71、総残数と旧仮予測の再算定なし。4d12／4d／ID4全体未完。
 - azと同じ既存単独文型：日本語catalogRule=preferenceの好き／嫌い、他六言語catalogRule=likeの既存固定報告。入力前の好悪meaningまたは当該report関係が一つ以上適用不能でcomplete=falseの資料を担当。複数不足・実経験由来限定scope非適用を含む。対象未解決の併存は保持するが、対象未解決だけの資料は今回非成立・保留。完全理解はaz、not_dislikeはba、not_nowはay/brを維持し、新文型・理解習得規則を追加しない。
 - `diary_incomplete_preference_reports.capture(buffer,result,receipt)`は三引数独立一時API。kind=reportは資料区分で本人の報告理解成立ではない。原input/frame、入力前knowledge/context、当時understanding、対象候補／採用とevidence、前後state/world、実replyを分離コピー。report不足時のkind=partial、subject/aspect=null、reportSource欠落は補完しない。日本語preferenceと他localeのaspect=null、positive/unspecified、嫌いの肯定報告を保持する。

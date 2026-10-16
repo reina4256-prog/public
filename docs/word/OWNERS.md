@@ -1,8 +1,8 @@
 # 日記部品の担当・参照索引
 
-機械登録に基づく所在一覧。登録の一致を意味読了へ昇格しない。最新ao〜br人間OKは[現行索引](README.md)を優先し、詳細な対象・成立条件・例外は各所有仕様を読む。
+機械登録に基づく所在一覧。登録の一致を意味読了へ昇格しない。最新ao〜bs人間OKは[現行索引](README.md)を優先し、詳細な対象・成立条件・例外は各所有仕様を読む。
 
-全80登録と横断補修anを区別する。anの零経過休息開始順・理由教示回答・保存の所有は[正本](../specs/core/experimental_word_learning.md)のan節と`tests/experimental_word_rest_start.test.js`、aoは[監査仕様](../specs/core/experimental_word_diary_audit.md)。81確認枠と登録数を混同しない。
+全80登録と横断補修anを区別する。anの零経過休息開始順・理由教示回答・保存の所有は[正本](../specs/core/experimental_word_learning.md)のan節と`tests/experimental_word_rest_start.test.js`、aoは[監査仕様](../specs/core/experimental_word_diary_audit.md)。82確認枠と登録数を混同しない。
 
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
