@@ -610,6 +610,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 ##### 4d12bt：単独否定好悪報告の意味・関係不足（2026-10-17）
 
+- 2026-10-17最新確認：ユーザーがbefca21のbt採用範囲へ実装後OKと次チャット移動を明示。実装・Codex検証・ユーザー実装後OK限定確認済み、83枠83確認済み正式子72。以下の未受領／同じbt継続は過去記録として保持。次buは残入口をap〜bt担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。対象だけ未解決ほか全保留・全体未完を維持。[暫定残目安と軽量表示](../../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)は開発の作業計画で内容仕様の一括採用ではない。今回文書のみ、ゲーム全回帰・renderer再実行なし。
+
 - ユーザー「どちらも採用でOKです。」で対象範囲と成立・保持条件を個別採用。既存日本語単独report/catalogRule=not_dislike/meaning=dislike、既存「木の実は嫌いじゃない／嫌いではない」「嫌いじゃない／嫌いではない」と既存解析の正規化範囲だけ。入力前dislike意味または当該report/negation関係が一つ以上適用不能でcomplete=falseの資料を担当。複数不足・実経験由来限定scope非適用を含む。対象不足併存は保持、対象だけ未解決は非成立・保留。対象berryの意味不足はtarget不足でありdislike意味不足へ読み替えない。完全理解はba、肯定好悪はaz/bs、現在希望はay/br、その他ap〜bs担当を維持。新文型・他言語文型・新理解習得規則は追加しない。
 - `experimental_word_diary_incomplete_negated_preference_reports.capture(buffer,result,receipt)`三引数独立一時API。kind=reportは資料区分で本人理解成立ではない。原input/frame・入力前knowledge/context・当時understanding/known/unresolved・対象候補と採用根拠・前後state/world・実replyを分離コピー。原不足meaning配列とreport/negation関係ID配列を分離保持。関係不足時kind=partial/subject=null/aspect=null/reportSource欠落、negation不足時polarity=unknownを補完しない。dislike意味だけ不足なら原reportSourceとnegativeを保持。eventTime=unspecified/aspect=null/conditionStatus=nullを維持。一般対象source=explicit・省略対象source=attentionと一意性を既存resolveTargetのまま保持し、省略形にberry意味既知を要求しない。
 - 独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。欠損矛盾非補完、資料整合照合で真正性認証ではない。一input一資料、同input非増加非上書き、新input別候補、後知識後注目で原資料非遡及。返却コピー独立・元資料不変。実応答／発話能力を好き・本人好悪希望・満腹・話者真偽・拒否行動・食事中止・新教示学習経験へ変換せずnewTeaching/newLearning/newExperience=false。

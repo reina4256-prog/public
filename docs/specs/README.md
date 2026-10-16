@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-17最新：befca21の4d12btへ実装後OKと次チャット移動を受領。83枠83確認済み正式子72、最新ao〜bt人間OK。次buは対象／理解規則未採用未着手の相談予定記号のみ、正式枠追加なし。[暫定目安](../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)はあと5〜10工程程度・中心8（bt確認後の粗い計画、全件再算定ではない）。毎回の全量再計算を要求せず基準日と据置／変更理由を継続表示。全体未完、今回文書のみ。
+
 - 2026-10-17最新：4d12bt対象・成立保持を個別採用。[所有仕様](core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)は既存日本語単独not_dislike報告のdislike/report/negation不足資料を担当。対象だけ未解決は保留。採用範囲実装Codex検証完了、専用39・全Node1721・七言語14957・別run renderer3085通過。83枠82確認済み正式子72、実装後OK未受領、総残数再算定なし・全体未完。以下のbt未採用は過去記録として保持。
 
 - 2026-10-17最新：5dd4a25の4d12bsへ実装後OKと移動を受領。[bs所有仕様](core/experimental_word_learning.md#diary-incomplete-preference-reports-bs)、[次チャット開始文](../word/NEXT_CHAT.md)。82枠82確認済み正式子71、次btは個別相談予定記号のみ・対象／理解規則未採用未着手。正式枠追加・総残数再算定なし、全体未完。旧未受領は履歴として保持。
