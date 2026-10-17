@@ -1,5 +1,7 @@
 # 次チャットの開始文
 
+2026-10-18最新：ユーザー「はい、どちらもOKです」で[bw対象・成立保持](../specs/core/experimental_word_learning.md#diary-unresolved-negated-request-targets-bw)を個別採用。現在は同じbwの採用範囲実装・Codex検証完了・実装後OK未受領、次チャット移動の指示なし。86枠85確認済み正式子75、最新ao〜bv人間OK。暫定残5〜10中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全体未完。以下の開始文は今回採用前の原文として保持し、bw未採用へ戻さない。最新の検証とcommit/push結果は[現在作業](../CURRENT_IMPLEMENTATION.md)を参照。
+
 2026-10-18：ユーザー「はい、OKです。次チャットをおねがいします。」でb1fb6a3のbvへ実装後OKと移動を明示。直前案内全文はGit b1fb6a3版とdocs/.local-history/NEXT_CHAT-before-bv-acceptance-2026-10-18.mdへ保持。
 
 ```text

@@ -606,6 +606,21 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-unresolved-negated-request-targets-bw"></a>
+
+##### 4d12bw：否定食事お願いの対象だけ未解決（2026-10-18）
+
+- ユーザー「はい、どちらもOKです」で対象と成立・保持条件を個別採用。既存日本語単独request/catalogRule=do_not_eat/meaning=eat、「これ／それ／木の実」＋「は／を」＋「食べないで」＋任意「ね」の既存解析正規化範囲だけ。入力当時eat意味と当該request/negation関係が適用可能で、対象だけ未解決の資料を担当する。新文型・他言語文型・理解習得規則は追加しない。完全理解は[bb](#diary-negated-requests-bb)、意味・関係不足との併存は[bu](#diary-incomplete-negated-requests-bu)のまま、[bv](#diary-incomplete-after-eat-walk-proposals-bv)食後散策とは別担当。
+- `diary_unresolved_negated_request_targets.capture(buffer,result,receipt)`三引数独立一時API。単独understandingのkind=request、known.meaning=eat、relations=[request,negation]、subject=実input.speaker、negative/unspecified、aspect/conditionStatus/questionSlot=null、complete=false、target.adopted=null、unresolvedが原target.candidatesに一致するtarget一項だけを要求する。注目なし・注目複数・一般対象意味未理解等を原資料どおり保持し、意味eat不足へ読み替えない。候補を勝手に選ばず、理解済みのお願い・否定・話者も消さない。
+- kind=proposalは資料区分で、対象理解や従否成立を意味しない。原input/frame・入力前knowledge/context・当時understanding・前後state/world・実replyを分離コピー。独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。資料整合照合であり真正性認証ではない。欠損矛盾非補完、同input非増加非上書き、新input別候補、遅延原資料・返却コピー独立・元資料不変を維持する。
+- 後の注目・知識・名付けから原対象を補完せず、後知識による原未成立の遡及成立も行わない。compliance=null/actionDecisionRecorded=false、newTeaching/newLearning/newExperience=false。実応答・発話能力・活動・空腹から従否・食事中止・拒否・新経験を作らない。休息限定の実request/negation経験scopeを否定食事お願いへ転用しない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。本人日記生成保存再開配布・実ユーザー保存は未検証。全14保留と各担当三保留を維持し、今回対象以外の好悪報告等の対象だけ未解決を永久対象外にしない。ap〜bvの既存担当・最新人間OKを維持する。86枠85確認済み・正式子75、bw実装後OK未受領・同じbw継続。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、4d12／4d／ID4全体未完。
+- 独立部品・fixture・専用テスト・非表示一時rendererと監査supplemental第34担当（全84登録）を追加し、採用範囲実装・Codex検証完了。所有core/world/catalog・ゲーム表示文・locale・ゲーム呼出は非変更。bw実装後OK未受領・同じbw内で自由フィードバックと必要修正を継続する。採用を実装後OKへ昇格せず、途中保存commit/pushは移動合図ではない。
+- 専用word-verification-qAYs3E：38通過・9909ms終了0。29群590原資料197成立、40種7880今回資料改変拒否、既存33担当6501拒否。各API群別の原件数・成立数は000/stdout.logへ非削除保存。十二語面と既存正規化・疑問符、空／一意／複数注目、一般berry意味未知と指示対象、実名付け競合・実話者scope、発話二設定・七locale・五活動・五空腹値を確認。実request/negation経験scopeは元の限定範囲を維持し、対象不足併存でもbu担当。全bb完全理解原資料と全bu成立原資料の担当維持、後知識／後注目／後実名付けで原対象非補完・原資料不変、同input非増加非上書き・新input別候補・遅延資料・コピー編集独立・非JSON循環拒否も通過。
+- 初回word-verification-aFrDgLは37中36通過1失敗・10805ms終了1。「後注目」検査に移植元foundation=falseが残り、意味関係も不足した原資料をbw成立と期待していた。対象だけ未解決のmake()へ新テスト設定を修正。失敗原ログと修正前testを同runへ保持し、所有コードや既存bb/bu期待を補修せず、「後実名付け」検査追加後の上記38通過と区別する。
+- 全回帰word-verification-VaRUGL：全Node1838（ゲーム1781＋監査43＋工具14）・376998ms終了0、変更六JS構文・文書リンク・七言語14957通過。package変更と日記動的横断依存による全回帰。静的分類外smokeはpre-review-plan.jsonとmanual-dependency-review.jsonへ直接依存の手動確認を記録し、全回帰・明示rendererを維持。制限内rendererはGPU -1073741515四回とERR_FAILED(-2)・2103ms終了1、run全体incompleteを保持。権限付き別run word-verification-7A7Szwのrendererは1181（590原＋実話者／実reply／独立inputContext三種591改変）・3307ms終了0。九global除去・一時local/session各bw-sentinel不変・保存bridge未定義を確認。auto-review拒否なし、所有基盤を検証へ合わせた変更なし。
+- 文書初回word-verification-niVChVは14392ms終了0、d63180eの共有四と短文書四の旧全行・全181text同順序保持、保管handoff hash不変、短文書／handoffリンク・監査・diff通過。共有四の既存リンク不一致18件はd63180eと完全一致・増加なしで未修復。最終文書検査初回word-verification-lpuhFlは12116ms終了1、NEXT_CHATの「現在は同じbwの…次チャット移動の指示なし」を検査工具が「同じbw継続」完全一致で拒否。失敗ログと修正前工具を保持し、同じ意味を明示するその案内文も許すよう工具だけ補正。最終結果は現在handoffを参照。新ゲーム表示文なし・翻訳追加再構築不要。実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証。全原ログはdocs/.local-history/verification-runs/へ非削除保持。
+
 <a id="diary-incomplete-after-eat-walk-proposals-bv"></a>
 
 ##### 4d12bv：食後散策の誘いの意味・関係不足（2026-10-18）
