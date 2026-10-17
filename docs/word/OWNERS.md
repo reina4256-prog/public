@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-18最新確認：ユーザー「はい、OKです。次チャットをおねがいします。」でb1fb6a3のbvへ実装後OKと次チャット移動を明示。85枠85確認済み正式子74、最新ao〜bv人間OK。[bv所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-after-eat-walk-proposals-bv)。次bwはap〜bv担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後基準）は範囲・分割変更なし据置、全体未完。今回確認移動は文書のみ・ゲーム全回帰／実働／renderer再実行なし。以下の未受領は過去状態。
+
 - 2026-10-18最新：ユーザー「どちらも採用でOKです」で[bv対象・成立保持](../specs/core/experimental_word_learning.md#diary-incomplete-after-eat-walk-proposals-bv)を個別採用。既存日本語食後散策の単独誘いのwalk/eat意味・invitation/sequence関係不足資料、完全理解bc維持。85枠84確認済み正式子74、最新ao〜bu人間OK維持。bv採用範囲実装・Codex検証完了・実装後OK未受領、同じbv継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後基準）は既存見通し内の一系統採用で据置、全体未完。対象だけ未解決ほか全14保留・各担当三保留維持。以下のbv未採用・旧登録数は過去状態。
 
 全83登録（supplemental33）。登録数と85確認枠を混同しない。
