@@ -610,6 +610,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 ##### 4d12bw：否定食事お願いの対象だけ未解決（2026-10-18）
 
+- 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」で3c4812eのbw採用範囲へ実装後OKと移動を明示。実装・Codex検証・ユーザー実装後OK限定確認済み、86枠86確認済み正式子75、最新ao〜bw人間OK。以下のbw未受領・同じbw継続は過去状態。次bxは残入口をap〜bw担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ。対象／理解規則未採用未着手・正式枠追加なし。bw対象だけ未解決の否定食事お願い、bu意味関係不足、bv食後散策不足を重複残件にせず、好悪報告等の対象未解決・全14保留・各担当三保留を維持する。暫定残5〜10中心8（2026-10-17 bt確認後）は範囲・分割変更なし据置、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。
+
 - ユーザー「はい、どちらもOKです」で対象と成立・保持条件を個別採用。既存日本語単独request/catalogRule=do_not_eat/meaning=eat、「これ／それ／木の実」＋「は／を」＋「食べないで」＋任意「ね」の既存解析正規化範囲だけ。入力当時eat意味と当該request/negation関係が適用可能で、対象だけ未解決の資料を担当する。新文型・他言語文型・理解習得規則は追加しない。完全理解は[bb](#diary-negated-requests-bb)、意味・関係不足との併存は[bu](#diary-incomplete-negated-requests-bu)のまま、[bv](#diary-incomplete-after-eat-walk-proposals-bv)食後散策とは別担当。
 - `diary_unresolved_negated_request_targets.capture(buffer,result,receipt)`三引数独立一時API。単独understandingのkind=request、known.meaning=eat、relations=[request,negation]、subject=実input.speaker、negative/unspecified、aspect/conditionStatus/questionSlot=null、complete=false、target.adopted=null、unresolvedが原target.candidatesに一致するtarget一項だけを要求する。注目なし・注目複数・一般対象意味未理解等を原資料どおり保持し、意味eat不足へ読み替えない。候補を勝手に選ばず、理解済みのお願い・否定・話者も消さない。
 - kind=proposalは資料区分で、対象理解や従否成立を意味しない。原input/frame・入力前knowledge/context・当時understanding・前後state/world・実replyを分離コピー。独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。資料整合照合であり真正性認証ではない。欠損矛盾非補完、同input非増加非上書き、新input別候補、遅延原資料・返却コピー独立・元資料不変を維持する。
