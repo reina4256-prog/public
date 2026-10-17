@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-18最新：ユーザー「どちらも採用でOKです」で[bv対象・成立保持](../specs/core/experimental_word_learning.md#diary-incomplete-after-eat-walk-proposals-bv)を個別採用。既存日本語食後散策の単独誘いのwalk/eat意味・invitation/sequence関係不足資料、完全理解bc維持。85枠84確認済み正式子74、最新ao〜bu人間OK維持。bv採用範囲実装・Codex検証完了・実装後OK未受領、同じbv継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後基準）は既存見通し内の一系統採用で据置、全体未完。対象だけ未解決ほか全14保留・各担当三保留維持。以下のbv未採用・旧登録数は過去状態。
+
+全83登録（supplemental33）。登録数と85確認枠を混同しない。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12bv | incomplete_after_eat_walk_proposals.capture (3) | [source](../../experimental_word_diary_incomplete_after_eat_walk_proposals.js) | [test](../../tests/experimental_word_diary_incomplete_after_eat_walk_proposals.test.js) |
+
 2026-10-17最新：bu実装後OK受領済み、最新ao〜bu人間OK。全82登録（supplemental32）、84枠84確認済み正式子73。[bu所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-requests-bu)。次bvは未採用未着手の相談予定記号のみ、登録・正式枠追加なし。以下の未受領／旧登録数は過去状態。
 
 機械登録に基づく所在一覧。登録の一致を意味読了へ昇格しない。最新ao〜bt人間OKは[現行索引](README.md)を優先し、詳細な対象・成立条件・例外は各所有仕様を読む。

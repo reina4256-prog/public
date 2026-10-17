@@ -606,6 +606,20 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-incomplete-after-eat-walk-proposals-bv"></a>
+
+##### 4d12bv：食後散策の誘いの意味・関係不足（2026-10-18）
+
+- ユーザー「どちらも採用でOKです」で対象と成立・保持条件を個別採用。既存日本語単独invitation/catalogRule=after_eat_walkだけ。bcと同じ「食べ終わったら」＋既存区切り＋任意「一緒に」＋「散歩しよう／散歩しようよ／散歩に行こう」の既存解析正規化範囲で、入力当時walk/eat意味またはinvitation/sequence関係が一つ以上適用不能・complete=falseの資料を担当する。複数不足、実経験由来限定scope非適用を含む。完全理解は[bc](#diary-after-eat-walk-proposals-bc)担当維持。新文型・他言語文型・新しい理解／習得規則を追加しない。
+- `diary_incomplete_after_eat_walk_proposals.capture(buffer,result,receipt)`三引数独立一時API。kind=proposalは資料区分で誘い理解・条件成立や行動判断成立ではない。原input/frame・入力前knowledge/context・当時understandingと意味／関係不足・前後state/world・実replyを分離コピー。意味だけ不足ならinvitationと実話者subjectを保持、関係不足ならpartial/subject=nullを補完しない。positive/unspecified・aspect/target=null・roles未生成・conditionStatus=unknownをそのまま保持する。
+- 独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、使い捨てコピー上の既存receive/respondで結果・前後state/world・実reply全文一致を要求。欠損矛盾非補完、資料整合照合であり真正性認証ではない。同input非増加非上書き、新input別候補、遅延原資料・返却コピー独立・元資料不変・後知識後食事完了非遡及を維持。食後休息のsequenceや休息invitationの経験scopeを散策へ転用しない。
+- compliance=null/actionDecisionRecorded=false・newTeaching/newLearning/newExperience=false。実応答／発話能力・注目・活動・空腹から原食事／完了・食事主体・共同参加・予約・従否・散策開始完了経験・本人希望を補わない。m疲れ条件／p食後休息／am直接誘い、ap〜buの各担当と全14保留を維持。未採用を永久対象外にしない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。本人日記生成保存再開配布・実ユーザー保存は未検証。所有core/world/catalog・ゲーム表示文・locale・ゲーム呼出は非変更。85枠（84確認済み＋bv作業中）・正式子74、最新ao〜bu人間OK維持。bv実装後OK未受領・同じbv継続、4d12／4d／ID4全体未完。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は既存見通し内の一系統採用として据置、全量再計算・機械減算なし。
+- 独立部品・fixture・専用テスト・非表示一時rendererと監査supplemental第33担当を追加、採用範囲実装・Codex検証完了。bv実装後OK未受領・同じbv内で自由フィードバックと必要修正を継続する。途中保存commit/pushは次チャット移動合図ではない。
+- 専用word-verification-sBV15Zは35通過・65380ms終了0（Node内55018ms）。28群2161原1654成立、43種71122資料改変拒否・既存32担当52928拒否。各API群別原件数は000/stdout.logへ非削除保存。既存語面24×知識16組合せ×発話二設定、七locale境界、正規化・複数節拒否、実話者、注目・活動・空腹、実食事前後、実休息sequence/invitation限定scope非転移、bc完全理解全原資料維持・後知識非遡及・原資料不変と返却コピー独立を確認。
+- 全回帰word-verification-Qnr5Y1は全Node1799（ゲーム1743＋監査42＋工具14）通過・449127ms、変更六JS構文・文書リンク・七言語14957通過。package変更と日記動的横断依存による全回帰。静的分類外smokeの直接依存は同runのmanual-dependency-review.jsonへ記録し、明示renderer検査を維持。制限内rendererはGPU -1073741515六回・20767ms終了1、run全体incompleteを保持。権限付き別run word-verification-SvQuWqはrenderer7123（2161原＋実話者／実reply／独立inputContext三種4962改変）・20545ms終了0。九global除去・一時local/session各bv-sentinel不変・保存bridge未定義を確認。auto-review拒否なし。所有基盤・fixture期待値をテストへ合わせる補修なし、新ゲーム表示文なし・翻訳追加再構築不要。全原ログはdocs/.local-history/verification-runs/へ保持。
+- 文書検証word-verification-Cz5N7Tは28597ms終了0、57fdbcfの共有四と短文書四の旧全行・全181textを同順序保持、bu確認後handoff保管hash不変、短文書とhandoffのリンク・構造監査・diff通過。共有四の既存リンク不一致18件は57fdbcfと完全一致で増加なし・未修復。保持検査は意味読了ではない。最終更新後も同検査を再実行する。実UI音声・本人日記生成保存再開配布・実ユーザー保存は今回未検証。
+
 <a id="diary-incomplete-negated-requests-bu"></a>
 
 ##### 4d12bu：対象付き否定食事お願いの意味・関係不足（2026-10-17）

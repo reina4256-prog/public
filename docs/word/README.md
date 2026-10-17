@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-10-18最新：ユーザー「どちらも採用でOKです」で[bv対象・成立保持](../specs/core/experimental_word_learning.md#diary-incomplete-after-eat-walk-proposals-bv)を個別採用。既存日本語食後散策の単独誘いのwalk/eat意味・invitation/sequence関係不足資料、完全理解bc維持。85枠84確認済み正式子74、最新ao〜bu人間OK維持。bv採用範囲実装・Codex検証完了・実装後OK未受領、同じbv継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後基準）は既存見通し内の一系統採用で据置、全体未完。対象だけ未解決ほか全14保留・各担当三保留維持。以下のbv未採用・旧登録数は過去状態。
+
 2026-10-17の資料・検証整理により追加。このファイルは参照の入口であり、ゲーム内容の成立条件はリンク先の所有仕様に従う。
 
 2026-10-17：ユーザーがbefca21のbt実装後OKと次チャット移動を明示。[次チャット開始文](NEXT_CHAT.md)と[bt所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)を参照。
