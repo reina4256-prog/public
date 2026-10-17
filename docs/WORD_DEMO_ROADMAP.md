@@ -1,5 +1,11 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-18最新：ユーザー「はい、どちらもOKです」でbxの対象・成立保持を個別採用。[bx所有仕様](specs/core/experimental_word_learning.md#diary-unresolved-preference-targets-bx)は既存単独好悪報告の対象だけ未解決を担当し、完全理解az・意味関係不足併存bs・否定好悪ba/bt・否定お願いbwを維持。87枠86確認済み・正式子76、最新ao〜bw人間OK、bx採用範囲実装・Codex検証完了、実装後OK未受領・同じbx継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用として据置、全量再計算・機械減算なし、全体未完。
+
+| 工程 | 採用範囲 | 状態 |
+| --- | --- | --- |
+| 4d12bx | [単独好悪報告の対象だけ未解決](specs/core/experimental_word_learning.md#diary-unresolved-preference-targets-bx) | 採用範囲実装・Codex検証完了、実装後OK未受領・同じbx継続 |
+
 - 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」で3c4812eのbwへ実装後OKと移動を明示。86枠86確認済み正式子75、最新ao〜bw人間OK。[bw所有仕様](specs/core/experimental_word_learning.md#diary-unresolved-negated-request-targets-bw)。次bxはap〜bw担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後基準）は範囲・分割変更なし据置、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のbw未受領・同じbw継続は過去状態。
 
 - 2026-10-18最新：ユーザー「はい、どちらもOKです」で[bw対象・成立保持](specs/core/experimental_word_learning.md#diary-unresolved-negated-request-targets-bw)を個別採用。否定食事お願いの対象だけ未解決を担当し、完全理解bb・意味関係不足bu・食後散策bc/bvを維持。86枠85確認済み正式子75、bw採用範囲実装・Codex検証完了・実装後OK未受領、同じbw継続。最新ao〜bv人間OK維持。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後基準）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし・全体未完。以下のbw未採用・旧枠数は過去状態。

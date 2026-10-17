@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-18最新：ユーザーが[bxの対象・成立保持](#diary-unresolved-preference-targets-bx)を個別採用。既存単独好悪報告の対象だけ未解決を担当、完全理解az・意味関係不足併存bs維持。87枠86確認済み・正式子76、最新ao〜bw人間OK、bx採用範囲実装・Codex検証完了、実装後OK未受領・同じbx継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全体未完。以下のbx未採用は過去状態。
+
 > 2026-10-17資料整理：現在地・所有節への案内は[現行索引](../../word/README.md)、[保留](../../word/OPEN_ITEMS.md)、[担当索引](../../word/OWNERS.md)を参照。br採用範囲はユーザー実装後OK受領済み。以下の全原文・成立条件・API内訳・途中詳細は非削除非置換保持し、最新ao〜br人間OKを旧未受領表示より優先する。内容仕様の新採用はない。
 
 - 2026-10-17最新確認／区切り：ユーザー「OKです。次チャットをおねがいします。」で043c4c1の4d12bq採用範囲へ実装後OKと移動を明示。単独回復説明の今回rest意味／report・reason関係不足、直前rest原資料と当時理解出所欠落保持の独立report資料候補は実装・Codex検証・ユーザー実装後OK限定確認済み。次4d12brは残入口をap〜bqの既存限定担当と再照合し、一系統の選定・具体範囲と成立条件を個別相談（対象／理解規則未採用未着手）。81枠（80確認済み＋br相談予定）正式子70最終総数未確定。bq一工程確認分だけ作業仮見積り0〜6工程中心3から0〜5工程中心2へ機械差引（下限は0で下げ止め）・追加分割増加なし。相談分割前提の参考で確定総残数ではなく、下限0は全残作業0の意味ではない。総残数最低1（br予定）／上限中心未確定、予測最終下限81子70／上限中心未確定。旧下限80子69から一枠増加はbr相談予定枠のため、旧残り1を総残数へ戻さず旧全予測履歴非削除保持。短縮一括採用永久対象外終了確約なし、9大区分4a〜4i親4d1〜12維持4d12/4d/ID4全体未完。従前179同じbq継続全文と178/177/176/175/174/173/172/171/170/169/168/167以下全参照先条件確認状態未決定未回答未完保留全API途中詳細非削除非置換、最新ao〜bq人間OK優先・旧not_receivedから再確認不要。全1560監査37七JS七言語14957renderer2001・31群798原401成立38種15238今回＋16種6416直前＝21654改変拒否と27担当10827拒否・HTTP136、bp初回129最終133と旧bo130の区別・全API途中詳細／179生成文字コード補修前後／制限内renderer終了1と権限付き終了0／bp以下全従前詳細／ay補修前全1084と補修後専用20renderer171区別保持。今回確認移動は文書のみ実働再検査なし、各担当三保留・本人日記生成保存再開配布本接続未完。旧AI旧保存実ユーザー保存九見本星座対象外%SystemDrive%/非操作非置換commit対象外・handoffローカルGit対象外、移動は今回ユーザー明示・途中保存移動合図なし。
@@ -605,6 +607,20 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 ### ノートの日記帳表現・素朴な絵の方針（2026-10-06・壁打ち継続）
 
 #### 最新の実装範囲・次チャット
+
+<a id="diary-unresolved-preference-targets-bx"></a>
+
+##### 4d12bx：単独好悪報告の対象だけ未解決（2026-10-18）
+
+- ユーザー「はい、どちらもOKです」で対象・成立保持を個別採用。az/bsと同じ既存単独report文型、日本語catalogRule=preferenceの好き／嫌い、他六言語catalogRule=likeの固定報告だけ。入力当時の好悪意味と当該report関係が適用可能で、対象だけ未解決を担当する。完全理解はaz、意味／report不足（対象不足併存を含む）はbs、否定好悪not_dislikeはba/bt、希望はay/br、否定食事お願いはbb/bu/bwの担当を維持する。新文型・理解習得規則は追加しない。
+- `diary_unresolved_preference_targets.capture(buffer,result,receipt)`三引数独立一時API。kind=report・complete=false、like/dislike意味（他六言語likeだけ）・relations=[report]、subject=実input.speaker、positive/unspecified、日本語aspect=preference／他六言語null、conditionStatus/questionSlot=null、実speaker_report出所を要求する。target.adopted=null、unresolvedが原target.candidatesと一致するtarget一項だけであることを照合する。嫌いはdislike意味の肯定報告であり否定報告に変換しない。
+- 原input/frame・入力前knowledge/context・当時understandingと原対象候補／evidence・前後state/world・実replyを分離コピー。独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、コピー上の既存receive/respondで結果・前後状態・実応答全文一致を要求する。資料整合照合であり真正性認証ではない。欠損矛盾非補完、同input非増加非上書き、新input別候補、遅延原資料・返却コピー独立・元資料不変を維持する。
+- kind=reportは資料区分で対象理解成立ではない。後知識・後注目・後名付けで原対象を補完せず、原未成立を遡及成立しない。status=reported/verified=false、newTeaching/newLearning/newExperience=false。話者の真偽・本人好悪・食事希望拒否・行動中止・新経験を実応答や空腹等から作らない。休息由来report経験scopeを好悪報告へ転用しない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。全14保留・各担当三保留、否定好悪等の残る対象だけ未解決を維持し、未決定を永久対象外にしない。87枠86確認済み・正式子76、最新ao〜bw人間OK。bx実装後OK未受領・同じbx継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用として据置、全量再計算・機械減算なし、4d12／4d／ID4全体未完。
+- 独立部品・fixture・専用test・非表示一時rendererと監査supplemental第35担当（全85登録）を追加し、採用範囲実装・Codex検証完了。所有core/world/catalog・表示文・locale・ゲーム呼出・保存形式は非変更。新ゲーム表示文なし、翻訳追加再構築不要。本人日記生成保存再開配布・実ユーザー保存・実UI音声は未検証。
+- 専用word-verification-8TDfGO：40通過・8522ms終了0。31群502原210成立、41種8610資料改変拒否、既存34担当7140拒否。群別件数は000/stdout.log。七locale対象意味未知、日本語好悪二意味の既存主語助詞語尾・正規化、空／一意／複数注目、実名付け競合・実話者scope、実休息report限定scope非転移、全az完全理解原資料／全bs成立原資料の担当維持、後知識後注目後実名付け非遡及・コピー独立・原資料不変を確認。専用成功後に新testの変数と見出しの移植元bb/buだけaz/bsへ訂正し、下の全回帰で最終版を通過。最初のnode -e起動はPowerShell引用符除去でrunner開始前SyntaxError終了1（chunk046cda）。literal here-stringへの起動方法修正のみで期待値・所有部品補修なし。bx-initial-launch-note.jsonは要約で原出力はtool chunkへ保持する。
+- 全回帰word-verification-8OEbIo：全Node1879（ゲーム1821＋監査44＋工具14）・385583ms終了0、六JS構文・文書リンク・七言語14957通過。package変更・日記動的横断依存による全回帰。分類外smokeの直接依存をpre-review-plan.jsonとmanual-dependency-review.jsonへ記録し、全回帰と明示rendererを維持。制限内rendererはGPU -1073741515六回／GPU isn't usable・1927ms終了2147483651でrun全体incompleteを維持。権限付き別run word-verification-ZBg28k：renderer1132（502原＋実話者／実reply／独立inputContext三種630改変）・4091ms終了0。九global除去・一時local/session各bx-sentinel不変・保存bridge未定義を確認。auto-review拒否なし。実UI音声・本人日記生成保存再開配布・実ユーザー保存は今回未検証。
+- 文書初回word-verification-TzBYv4：14309ms終了0。c8405efの共有四・短文書四の旧全行／全181text同順序保持、保管hash不変、短文書とhandoffのリンク、87枠86確認済み子76・同じbx継続・実装後OK未受領、固定50＋supplemental35／ledger14・bx一登録by非登録、構造監査・追加日本語文字化けなし・diff通過。共有四既存リンク不一致18件はc8405efと完全一致・増加なし、未修復。最終文書更新後に再検査する。全原ログはdocs/.local-history/verification-runs/へ非削除保持。
 
 <a id="diary-unresolved-negated-request-targets-bw"></a>
 

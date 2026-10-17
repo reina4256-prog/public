@@ -1,5 +1,7 @@
 # 次チャットの開始文
 
+2026-10-18最新：ユーザーがbx対象・成立保持の両方を個別採用。採用範囲実装・Codex検証完了、現在は同じbx継続、実装後OK未受領・次チャット移動指示なし。採用範囲は既存単独好悪報告の対象だけ未解決。[所有仕様](../specs/core/experimental_word_learning.md#diary-unresolved-preference-targets-bx)。87枠86確認済み・正式子76、最新ao〜bw人間OK。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）を既存見通し内の一系統採用で据置、全体未完。専用40・全Node1879・七言語14957・別run renderer1132通過、制限内renderer起動失敗は8OEbIoに残しZBg28k成功と区別。詳細とcommit/push結果は現在handoff参照。以下のbx未採用は過去案内として保持する。
+
 2026-10-18：ユーザー「OKです。次チャットをおねがいします。」で3c4812eのbwへ実装後OKと移動を明示。直前案内全文はGit 3c4812e版とdocs/.local-history/NEXT_CHAT-before-bw-acceptance-2026-10-18.mdへ保持。
 
 ```text
