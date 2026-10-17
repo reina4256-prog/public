@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-18最新：ユーザー「はい、どちらも採用でOKです」でbyの対象・成立保持を個別採用。[by所有仕様](#diary-unresolved-negated-preference-targets-by)は既存日本語単独not_dislike報告の対象だけ未解決を担当する。完全理解ba・意味関係不足併存bt・通常好悪az/bs/bxとap〜bx既存担当を維持。88枠87確認済み・正式子77、最新ao〜bx人間OK。by採用範囲実装・Codex検証完了・実装後OK未受領、同じby継続・次チャット移動指示なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、全体未完。全14保留・各担当三保留を維持。以下のby未採用は過去状態。
+
 - 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」で745b8a5のbxへ実装後OKと移動を明示。[bx所有仕様](#diary-unresolved-preference-targets-bx)。87枠87確認済み・正式子76、最新ao〜bx人間OK。次byは残入口をap〜bx担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は範囲・分割変更なしで据置、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のbx未受領・同じbx継続は過去状態。
 
 - 2026-10-18最新：ユーザーが[bxの対象・成立保持](#diary-unresolved-preference-targets-bx)を個別採用。既存単独好悪報告の対象だけ未解決を担当、完全理解az・意味関係不足併存bs維持。87枠86確認済み・正式子76、最新ao〜bw人間OK、bx採用範囲実装・Codex検証完了、実装後OK未受領・同じbx継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全体未完。以下のbx未採用は過去状態。
@@ -609,6 +611,25 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 ### ノートの日記帳表現・素朴な絵の方針（2026-10-06・壁打ち継続）
 
 #### 最新の実装範囲・次チャット
+
+<a id="diary-unresolved-negated-preference-targets-by"></a>
+
+##### 4d12by：単独否定好悪報告の対象だけ未解決（2026-10-18）
+
+- 最終文書word-verification-l75A5J：13038ms終了0。7621a45共有四／短文書四旧全行・全181text同順序、保管hash・短文書／handoffリンク、88枠87確認済み子77・同じby継続・実装後OK未受領、固定50＋supplemental36／ledger14、構造監査・追加日本語文字化け・diff通過。最終全回帰の全変更コードhashと現在一致も確認。共有四既存リンク不一致18件は基準完全一致・増加なし。最終更新準備の読取コマンドは括弧数とPowerShell stdin日本語の照合不一致で編集前停止し、Unicode escapeへ修正。ゲーム検証失敗とは区別する。
+
+- 最終全回帰word-verification-lpyei1：全Node1916（ゲーム1857＋監査45＋工具14）・373998ms終了0、変更六JS構文・文書リンク・七言語14957通過。競合fixtureの二対象存在assert追加と監査定数補修を含む最終版。静的分類外smokeは計画原本と手動依存確認を同runへ保存し全回帰と明示rendererを維持。制限内rendererはGPU -1073741515三回とERR_FAILED(-2)・1792ms終了1、run全体incompleteのまま保持。権限付き別run 6TFfl8のrenderer1091通過と区別する。採用範囲実装・Codex検証完了、ゲーム本接続・保存再開配布・実ユーザー保存・実UI音声未検証。新ゲーム表示文なし、翻訳追加再構築不要。
+
+- 専用word-verification-FUfkrc：36通過・8610ms終了0。27群776原105成立、41種4305資料改変拒否・既存35担当3675拒否。四語面×八知識設定、既存正規化・単独文境界、一般対象意味不足／省略対象の空・一意・複数注目、七locale、実話者・時刻、活動／空腹非推論、実名付け競合・話者scope、実休息report/negation経験scope非転移、全ba完全理解／全bt成立原資料の担当維持、後知識・後注目・後実名付け非遡及、同input非増加非上書き・新input別候補・遅延資料・コピー独立・元資料不変を確認。群別原出力は同runの000/stdout.log。専用成功後に競合fixtureの実association二対象存在assertを追加し最終全回帰で確認する。
+- 独立rendererの制限内word-verification-3m724j：3341ms終了2147483651、GPU -1073741515六回／GPU isn't usableで起動不能。権限付き別run word-verification-6TFfl8：3617ms終了0、1091件（776原＋実話者／実reply／独立inputContext三種315改変）通過。九global除去・一時local/session各by-sentinel不変・保存bridge未定義、auto-review拒否なし。実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証。
+- 文書初回word-verification-t2Rg4Q：16579ms終了1、監査supplemental_inventory_countの旧固定35残存を検出。監査定数を登録36へ更新し修正前監査ファイル・失敗ログを同runへ保持。部品やfixture期待値の補修なし。初回全回帰8yhgvpは修正前hashで開始したため最終版通過へ昇格せず、最終全回帰を別runで行う。全原ログはdocs/.local-history/verification-runs/へ非削除保持。
+- 初回全回帰word-verification-8yhgvp：1916中1880通過36不通過・406206ms終了1。全不通過は修正前定数を読込んだ監査ファイル内、七言語・同runのrendererは前段失敗により未実行。文書再検査word-verification-ujvolx：18997ms終了0、7621a45共有四／短文書四旧全行・全181text同順序、保管hash・短文書／handoffリンク、88枠87確認済み子77・同じby継続・実装後OK未受領、固定50＋supplemental36／ledger14、構造監査・追加日本語文字化け・diff通過。共有四既存リンク不一致18件は基準完全一致・増加なしで未修復。
+
+- ユーザー「はい、どちらも採用でOKです」で対象・成立保持を個別採用。既存日本語単独report/catalogRule=not_dislike/meaning=dislike、「木の実は嫌いじゃない／嫌いではない」「嫌いじゃない／嫌いではない」と既存解析正規化範囲だけ。入力当時dislike意味・report/negation関係が適用可能で対象だけ未解決を担当する。完全理解ba、意味・関係不足（対象不足併存を含む）bt、通常好悪az/bs/bx、希望ay/br、否定食事お願いbb/bu/bw、食後散策bc/bvを維持。新文型・他言語文型・理解習得規則は追加しない。
+- `diary_unresolved_negated_preference_targets.capture(buffer,result,receipt)`三引数独立一時API。kind=report・complete=false、known.meaning=dislike・relations=[report,negation]、subject=実input.speaker、negative/unspecified、aspect/conditionStatus/questionSlot=null、実speaker_report出所を要求。target.adopted=null、unresolvedが原target.candidatesと一致するtarget一項だけを照合。一般berry意味不足もtarget不足のまま、省略形にberry意味既知を要求しない。空／複数注目・実名付け競合と話者scopeは既存resolveTargetに従い、候補を選び直さない。
+- 原input/frame・入力前knowledge/context・当時understandingと対象候補／evidence・前後state/world・実replyを分離コピー。独立input/inputKnowledge/inputContextと原ID=before.serial+1を照合し、コピー上既存receive/respondで結果・前後状態・実応答全文一致を要求。資料整合照合であり真正性認証ではない。欠損矛盾非補完、同input非増加非上書き、新input別候補、遅延原資料・返却コピー独立・元資料不変を維持。
+- kind=reportは資料区分で対象理解成立ではない。後知識・後注目・後名付けで原対象を補完せず原未成立を遡及成立しない。status=reported/verified=false、newTeaching/newLearning/newExperience=false。dislikeの否定をlike・本人好悪・食事希望拒否・行動中止・話者真偽・新経験へ変換しない。休息由来report/negation経験scopeを転用しない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装。全14保留・各担当三保留、その他残入口・全入口最終意味照合未完を維持し、未決定を永久対象外にしない。88枠87確認済み・正式子77、最新ao〜bx人間OK。by採用範囲実装・Codex検証完了・実装後OK未受領、同じby継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、4d12／4d／ID4全体未完。
 
 <a id="diary-unresolved-preference-targets-bx"></a>
 

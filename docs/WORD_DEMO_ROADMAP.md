@@ -1,5 +1,11 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+| 工程 | 採用範囲／独立API | 状態 |
+| --- | --- | --- |
+| 4d12by | `diary_unresolved_negated_preference_targets.capture(buffer,result,receipt)`・既存not_dislike対象だけ未解決 | 採用範囲実装・Codex検証完了、実装後OK未受領 |
+
+- 2026-10-18最新：ユーザー「はい、どちらも採用でOKです」でbyの対象・成立保持を個別採用。[by所有仕様](specs/core/experimental_word_learning.md#diary-unresolved-negated-preference-targets-by)は既存日本語単独not_dislike報告の対象だけ未解決を担当する。完全理解ba・意味関係不足併存bt・通常好悪az/bs/bxとap〜bx既存担当を維持。88枠87確認済み・正式子77、最新ao〜bx人間OK。by採用範囲実装・Codex検証完了・実装後OK未受領、同じby継続・次チャット移動指示なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、全体未完。全14保留・各担当三保留を維持。以下のby未採用は過去状態。
+
 - 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」で745b8a5のbxへ実装後OKと移動を明示。[bx所有仕様](specs/core/experimental_word_learning.md#diary-unresolved-preference-targets-bx)。87枠87確認済み・正式子76、最新ao〜bx人間OK。次byは残入口をap〜bx担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は範囲・分割変更なしで据置、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のbx未受領・同じbx継続は過去状態。
 
 - 2026-10-18最新：ユーザー「はい、どちらもOKです」でbxの対象・成立保持を個別採用。[bx所有仕様](specs/core/experimental_word_learning.md#diary-unresolved-preference-targets-bx)は既存単独好悪報告の対象だけ未解決を担当し、完全理解az・意味関係不足併存bs・否定好悪ba/bt・否定お願いbwを維持。87枠86確認済み・正式子76、最新ao〜bw人間OK、bx採用範囲実装・Codex検証完了、実装後OK未受領・同じbx継続。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用として据置、全量再計算・機械減算なし、全体未完。

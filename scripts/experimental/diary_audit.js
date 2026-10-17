@@ -219,7 +219,9 @@ function supplementalInventory() {
     { id: '4d12bw', slug: 'unresolved_negated_request_targets', api: 'capture', arity: 3,
         file: 'experimental_word_diary_unresolved_negated_request_targets.js', test: 'tests/experimental_word_diary_unresolved_negated_request_targets.test.js' },
     { id: '4d12bx', slug: 'unresolved_preference_targets', api: 'capture', arity: 3,
-        file: 'experimental_word_diary_unresolved_preference_targets.js', test: 'tests/experimental_word_diary_unresolved_preference_targets.test.js' }];
+        file: 'experimental_word_diary_unresolved_preference_targets.js', test: 'tests/experimental_word_diary_unresolved_preference_targets.test.js' },
+    { id: '4d12by', slug: 'unresolved_negated_preference_targets', api: 'capture', arity: 3,
+        file: 'experimental_word_diary_unresolved_negated_preference_targets.js', test: 'tests/experimental_word_diary_unresolved_negated_preference_targets.test.js' }];
 }
 function localFile(relative) {
     if (typeof relative !== 'string' || !relative || relative.includes('\\')
@@ -285,7 +287,7 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
             scopeAdopted: supplementalInventory().some(original => Object.keys(original).every(key => original[key] === row[key])),
             implementationAcceptance: 'not_received', auditSemanticReview: 'pending' };
     });
-    if (supplemental.length !== 35) errors.push({ code: 'supplemental_inventory_count', expected: 35, actual: supplemental.length });
+    if (supplemental.length !== 36) errors.push({ code: 'supplemental_inventory_count', expected: 36, actual: supplemental.length });
     // One directory, file names only. Never recurse into unrelated directories.
     for (const name of fs.readdirSync(ROOT)) {
         if (/^experimental_word_diary_[a-z_]+\.js$/.test(name) && !files.has(name)
