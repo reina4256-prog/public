@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」でce46800のbyへ実装後OKと次チャット移動を明示。[by所有仕様](specs/core/experimental_word_learning.md#diary-unresolved-negated-preference-targets-by)。88枠88確認済み・正式子77、最新ao〜by人間OK。次bzは残入口をap〜by担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は範囲・分割変更なしで据置、全量再計算・機械減算なし、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のby未受領・同じby継続は過去状態。
+
 | 工程 | 採用範囲／独立API | 状態 |
 | --- | --- | --- |
 | 4d12by | `diary_unresolved_negated_preference_targets.capture(buffer,result,receipt)`・既存not_dislike対象だけ未解決 | 採用範囲実装・Codex検証完了、実装後OK未受領 |
