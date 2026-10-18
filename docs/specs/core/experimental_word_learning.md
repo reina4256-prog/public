@@ -616,6 +616,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 <a id="diary-incomplete-name-questions-bz"></a>
 
+- 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」で3e0dbbfのbzへ実装後OKと次チャット移動を明示。89枠89確認済み・正式子78、最新ao〜bz人間OK。次caは残入口をap〜bz担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は範囲・分割変更なし据置、全量再計算・機械減算なし、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のbz未受領・同じbz継続は過去状態。
+
 - bz最終検証：全回帰vrmKroは1951中1914通過37不通過・751346ms終了1。全37不通過は監査がbz工程表行の追記前に実行されたmissing_step_referenceのみ。ゲーム1891＋工具14は同run通過、六JS構文・短文書リンク通過。ゲーム／test／packageの七hashは同run開始時から不変。行追記後の別rDk1B5は監査46・七言語14957・文書保持を通過。元全回帰runを成功へ昇格せず、失敗により同run未実行のlocalization／rendererと別run結果を区別する。依存変化は文書行のみのため通過済みゲーム／工具を再実行せず監査全項目を再検証した。
 - 独立renderer制限内xSHqqYはGPU -1073741515六回／GPU isn't usable・33118ms終了1でincomplete。権限付き別95pQuVは976件（376原＋三種600改変）・14125ms終了0、八global除去・local/session各bz-sentinel不変・保存bridge未定義・元資料不変を通過、auto-review拒否なし。全原ログはdocs/.local-history/verification-runs/へ非削除保持。文書初回E9rDgJは旧工程表Git取得のmaxBuffer不足ENOBUFS、32MiB指定後Gms4Qn通過。旧八文書全行・181text・保管hash、既存リンク不一致18件増加なし、構造監査・diffを確認。最終文書更新後の結果とcommit/pushは現在handoff参照。
 
