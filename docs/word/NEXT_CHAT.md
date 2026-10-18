@@ -1,5 +1,25 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（cc確認済み・次cd未採用）
+
+```text
+ゲーム実装最新d857c92、確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12ccは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから今回必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文を毎回再帰読取する開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実際の読取・未読・未検証を記録してください。
+
+次cdは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜ccの既存担当と再照合し、一系統の対象・成立保持を個別相談してください。ccの既存日本語単独confirmation当時complete=false（意味／関係不足・対象だけ未解決・詳細だけ不足と併存）、名前bd/bz/ca、酸味be/cb、名付け肯否asを重複残件に数えません。ap九入口の未完理解資料と、完全理解時の身振り問い等の未決定は残します。未決定を永久対象外へ移して終了扱いにせず、全14保留・各担当三保留を維持してください。
+
+92枠92確認済み・正式子81、最新ao〜cc人間OK。今回再見積りはあと4〜8工程・中心6。内訳は問い1〜2、提案1〜2、報告・否定お願い残照合0〜2、最終意味照合・節目回帰2。前回cc確認前4〜8中心6から差分0。cc確認待ちを差引後も、ap九入口不足資料と完全理解時身振り等だけで問い1〜2が残ると再積上げしたためです。前回はcc確認待ちと残入口を同じ粗い幅に収めていたので、一完了から機械減算しません。毎回、根拠・内訳・前回差分・未分類と分割の不確実性を再照合してください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+cc専用最終47、41群399原239成立・37種8843改変拒否・既存39担当9321非重複、全Node2107（ゲーム2044＋監査49＋工具14）・六JS構文・七言語14957・権限付き別renderer1116通過。全回帰K9IJgUは制限内renderer GPU失敗でrun全体incompleteを保持し、別xvjq0s成功と混同しません。初回専用wHvsqwのfixture前提誤り二不通過・実取り下げcorrectionへの補正・2lXufh／cvNMEs成功、制限内He9h5h失敗、初回文書d2Tx2C／最終1Yo1IV成功、手動依存確認・原ログ・全API途中詳細を非削除保持。今回確認移動は文書のみで、ゲーム全回帰・実働・renderer再実行なしです。
+
+検証はVALIDATION.mdに従い原ログと未実行をdocs/.local-history/verification-runs/へ保存。共有四文書の181旧開始継続文と全原資料保管先は非削除非置換。既存リンク不一致18件の基準一致・増加なしと全リンク正常を区別してください。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。途中保存commit/pushは移動合図ではありません。
+```
+
+直前handoffと本ファイル全文はdocs/.local-history/の各before-cc-acceptance-2026-10-19.mdへ保持。以下は過去案内です。
+
+- 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」でccへ実装後OKと移動を明示。d857c92の[cc採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-confirmation-questions-cc)は実装・Codex検証・ユーザー実装後OK確認済み。92枠92確認済み・正式子81、最新ao〜cc人間OK。次cdは残入口をap〜cc担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積りはあと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。cc未完理解confirmationを差引後もap九入口不足資料・完全理解時身振りの未決定等を問い1〜2へ積み上げたため。前回の問い箱はcc確認待ちと残入口を同じ粗い幅へ収めており、一完了から幅を機械減算しない。全14保留・各担当三保留・全体未完。専用47・全Node2107（ゲーム2044＋監査49＋工具14）・六JS構文・七言語14957・別権限付きrenderer1116通過を引継ぎ、全回帰K9IJgUの制限内renderer GPU失敗incompleteと別xvjq0s成功を区別。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcc実装後OK未受領・同じcc継続は過去状態。
+
 ## 現在は同じcc内の継続（移動指示ではない）
 
 ccの採用範囲は[所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-confirmation-questions-cc)。ユーザー実装後OKは未受領で、次記号を採番せず同じccで自由フィードバック・必要補修を扱う。途中保存commit/pushを移動合図にしない。最新commit/pushと検証原ログは[現在作業](../CURRENT_IMPLEMENTATION.md)を参照。固定入力確認をユーザーへ求めず、確認済みap〜cb・九見本・星座の再確認からやり直さない。

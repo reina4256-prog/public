@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」でccへ実装後OKと移動を明示。d857c92の[cc採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-confirmation-questions-cc)は実装・Codex検証・ユーザー実装後OK確認済み。92枠92確認済み・正式子81、最新ao〜cc人間OK。次cdは残入口をap〜cc担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積りはあと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。cc未完理解confirmationを差引後もap九入口不足資料・完全理解時身振りの未決定等を問い1〜2へ積み上げたため。前回の問い箱はcc確認待ちと残入口を同じ粗い幅へ収めており、一完了から幅を機械減算しない。全14保留・各担当三保留・全体未完。専用47・全Node2107（ゲーム2044＋監査49＋工具14）・六JS構文・七言語14957・別権限付きrenderer1116通過を引継ぎ、全回帰K9IJgUの制限内renderer GPU失敗incompleteと別xvjq0s成功を区別。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcc実装後OK未受領・同じcc継続は過去状態。
+
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
 | 4d12cc | incomplete_confirmation_questions.capture (3) | [source](../../experimental_word_diary_incomplete_confirmation_questions.js) | [test](../../tests/experimental_word_diary_incomplete_confirmation_questions.test.js) |
