@@ -1,5 +1,7 @@
 # 次チャットの開始文
 
+- 2026-10-19 ca：ユーザー「はい、どちらも採用でOKです。」で対象・成立保持を個別採用。既存日本語単独名前の問いでquestion関係が適用可能・対象だけ未解決の独立一時資料の採用範囲実装・Codex検証完了。完全理解時の名前実発話bd・question関係不足（対象不足併存を含む）bzを維持。[ca所有仕様](../specs/core/experimental_word_learning.md#diary-unresolved-name-targets-ca)。90枠89確認済み・正式子79、最新ao〜bz人間OK、ca実装後OK未受領・同じca継続。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし。全14保留・各担当三保留・全体未完を維持。専用63・全Node2015・七言語14957・権限付き別renderer2002通過。全回帰pOnbX3は制限内renderer失敗でincompleteを保持し、別n6GNcC成功と区別する。以下のca未採用・検証中は過去状態。
+
 ```text
 ゲーム実装最新3e0dbbf、確認・移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12bzは実装・Codex検証・ユーザー実装後OK確認済みです。
 

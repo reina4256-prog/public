@@ -614,6 +614,20 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-unresolved-name-targets-ca"></a>
+
+##### 4d12ca：単独名前の問いの対象だけ未解決（2026-10-19）
+
+- ca最終ゲーム検証：全回帰pOnbX3の全Node2015（ゲーム1954＋監査47＋工具14）・426062ms終了0、六JS構文・短文書リンク・七言語14957通過。制限内同run rendererは5501ms終了1、GPU起動失敗でrun全体incompleteを保持。別n6GNcCの権限付きrenderer2002成功と区別し、元planの静的分類外smokeと手動依存確認記録を非削除保持する。ゲーム/test/package七hashは開始時から不変。以下の全回帰実行中は途中記録。採用範囲実装・Codex検証完了、実装後OK未受領・同じca継続。新ゲーム表示文なし、翻訳追加再構築不要。実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証。
+- 専用word-verification-DBySGxは63通過・14842ms終了0。56群922原資料360成立、40種14400資料改変拒否、既存37担当13320拒否。bd全成立原101件・bz全成立原200件は各原担当を維持。80既存日本語語面×発話二×注目空／複数、八設定、非berry注目、七locale、実話者時刻、五活動、実名付け未確認／確認済みを確認。後知識・後注目・実名付け・実確認で原資料非補完、同input非増加非上書き・12新input別資料・遅延原資料・コピー独立・元資料不変を検証。群別原出力は同runの000/stdout.logへ保持。
+- 独立renderer制限内Ph7aNpはGPU -1073741515三回・ERR_FAILED(-2)で14322ms終了1、incomplete。権限付き別n6GNcCは2002件（922原＋実話者／実reply／独立inputContext三種1080改変）・5067ms終了0。八global除去・local/session各ca-sentinel不変・保存bridge未定義・元資料不変を通過、auto-review拒否なし。失敗runと別run成功を混同しない。全回帰pOnbX3は実行中で完了結果未認定、静的分類外smokeは全文と直接fixture依存を手動確認し同run/manual-dependency-review.jsonへ記録、全回帰と明示rendererを維持。
+- 初回文書v9RHL5は33567ms終了0。64f55ec旧八文書全行・181text同順序、保管hash・短文書/handoffリンク・90枠89確認済み子79・監査固定50＋supplemental38・全回帰開始時ゲーム/test/package七hash不変・diff通過。共有四既存リンク不一致18件は基準完全一致・増加なしで未修復。検査後の本結果追記を含む最終文書検査はこれから。全原ログをdocs/.local-history/verification-runs/へ非削除保持。
+- ユーザー「はい、どちらも採用でOKです。」で対象・成立保持を個別採用。既存日本語単独question/catalogRule=name_question/slot=name（これ／それ＋任意は＋何／なに／なんて呼ぶの／何て呼ぶの）と既存解析正規化範囲だけ。当時question関係が適用可能で、空／複数注目により対象だけ未解決の資料を担当する。完全理解時名前実発話bd・question関係不足bz（対象不足併存を含む）とap〜bzの既存担当を維持。新文型・他言語文型・理解習得規則は追加しない。
+- `diary_unresolved_name_targets.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=unresolved_name_target、当時u.kind=question・complete=false・subject=self・questionSlot=name・positive/unspecified・aspect/conditionStatus=null、relations=[question]・target.adopted=null、unresolvedは原target.candidatesと一致するtarget一項だけを要求する。berry意味を新条件にせず、名前・確認・現在活動から対象を選び直さない。実question教示current_activity限定scopeをnameへ転移しない。
+- 原input/frame・入力前knowledge/context・当時understanding・前後state/world・実replyを分離コピー。独立input/inputKnowledge/inputContext・原ID=before.serial+1を照合し、コピー上既存receive/respondのresult/state/world/reply全文一致を要求する資料整合照合。真正性認証ではない。原target候補と欠落を補完せず、当時ターンanswer非存在・turnAnswer=nullを保持。本人の名前回答成功、新教示・新学習・新経験にしない。発話／身振り設定は対象成立条件にしない。
+- 同input非増加非上書き・新input別資料・遅延原資料・返却コピー独立・元資料不変。後知識後注目後名付け後確認で原補完・遡及成立なし。原五区分候補・turn.answer・所有core/world/catalog・表示文locale・保存形式・ゲーム呼出は非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用／未実装、本人日記生成保存再開配布・全入口最終意味照合・全14保留・各担当三保留を維持。
+- 90枠89確認済み・正式子79、最新ao〜bz人間OK。ca採用範囲実装・Codex検証完了・実装後OK未受領、同じca継続・次チャット移動指示なし。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、全体未完。
+
 <a id="diary-incomplete-name-questions-bz"></a>
 
 - 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」で3e0dbbfのbzへ実装後OKと次チャット移動を明示。89枠89確認済み・正式子78、最新ao〜bz人間OK。次caは残入口をap〜bz担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は範囲・分割変更なし据置、全量再計算・機械減算なし、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のbz未受領・同じbz継続は過去状態。
