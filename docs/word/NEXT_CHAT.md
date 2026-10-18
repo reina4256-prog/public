@@ -1,5 +1,26 @@
 # 次チャットの開始文
 
+- 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」でcbへ実装後OKと移動を明示。[cb所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-sour-questions-cb)の採用範囲は実装・Codex検証・ユーザー実装後OK確認済み。91枠91確認済み・正式子80、最新ao〜cb人間OK。次ccは残入口をap〜cb担当と再照合し一系統の対象・成立保持を個別相談する予定記号のみ、未採用未着手・正式枠追加なし。当回再見積りはあと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回5〜9中心7から幅・中心各1減。cb酸味不足の確認完了を問い枠から差引照合し、be詳細だけ不足・bd/bz/ca名前問いを重複計上せず、confirmation／ap不足資料・酸味問い身振り設定の未決定等を問い残枠へ保持。全14保留・各担当三保留・全体未完。専用43・全Node2059（ゲーム1997＋監査48＋工具14）・六JS構文・七言語14957・権限付き別renderer1027通過。全回帰9ZDwWEの制限内renderer GPU失敗incompleteと別Zd76y6成功を区別。以下のcb実装後OK未受領・同じcb継続は過去状態。
+
+```text
+ゲーム実装・確認移動の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12cbは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから今回必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全履歴の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し未読未検証を記録してください。
+
+次ccは相談予定記号のみ、対象／理解規則未採用未着手。残入口をap〜cb担当と再照合し、一系統の対象・成立保持を個別相談してください。cbは既存日本語単独酸味問いのeat意味／question・negation関係不足（sour詳細不足併存）、beは三前提既知・sour詳細だけ不足・short実発話。bd/bz/ca名前問いも重複残件にしません。三前提既知の酸味問い身振り設定等の未決定を永久対象外へ移して終了扱いにせず、全14保留・各担当三保留を維持してください。
+
+91枠91確認済み・正式子80、最新ao〜cb人間OK、cc正式枠追加なし。残目安はcb確認後の当回再見積りであと4〜8工程・中心6。内訳は問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／全入口最終意味照合と節目回帰2。前回5〜9中心7から幅・中心各1減は、cb確認完了を既存問い枠と照合し酸味不足を差し引いたため。毎回、残入口・既存担当・完了範囲・内訳・前回差分理由・不確実性を再照合して再見積りし、同値でも当回根拠を示してください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、全入口意味照合未完・4d12／4d／ID4全体未完です。
+
+cb専用43（37群364原221成立・37種8177資料改変拒否・既存38担当8398拒否・be52原成立維持）、全Node2059（ゲーム1997＋監査48＋工具14）・六JS構文・七言語14957、権限付き別renderer1027通過。全回帰9ZDwWEは制限内renderer GPU失敗でrun全体incompleteを保持し別Zd76y6成功と混同しません。専用ZtrDCj・制限内TG2ehV・初回文書mhG4UXの過厳密状態文字列照合失敗と工具補正・手動依存確認・全API途中詳細と過去ログは非削除保持。最終文書検査とcommit/push結果はhandoff参照。今回確認移動ではゲーム全回帰・実働・rendererを再実行していません。
+
+検証はVALIDATION.mdに従い原ログと未実行をdocs/.local-history/verification-runs/へ保存。共有四文書の全181旧開始継続文・過去API途中詳細・原ログ保管先は非削除非置換。既存リンク不一致18件は基準一致・増加なしと全リンク正常を区別し、旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。途中保存commit/pushは移動合図ではありません。
+```
+
+直前NEXT_CHAT全文はdocs/.local-history/NEXT_CHAT-before-cb-acceptance-2026-10-19.mdへ保持。以下は過去案内です。
+
+
+- 2026-10-19 cb：ユーザー「はい、どちらもOKです」で対象・成立保持を個別採用。既存日本語単独酸味問いのeat意味／question・negation関係不足資料を実装・検証中。beの詳細だけ不足の実発話、bd/bz/ca名前問い等は維持。91枠90確認済み・正式子80、cb実装後OK未受領・同じcb継続。残目安は当回再照合であと5〜9工程・中心7（問い2〜3／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。採用だけでは一工程完了にならず、酸味不足は既存問い枠内。全14保留・各担当三保留・全体未完を維持。以下のcb未採用は過去状態。[cb所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-sour-questions-cb)
+
 ```text
 ゲーム実装最新ece1d6f、確認・移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12caは実装・Codex検証・ユーザー実装後OK確認済みです。
 

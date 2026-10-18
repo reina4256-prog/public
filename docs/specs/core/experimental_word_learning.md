@@ -1,5 +1,23 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」でcbへ実装後OKと移動を明示。[cb所有仕様](experimental_word_learning.md#diary-incomplete-sour-questions-cb)の採用範囲は実装・Codex検証・ユーザー実装後OK確認済み。91枠91確認済み・正式子80、最新ao〜cb人間OK。次ccは残入口をap〜cb担当と再照合し一系統の対象・成立保持を個別相談する予定記号のみ、未採用未着手・正式枠追加なし。当回再見積りはあと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回5〜9中心7から幅・中心各1減。cb酸味不足の確認完了を問い枠から差引照合し、be詳細だけ不足・bd/bz/ca名前問いを重複計上せず、confirmation／ap不足資料・酸味問い身振り設定の未決定等を問い残枠へ保持。全14保留・各担当三保留・全体未完。専用43・全Node2059（ゲーム1997＋監査48＋工具14）・六JS構文・七言語14957・権限付き別renderer1027通過。全回帰9ZDwWEの制限内renderer GPU失敗incompleteと別Zd76y6成功を区別。以下のcb実装後OK未受領・同じcb継続は過去状態。
+
+- 2026-10-19 cb：ユーザー「はい、どちらもOKです」で対象・成立保持を個別採用。既存日本語単独酸味問いのeat意味／question・negation関係不足資料を実装・検証中。beの詳細だけ不足の実発話、bd/bz/ca名前問い等は維持。91枠90確認済み・正式子80、cb実装後OK未受領・同じcb継続。残目安は当回再照合であと5〜9工程・中心7（問い2〜3／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。採用だけでは一工程完了にならず、酸味不足は既存問い枠内。全14保留・各担当三保留・全体未完を維持。以下のcb未採用は過去状態。[cb所有仕様](experimental_word_learning.md#diary-incomplete-sour-questions-cb)
+<a id="diary-incomplete-sour-questions-cb"></a>
+
+##### 4d12cb：単独酸味問いの意味・関係不足（2026-10-19）
+
+- diary_incomplete_sour_questions.create()/capture(buffer,result,receipt)の三引数独立journal。既存日本語単独sour_question、frame.meaning=eat・detail=sour・slot=sour_evaluation、入力当時のeat意味またはquestion/negation関係が最低一つ適用不能な資料だけ。sour詳細不足併存を保持し、beの三前提既知・詳細だけ不足・short実発話を包含しない。三前提既知の身振り設定は別途未決定。
+- 既存理解をそのまま保存。eatだけ不足ならkind=question・subject=self・questionSlot=sour_evaluation、関係不足ならkind=partial・subject/questionSlot=null。negation不足時polarity=unknown、その他positive。complete=false、target=null。未理解の主体・意味・問い・否定を新造しない。question current_activity／negation report限定の経験scopeを転移しない。
+- 原input/frame、入力前knowledge/context、当時understanding、前後state/world、実replyを分離コピー。独立input/inputKnowledge/inputContext・原IDと、コピー上既存receive/respond全文一致を要求。資料整合照合であり真正性認証ではない。発話設定を理解の新条件にせず実応答とactualSpeechを保持。turn.answer非存在・turnAnswer=null、新教示／学習／経験を生成しない。
+- 同input非増加非上書き・新input別資料・遅延供給・コピー独立・元資料不変。後知識後食事で原資料を成立させ直さずsour認識／正しい否定／酸味実経験へ補完しない。原五区分候補とap〜ca担当・ゲーム所有core/world/catalog・表示文locale・ゲーム呼出・保存形式は非変更。
+- 本文集約4e・一時receipt保存形式・本接続は各担当三保留として維持。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。専用fixture/test/非表示rendererと監査supplemental39（固定50＋39＝89登録）へ登録。
+- 専用word-verification-ZtrDCj：43通過・6312ms終了0、37群364原221成立、37種8177資料改変拒否・既存38担当8398拒否、既存be52成立維持。全8不足組合せ×発話/身振り・既存日本語語面語尾疑問符・七入力locale・外国語/複数節/他入口拒否・実完了食事・活動/注目分離・実question/negation経験scope非転移・遅延・後知識後食事非遡及・同input非増加非上書き・新input別資料・返却コピー独立を確認。群別原出力は同run/000/stdout.log。
+- 制限内TG2ehV：GPU -1073741515六回・GPU unusable終了2147483651、8741msでincomplete。権限付き別Zd76y6：1027件（364原＋三種663改変）・5915ms終了0、八global除去・local/session各cb-sentinel不変・保存bridge未定義・元資料不変。auto-review拒否なし。実ユーザー保存や本接続の検証に昇格しない。
+- 全回帰9ZDwWE：全Node2059（ゲーム1997＋監査48＋工具14）・471063ms終了0、六JS構文・短文書リンク・七言語14957通過。同run制限内rendererは1277ms・GPU -1073741515六回・終了2147483651、run全体incompleteを維持し別Zd76y6成功と区別。静的分類外smoke全文・fixture直接依存の手動確認を同run/manual-dependency-review.jsonへ保存、元planのreviewRequiredは消去しない。
+- 初回文書mhG4UX：32603ms終了1、八文書旧全行・181text同順序・既存リンク不一致18件基準一致・保管hash・全回帰開始時七コードhash不変まで通過後、handoffの過厳密な連続文字列照合で不通過。実際は同一行にcb実装中と実装後OK未受領を保持しており工具を同一行状態照合へ補正。その後ユーザー実装後OKと移動を受領したため、最終工具は確認済み状態へ照合を更新。中断された最終反映呼出は適用なしを再読確認、移動準備の文書見出しJSON取得のPowerShell quotingエラーは文書無変更のまま補正。最終検査とcommit/push結果はローカルhandoff参照。過去API詳細・原ログを非削除保持し、構造一致を意味読了・人間OKへ変換しない。
+
+
 - 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」でce46800のbyへ実装後OKと次チャット移動を明示。[by所有仕様](#diary-unresolved-negated-preference-targets-by)。88枠88確認済み・正式子77、最新ao〜by人間OK。次bzは残入口をap〜by担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は範囲・分割変更なしで据置、全量再計算・機械減算なし、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のby未受領・同じby継続は過去状態。
 
 - 2026-10-18最新：ユーザー「はい、どちらも採用でOKです」でbyの対象・成立保持を個別採用。[by所有仕様](#diary-unresolved-negated-preference-targets-by)は既存日本語単独not_dislike報告の対象だけ未解決を担当する。完全理解ba・意味関係不足併存bt・通常好悪az/bs/bxとap〜bx既存担当を維持。88枠87確認済み・正式子77、最新ao〜bx人間OK。by採用範囲実装・Codex検証完了・実装後OK未受領、同じby継続・次チャット移動指示なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、全体未完。全14保留・各担当三保留を維持。以下のby未採用は過去状態。
