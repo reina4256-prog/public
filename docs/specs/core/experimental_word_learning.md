@@ -614,6 +614,20 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 最新の実装範囲・次チャット
 
+<a id="diary-incomplete-name-questions-bz"></a>
+
+- bz最終検証：全回帰vrmKroは1951中1914通過37不通過・751346ms終了1。全37不通過は監査がbz工程表行の追記前に実行されたmissing_step_referenceのみ。ゲーム1891＋工具14は同run通過、六JS構文・短文書リンク通過。ゲーム／test／packageの七hashは同run開始時から不変。行追記後の別rDk1B5は監査46・七言語14957・文書保持を通過。元全回帰runを成功へ昇格せず、失敗により同run未実行のlocalization／rendererと別run結果を区別する。依存変化は文書行のみのため通過済みゲーム／工具を再実行せず監査全項目を再検証した。
+- 独立renderer制限内xSHqqYはGPU -1073741515六回／GPU isn't usable・33118ms終了1でincomplete。権限付き別95pQuVは976件（376原＋三種600改変）・14125ms終了0、八global除去・local/session各bz-sentinel不変・保存bridge未定義・元資料不変を通過、auto-review拒否なし。全原ログはdocs/.local-history/verification-runs/へ非削除保持。文書初回E9rDgJは旧工程表Git取得のmaxBuffer不足ENOBUFS、32MiB指定後Gms4Qn通過。旧八文書全行・181text・保管hash、既存リンク不一致18件増加なし、構造監査・diffを確認。最終文書更新後の結果とcommit/pushは現在handoff参照。
+
+- bz専用34項目は初回通過（8978.8025ms）。28群376原資料・200成立、40種8000資料改変拒否、既存36担当7200拒否。群別原出力は全回帰のbz TAP部にも保持する。既存80日本語語面×発話二設定、入力前八設定、question不足と対象0／1／2・非berry対象、七locale、実話者・時刻、五活動、実名付け未確認／確認済み、bd原全群（実current_activity教示scopeを含む）を使用。完全理解bdの全成立原資料101件の担当維持、同input非増加・新12input別資料、遅延原資料・コピー独立、後知識の新inputだけbd成立、後注目後実名付けで原理解非補完を確認。全過去原文の意味再読や全入口最終意味照合を終えたことにはしない。
+- 相談前読取はhandoff/NEXT_CHAT・routing・word四入口とVALIDATION、ap〜by担当索引・監査残入口、bd所有節とadapter/fixture/smoke、core.resolveTarget/understand・world名前問い応答の該当枝、候補関連ay/bn節、by部品fixture/testと監査／検証工具。新部品四ファイル全文を確認。全過去原文・全所有コード／fixture意味再読、実UI音声・本人日記生成保存再開配布・実ユーザー保存は今回未完／未検証。静的分類外smokeは全文・直接依存を手動確認し全回帰と明示rendererを維持。
+
+- 2026-10-19：ユーザー「はい、どちらも採用でOKです」でbz対象・成立保持を個別採用。既存日本語単独name_question（これ／それ＋任意は＋何／なに／なんて呼ぶの／何て呼ぶの）のquestion関係が入力前に適用不能で、当時partial/complete=falseの資料。対象不足併存を含み、question関係が適用可能な対象だけ未解決は保留。完全理解時の名前実発話はbd担当、ap九入口・aq・ar・asほかap〜byの限定担当を維持。新文型・他言語文型・理解習得規則は追加しない。
+- 独立experimental_word_diary_incomplete_name_questions.create/capture(buffer,result,receipt)三引数一時journal。kind=incomplete_name_question、occurrenceId=incomplete_name_question:今回input ID、sourceId=今回input ID。原五区分候補・turn.answerは非変更。資料区分は名前の問いの構文を持つ原入力の保持であって、本人の質問理解や回答成功の認定ではない。
+- 原input/frame・入力前knowledge/context・当時understanding・前後state/world・実replyを分離コピー。独立input/inputKnowledge/inputContext・原ID=before.serial+1を照合し、使い捨てコピー上既存receive/respondの全文一致を要求する。供給資料整合照合であり真正性認証ではない。subject/questionSlot=null、原unresolved・target候補／採用・極性時点と欠落を保持。原frameから主体・問いの理解・名前回答を補わず、当時ターンにanswerがないことを要求しturnAnswer=null。発話／身振り設定を候補条件にしない。実経験由来questionのcurrent_activity限定scopeを今回へ転移しない。
+- 同input非増加非上書き、新input別資料・原資料遅延供給・返却コピー独立・元資料不変。後知識後注目後名付け後確認で原候補書換え／遡及成立なし。newTeaching/newLearning/newExperience=false。本文候補化・文章化集約4e、一時receipt保存形式、ゲーム本接続は未採用／未実装。本人日記生成保存再開配布、全入口最終意味照合、全14保留と各担当三保留を維持し、未決定を永久対象外にしない。
+- 89枠88確認済み・正式子78、最新ao〜by人間OK。bz採用範囲実装・Codex検証完了、実装後OK未受領・同じbz継続。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、全体未完。ゲーム所有core/world/catalog・表示文locale保存形式・実呼出は非変更。旧AI旧保存実ユーザー保存九見本星座と対象外%SystemDrive%/は非操作非置換。
+
 <a id="diary-unresolved-negated-preference-targets-by"></a>
 
 ##### 4d12by：単独否定好悪報告の対象だけ未解決（2026-10-18）

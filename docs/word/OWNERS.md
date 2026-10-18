@@ -1,8 +1,16 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-19最新：ユーザー「はい、どちらも採用でOKです」でbzの対象・成立保持を個別採用。[bz所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-name-questions-bz)は既存日本語単独名前の問いのquestion関係不足資料（対象不足併存を含む）を担当。対象だけ不足・完全理解bdを包含しない。89枠88確認済み・正式子78、最新ao〜by人間OK。bz採用範囲実装・Codex検証完了、実装後OK未受領・同じbz継続、次チャット移動指示なし。暫定残5〜10工程程度・中心8（基準2026-10-17 bt確認後）は既存見通し内の一系統採用で据置、全量再計算・機械減算なし、全体未完。全14保留・各担当三保留を維持。以下のbz未採用と旧進行は過去状態。
+
 - 2026-10-18最新確認：ユーザー「OKです。次チャットをおねがいします。」でce46800のbyへ実装後OKと次チャット移動を明示。[by所有仕様](../specs/core/experimental_word_learning.md#diary-unresolved-negated-preference-targets-by)。88枠88確認済み・正式子77、最新ao〜by人間OK。次bzは残入口をap〜by担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。暫定残5〜10工程程度・中心8（2026-10-17 bt確認後）は範囲・分割変更なしで据置、全量再計算・機械減算なし、全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のby未受領・同じby継続は過去状態。
 
 全86登録（固定50＋supplemental36）。byは対象・成立保持個別採用、実装後OK未受領。
+
+最新登録は全87（固定50＋supplemental37）。byはユーザー実装後OK受領済み、上行は過去状態。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12bz | incomplete_name_questions.capture (3) | [source](../../experimental_word_diary_incomplete_name_questions.js) | [test](../../tests/experimental_word_diary_incomplete_name_questions.test.js) |
 
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
