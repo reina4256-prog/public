@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-incomplete-direct-questions-cd"></a>
+
+##### 4d12cd：九入口の未完理解資料（2026-10-19）
+
+- 最終検証：専用XmtwaFは70通過、65群303原182成立・37種6734改変拒否・既存40担当7280非重複。全回帰3Wfgfvは全Node2178（ゲーム2114＋監査50＋工具14）・467813ms終了0、七JS構文・七言語14957通過。制限内rendererはGPU失敗1791ms終了2147483651でrun全体incompleteを維持し、別権限付きogg9Xxの849件3219ms終了0と区別。八global除去・storage sentinel不変・保存bridge未定義・原資料不変。採用範囲実装・Codex検証完了、実装後OK未受領・同じcd継続。開始manifest後の変更は専用testの期待値補正のみ、最終testはXmtwaFと全回帰内702/703等で通過し、最終構文を別検査。ゲーム部品・fixture・renderer・監査・package開始時hash不変、元manifestとreviewRequiredを非改変保持、手動依存確認JSONを別記。
+- 途中証跡：保存nzjxe1は67中62通過5失敗、YI51DQは67中66通過1失敗、9xhiaT/XqNMZ6は70中69通過1失敗。仕事語は実仕事経験で準備、無句読点の既存問いを肯定、非重複は既存成立例を照合、4d2例を実答え不明の休息結果へ補正。初回直接実行は58中28通過30失敗、端末切詰めで完全原ログ未保存、situation_questionのcatalog行前提を部品ガードで補修。ゲームparser/理解規則非変更。制限内renderer2BqA77失敗と権限付きogg9Xx成功、文書集計5YP5LUのrows参照補修とXmtwaF成功を別保持。原ログはdocs/.local-history/verification-runs/の各runへ非削除保持。
+
+- ユーザー「はい、どちらもOKです」で対象・成立保持を個別採用。既存日本語parserが単独questionと解析したcurrent_activity／past_activity／attention／destination／work_past／work_again／taste_evaluation／taste_now／rest_resultの九入口で当時complete=falseの原資料を担当する。意味・関係不足、対象・詳細不足と併存は実解析どおり保持し、現在文型で発生しない不足を捏造しない。situation_questionは既存parserの生成入口、味・休息は既存catalog入口。新文法・他言語文型・理解習得規則は追加しない。
+- `experimental_word_diary_incomplete_direct_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal、kind=incomplete_direct_question、occurrenceId=incomplete_direct_question:今回input ID、sourceId=今回input ID。原五区分候補非変更。単独frameの九slotと日本語既存入口、当時kind=question/partial・complete=false・unresolved非空を要求し、主体・極性・時点・questionSlot・対象候補・不足をframeや後知識から補完しない。
+- receiptは実入力直前beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実応答直後afterState/afterWorld/replyのコピー。原IDと独立資料を照合し、コピー上の既存receive/respondによるresult・前後state/world・実reply全文一致を要求する。供給資料整合照合であり真正性認証ではない。turn.answer非存在・turnAnswer=null、実応答とactualSpeechを保持し発話／身振りを理解条件にしない。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・原資料不変。後知識・後注目・後名付けによる原理解補完／遡及成立なし。経験由来question/current_activityのscopeを他slotへ転移しない。新教示・新学習・新本人経験なし。
+- 完全理解実回答ap、完全理解answer_unknownの4d2、聞返しaq、参照ar、名付け肯否as、名前bd/bz/ca、酸味be/cb、未完理解confirmationのccと既存担当を維持。完全理解時の身振り問い拡張は別途未決定。unknown・複数節を修復しない。
+- 所有core/world/catalog・ゲーム表示文・locale・ゲーム呼出・保存形式非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。全14保留・各担当三保留を維持。93枠92確認済み・正式子82、cd実装後OK未受領、同じcd継続。
+
 - 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」でccへ実装後OKと移動を明示。d857c92の[cc採用範囲](experimental_word_learning.md#diary-incomplete-confirmation-questions-cc)は実装・Codex検証・ユーザー実装後OK確認済み。92枠92確認済み・正式子81、最新ao〜cc人間OK。次cdは残入口をap〜cc担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積りはあと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。cc未完理解confirmationを差引後もap九入口不足資料・完全理解時身振りの未決定等を問い1〜2へ積み上げたため。前回の問い箱はcc確認待ちと残入口を同じ粗い幅へ収めており、一完了から幅を機械減算しない。全14保留・各担当三保留・全体未完。専用47・全Node2107（ゲーム2044＋監査49＋工具14）・六JS構文・七言語14957・別権限付きrenderer1116通過を引継ぎ、全回帰K9IJgUの制限内renderer GPU失敗incompleteと別xvjq0s成功を区別。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcc実装後OK未受領・同じcc継続は過去状態。
 
 - 2026-10-19 cc：ユーザー「どちらも採用でOKです」で[対象・成立保持](experimental_word_learning.md#diary-incomplete-confirmation-questions-cc)を個別採用。採用範囲実装・Codex検証完了、実装後OK未受領・同じcc継続。92枠91確認済み・正式子81、最新ao〜cb人間OK。専用最終47・全Node2107（ゲーム2044＋監査49＋工具14）・六JS構文・七言語14957・権限付き別renderer1116通過。全回帰K9IJgUは制限内renderer GPU起動失敗でrun全体incompleteを保持し、別xvjq0s成功と区別。残目安は当回再照合であと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。ccは既存問い枠内・実装後OK未受領のため減算しない。全14保留・各担当三保留・全体未完。以下のcc未採用・実装検証中・次cc案内は過去状態。
