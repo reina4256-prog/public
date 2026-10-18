@@ -1,8 +1,30 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-19 cc：ユーザー「どちらも採用でOKです」で[対象・成立保持](experimental_word_learning.md#diary-incomplete-confirmation-questions-cc)を個別採用。採用範囲実装・Codex検証完了、実装後OK未受領・同じcc継続。92枠91確認済み・正式子81、最新ao〜cb人間OK。専用最終47・全Node2107（ゲーム2044＋監査49＋工具14）・六JS構文・七言語14957・権限付き別renderer1116通過。全回帰K9IJgUは制限内renderer GPU起動失敗でrun全体incompleteを保持し、別xvjq0s成功と区別。残目安は当回再照合であと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。ccは既存問い枠内・実装後OK未受領のため減算しない。全14保留・各担当三保留・全体未完。以下のcc未採用・実装検証中・次cc案内は過去状態。
+
 - 2026-10-19最新確認：ユーザー「OKです。次チャットをおねがいします。」でcbへ実装後OKと移動を明示。[cb所有仕様](experimental_word_learning.md#diary-incomplete-sour-questions-cb)の採用範囲は実装・Codex検証・ユーザー実装後OK確認済み。91枠91確認済み・正式子80、最新ao〜cb人間OK。次ccは残入口をap〜cb担当と再照合し一系統の対象・成立保持を個別相談する予定記号のみ、未採用未着手・正式枠追加なし。当回再見積りはあと4〜8工程・中心6（問い1〜2／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回5〜9中心7から幅・中心各1減。cb酸味不足の確認完了を問い枠から差引照合し、be詳細だけ不足・bd/bz/ca名前問いを重複計上せず、confirmation／ap不足資料・酸味問い身振り設定の未決定等を問い残枠へ保持。全14保留・各担当三保留・全体未完。専用43・全Node2059（ゲーム1997＋監査48＋工具14）・六JS構文・七言語14957・権限付き別renderer1027通過。全回帰9ZDwWEの制限内renderer GPU失敗incompleteと別Zd76y6成功を区別。以下のcb実装後OK未受領・同じcb継続は過去状態。
 
 - 2026-10-19 cb：ユーザー「はい、どちらもOKです」で対象・成立保持を個別採用。既存日本語単独酸味問いのeat意味／question・negation関係不足資料を実装・検証中。beの詳細だけ不足の実発話、bd/bz/ca名前問い等は維持。91枠90確認済み・正式子80、cb実装後OK未受領・同じcb継続。残目安は当回再照合であと5〜9工程・中心7（問い2〜3／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回差分0。採用だけでは一工程完了にならず、酸味不足は既存問い枠内。全14保留・各担当三保留・全体未完を維持。以下のcb未採用は過去状態。[cb所有仕様](experimental_word_learning.md#diary-incomplete-sour-questions-cb)
+<a id="diary-incomplete-confirmation-questions-cc"></a>
+
+##### 4d12cc：単独確認問いの未完理解資料（2026-10-19）
+
+- 最終ゲーム検証：全回帰word-verification-K9IJgUの全Node2107（ゲーム2044＋監査49＋工具14）・428168ms終了0、六JS構文・短文書リンク・七言語14957通過。同run制限内rendererは1911ms・GPU -1073741515六回／GPU unusableで失敗、run全体incompleteを保持し権限付き別xvjq0s成功と区別。静的分類外smoke全文とfixture直接依存の手動確認を同run/manual-dependency-review.jsonへ保存し、元planのreviewRequiredを消去しない。全回帰開始時の七コードhash非変更。採用範囲実装・Codex検証完了、実装後OK未受領・同じcc継続。以下の全回帰結果待ちは途中記録。
+
+- 最終専用word-verification-cvNMEs：47項目・14641ms終了0。既存七系統（ap/as/bd/bz/ca/be/cb）fixture全原資料の非捕捉を追加検証し、上記399原239成立・8843改変拒否・9321既存担当非重複も通過。全回帰開始時からコードは非変更。全回帰K9IJgUは結果待ち。
+
+- 専用初回word-verification-wHvsqwは46中44通過2不通過・7101ms終了1。身振り設定で名付け直後の「違う」が実取り下げになるというfixture前提誤りと、その誤期待に伴う改変なしassert失敗。実取り下げcorrectionへfixtureを補正し根拠消失・曖昧二対象をassert、部品／ゲーム規則の補修なし。補正後2lXufhは46通過・7727ms終了0、41群399原239成立・37種8843資料改変拒否・既存39担当9321拒否。旧4d2境界、詳細だけ不足でもanswer_unknownになる原未完理解、後知識後注目後名付け・遅延・コピー独立・13新inputを確認。以後、既存ap/as/bd/bz/ca/be/cb fixture全原資料の非捕捉テスト一項目を追加し全回帰K9IJgUで検証中。
+- 独立renderer制限内He9h5hは6501ms終了1、GPU -1073741515六回・GPU unusableでincomplete。権限付き別xvjq0sは1116件（399原＋実話者／実reply／独立inputContext三種717改変）・10394ms終了0、八global除去・local/session各cc-sentinel不変・保存bridge未定義・原資料不変、auto-review拒否なし。元失敗と別run成功を区別。初回文書d2Tx2Cは34387ms終了0、5b81fac旧八文書全行・181text同順序・保管hash・既存リンク不一致18件基準一致・短文書/handoffリンク・監査50＋40・全回帰開始時七コードhash不変・diff通過。ゲーム最終全回帰と最終文書検査はまだ結果待ち。
+
+- ユーザー「どちらも採用でOKです」で対象・成立保持を個別採用。既存日本語parserが実際に単独question/slot=confirmationと解析し、当時complete=falseである原資料を対象にする。意味・関係不足、対象だけ未解決、詳細だけ不足とその併存を含む。catalogのreport文型を疑問形に変換する既存入口であり、新文法・他言語文型・理解習得規則は追加しない。名付けの肯否as、名前bd/bz/ca、酸味be/cb、ap九入口と他既存担当を維持する。
+- `diary_incomplete_confirmation_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=incomplete_confirmation_question、occurrenceId=incomplete_confirmation_question:今回input ID、sourceId=今回input ID。原五区分候補には追加しない。既存解析のcatalogRuleが日本語report規則に属すること、当時kind=questionまたはpartial・complete=false・unresolved非空を要求する。原対象候補／採用、主体・極性・時点・aspect・questionSlot・不足をそのまま保持し、frameから理解を補完しない。通常報告のspeaker_report出所を新造しない。
+- receiptは実入力直前beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実応答後afterState/afterWorld/replyのコピー資料。原ID=before.serial+1と独立資料を照合し、使い捨てコピー上の既存receive/respondでresultと前後state/world/replyの全文一致を要求する。供給資料整合照合であり真正性認証ではない。当時turn.answer非存在・turnAnswer=null、実replyとactualSpeechを保存。発話／身振り設定を理解成立条件にしない。
+- 応答がanswer_unknownでも当時complete=falseなら未完理解を維持する。complete=trueかつanswer_unknownの4d2担当は非変更。完全理解でも身振りattendとなる問いの候補拡張は未決定のまま、ccへ含めない。未完理解の身振り資料保持と、この未決定を混同しない。
+- 同input非増加非上書き・新input別資料・遅延供給・返却コピー独立・元資料不変。後知識後注目後名付け後確認で原理解を補完・遡及成立しない。経験由来question/current_activityやnegation/reportの限定scopeをconfirmationへ転移しない。新教示・新学習・新本人経験なし。確認問いを相手の報告受領、本人好悪・希望・感情・行動結果へ変換しない。
+- 既存parserでunknown／複数節になる入力はccで修復しない。例えば今回の「体力や眠気が回復するから？」はunknownであり、catalogにreport規則があることだけでconfirmation成立にしない。これを他入口の永久対象外決定にはしない。
+- 所有core/world/catalog・表示文locale・保存形式・ゲーム呼出は非変更、新ゲーム表示文なし。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存・全入口最終意味照合は未検証／未完。全14保留・各担当三保留を維持。
+- 現在cc採用範囲実装・Codex検証完了、実装後OK未受領・同じcc継続。92枠91確認済み・正式子81、監査固定50＋supplemental40＝90登録。残目安は[工程表](../../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)の当回再見積りを参照。
+
 <a id="diary-incomplete-sour-questions-cb"></a>
 
 ##### 4d12cb：単独酸味問いの意味・関係不足（2026-10-19）
@@ -2185,6 +2207,7 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 | 入り口／コード | 現在ある出所と契機 | 日記へ接続する際に残る不足 |
 | --- | --- | --- |
+| diary_incomplete_confirmation_questions.create/capture（独立・4d12cc） | [cc節](#diary-incomplete-confirmation-questions-cc)の三引数独立journal。既存単独confirmationの当時未完理解と原資料・実応答を分離保持 | 採用範囲実装・Codex検証完了、実装後OK未受領・同じcc継続。原五区分・理解規則は非変更、本文集約・一時receipt保存形式・本接続は未採用未実装 |
 | diary_incomplete_desire_reports.capture（独立・4d12br） | [br節](#diary-incomplete-desire-reports-br)の三引数一時API。単独not_nowの必要意味関係不足・原理解出所欠落と実応答を分離 | 採用範囲実装Codex検証限定完了・専用29全1589監査38七JS七言語14957renderer3397通過。実装後OK未受領同じbr・81枠80確認済み子70仮0〜5中心2据置全体未完、ay維持・本接続生成保存再開配布未完 |
 | diary_incomplete_rest_explanation_reports.capture（独立・4d12bq） | [bq節](#diary-incomplete-rest-explanation-reports-bq)の三引数一時API。単独回復説明の今回必要意味関係不足・直前rest原資料・欠落未理解と実応答を分離 | 採用範囲実装Codex検証限定完了・専用37全1560監査37七JS七言語14957renderer2001通過。実装後OK未受領同じbq継続・80枠79確認済み子69仮0〜6中心3据置全体未完、ax維持・本接続生成保存再開配布未完 |
 | diary_incomplete_rest_value_reports.capture（独立・4d12bp） | [bp節](#diary-incomplete-rest-value-reports-bp)の三引数一時API。単独休息大事さ報告のrest意味／report関係不足と原理解出所欠落・importance未理解・実応答を分離保持 | 採用範囲実装Codex検証限定完了。専用25全1523監査36六JS七言語14957renderer1134・20群474原220成立38種8360拒否と26担当5720拒否。実装後OK未受領同じbp継続79枠78確認済み子68仮1〜7中心4据置、aw維持・本接続生成保存再開配布未完 |
