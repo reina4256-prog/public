@@ -1,5 +1,15 @@
 # 日記部品の担当・参照索引
 
+- cj最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcj継続。99枠98確認済み・正式子88、最新ao〜ci人間OK。専用21、ゲーム2370・工具14、工程表補修後の別監査56、六JS構文・七言語14957・別権限付きrenderer1866通過。初回全回帰ca42iNは2440中2393通過47監査失敗（cj工程表参照行不足）でincomplete、文書補修後の監査成功と区別する。制限内renderer GPU失敗と別制限外成功も区別。元planの静的未分類smokeのreviewRequiredは非改変で、手動依存確認を別記。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cj確認待ち・文脈確認等残照合の分割未確定で減算せず、全14保留・各担当三保留・全体未完。以下のcj実装検証中・未採用案内は過去状態。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12cj | incomplete_reason_questions.capture (3) | [source](../../experimental_word_diary_incomplete_reason_questions.js) | [test](../../tests/experimental_word_diary_incomplete_reason_questions.test.js) |
+
+全97登録（固定50＋追加47）と99確認枠は別。cjの内容正本は[所有節](../specs/core/experimental_word_learning.md#diary-incomplete-reason-questions-cj)。登録・構造一致を意味読了や人間の実装後OKへ昇格しない。
+
+- 2026-10-20 cj最新：ユーザー「どちらも採用でOKです」で[理由問いの未完理解資料](../specs/core/experimental_word_learning.md#diary-incomplete-reason-questions-cj)の対象・成立保持を個別採用。99枠98確認済み・正式子88、最新ao〜ci人間OK。cj採用範囲実装・検証中、実装後OK未受領・同じcj継続。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）。既存問い枠内の一系統採用であり、cj確認待ち・文脈確認等の残照合と必要分割は未確定のため減算しない。全14保留・各担当三保留・4d12／4d／ID4全体未完。以下のcj未採用・次cj相談案内は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で9d65ed9の[ci採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)へ実装後OKと移動を明示。98枠98確認済み・正式子87、最新ao〜ci人間OK。次cjは残入口をap〜ci担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ci確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ci確認待ちと完全理解理由問い実身振りを差引後も、理由未完理解・文脈確認等を既存u/aqおよびap〜ci担当へ照合する残作業を暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のci実装後OK未受領・同じci継続は過去状態。
 
 ci最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。supplemental46・全96登録、監査55・全Node2418・別renderer775通過。元r3rbY0のGPU失敗incompleteと別oletdO成功を区別。残4〜7中心6・前回上下限中心差分0、全保留・全体未完。以下は途中状態。

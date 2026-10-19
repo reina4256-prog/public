@@ -1,10 +1,32 @@
 # 言葉の経験学習・比較実験版
 
+- cj最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcj継続。99枠98確認済み・正式子88、最新ao〜ci人間OK。専用21、ゲーム2370・工具14、工程表補修後の別監査56、六JS構文・七言語14957・別権限付きrenderer1866通過。初回全回帰ca42iNは2440中2393通過47監査失敗（cj工程表参照行不足）でincomplete、文書補修後の監査成功と区別する。制限内renderer GPU失敗と別制限外成功も区別。元planの静的未分類smokeのreviewRequiredは非改変で、手動依存確認を別記。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cj確認待ち・文脈確認等残照合の分割未確定で減算せず、全14保留・各担当三保留・全体未完。以下のcj実装検証中・未採用案内は過去状態。
+
+- 2026-10-20 cj最新：ユーザー「どちらも採用でOKです」で[理由問いの未完理解資料](#diary-incomplete-reason-questions-cj)の対象・成立保持を個別採用。99枠98確認済み・正式子88、最新ao〜ci人間OK。cj採用範囲実装・検証中、実装後OK未受領・同じcj継続。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）。既存問い枠内の一系統採用であり、cj確認待ち・文脈確認等の残照合と必要分割は未確定のため減算しない。全14保留・各担当三保留・4d12／4d／ID4全体未完。以下のcj未採用・次cj相談案内は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で9d65ed9の[ci採用範囲](#diary-gesture-reason-questions-ci)へ実装後OKと移動を明示。98枠98確認済み・正式子87、最新ao〜ci人間OK。次cjは残入口をap〜ci担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ci確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ci確認待ちと完全理解理由問い実身振りを差引後も、理由未完理解・文脈確認等を既存u/aqおよびap〜ci担当へ照合する残作業を暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のci実装後OK未受領・同じci継続は過去状態。
 
 - ci最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。専用19／全Node2418（ゲーム2349＋監査55＋工具14）／六JS構文／七言語14957／別権限付きrenderer775通過。全回帰r3rbY0は制限内renderer GPU失敗と新smokeのreviewRequiredを残すincomplete、別oletdOの成功と区別し元runを成功へ昇格しない。残4〜7中心6、前回上下限中心差分0、全体未完。以下のci実装検証中は途中状態。
 
 - 2026-10-20 ci：ユーザー「はい、どちらも採用でOKです」で[理由問いの身振り資料](#diary-gesture-reason-questions-ci)の対象・成立保持を個別採用。98枠97確認済み・正式子87、最新ao〜ch人間OK。ci実装・検証中、実装後OK未受領・同じci継続。残4〜7工程・中心6、前回上下限中心差分0。全14保留・各担当三保留・全体未完。以下の次ci未採用は過去状態。
+
+<a id="diary-incomplete-reason-questions-cj"></a>
+
+##### 4d12cj：単独理由問いの未完理解資料（2026-10-20）
+
+- 最終専用dedicated-2：21通過10209ms、16群1479原129成立、37種4773改変拒否・既存46追加担当5934非重複。固定49captureへの別限定gate検査6321非捕捉。八設定・意味rest／question／reason不足全七配置・既存六表現・現行言語境界・実習得段階／別話者／current_activity scope非転移・聞いた活動と実理由回答の分離、後実学習非遡及・13新入力・遅延・コピー独立・原資料不変を検査。全旧fixture／所有節意味再読や全入口最終分類ではない。
+- 全回帰word-verification-ca42iN：Node2440中2393通過47監査失敗、451745ms（工具記録458466ms）。全ゲーム2370＋工具14は通過。監査45件がmissing_step_reference=4d12cj、関連二件が同不足によるstructuralOk=falseで失敗。工程表正式表行の追記漏れを文書だけ補修後、別audit-after-roadmapで監査56通過23423ms。初回runはincomplete、localization／renderer未実行をそのまま残す。七変更コードは全回帰開始時hash不変で、ゲーム全回帰を補修後に再実行したとは呼ばない。
+- 別localizationは七言語14957通過。renderer-restrictedはGPU -1073741515・ERR_FAILED(-2)で終了1、別権限付きrenderer-unrestrictedは1866件（1479原＋三種387改変）6497ms終了0、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変。auto-review拒否なし。元失敗runを成功へ昇格しない。
+- manual-dependency-review.jsonへ新smoke全文・ciとの差分が名称／fixture／global／sentinelだけの厳密照合、直接fixture依存・七所有コードhash不変・七変更コード開始hash一致を別記。元plan/reviewRequired非改変。開始八文書11825旧全行・194旧text（工程表181／NEXT_CHAT13）を厳密同順保持、既存リンク不一致18件の基準一致・増加なしを確認。最終追記後の保持とcommit/push結果はcurrent handoff参照。
+- dedicated-1も21通過後、actualSpeechとspeechSettingを区別し原expressionを保持する補強を加えてdedicated-2再通過。clone工具改行想定不一致は書込前停止、固定gate工具の相対パス／beforeReceipts未登録は各失敗原ログを残して補修。詳細はdocs/.local-history/verification-runs/cj-implementation-c6820d7のtool-notes.txtと各summary/stdout/stderrへ保持。ゲーム所有七コード・表示locale非変更、新ゲーム表示文なしのためcatalog再構築なし、i18n検査は今回実行。
+
+- ユーザー「どちらも採用でOKです」で対象・成立保持を個別採用。既存日本語parserが単独question／slot=reason／meaning=restと解析する本人休息理由問いで、当時complete=false・unresolved非空の資料だけ。rest意味／question・reason関係の不足と併存を実解析どおり保持。既存別名・正規化の範囲を用い、新文型・他言語文型・理解習得規則は追加しない。原frameのsubjectと当時understanding.subjectを区別し、関係不足時のkind=partial・subject/questionSlot=nullを補完しない。
+- `experimental_word_diary_incomplete_reason_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=incomplete_reason_question、occurrenceId=incomplete_reason_question:今回input ID、sourceId=今回input ID。原五区分・4d2・所有core/world/catalog・ゲーム呼出・保存形式非変更。
+- receiptは実receive直前beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond直後afterState/afterWorld/replyのコピー。原ID・独立資料と、使い捨てコピー上の既存receive/respondでresult・前後state/world・実replyを全文照合。供給資料整合照合であり真正性認証ではない。原input/frame、当時知識/context、理解・不足、実応答、前後状態を分離コピーする。turn.answerなし・turnAnswer=nullを要求し、回答成功や理由自覚を新造しない。
+- short／gesture両設定を対象とし、speechSetting、原expression、実replyを分離保持する。actualSpeechは原expression.channel=speechのときだけtrue。short設定でも語内容不足によるgesture/attendはfalseであり、設定を実発話へ変換しない。現行未完理解応答uncertain／attendをそのまま保持し、原問いのunspecifiedと後の参照経験・理由回答を混同しない。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・元資料不変。後知識・後活動・後振り返りで原理解補完／遡及成立なし。実経験由来のquestion/current_activityや別言語・話者・文型scopeを転移しない。新教示／学習／本人経験なし。
+- 完全理解実身振りci、u実selected_reason、aq反復／意味確認実回答、ap九入口実回答、4d2実answer_unknown、cd/ce九入口、cc/ch確認、bd/bz/ca/cf名前・as、be/cb/cg酸味ほか既存担当を維持。文脈確認の未完理解／非発話等は残照合であり一括採用・永久対象外にしない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。99枠98確認済み・正式子88、cj実装後OK未受領・同じcj継続。全14保留・各担当三保留・全体未完。検証結果は後続現在通知とhandoffを参照。
 
 <a id="diary-gesture-reason-questions-ci"></a>
 

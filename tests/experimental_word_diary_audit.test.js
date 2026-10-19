@@ -18,6 +18,18 @@ test('bj ownership requires separate incomplete report/time material and three-a
 });
 const { createServer } = require('../scripts/experimental/serve');
 
+test('incomplete reason questions retain their own scope and API without certifying acceptance', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12cj');
+    assert.equal(owner.scopeAdopted, true); assert.equal(owner.implementationAcceptance, 'not_received');
+    assert.equal(owner.runtimeDiaryConnected, false); assert.equal(owner.arity, 3);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12cj'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter'
+        && e.reference === 'experimental_word_diary_incomplete_reason_questions.js'));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12cj').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12cj'));
+});
+
 test('gesture reason questions retain a separate owner without certifying runtime or acceptance', () => {
     const report = audit(); assert.deepEqual(report.errors, []);
     const owner = report.supplementalOwners.find(row => row.id === '4d12ci');
@@ -65,7 +77,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-    assert.equal(report.supplementalOwners.length, 46);
+    assert.equal(report.supplementalOwners.length, 47);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -733,6 +745,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_gesture_name_question_fixtures.js', 'scripts/experimental/diary_gesture_name_question_smoke.js',
             'scripts/experimental/diary_gesture_sour_question_fixtures.js', 'scripts/experimental/diary_gesture_sour_question_smoke.js',
             'scripts/experimental/diary_gesture_reason_question_fixtures.js', 'scripts/experimental/diary_gesture_reason_question_smoke.js',
+            'scripts/experimental/diary_incomplete_reason_question_fixtures.js', 'scripts/experimental/diary_incomplete_reason_question_smoke.js',
             'scripts/experimental/diary_gesture_confirmation_question_fixtures.js', 'scripts/experimental/diary_gesture_confirmation_question_smoke.js',
             'docs/specs/core/experimental_word_diary_audit.md']) {
             assert.equal(await status(name), 404, name);
