@@ -1,6 +1,26 @@
 # 次チャットの開始文
 
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd889c22の[cg採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-sour-questions-cg)へ実装後OKと移動を明示。96枠96確認済み・正式子85、最新ao〜cg人間OK。次chは残入口をap〜cg担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cg確認前から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cg確認待ち・酸味詳細だけ未理解の実身振りを差引後も、確認等の残照合だけで問いを暫定1へ再積上げ。必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcg実装後OK未受領・同じcg継続は過去状態。
+
 - 2026-10-20 cg：ユーザー「はい、どちらもOKです」で[酸味詳細だけ未理解の問いへの身振り応答資料](../specs/core/experimental_word_learning.md#diary-gesture-sour-questions-cg)の対象・成立保持を個別採用。96枠95確認済み・正式子85、最新ao〜cf人間OK。cg採用範囲実装・Codex検証完了・実装後OK未受領、同じcg継続。残4〜7工程・中心6、前回cg相談時から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cgは既存問い枠内・確認未完のため減算せず、確認等の必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。以下のcg未採用・次cg案内は過去状態。 専用41・全Node2349・六JS構文・七言語14957・別renderer553通過。全回帰bX1cgEの制限内GPU失敗incompleteと別myA4lHの成功を区別し、詳細・原ログはcg所有仕様と現在handoffへ保持。
+
+## 次チャットへ貼る開始文（cg確認済み・次ch未採用）
+
+```text
+ゲーム実装最新d889c22。確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12cgは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読・未検証を記録してください。
+
+次chは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜cg担当と再照合し、一系統の対象・成立保持を個別相談してください。cg酸味詳細だけ未理解の実身振り、be酸味short実発話・cb酸味意味関係不足、cc未完理解confirmation、ap実回答・4d2実answer_unknown・cd九入口未完理解・ce九入口完全理解身振り、名前bd/bz/ca/cf・名付け肯否asを重複残件に数えません。確認等の残照合と必要分割は未確定、未決定を永久対象外へ移して終了扱いにせず、全14保留・各担当三保留を維持してください。
+
+96枠96確認済み・正式子85、最新ao〜cg人間OK。当回再見積りはあと4〜7工程・中心6。問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2。前回cg確認前から上下限・中心差分0。cg確認待ちと酸味詳細だけ未理解の実身振りを差引後も、確認等の残照合だけで問いを暫定1工程へ再積上げしたためです。前回は確認待ちと残照合を同じ粗い問い枠へ収めており機械減算しません。中心5.5を6へ丸め、必要分割・全入口分類は未確定で増減し得ます。毎回、根拠・内訳・前回差分・不確実性付きで再見積りしてください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+cg専用41、35群397原52成立（attend）、39種2028改変拒否、既存43担当2236非重複、固定49capture gate2548非捕捉。全Node2349（ゲーム2282＋監査53＋工具14）・六JS構文・七言語14957・別権限付きrenderer553通過。全回帰bX1cgEはNode全通過でも制限内renderer GPU失敗と静的未分類smokeのreviewRequiredを残すincomplete、別myA4lHのrenderer成功と区別し元runを成功へ昇格しません。manual-dependency-review.jsonにsmoke全文・ceとの差分方針・fixture依存・七コードhash不変、final-code-hash-review.jsonに最終hashと八文書現在通知を別記し元plan/reviewRequired非改変。独立制限内lmwTgx失敗、V3OZ7a固定gate、TfDe36/sz1wT0/C8pifB文書検査、専用初回原出力cg-first-dedicatedと全原ログを非削除保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+検証ログはdocs/.local-history/verification-runs/へ保存。共有四文書181旧開始継続文・d889c22のNEXT_CHAT旧10textと過去保管先は非削除非置換（今回ch開始文追加後は11text）。既存リンク不一致18件の基準一致・増加なしと全リンク正常を区別してください。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。固定入力確認や確認済み範囲の再確認を求めません。途中保存commit/pushは移動合図ではありません。
+```
+
+直前handoff/NEXT_CHAT全文はdocs/.local-history/各before-cg-acceptance-2026-10-20.mdへ保持。以下のcg実装後OK未受領・同じcg継続・次cg案内は過去状態。
 
 ## 次チャットへ貼る開始文（cf確認済み・次cg未採用）
 
