@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で9d65ed9の[ci採用範囲](#diary-gesture-reason-questions-ci)へ実装後OKと移動を明示。98枠98確認済み・正式子87、最新ao〜ci人間OK。次cjは残入口をap〜ci担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ci確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ci確認待ちと完全理解理由問い実身振りを差引後も、理由未完理解・文脈確認等を既存u/aqおよびap〜ci担当へ照合する残作業を暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のci実装後OK未受領・同じci継続は過去状態。
+
 - ci最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。専用19／全Node2418（ゲーム2349＋監査55＋工具14）／六JS構文／七言語14957／別権限付きrenderer775通過。全回帰r3rbY0は制限内renderer GPU失敗と新smokeのreviewRequiredを残すincomplete、別oletdOの成功と区別し元runを成功へ昇格しない。残4〜7中心6、前回上下限中心差分0、全体未完。以下のci実装検証中は途中状態。
 
 - 2026-10-20 ci：ユーザー「はい、どちらも採用でOKです」で[理由問いの身振り資料](#diary-gesture-reason-questions-ci)の対象・成立保持を個別採用。98枠97確認済み・正式子87、最新ao〜ch人間OK。ci実装・検証中、実装後OK未受領・同じci継続。残4〜7工程・中心6、前回上下限中心差分0。全14保留・各担当三保留・全体未完。以下の次ci未採用は過去状態。
@@ -7,6 +9,8 @@
 <a id="diary-gesture-reason-questions-ci"></a>
 
 ##### 4d12ci：完全理解した本人休息理由問いへの身振り応答資料（2026-10-20）
+
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で9d65ed9の本採用範囲へ実装後OKと移動を明示。実装・Codex検証・ユーザー実装後OK確認済み。98枠98確認済み・正式子87、最新ao〜ci人間OK。次cjは既存担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。全保留・全体未完を維持。今回確認移動は文書のみでゲーム検証再実行なし、以下の未受領／同じci継続は過去状態。
 
 - 採用対象は既存日本語parserの単独question/slot=reason/meaning=restで、入力当時kind=question・complete=true・unresolved空・subject=self、speech=gesture、実attend・turn.answerなしの資料。既存canonical理由問いとcatalog reason_questionの既存解析範囲に従う。新文型・他言語文型・理解習得規則は追加しない。frameの主体省略を理解結果のsubjectと混同しない。
 - `experimental_word_diary_gesture_reason_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=gesture_reason_question、occurrenceId=gesture_reason_question:今回input ID、sourceId=今回input ID。原五区分候補・4d2・turn.answer条件・所有core/world/catalog・ゲーム呼出・保存形式は非変更。

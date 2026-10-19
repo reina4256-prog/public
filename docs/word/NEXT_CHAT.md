@@ -1,5 +1,25 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（ci確認済み・次cj未採用）
+
+```text
+ゲーム実装最新9d65ed9。確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12ciは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読・未検証を記録してください。
+
+次cjは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜ci担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談してください。ci完全理解理由問い実身振り、u実selected_reason、aq反復／意味確認実回答を重複残件に数えません。理由未完理解・文脈確認等は既存担当を先に差し引き、新規実装の必要性を決めつけずに残照合してください。ch確認・cg酸味・cf名前・ce九入口の実身振り、cc/cb/cd未完理解、bd/bz/ca名前・be酸味、ap実回答・4d2実answer_unknown・as名付け肯否等の担当も維持。必要分割・全入口分類は未確定、全14保留・各担当三保留を永久対象外へ移して終了扱いにしません。
+
+98枠98確認済み・正式子87、最新ao〜ci人間OK。当回再見積りはあと4〜7工程・中心6。問い残照合1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2。前回ci確認前から上下限・中心差分0。ci確認待ちと完全理解理由問い実身振りを差引後も、理由未完理解・文脈確認等を既存担当へ照合する残作業を暫定1へ再積上げしたためです。前回は確認待ちと残照合を粗い問い枠へ同居させており機械減算しません。中心5.5を6へ丸め、追加実装の要否・必要分割は未確定で増減し得ます。毎回、根拠・内訳・前回差分・不確実性付きで再見積りしてください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+ci専用19、13群649原42成立、39種1638改変拒否、既存45追加担当1890非重複、固定49capture gate2058非捕捉。全Node2418（ゲーム2349＋監査55＋工具14）・六JS構文・七言語14957・別権限付きrenderer775通過。全回帰r3rbY0は制限内renderer GPU失敗と静的未分類smokeのreviewRequiredを残すincomplete、別oletdOの成功と区別して元runを成功へ昇格しません。manual-dependency-review.jsonへsmoke全文・chとの差分・直接fixture依存・七所有コードhash不変、final-code-hash-review.jsonへ七コード最終hashと八文書現在通知を別記し元plan/reviewRequired非改変。最初の直接専用run16/19の原出力全文ファイル未保存、ログ付きR4gp9D18/19と補正後eRHAPw19成功を区別。先行観察5L5zSX・監査hsbsro・固定gate8kFmBd・文書O7W3gj/KvsjTH、ci-tool-notes.txtと全過去原ログを非削除保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+ci部品は原入力・当時知識/context・理解・実応答・前後状態を分離コピーし、原replyのexperienceId/eventTime/choiceSource/reviewedByだけを保持。attendのみの原応答へ参照・理由の実発話・答え不明の原因を補いません。全保留・本接続未実装を維持。開始八文書・工程表181旧textとNEXT_CHAT旧12textを非削除非置換、今回cj開始文追加後はNEXT_CHAT13text。既存リンク不一致18件の基準一致・増加なしと全リンク正常を区別してください。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。固定入力確認や確認済み範囲の再確認を求めません。途中保存commit/pushは移動合図ではありません。
+```
+
+直前handoff/NEXT_CHAT全文はdocs/.local-history/各before-ci-acceptance-2026-10-20.mdへ保持。以下のci実装後OK未受領・同じci継続・次ci案内は過去状態。
+
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で9d65ed9の[ci採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)へ実装後OKと移動を明示。98枠98確認済み・正式子87、最新ao〜ci人間OK。次cjは残入口をap〜ci担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ci確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ci確認待ちと完全理解理由問い実身振りを差引後も、理由未完理解・文脈確認等を既存u/aqおよびap〜ci担当へ照合する残作業を暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のci実装後OK未受領・同じci継続は過去状態。
+
 - ci最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。専用19・全Node2418・六JS構文・七言語14957・別renderer775通過。元r3rbY0はGPU失敗とreviewRequiredでincomplete、別oletdO成功と区別。残4〜7中心6・前回上下限中心差分0、全保留・全体未完。旧開始文12textを保持し、新チャットへは移動しない。以下は途中状態。
 
 - 2026-10-20現在：ユーザー「はい、どちらも採用でOKです」で[ci理由問いの身振り資料](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)の対象・成立保持を個別採用。ci実装検証中・実装後OK未受領、同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。全14保留・各担当三保留・全体未完。以下のci未採用開始文は過去状態で、移動用の新開始文ではない。
