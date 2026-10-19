@@ -1,5 +1,25 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（ce確認済み・次cf未採用）
+
+```text
+ゲーム実装最新d61bee8、確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12ceは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読・未検証を記録してください。
+
+次cfは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜ce担当と再照合し、一系統の対象・成立保持を個別相談してください。ce九入口完全理解時の身振り応答、ap実回答・4d2実answer_unknown・cd九入口未完理解・cc未完理解confirmation・名前bd/bz/ca・酸味be/cb・名付け肯否asを重複残件に数えません。名前・酸味等の九入口外身振りを含む残照合と必要分割は未確定、未決定を永久対象外へ移して終了扱いにせず、全14保留・各担当三保留を維持してください。
+
+94枠94確認済み・正式子83、最新ao〜ce人間OK。当回再見積りはあと4〜7工程・中心6。問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2。前回ce確認前4〜7中心6から上下限・中心差分0。ce確認待ちを差引後も九入口外身振り等の残照合だけで問いを暫定1工程へ再積上げしたためです。前回は確認待ちと残照合を同じ粗い問い枠へ収めており機械減算しません。中心5.5を6へ丸め、必要分割・全入口分類は未確定で増減し得ます。毎回、根拠・内訳・前回差分・不確実性付きで再見積りしてください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+ce専用101、96群1933原192成立（attend186／pleased_gesture6）・39種7488改変拒否・既存41担当7872非重複。全Node2280（ゲーム2215＋監査51＋工具14）・八JS構文・七言語14957・権限付き別renderer2509通過。全回帰KonmoYは制限内renderer GPU失敗と未分類smokeのreviewRequiredを残すincomplete、別a7UicKもrendererコマンド成功とreviewRequiredを残すrun全体incompleteを区別し、元runを成功へ昇格しません。KonmoY/manual-dependency-review.jsonへ新smoke全文とfixture依存確認を別記、元plan/reviewRequired非改変・開始九file hash不変。制限内LbxyMf失敗、4zzUTvのdiff起動指定誤り、X2eKcwのcreate/capture誤呼出と補修後m0ffYF、Bw8WaR/最終79GBrqの文書保持・diff成功、全原ログと過去証跡を非削除保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+検証ログはdocs/.local-history/verification-runs/へ保存。共有四文書181旧開始継続文と過去保管先は非削除非置換。既存リンク不一致18件の基準一致・増加なしと全リンク正常を区別してください。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。途中保存commit/pushは移動合図ではありません。
+```
+
+直前handoffと本ファイル全文はdocs/.local-history/各before-ce-acceptance-2026-10-20.mdへ保持。
+
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd61bee8の[ce採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)へ実装後OKと移動を明示。94枠94確認済み・正式子83、最新ao〜ce人間OK。次cfはap〜ce担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。ce確認待ち差引後も九入口外身振り等の残照合を暫定1へ再積上げ、必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。以下のce実装後OK未受領・同じce継続は過去状態。
+
 ## 現在は同じce内の継続（移動指示ではない）
 
 ce採用範囲は実装・Codex検証完了、実装後OK未受領・同じce継続。専用101・全Node2280・八JS構文・七言語14957・権限付き別renderer2509通過。全回帰KonmoYの制限内GPU失敗incompleteと別a7UicKのrendererコマンド成功／reviewRequiredを残すrun全体incompleteを区別し、手動依存確認・4zzUTv/X2eKcw途中失敗・補修後m0ffYF/Bw8WaRと原ログを保持。以下のce実装検証中は途中状態。次は同じce内の自由フィードバック・必要補修、移動はユーザー明示時だけ。

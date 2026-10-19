@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd61bee8の[ce採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)へ実装後OKと移動を明示。94枠94確認済み・正式子83、最新ao〜ce人間OK、固定50＋supplemental42＝92登録とは別。次cfはap〜ce担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）、ce確認待ち差引後も九入口外身振り等を暫定1へ再積上げ、必要分割未確定。全14保留・各担当三保留・全体未完。今回文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のce未受領は過去状態。
+
 - ce最終：採用範囲実装・Codex検証完了、実装後OK未受領。専用101・全Node2280・八JS構文・七言語14957・別renderer2509通過、元runのGPU失敗／未分類reviewRequiredを保持。[所有仕様](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)。固定50＋supplemental42＝92登録、94枠93確認済み・正式子83、全体未完。以下のce実装検証中は途中状態。
 
 - 2026-10-20 ce：[対象・成立保持](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)を個別採用。九入口完全理解時の身振り応答資料のみ。固定50＋supplemental42＝92登録、94枠93確認済み・正式子83、最新ao〜cd人間OK。ce実装検証中・実装後OK未受領、全体未完。

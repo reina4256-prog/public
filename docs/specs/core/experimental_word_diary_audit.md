@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd61bee8の[ce採用範囲](experimental_word_learning.md#diary-gesture-direct-questions-ce)へ実装後OKと移動を明示。94枠94確認済み・正式子83、最新ao〜ce人間OK、固定50＋supplemental42＝92登録とは別。次cfはap〜ce担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。ce確認待ち差引後も九入口外身振り残照合を暫定1に再積上げ、必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完、固定ao snapshot非変更。今回文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のce未受領・同じce継続は過去状態。
+
 - ce最終検証：専用101・全Node2280（ゲーム2215＋監査51＋工具14）・八JS構文・七言語14957・権限付き別renderer2509通過、採用範囲実装・Codex検証完了・実装後OK未受領。全回帰KonmoYの制限内GPU失敗によるincomplete、別a7UicKのrendererコマンド成功と未分類reviewRequiredによるrun全体incompleteを区別。手動依存確認を別記、固定ao snapshotと全14保留・全体未完を維持。以下のce実装検証中は途中状態。
 
 - 2026-10-20 ce：[九入口完全理解時の身振り応答](experimental_word_learning.md#diary-gesture-direct-questions-ce)を対象・成立保持個別採用、独立登録。固定50＋supplemental42＝92登録は94枠93確認済み・正式子83とは別。最新ao〜cd人間OK、ce実装検証中・実装後OK未受領。ap実回答・4d2答え不明・cd未完理解と非重複、九入口外の身振り等は残照合。全14保留・各担当三保留・全体未完、固定aoの過去確認snapshotを変更しない。
