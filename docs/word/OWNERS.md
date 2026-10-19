@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でb48f4fbの[cf採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)へ実装後OKと移動を明示。95枠95確認済み・正式子84、最新ao〜cf人間OK。次cgは残入口をap〜cf担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cf確認待ちと完全理解名前身振りを差引後も、酸味・確認等の残照合を暫定1工程へ再積上げ、必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。今回は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcf未受領・同じcf継続は過去状態。
+
 - cf最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)実装・Codex検証完了、実装後OK未受領・同じcf継続。固定50＋supplemental43＝93登録、95枠94確認済み・正式子84とは別。補修後監査52通過、全回帰c36CcPの補修前監査43失敗は元runへ保持。最新ao〜ce人間OK・全体未完、以下は途中状態。
 
 - 2026-10-20 cf：[名前問い完全理解時の身振り応答資料](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)を個別採用。固定50＋supplemental43＝93登録、95枠94確認済み・正式子84とは別。cf実装検証中・実装後OK未受領・同じcf継続。最新ao〜ce人間OK、全14保留・各担当三保留・全体未完。以下の次cf未採用は過去状態。

@@ -1,5 +1,23 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（cf確認済み・次cg未採用）
+
+```text
+ゲーム実装最新b48f4fb。確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12cfは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読・未検証を記録してください。
+
+次cgは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜cf担当と再照合し、一系統の対象・成立保持を個別相談してください。cf完全理解名前問いの実身振り、ce九入口完全理解身振り、ap実回答・4d2実answer_unknown・cd九入口未完理解・cc未完理解confirmation・名前bd/bz/ca・酸味be/cb・名付け肯否asを重複残件に数えません。酸味・確認等の残照合と必要分割は未確定、未決定を永久対象外へ移して終了扱いにせず、全14保留・各担当三保留を維持してください。
+
+95枠95確認済み・正式子84、最新ao〜cf人間OK。当回再見積りはあと4〜7工程・中心6。問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2。前回cf確認前から上下限・中心差分0。cf確認待ちと完全理解名前身振りを差引後も、酸味・確認等の残照合だけで問いを暫定1工程へ再積上げしたためです。前回は確認待ちと残照合を同じ粗い問い枠へ収めており機械減算しません。中心5.5を6へ丸め、必要分割・全入口分類は未確定で増減し得ます。毎回、根拠・内訳・前回差分・不確実性付きで再見積りしてください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+cf専用26、18群340原183成立（recognize_gesture173／looking5／attend5）、5490今回改変・2450原名付け・984原確認拒否、既存42担当7686非重複、固定49capture gate8967非捕捉。ゲーム2241・工具14・補修後監査52・七JS構文・七言語14957・権限付き別renderer889通過。全回帰c36CcPは2307中2264通過43不通過でincomplete、全43失敗は補修前監査のcf工程表行未追加／固定42残存。別f3bKXkの監査成功、別npm i18n成功、別AH2vu0のrenderer成功と元run未実行localization/rendererを区別し、元runを成功へ昇格しません。manual-dependency-review.jsonへsmoke全文・依存・hash比較、failure-classification.jsonへ失敗内訳を別記。元plan/reviewRequired非改変。制限内vbK3nx・IElbjE・初回Python準備の失敗、f3bKXk/mOo58f/jgzkEN/HGQVhPと全原ログを非削除保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+検証ログはdocs/.local-history/verification-runs/へ保存。共有四文書181旧開始継続文・b48f4fbのNEXT_CHAT旧9textと過去保管先は非削除非置換（今回cg開始文追加後は10text、過去の旧8表記は当時記録として保持）。既存リンク不一致18件の基準一致・増加なしと全リンク正常を区別してください。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。固定入力確認や確認済み範囲の再確認を求めません。途中保存commit/pushは移動合図ではありません。
+```
+
+直前handoff/NEXT_CHAT全文はdocs/.local-history/各before-cf-acceptance-2026-10-20.mdへ保持。以下のcf実装後OK未受領・同じcf継続は過去状態。
+
 ## 現在は同じcf内の継続（移動指示ではない）
 
 cf採用範囲は実装・Codex検証完了、実装後OK未受領・同じcf継続。専用26、ゲーム2241＋工具14、補修後監査52、七JS構文、七言語14957、権限付き別renderer889通過。全回帰c36CcPは2307中2264通過43不通過でincomplete、全43失敗は補修前の監査cf行未追加／固定42残存。別f3bKXkの監査成功、別npm i18n成功、別AH2vu0のrenderer成功と元run未実行を区別する。manual-dependency-review.jsonへsmoke全文・依存・hash比較を別記、元plan/reviewRequired非改変。制限内vbK3nx失敗・IElbjE監査失敗・初回Python準備失敗・全原ログを保持。次は同じcfの自由フィードバック・必要補修で、移動はユーザー明示時だけ。以下の実装検証中は途中状態。
