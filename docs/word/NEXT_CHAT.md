@@ -1,5 +1,25 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（ch確認済み・次ci未採用）
+
+```text
+ゲーム実装最新72a6223。確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12chは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読・未検証を記録してください。
+
+次ciは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜ch担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談してください。ch完全理解confirmationの実身振り、cc未完confirmation、cg酸味詳細だけ未理解の実身振り・be酸味short実発話・cb酸味意味関係不足、ap実回答・4d2実answer_unknown・cd九入口未完理解・ce九入口完全理解身振り、名前bd/bz/ca/cf・名付け肯否asを重複残件に数えません。理由・聞返し等は既存u/aq等の担当を先に差し引き、新規実装の必要性を決めつけずに残照合してください。必要分割・全入口分類は未確定、未決定を永久対象外へ移して終了扱いにせず、全14保留・各担当三保留を維持してください。
+
+97枠97確認済み・正式子86、最新ao〜ch人間OK。当回再見積りはあと4〜7工程・中心6。問い残照合1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2。前回ch確認前から上下限・中心差分0。ch確認待ちと完全理解confirmation実身振りを差引後も、理由・聞返し等を既存担当へ照合する残作業を暫定1工程へ再積上げしたためです。前回は確認待ちと残照合を同じ粗い問い枠へ収めており機械減算しません。中心5.5を6へ丸め、追加実装の要否・必要分割・全入口分類は未確定で増減し得ます。毎回、根拠・内訳・前回差分・不確実性付きで再見積りしてください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+ch専用48、41群399原50成立（attend）、39種1950改変拒否、既存44担当2200非重複、固定49capture gate2450非捕捉。全Node2398（ゲーム2330＋監査54＋工具14）・六JS構文・七言語14957・別権限付きrenderer549通過。全回帰maueyXはNode全通過でも制限内renderer GPU失敗と静的未分類smokeのreviewRequiredを残すincomplete、別ch-renderer-LaH1oqのrenderer成功と区別し元runを成功へ昇格しません。manual-dependency-review.jsonへsmoke全文・cgとの差分・fixture依存・七コードhash不変、final-code-hash-review.jsonへ最終hashと八文書現在通知を別記し元plan/reviewRequired非改変。初回専用SIJNQ8の誤前提1失敗と補正後b1CXeA成功、独立制限内pgY3oi失敗、SDtaOd固定gate、nseR7C/jeDftT文書検査、全原ログを非削除保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+検証ログはdocs/.local-history/verification-runs/へ保存。共有四文書181旧開始継続文・72a6223のNEXT_CHAT旧11textと過去保管先は非削除非置換（今回ci開始文追加後は12text）。既存リンク不一致18件の基準一致・増加なしと全リンク正常を区別してください。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/は非操作非置換。固定入力確認や確認済み範囲の再確認を求めません。途中保存commit/pushは移動合図ではありません。
+```
+
+直前handoff/NEXT_CHAT全文はdocs/.local-history/各before-ch-acceptance-2026-10-20.mdへ保持。以下のch実装後OK未受領・同じch継続・次ch案内は過去状態。
+
+- 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で72a6223の[ch採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-confirmation-questions-ch)へ実装後OKと移動を明示。97枠97確認済み・正式子86、最新ao〜ch人間OK。次ciは残入口をap〜ch担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ch確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ch確認待ちと完全理解confirmation実身振りを差引後も、理由・聞返し等を既存u/aq等と照合する残りを暫定1へ再積上げ。追加実装の要否・必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のch実装後OK未受領・同じch継続は過去状態。
+
 - 2026-10-20 ch：ユーザー「はい、どちらも採用でOKです」で[完全理解した確認問いへの身振り応答資料](../specs/core/experimental_word_learning.md#diary-gesture-confirmation-questions-ch)の対象・成立保持を個別採用。97枠96確認済み・正式子86、最新ao〜cg人間OK。ch採用範囲実装・Codex検証完了・実装後OK未受領、同じch継続。残4〜7工程・中心6、前回から上下限・中心差分0（問い1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。chを既存問い枠へ含め、未確認・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のch未採用・次ch案内は過去状態。
 
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd889c22の[cg採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-sour-questions-cg)へ実装後OKと移動を明示。96枠96確認済み・正式子85、最新ao〜cg人間OK。次chは残入口をap〜cg担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cg確認前から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cg確認待ち・酸味詳細だけ未理解の実身振りを差引後も、確認等の残照合だけで問いを暫定1へ再積上げ。必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcg実装後OK未受領・同じcg継続は過去状態。
