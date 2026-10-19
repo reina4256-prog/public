@@ -1,10 +1,28 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-20 cg：ユーザー「はい、どちらもOKです」で[酸味詳細だけ未理解の問いへの身振り応答資料](experimental_word_learning.md#diary-gesture-sour-questions-cg)の対象・成立保持を個別採用。96枠95確認済み・正式子85、最新ao〜cf人間OK。cg採用範囲実装・Codex検証完了・実装後OK未受領、同じcg継続。残4〜7工程・中心6、前回cg相談時から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cgは既存問い枠内・確認未完のため減算せず、確認等の必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。以下のcg未採用・次cg案内は過去状態。 専用41・全Node2349・六JS構文・七言語14957・別renderer553通過。全回帰bX1cgEの制限内GPU失敗incompleteと別myA4lHの成功を区別し、詳細・原ログはcg所有仕様と現在handoffへ保持。
+
+- 2026-10-20 cg：ユーザー「はい、どちらもOKです」で[酸味詳細だけ未理解の問いへの身振り応答資料](experimental_word_learning.md#diary-gesture-sour-questions-cg)の対象・成立保持を個別採用。96枠95確認済み・正式子85、最新ao〜cf人間OK。cg実装検証中・実装後OK未受領、同じcg継続。残4〜7工程・中心6、前回cg相談時から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cgは既存問い枠内・確認未完のため減算せず、確認等の必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。以下のcg未採用・次cg案内は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でb48f4fbの[cf採用範囲](experimental_word_learning.md#diary-gesture-name-questions-cf)へ実装後OKと移動を明示。95枠95確認済み・正式子84、最新ao〜cf人間OK。次cgは残入口をap〜cf担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cf確認待ちと完全理解名前身振りを差引後も、酸味・確認等の残照合を暫定1工程へ再積上げ、必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。今回は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcf未受領・同じcf継続は過去状態。
 
 - cf最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcf継続。専用26・ゲーム2241・工具14・補修後監査52・七JS構文・七言語14957・権限付き別renderer889通過。全回帰c36CcPは2307中2264通過43不通過でincomplete、全43失敗は補修前監査の工程表cf行未追加／固定数42残存。ゲームと工具は全通過、未実行localizationは別npm run i18n:check、監査はf3bKXk、rendererはAH2vu0で補完し元runを成功へ昇格しない。新smokeのreviewRequiredも元資料に保持。固定49capture gateへの8967非捕捉はjgzkEN。95枠94確認済み・正式子84、残4〜7中心6・前回上下限中心差分0、全体未完。以下の実装検証中は途中状態。
 
 - 2026-10-20 cf：ユーザー「どちらも採用でOKです」で下記対象・成立保持を個別採用。95枠94確認済み・正式子84、最新ao〜ce人間OK。cf実装検証中・実装後OK未受領・同じcf継続。残4〜7工程・中心6、前回上下限中心差分0。以下の次cf未採用は過去状態。
+
+<a id="diary-gesture-sour-questions-cg"></a>
+
+##### 4d12cg：酸味詳細だけ未理解の問いへの身振り応答資料（2026-10-20）
+
+- ユーザー「はい、どちらもOKです」で対象・成立保持を個別採用。既存日本語単独sour_question（すっぱくない／酸っぱくない＋既存任意語尾・疑問符）の当時eat意味・当該question/negation関係適用可能、complete=false・unresolved=[{type:detail,token:sour}]だけ、subject=self・positive/unspecified、target/aspect/conditionStatus=null、speech=gestureの実attendを対象とする。既存正規化・解析境界を維持し、新文型・他言語文型・理解習得規則は追加しない。
+- `experimental_word_diary_gesture_sour_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=gesture_sour_question、occurrenceId=gesture_sour_question:今回input ID、sourceId=今回input ID。原五区分候補・4d2・turn.answer条件を変更しない。beのshort実発話、cbの意味関係不足、ccのconfirmation、cd/ce九入口、cf名前身振りと非重複。
+- receiptは独立input/inputKnowledge/inputContext、原ID、実receive直前beforeState/beforeWorld・実respond直後afterState/afterWorld/replyを供給する。使い捨てコピー上の既存receive/respondでresultと前後state/world/reply全文一致を要求する。供給資料整合照合であり真正性認証ではない。原input/frame・入力時知識/context・当時理解・前後state/world・実応答を分離コピーし、主体・極性・時点・不足を補完しない。
+- actualSpeech=false、実turn.answer非存在・turnAnswer=null。attendから酸味理解・酸味否定判断・回答成功・答え不明の原因・本人味覚経験を補わない。末尾eatがあれば原world資料としてmealへコピーし、なければnull。実応答が参照した経験と断定せず、原replyにないexperienceIdや時点を付与しない。sweet既知・食事有無・味・pleasant・現在活動・注目を新しい成立条件にしない。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・元資料不変。後知識・後食事・後注目で原理解／原応答を補完せず遡及成立なし。経験由来question/current_activity・negation/reportの限定scopeを転移しない。新教示・新学習・新本人経験なし。
+- 所有core/world/catalog・表示locale・ゲーム呼出・保存形式は非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。確認・理由・聞返し等の残照合、全14保留・各担当三保留を維持し永久対象外へ移さない。96枠95確認済み・正式子85、cg採用範囲実装・Codex検証完了・実装後OK未受領、最新ao〜cf人間OK・全体未完。
+- 専用初回は41テスト通過7476ms、35群397原52成立・39種2028改変拒否。既存43担当へ2236非捕捉、逆方向の回答・名前・確認・九入口fixture、実食事有無／味／sweet既知、遅延・13新入力・後知識後食事・コピー独立を確認。固定旧49captureへ2548非捕捉（V3OZ7a）。全過去fixture意味再読・全入口最終意味照合ではない。
+- 最終ゲーム検証bX1cgE：全Node2349（ゲーム2282＋監査53＋工具14）455938ms終了0、六JS構文・七言語14957通過。制限内renderer1290ms GPU起動失敗と静的未分類smokeのreviewRequiredを残し、元run全体incompleteを維持する。別権限付きmyA4lHは553件（397原＋三種156改変）2768ms終了0、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変。独立制限内lmwTgxも1433ms GPU失敗であり、成功へ置換しない。auto-review拒否なし。
+- TfDe36は八文書旧全行・旧text同順保持、既存リンク不一致18件基準一致・増加なし、handoffリンク・監査53・diff通過。bX1cgE/manual-dependency-review.jsonへ新smoke全文・既存ce smokeとの変更点・fixture依存・七コードhash不変を別記し元plan/reviewRequiredは非改変。PowerShell経由の新規現在状態通知の日本語文字化けをUTF-8文面へ補正、初回patch生成／照合失敗はソース変更前で停止、後の通知補正patchは途中まで適用されたため残四文書を再読補正。旧本文非削除、ゲームコードは全回帰開始後非変更。最終文書検査・commit/push結果は現在handoffを参照。
 
 <a id="diary-gesture-name-questions-cf"></a>
 
