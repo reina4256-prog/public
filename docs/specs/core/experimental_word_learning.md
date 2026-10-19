@@ -1,5 +1,21 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-20 ce：ユーザー「どちらもOKです。」で下記の対象・成立保持を個別採用。94枠93確認済み・正式子83、最新ao〜cd人間OK。ce採用範囲実装・Codex検証完了、実装後OK未受領・同じce継続。以下の「次ce未採用」は過去状態。
+
+<a id="diary-gesture-direct-questions-ce"></a>
+
+##### 4d12ce：九入口の完全理解時の身振り応答資料（2026-10-20）
+
+- 採用対象：既存単独questionのcurrent_activity／past_activity／attention／destination／work_past／work_again／taste_evaluation／taste_now／rest_result。当時complete=true・unresolved空・subject=self、speech=gestureの既存実respondがattend又はpleased_gestureを返した資料だけ。既存言語文型の範囲に従い、九入口を七言語へ新設する承認ではない。名前・酸味・確認・理由・聞返し等は今回へ混ぜず残照合へ保持。新文法・理解習得規則なし。
+- `experimental_word_diary_gesture_direct_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=gesture_direct_question、occurrenceId=gesture_direct_question:今回input ID、sourceId=今回input ID。原五区分候補と4d2のanswer_unknown条件を変更しない。ap実回答・cd未完理解九入口と非重複。
+- receiptは原ID、独立input/inputKnowledge/inputContext、実receive直前beforeState/beforeWorld、実respond直後afterState/afterWorld/replyを供給する。使い捨てコピー上の既存receive/respondでresult・前後state/world・実reply全文を照合する。供給資料整合照合であり真正性認証ではない。原主体・極性・時点・questionSlot・対象・理解・限定scopeを補完しない。
+- 原入力/frame・聞いたscene/attention・入力時知識/context・当時understanding・前後state/world・実responseを分離コピーする。actualSpeech=false、実turn.answer非存在・turnAnswer=null。attendから答え不明又は回答可能を断定せず、pleased_gestureから発話・回答成功・感情を新造しない。actualAnswerや架空answerを追加しない。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・原資料不変。後知識・後注目・後名付けで原理解や原応答を書き換えず遡及成立なし。経験由来question/current_activityを他slot・他話者・他言語へ転移しない。新教示・新学習・新本人経験なし。
+- 所有core/world/catalog・表示文locale・ゲーム呼出・保存形式は非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全14保留・各担当三保留を維持し、gesture_questionsのうち今回九入口以外の拡張を永久対象外へ移さない。
+- 最終ゲーム検証：専用vCdfscは101項目14897ms通過、96群1933原192成立（attend186／pleased_gesture6）・39種7488改変拒否・既存41担当7872非重複。九slot・既存七言語を確認。全回帰KonmoYは全Node2280（ゲーム2215＋監査51＋工具14）490842ms終了0、八JS構文・七言語14957通過。制限内renderer2841ms終了2147483651・GPU起動失敗と静的未分類smokeのreviewRequiredを保持し、run全体incompleteのまま。権限付き別a7UicKのrendererコマンドは2509件（1933原＋三種576改変）24125ms終了0、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。a7UicK自体もreviewRequiredが残るincompleteで、コマンド成功と区別する。新smoke全文とfixture依存をKonmoY/manual-dependency-review.jsonへ別記し、元plan/reviewRequiredを改変しない。採用範囲実装・Codex検証完了、実装後OK未受領。
+- 補助検証m0ffYFは固定49capture gateへの9408非捕捉・diff通過（4d1候補型拒否は専用内）。これは全既存担当原fixtureの意味再読ではない。文書Bw8WaRは八文書旧全行・181旧text・NEXT_CHAT旧8text同順保持、共有四リンク既存不一致18件基準一致・増加なし、短文書/handoffリンク・監査50＋42・全回帰開始九file hash不変・diff通過。全入口最終意味照合・本接続・実UI音声・実ユーザー保存は未検証。
+- 途中証跡：制限内独立LbxyMfは4097ms GPU失敗。4zzUTvは文書保持通過後のdiff起動指定を誤り失敗（常にNodeを起動する工具へexecutable=git指定）、正しいNode内git実行でm0ffYF/Bw8WaR通過。補助初回X2eKcwはcreate部品をcaptureと呼び停止、createを除いた既存gate検査へ訂正。ゲーム規則／部品補修は発生せず、途中失敗・全原ログをdocs/.local-history/verification-runsへ保持。最終文書検査とcommit/push結果は現在handoffを参照。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でcdへ実装後OKと移動を明示。45c7d62の[cd採用範囲](experimental_word_learning.md#diary-incomplete-direct-questions-cd)は実装・Codex検証・ユーザー実装後OK確認済み。93枠93確認済み・正式子82、最新ao〜cd人間OK。次ceは残入口をap〜cd担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積りはあと4〜7工程・中心6（問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回4〜8中心6から上限1減・下限中心差分0。cd九入口未完理解の確認待ちを除き、完全理解時身振り等の残問い照合を暫定1工程へ再積上げしたため。中心配分1＋1.5＋1＋2＝5.5を6へ丸める。問いの必要分割と全入口分類は未確定で増減し得る。全14保留・各担当三保留・全体未完。専用70・全Node2178（ゲーム2114＋監査50＋工具14）・七JS構文・七言語14957・別権限付きrenderer849通過を引継ぎ、全回帰3Wfgfvの制限内GPU失敗incompleteと別ogg9Xx成功を区別。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcd実装後OK未受領・同じcd継続は過去状態。
 
 <a id="diary-incomplete-direct-questions-cd"></a>

@@ -82,7 +82,7 @@ test('independent input, knowledge, context and all original response fields are
             .map(group => [group, [values.filter(f => f.group === group).length, values.filter(f => f.group === group && f.expected).length]])) } }));
 });
 test('cc stays separate from all 39 prior supplemental owners', () => {
-    const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(o => !['4d12cc', '4d12cd'].includes(o.id));
+    const owners = require('../scripts/experimental/diary_audit').supplementalInventory().slice(0, 39);
     assert.equal(owners.length, 39);
     for (const f of values.filter(item => item.expected)) for (const owner of owners) {
         const v = copy(f.value), source = JSON.stringify(v);

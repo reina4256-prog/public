@@ -1,5 +1,9 @@
 # 新方式：普段読む入口
 
+- ce最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)実装・Codex検証完了、実装後OK未受領・同じce継続。専用101・全Node2280・八JS構文・七言語14957・別renderer2509通過。全回帰KonmoYの制限内GPU失敗incompleteと別a7UicKのコマンド成功／reviewRequired残存incompleteを区別。残4〜7中心6・前回差分0、全体未完。以下のce実装検証中は途中状態。
+
+- 2026-10-20 ce：[九入口完全理解時の身振り応答資料](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)の対象・成立保持を個別採用。94枠93確認済み・正式子83、最新ao〜cd人間OK。ce実装検証中・実装後OK未受領・同じce継続。残4〜7中心6、前回差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）、ce確認未完・九入口外身振り等の必要分割未確定。全14保留・各担当三保留・全体未完。以下の次ce未採用は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でcdへ実装後OKと移動を明示。45c7d62の[cd採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-direct-questions-cd)は実装・Codex検証・ユーザー実装後OK確認済み。93枠93確認済み・正式子82、最新ao〜cd人間OK。次ceは残入口をap〜cd担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積りはあと4〜7工程・中心6（問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回4〜8中心6から上限1減・下限中心差分0。cd九入口未完理解の確認待ちを除き、完全理解時身振り等の残問い照合を暫定1工程へ再積上げしたため。中心配分1＋1.5＋1＋2＝5.5を6へ丸める。問いの必要分割と全入口分類は未確定で増減し得る。全14保留・各担当三保留・全体未完。専用70・全Node2178（ゲーム2114＋監査50＋工具14）・七JS構文・七言語14957・別権限付きrenderer849通過を引継ぎ、全回帰3Wfgfvの制限内GPU失敗incompleteと別ogg9Xx成功を区別。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcd実装後OK未受領・同じcd継続は過去状態。
 
 - 2026-10-19 cdの[九入口未完理解資料](../specs/core/experimental_word_learning.md#diary-incomplete-direct-questions-cd)は対象・成立保持採用、採用範囲実装・Codex検証完了、実装後OK未受領・同じcd継続。93枠92確認済み・正式子82、最新ao〜cc人間OK。残4〜8中心6、前回差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終2）。cd確認待ち・完全理解身振り等が残り、採用だけで減算しない。全体未完、以下の次cd未採用は過去状態。

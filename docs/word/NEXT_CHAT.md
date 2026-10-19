@@ -1,5 +1,13 @@
 # 次チャットの開始文
 
+## 現在は同じce内の継続（移動指示ではない）
+
+ce採用範囲は実装・Codex検証完了、実装後OK未受領・同じce継続。専用101・全Node2280・八JS構文・七言語14957・権限付き別renderer2509通過。全回帰KonmoYの制限内GPU失敗incompleteと別a7UicKのrendererコマンド成功／reviewRequiredを残すrun全体incompleteを区別し、手動依存確認・4zzUTv/X2eKcw途中失敗・補修後m0ffYF/Bw8WaRと原ログを保持。以下のce実装検証中は途中状態。次は同じce内の自由フィードバック・必要補修、移動はユーザー明示時だけ。
+
+2026-10-20ユーザー「どちらもOKです。」で[ce対象・成立保持](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)を個別採用。九入口完全理解時の身振り応答資料を実装検証中、実装後OK未受領・同じce継続。94枠93確認済み・正式子83、最新ao〜cd人間OK。次記号を採番せず、固定入力確認や確認済み範囲の再確認を求めない。最新検証・commit/pushは[現在作業](../CURRENT_IMPLEMENTATION.md)を参照する。
+
+残4〜7工程・中心6、前回cd確認後から上下限・中心差分0。問い1（ce確認と九入口外身振り等の残照合）／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2。中心5.5を6へ丸め、採用だけで減算しない。追加分割未確定・全14保留・各担当三保留・全体未完。途中保存commit/pushは移動合図ではない。以下の次ce未採用は過去状態。直前全文はdocs/.local-history/NEXT_CHAT-before-ce-implementation-2026-10-20.mdへ保持。
+
 ## 次チャットへ貼る開始文（cd確認済み・次ce未採用）
 
 ```text
