@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-20 ch：ユーザー「はい、どちらも採用でOKです」で[完全理解した確認問いへの身振り応答資料](#diary-gesture-confirmation-questions-ch)の対象・成立保持を個別採用。97枠96確認済み・正式子86、最新ao〜cg人間OK。ch採用範囲実装・Codex検証完了・実装後OK未受領、同じch継続。残4〜7工程・中心6、前回から上下限・中心差分0（問い1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。chを既存問い枠へ含め、未確認・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のch未採用・次ch案内は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd889c22の[cg採用範囲](experimental_word_learning.md#diary-gesture-sour-questions-cg)へ実装後OKと移動を明示。96枠96確認済み・正式子85、最新ao〜cg人間OK。次chは残入口をap〜cg担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cg確認前から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cg確認待ち・酸味詳細だけ未理解の実身振りを差引後も、確認等の残照合だけで問いを暫定1へ再積上げ。必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcg実装後OK未受領・同じcg継続は過去状態。
 
 - 2026-10-20 cg：ユーザー「はい、どちらもOKです」で[酸味詳細だけ未理解の問いへの身振り応答資料](experimental_word_learning.md#diary-gesture-sour-questions-cg)の対象・成立保持を個別採用。96枠95確認済み・正式子85、最新ao〜cf人間OK。cg採用範囲実装・Codex検証完了・実装後OK未受領、同じcg継続。残4〜7工程・中心6、前回cg相談時から上下限・中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cgは既存問い枠内・確認未完のため減算せず、確認等の必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。以下のcg未採用・次cg案内は過去状態。 専用41・全Node2349・六JS構文・七言語14957・別renderer553通過。全回帰bX1cgEの制限内GPU失敗incompleteと別myA4lHの成功を区別し、詳細・原ログはcg所有仕様と現在handoffへ保持。
@@ -11,6 +13,22 @@
 - cf最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcf継続。専用26・ゲーム2241・工具14・補修後監査52・七JS構文・七言語14957・権限付き別renderer889通過。全回帰c36CcPは2307中2264通過43不通過でincomplete、全43失敗は補修前監査の工程表cf行未追加／固定数42残存。ゲームと工具は全通過、未実行localizationは別npm run i18n:check、監査はf3bKXk、rendererはAH2vu0で補完し元runを成功へ昇格しない。新smokeのreviewRequiredも元資料に保持。固定49capture gateへの8967非捕捉はjgzkEN。95枠94確認済み・正式子84、残4〜7中心6・前回上下限中心差分0、全体未完。以下の実装検証中は途中状態。
 
 - 2026-10-20 cf：ユーザー「どちらも採用でOKです」で下記対象・成立保持を個別採用。95枠94確認済み・正式子84、最新ao〜ce人間OK。cf実装検証中・実装後OK未受領・同じcf継続。残4〜7工程・中心6、前回上下限中心差分0。以下の次cf未採用は過去状態。
+
+<a id="diary-gesture-confirmation-questions-ch"></a>
+
+##### 4d12ch：完全理解した単独確認問いへの身振り応答資料（2026-10-20）
+
+- 最終ゲーム検証maueyX：全Node2398（ゲーム2330＋監査54＋工具14）433297ms終了0、六JS構文・短文書リンク・七言語14957通過。同run制限内rendererは5427ms GPU起動失敗、静的未分類smokeのreviewRequiredも残し元run全体incompleteを維持。未実行check/testなし。別権限付きLaH1oqの549件成功と区別し、元plan/summaryを成功へ昇格しない。nseR7Cは旧八文書全行・旧text保持、既存リンク不一致18件基準一致増加なし・handoffリンク・監査54・diff通過。最終文書検査・開始七コードhash照合とcommit/push結果は現在handoff参照。ch採用範囲実装・Codex検証完了、実装後OK未受領、同じch継続。以下の実行中は途中状態として保持。
+
+- 専用初回ch-dedicated-SIJNQ8は48中47通過・1不通過7807ms。問い後の訂正を原名付けの実取り下げとするtest前提が誤りであり、後の知識・注目変更時にも原資料が変わらないtestへ補正。ゲーム規則変更なし。補正後ch-dedicated-b1CXeAは48通過6957ms、41群399原50成立・39種1950改変拒否・既存44担当2200非重複。逆方向の回答・名前・確認・九入口・酸味fixture、当時理解と実回答の分離、遅延・13新入力・コピー独立・限定scope非転移を確認。固定旧49captureはSDtaOdで2450非捕捉。全旧fixture意味再読・全入口最終意味照合ではない。
+- 独立renderer制限内ch-renderer-pgY3oiは1765ms終了2147483651・GPU起動失敗。別権限付きch-renderer-LaH1oqは549件（399原＋三種150改変）3825ms終了0、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変、auto-review拒否なし。失敗と別成功を区別する。全回帰maueyXは実行中、静的未分類smokeの全文・既存cgとの差分・直接fixture依存・開始七コードhash不変をmanual-dependency-review.jsonへ別記し元plan/reviewRequired非改変。
+
+- ユーザー「はい、どちらも採用でOKです」で対象・成立保持を個別採用。既存日本語parserがcatalogのreport規則から実際に単独question/slot=confirmationと解析し、当時kind=question・complete=true・unresolved空・subject=self、speech=gestureで実attend・turn.answerなしである資料だけを対象とする。新文型・他言語文型・理解習得規則は追加しない。ccの未完理解、4d2の完全理解時実answer_unknown、apの九入口実回答、asの名付け肯否、bd/bz/ca/cf名前、be/cb/cg酸味、cd/ce九入口等の担当を維持する。
+- `experimental_word_diary_gesture_confirmation_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=gesture_confirmation_question、occurrenceId=gesture_confirmation_question:今回input ID、sourceId=今回input ID。原五区分候補・4d2・turn.answer条件を変更しない。
+- receiptは実receive直前beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond直後afterState/afterWorld/replyを供給。原IDと独立資料を照合し、使い捨てコピー上の既存receive/respondでresult・前後state/world・実replyを全文照合する。供給資料整合照合であり真正性認証ではない。原input/frame、入力時知識/context、当時理解、実応答、前後状態を分離コピーし、対象・主体・極性・時点・aspect・条件を補完しない。
+- actualSpeech=false・turnAnswer=null。attendから肯否回答・回答成功・答え不明の原因・報告受領・本人の好悪／希望／経験を新造しない。原replyにないexperienceId・時点を付けない。例えば「木の実が好き？」の完全理解と本人の「好き」という実回答を区別する。「休むことは大事？」の既存importance詳細不足はccに残し、chのために理解を補修しない。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・元資料不変。後知識・後注目・後名付け・後確認・後訂正で原理解を補完せず遡及成立なし。経験由来question/current_activityやnegation/reportの限定scopeをconfirmationへ転移しない。新教示・新学習・新本人経験なし。
+- 所有core/world/catalog・表示locale・ゲーム呼出・保存形式は非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全入口最終意味照合・理由／聞返し等の残照合、全14保留・各担当三保留を維持する。97枠96確認済み・正式子86、ch実装検証中・実装後OK未受領、同じch継続。検証結果は後続記録を参照。
 
 <a id="diary-gesture-sour-questions-cg"></a>
 
