@@ -1,5 +1,26 @@
 # 言葉の経験学習・比較実験版
 
+- ci最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。専用19／全Node2418（ゲーム2349＋監査55＋工具14）／六JS構文／七言語14957／別権限付きrenderer775通過。全回帰r3rbY0は制限内renderer GPU失敗と新smokeのreviewRequiredを残すincomplete、別oletdOの成功と区別し元runを成功へ昇格しない。残4〜7中心6、前回上下限中心差分0、全体未完。以下のci実装検証中は途中状態。
+
+- 2026-10-20 ci：ユーザー「はい、どちらも採用でOKです」で[理由問いの身振り資料](#diary-gesture-reason-questions-ci)の対象・成立保持を個別採用。98枠97確認済み・正式子87、最新ao〜ch人間OK。ci実装・検証中、実装後OK未受領・同じci継続。残4〜7工程・中心6、前回上下限中心差分0。全14保留・各担当三保留・全体未完。以下の次ci未採用は過去状態。
+
+<a id="diary-gesture-reason-questions-ci"></a>
+
+##### 4d12ci：完全理解した本人休息理由問いへの身振り応答資料（2026-10-20）
+
+- 採用対象は既存日本語parserの単独question/slot=reason/meaning=restで、入力当時kind=question・complete=true・unresolved空・subject=self、speech=gesture、実attend・turn.answerなしの資料。既存canonical理由問いとcatalog reason_questionの既存解析範囲に従う。新文型・他言語文型・理解習得規則は追加しない。frameの主体省略を理解結果のsubjectと混同しない。
+- `experimental_word_diary_gesture_reason_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=gesture_reason_question、occurrenceId=gesture_reason_question:今回input ID、sourceId=今回input ID。原五区分候補・4d2・turn.answer条件・所有core/world/catalog・ゲーム呼出・保存形式は非変更。
+- receiptは実receive直前beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond直後afterState/afterWorld/reply。原IDと独立資料を照合し、使い捨てコピー上の既存receive/respondでresult・前後state/world・実replyを全文照合。供給資料整合照合であり真正性認証ではない。原input/frame、当時知識/context、理解、実応答、前後状態を分離コピーし、主体・対象・極性・時点・条件を補完しない。
+- actualSpeech=false・turnAnswer=null。原replyがmessage=attendだけなら休息参照を付けない。原replyにexperienceId/eventTime/choiceSource/reviewedByがある場合はそのまま保持するが、理由の実発話・回答成功・全動機の自覚・答え不明の原因へ変換しない。原問いのeventTime=unspecifiedと原replyのpast、聞いた活動と参照された休息を分離する。今回の教示・学習・本人経験は新造しない。
+- 初期question/reasonと実経験由来の当該scopeを区別し、別言語・話者・文型・current_activity等へscopeを転移しない。同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・元資料不変。後知識・後活動・後振り返りで遡及成立しない。
+- uの実selected_reason、aqのrepeat_answer/context_detail実回答、ap九入口実回答、4d2実answer_unknown、cd/ce九入口、cc/ch確認、名前bd/bz/ca/cf・as、酸味be/cb/cgほか既存担当を維持。理由未完理解・文脈確認等の残照合は未完で、一括採用・永久対象外にしない。
+- 本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。全14保留・各担当三保留を維持。検証結果は後続の現在通知とhandoffを参照。
+
+- 専用eRHAPwは19通過11651ms、13群649原42成立、39種1638改変拒否、既存45追加担当1890非重複。別8kFmBdで固定49captureへ2058非捕捉。理由の初期／実経験由来知識、振り返り有無、休息参照の有無、別話者／言語／scope、実発話u・実answer_unknownの4d2、未完理解、遅延・8新入力・後知識・コピー独立を確認。全旧fixture意味再読・全入口最終意味照合ではない。
+- 最初の直接専用runは16/19で、fixtureのsetup既定foundation=falseを見落とした期待値等を補正。このrunの原出力全文ファイルは未保存でツール出力のみ。ログ付きR4gp9Dは18/19、既存別名frame.subject省略をu.subjectと混同したadapter条件を補正後eRHAPw成功。parser／理解規則は非変更。失敗と成功・保存済み原ログと未保存を区別し、工具段の無適用失敗はローカルci-tool-notes.txtへ保持。
+- 全回帰r3rbY0：Node2418通過490068ms、六JS構文・短文書リンク・七言語14957通過、未実行check/testなし。制限内renderer1655ms GPU起動失敗・ERR_FAILED(-2)でrun全体incomplete。新smokeの静的未分類reviewRequiredを非改変で残し、manual-dependency-review.jsonへsmoke全文・chとの差分が名称/fixture/global/sentinelだけである照合・直接fixture依存・七所有コード開始hash不変を別記。
+- 別権限付きoletdO rendererは775件（649原＋三種126改変）6271ms終了0、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変。auto-review拒否なし。O7W3gjで開始八文書11704旧全行・193旧text（工程表181＋NEXT_CHAT12）保持、既存リンク不一致18件基準一致増加なし・handoffリンク・diff通過。最終文書保持・コード開始hash再照合・commit/push結果は現在handoff参照。ログはdocs/.local-history/verification-runs/へ非削除保持。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で72a6223の[ch採用範囲](#diary-gesture-confirmation-questions-ch)へ実装後OKと移動を明示。97枠97確認済み・正式子86、最新ao〜ch人間OK。次ciは残入口をap〜ch担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ch確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ch確認待ちと完全理解confirmation実身振りを差引後も、理由・聞返し等を既存u/aq等と照合する残りを暫定1へ再積上げ。追加実装の要否・必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のch実装後OK未受領・同じch継続は過去状態。
 
 - 2026-10-20 ch：ユーザー「はい、どちらも採用でOKです」で[完全理解した確認問いへの身振り応答資料](#diary-gesture-confirmation-questions-ch)の対象・成立保持を個別採用。97枠96確認済み・正式子86、最新ao〜cg人間OK。ch採用範囲実装・Codex検証完了・実装後OK未受領、同じch継続。残4〜7工程・中心6、前回から上下限・中心差分0（問い1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。chを既存問い枠へ含め、未確認・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のch未採用・次ch案内は過去状態。

@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+ci最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。supplemental46・全96登録、監査55・全Node2418・別renderer775通過。元r3rbY0のGPU失敗incompleteと別oletdO成功を区別。残4〜7中心6・前回上下限中心差分0、全保留・全体未完。以下は途中状態。
+
+2026-10-20 ci：[理由問いの身振り資料](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)を個別採用、実装検証中・実装後OK未受領。同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。全96登録（supplemental46）を確認枠数と区別する。残4〜7中心6、前回上下限中心差分0、全保留・全体未完。以下の次ci未採用は過去状態。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12ci | gesture_reason_questions.capture (3) | [source](../../experimental_word_diary_gesture_reason_questions.js) | [test](../../tests/experimental_word_diary_gesture_reason_questions.test.js) |
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」で72a6223の[ch採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-confirmation-questions-ch)へ実装後OKと移動を明示。97枠97確認済み・正式子86、最新ao〜ch人間OK。次ciは残入口をap〜ch担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ch確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終2）。ch確認待ちと完全理解confirmation実身振りを差引後も、理由・聞返し等を既存u/aq等と照合する残りを暫定1へ再積上げ。追加実装の要否・必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のch実装後OK未受領・同じch継続は過去状態。
 
 | 工程 | 部品／API | コード | 専用テスト |

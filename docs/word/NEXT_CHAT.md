@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+- ci最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)実装・Codex検証完了、実装後OK未受領・同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。専用19・全Node2418・六JS構文・七言語14957・別renderer775通過。元r3rbY0はGPU失敗とreviewRequiredでincomplete、別oletdO成功と区別。残4〜7中心6・前回上下限中心差分0、全保留・全体未完。旧開始文12textを保持し、新チャットへは移動しない。以下は途中状態。
+
+- 2026-10-20現在：ユーザー「はい、どちらも採用でOKです」で[ci理由問いの身振り資料](../specs/core/experimental_word_learning.md#diary-gesture-reason-questions-ci)の対象・成立保持を個別採用。ci実装検証中・実装後OK未受領、同じci継続。98枠97確認済み・正式子87、最新ao〜ch人間OK。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。全14保留・各担当三保留・全体未完。以下のci未採用開始文は過去状態で、移動用の新開始文ではない。
+
 ## 次チャットへ貼る開始文（ch確認済み・次ci未採用）
 
 ```text
