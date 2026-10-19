@@ -1,5 +1,9 @@
 # 新方式：普段読む入口
 
+- cf最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)実装・Codex検証完了、実装後OK未受領・同じcf継続。95枠94確認済み・正式子84、残4〜7中心6・前回上下限中心差分0。ゲーム2241・工具14・補修後監査52・七言語14957・別renderer889通過、全回帰c36CcPは補修前監査43失敗incompleteを保持。全14保留・各担当三保留・全体未完。以下は途中状態。
+
+- 2026-10-20 cf：[対象・成立保持](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)を個別採用。95枠94確認済み・正式子84、最新ao〜ce人間OK。cf実装検証中・実装後OK未受領・同じcf継続。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）、必要分割未確定。全14保留・各担当三保留・全体未完。以下の次cf未採用は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd61bee8の[ce採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)へ実装後OKと移動を明示。94枠94確認済み・正式子83、最新ao〜ce人間OK。次cfは残入口をap〜ce担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）、ce確認待ち差引後も九入口外身振り等を暫定1工程へ再積上げ、必要分割・全入口分類未確定。全14保留・各担当三保留・全体未完。今回文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のce未受領・同じce継続は過去状態。
 
 - ce最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)実装・Codex検証完了、実装後OK未受領・同じce継続。専用101・全Node2280・八JS構文・七言語14957・別renderer2509通過。全回帰KonmoYの制限内GPU失敗incompleteと別a7UicKのコマンド成功／reviewRequired残存incompleteを区別。残4〜7中心6・前回差分0、全体未完。以下のce実装検証中は途中状態。

@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 現在は同じcf内の継続（移動指示ではない）
+
+cf採用範囲は実装・Codex検証完了、実装後OK未受領・同じcf継続。専用26、ゲーム2241＋工具14、補修後監査52、七JS構文、七言語14957、権限付き別renderer889通過。全回帰c36CcPは2307中2264通過43不通過でincomplete、全43失敗は補修前の監査cf行未追加／固定42残存。別f3bKXkの監査成功、別npm i18n成功、別AH2vu0のrenderer成功と元run未実行を区別する。manual-dependency-review.jsonへsmoke全文・依存・hash比較を別記、元plan/reviewRequired非改変。制限内vbK3nx失敗・IElbjE監査失敗・初回Python準備失敗・全原ログを保持。次は同じcfの自由フィードバック・必要補修で、移動はユーザー明示時だけ。以下の実装検証中は途中状態。
+
+2026-10-20ユーザー「どちらも採用でOKです」で[cf対象・成立保持](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)を個別採用。既存日本語の完全理解・対象一意の名前問いへのrecognize_gesture／looking／attendを、原名付け根拠・既存確認・前後pendingと共に独立資料保持する。発話・回答成功・新確認を作らない。cf実装検証中・実装後OK未受領・同じcf継続、次記号を採番せず固定入力確認や確認済み範囲の再確認を求めない。
+
+95枠94確認済み・正式子84、最新ao〜ce人間OK。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cf確認待ちと酸味・確認等の残照合・必要分割未確定のため採用だけで減算しない。全14保留・各担当三保留・全体未完。最新検証とcommit/pushは[現在作業](../CURRENT_IMPLEMENTATION.md)参照。途中保存は移動合図ではない。
+
+直前tracked八文書全文はdocs/.local-history/cf-baseline-fe76100/内の元相対パス、直前ローカルhandoffはdocs/.local-history/CURRENT_IMPLEMENTATION-before-cf-implementation-2026-10-20.mdへ保持。以下の次cf未採用は過去状態。
+
 ## 次チャットへ貼る開始文（ce確認済み・次cf未採用）
 
 ```text

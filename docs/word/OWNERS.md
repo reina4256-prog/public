@@ -1,5 +1,9 @@
 # 日記部品の担当・参照索引
 
+- cf最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)実装・Codex検証完了、実装後OK未受領・同じcf継続。固定50＋supplemental43＝93登録、95枠94確認済み・正式子84とは別。補修後監査52通過、全回帰c36CcPの補修前監査43失敗は元runへ保持。最新ao〜ce人間OK・全体未完、以下は途中状態。
+
+- 2026-10-20 cf：[名前問い完全理解時の身振り応答資料](../specs/core/experimental_word_learning.md#diary-gesture-name-questions-cf)を個別採用。固定50＋supplemental43＝93登録、95枠94確認済み・正式子84とは別。cf実装検証中・実装後OK未受領・同じcf継続。最新ao〜ce人間OK、全14保留・各担当三保留・全体未完。以下の次cf未採用は過去状態。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd61bee8の[ce採用範囲](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)へ実装後OKと移動を明示。94枠94確認済み・正式子83、最新ao〜ce人間OK、固定50＋supplemental42＝92登録とは別。次cfはap〜ce担当差引後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）、ce確認待ち差引後も九入口外身振り等を暫定1へ再積上げ、必要分割未確定。全14保留・各担当三保留・全体未完。今回文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のce未受領は過去状態。
 
 - ce最終：採用範囲実装・Codex検証完了、実装後OK未受領。専用101・全Node2280・八JS構文・七言語14957・別renderer2509通過、元runのGPU失敗／未分類reviewRequiredを保持。[所有仕様](../specs/core/experimental_word_learning.md#diary-gesture-direct-questions-ce)。固定50＋supplemental42＝92登録、94枠93確認済み・正式子83、全体未完。以下のce実装検証中は途中状態。
@@ -8,6 +12,7 @@
 
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
+| 4d12cf | gesture_name_questions.capture (3) | [source](../../experimental_word_diary_gesture_name_questions.js) | [test](../../tests/experimental_word_diary_gesture_name_questions.test.js) |
 | 4d12ce | gesture_direct_questions.capture (3) | [source](../../experimental_word_diary_gesture_direct_questions.js) | [test](../../tests/experimental_word_diary_gesture_direct_questions.test.js) |
 
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でcdへ実装後OKと移動を明示。45c7d62の[cd採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-direct-questions-cd)は実装・Codex検証・ユーザー実装後OK確認済み。93枠93確認済み・正式子82、最新ao〜cd人間OK。次ceは残入口をap〜cd担当と再照合して一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積りはあと4〜7工程・中心6（問い1／提案1〜2／報告・否定お願い残照合0〜2／最終意味照合・回帰2）、前回4〜8中心6から上限1減・下限中心差分0。cd九入口未完理解の確認待ちを除き、完全理解時身振り等の残問い照合を暫定1工程へ再積上げしたため。中心配分1＋1.5＋1＋2＝5.5を6へ丸める。問いの必要分割と全入口分類は未確定で増減し得る。全14保留・各担当三保留・全体未完。専用70・全Node2178（ゲーム2114＋監査50＋工具14）・七JS構文・七言語14957・別権限付きrenderer849通過を引継ぎ、全回帰3Wfgfvの制限内GPU失敗incompleteと別ogg9Xx成功を区別。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcd実装後OK未受領・同じcd継続は過去状態。

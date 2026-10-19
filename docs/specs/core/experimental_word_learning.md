@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+- cf最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcf継続。専用26・ゲーム2241・工具14・補修後監査52・七JS構文・七言語14957・権限付き別renderer889通過。全回帰c36CcPは2307中2264通過43不通過でincomplete、全43失敗は補修前監査の工程表cf行未追加／固定数42残存。ゲームと工具は全通過、未実行localizationは別npm run i18n:check、監査はf3bKXk、rendererはAH2vu0で補完し元runを成功へ昇格しない。新smokeのreviewRequiredも元資料に保持。固定49capture gateへの8967非捕捉はjgzkEN。95枠94確認済み・正式子84、残4〜7中心6・前回上下限中心差分0、全体未完。以下の実装検証中は途中状態。
+
+- 2026-10-20 cf：ユーザー「どちらも採用でOKです」で下記対象・成立保持を個別採用。95枠94確認済み・正式子84、最新ao〜ce人間OK。cf実装検証中・実装後OK未受領・同じcf継続。残4〜7工程・中心6、前回上下限中心差分0。以下の次cf未採用は過去状態。
+
+<a id="diary-gesture-name-questions-cf"></a>
+
+##### 4d12cf：完全理解した名前の問いへの身振り応答資料（2026-10-20）
+
+- 採用対象：既存日本語単独name_question（これ／それ＋任意は＋何／なに／なんて呼ぶの／何て呼ぶの）の当時complete=true・unresolved空・subject=self・positive/unspecified・questionSlot=name・aspect/conditionStatus=null、attentionから対象一意、speech=gestureで実respondがrecognize_gesture／looking／attendを返した資料。既存正規化範囲だけで新文法・他言語文型・理解習得規則は追加しない。bd実発話・bz関係不足・ca対象だけ未解決・ce九入口身振りと非重複。酸味・確認・理由・聞返し等の残照合を維持する。
+- `experimental_word_diary_gesture_name_questions.create()/capture(buffer,result,receipt)`三引数独立一時journal。kind=gesture_name_question、occurrenceId=gesture_name_question:今回input ID、sourceId=今回input ID。原五区分候補・4d2・既存turn.answerの条件は変更しない。
+- receiptは独立input/inputKnowledge/inputContext、原ID、実receive前beforeState/beforeWorld・実respond後afterState/afterWorld/replyを供給する。使い捨てコピー上の既存receive/respondでresultと前後state/world/reply全文一致を要求する。供給資料整合照合であり真正性認証ではない。原input/frame・入力時知識/context・当時理解・前後状態／world・実応答を分離コピーし、主体・極性・時点・対象・理解不足を補完しない。
+- recognize_gestureは同話者同対象の一意な有効個体名対応を参照し、全active原名付け根拠と、既存confirmedByがあれば原確認をbdと同じ平坦資料で照合する。未確認ならconfirmation=null。lookingは有効対応なし＋berry対象＋当時berry意味既知の既存枝。attendは実応答のまま保持し、名前既知／未知や答え不明の原因を断定しない。非参照枝はorigins=[]・confirmation=null。架空原根拠を補わない。
+- actualSpeech=false、実ターンanswer非存在・turnAnswer=null。recognize_gestureのwordを発話や回答成功へ変換せず、既存確認済み／未確認対応と前後pendingQuestionをそのまま保持する。捕捉による新しい確認待ち・確認成立なし。新教示・新学習・新本人経験なし。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・原資料不変。後知識・後注目・後名付け・後確認で原理解／原応答を書き換えず遡及成立なし。経験由来question/current_activityの限定scopeをnameへ転移しない。
+- 所有core/world/catalog・表示locale・ゲーム呼出・保存形式は非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全14保留・各担当三保留・4d12／4d／ID4全体未完。検証結果は実行後記録する。
+- cf専用gS1UHQ：26テスト17621ms通過。18群340原183成立（recognize_gesture173／looking5／attend5）、30種5490今回改変拒否、原名付け175資料への12種改変と欠損重複2450拒否、原確認82資料への12種984拒否、既存42担当7686非重複。元資料不変・返却コピー独立・遅延・新入力・後確認・限定scopeを確認。これは全過去fixture意味再読・全入口最終意味照合ではない。
+- renderer制限内vbK3nxは2148ms終了2147483651・GPU起動失敗。別権限付きAH2vu0は889件（340原＋三種549改変）6472ms終了0、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変、auto-review拒否なし。本人日記生成保存再開配布や実ユーザー保存の検証へ昇格しない。
+- 文書IElbjEは旧八文書全行・旧text保持と既存リンク不一致18件増加なし通過後、監査内の旧固定登録数42残存で監査失敗。43への補修とcf fixture/smokeのHTTP非公開検査追加後、f3bKXkの監査52・文書保持・diff通過。全回帰開始後に変わったコードはこの監査工具／test二本だけ、ゲーム四JS・ce test・package hash不変。全回帰c36CcPは実行中。manual-dependency-review.jsonへ新smoke全文・依存・hash比較を別記し、元plan/reviewRequiredを改変しない。全原ログをdocs/.local-history/verification-runsへ保持。
+
 - 2026-10-20最新確認：ユーザー「OKです。次チャットをおねがいします。」でd61bee8の[ce採用範囲](experimental_word_learning.md#diary-gesture-direct-questions-ce)へ実装後OKと移動を明示。94枠94確認済み・正式子83、最新ao〜ce人間OK。次cfは残入口をap〜ce担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。当回再見積り4〜7中心6（問い1／提案1〜2／報告否定お願い0〜2／最終2）、前回ce確認前から上下限・中心差分0。ce九入口身振りの確認待ちを差引後も、名前・酸味等の九入口外身振りの既存担当差引後の残照合を暫定1工程に再積上げしたため。中心5.5を6へ丸め、必要分割・全入口分類未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のce実装後OK未受領・同じce継続は過去状態。
 
 - 2026-10-20 ce：ユーザー「どちらもOKです。」で下記の対象・成立保持を個別採用。94枠93確認済み・正式子83、最新ao〜cd人間OK。ce採用範囲実装・Codex検証完了、実装後OK未受領・同じce継続。以下の「次ce未採用」は過去状態。
