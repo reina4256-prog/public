@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-21 ck最終：文脈確認未完理解資料の採用範囲実装・Codex検証完了、実装後OK未受領・同じck継続、次チャット移動なし。100枠99確認済み・正式子89、最新ao〜cj人間OK。専用23・全Node2464（ゲーム2393＋監査57＋工具14）・六JS構文・七言語14957・別権限付きrenderer2155通過。初回全回帰RVZVcqの外側ラッパーtimeout未完と、別全回帰mxv1tEの静的分類外smoke reviewRequiredを残すincompleteと、別renderer成功・手動依存確認を区別する。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。ck確認待ちと完全理解文脈確認非発話／反復等の必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のck未採用・検証中は過去状態。
+
+<a id="diary-incomplete-context-questions-ck"></a>
+
+##### 4d12ck：文脈確認の未完理解資料（2026-10-21）
+
+- 最終検証：専用23通過（17群1174原327成立）、37種12099資料改変拒否・既存47追加担当15369非重複。固定旧49captureへの別gate16023非捕捉。全Node2464・六JS構文・七言語14957・別権限付きrenderer2155（1174原＋三種981改変）通過。原表示・参照経験八種改変拒否、後実学習非遡及、13新入力、遅延・コピー独立・元資料不変を検査。初回全回帰RVZVcqの外側ラッパーtimeout未完と別全回帰mxv1tEの成功を分離し、別runのreviewRequiredを非改変で残す。制限内renderer GPU失敗も別制限外成功で置換しない。所有七hash不変、全回帰開始時七変更コードhash不変。原ログ・手動依存照合・工具途中失敗はdocs/.local-history/verification-runs/ck-implementation-44aaf7c。全旧fixture意味再読・全入口最終分類ではない。
+
+- 2026-10-21 ck：ユーザー「はい、どちらもOKです」で文脈確認の未完理解資料の対象・成立保持を個別採用。100枠99確認済み・正式子89、最新ao〜cj人間OK。ck採用範囲実装・検証中、実装後OK未受領・同じck継続、次チャット移動なし。残4〜7工程・中心6、前回上下限中心差分0（問い残照合1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。既存問い枠内の一系統採用で、確認待ち・完全理解文脈確認の非発話／反復等の必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下の次ck未採用は過去状態。
+- 既存七言語parserが実際に単独question／catalogRule=context_detail・slot=context_detailと解析し、当時kind=question/partial・complete=false・unresolved非空の資料だけ。意味・question/time関係・原表示requiredMeaningsの不足と併存を原理解どおり保持。understanding.subject/questionSlotがnullならframeから補わない。新文型・新理解習得規則を追加しない。
+- experimental_word_diary_incomplete_context_questions.create()/capture(buffer,result,receipt)三引数独立一時journal。kind=incomplete_context_question、occurrenceId=incomplete_context_question:今回input ID、sourceId=今回input ID。原五区分候補を拡張しない。aq実回答／反復、ap九入口実回答、4d2実answer_unknown、u実selected_reason、cc/ch確認、cd/ce九入口、bd/bz/ca/cf名前・as、be/cb/cg酸味、ci/cj理由ほか既存担当非変更。
+- receiptは独立input/inputKnowledge/inputContext、実receive直前beforeState/beforeWorld、実respond直後afterState/afterWorld/reply。原ID・原lastOutputのserial/listener/subjectとframe/uのcontextReference一致、前後validContext、使い捨てコピー上の既存receive/respond全文整合を照合。参照経験は当時world内同ID一意と原snapshot一致を要求し、欠損・重複・不一致を補わない。供給資料整合照合であり真正性認証ではない。
+- 原input/frame、当時knowledge/context、原lastOutput（sourceとdeliveryKind・原表示時点を保持）・参照経験、当時理解と不足、前後state/world、原expression・実reply・speechSettingを分離コピーする。actualSpeechは原expression.channel=speechだけを表し、実replyの発話成立認定ではない。原expression=speech/uncertainでも実reply=attendの場合を区別する。turn.answerなし・turnAnswer=null。観察由来を本人の理由回答・感情自覚・新経験にしない。
+- 同input非増加非上書き、新input別資料、遅延供給・返却コピー独立・元資料不変。後知識・後活動・後振り返りで原理解を補完しない。経験由来question/current_activityの限定scopeを別文型・言語・話者へ転移せず、新教示／新学習／本人経験を新造しない。
+- 完全理解context_detail非発話・repeat_answer未完理解／非発話等は別残照合。今回の対象外を永久対象外へ移さない。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存・全入口最終意味照合は未検証／未完。所有core/world/catalog・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。
+
+
 - 2026-10-21最新確認：ユーザー「OKです。次チャットをおねがいします。」で2ff5140の[cj採用範囲](#diary-incomplete-reason-questions-cj)へ実装後OKと移動を明示。99枠99確認済み・正式子88、最新ao〜cj人間OK。次ckは残入口をap〜cjおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回下限・上限・中心差分0。問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2。cj確認待ち・理由未完理解の採用範囲を差引後も、文脈確認の未完理解／非発話等を既存aqおよびap〜cjへ照合する残作業を暫定1へ再積上げ。追加実装の要否・分割未確定、全14保留・各担当三保留・全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcj未受領・同じcj継続は過去状態。
 
 - cj最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcj継続。99枠98確認済み・正式子88、最新ao〜ci人間OK。専用21、ゲーム2370・工具14、工程表補修後の別監査56、六JS構文・七言語14957・別権限付きrenderer1866通過。初回全回帰ca42iNは2440中2393通過47監査失敗（cj工程表参照行不足）でincomplete、文書補修後の監査成功と区別する。制限内renderer GPU失敗と別制限外成功も区別。元planの静的未分類smokeのreviewRequiredは非改変で、手動依存確認を別記。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cj確認待ち・文脈確認等残照合の分割未確定で減算せず、全14保留・各担当三保留・全体未完。以下のcj実装検証中・未採用案内は過去状態。
