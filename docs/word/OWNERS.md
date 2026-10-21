@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-22 cq最終：採用範囲実装・Codex検証完了。専用18（13群380原218成立・33種7194改変拒否・既存53担当11554非重複）、全Node2616・七JS構文・七言語14957・権限付き別renderer1034通過。元全回帰722sNiの制限内GPU失敗／静的未分類smoke reviewRequiredによるincomplete・exit1を非改変保持し、手動依存照合・別renderer成功と区別する。106枠105確認済み・正式子95、最新ao〜cp人間OK、cq実装後OK未受領・同じcq継続。残4〜7工程・中心6、前回cq相談／採用時から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。cq確認待ちと他残境界・必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcq実装検証中／未採用は途中・過去状態。commit/push結果と未読未検証は現在handoff参照。
+
+| 工程 | 部品・API | 所有仕様 |
+| --- | --- | --- |
+| 4d12cq | incomplete_walk_proposals.create()/capture(buffer,result,receipt) | [通常散策誘いの未完理解](../specs/core/experimental_word_learning.md#diary-incomplete-walk-proposals-cq) |
+
+- 2026-10-22 cq採用：ユーザー「はい、どちらもOKです」で通常散策誘いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_walk_proposals.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=incomplete_walk_proposalを実装検証中。既存日本語単独walk_invitationのwalk意味／invitation関係不足・scope不適用（併存含む）と原資料・未理解・原expression／実reply・前後状態を分離保持し、受諾／共同参加／散策開始完了経験／感情等へ昇格しない。106枠105確認済み・正式子95、最新ao〜cp人間OK、cq実装後OK未受領・同じcq継続。全104登録（固定50＋追加54）と確認枠を区別する。残4〜7工程・中心6、前回cq相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。採用だけでは完了減算せず、確認待ち・他残境界・必要分割未確定を保持。全14保留・各担当三保留・全体未完。以下のcq未採用は採用前原資料。
+
 cqは[通常散策誘いの未完理解資料の個別相談案](../specs/core/experimental_word_learning.md#diary-incomplete-walk-proposals-cq-consultation)。対象／成立保持とも未採用のため担当登録・公開API表追加なし。am・cp・m/p・bc/bvを維持する。
 
 - 2026-10-22 cq相談：通常散策の誘いの未完理解資料を対象・成立保持の二点で個別相談。対象／成立保持とも未採用未着手・正式枠追加なし、105枠105確認済み・正式子94、最新ao〜cp人間OKを維持。限定188資料×ap〜cpの53担当=9964呼出・例外0。通常散策の不足36＋実休息学習scope非適用4は53担当・正規五引数am・四引数m/p・4d2非捕捉、完全理解12対照はam、休息未完理解84はcp、食後散策はbc/bv。旧m/pは別の正規56資料で28成立28非成立を確認。全入口最終分類・全旧固定50API横断再検査ではない。残4〜7工程・中心6、前回cp確認後から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。提案残照合内の未捕捉を具体化したが未採用・他残境界と必要分割未確定で減算しない。全14保留・各担当三保留・全体未完。ゲームコード／locale／保存形式非変更、全回帰・renderer未実行。詳細は所有仕様のdiary-incomplete-walk-proposals-cq-consultation節。以下の次cq未選定は過去状態。

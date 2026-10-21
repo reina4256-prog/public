@@ -1,5 +1,13 @@
 # 次チャットの開始文
 
+- 2026-10-22 cq最終：採用範囲実装・Codex検証完了。専用18（13群380原218成立・33種7194改変拒否・既存53担当11554非重複）、全Node2616・七JS構文・七言語14957・権限付き別renderer1034通過。元全回帰722sNiの制限内GPU失敗／静的未分類smoke reviewRequiredによるincomplete・exit1を非改変保持し、手動依存照合・別renderer成功と区別する。106枠105確認済み・正式子95、最新ao〜cp人間OK、cq実装後OK未受領・同じcq継続。残4〜7工程・中心6、前回cq相談／採用時から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。cq確認待ちと他残境界・必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcq実装検証中／未採用は途中・過去状態。commit/push結果と未読未検証は現在handoff参照。
+
+## 同じcqを続ける現在指示（採用範囲実装・Codex検証完了）
+
+[cq採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-walk-proposals-cq)の実装・Codex検証を完了。同じcq内で自由フィードバック・必要修正・実装後OKを受ける。対象・成立保持を再確認からやり直さず、新記号／次チャット移動なし。106枠105確認済み・正式子95、最新ao〜cp人間OK、全体未完。元722sNiのGPU失敗／静的reviewRequiredによるincompleteと、全Node2616・別renderer1034成功を区別して保持。以下のcq未採用指示は採用前資料。
+
+- 2026-10-22 cq採用：ユーザー「はい、どちらもOKです」で通常散策誘いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_walk_proposals.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=incomplete_walk_proposalを実装検証中。既存日本語単独walk_invitationのwalk意味／invitation関係不足・scope不適用（併存含む）と原資料・未理解・原expression／実reply・前後状態を分離保持し、受諾／共同参加／散策開始完了経験／感情等へ昇格しない。106枠105確認済み・正式子95、最新ao〜cp人間OK、cq実装後OK未受領・同じcq継続。全104登録（固定50＋追加54）と確認枠を区別する。残4〜7工程・中心6、前回cq相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。採用だけでは完了減算せず、確認待ち・他残境界・必要分割未確定を保持。全14保留・各担当三保留・全体未完。以下のcq未採用は採用前原資料。
+
 ## 同じcqの相談を続ける現在指示
 
 [通常散策誘いの未完理解資料案](../specs/core/experimental_word_learning.md#diary-incomplete-walk-proposals-cq-consultation)の対象と成立保持を個別相談中。両方未採用未着手、adapter・正式枠追加なし。自由フィードバックと二点への回答を同じcq内で受け、採用前に実装しない。確認済みcp以下を再確認からやり直さず、新記号／次チャット移動なし。105枠105確認済み・正式子94、全体未完。限定照合結果と当回見積りは下のcq相談通知・現在handoff参照。以下のcq未選定開始文は再開時原資料として保持。
