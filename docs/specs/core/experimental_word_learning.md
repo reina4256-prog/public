@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cr相談：既存七言語の単独条件付き休息お願いでrest/tired意味またはrequest/condition関係が不足・scope不適用（併存含む）の未完理解資料を、対象・成立保持の二点で個別相談する。両方未採用未着手・正式枠追加なし、106枠106確認済み・正式子95、最新ao〜cq人間OK。限定656資料×ap〜cqの54担当＝35424呼出・例外0。条件／順序の未完理解各280は54担当・正規五引数am・四引数m/p・4d2非捕捉、完全理解各28はm/pへ帰属。通常休息cp・散策cq・食後散策bc/bv・否定お願いbb/buは対照で帰属確認。全入口最終分類ではない。残5〜7工程・中心6、前回4〜7・中心6から下限+1／上限0／中心0（問い1／提案2／報告否定お願い0〜2／最終意味照合回帰2）。条件と順序の二系統を分離して必要な相談・検証を残すため下限を修正、cr未採用のまま完了減算なし。全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。以下の次cr未選定・cqの未受領表示は過去状態。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で98c1a24のcq採用範囲へ実装後OKと移動を明示。cqは実装・Codex検証・ユーザー実装後OK確認済み、106枠106確認済み・正式子95、最新ao〜cq人間OK。次crは残入口をap〜cqおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cq確認前から下限／上限／中心差分0（問い残照合1／提案残照合1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。cq確認待ちと通常散策未完理解の採用範囲を差引後も、条件／順序等を含む他提案境界の有無・既存担当との照合・必要分割未確定を暫定1〜2へ再積上げ。今回新たな意味再観察なし、機械減算しない。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcq実装後OK未受領・同じcq継続は過去状態。
 
 - 2026-10-22 cq最終：採用範囲実装・Codex検証完了。専用18（13群380原218成立・33種7194改変拒否・既存53担当11554非重複）、全Node2616・七JS構文・七言語14957・権限付き別renderer1034通過。元全回帰722sNiの制限内GPU失敗／静的未分類smoke reviewRequiredによるincomplete・exit1を非改変保持し、手動依存照合・別renderer成功と区別する。106枠105確認済み・正式子95、最新ao〜cp人間OK、cq実装後OK未受領・同じcq継続。残4〜7工程・中心6、前回cq相談／採用時から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。cq確認待ちと他残境界・必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcq実装検証中／未採用は途中・過去状態。commit/push結果と未読未検証は現在handoff参照。
@@ -21,6 +23,22 @@
 - 2026-10-22 co最終：ユーザー「はい、どちらも採用OKです」による対象・成立保持の採用範囲を実装・Codex検証完了。完全理解context_detail・short・実taste_unsure・今回answerなしを独立一時資料へ保持し、原味欠損を補わない。専用17（13群398原13成立・39種507改変拒否・既存51担当663非重複）、全Node2581（ゲーム2506＋監査61＋工具14）・六JS構文・七言語14957・権限付き別renderer437通過。元全回帰nu3hKxは制限内GPU起動失敗と静的未分類smoke reviewRequiredによるincomplete・exit1を非改変保持し、別成功・手動依存照合と区別する。104枠103確認済み・正式子93、最新ao〜cn人間OK、co実装後OK未受領・同じco継続。残4〜7工程・中心6、前回採用時から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。co確認待ち・他残境界・必要分割未確定のため機械減算しない。全14保留・各担当三保留・全体未完。以下のco採用前／検証中は過去状態。
 
 - 2026-10-22 co採用：ユーザー「はい、どちらも採用OKです」で対象・成立保持を個別採用。完全理解context_detail・short・実taste_unsure・今回turn.answerなしを独立一時資料で保持する。experimental_word_diary_uncertain_context_questions.create()/capture(buffer,result,receipt)三引数、kind=uncertain_context_question。採用範囲実装検証中・実装後OK未受領・同じco継続。104枠103確認済み・正式子93、最新ao〜cn人間OK、全102登録（固定50＋追加52）。残4〜7工程・中心6、前回co相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。既存問い残枠内の採用で確認待ち・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。原味欠損の互換fixtureを通常tick新発生観測へ変えない。以下のco未採用は採用前原資料。
+
+<a id="diary-incomplete-conditional-rest-proposals-cr-consultation"></a>
+
+##### cr個別相談案：条件付き休息お願いの未完理解資料（2026-10-22・未採用未着手）
+
+- 対象／成立保持とも未採用。新adapter・kind・公開API・正式枠追加なし、106枠106確認済み・正式子95、最新ao〜cq人間OKを維持。現在の実装仕様ではなく一系統の個別相談案である。
+- 対象案：既存七言語catalog.conditionTeachingの通常単独conditional_proposal。日本語の原文は「あなたが疲れていたら、休んでね」。selfのtiredを条件とするrestのrequest、application=when_met・duration=unspecifiedで、入力当時rest/tired意味またはrequest/condition関係が不足・scope不適用、complete=false・unresolvedあり。不足の併存とshort/gesture双方を含む。既存parserの正規化範囲を維持し、新文型・新理解習得規則・scope拡張は加えない。教示印付き実演、完全理解m、通常休息am/cp、通常散策am/cq、順序休息p、食後散策bc/bvは本案へ混ぜない。他入口を永久対象外にも扱わない。
+- 成立保持案：原input/frame、当時knowledge/context、理解済み部分／unresolved、原expression／実reply、実receive直前／respond直後state/worldを独立一時資料へ分離コピー。独立input/inputKnowledge/inputContext、原IDとbefore.serial、使い捨てコピー上の既存receive/respond全文一致、前後validContext/validSelections、参照経験／選択出所がある場合の原資料一意整合を要求し、欠損重複不一致は補わない。これは供給資料の整合照合であり真正性認証ではない。
+- 原frameのself/tired/rest/rolesを当時uのnull／不足へ補完しない。原understanding.conditionStatus=unknownと今回判断の不存在を分離する。今回観察した280資料はconditionJudgmentなし・answerなしであり、疲労値があっても新たな感覚observationやmet/unmet/unknownの今回判断を計算しない。完全理解mの「観測ありunknown／未観測unknown」とも区別する。actualSpeechは原expression.channel準拠でspeechSettingや実UI音声確認とは別（今回speech98・gesture182）。answerRecorded=false・turnAnswer=null・compliance=null・actionDecisionRecorded=falseとし、受諾・休息決定／開始／完了経験・共同参加・本人感情／希望／理由を補わない。
+- 同input非増加非上書き、新input別資料、遅延供給／返却コピー独立・元資料不変、後実学習／後休息／振り返りによる補完・遡及成立なしを要求する案。候補五区分は広げない。本文集約4e・一時receipt保存形式・ゲーム本接続の三保留と全14保留を維持する。
+- 限定再照合：656資料×ap〜cqの54三引数capture=35424呼出・例外0。条件／順序は各308資料（七言語×両設定×16知識mask=224、八初期設定56、既存ordinary.acquireによる実request/invitation学習後28）。各280未完理解は全54・正規五引数am・四引数m/p・実replyを渡した4d2で非捕捉。各28完全理解はm/pへ帰属。条件未完理解はattend182／uncertain98、u.kind=conditional_proposal56／partial224を原値として保持。初期mask境界と実学習経路を実ユーザー保存・通常遊戯の発生頻度の観測と呼ばない。
+- 残り40対照は通常休息16（am4・cp12）、通常散策8（am2・cq6）、食後散策8（bc2・bv6）、否定食事お願い8（bb2・bu6）へ帰属。前後validContextと原資料不変を確認。旧全固定50API正規引数横断検査・全ap〜cq所有節／全旧fixture全文意味再読・全入口最終分類ではない。
+- 原probe.cjs・656原materials.json・report.json・初回成功stdout/stderrはdocs/.local-history/verification-runs/cr-consultation-154d937へ保持。m/p正規contextと入力前知識・am五引数decisionを使い、引数不足による非捕捉判定にしない。今回ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。旧cqの検証結果は今回の再実行とは呼ばない。読取・未読・未検証と文書検査は現在handoffへ記録する。
+- 残目安は問い1／提案2／報告否定お願い0〜2／最終意味照合回帰2＝5〜7工程・中心6。前回4〜7中心6から下限+1／上限0／中心0。条件と順序の各未完理解を分ける必要性が具体化したため提案1〜2を2へ更新し、未採用のまま完了減算しない。順序は本crと別の未採用残入口、全体未完。
+
+以下はcqの所有仕様と過去相談原資料。
 
 <a id="diary-incomplete-walk-proposals-cq-consultation"></a>
 
