@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」でf8b3cebのcm採用範囲へ実装後OKと移動を明示。102枠102確認済み・正式子91、最新ao〜cm人間OK。次cnは残入口をap〜cmおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜8工程・中心6、前回cm確認前から下限／上限／中心差分0（問い残照合1〜2／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cm確認待ち・未完理解反復を差引後も、完全理解gesture反復の原expressionと実reply/turn.answerの境界、context_detail short時非回答等の残照合と必要分割未確定を問い1〜2へ再積上げ。追加実装要否未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcm実装後OK未受領・同じcm継続は過去状態。
+
 - 2026-10-22 cm最終：ユーザー「どちらも採用でOKです」による採用範囲の実装・Codex検証完了。実装後OK未受領・同じcm継続、次記号追加／次チャット移動なし。102枠101確認済み・正式子91、最新ao〜cl人間OK。専用35・全Node2533・七JS構文・七言語14957・権限付き別renderer2367通過。元全回帰OVDa39の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜8工程・中心6、前回cm相談／採用時から下限／上限／中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。cm確認待ちと完全理解gesture反復・context_detail short非回答等の残照合・必要分割未確定で機械減算しない。全14保留・各担当三保留・全体未完。以下のcm未採用・検証中は過去状態。
 
 <a id="diary-incomplete-repeat-questions-cm-consultation"></a>
@@ -7,6 +9,8 @@
 <a id="diary-incomplete-repeat-questions-cm"></a>
 
 ##### 4d12cm：明示的な聞き直しの未完理解資料（2026-10-22・採用範囲実装検証完了）
+
+- 2026-10-22確認：ユーザー「OKです。次チャットをおねがいします。」でf8b3cebの本採用範囲へ実装後OKと移動を明示。実装・Codex検証・ユーザー実装後OK確認済み、102枠102確認済み・正式子91、最新ao〜cm人間OK。次cnは再照合後の一系統を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。全保留・全体未完。今回は文書のみで実働再検証なし、以下の未受領・同じcm継続は過去状態。
 
 - 対象・成立保持の個別採用済み。`experimental_word_diary_incomplete_repeat_questions.create()/capture(buffer,result,receipt)`三引数の独立一時journal、kind=incomplete_repeat_question。既存七言語単独frame=context_repeat／repeat_answerで、当時question関係が適用できずcomplete=false・unresolvedあり、直前同話者原回答へのanswerReferenceがある資料だけ。short/gesture双方、新文型・理解学習規則・既存scopeは変更しない。
 - receiptは独立input/inputKnowledge/inputContext、実receive前beforeState/beforeWorld、実respond後afterState/afterWorld/reply。原input/frame・直前turn/原answer・原lastOutputのsource/deliveryKind/表示時点・参照経験、未理解と原expression・実reply・前後state/worldを分離コピー。実receive/respond全文整合、前後validContext、原回答ID/answeredAt・参照経験同ID一意と原snapshot一致を照合し、欠損競合不一致を補完しない。真正性認証ではなく供給資料整合照合。
