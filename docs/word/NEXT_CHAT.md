@@ -1,5 +1,27 @@
 # 次チャットの開始文
 
+- 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で8d37c9eのck採用範囲へ実装後OKと移動を明示。100枠100確認済み・正式子89、最新ao〜ck人間OK。次clは残入口をap〜ck担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ck確認前から下限・上限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。ck確認待ちと文脈確認未完理解の採用範囲を差引後も、完全理解context_detail非発話・repeat_answer未完理解／非発話等を既存aqおよびap〜ckへ照合する残作業だけで暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のck実装後OK未受領・同じck継続は過去状態。 [ck所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-context-questions-ck)。
+
+## 次チャットへ貼る開始文（ck確認済み・次cl未採用）
+
+```text
+ゲーム実装最新8d37c9e。確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12ckは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdから必要な所有節と依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読・未検証を記録してください。
+
+次clは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残入口をap〜ck担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談してください。ck文脈確認未完理解・cj理由問い未完理解・ci完全理解理由問い実身振り、u実selected_reason、aq反復／文脈確認実回答を重複残件に数えません。完全理解context_detail非発話・repeat_answer未完理解／非発話等は既存担当を先に差し引き、新規実装の必要性を決めつけず残照合してください。ap実回答・4d2実answer_unknown、cd/ce九入口・cc/ch確認、bd/bz/ca/cf名前・as、be/cb/cg酸味ほか既存担当を維持します。全14保留・各担当三保留を永久対象外へ移して終了扱いにしません。
+
+100枠100確認済み・正式子89、最新ao〜ck人間OK。当回残目安4〜7工程・中心6。問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2。前回ck確認前から上下限・中心差分0。ck確認待ち・文脈確認未完理解の採用範囲を差引後も、完全理解時非発話・反復等の残照合だけで問いを暫定1へ再積上げしたためです。前回は確認待ちと残照合を粗い問い1枠へ同居させており機械減算しません。中心5.5→6、追加実装の要否・必要分割未確定で増減し得ます。毎回根拠・内訳・前回差分・不確実性付きで再見積りしてください。正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく、4d12／4d／ID4全体未完です。
+
+ck専用23、17群1174原327成立、37種12099資料改変拒否・既存47追加担当15369非重複、固定旧49capture gate16023非捕捉。別全回帰mxv1tEは全Node2464（ゲーム2393＋監査57＋工具14）・七言語14957・renderer2155を含む全10check通過ですが、静的分類外smoke reviewRequiredだけでrun全体incomplete・exit1を非改変保持します。初回RVZVcqは外側ラッパーtimeoutで未完、制限内renderer GPU失敗も別成功と区別します。手動依存照合・原ログ・工具途中失敗はck-implementation-44aaf7cへ非削除保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+ckは原input/frame、当時knowledge/context、原lastOutputの出所・deliveryKind・時点・参照経験、理解不足、原expression／実reply、前後state/worldを分離コピーする独立journal。参照経験欠損・重複・不一致を補わず、understanding.subject/questionSlot=nullをframeから補いません。actualSpeechは原expression.channelのみで実reply=attendを実回答にしません。同input非増加非上書き・新input別資料・遅延／返却コピー独立・元資料不変、後実学習・後活動による遡及成立なし。本文集約・receipt保存形式・本接続未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証です。
+
+共有八文書の旧全行・197旧text（工程表181＋NEXT_CHAT16）、全過去原文・原ログを非削除非置換保持。全旧fixture／所有節／全過去原文意味再読・全入口最終意味分類は未完。既存リンク不一致18件の従来記録と全リンク正常を区別します。固定入力確認や確認済み範囲の再確認を求めません。旧AI旧保存実ユーザー保存九見本星座・対象外%SystemDrive%/非操作非置換。今回はユーザーが移動を明示しています。
+```
+
+以下の同じck継続・実装後OK未受領は過去状態です。
+
 - 2026-10-21 ck最終：文脈確認未完理解資料の採用範囲実装・Codex検証完了、実装後OK未受領・同じck継続、次チャット移動なし。100枠99確認済み・正式子89、最新ao〜cj人間OK。専用23・全Node2464（ゲーム2393＋監査57＋工具14）・六JS構文・七言語14957・別権限付きrenderer2155通過。初回全回帰RVZVcqの外側ラッパーtimeout未完と、別全回帰mxv1tEの静的分類外smoke reviewRequiredを残すincompleteと、別renderer成功・手動依存確認を区別する。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。ck確認待ちと完全理解文脈確認非発話／反復等の必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のck未採用・検証中は過去状態。 [ck所有仕様](../specs/core/experimental_word_learning.md#diary-incomplete-context-questions-ck)。
 
 ## 同じckの継続文（実装後OK未受領・移動なし）
