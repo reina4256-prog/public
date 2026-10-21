@@ -1,8 +1,25 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cl最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcl継続、次チャット移動なし。101枠100確認済み・正式子90、最新ao〜ck人間OK。専用32・全Node2497・七JS構文・七言語14957・権限付き別renderer1505通過。全回帰gZAVi8の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cl確認待ち・反復等の必要分割未確定で減算せず、全14保留・各担当三保留・全体未完。以下のcl実装検証中・未採用は過去状態。
+
+- 2026-10-22 cl：ユーザー「どちらも採用でOKです」で完全理解した文脈確認への身振り応答資料の対象・成立保持を個別採用。101枠100確認済み・正式子90、最新ao〜ck人間OK。cl採用範囲実装・検証中、実装後OK未受領・同じcl継続、次記号追加／次チャット移動なし。残4〜7工程・中心6、前回上下限中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cl確認待ちとrepeat_answer未完理解／非発話・context_detailのshort時非回答等の残照合・必要分割未確定を問い枠へ保持するため。全14保留・各担当三保留・全体未完。以下のcl未採用・次cl案内は過去状態。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で8d37c9eのck採用範囲へ実装後OKと移動を明示。100枠100確認済み・正式子89、最新ao〜ck人間OK。次clは残入口をap〜ck担当および必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回ck確認前から下限・上限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。ck確認待ちと文脈確認未完理解の採用範囲を差引後も、完全理解context_detail非発話・repeat_answer未完理解／非発話等を既存aqおよびap〜ckへ照合する残作業だけで暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のck実装後OK未受領・同じck継続は過去状態。 [ck所有仕様](experimental_word_learning.md#diary-incomplete-context-questions-ck)。
 
 - 2026-10-21 ck最終：文脈確認未完理解資料の採用範囲実装・Codex検証完了、実装後OK未受領・同じck継続、次チャット移動なし。100枠99確認済み・正式子89、最新ao〜cj人間OK。専用23・全Node2464（ゲーム2393＋監査57＋工具14）・六JS構文・七言語14957・別権限付きrenderer2155通過。初回全回帰RVZVcqの外側ラッパーtimeout未完と、別全回帰mxv1tEの静的分類外smoke reviewRequiredを残すincompleteと、別renderer成功・手動依存確認を区別する。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。ck確認待ちと完全理解文脈確認非発話／反復等の必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のck未採用・検証中は過去状態。
+
+<a id="diary-gesture-context-questions-cl"></a>
+
+##### 4d12cl：完全理解した文脈確認への身振り応答資料（2026-10-22）
+
+- 最終検証：専用32全通過、26群1277原76成立、37種2812資料改変拒否・既存48追加担当3648非重複。固定旧49capture別gate3724非捕捉・例外0。全Node2497（ゲーム2425＋監査58＋工具14）・七JS構文・七言語14957通過。全回帰gZAVi8は制限内renderer GPU -1073741515失敗・静的未分類smokeのreviewRequiredによりincomplete・exit1を非改変保持。権限付き別rendererは1505件（1277原＋三種228改変）通過、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変。所有七hashと全回帰開始時八変更ファイルhash不変。原ログ・手動依存照合・工具補正はdocs/.local-history/verification-runs/cl-implementation-bc8e14c、全回帰原資料はword-verification-gZAVi8。採用範囲実装・Codex検証完了、実装後OK未受領・同じcl継続、全体未完。
+
+- ユーザー「どちらも採用でOKです」で対象・成立保持を個別採用。既存七言語parserの単独question／catalogRule=context_detail・slot=context_detail、当時kind=question・complete=true・unresolved空・subject=self・questionSlot=context_detailだけ。speech=gesture、原expression=gesture/attend・実reply=attend・turn.answerなしを要求。新文型・理解習得規則なし。
+- experimental_word_diary_gesture_context_questions.create()/capture(buffer,result,receipt)三引数独立一時journal。kind=gesture_context_question、occurrenceId=gesture_context_question:今回input ID、sourceId=今回input ID。原五区分候補を拡張しない。aq実回答／反復、ck文脈確認未完理解、ap九入口実回答、4d2実answer_unknown、u実selected_reason、cc/ch確認、cd/ce九入口、bd/bz/ca/cf名前・as、be/cb/cg酸味、ci/cj理由ほか既存担当を維持。
+- receiptは独立input/inputKnowledge/inputContext、実receive直前beforeState/beforeWorld、実respond直後afterState/afterWorld/reply。原ID・lastOutputのserial/listener/subject、frame/uのcontextReference、前後validContextと使い捨てコピー上の既存receive/respond全文整合を照合。参照経験は当時world内同ID一意と原snapshot一致を要求し、欠損・重複・不一致を補わない。供給資料整合照合であり真正性認証ではない。
+- 原input/frame、当時knowledge/context、原lastOutputのsource／deliveryKind／表示時点と参照経験、完全理解、原expressionと実reply、前後state/worldを分離コピーする。actualSpeech=false・turnAnswer=null。理解済みでも本人発話・味の回答・感情自覚・新経験を補わず、観察由来を本人実回答へ変えない。
+- 同input非増加非上書き・新input別資料・遅延供給／返却コピー独立・元資料不変。後実学習・後活動・振り返りで原資料を補完せず遡及成立なし。経験由来question/current_activityの限定scopeを別文型・言語・話者へ転移せず、新教示／新学習／本人経験を新造しない。
+- repeat_answer未完理解／非発話、context_detailのshort時非回答等は残照合。今回対象外を永久対象外にしない。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存・全入口最終意味照合は未検証／未完。所有core/world/catalog・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。
 
 <a id="diary-incomplete-context-questions-ck"></a>
 

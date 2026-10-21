@@ -87,7 +87,7 @@ test('independent input, knowledge, context and all original response fields are
 });
 
 test('ck preserves all 47 prior supplemental owners and complete context responses', () => {
-    const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(row => row.id !== '4d12ck');
+    const owners = require('../scripts/experimental/diary_audit').supplementalInventory().slice(0, 47);
     assert.equal(owners.length, 47);
     for (const f of values.filter(item => item.expected)) for (const owner of owners) {
         const v = copy(f.value), source = JSON.stringify(v);
