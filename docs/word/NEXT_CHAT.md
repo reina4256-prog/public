@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 同じcmの相談継続（2026-10-22・対象／成立保持とも未採用）
+
+- cmは既存明示的な聞き直しcontext_repeat／repeat_answerの未完理解資料を[個別相談中](../specs/core/experimental_word_learning.md#diary-incomplete-repeat-questions-cm-consultation)。七言語×short/gesture、実学習後14＋mask2の16未完理解資料がap〜clの49担当で784非捕捉・例外0、旧4d2／質問教示／u理由回答も非捕捉。原回答あり・今回reply=attend・turn.answerなしを分離する案で、新理解規則・新実装・正式枠追加なし。101枠101確認済み・正式子90、clまで人間OK。
+- 完全理解gesture反復の対照は原expression=gesture/attend・実reply=taking_break・turn.answerあり。cm未完理解案へ混ぜず扱いを残照合。残4〜8工程・中心6、前回cl確認後比は下限0／上限+1／中心0。内訳は問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2。上限増はこの別相談・必要分割の余地、追加実装は未確定。全14保留・各担当三保留・全体未完。
+- 今回は限定メモリ観察と文書保存のみ、ゲーム全回帰・renderer未実行。原資料・工具補正は`docs/.local-history/verification-runs/cm-consultation-c91d6d3/`。対象／成立保持へのユーザー回答を受けるまで実装せず、同じcmを継続する。以下の開始文・全過去資料は保持し、次チャット移動の指示とはしない。
+
 ## 次チャットへ貼る開始文（cl確認済み・次cm未採用）
 
 ```text

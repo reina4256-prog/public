@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-incomplete-repeat-questions-cm-consultation"></a>
+
+##### cm個別相談案：明示的な聞き直しの未完理解資料（2026-10-22・未採用未着手）
+
+- cmは相談予定記号のみ。対象・成立保持とも未採用、正式枠追加・新adapter・理解規則変更なし。101枠101確認済み・正式子90、最新ao〜cl人間OKを維持する。以下は現在の実装仕様への追加ではなく、個別判断を求める案である。
+- 対象案：既存七言語の明示的な聞き直しで、実receiveが単独frame.kind=question／slot=repeat_answer／catalogRule=context_repeatを生成し、当時question関係が適用できずcomplete=false・unresolvedあり、直前の同話者宛て原回答へのanswerReferenceがある資料。short／gestureの両設定を含める。今回観察ではu.kind=partial・subject=null・questionSlot=null・question関係不足であり、frameのself／repeat_answerを理解済みの値としてuへ補わない。新文型・新学習・既存scope拡張は提案しない。
+- 成立保持案：原input/frame、当時knowledge/context、直前turnと原answer（原input ID／answeredAt）、原lastOutputのsource／deliveryKind／表示時点・参照経験、当時の未理解、原expressionと実reply、前後state/worldを独立コピーで分離保持する。実receive/respond全文整合・参照先一意性を使い捨てコピー上で照合し、資料不足・競合は補完しない。今回reply=attend・turn.answerなしを保持し、原回答の存在を今回の実再回答・本人発話・新経験へ変換しない。
+- 原候補・原反復資料を増加／上書きしない独立の未完理解資料を案とする。同input非増加非上書き、新inputは別資料、遅延供給・返却コピー独立・元資料不変、後知識／後活動／振り返りによる遡及成立なし。本文集約・一時receipt保存形式・ゲーム本接続は未採用未実装を維持する。
+- 相談根拠：既存二実演からcurrent_activity質問関係を実学習→実質問へ原回答→既存の聞き直し、の七言語×二発話設定14資料でquestion関係scope非転移による未完理解を再現。別の知識mask二資料と区別する。計16未完理解資料×既存ap〜clの49capture=784非捕捉・例外0、旧4d2も16非捕捉。旧質問教示／u理由回答は各16非捕捉であり、全旧49capture再検査ではない。完全理解shortの対照はaqのみ捕捉。これは供給した資料での境界観察であり全入口意味監査・新実装検証ではない。
+- 残境界：完全理解gestureの対照は原expression=gesture/attendだが実reply=taking_break・今回turn.answerあり、aqのshort条件外だった。これを今回の未完理解案へ混ぜず、既存仕様との扱い・必要分割を別途相談する。完全理解context_detailのshort時非回答等、提案・報告否定お願い・全14保留・各担当三保留も維持し、永久対象外へ移さない。ck/clはcontext_detail、cd/ceは直接九入口、名前／酸味／確認／理由等は既存専用担当を維持する。
+- 原資料・観察工具・補正記録はローカル`docs/.local-history/verification-runs/cm-consultation-c91d6d3/`。全ap〜cl所有節・全旧fixtureの全文意味再読と全入口最終分類は未完。ゲーム全回帰・renderer・実UI音声・本人日記生成保存再開配布は今回未実行。[当回見積り](../../WORD_DEMO_ROADMAP.md#word-4d12-provisional-remaining)は問い1〜2／提案1〜2／報告否定お願い0〜2／最終2＝4〜8工程・中心6、前回比上限+1・下限中心0。追加実装の要否は未確定、全体未完。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で66fd74dのcl採用範囲へ実装後OKと移動を明示。101枠101確認済み・正式子90、最新ao〜cl人間OK。次cmは残入口をap〜clおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cl確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cl確認待ちと完全理解context_detail身振りを差引後も、repeat_answer未完理解／非発話・context_detailのshort時非回答等を既存担当へ照合する残作業だけで問いを暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcl実装後OK未受領・同じcl継続は過去状態。
 
 - 2026-10-22 cl最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcl継続、次チャット移動なし。101枠100確認済み・正式子90、最新ao〜ck人間OK。専用32・全Node2497・七JS構文・七言語14957・権限付き別renderer1505通過。全回帰gZAVi8の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cl確認待ち・反復等の必要分割未確定で減算せず、全14保留・各担当三保留・全体未完。以下のcl実装検証中・未採用は過去状態。
