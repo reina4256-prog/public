@@ -1,5 +1,9 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cp最終：採用範囲の実装・Codex検証完了。専用15（10群494原356成立・33種11748改変拒否・既存52担当18512非重複）、補修後依存再検証1099／七JS構文／七言語14957／別権限付きrenderer1562通過。元全回帰MrwYcJは2597中2596通過1不通過（旧co testの固定51件assertへ追加後52担当）・incomplete/exit1とlocalization/renderer未実行・静的reviewRequiredを非改変保持。旧co testの名称と期待件数だけを更新し、3Ljx4dの29testファイル1099通過・別七言語／renderer成功と区別する。105枠104確認済み・正式子94、最新ao〜co人間OK、cp実装後OK未受領・同じcp継続。残4〜7工程・中心6、前回下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。cp確認待ち・残照合・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。以下のcp実装検証中／未採用は過去状態。詳細・commit/push結果は現在handoff参照。
+
+- 2026-10-22 cp採用：ユーザー「どちらも採用でOKです」で通常休息お願い／誘いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_rest_proposals.create()/capture(buffer,result,receipt)三引数の独立一時journal、kind=incomplete_rest_proposalを実装検証中。既存七言語単独通常request/invitation・rest意味または当該関係不足／scope不適用（併存含む）、short/gesture双方。原理解・不足・原expression・実reply・前後資料を分離、未理解を補わず受諾／実休息／共同参加／感情等へ昇格しない。105枠104確認済み・正式子94、最新ao〜co人間OK、cp実装後OK未受領・同じcp継続。全103登録（固定50＋追加53）とは別。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。採用だけでは完了へ減算せず、必要分割未確定。全14保留・各担当三保留・全体未完。以下のcp未採用は採用前原資料。
+
 - 2026-10-22 cp相談：既存七言語の単独通常休息お願い／誘いで、当時rest意味または当該request/invitation関係が不足・不適用（併存を含む）の未完理解資料を、対象・成立保持の二点で個別相談。対象／成立保持は未採用未着手・正式枠追加なし、104枠104確認済み・正式子93、最新ao〜co人間OKを維持。限定再実行220資料×ap〜coの52担当=11440呼出・例外0。文脈確認108資料はaq/ck/cl/coへ帰属、休息提案84未完理解資料は52担当と正規五引数amで非捕捉、完全理解28対照はamのみ。旧m/pと4d2も正規引数で別照合。全入口最終分類・全旧固定50API再検査ではない。残4〜7工程・中心6、前回下限／上限／中心差分0（問い残照合1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。問いは限定帰属確認後も未観察分の残照合を保持、提案はcp未採用・散策等の必要分割未確定、報告否定お願いは今回再観察なしのため再積上げ同値。全14保留・各担当三保留・全体未完。ゲームコード／locale／保存形式非変更、全回帰・renderer未実行。詳細は所有仕様のdiary-incomplete-rest-proposals-cp-consultation節。以下の次cp未選定は過去状態。
 
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で5cfaa63のco採用範囲へ実装後OKと移動を明示。coは実装・Codex検証・ユーザー実装後OK確認済み、104枠104確認済み・正式子93、最新ao〜co人間OK。次cpは残入口をap〜coおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回co確認前から下限／上限／中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2、配分5.5）。co確認待ちとtaste_unsure採用範囲を差引後も、他short非回答／観察応答等の有無と既存担当への照合を暫定1へ再積上げ。追加実装要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のco実装後OK未受領・同じco継続は過去状態。
@@ -9,6 +13,20 @@
 - 2026-10-22 co採用：ユーザー「はい、どちらも採用OKです」で対象・成立保持を個別採用。完全理解context_detail・short・実taste_unsure・今回turn.answerなしを独立一時資料で保持する。experimental_word_diary_uncertain_context_questions.create()/capture(buffer,result,receipt)三引数、kind=uncertain_context_question。採用範囲実装検証中・実装後OK未受領・同じco継続。104枠103確認済み・正式子93、最新ao〜cn人間OK、全102登録（固定50＋追加52）。残4〜7工程・中心6、前回co相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。既存問い残枠内の採用で確認待ち・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。原味欠損の互換fixtureを通常tick新発生観測へ変えない。以下のco未採用は採用前原資料。
 
 <a id="diary-incomplete-rest-proposals-cp-consultation"></a>
+
+<a id="diary-incomplete-rest-proposals-cp"></a>
+
+##### 4d12cp：通常休息お願い／誘いの未完理解資料（2026-10-22・採用範囲実装検証完了）
+
+- 最終結果：専用15全通過、10群494原356成立・33種11748改変拒否・既存52担当18512非重複。実学習の別言語／別話者／別文型scope不適用、後の実rest教示完了後も原資料非遡及、13新input、コピー独立、原観察経験の欠損重複不一致拒否を確認。別additional-evidenceで過去選択出所がある両設定2件の保持と後実食事非遡及・選択出所重複2件拒否も確認。
+- 全回帰MrwYcJの2597中2596通過・旧co固定件数1失敗を非改変保持。旧co test二行だけ補修し、3Ljx4dの推移的依存29testファイル1099全通過、合計七JS構文・別七言語14957通過。別制限内rendererのGPU失敗・終了1と、権限付き別renderer1562通過・終了0を区別する。八global除去・storage sentinel不変・保存bridge未定義。元fullの未実行localization/renderer・静的reviewRequired・reading.not_recordedを別成功で置換しない。
+- 原資料はdocs/.local-history/verification-runs/cp-implementation-69c6807。baseline／専用v1のno-op改変検査補修前後ログ／追加選択出所検査／原full／依存再検査／両renderer／文書保持／publish記録を保持。旧package script/test inventoryと所有七コード不変、full開始時七hash不変、旧co testの変更が名称／件数だけであることを検査。実装後OK未受領・同じcp継続。以下の実装検証中は途中状態。
+
+- ユーザー「どちらも採用でOKです」で対象・成立保持を個別採用。experimental_word_diary_incomplete_rest_proposals.create()/capture(buffer,result,receipt)三引数の独立一時journal、kind=incomplete_rest_proposal。既存七言語単独通常request/invitation・meaning=restで、当時rest意味または当該関係不足／scope不適用（併存含む）・complete=false・unresolvedありだけ。short/gesture双方。散策、条件／順序提案、否定お願い、教示、複数節、未対応文型を包含せず、永久対象外にもしない。理解規則・応答・既存scope非変更。
+- receiptは独立input/inputKnowledge/inputContext、実receive直前beforeState/beforeWorld・実respond直後afterState/afterWorld/reply。原input/frame・入力当時knowledge/context・原理解と不足・原expression／実reply・前後state/worldを分離コピー。使い捨てコピー上の実receive/respond全文整合、前後validContext/validSelectionsを要求し、原表示が参照する経験は同ID一意・原snapshot一致を照合。欠損重複不一致を補完しない。真正性認証ではなく供給資料整合照合。
+- 原frameの内容・役割とuの理解を混同せず、uのnull／不足を埋めない。actualSpeechは原expression.channel準拠、speechSettingと分離し実UI音声確認へ昇格しない。実replyを保持し、answerRecorded=false・turnAnswer=null・compliance=null・actionDecisionRecorded=false。提案受諾・行動選択・実休息・共同参加・完了経験・希望／感情／理由を補わない。
+- 同input非増加非上書き、新input別資料、遅延供給／返却コピー独立・元資料不変、後実学習／後活動／振り返りによる補完・遡及成立なし。候補五区分拡張なし、本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。
+- 完全理解した通常休息／散策am、条件付き休息m、順序付き休息p、食後散策bc/bv、否定食事お願いbb/bu/bw、ap〜coを維持。新fixture／専用test／非表示smoke・監査登録を追加。所有七コード・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。全103登録と105確認枠を区別し、cp実装後OK未受領・同じcp継続、全14保留・各担当三保留・全体未完。以下の未採用相談は採用前原文を保持。
 
 ##### cp個別相談案：通常休息お願い／誘いの未完理解資料（2026-10-22・未採用未着手）
 

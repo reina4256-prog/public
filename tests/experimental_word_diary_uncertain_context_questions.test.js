@@ -77,9 +77,9 @@ test('independent occurrence, missing taste, experience reference and response b
     }
     console.log(JSON.stringify({ edits: edits.length, rejected: count }));
 });
-test('all 51 prior supplemental owners remain separate', () => {
+test('all other supplemental owners remain separate', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(o => o.id !== '4d12co');
-    assert.equal(owners.length, 51); let calls = 0;
+    assert.equal(owners.length, 52); let calls = 0;
     for (const f of values.filter(f => f.expected)) for (const owner of owners) {
         const other = require('../' + owner.file), v = copy(f.value), r = v.receipt;
         r.originalOutput = copy(r.beforeState.context.lastOutput || null);
