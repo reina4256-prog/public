@@ -1,6 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 co最終：ユーザー「はい、どちらも採用OKです」による対象・成立保持の採用範囲を実装・Codex検証完了。完全理解context_detail・short・実taste_unsure・今回answerなしを独立一時資料へ保持し、原味欠損を補わない。専用17（13群398原13成立・39種507改変拒否・既存51担当663非重複）、全Node2581（ゲーム2506＋監査61＋工具14）・六JS構文・七言語14957・権限付き別renderer437通過。元全回帰nu3hKxは制限内GPU起動失敗と静的未分類smoke reviewRequiredによるincomplete・exit1を非改変保持し、別成功・手動依存照合と区別する。104枠103確認済み・正式子93、最新ao〜cn人間OK、co実装後OK未受領・同じco継続。残4〜7工程・中心6、前回採用時から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。co確認待ち・他残境界・必要分割未確定のため機械減算しない。全14保留・各担当三保留・全体未完。以下のco採用前／検証中は過去状態。
+
+- 2026-10-22 co採用：ユーザー「はい、どちらも採用OKです」で対象・成立保持を個別採用。完全理解context_detail・short・実taste_unsure・今回turn.answerなしを独立一時資料で保持する。experimental_word_diary_uncertain_context_questions.create()/capture(buffer,result,receipt)三引数、kind=uncertain_context_question。採用範囲実装検証中・実装後OK未受領・同じco継続。104枠103確認済み・正式子93、最新ao〜cn人間OK、全102登録（固定50＋追加52）。残4〜7工程・中心6、前回co相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。既存問い残枠内の採用で確認待ち・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。原味欠損の互換fixtureを通常tick新発生観測へ変えない。以下のco未採用は採用前原資料。
+
 <a id="diary-uncertain-context-questions-co-consultation"></a>
+
+<a id="diary-uncertain-context-questions-co"></a>
+
+##### 4d12co：完全理解した文脈確認への味判断不能応答資料（2026-10-22・採用範囲実装検証完了）
+
+- 最終検証：専用17全通過2017ms、13群398原13成立、39種507改変拒否・既存51追加担当663非重複。七言語・八設定・16知識配置・文脈／話者／実回答との分離・13新input・コピー独立を確認。別additional-evidence.cjsで原入力時rest意味なしから実休息語習得と後の実食事の甘味記録追加を行い、原味欠損／遅延コピー不変を確認。全旧固定50captureの正規引数横断再検査・全所有仕様／全旧fixtureの全文意味再読・全入口最終分類ではない。
+- 全回帰nu3hKxは全Node2581（ゲーム2506＋監査61＋工具14）・六JS構文・七言語14957通過。制限内rendererのGPU起動失敗と静的未分類smoke reviewRequiredによりincomplete・exit1を非改変保持し、未実行check/testなし。権限付き別renderer437（398原＋三種39改変）は終了0、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。別成功を元run成功へ置換しない。
+- 開始八共有文書とhandoff／package、原fixture、各stdout/stderr・失敗補正・追加検証はdocs/.local-history/verification-runs/co-implementation-34c4514へ保持。新smokeはclから名称／fixture／global／profile／sentinel／タイトル変更だけの厳密同形、直接fixture依存を手動照合。所有七コードのLF正規化内容34c4514一致・旧package全script/test inventory保持を検査。初回専用18通過後に対照fixtureの再帰重複を整理し、途中v2の非export参照エラーを補修した最終17を区別して保持する。実装後OK未受領・同じco継続、本人日記生成保存再開配布・実UI音声・実ユーザー保存・全体完了は未確認。
+
+- ユーザー「はい、どちらも採用OKです」で対象・成立保持を個別採用。experimental_word_diary_uncertain_context_questions.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=uncertain_context_question。既存七言語単独question/context_detail、当時complete=true・unresolved空・subject=self、speech=short、実reply=taste_unsure・今回turn.answerなしだけ。理解規則・新文型・既存応答・候補五区分は変更しない。
+- 原input/frame・入力当時knowledge/context・原lastOutputのsource/deliveryKind/表示時点・参照経験と原snapshot・完全理解・原expression・実reply・前後state/worldを分離コピーする。actualSpeech=trueは原expression.channel=speechを示すだけで実UI音声確認ではない。answerRecorded=false・turnAnswer=null。味の肯定否定回答、本人味覚体験・感情自覚・新経験・新学習を補わない。
+- 独立input/inputKnowledge/inputContext、実receive直前beforeState/beforeWorld・実respond直後afterState/afterWorld/replyの全文整合を使い捨てコピーで照合。前後validContext・原表示serial/listener/subjectとframe/u参照一致・参照経験同ID一意と原snapshot一致を要求し、経験欠落重複不一致を補わない。原経験と原表示の両方に味記録がない互換資料は欠損のまま保持する。供給資料整合照合であって真正性認証ではない。
+- 同input非増加非上書き、新input別資料、遅延供給／返却コピー独立・元資料不変、後知識／後活動／振り返りによる補完・遡及成立なし。aq成功回答、ck未完理解、cl身振り文脈応答、cm/cn反復、ap/cd/ce九入口、旧4d2実answer_unknownほか既存担当を維持する。他short非回答／観察応答等は残照合で永久対象外にしない。
+- 専用fixtureは既存aqのno-original-tasteと同じ味欠損を用意した互換資料。現在の通常食事完了はsweet/pleasantを記録するため、通常tickの新発生観測や実ユーザー旧保存検証とは区別する。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。所有core/world/catalogほか七コード・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。
 
 ##### co個別相談案：完全理解した文脈確認への味判断不能応答資料（2026-10-22・未採用未着手）
 
