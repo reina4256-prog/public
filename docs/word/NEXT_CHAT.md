@@ -1,6 +1,10 @@
 # 次チャットの開始文
 
+- 2026-10-22 cm最終：ユーザー「どちらも採用でOKです」による採用範囲の実装・Codex検証完了。実装後OK未受領・同じcm継続、次記号追加／次チャット移動なし。102枠101確認済み・正式子91、最新ao〜cl人間OK。専用35・全Node2533・七JS構文・七言語14957・権限付き別renderer2367通過。元全回帰OVDa39の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜8工程・中心6、前回cm相談／採用時から下限／上限／中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。cm確認待ちと完全理解gesture反復・context_detail short非回答等の残照合・必要分割未確定で機械減算しない。全14保留・各担当三保留・全体未完。以下のcm未採用・検証中は過去状態。
+
 ## 同じcmの相談継続（2026-10-22・対象／成立保持とも未採用）
+
+現在はユーザー「どちらも採用でOKです」により両方採用済み。上の最新通知と[cm所有節](../specs/core/experimental_word_learning.md#diary-incomplete-repeat-questions-cm)を優先し、以下の未採用文は採用前の原資料として保持する。実装後OKは未受領、同じcm内の自由フィードバックを継続し、次記号追加・次チャット移動はしない。検証の最新状態・原ログ・commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照する。
 
 - cmは既存明示的な聞き直しcontext_repeat／repeat_answerの未完理解資料を[個別相談中](../specs/core/experimental_word_learning.md#diary-incomplete-repeat-questions-cm-consultation)。七言語×short/gesture、実学習後14＋mask2の16未完理解資料がap〜clの49担当で784非捕捉・例外0、旧4d2／質問教示／u理由回答も非捕捉。原回答あり・今回reply=attend・turn.answerなしを分離する案で、新理解規則・新実装・正式枠追加なし。101枠101確認済み・正式子90、clまで人間OK。
 - 完全理解gesture反復の対照は原expression=gesture/attend・実reply=taking_break・turn.answerあり。cm未完理解案へ混ぜず扱いを残照合。残4〜8工程・中心6、前回cl確認後比は下限0／上限+1／中心0。内訳は問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2。上限増はこの別相談・必要分割の余地、追加実装は未確定。全14保留・各担当三保留・全体未完。

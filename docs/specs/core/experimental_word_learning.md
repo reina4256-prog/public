@@ -1,6 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cm最終：ユーザー「どちらも採用でOKです」による採用範囲の実装・Codex検証完了。実装後OK未受領・同じcm継続、次記号追加／次チャット移動なし。102枠101確認済み・正式子91、最新ao〜cl人間OK。専用35・全Node2533・七JS構文・七言語14957・権限付き別renderer2367通過。元全回帰OVDa39の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜8工程・中心6、前回cm相談／採用時から下限／上限／中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。cm確認待ちと完全理解gesture反復・context_detail short非回答等の残照合・必要分割未確定で機械減算しない。全14保留・各担当三保留・全体未完。以下のcm未採用・検証中は過去状態。
+
 <a id="diary-incomplete-repeat-questions-cm-consultation"></a>
+
+<a id="diary-incomplete-repeat-questions-cm"></a>
+
+##### 4d12cm：明示的な聞き直しの未完理解資料（2026-10-22・採用範囲実装検証完了）
+
+- 対象・成立保持の個別採用済み。`experimental_word_diary_incomplete_repeat_questions.create()/capture(buffer,result,receipt)`三引数の独立一時journal、kind=incomplete_repeat_question。既存七言語単独frame=context_repeat／repeat_answerで、当時question関係が適用できずcomplete=false・unresolvedあり、直前同話者原回答へのanswerReferenceがある資料だけ。short/gesture双方、新文型・理解学習規則・既存scopeは変更しない。
+- receiptは独立input/inputKnowledge/inputContext、実receive前beforeState/beforeWorld、実respond後afterState/afterWorld/reply。原input/frame・直前turn/原answer・原lastOutputのsource/deliveryKind/表示時点・参照経験、未理解と原expression・実reply・前後state/worldを分離コピー。実receive/respond全文整合、前後validContext、原回答ID/answeredAt・参照経験同ID一意と原snapshot一致を照合し、欠損競合不一致を補完しない。真正性認証ではなく供給資料整合照合。
+- u.subject/questionSlot=null等をframeのself/repeat_answerで補わない。原回答の存在と今回reply=attend・turn.answerなしを別保持し、actualAnswer=false・turnAnswer=null、実expressionに従うactualSpeechを保持。原回答を今回の実再回答・本人発話・新経験へ変換しない。古いlastOutputなしで既存receiveが成立する場合はnullのまま保持し、原表示を再構成しない。
+- 原候補・原反復資料へ追加／上書きせず、同input非増加非上書き・新input別資料・遅延供給/返却コピー独立・元資料不変・後知識/後活動/振り返り非遡及。本文集約・一時receipt保存形式・ゲーム本接続の三保留を維持、本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。
+- aq完全理解short実反復、ck/cl文脈確認、ap/cd/ce直接九入口、名前・酸味・確認・理由ほか既存担当を維持。完全理解gesture反復の原expressionと実reply/turn.answerの境界、context_detail short時非回答等は残照合で今回採用に混ぜない。全14保留・全体未完。
+- 新fixture／専用test／非表示smokeと監査登録を追加。全100登録（固定50＋追加50）と102確認枠は別。採用範囲実装・Codex検証完了、実装後OK未受領・同じcm継続。専用35（30群2031原112成立、35種3920改変拒否・既存49担当5488非重複）、追加ローカル検査で新reason実学習非遡及と原表示なし原answer経験参照の欠損重複拒否を確認。全Node2533（ゲーム2460＋監査59＋工具14、733178ms）・七JS構文・七言語14957通過。全回帰OVDa39の制限内GPU -1073741515／ERR_FAILED(-2)と未分類smoke reviewRequiredによるincomplete・exit1、原reading.not_recordedを非改変保持し、未実行check/testなし。権限付き別renderer2367（2031原＋三種336改変）は終了0、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変。別成功・手動依存照合を元run成功へ読み替えない。原ログはローカル`docs/.local-history/verification-runs/cm-implementation-23ecc9d/`および`word-verification-OVDa39/`へ保持。以下の未採用案は採用前原文。
 
 ##### cm個別相談案：明示的な聞き直しの未完理解資料（2026-10-22・未採用未着手）
 

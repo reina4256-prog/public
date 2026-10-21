@@ -1,11 +1,14 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-22 cm最終：ユーザー「どちらも採用でOKです」による採用範囲の実装・Codex検証完了。実装後OK未受領・同じcm継続、次記号追加／次チャット移動なし。102枠101確認済み・正式子91、最新ao〜cl人間OK。専用35・全Node2533・七JS構文・七言語14957・権限付き別renderer2367通過。元全回帰OVDa39の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜8工程・中心6、前回cm相談／採用時から下限／上限／中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。cm確認待ちと完全理解gesture反復・context_detail short非回答等の残照合・必要分割未確定で機械減算しない。全14保留・各担当三保留・全体未完。以下のcm未採用・検証中は過去状態。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で66fd74dのcl採用範囲へ実装後OKと移動を明示。101枠101確認済み・正式子90、最新ao〜cl人間OK。次cmは残入口をap〜clおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cl確認前から上下限・中心差分0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cl確認待ちと完全理解context_detail身振りを差引後も、repeat_answer未完理解／非発話・context_detailのshort時非回答等を既存担当へ照合する残作業だけで問いを暫定1へ再積上げ。追加実装の要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcl実装後OK未受領・同じcl継続は過去状態。
 
 - 2026-10-22 cl最終：採用範囲実装・Codex検証完了、実装後OK未受領・同じcl継続、次チャット移動なし。101枠100確認済み・正式子90、最新ao〜ck人間OK。専用32・全Node2497・七JS構文・七言語14957・権限付き別renderer1505通過。全回帰gZAVi8の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜7工程・中心6、前回上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2）。cl確認待ち・反復等の必要分割未確定で減算せず、全14保留・各担当三保留・全体未完。以下のcl実装検証中・未採用は過去状態。
 
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
+| 4d12cm | incomplete_repeat_questions.capture (3) | [source](../../experimental_word_diary_incomplete_repeat_questions.js) | [test](../../tests/experimental_word_diary_incomplete_repeat_questions.test.js) |
 | 4d12cl | gesture_context_questions.capture (3) | [source](../../experimental_word_diary_gesture_context_questions.js) | [test](../../tests/experimental_word_diary_gesture_context_questions.test.js) |
 
 全99登録（固定50＋追加49）、101確認枠とは別。[cl所有仕様](../specs/core/experimental_word_learning.md#diary-gesture-context-questions-cl)。
