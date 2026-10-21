@@ -1,5 +1,9 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cn最終：ユーザー「どちらも採用でOKです」の採用範囲を実装・Codex検証完了。原expression=gesture/attend・実reply・今回turn.answerコピーを分離し、actualSpeech=false・answerRecorded=true。専用29（24群598原52成立・38種1976改変拒否・既存50担当2600非重複）、全Node2563・六JS構文・七言語14957・権限付き別renderer754通過。元全回帰CyCYGlの制限内GPU失敗と未分類smoke reviewRequiredによるincompleteを非改変保持し、別成功・手動依存照合と区別する。103枠102確認済み・正式子92、cmまで人間OK、cn実装後OK未受領・同じcn継続、次記号追加/次チャット移動なし。残4〜8工程・中心6、前回上下限中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終2）。cn確認待ちと残境界/必要分割未確定で減算しない。全14保留・各担当三保留・全体未完。以下のcn未採用/実装検証中は過去状態。
+
+- 2026-10-22 cn採用：ユーザー「どちらも採用でOKです」で完全理解した明示聞き直しのgesture設定資料の対象・成立保持を個別採用。原expression=gesture/attend・実reply・今回turn.answerを分離する独立部品を実装検証中。103枠102確認済み・正式子92、cmまで人間OK、cn実装後OK未受領・同じcn継続。残4〜8工程・中心6、前回上下限中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終2）。採用だけでは完了と数えず、確認待ち・残境界・分割未確定を保持する。全14保留・各担当三保留・全体未完。以下のcn未採用案は採用前原資料。
+
 - 2026-10-22 cn相談：完全理解した明示聞き直しの身振り設定で、原expression=gesture/attendと実reply・今回turn.answerが併存する資料を個別相談。対象・成立保持とも未採用未着手、正式枠追加なし。102枠102確認済み・正式子91、cmまで人間OK。限定観察42資料×ap〜cmの50担当=2100非捕捉・例外0。原expressionを本人発話へ変えず、実reply／原answerのコピーと今回入力を分離保持する案。残4〜8工程・中心6、前回上下限中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。全14保留・各担当三保留・全体未完。ゲームコード変更・全回帰・renderer実行なし。詳細はcn相談所有節と最新handoffを参照。以下の次cn未選定は過去状態。
 
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」でf8b3cebのcm採用範囲へ実装後OKと移動を明示。102枠102確認済み・正式子91、最新ao〜cm人間OK。次cnは残入口をap〜cmおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜8工程・中心6、前回cm確認前から下限／上限／中心差分0（問い残照合1〜2／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cm確認待ち・未完理解反復を差引後も、完全理解gesture反復の原expressionと実reply/turn.answerの境界、context_detail short時非回答等の残照合と必要分割未確定を問い1〜2へ再積上げ。追加実装要否未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcm実装後OK未受領・同じcm継続は過去状態。
@@ -7,6 +11,19 @@
 - 2026-10-22 cm最終：ユーザー「どちらも採用でOKです」による採用範囲の実装・Codex検証完了。実装後OK未受領・同じcm継続、次記号追加／次チャット移動なし。102枠101確認済み・正式子91、最新ao〜cl人間OK。専用35・全Node2533・七JS構文・七言語14957・権限付き別renderer2367通過。元全回帰OVDa39の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜8工程・中心6、前回cm相談／採用時から下限／上限／中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。cm確認待ちと完全理解gesture反復・context_detail short非回答等の残照合・必要分割未確定で機械減算しない。全14保留・各担当三保留・全体未完。以下のcm未採用・検証中は過去状態。
 
 <a id="diary-gesture-repeat-questions-cn-consultation"></a>
+
+<a id="diary-gesture-repeat-questions-cn"></a>
+
+##### 4d12cn：完全理解した明示聞き直しの身振り設定資料（2026-10-22・採用範囲実装検証完了）
+
+- 最終検証：専用29全通過（24群598原52成立、38種1976改変拒否・既存50担当2600非重複）。旧表示なし参照経験の欠損/重複/改変拒否、後の実eat意味習得で知識が変わっても原資料/遅延コピー不変を別途確認。全Node2563（ゲーム2489＋監査60＋工具14、654049ms）・六JS構文・七言語14957（3228ms）通過。元全回帰CyCYGlは制限内rendererのGPU -1073741515反復/FATAL、終了2147483651・3896msと未分類smoke reviewRequiredを残すincomplete・exit1として非改変保持。未実行check/testなし、原reading.not_recordedを手動読取記録へ置き換えない。権限付き別renderer754（598原＋三種156改変）は終了0、八global除去・local/session sentinel不変・保存bridge未定義・元資料不変。元runを成功へ昇格せず別成功と手動依存照合を区別する。
+- 所有七コードのLF正規化内容727bc71一致、全回帰開始時の六変更JS＋packageの七hash不変、八文書旧行保持・追加リンク検査通過。新smokeはcmから名称/fixture/global/profile/sentinel/タイトルだけの厳密同形と直接fixture依存を手動確認。原ログ・失敗/補正・追加検査・文書保持はdocs/.local-history/verification-runs/cn-implementation-727bc71、全回帰原資料はword-verification-CyCYGl。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。採用範囲実装・Codex検証完了、cn実装後OK未受領・同じcn継続。以下の実装検証中は途中状態。
+
+- ユーザー「どちらも採用でOKです」で対象・成立保持を個別採用。experimental_word_diary_gesture_repeat_questions.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=gesture_repeat_question。既存七言語単独question/context_repeat/repeat_answer、当時question・complete=true・unresolved空・subject=self・questionSlot=repeat_answer、同話者直前原回答へのanswerReference、speech=gesture・原expression=gesture/attend、実reply=原answer.response・今回turn.answer=原answerのコピーだけ。新文型・学習規則・scope・既存応答処理は変更しない。
+- receiptは独立input/inputKnowledge/inputContext・実receive前beforeState/beforeWorld・実respond後afterState/afterWorld/reply。原input/frame、直前turn/原answer（原ID/answeredAt）、原lastOutputのsource/deliveryKind/表示時点・参照経験、当時理解、原expression、実reply、今回turn.answer、前後state/worldを分離コピー。実receive/respond全文整合・前後validContext・参照経験同ID一意と原snapshot一致を照合し、欠損重複不一致を補完しない。真正性認証ではなく供給資料の整合照合。
+- actualSpeech=false・answerRecorded=true・turnAnswer=原answerのコピーを分離保持する。実返却・回答コピーの存在は今回本人の音声発話や新経験を意味しない。原回答のinput ID/answeredAtを今回入力のID/atへ更新しない。原lastOutputなしはnullのまま保持し、再構成しない。既存rememberOutputが返却回答のdeliveryKindをspeechと記録し、続く反復も成立する場合も、その原値とgestureのexpressionを両方残し、実際の音声発話へ読み替えない。aqのshort成功本人回答とは別境界であり、aq既存条件を変更しない。
+- 元候補・原反復資料を非増加非上書きに保つ。同input非増加非上書き、新input別資料、遅延供給/返却コピー独立・元資料不変、後知識/後活動/振り返りによる原資料補完・遡及成立なし。本文集約・一時receipt保存形式・ゲーム本接続の三保留維持。aq short実反復、cm未完理解反復、ck/cl文脈確認、ap/cd/ce直接九入口ほか既存担当維持。context_detail short非回答等は残照合で永久対象外にしない。
+- 新fixture/専用test/非表示smokeと監査登録を追加、全101登録（固定50＋追加51）。103枠102確認済み・正式子92とは別。所有core/world/catalogほか七コード・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。実装・検証中、cn実装後OK未受領・同じcn継続。全14保留・各担当三保留・全体未完。以下のcn未採用案は採用前原資料として保持する。
 
 ##### cn個別相談案：完全理解した明示聞き直しの身振り設定資料（2026-10-22・未採用未着手）
 
