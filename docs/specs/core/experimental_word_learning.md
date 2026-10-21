@@ -1,5 +1,9 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cr最終：採用範囲実装・Codex検証完了。専用18（13群476原362成立・38種13756改変拒否・既存54担当19548非重複）、全Node2635・七JS構文・七言語14957・権限付き別renderer1562通過。元全回帰PiF767の制限内GPU失敗・静的未分類smoke reviewRequired・reading.not_recordedとrun全体incomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。107枠106確認済み・正式子96、最新ao〜cq人間OK、cr実装後OK未受領・同じcrを継続。残5〜7工程・中心6、前回cr相談／採用時から下限／上限／中心差分0（問い1／提案2／報告否定お願い0〜2／最終2）。cr確認待ち・順序側と他残入口の照合／必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcr未採用／実装検証中は途中・過去状態。commit/push結果・実読取・未検証は現在handoff参照。
+
+- 2026-10-22 cr採用：ユーザー「はい、どちらも採用でOKです。」で条件付き休息お願いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数の独立一時journal、kind=incomplete_conditional_rest_proposalを実装検証中。原理解／不足・原expression／実reply・前後資料と今回conditionJudgmentなしを分離し、条件成立判断・受諾・休息経験等を補わない。107枠106確認済み・正式子96、最新ao〜cq人間OK、全105登録（固定50＋追加55）。実装後OK未受領・同じcrを継続。残5〜7工程・中心6、前回cr相談から下限／上限／中心差分0（問い1／提案2／報告否定お願い0〜2／最終2）。crの検証・確認待ちと順序の残作業を保持し採用だけで減算しない。全14保留・各担当三保留・全体未完。以下のcr未採用は採用前原資料。
+
 - 2026-10-22 cr相談：既存七言語の単独条件付き休息お願いでrest/tired意味またはrequest/condition関係が不足・scope不適用（併存含む）の未完理解資料を、対象・成立保持の二点で個別相談する。両方未採用未着手・正式枠追加なし、106枠106確認済み・正式子95、最新ao〜cq人間OK。限定656資料×ap〜cqの54担当＝35424呼出・例外0。条件／順序の未完理解各280は54担当・正規五引数am・四引数m/p・4d2非捕捉、完全理解各28はm/pへ帰属。通常休息cp・散策cq・食後散策bc/bv・否定お願いbb/buは対照で帰属確認。全入口最終分類ではない。残5〜7工程・中心6、前回4〜7・中心6から下限+1／上限0／中心0（問い1／提案2／報告否定お願い0〜2／最終意味照合回帰2）。条件と順序の二系統を分離して必要な相談・検証を残すため下限を修正、cr未採用のまま完了減算なし。全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。以下の次cr未選定・cqの未受領表示は過去状態。
 
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で98c1a24のcq採用範囲へ実装後OKと移動を明示。cqは実装・Codex検証・ユーザー実装後OK確認済み、106枠106確認済み・正式子95、最新ao〜cq人間OK。次crは残入口をap〜cqおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cq確認前から下限／上限／中心差分0（問い残照合1／提案残照合1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。cq確認待ちと通常散策未完理解の採用範囲を差引後も、条件／順序等を含む他提案境界の有無・既存担当との照合・必要分割未確定を暫定1〜2へ再積上げ。今回新たな意味再観察なし、機械減算しない。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcq実装後OK未受領・同じcq継続は過去状態。
@@ -25,6 +29,24 @@
 - 2026-10-22 co採用：ユーザー「はい、どちらも採用OKです」で対象・成立保持を個別採用。完全理解context_detail・short・実taste_unsure・今回turn.answerなしを独立一時資料で保持する。experimental_word_diary_uncertain_context_questions.create()/capture(buffer,result,receipt)三引数、kind=uncertain_context_question。採用範囲実装検証中・実装後OK未受領・同じco継続。104枠103確認済み・正式子93、最新ao〜cn人間OK、全102登録（固定50＋追加52）。残4〜7工程・中心6、前回co相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。既存問い残枠内の採用で確認待ち・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。原味欠損の互換fixtureを通常tick新発生観測へ変えない。以下のco未採用は採用前原資料。
 
 <a id="diary-incomplete-conditional-rest-proposals-cr-consultation"></a>
+
+<a id="diary-incomplete-conditional-rest-proposals-cr"></a>
+
+##### 4d12cr：条件付き休息お願いの未完理解資料（2026-10-22・採用範囲実装検証完了）
+
+- 最終結果：専用18／13群476原362成立・38種13756改変拒否・54担当19548非重複、監査単独64、全Node2635・463829ms、七JS構文・七言語14957、別権限付きrenderer1562通過。原全回帰PiF767は制限内GPU -1073741515／ERR_FAILED失敗と静的未分類smoke reviewRequired・reading.not_recordedによりincomplete/exit1を保持。Node未実行testなし、localization／renderer未実行checkなし。別成功で原runを成功へ昇格しない。
+- final-verification.jsonでfull開始時の七JS＋package八hash不変を確認。新smokeの直接依存手動照合と厳密cq名称置換・別renderer八global除去／sentinel不変／bridge未定義を記録。原資料・専用v1・追加工具v1失敗／v2成功・監査・両別renderer・元full・文書検査v1 UTF-16読取失敗／補修後v2成功を非削除保持。採用範囲実装・Codex検証完了、cr実装後OK未受領・同じcrを継続。以下の実行中は中間状態。
+
+- 中間検証：専用18全通過・13群476原362成立、38種13756改変拒否・既存54担当19548非重複。七言語八設定・四前提16mask・既存正規化・実request学習後／実condition学習後の別locale／別話者scope・疲労閾値・活動・観察経験／過去選択出所・13新input・後実条件学習／後休息非遡及を確認。監査単独64通過。追加資料は選択出所両設定2件保持・重複出所の整合再実行2件拒否、完全理解mの正規四引数42件成立、相談時条件280成立／順序308拒否。
+- 別制限内rendererはGPU -1073741515で終了1、権限付き別renderer1562（476原＋三種1086改変）は終了0、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。新smokeはcqから名称／fixture／global／profile／sentinel／タイトルを置換した厳密同形、直接fixture依存と実行注入コードを手動照合。別成功で制限内失敗を置換しない。全回帰PiF767は実行中で完了未認定。
+- additional-evidence初回は新input検査へ原input直前stateを再使用し同IDを再生成した工具期待誤りで失敗。afterState/afterWorldへ直してv2成功、失敗原コード／原ログを非削除保持。adapter／fixture／登録テストは補修していない。
+
+- ユーザー「はい、どちらも採用でOKです。」で下の個別相談案の対象・成立保持を採用。experimental_word_diary_incomplete_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=incomplete_conditional_rest_proposal。七言語の既存通常単独conditional_proposal、self/tired条件・rest/request・when_met/unspecified、rest/tired意味またはrequest/condition関係不足／scope不適用（併存含む）、complete=false・unresolvedあり、short/gesture双方だけ。
+- 原input/frame・当時knowledge/context・理解／不足・原expression／実reply・前後state/worldを分離コピー。独立input/inputKnowledge/inputContext・原ID=before.serial+1、使い捨てコピー上の実receive/respond全文整合、前後validContext/validSelections、参照経験／選択出所の原資料一意整合を要求し、欠損重複不一致は補わない。供給資料整合照合であり真正性認証ではない。
+- 原frameで当時uのnull／不足を補わない。原understanding.conditionStatusと今回判断の不存在を分離し、conditionJudgmentRecorded=false・conditionJudgment=null。疲労値があっても感覚observation／今回条件判断を新造しない。actualSpeechは原expression.channel準拠、speechSetting・実UI音声確認と別。answerRecorded=false・turnAnswer=null・compliance=null・actionDecisionRecorded=false、受諾・休息決定／開始／完了経験・共同参加・本人感情／希望／理由を補わない。
+- 同input非増加非上書き、新input別資料、遅延供給／返却コピー独立・元資料不変、後実学習／後活動／振り返りの補完・遡及成立なし。候補五区分拡張なし。本文集約4e・一時receipt保存形式・ゲーム本接続未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。
+- m完全理解条件休息・p完全理解順序休息、am完全理解通常休息／散策、cp通常休息未完理解・cq通常散策未完理解、bc/bv食後散策・bb/bu/bw否定お願いと他ap〜cqを維持。新文型／学習規則・所有七コード・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。独立部品・fixture・専用test・一時renderer・監査第55追加担当を登録。107枠106確認済み・正式子96、実装後OK未受領・同じcr、全14保留・各担当三保留・全体未完。
+- 原資料／原ログ保存先docs/.local-history/verification-runs/cr-implementation-4414d4b。検証結果確定後に本節とhandoffへ追記する。以下の未採用は採用前の個別相談原資料。
 
 ##### cr個別相談案：条件付き休息お願いの未完理解資料（2026-10-22・未採用未着手）
 

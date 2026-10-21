@@ -1,5 +1,13 @@
 # 次チャットの開始文
 
+- 2026-10-22 cr最終：採用範囲実装・Codex検証完了。専用18（13群476原362成立・38種13756改変拒否・既存54担当19548非重複）、全Node2635・七JS構文・七言語14957・権限付き別renderer1562通過。元全回帰PiF767の制限内GPU失敗・静的未分類smoke reviewRequired・reading.not_recordedとrun全体incomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。107枠106確認済み・正式子96、最新ao〜cq人間OK、cr実装後OK未受領・同じcrを継続。残5〜7工程・中心6、前回cr相談／採用時から下限／上限／中心差分0（問い1／提案2／報告否定お願い0〜2／最終2）。cr確認待ち・順序側と他残入口の照合／必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcr未採用／実装検証中は途中・過去状態。commit/push結果・実読取・未検証は現在handoff参照。
+
+## 同じcrを続ける現在指示（採用範囲実装・Codex検証完了）
+
+[cr採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-conditional-rest-proposals-cr)の実装・Codex検証を完了。同じcr内で自由フィードバック・必要修正・実装後OKを受ける。ユーザー「はい、どちらも採用でOKです。」を受領済みで、対象・成立保持を再確認からやり直さない。107枠106確認済み・正式子96、cr実装後OK未受領、次記号／次チャット移動なし。元PiF767のGPU失敗／静的reviewRequiredによるincompleteと、全Node2635・別renderer1562成功を区別する。残5〜7工程・中心6、前回下限／上限／中心差分0、全14保留・各担当三保留・全体未完。以下のcr未採用は採用前資料。
+
+- 2026-10-22 cr採用：ユーザー「はい、どちらも採用でOKです。」で条件付き休息お願いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数の独立一時journal、kind=incomplete_conditional_rest_proposalを実装検証中。原理解／不足・原expression／実reply・前後資料と今回conditionJudgmentなしを分離し、条件成立判断・受諾・休息経験等を補わない。107枠106確認済み・正式子96、最新ao〜cq人間OK、全105登録（固定50＋追加55）。実装後OK未受領・同じcrを継続。残5〜7工程・中心6、前回cr相談から下限／上限／中心差分0（問い1／提案2／報告否定お願い0〜2／最終2）。crの検証・確認待ちと順序の残作業を保持し採用だけで減算しない。全14保留・各担当三保留・全体未完。以下のcr未採用は採用前原資料。
+
 ## 同じcrの相談を続ける現在指示（未採用未着手）
 
 [条件付き休息お願いの未完理解資料案](../specs/core/experimental_word_learning.md#diary-incomplete-conditional-rest-proposals-cr-consultation)について、対象と成立保持の二点への回答・自由フィードバックを同じcr内で受ける。両方未採用、実装着手・正式枠追加なし。確認済みcq以下を再確認からやり直さず、新記号／次チャット移動なし。順序付き休息の未完理解は別の残入口。残5〜7工程・中心6、前回差分は下限+1／上限0／中心0（問い1／提案2／報告否定お願い0〜2／最終2）。今回656資料の限定照合と過去cqの全回帰を混同しない。最新commit/push結果は現在handoffを参照。以下の次cr未選定開始文は再開時原資料として保持する。
