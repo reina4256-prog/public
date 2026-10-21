@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-uncertain-context-questions-co-consultation"></a>
+
+##### co個別相談案：完全理解した文脈確認への味判断不能応答資料（2026-10-22・未採用未着手）
+
+- 対象案：既存七言語単独question／catalogRule=context_detail・slot=context_detail、当時kind=question・complete=true・unresolved空・subject=self・questionSlot=context_detail、speech=short、実reply=taste_unsure・今回turn.answerなしだけ。新文型・理解学習規則・応答変更は提案しない。coの対象と成立保持はそれぞれ未採用で、新adapter・正式kind・公開API・正式枠追加は未着手。103枠103確認済み・正式子92を維持する。
+- 具体例：既存aqのno-original-taste互換fixtureと同じ、原食事経験と原表示に味の記録がない資料から、実core.receive/world.respondで「甘いの？」を再受信すると完全理解でもtaste_unsureとなり、今回turn.answerはない。原観察はsource.kind=observationのまま。これは通常tick由来の新発生例ではなく、味欠損を用意した既存互換fixtureの再実行であり、通常食事では現在sweet/pleasantを記録する。欠けた味を甘い／甘くないへ補わず、旧保存の実運用調査を済ませたとはしない。
+- 成立保持案：原input/frame、入力当時knowledge/context、原lastOutputのsource/deliveryKind/表示時点・参照経験と原snapshot、当時の完全理解、原expressionと実reply、今回turn.answerなし、前後state/worldを独立コピーで分離保持する。使い捨てコピー上の既存receive/respond全文整合・前後validContext・参照経験同ID一意と原snapshot一致を照合。味フィールド自体が原経験・原表示の双方にないことと、参照経験そのものの欠落／重複／不一致を区別し、後者は成立させない。原味欠損を修復しない。
+- short・原expression.channel=speechである事実と、味の肯定／否定回答が成立せずturn.answerがない事実を両方残す。原expressionのspeechを実UI音声確認済みとは呼ばず、taste_unsureを成功した味回答や本人の味覚体験・感情自覚へ変えない。独立一時資料として元候補非増加非上書き、同input非増加非上書き、新input別資料、遅延／返却コピー独立・元資料不変、後知識／後活動／振り返りによる補完・遡及成立なしを要求する案。
+- 再照合：七言語の対象7資料×ap〜cnの51三引数capture=357すべて非捕捉・例外0、旧4d2も7非捕捉。全42資料×51=2142呼出・例外0。味欠損gesture7はclだけ、味記録ありshort7はaqだけ、味記録ありgesture7はclだけ、sweet意味不足の両設定14はckだけ。前後validContextと原資料不変を確認。各APIのcreateがある場合はそのjournalを使用し、aq用独立receiptも実snapshotから追加した。全旧固定50captureの正規引数再検査・全所有仕様／全fixtureの全文意味再読・全入口最終分類ではない。
+- aqは成功回答だけ、ckは未完理解、clはgesture応答、cm/cnはrepeat_answerを担当し、ap/cd/ceの九入口や名前・酸味・確認・理由等を置換しない。実answer_unknownは旧4d2、他のshort非回答／観察応答等は残照合であり、今回の対象へ一括包含せず永久対象外にもしない。本文集約4e・一時receipt保存形式・ゲーム本接続の三保留と全14保留を維持。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。
+- 根拠と原資料はdocs/.local-history/verification-runs/co-consultation-c4ea5a6のprobe.cjs・materials.json・report.json。今回ゲームコード／locale／保存形式非変更、ゲーム全回帰・renderer未実行。残4〜7工程・中心6、前回cn確認後から下限／上限／中心差分0。問い残照合1には今回未捕捉の個別相談・採用時の必要作業と他残境界照合を暫定同枠で含める。提案1〜2（am/bc/bv差引後・今回再観察なし）、報告否定お願い0〜2（今回再観察なし）、最終意味照合回帰2。中心配分1+1.5+1+2=5.5を整数6。必要分割未確定で増減し、正式残数・チャット数・日数・終了保証ではない。全体未完。
+
+- 2026-10-22 co相談：完全理解したcontext_detailのshort設定で実reply=taste_unsure・今回turn.answerなしの資料を対象・成立保持の二点に分けて個別相談。既存aqの味欠損互換fixtureを基にした七言語7資料で、ap〜cnの51担当すべて非捕捉（357呼出）、旧4d2も非捕捉。対照を含む42資料2142呼出・例外0。通常tickで新たに味欠損が発生した観測ではない。coは対象／成立保持未採用未着手・正式枠追加なし、103枠103確認済み・正式子92、cnまで人間OK。残4〜7工程・中心6、前回cn確認後から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2、配分5.5）。問い残枠で具体的な未捕捉を確認したが未採用・必要分割未確定で減算しない。全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、全回帰・renderer未実行。詳細は所有仕様のdiary-uncertain-context-questions-co-consultation節。以下の次co未選定は過去状態。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」でadfd7c6のcn採用範囲へ実装後OKと移動を明示。103枠103確認済み・正式子92、最新ao〜cn人間OK。次coは残入口をap〜cnおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜7工程・中心6、前回cn確認前から下限0／上限-1／中心0（問い残照合1／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cn確認待ち・完全理解gesture反復を差引き、context_detail short非回答等の残照合を暫定1へ再積上げ。中心配分5.5を整数目安6とする。追加実装要否・必要分割未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcn実装後OK未受領・同じcn継続は過去状態。
 
 - 2026-10-22 cn最終：ユーザー「どちらも採用でOKです」の採用範囲を実装・Codex検証完了。原expression=gesture/attend・実reply・今回turn.answerコピーを分離し、actualSpeech=false・answerRecorded=true。専用29（24群598原52成立・38種1976改変拒否・既存50担当2600非重複）、全Node2563・六JS構文・七言語14957・権限付き別renderer754通過。元全回帰CyCYGlの制限内GPU失敗と未分類smoke reviewRequiredによるincompleteを非改変保持し、別成功・手動依存照合と区別する。103枠102確認済み・正式子92、cmまで人間OK、cn実装後OK未受領・同じcn継続、次記号追加/次チャット移動なし。残4〜8工程・中心6、前回上下限中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終2）。cn確認待ちと残境界/必要分割未確定で減算しない。全14保留・各担当三保留・全体未完。以下のcn未採用/実装検証中は過去状態。
