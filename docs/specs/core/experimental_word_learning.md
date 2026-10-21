@@ -1,8 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 cn相談：完全理解した明示聞き直しの身振り設定で、原expression=gesture/attendと実reply・今回turn.answerが併存する資料を個別相談。対象・成立保持とも未採用未着手、正式枠追加なし。102枠102確認済み・正式子91、cmまで人間OK。限定観察42資料×ap〜cmの50担当=2100非捕捉・例外0。原expressionを本人発話へ変えず、実reply／原answerのコピーと今回入力を分離保持する案。残4〜8工程・中心6、前回上下限中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。全14保留・各担当三保留・全体未完。ゲームコード変更・全回帰・renderer実行なし。詳細はcn相談所有節と最新handoffを参照。以下の次cn未選定は過去状態。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」でf8b3cebのcm採用範囲へ実装後OKと移動を明示。102枠102確認済み・正式子91、最新ao〜cm人間OK。次cnは残入口をap〜cmおよび必要な旧担当と再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残4〜8工程・中心6、前回cm確認前から下限／上限／中心差分0（問い残照合1〜2／提案1〜2／報告否定お願い残照合0〜2／最終意味照合回帰2）。cm確認待ち・未完理解反復を差引後も、完全理解gesture反復の原expressionと実reply/turn.answerの境界、context_detail short時非回答等の残照合と必要分割未確定を問い1〜2へ再積上げ。追加実装要否未確定、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcm実装後OK未受領・同じcm継続は過去状態。
 
 - 2026-10-22 cm最終：ユーザー「どちらも採用でOKです」による採用範囲の実装・Codex検証完了。実装後OK未受領・同じcm継続、次記号追加／次チャット移動なし。102枠101確認済み・正式子91、最新ao〜cl人間OK。専用35・全Node2533・七JS構文・七言語14957・権限付き別renderer2367通過。元全回帰OVDa39の制限内GPU失敗とreviewRequiredによるincompleteを非改変保持し、別renderer成功・手動依存照合と区別する。残4〜8工程・中心6、前回cm相談／採用時から下限／上限／中心差分0（問い1〜2／提案1〜2／報告否定お願い0〜2／最終意味照合回帰2）。cm確認待ちと完全理解gesture反復・context_detail short非回答等の残照合・必要分割未確定で機械減算しない。全14保留・各担当三保留・全体未完。以下のcm未採用・検証中は過去状態。
+
+<a id="diary-gesture-repeat-questions-cn-consultation"></a>
+
+##### cn個別相談案：完全理解した明示聞き直しの身振り設定資料（2026-10-22・未採用未着手）
+
+- 対象案：既存七言語の単独question／catalogRule=context_repeat・slot=repeat_answer、当時kind=question・complete=true・unresolved空・subject=self・questionSlot=repeat_answerで、同話者の直前原回答へのanswerReferenceがある資料。今回speech=gesture、原expression=gesture/attendでありながら、既存world.respondが原answer.responseを返し、今回turn.answerへ原answerをコピーしている場合。新文型・理解学習・scope・応答動作の変更は提案しない。102枠102確認済み・正式子91を維持し、cnは正式枠に追加しない。
+- 成立保持案：原input/frame、当時knowledge/context、直前turn/原answer（原input ID・answeredAt）、原lastOutputのsource/deliveryKind/表示時点・参照経験、当時理解、原expression、実reply、今回turn.answer、前後state/worldを独立コピーで分離保持する。今回input ID/atと原answerの出所・時刻を混同しない。使い捨てコピー上の実receive/respond全文整合・前後validContext・参照経験同ID一意と原snapshot一致を照合し、不足・重複・不一致を補わない。
+- 原expression準拠のactualSpeech=falseと、実reply／今回turn.answerの存在を両方残す案。実返却と回答コピーがある事実を消さず、それを本人が今回声で言った事実へ変えない。新経験・新学習も補わない。既存aq所有文の「身振りは成功本人回答にしない」と、worldのspeech分岐前の反復返却・answerコピーとの意味上の境界をここで相談し、コードまたは既存仕様のどちらかを無断で変更しない。
+- 独立の反復資料として、元候補・原反復資料を非増加非上書きに保つ。同input非増加非上書き、新input別資料、遅延供給/返却コピー独立・元資料不変、後知識/後活動/振り返りによる補完・遡及成立なし。本文集約・一時receipt保存形式・ゲーム本接続の三保留を維持する。新adapterの実装・journalの正式kind名・公開APIは未採用未着手。
+- 相談根拠：実core.receive/world.respondを一時Nodeメモリで再実行。七言語反復7、既存aq fixtureの完全理解反復35（八設定1・七言語7・観察由来回答7・六職6・原表示なし1・九入口原回答11・理由原回答2）をgesture設定で新たに受信した42資料で、ap〜cmの50captureすべて非捕捉（2100呼出・例外0）、旧4d2も42非捕捉。原expression=gesture/attend・reply=原answer.response・今回answer=原answer・前後validContext・world経験非増加を確認。42は限定資料数で全入口数ではない。short反復7はaqのみ、context_detail対照4はshort二件aq・gesture二件clのみ。全53資料の50担当呼出は2650、例外0。既存cl fixture中のshort・完全理解・context_detail・今回answerなしの条件は今回抽出0件であり、その境界が存在しない／解決済みとはしない。
+- aqはshort実反復、cmは未完理解の反復、ck/clはcontext_detail、ap/cd/ceは直接九入口を担当する。名前・酸味・確認・理由等の既存担当も今回資料では捕捉なし。旧全50担当の正規引数横断再検査・全ap〜cm所有節/全旧fixtureの全文意味再読・全入口最終分類は未完。今回の非捕捉を全担当の意味読了へ昇格しない。
+- 原資料・工具・stdout/stderrはローカルdocs/.local-history/verification-runs/cn-consultation-941490fへ保持。今回は相談資料・文書のみ、ゲームコード/locale/保存形式非変更、ゲーム全回帰・renderer・実UI音声・本人日記生成保存再開配布・実ユーザー保存は未実行。context_detail short非回答、提案・報告否定お願い、全14保留・各担当三保留は残照合。残4〜8工程・中心6、前回上下限中心差分0（問い1〜2・提案1〜2・報告否定お願い0〜2・最終2）。採用待ちのcnを完了として減算しない。全体未完。
 
 <a id="diary-incomplete-repeat-questions-cm-consultation"></a>
 
