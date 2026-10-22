@@ -1,5 +1,34 @@
 # 次チャットの開始文
 
+## 同じcvを続ける現在指示（採用範囲実装・Codex検証完了）
+
+```text
+cvの対象・成立保持はユーザー「はい、どちらもOKです」で採用済み。採用範囲実装・Codex検証完了、cv実装後OK未受領・同じcv継続。111枠110確認済み・正式子100、最新ao〜cu人間OK。再採用確認・次記号追加・次チャット移動なし。自由フィードバック・必要修正・実装後確認を受ける。
+experimental_word_diary_complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_activity_report。既存七言語十一形・単独教示印なし休息活動報告で実speakerがplayer以外、当時complete=true・unresolved=[]だけ。原frameとunderstandingの実speaker・内容主体・極性時点・roles/reportSourceを別保持し、原expression／実replyと前後資料を分離。同input非増加非上書き・新input別資料・コピー独立・後学習後食事休息非補完非遡及。本人経験・真偽・実休息・希望拒否・正確日時を補わない。新理解／習得規則・話者間scope転移なし、player完全理解d/g/j/al・未完cu・ap〜cu既存担当維持。本文集約・receipt保存形式・本接続未採用未実装。
+専用21＋監査68=89、全Node2719・八JS構文・七言語14957・権限付き別renderer3318通過。13群2178原380成立・38種14440改変拒否・旧58担当22040非重複、前相談2314再照合は308成立・2006非成立。初回fixtureの別話者習得想定誤りと専用v1のcu用不足フィールド期待残存6不通過は訂正後成功と区別。全回帰full-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、権限付き別renderer終了0・手動依存照合で元runを成功へ置換しない。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct担当数期待各一行57→58限定補修。
+残3〜5工程・中心3、前回cv採用時から下限／上限／中心差分0。問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2。Codex検証だけで実装後確認待ち・他入口全量分類／追加要否／分割未確定を減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正式残数・チャット数・日数・終了保証ではなく全体未完。
+原資料／原ログはcv-implementation-76d655b、最新commit/pushと実読取・未読・未検証はdocs/CURRENT_IMPLEMENTATION.mdを参照。前相談cv-consultation-3015d51・全旧原資料／原ログ／過去開始継続文を非削除保持。全ap〜cu所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終意味分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全14保留・各担当三保留・旧AI旧保存・九見本・星座・対象外%SystemDrive%/を維持し、確認済み範囲を再確認からやり直さず、途中保存を移動合図にしない。
+```
+
+以下のcv実装検証中／未採用は途中・過去状態。
+
+- 2026-10-23 cv最終：採用範囲実装・Codex検証完了、cv実装後OK未受領・同じcv継続。専用21＋監査68=89、全Node2719・八JS構文・七言語14957・権限付き別renderer3318通過。13群2178原380成立・38種14440改変拒否・旧58担当22040非重複。前相談2314再照合は308成立・2006非成立。初回fixtureの別話者習得想定訂正・専用v1のcu用不足フィールド期待残存6不通過と、全回帰full-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct各一行限定補修維持。111枠110確認済み・正式子100、最新ao〜cu人間OK、全109登録。残3〜5工程・中心3、前回cv採用から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口全量分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcv-implementation-76d655b、最新commit/push・読取／未検証は現在handoff参照。以下のcv実装検証中／未採用は途中・過去状態。
+
+## 同じcvを続ける現在指示（採用範囲実装検証中）
+
+```text
+ユーザー「はい、どちらもOKです」でcvの対象・成立保持は採用済み。採用範囲実装検証中、cv実装後OK未受領・同じcv継続。111枠110確認済み・正式子100、最新ao〜cu人間OK。再採用確認・次記号追加・次チャット移動なし。最新検証・commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。
+experimental_word_diary_complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_activity_report。既存七言語十一形・教示印なし単独休息活動報告で実speakerがplayer以外、当時complete=true・unresolved=[]だけ。原解析枠と実speaker・内容主体・当時understanding、原expression／実reply・前後資料を別保持。同input非増加非上書き、新input別資料・コピー独立・後学習後食事休息非補完非遡及。聞いた報告を本人経験・真偽・実休息・希望拒否・正確日時にしない。player完全理解d/g/j/al・未完cuと他ap〜cu担当を維持する。
+既存relation.offer/validLabelはplayer限定。別話者の教示後完全理解を初回fixtureが想定した誤りを記録し、ゲームを変えず未完cu帰属の対照へ訂正。player実習得scopeの別話者／別言語非転移、別話者教示後も非習得を確認。新理解／習得規則・scope転移なし。本文集約4e・receipt保存形式・本接続未採用未実装、全14保留・各担当三保留維持。
+専用v2は21＋監査68=89通過、13群2178原380成立・38種14440改変拒否・既存58担当22040非重複。前相談2314再照合は308成立・2006非成立。専用v1は新テストにcu用不足フィールド期待が残り83/89、検査訂正後成功と区別。全回帰・rendererの最終結果は現在handoff参照。所有七コード＋catalog・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。旧co/ctは担当数期待各一行57→58限定補修。
+残3〜5工程・中心3、前回cv相談から下限／上限／中心差分0。問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2。採用・Codex検証だけでは実装後確認待ちや他入口全量分類／追加要否／分割を減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正式残数・チャット数・日数・終了保証ではなく全体未完。
+原資料／ログはcv-implementation-76d655b、相談cv-consultation-3015d51と全旧原資料／原ログ／過去開始継続文を非削除保持。全ap〜cu所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。確認済みcu採用範囲を再確認からやり直さず、途中保存を移動合図にしない。
+```
+
+以下のcv未採用・相談中は採用前原資料として保持する。
+
+- 2026-10-23 cv採用：ユーザー「はい、どちらもOKです」で完全理解済み別話者の単独休息活動報告の対象・成立保持を個別採用。experimental_word_diary_complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。原解析枠と実speaker・内容主体・当時理解、原expression／実reply・前後資料を分離し、同input非増加・後学習後休息非遡及。新理解／習得規則・話者間scope転移なし。111枠110確認済み・正式子100、最新ao〜cu人間OK、cv実装後OK未受領・同じcv継続。残3〜5工程・中心3、前回cv相談から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。採用だけで検証・確認待ちを減算せず、追加要否／分割未確定。本文集約・receipt保存形式・本接続未採用未実装、全14保留・各担当三保留・全体未完。以下のcv未採用は採用前原資料。
+
 ## 同じcvを続ける現在指示（対象・成立保持を個別相談中）
 
 ```text

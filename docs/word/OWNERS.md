@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-23 cv最終：採用範囲実装・Codex検証完了、cv実装後OK未受領・同じcv継続。専用21＋監査68=89、全Node2719・八JS構文・七言語14957・権限付き別renderer3318通過。13群2178原380成立・38種14440改変拒否・旧58担当22040非重複。前相談2314再照合は308成立・2006非成立。初回fixtureの別話者習得想定訂正・専用v1のcu用不足フィールド期待残存6不通過と、全回帰full-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct各一行限定補修維持。111枠110確認済み・正式子100、最新ao〜cu人間OK、全109登録。残3〜5工程・中心3、前回cv採用から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口全量分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcv-implementation-76d655b、最新commit/push・読取／未検証は現在handoff参照。以下のcv実装検証中／未採用は途中・過去状態。
+
+| 工程 | 部品／API | 所有仕様 |
+| --- | --- | --- |
+| 4d12cv | complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt) | [完全理解済み別話者の休息活動報告](../specs/core/experimental_word_learning.md#diary-complete-other-speaker-activity-reports-cv) |
+
+- 2026-10-23 cv採用：ユーザー「はい、どちらもOKです」で完全理解済み別話者の単独休息活動報告の対象・成立保持を個別採用。experimental_word_diary_complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。原解析枠と実speaker・内容主体・当時理解、原expression／実reply・前後資料を分離し、同input非増加・後学習後休息非遡及。新理解／習得規則・話者間scope転移なし。111枠110確認済み・正式子100、最新ao〜cu人間OK、cv実装後OK未受領・同じcv継続。残3〜5工程・中心3、前回cv相談から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。採用だけで検証・確認待ちを減算せず、追加要否／分割未確定。本文集約・receipt保存形式・本接続未採用未実装、全14保留・各担当三保留・全体未完。以下のcv未採用は採用前原資料。
+
 - cv相談先：[完全理解済み別話者の単独休息活動報告の対象・成立保持案](../specs/core/experimental_word_learning.md#diary-complete-other-speaker-activity-reports-cv-consultation)。両方未採用未着手、正式担当API表へ追加しない。
 
 - 2026-10-23 cv相談：完全理解済み別話者の単独休息活動報告を一系統として対象・成立保持を個別相談中。両方未採用未着手・正式枠追加なし、110枠110確認済み・正式子99、cuまでユーザー実装後OK確認済み。同じcv継続・次チャット移動指示なし。限定2314資料×ap〜cuの58担当=134212呼出・例外0、候補308は58担当・正規旧d/g/j/al・am/m/p・4d2非捕捉。未完理解対照1596はcu、player完全理解対照182はd/g/j/al。問い・提案・否定お願いの限定既存帰属を維持し、未知二語面8資料を追加理解・永久対象外へ変換しない。残3〜5工程・中心3、前回cu確認後2〜5・中心2から下限+1／上限0／中心+1（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。未確認の報告上限1が具体化したため積み上げ直し、未採用・必要検証未完なので減算しない。追加要否／分割・全入口最終分類は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。正本cv相談節と現在handoff、原資料／ログcv-consultation-3015d51参照。以下の次cv未選定は選定前の過去状態。

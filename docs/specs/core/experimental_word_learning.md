@@ -1,5 +1,25 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-23 cv最終：採用範囲実装・Codex検証完了、cv実装後OK未受領・同じcv継続。専用21＋監査68=89、全Node2719・八JS構文・七言語14957・権限付き別renderer3318通過。13群2178原380成立・38種14440改変拒否・旧58担当22040非重複。前相談2314再照合は308成立・2006非成立。初回fixtureの別話者習得想定訂正・専用v1のcu用不足フィールド期待残存6不通過と、全回帰full-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct各一行限定補修維持。111枠110確認済み・正式子100、最新ao〜cu人間OK、全109登録。残3〜5工程・中心3、前回cv採用から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口全量分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcv-implementation-76d655b、最新commit/push・読取／未検証は現在handoff参照。以下のcv実装検証中／未採用は途中・過去状態。
+
+- 2026-10-23 cv採用：ユーザー「はい、どちらもOKです」で完全理解済み別話者の単独休息活動報告の対象・成立保持を個別採用。experimental_word_diary_complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。原解析枠と実speaker・内容主体・当時理解、原expression／実reply・前後資料を分離し、同input非増加・後学習後休息非遡及。新理解／習得規則・話者間scope転移なし。111枠110確認済み・正式子100、最新ao〜cu人間OK、cv実装後OK未受領・同じcv継続。残3〜5工程・中心3、前回cv相談から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。採用だけで検証・確認待ちを減算せず、追加要否／分割未確定。本文集約・receipt保存形式・本接続未採用未実装、全14保留・各担当三保留・全体未完。以下のcv未採用は採用前原資料。
+
+<a id="diary-complete-other-speaker-activity-reports-cv"></a>
+
+##### 4d12cv：完全理解済み別話者の単独休息活動報告（2026-10-23・採用範囲実装検証中）
+
+- 最終状態：採用範囲実装・Codex検証完了、cv実装後OK未受領・同じcv継続。専用21＋監査68=89（13群2178原380成立、38種14440改変拒否、旧58担当22040非重複）、前相談2314は308成立・2006非成立。全Node2719（TAP819381ms／工具825934ms）・八JS構文・七言語14957・権限付き別renderer3318通過。初回専用v1の83/89・六新テスト期待残存失敗、初回fixtureの別話者習得想定誤りを非改変保持する。全回帰full-30minは制限内renderer GPU -1073741515・終了2147483651、静的smoke reviewRequiredとreading.not_recordedを残すincomplete/exit1で、未実行test／checkなし。別renderer終了0・手動依存照合を元run成功へ置換しない。ゲーム本接続・本文生成保存再開配布・実UI音声・実ユーザー保存の検証ではない。以下の実装検証中は途中記録。
+
+- ユーザー「はい、どちらもOKです」でcv相談案の対象・成立保持を個別採用。既存七言語十一形・単独教示印なし・input.speakerがplayer以外、当時complete=true・unresolved=[]の休息活動報告だけ。新理解／習得規則・話者間scope転移なし。111枠110確認済み・正式子100、最新ao〜cu人間OK、cv実装後OK未受領・同じcv継続。
+- experimental_word_diary_complete_other_speaker_activity_reports.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_activity_report。原frame解析枠と実understanding.subject/roles/reportSource・極性・相対時点、入力前knowledge/context・原expression／実reply・前後state/worldを分離コピーする。実speakerを保持しplayerへ置換せず、原subject=self/playerを本人理解のself/実speakerへ上書きしない。
+- 独立input/inputKnowledge/inputContext・原ID=before.serial+1、前後validContext/validSelections、コピー上receive/respond全文一致、知識／経験前後不変と今回answerなしを照合。原lastOutput参照経験は一意ID・snapshot一致を要求し今回報告の対象へ転用しない。資料整合照合であり真正性認証ではない。同input非増加非上書き、新input別資料・遅延資料・返却コピー独立・原資料不変、後学習後食事休息非補完非遡及。
+- actualSpeechは原expression.channel準拠で実UI音声とは別。answerRecorded=false/turnAnswer=null、reportVerified=false/reportedExperience=null、newTeaching/newLearning/newExperience=false。報告を本人経験・実休息／非休息の事実・希望拒否・真偽確認・正確日時へ昇格しない。player完全理解d/g/j/al・未完cu・既存ap〜cuを維持。
+- 検証中に既存relation.offer/validLabelのplayer限定を直接確認。別話者の教示から新関係を獲得せず、playerで実習得したscopeも別話者・別言語へ転用しない。最初のfixtureが想定した別話者教示後完全理解は誤りで、初回fixture照合終了1を保持し、ゲームを変えず未完理解cu帰属の対照へ訂正した。初期知識で成立する別話者完全理解を担当する。既存scope適用判定を直接変更しない。
+- 部品・fixture・専用test・非表示一時renderer、監査supplemental第59担当（全109登録）を追加。旧co/ctの全追加担当数期待は一行ずつ57→58限定補修。ゲーム所有core/world/catalog・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、全14保留・各担当三保留・全体未完。
+- 残3〜5工程・中心3、前回cv相談から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。採用だけでは必要検証・実装後確認待ちを減算せず、追加要否／分割は未確定。原資料／ログと開始baselineはcv-implementation-76d655bへ保持。相談原資料cv-consultation-3015d51と全旧原文／原ログを非削除保持。
+
+以下のcv未採用相談案は採用前の原資料として保持する。
+
 <a id="diary-complete-other-speaker-activity-reports-cv-consultation"></a>
 
 ##### 4d12cv相談案：完全理解済み別話者の単独休息活動報告（2026-10-23・未採用）
