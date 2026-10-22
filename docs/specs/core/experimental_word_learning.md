@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-22 ct相談：完全理解した直接の味質問（既存日本語taste_now／taste_evaluation・short）で実reply=taste_unsure・今回turn.answerなしの資料を、対象・成立保持の二点で個別相談。両方未採用未着手・正式枠追加なし。226資料×ap〜csの56担当=12656呼出・例外0、対象案5資料は56担当・正規am/m/p・実replyを渡した4d2非捕捉。原expression=speech/answer_unknownと実replyを別保持する案。pleasant=false／味欠損を用意した比較資料であり通常tick新発生・実ユーザー保存観測ではない。対照はap/cd/ce/co/ck等と既存提案・報告否定お願いへ帰属、全入口最終分類ではない。108枠108確認済み・正式子97、最新ao〜cs人間OK。残3〜6工程・中心4、前回cs確認後から下限／上限／中心差分0（問い1／提案0〜1／報告否定お願い0〜2／最終意味照合回帰2、中心1+0+1+2=4）。未採用案を既存問い残枠で具体化したため減算せず、全量分類・追加要否／分割未確定。全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。詳細は正本ct相談節、原資料／原ログはct-consultation-7e59cfeへ保持。以下の次ct対象未選定は選定前の過去状態。
+
 - 2026-10-22最新確認：ユーザー「OKです。次チャットをおねがいします。」で7fb2883のcs採用範囲へ実装後OKと移動を明示。csは実装・Codex検証・ユーザー実装後OK確認済み、108枠108確認済み・正式子97、最新ao〜cs人間OK。次ctは残入口をap〜csおよび必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残3〜6工程・中心4、前回cs確認前4〜6・中心5から下限−1／上限0／中心−1（問い1／提案0〜1／報告否定お願い0〜2／最終意味照合回帰2、中心1+0+1+2=4）。cs確認待ちと具体的な順序未完理解を差引き、他提案の追加必要性が未確定なので提案は中心0・上限1を保持する。今回新たな意味再観察なし。提案全入口の完了・永久対象外化ではなく、追加要否／分割確定で再見積りする。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcs実装後OK未受領・同じcs継続は過去状態。
 
 - 2026-10-22 cs最終：採用範囲実装・Codex検証完了。専用20・監査65・全Node2656・七JS構文・七言語14957・権限付き別renderer1560通過。元l6UAf8のNode時間切れ／localization・renderer未実行と、別full-retry-30minのNode・七言語成功／制限内GPU失敗・静的reviewRequiredによるincompleteを非改変保持。108枠107確認済み・正式子97、最新ao〜cr人間OK、cs実装後OK未受領・同じcs継続。残4〜6工程・中心5、前回cs相談／採用時から下限／上限／中心差分0（問い1／提案1／報告否定お願い0〜2／最終2）。cs確認待ちと他残入口・必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcs実装検証中／未採用は途中・過去状態。commit/push結果・実読取・未検証は現在handoff参照。
@@ -37,6 +39,20 @@
 - 2026-10-22 co最終：ユーザー「はい、どちらも採用OKです」による対象・成立保持の採用範囲を実装・Codex検証完了。完全理解context_detail・short・実taste_unsure・今回answerなしを独立一時資料へ保持し、原味欠損を補わない。専用17（13群398原13成立・39種507改変拒否・既存51担当663非重複）、全Node2581（ゲーム2506＋監査61＋工具14）・六JS構文・七言語14957・権限付き別renderer437通過。元全回帰nu3hKxは制限内GPU起動失敗と静的未分類smoke reviewRequiredによるincomplete・exit1を非改変保持し、別成功・手動依存照合と区別する。104枠103確認済み・正式子93、最新ao〜cn人間OK、co実装後OK未受領・同じco継続。残4〜7工程・中心6、前回採用時から下限／上限／中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。co確認待ち・他残境界・必要分割未確定のため機械減算しない。全14保留・各担当三保留・全体未完。以下のco採用前／検証中は過去状態。
 
 - 2026-10-22 co採用：ユーザー「はい、どちらも採用OKです」で対象・成立保持を個別採用。完全理解context_detail・short・実taste_unsure・今回turn.answerなしを独立一時資料で保持する。experimental_word_diary_uncertain_context_questions.create()/capture(buffer,result,receipt)三引数、kind=uncertain_context_question。採用範囲実装検証中・実装後OK未受領・同じco継続。104枠103確認済み・正式子93、最新ao〜cn人間OK、全102登録（固定50＋追加52）。残4〜7工程・中心6、前回co相談から上下限中心差分0（問い1／提案1〜2／報告否定お願い0〜2／最終2、配分5.5）。既存問い残枠内の採用で確認待ち・必要分割未確定のため減算しない。全14保留・各担当三保留・全体未完。原味欠損の互換fixtureを通常tick新発生観測へ変えない。以下のco未採用は採用前原資料。
+
+<a id="diary-uncertain-direct-taste-questions-ct-consultation"></a>
+
+##### ct個別相談案：完全理解した直接の味質問への判断不能応答資料（2026-10-22・未採用未着手）
+
+- 対象案：既存日本語の単独question、catalogRule=taste_now／taste_question・slot=taste_now／taste_evaluation、当時kind=question・complete=true・unresolved空・subject=self、speech=short、実reply=taste_unsure・今回turn.answerなし。context_detail／repeat_answerとは分け、新文型・他言語文型・理解学習規則・既存応答は変更しない。対象と成立保持はそれぞれ未採用、正式kind／公開API／adapter実装・正式枠追加なし。108枠108確認済み・正式子97、最新ao〜cs人間OKを維持する。
+- 具体例：「おいしい？」の食事中mealTaste.pleasant=false（既存ap fixtureと同じ比較条件）／mealTaste欠損、食事完了後の原経験taste欠損で「おいしい？」「おいしかった？」を実receive/respondすると、理解済みでも実reply=taste_unsure、今回turn.answerなし。原expressionはspeech/answer_unknownで実replyとは異なるため、両方を別保持する。4d2は実reply=answer_unknownを条件とするので今回を捕捉しない。原expressionだけを4d2成立根拠にしない。
+- これらは専用メモリで比較条件を用意した互換資料の再実行であり、通常tickの新発生観測・実ユーザー旧保存・頻度の検証ではない。現在の通常食事はsweet/pleasantを記録する。pleasant=falseを「まずい／嫌い」、taste欠損を「甘くない」と読み替えず、既存判断不能応答を保持する。
+- 成立保持案：原input/frame、入力当時knowledge/context・当時understanding、原expression、実reply、今回turn.answerなし、前後state/worldを独立コピーで分離保持する。食事中の原mealTasteと、既存応答分岐が参照した末尾eat経験の原snapshot／ID／味フィールドの有無を分ける。taste_nowというslotから現在食事中だと断定せず、食後に原経験を参照した場合を現在の味体験へ変換しない。具体的な参照経験の欠落／重複／不一致と、存在する経験内の味フィールド欠損を区別し、前者を補わない。
+- 独立input/inputKnowledge/inputContext・原ID=before.serial+1、使い捨てコピー上の既存receive/respondによるresult・実reply・前後state/world全文整合、前後validContext、参照経験の一意整合を照合する案。供給資料整合照合であり真正性認証ではない。原expression.channel=speechをactualSpeechの根拠とし、実UI音声検証と区別。answerRecorded=false・turnAnswer=null、成功した味回答・本人感情／好悪・新経験／新学習を補わない。
+- 同input非増加非上書き、新input別資料、遅延供給／返却コピー独立・元資料不変、後学習／後食事／振り返りによる補完・遡及成立なしを要求する案。候補五区分非拡張、本文集約4e・一時receipt保存形式・ゲーム本接続の三保留と全14保留を維持する。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。
+- 再照合：226資料×ap〜csの56三引数capture=12656呼出、例外0。今回対象案5資料は56担当・正規五引数am・四引数m/p・実replyを渡した4d2がすべて非捕捉。成功味回答はap、味未完理解はcd、完全理解身振りはce、七言語context_detail味判断不能short7はco／gesture7はclへ帰属。観察由来「ほっとしたの？」はck、実answer_unknownは4d2、通常提案am／未完cp/cq、条件順序完全理解m/p／未完cr/cs、食後散策bc/bv・否定お願いbb/bu、報告au/av/aw/ay/az/baと不足bn/bo/bp/br/bs/btを限定対照で確認。全旧固定50API正規引数横断再検査・全所有節／全fixture全文意味再読・全入口最終分類ではない。
+- 原資料／原ログはdocs/.local-history/verification-runs/ct-consultation-7e59cfe。v1の218資料12208呼出も非置換保持し、v2で既存berry/rest_comfortの正規文型8資料を追加。「木の実はおいしい」「休むと気持ちいい」の8対照は元frame=unknownであり、認識済み報告の未捕捉と数えない。非認識文型を修復・永久対象外化しない。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。
+- 当回再見積りは残3〜6工程・中心4、前回cs確認後から下限／上限／中心差分0。問い1に今回未採用の一系統の相談・必要実装検証と他問い残照合、提案0〜1（中心0）、報告否定お願い0〜2（中心1）、最終意味照合回帰2、中心1+0+1+2=4。既存問い残枠内で具体的未捕捉を確認した段階なので減算しない。提案・報告の限定対照に新しい認識済み未捕捉はないが全量分類・追加要否／分割は未確定。正式残数・チャット数・日数・終了保証ではなく、全体未完。
 
 <a id="diary-incomplete-sequential-rest-proposals-cs-consultation"></a>
 
