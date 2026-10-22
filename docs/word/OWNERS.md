@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-22 cs最終：採用範囲実装・Codex検証完了。専用20・監査65・全Node2656・七JS構文・七言語14957・権限付き別renderer1560通過。元l6UAf8のNode時間切れ／localization・renderer未実行と、別full-retry-30minのNode・七言語成功／制限内GPU失敗・静的reviewRequiredによるincompleteを非改変保持。108枠107確認済み・正式子97、最新ao〜cr人間OK、cs実装後OK未受領・同じcs継続。残4〜6工程・中心5、前回cs相談／採用時から下限／上限／中心差分0（問い1／提案1／報告否定お願い0〜2／最終2）。cs確認待ちと他残入口・必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcs実装検証中／未採用は途中・過去状態。commit/push結果・実読取・未検証は現在handoff参照。
+
+| 工程 | 部品・API | 所有仕様 |
+| --- | --- | --- |
+| 4d12cs | incomplete_sequential_rest_proposals.create()/capture(buffer,result,receipt) | [順序付き休息の未完理解](../specs/core/experimental_word_learning.md#diary-incomplete-sequential-rest-proposals-cs) |
+
+- 2026-10-22 cs採用：ユーザー「はい、どちらもOKです」で順序付き休息お願いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_sequential_rest_proposals.create()/capture(buffer,result,receipt)三引数の独立一時journal、kind=incomplete_sequential_rest_proposalを実装検証中。原理解／不足・原expression／実reply・前後資料を分離し、具体食事参照・食事完了判断・受諾・休息予約／実行等を補わない。108枠107確認済み・正式子97、最新ao〜cr人間OK。cs実装後OK未受領・同じcsを継続。残4〜6工程・中心5、前回cs相談から下限／上限／中心差分0（問い1／提案1／報告否定お願い0〜2／最終2）。採用だけで減算せず必要実装検証・確認待ちを保持。全14保留・各担当三保留・全体未完。以下のcs未採用は採用前原資料。
+
 csは[順序付き休息お願いの未完理解資料の個別相談案](../specs/core/experimental_word_learning.md#diary-incomplete-sequential-rest-proposals-cs-consultation)を参照。対象／成立保持未採用、担当登録・API表追加なし。p・m/cr・am・cp/cq・bc/bvと既存ap〜crは維持する。
 
 - 2026-10-22 cs相談：順序付き休息お願いの未完理解資料を、対象・成立保持の二点で個別相談。両方未採用未着手・正式枠追加なし、107枠107確認済み・正式子96、最新ao〜cr人間OKを維持。限定656資料×ap〜crの55担当＝36080呼出・例外0。順序未完理解280は55担当・正規五引数am・四引数m/p・4d2非捕捉、完全理解28はp、条件未完理解280はcrへ帰属。全入口最終分類ではない。残4〜6工程・中心5、前回cr確認後から下限／上限／中心差分0（問い1／提案1／報告否定お願い0〜2／最終意味照合回帰2）。既存提案残枠の一系統を具体化した段階で未採用・必要実装検証未完のため減算しない。他残入口・追加分割未確定、全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。以下の次cs未選定は過去状態。

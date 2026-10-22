@@ -1,5 +1,13 @@
 # 次チャットの開始文
 
+- 2026-10-22 cs最終：採用範囲実装・Codex検証完了。専用20・監査65・全Node2656・七JS構文・七言語14957・権限付き別renderer1560通過。元l6UAf8のNode時間切れ／localization・renderer未実行と、別full-retry-30minのNode・七言語成功／制限内GPU失敗・静的reviewRequiredによるincompleteを非改変保持。108枠107確認済み・正式子97、最新ao〜cr人間OK、cs実装後OK未受領・同じcs継続。残4〜6工程・中心5、前回cs相談／採用時から下限／上限／中心差分0（問い1／提案1／報告否定お願い0〜2／最終2）。cs確認待ちと他残入口・必要分割未確定のため完了減算しない。全14保留・各担当三保留・全体未完。以下のcs実装検証中／未採用は途中・過去状態。commit/push結果・実読取・未検証は現在handoff参照。
+
+## 同じcsを続ける現在指示（採用範囲実装・Codex検証完了）
+
+[cs採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-sequential-rest-proposals-cs)の実装・Codex検証を完了。同じcs内で自由フィードバック・必要修正・実装後OKを受ける。ユーザー「はい、どちらもOKです」で対象・成立保持を採用済み、再確認からやり直さない。専用20・監査65・全Node2656・七JS構文・七言語14957・権限付き別renderer1560通過。元l6UAf8はNode timed_out／localization・renderer未実行、別full-retry-30minはNode・七言語成功／制限内GPU失敗・静的reviewRequiredでincompleteを保持し、別成功と区別する。108枠107確認済み・正式子97、最新ao〜cr人間OK、cs実装後OK未受領・新記号／移動なし。残4〜6工程・中心5、前回cs相談／採用から上下限中心差分0。cs確認待ち・他残入口未確定を含み、全14保留・各担当三保留・全体未完。最新commit/push結果・読取・未検証は現在handoff参照。以下の実装検証中／未採用相談は途中・採用前原資料。
+
+- 2026-10-22 cs採用：ユーザー「はい、どちらもOKです」で順序付き休息お願いの未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_sequential_rest_proposals.create()/capture(buffer,result,receipt)三引数の独立一時journal、kind=incomplete_sequential_rest_proposalを実装検証中。原理解／不足・原expression／実reply・前後資料を分離し、具体食事参照・食事完了判断・受諾・休息予約／実行等を補わない。108枠107確認済み・正式子97、最新ao〜cr人間OK。cs実装後OK未受領・同じcsを継続。残4〜6工程・中心5、前回cs相談から下限／上限／中心差分0（問い1／提案1／報告否定お願い0〜2／最終2）。採用だけで減算せず必要実装検証・確認待ちを保持。全14保留・各担当三保留・全体未完。以下のcs未採用は採用前原資料。
+
 ## 同じcsの相談を続ける現在指示（未採用未着手）
 
 [順序付き休息お願いの未完理解資料案](../specs/core/experimental_word_learning.md#diary-incomplete-sequential-rest-proposals-cs-consultation)の対象・成立保持の二点への回答と自由フィードバックを同じcs内で受ける。両方未採用、実装着手・正式枠追加なし。確認済みcr以下を再確認からやり直さず、新記号／次チャット移動なし。107枠107確認済み・正式子96。限定656資料×55担当=36080呼出・例外0。順序未完理解280非捕捉、完全理解p・条件未完理解cr等は維持。残4〜6工程・中心5、前回cr確認後から上下限中心差分0（問い1／提案1／報告否定お願い0〜2／最終2）。既存提案残枠の具体化のみで未採用・必要実装検証未完、全体未完。今回の読取・限定照合・未読未検証・commit/push結果は現在handoffを参照。以下の次cs未選定の開始文は相談前資料として保持。
