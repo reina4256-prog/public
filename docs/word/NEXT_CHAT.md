@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 同じcwを続ける現在指示（対象・成立保持の個別相談中）
+
+```text
+開始HEAD=f8646e4、ゲーム実装最新908500d。cvまで実装・Codex検証・ユーザー実装後OK確認済み。111枠111確認済み・正式子100、最新ao〜cv人間OK。cwは完全理解した現在行動の問いへの仕事中の観察応答を一系統として相談中、対象／成立保持とも未採用未着手・正式枠追加なし。同じcw継続、再採用確認や次記号・次チャット移動を先取りしない。
+cw所有仕様のdiary-work-observation-questions-cw-consultation節を読む。対象案は既存七言語current_activity単独question・当時complete=true/unresolved=[]・subject=self・speech=short・mode=work、実reply={message:'work',observation:true}・今回turn.answerなしだけ。原expressionのgesture/attendと観察replyを分け、本人実回答・答え不明・完了経験・習得・希望拒否や感情へ昇格しない。新文法・新理解習得規則なし。
+成立保持案は独立三引数journal、原input/frame・入力前knowledge/context・当時understanding・原expression/実reply・前後state/worldを分離コピー。原ID・独立資料・前後validContext/validSelections・コピー上receive/respond全文・知識経験前後不変・answerなしを照合。同input非増加非上書き、新input別資料・コピー独立・後仕事完了後学習非補完非遡及。資料整合照合であり認証ではない。本文集約・一時receipt保存形式・本接続は未採用未実装。
+今回2530資料×ap〜cv59担当=149270呼出・例外0。七言語六職player/visitorのshort84候補、八設定同条件12は非捕捉。対照gesture84＋12はce、未完24はcd。cv308・cu1596・player完全理解d/g/j/al、問いap/co/ct/4d2等、提案am/m/p/cp/cq/cr/cs/bc/bv・否定お願いbb/bu/bwを維持。未知二語面8は新理解・永久対象外にしない。全入口最終分類・全旧固定50正規引数横断再検査・全所有節fixture全文意味再読は未完。
+残3〜5工程・中心3。前回cv確認後2〜5中心2から下限+1／上限0／中心+1。問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心1+0+0+2=3。問い上限1の具体化で再積上げ、未採用・実装検証未完なので減算しない。他追加要否／分割は未確定、毎回根拠・内訳・前回差分付きで再見積り。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+原資料・原ログ・開始baselineはcw-consultation-f8646e4。初回probeの未export forms参照による終了1と、語面明記後v2終了0を区別。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。旧AI旧保存・九見本星座・対象外%SystemDrive%/非操作非置換。最新commit/pushと読取未検証は現在handoffを参照。
+```
+
+以下の次cw未選定・次チャット開始文は選定前の原資料として保持する。
+
+
+
 ## 次チャットへ貼る開始文（cv確認済み・次cw未採用）
 
 ```text

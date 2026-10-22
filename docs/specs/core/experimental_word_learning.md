@@ -1,5 +1,26 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-23 cw相談：完全理解した現在行動の問いへの仕事中の観察応答を一系統として、対象・成立保持を個別相談する。両方未採用未着手・正式枠追加なし、111枠111確認済み・正式子100、最新ao〜cv人間OKを維持。同じcw継続・次チャット移動指示なし。限定2530資料×ap〜cvの59担当=149270呼出・例外0。七言語×六職×player/visitorのshort84資料は59担当・正規旧d/g/j/al・am/m/p・4d2非捕捉。八設定48の同条件12も未捕捉、未完24はcd・身振り12はce。既存観察応答work/observation=true・今回answerなしを保持する案で、新理解規則を追加しない。残3〜5工程・中心3、前回cv確認後2〜5・中心2から下限+1／上限0／中心+1（問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。問いの未確認上限1が具体化したため再積上げ、未採用・実装検証未完で減算しない。全入口最終分類・追加要否／分割は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。原資料／原ログcw-consultation-f8646e4、詳細はcw相談所有節と現在handoff。以下の次cw未選定は選定前の過去状態。
+
+<a id="diary-work-observation-questions-cw-consultation"></a>
+
+##### 4d12cw相談案：完全理解した現在行動の問いへの仕事中の観察応答（2026-10-23・未採用）
+
+- 対象と成立・保持条件の二点を個別相談する。両方未採用未着手、正式担当・API・枠追加なし。111枠111確認済み・正式子100、最新ao〜cvは実装・Codex検証・ユーザー実装後OK確認済み。同じcw継続、次チャット移動指示なし。
+- 対象案：既存七言語の単独current_activity質問（「何してる？」等）で、当時kind=question・subject=self・complete=true・unresolved=[]、speech=short、実仕事中mode=workの既存respond/careers.answerがreply={message:'work',observation:true}を返し、今回turn.answerを保持していない資料だけ。六職の既存work_startから実仕事開始した状態で再現した。新文型・work_current等の別slot・新理解／習得規則を追加しない。初期知識またはその入力に実適用する既存scopeを要求し、別話者／別言語へ習得scopeを転用しない。
+- 成立・保持案：独立三引数journalで、原input/frame、独立input/inputKnowledge/inputContext、入力直前beforeState/beforeWorld、当時understandingとrelationReferences、原expressionと実reply、応答直後afterState/afterWorldを別コピーする。原ID=入力前serial+1、前後validContext/validSelections、コピー上の既存receive/respond全文一致、今回answerなし・知識／本人経験の前後不変を照合する案。資料整合照合であり真正性認証ではない。欠損・競合を後知識で補完しない。
+- 原expression={channel:'gesture',message:'attend'}と実reply={message:'work',observation:true}を別保持し、speech設定shortだけで本人発話と認定しない。actualSpeech=false・answerRecorded=false・turnAnswer=null、観察応答であることを保持する案。観察を本人実回答・答え不明・仕事完了経験・仕事語習得・参加希望／拒否・感情や動機へ昇格しない。実仕事の前後snapshotとcareers資料を保持しても、今回新しい経験は作らない。時点は原input.at／world.elapsed・activityStartのまま、正確な暦日時を補わない。
+- 原lastOutputのwork_start等の観察出所と今回の問いへの観察応答を区別する。原参照経験がある場合は一意ID・snapshot一致を要求し、今回の対象経験へ流用しない。今回比較資料は初回仕事開始直後で完了経験なし。既存経験を持つ再訪・遅延資料・経験由来scope等の十分な実装検証は採用後の作業として未実施を記録する。
+- 同input非増加非上書き、新input別資料・遅延原資料・返却コピー独立・原資料不変、後仕事完了／後学習／後食事休息で原理解・原応答を補完しない案。新教示・新学習・新本人経験なし。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証。
+- 既存担当：apの実turn.answer、cd未完理解、ce身振りattend/pleased_gesture、co/ct味判断不能、4d2実answer_unknownは別担当。4d4は完了experience/workを対象とし今回の質問入力・work_startを完了経験へ変えない。aq等の原観察を参照した後続の事実回答とも今回の観察そのものを区別する。am/m/p・cp/cq/cr/cs・bc/bv提案、bb/bu/bw否定お願い、cv/未完cu/player完全理解d/g/j/alを重複残件に数えない。全14保留・各担当三保留と他未採用入口を維持する。
+- 限定照合：七言語×六職×二発話設定×player/visitor=168原資料（short観察84非捕捉／gesture84はce）、六職×八設定48（同条件short完全理解12非捕捉・gesture完全理解12はce・未完24はcd）、前cv相談2314資料を合わせ2530資料として再実行した。ap〜cvの59担当149270呼出・例外0。候補84＋八設定同条件12は59担当・正規四引数d/g/j/al、五引数am、四引数m/p、実reply付き4d2で非捕捉。現在行動問いはquestion関係だけで完全理解する既存条件であり、生活知識や仕事語習得を新条件として足さない。
+- 前cv相談資料の今回再照合はcv308・cu1596、player完全理解d56/g14/j28/al84。問い対照ct5/co7・ap7・4d2の3・cd/ce/ci/cj/ck/cl、提案am4/m14/p14・cp2/cq2/cr14/cs14/bc2/bv2、否定お願いbb2/bu2/bw2等は既存帰属を維持した。未捕捉二語面8資料は原kind=partial・unresolved=utteranceのままで、新理解や永久対象外へ移さない。
+- 実生成はNode使い捨てメモリの既存arrive/tick/onArrival・receive/respondであり、通常tick新発生頻度・実UI会話・実ユーザー保存観測ではない。全ap〜cv所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終分類は未完。今回直接読取はap/cd/ce所有条件、4d2/4d4、core現在行動解析、world.respond/rememberOutput/onArrival・careers.answer/仕事開始、関係するfixtureと前cv相談工具。動的59担当照合と全文意味読了は区別する。
+- 初回probeはanswer_fixturesがformsをexportするという誤った想定で終了1、原stdout/stderrを保持。既存fixtureに記載済みの七言語語面をローカルprobeへ明記したv2は終了0。ゲームコード非変更。原資料／probe／ログ／開始八共有文書と旧handoffはdocs/.local-history/verification-runs/cw-consultation-f8646e4へ保持。ゲーム全回帰・実働・renderer再実行なし。
+- 当回残3〜5工程・中心3。前回cv確認後2〜5・中心2から下限+1／上限0／中心+1。問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心1+0+0+2=3。問いの未確認上限1が一系統として具体化したため下限・中心へ加える。他の具体追加・分割は未確定、未採用・必要実装検証未完なので減算なし。正式残数・チャット数・日数・終了保証ではなく全体未完。
+
+
+
 - 2026-10-23最新確認：ユーザー「OKです。次チャットをおねがいします。」で908500dのcv採用範囲へ実装後OKと移動を明示。cvは実装・Codex検証・ユーザー実装後OK確認済み、111枠111確認済み・正式子100、最新ao〜cv人間OK。次cwは残る問い・提案・報告否定お願いをap〜cvおよび必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残2〜5工程・中心2、前回cv確認前3〜5・中心3から下限−1／上限0／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2）。cv確認待ちと完全理解済み別話者単独休息活動報告の採用範囲を解消し、他の具体的追加要否は未確認なので中心0、未分類入口の追加要否／分割に各上限1を保持。今回新たな意味再観察なし、全入口完了・追加不要・永久対象外の確定ではない。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcv実装後OK未受領・同じcv継続は過去状態。
 
 - 2026-10-23 cv最終：採用範囲実装・Codex検証完了、cv実装後OK未受領・同じcv継続。専用21＋監査68=89、全Node2719・八JS構文・七言語14957・権限付き別renderer3318通過。13群2178原380成立・38種14440改変拒否・旧58担当22040非重複。前相談2314再照合は308成立・2006非成立。初回fixtureの別話者習得想定訂正・専用v1のcu用不足フィールド期待残存6不通過と、全回帰full-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct各一行限定補修維持。111枠110確認済み・正式子100、最新ao〜cu人間OK、全109登録。残3〜5工程・中心3、前回cv採用から下限／上限／中心差分0（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口全量分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcv-implementation-76d655b、最新commit/push・読取／未検証は現在handoff参照。以下のcv実装検証中／未採用は途中・過去状態。
