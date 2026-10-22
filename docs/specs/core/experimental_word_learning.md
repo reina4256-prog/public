@@ -1,6 +1,29 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-23 cu最終：採用範囲実装・Codex検証完了、cu実装後OK未受領・同じcu継続。専用18＋監査67=85、補修後全Node2697・八JS構文・七言語14957・権限付き別renderer7000通過。初回full-30minの2696/2697・旧ct件数期待56未更新の1不通過／localizationとrenderer未実行と、別full-retry-30minの制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。補修は旧ct件数期待一行56→57だけ、旧co同一行限定も維持。再実行に未実行test／checkなし。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録。残3〜6工程・中心3、前回cu採用時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。cu実装後確認待ちと他入口分類／追加要否／分割未確定を保持し、Codex検証だけで完了減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcu-implementation-3808474へ保持、最新commit/pushと実読取／未検証は現在handoff参照。以下のcu実装検証中／未採用は途中・過去状態。
+
+- 2026-10-23 cu採用：ユーザー「どちらも採用でOKです」で単独休息活動報告の未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_activity_reports.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=incomplete_activity_reportを実装検証中。原理解／不足・主体極性時点・roles/reportSourceの有無、原expressionと実reply・前後資料を分離し、原文の解析を本人の成立済み理解へ移さない。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録（固定50＋追加58）、cu実装後OK未受領・同じcu継続。残3〜6工程・中心3、前回cu相談時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。採用だけで減算せず実装検証・確認待ち・他入口分類／分割未確定を保持する。全14保留・各担当三保留・全体未完。以下のcu未採用は採用前原資料。
+
 <a id="diary-incomplete-activity-reports-cu-consultation"></a>
+
+<a id="diary-incomplete-activity-reports-cu"></a>
+
+##### 4d12cu：単独休息活動報告の未完理解資料（2026-10-23・採用範囲実装検証中）
+
+- 最終状態：採用範囲実装・Codex検証完了、cu実装後OK未受領・同じcu継続。専用18＋監査67=85通過（11群1954原1682成立・38種63916改変拒否・旧57担当95874非重複）。前相談1852再実行は1442成立。全Node2697・八JS構文・七言語14957・権限付き別renderer7000通過。初回full-30minは旧ct件数期待未更新による1不通過・後続未実行を保持し、件数一行56→57限定補修後のfull-retry-30minと区別する。再実行Node TAP756478ms／工具764069ms、localization成功・制限内renderer GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を保持。未実行test／checkなし。別renderer成功を元run成功へ置換しない。本文生成保存再開配布・実UI音声・実ユーザー保存の検証ではない。以下の実装検証中は途中状態。
+
+- 全回帰途中補修：初回full-30minは2697中2696通過・旧ctテストの全追加担当数期待56未更新で1不通過（TAP725666ms／工具732098ms）。localization／renderer未実行・run incomplete/exit1を非改変保持する。既存coと同様にctの担当数期待一行だけ56→57へ補修し、full-retry-30minで全回帰を再実行中。下のfull-30min実行中は初回開始時点の記録。
+
+- 検証途中の到達：専用18＋監査67=85通過・82759ms。11群1954原1682成立、38種63916改変拒否、既存57担当95874非重複。前相談1852資料は1442だけ成立。追加工具で実time＋negationの各限定scopeが時点付き否定・別主体へ合成されない84資料と、後習得通常否定14完全理解・原未完資料非遡及を確認。初期maskと使い捨てメモリの実習得を通常tick新発生頻度／実ユーザー保存の観測にしない。
+- 制限内rendererはGPU -1073741515／終了-2147483645で失敗し、権限付き別rendererは1954原＋三種5046改変=7000通過・終了0。八global除去・local/session sentinel不変・保存bridge未定義を確認。原ログはcu-implementation-3808474へ保持、別成功を元失敗へ置換しない。新smokeはcsの厳密名称置換同形で、直接fixture依存を手動照合済み。全回帰full-30minは明示timeoutMs=1800000・並列2で実行中。
+
+- ユーザー「どちらも採用でOKです」で下の相談案の対象・成立保持を個別採用。既存七言語のreportTeaching通常肯定二形・negationTeaching通常否定一形・timeTeaching八形の単独休息活動報告。入力当時rest意味または当該report/time/negation必要関係の不足・実scope不適用（併存含む）でcomplete=falseとなる資料だけ。新文型・新理解／習得規則は追加しない。完全理解d/g/j/al・その他ap〜ct担当を維持する。
+- experimental_word_diary_incomplete_activity_reports.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_activity_report。原input/frame・knowledge/context・understanding・前後state/world・原expression／実replyを分離コピーし、missingMeaningsBefore/missingRelationsBeforeを原unresolvedから保持する。原subject/polarity/eventTime/roles/reportSourceの有無と値をそのまま保持し、関係不足のpartial・null・unknown・unspecified・出所欠落を補完しない。rest意味だけ不足でも成立しているreport/roles/reportSourceは消さない。実speakerを保持する。
+- 独立input/inputKnowledge/inputContext・原ID=before.serial+1、前後validContext/validSelectionsとコピー上receive/respond全文一致を照合する。原lastOutputが参照する経験は一意ID・snapshot一致を要求するが、今回報告の対象経験に転用しない。資料整合照合であり真正性認証ではない。同input非増加非上書き、新input別資料・遅延原資料・返却コピー独立・原資料不変、後学習／後休息非補完非遡及を維持する。
+- actualSpeechは原expression.channel=speechの意味で実UI音声とは別。answerRecorded=false/turnAnswer=null、reportVerified=false/reportedExperience=null、newTeaching/newLearning/newExperience=false。聞いた報告を本人経験・実休息／非休息の事実・希望拒否・真偽確認・正確日時へ昇格せず、原習得scopeの教示経験IDを今回報告の休息IDにしない。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、全14保留・各担当三保留維持。
+- 独立部品・fixture・専用test・非表示一時rendererを追加、監査supplemental第58担当（全108登録）。ゲーム所有core/world/catalog・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。110枠109確認済み・正式子99、最新ao〜ct人間OK、cu実装後OK未受領・同じcu継続。残3〜6工程・中心3、前回cu相談時から下限／上限／中心差分0。採用だけでは実装検証・確認待ち・残照合を減算せず、全体未完。
+
+以下の未採用相談案は採用前原資料として保持する。
 
 ##### 4d12cu相談案：単独休息活動報告の未完理解資料（2026-10-23・未採用）
 

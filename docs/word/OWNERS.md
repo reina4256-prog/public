@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-23 cu最終：採用範囲実装・Codex検証完了、cu実装後OK未受領・同じcu継続。専用18＋監査67=85、補修後全Node2697・八JS構文・七言語14957・権限付き別renderer7000通過。初回full-30minの2696/2697・旧ct件数期待56未更新の1不通過／localizationとrenderer未実行と、別full-retry-30minの制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。補修は旧ct件数期待一行56→57だけ、旧co同一行限定も維持。再実行に未実行test／checkなし。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録。残3〜6工程・中心3、前回cu採用時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。cu実装後確認待ちと他入口分類／追加要否／分割未確定を保持し、Codex検証だけで完了減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcu-implementation-3808474へ保持、最新commit/pushと実読取／未検証は現在handoff参照。以下のcu実装検証中／未採用は途中・過去状態。
+
+| 工程 | 部品／API | 所有仕様 |
+| --- | --- | --- |
+| 4d12cu | incomplete_activity_reports.create()/capture(buffer,result,receipt) | [単独休息活動報告の未完理解](../specs/core/experimental_word_learning.md#diary-incomplete-activity-reports-cu) |
+
+- 2026-10-23 cu採用：ユーザー「どちらも採用でOKです」で単独休息活動報告の未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_activity_reports.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=incomplete_activity_reportを実装検証中。原理解／不足・主体極性時点・roles/reportSourceの有無、原expressionと実reply・前後資料を分離し、原文の解析を本人の成立済み理解へ移さない。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録（固定50＋追加58）、cu実装後OK未受領・同じcu継続。残3〜6工程・中心3、前回cu相談時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。採用だけで減算せず実装検証・確認待ち・他入口分類／分割未確定を保持する。全14保留・各担当三保留・全体未完。以下のcu未採用は採用前原資料。
+
 - cu相談中の所有先：[単独休息活動報告の未完理解資料案](../specs/core/experimental_word_learning.md#diary-incomplete-activity-reports-cu-consultation)。未採用未着手・正式担当追加なし。既存d/g/j/al完全理解、ap〜ct各担当を維持する。
 
 - 2026-10-23 cu相談：既存七言語・単独休息活動報告の必要意味／関係不足・scope不適用を一系統として対象・成立保持を個別相談中。両方未採用未着手・正式枠追加なし、109枠109確認済み・正式子98、最新ao〜ct人間OKを維持。限定1852資料×ap〜ctの57担当=105564呼出・例外0、候補1442資料は57担当と正規旧d/g/j/al・am/m/p・4d2で非捕捉。完全理解対照は旧d/g/j/al、問い・提案・否定食事お願いの限定対照は既存担当へ帰属。残3〜6工程・中心3、前回ct確認後2〜6・中心3から下限+1／上限0／中心0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。具体的未対応を確認したため報告の下限を1へ修正、未採用・必要検証未完なので減算しない。全入口最終分類・全旧固定50正規引数横断再検査・全文意味再読は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。詳細は正本cu相談節、原資料／ログはcu-consultation-cd43ba5へ保持。以下の次cu未選定は選定前の過去状態。

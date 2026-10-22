@@ -1,5 +1,34 @@
 # 次チャットの開始文
 
+## 同じcuを続ける現在指示（採用範囲実装・Codex検証完了）
+
+```text
+cuの対象・成立保持はユーザー「どちらも採用でOKです」で採用済み。採用範囲実装・Codex検証完了、cu実装後OK未受領・同じcu継続。110枠109確認済み・正式子99、最新ao〜ct人間OK。再採用確認・次記号追加・次チャット移動なし。自由フィードバック・必要修正・実装後確認を受ける。
+experimental_word_diary_incomplete_activity_reports.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_activity_report。既存七言語十一形の単独休息活動報告で、当時rest意味または当該report/time/negation必要関係が不足・scope非適用の資料だけ。原理解と不足・主体極性時点／roles/reportSourceの有無・原expression／実reply・前後資料を分離保持する。新理解／習得規則なし、完全理解d/g/j/alと他ap〜ct担当維持。後学習／後休息非補完非遡及、本文集約・receipt保存形式・本接続未採用未実装、全14保留・各担当三保留・全体未完。
+専用18＋監査67=85、11群1954原1682成立・38種63916改変拒否・旧57担当95874非重複。前相談1852は1442成立。実time＋negation限定scopeが時点付き否定等へ合成されない84追加資料、後習得通常否定14完全理解と原未完非遡及も確認。比較条件と通常tick新発生頻度／実ユーザー保存観測を区別する。
+補修後全Node2697・八JS構文・七言語14957・権限付き別renderer7000通過。初回full-30minの2696/2697・旧ct件数期待未更新1不通過／localizationとrenderer未実行を保持し、件数一行56→57だけ補修後のfull-retry-30minと区別する。再実行の制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1は別成功で置換しない。未実行test／checkなし、変更八JS＋package九hash一致・所有七コード＋catalog baseline一致。旧coも件数期待一行限定補修のみ。実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証。
+残3〜6工程・中心3、前回cu採用時から下限／上限／中心差分0。問い0〜1（中心0）／提案0〜1（中心0）／報告否定お願い1〜2（中心1）／最終意味照合回帰2、中心0+0+1+2=3。cu実装後確認待ち・他残分類／必要分割未確定を保持し、Codex検証完了だけでは減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正式残数・チャット数・日数・終了保証ではなく全体未完。
+最新commit/push・実読取／未読／未検証はdocs/CURRENT_IMPLEMENTATION.md、所有仕様はdiary-incomplete-activity-reports-cu節、原資料／ログはcu-implementation-3808474を参照。前相談cu-consultation-cd43ba5・全旧原資料／原ログ／過去開始継続文を非削除保持。全ap〜ct所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終意味分類は未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。確認済み範囲を再確認からやり直さず、途中保存を移動合図にしない。
+```
+
+以下のcu実装検証中／未採用は途中・過去状態。
+
+- 2026-10-23 cu最終：採用範囲実装・Codex検証完了、cu実装後OK未受領・同じcu継続。専用18＋監査67=85、補修後全Node2697・八JS構文・七言語14957・権限付き別renderer7000通過。初回full-30minの2696/2697・旧ct件数期待56未更新の1不通過／localizationとrenderer未実行と、別full-retry-30minの制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。補修は旧ct件数期待一行56→57だけ、旧co同一行限定も維持。再実行に未実行test／checkなし。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録。残3〜6工程・中心3、前回cu採用時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。cu実装後確認待ちと他入口分類／追加要否／分割未確定を保持し、Codex検証だけで完了減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcu-implementation-3808474へ保持、最新commit/pushと実読取／未検証は現在handoff参照。以下のcu実装検証中／未採用は途中・過去状態。
+
+## 同じcuを続ける現在指示（2026-10-23・対象／成立保持採用済み）
+
+```text
+ユーザー「どちらも採用でOKです」でcuの対象・成立保持を個別採用。正本diary-incomplete-activity-reports-cu節に従い採用範囲の実装検証を続ける。110枠109確認済み・正式子99、最新ao〜ct人間OK、cu実装後OK未受領・同じcu継続。再採用確認・次記号追加・移動なし。
+既存七言語十一形の単独休息活動報告、rest意味／当該report/time/negation関係不足・scope非適用（併存含む）の原資料だけ。原understandingと不足・主体極性時点／roles/reportSourceの有無・原expression／実reply・前後資料を分離保持し、本人経験・真偽確認・希望拒否・具体休息／正確日時を補わない。同input非増加非上書き・新input別資料・コピー独立・後学習／後休息非遡及。完全理解旧d/g/j/al、他ap〜ct担当・全14保留・各担当三保留維持。
+独立experimental_word_diary_incomplete_activity_reports.create()/capture(buffer,result,receipt)、kind=incomplete_activity_report。本文集約・receipt保存形式・ゲーム本接続未採用未実装。所有基盤・locale・保存形式・ゲーム呼出非変更、新表示文なし。本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。
+残3〜6工程・中心3、前回cu相談時から下限／上限／中心差分0。問い0〜1（中心0）／提案0〜1（中心0）／報告否定お願い1〜2（中心1）／最終意味照合回帰2。採用だけで実装検証・確認待ち・他入口全量分類／分割未確定を減算しない。毎回根拠・内訳・前回差分・不確実性で再見積り、全体未完。
+最新検証・commit/pushと実読取／未読／未検証はdocs/CURRENT_IMPLEMENTATION.md、原資料／ログはcu-implementation-3808474参照。前相談cu-consultation-cd43ba5と全過去資料／開始継続文を非削除非置換保持。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。途中保存は移動合図ではない。
+```
+
+以下のcu未採用は採用前原資料。
+
+- 2026-10-23 cu採用：ユーザー「どちらも採用でOKです」で単独休息活動報告の未完理解資料の対象・成立保持を個別採用。experimental_word_diary_incomplete_activity_reports.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=incomplete_activity_reportを実装検証中。原理解／不足・主体極性時点・roles/reportSourceの有無、原expressionと実reply・前後資料を分離し、原文の解析を本人の成立済み理解へ移さない。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録（固定50＋追加58）、cu実装後OK未受領・同じcu継続。残3〜6工程・中心3、前回cu相談時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。採用だけで減算せず実装検証・確認待ち・他入口分類／分割未確定を保持する。全14保留・各担当三保留・全体未完。以下のcu未採用は採用前原資料。
+
 ## 同じcuを続ける現在指示（2026-10-23・対象／成立保持を個別相談中）
 
 ```text
