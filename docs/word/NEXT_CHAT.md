@@ -1,5 +1,28 @@
 # 次チャットの開始文
 
+## 同じctを続ける現在指示（採用範囲実装・Codex検証完了）
+
+```text
+ctの対象・成立保持はユーザー「どちらも採用でOKです」で採用済み。採用範囲実装・Codex検証完了、ct実装後OK未受領・同じct継続。109枠108確認済み・正式子98、最新ao〜cs人間OK。再採用確認・次記号追加・次チャット移動なし。自由フィードバック・必要修正・実装後確認を受ける。
+experimental_word_diary_uncertain_direct_taste_questions.create()/capture(buffer,result,receipt)三引数独立journal。既存日本語単独taste_now／taste_evaluation・完全理解・short・実reply=taste_unsure／今回turn.answerなし。原expression=speech/answer_unknownと実reply、原mealTasteと実参照eat経験を別保持。新文型理解規則・所有七コード・locale・保存形式・ゲーム呼出非変更。全14保留・各担当三保留・本人日記本接続生成保存再開配布未完を維持。
+専用21＋監査66=87、16群194原16成立・36種576改変拒否・既存56担当896非重複。前相談226資料再実行は5成立。全Node2678・七JS構文・七言語14957・権限付き別renderer242通過。元full-30minの制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を保持し、別成功と区別。未実行test・checkなし。実eat習得後の非遡及、新正常食事中の過去／現在味参照分離も追加工具で確認。比較条件と通常tick新発生・実ユーザー保存を混同しない。
+残3〜6工程・中心4、前回ct採用時から下限／上限／中心差分0。問い1（ct実装後確認待ち・他残照合）／提案0〜1（中心0）／報告否定お願い0〜2（中心1）／最終意味照合回帰2、中心1+0+1+2=4。Codex検証完了だけで問い全体を完了減算せず、全量分類・必要分割未確定を保持。全体未完、毎回根拠・内訳・前回差分付きで再見積り。
+最新commit/push・実読取／未読／未検証はdocs/CURRENT_IMPLEMENTATION.md、所有仕様はdiary-uncertain-direct-taste-questions-ct節。原資料／原ログはct-implementation-52128df、前相談はct-consultation-7e59cfeへ非削除保持。全ap〜cs所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終分類は未完。確認済み入力・採用範囲を再確認からやり直さない。
+```
+
+以下のct実装検証中／未採用は途中・過去状態。
+
+## 同じctを続ける現在指示（2026-10-23・対象／成立保持採用済み）
+
+```text
+ユーザー「どちらも採用でOKです」でctの対象・成立保持を個別採用。正本diary-uncertain-direct-taste-questions-ct節に従い採用範囲実装検証を続ける。109枠108確認済み・正式子98、最新ao〜cs人間OK。ct実装後OK未受領・同じct継続、再採用確認や次記号追加・移動なし。
+既存日本語単独taste_now／taste_evaluation・完全理解・short・実reply=taste_unsure／今回turn.answerなしだけ。原expression=speech/answer_unknownを実replyと分離し、原mealTasteと実参照eat経験のsnapshot・ID・欠損を別保持する。新理解規則・他言語文型・既存応答変更なし、候補五区分・全14保留・各担当三保留維持。本文集約・receipt保存形式・ゲーム本接続未採用未実装。
+残3〜6工程・中心4、前回ct相談時から下限／上限／中心差分0。問い1／提案0〜1（中心0）／報告否定お願い0〜2（中心1）／最終意味照合回帰2、中心1+0+1+2=4。採用だけで減算せず、確認待ち・他残入口の全量分類／必要分割未確定を保持。全体未完。毎回根拠・内訳・前回差分を示す。
+最新検証・commit/push・実読取／未読／未検証はdocs/CURRENT_IMPLEMENTATION.mdを参照。原資料／原ログはct-implementation-52128df、前相談はct-consultation-7e59cfeへ非削除保持。通常tick新発生・実ユーザー保存の検証と比較条件を区別する。
+```
+
+以下のct未採用相談は採用前原資料。
+
 ## 同じctを続ける現在指示（2026-10-22・個別相談中）
 
 ```text

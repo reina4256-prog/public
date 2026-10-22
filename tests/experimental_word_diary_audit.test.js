@@ -185,7 +185,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-assert.equal(report.supplementalOwners.length, 56);
+assert.equal(report.supplementalOwners.length, 57);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -783,6 +783,18 @@ test('gesture confirmation questions retain their separate three-argument owner'
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12ch'));
 });
 
+test('direct taste uncertainty retains an adopted independent three-argument owner', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12ct');
+    assert.equal(owner.scopeAdopted, true); assert.equal(owner.implementationAcceptance, 'not_received');
+    assert.equal(owner.runtimeDiaryConnected, false); assert.equal(owner.arity, 3);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12ct'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter'
+        && e.reference === 'experimental_word_diary_uncertain_direct_taste_questions.js'));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12ct').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12ct'));
+});
+
 test('caller edits and repeated audits do not change the inventory or consulted files', () => {
     const references = [...inventory().flatMap(row => [row.file, row.test]),
         ...supplementalInventory().flatMap(row => [row.file, row.test]),
@@ -859,6 +871,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_incomplete_repeat_question_fixtures.js', 'scripts/experimental/diary_incomplete_repeat_question_smoke.js',
             'scripts/experimental/diary_gesture_repeat_question_fixtures.js', 'scripts/experimental/diary_gesture_repeat_question_smoke.js',
             'scripts/experimental/diary_uncertain_context_question_fixtures.js', 'scripts/experimental/diary_uncertain_context_question_smoke.js',
+            'scripts/experimental/diary_uncertain_direct_taste_question_fixtures.js', 'scripts/experimental/diary_uncertain_direct_taste_question_smoke.js',
             'scripts/experimental/diary_incomplete_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_rest_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_walk_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_walk_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_conditional_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_conditional_rest_proposal_smoke.js',

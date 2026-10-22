@@ -1,5 +1,15 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-23 ct最終：採用範囲実装・Codex検証完了、ct実装後OK未受領・同じct継続。専用21＋監査66=87、全Node2678・七JS構文・七言語14957・権限付き別renderer242通過。元full-30minの制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。未実行test・checkなし。109枠108確認済み・正式子98、最新ao〜cs人間OK、全107登録（固定50＋追加57）。残3〜6工程・中心4、前回ct採用時から下限／上限／中心差分0（問い1／提案0〜1／報告否定お願い0〜2／最終意味照合回帰2、中心1+0+1+2=4）。ct実装後確認待ち・他入口の全量意味分類／追加要否／分割未確定を保持し、Codex検証完了だけで問い全体を完了減算しない。全14保留・各担当三保留・全体未完。原資料／原ログはct-implementation-52128dfへ保持、commit/pushと実読取・未検証は現在handoff参照。以下のct実装検証中／未採用は途中・過去状態。
+
+- 2026-10-23 ct採用：ユーザー「どちらも採用でOKです」で直接味質問の判断不能応答資料の対象・成立保持を個別採用。experimental_word_diary_uncertain_direct_taste_questions.create()/capture(buffer,result,receipt)三引数独立一時journal、kind=uncertain_direct_taste_questionを実装検証中。原理解・原expression=speech/answer_unknown・実reply=taste_unsure・原mealTaste／実参照eat経験を分離し、味の肯否・好悪・感情・成功回答を補わない。109枠108確認済み・正式子98、最新ao〜cs人間OK、ct実装後OK未受領・同じct継続。残3〜6工程・中心4、前回ct相談時から下限／上限／中心差分0（問い1／提案0〜1／報告否定お願い0〜2／最終意味照合回帰2、中心1+0+1+2=4）。採用だけで減算せず必要実装検証・確認待ち・他残入口の全量分類／分割未確定を保持。全14保留・各担当三保留・全体未完。以下のct未採用は採用前原資料。
+
+| 工程 | 部品／API | 所有仕様 |
+| --- | --- | --- |
+| 4d12ct | uncertain_direct_taste_questions.create()/capture(buffer,result,receipt) | [直接味質問の判断不能応答](../specs/core/experimental_word_learning.md#diary-uncertain-direct-taste-questions-ct) |
+
+以下のct未採用・正式枠未追加は採用前原資料。
+
 ctは[直接の味質問への判断不能応答資料の相談案](../specs/core/experimental_word_learning.md#diary-uncertain-direct-taste-questions-ct-consultation)。対象・成立保持とも未採用未着手であり、担当API表・正式枠へ追加しない。
 
 - 2026-10-22 ct相談：完全理解した直接の味質問（既存日本語taste_now／taste_evaluation・short）で実reply=taste_unsure・今回turn.answerなしの資料を、対象・成立保持の二点で個別相談。両方未採用未着手・正式枠追加なし。226資料×ap〜csの56担当=12656呼出・例外0、対象案5資料は56担当・正規am/m/p・実replyを渡した4d2非捕捉。原expression=speech/answer_unknownと実replyを別保持する案。pleasant=false／味欠損を用意した比較資料であり通常tick新発生・実ユーザー保存観測ではない。対照はap/cd/ce/co/ck等と既存提案・報告否定お願いへ帰属、全入口最終分類ではない。108枠108確認済み・正式子97、最新ao〜cs人間OK。残3〜6工程・中心4、前回cs確認後から下限／上限／中心差分0（問い1／提案0〜1／報告否定お願い0〜2／最終意味照合回帰2、中心1+0+1+2=4）。未採用案を既存問い残枠で具体化したため減算せず、全量分類・追加要否／分割未確定。全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。詳細は正本ct相談節、原資料／原ログはct-consultation-7e59cfeへ保持。以下の次ct対象未選定は選定前の過去状態。
