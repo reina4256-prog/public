@@ -1,5 +1,26 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-23 cw最終：採用範囲実装・Codex検証完了、cw実装後OK未受領・同じcw継続。専用18＋監査69=87、全Node2738・八JS構文・七言語14957・権限付き別renderer754通過。13群349原135成立・35種4725改変拒否・旧59担当7965非重複、前相談2530再照合は96成立・2434非成立。初回専用v1の空白正規化／旧表示置換に関する2不通過、v2の他言語空白期待残存1不通過とv3成功を区別。全回帰full-30minは制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を非改変保持し、別成功・手動依存照合で元runを成功にしない。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct期待値各一行58→59限定補修。112枠111確認済み・正式子101、最新ao〜cv人間OK、全110登録。残3〜5工程・中心3、前回cw採用から下限／上限／中心差分0（問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ちや他入口分類・追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcw-implementation-828977e、実質問学習後の元未理解入力非遡及・後仕事完了食事休息後の原資料不変も補足確認済み。読取未検証・最新commit/pushは現在handoff。以下のcw採用直後／未採用は途中・過去状態。
+
+
+- 2026-10-23 cw採用：ユーザー「はい、どちらもOKです」で完全理解した現在行動の問いへの仕事中の観察応答の対象・成立保持を個別採用。experimental_word_diary_work_observation_questions.create()/capture(buffer,result,receipt)三引数独立journal、kind=work_observation_questionを実装検証中。原expressionのgesture/attendと実replyのwork/observation=true、当時理解・前後資料を分離保持し、本人実回答・答え不明・完了経験・希望拒否へ昇格しない。新文法・新理解／習得規則なし。112枠111確認済み・正式子101、最新ao〜cv人間OK、cw実装後OK未受領・同じcw継続。全110登録（固定50＋追加60）。残3〜5工程・中心3、前回cw相談から下限／上限／中心差分0（問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要検証・実装後確認待ちを減算しない。全14保留・各担当三保留・全体未完。以下のcw未採用は採用前資料。
+
+<a id="diary-work-observation-questions-cw"></a>
+
+##### 4d12cw：完全理解した現在行動の問いへの仕事中の観察応答（2026-10-23・採用範囲実装検証中）
+
+- 最終検証：採用範囲実装・Codex検証完了、cw実装後OK未受領・同じcw継続。専用18＋監査69=87、全Node2738（TAP715709.2492ms／工具715899ms）・八JS構文・七言語14957通過。13群349原135成立・35種4725改変拒否・旧59担当7965非重複。full-30minは制限内GPU失敗／終了2147483651・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1のまま非改変保持。未実行test／checkなし。権限付き別renderer349原＋405改変=754通過・終了0、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。新smokeはcv厳密名称置換同形・直接fixture依存全文照合済み、manual-dependency-review.jsonへ別記。開始八JS＋package九hash・七所有コード＋catalog不変。
+- 検査訂正：専用v1は16中14通過2不通過、v2は17中16通過1不通過。末尾空白付き入力は全言語で余分partial節が生じる既存解析を非修復、大小文字正規化は別fixture。仕事開始表示が前経験表示を置換する点も確認し、retained-original-experience-displayは実食事完了の原出力を保持して仕事開始後に比較メモリへ戻す互換snapshotと明示、通常tick／実UI新観測とは呼ばない。ゲームを変えず期待を訂正したv3成功と原失敗を別保持。別nonretro.cjsで未完原入力→実教示二生活完了で質問関係習得→新仕事中入力だけ成立、後仕事完了食事休息後も原資料と記録不変を確認した。
+
+- ユーザー「はい、どちらもOKです」で[対象・成立保持案](experimental_word_learning.md#diary-work-observation-questions-cw-consultation)を個別採用。既存七言語単独current_activity・当時question/subject=self/complete=true/unresolved=[]、speech=short・mode=work、実reply={message:'work',observation:true}・今回turn.answerなしだけ。新文型・別slot・新理解／習得規則・scope転移なし。
+- `experimental_word_diary_work_observation_questions.create()/capture(buffer,result,receipt)`三引数独立journal、kind=work_observation_question、occurrenceId=work_observation_question:原input ID、sourceId=原input ID。原input/frame・入力前knowledge/context・当時understanding/relationReferences・原expressionと実reply・前後state/worldを別コピー。独立input/inputKnowledge/inputContext、原ID=入力前serial+1、前後validContext/validSelections、コピー上receive/respond全文、知識・state/world本人経験前後不変・今回answerなしを照合する。資料整合照合であり真正性認証ではない。
+- 原expression=gesture/attendと実観察replyを分離しactualSpeech=false・observationResponse=true・answerRecorded=false・turnAnswer=null。仕事の観察を本人発話・本人実回答・答え不明・仕事完了経験・仕事語習得・希望拒否・感情動機へ変換しない。原lastOutputと参照経験は別保持し、一意ID・snapshot一致を要求、今回の対象経験へ流用しない。
+- 同input非増加非上書き、新input別資料・遅延原資料・返却コピー独立・原資料不変、後仕事完了／後学習／後食事休息非補完非遡及。newTeaching/newLearning/newExperience=false。ap/cd/ce・co/ct・4d2、4d4完了仕事、aq原観察参照後続回答、cv/cu・d/g/j/al・am/m/p・bc/bv/cp/cq/cr/cs・bb/bu/bw等を維持する。
+- 追加部品・fixture・test・非表示一時renderer、監査supplemental第60担当・全110登録を追加。旧co/ct担当数期待は各一行58→59限定補修。七所有コード＋catalog・ゲーム表示文・locale・保存形式・ゲーム呼出は非変更。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、全14保留・各担当三保留・全体未完。
+- 原資料／ログ／開始八共有文書と旧handoffはcw-implementation-828977e、前相談cw-consultation-f8646e4と全旧証跡は非削除保持。検証途中・最終結果は現在handoffへ記録する。残3〜5工程・中心3、前回cw相談から下限／上限／中心差分0。問い1／提案0〜1／報告否定お願い0〜1／最終2、採用だけで検証・確認待ちを減算しない。
+
+
+
 - 2026-10-23 cw相談：完全理解した現在行動の問いへの仕事中の観察応答を一系統として、対象・成立保持を個別相談する。両方未採用未着手・正式枠追加なし、111枠111確認済み・正式子100、最新ao〜cv人間OKを維持。同じcw継続・次チャット移動指示なし。限定2530資料×ap〜cvの59担当=149270呼出・例外0。七言語×六職×player/visitorのshort84資料は59担当・正規旧d/g/j/al・am/m/p・4d2非捕捉。八設定48の同条件12も未捕捉、未完24はcd・身振り12はce。既存観察応答work/observation=true・今回answerなしを保持する案で、新理解規則を追加しない。残3〜5工程・中心3、前回cv確認後2〜5・中心2から下限+1／上限0／中心+1（問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。問いの未確認上限1が具体化したため再積上げ、未採用・実装検証未完で減算しない。全入口最終分類・追加要否／分割は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。原資料／原ログcw-consultation-f8646e4、詳細はcw相談所有節と現在handoff。以下の次cw未選定は選定前の過去状態。
 
 <a id="diary-work-observation-questions-cw-consultation"></a>

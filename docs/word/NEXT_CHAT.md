@@ -1,5 +1,26 @@
 # 次チャットの開始文
 
+## 同じcwを続ける現在指示（採用範囲実装・Codex検証完了）
+
+```text
+- 2026-10-23 cw最終：採用範囲実装・Codex検証完了、cw実装後OK未受領・同じcw継続。専用18＋監査69=87、全Node2738・八JS構文・七言語14957・権限付き別renderer754通過。13群349原135成立・35種4725改変拒否・旧59担当7965非重複、前相談2530再照合は96成立・2434非成立。初回専用v1の空白正規化／旧表示置換に関する2不通過、v2の他言語空白期待残存1不通過とv3成功を区別。全回帰full-30minは制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を非改変保持し、別成功・手動依存照合で元runを成功にしない。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct期待値各一行58→59限定補修。112枠111確認済み・正式子101、最新ao〜cv人間OK、全110登録。残3〜5工程・中心3、前回cw採用から下限／上限／中心差分0（問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ちや他入口分類・追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcw-implementation-828977e、実質問学習後の元未理解入力非遡及・後仕事完了食事休息後の原資料不変も補足確認済み。読取未検証・最新commit/pushは現在handoff。以下のcw採用直後／未採用は途中・過去状態。
+ユーザー「はい、どちらもOKです」で対象・成立保持は採用済み。再採用確認・次記号追加・次チャット移動なし。次は自由フィードバック・必要修正・cw実装後確認を受ける。experimental_word_diary_work_observation_questions.create()/capture(buffer,result,receipt)三引数独立journal、kind=work_observation_question。既存current_activity質問の当時完全理解・short・mode=work・実work/observation=true・今回answerなしだけを分離保持。原expressionはgesture/attend、actualSpeech=false、answerRecorded=false/turnAnswer=null。本人回答・答え不明・仕事完了・習得・希望拒否へ昇格しない。新文法・理解習得規則・scope転移なし。同input非増加非上書き・新input別資料・コピー独立・後仕事完了後学習非補完非遡及。
+本文集約4e・一時receipt保存形式・本接続未採用未実装、実UI音声・本人日記生成保存再開配布・実ユーザー保存未検証。全ap〜cv所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終分類未完。全過去text・原文・原資料／原ログを非削除非置換保持。旧AI旧保存・九見本星座・対象外%SystemDrive%/非操作非置換。原資料はcw-implementation-828977e、最新発行結果は現在handoff参照。
+```
+
+以下のcw実装検証中／未採用は途中・過去状態。
+
+
+## 同じcwを続ける現在指示（対象・成立保持採用済み・実装検証中）
+
+```text
+- 2026-10-23 cw採用：ユーザー「はい、どちらもOKです」で完全理解した現在行動の問いへの仕事中の観察応答の対象・成立保持を個別採用。experimental_word_diary_work_observation_questions.create()/capture(buffer,result,receipt)三引数独立journal、kind=work_observation_questionを実装検証中。原expressionのgesture/attendと実replyのwork/observation=true、当時理解・前後資料を分離保持し、本人実回答・答え不明・完了経験・希望拒否へ昇格しない。新文法・新理解／習得規則なし。112枠111確認済み・正式子101、最新ao〜cv人間OK、cw実装後OK未受領・同じcw継続。全110登録（固定50＋追加60）。残3〜5工程・中心3、前回cw相談から下限／上限／中心差分0（問い1中心1／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要検証・実装後確認待ちを減算しない。全14保留・各担当三保留・全体未完。以下のcw未採用は採用前資料。
+再採用確認・次記号追加・次チャット移動なし。cw所有節diary-work-observation-questions-cwと現在handoffから実装検証を継続する。原資料／ログcw-implementation-828977e、前相談cw-consultation-f8646e4と全旧資料を保持する。本人日記本接続・本文集約・保存形式・実UI音声・実ユーザー保存・配布は未検証。
+```
+
+以下のcw未採用指示は採用前の原資料として保持する。
+
+
 ## 同じcwを続ける現在指示（対象・成立保持の個別相談中）
 
 ```text
