@@ -1,5 +1,25 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-complete-other-speaker-activity-reports-cv-consultation"></a>
+
+##### 4d12cv相談案：完全理解済み別話者の単独休息活動報告（2026-10-23・未採用）
+
+- 対象と成立・保持条件の二点を個別相談する。両方未採用未着手、正式担当・API・枠追加なし。110枠110確認済み・正式子99、cuまで実装・Codex検証・ユーザー実装後OK確認済み。同じcv継続、次チャット移動指示なし。
+- 対象案：既存七言語catalog.reportTeaching通常肯定self/player二形・negationTeaching本人通常否定一形・timeTeaching現在過去×主体極性八形、計十一形の単独・教示印なし休息活動報告。原input.speakerがplayer以外で、既存receiveがkind=report、meaning=rest、aspect=activity_report、complete=true・unresolved=[]を返す当時資料だけ。新文型・新理解／習得規則・話者間scope転移は追加しない。初期知識または当該入力に実際に適用する既存scopeが必要で、playerから習った関係を別話者へ広げない。
+- 主体・出所の保持案：原frame.subject=self/player、frame.roles.reporter=playerという解析枠と、原understanding.subject=self/実speaker、roles/reportSource.reporter=実speakerを別々にコピーする。例えばvisitorの「私は休んでいる」は内容主体visitor、「あなたは休んでいる」は本人self。解析枠を理解へ移し替えず、別話者をplayerへ置換せず、原内容主体・極性・相対時点・reported/verified=falseをそのまま保持する。「第三者についての自由な文型」の追加や第三者の行動の観測・確認ではない。
+- 成立案：独立三引数journalで原input/frame、入力前knowledge/context・原ID、当時understandingとrelationReferences、原expressionと実reply、前後state/worldを分離コピーする。独立input/inputKnowledge/inputContext・原IDと前後validContext/validSelections、コピー上の既存receive/respond全文一致を照合する案。資料整合照合であり真正性認証ではない。今回turn.answerなし・教示／学習／本人経験なしを区別し、原lastOutputの参照経験は一意ID・snapshot一致を要求しても今回報告の対象経験へ流用しない。
+- 保持案：同input非増加非上書き、新input別資料・遅延原資料・返却コピー独立・原資料不変。後学習・後休息／食事による補完や遡及成立なし。聞いた報告を本人経験・実休息／非休息の事実・希望拒否・真偽確認・正確日時へ昇格しない。原expression.channelによるactualSpeechと実UI音声を区別し、原expression.messageと実reply.messageを一つの実回答へ統合しない。
+- 維持：player完全理解d/g/j/al、未完理解cu、感情報告ag/ah/ai・bf〜bm、木の実等au〜by、否定お願いbb/bu/bw、提案am/m/p・bc/bv・cp/cq/cr/cs、問いap/cd/ce/co/ct・4d2を重複残件にしない。教示印付き・複数節・自由言い換え・報告続報・他の未採用入口を一括採用／永久対象外へ移さない。本文集約4e・一時receipt保存形式・ゲーム本接続は未採用未実装、全14保留・各担当三保留を維持。
+- 限定照合：新308完全理解資料（七言語十一形×short/gesture×visitor/neighbor）、新154rest意味不足のvisitor対照、前相談cuの1852原資料を合計2314資料として再照合した。ap〜cuの58担当134212呼出・例外0。候補308は58担当・正規四引数d/g/j/al・五引数am・四引数m/p・実reply付き4d2のいずれも非捕捉。understanding.roles/reportSourceの実speakerと内容主体、answerなし・知識／経験の前後不変を確認した。新154＋旧1442未完資料はcu、旧182完全理解資料はd56/g14/j28/al84へ帰属した。
+- 問いの限定対照はct5/co7、ap/cd/ce/ci/cj/ck/cl・4d2等、提案対照はam/m/p・cp/cq/cr/cs・bc/bv、否定お願い対照はbb/bu/bwへの既存帰属を維持した。非捕捉の二語面「木の実はおいしい」「休むと気持ちいい」計8資料は今回も原解析kind=partial・unresolved=utteranceのまま。既存の別語面の報告へ帰属させず、未捕捉だけを根拠に新理解規則を作らない。
+- この308資料は初期土台・生活既知の二発話設定で、visitor/neighborは比較用話者ID。前相談の実report習得scope別話者非適用対照も今回cu帰属を確認したが、経験由来の別話者完全理解scopeは今回新実証していない。通常tickでの新発生・頻度・実UI会話・実ユーザー保存観測ではない。全ap〜cu所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終分類は未完。
+- 原資料／probe／stdout/stderr・開始時八共有文書とhandoffはdocs/.local-history/verification-runs/cv-consultation-3015d51へ非削除保持。ゲームコード・locale・package・保存形式・ゲーム呼出非変更、実装用adapter・test未追加。ゲーム全回帰・実働・renderer再実行なし。
+- 当回見積り3〜5工程・中心3、前回cu確認後2〜5・中心2から下限+1／上限0／中心+1。問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2。未確認の報告上限1が一系統として具体化したため下限・中心へ加え、他の具体的な追加一系統・分割は未確定なので現時点で二重加算しない。未採用・必要実装検証未完で減算なし。全入口最終分類や追加要否／分割で再見積りし得る。正式残数・チャット数・日数・終了保証ではなく全体未完。
+
+以下のcu確認記録・過去案内は原文保持する。
+
+- 2026-10-23 cv相談：完全理解済み別話者の単独休息活動報告を一系統として対象・成立保持を個別相談中。両方未採用未着手・正式枠追加なし、110枠110確認済み・正式子99、cuまでユーザー実装後OK確認済み。同じcv継続・次チャット移動指示なし。限定2314資料×ap〜cuの58担当=134212呼出・例外0、候補308は58担当・正規旧d/g/j/al・am/m/p・4d2非捕捉。未完理解対照1596はcu、player完全理解対照182はd/g/j/al。問い・提案・否定お願いの限定既存帰属を維持し、未知二語面8資料を追加理解・永久対象外へ変換しない。残3〜5工程・中心3、前回cu確認後2〜5・中心2から下限+1／上限0／中心+1（問い0〜1中心0／提案0〜1中心0／報告否定お願い1中心1／最終意味照合回帰2）。未確認の報告上限1が具体化したため積み上げ直し、未採用・必要検証未完なので減算しない。追加要否／分割・全入口最終分類は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。正本cv相談節と現在handoff、原資料／ログcv-consultation-3015d51参照。以下の次cv未選定は選定前の過去状態。
+
 - 2026-10-23最新確認：ユーザー「OKです。次チャットをおねがいします。」で3c5f48cのcu採用範囲へ実装後OKと移動を明示。cuは実装・Codex検証・ユーザー実装後OK確認済み、110枠110確認済み・正式子99、最新ao〜cu人間OK。次cvは残る問い・提案・報告否定お願いをap〜cuおよび必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残2〜5工程・中心2、前回cu確認前3〜6・中心3から下限−1／上限−1／中心−1（問い0〜1／提案0〜1／報告否定お願い0〜1／最終意味照合回帰2、中心0+0+0+2=2）。cu確認待ちと単独休息活動報告未完理解の採用範囲を差引き、残る具体的な報告等の追加要否は未確認なので中心0、完全理解別話者活動報告等の未分類入口に上限1を保持する。今回新たな意味再観察なし。問い・提案・報告全入口の完了／追加不要／永久対象外の確定ではなく、全量分類・追加要否／分割で再見積りする。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcu実装後OK未受領・同じcu継続は過去状態。
 
 - 2026-10-23 cu最終：採用範囲実装・Codex検証完了、cu実装後OK未受領・同じcu継続。専用18＋監査67=85、補修後全Node2697・八JS構文・七言語14957・権限付き別renderer7000通過。初回full-30minの2696/2697・旧ct件数期待56未更新の1不通過／localizationとrenderer未実行と、別full-retry-30minの制限内GPU失敗・静的smoke reviewRequired・reading.not_recordedによるincomplete/exit1を非改変保持し、別成功・手動依存照合と区別する。補修は旧ct件数期待一行56→57だけ、旧co同一行限定も維持。再実行に未実行test／checkなし。110枠109確認済み・正式子99、最新ao〜ct人間OK、全108登録。残3〜6工程・中心3、前回cu採用時から下限／上限／中心差分0（問い0〜1・中心0／提案0〜1・中心0／報告否定お願い1〜2・中心1／最終意味照合回帰2）。cu実装後確認待ちと他入口分類／追加要否／分割未確定を保持し、Codex検証だけで完了減算しない。全14保留・各担当三保留・全体未完。原資料／ログはcu-implementation-3808474へ保持、最新commit/pushと実読取／未検証は現在handoff参照。以下のcu実装検証中／未採用は途中・過去状態。
