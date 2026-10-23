@@ -1,5 +1,32 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 da最終：採用範囲実装・Codex検証完了、da実装後OK未受領・同じda継続。専用29＋監査73=102、全Node2845・10JS構文・七言語14957・最終権限付き別renderer2016通過。22群600原472成立・41種19352改変拒否・旧63担当29736非重複、前相談4864は358成立・4506非成立。初回専用28成功後の入力ID上限漏れ観察と一行補修／専用29成功、補修前full-30min中断と補修後full-retry-30minのGPU失敗・reviewRequired/reading.not_recordedを残すincomplete/exit1、別renderer成功を分離保持。未実行test／checkなしは最終retryについてであり、中断原runを成功へ昇格しない。116枠115確認済み・正式子105、最新ao〜cz人間OK・全114登録。残3〜5工程・中心3、前回da採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原証跡da-implementation-119d1e3、読取／未検証・発行結果は現在handoff。以下の検証中・未採用は途中／過去原文として保持する。
+
+<a id="diary-clause-scope-rest-requests-da"></a>
+
+##### da最終結果（採用範囲実装・Codex検証完了）
+
+- 専用最終29＋監査初回73=102通過、全Node2845（TAP738853.6945ms／工具748427ms）・10JS構文・七言語14957・最終権限付き別renderer2016（600原＋1416改変）通過。22群600原472成立、41種19352改変拒否・旧63担当29736非重複。相談4864は358成立・4506非成立、元資料不変・326のassociations変化／32不変を保持。補足18ケースで通常／条件付き・話者二種・発話設定二種の後実学習後休息完了非遡及、同ID別成立資料の非上書きを確認。
+- 初回専用28通過後、追加ID境界観察でbefore.serial=MAX_SAFE_INTEGER時にcaptureがretainのTypeErrorとなる漏れを再現。一行の上限ガードと最終安全ID／unsafe ID原子的拒否の一testを追加し専用v2=29通過。初回専用成功と境界漏れ観察を分離し、検査期待で所有理解規則を変更していない。
+- 補修前full-30minは全Node中にCtrl-Cで明示中断・終了1、TAP集計なし・原summaryのrunning/未完三checkを非改変保持。補修後full-retry-30minはNode2845・localization成功、制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1。最終retryの未実行test／checkなしを、初回中断runへ転用しない。
+- 別renderer-restrictedはGPU -1073741515・終了2147483651で失敗、権限付き別renderer-elevatedと補修後renderer-elevated-finalは各2016・終了0を分離。最終八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。新smokeはcy厳密名称置換同形と直接fixture依存・注入コードを手動照合。別成功で元runを成功にしない。
+- 七所有コード＋catalog八hash不変、最終全回帰開始10JS＋package十一hash不変。packageは専用test追記だけ、旧cy/cz/co/ctは横断件数期待各一行62→63だけ。固定ao50snapshot非変更。原資料・原ログ・baseline・中断注記・補足／最終検査はda-implementation-119d1e3へ保持。116枠115確認済み・正式子105・全114登録、da実装後OK未受領・同じda継続。残3〜5工程・中心3、前回採用から下限／上限／中心差分0。全14保留・各担当三保留・全体未完。
+
+以下の実装検証中表示は途中原文として保持する。
+
+##### 4d12da：未知一節を伴う複数節休息お願い（2026-10-24・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で下のda相談案の対象・成立保持を個別採用。experimental_word_diary_clause_scope_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=clause_scope_rest_request。厳密二frameの日本語rest_request/conditional_rest一節＋unknown一節、お願い側clause_scope必須・意味関係不足併存、未知側partial/utterance一件。二節の順序と当時kind/subject/不足を原値保持。新文法・理解習得規則・scope転移なし。
+- 原input・frames/understandingsと対応index、原結果全文・learning/transfer、独立input/inputKnowledge/inputContext、前後state/world・原expression/実replyを分離コピー。原ID、前後validContext/validSelections、コピー上receive/respond全文、意味／実適用関係の一意根拠・原参照経験一意ID/snapshot・selectionSources整合を照合。供給資料整合照合であり真正性認証ではない。
+- 既存receiveのassociations変化を含む前後knowledgeを保持し、それ以外の知識・本人/world経験・selectionSourcesとmode/destination/attention/activityStart/reasons不変を要求。captureは知識状態を更新しない。originalLearning/originalTransfer/knowledgeChangedとnewLearning=false（captureが追加する学習なし）を分離し、暫定対応を未知節・節間関係・入力全体の成立済み理解へ昇格しない。
+- actualSpeechは原expression.channelと実reply.observation準拠、設定shortを実発話へ読み替えない。answerRecorded=false/turnAnswer=null、conditionJudgmentRecorded=false/conditionJudgment=null、actionDecisionRecorded=false/compliance=null、actualParticipation=false・completedExperience/desire/refusal=null。条件判断・答え・受諾拒否・今回休息開始完了・共同参加・希望感情理由を補わない。
+- 同input非増加非上書き・新input別資料・遅延コピー独立・原資料不変・後実学習後活動非遡及。単独cp/cx/cy/cz・am/m/p・問い報告等は維持。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。独立部品・fixture・専用test・一時renderer・監査第64追加担当を登録し、既存七所有コード・catalog・locale・ゲーム呼出非変更、新ゲーム表示文なし。
+- 原資料・原ログ・九文書baseline・開始hashはdocs/.local-history/verification-runs/da-implementation-119d1e3。採用前資料358の内訳・残44と全未読未検証を維持。116枠115確認済み・正式子105、全114登録、da実装後OK未受領・同じda継続。残3〜5工程・中心3、前回相談から下限／上限／中心差分0。全14保留・各担当三保留・全体未完。最終検証・発行結果はCURRENT_IMPLEMENTATION.mdと後続追記を参照。
+
+以下のda未採用相談案は採用前原文として保持する。
+
+- 2026-10-24 da採用：ユーザー「はい、どちらもOKです」で未知一節を伴う二節休息お願いの対象・成立保持を個別採用。experimental_word_diary_clause_scope_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=clause_scope_rest_requestを実装検証中。116枠115確認済み・正式子105、最新ao〜cz人間OK・全114登録（固定50＋追加64）。da実装後OK未受領・同じda継続、移動指示なし。残3〜5工程・中心3、前回da相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要検証・実装後確認待ちを減算しない。他入口追加要否／分割・全入口最終分類未完、全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
 - 2026-10-24 da相談：下記の複数節休息お願い資料を対象・成立保持の個別相談案へ整理。da未採用未着手・正式枠追加なし、115枠115確認済み・正式子104、最新ao〜cz人間OK・全113登録。残3〜5工程・中心3、前回cz確認後2〜5中心2から下限+1／上限0／中心+1。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。未確定だった提案一系統を具体化した結果で、全入口最終分類・他追加要否／分割未完、全体未完。ゲーム全回帰・実働・renderer再実行なし。以下は過去状態。
 
 <a id="diary-clause-scope-rest-requests-da-consultation"></a>

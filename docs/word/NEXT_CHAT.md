@@ -1,5 +1,28 @@
 # 次チャットの開始文
 
+## 同じdaを続ける現行指示（採用範囲実装・Codex検証完了）
+
+```text
+ユーザー「はい、どちらもOKです」でda対象・成立保持を個別採用。採用範囲実装・Codex検証完了、da実装後OK未受領・同じda継続、移動指示なし。開始119d1e3、最新commit/push結果はCURRENT_IMPLEMENTATION.md参照。採用済み二点の再確認・次記号追加・次チャット移動を先取りしない。
+experimental_word_diary_clause_scope_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=clause_scope_rest_request。日本語厳密二frameのrest_request/conditional_rest一節＋unknown一節、お願い側clause_scope必須・意味関係不足併存。未知前後・改行句点・player/別話者・short/gesture、原kind/subject/不足・二節対応順と原learning/transfer・前後knowledge.associations変化を分離保持。captureは知識状態を変えず、暫定対応を未知節／節間関係／全体の成立済み理解にしない。原IDの安全整数上限・独立入力前資料・前後validContext/validSelections・コピー上receive/respond全文・意味関係一意根拠・原参照経験/selectionSources整合を照合。原expression/実replyを分け、条件判断・答え・従否・休息開始完了・共同参加・希望感情理由を補わない。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及。新文法・理解習得規則・scope転移なし、本文集約・receipt保存形式・本接続未採用未実装。
+専用29＋監査73=102、全Node2845（TAP738853.6945ms／工具748427ms）・10JS構文・七言語14957・最終権限付き別renderer2016通過。22群600原472成立・41種19352改変拒否・旧63担当29736非重複、前相談4864は358成立・4506非成立、associations変化326／不変32。補足18ケースの後実学習後実休息完了非遡及・同ID別成立資料非上書きも通過。七所有コード＋catalog八hash・最終全回帰開始10JS＋package十一hash不変、旧cy/cz/co/ct期待各一行62→63・package専用test追記のみ、固定ao50snapshot非変更。
+初回専用28成功後に追加ID境界観察でunsafe IDのTypeError漏れを発見し、一行上限ガード＋安全境界testで専用v2=29通過。補修前full-30minはNode中Ctrl-C終了1・集計なし・原summary running/未完三checkを非改変保持。補修後full-retry-30minはNode/localization成功だがGPU -1073741515・ERR_FAILED(-2)／renderer終了1、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1。最終retryの未実行test／checkなしを中断原runへ転用しない。別制限内renderer終了2147483651と権限付き別renderer2016終了0、補修後最終別2016終了0を分離。八global除去・sentinel不変・保存bridge未定義・原資料不変、新smokeはcy厳密名称置換同形・fixture直接依存を手動照合。別成功や手動確認で元runを成功にしない。原資料／ログ／baselineはda-implementation-119d1e3、前相談da-consultation-4e49d9a。
+116枠115確認済み・正式子105、最新ao〜cz人間OK・全114登録。残3〜5工程・中心3、前回da採用から下限／上限／中心差分0。問い0〜1中心0／提案1中心1（da実装後確認待ち）／報告否定お願い0〜1中心0／最終意味照合回帰2。Codex検証だけで確認待ちや他入口追加要否／分割を減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り。全14保留・各担当三保留・全体未完、正式残数・チャット数・終了保証ではない。
+八共有文書の旧全行・全過去text・原資料／ログ・過去失敗中断incompleteを非削除非置換保持。全ap〜cz所有節／全旧fixture全文意味再読・全旧固定50正規API横断・全入口最終分類未完。残44は追加不要・永久対象外にしない。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではない。実読取・未読未検証を分離する。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下の実装検証中・未採用は途中／過去原文として保持する。
+
+## 同じdaを続ける現行指示（対象・成立保持採用・実装検証中）
+
+```text
+ユーザー「はい、どちらもOKです」でda対象・成立保持を個別採用。同じda継続、実装後OK未受領・移動指示なし。開始119d1e3、最新commit/push結果はCURRENT_IMPLEMENTATION.md参照。採用済み二点の再確認を求めない。
+experimental_word_diary_clause_scope_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=clause_scope_rest_request。既存日本語二frameのrest_request/conditional_rest＋unknown、clause_scope必須・意味関係不足併存、未知前後・改行句点・player/別話者・short/gesture。当時kind/subject/不足・二節順序・原learning/transferと前後knowledge.associations変化を保持し、未知や節間関係を成立済み理解にしない。captureは状態知識を更新せず、新文法・理解習得規則・scope転移なし。原ID・独立入力前資料・コピー上receive/respond全文・前後validContext/validSelections・意味関係一意根拠・原参照経験/selectionSources整合を照合。同input非増加非上書き・新input別資料・遅延コピー独立・後学習後活動非遡及。原expression/実replyを分離し、条件判断・答え・従否・休息開始完了・共同参加・希望感情理由を補わない。本文集約・receipt保存形式・本接続は未採用未実装。
+116枠115確認済み・正式子105、最新ao〜cz人間OK・全114登録。残3〜5工程・中心3、前回da相談から下限／上限／中心差分0。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。採用だけで必要検証・実装後確認待ちを減算せず、毎回根拠・内訳・前回差分・不確実性付きで再見積り。他入口追加要否／分割・全入口最終分類・全体未完、全14保留・各担当三保留維持。過去原文・原ログ・失敗中断incomplete・残44保留を非削除非置換保持。実読取・未読未検証を分離。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下のda未採用は採用前原文として保持する。
+
 - 2026-10-24 da相談：da未採用未着手・正式枠追加なし、115枠115確認済み・正式子104、最新ao〜cz人間OK・全113登録。同じda継続・次チャット移動指示なし。残3〜5工程・中心3、前回2〜5中心2から下限+1／上限0／中心+1（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。未確定提案一系統を具体化し、状態差の独立分割根拠は今回認めず上限据置。他入口追加要否／分割・全入口最終分類未完、全体未完。ゲーム全回帰・実働・renderer再実行なし。以下は過去状態。
 
 ## 同じdaを続ける現行指示（対象・成立保持の個別相談中）
