@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（da確認済み・次db未採用）
+
+```text
+ゲーム実装最新3cb8790。確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。4d12daは実装・Codex検証・ユーザー実装後OK確認済みです。
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdの必要な所有節・依存を読み、VALIDATION.mdに従って再開してください。全過去開始文や全参照の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取・未読未検証を記録してください。
+次dbは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残る問い・提案・報告否定お願いをap〜daと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談してください。daの二節休息お願い358資料を既存担当へ差引き、cp/cx/cy/cz・am/m/p等と重複採用しない。前相談4864の残44未捕捉（前24＋新20）や他入口を追加不要・全入口完了・永久対象外にせず、未捕捉だけで新理解規則を作らない。次の具体対象・追加要否／分割は未選定です。
+116枠116確認済み・正式子105、最新ao〜da人間OK・全114登録。残2〜5工程・中心2。問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2。前回da確認前3〜5中心3から下限−1／上限0／中心−1。da実装後確認待ち1を差引き、提案上限の1は未分類の別提案入口の追加要否／分割幅へ置き直します。新たな具体提案や分割を発見した結果ではなく、全入口最終分類未完の不確実性を残すため上限据置。他具体追加未確認の中心0は追加不要の確定ではありません。今回新たな実行による意味再観察なし。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正本はWORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく全体未完です。
+daはexperimental_word_diary_clause_scope_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=clause_scope_rest_request。既存日本語厳密二frameのrest_request/conditional_rest一節＋unknown一節、clause_scope必須・意味関係不足併存。原kind/subject/不足・二節順序と対応、原結果全文・learning/transfer・前後knowledge.associations変化を分離保持し、暫定対応を未知節／節間関係／全体の成立済み理解にしません。captureは知識状態を変えず、原ID安全上限・独立入力前資料・コピー上receive/respond全文・前後validContext/validSelections・意味関係一意根拠・原参照経験／selectionSourcesを照合。原expression/実replyを分け、条件判断・答え・従否・休息開始完了・共同参加・希望感情理由を補わない。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及。新文法・理解習得規則・scope転移なし、本文集約・receipt保存形式・本接続未採用未実装です。
+da検証は専用29＋監査73=102、22群600原472成立・41種19352改変拒否・旧63担当29736非重複、前相談4864は358成立・4506非成立（associations変化326／不変32）、補足18ケース。全Node2845（TAP738853.6945ms／工具748427ms）・10JS構文・七言語14957・最終権限付き別renderer2016通過。初回専用28成功後のunsafe ID TypeError観察と一行上限ガード／専用v2=29、補修前full-30minのCtrl-C終了1・集計なし・原summary running/未完三checkを非改変保持。補修後full-retry-30minはGPU -1073741515・ERR_FAILED(-2)／renderer終了1、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1。最終retryの未実行test／checkなしを中断原runへ転用しない。別制限内renderer終了2147483651と権限付き別2016終了0、補修後最終別2016終了0を分離。八global除去・sentinel不変・保存bridge未定義・原資料不変、新smokeのcy厳密名称置換同形・直接fixture依存手動照合を別成功で元runの成功にしない。七所有コード＋catalog八hash・最終全回帰開始10JS＋package十一hash不変、旧cy/cz/co/ct期待各一行62→63・package専用test追記のみ、固定ao50snapshot非変更。原資料／原ログはda-implementation-119d1e3、前相談da-consultation-4e49d9a。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+八共有文書の旧全行・全過去text・原資料／原ログ・旧失敗中断incompleteを非削除非置換保持。全ap〜da所有節／全旧fixture全文意味再読・全旧固定50正規API横断・全入口最終分類未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではありません。確認済み入力・採用範囲の再確認は不要です。全14保留・各担当三保留を永久対象外へ移しません。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。今回はユーザーが移動を明示しています。
+```
+
+以下のda実装後OK未受領・同じda継続は過去状態。
+
 ## 同じdaを続ける現行指示（採用範囲実装・Codex検証完了）
 
 ```text
