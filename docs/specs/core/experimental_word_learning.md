@@ -1,5 +1,31 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 cx最終：採用範囲実装・Codex検証完了、cx実装後OK未受領・同じcx継続。専用23＋監査70=93、全Node2762・八JS構文・七言語14957・権限付き別renderer2252通過。16群968原428成立・32種13696改変拒否・旧60担当25680非重複、前相談3466再照合246成立・3220非成立。初回専用v1の無効な活動推移fixtureによる1不通過、v2成功後の同目的地移動中経路取得失敗の新部品分類補修・初回full中断、v3成功と別full-retry-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を分離保持。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct期待各一行59→60限定補修。113枠112確認済み・正式子102、最新ao〜cw人間OK、全111登録。残3〜6工程・中心3、前回cx採用から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・別generic条件付き入口の追加要否／分割・全入口分類を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcx-implementation-c052fa6、読取／未検証・発行結果は現在handoff。以下のcx実装検証中／未採用は途中・過去状態。
+
+
+<a id="diary-complete-other-speaker-proposals-cx"></a>
+
+##### 4d12cx：完全理解した別話者の通常休息／散策提案（2026-10-24・採用範囲実装・Codex検証完了）
+
+- 最終結果：専用23＋監査70=93通過、16群968原428成立・32種13696改変拒否・旧60担当25680非重複。判断内訳はapproaching188／continuing120／not_started120。前相談3466は246成立・3220非成立で採用候補だけが成立し、別generic条件付き入口は混入しない。
+- 全Node2762通過（TAP612328.9904ms／工具621252ms）、八JS構文・七言語14957通過。full-retry-30minは制限内renderer GPU -1073741515・終了2147483651、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1として非改変保持。未実行test／checkなし。権限付き別renderer968原＋1284改変=2252通過・終了0、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。元runを別成功へ置換しない。
+- 初回専用v1は22中21通過。後活動検査の手動startが選択理由を別の食事へ残しvalidSelections=falseになるfixtureを、既存実食事中の原入力→実食事完了→休息完了へ訂正してv2専用22＋監査70通過。その後、既に同じ目的地へ移動中の経路取得失敗を今回approachingと誤分類する新部品の境界を補修。今回input IDのunderstood_suggestion理由を要求し、moving-no-route40対照を追加したv3専用23＋監査70が通過。既存core/worldを検査期待へ変更していない。
+- 補修前初回full-30minはNode実行中に中断し、元summaryのrunning／未集計Node・未実行七言語／renderer予定と原ログを保持。補修後full-retryとは別run。別additional-evidenceでshort/gesture×お願い/誘いの実tick移動・休息完了と原choiceSource保持4例、同じstateで後から実player関係習得しても別話者非転移・原未完入力非遡及2例を確認した。
+- final検査では開始八JS＋package九hash不変・所有七コード＋catalog非変更、旧co/ct期待値各一行59→60だけ、smokeが既存cwの厳密名称置換同形でfixtureを直接参照することを照合する。静的未分類・読取未記録は手動確認で自動成功へ書換えない。原資料／ログ／baseline／最終ソースはcx-implementation-c052fa6。実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証、採用範囲実装・Codex検証完了と区別する。
+
+- ユーザー「それぞれOKです。」でcx相談案の対象・成立保持を個別採用。既存七言語通常休息お願い／誘いと日本語通常散策誘い、input.speakerがplayer以外、当時単独request/invitation・complete=true・unresolved=[]・positive/unspecified・条件や独自語applications/対象なしだけ。proposalKindの無catalogRule形とrest/rest_request/rest_invitation/walk_invitationの既存範囲。short/gesture双方、新文法・理解習得規則・scope転移なし。113枠112確認済み・正式子102、cx実装後OK未受領・同じcx継続。
+- experimental_word_diary_complete_other_speaker_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_proposal。原input/frame、独立input/inputKnowledge/inputContext、当時理解と意味関係根拠、原expression／実reply、前後state/world・実選択出所を分離コピーする。実speakerと原解析の固定player役割欄を別保持、役割を書換えず欠落rolesも新造しない。
+- 原ID=before.serial+1、前後validContext/validSelections、コピー上receive/respond全文、知識・本人経験前後不変と今回answerなし、意味・実適用関係各一根拠を照合。原lastOutput参照経験は一意ID/snapshot一致を要求し今回対象へ流用しない。資料整合照合であり真正性認証ではない。
+- 実判断はapproaching／continuing／not_startedを区別し、実response・前後selectionSourcesを保持。実休息selected_proposalの原input/frame/理解/意味関係根拠/selectedAtを別保持、散策に同形出所を新造しない。actualSpeechは原expression.channelと実reply.observationを区別し、仕事中観察応答はfalse。actualParticipation=false・completedExperience/desire/refusal=null・answerRecorded=false/turnAnswer=null。向かうことを共同参加や完了へ、継続・移動非成立を本人の拒否・希望不在へ補わない。
+- 同input非増加非上書き、新input別資料・遅延資料・返却コピー独立・原資料不変。後学習／後食事休息完了で原理解・原応答・原判断を補完しない。新教示・習得・本人経験なし、本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- player完全理解am、未完理解cp/cq、条件順序m/p・cr/cs、食後散策bc/bv、ap〜cw既存担当を維持。別generic conditional_restの完全理解資料はcx対象外で追加要否／分割を別保留、永久対象外にはしない。全14保留・各担当三保留・全体未完。所有core/world/catalog・locale・保存形式・ゲーム呼出非変更。検証詳細は現在handoffと原資料cx-implementation-c052fa6へ保持する。
+- 残3〜6工程・中心3、前回cx相談から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要実装検証・実装後確認待ちを減算せず、他入口全量分類／追加要否／分割も未完。
+
+以下の未採用相談は採用前原文として非削除保持する。
+
+- 2026-10-24 cx採用：ユーザー「それぞれOKです。」で完全理解した別話者の通常休息お願い／誘い・日本語通常散策誘いの対象・成立保持を個別採用。experimental_word_diary_complete_other_speaker_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_proposalを実装検証中。原実speaker・原frame固定player役割欄・当時理解・原expression／実reply・前後資料・実選択出所を分離保持し、新文法・理解習得規則・scope転移なし。113枠112確認済み・正式子102、最新ao〜cw人間OK、cx実装後OK未受領・同じcx継続。残3〜6工程・中心3、前回cx相談から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで実装検証・実装後確認待ちを減算せず、別generic条件付きお願いの追加要否／分割も別保留。本文集約・receipt保存形式・ゲーム本接続未採用未実装、全14保留・各担当三保留・全体未完。以下のcx未採用は採用前原文を保持。
+
+
 <a id="diary-complete-other-speaker-proposals-cx-consultation"></a>
 
 ##### 4d12cx相談案：完全理解した別話者の通常休息／散策提案（2026-10-24・未採用未着手）

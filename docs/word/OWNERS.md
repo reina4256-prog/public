@@ -1,5 +1,15 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-24 cx最終：採用範囲実装・Codex検証完了、cx実装後OK未受領・同じcx継続。専用23＋監査70=93、全Node2762・八JS構文・七言語14957・権限付き別renderer2252通過。16群968原428成立・32種13696改変拒否・旧60担当25680非重複、前相談3466再照合246成立・3220非成立。初回専用v1の無効な活動推移fixtureによる1不通過、v2成功後の同目的地移動中経路取得失敗の新部品分類補修・初回full中断、v3成功と別full-retry-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を分離保持。未実行test／checkなし、開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct期待各一行59→60限定補修。113枠112確認済み・正式子102、最新ao〜cw人間OK、全111登録。残3〜6工程・中心3、前回cx採用から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・別generic条件付き入口の追加要否／分割・全入口分類を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcx-implementation-c052fa6、読取／未検証・発行結果は現在handoff。以下のcx実装検証中／未採用は途中・過去状態。
+
+
+| 工程 | 部品／API | 所有仕様 |
+| --- | --- | --- |
+| 4d12cx | complete_other_speaker_proposals.create()/capture(buffer,result,receipt) | [別話者の通常休息／散策提案](../specs/core/experimental_word_learning.md#diary-complete-other-speaker-proposals-cx) |
+
+- 2026-10-24 cx採用：ユーザー「それぞれOKです。」で完全理解した別話者の通常休息お願い／誘い・日本語通常散策誘いの対象・成立保持を個別採用。experimental_word_diary_complete_other_speaker_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_proposalを実装検証中。原実speaker・原frame固定player役割欄・当時理解・原expression／実reply・前後資料・実選択出所を分離保持し、新文法・理解習得規則・scope転移なし。113枠112確認済み・正式子102、最新ao〜cw人間OK、cx実装後OK未受領・同じcx継続。残3〜6工程・中心3、前回cx相談から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで実装検証・実装後確認待ちを減算せず、別generic条件付きお願いの追加要否／分割も別保留。本文集約・receipt保存形式・ゲーム本接続未採用未実装、全14保留・各担当三保留・全体未完。以下のcx未採用は採用前原文を保持。
+
+
 cxは[別話者の通常休息／散策提案の個別相談案](../specs/core/experimental_word_learning.md#diary-complete-other-speaker-proposals-cx-consultation)。対象・成立保持とも未採用未着手のため担当登録／API表を追加しない。player完全理解am・未完cp/cq、条件順序m/p・cr/cs、食後散策bc/bvを維持する。
 
 - 2026-10-24 cx相談：完全理解した別話者の通常休息お願い／誘い・日本語通常散策誘いを一系統として対象・成立保持の二点を個別相談。両方未採用未着手・正式枠追加なし、112枠112確認済み・正式子101、最新ao〜cw人間OK。同じcx継続、次チャット移動指示なし。限定3466資料×ap〜cwの60担当=207960呼出・例外0、候補246（休息174／散策72）は60担当・正規d/g/j/al・am/m/p・4d2非捕捉。player完全理解am260／未完cp310・cq110、前2530のcw96・cv308・cu1596等は既存帰属。原実speakerと固定player役割欄を分離保持し、新理解／習得規則・scope転移なし。別generic条件付き休息お願い2資料の未捕捉は別保留、通常提案へ混入しない。残3〜6工程・中心3、前回cw確認後2〜5・中心2から下限+1／上限+1／中心+1（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。通常提案一系統具体化と一般解析条件付き入口の追加要否／分割未確定により再積上げ、未採用・必要検証未完で減算しない。全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。原資料／原ログcx-consultation-9d3c8d2、詳細はcx相談所有節と現在handoff。以下の次cx未選定は選定前の過去状態。
