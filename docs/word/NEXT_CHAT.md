@@ -1,5 +1,29 @@
 # 次チャットの開始文
 
+## 同じcyを続ける現在指示（採用範囲実装・Codex検証完了）
+
+```text
+ユーザー「はい、どちらもOKです」でcy対象・成立保持を個別採用。採用範囲実装・Codex検証完了、cy実装後OK未受領・同じcy継続。再採用確認・次記号追加・次チャット移動を先取りしない。最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。
+experimental_word_diary_generic_conditional_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=generic_conditional_rest_request。既存日本語単独conditional_rest・request/rest/tired・request/condition、player/別話者・short/gesture、完全／未完理解を原値に分けて保存。原subject=実speakerまたはnull・roles欠落を維持し、conditionStatus=unknownと今回conditionJudgmentRecorded=false/conditionJudgment=nullを分ける。原input/frame・独立入力前資料・当時根拠／不足・原expression／実reply・前後state/worldを分離コピーし、原ID・前後validContext/validSelections・コピー上receive/respond全文・知識本人経験不変・今回answer/条件判断なし・原参照経験一意整合・既知根拠各一件・前後選択不変を照合。受諾拒否・自己感覚条件成立・本人希望感情・共同参加・完了経験を補わない。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非補完非遡及。新文法・理解習得規則・scope転移なし。
+専用28＋監査71=99、22群308原184成立（完全94／未完90）、38種6992改変拒否・旧61担当11224非重複。前相談3658は130成立・3528非成立。実condition学習後のgeneric scope非適用／原未完非遡及4例も通過。初回専用／監査不通過なし、原資料／原ログ／baselineはcy-implementation-fb6f679。
+全Node2791（TAP674162.0045ms／工具682097ms）・八JS構文・七言語14957通過。full-30minは制限内GPU -1073741515／終了2147483651、静的smoke reviewRequired・reading.not_recordedのincomplete/exit1を非改変保持。未実行test／checkなし。別制限内renderer終了1、権限付き別renderer860（308原＋552改変）終了0、八global除去・sentinel不変・保存bridge未定義・原資料不変。別成功と手動依存確認で元runを成功にしない。開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct期待各一行60→61だけ、新smokeはcxの厳密名称置換同形。
+114枠113確認済み・正式子103、最新ao〜cx人間OK、全112登録。残3〜6工程・中心3、前回cy採用から下限／上限／中心差分0。問い0〜1中心0／提案1〜2中心1（cy実装後確認待ち1＋別話者structured完全理解14の追加要否／必要分割0〜1）／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+1+0+2=3。Codex検証だけで減算しない。毎回、根拠・内訳・前回差分・不確実性付きで再見積り。全14保留・各担当三保留・全体未完。
+本文集約・receipt保存形式・本接続未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全ap〜cx所有節／全旧fixture全文意味再読・全旧固定50正規API横断再検査・全入口最終分類は未完。全旧原文・text・原資料／失敗中断incompleteを保持し、既存リンク不一致18件の全再検査とは呼ばない。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下の実装検証中／未採用は途中・過去原文として保持する。
+
+## 同じcyの現行指示（対象・成立保持採用・実装検証中）
+
+```text
+ユーザー「はい、どちらもOKです」でcyの対象・成立保持を個別採用。experimental_word_diary_generic_conditional_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=generic_conditional_rest_requestを実装検証中。同じcy継続、実装後OK未受領・次チャット移動指示なし。再採用確認を求めない。
+既存日本語単独conditional_rest・request/rest/tired・request/condition、player/別話者・short/gesture。完全／未完理解と原subject/roles欠落・当時不足・原expression／実replyを分離し、今回条件判断・休息選択・受諾拒否・本人希望感情・共同参加完了経験を補わない。原ID・独立入力資料・前後validContext/validSelections・コピー上receive/respond全文、知識本人経験不変・今回answer/条件判断なし、原参照経験／出所一意整合を照合。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非補完非遡及。新文法・理解習得規則・scope転移なし。
+114枠113確認済み・正式子103、最新ao〜cx人間OK、全112登録。残3〜6工程・中心3、前回cy相談から下限／上限／中心差分0。問い0〜1中心0／提案1〜2中心1（cy必要検証確認待ち1＋別話者structured完全理解14の追加要否／分割0〜1）／報告否定お願い0〜1中心0／最終意味照合回帰2。採用だけで減算しない。全14保留・各担当三保留・全体未完。
+専用初回28通過、22群308原184成立（完全94／未完90）、38種6992改変拒否・旧61担当11224非重複。監査・全回帰・renderer継続。原資料／原ログ／baselineはcy-implementation-fb6f679、最新進行とcommit/pushはCURRENT_IMPLEMENTATION.md参照。本文集約・receipt保存形式・本接続未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。旧失敗中断incomplete・全旧原文textを保持。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下のcy未採用開始文は採用前原文として保持する。
+
 ## 同じcyの現行開始文（対象・成立保持を個別相談中・両方未採用）
 
 ```text

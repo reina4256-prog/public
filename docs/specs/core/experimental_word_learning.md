@@ -1,6 +1,33 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 cy最終：採用範囲実装・Codex検証完了、cy実装後OK未受領・同じcy継続。専用28＋監査71=99、全Node2791・八JS構文・七言語14957・権限付き別renderer860通過。22群308原184成立（完全94／未完90）・38種6992改変拒否・旧61担当11224非重複、前相談3658は130成立・3528非成立。初回専用／監査の不通過なし、九ソース/package hash不変・七所有コード＋catalog非変更、旧co/ct期待値各一行60→61限定補修。full-30minは制限内GPU -1073741515・終了2147483651、静的smoke reviewRequired・reading.not_recordedのincomplete/exit1を非改変保持し、別成功と手動依存確認で元runを成功へ変更しない。未実行test／checkなし。114枠113確認済み・正式子103、最新ao〜cx人間OK、全112登録。残3〜6工程・中心3、前回cy採用から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・別話者structured完全理解14の追加要否／分割0〜1を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcy-implementation-fb6f679、読取未検証・発行結果は現在handoff。以下の実装検証中／未採用は途中・過去原文として保持する。
+
+- 2026-10-24 cy採用：ユーザー「はい、どちらもOKです」で一般解析の条件付き休息お願いの対象・成立保持を個別採用。experimental_word_diary_generic_conditional_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=generic_conditional_rest_requestを実装検証中。既存日本語単独conditional_rest・player/別話者・short/gesture、完全／未完理解と原subject/roles欠落・当時不足・原expression／実replyを分離し、今回条件判断・休息選択を補わない。114枠113確認済み・正式子103、最新ao〜cx人間OK、全112登録（固定50＋追加62）、cy実装後OK未受領・同じcy継続。残3〜6工程・中心3、前回cy相談から下限／上限／中心差分0（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要実装検証・実装後確認待ちを減算せず、別話者structured完全理解14の追加要否0〜1も別保留。全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
 - 2026-10-24 cy相談：一般解析の条件付き休息お願い（日本語catalogRule=conditional_rest）を一系統として対象・成立保持を個別相談。完全理解／未完理解を当時の原値で分離する案で、両方未採用未着手・正式枠追加なし、113枠113確認済み・正式子102、最新ao〜cx人間OK・全111登録を維持。同じcy継続、次チャット移動指示なし。新192＋前cx相談3466＝3658資料×61担当223138呼出・例外0、候補130（完全46／未完84）は61担当と正規d/g/j/al・am/m/p・4d2非捕捉、前cx候補246はcxのみ。原subject=実speakerまたはnull、conditionStatus=unknown・今回条件判断なし・休息選択なしを保持し、self役割や条件成立を補わない。残3〜6工程・中心3、前回cx確認後2〜5中心2から下限+1／上限+1／中心+1（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。generic一系統を具体化し、別話者structured条件付き完全理解14資料の追加要否0〜1を別保留、採用後の必要検証も未完。全入口分類未完・全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。所有仕様cy相談節、原資料cy-consultation-e3604c1、読取と発行結果は現在handoff。以下のcy未選定・cx以前の状態は過去原文として保持する。
+
+<a id="diary-generic-conditional-rest-requests-cy"></a>
+
+##### cy最終結果（採用範囲実装・Codex検証完了）
+
+- 専用28＋監査71=99、全Node2791通過（TAP674162.0045ms／工具682097ms）、八JS構文・七言語14957通過。22群308原184成立（完全94／未完90）・38種6992改変拒否・旧61担当11224非重複。前相談3658は130成立・3528非成立、候補外structured別話者等を取り込まない。
+- 専用と監査は初回不通過なし。実condition学習後もgenericへscope非適用・原未完非遡及4例、既存選択休息の実活動完了後不変・遅延コピー・新input分離を確認。原知識／本人経験不変、欠損重複不一致の原経験／出所／意味関係根拠を拒否する。未知を補う学習規則・主体訂正・今回条件判断を実装していない。
+- full-30minは制限内renderer GPU -1073741515・終了2147483651、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1。未実行test／checkなし。別制限内renderer終了1と権限付き別renderer860（308原＋552改変）終了0を区別し、八global除去・local/session sentinel不変・保存bridge未定義・原資料不変を確認。別成功と手動依存読取で元runを成功にしない。
+- full開始時の八JS＋package九hash不変、七所有コード＋catalog非変更、旧co/ctの期待値各一行60→61だけ、新smokeはcxの厳密名称置換同形と直接fixture依存を照合。元ログ・baseline・fixture-materials・追加実学習・final検査はcy-implementation-fb6f679へ保持する。読取／未読／未検証の区別と最終発行結果は現在handoffへ記録。
+- 114枠113確認済み・正式子103、最新ao〜cx人間OK、cy実装後OK未受領・同じcy継続。残3〜6工程・中心3、前回採用から下限／上限／中心差分0。問い0〜1中心0／提案1〜2中心1（cy実装後確認待ち1＋別話者structured14の追加要否／必要分割0〜1）／報告否定お願い0〜1中心0／最終意味照合回帰2。全14保留・各担当三保留・全体未完、本文集約・receipt保存形式・本接続は未採用未実装、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。
+
+以下の実装検証中表示は途中記録を保持する。
+
+##### 4d12cy：一般解析の条件付き休息お願い（2026-10-24・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で下記相談案の対象・成立保持を個別採用。experimental_word_diary_generic_conditional_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=generic_conditional_rest_request。既存日本語単独catalogRule=conditional_rest・request/rest/tired・relations=[request,condition]、playerと別話者・short/gesture双方。positive/unspecified・独自語applications/対象なし。当時rest/tired/request/condition既知の完全理解と、同前提不足／scope不適用（併存含む）の未完理解をunderstandingStatusで分け、known/relations/unresolvedとmissingMeaningsBefore/missingRelationsBeforeを原値で保持する。
+- 原input/frame・独立input/inputKnowledge/inputContext・前後state/world・当時理解／根拠・原expression／実replyを分離コピー。原ID=before.serial+1、前後validContext/validSelections、コピー上receive/respond全文、知識／本人経験前後不変・今回answer／条件判断なしを照合。原lastOutput参照経験は一意ID/snapshot一致、前後selectionSourcesとmode/destination/attention/activityStart/reasons不変を要求。既知意味と実適用関係の根拠は各一件を照合する。供給資料整合照合であり真正性認証ではない。
+- 原frameのsubject/conditionSubject/roles欠落と当時understanding.subject（関係理解時は実speaker、関係不足時null）を維持。selfや役割を補わず、understanding.conditionStatus=unknownと今回conditionJudgmentRecorded=false/conditionJudgment=nullを分離する。疲労値や休息中でも今回条件判断／感覚observationを作らない。
+- actualSpeechは原expression.channelと実reply.observationを分ける。answerRecorded=false/turnAnswer=null、actionDecisionRecorded=false/compliance=null、actualParticipation=false・completedExperience/desire/refusal=null。受諾拒否・休息開始完了・共同参加・本人希望感情理由を補わない。同input非増加非上書き、新input別資料、遅延資料／返却コピー独立・原資料不変・後実学習後活動非補完非遡及。
+- 新文法・理解習得規則・scope転移なし。m/cr構造付き条件・p/cs順序・am/cp/cq/cx通常提案・bc/bv・bb/bu/bw・他既存担当を維持。別話者structured完全理解14は別保留。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装、全14保留・各担当三保留・全体未完。
+- 専用初回28通過、22群308原184成立（完全94／未完90）、38種6992改変拒否・旧61担当11224非重複。実学習後scope非適用・元未完非遡及、原選択休息の実完了後不変と遅延資料・新inputを確認。監査・全回帰・関連rendererは継続。原資料／原ログはcy-implementation-fb6f679、実UI音声・本人日記生成保存再開配布・実ユーザー保存は未検証。
+
+以下の未採用相談は採用前原文を非削除保持する。
 
 <a id="diary-generic-conditional-rest-requests-cy-consultation"></a>
 
