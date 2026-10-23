@@ -1,5 +1,28 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（cw確認済み・次cx未採用）
+
+```text
+ゲーム実装最新db1cc91。確認移動文書の最新commit/push結果はdocs/CURRENT_IMPLEMENTATION.mdを参照してください。4d12cwは実装・Codex検証・ユーザー実装後OK確認済みです。
+
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdの必要な所有節・依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取・未読・未検証を記録してください。
+
+次cxは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残る問い（他short非回答／観察応答等）・提案・報告否定お願いをap〜cwおよび必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談してください。入口の優先を対象採用にせず、未捕捉だけで新理解規則を実装しません。cw完全理解current_activity仕事中観察応答・ap本人実回答・cd未完理解・ce身振り・co/ct味判断不能・4d2実answer_unknown、aq原観察参照後続回答・4d4完了仕事、cv完全理解別話者単独休息活動報告・cu未完理解・player完全理解d/g/j/al、am/m/p・cp/cq/cr/cs・bc/bv提案、bb/bu/bw否定お願い等を重複残件にしません。全14保留・各担当三保留を永久対象外へ移して終了扱いにしません。
+
+112枠112確認済み・正式子101、最新ao〜cw人間OK。残目安2〜5工程・中心2。問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2。前回cw確認前3〜5・中心3から下限−1／上限0／中心−1。cw確認待ちと現在行動問いへの仕事中観察応答の具体採用範囲を解消。他の具体追加要否は未確認なので各中心0、未分類入口に各上限1を保持します。今回新たな意味再観察なし。全入口完了／追加不要／永久対象外の確定ではありません。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正本はdocs/WORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく全体未完です。
+
+cwは独立三引数journalのwork_observation_question。既存七言語単独current_activity・当時question/subject=self/complete=true/unresolved=[]、speech=short・mode=work・実reply={message:'work',observation:true}・今回answerなしだけ。原expression=gesture/attendと実観察reply、原input/frame・入力前knowledge/context・当時理解・前後state/worldを分離コピーし、コピー上receive/respond全文等を照合。actualSpeech=false・observationResponse=true・answerRecorded=false/turnAnswer=null。同input非増加非上書き・新input別資料・コピー独立・後仕事完了後学習後食事休息非補完非遡及。本人実回答・答え不明・仕事完了経験・習得・希望拒否・感情へ昇格しません。新文法・新理解習得規則・scope転移なし。本文集約・一時receipt保存形式・本接続未採用未実装です。
+
+cw検証は専用18＋監査69=87、全Node2738・八JS構文・七言語14957・権限付き別renderer754通過。13群349原135成立・35種4725改変拒否・旧59担当7965非重複、前相談2530再照合96成立。実質問学習後も元未完入力非遡及を別nonretroで確認。初回専用v1の2不通過／v2の1不通過と訂正後v3成功を区別。retained-original-experience-displayは実旧出力を比較メモリへ戻す互換snapshotで通常新観測ではありません。full-30minの制限内GPU失敗（終了2147483651）・静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1は非改変保持し、別成功・手動依存照合で元runを成功にしません。未実行test／checkなし。開始八JS＋package九hash・七所有コード＋catalog一致、旧co/ct期待各一行58→59限定補修。原資料／原ログcw-implementation-828977e。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+
+共有八文書の旧全行・全過去開始継続文・全原資料／原ログを非削除非置換保持。全ap〜cw所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終意味分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではありません。確認済み入力・採用範囲を再確認からやり直しません。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。今回はユーザーが移動を明示しています。
+```
+
+以下のcw実装後OK未受領・同じcw継続は過去状態。
+
+- 2026-10-24最新確認：ユーザー「OKです。次チャットをおねがいします。」でdb1cc91のcw採用範囲へ実装後OKと移動を明示。cwは実装・Codex検証・ユーザー実装後OK確認済み、112枠112確認済み・正式子101、最新ao〜cw人間OK。次cxは残る問い・提案・報告否定お願いをap〜cwおよび必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残2〜5工程・中心2、前回cw確認前3〜5・中心3から下限−1／上限0／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2）。cw確認待ちと完全理解した現在行動問いへの仕事中観察応答の具体採用範囲を解消。他の具体的追加要否は未確認なので各中心0、未分類入口の追加要否／分割に各上限1を保持する。今回新たな意味再観察なし、全入口完了・追加不要・永久対象外の確定ではない。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcw実装後OK未受領・同じcw継続は過去状態。
+
+
 ## 同じcwを続ける現在指示（採用範囲実装・Codex検証完了）
 
 ```text
