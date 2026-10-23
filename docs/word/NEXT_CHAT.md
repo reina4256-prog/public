@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（cz確認済み・次da未採用）
+
+```text
+ゲーム実装最新7fab026。確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。4d12czは実装・Codex検証・ユーザー実装後OK確認済みです。
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdの必要な所有節・依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取・未読・未検証を記録してください。
+次daは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残る問い・提案・報告否定お願いをap〜czと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談してください。czの別話者structured条件付き完全理解182資料は既存帰属へ差引き、未完理解cr・player完全理解m・generic完全未完cy・通常提案am/cp/cq/cx・順序p/cs等を重複採用しない。前相談4484の残30未捕捉や他入口を追加不要・全入口完了・永久対象外にせず、未捕捉だけで新理解規則を作らない。次の具体対象・追加要否／分割は未選定です。
+115枠115確認済み・正式子104、最新ao〜cz人間OK・全113登録。残2〜5工程・中心2。問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2。前回cz確認前3〜5中心3から下限−1／上限0／中心−1。cz実装後確認待ち1を差引き、提案上限の1は未分類の別提案入口の追加要否／分割幅へ置き直します。新たな具体提案や分割を発見した結果ではなく、全入口分類未完の不確実性を残すため上限据置。他具体追加未確認の中心0は追加不要・全入口完了の確定ではありません。今回新たな実行による意味再観察なし。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正本はWORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく全体未完です。
+czはexperimental_word_diary_complete_other_speaker_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_conditional_rest_proposal。既存七言語・別話者・通常単独conditional_proposal、self/tired条件rest/request、when_met/unspecified、当時完全理解・short/gesture双方。原frame固定player役割と当時理解上実speaker、conditionStatus=unknownと実conditionJudgment／感覚を分離。観測ありmet/unmet/中間unknown・未観測unknown/observation=nullを区別し、条件成立を受諾拒否・今回休息開始完了・共同参加・本人希望感情理由へ補わない。原ID・独立入力前資料・前後validContext/validSelections・コピー上receive/respond後の全文、知識本人経験不変・今回answerなし、既知意味／実適用関係各一件・原参照経験／選択出所一意整合を照合。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非補完非遡及、新文法・理解習得規則・scope転移なし。本文集約・receipt保存形式・本接続未採用未実装です。
+cz検証は専用初回23＋監査初回72=95、16群648原280成立、43種12040改変拒否・旧62担当17360非重複。前相談4484再照合182成立・4302非成立（感覚ありmet84/unmet28/unknown14・未観測unknown56）。全Node2815（TAP609431.7921ms／工具609662ms）・九JS構文・七言語14957・権限付き別renderer1488通過。full-30minは制限内GPU -1073741515／終了2147483651、静的smoke reviewRequired・reading.not_recordedのincomplete/exit1を非改変保持。未実行test／checkなし。別制限内renderer終了1と権限付き1488終了0、八global除去・sentinel不変・保存bridge未定義・原資料不変を分離。別成功や手動依存確認で元runを成功にしません。七所有コード＋catalog八hash不変、全回帰開始九JS＋package十hash不変、packageは専用test追記のみ、旧cy/co/ct期待各一行61→62・旧固定50snapshot非変更、新smokeはcy厳密名称置換同形・fixture直接依存を手動照合。原資料／原ログ／baselineはcz-implementation-41aad8e、前相談cz-consultation-d6feb66。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+八共有文書の旧全行・全過去text・原資料／原ログ・旧失敗中断incompleteを非削除非置換保持。全ap〜cz所有節／全旧fixture全文意味再読・全旧固定50正規API横断再検査・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではありません。確認済み入力・採用範囲の再確認は不要です。全14保留・各担当三保留を永久対象外へ移しません。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。今回はユーザーが移動を明示しています。
+```
+
+以下のcz実装後OK未受領・同じcz継続は過去状態。
+
 ## 同じczを続ける現行指示（採用範囲実装・Codex検証完了）
 
 ```text
