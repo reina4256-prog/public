@@ -1,5 +1,26 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-complete-other-speaker-proposals-cx-consultation"></a>
+
+##### 4d12cx相談案：完全理解した別話者の通常休息／散策提案（2026-10-24・未採用未着手）
+
+- 対象・成立保持を個別相談する案。両方未採用未着手であり現在の実装仕様へ追加しない。正式API・kind・担当登録・枠追加なし、112枠112確認済み・正式子101、最新ao〜cw人間OKを維持。同じcx継続、次記号・次チャット移動を先取りしない。
+- 対象案：input.speakerがplayer以外の既存七言語通常休息お願い／誘いと日本語通常散策誘いで、当時単独request/invitation・complete=true・unresolved=[]、positive・unspecified・conditionなし・独自語applications/対象なしだけ。既存proposalFrameのproposalKind（catalogRuleなし）とpatternsのrest/rest_request/rest_invitation/walk_invitationの範囲に従う。short/gesture双方。新文型・散策七言語化・新理解／習得規則・別話者へのscope転移を追加しない。初期関係またはその入力で既存規則に実適用する根拠だけを用い、playerで実習得した関係は別話者へ流用しない。
+- 保持案：独立三引数journalで原input/frame・独立input/inputKnowledge/inputContext・入力直前beforeState/beforeWorld・当時understanding/relationReferences・原expressionと実reply・応答直後afterState/afterWorldを分離コピーする。原ID=before.serial+1、前後validContext/validSelections、コピー上の既存receive/respond全文、知識／本人経験の前後不変、今回answerなしを照合。原lastOutput参照経験は一意ID/snapshot一致を要求し、今回提案の完了経験へ転用しない。資料整合照合であり真正性認証ではない。
+- 原実speakerと解析枠／understandingのsubject・rolesを別保持。既存proposalFrameのroles.proposer=player・actorsのplayerという固定表記を実speakerに書き換えず、一般patternsでrolesがない場合も新造しない。原解析の役割欄を実際にplayerが提案した証拠にしない。actualSpeechは原expression.channel準拠でspeechSetting／実UI音声とは区別。実replyのwork/observation=trueも本人発話へ昇格しない。
+- 実判断は既存amと同じ向かう／活動・注目継続／移動非成立を区別する案。前後mode/destination/attention/activityStart/reasons/historyと実replyを保持し、休息の実selected_proposal・選択時原input/frame/understanding/意味関係根拠/selectedAtを別保持、散策に同形出所を新造しない。身振りattendでも理解と実判断を分ける。移動非成立・継続を本人拒否や希望不在にせず、向かうことを実休息／散策完了・共同参加・感情理由へ昇格しない。
+- 同input非増加非上書き、新input別資料・遅延原資料・返却コピー独立・原資料不変、後学習／後休息散策完了で原理解・原応答・原判断を補完しない案。新教示・学習・本人経験なし。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。独立部品実装・改変拒否・遅延・非遡及等の専用検証は採用後に必要であり、今回の再照合で代替しない。今回移動非成立の実例は未観察。
+- 限定照合：新936＋前cw相談2530＝3466資料。ap〜cwの60担当207960呼出・例外0。正規四引数d/g/j/al・m/p、五引数am、実reply付き4d2も各資料へ別照合。候補246（休息174／散策72）はすべて非捕捉、実向かう126／継続120。player完全理解対照am260、未完理解cp310/cq110。七言語休息・日本語散策六形、八設定、意味／関係mask、実食事／仕事／berry注目、実player休息関係習得後の別話者scope不適用を照合。実際の通常tick発生頻度や実UI観察ではない。
+- 前2530の今回帰属はcw96・cv308・cu1596・player完全理解d56/g14/j28/al84、ap/cd/ce・co/ct・4d2、aq系統、am/m/p・cp/cq/cr/cs・bc/bv・bb/bu/bw等の限定既存帰属を維持。新規に重複採用しない。全未捕捉266から候補246を除く20のうち18は原utterance不足／複数節不足として保持。残2はvisitor「疲れたら休んでね」のshort/gesture、原generic catalogRule=conditional_rest・request/complete・conditionStatus=unknown、実reply=acknowledge/attend。mのstructured conditional_proposalとは異なり60担当・正規旧担当非捕捉。通常提案cxへ混入せず、一般解析条件付きお願いの追加要否／分割は別途未決定。player側同語面や全七言語全入口の再観察は未実施。未捕捉を新理解や永久対象外へ変換しない。
+- 全ap〜cw所有節／全旧fixture全文意味再読・全旧固定50正規引数横断再検査・全入口最終分類は未完。今回直接読取は現在handoffの記録参照。ゲーム全回帰・実働・renderer再実行なし。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全14保留・各担当三保留・旧AI旧保存・九見本・星座・対象外%SystemDrive%/を維持する。
+- 原資料／原ログ／baselineはdocs/.local-history/verification-runs/cx-consultation-9d3c8d2。probeの初期候補印はcatalogRule形のみを対象にしており、別classifyで既存proposalKindの無catalogRule形も含む246を分類。report/materialsと元stdout/stderrは上書きせず保持し、両工具終了0を区別して記録。ゲームコード・catalog・locale・package・保存形式非変更。
+- 当回残3〜6工程・中心3、前回cw確認後2〜5・中心2から下限+1／上限+1／中心+1。問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+1+0+2=3。別話者通常提案一系統具体化で下限・中心を1へ、別generic条件付き入口の追加要否／分割未確定に上限追加1を保持。未採用・必要実装検証未完で減算せず、正式残数・チャット数・日数・終了保証ではない。全体未完。
+
+以下の次cx未選定・cw以前の状態は過去原文として保持する。
+
+- 2026-10-24 cx相談：完全理解した別話者の通常休息お願い／誘い・日本語通常散策誘いを一系統として対象・成立保持の二点を個別相談。両方未採用未着手・正式枠追加なし、112枠112確認済み・正式子101、最新ao〜cw人間OK。同じcx継続、次チャット移動指示なし。限定3466資料×ap〜cwの60担当=207960呼出・例外0、候補246（休息174／散策72）は60担当・正規d/g/j/al・am/m/p・4d2非捕捉。player完全理解am260／未完cp310・cq110、前2530のcw96・cv308・cu1596等は既存帰属。原実speakerと固定player役割欄を分離保持し、新理解／習得規則・scope転移なし。別generic条件付き休息お願い2資料の未捕捉は別保留、通常提案へ混入しない。残3〜6工程・中心3、前回cw確認後2〜5・中心2から下限+1／上限+1／中心+1（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。通常提案一系統具体化と一般解析条件付き入口の追加要否／分割未確定により再積上げ、未採用・必要検証未完で減算しない。全14保留・各担当三保留・全体未完。ゲームコード・locale・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。原資料／原ログcx-consultation-9d3c8d2、詳細はcx相談所有節と現在handoff。以下の次cx未選定は選定前の過去状態。
+
+
 - 2026-10-24最新確認：ユーザー「OKです。次チャットをおねがいします。」でdb1cc91のcw採用範囲へ実装後OKと移動を明示。cwは実装・Codex検証・ユーザー実装後OK確認済み、112枠112確認済み・正式子101、最新ao〜cw人間OK。次cxは残る問い・提案・報告否定お願いをap〜cwおよび必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残2〜5工程・中心2、前回cw確認前3〜5・中心3から下限−1／上限0／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2）。cw確認待ちと完全理解した現在行動問いへの仕事中観察応答の具体採用範囲を解消。他の具体的追加要否は未確認なので各中心0、未分類入口の追加要否／分割に各上限1を保持する。今回新たな意味再観察なし、全入口完了・追加不要・永久対象外の確定ではない。全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcw実装後OK未受領・同じcw継続は過去状態。
 
 
