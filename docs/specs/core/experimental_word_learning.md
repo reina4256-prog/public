@@ -1,5 +1,29 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 cz最終：採用範囲実装・Codex検証完了、cz実装後OK未受領・同じcz継続。専用23＋監査72=95、全Node2815・九JS構文・七言語14957・権限付き別renderer1488通過。16群648原280成立・43種12040改変拒否・旧62担当17360非重複、前相談4484は182成立・4302非成立。full-30minは制限内GPU -1073741515・終了2147483651、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を非改変保持し、別成功や手動依存確認で元runを成功にしない。未実行test／checkなし、七所有コード＋catalog八hash不変・全回帰開始九JS＋package十hash不変、旧cy/co/ct期待各一行61→62限定補修。115枠114確認済み・正式子104、最新ao〜cy人間OK・全113登録。残3〜5工程・中心3、前回cz採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ちや他入口最終分類・追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcz-implementation-41aad8e、実読取／未検証と発行結果は現在handoff。以下の実装検証中／未採用は途中・過去状態として保持する。
+
+- 2026-10-24 cz採用：ユーザー「どちらも採用でOKです」で完全理解した別話者の既存七言語structured条件付き休息お願いの対象・成立保持を個別採用。experimental_word_diary_complete_other_speaker_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_conditional_rest_proposalを実装検証中。原frame固定player役割・当時理解上の実speaker・conditionStatus=unknown・実conditionJudgment／感覚を分離保持し、新文法・理解習得規則・scope転移なし。115枠114確認済み・正式子104、最新ao〜cy人間OK・全113登録（固定50＋追加63）。cz実装後OK未受領・同じcz継続、次チャット移動指示なし。残3〜5工程・中心3、前回cz相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで実装検証・実装後確認待ちを減算しない。他入口最終分類・追加要否／分割未完、全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
+<a id="diary-complete-other-speaker-conditional-rest-proposals-cz"></a>
+
+##### 4d12cz：完全理解した別話者の条件付き休息お願い（2026-10-24・採用範囲実装・Codex検証完了）
+
+- 最終結果：専用初回23＋監査初回72=95通過。16群648原280成立、43種12040改変拒否・旧62担当17360非重複。全Node2815通過（TAP609431.7921ms／工具609662ms）、九JS構文・七言語14957・権限付き別renderer1488（648原＋840改変）通過。専用／監査／追加工具初回不通過なし。
+- 七言語八設定・16知識mask・感覚閾値九値・移動／食事／曖昧注目・正規化・実life意味学習・実condition学習後player/visitor scope・別話者neighbor:2・過去経験／選択出所・改変拒否・遅延資料コピー独立・新input分離・後実学習／後活動非遡及を確認。前相談4484再照合182成立・4302非成立、感覚ありmet84/unmet28/unknown14・未観測unknown56と一致。
+- 原full-30minは制限内GPU -1073741515・renderer終了2147483651、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1。未実行test／checkなし。別制限内renderer終了1と権限付き別renderer1488終了0を分離保存。八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。新smokeはcy厳密名称置換同形・直接fixture依存と注入コードを手動照合。別成功で元runを成功にしない。
+- 七所有コード＋catalog八hash不変、全回帰開始九JS＋package十hash不変。packageは専用test追記だけ、旧cy/co/ctの動的横断件数期待各一行61→62だけを補修。旧固定50監査snapshot非変更。原資料／原ログ／baselineはcz-implementation-41aad8e。採用範囲実装・Codex検証完了、cz実装後OK未受領・同じcz継続。以下の実装検証中は途中状態として保持する。
+
+- ユーザー「どちらも採用でOKです」で下の相談案の対象・成立保持を個別採用。既存七言語の通常単独conditional_proposal、実speakerがplayer以外、self/tired条件rest/request・when_met/unspecified・positive/unspecified、当時complete=true/unresolved=[]、short/gesture双方。新文型・理解習得規則・scope転移なし。
+- experimental_word_diary_complete_other_speaker_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_conditional_rest_proposal。原input/frame・独立input/inputKnowledge/inputContext・当時understanding／意味関係根拠・原expression／実reply・前後state/world・実conditionJudgment／感覚を分離コピー。
+- 原frame.roles.proposer=player固定と当時understanding.roles.proposer=実speakerを別保持し、役割を書き換えない。understanding.conditionStatus=unknownと今回判断を分離。conditionJudgmentRecorded=true・原conditionJudgment／observationを保持し、観測ありmet/unmet/中間unknown・未観測unknown/observation=nullを区別。原判断と原turn、入力ID／時点／話者／感覚根拠を既存処理との全文一致で照合。
+- 原ID=before.serial+1・前後validContext/validSelections・独立入力前資料一致、コピー上receiveとrespond後の結果／応答／前後state/world全文、知識本人経験不変・今回answerなしを照合。既知rest/tiredと実適用request/condition各一根拠、原lastOutput参照経験の一意ID/snapshot、原selectionSources整合と前後不変を要求。供給資料整合照合であり真正性認証ではない。
+- actualSpeechは原expression.channelと実reply.observationを区別。answerRecorded=false/turnAnswer=null、actionDecisionRecorded=false/compliance=null・actualParticipation=false・completedExperience/desire/refusal=null。条件成立を受諾拒否・予約実行・今回休息開始完了・共同参加・本人希望感情理由へ補わない。前後mode/destination/attention/activityStart/reasons不変を照合。
+- 同input非増加非上書き・新input別資料、遅延供給／返却コピー独立・原資料不変、後実学習／後活動で原理解応答判断感覚を補完しない。新教示・本人経験なし、本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+- m/cr・generic cy・通常提案am/cp/cq/cx・順序p/cs・食後散策bc/bv・否定お願いbb/bu/bw他を維持。七所有コード・catalog・locale・ゲーム呼出非変更、新ゲーム表示文なし。独立部品・fixture・専用test・一時renderer・監査第63追加担当を登録。115枠114確認済み・正式子104、全113登録、cz実装後OK未受領・同じcz継続。
+- 原資料・原ログ・九文書baseline・九開始hashはdocs/.local-history/verification-runs/cz-implementation-41aad8e。検証結果・未読未検証・発行結果は現在handoffへ記録。残3〜5工程・中心3、前相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで減算せず、全14保留・各担当三保留・全体未完。
+
+以下の相談案は採用前原文として非削除保持する。
+
 - 2026-10-24 cz相談：完全理解した別話者の既存七言語structured条件付き休息お願いを一系統として対象・成立保持の個別相談案へ整理。両方未採用未着手・正式枠追加なし、114枠114確認済み・正式子103、最新ao〜cy人間OK・全112登録を維持。同じcz継続、次チャット移動指示なし。新826＋前3658＝4484資料×62担当278008呼出・例外0、候補182は全62担当と正規d/g/j/al・am/m/p・4d2で非捕捉。原frame固定player役割と当時理解上の実speakerを分離し、conditionStatus=unknownと今回条件判断（観測ありmet84／unmet28／unknown14、未観測unknown56）を別保持する案。新理解・習得規則・scope転移なし。残3〜5工程・中心3、前回cy確認後2〜5中心2から下限+1／上限0／中心+1（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。提案の未確定0〜1が具体1へ変わったため下限・中心を積上げ、観測状態別の追加分割根拠は今回認めず上限据置。全入口最終分類・他追加要否は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。詳細は[cz相談所有節](#diary-complete-other-speaker-conditional-rest-proposals-cz-consultation)、原資料／原ログはcz-consultation-d6feb66。以下のcz相談節より後のcy以前の記述は過去状態。
 
 <a id="diary-complete-other-speaker-conditional-rest-proposals-cz-consultation"></a>

@@ -1,5 +1,31 @@
 # 次チャットの開始文
 
+## 同じczを続ける現行指示（採用範囲実装・Codex検証完了）
+
+```text
+ユーザー「どちらも採用でOKです」でcz対象・成立保持を個別採用。採用範囲実装・Codex検証完了、cz実装後OK未受領・同じcz継続、次チャット移動指示なし。再採用確認・次記号追加・次チャット移動を先取りしない。開始41aad8e、最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+experimental_word_diary_complete_other_speaker_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_conditional_rest_proposal。既存七言語・別話者・単独conditional_proposal、self/tired条件rest/request、when_met/unspecified、当時完全理解・short/gesture双方。原frame固定player役割と当時理解上実speaker、conditionStatus=unknownと実conditionJudgment／感覚を分離。観測ありmet/unmet/中間unknown・未観測unknown/observation=nullを区別し、条件成立を受諾拒否・今回休息開始完了・共同参加・本人希望感情理由へ補わない。新文法・理解習得規則・scope転移なし。
+原ID・独立入力前資料・前後validContext/validSelections・コピー上receive/respond後の全文、知識本人経験不変・今回answerなし、既知意味／実適用関係各一件・原参照経験／選択出所一意整合を照合。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非補完非遡及。m/cr/cy・am/cp/cq/cx・p/cs・bc/bv等を維持。本文集約・receipt保存形式・本接続未採用未実装。
+専用初回23＋監査初回72=95、16群648原280成立、43種12040改変拒否・旧62担当17360非重複。前相談4484再照合182成立・4302非成立（感覚ありmet84/unmet28/unknown14・未観測unknown56）。全Node2815（TAP609431.7921ms／工具609662ms）・九JS構文・七言語14957・権限付き別renderer1488通過。full-30minは制限内GPU -1073741515／終了2147483651、静的smoke reviewRequired・reading.not_recordedのincomplete/exit1を非改変保持。未実行test／checkなし。別制限内renderer終了1と権限付き1488終了0、八global除去・sentinel不変・保存bridge未定義・原資料不変を分離。別成功や手動依存確認で元runを成功にしない。
+七所有コード＋catalog八hash不変、全回帰開始九JS＋package十hash不変、packageは専用test追記のみ。旧cy/co/ct期待各一行61→62限定補修・旧固定50snapshot非変更。新smokeはcy厳密名称置換同形・fixture直接依存を手動照合。原資料／原ログ／九文書baselineはcz-implementation-41aad8e、前相談cz-consultation-d6feb66。
+115枠114確認済み・正式子104、最新ao〜cy人間OK、全113登録。残3〜5工程・中心3、前回cz採用から下限／上限／中心差分0。問い0〜1中心0／提案1中心1（cz実装後確認待ち）／報告否定お願い0〜1中心0／最終意味照合回帰2。Codex検証だけで実装後確認待ちを減算しない。他入口最終分類・追加要否／分割は未完。毎回根拠・内訳・前回差分・不確実性付きで再見積り、全14保留・各担当三保留・全体未完。
+八共有文書の旧全行・全過去text・原資料／原ログ・旧失敗中断incompleteを非削除非置換保持。全ap〜cz所有節／全旧fixture全文意味再読・全旧固定50正規API横断再検査・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではない。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下の実装検証中／未採用は途中・過去原文として保持する。
+
+## 同じczを続ける現行指示（対象・成立保持採用・実装検証中）
+
+```text
+ユーザー「どちらも採用でOKです」でcz対象・成立保持を個別採用。同じcz継続・実装後OK未受領・次チャット移動指示なし。再採用確認を求めない。開始41aad8e、最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+experimental_word_diary_complete_other_speaker_conditional_rest_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=complete_other_speaker_conditional_rest_proposalを実装検証中。既存七言語・別話者・単独conditional_proposal、self/tired条件rest/request、when_met/unspecified、当時完全理解・short/gesture双方。原frame固定player役割・当時理解上実speaker・conditionStatus=unknown・実conditionJudgmentと感覚を分離。条件成立を受諾拒否・休息開始完了・共同参加・本人希望感情理由へ補わず、新文法・理解習得規則・scope転移なし。
+原ID・独立入力前資料・前後validContext/validSelections・コピー上receive/respond後の全文、知識本人経験不変・今回answerなし、既知意味／実適用関係各一件・原参照経験／選択出所一意整合を照合。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非補完非遡及。m/cr/cy・am/cp/cq/cx・p/cs・bc/bv等を維持。本文集約・receipt保存形式・本接続未採用未実装。
+115枠114確認済み・正式子104、最新ao〜cy人間OK、全113登録。残3〜5工程・中心3、前回cz相談から下限／上限／中心差分0。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。採用だけで必要検証・実装後確認待ちを減算しない。他入口最終分類・追加要否／分割は未完。毎回根拠・内訳・前回差分・不確実性付きで再見積り、全14保留・各担当三保留・全体未完。
+旧全行・全過去text・原資料／原ログ・旧失敗中断incompleteを非削除非置換保持。原資料／baselineはcz-implementation-41aad8e。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下のcz未採用は採用前原文として保持する。
+
 ## 同じczを続ける現行指示（対象・成立保持の個別相談中）
 
 ```text
