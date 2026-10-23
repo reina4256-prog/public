@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（cy確認済み・次cz未採用）
+
+```text
+ゲーム実装最新9b626dd。確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。4d12cyは実装・Codex検証・ユーザー実装後OK確認済みです。
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdの必要な所有節・依存を読み、VALIDATION.mdに従って再開してください。全過去原文の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取・未読・未検証を記録してください。
+次czは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残る問い・提案・報告否定お願いをap〜cyと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談してください。別話者structured条件付き完全理解の既観察14資料（七言語×short/gesture、visitor、原conditional_proposal・rest/tired・request/condition、当時理解と実conditionJudgment）を再照合入口に含めますが、優先を対象採用にしません。player完全理解m・未完cr・generic完全未完cy・通常提案am/cp/cx・順序p/cs等との差分、原frame固定役割と当時understanding役割・実speaker、scope・条件状態unknownと今回条件判断／感覚根拠の分離、追加要否／分割を先に確認してください。未捕捉だけで新理解規則や永久対象外を作らず、他の問い・報告否定お願いも全入口完了とはしません。
+114枠114確認済み・正式子103、最新ao〜cy人間OK・全112登録。残2〜5工程・中心2。問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2。前回cy確認前3〜6中心3から下限−1／上限−1／中心−1。cy確認待ち1だけを差引き、別話者structured14の追加要否／分割0〜1は未解消のまま保持。今回新たな実行による意味再観察なし、他具体追加未確認の中心0は追加不要・全入口完了の確定ではありません。毎回、根拠・内訳・前回差分・不確実性付きで再見積り。正本はWORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく全体未完です。
+cyはexperimental_word_diary_generic_conditional_rest_requests.create()/capture(buffer,result,receipt)三引数独立journal、kind=generic_conditional_rest_request。既存日本語単独conditional_rest・request/rest/tired・request/condition、player/別話者・short/gesture、完全／未完理解を原値で分離。原subject=実speakerまたはnull・roles欠落を維持し、conditionStatus=unknownと今回conditionJudgmentRecorded=false/conditionJudgment=nullを分ける。原input/frame・独立入力前資料・当時根拠／不足・原expression／実reply・前後state/worldを分離コピーし、原ID・前後validContext/validSelections・コピー上receive/respond全文・知識本人経験不変・今回answer/条件判断なし・原参照経験一意整合・既知根拠各一件・前後選択不変を照合。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非補完非遡及。self役割・条件成立・受諾拒否・本人希望感情・共同参加完了経験を補わず、新文法・理解習得規則・scope転移なし。本文集約・receipt保存形式・本接続未採用未実装です。
+cy検証は専用28＋監査71=99、22群308原184成立（完全94／未完90）、38種6992改変拒否・旧61担当11224非重複、前相談3658は130成立・3528非成立。実condition学習後のgeneric scope非適用／原未完非遡及4例通過。全Node2791（TAP674162.0045ms／工具682097ms）・八JS構文・七言語14957通過。full-30minは制限内GPU -1073741515／終了2147483651、静的smoke reviewRequired・reading.not_recordedのincomplete/exit1を非改変保持、未実行test／checkなし。別制限内renderer終了1と権限付き別renderer860（308原＋552改変）終了0を分離。八global除去・sentinel不変・保存bridge未定義・原資料不変、開始八JS＋package九hash・七所有コード＋catalog一致・旧co/ct期待各一行60→61・新smokeはcxの厳密名称置換同形。別成功と手動依存確認で元runを成功にしません。最終文書v1のPowerShell UTF-16LEログ読取失敗と工具だけの補修後v2成功も分離保持。原資料／原ログ／baselineはcy-implementation-fb6f679、前相談はcy-consultation-e3604c1。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+八共有文書の旧全行・全過去text・原資料／原ログ・旧失敗中断incompleteを非削除非置換保持。全ap〜cy所有節／全旧fixture全文意味再読・全旧固定50正規API横断再検査・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではありません。確認済み入力・採用範囲の再確認は不要です。m/cr/cy・p/cs・am/cp/cq/cx・bc/bv・bb/bu/bw・cw/ap/cd/ce/co/ct・4d2・aq・cv/cu・d/g/j/al等の既存帰属を重複採用せず、全14保留・各担当三保留を永久対象外へ移しません。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。今回はユーザーが移動を明示しています。
+```
+
+以下のcy実装後OK未受領・同じcy継続は過去状態。
+
 ## 同じcyを続ける現在指示（採用範囲実装・Codex検証完了）
 
 ```text
