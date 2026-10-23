@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 da相談：下記の複数節休息お願い資料を対象・成立保持の個別相談案へ整理。da未採用未着手・正式枠追加なし、115枠115確認済み・正式子104、最新ao〜cz人間OK・全113登録。残3〜5工程・中心3、前回cz確認後2〜5中心2から下限+1／上限0／中心+1。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。未確定だった提案一系統を具体化した結果で、全入口最終分類・他追加要否／分割未完、全体未完。ゲーム全回帰・実働・renderer再実行なし。以下は過去状態。
+
+<a id="diary-clause-scope-rest-requests-da-consultation"></a>
+
+##### 4d12da相談案：未知一節を伴う複数節休息お願い（2026-10-24・未採用未着手）
+
+- 対象・成立保持を個別相談する案。現在の実装仕様・確定将来仕様には追加しない。正式API・kind・担当登録・枠追加なし。同じda継続、次記号・次チャット移動を先取りしない。
+- 対象案：既存日本語parserが厳密に二frameへ分割する通常入力で、一節がrequest/meaning=rest/catalogRule=rest_requestまたはconditional_rest、もう一節がunknown。未知節の前置／後置、既存の改行／句点分割、player／別話者、short／gestureを含む。お願い側は当時complete=falseでclause_scopeを必須とし、rest/tired意味・request/condition関係不足の併存も原値のまま含める。未知側はpartial・utterance不足一件。入力全体と二節を分離せず、解析順序・各span・understandingのkind/subject/known/relations/不足と両者の対応を保持する。partialをrequestへ、subject=nullを実speakerへ訂正しない。
+- 追加要否：新380＋前4484=4864資料×ap〜czの63担当306432呼出・例外0。候補358（新352＋前6）は全63担当と正規d/g/j/al・am/m/p・実reply付き4d2で非捕捉。既存cp/cx/cy/cz等の単独入力契約を黙って複数節へ広げない。前相談のcz182はczだけ、generic単独cy130等の限定帰属を維持する。残44非捕捉（前24・新20）は未知単独文型、三節、二提案等であり、全解消・追加不要・永久対象外としない。
+- 一系統内の状態差案：通常お願い82／条件付き276、clause_scopeだけ70／意味関係不足併存288を明示的に分けるが、入力全体の適用範囲未確定を保存する同じ契約で扱う。初回狭い判定70は原report.jsonに保持し、不足併存96と追加全不足mask192を同じ保存契約へ整理した最終358はclassification.jsonに分離。状態差だけで別担当へ分割する根拠は今回認めない。契約が独立すると判明した場合は再相談・再見積り。
+- 保持案：独立三引数journalへ原input・二frame・二understanding・原learning/transfer/recalled/reaction/expression、独立input/inputKnowledge/inputContext、receive直前beforeState/beforeWorld、実reply、respond直後afterState/afterWorldを分離コピー。input.id=before.serial+1、前後validContext/validSelections、コピー上の既存receive/respond後の結果全文・前後資料一致、既知意味／実適用関係根拠、原参照経験の一意ID/snapshot・selectionSources整合を照合する。これは供給資料整合の照合であり真正性認証ではない。
+- 今回358のうち326は既存receiveによるknowledge.associations変化あり、32は変化なし。原learningの暫定対応候補・transferと前後knowledgeを保持し、無変化へ改変せず、日記capture自体は状態・知識を更新しない。既存の語と対象の暫定対応を、未知節・節間関係・お願い全体の成立済み理解や新しい意味／関係習得へ昇格しない。意味／関係知識、本人経験、world経験、selectionSources、mode/destination/attention/activityStart/reasonsの不変を採用後に照合する案。
+- actualSpeechは原expression.channel準拠。候補の実speech131/gesture227、設定shortでもgesture48を保持し、short設定を実発話へ読み替えない。実reply uncertain131/attend227を原expressionと別保持。条件付き節のconditionStatus=unknown／通常節null、原roles欠落・当時不足を保持し、条件判断・答え・従否・受諾拒否・予約実行・今回休息開始完了・共同参加・本人希望感情理由を補わない。今回answer/conditionJudgment/sequenceJudgment/relationLearningなし。
+- 同input非増加非上書き・新input別資料、遅延供給／返却コピー独立・原資料不変、後実学習／後活動で原understanding/learning/transfer/応答を補完せず遡及成立させない案。新文法・理解習得規則・scope転移は追加しない。三節以上、二提案、invitation、structured conditional_proposal、訂正返信、他言語文型、未知単独文型を一括包含せず、永久対象外にも移さない。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+- 観察は通常／条件付き、前置／後置、改行／句点、話者二種、発話設定二種、通常四不足mask・条件付き全16mask、一意注目／注目なしの限定Node資料。原資料・ログ・九文書baselineはdocs/.local-history/verification-runs/da-consultation-4e49d9a。probe/additional/classify初回終了0、入力前後validContext/validSelections・既存担当呼出時の原資料不変を照合。一般の全未知語、全設定・全locale・全旧fixtureの全文意味再読、全旧固定50正規API横断・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。相談工具は採用後の独立部品・改変拒否・非遡及・関連renderer検証を代替しない。
+- 当回残3〜5工程・中心3、前回比下限+1／上限0／中心+1。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+1+0+2=3。提案の未確定0〜1が具体1へ変わったため下限・中心を積み上げ、同契約内の不足差に追加分割根拠を認めず上限据置。他入口の追加要否／分割は未完で、正式残数・チャット数・日数・終了保証ではない。全14保留・各担当三保留・全体未完。ゲームコード・catalog・locale・package・保存形式非変更、新ゲーム表示文なし。過去の失敗／中断／incomplete・全過去原文を非削除保持。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+
+以下のda未選定・cz以前の案内は過去状態として保持する。
+
 - 2026-10-24最新確認：ユーザー「OKです。次チャットをおねがいします。」で7fab026のcz採用範囲へ実装後OKと移動を明示。czは実装・Codex検証・ユーザー実装後OK確認済み、115枠115確認済み・正式子104、最新ao〜cz人間OK・全113登録。次daは残る問い・提案・報告否定お願いをap〜czと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。czの別話者structured条件付き完全理解182資料を既存担当へ帰属させ、残30未捕捉や他入口を追加不要・全入口完了・永久対象外にしない。残2〜5工程・中心2、前回cz確認前3〜5中心3から下限−1／上限0／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2）。cz実装後確認待ち1を差引き、提案上限の1は未分類の別提案入口の追加要否／分割幅へ置き直す。新たな具体提案や分割を発見した結果ではなく、全入口分類未完の不確実性を残すため上限据置。他具体追加未確認の中心0は追加不要の確定ではない。今回新たな実行による意味再観察なし、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcz実装後OK未受領・同じcz継続は過去状態。
 
 - 2026-10-24 cz最終：採用範囲実装・Codex検証完了、cz実装後OK未受領・同じcz継続。専用23＋監査72=95、全Node2815・九JS構文・七言語14957・権限付き別renderer1488通過。16群648原280成立・43種12040改変拒否・旧62担当17360非重複、前相談4484は182成立・4302非成立。full-30minは制限内GPU -1073741515・終了2147483651、静的smoke reviewRequired・reading.not_recordedを残すincomplete/exit1を非改変保持し、別成功や手動依存確認で元runを成功にしない。未実行test／checkなし、七所有コード＋catalog八hash不変・全回帰開始九JS＋package十hash不変、旧cy/co/ct期待各一行61→62限定補修。115枠114確認済み・正式子104、最新ao〜cy人間OK・全113登録。残3〜5工程・中心3、前回cz採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ちや他入口最終分類・追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原資料／原ログcz-implementation-41aad8e、実読取／未検証と発行結果は現在handoff。以下の実装検証中／未採用は途中・過去状態として保持する。
