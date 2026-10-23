@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 cy相談：一般解析の条件付き休息お願い（日本語catalogRule=conditional_rest）を一系統として対象・成立保持を個別相談。完全理解／未完理解を当時の原値で分離する案で、両方未採用未着手・正式枠追加なし、113枠113確認済み・正式子102、最新ao〜cx人間OK・全111登録を維持。同じcy継続、次チャット移動指示なし。新192＋前cx相談3466＝3658資料×61担当223138呼出・例外0、候補130（完全46／未完84）は61担当と正規d/g/j/al・am/m/p・4d2非捕捉、前cx候補246はcxのみ。原subject=実speakerまたはnull、conditionStatus=unknown・今回条件判断なし・休息選択なしを保持し、self役割や条件成立を補わない。残3〜6工程・中心3、前回cx確認後2〜5中心2から下限+1／上限+1／中心+1（問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。generic一系統を具体化し、別話者structured条件付き完全理解14資料の追加要否0〜1を別保留、採用後の必要検証も未完。全入口分類未完・全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。所有仕様cy相談節、原資料cy-consultation-e3604c1、読取と発行結果は現在handoff。以下のcy未選定・cx以前の状態は過去原文として保持する。
+
+<a id="diary-generic-conditional-rest-requests-cy-consultation"></a>
+
+##### 4d12cy相談案：一般解析の条件付き休息お願い（2026-10-24・未採用未着手）
+
+- 本節は個別相談案。対象／成立保持とも未採用であり、現在の実装仕様・確定将来仕様へ追加しない。正式API・kind・担当登録・枠追加なし、113枠113確認済み・正式子102、最新ao〜cx人間OK・全111登録。同じcy継続、次チャット移動を先取りしない。
+- 対象案：既存日本語patternsの単独catalogRule=conditional_rest、frame.kind=request・meaning=rest・conditionMeaning=tired・relations=[request,condition]、positive/unspecified、独自語applicationsや対象なし。playerと別話者、short/gesture双方。当時rest/tired意味・request/condition関係がすべて既知のcomplete=true/unresolved=[]と、同前提不足／scope不適用（併存含む）のcomplete=false/unresolvedありを一系統内で明示的に分ける。既存語面の正規化境界に従い、新文法・七言語化・新理解／習得規則・話者間scope転移は追加しない。
+- 分割判断：両理解状態とも同じgeneric frameを入口とし、conditionStatus=unknown、今回conditionJudgmentなし・実休息選択なしという保持契約が共通する。今回は別担当に分割する根拠を認めず、一つの独立資料内で当時理解・不足・原応答を分ける案。未完を完全へ統合せず、完全理解を条件成立へ昇格しない。採用後検証で新たな独立契約が必要と判明した場合は根拠付きで再相談・再見積りする。
+- 保持案：独立三引数journalで原input/frame、独立input/inputKnowledge/inputContext、前後state/world、当時understanding・known/relations/unresolved/relationReferences、原expressionと実replyを分離コピー。原ID=before.serial+1・前後validContext/validSelections、使い捨てコピー上の既存receive/respond全文、知識／本人経験の前後不変・今回answerなしを照合する。原lastOutput参照経験／selectionSourcesがある場合は原ID・一意snapshotを照合し、今回の条件成立や選択へ転用しない。資料整合照合であり真正性認証ではない。
+- 原frameにはsubject/conditionSubject/rolesがなく、当時understanding.subjectは関係理解時に実speaker、関係不足時null。この原値を保存し、内容主体をselfへ訂正せず、proposer/addressee/actors等の役割を新造しない。「疲れたら」を本人の感覚条件と読み替えない。原understanding.conditionStatus=unknownと、今回判断自体が存在しないことを分ける。conditionJudgmentRecorded=false・conditionJudgment=null、observationは新造しない。実疲労値・既存休息中でもmet/unmetへ補わない。
+- 原expression.channelと実replyを保持し、speech設定だけで実発話認定しない。今回観察ではacknowledge23／uncertain30／attend77。answerRecorded=false/turnAnswer=null、actionDecisionRecorded=false/compliance=nullを案とし、受諾・拒否・休息開始完了・共同参加・本人希望感情理由を補わない。既に休息中の前後活動を今回お願いによる開始へ変えない。
+- 同input非増加非上書き、新input別資料、遅延資料・返却コピー独立・原資料不変、後実学習／後休息完了による理解・応答・判断の非補完非遡及を必要条件とする案。新教示・本人経験を作らず、本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。独立部品・改変拒否・再読・遅延・非遡及・renderer等の採用後検証は今回の観察では代替しない。
+- 限定照合：新192＋前cx相談3466＝3658資料、ap〜cxの61担当223138呼出・例外0。正規四引数d/g/j/al・m/p、五引数am、実reply付き4d2も別照合。generic候補130（新128＋旧2、完全46／未完84、player64／visitor66）は全担当非捕捉。16知識mask・八設定・既存語面境界・休息中疲労五値・実request／condition習得後scope不適用・七言語structured対照を観察。全候補で前後選択出所とmode/destination/attention/activityStart/reasons不変、原資料不変・知識／本人経験不変・今回条件判断／answerなしを照合。通常遊戯の発生頻度や実UI観察ではない。
+- 前cx候補246は今回cxだけに帰属、前3466のcp310・cq110・am260、cw96・cv308・cu1596、m14/p14/cr14/cs14等も維持。新structured七言語対照28のplayer14はm、完全理解別話者14は今回候補外の追加要否未決定として保持。未捕捉全174からgeneric130を除く44は複数節／未知語面／別話者structured等であり、全て解消済み・永久対象外とはしない。問い・報告否定お願いほか全入口最終分類も未完。
+- m/crはstructured conditional_proposal、p/csは順序付き休息、am/cp/cq/cxは条件なし通常提案、bc/bvは食後散策、bb/bu/bwは否定食事お願いを維持。ap/cd/ce/co/ct・4d2、aq系統・cv/cu・d/g/j/al等の限定既存帰属を重複採用しない。新しい主体理解や一般条件判断規則の追加は本案に含めず、既存実装との不一致を修正要求として黙って扱わない。
+- 原資料・probe/classify・原stdout/stderr・九文書baselineはdocs/.local-history/verification-runs/cy-consultation-e3604c1。ゲームコード・catalog・locale・package・保存形式非変更。ゲーム全回帰・実働・renderer再実行なし、全ap〜cx所有節／全旧fixtureの全文意味再読・全旧固定50正規API横断再検査・全入口最終意味分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、旧失敗／中断／incompleteを今回の観察で置換しない。全14保留・各担当三保留・全体未完。
+- 当回残3〜6工程・中心3。前回cx確認後2〜5中心2から下限+1／上限+1／中心+1。問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+1+0+2=3。generic一系統を具体化したため下限・中心を1へ再積上げ、別話者structured完全理解14資料の追加要否／必要分割0〜1を別保留として上限も1追加。未採用・必要実装検証未完で減算しない。他未捕捉44を追加不要と認定した数値ではなく、全入口照合と追加要否／必要分割により毎回見直す。正式残数・チャット数・日数・終了保証ではない。
+
 - 2026-10-24最新確認：ユーザー「OKです。次チャットをおねがいします。」で804f8dfのcx採用範囲へ実装後OKと移動を明示。cxは実装・Codex検証・ユーザー実装後OK確認済み、113枠113確認済み・正式子102、最新ao〜cx人間OK。次cyは残る問い・提案・報告否定お願いをap〜cxと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。generic条件付きお願いの既観察2資料を再照合入口に含めるが、優先を対象採用にせず、player同語面・structured条件付きm/cr・通常提案am/cp/cx等との差分と追加要否／分割を先に確認する。残2〜5工程・中心2、前回cx確認前3〜6・中心3から下限−1／上限−1／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2）。cx確認待ちと別話者通常提案の具体採用範囲を差引き、別generic境界の追加要否／分割0〜1は保持。他具体追加未確認の中心0は追加不要・全入口完了の確定ではない。今回新たな意味再観察なし、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のcx実装後OK未受領・同じcx継続は過去状態。
 
 

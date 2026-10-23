@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 同じcyの現行開始文（対象・成立保持を個別相談中・両方未採用）
+
+```text
+最新の文書commit/pushはdocs/CURRENT_IMPLEMENTATION.mdを参照。ゲーム実装最新804f8df、4d12cxは実装・Codex検証・ユーザー実装後OK確認済み。113枠113確認済み・正式子102、最新ao〜cx人間OK・全111登録。
+現行handoff→specs/README冒頭→word/README・OPEN_ITEMS→OWNERSの必要所有節・依存、VALIDATIONに従う。全履歴の毎回再帰読取を開始条件にせず、原文保持・意味読了・人間OKを分ける。
+現在は同じcy。一般解析の条件付き休息お願い（既存日本語単独catalogRule=conditional_rest・request/rest/tired・request/condition）の対象と成立保持を個別相談中、両方未採用未着手・正式枠追加なし。player/別話者・short/gesture、完全理解46／未完理解84を一系統内で当時原値に分ける案。subject=実speakerまたはnull・roles欠落・conditionStatus=unknown・今回条件判断なし／休息選択なしを保持し、self役割・感覚条件成立・受諾拒否・本人経験を補わない。新文法・理解習得規則・scope転移なし。所有仕様はdiary-generic-conditional-rest-requests-cy-consultation節。
+新192＋前cx3466＝3658資料×61担当223138呼出・例外0、候補130は61担当と正規d/g/j/al・am/m/p・4d2非捕捉。前cx候補246はcxだけに帰属。原資料／原ログ／九文書baselineはcy-consultation-e3604c1。原subject・不足・原expression／実reply・前後資料を分離し、同input非増加非上書き・遅延コピー独立・後学習後完了非補完非遡及を採用後の実装検証で確認する案。今回の観察だけで独立部品実装検証完了としない。
+残3〜6工程・中心3、前回cx確認後2〜5中心2から下限+1／上限+1／中心+1。問い0〜1中心0／提案1〜2中心1／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+1+0+2=3。generic一系統具体化1と別話者structured条件付き完全理解14資料の追加要否／必要分割0〜1を区別する。初期3〜5は後者の幅を欠いていたため最終3〜6へ補正。毎回、根拠・内訳・前回差分・不確実性付きで再見積り。正式残数・チャット数・日数・終了保証ではなく全体未完。
+別話者structured完全理解14と他未捕捉30は追加不要・永久対象外未確定、cyへ混入しない。m/cr structured条件・p/cs順序・am/cp/cq/cx通常提案・bc/bv・bb/bu/bw・cw/ap/cd/ce/co/ct・4d2・aq・cv/cu・d/g/j/alを重複採用しない。全14保留・各担当三保留を維持。本文集約・receipt保存形式・本接続未採用未実装。
+ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。全ap〜cx所有節／全旧fixture全文意味再読・全旧固定50正規API横断再検査・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証。全旧原文・text・原資料／失敗中断incompleteログを保持し、既存リンク不一致18件の全再検査とは呼ばない。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。次記号・次チャット移動は指示されていない。
+```
+
+以下の次cy未選定は相談前原文として保持する。
+
 ## 次チャットへ貼る開始文（cx確認済み・次cy未採用）
 
 ```text
