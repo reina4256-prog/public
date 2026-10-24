@@ -1,5 +1,23 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-same-kind-clause-proposals-dc-consultation"></a>
+
+##### 4d12dc相談案：同種の通常提案を二節含む一入力（2026-10-24・未採用未着手）
+
+- 対象・成立保持を個別相談する案。dc未採用未着手、現在の実装仕様・確定将来仕様への追加なし。正式API・kind・担当登録・枠追加なし。117枠117確認済み・正式子106、最新ao〜db人間OK・全115登録を維持。同じdc継続、次記号・次チャット移動を先取りしない。
+- 対象案：既存日本語parserが厳密に二frameへ分割し、両方が通常のrequest/rest/rest_request、または両方がinvitation/walk/walk_invitationとなる一入力。例「休んでね。休んでね」「散歩しよう。散歩しよう」。既存言い換え同士、改行／句点、player／別話者、short／gestureを含む。各understandingはcomplete=false・clause_scope不足必須、意味／関係不足の併存と当時kind/subject/known/relations/roles欠落を原値保持する。二節の意味が同じでも全体の適用範囲を理解成立させない。
+- 根拠：新428＋前5208=5636資料×ap〜dbの65担当366340呼出、正規四引数d/g/j/al・m/p、五引数am、実reply付き4d2も45088呼出、例外0。候補376（新368＋前8）は全担当非捕捉、休息188／散策188、scopeだけ160／意味関係不足併存216、原expression speech116／gesture260・実reply uncertain116／attend260。全候補で知識・本人/world経験・selectionSourcesおよびmode/destination/attention/activityStart/reasons不変、今回answer/conditionJudgment/sequenceJudgment/relationLearningなし。使い捨てNode資料であり、通常遊戯の発生頻度・実UI観察ではない。
+- 前5208の全input/frame/understandingと既存帰属を別文書検査で照合。db280はdbだけ、da366（前相談da358＋db相談で加わった対照8）はdaだけ。旧68非捕捉から同種二節8を候補へ分類しただけで、実装・解消ではない。候補を除く旧60＋新24=84非捕捉は三節・条件付き混在・休息誘い二節・未知単独文型等として追加要否未決定。既存帰属維持や今回非捕捉を、全入口完了・追加不要・永久対象外へ変更しない。
+- 実行範囲：二種×改行句点×話者二種×発話設定二種×四前提16mask=256、既存三形同士の各3×3組合せ72、八設定32、注目なし8の新候補368と、各境界60対照、前5208を再照合。全既存同義形の総当たりではない。原資料／原ログ／九文書baselineはdocs/.local-history/verification-runs/dc-consultation-63e01d4。初回工具の短縮ID比較停止、v2のda期待358対全体366停止、集計訂正後v3終了0を分離保持。v1/v2 materialsも非置換保持、初回／v2実行時ソースは別保管せず現行ソースと区別。ゲーム部品・理解規則を検査期待へ変更していない。既存監査74通過。採用後の独立部品検証を代替しない。
+- 一系統内の状態差案：休息お願い二節と散策誘い二節、同一語面反復と言い換え二節、scopeだけと意味関係不足併存、話者／発話設定は、同種二節の原順序・対応と入力全体の未確定な適用範囲を保存する同一契約で扱う。状態差だけを追加分割根拠にしない。他入口の追加要否／別契約が必要なら再相談・再見積りする。
+- 保持案：独立三引数journalへ原input全体、二frame/二understandingと各index/span、原結果全文（learning/transfer/recalled/reaction/expression等）、独立input/inputKnowledge/inputContext、入力直前beforeState/beforeWorld、実reply、応答直後afterState/afterWorldを分離コピーする。安全整数原ID、前後validContext/validSelections、使い捨てコピー上の既存receive/respond全文・前後資料、既知意味／実適用関係の一意根拠、原参照経験一意ID/snapshot・selectionSources整合を照合。供給資料整合の照合であり真正性認証ではない。欠損・重複・不一致を補わない。
+- 二つの同じframeも節index別に原資料として保持し、同inputの二重受信や二つの活動発生へ読み替えない。一input一資料、同input非増加非上書き・新input別資料。知識全体・本人/world経験・selectionSourcesおよびmode/destination/attention/activityStart/reasons不変を要求し、capture自体は知識を更新しない。原expressionと実reply、speechSettingとactualSpeechを分離する。answer/conditionJudgment/sequenceJudgment/actionDecisionを記録せず、actionOrder/compliance/completedExperience/desire/refusal=null、actualParticipation=false。反復による強調・習得・優先順位・二回実行・受諾拒否・予約・今回活動開始完了・共同参加・本人希望感情理由を補わない。
+- 遅延供給／返却コピー独立・原資料不変、後実学習／後活動完了で原理解・learning/transfer/応答を補完せず遡及成立させない案。新文法・理解習得規則・scope転移なし。dbの異種二節、daの休息お願い＋未知一節、単独am/cp/cq/cx、条件順序m/p/cr/cs・cy/czを維持。三節以上・条件付き混在・休息誘い二節・未知単独文型等を一括包含せず永久対象外にも移さない。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- 再見積り：残3〜5工程・中心3。前回db確認後2〜5中心2から下限+1／上限0／中心+1。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+1+0+2=3。提案一系統の相談対象が具体化したため下限・中心を積み上げ、今回の状態差だけで追加分割根拠を認めず上限据置。他入口全量分類・追加要否／分割は未完。正式残数・チャット数・日数・終了保証ではない。全14保留・各担当三保留・全体未完。
+- 今回ゲームコード・catalog・locale・package・登録・保存形式非変更、新ゲーム表示文なし。ゲーム全回帰・実働・renderer再実行なし。採用後の独立部品・改変拒否・遅延独立・後実学習後活動非遡及・関連renderer検証を今回相談工具で代替しない。全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終分類、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証。既存リンク不一致18件の全再検査ではない。過去原文・原ログ・失敗中断incompleteを非削除非置換保持。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+
+以下の次dc未選定は相談前の過去状態として保持する。
+
 - 2026-10-24最新確認：ユーザー「OKです。次チャットをおねがいします。」でcb58000のdb採用範囲へ実装後OKと移動を明示。dbは実装・Codex検証・ユーザー実装後OK確認済み、117枠117確認済み・正式子106、最新ao〜db人間OK・全115登録。次dcは残る問い・提案・報告否定お願いをap〜dbと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。dbの二節休息お願い＋散策誘い280資料を既存帰属へ差引き、残68や他入口を追加不要・全入口完了・永久対象外にしない。残2〜5工程・中心2、前回db確認前3〜5中心3から下限−1／上限0／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。db実装後確認待ち1を差引き、提案上限1は未分類の別提案入口の追加要否／分割幅へ置き直す。新たな具体提案や分割を発見した結果ではなく、全入口最終分類未完の不確実性を残すため上限据置。他具体追加未確認の中心0は追加不要の確定ではない。今回新たな実行による意味再観察なし、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のdb実装後OK未受領・同じdb継続は過去状態。
 
 - 2026-10-24 db最終：採用範囲実装・Codex検証完了、db実装後OK未受領・同じdb継続。専用v2全28＋初回監査74=102、全Node2874・11JS構文・七言語14957・権限付き別renderer2412通過。19群714原566成立・44種24904改変拒否・旧64担当36224非重複、相談5208は280成立・4928非成立、補足16ケース。初回102中101通過の改変fixture未定義配列push停止と検査補修を分離保持。full-30minは制限内GPU -1073741515・renderer終了2147483651、静的reviewRequired/reading.not_recordedを残すincomplete/exit1。未実行test/checkなし、別renderer成功・手動依存確認で元runを成功にしない。117枠116確認済み・正式子106、最新ao〜da人間OK・全115登録。残3〜5工程・中心3、前回db採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原証跡db-implementation-655d368、読取／未検証・発行結果は現在handoff。以下の実装検証中・未採用は途中／過去原文として保持する。
