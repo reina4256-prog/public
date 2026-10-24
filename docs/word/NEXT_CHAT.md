@@ -1,5 +1,21 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dc確認済み・次dd未採用）
+
+```text
+ゲーム実装最新d8786e4。確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。4d12dcは実装・Codex検証・ユーザー実装後OK確認済みです。
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdの必要な所有節・依存を読み、VALIDATION.mdに従って再開してください。全過去開始文や全参照の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取・未読未検証を記録してください。
+次ddは相談予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。残る問い・提案・報告否定お願いをap〜dcと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談してください。dcの同種通常提案二節376資料を既存帰属へ差引き、db異種二節・da未知一節付き二節・単独am/cp/cq/cx・条件順序m/p/cr/cs・cy/cz等と重複採用しない。候補外84（三節・条件付き混在・休息誘い二節・未知単独文型等）や他入口を追加不要・全入口完了・永久対象外にせず、未捕捉だけで新理解規則を作らない。次の具体対象・追加要否／分割は未選定です。
+118枠118確認済み・正式子107、最新ao〜dc人間OK・全116登録。残2〜5工程・中心2。問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2。前回dc確認前3〜5中心3から下限−1／上限0／中心−1。dc実装後確認待ち1を差引き、提案上限1は未分類の別提案入口の追加要否／分割幅へ置き直します。新たな具体提案や分割を発見した結果ではなく、全入口最終分類未完の不確実性を残すため上限据置。他具体追加未確認の中心0は追加不要の確定ではありません。今回新たな実行による意味再観察なし。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正本はWORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではなく全体未完です。
+dcはexperimental_word_diary_same_kind_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=same_kind_clause_proposal。既存日本語厳密二frame、rest_request/request/rest二節またはwalk_invitation/invitation/walk二節、各complete=false・clause_scope必須・意味関係不足併存。原kind/subject/不足・roles欠落、clauseIndices=[0,1]/proposalKind/meaning・各span、原結果全文/learning/transfer・独立入力前資料・前後state/world・原expression／実replyを分離保持。安全整数原ID・前後validContext/validSelections・コピー上receive/respond全文・意味関係一意根拠・原参照経験/selectionSources整合を照合。知識経験選択出所行動状態不変、一input一資料、反復を強調・習得・二回実行・受諾・予約・活動開始完了・共同参加・希望感情理由へ補わない。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及、新文法・理解習得規則・scope転移なし。本文集約・receipt保存形式・本接続未採用未実装です。
+dc検証は初回専用28＋監査75=103、19群816原640成立・44種27080改変拒否・同値操作1080別計上・旧65担当41600非重複、相談5636は376成立・5260非成立、補足16例。全Node2903（TAP573336.7516ms／工具573501ms）・12JS構文・七言語14957・権限付き別renderer2736通過。full-30minはGPU -1073741515／ERR_FAILED(-2)・renderer終了1、静的reviewRequired/reading.not_recordedを残すincomplete/exit1を非改変保持、未実行test/checkなし。別制限内rendererも終了1、権限付き別2736終了0・八global除去・sentinel不変・保存bridge未定義・原資料不変を分離。別成功・手動依存照合で元runを成功にしない。初回新四JSソースinitial-source・最終ソースfinal-source・原資料原ログbaselineはdc-implementation-a8846ad、前相談dc-consultation-63e01d4。fixture-materialsは専用後の別決定的生成でtestプロセス原dumpではない。七所有コード＋catalog/localization_catalog九ファイル・全回帰開始12JS＋package十三hash不変、旧六test各一行64→65・package専用test追記だけ・固定ao50snapshot非変更、新smokeのdb厳密名称置換一致と依存・注入コードを手動照合。最終文書v1の新規重複検出と訂正後v2/v3成功も別保持。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なしです。
+八共有文書の旧全行・全過去text・原資料／原ログ・旧失敗中断incompleteを非削除非置換保持。全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終分類は未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではありません。確認済み入力・採用範囲の再確認は不要です。全14保留・各担当三保留を永久対象外へ移しません。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。今回はユーザーが移動を明示しています。
+```
+
+以下のdc実装後OK未受領・同じdc継続は過去状態。
+
+- 2026-10-24最新確認：ユーザー「OKです。次チャットをおねがいします。」でd8786e4のdc採用範囲へ実装後OKと移動を明示。dcは実装・Codex検証・ユーザー実装後OK確認済み、118枠118確認済み・正式子107、最新ao〜dc人間OK・全116登録。次ddは残る問い・提案・報告否定お願いをap〜dcと必要な旧担当へ再照合し、一系統の対象・成立保持を個別相談する予定記号のみ、対象／理解規則未採用未着手・正式枠追加なし。dcの同種通常提案二節376資料を既存帰属へ差引き、候補外84や他入口を追加不要・全入口完了・永久対象外にしない。残2〜5工程・中心2、前回dc確認前3〜5中心3から下限−1／上限0／中心−1（問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2）。dc実装後確認待ち1を差引き、提案上限1は未分類の別提案入口の追加要否／分割幅へ置き直す。新たな具体提案や分割の発見ではなく、全入口最終分類未完の不確実性を残すため上限据置。他具体追加未確認の中心0は追加不要の確定ではない。今回新たな実行による意味再観察なし、全14保留・各担当三保留・全体未完。今回は確認移動文書のみ、ゲーム全回帰・実働・renderer再実行なし。以下のdc実装後OK未受領・同じdc継続は過去状態。
+
 ## 同じdcを続ける現行指示（採用範囲実装・Codex検証完了）
 
 ```text
