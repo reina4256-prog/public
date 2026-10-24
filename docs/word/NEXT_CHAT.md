@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dd確認済み・次de未採用）
+
+```text
+ゲーム実装最新84ef709。確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。4d12ddは実装・Codex検証・ユーザー実装後OK確認済み。119枠119確認済み・正式子108、最新ao〜dd人間OK・全117登録（固定50＋追加67）。今回はユーザーが次チャット移動を明示。
+docs/CURRENT_IMPLEMENTATION.md→docs/specs/README.md冒頭→docs/word/README.md・OPEN_ITEMS.md→OWNERS.mdの必要な所有節・依存を読み、VALIDATION.mdに従って再開。過去全開始文や全参照の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分離し、実読取・未読未検証を記録する。
+次deは予定記号のみ、具体対象／理解規則未採用未着手・正式枠追加なし。残る問い・提案・報告否定お願いをap〜ddと必要な旧担当へ再照合し、残入口をまとめて分類して追加要否／分割の見通しを立てる。ddの条件付き＋通常二節1164資料を既存帰属へ差引き、dc/db/da・単独am/cp/cq/cx・cy/cz・m/p/cr/cs等を維持。候補外92や他入口を追加不要・全入口完了・永久対象外にせず、未捕捉だけで新理解規則を設けない。具体対象の採用は先取りしない。
+ユーザーは「中心が確実に減るまで1チャットで質問→実装を続ける形でもいい」「長すぎる懸念があれば今の形式でもよい」と許容。次回は未分類入口のまとめ照合を先行し、必要な個別相談→ユーザー採用後の実装・検証を同じチャットで続け、一系統ごと機械的に次チャットへ切らない。採用待ち・実装後OKを代行しない。長くなる場合は意味のある検証区切りでhandoffを保存し、移動はユーザー明示時だけ。中心低下を保証したり数字を下げるための調整はしない。工程表word-4d12-chat-batching節を参照。
+残2〜5工程・中心2、前回dd確認前3〜5中心3から下限−1／上限0／中心−1。問い0〜1中心0／提案0〜1中心0／報告否定お願い0〜1中心0／最終意味照合回帰2、中心0+0+0+2=2。dd確認待ち1を差引き、未分類の別提案入口に上限1を保持。中心0の未分類分が具体化すると1を足す計算が2↔3を生んでいた。今後は判明済み残作業と未分類幅、完了減算と新発見追加を区別する。中心2は確度の低い暫定値、追加不要・単調減少・残二回・終了保証ではない。毎回根拠・内訳・前回差分・不確実性付きで再見積り。正本はWORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。全体未完・全14保留・各担当三保留維持。今回新たな分類実行観察なし。
+ddはexperimental_word_diary_conditional_and_normal_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=conditional_and_normal_clause_proposal。既存日本語厳密二frame：conditional_rest一節＋rest_requestまたはwalk_invitation一節、両順序・各complete=false/clause_scope必須・意味関係不足併存。原二節/当時kind/subject/不足/roles欠落、conditionalIndex/normalIndex・原結果全文/learning/transfer・入力前資料・前後state/world・原expression/実replyを分離保持。安全整数原ID・前後validContext/validSelections・コピー上receive/respond全文・根拠一意性を照合、知識経験選択出所行動状態不変。条件付き節unknown／通常節nullと今回条件判断なしを分け、条件適用範囲・成立・行動順序・受諾予約・活動開始完了・共同参加・希望感情理由を補わない。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及、新文法・理解習得規則・scope転移なし。本文集約・receipt保存形式・本接続未採用未実装。
+dd検証は専用31＋監査76=107、1694原1538成立・44種67672改変拒否・旧66担当101508非重複、相談6852は1164成立・5688非成立・補足16例。全Node2935・13JS構文・七言語14957・修正後別renderer6308通過。full-30minは制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1と自動reviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内終了2147483651、権限付き初回6308終了0の後smokeのsanddox→sandboxを訂正、別syntax/権限付きv2も6308終了0。八global除去・sentinel不変・保存bridge未定義・元資料不変。訂正は全Node中・full renderer前のsmoke一箇所、他12JS＋package十三hash不変、initial-source/final-sourceとfinal-source-v2を分離。別成功・手動照合で元runを成功にしない。原資料原ログはdd-implementation-71b0944、前相談dd-consultation-4a1abad。今回確認移動は文書のみ、ゲーム全回帰・実働・renderer再実行なし。
+八共有文書の旧全行・全過去text・原資料/原ログ・失敗中断incompleteを非削除非置換保持。全旧所有節/fixture全文意味再読・全旧固定50正規API横断・全入口最終分類未完。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、既存リンク不一致18件の全再検査ではない。確認済み入力・採用範囲の再確認は不要。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下のdd未受領・同じdd継続は過去状態として保持する。
+
 ## 同じddの現行継続文（採用範囲実装・Codex検証完了）
 
 - 最終検証：専用31＋監査76=107、22群1694原1538成立・44種67672改変拒否・旧66担当101508非重複、前相談6852は1164成立・5688非成立、補足16例。全Node2935・変更13JS構文・七言語14957通過。full-30minは制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1と静的reviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内renderer終了2147483651と別権限付き初回6308終了0、smoke設定名訂正後の別syntax／権限付きv2の6308終了0を分離保持。八global除去・sentinel不変・保存bridge未定義・元資料不変。訂正は全Node実行中・full renderer前のsmokeのsanddox→sandbox一箇所だけ、他12JS＋package十三hash不変。initial-source/final-sourceは訂正前、final-source-v2は訂正後。別成功・手動依存照合で元runを成功にしない。新ゲーム表示文・七所有コード＋catalog/localization_catalog九ファイル・locale・保存形式・ゲーム呼出非変更。
