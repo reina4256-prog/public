@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-conditional-and-normal-clause-proposals-dd"></a>
+
+##### 4d12dd：条件付き休息お願いと通常提案の二節資料保持（2026-10-24・採用範囲実装・Codex検証完了）
+
+- ユーザー「どちらも採用でOKです」でdd対象・成立保持を個別採用。experimental_word_diary_conditional_and_normal_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=conditional_and_normal_clause_proposal。119枠118確認済み・正式子108、最新ao〜dc人間OK・全117登録（固定50＋追加67）。dd実装後OK未受領・同じdd継続、移動指示なし。以下の未採用は採用前原文として保持する。
+- 既存日本語厳密二frameのconditional_rest/request/rest/tired一節と、rest_request/request/restまたはwalk_invitation/invitation/walk一節。両順序・既存改行句点・同義形・話者・発話設定を含む。両節complete=false・clause_scope必須、各意味関係不足併存と当時kind/subject/known/relations/不足・roles欠落を原値保持する。conditionalIndex/normalIndex・normalProposalKind/normalMeaningと各index/spanを保持し、条件付き節conditionStatus=unknown・通常節nullと今回条件判断なしを分離する。
+- 原input全体・二frame/二understanding、原結果全文/learning/transfer・独立入力前資料・前後state/world・原expression／実replyを分離コピー。安全整数原ID・前後validContext/validSelections・コピー上receive/respond全文・意味/実適用関係一意根拠・原参照経験一意ID/snapshot・selectionSources整合を照合。供給資料整合照合であり真正性認証ではない。
+- 知識全体・本人/world経験・selectionSourcesとmode/destination/attention/activityStart/reasons不変。一input一資料、同input非増加非上書き・新input別資料・遅延コピー独立・原資料不変・後実学習後活動非遡及。原expression／実replyとspeechSetting/actualSpeechを分離する。answer/conditionJudgment/sequenceJudgment/actionDecisionを記録せずactionOrder/compliance/completedExperience/desire/refusal=null・actualParticipation=false。条件の掛かる節・met/unmet・行動順序・優先順位・受諾拒否・予約・今回活動開始完了・共同参加・本人希望感情理由を補わない。新文法・理解習得規則・scope転移なし。
+- dc同種通常二節・db異種通常二節・da未知一節付き二節、単独am/cp/cq/cx・cy/cz・m/p/cr/csを維持。候補外92や条件付き二節・休息誘い混在・三節以上・未知単独文型等を全解消・追加不要・永久対象外にしない。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- 再見積り：残3〜5工程・中心3、前回dd相談から下限／上限／中心差分0。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。採用だけでは必要実装検証・実装後確認待ちを減算しない。他入口分類・追加要否／分割未完、全14保留・各担当三保留・全体未完。原資料・検証結果・発行結果は現行handoffとdd-implementation-71b0944に記録する。
+- 最終検証：初回専用31＋監査76=107、22群1694原1538成立・44種67672改変拒否・同値操作0・旧66担当101508非重複。相談6852再照合1164成立・5688非成立・原資料不変、補足16例で両通常節/順序・話者・発話設定の後実学習・実休息完了・実path到着による非遡及・遅延独立・新input別資料を確認。全Node2935（TAP647448.8279ms／工具647757ms）・変更13JS構文・七言語14957通過。fixture-materialsは専用後の別決定的生成でtest原dumpではない。
+- full-30minのrendererは制限内GPU -1073741515／ERR_FAILED(-2)で終了1。自動reviewRequired/reading.not_recordedを残すincomplete/exit1を保持、未実行test/checkなし。別制限内rendererも同GPU失敗・終了2147483651、別権限付き初回6308終了0の後、smokeのsanddox→sandbox設定名転記誤りを訂正。別syntaxと権限付きv2も6308（1694原＋4614改変）終了0・八global除去・local/session sentinel不変・保存bridge未定義・原資料不変。別成功・手動依存照合で元runを成功にしない。
+- 訂正は全Node実行中・full renderer実行前の新smoke一箇所だけ。全回帰開始十四hashのうちsmoke一ファイルだけ変更、残12JS＋package十三hash不変。initial-source/final-sourceは訂正前、final-source-v2は訂正後を分離保持。手動依存照合はrenderer-dependency-review.jsonとsmoke-template-comparison.jsonに別記。七所有コード＋catalog/localization_catalog九ファイル・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。旧七testは横断件数各一行65→66、package専用test追記のみ。固定ao50snapshot非変更。全旧所有節/fixture全文意味再読・全旧固定50正規API横断・全入口最終分類、本人日記生成保存再開配布・実UI音声・実ユーザー保存未完。
+
 <a id="diary-conditional-and-normal-clause-proposals-dd-consultation"></a>
 
 ##### 4d12dd相談案：条件付き休息お願いと通常提案の二節入力（2026-10-24・未採用未着手）

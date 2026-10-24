@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じddの現行継続文（採用範囲実装・Codex検証完了）
+
+- 最終検証：専用31＋監査76=107、22群1694原1538成立・44種67672改変拒否・旧66担当101508非重複、前相談6852は1164成立・5688非成立、補足16例。全Node2935・変更13JS構文・七言語14957通過。full-30minは制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1と静的reviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内renderer終了2147483651と別権限付き初回6308終了0、smoke設定名訂正後の別syntax／権限付きv2の6308終了0を分離保持。八global除去・sentinel不変・保存bridge未定義・元資料不変。訂正は全Node実行中・full renderer前のsmokeのsanddox→sandbox一箇所だけ、他12JS＋package十三hash不変。initial-source/final-sourceは訂正前、final-source-v2は訂正後。別成功・手動依存照合で元runを成功にしない。新ゲーム表示文・七所有コード＋catalog/localization_catalog九ファイル・locale・保存形式・ゲーム呼出非変更。
+
+```text
+ユーザー「どちらも採用でOKです」でdd対象・成立保持を個別採用。採用範囲実装・Codex検証完了、開始71b0944、最新発行結果はCURRENT_IMPLEMENTATION.md参照。experimental_word_diary_conditional_and_normal_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=conditional_and_normal_clause_proposal。119枠118確認済み・正式子108、最新ao〜dc人間OK・全117登録。dd実装後OK未受領・同じdd継続、移動指示なし。採用済み二点を再確認せず、次記号・次チャット移動を先取りしない。
+既存日本語厳密二frameのconditional_rest一節＋rest_requestまたはwalk_invitation一節。両順序・各clause_scope必須・意味関係不足併存、conditionalIndex/normalIndexと当時理解・原expression／実replyを分離保持。条件付き節unknown／通常節nullと今回条件判断なしを分け、条件の掛かる節・条件成立・行動順序・受諾予約・活動開始完了・共同参加・希望感情理由を補わない。原資料・知識経験選択出所行動状態不変、同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及、新文法・理解習得規則・scope転移なし。本文集約・receipt保存形式・ゲーム本接続未採用未実装。dc/db/da・単独am/cp/cq/cx・cy/cz・m/p/cr/cs維持、候補外92や他入口の追加要否／分割を保留する。
+残3〜5工程・中心3、前回dd相談から下限／上限／中心差分0。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。採用だけで必要実装検証・実装後確認待ちを減算しない。他入口分類・追加要否／分割未完。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正式残数・チャット数・日数・終了保証ではなく全体未完。全14保留・各担当三保留維持。
+所有仕様はspecs/core/experimental_word_learning.mdのdiary-conditional-and-normal-clause-proposals-dd節。今回baseline・原ソース・検証原ログはdocs/.local-history/verification-runs/dd-implementation-71b0944、前相談はdd-consultation-4a1abad。具体的な検証結果・読取未検証・発行結果は現行handoffへ記録。全過去原文・原資料・原ログ・失敗中断incompleteを非削除非置換保持。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下のdd未採用は採用前原文として保持する。
+
 ## 同じddの現行継続文（相談案・未採用未着手）
 
 ```text
