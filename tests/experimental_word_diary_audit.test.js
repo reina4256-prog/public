@@ -285,12 +285,24 @@ test('dd ownership retains unresolved condition scope separately from normal pro
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12dd'));
 });
 
+test('de ownership retains per-clause source material without learning or response promotion', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12de');
+    assert.equal(owner.file, 'experimental_word_diary_remaining_clause_materials.js');
+    assert.equal(owner.arity, 3); assert.equal(owner.scopeAdopted, true);
+    assert.equal(owner.implementationAcceptance, 'not_received'); assert.equal(owner.runtimeDiaryConnected, false);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12de'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === owner.file));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12de').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12de'));
+});
+
 test('ap supplemental ownership is checked without rewriting the fixed ao snapshot or certifying user acceptance', () => {
     const report = audit();
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-assert.equal(report.supplementalOwners.length, 67);
+assert.equal(report.supplementalOwners.length, 68);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -999,6 +1011,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_rest_and_walk_clause_proposal_fixtures.js', 'scripts/experimental/diary_rest_and_walk_clause_proposal_smoke.js',
             'scripts/experimental/diary_same_kind_clause_proposal_fixtures.js', 'scripts/experimental/diary_same_kind_clause_proposal_smoke.js',
             'scripts/experimental/diary_conditional_and_normal_clause_proposal_fixtures.js', 'scripts/experimental/diary_conditional_and_normal_clause_proposal_smoke.js',
+            'scripts/experimental/diary_remaining_clause_material_fixtures.js', 'scripts/experimental/diary_remaining_clause_material_smoke.js',
             'scripts/experimental/diary_incomplete_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_rest_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_walk_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_walk_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_conditional_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_conditional_rest_proposal_smoke.js',

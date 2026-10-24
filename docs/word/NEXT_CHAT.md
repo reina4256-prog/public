@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdeの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始68d27be（前ゲーム実装84ef709）。de採用範囲の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ddは実装・Codex検証・ユーザー実装後OK確認済み。ユーザーは残入口まとめ照合後のde対象・保持方針へ「対象・保持方針とも採用」。de採用範囲の実装・Codex検証完了、実装後OK未受領・同じde継続・移動指示なし。採用済みを再確認せず、次記号／次チャットを先取りしない。120枠119確認済み・正式子109、最新ao〜dd人間OK・全118登録（固定50＋追加68）。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節・依存を読み、VALIDATION.mdへ従う。de正本はspecs/core/experimental_word_learning.mdのdiary-remaining-clause-materials-de。過去全開始文・全参照の無制限再帰読取は開始条件ではなく、原文保持・意味読了・構造一致・人間OKを分ける。
+まとめ照合10736（旧6852＋新3884）×既存67担当719312呼出＋正規旧8 API85888呼出、例外0・旧全件帰属維持。dd1164／候補外92を維持。初回未捕捉3390の名前質問4はcf非参照receipt必須欄の不足であり、コピーにorigins=[]／confirmation=nullを明示すると67担当268呼出でcfだけ成立。元report・資料は置換しない。残3386＝de3230＋全節unknown156、deは旧40＋新3190、提案中心468／提案と問い報告混在1124／問い報告中心1638。新資料は21代表文の単独八設定336・全順序二節3528・三節20、全同義形／全活動／全言語／全mask総当たりではない。
+deはexperimental_word_diary_remaining_clause_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=remaining_clause_material。既存日本語18 catalogRule＋unknown、二節以上・少なくとも一認識節。既存da/db/dc/dd二節予約形と4d2末尾完全理解question／実answer_unknown成立を除外し、旧receipt不足をdeで救済しない。原全frame/understanding・index/span・各節当時complete/kind/subject/target/極性/時点/条件状態/roles有無/不足を保持し、understandingStatus=per_clause。原結果全文learning/transfer・原expression／実reply・独立入力前資料・前後state/world、意味／実適用関係一意根拠・原参照経験一意ID/snapshot・選択出所整合を照合。原語関連づけassociationsの実変化は保持し、capture自体は知識を変えない。今回3230中786でassociationsだけ変化、本人/world経験・selectionSources・行動状態不変、turn.answer／条件順序判断なし。条件の適用先・成立・行動順序・回答成功・受諾予約実行・本人経験・希望感情理由を補わず、新文法・理解習得・scope転移なし。
+残3〜5工程・暫定中心3。前回2〜5中心2から下限＋1／上限0／中心＋1。問い0〜1中心0／複数節共通契約1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。完了減算0・具体化した共通契約1追加、領域間で重複計上しない。全節unknown156／未観察入口／追加分割の不確実性が残り中心確度は低い。上限も保証ではない。全14保留・各担当三保留・全体未完。ユーザー採用後も必要検証・実装後OKを代行せず、同じチャットで継続。長くなれば意味のある検証区切りで保存し、移動はユーザー明示時だけ。
+原資料・全ログ・九文書baseline・読取記録はde-reconciliation-68d27beとCURRENT_IMPLEMENTATION.md。訂正後専用31＋監査77＝108、24群1518原1388成立・40種54868改変拒否・同値操作652別計上・旧67担当92996非重複・旧47入力API65236非重複。全Node2967・14JS構文・七言語14957・権限付き別renderer5682通過。元full-30minは制限内GPU -1073741515・renderer終了2147483651とreviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別成功で元runを置換しない。全回帰開始14JS＋packageの15hash不変。補足24実path到着・4実理由応答・2仕事観察応答の非遡及／非補完を確認。unknown156は旧47入力API7332呼出でも非捕捉。専用初回106中102通過4失敗は新fixtureの旧4d2期待と先行文脈なしreplyの期待誤り、初回ソース／ログを保持してfixtureのみ訂正、ゲーム規則・de部品非変更。全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終意味分類、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。本文集約4e・receipt保存形式・本接続未採用未実装。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換、過去原文原資料失敗中断ログは非削除非置換。
+```
+
+以下のdd確認済み・次de未採用は採用前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（dd確認済み・次de未採用）
 
 ```text
