@@ -1,5 +1,33 @@
 # 次チャットの開始文
 
+## 同じdbを続ける現行指示（採用範囲実装・Codex検証完了）
+
+```text
+ユーザー「はい、どちらもOKです」でdb対象・成立保持を個別採用。採用範囲実装・Codex検証完了、db実装後OK未受領・同じdb継続、移動指示なし。開始655d368、最新commit/push結果はCURRENT_IMPLEMENTATION.md参照。採用済み二点の再確認・次記号・次チャット移動を先取りしない。
+experimental_word_diary_rest_and_walk_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=rest_and_walk_clause_proposal。既存日本語厳密二frame、rest_request一節＋walk_invitation一節、両順序・改行句点・話者二種・short/gesture。両節clause_scope必須、rest/walk意味・request/invitation関係不足併存と原kind/subject/不足を保持。原入力全体・二節順序対応・原結果全文/learning/transfer・独立入力前資料・前後state/world・原expression/実replyを分離コピー。安全整数原ID・前後validContext/validSelections・コピー上receive/respond全文・意味関係一意根拠・原参照経験/selectionSources整合を照合。知識/経験/選択出所/行動状態不変。二節順序を行動順序・優先順位・計画・受諾へ補わず、条件順序判断・従否・予約・今回休息散策開始完了・共同参加・希望感情理由を補わない。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及、新文法・理解習得規則・scope転移なし。単独am/cp/cq/cx・da・条件順序m/p/cr/cs等を維持。本文集約・receipt保存形式・本接続未採用未実装。
+専用v2全28＋初回監査74=102、19群714原566成立・44種24904改変拒否・旧64担当36224非重複、相談5208は280成立・4928非成立、補足16ケース通過。全Node2874（TAP984064.3003ms／工具992528ms）・11JS構文・七言語14957・権限付き別renderer2412通過。初回102中101通過・改変fixture未定義配列push一件停止を、検査補修／活動assert補強後の専用v2成功と分けて保持。初回新testソースは別保管なし、原UTF-16LEログと最終ソースを区別する。fixture-materialsは専用後の別の決定的生成であり専用プロセス原dumpではない。
+full-30minは制限内GPU -1073741515・renderer終了2147483651、静的smoke reviewRequired/reading.not_recordedを残すincomplete/exit1。未実行test/checkなし。別制限内rendererも同終了で失敗、権限付き別2412終了0・八global除去・sentinel不変・保存bridge未定義・原資料不変を分離。別成功・手動依存照合で元runを成功へ昇格しない。七所有コード＋catalog/localization_catalog不変、全回帰開始11JS＋package十二hash不変。旧五testは件数各一行63→64だけ、package専用test追記のみ・固定ao50snapshot非変更。新smokeはda厳密名称置換同形・fixture依存手動照合。
+117枠116確認済み・正式子106、最新ao〜da人間OK・全115登録。残3〜5工程・中心3、前回db採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ちや他入口追加要否／分割を減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り。全14保留・各担当三保留・全体未完、正式残数・チャット数・日数・終了保証ではない。
+原資料／ログ／九文書baseline・最終ソースはdb-implementation-655d368、前相談db-consultation-e0fd40b。全過去原文・原ログ・失敗中断incomplete非削除非置換。全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終分類、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完／未検証。残68や他入口を追加不要・永久対象外にしない。既存リンク不一致18件の全再検査ではない。直接読取／未読未検証と発行結果は現在handoff参照。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下の実装検証中・未採用は途中／過去原文として保持する。
+
+- 2026-10-24 db最終：採用範囲実装・Codex検証完了、db実装後OK未受領・同じdb継続。専用v2全28＋初回監査74=102、全Node2874・11JS構文・七言語14957・権限付き別renderer2412通過。19群714原566成立・44種24904改変拒否・旧64担当36224非重複、相談5208は280成立・4928非成立、補足16ケース。初回102中101通過の改変fixture未定義配列push停止と検査補修を分離保持。full-30minは制限内GPU -1073741515・renderer終了2147483651、静的reviewRequired/reading.not_recordedを残すincomplete/exit1。未実行test/checkなし、別renderer成功・手動依存確認で元runを成功にしない。117枠116確認済み・正式子106、最新ao〜da人間OK・全115登録。残3〜5工程・中心3、前回db採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原証跡db-implementation-655d368、読取／未検証・発行結果は現在handoff。以下の実装検証中・未採用は途中／過去原文として保持する。
+
+## 同じdbを続ける現行指示（対象・成立保持採用・実装検証中）
+
+```text
+ユーザー「はい、どちらもOKです」でdb対象・成立保持を個別採用。同じdb継続、実装後OK未受領・移動指示なし。開始655d368、最新commit/push結果はCURRENT_IMPLEMENTATION.md参照。採用済み二点の再確認・次記号・次チャット移動を先取りしない。
+experimental_word_diary_rest_and_walk_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=rest_and_walk_clause_proposal。既存日本語厳密二frame、通常rest_request一節＋walk_invitation一節、両順序・改行句点・話者二種・short/gesture。両節clause_scope必須、rest/walk意味・request/invitation関係不足併存と原kind/subject/不足を保持。原入力全体・二節対応順・原結果全文/learning/transfer・独立入力前資料・前後state/world・原expression/実replyを分離コピー。安全整数原ID・前後validContext/validSelections・コピー上receive/respond全文・意味関係一意根拠・原参照経験/selectionSources整合を照合。知識/経験/選択出所/行動状態不変、二節順序を行動順序・計画・受諾へ補わず、新文法・理解習得規則・scope転移なし。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及。本文集約・receipt保存形式・本接続未採用未実装。
+117枠116確認済み・正式子106、最新ao〜da人間OK・全115登録。残3〜5工程・中心3、前回db相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要検証・実装後確認待ちを減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り。他入口追加要否／分割・全入口最終分類未完、全14保留・各担当三保留・全体未完。残68や他入口を追加不要・永久対象外にしない。
+原資料／原ログ／九文書baselineはdb-implementation-655d368、前相談db-consultation-e0fd40b。最終検証・発行結果・直接読取／未読未検証は現在handoff参照。初回専用＋監査102中101通過・改変fixture未定義配列push一件停止と、検査補修・実休息完了/実path到着assert補強後の専用v2全28成功を分離保持。全回帰・関連renderer未完を成功へ昇格しない。旧da/cy/cz/co/ctは件数期待各一行63→64のみ。旧固定50snapshot・所有七コード・catalog・locale・保存形式・ゲーム呼出非変更。本人日記生成保存再開配布・実UI音声・実ユーザー保存未検証、全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終分類未完、既存リンク不一致18件の全再検査ではない。過去原文・原ログ・失敗中断incomplete非削除非置換。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下のdb未採用相談は採用前原文として保持する。
+
+- 2026-10-24 db採用：ユーザー「はい、どちらもOKです」で休息お願い一節＋散策誘い一節の対象・成立保持を個別採用。experimental_word_diary_rest_and_walk_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=rest_and_walk_clause_proposalを実装検証中。117枠116確認済み・正式子106、最新ao〜da人間OK・全115登録（固定50＋追加65）。db実装後OK未受領・同じdb継続、移動指示なし。残3〜5工程・中心3、前回db相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要検証・実装後確認待ちを減算しない。他入口追加要否／分割・全入口最終分類未完、全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
 ## 同じdbを続ける現行指示（対象・成立保持の個別相談中）
 
 ```text
