@@ -1,5 +1,23 @@
 # 次チャットの開始文
 
+## 同じdcを続ける現行指示（採用範囲実装・Codex検証完了）
+
+```text
+ユーザー「どちらも採用でOKです」でdc対象・成立保持を個別採用。採用範囲実装・Codex検証完了、dc実装後OK未受領・同じdc継続、移動指示なし。開始a8846ad、最新commit/push結果はCURRENT_IMPLEMENTATION.md参照。採用済み二点の再確認・次記号・次チャット移動を先取りしない。
+experimental_word_diary_same_kind_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=same_kind_clause_proposal。既存日本語厳密二frame、通常rest_request/request/rest二節またはwalk_invitation/invitation/walk二節。両節complete=false・clause_scope必須、各意味関係不足併存・当時kind/subject/不足・roles欠落を原値保持。clauseIndices=[0,1]・proposalKind/meaningと各span、原結果全文/learning/transfer・独立入力前資料・前後state/world・原expression／実replyを分離コピー。安全整数原ID、前後validContext/validSelections・コピー上receive/respond全文・既知意味/実適用関係一意根拠・原参照経験/selectionSources整合を照合。供給資料整合照合であり真正性認証ではない。
+一input一資料・知識経験選択出所行動状態不変。反復を強調・習得・優先順位・二回実行・受諾拒否・予約・今回活動開始完了・共同参加・希望感情理由へ補わない。answer/条件順序判断/行動決定を記録せず、actionOrder/compliance/completedExperience/desire/refusal=null・actualParticipation=false。同input非増加非上書き・新input別資料・遅延コピー独立・後実学習後活動非遡及。新文法・理解習得規則・scope転移なし。db異種二節・da未知一節付き二節・単独am/cp/cq/cx・条件順序m/p/cr/cs・cy/cz等を維持。候補外84や他入口の追加要否／分割は未決定、追加不要・全入口完了・永久対象外にしない。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+初回専用28＋監査75=103、全Node2903（TAP573336.7516ms／工具573501ms）・12JS構文・七言語14957・権限付き別renderer2736通過。19群816原640成立、44種27080改変拒否・同値操作1080別計上・旧65担当41600非重複。相談5636は376成立・5260非成立、補足16例も通過。full-30minはGPU -1073741515／ERR_FAILED(-2)・renderer終了1、静的reviewRequired/reading.not_recordedを残すincomplete/exit1を保持。未実行test/checkなし。別制限内rendererも終了1、権限付き別2736終了0・八global除去・sentinel不変・保存bridge未定義・原資料不変を分離。別成功・手動依存照合で元runを成功にしない。
+原資料・原ログ・九文書baseline・初回ソースinitial-source・最終ソースfinal-sourceはdc-implementation-a8846ad、前相談はdc-consultation-63e01d4。fixture-materialsは専用v1後の別決定的生成でありtestプロセス原dumpではない。七所有コード＋catalog/localization_catalog九ファイル・全回帰開始12JS＋package十三hash不変。旧db/da/cy/cz/co/ct各一行64→65だけ、package専用test追記だけ・固定ao50snapshot非変更。新smokeのdb厳密名称置換一致とfixture依存・注入コードを手動照合。
+118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録。残3〜5工程・中心3、前回dc採用から下限／上限／中心差分0。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。Codex検証だけで実装後確認待ち1や他入口最終分類・追加要否／分割を減算しない。毎回根拠・内訳・前回差分・不確実性付きで再見積り、正本はWORD_DEMO_ROADMAP.mdのword-4d12-provisional-remaining節。正式残数・チャット数・日数・終了保証ではない。
+過去原文・原ログ・失敗中断incompleteを非削除非置換保持。全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終分類、本人日記生成保存再開配布・実UI音声・実ユーザー保存は未検証、既存リンク不一致18件の全再検査ではない。全14保留・各担当三保留・全体未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換。
+```
+
+以下の採用中・未採用は途中／過去状態として保持する。
+
+- 2026-10-24 dc最終：採用範囲実装・Codex検証完了、dc実装後OK未受領・同じdc継続。初回専用28＋監査75=103、全Node2903・12JS構文・七言語14957・権限付き別renderer2736通過。19群816原640成立・44種27080改変拒否・同値操作1080別計上・旧65担当41600非重複、相談5636は376成立・5260非成立、補足16例。full-30minは制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1と静的reviewRequired/reading.not_recordedを残すincomplete/exit1、別制限内rendererも終了1を別保持。未実行test/checkなし、別成功・手動依存照合で元runを成功にしない。118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録。残3〜5工程・中心3、前回dc採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原証跡dc-implementation-a8846ad、読取／未検証・発行結果は現在handoff。以下の実装検証中・未採用は途中／過去原文として保持する。
+
+- 2026-10-24 dc採用：ユーザー「どちらも採用でOKです」で同種通常提案二節の対象・成立保持を個別採用。experimental_word_diary_same_kind_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=same_kind_clause_proposalを実装検証中。既存日本語厳密二frameのrest_request二節またはwalk_invitation二節、両節clause_scope必須・意味関係不足併存、原二節対応と当時理解・原expression／実replyを分離保持。反復を強調・学習・二回活動・受諾へ補わず、新文法・理解習得規則・scope転移なし。118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録（固定50＋追加66）。dc実装後OK未受領・同じdc継続、移動指示なし。残3〜5工程・中心3、前回dc相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要実装検証・実装後確認待ちを減算しない。他入口全量分類・追加要否／分割未完、全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
 ## 同じdcを続ける現行指示（個別相談・未採用）
 
 ```text

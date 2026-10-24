@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-24 dc最終：採用範囲実装・Codex検証完了、dc実装後OK未受領・同じdc継続。初回専用28＋監査75=103、全Node2903・12JS構文・七言語14957・権限付き別renderer2736通過。19群816原640成立・44種27080改変拒否・同値操作1080別計上・旧65担当41600非重複、相談5636は376成立・5260非成立、補足16例。full-30minは制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1と静的reviewRequired/reading.not_recordedを残すincomplete/exit1、別制限内rendererも終了1を別保持。未実行test/checkなし、別成功・手動依存照合で元runを成功にしない。118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録。残3〜5工程・中心3、前回dc採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原証跡dc-implementation-a8846ad、読取／未検証・発行結果は現在handoff。以下の実装検証中・未採用は途中／過去原文として保持する。
+
+| 工程 | 部品／API | 所有仕様 |
+| --- | --- | --- |
+| 4d12dc | same_kind_clause_proposals.create()/capture(buffer,result,receipt) | [同種通常提案二節の一入力保持](../specs/core/experimental_word_learning.md#diary-same-kind-clause-proposals-dc) |
+
+- 2026-10-24 dc採用：ユーザー「どちらも採用でOKです」で同種通常提案二節の対象・成立保持を個別採用。experimental_word_diary_same_kind_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=same_kind_clause_proposalを実装検証中。既存日本語厳密二frameのrest_request二節またはwalk_invitation二節、両節clause_scope必須・意味関係不足併存、原二節対応と当時理解・原expression／実replyを分離保持。反復を強調・学習・二回活動・受諾へ補わず、新文法・理解習得規則・scope転移なし。118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録（固定50＋追加66）。dc実装後OK未受領・同じdc継続、移動指示なし。残3〜5工程・中心3、前回dc相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要実装検証・実装後確認待ちを減算しない。他入口全量分類・追加要否／分割未完、全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
 dc相談先：[同種の通常提案を二節含む一入力の対象・成立保持案](../specs/core/experimental_word_learning.md#diary-same-kind-clause-proposals-dc-consultation)。対象・成立保持とも未採用。正式担当API表への追加なし。
 
 - 2026-10-24 dc相談：同種の通常提案を二節含む一入力（休息お願い二節／散策誘い二節）を、対象・成立保持の個別相談案へ整理。dc未採用未着手・正式枠追加なし、117枠117確認済み・正式子106、最新ao〜db人間OK・全115登録を維持。同じdc継続、移動指示なし。原二節対応・当時理解と不足・原expression／実replyを分離保持し、反復を強調・習得・二回活動へ補わない案。db異種二節とda未知一節付き二節、単独am/cp/cq/cx、条件順序m/p/cr/cs・cy/cz等を維持。残3〜5工程・中心3、前回db確認後2〜5中心2から下限+1／上限0／中心+1（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。提案一系統の具体化で下限・中心を積み上げ、状態差だけの追加分割根拠は今回認めず上限据置。他入口全量分類・追加要否／分割は未完、全14保留・各担当三保留・全体未完。ゲームコード・locale・package・保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。根拠・検証・発行結果は現行handoffとdc相談所有節を参照。以下の次dc未選定は相談前の過去状態。

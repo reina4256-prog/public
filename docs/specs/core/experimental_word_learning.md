@@ -1,5 +1,31 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-24 dc最終：採用範囲実装・Codex検証完了、dc実装後OK未受領・同じdc継続。初回専用28＋監査75=103、全Node2903・12JS構文・七言語14957・権限付き別renderer2736通過。19群816原640成立・44種27080改変拒否・同値操作1080別計上・旧65担当41600非重複、相談5636は376成立・5260非成立、補足16例。full-30minは制限内GPU -1073741515／ERR_FAILED(-2)・renderer終了1と静的reviewRequired/reading.not_recordedを残すincomplete/exit1、別制限内rendererも終了1を別保持。未実行test/checkなし、別成功・手動依存照合で元runを成功にしない。118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録。残3〜5工程・中心3、前回dc採用から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。Codex検証だけで実装後確認待ち・他入口分類／追加要否／分割を減算しない。全14保留・各担当三保留・全体未完。原証跡dc-implementation-a8846ad、読取／未検証・発行結果は現在handoff。以下の実装検証中・未採用は途中／過去原文として保持する。
+
+<a id="diary-same-kind-clause-proposals-dc"></a>
+
+##### dc最終結果（採用範囲実装・Codex検証完了）
+
+- 初回専用28＋監査75=103通過、19群816原640成立・44種27080改変拒否。同じframe/understandingの反転など変化しない1080操作は改変拒否へ混算しない。旧65担当41600非重複。相談5636再照合は376成立・5260非成立、全候補だけが成立し原資料不変。補足16例で両種・両話者・両発話設定の後実学習と実休息完了／実path到着、元資料非遡及・遅延独立・新input別資料を確認。
+- full-30min：全Node2903（TAP573336.7516ms／工具573501ms）・12JS構文・七言語14957通過。制限内renderer GPU -1073741515／ERR_FAILED(-2)・終了1、静的smoke reviewRequired/reading.not_recordedを残すincomplete/exit1を非改変保持。未実行test/checkなし。別制限内rendererも同GPU／ERR_FAILED・終了1。権限付き別renderer2736（816原＋1920改変）終了0・八global除去・local/session sentinel不変・保存bridge未定義・原資料不変を分離保持。別成功・手動依存照合で元runを成功へ昇格しない。
+- 七所有コード＋catalog/localization_catalog九ファイル不変、全回帰開始12JS＋package十三hash不変。旧db/da/cy/cz/co/ct各一行64→65だけ、package専用test追記だけ・固定ao50snapshot非変更。新smokeはdb厳密名称置換一致・fixture依存と注入コードを手動照合。初回新四JSソースはinitial-source、最終ソースはfinal-source、原資料／原ログ／baselineはdc-implementation-a8846ad。fixture-materials.jsonは専用v1後の別決定的生成でありtestプロセス原dumpではない。前相談はdc-consultation-63e01d4。
+- 118枠117確認済み・正式子107、全116登録、dc実装後OK未受領・同じdc継続。残3〜5工程・中心3、前回採用から下限／上限／中心差分0。問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2。全14保留・各担当三保留・全体未完。実UI音声・本人日記生成保存再開配布・実ユーザー保存、全旧所有節／fixture全文意味再読・全旧固定50正規API横断・全入口最終分類は未完。以下の実装検証中は途中原文として保持する。
+
+##### 4d12dc：同種通常提案二節の一入力保持（2026-10-24・採用範囲実装検証中）
+
+- 中間検証：初回専用28＋監査75=103通過。19群816原640成立・44種27080改変拒否・同値操作1080別計上・旧65担当41600非重複。相談5636再照合376成立・5260非成立、元資料不変。全16mask・休息5形同士／散策6形同士・八設定・話者・実活動・原経験選択出所を確認。補足16例は後実学習と実休息完了／実path到着後の非遡及・遅延独立・新input別資料を確認。
+- 別制限内rendererはGPU -1073741515・ERR_FAILED(-2)・終了1、権限付き別renderer2736（816原＋1920改変）終了0・八global除去・sentinel不変・保存bridge未定義・原資料不変を別保持。新smokeのdb厳密名称置換一致・fixture依存と注入コードを手動照合。全回帰full-30minは実行中、静的reviewRequired/reading.not_recordedを別成功で変更しない。fixture-materialsは専用v1後の別決定的生成で原testプロセスdumpではない。初回ソースはinitial-sourceへ保存済み。
+
+- ユーザー「どちらも採用でOKです」で下記相談案の対象・成立保持を個別採用。experimental_word_diary_same_kind_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=same_kind_clause_proposal。既存日本語厳密二frame、rest_request/request/rest二節またはwalk_invitation/invitation/walk二節だけ。各understandingはcomplete=false・clause_scope必須、各意味関係不足併存と当時kind/subject/known/relations/roles欠落を原値保持。新文法・理解習得規則・scope転移なし。
+- 原input全体・二frame/二understandingとclauseIndices=[0,1]・proposalKind/meaning・各span、原結果全文/learning/transfer・独立input/inputKnowledge/inputContext・前後state/world・原expression／実replyを分離コピー。安全整数原ID、前後validContext/validSelections、コピー上receive/respond全文、既知意味／実適用関係の一意根拠、原参照経験一意ID/snapshot・selectionSources整合を照合。供給資料整合照合であり真正性認証ではない。欠損・重複・不一致は補わない。
+- 一input一資料。二節のframeが同じでも原index別に保持し、反復を強調・習得・優先順位・二回実行・二つの活動発生へ補わない。知識全体・本人/world経験・selectionSourcesとmode/destination/attention/activityStart/reasons不変。原expression.channelと実reply.observationによるactualSpeechを設定shortから分離する。answer/conditionJudgment/sequenceJudgment/actionDecisionを記録せず、actionOrder/compliance/completedExperience/desire/refusal=null・actualParticipation=false。受諾拒否・予約・今回活動開始完了・共同参加・本人希望感情理由を補わない。
+- 同input非増加非上書き・新input別資料、遅延供給／返却コピー独立・原資料不変・後実学習後活動非遡及。db異種二節・da未知一節付き二節・単独am/cp/cq/cx・条件順序m/p/cr/cs・cy/cz等を維持。三節・条件付き混在・休息誘い二節・未知単独文型等は追加要否未決定。全14保留・各担当三保留を維持、本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+- 独立adapter/fixture/test/smoke・監査第66追加担当を登録。118枠117確認済み・正式子107、全116登録（固定50＋追加66）。dc実装後OK未受領・同じdc継続、移動指示なし。残3〜5工程・中心3、前回相談から下限／上限／中心差分0。採用だけで必要実装検証・実装後確認待ちを減算せず、他入口全量分類・追加要否／分割未完・全体未完。原資料／原ログ・baseline・初回ソースはdc-implementation-a8846ad。最終検証・発行結果はCURRENT_IMPLEMENTATION.mdと後続追記を参照。
+
+以下の未採用は採用前原文として非削除保持する。
+
+- 2026-10-24 dc採用：ユーザー「どちらも採用でOKです」で同種通常提案二節の対象・成立保持を個別採用。experimental_word_diary_same_kind_clause_proposals.create()/capture(buffer,result,receipt)三引数独立journal、kind=same_kind_clause_proposalを実装検証中。既存日本語厳密二frameのrest_request二節またはwalk_invitation二節、両節clause_scope必須・意味関係不足併存、原二節対応と当時理解・原expression／実replyを分離保持。反復を強調・学習・二回活動・受諾へ補わず、新文法・理解習得規則・scope転移なし。118枠117確認済み・正式子107、最新ao〜db人間OK・全116登録（固定50＋追加66）。dc実装後OK未受領・同じdc継続、移動指示なし。残3〜5工程・中心3、前回dc相談から下限／上限／中心差分0（問い0〜1中心0／提案1中心1／報告否定お願い0〜1中心0／最終意味照合回帰2）。採用だけで必要実装検証・実装後確認待ちを減算しない。他入口全量分類・追加要否／分割未完、全14保留・各担当三保留・全体未完。以下の未採用は採用前原文として保持する。
+
 <a id="diary-same-kind-clause-proposals-dc-consultation"></a>
 
 ##### 4d12dc相談案：同種の通常提案を二節含む一入力（2026-10-24・未採用未着手）
