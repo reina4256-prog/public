@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 同じdiの現行開始文（対象・保持方針の相談案・未採用未着手）
+
+```text
+開始41f3924、ゲーム実装最新17c4332、最新発行はCURRENT_IMPLEMENTATION.md参照。dhは実装後OK確認済み、123枠123確認済み・正式子112・最新ao〜dh人間OK・全121登録。di対象/保持方針の相談案はspecs/core/experimental_word_learning.md#diary-incomplete-retraction-materials-di-consultation、両方未採用未着手・正式枠/API/kind追加なし。同じdiで個別採用待ち、確認済みdhを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。対象案は既存日本語retract_explanationの訂正節が全て当時不完全な単独/複数節、併存de18規則＋greeting_morning/unknown可。完全訂正/reply/名付け/語義訂正/df四規則/全節unknown/動的入力は本案外・追加要否保留。as/x/aj/ak境界維持、新理解規則なし。原各節理解/不足、原result/learning/transfer/expression/実reply/実turn.answer、独立入力前資料/前後state/world、実前件なしと実antecedentを分離し訂正先/原名付け/実取り下げを補わない。原associations実変化とcapture非生成を分け、同input非増加非上書き・コピー独立・後知識後活動非遡及。
+前訂正68/unknown72の現receive/respond全文一致、71担当9940/旧47入力API6580全非捕捉。正規as72例29成立、別境界96例as4成立、原三JSON hash不変。訂正68は全訂正節不完全/実取り下げ0/直前入力なし。unknown72は全utterance不足・associations変化を理解教示成立にしない。複数完全名付け2例旧names非捕捉、追加要否未決定。動的名付け試行2例はask_name未成立で有効対照ではなく正規活動前提は未検証。
+残3〜4工程・中心3、前回2〜3中心2から下限上限中心＋1。訂正相談1＋残入口0〜1／最終意味照合回帰2、完了減算0・中心確度低・終了回数保証なし。全14保留・各担当三保留・全体未完、本文集約4e/receipt保存/本接続未採用未実装。df184/dg60/dh132を候補へ戻さず前unknown156と72を合算しない。全旧所有節/fixture意味再読・全入口最終分類・固定50全API通し・本人日記保存再開配布・実UI音声/実ユーザー保存未完。
+原資料/工具/九文書baselineはdi-consultation-41f3924。ゲーム全回帰/監査/実働/renderer再実行なし。過去dh全3093/七言語14957/別renderer2098と元full GPU失敗incomplete/exit1・初回失敗/途中補正は過去記録として非置換保持。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit。採用後は長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下はdi相談前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（dh確認済み・次di未選定未採用）
 
 ```text
