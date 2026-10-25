@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdfの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始ee3f11c、ユーザー「はい、どちらもOKです」でdf対象・保持方針を個別採用。experimental_word_diary_additional_clause_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=additional_clause_material。deまで実装後OK確認済み、df採用範囲実装・Codex検証完了・実装後OK未受領・同じdf継続。121枠120確認済み・正式子110・全119登録（固定50＋追加69）。再採用確認不要・次記号/次チャットを先取りしない。
+最終検証：専用36＋監査78＝114、全Node3004・15JS構文・七言語14957・別権限付きrenderer3803通過。27群998原842成立・57種38389改変拒否・同値操作34別計上、旧68追加担当57256呼出・旧47入力API39574呼出非重複。full-30minはGPU -1073741515/renderer終了2147483651とreviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内失敗も別保持し、別成功で元runを置換しない。補足20例とde別表現二件の旧帰属を確認、全回帰開始15JS＋packageの16hash不変。新ゲーム表示文・所有七コード＋catalog/localization_catalog・locale・保存形式・ゲーム呼出非変更。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知→OWNERS必要所有節・依存→VALIDATIONに従う。df所有仕様はspecs/core/experimental_word_learning.mdのdiary-additional-clause-materials-df。既存日本語二節以上、work_past/work_again/taste_question/rest_explanation一節以上、併存認識節はde18規則、unknown原値保持。回復説明を含む場合だけ平坦な実直前休息原資料を必須とし、直前/今回の原receive/respond全文・直前ID/当時turn/known.rest・前後validContext/validSelections・意味/実適用関係一意根拠・原経験/選択出所を照合する。欠損矛盾を補わず、仕事経験・再試行希望・味評価・具体回復因果・条件成立・活動順序・新理解規則を補完しない。
+原全frame/understanding・index/span・各種Indices・各節当時理解不足・原結果learning/transfer・原expression/実reply・独立入力前資料・前後state/world・実associations変化を分離保持。一input一資料、同input非増加非上書き・遅延コピー独立・後実学習後活動非遡及。旧単独担当/旧4d2/de/da〜ddを維持。その他挨拶/訂正/名付け/全節unknownの追加要否は別保留。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+残3〜6工程・暫定中心4、前回3〜7中心4から下限0/上限−1/中心0。追加複数節1中心1/その他入口0〜3中心1/最終意味照合回帰2、採用だけで減算なし。全14保留・各担当三保留・全体未完。原資料/九文書baseline/初回ソース/原ログはdf-implementation-ee3f11c。初回専用114中110通過4失敗は新fixtureの既存situation_question優先によるde帰属期待漏れと、deから残った対象外の非遡及入力の誤り。fixture/testだけ訂正、df部品・ゲーム所有規則非変更。元2176への新df適用は184だけ成立、回復説明直前28・実associations変化16・原資料hash不変。全旧担当/全入力/最終意味照合完了とはしない。
+検証結果・実読取/未検証・発行は現行handoffを優先。全旧所有節/fixture全文意味再読・固定50正規API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。
+```
+
+以下の相談中・未採用は採用前の状態として保持する。
+
 ## 同じdfの現行継続文（対象・保持方針の相談案・未採用未着手）
 
 ```text

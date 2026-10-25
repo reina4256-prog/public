@@ -84,7 +84,7 @@ test('rewritten scope, learning, ordering, judgment and receipts reject atomical
 });
 test('existing owners do not acquire the rest and walk two-clause input', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(r => r.id !== '4d12db');
-    assert.equal(owners.length, 67);
+    assert.equal(owners.length, 68);
     for (const f of accepted) {
         const v = f.value, source = JSON.stringify(v), r = v.receipt, w = r.beforeWorld;
         for (const owner of owners) {

@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-26 df最終：採用範囲の実装・Codex検証完了、df実装後OK未受領・同じdf継続。[df所有仕様](../specs/core/experimental_word_learning.md#diary-additional-clause-materials-df)。専用36＋監査78＝114、全Node3004・15JS構文・七言語14957・別権限付きrenderer3803通過。27群998原842成立・57種38389改変拒否・同値操作34別計上、既存68担当57256呼出・旧47入力API39574呼出で非重複。元full-30minは制限内GPU失敗（renderer終了2147483651）と自動reviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別成功で元runを置換しない。121枠120確認済み・正式子110・全119登録、最新ao〜de人間OK。残3〜6工程・暫定中心4、前回3〜7中心4から下限0／上限−1／中心0、Codex検証だけで実装後確認待ち・他入口扱い・最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/原ログはdf-implementation-ee3f11c、発行・実読取/未検証は現行handoff。以下の実装検証中・未採用は途中/過去状態として保持する。
+
+| 工程 | 部品／API | 所有仕様 |
+| --- | --- | --- |
+| 4d12df | additional_clause_materials.create()/capture(buffer,result,receipt) | [追加の問い・回復説明複数節](../specs/core/experimental_word_learning.md#diary-additional-clause-materials-df) |
+
+- 2026-10-26 df採用：ユーザー「はい、どちらもOKです」で[追加の仕事／過去味問い・回復説明の複数節資料](../specs/core/experimental_word_learning.md#diary-additional-clause-materials-df)の対象・保持方針を個別採用。experimental_word_diary_additional_clause_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=additional_clause_materialを実装検証中。回復説明を含む場合だけ実直前休息原資料の別照合を必須とし、新理解規則・経験・希望・味評価・回復因果を補わない。121枠120確認済み・正式子110・全119登録（固定50＋追加69）、最新ao〜de人間OK・df実装後OK未受領・同じdf継続。残3〜7工程・暫定中心4、前回比下限／上限／中心差分0、採用だけでは減算しない。全14保留・各担当三保留・全体未完。検証結果は実行後に記録する。以下の未採用は採用前の状態。
+
 - 2026-10-26 df再開：仕事の過去／再試行問い・過去味問い・回復説明を含む複数節資料について、[dfの対象・保持方針の相談案](../specs/core/experimental_word_learning.md#diary-additional-question-recovery-clauses-df-consultation)を作成。184比較資料を一系統とし、回復説明を含む場合だけ平坦な実直前休息原資料を必須とする案。対象・保持方針とも未採用未着手、正式枠・API・kind追加なし。de確認済み・120枠120確認済み・正式子109・全118登録を維持。同じdf継続。残3〜7工程・暫定中心4、前回比下限／上限／中心差分0。共通化は提案段階であり減算しない。全14保留・各担当三保留・全体未完。今回の184現receive/respond再照合＋直前28照合は成功、全2176・旧担当横断の再実行ではない。ゲーム全回帰・実働・renderer再実行なし。以下のdf未選定は相談前の過去状態。
 
 - 次dfの再開比較資料：[de確認後の既存parser入口追加照合](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-de)。対象未選定未採用・API／正式担当追加なし。work_past／work_again／taste_question／rest_explanation複数節184と、挨拶／訂正／名付け等の成立不足を分け、必要な所有仕様へ進む。

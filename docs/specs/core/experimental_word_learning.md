@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-additional-clause-materials-df"></a>
+
+##### 4d12df：追加の仕事／過去味問い・回復説明の複数節資料（2026-10-26・採用範囲実装・Codex検証完了）
+
+- 最終検証：専用36＋監査78＝114通過（64150.7826ms）。27群998原842成立、今回資料40種33646改変拒否・直前資料17種4743改変拒否、計57種38389拒否・同値操作34別計上。既存68追加担当57256呼出・旧47入力API39574呼出で非重複、固定50のcreate/完了event二APIは入力capture通し確認と区別する。前2176に新dfを適用し184成立/1992非成立・直前28・実associations変化16・原hash不変。全旧68担当を前2176へ再適用した検証ではない。
+- 全Node3004（TAP991650.7609ms／工具991895ms）、15JS構文・七言語14957通過。full-30minは制限内GPU -1073741515／renderer終了2147483651とreviewRequired（新smoke静的分類）/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内rendererもGPU失敗（PowerShell終了-2147483645）。別権限付きrenderer998原＋2805改変＝3803終了0、八global除去・local/session sentinel不変・保存bridge未定義。別成功や注入/依存の手動読取で元runを成功へ昇格しない。
+- 補足20例で実食事後のtasted_good等・仕事観察work/observation・仕事完了後の応答と今回turn.answerなしを原値保持し、実path到着と休息完了後の非遡及・遅延独立・新input別資料を確認。初回114中110通過4失敗は新fixture/testの期待誤りで、situation_question優先によるde帰属の二別表現と、de用対象外入力を残した非遡及試験が原因。fixture/testだけ訂正しdf部品・旧ゲーム規則非変更。二別表現のde成立/df非成立も別照合済み。initial-source・初回fixture資料/原ログを非置換保持し、fixture-materials-v2は専用テスト外の別決定的生成と区別する。
+- 全回帰開始15JS＋packageの16hashは終了後も不変。旧九testは横断件数一行67→68だけ、packageは専用test追記だけ。七所有コード＋catalog/localization_catalog九ファイル・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。df実装後OK未受領・同じdf継続、121枠120確認済み・正式子110・全119登録。残3〜6工程・暫定中心4、前回3〜7中心4から下限0/上限−1/中心0。必要な実装後確認待ち・その他入口扱い・最終意味照合をCodex検証だけで減算しない。全14保留・各担当三保留・全体未完。
+
+以下の実装検証中は途中状態として保持する。
+
+- ユーザー「はい、どちらもOKです」で以下[相談案](#diary-additional-question-recovery-clauses-df-consultation)の対象・保持方針を個別採用。experimental_word_diary_additional_clause_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=additional_clause_material。121枠120確認済み・正式子110・全119登録（固定50＋追加69）、最新ao〜de人間OK、df実装後OK未受領・同じdf継続。
+- 現在の実装仕様（検証中）：既存日本語二frame以上・同数understanding、work_past/work_again/taste_question/rest_explanationを少なくとも一節含み、他認識節はde既存18規則まで。unknown原値保持、単独／deのみ／旧予約二節形／旧4d2成立を除外する。新文法・理解習得規則・scope転移なし。原全frame/understanding・各index/span・additionalIndices/recoveryExplanationIndicesとde同様の各種Indices・各節当時理解不足・原結果全文learning/transfer・原expression/実reply・入力前独立資料・前後state/worldを分離保持する。
+- 回復説明を含む場合は平坦な実直前result/receiptをsources.antecedentへ分離保持。独立input/knowledge/context・原ID・直前turn一致・当時known.rest・意味/実適用関係一意根拠・原参照経験・前後validContext/validSelectionsとコピー上receive/respond全文を照合し、欠落矛盾/再帰を拒否する。同話者／awだけへ限定せず、文中休息節や後知識で補わない。回復説明を含まない場合のsources.antecedentはnull。
+- 原receiveのassociations変化だけを許容し、本人/world経験・知識の他欄・選択出所・行動状態不変。capture自体は教示学習経験を追加せず、今回answer/conditionJudgment/sequenceJudgmentなし。一input一資料・同input非増加非上書き・遅延コピー独立・後実学習後活動非遡及。仕事語/経験・再試行希望・味評価・具体回復因果・条件成立・活動順序・受諾予約実行・共同参加を補わない。
+- 旧担当の成立境界と本文集約4e・receipt保存形式・ゲーム本接続の未採用未実装を維持。その他挨拶/訂正/名付け/全節unknownの追加要否は別保留。残3〜7工程・暫定中心4、前回比下限/上限/中心差分0、採用だけで減算なし。全14保留・各担当三保留・全体未完。原資料/九文書baseline/ソース/原ログはdf-implementation-ee3f11c。専用/旧担当横断/全Node/七言語/関連rendererの結果は実行後別記する。
+
+以下の相談案は採用前原文として保持する。
+
 <a id="diary-additional-question-recovery-clauses-df-consultation"></a>
 
 ##### 4d12df：追加の仕事／過去味問い・回復説明の複数節資料（2026-10-26・構想段階の相談案）
