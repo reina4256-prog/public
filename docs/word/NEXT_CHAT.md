@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dg確認済み・次dh未選定未採用）
+
+```text
+ゲーム実装最新be974a4。今回の確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします。」でdg採用範囲へ実装後OKと継続/移動の裁量を明示。長い全体回帰を終えた区切りとして、次の採用相談前で次チャットへ移す。dgは実装・Codex検証・ユーザー実装後OK確認済み、122枠122確認済み・正式子111・最新ao〜dg人間OK・全120登録（固定50＋追加70）。確認済みdgを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATIONに従う。再開正本はspecs/core/experimental_word_learning.mdのdiary-entry-remainder-after-dg。過去全開始文/全参照の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取と未読未検証を記録する。
+次dhは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。前2176中の訂正68（単独16/二節48/三節4）、名付け132（単独32/二節96/三節4）、全節unknown72を比較資料にして追加要否と成立保持を調べる。df担当化184/dg担当化60を新規候補へ戻さず、前unknown156と72を合算しない。
+asの原名付けorigin/実直前antecedent・当時理解/実確認/取り下げ更新、旧diary_names.captureの一意個体対応/当時注目対象/実explanation更新を正規前提付きfixtureへ照合する。語義訂正x/aj/akと単なるcorrection/retract_explanationを同一視しない。原資料不足を新理解規則の必要性と誤認せず、具体対象と保持方針を個別相談する。新規対象の採用・追加不要・永久対象外・全入口完了を代行しない。採用後は長さに無理がなければ同じチャットで実装検証まで続ける。
+dgはexperimental_word_diary_greeting_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=greeting_material。既存日本語greeting_morningを含む単独不完全理解または複数節、併存認識節はde18規則＋greeting_morning、unknown原値保持。単独完全理解はat、旧4d2/名付け/correction/reply/df四規則を維持。全frame/understanding・index/span・各種Indices・各節当時理解/不足、原expression/実reply・learning/transfer・独立入力前資料・前後state/worldと原associations実変化を分離。一input一資料・同input非増加非上書き・遅延/返却コピー独立・後知識後活動非遡及。実朝事実/挨拶成功/感情/共同参加/条件成立/受諾予約実行/新理解規則を補わない。
+残2〜4工程・暫定中心2、前回3〜5中心3から下限−1/上限−1/中心−1。dg確認待ち1だけ差引き、その他入口追加要否・扱い0〜2中心0／最終意味照合回帰2を維持。新たな最終分類ではなく中心確度低・追加不要/上限/終了回数の保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+原比較資料de-acceptance-184069f、dg実装/全回帰/別renderer原資料dg-implementation-ed261c2、当回九文書baseline/文書検査/発行記録dg-acceptance-be974a4。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。dg過去専用39＋監査79＝118、全Node3044・16JS構文・七言語14957・別renderer2271成功と元full途中停止/最終full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持し、今回の新実行へ昇格しない。全旧所有節/fixture意味再読・固定50正規API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。
+```
+
+以下のdg実装後OK未受領・同じdg継続は受領前の開始文として保持する。
+
 ## 同じdgの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
