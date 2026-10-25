@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-additional-question-recovery-clauses-df-consultation"></a>
+
+##### 4d12df：追加の仕事／過去味問い・回復説明の複数節資料（2026-10-26・構想段階の相談案）
+
+- 対象案・保持方針案とも未採用、ゲーム部品実装未着手。ユーザーの今回指示はdf再開であり具体対象の採用ではない。de実装後OKを維持し再確認しない。120枠120確認済み・正式子109・全118登録（固定50＋追加68）、正式枠・API・kind追加なし。同じdfで個別採用を待ち、採用後は長さに無理がなければ実装検証まで続ける。
+- **対象案**：既存日本語parserの二節以上で、work_past／work_again／taste_question／rest_explanationを少なくとも一節含む一入力を、一系統の独立資料として保持する。併存認識節は[deの既存18 catalogRule](#diary-remaining-clause-materials-de)とこの四規則までとし、unknownは原値のまま残す。単独文・他言語文型・挨拶／訂正／名付け・全節unknownの新規担当化は今回へ含めず、追加要否は別途保留。具体例は「何を手伝った？。休んでね」「荷物運びをまたやりたい？。木の実がある」「おいしかった？。何してる？」「体力や眠気が回復するからね。休んでね」。
+- 比較根拠は前2176中の未捕捉184（work_past52／work_again52／taste_question52／rest_explanation28）。今回保存資料から現コードのreceive/respondを184件、回復説明の実直前資料を28件再照合し全文一致・前後validContext/validSelections・原資料不変。全件で行動状態・本人/world経験・選択出所不変、今回turn.answer／条件判断／順序判断なし。16件のassociationsだけの実変化を保持対象とする。旧担当非捕捉は前runの観察を引用し、今回旧担当横断を再実行したとはしない。
+- 184は休息お願い／現在行動問い／木の実観察との両順序二節、およびunknown＋休息お願い付き三節という限定比較。四規則相互やdeの他15規則との全組合せ・全同義形・全活動・全前提mask・全言語を実証していない。対象案の許可集合と観察済み範囲を区別し、採用後のfixture／旧担当横断／必要回帰／関連rendererで補う。新しい理解規則・scope転移・全入口完了をこの資料から認定しない。
+- **保持方針案**：一入力一資料とし、全frame/understanding・各index/span・各節の当時kind/complete/known/relations/不足・主体/極性/時点/条件状態/roles有無を原値保持する。理解済みと未理解を一律化せず、原input・独立inputKnowledge/inputContext・原結果全文learning/transfer・原expressionと実reply・前後state/worldを分離する。意味／実適用関係の一意根拠、参照経験ID/snapshotと選択出所、安全整数原ID・前後validContext/validSelections・コピー上receive/respond全文を照合し、欠損不整合を補わない。原receiveのassociations変化は保持し、capture自体は教示・学習・本人経験を追加しない。
+- **回復説明を含む場合の追加必須条件**：今回資料だけでなく、平坦な実直前の原result＋receipt（antecedent）も分離保持・コピー上receive/respond全文照合する。直前資料の独立input/knowledge/context・前後state/world・実reply、前後validContext/validSelections、直前input ID＝今回before.serial・今回直前turnとの一致・直前当時known.meaning=restを確認し、再帰antecedent・欠落・矛盾を拒否する。直前がawだけ／同一話者だけという新制約を置かず、[ax](#diary-rest-explanation-reports-ax)／[bq](#diary-incomplete-rest-explanation-reports-bq)の成立境界を維持する。今回文中に休息節があることや後知識で直前資料の不足を補わない。四規則をdeへ許可追加するだけの案ではない。
+- 今回実replyはattend132／uncertain16／answer_unknown8／resting8／heard_berry8／heard_rest_partial6／not_eaten_yet6。replyの文面を本人実回答、実休息開始完了、味評価、回復因果の理解へ昇格しない。仕事語・過去仕事経験・再試行希望・好悪感情・味の肯否・具体回復原因・条件成立・活動順序・受諾予約実行・共同参加は補完しない。実原expressionと発話設定／実発話・観察応答を区別する。
+- 単独cd/ce/4d2・ap/ct等、単独回復説明ax/bq、deの18規則だけの資料、da/db/dc/ddの二節予約形を維持する。末尾questionが完全理解で実reply=answer_unknownの旧4d2成立入力は除外し、旧receipt不足を新担当で救済しない。同input非増加非上書き・新input別資料・遅延供給／返却コピー独立・後実学習後活動非遡及を維持する。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- その他入口（挨拶60／訂正68／名付け132／全節unknown72）の追加要否・成立境界照合は別保留。未捕捉だけで追加必須・永久対象外へ変換しない。残3〜7工程・暫定中心4、前回比下限／上限／中心差分0。内訳は追加複数節候補1〜2中心1／その他入口の扱い0〜3中心1／最終意味照合回帰2。共通化は未採用の提案であり完了減算なし、中心確度は低く上限／終了回数の保証ではない。全14保留・各担当三保留・全体未完。
+- 当回原資料・工具ソース・再照合原ログ・文書baselineはdocs/.local-history/verification-runs/df-consultation-0e8cc2e。前原資料はde-acceptance-184069fを非変更保持。今回は相談文書と限定資料照合・既存日記監査だけ、ゲームコード・catalog・locale・package・登録・保存形式非変更。ゲーム全回帰・実働・renderer再実行なし。全旧所有節／fixture全文意味再読、全旧固定50正規API通し、全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。
+
+以下のdf未選定は相談前の状態として保持する。
+
 <a id="diary-entry-remainder-after-de"></a>
 
 ##### de確認後：既存parser入口の追加照合（2026-10-24・df対象未選定未採用）

@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdfの現行継続文（対象・保持方針の相談案・未採用未着手）
+
+```text
+開始0e8cc2e、ゲーム実装最新184069f。deは実装・Codex検証・ユーザー実装後OK確認済み、120枠120確認済み・正式子109・最新ao〜de人間OK・全118登録。今回df再開後、対象・保持方針の相談案を作成、両方未採用・ゲーム部品未着手・正式枠/API/kind追加なし。同じdf継続、採用後は長さに無理がなければ同じチャットで実装検証まで続ける。
+CURRENT_IMPLEMENTATION.md→routing→wordの現行入口→OWNERS必要所有節・依存→VALIDATIONに従う。df相談正本はspecs/core/experimental_word_learning.mdのdiary-additional-question-recovery-clauses-df-consultation。前のdf未選定は相談前の状態として保持し、過去全文の毎回再帰読取を開始条件にしない。対象案はwork_past/work_again/taste_question/rest_explanationを少なくとも一節含む既存日本語二節以上、併存認識節はde既存18規則＋この四規則。unknownを修復せず、旧担当と旧4d2成立を除外して一系統で保持する案。
+保持案は原全節・当時理解不足・原expression/実reply・入力前独立資料・前後state/world・原learning/transferと実associations変化を分離。回復説明を含む場合だけ平坦な実直前休息原資料antecedentを必須とし、直前/今回それぞれのreceive/respond全文・直前ID/当時turn/known.rest・前後validContext/validSelectionsを照合する。直前資料の欠落矛盾・原今回理解不足を後知識や文中休息節で補わない。仕事経験・再試行希望・味評価・具体回復因果・活動順序・受諾予約実行・新文法理解習得scope転移は補完しない。単独cd/ce/4d2・ap/ct・ax/bq、deとda/db/dc/ddを維持する。
+前比較184（仕事過去52/再試行52/過去味52/回復説明28）を今回現コードreceive/respondで再照合184＋実直前28、原資料不変・例外なし・行動状態/本人world経験/選択出所不変・今回turn.answerなし、associationsだけ16件実変化。全2176や旧68担当/47入力API横断の再実行ではない。許可集合の全組合せ/同義形/活動/言語は未実証。その他挨拶60/訂正68/名付け132/全節unknown72は追加要否と成立境界を別保留し、前unknown156と合算しない。
+残3〜7工程・暫定中心4、前回比下限/上限/中心差分0。追加複数節1〜2中心1/その他入口0〜3中心1/最終意味照合回帰2。共通化は提案であり採用前に減算しない、中心確度は低く上限も保証しない。全14保留・各担当三保留・全体未完。対象と保持方針の個別採用を待ち、確認済みdeを再確認しない。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+原資料と九文書baseline/再照合原ログ/工具ソースはdf-consultation-0e8cc2e、前資料de-acceptance-184069f非変更。今回限定照合・既存日記監査と文書検査だけ、ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・実働・renderer再実行なし。全旧所有節/fixture全文意味再読・固定50正規API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存未完。読取未検証/発行は現行handoff参照。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。
+```
+
+以下のdf未選定は相談前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（de確認済み・次df未採用）
 
 ```text
