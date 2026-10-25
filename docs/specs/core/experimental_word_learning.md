@@ -1,5 +1,23 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-greeting-materials-dg"></a>
+
+##### 4d12dg：単独未完理解・複数節の挨拶資料（2026-10-26・採用範囲実装・Codex検証完了）
+
+- 最終検証：訂正後専用39＋監査79＝118、32群672原533成立、40種21262改変拒否・同値操作58別計上。既存69担当36777呼出＋旧47入力API25051呼出は各正規引数で非重複。元2176へ新dg適用60成立/2116非成立、単独8/二節48/三節4・原三JSON hash不変。672 fixture資料は専用test後の別決定的生成で、testプロセス原dumpと区別する。全18併存規則を実解析で確認したが、全別名/全組合せ/全活動/全localeの完成証明ではない。
+- 全Node3044（TAP1214555.069ms／工具1214737ms）・変更16JS構文・七言語14957通過。full-30min-v2はGPU起動不能・renderer終了2147483651と自動reviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内renderer失敗exit1も保存し、別権限付きrenderer2271（672原＋1599改変）終了0・八global除去・local/session sentinel不変・保存bridge未定義を別記する。元full-30minはfixture期待訂正前の途中停止で原running summary/未実行を保持し、別run成功で上書きしない。
+- 部品は初回から不変。fixtureは「おはよう＋うん」の発話confirm_nameありの実reply frameと、身振りpendingなしのunknownを区別して期待だけ訂正。初回117中46通過71不通過（監査参照不足70＋fixture1）、文書登録後v2/中間期待訂正v3は各116通過1不通過、v4は118通過。全途中ログ/initial-source/元full snapshot・hashを非置換保持し、工具出所と停止理由をexecution-record.json/interrupted-run.jsonへ記録する。
+- 全回帰開始16JS＋packageの17hash不変。旧十testは横断件数68→69一行だけ、packageは新専用test追記だけ。新smokeは既存deの名称置換とsandbox=trueを含め一致し、依存手動照合をrenderer-dependency-review.jsonへ別記、自動reviewRequiredを消さない。所有七コード＋catalog/localization_catalog・locale・保存形式・ゲーム呼出非変更、新ゲーム表示文なし。対象範囲の実装・Codex検証完了、dg実装後OK未受領・同じdg継続。以下の実装検証中は途中状態。
+
+- ユーザー「はい、どちらも採用でOKです」で[dg相談案](#diary-greeting-materials-dg-consultation)の対象・保持方針を個別採用。開始ed261c2、122枠121確認済み・正式子111・全120登録（固定50＋追加70）。最新ao〜df人間OKを維持、dg実装後OK未受領・同じdg継続。採用だけでは残3〜5工程・暫定中心3（その他入口1〜3中心1／最終意味照合回帰2）を減算せず、前回比下限/上限/中心差分0。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様：experimental_word_diary_greeting_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=greeting_material、occurrenceId=greeting_material:原input ID。一つ以上の既存日本語greeting_morning frameを必須とする。単独は当時understanding.complete=falseだけ、単独完全理解はatへ残す。複数節の併存認識節はdeの既存18規則とgreeting_morningだけ、unknownは原値で併存可。新理解規則・他言語文法・scope転移なし。名付け/correction/reply・df四規則を許可せず、旧4d2成立と旧担当の不足receiptを救済しない。
+- 全frame/understanding同数対応・各index/span・greeting/unknown/条件/順序/否定お願い/問い/報告Indices・各節当時complete/unresolvedと主体/極性/時点/条件状態/rolesの有無を原値保持。understandingStatusは単独incomplete/複数per_clause。挨拶節の完全理解や実good_morningを入力全体の完全理解へ変えない。原expressionと実reply、設定発話とactualSpeech、observationResponseを分離し、attendを理解済み挨拶と認定しない。
+- 原result全文/learning/transfer、独立input/inputKnowledge/inputContext、前後state/world、実turn.answerの有無と原値をコピー保持する。安全整数ID・before.serial+1・原scene/話者/locale/時刻、当時意味/関係一意basis、前後validContext/validSelectionsと実参照経験を確認し、コピー上receive/respond全文・前後資料と実replyを照合。欠落/矛盾/根拠重複は拒否。原receiveのassociations実変化だけをknowledgeChanged/原learningへ保持し、その他knowledge・本人/world経験・選択出所・行動状態不変を要求する。
+- 同input非増加非上書き・新input別資料・遅延/返却コピー独立・後知識後活動非遡及。morningVerified=false、captureAddsTeaching/captureAddsLearning/captureAddsExperience=falseはcapture自体の非生成を表す。実朝事実・感情・反復の強調/学習/複数挨拶成功・共同参加・条件成立・活動順序・受諾/予約実行を補わない。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- 初回専用38中37通過1不通過。複数節内「うん」は先行名付けがあってもunknownとなる場合があり、採用済みunknown併存へ該当するfixture期待漏れだった。fixtureのみ訂正し、新部品/既存理解規則は非変更。併走した初回監査の不通過は本所有仕様/工程表追記前によるmissing_scope_reference/missing_step_reference。初回117中46通過71不通過、文書登録後v2は116通過1不通過、訂正前に開始した全回帰は途中停止として原ログ/initial-source/当時hashを非置換保持する。全回帰/七言語/関連rendererと最終結果は訂正後の別runへ記録する。
+
+以下の相談案は採用前原文として保持する。
+
 <a id="diary-greeting-materials-dg-consultation"></a>
 
 ##### dg相談案：当時理解不足の単独挨拶・挨拶を含む複数節資料（2026-10-26・構想段階・未採用未着手）

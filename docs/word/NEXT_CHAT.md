@@ -1,5 +1,30 @@
 # 次チャットの開始文
 
+## 同じdgの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始ed261c2、ユーザー「はい、どちらも採用でOKです」でdg対象・保持方針を個別採用。experimental_word_diary_greeting_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=greeting_material。採用範囲実装・Codex検証完了、実装後OK未受領・同じdg継続。122枠121確認済み・正式子111・全120登録（固定50＋追加70）、最新ao〜df人間OKを維持。再採用確認せず、次記号/次チャットを先取りしない。
+最終検証は専用39＋監査79＝118、全Node3044・16JS構文・七言語14957・別権限付きrenderer2271通過。32群672原533成立、40種21262改変拒否・同値操作58別計上、旧69担当36777呼出/旧47入力API25051呼出で非重複。元2176へ新dg適用60成立/2116非成立・原三JSON hash不変。full-30min-v2は制限内GPU/renderer終了2147483651とreviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別制限内失敗と別成功を区別し、元full途中停止/初回失敗を非置換保持。全回帰開始16JS＋packageの17hash不変、新部品/旧ゲーム規則は初回から不変。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。dg所有仕様はspecs/core/experimental_word_learning.mdのdiary-greeting-materials-dg。既存日本語greeting_morningを含む単独不完全理解または複数節、併存認識節はde18規則＋greeting_morning、unknown原値保持。単独完全理解はat、旧4d2・名付け/correction/reply・df四規則の境界を維持。実pendingがない「うん」はunknownとなる場合があり、実reply frameとの違いを保持する。新文法/理解習得/scope転移なし。
+全frame/understanding・index/span・各種Indices・各節当時理解/不足と原expression/実reply・原learning/transfer・独立入力前資料・前後state/worldを分離。原receiveのassociations実変化とcapture非生成を区別し、単独incomplete/複数per_clause。一input一資料・同input非増加非上書き・遅延/返却コピー独立・後知識後活動非遡及。実朝事実/挨拶成功/感情/共同参加/条件成立/受諾予約実行/活動順序を補わない。
+残3〜5工程・暫定中心3、前回比下限/上限/中心差分0（その他入口1〜3中心1／最終意味照合回帰2）。Codex検証だけで実装後確認待ち/他入口分類/最終意味照合を減算せず、分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+原資料/九文書baseline/初回ソース/途中失敗と停止/全ログはdg-implementation-ed261c2。fixture期待だけをpending有無に分離訂正し、部品や既存規則を期待へ合わせて変更していない。訂正68/名付け132/全節unknown72の最終分類・全旧所有節/fixture意味再読・固定50正規API通し・本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。前unknown156と72を合算せずdf184を新候補へ戻さない。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。発行と実読取/未検証は現行handoffを参照する。
+```
+
+以下の実装検証中は途中状態の開始文として保持する。
+
+## 同じdgの現行継続文（対象・保持方針採用・実装検証中）
+
+```text
+開始ed261c2。ユーザー「はい、どちらも採用でOKです」でdgの対象・保持方針を個別採用。experimental_word_diary_greeting_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=greeting_materialを実装検証中。122枠121確認済み・正式子111・全120登録（固定50＋追加70）、最新ao〜df人間OK・dg実装後OK未受領・同じdg継続。再採用確認せず、次記号/次チャットを先取りしない。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。dg所有仕様はspecs/core/experimental_word_learning.mdのdiary-greeting-materials-dg。既存日本語greeting_morningを含む単独不完全理解または複数節。併存認識節はde18規則＋greeting_morning、unknown原値保持。単独完全理解はat、旧4d2成立・名付け/correction/reply・df四規則の境界を維持。新理解規則/他言語文法/scope転移なし。
+全frame/understanding・index/span・各種Indices・各節当時理解/不足と原expression/実reply・原learning/transfer・独立入力前資料・前後state/worldを分離保持。原receiveのassociations実変化とcapture非生成を区別。単独incomplete/複数per_clause、一input一資料・同input非増加非上書き・遅延/返却コピー独立・後知識後活動非遡及。実朝事実/挨拶成功/感情/共同参加/条件成立/受諾予約実行/活動順序を補わない。
+当回原資料/九文書baseline/初回ソース/原ログはdg-implementation-ed261c2。元2176へ新dg適用60成立/2116非成立、内訳は単独8/二節48/三節4、原三JSON hash不変。初回fixtureの「おはよう＋うん」は発話のconfirm_nameありではreplyで対象外、身振りでpendingなしではunknown併存となる。両者の期待を訂正し部品/旧規則非変更。初回専用/監査失敗と訂正前全回帰途中停止は非置換保持。以後の専用/全回帰/七言語/renderer結果は現行handoffを参照する。
+残3〜5工程・暫定中心3、前回比下限/上限/中心差分0（その他入口1〜3中心1／最終意味照合回帰2）。採用だけで減算なし・分割未決定・中心確度低・上限/終了回数保証なし。訂正68/名付け132/全節unknown72の最終分類、旧全所有節/fixture意味再読・固定50全API通し・本人日記生成保存再開配布・実UI音声/実ユーザー保存は未完。前unknown156と72を合算せずdf184を新候補へ戻さない。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装、旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。
+```
+
+以下の未採用は採用前の開始文として保持する。
+
 ## 同じdgの現行継続文（対象・保持方針の相談案・未採用未着手）
 
 ```text
