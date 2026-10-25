@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 現行継続文（dh名付け資料の相談案・未採用未着手）
+
+```text
+開始e7def1c、ゲーム実装最新be974a4。dg実装後OK確認済み、122枠122確認済み・正式子111・最新ao〜dg人間OK・全120登録（固定50＋追加70）。dh再開後、当時理解が不足した名付け入力の対象・保持方針を相談案へ整理した。どちらも未採用未着手・正式枠/API/kind追加なし。同じdhで個別採用待ち、採用後は長さに無理がなければ同じチャットで実装検証する。発行結果はCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS該当所有節/依存→VALIDATIONに従う。相談正本はspecs/core/experimental_word_learning.mdのdiary-incomplete-naming-materials-dh-consultation。対象案は既存日本語name/name_description/name_answerを一つ以上含み全名付け節complete=false、単独/複数節。併存認識節はde18規則＋greeting_morning、unknown原値可。一節でも完全理解した名付けがあれば除外し旧names等を維持。旧namesは複数節でも一意な理解済み名付けを保持できる。correction/reply・df四規則・全節unknown・ask_nameによるcatalogRuleなし動的名付けは本案へ含めず追加要否保留、永久対象外決定なし。
+保持案は一入力一独立資料、原input/全frame/understanding同数対応・index/span・namingIndices/unknownIndices・各節complete/unresolved・主体/極性/時点/条件状態/roles有無、入力時scene/attention・対象候補/採用有無・原learning/transfer、原expression/実reply/実turn.answer有無原値と前後資料を分離。単独incomplete/複数per_clause。原receive/respond全文・独立入力前資料・当時basis/実参照根拠・validContext/validSelectionsを照合し欠損競合を補わない。原associations実変化とcapture非生成を分け、その他knowledge/本人world経験/選択出所/行動状態不変。同input非増加非上書き・新input別資料・コピー独立・後知識後活動非遡及。命名成功/実個体対応/一般名/本人理解自覚/感情/受諾実行を補わず新理解規則なし。
+前2176中の訂正68/名付け132/全節unknown72＝272を現receive/respondと前後state/worldで全文一致、70担当19040＋旧47入力API12784呼出は非捕捉・例外0。名付け132の名付け節は全不完全、訂正68は全て直前入力なし。as正規72例29成立・名付け対照40例18成立を別確認し、原前提不足を未対応理解規則の必要性と誤認しない。原三JSON hash不変。原associations実変化は訂正4/名付け4/unknown72、その他knowledge/本人world経験/選択出所/行動状態不変。新部品は未実装なので132を新成立件数としない。訂正/unknownの追加要否・保持方針は未決定。df184/dg60を戻さず前unknown156と72を合算しない。
+残3〜4工程・暫定中心3、前回2〜4中心2から下限＋1/上限0/中心＋1。その他入口1〜2中心1／最終意味照合回帰2。相談一系統の具体化のみ・完了減算0・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+当回工具/結果/原出力/九文書baselineはdh-consultation-e7def1c、前比較de-acceptance-184069f・dg原証跡dg-implementation-ed261c2・確認dg-acceptance-be974a4非変更保持。今回ゲーム全回帰・監査・実働・renderer再実行なし。dg過去全Node3044/七言語14957/別renderer2271成功と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recorded、初回失敗/中断を非置換保持。全旧所有節/fixture意味再読・固定50全API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit。全過去開始文/原資料の再帰読取を毎回の開始条件にせず、実読取/未読未検証を区別する。
+```
+
+以下のdh未選定は相談案作成前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（dg確認済み・次dh未選定未採用）
 
 ```text

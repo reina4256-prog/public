@@ -1,5 +1,21 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-incomplete-naming-materials-dh-consultation"></a>
+
+##### dh相談案：当時理解が不足した名付け入力の資料保持（2026-10-26・構想段階・未採用未着手）
+
+- 開始e7def1c、ゲーム実装最新be974a4。ユーザーのdh再開依頼を受けて比較資料と正規前提付きfixtureを再照合し、対象・保持方針の相談案を作成。どちらも未採用未着手で、正式枠/API/kind追加なし。dg実装後OK・122枠122確認済み・正式子111・最新ao〜dg人間OK・全120登録（固定50＋追加70）を維持する。以下のdh未選定は相談前状態として保持する。
+- **対象案**：既存日本語のname/name_description/name_answerとして解析された名付けを一つ以上含み、全名付け節が当時complete=falseの入力。単独・複数節を同じ一系統の資料として扱う案。併存する認識節は[deの既存18規則](#diary-remaining-clause-materials-de)＋greeting_morningに限定し、unknownは原値で併存可。実名付けframeを必須とし、全節unknown、correction/reply、df四規則、ask_nameからのcatalogRuleなし動的名付けは本案に含めない。対象外入口の追加要否は保留し、永久対象外へしない。
+- **既存担当との境界**：一節でも完全理解した名付けがあれば本案へ含めない。旧diary_names.captureは単独に限らず、複数節でも一意な理解済み個体名付けをteachingへ保持できる。今回の不完全資料をその成立済み教示へ昇格させず、旧担当が原資料不足で拒否した成立済み形の救済もしない。複数の完全名付けで旧担当が一意に選べない形も本案に広げず未決定を維持する。asの原名付け確認/取り下げ、語義訂正x/aj/ak、4d2等の境界は維持する。
+- **保持案**：一入力一独立資料。原input、全frame/understanding同数対応・index/span・namingIndices/unknownIndices、各節の当時complete/unresolved・主体/極性/時点/条件状態/rolesの有無、入力時scene/attention、対象候補/採用の有無、原learning/transferを別保持する。単独はincomplete、複数はper_clauseとし、名付け以外の完全節を入力全体の完全理解へ変えない。対象不足とnaming関係不足を混同せず、解析で得た呼び方から実個体対応や教示成立を補わない。
+- 原result全文・原expression・実reply・実turn.answerの有無/原値、独立input/inputKnowledge/inputContext、前後state/worldをコピー保持し、コピー上の既存receive/respond全文を照合する案。安全整数ID・before.serial+1・原scene/話者/locale/時刻、当時意味/関係一意basis・実参照根拠・前後validContext/validSelectionsを照合し、欠落/矛盾/競合を補わない。原receiveのassociations実変化は事実として分離し、その他knowledge・本人/world経験・選択出所・行動状態は不変を要求する。原stateのrecords/turn/pending等の実変化は全文照合で保持し、実replyだけから本人の理解・命名成功・回答成功を生成しない。
+- capture自体は教示/学習/本人経験を追加しない。同input非増加非上書き、新input別資料、遅延/返却コピー独立、後知識/後活動から当時理解を遡及補完しない。一般名・別個体への応用・本人自己確認/理解自覚・感情・共同参加・受諾/予約実行・条件成立・活動順序を補わない。新理解規則・他言語文法・scope転移は提案しない。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- **直接照合**：前2176中の訂正68（単独16/二節48/三節4）、名付け132（単独32/二節96/三節4）、全節unknown72（単独72）を現receive/respondの結果/実reply/前後state/worldと全文一致確認。70追加担当19040＋旧47入力API12784呼出は全非捕捉・例外0。名付け132の名付け節は全て不完全で、元注目対象がshade/restのため「木の実」や「これ」から一意な実個体名付けへ補えない。132件は新部品の成立件数ではない。新部品は未実装。
+- 訂正68は全て入力前turnsが空。単独でcorrection関係が既知でもcorrection_target不足があり、複数節にはclause_scope不足がある。正規前提を持つas fixture72は29成立/43非成立を現処理で維持。旧名付けの新しい対照40（八設定×五入力）は18成立/22非成立。berry一個注目の指示語名付けと複数節名付けを保持でき、同じ「木の実をモコと呼ぼう」でもfoundation/life既知の二設定なら旧担当成立を確認した。元132へ後からこの前提を補充せず、正規対照と区別する。語義訂正x/aj/akの全fixture再実行ではない。
+- unknown72は全てutterance不足で、前提なし肯否64＋回復説明8。全72で原associationsが変化しても理解/教示成立とはしない。訂正は4、名付けは4で原associations実変化。全272でその他knowledge・本人/world経験・選択出所・行動状態不変。原三JSON SHA256不変。df担当化184/dg担当化60を候補へ戻さず、前unknown156と72を合算しない。訂正/unknownの追加要否・保持方針、全入口最終意味分類・全旧所有節/fixture意味再読・固定50全API通しは未完。
+- 残3〜4工程・暫定中心3、前回2〜4中心2から下限＋1/上限0/中心＋1。その他入口0〜2中心0のうち名付け資料一系統を具体化して1〜2中心1とし、最終意味照合回帰2を維持する。完了減算0、分割/追加要否未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 当回原資料/工具/summary/九文書baselineはdocs/.local-history/verification-runs/dh-consultation-e7def1c。ゲームコード/catalog/locale/package/登録/保存形式非変更。ゲーム全回帰・監査・実働・renderer再実行なし。同じdhで対象・保持方針を個別相談し、採用後は長さに無理がなければ同じチャットで実装検証する。直接読取はhandoff全文・NEXT_CHAT現行開始文・routing/word現行通知・OWNERS該当対応・VALIDATION・as所有条件/コード/fixture・旧names所有条件/コード/test・coreのnaming理解/候補生成/複数節gate/取り下げ・de許可規則・前比較/分類/相談工具の必要箇所。巨大歴史本文/他所有節/全fixtureを意味読了へ昇格しない。
+
 <a id="diary-entry-remainder-after-dg"></a>
 
 ##### dg確認後：残る訂正・名付け・unknown入口の再開点（2026-10-26・dh未選定未採用）
