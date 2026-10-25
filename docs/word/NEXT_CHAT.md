@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（df確認済み・次dg未選定未採用）
+
+```text
+ゲーム実装最新da03ded。今回の確認移動文書の最新commit/pushはdocs/CURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットにいくかはおまかせします。」でdf採用範囲へ実装後OKと継続/移動の裁量を明示。長い実装検証を終え、次の採用相談前の保存点で次チャットへ移す判断。dfは実装・Codex検証・ユーザー実装後OK確認済み、121枠121確認済み・正式子110・最新ao〜df人間OK・全119登録（固定50＋追加69）。確認済みdfを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATIONに従う。再開正本はspecs/core/experimental_word_learning.mdのdiary-entry-remainder-after-df。過去全開始文/全参照の毎回再帰読取を開始条件にせず、原文保持・構造一致・意味読了・人間OKを分け、実読取と未読未検証を記録する。
+次dgは予定記号のみ、具体対象/理解規則未選定未採用未着手・正式枠/API/kind追加なし。その他入口の追加要否と成立保持を調べる。前2176中の挨拶60（単独8/二節48/三節4）、訂正68（単独16/二節48/三節4）、名付け132（単独32/二節96/三節4）、全節unknown72を比較資料として使い、前unknown156とは重複し得るため合算しない。df担当化済み184を新規候補へ戻さない。
+atは単独完全理解greeting_morningと実応答が成立条件。asは原名付けorigin/実直前antecedentと実確認/取り下げ更新、旧diary_names.captureは一意の個体対応/当時注目対象/実explanation更新を照合する。比較fixtureの原資料不足を新規未対応と誤認せず、正規前提付きfixture・現行所有仕様へ照合する。語義訂正x/aj/akと単なるcorrectionを同一視しない。今回これらはcapture条件の限定読取のみ、全所有節/fixture/先行文脈の最終意味照合ではなく、新しい対象の選定・追加不要・永久対象外の決定でもない。具体対象と保持方針を個別相談し、採用後は長さに無理がなければ同じチャットで実装検証を続ける。
+dfはexperimental_word_diary_additional_clause_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=additional_clause_material。既存日本語二節以上・work_past/work_again/taste_question/rest_explanation一節以上、併存認識節de18規則・unknown原値保持。回復説明を含む場合だけ平坦な実直前休息原資料を保持して直前/今回のreceive/respond全文・直前ID/当時turn/known.rest・前後validContext/validSelections等を照合する。旧単独担当/de/da〜dd/4d2成立を維持し、当時理解不足・仕事経験・再試行希望・味評価・回復因果・条件成立・活動順序・受諾予約実行を補わない。新文法/理解習得/scope転移なし。
+残2〜5工程・暫定中心3、前回3〜6中心4から下限−1/上限−1/中心−1。df確認待ち1だけを差引き、その他入口追加要否・扱い0〜3中心1/最終意味照合回帰2を維持。具体追加要否/分割は未決定で中心確度は低く上限/終了回数の保証ではない。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+原比較資料de-acceptance-184069f、df実装/全回帰/別renderer原資料df-implementation-ee3f11c、当回九文書baseline/文書検査/発行記録df-acceptance-da03ded。今回は確認/限定読取/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。df時の専用36＋監査78＝114、全Node3004・15JS構文・七言語14957・別権限付きrenderer3803成功と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを過去結果として非置換保持。全旧所有節/fixture全文意味再読・固定50正規API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。
+```
+
+以下のdf実装後OK未受領・同じdf継続は受領前の開始文として保持する。
+
 ## 同じdfの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
