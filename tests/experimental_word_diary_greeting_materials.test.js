@@ -89,7 +89,7 @@ test('changed clause understanding, real learning, response, evidence and judgme
 });
 test('all prior supplemental owners retain their ownership', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(r => r.id !== '4d12dg');
-    assert.equal(owners.length, 69);
+    assert.equal(owners.length, 70);
     for (const f of accepted) for (const owner of owners) {
         const old = require('../' + owner.file), b = old.create ? old.create() : candidates.create();
         assert.equal(old.capture(b, copy(f.value.result), copy(f.value.receipt)), false, owner.id);

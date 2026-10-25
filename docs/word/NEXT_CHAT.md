@@ -1,5 +1,31 @@
 # 次チャットの開始文
 
+## 同じdhの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始f68b9ee、ユーザー「はい、どちらもOKです」でdh対象・保持方針を個別採用。experimental_word_diary_incomplete_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_naming_material。採用範囲実装・Codex検証完了、実装後OK未受領・同じdh継続。123枠122確認済み・正式子112・全121登録（固定50＋追加71）、最新ao〜dg人間OK。再採用確認せず、次記号/次チャットを先取りしない。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。所有正本はspecs/core/experimental_word_learning.mdのdiary-incomplete-naming-materials-dh。既存日本語name/name_description/name_answerを一つ以上含み全名付け節complete=false、単独/複数節。併存認識節de18規則＋greeting_morning、unknown原値可。一節でも完全名付けなら旧担当。correction/reply・df四規則・全節unknown・catalogRuleなし動的名付けは本案外、追加要否未決定。指示語はshadeでも既存名付けが完全成立し得るためberry限定へ読み替えず原completeに従う。新理解規則/他言語文法/scope転移なし。
+全frame/understanding同数対応・index/span・namingIndices/unknownIndicesほか・namingDetailsのword/対象候補採用有無/原learning・各節当時理解/不足/主体/極性/時点/条件状態/roles有無、原result全文/learning/transfer・原expression/実reply・実turn.answer有無原値・独立入力前資料/前後state/worldを分離。単独incomplete/複数per_clause、コピー上receive/respond全文・安全整数ID/原scene/話者/locale/時刻・当時basis/実参照根拠/validContext/validSelectionsを照合。原associations実変化とcapture非生成を分け、その他knowledge/本人world経験/選択出所/行動状態不変。一input一資料・同input非増加非上書き・新input別資料・コピー独立・後知識後活動非遡及。命名成功/一般名/本人理解自覚/感情/受諾実行を補わない。
+全Node3093・17JS構文・七言語14957・別権限付きrenderer2098通過。全回帰内の専用48＋監査80＝128通過、40群688原470成立・40種18370改変拒否/同値操作430別計上、旧70担当32900/47旧入力API22090呼出非重複。元2176へ新dh132成立/2044非成立・単独32/二節96/三節4・原三JSON hash不変。前dg3044へ専用48＋監査1追加/旧test削除0を原test名の重複度込みで照合。fixture dumpは別決定的生成でtest原dumpではない。
+原資料/九文書baseline/初回ソース/原ログはdh-implementation-f68b9ee。初回専用48中42通過6不通過はfixture完全名付け混入、部品/旧規則非変更で訂正後v2全127（専用47＋監査80）通過、その後専用1追加。初回権限付きrendererは工具誤綴り失敗、smoke一箇所訂正で別v2成功。元full-30minは制限内GPU/renderer終了2147483651とreviewRequired/reading.not_recordedを残すincomplete/exit1・未実行test/checkなし。開始18source hash中smoke一件だけ途中変更、Node対象と新部品17hash不変、元plan/開始ソース/訂正後ソース非置換保持。別成功で元runを完全成功へ昇格しない。
+残3〜4工程・暫定中心3、前回比下限/上限/中心差分0（その他入口1〜2中心1／最終意味照合回帰2）。Codex検証だけで実装後確認待ち/他入口分類/最終意味照合を減算しない。分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。訂正68/全節unknown72の追加要否・全入口最終意味分類未決定。df184/dg60/dh132を新候補へ戻さず前unknown156と72を合算しない。全旧所有節/fixture意味再読・固定50全API通し・本人日記生成保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下の実装検証中は途中状態の開始文として保持する。
+
+
+## 同じdhの現行継続文（対象・保持方針採用・実装検証中）
+
+```text
+開始f68b9ee。ユーザー「はい、どちらもOKです」でdh対象・保持方針を個別採用。experimental_word_diary_incomplete_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_naming_materialを実装検証中。123枠122確認済み・正式子112・全121登録（固定50＋追加71）、最新ao〜dg人間OK・dh実装後OK未受領・同じdh継続。再採用確認せず、次記号/次チャットを先取りしない。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。dh所有正本はspecs/core/experimental_word_learning.mdのdiary-incomplete-naming-materials-dh。既存日本語name/name_description/name_answerを一つ以上含み全名付け節complete=false、単独/複数節。併存認識節はde18規則＋greeting_morning、unknown原値可。一節でも完全名付けなら旧names等を維持。correction/reply・df四規則・全節unknown・catalogRuleなし動的名付けは本案外、追加要否未決定。新理解規則/他言語文法/scope転移なし。
+原input/全frame/understanding同数対応・index/span・namingIndices/unknownIndicesほか・namingDetailsの各対象候補採用有無と原learning・各節当時理解/不足/主体/極性/時点/条件状態/roles有無、原result全文/learning/transfer・原expression/実reply・実turn.answer有無原値・独立入力前資料/前後state/worldを分離保持。単独incomplete/複数per_clause、receive/respond全文と安全整数ID/当時basis/実参照根拠/validContext/validSelectionsを照合。原associations実変化とcapture非生成を分け、その他knowledge/本人world経験/選択出所/行動状態不変。一input一資料・同input非増加非上書き・新input別資料・コピー独立・後知識後活動非遡及。命名成功/一般名応用/本人理解自覚/感情/受諾実行を補わない。
+原資料/九文書baseline/初回ソース/原ログはdh-implementation-f68b9ee。初回48中42通過6不通過はfixtureの完全名付け混入、部品/旧規則非変更で訂正後v2全127通過。その後、後の一意注目で旧names成立しても早期資料を変えない専用1を追加して全回帰実行中。指示語「これ」はshadeでも一意名付け成立し得るため、前相談の明示対象と指示語を一律にした説明を訂正する。元比較132に完全名付け節なしは不変。元2176へ新dh132成立/2044非成立・原三JSON hash不変、40群688原470成立・40種18370改変拒否/同値操作430別計上、旧70担当32900/47旧入力API22090呼出非重複。fixture dumpは別決定的生成でtest原dumpではない。以後全回帰/構文/七言語/renderer結果は現行handoff参照。
+残3〜4工程・暫定中心3、前回比下限/上限/中心差分0（その他入口1〜2中心1／最終意味照合回帰2）。採用だけでは減算しない。訂正/unknownの追加要否・必要分割・全入口最終意味分類は未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。df184/dg60を戻さず前unknown156と72を合算しない。全旧所有節/fixture意味再読・固定50全API通し・本人日記生成保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、全過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下の未採用は採用前の開始文として保持する。
+
 ## 現行継続文（dh名付け資料の相談案・未採用未着手）
 
 ```text

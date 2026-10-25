@@ -1,5 +1,28 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-26 dh最終確定：[dh採用範囲](#diary-incomplete-naming-materials-dh)の実装・Codex検証完了、実装後OK未受領・同じdh継続。全Node3093（1187701.1573ms、工具1188286ms）・17JS構文・七言語14957・別権限付きrenderer2098通過。全回帰内の専用48＋監査80＝128通過、追加の後日一意注目テストも通過。元full-30minは制限内GPU/renderer終了2147483651とreviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。別成功で元runを完全成功へ昇格しない。原資料はdh-implementation-f68b9ee。
+- Node件数は前dg3044から＋49＝3093。原全回帰のtest名を重複度込みで比較し、専用48＋監査1追加・旧test削除0をtest-count-reconciliation.jsonへ保存。初回fixture期待訂正でgroup分割が変わるため、途中専用48と最終専用48を同じ構成と決めつけず、v2は専用47＋監査80＝127、その後一意注目テスト1追加と区別する。
+- 初回fixture完全名付け混入、制限内GPU失敗、初回権限付きsmokeのinputKnowledge誤綴りとconsole診断失敗を非置換保持。新部品/旧理解規則は初回から不変。smokeだけ既存型のコピー編集項目へ訂正し、別権限付きv2で688原＋1410改変＝2098通過、八global除去/local-session sentinel不変/保存bridge未定義。全回帰開始18source hash中smoke一件だけ変更、Node対象と新部品17hashは不変。元plan/hashとfull-start-source・訂正後smokeを別保持し、一様な開始ソースでの通過とは主張しない。
+- 40群688原470成立、実併存19規則を確認。対象なし374節/複数候補8節/対象採用あり関係未理解136節を原値保持。全別名/全組合せ/全活動/全localeの完了証明ではない。新表示文なし、core/world/catalog/locale/保存形式/ゲーム呼出非変更。本文集約/receipt保存/本接続未採用未実装、訂正/unknownの追加要否や最終意味分類未完。残3〜4工程・中心3は前回比下限/上限/中心差分0、実装後確認待ち等を減算しない。以下の実装検証中は途中状態として保持する。
+
+<a id="diary-incomplete-naming-materials-dh"></a>
+
+##### 4d12dh：当時不完全な名付け入力の資料保持（2026-10-26・採用範囲実装・Codex検証完了）
+
+- 最終状態：採用範囲の実装・Codex検証完了、dh実装後OK未受領・同じdh継続。全Node3093・17JS構文・七言語14957・別権限付きrenderer2098通過。全回帰内の専用48＋監査80＝128通過。元full-30minは制限内GPU失敗とreviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。原source hash18中smoke一件だけ途中訂正、Node対象/新部品17hash不変。原資料/途中失敗/成功を別保持する。上記dh最終確定と現行handoffを優先し、以下の検証中経過を最終状態へ読み替えない。
+
+- 実装途中検証：初回専用48中42通過6不通過は、指示語名付けがshade一意注目でも完全理解し得ること、食事後はberryに注目が変わることをfixture期待へ反映していなかったため。新部品/旧理解規則は非変更でfixtureだけ訂正し、v2全127通過。その後、後の一意注目で旧names成立しても過去不完全資料を補完しない専用1を追加、全回帰実行中。対象をberryの個体だけに読み替えず、既存処理の当時completeに従う。相談時の「木の実」と「これ」をshade注目について一律に扱う説明はこの観察で訂正するが、元比較132の全名付け節不完全は不変。
+- 元2176へ新dh132成立/2044非成立、内訳単独32/二節96/三節4。原三JSON hash不変、原associations実変化4。専用40群688原470成立、40種18370改変拒否・同値操作430別計上、旧70担当32900/47旧入力API22090呼出非重複。fixture dumpはtest後別決定的生成で原dumpではない。制限内renderer GPU失敗、初回権限付きrendererは工具複製時のinputKnowledge誤綴りで失敗。工具一箇所だけ訂正し別runで再検証中。失敗ログ/元全回帰開始ソースと訂正後smokeソースを別保持、開始plan/hashは書き換えない。
+
+- ユーザー「はい、どちらもOKです」で[dh相談案](#diary-incomplete-naming-materials-dh-consultation)の対象・保持方針を個別採用。開始f68b9ee、123枠122確認済み・正式子112・全121登録（固定50＋追加71）、最新ao〜dg人間OK維持、dh実装後OK未受領・同じdh継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0、採用だけでは減算しない。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様：experimental_word_diary_incomplete_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_naming_material、occurrenceId=incomplete_naming_material:原input ID。既存日本語name/name_description/name_answerで解析された名付けを必須とし、全名付け節complete=falseに限定。単独/複数節、併存認識節de18規則＋greeting_morning、unknown原値可。一節でも完全名付けがあれば除外し旧names等を維持。correction/reply・df四規則・全節unknown・catalogRuleなし動的名付けを含めず、追加要否は保留。旧4d2成立と旧担当の不足receiptを救済しない。
+- 原input・全frame/understanding同数対応・index/span・namingIndices/unknownIndicesほか各種Indices・各節complete/unresolved・主体/極性/時点/条件状態/roles有無、namingDetailsの各index/word/対象候補採用有無/原learningを原値保持。scene/attention・原result全文/learning/transfer・原expression/実reply・実turn.answer有無原値と独立入力前input/knowledge/context・前後state/worldを分離。単独incomplete/複数per_clauseとし、完全な併存節を入力全体の理解へしない。
+- 安全整数ID・before.serial+1・scene/話者/locale/時刻、当時意味/関係一意basis・実参照経験・前後validContext/validSelectionsを確認し、コピー上receive/respond全文を照合する。欠落/矛盾した供給資料は拒否し、原当時の対象不足/候補複数は不足として保持する。原associations実変化だけを保持し、その他knowledge・本人/world経験・選択出所・行動状態不変。原records/turn/pending等の実変化は全文照合。capture非生成・namingVerified=false。
+- 一input一資料・同input非増加非上書き・新input別資料・遅延/返却コピー独立・後知識後活動非遡及。実個体対応・一般名/別個体応用・命名/回答成功・本人自己確認/理解自覚・感情・共同参加・条件成立・活動順序・受諾/予約実行を補わない。新理解規則/他言語文法/scope転移なし。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+- 当回baseline/途中ソース/検証ログはdocs/.local-history/verification-runs/dh-implementation-f68b9ee。検証完了値は実行後に記録する。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、原比較/相談/失敗/中断ログは非削除非置換保持。
+
+以下の相談案は採用前原文として保持する。
+
 <a id="diary-incomplete-naming-materials-dh-consultation"></a>
 
 ##### dh相談案：当時理解が不足した名付け入力の資料保持（2026-10-26・構想段階・未採用未着手）
