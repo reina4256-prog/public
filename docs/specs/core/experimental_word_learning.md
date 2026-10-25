@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-greeting-materials-dg-consultation"></a>
+
+##### dg相談案：当時理解不足の単独挨拶・挨拶を含む複数節資料（2026-10-26・構想段階・未採用未着手）
+
+- 開始84a381c、ゲーム実装最新da03ded。ユーザーのdg再開依頼に従い、df確認後の比較資料から具体相談案を作成。対象・保持方針とも未採用未着手で、正式枠/API/kindの追加・理解規則変更は行っていない。df実装後OK・121枠121確認済み・正式子110・最新ao〜df人間OK・全119登録を維持する。
+- **対象案**：既存日本語greeting_morningを含み、(a)単独で当時understandingが不完全、または(b)二frame以上の入力。複数節の併存認識節は[de所有の既存18規則](#diary-remaining-clause-materials-de)とgreeting_morningだけに限定し、unknownは原値で併存可とする案。少なくとも一つ実greeting frameを要求し、全節unknownは含めない。単独完全理解は[at](#diary-greetings-at)へ残す。名付け/correction/reply・df四規則は今回へ含めず、旧担当成立や原資料不足を救済しない。これは追加保持の提案であり、新たな挨拶理解・文法・他言語表現の追加承認ではない。
+- **保持案**：一入力一独立資料。原inputと全frame/understandingの同数対応・index/span・greetingIndices/unknownIndices・各節の当時complete/unresolved・主体/極性/時点/条件状態/rolesの有無を原値で分離保持する。単独は当時不完全、複数節はper_clauseとし、挨拶節の完全理解や実good_morningを入力全体の完全理解へ変えない。実attendを必ず理解済み身振りと解釈せず、原expression・実reply・speech設定と当時理解を別保持する。
+- 原result全文のlearning/transfer、独立した入力前input/knowledge/context、前後state/worldを保存し、コピー上の既存receive/respondで全文照合する案。原IDは安全整数・before.serial+1、原scene/話者/locale/時刻、前後validContext/validSelectionsと実turnを照合し、欠落・矛盾を補わない。原receiveでのassociations実変化だけを分離保持し、capture自体は教示・学習・本人経験を追加しない。既存意味/関係・本人/world経験・選択出所・行動状態不変を要求する。実turn.answerの有無を照合して原値保持し、実replyのresting等から回答成功記録を作らない。
+- 同input非増加非上書き・新input別資料・遅延/返却コピー独立・後知識や後活動から当時理解を遡及補完しない。挨拶反復を強調/学習/複数の挨拶成功/共同参加へ補わず、実際に朝だった事実・感情・提案受諾/予約実行・条件成立・活動順序を生成しない。本文集約4e・receipt保存形式・ゲーム本接続は引き続き未採用未実装。
+- **今回の直接照合**：前2176資料中、未捕捉greeting60＝単独8/二節48/三節4を現receive/respondの結果・実応答・前後state/worldと全文一致確認。単独8はreport関係不足。複数節では挨拶節が完全でも他節のclause_scope等は残る。旧69追加担当4140呼出＋旧47入力API2820呼出は全非捕捉・例外0。固定50全API通しではない。別にat正規fixture60例を照合し29成立/31非成立を維持。新adapterは未実装なので、新契約で60成立したとの主張ではない。
+- 実replyはattend46/uncertain4/good_morning6/resting2/heard_berry2。原knowledge.associationsだけ4件実変化、意味/関係・本人/world経験・選択出所・行動状態不変。原三JSONのSHA256不変。原入力の順で「おはよう\n休んでね」はuncertain、「休んでね\nおはよう」はgood_morningとなる例があり、今回の原返答を挨拶応答へ統一しない。全18規則との組合せ・全別名・全活動・全言語の実証ではなく、今回の複数節比較は三anchorと未知節に限定される。
+- 訂正68・名付け132・全節unknown72は今回再実行せず追加要否/成立保持を保留。as原名付けorigin/実直前antecedentと更新、旧names一意個体対応/注目/explanation更新、語義訂正x/aj/akとの区別を維持する。df担当化184を候補へ戻さず、前unknown156と72を合算しない。全入口最終意味照合・旧全所有節/fixture意味再読は未完。
+- 残3〜5工程・暫定中心3、前回2〜5中心3から下限＋1/上限0/中心0。その他入口0〜3中心1のうち本相談一系統を具体化して1〜3中心1とし、最終意味照合回帰2は維持。完了減算0・対象採用や追加不要の確定なし。分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 当回原資料/工具/summaryはdocs/.local-history/verification-runs/dg-consultation-84a381c。ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。同じdgで対象・保持方針の個別採用を相談し、採用後は長さに無理がなければ同じチャットで実装検証する。今回読取は現行入口・at所有節/コード/fixture/test・as/旧names capture・core理解/複数節gate・world応答・de許可規則・前entry工具/分類の必要部分。省略された歴史本文や未読所有節を意味読了としない。
+
+以下のdg未選定は相談前の保存点として保持する。
+
 <a id="diary-entry-remainder-after-df"></a>
 
 ##### df確認後：その他入口の成立境界を再開する保存点（2026-10-26・dg未選定未採用）

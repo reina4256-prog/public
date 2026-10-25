@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdgの現行継続文（対象・保持方針の相談案・未採用未着手）
+
+```text
+開始84a381c、ゲーム実装最新da03ded。dfは実装後OK確認済み、121枠121確認済み・正式子110・最新ao〜df人間OK・全119登録。dg再開後、挨拶を含む入力の追加保持について対象・保持方針の相談案を作成した。両方未採用未着手、正式枠/API/kind追加なし。同じdgで個別採用待ち、採用後は長さに無理がなければ実装検証まで続ける。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATIONに従う。dg相談正本はspecs/core/experimental_word_learning.mdのdiary-greeting-materials-dg-consultation。旧dg未選定は相談前状態として全保持し、過去全開始文/全参照の再帰読取を開始条件にしない。実読取と未読未検証・構造保持・意味読了・人間OKを区別する。
+対象案は既存日本語greeting_morningを含む単独の当時理解不足、または複数節。複数節の併存認識節はde既存18規則＋greeting_morning、unknown原値保持。単独完全理解はatへ残す。名付け/correction/reply・df四規則は含めず、旧担当成立/不足receiptを救済しない。保持案は全frame/understandingとindex/span・各節当時理解/不足・原expression/実reply・独立入力前資料・前後state/world・原learning/transferと実associations変化を分離。一入力一資料・同input非増加非上書き・遅延/返却コピー独立・後知識後活動非遡及。新理解規則・実朝事実・挨拶成功/共同参加・条件成立・受諾予約実行を補わない。
+前比較挨拶60（単独8/二節48/三節4）を現receive/respond全文照合し、既存69担当4140＋旧47入力API2820呼出は非捕捉・例外0。at正規60例29成立を別確認。実replyはattend46/uncertain4/good_morning6/resting2/heard_berry2、associationsだけ4件変化、原資料三JSON hash不変。新adapter未実装であり新契約60成立とはしない。全18規則組合せ/別名/活動/言語未実証。訂正68/名付け132/全節unknown72は今回再実行・最終分類未完、前unknown156と合算せずdf184を新規へ戻さない。
+残3〜5工程・暫定中心3、前回2〜5中心3から下限＋1/上限0/中心0。その他入口1〜3中心1／最終意味照合回帰2。具体相談下限のみ積上げ、完了減算0・分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+当回原資料/工具/summary/文書検査はdg-consultation-84a381c。ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。df過去全Node3004/七言語14957/別renderer3803成功と元full GPU失敗incompleteを今回再実行へ昇格しない。全旧所有節/fixture意味再読・固定50正規API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声・実ユーザー保存は未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作、過去原文原資料失敗中断ログ非削除非置換。発行と実読取/未検証は現行handoffを参照。
+```
+
+以下のdg未選定は相談前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（df確認済み・次dg未選定未採用）
 
 ```text
