@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dh確認済み・次di未選定未採用）
+
+```text
+ゲーム実装最新17c4332。確認/移動文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします。」でdhへ実装後OKと継続/移動の裁量を明示。長い全回帰を終えた区切りとして次の採用相談前で次チャットへ移す。dhは実装・Codex検証・ユーザー実装後OK確認済み、123枠123確認済み・正式子112・最新ao〜dh人間OK・全121登録（固定50＋追加71）。確認済みdhを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATIONに従う。再開正本はspecs/core/experimental_word_learning.mdのdiary-entry-remainder-after-dh。全過去開始文/全参照の毎回再帰読取を開始条件にせず、原文保持/構造一致/意味読了/人間OKを分け、実読取と未読未検証を記録する。
+次diは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。前2176の訂正68（単独16/二節48/三節4）、全節unknown72（単独）を現行所有条件/正規前提付きfixtureへ照合し残入口の追加要否と成立保持を調べる。df184/dg60/dh132を新候補へ戻さず前unknown156と72を合算しない。catalogRuleなし動的名付け/複数完全名付け等の追加要否も未決定を維持。原資料不足を新理解規則の必要性にせず、対象/保持方針を個別相談する。追加不要/永久対象外/全入口完了を代行しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+as原名付けorigin/実直前antecedentと実確認/取り下げ、語義訂正x/aj/akとcorrection/retract_explanationを区別する。前訂正68は全て直前入力なし、正規as72例29成立と別資料。unknown72の原associations変化を理解/教示成立にしない。dhは既存日本語name/name_description/name_answerを含み全名付け節complete=falseの単独/複数節だけ、併存de18規則＋greeting_morning/unknown原値可。一節でも完全名付けなら旧担当。指示語はshadeでも旧名付けが完全成立し得るためberry限定へ読み替えない。correction/reply・df四規則・全節unknown・動的名付け等の境界を維持し新理解規則なし。
+dhはexperimental_word_diary_incomplete_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_naming_material。全frame/understanding・index/span・各Indices・namingDetailsのword/対象候補採用有無/learning・各節当時理解/不足と原result/learning/transfer・expression/実reply・実turn.answer有無原値・独立入力前資料/前後state/worldを分離。単独incomplete/複数per_clause、receive/respond全文/当時basis/実参照根拠/validContext/validSelections照合。原associations実変化とcapture非生成を分け、その他knowledge/本人world経験/選択出所/行動状態不変。一input一資料・同input非増加非上書き・コピー独立・後知識後活動非遡及。命名成功/一般名/本人理解自覚/感情/受諾実行非補完。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dh確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく中心確度低・追加不要/上限/終了回数保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+原比較de-acceptance-184069f、dh相談dh-consultation-e7def1c、dh実装/初回最終ソース/全回帰/別renderer原資料dh-implementation-f68b9ee、当回九文書baseline/文書検査/発行dh-acceptance-17c4332。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。dh過去全Node3093/17JS構文/七言語14957/別renderer2098成功と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持。初回fixture失敗/期待補修、smoke誤綴り失敗/console診断/訂正、開始18hash中smoke一件途中変更/Node対象と新部品17hash不変を区別し、開始ソース一様不変とはしない。fixture dumpは別決定的生成でtest原dumpではない。全旧所有節/fixture意味再読・固定50全API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下のdh実装後OK未受領・同じdh継続は受領前の開始文として保持する。
+
+
 ## 同じdhの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
