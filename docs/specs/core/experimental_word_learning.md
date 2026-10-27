@@ -1,5 +1,23 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-all-unknown-materials-dj"></a>
+
+##### 4d12dj：全節unknown入力の資料保持（2026-10-28・採用範囲実装・Codex検証完了）
+
+- 2026-10-28 dj最終確定：採用範囲の実装・Codex検証完了。全Node3171・19JS構文・七言語14957・別権限付きrenderer733通過。専用28＋監査82＝110、21群232原167成立・36種5980改変拒否/同値32、実前件80改変拒否、旧72担当12024/旧47入力API7849非重複。unknown72/前156は各集合全件保持・合算なし、元2176へ新dj72成立/2104非成立・原六JSON hash不変。元fullは制限内GPU失敗でincomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別renderer成功で元runを昇格しない。開始19source hash不変。125枠124確認済み・正式子114・全123登録（固定50＋追加73）、最新ao〜di人間OK・dj実装後OK未受領・同じdj継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdj-implementation-81959cb、読取未検証と発行は現行handoff参照。以下の検証中・未採用は途中/過去状態として保持する。
+- 全回帰の前di3142へ新専用28＋監査1追加、原TAP test名を重複度込み照合して旧test削除0。fixture dumpは別の決定的生成で原test dumpではない。rendererは専用一時profile/非表示blank server、八global除去・local/session sentinel不変・保存bridge未定義。元full renderer終了1、未実行test/checkなし。保護九ファイル不変、新ゲーム表示文/locale/保存形式/ゲーム本呼出非変更。
+
+以下の実装検証中記述は途中記録として保持する。
+
+- ユーザー「どちらも採用でOKです」で[dj相談案](#diary-all-unknown-materials-dj-consultation)の対象・保持方針を個別採用。開始81959cb。125枠124確認済み・正式子114・全123登録（固定50＋追加73）、最新ao〜di人間OK・dj実装後OK未受領・同じdj継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0。採用のみで完了減算しない。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様（検証中）：experimental_word_diary_all_unknown_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=all_unknown_material、occurrenceId=all_unknown_material:原input ID。既存日本語の一節以上・全frame.kind=unknown・全understanding.complete=falseだけを対象にする。単独incomplete/複数per_clause。原understanding.kind=partialとutterance不足を原値保持し、新理解規則はない。少なくとも一認識節がある入力、動的成立名付け、複数完全名付けを含めず、既存担当成立と不足資料拒否を維持する。
+- 安全整数ID/before.serial+1・話者/locale/時刻/scene・入力前knowledge/context、全frame/understanding同数対応、前後validContext/validSelectionsとコピー上receive/respond全文・実reply/前後state/worldを照合。実前件なしはなし、存在時は実antecedent原result/平坦receiptを独立再生しbeforeの実直前turn/serial/時刻へ一致確認。origin連鎖を要求/推定生成しない。活動lastOutput/pendingQuestionと入力前資料を原値で区別し、原経験参照は実world経験と照合する。
+- 原input/frame/節index/span、各節の当時理解/不足/主体/極性/時点/条件状態/roles有無、原result全文/learning/transfer/expression・実reply/実turn.answerの有無と原値、入力前資料と前後state/worldを分離コピー。原associations実変化とcapture非生成を分け、その他knowledge/records/correctionLessons/feelingLearning/本人経験/選択出所/行動状態は不変。同input非増加非上書き・新input別資料・返却/遅延コピー独立・後知識後活動非遡及。
+- 未解析から本人理解自覚/教示成功/感情/受諾実行/取り下げ成功/新経験を補わない。df184/dg60/dh132/di68を候補へ戻さない。複数完全名付け等の追加要否、全入口最終分類、4e/receipt保存形式/ゲーム本接続は未決定・未採用未実装。unknown72/前156は別集合で合算しない。
+- 実装検証中。専用fixture/test/非表示隔離renderer、監査登録、package登録を追加。初回専用の正規ask_name対照でvisitor回答も名付け成立と期待した誤りは、speaker一致が必要な既存規則に合わせfixtureだけ訂正。初回監査は新所有節/工程参照追記前のmissing_scope_reference/missing_step_referenceで不通過、原ログ非置換保持。確定件数は検証後記録する。原資料/九文書baseline/工具/ログはdocs/.local-history/verification-runs/dj-implementation-81959cb。
+
+以下の未採用は採用前相談として保持する。
+
 <a id="diary-all-unknown-materials-dj-consultation"></a>
 
 ##### dj相談案：全節がunknownだった入力の資料保持（2026-10-28・構想段階・未採用未着手）

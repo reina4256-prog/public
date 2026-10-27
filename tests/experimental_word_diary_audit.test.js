@@ -345,12 +345,24 @@ test('di ownership preserves unresolved retractions without claiming successful 
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12di'));
 });
 
+test('dj ownership preserves wholly unparsed materials without claiming understanding', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12dj');
+    assert.equal(owner.file, 'experimental_word_diary_all_unknown_materials.js');
+    assert.equal(owner.arity, 3); assert.equal(owner.scopeAdopted, true);
+    assert.equal(owner.implementationAcceptance, 'not_received'); assert.equal(owner.runtimeDiaryConnected, false);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12dj'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === owner.file));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12dj').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12dj'));
+});
+
 test('ap supplemental ownership is checked without rewriting the fixed ao snapshot or certifying user acceptance', () => {
     const report = audit();
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-assert.equal(report.supplementalOwners.length, 72);
+assert.equal(report.supplementalOwners.length, 73);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -1064,6 +1076,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_greeting_material_fixtures.js', 'scripts/experimental/diary_greeting_material_smoke.js',
             'scripts/experimental/diary_incomplete_naming_material_fixtures.js', 'scripts/experimental/diary_incomplete_naming_material_smoke.js',
             'scripts/experimental/diary_incomplete_retraction_material_fixtures.js', 'scripts/experimental/diary_incomplete_retraction_material_smoke.js',
+            'scripts/experimental/diary_all_unknown_material_fixtures.js', 'scripts/experimental/diary_all_unknown_material_smoke.js',
             'scripts/experimental/diary_incomplete_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_rest_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_walk_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_walk_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_conditional_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_conditional_rest_proposal_smoke.js',

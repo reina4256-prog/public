@@ -1,5 +1,28 @@
 # 次チャットの開始文
 
+## 同じdjの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始81959cb、ユーザー「どちらも採用でOKです」でdj対象・保持方針を個別採用。experimental_word_diary_all_unknown_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=all_unknown_materialの採用範囲実装・Codex検証完了。125枠124確認済み・正式子114・全123登録（固定50＋追加73）、最新ao〜di人間OK・dj実装後OK未受領・同じdj継続。再採用確認せず次記号/次チャットを先取りしない。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATION。所有正本はspecs/core/experimental_word_learning.md#diary-all-unknown-materials-dj。全節unknown/全節当時complete=falseの単独/複数節、原understanding.kind=partial/utterance不足を保持。原result/learning/transfer/expression/実reply/実turn.answerと入力前資料/前後state/world・節index/spanを分離。実前件なし/実antecedent原result・平坦receiptと活動lastOutput/pendingQuestionを区別。原associations実変化とcapture非生成を分け、新理解規則/教示成功/理解自覚/感情/受諾実行を補わない。同input非増加非上書き・コピー独立・後知識後活動非遡及。動的成立名付け/複数完全名付け/認識節併存は本部品外、旧担当成立と不足拒否を維持。
+全Node3171・19JS構文・七言語14957・別権限付きrenderer733通過。全回帰内専用28＋監査82＝110、前di3142から＋29（新専用28＋監査1、旧test削除0・原TAP test名の重複度込み照合）。21群232原167成立・36種5980改変拒否/同値32、実前件80改変拒否。旧72担当12024/旧47入力API7849非重複。unknown72/前156は各々全件保持・合算なし、元2176へ新dj72成立/2104非成立・原六JSON hash不変。fixture dumpは別決定的生成。
+元full-30minは制限内renderer GPU失敗・終了1、incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、未実行test/checkなし。別制限内rendererも失敗、別権限付きrenderer733は専用一時profile/非表示blank server・八global除去・local/session sentinel不変・保存bridge未定義。別成功で元runを昇格しない。開始19source hashと保護九ファイル不変。初回専用v1=35通過74不通過（fixture話者期待1/監査参照73）、v2=36通過73監査参照不通過、fixtureだけ訂正/所有参照追記後v3=110通過。原資料/九文書baseline/工具/全ログはdj-implementation-81959cb。
+残3〜4工程・暫定中心3、前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。unknown1/その他入口0〜1中心0/最終意味照合回帰2、中心確度低・上限終了回数保証なし。複数完全名付け等の追加要否/全入口最終分類未決定。df184/dg60/dh132/di68を候補へ戻さない。4e/receipt保存形式/ゲーム本接続未採用未実装。全旧所有節/fixture意味再読・固定50全正規API・本人日記保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下は検証完了前の開始文として保持する。
+
+## 同じdjの現行継続文（採用範囲実装検証中）
+
+```text
+開始81959cb、ユーザー「どちらも採用でOKです」でdjの対象・保持方針を個別採用。experimental_word_diary_all_unknown_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=all_unknown_materialを実装検証中。同じdj継続、dj実装後OK未受領。125枠124確認済み・正式子114・全123登録（固定50＋追加73）、最新ao〜di人間OK維持。再採用確認せず次記号へ進まない。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATION。所有正本はspecs/core/experimental_word_learning.md#diary-all-unknown-materials-dj。既存日本語の全節unknown・全節complete=falseの単独/複数節だけを保持。原understanding.kind=partial/utterance不足・原result/learning/transfer/expression/実reply/実turn.answer、入力前資料/前後state/worldと原関連実変化を分離、理解/教示成功を補わず新理解規則なし。実前件なし/実antecedent原result・平坦receiptと活動lastOutput/pendingQuestionを区別。同input非増加非上書き・コピー独立・後知識後活動非遡及。成立済み動的名付け/複数完全名付け/認識節併存は本部品外、旧担当成立と不足拒否を維持。
+残3〜4工程・暫定中心3、前回比下限上限中心差分0、採用のみで減算しない。unknown72/前156は別集合で合算せず、df184/dg60/dh132/di68を候補へ戻さない。複数完全名付け等の追加要否/全入口最終分類未決定、全14保留・各担当三保留・全体未完。4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料/九文書baseline/工具/ログはdj-implementation-81959cb。初回専用fixtureのvisitor回答期待を既存話者一致条件へ訂正、監査は所有節/工程表参照追記前の不足で不通過、原ログを保持。検証件数は実行後確定。固定50全正規API/全旧所有節fixture意味再読/全別名活動locale/ゲーム日記保存再開配布/実UI音声は未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下は採用前の相談開始文として保持する。
+
 ## 同じdjの現行継続文（全節unknown資料の個別相談中・未採用）
 
 ```text

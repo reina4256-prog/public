@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-28 dj最終：[dj所有仕様](../specs/core/experimental_word_learning.md#diary-all-unknown-materials-dj)。採用範囲の実装・Codex検証完了。全Node3171・19JS構文・七言語14957・別権限付きrenderer733通過。専用28＋監査82＝110、21群232原167成立・36種5980改変拒否/同値32、実前件80改変拒否、旧72担当12024/旧47入力API7849非重複。unknown72/前156は各集合全件保持・合算なし、元2176へ新dj72成立/2104非成立・原六JSON hash不変。元fullは制限内GPU失敗でincomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別renderer成功で元runを昇格しない。開始19source hash不変。125枠124確認済み・正式子114・全123登録（固定50＋追加73）、最新ao〜di人間OK・dj実装後OK未受領・同じdj継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdj-implementation-81959cb、読取未検証と発行は現行handoff参照。以下の検証中・未採用は途中/過去状態として保持する。
+
+- 2026-10-28 dj採用：[全節unknown資料所有仕様](../specs/core/experimental_word_learning.md#diary-all-unknown-materials-dj)。125枠124確認済み・正式子114・全123登録、最新ao〜di人間OK・dj実装後OK未受領・同じdj実装検証中。残3〜4工程・中心3、前回比差分0。全14保留・各担当三保留・全体未完。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12dj | all_unknown_materials.create/capture (3) | [source](../../experimental_word_diary_all_unknown_materials.js) | [test](../../tests/experimental_word_diary_all_unknown_materials.test.js) |
+
 - 2026-10-28 djは[全節unknown入力の資料保持相談案](../specs/core/experimental_word_learning.md#diary-all-unknown-materials-dj-consultation)を参照。対象・保持方針とも未採用未着手、担当登録/API表追加なし。di確認済み・124枠124確認済み・正式子113・全122登録（固定50＋追加72）維持。正規活動ask_name後の動的名付け二資料は旧4d5へ帰属、複数完全名付け等の追加要否は未決定。unknown72/前156は別集合のまま照合、原関連変化を理解成立にしない。残3〜4工程・暫定中心3、前回比下限/上限/中心＋1・完了減算0。全14保留・各担当三保留・全体未完。ゲーム全回帰・監査・実働・renderer再実行なし。以下のdj未選定は相談前状態。
 
 - 2026-10-28 di確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で8114ec9のdi採用範囲へ実装後OKと継続/移動の裁量を受領。diは実装・Codex検証・ユーザー実装後OK確認済み。124枠124確認済み・正式子113・最新ao〜di人間OK・全122登録（固定50＋追加72）。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次djの再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-di)へ進む。djは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。di確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく中心確度低・追加不要/上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdi実装後OK未受領は受領前状態として保持する。
