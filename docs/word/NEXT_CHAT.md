@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dl確認済み・次dm未選定未採用）
+
+```text
+ゲーム実装最新c819c1b。文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします。」でdlへ実装後OKと継続/移動の裁量を受領。dlは実装・Codex検証・ユーザー実装後OK確認済み。127枠127確認済み・正式子116・最新ao〜dl人間OK・全125登録（固定50＋追加75）。確認済みdlを再採用確認しない。全回帰後の区切りとして次の採用相談前で次チャットへ移す。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。再開正本はspecs/core/experimental_word_learning.md#diary-entry-remainder-after-dl。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+次dmは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。catalogRuleなし動的名付け、訂正/reply/df/語義教示等の他規則混在の追加要否/分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料で照合し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を代行しない。前正規活動動的64の未捕捉6は二節完全名付けで文字面「未知」も動的namingとなる資料を含む。相談1044の390成立/654非成立・その他未捕捉42は重複し得る資料件数で固有件数/次の未解決集合/工程数にしない。具体対象・保持方針を個別相談し、採用後は長さに無理がなければ同じチャットで実装検証する。
+dlはmixed_multiple_naming_materials.create()/capture(buffer,result,receipt)、kind=mixed_multiple_naming_material。日本語name/name_description/name_answerの完全名付け二節以上＋不完全名付け/他種/unknown、併存認識de18＋greeting_morning、旧4d2実reply成立除外。各完全名付けの一意な対象と同語対象話者explanation採用を照合し、一input一資料/全節順/index/span/当時理解不足/原候補更新・原result全文/transfer/expression/実reply/実turn.answer有無原値と入力前資料/前後state/worldを分離コピーしper_clause。実前件なし/実antecedent平坦receiptと活動出力を分け全文再生、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。capture非生成、一節を選ばず異名同義語化/反復経験数化/本人理解自覚/全節回答等を補わない。旧4d2/4d5/dh/dj/dkを維持、df184/dg60/dh132/di68・unknown72/前156を候補へ戻さず合算しない。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dl確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく追加要否/分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完、4e/保存形式/ゲーム本接続未採用未実装。
+今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。原資料/九文書baseline/文書検査/発行はdl-acceptance-c819c1b。過去dl全Node3240/21JS構文/七言語14957/別renderer2086と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを今回成功へ昇格しない。未実行test/checkなしは前回実装runの記録。868原406成立・36種13934改変拒否/同値682別計上・実前件140改変拒否、旧74担当30044/旧47入力API19082非重複、相談1044へ新dl390成立・元2176へ0成立/原三JSON hash不変。fixture dumpは別決定的生成。初回監査工程表漏れ/集計工具文字コード差の失敗原ログを含む原資料はdl-implementation-1497f79、採用前相談はdl-consultation-f8ad47a。全旧所有節/fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ、旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の同じdl継続文は実装後OK受領前の開始文として保持する。
+
 ## 同じdlの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
