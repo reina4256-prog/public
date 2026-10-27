@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdmの現行継続文（対象・保持方針相談案・未採用未着手）
+
+```text
+開始1844d66、ゲーム実装最新c819c1b。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。dl実装後OK確認済み・127枠127確認済み・正式子116・最新ao〜dl人間OK・全125登録（固定50＋追加75）を維持。dmは対象・保持方針の相談案を具体化、両方未採用未着手・正式枠/API/kind追加なし。同じdmで個別採用の返答待ち。採用後は長さに無理がなければ同じチャットで実装検証する。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-dynamic-multiple-complete-namings-dm-consultation。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+対象案は既存日本語一入力の全節が二節以上の完全namingで、実活動ask_name/pending由来のcatalogRuleなし動的名付けを一節以上含む資料。他節は既存name/name_description/name_answerだけ。各節の一意注目対象・同語対象話者explanation一候補採用を照合する。文字面「未知」も原namingならunknownへ変換しない。保持案は独立一時journal・一input一資料・全節順/index/span/当時理解不足/動的indices/原learning、原result全文/実reply/turn.answer有無原値/入力前knowledge/context/前後state/worldを分離コピー、per_clause。実活動ask_name出所/対象/期限と実入力前件を分け、実前件ありだけ平坦receipt独立再生。不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及、新理解規則/全節回答/本人理解自覚/一般名/異名同義語化/本人経験を補わない。
+372限定資料の候補33＝前動的64中6＋新到着256中15＋実前件あり12は全既存担当非捕捉。75担当27900＋旧47入力API17484、receive/respond全文再生・validContext/validSelections・全候補の実活動出所/一候補採用・前件12独立再生を確認。重複し得る資料数で固有数/網羅数/新部品成立数ではなく、非対象339を次の未解決集合にしない。原六JSON/開始21source hash不変。原資料/九文書baseline/工具/全出力はdm-consultation-1844d66。ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰/監査/実働/renderer再実行なし。
+旧4d2/4d5/dh/dj/dk/dl維持、他種/不完全/unknown併存・訂正/reply/df/語義教示/他locale等の追加要否/分割未決定。df184/dg60/dh132/di68・unknown72/前156を候補へ戻さず合算しない。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1・完了減算0。dm相談1／その他入口0〜1中心0／最終意味照合回帰2、中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+全旧所有節/fixture意味再読・固定50全正規API・全入口最終意味分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。過去dl全回帰/別renderer成功と元full GPU失敗incomplete/reviewRequired/reading.not_recordedを今回成功へ昇格しない。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の開始文はdm相談前の保存点として保持する。
+
 ## 次チャットへ貼る開始文（dl確認済み・次dm未選定未採用）
 
 ```text
