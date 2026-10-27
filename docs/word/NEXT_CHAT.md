@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（di確認済み・次dj未選定未採用）
+
+```text
+ゲーム実装最新8114ec9。確認/移動文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」でdiへ実装後OKと継続/移動の裁量を明示。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。diは実装・Codex検証・ユーザー実装後OK確認済み、124枠124確認済み・正式子113・最新ao〜di人間OK・全122登録（固定50＋追加72）。確認済みdiを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATIONに従う。再開正本はspecs/core/experimental_word_learning.mdのdiary-entry-remainder-after-di。全過去開始文/全参照の毎回再帰読取を開始条件にせず、原文保持/構造一致/意味読了/人間OKを分け、実読取と未読未検証を記録する。
+次djは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。全節unknown72と前unknown156は別の重複し得る集合として合算せず、現行所有条件/正規前提付きfixtureへ照合し残入口の追加要否を調べる。df184/dg60/dh132/di68を新候補へ戻さない。catalogRuleなし動的名付け/複数完全名付け等の追加要否も未決定。前動的名付け試行2はプレイヤー名前質問後にask_name未成立で無効対照、本人活動からの正規ask_name前提付き照合が必要。複数完全名付け2対照の旧names非捕捉だけで新規採用せず、一意な成立済み名付けと資料不足拒否を維持する。原associations変化を理解/教示成立にしない。具体対象/保持方針を個別相談し、追加不要/永久対象外/全入口完了を代行しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+diはexperimental_word_diary_incomplete_retraction_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_retraction_material。全訂正節complete=false・corrects/実learning.retractionなし、単独/複数/複数訂正節、併存de18規則＋greeting_morning/unknown可。実前件なしはなし、存在時は実antecedent原result/平坦receiptを全文再生してbeforeの実直前turn/serial/時刻へ照合。原各節index/span/理解/不足と原result/learning/transfer/expression/実reply/実turn.answer・独立入力前資料/前後state/worldを分離保持。原associations実変化とcapture非生成を分け、同input非増加非上書き・コピー独立・後知識後活動非遡及。訂正先/原名付け/取り下げ成功・本人理解自覚/感情/受諾実行を補わず、as/x/aj/ak/旧4d2境界維持、新理解規則なし。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。di確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。今回の新たな最終分類ではなく中心確度低・追加不要/上限/終了回数保証なし。全14保留・各担当三保留・全体未完。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+原比較de-acceptance-184069f、di相談di-consultation-41f3924、di実装/開始ソース/hash/全ログdi-implementation-7b7d578、当回九文書baseline/文書検査/発行di-acceptance-8114ec9。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。di過去全Node3142/18JS構文/七言語14957/別renderer2086通過と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、未実行test/checkなし。初回628fixtureの12期待不一致は部品/旧理解規則非変更で補修、専用Node失敗集計とは別。39群628原486成立・40種18834改変拒否/同値606、実前件91資料908拒否/同値2、旧71担当34506/旧47入力API22842非重複。元2176へ新di68成立/2108非成立・原三JSON hash不変。開始18source hash不変、fixture dumpは別決定的生成で原test dumpではない。全旧所有節/fixture意味再読・固定50全API通し・全入口最終意味分類・本人日記生成保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下のdi実装後OK未受領・同じdi継続は受領前の開始文として保持する。
+
+
 ## 同じdiの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
