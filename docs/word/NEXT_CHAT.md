@@ -1,5 +1,28 @@
 # 次チャットの開始文
 
+## 同じdiの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始7b7d578、ユーザー「はい、どちらもOKです」でdi対象・保持方針を個別採用。experimental_word_diary_incomplete_retraction_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_retraction_materialの採用範囲実装・Codex検証完了。di実装後OK未受領・同じdi継続、124枠123確認済み・正式子113・全122登録（固定50＋追加72）・最新ao〜dh人間OK。再採用確認せず、次記号/次チャットを先取りしない。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。所有正本はspecs/core/experimental_word_learning.md#diary-incomplete-retraction-materials-di。既存日本語retract_explanationを含み全訂正節complete=false・corrects/retractionなし。単独/複数/複数訂正節、併存de18規則＋greeting_morning/unknown可。完全訂正/reply/名付け/語義訂正/df四規則/全節unknown/動的入力は本部品外・追加要否保留、as/x/aj/ak境界維持。原理解不足/原result/learning/transfer/expression/実reply/実turn.answer、独立入力前資料/前後state/world・各節index/span対応を分離保持。実前件なしはなし、存在時は実antecedent原result/平坦receiptを全文再生してbeforeの実直前turn/serial/時刻へ照合。訂正先/原名付け/取り下げ成功を補わない。原associations実変化とcapture非生成を分離、同input非増加非上書き・コピー独立・後知識後活動非遡及、新理解規則なし。
+全Node3142・18JS構文・七言語14957・別権限付きrenderer2086通過、全回帰内専用48＋監査81＝129。39群628原486成立・40種18834改変拒否/同値606別計上、実前件91資料へ908拒否/同値2別計上。旧71担当34506/旧47入力API22842呼出非重複。元2176へ新di68成立/2108非成立（単独16/二節48/三節4）・原三JSON hash不変。原TAP test名重複度込みで前dh3093から専用48＋監査1追加/旧test削除0を照合。fixture dumpは別決定的生成で原test dumpではない。
+元full-30minと別制限内rendererはGPU起動失敗/終了2147483651、元fullのreviewRequired/reading.not_recordedを非置換保持、未実行test/checkなし。別renderer成功で元runを完全成功へ昇格しない。開始18source hash不変。初回fixture12期待不一致は部品/旧理解規則非変更で補修し初回ソース/結果を保持。原資料/九文書baseline/工具/ログはdi-implementation-7b7d578。
+残3〜4工程・中心3、前回比下限/上限/中心差分0。実装後確認待ち/他入口分類/最終意味照合をCodex検証だけで減算しない。全14保留・各担当三保留・全体未完。unknown72/前156・動的名付け/複数完全名付け等の追加要否/最終分類未完、df184/dg60/dh132を候補へ戻さずunknownを合算しない。全旧所有節/fixture意味再読・固定50全API通し・本人日記保存再開配布・実UI音声/実ユーザー保存未完。本文集約4e/receipt保存/本接続未採用未実装。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下は検証完了前の継続文として保持する。
+
+## 同じdiの現行継続文（採用範囲実装検証中）
+
+```text
+開始7b7d578、ユーザー「はい、どちらもOKです」でdi対象・保持方針を個別採用。experimental_word_diary_incomplete_retraction_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_retraction_materialを実装検証中。同じdi継続・di実装後OK未受領、124枠123確認済み・正式子113・全122登録（固定50＋追加72）・最新ao〜dh人間OK。再採用確認せず次記号を先取りしない。最新発行はCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行入口→OWNERS必要所有節/依存→VALIDATIONに従う。所有正本はspecs/core/experimental_word_learning.md#diary-incomplete-retraction-materials-di。全訂正節不完全/実取り下げなしの単独複数節、併存de18規則＋greeting_morning/unknown可。完全訂正/reply/名付け/語義訂正/df四規則/全節unknown/動的入力は本案外・追加要否保留。実前件なしと実antecedent原result/平坦receiptを分離照合し、原理解不足/原result/learning/transfer/expression/実reply/実turn.answer・入力前資料/前後state/worldを保持。訂正先/原名付け/取り下げ成功を補わず新理解規則なし。同input非増加非上書き・コピー独立・後知識後活動非遡及。
+残3〜4工程・暫定中心3、前回比下限上限中心差分0、採用だけで減算しない。全14保留・各担当三保留・全体未完。unknown72/前156・動的名付け/複数完全名付け等の追加要否/最終分類未完。df184/dg60/dh132を候補へ戻さずunknownを合算しない。本文集約4e/receipt保存/本接続未採用未実装、本人日記保存再開配布/実UI音声/実ユーザー保存未検証。
+原資料/九文書baseline/初回fixture/工具/ログはdi-implementation-7b7d578。検証確定値は実行後記録し、過去dh3093/別renderer2098を今回実行へ昇格しない。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下は採用前開始文として保持する。
+
 ## 同じdiの現行開始文（対象・保持方針の相談案・未採用未着手）
 
 ```text

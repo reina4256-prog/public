@@ -1,5 +1,25 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-28 di最終確定：[di採用範囲](#diary-incomplete-retraction-materials-di)の実装・Codex検証完了、di実装後OK未受領・同じdi継続。全Node3142（工具1031905ms）・18JS構文・七言語14957・別権限付きrenderer2086通過。全回帰内の専用48＋監査81＝129。前dh3093から＋49、原TAP test名を重複度込み照合して専用48＋監査1追加/旧test削除0、test-count-reconciliation.jsonへ保存。
+- 専用39群628原486成立・40種18834改変拒否/同値606別計上、実前件91資料への908改変拒否/同値2別計上、旧71担当34506/旧47入力API22842呼出非重複。元2176へ新di68成立/2108非成立（単独16/二節48/三節4）・原三JSON SHA256不変・原associations実変化4。fixture dumpはtestとは別の決定的生成で原test dumpではない。
+- 初回628fixtureの12期待不一致（as不完全訂正を全対象外としたこと、gestureの肯定がunknownになること）は部品/旧理解規則非変更でfixture期待を訂正。初回ソース/結果は別保持。制限内別rendererと元full-30min内rendererのGPU起動失敗/終了2147483651は非置換保持。別権限付きrendererは628原＋1458改変＝2086通過・終了0、八global除去・local/session sentinel不変・保存bridge未定義。元fullのreviewRequired/reading.not_recordedを消さず別成功で完全成功へ昇格しない。開始18source hashは全て不変。
+- 変更は独立部品/fixture/test/smoke、監査登録/監査test、旧12testの横断件数各一行、package新test登録、八文書。保護九ファイル不変・新ゲーム表示文なし・catalog/locale/保存形式/ゲーム呼出非変更。本文集約4e/receipt保存/本接続未採用未実装。unknown72/前156・動的名付け/複数完全名付け等の追加要否/全入口最終分類未完。124枠123確認済み・正式子113・全122登録、最新ao〜dh人間OK・di実装後OK未受領。残3〜4工程・中心3は前回比差分0、完了減算なし。原資料/ログ/九文書baselineはdi-implementation-7b7d578。
+
+以下の実装検証中・未採用は過去状態として保持する。
+
+<a id="diary-incomplete-retraction-materials-di"></a>
+
+##### 4d12di：当時成立していない取り下げ入力の資料保持（2026-10-28・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[di相談案](#diary-incomplete-retraction-materials-di-consultation)の対象・保持方針を個別採用。開始7b7d578、124枠123確認済み・正式子113・全122登録（固定50＋追加72）、最新ao〜dh人間OK・di実装後OK未受領・同じdi継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0。採用だけで必要実装検証・実装後確認待ちを減算しない。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様（検証中）：experimental_word_diary_incomplete_retraction_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=incomplete_retraction_material、occurrenceId=incomplete_retraction_material:原input ID。既存日本語retract_explanationのcorrectionを必須とし全訂正節complete=false・correctsなし/実learning.retractionなし。単独/複数節・複数不完全訂正節、併存de18規則＋greeting_morning/unknown可。一節でも完全な訂正、reply/名付け/語義訂正/df四規則/全節unknown/動的入力は本部品外、追加要否保留。旧4d2成立/既存as/x/aj/ak担当と資料不足拒否を維持する。
+- 原input・全frame/understanding同数対応・index/span・correctionIndices/correctionDetails/他各Indices・各節complete/unresolved・主体/極性/時点/条件状態/roles有無、原result全文/learning/transfer・expression/実reply/実turn.answer有無原値・独立入力前資料・前後state/worldを分離コピー。単独incomplete/複数per_clause。原訂正関係不足/訂正先不足/節scope不足と併存節理解を分離、完全併存節を入力全体理解へしない。
+- 安全整数ID/before.serial+1・scene/話者/locale/時刻・当時basis/実参照根拠・前後validContext/validSelections、コピー上receive/respond全文を照合。実前件なしはなし。存在時はreceipt.antecedentの実result/平坦receiptを別供給し、その全文再生・beforeの直前turn/serial/時刻へ照合。origin連鎖を要求/推定生成しない。欠落/矛盾/競合を補わず拒否する。
+- 原associations実変化とcapture非生成を分離し、その他knowledge・本人/world経験・選択出所・行動状態不変。原records/turn/pending等の実変化は全文照合。一input一資料・同input非増加非上書き・新input別資料・遅延/返却コピー独立・後知識後活動非遡及。訂正先/原名付け/取り下げ成功・旧知識無効化・教示理解成功・本人理解自覚/感情/受諾実行を補わない。新理解規則/他言語文法/scope転移なし。本文集約4e・receipt保存形式・ゲーム本接続未採用未実装。
+- 原資料/九文書baseline/初回fixture期待不一致/工具/検証ログはdocs/.local-history/verification-runs/di-implementation-7b7d578。初回628fixture中12期待不一致は既存asの不完全訂正を全件対象外としたこと、gestureの肯定がunknownへ変わることに由来。部品/旧理解規則非変更でfixture期待を修正し、原結果と初回ソースを別保持。検証確定値は後記する。旧AI旧保存・九見本・星座・対象外%SystemDrive%/非操作非置換非commit。
+
+以下の相談案は採用前原文として保持する。
+
 <a id="diary-incomplete-retraction-materials-di-consultation"></a>
 
 ##### di相談案：当時成立していない取り下げ入力の資料保持（2026-10-26・構想段階・未採用未着手）
