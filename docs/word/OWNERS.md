@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12dk | multiple_complete_namings.create()/capture (3) | [source](../../experimental_word_diary_multiple_complete_namings.js) | [test](../../tests/experimental_word_diary_multiple_complete_namings.test.js) |
+
+- 2026-10-28 dk最終：採用範囲の実装・Codex検証完了。[dk所有仕様](../specs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk)。全Node3203・20JS構文・七言語14957・別権限付きrenderer556通過。専用31＋監査83＝114、22群232原108成立・36種3756改変拒否/同値132別計上・実前件100改変拒否、旧73担当7884/旧47入力API5076呼出は非重複。相談80へ22成立/58非成立（重複あり・固有件数ではない）、元2176へ0成立/2176非成立・原資料hash不変。元fullは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別renderer成功で元runを昇格しない。開始20source hash不変。126枠125確認済み・正式子115・全124登録（固定50＋追加74）、最新ao〜dj人間OK・dk実装後OK未受領・同じdk継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/ログはdk-implementation-10b07ce、読取未検証と発行は現行handoff参照。以下の検証中/未採用は過去状態として保持する。
+
+- 2026-10-28 dk採用：ユーザー「どちらも採用でOKです」で[複数完全名付けの対象・保持方針](../specs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk)を個別採用。experimental_word_diary_multiple_complete_namings.create()/capture(buffer,result,receipt)三引数独立journal、kind=multiple_complete_namingを実装検証中。126枠125確認済み・正式子115・全124登録（固定50＋追加74）、最新ao〜dj人間OK・dk実装後OK未受領・同じdk継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0・採用だけで減算しない。全14保留・各担当三保留・全体未完。以下の未採用は採用前状態として保持する。
+
 - 2026-10-28 dk相談具体化：dj実装後OK確認済み・125枠125確認済み・正式子114・全123登録（固定50＋追加73）を維持。[複数完全名付けの対象・保持方針相談案](../specs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk-consultation)を作成。両方未採用未着手、正式枠/API/kind追加なし。既存73追加担当＋旧47入力APIで80資料を照合し、全節完全名付け22資料は未捕捉（旧8対照から4・新48から14・再教示8から4、重複あり・固有件数ではない）。旧4d5の一意な成立済み名付け、不完全dh、全節unknownのdjを維持。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1、相談一系統の具体化・完了減算0。その他入口0〜1中心0／最終意味照合回帰2を維持、分割/追加要否未決定・中心確度低・終了回数保証なし。全14保留・各担当三保留・全体未完。ゲーム全回帰・監査・実働・renderer再実行なし。以下のdk未選定は相談前状態として保持する。
 
 - 2026-10-28 dj確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」でdba2335のdj採用範囲へ実装後OKと継続/移動の裁量を受領。djは実装・Codex検証・ユーザー実装後OK確認済み。125枠125確認済み・正式子114・最新ao〜dj人間OK・全123登録（固定50＋追加73）。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dkの再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dj)へ進む。dkは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dj確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。今回新たな最終分類ではなく、分割/追加要否未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdj実装後OK未受領は受領前状態として保持する。

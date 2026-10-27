@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdkの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始10b07ce、ユーザー「どちらも採用でOKです」でdkの対象・保持方針を個別採用。experimental_word_diary_multiple_complete_namings.create()/capture(buffer,result,receipt)三引数独立journal、kind=multiple_complete_namingの採用範囲実装・Codex検証完了。同じdk継続・dk実装後OK未受領。126枠125確認済み・正式子115・全124登録（固定50＋追加74）、最新ao〜dj人間OK。再採用確認せず次記号/次チャットを先取りしない。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知→OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk。既存日本語二節以上・全frameがname/name_description/name_answerのnaming・全understandingがkind=naming/complete=true、各節の一意な注目対象と同語対象話者explanation一候補採用を全文照合。原節順/index/span・各節の当時理解/候補採用更新・原result全文/transfer/expression・実reply/実turn.answer有無原値と入力前knowledge/context・前後state/worldを分離コピーしper_clause保持。新理解規則なし。
+実前件なし/実antecedent原resultと平坦receiptを独立再生し直前turn/serial/時刻を照合、活動lastOutput/pendingQuestionと実プレイヤー入力を区別。原関連/records実変化とcapture非生成を分離。不足改変拒否、同input非増加非上書き・新input別資料・返却/遅延コピー独立・後知識後活動非遡及。異名を同義語/正式名/訂正へ、反復を根拠数/本人経験へ補わず、一節を選ばない。旧4d5一意成立・dh不完全・dj全節unknownを維持。混在/他種併存/動的名付け等の追加要否未決定、df184/dg60/dh132/di68・unknown72/前156を候補へ戻さない。
+全Node3203・20JS構文・七言語14957・別権限付きrenderer556通過。専用31＋監査83＝114、22群232原108成立、36種3756改変拒否/同値132別計上・実前件100改変拒否、旧73担当7884/旧47入力API5076非重複。相談80へ22成立/58非成立（重複あり・固有件数ではない）、元2176へ0成立/2176非成立・原資料hash不変。fixture dumpは別決定的生成。前dj3171から新専用31＋監査1追加、原TAP test名の重複度込み照合で旧test削除0。初回専用v1も114通過、name_description/name_answer fixture拡充後v2専用31通過。
+元full-30minは制限内renderer GPU失敗incomplete/exit1、reviewRequired/reading.not_recordedを保持・未実行test/checkなし。別制限内renderer失敗と別権限付きrenderer556成功を区別し元runを昇格しない。専用一時profile/非表示blank server・八global除去・local/session sentinel不変・保存bridge未定義。開始20source hashと保護九ファイル不変。新ゲーム表示文/locale/保存形式/ゲーム本接続非変更。原資料/九文書baseline/工具/全ログはdk-implementation-10b07ce。
+残3〜4工程・暫定中心3、前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。dk確認待ち1／その他入口0〜1中心0／最終意味照合回帰2。追加要否/分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。4e/receipt保存形式/ゲーム本接続未採用未実装。全旧所有節/fixture意味再読・固定50全正規API・全入口最終意味分類・本人日記保存再開配布・実UI音声/実ユーザー保存は未完。旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下のdk未採用は採用前相談として保持する。
+
 ## 同じdkの現行継続文（対象・保持方針相談案・未採用未着手）
 
 ```text

@@ -1,5 +1,20 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-28 dk最終：採用範囲の実装・Codex検証完了。[dk所有仕様](experimental_word_learning.md#diary-multiple-complete-namings-dk)。全Node3203・20JS構文・七言語14957・別権限付きrenderer556通過。専用31＋監査83＝114、22群232原108成立・36種3756改変拒否/同値132別計上・実前件100改変拒否、旧73担当7884/旧47入力API5076呼出は非重複。相談80へ22成立/58非成立（重複あり・固有件数ではない）、元2176へ0成立/2176非成立・原資料hash不変。元fullは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別renderer成功で元runを昇格しない。開始20source hash不変。126枠125確認済み・正式子115・全124登録（固定50＋追加74）、最新ao〜dj人間OK・dk実装後OK未受領・同じdk継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/ログはdk-implementation-10b07ce、読取未検証と発行は現行handoff参照。以下の検証中/未採用は過去状態として保持する。
+
+<a id="diary-multiple-complete-namings-dk"></a>
+
+##### 4d12dk：複数完全名付けの一入力保持（2026-10-28・採用範囲実装検証中）
+
+- ユーザー「どちらも採用でOKです」で[dk相談案](#diary-multiple-complete-namings-dk-consultation)の対象・保持方針を個別採用。開始10b07ce。126枠125確認済み・正式子115・全124登録（固定50＋追加74）、最新ao〜dj人間OK・dk実装後OK未受領・同じdk継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0・採用だけで減算しない。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様（検証中）：experimental_word_diary_multiple_complete_namings.create()/capture(buffer,result,receipt)三引数独立journal、kind=multiple_complete_naming、occurrenceId=multiple_complete_naming:原input ID。既存日本語二節以上・全frameがname/name_description/name_answer由来naming・全understandingがkind=naming/complete=true、各節で一意な注目対象と同語/対象/話者explanation一候補採用が一致する場合を保持。同名反復/異名/三節以上/updated空の再教示を含め、新理解規則なし。
+- 一input一資料で原input/全frame・understanding対応/節順/index/span/各節語と対象候補採用・原learning更新・原result全文/transfer/expression・実reply/実turn.answer有無原値を分離コピー。inputKnowledge/inputContext、前後state/worldと原関連/recordsの実変化を保持し、captureは学習/教示/本人経験/行動を生成変更しない。全体理解を追加せずper_clause、原各節completeを保持。
+- 安全整数ID/before.serial+1・話者/locale/時刻/scene、入力前意味/関係basis、前後validContext/validSelections・原経験参照とコピー上receive/respond全文を照合。実前件なしはなし、存在すれば実antecedent原result/平坦receiptを独立再生しbeforeの直前turn/serial/時刻と一致確認。活動lastOutput/pendingQuestionと実プレイヤー入力を分け、origin連鎖は要求/推定生成しない。不足/改変receiptを拒否。
+- 同input非増加非上書き・新input別資料・返却/遅延コピー独立・後知識後活動非遡及。順番で一節を選ばず、同名反復を根拠数/本人経験数へ、異名を同義語/最終正式名/訂正へ、実replyを全節への回答/本人自己確認/理解自覚/一般名/別個体応用/感情/受諾実行へ補わない。旧4d5一意成立・dh全名付け不完全・dj全節unknownを維持。混在/他種併存/catalogRuleなし動的名付け等の追加要否は未決定。4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 専用fixture/test/非表示隔離renderer・監査とpackage登録を追加、旧横断テストの担当件数だけ追従。確定検証件数は完了後記録する。原資料/九文書baseline/工具/ログはdocs/.local-history/verification-runs/dk-implementation-10b07ce。原文/原資料/失敗中断ログ非削除非置換、旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非commit。
+
+以下の未採用は採用前相談として保持する。
+
 <a id="diary-multiple-complete-namings-dk-consultation"></a>
 
 ##### dk相談案：複数の完全名付けを含む一入力の資料保持（2026-10-28・構想段階・未採用未着手）
