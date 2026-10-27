@@ -1,5 +1,20 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-28 dl最終：採用範囲実装・Codex検証完了。[dl所有仕様](experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl)。全Node3240・21JS構文・七言語14957・別権限付きrenderer2086通過。専用36＋監査84＝120を全回帰に含み、旧test削除0。868原406成立・36種13934改変拒否/同値682別計上・実前件140改変拒否、旧74担当30044/旧47入力API19082非重複。相談1044へ新dl390成立/654非成立、元2176へ0成立・原三JSON hash不変。元fullは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別成功で昇格しない・未実行test/checkなし。127枠126確認済み・正式子116・全125登録、最新ao〜dk人間OK・dl実装後OK未受領・同じdl継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdl-implementation-1497f79、実読取/未検証/発行は現行handoff参照。以下の検証中/未採用は過去状態として保持する。
+
+<a id="diary-mixed-multiple-naming-materials-dl"></a>
+
+##### 4d12dl：複数完全名付けと他節が併存する一入力の保持（2026-10-28・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[dl相談案](#diary-mixed-multiple-naming-materials-dl-consultation)の対象・保持方針を個別採用。開始1497f79。127枠126確認済み・正式子116・最新ao〜dk人間OK・全125登録（固定50＋追加75）。dl実装後OK未受領・同じdl継続。残3〜4工程・暫定中心3、前回比下限/上限/中心差分0・採用だけで完了減算しない。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様（検証中）：experimental_word_diary_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=mixed_multiple_naming_material。既存日本語name/name_description/name_answer由来の完全名付け二節以上に、不完全名付け/他種認識節/unknownが併存する入力。併存認識はde18＋greeting_morning、旧4d2の実reply成立を除外。各完全名付けの一意な注目対象と同語対象話者explanation一候補採用を照合する。
+- 一input一資料・全frame/understanding同数対応・原節順/index/span・完全/不完全名付け/他種/unknownのindices・各名付けの原learningと当時理解/不足を保持。原result全文/transfer/expression/実reply/実turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピーしper_clause、全体理解/一節選択/異名の同義語化/反復の経験数化を補わない。
+- 安全整数ID/before.serial+1・話者/locale/時刻/scene・意味/関係basisと実参照経験・前後validContext/validSelections、コピー上receive/respond全文を照合。実前件なし/実antecedent原resultと平坦receiptを独立再生し直前turn/serial/時刻へ一致確認。活動lastOutput/pendingQuestionと実プレイヤー入力を分け、origin連鎖を要求/推定生成しない。不足改変拒否・同input非増加非上書き・返却/遅延コピー独立・後知識後活動非遡及。
+- 原関連/records/実応答の変化とcapture非生成を区別し、新理解規則/本人経験/命名確認/全節回答/理解自覚/一般名/別個体応用/感情/受諾予約実行を生成しない。旧4d2/4d5/dh/dj/dkと不足receipt拒否を維持。catalogRuleなし動的名付け・訂正/reply・df/語義教示等の他規則混在の追加要否/分割は未決定。4e/receipt保存形式/ゲーム本接続は未採用未実装。
+- 専用fixture/test/非表示隔離renderer、監査/package登録を追加。既存横断testは担当件数だけ追従し旧testを残す。原資料/九文書baseline/工具/ログはdocs/.local-history/verification-runs/dl-implementation-1497f79。確定検証件数は完了後記録する。旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit、原文/原資料/失敗中断ログ非削除非置換。
+
+以下の未採用は採用前相談として保持する。
+
 <a id="diary-mixed-multiple-naming-materials-dl-consultation"></a>
 
 ##### dl相談案：複数の完全名付けと他節が併存する一入力の資料保持（2026-10-28・構想段階・未採用未着手）

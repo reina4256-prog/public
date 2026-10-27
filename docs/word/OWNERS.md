@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-28 dl最終：採用範囲実装・Codex検証完了。[dl所有仕様](../specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl)。全Node3240・21JS構文・七言語14957・別権限付きrenderer2086通過。専用36＋監査84＝120を全回帰に含み、旧test削除0。868原406成立・36種13934改変拒否/同値682別計上・実前件140改変拒否、旧74担当30044/旧47入力API19082非重複。相談1044へ新dl390成立/654非成立、元2176へ0成立・原三JSON hash不変。元fullは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別成功で昇格しない・未実行test/checkなし。127枠126確認済み・正式子116・全125登録、最新ao〜dk人間OK・dl実装後OK未受領・同じdl継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdl-implementation-1497f79、実読取/未検証/発行は現行handoff参照。以下の検証中/未採用は過去状態として保持する。
+
+- 2026-10-28 dl採用：[所有正本](../specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl)の対象・保持方針を個別採用、実装検証中。127枠126確認済み・正式子116・全125登録、最新ao〜dk人間OK・dl実装後OK未受領。残3〜4工程・暫定中心3・前回比差分0、全14保留・各担当三保留・全体未完。以下の未採用は採用前状態。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12dl | mixed_multiple_naming_materials.create()/capture (3) | [source](../../experimental_word_diary_mixed_multiple_naming_materials.js) | [test](../../tests/experimental_word_diary_mixed_multiple_naming_materials.test.js) |
+
 - 2026-10-28 dl：[複数完全名付け＋他節の相談案](../specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl-consultation)へ進む。対象・保持方針は未採用未着手、正式担当/API/kind登録なし。126枠126確認済み・正式子115・全124登録・dk実装後OK維持。旧4d2/4d5/dh/dj/dkの所有を変えず、動的/訂正/他規則混在は追加要否未決定。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1・完了減算0。全14保留・各担当三保留・全体未完。限定照合は意味読了/全入口完了の代用ではない。ゲーム全回帰・監査・実働・renderer再実行なし。以下のdl未選定は相談前状態。
 
 - 2026-10-28 dk確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で2e9437dのdk採用範囲へ実装後OKと継続/移動の裁量を受領。dkは実装・Codex検証・ユーザー実装後OK確認済み。126枠126確認済み・正式子115・最新ao〜dk人間OK・全124登録（固定50＋追加74）。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dlの再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dk)へ進む。dlは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dk確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。今回新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdk実装後OK未受領は受領前状態として保持する。

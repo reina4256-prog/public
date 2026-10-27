@@ -1,5 +1,29 @@
 # 次チャットの開始文
 
+## 同じdlの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始1497f79、ユーザー「はい、どちらもOKです」でdlの対象・保持方針を個別採用。experimental_word_diary_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=mixed_multiple_naming_materialの採用範囲実装・Codex検証完了。同じdl継続・dl実装後OK未受領。127枠126確認済み・正式子116・全125登録（固定50＋追加75）、最新ao〜dk人間OK。再採用確認/次記号/次チャットを先取りしない。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知→OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl。既存日本語name/name_description/name_answerの完全名付け二節以上と、不完全名付け/他種認識節/unknownの併存。併存認識de18＋greeting_morning、旧4d2実reply成立除外。各完全名付けの一意な注目対象と同語対象話者explanation採用を照合し、一input一資料/全節順/index/span/当時理解/不足/各種indices/原learning更新を保持。原result全文/transfer/expression/実reply/実turn.answer有無原値、入力前knowledge/context・前後state/worldを分離コピーしper_clause。新理解規則なし。
+実前件なし/実antecedent原resultと平坦receiptを独立再生し直前turn/serial/時刻へ一致確認。活動lastOutput/pendingQuestionと実入力を分けorigin連鎖を要求/推定生成しない。不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。原関連/records/実応答変化とcapture非生成を分離。一節を選ばず、異名同義語化/反復経験数化/全節回答/本人自己確認/理解自覚/一般名/別個体応用/感情/受諾予約実行を補わない。旧4d2/4d5/dh/dj/dkを維持し不足receiptを救済しない。動的/訂正/reply/df等の追加要否未決定、df184/dg60/dh132/di68・unknown72/前156を候補へ戻さず合算しない。
+全Node3240・21JS構文・七言語14957・別権限付きrenderer2086通過。全回帰内専用36＋監査84＝120、868原406成立・36種13934改変拒否/同値682別計上・実前件140改変拒否、旧74担当30044/旧47入力API19082非重複。相談1044へ新dl390成立/654非成立、元2176へ0成立・原三JSON hash不変。fixture dumpは別決定的生成。過去dk3203から新専用36＋監査1追加、原TAP test名を重複度込み照合して旧test削除0。初回v1は工程表dl行不足で監査74失敗・ゲーム専用失敗0、補修後v2専用34＋監査84＝118通過、別indices/旧4d2とdk境界二testは最終全回帰に含む。
+元full-30minは制限内renderer GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持・未実行test/checkなし。別制限内renderer失敗と別権限付きrenderer2086成功を区別し元runを昇格しない。専用一時profile/非表示blank server・八global除去・local/session sentinel不変・保存bridge未定義。開始21source hash/保護九ファイル不変、新ゲーム表示文/locale/保存形式/ゲーム本接続非変更。原資料/九文書baseline/工具/全ログはdl-implementation-1497f79。
+残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口分類/最終意味照合を減算しない。dl確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、追加要否/分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/保存形式/ゲーム本接続未採用未実装。全旧所有節/fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ、旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の検証中は途中の開始文として保持する。
+
+## 同じdlの現行継続文（採用範囲実装検証中）
+
+```text
+開始1497f79、ユーザー「はい、どちらもOKです」でdlの対象・保持方針を個別採用。mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=mixed_multiple_naming_materialを実装検証中。127枠126確認済み・正式子116・全125登録（固定50＋追加75）、最新ao〜dk人間OK・dl実装後OK未受領・同じdl継続。再採用確認/次記号を先取りしない。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知→OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl。既存日本語name/name_description/name_answer由来の完全名付け二節以上と、不完全名付け/他種認識節/unknownの併存。併存認識de18＋greeting_morning、旧4d2実reply成立除外。各完全名付けの一意な注目対象と同語対象話者explanation一候補採用、原節順/当時理解/不足/候補更新を一input一資料へ分離コピーしper_clause。原result全文/expression/実reply/実turn.answer有無原値と入力前資料/前後state/worldを保持。
+実前件なし/実antecedent平坦receiptと活動出力を区別しコピー上全文再生、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。原関連/records/実応答変化とcapture非生成を分け、一節を選ばず、新理解規則/本人経験/全節回答/本人自己確認/理解自覚/異名同義語化/反復経験数化を補わない。旧4d2/4d5/dh/dj/dkと不足資料拒否を維持。動的/訂正/reply/df等の追加要否未決定、4e/保存形式/ゲーム本接続未採用未実装。
+残3〜4工程・暫定中心3・前回比下限/上限/中心差分0。dl検証/実装後確認待ち1＋その他入口0〜1中心0＋最終意味照合回帰2、採用/Codex検証だけで完了減算しない。追加要否/分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完。確定検証件数・読取/未検証・発行は現行handoff参照。原資料/九文書baseline/工具/原出力はdl-implementation-1497f79。原文/原資料/失敗中断ログ、旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の未採用は採用前相談として保持する。
+
 ## 同じdlの現行継続文（対象・保持方針相談案・未採用未着手）
 
 ```text

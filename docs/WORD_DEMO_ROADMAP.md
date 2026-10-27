@@ -1,5 +1,9 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-28 dl最終：採用範囲実装・Codex検証完了。[dl所有仕様](specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl)。全Node3240・21JS構文・七言語14957・別権限付きrenderer2086通過。専用36＋監査84＝120を全回帰に含み、旧test削除0。868原406成立・36種13934改変拒否/同値682別計上・実前件140改変拒否、旧74担当30044/旧47入力API19082非重複。相談1044へ新dl390成立/654非成立、元2176へ0成立・原三JSON hash不変。元fullは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別成功で昇格しない・未実行test/checkなし。127枠126確認済み・正式子116・全125登録、最新ao〜dk人間OK・dl実装後OK未受領・同じdl継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdl-implementation-1497f79、実読取/未検証/発行は現行handoff参照。以下の検証中/未採用は過去状態として保持する。
+
+- 2026-10-28 dl採用：[対象・保持方針](specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl)を個別採用、採用範囲実装検証中。127枠126確認済み・正式子116・全125登録、最新ao〜dk人間OK・dl実装後OK未受領・同じdl継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで確認待ち/他入口分類/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。以下の未採用は採用前状態。
+
 - 2026-10-28 dl相談：[複数完全名付け＋他節の対象・保持方針](specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl-consultation)を具体化、両方未採用未着手・正式枠/API/kind追加なし。dk実装後OK・126枠126確認済み・正式子115・全124登録維持。限定1044資料の対象案390は既存74追加担当/旧47入力APIで未捕捉（重複あり・固有件数/新部品成立件数ではない）。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1。相談一系統1＋その他入口0〜1中心0＋最終意味照合回帰2、完了減算0・追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。原資料/ログはdl-consultation-f8ad47a、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdl未選定は相談前状態。
 
 - 2026-10-28 dk確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で2e9437dのdk採用範囲へ実装後OKと継続/移動の裁量を受領。dkは実装・Codex検証・ユーザー実装後OK確認済み。126枠126確認済み・正式子115・最新ao〜dk人間OK・全124登録（固定50＋追加74）。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dlの再開点](specs/core/experimental_word_learning.md#diary-entry-remainder-after-dk)へ進む。dlは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dk確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。今回新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdk実装後OK未受領は受領前状態として保持する。
@@ -10,6 +14,7 @@
 
 | 工程 | 部品／API | 所有仕様 |
 | --- | --- | --- |
+| 4d12dl | mixed_multiple_naming_materials.create()/capture(buffer,result,receipt) | [複数完全名付けと他節の併存](specs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl) |
 | 4d12dk | multiple_complete_namings.create()/capture(buffer,result,receipt) | [複数完全名付け](specs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk) |
 
 - 2026-10-28 dk相談具体化：dj実装後OK確認済み・125枠125確認済み・正式子114・全123登録（固定50＋追加73）を維持。[複数完全名付けの対象・保持方針相談案](specs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk-consultation)を作成。両方未採用未着手、正式枠/API/kind追加なし。既存73追加担当＋旧47入力APIで80資料を照合し、全節完全名付け22資料は未捕捉（旧8対照から4・新48から14・再教示8から4、重複あり・固有件数ではない）。旧4d5の一意な成立済み名付け、不完全dh、全節unknownのdjを維持。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1、相談一系統の具体化・完了減算0。その他入口0〜1中心0／最終意味照合回帰2を維持、分割/追加要否未決定・中心確度低・終了回数保証なし。全14保留・各担当三保留・全体未完。ゲーム全回帰・監査・実働・renderer再実行なし。以下のdk未選定は相談前状態として保持する。
