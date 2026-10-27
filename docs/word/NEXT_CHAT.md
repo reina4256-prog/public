@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 同じdlの現行継続文（対象・保持方針相談案・未採用未着手）
+
+```text
+開始f8ad47a、ゲーム実装最新2e9437d。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。dk実装後OK確認済み・126枠126確認済み・正式子115・最新ao〜dk人間OK・全124登録（固定50＋追加74）を維持。同じdlで対象・保持方針の個別採用待ち、両方未採用未着手・正式枠/API/kind追加なし。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。相談正本はspecs/core/experimental_word_learning.md#diary-mixed-multiple-naming-materials-dl-consultation。全過去開始文/全参照の再帰読取なし、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+対象案は既存日本語でname/name_description/name_answer由来の一意な対象・同語対象話者explanation採用が成立した完全名付け二節以上に、不完全名付け/他種認識節/unknownが併存する入力。併存認識はde18＋greeting_morning。旧4d2実reply成立は除外し、一意成立旧4d5・全節完全dk・全名付け不完全dh・全節unknown djを維持。catalogRuleなし動的名付け・訂正/reply・df/語義教示等の他規則混在は含めず追加要否未決定。df184/dg60/dh132/di68・unknown72/前156を候補へ戻さず合算しない。
+保持方針案は一input一独立資料、全frame/understanding対応・原節順/index/span・各節の当時complete/unresolved・原learning候補採用更新・原result全文/transfer/expression/実reply/実turn.answer有無原値と入力前knowledge/context・前後state/worldを分離コピー、per_clause。実前件なし/実antecedent平坦receiptを活動lastOutput/pendingQuestionと区別しコピー上全文再生。不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。反復を根拠数/本人経験、異名を同義語/正式名/訂正へ補わず、一節を選ばない。原関連/records/実応答変化とcapture非生成を分離し、新理解規則なし。
+限定1044資料（前80＋新256＋動的64＋注目不足8＋再教示16＋併存19規則608＋既存形式/実前件12）で74追加担当77256/旧47入力API49068呼出、receive/respond全文/前後validContextとvalidSelections・原資料不変・例外0。対象案390は全未捕捉、旧4d2成立10は除外済み。重複し得る資料件数で固有入力数/網羅数/新部品成立件数ではない。その他未捕捉42は工程数にしない。正規活動の動的二節完全6は追加要否未決定として分離。原六JSON hash不変、原資料/九文書baseline/工具/ログはdl-consultation-f8ad47a。
+残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1。相談一系統1＋その他入口0〜1中心0＋最終意味照合回帰2、完了減算0・必要分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。4e/保存形式/ゲーム本接続未採用未実装。
+ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。過去dk全Node3203/別renderer556と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedは今回成功へ昇格しない。全旧所有節/fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存は未完。原文/原資料/失敗中断ログ、旧AI旧保存/九見本/星座/対象外%SystemDrive%は非操作非置換非commit。採用後は長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdl未選定は相談具体化前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（dk確認済み・次dl未選定未採用）
 
 ```text
