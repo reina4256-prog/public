@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dk確認済み・次dl未選定未採用）
+
+```text
+ゲーム実装最新2e9437d。文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」でdkへ実装後OKと継続/移動の裁量を受領。dkは実装・Codex検証・ユーザー実装後OK確認済み。126枠126確認済み・正式子115・最新ao〜dk人間OK・全124登録（固定50＋追加74）。確認済みdkを再採用確認しない。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。再開正本はspecs/core/experimental_word_learning.md#diary-entry-remainder-after-dk。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+次dlは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。完全/不完全名付け混在・他種認識節/unknown併存・catalogRuleなし動的名付け等の追加要否、全入口最終意味分類は未決定。既存所有条件と正規前提付き資料で照合し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を代行しない。相談80の22成立/58非成立は重複あり・固有件数ではなく58を次の未解決件数にしない。具体対象・保持方針を個別相談し、採用後は長さに無理がなければ同じチャットで実装検証する。
+dkはmultiple_complete_namings.create()/capture(buffer,result,receipt)、kind=multiple_complete_naming。二節以上・全name/name_description/name_answerのnaming・全節kind=naming/complete=true、各節一意な注目対象と同語対象話者explanation一候補採用を保持。一input一資料・原節順/index/span/各節理解/候補採用更新・原result全文/実reply/実turn.answerと入力前資料/前後state/worldを分離コピーしper_clause。実前件なし/実antecedent平坦receiptと活動出力を区別し全文独立再生。不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。反復を根拠数/本人経験へ、異名を同義語/正式名/訂正へ補わず、一節を選ばない。旧4d5一意成立・dh不完全・dj全節unknownを維持、df184/dg60/dh132/di68・unknown72/前156を候補へ戻さず合算しない。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dk確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。今回新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。原資料/九文書baseline/文書検査/発行はdk-acceptance-2e9437d。過去dk全Node3203/20JS構文/七言語14957/別renderer556と元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを今回成功へ昇格せず、未実行test/checkなし。22群232原108成立・36種3756改変拒否/同値132別計上・実前件100改変拒否、旧73担当7884/旧47入力API5076非重複、元2176新dk0成立・原照合二JSON hash不変。fixture dumpは別決定的生成。原相談dk-consultation-ce1a3e7・実装全ログ/開始20source hash/手動レビューdk-implementation-10b07ceを保持。全旧所有節/fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存は未完。旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit、原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下の同じdk継続文は実装後OK受領前の開始文として保持する。
+
 ## 同じdkの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text

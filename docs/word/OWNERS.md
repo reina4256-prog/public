@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-28 dk確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で2e9437dのdk採用範囲へ実装後OKと継続/移動の裁量を受領。dkは実装・Codex検証・ユーザー実装後OK確認済み。126枠126確認済み・正式子115・最新ao〜dk人間OK・全124登録（固定50＋追加74）。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dlの再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dk)へ進む。dlは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dk確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。今回新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdk実装後OK未受領は受領前状態として保持する。
+
 | 工程 | 部品／API | コード | 専用テスト |
 | --- | --- | --- | --- |
 | 4d12dk | multiple_complete_namings.create()/capture (3) | [source](../../experimental_word_diary_multiple_complete_namings.js) | [test](../../tests/experimental_word_diary_multiple_complete_namings.test.js) |
