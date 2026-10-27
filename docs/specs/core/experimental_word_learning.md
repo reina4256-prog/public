@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-multiple-complete-namings-dk-consultation"></a>
+
+##### dk相談案：複数の完全名付けを含む一入力の資料保持（2026-10-28・構想段階・未採用未着手）
+
+- 開始ce1a3e7、ゲーム実装最新dba2335。ユーザーからdj実装後OK確認済み・次dk再開依頼を受領。125枠125確認済み・正式子114・最新ao〜dj人間OK・全123登録（固定50＋追加73）を維持。以下は対象・保持方針の個別相談案で、両方未採用未着手・正式枠/API/kind追加なし。
+- **対象案**：既存日本語の一入力に二節以上あり、全frameがname/name_description/name_answer由来のnaming、全対応understandingがkind=naming・complete=true、各節で入力時の注目個体が一意に採用され、同じ語/対象/話者のexplanation候補が一つ採用された入力。一対象への異なる呼び方、同じ呼び方の反復、三節以上も同じ契約とする案。原learning.updatedが空の再教示も含める。単独/一意な成立済み名付けを保持する旧4d5を変更せず、順番で一節を選ばない。
+- 対象不足・関係不足・候補競合を完全形へ補わず、全名付け不完全はdh、全節unknownはdjの既存帰属を維持する。完全/不完全名付けの混在、他種認識節/unknownとの併存、catalogRuleなし動的名付けは本案に含めず、既存担当成立/資料不足拒否を維持する。それらの追加要否/保持方針は未決定で、永久対象外/全入口完了へ移さない。df184/dg60/dh132/di68・unknown72/前156を新候補へ戻さない。
+- **保持方針案**：独立一時journalへ一input一資料として、原input ID/raw/話者/locale/時刻/scene、全frame/understandingの同数対応・節順/index/span、各節の語/対象候補/採用・当時理解/不足/主体/極性/時点/条件状態/rolesの有無、原learning候補/採用/更新を分離コピーする。原result全文/transfer/expression・実reply/実turn.answerの有無と原値、入力前knowledge/contextと前後state/worldを保持する。複数節の原値を保存し、同じ語を一節に畳まず、異なる語を同義語/最終正式名/訂正関係へ生成しない。
+- 安全整数ID/before.serial+1・話者/locale/時刻/scene、当時の一意な名付け対象/候補採用と前後validContext/validSelections、コピー上receive/respond全文・前後状態を照合する案。実前件なしはなし、存在すれば実antecedent原result/平坦receiptを独立再生しbeforeの直前turn/serial/時刻と照合。活動lastOutput/pendingQuestionと実プレイヤー入力を区別し、origin連鎖を要求/推定生成しない。不足/改変資料は拒否する。
+- 原receiveのassociations/records等の実変化とcaptureの非生成を分け、同じ呼び方の二節でupdated=[1,0]、再教示で[0,0]となる原値を維持する。新しい理解/学習規則を作らず、教示の回数を新しい学習根拠数や本人経験数へ変換しない。実replyが一節のname_echoでも他節への回答/本人自己確認/理解自覚/一般名/別個体応用/感情/受諾実行を補わない。同input非増加非上書き、新input別資料、返却/遅延コピー独立、後知識後活動非遡及。本文集約4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- **今回の限定照合**：前回複数名付け8を全文receive/respond再生し、不完全4はdh・完全4は未捕捉を維持。新48（八設定×単独/異名二節/同名二節/挨拶併存/指示語と既知語名付け/三節）はdh24・旧4d5が10・未捕捉14。注目なし/二候補16は全dh。新input再教示8はdh4・未捕捉4、全8で関連更新なし。全80で前後validContext/validSelections・原result/実reply/前後state/world一致、73追加担当5840＋旧47入力API3760呼出は原資料不変・例外0。
+- 対象案に該当した22資料は上記8から4・新48から14・再教示8から4で全未捕捉。前資料と新資料は重複し得るため、22を固有入力数/網羅数としない。各節で一意なexplanation採用/原語対象一致を照合。新部品は未実装で、これは新部品の成立件数ではない。原六JSON hash不変。固定50全正規API・全別名/組合せ/活動/locale・全入口最終意味分類の完了証明ではない。
+- **工程見積り**：残3〜4工程・暫定中心3、前回dj確認後2〜3中心2から下限/上限/中心＋1。複数完全名付けの相談一系統1を具体化し、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。完了減算0、追加要否/必要分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 原資料/九文書baseline/工具/原出力はdocs/.local-history/verification-runs/dk-consultation-ce1a3e7。ゲームコード/catalog/locale/package/登録/保存形式非変更。ゲーム全回帰・監査・実働・renderer再実行なし、過去dj全Node3171/別renderer733や元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを今回成功へ昇格しない。集計用node -eの初回はPowerShell引用符除去で解析前停止、保存したinspect.cjsで再集計しゲーム失敗と区別。実読取と未読未検証・発行は現行handoff参照。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%を非操作非置換非commit。同じdkで二点の個別採用待ち、採用後は長さに無理がなければ同じチャットで実装検証する。
+
+以下のdk未選定は相談前の再開点として保持する。
+
 <a id="diary-entry-remainder-after-dj"></a>
 
 ##### dj確認後：複数完全名付けほか残入口の再開点（2026-10-28・dk未選定未採用）

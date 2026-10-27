@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 同じdkの現行継続文（対象・保持方針相談案・未採用未着手）
+
+```text
+開始ce1a3e7、ゲーム実装最新dba2335、最新commit/pushはCURRENT_IMPLEMENTATION.md参照。dj実装後OK確認済み・125枠125確認済み・正式子114・最新ao〜dj人間OK・全123登録（固定50＋追加73）維持。同じdkで対象・保持方針の個別採用待ち、両方未採用未着手・正式枠/API/kind追加なし。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。相談正本はspecs/core/experimental_word_learning.md#diary-multiple-complete-namings-dk-consultation。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+対象案は既存日本語の二節以上・全frameがname/name_description/name_answerのnaming・全節kind=naming/complete=true・各節の一意な注目対象と同語対象話者explanation一候補採用。異名/同名反復/三節以上/updated空の再教示を一系統とし、一input一独立資料で原節順/index/span・当時理解・原候補採用更新・原result/expression/実reply/実turn.answerと入力前資料/前後state/worldを分離コピーする案。原関連/record変化をcaptureが生成せず、実前件/活動出力を分けコピー上全文再生。不足/改変を拒否し、同input非増加非上書き・コピー独立・後知識後活動非遡及。順番で一節を選ばず、反復を学習根拠数/本人経験へ、異名を同義語/正式名/訂正へ補わない。旧4d5一意な成立済み名付け・dh不完全・dj全節unknownを維持。
+今回80資料＝前対照8＋新48＋対象不足16＋新input再教示8。全節完全名付け22資料（4/14/4）は未捕捉、集合重複あり・固有件数/新部品成立件数ではない。旧73追加担当5840/旧47入力API3760呼出は原資料不変・例外0、receive/respond全文/前後状態一致・原六JSON hash不変。対象・保持方針未採用未着手。単独/一意成立の旧4d5・全名付け不完全dh・全節unknown djを維持し、混在/動的名付け/他入口追加要否は未決定。df184/dg60/dh132/di68・unknown72/前156を新候補へ戻さない。
+残3〜4工程・暫定中心3、前回dj確認後2〜3中心2から下限/上限/中心＋1、相談一系統1を積上げ・完了減算0。その他入口0〜1中心0／最終意味照合回帰2を維持、追加要否/分割未決定・中心確度低・終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。原資料/九文書baseline/工具/ログはdk-consultation-ce1a3e7。初回集計node -eはPowerShell引用符除去で解析前停止しinspect.cjsへ移行、ゲーム検証失敗と区別。過去dj全Node3171/別renderer733・元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを今回成功へ昇格しない。全旧所有節/fixture意味再読・固定50全正規API・全入口最終意味分類・本人日記保存再開配布・実UI音声/実ユーザー保存は未完。旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit、原文/原資料/失敗中断ログ非削除非置換。採用後は長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdk未選定は相談前の開始文として保持する。
+
+
 ## 次チャットへ貼る開始文（dj確認済み・次dk未選定未採用）
 
 ```text
