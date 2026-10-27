@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 同じdjの現行継続文（全節unknown資料の個別相談中・未採用）
+
+```text
+開始d0495f1、ゲーム実装最新8114ec9、最新文書commit/pushはCURRENT_IMPLEMENTATION.md参照。diは実装・Codex検証・ユーザー実装後OK確認済み。124枠124確認済み・正式子113・最新ao〜di人間OK・全122登録（固定50＋追加72）維持。確認済みdiを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。dj相談正本はspecs/core/experimental_word_learning.md#diary-all-unknown-materials-dj-consultation。既存日本語入力で全節unknown・全節当時complete=falseの単独/複数節を対象とし、原未解析/understanding.kind=partial/utterance不足・原result/learning/transfer/expression/実reply/実turn.answerと独立入力前資料/前後状態を分離保持する案。実前件なし/実antecedent原資料と活動lastOutput/pendingQuestionを区別し、原関連変化を理解/教示成功へ昇格しない。同input非増加非上書き・コピー独立・後知識後活動非遡及・新理解規則なし。対象・保持方針とも未採用未着手・正式枠/API/kind追加なし。同じdjで個別採用待ち、採用後は長さに無理がなければ同じチャットで実装検証。
+unknown72（単独72）と前unknown156（単独84/二節72）は別集合で現receive/respond全文再照合、全件未完理解/原associations実変化・reply=attend、合算しない。正規approach→tick到着→perceive→onArrivalで八設定中二設定にask_name成立、裸の「ころ」二資料はcatalogRuleなし動的naming complete=trueで旧4d5だけが保持。他の裸回答14はunknown。複数名付け8対照は不完全4がdh/完全4未捕捉で、後者の追加要否/保持方針は別途未決定。df184/dg60/dh132/di68を候補へ戻さず、未捕捉だけで追加不要/永久対象外/全入口完了を代行しない。
+72追加担当18144＋旧47入力API11844呼出・例外0・原六JSON hash不変。原資料/九文書baseline/工具/結果はdj-consultation-d0495f1。追加不変検査のunderstanding.kind誤記はpartialへ工具だけ訂正、準備工具storageパス誤記も訂正し失敗原資料を保持。固定50全正規API/全旧所有節fixture意味再読/全別名活動locale/ゲーム日記保存再開配布/実UI音声は未完。今回ゲーム全回帰・監査・実働・renderer再実行なし。過去di全Node3142/七言語14957/別renderer2086と元GPU失敗incompleteを今回成功へ昇格しない。
+残3〜4工程・暫定中心3、前回2〜3中心2から下限＋1/上限＋1/中心＋1。unknown相談1＋その他入口0〜1中心0＋最終意味照合回帰2、完了減算0・分割/追加要否未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完、4e/receipt保存形式/本接続未採用未実装。旧AI旧保存・九見本・星座・対象外%SystemDrive%非操作非置換非commit、過去原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下の次チャット開始文はdj相談前の状態として保持する。
+
 ## 次チャットへ貼る開始文（di確認済み・次dj未選定未採用）
 
 ```text

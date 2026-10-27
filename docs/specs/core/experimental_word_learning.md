@@ -1,5 +1,21 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-all-unknown-materials-dj-consultation"></a>
+
+##### dj相談案：全節がunknownだった入力の資料保持（2026-10-28・構想段階・未採用未着手）
+
+- **現在地**：開始d0495f1、ゲーム実装最新8114ec9。diは実装・Codex検証・ユーザー実装後OK確認済み。124枠124確認済み・正式子113・最新ao〜di人間OK・全122登録（固定50＋追加72）を維持。djの対象・保持方針を以下の二点で個別相談する。両方未採用未着手、正式枠/API/kind追加なし。以下のdj未選定は相談前状態として保持する。
+- **対象案**：既存日本語入力の実receive結果で、一節以上あり全interpretationsがkind=unknown、全understandingsが当時complete=falseである単独/複数節入力を一系統の資料として保持する。原understandingはkind=partial・utterance不足を含む実値であり、unknownという理解kindを作らない。少なくとも一つ認識節がある形、動的に成立した名付け、複数完全名付け、既存担当に成立する資料は含めない。df184/dg60/dh132/di68を新候補に戻さない。対象外入口の追加要否は永久対象外へ決定しない。
+- **保持方針案**：独立一時journalで原input ID/raw/話者/locale/時刻/scene、節順・index/span、原解析と各節の当時理解/不足/主体/極性/時点/条件状態/roles有無を分離コピーする。原result全文（learning/transfer/expression等）・実reply・実turn.answerの有無と原値、入力前knowledge/contextと前後state/world、原associationsの候補/更新/実変化を保持する。原関連変化を語義/教示/理解成立へ昇格しない。安全整数IDとbefore.serial+1、当時資料・validContext/validSelections、コピー上のreceive/respond全文・前後状態を照合し、不足/改変receiptは救済しない。実直前入力がなければなし、存在すれば実antecedentの原result/平坦receiptとbeforeの直前turn/serial/時刻を照合する案。活動からのlastOutput/pendingQuestionは入力前の実資料として分け、プレイヤー入力や成功した名付けを推定生成しない。origin連鎖は要求/推定生成しない。
+- 同input再受信/再読は非増加非上書き、新inputは別資料。返却/遅延コピー独立・後知識/後活動非遡及。captureがknowledge/関連/経験/行動/選択出所を生成変更せず、当時の未解析を本人の理解自覚・感情・受諾実行・取り下げ成功へ読み替えない。新文法/理解習得規則・保存形式・本文集約・ゲーム本接続を追加しない。実装時の専用fixtureで複数節/実前件/活動出力/コピー独立/後知識非遡及/改変拒否を検証する必要がある。
+- **今回の限定照合**：unknown72（単独72）と前unknown156（単独84/二節72）を別集合のまま現receive/respond全文・前後state/worldへ一致確認。各々72/156件とも全節未完理解・原associations実変化あり、reply=attend。その他meanings/relations/relationEvidence、records/experiences/selectionSources/correctionLessons/feelingLearning、worldのmode/destination/attention/activityStart/reasons/experiencesは不変。両集合を合算した固有件数/網羅数とはしない。新部品の成立件数でもない。
+- **正規名付け対照**：八設定でapproach→tickの実到着→perceive→onArrivalからask_nameを生成（foundationあり/shortの二設定だけ）。pendingQuestion直接代入なし。各設定の「ころ」「木の実」16資料では「ころ」の二資料がcatalogRuleなし動的naming・complete=trueとなり旧4d5だけが保持、他14はunknown。正規ask_nameでも既知語の裸の「木の実」はunknownであり理解を補わない。二節完全名付けの別対照8ではfoundationなし4がdh、あり4は両節complete=trueでも未捕捉。後者の追加要否/保持方針は別の未決定事項として残し、dhへ救済しない。動的名付け全般の追加不要/全入口完了判定ではない。
+- 上記資料への72追加担当18144＋旧47入力API11844呼出は原資料不変・例外0。原六JSON SHA256不変。呼出件数は二集合と24対照を実際に処理した工具の操作数であり、unknownの固有件数合算ではない。固定50全正規API/全別名/全活動/全localeの完了証明ではない。ゲーム全回帰・監査・実働・renderer再実行なし。
+- **工程見積り**：残3〜4工程・暫定中心3、前回2〜3中心2から下限＋1/上限＋1/中心＋1。unknown相談一系統1を積上げ、複数完全名付け等のその他入口0〜1中心0、最終意味照合回帰2を保持。完了減算0、分割/追加要否未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/本接続未採用未実装。
+- 原資料・当回九文書baseline/工具/結果はdocs/.local-history/verification-runs/dj-consultation-d0495f1。追加不変検査の初回はunderstanding.kindをunknownと誤記して停止、実値partialへ工具だけ訂正して再実行。準備工具の旧storageパス誤記もコード変更前に停止し訂正。失敗工具/原ログを別保持する。過去原文/原資料/失敗中断ログ、旧AI旧保存・九見本・星座・対象外%SystemDrive%を非操作非置換非commit。実読取/未読未検証と発行は現行handoff参照。同じdjで対象・保持方針の個別採用待ち。採用後は長さに無理がなければ同じチャットで実装検証する。
+
+以下はdj相談前の再開点として保持する。
+
 <a id="diary-entry-remainder-after-di"></a>
 
 ##### di確認後：残るunknown・名付けほか入口の再開点（2026-10-28・dj未選定未採用）
