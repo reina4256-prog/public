@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-28 dm最終：採用範囲実装・Codex検証完了。[dm所有仕様](../specs/core/experimental_word_learning.md#diary-dynamic-multiple-complete-namings-dm)。全Node3262・22JS構文・七言語14957・別権限付きrenderer444通過。専用21＋監査85＝106を全回帰に含み、前dl3240から新専用21＋監査1追加・原TAP test名を重複度込み照合して旧test削除0。330原資料38成立・32種1203改変拒否/同値13別計上・実前件75改変拒否、旧75担当2850/旧47入力API1786呼出非重複。相談372へ新dm33成立/339非成立・元2176へ0成立/原二JSON hash不変。fixture dumpは別決定的生成。元full-30minは制限内renderer GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持。別制限内失敗と別権限付きrenderer成功を区別し、別成功で元runを昇格しない。未実行test/checkなし。128枠127確認済み・正式子117・全126登録（固定50＋追加76）、最新ao〜dl人間OK・dm実装後OK未受領・同じdm継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、Codex検証だけで確認待ち/他入口追加要否/最終意味照合を減算しない。dm確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、分割/追加要否未決定・中心確度低・上限終了回数保証なし。全14保留・各担当三保留・全体未完。原資料/全ログはdm-implementation-618f781、実読取/未検証/発行は現行handoff参照。以下の検証中/未採用は過去状態として保持する。
+
+- 2026-10-28 dm採用：ユーザー「はい、どちらもOKです」で[対象・保持方針](../specs/core/experimental_word_learning.md#diary-dynamic-multiple-complete-namings-dm)を個別採用、dynamic_multiple_complete_namings.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。128枠127確認済み・正式子117・全126登録（固定50＋追加76）、最新ao〜dl人間OK・dm実装後OK未受領・同じdm継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・全体未完。旧4d2/4d5/dh/dj/dk/dl所有と不足receipt拒否を維持。他規則混在等の追加要否/分割未決定、4e/保存形式/ゲーム本接続未採用未実装。以下の未採用は採用前状態。
+
+| 工程 | 部品／API | source | test |
+| --- | --- | --- | --- |
+| 4d12dm | dynamic_multiple_complete_namings.create()/capture (3) | [source](../../experimental_word_diary_dynamic_multiple_complete_namings.js) | [test](../../tests/experimental_word_diary_dynamic_multiple_complete_namings.test.js) |
+
 - 2026-10-28 dm：[活動の名前問いから成立する複数完全名付けの相談案](../specs/core/experimental_word_learning.md#diary-dynamic-multiple-complete-namings-dm-consultation)。対象・保持方針とも未採用未着手、正式担当/API/kind登録なし。旧4d2/4d5/dh/dj/dk/dlの所有条件と不足receipt拒否を維持する。75追加担当/旧47入力API限定横断は全所有仕様の意味読了や固定50全API/全入口最終分類の代用ではない。127枠127確認済み・正式子116・全125登録、残3〜4工程・暫定中心3・前回比下限/上限/中心＋1・完了減算0、全14保留・各担当三保留・全体未完。以下のdm未選定は相談前状態。
 
 - 2026-10-28 dl確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします。」でc819c1bのdl採用範囲へ実装後OKと継続/移動の裁量を受領。dlは実装・Codex検証・ユーザー実装後OK確認済み。127枠127確認済み・正式子116・最新ao〜dl人間OK・全125登録（固定50＋追加75）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dmの再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dl)へ進む。dmは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dl確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdl実装後OK未受領は受領前状態として保持する。

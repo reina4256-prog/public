@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 同じdmの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始618f781、ユーザー「はい、どちらもOKです」でdmの対象・保持方針を個別採用。experimental_word_diary_dynamic_multiple_complete_namings.create()/capture(buffer,result,receipt)三引数独立journal、kind=dynamic_multiple_complete_namingの採用範囲実装・Codex検証完了。128枠127確認済み・正式子117・全126登録（固定50＋追加76）、最新ao〜dl人間OK・dm実装後OK未受領・同じdm継続。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。再採用確認/次記号/次チャットを先取りしない。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知/OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-dynamic-multiple-complete-namings-dm。日本語一入力の全節が二節以上の完全namingで実活動ask_name/pending由来catalogRuleなし節を含む。他節は既存name/name_description/name_answer。各節の一意注目対象・同語対象話者explanation一候補採用を照合、文字面「未知」も原namingを保持する。
+一input一資料、全節順/index/span/当時理解不足/動的indices/原learning・原result全文/transfer/expression/実reply/turn.answer有無原値・入力前knowledge/context/前後state/worldを分離コピーしper_clause。実活動ask_nameの出所/期限/対象/到着根拠と実入力前件を分け、実前件ありだけ平坦receipt独立再生し直前turn/serial/時刻照合。不足改変拒否・同input非増加非上書き・返却遅延コピー独立・後知識後活動非遡及。全節回答/本人理解自覚/同義語化/一般名/別個体応用/感情/受諾予約実行/本人経験を補わない。
+原資料/九文書baseline/開始21source/hash/工具/全ログはdm-implementation-618f781、採用前相談はdm-consultation-1844d66。全Node3262・22JS構文・七言語14957・別権限付きrenderer444通過。専用21＋監査85＝106を全回帰に含み、前dl3240から新専用21＋監査1追加・原TAP test名を重複度込み照合して旧test削除0。330原資料38成立・32種1203改変拒否/同値13別計上・実前件75改変拒否、旧75担当2850/旧47入力API1786呼出非重複。相談372へ新dm33成立/339非成立・元2176へ0成立/原二JSON hash不変。fixture dumpは別決定的生成。元full-30minは制限内renderer GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持。別制限内失敗と別権限付きrenderer成功を区別し、別成功で元runを昇格しない。未実行test/checkなし。初回106中二失敗と補修後v2成功、後追加の活動出力全文再生対照を最終全回帰へ含む経緯を全原ログへ保持。開始22source/hash不変・保護九ファイルHEAD一致。表示文/locale/保存形式/ゲーム本呼出非変更。旧4d2/4d5/dh/dj/dk/dl維持・他種不完全unknown/訂正reply/df/語義教示/他localeの追加要否分割未決定。df184/dg60/dh132/di68・unknown72/前156を候補へ戻さず合算しない。
+残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用/Codex検証だけで実装後確認待ちや他入口最終分類を減算しない。dm確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。全旧所有節/fixture意味再読・固定50全正規API・全入口最終意味分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下は採用前の開始文として保持する。
+
 ## 同じdmの現行継続文（対象・保持方針相談案・未採用未着手）
 
 ```text

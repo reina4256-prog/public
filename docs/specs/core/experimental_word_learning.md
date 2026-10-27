@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-dynamic-multiple-complete-namings-dm"></a>
+
+##### 4d12dm：活動の名前問いから成立する複数完全名付け（2026-10-28・採用範囲実装・Codex検証完了）
+
+- ユーザー「はい、どちらもOKです」で[dm相談案](#diary-dynamic-multiple-complete-namings-dm-consultation)の対象・保持方針を個別採用。開始618f781。128枠127確認済み・正式子117・全126登録（固定50＋追加76）、最新ao〜dl人間OK・dm実装後OK未受領・同じdm継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・全体未完。
+- 現在の実装仕様：experimental_word_diary_dynamic_multiple_complete_namings.create()/capture(buffer,result,receipt)三引数独立journal、kind=dynamic_multiple_complete_naming。日本語一入力の全節が二節以上の完全namingで実活動ask_name由来catalogRuleなし節を一つ以上含み、他節は既存name/name_description/name_answer。各節の一意注目対象・同語対象話者explanation一候補採用を照合する。
+- 全節順/index/span/当時理解不足/動的・既存形式indices/原learning・原result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。動的成立のpendingQuestionと実活動lastOutput/source/response・到着event/時刻/対象/移動履歴を別照合保持し、活動の問いを実入力前件にしない。実前件なし/実antecedent平坦receipt再生・直前turn/serial/時刻照合、意味/関係basis・実参照経験・validContext/validSelections・receive/respond全文一致。不足改変拒否・同input非増加非上書き・返却遅延コピー独立・後知識後活動非遡及。
+- 原関連/records/実応答の変化とcapture非生成を分離し、同語を畳まず文字面「未知」の原namingを保持。全節回答/本人理解自覚/異名同義語化/一般名/別個体応用/感情/受諾予約実行/本人経験を補わない。旧4d2/4d5/dh/dj/dk/dl所有と不足receipt拒否を維持。他種/不完全/unknown併存・訂正/reply/df/語義教示/他localeの追加要否/分割は未決定。4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 新module/fixture/test/smokeと監査/package登録を追加。既存横断testは担当件数のみ追従し旧testを残す。表示文/locale/保存形式/ゲーム本呼出非変更。原資料/九文書baseline/開始21source/hash/工具/全ログはdocs/.local-history/verification-runs/dm-implementation-618f781。検証確定値は以下に記録する。
+
+- 最終検証：全Node3262・22JS構文・七言語14957・別権限付きrenderer444通過。専用21＋監査85＝106を全回帰に含み、前dl3240から新専用21＋監査1追加・原TAP test名を重複度込み照合して旧test削除0。330原資料38成立・32種1203改変拒否/同値13別計上・実前件75改変拒否、旧75担当2850/旧47入力API1786呼出非重複。相談372へ新dm33成立/339非成立・元2176へ0成立/原二JSON hash不変。fixture dumpは別決定的生成。元full-30minは制限内renderer GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持。別制限内失敗と別権限付きrenderer成功を区別し、別成功で元runを昇格しない。未実行test/checkなし。初回専用＋監査106の二失敗（移動先と注目個体の混同/固定PLACES外fixture）を訂正し、別v2は106通過。v2後の活動出力全文コピー上onArrival再生と四改変対照も最終全回帰に含む。原失敗/途中/成功ログは非置換保持。開始22source/hash不変・保護九ファイルHEAD一致。七browser＋fixture/smoke静的33依存hash・手動境界確認と実読取/未読を別記し、hash/登録/通過を全依存意味読了へ昇格しない。
+
+以下は採用前の相談案として保持する。
+
 <a id="diary-dynamic-multiple-complete-namings-dm-consultation"></a>
 
 ##### dm相談案：活動の名前問いから成立する複数完全名付けの保持（2026-10-28・構想段階・未採用未着手）
