@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dj確認済み・次dk未選定未採用）
+
+```text
+ゲーム実装最新dba2335。文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」でdba2335のdj採用範囲へ実装後OKと継続/移動の裁量を受領。djは実装・Codex検証・ユーザー実装後OK確認済み。125枠125確認済み・正式子114・最新ao〜dj人間OK・全123登録（固定50＋追加73）。確認済みdjを再採用確認しない。長い全回帰後の区切りとして次の採用相談前で次チャットへ移す。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。再開正本はspecs/core/experimental_word_learning.md#diary-entry-remainder-after-dj。全過去開始文/全参照を毎回再帰読取せず、原文保持/構造一致/意味読了/人間OKを分け、実読取と未読未検証を記録する。
+次dkは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。複数完全名付け等の追加要否・全入口最終意味分類を既存所有条件と正規前提付きfixtureで照合する。複数名付け8対照は不完全4がdh/両節完全4未捕捉、後者の追加要否/保持方針未採用。一意な成立済み名付けと資料不足拒否を維持し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を代行しない。具体対象・保持方針は個別相談、採用後は長さに無理がなければ同じチャットで実装検証する。
+djはexperimental_word_diary_all_unknown_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=all_unknown_material。全節unknown/当時complete=falseの単独複数節だけを保持し、原understanding.kind=partial/utterance不足・原result/learning/transfer/expression/実reply/実turn.answerと入力前資料/前後state/world・節index/spanを分離。実前件なし/実antecedent原result・平坦receiptと活動lastOutput/pendingQuestionを区別。原関連実変化とcapture非生成を分け、新理解規則/教示成功/理解自覚/感情/受諾実行を補わない。同input非増加非上書き・コピー独立・後知識後活動非遡及。unknown72/前156は各々dj保持済み・合算せず新候補へ戻さない。df184/dg60/dh132/di68も候補へ戻さない。正規活動ask_name後の動的名付け二資料は旧4d5、他の裸回答14はunknownでdj保持。動的名付け全般の追加不要判定ではない。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dj確認待ち1だけ差引き、その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2を維持。今回新たな最終分類ではなく、分割/追加要否未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。原資料/九文書baseline/検査/発行はdj-acceptance-dba2335。原相談dj-consultation-d0495f1、実装全原ログ/開始19source hash/手動レビューdj-implementation-81959cbを保持。過去全Node3171/19JS構文/七言語14957/別renderer733、元full GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを今回成功へ昇格せず、未実行test/checkなし。専用28＋監査82＝110、21群232原167成立・36種5980改変拒否/同値32・実前件80改変拒否、旧72担当12024/旧47入力API7849非重複、元2176へ新dj72成立/2104非成立・原六JSON hash不変。fixture dumpは別決定的生成。初回fixture話者期待/監査参照失敗・工具のUTF-16読取訂正と原ログを非置換保持。全旧所有節/fixture意味再読・固定50全正規API・全入口最終意味分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存・九見本・星座・対象外%SystemDrive%非操作非置換非commit、原文/原資料/失敗中断ログ非削除非置換。
+```
+
+以下の同じdj継続文は実装後OK受領前の開始文として保持する。
+
+
 ## 同じdjの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
