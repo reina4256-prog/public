@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-entry-remainder-after-dp"></a>
+
+##### dp確認後：他規則混在・他localeほか残入口の再開点（2026-10-28・dq未選定未採用）
+
+- ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で4970a55のdp採用範囲へ実装後OKと継続/移動の裁量を受領。dpは実装・Codex検証・ユーザー実装後OK確認済み。131枠131確認済み・正式子120・最新ao〜dp人間OK・全129登録（固定50＋追加79）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdpを再採用確認しない。
+- 次dqは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。既存所有条件と正規前提付き資料から追加要否/保持方針を個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を代行しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+- [dp所有正本](#diary-multiple-naming-incomplete-response-materials-dp)の完全名付け二節以上＋原correction/実confirm_name由来原replyの不完全理解を保持する。原kind=partial・clause_scope不足を補わず、原名付けと直前確認入力の別照合・動的名付けの活動出所・回復説明の実直前休息理解を維持。旧4d2/4d5/as/dk/dl/dm/dn/do/dh/di/dj/df所有と不足receipt拒否を維持する。語義教示/語義訂正/word_reference等別原frame・他locale追加要否/分割・全入口最終意味分類は未決定。今回新たな資料再照合は行っていない。
+- 相談804への243成立/561非成立（原selected233＋採用済みde18内三規則の抽出漏れ10）、専用fixture816原253成立、補足16成立/turn.answer有り0を固有数/網羅数/次の未解決集合/工程数へ変換しない。原selected/原資料を非変更保持。許可規則は単独generic解析から推定せず採用済み明示一覧を使う。前do1969へのdp6/旧do373と重複0、元2176への0成立は別比較で合算しない。df184/dg60/dh132/di68・unknown72/前156・dm33を次候補へ戻さず合算しない。
+- 残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dp確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 今回は確認/文書のみ、receive/respond再照合・79担当/旧47入力API横断・ゲーム全回帰/監査/実働/renderer再実行なし。過去dp全Node3358/25JS構文/七言語14957/権限付き隔離renderer1575を今回成功へ昇格しない。元full全29検査passedと静的reviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。全旧所有節/fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。
+- 原相談dp-consultation-e7ea73f、実装/原ログ/全回帰開始25JS hash/手動レビューdp-implementation-42cd6dbを非変更保持。今回開始十文書baseline/34source hash/文書検査/発行はdp-acceptance-4970a55。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。実読取/未検証/発行は現行handoff参照。
+
+以下のdp実装後OK未受領は受領前状態として保持する。
+
 - 2026-10-28 dp最終：[採用範囲](#diary-multiple-naming-incomplete-response-materials-dp)の実装・Codex検証完了。全Node3358・25JS構文・七言語14957・権限付き隔離renderer1575通過。専用27＋監査88＝115、前do3330から＋28・旧test削除0。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録、dp実装後OK未受領・同じdp継続。残3〜4工程・暫定中心3・前回比差分0、確認待ち/他入口/最終照合は減算しない。全14保留・各担当三保留・全体未完。元full全29検査passedだがreviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。以下の実装検証中/未採用は途中/過去状態として保持する。
 
 <a id="diary-multiple-naming-incomplete-response-materials-dp"></a>
