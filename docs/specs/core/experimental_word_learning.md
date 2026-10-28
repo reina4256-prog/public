@@ -1,5 +1,26 @@
 # 言葉の経験学習・比較実験版
 
+
+<a id="diary-dynamic-mixed-multiple-naming-materials-dn-consultation"></a>
+
+##### dn相談案：動的な複数完全名付けと他節が併存する入力の保持（2026-10-28・構想段階・未採用未着手）
+
+- 開始c6f7d3c、ゲーム実装最新bf652da。dm実装後OK確認済みを維持し、dnの対象・保持方針を相談案として具体化した。両方未採用未着手・正式枠/API/kind追加なし。128枠128確認済み・正式子117・最新ao〜dm人間OK・全126登録（固定50＋追加76）を維持する。
+- **対象案**：既存日本語一入力に二節以上の完全namingがあり、そのうち一節以上が実活動ask_nameと当時のpendingQuestionに基づくcatalogRuleなし動的名付けで、さらに不完全名付け・他種認識節・unknownが併存する資料。各完全名付けは当時の一意な注目対象・同語/対象/話者のexplanation一候補採用に一致すること。動的節の対象はpending.targetと一致し、他の名付け形式は既存name/name_description/name_answerだけとする案。
+- 併存認識節は[dlと同じde18規則＋greeting_morning](#diary-mixed-multiple-naming-materials-dl-consultation)に限定する。全節順・同名反復・異名・三節以上・動的と既存形式の前後順を保持し、unknownは原frameがunknownの時だけとする。例えば実到着後の「ころ\nぽぽ\nおはよう」「おはよう\nころ\nぽぽ」「ころ\nぽぽ\n木の実をももって呼ぼう」。最後の名付けが当時不完全な場合も、先の二節の成立と分けて残す。
+- 旧4d2の実reply成立・旧4d5の一意成立・全節既存形式完全dk・既存形式複数完全＋他節dl・全節完全の動的dm・全名付け不完全dh・全節unknown djを維持し、不足receiptを新担当で救済しない。correction/reply、df四規則、語義教示/訂正等の**原frameが別規則の混在**、他localeの追加要否/分割は未決定。文字面「うん」「ぽぽは休むことだよ」でも当時unknownならunknownを保持し、返答理解や語義教示へ分類し直さない。逆に原namingの「未知」はunknownにしない。df184/dg60/dh132/di68・unknown72/前156・dm成立33を新候補へ戻さず合算しない。
+- **保持方針案**：独立一時journalへ一input一資料。原ID/raw/話者/locale/時刻/scene、全frame/understanding同数対応・節順/index/span、完全/不完全名付け・動的/既存形式・他種/unknownのindices、各節の当時理解/不足・主体/極性/時点/条件・原learningを分離コピーする。原result全文/transfer/expression・実reply・実turn.answer有無/原値・入力前knowledge/context・前後state/worldを保持し、全体理解は追加せずper_clause。同語を畳まず、異名を同義語/正式名/訂正へ生成しない。
+- dm同様に実活動ask_nameのlastOutput/source/response・pendingの話者/期限/対象・到着event/時刻/移動履歴を照合し、コピー上onArrivalの実response・出力全文・pending再生を確認する案。場所destinationと注目個体targetを分ける。活動の問いは実入力前件にしない。実前件なしはなし、存在時だけ実antecedent原result/平坦receiptを独立再生し直前turn/serial/時刻へ照合する。origin連鎖は要求/推定生成しない。
+- 安全整数ID/before.serial+1・原入力・意味/関係basisと実参照経験・前後validContext/validSelections・コピー上receive/respond全文を照合し、不足/改変を拒否する。同input非増加非上書き、新input別資料、返却/遅延コピー独立、後知識後活動非遡及。原関連/records/実応答の変化とcapture非生成を分離し、全節回答/本人理解自覚/一般名/別個体応用/本人経験/感情/共同参加/受諾予約実行/条件成立を補わない。4e/receipt保存形式/ゲーム本接続は未採用未実装。
+- **限定照合**：711＋追加620＝1331資料でreceive/respondの原result・実reply・前後state/world全文一致、前後validContext/validSelections、76追加担当101156＋旧47入力API62557呼出・例外0。対象案112＝前dm372中10＋新到着272中16＋実入力前件22中12＋19併存規則608中71＋既存形式等12中3は全既存担当非捕捉。全112の一意名付け・活動出力再生・意味/関係basisを確認、実前件12は平坦資料を独立再生。不完全名付け併存1を含む。19規則対照の旧4d2成立9は除外、前dm成立33はdm帰属を維持。
+- 実replyはname_echo92/good_morning10/see_berry4/その他各1の6種で、原実replyを名付け全節への回答にしない。112では本人/world経験・選択出所・活動mode/destination/attention/activityStart/reasons不変を別確認。1331/112は重複し得る資料件数で固有入力数/網羅数/新部品成立件数/未解決工程数ではない。残1219を次の未解決集合にしない。開始22source hashと旧六JSON hash不変。
+- **工程見積り**：残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1、完了減算0。dn相談一系統1／その他入口追加要否0〜1中心0／最終意味照合回帰2を分ける。追加要否/分割・全入口最終意味分類未決定、中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 原資料/開始文書baseline/工具/全出力はdocs/.local-history/verification-runs/dn-consultation-c6f7d3c。初回711の出力はv1として保持し、活動再生検査をresponse/pendingまで強化したv2と追加620を今回の根拠とする。ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。過去dm成功と元full制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを今回結果へ昇格しない。実読取/未読未検証・文書検査/発行は現行handoff参照。同じdnで対象・保持方針の個別採用待ち、採用後は長さに無理がなければ同じチャットで実装検証する。
+
+以下のdn未選定は今回相談前の状態として保持する。
+
+
+
 <a id="diary-entry-remainder-after-dm"></a>
 
 ##### dm確認後：他節併存・他規則混在ほか残入口の再開点（2026-10-28・dn未選定未採用）
