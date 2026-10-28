@@ -106,7 +106,7 @@ test('noncontrast journal rejects malformed, cyclic, non-JSON and unsafe identif
 });
 test('83 prior supplemental and 47 older input contracts retain noncontrast report boundaries', () => {
     const audit = require('../scripts/experimental/diary_audit');
-    const owners = audit.supplementalInventory().filter(o => o.id !== '4d12du'); assert.equal(owners.length, 83);
+    const owners = audit.supplementalInventory().filter(o => o.id !== '4d12du'); assert.equal(owners.length, 84);
     const legacy = audit.inventory().filter(o => !['4d1', '4d3', '4d4'].includes(o.id)).map(o => {
         const old = require('../' + o.file), params = /function capture\(([^)]*)\)/.exec(old.capture.toString())[1].split(',').map(p => p.trim());
         assert.equal(params.length, o.arity); return { ...o, old, params };

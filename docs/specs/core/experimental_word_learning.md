@@ -1,5 +1,33 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-explicit-naming-report-materials-dv-verified"></a>
+
+##### 4d12dv：既存形式の名付けと非対比報告の併存資料（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_explicit_naming_report_materials.create()/capture(buffer,result,receipt)、kind=explicit_naming_report_material。[採用範囲](#diary-explicit-naming-report-materials-dv)を実装検証した。137枠136確認済み・正式子126・全135登録（固定50＋追加85）、最新ao〜du人間OK・dv実装後OK未受領・同じdv継続。残3〜4工程・暫定中心3・採用時から差分0、全14保留・各担当三保留・全体未完。
+- 日本語既存三形式の原naming一節以上＋contrastなしのfeeling_report/external_event_report一節以上、当時完全／未理解双方、完全名付け0節又は複数節、併存原unknownのみ。完全一節旧4d5、旧ai/dk/dl/do/dp/du/4d2等と不足receipt拒否を維持。動的／個体語義参照／教示訂正／correction/reply／他規則／他locale追加要否・分割は未決定。原unknownを修復しない。
+- 全節順/index/span/不足・namingIndices/completeNamingIndices/incompleteNamingIndices/namingSourcesと報告indices、原result/learning/transfer/expression、実reply/turn.answer有無、入力前knowledge/context/feelingLearning・前後state/worldを一input一資料/per_clauseへ分離コピー。名付け候補／原採用／updatedと報告subject／時点／reportSource/testimony有無を分離し、コピー上receive/respond・前後validContext/validSelectionsと完全名付け各節の原一意候補／対象／話者／explanationを照合。実前件ありだけ平坦原資料／直前turn/IDを別再生し、不足改変矛盾拒否・同input非増加非上書き・返却／遅延コピー独立・非遡及を維持する。
+- 新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。新module/fixture/test/隔離smokeと監査/packageへ登録。旧25横断testは担当数期待83→84だけ、監査は担当数84→85と一検査追加、旧テスト名・旧npmコマンドを保持。core/world/catalog/locale/保存形式／ゲーム本呼出非変更、新ゲーム表示文なし。
+- 専用25＋監査94＝119、全Node3532・31JS構文・七言語チェック・別権限付き隔離renderer754（241原＋513改変）通過。旧3506へ専用25＋監査1の計26追加、旧TAP名を重複度込み保持・削除0を最終文書検査で確認。専用241原171成立、29種4959改変拒否／同値0、名付けlearning894・実前件61改変拒否、旧84担当14364／旧47入力API8037非重複。
+- 相談原170へ実capture102成立／68非成立・原JSON SHA256=40daeae9b552cd48cb94e7647f1a46fb0091d4737dbe23da6932530daefcaa6b不変。別決定的fixture dumpをテスト実行プロセスの原dumpへ昇格せず、件数を固有数／網羅数／次未解決集合へ変換せず合算しない。旧47はbeforeReports/beforeReceipts明示空の既存adapter限定、固定50全正規API完全供給ではない。
+- 元full-30minは35検査中34通過／1不通過、status=incomplete。不通過は制限内rendererのGPU process isn't usable／終了2147483651。未実行検査／testなし、reviewRequired=["scripts/experimental/diary_explicit_naming_report_material_smoke.js"]・reading.status=not_recordedを非置換保持。別renderer成功／手動範囲確認を元runの成功や全依存意味読了にしない。 別rendererは非表示blank server／専用一時profile、八global除去・local/session dv-sentinel不変・保存bridge未定義。実UI音声／実ユーザー保存／本人日記保存再開配布は未検証。
+- 原資料／開始十文書・169source／旧168test baseline／工具／原ログ／文書検査／発行はdocs/.local-history/verification-runs/dv-implementation-3ac6775。初回専用／監査不通過とv2以降を分離、原因・実読取／未読未検証・発行は現行handoff参照。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+
+以下の実装検証中は途中状態として保持する。
+
+<a id="diary-explicit-naming-report-materials-dv"></a>
+
+##### 4d12dv：既存形式の名付けと非対比報告の併存資料（2026-10-29・対象／保持方針採用、実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[対象・保持方針案](#diary-explicit-naming-report-materials-dv-consultation)を両方採用。開始3ac6775。experimental_word_diary_explicit_naming_report_materials.create()/capture(buffer,result,receipt)、kind=explicit_naming_report_materialとして採用範囲を実装検証する。137枠136確認済み・正式子126・最新ao〜du人間OK・全135登録（固定50＋追加85）。dv実装後OK未受領、同じdv継続。
+- 日本語一入力の既存三形式name/name_description/name_answerの原naming一節以上＋contrastなしのfeeling_report/external_event_report一節以上、当時完全／未理解双方。完全名付け0節又は複数節、完全一節の旧4d5担当を維持する。他認識は原unknownのみ。動的名付け／個体語義参照／教示訂正／correction/reply／他規則／他locale追加要否・分割は未決定。relationLearning/conditionJudgment/sequenceJudgmentなし。原unknown補修なし、旧ai/4d5/dk/dl/do/dp/du/4d2等と不足receipt拒否を維持。
+- 独立一時journal、一input一資料/per_clause。全節順/index/span/不足、名付け候補／原採用有無／updatedと報告subject/aspect/polarity/eventTime/reportSource/testimony有無を分離保持。原result/learning/transfer/expression、実reply/turn.answer有無、入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。receive/respond全文と前後validContext/validSelections、完全名付け各節の一意対象・候補・話者・explanation原採用、実前件ありだけ平坦原資料の別再生と直前turn/IDを照合する。不足改変矛盾拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及を検証する。
+- 名付け候補／関連付けの原receive更新を理解成功へ補わず、同義語化／一般名／新理解／全節回答／本人経験／感情／原因真偽／受諾予約実行を生成しない。core/world/catalog/locale/保存形式／ゲーム本呼出非変更、新ゲーム表示文なし。package／監査へ登録し、既存横断testは担当数期待だけ追従、旧テスト名・旧npmコマンドを保持する。
+- 残3〜4工程・暫定中心3・採用による差分0。dv実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、Codex検証だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。開始十文書／169sourceと旧tests baseline・原資料／工具／検証はdocs/.local-history/verification-runs/dv-implementation-3ac6775。結果・実読取／未読未検証・発行は現行handoff参照。
+
+以下のdv未採用は採用前状態として保持する。
+
+
 <a id="diary-explicit-naming-report-materials-dv-consultation"></a>
 
 ##### dv相談案：既存形式の名付けと非対比報告の併存資料（2026-10-29・対象／保持方針とも未採用）

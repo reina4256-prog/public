@@ -1,5 +1,30 @@
 # 次チャットの開始文
 
+## 現行継続文（dv採用範囲実装・Codex検証完了）
+
+```text
+開始3ac6775、ユーザー「はい、どちらもOKです」でdv対象・保持方針を採用。explicit_naming_report_materials.create()/capture(buffer,result,receipt)、kind=explicit_naming_report_materialの採用範囲実装・Codex検証完了。137枠136確認済み・正式子126・最新ao〜du人間OK・全135登録（固定50＋追加85）、dv実装後OK未受領・同じdv継続。duを再確認せず次記号を先取りしない。最新commit/push/検証/未検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-explicit-naming-report-materials-dv-verified。必要節へ絞り原文保管／依存確認／必須検証を維持、実読取と未読未検証、hash／機械通過と意味読了／人間OKを分ける。
+日本語既存三形式name/name_description/name_answerの原naming一節以上＋contrastなしのfeeling_report/external_event_report一節以上、完全／未理解双方、完全名付け0節又は複数節、原unknown併存のみ。完全一節旧4d5と旧ai/dk/dl/do/dp/du/4d2等・不足receipt拒否を維持。動的／個体語義参照／教示訂正／correction/reply／他規則／他locale追加要否・分割は未決定、原unknown補修なし。
+独立一時journal、一input一資料/per_clause、名付け候補／原採用／updatedと報告subject／時点／reportSource/testimony有無を分離。全節順/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。receive/respond全文と前後validContext/validSelections、完全名付け各節の原候補／対象／話者／explanation、実前件ありだけ平坦原資料の別再生・直前turn/ID照合。不足改変拒否・同input非増加非上書き・返却／遅延コピー独立・非遡及、新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。
+全Node3532・31JS構文・七言語チェック・別隔離renderer754通過。専用25＋監査94＝119。専用241原171成立／29種4959改変拒否・名付けlearning894／実前件61拒否、旧84担当14364／旧47入力API8037非重複。相談原170へ102成立／68非成立・原JSON不変。別決定的fixture dumpをテストプロセスの原dumpとせず、件数を固有数／網羅数／次未解決集合へ変換しない。旧47はbeforeReports/beforeReceipts空の既存adapter限定、固定50全正規API完全供給ではない。
+元full-30minは35検査中34通過／1不通過、status=incomplete。不通過は制限内rendererのGPU process isn't usable／終了2147483651。未実行検査／testなし、reviewRequired=["scripts/experimental/diary_explicit_naming_report_material_smoke.js"]・reading.status=not_recordedを非置換保持。別renderer成功／手動範囲確認を元runの成功や全依存意味読了にしない。 八global除去・local/session dv-sentinel不変・保存bridge未定義。原資料／開始十文書・169source／旧168test baseline／工具／全ログ／最終文書検査／発行はdv-implementation-3ac6775。
+残3〜4工程・暫定中心3・採用時差分0、Codex検証だけで実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2を減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。core/world/catalog/locale/保存形式/本呼出非変更。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記保存再開配布未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の実装検証中は途中状態として保持する。
+
+## 現行継続文（dv対象・保持方針採用、実装検証中）
+
+```text
+開始3ac6775。ユーザー「はい、どちらもOKです」でdv対象・保持方針を両方採用。explicit_naming_report_materials.create()/capture(buffer,result,receipt)、kind=explicit_naming_report_materialとして採用範囲を実装検証中。137枠136確認済み・正式子126・最新ao〜du人間OK・全135登録（固定50＋追加85）。dv実装後OK未受領・同じdv継続、duを再確認せず次記号を先取りしない。
+読取は現行handoff→最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。採用正本specs/core/experimental_word_learning.md#diary-explicit-naming-report-materials-dv。日本語既存三形式の原naming一節以上＋contrastなしのfeeling_report/external_event_report一節以上、完全／未理解双方・完全名付け0節又は複数節、併存原unknownのみ。完全一節の旧4d5担当と旧ai/dk/dl/do/dp/du/4d2等・不足receipt拒否を維持。他認識／動的／個体語義参照／教示訂正／correction/reply／他locale追加要否・分割は未決定。
+独立一時journal、一input一資料/per_clause、名付け候補／原採用／updatedと報告subject／時点／reportSource/testimony有無を分離保持。全節順/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldの分離コピー、receive/respond全文と前後validContext/validSelections、実前件ありだけ平坦原資料別再生。非生成・不足改変拒否・同input非増加非上書き・コピー独立・非遡及を検証する。
+残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。開始十文書／169source・旧tests baseline／工具／原資料／全ログはdv-implementation-3ac6775。最新検証・実読取／未読未検証・commit/pushはCURRENT_IMPLEMENTATION.md参照。過去成功を今回へ昇格せず、旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の未採用は採用前状態として保持する。
+
 ## 現行継続文（dv対象・保持方針の相談案、両方未採用）
 
 ```text

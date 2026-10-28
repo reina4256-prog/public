@@ -88,7 +88,7 @@ test('tampered roles, judgments, sensations, responses and evidence reject witho
 });
 test('existing owners preserve their boundaries with canonical argument counts', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(r => r.id !== '4d12cz');
-    assert.equal(owners.length, 83);
+    assert.equal(owners.length, 84);
     for (const f of accepted) {
         const v = f.value, r = v.receipt, w = r.beforeWorld;
         for (const owner of owners) {
