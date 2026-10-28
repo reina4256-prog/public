@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（dq確認済み・次dr未選定未採用）
+
+```text
+ゲーム実装最新677062e。文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdq採用範囲へ実装後OKと継続/移動の裁量を明示し、dqは実装・Codex検証・ユーザー実装後OK確認済み。132枠132確認済み・正式子121・最新ao〜dq人間OK・全130登録（固定50＋追加80）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdqを再採用確認しない。
+読取量削減はユーザー許可/再確認済み。CURRENT_IMPLEMENTATION.md→本書最初の現行textだけ→routing/word README/OPEN_ITEMS現行通知だけ→OWNERS必要行/所有節/依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-dq。巨大文書全体/全過去開始文/過大な検索行を出力せず、見出し/anchorで必要範囲を取得し、同一チャット内の既読現行部分は変更/必要がある場合だけ再読する。原文保管/必要依存/必須検証は維持し、未知依存で検証を狭めない。hash/構造一致/意味読了/人間OKと実読取/未読未検証を区別する。容量不足が起きない保証や読取量が個別原因という認定はしない。
+次drは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。他原frame/reference/他localeの追加要否/分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了へ決定しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+dqはword_reference_clause_materials.create()/capture(buffer,result,receipt)、kind=word_reference_clause_material。既存日本語二節以上・原word_reference一節以上、完全/語義または個体名競合未理解を区別する。de明示18＋greeting_morning＋df四規則、既存三形式/実活動ask_name由来naming、原retract_explanation/correction・実confirm_name由来reply、不完全名付け/unknownを原値保持。必要原説明/訂正連鎖/競合名付けの平坦originsを独立再生し、候補資料と原understandingを分離、同意味複数候補を一件にせず、未理解に意味採用/applicationsを作らない。完全/未理解の動的名付けはともに活動出所必須、実確認/直前休息前件はある場合だけ別照合。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピーし一input一資料/per_clause。同input非増加非上書き・後知識後訂正後活動非遡及。新教示/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧ar/4d2/4d5/単独語義教示訂正/dp等と不足receipt拒否を維持する。
+相談367へ285成立/82非成立、専用380原297成立、別補足30の全成立/turn.answer有り0は固有数/網羅数/次未解決集合ではない。必要出所だけ選ぶ供給整形と原result/原出所非変更を分ける。原二JSON/旧比較資料を保持し、非選定82/過去804非成立561・df184/dg60/dh132/di68・unknown72/前156・dm33を候補へ戻さず合算しない。許可規則は単独generic解析から推定せず採用済み明示一覧を使う。
+残2〜3工程・暫定中心2、dq確認前3〜4中心3から下限/上限/中心−1。dq確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持する。新たな最終分類ではなく追加要否/分割未決定、中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回確認/文書のみ、ゲーム全回帰/監査/実働/renderer再実行なし。原資料/ログはdq-implementation-3bdf5a0、今回開始十文書baseline/27source hash/文書検査/発行はdq-acceptance-677062e。過去全Node3390/26JS構文/七言語14957/権限付き別renderer1271を今回成功へ昇格しない。初回full停止と最終full-v2の制限内renderer ERR_FAILED/要レビューによるincomplete/exit1を非置換保持。全旧所有節/全fixture/全静的依存意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下はdq実装後OK受領前の継続文として保持する。
+
 ## 現行継続文（dq採用範囲実装・Codex検証完了）
 
 ```text
