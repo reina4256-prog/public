@@ -1,5 +1,11 @@
 # 維持条件と保留の入口
 
+- 2026-10-28 do最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-multiple-naming-additional-clause-materials-do)の実装・Codex検証完了。全Node3330・24JS構文・七言語14957・権限付き隔離renderer2133通過。専用36＋監査87＝123、前dn3293から＋37・旧test削除0。相談1969へ373成立（原抽出329＋採用済み一覧内の抽出漏れ44）、元2176へ0成立・原hash不変。元fullは全28検査passedだが新smoke静的未分類reviewRequired/reading.not_recordedを残すincomplete/exit1、手動依存確認を別保存し元runを昇格しない。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdo-implementation-504c615、実読取/未検証/発行は現行handoff参照。以下の実装検証中/未採用は途中/過去状態として保持する。
+
+
+- 2026-10-28 do採用：ユーザー「はい、どちらもOKです」で[複数完全名付けと仕事／過去味問い・回復説明の対象・保持方針](../specs/core/experimental_word_learning.md#diary-multiple-naming-additional-clause-materials-do)を個別採用。multiple_naming_additional_clause_materials.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで確認待ち/他入口/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/開始十文書/検証ログはdo-implementation-504c615、実読取/未検証/発行は現行handoff参照。以下のdo未採用は採用前状態として保持する。
+
+
 - 2026-10-28 do相談：開始4414bdb・ゲーム実装1b5af0c・dn実装後OK確認済み。[複数完全名付けと仕事／過去味問い・回復説明の対象・保持方針案](../specs/core/experimental_word_learning.md#diary-multiple-naming-additional-clause-materials-do-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。129枠129確認済み・正式子118・最新ao〜dn人間OK・全127登録（固定50＋追加77）を維持。同じdoで個別採用待ち。限定1969資料の候補329は既存77追加担当/旧47入力API非捕捉、旧dn112の帰属維持。固有数/網羅数/新部品成立数ではない。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1・完了減算0（do相談1／他入口0〜1中心0／最終意味照合回帰2）。訂正/reply/語義教示等混在・他localeの追加要否/分割・全入口最終分類未決定、中心確度低・終了回数保証なし。全14保留・各担当三保留・全体未完。ゲーム全回帰・監査・実働・renderer再実行なし。原資料/工具/初回extend失敗と別v2成功はdo-consultation-4414bdb、実読取/未検証/発行は現行handoff参照。以下のdo未選定は今回相談前の状態として保持する。
 
 

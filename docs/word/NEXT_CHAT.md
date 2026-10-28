@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 同じdoの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始504c615、ユーザー「はい、どちらもOKです」でdo対象・保持方針を個別採用。multiple_naming_additional_clause_materials.create()/capture(buffer,result,receipt)、kind=multiple_naming_additional_clause_materialの採用範囲実装・Codex検証完了。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。再採用確認/次記号/次チャットを先取りしない。最新文書発行/検証状況はCURRENT_IMPLEMENTATION.md参照。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知/OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-multiple-naming-additional-clause-materials-do。日本語一入力の完全naming二節以上＋原work_past/work_again/taste_question/rest_explanation一節以上。既存三形式/実ask_name由来動的節、他認識de18＋greeting_morning＋四規則、不完全名付け/unknown併存可。各完全節の一意対象/同語対象話者explanation採用を照合。回復説明は実直前result/平坦receipt独立再生と当時known.meaning=restを要求、原unknownを分類し直さない。旧4d2/4d5/dk/dl/dm/dn/dh/dj/df所有と不足receipt拒否を維持。
+全Node3330・24JS構文・七言語14957・権限付き隔離renderer2133通過。専用36＋監査87＝123、前dn3293から＋37・旧test削除0。966原389成立・29種11185改変拒否/同値96別計上・実前件1600改変拒否、旧77担当29953/旧47入力API18283非重複。相談1969へ373成立/1596非成立、原329に採用済みde18のrest_request/rest_invitation/reason_questionを単独generic由来許可一覧が落とした44を別訂正。原selected/原三JSONを非変更保持し、採用範囲/ゲーム理解規則は非拡張。元2176へ0成立。fixture dumpは別生成。補足4例3名付け成立/1原unknown対象外を別計上。元full-30minは全28検査passedだが静的reviewRequired/reading.not_recordedを残すincomplete/exit1、手動確認で元runを昇格しない・未実行test/checkなし。工程表行漏れ監査78失敗/比較抽出漏れ/補足gesture前提誤り/集計UTF-16 BOM未対応と補足未完了参照の原source/logを非置換保持し、別v2/v3成功と分離する。部品source補修なし、全回帰開始24JS hash不変・保護九ファイル/静的35依存hash不変。全依存意味読了へ昇格しない。表示文/locale/保存形式/本呼出非変更。
+一input一資料・全節順/index/span/当時理解不足/各indices/原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピーしper_clause。動的節ありだけ活動出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力/pendingを照合、なしはdynamicNamingSource=null。destinationとtarget、活動の問いと実入力前件を分離。実前件ありは平坦receipt独立再生・直前turn/serial/時刻一致、origin連鎖を推定しない。意味/関係basis・実参照経験・validContext/validSelections・receive/respond全文照合、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。全節回答/一般名/同義語化/理解自覚/仕事経験/再試行希望/味評価/回復因果/感情/受諾予約実行を補わない。
+残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、do確認待ち1／他入口0〜1中心0／最終意味照合回帰2、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完。訂正/reply/語義教示等混在・他localeの追加要否/分割未決定。4e/receipt保存形式/ゲーム本接続未採用未実装。原資料/開始十文書・登録更新前23source＋package baseline/工具/全ログはdo-implementation-504c615。専用・監査・全回帰・renderer確定結果/未実行/失敗/実読取/未読は現行handoff参照。前相談1969/候補329や前dn1331/112を固有数/網羅数/次の未解決集合にしない。df184/dg60/dh132/di68・unknown72/前156・dm33を戻さず合算しない。全旧所有節/全fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdo未採用は採用前状態として保持する。
+
 ## 同じdoの現行継続文（対象・保持方針相談案・未採用未着手）
 
 ```text

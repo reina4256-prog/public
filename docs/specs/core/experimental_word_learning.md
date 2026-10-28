@@ -1,5 +1,40 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-28 do最終：[採用範囲](#diary-multiple-naming-additional-clause-materials-do)の実装・Codex検証完了。全Node3330・24JS構文・七言語14957・権限付き隔離renderer2133通過。専用36＋監査87＝123、前dn3293から＋37・旧test削除0。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。
+- 専用966原389成立・29種11185改変拒否/同値96別計上・実前件1600改変拒否、旧77担当29953/旧47入力API18283非重複。相談1969へ373成立/1596非成立（原抽出329＋採用済み明示一覧内の抽出漏れ44）、元2176へ0成立・原三JSON hash不変。fixture dumpは別決定的生成。補足4例は3名付け成立/1原unknown対象外、原namingの語「未知」と原unknownを文字面だけで分類し直さない。各集合/属性を固有数/網羅数/次の未解決集合/工程数へ変換しない。
+- 元full-30minは別権限付きで全28検査passedだが、新smoke静的未分類reviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。未実行test/checkなし。保護九ファイルHEAD一致・七browser＋fixture/smoke静的35依存hashと手動境界確認を別記し、手動確認で元runを成功へ昇格しない。rendererは非表示blank server/専用一時profile、八global除去・local/session sentinel不変・保存bridge未定義、実ゲーム/UI/実ユーザー保存非操作。
+- 原資料/開始十文書/登録更新前23source＋package baseline/工具/全ログはdocs/.local-history/verification-runs/do-implementation-504c615。全回帰開始24JSは最終までhash不変。初回監査の工程表行漏れ78失敗、初回比較の相談抽出漏れ44、補足のgesture前提誤り、集計工具のPowerShell UTF-16 BOM未対応/補足未完了参照は原source/logへ分離保持。文書行/工具期待/ログ読取だけ訂正し、ゲーム部品source補修なし。補足v2・比較v2・集計v3成功と初回失敗を区別する。表示文/locale/保存形式/ゲーム本呼出非変更。最終文書検査/発行は現行handoff参照。
+
+以下の実装検証中/未採用は途中/過去状態として保持する。
+
+<a id="diary-multiple-naming-additional-clause-materials-do"></a>
+
+##### 4d12do：複数完全名付けと仕事／過去味問い・回復説明の一入力保持（2026-10-28・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[do相談案](#diary-multiple-naming-additional-clause-materials-do-consultation)の対象・保持方針を個別採用。開始504c615。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 現在の実装仕様（検証中）：experimental_word_diary_multiple_naming_additional_clause_materials.create()/capture(buffer,result,receipt)、kind=multiple_naming_additional_clause_material。日本語一入力の完全naming二節以上＋原work_past/work_again/taste_question/rest_explanation一節以上。名付けは既存三形式/実活動ask_name由来catalogRuleなし動的節、他認識de18＋greeting_morning＋四規則、不完全名付け/原unknown併存可。各完全節の一意注目対象・同語対象話者explanation一候補採用を照合する。旧4d2実reply成立・旧4d5一意成立・dk/dl/dm/dn・dh/dj/df所有と不足receipt拒否を維持。
+- 全節順/index/span/当時理解不足・completeNamingIndices/incompleteNamingIndices/dynamicNamingIndices/catalogNamingIndices/additionalIndices/recoveryExplanationIndices/otherRecognizedIndices/unknownIndices・原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。回復説明は平坦な実直前result/receiptを独立再生し、その当時known.meaning=restを要求する。前提不足の原unknownを回復説明へ変換しない。
+- 動的節ありだけdn同様に活動ask_nameの出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力全文/pendingを照合し、dynamicNamingSourceへ保持。動的節なしはnull。destinationとtarget、活動の問いと実入力前件を分離し、実前件ありは平坦receipt独立再生・直前turn/serial/時刻へ一致。origin連鎖を推定生成しない。意味/関係basis・実参照経験・前後validContext/validSelections・receive/respond全文一致、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。
+- 原associations/records/実応答の変化とcapture非生成を分け、他knowledge・本人/world経験・選択出所・行動状態不変。異名同義語化/一般名/全節回答/本人理解自覚/仕事経験/再試行希望/味評価/回復因果/感情/受諾予約実行/条件成立/活動順序を補わない。原correction/reply/語義教示等混在・他localeの追加要否/分割は未決定。4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 新module/fixture/test/非表示一時profileの隔離smoke・監査/package登録を追加、旧横断testは担当件数だけ追従。ゲーム表示文/locale/保存形式/本呼出非変更。原資料/開始十文書と登録更新前23source＋packageのbaseline/工具/全ログはdocs/.local-history/verification-runs/do-implementation-504c615。専用/横断/全Node/七言語/関連rendererの確定結果は検証後に記す。過去の成功・機械登録/hash維持を今回の実読取/全意味読了/人間OKへ昇格しない。
+- 比較訂正：相談時の抽出工具が併存許可規則を単独generic解析から作り、採用済みde18のrest_request/rest_invitation/reason_questionを一部落としていた。原1969資料/原selected329を非置換保持し、採用済み明示一覧で別再分類した373＝原329＋44を実装の成立結果へ照合、候補373は原既存77担当/旧47入力APIの全非捕捉を維持。採用範囲/ゲーム理解規則の拡張ではない。別比較v2で1969へ373成立/1596非成立、元2176へ0成立・原三JSON hash不変。専用fixture966原389成立は別決定的生成で固有数/網羅数/次の未解決集合にしない。
+- 初回登録後専用＋監査123中45通過/78失敗は工程表の4d12do登録行漏れによるmissing_step_reference。工程表へ登録行だけ追加し、旧監査/ゲーム部品は非補修。初回比較の原329固定assert失敗と相談抽出漏れ44を別記録し、原source/logを保持して明示一覧による別v2比較成功と分離する。実装sourceの補修は行っていない。
+
+以下は採用前の相談案として保持する。
+
+<a id="diary-multiple-naming-additional-clause-materials-do"></a>
+
+##### 4d12do：複数完全名付けと仕事／過去味問い・回復説明の一入力保持（2026-10-28・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[do相談案](#diary-multiple-naming-additional-clause-materials-do-consultation)の対象・保持方針を個別採用。開始504c615。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 現在の実装仕様（検証中）：experimental_word_diary_multiple_naming_additional_clause_materials.create()/capture(buffer,result,receipt)、kind=multiple_naming_additional_clause_material。日本語一入力の完全naming二節以上＋原work_past/work_again/taste_question/rest_explanation一節以上。名付けは既存三形式/実活動ask_name由来catalogRuleなし動的節、他認識de18＋greeting_morning＋四規則、不完全名付け/原unknown併存可。各完全節の一意注目対象・同語対象話者explanation一候補採用を照合する。旧4d2実reply成立・旧4d5一意成立・dk/dl/dm/dn・dh/dj/df所有と不足receipt拒否を維持。
+- 全節順/index/span/当時理解不足・completeNamingIndices/incompleteNamingIndices/dynamicNamingIndices/catalogNamingIndices/additionalIndices/recoveryExplanationIndices/otherRecognizedIndices/unknownIndices・原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。回復説明は平坦な実直前result/receiptを独立再生し、その当時known.meaning=restを要求する。前提不足の原unknownを回復説明へ変換しない。
+- 動的節ありだけdn同様に活動ask_nameの出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力全文/pendingを照合し、dynamicNamingSourceへ保持。動的節なしはnull。destinationとtarget、活動の問いと実入力前件を分離し、実前件ありは平坦receipt独立再生・直前turn/serial/時刻へ一致。origin連鎖を推定生成しない。意味/関係basis・実参照経験・前後validContext/validSelections・receive/respond全文一致、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。
+- 原associations/records/実応答の変化とcapture非生成を分け、他knowledge・本人/world経験・選択出所・行動状態不変。異名同義語化/一般名/全節回答/本人理解自覚/仕事経験/再試行希望/味評価/回復因果/感情/受諾予約実行/条件成立/活動順序を補わない。原correction/reply/語義教示等混在・他localeの追加要否/分割は未決定。4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 新module/fixture/test/非表示一時profileの隔離smoke・監査/package登録を追加、旧横断testは担当件数だけ追従。ゲーム表示文/locale/保存形式/本呼出非変更。原資料/開始十文書と登録更新前23source＋packageのbaseline/工具/全ログはdocs/.local-history/verification-runs/do-implementation-504c615。専用/横断/全Node/七言語/関連rendererの確定結果は検証後に記す。過去の成功・機械登録/hash維持を今回の実読取/全意味読了/人間OKへ昇格しない。
+
+以下は採用前の相談案として保持する。
+
 <a id="diary-multiple-naming-additional-clause-materials-do-consultation"></a>
 
 ##### do相談案：複数完全名付けと仕事／過去味問い・回復説明の併存（2026-10-28・構想段階・未採用未着手）
