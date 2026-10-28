@@ -1,5 +1,25 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-individual-reference-materials-dr-consultation"></a>
+
+##### dr相談案：個体参照の単独未理解と複数節の資料保持（2026-10-29・構想段階・未採用未着手）
+
+- 開始935b1e4・ゲーム実装677062e・dq実装後OK確認済み。drの具体対象・保持方針を以下の相談案へ整理した。両方未採用未着手、正式枠/API/kind追加なし。132枠132確認済み・正式子121・最新ao〜dq人間OK・全130登録（固定50＋追加80）を維持する。同じdrで対象・保持方針の個別採用待ち。下のdr未選定は相談前の状態として保持する。
+- **対象案**：既存日本語の一入力に原frame=reference（個体参照）が一節以上あり、単独なら当時未理解、二節以上なら当時完全理解／未理解の双方を資料として保持する。単独完全理解は[ar](#diary-references-ar)へ残す。同名二個体について現在の注目で一意になった場合と、複数注目／注目なしで採用できなかった場合を分ける。原unknownをreferenceへ変換せず、別話者・根拠なしの語を名付け済みとして扱わない。
+- **併存範囲案**：[deの明示18規則](#diary-remaining-clause-materials-de)＋greeting_morning＋[df四規則](#diary-additional-clause-materials-df)、既存name/name_description/name_answerの名付け、retract_explanationのcorrection、実confirm_name由来reply、原unknown。名付けの完全／不完全、訂正／返答の原clause_scope不足も保持する。動的名付けとの併存、word_referenceとの混在、他frame／規則・他localeの追加要否／分割は未決定で本案へ一括採用しない。
+- 例：実際に「これをぴぴって呼ぼう」を聞いた後の「ぴぴ\nおはよう」「ぴぴ\nぴぴ」。曖昧な単独の例は、異なる二個体へ同じ「ぴぴ」を名付けた後、両方への注目または注目なしで聞いた「ぴぴ」。文面だけで原名付け／対象／話者／当時の採用を認定しない。
+- **保持方針案**：全節の順序/index/span/frame/understandingと不足、参照節indices、原target.candidatesと原target.adoptedの有無、原unresolvedを別々に保持する。候補出所を対象採用／理解完了へ昇格せず、同名二個体・同個体の複数evidenceも一件へ選び直さない。input前knowledge/context、原result/learning全文・transfer/expression、実replyとturn.answer有無、前後state/worldを分離コピー、一input一資料/per_clauseとする。
+- **出所照合案**：参照で使われた全候補の有効evidenceに必要な実原名付けを、平坦なbeforeState/result/原receive直後afterStateとして供給する。各原当時知識で独立再生し、原input/understanding/learningの更新と当時有効なassociation/evidence・話者/対象を照合する。採用個体だけでなく、現在注目で不採用となった競合候補も残す。不足・改変・重複・余分な出所を拒否し、後知識から原名付けを生成しない。単独arの出所原則を参照するが、未理解の候補をar成立済みにしない。
+- 現在入力も既存receive/respond全文・前後validContext/validSelectionsを照合する。実replyありの場合だけconfirm_name/pending・実直前name_echoと原名付けを別照合し、直前入力と原名付けが異なる場合は別の平坦資料を要求する。回復説明ありの場合だけ実直前known.meaning=restを照合する。原参照候補の出所、確認返答の出所、活動出所を混同しない。到着自体をask_name成立と認定せず、実出力・当時pendingを使う。
+- 原associations/records/実応答の変化と、保持部品による非生成を区別する。同input非増加非上書き、返却コピー独立、後知識・後訂正・後活動による非遡及を維持する。新命名／一般名／同義語化・語義採用・訂正成功／旧知識無効化・理解自覚・全節への回答・本人経験・感情・受諾予約実行を補わない。原reply=name_echoでも本人の命名成功を新造しない。
+- **既存担当との境界案**：単独完全理解ar、旧4d2の実answer_unknown、旧4d5の一意の完全名付け一節、dqのword_referenceほか確認済み所有を維持し、成立資料は本案から除外する。既存担当の不足receiptを本案で救済しない。原word_referenceはreferenceへ読み替えず、語義説明と個体名が同じときも原frameを優先する。実ask_nameで原namingとなった入力を原referenceへ戻さない。
+- **限定照合**：新366生成資料を現receive/respond全文再生、80追加担当29280＋旧47入力API17202呼出、例外0・入力非変更・前後validContext/validSelections・原名付け出所照合。対象案280は既存担当非捕捉、137source hash不変。別補足v3の20資料/対象案12、1600＋940呼出、実confirm_nameのreplyとgestureの原unknownを区別。別ask-name-v2の4資料/対象案1、320＋188呼出、実未命名個体へのshort到着二例はask_nameから原namingへ進み旧dm、gesture二例は質問なしで旧4d5／本案へ分かれる。各集合のturn.answer有り0。これらは重複し得る生成資料数で固有数／網羅数／次未解決集合ではなく合算しない。旧非選定集合を自動繰越ししない。
+- 相談用originsは原履歴のarchiveを含む。将来の保持へ渡す際はコピー上で必要出所だけを選ぶ供給整形と原result/出所非変更を分ける。今回非捕捉は限定資料と供給条件での結果で、全所有条件・全入口の最終意味照合完了ではない。旧47入力APIは既存引数adapterによる照合で、固定50全正規APIの完全な資料供給／意味再読へ昇格しない。
+- **見通し**：残3〜4工程・暫定中心3、dq確認後2〜3中心2から下限/上限/中心＋1、完了減算0。dr相談・採用後実装検証確認1／その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2。今回一系統を具体化して積み上げ直した。中心確度低・分割未決定・上限終了保証なし、全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 原資料/工具/開始十文書baseline/原ログ：docs/.local-history/verification-runs/dr-consultation-935b1e4。日記監査89通過。補足初回の「到着なら動的名付け」、v2の「必ずpendingあり」は工具期待の誤りとして原source/失敗ログを保持、実結果非変更のv3成功と区別する。ask-name初回はworldにないberry:2へのapproach不成立で停止、v2は正規berry:1到着と別個体の原名付けを分離して成功。node -e診断一回の閉じ括弧SyntaxErrorとPython起動失敗は資料判定に使わず、UTF-8ファイル／Nodeで再確認。ゲームcode/catalog/locale/package/登録非変更、全回帰/renderer/実UI音声/本人日記保存再開配布未実行。実読取/未読未検証/文書検査/発行は現行handoff参照。
+
+以下のdr未選定は今回相談前の状態として保持する。
+
 <a id="diary-entry-remainder-after-dq"></a>
 
 ##### dq確認後：他原frame・他localeほか残入口の再開点（2026-10-29・dr未選定未採用）

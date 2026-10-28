@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 現行継続文（dr相談案・対象と保持方針の個別採用待ち）
+
+```text
+開始935b1e4、ゲーム実装677062e・dq実装後OK確認済み。最新文書commit/pushはCURRENT_IMPLEMENTATION.md参照。drは個体参照の単独未理解と複数節の対象・保持方針を相談案へ具体化、両方未採用未着手・正式枠/API/kind追加なし。132枠132確認済み・正式子121・最新ao〜dq人間OK・全130登録（固定50＋追加80）を維持。同じdrで対象と保持方針の個別採用待ち、確認済みdqを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word README/OPEN_ITEMS現行通知→OWNERS必要行/所有節/依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-individual-reference-materials-dr-consultation。巨大文書全体/過去開始文を出力せず必要節に絞り、原文保管/依存確認/必須検証は維持、未知依存で検証を狭めない。hash/APIロードと意味読了・人間OK、実読取と未読未検証を区別する。
+対象案は既存日本語の原reference一節以上、単独なら当時未理解、二節以上なら完全/未理解双方。de明示18＋greeting_morning＋df四規則、既存三名付け形式、retract_explanation/correction、実confirm_name由来reply、原unknownの併存を保持する。動的名付け併存/word_reference混在/他規則/他localeの追加要否と分割は未決定。原unknown/word_reference/実ask_name由来namingをreferenceへ変換しない。
+保持方針案は全節/index/span/frame/understanding/不足、原target.candidatesとadopted有無を分離し、一input一資料/per_clauseで原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピーする。競合候補/同個体複数evidenceを一件にしない。必要な実原名付けの平坦beforeState/result/原receive直後afterStateを原当時知識で再生し、現有効association/evidenceを照合、不足/改変/重複/余分資料拒否。実replyと回復説明の実前件はある場合だけ別照合する。同input非増加非上書き・後知識後訂正後活動非遡及。対象採用/理解完了/新命名/語義採用/訂正成功/旧知識無効化/理解自覚/本人経験/感情/全節回答/受諾予約実行を補わない。単独完全ar/旧4d2/旧4d5/dq等の所有と不足receipt拒否を維持する。
+新366資料/対象案280・別補足v3の20/12・別ask-name-v2の4/1は重複し得る生成資料数で固有数/網羅数/次未解決集合へ変換せず合算しない。80追加担当/旧47入力API照合は今回供給条件の限定結果、固定50全正規APIの完全供給/意味読了ではない。旧非選定集合を自動繰越ししない。必要原出所だけを選ぶ供給整形と原result/原出所非変更を分ける。
+残3〜4工程・暫定中心3、dq確認後2〜3中心2から下限/上限/中心＋1・完了減算0。dr相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2。全入口最終分類/分割/追加要否未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料/開始十文書baseline/工具/原ログ/文書検査/発行はdr-consultation-935b1e4。日記監査89通過、ゲームcode/catalog/locale/package/登録非変更、ゲーム全回帰/renderer/実UI音声/本人日記保存再開配布未実行。補足の到着＝動的名付け/必ずpendingありという工具誤期待二回、到着対照初回のworldにない対象へのapproach不成立を失敗source/logごと保持し、別v3/ask-name-v2成功で置換しない。全過去開始文/全旧所有節/全fixture/全推移的依存意味再読/固定50全正規API/全入口最終分類は未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。採用後は長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdr未選定は今回相談前の開始文として保持する。
+
 ## 次チャットへ貼る現行開始文（dq確認済み・次dr未選定未採用）
 
 ```text
