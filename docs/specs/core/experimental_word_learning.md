@@ -1,5 +1,30 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-individual-reference-materials-dr-verified"></a>
+
+##### 4d12dr：個体参照の単独未理解と複数節の資料保持（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=individual_reference_material。下記の個別採用範囲を実装・検証した。133枠132確認済み・正式子122・最新ao〜dq人間OK・全131登録（固定50＋追加81）、dr実装後OK未受領・同じdr継続。残3〜4工程・暫定中心3・相談時差分0。Codex検証だけで確認待ち/他入口/最終意味照合を減算せず、全14保留・各担当三保留・全体未完を維持する。
+- 全候補の有効evidenceに必要な原名付けを独立再生し、複数節の原名付けも該当する完全名付けと実更新を照合する。原target.candidates/adopted/未理解を分離、同名二個体/同個体複数evidenceを保持。旧ar/4d2/4d5/dq等と不足receipt拒否を維持。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・非遡及、新理解/命名/訂正成功/本人経験/感情/受諾予約実行を補わない。
+- 専用28＋監査90＝118、全Node3419・変更27JS構文・七言語14957・隔離renderer1295（380原＋915改変）通過。380原305成立、24種7320原資料改変拒否、原名付け出所2010/実前件940改変拒否、旧80担当24400/旧47入力API14335非重複。旧3390→3419の＋29は専用28＋監査1、原TAP名を重複度込みで照合し旧test削除0。fixture dumpは別決定的生成でテストプロセスの原dumpへ昇格しない。
+- 原相談を必要出所の選択だけで実capture再照合：366資料278成立/88非成立、別補足20資料9成立/11非成立、別到着対照4資料1成立/3非成立、三原JSON hash不変。相談対象のうちar由来二資料はinputContext/実前件receipt不足、実reply三資料は別原名付けreceipt不足で拒否し、原result/不足出所を補修生成しない。正規fixtureはこの不足を持たない別の実生成資料。別補足32は実休息/食事/六職完了後の原名付けから全成立、turn.answer有り0。各集合/属性を固有数/網羅数/次未解決集合へ変換せず合算しない。
+- 初回専用＋監査は36通過/82不通過（監査の文書登録不足と改変テストの空配列への同値代入）。工程表登録と実改変へ補修した別targeted-v2が118通過、ゲーム規則非変更。補足経験工具初回はadventuringを六職の一つとして渡し完了検査なしで32成立、実冒険完了を認定せず原結果を保持。別v2は正しいexploreと全職実完了assertionで32通過。
+- 元full-30minはstatus=incompleteを保持、元fullの制限内renderer不通過と別権限付きrenderer成功を区別する。静的未分類reviewRequired/reading.not_recordedを意味読了/完全成功へ昇格しない。保護八source・browser七ファイル・fixture/smoke静的36依存hash不変、旧21横断testは担当数期待79→80だけ追従。新module/fixture/test/隔離smoke・監査/package登録済み、core/world/catalog/locale/保存形式/ゲーム本呼出非変更。rendererは非表示blank server/専用一時profile・八global除去・local/session sentinel不変・保存bridge未定義。原資料/工具/開始baseline/全ログ/文書検査/発行はdr-implementation-5175319、実読取/未読未検証は現行handoff参照。
+
+以下の実装検証中は途中状態として保持する。
+
+<a id="diary-individual-reference-materials-dr"></a>
+
+##### 4d12dr：個体参照の単独未理解と複数節の資料保持（2026-10-29・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で下記dr相談案の対象・保持方針を個別採用。開始5175319。experimental_word_diary_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=individual_reference_materialの三引数独立journalとして採用範囲を実装検証する。133枠132確認済み・正式子122・最新ao〜dq人間OK・全131登録（固定50＋追加81）、dr実装後OK未受領・同じdr継続。
+- 対象/併存/保持/出所/境界は下記採用範囲に従う。既存日本語の原reference一節以上、単独未理解または複数節の完全/未理解双方。動的名付け併存・word_reference混在・他規則/他locale追加要否は未決定。原unknown/word_reference/namingをreferenceへ変換しない。
+- 全候補の必要原名付けを平坦な原beforeState/result/receive直後afterStateで再生し、有効association/evidenceと照合する。原名付けが複数節の場合も該当する完全名付けと実更新を照合する。候補/原target.adopted/未理解を分離し、同名二個体/同個体複数evidenceを一件にしない。実replyはpending/直前name_echo/別原名付けを照合、回復説明は実直前の休息前件を照合する。
+- 同input非増加非上書き・コピー独立・後知識後訂正後活動非遡及、新理解/新命名/語義採用/訂正成功/本人経験/感情/全節回答/受諾予約実行を補わない。旧ar/4d2/4d5/dq等と不足receipt拒否を維持する。core/world/catalog/locale/保存形式/ゲーム本呼出は非変更。
+- 残3〜4工程・暫定中心3、相談時から下限/上限/中心差分0、採用だけで確認待ち/他入口/最終意味照合を減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。検証確定値は実行後に記録する。原資料/ログ/読取/発行は現行handoff参照。
+
+以下は採用前の相談案として保持する。
+
 <a id="diary-individual-reference-materials-dr-consultation"></a>
 
 ##### dr相談案：個体参照の単独未理解と複数節の資料保持（2026-10-29・構想段階・未採用未着手）

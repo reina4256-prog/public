@@ -1,5 +1,30 @@
 # 次チャットの開始文
 
+## 現行継続文（dr採用範囲実装・Codex検証完了）
+
+```text
+開始5175319。ユーザー「はい、どちらもOKです」でdr対象・保持方針を個別採用。experimental_word_diary_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=individual_reference_materialの採用範囲実装・Codex検証完了。133枠132確認済み・正式子122・最新ao〜dq人間OK・全131登録（固定50＋追加81）、dr実装後OK未受領・同じdr継続。最新commit/push/検証/未検証はCURRENT_IMPLEMENTATION.md参照。確認済みdqを再採用確認せず、次記号/次チャットを先取りしない。
+読取は現行handoff→本書最初の現行text→routing/word README/OPEN_ITEMS現行通知→OWNERS必要行/所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-individual-reference-materials-dr-verified。巨大文書全体/過去開始文を出力せず必要節に絞り、原文保管/必要依存/必須検証は維持。未知依存で狭めず、hash/構造/APIロードと意味読了・人間OK、実読取と未読未検証を区別する。
+drは既存日本語の原reference一節以上、単独未理解または複数節の完全/未理解双方。de明示18＋greeting_morning＋df四規則、既存三名付け形式、retract_explanation/correction・実confirm_name由来reply・原unknownの併存を原値保持。必要原名付けの平坦beforeState/result/原receive直後afterStateを独立再生、有効association/evidenceと照合、原候補/採用有無/未理解を分離し同名二個体/同個体複数evidenceを一件にしない。実reply/回復説明はある場合だけ実前件を別照合。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・後知識後訂正後活動非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧ar/4d2/4d5/dq等と不足receipt拒否を維持。動的名付け併存/word_reference混在/他規則/他localeの追加要否・分割は未決定。
+全Node3419・27JS構文・七言語14957・隔離renderer1295通過。専用28＋監査90＝118、旧3390へ＋29・原TAP名重複度照合で旧test削除0。380原305成立・24種7320改変拒否、原出所2010/実前件940改変拒否、旧80担当24400/旧47入力API14335非重複。元full-30minはstatus=incompleteを保持し、元fullの制限内renderer不通過と別権限付きrenderer成功を区別する。reviewRequired/reading.not_recordedを非置換保持し、別成功/hashを全依存意味読了へ昇格しない。
+原相談366へ278成立/88非成立・別補足20へ9成立/11非成立・別到着対照4へ1成立/3非成立、原三JSON不変。相談対象のar由来二資料はinputContext/実前件receipt不足、実reply三資料は別原名付けreceipt不足で拒否。原resultや出所の補修生成なし。必要出所をコピー上で選ぶ供給整形と原値非変更を区別し、正規fixtureは別の実生成資料。別補足32は実休息/食事/六職完了後で全成立・turn.answer有り0。各集合を合算せず固有数/網羅数/次未解決集合へ変換しない。旧非選定集合を自動繰越ししない。固定50全正規APIの完全供給/全意味読了ではない。
+残3〜4工程・暫定中心3、相談時から下限/上限/中心差分0。dr実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、Codex検証のみで減算しない。分割/追加要否/全入口最終分類未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料/工具/開始baseline/全ログ/文書検査/発行はdr-implementation-5175319。初回専用＋監査不通過と別v2通過、補足経験初回の職業ID誤指定と別v2の実完了確認を非置換保持。core/world/catalog/locale/保存形式/ゲーム本呼出非変更、実UI音声/本人日記生成保存再開配布は未検証。全過去開始文/全旧所有節/全fixture/全静的依存意味再読/固定50全正規API/全入口最終分類未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の実装検証中は途中状態として保持する。
+
+## 現行継続文（dr採用範囲実装検証中）
+
+```text
+開始5175319。ユーザー「はい、どちらもOKです」でdr対象・保持方針を個別採用。experimental_word_diary_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=individual_reference_materialの三引数独立journalとして採用範囲実装検証中。133枠132確認済み・正式子122・最新ao〜dq人間OK・全131登録（固定50＋追加81）、dr実装後OK未受領・同じdr継続。確認済みdqを再採用確認せず、次記号/次チャットを先取りしない。最新commit/push/検証/未検証はCURRENT_IMPLEMENTATION.md参照。
+必要節に絞る読取を維持する。現行handoff→本書最初の現行text→routing/word README/OPEN_ITEMS現行通知→OWNERS必要行/所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-individual-reference-materials-dr。原文保管/必要依存/必須検証を減らさず、hash/構造/APIロードと意味読了・人間OK、実読取と未読未検証を区別する。
+drは既存日本語の原reference一節以上、単独未理解または複数節の完全/未理解双方。併存はde明示18＋greeting_morning＋df四規則、既存三名付け形式、retract_explanation/correction・実confirm_name由来reply・原unknown。動的名付け併存/word_reference混在/他規則/他locale等の追加要否・分割は未決定。全候補の原名付けを平坦原beforeState/result/receive直後afterStateで独立再生し現有効association/evidenceと照合、原target.candidates/adopted/未解決を分離する。競合候補/同個体複数evidenceを一件にしない。実reply/回復説明の実前件はある場合だけ別照合する。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・後知識後訂正後活動非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/本人経験/感情/全節回答/受諾予約実行を補わず、旧ar/4d2/4d5/dq等と不足receipt拒否を維持する。
+残3〜4工程・暫定中心3、相談時から下限/上限/中心差分0。採用のみで確認待ち/他入口/最終照合を減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。原資料/工具/開始baseline/原ログはdr-implementation-5175319。core/world/catalog/locale/保存形式/ゲーム本呼出非変更。検証確定値は現行handoff参照。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%は非操作非置換非commit。
+```
+
+以下の未採用は採用前の相談継続文として保持する。
+
 ## 現行継続文（dr相談案・対象と保持方針の個別採用待ち）
 
 ```text

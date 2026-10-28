@@ -113,7 +113,7 @@ test('real input antecedents are independently replayed, activity outputs never 
 });
 test('75 prior supplemental and 47 older input contracts preserve their ownership', () => {
     const audit = require('../scripts/experimental/diary_audit');
-    const owners = audit.supplementalInventory().filter(r => r.id !== '4d12dm'); assert.equal(owners.length, 79);
+    const owners = audit.supplementalInventory().filter(r => r.id !== '4d12dm'); assert.equal(owners.length, 80);
     const contracts = audit.inventory().filter(o => !['4d1', '4d3', '4d4'].includes(o.id)).map(o => {
         const old = require('../' + o.file), params = /function capture\(([^)]*)\)/.exec(old.capture.toString())[1].split(',').map(s => s.trim());
         assert.equal(params.length, o.arity); return { ...o, old, params };
