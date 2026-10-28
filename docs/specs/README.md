@@ -1,5 +1,10 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-29 du最終：[採用範囲](core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du-verified)の実装・Codex検証完了。全Node3506・30JS構文・七言語14957・別隔離renderer903通過、専用27＋監査93＝120・旧test削除0。136枠135確認済み・正式子125・全134登録（固定50＋追加84）・最新ao〜dt人間OK、du実装後OK未受領・同じdu継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。元fullのstatus／reviewRequired／reading.not_recordedを別成功で置換しない。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。
+
+
+- 2026-10-29 du採用：ユーザーが[非対比の感情・出来事報告を含む複数節の対象・保持方針](core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du)を両方採用。noncontrast_report_clause_materials.create()/capture(buffer,result,receipt)を採用範囲実装検証中。136枠135確認済み・正式子125・全134登録（固定50＋追加84）・最新ao〜dt人間OK、du実装後OK未受領・同じdu継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。検証／読取未検証／発行は現行handoff参照。以下の未採用は採用前状態。
+
 - 2026-10-29 du相談案：[対比ではない感情・出来事報告を含む複数節の対象・保持方針](core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。dt確認済み、135枠135確認済み・正式子124・全133登録を維持。限定222資料中の対象案202は網羅数ではない。残3〜4工程・暫定中心3（前回2〜3中心2から＋1・完了減算0）、全14保留・各担当三保留・全体未完。局所工具4・監査92通過、ゲーム全回帰／renderer再実行なし。原資料・読取未検証・発行は現行handoff参照。以下のdu未選定は相談前状態。
 
 - 2026-10-29 dt確認・次チャット保存点：ユーザーが386bfc1のdt採用範囲へ実装後OKと継続／移動の裁量を明示。dtは実装・Codex検証・ユーザー実装後OK確認済み。135枠135確認済み・正式子124・最新ao〜dt人間OK・全133登録（固定50＋追加83）。[次du再開点](core/experimental_word_learning.md#diary-entry-remainder-after-dt)へ続ける。duは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dt確認前3〜4中心3から下限／上限／中心−1、dt実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回、協力者の試遊ログから対応パターンを後から拡張する[既存目的](core/experimental_word_learning.md#playtest-input-log-improvement)を再確認。大工程は10単位、ID 9で試遊記録、ID 10で配布通し確認を具体化する。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／実読取未検証／発行は現行handoff参照。以下のdt未受領は受領前状態。

@@ -8,7 +8,7 @@ const { copy } = f, values = f.fixtures(), accepted = values.filter(row => row.e
 const capture = (buffer, value) => api.capture(buffer, value.result, value.receipt);
 test('79 prior supplemental and 47 older input contracts retain ownership', () => {
     const audit = require('../scripts/experimental/diary_audit');
-    const owners = audit.supplementalInventory().filter(r => r.id !== '4d12dq'); assert.equal(owners.length, 82);
+    const owners = audit.supplementalInventory().filter(r => r.id !== '4d12dq'); assert.equal(owners.length, 83);
     const contracts = audit.inventory().filter(o => !['4d1', '4d3', '4d4'].includes(o.id)).map(o => {
         const old = require('../' + o.file), params = /function capture\(([^)]*)\)/.exec(old.capture.toString())[1].split(',').map(s => s.trim());
         assert.equal(params.length, o.arity); return { ...o, old, params };

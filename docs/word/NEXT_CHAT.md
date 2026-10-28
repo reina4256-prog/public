@@ -1,5 +1,32 @@
 # 次チャットの開始文
 
+## 現行継続文（du採用範囲実装・Codex検証完了）
+
+```text
+開始099268a、ユーザー「はい、どちらも採用でOKです」でdu対象・保持方針を採用。noncontrast_report_clause_materials.create()/capture(buffer,result,receipt)、kind=noncontrast_report_clause_materialを採用範囲実装・Codex検証完了。136枠135確認済み・正式子125・最新ao〜dt人間OK・全134登録（固定50＋追加84）、du実装後OK未受領・同じdu継続。最新検証／発行／未検証はCURRENT_IMPLEMENTATION.md参照。dtを再確認せず、次記号／次チャットを先取りしない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du-verified。巨大文書／全過去開始文を再読せず、原文保管／必要依存／必須検証を維持し、実読取と未読未検証、hash／意味読了／人間OKを分ける。
+日本語二節以上の原report feeling_report/external_event_report一節以上・contrastなし、完全／未理解双方。併存de明示18＋greeting_morning＋df四規則・原unknown。単独ai・固定感情／対比ag/ah・bf〜bm・旧4d2等と不足receipt拒否を維持。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー、一input一資料/per_clause。原subject／時点／reportSource/testimony等の有無を保持し、未知detail／相手の報告を本人経験／感情／原因真偽へ補わない。
+実receive/respond全文・前後validContext/validSelectionsと実前件ありだけ平坦原資料／直前turn/IDを別再生。不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及。新理解／全節回答／受諾予約実行を補わない。名付け／動的／個体語義参照／correction/reply／他規則／locale追加要否・分割・全入口最終分類未決定。
+全Node3506・30JS構文・七言語14957・別隔離renderer903通過、専用27＋監査93＝120・旧test削除0。243原220成立、29種6379改変拒否／同値1・実前件231拒否、旧83担当18260／旧47入力API10340非重複。相談原222へ202成立／20非成立・原hash不変。別決定的fixture dumpをテストプロセス原dumpへ昇格せず、件数を固有数／網羅数／次未解決集合へ変換しない。旧47は限定引数adapter・beforeReports/beforeReceipts空で固定50全正規API完全供給ではない。
+残3〜4工程・暫定中心3・相談時差分0。du確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、全14保留・各担当三保留・全体未完。4e／receipt保存形式／ゲーム本接続未採用未実装。元full-30minのstatus／reviewRequired／reading.not_recordedを別成功で置換しない。原資料／開始十文書baseline／168source hash／工具／全ログ／文書検査／発行はdu-implementation-099268a。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・本人日記生成保存再開配布／実UI音声／外部試遊ログ通し確認は未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の実装検証中は途中状態として保持する。
+
+
+## 現行継続文（du採用範囲実装検証中）
+
+```text
+開始099268a。ユーザー「はい、どちらも採用でOKです」でdu対象・保持方針を個別採用。noncontrast_report_clause_materials.create()/capture(buffer,result,receipt)、kind=noncontrast_report_clause_materialの三引数独立journalを採用範囲実装検証中。136枠135確認済み・正式子125・最新ao〜dt人間OK・全134登録（固定50＋追加84）、du実装後OK未受領・同じdu継続。dtを再確認しない。
+読取は現行handoff→本書最初の現行text→現行routing/word通知→OWNERS必要行／所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du。巨大文書／全過去開始文を再読せず、原資料保管／依存確認／必須検証を維持し、実読取／未読未検証とhash／意味読了を分ける。
+日本語二節以上の原report feeling_report/external_event_report一節以上・contrastなし、完全／未理解双方。併存de明示18＋greeting_morning＋df四規則・原unknown。単独ai・固定感情／対比ag/ah・bf〜bm・旧4d2等と不足receipt拒否を維持。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー、一input一資料/per_clause。原subject/時点/reportSource/testimony等の有無を保持し、未知detail・相手の報告を本人経験／感情／原因真偽へ補わない。
+実receive/respond全文・前後validContext/validSelectionsと実前件がある場合の平坦原資料／直前turn/IDを別再生。不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及。新理解／全節回答／受諾予約実行を補わない。名付け／動的／個体語義参照／correction/reply／他規則／locale追加要否と分割・全入口最終分類未決定。
+残3〜4工程・暫定中心3・相談時差分0、du確認待ち1／その他入口0〜1中心0／最終意味照合回帰2。全14保留・各担当三保留・全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。原資料・開始十文書baseline・168source hash・工具・検証／発行はdu-implementation-099268aとCURRENT_IMPLEMENTATION.md参照。元相談222／202を固有数／網羅数／次未解決集合へ変換しない。旧47は限定引数adapterで固定50全正規API完全供給／全意味読了ではない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の未採用は採用前の相談継続文として保持する。
+
+
 ## 現行継続文（du相談案・対象と保持方針の個別採用待ち）
 
 ```text

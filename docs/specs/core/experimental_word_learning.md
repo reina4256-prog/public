@@ -1,5 +1,49 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-noncontrast-report-clause-materials-du-verified"></a>
+
+##### 4d12du：対比ではない感情・出来事報告の複数節資料（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_noncontrast_report_clause_materials.create()/capture(buffer,result,receipt)、kind=noncontrast_report_clause_material。下記[採用範囲](#diary-noncontrast-report-clause-materials-du)を実装・検証した。136枠135確認済み・正式子125・全134登録（固定50＋追加84）・最新ao〜dt人間OK、du実装後OK未受領・同じdu継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。
+- 日本語二節以上・原reportのfeeling_report/external_event_report一節以上・contrastなし、完全／未理解双方と採用済み併存範囲を原値保持。全節／原result・learning／実reply・turn.answer有無／入力前knowledge/context/feelingLearning／前後state/worldを一input一資料・per_clauseへ分離コピーする。実receive/respondと前後validContext/validSelections、実前件がある場合の平坦原資料・直前turn/IDを別再生。不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及、旧ai・ag/ah・bf〜bm・旧4d2等と不足receipt拒否を維持。
+- 原subject／時点／reportSource/testimony等の有無・未理解detail・clause_scopeを保持し、相手の報告を本人経験／感情／原因真偽へ補わない。新理解／全節回答／受諾予約実行を生成しない。名付け／動的／個体語義参照／correction/reply／他規則／localeの追加要否・分割／全入口最終分類は未決定。4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 専用27＋監査93＝120、全Node3506・30JS構文・七言語14957・別隔離renderer903（243原＋660改変）通過。旧3478から＋28は専用27＋監査1、原TAP名を重複度込み比較し旧test削除0を文書検査で確認する。243原220成立、29種6379原資料改変拒否／同値1、実前件231改変拒否、旧83担当18260／旧47入力API10340呼出非重複。
+- 相談原222へ実capture202成立／20非成立、原JSON hash不変・結果／出所補修なし。別決定的fixture dumpはテストプロセスの原dumpへ昇格しない。生成資料数を固有数／網羅数／次未解決集合へ変換せず合算しない。旧47はbeforeReports/beforeReceipts明示空の引数adapter限定照合、固定50全正規APIの完全供給ではない。
+- 元full-30minは34検査・status=incomplete、reviewRequired=["scripts/experimental/diary_noncontrast_report_clause_material_smoke.js"]、reading.status=not_recordedを非置換保持。別権限付きrenderer成功やhash一致を元run／全依存意味読了へ昇格しない。元runの失敗理由・未実行の有無と別実行の原結果は現行handoff参照。別rendererは非表示blank server／専用一時profile、八global除去・local/session du-sentinel不変・保存bridge未定義。
+- 新module/fixture/test/隔離smoke・監査/package登録済み。旧24横断testは担当数期待82→83だけ追従、旧test名・旧npmコマンドを維持。core/world/catalog/locale/保存形式／本呼出非変更、新ゲーム表示文なし。原資料／工具／開始十文書baseline・168source hash／全ログ／文書検査／発行はdocs/.local-history/verification-runs/du-implementation-099268a。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記生成保存再開配布は未完。
+
+以下の実装検証中は途中状態として保持する。
+
+
+<a id="diary-noncontrast-report-clause-materials-du-verified"></a>
+
+##### 4d12du：対比ではない感情・出来事報告の複数節資料（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_noncontrast_report_clause_materials.create()/capture(buffer,result,receipt)、kind=noncontrast_report_clause_material。下記[採用範囲](#diary-noncontrast-report-clause-materials-du)を実装・検証した。136枠135確認済み・正式子125・全134登録（固定50＋追加84）・最新ao〜dt人間OK、du実装後OK未受領・同じdu継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。
+- 日本語二節以上・原reportのfeeling_report/external_event_report一節以上・contrastなし、完全／未理解双方と採用済み併存範囲を原値保持。全節／原result・learning／実reply・turn.answer有無／入力前knowledge/context/feelingLearning／前後state/worldを一input一資料・per_clauseへ分離コピーする。実receive/respondと前後validContext/validSelections、実前件がある場合の平坦原資料・直前turn/IDを別再生。不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及、旧ai・ag/ah・bf〜bm・旧4d2等と不足receipt拒否を維持。
+- 原subject／時点／reportSource/testimony等の有無・未理解detail・clause_scopeを保持し、相手の報告を本人経験／感情／原因真偽へ補わない。新理解／全節回答／受諾予約実行を生成しない。名付け／動的／個体語義参照／correction/reply／他規則／localeの追加要否・分割／全入口最終分類は未決定。4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 専用27＋監査93＝120、全Node3506・30JS構文・七言語14957・別隔離renderer903（243原＋660改変）通過。旧3478から＋28は専用27＋監査1、原TAP名を重複度込み比較し旧test削除0を文書検査で確認する。243原220成立、29種6379原資料改変拒否／同値1、実前件231改変拒否、旧83担当18260／旧47入力API10340呼出非重複。
+- 相談原222へ実capture202成立／20非成立、原JSON hash不変・結果／出所補修なし。別決定的fixture dumpはテストプロセスの原dumpへ昇格しない。生成資料数を固有数／網羅数／次未解決集合へ変換せず合算しない。旧47はbeforeReports/beforeReceipts明示空の引数adapter限定照合、固定50全正規APIの完全供給ではない。
+- 元full-30minは34検査・status=incomplete、reviewRequired=["scripts/experimental/diary_noncontrast_report_clause_material_smoke.js"]、reading.status=not_recordedを非置換保持。別権限付きrenderer成功やhash一致を元run／全依存意味読了へ昇格しない。元runの失敗理由・未実行の有無と別実行の原結果は現行handoff参照。別rendererは非表示blank server／専用一時profile、八global除去・local/session du-sentinel不変・保存bridge未定義。
+- 新module/fixture/test/隔離smoke・監査/package登録済み。旧24横断testは担当数期待82→83だけ追従、旧test名・旧npmコマンドを維持。core/world/catalog/locale/保存形式／本呼出非変更、新ゲーム表示文なし。原資料／工具／開始十文書baseline・168source hash／全ログ／文書検査／発行はdocs/.local-history/verification-runs/du-implementation-099268a。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記生成保存再開配布は未完。
+
+以下の実装検証中は途中状態として保持する。
+
+
+<a id="diary-noncontrast-report-clause-materials-du"></a>
+
+##### 4d12du：対比ではない感情・出来事報告の複数節資料（2026-10-29・採用範囲実装検証中）
+
+- ユーザー「はい、どちらも採用でOKです」で下記[相談案](#diary-noncontrast-report-clause-materials-du-consultation)の対象・保持方針を個別採用。開始099268a。experimental_word_diary_noncontrast_report_clause_materials.create()/capture(buffer,result,receipt)、kind=noncontrast_report_clause_materialの三引数独立journalとして採用範囲を実装検証する。136枠135確認済み・正式子125・最新ao〜dt人間OK・全134登録（固定50＋追加84）、du実装後OK未受領・同じdu継続。
+- 日本語二節以上・原reportのfeeling_report/external_event_report一節以上・contrastなし、当時完全／未理解双方。併存はde明示18＋greeting_morning＋df四規則・原unknown。relationLearning/conditionJudgment/sequenceJudgmentなし。単独ai・固定感情／対比ag/ah・bf〜bm・旧4d2の実answer_unknown等の所有と不足receipt拒否を維持し、原unknownを他frameへ修復しない。
+- 全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを一input一資料/per_clauseで分離コピー。reportIndicesは対象二規則のreport、allReportIndicesは全原report。subject/aspect/polarity/eventTime・原reportSource/testimony等の有無を保持し、未知detail・相手の報告・reasonを仕事経験／本人感情／原因真偽へ補わない。
+- 独立input/knowledge/context・serial/時刻/話者/scene、コピー上receive/respond全文・前後validContext/validSelectionsを照合。実前件ありでは平坦原beforeState/result/afterState・beforeWorld/reply/afterWorldと直前turn/IDを別再生し、前件なしを生成しない。不足改変矛盾拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。新理解・全節回答・本人経験／感情・受諾予約実行を補わない。
+- 残3〜4工程・暫定中心3・相談時差分0。du実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、採用のみで減算しない。名付け／動的／個体語義参照／correction/reply／他規則／locale追加要否・分割／全入口最終分類未決定。全14保留・各担当三保留・4d12/4d/ID4全体未完。4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 検証／読取未検証／原資料／発行は現行handoff参照。ゲームcore/world/catalog/locale/保存形式／本呼出非変更、新ゲーム表示文なし。今回原資料／工具／開始十文書baselineはdocs/.local-history/verification-runs/du-implementation-099268a。
+
+以下の未採用は採用前の相談案として保持する。
+
+
 <a id="diary-noncontrast-report-clause-materials-du-consultation"></a>
 
 ##### du相談案：対比ではない感情・出来事報告を含む複数節の資料保持（2026-10-29・未採用未着手）
