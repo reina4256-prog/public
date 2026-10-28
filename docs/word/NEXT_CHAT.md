@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（dr確認済み・次ds未選定未採用）
+
+```text
+ゲーム実装最新606357d。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdr採用範囲へ実装後OKと継続/移動の裁量を明示。drは実装・Codex検証・ユーザー実装後OK確認済み。133枠133確認済み・正式子122・最新ao〜dr人間OK・全131登録（固定50＋追加81）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdrを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word README/OPEN_ITEMS現行通知→OWNERS必要行/所有節/依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-dr。巨大文書全体/全過去開始文/過大な検索行を出力せず必要節を読む。原文保管/必要依存/必須検証を維持、未知依存で狭めず、hash/構造/APIロードと意味読了・人間OK、実読取と未読未検証を区別する。
+次dsは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。動的名付けと個体参照の併存/word_reference混在/他原frameや規則/他localeの追加要否/分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+drはindividual_reference_materials.create()/capture(buffer,result,receipt)、kind=individual_reference_material。既存日本語の原reference一節以上、単独未理解または複数節の完全/未理解双方。de明示18＋greeting_morning＋df四規則、既存三名付け形式、retract_explanation/correction・実confirm_name由来reply・原unknownを併存可能。全候補の必要実原名付けを平坦beforeState/result/原receive直後afterStateで独立再生し現有効association/evidenceと照合、複数節の原名付けも完全名付けと実更新を照合する。原target.candidates/adopted/不足を分離し、同名二個体/同個体複数evidenceを一件にしない。実reply/回復説明はある場合だけ実前件を別照合。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・後知識後訂正後活動非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧ar/4d2/4d5/dq等と不足receipt拒否を維持する。
+相談366へ278成立/88非成立・別補足20へ9成立/11非成立・別到着対照4へ1成立/3非成立・専用380原305成立・別経験補足32全成立を固有数/網羅数/次未解決集合に変換せず合算しない。相談対象のar由来二資料と実reply三資料の不足receiptは補修生成せず、必要出所をコピー上で選ぶ供給整形と原result/出所非変更を分ける。旧非選定集合を自動繰越ししない。旧47入力APIは既存adapterの限定照合、固定50全正規API完全供給/全意味読了ではない。
+残2〜3工程・暫定中心2、dr確認前3〜4中心3から下限/上限/中心−1、dr実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。新たな最終分類ではなく追加要否/分割未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回確認/文書のみ、ゲーム全回帰/監査/renderer再実行なし。原資料/ログはdr-implementation-5175319、今回開始十文書baseline/28source hash/文書検査/発行はdr-acceptance-606357d。過去全Node3419/27JS構文/七言語14957/別renderer1295を今回結果へ昇格しない。元full-30minの制限内GPU/ERR_FAILED・reviewRequired/reading.not_recordedによるincomplete/exit1と別成功を非置換保持。全過去開始文/全旧所有節/全fixture/全静的依存意味再読・全入口最終分類・本人日記生成保存再開配布・実UI音声/実ユーザー保存未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下はdr実装後OK受領前の継続文として保持する。
+
 ## 現行継続文（dr採用範囲実装・Codex検証完了）
 
 ```text
