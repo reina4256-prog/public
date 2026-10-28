@@ -1,5 +1,19 @@
 # 次チャットの開始文
 
+## 同じdnの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始78952b4、ユーザー「どちらも採用でOKです」でdn対象・保持方針を個別採用。dynamic_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=dynamic_mixed_multiple_naming_materialの採用範囲実装・Codex検証完了。129枠128確認済み・正式子118・全127登録（固定50＋追加77）、最新ao〜dm人間OK・dn実装後OK未受領・同じdn継続。再採用確認/次記号/次チャットを先取りしない。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知/OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-dynamic-mixed-multiple-naming-materials-dn。日本語一入力の完全naming二節以上・実ask_name由来catalogRuleなし完全節一つ以上に不完全名付け/他種/unknownが併存する採用範囲。他の名付けは既存三形式、併存認識はdl同様de18＋greeting_morning。旧4d2/4d5/dh/dj/dk/dl/dmと不足receipt拒否を維持。
+一input一資料・原全節順/index/span/当時理解不足/完全不完全・動的既存形式・他種unknown indices/原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピーしper_clause。活動ask_nameの出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrival全文response/pending再生、活動の問いと実入力前件を分け実前件ありだけ平坦receipt独立再生。destinationとtarget分離。不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。全節回答/本人理解自覚/一般名/本人経験/受諾予約実行を補わない。原unknownの「うん」等を理解済みreply/語義教示へ、原namingの「未知」をunknownへ分類し直さない。
+原資料/開始十文書・package/登録件数更新前22source baseline/工具/全ログはdn-implementation-78952b4。全Node3293・23JS構文・七言語14957・別権限付きrenderer1376通過。専用30＋監査86＝116、前dm3262から新専用30＋監査1追加・原TAP test名を重複度込み照合して旧test削除0。1025原117成立・32種3659改変拒否/同値85別計上・実前件80改変拒否・旧76担当8892/旧47入力API5499非重複。相談1331へ新dn112成立/1219非成立・元2176へ0成立・原三JSON hash不変、fixture dumpは別生成。元full-30minは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持し、別成功で元runを昇格しない・未実行test/checkなし。初回テスト構文誤りとfixture許可一覧漏れの失敗を非置換保持し、別v2成功・追加二テストを含む全回帰成功と分ける。全回帰開始23source/hash不変・保護九ファイルHEAD一致、七browser＋fixture/smoke静的34依存hash・手動境界確認と実読取/未読を別記し、hash/通過を全依存意味読了にしない。表示文/locale/保存形式/ゲーム本呼出非変更。最終文書検査/発行はCURRENT_IMPLEMENTATION.md参照。
+残3〜4工程・暫定中心3・前回比下限/上限/中心差分0。dn確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、採用/Codex検証だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完。correction/reply/df/語義教示等の原別規則混在・他localeの追加要否/分割未決定。df184/dg60/dh132/di68・unknown72/前156・dm成立33を戻さず合算しない。4e/receipt保存形式/ゲーム本接続未採用未実装。全旧所有節/全fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下は採用前の開始文として保持する。
+
+
+
 ## 同じdnの現行継続文（対象・保持方針相談案・未採用未着手）
 
 ```text

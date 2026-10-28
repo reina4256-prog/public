@@ -1,5 +1,15 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-28 dn最終：[dn採用範囲](../specs/core/experimental_word_learning.md#diary-dynamic-mixed-multiple-naming-materials-dn)の実装・Codex検証完了。全Node3293・23JS構文・七言語14957・別権限付きrenderer1376通過。専用30＋監査86＝116を全回帰に含み、前dm3262から新専用30＋監査1追加・原TAP test名を重複度込み照合して旧test削除0。1025原117成立・32種3659改変拒否/同値85別計上・実前件80改変拒否、旧76担当8892/旧47入力API5499非重複。相談1331へ新dn112成立/1219非成立・元2176へ0成立・原三JSON hash不変、fixture dumpは別生成。元full-30minは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別成功で元runを昇格しない・未実行test/checkなし。129枠128確認済み・正式子118・全127登録（固定50＋追加77）、最新ao〜dm人間OK・dn実装後OK未受領・同じdn継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口追加要否/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdn-implementation-78952b4、実読取/未検証/発行は現行handoff参照。以下の実装検証中/未採用は途中/過去状態として保持する。
+
+
+- 2026-10-28 dn採用：ユーザー「どちらも採用でOKです」で[対象・保持方針](../specs/core/experimental_word_learning.md#diary-dynamic-mixed-multiple-naming-materials-dn)を個別採用。dynamic_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。129枠128確認済み・正式子118・全127登録（固定50＋追加77）、最新ao〜dm人間OK・dn実装後OK未受領・同じdn継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・全体未完。以下のdn未採用は採用前状態。
+
+| 工程 | 部品／API | source | test |
+| --- | --- | --- | --- |
+| 4d12dn | dynamic_mixed_multiple_naming_materials.create()/capture (3) | [source](../../experimental_word_diary_dynamic_mixed_multiple_naming_materials.js) | [test](../../tests/experimental_word_diary_dynamic_mixed_multiple_naming_materials.test.js) |
+
+
 - 2026-10-28 dn再開：[動的複数完全名付けと他節併存の対象・保持方針相談案](../specs/core/experimental_word_learning.md#diary-dynamic-mixed-multiple-naming-materials-dn-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。dm実装後OK確認済み・128枠128確認済み・正式子117・最新ao〜dm人間OK・全126登録（固定50＋追加76）を維持。限定1331資料の対象案112は既存76追加担当/旧47入力APIで非捕捉（重複あり・固有数/網羅数/新部品成立件数ではない）。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1・完了減算0。その他入口追加要否/分割・全入口最終分類は未決定、全14保留・各担当三保留・全体未完。ゲーム全回帰・監査・実働・renderer再実行なし。同じdnで個別採用待ち。以下のdn未選定は相談前状態として保持する。
 
 

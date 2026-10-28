@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-28 dn最終：[dn採用範囲](#diary-dynamic-mixed-multiple-naming-materials-dn)の実装・Codex検証完了。全Node3293・23JS構文・七言語14957・別権限付きrenderer1376通過。専用30＋監査86＝116を全回帰に含み、前dm3262から新専用30＋監査1追加・原TAP test名を重複度込み照合して旧test削除0。1025原117成立・32種3659改変拒否/同値85別計上・実前件80改変拒否、旧76担当8892/旧47入力API5499非重複。相談1331へ新dn112成立/1219非成立・元2176へ0成立・原三JSON hash不変、fixture dumpは別生成。元full-30minは制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedを非置換保持、別成功で元runを昇格しない・未実行test/checkなし。129枠128確認済み・正式子118・全127登録（固定50＋追加77）、最新ao〜dm人間OK・dn実装後OK未受領・同じdn継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口追加要否/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。原資料/全ログはdn-implementation-78952b4、実読取/未検証/発行は現行handoff参照。以下の実装検証中/未採用は途中/過去状態として保持する。
+
+
+
+<a id="diary-dynamic-mixed-multiple-naming-materials-dn"></a>
+
+##### 4d12dn：動的複数完全名付けと他節併存の一入力保持（2026-10-28・採用範囲実装・Codex検証完了）
+
+- 2026-10-28 dn採用：ユーザー「どちらも採用でOKです」で[対象・保持方針](#diary-dynamic-mixed-multiple-naming-materials-dn)を個別採用。dynamic_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。129枠128確認済み・正式子118・全127登録（固定50＋追加77）、最新ao〜dm人間OK・dn実装後OK未受領・同じdn継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・全体未完。以下のdn未採用は採用前状態。
+- 現在の実装仕様：experimental_word_diary_dynamic_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)、kind=dynamic_mixed_multiple_naming_material。日本語一入力の完全naming二節以上・実活動ask_name/pending由来catalogRuleなし完全名付け一節以上に、不完全名付け/他種/unknownが併存する。他の名付けは既存name/name_description/name_answer、併存認識はdl同様de18＋greeting_morningだけ。原4d2実reply成立は除外。各完全名付けの一意注目対象・同語対象話者explanation一候補採用、動的対象とpending対象一致を照合する。
+- 一input一資料・原全節順/index/span/当時理解不足・completeNamingIndices/incompleteNamingIndices/dynamicNamingIndices/catalogNamingIndices/otherRecognizedIndices/unknownIndicesと全原learning、result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。原unknownの「うん」等を理解済みreply/語義教示にせず、原namingの「未知」をunknownへ変換しない。
+- dm同様に活動ask_nameの出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力全文/pendingを照合。destinationとtargetを分離。活動の問いと実入力前件を分け、実前件ありだけ原result/平坦receipt独立再生・直前turn/serial/時刻照合。意味/関係basis・実参照経験・前後validContext/validSelectionsとreceive/respond全文再生、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。
+- 原関連/records/実応答の変化とcapture非生成を分け、同語反復を畳まず、異名同義語化/全節回答/本人理解自覚/一般名/別個体応用/本人経験/感情/受諾予約実行/条件成立を補わない。旧4d2/4d5/dh/dj/dk/dl/dm所有を維持。原別規則のcorrection/reply/df/語義教示等混在・他localeの追加要否/分割は未決定。4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 新module/fixture/test/隔離smoke・監査/package登録を追加、旧横断testは担当件数だけ追従。表示文/locale/保存形式/ゲーム本呼出非変更。原資料/開始文書と登録件数更新前22source baseline/工具/全ログはdocs/.local-history/verification-runs/dn-implementation-78952b4。初回テスト構文誤りとfixture許可一覧漏れの二失敗は原ログへ保持し、別v2成功・追加二テストを含む全回帰成功と分ける。最終検証は冒頭dn最終に記録。全回帰開始23source/hash不変・保護九ファイルHEAD一致、七browser＋fixture/smoke静的34依存hash・手動境界確認と実読取/未読を区別し、hash/通過を全依存意味読了へ昇格しない。別権限付きrendererは八global除去・local/session sentinel不変・保存bridge未定義、非表示blank server/専用一時profileで実ゲーム/UI/実ユーザー保存非操作。
+
+以下は採用前の相談案として保持する。
+
+
+
 
 <a id="diary-dynamic-mixed-multiple-naming-materials-dn-consultation"></a>
 
