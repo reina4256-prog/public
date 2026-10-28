@@ -369,6 +369,18 @@ test('dl ownership retains mixed multiple naming material without replacing olde
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12dl'));
 });
 
+test('dq ownership preserves complete and unresolved word references in clauses', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12dq');
+    assert.equal(owner.file, 'experimental_word_diary_word_reference_clause_materials.js');
+    assert.equal(owner.arity, 3); assert.equal(owner.scopeAdopted, true);
+    assert.equal(owner.implementationAcceptance, 'not_received'); assert.equal(owner.runtimeDiaryConnected, false);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12dq'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === owner.file));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12dq').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12dq'));
+});
+
 test('dp ownership preserves multiple naming and incomplete correction or confirmation sources', () => {
     const report = audit(); assert.deepEqual(report.errors, []);
     const owner = report.supplementalOwners.find(row => row.id === '4d12dp');
@@ -434,7 +446,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-assert.equal(report.supplementalOwners.length, 79);
+assert.equal(report.supplementalOwners.length, 80);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -1155,6 +1167,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_dynamic_mixed_multiple_naming_material_fixtures.js', 'scripts/experimental/diary_dynamic_mixed_multiple_naming_material_smoke.js',
             'scripts/experimental/diary_multiple_naming_additional_clause_material_fixtures.js', 'scripts/experimental/diary_multiple_naming_additional_clause_material_smoke.js',
             'scripts/experimental/diary_multiple_naming_incomplete_response_material_fixtures.js', 'scripts/experimental/diary_multiple_naming_incomplete_response_material_smoke.js',
+            'scripts/experimental/diary_word_reference_clause_material_fixtures.js', 'scripts/experimental/diary_word_reference_clause_material_smoke.js',
             'scripts/experimental/diary_incomplete_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_rest_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_walk_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_walk_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_conditional_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_conditional_rest_proposal_smoke.js',

@@ -1,5 +1,13 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-28 dq最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-word-reference-clause-materials-dq)の実装・Codex検証完了。全Node3390・26JS構文・七言語14957・権限付き隔離renderer1271通過。132枠131確認済み・正式子121・全130登録・最新ao〜dp人間OK・dq実装後OK未受領、同じdq継続。原語義候補/競合出所と原理解を分離、完全/未理解の動的名付けとも活動出所を照合する。旧ar/4d2/4d5等と不足receipt拒否を維持。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。元full-v2の制限内renderer失敗/要レビューと別成功を区別する。原ログ/発行はhandoff参照。以下の実装検証中は途中状態として保持する。
+
+- 2026-10-28 dq採用：[説明済みの語の参照を含む複数節](../specs/core/experimental_word_learning.md#diary-word-reference-clause-materials-dq)の対象・保持方針をユーザーが個別採用、実装検証中。132枠131確認済み・正式子121・全130登録（固定50＋追加80）・最新ao〜dp人間OK・dq実装後OK未受領。同じdq継続、残3〜4工程・暫定中心3・相談時差分0、採用だけで減算しない。全14保留・各担当三保留・全体未完。以下のdq未採用は採用前状態として保持する。
+
+| 工程 | 部品／API | コード | 専用テスト |
+| --- | --- | --- | --- |
+| 4d12dq | word_reference_clause_materials.capture (3) | [source](../../experimental_word_diary_word_reference_clause_materials.js) | [test](../../tests/experimental_word_diary_word_reference_clause_materials.test.js) |
+
 - 2026-10-28 dq再開：[説明済みの語の参照を含む複数節の対象・保持方針相談案](../specs/core/experimental_word_learning.md#diary-word-reference-clause-materials-dq-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。同じdqで個別採用待ち。dp確認済み・131枠131確認済み・正式子120・全129登録を維持。ar単独参照/旧4d2/旧4d5/単独語義教示訂正の所有と不足receipt拒否を維持。367限定資料の対象案285は既存79追加担当/旧47入力API非捕捉、固有数/網羅数ではない。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1・完了減算0。その他入口/他locale/分割・全入口最終分類未決定、全14保留・各担当三保留・全体未完。ゲーム全回帰/監査/実働/renderer再実行なし。詳細/原資料/読取未検証/発行は現行handoff参照。以下のdq未選定は相談前状態として保持する。
 
 - 2026-10-28 dp確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で4970a55のdp採用範囲へ実装後OKと継続/移動の裁量を受領。dpは実装・Codex検証・ユーザー実装後OK確認済み。131枠131確認済み・正式子120・最新ao〜dp人間OK・全129登録（固定50＋追加79）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dqの再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dp)へ進む。dqは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dp確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰/監査/実働/renderer再実行なし。以下のdp実装後OK未受領は受領前状態として保持する。

@@ -1,5 +1,30 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-word-reference-clause-materials-dq"></a>
+
+##### 4d12dq：説明済みの語の参照を含む複数節の資料保持（2026-10-28・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_word_reference_clause_materials.create()/capture(buffer,result,receipt)、kind=word_reference_clause_material。下記の個別採用範囲を実装・検証した。132枠131確認済み・正式子121・最新ao〜dp人間OK・全130登録（固定50＋追加80）、dq実装後OK未受領・同じdq継続。残3〜4工程・暫定中心3・相談時から下限/上限/中心差分0。実装後確認待ち/他入口追加要否/最終意味照合回帰を減算しない。全14保留・各担当三保留・全体未完。
+- 日本語二節以上・原word_reference一節以上、完全理解と語義/個体名競合未理解を分離する。de明示18＋greeting_morning＋df四規則、既存三形式/実活動ask_name由来naming、原retract_explanation/correction・実confirm_name由来reply、不完全名付け/unknownの併存を原値保持する。旧4d2実reply成立・旧4d5一意の完全名付け一節・単独ar/語義教示訂正等の所有と不足receipt拒否を維持する。
+- receipt.originsは必要な原説明/訂正連鎖/競合個体名の平坦beforeState/result/原receive直後afterState。各原当時知識で独立再生し、原entry・corrects/retractedBy・競合evidenceの原値を照合、欠損/改変/重複/余分資料を拒否する。referenceSourcesは候補・当時のscope・競合と原understandingを分離する。同意味複数候補を一件へ選び直さず、未理解で原applicationsがない場合もそのまま保持し、候補資料を理解や採用へ昇格しない。
+- 完全/未理解いずれの動的名付けも実活動ask_name/到着/時刻/履歴/出力の別照合を必須とする。実replyはpendingと実直前name_echo・必要時の別receipt.originを照合、回復説明は実直前known.meaning=restを照合する。全節/index/span/原不足、原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・後知識後訂正後活動非遡及。新語義教示/意味採用/訂正成功/旧知識無効化/本人経験/理解自覚/全節回答/受諾予約実行を補わない。
+- 専用31、監査89を含む全Node3390・26JS構文・七言語14957、権限付き別隔離renderer1271通過。380原297成立・24種7128原資料改変拒否、原出所1555/実前件964改変拒否、旧79担当23463/旧47入力API13959呼出非重複。旧3358→3390の＋32は専用31＋監査1、原TAP名を重複度込みで照合し旧test削除0。fixture dumpは別決定的生成でありテストプロセスの原dumpへ昇格しない。
+- 原相談327＋補足40＝367へ実capture285成立/82非成立、原二JSON hash不変。余分な参照以外の原archiveから必要な原出所だけを選ぶ供給整形をコピー上で行い、原result/原出所は変更しない。別補足30は生活8/実仕事経験由来7意味×発話2で全成立・turn.answer有り0。367/285・380/297・補足30は固有数/網羅数/次の未解決集合ではなく合算しない。他原frame/他locale追加要否/分割・全入口最終意味分類は未決定。
+- 初回full-30minは未理解の動的名付けにも活動出所照合を広げる補強のため停止、node-tests終了1・localization/renderer未実行のincompleteを保持する。最終full-v2-30minは全Node/七言語/構文/文書が通過し、通常制限内rendererのERR_FAILED・終了1と静的未分類reviewRequired/reading.not_recordedを残すincomplete/exit1、未実行test/checkなし。権限付き別rendererの成功と手動依存レビューで元runを成功へ昇格しない。26JSは最終全回帰開始から不変、保護八ファイルHEAD一致・browser七＋fixture/smoke静的35依存hash不変を全依存意味読了にしない。
+- 新module/fixture/test/隔離smoke・監査/package登録済み。旧20横断testは担当数期待78→79だけ追従。core/world/catalog/locale/保存形式/ゲーム本呼出は非変更。rendererは非表示blank server/専用一時profile、八global除去・local/session sentinel不変・保存bridge未定義。原資料/開始baseline/工具/原ログ/文書検査/発行はdq-implementation-3bdf5a0。旧内容と全開始文を非削除保持し、読取は現行部分/必要所有節へ絞るユーザー許可を反映した。実読取/未検証/発行は現行handoff参照。
+
+以下の実装検証中は途中状態として保持する。
+
+##### 4d12dq：説明済みの語の参照を含む複数節の資料保持（2026-10-28・採用範囲実装検証中）
+
+- 所有部品：experimental_word_diary_word_reference_clause_materials.js。独立journalのcapture(buffer,result,receipt)は採用済み資料だけを分離コピーし、原理解規則を変更しない。
+- ユーザー「はい、どちらもOKです」で下記dq相談案の対象・保持方針を個別採用。開始3bdf5a0。word_reference_clause_materials.create()/capture(buffer,result,receipt)三引数独立journal、kind=word_reference_clause_materialを実装検証する。132枠131確認済み・正式子121・最新ao〜dp人間OK・dq実装後OK未受領、全130登録（固定50＋追加80、登録更新も本実装内で実施）。同じdq継続。
+- 採用範囲は既存日本語二節以上・原word_reference一節以上、当時完全理解と語義/個体名競合未理解を区別し、原unknownを参照/教示へ変換しない。併存規則・出所照合・保持・境界は下記相談案の採用範囲に従う。旧ar/4d2/4d5/4d6等と不足receipt拒否を維持する。既存理解規則・語義教示・行動・保存形式・ゲーム本呼出の変更ではない。
+- 残3〜4工程・暫定中心3、相談時から下限/上限/中心差分0。採用だけで実装検証/実装後確認待ち/他入口追加要否/最終意味照合を減算しない。全14保留・各担当三保留・全体未完を維持する。
+- ユーザーの読取量削減許可を受領。開始時は現行handoff/最初の現行開始文/各routing現行通知と必要所有節を読む。巨大文書の全体出力・過去開始文の一括読取を避け、見出し/anchorで対象範囲を取得する。原文と原ログの保管、必要依存確認、VALIDATIONの検証範囲は維持する。
+
+以下は採用前の相談案として保持する。
+
 <a id="diary-word-reference-clause-materials-dq-consultation"></a>
 
 ##### dq相談案：説明済みの語の参照を含む複数節の資料保持（2026-10-28・構想段階・未採用未着手）
