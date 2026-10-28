@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（dn確認済み・次do未選定未採用）
+
+```text
+ゲーム実装最新1b5af0c。文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で1b5af0cのdn採用範囲へ実装後OKと継続/移動の裁量を受領。dnは実装・Codex検証・ユーザー実装後OK確認済み。129枠129確認済み・正式子118・最新ao〜dn人間OK・全127登録（固定50＋追加77）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdnを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-dn。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+次doは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。原別規則correction/reply/df/語義教示等の混在・他localeの追加要否/分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了にしない。dn相談1331の112成立/1219非成立・別生成fixture1025原117成立を固有数/網羅数/次の未解決集合/工程数にしない。dm成立33/前動的64のdm捕捉6・df184/dg60/dh132/di68・unknown72/前156を戻さず合算しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+dnはdynamic_mixed_multiple_naming_materials.create()/capture(buffer,result,receipt)、kind=dynamic_mixed_multiple_naming_material。日本語一入力の完全naming二節以上・実活動ask_name/pending由来catalogRuleなし完全節一つ以上に不完全名付け/他種/unknownが併存。他の名付けは既存三形式、併存認識はdl同様de18＋greeting_morning。各完全節の一意対象/同語対象話者explanation採用と動的対象一致を照合し、全節順/index/span/当時理解不足/各分類indices/原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。活動ask_name出所/期限/対象/到着event/時刻/移動履歴・コピー上onArrivalのresponse/全文/pendingを照合し、destinationとtarget・活動の問いと実入力前件を分け実前件ありだけ平坦receipt独立再生。不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。原unknownの「うん」等を理解済みreply/語義教示にせず、原namingの「未知」をunknownにしない。全節回答/本人理解自覚/同義語化/一般名/本人経験/感情/受諾予約実行を補わない。旧4d2/4d5/dh/dj/dk/dl/dm維持。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。dn確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完、4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回は確認/文書のみ、ゲーム全回帰/監査/実働/renderer再実行なし。今回十文書baseline/検査/発行はdn-acceptance-1b5af0c。過去dn全Node3293/23JS構文/七言語14957/別renderer1376と元full制限内GPU失敗incomplete/exit1・reviewRequired/reading.not_recordedは今回結果へ昇格しない。1025原117成立・32種3659改変拒否/同値85別計上・実前件80改変拒否・旧76担当8892/旧47入力API5499非重複、相談1331へ112成立/元2176へ0成立・原三JSON hash不変、fixture dumpは別生成。初回構文誤り/fixture許可一覧漏れの二失敗・別v2成功・追加二テスト込み全回帰成功・旧test削除0の原ログはdn-implementation-78952b4。全旧所有節/全fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下はdn実装後OK受領前の開始文として保持する。
+
+
+
 ## 同じdnの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
