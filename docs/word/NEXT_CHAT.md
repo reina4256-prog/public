@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 同じdoの現行継続文（対象・保持方針相談案・未採用未着手）
+
+```text
+開始4414bdb、ゲーム実装最新1b5af0c・dn実装後OK確認済み。doの対象・保持方針を相談案へ具体化、両方未採用未着手・正式枠/API/kind追加なし。同じdoで個別採用待ち。129枠129確認済み・正式子118・最新ao〜dn人間OK・全127登録（固定50＋追加77）を維持。最新文書commit/pushはCURRENT_IMPLEMENTATION.md参照。確認済みdnを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS該当所有節/依存→VALIDATION。相談正本specs/core/experimental_word_learning.md#diary-multiple-naming-additional-clause-materials-do-consultation。全過去開始文/全参照を再帰読取せず、実読取/未読未検証と原文保持/構造一致/意味読了/人間OKを分ける。
+対象案は日本語一入力の完全naming二節以上＋原work_past/work_again/taste_question/rest_explanation一節以上。既存三形式と実活動ask_name由来の動的名付け、他認識de18＋greeting_morning＋四規則だけ、不完全名付け/unknown併存可。各完全節の一意対象・同語対象話者explanation一候補採用を照合。回復説明は実直前資料を独立再生し、その当時known.meaning=restを要求。前提不足で原unknownの回復説明は分類し直さない。旧4d2実reply成立・旧4d5一意成立・dk/dl/dm/dn・dh/dj/df所有と不足receipt拒否を維持。
+保持案は独立一時journalへ一input一資料、全節順/index/span/当時理解不足・各種indices・原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。動的節はdn同様に活動出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力/pending再生を照合。destinationとtarget、活動の問いと実入力前件を分ける。実前件存在時は平坦receipt独立再生・直前turn/serial/時刻一致、origin連鎖を推定しない。意味/関係basis・実参照経験・validContext/validSelections・receive/respond全文照合、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。原associations/records/実応答とcapture非生成を分け、他knowledge/経験/選択/行動状態不変。全節回答/一般名/同義語化/本人理解自覚/仕事経験/再試行希望/味評価/回復因果/感情/受諾予約実行/条件成立を補わない。
+残3〜4工程・暫定中心3、前回dn確認後2〜3中心2から下限/上限/中心＋1・完了減算0。do相談1／他入口0〜1中心0／最終意味照合回帰2。訂正/reply/語義教示等混在・他localeの追加要否/分割・全入口最終分類は未決定、中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料/開始十文書baseline/工具/全出力はdo-consultation-4414bdb。1969資料のreceive/respond・前後state/world全文一致/validContext/validSelections、77追加担当151613＋旧47入力API92543呼出・例外0、候補329は非捕捉。動的144/回復説明70/実前件264は重複属性、合算しない。前dn1331のdn112は全維持・候補4と非重複、残を次の未解決集合にしない。329は固有数/網羅数/新部品成立件数ではない。df184/dg60/dh132/di68・unknown72/前156・dm33を戻さず合算しない。extend初回path引数漏れ起動失敗の原source/logと、引数補修だけの別v2成功を非置換保持。ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰/監査/実働/renderer再実行なし。全旧所有節/全fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。対象案と保持方針案の個別採用後、長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdo未選定は今回相談前の状態として保持する。
+
 ## 次チャットへ貼る開始文（dn確認済み・次do未選定未採用）
 
 ```text

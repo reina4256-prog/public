@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-multiple-naming-additional-clause-materials-do-consultation"></a>
+
+##### do相談案：複数完全名付けと仕事／過去味問い・回復説明の併存（2026-10-28・構想段階・未採用未着手）
+
+- 開始4414bdb、ゲーム実装最新1b5af0c・dn実装後OK確認済み。doの対象・保持方針を今回相談案へ具体化した。両方未採用未着手、正式枠/API/kind追加なし。129枠129確認済み・正式子118・最新ao〜dn人間OK・全127登録（固定50＋追加77）を維持。同じdoで個別採用待ち。
+- **対象案**：既存日本語の一入力に完全namingが二節以上あり、work_past/work_again/taste_question/rest_explanationが少なくとも一節、原frameとして併存する資料。名付けは既存name/name_description/name_answer、または実活動ask_name/pending由来のcatalogRuleなし動的名付け。各完全節の当時の一意注目対象・同語/対象/話者のexplanation一候補採用を必須とし、動的節の対象はpending.targetへ一致させる。完全名付けが二節未満の入力をこの案へ含めない。
+- ほかの併存認識節は[de既存18規則](#diary-remaining-clause-materials-de)＋greeting_morningと上記四規則まで。不完全名付け・unknownも当時の原値で併存可。同語反復、異名、既存形式と動的形式の混在、節順と三節以上を保持する。例は「これをころって呼ぼう\nこれをぽぽって呼ぼう\n何を手伝った？」、実到着後の「ころ\nぽぽ\n荷物運びをまたやりたい？」、実直前の休息理解資料がある「これはころだよ\nぽぽっていうんだ\n体力や眠気が回復するからね」。例の文面だけで前提成立を認定しない。
+- **回復説明の追加条件案**：[df](#diary-additional-clause-materials-df)と同様、実直前の原result/平坦receiptを独立再生し、その当時のunderstandingにknown.meaning=restがあることを照合する。同一話者/awだけへ限定しない。今回文中の休息節や後知識、活動ask_nameの問いで直前入力を代替しない。原rest_explanationが前提不足でunknownとなった資料はunknownのままで、別の四規則が原frameとして存在しない限り本案の対象にしない。
+- **既存担当との境界案**：旧4d2の実reply=answer_unknownかつ末尾question完全成立は除外。旧4d5の完全名付け一節だけの所有を維持する。[dk](#diary-multiple-complete-namings-dk)/[dl](#diary-mixed-multiple-naming-materials-dl)/[dm](#diary-dynamic-multiple-complete-namings-dm)/[dn](#diary-dynamic-mixed-multiple-naming-materials-dn)、全名付け不完全dh、全節unknown dj、dfのみ等の旧所有を維持し、不足receiptを救済しない。原correction/reply/word_explanation/word_correction等の混在・他localeの追加要否/分割は本案へ採用せず未決定。文字面「うん」「ぽぽは休むことだよ」が原unknownなら理解済みreply/語義教示へ読み替えない。
+- **保持方針案**：独立一時journalへ一input一資料。原input ID/raw/話者/locale/時刻/scene、全frame/understanding同数対応・全節順/index/span、完全/不完全名付け・動的/既存形式・四追加規則/回復説明・他認識/unknownの各indices、各節の当時complete/known/relations/unresolved・主体/極性/時点/条件状態/roles有無、原learning全文を分離コピーする。原result全文/transfer/expression・実reply・実turn.answer有無原値・入力前knowledge/context・前後state/worldを保持し、全体はper_clause。一節の理解を全節理解へしない。
+- 動的名付けを含む場合はdn同様に活動ask_nameのlastOutput/source/response・pendingの話者/期限/対象・到着event/時刻/移動履歴を照合し、コピー上onArrivalの実response/出力全文/pendingを再生する。destinationと注目target、活動の問いと実入力前件を分離する。実前件なしはなし、存在時は原result/平坦receiptを独立再生して実直前turn/serial/時刻へ照合する。origin連鎖は推定生成/一律要求しない。回復説明を含む場合は前項の休息理解を追加照合する。
+- 安全整数ID/before.serial+1、入力独立資料、意味/実適用関係の一意basis・実参照経験、前後validContext/validSelections、コピー上receive/respond全文を照合し不足改変を拒否する。同input非増加非上書き・新input別資料・遅延/返却コピー独立・後知識後活動非遡及。原associations/records/実応答の変化とcapture非生成を分け、その他knowledge・本人/world経験・選択出所・行動状態不変を要求する。異名同義語化/一般名/全節回答/本人理解自覚/仕事経験/再試行希望/味評価/具体回復因果/感情/受諾予約実行/条件成立/活動順序を補わない。relationLearning/conditionJudgment/sequenceJudgment成立入力を本案へ含めない。新文法/理解規則/scope転移、4e/receipt保存形式/ゲーム本接続は未採用未実装。
+- **限定照合**：新326＋前dn相談1331＋追加312＝1969資料についてreceive/respond・実reply・前後state/world全文一致、前後validContext/validSelections、77追加担当151613＋旧47入力API92543呼出・例外0。対象案329＝初回94＋追加235は全既存担当非捕捉。一意名付け採用と意味/関係basis、動的144の活動出力/response/pending再生、実前件264の独立再生、回復説明70の直前当時restを照合した。既存形式/動的の両経路を同じ保持契約の一系統として相談し、状態差だけによる別部品分割は今回提案しない。
+- 対象案の原replyはname_echo230/recognize_gesture24/not_eaten_yet18/heard_rest_partial15ほか9種。今回turn.answer有り0、原associations実変化329・本人/world経験と選択出所/行動状態不変。原reply=restingも実休息開始へしない。不完全名付け併存2/unknown併存5は件数重複し得る属性で合算しない。18併存規則の両順序対照で旧4d2成立24を除外した。前dn1331の旧dn112は全てdn帰属を維持、今回候補4は112と非重複。1969/329や残非成立を固有数/網羅数/次の未解決集合/工程数へ変換しない。df184/dg60/dh132/di68・unknown72/前156・dm成立33を候補へ戻さず合算しない。
+- **工程目安**：残3〜4工程・暫定中心3、前回dn確認後2〜3中心2から下限/上限/中心＋1、完了減算0。do相談一系統1／その他入口追加要否0〜1中心0／最終意味照合回帰2。訂正/reply/語義教示等混在・他localeの追加要否/分割・全入口最終意味分類は未決定、中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 原資料/開始十文書baseline/工具/全出力はdocs/.local-history/verification-runs/do-consultation-4414bdb。初回probe成功後、extend初回はnew Functionへのpath引数漏れで起動失敗。初回source/logを非置換保持し、引数補修だけの別v2成功と区別する。ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。77/47呼出の通過やsource hash維持を全旧所有節/全fixture意味読了・固定50全正規API・全入口完了へ昇格しない。原資料/原文/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。実読取/未検証/文書検査/発行は現行handoff参照。doの対象案と保持方針案を個別相談し、採用後は長さに無理がなければ同じチャットで実装検証する。
+
+以下のdo未選定は今回相談前の状態として保持する。
+
 
 <a id="diary-entry-remainder-after-dn"></a>
 
