@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る開始文（do確認済み・次dp未選定未採用）
+
+```text
+ゲーム実装最新3f8a549。文書の最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」でdo採用範囲へ実装後OKと継続/移動の裁量を受領。doは実装・Codex検証・ユーザー実装後OK確認済み。130枠130確認済み・正式子119・最新ao〜do人間OK・全128登録（固定50＋追加78）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdoを再採用確認しない。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-do。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+次dpは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。原correction/reply/語義教示等混在・他localeの追加要否/分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了にしない。相談1969の373成立/1596非成立（原抽出329＋採用済み一覧内の漏れ44）・専用fixture966原389成立・別補足4例3成立/1原unknown対象外を固有数/網羅数/次の未解決集合/工程数にしない。原selected/原資料を非変更保持。df184/dg60/dh132/di68・unknown72/前156・dm成立33を戻さず合算しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+doはmultiple_naming_additional_clause_materials.create()/capture(buffer,result,receipt)、kind=multiple_naming_additional_clause_material。日本語一入力の完全naming二節以上＋原work_past/work_again/taste_question/rest_explanation一節以上。既存三形式/実活動ask_name由来動的、他認識de18＋greeting_morning＋四規則、不完全名付け/unknown併存可。各完全節の一意対象/同語対象話者explanation一候補採用を照合。回復説明は実直前result/平坦receipt独立再生と当時known.meaning=restを要求。原unknownを理解済みreply/語義教示/回復説明へ、原namingの語「未知」をunknownへ分類し直さない。全節順/index/span/当時理解不足/各indices/原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/worldを分離コピー、per_clause。動的節ありだけ活動出所/期限/対象/到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力/pendingを照合、なしはdynamicNamingSource=null。destinationとtarget、活動の問いと実入力前件を分け、実前件ありは平坦receipt独立再生・直前turn/serial/時刻一致。意味/関係basis・実参照経験・validContext/validSelections・receive/respond全文照合、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。全節回答/理解自覚/同義語化/一般名/仕事経験/再試行希望/味評価/回復因果/感情/受諾予約実行を補わない。旧4d2/4d5/dk/dl/dm/dn/dh/dj/df所有を維持。
+残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。do確認待ち1だけ差引き、他入口0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回は確認/文書のみ、ゲーム全回帰/監査/実働/renderer再実行なし。今回十文書baseline/33source hash/文書検査/発行はdo-acceptance-3f8a549。do所有節の重複本文は保持し過去側アンカーだけ別IDへ分離、変更前原文はbaseline/Git 3f8a549へ保存。過去do全Node3330/24JS構文/七言語14957/権限付き隔離renderer2133・専用36＋監査87＝123、旧test削除0は今回結果へ昇格しない。元full全28検査passedだが静的reviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。966原389成立・29種11185改変拒否/同値96別計上・実前件1600改変拒否・旧77担当29953/旧47入力API18283非重複、元2176へ0成立・原三JSON hash不変、fixture dump別生成。工程表行漏れ監査78失敗/比較抽出漏れ44/補足gesture前提誤りと早まった通過報告の訂正/集計UTF-16 BOM未対応・未完了補足参照と別v2/v3成功の原source/logはdo-implementation-504c615。全旧所有節/全fixture意味再読・全静的依存意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下はdo実装後OK受領前の開始文として保持する。
+
 ## 同じdoの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text

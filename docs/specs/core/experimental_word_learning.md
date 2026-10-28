@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-entry-remainder-after-do"></a>
+
+##### do確認後：他規則混在・他localeほか残入口の再開点（2026-10-28・dp未選定未採用）
+
+- ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で3f8a549のdo採用範囲へ実装後OKと継続/移動の裁量を受領。doは実装・Codex検証・ユーザー実装後OK確認済み。130枠130確認済み・正式子119・最新ao〜do人間OK・全128登録（固定50＋追加78）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdoを再採用確認しない。
+- 次dpは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。既存所有条件と正規前提付き資料から追加要否/保持方針を個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を代行しない。採用後は長さに無理がなければ同じチャットで実装検証する。
+- [do所有正本](#diary-multiple-naming-additional-clause-materials-do)の複数完全名付け＋仕事/再試行/過去味問い・回復説明を維持。旧4d2実reply成立・旧4d5一意成立・dk/dl/dm/dn・dh/dj/dfと不足receipt拒否を維持する。原correction/reply/語義教示等混在・他localeの追加要否/分割・全入口最終意味分類は未決定。今回新たな資料再照合は行っていない。
+- 相談1969への373成立/1596非成立（原抽出329＋採用済み一覧内の抽出漏れ44）、専用fixture966原389成立・別補足4例3成立/1原unknown対象外を固有数/網羅数/次の未解決集合/工程数へ変換しない。原selected/原資料は非変更保持。df184/dg60/dh132/di68・unknown72/前156・dm成立33を次候補へ戻さず合算しない。
+- 残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。do確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 今回は確認/文書のみ、receive/respond再照合・78担当/旧47入力API横断・ゲーム全回帰・監査・実働・renderer再実行なし。過去do全Node3330/24JS構文/七言語14957/権限付き隔離renderer2133を今回成功へ昇格しない。元full-30minの全28検査passedとreviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。全旧所有節/fixture意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。
+- 原相談do-consultation-4414bdb、実装/原ログ/全回帰開始24JS hash/手動レビューdo-implementation-504c615を非変更保持。今回開始十文書baseline/33source hash/文書検査/発行はdo-acceptance-3f8a549。do所有節の重複記載は本文を保持し、過去側アンカーだけhistorical-duplicateへ分離。原文はbaselineとGit 3f8a549へ保存。原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。実読取/未検証/発行は現行handoff参照。
+
+以下のdo実装後OK未受領は受領前状態として保持する。
+
 - 2026-10-28 do最終：[採用範囲](#diary-multiple-naming-additional-clause-materials-do)の実装・Codex検証完了。全Node3330・24JS構文・七言語14957・権限付き隔離renderer2133通過。専用36＋監査87＝123、前dn3293から＋37・旧test削除0。130枠129確認済み・正式子119・最新ao〜dn人間OK・全128登録（固定50＋追加78）、do実装後OK未受領・同じdo継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、確認待ち/他入口/最終意味照合を減算しない。全14保留・各担当三保留・全体未完。
 - 専用966原389成立・29種11185改変拒否/同値96別計上・実前件1600改変拒否、旧77担当29953/旧47入力API18283非重複。相談1969へ373成立/1596非成立（原抽出329＋採用済み明示一覧内の抽出漏れ44）、元2176へ0成立・原三JSON hash不変。fixture dumpは別決定的生成。補足4例は3名付け成立/1原unknown対象外、原namingの語「未知」と原unknownを文字面だけで分類し直さない。各集合/属性を固有数/網羅数/次の未解決集合/工程数へ変換しない。
 - 元full-30minは別権限付きで全28検査passedだが、新smoke静的未分類reviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。未実行test/checkなし。保護九ファイルHEAD一致・七browser＋fixture/smoke静的35依存hashと手動境界確認を別記し、手動確認で元runを成功へ昇格しない。rendererは非表示blank server/専用一時profile、八global除去・local/session sentinel不変・保存bridge未定義、実ゲーム/UI/実ユーザー保存非操作。
@@ -22,7 +36,9 @@
 
 以下は採用前の相談案として保持する。
 
-<a id="diary-multiple-naming-additional-clause-materials-do"></a>
+次の重複記載は過去原文として保持し、重複アンカーだけ別IDへ分離した。現在の所有正本は[do採用範囲](#diary-multiple-naming-additional-clause-materials-do)。変更前原文はdo-acceptance-3f8a549/baselineとGit 3f8a549へ保持する。
+
+<a id="diary-multiple-naming-additional-clause-materials-do-historical-duplicate"></a>
 
 ##### 4d12do：複数完全名付けと仕事／過去味問い・回復説明の一入力保持（2026-10-28・採用範囲実装検証中）
 
