@@ -369,6 +369,18 @@ test('dl ownership retains mixed multiple naming material without replacing olde
     assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12dl'));
 });
 
+test('ds ownership preserves individual reference ambiguity and clause materials', () => {
+    const report = audit(); assert.deepEqual(report.errors, []);
+    const owner = report.supplementalOwners.find(row => row.id === '4d12ds');
+    assert.equal(owner.file, 'experimental_word_diary_mixed_reference_materials.js');
+    assert.equal(owner.arity, 3); assert.equal(owner.scopeAdopted, true);
+    assert.equal(owner.implementationAcceptance, 'not_received'); assert.equal(owner.runtimeDiaryConnected, false);
+    const missing = audit(inventory(), null, supplementalInventory().filter(row => row.id !== '4d12ds'));
+    assert.ok(missing.errors.some(e => e.code === 'unassigned_adapter' && e.reference === owner.file));
+    const changed = supplementalInventory(); changed.find(row => row.id === '4d12ds').arity++;
+    assert.ok(audit(inventory(), null, changed).errors.some(e => e.code === 'api_contract' && e.id === '4d12ds'));
+});
+
 test('dr ownership preserves individual reference ambiguity and clause materials', () => {
     const report = audit(); assert.deepEqual(report.errors, []);
     const owner = report.supplementalOwners.find(row => row.id === '4d12dr');
@@ -458,7 +470,7 @@ test('ap supplemental ownership is checked without rewriting the fixed ao snapsh
     assert.deepEqual(report.errors, []);
     assert.equal(report.rows.length, 50);
     assert.equal(report.ledger.length, 14);
-assert.equal(report.supplementalOwners.length, 81);
+assert.equal(report.supplementalOwners.length, 82);
     assert.equal(report.supplementalOwners[0].id, '4d12ap');
     assert.equal(report.supplementalOwners[0].scopeAdopted, true);
     assert.equal(report.supplementalOwners[0].implementationAcceptance, 'not_received');
@@ -1181,6 +1193,7 @@ test('existing diary adapters and the new audit remain outside the game server a
             'scripts/experimental/diary_multiple_naming_incomplete_response_material_fixtures.js', 'scripts/experimental/diary_multiple_naming_incomplete_response_material_smoke.js',
             'scripts/experimental/diary_word_reference_clause_material_fixtures.js', 'scripts/experimental/diary_word_reference_clause_material_smoke.js',
             'scripts/experimental/diary_individual_reference_material_fixtures.js', 'scripts/experimental/diary_individual_reference_material_smoke.js',
+            'scripts/experimental/diary_mixed_reference_material_fixtures.js', 'scripts/experimental/diary_mixed_reference_material_smoke.js',
             'scripts/experimental/diary_incomplete_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_rest_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_walk_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_walk_proposal_smoke.js',
             'scripts/experimental/diary_incomplete_conditional_rest_proposal_fixtures.js', 'scripts/experimental/diary_incomplete_conditional_rest_proposal_smoke.js',

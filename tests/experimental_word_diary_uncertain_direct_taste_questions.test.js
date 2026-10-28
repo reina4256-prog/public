@@ -85,7 +85,7 @@ test('current taste and referenced past meal remain separate and missing referen
 });
 test('all prior supplemental owners remain separate', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(o => o.id !== '4d12ct');
-    assert.equal(owners.length, 80); let calls = 0;
+    assert.equal(owners.length, 81); let calls = 0;
     for (const f of values.filter(f => f.expected)) for (const owner of owners) {
         const other = require('../' + owner.file), v = copy(f.value), r = v.receipt;
         r.originalOutput = copy(r.beforeState.context.lastOutput || null); r.previousTurn = copy(r.beforeState.context.turns.at(-1) || null);

@@ -1,5 +1,32 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-mixed-reference-materials-ds-verified"></a>
+
+##### 4d12ds：個体参照と語義参照の混在資料保持（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_mixed_reference_materials.create()/capture(buffer,result,receipt)、kind=mixed_reference_material。下記個別採用範囲を実装・検証した。134枠133確認済み・正式子123・最新ao〜dr人間OK・全132登録（固定50＋追加82）、ds実装後OK未受領・同じds継続。残3〜4工程・暫定中心3・相談時差分0。Codex検証だけで確認待ち/その他入口/最終意味照合回帰を減算せず、全14保留・各担当三保留・全体未完を維持する。
+- 原reference/word_reference各一節以上の日本語一入力を保持。個体候補/原target.adopted/不足と語義候補/訂正連鎖/競合/原applications有無を分離し、同名二個体・同個体複数evidence・同意味複数説明を一件にしない。必要出所ID和集合を一度だけ供給し、各原当時知識で独立再生、referenceSources/wordReferenceSourcesのoriginIdsとreferenceOriginUsagesへ利用先別保持。同じIDが双方の根拠でもそれぞれの候補/evidence・説明/訂正連鎖を別照合する。
+- 一input一資料/per_clause、全節順/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー。実前件/実reply/回復説明の各必要出所を別照合し、不足/改変/重複/余分出所を拒否する。同input非増加非上書き・コピー独立・非遡及、新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わない。旧ar/4d2/4d5/単独語義教示訂正/dq/dr所有と不足receipt拒否を維持する。動的名付け併存/他規則/他locale追加要否/分割・全入口最終分類は未決定。
+- 専用28＋監査91＝119、全Node3448・変更28JS構文・七言語14957・別隔離renderer1234（367原＋867改変）通過。367原289成立、24種6936原資料改変拒否、原出所3000/実前件873改変拒否、旧81担当23409/旧47入力API13583呼出非重複。旧3419→3448の＋29は専用28＋監査1、原TAP名を重複度込み照合して旧test削除0。fixture dumpは別決定的生成でありテストプロセスの原dumpへ昇格しない。
+- 相談119へ実capture84成立/35非成立、原JSON hash不変・原result/出所の補修生成なし。別補足34全成立/turn.answer有り0：生活八意味/実仕事由来七意味/実休息食事×発話二設定。実六職完了を正規explore等のmasterとworld.experiencesでassertした。各集合を固有数/網羅数/次未解決集合へ変換せず合算しない。旧非選定集合を自動繰越ししない。旧47入力APIは限定adapter照合で、固定50全正規APIの完全供給/全意味読了ではない。
+- 初回専用＋監査36通過/83不通過を保持。監査82失敗は文書所有/工程表登録前に起動したため、専用一失敗はgestureの原unknownにも確認返答用出所の欠損拒否を期待した工具側範囲誤り。原replyのある資料へ絞り実改変assertionを追加した別targeted-v2が119通過、ゲームmoduleを工具期待へ変更していない。登録patch初回hunk不良・文書patch同一ファイル複数操作の適用前失敗も記録し、別補修と分離する。
+- 元full-30minは全32検査中31通過/制限内rendererのGPU unusable失敗1、未実行検査なし。reviewRequired/reading.not_recordedとstatus=incomplete/exit1を非置換保持し、別権限付きrenderer成功/手動smoke範囲確認で元runや全依存意味読了を昇格しない。保護八source・全回帰開始28JS・browser七ファイルを含む静的37依存hash不変。rendererは非表示blank server/専用一時profile、八global除去・local/session ds-sentinel不変・保存bridge未定義。
+- 新module/fixture/test/隔離smoke・監査/package登録済み。旧22横断testは担当数期待80→81だけ追従。core/world/catalog/locale/保存形式/ゲーム本呼出非変更、新ゲーム表示文なし。原資料/工具/開始十文書baseline/全ログ/文書検査/発行はdocs/.local-history/verification-runs/ds-implementation-aa65d9a。全旧所有節/fixture/推移的依存意味再読・固定50全正規API完全供給・全入口最終分類・実UI音声/本人日記生成保存再開配布は未完。実読取/未検証は現行handoff参照。
+
+以下の実装検証中は途中状態として保持する。
+
+<a id="diary-mixed-reference-materials-ds"></a>
+
+##### 4d12ds：個体参照と語義参照の混在資料保持（2026-10-29・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で下記相談案の対象・保持方針を個別採用。開始aa65d9a。experimental_word_diary_mixed_reference_materials.create()/capture(buffer,result,receipt)、kind=mixed_reference_materialの三引数独立journalとして採用範囲を実装検証する。134枠133確認済み・正式子123・最新ao〜dr人間OK・全132登録（固定50＋追加82）、ds実装後OK未受領・同じds継続。
+- 対象は既存日本語一入力の原reference/word_reference各一節以上、当時完全／未理解双方。併存de明示18＋greeting_morning＋df四規則・既存三名付け形式・原retract_explanation/correction・実confirm_name由来reply・原unknown。動的名付け併存・他原frame／規則・他locale追加要否／分割は未決定。原unknown/namingを参照へ変換しない。
+- 個体参照の全有効evidence原名付けと語義参照の原説明／訂正連鎖／競合個体名を原当時知識で独立再生する。平坦beforeState/result/原receive直後afterStateの必要出所ID和集合を一度だけ供給し、referenceSources/wordReferenceSourcesのoriginIdsとreferenceOriginUsagesで利用先別照合を保持する。全候補／採用有無／不足と原applications有無を分離し、同名二個体・同個体複数evidence・同意味複数説明を一件にしない。不足／改変／重複／余分出所拒否、後知識から生成しない。
+- 現在receive/respond全文・前後validContext/validSelections・実前件／実reply／回復説明の各前件を照合、全節順/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・非遡及、新理解／命名／語義採用／訂正成功／旧知識無効化／理解自覚／全節回答／本人経験／感情／受諾予約実行を補わない。旧ar/4d2/4d5/単独語義教示訂正/dq/dr所有と不足receipt拒否を維持する。
+- 残3〜4工程・暫定中心3・相談時下限/上限/中心差分0。採用だけで実装後確認待ち／他入口／最終意味照合回帰を減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。ゲームcore/world/catalog/locale/保存形式/ゲーム本呼出は非変更。原資料/工具/開始baseline/検証/読取/発行は現行handoff参照。
+
+以下は採用前の相談案として保持する。
+
 <a id="diary-mixed-reference-materials-ds-consultation"></a>
 
 ##### ds相談案：個体参照と語義参照の混在資料保持（2026-10-29・構想段階・未採用未着手）
