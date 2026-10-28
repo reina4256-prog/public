@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 現行継続文（dv対象・保持方針の相談案、両方未採用）
+
+```text
+開始b2fb123、ゲーム実装最新53e9569。duは実装・Codex検証・ユーザー実装後OK確認済みで再確認しない。dvの既存形式名付けと非対比報告の対象・保持方針を相談案へ具体化。両方未採用・ゲーム実装未着手・正式枠/API/kind追加なし。136枠136確認済み・正式子125・最新ao〜du人間OK・全134登録（固定50＋追加84）を維持。最新commit/push／検証／未検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。相談正本specs/core/experimental_word_learning.md#diary-explicit-naming-report-materials-dv-consultation。巨大文書全体／全過去開始文を再読せず必要節へ絞り、原文保管／必要依存／必須検証を維持。実読取と未読未検証、hash／機械通過と意味読了／人間OKを分ける。
+対象案は日本語一入力の既存三形式name/name_description/name_answerの原naming一節以上＋contrastなしの原feeling_report/external_event_report一節以上。完全／未理解双方、完全名付けが一節の旧4d5成立入力を残し、本案は完全0節又は複数節。併存案は上記と原unknownのみ。他認識／動的／個体語義参照／教示訂正／原correction/reply／他locale追加要否／分割は未決定。relationLearning/conditionJudgment/sequenceJudgmentなし。原unknown補修なし、旧ai/4d5/dk/dl/do/dp/du/4d2等の所有と不足receipt拒否を維持。
+保持案は独立一時journal、一input一資料/per_clause、全節順/index/span/理解不足・名付け候補/原採用/updatedとreportのsubject/aspect/polarity/eventTime/reportSource/testimony有無を分離。原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldの分離コピー、receive/respond全文と前後validContext/validSelections、実前件ありだけ平坦原資料の別再生。新理解/同義語化/一般名/全節回答/本人経験/感情/原因真偽/受諾予約実行を補わず、不足改変拒否・同input非増加非上書き・コピー独立・非遡及は採用後に実装検証する。
+新170資料へ84追加担当14280＋旧47入力API7990呼出・原資料不変、限定対象案102は今回供給条件で既存担当非捕捉。局所工具4検査・診断再生510改変拒否、167source hash不変。新capture実装検証／固定50全正規API完全供給ではない。旧47はbeforeReports/beforeReceipts空の既存adapter限定、資料数は固有数/網羅数/次未解決集合にせず、du非選定を自動繰越し合算しない。
+残3〜4工程・暫定中心3、du確認後2〜3中心2から下限/上限/中心＋1・完了減算0。dv相談採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2、追加要否/分割未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料／開始十文書baseline／工具／原ログ／文書検査／発行はdv-investigation-b2fb123。今回局所調査／文書のみ、ゲームcode/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰/renderer/実UI音声/本人日記保存再開配布なし。過去成功／du元fullのincomplete・GPU失敗/reviewRequired/reading.not_recordedを今回成功へ昇格しない。全旧所有節/fixture/依存意味再読・固定50全正規API・全入口最終分類は未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。個別採用後、長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdv未選定は相談案具体化前の開始文として保持する。
+
+
 ## 次チャットへ貼る現行開始文（du確認済み・次dv未選定未採用）
 
 ```text

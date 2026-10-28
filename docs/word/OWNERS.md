@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-29 dv相談：[既存形式の名付けと非対比報告の対象・保持方針案](../specs/core/experimental_word_learning.md#diary-explicit-naming-report-materials-dv-consultation)を具体化。両方未採用・ゲーム実装未着手・正式枠/API/kind追加なし。du確認済み、136枠136確認済み・正式子125・全134登録を維持。新170限定資料の対象案102は網羅数ではない。残3〜4工程・暫定中心3（直前比＋1・完了減算0）、全14保留・各担当三保留・全体未完。他認識／動的／参照／訂正返答／locale追加要否・分割は未決定。今回局所調査／文書のみ、ゲーム全回帰／renderer再実行なし。検証・実読取未検証・原資料・発行は現行handoff参照。以下のdv未選定は相談前状態。
+
 - 2026-10-29 du確認・次チャット保存点：ユーザーが53e9569のdu採用範囲へ実装後OKと継続／移動の裁量を明示。duは実装・Codex検証・ユーザー実装後OK確認済み。136枠136確認済み・正式子125・最新ao〜du人間OK・全134登録（固定50＋追加84）。[次dv再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-du)へ続ける。dvは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、du確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／実読取未検証／発行は現行handoff参照。以下のdu未受領は受領前状態。
 
 - 2026-10-29 du最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du-verified)の実装・Codex検証完了。全Node3506・30JS構文・七言語14957・別隔離renderer903通過、専用27＋監査93＝120・旧test削除0。136枠135確認済み・正式子125・全134登録（固定50＋追加84）・最新ao〜dt人間OK、du実装後OK未受領・同じdu継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。元fullのstatus／reviewRequired／reading.not_recordedを別成功で置換しない。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。

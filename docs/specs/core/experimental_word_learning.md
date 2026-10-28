@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-explicit-naming-report-materials-dv-consultation"></a>
+
+##### dv相談案：既存形式の名付けと非対比報告の併存資料（2026-10-29・対象／保持方針とも未採用）
+
+- 開始b2fb123。du実装後OK確認済みを維持し再確認しない。次dvの相談候補を下記へ具体化した。正式枠/API/kind追加なし、ゲーム実装未着手。136枠136確認済み・正式子125・全134登録（固定50＋追加84）、最新ao〜du人間OKを維持する。
+- **対象案**：日本語一入力に既存三形式（name/name_description/name_answer）の原naming一節以上と、contrastを持たない原reportのfeeling_report/external_event_report一節以上が併存する資料。名付け・報告とも当時完全／未理解を原値保持する。ただし完全名付けが一節の旧4d5成立入力は旧担当へ残す。本案の名付けは完全0節又は複数節。例「これをころって呼ぼう\nこれをももって呼ぼう\n私は悲しい」、注目対象不足の「これをころって呼ぼう\n私は悲しい」。未捕捉という理由だけで採用としない。
+- **今回の併存範囲案**：上記名付け・非対比報告と原unknownのみ。他の認識規則、動的名付け、個体／語義参照、語義教示／訂正、原correction/reply、他localeの追加要否／分割は未決定。本案へ一括採用しない。原unknownは原値のまま保持し、見た目の文意からreport/naming/contrast等へ修復しない。relationLearning/conditionJudgment/sequenceJudgmentなし。単独ai、旧4d5、dk/dl/do/dp、du、旧4d2等の担当条件と不足receipt拒否を維持する。
+- **保持方針案**：独立一時journal、一input一資料・per_clause。全節順/index/span/frame/understanding/unresolved、原名付け・完全／不完全名付け・報告の各indices、原result/learning/transfer/expression、実reply全文・turn.answer有無、入力前knowledge/context/feelingLearning、前後state/worldを分離コピーする。名付け候補／原採用有無／原updatedとreportのsubject/aspect/polarity/eventTime・reportSource/testimony有無を別保持する。候補選択・元receiveの関連付け更新とcaptureによる生成を区別し、未理解節の候補を理解成功へ昇格しない。複数名を同義語／一般名にせず、報告を本人経験／感情／原因真偽に補わない。
+- 独立input/knowledge/contextとserial/時刻/話者/scene、コピー上receive/respond全文・前後validContext/validSelectionsを照合する案。実前件ありだけ平坦beforeState/result/afterState・beforeWorld/reply/afterWorldを別再生し直前turn/IDへ一致させ、前件なしを生成しない。完全名付け各節の原一意候補／対象／話者／explanationと原採用を照合し、不完全名付けの原不足・採用有無はそのまま保持する。不足／改変／矛盾拒否、同input非増加非上書き・コピー独立・後知識後活動非遡及は採用後の実装検証事項。新理解／全節回答／受諾予約実行を補わない。
+- **今回の限定調査**：新170資料を実receive/respondと前後state/world・validContext/validSelectionsで再生。84追加担当14280＋旧47入力API7990呼出、原資料不変。上記の限定対象案102は今回供給条件で既存担当非捕捉。既存形式群128中旧4d5捕捉48、関係不足対照の旧4d5捕捉3を保持し、単独ai／du／4d5／dk／dlの五対照も維持した。別の参照／語義参照／訂正／実確認返答六資料は本案へ含めず、非捕捉から永久対象外とも追加必須とも決めない。
+- 局所工具4検査通過、170資料に対する入力話者／入力前知識コピー／実応答の実改変510を診断再生で拒否。これは新captureの成立／改変拒否／非遡及試験ではない。旧47はbeforeReports/beforeReceipts明示空の既存adapter限定照合で、固定50全正規API完全供給ではない。170/102は重複し得る生成資料数で、固有数／網羅数／次の未解決集合／工程数に変換しない。du原資料の非選定集合を自動繰越しせず、今回資料へ合算しない。
+- **工程見積り**：残3〜4工程・暫定中心3。du確認後2〜3中心2から下限／上限／中心＋1、完了減算0。dv相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 今回は相談／局所調査工具／文書のみ。ゲームcode/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰／renderer／実UI音声／本人日記保存再開配布の再実行なし。開始十文書baseline／167source hash・工具／新原資料／原ログはdocs/.local-history/verification-runs/dv-investigation-b2fb123。実読取／未読未検証・監査／発行結果は現行handoff参照。対象と保持方針の個別採用後、長さに無理がなければ同じチャットで実装検証する。
+
+以下のdv未選定は相談案具体化前の保存点として保持する。
+
+
 <a id="diary-entry-remainder-after-du"></a>
 
 ##### du確認後：残入口の再開点（2026-10-29・dv未選定未採用）
