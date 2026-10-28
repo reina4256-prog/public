@@ -1,5 +1,21 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（du確認済み・次dv未選定未採用）
+
+```text
+ゲーム実装最新53e9569。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdu採用範囲へ実装後OKと継続／移動の裁量を明示。duは実装・Codex検証・ユーザー実装後OK確認済み。136枠136確認済み・正式子125・最新ao〜du人間OK・全134登録（固定50＋追加84）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みduを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-du。巨大文書／全過去開始文／過大検索行を出力せず必要節へ絞る。原文保管／依存確認／必須検証を維持し、hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。
+次dvは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。名付け／動的／個体語義参照／correction/reply併存・他原frame／規則／locale追加要否／分割・全入口最終意味分類未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+duはnoncontrast_report_clause_materials.create()/capture(buffer,result,receipt)、kind=noncontrast_report_clause_material。日本語二節以上・原feeling_report/external_event_report一節以上・contrastなし、完全／未理解双方。併存de明示18＋greeting_morning＋df四規則・原unknown。全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー、一input一資料/per_clause。実receive/respond・前後validContext/validSelectionsと実前件ありだけ平坦原資料／直前turn/IDを別再生する。
+原subject／時点／reportSource/testimonyの有無・未知detail・clause_scopeを保持し、相手の報告を本人経験／感情／原因真偽へ補わない。新理解／全節回答／受諾予約実行を補わず、同input非増加非上書き・コピー独立・非遡及、旧ai・ag/ah・bf〜bm・4d2等と不足receipt拒否を維持する。原unknownを修復しない。
+相談原222へ202成立／20非成立、専用243原220成立を固有数／網羅数／次未解決集合／工程数へ変換せず合算しない。原result／出所補修なし、旧非選定を自動繰越ししない。旧47はbeforeReports/beforeReceipts空の既存引数adapter限定照合で固定50全正規API完全供給／全意味読了ではない。
+残2〜3工程・暫定中心2、du確認前3〜4中心3から下限／上限／中心−1、du実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+今回は確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／ログdu-implementation-099268a、今回開始十文書baseline／30source hash／文書検査／発行du-acceptance-53e9569。過去全Node3506／30JS構文／七言語14957／別renderer903を今回結果へ昇格しない。元fullのGPU失敗／reviewRequired／reading.not_recordedとincomplete/exit1を非置換保持。旧du verified同文・anchor二重は原文保持・未整理。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・本人日記生成保存再開配布／実UI音声／外部試遊ログ通し確認は未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdu実装後OK未受領は受領前の継続文として保持する。
+
+
 ## 現行継続文（du採用範囲実装・Codex検証完了）
 
 ```text

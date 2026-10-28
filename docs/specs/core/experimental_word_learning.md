@@ -1,5 +1,20 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-entry-remainder-after-du"></a>
+
+##### du確認後：残入口の再開点（2026-10-29・dv未選定未採用）
+
+- ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で53e9569のdu採用範囲へ実装後OKと継続／移動の裁量を受領。duは実装・Codex検証・ユーザー実装後OK確認済み。136枠136確認済み・正式子125・最新ao〜du人間OK・全134登録（固定50＋追加84）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みduを再採用確認しない。
+- 次dvは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。名付け／動的／個体語義参照／correction/replyとの併存・他原frame／規則／localeの追加要否／分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+- [du所有正本](#diary-noncontrast-report-clause-materials-du-verified)の日本語二節以上・原feeling_report/external_event_report一節以上・contrastなし、完全／未理解と採用済み併存範囲、実receive/respond・実前件の別再生、全節／原実応答／入力前知識context／前後state/worldの分離保持と非生成・非遡及を維持する。単独ai・固定感情／対比ag/ah・bf〜bm・旧4d2等と不足receipt拒否、原subject／時点／reportSource/testimonyの有無を保持し、本人経験／感情／原因真偽へ補わない。
+- 相談原222へ202成立／20非成立、専用243原220成立を固有数／網羅数／次未解決集合／工程数へ変換せず合算しない。原result／出所の補修なし、旧非選定集合を自動繰越ししない。旧47入力APIはbeforeReports/beforeReceipts空の既存引数adapter限定照合で、固定50全正規APIの完全供給／全意味読了ではない。
+- 残2〜3工程・暫定中心2、du確認前3〜4中心3から下限／上限／中心−1、du実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。新たな最終分類ではなく追加要否／分割未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 今回は確認／文書のみ。ゲームcode/catalog/locale/package/登録/保存形式非変更、receive/respond／84担当／旧47入力API・ゲーム全回帰／監査／renderer再実行なし。過去du全Node3506／30JS構文／七言語14957／別renderer903を今回結果へ昇格しない。元fullのGPU失敗／reviewRequired／reading.not_recordedとincomplete/exit1を非置換保持。既存du verified節の同文重複と同一anchor二箇所は今回整理せず、開始baselineに原文保持した。最新再開anchorは本節、旧verified参照は先頭節を維持する。
+- 原資料／ログはdu-implementation-099268a、今回開始十文書baseline／30source hash／文書検査／発行はdu-acceptance-53e9569。実読取・未読未検証・発行は現行handoff参照。協力者試遊ログの既存目的・ID9／ID10での具体化、全14保留と各担当三保留を維持する。
+
+以下のdu実装後OK未受領は受領前状態として保持する。
+
+
 <a id="diary-noncontrast-report-clause-materials-du-verified"></a>
 
 ##### 4d12du：対比ではない感情・出来事報告の複数節資料（2026-10-29・採用範囲実装・Codex検証完了）
