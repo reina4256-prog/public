@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 同じdsの現行継続文（対象・保持方針相談案、両方未採用）
+
+```text
+開始59af589・ゲーム実装606357d、dr実装後OK確認済み。dsの個体参照と語義参照の混在資料について対象・保持方針を相談案へ具体化、両方未採用未着手・正式枠/API/kind追加なし。同じdsで個別採用待ち。133枠133確認済み・正式子122・最新ao〜dr人間OK・全131登録（固定50＋追加81）を維持。最新文書commit/push/検証はCURRENT_IMPLEMENTATION.md参照。確認済みdrを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word README/OPEN_ITEMS現行通知→OWNERS必要行/所有節/依存→VALIDATION。相談正本specs/core/experimental_word_learning.md#diary-mixed-reference-materials-ds-consultation。巨大文書全体/全過去開始文/過大な検索行を避け、原文保管/依存確認/必須検証を維持する。hash/構造/APIロードと意味読了・人間OK、実読取と未読未検証を分ける。
+対象案は既存日本語一入力の原referenceと原word_referenceがそれぞれ一節以上、当時完全/未理解双方。併存de明示18＋greeting_morning＋df四規則、既存三名付け形式、retract_explanation/correction・実confirm_name由来reply・原unknown。動的名付け併存/他原frameや規則/他localeの追加要否/分割は未決定で本案へ一括採用しない。原unknown/namingを参照へ変換しない。旧ar/4d2/4d5/単独語義教示訂正/dq/dr所有と不足receipt拒否を維持する。
+保持案は一input一資料・per_clause、個体参照indices/全候補/原target.adopted/未理解と、語義参照indices/候補説明/訂正連鎖/個体名競合/原applications有無を分離。drの全有効evidence原名付けとdqの原説明/訂正連鎖/競合個体名の必要出所ID和集合を一度だけ供給し利用先別照合。平坦beforeState/result/原receive直後afterStateを原当時知識で独立再生、有効association/evidence・entry/corrects/retractedBy・話者/対象/scope照合。不足/改変/重複/無関係資料拒否、後知識から生成しない。同名二個体/同個体複数evidence/同意味複数候補を一件にしない。
+現在receive/respond全文・前後validContext/validSelections、全節順/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー。実前件ありだけ平坦receipt独立再生・直前turn/serial/時刻一致、実replyありだけpending/実直前name_echo/別原名付けを照合、回復説明ありだけ実直前known.meaning=restを照合。同input非増加非上書き・コピー独立・後知識後訂正後活動非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わない。
+限定119資料/対象案84、81追加担当9639＋旧47入力API5593呼出・例外0、receive/respond/前後state/world/原出所再生/validContext/validSelections一致・入力非変更。別出所診断84/改変336と日記監査90通過、163source hash不変。新captureの実装検証/固定50全正規API完全供給/全依存意味読了ではない。全119のturn.answer有り0。実到着六対照short三例は実ask_nameから原namingで旧dm、gesture三例は問いなしで旧dr。短い名の限定結果で動的併存全般を不要/不可能にしない。各集合を固有数/網羅数/次未解決集合へ変換せず、旧dr原資料/過去非選定集合を自動繰越し合算しない。
+残3〜4工程・暫定中心3、dr確認後2〜3中心2から下限/上限/中心＋1・完了減算0、ds相談1／その他入口0〜1中心0／最終意味照合回帰2。中心確度低・分割/追加要否/全入口最終分類未決定・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料/工具/十文書baseline/163source hash/全ログ/文書検査/発行はds-consultation-59af589。初回出所診断はraw末尾「!」だけでも必ず拒否するという工具期待で失敗、別v2は話者実改変で成功・ゲーム規則/原資料非変更、原失敗保持。ゲームcode/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰/renderer再実行なし。過去dr全Node3419/renderer1295と元fullのincomplete/exit1・reviewRequired/reading.not_recordedを今回成功へ昇格しない。全旧所有節/全fixture/全静的依存意味再読・固定50全正規API・全入口最終分類・実UI音声/本人日記生成保存再開配布未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。対象と保持方針の個別採用後は長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下はds相談前の開始文として保持する。
+
 ## 次チャットへ貼る現行開始文（dr確認済み・次ds未選定未採用）
 
 ```text
