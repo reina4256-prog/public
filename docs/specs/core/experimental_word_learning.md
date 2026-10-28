@@ -1,5 +1,26 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-multiple-naming-incomplete-response-materials-dp-consultation"></a>
+
+##### dp相談案：複数完全名付けと未成立の取り下げ／確認返答の併存（2026-10-28・構想段階・未採用未着手）
+
+- 開始e7ea73f・ゲーム実装3f8a549・do実装後OK確認済み。dpの対象・保持方針を今回相談案へ具体化した。両方未採用未着手、正式枠/API/kind追加なし。130枠130確認済み・正式子119・最新ao〜do人間OK・全128登録（固定50＋追加78）を維持。同じdpで個別採用待ち。以下のdp未選定は今回相談前の状態として保持する。
+- **対象案**：既存日本語一入力の完全naming二節以上に、原retract_explanationのcorrection、または実confirm_name/pending由来の原replyが一節以上併存し、全訂正／返答節が当時complete=false・clause_scope未解決である資料。完全名付けは既存name/name_description/name_answer、または実活動ask_name由来catalogRuleなし動的節。各完全節の当時一意注目対象・同語/対象/話者explanation一候補採用を照合する。完全名付け二節未満、一節でも完全な訂正／返答、corrects/learning.retraction成立は含めない。
+- 例は「これをころって呼ぼう\nこれをぽぽって呼ぼう\nさっきの説明は間違えた」、同じ話者への実名付け確認待ちでの「これをころって呼ぼう\nこれをぽぽって呼ぼう\nうん」、実到着後の「ころ\nぽぽ\nさっきの説明は間違えた」。訂正だけ／返答だけ／両者併存、同語反復・異名・節順・三節以上を保持する。文面だけで前提成立を認定しない。gestureや別話者、期限切れ等で原unknownとなる「うん／違う」は返答に数えない。
+- **併存範囲案**：[deの既存18規則](#diary-remaining-clause-materials-de)＋greeting_morning＋[dfの四規則](#diary-additional-clause-materials-df)、不完全名付け/unknownを原値で併存可とする。correctionはretract_explanation、replyは既存肯定／否定規則だけ。語義教示/語義訂正・word_reference等の別原frame、他localeの追加要否/分割は本案で採用せず未決定。「ぽぽは休むことだよ」等が混在入力で原unknownなら理解済み語義教示へ変換しない。
+- **確認返答の出所案**：入力前pending.kind=confirm_name、話者/期限/語/対象/原input IDと各frame.replyToの一致を照合し、understanding側でcomplete時にだけ付くanswer/replyTo等を補わない。直前の実result/平坦receiptを独立再生し、実name_echoとpendingの生成を照合する。pending.inputIdの原名付けresult/平坦receiptも実資料から独立再生し、一意原record・未取り下げの同語/対象/話者evidenceと対応させる。原名付けと実直前入力が同一なら同じ原資料を使い、個体参照で再確認された場合は別の二資料として保持する。原資料不足や出所連鎖を推定補完しない。
+- 動的名付けを含む場合だけ[dn](#diary-dynamic-mixed-multiple-naming-materials-dn)/[do](#diary-multiple-naming-additional-clause-materials-do)同様、実活動ask_nameのlastOutput/source/response・pendingの話者/期限/対象、到着event/時刻/移動履歴とコピー上onArrivalのresponse/出力全文/pendingを照合し保持する。destinationと注目target、活動の問いと実入力前件を分離。動的節なしは活動出所なし。原rest_explanationを含む場合だけ平坦な実直前result/receiptの独立再生と、その当時known.meaning=restを追加照合する。同一入力中の休息節・後知識で代用しない。
+- **保持方針案**：独立一時journalへ一input一資料。原input ID/raw/話者/locale/時刻/scene、全frame/understandingの同数対応・全節順/index/span、完全/不完全名付け・既存/動的名付け・訂正/返答・追加規則/回復説明・他認識/unknownの各indicesを保持する。各節complete/known/relations/unresolved・主体/極性/時点/条件状態/roles等は有無を含め原値コピー。訂正関係不足・節scope不足と、実pending由来の返答frameを区別する。原learning/result全文/transfer/expression・実reply・実turn.answer有無原値・入力前knowledge/context・前後state/world・前件/確認出所/活動出所を分離コピーし、全体per_clauseとする。一節の理解を全節理解にしない。
+- 安全整数ID/before.serial+1・scene/話者/locale/時刻、意味/実適用関係の当時一意basis・実参照経験、前後validContext/validSelections、コピー上receive/respond全文を照合する。実前件ありは実直前turn/serial/時刻に一致する平坦receiptを別再生、なしはなし。確認返答の出所資料以外のorigin連鎖を一律要求/推定生成しない。不足改変拒否・同input非増加非上書き・新input別資料・遅延/返却コピー独立・後知識後活動非遡及を要求する。
+- 原associations/records/turn/pending/実応答の変化とcapture非生成を分ける。既存原recordと原evidenceの取り下げ/確認を今回入力で新造せず、その他knowledge・本人/world経験・選択出所・行動状態を変えない。原correction/replyは不完全のまま、取り下げ成功/肯否確認成功/訂正先・旧知識無効化/全節回答/理解自覚/同義語化/一般名/仕事経験/再試行希望/味評価/回復因果/感情/受諾予約実行/条件成立/活動順序を補わない。新理解規則/scope転移・4e/receipt保存形式/ゲーム本接続は採用しない。
+- **既存境界案**：旧4d2の末尾question完全成立かつ実reply=answer_unknownを除外。旧4d5の完全名付け一節の一意対応、[as](#diary-name-responses-as)の実確認/取り下げ成功、dk/dl/dm/dn/do・全名付け不完全dh・不完全取り下げdi・全節unknown dj・dfの既存所有と不足receipt拒否を維持する。旧担当が資料不足で失敗する入力を本案で救済しない。未捕捉だけで追加不要/永久対象外/全入口完了へ決定しない。
+- **今回の限定資料照合**：新規生成796＋原名付け再確認8＝804資料を現receive/respond全文再生、既存78追加担当62712呼出＋旧47入力API37788呼出で照合し例外0・入力非変更。候補233は全て既存担当非捕捉、残571は本案非選定であり次の未解決集合ではない。dk/dl/dm/dn/do/di/dh/dj/4d5/4d2正規対照各一例とas正規三例は旧帰属を維持。固定50全正規API・全組合せ・全入口最終意味分類・全旧fixture意味読了の検証ではない。
+- 当初796候補225の属性は動的60/訂正207/返答34/両者16/回復説明4/unknown38/不完全名付け6/実前件192、今回turn.answer有り0。原名付け再確認8候補のうち原reply成立4は、原名付けと実直前の再確認入力を別再生した。属性は重複し合算しない。804/233を固有数/網羅数/新部品成立数/工程数へ変換しない。前do1969の373/1596・966原389・別補足4、元2176・df184/dg60/dh132/di68・unknown72/前156・dm33を本候補へ戻さず合算しない。
+- **工程目安**：残3〜4工程・暫定中心3、前回do確認後2〜3中心2から下限/上限/中心＋1、完了減算0。dp相談一系統1／その他入口追加要否0〜1中心0／最終意味照合回帰2。新たな一系統の相談を具体化したため積上げ、採用/実装確認待ちを消さない。その他混在/他locale追加要否/分割・全入口最終意味分類は未決定、中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 原資料/開始十文書baseline/33source hash/診断・probe/extend/reasked原sourceとstdout/stderrはdocs/.local-history/verification-runs/dp-consultation-e7ea73f。今回ゲームコード/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰・監査・実働・renderer再実行なし。過去do全Node3330/renderer2133と元fullのincomplete/exit1・reviewRequired/reading.not_recordedは今回結果へ昇格しない。原資料/旧原文/過去失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。実読取/未読未検証/文書検査/発行は現行handoff参照。対象案と保持方針案を個別相談し、採用後は長さに無理がなければ同じチャットで実装検証する。
+
+以下のdp未選定は今回相談前の状態として保持する。
+
 <a id="diary-entry-remainder-after-do"></a>
 
 ##### do確認後：他規則混在・他localeほか残入口の再開点（2026-10-28・dp未選定未採用）
