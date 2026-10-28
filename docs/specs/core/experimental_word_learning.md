@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-dynamic-individual-reference-materials-dt-consultation"></a>
+
+##### dt相談案：動的名付けと個体参照の併存資料保持（2026-10-29・構想段階・未採用未着手）
+
+- 開始dd622c6・ゲーム実装d52f80e、ds実装後OK確認済み。dtを以下の対象・保持方針の相談案へ具体化した。両方未採用未着手・正式枠/API/kind追加なし。134枠134確認済み・正式子123・最新ao〜ds人間OK・全132登録（固定50＋追加82）を維持する。以下のdt未選定は相談前状態として保持する。
+- **対象案**：既存日本語一入力に、原frame=namingかつcatalogRuleなしの動的名付けと、原frame=referenceの個体参照を各一節以上含む資料。動的名付け・個体参照それぞれの当時完全／未理解を分ける。語義参照word_referenceの併存も含める案であり、片方の理解を他方へ補わない。既存所有が成立する資料を重ねて新担当へ移さず、完全名付け一節の旧4d5・実replyの旧4d2・単独参照ar・dq/dr/ds・dm/dn等の境界と不足receipt拒否を維持する。
+- 例：既存形式で別個体を「ぴ・ぴ」と名付け、必要なら到着先scopeで「ぽぽは休むことだよ」を実際に聞いた後、未命名個体への正規到着でask_nameが出た時の「ころ\nもも\nぴ・ぴ」「ぴ・ぴ\nころ\nもも」「ころ\nもも\nぴ・ぴ\nぽぽ」。文面だけで出所や理解を認定しない。現receiveはunknown節について語義応用→動的名付け→個体参照の順に処理するため、短い文字だけの既知個体名もask_name待機中なら原namingとなり得る。「ぴぴ」を原referenceへ補修しない。中点名の例は既存形式と正規perceive/receiveで作った別入力であり、新しい解釈規則の採用ではない。
+- **併存範囲案**：[de明示18規則](#diary-remaining-clause-materials-de)＋greeting_morning＋[df四規則](#diary-additional-clause-materials-df)、既存name/name_description/name_answer、原retract_explanationのcorrection・実confirm_name由来reply・原unknown。correction/replyは実原frameがある場合だけclause_scope不足と原値を保持し、ask_name中の文字面「うん」「違う」を確認返答へ変換しない。他原frame／規則・他localeの追加要否／分割・全入口最終分類は未決定。
+- **保持方針案**：独立一時journalへ一input一資料・per_clause。全節順/index/span/frame/understandingと不足、動的／既存形式名付け・個体参照・語義参照indices、原result/learning全文・transfer/expression、実replyとturn.answer有無、入力前knowledge/context、前後state/worldを分離コピーする。同名反復・同名二個体・同個体複数evidence・同意味複数説明を畳まない。動的名付けの原関連更新と、資料保持が新しく命名することを分ける。
+- **活動出所案**：[dqの動的名付け契約](#diary-word-reference-clause-materials-dq)とdm/dnを参照し、完全／不完全いずれも入力前pendingQuestionの話者／期限／対象と、実活動lastOutput/source/response・到着event／時刻／移動履歴／活動根拠を別照合する。コピー上onArrivalで出力全文とpendingを再生する。移動先destinationと注目個体target、活動の問いとプレイヤー実入力前件を分ける。実前件があれば平坦receiptを独立再生し直前turn/serial/時刻へ照合し、前件なしを生成しない。
+- **参照出所案**：[ds](#diary-mixed-reference-materials-ds-verified)の個体／語義両系統の保持を使う。個体全候補・原target.adopted有無・不足と、語義候補／訂正連鎖／競合名付け・原applications有無を分離する。必要な平坦beforeState/result/原receive直後afterStateの出所ID和集合を一度だけ供給し、原当時知識で独立再生、利用先別に照合する。不足／改変／重複／余分出所を拒否し、後知識から原出所を生成しない。
+- 現入力のreceive/respond全文・前後validContext/validSelectionsと原実応答を照合する。同input非増加非上書き・返却／遅延コピー独立・後知識後訂正後活動非遡及。新理解／命名／語義採用／訂正成功／旧知識無効化／理解自覚／全節回答／本人経験／感情／受諾予約実行を補わない。新理解規則・4e・receipt保存形式・ゲーム本接続は未採用未実装。
+- **限定照合**：新v4の187資料・対象案88はreceive/respond全文・前後state/world・validContext/validSelections・必要原出所・実前件を再生、82追加担当15334＋旧47入力API8789呼出・例外0。88は全既存担当非捕捉、個体参照完全85／未理解3、動的名付け完全174／不完全6、語義参照併存18、実前件88、turn.answer有り0（節属性は資料件数と合算しない）。原出所診断88／改変352拒否、活動診断88／改変352拒否。旧47は既存adapter限定照合で固定50全正規APIの完全供給／全意味読了ではない。
+- 初回187は既知到着先のname_echo等を保持し候補0、v2は短名が動的名付けへ先に分類されるため候補存在の工具assertionで失敗した原source/logを保持する。別v3は中点名で187／91、語義説明scopeを正規perceiveで到着先へ合わせた別v4が187／88。v3の語義参照併存0をv4で置換しない。これらは別に生成した重複し得る資料で固有数／網羅数／次未解決集合／工程数へ変換せず合算しない。旧非選定集合を自動繰越ししない。原結果・原出所の補修なし。
+- **工程見積り**：残3〜4工程・暫定中心3、ds確認後2〜3中心2から下限／上限／中心＋1・完了減算0。dt相談・採用後実装検証確認1／その他入口追加要否0〜1中心0／最終意味照合回帰2。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完を維持する。
+- 今回相談／文書・局所検証のみ、ゲームcode/catalog/locale/package/登録/保存形式非変更。日記監査91通過、ゲーム全回帰／renderer／実UI音声／本人日記保存再開配布は再実行なし。開始十文書baseline・165source hash・原資料／工具／原ログ／文書検査／発行はdocs/.local-history/verification-runs/dt-consultation-dd622c6。hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。必要依存／必須検証を削減せず、未知依存で自動的に検証を狭めない。
+
+以下のdt未選定は今回相談前の再開点として保持する。
+
 <a id="diary-entry-remainder-after-ds"></a>
 
 ##### ds確認後：動的名付け併存ほか残入口の再開点（2026-10-29・dt未選定未採用）

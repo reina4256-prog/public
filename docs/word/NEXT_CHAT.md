@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 現行継続文（dt対象・保持方針相談案・個別採用待ち）
+
+```text
+開始dd622c6・ゲーム実装d52f80e、ds実装後OK確認済み。dtは動的名付けと個体参照の併存資料の対象・保持方針を相談案へ具体化。両方未採用未着手・正式枠/API/kind追加なし。134枠134確認済み・正式子123・最新ao〜ds人間OK・全132登録（固定50＋追加82）を維持。同じdtで個別採用待ち、確認済みdsを再採用確認しない。最新commit/push/検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行/所有節/依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-dynamic-individual-reference-materials-dt-consultation。巨大文書全体／全過去開始文を出力せず必要節に絞る。原文保管／依存確認／必須検証は維持し、未知依存で狭めず、hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。
+対象案は既存日本語一入力の原catalogRuleなしnamingと原reference各一節以上、完全／未理解を分離。word_reference併存も含める。併存de明示18＋greeting_morning＋df四規則、既存三名付け形式、原retract_explanation/correction・実confirm_name由来reply・原unknown。原naming/unknownをreferenceへ補修しない。現receiveは語義応用→動的名付け→個体参照の順で短い文字名は原namingとなり得る。別個体の中点名「ぴ・ぴ」と正規到着ask_nameで「ころ\nもも\nぴ・ぴ」、到着先scopeの説明があれば「ころ\nもも\nぴ・ぴ\nぽぽ」を原結果通り保持する案。
+保持方針案は独立一時journal・一input一資料/per_clause、全節順/index/span/当時理解不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldの分離コピー。完全／不完全とも活動pending/lastOutput/source/response・到着event/時刻/移動履歴を照合しコピー上onArrivalで再生。活動の問いと実入力前件を分け、前件ありだけ平坦receipt再生。個体全候補/原採用有無と語義候補/訂正連鎖/競合/原applications有無を分離し必要平坦originsのID和集合を一度だけ供給、利用先別照合。同名二個体/複数evidence/同意味複数説明を畳まない。
+不足/改変/重複/余分拒否・同input非増加非上書き・コピー独立・非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わない。旧4d2/4d5/ar/dq/dr/ds/dm/dn等の所有と不足receipt拒否を維持する。他規則/locale追加要否/分割・全入口最終分類未決定、4e/receipt保存形式/ゲーム本接続未採用未実装。
+新v4は187資料中候補88、82追加担当15334＋旧47入力API8789呼出・例外0、原出所診断88/改変352拒否・活動診断88/改変352拒否。語義参照併存18/turn.answer有り0。旧47は既存adapter限定で固定50全正規API完全供給ではない。初回候補0/v2工具assertion失敗、別v3の187/91と別v4の187/88を非置換保持し合算しない。資料数/属性を固有数/網羅数/次未解決集合へ変換せず旧非選定集合を自動繰越ししない。
+残3〜4工程・暫定中心3、ds確認後2〜3中心2から下限/上限/中心＋1・完了減算0。dt相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完。採用後は長さに無理がなければ同じチャットで実装検証する。
+今回は相談/文書・局所検証のみ。監査91通過、ゲームcode/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰/renderer/実UI音声/本人日記保存再開配布なし。開始十文書baseline/165source hash/原資料/工具/原ログ/文書検査/発行はdt-consultation-dd622c6。全旧所有節/fixture/推移的依存意味再読・固定50全正規API・全入口最終分類未完。過去成功/元fullのincompleteを今回成功へ昇格しない。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdt未選定は今回相談前の開始文として保持する。
+
 ## 次チャットへ貼る現行開始文（ds確認済み・次dt未選定未採用）
 
 ```text
