@@ -1,5 +1,25 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-noncontrast-report-clause-materials-du-consultation"></a>
+
+##### du相談案：対比ではない感情・出来事報告を含む複数節の資料保持（2026-10-29・未採用未着手）
+
+- 開始60c7e07、ゲーム実装386bfc1。dtは実装・Codex検証・ユーザー実装後OK確認済みで再確認しない。duの対象・保持方針を以下の相談案へ具体化した。両方未採用未着手、正式枠/API/kind追加なし。135枠135確認済み・正式子124・最新ao〜dt人間OK・全133登録（固定50＋追加83）を維持する。
+- **対象案**：既存日本語一入力の二節以上に、原frame.kind=reportかつcatalogRule=feeling_reportまたはexternal_event_reportを一節以上含み、その報告のrelationsにcontrastがない資料。当時完全／未理解の両方、感情・出来事・時点・未知detailの有無を分ける。例「私は悲しい。おはよう」「私は悲しい\n今はうれしい」「今日料理で失敗した\n私は悲しい」。改行・句点は実receiveの原節順/spanのままで、二節を対比・原因・時系列の理解へまとめ直さない。
+- **併存範囲案**：[deの明示18規則](#diary-remaining-clause-materials-de)＋greeting_morning＋[df四規則](#diary-additional-clause-materials-df)と原unknownだけ。単独報告と続報は旧4d12ai、固定感情／対比はag/ah・bf〜bm、既存質問応答は旧4d2等へ残す。最後が完全questionで実reply.message=answer_unknownなら旧4d2の担当を維持し、本案で重ねて保持しない。旧担当の不足receiptを本案で救済しない。
+- 名付け・動的名付け・個体参照・語義参照・原correction/reply・feeling_single/feeling_contrast・contrastを持つ報告・他規則／他localeの追加要否と分割は未決定で、本案には含めない。relationLearning/conditionJudgment/sequenceJudgmentを持つ資料も本案に含めない。原unknownとなった「うん」や語義説明風の節をreply/word_explanationへ修復しない。以前の未選定集合を繰り越さず、今回の非選定20を次未解決集合へ変換しない。
+- **保持方針案**：独立一時journalへ一input一資料・per_clause。全節順/index/span/frame/understanding/unresolvedと原reportIndices、原result/learning/transfer/expression、実reply全文・turn.answer有無、入力前knowledge/context/feelingLearning、前後state/worldを分離コピーする。subject/aspect/polarity/eventTime・known・原reportSource/testimony/feelingReferences/relationReferencesの有無は原値を保持し、原資料にない主体・出所・証言・理解を補わない。
+- 感情語や出来事の意味が既知でも、話者の報告は本人自身の経験や検証済みの事実ではない。未理解detailを仕事名や実仕事経験に変換せず、報告内のreasonを原因の真偽へ昇格しない。報告した感情と本人の感情を分け、前の感情の取消し、新しい本人経験・感情変化・理解自覚・全節回答・提案の受諾予約実行を新造しない。clause_scope不足、後知識による非遡及と原学習結果の保持を維持する。
+- **原資料照合案**：独立input/inputKnowledge/inputContextと入力前serial・時刻・話者・sceneを照合し、コピー上receive/respond全文と前後state/world、validContext/validSelectionsを再生する。回復説明などの実前件がある場合は実直前turn/IDと平坦beforeState/result/afterState・beforeWorld/reply/afterWorldを独立再生し、実前件なしを生成しない。取得資料不足／改変／矛盾を拒否し、後知識から入力時の出所を再構成しない。同input非増加非上書き・返却／遅延コピー独立・後知識後活動非遡及を実装時に検証する案であり、今回新captureの成立確認ではない。
+- **限定照合**：新222資料のうち対象案202。83追加担当18426＋旧47入力API10434呼出で、202は今回供給条件の既存担当非捕捉。原receive/respond全文と前後state/world・独立input/knowledge/context・validContext/validSelectionsを再生し、実前件50も平坦原資料で再生した。専用工具4検査と既存日記監査92通過。原資料六種1212操作のうち実改変1148を照合拒否、原と同値64を別計上。これは新captureの改変拒否試験ではない。単独報告ai、対比bf/bk、挨拶dg、unknown dj、一意完全名付け4d5、実質問応答4d2の対照を保持する。
+- 設定128、併存48、意味／関係九条件18、実休息／食事完了4、locale7、境界11、参照境界2、句読点／反復4が222の内訳。知識不足は意図的な入力前条件で、習得経路の実証としない。旧47は既存引数adapter限定照合で、beforeReports/beforeReceiptsは明示空、固定50全正規APIの完全供給／全意味読了ではない。件数は重複し得る生成資料数で、固有数／網羅数／工程数／全入口最終分類へ変換しない。
+- 初回工具の「meanings=[]」改変は入力前から空の64資料と同値なのに拒否を期待して一検査不通過。初回source/logを非置換保持し、別v2で同値を別計上して4検査通過。ゲーム不具合の修正や初回成功への置換ではない。
+- **工程見積り**：残3〜4工程・暫定中心3。dt確認後2〜3中心2から下限／上限／中心＋1、完了減算0。du相談・採用後実装検証確認1／その他入口追加要否0〜1中心0／最終意味照合回帰2。分割・追加要否・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 今回は相談案／局所工具／文書のみ。ゲームcode/catalog/locale/package/登録/保存形式非変更、新ゲーム表示文なし。ゲーム全回帰／renderer／実UI音声／本人日記生成保存再開配布は再実行なし。開始十文書baseline・166source hash・工具／原資料／原ログはdocs/.local-history/verification-runs/du-consultation-60c7e07。hash一致と所有節／依存の意味読了を分ける。実読取・未読未検証・発行は現行handoff参照。採用後は長さに無理がなければ同じチャットで実装検証する。
+
+以下のdu未選定は相談案具体化前の保存点として保持する。
+
+
 <a id="diary-entry-remainder-after-dt"></a>
 
 ##### dt確認後：残入口の再開点・協力者試遊ログの目的再確認（2026-10-29・du未選定未採用）

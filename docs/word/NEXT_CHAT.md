@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 現行継続文（du相談案・対象と保持方針の個別採用待ち）
+
+```text
+開始60c7e07、ゲーム実装386bfc1・dt実装後OK確認済み。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。duは対比ではない感情・出来事報告を含む複数節の対象・保持方針を相談案へ具体化。両方未採用未着手・正式枠/API/kind追加なし。135枠135確認済み・正式子124・最新ao〜dt人間OK・全133登録を維持。同じduで個別採用待ち、dtを再確認しない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-noncontrast-report-clause-materials-du-consultation。原文保管・依存確認・必須検証を維持し、巨大文書／全過去開始文を再読せず、hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。
+対象案は日本語二節以上・原reportのfeeling_report/external_event_report一節以上・contrastなし、当時完全／未理解双方。併存はde明示18＋greeting_morning＋df四規則・原unknown。単独ai・固定感情／対比ag/ah・bf〜bm・旧4d2等の所有と不足receipt拒否を維持する。名付け／動的／個体語義参照／correction/reply／他規則／localeの追加要否と分割は未決定、原unknownを補修しない。
+保持方針案は一input一資料・per_clauseで全節順/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。subject/aspect/polarity/eventTime・reportSource/testimony等の有無を原値保持し、未理解detail・reported内容を本人経験／感情／原因真偽へ補わない。実receive/respondと前後validContext/validSelections・実前件がある場合の平坦原資料を独立再生、不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及の案。新理解規則／全節回答／受諾予約実行を補わない。
+限定222資料／対象案202、83追加担当18426＋旧47入力API10434呼出・実前件50再生。工具4・監査92通過、実改変1148拒否／同値64を別計上。新captureの成立／改変拒否ではなく資料照合。beforeReports/beforeReceiptsは空、旧47は固定50全正規API完全供給ではない。固有数／網羅数／次未解決集合へ変換せず旧非選定集合を繰り越さない。初回工具の同値改変拒否期待失敗はsource/log保持、v2成功で置換しない。
+残3〜4工程・暫定中心3、dt確認後2〜3中心2から下限／上限／中心＋1・完了減算0。du相談採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2、全14保留・各担当三保留・全体未完。追加要否／分割／全入口最終分類未決定・中心確度低・上限終了保証なし。4e／receipt保存形式／ゲーム本接続未採用未実装。
+今回ゲームcode/catalog/locale/package/登録/保存形式非変更、ゲーム全回帰／renderer再実行なし。原資料／開始十文書baseline／166source hash／工具／全ログ／文書検査／発行はdu-consultation-60c7e07。全旧所有節／fixture／推移的依存意味再読・固定50全正規API完全供給・全入口最終分類・本人日記生成保存再開配布／実UI音声／外部試遊ログ通し確認は未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。採用後は長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdt確認済み・du未選定は相談前の保存点として保持する。
+
+
 ## 次チャットへ貼る現行開始文（dt確認済み・次du未選定未採用）
 
 ```text
