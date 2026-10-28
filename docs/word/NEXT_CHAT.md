@@ -1,5 +1,21 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（dt確認済み・次du未選定未採用）
+
+```text
+ゲーム実装最新386bfc1。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdt採用範囲へ実装後OKと継続／移動の裁量を明示。dtは実装・Codex検証・ユーザー実装後OK確認済み。135枠135確認済み・正式子124・最新ao〜dt人間OK・全133登録（固定50＋追加83）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdtを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行/所有節/依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-dt。巨大文書全体／全過去開始文／過大検索行を出力せず必要節へ絞る。原文保管／依存確認／必須検証は維持し、未知依存で狭めず、hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。
+次duは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。他原frame／規則／localeの追加要否／分割・全入口最終意味分類未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+今回の質問で、兄弟・友人・知人等の協力者に体験版を遊んでもらい、提供された実入力ログから不足を調べ、開発側で対応パターンを後から拡張する既存目的を再確認した。所有正本specs/core/experimental_word_learning.md#playtest-input-log-improvement。大工程は10単位で現在ID 4内、試遊記録の具体化はID 9・配布通し確認はID 10。記録項目／出力形式／共有前確認・除外／保存範囲等は未決定。本人の記憶／ノートと検証ログを分け、自動送信／ログ投入による自動学習や今回のログ機能実装は採用していない。
+dtはdynamic_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=dynamic_individual_reference_material。日本語一入力の原catalogRuleなしnamingと原reference各一節以上、完全／未理解双方・word_reference併存。実活動ask_nameのpending/lastOutput/source/response・到着event/時刻/移動履歴を照合しコピー上onArrival再生、不完全動的の原採用なしとpending対象候補を保持、完全節だけ一意名付け契約。個体全候補／原target.adopted有無と語義候補／訂正連鎖／競合／原applications有無を分離、必要平坦originsのID和集合を一度だけ供給し利用先別照合。同名二個体／複数evidence／同意味複数説明を畳まない。
+全節/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。実前件ありだけ平坦receipt独立再生。不足/改変/重複/余分拒否・同input非増加非上書き・コピー独立・非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧所有と不足receipt拒否を維持。原unknown/namingを参照へ変換しない。
+相談原187へ88成立／99非成立、専用199原94成立、別補足34へ16成立／18非成立を固有数／網羅数／次未解決集合／工程数へ変換せず合算しない。原result／出所補修なし、旧非選定集合を自動繰越ししない。旧47は既存adapter限定照合で固定50全正規APIの完全供給／意味読了ではない。
+残2〜3工程・暫定中心2、dt確認前3〜4中心3から下限／上限／中心−1、dt実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+今回は確認／質問回答／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／ログはdt-implementation-721ec37、今回baseline／30source hash／文書検査／発行はdt-acceptance-386bfc1。過去dt全Node3478／29JS構文／七言語14957／別renderer481を今回成功へ昇格しない。元fullのGPU失敗／reviewRequired／reading.not_recordedとincomplete/exit1を非置換保持。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・本人日記生成保存再開配布／実UI音声・外部試遊ログの記録出力共有通し確認は未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdt実装後OK未受領は受領前の継続文として保持する。
+
 ## 現行継続文（dt採用範囲実装・Codex検証完了）
 
 ```text

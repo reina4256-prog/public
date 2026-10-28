@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-29 dt確認・次チャット保存点：ユーザーが386bfc1のdt採用範囲へ実装後OKと継続／移動の裁量を明示。dtは実装・Codex検証・ユーザー実装後OK確認済み。135枠135確認済み・正式子124・最新ao〜dt人間OK・全133登録（固定50＋追加83）。[次du再開点](specs/core/experimental_word_learning.md#diary-entry-remainder-after-dt)へ続ける。duは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dt確認前3〜4中心3から下限／上限／中心−1、dt実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回、協力者の試遊ログから対応パターンを後から拡張する[既存目的](specs/core/experimental_word_learning.md#playtest-input-log-improvement)を再確認。大工程は10単位、ID 9で試遊記録、ID 10で配布通し確認を具体化する。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／実読取未検証／発行は現行handoff参照。以下のdt未受領は受領前状態。
+
 - 2026-10-29 dt最終：[採用範囲](specs/core/experimental_word_learning.md#diary-dynamic-individual-reference-materials-dt-verified)の実装・Codex検証完了。全Node3478・29JS構文・七言語14957・別隔離renderer481通過、専用29＋監査92＝121・旧test削除0。135枠134確認済み・正式子124・全133登録（固定50＋追加83）・最新ao〜ds人間OK、dt実装後OK未受領・同じdt継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。元fullの制限内renderer失敗／reviewRequired／reading.not_recordedとincomplete/exit1を非置換保持。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。
 
 - 2026-10-29 dt採用：[動的名付けと個体参照の併存資料](specs/core/experimental_word_learning.md#diary-dynamic-individual-reference-materials-dt)の対象・保持方針を個別採用、実装検証中。135枠134確認済み・正式子124・全133登録・最新ao〜ds人間OK、dt実装後OK未受領。残3〜4工程・暫定中心3・相談時下限／上限／中心差分0、dt実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2。採用だけで減算せず、全14保留・各担当三保留・全体未完。検証／発行／読取未検証は現行handoff参照。以下の未採用は採用前状態。
@@ -2204,6 +2206,8 @@ ca確認後の既存担当差引に、今回採用した酸味問い不足cbの�
 現在は一部実装。既存島・BGM、六職の初歩の手伝い、限定的な作業語学習と会話、空腹・体力表示、専用保存が土台としてある。以下は残作業を管理する実施順の案であり、未決定の仕様を採用済みに変えるものではない。内容仕様の正本は [experimental_word_learning.md](specs/core/experimental_word_learning.md)。
 
 公開対象の合意は、一人の子との暮らし、開始三軸・八設定、基本職6種との出会い・初歩の仕事、不在進行切替。次の子・住人化・世代継承・終盤エンディングは製品版側。旧版の全機能を体験版へ移植する計画ではない。職業体験量、能力上限、製品版への保存引継ぎ等の未決定は正本に従う。Steamへの公開操作は別段階。
+
+<a id="demo-ten-work-units"></a>
 
 ## 残作業10単位
 
