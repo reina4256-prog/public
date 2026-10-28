@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-word-reference-clause-materials-dq-consultation"></a>
+
+##### dq相談案：説明済みの語の参照を含む複数節の資料保持（2026-10-28・構想段階・未採用未着手）
+
+- 開始8a5d0cf・ゲーム実装4970a55・dp実装後OK確認済み。dqの対象・保持方針を以下の相談案へ具体化した。両方未採用未着手、正式枠/API/kind追加なし。131枠131確認済み・正式子120・最新ao〜dp人間OK・全129登録（固定50＋追加79）を維持。同じdqで個別採用待ち。以下のdq未選定は今回相談前の状態として保持する。
+- **対象案**：既存日本語一入力の二節以上で、原frameにword_referenceを一節以上含む資料。参照節は当時完全理解したものと、語義競合／個体名との競合で未理解のものを分けて保持する。原frameがunknownの語をword_referenceへ変換せず、参照候補があることだけで意味採用を補わない。反復参照だけの二節、挨拶・問い・報告・提案・名付け等との併存も同じ対象案とする。
+- **併存範囲案**：参照以外の認識節は[deの明示18規則](#diary-remaining-clause-materials-de)＋greeting_morning＋[df四規則](#diary-additional-clause-materials-df)、既存name/name_description/name_answerまたは実活動ask_name由来の動的naming、retract_explanationのcorrection、実confirm_name/pending由来reply。完全／不完全名付け・unknownを原値保持する。correction/replyは原clause_scope不足を保持し、訂正成功／確認成功を補わない。原reference（個体参照）等の別frame・別規則・他localeの追加要否／分割は未決定で、本案への一括採用はしない。
+- 例：同じ話者から実際に「ぽぽは休むことだよ」を聞いた後の「ぽぽ\nおはよう」「ぽぽ\nぽぽ」「これをころって呼ぼう\nこれをももって呼ぼう\nぽぽ」。競合対照は、同じ話者から休息と木の実の異なる説明を聞いた後の「ぽぽ\nおはよう」。文面だけで前提成立を認定せず、当時の話者・scene/attention・有効説明・取り下げ・個体名競合を照合する。
+- **保持方針案**：全節の原順序/index/span/frame/understandingと不足、参照節indices・採用有無・原applicationsと、入力前knowledge/context、原learning/result全文・transfer/expression、実replyとturn.answer有無、前後state/worldを分離コピーし、一input一資料/per_clauseで保持する。採用済みの同意味複数説明を一件へ選び直さず、未理解では原understandingにないapplicationsや意味採用を作らない。候補説明／競合の資料はunderstandingとは別の出所として保持する。
+- **出所照合案**：当時有効な語義候補と、その実原説明／訂正連鎖・競合個体名の必要な原名付けを平坦な原beforeState/result/原receive直後afterStateとして供給し、原当時の知識で独立再生する。現有効entryと原更新、corrects/retractedBy、話者/scope、競合evidenceの原値を照合する。現在入力もreceive/respond全文と前後validContext/validSelectionsを照合する。必要原資料の不足・改変・重複・無関係資料を拒否し、後知識から原説明や出所連鎖を推定生成しない。単独arの参照出所原則を参照し、原語義の今回新規教示／本人経験へ変換しない。
+- 動的名付けありだけ実活動ask_name/到着event/出力/時刻/履歴を照合し、実replyありだけpendingと実直前name_echo・原名付けを別照合する。回復説明ありだけ実直前のknown.meaning=restを照合する。実前件は直前turn/serial/時刻一致の平坦資料を独立再生し、原名付けと直前確認入力が異なる場合も区別する。参照出所・確認出所・活動出所を混ぜない。
+- 原associations/records/実応答変化とcapture非生成を分ける。同input非増加非上書き・コピー独立・後訂正後知識後活動非遡及。新語義教示／語義訂正・旧知識無効化・理解自覚・全節回答・異名同義語化・一般名・本人経験・好み・希望・回復因果・感情・受諾予約実行・活動順序を補わない。原reply=restingも実休息開始へ変換しない。
+- **既存担当との境界案**：[ar単独参照](#diary-references-ar)、旧4d2（末尾question完全理解＋実reply=answer_unknown）、旧4d5（一意の完全名付け一節）、単独語義教示4d6／語義訂正等の所有を維持する。4d2/4d5成立資料は本案から除外する。既存担当で必要receiptが不足した資料の救済にしない。複数節の「ぽぽは休むことだよ」が原unknownなら教示理解を補わず、従来dl等の所有を維持する。dp等確認済み資料を未対応へ戻さない。
+- **限定照合**：327資料＋補足40＝367資料を現receive/respond全文再生、79追加担当28993呼出＋旧47入力API17249呼出、例外0・原入力不変・前後validContext/validSelections。対象案285は全て既存担当非捕捉。参照節は完全285・未理解4（節の属性数であり資料数へ加算しない）。実confirm_name由来reply併存16・今回turn.answer有り0。語義候補原説明と訂正連鎖を原当時知識で再生、全135 source hashと旧比較六JSON hash不変。327/247と40/38の別原出力を保持する。これらは重複し得る生成資料数で、固有数／網羅数／次の未解決集合／新部品成立数ではない。残82を次候補へ自動繰越ししない。
+- **見通し**：残3〜4工程・暫定中心3、dp確認後2〜3中心2から下限＋1/上限＋1/中心＋1、完了減算0。dq相談・採用後実装検証確認1／その他入口追加要否・扱い0〜1中心0／最終意味照合回帰2。今回一系統を具体化したため積み上げ直す。全入口最終分類・他locale等の追加要否／分割未決定、中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 原資料/工具/十文書baseline/文書検査はdocs/.local-history/verification-runs/dq-consultation-8a5d0cf。初回stdin日本語文字化けの観察は破棄しUTF-8ファイルで再実行。補足初回は身振りにもpendingがあるという検査期待で失敗、原source/logを保持し実pending有無を照合する別v2成功と区別する。ゲームcode/catalog/locale/package/登録非変更、ゲーム全回帰/監査/実働/renderer再実行なし。全旧所有節/fixture/静的依存の意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存は未検証。実読取/未読未検証/発行は現行handoff参照。
+
 <a id="diary-entry-remainder-after-dp"></a>
 
 ##### dp確認後：他規則混在・他localeほか残入口の再開点（2026-10-28・dq未選定未採用）

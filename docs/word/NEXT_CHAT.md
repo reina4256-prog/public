@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 現行継続文（dq対象・保持方針相談中・未採用未着手）
+
+```text
+開始8a5d0cf・ゲーム実装4970a55・dp実装後OK確認済み。最新発行結果はCURRENT_IMPLEMENTATION.md参照。dqは説明済みの語の参照を含む複数節の対象・保持方針相談案を具体化、両方未採用未着手・正式枠/API/kind追加なし。同じdqで個別採用待ち。131枠131確認済み・正式子120・最新ao〜dp人間OK・全129登録（固定50＋追加79）を維持。採用後は長さに無理がなければ同じチャットで実装検証する。
+CURRENT_IMPLEMENTATION.md→specs/README.md冒頭→word/README.md・OPEN_ITEMS.md→OWNERS必要所有節/依存→VALIDATION。今回相談正本specs/core/experimental_word_learning.md#diary-word-reference-clause-materials-dq-consultation。全過去開始文/全参照を再帰読取せず、原文保持/構造一致/意味読了/人間OKと実読取/未読未検証を分ける。
+対象案は既存日本語二節以上の原word_reference一節以上、当時完全理解と語義/個体名競合未理解を区別する。併存はde明示18＋greeting_morning＋df四規則、既存三形式/実活動ask_name由来naming、retract_explanation/correction・実confirm_name由来reply、不完全名付け/unknown。原unknownを教示/参照/返答へ変換しない。全節順/index/span/原理解不足・原learning/result全文/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピーし一input一資料/per_clause。原説明/訂正連鎖/競合名付けの必要平坦資料を独立再生し、同意味複数候補も別保持。動的名付け/確認返答/回復説明がある場合だけ各実活動/実確認/実直前休息前件を照合、出所を混ぜず不足を推定生成しない。新語義教示/訂正成功/旧知識無効化/全節回答/理解自覚/経験/感情/受諾予約実行を補わない。ar単独参照・旧4d2/4d5・単独語義教示訂正・dp等の所有と不足receipt拒否を維持する。
+限定327＋補足40＝367資料、対象案247＋38＝285は既存79追加担当28993/旧47入力API17249呼出で非捕捉、例外0・原入力不変・前後validContext/validSelections。原説明/訂正連鎖再生・source hash/旧比較六JSON不変。原参照節完全285/未理解4は属性数で資料数と合算しない。実reply併存16・turn.answer有り0。生成資料数を固有数/網羅数/次の未解決集合/新部品成立数へ変換しない。367の残82や過去804の非成立561を次候補へ自動繰越ししない。df184/dg60/dh132/di68・unknown72/前156・dm33を戻さず合算しない。他原frame/他locale追加要否/分割・全入口最終意味分類未決定。
+残3〜4工程・暫定中心3、dp確認後2〜3中心2から下限/上限/中心＋1・完了減算0。dq相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2。一系統具体化による積上げ、中心確度低・上限終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+原資料/工具/十文書baseline/文書検査/発行はdq-consultation-8a5d0cf。初回stdin文字化けは観察破棄しUTF-8ファイル再実行、補足初回の身振りpending誤期待失敗を原source/logと別v2成功に分離。ゲームcode/catalog/locale/package/登録非変更、ゲーム全回帰/監査/実働/renderer再実行なし。過去dp成功・元fullのincomplete/exit1を今回結果へ昇格しない。全旧所有節/全fixture/全静的依存意味再読・固定50全正規API・全入口最終分類・本人日記保存再開配布・実UI音声/実ユーザー保存未完。原文/原資料/失敗中断ログ・旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下はdq相談具体化前の開始文として保持する。
+
 ## 次チャットへ貼る開始文（dp確認済み・次dq未選定未採用）
 
 ```text
