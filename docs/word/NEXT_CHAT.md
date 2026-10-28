@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+- 2026-10-28 dp最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-multiple-naming-incomplete-response-materials-dp)の実装・Codex検証完了。全Node3358・25JS構文・七言語14957・権限付き隔離renderer1575通過。専用27＋監査88＝115、前do3330から＋28・旧test削除0。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録、dp実装後OK未受領・同じdp継続。残3〜4工程・暫定中心3・前回比差分0、確認待ち/他入口/最終照合は減算しない。全14保留・各担当三保留・全体未完。元full全29検査passedだがreviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。詳細/原ログ/実読取未検証/発行は正本と現行handoff参照。以下の実装検証中/未採用は途中/過去状態として保持する。
+
+## 同じdpの現行継続文（採用範囲実装・Codex検証完了）
+
+```text
+開始42cd6db、ユーザー「はい、どちらもOKです」でdp対象・保持方針を個別採用。experimental_word_diary_multiple_naming_incomplete_response_materials.create()/capture(buffer,result,receipt)、kind=multiple_naming_incomplete_response_materialの採用範囲実装・Codex検証完了。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録（固定50＋追加79）、dp実装後OK未受領・同じdp継続。最新検証/文書発行はCURRENT_IMPLEMENTATION.md参照。再採用確認/次記号/次チャットを先取りしない。
+CURRENT_IMPLEMENTATION.md→routing→word現行通知/OWNERS必要所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-multiple-naming-incomplete-response-materials-dp。完全naming二節以上＋原correction又は実confirm_name由来reply一節以上、全訂正/返答complete=false・clause_scope未解決。名付けは既存三形式/実活動ask_name由来動的、他認識de18＋greeting_morning＋df四規則・不完全名付け/unknown可。原unknownを理解済みreply/語義教示へ読み替えない。原pendingと実直前name_echo/原名付けを平坦資料で独立再生、原名付けが直前と別ならreceipt.originを別供給。動的名付けだけ実活動ask_name/到着/時刻/履歴、回復説明だけ実直前known.meaning=restを照合。全節順/index/span/当時理解不足/各indices/原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/world・confirmationSourcesを分離コピーしper_clause。一input一資料・同input非増加非上書き・コピー独立・後知識非遡及。不足改変拒否、取り下げ/肯否確認成功や訂正先/旧知識無効化/理解自覚/全節回答/経験/希望/感情/受諾予約実行を補わない。旧4d2/4d5/as/dk/dl/dm/dn/do/dh/di/dj/df所有と不足receipt拒否を維持。
+全Node3358・25JS構文・七言語14957・権限付き隔離renderer1575通過、専用27＋監査88＝115・旧test削除0。816原253成立・7215改変拒否/同値122・実前件1070/確認出所438改変拒否、旧78担当19734/旧47入力API11891非重複。相談804へ243成立/561非成立（原233＋採用済み一覧内抽出漏れ10）、元2176へ0成立・前do1969へ6成立/旧do373と重複0・原六JSON hash不変。補足16成立・turn.answer有り0を別計上。資料数/属性を固有数/網羅数/次の未解決集合/工程数へ変換せず過去資料数を戻して合算しない。元full全29検査passedだが静的未分類reviewRequired/reading.not_recordedを残すincomplete/exit1を保持、手動依存確認で昇格しない・未実行checkなし。全回帰開始25JS/保護九ファイル/静的35依存hash不変、全依存意味読了へ昇格しない。
+原資料/開始十文書/登録更新前24JS＋package baseline/原source/log/工具はdp-implementation-42cd6db。初回専用20通過/7失敗はupdatedへ存在しないspeaker要求、v2の25通過/2失敗は関係不足の原partial拒否。原source/logを保持しupdatedのword/target/inputIdと原input.speaker別照合・採用済み原partial保持へ補修したv3成功と分離。初回比較の原233固定assert失敗は単独generic解析からの許可一覧作成でde18内rest_request/rest_invitation/reason_questionを落とした10が原因。原selected/原資料を保持し明示一覧で別v2成功、採用範囲/ゲーム理解規則非拡張。登録patch工具の適用前失敗は原patch/source保持。表示文/locale/保存形式/本呼出非変更。残3〜4工程・暫定中心3・前回比差分0、実装後確認待ち/他入口/最終照合を減算しない。他入口/他locale追加要否/分割・全入口最終意味分類未決定、中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。旧AI旧保存/九見本/星座/対象外%SystemDrive%非操作非置換非commit。全過去開始文/全旧所有節/全fixture/静的依存意味再読・固定50全正規API・本人日記保存再開配布・実UI音声/実ユーザー保存未完。
+```
+
+以下は採用前状態として保持する。
+
 ## 同じdpの現行継続文（対象・保持方針相談案、両方未採用）
 
 ```text

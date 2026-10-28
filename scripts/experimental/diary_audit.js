@@ -305,7 +305,9 @@ function supplementalInventory() {
     { id: '4d12dn', slug: 'dynamic_mixed_multiple_naming_materials', api: 'capture', arity: 3,
         file: 'experimental_word_diary_dynamic_mixed_multiple_naming_materials.js', test: 'tests/experimental_word_diary_dynamic_mixed_multiple_naming_materials.test.js' },
     { id: '4d12do', slug: 'multiple_naming_additional_clause_materials', api: 'capture', arity: 3,
-        file: 'experimental_word_diary_multiple_naming_additional_clause_materials.js', test: 'tests/experimental_word_diary_multiple_naming_additional_clause_materials.test.js' }];
+        file: 'experimental_word_diary_multiple_naming_additional_clause_materials.js', test: 'tests/experimental_word_diary_multiple_naming_additional_clause_materials.test.js' },
+    { id: '4d12dp', slug: 'multiple_naming_incomplete_response_materials', api: 'capture', arity: 3,
+        file: 'experimental_word_diary_multiple_naming_incomplete_response_materials.js', test: 'tests/experimental_word_diary_multiple_naming_incomplete_response_materials.test.js' }];
 }
 function localFile(relative) {
     if (typeof relative !== 'string' || !relative || relative.includes('\\')
@@ -371,7 +373,7 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
             scopeAdopted: supplementalInventory().some(original => Object.keys(original).every(key => original[key] === row[key])),
             implementationAcceptance: 'not_received', auditSemanticReview: 'pending' };
     });
-if (supplemental.length !== 78) errors.push({ code: 'supplemental_inventory_count', expected: 78, actual: supplemental.length });
+if (supplemental.length !== 79) errors.push({ code: 'supplemental_inventory_count', expected: 79, actual: supplemental.length });
     // One directory, file names only. Never recurse into unrelated directories.
     for (const name of fs.readdirSync(ROOT)) {
         if (/^experimental_word_diary_[a-z_]+\.js$/.test(name) && !files.has(name)

@@ -1,5 +1,24 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-28 dp最終：[採用範囲](#diary-multiple-naming-incomplete-response-materials-dp)の実装・Codex検証完了。全Node3358・25JS構文・七言語14957・権限付き隔離renderer1575通過。専用27＋監査88＝115、前do3330から＋28・旧test削除0。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録、dp実装後OK未受領・同じdp継続。残3〜4工程・暫定中心3・前回比差分0、確認待ち/他入口/最終照合は減算しない。全14保留・各担当三保留・全体未完。元full全29検査passedだがreviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。以下の実装検証中/未採用は途中/過去状態として保持する。
+
+<a id="diary-multiple-naming-incomplete-response-materials-dp"></a>
+
+##### 4d12dp：複数完全名付けと未成立の取り下げ／確認返答の保持（2026-10-28・採用範囲実装・Codex検証完了）
+
+- ユーザー「はい、どちらもOKです」で[dp相談案](#diary-multiple-naming-incomplete-response-materials-dp-consultation)の対象・保持方針を個別採用。開始42cd6db。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録（固定50＋追加79）、dp実装後OK未受領・同じdp継続。残3〜4工程・暫定中心3・前回比下限/上限/中心差分0、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完。
+- 現在の実装仕様：experimental_word_diary_multiple_naming_incomplete_response_materials.create()/capture(buffer,result,receipt)、kind=multiple_naming_incomplete_response_material。日本語一入力の完全naming二節以上＋原retract_explanationのcorrection又は実confirm_name由来reply一節以上。全訂正/返答complete=false・clause_scope未解決、corrects/learning.retractionなし。名付けは既存三形式/実活動ask_name由来動的、併存de18＋greeting_morning＋df四規則・不完全名付け/unknown可。原unknownを理解済みreply/語義教示へ分類し直さない。各完全節の一意対象・同語対象話者explanation一候補採用を照合する。
+- 返答frameは実pendingの話者/期限/語/対象/原input ID/frame.replyToと一致し、実直前name_echo/pending/出力全文を平坦receiptの独立再生で照合。原名付けが実直前入力と同一なら同資料を使用、個体参照で再確認した場合はreceipt.originの実原名付けを別再生する。一意原record・未取り下げ原evidence・同語対象話者を照合し、成功時だけ付くunderstanding.answer/replyToや肯否確認成功を補わない。出所の推定連鎖を生成しない。
+- 動的名付けありだけdo同様の活動ask_name/期限/対象/到着event/時刻/履歴・コピー上onArrivalのresponse/出力全文/pending照合、なしはdynamicNamingSource=null。回復説明ありだけ実直前平坦result/receiptと当時known.meaning=restを追加照合。destinationとtarget、活動の問いと実入力前件を分ける。その他の実前件も直前turn/serial/時刻へ一致させ独立再生する。
+- 全節順/index/span/当時理解不足、完全/不完全/動的/既存名付け・訂正/返答・追加規則/回復説明・他認識/unknownの各indicesと原learning/result全文/transfer/expression・実reply/turn.answer有無原値・入力前knowledge/context・前後state/world・confirmationSourcesを分離コピー、一input一資料/per_clause。意味/関係basis・実参照経験・前後validContext/validSelectionsとreceive/respond全文一致、不足改変拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。原associations/records/実応答変化とcapture非生成を分け、原record/evidenceの取り下げ/確認新造と他knowledge/経験/選択/行動状態変更を拒否する。
+- 旧4d2/4d5/as/dk/dl/dm/dn/do/dh/di/dj/df所有と不足receipt拒否を維持。訂正先/取り下げ成功/肯否確認成功/旧知識無効化/全節回答/理解自覚/同義語化/一般名/仕事経験/希望/味評価/回復因果/感情/受諾予約実行を補わない。語義教示/語義訂正/word_reference等別原frame・他locale追加要否/分割は未決定、4e/receipt保存形式/ゲーム本接続未採用未実装。
+- 専用27＋監査88＝115がv3で通過。816原253成立・29種7215改変拒否/同値122別計上・実前件1070改変拒否・確認出所438改変拒否、旧78担当19734/旧47入力API11891呼出非重複。fixture dumpは別決定的生成でありテスト実行プロセスの原dumpへ昇格しない。
+- 比較訂正：相談804資料の実captureは243成立/561非成立、原selected233に採用済みde18内のrest_request/rest_invitation/reason_questionを抽出許可一覧が落とした10を加算した。原抽出工具が単独generic解析から許可規則を取得したことが原因で、原selected/原資料を非置換保持し明示一覧の別v2比較へ分離する。採用範囲/ゲーム理解規則の拡張ではない。元2176へ0成立・前do1969へ6成立は別比較集合で合算せず、前doの373成立と重複0を別確認。原六JSON hash不変。804/243・816/253や各属性を固有数/網羅数/次の未解決集合/工程数へ変換しない。
+- 原資料/開始十文書と登録更新前24JS＋package baseline/工具/全ログはdocs/.local-history/verification-runs/dp-implementation-42cd6db。初回専用27中20通過/7失敗はlearning.updatedへ存在しないspeakerを要求した誤り、v2の25通過/2失敗は関係不足の原understanding.kind=partialを拒否した誤り。各原source/logを非置換保持し、原updatedのword/target/inputIdと原input.speakerの分離照合、採用済み原partialの保持へ補修した。初回比較の原selected固定assert失敗と上記抽出漏れも別保存。ゲーム理解規則・表示文/locale/保存形式/本呼出は非変更。
+- 全回帰は冒頭dp最終のとおり。全回帰開始25JS hashと保護九ファイル/七browser＋fixture/smoke静的35依存hashを維持、新smokeはdoの厳密名称置換・旧19横断testは担当数期待だけ追従。手動レビューを元fullのincomplete成功化や全依存意味読了にしない。rendererは非表示blank server/専用一時profileで八global除去・local/session sentinel不変・保存bridge未定義、実ゲーム/UI/実ユーザー保存非操作。補足16資料は食事/休息後の味問い・節順・発話設定別の原応答/経験非増加を確認、全16成立・今回turn.answer有り0で別計上。証拠集計evidence.json/test-count-reconciliation.json、文書検査/発行/実読取未検証は現行handoff参照。
+
+以下は採用前の相談案として保持する。
+
 <a id="diary-multiple-naming-incomplete-response-materials-dp-consultation"></a>
 
 ##### dp相談案：複数完全名付けと未成立の取り下げ／確認返答の併存（2026-10-28・構想段階・未採用未着手）

@@ -1,5 +1,9 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-28 dp最終：[採用範囲](experimental_word_learning.md#diary-multiple-naming-incomplete-response-materials-dp)の実装・Codex検証完了。全Node3358・25JS構文・七言語14957・権限付き隔離renderer1575通過。専用27＋監査88＝115、前do3330から＋28・旧test削除0。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録、dp実装後OK未受領・同じdp継続。残3〜4工程・暫定中心3・前回比差分0、確認待ち/他入口/最終照合は減算しない。全14保留・各担当三保留・全体未完。元full全29検査passedだがreviewRequired/reading.not_recordedを残すincomplete/exit1を非置換保持。詳細/原ログ/実読取未検証/発行は正本と現行handoff参照。以下の実装検証中/未採用は途中/過去状態として保持する。
+
+- 2026-10-28 dp採用：[対象・保持方針](experimental_word_learning.md#diary-multiple-naming-incomplete-response-materials-dp)をユーザー個別採用。multiple_naming_incomplete_response_materials.create()/capture(buffer,result,receipt)三引数独立journalを実装検証中。131枠130確認済み・正式子120・最新ao〜do人間OK・全129登録、dp実装後OK未受領・同じdp継続。原pendingと実直前確認/原名付けを独立再生し、不完全なcorrection/replyの成功を補わない。残3〜4工程・暫定中心3・前回比差分0、全14保留・各担当三保留・全体未完。以下のdp未採用は採用前状態として保持する。
+
 - 2026-10-28 dp再開：[複数完全名付けと未成立の取り下げ／確認返答の対象・保持方針相談案](experimental_word_learning.md#diary-multiple-naming-incomplete-response-materials-dp-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。do実装後OK確認済み・130枠130確認済み・正式子119・最新ao〜do人間OK・全128登録を維持。同じdpで個別採用待ち。限定804資料候補233は既存78追加担当62712/旧47入力API37788呼出で非捕捉、例外0・原資料非変更。既存正規対照は旧帰属維持、全固定50正規API/全入口意味分類/全旧fixture意味読了ではない。残3〜4工程・暫定中心3、前回2〜3中心2から下限/上限/中心＋1・完了減算0。全14保留・各担当三保留・全体未完。ゲーム全回帰/監査/実働/renderer再実行なし。以下のdp未選定は今回相談前の状態として保持する。
 
 - 2026-10-28 do確認・次チャット保存点：ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で3f8a549のdo採用範囲へ実装後OKと継続/移動の裁量を受領。doは実装・Codex検証・ユーザー実装後OK確認済み。130枠130確認済み・正式子119・最新ao〜do人間OK・全128登録（固定50＋追加78）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。[次dpの再開点](experimental_word_learning.md#diary-entry-remainder-after-do)へ進む。dpは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、前回3〜4中心3から下限−1/上限−1/中心−1。do確認待ち1だけ差引き、その他入口追加要否/扱い0〜1中心0／最終意味照合回帰2を維持。新たな最終分類ではなく、追加要否/分割未決定・中心確度低・上限/終了回数保証なし。全14保留・各担当三保留・全体未完。今回は確認/文書のみ、ゲーム全回帰・監査・実働・renderer再実行なし。以下のdo実装後OK未受領は受領前状態として保持する。
