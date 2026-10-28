@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（ds確認済み・次dt未選定未採用）
+
+```text
+ゲーム実装最新d52f80e。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがds採用範囲へ実装後OKと継続/移動の裁量を明示。dsは実装・Codex検証・ユーザー実装後OK確認済み。134枠134確認済み・正式子123・最新ao〜ds人間OK・全132登録（固定50＋追加82）。全回帰後の区切りとして次の採用相談前で次チャットへ移す。確認済みdsを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word README/OPEN_ITEMS現行通知→OWNERS必要行/所有節/依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-ds。巨大文書全体/全過去開始文/過大な検索行を出力せず必要節を読む。原文保管/必要依存/必須検証を維持し、未知依存で狭めず、hash/構造/APIロードと意味読了/人間OK、実読取と未読未検証を分ける。
+次dtは予定記号のみ、具体対象/保持方針/理解規則未選定未採用未着手・正式枠/API/kind追加なし。動的名付けと個体参照の併存/他原frameや規則/他localeの追加要否/分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで新規採用/追加不要/永久対象外/全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+dsはmixed_reference_materials.create()/capture(buffer,result,receipt)、kind=mixed_reference_material。日本語一入力の原reference/word_reference各一節以上、完全/未理解双方。併存de明示18＋greeting_morning＋df四規則・既存三名付け形式・原retract_explanation/correction・実confirm_name由来reply・原unknown。個体候補/原target.adopted/不足と語義候補/訂正連鎖/競合/原applications有無を分離、必要平坦beforeState/result/原receive直後afterStateを独立再生。出所ID和集合を一度だけ供給し、referenceSources/wordReferenceSourcesのoriginIdsとreferenceOriginUsagesへ利用先別保持。同名二個体/同個体複数evidence/同意味複数説明を一件にしない。実前件/実reply/回復説明はある場合だけ各前件を別照合。
+全節順/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。同input非増加非上書き・コピー独立・非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧ar/4d2/4d5/単独語義教示訂正/dq/dr所有と不足receipt拒否を維持する。原unknown/namingを参照へ変換しない。
+相談119へ84成立/35非成立・専用367原289成立・別補足34全成立を固有数/網羅数/次未解決集合へ変換せず合算しない。原result/出所の補修生成なし。旧非選定集合を自動繰越ししない。旧47入力APIは既存adapter限定照合、固定50全正規API完全供給/全意味読了ではない。
+残2〜3工程・暫定中心2、ds確認前3〜4中心3から下限/上限/中心−1、ds実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。新たな最終分類ではなく追加要否/分割未決定・中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回は確認/文書のみ、ゲーム全回帰/監査/renderer再実行なし。原資料/ログはds-implementation-aa65d9a、今回開始十文書baseline/29source hash/文書検査/発行はds-acceptance-d52f80e。過去ds全Node3448/28JS構文/七言語14957/別renderer1234を今回結果へ昇格しない。元fullの制限内GPU失敗・reviewRequired/reading.not_recordedとincomplete/exit1を非置換保持。全旧所有節/fixture/推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声/本人日記生成保存再開配布未完。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下はds実装後OK受領前の継続文として保持する。
+
 ## 同じdsの現行継続文（採用範囲実装・Codex検証完了）
 
 ```text
