@@ -1,5 +1,33 @@
 # 次チャットの開始文
 
+## 現行継続文（dt採用範囲実装・Codex検証完了）
+
+```text
+開始721ec37、ユーザー「はい、どちらもOKです」でdt対象・保持方針を個別採用。experimental_word_diary_dynamic_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=dynamic_individual_reference_materialの三引数独立journalとして採用範囲実装・Codex検証完了。135枠134確認済み・正式子124・最新ao〜ds人間OK・全133登録（固定50＋追加83）、dt実装後OK未受領・同じdt継続。確認済みdsを再採用確認せず、次記号／次チャットを先取りしない。最新検証／発行／未検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→最初の現行text→routing/word現行通知→OWNERS必要行/所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-dynamic-individual-reference-materials-dt-verified。巨大文書全体／全過去開始文を出力せず、原文保管／依存確認／必須検証を維持、未知依存で狭めず、hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。
+原catalogRuleなしnamingと原reference各一節以上の日本語一入力、完全／未理解双方・word_reference併存を保持。併存de明示18＋greeting_morning＋df四規則・既存三名付け形式・原correction/reply/unknownを原値保持し、新理解規則を追加しない。完全／不完全とも実活動ask_nameのpending/lastOutput/source/response・到着event/時刻/移動履歴を照合しコピー上onArrival再生。不完全動的の原target採用なしを保持しpending対象の原候補を照合、完全節だけ一意名付け採用を照合する。実入力前件はある場合だけ平坦receipt独立再生。
+全節/index/span/当時理解不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピーし一input一資料/per_clause。個体全候補/原target.adopted有無と語義候補/訂正連鎖/競合/原applications有無を分離、必要平坦originsのID和集合を一度だけ供給し利用先別照合。同名二個体/複数evidence/同意味複数説明を畳まず、不足/改変/重複/余分拒否・同input非増加非上書き・コピー独立・非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧4d2/4d5/ar/dq/dr/ds/dm/dn等の所有と不足receipt拒否を維持する。
+残3〜4工程・暫定中心3・相談時差分0。dt実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、他規則／locale追加要否／分割・全入口最終分類未決定、4e／receipt保存形式／ゲーム本接続未採用未実装。相談v4の187/88や旧非選定集合を固有数／網羅数／次未解決集合へ変換しない。
+今回原資料／工具／開始十文書baseline／原ログはdt-implementation-721ec37。ゲームcore/world/catalog/locale/保存形式/本呼出非変更。全旧所有節/fixture/推移的依存意味再読・固定50全正規API・全入口最終分類・本人日記生成保存再開配布／実UI音声は未検証を維持。過去成功や元fullのincompleteを今回結果へ昇格しない。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+全Node3478・29JS構文・七言語14957・別隔離renderer481通過、専用29＋監査92＝121。旧3448→3478の＋30・原TAP名重複度照合で旧test削除0。199原94成立／24種2256原資料改変拒否／出所630・活動前件940改変拒否、旧82担当7708／旧47入力API4418非重複。相談原187へ88成立／99非成立・原hash不変、別補足34へ16成立／18非成立・turn.answer有り0、資料数を固有数／網羅数へ変換せず合算しない。fixture dump別生成、固定50全正規APIの完全供給ではない。
+元full-30minは33検査中32通過、1不通過・未実行検査なし、status=incomplete。reviewRequired/reading.not_recordedを非置換保持し、別renderer成功や手動smoke範囲確認で元run／全依存意味読了へ昇格しない。 別権限付きrenderer成功、全回帰開始29JS／静的38依存／保護163source不変、手動smoke範囲確認は原runや意味読了の代用にしない。
+```
+
+以下の実装検証中は途中状態として保持する。
+
+## 現行継続文（dt対象・保持方針採用、実装検証中）
+
+```text
+開始721ec37、ユーザー「はい、どちらもOKです」でdt対象・保持方針を個別採用。experimental_word_diary_dynamic_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=dynamic_individual_reference_materialの三引数独立journalとして採用範囲実装検証中。135枠134確認済み・正式子124・最新ao〜ds人間OK・全133登録（固定50＋追加83）、dt実装後OK未受領・同じdt継続。確認済みdsを再採用確認せず、次記号／次チャットを先取りしない。最新検証／発行／未検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→最初の現行text→routing/word現行通知→OWNERS必要行/所有節/依存→VALIDATION。所有正本specs/core/experimental_word_learning.md#diary-dynamic-individual-reference-materials-dt。巨大文書全体／全過去開始文を出力せず、原文保管／依存確認／必須検証を維持、未知依存で狭めず、hash／構造／APIロードと意味読了／人間OK、実読取と未読未検証を分ける。
+原catalogRuleなしnamingと原reference各一節以上の日本語一入力、完全／未理解双方・word_reference併存を保持。併存de明示18＋greeting_morning＋df四規則・既存三名付け形式・原correction/reply/unknownを原値保持し、新理解規則を追加しない。完全／不完全とも実活動ask_nameのpending/lastOutput/source/response・到着event/時刻/移動履歴を照合しコピー上onArrival再生。不完全動的の原target採用なしを保持しpending対象の原候補を照合、完全節だけ一意名付け採用を照合する。実入力前件はある場合だけ平坦receipt独立再生。
+全節/index/span/当時理解不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピーし一input一資料/per_clause。個体全候補/原target.adopted有無と語義候補/訂正連鎖/競合/原applications有無を分離、必要平坦originsのID和集合を一度だけ供給し利用先別照合。同名二個体/複数evidence/同意味複数説明を畳まず、不足/改変/重複/余分拒否・同input非増加非上書き・コピー独立・非遡及。新理解/命名/語義採用/訂正成功/旧知識無効化/理解自覚/全節回答/本人経験/感情/受諾予約実行を補わず、旧4d2/4d5/ar/dq/dr/ds/dm/dn等の所有と不足receipt拒否を維持する。
+残3〜4工程・暫定中心3・相談時差分0。dt実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、他規則／locale追加要否／分割・全入口最終分類未決定、4e／receipt保存形式／ゲーム本接続未採用未実装。相談v4の187/88や旧非選定集合を固有数／網羅数／次未解決集合へ変換しない。
+今回原資料／工具／開始十文書baseline／原ログはdt-implementation-721ec37。ゲームcore/world/catalog/locale/保存形式/本呼出非変更。全旧所有節/fixture/推移的依存意味再読・固定50全正規API・全入口最終分類・本人日記生成保存再開配布／実UI音声は未検証を維持。過去成功や元fullのincompleteを今回結果へ昇格しない。旧AI旧保存/九見本/星座/実ユーザー保存/対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の未採用は採用前の相談継続文として保持する。
+
 ## 現行継続文（dt対象・保持方針相談案・個別採用待ち）
 
 ```text

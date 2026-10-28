@@ -1,5 +1,31 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-dynamic-individual-reference-materials-dt-verified"></a>
+
+##### 4d12dt：動的名付けと個体参照の併存資料保持（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_dynamic_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=dynamic_individual_reference_material。下記[採用範囲](#diary-dynamic-individual-reference-materials-dt)を実装・検証した。135枠134確認済み・正式子124・全133登録（固定50＋追加83）・最新ao〜ds人間OK、dt実装後OK未受領・同じdt継続。残3〜4工程・暫定中心3・相談時差分0、全14保留・各担当三保留・全体未完。
+- 原動的名付けと個体参照の完全／未理解、語義参照併存を分離保持。必要平坦出所のID和集合と利用先別照合、完全／不完全両方の実活動出所・onArrival再生、原採用なし・実前件の分離を保持する。全節／原result・learning／実reply・turn.answer有無／入力前知識context／前後state/worldを一input一資料・per_clauseへ分離コピーし、非生成・非遡及・既存所有と不足receipt拒否を維持。新しい理解規則を追加していない。
+- 専用29＋監査92＝121、全Node3478・29JS構文・七言語14957・別隔離renderer481（199原＋282改変）通過。旧3448から＋30は専用29＋監査1、原TAP名を重複度込み比較して旧test削除0。199原94成立、24種2256原資料改変拒否、原出所630／実活動・前件940改変拒否、旧82担当7708／旧47入力API4418呼出非重複。fixture dumpは別決定的生成でありテストプロセス原dumpへ昇格しない。
+- 相談原v4の187へ実capture88成立／99非成立、原JSON hash不変・原結果／出所の補修なし。別補足34は生活八意味／実仕事由来七意味／実休息食事×発話二設定、原frameに応じ16成立／18非成立・turn.answer有り0、実六職の完了を正規explore等とworld.experiencesでassert。各集合と属性を固有数／網羅数／次未解決集合へ変換せず合算しない。旧非選定集合を自動繰越しせず、旧47は既存adapter限定照合で固定50全正規APIの完全供給ではない。
+- 元full-30minは33検査中32通過、1不通過・未実行検査なし、status=incomplete。reviewRequired/reading.not_recordedを非置換保持し、別renderer成功や手動smoke範囲確認で元run／全依存意味読了へ昇格しない。制限内renderer失敗は原ログに保持し、権限付き隔離renderer成功は別run。非表示blank server／専用一時profile、八global除去・local/session dt-sentinel不変・保存bridge未定義。全回帰開始29JS／静的38依存／保護163source hash不変（採用した監査・package登録2変更を別扱い）。
+- 新module/fixture/test/隔離smoke・監査/package登録済み、旧23横断testは担当数期待81→82だけ追従。core/world/catalog/locale/保存形式/ゲーム本呼出非変更、新ゲーム表示文なし。原資料／工具／開始十文書baseline／原ログ／文書検査／発行はdocs/.local-history/verification-runs/dt-implementation-721ec37。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記生成保存再開配布は未完。4e／receipt保存形式／ゲーム本接続未採用未実装。
+
+以下の実装検証中は途中状態として保持する。
+
+<a id="diary-dynamic-individual-reference-materials-dt"></a>
+
+##### 4d12dt：動的名付けと個体参照の併存資料保持（2026-10-29・採用範囲実装検証中）
+
+- ユーザー「はい、どちらもOKです」で下記相談案の対象・保持方針を個別採用。開始721ec37。experimental_word_diary_dynamic_individual_reference_materials.create()/capture(buffer,result,receipt)、kind=dynamic_individual_reference_materialの独立journalとして実装検証する。135枠134確認済み・正式子124・最新ao〜ds人間OK・全133登録（固定50＋追加83）、dt実装後OK未受領・同じdt継続。
+- 日本語一入力の原catalogRuleなしnamingと原referenceを各一節以上、当時完全／未理解双方・word_reference併存を保持。併存de明示18＋greeting_morning＋df四規則・既存三名付け形式・原retract_explanation/correction・実confirm_name由来reply・原unknown。完全名付け一節の旧4d5、実replyの旧4d2、ar/dq/dr/ds/dm/dn等の所有と不足receipt拒否を維持し、原unknown/namingを参照へ変換しない。
+- 完全／不完全とも実活動ask_nameのpending・話者／期限／対象とlastOutput/source/response・到着event／時刻／移動履歴を照合し、コピー上onArrivalで出力全文とpendingを再生する。不完全名付けの原target採用なしはなしのまま保持し、pending対象が原候補にあることを照合する。完全節だけ既存の一意対象／explanation一候補採用を照合する。活動の問いと実入力前件、移動先destinationと注目個体targetを分け、実前件ありだけ平坦receiptを独立再生する。
+- 個体全候補／原target.adopted有無／不足と、語義候補／訂正連鎖／競合名付け／原applications有無を分離。必要な平坦beforeState/result/原receive直後afterStateの出所ID和集合を一度だけ供給し原当時知識で独立再生、referenceSources/wordReferenceSourcesとreferenceOriginUsagesで利用先別照合する。同名二個体／同個体複数evidence／同意味複数説明を畳まない。
+- 全節順/index/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context・前後state/worldを分離コピー、一input一資料/per_clause。不足／改変／重複／余分出所拒否・同input非増加非上書き・コピー独立・非遡及。新理解／命名／語義採用／訂正成功／旧知識無効化／理解自覚／全節回答／本人経験／感情／受諾予約実行を補わない。他規則／locale追加要否／分割・全入口最終分類は未決定。
+- 残3〜4工程・暫定中心3・相談時差分0。dt実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、採用だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。ゲームcore/world/catalog/locale/保存形式/本呼出非変更。今回の検証／読取未検証／発行は現行handoff参照。
+
+以下の未採用は採用前の相談案として保持する。
+
 <a id="diary-dynamic-individual-reference-materials-dt-consultation"></a>
 
 ##### dt相談案：動的名付けと個体参照の併存資料保持（2026-10-29・構想段階・未採用未着手）

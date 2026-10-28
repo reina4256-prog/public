@@ -78,7 +78,7 @@ test('rewritten scope, learning, ordering, judgment and receipts reject atomical
 });
 test('existing owners do not acquire multi-clause requests', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(r => r.id !== '4d12da');
-    assert.equal(owners.length, 81);
+    assert.equal(owners.length, 82);
     for (const f of accepted) {
         const v = f.value, source = JSON.stringify(v), r = v.receipt, w = r.beforeWorld;
         for (const owner of owners) {
