@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（印なし実訂正x照合済み・次y）
+
+```text
+開始b0e53ef、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。一単位完了ごとの次チャット移動を継続し、今回は4d12xを照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-actual-correction-x。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。
+固定50中4d1〜11／4d12a〜xの35部品、残y〜amは15部品。x本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。原説明input/record/旧basisと当時naming、二教示の各当時理解scope/時刻/順序、今回入力前naming/correction根拠とcomplete corrects/retraction/updatedを分離。初期correctionまたは同原説明同scope同正規化formの経験根拠だけ、relationAcquired=false・初期非置換・別原説明非転移。教示のみ非失効と今回実取り下げを混同しない。原basis非書戻し・本人実発話身体経験自覚非補完。個体名実訂正も別入口。零経過の旧未解消は後続an補修済み、今回an全体再検証なし。
+専用17件全通過・498ケース561入力・終了0、開始11hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-x-review-b0e53ef。全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597／七言語成功と区別する。文書検査・発行はhandoff参照。
+次はexperimental_word_diary_feeling_words.js（4d12y）、tests/experimental_word_diary_feeling_words.test.js、scripts/experimental/diary_feeling_word_fixtures.jsと所有y行・必要依存から。y本体／test／fixtureは今回未読。残15部品後に入口全体の既存担当／当時非成立／具体不足／別領域保留の最終分類へ。dy原728や138 API宣言inventoryを全入口網羅としない。
+全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。新混在候補／dzを自動追加しない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠を履歴として保持する。
+```
+
 ## 最初に読む現行継続文（初期訂正既知側教示w照合済み・次x）
 
 ```text

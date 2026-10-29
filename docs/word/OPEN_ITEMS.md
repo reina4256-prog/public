@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-10-30最新：[印なし実訂正xの照合](../specs/core/experimental_word_learning.md#diary-final-review-actual-correction-x)。固定50中35まで・残y〜amの15部品と全入口分類は未完、次y。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用17件成功を全回帰／全体意味読了／本接続成功へ昇格しない。以下は過去状態。
+
 - 2026-10-30最新：[初期訂正既知側教示wの照合](../specs/core/experimental_word_learning.md#diary-final-review-known-correction-w)。固定50中34まで・残x〜amの16部品と全入口分類は未完、次x。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用17件成功を全回帰／全体意味読了／本接続成功へ昇格しない。以下は過去状態。
 
 - 2026-10-30最新：[訂正未理解側教示vの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-correction-v)を一単位として完了。原説明／当時naming根拠／二段階教示／今回pairingを分離し、教示のみで原説明を失効しない境界を照合。専用14件・385ケース594入力通過、新不一致未発見は今回読取範囲のみ。固定50中33まで・残w〜amの17部品、次w。dy確認済み・全138登録・全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

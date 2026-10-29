@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-10-30最新：[印なし実訂正xの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-actual-correction-x)完了。原説明と当時根拠／各教示／今回実取り下げを分離。専用17件・498ケース561入力通過、新不一致未発見は今回読取範囲のみ。固定50中35まで・残15・次y。全入口分類／4d全体未完、全回帰／renderer今回未実行。発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[初期訂正既知側教示wの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-correction-w)を一単位として完了。初期correction根拠と経験naming／原説明／今回pairingを分離、両段階relationAcquired=false・原説明非失効を照合。専用17件・451ケース674入力通過、新不一致未発見は今回読取範囲のみ。固定50中34まで・残16・次x。全入口分類／4d全体未完、全回帰／renderer今回未実行。発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[訂正未理解側教示vの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-correction-v)を一単位として完了。原説明／当時naming根拠／二段階教示／今回pairingを分離し、教示のみで原説明を失効しない境界を照合。専用14件・385ケース594入力通過、新不一致未発見は今回読取範囲のみ。固定50中33まで・残w〜amの17部品、次w。dy確認済み・全138登録・全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

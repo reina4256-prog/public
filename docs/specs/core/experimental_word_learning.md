@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-actual-correction-x"></a>
+
+##### 4d最終意味照合：印なし実訂正x（2026-10-30・今回単位の照合完了）
+
+- 開始b0e53ef、ゲーム実装f93e951。ユーザー指定の一単位として4d12xを照合完了。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。新部品／混在候補／dz・理解規則・保存形式・本接続の追加なし。
+- x本体・専用test・fixture全文、OWNERSのx行、x所有条件／対応表・3c3e1／3c3e2、必要core／relation／world／life・共通fixture・candidate保持枝を直接照合。この読取範囲で新しい仕様不一致は未発見。七引数は入力前一時資料であり保存契約ではない。
+- 有効一意な通常word_explanationの原input／原record／旧basisと当時naming、実習得側の二教示各input/frame/scope/at/basis/namingBasisと当時complete、今回入力前のnaming／correction根拠・新意味basisと実訂正結果を分離照合コピー。namingは初期一件または同話者言語eat/rest二教示・原完了経験・当時partial・relationEvidenceを照合。原教示ID一意性と原説明→source→replacement→今回入力の順序を確認。
+- 初期correction一件または同原説明・同scope・同正規化formの実習得correction一件だけ。初期根拠は置換せず、経験根拠を別原説明へ転移しない。今回completeのcorrectsとlearning.retractionは旧原input ID、candidates一件／adopted tentative／updated一件／relationAcquired=falseを照合。教示だけでは旧説明を失効しないv/wと、印なし実訂正での取り下げを分離する。
+- 七言語八設定、逆方向、NFKC・大小文字・前後空白の既存正規化、初期教示なし別原説明、取り下げ後反復拒否、原input欠損／競合／個体名／複合／再訂正の別入口を確認。実成立する個体名訂正もx候補へ補わない。後発意味根拠で原basisを置換せず、同input非増加非上書き・コピー独立、本人実発話／身体経験／自己確認／理解自覚・旧新意味の実証を補わない。旧零経過不一致は後続an補修済みの履歴、今回an全体再検証なし。
+- 専用17テスト全通過（Node並列2、終了0、fail/cancelled/skipped/todo各0）、fixture498ケース561入力、開始11ファイルhash不変。開始十文書baseline・原stdout/stderr・工具・読取記録はdocs/.local-history/verification-runs/4d-x-review-b0e53ef。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597／七言語成功と区別する。
+- 固定50中4d1〜11／4d12a〜xの35部品まで直接照合済み、残y〜amは15部品。次チャットはexperimental_word_diary_feeling_words.js・専用test・scripts/experimental/diary_feeling_word_fixtures.jsと所有y行・必要依存から。y本体／test／fixtureは今回未読。全入口最終分類・全旧所有／推移的全枝読了は未完、138 API宣言やdy有限資料を全入口網羅としない。
+- 全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。具体不足なしに新混在候補／dzを自動追加しない。文書保持／新リンク検査・発行は現行handoff参照。
+
 <a id="diary-final-review-known-correction-w"></a>
 
 ##### 4d最終意味照合：初期訂正既知側の二段階教示w（2026-10-30・今回単位の照合完了）
