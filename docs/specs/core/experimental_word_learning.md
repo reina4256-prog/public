@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-entry-remainder-after-dw"></a>
+
+##### dw確認後：残入口の再開点（2026-10-29・dx未選定未採用）
+
+- ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で8d137b2のdw採用範囲へ実装後OKと継続／移動の裁量を受領。dwは実装・Codex検証・ユーザー実装後OK確認済み。138枠138確認済み・正式子127・最新ao〜dw人間OK・全136登録（固定50＋追加86）。次の採用相談前で次チャットへ移す。確認済みdwを再採用確認しない。
+- 次dxは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。個体語義参照／教示訂正／correction/replyとの報告併存・他原frame／規則／localeの追加要否／分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+- [dw所有正本](#diary-dynamic-naming-report-materials-dw-verified)の原catalogRuleなしnaming＋非対比報告、完全／未理解双方・完全名付け0節又は複数節・既存三形式／原unknown併存だけの採用範囲、実活動pending/lastOutput/source/response・到着根拠／onArrival再生と名付け候補／原採用／updated・報告の分離、receive/respondと実前件の別再生・コピー独立・非生成・非遡及を維持する。完全一節旧4d5と旧所有・不足receipt拒否を維持し、原unknownを修復しない。
+- 相談75へ21成立／54非成立、専用216原45成立を固有数／網羅数／次未解決集合／工程数へ変換せず合算しない。旧非選定を自動繰越ししない。旧47入力APIはbeforeReports/beforeReceipts空の既存adapter限定で、固定50全正規API完全供給／全意味読了ではない。
+- 残2〜3工程・暫定中心2、dw確認前3〜4中心3から下限／上限／中心−1、dw実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 今回確認／文書のみ。ゲームcode/catalog/locale/package/登録/保存形式非変更、receive/respond／86担当／旧47入力API・ゲーム全回帰／監査／renderer再実行なし。過去dw全Node3562／32JS構文／七言語14957／別renderer351と元fullのincomplete／GPU失敗／reviewRequired／reading.not_recordedを今回成功へ昇格しない。原資料／ログはdw-implementation-b8a6d48、今回開始十文書baseline／33source hash／文書検査／発行はdw-acceptance-8d137b2。既存18リンク不整合／du同文二重anchorは原文保持。実読取／未読未検証・発行は現行handoff参照。
+
+以下のdw実装後OK未受領は受領前状態として保持する。
+
 <a id="diary-dynamic-naming-report-materials-dw-verified"></a>
 
 ##### 4d12dw：動的名付けと非対比報告の併存資料（2026-10-29・採用範囲実装・Codex検証完了）
