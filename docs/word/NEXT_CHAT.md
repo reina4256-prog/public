@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（訂正未理解側教示v照合済み・次w）
+
+```text
+開始07cceaa、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。ユーザー指定の一単位完了ごとの次チャット移動を継続し、今回は4d12vを照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-correction-v。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。
+固定50中4d1〜11／4d12a〜vの33部品、残w〜amは17部品。v本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。原説明input/record/旧basis・当時naming根拠、source/replacement各教示の当時complete naming・入力順scope・今回pairingを分離。教示のみで旧説明を失効せず、後発根拠による過去basis/source非置換、本人実発話・身体経験・自覚非補完。初期namingからcorrectionのみ除くfixtureは実プリセットと別。零経過の旧未解消は後続an補修済み、今回an全体再検証なし。
+専用14件全通過・385ケース594入力・終了0、開始9hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-v-review-07cceaa。全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597／七言語成功と区別する。文書検査・発行はhandoff参照。
+次はexperimental_word_diary_known_correction_examples.js（4d12w）、tests/experimental_word_diary_known_correction_examples.test.js、scripts/experimental/diary_known_correction_fixtures.jsと所有w行・必要依存から。w本体／test／fixtureは今回未読。残17部品後に入口全体の既存担当／当時非成立／具体不足／別領域保留の最終分類へ。dy原728や138 API宣言inventoryを全入口網羅としない。
+全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。新混在候補／dzを自動追加しない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠を履歴として保持する。
+```
+
 ## 最初に読む現行継続文（本人実理由回答u照合済み・次v）
 
 ```text

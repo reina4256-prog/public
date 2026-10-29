@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-correction-v"></a>
+
+##### 4d最終意味照合：訂正未理解側の二段階教示v（2026-10-30・今回単位の照合完了）
+
+- 開始07cceaa、ゲーム実装f93e951。ユーザー指定の一単位として4d12vを照合完了。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。新部品／混在候補／dz・理解規則・保存形式・本接続の追加なし。
+- v本体・専用test・fixture全文、OWNERSのv行、v所有条件・3c3e1／3c3e2と必要core／relation／world／life・共通fixture・candidate保持枝を直接照合。この読取範囲で新しい仕様不一致は未発見。七引数は入力前一時資料であり保存契約ではない。
+- 原説明は通常word_explanationの原input／record／旧basis・当時naming理解と一致する一意な有効eat/rest説明。namingは初期根拠または同話者言語eat/rest二教示・原完了経験・当時partial・relationEvidenceを照合し、生活意味根拠と分離。初期namingからcorrectionのみ除く七言語fixtureは検証内境界であり実プリセットと区別する。
+- sourceは原文完全一致・未登録・updated空／relationAcquired=false、replacementは入力前一意未完lessonとの一致・同scope・入力順／受信時刻／world時刻順・異なる既知意味・今回evidence一件／relationAcquired=trueを検査。両教示のcomplete／relations=[naming]は当時correction既知を意味しない。原説明原record、各教示input/frame/basis/namingBasis、今回pairingを分離保持する。
+- 後発意味根拠で原basisを置換せず、置換教示の習得で過去sourceを更新しない。教示のみで原説明を取り下げず、新説明や本人実発話・身体経験・理解自覚を生成しない。実訂正・既知側は別入口。場面対象変更中の拒否と元scopeへの復帰、競合／原input欠損／別話者言語／改変拒否、同input非増加非上書き・コピー独立を照合。v当時の零経過不一致記述は履歴であり、後続an補修済みを未解消へ戻さない。今回an全体再検証なし。
+- 専用14テスト全通過（Node並列2、終了0、fail/cancelled/skipped/todo各0）、既存fixture385ケース594入力、開始9ファイルhash不変。開始十文書baseline・原stdout/stderr・工具・読取記録はdocs/.local-history/verification-runs/4d-v-review-07cceaa。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597／七言語成功と区別する。
+- 固定50中4d1〜11／4d12a〜vの33部品まで直接照合済み、残w〜amは17部品。次チャットはexperimental_word_diary_known_correction_examples.js・専用test・scripts/experimental/diary_known_correction_fixtures.jsと所有w行・必要依存から。w本体／test／fixtureは今回未読。全入口最終分類・全旧所有／推移的全枝読了は未完、138 API宣言やdy有限資料を全入口網羅としない。
+- 全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。具体不足なしに新混在候補／dzを自動追加しない。文書保持／新リンク検査・発行は現行handoff参照。
+
 <a id="diary-final-review-reason-answer-u"></a>
 
 ##### 4d最終意味照合：通常理由問いの本人実回答u（2026-10-30・今回単位の照合完了）
