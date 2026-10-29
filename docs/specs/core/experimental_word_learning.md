@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-incomplete-name-response-report-dy-consultation"></a>
+
+##### dy相談案：未成立の名付け取り下げ・確認返答と非対比報告（2026-10-29・構想段階・対象／保持方針とも未採用）
+
+- ユーザーが前相談の具体案への調査を了承し、「もう絞り出しても存在しない場合は、次の項目に移ってもらうことは可能」と指示。追加自体を目的に探索を続けず、既存担当で扱えるものは差し引く。不足がなければ4dの終了条件に沿う最終意味照合・回帰を進め、次項目へ接続する。今回は具体的な未保持例があるため下記一系統だけを提案する。採否後に新しい併存を自動で次の採用候補へ繰り越さない。未決定・未検証を完了／永久対象外へ変更する指示とは扱わない。
+- 開始70e350a・ゲーム実装e48d087。dx確認済み、139枠139確認済み・正式子128・最新ao〜dx人間OK・全137登録（固定50＋追加87）を維持。dyは対象／保持方針とも未採用、ゲーム実装未着手・正式枠/API/kind追加なし。語義教示・語義訂正そのものを新しく複数節認識させる提案ではない。
+- **対象案**：既存日本語の原correction（retract_explanation）又は原reply（既存yes/no）を一節以上、非対比feeling_report/external_event_reportを一節以上含む入力。全correction/reply節が当時complete=falseで、原corrects／実learning.retraction／実confirmedBy更新がないものに限る。報告は当時完全／不完全双方を保持する。併存はこれらの節と原unknownのみ。順序・反復は原値のまま、節数や不完全の種類だけで別担当に分割しない。原replyは当時の有効なconfirm_name前件がある場合のみで、前件なし等でunknownになった返答をreplyへ補修しない。
+- **保持方針案**：独立一時journal・一input一資料/per_clause。全節/index/span/原frame/understanding/unresolved、訂正とyes/no返答のindices・各節の不足、原pendingQuestion/replyTo・実直前turnの有無、原result/learning/transfer/expression・実reply/turn.answer有無、入力前knowledge/context/feelingLearning・前後state/worldを分離コピーする。報告のsubject/aspect/polarity/eventTime/reportSource/testimony有無を訂正・返答と分離する。copy上receive/respond全文と前後validContext/validSelectionsを照合し、実直前antecedentは平坦原資料として別再生する。replyの原名付けoriginを一意な原input IDで供給・別再生し、実pending/replyToと名付け根拠を照合する。訂正先が原結果にない場合、直前名付けを訂正成功のoriginとして生成しない。
+- 不足・改変・重複・余分な出所を拒否、同input非増加非上書き・返却／遅延コピー独立・後知識後活動非遡及を維持する。captureは理解／新教示／名付け採用／確認成功／取り下げ成功／旧根拠無効化／本人経験／感情／原因真偽／受諾予約実行を補わない。原処理による更新と保持処理の非生成を分け、unknownを修復しない。
+- **今回の根拠**：新728限定資料を実receive/respondで生成・コピー上全文再生・入力前validContext/validSelections確認し、既存87担当63,336呼出と旧47入力API34,216呼出を照合。552は既存担当成立、176は今回供給条件で非捕捉（correction＋報告160、reply＋報告16）。176全て該当節complete=false・clause_scope不足、24資料は報告節complete=trueを含む。直前名付けあり／なし・無関係入力介在・別話者・取り下げ後、八設定、二報告、両順序を含む有限資料で、固有数・網羅数・新部品成立数・残工程数ではない。旧47はbeforeReports/beforeReceipts空の従来adapterで、固定50全正規API完全供給ではない。
+- 単独120は既存as/di/dj、教示に見える128対照は全て既存du/dv/4d5で成立。語義教示の複数節例は原unknown、文中の句点で分割された語義訂正らしい例には原namingが現れるが、原word_explanation/word_correctionとして新認識させない。残480併存中304はdu、176だけが上記非捕捉。旧asの完全単独確認／取り下げ、diの不完全訂正、duのunknown＋報告、dvと4d5の名付け＋報告の所有・不足receipt拒否を維持し、資料不足を新理解規則の根拠にしない。
+- **境界と次**：完全な訂正／返答、語義教示／語義訂正、名付け／動的／参照／その他認識節との併存、他localeは今回案に含めない。追加不要／永久対象外の決定でもない。採否を受け、採用時は無理がなければ同じチャットで実装検証、その後は残入口の最終意味分類・回帰を優先し、新たな追加は具体的な不足根拠がある場合だけ個別相談する。4eは未採用未実装で、4d全体の完了を今回宣言しない。
+- 残3〜4工程・暫定中心3。dx確認後2〜3中心2から下限／上限／中心＋1、完了減算0（今回案の採否・採用時実装確認1／その他入口0〜1中心0／最終意味照合回帰2）。一系統への具体化分だけ計上し、176例や状態別の細分化を工程へ変換しない。中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完を維持する。
+- 原資料／工具／開始十文書baseline／source hash／照合結果はdocs/.local-history/verification-runs/dy-investigation-70e350a。初回PowerShell node -eは引用符受渡しで実行前構文失敗、ファイル化した別probe成功と分ける。調査と文書のみ・ゲームcode/catalog/locale/package/登録/保存形式非変更。ゲーム全回帰／renderer／実UI音声・本人日記保存再開配布・試遊ログ通し未実行。実読取／未読未検証と監査・文書検査・発行は現行handoff参照。
+
+以下のdy未選定は相談前状態として保持する。
+
 <a id="diary-entry-remainder-after-dx"></a>
 
 ##### dx確認後：残入口の再開点（2026-10-29・dy未選定未採用）

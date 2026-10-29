@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-29 dy相談：[未成立の取り下げ・確認返答と非対比報告の対象／保持方針案](../specs/core/experimental_word_learning.md#diary-incomplete-name-response-report-dy-consultation)を具体化。両方未採用・ゲーム実装未着手・正式枠/API/kind追加なし、dx確認済み・139枠139確認済み・正式子128・全137登録を維持。728限定資料中552既存担当成立／176今回供給で非捕捉、網羅数ではない。残3〜4工程・暫定中心3（直前比＋1・完了減算0）。ユーザーの不足がなければ次へ進む指示に沿い、追加目的の探索を避け、採否後は最終意味照合／回帰を優先する。全14保留・各担当三保留・全体未完。調査／文書のみ、検証・実読取未検証・発行は現行handoff参照。以下のdy未選定は相談前状態。
+
 - 2026-10-29 dx確認・次チャット保存点：ユーザーがe48d087のdx採用範囲へ実装後OKと継続／移動の裁量を明示。dxは実装・Codex検証・ユーザー実装後OK確認済み。139枠139確認済み・正式子128・最新ao〜dx人間OK・全137登録（固定50＋追加87）。[次dy再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dx)へ続ける。dyは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dx確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／検証／実読取未検証／発行は現行handoff参照。以下のdx未受領は受領前状態。
 
 - 2026-10-29 dx最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-reference-report-materials-dx-verified)の実装・Codex検証完了。新方式全Node3581／33JS構文＋修正smoke再構文／七言語チェック／別隔離renderer708通過、専用18＋監査96。139枠138確認済み・正式子128・全137登録・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・全体未完。元fullのstatus／GPU失敗／reviewRequired／reading.not_recordedと途中smoke修正のhash記録を別成功で置換しない。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。

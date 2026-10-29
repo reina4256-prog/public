@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 現行継続文（dy対象・保持方針の相談案、両方未採用）
+
+```text
+ゲーム実装e48d087・開始70e350a、文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。dx確認済み・139枠139確認済み・正式子128・最新ao〜dx人間OK・全137登録を維持。dy相談正本specs/core/experimental_word_learning.md#diary-incomplete-name-response-report-dy-consultation。対象／保持方針とも未採用、ゲーム実装未着手・正式枠/API/kind追加なし。
+ユーザーは具体案調査を了承し、不足がなければ次の項目へ進んでよいと指示。追加自体を目的に探索せず既存担当を差し引く。今回は未成立のcorrection/reply＋非対比報告の一系統だけを提案。採否後は最終意味分類／回帰を優先、具体的不足なしに次の混在候補を自動で追加しない。未決定を永久対象外／完了へ変えない。
+日本語原correction/retract_explanation又は原reply/yes-no一節以上＋非対比feeling_report/external_event_report一節以上、全訂正返答節complete=false・実取り下げ確認更新なし、報告完全／不完全双方、併存はこれらとunknownだけ。原unknown非補修。全節・当時不足・原pending/replyTo・報告出所・全原result/learning/transfer/expression・実reply/answer有無・前後state/worldを別保持する案。現在receive/respondと平坦実antecedentを別再生、replyは原名付けoriginと当時pending根拠を照合。訂正先が原結果にないとき成功originを補わない。同input非増加非上書き・コピー独立・非生成・非遡及を維持。
+728限定資料・87担当63336呼出／旧47入力API34216呼出、552既存担当成立／176今回非捕捉（訂正160・返答16、全て該当節clause_scope不足）。単独120と教示らしい128は既存担当で全成立。旧47はbeforeReports/beforeReceipts空adapter限定、固定50全正規API完全供給／網羅数ではない。全旧所有／推移的依存意味読了・全入口最終分類未完。
+残3〜4工程・暫定中心3、直前2〜3中心2から＋1・完了減算0（今回案1／その他0〜1中心0／最終照合回帰2）。全14保留・各担当三保留・全体未完、4e／保存形式／本接続未採用未実装。読取は現行handoff→本最初text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。過去全開始文再読不要、原文／必要依存／必須検証を保持、実読取と未読未検証・hashと意味読了を区別。
+原資料／ログdy-investigation-70e350a、局所調査と文書のみ。今回監査／文書検査結果はhandoff参照。ゲーム全回帰／renderer／実UI音声／本人日記保存再開配布／試遊ログ通し未実行、過去成功を今回結果へ昇格しない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非commit。採用後は長さに無理がなければ同じチャットで実装検証。
+```
+
+以下のdy未選定は相談前の開始文として保持する。
+
 ## 次チャットへ貼る現行開始文（dx確認済み・次dy未選定未採用）
 
 ```text
