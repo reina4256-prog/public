@@ -1,5 +1,32 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-incomplete-name-response-report-materials-dy-verified"></a>
+
+##### 4d12dy：未成立の取り下げ・確認返答と非対比報告（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_incomplete_name_response_report_materials.create()/capture(buffer,result,receipt)、kind=incomplete_name_response_report_material。[採用範囲](#diary-incomplete-name-response-report-materials-dy)の実装・Codex検証完了。140枠139確認済み・正式子129・全138登録（固定50＋追加88）・最新ao〜dx人間OK、dy実装後OK未受領・同じdy継続。残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・全体未完。
+- 日本語原correction/retract_explanation又は原reply/既存yes-no一節以上＋非対比feeling_report/external_event_report一節以上、全訂正返答節complete=false・原corrects／実retraction／confirmedBy更新なし、報告完全／不完全双方、併存はこれらと原unknownだけ。原partialもそのまま保持し、unknownを補修せず新文法／理解規則を追加しない。旧as/di/du/dv/4d5等の所有と不足receipt拒否を維持する。
+- 一input一資料/per_clause、全節順/index/span/原不足・responseSources/reportSources・原pending/replyTo・実前件・報告出所・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。現在receive/respond全文と前後validContext/validSelections、平坦実antecedentを別再生。replyは原名付けorigin・一意更新／有効evidence／recordと当時pendingを照合し、原訂正先なしの場合に成功originを補わない。不足改変重複余分出所拒否・同input非増加非上書き・返却／遅延コピー独立・後知識後活動非遡及を維持し、理解／新教示／確認取り下げ成功／旧根拠無効化／本人経験感情／原因真偽／受諾予約実行を生成しない。
+- 専用15＋監査97、新方式全Node3597・34JS構文・七言語チェック・別権限付き隔離renderer1323（756原＋567改変）通過。旧3581へ専用15＋監査1の計16追加。756原189対象、25種4725原改変／実前件785／reply原出所140改変拒否、整合した現在入力再生後の原個体evidence改変も拒否。旧87担当16443／旧47入力API8883非重複。旧47はbeforeReports/beforeReceipts空の従来adapter限定で、固定50全正規API完全供給ではない。
+- 相談原728へ実capture176成立／552非成立、原JSON SHA256=24c11c5512317ad268e124d23a36f824ea32b67173b2bee2af61f947a2526944不変。別fixture dumpをテストプロセス原dumpへ昇格せず、各資料数を固有数／網羅数／次未解決集合／工程数へ変換・合算しない。新混在を自動追加せず、具体不足がなければ最終意味照合／回帰へ進む方針を維持する。
+- 元full-30minのstatus／各検査結果／reviewRequired／reading.not_recordedは原summaryとhandoff参照。制限内rendererのGPU unusable／2147483651と権限付き別成功を分け、元runを成功へ置換しない。全回帰開始後の34JS非変更。初回専用の原partial拒否guardを修正、無変化のorigin改変と空配列に対するテスト例外を修正し、初回module/test・test.v2/v3・原失敗ログを保持。別targeted-v4で全15通過。
+- 新module/fixture/test/非表示smoke・監査/package登録。旧28横断testは担当数86→87のみ、監査87→88と一検査追加、旧test名／全npmコマンド保持。ゲームcore/world/catalog/locale/保存形式／本呼出非変更、新ゲーム表示文なし。rendererは非表示blank server／専用一時profile・八global除去・local/session dy-sentinel不変・保存bridge未定義、実ユーザー保存非操作。4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 原資料／開始626ファイルbaseline／工具／全ログはdocs/.local-history/verification-runs/dy-implementation-cc9ba9c。全旧所有／fixture／推移的依存意味再読、固定50全正規API完全供給、全入口最終分類、実UI音声／本人日記保存再開配布／試遊ログ通し未完。最終文書検査／実読取未検証／発行は現行handoff参照。
+
+以下の実装検証中は途中状態として保持する。
+
+<a id="diary-incomplete-name-response-report-materials-dy"></a>
+
+##### 4d12dy：未成立の取り下げ・確認返答と非対比報告（2026-10-29・対象／保持方針採用、実装検証中）
+
+- ユーザー「はい、どちらも採用でOKです」で[相談案](#diary-incomplete-name-response-report-dy-consultation)の対象・保持方針を両方採用。開始cc9ba9c、experimental_word_diary_incomplete_name_response_report_materials.create()/capture(buffer,result,receipt)、kind=incomplete_name_response_report_materialの独立一時journalとして実装検証する。140枠139確認済み・正式子129・全138登録（固定50＋追加88）・最新ao〜dx人間OK、dy実装後OK未受領・同じdy継続。
+- 日本語原correction/retract_explanation又は原reply/既存yes-no一節以上＋非対比feeling_report/external_event_report一節以上。全訂正返答節complete=false・原corrects／実retraction／実confirmedBy更新なし、報告完全／不完全双方、併存はこれらと原unknownだけ。単独／既存as/di/du/dv/4d5等の所有と不足receipt拒否を維持し、unknown非補修・新文法／理解習得規則なし。
+- 一input一資料/per_clause、全節順/index/span/原理解不足、訂正／返答／報告indices・原pending/replyTo／実前件・報告subject/aspect/polarity/eventTime/reportSource/testimony有無、全原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピーする。現在receive/respond全文と前後validContext/validSelections、実直前antecedentの平坦原資料を別再生。replyは原名付けorigin・一意更新／有効evidence／record・当時pending/replyToを別照合し、訂正先が原結果にない場合は成功originを作らない。
+- 不足改変重複余分出所拒否・同input非増加非上書き・返却／遅延コピー独立・後知識後活動非遡及。新理解／新教示／確認成功／取り下げ成功／旧根拠無効化／本人経験／感情／原因真偽／受諾予約実行を補わない。完全訂正／返答・語義教示／訂正・他認識／動的／参照／他localeへ自動拡張しない。
+- 残3〜4工程・暫定中心3・採用差分0（dy実装後確認待ちを含む1／その他入口0〜1中心0／最終意味照合回帰2）、全14保留・各担当三保留・全体未完。dy採否後は最終意味分類・回帰を優先し、具体不足なしに新混在を自動追加しない。4e／保存形式／ゲーム本接続は未採用未実装。原資料／baseline／ログはdocs/.local-history/verification-runs/dy-implementation-cc9ba9c、検証／実読取未検証／発行は現行handoff参照。
+
+以下のdy未採用は採用前状態として保持する。
+
 <a id="diary-incomplete-name-response-report-dy-consultation"></a>
 
 ##### dy相談案：未成立の名付け取り下げ・確認返答と非対比報告（2026-10-29・構想段階・対象／保持方針とも未採用）

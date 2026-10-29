@@ -169,7 +169,7 @@ test('reference report journal rejects malformed cyclic non-JSON and unsafe iden
 
 test('86 prior supplemental and 47 older input contracts retain reference report boundaries', () => {
     const audit = require('../scripts/experimental/diary_audit');
-    const owners = audit.supplementalInventory().filter(o => o.id !== '4d12dx'); assert.equal(owners.length, 86);
+    const owners = audit.supplementalInventory().filter(o => o.id !== '4d12dx'); assert.equal(owners.length, 87);
     const legacy = audit.inventory().filter(o => !['4d1', '4d3', '4d4'].includes(o.id)).map(o => {
         const old = require('../' + o.file), params = /function capture\(([^)]*)\)/.exec(old.capture.toString())[1].split(',').map(p => p.trim());
         assert.equal(params.length, o.arity); return { ...o, old, params };

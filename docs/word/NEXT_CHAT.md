@@ -1,5 +1,30 @@
 # 次チャットの開始文
 
+## 現行継続文（dy採用範囲実装・Codex検証完了）
+
+```text
+開始cc9ba9c・ゲーム実装／文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザー「はい、どちらも採用でOKです」でdy対象・保持方針を採用し実装・Codex検証完了。正本specs/core/experimental_word_learning.md#diary-incomplete-name-response-report-materials-dy-verified。140枠139確認済み・正式子129・全138登録（固定50＋追加88）・最新ao〜dx人間OK、dy実装後OK未受領・同じdy継続。
+日本語原correction/retract_explanation又はreply/既存yes-no一節以上＋非対比feeling_report/external_event_report一節以上、全訂正返答節complete=false・原corrects／実retraction／confirmedBy更新なし、報告完全／不完全双方、併存これらとunknownだけ。原partialも原値保持、旧所有／不足receipt拒否・unknown非補修を維持。原pending/replyToと原名付けorigin／平坦実前件を独立再生し、訂正先が原結果にないとき成功originを作らない。
+incomplete_name_response_report_materials.create()/capture(buffer,result,receipt)、kind=incomplete_name_response_report_material。一input一資料/per_clause、全節不足／全原result/learning/transfer/expression・実reply/answer有無・入力前資料／前後state/worldを分離コピー。同input非増加非上書き・コピー独立・非生成・非遡及を維持。新教示・理解・確認／取り下げ成功・旧根拠無効化・本人経験／感情／原因真偽・受諾予約実行を補わない。
+新方式全Node3597／34JS構文／七言語チェック／別隔離renderer1323、専用15＋監査97通過。原fixture756中189対象、原改変4725／実前件785／原出所140・整合再生後evidence改変拒否、旧87担当16443／旧47入力API8883非重複。相談原728へ176成立／552非成立・原hash不変。旧47はbeforeReports/beforeReceipts空adapter限定、固定50全正規API完全供給／網羅数ではない。
+残3〜4工程・暫定中心3・採用差分0（dy実装後確認1／その他0〜1中心0／最終意味照合回帰2）。全14保留・各担当三保留・全体未完。次はdy自由フィードバック必要修正と実装後確認、確認後は具体不足なしに新混在を自動追加せず最終意味分類／回帰を優先。4e／保存形式／本接続未採用未実装。読取handoff→本最初text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。実読取／未読未検証・hash／意味読了を区別する。
+原資料／baseline／全ログdy-implementation-cc9ba9c。元fullのstatus／GPU失敗／reviewRequired／reading.not_recordedを権限付き別renderer成功で置換しない。初回partial拒否guard・改変テストの無変化／空配列例外と修正前source／原ログを保持。全旧所有／推移的依存意味再読・全入口最終分類／実UI音声／本人日記保存再開配布／試遊ログ通し未完、ゲーム本接続なし。既存18リンク不整合／du同文二重anchor保持。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非commit。
+```
+
+以下の実装検証中は途中状態の継続文として保持する。
+
+## 現行継続文（dy対象・保持方針採用、実装検証中）
+
+```text
+開始cc9ba9c。ユーザー「はい、どちらも採用でOKです」でdy対象・保持方針を両方採用。正本specs/core/experimental_word_learning.md#diary-incomplete-name-response-report-materials-dy。incomplete_name_response_report_materials.create()/capture(buffer,result,receipt)、kind=incomplete_name_response_report_materialを実装検証中。140枠139確認済み・正式子129・全138登録（固定50＋追加88）・最新ao〜dx人間OK、dy実装後OK未受領・同じdy継続。
+日本語原correction/retract_explanation又は原reply/yes-no一節以上＋非対比feeling_report/external_event_report一節以上、全訂正返答節complete=false・原corrects／実retraction／confirmedBy更新なし、報告完全／不完全双方。併存これらと原unknownだけ。原pending/replyTo・実直前antecedent／reply原名付けorigin・一意根拠を別再生し、訂正先が原結果にない時は成功originを生成しない。原partialも不完全理解としてそのまま保持し、frame.kindと同名のunderstandingへ補修しない。
+一input一資料/per_clause、全節・原不足／全原result/learning/transfer/expression・実reply/answer有無・入力前資料／前後state/worldを分離コピー。現在receive/respond・前後validContext/validSelections・平坦実前件と原名付け根拠を照合し、不足改変重複余分拒否・同input非増加非上書き・コピー独立・非生成・非遡及を維持。旧as/di/du/dv/4d5等の所有と不足receipt拒否を維持し、unknown非補修・新理解規則なし。
+残3〜4工程・暫定中心3・採用差分0。dy実装確認1／その他入口0〜1中心0／最終意味照合回帰2、全14保留・各担当三保留・全体未完。具体不足なしに新混在を自動追加せず、最終意味分類／回帰を優先する。4e／保存形式／本接続未採用未実装。読取はhandoff→本最初text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。実読取／未読未検証・hash／意味読了を区別する。
+開始626ファイルbaseline・原資料／工具／検証ログdy-implementation-cc9ba9c。初回専用に原partialを誤って拒否するguardと無変化の改変テストがあり、初回module/testと失敗ログを保管し別修正検証する。現在の検証・未検証・発行はhandoff参照。旧47はbeforeReports/beforeReceipts空adapter限定で固定50全正規API完全供給ではない。全旧所有／推移的依存意味再読・全入口最終分類／実UI音声／本人日記保存再開配布／試遊ログ通し未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非commit。
+```
+
+以下のdy未採用は採用前の継続文として保持する。
+
 ## 現行継続文（dy対象・保持方針の相談案、両方未採用）
 
 ```text
