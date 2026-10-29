@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-30最新：[wの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-correction-w)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。初期correctionBasisと経験naming／原説明／二段階教示を分離、両段階relationAcquired=false・初期知識非置換・完成教示の既存拒否を維持。専用17通過・担当追加なし、今回読取範囲で新不一致未発見。固定50中34まで・残16・次x、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[訂正未理解側教示vの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-correction-v)を一単位として完了。原説明／当時naming根拠／二段階教示／今回pairingを分離し、教示のみで原説明を失効しない境界を照合。専用14件・385ケース594入力通過、新不一致未発見は今回読取範囲のみ。固定50中33まで・残w〜amの17部品、次w。dy確認済み・全138登録・全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[uの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-reason-answer-u)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。実selected_reasonの引用原選択／reviewedBy、教示と通常問い、当時知識／各choice初回根拠を分離。専用18通過、担当追加なし。固定50中32まで・残18・次v、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。

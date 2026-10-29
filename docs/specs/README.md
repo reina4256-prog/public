@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-30最新：[初期訂正既知側教示wの最終意味照合](core/experimental_word_learning.md#diary-final-review-known-correction-w)を一単位として完了。初期correction根拠／当時naming／原説明／今回教示を分離し、両段階relationAcquired=false・原説明非失効を照合。専用17件・451ケース674入力通過、新不一致未発見は今回読取範囲のみ。固定50中34まで・残x〜amの16部品、次x。dy確認済み・全138登録・全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[訂正未理解側教示vの最終意味照合](core/experimental_word_learning.md#diary-final-review-correction-v)を一単位として完了。原説明／当時naming根拠／二段階教示／今回pairingを分離し、教示のみで原説明を失効しない境界を照合。専用14件・385ケース594入力通過、新不一致未発見は今回読取範囲のみ。固定50中33まで・残w〜amの17部品、次w。dy確認済み・全138登録・全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[本人実理由回答uの最終意味照合](core/experimental_word_learning.md#diary-final-review-reason-answer-u)を一単位として完了。固定50中32まで・残v〜amの18部品、次v。専用18件通過・fixture796ケース912入力、新不一致未発見は今回読取範囲のみ。零経過中断はan補修済みの現行境界を維持。dy確認済み・全138登録／全14保留・4d全体未完、全回帰・renderer今回未実行。発行・実読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

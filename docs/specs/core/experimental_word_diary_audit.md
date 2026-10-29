@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-30最新：[初期訂正既知側教示wの直接意味照合](experimental_word_learning.md#diary-final-review-known-correction-w)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用17通過、固定50中34まで・残16・次x。新不一致未発見は今回読取範囲のみ。歴史snapshot／review hash／not_received非上書き、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。全回帰・監査test・renderer今回未実行、発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[本人実理由回答uの直接意味照合](experimental_word_learning.md#diary-final-review-reason-answer-u)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用18通過、固定50中32まで・残18・次v。新不一致未発見は今回読取範囲のみ。歴史snapshot／review hash／not_received非上書き、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。全回帰・監査test・renderer今回未実行、発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-30最新：[既知理由教示tの直接意味照合](experimental_word_learning.md#diary-final-review-known-reason-t)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用20件通過、固定50中31まで・次u・残19。今回読取範囲で新不一致未発見。歴史snapshot／review hash／not_receivedは上書きせず、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。今回全回帰・監査test・renderer未実行、検証・発行は現行handoff参照。以下は過去状態。
