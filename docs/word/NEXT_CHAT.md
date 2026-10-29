@@ -3,6 +3,7 @@
 ## 最初に読む現行継続文（本人実理由回答u照合済み・次v）
 
 ```text
+移動確認（2026-10-30）：ユーザー「OKです。次チャットへいきましょう。引継ぎ文書をおねがいします。」を受領。u照合結果の文書commit a55fd5dはorigin/mainへpush済み。今回は移動用文書のみ、ゲーム検証再実行なし。次チャットは以下の4d12vから再開し、uを再照合せず、未読18部品・全入口分類未完・4e未着手を維持する。
 開始18ca061、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。一単位完了ごとの次チャット移動に従い、今回は4d12uの最終意味照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-reason-answer-u。
 固定50の直接照合は4d1〜11／4d12a〜uの32部品、残v〜amの18部品。u本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新仕様不一致未発見。通常問いの当時completeと本人実selected_reason／experienceId／past／choiceSource／reviewedBy／原選択input.rawを照合し、教示右側・暫定answer_unknown・当時partial・各choice初回evidenceと分離。全動機自覚／共同休息を補完しない。u当時の零経過不一致は後続an補修・確認済み、現行二ケースはanswer_unknown／capture=false。未解消へ戻さず、今回an全体再検証済みともしない。
 専用18件全通過・終了0、fixture796ケース912入力・関連12hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-u-review-18ca061。全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597／七言語成功と区別する。文書検査／発行はhandoff参照。
