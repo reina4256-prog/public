@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-reason-q-s"></a>
+
+##### 4d最終意味照合：理由教示q〜s（2026-10-30・今回単位の照合完了）
+
+- ユーザーが「1つの単位が終わったら次のチャット」の継続とq〜amの照合を依頼。開始664c7fe、今回は理由教示のq／r／sを一単位として直接照合した。既存採用範囲の検査であり、新部品・分割枠・理解規則・保存形式・ゲーム呼出の追加はない。ゲーム実装f93e951、dyまで140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持する。
+- q：question未理解側。選択前のrest／お願い誘い根拠、実際の原選択、完了休息のstate／world資料と移動／休息履歴、今回question段階offerと当時partialを分離照合。同choiceの後の休息は別候補になっても初回学習根拠を増やさず、異なるrequest／invitationの原経験と原選択が揃った今回習得と当時の未理解を区別する。
+- r：question既知側。初期根拠または同scopeの原二教示・当時partial・両原経験／選択／履歴／relationEvidenceを照合し、今回completeと原未理解を分離。現在行動質問のscopeを理由質問へ転用せず、既知questionの再習得を作らずrelationAcquired=falseを維持する。
+- s：question既知・reason未理解側。question原根拠と今回reason段階offer／当時partialを分離。各choiceの初回reason資料と入力前evidenceの一致を要求し、欠落した初回を今回資料で作り直さない。今回reason習得後も当時partialを変更しない。foundation既定ではreasonも既知のためs対象外、reasonだけ除いた境界fixtureは独立検査用であり実プリセットと区別する。
+- 三部品本体・専用test・三fixture全文、所有対応表q／r／s行、core.reasonFrame／understandの関係scopeと当時理解、relation.validReasonLabel／offerReason／candidates／acquiredの理由枝／evidenceKey／learn、world.retainSelection／提案受入れ／tick完了とonArrival／arrivalReplyの対応枝、共通fixtureのsetup／start／hear／finish、candidate保持コピーを直接照合した。この読取範囲で新しい仕様不一致は未発見。六引数一時供給と保存形式は別であり、教示を本人実回答・全動機の自覚・相手との共同休息へ補完しない。
+- 専用三testをnode --test --test-concurrency=2で実行し52件全通過、fail／cancelled／skipped／todo各0・終了0。開始15 source/test/fixture等のhash不変。ログ／開始九文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-reason-review-664c7fe。前回全3597／七言語成功は過去結果であり今回再実行していない。renderer／UI音声・本人日記生成保存再開配布も今回未実行。文書検査と発行確定値は現行handoff参照。
+- 固定50中の直接照合は4d1〜11／4d12a〜sの30部品まで。次チャットは残20部品の先頭4d12t（known_reason_explanation_examples）から。まずquestion／reason既知根拠・各原二教示と初回出所・当時理解・pairingを照合し、uの本人実selected_reasonと区別して進める。t本体／fixture／testの直接読取は今回未実施。その後の残入口全体分類も未完。
+- 全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／本接続未採用未実装。残2〜3工程・暫定中心2は最終照合の部分進捗につき完了減算0、低確度・上限終了保証なし。今回の三部品照合完了を4d全体完了へ拡張せず、具体不足なしに新混在／dz候補を自動追加しない。
+
 <a id="diary-final-review-dy-corpus"></a>
 
 ##### 4d最終意味照合：dy原資料の担当再照合（2026-10-30・部分完了）

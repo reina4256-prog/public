@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-30最新：[理由教示q〜sの直接意味照合](experimental_word_learning.md#diary-final-review-reason-q-s)。三本体／専用test／fixtureと必要依存枝・所有条件を照合、専用52件通過、固定50中30まで・次t。歴史snapshot／review hash／not_receivedを上書きせず、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。今回全回帰・監査test・renderer未実行、検証・発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-30：[dy原資料の現在担当再照合](experimental_word_learning.md#diary-final-review-dy-corpus)を実施。原728件に全件担当成立、旧担当配列不変。ao当時の具体不足表を現在未対応一覧として再利用せず、ap〜dyの採用済み担当を差し引く。歴史表・監査の固定snapshot／手動review hash／not_receivedは上書きしない。138 API宣言inventoryと全入口意味読了を分け、全14保留・各担当三保留・全体未完を維持。検証・発行は現行handoff参照。
 
 - 2026-10-29 dy確認・次チャット保存点：ユーザーがf93e951のdy採用範囲へ実装後OKと継続／移動の裁量を明示。dyは実装・Codex検証・ユーザー実装後OK確認済み。140枠140確認済み・正式子129・最新ao〜dy人間OK・全138登録（固定50＋追加88）。[4d最終意味照合の再開点](experimental_word_learning.md#diary-final-review-after-dy)へ続ける。新混在候補／dz枠を自動追加せず、根拠付き分類・最終回帰を優先、不足がなければ終了条件確認と次項目への接続を整理する。残2〜3工程・暫定中心2、dy確認待ち1だけ差引き。全14保留・各担当三保留・全体未完、4e未採用未実装。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。過去成功を今回結果へ昇格しない。検証・実読取未検証・発行は現行handoff参照。以下のdy未受領は受領前状態。
