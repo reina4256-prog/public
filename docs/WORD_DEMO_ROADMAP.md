@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-29 dw相談：[動的名付けと非対比報告の対象・保持方針案](specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。dv確認済み・137枠137確認済み・正式子126・全135登録を維持。残3〜4工程・暫定中心3、直前2〜3中心2から下限／上限／中心＋1・完了減算0。dw相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。原資料／検証／実読取未検証／発行は現行handoff参照。以下のdw未選定は相談前状態。
+
 - 2026-10-29 dv確認・次チャット保存点：ユーザーが5d05fe6のdv採用範囲へ実装後OKと継続／移動の裁量を明示。dvは実装・Codex検証・ユーザー実装後OK確認済み。137枠137確認済み・正式子126・最新ao〜dv人間OK・全135登録（固定50＋追加85）。[次dw再開点](specs/core/experimental_word_learning.md#diary-entry-remainder-after-dv)へ続ける。dwは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dv確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／実読取未検証／発行は現行handoff参照。以下のdv未受領は受領前状態。
 
 - 2026-10-29 dv最終：[採用範囲](specs/core/experimental_word_learning.md#diary-explicit-naming-report-materials-dv-verified)の実装・Codex検証完了。全Node3532・31JS構文・七言語チェック・別隔離renderer754通過、専用25＋監査94＝119・旧test削除0。137枠136確認済み・正式子126・全135登録・最新ao〜du人間OK、dv実装後OK未受領・同じdv継続。残3〜4工程・暫定中心3・採用時差分0、全14保留・各担当三保留・全体未完。元fullのstatus／reviewRequired／reading.not_recordedを別成功で置換しない。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。

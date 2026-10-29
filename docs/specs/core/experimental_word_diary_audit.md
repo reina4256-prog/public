@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-29 dw相談：[動的名付けと非対比報告の対象・保持方針案](experimental_word_learning.md#diary-dynamic-naming-report-materials-dw-consultation)は両方未採用未着手・正式枠/API/kind追加なし。dv確認済み・137枠137確認済み・正式子126・全135登録を維持。新75資料へ85追加担当6375＋旧47入力API3525呼出、対象案21は今回供給条件で非捕捉。旧47はbeforeReports/beforeReceipts空の既存adapter限定で固定50全正規API完全供給ではない。件数を固有数／網羅数／次未解決集合へ変換しない。残3〜4工程・暫定中心3・全14保留・各担当三保留・全体未完。原資料／検証／実読取未検証／発行は現行handoff参照。以下のdw未選定は相談前状態。
+
 - 2026-10-29 dv確認・次チャット保存点：ユーザーが5d05fe6のdv採用範囲へ実装後OKと継続／移動の裁量を明示。dvは実装・Codex検証・ユーザー実装後OK確認済み。137枠137確認済み・正式子126・最新ao〜dv人間OK・全135登録（固定50＋追加85）。[次dw再開点](experimental_word_learning.md#diary-entry-remainder-after-dv)へ続ける。dwは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dv確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／実読取未検証／発行は現行handoff参照。以下のdv未受領は受領前状態。
 
 - 2026-10-29 dv最終：[採用範囲](experimental_word_learning.md#diary-explicit-naming-report-materials-dv-verified)の実装・Codex検証完了。全Node3532・31JS構文・七言語チェック・別隔離renderer754通過、専用25＋監査94＝119・旧test削除0。137枠136確認済み・正式子126・全135登録・最新ao〜du人間OK、dv実装後OK未受領・同じdv継続。残3〜4工程・暫定中心3・採用時差分0、全14保留・各担当三保留・全体未完。元fullのstatus／reviewRequired／reading.not_recordedを別成功で置換しない。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。

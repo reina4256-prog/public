@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 現行継続文（dw対象・保持方針相談案・個別採用待ち）
+
+```text
+開始3520395・ゲーム実装5d05fe6、dv実装後OK確認済み。dwは動的名付けと非対比報告の対象・保持方針を相談案へ具体化、両方未採用未着手・正式枠/API/kind追加なし。137枠137確認済み・正式子126・最新ao〜dv人間OK・全135登録（固定50＋追加85）を維持。同じdwで個別採用待ち、dvを再採用確認しない。最新commit/push/検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw-consultation。巨大文書／全過去開始文を再読せず必要節へ絞り、原文保管／必要依存／必須検証を維持。実読取と未読未検証、hash／機械通過と意味読了／人間OKを分ける。
+対象案は日本語一入力の原catalogRuleなしnaming一節以上＋contrastなしのfeeling_report/external_event_report一節以上、当時完全／未理解双方、完全名付け0節又は複数節。既存三形式name/name_description/name_answerと原unknown併存を含める案。正規到着ask_name直後の「ころ\nもも\n私は悲しい」、naming関係不足時の「ころ\n私は悲しい」が例。完全一節旧4d5、旧ai/du/dv/dk/dl/dm/dn/do/dp/dt/4d2等の所有と不足receipt拒否を維持。原unknownを修復しない。他認識／参照／教示訂正／correction/reply／locale追加要否・分割は未決定。
+保持案は独立一時journal・一input一資料/per_clause、全節順/index/span/不足と名付け／報告のindices、全原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。名付け全候補／原採用／updatedと報告subject/時点/reportSource/testimony有無を分離。完全／不完全とも実活動pending/lastOutput/source/response・期限／話者／対象／到着event／時刻／移動履歴を照合しコピー上onArrival再生、完全名付け各節だけ原一意採用を照合。receive/respond全文・前後validContext/validSelectionsと実前件ありだけ平坦原資料を別再生する案。
+不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及は採用後の実装検証事項。新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。活動の問いを入力前件として生成しない。
+新75資料の対象案21、85追加担当6375＋旧47入力API3525呼出。旧47はbeforeReports/beforeReceipts空の既存adapter限定、固定50全正規API完全供給ではない。資料数を固有数／網羅数／次未解決集合へ変換せず、旧非選定集合を自動繰越し／合算しない。局所工具v2の4検査通過、75原再生／実改変225拒否／候補21活動再生・活動改変63拒否。初回工具3通過1不通過は空知識の無変更改変期待、原source/log保存後の別v2成功と分ける。監査／文書検査／発行はhandoff参照。
+残3〜4工程・暫定中心3、dv確認後2〜3中心2から下限／上限／中心＋1・完了減算0。dw相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。採用後は長さに無理がなければ同じチャットで実装検証する。
+今回相談／局所工具／文書のみ、ゲームcode/catalog/locale/package/登録/保存形式非変更・ゲーム全回帰／renderer再実行なし。開始十文書baseline／169source hash／原資料／工具／原ログはdw-investigation-3520395。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記保存再開配布／外部試遊ログ通し確認未完。過去成功／元fullのincomplete等を今回成功へ昇格しない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdw未選定は今回相談前の開始文として保持する。
+
 ## 次チャットへ貼る現行開始文（dv確認済み・次dw未選定未採用）
 
 ```text
