@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 現行継続文（dx対象・保持方針の相談案、両方未採用）
+
+```text
+開始d67e9a8、ゲーム実装最新8d137b2。dw実装後OK確認済みを維持し再確認しない。dxは個体・語義参照と非対比報告の併存資料の対象・保持方針を相談案へ具体化。両方未採用・ゲーム実装未着手・正式枠/API/kind追加なし。138枠138確認済み・正式子127・最新ao〜dw人間OK・全136登録を維持。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。
+正本specs/core/experimental_word_learning.md#diary-reference-report-materials-dx-consultation。対象案は日本語原reference又はword_reference一節以上＋非対比feeling_report/external_event_report一節以上、併存はこの二参照・報告・原unknownだけ。当時完全／未理解双方、unknown補修なし。名付け／動的／教示訂正／correction/reply／他規則／locale併存や分割は未決定。
+保持案は一input一資料/per_clause、全節／不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。個体候補/原採用・語義候補/訂正連鎖/原applications・報告出所を分離し、dr/dqの必要原出所ID和集合を原当時知識で別再生、dsの利用先分離を踏襲する案。receive/respondと実前件だけ平坦資料の別再生。不足改変重複余分拒否・コピー独立・同input非増加非上書き・非生成・非遡及は採用後実装検証。新理解／採用／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わず旧所有と不足receipt拒否を維持。
+新245限定資料・対象案114、86追加担当21070＋旧47入力API11515呼出。原資料非変更・169source hash不変、工具4通過。旧47はbeforeReports/beforeReceipts空のadapter限定、固定50全正規API完全供給ではない。固有数／網羅数／次未解決集合に変換せず過去非選定を繰越し合算しない。新capture検証ではない。
+残3〜4工程・暫定中心3、dw確認後2〜3中心2から下限／上限／中心＋1・完了減算0。dx採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2。追加要否／分割・最終分類未決定・上限終了保証なし。全14保留・各担当三保留・全体未完、4e／receipt保存形式／本接続未採用未実装。
+原資料／開始十文書baseline／工具／ログはdx-investigation-d67e9a8。今回は局所調査／文書のみ、ゲーム全回帰／renderer等なし。監査／文書検査／発行・実読取未検証はhandoff参照。過去dw成功／元fullのincomplete・GPU失敗・reviewRequired・reading.not_recordedは今回結果へ昇格しない。全旧所有／fixture／推移的依存意味再読・全入口最終分類・実UI音声／保存再開配布／外部試遊ログ通し未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作。個別採用後、長さに無理がなければ同じチャットで実装検証する。
+```
+
+以下のdx未選定は相談前の開始文として保持する。
+
 ## 次チャットへ貼る現行開始文（dw確認済み・次dx未選定未採用）
 
 ```text

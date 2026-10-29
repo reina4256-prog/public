@@ -1,5 +1,22 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-reference-report-materials-dx-consultation"></a>
+
+##### dx相談案：個体・語義参照と非対比報告の併存資料（2026-10-29・構想段階・対象／保持方針とも未採用）
+
+- 開始d67e9a8、ゲーム実装8d137b2。dw実装後OK確認済みを維持する。dxの対象と保持方針を下記相談案へ具体化した。両方未採用・ゲーム実装未着手・正式枠/API/kind追加なし。138枠138確認済み・正式子127・最新ao〜dw人間OK・全136登録（固定50＋追加86）を維持する。以下のdx未選定は相談前の保存点。
+- **対象案**：日本語一入力に原reference（個体参照）又は原word_reference（説明済みの語の参照）が一節以上、かつ非対比の原report（feeling_report/external_event_report）が一節以上ある資料。両参照の同居も含め、各節の当時完全／未理解を分離する。今回の併存案はこの参照二形式・非対比報告・原unknownだけ。名付け／動的名付け／教示訂正／correction/reply／他認識規則／他localeの併存や分割は別途未決定で、一括採用しない。
+- 例：実際に「これをぴぴって呼ぼう」「ぽぽは休むことだよ」を聞いた後の「ぴぴ\n私は悲しい」「ぽぽ\n今日料理で失敗した」「ぴぴ\nぽぽ\n私は悲しい」と逆順。文面から参照・採用・話者・対象・scopeを生成しない。学習前提不足で原unknownになった場合は参照へ修復せず、du等の既存担当へ残す。
+- **保持方針案**：独立一時journal・一input一資料/per_clause。全節順/index/span/原frame/理解不足、参照種別と報告indices、原result/learning/transfer/expression・実reply全文/turn.answer有無、入力前knowledge/context/feelingLearning・前後state/worldを分離コピーする。個体は全候補/evidenceと原target.adopted有無、語義は候補説明/訂正連鎖/競合個体名と原applications有無、報告はsubject/aspect/polarity/eventTime/reportSource/testimony等の有無を別に保持する。同名二個体・複数evidence・同意味複数説明・反復節を一件へ選び直さない。
+- **出所照合案**：[dr](#diary-individual-reference-materials-dr-verified)の原名付けと[dq](#diary-word-reference-clause-materials-dq)の原説明/訂正連鎖/競合個体名を、原beforeState/result/receive直後afterStateの平坦資料で照合する。[ds](#diary-mixed-reference-materials-ds-verified)と同様、必要IDの和集合を一度供給し、各利用先を別保持する。原当時知識で独立再生し、不足・改変・重複・無関係出所を拒否する案。現在入力のreceive/respond全文と前後validContext/validSelections、実前件ありだけ直前turn/IDの平坦原資料を別再生する。後知識から過去出所を生成しない。
+- 同input非増加非上書き・返却/遅延コピー独立・後知識後訂正後活動非遡及は採用後に実装検証する。原receiveの学習更新と保持部品による非生成を分ける。新理解／命名／一般名／同義語化／語義採用／訂正成功／旧知識無効化／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。原unknownを補修せず、旧ar/4d2/4d5/dq/dr/ds/ai/du/dv/dw等の所有と不足receipt拒否を維持する。未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。
+- **限定調査**：新245資料を実receive/respond全文・前後state/world・validContext/validSelectionsで再生し、供給した原出所も原当時知識で独立再生。86追加担当21070＋旧47入力API11515呼出、原資料非変更・169source hash不変。対象案114は今回供給条件で既存担当非捕捉。設定192資料中112は原unknown等で旧duが成立、80だけ対象案。旧ar/dq/dr/ds/ai/du/dv/4d5成立対照を保持する。旧47はbeforeReports/beforeReceipts空の既存adapter限定で、固定50全正規API完全供給／全所有条件の意味読了ではない。
+- 工具4検査通過。現入力／原出所再生、実知識追加後の原state不一致・原出所speaker改変後の原result/state不一致、保護hashと旧担当対照を検査。新captureの成立／改変拒否／必要出所選択の十分性／コピー独立／非遡及を検証したものではない。245/114は重複し得る生成資料数で、固有数／網羅数／次未解決集合／工程数へ変換せず、旧非選定集合を自動繰越し・合算しない。
+- **見通し**：残3〜4工程・暫定中心3。dw確認後2〜3中心2から下限／上限／中心＋1・完了減算0。dx相談・採用後実装検証確認1／その他入口0〜1中心0／最終意味照合回帰2。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 今回局所調査工具／文書のみ、ゲームcode/catalog/locale/package/登録/保存形式非変更。全ゲーム回帰／renderer／実UI音声／本人日記保存再開配布なし。原資料・開始十文書baseline・169source hash・工具・原ログはdocs/.local-history/verification-runs/dx-investigation-d67e9a8。監査／文書検査／発行・実読取／未読未検証は現行handoff参照。対象と保持方針の個別採用後、長さに無理がなければ同じチャットで実装検証する。
+
+以下のdx未選定は今回相談前状態として保持する。
+
 <a id="diary-entry-remainder-after-dw"></a>
 
 ##### dw確認後：残入口の再開点（2026-10-29・dx未選定未採用）
