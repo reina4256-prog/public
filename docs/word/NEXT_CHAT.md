@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（dv確認済み・次dw未選定未採用）
+
+```text
+ゲーム実装最新5d05fe6。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdv採用範囲へ実装後OKと継続／移動の裁量を明示。dvは実装・Codex検証・ユーザー実装後OK確認済み。137枠137確認済み・正式子126・最新ao〜dv人間OK・全135登録（固定50＋追加85）。次の採用相談前で次チャットへ移す。確認済みdvを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-dv。巨大文書全体／全過去開始文を再読せず必要節へ絞り、原文保管／必要依存／必須検証を維持。実読取と未読未検証、hash／機械通過と意味読了／人間OKを分ける。
+次dwは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。動的名付け／個体語義参照／教示訂正／correction/replyとの併存・他原frame／規則／locale追加要否／分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+dvはexplicit_naming_report_materials.create()/capture(buffer,result,receipt)、kind=explicit_naming_report_material。日本語既存三形式name/name_description/name_answerの原naming一節以上＋contrastなしのfeeling_report/external_event_report一節以上、完全／未理解双方・完全名付け0節又は複数節、原unknown併存のみ。完全一節旧4d5と旧ai/dk/dl/do/dp/du/4d2等・不足receipt拒否を維持し原unknown補修なし。
+独立一時journal、一input一資料/per_clause、名付け候補／原採用／updatedと報告subject／時点／reportSource/testimony有無を分離。全節順/span/不足・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー、receive/respondと実前件だけ平坦原資料を別再生し、コピー独立・非生成・非遡及を維持する。新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。
+相談170へ102成立／68非成立・専用241原171成立を固有数／網羅数／次未解決集合へ変換せず合算しない。旧47はbeforeReports/beforeReceipts空の既存adapter限定で、固定50全正規API完全供給／全意味読了ではない。旧非選定を自動繰越ししない。
+残2〜3工程・暫定中心2、dv確認前3〜4中心3から下限／上限／中心−1、dv実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e/receipt保存形式/ゲーム本接続未採用未実装。
+今回は確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／ログdv-implementation-3ac6775、今回開始十文書baseline／32source hash／文書検査／発行dv-acceptance-5d05fe6。過去全Node3532／31JS構文／七言語14957／別renderer754と元fullのincomplete／GPU失敗／reviewRequired／reading.not_recordedを今回成功へ昇格しない。既存du同文二重anchorは原文保持。全旧所有節／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記保存再開配布／外部試遊ログ通し確認未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdv実装後OK未受領は受領前の継続文として保持する。
+
 ## 現行継続文（dv採用範囲実装・Codex検証完了）
 
 ```text

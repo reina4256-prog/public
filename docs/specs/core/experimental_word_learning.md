@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-entry-remainder-after-dv"></a>
+
+##### dv確認後：残入口の再開点（2026-10-29・dw未選定未採用）
+
+- ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」で5d05fe6のdv採用範囲へ実装後OKと継続／移動の裁量を受領。dvは実装・Codex検証・ユーザー実装後OK確認済み。137枠137確認済み・正式子126・最新ao〜dv人間OK・全135登録（固定50＋追加85）。次の採用相談前で次チャットへ移す。確認済みdvを再採用確認しない。
+- 次dwは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。動的名付け／個体語義参照／教示訂正／correction/replyとの併存・他原frame／規則／locale追加要否／分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+- [dv所有正本](#diary-explicit-naming-report-materials-dv-verified)の日本語既存三形式名付け＋非対比報告、完全／未理解双方・完全名付け0節又は複数節・原unknown併存だけの採用範囲、名付け候補／原採用／updatedと報告の分離、receive/respondと実前件の別再生・コピー独立・非生成・非遡及を維持する。完全一節旧4d5、旧ai/dk/dl/do/dp/du/4d2等と不足receipt拒否を維持し、原unknownを修復しない。
+- 相談170へ102成立／68非成立、専用241原171成立を固有数／網羅数／次未解決集合／工程数へ変換せず合算しない。原result／出所補修なし、旧非選定を自動繰越ししない。旧47入力APIはbeforeReports/beforeReceipts空の既存adapter限定で、固定50全正規API完全供給／全意味読了ではない。
+- 残2〜3工程・暫定中心2、dv確認前3〜4中心3から下限／上限／中心−1、dv実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持する。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 今回確認／文書のみ。ゲームcode/catalog/locale/package/登録/保存形式非変更、receive/respond／85担当／旧47入力API・ゲーム全回帰／監査／renderer再実行なし。過去dv全Node3532／31JS構文／七言語14957／別renderer754と元fullのincomplete／GPU失敗／reviewRequired／reading.not_recordedを今回成功へ昇格しない。原資料／ログはdv-implementation-3ac6775、今回開始十文書baseline／32source hash／文書検査／発行はdv-acceptance-5d05fe6。実読取／未読未検証・発行は現行handoff参照。
+
+以下のdv実装後OK未受領は受領前状態として保持する。
+
 <a id="diary-explicit-naming-report-materials-dv-verified"></a>
 
 ##### 4d12dv：既存形式の名付けと非対比報告の併存資料（2026-10-29・採用範囲実装・Codex検証完了）
