@@ -1,5 +1,35 @@
 # 次チャットの開始文
 
+## 現行継続文（dw採用範囲実装・Codex検証完了）
+
+```text
+開始b8a6d48、ユーザー「はい、どちらもOKです」でdw対象・保持方針を両方採用。dynamic_naming_report_materials.create()/capture(buffer,result,receipt)、kind=dynamic_naming_report_materialの採用範囲実装・Codex検証完了。138枠137確認済み・正式子127・全136登録（固定50＋追加86）・最新ao〜dv人間OK、dw実装後OK未受領・同じdw継続。dvを再確認せず次記号を先取りしない。最新commit/push/検証はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw-verified。必要節へ絞り原文保管／依存／必須検証を維持、実読取／未読未検証・hash／機械通過と意味読了／人間OKを分ける。
+日本語原catalogRuleなしnaming＋非対比feeling_report/external_event_report各一節以上、完全／未理解双方・完全名付け0節又は複数節・既存三形式／原unknown併存だけ。完全／不完全とも実活動pending/lastOutput/source/response・期限／話者／対象／到着event／時刻／移動履歴とコピー上onArrival再生を照合。名付け候補／原採用／updatedと報告出所を分離、完全各節だけ原一意採用を照合する。
+全節／不足／各indices・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを一input一資料/per_clauseへ分離コピー。receive/respondと実前件だけ平坦原資料を別再生し、非生成・非遡及・コピー独立・同input非増加非上書き・旧所有／不足receipt拒否を維持。新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。他認識／参照／教示訂正／correction/reply／locale追加要否・分割未決定。
+全Node3562／32JS構文／七言語チェック／別隔離renderer351通過、専用29＋監査95。216原45成立・29種1305改変拒否／同値0、名付けlearning285／活動540／前件16拒否・整合再生後活動改変2拒否。旧85担当3825／旧47入力API2115非重複。相談原75へ21成立／54非成立・原hash不変、別fixture dumpをテストプロセス原dumpへ昇格せず資料数を固有数／網羅数／次未解決集合へ変換／合算しない。旧47はbeforeReports/beforeReceipts空の既存adapter限定、固定50全正規API完全供給ではない。
+元full-30minは36検査中35通過／1不通過・status=incomplete、未実行検査／testなし。不通過=[{"id":"renderer:scripts/experimental/diary_dynamic_naming_report_material_smoke.js","status":"failed","exitCode":2147483651}]。reviewRequired=["scripts/experimental/diary_dynamic_naming_report_material_smoke.js"]／reading.status=not_recordedを非置換保持。別renderer成功／手動範囲確認で元run成功や全依存意味読了へ昇格しない。不通過の原因原文／終了情報は当該stderrとsummary.json参照。
+残3〜4工程・暫定中心3・採用時差分0、dw実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2。Codex検証だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+原資料／171source・旧test baseline／工具／全ログ／文書検査／発行はdw-implementation-b8a6d48。全旧所有／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記保存再開配布／外部試遊ログ通し確認未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の実装検証中は途中状態として保持する。
+
+
+## 現行継続文（dw対象・保持方針採用、実装検証中）
+
+```text
+開始b8a6d48、ユーザー「はい、どちらもOKです」でdw対象・保持方針を両方採用。dynamic_naming_report_materials.create()/capture(buffer,result,receipt)、kind=dynamic_naming_report_materialとして採用範囲実装検証中。138枠137確認済み・正式子127・最新ao〜dv人間OK・全136登録（固定50＋追加86）、dw実装後OK未受領・同じdw継続。dvを再確認せず次記号を先取りしない。最新検証／発行はCURRENT_IMPLEMENTATION.md参照。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。正本specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw。巨大文書／全過去開始文を再読せず原文保管／必要依存／必須検証を維持、実読取／未読未検証・hash／機械通過と意味読了／人間OKを分ける。
+日本語一入力の原catalogRuleなしnamingと非対比feeling_report/external_event_report各一節以上、完全／未理解双方・完全名付け0節又は複数節、既存三形式と原unknown併存だけ。完全一節旧4d5と旧ai/du/dv/dk/dl/dm/dn/do/dp/dt/4d2等・不足receipt拒否を維持、原unknown補修なし。他認識／参照／教示訂正／correction/reply／locale追加要否・分割未決定。
+独立一時journal・一input一資料/per_clause、全節／不足／各indices・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。名付け全候補／採用／updatedと報告出所を分離。完全／不完全とも実活動pending/lastOutput/source/response・期限／話者／対象／到着event／時刻／移動履歴を照合しコピー上onArrival再生、完全各節だけ一意採用を照合。receive/respond全文と実前件ありだけ平坦原資料を別再生、活動の問いを入力前件として生成しない。
+不足改変矛盾拒否・同input非増加非上書き・コピー独立・非遡及、新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+開始十文書／旧source/test baseline・原資料／工具／検証はdw-implementation-b8a6d48。ゲームcore/world/catalog/locale/保存形式／本呼出非変更。全旧所有／fixture／推移的依存意味再読・固定50全正規API完全供給・全入口最終分類・実UI音声／本人日記保存再開配布／外部試遊ログ通し確認未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下の未採用は採用前の相談継続文として保持する。
+
+
 ## 現行継続文（dw対象・保持方針相談案・個別採用待ち）
 
 ```text

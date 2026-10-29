@@ -1,5 +1,11 @@
 # 新方式：普段読む入口
 
+- 2026-10-29 dw最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw-verified)の実装・Codex検証完了。全Node3562／32JS構文／七言語チェック／別隔離renderer351通過、専用29＋監査95。138枠137確認済み・正式子127・全136登録・最新ao〜dv人間OK、dw実装後OK未受領・同じdw継続。残3〜4工程・暫定中心3・採用時差分0、全14保留・各担当三保留・全体未完。元fullのstatus／reviewRequired／reading.not_recordedを別成功で置換しない。原資料／検証／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。
+
+
+- 2026-10-29 dw採用：ユーザー「はい、どちらもOKです」で[動的名付けと非対比報告の対象・保持方針](../specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw)を両方採用、採用範囲実装検証中。138枠137確認済み・正式子127・最新ao〜dv人間OK・全136登録（固定50＋追加86）、dw実装後OK未受領・同じdw継続。残3〜4工程・暫定中心3・採用時差分0、全14保留・各担当三保留・全体未完。検証／実読取未検証／原資料／発行は現行handoff参照。以下の未採用は採用前状態。
+
+
 - 2026-10-29 dw再開：[動的名付けと非対比報告の対象・保持方針相談案](../specs/core/experimental_word_learning.md#diary-dynamic-naming-report-materials-dw-consultation)を具体化。両方未採用未着手・正式枠/API/kind追加なし。dv確認済み・137枠137確認済み・正式子126・全135登録を維持。75限定資料の候補21は網羅数ではない。残3〜4工程・暫定中心3（直前比＋1・完了減算0）、全14保留・各担当三保留・全体未完。他認識／参照／教示訂正／locale追加要否・分割未決定。今回局所調査／文書のみ、ゲーム全回帰／renderer再実行なし。検証／原資料／実読取未検証／発行は現行handoff参照。以下のdw未選定は相談前状態。
 
 - 2026-10-29 dv確認・次チャット保存点：ユーザーが5d05fe6のdv採用範囲へ実装後OKと継続／移動の裁量を明示。dvは実装・Codex検証・ユーザー実装後OK確認済み。137枠137確認済み・正式子126・最新ao〜dv人間OK・全135登録（固定50＋追加85）。[次dw再開点](../specs/core/experimental_word_learning.md#diary-entry-remainder-after-dv)へ続ける。dwは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dv確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／実読取未検証／発行は現行handoff参照。以下のdv未受領は受領前状態。

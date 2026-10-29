@@ -1,5 +1,35 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-dynamic-naming-report-materials-dw-verified"></a>
+
+##### 4d12dw：動的名付けと非対比報告の併存資料（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_dynamic_naming_report_materials.create()/capture(buffer,result,receipt)、kind=dynamic_naming_report_material。[採用範囲](#diary-dynamic-naming-report-materials-dw)の実装・Codex検証完了。138枠137確認済み・正式子127・全136登録（固定50＋追加86）・最新ao〜dv人間OK、dw実装後OK未受領・同じdw継続。残3〜4工程・暫定中心3・採用時差分0、全14保留・各担当三保留・全体未完。
+- 日本語原catalogRuleなしnamingと非対比feeling_report/external_event_report各一節以上、完全／未理解双方・完全名付け0節又は複数節、既存三形式／原unknown併存だけ。完全／不完全とも実活動pending/lastOutput/source/response・期限／話者／対象／到着event／時刻／移動履歴とコピー上onArrival再生を照合し、不完全の原採用なし・pending対象候補と完全各節の原一意名付け採用を分離する。
+- 全節/index/span/不足・各indices／名付け候補採用updatedと報告subject/時点/reportSource/testimony有無、全原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを一input一資料/per_clauseへ分離コピー。receive/respondと実前件だけ平坦原資料を別再生し、不足改変拒否・同input非増加非上書き・コピー独立・非生成・非遡及を維持する。旧所有・不足receipt拒否を維持し、新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。他認識／参照／教示訂正／correction/reply／他locale追加要否・分割未決定。
+- 専用29＋監査95、全Node3562／32JS構文／七言語チェック／別権限付き隔離renderer351（216原＋135改変）通過。旧3532へ専用29＋監査1の計30追加、旧TAP名重複度を保持・削除0を最終文書検査で照合する。216原45成立、29種1305改変拒否／同値0、名付けlearning285／活動根拠540／実前件16改変拒否、receive/respond整合再生後の活動改変2も拒否。旧85担当3825／旧47入力API2115非重複。
+- 相談原75へ実capture21成立／54非成立・原JSON SHA256=141fc8e2a73a7b3f32b033d2dbb9299899948d1bcf9d7ba01c866aae3b93df13不変。fixture dumpは別の決定的生成でテストプロセス原dumpではない。各資料数を固有数／網羅数／次未解決集合へ変換せず合算しない。旧47はbeforeReports/beforeReceipts空の既存adapter限定、固定50全正規API完全供給ではない。
+- 元full-30minは36検査中35通過／1不通過・status=incomplete、未実行検査／testなし。不通過=[{"id":"renderer:scripts/experimental/diary_dynamic_naming_report_material_smoke.js","status":"failed","exitCode":2147483651}]。reviewRequired=["scripts/experimental/diary_dynamic_naming_report_material_smoke.js"]／reading.status=not_recordedを非置換保持。別renderer成功／手動範囲確認で元run成功や全依存意味読了へ昇格しない。不通過の原因原文／終了情報は当該stderrとsummary.json参照。
+- 新module/fixture/test/隔離smoke・監査/package登録、旧26横断testは担当数期待84→85だけ、監査85→86と一検査追加。旧test名／npmコマンド保持。ゲームcore/world/catalog/locale/保存形式／本呼出非変更・新ゲーム表示文なし。rendererは非表示blank server／専用一時profile・八global除去・local/session dw-sentinel不変・保存bridge未定義、実UI音声／実ユーザー保存／本人日記保存再開配布は未検証。4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 原資料／開始十文書・171source／旧test baseline・工具／全ログはdocs/.local-history/verification-runs/dw-implementation-b8a6d48。保護169source不変・全回帰開始32JS hash照合。初回専用testの存在しないtargetへの接近失敗と別v2成功、局所文書preflight失敗と後続成功を分離。詳細・最終文書検査／実読取未検証／発行は現行handoff参照。
+
+以下の実装検証中は途中状態として保持する。
+
+
+<a id="diary-dynamic-naming-report-materials-dw"></a>
+
+##### 4d12dw：動的名付けと非対比報告の併存資料（2026-10-29・対象／保持方針採用、実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[対象・保持方針案](#diary-dynamic-naming-report-materials-dw-consultation)を両方採用。開始b8a6d48。experimental_word_diary_dynamic_naming_report_materials.create()/capture(buffer,result,receipt)、kind=dynamic_naming_report_materialの独立一時journalとして採用範囲を実装検証する。138枠137確認済み・正式子127・最新ao〜dv人間OK・全136登録（固定50＋追加86）。dw実装後OK未受領・同じdw継続。
+- 日本語一入力の原catalogRuleなしnamingと非対比feeling_report/external_event_report各一節以上、完全／未理解双方・完全名付け0節又は複数節。既存name/name_description/name_answerと原unknown併存だけ。完全一節旧4d5と旧ai/du/dv/dk/dl/dm/dn/do/dp/dt/4d2等の所有・不足receipt拒否を維持。relationLearning/conditionJudgment/sequenceJudgmentなし、原unknown補修なし。他認識／参照／教示訂正／correction/reply／他locale追加要否・分割未決定。
+- 全節順/index/span/不足、名付け／動的／既存形式／完全／不完全／報告indices、全原result/learning/transfer/expression・実reply/turn.answer有無、入力前knowledge/context/feelingLearning・前後state/worldを一input一資料/per_clauseへ分離コピー。名付け全候補／原採用／updatedと報告subject/aspect/polarity/eventTime/reportSource/testimony有無を分離保持する。
+- 完全／不完全とも実活動ask_nameのpending/lastOutput/source/response・期限／話者／対象／到着event／時刻／移動履歴を照合しコピー上onArrivalを再生。不完全動的の原採用なしとpending対象候補を分離、完全各節だけ原一意対象／候補／話者／explanation採用を照合。receive/respond全文と前後validContext/validSelections、実前件ありだけ平坦原資料・直前turn/IDを別再生し、活動の問いを入力前件として生成しない。
+- 不足改変矛盾拒否・同input非増加非上書き・コピー独立・後知識後活動非遡及。原関連付け更新とcaptureによる保持を分け、新理解／同義語化／一般名／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。ゲームcore/world/catalog/locale/保存形式／本呼出非変更、新ゲーム表示文なし。新module/fixture/test/隔離smoke・監査/package登録、旧横断testは担当数期待だけ追従し旧test名／npmコマンドを保持。
+- 残3〜4工程・暫定中心3・採用による差分0。dw実装後確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、Codex検証だけで減算しない。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。開始十文書／旧source/test baseline・原資料／工具／検証はdocs/.local-history/verification-runs/dw-implementation-b8a6d48。実読取／未読未検証・発行は現行handoff参照。
+
+以下の未採用は採用前の相談状態として保持する。
+
+
 <a id="diary-dynamic-naming-report-materials-dw-consultation"></a>
 
 ##### dw相談案：動的名付けと非対比報告の併存資料（2026-10-29・対象／保持方針とも未採用）

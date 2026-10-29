@@ -144,7 +144,7 @@ test('repetition, new inputs, delayed copies and later activity never rewrite ea
 });
 test('78 prior supplemental and 47 older input contracts retain ownership', () => {
     const audit = require('../scripts/experimental/diary_audit');
-    const owners = audit.supplementalInventory().filter(r => r.id !== '4d12dp'); assert.equal(owners.length, 84);
+    const owners = audit.supplementalInventory().filter(r => r.id !== '4d12dp'); assert.equal(owners.length, 85);
     const contracts = audit.inventory().filter(o => !['4d1', '4d3', '4d4'].includes(o.id)).map(o => {
         const old = require('../' + o.file), params = /function capture\(([^)]*)\)/.exec(old.capture.toString())[1].split(',').map(s => s.trim());
         assert.equal(params.length, o.arity); return { ...o, old, params };
