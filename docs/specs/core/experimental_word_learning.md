@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-after-dy"></a>
+
+##### dy確認後：4d最終意味照合への再開点（2026-10-29）
+
+- ユーザー「OKです。次チャットにいくか同じチャットで続けるかはおまかせします」でf93e951のdy採用範囲へ実装後OKと継続／移動の裁量を受領。dyは実装・Codex検証・ユーザー実装後OK確認済み。140枠140確認済み・正式子129・最新ao〜dy人間OK・全138登録（固定50＋追加88）。次チャットへ移し、確認済みdyを再採用確認しない。
+- 次は4dの最終意味照合・回帰を優先する。新しい混在候補やdz枠を自動追加せず、既存入口を既存担当／当時非成立／具体的未対応／別領域保留へ根拠付きで分類する。不足がなければ終了条件を確認して次項目への接続を整理する。具体的不足が見つかった場合だけ、その影響と必要な範囲を記録して個別相談する。未捕捉だけで新部品採用／追加不要／永久対象外／全入口完了を決めない。4d12/4d/ID4全体の完了や4e採用は今回宣言しない。
+- [dy実装](#diary-incomplete-name-response-report-materials-dy-verified)の未成立correction/reply＋非対比報告・原partial／unknown非補修、平坦実前件とreply原名付け根拠の別再生、コピー独立・非生成・非遡及、旧所有／不足receipt拒否を維持する。相談728の176成立／552非成立と専用756原189対象を合算・網羅数・次未解決集合へ変換しない。旧47入力APIはbeforeReports/beforeReceipts空adapter限定で、固定50全正規API完全供給／全入口最終分類の証拠ではない。
+- 残2〜3工程・暫定中心2。dy確認前3〜4中心3から下限／上限／中心−1、dy実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。最終区切りの全回帰・当該工程の通し確認はVALIDATIONに従い、既存の保留を黙って完了／対象外へ移さない。
+- 今回は確認／文書のみ、ゲームcode/catalog/locale/package/登録/保存形式非変更。receive/respond／88担当／旧47入力API・ゲーム全回帰／監査／renderer再実行なし。過去dy全Node3597／34JS構文／七言語／別renderer1323と元fullのincomplete／GPU失敗／reviewRequired／reading.not_recordedを今回成功へ昇格しない。原資料・ログdy-implementation-cc9ba9c、今回十文書baseline／34source hash／文書検査／発行dy-acceptance-f93e951。実読取／未読未検証・発行は現行handoff参照。
+
+以下のdy実装後OK未受領は受領前状態として保持する。
+
 <a id="diary-incomplete-name-response-report-materials-dy-verified"></a>
 
 ##### 4d12dy：未成立の取り下げ・確認返答と非対比報告（2026-10-29・採用範囲実装・Codex検証完了）

@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（dy確認済み・4d最終意味照合へ）
+
+```text
+ゲーム実装最新f93e951。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdy採用範囲へ実装後OKと継続／移動の裁量を明示。dyは実装・Codex検証・ユーザー実装後OK確認済み。140枠140確認済み・正式子129・最新ao〜dy人間OK・全138登録（固定50＋追加88）。確認済みdyを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要所有節／依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-final-review-after-dy。過去全開始文の再読は不要、原文／必要依存／必須検証を維持、実読取と未読未検証・hash／機械通過と意味読了／人間OKを区別する。
+次は4d最終意味照合／回帰を優先。追加自体を目的に探索せず、新混在候補／dz枠を自動追加しない。既存入口を既存担当／当時非成立／具体的未対応／別領域保留へ根拠付き分類し、不足がなければ終了条件を確認して次項目への接続を整理する。具体不足がある場合だけ影響と必要範囲を記録して個別相談。未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めず、未決定を黙って完了／対象外へ移さない。
+dyはincomplete_name_response_report_materials.create()/capture(buffer,result,receipt)、kind=incomplete_name_response_report_material。原correction/reply＋非対比報告、全訂正返答節不完全・実確認取り下げ更新なし、報告完全／不完全双方、併存これらとunknownだけ。原partial／unknown非補修、全節と当時不足／原pending/replyTo／実前件とreply原名付けorigin／全原result/learning/transfer/expression・実reply/answer有無・入力前資料／前後state/worldを別保持し、別再生・不足改変重複余分拒否・コピー独立・非生成・非遡及を維持する。
+相談728へ176成立／552非成立・専用756原189対象を合算／網羅数／次未解決集合へ変換しない。旧47はbeforeReports/beforeReceipts空adapter限定で固定50全正規API完全供給／全入口最終分類の証拠ではない。旧非選定を自動繰越ししない。残2〜3工程・暫定中心2、直前3〜4中心3からdy確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2。全14保留・各担当三保留・全体未完、4e／保存形式／ゲーム本接続未採用未実装。
+今回確認／文書のみ・ゲーム全回帰／監査／renderer再実行なし。原資料／ログdy-implementation-cc9ba9c、今回baseline／source hash／文書検査／発行dy-acceptance-f93e951。過去全Node3597／34JS構文／七言語／別renderer1323と元fullのincomplete／GPU失敗／reviewRequired／reading.not_recordedを今回成功へ昇格しない。既存18リンク不整合／du同文二重anchor保持。全旧所有／推移的依存意味再読・固定50全正規API／全入口最終分類・実UI音声／本人日記保存再開配布／試遊ログ通し未完。最終区切りの全回帰／通し確認はVALIDATIONに従う。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非commit。
+```
+
+以下のdy実装後OK未受領は受領前の継続文として保持する。
+
 ## 現行継続文（dy採用範囲実装・Codex検証完了）
 
 ```text
