@@ -1,5 +1,32 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-reference-report-materials-dx-verified"></a>
+
+##### 4d12dx：個体・語義参照と非対比報告の併存資料（2026-10-29・採用範囲実装・Codex検証完了）
+
+- 現在の実装仕様：experimental_word_diary_reference_report_materials.create()/capture(buffer,result,receipt)、kind=reference_report_material。[採用範囲](#diary-reference-report-materials-dx)の実装・Codex検証完了。139枠138確認済み・正式子128・全137登録（固定50＋追加87）・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・全体未完。
+- 日本語原reference又はword_reference一節以上＋非対比feeling_report/external_event_report一節以上、当時完全／未理解双方。併存はこの二参照・報告・原unknownだけ。個体候補/evidence/原target.adopted、語義候補/訂正連鎖/競合/原applications、報告subject/aspect/polarity/eventTime/reportSource/testimony有無を別保持する。名付け／動的／教示訂正／correction/reply／他規則／locale併存や分割は未決定。旧所有と不足receipt拒否を維持し、unknown補修なし。
+- dr/dqの原出所を必要ID和集合で一度供給し、各原当時知識で独立再生、dsと同様利用先別保持。全節/index/span/不足・各indices・原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを一input一資料/per_clauseへ分離コピーする。receive/respond全文と前後validContext/validSelections、実前件だけ平坦原資料を別再生。不足改変重複余分拒否・同input非増加非上書き・コピー独立・非生成・非遡及を維持し、新理解／一般名／同義語化／採用／訂正成功／旧知識無効化／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。
+- 専用18＋監査96、新方式全Node3581・33JS構文と修正smoke再構文・七言語チェック・別権限付き隔離renderer708（294原＋414改変）通過。旧3562へ専用18＋監査1の計19追加、旧test名を重複度込みで保持。294原138成立、26種3588原改変拒否・原出所1005改変拒否・実前件552拒否・報告frame/understanding1794改変拒否、整合した現在入力再生後の個体evidence改変も拒否。旧86担当11868／旧47入力API6486非重複。
+- 相談原245へ実capture114成立／131非成立、原JSON SHA256=61921dd41f970a0b1c6d571140eb8cb4546d039ed02825906b7af71595e02cc9不変。別fixture dumpをテストプロセス原dumpへ昇格せず、各資料数を固有数／網羅数／次未解決集合へ変換・合算しない。旧47はbeforeReports/beforeReceipts空の既存adapter限定で、固定50全正規API完全供給ではない。
+- 元full-30minのstatus／各検査終了情報／reviewRequired／reading.not_recordedは原summaryとhandoff参照。制限内別rendererのGPU unusable／2147483651と権限付き別renderer通過を分ける。Node回帰中・renderer実行前にsmokeのAPI名転記誤りだけ修正し、元manifestとsmoke.initial.js／renderer-repair.jsonを保持。他32JSと保護167source不変。別renderer成功で元fullや全依存意味読了を成功へ昇格しない。
+- 新module/fixture/test/隔離smokeと監査/package登録、旧27横断testは担当数85→86だけ、監査86→87と一検査追加。旧test名／npmコマンド保持、ゲームcore/world/catalog/locale/保存形式／本呼出非変更・新ゲーム表示文なし。rendererは非表示blank server／専用一時profile・八global除去・local/session dx-sentinel不変・保存bridge未定義、実ユーザー保存非操作。4e／receipt保存形式／ゲーム本接続未採用未実装。
+- 原資料／開始十文書・source／旧176test baseline／工具／全ログはdocs/.local-history/verification-runs/dx-implementation-58c4283。初回専用のcandidates import不足1失敗と別targeted-v2通過、文書／登録patch適用前失敗、smoke修正前ソースを保持。全旧所有／fixture／推移的依存意味再読・固定50全正規API完全供給・全入口最終分類・実UI音声／本人日記保存再開配布／外部試遊ログ通し未完。最終文書検査／実読取未検証／発行は現行handoff参照。
+
+以下の実装検証中は途中状態として保持する。
+
+<a id="diary-reference-report-materials-dx"></a>
+
+##### 4d12dx：個体・語義参照と非対比報告の併存資料（2026-10-29・対象／保持方針採用、実装検証中）
+
+- ユーザー「はい、どちらもOKです」で[相談案](#diary-reference-report-materials-dx-consultation)の対象・保持方針を両方採用。開始58c4283。experimental_word_diary_reference_report_materials.create()/capture(buffer,result,receipt)、kind=reference_report_materialの独立一時journalとして実装検証する。139枠138確認済み・正式子128・全137登録（固定50＋追加87）・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。
+- 日本語原reference又はword_reference一節以上＋非対比feeling_report/external_event_report一節以上、当時完全／未理解双方。併存はこの二参照・報告・原unknownだけ。名付け／動的／教示訂正／correction/reply／他規則／locale併存や分割未決定。旧所有と不足receipt拒否を維持し、unknown補修なし。
+- 一input一資料/per_clause、全節順/index/span/原不足・参照種別／報告indices、原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。個体候補/evidence/原target.adopted、語義候補/訂正連鎖/競合/原applications、報告subject/aspect/polarity/eventTime/reportSource/testimony等の有無を別保持する。
+- dr/dqと同じ原出所照合、dsと同じ必要ID和集合・利用先別保持を行い、原当時知識で独立再生する。不足改変重複余分出所を拒否、receive/respondと前後validContext/validSelections・実前件だけ平坦原資料を別再生する。同input非増加非上書き・コピー独立・非生成・非遡及を検証する。新理解／一般名／同義語化／語義採用／訂正成功／旧知識無効化／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。
+- 残3〜4工程・暫定中心3・採用差分0。dx確認待ち1／その他入口0〜1中心0／最終意味照合回帰2、全14保留・各担当三保留・全体未完。4e／receipt保存形式／ゲーム本接続未採用未実装。ゲームcore/world/catalog/locale/保存形式／本呼出非変更、新ゲーム表示文なし。原資料／開始baseline／工具／検証はdocs/.local-history/verification-runs/dx-implementation-58c4283。実読取未検証と発行は現行handoff参照。
+
+以下の未採用は採用前状態として保持する。
+
 <a id="diary-reference-report-materials-dx-consultation"></a>
 
 ##### dx相談案：個体・語義参照と非対比報告の併存資料（2026-10-29・構想段階・対象／保持方針とも未採用）

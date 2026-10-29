@@ -1,5 +1,30 @@
 # 次チャットの開始文
 
+## 現行継続文（dx採用範囲実装・Codex検証完了）
+
+```text
+開始58c4283、ユーザー「はい、どちらもOKです」でdx対象・保持方針を両方採用。reference_report_materials.create()/capture(buffer,result,receipt)、kind=reference_report_materialの採用範囲実装・Codex検証完了。139枠138確認済み・正式子128・全137登録（固定50＋追加87）・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。最新commit/pushはCURRENT_IMPLEMENTATION.md参照。dw再確認不要、次記号を先取りしない。
+正本specs/core/experimental_word_learning.md#diary-reference-report-materials-dx-verified。読取はhandoff／本書最初の現行text／routingと必要所有節・依存／VALIDATIONに絞り、原文／必要依存／必須検証を維持する。日本語原reference又はword_reference＋非対比報告、各一節以上・完全／未理解双方、併存二参照／報告／unknownだけ。名付け／動的／教示訂正／correction/reply／他規則／locale追加や分割は未決定。旧所有／不足receipt拒否・unknown非補修を維持。
+個体候補／原採用、語義候補／訂正連鎖／競合／原applications、報告出所を分離。必要原出所ID和集合を各原当時知識で独立再生し利用先別保持。一input一資料/per_clause、全節／不足・全原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。receive/respondと実前件だけ平坦資料を別再生。不足改変重複余分拒否・同input非増加非上書き・コピー独立・非生成・非遡及、新理解／一般名／同義語化／採用／訂正成功／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。
+全新方式Node3581／33JS構文＋修正smoke再構文／七言語チェック／別隔離renderer708通過、専用18＋監査96。294原138成立・26種3588原改変／原出所1005／前件552／報告1794改変拒否、整合現在再生後のevidence改変拒否。旧86担当11868／旧47入力API6486非重複。相談245へ114成立／131非成立・原hash不変。別fixture dumpをテストプロセス原dumpへ昇格せず、固有数／網羅数／次未解決集合へ変換・合算しない。旧47は限定adapter・beforeReports/beforeReceipts空で固定50全正規API完全供給ではない。
+元full-30minのstatus／GPU失敗／reviewRequired／reading.not_recordedを別成功で置換しない。Node実行中・renderer前のsmoke API名修正を元manifest／smoke.initial.js／renderer-repair.jsonへ分離し、他32JS／保護167source不変と区別。初回専用のimport不足1失敗と別v2通過、制限内別renderer失敗と権限付き別成功も分離。原資料／開始baseline／工具／全ログはdx-implementation-58c4283、最終文書検査・実読取未検証・発行はhandoff参照。
+残3〜4工程・暫定中心3・採用差分0、dx確認待ち1／その他入口0〜1中心0／最終意味照合回帰2。Codex検証だけで減算しない。全14保留・各担当三保留・全体未完、4e／receipt保存形式／本接続未採用未実装。全旧所有／fixture／推移的依存意味再読・固定50全正規API完全供給・全入口最終分類・実UI音声／保存再開配布／外部試遊ログ通し未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作。
+```
+
+以下の実装検証中は途中状態として保持する。
+
+## 現行継続文（dx対象／保持方針採用、実装検証中）
+
+```text
+開始58c4283、ユーザー「はい、どちらもOKです」でdx対象・保持方針を両方採用。reference_report_materials.create()/capture(buffer,result,receipt)、kind=reference_report_materialを実装検証中。139枠138確認済み・正式子128・全137登録（固定50＋追加87）・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。最新検証／commit/pushはCURRENT_IMPLEMENTATION.md参照。dw再確認不要。
+正本specs/core/experimental_word_learning.md#diary-reference-report-materials-dx。日本語原reference又はword_reference一節以上＋非対比feeling_report/external_event_report一節以上、当時完全／未理解双方。併存はこの二参照・報告・原unknownだけ。名付け／動的／教示訂正／correction/reply／他規則／locale併存や分割未決定、unknown補修なし、旧所有と不足receipt拒否を維持。
+一input一資料/per_clause、全節/index/span/不足・個体／語義／報告indices、全原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。個体候補/evidence/原採用、語義候補/訂正連鎖/競合/原applications、報告subject/時点/reportSource/testimony有無を別保持。dr/dq必要出所ID和集合をds同様利用先別に独立再生、receive/respondと実前件だけ平坦資料を別再生する。不足改変重複余分拒否・コピー独立・同input非増加非上書き・非生成・非遡及を維持し、新理解／採用／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。
+原資料／開始baseline／工具／原ログはdx-implementation-58c4283。294原138対象、専用18＋監査96の別targeted-v2通過。初回専用のcandidates import不足1失敗と原source/logを非置換保持。追加報告改変を含む全回帰／rendererは進行中、最終結果はhandoff参照。別fixture dumpをテストプロセス原dumpへ昇格しない。相談245/114を固有数／網羅数／次未解決集合にせず旧非選定を繰越し合算しない。旧47はbeforeReports/beforeReceipts空のadapter限定、固定50全正規API完全供給ではない。
+残3〜4工程・暫定中心3・採用差分0、dx確認待ち1／その他入口0〜1中心0／最終意味照合回帰2。全14保留・各担当三保留・全体未完、4e／receipt保存形式／本接続未採用未実装。全旧所有／fixture／推移的依存意味再読・全入口最終分類・実UI音声／保存再開配布／外部試遊ログ通し未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作。過去成功や元full状態を今回結果へ昇格しない。
+```
+
+以下の未採用は採用前状態として保持する。
+
 ## 現行継続文（dx対象・保持方針の相談案、両方未採用）
 
 ```text

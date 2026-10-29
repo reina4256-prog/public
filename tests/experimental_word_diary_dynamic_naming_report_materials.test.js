@@ -175,7 +175,7 @@ test('dynamic naming report journal rejects malformed, cyclic, non-JSON and unsa
 });
 test('83 prior supplemental and 47 older input contracts retain dynamic naming report report boundaries', () => {
     const audit = require('../scripts/experimental/diary_audit');
-    const owners = audit.supplementalInventory().filter(o => o.id !== '4d12dw'); assert.equal(owners.length, 85);
+    const owners = audit.supplementalInventory().filter(o => o.id !== '4d12dw'); assert.equal(owners.length, 86);
     const legacy = audit.inventory().filter(o => !['4d1', '4d3', '4d4'].includes(o.id)).map(o => {
         const old = require('../' + o.file), params = /function capture\(([^)]*)\)/.exec(old.capture.toString())[1].split(',').map(p => p.trim());
         assert.equal(params.length, o.arity); return { ...o, old, params };

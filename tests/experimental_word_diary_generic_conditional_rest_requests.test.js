@@ -71,7 +71,7 @@ test('invented roles, understanding, judgment, reply and receipts reject atomica
 });
 test('prior owners keep their scopes and do not acquire generic conditional requests', () => {
     const owners = require('../scripts/experimental/diary_audit').supplementalInventory().filter(r => r.id !== '4d12cy');
-    assert.equal(owners.length, 85);
+    assert.equal(owners.length, 86);
     for (const f of accepted) {
         const v = f.value, r = v.receipt, w = r.beforeWorld;
         for (const owner of owners) {
