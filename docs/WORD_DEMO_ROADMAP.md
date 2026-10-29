@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-29 dx確認・次チャット保存点：ユーザーがe48d087のdx採用範囲へ実装後OKと継続／移動の裁量を明示。dxは実装・Codex検証・ユーザー実装後OK確認済み。139枠139確認済み・正式子128・最新ao〜dx人間OK・全137登録（固定50＋追加87）。[次dy再開点](specs/core/experimental_word_learning.md#diary-entry-remainder-after-dx)へ続ける。dyは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。残2〜3工程・暫定中心2、dx確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定・中心確度低・上限終了保証なし、全14保留・各担当三保留・全体未完。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／検証／実読取未検証／発行は現行handoff参照。以下のdx未受領は受領前状態。
+
 - 2026-10-29 dx最終：[採用範囲](specs/core/experimental_word_learning.md#diary-reference-report-materials-dx-verified)の実装・Codex検証完了。新方式全Node3581／33JS構文＋修正smoke再構文／七言語チェック／別隔離renderer708通過、専用18＋監査96。139枠138確認済み・正式子128・全137登録・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・全体未完。元fullのstatus／GPU失敗／reviewRequired／reading.not_recordedと途中smoke修正のhash記録を別成功で置換しない。原ログ／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。
 
 - 2026-10-29 dx採用：ユーザー「はい、どちらもOKです」で[参照と非対比報告の対象・保持方針](specs/core/experimental_word_learning.md#diary-reference-report-materials-dx)を両方採用。reference_report_materials.create()/capture(buffer,result,receipt)、kind=reference_report_materialとして実装検証中。139枠138確認済み・正式子128・全137登録（固定50＋追加87）・最新ao〜dw人間OK、dx実装後OK未受領・同じdx継続。残3〜4工程・暫定中心3・採用差分0、全14保留・各担当三保留・全体未完。検証／原資料／実読取未検証は現行handoff参照。以下の未採用は採用前状態。

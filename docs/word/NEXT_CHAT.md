@@ -1,5 +1,20 @@
 # 次チャットの開始文
 
+## 次チャットへ貼る現行開始文（dx確認済み・次dy未選定未採用）
+
+```text
+ゲーム実装最新e48d087。文書最新commit/pushはCURRENT_IMPLEMENTATION.md参照。ユーザーがdx採用範囲へ実装後OKと継続／移動の裁量を明示。dxは実装・Codex検証・ユーザー実装後OK確認済み。139枠139確認済み・正式子128・最新ao〜dx人間OK・全137登録（固定50＋追加87）。次の採用相談前で次チャットへ移す。確認済みdxを再採用確認しない。
+読取は現行handoff→本書最初の現行text→routing/word現行通知→OWNERS必要行／所有節／依存→VALIDATION。再開正本specs/core/experimental_word_learning.md#diary-entry-remainder-after-dx。巨大文書／全過去開始文を再読せず必要節へ絞り、原文保管／必要依存／必須検証を維持。実読取と未読未検証、hash／機械通過と意味読了／人間OKを分ける。
+次dyは予定記号のみ、具体対象／保持方針／理解規則未選定未採用未着手・正式枠/API/kind追加なし。教示訂正／correction/replyと報告併存、参照報告と名付け／動的／他原frameや規則の併存、他locale追加要否／分割・全入口最終意味分類は未決定。既存所有条件と正規前提付き資料から個別相談し、未捕捉だけで採用／追加不要／永久対象外／全入口完了を決めない。採用後は長さに無理がなければ同じチャットで実装検証する。
+dxはreference_report_materials.create()/capture(buffer,result,receipt)、kind=reference_report_material。日本語原reference又はword_reference一節以上＋非対比feeling_report/external_event_report一節以上、完全／未理解双方・併存二参照／報告／原unknownだけ。個体候補／原採用、語義候補／訂正連鎖／競合／原applications、報告出所を分離し、必要原出所ID和集合を原当時知識で利用先別に独立再生する。
+一input一資料/per_clause、全節／不足・全原result/learning/transfer/expression・実reply/turn.answer有無・入力前knowledge/context/feelingLearning・前後state/worldを分離コピー。receive/respondと実前件だけ平坦資料を別再生、不足改変重複余分拒否・同input非増加非上書き・コピー独立・非生成・非遡及を維持し、新理解／採用／全節回答／本人経験／感情／原因真偽／受諾予約実行を補わない。旧所有と不足receipt拒否・unknown非補修を維持。
+相談245へ114成立／131非成立・専用294原138成立を固有数／網羅数／次未解決集合へ変換せず合算しない。旧47はbeforeReports/beforeReceipts空の既存adapter限定、固定50全正規API完全供給／全意味読了ではない。旧非選定を自動繰越ししない。
+残2〜3工程・暫定中心2、dx確認前3〜4中心3から下限／上限／中心−1、dx実装後確認待ち1だけ差引き、その他入口0〜1中心0／最終意味照合回帰2を維持。追加要否／分割・全入口最終分類未決定、中心確度低・上限終了保証なし。全14保留・各担当三保留・4d12/4d/ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。
+今回は確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。原資料／ログdx-implementation-58c4283、今回開始十文書baseline／33source hash／文書検査／発行dx-acceptance-e48d087。過去全Node3581／33JS構文＋修正smoke再構文／七言語14957／別renderer708と元fullのincomplete／GPU失敗／reviewRequired／reading.not_recorded・途中smoke修正を今回成功へ昇格しない。既存18リンク不整合／du同文二重anchorを保持。全旧所有／fixture／推移的依存意味再読・固定50全正規API・全入口最終分類・実UI音声／本人日記保存再開配布／外部試遊ログ通し確認未完。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非置換非commit。
+```
+
+以下のdx実装後OK未受領は受領前の継続文として保持する。
+
 ## 現行継続文（dx採用範囲実装・Codex検証完了）
 
 ```text
