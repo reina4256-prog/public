@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-known-reason-t"></a>
+
+##### 4d最終意味照合：既知理由教示t（2026-10-30・今回単位の照合完了）
+
+- 開始abb5ebd、ユーザー指定の4d12tを一単位として照合した。ゲーム実装f93e951、dyまで140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。新部品／混在候補／dz・理解規則・保存形式・ゲーム接続の追加はない。
+- t本体・専用test・fixture全文とOWNERSのt行、本節のt所有条件と3c3d1／3c3d2、必要なcore／relation／world・共通fixture・candidate保持処理を直接照合。この読取範囲で新しい仕様不一致は未発見。六引数の入力前一時資料供給を保存契約へ昇格しない。
+- 今回のquestionBasis／reasonBasis各一件は初期根拠または同scopeの原二教示に照合する。question原教示の当時question未理解、reason原教示の当時question既知・reason未理解、異なる原選択／原完了休息・原入力順序／一意性・relationEvidence・state/world両資料と移動到着完了historyを分離する。今回completeを原教示のpartialへ書戻さず、label.questionBasisと今回別資料reasonBasisも混同しない。
+- 原selected_proposalの選択時rest／proposal根拠を後発のrest学習で置換しない。reason各choice初回原教示と入力前evidenceの存在一致を要求し、初回欠損を今回資料で新造しない。同choice別休息の候補は保持できるが初回根拠は非置換、pairing.updatedは今回結果と一致・relationAcquired=false。教示右側を本人実回答／全動機の自覚／共同休息へ補完しない。通常理由問いのselected_reasonはuの別入口。
+- 専用testはnode --test --test-concurrency=2で20件全通過・終了0、fail／cancelled／skipped／todo各0。既存fixtureは692ケース1253入力（七言語八設定両順の既知教示112ケース448入力、原未理解教示分離56ケース224入力、今回資料改変142、question／reason原根拠改変各18等）。関連11ファイルhash不変。原stdout/stderr・開始十文書baseline・工具・読取記録はdocs/.local-history/verification-runs/4d-t-review-abb5ebd。局所工具構文・文書保持／新リンク／差分検査と発行確定値は現行handoff参照。
+- 固定50中4d1〜11／4d12a〜tの31部品まで直接照合済み、残u〜amは19部品。次チャットは4d12uの本体・専用test・fixture・所有条件から本人実replyのselected_reasonと教示を区別し、必要依存枝まで照合する。今回u本体／test／fixtureは未読。残19部品後の全入口最終分類も未完で、dy原728担当成立や138 API宣言inventoryを全入口網羅へ拡張しない。
+- 今回は部分照合／文書のみで、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は未実行。過去全3597／七言語成功と今回20専用成功を区別。全14保留・各担当三保留・4d12／4d／ID4全体未完、4e未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。具体不足がないため新採用相談は追加しない。
+
 <a id="diary-final-review-reason-q-s"></a>
 
 ##### 4d最終意味照合：理由教示q〜s（2026-10-30・今回単位の照合完了）

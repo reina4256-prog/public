@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-10-30最新：[既知理由教示tの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-reason-t)を一単位として完了。固定50中31まで、残u〜amの19部品・次u。専用20件通過、新不一致未発見は今回読取範囲のみ。新部品追加なし、全入口分類／4d全体未完。全回帰・rendererは今回未実行。検証・読取／未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[理由教示q〜sの意味照合](../specs/core/experimental_word_learning.md#diary-final-review-reason-q-s)を一単位として完了。固定50中30部品まで、次チャットはtから・残20部品。専用52件通過、新不一致未発見（今回読取範囲）。新部品追加なし、全入口分類／4d全体未完。今回全回帰・renderer未実行。検証・読取／未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30：[4d最終意味照合の部分結果](../specs/core/experimental_word_learning.md#diary-final-review-dy-corpus)。dy原728件に現担当成立、旧担当配列・原hash不変、新候補／dz追加なし。138 API宣言の棚卸しを全入口意味読了にしない。dy確認済み・全138登録／全14保留・4d全体未完を維持。検証・発行・読取／未検証・次点はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

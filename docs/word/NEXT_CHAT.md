@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（既知理由教示t照合済み・次u）
+
+```text
+開始abb5ebd、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。ユーザー指示の一単位完了ごとの次チャット移動を継続し、今回は4d12tの最終意味照合を完了。正本specs/core/experimental_word_learning.md#diary-final-review-known-reason-t。
+固定50の直接照合は4d1〜11／4d12a〜tの31部品、残u〜amの19部品。t本体／専用test／fixture全文・所有条件と必要依存枝を照合し、今回読取範囲で新仕様不一致未発見。question／reasonの初期根拠または原二教示、当時partial／今回complete、原選択選択時根拠・原完了休息・各choice初回evidence・今回pairingを分離。教示右側を本人実回答／全動機自覚／共同休息へ補完せず、新混在候補／dzは追加していない。
+専用20件全通過・終了0、fixture692ケース1253入力・関連11hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-t-review-abb5ebd。今回全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は未実行。過去全3597／七言語成功を今回結果へ昇格しない。文書検査／発行はhandoff参照。
+次はexperimental_word_diary_reason_answers.js（4d12u）、tests/experimental_word_diary_reason_answers.test.js、scripts/experimental/diary_reason_answer_fixtures.jsと所有u行・必要依存から、本人実replyのselected_reason／引用原選択／reviewedBy・通常問いと教示・当時知識と初回根拠を照合。u本体／test／fixtureは今回未読。固定50の残19部品後に残入口群の既存担当／当時非成立／具体不足／別領域保留の最終分類へ進む。dy原728件やAPI宣言棚卸しを全入口網羅としない。
+全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。具体不足がある場合だけ必要範囲を整理する。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%を操作・commitしない。以下の旧継続文と原証拠は履歴として保持する。
+```
+
 ## 最初に読む現行継続文（理由教示q〜s照合済み・次t）
 
 ```text

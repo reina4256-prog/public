@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-30最新：[tの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-reason-t)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。初期または経験question／reason根拠、原教示当時partial／今回complete、各choice初回と今回pairingを分離、本人実回答はuの別入口を維持。専用20件通過・担当追加なし。固定50中31まで・残19、次u。全入口分類未完。発行・実読取／未検証は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[q／r／sの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-reason-q-s)。question未理解／既知とreason未理解を原選択・原完了休息・初回根拠・当時理解で分離、三本体／専用test／fixture全文と必要依存枝を照合。専用52件通過、担当追加なし。固定50中30まで、次はt・残20、全入口分類未完。発行・実読取／未検証は現行handoff参照。以下は過去状態。
 
 - 2026-10-30：[4d最終意味照合の部分結果](../specs/core/experimental_word_learning.md#diary-final-review-dy-corpus)。138登録API宣言／引数と専用test対応を別inventoryへ保存。固定50完全前提供給・全意味読了の認定ではない。dy原728件はas8／di36／dj76／du400／dv16／4d5が16／dy176に担当成立。旧47は限定adapter、4d1/3/4は別経路。正式担当追加なし、最新ao〜dy人間OK維持。以下は過去状態。

@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-30最新：[既知理由教示tの直接意味照合](experimental_word_learning.md#diary-final-review-known-reason-t)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用20件通過、固定50中31まで・次u・残19。今回読取範囲で新不一致未発見。歴史snapshot／review hash／not_receivedは上書きせず、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。今回全回帰・監査test・renderer未実行、検証・発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[理由教示q〜sの直接意味照合](experimental_word_learning.md#diary-final-review-reason-q-s)。三本体／専用test／fixtureと必要依存枝・所有条件を照合、専用52件通過、固定50中30まで・次t。歴史snapshot／review hash／not_receivedを上書きせず、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。今回全回帰・監査test・renderer未実行、検証・発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-30：[dy原資料の現在担当再照合](experimental_word_learning.md#diary-final-review-dy-corpus)を実施。原728件に全件担当成立、旧担当配列不変。ao当時の具体不足表を現在未対応一覧として再利用せず、ap〜dyの採用済み担当を差し引く。歴史表・監査の固定snapshot／手動review hash／not_receivedは上書きしない。138 API宣言inventoryと全入口意味読了を分け、全14保留・各担当三保留・全体未完を維持。検証・発行は現行handoff参照。

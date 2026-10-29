@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-30最新：[既知理由教示tの最終意味照合](core/experimental_word_learning.md#diary-final-review-known-reason-t)を一単位として完了。固定50中31部品まで・残u〜amの19部品、次チャットはu。専用20件通過・fixture692ケース1253入力、今回読取範囲で新不一致未発見。dy確認済み・全138登録／全14保留・4d全体未完を維持。今回全回帰・renderer未実行。検証・実読取／未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[4d理由教示q〜sの意味照合](core/experimental_word_learning.md#diary-final-review-reason-q-s)を一単位として完了。固定50中30まで、次チャットはt・残20。専用52件通過、今回読取範囲で新不一致未発見。dy確認済み・全138登録／全14保留・4d全体未完を維持。全回帰・rendererは今回未実行。検証・読取未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30：[4d最終意味照合の部分結果](core/experimental_word_learning.md#diary-final-review-dy-corpus)。dy原728件を現88担当＋旧47限定adapterで再照合し全件に担当成立、原hash・旧担当配列不変。この有限資料で追加不足なし、新候補／dz追加なし。138 API宣言棚卸しと固定50正規API完全供給は区別する。dy確認済み・140枠140確認済み・全138登録を維持、全入口分類／4d全体未完。検証・発行・次の実読取点はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

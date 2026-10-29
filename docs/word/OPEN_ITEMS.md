@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-10-30最新：[既知理由教示t照合](../specs/core/experimental_word_learning.md#diary-final-review-known-reason-t)。今回読取範囲で新不一致未発見、固定50中31まで・残19と全入口分類は未完、次u。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用20成功を全回帰／全体意味読了／本接続成功へ昇格しない。以下は過去状態。
+
 - 2026-10-30最新：[理由教示q〜s照合](../specs/core/experimental_word_learning.md#diary-final-review-reason-q-s)。当該範囲に新不一致未発見、固定50中30部品まで・次t、残20と入口全体分類は未完。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）を維持。52専用成功を全体意味読了／全回帰／本接続成功へ昇格しない。以下は過去状態。
 
 - 2026-10-30：[4d最終意味照合の部分結果](../specs/core/experimental_word_learning.md#diary-final-review-dy-corpus)。dy原728件に既存552＋dy176が成立、未捕捉0。有限資料内の結果でありentry_semantics／other_existing_inputsの全体完了ではない。理解非成立と資料保持成立を分け、全14識別子・各担当三保留・他locale／任意形等の未決定を維持する。新規採用相談なし、残2〜3工程中心2・部分進捗のため減算0。以下は過去状態。
