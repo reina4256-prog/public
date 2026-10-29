@@ -3,6 +3,7 @@
 ## 最初に読む現行継続文（訂正未理解側教示v照合済み・次w）
 
 ```text
+移動確認（2026-10-30）：ユーザー「OKです。引継ぎ文書おねがいします」を受領。v照合結果の文書commit ab2a59aはorigin/mainへpush済み。今回は移動確認の文書追記のみ、ゲーム検証再実行なし。次チャットは以下の4d12wから再開し、vを再照合せず、未読17部品・全入口分類未完・4e未着手を維持する。
 開始07cceaa、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。ユーザー指定の一単位完了ごとの次チャット移動を継続し、今回は4d12vを照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-correction-v。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。
 固定50中4d1〜11／4d12a〜vの33部品、残w〜amは17部品。v本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。原説明input/record/旧basis・当時naming根拠、source/replacement各教示の当時complete naming・入力順scope・今回pairingを分離。教示のみで旧説明を失効せず、後発根拠による過去basis/source非置換、本人実発話・身体経験・自覚非補完。初期namingからcorrectionのみ除くfixtureは実プリセットと別。零経過の旧未解消は後続an補修済み、今回an全体再検証なし。
 専用14件全通過・385ケース594入力・終了0、開始9hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-v-review-07cceaa。全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597／七言語成功と区別する。文書検査・発行はhandoff参照。
