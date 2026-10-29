@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-30最新：[本人実理由回答uの最終意味照合](core/experimental_word_learning.md#diary-final-review-reason-answer-u)を一単位として完了。固定50中32まで・残v〜amの18部品、次v。専用18件通過・fixture796ケース912入力、新不一致未発見は今回読取範囲のみ。零経過中断はan補修済みの現行境界を維持。dy確認済み・全138登録／全14保留・4d全体未完、全回帰・renderer今回未実行。発行・実読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[既知理由教示tの最終意味照合](core/experimental_word_learning.md#diary-final-review-known-reason-t)を一単位として完了。固定50中31部品まで・残u〜amの19部品、次チャットはu。専用20件通過・fixture692ケース1253入力、今回読取範囲で新不一致未発見。dy確認済み・全138登録／全14保留・4d全体未完を維持。今回全回帰・renderer未実行。検証・実読取／未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[4d理由教示q〜sの意味照合](core/experimental_word_learning.md#diary-final-review-reason-q-s)を一単位として完了。固定50中30まで、次チャットはt・残20。専用52件通過、今回読取範囲で新不一致未発見。dy確認済み・全138登録／全14保留・4d全体未完を維持。全回帰・rendererは今回未実行。検証・読取未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

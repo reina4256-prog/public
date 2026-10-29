@@ -1,5 +1,19 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-reason-answer-u"></a>
+
+##### 4d最終意味照合：通常理由問いの本人実回答u（2026-10-30・今回単位の照合完了）
+
+- 開始18ca061、ユーザー指定の一単位として4d12uを照合完了。ゲーム実装f93e951、dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。新部品／混在候補／dz・理解規則・保存形式・ゲーム接続の追加なし。
+- u本体・専用test・fixture全文、OWNERSのu行、u所有条件と3c3d1／3c3d2・an補修条件、必要なcore／relation／world・共通fixture・candidate保持処理を直接照合。この読取範囲で新しい仕様不一致は未発見。七引数は入力前一時資料供給であり保存契約ではない。
+- 所有七言語の通常問い・正規化frame・当時complete questionSlot=reason、question／reasonの初期根拠または同scope原二教示とrelationReferencesを照合。経験根拠は原question教示の当時partial、原reason教示の当時question既知／reason未理解、異なるrequest／invitationの原選択・完了休息・入力順一意性・relationEvidence・state/world資料と実historyを分離する。後のcompleteを当時partialへ書き戻さない。
+- 実world.replyのselected_reason／experienceId／past／choiceSource／reviewedBy／literalは直近原完了休息・原review・原選択input.rawと厳密一致。教示右側やcore暫定answer_unknownを本人実回答へ転用しない。kind=question・actualAnswer=true・answer実replyを保持し、pairingを生成しない。選択時rest／proposal根拠は後発根拠で置換せず、初期既知でも各choice初回原教示とevidenceの存在一致・初回非新造非置換を検査する。
+- 同input再受信再読は非増加非上書き、新問いinputが同じ原休息を引用する場合は別契機。コピー編集・後知識や後活動から既存候補を変更しない。しぐさattend・未振り返りanswer_unknown・自律／未選択／未理解・移動／休息中・中断／次休息開始後・別話者言語・欠損矛盾を区別し、全動機自覚・共同休息・感情自己確認へ補完しない。
+- u当時の零経過中断不一致は履歴であり、後続4d12anで補修・ユーザー確認済み。現行world.approachの零長rest history／onArrivalのrestStartOrder・startInputSerial、原教示時点と後続開始を分ける照合を確認。u現行fixtureの零経過中断二ケースはanswer_unknown／capture=falseで通過し、未解消へ戻さない。今回an全体の保存再開／renderer検証を再実行した意味ではない。
+- 専用18テスト全通過（node --test --test-concurrency=2、終了0、fail／cancelled／skipped／todo各0）。既存fixture796ケース912入力、関連12ファイルhash不変。原stdout/stderr・開始十文書baseline・局所工具・読取記録はdocs/.local-history/verification-runs/4d-u-review-18ca061。文書保持／新リンク／差分検査と発行確定値は現行handoff参照。
+- 固定50中4d1〜11／4d12a〜uの32部品まで直接照合済み、残v〜amは18部品。次チャットは4d12vのexperimental_word_diary_correction_examples.js・専用test・scripts/experimental/diary_correction_fixtures.js・所有条件から必要依存へ。v本体／test／fixtureは今回未読。残18部品後の全入口最終分類は未完、dy原728担当成立や138 API宣言inventoryを全入口網羅へ拡張しない。
+- 今回は部分照合／文書単位。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は未実行。過去全3597／七言語成功と今回専用18成功を分ける。全14保留・各担当三保留・4d12／4d／ID4全体未完、4e未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。具体不足なしに新採用相談を追加しない。
+
 <a id="diary-final-review-known-reason-t"></a>
 
 ##### 4d最終意味照合：既知理由教示t（2026-10-30・今回単位の照合完了）
