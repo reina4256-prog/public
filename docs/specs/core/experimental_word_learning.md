@@ -1,5 +1,42 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-dy-corpus"></a>
+
+##### 4d最終意味照合：dy原資料の担当再照合（2026-10-30・部分完了）
+
+- 現在の実装仕様／確認状態：ゲーム実装f93e951、dyまで140枠140確認済み・正式子129・全138登録（固定50＋追加88）を維持。新しい候補やdz枠・理解規則・保存形式・ゲーム呼出は追加していない。以下の再開点から最終照合を再開した。
+- 今回はdy相談時の原728件を原JSONのまま再読込みし、コピー上の現在receive/respond全文・前後state/worldを再生照合した。88追加担当と従来47入力APIの限定adapterを再実行し、728件全てに担当が成立、未捕捉0。dy以外の成立担当配列は相談時outcomesの各行と完全一致した。この有限資料内では新しい保持不足は見つかっていない。
+
+| 原728件に対する担当 | 成立件数 | 当時の理解と保持の区別 |
+| --- | ---: | --- |
+| 4d12as | 8 | 成立した単独確認／取り下げ。原名付けと実前件・実更新が必要 |
+| 4d12di | 36 | 未成立の訂正を不足のまま保持。取り下げ成功を補わない |
+| 4d12dj | 76 | 原unknownの資料。前件のない返答をreplyへ補修しない |
+| 4d12du | 400 | 非対比報告と原unknownの複数節。報告と未知節を分離 |
+| 4d12dv | 16 | 既存名付けと非対比報告。教示に見える表面形から新しい語義教示を作らない |
+| 4d5 | 16 | 原処理で成立した名付けの既存担当。語義訂正成功へ読み替えない |
+| 4d12dy | 176 | 未成立correction/reply＋非対比報告。全訂正返答節の不足・実更新なしを維持 |
+
+- この表は同じ原728件の現在担当分類であり、別の専用756件や過去の非捕捉数との合算、全自由入力の網羅数、全入口の最終分類、次の残件集合にはしない。旧47はbeforeReports/beforeReceipts空adapterのままで、4d1/3/4はこの入力照合の呼出対象ではない。固定50を含む138登録のAPI宣言・引数名・引数数・専用test対応を別inventoryへ保存したが、固定50全正規APIへの完全な前提資料供給を実行した証拠ではない。
+- **既存担当**：ao時点の「成功した本人回答」「聞き返し」「通常確認等」の不足表は歴史資料。現在はapの直接九入口、aqのrepeat_answer/context_detail、asの成立した名付け確認取り下げ、di/dyの未成立資料、djの原unknown等を差し引いて読む。旧表の未対応表示だけを根拠に再採用しない。
+- **当時非成立**：core.receiveの複数節correction/replyはclause_scope不足、期限切れ・別話者・pendingなしの返答は原unknown。world.respondが実turn.answerを保持しないattend/answer_unknown/taste_unsureや観察描写も本人実回答成功にしない。これらの理解／回答非成立と、di/dj/du/dy等による資料保持成立は別の軸である。
+- **具体的未対応／未照合**：今回原728件に新しい未捕捉はない。それをもって残る単独報告・九入口外問い・否定お願い・提案・他locale／併存の全入口に不足なしとは判定しない。現時点で新部品の個別採用相談は追加しない。4d12終了条件の「未分類なし」はまだ満たしたと宣言しない。
+- **別領域保留**：従来14識別子と各担当の本文集約／receipt保存形式／本接続の三保留を維持。4e本文生成、4f絵、4g暦と保存本接続、4h追加成長、4i/ID9・10通し確認、ID3印なし教示、経験由来訂正新scope等は今回完了／永久対象外へ移していない。
+- 原資料hashは24c11c5512317ad268e124d23a36f824ea32b67173b2bee2af61f947a2526944不変。開始十文書baseline・281 source/test hash・138 API inventory・行別結果・工具原ログはdocs/.local-history/verification-runs/4d-final-review-25b06af。検証と読取・未検証の確定結果は現行handoff参照。原資料や過去失敗記録を上書きせず、今回結果を過去runへ昇格しない。
+- 固定50のうち4d1/3/4は別経路でcapture/create本体・専用test全文を直接読取、専用20テスト通過。4d1は供給済み候補のJSON検証とコピー・同occurrence非上書きで検出器ではない。4d3は実tickの食事／休息完了eventとonArrival前後knowledgeを渡し、当時既知／同eventのexperienced_life／不足を分ける。4d4は六職完了eventと実演・同event／職／scope根拠、前後knowledgeを渡してwork／職別workを分ける。数値変化・結果・実演・reasonsを本人感情や理由関係理解へ変えず、開始／途中は完了eventにしない。world.tick/onArrival/arrivalReplyとcareers.tick/learnの当該枝、所有対応表の経験／仕事行を照合し、この境界の新しい仕様不一致は未発見。依存の全枝意味再読を済ませたとはしない。
+- 4d2/5もcapture本体・専用test全文と関係する既読core.receive/formCandidates/updateLinks、notebook.rememberQuestionを照合。4d2は末尾question完全理解＋実answer_unknown（単独限定ではない）でありattendや未理解を成功回答／対象拡張にしない。4d5は当時scene/attentionと一意の完全名付け・explanation由来一候補を要求し、新inputの更新なし再教示も別候補、同inputは非増加。今回原728件の4d5成立16はこの名付けであり、語義教示成功ではない。
+- 4d6〜8の本体・専用test全文と所有対応表三行も直接照合した。4d6は入力前の既知意味basis＋単独word_explanation最終completeと同じscopeの一候補。4d7は生活八語の一意受理・入力時活動／感覚と入力前basis、4d8は既知eat/rest＋naming関係だけ不足のpartialと今回候補／初回adoptedを分ける。core.wordFrame/updateWordExplanation、life全体、relation.offerとvalidLabelのnaming該当枝を照合し、この範囲で新しい仕様不一致は未発見。Essen/essen二候補や未知意味を都合よく一意化せず、受理を完了習得へ昇格しない。4d2/5〜8の別専用33テスト通過。20＋33は今回別専用検証の内訳で、原728資料数や全回帰件数へ加算しない。
+- 4d9〜11も本体・専用test全文、所有対応三行、core.questionDemonstration/proposalFrame、relation.offer/validLabelの質問／提案枝と既読understandを直接照合し、別専用22テスト通過。4d9はquestionだけ未理解の引用教示、4d10は初期／同scope経験由来のquestion既知側、4d11はrest既知・request/invitationだけ未理解の印付き教示。原引用と当時理解、今回候補と初回adopted、関係根拠を別保持する。引用roles.actualAnswer=false・提案roles.actualParticipation=falseを本人回答／共同実行へ昇格せず、同休息のお願い誘い混在を補修しない。この読取範囲の新仕様不一致は未発見。20／33／22は別専用検証の内訳で、全回帰件数へ加算しない。
+- 4d12a〜dの本体・専用test全文と所有対応行、core.reportFrame、既読understand/receiveとrelation.offer/validLabelの報告枝も照合し、別専用31テスト通過。aは既知お願い誘い教示、bはreportだけ未理解の教示、cは既知報告教示、dは通常肯定休息報告。b/cでは教示の活動一意shadeと原roles・当時の主体理解を分け、dでは聞いた場面の活動／attentionを相手の休息事実確認にしない。教示にspeaker_reportを補わず、通常報告では原reportSourceと入力時basisを一致照合し、verified=false・時点unspecifiedを維持する。この読取範囲の新仕様不一致は未発見。専用既知報告testの一回目の工具表示に省略があり、後の行範囲指定読取とnode --checkで補完した。ファイル破損や修正ではない。
+- 4d12e〜gの本体・専用test・negation/known_negation/negation_report三fixture全文と所有対応行、core.negationFrame・relation.validBasis/validLabel否定枝・既読offer/understandを照合し、別専用35テスト通過。e/fの教示は肯定休息shade／否定食事berryの当時活動・意味／活動語／report根拠を要求、eの当時極性unknownとfの既知極性を分ける。gの通常否定報告は現在活動語／一意注目を要求せず原speaker_reportと入力前rest/report/negationを照合する。否定を食事・希望・実証済み事実へ読み替えず、後習得を旧入力へ戻さない。この範囲の新仕様不一致は未発見。
+- 4d12h〜jの本体・専用test・time/known_time/time_report三fixture全文と所有対応行、core.timeFrame・relation.validLabel時点枝・既読offer/understandも照合し、並列2の別専用43テスト通過。hの原now教示と原完了休息、今回past教示の機会を分離。iは相対時点理解と具体参照のsource_matched/unidentifiedを分け、最初の該当根拠の不整合を参照なしへ落とさず拒否する。jの通常時点報告は教示の原休息を今回報告の具体出来事へ転用せず、原speaker_reportを保持する。時点理解を正確な日付・本人経験・真偽確認へ補わない。この範囲の新仕様不一致は未発見。
+- 4d12k〜mの本体・専用test・condition/known_condition/condition_proposal三fixture全文と所有対応行、core.conditionFrame・relation.validLabel条件枝・sensation/conditionJudgmentと既読offer/understandを照合し、並列2別専用39テスト通過。kの未理解側今回受理と同休息初回adopted、lの既知側教示と観測、mの通常提案に付く今回判断を分ける。中間帯の観測ありunknownと未観測nullを区別し、構文理解のconditionStatus=unknownを上書きせず、判断を受諾・予約・実行・理由・本人感情へ補わない。この範囲の新仕様不一致は未発見。
+- 4d12n〜pの本体・専用test・sequence/known_sequence/sequence_proposal三fixture全文と所有対応行、core.sequenceFrame・relation.offerSequence/validLabel順序枝・既読world/understandを照合し、並列2別専用51テスト通過。nは同じ原食事のbefore教示とafter教示・開始前根拠・今回候補と初回資料を分離する。oは今回既知根拠と当時未理解の原before資料を分け、参照なしunidentifiedと矛盾拒否・後発basis非置換を維持。pは原学習input IDを今回対象の具体食事へ転用せず、完了判断・予約・実行を生成しない。この読取範囲の新仕様不一致は未発見。
+- ここまでの直接照合は固定50中4d1〜11／4d12a〜pの27部品。正規APIの意味・前提資料・既存専用正例を担当範囲ごとに照合した部分結果であり、原728件へ固定50全正規APIの完全前提資料を供給した検査ではない。並列2の別targeted-v2が184、別conditionが39、別sequenceが51通過。これらは全回帰の部分集合で、全回帰件数や原資料数へ加算しない。
+- 今回の全回帰：上限30分を明示した別run（4d-final-review-25b06af/full-30min）は文書／全Node3597／七言語チェック通過・status=passed／終了0、未実行check/test・reviewRequiredなし。reading.not_recordedは手動読取記録と別で維持し、全意味読了へ昇格しない。初回word-verification-dLBZq0は3597全assertion通過・Node exit0でもtimed_out（1568743ms）／run incomplete・終了1・localization未実行のまま保持。ゲームsource非変更、renderer／UI音声・本人日記生成保存再開配布／試遊通しは今回未実行で、4d全体の終了判定にはしない。
+- 次の検査点は固定50の残り4d12q〜amの正規APIに必要な原教示／選択／報告receipt等の供給と、既存専用testの正例を所有条件へ対応付けること。その後、残る入口群を現担当／当時非成立／具体不足／別領域保留へ根拠付きで揃え、VALIDATIONの最終区切り検証と通し未検証を分けて終了条件を判定する。新混在探索を自動再開しない。
+- 残2〜3工程・暫定中心2を維持。今回は最終意味照合の部分進捗で、最終照合回帰2の終了条件未充足・完了減算0、その他入口0〜1中心0は未決定のまま。全14保留・4d12/4d/ID4全体未完、中心確度低・上限終了保証なし。
+
 <a id="diary-final-review-after-dy"></a>
 
 ##### dy確認後：4d最終意味照合への再開点（2026-10-29）

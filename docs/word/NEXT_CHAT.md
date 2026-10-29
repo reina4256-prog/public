@@ -1,5 +1,18 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（4d最終意味照合・dy原728件再照合済み）
+
+```text
+開始25b06af、ゲーム実装f93e951・文書最新発行はCURRENT_IMPLEMENTATION.md参照。dy実装後OK確認済み・140枠140確認済み・正式子129・最新ao〜dy人間OK・全138登録（固定50＋追加88）維持。再開正本specs/core/experimental_word_learning.md#diary-final-review-dy-corpus。新混在候補／dzを自動追加せず最終意味照合を続ける。
+今回、dy相談原728件を現在receive/respond・88追加担当・旧47限定adapterで再照合し728件に担当成立／未捕捉0、既存552＋dy176。旧担当配列全行一致・原hash不変。138 API宣言と281source/test hashを別保存。原資料集合の結果であり全入口網羅ではない。旧47はbeforeReports/beforeReceipts空adapter・4d1/3/4除外で固定50全正規API完全供給ではない。原unknown／partialと当時不足を補修せず、理解非成立と資料保持成立を分ける。
+固定50中の4d1〜11／4d12a〜pの27部品は本体・専用正例・必要fixture／所有条件／依存枝を直接照合、新仕様不一致未発見。並列2の別targeted-v2が184、conditionが39、sequenceが51通過。全回帰や原資料数へ加算しない。次は4d12q〜amの正規API供給と専用正例／所有条件の対応から継続し、残入口群の四区分分類へつなぐ。全入口分類は未完。
+別full-30minは文書／全Node3597／七言語通過・status=passed／終了0。初回word-verification-dLBZq0はNode全assertion通過でもtimed_out／incomplete・localization未実行を保持し、別成功で置換しない。reading.not_recordedと実読取を分け、renderer/UI音声／本人日記生成保存再開配布／試遊通し未検証・4d全体未完。
+原資料／十文書baseline／工具と行別結果はdocs/.local-history/verification-runs/4d-final-review-25b06af。検証確定値・直接読取／未読未検証・次の具体検査点はCURRENT_IMPLEMENTATION.md参照。過去／今回runや独立テスト／UI保存配布を相互に成功昇格しない。読取は現行handoff→本最初text→現行routing/word通知→OWNERS必要所有節／依存→VALIDATION。出力省略部分は未読のまま。
+残2〜3工程・暫定中心2、最終意味照合の部分進捗で完了減算0。全14保留／各担当三保留・全入口最終分類／4d12/4d/ID4全体未完。4e／保存形式／ゲーム本接続未採用未実装。具体不足がある場合だけ影響と必要範囲を個別相談、未決定を完了／永久対象外へ移さない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非commit。
+```
+
+以下のdy確認後開始文は今回再開前の原文として保持する。
+
 ## 次チャットへ貼る現行開始文（dy確認済み・4d最終意味照合へ）
 
 ```text

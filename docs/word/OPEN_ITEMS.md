@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-10-30：[4d最終意味照合の部分結果](../specs/core/experimental_word_learning.md#diary-final-review-dy-corpus)。dy原728件に既存552＋dy176が成立、未捕捉0。有限資料内の結果でありentry_semantics／other_existing_inputsの全体完了ではない。理解非成立と資料保持成立を分け、全14識別子・各担当三保留・他locale／任意形等の未決定を維持する。新規採用相談なし、残2〜3工程中心2・部分進捗のため減算0。以下は過去状態。
+
 - 2026-10-29 dy確認・次チャット保存点：ユーザーがf93e951のdy採用範囲へ実装後OKと継続／移動の裁量を明示。dyは実装・Codex検証・ユーザー実装後OK確認済み。140枠140確認済み・正式子129・最新ao〜dy人間OK・全138登録（固定50＋追加88）。[4d最終意味照合の再開点](../specs/core/experimental_word_learning.md#diary-final-review-after-dy)へ続ける。新混在候補／dz枠を自動追加せず、根拠付き分類・最終回帰を優先、不足がなければ終了条件確認と次項目への接続を整理する。残2〜3工程・暫定中心2、dy確認待ち1だけ差引き。全14保留・各担当三保留・全体未完、4e未採用未実装。今回確認／文書のみ、ゲーム全回帰／監査／renderer再実行なし。過去成功を今回結果へ昇格しない。検証・実読取未検証・発行は現行handoff参照。以下のdy未受領は受領前状態。
 
 - 2026-10-29 dy最終：[採用範囲](../specs/core/experimental_word_learning.md#diary-incomplete-name-response-report-materials-dy-verified)のdy採用範囲の実装・Codex検証完了。新方式全Node3597／34JS構文／七言語チェック／別隔離renderer1323通過、専用15＋監査97。140枠139確認済み・正式子129・全138登録・最新ao〜dx人間OK、dy実装後OK未受領・同じdy継続。残3〜4工程中心3・採用差分0、全14保留・各担当三保留・全体未完。元fullの制限内renderer不通過／reviewRequired／reading.not_recordedを別成功で置換しない。検証／実読取未検証／発行は現行handoff参照。以下の実装検証中は途中状態。
