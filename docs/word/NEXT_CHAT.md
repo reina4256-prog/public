@@ -3,6 +3,7 @@
 ## 最初に読む現行継続文（感情単独節通常報告ag照合済み・次ah）
 
 ```text
+移動確認（2026-10-30）：ユーザーがc01c76dのag意味照合結果へ「OKです」と確認。agを再照合せず次4d12ahから再開する。ユーザー追加指示：今後、次チャットへ移る区切りでは、文書更新だけでなく貼り付け用の次チャット冒頭文まで必ず最終回答に出力する。一単位完了ごとの移動を継続する。
 開始c57d719、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。af結果はユーザー確認済み。一単位完了ごとの次チャット移動を継続し、今回は4d12agを照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-single-feeling-report-ag。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。
 固定50中4d1〜11／4d12a〜agの44部品、残ah〜amは6部品。ag本体／専用test／実依存diary_single_feeling_report_fixtures.js全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。前継続文のdiary_feeling_report_fixtures.jsはaa用で、agの実依存先を今回確認訂正、旧文は非削除保持。
 初期sad/happy二件または零件・初期report/time/contrast三件または零件と先行実限定教示を照合。今回feeling_singleのreport/timeと対象意味既知・completeだけkind=report／feeling_report:今回input ID。単独節はcontrast不要・contrastConnectionとcontrastのfeelingReferences非付与、basisの全先行contrast資料は保持。player報告・yesterday/now・testimony.verified=false、聞いたinput.atと生活elapsedを分離。本人感情身体経験真偽原因暦非補完・原当時不足非書戻し。初期側は選択不要、教示側は全先行資料と当時basisをread-only再照合、今回報告場面は原教示場面と別。前提不足入力非遡及、別input反復は別候補、同input非増加非上書き・コピー独立。
