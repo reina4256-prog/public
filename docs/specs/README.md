@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-31最新：29bba1bの続きとして[現在希望の単独報告の行別対応付け](core/experimental_word_diary_audit.md#entry-desire-report-row-mapping)を一単位実施。既存not_nowのay／brを、完全理解・eatだけ不足・関係不足・両者併存の四行へ対応付けた。主体／aspect／reportSource欠落、極性／時点、経験scope非転移と必要原receiptを分離。条件表であり個別原receipt未供給・未照合を維持、capture=false単独判定禁止。次は通常好悪az/bs/bx一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-31最新：3d0f4ffの続きとして[名前・酸味・通常確認問いの行別対応付け](core/experimental_word_diary_audit.md#entry-name-sour-confirmation-row-mapping)を一単位実施。bd/bz/ca/cf・be/cb/cg・cc/chの現所有条件と必要資料、as／4d2／apとの境界を対応付けた。条件表であり、個別原receipt未供給・未読・未照合は未確定のまま。当時処理と資料保持を分離しcapture=false単独判定禁止。次は問い以外の単独報告の一群。固定50中50を全入口網羅へ昇格せず、dy原728有限照合・旧47空前件・4d1/3/4別経路・138宣言inventoryの制限を維持。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留、全入口分類／4d12／4d／ID4全体未完。残2〜3工程中心2・減算0、新部品／dz追加なし。文書検証のみ・全回帰／renderer等未実行。実読取／未検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-31最新：c4c2bf6の続きとして[直接問い九入口・本人回答の行別対応付け](core/experimental_word_diary_audit.md#entry-direct-answer-row-mapping)を一単位実施。core.interpret／receiveからap九入口、aq再応答、4d2答え不明、u実選択理由と必要資料を対応付け、cd／ce／ct／cwの既存所有を確認。当時処理と資料保持を分離し、原receipt未供給・未読・未照合は未確定のまま。条件対応を個別成立／全入口網羅へ昇格しない。次は名前・酸味・通常確認問いの一群。固定50中50・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／renderer等未実行。実読取・未検証・発行は現行handoff参照。以下は過去状態。

@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-31最新：29bba1bの続きとして[現在希望の単独報告の行別対応付け](#entry-desire-report-row-mapping)を一単位実施。既存not_nowのay／brを、完全理解・eatだけ不足・関係不足・両者併存の四行へ対応付けた。主体／aspect／reportSource欠落、極性／時点、経験scope非転移と必要原receiptを分離。条件表であり個別原receipt未供給・未照合を維持、capture=false単独判定禁止。次は通常好悪az/bs/bx一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-31最新：3d0f4ffの続きとして[名前・酸味・通常確認問いの行別対応付け](#entry-name-sour-confirmation-row-mapping)を一単位実施。個別原receipt未供給・未照合は維持。当時処理と資料保持を分離し、全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新担当／dz追加なし、文書検証のみ。
 
 - 2026-10-31最新：c4c2bf6の続きとして[直接問い九入口・本人回答の行別対応付け](#entry-direct-answer-row-mapping)を一単位実施。現行coreとap／aq／4d2／uの条件・必要依存、cd／ce／ct／cwの既存所有境界を確認。条件上の対応付けであり、個別原receipt未供給の成立認定／全入口網羅ではない。全体未完・全保留・残2〜3工程中心2／減算0を維持。今回文書検証のみ。
@@ -79,6 +81,36 @@
 既存保存資料`4d-final-review-25b06af/summary.json`全文・`review.cjs:29〜45`を再確認。原dy728有限照合の担当内訳はdi/dy/dj/du/dv/as/4d5で、この九担当一群の完全前提正規API照合の証拠ではない。原rows/outcomes全件の今回人手読取なし。固定50中50を全入口網羅へ昇格せず、旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持する。
 
 この単位で新担当が必要と確定した行はない（不足なしの認定ではない）。新部品／dz追加なし。次は問い以外の単独報告の一群について、既存保存資料と所有索引から節境界・必要依存を特定して行別対応付けする。今回群と直接九入口の個別原資料供給・照合、他群／複数節／全入口最終分類／4d12／4d／ID4全体は未完。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留、4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2・減算0・低確度・上限終了保証なし。今回は文書検証のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。証拠は`docs/.local-history/verification-runs/entry-name-sour-confirmation-mapping-3d0f4ff`。
+
+<a id="entry-desire-report-row-mapping"></a>
+
+#### 現在希望の単独報告の行別対応付け（2026-10-31・一単位）
+
+29bba1bの[名前・酸味・通常確認問い](#entry-name-sour-confirmation-row-mapping)に続き、[分類基準](#entry-final-classification-basis)に従って、問い以外の単独報告から既存not_nowのay／br一群を選んだ。OWNERSの三引数APIと[ay所有条件](experimental_word_learning.md#diary-desire-reports-ay)・[br所有条件](experimental_word_learning.md#diary-incomplete-desire-reports-br)を確認した条件表であり、個別原receipt未供給・未照合。例は既存catalog／fixture定義の「今は食べたくない／今はいらない」で、今回の原資料生成・再生・専用test結果ではない。原input ID／at／話者／設定／知識／文脈／前後worldは個別未供給である。
+
+**節境界**：core.interpretの既存句読点分割とcatalog.patterns.jaのnot_now（meaning=eat、aspect=desire、polarity=negative、time=now、relations=report/negation/time）による単独reportだけ。疑問末尾はreport→question/confirmationへ変換され、report関係をquestionへ置換するのでay／brへ戻さない。複数節・unknownを単独報告へ修復せず、句点後空白でunknown節が残る既存fixture境界も保持。二語面の他言語文型を新設しない。
+
+| 原input／frameと入力前の適用条件 | 当時理解として照合する値 | 実応答／更新・資料保持の現担当 |
+| --- | --- | --- |
+| 日本語not_now単独report、eat意味＋report/negation/time三関係が全て適用可能 | report・complete=true・unresolved=[]、known.meaning=eat、subject=実話者、negative/now/desire、target/conditionStatus=null、原speaker_reportあり | [ay](experimental_word_learning.md#diary-desire-reports-ay) desire_reports.capture(buffer,result,receipt)＋B。short実acknowledge／gesture実attend、observationなしをコピー上再照合。kind=report、occurrenceId=desire_report:input ID、status=reported・verified=false。話者の現在希望を聞いた資料で本人希望・真偽確認ではない |
+| 同frame、三関係は適用可能、eat意味だけ不足 | report・complete=false、known.meaning欠落、主体=実話者・negative/now/desireと原reportSourceあり。meaning不足を原配列順で保持 | [br](experimental_word_learning.md#diary-incomplete-desire-reports-br) incomplete_desire_reports.capture(buffer,result,receipt)＋B。meaningKnownBefore=false、relationsKnownBefore=true。原frameのeatを理解済みへコピーしない。実replyとspeech設定は別資料で、messageを成立条件にしない |
+| 同frame、eat意味は既知、三関係の一つ以上が不足／経験scope不適用 | partial・complete=false、known.meaning=eat、subject/aspect=null、reportSource欠落。negation不足ならpolarity=unknown、適用可ならnegative。time不足ならeventTime=unspecified、適用可ならnow | [br](experimental_word_learning.md#diary-incomplete-desire-reports-br)＋B。meaningKnownBefore=true、relationsKnownBefore=false、missingRelationsBeforeを保持。reportだけ既知でも他関係不足時の主体・aspect・出所を補わない |
+| 同frame、eat意味不足と三関係の一つ以上の不足が併存 | partial・complete=false、known.meaning欠落、subject/aspect=null・reportSource欠落、極性／時点は直上と同じ不足別判定。target/conditionStatus=null | [br](experimental_word_learning.md#diary-incomplete-desire-reports-br)＋B。二つのKnownBefore=false、missingMeaningsBeforeとmissingRelationsBeforeを分離。kind=reportは資料区分で理解成立ではない。occurrenceId=incomplete_desire_report:input ID、実応答から欠損を補完しない |
+
+**B（両担当に必要な原資料と前件出所）**：既存candidates.create()のbuffer、原resultとreceiptの三引数。receipt.beforeState／beforeWorld、独立input／inputKnowledge／inputContext、実respond後afterState／afterWorld／replyが必要。input.id=input:before.serial+1、有限at、非空speaker、sceneと原context一致、knowledge/contextの独立コピー一致を確認し、コピー上のcore.receive／world.respondでresult・state・world・reply全文一致を確認する。前件の名付け・確認・実食事receiptを新たに要求するAPIではないが、入力前state/worldの文脈を空へ置換しない。実経験由来report/negation/timeは語義ID存在だけで適用可とせず、原scopeのlocale／speaker／form／rest等の制約を保持する。後学習で原当時へ書き戻さない。個別原資料の供給もこの全文照合も今回は行っていない。
+
+| 隣接境界／拒否根拠 | 当時処理と資料保持を分離した扱い |
+| --- | --- |
+| expressionと実respond | core.react／expressは完全理解のacknowledgeと未完のuncertain、gestureまたは理解内容なしのattendを分ける。brは原実replyを照合保持するが、short/gestureやmessage単独で理解・欠損原因を断定しない。活動・空腹・注目・時刻から満腹／嫌い／拒否行動／食事中止／将来希望を補わない。newTeaching/newLearning/newExperience=false |
+| 問い・名前肯否・本人回答 | 疑問変換後は前群cc/chと完全理解実answer_unknownの4d2条件を維持（個別未照合）。as名付け肯否は別入口。worldのturn.answer保持は完全理解の列挙question slotに限られ、このreportをap本人回答へ移さない。前群の名前実発話もapへ移さない |
+| 欠損・矛盾／重複 | 原result/receiptの非JSON・欠損・矛盾によるcapture=falseと、buffer.retainの同occurrence重複falseを区別する。同input非増加非上書き・新input別候補・コピー独立・原資料遅延供給を維持。未供給・未読・未照合を当時非成立や新担当必要へ変えない |
+| 他単独報告・複数節 | 好悪az/bs/bx・否定好悪ba/bt/by等の他群は今回未照合。br拒否をそれらの永久対象外／具体不足の確定にしない。複数節やdi/dj/du/dy等の資料保持へも今回群の条件だけで成立を認定しない |
+
+既存保存資料4d-final-review-25b06af/summary.jsonの担当内訳はdi/dy/dj/du/dv/as/4d5で、ay／brの完全前提個別照合の証拠ではない。review.cjsの旧47 adapterのbeforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持し、dy原728有限照合・固定50中50部品意味照合を全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了へ昇格しない。原rows/outcomes全件の今回人手読取なし。
+
+この一単位は条件上の四行対応付けまで。個別原receipt未供給・未照合は直接九入口・前群・今回群とも継続。新担当が必要と確定した行なしは不足なしの認定ではなく、新部品／dz追加なし。次は他の問い以外の単独報告から通常好悪az/bs/bx一群を、既存保存資料・OWNERS・節境界・必要依存から確認する。未照合の他群／複数節／全入口最終分類／4d12／4d／ID4全体は未完。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装を維持。残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去ay／br専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従う。今回の読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-desire-report-mapping-29bba1b。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
 <a id="entry-final-classification-basis"></a>
 
