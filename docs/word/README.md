@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-10-30最新：[一般語置換型実訂正ajの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-general-corrections-aj)完了。本体／専用test／fixture全文と所有条件・必要依存枝を照合、今回読取範囲で新不一致未発見。初期naming/correction・原説明当時basisと今回置換先根拠・実取り下げを分離、生活教示／六職実演付き元経験とscopeを照合。専用17通過・17群6206ケース6213入力、固定50中47まで・残ak〜amの3部品、次ak。全入口最終分類／4d12／4d／ID4全体未完、全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装を維持。新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer今回未実行。実読取／未検証・発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[既存1c感情・出来事報告aiの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-external-reports-ai)完了。本体／専用test／fixture全文と所有条件・必要依存枝を照合、今回読取範囲で新不一致未発見。確認echo非増加・新感情別候補・原当時根拠／詳細／相対時刻非書戻し・未検証testimony・ag/ah担当分離を確認。専用25通過・625ケース850入力、固定50中46まで・残aj〜amの4部品、次aj。全14保留・各担当三保留・全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装を維持。新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer今回未実行。実読取／未検証・発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[感情二節通常報告ahの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-two-clause-feeling-report-ah)完了。本体／専用test／fixture全文と所有条件・必要依存枝を照合。両節の語report/time/contrast既知・completeだけ今回input一report候補、初期contrast connection非新造・教示由来元connection保持・未検証testimony・原当時非書戻しを確認。専用22通過・3083ケース3695入力、新不一致未発見は今回読取範囲のみ。固定50中45まで・残ai〜amの5部品、次ai。全14保留・各担当三保留・全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装を維持。新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer今回未実行。発行・実読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

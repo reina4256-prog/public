@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-general-corrections-aj"></a>
+## 2026-10-30：一般語置換型実訂正ajの最終意味照合
+
+- 開始bc8f9e1、ゲーム実装f93e951。ai意味照合完了はユーザー指示で引継ぎ、再照合せず4d12ajを一単位として完了。本体／専用test／scripts/experimental/diary_general_correction_fixtures.js全文・OWNERS aj行・所有aj条件／必要依存枝を直接照合、今回読取範囲で新仕様不一致未発見。ゲーム・fixture・catalog・locale・package・保存形式非変更、新部品／混在／dz追加なし。
+- 六引数の入力前一時資料で、七言語・生活八語＋work／六職別workの15意味の異なる方向210からx eat↔rest二方向を除く208組合せを生活初期／実取得×短文／身振りで照合（5824件）。原説明は未訂正の通常word_explanationだけ。同相手・言語・正規化語・適用scopeの有効原説明一意、初期naming/correction一意、置換先意味が入力前既知、今回既存completeとcorrects／retraction／updatedの一致だけをkind=teaching／general_word_correction:今回input IDへ保持。初期関係を再習得・新造・置換しない。
+- 原説明raw/locale/speaker/at/scene／原record当時理解／旧basisと、今回input/frame／場面attention・活動mode/target/start/elapsed／置換先basis／今回理解・実取り下げを分離コピー。旧basisの当時subsetを元出所のまま保持し、後発evidenceで書戻さない。初期生活語は元経験不要、実取得語は生活教示付き元経験activity/target/start/end／閾値／label/input ID/聞いた時点/scope、仕事語は六職元実演付き経験master/target/result/demonstration/scopeをread-only照合。
+- scopeは既存wordScopeに一致し、双方注目ありは対象交差、片側注目なしは同場面、同対象なら別場面可。競合・原input/record欠損・原根拠改変・前提不足は非補完。x専用eat/rest・v/w印付き教示・個体名原出所・再訂正連鎖・否定対比・経験関係側をajへ広げない。拒否input非遡及・同input非増加非上書き・別原説明別候補・コピー独立。元本人経験は語の根拠だけで、今回の訂正を本人新経験／感情身体経験／自己確認・理解自覚・理由・暦へ補わない。
+- 専用17全通過・17群6206ケース6213入力・終了0、fail/cancelled/skipped/todo各0・開始12source hash不変。開始十文書baseline・review.cjs・原stdout/stderr・summary.json・reading.jsonはdocs/.local-history/verification-runs/4d-aj-review-bc8f9e1。局所工具構文通過。文書単位の部分意味照合で、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／外部試遊は今回未実行。過去aj全814／rendererと過去全3597を今回結果へ昇格しない。新表示文なしlocale再構築対象なし、旧零経過未解消は後続an補修済みの履歴。
+- 固定50中47まで、残ak〜amの3部品、次4d12akのexperimental_word_diary_remaining_corrections.js／専用test／scripts/experimental/diary_remaining_correction_fixtures.jsと所有条件・必要依存へ。akは専用test先頭11行の実fixture require・七引数／OWNERS行のみ確認、本体／fixture未読。全入口最終分類／4d12／4d／ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。dy原728／138 API inventoryを全入口網羅としない。
+- 文書保持検査・実読取／未読未検証・発行はCURRENT_IMPLEMENTATION.md参照。一単位完了ごと次チャット移動・貼り付け用冒頭文の最終回答出力を継続。原証拠非削除保持、旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
+
 <a id="diary-final-review-external-reports-ai"></a>
 ## 2026-10-30：既存1c感情・出来事報告aiの最終意味照合
 
