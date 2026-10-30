@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（通常好悪の単独報告az／bs／bxの条件行別対応付け済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、5600e52から行った通常好悪az／bs／bx一群の行別対応付けの続きとして、否定好悪ba/bt/by一群を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。一単位完了ごとの次チャット移動・引継ぎ更新・貼り付け用次チャット冒頭文の最終回答出力を継続してください。
+所有記録はdocs/specs/core/experimental_word_diary_audit.md#entry-desire-report-row-mapping内の#entry-preference-report-row-mapping、分類基準は同#entry-final-classification-basisです。完全理解az・好悪意味だけ不足bs・report不足bs・両者不足bs・対象だけ未解決bxの五行条件表まで。対象不足併存はbs、一般対象explicit／個体名experience原evidence・同話者・未取り下げ根拠、locale別aspect・dislike肯定報告・report限定scope非転移を維持し、後知識／後注目／後名付けで原当時へ書き戻さないでください。
+直接九入口・名前／酸味／通常確認・ay／br・az／bs／bxの個別原receiptは未供給・未照合です。当時処理と資料保持を分離し、capture=falseだけで非成立や新担当必要と決めず、未供給・未読・未照合を残してください。次群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認し、原input/frame・当時理解・実応答／更新・前件出所・必要API引数へ対応付けてください。名前実発話をap本人回答へ移さず、as名付け肯否・4d2・cc/chの境界を維持。新部品／dz追加は自動採用しないでください。
+固定50中50を全入口網羅へ昇格せず、dy原728有限照合・旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持。証拠はdocs/.local-history/verification-runs/entry-preference-report-mapping-5600e52。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従ってください。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%は非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（現在希望の単独報告ay／brの条件行別対応付け済み）
 
 ```text

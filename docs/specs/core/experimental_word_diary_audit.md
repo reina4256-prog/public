@@ -112,6 +112,38 @@
 
 今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去ay／br専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従う。今回の読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-desire-report-mapping-29bba1b。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+<a id="entry-preference-report-row-mapping"></a>
+
+##### 続き：通常好悪の単独報告az／bs／bxの行別対応付け（2026-10-31・一単位）
+
+5600e52の[ay／br条件表](#entry-desire-report-row-mapping)に続き、[分類基準](#entry-final-classification-basis)で通常好悪の一群を対応付けた。OWNERSの三引数APIと[az](experimental_word_learning.md#diary-preference-reports-az)・[bs](experimental_word_learning.md#diary-incomplete-preference-reports-bs)・[bx](experimental_word_learning.md#diary-unresolved-preference-targets-bx)の現所有条件を使う。これは条件表であり、直接九入口・名前／酸味／通常確認・ay／br・今回群の個別原receiptは未供給・未照合。以下の語面はcatalog／fixture定義の読取で、今回の原資料生成・再生・専用test結果ではない。
+
+**節境界**：日本語catalogRule=preferenceの既存「対象＋が／は＋好き／嫌い」（既存主語・語尾を含む）と、他六言語catalogRule=likeの固定木の実報告だけ。単独frame.kind=report、relations=[report]を対象とする。疑問末尾はquestion/confirmationへ変換されreport関係をquestionへ置換するため、この群へ戻さない。複数節・句点後空白のunknown節を単独報告へ修復せず、他言語dislike文型を追加しない。日本語「嫌い」はdislike意味の肯定報告で、not_dislike否定報告とは別。
+
+| 原input／frameと入力前の適用条件 | 当時理解として照合する値 | 実応答／更新・資料保持の現担当 |
+| --- | --- | --- |
+| 上記単独report、好悪意味とreport関係が適用可能、対象採用あり | report・complete=true・unresolved=[]、known.meaningは日本語like/dislike・他六言語like、relations=[report]、subject=実話者、positive/unspecified、日本語aspect=preference／他六言語null、conditionStatus/questionSlot=null、原speaker_reportあり | az preference_reports.capture(buffer,result,receipt)＋C。short実acknowledge／gesture実attend・observationなしをコピー上照合。occurrenceId=preference_report:input ID、status=reported・verified=false |
+| 同frame、report適用可能、好悪意味だけ不足（対象不足併存も含む） | report・complete=false、known.meaning欠落、relations=[report]、主体=実話者・原reportSourceあり。positive/unspecified、aspectは日本語preference／他六言語null。原target候補／採用／不足を保持 | bs incomplete_preference_reports.capture(buffer,result,receipt)＋C。meaningKnownBefore=false・relationsKnownBefore=true。frameの意味を理解済みへ補わず、対象不足を別に保持 |
+| 同frame、好悪意味既知、report不足／経験scope不適用（対象不足併存も含む） | partial・complete=false、known.meaningを保持、relations=[]、subject/aspect=null、reportSource欠落。positive/unspecified・conditionStatus/questionSlot=null、原targetを保持 | bs＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[report]。対象採用があっても報告理解を成立へ変えない |
+| 同frame、好悪意味とreportの両者不足（対象不足併存も含む） | partial・complete=false、known.meaning欠落、relations=[]、subject/aspect=null・reportSource欠落、positive/unspecified。unresolvedのrelation／meaning／targetと配列順を原どおり保持 | bs＋C。二つのKnownBefore=false、missingMeaningsBeforeとmissingRelationsBeforeを分離。occurrenceId=incomplete_preference_report:input ID。kind=reportは保存資料区分で、理解成立ではない |
+| 同frame、好悪意味とreport適用可能、対象だけ未解決 | report・complete=false、意味・主体・関係・極性・時点・locale別aspect・原speaker_reportは完全理解行と同じ。target.adopted=null、unresolvedは原target.candidatesと一致するtarget一項だけ | bx unresolved_preference_targets.capture(buffer,result,receipt)＋C。meaningKnownBefore/relationsKnownBefore=true・targetResolvedBefore=false。occurrenceId=unresolved_preference_target:input ID、status=reported・verified=false。bs所有節の当時の「対象だけ保留」は後続bx採用前の履歴として保持し、現在未担当へ戻さない |
+
+**C（必要な原資料・前件出所）**：三担当とも既存candidates.create()のbuffer・原result・原receiptの三引数。beforeState／beforeWorld、独立input／inputKnowledge／inputContext、実respond後afterState／afterWorld／replyが必要。input.id=input:before.serial+1、非負safe integerのbefore.serial・有限at・非空speaker、対応locale、sceneと原context一致、knowledge/contextの独立コピー一致を照合する。コピー上core.receive／world.respondでresult・前後state/world・reply全文一致を要求する資料整合照合であり、真正性認証ではない。個別原input ID／at／話者／設定／知識／文脈／前後worldは今回未供給で、この全文照合も未実施。
+
+対象解決はcore.resolveTargetの原候補と根拠を維持する。既知一般語はsource=explicitの意味対象で、注目個体へ限定しない。指示語／省略対象は原attention候補から一意採用、個体名は同話者・未取り下げassociationのsource=experience／原evidence input IDと注目による絞込みを保持する。一意根拠は無注目でも採用され得る一方、同名競合・別話者・未知一般対象等を後注目／後名付けで補わない。対象語berry等の不足を好悪meaning不足へ混ぜず、対象だけならbx、好悪meaning/report不足併存ならbs。APIは名付け前件receipt配列を別引数で要求しないが、beforeState.knowledge内の原対応／evidenceを空へ置換しない。経験由来reportはID存在だけで既知とせず、locale／speaker／form／rest等のscope適用条件を照合し、休息由来scopeを好悪報告へ転移しない。
+
+| 隣接境界／拒否根拠 | 当時処理と資料保持を分離した扱い |
+| --- | --- |
+| 実応答と発話設定 | bs／bxはコピー上実reply全文一致を要求するがmessageを理解成立条件にしない。core.reactの未完uncertainとexpressの内容なし／gestureのattendを分離する。世界の活動・空腹・注目・時刻や実発話から本人好悪・話者真偽・食事希望拒否・行動中止・新経験を作らず、三担当ともnewTeaching/newLearning/newExperience=false |
+| 当時不足と保存拒否 | 意味不足／関係不足／対象不足という当時理解と、非JSON・原資料欠損矛盾によるcapture=false、buffer.retainの同occurrence重複falseを分離する。同input非増加非上書き・新input別候補・遅延原資料・コピー独立・原当時非書戻しを維持。未供給・未読・未照合を当時非成立や新担当必要に変えない |
+| 問い・名付け肯否・他単独報告 | 疑問変換後のcc/chと4d2完全理解実answer_unknown、as名付け肯否を維持。個体名を含む好悪報告も名前実発話もap本人回答へ移さない。not_nowはay/br、not_dislikeはba/bt/byの現所有条件へ別途照合し、他群・複数節・di/dj/du/dyの資料保持を今回条件だけで認定しない |
+
+保存済み4d-final-review-25b06af/summary.jsonの内訳di/dy/dj/du/dv/as/4d5とreview.cjs29〜52の限定adapterを確認したが、az/bs/bx完全前提の個別原receipt照合の証拠ではない。dy原728有限照合、旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路、138 API宣言inventoryの制限を維持。固定50中50を全入口網羅・全正規API完全前提の同一入力集合照合・全推移的依存全文読了へ昇格しない。原rows/outcomes全件の今回人手読取なし。
+
+この一単位は条件上の五行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではなく、新部品／dz追加なし。次は否定好悪ba/bt/by一群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認する。全入口最終分類／4d12／4d／ID4全体未完、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装を維持。残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従う。読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-preference-report-mapping-5600e52。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
 <a id="entry-final-classification-basis"></a>
 
 ### 全入口最終分類の条件・既存証拠の不足確認（2026-10-31・一単位）
