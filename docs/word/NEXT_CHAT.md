@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（既存1c報告ai照合済み・次aj）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、bea09e9から行った4d12ai意味照合の続きとして次4d12ajから再開してください。最新文書コミット／push結果はCURRENT_IMPLEMENTATION.md参照。ゲーム実装f93e951、ah完了はユーザー指示で引継ぎ済み。ai結果へのユーザー確認は未受領です。一単位完了ごとの次チャット移動を継続し、移動時は引継ぎ文書更新に加えて貼り付け用次チャット冒頭文まで必ず最終回答に出力してください。
+ai本体／専用test／scripts/experimental/diary_external_report_fixtures.js全文・所有条件と1c／必要依存枝を照合し、今回読取範囲で新不一致未発見。正本specs/core/experimental_word_learning.md#diary-final-review-external-reports-ai。専用25テスト全通過、22群625ケース850入力・終了0・12source hash不変。固定50中46部品まで、残aj〜amは4部品です。
+日本語既存成否／感情報告・日本語新感情続報と他六言語sad基本報告だけ。入力前必要意味関係既知・completeまたは未理解detailだけを一input一report候補、確認echo非増加・新感情別候補。原報告／直前receipt／当時basis／今回理解・相対時点と聞いた時点を分離し、詳細未知・原当時不足を後知識で書戻さず未検証testimony保持。実生活tired元経験は語の根拠だけ。ag/ah担当・固定教示scope非一般化、原固定単独祖先はag read-only照合。欠損競合拒否・同input非増加非上書き・コピー独立、本人感情身体経験真偽原因暦非補完。
+原ログ・開始十文書baseline・工具・reading.jsonはdocs/.local-history/verification-runs/4d-ai-review-bea09e9。ゲーム／fixture／catalog／locale／package／保存形式非変更、新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去ai全797／renderer・全3597を今回結果へ昇格しない。旧零経過未解消は後続an補修済みの履歴。
+次はexperimental_word_diary_general_corrections.js（4d12aj）、tests/experimental_word_diary_general_corrections.test.js、scripts/experimental/diary_general_correction_fixtures.jsとOWNERS aj行・所有条件／必要依存から。ajは専用test先頭11行のrequireと六引数のみ確認、本体／fixture未読です。残4後の全入口最終分類も未完、dy原728や138 API inventoryを全入口網羅としない。
+dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠は履歴として保持。
+```
+
+
 ## 最初に読む現行継続文（感情二節通常報告ah照合済み・次ai）
 
 ```text

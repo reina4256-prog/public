@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-external-reports-ai"></a>
+## 2026-10-30：既存1c感情・出来事報告aiの最終意味照合
+
+- 開始bea09e9、ゲーム実装f93e951。ah意味照合完了はユーザー指示で引継ぎ、再照合せず4d12aiを一単位として完了。本体／専用test／scripts/experimental/diary_external_report_fixtures.js全文・OWNERS ai行・所有ai条件と1c規則／必要依存枝を直接照合、今回読取範囲で新仕様不一致未発見。ゲーム・fixture・catalog・locale・package・保存形式変更なし、新部品／混在／dz追加なし。
+- 八引数の入力前一時資料で、日本語既存成否failure/successと感情sad/happy/painful/tiredの現在過去報告・日本語新感情続報、他六言語既存sad基本報告を照合。player／positiveの一frame・一理解、必要意味と関係が入力前既知、completeまたは未理解が具体detailだけのreportをkind=report／occurrenceId=external_report:今回input IDの一候補へ保持。学習結果はcandidates空／adopted=null／updated空・feelingLearning／relationLearningなし。未知詳細を理解済みへ補わず、休息限定関係の代用と固定感情教示scopeの一般化を拒む。
+- 初期一意意味根拠・初期必要関係と、実生活取得tiredの原本人休息／教示scope・input ID・label・聞いた時点・疲れ閾値・元経験start/endをread-only照合。元経験は語の根拠であり、今回相手の疲れの真偽や本人の新経験を示さない。固定通常文はag/ah担当を維持し、続報祖先の固定単独節のみag.captureのread-only照合へ委譲、固定二節は分解しない。
+- 確認echoは七言語とも原資料参照に使うが新候補非生成。日本語の新感情続報は同話者直前一件・positive・既知成否感情・detail以外不足なし・未撤回原recordと当時receipt一致が必要。beforeReportsの原input一意／順序／時刻と各再帰参照を検査、原報告と直前receipt・今回理解を分離コピー。原ID／previousInputId／原heardAt／今回reportSource.heardAt／eventTime／timeSource=report_referenceを分け、明示今回時点を原時点で上書きしない。確認を挟んでも原当時理解と詳細を後知識で書戻さず、新感情は別候補・原報告非置換。
+- 聞いたinput raw/locale/speaker/at/scene・frame／場面attention・活動mode/target/start/elapsed／入力前basis／理解／reportSource／reportReference／timeSource／原報告／直前報告を分離保持。testimonyはreporter/contentSubject=player・reported・verified=false、相手原因主張の真偽・全理由・本人感情身体経験・自覚・正確な暦を補完しない。場面活動は報告内容の経験へ転用しない。別話者／話題変更／未知語関係／複数報告／表示生活eventで参照中断、拒否input非遡及。同input再受信再読非増加非上書き・別input反復別候補・コピー独立。
+- 専用25テスト全通過・22fixture群625ケース850入力・終了0、fail/cancelled/skipped/todo各0・開始12source hash不変。原stdout/stderr・summary.json・開始十文書baseline・review.cjs・reading.jsonはdocs/.local-history/verification-runs/4d-ai-review-bea09e9。文書単位の部分意味照合で全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／外部試遊は今回未実行。過去ai全797／rendererと過去全3597は今回結果へ昇格しない。新表示文なしlocale再構築対象なし、旧零経過未解消記述は後続an補修済みの履歴。
+- 固定50中46部品まで、残aj〜amの4部品、次4d12ajのexperimental_word_diary_general_corrections.js／専用test／scripts/experimental/diary_general_correction_fixtures.jsと所有条件・必要依存へ。今回はaj専用test先頭11行で実fixture requireと六引数を確認、本体／fixture未読。全入口最終分類／4d12／4d／ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。dy原728／138 API inventoryを全入口網羅としない。
+- 文書保持検査・実読取／未読未検証・発行はCURRENT_IMPLEMENTATION.md参照。一単位完了ごと次チャット移動・貼り付け用冒頭文の最終回答出力を継続。原証拠非削除保持、旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
+
 <a id="diary-final-review-two-clause-feeling-report-ah"></a>
 ## 2026-10-30：感情二節通常報告ahの最終意味照合
 
