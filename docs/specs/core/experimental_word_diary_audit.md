@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-31最新：2fe3e6fの続きとして[通常休息・散策提案am／cp／cqの十二行条件対応](#entry-ordinary-proposal-row-mapping)を一単位実施。speaker=playerの既存七言語単独休息request/invitation・日本語walk_invitationに限定。完全理解am（三行）・不足cp（六行）/cq（三行）、proposalFrameのself／提案rolesとpatternsの実話者／roles未生成、五引数実判断と三引数原receiptを分離。個別原receipt未供給・未照合、capture=false単独判定禁止。bc/bv十六行・bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行と既存境界・限定scope非転移・原当時非書戻しを維持。次は条件付き休息m/crの所有条件と必要前件から範囲確定。他話者・順序・複数節を自動包含しない。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし。文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-31最新：207762aの続きとして[食後散策bc／bvの行別対応付け](#entry-negated-request-row-mapping)を同節内へ一単位追記。walk/eat/invitation/sequence十六組合せを条件対応し、完全理解bc・十五不足bv、意味だけ不足invitation／実話者・関係不足partial／主体nullを維持。全行conditionStatus=unknown・roles未生成・reportSource欠落、食事完了／予約／共同参加／従否非認定。bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行と既存境界、各群個別原receipt未供給・未照合、capture=false単独判定禁止を維持。次は通常休息・散策提案の一群（am・cp/cq等）の現所有条件と依存を確認して範囲確定。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-31最新：12e283bの続きとして[否定食事お願いbb／bu／bwの行別対応付け](#entry-negated-request-row-mapping)を一単位実施。eat/request/negation八組合せと対象だけを九行条件表へ対応付けた。完全理解bb・意味関係不足と対象不足併存bu・対象だけbw、関係不足partial／主体null・negation不足unknown・従否非認定を維持。ba/bt/by九行・az/bs/bx五行まで、全群の個別原receipt未供給・未照合、capture=false単独判定禁止。次は食後散策bc/bv一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
@@ -273,6 +275,58 @@ bcはoccurrenceId=after_eat_walk:input ID／status=understood、原input/frame�
 この一単位は条件上の十六行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではない。次は通常休息・散策提案の一群について、amと不足担当cp/cq等の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認し、一単位の範囲を確定して進める。他話者・条件順序・複数節を無条件に含めない。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
 
 今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。実読取・未読未照合・文書検証証拠はdocs/.local-history/verification-runs/entry-after-eat-walk-mapping-207762a。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
+<a id="entry-ordinary-proposal-row-mapping"></a>
+
+### 通常休息・散策提案am／cp／cqの行別対応付け（2026-10-31・一単位）
+
+2fe3e6fの続き。[分類基準](#entry-final-classification-basis)とOWNERSの五引数am／三引数cp/cq、[am現所有条件と意味照合](experimental_word_learning.md#diary-final-review-ordinary-proposals-am)・[cp現所有条件](experimental_word_learning.md#diary-incomplete-rest-proposals-cp)・[cq現所有条件](experimental_word_learning.md#diary-incomplete-walk-proposals-cq)を確認した。今回はspeaker=playerの既存単独通常休息request/invitationと日本語walk_invitationだけを一群とし、三系統×四不足配置の十二行へ条件対応する。個別原receiptは未供給・未照合。既存fixture定義の読取であり、fixture生成・コピー上再生・専用test実行・十二件の個別成立認定ではない。
+
+**節境界**：休息は七言語catalog.proposalTeachingの印なし直原文をproposalFrameが先に解析する枝と、既存patternsのrest/rest_request/rest_invitation。散策は日本語patterns.walk_invitationの任意「一緒に」＋「散歩しよう／散歩しようよ／散歩に行こう」。原parserのtrim・大文字小文字・終端句読点等の範囲だけを使い、句点後空白によるunknown追加節を修復しない。?／？末尾も既存request/invitationを維持。教示印付き・独自語応用・散策お願いの新文型・他言語散策・条件／順序付き・複数節・別話者を今回へ自動包含しない。後者を永久対象外とも決めない。
+
+表のMはframe.meaning、Rはframe.kindの当該一関係。不足は入力当時の未習得またはscope不適用で、ID存在だけで適用可能にしない。known欠落は保存値nullへ置換しない。不足なしはunresolved=[]、意味不足はtype=meaning/field=meaning/token=M、関係不足はtype=relation/id=Rを原値どおり保持する。
+
+| 原input／frameと当時の不足 | known.meaning／relations | 当時kind／subject・complete | 現資料担当／必要引数 |
+| --- | --- | --- | --- |
+| 通常休息request 0：なし | rest／[request] | request／S・true | am＋A |
+| 通常休息request 1：rest | 欠落／[request] | request／S・false | cp＋C |
+| 通常休息request 2：request | rest／[] | partial／null・false | cp＋C |
+| 通常休息request 3：rest,request | 欠落／[] | partial／null・false | cp＋C |
+| 通常休息invitation 0：なし | rest／[invitation] | invitation／S・true | am＋A |
+| 通常休息invitation 1：rest | 欠落／[invitation] | invitation／S・false | cp＋C |
+| 通常休息invitation 2：invitation | rest／[] | partial／null・false | cp＋C |
+| 通常休息invitation 3：rest,invitation | 欠落／[] | partial／null・false | cp＋C |
+| 通常散策invitation 0：なし | walk／[invitation] | invitation／実話者・true | am＋A |
+| 通常散策invitation 1：walk | 欠落／[invitation] | invitation／実話者・false | cq＋C |
+| 通常散策invitation 2：invitation | walk／[] | partial／null・false | cq＋C |
+| 通常散策invitation 3：walk,invitation | 欠落／[] | partial／null・false | cq＋C |
+
+**Sとroles**：休息proposalFrame直原文はframe.subject=self、関係適用時subject=self、rolesはproposer=実話者/addressee=self、requestのactors=[self]・invitationのactors=[実話者,self]、status=proposed/actualParticipation=false。意味だけ不足でも関係適用ならこの原rolesを保持する。patterns枝にはsubject/rolesを新造せず、関係適用時subject=実話者。関係不足なら両枝ともsubject=null・understanding.roles未生成、原frame.rolesで埋めない。散策patternsもroles未生成。全十二行positive・eventTime=unspecified、aspect/target/questionSlot=null・conditionStatus=null・reportSource欠落。target=nullは対象指定なしであり、対象未解決の追加行ではない。提案上の役割を共同参加／完了経験としない。
+
+**A（完全理解の当時資料）**：proposals.capture(buffer,result,context,beforeKnowledge,decision)五引数、bufferはcandidates.create()。正規input ID/raw/locale/at/scene・speaker=player、単独frame/uと当時complete、入力前の一意Mと一意R根拠を、コピー知識上interpret/understandで照合する。contextはscene/attentionとmode/target/activityStart/elapsed、decisionはspeech・before/after world・response・beforeSelections/afterSelections。三引数receiptへ丸めない。初期根拠とexperienced_life休息の先行原input/labelAt/経験scope、experienced_relationの異なる先行二inputと当時relationReferences一致を分離する。知識再照合と実判断整合照合であり、cp/cqの全state再生と同一の検査とは呼ばず、真正性認証としない。候補はkind=proposal・occurrenceId=ordinary_proposal:input ID、原input/frame/場面活動、basis/relationBasis/uとdecision.outcome/response/前後snapshot/selectedSourceをコピーする。
+
+| am当時complete後の実判断 | 実responseと必要前後資料 | 認定しないもの |
+| --- | --- | --- |
+| continuing | 食事／仕事またはberry注目dwell>4。仕事はwork＋observation=true、他はshort=keep_looking／gesture=looking。action snapshotとselections不変 | 理解不足、本人拒否、希望不在、食事完了 |
+| approaching | 実approach成功でmode=move・destination=shade/path・attention=null、input ID付きunderstood_suggestion理由、activityStartとhistoryを照合。short=join／gesture=attend。休息だけ実selected_proposalとselectionSourceを照合、散策はselections不変 | 到着、実休息／散策完了、共同参加、予約、従った完了経験 |
+| not_started | interestedでない対象／経路不足。short=answer_unknown／gesture=attend、action snapshotとselections不変 | 理解不足、拒否、希望不在、別経路成功 |
+
+原contextのtargetとu.target=nullは別。an補修済みの零経過休息history・startInputSerial、restStartOrder除去を旧未解消へ戻さない。経験身体値・経過等の非変更条件と原selectedSourceを照合し、後の到着／完了経験・感情・理由・自覚身体・暦をこの判断へ補わない。amへcp/cqのcompliance等の保存fieldを新設したと記録しない。
+
+**C（未完理解の原receipt）**：cp incomplete_rest_proposals.create()/capture(buffer,result,receipt)、cq incomplete_walk_proposals.create()/capture(buffer,result,receipt)。各独立journalを使い、candidatesの五区分を拡張しない。独立input/inputKnowledge/inputContext、実receive直前beforeState/beforeWorld、respond直後afterState/afterWorld/reply、input.id=before.serial+1とsceneを要する。コピー上のreceive/respond全文一致・前後validContext/validSelections、原lastOutputが参照する経験の同ID一意・snapshot一致を要求し、欠損重複不一致を補わない。供給資料整合照合であり真正性認証ではない。
+
+cp/cqは原input/frame・原output/参照経験・前後state/world、入力前knowledge/context・u・missingMeaningsBefore/missingRelationsBefore、原expression／実responseとspeechSetting/actualSpeechを分離コピーする。kind=incomplete_rest_proposal/incomplete_walk_proposal、occurrenceIdも各kind:input ID。answerRecorded=false/turnAnswer=null・compliance=null/actionDecisionRecorded=false・newTeaching/newLearning/newExperience=falseを維持。原null／不足をframeや後知識で補わず、受諾・行動決定・実休息・散策開始完了経験・共同参加・希望／感情／理由にしない。未完理解はreact=uncertain、shortでも意味欠落ならhasContentなしでgesture/attend、意味既知・関係不足ならshortの実reply=uncertain、gesture設定ならattend。完全理解のcore.expression=acknowledge/attendとworld実responseは別で、attend単独では理解不足も受諾も認定しない。
+
+| 必要依存／隣接境界 | 当時処理と資料保持を分離した扱い |
+| --- | --- |
+| 適用scopeと原当時 | core.understandのkind/locale/speaker/form/roles等の限定scope、実生活語／役割教示の原根拠を確認。実休息request/invitationを別言語・話者・表現・散策へ転移せず、後学習／後活動／後食事で原当時非書戻し |
+| capture拒否と不足保持 | 欠損矛盾のcapture=false、amの前提不足、retainの同occurrence重複falseを当時非成立や新担当必要へ直結させない。同input非増加非上書き・新input別資料・遅延供給・コピー独立・元資料不変。未供給・未読・未照合はそのまま残す |
+| 今回外の提案 | 完全理解別話者cx、条件休息m／不足cr・順序休息p／不足cs、別話者条件順序や複数節db/dc/dd等は別所有条件。今回本体／専用fixture未読・個別認定なし。次は条件付き休息m/crの既存保存資料・OWNERS・必要前件を確認して一群の範囲を確定。他話者・順序・複数節を自動包含しない |
+| 前群維持 | bc/bvは#entry-negated-request-row-mapping内の十六行条件対応まで。完全理解bc・十五不足bv、意味だけ不足invitation／実話者・関係不足partial／主体null、全行conditionStatus=unknown・roles未生成・reportSource欠落、食事完了／予約／共同参加／従否非認定。bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行、各群個別原receipt未供給・未照合を維持。名前実発話をap本人回答へ移さず、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidenceの境界を変更しない |
+
+既存保存4d-am-review-7c047c6のreading/summary、cp/cq所有節が指す過去原資料とfixture定義を区別した。過去am専用13・12群3707ケース3763入力やcp/cq過去成功を今回結果へ昇格しない。保存原rowsの全件再読・本群個別原receipt照合は未実施。dy原728有限照合・旧47空beforeReports/beforeReceipts・4d1/3/4別経路・138 API宣言inventoryの制限を維持。固定50中50は全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了ではない。
+
+十二行の条件対応まで、新部品／dz追加なし。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし。今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。証拠はdocs/.local-history/verification-runs/entry-ordinary-proposals-mapping-2fe3e6f。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
 <a id="entry-final-classification-basis"></a>
 
