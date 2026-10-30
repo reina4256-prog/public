@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（初期time既知側教示ad照合済み・次ae）
+
+```text
+開始5fd5c6b、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。一単位完了ごとの次チャット移動を継続し、今回は4d12adを照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-known-feeling-time-ad。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。
+固定50中4d1〜11／4d12a〜adの41部品、残ae〜amは9部品。ad本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。初期report/time/contrast三根拠／原二節当時理解／選択／先行限定語義／今回操作partial・教示直前節complete／実adopted空updatedを分離。meaningKnownBefore=true reportKnownBefore=true timeKnownBefore=true relationAcquired=false、片側両側空updated・両順可・初期非再習得非置換。教示直前subject=player・原報告yesterday/now・testimony.verified=false、原当時語未知非書戻し・本人感情身体経験真偽自覚暦非補完。対象節語不足は拒否、取得後別input再教示。他節未知非補完・経験time完成済み同教示既存拒否非補完。他段階資料検査をad採用へ広げない。後続an補修済みを旧未解消へ戻さず今回an全体再検証なし。
+専用19件全通過・662ケース1247入力・終了0、開始9hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-ad-review-5fd5c6b。全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去成功と区別する。文書検査・発行はhandoff参照。
+次はexperimental_word_diary_feeling_contrast_examples.js（4d12ae）、tests/experimental_word_diary_feeling_contrast_examples.test.js、scripts/experimental/diary_feeling_contrast_fixtures.jsと所有ae行・必要依存から。ae本体／test／fixtureは今回内容未読、fixtureパス実在とOWNERS ae行のみ確認。残9部品後に入口全体の既存担当／当時非成立／具体不足／別領域保留の最終分類へ。dy原728や138 API宣言inventoryを全入口網羅としない。
+全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。新混在候補／dzを自動追加しない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠を履歴として保持する。
+```
+
 ## 最初に読む現行継続文（time未理解側教示ac照合済み・次ad）
 
 ```text

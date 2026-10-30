@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-30最新：[adの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-time-ad)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。初期report/time/contrast三根拠・対象節意味既知、片側両側空updated・relationAcquired=false・原時点保持・原当時語未知非書戻しを維持。専用19通過・担当追加なし、新不一致未発見は今回読取範囲のみ。固定50中41まで・残9・次ae、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[acの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-time-ac)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。意味report既知・time未理解、片側空updated／両節限定time二件更新・教示直前eventTime=unspecified・原当時非書戻しを維持。専用18通過・担当追加なし、新不一致未発見は今回読取範囲のみ。固定50中40まで・残10・次ad、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。
 
 - 2026-10-30最新：[abの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-report-ab)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。初期report/time/contrast三根拠・対象節意味既知、両節空updated・relationAcquired=false・原当時意味不足非書戻しを維持。専用17通過・担当追加なし、新不一致未発見は今回読取範囲のみ。固定50中39まで・残11・次ac、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。
