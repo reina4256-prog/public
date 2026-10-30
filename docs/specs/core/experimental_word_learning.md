@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-remaining-corrections-ak"></a>
+## 2026-10-30：個体名原出所・再訂正連鎖・否定対比型実訂正akの最終意味照合
+
+- 開始414d4f3・ゲーム実装f93e951、aj意味照合完了はユーザー指示で引継ぎ済み。今回は4d12ak一単位の意味照合を完了、結果へのユーザー確認は未受領。一単位完了ごと次チャットへ移り、貼り付け用冒頭文も最終回答へ出力する。
+- ak本体／専用test／scripts/experimental/diary_remaining_correction_fixtures.js全文・所有ak採用条件/API/保持境界と必要依存枝を照合。今回読取範囲で新仕様不一致未発見。通常再訂正は七言語、個体名原出所と旧意味明示否定対比は既存日本語文型だけ。生活八語＋七仕事語、初期naming/correction一意・否定対比は初期negation/contrastも既知。経験由来関係の新適用範囲へ拡張しない。
+- 七引数入力前資料のbeforeReceiptsは各原input当時のresult/context/beforeKnowledge/beforeExperiences/beforeRecordsをコピーした平坦配列、入れ子・重複・今回以後input拒否。原個体名のcatalog全frame／一意berry個体attentionと当時採用更新・record、原説明／各過去訂正の当時basisと元生活教示／六職実演付き経験、根までのcorrectsと各forward retractedBy・個体association evidence／原recordをread-only照合。必須連鎖外の別receiptを原根拠に要求しない。
+- 今回completeのcorrects/retraction/updatedと一意な有効原出所を照合。旧意味明示ではその旧意味で原出所を絞り、競合する他説明を消さない。x/ajの通常初回置換はak候補にしない。scopeは双方注目なら対象交差、片側注目なしなら同場面、同個体別場面可。旧basisの当時subsetと今回basis・元経験、原input/record当時理解／今回活動start/elapsedを分離コピー、後発知識で原時非書戻し。
+- 一input一teaching候補remaining_word_correction:今回input ID。別訂正inputは別候補、同input再受信／再読は非増加非上書き・コピー独立。欠損競合異相手言語対象前提不足非補完・拒否input非遡及。元経験は語の根拠資料だけで今回本人経験・感情身体経験・理由自覚暦を生成しない。
+- 専用21全通過、21群1212ケース1214入力・終了0、fail/cancelled/skipped/todo各0。開始十文書baseline・12source hash・工具／原stdout/stderr／summary.jsonはdocs/.local-history/verification-runs/4d-ak-review-414d4f3。12hash不変。実読取／未読未検証はreading.jsonと現行handoffへ分離記録。ゲーム／fixture／catalog／locale／package／保存形式非変更、新表示文なし。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行、過去ak全835／rendererや全3597を今回結果へ昇格しない。
+- 固定50中48まで、残al/amの2部品、次4d12alのexperimental_word_diary_remaining_time_reports.js／専用test／scripts/experimental/diary_remaining_time_report_fixtures.jsと所有条件・必要依存へ。al専用test先頭12行の実fixture／setup/ hear require・四引数とOWNERS行のみ確認、本体／fixture未読。全入口最終分類／4d12／4d／ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・4e／receipt保存形式／ゲーム本接続未採用未実装維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。dy原728／138 API inventoryを全入口網羅としない。
+
+
 <a id="diary-final-review-general-corrections-aj"></a>
 ## 2026-10-30：一般語置換型実訂正ajの最終意味照合
 
