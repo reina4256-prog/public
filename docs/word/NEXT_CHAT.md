@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（食後散策bc／bvの条件行別対応付け済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、207762aから行った食後散策bc/bv一群の行別対応付けの続きとして、通常休息・散策提案の一群を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。既存保存資料とOWNERSからam・不足担当cp/cq等の節境界・現所有条件・必要依存を確認し、今回扱う範囲を確定してください。他話者・条件順序・複数節を無条件に含めないでください。
+記録はexperimental_word_diary_audit.md#entry-negated-request-row-mapping内のbc/bv続記、分類基準は#entry-final-classification-basis。bc/bvはwalk/eat/invitation/sequence十六行条件対応まで、完全理解bc・十五不足bv。意味だけ不足はinvitation／実話者、関係不足partial／主体null。全行positive/unspecified・conditionStatus=unknown・aspect/target/questionSlot=null・roles未生成・reportSource欠落。両意味不足時のattendを理解不足全体の判定に使わず、食事完了／予約／共同参加／従否／散策開始完了経験を補わないでください。
+bb/bu/bw九行（完全理解bb・意味関係不足と対象不足併存bu・対象だけbw）、ba/bt/by九行・az/bs/bx五行と既存境界を維持。関係不足partial／主体null・negation不足unknown・全行reportSource欠落・食事中止従否非認定を維持。各群の個別原receiptは未供給・未照合。当時処理と資料保持を分離しcapture=falseだけで非成立／新担当必要と決めず、未供給・未読・未照合を残してください。名前実発話をap本人回答へ移さず、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、限定scope非転移・原当時非書戻しを維持。
+固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。新部品／dz追加を自動採用しないでください。
+今回は文書検証のみ。全回帰・監査test・七言語チェック・renderer・実UI音声／本人日記生成保存再開配布／試遊通し未実行。過去成功・全3597・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従ってください。今回証拠はdocs/.local-history/verification-runs/entry-after-eat-walk-mapping-207762a。一単位ごとの次チャット移動・引継ぎ更新・貼り付け用冒頭文の最終回答出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（否定食事お願いbb／bu／bwの条件行別対応付け済み）
 
 ```text

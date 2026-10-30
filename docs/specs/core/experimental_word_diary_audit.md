@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-31最新：207762aの続きとして[食後散策bc／bvの行別対応付け](#entry-negated-request-row-mapping)を同節内へ一単位追記。walk/eat/invitation/sequence十六組合せを条件対応し、完全理解bc・十五不足bv、意味だけ不足invitation／実話者・関係不足partial／主体nullを維持。全行conditionStatus=unknown・roles未生成・reportSource欠落、食事完了／予約／共同参加／従否非認定。bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行と既存境界、各群個別原receipt未供給・未照合、capture=false単独判定禁止を維持。次は通常休息・散策提案の一群（am・cp/cq等）の現所有条件と依存を確認して範囲確定。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-31最新：12e283bの続きとして[否定食事お願いbb／bu／bwの行別対応付け](#entry-negated-request-row-mapping)を一単位実施。eat/request/negation八組合せと対象だけを九行条件表へ対応付けた。完全理解bb・意味関係不足と対象不足併存bu・対象だけbw、関係不足partial／主体null・negation不足unknown・従否非認定を維持。ba/bt/by九行・az/bs/bx五行まで、全群の個別原receipt未供給・未照合、capture=false単独判定禁止。次は食後散策bc/bv一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-31最新：29bba1bの続きとして[現在希望の単独報告の行別対応付け](#entry-desire-report-row-mapping)を一単位実施。既存not_nowのay／brを、完全理解・eatだけ不足・関係不足・両者併存の四行へ対応付けた。主体／aspect／reportSource欠落、極性／時点、経験scope非転移と必要原receiptを分離。条件表であり個別原receipt未供給・未照合を維持、capture=false単独判定禁止。次は通常好悪az/bs/bx一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
@@ -223,6 +225,54 @@
 この一単位は条件上の九行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではない。次は食後散策bc/bv一群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認する。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
 
 今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-negated-request-mapping-12e283b。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
+###### 続き：食後散策bc／bvの行別対応付け（2026-10-31・一単位）
+
+207762aの上記bb/bu/bw九行条件表に続く本節内の記録。[分類基準](#entry-final-classification-basis)に従い、OWNERSの三引数APIと[bc現所有条件](experimental_word_learning.md#diary-after-eat-walk-proposals-bc)・[bv現所有条件](experimental_word_learning.md#diary-incomplete-after-eat-walk-proposals-bv)を、既存保存資料・本体／fixture定義から条件上の十六行へ対応付けた。今回も各群の個別原receiptは未供給・未照合。原input ID／at／話者／設定／知識／文脈／前後worldの個別供給、fixture生成・コピー上再生・専用test実行ではない。
+
+**節境界**：日本語単独「食べ終わったら」＋既存区切り（なし／読点／コンマ／空白）＋任意「一緒に」＋「散歩しよう／散歩しようよ／散歩に行こう」。専用fixtureは四区切り×二種×三語尾の二十四語面、catalogは[、, ]*の既存範囲を持つ。単独frame.kind=invitation、catalogRule=after_eat_walk、meaning=walk、conditionMeaning=eat、relations=[invitation,sequence]。既存trim／終端句読点と?／？末尾のinvitationを維持し、複数節・句点後空白unknown空節を単独へ修復しない。他言語文型・自由形を追加しない。これは食後休息のsequential_proposalとは別枝。
+
+下表の不足は入力当時に意味／関係が適用できない条件。known列はknown.meaning／known.conditionMeaningの順で、欠落をnullという保存値へ置換しない。行0だけunresolved=[]、他十五行は原unresolvedのmeaning（field=meaning/token=walk、field=conditionMeaning/token=eat）とrelation（id=invitation/sequence）を不足どおり保持する。表は組合せの条件対応であり、個別成立数ではない。
+
+| 原input／frameと当時の不足 | known.meaning / conditionMeaning | 当時relations | 当時kind／subject・complete | 現資料担当／必要引数 |
+| --- | --- | --- | --- | --- |
+| after_eat_walk 0：なし | walk / eat | invitation,sequence | invitation／実話者・complete=true | bc＋C |
+| after_eat_walk 1：walk | 欠落 / eat | invitation,sequence | invitation／実話者・complete=false | bv＋C |
+| after_eat_walk 2：eat | walk / 欠落 | invitation,sequence | invitation／実話者・complete=false | bv＋C |
+| after_eat_walk 3：walk,eat | 欠落 / 欠落 | invitation,sequence | invitation／実話者・complete=false | bv＋C |
+| after_eat_walk 4：invitation | walk / eat | sequence | partial／null・complete=false | bv＋C |
+| after_eat_walk 5：walk,invitation | 欠落 / eat | sequence | partial／null・complete=false | bv＋C |
+| after_eat_walk 6：eat,invitation | walk / 欠落 | sequence | partial／null・complete=false | bv＋C |
+| after_eat_walk 7：walk,eat,invitation | 欠落 / 欠落 | sequence | partial／null・complete=false | bv＋C |
+| after_eat_walk 8：sequence | walk / eat | invitation | partial／null・complete=false | bv＋C |
+| after_eat_walk 9：walk,sequence | 欠落 / eat | invitation | partial／null・complete=false | bv＋C |
+| after_eat_walk 10：eat,sequence | walk / 欠落 | invitation | partial／null・complete=false | bv＋C |
+| after_eat_walk 11：walk,eat,sequence | 欠落 / 欠落 | invitation | partial／null・complete=false | bv＋C |
+| after_eat_walk 12：invitation,sequence | walk / eat | [] | partial／null・complete=false | bv＋C |
+| after_eat_walk 13：walk,invitation,sequence | 欠落 / eat | [] | partial／null・complete=false | bv＋C |
+| after_eat_walk 14：eat,invitation,sequence | walk / 欠落 | [] | partial／null・complete=false | bv＋C |
+| after_eat_walk 15：walk,eat,invitation,sequence | 欠落 / 欠落 | [] | partial／null・complete=false | bv＋C |
+
+全十六行positive／eventTime=unspecified、aspect/target/questionSlot=null、conditionStatus=unknown、roles未生成・reportSource欠落。意味だけ不足ならinvitationと実話者subject、関係が一つでも不足ならpartial・subject=nullを保持。関係ID存在だけで適用可能としない。target=nullはこの文型に対象指定がない値で、対象未解決行を新設しない。実話者は食事主体self／共同参加者の認定ではない。
+
+**C（必要な原資料・前件出所）**：bc after_eat_walk_proposals.capture(buffer,result,receipt)、bv incomplete_after_eat_walk_proposals.capture(buffer,result,receipt)。bufferは既存candidates.create()。receipt.beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond後afterState/afterWorld/replyを必要とする。非負safe integerのbefore.serial、input.id=input:before.serial+1、有限at、非空speaker、locale=ja、sceneとbefore.context.scene、独立input／knowledge／contextの一致を確認。使い捨てコピー上core.receive／world.respondに原raw・locale・speaker・atを渡し、原result・前後state/world・実reply全文一致を要求する資料整合照合で、真正性認証ではない。
+
+bcはoccurrenceId=after_eat_walk:input ID／status=understood、原input/frame・scene/attention・前後world・入力前knowledge・当時understanding・実response/actualSpeechをコピー。bvはoccurrenceId=incomplete_after_eat_walk:input ID、さらに入力前context・前後state、meaningKnownBefore／relationsKnownBefore、原missingMeaningsBefore／missingRelationsBeforeを分離コピーする。必要receiptと候補内保存範囲を混同しない。kind=proposalは資料区分で、両担当ともcompliance=null/actionDecisionRecorded=false・newTeaching/newLearning/newExperience=falseを維持する。
+
+完全理解はcore.react=acknowledge、shortの実reply=acknowledge／gesture=attend・observationなし。未完理解はcore.react=uncertain、shortでも既知意味が一つ以上ある時だけuncertain、両意味欠落またはgestureならattend。関係だけ既知でもexpressのhasContentを満たさない。worldの直接rest/walk実行枝は!conditionStatusを要求するため、unknown条件の本群から散策開始判断を生成しない。実acknowledge/attendやuncertain、注目・五活動・空腹、実食事未完了／完了から原食事・完了条件成立・食事主体・共同参加・予約・従否・散策開始完了経験・本人希望を補わない。
+
+| 必要依存／隣接境界 | 当時処理と資料保持を分離した扱い |
+| --- | --- |
+| 入力前知識と実経験出所 | core.understandの意味二fieldとinvitation/sequence適用scope、原beforeState.knowledgeを確認する。食後休息の実sequence・休息invitationのlocale/speaker/form/roles等限定scopeを散策へ転移せず、source=experienced_relationの存在だけで既知にしない。後知識／後食事完了で原当時や原候補へ書き戻さない |
+| 保存拒否と当時非成立 | 非JSON・欠損矛盾によるcapture=falseとbuffer.retainの同occurrence重複falseを、当時未完理解と分ける。同input非増加非上書き・新input別候補・遅延原資料・コピー独立・元資料不変。未供給・未読・未照合を非成立や新担当必要へ変換しない |
+| 他の提案・複数節 | m疲れ条件／p食後休息／am通常休息散策・不足cp/cq等と本群を分ける。未知節付き・条件付き・複数節のdi/dj/du/dy等は必要前件を別確認し、本表で個別認定しない。新混在探索・新部品／dz追加は自動採用しない |
+| 前群境界 | bb/bu/bw九行：完全理解bb・意味関係不足と対象不足併存bu・対象だけbw、関係不足partial・主体null、negation不足unknown、全行reportSource欠落、食事中止・従否非認定。ba/bt/by九行・az/bs/bx五行も維持。名前実発話をap本人回答へ移さず、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidenceの境界を変更しない |
+
+既存保存4d-final-review-25b06af/summary.json先頭65・review.cjs29〜52を確認。限定adapterは本群の完全前提個別原receipt照合の供給証拠ではない。dy原728有限照合・旧47 beforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持。原rows/outcomes全件の今回人手再読なし。固定50中50を全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了へ昇格しない。
+
+この一単位は条件上の十六行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではない。次は通常休息・散策提案の一群について、amと不足担当cp/cq等の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認し、一単位の範囲を確定して進める。他話者・条件順序・複数節を無条件に含めない。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。実読取・未読未照合・文書検証証拠はdocs/.local-history/verification-runs/entry-after-eat-walk-mapping-207762a。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
 <a id="entry-final-classification-basis"></a>
 
