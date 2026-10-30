@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（全入口最終分類の条件・既存証拠の不足確認済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、e556f2dから行った全入口最終分類の条件・既存証拠の不足確認の続きとして、直接問い・本人回答の一群の行別対応付けを一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。ゲーム実装f93e951、am意味照合完了はユーザー指示で引継ぎ済み。一単位完了ごとの次チャット移動を継続し、引継ぎ更新と貼り付け用冒頭文の最終回答出力を必ず行ってください。
+今回の所有記録はdocs/specs/core/experimental_word_diary_audit.md#entry-final-classification-basis。既存担当／当時非成立／具体不足／別領域保留の条件と監査資料の未充足を確認しました。当時の理解・回答等の非成立と、di/dj/du/dy等の資料保持成立は別軸です。capture=falseだけで非成立や新担当必要と決めず、未供給・未読・未照合はそのまま残してください。ao当時不足表は歴史資料で、現在のap〜dy担当を差し引いてください。
+固定50中50部品の意味照合完了は維持し、全正規API完全前提の同一入力集合照合／全入口網羅／全推移的依存全文読了へ昇格しないでください。dy原728有限照合・旧47のbeforeReports/beforeReceipts空等・4d1/3/4別経路・138 API宣言inventoryの制限を維持。am専用13・12群3707ケース3763入力は前回結果で今回再実行なし。原証拠は4d-final-review-25b06af、今回baseline／読取／文書検証はdocs/.local-history/verification-runs/entry-classification-basis-e556f2d。
+次はcore.interpret／core.receiveの節境界を先に特定し、直接問い・本人回答の一群をap／aq／4d2／u等の現所有条件と必要依存へ対応付けてください。原input・規則/frame・当時理解・実応答/turn.answer・前件出所・担当API/必要引数・成立/拒否根拠・未供給/未読・保留先を区別し、既存保存資料で足りるか先に確認。全入口分類自体は未完です。新混在探索・新部品／dz追加は自動採用しないでください。
+140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗・減算0・低確度・上限終了保証なし。今回文書のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。工程完了判定はVALIDATIONの--full等に従い、過去全3597成功と初回timed_out/incompleteを別保持してください。
+旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（通常休息・散歩提案am照合済み・次は全入口最終分類）
 
 ```text
