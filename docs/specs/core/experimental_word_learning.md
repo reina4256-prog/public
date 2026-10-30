@@ -1,5 +1,15 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-feeling-report-aa"></a>
+
+##### 4d最終意味照合：感情報告のreport未理解側教示aa（2026-10-30・今回単位の照合完了）
+
+- 開始578aeae・ゲーム実装f93e951。4d12aa本体／専用test／fixture全文、OWNERSのaa行、aa所有条件・3c3f1／3c3f2／3c3f3と必要core／feeling learning／world／共通fixture／candidate／七言語所有catalogを直接照合。この読取範囲で新仕様不一致未発見。ゲームcode・fixture・catalog・locale・package・保存形式変更なし、新部品／混在候補／dz追加なし。
+- 原二節input/frame／当時understandings/feelingBasis、明示選択input/frame/at/basis/original、先行各教示のscope／入力順／聞いた時点と生活時点／各当時理解、今回操作partial teaching_operationと教示直前原節理解／実adopted・updatedを分離。初期sad/happy二件または零件、report/time/contrast初期根拠なしを照合。対象節意味既知・report未理解だけ、meaningKnownBefore=true／reportKnownBefore=false。片側updated空と異なる両節成立時の限定report二件更新を分け、relationAcquiredは後者だけtrue。両教示順可・他節語未知非補完・前提取得後別input再教示・反復拒否を維持。
+- 両節成立時も当時contentUnderstanding.subject=null／eventTime=unspecified／report,time,contrast不足を保持。原二節当時非書戻し、初期意味非置換・グローバル関係非追加・本人感情身体経験／相手真偽／理由自覚／節全体理解非補完。原turn/record整合・一意性・今回input不在、先行report/time/contrast派生知識のread-only照合、選択後文脈退去／場面復帰・七言語先行全資料・コピー独立／後学習非遡及を照合。他段階資料検査をaa採用へ広げない。原選択だけ／語時点対比教示／通常報告／初期既知側／既存拒否は非候補。旧零経過未解消記述は後続an補修済みの履歴、今回an全体再検証なし。
+- 専用16件全通過（Node並列2）・576ケース1147入力、終了0・fail/cancelled/skipped/todo各0・開始9hash不変。原ログ／開始十文書baseline／局所工具／実読取記録は`docs/.local-history/verification-runs/4d-aa-review-578aeae`。文書検査・発行は現行handoff参照。過去のaa全634／七言語／renderer成功は今回再実行結果ではない。全回帰／監査test／七言語チェック／renderer／UI音声・本人日記生成保存再開配布は今回未実行、新表示文なし。
+- 固定50中4d1〜11／4d12a〜aaの38部品まで部分意味照合、残ab〜amは12部品。次はab本体／専用test／`scripts/experimental/diary_known_feeling_report_fixtures.js`・所有条件と必要依存から（ab本体／test／fixtureは今回内容未読、fixtureパス実在確認のみ）。全入口最終分類・4d12／4d／ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録／最新ao〜dy人間OK／全14保留・各担当三保留維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。4e／receipt保存形式／本接続未採用未実装。以下は従前の照合と原証拠。
+
 <a id="diary-final-review-known-feeling-word-z"></a>
 
 ##### 4d最終意味照合：初期感情語既知側教示z（2026-10-30・今回単位の照合完了）
