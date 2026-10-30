@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-10-30最新：[感情語未理解側教示yの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-word-y)完了。原二節／明示選択／先行教示／今回限定meaning更新を分離。専用15件・584ケース1127入力通過、新不一致未発見は今回読取範囲のみ。固定50中36まで・残14・次z。全入口分類／4d全体未完、全回帰／renderer今回未実行。発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[印なし実訂正xの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-actual-correction-x)完了。原説明と当時根拠／各教示／今回実取り下げを分離。専用17件・498ケース561入力通過、新不一致未発見は今回読取範囲のみ。固定50中35まで・残15・次y。全入口分類／4d全体未完、全回帰／renderer今回未実行。発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[初期訂正既知側教示wの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-correction-w)を一単位として完了。初期correction根拠と経験naming／原説明／今回pairingを分離、両段階relationAcquired=false・原説明非失効を照合。専用17件・451ケース674入力通過、新不一致未発見は今回読取範囲のみ。固定50中34まで・残16・次x。全入口分類／4d全体未完、全回帰／renderer今回未実行。発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

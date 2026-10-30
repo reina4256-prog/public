@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-10-30最新：[yの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-word-y)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。原二節／明示選択／先行各当時理解と今回限定meaning一件を分離し、原当時非書戻し・初期非置換・本人感情経験非補完を維持。専用15通過・担当追加なし、新不一致未発見は今回読取範囲のみ。固定50中36まで・残14・次z、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[xの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-actual-correction-x)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。原説明input／record／旧basis・当時naming／二教示と今回complete corrects retraction updatedを分離。初期非置換・経験根拠の別原説明非転移・relationAcquired=falseを維持。専用17通過・担当追加なし、新不一致未発見は今回読取範囲のみ。固定50中35まで・残15・次y、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。
 
 - 2026-10-30最新：[wの直接意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-correction-w)。本体／専用test／fixture全文と所有条件・必要依存枝を照合。初期correctionBasisと経験naming／原説明／二段階教示を分離、両段階relationAcquired=false・初期知識非置換・完成教示の既存拒否を維持。専用17通過・担当追加なし、今回読取範囲で新不一致未発見。固定50中34まで・残16・次x、全入口分類未完。発行・読取／未検証は現行handoff参照。以下は過去状態。

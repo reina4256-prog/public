@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-30最新：[感情語未理解側教示yの最終意味照合](core/experimental_word_learning.md#diary-final-review-feeling-word-y)完了。原二節／選択／各当時根拠／今回限定meaning更新を分離し、過去のmeaning不足非書戻し・初期非置換を照合。専用15件・584ケース1127入力通過、新不一致未発見は今回読取範囲のみ。固定50中36まで・残z〜amの14部品、次z。全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[印なし実訂正xの最終意味照合](core/experimental_word_learning.md#diary-final-review-actual-correction-x)完了。原説明／当時根拠／二段階教示と今回corrects・retraction・updatedを分離し、初期非置換・経験根拠の別原説明非転移を照合。専用17件・498ケース561入力通過、新不一致未発見は今回読取範囲のみ。固定50中35まで・残y〜amの15部品、次y。全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[初期訂正既知側教示wの最終意味照合](core/experimental_word_learning.md#diary-final-review-known-correction-w)を一単位として完了。初期correction根拠／当時naming／原説明／今回教示を分離し、両段階relationAcquired=false・原説明非失効を照合。専用17件・451ケース674入力通過、新不一致未発見は今回読取範囲のみ。固定50中34まで・残x〜amの16部品、次x。dy確認済み・全138登録・全14保留・各担当三保留・4d全体未完、残2〜3工程中心2は部分進捗につき減算0。4e未採用未実装、全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

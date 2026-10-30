@@ -1,5 +1,18 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-feeling-word-y"></a>
+
+##### 4d最終意味照合：感情語未理解側教示y（2026-10-30・今回単位の照合完了）
+
+- 開始de59390、ゲーム実装f93e951。一単位として4d12yを照合完了。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。新部品／混在候補／dz・理解規則・保存形式・本接続の追加なし。
+- y本体・専用test・fixture全文、OWNERSのy行、y所有条件／対応表・3c3f2／3c3f3、feeling learning全文と必要core／world・candidate保持枝・所有catalog七言語を直接照合。この読取範囲で新しい仕様不一致は未発見。七引数は入力前一時資料であり保存契約ではない。
+- 原二節input/frameと原当時understandings／feelingBasis、明示選択input/frame/at/basis/original、先行各教示の入力順・聞いた時点／生活時点・scope・当時理解、今回語教示の操作partialと原節の教示直前理解／実adopted／updatedを分離照合コピー。入力前eventsから限定meaning／report／time／contrastをread-only再照合し、原turn/recordの一致・ID一意性・現在input不在を確認。先行関係資料の検査をその入口のy採用へ広げない。
+- 明示選択済みの同player・言語・原節表現・sad-yesterdayまたはhappy-nowだけ。今回sad/happyが未知で、一件の限定meaning根拠・evidence=[今回教示input ID]が実updatedと一致する時だけkind=teaching／occurrenceId=feeling_word:今回input ID。グローバルmeaning・初期既知非置換、原当時と教示直前のmeaning不足へ今回更新を書き戻さない。原解析意味／語の宣言／実理解を区別し、本人感情身体経験・相手報告の客観的真偽・理由・自己確認理解自覚・節全体理解・正確な暦を補わない。
+- 七言語八設定、逆語順と先行片側report、選択後文脈退去、場面復帰後の別input教え直し、七言語先行全資料共存、当時資料非書換え・原／今回／先行根拠の改変拒否を確認。原文選択単独／語既知／他段階／通常報告／既存拒否反復は非候補。同input非増加非上書き・コピー独立・後知識による遡及生成なしを維持。y当時の零経過未解消表記は後続an補修済みの履歴、今回an全体再検証なし。
+- 専用15テスト全通過（Node並列2、終了0、fail/cancelled/skipped/todo各0）、fixture584ケース1127入力、開始8ファイルhash不変。開始十文書baseline・原stdout/stderr・工具・読取記録はdocs/.local-history/verification-runs/4d-y-review-de59390。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去の成功と今回専用結果を区別する。
+- 固定50中4d1〜11／4d12a〜yの36部品まで直接照合済み、残z〜amは14部品。次チャットはexperimental_word_diary_known_feeling_words.js・専用test・scripts/experimental/diary_known_feeling_word_fixtures.jsと所有z行・必要依存から。z本体／test／fixtureは今回未読。全入口最終分類・全旧所有／推移的全枝読了は未完、138 API宣言やdy有限資料を全入口網羅としない。
+- 全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。具体不足なしに新混在候補／dzを自動追加しない。文書保持／新リンク検査・発行は現行handoff参照。
+
 <a id="diary-final-review-actual-correction-x"></a>
 
 ##### 4d最終意味照合：印なし実訂正x（2026-10-30・今回単位の照合完了）
