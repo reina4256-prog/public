@@ -1,5 +1,15 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-known-feeling-word-z"></a>
+
+##### 4d最終意味照合：初期感情語既知側教示z（2026-10-30・今回単位の照合完了）
+
+- 開始5772733、ゲーム実装f93e951。ユーザー指定の一単位完了ごとの次チャット移動に従い、4d12z本体／専用test／fixture全文、OWNERSのz行・所有条件と必要依存枝を直接照合。今回読取範囲で新仕様不一致未発見。ゲームcode・fixture・catalog・locale・package・保存形式変更なし、新部品／混在候補／dz追加なし。
+- 初期sad/happy二根拠はid/sourceだけ・一意、初期report/time/contrastは三件または零件を照合。原二節input/frame／当時understandings/feelingBasis、明示選択input/frame/at/basis/original、先行各教示のscope／順序／聞いた時点と生活時点／当時理解、今回操作partial teaching_operation・教示直前の原節理解／実adopted／空updatedを分離。初期意味既知の語教示だけをknown_feeling_word:今回input ID・kind=teachingとしてコピーし、meaningKnownBefore=trueを保持。今回meaning追加・初期再習得置換・原当時理解の書戻しなし。
+- 入力前eventsをread-only再照合し、原turn/record一致・各リストID一意性・今回input不在、別言語を含む先行限定report/time/contrast根拠を検査。他段階資料検査をz採用へ広げない。未選択／選択だけ／未知側／既存拒否反復／他段階／通常報告は非候補。逆語順・先行片側report、選択後文脈退去、場面復帰の別input教え直し、七言語先行全資料、コピー独立・後学習非遡及を照合。主体時点対比不足・相手真偽未検証を保ち、本人感情身体経験・理由自覚・正確な暦を補わない。z当時の零経過未解消は後続an補修済みの履歴、今回an全体保存再開／renderer再検証なし。
+- 専用14テスト全通過（Node並列2・504ケース1045入力・終了0・fail/cancelled/skipped/todo各0）、開始9hash不変。原stdout/stderr・summary.json・開始十文書baseline・読取記録・文書検査はdocs/.local-history/verification-runs/4d-z-review-5772733。全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去全3597等の成功と区別し、専用成功を全体意味読了へ昇格しない。表示文変更なし、locale再構築対象なし。
+- 固定50中4d1〜11／4d12a〜zの37部品まで直接照合済み、残aa〜amは13部品。次チャットはexperimental_word_diary_feeling_report_examples.js・専用test・scripts/experimental/diary_feeling_report_fixtures.jsと所有aa行・必要依存から（今回aa本体／test／fixture未読、パス実在のみ確認）。全入口分類／4d12／4d／ID4全体未完。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0・低確度・上限終了保証なし）を維持。4e／receipt保存形式／本接続未採用未実装。
+
 <a id="diary-final-review-feeling-word-y"></a>
 
 ##### 4d最終意味照合：感情語未理解側教示y（2026-10-30・今回単位の照合完了）
