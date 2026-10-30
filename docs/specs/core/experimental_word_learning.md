@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-remaining-time-reports-al"></a>
+## 2026-10-30：時点付き休息報告の残六組合せalの最終意味照合
+
+- 開始5d901c8・ゲーム実装f93e951、ak意味照合完了は今回ユーザー指示で引継ぎ済み。今回4d12al一単位の意味照合を完了、al結果へのユーザー確認は未受領。一単位完了ごと次チャットへ移り、貼り付け用冒頭文も最終回答へ出力する。
+- al本体／専用test／scripts/experimental/diary_remaining_time_report_fixtures.js全文・所有al採用条件/API/保持境界と必要依存枝を照合。今回読取範囲で新仕様不一致未発見。七言語の既存timeTeaching通常休息報告のself否定now/past、player肯定／否定now/pastの六組合せだけ。j本人肯定二組合せ・d/g無時点担当を維持し、自由文型や新理解／習得規則を追加しない。
+- 四引数capture(buffer,result,context,beforeKnowledge)の原input ID/raw/locale/speaker/at/scene・単独catalog frame・今回complete／未解決なし／known rest／主体極性時点roles／speaker_reportを照合。NFKC大小文字前後空白正規化を保持。入力前rest意味一件・必要report/timeと否定時negation各一件だけを要求し、欠損重複競合非補完。肯定playerはnegation不要・別主体未使用根拠は合算しない。
+- initialまたは一致experienced_relationだけを今回適用根拠とし、後者はkind/meaning/locale/speaker/roles、reportは主体reportForm、timeは今回form/eventTime/polarity/reportForm、negationは今回form/polarity/reportFormを照合。理解relationReferencesとの一致・コピー保持。実二主体report教示＋初期time/negation経路と、実限定time/negation習得だけでは残六組合せへ非転移の経路を区別する。元教示input/evidenceは理解の出所で今回休息の同定材料ではない。
+- 一input一report候補remaining_time_report:今回input ID。contextの聞いた場面／注目／活動start/elapsed、input.at、相対now/pastを分離。聞いた時の活動や注目で報告を検証せず、reported／verified=falseを保持。本人報告も本人経験・自己発話・身体感情理由希望・具体休息・正確な暦へ補完せず、reportReference/eventReference/pastReferenceを生成しない。原時非書戻し・拒否input非遡及・同input非増加非上書き・別input別候補・コピー独立を確認。
+- 専用16全通過、14群1185ケース1262入力・終了0、fail/cancelled/skipped/todo各0。開始十文書baseline・11source hash・review.cjs・原stdout/stderr／summary.json／reading.jsonはdocs/.local-history/verification-runs/4d-al-review-5d901c8。11hash不変。ゲーム／fixture／catalog／locale／package／保存形式非変更、新表示文なし。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去al全851／rendererや全3597を今回結果へ昇格しない。
+- 固定50中49まで、残amの1部品、次4d12amのexperimental_word_diary_proposals.js／tests/experimental_word_diary_proposals.test.js／scripts/experimental/diary_proposal_fixtures.jsと所有条件・必要依存へ。amは専用test先頭13行のrequire・五引数とOWNERS行のみ読取、本体／fixture未読。全入口最終分類／4d12／4d／ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・4e／receipt保存形式／ゲーム本接続未採用未実装維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。dy原728／138 API inventoryを全入口網羅としない。旧零経過未解消は後続an補修済みの履歴、今回an全体再検証なし。
+
+
 <a id="diary-final-review-remaining-corrections-ak"></a>
 ## 2026-10-30：個体名原出所・再訂正連鎖・否定対比型実訂正akの最終意味照合
 

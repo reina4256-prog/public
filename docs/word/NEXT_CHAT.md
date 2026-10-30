@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（時点付き休息報告の残六組合せal照合済み・次am）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、5d901c8から行った4d12al意味照合の続きとして次4d12amから再開してください。最新文書commit／pushはCURRENT_IMPLEMENTATION.md参照。ゲーム実装f93e951、ak意味照合完了はユーザー指示で引継ぎ済み。al結果へのユーザー確認は未受領です。一単位完了ごとの次チャット移動を継続し、移動時は引継ぎ更新に加え貼り付け用次チャット冒頭文を必ず最終回答にも出力してください。
+al本体／専用test／scripts/experimental/diary_remaining_time_report_fixtures.js全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。正本specs/core/experimental_word_learning.md#diary-final-review-remaining-time-reports-al。専用16全通過・14群1185ケース1262入力・終了0・11source hash不変、固定50中49部品まで、残amの1部品です。
+七言語既存timeFrame休息報告のself否定now/past・player肯定／否定now/pastだけ。四引数の入力前rest意味・必要report/time／否定時negation各一意、initialまたは一致experienced_relation scopeとrelationReferences／当時complete理解／speaker_reportを照合コピー。限定time/negation習得を残六組合せへ転移せず、実二主体report＋初期time/negation経路を区別。肯定playerはnegation不要・未使用別主体根拠非合算。元教示evidenceは理解の出所で今回休息を同定しない。相対now/past・聞いたinput.at・生活elapsedを分離、未検証伝聞を本人経験・身体感情理由暦へ補完しない。d/g/j担当維持、欠損競合非補完・拒否input非遡及・同input非増加非上書き・別input別候補・コピー独立・原時非書戻し。
+原ログ・開始十文書baseline・工具・reading.jsonはdocs/.local-history/verification-runs/4d-al-review-5d901c8。ゲーム／fixture／catalog／locale／package／保存形式非変更、新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布今回未実行。過去al全851／renderer・全3597を今回結果へ昇格しない。旧零経過未解消は後続an補修済みの履歴。
+次はexperimental_word_diary_proposals.js（4d12am）、tests/experimental_word_diary_proposals.test.js、scripts/experimental/diary_proposal_fixtures.jsとOWNERS am行・所有条件／必要依存へ。amは専用test先頭13行のrequire・五引数とOWNERS行のみ確認、本体／fixture未読。残1後の全入口最終分類も未完、dy原728や138 API inventoryを全入口網羅としない。
+dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠は履歴として保持。
+```
+
+
 ## 最初に読む現行継続文（個体名・再訂正連鎖・否定対比型ak照合済み・次al）
 
 ```text
