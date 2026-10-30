@@ -1,5 +1,16 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-known-feeling-report-ab"></a>
+
+##### 4d最終意味照合：感情報告の初期report既知側教示ab（2026-10-30・今回単位の照合完了）
+
+- 開始3671845・ゲーム実装f93e951。4d12ab本体／専用test／fixture全文、OWNERSのab行、ab所有条件・対応表・3c3f1／3c3f2／3c3f3と必要依存枝を直接照合。この読取範囲で新仕様不一致未発見。ゲームcode・fixture・catalog・locale・package・保存形式変更なし、新部品／混在候補／dz追加なし。
+- 七引数は入力前一時資料で保存契約ではない。初期sad/happy二件または零件と初期report/time/contrast三根拠を一意照合。原二節input/frame・当時understandings/feelingBasis、明示選択input/frame/at/basis/original、先行各教示scope／順序／聞いた時点と生活時点／当時理解、今回操作partialと教示直前原節complete、実adopted・空updatedを分離照合。meaningKnownBefore=true／reportKnownBefore=true／relationAcquired=false。片側・両側とも初期関係を再習得・新造・置換せず、本人感情身体経験／相手真偽／自覚／正確な暦を補わない。
+- 初期意味なし側は先行限定語教示を根拠に対象節だけ既知なら成立、他節未知を補わない。主体教示は両順序可、意味前提不足では実adoptedなし、前提取得後は別inputで再教示。原当時subject=player・各節yesterday/now・testimony.verified=falseを維持し、意味不足は後学習で書き戻さない。今回操作partialは節内容completeへ置換しない。選択単独／語時点対比教示／通常報告／経験report完成済み同教示の既存拒否はab非候補。
+- 入力前eventsの先行report/time/contrast資料をread-only再照合。原turn/record一致・ID一意性・今回input不在、七言語資料共存、選択後文脈退去／場面復帰、コピー独立・再受信再読非増加非上書きを確認。他段階の資料検査をab採用へ広げない。旧ab時点の零経過未解消は後続an補修済みの履歴、今回an全体保存再開／renderer再検証なし。
+- 今回専用17件全通過（Node並列2・終了0・fail/cancelled/skipped/todo各0）、fixture623ケース1201入力・開始9hash不変。原ログ・十文書baseline・工具・読取記録はdocs/.local-history/verification-runs/4d-ab-review-3671845。文書検査・発行はCURRENT_IMPLEMENTATION.md参照。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去ab全651／七言語／rendererと過去全3597の成功を今回専用17と区別する。
+- 固定50中4d1〜11／4d12a〜abの39部品まで照合、残ac〜amは11部品。次はac本体・専用test・fixtureと所有条件／必要依存。ac本体／test／fixture内容は今回未読、fixtureパス実在とOWNERS ac行のみ確認。全入口分類／固定50完全前提同一入力集合／4d12・4d・ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録・全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）を維持。4e／receipt保存形式／本接続未採用未実装。以下は過去状態と原証拠を保持する。
+
 <a id="diary-final-review-feeling-report-aa"></a>
 
 ##### 4d最終意味照合：感情報告のreport未理解側教示aa（2026-10-30・今回単位の照合完了）

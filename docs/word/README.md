@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-10-30最新：[初期report既知側教示abの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-report-ab)完了。初期三関係・原当時理解／選択／先行教示／今回操作partial・節complete／実adopted空updatedを分離、初期非再習得非置換・非書戻しを照合。専用17件・623ケース1201入力通過、新不一致未発見は今回読取範囲のみ。固定50中39まで・残11・次ac、全入口分類／4d全体未完。全回帰／renderer今回未実行、発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[report未理解側教示aaの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-report-aa)完了。原二節／選択／先行教示／今回操作と教示直前理解／実adopted・片側空updated／両節二件更新を分離。専用16件・576ケース1147入力通過、新不一致未発見は今回読取範囲のみ。固定50中38まで・残12・次ab、全入口分類／4d全体未完。全回帰／renderer今回未実行、発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[初期感情語既知側教示zの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-word-z)完了。初期二意味根拠と原二節／明示選択／先行教示／今回実adopted・空updatedを分離、初期非置換・当時非書戻しを照合。専用14件・504ケース1045入力通過、新不一致未発見は今回読取範囲のみ。固定50中37まで・残13・次aa、全入口分類／4d全体未完。全回帰／renderer今回未実行、発行・読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

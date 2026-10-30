@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-30最新：[初期report既知側教示abの直接意味照合](experimental_word_learning.md#diary-final-review-known-feeling-report-ab)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用17通過、固定50中39まで・残11・次ac。新不一致未発見は今回読取範囲のみ。歴史snapshot／review hash／not_received非上書き、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。全回帰・監査test・renderer今回未実行、発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[report未理解側教示aaの直接意味照合](experimental_word_learning.md#diary-final-review-feeling-report-aa)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用16通過、固定50中38まで・残12・次ab。新不一致未発見は今回読取範囲のみ。歴史snapshot／review hash／not_received非上書き、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。全回帰・監査test・renderer今回未実行、発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-30最新：[初期感情語既知側教示zの直接意味照合](experimental_word_learning.md#diary-final-review-known-feeling-word-z)。本体／専用test／fixture・所有条件と必要依存枝を照合、専用14通過、固定50中37まで・残13・次aa。新不一致未発見は今回読取範囲のみ。歴史snapshot／review hash／not_received非上書き、全14保留・各担当三保留・全入口分類未完を維持。新担当追加／全体完了認定なし。全回帰・監査test・renderer今回未実行、発行は現行handoff参照。以下は過去状態。
