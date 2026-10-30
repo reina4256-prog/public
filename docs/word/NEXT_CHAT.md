@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（感情二節通常報告ah照合済み・次ai）
+
+```text
+開始9b9b177、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。ag意味照合結果はユーザー確認済み。今回は4d12ahの最終意味照合を完了。一単位完了ごとの次チャット移動を継続し、移動時は文書更新に加えて貼り付け用次チャット冒頭文を必ず最終回答へ出力する。正本specs/core/experimental_word_learning.md#diary-final-review-two-clause-feeling-report-ah。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。今回ah照合結果へのユーザー確認は未受領。
+固定50中4d1〜11／4d12a〜ahの45部品、残ai〜amは5部品。ah本体／専用test／diary_contrast_feeling_report_fixtures.js全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。ゲーム・fixture・catalog・locale・package・保存形式非変更、新部品／混在／dz追加なし。
+初期sad/happy二件または零件・初期report/time/contrast三件または零件と先行限定教示を照合。両節の語と三関係が入力前既知・completeの七言語固定二節通常報告だけ、今回input一report候補（feeling_contrast_report:今回input ID）。初期contrast connection非新造・教示由来元source ID/form/両節index/sad-happy差異/非置換非原因主張/三教示evidence保持。両節当時理解とbasis／先行全教示／今回理解／speaker_report／未検証testimonyを分離コピー。相対昨日今・聞いたinput.at・生活elapsedを分離、本人感情身体経験真偽理由暦非補完・元二節当時不足非書戻し。前提不足input非遡及・agへ分解非生成、今回報告場面と原教示場面を分離。同input非増加非上書き・別input反復別候補・コピー独立。
+専用22全通過・3083ケース3695入力・終了0、開始9hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-ah-review-9b9b177。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去ah全772／rendererと過去全3597を今回結果へ昇格しない。旧零経過未解消は後続an補修済みの履歴、今回an全体再検証なし。文書検査と発行はhandoff参照。
+次はexperimental_word_diary_external_reports.js（4d12ai）、tests/experimental_word_diary_external_reports.test.js、scripts/experimental/diary_external_report_fixtures.jsと所有ai行・必要依存から。ai本体／fixture内容は未読、専用test先頭10行・三パス実在／OWNERS ai行のみ確認。残5後に入口全体の既存担当／当時非成立／具体不足／別領域保留の最終分類へ。dy原728や138 API宣言inventoryを全入口網羅としない。
+全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠を履歴として保持する。
+```
+
+
 ## 最初に読む現行継続文（感情単独節通常報告ag照合済み・次ah）
 
 ```text
