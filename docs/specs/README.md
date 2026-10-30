@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-10-30最新：[対比未理解側三段階教示aeの最終意味照合](core/experimental_word_learning.md#diary-final-review-feeling-contrast-ae)完了。原当時理解／選択／先行教示／今回操作partial・両節contrastだけ未理解／実adoptedを分離。第一第二空updated、第三contrast二件更新・非置換非原因主張・原当時非書戻しを照合。専用20件・876ケース1710入力通過、新不一致未発見は今回読取範囲のみ。固定50中42まで・残af〜amの8部品、次af。全入口分類／4d全体未完、全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持、4e未採用未実装。全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[初期time既知側教示adの最終意味照合](core/experimental_word_learning.md#diary-final-review-known-feeling-time-ad)完了。初期三関係／原当時理解／今回操作partial・節complete／実adopted空updatedを分離し、初期非再習得非置換・原時点保持・原当時語未知非書戻しを照合。専用19件・662ケース1247入力通過、新不一致未発見は今回読取範囲のみ。固定50中41まで・残ae〜amの9部品、次ae。全入口分類／4d全体未完、全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持、4e未採用未実装。全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
 
 - 2026-10-30最新：[time未理解側教示acの最終意味照合](core/experimental_word_learning.md#diary-final-review-feeling-time-ac)完了。先行限定語義・両節report根拠／原当時理解／今回操作partialと教示直前eventTime=unspecified／片側空updated・両節time二件更新を分離し、原当時非書戻しを照合。専用18件・631ケース1216入力通過、新不一致未発見は今回読取範囲のみ。固定50中40まで・残ad〜amの10部品、次ad。全入口分類／4d全体未完、全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持、4e未採用未実装。全回帰／renderer今回未実行。読取／未検証／発行はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。

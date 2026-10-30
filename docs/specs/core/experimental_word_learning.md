@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-feeling-contrast-ae"></a>
+
+##### 4d最終意味照合：対比未理解側の三段階教示ae（2026-10-30・今回単位の照合完了）
+
+- 開始8fb4fda・ゲーム実装f93e951。一単位完了ごとの次チャット移動に従い、4d12ae本体／専用test／fixture全文・所有条件と3c3f1〜3c3f3の必要依存枝を直接照合。今回読取範囲で新仕様不一致未発見、ゲームcode／fixture／catalog／locale／package／保存形式変更なし。新混在候補／dz追加なし。
+- 初期sad/happy二件または零件・初期report/time/contrast零件と先行限定教示を照合。原二節input/frame・当時understandings/feelingBasis、明示選択input/frame/at/basis/original、先行各教示scope／順序／聞いた時点と生活時点／当時理解、今回操作partial teaching_operation・教示直前両節partial／実adopted・updatedを分離。meaningKnownBefore=true／reportKnownBefore=true／timeKnownBefore=true／contrastKnownBefore=false。初期contrast既知側はae非採用、先行他言語contrast資料の検査を今回入口の採用へ広げない。
+- 同原二節・相手・言語・場面の別inputでretain→difference→noncausalのみ。第一第二は空updated・relationAcquired=false、第三だけ両節限定contrast二件updated・relationAcquired=true。三教示input ID順序・原source ID／二節全体form／retainedClauses=[0,1]／difference=['sad','happy']／replaces=false／causalClaim=falseを保持。原因を主張しないという限定を、原因が存在しないという断定へ補わない。
+- 各段階直前両節はsubject=player・原報告yesterday/now・testimony.verified=false、意味report/time既知・contrastのみ未理解・complete=false。原当時主体時点／語不足へ非書戻し、本人感情身体経験／相手真偽／変化理由・自覚／正確な暦非補完。片側前提や順序違い・反復は実adoptedなし、前提取得後別input再教示。原文選択単独は資料のみ、既存拒否入力の遡及採用なし。
+- 原turn/record一致・ID一意性・今回input不在、七言語共存／選択後文脈退去／場面復帰／後学習非書戻し／再受信再読非増加非上書き・コピー独立を照合。教示生活時刻30/60/90と聞いた時点を分け原報告時点を保持。旧aeの零経過未解消記述は後続an補修済みの履歴、今回an全体保存再開／renderer再検証なし。
+- 専用20件全通過（Node並列2・終了0・fail/cancelled/skipped/todo各0）、fixture876ケース1710入力、開始9hash不変。原ログ／開始十文書baseline／局所工具／summary.json・reading.jsonは`docs/.local-history/verification-runs/4d-ae-review-8fb4fda`。ゲーム非変更の部分意味照合／文書単位、全回帰／監査test／七言語／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去ae全708／七言語／rendererと過去全3597の成功を今回専用20へ昇格しない。
+- 固定50中4d1〜11／4d12a〜aeの42部品まで直接照合済み、残af〜amは8部品。次は`experimental_word_diary_known_feeling_contrast_examples.js`／専用test／`scripts/experimental/diary_known_feeling_contrast_fixtures.js`とOWNERS af行・所有条件から。af本体／test／fixture内容は今回未読。残8後に入口全体最終分類へ。全14保留・各担当三保留・4d12／4d／ID4全体未完、残2〜3工程中心2は部分進捗で減算0・低確度・上限終了保証なし。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持、4e／receipt保存形式／本接続未採用未実装。
+
 <a id="diary-final-review-known-feeling-time-ad"></a>
 
 ##### 4d最終意味照合：感情報告の初期time既知側教示ad（2026-10-30・今回単位の照合完了）
