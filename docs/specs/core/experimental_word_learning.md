@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-feeling-time-ac"></a>
+
+##### 4d最終意味照合：感情報告のtime未理解側教示ac（2026-10-30・今回単位の照合完了）
+
+- 開始944cd3e・ゲーム実装f93e951。4d12ac本体／専用test／fixture全文、OWNERSのac行、ac所有条件・3c3f1／3c3f2／3c3f3と必要依存枝を直接照合。この読取範囲で新仕様不一致未発見。ゲームcode・fixture・catalog・locale・package・保存形式変更なし、新部品／混在候補／dz追加なし。
+- 七引数は入力前一時資料で保存契約ではない。初期sad/happy二件または零件・初期report/time/contrastなしを照合し、先行限定語義と両節reportの実根拠をread-only再構成。原二節input/frame・当時understandings/feelingBasis、明示選択input/frame/at/basis/original、先行各教示scope／順序／聞いた時点と生活時点／当時理解、今回操作partial・教示直前原節理解、実adopted・updatedを分離する。
+- meaningKnownBefore=true／reportKnownBefore=true／timeKnownBefore=false。昨日／今の両順序可・各節一教示、片側updated空・relationAcquired=falseと、異なる両節成立時の限定time二件updated・relationAcquired=trueを分ける。教示直前はsubject=player・eventTime=unspecified・time/contrast不足・testimony.verified=falseを維持。後のtime更新を原当時の主体意味時点不足や教示直前理解へ書き戻さず、相手真偽／本人感情身体経験／理由・理解自覚／正確な暦／contrast理解を補わない。
+- 語・report前提不足、片側reportだけのtime教示は実adoptedなし、前提取得後は別inputで再教示。同節反復／選択単独／語主体対比教示／通常報告／初期time既知側をac候補にしない。教示生活時刻30/60と聞いた時点を分けた資料でも原報告の昨日／今を保持。先行report/time/contrastの資料検査は他入口のac採用ではない。
+- 原turn/record一致・ID一意性・今回input不在、七言語共存、選択後文脈退去／場面復帰、コピー独立・再受信再読非増加非上書きを照合。旧ac時点の零経過未解消は後続an補修済みの履歴、今回an全体保存再開／renderer再検証なし。
+- 今回専用18件全通過（Node並列2・終了0・fail/cancelled/skipped/todo各0）、fixture631ケース1216入力・開始9hash不変。十文書baseline・原ログ・工具・読取記録はdocs/.local-history/verification-runs/4d-ac-review-944cd3e。文書検査・発行はCURRENT_IMPLEMENTATION.md参照。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去ac全669／七言語／rendererと過去全3597の成功を今回専用18と区別する。
+- 固定50中4d1〜11／4d12a〜acの40部品まで照合、残ad〜amは10部品。次はad本体・専用test・fixtureと所有条件／必要依存。ad本体／test／fixture内容は今回未読、fixtureパス実在とOWNERS ad行のみ確認。全入口分類／固定50完全前提同一入力集合／4d12・4d・ID4全体未完。dy確認済み・140枠140確認済み・正式子129・全138登録・全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）を維持。4e／receipt保存形式／本接続未採用未実装。以下は過去状態と原証拠を保持する。
+
 <a id="diary-final-review-known-feeling-report-ab"></a>
 
 ##### 4d最終意味照合：感情報告の初期report既知側教示ab（2026-10-30・今回単位の照合完了）

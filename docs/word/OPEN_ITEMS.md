@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-10-30最新：[time未理解側教示acの照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-time-ac)。固定50中40まで・残ad〜amの10部品と全入口分類は未完、次ad。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用18件成功を全回帰／全体意味読了／本接続成功へ昇格しない。新混在／dz追加なし、4e未採用未実装。以下は過去状態。
+
 - 2026-10-30最新：[初期report既知側教示abの照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-report-ab)。固定50中39まで・残ac〜amの11部品と全入口分類は未完、次ac。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用17件成功を全回帰／全体意味読了／本接続成功へ昇格しない。新混在／dz追加なし、4e未採用未実装。以下は過去状態。
 
 - 2026-10-30最新：[report未理解側教示aaの照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-report-aa)。固定50中38まで・残ab〜amの12部品と全入口分類は未完、次ab。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用16件成功を全回帰／全体意味読了／本接続成功へ昇格しない。新混在／dz追加なし、4e未採用未実装。以下は過去状態。
