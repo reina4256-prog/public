@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（名前・酸味・通常確認問いの条件行別対応付け済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、3d0f4ffから行った名前・酸味・通常確認問いの行別対応付けの続きとして、問い以外の単独報告の一群を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。一単位完了ごとの次チャット移動、引継ぎ更新と貼り付け用次チャット冒頭文の最終回答出力を継続してください。
+所有記録はdocs/specs/core/experimental_word_diary_audit.md#entry-direct-answer-row-mappingに続く同#entry-name-sour-confirmation-row-mapping、分類基準は同#entry-final-classification-basis。bd/bz/ca/cf・be/cb/cg・cc/chの現所有条件と必要資料を行別対応付けました。名前の実発話でもturn.answerはなくap本人回答へ移さず、酸味詳細だけ不足と三前提不足、通常確認未完と完全理解身振りを分離。as名前肯否・4d2完全理解実answer_unknownの境界を維持してください。
+直接九入口と今回群の個別原receiptは未供給・未照合です。当時処理と資料保持を分離し、capture=falseだけで当時非成立／新担当必要と決めず、未供給・未読・未照合を残してください。次群は既存保存資料とOWNERSから節境界・現所有条件・必要依存を先に確認し、原input/frame・当時理解・実応答／更新・前件出所・担当API／必要引数へ対応付けてください。他群／複数節／全入口最終分類を完了にせず、新混在探索・新部品／dz追加を自動採用しないでください。
+固定50中50を全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了へ昇格しない。dy原728有限照合・旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持。今回証拠はdocs/.local-history/verification-runs/entry-name-sour-confirmation-mapping-3d0f4ff、過去4d-final-review-25b06af等を今回再実行扱いにしないでください。
+140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2・減算0・低確度・上限終了保証なし。今回は文書検証のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。工程完了判定はVALIDATIONの--full等に従い、過去全3597成功・初回timed_out/incomplete・reading.not_recordedを別保持してください。
+旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（直接問い九入口・本人回答の行別対応付け済み）
 
 ```text

@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-31最新：3d0f4ffの続きとして[名前・酸味・通常確認問いの行別対応付け](#entry-name-sour-confirmation-row-mapping)を一単位実施。個別原receipt未供給・未照合は維持。当時処理と資料保持を分離し、全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新担当／dz追加なし、文書検証のみ。
+
 - 2026-10-31最新：c4c2bf6の続きとして[直接問い九入口・本人回答の行別対応付け](#entry-direct-answer-row-mapping)を一単位実施。現行coreとap／aq／4d2／uの条件・必要依存、cd／ce／ct／cwの既存所有境界を確認。条件上の対応付けであり、個別原receipt未供給の成立認定／全入口網羅ではない。全体未完・全保留・残2〜3工程中心2／減算0を維持。今回文書検証のみ。
 
 <a id="entry-direct-answer-row-mapping"></a>
@@ -40,6 +42,43 @@
 この単位で新担当が必要と確定した行はない（不足が存在しないという認定ではない）。新部品／dzは追加しない。次は別の一群として名前・酸味・通常確認問いの既存所有条件を節境界から特定し、bd/bz/ca/cf・be/cb/cg・cc/ch等と必要依存へ行別対応付けする。九入口について残る個別原資料の供給・照合と、他群・複数節・全入口最終分類は未完。本文集約／一時receipt保存形式／ゲーム本接続は各担当三保留、全14保留・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。残2〜3工程中心2、減算0・低確度・上限終了保証なし。今回文書検証のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。証拠は`docs/.local-history/verification-runs/entry-direct-answer-mapping-c4c2bf6`。
 
 - 2026-10-31最新：e556f2dから[全入口最終分類の条件・既存証拠の不足確認](#entry-final-classification-basis)を一単位実施。am意味照合完了はユーザー指示で引継ぎ済み。固定50中50の部品別照合を全入口網羅へ昇格しない。分類自体／4d12／4d／ID4全体は未完、全14保留・各担当三保留・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。文書のみ、全回帰／監査test／七言語チェック／renderer今回未実行。以下の過去記録は保持。
+
+<a id="entry-name-sour-confirmation-row-mapping"></a>
+
+#### 名前・酸味・通常確認問いの行別対応付け（2026-10-31・一単位）
+
+3d0f4ffの[直接九入口の所有記録](#entry-direct-answer-row-mapping)に続き、[分類基準](#entry-final-classification-basis)に従って九担当の現所有条件と必要資料を行別対応付けした。例は既存catalogとfixture定義の語面で、今回生成・供給・再生した個別原receiptではない。原input ID／at／話者／設定／知識／文脈／前後worldは個別未供給・未照合。以下の「当時」は照合時に確認すべき条件であり、個別成立確認済みを意味しない。
+
+共通境界は`experimental_word_learning_core.js`のinterpret331〜393、resolveTarget611〜630、understand632〜740、receive881〜926。definition／有効反復／文脈確認／報告続報の優先を維持し、語面だけで入口を確定しない。catalog日本語name_questionは疑問符必須ではなく、sour_questionは既存疑問符が必要。通常確認はinterpret382〜385で既存report規則をquestion/slot=confirmation・subject=selfへ変換し、report関係をquestionへ替える入口。unknownや複数節を単独confirmationへ修復しない。
+
+全九担当は独立journalの`create()/capture(buffer,result,receipt)`三引数。共通資料 **B** は実receive直前beforeState/beforeWorld、独立input/inputKnowledge/inputContext、実respond直後afterState/afterWorld/reply。input.id=before.serial+1・原話者／時刻／sceneと独立資料、コピー上receive/respondのresult・前後state/world・実reply全文一致が必要。apと同じ三引数でもreceipt契約を同一視しない。名前参照枝の追加資料 **N** は後述する。供給資料整合照合であり真正性認証ではない。
+
+| 原input例／解析枝 | 当時理解・実応答の確認条件 | 現所有API／必要資料・拒否境界 |
+| --- | --- | --- |
+| これは何／name_question・name、question関係不足 | partial・complete=false、subject/questionSlot=null。対象不足併存も保持。実reply／発話設定は原資料どおり | [bz](experimental_word_learning.md#diary-incomplete-name-questions-bz) `incomplete_name_questions.capture`＋B。frameから本人の問い理解を補わない。対象だけ不足のcaと分離 |
+| これは何／同枝、対象だけ未解決 | question関係適用可、question・complete=false・self/name、relations=[question]。target.adopted=null、unresolvedは原候補に一致するtarget一項だけ | [ca](experimental_word_learning.md#diary-unresolved-name-targets-ca) `unresolved_name_targets.capture`＋B。空／複数注目を後注目・名前・確認で一意にしない。berry意味を新条件にしない |
+| これは何／同枝、完全理解・short | complete・unresolved空・self/name、positive/unspecified、aspect/conditionStatus=null、attention由来一意対象。実name_echo／name_known／known_berry | [bd](experimental_word_learning.md#diary-name-questions-bd) `name_questions.capture`＋B・N。name_echoのconfirm_name待ちを確認成立へ昇格しない。known_berryは有効対応なし＋berry対象＋当時berry意味既知。個体名応答へberry意味を新要求しない |
+| これは何／同枝、完全理解・gesture | bdと同じ理解／対象条件。実recognize_gesture／looking／attend、actualSpeech=false | [cf](experimental_word_learning.md#diary-gesture-name-questions-cf) `gesture_name_questions.capture`＋B・N。recognize_gestureのwordを実発話・回答成功にしない。lookingは有効対応なし＋berry対象＋berry既知、attendから既知／未知原因を断定しない |
+| すっぱくない？／sour_question・sour_evaluation、三前提の不足 | eat意味または当該question/negation関係が一つ以上適用不能、detail=sour不足併存。eatだけ不足ならquestion/self/slot保持、関係不足ならpartial・主体/slot=null、negation不足ならpolarity=unknown | [cb](experimental_word_learning.md#diary-incomplete-sour-questions-cb) `incomplete_sour_questions.capture`＋B。short/gesture双方の実応答保持。語・関係不足をbe/cgの詳細だけ不足へ補わない |
+| すっぱくない？／同枝、詳細だけ不足・short | eatとquestion/negation適用可、question・complete=false、unresolved=[detail:sour]だけ・self/sour_evaluation、positive/unspecified、target/aspect/conditionStatus=null。実unknown_taste_word／uncertain | [be](experimental_word_learning.md#diary-sour-questions-be) `sour_questions.capture`＋B。当時sweet既知かつ末尾eat.taste.quality=sweetならunknown_taste_word、他はuncertain。末尾eat資料またはnullを保持、pleasant／現在mealTasteを新条件にしない。「ない」からnegative・酸味否定判断を補わない |
+| すっぱくない？／同枝、詳細だけ不足・gesture | beと同じ当時理解、実attend・actualSpeech=false | [cg](experimental_word_learning.md#diary-gesture-sour-questions-cg) `gesture_sour_questions.capture`＋B。末尾eatはworld原資料として保持し実参照経験と断定しない。sweet・食事有無／味／pleasant・活動／注目を新成立条件にしない |
+| 木の実が好き？／既存report規則→confirmation、未完理解 | kind=questionまたはpartial・complete=false・unresolved非空。意味／関係／対象／詳細不足と併存を原理解どおり保持。実answer_unknownでもcomplete=falseは未完 | [cc](experimental_word_learning.md#diary-incomplete-confirmation-questions-cc) `incomplete_confirmation_questions.capture`＋B。speech設定を理解条件にしない。reportSourceや本人の肯否を新造しない。「休むことは大事？」のimportance詳細不足もこちら |
+| 木の実が好き？／同枝、完全理解・gesture | question・complete=true・unresolved空・self/confirmation、実attend・actualSpeech=false | [ch](experimental_word_learning.md#diary-gesture-confirmation-questions-ch) `gesture_confirmation_questions.capture`＋B。理解と実「好き」の回答を分離。cc／as名付け肯否／ap九入口へ混ぜず、未完理解をchのために補修しない |
+
+**N（bd/cfの原名付け・原確認依存）**：world.nameReply137〜143／respondCurrent398〜404の同話者・同対象有効association一意を確認する。参照した全active evidence一件ごとに一意originsの平坦result/receiptを供給し、原namingの当時complete・一意実更新・原record/evidenceとコピー上処理を照合する。原inputは今回より前・時刻は今回以下・同実話者、origins/confirmationのreceipt内再帰挿入不可。confirmedByありなら原yes reply・当時complete・原confirm_name pending・実confirmedBy一致のconfirmationを別照合、未確認ならnull。bd known_berry／cf looking・attendはorigins=[]・confirmation=nullで架空出所を補わない。個別原資料は今回未供給・未照合。
+
+| 隣接境界 | 当時処理と資料保持を分ける確認 |
+| --- | --- |
+| 名前のshort実answer_unknown／通常確認の完全理解short | world374〜421の完全理解枝で実answer_unknownなら既存`questions.capture(buffer,result,reply)`の4d2条件へ。bd拒否だけで新担当不足にしない。通常確認complete=falseの実answer_unknownはcc条件を維持。個別result/reply未供給で4d2成立は未照合 |
+| 名前の確認返事／取り下げ | [as](experimental_word_learning.md#diary-name-responses-as)のreply=yes/no・直前名付けcorrectionは別入口。bdのname_echoと後の確認入力、通常confirmation問いを同じ入力にしない。as詳細API前件全文は今回再読・再照合なし |
+| 実turn.answerと本人経験 | world308〜317の保持slot列挙にname／sour_evaluation／confirmationはない。九担当とも実turnにanswerがないことを要求しturnAnswer=null。bd実発話でもap actualAnswerへ移さない。酸味未理解やattendを酸味実経験・好悪・否定判断・答え不明の原因にしない |
+| scope／遅延・反復 | question/current_activityやnegation/report限定の経験根拠を今回slotへ転移しない。原当時非書戻し・同input非増加非上書き・新input別資料・コピー独立を維持。後知識／注目／名付け／確認／食事で成立を補完しない |
+
+各行の**当時処理の成立**と**資料保持の成立**は別軸。今回は現所有条件の対応付けで、個別原receipt未供給・未照合、専用test／各fixture全文・基底hear/setup／全推移的依存全文は未読／未実行の範囲を残す。capture=falseだけで当時非成立／新担当必要を決めない。旧所有節の当時未受領／保留は歴史記録であり、現行ao〜dy人間OKおよびcf/cg/ch等の採用済み所有を優先する。
+
+既存保存資料`4d-final-review-25b06af/summary.json`全文・`review.cjs:29〜45`を再確認。原dy728有限照合の担当内訳はdi/dy/dj/du/dv/as/4d5で、この九担当一群の完全前提正規API照合の証拠ではない。原rows/outcomes全件の今回人手読取なし。固定50中50を全入口網羅へ昇格せず、旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持する。
+
+この単位で新担当が必要と確定した行はない（不足なしの認定ではない）。新部品／dz追加なし。次は問い以外の単独報告の一群について、既存保存資料と所有索引から節境界・必要依存を特定して行別対応付けする。今回群と直接九入口の個別原資料供給・照合、他群／複数節／全入口最終分類／4d12／4d／ID4全体は未完。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留、4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2・減算0・低確度・上限終了保証なし。今回は文書検証のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。証拠は`docs/.local-history/verification-runs/entry-name-sour-confirmation-mapping-3d0f4ff`。
 
 <a id="entry-final-classification-basis"></a>
 
