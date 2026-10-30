@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（通常休息・散歩提案am照合済み・次は全入口最終分類）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、7c047c6から行った4d12am意味照合の続きとして、全入口最終分類の一単位から再開してください。最新文書commit／pushはCURRENT_IMPLEMENTATION.md参照。ゲーム実装f93e951、al意味照合完了はユーザー指示で引継ぎ済み。am結果へのユーザー確認は未受領です。一単位完了ごとの次チャット移動を継続し、移動時は引継ぎ更新に加え貼り付け用次チャット冒頭文を必ず最終回答にも出力してください。
+am本体／専用test／scripts/experimental/diary_proposal_fixtures.js全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。正本specs/core/experimental_word_learning.md#diary-final-review-ordinary-proposals-am。専用13全通過・12群3707ケース3763入力・終了0・10source hash不変、固定50中50部品まで照合済みです。
+七言語通常休息お願い／誘いと日本語散歩誘いだけ。五引数の入力前一意意味・request/invitation適用根拠・当時completeと、実response／前後world／選択出所を分離。approaching／continuing／not_startedを照合し、休息の実selected_proposalだけコピー、移動不能を拒否へ変えず共同参加・完了経験・本人感情理由自覚暦を補完しない。限定scope非転移・欠損競合非補完・同input非増加非上書き・別input別候補・コピー独立・原時非書戻し。m/p・教示・独自語応用担当は非変更。
+原ログ・開始十文書baseline・工具・reading.jsonはdocs/.local-history/verification-runs/4d-am-review-7c047c6。ゲーム／fixture／catalog／locale／package／保存形式非変更、新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布今回未実行。過去am全864／renderer・全3597を今回結果へ昇格しない。旧零経過未解消は後続an補修済みの履歴。
+次はdocs/word/OWNERS.mdの全入口最終分類の担当・docs/specs/core/experimental_word_diary_audit.mdの現行条件／docs/WORD_DEMO_ROADMAP.mdの4d12終了条件案から境界を特定し、既存監査工具と保存ログの未充足を確認してください。固定50照合済みを全正規API完全前提の同一入力集合照合／全入口網羅／全推移的依存読了へ昇格しない。dy原728や138 API inventoryの制限を維持し、既存担当／当時非成立／具体不足／別領域保留を分類する次の一単位を進めてください。工程完了判定時はVALIDATIONの--full等の条件を満たし、未実行通し確認を別記してください。
+dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・全入口最終分類／4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装を維持。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠は履歴として保持。
+```
+
+
 ## 最初に読む現行継続文（時点付き休息報告の残六組合せal照合済み・次am）
 
 ```text

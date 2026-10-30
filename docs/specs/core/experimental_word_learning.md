@@ -1,5 +1,16 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-ordinary-proposals-am"></a>
+## 通常休息・散歩提案amの最終意味照合（2026-10-30）
+
+- 開始7c047c6、ゲーム実装f93e951。al意味照合完了は今回ユーザー指示で引継ぎ済み。今回は4d12am一単位だけ照合完了、今回結果へのユーザー確認は未受領。一単位ごとの次チャット移動と最終回答への貼り付け用冒頭文出力を継続。固定50中50部品まで照合済みだが、全入口最終分類／4d12／4d／ID4全体は未完。dy原728有限照合・138 API inventoryを全入口網羅へ昇格しない。
+- 所有する2026-10-14 am対象・五引数API・実判断保持条件と、本体／専用test／scripts/experimental/diary_proposal_fixtures.js全文、必要依存枝を照合。今回読取範囲で新不一致未発見。七言語catalog.proposalTeachingの通常休息お願い／誘いと既存rest/rest_request/rest_invitation、日本語walk_invitationだけ。教示・独自語応用・m/p条件順序・他話者・新文法・散策七言語化へ拡張しない。
+- capture(buffer,result,context,beforeKnowledge,decision)は当時資料の一時供給。単独原input/frame、入力前一意restまたはwalk意味と必要request/invitation一意根拠、当時complete理解を要求し、コピー知識で既存interpret/understandを再照合。初期意味とexperienced_life休息の先行原input／labelAt・経験scope、初期関係とexperienced_relationの異なる先行二input／同言語話者form/roles scope・relationReferences一致を区別。元生活語／対照役割教示の根拠を今回の休息完了・共同参加の証拠にしない。
+- decisionの実response・before/after world・beforeSelections/afterSelectionsを別保持。食事／仕事またはberry注目dwell>4はcontinuing、実移動成功はapproaching、対象／経路不足はnot_started。身振りattendでも理解と判断を分離し、移動非成立を本人拒否／希望不在にしない。原活動start/elapsed・history/reasonsと経験身体値非変更を照合、零経過休息の既存history条件も維持し、後続an補修済みを旧未解消へ戻さない（今回an全体再検証なし）。
+- 休息移動だけ実selected_proposalのinput/frame/understanding/meaningBasis/relationBasis/selectedAtと理由内selectionSourceを照合コピー、散歩へ新造しない。patternsでroles未生成なら非補完、既存proposed/actualParticipation=falseを実共同参加・従った完了経験にしない。欠損重複競合非補完、拒否input非遡及、同input非増加非上書き・新input別候補・コピー独立、本人感情理由自覚身体経験・具体完了・暦非補完、原当時非書戻しを維持。
+- 専用13全通過・12群3707ケース3763入力・終了0、fail/cancelled/skipped/todo各0・開始10source hash不変。局所review.cjs構文通過。開始十文書baseline・原stdout/stderr・summary.json・読取記録はdocs/.local-history/verification-runs/4d-am-review-7c047c6。過去am全864／rendererと過去全3597を今回結果へ昇格しない。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。ゲーム／fixture／catalog／locale／package／保存形式非変更、新表示文なし。
+- 次は全入口最終分類の現行所有条件・既存監査資料の不足を特定し、既存担当／当時非成立／具体不足／別領域保留を整理する一単位。固定50の全正規API完全前提を同じ入力集合へ供給した照合や全推移的依存全文読了を認定しない。終了判定はVALIDATIONの区切り条件に従う。新部品／混在／dz追加を自動採用しない。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、全14保留・各担当三保留・残2〜3工程中心2（部分進捗につき減算0・低確度・上限終了保証なし）、4e／receipt保存形式／ゲーム本接続未採用未実装を維持。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%は非操作非stage。
+
 <a id="diary-final-review-remaining-time-reports-al"></a>
 ## 2026-10-30：時点付き休息報告の残六組合せalの最終意味照合
 

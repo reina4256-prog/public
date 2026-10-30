@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-10-30最新：[通常休息・散歩提案amの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-ordinary-proposals-am)完了。本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。入力前意味・request/invitation適用根拠と当時complete／実判断approaching・continuing・not_startedを分離し、休息selected_proposalだけ照合コピー。共同参加・完了経験を補完せず、限定scope非転移・原当時非書戻しを維持。専用13通過・12群3707ケース3763入力、固定50中50部品まで照合済み。次は全入口最終分類、4d12／4d／ID4全体未完。al意味照合完了は今回ユーザー指示で引継ぎ済み。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装維持。新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer今回未実行。実読取／未検証・発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-30最新：[時点付き休息報告の残六組合せalの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-remaining-time-reports-al)完了。本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。七言語・入力前restと必要report/time／否定時negationの一意な適用根拠、当時理解／speaker_reportを分離。限定習得非転移・未検証伝聞・原当時非書戻しを維持。専用16通過・14群1185ケース1262入力、固定50中49まで・残amの1部品、次am。ak意味照合完了は今回ユーザー指示で引継ぎ済み。全入口最終分類／4d12／4d／ID4全体未完、全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装維持。新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer今回未実行。実読取／未検証・発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-30最新：[個体名原出所・再訂正連鎖・否定対比型実訂正akの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-remaining-corrections-ak)完了。本体／専用test／fixture全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。七引数の平坦な原時receipt、根までの各訂正とforward retractedBy、原個体対応／当時basisと今回根拠・実取り下げを分離。専用21通過・21群1212ケース1214入力、固定50中48まで・残al/amの2部品、次al。全入口最終分類／4d12／4d／ID4全体未完、全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装を維持。新混在／dz追加なし。全回帰／監査test／七言語チェック／renderer今回未実行。実読取／未検証・発行は現行handoff参照。以下は過去状態。
