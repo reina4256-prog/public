@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-31最新：12e283bの続きとして[否定食事お願いbb／bu／bwの行別対応付け](#entry-negated-request-row-mapping)を一単位実施。eat/request/negation八組合せと対象だけを九行条件表へ対応付けた。完全理解bb・意味関係不足と対象不足併存bu・対象だけbw、関係不足partial／主体null・negation不足unknown・従否非認定を維持。ba/bt/by九行・az/bs/bx五行まで、全群の個別原receipt未供給・未照合、capture=false単独判定禁止。次は食後散策bc/bv一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-31最新：29bba1bの続きとして[現在希望の単独報告の行別対応付け](#entry-desire-report-row-mapping)を一単位実施。既存not_nowのay／brを、完全理解・eatだけ不足・関係不足・両者併存の四行へ対応付けた。主体／aspect／reportSource欠落、極性／時点、経験scope非転移と必要原receiptを分離。条件表であり個別原receipt未供給・未照合を維持、capture=false単独判定禁止。次は通常好悪az/bs/bx一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-31最新：3d0f4ffの続きとして[名前・酸味・通常確認問いの行別対応付け](#entry-name-sour-confirmation-row-mapping)を一単位実施。個別原receipt未供給・未照合は維持。当時処理と資料保持を分離し、全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新担当／dz追加なし、文書検証のみ。
@@ -181,6 +183,46 @@
 この一単位は条件上の九行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではなく、新部品／dz追加なし。次は否定食事お願いbb/bu/bw一群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認する。全入口最終分類／4d12／4d／ID4全体未完、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装を維持。残2〜3工程中心2・減算0・低確度・上限終了保証なし。
 
 今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-negated-preference-report-mapping-0788fa3。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
+<a id="entry-negated-request-row-mapping"></a>
+
+###### 続き：否定食事お願いbb／bu／bwの行別対応付け（2026-10-31・一単位）
+
+12e283bの[否定好悪九行条件表](#entry-negated-preference-report-row-mapping)に続き、[分類基準](#entry-final-classification-basis)で一群だけ対応付けた。OWNERSの三引数APIと[bb](experimental_word_learning.md#diary-negated-requests-bb)・[bu](experimental_word_learning.md#diary-incomplete-negated-requests-bu)・[bw](experimental_word_learning.md#diary-unresolved-negated-request-targets-bw)の現所有条件を使う。既存保存資料・本体／fixture定義の読取による条件表で、直接九入口・名前／酸味／通常確認・ay/br・az/bs/bx・ba/bt/by・今回bb/bu/bwの個別原receiptは未供給・未照合。原input ID／at／話者／設定／知識／文脈／前後worldの個別供給、fixture生成・コピー上再生・専用testは今回未実施。
+
+**節境界**：日本語だけの既存「これ／それ／木の実」＋「は／を」＋「食べないで」＋任意「ね」の十二語面。単独frame.kind=request、catalogRule=do_not_eat、meaning=eat、target=原対象語、polarity=negative、relations=[request,negation]。既存trim／終端句読点の正規化を保ち、?／？末尾もrequestのまま。同じ疑問符でもnot_dislikeのquestion/confirmation変換とは別枝。対象省略「食べないで」・別否定命令・他言語文型・新主語／対象語は新設しない。複数節・句点後空白のunknown空節を単独requestへ修復しない。
+
+以下の「既知」は入力当時に当該意味・関係が適用可能という条件。eat/request/negation八組合せと対象だけの九行。七不足行は対象不足併存もbu、berry対象語不足だけをeat意味不足へ混ぜない。全行eventTime=unspecified、aspect/conditionStatus/questionSlot=null、reportSource欠落を保持。subjectは原実話者であり実行主体selfの認定ではない。
+
+| 原input／frameと入力前の適用条件 | 当時理解として照合する値 | 実応答／更新・資料保持の現担当 |
+| --- | --- | --- |
+| 単独do_not_eat、eat/request/negation既知、対象採用あり | request・complete=true・unresolved=[]、known.meaning=eat、relations=[request,negation]、subject=実話者、negative | bb negated_requests.capture(buffer,result,receipt)＋C。short実acknowledge／gesture実attend・observationなし。occurrenceId=negated_request:input ID、status=understood |
+| 同frame、eatだけ不足、両関係既知 | request・complete=false、known.meaning欠落、relations=[request,negation]、subject=実話者、negative | bu incomplete_negated_requests.capture(buffer,result,receipt)＋C。meaningKnownBefore=false・relationsKnownBefore=true、missingMeaningsBeforeに原meaning不足、missingRelationsBefore=[] |
+| 同frame、requestだけ不足、eat/negation既知 | partial・complete=false、known.meaning=eat、relations=[negation]、subject=null、negative | bu＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[request]。否定理解を消さず、frameからお願い主体を補わない |
+| 同frame、negationだけ不足、eat/request既知 | partial・complete=false、known.meaning=eat、relations=[request]、subject=null、polarity=unknown | bu＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[negation]。request関係IDが残っても原お願い理解を成立へ補わない |
+| 同frame、requestとnegation不足、eat既知 | partial・complete=false、known.meaning=eat、relations=[]、subject=null、unknown | bu＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[request,negation] |
+| 同frame、eatとrequest不足、negation既知 | partial・complete=false、known.meaning欠落、relations=[negation]、subject=null、negative | bu＋C。二つのKnownBefore=false、原missingMeaningsBeforeとmissingRelationsBefore=[request]を分離 |
+| 同frame、eatとnegation不足、request既知 | partial・complete=false、known.meaning欠落、relations=[request]、subject=null、unknown | bu＋C。二つのKnownBefore=false、原missingMeaningsBeforeとmissingRelationsBefore=[negation]を分離 |
+| 同frame、eat/request/negationすべて不足 | partial・complete=false、known.meaning欠落、relations=[]、subject=null、unknown | bu＋C。二つのKnownBefore=false、missingRelationsBefore=[request,negation]。七不足行のoccurrenceId=incomplete_negated_request:input ID |
+| 同frame、eat/request/negation既知、対象だけ未解決 | request・complete=false、意味・関係・主体・negativeは完全理解行と同じ。target.adopted=null、unresolvedは原target.candidatesに一致するtarget一項だけ | bw unresolved_negated_request_targets.capture(buffer,result,receipt)＋C。meaningKnownBefore/relationsKnownBefore=true・targetResolvedBefore=false、occurrenceId=unresolved_negated_request_target:input ID。bu節の「対象だけ保留」はbw採用前の履歴で、現在未担当へ戻さない |
+
+**C（必要な原資料・前件出所）**：三担当とも既存candidates.create()のbuffer・原result・原receiptの三引数。receipt.beforeState／beforeWorld、独立input／inputKnowledge／inputContext、実respond後afterState／afterWorld／replyを要求。非負safe integerのbefore.serial、input.id=input:before.serial+1、有限at、非空speaker、locale=ja、scene/context一致とknowledge/contextの独立コピー一致を確認。使い捨てコピー上core.receive／world.respondでresult・前後state/world・実reply全文一致を要求する資料整合照合で、真正性認証ではない。bbは入力前knowledge・当時understanding・原scene/attention・前後world・実responseを保持し、bu/bwは入力前context・前後stateも候補内へ分離コピーする。必要receiptと候補内保存フィールドを混同しない。
+
+未完時core.reactのuncertainと、expressのshort／既知内容ありのuncertain・内容なしまたはgestureのattend、world.reaction=uncertainを区別。bu/bwは実replyを全文照合コピーし、messageだけで理解・行動判断を成立させない。三担当のkind=proposalは資料区分で、compliance=null/actionDecisionRecorded=false、newTeaching/newLearning/newExperience=false。worldの肯定rest/walk提案枝はnegative/eatに適用されず、acknowledge/attend・発話能力・活動五種・空腹から食事中止／従った／拒否／本人希望好悪／満腹／予約／完了経験を補わない。
+
+対象はcore.resolveTargetの原候補と採用根拠を保持。既知一般木の実はsource=explicitの意味対象で注目個体へ限定しない。これ／それは当時attention一意のsource=attentionでberry意味を要求せず、rest等の対象でも勝手にberryへ置換しない。空／複数注目は未解決。一般berry意味未知でも同話者・未取り下げassociationのsource=experience／原evidence input IDと注目絞込みを原どおり照合し、一意原対応は無注目でも採用され得る。名付け前件receipt配列は別API引数ではないが、beforeState.knowledgeの対応／原evidenceを空にしない。実休息由来request/negationのlocale／speaker／form／roles・rest意味等の限定scopeは本群へ転移せず、関係ID存在だけで適用可能としない。
+
+| 隣接境界／拒否根拠 | 当時処理と資料保持を分離した扱い |
+| --- | --- |
+| 不足と保存拒否 | 原意味／関係／対象の未成立と、非JSON・欠損矛盾のcapture=false、buffer.retainの同occurrence重複falseを分離。同input非増加非上書き・新input別候補・遅延原資料・コピー独立・元資料不変。後知識／後注目／後名付けで原当時や原候補を書き戻さず、未供給・未読・未照合を当時非成立や新担当必要に変えない |
+| 既対応群の非拡張 | ba/bt/byは九行条件対応まで、完全理解ba・意味関係不足と対象不足併存bt・対象だけby。関係不足partial・主体null・reportSource欠落、negation不足unknownを維持。az/bs/bxは五行まで、対象不足併存bs・対象だけbx。ay/br・名前実発話をap本人回答へ移さない境界・as・4d2・cc/chも維持 |
+| 次群と複数節 | 食後散策bc/bv・通常提案am/m/p・未知節付き・条件付き・複数節の資料保持di/dj/du/dy等は本表で個別認定しない。新混在探索・新部品／dz追加を自動採用せず、現所有条件と必要依存を先に確認する |
+
+既存保存4d-final-review-25b06af/summary.jsonの出力範囲・review.cjs29〜52を確認。限定adapterは今回bb/bu/bwの完全前提個別原receipt照合を供給する証拠ではない。dy原728有限照合・旧47 beforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持。原rows/outcomes全件の今回人手読取なし。固定50中50を全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了へ昇格しない。
+
+この一単位は条件上の九行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではない。次は食後散策bc/bv一群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認する。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-negated-request-mapping-12e283b。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
 <a id="entry-final-classification-basis"></a>
 

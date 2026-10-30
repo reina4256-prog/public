@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- 2026-10-31最新：12e283bの続きとして[否定食事お願いbb／bu／bwの行別対応付け](experimental_word_diary_audit.md#entry-negated-request-row-mapping)を一単位実施。eat/request/negation八組合せと対象だけを九行条件表へ対応付けた。完全理解bb・意味関係不足と対象不足併存bu・対象だけbw、関係不足partial／主体null・negation不足unknown・従否非認定を維持。ba/bt/by九行・az/bs/bx五行まで、全群の個別原receipt未供給・未照合、capture=false単独判定禁止。次は食後散策bc/bv一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-10-31最新：0788fa3の続きとして[否定好悪ba／bt／byの行別対応付け](experimental_word_diary_audit.md#entry-negated-preference-report-row-mapping)を一単位実施。完全理解ba・意味関係不足（対象不足併存含む）bt・対象だけbyを九行条件表へ対応付けた。個別原receipt未供給・未照合、capture=false単独判定禁止、az/bs/bx五行条件対応の境界維持。次は否定食事お願いbb/bu/bw一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-31最新：5600e52の続きとして[通常好悪の単独報告az／bs／bxの行別対応付け](experimental_word_diary_audit.md#entry-preference-report-row-mapping)を一単位実施。完全理解az・好悪意味／report不足と対象不足併存bs・対象だけ未解決bxを条件上の五行へ対応付け、一般対象／個体名evidence・scope非転移・実応答を分離。個別原receipt未供給・未照合、capture=false単独判定禁止。次は否定好悪ba/bt/by一群。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0。新部品／dz追加なし、文書検証のみ・全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。

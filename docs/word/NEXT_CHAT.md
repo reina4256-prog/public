@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（否定食事お願いbb／bu／bwの条件行別対応付け済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、12e283bから行った否定食事お願いbb/bu/bw一群の行別対応付けの続きとして、食後散策bc/bv一群を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。一単位ごとの次チャット移動・引継ぎ更新・貼り付け用冒頭文の最終回答出力を継続してください。
+今回の記録はexperimental_word_diary_audit.md#entry-desire-report-row-mapping内、#entry-preference-report-row-mappingに続く#entry-negated-preference-report-row-mapping、その続き#entry-negated-request-row-mapping。分類基準は#entry-final-classification-basis。bb/bu/bwはeat/request/negation八組合せ＋対象だけの九行条件対応まで。完全理解bb・意味関係不足と対象不足併存bu・対象だけbw。関係不足partial・主体null、negation不足unknown。全行reportSource欠落。疑問符付きもrequest維持、対象省略は新設せず、compliance=null/actionDecisionRecorded=false・食事中止従否非認定。buの対象だけ保留はbw採用前履歴です。
+ba/bt/byは九行条件対応まで、完全理解ba・意味関係不足と対象不足併存bt・対象だけby。関係不足partial・主体null・reportSource欠落、negation不足unknownを維持。az/bs/bxは五行まで、対象不足併存bs・対象だけbx。直接九入口・名前／酸味／通常確認・ay/br・az/bs/bx・ba/bt/by・bb/bu/bwの個別原receipt未供給・未照合。当時処理と資料保持を分離し、capture=falseだけで非成立や新担当必要と決めず、未供給・未読・未照合を残してください。
+次群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認し、原input/frame・当時理解・実応答／更新・前件出所・必要API引数へ対応付けてください。名前実発話をap本人回答へ移さず、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、限定scope非転移・原当時非書戻しを維持。今回証拠はdocs/.local-history/verification-runs/entry-negated-request-mapping-12e283b。新部品／dz追加は自動採用しないでください。
+固定50中50を全入口網羅へ昇格せず、dy原728有限照合・旧47 beforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventory制限を維持。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+今回は文書検証のみ。全回帰・監査test・七言語チェック・renderer・実UI音声／本人日記生成保存再開配布／試遊通し未実行。過去成功・全3597・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従ってください。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（否定好悪ba／bt／byの条件行別対応付け済み）
 
 ```text
