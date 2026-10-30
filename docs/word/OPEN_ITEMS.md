@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-10-30最新：[初期contrast既知側三段階教示afの最終意味照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-contrast-af)完了。本体／専用test／fixture全文・所有条件と必要依存枝を照合。初期三関係／原当時理解／選択／先行教示／今回操作partial・教示直前両節complete／実adopted空updatedを分離。三段階ともrelationAcquired=false・初期非再習得非置換、教示参照を新知識へ補わず原当時非書戻しを保持。専用22通過・912ケース1739入力、新不一致未発見は今回読取範囲のみ。固定50中43まで・残ag〜amの7部品、次ag。全14保留・各担当三保留・全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装を維持。新混在／dz追加なし。全回帰／監査test／renderer今回未実行。発行・実読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：[対比未理解側三段階教示aeの照合](../specs/core/experimental_word_learning.md#diary-final-review-feeling-contrast-ae)。固定50中42まで・残af〜amの8部品と全入口分類は未完、次af。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用20件成功を全回帰／全体意味読了／本接続成功へ昇格しない。新混在／dz追加なし、4e未採用未実装。以下は過去状態。
 
 - 2026-10-30最新：[初期time既知側教示adの照合](../specs/core/experimental_word_learning.md#diary-final-review-known-feeling-time-ad)。固定50中41まで・残ae〜amの9部品と全入口分類は未完、次ae。新不一致未発見は今回読取範囲のみ。全14保留・各担当三保留・残2〜3工程中心2（部分進捗・減算0）維持。専用19件成功を全回帰／全体意味読了／本接続成功へ昇格しない。新混在／dz追加なし、4e未採用未実装。以下は過去状態。

@@ -1,5 +1,17 @@
 # 言葉の経験学習・比較実験版
 
+<a id="diary-final-review-known-feeling-contrast-af"></a>
+## 2026-10-30：初期contrast既知側三段階教示afの最終意味照合
+
+- 開始4dca1e6、ゲーム実装f93e951。4d12af本体／専用test／fixture全文、OWNERS af行、af所有条件と3c3f1〜3の必要規則・依存枝を直接照合。今回読取範囲で新仕様不一致未発見、ゲーム・fixture・catalog・locale・package・保存形式変更なし。新部品／混在候補／dz追加なし。一単位完了ごとの次チャット移動を継続。
+- 初期sad/happy二件または零件、初期report/time/contrast三根拠を一意照合。語未知側は先行実限定sad/happy教示が前提。原二節input/frame・当時understandings/feelingBasis／明示選択input/frame/at/basis/original／先行各教示scopeと当時理解／今回操作partial teaching_operation／教示直前両節complete report／今回実adoptedを分離。meaningKnownBefore/reportKnownBefore/timeKnownBefore/contrastKnownBefore=true、全段階空updated・relationAcquired=false、初期非再習得非置換。
+- 同原二節・相手・言語・場面でretain→difference→noncausal順序付き別input。contrastTeaching.evidenceは受理済み先行段階と今回inputの順序付き1/2/3件、connectionは原source ID／原二節正規化form／retainedClauses=[0,1]／sad-happy差異／replaces=false／causalClaim=false。これは受理教示の参照で初期知識のscope/evidence追加ではなく、contentUnderstandingsへcontrastConnectionを新造しない。原因非主張を原因不存在へ補わない。
+- 教示直前両節subject=player・原報告yesterday/now・testimony.verified=false・complete=true。原当時意味未知は非書戻し、本人感情身体経験・真偽・変化理由・自覚・正確な暦を補わない。両節意味不足／順序違い反復／場面外は実adoptedなし、前提取得後別input再教示、拒否入力非遡及。経験contrast完成済み同教示の既存拒否非補完。他段階資料検査をaf採用へ広げない。教示生活時刻30/60/90と聞いた時点を分け原報告時点保持。
+- 先行全資料のread-only再照合・原turn/record一致・ID一意性・今回input不在、七言語八設定／七言語先行資料共存／選択後退去／場面復帰／後学習非書戻し／JSONコピー独立・再受信再読非増加非上書きを照合。旧af零経過未解消は後続an補修済みの履歴、今回an全体保存再開／renderer再検証なし。
+- 専用22テスト全通過、912ケース1739入力・終了0、fail/cancelled/skipped/todo各0、開始9source hash不変。原stdout/stderr・summary.json・開始十文書baseline・review.cjs・reading.jsonはdocs/.local-history/verification-runs/4d-af-review-4dca1e6。文書単位の部分意味照合、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布・試遊通しは今回未実行、過去成功と区別。新表示文なし、locale再構築対象なし。
+- 固定50中4d1〜11／4d12a〜afの43部品まで照合済み、残ag〜amは7部品。次はexperimental_word_diary_feeling_reports.js・専用test・scripts/experimental/diary_feeling_report_fixtures.jsとOWNERS ag行・所有条件／必要依存。ag内容は今回未読、パス／所有行のみ確認。残7後に入口全体を既存担当／当時非成立／具体不足／別領域保留へ最終分類。全14保留・各担当三保留・全入口分類／4d12／4d／ID4全体未完、4e／receipt保存形式／本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。138 API inventory/hash／dy有限資料成功を全入口意味読了へ昇格しない。
+- 発行・文書保持検査の確定結果はCURRENT_IMPLEMENTATION.md参照。従前全履歴・原証拠を非削除保持。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
 <a id="diary-final-review-feeling-contrast-ae"></a>
 
 ##### 4d最終意味照合：対比未理解側の三段階教示ae（2026-10-30・今回単位の照合完了）

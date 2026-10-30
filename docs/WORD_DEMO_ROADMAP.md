@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-10-30最新：[初期contrast既知側三段階教示afの最終意味照合](specs/core/experimental_word_learning.md#diary-final-review-known-feeling-contrast-af)完了。本体／専用test／fixture全文・所有条件と必要依存枝を照合。初期三関係／原当時理解／選択／先行教示／今回操作partial・教示直前両節complete／実adopted空updatedを分離。三段階ともrelationAcquired=false・初期非再習得非置換、教示参照を新知識へ補わず原当時非書戻しを保持。専用22通過・912ケース1739入力、新不一致未発見は今回読取範囲のみ。固定50中43まで・残ag〜amの7部品、次ag。全14保留・各担当三保留・全入口分類／4d12／4d／ID4全体未完、残2〜3工程中心2（部分進捗・減算0）・4e未採用未実装を維持。新混在／dz追加なし。全回帰／監査test／renderer今回未実行。発行・実読取／未検証はCURRENT_IMPLEMENTATION.md参照。以下は過去状態。
+
 - 2026-10-30最新：一単位完了ごとの次チャット移動に従い、[対比未理解側三段階教示aeの意味照合](specs/core/experimental_word_learning.md#diary-final-review-feeling-contrast-ae)完了。固定50中42まで・残8・次af。専用20件・876ケース1710入力通過、新不一致未発見は今回読取範囲のみ。新候補／dz追加なし。dy確認済み・140枠140確認済み・正式子129・全138登録、残2〜3工程中心2（部分進捗・減算0）・全14保留・各担当三保留・4d12／4d／ID4全体未完・4e未採用未実装を維持。全回帰／renderer今回未実行。発行・読取／未検証は現行handoff参照。以下は過去状態。
 
 - 2026-10-30最新：一単位完了ごとの次チャット移動に従い、[初期time既知側教示adの意味照合](specs/core/experimental_word_learning.md#diary-final-review-known-feeling-time-ad)完了。固定50中41まで・残9・次ae。専用19件・662ケース1247入力通過、新不一致未発見は今回読取範囲のみ。新候補／dz追加なし。dy確認済み・140枠140確認済み・正式子129・全138登録、残2〜3工程中心2（部分進捗・減算0）・全14保留・各担当三保留・4d12／4d／ID4全体未完・4e未採用未実装を維持。全回帰／renderer今回未実行。発行・読取／未検証は現行handoff参照。以下は過去状態。
