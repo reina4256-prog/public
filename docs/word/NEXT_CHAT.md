@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（直接問い九入口・本人回答の行別対応付け済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、c4c2bf6から行った直接問い九入口・本人回答の行別対応付けの続きとして、名前・酸味・通常確認問いの一群を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。一単位完了ごとの次チャット移動、引継ぎ更新と貼り付け用冒頭文の最終回答出力を継続してください。
+所有記録はdocs/specs/core/experimental_word_diary_audit.md#entry-direct-answer-row-mapping、分類基準は同#entry-final-classification-basis。core.interpret／receiveとworld実respondからap九入口・aq再応答・4d2答え不明・u実選択理由の条件／必要引数、cd／ce／ct／cw既存所有へ対応付けました。これは条件上の行別対応で、個別原receiptは未供給・未照合です。当時の理解／回答と資料保持を分離し、capture=falseだけで非成立や新担当必要とせず、未供給・未読・未照合を残してください。
+次は節境界から名前bd/bz/ca/cf、酸味be/cb/cg、通常確認cc/ch等の現所有条件と必要依存へ絞って対応付けてください。名前の実応答や通常確認をap本人回答へ混ぜず、他群／複数節や九入口の残る個別原資料照合を完了にしないでください。既存保存資料で足りるか先に確認し、新混在探索・新部品／dz追加を自動採用しないでください。
+固定50中50部品の意味照合完了は全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了へ昇格しないでください。dy原728有限照合・旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持。今回証拠はdocs/.local-history/verification-runs/entry-direct-answer-mapping-c4c2bf6、過去4d-final-review-25b06af等を今回再実行扱いにしないでください。
+140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留を維持。全入口最終分類／4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2・減算0・低確度・上限終了保証なし。今回は文書検証のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。工程完了判定はVALIDATIONの--full等に従い、過去全3597成功・初回timed_out/incomplete・reading.not_recordedを別保持してください。
+旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（全入口最終分類の条件・既存証拠の不足確認済み）
 
 ```text

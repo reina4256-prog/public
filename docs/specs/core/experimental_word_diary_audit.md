@@ -1,5 +1,44 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-10-31最新：c4c2bf6の続きとして[直接問い九入口・本人回答の行別対応付け](#entry-direct-answer-row-mapping)を一単位実施。現行coreとap／aq／4d2／uの条件・必要依存、cd／ce／ct／cwの既存所有境界を確認。条件上の対応付けであり、個別原receipt未供給の成立認定／全入口網羅ではない。全体未完・全保留・残2〜3工程中心2／減算0を維持。今回文書検証のみ。
+
+<a id="entry-direct-answer-row-mapping"></a>
+
+### 直接問い九入口・本人回答の行別対応付け（2026-10-31・一単位）
+
+[分類基準](#entry-final-classification-basis)に従い、今回は既存直接九入口を一群として、原入力例・解析枝・当時理解・実応答・前件資料・現担当へ対応付けた。入力例は`scripts/experimental/diary_answer_fixtures.js:42〜58`の既存資料定義であり、今回生成した原receiptや再実行結果ではない。各例の実際のinput ID／at／話者／設定／知識／活動が未供給なので、以下の条件一致を個別入力の成立確認済みとは数えない。
+
+境界は`core.interpret:331〜393`、`understand:632〜736`、`contextQuestion:813〜843`、`receive:881〜1064`。receiveはdefinition→有効な反復→有効な文脈確認→報告続報→interpretの順で選び、同じ文字列だけから直接問いと確定しない。interpretのreason等の先行枝・situationQuestion・catalogも維持。`receive:1053`のturnはまだanswerを持たず、`world.respond:291〜325`の実処理後に保持されたturn.answerと実replyを確認する。coreの暫定expression=answer_unknownを実world回答へ読み替えない。
+
+共通API **A** は[ap](experimental_word_learning.md#diary-direct-answers-ap)の`answers.capture(buffer,result,receipt)`。receiptは実入力直前beforeState／beforeWorldと実respond直後reply／turn全文／answer／afterWorld。原inputのraw/locale/speaker/at/scene・serial、単独question・complete・self・九slot、入力前初期知識または一致する経験scope／relationReferences、実turnと回答source.inputId/questionSlot/answeredAt・一意の参照経験、コピー上のreceive/respond全文整合が必要。観察・attend・answer_unknown・taste_unsureはap成功回答ではない。`answers.js:17〜68`を直接確認。経験scopeの語義一致だけで別slot・相手・言語へ転移しない。
+
+| 原input例／slot | 規則・当時理解に必要な枝 | 実reply／turn.answerと前件出所 | 現所有・成立／拒否と今回残す不足 |
+| --- | --- | --- | --- |
+| 何してる？／current_activity | core.situationQuestion:121〜126、question関係。現活動を答えるための語の知識はworld側でも判定 | world.answerSituation:147〜168の現在mode/attentionと意味知識。fixture例はrest中のresting。仕事中はcareers.answer優先でwork/observation=true | A。単独completeでも仕事観察はap非成立・cw条件へ別照合。今回原receipt未供給、成功／資料保持とも個別未照合 |
+| 何をしたの？／past_activity | situationQuestion:112〜114、question/time関係・past | world.history末尾のmode/targetと当時知識。fixture例は食事完了後ate。末尾workならcareers.answerが実経験を参照 | A。history末尾と経験IDを同一資料に丸めない。原history／実回答未供給、当時答え不明の有無も未確定 |
+| 何を見ている？／attention | situationQuestion:129〜130、question関係 | 当時world.attentionとberry/rest/walk意味。fixture例はberry:1・looking_berry | A。後の注目で補完しない。原attention／receipt未供給・個別未照合 |
+| どこに行くの？／destination | situationQuestion:132〜135、question関係。明示行先の意味はframeどおり | mode=move時のdestinationとwalk／行先意味。fixture例going_rest。非移動でwalk既知ならnot_goingも実回答 | A。not_goingから完了移動・拒否を新造しない。原mode/destination／receipt未供給 |
+| どんな仕事をしたの？／work_past | situationQuestion:115〜116または既存catalog枝、work意味・question/time | careers.answer:99〜113、末尾仕事経験・work:master既知。fixture例work_did_farming。実経験なしならwork_untriedも実回答 | A。world.careers／参照経験を別保持。六職実演は語の根拠と今回回答の出所を区別。原仕事資料未供給 |
+| また手伝いたい？／work_again | situationQuestion:118〜119、work意味・question。七言語は既存catalog文型内だけ | careers.willingness:90〜94／answer:106〜107。完了有無・hunger・fatigue・interestとmaster／実参照経験。fixture例work_again | A。work_untried／work_hungry／work_tired／work_otherも実回答時のみ。原条件未供給、希望・感情・拒否を補完しない |
+| おいしかった？／taste_evaluation | catalog ja taste_question、eat意味・question | world.respondCurrent:379〜388、末尾eat経験のtaste。sweet/pleasantかつsweet既知でtasted_good、食事なしnot_eaten_yet、その他taste_unsure | Aは保持された実回答のみ。taste_unsureはctの別資料条件へ。原食事snapshot／receipt未供給、原味欠損を後食事で補わない |
+| おいしい？／taste_now | catalog ja taste_now、eat意味・question | mode=eatならmealTaste、そうでなければ末尾eat経験。fixture例は食事中tastes_good。slotだけで現在食事と決めない | A。taste_unsureはct条件へ。apが保存するmealTasteとworld実参照分岐を区別。原mode／味／実回答未供給 |
+| 休めた？／rest_result | catalog ja rest_result、rest意味・question | world.respondCurrent:390〜396、末尾restのbefore/after疲労差・tired既知、実rest_helped／experienceId。なければanswer_unknown | Aまたは実条件に合う4d2。今回の新問いへの回答と、原未回答問いへの後日追記は別。原休息／実reply未供給、later_rest_answer未回答維持 |
+
+上表の各行で、**当時理解／回答の成立**と**資料保持の成立**を別記する。未供給は未供給、未読は未読、完全引数照合をしていないものは未照合のまま。既存fixtureの期待値や別runの正例から今回inputの成立を補わない。ap専用test・fixture依存start/finish・全推移的依存全文は今回未読／未実行であり、条件表作成を完全前提のAPI横断実行にしない。
+
+| 境界行 | 原処理・実応答の確認条件 | 資料保持の現所有／必要引数・今回未充足 |
+| --- | --- | --- |
+| 完全理解した実answer_unknown | 末尾understanding.kind=question・completeかつ実reply.message=answer_unknown。単独限定ではない | `questions.capture(buffer,result,reply)`の[4d2既存条件](experimental_word_learning.md#diary-final-review-dy-corpus)。回答非成立と未回答問いの候補保持成立は両立。apのreceiptを要求するAPIではない。実result/reply未供給・個別未照合 |
+| 原回答の反復／repeat_answer | receive:894〜904／991〜994の直前同話者answerとdelivery条件、world:291〜300の元回答コピー。原source.inputId/answeredAtを今回時刻に置換しない | [aq](experimental_word_learning.md#diary-followups-aq) `followups.capture(buffer,result,receipt)`。A資料に独立input/inputKnowledge/originalOutput/previousTurn・前後validContext照合を追加。`retainRepetition/readRepetitions`の別資料で元候補非増加。原表示なし互換経路はnull維持。原前件未供給・個別未照合 |
+| 意味確認／context_detail | core.contextQuestionの直前serial・listener/self・topic互換・requiredMeanings、world.answerContext:217〜248の実応答。原source.kind=observationと今回deliveryを分離 | aq。同じ三引数でも反復と異なりself_clarificationの新question候補。一意参照経験／原snapshotが必要。観察自体を本人回答にしない。原lastOutput／receipt未供給 |
+| 通常理由問い／reason | core.reasonFrame:270〜283・question/reason同scope、world:405〜417の原選択／直近完了休息／reviewに一致する実selected_reason | [u](experimental_word_learning.md#diary-final-review-reason-answer-u) `reason_answers.capture(buffer,result,reply,context,beforeKnowledge,beforeExperiences,beforeSelections)`七引数。reviewedBy／choiceSource／literal、原二教示・初回evidence・state/world経験／history等を照合。今回capture:207〜281と現所有条件だけ確認、validBasis等の全文は未読、原七引数未供給・個別未照合。答え不明は4d2、後続an補修済みを未解消へ戻さない |
+| 九入口の未完理解／身振り | 日本語単独九slotでcomplete=falseはcd条件、完全理解self・speech=gestureでattend/pleased_gestureはce条件。どちらもturn.answerなし | [cd](experimental_word_learning.md#diary-incomplete-direct-questions-cd)／[ce](experimental_word_learning.md#diary-gesture-direct-questions-ce)各create()/capture(buffer,result,receipt)。独立input/inputKnowledge/inputContextと前後state/world/replyが必要。当時回答非成立だけで資料保持非成立にしない。所有節確認、本体／test／原receipt未読未供給。gesture_questions全設定拡張の保留は維持 |
+| 直接味の判断不能／仕事観察 | 完全理解した日本語単独taste二slot・short・taste_unsureはct、完全理解current_activity・short・mode=work・work/observation=trueはcw。成功turn.answerなし | [ct](experimental_word_learning.md#diary-uncertain-direct-taste-questions-ct)／[cw](experimental_word_learning.md#diary-work-observation-questions-cw)各create()/capture(buffer,result,receipt)。原前後資料・味／参照経験／原表示の必要条件を維持。所有節確認、本体／test／原receipt未読未供給。判断不能から嫌い／甘くない、観察から仕事完了・本人発話を補完しない |
+
+既存保存資料は`4d-final-review-25b06af/summary.json`と`review.cjs:29〜45`で原dy728件の出所・有限性と供給構造を再確認した。summaryの担当内訳はdi/dy/dj/du/dv/as/4d5で、ap九入口・aq・uの完全正規前提の一群を検証した証拠ではない。原rows/outcomes全件は今回未読。ap／aqの過去専用結果は所有節の履歴であり、今回保存原receiptの取得・全件照合済みにしない。旧47のbeforeReports/beforeReceipts空・4d1/3/4別経路・138宣言inventoryの制限を維持する。
+
+この単位で新担当が必要と確定した行はない（不足が存在しないという認定ではない）。新部品／dzは追加しない。次は別の一群として名前・酸味・通常確認問いの既存所有条件を節境界から特定し、bd/bz/ca/cf・be/cb/cg・cc/ch等と必要依存へ行別対応付けする。九入口について残る個別原資料の供給・照合と、他群・複数節・全入口最終分類は未完。本文集約／一時receipt保存形式／ゲーム本接続は各担当三保留、全14保留・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。残2〜3工程中心2、減算0・低確度・上限終了保証なし。今回文書検証のみ、全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。証拠は`docs/.local-history/verification-runs/entry-direct-answer-mapping-c4c2bf6`。
+
 - 2026-10-31最新：e556f2dから[全入口最終分類の条件・既存証拠の不足確認](#entry-final-classification-basis)を一単位実施。am意味照合完了はユーザー指示で引継ぎ済み。固定50中50の部品別照合を全入口網羅へ昇格しない。分類自体／4d12／4d／ID4全体は未完、全14保留・各担当三保留・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OKを維持。文書のみ、全回帰／監査test／七言語チェック／renderer今回未実行。以下の過去記録は保持。
 
 <a id="entry-final-classification-basis"></a>
