@@ -144,6 +144,44 @@
 
 今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従う。読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-preference-report-mapping-5600e52。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+<a id="entry-negated-preference-report-row-mapping"></a>
+
+###### 続き：否定好悪の単独報告ba／bt／byの行別対応付け（2026-10-31・一単位）
+
+0788fa3の[通常好悪五行条件表](#entry-preference-report-row-mapping)に続き、[分類基準](#entry-final-classification-basis)で一群だけ対応付けた。OWNERSの三引数APIと[ba](experimental_word_learning.md#diary-negated-preference-reports-ba)・[bt](experimental_word_learning.md#diary-incomplete-negated-preference-reports-bt)・[by](experimental_word_learning.md#diary-unresolved-negated-preference-targets-by)の現所有条件を使う。既存catalog／fixture定義の読取による条件表であり、直接九入口・名前／酸味／通常確認・ay／br・az／bs／bx・今回ba／bt／byの個別原receiptは未供給・未照合。原input ID／at／話者／設定／知識／文脈／前後worldの個別供給、原資料生成・コピー上再生・専用testは今回未実施。
+
+**節境界**：日本語だけの既存「木の実は嫌いじゃない／嫌いではない」「嫌いじゃない／嫌いではない」。catalogRule=not_dislike、単独frame.kind=report、meaning=dislike、targetは木の実またはnull、polarity=negative、relations=[report,negation]。既存trim／終端句読点の正規化を保つ。疑問末尾はquestion/confirmationへ変換されreport関係をquestionへ置換するため本群へ戻さない。複数節・句点後空白のunknown節を単独reportへ修復せず、他言語否定好悪文型・新主語・新対象語の文型を追加しない。
+
+以下の「既知」は入力当時に当該意味・関係が適用可能という条件。dislike／report／negationの八組合せを分け、対象だけ未解決を第九行にする。不足七行は対象不足併存もbt、対象語berryの不足をdislike意味不足へ混ぜない。全行eventTime=unspecified、aspect/conditionStatus/questionSlot=nullを保持。
+
+| 原input／frameと入力前の適用条件 | 当時理解として照合する値 | 実応答／更新・資料保持の現担当 |
+| --- | --- | --- |
+| 単独not_dislike、dislike/report/negation既知、対象採用あり | report・complete=true・unresolved=[]、known.meaning=dislike、relations=[report,negation]、subject=実話者、negative、実speaker_report出所あり | ba negated_preference_reports.capture(buffer,result,receipt)＋C。short実acknowledge／gesture実attend・observationなし。occurrenceId=negated_preference_report:input ID、status=reported・verified=false |
+| 同frame、dislikeだけ不足、両関係既知 | report・complete=false、known.meaning欠落、relations=[report,negation]、主体=実話者、negative、原reportSourceあり | bt incomplete_negated_preference_reports.capture(buffer,result,receipt)＋C。meaningKnownBefore=false・relationsKnownBefore=true、missingMeaningsBeforeに原meaning不足、missingRelationsBefore=[] |
+| 同frame、reportだけ不足、dislike/negation既知 | partial・complete=false、known.meaning=dislike、relations=[negation]、subject=null、negative、reportSource欠落 | bt＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[report]。negation理解を消さず、frameから報告主体を補わない |
+| 同frame、negationだけ不足、dislike/report既知 | partial・complete=false、known.meaning=dislike、relations=[report]、subject=null、polarity=unknown、reportSource欠落 | bt＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[negation]。report関係IDが残っても原report理解／出所を成立へ補わない |
+| 同frame、reportとnegation不足、dislike既知 | partial・complete=false、known.meaning=dislike、relations=[]、subject=null、unknown、reportSource欠落 | bt＋C。meaningKnownBefore=true・relationsKnownBefore=false、missingRelationsBefore=[report,negation] |
+| 同frame、dislikeとreport不足、negation既知 | partial・complete=false、known.meaning欠落、relations=[negation]、subject=null、negative、reportSource欠落 | bt＋C。二つのKnownBefore=false、原missingMeaningsBeforeとmissingRelationsBefore=[report]を分離 |
+| 同frame、dislikeとnegation不足、report既知 | partial・complete=false、known.meaning欠落、relations=[report]、subject=null、unknown、reportSource欠落 | bt＋C。二つのKnownBefore=false、原missingMeaningsBeforeとmissingRelationsBefore=[negation]を分離 |
+| 同frame、dislike/report/negationすべて不足 | partial・complete=false、known.meaning欠落、relations=[]、subject=null、unknown、reportSource欠落 | bt＋C。二つのKnownBefore=false、missingRelationsBefore=[report,negation]。七不足行のoccurrenceId=incomplete_negated_preference_report:input ID、kind=reportは資料区分で理解成立ではない |
+| 同frame、dislike/report/negation既知、対象だけ未解決 | report・complete=false、意味・関係・主体・negative・原speaker_reportは完全理解行と同じ。target.adopted=null、unresolvedは原target.candidatesに一致するtarget一項だけ | by unresolved_negated_preference_targets.capture(buffer,result,receipt)＋C。meaningKnownBefore/relationsKnownBefore=true・targetResolvedBefore=false、occurrenceId=unresolved_negated_preference_target:input ID、status=reported・verified=false。bt節の「対象だけ保留」はby採用前の履歴で、現在未担当へ戻さない |
+
+**C（必要な原資料・前件出所）**：三担当とも既存candidates.create()のbuffer・原result・原receiptの三引数。receipt.beforeState／beforeWorld、独立input／inputKnowledge／inputContext、実respond後afterState／afterWorld／replyを要求。非負safe integerのbefore.serial、input.id=input:before.serial+1、有限at、非空speaker、locale=ja、scene/context一致とknowledge/contextの独立コピー一致を確認する。コピー上core.receive／world.respondでresult・前後state/world・実reply全文一致を要求する資料整合照合で、真正性認証ではない。bt/byはresponse.messageを理解成立条件にせず原応答をコピーする。未完時core.reactのuncertain、expressの内容なし／gestureのattend、world.reactionのuncertainと実発話を区別する。
+
+対象はcore.resolveTargetの原候補・採用根拠を維持。既知一般木の実はsource=explicitの意味対象で注目個体へ限定しない。省略target=nullは当時attention一意ならsource=attention、空／複数なら未解決で、省略形にberry意味既知を要求しない。一般berry意味が未知でも同話者・未取り下げassociationがあればsource=experience／原evidence input IDと注目による絞込みを原どおり照合し、候補を選び直さない。一意原対応は無注目でも採用され得る。APIは名付け前件receipt配列を別引数で要求しないが、beforeState.knowledge内の対応／evidenceを空へ置換しない。実休息由来report/negationの経験scopeはlocale／speaker／form／reportForm／rolesとrest意味等に限定され、本群へ転移しない。関係ID存在だけで既知としない。
+
+| 隣接境界／拒否根拠 | 当時処理と資料保持を分離した扱い |
+| --- | --- |
+| 否定・対象・実応答 | dislikeの否定をlike、本人好悪、食事希望拒否、満腹、行動中止、話者真偽、新経験へ変換しない。活動／空腹／注目／時刻・発話能力から補完せず、三担当ともnewTeaching/newLearning/newExperience=false |
+| 当時不足と保存拒否 | 原意味／関係／対象の未成立と、非JSON・欠損矛盾によるcapture=false、buffer.retainの同occurrence重複falseを分離。同input非増加非上書き・新input別候補・遅延原資料・コピー独立・元資料不変を維持。後知識／後注目／後名付けで原当時や原候補を書き戻さず、未供給・未読・未照合を当時非成立や新担当必要に変えない |
+| 問い・名付け肯否・他報告 | 疑問変換後cc/ch、4d2完全理解実answer_unknown、as名付け肯否、名前実発話をap本人回答へ移さない境界を維持。通常好悪az/bs/bxは五行条件表まで、対象不足併存bs・対象だけbxを維持。現在希望ay/br、否定食事お願いbb/bu/bw、食後散策bc/bv・複数節・di/dj/du/dyの資料保持は本表で認定しない |
+
+既存保存4d-final-review-25b06af/summary.jsonとreview.cjs29〜52の限定adapterを確認したが、ba/bt/by完全前提の個別原receipt照合を供給する証拠ではない。dy原728有限照合・旧47 beforeReports/beforeReceipts空・4d1/3/4別経路・138 API宣言inventoryの制限を維持。原rows/outcomes全件の今回人手読取なし。固定50中50を全入口網羅／全正規API完全前提の同一入力集合照合／全推移的依存全文読了へ昇格しない。
+
+この一単位は条件上の九行対応付けまで。新担当必要と確定した行なしは不足なしの認定ではなく、新部品／dz追加なし。次は否定食事お願いbb/bu/bw一群の節境界・現所有条件・必要依存を既存保存資料とOWNERSから確認する。全入口最終分類／4d12／4d／ID4全体未完、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留（本文集約／一時receipt保存形式／ゲーム本接続）、4e未採用未実装を維持。残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去専用成功・全3597成功・初回timed_out/incomplete・reading.not_recordedを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。読取・未読・文書検証証拠はdocs/.local-history/verification-runs/entry-negated-preference-report-mapping-0788fa3。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
 <a id="entry-final-classification-basis"></a>
 
 ### 全入口最終分類の条件・既存証拠の不足確認（2026-10-31・一単位）
