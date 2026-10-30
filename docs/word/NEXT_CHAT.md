@@ -1,5 +1,17 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（感情単独節通常報告ag照合済み・次ah）
+
+```text
+開始c57d719、ゲーム実装f93e951・最新文書発行はCURRENT_IMPLEMENTATION.md参照。af結果はユーザー確認済み。一単位完了ごとの次チャット移動を継続し、今回は4d12agを照合完了。正本specs/core/experimental_word_learning.md#diary-final-review-single-feeling-report-ag。dy確認済み・140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK維持。
+固定50中4d1〜11／4d12a〜agの44部品、残ah〜amは6部品。ag本体／専用test／実依存diary_single_feeling_report_fixtures.js全文・所有条件と必要依存枝を照合、今回読取範囲で新不一致未発見。前継続文のdiary_feeling_report_fixtures.jsはaa用で、agの実依存先を今回確認訂正、旧文は非削除保持。
+初期sad/happy二件または零件・初期report/time/contrast三件または零件と先行実限定教示を照合。今回feeling_singleのreport/timeと対象意味既知・completeだけkind=report／feeling_report:今回input ID。単独節はcontrast不要・contrastConnectionとcontrastのfeelingReferences非付与、basisの全先行contrast資料は保持。player報告・yesterday/now・testimony.verified=false、聞いたinput.atと生活elapsedを分離。本人感情身体経験真偽原因暦非補完・原当時不足非書戻し。初期側は選択不要、教示側は全先行資料と当時basisをread-only再照合、今回報告場面は原教示場面と別。前提不足入力非遡及、別input反復は別候補、同input非増加非上書き・コピー独立。
+専用20件全通過・1214ケース2463入力・終了0、開始9hash不変。原ログ／開始十文書baseline／工具／読取記録はdocs/.local-history/verification-runs/4d-ag-review-c57d719。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布は今回未実行。過去ag全750／rendererと過去全3597を今回結果へ昇格しない。旧零経過未解消は後続an補修済みの履歴、今回an全体再検証なし。文書検査・発行はhandoff参照。
+次はexperimental_word_diary_feeling_contrast_reports.js（4d12ah）、tests/experimental_word_diary_feeling_contrast_reports.test.js、scripts/experimental/diary_contrast_feeling_report_fixtures.jsと所有ah行・必要依存から。ah本体／fixture内容は今回未読、testのrequire行とパス実在／OWNERS ah行のみ確認。残6後に入口全体の既存担当／当時非成立／具体不足／別領域保留の最終分類へ。dy原728や138 API宣言inventoryを全入口網羅としない。
+全14保留・各担当三保留・4d12／4d／ID4全体未完、4e／receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2は部分進捗につき減算0・低確度・上限終了保証なし。新混在候補／dzを自動追加しない。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧継続文と原証拠を履歴として保持する。
+```
+
+
 ## 最初に読む現行継続文（初期contrast既知側三段階教示af照合済み・次ag）
 
 ```text
