@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-11-01最新：8e3d5fbの続きとして[一般解析の単独条件付き休息cyの十六行条件対応](#entry-generic-conditional-rest-row-mapping)を一単位実施。日本語conditional_restだけ、player／別話者・short/gestureに共通する完全理解一行／未完十五行をcy三引数原receiptの条件へ対応。原frameの主体／役割欠落・当時実speaker／u・原expression／実reply・今回判断不存在を分離。個別原receipt未供給・未照合、前群cx/cp/cq十二行・p/cs十六行・m/cr十六行と前群条件対応、限定scope非転移・原当時非書戻しを維持。次は別話者structured単独条件付き休息の一群を保存資料・OWNERS・cz/cr現所有条件から範囲確定し、cy・順序・複数節を一括包含しない。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加なし。文書検証のみ、ゲーム全回帰等未実行。過去成功とcy full-30min等の不完了を今回結果へ昇格しない。読取／未読／検証／発行は現行handoff参照。以下は過去状態。
+
 - 2026-11-01最新：55b4f01の続きとして[他話者の単独通常提案cx／cp／cqの十二行条件対応](experimental_word_diary_audit.md#entry-other-speaker-ordinary-proposal-row-mapping)を一単位実施。player以外の既存七言語通常休息request/invitation・日本語散策invitationだけ、完全理解cx三行・不足cp六行/cq三行。三引数原receipt・実話者／原固定player役割／当時理解・実判断／原expressionと実replyを分離。各群個別原receipt未供給・未照合、p/cs十六行・m/cr十六行と前群条件対応、限定scope非転移・原当時非書戻しを維持。次は条件付き休息の残る単独入口の一群を保存資料・OWNERSから範囲確定し、cy/cz/cr等・順序・複数節を一括包含しない。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加なし。文書検証のみ、全回帰／監査test／七言語チェック／renderer等未実行。過去成功・不完了を今回結果へ昇格しない。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-10-31最新：dfab260の続きとして[順序付き休息p／csの十六行条件対応](#entry-sequential-rest-row-mapping)を一単位実施。speaker=player・七言語既存印なし単独直原文だけ、rest/eat/request/sequenceの16組合せを完全理解p一行・不足cs十五行へ対応。p四引数の当時理解とcs三引数の原receipt照合を分離し、全行conditionStatus=null・今回順序判断／具体食事参照なし、食事完了／休息予約等非補完。各群個別原receipt未供給・未照合、m/cr十六行・am/cp/cq十二行・bc/bv十六行等の条件対応、限定scope非転移・原当時非書戻しを維持。次は他話者の単独通常提案の一群を既存保存資料・OWNERSから範囲確定し、条件／順序・複数節を自動包含しない。固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK・全14保留・各担当三保留維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし。新部品／dz追加なし。文書検証のみ、全回帰／監査test／七言語チェック／renderer等未実行。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
@@ -479,6 +481,51 @@ coreの完全理解acknowledgeとworld実responseを分離する。不足はreac
 前群p/cs十六行（p1/cs15）・m/cr十六行（m1/cr15）・am/cp/cq十二行・bc/bv十六行・bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行、各群個別原receipt未供給・未照合を維持。m当時unknownと今回判断met/unmet/観測ありunknown／未観測observation=null、cr判断不存在、p/csの順序nullを混同しない。n/o原教示と今回理解分離／原basis非置換・初回非新造、k最初非置換・l通常判断非付与、an補修済み零経過history/startInputSerial/restStartOrder除去を戻さない。名前実発話とap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidenceの境界を維持する。
 
 次は条件付き休息の残る単独入口の一群。cy/cz/cr等を一括せず、既存保存資料・OWNERSで節境界／現所有条件／必要前件を先に確認し範囲確定する。今回cy/cz・db/dc/dd本体／専用fixture未読・個別認定なし。全入口最終分類／4d12／4d／ID4全体未完、全14保留・各担当三保留、4e未採用未実装を維持。140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限は非変更。残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加なし。今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・初回timed_out/incomplete・cr/cs元run等の制限を保持し、工程完了判定はVALIDATIONの--full等に従う。今回証拠はdocs/.local-history/verification-runs/entry-other-speaker-ordinary-mapping-55b4f01。
+
+<a id="entry-generic-conditional-rest-row-mapping"></a>
+
+### 一般解析の単独条件付き休息cyの行別対応付け（2026-11-01・一単位）
+
+8e3d5fbの続き。[分類基準](#entry-final-classification-basis)、[OWNERS](../../word/OWNERS.md)の三引数cyと[cy現所有条件](experimental_word_learning.md#diary-generic-conditional-rest-requests-cy)、既存cy保存final-validation.json・本体／専用fixture定義を確認し、今回は日本語単独catalogRule=conditional_restだけに範囲を確定した。playerと空でない別話者・short/gestureに共通するrest/tired/request/conditionの十六行をcy（完全理解一行／未完十五行）へ条件対応する。個別原receipt未供給・未照合。fixture定義の読取を生成・再生・専用test実行や十六件の個別成立認定へ昇格しない。
+
+**節境界**：core.receiveの定義／文脈等の先行枝を経た通常interpretのうち、sequenceFrame・conditionFrame・proposalFrame等に一致せず、既存日本語patternsのconditional_restへ到達し、frame/uが各一件となる入口だけ。既存patternは「疲れたら」＋読点／コンマ／空白＋任意「少し」＋「休んで」＋任意「ね」。単独句読点と前後空白は既存parserのままとし、句読点後空白でunknown追加節になる資料等を単独に修復しない。七言語structured条件付き休息m/cr/cz、順序p/cs、通常提案am/cp/cq/cx、食後散策bc/bv、教示印・独自語applications・対象指定・新文型・複数節db/dc/ddを自動包含しない。今回範囲外を永久対象外にも確定しない。
+
+不足maskは既存fixtureと同じ1=rest、2=tired、4=request、8=condition。入力当時未習得／scope不適用を含み、IDの存在だけで適用済みにしない。known欄の欠落はfield不存在でありnullを補わない。unresolvedは不足関係request→condition、意味meaning→conditionMeaningの原順序・原type/field/token/idを保持する。Sは原input.speaker。
+
+| mask／当時の不足 | known.meaning／conditionMeaning | 当時relations | kind／subject・complete | 現資料担当／必要前件 |
+| --- | --- | --- | --- | --- |
+| 0：なし | rest／tired | [request,condition] | request／S・true | cy＋Y（complete） |
+| 1：rest | 欠落／tired | [request,condition] | request／S・false | cy＋Y（incomplete） |
+| 2：tired | rest／欠落 | [request,condition] | request／S・false | cy＋Y（incomplete） |
+| 3：rest,tired | 欠落／欠落 | [request,condition] | request／S・false | cy＋Y（incomplete） |
+| 4：request | rest／tired | [condition] | partial／null・false | cy＋Y（incomplete） |
+| 5：rest,request | 欠落／tired | [condition] | partial／null・false | cy＋Y（incomplete） |
+| 6：tired,request | rest／欠落 | [condition] | partial／null・false | cy＋Y（incomplete） |
+| 7：rest,tired,request | 欠落／欠落 | [condition] | partial／null・false | cy＋Y（incomplete） |
+| 8：condition | rest／tired | [request] | partial／null・false | cy＋Y（incomplete） |
+| 9：rest,condition | 欠落／tired | [request] | partial／null・false | cy＋Y（incomplete） |
+| 10：tired,condition | rest／欠落 | [request] | partial／null・false | cy＋Y（incomplete） |
+| 11：rest,tired,condition | 欠落／欠落 | [request] | partial／null・false | cy＋Y（incomplete） |
+| 12：request,condition | rest／tired | [] | partial／null・false | cy＋Y（incomplete） |
+| 13：rest,request,condition | 欠落／tired | [] | partial／null・false | cy＋Y（incomplete） |
+| 14：tired,request,condition | rest／欠落 | [] | partial／null・false | cy＋Y（incomplete） |
+| 15：rest,tired,request,condition | 欠落／欠落 | [] | partial／null・false | cy＋Y（incomplete） |
+
+**原frame／当時理解**：原frameはrequest/rest/tired・relations=[request,condition]。subject/conditionSubject/roles/target/time/application/proposalKindは欠落し、structured枝のself・原frame固定player役割を移さない。uは関係適用時subject=実話者、関係不足partial/subject=null、全行roles未生成・positive/unspecified・conditionStatus=unknown、aspect/target/questionSlot=null・reportSource欠落。原frameと当時uの欠落を相互補完しない。
+
+**Y（三引数原資料照合）**：generic_conditional_rest_requests.create()/capture(buffer,result,receipt)独立journal、kind=generic_conditional_rest_request、occurrenceId=同kind:input ID。完全／未完とも同APIでunderstandingStatusを分ける。独立input/inputKnowledge/inputContext・原beforeState/beforeWorldとafterState/afterWorld/reply、input.id=before.serial+1・scene一致、単独frame/uと原unresolved、コピー上receive/respond全文一致、前後validContext/validSelectionsを要する。原lastOutput参照経験は同ID一意／snapshot一致、known各意味と実適用関係は入力前各一根拠を照合。知識・本人経験・前後selectionSources、worldのmode/destination/attention/activityStart/reasons不変、今回turn.answer/conditionJudgmentなし、resultのrelationLearning/conditionJudgment/sequenceJudgmentなしを要求する。供給資料整合照合であり真正性認証ではない。
+
+原input/frame・originalOutput/参照経験・前後state/world、入力前knowledge/context、当時u/known/relations/unresolved・missingMeaningsBefore/missingRelationsBefore・meaningBasis/relationBasis・actualSpeaker、原expression・実response・speechSettingを分離コピーする。actualSpeechは原expression.channel=speechかつ実reply.observationなし、observationResponseは実reply由来。全行conditionJudgmentRecorded=false/conditionJudgment=null・answerRecorded=false/turnAnswer=null・actionDecisionRecorded=false/compliance=null・actualParticipation=false、completedExperience/desire/refusal=null・newTeaching/newLearning/newExperience=false。疲労値や休息中の状態から感覚observation・met/unmet/unknownの今回判断・休息予約／開始完了・共同参加・本人希望／感情／理由を新造しない。mの当時unknownと実判断、crの判断不存在を混同しない。
+
+**原expressionと実reply**：core完全理解はacknowledge、不足はuncertain。shortかつknownにrestまたはtiredがあればspeech、それ以外はgesture/attend（rest不足でもtired既知ならhasContentあり）。gesture設定は完全理解でもattend。worldの条件判断入口はstructured conditional_proposalを要し、通常提案の移動入口はconditionStatusなしを要するため、cyはどちらへも移さず、この既存単独入口の実replyはexpression.messageを保持する。acknowledge／attendを受諾・開始決定へ変換せず、attend単独で理解不足を決めない。
+
+**必要前件・原資料保持**：core.understandの経験由来関係のkind/locale/speaker/form/roles等scopeとrelationReferencesを照合し、実request／condition学習後でもgenericへ適用しない原根拠を全般既知へ拡張しない。生活意味の原経験・関係の原教示は語／関係の出所であり今回休息経験ではない。限定scope非転移・原当時非書戻し、同input非増加非上書き・新input別資料・遅延供給・コピー独立・元資料不変を維持。capture=falseの資料欠損矛盾／前件不足／重複と当時非成立は別軸で、未供給・未読・未照合を新担当必要へ変えない。
+
+既存保存cy-implementation-fb6f679/final-validation.jsonを直接確認。過去専用28＋監査71・22群308原184成立（完全94／未完90）・全Node2791・別renderer860は今回再実行ではない。full-30minのrenderer失敗・reviewRequired/reading.not_recorded/incomplete/exit1を別成功で昇格しない。今回はcy本体／専用fixture全文・専用test先頭65行とcore/world必要枝、fixture依存入口と関係判断の入口条件を読取。専用test残部・fixture全推移的依存全文・生活／関係／感情学習全体・原fixture-materials全件／個別原receipt未読未照合。生成／再生・監査test・全回帰・七言語チェック・renderer・実UI音声／本人日記生成保存再開配布／試遊通し未実行。
+
+前群cx/cp/cq十二行（cx3/cp6/cq3）、p/cs十六行（p1/cs15）、m/cr十六行（m1/cr15）とam/cp/cq十二行・bc/bv十六行・bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行、各群個別原receipt未供給・未照合を維持。実speaker／原固定player役割／当時u、m実判断とcr判断不存在・p/cs順序null、名前実発話とap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidenceを分離する。n/o原basis非置換・初回非新造、k最初非置換・l通常判断非付与、an補修済み零経過の扱いも戻さない。
+
+次は別話者structured単独条件付き休息の一群を、保存資料・OWNERS・cz/crの現所有条件／必要前件から先に範囲確定する。今回cz本体／専用fixture・他話者cr個別原資料、db/dc/dd本体／専用fixture未読・個別認定なし。cyへ一括せず、順序・複数節を自動包含しない。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加なし。文書検証のみ、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。過去成功・全3597・timed_out/incomplete・cr元PiF767・cs元l6UAf8・cx初回full中断／別full-retryの不完了を今回結果へ昇格しない。今回証拠はdocs/.local-history/verification-runs/entry-generic-conditional-rest-mapping-8e3d5fb。
 
 <a id="entry-final-classification-basis"></a>
 
