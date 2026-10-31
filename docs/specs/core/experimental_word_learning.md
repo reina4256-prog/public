@@ -4841,6 +4841,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 599d403後のユーザー「はい、どちらも採用でOKです。」で、直前のcp通常休息request二案の対象と文言をそれぞれ採用。request関係だけ不足時は「休むことは分かったけれど、言われたことは全部は分からなかった。」、rest意味とrequest関係両不足時は「言われたことが分からなかった。」。各案の当時known／relations／unresolvedを実資料で確認できる場合だけ適用し、原frameから未知の意味・関係・主体を補わない。以下の当該未採用は履歴。これでrequest三不足状態の文言は採用済みだが、個別原資料未供給未照合・実装未着手であり、全体完了ではない。
+- 次は同じcpの通常休息invitation三案（C／D／E）。各案の対象と文言は未採用。共通対象案はplayer・日本語・単独・条件順序なし・当時complete=false、[既存行別対応](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)のinvitation 1／2／3とfixture prepared(mask=1／2／3,kind=invitation)に静的対応。各案を個別に採用可能とし、request採用をinvitationへ自動転移しない。
+
+| 案 | 実資料で確認が必要な当時状態 | 文言案（未採用） |
+| --- | --- | --- |
+| C：rest意味だけ不足 | known.meaning欠落・relations=[invitation]、kind=invitation、unresolvedはrest意味だけ | 「何かに誘われたけれど、何をするのか分からなかった。」 |
+| D：invitation関係だけ不足 | known.meaning=rest・relations=[]、kind=partial・subject=null、unresolvedはinvitation関係だけ | 「休むことは分かったけれど、言われたことは全部は分からなかった。」 |
+| E：意味関係両不足 | known.meaning欠落・relations=[]、kind=partial・subject=null、unresolvedはrest意味とinvitation関係 | 「言われたことが分からなかった。」 |
+
+- Cの「誘われた」は当時理解したinvitation関係の表示で、受諾・予定・共同参加・実行・完了を含まない。「一緒に休んだ」へ変換せず、D／Eには未知の誘いを足さない。D／Eの文言がrequest側と同じでも原input／frame／当時不足は別保持し、同じ候補・理解・原資料に統合しない（反復集約の採用でもない）。未知の内容・主体・返答／身振り・感情理由・行動を補わず、欠落を期待配置にしない。今回は所有条件・行表・fixture定義だけ静的読取、個別原資料取得／生成／再生／照合なし。六資料分離・原当時非書戻し、実装・集約／途中／保存／本接続未採用、入口B停止・供給進展0・全維持条件・4d12全体未完を維持。
+
 - 6a6afd3後のユーザー「はい、採用でOKです。」で、cpのrequest関係適用可能・rest意味だけ不足と実資料で確認できる場合の「何かをお願いされたけれど、何をするのか分からなかった。」を採用。以下の当該文言未採用は履歴。対象／六資料分離・後知識非書戻しを維持し、受諾拒否・行動・理由感情を足さない。実装未着手・個別原資料未供給未照合は不変。同時に、複数項目の提示も可能とのユーザー指示を受領。資料系統をそろえた複数案を個別の条件／採用範囲付きで提示可能とし、一方のOKを他案へ波及させない。精度のため常に一件必須とはせず、不明な依存や資料条件は分離して確認する。
 - 次の相談は同じcp通常休息requestの不足配置二案（A／Bとも対象・文言未採用）。[既存行別対応](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)のrequest 2／3、fixtureのprepared(mask=2／3,kind=request)へ静的対応する。共通対象案はplayer・日本語単独・complete=falseだけ。六資料分離・原当時非書戻しを継承する。
 
