@@ -615,6 +615,35 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 
 全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空beforeReports/beforeReceipts・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。今回は文書検証のみ、ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去成功・全3597・不完了runを今回結果へ昇格せず、工程完了判定は[VALIDATION](../../word/VALIDATION.md)の--full等に従う。証拠はdocs/.local-history/verification-runs/entry-other-speaker-sequential-rest-mapping-ea856c9、前群証拠entry-other-speaker-conditional-rest-mapping-b76127fを保持。一単位ごとの引継ぎ更新・次チャット移動・最終回答の貼り付け用冒頭文を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+#### 続き：完全理解別話者単独順序入口の原資料所在・必要前件・比較範囲（2026-11-01・2284835の続き）
+
+本節Bだけを一単位進めた。保存資料・OWNERSのp/n/o/cs行・p/cs所有仕様と本体を先に確認した。七言語・空でないplayer以外・short/gesture・印なし単独sequential_proposalだけで、cy・条件・通常提案・複数節は比較対象へ合算しない。帰属・追加要否は未確定、新部品／dz追加なし。
+
+| 保存原資料の所在（今回の有限な静的探索） | 確認結果 | 限界 |
+| --- | --- | --- |
+| cs-implementation-e51ca54/fixture-materials.json | 486行中、別話者単独順序14行、完全理解0。七言語×short/gesture・visitor、rest/eat既知・request/sequence両scope不適用、表12の未完対照 | receipt八fieldの存在を索引化しただけ。個別全文整合・真正性・完全理解を証明しない |
+| cs-consultation-3f5a3ec/materials.json | 保存656行中、別話者単独順序0・同完全理解0 | 相談時の有限資料。全保存資料の不存在証明ではない |
+| dy-investigation-70e350a/rows.json | 原728行中、別話者単独順序0・同完全理解0。原hashは既存記録と一致 | 全入口網羅ではなく、dy別群や後の知識から今回Bを作らない |
+| 4d-final-review-25b06af/review.cjs・api-inventory.jsonの所在 | 原728と138 API宣言の比較経路を確認。旧47はbeforeReports/beforeReceipts空、4d1/3/4は別経路 | 今回inventory全行の意味再読／全API実行なし。既存728成功をBへの正規前提供給済みへ変換しない |
+
+ここでの0は上記JSONのresult.interpretationsが一行かつkind=sequential_proposal、空でない実speaker≠playerを満たす保存行の機械抽出値。改変対照を正例に昇格せず、保存fixture／相談資料と今回の個別原receiptを区別する。保存領域全体・p旧一時実Electron原資料・他群保存資料は未探索で、完全理解別話者の個別原receiptはなお未供給・未照合。新規生成・receive/respond再生・capture・専用testは行っていない。
+
+| Bで確保する原資料／必要前件 | 現所有比較への渡し方・判定保留 |
+| --- | --- |
+| 原input/raw/id/locale/at/scene/実speaker、全体一致した単独frameと原phase欠落 | 原frame subject/eventSubject=self・roles.proposer=player固定をそのまま保持。実speakerやu.rolesへ置換してpを通さない |
+| 入力前rest/eat意味根拠、request/sequence根拠と適用scope・原relationReferences | initialとexperienced_life／experienced_relationを分離。後二者の原ID・時点・話者／言語／文型／役割／form/proposalForm/eventMeaning/eventSubject/applicationを確認し、実speakerへ適用する根拠をplayer実学習から転移しない |
+| 当時u.complete=true・known={meaning:rest,eventMeaning:eat}・relations=[request,sequence]・unresolved=[]・subject=self、実speakerのproposer役割 | core.understandの当時理解と所有条件の比較資料。conditionStatus=null・sequenceJudgment不存在・eventReference欠落を保持し、具体食事・食事完了判断・休息予約等を補わない |
+| 原expression、speechSetting、実reply、独立input/inputKnowledge/inputContext・before/afterState/World | shortの実reply sequence_understoodとgestureのattendを原expressionから分離。実turn.answer／実判断の有無は原資料で確認。receipt八fieldの存在だけで全文整合済みにせず、attendだけで理解不足・受諾を認定しない |
+| p.capture(buffer,result,context,beforeKnowledge) | contextのscene/attentionとworld由来mode/target/activityStart/elapsed、入力前knowledgeを原資料から供給する比較。ただしpの実speaker=player・固定u.roles条件にBは合わない。資料を改変して所属させない |
+| cs.create()/capture(buffer,result,receipt) | 原前後資料・validContext/validSelections・参照経験／選択出所・コピー再生全文整合を要求する未完担当。Bはcomplete=false／unresolved必要条件に合わない。未完十五配置への条件対応とその個別原receipt未供給・未照合は維持 |
+| その他の現所有比較 | n/o教示、cx request/invitation、cz conditional_proposal、da/db/dc/dd節数／文型の既確認境界は保持。資料保持の別軸（di/dj/du/dy等）は各採用範囲・正規引数／先行資料を確認してから個別比較する。API名や三引数一致だけで担当／非担当を決めない |
+
+次の一単位は、完全理解別話者の原資料所在の未探索範囲を保存目録から限定し、見つかった原資料の同一性と前件供給可否を確認した上で、資料保持側の現所有条件・正規引数の比較表を一群だけ進める。見つからなければ所在未確認／未供給を保持し、再生成を当時原本と呼ばない。全138 APIへ同一原資料と全正規前件を供給した横断照合・帰属確定・新担当必要の認定は未実施。
+
+前段の全群条件対応と各群個別原receipt未供給・未照合、限定scope非転移・原当時非書戻し、cy主体／役割欠落・cz当時unknownと実判断・cr判断不存在・p/cs順序nullの分離を維持。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限は非変更。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+今回文書検証のみ、ゲーム全回帰等未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30minを今回結果へ昇格しない。工程完了判定は[VALIDATION](../../word/VALIDATION.md)に従う。今回証拠はdocs/.local-history/verification-runs/entry-other-speaker-sequential-complete-scope-2284835。前回entry-other-speaker-sequential-rest-mapping-ea856c9・前群entry-other-speaker-conditional-rest-mapping-b76127fは非改変保持。一単位ごとの引継ぎ更新・次チャット移動・最終回答の貼り付け用冒頭文を継続。
+
 <a id="entry-final-classification-basis"></a>
 
 ### 全入口最終分類の条件・既存証拠の不足確認（2026-10-31・一単位）
