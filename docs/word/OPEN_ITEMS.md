@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-11-01最新：298e683の続きとして[du一群の保存資料所在・前件供給可否・現所有条件／正規引数比較](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位実施。実装243／前件53・相談222／前件50は今回／直前resultの単独順序0、集合を合算しない。実装fixtureは別生成保存で原test dumpではない。duはja二節以上・非対比feeling_report/external_event_report必須、Bへ移植しない。B個別原receipt所在未確認・未供給・未照合、帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・全保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを維持。文書検証のみ・ゲーム検証未実行、di/dj/du元full不完了非昇格。次はdy一群の現所有条件／正規引数・必要前件比較（今回未着手）。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
+
 - 2026-11-01最新：bc6bf45の続きとして[dj一群の保存資料所在・前件供給可否・現所有条件／正規引数比較](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位実施。保存232行／平坦antecedentあり16行の今回／直前resultは単独順序0。別生成保存fixtureで原test dumpではない。djはja・全frame unknown・全understanding未完必須、Bへ読み替えず、B個別原receipt所在未確認・未供給・未照合。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含、全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを維持。文書検証のみ・ゲーム検証未実行、di/dj元full不完了非昇格。次はdu一群だけ（今回未探索未読）。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
 
 - 2026-11-01最新：7b8ef7cの続きとして[完全理解別話者単独順序Bの保存目録限定・di現所有条件／正規引数比較](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一群実施。保存di628行と平坦antecedentあり161行の有限静的抽出は単独順序0、testとは別生成の保存fixtureで原test dumpではない。B個別原receiptは所在未確認・未供給・未照合。di必須correctionとBを読み替えず、帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・全保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを維持。文書検証のみ、ゲーム検証未実行。次は目録上dj一群の保存所在・前件供給可否・現所有比較。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
