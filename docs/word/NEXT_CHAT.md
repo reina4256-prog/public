@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（完全理解別話者単独順序B・p最終原出力の明示参照一経路を確認済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、c07134aの続きで確認したp旧一時実Electron最終S6EUsK／session58391の原出力参照一経路の次として、同じ最終runの別の既存明示保存経路を一つ特定できるかから、完全理解別話者単独順序入口Bの同一性・必要前件供給可否を文書上で一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。所有記録はexperimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mappingの最新続き節。
+今回辿ったPRESERVATION.json→保存旧handoff 1242〜1245行→正本所有p節では、最終profile／session／過去集計は確認できましたが、原stdout保存ファイルや個別原receiptへの明示取得参照は確認できません。所在未確認・未供給・未照合、B同一性・必要前件供給可否未確定を維持。全保存領域の不存在証明ではなく、session番号をファイルパスへ変換せず、profile名一致を真正性証明にしない。602／661・別話者56をB件数へ変換しません。別の明示経路を特定できなければ制約を記録し、内部cache／storage全体・初回BIsYGq／2048・Node71187・他群を自動探索しないでください。
+対象は七言語・空でないplayer以外・short/gesture・印なし単独sequential_proposal・当時完全理解だけ。p四引数player限定／cs三引数未完限定を変更せず、実speaker／原固定player役割／当時uと原expression／実reply／実判断を分離。conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻し・attend／capture=false単独判定禁止、具体食事等非補完を保持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。再生成を当時原本と呼ばないでください。
+直下profile十ディレクトリ／通常ファイル0と内部未読、原input/result/context/beforeKnowledge・receipt八field／実直前資料未供給未照合、全138 API横断未実施を保持。dy原728・別生成756／前件636／origin25、di628／161・dj232／16・du実装243／53・相談222／50・cs実装486／相談656は非再生成非合算。cs別話者14未完を完全理解化せず、他群／保存領域全体・dj相談results／de元2176・di reconciliation hits全文等未読未照合を維持。cz/cr十六行・cy十六行・cx/cp/cq十二行・p/cs十六行・m/cr十六行と前群、各群個別原receipt未供給未照合を保持。cy主体役割欠落・cz/m当時unknown／実判断・cr判断不存在、名前実発話／ap本人回答、as／4d2／cc/ch、explicit／attention／experience原evidence、n/o原basis非置換・初回非新造、k最初非置換・l通常判断非付与・an零経過history/startInputSerial/restStartOrder除去を維持。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・旧47空beforeReports/beforeReceipts・4d1/3/4別経路・138 API宣言inventory制限を保持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。工程完了判定はVALIDATION維持。今回証拠entry-other-speaker-sequential-p-output-route-c07134aと前回／前群証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴保持。
+```
+
 ## 最初に読む現行継続文（完全理解別話者単独順序B・p最終S6EUsK一群の直下所在確認済み）
 
 ```text

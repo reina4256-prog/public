@@ -766,6 +766,23 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 
 文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-dy-materials-7d0e1feと前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+#### 続き：p最終原出力の明示参照一経路の確認（2026-11-01・c07134aの続き）
+
+Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.fileの保存旧handoff 1242〜1245行 → 同記録が検証詳細の参照先とする[正本所有p節](experimental_word_learning.md#diary-sequence-proposals-p)** の一経路に限定した。正本p節は当該anchorから次のo記録の前までを直接読取。別の保存群・初回BIsYGq／2048・Node71187の出力経路は追わず、Temp profile内部cache／storageにも進んでいない。
+
+| 明示参照を辿った結果 | B同一性・必要前件供給可否 |
+| --- | --- |
+| 目録の保存旧handoff SHA256一致を今回も確認。旧handoffと正本p節は最終Temp/word-diary-preview-S6EUsK／session58391・602ケース661入力を記録する | 記録間の識別子一致であり、原session出力ファイル取得・当時run真正性・B個別原資料同一性の認定ではない |
+| 正本p節には最終／途中検証・fixture内訳・Nodeメモリとrendererコピーの分離を記載。今回辿った文面にはsession58391原stdoutの保存ファイル名／保存先・個別原input/result/context/beforeKnowledge／receipt八fieldへの明示取得参照を確認できない | profileはstdout保存先と確定できず、session番号をファイルパスへ変換しない。602／661・別話者56は過去集計でB件数へ変換しない。この経路から原資料を供給できるとは判定できない |
+
+今回取得したのは参照文面で、原stdout／個別原receiptではない。原出力保存先とB個別原receiptの所在未確認・未供給・未照合、必要前件供給可否未確定を維持する。この一経路に明示取得参照を確認できないことを、全保存領域の不存在・当時非成立・担当なし・新担当必要の証明にしない。p四引数のplayer限定／cs三引数の未完限定を変更せず、全138 APIへの同一原資料＋全正規前件横断照合未実施。再生成・コピー再生・receive/respond/captureなし。
+
+前節までの全維持条件・全14保留・各担当三保留・各群個別原receipt未供給未照合を保持。七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解だけ。実speaker／原frame固定player役割／当時u、原expression／実reply／実判断を分離。conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止と具体食事等非補完を保持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。
+
+140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、各行表・固定50中50／旧47空前件／4d1/3/4別経路／138宣言inventory制限、dy／di／dj／du／csの既存有限結果は非改変・非合算。cs別話者14未完対照を完全理解化しない。名前／ap・as／4d2／cc/ch・explicit／attention／experience、n/o/k/l/anとcy/cz/m/crの分離は前節どおり。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+証拠はdocs/.local-history/verification-runs/entry-other-speaker-sequential-p-output-route-c07134a。文書検証のみ、ゲーム全回帰／監査test／七言語チェック／renderer等未実行、過去不完了を今回成功へ昇格しない。次チャットは同じ最終runの別の既存明示保存経路を一つ特定できるかから始め、特定できなければその制約を記録する。任意の全領域探索やprofile内部全探索へ置換しない。
+
 #### 続き：p旧一時実Electron最終S6EUsK一群の所在確認範囲（2026-11-01・a9cb1cfの続き）
 
 前節B（七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解）だけを継続。今回は既存保存目録から、p最終専用一時実Electron **Temp/word-diary-preview-S6EUsK・session58391** 一群だけを所在確認対象にした。初回BIsYGq／session2048・Node session71187・n/o・cs・他群を包含しない。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。
