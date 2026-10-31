@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（完全理解別話者単独順序B・未確認取得参照を一つ具体提示できず取得制約保持）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、f5a52c7の続きで記録したp最終S6EUsK／session58391の取得参照入口判定の次として、未確認の既存明示取得参照を一つ具体提示できるかから、入口Bを文書上一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。所有記録はexperimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mappingの最新続き節。
+今回は現行資料から具体参照を提示できず、取得候補に必要な既存参照の所在・取得対象／方法・同じ最終runへの結び付き・既確認経路との差分を明文化しただけです。新規探索・同じ三通知／工程表／旧handoff／正本p節の循環再確認なし、供給進展0。総合仕様索引の有限検索でも別の取得参照未限定という前回結果を保持。具体提示がなければ取得制約の保持で止め、再確認を供給進展に数えないでください。全保存領域不存在を主張せず、profile内部cache／storage・初回BIsYGq／2048・Node71187・他群／全領域の自動探索へ置換せず、再生成を当時原本と呼ばないでください。
+所在未確認・未供給・未照合、B同一性／必要前件供給可否未確定。対象は七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解だけ。p四引数player限定／cs三引数未完限定、実speaker／原frame固定player役割／当時u、原expression／実reply／実判断、conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止・具体食事等非補完を保持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。
+原input/result/context/beforeKnowledge・receipt八field／実直前資料未供給未照合、profile直下十ディレクトリ／通常ファイル0は過去結果・内部未読、全138 API横断未実施を保持。dy原728／別生成756／前件636／origin25、di628／161・dj232／16・du実装243／53／相談222／50・cs実装486／相談656は非再生成非合算。cs別話者14未完を完全理解化しない。他群・全保存領域／dj相談results／de元2176／di reconciliation hits全文等未探索未読未照合、各群行表／個別原receipt未供給未照合、cy/cz/m/cr・名前／ap・as／4d2／cc/ch・explicit／attention／experience・n/o/k/l/anの全既存分離を保持。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50／旧47空前件／4d1/3/4別経路／138宣言inventory制限、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なしを保持。
+文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded等非昇格、VALIDATION維持。証拠entry-other-speaker-sequential-p-reference-gate-f5a52c7と前回／前群原証拠非改変。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴保持。
+```
+
 ## 最初に読む現行継続文（完全理解別話者単独順序B・総合仕様索引の有限検索でも別の取得参照未限定）
 
 ```text
