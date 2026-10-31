@@ -732,6 +732,38 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 
 次チャットは資料保持側dy一群だけの現所有条件／正規引数と必要前件を比較する。既抽出728の有限結果を再生成せず、OWNERS／現採用範囲・保存所在から確認し、B個別原receipt所在未確認・未供給・未照合を保持する。dy本体／正規前件の今回比較は未着手。p旧一時実Electron原資料・他群・保存領域全体の未探索、dj相談results／de元2176・di reconciliation hits全文等の未読未照合も維持。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-du-materials-298e683と前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+#### 続き：dy一群の保存資料所在・前件供給可否・現所有条件／正規引数比較（2026-11-01・7d0e1feの続き）
+
+前節B（七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解）だけを継続。OWNERSのdy行と[dy現採用範囲](experimental_word_learning.md#diary-incomplete-name-response-report-materials-dy)、先頭verified節・相談境界を先に確認し、dy一群だけを文書比較した。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。dyの複数節所有をBへ移植しない。既存verified重複／同一anchor二箇所は非変更。
+
+| 所在を確認した保存資料 | 今回確認した内容 | 限界 |
+| --- | --- | --- |
+| dy-investigation-70e350a/rows.json | 原728行のSHA256は24c11c5512317ad268e124d23a36f824ea32b67173b2bee2af61f947a2526944で既存記録と一致。別話者単独順序0・完全理解0はentry-other-speaker-sequential-complete-scope-2284835/saved-material-inventory.jsonの既存有限抽出を参照 | 728の再抽出・再生成なし。全保存領域の不存在証明ではなく、当該原JSONの全文人手読了／個別receipt照合ではない |
+| dy-implementation-cc9ba9c/fixture-dump.json | 保存756行の今回resultは話者を問わず単独sequential_proposalが0。receipt.antecedentあり636行の直前resultも同単独順序0。originあり25行を前件とは別に索引化 | dump.cjsによるtestと別の決定的生成保存。原test dumpでも今回再生成でもない。origin有無だけで当時pendingや原名付けの整合を認定しない |
+| 実装dump.cjs／consultation-recheck.json | 728相談原と756実装fixtureの保存経路を確認。過去728への176成立／552非成立と756原189対象を区別 | 過去capture結果を今回Bへの呼出結果へ変換しない。728と756、di628／dj232／du243・222／cs486・656を合算しない |
+| 実装full-30min/summary.json冒頭 | status=incompleteを直接確認 | 過去全3597・別renderer成功で元runを昇格せず、今回はゲーム検証なし |
+
+756原JSONのSHA256はd8a981ddec66a178499e68c8e13e32a92f8757f2d961b319ad497683274a7676。今回の756／636／25は保存JSONの有限静的索引であり、真正性／全行意味読了／全文整合の証明ではない。B個別原receiptは所在未確認・未供給・未照合。cs別話者14未完対照を完全理解化しない。
+
+| dyの現所有条件・正規引数 | Bとの比較／前件供給可否 |
+| --- | --- |
+| create()/capture(buffer,result,receipt)、kind=incomplete_name_response_report_material | 三引数一致は所有根拠ではない。当時理解／応答と資料保持を分離し、今回は呼出なし |
+| input.locale=ja・二節以上・同数understandings/learning、原correction又はreply一節以上＋非対比feeling_report/external_event_report一節以上。他節はこれらと原unknownだけ、relationLearning/conditionJudgment/sequenceJudgmentなし | B単独sequential_proposalは必須節数／文型条件と異なる。非jaには言語境界もある。rawから訂正／返答／報告を足さず、Bの実測capture=false・当時非成立・新担当必要を認定しない |
+| retract_explanation又は既存yes/no規則の全訂正返答節complete=false・correctsプロパティなし、全learningにretractionプロパティなし、今回confirmedBy/retractedBy更新なし | 報告節は完全／未完双方を保持し、全節未完限定としない。B当時完全理解をdyの未成立返答へ読み替えず、旧as/di/du/dv/4d5所有と不足receipt拒否を維持 |
+| 独立receipt.input/inputKnowledge/inputContext・before/afterState・before/afterWorld・reply | 安全整数ID=before.serial+1、scene／時刻／実speaker・入力前知識context一致、前後validContext/validSelections、コピー上receive/respondのresult／reply／前後全文一致を要求。lastOutput参照experienceは実world経験と照合。B原資料未供給のため供給可否・全文照合は未確認 |
+| before.context.turnsに実直前ありなら平坦receipt.antecedent={result,receipt}必須、直前なしはantecedentなし | 直前receiptにantecedent/origin/originsを持たせず、実直前turn／input ID=before.serial／時刻を照合し別再生。636前件はBではなく、B実直前有無・必要資料は未供給未確認 |
+| 原reply節あり時だけ平坦receipt.origin必須、replyなしはorigin禁止。truthyなreceipt.originsは空配列だけ許容 | originはantecedentと別の正規条件。当時confirm_name pendingのinputId／speaker／期限、原名付け一節・完全理解・同locale/実speaker／時刻、一意updated・対象association・有効evidence・record、replyToと実直前name_echo／pending一致を照合。origin.before.serial＜before.serialも必要。Bに架空のpending／名付けoriginを生成しない |
+| 最終uが完全理解questionかつ実reply.message=answer_unknownは拒否。一input一資料/per_clause・同input非増加非上書き・コピー独立 | 旧4d2境界を維持。responseSources/reportSources・原subject/aspect/polarity/eventTime/reportSource/testimony有無・原pending/replyTo・全frame/u/learning/transfer/expression・実reply/turn.answer有無を分離。訂正先なしに成功originや旧根拠無効化を補わない |
+| captureは新教示／学習／経験／感情を生成しない | Bの実speaker／原固定player役割／当時u、conditionStatus=null・sequenceJudgment不存在・eventReference欠落を保持。限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止。具体食事・完了判断・休息予約／実行・共同参加・本人感情理由・原因真偽を補わない |
+
+直接読取はdy本体全文・専用fixture全文、共有reference_report先頭とmixed_reference先頭36行・word_reference_clauseのhearを含む先頭85行、保存dump.cjs／consultation-recheck.json全文・相談summary冒頭・元full summary冒頭、既存728有限抽出の該当record。相談investigate.cjsは冒頭のみ（過大出力の省略あり）、残部は未読。core/world/catalog本体・専用test・共有fixture残部／extras本体・全推移的依存・生活／関係／感情学習全体、保存JSON全行の人手意味読了は今回未実施。当該所有条件について仕様と現コードの新不一致は今回確認していない。
+
+前節までの全維持条件・全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、cz/cr十六行（cz1/cr15）・cy十六行（完全理解1・未完15）・cx/cp/cq十二行（cx3/cp6/cq3）・p/cs十六行・m/cr十六行と前群条件対応、各群個別原receipt未供給・未照合を非変更保持。cy主体／役割欠落・cz/m当時unknownと実判断・cr判断不存在を混同しない。名前実発話／ap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、n/o原教示・原basis非置換・初回非新造、k最初非置換・l通常判断非付与・an補修済み零経過history/startInputSerial/restStartOrder除去を維持。固定50中50・dy原728有限照合・旧47空beforeReports/beforeReceipts・4d1/3/4別経路・138 API宣言inventory制限、全138 APIへの同一原資料＋全正規前件横断照合未実施、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+次チャットは未探索のp旧一時実Electron原資料について、既存保存目録から所在確認の対象を一群だけ限定する。B同一性／必要前件の供給可否を確認する範囲を先に定め、見つからなければ所在未確認・未供給・未照合を維持する。再生成を当時原本と呼ばず、帰属・新部品必要・dz追加や全入口完了を先取りしない。他群・保存領域全体未探索、dj相談results／de元2176・di reconciliation hits全文等の未読未照合も維持。
+
+文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-dy-materials-7d0e1feと前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
 <a id="entry-final-classification-basis"></a>
 
 ### 全入口最終分類の条件・既存証拠の不足確認（2026-10-31・一単位）
