@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（他話者の単独通常提案cx／cp／cqの十二行条件対応済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、55b4f01から行った他話者の単独通常提案cx/cp/cq十二行条件対応の続きとして、条件付き休息の残る単独入口の一群を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。既存保存資料とOWNERSから節境界・現所有条件・必要前件を確認して範囲を確定し、cy/cz/cr等を一括せず、順序・複数節を自動包含しないでください。
+今回記録はexperimental_word_diary_audit.md#entry-other-speaker-ordinary-proposal-row-mapping。player以外の既存七言語通常休息request/invitation・日本語散策invitationだけ、完全理解cx三行・不足cp六行/cq三行。原実speaker・原frame固定player役割・当時u、原expressionと実reply、完全理解後のapproaching/continuing/not_startedを分離。cp/cq自体にplayer限定なし。attend／capture=falseだけで理解不足・受諾・当時非成立・新担当必要を認定せず、共同参加・完了経験・希望／拒否を補わないでください。
+p/cs十六行・m/cr十六行とam/cp/cq十二行・bc/bv十六行・bb/bu/bw九行・ba/bt/by九行・az/bs/bx五行、各群個別原receipt未供給・未照合、限定scope非転移・原当時非書戻しを維持。m当時unknownと今回判断、cr判断不存在、p/cs順序nullを混同しない。名前実発話とap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidenceの境界を維持してください。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加は自動採用しないでください。
+今回は文書検証のみ。全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去成功・全3597・初回timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry、cx初回full中断／full-retry-30minのincompleteを別成功・今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従ってください。証拠はdocs/.local-history/verification-runs/entry-other-speaker-ordinary-mapping-55b4f01。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文の最終回答出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（順序付き休息p／csの十六行条件対応済み）
 
 ```text
