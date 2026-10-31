@@ -766,6 +766,23 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 
 文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-dy-materials-7d0e1feと前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+#### 続き：p最終runの工程表参照と別の明示保存経路の特定可否（2026-11-01・f3638e4の続き）
+
+Bだけを文書上一単位継続。今回は既存PRESERVATION.jsonのdocumentsに挙がるdocs/WORD_DEMO_ROADMAP.mdから、最終runを記す「再開用の開始文（2026-10-10・facdb54／4d12p確認済み・最新）」4548〜4563行の一blockだけを直接確認した。識別子による所在検索は同ファイル内に限定し、他の開始文全履歴・初回BIsYGq／2048・Node71187の保存経路・他群へ展開しない。
+
+| 確認した別の既存文書参照 | 原出力保存経路・B同一性／必要前件供給可否 |
+| --- | --- |
+| PRESERVATION.json documents → 工程表facdb54確認済みblock。4560行に最終Temp/word-diary-preview-S6EUsK／session58391・602ケース661入力と、詳細は正本日記節コード対応表を維持との記載 | 既存文書の記録参照は特定できるが、このblockには原stdoutファイル名／保存先・個別原receiptへの明示取得参照を確認できない。前回の正本p節へ戻る記録参照を、別の原出力保存経路を特定できたとは扱わない |
+| 同blockは実receive/respond/tick/onArrival・前提学習が専用Nodeメモリ、rendererはコピー資料／所有catalog／独立部品と区別 | profile残存から入力前原資料・実reply／前後state/worldの保存を推定せず、602／661をB件数へ変換しない。今回取得は参照文面のみで、原資料の供給・全文整合確認ではない |
+
+したがって**今回の一blockから別の既存明示原出力保存経路は特定できない**という限定結果。原stdoutとB個別原receiptは所在未確認・未供給・未照合、B同一性・必要前件供給可否未確定を保持する。全保存領域の不存在や当時非成立の証明ではない。session番号をパス化せず、profile名一致を真正性証明にしない。原input/result/context/beforeKnowledge・receipt八field／実直前資料を補作せず、p四引数player限定／cs三引数未完限定を維持。全138 APIへの同一原資料＋全正規前件横断照合・再生成・コピー再生・receive/respond/captureは未実施。
+
+前節までの全維持条件をそのまま保持する。七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解だけ。実speaker／原frame固定player役割／当時u、原expression／実reply／実判断を分離し、conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止・具体食事等非補完を維持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。各群の行表／個別原receipt未供給未照合、dy／di／dj／du／cs有限結果非合算とcs別話者14未完対照、cy/cz/m/cr・名前／ap・as／4d2／cc/ch・explicit／attention／experience・n/o/k/l/anの既存分離は変更しない。
+
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50／旧47空前件／4d1/3/4別経路／138宣言inventory制限を保持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。文書検証のみ、ゲーム検証等未実行・過去成功／不完了非昇格。
+
+証拠entry-other-speaker-sequential-p-roadmap-route-f3638e4、前回／前群証拠非改変。次チャットはこの限定結果から、同じ最終runに結び付く別の既存明示取得参照を具体的に限定できるかを先に確認する。特定できなければ原資料取得の制約を維持して記録し、同じ集計記録の再確認を原資料供給の進展へ数えず、任意の全保存領域／profile内部探索・再生成へ置換しない。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
 #### 続き：p最終原出力の明示参照一経路の確認（2026-11-01・c07134aの続き）
 
 Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.fileの保存旧handoff 1242〜1245行 → 同記録が検証詳細の参照先とする[正本所有p節](experimental_word_learning.md#diary-sequence-proposals-p)** の一経路に限定した。正本p節は当該anchorから次のo記録の前までを直接読取。別の保存群・初回BIsYGq／2048・Node71187の出力経路は追わず、Temp profile内部cache／storageにも進んでいない。

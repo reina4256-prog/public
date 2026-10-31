@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-01最新：f3638e4の続きとして[p最終runの工程表参照と別の明示保存経路の特定可否](core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を文書一単位確認。PRESERVATION.documents→工程表facdb54確認済みblockだけを読取。S6EUsK／session58391の記録参照はあるが、原stdout／個別原receiptへの別の明示保存経路はこのblockから特定できない。所在未確認・未供給・未照合、B同一性／必要前件供給可否未確定・全維持条件を保持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なし。次は同じ最終runへの別の明示取得参照を具体的に限定できるかから。文書検証のみ、ゲーム検証未実行。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
+
 - 2026-11-01最新：c07134aの続きとして[p最終S6EUsK／session58391の原出力参照経路](core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位確認。PRESERVATION.json→保存旧handoff 1242〜1245行→同記録の正本所有p節だけに限定。両記録にはprofile／session／集計の記載があるが、原stdout・個別原receiptの保存ファイルへの参照をこの経路では確認できない。B同一性・必要前件供給可否未確定、所在未確認・未供給・未照合を維持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・全保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ・ゲーム検証未実行、過去不完了非昇格。次は同じ最終runについて別の既存明示保存経路を一つ特定できるかの確認から。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
 
 - 2026-11-01最新：a9cb1cfの続きとして[p旧一時実Electron最終S6EUsK一群の所在確認範囲](core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位進めた。保存目録から最終S6EUsK／session58391だけに限定。同名Temp profile直下10ディレクトリ・通常ファイル0を確認したが、名前一致はrun真正性／B原資料同一性を証明しない。個別原receipt所在未確認・未供給・未照合、内部cache／storage・原session出力未読。602ケース661入力は過去集計でB件数へ変換せず、再生成・再生なし。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ、ゲーム検証未実行・過去不完了非昇格。次は同じ最終runの原出力保存先を一経路だけ限定し確認する。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
