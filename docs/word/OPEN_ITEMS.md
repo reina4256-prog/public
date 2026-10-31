@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-11-01最新：a9cb1cfの続きとして[p旧一時実Electron最終S6EUsK一群の所在確認範囲](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位進めた。保存目録から最終S6EUsK／session58391だけに限定。同名Temp profile直下10ディレクトリ・通常ファイル0を確認したが、名前一致はrun真正性／B原資料同一性を証明しない。個別原receipt所在未確認・未供給・未照合、内部cache／storage・原session出力未読。602ケース661入力は過去集計でB件数へ変換せず、再生成・再生なし。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ、ゲーム検証未実行・過去不完了非昇格。次は同じ最終runの原出力保存先を一経路だけ限定し確認する。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
+
 - 2026-11-01最新：7d0e1feの続きとして[dy一群の保存資料所在・前件供給可否・現所有条件／正規引数比較](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位実施。相談原728は既存有限抽出を再利用し再生成なし。別生成保存fixture756／平坦前件636は今回／直前とも単独順序0、origin25は別索引。dyはja未成立correction/reply＋非対比報告の複数節だけでBへ移植しない。B個別原receipt所在未確認・未供給・未照合、帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・全保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを維持。文書検証のみ、ゲーム検証未実行・過去不完了非昇格。次はp旧一時実Electron原資料の所在確認対象を既存保存目録から一群限定。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
 
 - 2026-11-01最新：298e683の続きとして[du一群の保存資料所在・前件供給可否・現所有条件／正規引数比較](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位実施。実装243／前件53・相談222／前件50は今回／直前resultの単独順序0、集合を合算しない。実装fixtureは別生成保存で原test dumpではない。duはja二節以上・非対比feeling_report/external_event_report必須、Bへ移植しない。B個別原receipt所在未確認・未供給・未照合、帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・全保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを維持。文書検証のみ・ゲーム検証未実行、di/dj/du元full不完了非昇格。次はdy一群の現所有条件／正規引数・必要前件比較（今回未着手）。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。

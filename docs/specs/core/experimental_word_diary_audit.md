@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- 2026-11-01最新：a9cb1cfの続きとして[p最終S6EUsK／session58391一群の所在確認範囲](#entry-other-speaker-sequential-rest-row-mapping)を一単位進めた。保存目録→p最終識別子と同名Temp profile直下10ディレクトリ・通常ファイル0まで確認。原session出力・内部未読、B個別原receipt所在未確認・未供給・未照合。名前一致／過去602ケース661入力をB同一性／前件供給へ昇格しない。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含、全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ。次は同じ最終run原出力の保存経路を一経路だけ限定。以下は過去状態。
+
 - 2026-11-01最新：8e3d5fbの続きとして[一般解析の単独条件付き休息cyの十六行条件対応](#entry-generic-conditional-rest-row-mapping)を一単位実施。日本語conditional_restだけ、player／別話者・short/gestureに共通する完全理解一行／未完十五行をcy三引数原receiptの条件へ対応。原frameの主体／役割欠落・当時実speaker／u・原expression／実reply・今回判断不存在を分離。個別原receipt未供給・未照合、前群cx/cp/cq十二行・p/cs十六行・m/cr十六行と前群条件対応、限定scope非転移・原当時非書戻しを維持。次は別話者structured単独条件付き休息の一群を保存資料・OWNERS・cz/cr現所有条件から範囲確定し、cy・順序・複数節を一括包含しない。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加なし。文書検証のみ、ゲーム全回帰等未実行。過去成功とcy full-30min等の不完了を今回結果へ昇格しない。読取／未読／検証／発行は現行handoff参照。以下は過去状態。
 
 - 2026-11-01最新：55b4f01の続きとして[他話者の単独通常提案cx／cp／cqの十二行条件対応](experimental_word_diary_audit.md#entry-other-speaker-ordinary-proposal-row-mapping)を一単位実施。player以外の既存七言語通常休息request/invitation・日本語散策invitationだけ、完全理解cx三行・不足cp六行/cq三行。三引数原receipt・実話者／原固定player役割／当時理解・実判断／原expressionと実replyを分離。各群個別原receipt未供給・未照合、p/cs十六行・m/cr十六行と前群条件対応、限定scope非転移・原当時非書戻しを維持。次は条件付き休息の残る単独入口の一群を保存資料・OWNERSから範囲確定し、cy/cz/cr等・順序・複数節を一括包含しない。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、残2〜3工程中心2・減算0・低確度・上限終了保証なし、新部品／dz追加なし。文書検証のみ、全回帰／監査test／七言語チェック／renderer等未実行。過去成功・不完了を今回結果へ昇格しない。実読取／未読／検証／発行は現行handoff参照。以下は過去状態。
@@ -763,6 +765,31 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 次チャットは未探索のp旧一時実Electron原資料について、既存保存目録から所在確認の対象を一群だけ限定する。B同一性／必要前件の供給可否を確認する範囲を先に定め、見つからなければ所在未確認・未供給・未照合を維持する。再生成を当時原本と呼ばず、帰属・新部品必要・dz追加や全入口完了を先取りしない。他群・保存領域全体未探索、dj相談results／de元2176・di reconciliation hits全文等の未読未照合も維持。
 
 文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-dy-materials-7d0e1feと前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
+#### 続き：p旧一時実Electron最終S6EUsK一群の所在確認範囲（2026-11-01・a9cb1cfの続き）
+
+前節B（七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解）だけを継続。今回は既存保存目録から、p最終専用一時実Electron **Temp/word-diary-preview-S6EUsK・session58391** 一群だけを所在確認対象にした。初回BIsYGq／session2048・Node session71187・n/o・cs・他群を包含しない。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。
+
+| 保存目録／限定した確認先 | 今回確認した事実 | B同一性・前件供給可否の限界 |
+| --- | --- | --- |
+| word/PRESERVATION.json → 保存旧handoffのp最終記録1242〜1245行、word/BASELINE.md → baseline-e54d423/manifest.json | 保存旧handoff全体SHA256は目録のd2a050e6882a4c1a19fe69cac81875d6091ca9beb367514c710616ad5b7bf08aと一致。p最終記録にS6EUsK／58391／602ケース661入力、現所有p節にも同識別子あり。baseline manifestの原ログ三本はbrでpではない | 原文保持と当時集計の参照先を確認しただけ。602／661をB実話者・当時完全理解の件数へ変換せず、原result／receipt全文の取得・照合と区別する |
+| docs/.local-history/verification-runs直下・baseline-e54d423直下の名前目録 | S6EUsK／58391、p-／p_、diary_sequence／sequence_proposal等の限定名候補は0。現行証拠を作る前339／後340項目、baseline4項目。過去di／B有限保存JSON索引も参照先として保持 | 直下の名前照合だけで、名前の異なる保存先・子階層・全保存領域の不存在証明ではない。di/dj/du/dy等の既存結果を今回再抽出／合算しない |
+| %TEMP%/word-diary-preview-S6EUsK（実解決絶対パスはローカルlocation-inventory.json） | 同名directory所在あり。直下はblob_storage・Cache・Code Cache・DawnGraphiteCache・DawnWebGPUCache・GPUCache・Local Storage・Network・Session Storage・Shared Dictionaryの10ディレクトリ、通常ファイル0。起動・書込・内部読取なし | 名前一致だけで当時run真正性やB原資料同一性を認定しない。直下に原input/result/receiptとして取得した通常ファイルはなく、内部cache／storageは未読。個別原receipt所在未確認・未供給・未照合を維持 |
+
+今回の確認単位は上記最終runの識別子と直下所在まで。過去記録は実receive/respond/tick/onArrival・前提実学習が専用Nodeメモリ、rendererはコピー資料と所有カタログ・独立部品だけと区別している。profile残存からNodeの入力前原資料や実reply／前後state/worldが残るとは推定しない。現行fixtureの再生成も原session出力の復元も行っていない。
+
+| 次に同じ最終run内で確認する原資料単位 | 供給判定の条件・今回の状態 |
+| --- | --- |
+| 原出力／保存先を結ぶrun識別資料と、個別の原input/raw/id/locale/at/scene/実speaker・speechSetting・単独frame・原phase欠落・当時u | 最終S6EUsK／58391との対応を原保存経路で確認し、実speaker≠player・complete=true等のB条件を原資料ごとに確認する。名前・成功件数・別話者56という過去fixture内訳だけではBとしない。今回は個別原資料未供給・未照合 |
+| p四引数用の原result/context/beforeKnowledge、必要なら資料保持側の独立receipt八fieldと実直前資料 | 入力前意味根拠／request・sequence scope・原relationReferences、実speaker／原固定player役割／当時uを分離。pのplayer限定を改変して通さず、receiptの存在・全文整合／実reply・前後state/world・必要前件の供給可否は未確認。APIへの供給／コピー再生／captureなし |
+
+次チャットは**同じ最終S6EUsK／session58391の原出力保存先を、既存目録／保存経路の一経路だけに限定**して確認する。内部cache／storage全体や初回profileを自動探索せず、取得できなければ所在未確認・未供給・未照合を維持する。現行fixtureや後知識で当時原本を作らない。全138 APIへの同一原資料＋全正規前件横断照合・帰属確定・新担当必要認定は未実施。
+
+前節までの全維持条件・各群個別原receipt未供給・未照合、限定scope非転移・原当時非書戻し、conditionStatus=null・sequenceJudgment不存在・eventReference欠落を保持。attend／capture=false単独で理解不足・受諾・当時非成立・新担当必要を認定せず、具体食事・完了判断・休息予約／実行・共同参加・本人感情理由・原因真偽を補わない。cy主体／役割欠落・cz/m当時unknownと実判断・cr判断不存在、名前実発話／ap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、n/o原教示・原basis非置換・初回非新造、k最初非置換・l通常判断非付与・an補修済み零経過history/startInputSerial/restStartOrder除去は非変更。
+
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、cz/cr十六行・cy十六行・cx/cp/cq十二行・p/cs十六行・m/cr十六行と前群対応を保持。固定50中50・dy原728有限照合・旧47空beforeReports/beforeReceipts・4d1/3/4別経路・138 API宣言inventory制限、cs別話者14未完対照を完全理解化しない。他群・保存領域全体、dj相談results／de元2176・di reconciliation hits全文等は未探索／未読／未照合を維持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。
+
+文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-p-final-location-a9cb1cf、前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・最終回答の貼り付け用冒頭文を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
 <a id="entry-final-classification-basis"></a>
 

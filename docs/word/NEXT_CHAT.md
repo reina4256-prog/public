@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（完全理解別話者単独順序B・p最終S6EUsK一群の直下所在確認済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、a9cb1cfの続きで行ったp旧一時実Electron最終S6EUsK／session58391一群の直下所在確認の次として、同じ最終runの原出力保存先を既存目録／保存経路の一経路だけに限定し、完全理解別話者単独順序入口Bの同一性・必要前件供給可否の確認を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。所有記録はexperimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mappingの最新続き節。初回BIsYGq／2048・Node71187・他群や内部cache／storage全体を自動探索しないでください。
+PRESERVATION目録の保存旧handoff hash一致、p最終S6EUsK／58391／602ケース661入力の過去記録と同名Temp profile所在まで確認。直下10ディレクトリ・通常ファイル0、内部未読。名前一致は当時run真正性／B原資料同一性を証明せず、602／661や別話者56をB件数へ変換しません。原session出力・個別原input/result/context/beforeKnowledge・receipt八fieldと実直前資料は未供給・未照合、B個別原receipt所在未確認。再生成を当時原本と呼ばず、見つからなければこの状態を維持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含です。
+対象は七言語・空でないplayer以外・short/gesture・印なし単独sequential_proposal・当時完全理解のBだけ。実speaker／原frame固定player役割／当時u、原expression／実reply／実判断を分離し、p四引数のplayer限定／cs三引数の未完限定を改変して通さない。conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止。具体食事・完了判断・休息予約／実行・共同参加・本人感情理由・原因真偽を補わないでください。
+dy原728の既存有限抽出（別話者単独順序0・完全理解0）と別生成保存756／前件636（今回／直前とも単独順序0）・origin25を維持し再生成／合算しない。di628／前件161・dj232／前件16・du実装243／前件53・相談222／前件50・cs実装486／相談656も合算せず、cs別話者14未完対照を完全理解化しない。他群・保存領域全体、dj相談results／de元2176・di reconciliation hits全文等は未探索／未読／未照合を維持。cz/cr十六行・cy十六行・cx/cp/cq十二行・p/cs十六行・m/cr十六行と前群対応、各群個別原receipt未供給・未照合を保持。cy主体／役割欠落・cz/m当時unknownと実判断・cr判断不存在を混同せず、名前実発話／ap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、n/o原教示・原basis非置換・初回非新造、k最初非置換・l通常判断非付与・an補修済み零経過history/startInputSerial/restStartOrder除去を維持してください。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空beforeReports/beforeReceipts・4d1/3/4別経路・138 API宣言inventory制限を保持。全138 APIへの同一原資料＋全正規前件横断照合未実施、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。新部品／dzを自動採用しないでください。
+文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格せず、工程完了判定はVALIDATIONに従う。証拠entry-other-speaker-sequential-p-final-location-a9cb1cfと前回／前群原証拠をdocs/.local-history/verification-runs/へ非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文の最終回答出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（完全理解別話者単独順序B・dy一群の保存資料／現所有比較済み）
 
 ```text
