@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（完全理解別話者単独順序B・dj一群の保存資料／現所有比較済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、bc6bf45の続きで行った完全理解別話者単独順序入口Bのdj一群比較の次として、du一群だけの保存資料所在・B同一性と前件供給可否・現所有条件／正規引数比較を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。所有記録はexperimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mappingの続き節。duは今回未探索未読、OWNERS／現採用範囲を先に確認し、所在が確認できなければ未供給・未照合を保持。帰属・新部品必要・dz追加を先取りせず、cy・条件・複数節を一括包含しないでください。
+dj-implementation-81959cb/fixture-dump.json保存232行の今回resultと平坦antecedentあり16行の直前resultは単独順序0。別の決定的生成による保存fixtureで原test dumpでも今回再生成でもなく、全保存領域の不存在証明ではありません。djはja・全frame unknown・全understanding complete=false必須でBへ読み替えず、三引数receiptの原前後state/world・入力前知識context・実根拠・必要時の平坦antecedentを分離。B個別原receiptは所在未確認・未供給・未照合。di628／前件161・cs実装486／相談656・dy原728と合算せず、cs別話者14未完対照を完全理解化しない。p旧一時実Electron原資料・他群・保存領域全体、dj相談results／de元2176・di reconciliation hits全文等の未探索／未読／未照合を維持。
+対象は七言語・空でないplayer以外・short/gesture・印なし単独sequential_proposal・当時完全理解のBだけ。未完十五配置はcs三引数条件対応、Bはp player限定／cs未完限定等の境界までで帰属未確定。実speaker／原frame固定player役割／当時u、原expression／実reply／実判断を分離。conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻しを保持。attend／capture=falseだけで理解不足・受諾・当時非成立・新担当必要を決めず、具体食事・完了判断・休息予約／実行・共同参加・本人感情理由等を補わないでください。
+cz/cr十六行（cz1/cr15）、cy十六行（完全理解1・未完15）、cx/cp/cq十二行（cx3/cp6/cq3）、p/cs十六行・m/cr十六行と前群条件対応、各群個別原receipt未供給・未照合を維持。cy主体／役割欠落・cz/m当時unknownと実判断・cr判断不存在を混同しない。名前実発話／ap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、n/o原教示・原basis非置換・初回非新造、k最初非置換・l通常判断非付与・an補修済み零経過history/startInputSerial/restStartOrder除去を維持してください。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventory制限を維持。全138 APIへの同一原資料＋全正規前件横断照合未実施、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。新部品／dz追加は自動採用しないでください。
+文書検証のみ。ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj元full不完了を今回成功へ昇格せず、工程完了判定はVALIDATIONに従う。証拠entry-other-speaker-sequential-dj-materials-bc6bf45と前回／前群原証拠をdocs/.local-history/verification-runs/に非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文の最終回答出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（完全理解別話者単独順序B・保存目録限定とdi現所有比較済み）
 
 ```text
