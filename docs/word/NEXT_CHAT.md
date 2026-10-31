@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（別話者単独順序付き休息の条件対応・完全理解境界確認済み）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、ea856c9から行った別話者単独順序付き休息の条件対応・完全理解境界確認の続きとして、完全理解別話者単独順序入口の原資料所在・必要前件・現所有比較の範囲確定を一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。保存資料・OWNERS・p/cs等の現所有条件を先に確認し、帰属・新部品必要・dz追加を先取りせず、cy・条件・複数節を一括包含しないでください。
+今回所有記録はexperimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping。七言語・空でないplayer以外・short/gestureの印なし単独sequential_proposalだけ、未完十五配置はcs三引数必要前件へ条件対応。完全理解一行はpのplayer限定／cs未完限定・cx/cz等の文型境界を確認しただけで、全138 API正規前件横断照合・帰属／追加要否確定ではありません。保存csの別話者14例はrest/eat既知・request/sequence両scope不適用の未完対照で、完全理解証拠ではありません。実speaker・原frame固定player役割・当時理解、原expression・実reply・実判断を分離し、順序conditionStatus=null／sequenceJudgment不存在を保持。食事活動／学習原IDから具体食事・完了・予約等を補わず、attend／capture=falseだけで理解不足・受諾・当時非成立・新担当必要を認定しないでください。
+cz/cr十六行（cz1/cr15）、cy十六行（完全理解1・未完15）、cx/cp/cq十二行（cx3/cp6/cq3）、p/cs十六行・m/cr十六行と前群条件対応、各群個別原receipt未供給・未照合、限定scope非転移・原当時非書戻しを維持。cy原frame主体／役割欠落を補わず、cz当時unknownと実判断、cr判断不存在を混同しないでください。名前実発話／ap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、n/o原教示・原basis非置換・初回非新造、k/l・an補修済み零経過除去を維持してください。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限維持。全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なし。新部品／dz追加は自動採用しないでください。
+今回は文書検証のみ。ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去成功・全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30minを今回結果へ昇格せず、工程完了判定はVALIDATIONの--full等に従ってください。証拠はdocs/.local-history/verification-runs/entry-other-speaker-sequential-rest-mapping-ea856c9、前群証拠entry-other-speaker-conditional-rest-mapping-b76127fを保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文の最終回答出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴として保持。
+```
+
 ## 最初に読む現行継続文（別話者structured単独条件付き休息cz／crの十六行条件対応済み）
 
 ```text
