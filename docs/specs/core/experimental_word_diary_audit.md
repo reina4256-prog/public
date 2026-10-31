@@ -644,6 +644,36 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 
 今回文書検証のみ、ゲーム全回帰等未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30minを今回結果へ昇格しない。工程完了判定は[VALIDATION](../../word/VALIDATION.md)に従う。今回証拠はdocs/.local-history/verification-runs/entry-other-speaker-sequential-complete-scope-2284835。前回entry-other-speaker-sequential-rest-mapping-ea856c9・前群entry-other-speaker-conditional-rest-mapping-b76127fは非改変保持。一単位ごとの引継ぎ更新・次チャット移動・最終回答の貼り付け用冒頭文を継続。
 
+#### 続き：保存目録からdi一群に限定した現所有条件・正規引数比較（2026-11-01・7b8ef7cの続き）
+
+前節B（七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解）だけの比較を継続。OWNERSのdi行と[di採用範囲](experimental_word_learning.md#diary-incomplete-retraction-materials-di)、保存ディレクトリ目録から、今回は資料保持側di一群だけへ限定した。cy・条件・複数節を今回対象へ一括包含せず、diの併存節仕様をBへ移植しない。帰属・新部品必要・dz追加は未決定のまま。
+
+| 所在を限定した保存資料 | 今回の静的確認 | 原資料としての限界 |
+| --- | --- | --- |
+| di-implementation-7b7d578/fixture-materials.json | 保存628行。今回resultの単独sequential_proposalは話者を問わず0。保存receipt.antecedentあり161行についても直前resultの同単独順序0。したがってBは今回／直前とも0 | reconcile.cjsがtestとは別に決定的生成して保存したfixture dump。原test dumpではなく、今回の再生成もしていない。全保存資料の不存在証明／個別原receipt真正性・全文整合証明ではない |
+| 同reconcile.cjs・reconciliation.json | 既存保存628の生成経路と、別集合de元2176への過去照合68成立／2108非成立の記録を分離 | reconciliation.json冒頭の集計のみ読取、hits全文・元de2176は今回未抽出未照合。過去のcapture結果をBの結果へ置換しない |
+| 同full-30min/summary.json | 冒頭status=incompleteを直接確認 | 別renderer成功で元runを昇格しない。今回のゲーム検証ではない |
+| dj-implementation-81959cb等 | 次候補のディレクトリ目録だけを保存 | dj保存本文・現所有比較は次単位へ。du/dy別群・p旧一時実Electron原資料・保存領域全体は未探索を維持 |
+
+628原JSONのSHA256は`345a2167b39edc51071bbd8283fa61937cefaa2193cce282aafeacbbd64de416`。原バイトを非変更保持し、行indexによる有限抽出は機械検査として記録する。原JSON全件の人手意味読了や原receiptの正規供給済みにはしない。前回cs実装486／相談656／dy原728の有限値と合算せず、cs別話者14未完対照も完全理解へ昇格しない。Bの個別原receiptは所在未確認・未供給・未照合のまま。
+
+| diの現所有条件・正規引数 | Bとの条件比較と供給状況 |
+| --- | --- |
+| create()/capture(buffer,result,receipt)、kind=incomplete_retraction_material | 三引数一致だけでBの所有を認めない。独立journalへの保持と当時の理解／応答成立は別軸。今回はAPI呼出なし |
+| input.locale=ja、correction一節以上、全correction complete=false・correctsなし・learning.retractionなし、許可catalogRule又はunknown | Bの単独sequential_proposalには必須correctionがなく、固定structured順序frameをretract_explanationへ読み替えない。非jaには言語境界もある。これは現条件との静的比較であり、未供給Bへのcapture=false実測や当時非成立・新担当必要の証明ではない |
+| 独立receipt.input/inputKnowledge/inputContext、beforeState/afterState/beforeWorld/afterWorld/reply | 原input ID=before.serial+1・scene/時刻/実speaker、原知識context一致、安全整数、前後validContext/validSelections、コピー上receive/respondのresult/reply/前後全文一致を要求。B原receipt未供給につき供給可否／全文照合は未確認 |
+| before.context.turns直前ありならreceipt.antecedent={result,receipt}を追加供給 | 平坦な実直前資料を別再生し、直前turn・serial・時刻へ照合。直前なしならantecedentなしを保持。直前を訂正対象へ読み替えず、origin連鎖や名付け成功を推定生成しない。Bの実直前の有無・必要資料は未供給未確認 |
+| knownの一意meaningBasis、relationsの一意basis／initial又は実relationReferences、lastOutputの実参照experience | 入力前原根拠と実出所を要求。Bのrest/eat/request/sequenceの原ID・scopeを後知識やplayer経験から作らず、限定scope非転移・原当時非書戻しを維持 |
+| 原associations変化とその他knowledge／経験／selectionSources／行動状態不変、実turn判断不存在 | 原処理の全体一致とcapture非生成・コピー独立を分離。diが保持するnull／falseをBへ新造しない。BのconditionStatus=null・sequenceJudgment不存在・eventReference欠落は前節条件のまま。原expression／実reply／実判断を分離し、attendだけで理解不足・受諾・当時非成立を決めない |
+
+読取はdi本体1〜167行全文、fixture先頭42行（hearの平坦antecedent保存と生成入口）、reconcile.cjs全文、reconciliation.json先頭集計、元full summary冒頭。core/world/catalog本体・fixture残部・専用test・推移的依存全文は今回未読。コード中の再生要件を文書比較しただけで、receive/respond/capture再生・新規生成は未実行。仕様と現コードの当該条件に今回新たな不一致は確認していない。
+
+前節までの全維持条件を非変更保持する。cz/cr十六行（cz1/cr15）、cy十六行（完全理解1・未完15）、cx/cp/cq十二行（cx3/cp6/cq3）、p/cs十六行・m/cr十六行と前群条件対応、各群個別原receipt未供給・未照合、cy主体／役割欠落・cz/m当時unknownと実判断・cr判断不存在、名前実発話／ap本人回答、as・4d2・cc/ch、一般対象explicit／指示attention・同話者未取り下げexperience原evidence、n/o原教示・原basis非置換・初回非新造、k最初非置換・l通常判断非付与・an補修済み零経過history/startInputSerial/restStartOrder除去を維持。具体食事・完了判断・休息予約／実行・共同参加・本人感情理由等を補わない。
+
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50・dy原728有限照合・旧47空前件・4d1/3/4別経路・138 API宣言inventoryの制限、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なしを維持。全138 APIへの同一原資料＋全正規前件横断照合・帰属／分割／追加要否確定は未実施。
+
+次は保存目録にあるdj一群の保存資料所在・B同一性と前件供給可否・現所有条件／正規引数を一単位だけ確認する。所在が確認できなければ未供給・未照合を残し、他群やcy・条件・複数節を一括包含しない。文書検証のみ、ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30minとdi元fullの不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。今回証拠entry-other-speaker-sequential-di-materials-7b8ef7c、前回／前群証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文を継続。
+
 <a id="entry-final-classification-basis"></a>
 
 ### 全入口最終分類の条件・既存証拠の不足確認（2026-10-31・一単位）
