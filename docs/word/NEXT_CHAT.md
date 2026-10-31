@@ -1,5 +1,16 @@
 # 次チャットの開始文
 
+## 最初に読む現行継続文（完全理解別話者単独順序B・総合仕様索引の有限検索でも別の取得参照未限定）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdとdocs/word/NEXT_CHAT.mdの最初の現行継続文を読み、4f44497の続きで行ったp旧一時実Electron最終S6EUsK／session58391の総合仕様索引一文書確認の次として、同じ最終runへの未確認の既存明示取得参照を具体的に一つ提示できるかから、完全理解別話者単独順序入口Bの同一性・必要前件供給可否を文書上一単位進めてください。最新commit／pushはCURRENT_IMPLEMENTATION.md参照。所有記録はexperimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mappingの最新続き節。
+今回PRESERVATION.documents→docs/specs/README.mdだけでS6EUsK／58391を有限検索し、追記前3・5・7行の三通知を直接確認。工程表facdb54確認済みblock・保存旧handoff→正本p節・profile直下所在の既確認結果への案内だけで、別の原stdout／個別原receipt取得参照は限定できません。非一致旧本文の意味読了／全保存領域不存在を主張せず、所在未確認・未供給・未照合、B同一性／必要前件供給可否未確定を保持。同じ通知／工程表／旧handoff／正本p節の循環再確認を原資料供給の進展へ数えないでください。未確認の具体候補を限定できなければ取得制約を維持し、profile内部cache／storage全体・初回BIsYGq／2048・Node71187・他群／全領域を自動探索しないでください。再生成を当時原本と呼ばないでください。
+対象は七言語・空でないplayer以外・short/gesture・印なし単独sequential_proposal・当時完全理解だけ。p四引数player限定／cs三引数未完限定、実speaker／原固定player役割／当時u、原expression／実reply／実判断、conditionStatus=null・sequenceJudgment不存在・eventReference欠落、限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止・具体食事等非補完を保持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。
+原input/result/context/beforeKnowledge・receipt八field／実直前資料未供給未照合、profile直下十ディレクトリ／通常ファイル0・内部未読、全138 API横断未実施を保持。dy原728／別生成756／前件636／origin25、di628／161・dj232／16・du実装243／53／相談222／50・cs実装486／相談656は非再生成非合算。cs別話者14未完を完全理解化しない。他群・全保存領域／dj相談results／de元2176／di reconciliation hits全文等未探索未読未照合、各群行表／個別原receipt未供給未照合、cy/cz/m/cr・名前／ap・as／4d2／cc/ch・explicit／attention／experience・n/o/k/l/anの全既存分離を保持。
+全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50／旧47空前件／4d1/3/4別経路／138宣言inventory制限、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装、残2〜3工程中心2・減算0・低確度・上限終了保証なしを保持。
+文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded等を今回成功へ昇格せず、工程完了判定はVALIDATION維持。証拠entry-other-speaker-sequential-p-index-route-4f44497と前回／前群原証拠非改変。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。以下の旧開始文・原証拠は履歴保持。
+```
+
 ## 最初に読む現行継続文（完全理解別話者単独順序B・工程表一blockでは別の明示保存経路未特定）
 
 ```text

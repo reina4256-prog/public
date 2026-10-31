@@ -766,6 +766,22 @@ core.receiveの先行定義／追問等の枝を経てinterpretへ進み、seque
 
 文書検証のみ。receive/respond/capture・新規生成・ゲーム全回帰／監査test／七言語チェック／renderer／実UI音声・本人日記生成保存再開配布／試遊通し未実行。過去全3597・timed_out/incomplete・reading.not_recorded、cr元PiF767・cs元l6UAf8／別full-retry・cx初回full中断／full-retry-30min・cy/cz full-30min・di/dj/du/dy元full不完了を今回成功へ昇格しない。[VALIDATION](../../word/VALIDATION.md)を維持。証拠entry-other-speaker-sequential-dy-materials-7d0e1feと前回／前群原証拠は非改変保持。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
 
+#### 続き：p最終runへの別の明示取得参照を総合仕様索引から限定できるか（2026-11-01・4f44497の続き）
+
+Bだけを文書上一単位継続。今回は既存PRESERVATION.jsonのdocumentsにあるdocs/specs/README.md一文書に限定し、S6EUsK／58391の識別子を有限検索した。追記前の一致は3・5・7行の三通知だけで、各一致行を直接読取。非一致の旧本文全体を意味再読したとは扱わず、識別子を含まない別名の経路まで不存在としない。
+
+| 今回限定した参照候補 | 別の明示取得参照としての判定 |
+| --- | --- |
+| PRESERVATION.documents → 総合仕様索引の一致三行（追記前3・5・7行） | それぞれ工程表facdb54確認済みblock、保存旧handoff→正本p節、最終profile直下所在という既確認作業の案内で、全て本所有anchorへ戻る。各通知に原stdout保存ファイル／個別原receiptへの別の取得参照は確認できない。既確認の結果への案内を独立した原資料取得経路に数えない |
+
+**この一文書の識別子有限検索から、別の既存明示取得参照を具体的に一つ限定できない**という制約を記録する。原stdout／B個別原receiptは所在未確認・未供給・未照合、B同一性・必要前件供給可否未確定を維持。集計記録の再確認を原資料供給の進展へ数えず、全保存領域不存在・当時非成立・担当なし・新担当必要の証明にしない。session番号のパス化・profile名一致による真正性認定・602／661や別話者56のB件数化は行わない。
+
+対象は七言語・空でない実speaker≠player・short/gesture・印なし単独sequential_proposal・当時完全理解だけ。前節までの全維持条件を保持する。p四引数player限定／cs三引数未完限定、実speaker／原frame固定player役割／当時u、原expression／実reply／実判断、conditionStatus=null・sequenceJudgment不存在・eventReference欠落を変更しない。原input/result/context/beforeKnowledge・receipt八field／実直前資料未供給未照合、限定scope非転移・原当時非書戻し、attend／capture=false単独判定禁止・具体食事等非補完を保持。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。
+
+各群行表／個別原receipt未供給未照合、dy／di／dj／du／cs有限結果非再生成非合算・cs別話者14未完対照、cy/cz/m/cr・名前／ap・as／4d2／cc/ch・explicit／attention／experience・n/o/k/l/anの既存分離を保持。全14保留・各担当三保留、140枠140確認済み・正式子129・全138登録・最新ao〜dy人間OK、固定50中50／旧47空前件／4d1/3/4別経路／138宣言inventory制限を維持。全138 APIへの同一原資料＋全正規前件横断照合未実施、全入口最終分類／4d12／4d／ID4全体未完、4e／一時receipt保存形式／ゲーム本接続未採用未実装。残2〜3工程中心2・減算0・低確度・上限終了保証なしは、取得経路未特定・供給未進展のため維持する。
+
+証拠entry-other-speaker-sequential-p-index-route-4f44497。文書検証のみ、ゲーム検証等未実行・過去成功／全3597・timed_out/incomplete・reading.not_recorded等非昇格、[VALIDATION](../../word/VALIDATION.md)維持。前回／前群原証拠非改変、原資料生成・再生・receive/respond/captureなし。次チャットはこの取得制約を前提に、同じ最終runへ結び付く未確認の明示取得参照を具体的に一つ提示できるかを先に確認する。候補を限定できなければそこで制約を保持し、同じ三通知／工程表／旧handoff／正本p節の循環再確認を供給進展へ数えない。profile内部cache／storage全体・初回BIsYGq／2048・Node71187・他群／全保存領域の自動探索へ置換しない。一単位ごとの引継ぎ更新・次チャット移動・貼り付け用冒頭文出力を継続。旧AI旧保存／九見本／星座／実ユーザー保存／対象外%SystemDrive%非操作非stage。
+
 #### 続き：p最終runの工程表参照と別の明示保存経路の特定可否（2026-11-01・f3638e4の続き）
 
 Bだけを文書上一単位継続。今回は既存PRESERVATION.jsonのdocumentsに挙がるdocs/WORD_DEMO_ROADMAP.mdから、最終runを記す「再開用の開始文（2026-10-10・facdb54／4d12p確認済み・最新）」4548〜4563行の一blockだけを直接確認した。識別子による所在検索は同ファイル内に限定し、他の開始文全履歴・初回BIsYGq／2048・Node71187の保存経路・他群へ展開しない。
