@@ -4841,6 +4841,19 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・2b04bbfからの継続相談：通常提案群二十四状態の採用を維持し、再採用を求めない。4e内の次の対象案として、[au木の実報告の所有条件](#diary-berry-reports-au)に属するplayer・日本語・単独・条件順序なし、原入力がちょうど「木の実がある」で、当時berry意味／report関係が適用可能な完全理解一入力を、次のS／T／Uに分けて対象＋条件付き文言として相談する。三案とも未採用・回答待ち、次対象の採用確定なし。既存資料部品auの実装後OKを文章化規則の採用へ転用しない。
+
+| 案（全て未採用） | 実資料で確認する個別範囲 | 条件付き本文案 |
+| --- | --- | --- |
+| S：short・木の実注目なし | beforeState.settings.speech=short、beforeWorld.attention=null、実reply.message=heard_berry | 「木の実があると聞いた。」 |
+| T：short・木の実注目あり | speech=short、beforeWorld.attentionがberry:で始まる、実reply.message=see_berry | 「木の実があると聞いた。」 |
+| U：gesture・木の実注目なし | speech=gesture、beforeWorld.attention=null、実reply.message=attend | 「木の実があると聞いた。」 |
+
+- 共通成立条件はau三引数receiptの独立input／inputKnowledge／inputContext、beforeState／beforeWorld、afterState／afterWorld／replyの整合、単独frame.catalogRule=berry_observation・meaning=berry・aspect=observation、当時u.kind=report・complete=true・unresolved=[]・known.meaning=berry・subject=player・positive／unspecified・reportSource={kind:speaker_report,inputId:原input.id,heardAt:原input.at}。実資料の当時理解で確認する条件であり、原frameや現在知識で埋めない。聞いた本文を報告内容の真偽確認へ変換せず、verified=false・newTeaching/newLearning/newExperience=falseを維持する。
+- Tのsee_berryと注目を「見つけた／実際にあった／見ていた／観察を終えた」へ変換しない。原果実数ゼロでもsee_berryとなる既存境界を保持し、本文へ果実数・場所・個体・落下状態を補わない。Uのattendから未理解やうなずき等の具体身振りを作らず、当時完全理解と発話能力を分ける。Sにも実発話の文言をreply.messageから復元しない。食事・休息・散策等の実判断／経験を足さず、実判断欄の欠落を不実行へ変換しない。
+- 六資料（原入力・当時理解・原expression・実reply・実判断・実経験）を分離する。au候補capturedは原expressionを保持する欄を持たないため、今回原expressionは未供給未確認の別資料のまま、実reply／現在coreから復元しない。同じ本文でもS／T／Uの原資料と当時理解は別保持し、統合・反復集約の採用にしない。他の原入力文型、gestureで木の実注目あり、他話者／他言語、未完理解bn、条件／順序・複数節・新理解規則へ採用波及なし。反復集約・途中記録・保存形式・ゲーム本接続・文章化実装も今回非包含。
+- 今回はOWNERS→au所有節・本体・専用test・既存fixture定義／setup・catalogのberry_observation・world応答枝・coreのreportSource付与付近を静的読取した条件例。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。av／awは候補探索時に所有記録の一部等を見たが今回の採用相談に含めない。全推移依存／旧履歴全文の読了ではない。B再確認停止・所在未確認未供給未照合・供給進展0と全維持条件、帰属／新部品必要／dz追加未決定、cy・条件・複数節非包含、全保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行。同チャット継続としてS／T／Uの各対象＋条件付き文言への回答を求め、冒頭文は出力しない。以下は過去状態。
+
 - 2026-11-02・eaff712後のユーザー「はい、いずれも採用でOKです。」でP／Q／Rの対象と条件付き文言を全採用。player・日本語・単独・条件順序なし通常散策invitationの当時未完理解を必要原資料で確認できる場合、P（walk意味だけ不足）は「何かに誘われたけれど、何をするのか分からなかった。」、Q（invitation関係だけ不足）は「散歩することは分かったけれど、言われたことは全部は分からなかった。」、R（意味関係両不足）は「言われたことが分からなかった。」。下のP／Q／R未採用・回答待ちは履歴。Pに未知の散歩、Q／Rに未知の誘いを補わず、cqのcompliance=null／actionDecisionRecorded=falseを実不実行・am判断にしない。cpと同文でも原資料／当時理解を別保持し、反復集約へ昇格しない。
 - これで今回相談した通常提案群は、am通常休息request／休息invitation／散策invitationの完全理解各五状態（計十五）と、cp休息request／invitation各三不足状態・cq散策invitation三不足状態（計九）の対象・条件付き文言が採用済み。player・日本語・単独・条件順序なしの限定範囲であり、個別原資料は未供給未照合・文章化実装未着手。六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持、提案を受諾／予定／共同参加／実行／完了へ変換しない全条件を維持。これを全入口網羅・4e全体完了・次の大工程への移行としない。
 - 長い同チャットでの採用範囲がまとまった区切りとして、次チャット移動を提案し冒頭文を出力する。今回新対象・新文言案を加えず、次は4e内の残候補を現行routing・OWNERS・所有条件から照合して二〜三案の採用範囲を個別相談する。次対象未選定未採用、他話者／他言語・条件／順序・複数節・新理解規則へ自動拡張しない。反復集約・途中記録・保存形式・ゲーム本接続・実装を一括採用しない。入口B停止・所在未確認未供給未照合・供給進展0と全維持条件、帰属／新部品必要／dz追加未決定、cy・条件・複数節非包含、4d12／4e全体未完を保持。今回は文書検証のみ・ゲーム検証未実行。以下は過去状態。
