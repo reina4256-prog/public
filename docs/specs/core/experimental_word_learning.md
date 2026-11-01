@@ -4841,6 +4841,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・ad174ad後のユーザー「はい、いずれも採用でOKです。」でK／L／Mの対象と条件付き文言を全採用。player・日本語・単独・条件順序なしの通常散策invitationを当時完全理解し対応実資料を確認できる場合、K（道への移動開始）は「散歩に誘われた。道へ向かった。」、L（食事継続）は「散歩に誘われた。そのまま食べ続けた。」、M（実not_started）は「散歩に誘われた。」まで＋移動非成立を対応資料へ保持。道への移動開始と散策自体の開始／完了は別、散策のselectedSource=null・selections不変を維持し休息の選択出所を新造しない。欠落資料をMにしない。下のK／L／M未採用は履歴。六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持、実reply非直訳・受諾／共同参加／実行／完了・感情理由等の非補完を維持する。個別原資料未供給未照合、文章化実装未着手、4e全体未完。
+- **次の相談N／O（双方未採用）**：同じ4eの相談を継続。player・日本語・単独・条件順序なし、既存walk_invitationの通常散策invitationを当時walk意味／invitation関係とも適用可能・complete=trueとして理解した一入力が共通対象案。[am所有条件](#diary-final-review-ordinary-proposals-am)と[通常提案対応表](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)の五引数A、実continuingと前後資料の整合を条件に、次の対象＋条件付き本文を各案別に相談する。K／L／Mや休息の採用を自動転用しない。
+
+| 案（双方未採用・回答待ち） | 実資料で確認する条件・採用範囲 | 条件付き本文案 | 補わないこと |
+| --- | --- | --- | --- |
+| N：完全理解した散策の誘い・仕事継続 | decision.outcome=continuing、before/after.mode=work、snapshot／selections不変、実response={message:work,observation:true}等の整合 | 「散歩に誘われた。そのまま仕事を続けた。」 | 仕事の種類・成果・成功失敗・完了、誘いの拒否・希望・理由、共同参加 |
+| O：同・食事仕事以外のberry注目継続 | decision.outcome=continuing、before/after.modeはeat/work以外、attentionはberry:で始まりdwell>4、snapshot／selections不変と実reply等の整合 | 「散歩に誘われた。そのまま見ていた。」 | 本人が当時理解したと未確認の対象名、興味・好み等の感情理由、拒否、具体身振り、散策開始／完了 |
+
+- N／Oとも「散歩に誘われた」は当時のwalk／invitation理解だけを表す。実replyのwork/observationやlooking/keep_lookingだけで行動を認定せず、原expression・本人の発話／具体身振りへ直訳しない。roles未生成・selectedSource=nullを補完せず、提案と実判断／実経験を分離。Oの「見ていた」は実資料で確認する注目継続まで。今回am continuing枝とfixture`actual-choice-continuation-and-unavailable`の「散歩しよう」×work／berry_high定義を静的読取しただけで、個別原資料の取得／生成／再生・receive/respond/captureは未実行。双方未採用・回答待ち、次対象未選定。
+- 既採用request五状態／休息invitation五状態／散策K・L・M／cp六状態維持。cq未完理解・他話者／他言語・条件／順序・複数節・新理解規則は非包含。反復集約・途中記録・保存形式・ゲーム本接続・文章化実装は未採用未着手。入口B停止・所在未確認未供給未照合・供給進展0と全維持条件、帰属／新部品必要／dz追加未決定、cy・条件・複数節非包含、4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行。回答待ち回のため冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・7bc5604後のユーザー「はい、いずれも採用でOKです。」でI／Jの対象と条件付き文言を双方採用。player・日本語・単独・条件順序なし通常休息invitationを当時完全理解し、対応する実continuingと前後資料を確認できる場合だけ、I（仕事継続）は「休もうと誘われた。そのまま仕事を続けた。」、J（食事仕事以外のberry注目継続、dwell>4等）は「休もうと誘われた。そのまま見ていた。」。F／G／Hと合わせ通常休息invitation五状態の条件付き文言が採用済み。下のI／J未採用は採用前履歴。本限定範囲の採用がそろったことを4e全体完了や文章化実装承認にしない。六資料分離・原当時非書戻し・欠落非補完、同文でも原資料／当時理解別保持、実reply非直訳、受諾／共同参加／実行／完了・本人感情理由・仕事成果・未確認対象名非補完を維持する。
 - **次の相談K／L／M（全て未採用）**：4eの同チャット相談を継続する。player・日本語・単独・条件順序なし、既存patterns.walk_invitationの通常散策invitationを当時walk意味／invitation関係とも適用可能・complete=trueとして理解した一入力を各案の共通対象とする。[am所有条件](#diary-final-review-ordinary-proposals-am)と[通常提案対応表](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)の通常散策invitation 0／五引数Aを使い、各対象＋条件付き本文（Mは保持方針含む）を個別相談する。休息の採用を散策へ自動転用しない。
 
