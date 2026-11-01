@@ -1,5 +1,10 @@
 # 次チャットの開始文
 
+## 現在の相談（2ec3396後・X／Y／Z採用、au AA／AB未採用）
+
+- ユーザー「はい、いずれも採用でOKです」でX／Y／Zの各対象・条件付き文言を全採用。au S〜Z八状態・通常提案群二十四状態採用済み、再採用不要。4e継続し[正本4e節](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)のAA／ABを個別相談中（双方未採用）。共通はplayer・日本語・単独・条件順序なし・当時完全理解とau必要原資料整合。AA＝「木の実」＋「が」または空文字＋「ある」＋空文字／「ね」／「よ」／「よね」の八表記から既採用「木の実がある」を除く七表記、本文「木の実があると聞いた。」。AB＝同じ助詞／語尾組合せで動詞「落ちている／落ちてる」の十六表記から既採用「木の実が落ちている」を除く十五表記、本文「木の実が落ちていると聞いた。」。各表記にshort／null／実heard_berry、short／berry:／実see_berry、gesture／null／実attend、gesture／berry:／実attendの四状態だけ。文型数・条件数は供給／照合成功数ではない。
+- 原input.rawは省略／語尾／縮約を保持、本文の整文だけの相談で原文／当時理解非書戻し・六資料分離・同文でも原資料／理解別保持。ね／よねの同意・共同認識、よの教示、報告真偽・本人発見／落下目撃／観察完了・具体身振り等を補わない。原expression別資料未供給未確認・実reply／現在coreから非復元。場所接頭辞・shade等別注目・空白句読点・他話者／他言語・bn・条件／順序・複数節・新理解規則、集約／途中／保存／本接続／実装へ採用波及なし。個別原資料未供給未照合・文章化実装未着手。B停止・供給進展0・全維持条件／保留／集計・4d12／4e全体未完、文書検証のみ・ゲーム検証未実行。実読取／未読未検証はhandoff参照。同チャット具体相談で終え、回答待ち回は冒頭文非出力。以下のX／Y／Z未採用は過去状態。
+
 ## 現在の相談（3bde789後・V／W採用、au X／Y／Z未採用）
 
 - ユーザー「はい、どちらも採用でOKです」でV／Wの各対象・条件付き文言を双方採用。S／T／U・通常提案群二十四状態も採用済み、再採用を求めない。4e継続し[正本4e節](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)のX／Y／Zを個別相談中（全て未採用）。共通はau・player・日本語・単独・条件順序なし・原入力がちょうど「木の実が落ちている」・当時berry意味／report関係完全理解・必要原資料整合。X＝short／beforeWorld.attentionがberry:で始まる／実see_berry、Y＝gesture／attention=null／実attend、Z＝gesture／berry:注目／実attend。各本文案「木の実が落ちていると聞いた。」。Wから他枝へ自動採用しない。
