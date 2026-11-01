@@ -4841,6 +4841,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・bf71a10後のユーザー「はい、どちらも採用でOKです」でAE／AFの対象と条件付き文言を双方採用。既存三接頭辞付き存在二十四表記／落下状態四十八表記×相談済み六応答状態を、必要原資料・当時完全理解整合時だけAE「木の実があると聞いた。」／AF「木の実が落ちていると聞いた。」とする。場所接頭辞は原文へ保持し本文では省く、具体指示先・場所理解を現在scene/attention等で補わない。下のAE／AF未採用は履歴。S〜AD・通常提案群二十四状態も採用済み、再採用不要。六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／理解別保持を維持し、4e全体完了／全入口網羅にしない。
+- **次の相談AG／AH（双方未採用）**：[au所有条件](#diary-berry-reports-au)と既存fixtureのsingle-trim-and-terminal-punctuation／core単独解析条件を参照し、下表の各対象＋条件付き本文を個別相談する。共通はplayer・日本語・単独・条件順序なし、当時berry意味／report関係が適用可能・complete=true／unresolved=[]、必要au三引数receipt・独立input／knowledge／context・前後state/world・実reply・speaker_reportの整合。基礎文は既採用の接頭辞なし／「ここに／そこに／あそこに」＋「木の実」＋「が」または空文字＋「ある／落ちている／落ちてる」＋空文字／「ね」／「よ」／「よね」の九十六表記（空白句読点なし）だけ。各形にshort／attention=null／実heard_berry、short／berry:／実see_berry、gesture／null／実attend、gesture／berry:／実attend、short／shade／実heard_berry、gesture／shade／実attendの六応答状態だけを対象案とする。
+
+| 案（双方未採用・回答待ち） | 新たな原入力範囲案 | 条件付き本文案 |
+| --- | --- | --- |
+| AG：外側半角空白 | 各基礎文の前だけ／後だけ／前後それぞれに半角空白U+0020を一個付けた三形。記号なし、内部空白なし | 動詞「ある」は「木の実があると聞いた。」、「落ちている／落ちてる」は「木の実が落ちていると聞いた。」 |
+| AH：単一終端記号 | 各基礎文の末尾に「。」または「！」をちょうど一個付けた二形。外側／内部空白なし | 同じ動詞別の二本文 |
+
+- 原input.rawの空白／終端記号もそのまま保持し、原文／当時理解を整形済みへ書き換えない。本文での省略・整文だけの案で、疑問・感嘆感情・強調意図・教示／同意成立や新理解規則を補わない。表記一致／trim結果や原frameだけで当時完全理解を埋めず、単独frame／u・必要原資料を個別に確認する。空白＋句点の既存未知空節境界を単独理解へ転換しない。
+- AG／AHは相互に併用せず、全角空白・タブ・改行・複数空白、内部空白、半角「!」、疑問符「?／？」、複数記号、途中記号／複数節は今回非包含。九十六基礎文×三形／二形は静的相談集合だけで原資料供給／照合成功数ではない。場所接頭辞は原文へ残し本文で省く、具体指示先・本人発見／落下目撃／観察完了・報告真偽・具体身振り・shadeからの所在移動休息を補わない。
+- 六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持、原expression別資料未供給未確認・実reply／現在coreから非復元、実判断欠落から不実行非推定、verified=false・newTeaching/newLearning/newExperience=falseを維持。個別原資料未供給未照合、今回fixture／core該当解析／au本体の静的読取だけ、取得／生成／再生・receive/respond/capture未実行・文章化実装未着手。他話者／他言語・新注目条件・bn未完理解・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装への一括採用なし。B停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計・4d12／4e全体未完、文書検証のみ・ゲーム検証未実行を保持。同チャットAG／AH個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・b379fe7後のユーザー「はい、どちらも採用でOKです」でAC／ADの対象と条件付き文言を双方採用。AC存在八表記／AD落下状態十六表記×beforeWorld.attention=shadeのshort／実heard_berry・gesture／実attendに限り、必要原資料・当時完全理解整合時だけ、AC「木の実があると聞いた。」／AD「木の実が落ちていると聞いた。」とする。下のAC／AD未採用は履歴。S〜AB・通常提案群二十四状態も採用済み、再採用を求めない。shadeから所在／移動／休息等非補完、六資料分離・原文／当時理解非書戻し・原expression欠落非補完・同文でも原資料／当時理解別保持を維持。全原入力／注目条件網羅・4e完了にはしない。
 - **次の相談AE／AF（双方未採用）**：[au所有条件](#diary-berry-reports-au)と既存berry_observation／fixtureの場所接頭辞三種だけを対象＋条件付き本文として個別相談する。共通はplayer・日本語・単独・条件順序なし・空白句読点なし、当時berry意味／report関係が適用可能・complete=true／unresolved=[]、必要au三引数receipt／独立input・knowledge/context・前後state/world・実reply・speaker_report整合。各原入力について、short／attention=null／実heard_berry、short／berry:注目／実see_berry、gesture／null／実attend、gesture／berry:／実attend、short／attention=shade／実heard_berry、gesture／shade／実attendの六状態だけを対象案とする。既採用の場所接頭辞なしから自動採用しない。
 
