@@ -1,5 +1,10 @@
 # 次チャットの開始文
 
+## 現在の相談（e8d807a後・AL／AM／AN採用、bn AO／AP／AQ未採用）
+
+- ユーザー「はい、いずれも採用でOKです。」でAL／AM／ANの対象・条件付き文言を全採用。AI／AJ／AK・au S〜AH・通常提案群二十四状態も採用済み、再採用不要。同じ4e内で[正本4e節](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)のAO／AP／AQを個別相談中（全て未採用）。原入力は接頭辞なし／ここに／そこに／あそこに＋木の実＋が／省略＋ある／落ちている／落ちてる＋語尾なし／ね／よ／よねの九十六表記から、既採用のちょうど「木の実がある」を除く九十五表記。空白句読点なし。共通はbn・player・日本語・単独・条件順序なし・shortまたはgesture・beforeWorld.attention=null／berry:で始まる／ちょうどshade・当時complete=falseと必要原資料整合。AO＝入力前berry意味だけなし／report適用可能「何かを伝えられたけれど、何のことか分からなかった。」、AP＝berry意味あり／report関係なし「木の実のことは分かったけれど、言われたことは全部は分からなかった。」、AQ＝両方なし「言われたことが分からなかった。」。三注目×二発話の原資料は個別保持、各五百七十条件は供給／照合成功数ではない。
+- 原文の存在／落下／場所を当時理解へ補わず、AP／AQのreportSource欠落・subject/aspect=nullとAOの原sourceを分ける。六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／理解別保持、原expression別資料未供給未確認・実reply／現在coreから非復元。注目・attend等から不足状態／具体身振り／行動を逆算しない。個別原資料未供給未照合・文章化実装未着手。単純有無三状態だけでscope不適用・空白句読点付き／他原入力／新注目条件・他話者／他言語・条件／順序・複数節・新理解規則、集約／途中／保存／本接続／実装へ採用波及なし。B停止・供給進展0・全維持条件／保留／集計・4d12／4e全体未完、文書検証のみ・ゲーム検証未実行、実読取／未読未検証はhandoff参照。同チャット具体相談で終え、回答待ち回は冒頭文非出力。以下のAL／AM／AN未採用は過去状態。
+
 ## 現在の相談（f38d0a7後・AI／AJ／AK採用、bn AL／AM／AN未採用）
 
 - ユーザー「はい、いずれも採用でOKです」でAI／AJ／AKの対象・条件付き文言を全採用。au S〜AH・通常提案群二十四状態も採用済み、再採用不要。同じ4e内で[正本4e節](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)のbn AL／AM／ANを個別相談中（全て未採用）。共通はplayer・日本語・単独・条件順序なし・原入力がちょうど「木の実がある」・shortまたはgesture・beforeWorld.attentionがberry:で始まるまたはちょうどshade・当時complete=falseと必要原資料整合。AL＝入力前berry意味だけなし／report適用可能「何かを伝えられたけれど、何のことか分からなかった。」、AM＝berry意味あり／report関係なし「木の実のことは分かったけれど、言われたことは全部は分からなかった。」、AN＝意味関係両方なし「言われたことが分からなかった。」。二注目条件×二発話設定は個別原資料保持、単純有無三状態だけでscope不適用等は非包含。
