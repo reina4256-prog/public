@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-11-02・3bde789後、[4e au V／W](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の対象・条件付き文言を双方採用。次は原入力「木の実が落ちている」の当時完全理解X＝short／berry:注目／実see_berry、Y＝gesture／attention=null／実attend、Z＝gesture／berry:注目／実attendの各対象＋「木の実が落ちていると聞いた。」を個別相談（全て未採用）。player・日本語・単独・条件順序なし、必要原資料整合時だけ。六資料分離・欠落非補完・同文でも原資料／理解別保持、個別原資料未供給未照合・実装未着手。B停止・供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・5fc0f53後、[4e auのS／T／U](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の対象・条件付き文言を全採用。次はV＝「木の実がある」／gesture／berry:注目／実attend「木の実があると聞いた。」、W＝「木の実が落ちている」／short／attention=null／実heard_berry「木の実が落ちていると聞いた。」を個別相談（双方未採用）。player・日本語・単独・条件順序なし・当時完全理解と必要資料整合が条件。六資料分離・原expression欠落非補完・同文でも原資料／理解別保持。個別原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完、文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・2b04bbfから4e継続：[au木の実報告のS／T／U](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を各対象＋条件付き文言として相談中（全て未採用）。player・日本語・単独・原入力「木の実がある」の当時完全理解に限り、実heard_berry／see_berry／attendを分け、各本文案は「木の実があると聞いた。」まで。同文でも原資料／当時理解別保持、原expression欠落非補完。通常提案群二十四状態採用維持、個別原資料未供給未照合・実装未着手。B停止・供給進展0と全維持条件・保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、同チャット回答待ち・冒頭文非出力。以下は過去状態。

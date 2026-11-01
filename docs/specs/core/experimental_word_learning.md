@@ -4841,6 +4841,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・3bde789後のユーザー「はい、どちらも採用でOKです」でV／Wの対象と条件付き文言を双方採用。Vは原入力「木の実がある」／gesture／berry:注目／実attendの「木の実があると聞いた。」、Wは「木の実が落ちている」／short／attention=null／実heard_berryの「木の実が落ちていると聞いた。」。下のV／W未採用は履歴。S／T／U・通常提案群二十四状態も採用済み、再採用を求めない。必要原資料と当時完全理解の整合確認時だけ、六資料分離・原当時非書戻し・原expression欠落非補完・同文でも原資料／当時理解別保持を維持する。
+- **次の相談X／Y／Z（全て未採用）**：[au所有条件](#diary-berry-reports-au)に属するplayer・日本語・単独・条件順序なし、原入力がちょうど「木の実が落ちている」、当時berry意味／report関係が適用可能・complete=true／unresolved=[]の一入力について、次の対象＋条件付き本文を各案別に相談する。Wから他の実応答状態へ自動拡張しない。
+
+| 案（全て未採用・回答待ち） | 個別の実資料条件 | 条件付き本文案 |
+| --- | --- | --- |
+| X：short・木の実注目あり | beforeState.settings.speech=short、beforeWorld.attentionがberry:で始まる、実reply.message=see_berry | 「木の実が落ちていると聞いた。」 |
+| Y：gesture・注目なし | speech=gesture、beforeWorld.attention=null、実reply.message=attend | 「木の実が落ちていると聞いた。」 |
+| Z：gesture・木の実注目あり | speech=gesture、beforeWorld.attentionがberry:で始まる、実reply.message=attend | 「木の実が落ちていると聞いた。」 |
+
+- au三引数receiptの独立input／inputKnowledge／inputContext、beforeState／beforeWorld、afterState／afterWorld／replyの整合、単独berry_observation・当時uのreport／observation／known.meaning=berry・subject=player・positive／unspecified・原input IDと聞いた時刻のspeaker_reportを要求する。原入力と当時理解を別保持し、原frameで理解を補わない。Xのsee_berry・注目もY／Zのattendも、報告真偽・実在確認・本人発見／落下目撃／観察完了／見ていた／拾う食べる等の経験・未理解／具体身振りの根拠にしない。Wと同文でも各原資料／当時理解を統合しない。六資料分離、原expression別資料未供給未確認・実reply／現在coreから非復元、実判断欠落から不実行非推定、verified=false・newTeaching/newLearning/newExperience=falseを維持する。
+- 個別原資料未供給未照合、既存au本体／fixture定義と所有条件の静的例だけ。取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。「落ちてる」等の別原入力／shade注目等の別枝、他話者／他言語・未完理解bn・条件／順序・複数節・新理解規則へ採用波及なし。反復集約・途中記録・保存形式・ゲーム本接続・実装の一括採用なし。B停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計と4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行。同チャットX／Y／Zへの回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・5fc0f53後のユーザー「はい、いずれも採用でOKです。」でS／T／Uの各対象範囲と条件付き文言を全採用。原入力「木の実がある」・player・日本語・単独・条件順序なし・当時完全理解、S＝short／attention=null／実heard_berry、T＝short／berry:注目／実see_berry、U＝gesture／attention=null／実attendについて、必要資料を確認できる場合に本文「木の実があると聞いた。」までとする。下のS／T／U未採用は履歴。六資料分離・原expression欠落非補完・同文でも原資料／当時理解別保持、報告真偽・本人発見／観察完了・具体身振り等の非補完を維持。通常提案群二十四状態も採用済み、再採用を求めない。
 - **次の相談V／W（双方未採用）**：[au所有条件](#diary-berry-reports-au)のplayer・日本語・単独・条件順序なし、当時berry意味／report関係が適用可能・complete=true／unresolved=[]の一入力を共通条件とし、次の対象＋条件付き本文を個別に相談する。S／T／Uの採用から自動拡張しない。
 

@@ -1,5 +1,10 @@
 # 次チャットの開始文
 
+## 現在の相談（3bde789後・V／W採用、au X／Y／Z未採用）
+
+- ユーザー「はい、どちらも採用でOKです」でV／Wの各対象・条件付き文言を双方採用。S／T／U・通常提案群二十四状態も採用済み、再採用を求めない。4e継続し[正本4e節](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)のX／Y／Zを個別相談中（全て未採用）。共通はau・player・日本語・単独・条件順序なし・原入力がちょうど「木の実が落ちている」・当時berry意味／report関係完全理解・必要原資料整合。X＝short／beforeWorld.attentionがberry:で始まる／実see_berry、Y＝gesture／attention=null／実attend、Z＝gesture／berry:注目／実attend。各本文案「木の実が落ちていると聞いた。」。Wから他枝へ自動採用しない。
+- 六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持、原expression別資料未供給未確認・実reply／現在coreから非復元。報告真偽・実在確認・本人発見／落下目撃／観察完了／見ていた／具体身振り等を補わない。個別原資料未供給未照合・文章化実装未着手。他文型／別枝・他話者／他言語・bn・条件／順序／複数節・新理解規則、集約／途中／保存／本接続／実装へ採用波及なし。B停止・所在未確認未供給未照合・供給進展0・全維持条件／保留／集計・4d12／4e全体未完、文書検証のみ・ゲーム検証未実行。実読取／未読／未検証はhandoff参照。同チャット具体相談で終え、回答待ち回は冒頭文非出力。以下のV／W未採用は過去状態。
+
 ## 現在の相談（5fc0f53後・S／T／U採用、au V／W未採用）
 
 - ユーザー「はい、いずれも採用でOKです。」でS／T／Uの対象・条件付き文言を全採用。通常提案群二十四状態も維持、再採用を求めない。4e継続として[正本4e節](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)のV／Wを各対象＋条件付き文言として相談中（双方未採用）。共通はau・player・日本語・単独・条件順序なし・当時berry意味／report関係を完全理解・必要原資料整合。V＝原入力がちょうど「木の実がある」／gesture／beforeWorld.attentionがberry:で始まる／実attend、本文「木の実があると聞いた。」。W＝原入力がちょうど「木の実が落ちている」／short／attention=null／実heard_berry、本文「木の実が落ちていると聞いた。」。別原入力／別応答枝へ採用波及なし。
