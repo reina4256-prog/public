@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-11-02採用：ae2a90b後、[4e完全理解した通常休息invitationのF／G／H](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の対象・条件付き本文を全て採用。移動開始／食事継続／実移動非成立の三状態に限定、仕事／注目継続等へ自動拡張しない。既採用範囲を維持し次対象は未選定未採用。個別原資料未供給未照合・実装未着手、集約／途中／保存／本接続未採用。入口B停止・供給進展0・全維持条件、4d12全体未完。文書検証のみ・ゲーム検証未実行。以下は過去状態。
+
 - 2026-11-02相談：95ff2a9の続き。[4e通常休息の完全理解invitation三案F／G／H](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を移動開始／食事継続／移動非成立に分け、各対象・条件付き本文を個別相談（全て未採用・次対象未選定）。既採用am request五状態／cp六状態を維持。個別原資料未供給未照合・実装未着手、集約／途中／保存／本接続未採用。入口B停止・供給進展0・全維持条件、4d12全体未完。文書検証のみ・ゲーム検証未実行、回答待ち回は冒頭文非出力。以下は過去状態。
 
 - 2026-11-02採用・移動提案：f7c6eef後、[4e cp通常休息誘い三案](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の対象・文言C／D／Eを全て採用。cp通常休息の未完理解六状態が採用済み。実装・個別原資料照合未実施、集約／途中／保存／本接続未採用。長いチャットの区切りとして次チャット移動を提案し、[最初の現行継続文](NEXT_CHAT.md)を更新。次対象は未選定未採用。入口B停止・供給進展0・全維持条件と4d12全体未完を保持。以下は過去状態。
