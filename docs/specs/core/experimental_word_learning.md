@@ -4841,6 +4841,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・5fc0f53後のユーザー「はい、いずれも採用でOKです。」でS／T／Uの各対象範囲と条件付き文言を全採用。原入力「木の実がある」・player・日本語・単独・条件順序なし・当時完全理解、S＝short／attention=null／実heard_berry、T＝short／berry:注目／実see_berry、U＝gesture／attention=null／実attendについて、必要資料を確認できる場合に本文「木の実があると聞いた。」までとする。下のS／T／U未採用は履歴。六資料分離・原expression欠落非補完・同文でも原資料／当時理解別保持、報告真偽・本人発見／観察完了・具体身振り等の非補完を維持。通常提案群二十四状態も採用済み、再採用を求めない。
+- **次の相談V／W（双方未採用）**：[au所有条件](#diary-berry-reports-au)のplayer・日本語・単独・条件順序なし、当時berry意味／report関係が適用可能・complete=true／unresolved=[]の一入力を共通条件とし、次の対象＋条件付き本文を個別に相談する。S／T／Uの採用から自動拡張しない。
+
+| 案（双方未採用・回答待ち） | 原入力と個別の実資料条件 | 条件付き本文案 |
+| --- | --- | --- |
+| V：gesture・木の実注目あり | 原入力がちょうど「木の実がある」、beforeState.settings.speech=gesture、beforeWorld.attentionがberry:で始まる、実reply.message=attend | 「木の実があると聞いた。」 |
+| W：落下状態の報告・short・注目なし | 原入力がちょうど「木の実が落ちている」、speech=short、beforeWorld.attention=null、実reply.message=heard_berry | 「木の実が落ちていると聞いた。」 |
+
+- V／Wともau三引数receiptの独立input／inputKnowledge／inputContext・beforeState／beforeWorld・afterState／afterWorld／replyの整合と、単独berry_observation・当時uのreport／observation／known.meaning=berry・subject=player・positive／unspecified・原input IDと聞いた時刻のspeaker_report出所を要求。原入力と当時理解を別保持し、原frameだけで理解を補わない。Wの「落ちている」は供給された原入力を当時完全理解した報告内容としてだけ書き、本人が落下を見た／拾った／食べた／現実にあったと確認した経験へ変換しない。「落ちてる」等の別文型や場所・個体・果実数、別応答枝は今回非包含。
+- Vのattend＋木の実注目から未理解・具体身振り・見ていた・発見を作らない。両案とも六資料分離・原expression別資料未供給未確認・実reply／現在coreから非復元、実判断欄欠落から不実行非推定・verified=false／newTeaching/newLearning/newExperience=falseを保持する。同文のS／T／U／Vを統合しない。個別原資料は未供給未照合、既存fixture定義／catalog／au本体の静的条件例にとどまり、取得／生成／再生・receive/respond/capture未実行・文章化実装未着手。他話者／他言語・未完理解bn・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装への一括採用なし。入口B停止・所在未確認未供給未照合・供給進展0・全維持条件／保留／集計、帰属／新部品必要／dz追加未決定、cy・条件・複数節非包含と4d12／4e全体未完を維持。文書検証のみ・ゲーム検証未実行、同チャットV／W回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・2b04bbfからの継続相談：通常提案群二十四状態の採用を維持し、再採用を求めない。4e内の次の対象案として、[au木の実報告の所有条件](#diary-berry-reports-au)に属するplayer・日本語・単独・条件順序なし、原入力がちょうど「木の実がある」で、当時berry意味／report関係が適用可能な完全理解一入力を、次のS／T／Uに分けて対象＋条件付き文言として相談する。三案とも未採用・回答待ち、次対象の採用確定なし。既存資料部品auの実装後OKを文章化規則の採用へ転用しない。
 
 | 案（全て未採用） | 実資料で確認する個別範囲 | 条件付き本文案 |
