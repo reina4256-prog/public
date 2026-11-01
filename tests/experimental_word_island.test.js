@@ -11,6 +11,15 @@ const core = require('../experimental_word_learning_core');
 const notebook = require('../experimental_word_learning_notebook');
 const catalog = require('../experimental_word_learning_catalog.json');
 const { valid } = require('../scripts/experimental/storage');
+
+test('static public encounter manifest includes the six existing career videos', () => {
+    const manifest = require('../experimental_word_encounter_videos.json');
+    const expected = Object.values(require('../experimental_word_careers').VIDEOS);
+    assert.deepEqual([...manifest].sort(), [...expected].sort());
+    assert.equal(new Set(manifest).size, manifest.length);
+    for (const file of manifest) assert.equal(fs.statSync(path.join(root, file)).isFile(), true, file);
+});
+
 test('island view keeps master place pointing without loading or drawing master portraits', () => {
     const loaded = [], drawn = [];
     const ctx = { beginPath() {}, ellipse() {}, stroke() {}, arc() {}, fill() {}, drawImage(...args) { drawn.push(args); } };

@@ -2993,6 +2993,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 ### 既存島での比較起動
 
+- 2026-11-02・公開入口整備：GitHub Pagesの直接入口は `https://reina4256-prog.github.io/public/experimental_word_island.html`。ルートREADMEから案内し、既存の通常版index.htmlは非変更。専用アプリと同じ島HTML／ゲームsourceを配信するが、WebはwordStorage bridgeがないためセッション限定で、再読込／終了後の継続保存はなく、専用アプリの保存を共有しない。レポートは既存ブラウザdownload経路を使う。静的配信に必要な六職動画一覧はexperimental_word_encounter_videos.jsonに保持し、career VIDEOSと一致することを島testで確認する。専用serverの動的一覧生成は非変更。公開入口整備を4e文章化／日記生成保存本接続の実装へ昇格しない。
+
 - `npm run start:word` / `start:words` は専用Electronから `experimental_word_island.html` を開く。Web確認の `start:web:words` も同じ島を開く。`experimental_word_learning.html` の仮広場は内部検証用として残す。
 - 地形・川・森・山・畑・レストラン・薬局・川向こうの洞窟等は既存 `generateNatureMap()` と同じ生成規則・配置内容。既存セーブの個別島を取り込むのではなく、独立した新規島を作って専用保存に保持する。既存 `data.js` の素材・フレームと `view_renderer.js` の島描画・カメラ追従・キャラクター描画を再利用する。
 - マップ生成とBGMの共通本体は `island_shared.js`。通常版もこれを読み、従来の `system.js` / `main.js` から呼ぶ。比較版は `system.js`、`main.js`、旧 `ai_core.js`、日課・住人更新・クラウド処理を読み込まない。描画用のactorに旧AIのupdateを付けず、生活時間の所有者は `ExperimentalWordWorld.tick` 一つだけとする。
@@ -4840,6 +4842,8 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 <a id="diary-prose-first-target-consultation-4e"></a>
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
+
+- 2026-11-02・125d5db後のユーザー「上記の採用はOKです。」でAR／ASの各対象と条件付き文言を双方採用。九十六基礎表記×三注目条件×二発話設定について、AR外側半角空白各一個・記号なし、AS単一終端「。／！」・空白なしに限り、当時単純有無三不足と必要原資料整合時だけ、意味不足「何かを伝えられたけれど、何のことか分からなかった。」、関係不足「木の実のことは分かったけれど、言われたことは全部は分からなかった。」、両不足「言われたことが分からなかった。」とする。原input.rawの空白／記号保持・六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／理解別保持、AR／AS併用等非包含を維持。下のAR／AS未採用は履歴。既採用の再採用不要、個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完。今回別依頼の公開入口整備・当日作業概要へ対応し、4eの次対象は未選定未採用。公開ゲームで文章化が実装されたとはしない。B停止・供給進展0と全維持条件／保留／集計を保持。
 
 - 2026-11-02・4b4a802後のユーザー「いずれも採用でOKです」でAO／AP／AQの対象と条件付き文言を全採用。原入力「木の実がある」を除く九十五基礎表記×三注目条件×二発話設定について、入力前単純有無の意味不足AO／関係不足AP／両不足AQと必要原資料整合時だけ、各本文を下表の採用済み文言とする。下のAO／AP／AQ未採用は履歴。bn AI〜AN・au S〜AH・通常提案群二十四状態も採用済み、再採用不要。原文の存在／落下／場所を当時理解へ補わず、六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持を維持。九十五表記や条件数を供給／照合成功数へ変換しない。
 - **次の相談AR／AS（双方未採用）**：[bn所有条件](#diary-incomplete-berry-reports-bn)と既存fixtureのmissing-knowledge-single-punctuation／core単独解析を参照し、次の二対象＋条件付き本文を個別相談する。基礎文は接頭辞なし／「ここに／そこに／あそこに」＋「木の実」＋「が」または空文字＋「ある／落ちている／落ちてる」＋空文字／「ね／よ／よね」の九十六表記。各形についてplayer・日本語・単独・条件順序なし・short/gesture・beforeWorld.attention=null／berry:で始まる／ちょうどshade、当時complete=false・入力前単純有無の三不足状態・必要三引数receipt／独立input・knowledge/context・前後state/world・実reply整合を要求する。au AG／AHの採用をbnへ転用しない。
