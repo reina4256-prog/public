@@ -4841,6 +4841,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・ad12e0b後のユーザー「はい、どちらも採用でOKです。」でN／Oの対象と条件付き文言を双方採用。player・日本語・単独・条件順序なし通常散策invitationを当時完全理解し、実continuingと必要前後資料を確認できる場合、N（仕事継続）は「散歩に誘われた。そのまま仕事を続けた。」、O（食事仕事以外のberry注目継続、dwell>4等）は「散歩に誘われた。そのまま見ていた。」。K／L／Mと合わせ通常散策invitation五状態が採用済み。下のN／O未採用は履歴。既採用範囲・六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／理解別保持を維持し、受諾／共同参加／散策開始完了・仕事成果・感情理由・未確認対象名等を補わない。本限定範囲の採用を4e全体完了・文章化実装承認にしない。
+- **次の相談P／Q／R（全て未採用）**：4e同チャット相談を継続し、[cq現所有仕様](#diary-incomplete-walk-proposals-cq)のplayer・日本語・単独・条件順序なし通常散策invitation、当時complete=falseの三不足状態を各対象＋条件付き文言として個別相談する。[通常提案行表](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)の散策invitation 1／2／3、[既存fixture定義](../../../scripts/experimental/diary_incomplete_walk_proposal_fixtures.js)prepared(mask=1／2／3)に対応する。完全理解amやcp休息の採用から自動包含しない。
+
+| 案（全て未採用・回答待ち） | 実資料で確認する当時状態 | 条件付き本文案 |
+| --- | --- | --- |
+| P：walk意味だけ不足 | known.meaning欠落・relations=[invitation]、kind=invitation・subject=実話者、unresolvedはwalk意味だけ | 「何かに誘われたけれど、何をするのか分からなかった。」 |
+| Q：invitation関係だけ不足 | known.meaning=walk・relations=[]、kind=partial・subject=null、unresolvedはinvitation関係だけ | 「散歩することは分かったけれど、言われたことは全部は分からなかった。」 |
+| R：意味関係両不足 | known.meaning欠落・relations=[]、kind=partial・subject=null、unresolvedはwalk意味とinvitation関係 | 「言われたことが分からなかった。」 |
+
+- Pに未知の「散歩」を足さず、Q／Rに未知の「誘われた」を足さない。Pのinvitation理解は受諾／予定／共同参加ではなく、Qのwalk理解も散策の行動決定／開始／完了ではない。roles未生成・subject=null・known欠落・unresolved原値を原frameや後知識で補わない。原expressionと実replyを別保持し、attendだけで不足状態・受諾・具体身振りを決めない。cqのcompliance=null・actionDecisionRecorded=falseを実不実行・am判断へ変換しない。P／Rの本文がcp採用文と同じでも原入力・当時理解・原資料は別保持し、同候補への統合や反復集約の採用にしない。感情・理由・希望・返答・行動を補わない。
+- 今回はcq所有条件・三引数原receipt条件・監査行表・fixture mask定義とcq本体の該当保持欄を静的読取。個別原資料は未供給未照合、取得／生成／再生・receive/respond/capture未実行。P／Q／R全て未採用・次対象未選定、六資料分離・原当時非書戻し・欠落非補完を維持。他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・文章化実装は今回非包含・未採用未着手。入口B停止・所在未確認未供給未照合・供給進展0と全維持条件、帰属／新部品必要／dz追加未決定、cy・条件・複数節非包含、4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、回答待ち回の冒頭文非出力を保持。以下は過去状態。
+
 - 2026-11-02・ad174ad後のユーザー「はい、いずれも採用でOKです。」でK／L／Mの対象と条件付き文言を全採用。player・日本語・単独・条件順序なしの通常散策invitationを当時完全理解し対応実資料を確認できる場合、K（道への移動開始）は「散歩に誘われた。道へ向かった。」、L（食事継続）は「散歩に誘われた。そのまま食べ続けた。」、M（実not_started）は「散歩に誘われた。」まで＋移動非成立を対応資料へ保持。道への移動開始と散策自体の開始／完了は別、散策のselectedSource=null・selections不変を維持し休息の選択出所を新造しない。欠落資料をMにしない。下のK／L／M未採用は履歴。六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持、実reply非直訳・受諾／共同参加／実行／完了・感情理由等の非補完を維持する。個別原資料未供給未照合、文章化実装未着手、4e全体未完。
 - **次の相談N／O（双方未採用）**：同じ4eの相談を継続。player・日本語・単独・条件順序なし、既存walk_invitationの通常散策invitationを当時walk意味／invitation関係とも適用可能・complete=trueとして理解した一入力が共通対象案。[am所有条件](#diary-final-review-ordinary-proposals-am)と[通常提案対応表](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)の五引数A、実continuingと前後資料の整合を条件に、次の対象＋条件付き本文を各案別に相談する。K／L／Mや休息の採用を自動転用しない。
 
