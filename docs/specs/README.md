@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02相談：95ff2a9の続き。[4e通常休息の完全理解invitation三案F／G／H](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を移動開始／食事継続／移動非成立に分け、各対象・条件付き本文を個別相談（全て未採用・次対象未選定）。既採用am request五状態／cp六状態を維持。個別原資料未供給未照合・実装未着手、集約／途中／保存／本接続未採用。入口B停止・供給進展0・全維持条件、4d12全体未完。文書検証のみ・ゲーム検証未実行、回答待ち回は冒頭文非出力。以下は過去状態。
+
 - 2026-11-02採用・移動提案：f7c6eef後、[4e cp通常休息誘い三案](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の対象・文言C／D／Eを全て採用。cp通常休息の未完理解六状態が採用済み。実装・個別原資料照合未実施、集約／途中／保存／本接続未採用。長いチャットの区切りとして次チャット移動を提案し、[最初の現行継続文](../word/NEXT_CHAT.md)を更新。次対象は未選定未採用。入口B停止・供給進展0・全維持条件と4d12全体未完を保持。以下は過去状態。
 
 - 2026-11-01二案採用：599d403後、[4e cp通常休息お願い](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の関係だけ不足／意味関係両不足の対象・文言を双方採用。request三不足状態は採用済み。次はinvitation三不足状態C／D／Eの対象・文言を個別相談（未採用）。実装・個別原資料照合未実施、同文でも資料非統合・集約／途中／保存／本接続未採用。入口B停止・供給進展0・全維持条件と4d12全体未完を保持。回答待ち回は冒頭文非出力。以下は過去状態。
