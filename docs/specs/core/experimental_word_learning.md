@@ -4841,6 +4841,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・7bc5604後のユーザー「はい、いずれも採用でOKです。」でI／Jの対象と条件付き文言を双方採用。player・日本語・単独・条件順序なし通常休息invitationを当時完全理解し、対応する実continuingと前後資料を確認できる場合だけ、I（仕事継続）は「休もうと誘われた。そのまま仕事を続けた。」、J（食事仕事以外のberry注目継続、dwell>4等）は「休もうと誘われた。そのまま見ていた。」。F／G／Hと合わせ通常休息invitation五状態の条件付き文言が採用済み。下のI／J未採用は採用前履歴。本限定範囲の採用がそろったことを4e全体完了や文章化実装承認にしない。六資料分離・原当時非書戻し・欠落非補完、同文でも原資料／当時理解別保持、実reply非直訳、受諾／共同参加／実行／完了・本人感情理由・仕事成果・未確認対象名非補完を維持する。
+- **次の相談K／L／M（全て未採用）**：4eの同チャット相談を継続する。player・日本語・単独・条件順序なし、既存patterns.walk_invitationの通常散策invitationを当時walk意味／invitation関係とも適用可能・complete=trueとして理解した一入力を各案の共通対象とする。[am所有条件](#diary-final-review-ordinary-proposals-am)と[通常提案対応表](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)の通常散策invitation 0／五引数Aを使い、各対象＋条件付き本文（Mは保持方針含む）を個別相談する。休息の採用を散策へ自動転用しない。
+
+| 案（全て未採用・回答待ち） | 必要な実資料条件 | 条件付き本文案 | 補わないこと |
+| --- | --- | --- | --- |
+| K：完全理解した散策の誘い・移動開始 | 実decision.outcome=approaching、after.mode=move・destination=path・attention=null、原inputに結び付く実判断／前後history等の整合。散策ではbefore/afterSelections不変・selectedSource=null | 「散歩に誘われた。道へ向かった。」 | 到着、散策自体の開始／完了、受諾発話、共同参加。休息のselected_proposal／selectionSourceの新造 |
+| L：同・食事継続 | 実decision.outcome=continuing、before/after.mode=eat等で食事継続、snapshot／selections不変と実reply等の整合 | 「散歩に誘われた。そのまま食べ続けた。」 | 拒否、希望、空腹等の理由、食事完了。仕事／注目継続への採用波及 |
+| M：同・移動非成立 | 実decision.outcome=not_startedと前後snapshot／selections不変等で実移動非成立を確認。欠落資料を該当扱いしない | 「散歩に誘われた。」まで。移動非成立は対応資料へ保持 | 未理解、拒否、希望不在、原因理解、困惑、具体身振り・承諾 |
+
+- 「散歩に誘われた」は当時のwalk／invitation理解だけを表し、「一緒に歩いた」等へ変換しない。Kの後半はpathへの移動開始に限り、散策自体の開始とは区別する。patterns枝のroles未生成を補わず、実話者・原frame・当時understandingを分離する。原expressionはam capturedにコピー欄がないため実reply／現在coreから復元しない。short=join／keep_looking／answer_unknown、gesture=attend／lookingを本人発話や具体身振りへ直訳しない。
+- 今回の根拠は所有仕様とam本体のwalk／path条件・実判断枝、既存fixture`actual-choice-continuation-and-unavailable`の「散歩しよう」×short/gesture×活動／経路定義の静的読取。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行。K／L／M全て未採用、次対象未選定。散策の仕事／berry注目継続・cq未完理解、他話者／他言語・条件／順序・複数節・新理解規則は非包含。反復集約・途中記録・保存形式・ゲーム本接続・文章化実装未採用未着手。入口B停止・所在未確認未供給未照合・供給進展0と全維持条件、帰属／新部品必要／dz追加未決定、cy・条件・複数節非包含、4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行。回答待ち回のため冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・68e1c83後の進行訂正：同じチャットを継続する回答は、採用を検討してほしい具体的な相談を提示した形で終える。別チャットへの移動時は貼付用冒頭文を必ず出力する。検討中のステップが終了した場合は無理に相談を追加せず、終了範囲と次ステップへの移行を明示し、その場合も次チャットの冒頭文を出力する。採用記録だけで次対象未選定と報告して終える運用を改める。回答を求める回の冒頭文非出力・各案個別判断・引継ぎ更新は維持する。今回は4e未完のため同じチャットを継続し、次の二案を個別相談する。
 - **I／J共通対象案（双方未採用）**：player・日本語・単独・条件順序なしの通常休息invitation、当時rest意味／invitation関係とも適用可能・complete=trueで、実判断continuingと必要前後資料を確認できる一入力。[am所有条件](#diary-final-review-ordinary-proposals-am)・[通常提案対応表](experimental_word_diary_audit.md#entry-ordinary-proposal-row-mapping)の五引数Aに従う。F／G／Hやrequest採用を自動転用せず、次表の各対象＋条件付き文言だけを個別に採用相談する。
 
