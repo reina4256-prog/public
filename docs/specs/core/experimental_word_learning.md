@@ -4841,6 +4841,19 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・f38d0a7後のユーザー「はい、いずれも採用でOKです」でAI／AJ／AKの各対象と条件付き文言を全採用。bn・player・日本語・単独・条件順序なし・原入力「木の実がある」・shortまたはgesture・beforeWorld.attention=null、入力前の単純なberry／report有無三状態と必要原資料整合時だけ、意味不足AI「何かを伝えられたけれど、何のことか分からなかった。」、関係不足AJ「木の実のことは分かったけれど、言われたことは全部は分からなかった。」、両不足AK「言われたことが分からなかった。」とする。下のAI／AJ／AK未採用は履歴。au S〜AH・通常提案群二十四状態も採用済み、再採用不要。六資料分離・当時不足／資料欠落の区別・原当時非書戻し・原expression非復元・同文でも原資料／当時理解別保持を維持。
+- **次の相談AL／AM／AN（全て未採用）**：[bn所有条件](#diary-incomplete-berry-reports-bn)の同じplayer・日本語・単独・条件順序なし・原入力がちょうど「木の実がある」・speech=shortまたはgesture・当時complete=falseにおいて、beforeWorld.attentionがberry:で始まる、またはちょうどshadeの二注目条件を、下表の各対象＋条件付き本文として個別相談する。各案は二注目条件×二発話設定を含むが実資料は個別保持し、注目なしの採用から自動転用しない。必要三引数receipt・独立input／knowledge／context・前後state/world・実reply整合を要求する。
+
+| 案（全て未採用・回答待ち） | 必要原資料で確認する当時不足状態 | 条件付き本文案 |
+| --- | --- | --- |
+| AL：注目あり・berry意味だけ不足 | 入力前berry意味なし・当該report適用可能、known.meaning欠落・relations=[report]・kind=report・subject=player・aspect=observation・原reportSourceあり、unresolvedはberry意味だけ | 「何かを伝えられたけれど、何のことか分からなかった。」 |
+| AM：注目あり・report関係だけ不足 | 入力前berry意味あり・report関係なし、known.meaning=berry・relations=[]・kind=partial・subject/aspect=null・reportSource欠落、unresolvedはreport関係だけ | 「木の実のことは分かったけれど、言われたことは全部は分からなかった。」 |
+| AN：注目あり・意味関係両不足 | 入力前berry意味もreport関係もなし、known.meaning欠落・relations=[]・kind=partial・subject/aspect=null・reportSource欠落、unresolvedはberry意味とreport関係 | 「言われたことが分からなかった。」 |
+
+- berry:注目から未知の木の実意味や存在報告理解・本人発見／観察完了／見ていた／実在確認を補わず、shadeから木陰での所在／移動／休息を補わない。ALに未知の木の実・AMに存在内容理解、AM／ANに欠落reportSource・subject/aspectを原frame／現在知識／実話者から補わない。原known／unresolved順・kind／主体極性時点aspect・実reply／reactionは原値で別保持。attend／uncertain等や注目だけから不足状態・具体身振り・理解成功／行動を決めない。
+- 六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持、原expression別資料未供給未確認・実reply／現在coreから非復元、実判断欠落から不実行非推定、newTeaching/newLearning/newExperience=falseを維持。AI／AJ／AK等と同文でも候補統合・反復集約の採用にしない。入力前の単純有無三状態だけで、休息限定report scope不適用・他原入力／新注目条件・他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・文章化実装へ採用波及なし。
+- 今回bn本体・既存fixtureのmissing-knowledge-attention定義を静的読取した条件例。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行・文章化実装未着手。B停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計・4d12／4e全体未完、文書検証のみ・ゲーム検証未実行を保持。同チャットAL／AM／AN個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・3a1d439後のユーザー「はい、どちらも採用でOKです」でAG／AHの対象と条件付き文言を双方採用。既採用九十六基礎表記×六応答状態に対するAG外側半角空白各一個の三形・記号なし、AH終端「。／！」一個の二形・空白なしについて、必要原資料・当時完全理解整合時だけ、動詞「ある」は「木の実があると聞いた。」、他二動詞は「木の実が落ちていると聞いた。」とする。原input.rawの空白／記号も保持、感嘆感情等を補わず、AG／AH併用等は非包含。下のAG／AH未採用は履歴。S〜AF・通常提案群二十四状態も採用済み、再採用不要。六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持を維持。au全原入力／全注目条件や4e全体完了にはしない。
 - **次の相談AI／AJ／AK（全て未採用）**：同じ4e内で[bn未完理解木の実報告の所有条件](#diary-incomplete-berry-reports-bn)へ進み、player・日本語・単独・条件順序なし・原入力がちょうど「木の実がある」、当時complete=falseの三不足状態を各対象＋条件付き本文として個別相談する。speech=shortまたはgesture、beforeWorld.attention=nullに限定し、入力前berry／reportが下表の有無状態であることと、bn三引数receipt・独立input／knowledge／context・前後state/world・実replyの整合を要求する。au採用から未完理解へ本文を自動転用しない。
 
