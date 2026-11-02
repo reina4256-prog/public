@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・7f00e9b後のユーザー「はい、どちらも採用でOKです」でAX／AYの対象＋条件付き本文「挨拶された。」を双方採用。AXは前回明示の五表記・空白句読点なし、AYは「おはよう。」「おはよう！」だけ・空白なし。player／日本語／単独／条件順序なし・short/gesture・当時完全理解・既存初期scene注目・必要原資料整合条件と除外を全保持。原文の文字差・丁寧形・記号を残し、感情／意図／具体返答／朝の事実を補わない。通常提案群・au S〜AH・bn AI〜AU・at AV／AWも採用済み、再採用不要。下のAX／AY未採用は履歴。
+- **次の相談AZ／BA（双方未採用）**：[at所有条件](#diary-greetings-at)・既存greeting fixtureのexisting-japanese-aliases／no-target-or-clock-inferenceを静的参照し、次の二範囲を個別相談。共通はplayer／日本語／単独／条件順序なし、当時greeting_morning一frameをgreeting／complete=true／unresolved=[]として理解、shortなら実reply.message=good_morning、gestureならattend、observationなし。必要三引数原receipt・独立input/knowledge/context・前後state/world・実replyの整合を確認できる場合だけ。設定だけで理解を認定しない。
+
+| 相談案（各未採用） | 追加する対象（各short/gesture） | 条件付き日記本文 |
+| --- | --- | --- |
+| AZ | 原入力はちょうど「 おはよう 」（前後各一個の半角空白U+0020、記号なし）。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=nullの既存初期系統 | 挨拶された。 |
+| BA | 原入力はちょうど「おはよう」（空白記号なし）。inputContext.scene=shore／attention=[]、beforeWorld.attention=null／mode=idleの既存no-target-or-clock-inference系統 | 挨拶された。 |
+
+- AZは前だけ／後だけの空白や他表記付き空白、AYとの併用を含めない。BAはworldのattention=nullとinputContext.attention=[]を区別して保持し、資料欠落扱いや未知対象の補完をしない。fixtureで今回player入力に先行するvisitor入力があることを、別話者本文・前件集約の採用にしない。今回の対象inputだけを分け、原前後資料の整合は要求する。atが刻む原時刻から朝を認定せず、scene=shoreから浜への移動／到着・注目なしから無視／見ていなかった等を本文に足さない。BAのrest中系統は今回非包含。
+- 原input.rawの空白・scene/context・実応答を保持し、同文でも原資料／当時理解を別保持。六資料分離・原当時非書戻し・欠落非補完・原expression別資料未供給未確認、実reply／現在coreから非復元、newTeaching/newLearning/newExperience/morningVerified=falseを継承。空白＋句点等の未知空節は単独理解へ修復しない。AZ／BA併用・他表記／新注目活動・他話者／他言語・未完理解・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。
+- 今回は所有仕様・at本体・fixture・core正規化／world挨拶応答枝の静的読取だけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。am原expression非復元、cp/cq判断欠落から不実行非推定、道への移動と散策開始完了の区別／散策選択出所非新造を保持。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットAZ／BA個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・8e99603後のユーザー「はい、どちらも採用でOKです」でAV／AWの各対象＋条件付き本文「挨拶された。」を双方採用。原入力「おはよう」・player／日本語／単独／条件順序なし・既存初期scene注目・当時完全理解・必要原資料整合と、AVのshort／実good_morning・AWのgesture／実attendを前回共通条件のまま維持。at資料部品の再採用ではなく本文方針だけ。通常提案群・au S〜AH・bn AI〜AUも全採用済み、再採用不要。下のAV／AW未採用は履歴。
 - **次の相談AX／AY（双方未採用）**：[at所有条件](#diary-greetings-at)・既存greeting fixtureのexisting-japanese-aliases・catalogのgreeting_morningを静的参照し、次表の有限原入力集合にだけ対象を広げる案。共通はplayer／日本語／単独／条件順序なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=nullの既存初期系統。当時greeting／complete=true／unresolved=[]、shortなら実good_morning、gestureなら実attend、いずれもobservationなし。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合確認時だけとし、AV／AW採用を自動転用しない。
 
