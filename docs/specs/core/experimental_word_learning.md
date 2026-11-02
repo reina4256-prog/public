@@ -4843,6 +4843,27 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・1d3c333後のユーザー「はい、どちらも採用でOKです。」でGF／GGの各追加対象への既採用不足別本文適用を双方採用。基本「木の実が好き」・初期系統・一般berry対象解決済み・各三不足配置・各short/gesture、GF前後U+0020各一個／GG単一終端句点または半角! U+0021。前回必要原資料・原空白記号／当時理解／原出所有無／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のGF／GG未採用は履歴。
+- **次の相談GH／GI（双方未採用）**：[bs好悪報告の意味・report関係不足の所有条件](#diary-incomplete-preference-reports-bs)と既存fixture activity-not-preference-or-action／hunger-not-speaker-truthの不足枝を静的参照。原入力はちょうど「木の実が好き」、player／日本語／単独／条件順序なし・空白記号なし、各三不足配置mask=1/2/3・各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=null・fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と対象解決を確認できる場合だけ適用。berry意味既知・target候補/採用とも{id:berry,source:explicit}の一般対象を要求。
+
+| 相談案（各未採用） | 今回追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| GH | beforeWorld.mode=observe/eat/rest/work/walkの五状態・hunger=.35。各三不足配置・各short/gesture | 下表の不足配置別既採用文を適用 |
+| GI | beforeWorld.mode=idle・hunger=0/.25/.5/.75/1の五値。各三不足配置・各short/gesture | 下表の不足配置別既採用文を適用 |
+
+| 当時の不足配置 | 保持する当時理解・実応答 | 条件付き日記本文 |
+| --- | --- | --- |
+| mask=1：like意味だけ記録なし | report／known={}／relations=[report]／subject=player／aspect=preference・原speaker_reportあり。実replyは両設定attend | 木の実のことは分かったけれど、言われたことは全部は分からなかった。 |
+| mask=2：reportだけ記録なし | partial／known={meaning:like}／relations=[]／subject/aspect=null・原reportSource欠落。実replyはshort uncertain／gesture attend | 木の実と「好き」の意味は分かったけれど、言われたことは全部は分からなかった。 |
+| mask=3：like意味とreport両記録なし | partial／known={}／relations=[]／subject/aspect=null・原reportSource欠落。実replyは両設定attend | 木の実のことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- 全案単独frame report／catalogRule=preference／aspect=preferenceと当時理解を分離、complete=false／polarity=positive／eventTime=unspecified／conditionStatus=null／observationなし。mask1の原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}とmask2/3欠落を別保持。unresolvedはmask1={type:meaning,field:meaning,token:好き}、mask2={type:relation,id:report}、mask3はreport関係→meaning token=好きの原順。各活動空腹の原資料／当時理解／原出所／実応答を別保持し、同文でも統合・反復集約しない。
+- GHの活動やGIの空腹値を発言者playerの好悪／満腹／欲求／真偽の証拠にせず、eat状態でも拒否行動／食事中止／完了／食べる食べない予定／実不実行を補わない。rest/work/walk等の開始継続完了・選択出所を報告から新造せず、道への移動開始と散策開始完了を分け、休息選択出所を散策へ転用しない。不明語義／主体／好悪aspect／出所を原文・frame・実話者・後知識から補わず、一般berryを注目berry:1や名付け個体へ限定しない。「木の実が好き」という報告全体の理解、本人好悪／味経験／同意受諾／共同参加／相互好意・unspecifiedへの現在過去／継続性を補わず、後名付けによる書戻しなし。
+- bs原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。actualSpeechは入力前short設定由来でmask1/3を実発話にしない。azのstatus=reported／verified=falseをbsへ新造しない。captureのnewTeaching/newLearning/newExperience=falseは捕捉時非追加で先行経験消去にしない。
+- GH／GI併用・嫌い基本文／GD-GE残表記／GF-GG空白記号との組合せ・対象不足併存／対象だけ未解決／個体名競合／他scene注目活動空腹疲労値／他話者他言語／scope不適用／否定好悪ba/bt・条件順序複数節等は非包含。対象だけ未解決はbs非成立・保留のまま。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS bs行と指定・bs所有条件／capture保持欄・incomplete preference fixture五活動／空腹五値枝・greeting setup/hear・world初期値／応答末尾限定枝。一般対象解決・当時理解／実応答選択は既読条件参照、全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットGH／GI回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・83ec817後のユーザー「はい、いずれも採用でOKです。」でGD／GEの各追加対象への既採用不足別本文適用を双方採用。好き／嫌い各残23表記・各三不足配置・初期系統・一般berry対象解決済み・shortだけ。前回必要原資料・原表記／語義と報告理解／原出所有無／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のGD／GE未採用は履歴。
 - **次の相談GF／GG（双方未採用）**：[bs好悪報告の意味・report関係不足の所有条件](#diary-incomplete-preference-reports-bs)と既存fixture existing-normalizationのja枝を静的参照。基礎原文は「木の実が好き」だけ、player／日本語／単独／条件順序なし、各三不足配置mask=1/2/3・各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と対象解決を確認できる場合だけ適用。berry意味既知・target候補/採用とも{id:berry,source:explicit}の一般対象を要求する。
 
