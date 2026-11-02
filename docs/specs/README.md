@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・a34b811後、[4e CB／CC](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文の三不足配置をCD二意味＋一関係不足の二枝／CE快適さ意味＋両関係不足／CF休む意味＋両関係不足に分け、各対象＋条件付き本文を個別相談（全て未採用）。有限範囲・原資料条件・文言は正本。CD二枝も原資料／理解別保持、六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・a3ba9f7後、[4e BZ／CA](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のCB comfortable意味＋condition関係不足／CC rest意味＋condition関係不足を各対象＋条件付き本文として個別相談（双方未採用）。残る意味とreport関係は適用可能でもpartial／主体aspect=null／出所欠落のまま、初期系統・原資料条件・文言と除外は正本。六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・9b5e5b7後、[4e BX／BY](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のBZ comfortable意味＋report関係不足／CA rest意味＋report関係不足を各対象＋条件付き本文として個別相談（双方未採用）。残る意味とcondition関係は適用可能、partial／主体aspect=null／原出所欠落、初期系統・原資料条件・文言と除外は正本。同文のBT／BUとも別保持し、六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
