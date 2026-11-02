@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-11-02・d41c311後、[4e AT／AU](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はat既存「おはよう」完全理解のAV短い実応答／AW身振り設定、各本文「挨拶された。」を個別相談（双方未採用）。必要原資料条件・初期scene注目・除外は正本。六資料分離・欠落非補完、個別原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・44f60cc後、[4e AT／AU](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を個別相談（双方未採用）。bnの休息限定report scope不適用を、berry意味既知AT／意味も不足AUに分ける。原入力・注目活動・原資料条件・条件付き本文は正本。既採用再確認不要、六資料分離・原当時非書戻し・欠落非補完、個別原資料未供給未照合・実装未着手、B停止・供給進展0・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・125d5db後、[4e bn AR／AS](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。au／bn既採用・六資料分離・原当時非書戻し・欠落非補完・全維持条件／保留／集計・B停止／供給進展0を保持。今回は別依頼の当日作業概要と[公開ゲーム入口](../../README.md)に対応し、4e次対象未選定未採用、個別原資料未供給未照合・文章化実装未着手・4d12／4e全体未完。公開／テスト結果と未確認はhandoff参照。以下は過去状態。

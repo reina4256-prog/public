@@ -4843,6 +4843,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・d41c311後のユーザー「どちらも採用でOKです」でAT／AUの各対象＋条件付き文言を双方採用。休息限定の実経験report scopeが今回へ不適用の既存系統に限り、ATはberry意味既知「木の実のことは分かったけれど、言われたことは全部は分からなかった。」、AUは意味も不足「言われたことが分からなかった。」。直下のAT／AU共通範囲・原資料条件・全除外を維持し、report IDの存在と今回適用可能性を別保持する。通常提案群・au S〜AH・bn AI〜ASも全採用済み、再採用不要。下のAT／AU未採用は履歴。
+- **次の相談AV／AW（双方未採用）**：[at挨拶所有条件](#diary-greetings-at)と既存greeting fixtureのeight-settingsを参照。player・日本語・原入力がちょうど「おはよう」・単独・条件順序なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=nullの既存初期系統だけ。当時単独greeting_morningをgreeting／complete=true／unresolved=[]として理解し、必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を確認できる場合だけ、各対象＋条件付き本文を相談する。朝挨拶の理解と現在時刻／実際に朝だった事実を分離する。
+
+| 相談案（各未採用） | 対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| AV | 上記共通条件・speech=short、実reply.message=good_morning・observationなし | 挨拶された。 |
+| AW | 上記共通条件・speech=gesture、実reply.message=attend・observationなし | 挨拶された。 |
+
+- AV／AWは同文でも原資料／当時理解／実応答を別保持する。実replyから「おはようと返した」・頷いた・手を振った等の原expressionを復元しない。at capturedに原expression欄はなく別資料は未供給未確認。newTeaching/newLearning/newExperience/morningVerified=falseを維持し、起床／朝の時刻確認／感情／親密化／共同活動・挨拶への受諾等を作らない。注目から木の実を見ていた／存在確認等を補わず、原資料の欠落と未理解も混同しない。設定foundation等だけで当時理解を認定しない。
+- 今回はbn／at所有条件、本体と関連fixture・world初期欄の静的読取だけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。AV／AWは本文方針の相談でat部品実装後OKの再採用ではない。別表記／空白記号・未完理解／別scene注目／他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。六資料分離・原当時非書戻し・欠落非補完、am原expression非復元、cp/cq判断欠落から不実行非推定、散策の道への移動と開始完了の区別・選択出所非新造、B停止・供給進展0・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認は非昇格。同チャットAV／AW個別回答待ち、冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・44f60cc後、同チャットの採用相談を再開。通常提案群・au S〜AH・bn AI〜ASは採用済みで再採用不要。次は[bn所有条件](#diary-incomplete-berry-reports-bn)の既存fixture `real-experienced-report-scope-not-transferred` 系統から、AT／AUを対象＋条件付き文言として個別相談する。双方未採用・回答待ち、対象採用確定なし。
 - AT／AU共通：原入力がちょうど「木の実が落ちている」、player・日本語・単独・条件順序なし・short/gesture、既存fixtureの休息中・beforeWorld.attention=shadeの系統だけ。入力前knowledgeに休息で実経験から学んだreport（source=experienced_relation）のscope付き記録があるが、今回のberry_observationには適用できず、他に今回へ適用可能なreportもない。当時complete=false、relations=[]、kind=partial、subject/aspect=null、reportSource欠落を必要原資料で確認できる場合だけ。report IDの存在と当該入力への適用可能性を別保持し、「report記録なし」の既採用へ統合しない。
 
