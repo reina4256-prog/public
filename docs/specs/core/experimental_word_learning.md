@@ -4843,6 +4843,19 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・e7fa73c後のユーザー「はい、どちらも採用でOKです」で相談案CP／CQの各対象＋条件付き本文「休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。bo基本文・既存実学習後・二意味既知、CPはreport scope不適用＋condition記録なし、CQはcondition scope不適用＋report初期関係適用可能。原partial／主体aspect=null／出所欠落、各short/gesture、学習履歴と今回適用可能性の分離・前回必要原資料条件・全除外を維持。4e相談ラベルで既存4d12cp/cq部品の変更ではない。従前全採用維持・再採用不要、bo全範囲や4e全体の完了ではない。下のCP／CQ未採用は履歴。
+- **次の相談CR／CS（双方未採用）**：[aw休息大事さ報告の所有条件](#diary-rest-value-reports-aw)と既存rest_value fixtureのeight-settingsを静的参照。原入力がちょうど「休むことは大事」・player／日本語／単独／条件順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。入力当時rest意味とreport関係は今回適用可能だが、重要性detailは未理解のまま。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合で下の当時理解を確認できる場合だけ、各対象＋条件付き本文を個別相談する。
+- CR／CS共通の当時理解：単独rest_value frameの原meaning=rest／detail=importanceを本人理解へ移さず、understanding.kind=report／complete=false／known={meaning:rest}／relations=[report]、unresolved=[{type:detail,token:importance}]だけ。subject=player／polarity=positive／eventTime=unspecified／aspect=null／conditionStatus=null、原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}を保持。未理解detailを欠落資料やcomfortable意味不足と同一視しない。
+
+| 相談案（各未採用） | 対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| CR | 上記共通条件・speech=short、実reply.message=heard_rest_partial・observationなし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| CS | 上記共通条件・speech=gesture、実reply.message=attend・observationなし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- 「休むことは大事だと聞いた」「休むのが大事だと分かった」等は重要性理解を補うため本文へ足さない。原frame／実reply／現在core・後知識からimportanceを理解済みにせず、報告出所ありを内容全体の理解／重要性への同意・価値判断・本人休息の選択開始継続完了／回復因果／真偽確認へ変換しない。aspect／conditionStatus=nullをav/boのrest_comfort／unknown条件へ変更しない。原input.rawは保持し、同文のbo部分理解群とも原資料／当時理解／未解決理由を別保持、候補統合／反復集約非採用。
+- 六資料分離・原当時非書戻し・欠落非補完、aw capturedの原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話／身振り非復元、status=reported／verified=false・newTeaching/newLearning/newExperience=falseを継承。実attendだけで理解不足を決めず、入力前根拠と原understandingを確認する。今回aw現所有条件・本体／fixture・catalog rest_valueとworld実応答枝の静的読取だけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。
+- 別表記／空白記号・rest意味やreport関係自体の不足（bp）・scope不適用・他scene注目活動・他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットCR／CS個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・74dac85後のユーザー「はい、どちらも採用でOKです」でCN／COの各対象への当時不足状態別五文案の適用を双方採用。CNは基本文・shore／inputContext.attention=[]／world.attention=null・五活動状態・fatigue=.15、COは基本文・初期系統idle・疲労五値、各short/gesture・単純有無十五不足配置だけ。前回必要原資料条件・五文案・全除外（CN／CO併用／別表記や空白記号との組合せ非包含を含む）を保持。場所活動疲労から本人経験／条件成立／快適さを足さず、従前全採用維持・再採用不要。下のCN／CO未採用は履歴。
 - **次の相談CP／CQ（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureが継承するav:real-experienced-report-scope-not-transferred／av:real-experienced-condition-scope-not-transferredを静的参照。ここでのCP／CQは4e相談ラベルで、既存4d12cp/cq提案部品の変更・再採用や新部品追加ではない。原入力がちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし・各short/gesture、既存学習完了後のinputContext.scene=clearing／attention=[{id:shade,meaning:rest}]とbeforeWorld.mode=idle／attention=nullを別保持する系統だけ。comfortable/rest意味は今回適用可能、known.meaning=comfortable／known.conditionMeaning=rest。当時kind=partial／complete=false／subject/aspect=null・reportSource欠落、positive／unspecified・conditionStatus=unknownを必要原資料で確認できる場合だけ、次の対象＋条件付き本文を個別相談する。
 

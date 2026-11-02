@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・e7fa73c後、[4e相談案CP／CQ](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はaw基本文「休むことは大事」のrest/report既知・importanceだけ未理解をCR short／実heard_rest_partial、CS gesture／実attendに分け、各対象＋休む部分理解文を個別相談（双方未採用）。初期系統・原資料条件・文言・除外は正本。原重要性を本人理解へ移さず、六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・74dac85後、[4e CN／CO](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のCP実経験report scope不適用＋condition記録なし／CQ実経験condition scope不適用＋report適用可能を、各対象＋二意味部分理解文として個別相談（双方未採用）。4e相談ラベルで既存cp/cq部品変更なし。有限範囲・必要原資料条件・文言と除外は正本。学習記録と今回適用可能性を別保持し、六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・a454e3a後、[4e CL／CM](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のCN shore注目対象なし・五活動状態／CO初期系統・疲労五値に、各十五不足配置別五文案を適用することを個別相談（双方未採用）。有限範囲・原資料条件・文言・除外は正本。場所活動疲労から本人経験や条件成立を足さず、六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
