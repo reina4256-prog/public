@@ -4843,6 +4843,34 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・66b6e4d後のユーザー「はい、どちらも採用でOKです」でEW／EXの各対象への既採用本文適用を双方採用。EW negationだけ不足／EX timeだけ不足の初期系統・各short/gesture、本文「食べることは分かったけれど、言われたことは全部は分からなかった。」。前回必要原資料・不足配置／unknown/unspecified・主体aspect出所欠落・実応答・全条件除外を維持。従前全採用維持・再採用不要、下のEW／EX未採用は履歴。
+- **次の相談EY／EZ（双方未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と既存fixture make(mask,speech)／existing-two-forms-knowledge-matrixを静的参照。原入力はちょうど「今は食べたくない」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解を確認できる場合だけ適用。単独frame report／catalogRule=not_now／meaning=eat／aspect=desireと当時理解を分離する。maskのbit=1はeat意味記録なし、2はreport関係記録なし、4はnegation関係記録なし、8はtime関係記録なし。今回は単純記録なしだけで、記録存在だがscope不適用は別相談。
+
+| 相談案（各未採用） | 今回の不足配置・当時既知・実応答 | 条件付き日記本文 |
+| --- | --- | --- |
+| EY | mask=6/10/12/14の四配置。eat意味既知、report/negation/timeのうち二つ以上不足。known={meaning:eat}。実replyはshort uncertain／gesture attend・observationなし | 食べることは分かったけれど、言われたことは全部は分からなかった。 |
+| EZ | mask=3/5/7/9/11/13/15の七配置。eat意味記録なし、report/negation/timeのうち一つ以上不足。known={}。実replyは両設定attend・observationなし | 言われたことが分からなかった。 |
+
+| 案・mask | 不足関係（原順） | 当時relations | polarity／eventTime |
+| --- | --- | --- | --- |
+| EY 6 | report,negation | [time] | unknown／now |
+| EY 10 | report,time | [negation] | negative／unspecified |
+| EY 12 | negation,time | [report] | unknown／unspecified |
+| EY 14 | report,negation,time | [] | unknown／unspecified |
+| EZ 3 | report | [negation,time] | negative／now |
+| EZ 5 | negation | [report,time] | unknown／now |
+| EZ 7 | report,negation | [time] | unknown／now |
+| EZ 9 | time | [report,negation] | negative／unspecified |
+| EZ 11 | report,time | [negation] | negative／unspecified |
+| EZ 13 | negation,time | [report] | unknown／unspecified |
+| EZ 15 | report,negation,time | [] | unknown／unspecified |
+
+- 全配置understanding.kind=partial／complete=false、subject/aspect=null・原reportSource欠落・target/conditionStatus=null。unresolvedは上表の不足関係をreport→negation→timeの原順、EZだけその後に{type:meaning,field:meaning,token:eat}を保持する。原frameのreport区分やeat/desire、実話者、原文や入力時刻から主体／欲求aspect／報告出所／否定／時点／意味を補わない。既知nowも原発言時点だけで再読時現在／継続不要にはしない。どの配置も「今は食べたくないと聞いた。」へ完全理解化しない。本人欲求／満腹／好悪／真偽確認／同意受諾／拒否行動／食事中止／予定実不実行／活動開始完了／対象を補わない。同じ本文でも全配置の原資料／当時理解／不足／実応答を別保持し、反復集約しない。
+- br原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。actualSpeechは入力前short設定由来で、特にEZのshort設定を実発話の証明にしない。ayのstatus=reported／verified=falseをbrへ新造しない。captureのnewTeaching/newLearning/newExperience=falseは捕捉時非追加で先行学習経験を消さない。
+- EY／EZの条件拡張や併用・scope不適用・別原文「今はいらない」／空白記号／他scene注目活動空腹疲労条件組合せ／他話者他言語／条件順序複数節等は非包含。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS br行と指定・br所有条件／capture保持欄・br fixture基本行列・greeting setup/hear・core understand/express/react/reportSource・catalog ja not_now定義・world初期値／応答末尾の限定枝。全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットEY／EZ回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・0335a7a後のユーザー「はい、どちらも採用でOKです」でEU／EVの対象＋条件付き本文を双方採用。EU eat意味だけ不足「何かを伝えられたけれど、何のことか分からなかった。」／EV report関係だけ不足「食べることは分かったけれど、言われたことは全部は分からなかった。」。前回必要原資料・不足配置／出所有無／実応答・全条件除外を維持。従前全採用維持・再採用不要、下のEU／EV未採用は履歴。
 - **次の相談EW／EX（双方未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と既存fixture make(mask,speech)／existing-two-forms-knowledge-matrixを静的参照。原入力はちょうど「今は食べたくない」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解を確認できる場合だけ適用。単独frame report／catalogRule=not_now／meaning=eat／aspect=desireと当時理解を分離する。
 
