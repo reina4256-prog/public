@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・5e18416後のユーザー「はい、どっちも採用でOKです」でBN／BOの各対象＋条件付き本文「横になると気持ちいいと聞いた。」を双方採用。BNは既存初期系統の残十一表記、BOは基本文のshore／注目対象なしidle、各short/gesture・当時完全理解・必要原資料整合時だけ。前回有限原入力・全条件／除外（BN／BO組合せ非包含を含む）を保持。conditionStatus=unknown／verified=falseから条件成立や本人快適さを作らず、原表記語尾・注目を別保持。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BK・av BL／BMも採用済み、再採用不要。下のBN／BO未採用は履歴。
+- **次の相談BP／BQ（双方未採用）**：[av所有条件](#diary-rest-comfort-reports-av)と既存fixtureのsingle-trim-and-terminal-punctuation／activity-does-not-prove-personal-comfortを静的参照。共通はplayer／日本語／単独／順序なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=null。当時comfortable/rest意味とreport/condition関係が今回適用可能で、rest_comfort一frameをreport／complete=true／unresolved=[]として理解、known.meaning=comfortable／known.conditionMeaning=rest／aspect=rest_comfort、subject=player／positive／unspecified・原speaker_report出所・conditionStatus=unknownを保持。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合確認時だけ、各対象＋条件付き本文を個別相談する。
+
+| 相談案（各未採用） | 追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| BP | 原入力がちょうど「 横になると気持ちいい 」（前後各一個U+0020・記号なし）／「横になると気持ちいい。」／「横になると気持ちいい！」（各末尾記号一個・空白なし）の三表記。既存fixtureのshort設定・実heard_rest_comfort・observationなし、world.mode=idleだけ | 横になると気持ちいいと聞いた。 |
+| BQ | 原入力がちょうど「横になると気持ちいい」・空白記号なし。既存fixtureのworld.mode=observe／eat／rest／work／walkの五状態、各short／実heard_rest_comfortとgesture／実attend・observationなし | 横になると気持ちいいと聞いた。 |
+
+- BPは原input.rawの空白／記号を保持し、「！」から喜び／強調意図・新理解を作らない。前だけ／後だけの空白・複数／全角／内部空白・タブ改行、半角!・疑問符・複数／途中記号、空白＋記号併用は今回非包含。「 横になると気持ちいい。 」等の未知空節を単独理解へ修復しない。BPのgesture設定は今回未選定未採用。BQは原活動状態だけを別保持し、観察した／食べ続けた／休息開始継続完了／仕事を続けた／散策開始完了した等を、この報告への応答として本文へ足さない。state/context注目とworld注目を混同せず、modeや疲労から条件成立・快適さ・回復因果を補わない。
+- BP／BQ併用、BN十一表記やBO別sceneとの組合せ、新疲労条件等は今回非包含。表記数／状態数を個別原資料供給・照合成功数にしない。同文でも原資料／当時理解／実応答は別保持し、候補統合や反復集約を採用しない。conditionStatus=unknown・status=reported／verified=false・newTeaching/newLearning/newExperience=false、六資料分離・原当時非書戻し・欠落非補完、原expression別資料未供給未確認・実reply／現在coreから非復元を維持。
+- 今回はav現所有条件・本体／fixtureの当該枝とcore設定初期値／world実応答枝の静的読取だけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。未完理解・他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・B停止／供給進展0・帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットBP／BQ個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・85f54a8後のユーザー「はい、どちらも採用でOKです」でBL／BMの各対象＋条件付き本文「横になると気持ちいいと聞いた。」を双方採用。原入力「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし・既存初期系統の当時comfortable/rest/report/condition完全理解、BL short／実heard_rest_comfort、BM gesture／実attendだけ。前回原資料条件・全除外を保持し、conditionStatus=unknown／verified=falseから条件成立・本人快適さ・休息経験を作らない。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BKも採用済み、再採用不要。下のBL／BM未採用は履歴。
 - **次の相談BN／BO（双方未採用）**：[av所有条件](#diary-rest-comfort-reports-av)と既存rest_comfort fixtureのexisting-japanese-forms／no-target-requiredを静的参照。共通はplayer／日本語／単独／順序なし・空白記号なし、当時comfortable/rest意味とreport/condition関係が今回適用可能で、rest_comfort一frameをreport／complete=true／unresolved=[]として理解。known.meaning=comfortable／known.conditionMeaning=rest／aspect=rest_comfort、subject=player／positive／unspecified・原speaker_report出所とconditionStatus=unknownを保持。shortなら実reply.message=heard_rest_comfort、gestureならattend、observationなし。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合確認時だけ、各対象＋条件付き本文を相談する。
 

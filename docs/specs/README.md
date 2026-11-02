@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・5e18416後、[4e BN／BO](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はavのBP基本文の外側空白／単一終端記号付き三表記・shortのみ、BQ基本文の五活動状態・short/gestureを各本文「横になると気持ちいいと聞いた。」として個別相談（双方未採用）。有限原入力・当時完全理解・必要原資料条件と除外は正本。併用／他組合せ非包含、六資料分離・欠落非補完・条件成立unknown／真偽未確認、原資料未供給未照合・実装未着手。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・85f54a8後、[4e BL／BM](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はavのBN残十一表記・既存初期系統／BO基本文・shore注目対象なし、各short/gesture・本文「横になると気持ちいいと聞いた。」を個別相談（双方未採用）。当時完全理解・必要原資料条件・有限範囲・除外は正本。conditionStatus=unknown／verified=falseを維持、六資料分離・欠落非補完、個別原資料未供給未照合・実装未着手。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・3b14429後、[4e BJ／BK](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はav既存単独「横になると気持ちいい」当時完全理解のBL short／実heard_rest_comfort、BM gesture／実attend、各本文「横になると気持ちいいと聞いた。」を個別相談（双方未採用）。既存初期scene注目・必要原資料条件は正本、conditionStatus=unknown／verified=falseから本人快適さ・条件成立を作らない。他条件／順序／複数節等への一括採用なし。六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。

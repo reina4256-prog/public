@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（5e18416後・BN／BO採用、BP／BQ相談中）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、4e仕様相談を続けてください。正本はdocs/specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BK・av BL〜BOは全採用済み、再採用不要。現在はavのBP＝基本文「横になると気持ちいい」の前後各一個半角空白・記号なし／末尾「。」一個／末尾「！」一個・空白なしの三表記、short設定・idleだけ、BQ＝空白記号なし基本文・observe/eat/rest/work/walk五状態のshort/gestureを、各本文「横になると気持ちいいと聞いた。」として個別相談中、双方未採用です。player／日本語／単独／順序なし・clearing／inputContext berry:1注目・world.attention=null・当時完全理解・必要原資料整合、詳細・除外は正本。BP gesture／BP-BQ併用／BNやBOとの組合せ等は今回非包含。原空白記号／原活動を保持し本人経験や感情を足さず、conditionStatus=unknown／status=reported／verified=false、六資料分離・原当時非書戻し・欠落非補完・同文でも別保持・原expression非復元を維持。am／cp／cq／散策区別の全条件、個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計を保持。他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・本接続・実装へ一括採用しない。文書検証のみ・ゲーム検証未実行、前回公開全回帰incomplete／実UI未確認非昇格。同チャット回答待ちにつき今回冒頭文非出力。以下は過去状態です。
+
 ## 現行継続文（85f54a8後・BL／BM採用、BN／BO相談中）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、4e仕様相談を続けてください。正本はdocs/specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BK・av BL／BMは全採用済み、再採用不要。現在はavのBN＝横になると＋気持ちいい／きもちいい／心地よい＋語尾なし／ね／よ／よねの十二表記から既採用基本文を除く十一・既存初期系統、BO＝基本文「横になると気持ちいい」・shore／inputContext.attention=[]／world=idle・attention=nullを、各本文「横になると気持ちいいと聞いた。」として個別相談中、双方未採用です。player／日本語／単独／順序なし・空白記号なし・short/gesture・当時完全理解・必要原資料整合、有限範囲・除外は正本。BN／BO組合せは非包含、原表記語尾・注目情報を別保持し新理解／同意等を補わない。conditionStatus=unknown／status=reported／verified=false、六資料分離・原当時非書戻し・欠落非補完・同文でも別保持、原expression非復元を維持。am／cp／cq／散策区別の全条件、原資料未供給未照合・文章化実装未着手、4d12／4e全体未完。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計を保持。他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・本接続・実装へ一括採用しない。文書検証のみ・ゲーム検証未実行、前回公開全回帰incomplete／実UI未確認非昇格。同チャット回答待ちにつき今回冒頭文非出力。以下は過去状態です。
