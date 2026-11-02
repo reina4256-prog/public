@@ -4843,6 +4843,27 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・a454e3a後のユーザー「はい、どちらも採用でOKです」でCL／CMの各対象への当時不足状態別五文案の適用を双方採用。CLは基本文の前後各一個U+0020・記号なし、CMは基本文末尾「。／！」一個・空白なし、各short/gesture・初期系統・単純有無十五不足配置だけ。前回原資料条件・五文案・原出所有無分離・全除外（併用／十一別表記等との組合せ非包含を含む）を保持。原空白記号／不足配置／原資料・当時理解別保持、従前全採用維持・再採用不要。下のCL／CM未採用は履歴。
+- **次の相談CN／CO（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureのmissing-knowledge-activity-empty-attention／missing-knowledge-fatigue-condition-unknownを静的参照。共通の原入力はちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし、各short/gesture。comfortable/rest/report/conditionの入力前単純記録有無の十五不足配置（mask=1〜15、scope不適用非包含）で当時complete=false、必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を確認できる場合だけ、次の二対象へ下記五文案を適用することを個別相談する。
+
+| 相談案（各未採用） | 追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| CN | inputContext.scene=shore／attention=[]、beforeWorld.attention=null、mode=observe／eat／rest／work／walkの五状態。既存fixtureの初期fatigue=.15のまま | 下の当時不足状態別五文案 |
+| CO | inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null、fatigue=0／0.2／0.4／0.8／1の五値 | 下の当時不足状態別五文案 |
+
+| 当時確認する不足配置 | 条件付き本文 |
+| --- | --- |
+| rest意味だけ既知、comfortable不足・二関係の有無四配置（mask=1/5/9/13） | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| comfortable意味だけ既知、rest不足・二関係の有無四配置（mask=2/6/10/14） | 気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。 |
+| 二意味既知・関係も一つ以上不足（mask=4/8/12） | 休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。 |
+| 二意味とも不足・二関係適用可能（mask=3） | 何かを伝えられたけれど、何のことか分からなかった。 |
+| 二意味とも不足・関係も一つ以上不足（mask=7/11/15） | 言われたことが分からなかった。 |
+
+- mask1/2/3だけはkind=report／relations=[report,condition]／subject=player／aspect=rest_comfort・原speaker_reportあり、他はpartial／subject/aspect=null・reportSource欠落を保持。原known欠落／relations／unresolved原順・入力前根拠を別保持し、positive／unspecified・conditionStatus=unknownを補完変更しない。二意味とも不足なら両設定実attend、意味が一つ以上既知ならshort実uncertain／gesture実attend、observationなしの既存枝だけ。実reply・場面活動・疲労値だけで当時不足を認定しない。
+- CNはinputContext.attention=[]とworld.attention=nullを別保持し、欠落資料扱いや未知対象の補完をしない。shoreから浜への移動到着・注目なしから無視等を足さず、modeからこの報告に応じた観察／食事継続／休息開始継続完了／仕事継続／散策開始完了を本文へ足さない。COは疲労五値から条件成立／非成立・本人快感／休息選択・回復因果／報告真偽確認を作らない。CN／CO併用・十一別表記／CL-CM空白記号との組合せ・他活動や疲労値は今回非包含。有限状態数は原資料供給／照合成功数ではない。
+- 六資料分離・原当時非書戻し・欠落非補完・同文でも各原資料／当時理解別保持、bo原expression別資料未供給未確認・実reply／現在coreから具体発話／身振り非復元、actualSpeech設定由来と実発話の区別、newTeaching/newLearning/newExperience=falseを継承。候補統合／反復集約を採用しない。今回bo現所有条件・本体保持欄／fixture新scene活動・疲労枝とworld初期fatigueを静的読取しただけ。core理解／応答等の以前の読取を今回再読へ昇格しない。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。
+- 他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットCN／CO個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・4ed70c1後のユーザー「どちらも採用でOKです」でCJ／CKの各対象＋条件付き本文を双方採用。既存十一別表記・初期系統・各short/gesture、二意味とも不足のCJ mask=3（二関係適用可能）に「何かを伝えられたけれど、何のことか分からなかった。」、CK mask=7/11/15（関係も不足）に「言われたことが分からなかった。」。原report／出所ありとpartial／主体aspect=null・出所欠落を分け、CK三配置も原資料／当時理解別保持。前回有限範囲・必要原資料条件・全除外を維持、原資料未供給未照合・bo全範囲／4e全体未完。従前全採用維持・再採用不要。下のCJ／CK未採用は履歴。
 - **次の相談CL／CM（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureのmissing-knowledge-single-punctuationを静的参照。player／日本語／単独／順序なし・各short/gesture、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。comfortable/rest/report/conditionの入力前単純記録有無の十五不足配置（mask=1〜15、scope不適用非包含）・当時complete=falseを必要原資料で確認し、下表の原入力だけへ本文方針を個別相談する。av BPの完全理解採用をboへ自動転用しない。
 
