@@ -4843,6 +4843,21 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・8f00a32後のユーザー「どちらも採用でOKです」でFM／FNの各追加対象への既採用二本文適用を双方採用。好き／嫌いの有限原表記各24から基本各一つを除いた各23、初期系統・shortだけ・当時完全理解。前回必要原資料・原主語助詞語尾／当時理解／実応答別保持・一般対象／全条件除外を維持。従前全採用維持・再採用不要、下のFM／FN未採用は履歴。
+- **次の相談FO／FP（双方未採用）**：[az好悪報告の所有条件](#diary-preference-reports-az)と既存fixture existing-trim-and-terminal-punctuationのja三例を静的参照。基礎原文は「木の実が好き」だけ、player／日本語／単独／条件順序なし・shortだけ。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と実reply=acknowledge／observationなしを確認できる場合だけ適用。
+
+| 相談案（各未採用） | 今回追加する原入力の範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| FO | 基本原文の前後にU+0020を各一個、終端記号なし。ちょうど「 木の実が好き 」 | 木の実が好きだと聞いた。 |
+| FP | 基本原文の末尾に単一「。」または半角「!」（U+0021）一個、前後空白なし。ちょうど「木の実が好き。」「木の実が好き!」 | 木の実が好きだと聞いた。 |
+
+- 入力当時like意味・berry意味・report関係が今回適用可能、単独frame report／catalogRule=preference／aspect=preference、understanding.kind=report／complete=true／known={meaning:like}／relations=[report]／unresolved=[]／subject=player／polarity=positive／eventTime=unspecified／aspect=preference／conditionStatus=null。target={candidates:[{id:berry,source:explicit}],adopted:{id:berry,source:explicit}}、原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}を要求する。原空白記号と当時理解を別保持し、半角!を全角！に書き換えない。同じ本文でも三原入力の原資料／当時理解／実応答を別保持し反復集約しない。
+- 一般意味berryを入力注目berry:1や名付け個体へ限定せず、source=experienceや個体evidenceを新造しない。unspecifiedを現在／過去／継続好悪にせず、半角!から強い好意／感情／同意受諾を補わない。発言者playerの報告と日記主体本人の好悪・欲求・選択を分け、本人好悪食事欲求／満腹／真偽確認／拒否行動／食事中止／予定実不実行／完了／共同参加へ変換しない。acknowledgeを同意にしない。後知識／後名付けで原対象や理解を書き戻さない。
+- az原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。status=reported／verified=false・newTeaching/newLearning/newExperience=falseを保持。捕捉時非追加を先行経験消去にしない。
+- FO／FP併用・片側空白／全角空白／複数空白／他空白・全角！／複数記号／疑問符／句点後空白・嫌い基本文／FM-FN残表記との組合せ・gesture・他scene注目活動空腹疲労値・個体名／別対象・他話者他言語／不足理解bs／scope不適用／否定好悪ba・条件順序複数節等は非包含。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS az行と指定・az所有条件／capture理解応答保持欄・preference fixture ja基本定義と単独空白記号／拒否対照枝・core初期設定/resolveTarget限定枝。初期world条件と実応答分岐は既読条件参照、全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットFO／FP回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・6decf31後のユーザー「はい、どちらも採用でOKです」でFK／FLの各対象＋条件付き本文を双方採用。FK基本「木の実が好き」各short/gesture／FL基本「木の実が嫌い」shortだけ、前回当時完全理解・一般意味berry/source explicit・原speaker_report・必要原資料／実応答・全条件除外を維持。従前全採用維持・再採用不要、下のFK／FL未採用は履歴。
 - **次の相談FM／FN（双方未採用）**：[az好悪報告の所有条件](#diary-preference-reports-az)と既存fixture japanese-existing-preference-formsを静的参照。player／日本語／単独／条件順序なし・空白記号なし、shortだけ。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と実reply=acknowledge／observationなしを確認できる場合だけ適用。有限原表記は「主語なし／私は／わたしは」×「木の実」×「が／は」×「好きまたは嫌い」×「語尾なし／だよ／です／だ」。主語・助詞・語尾の原表記と当時理解を別保持する。
 
