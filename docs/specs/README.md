@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・8068133後、[4e BB／BC](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はdg単独「おはよう」・当時report関係不足のBD short設定／BE gesture設定、各本文「言われたことが分からなかった。」を個別相談（双方未採用）。両設定とも原expression=gesture/attend・実reply=attendの系統で、設定と実発話を混同しない。既存clearing／shade休息中・必要原資料条件と除外は正本。六資料分離・欠落非補完、原資料未供給未照合・実装未着手。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・f5a7ea0後、[4e AZ／BA](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はat既存のshore・注目対象なし・休息中「おはよう」でBB short／実good_morning、BC gesture／実attendの各本文「挨拶された。」を個別相談（双方未採用）。当時完全理解と必要原資料整合・除外は正本。未完理解／複数節非包含。六資料分離・欠落非補完、個別原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・7f00e9b後、[4e AX／AY](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はatのAZ前後各一個半角空白付き「 おはよう 」／BA shore・注目対象なし・idleでの「おはよう」、各short/gesture・本文「挨拶された。」を個別相談（双方未採用）。必要原資料条件・有限範囲・除外は正本。既採用維持・六資料分離・欠落非補完、個別原資料未供給未照合・実装未着手。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、同チャット回答待ち・冒頭文非出力。以下は過去状態。
