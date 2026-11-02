@@ -11,11 +11,12 @@
     function missingReportScope(receipt) {
         const reports = receipt.inputKnowledge.relations.filter(item => item.id === 'report');
         const world = receipt.beforeWorld;
-        // BD/BE: no report record. BF/BG: the two original, rest-only learned
+        // BD/BE and BH/BI: no report record. BF/BG: the two original, rest-only learned
         // scopes with their experience evidence; a matching ID alone is insufficient.
         if (!reports.length) return world.mode === 'rest' && world.attention === 'shade'
             && world.hunger === .8 && world.fatigue === .7;
-        return world.mode === 'idle' && world.attention === null && reports.length === 2
+        return /^おはよう$/u.exec(receipt.input.raw)?.[0] === receipt.input.raw
+            && world.mode === 'idle' && world.attention === null && reports.length === 2
             && ['self', 'player'].every(subject => reports.filter(item => item.source === 'experienced_relation'
                 && equal(item.scope, { kind: 'report', locale: 'ja', speaker: 'player', meaning: 'rest',
                     form: catalog.reportTeaching.ja[subject].utterance,
@@ -26,7 +27,8 @@
     function inScope(result, receipt) {
         const input = result.input, context = receipt.inputContext;
         const u = result.understandings[0];
-        return typeof input.raw === 'string' && /^おはよう$/u.exec(input.raw)?.[0] === input.raw
+        return typeof input.raw === 'string'
+            && /^(?:おはよう|おはようございます！)$/u.exec(input.raw)?.[0] === input.raw
             && input.speaker === 'player' && input.locale === 'ja'
             && context.scene === 'clearing' && equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
             && ['short', 'gesture'].includes(receipt.beforeState.settings.speech)
@@ -37,7 +39,7 @@
             && equal(result.expression, { channel: 'gesture', message: 'attend' })
             && equal(receipt.reply, { message: 'attend' });
     }
-    // Read-only BD/BE and BF/BG display projection. The existing owner verifies all six
+    // Read-only BD/BE, BF/BG and BH/BI display projection. The existing owner verifies all six
     // source categories on copies; missing originals are never inferred here.
     function render(record, result, receipt) {
         try {

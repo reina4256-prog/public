@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 現行継続文（a13bd4b続き・4e BH／BI独立文章化）
+
+全Node148/148ファイル・3615件（監査97／工具16含む）、専用11・変更3JS構文・構造監査・七言語14959通過。原run word-verification-kxTjkTは制限内renderer GPU起動失敗後ERR_FAILED／exit1によりincomplete、reviewRequired=[]・reading.not_recordedを原値保持。別権限renderer12正例／12改変拒否／84翻訳成功・手動依存照合と合わせBH／BI単位の必要残検証なしを分離します。旧6R0llK／ff1Qioと今回途中s3yqanも非置換保持。全体完了・歴史原本供給・実ゲーム通し確認ではありません。
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、4eの段階実装を続けてください。a13bd4bの続きとして既採用BH／BIだけをexperimental_word_diary_incomplete_greeting_prose.jsへ追加しました。原「おはようございます！」・report記録なし・既存shade休息条件だけを対象とし、BF／BGのscope記録あり・今回不適用とは組み合わせません。専用11テスト通過、横断回帰・監査・七言語・関連rendererの確定結果と残検証・発行結果は現行handoffを確認し、必要残検証があれば先に整理してください。その後、次の既採用範囲（候補BJ／BK）を必要所有節・依存から限定して独立文章化・検証へ進めてください。既採用文言の再採用不要。六資料分離・原当時非書戻し／欠落非補完・全既採用／全維持条件／全14保留／未検証・am／cp／cq／散策区別を保持。原run 6R0llKのincompleteと別権限renderer成功／手動依存照合、旧ff1Qioのincomplete／自動reviewRequiredを非置換保持し、今回runとも区別してください。BのS6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認・未供給・未照合・供給進展0。新fixtureは歴史原本供給ではありません。帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、140/140枠・129子・138登録API・ao〜dy人間OK維持。実ゲーム日記生成・実UI／音声・保存再開・配布未検証を昇格しないでください。4d12／4e全体完了・4f移行とは扱わず、本接続／保存／反復集約／途中記録へ一括拡張しないでください。全体量削減なし・今後増減理由記録・固定総数未確定。長くなる区切りでは次チャットへ移り、必ず冒頭文を出力してください。以下は過去状態。
+
 ## 現行継続文（09fa7ca続き・4e BF／BG独立文章化）
 
 今回全Nodeは148/148ファイル・3612件（監査97／工具16含む）通過、変更3JS構文・構造監査・七言語14959通過。原run word-verification-6R0llKは制限内rendererのGPU起動失敗／exit2147483651によりincomplete、reviewRequired=[]・reading.not_recordedを原値保持。別制限内失敗と別権限renderer8正例／8改変拒否／56翻訳成功・手動依存照合は別保存し、この単位の必要残検証なしと区別します。旧ff1Qioのincomplete／自動reviewRequiredも非置換保持。全体完了／歴史原本供給／実ゲーム通し確認ではありません。

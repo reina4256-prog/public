@@ -11,6 +11,10 @@ function scopedExamples() {
 }
 function examples() {
     return ['short', 'gesture'].flatMap(speech => [false, true].map(life =>
-        hear(setup({ speech, life, foundation: false }), 'おはよう'))).concat(scopedExamples());
+        hear(setup({ speech, life, foundation: false }), 'おはよう'))).concat(scopedExamples(), aliasExamples());
 }
-module.exports = { examples, scopedExamples };
+function aliasExamples() {
+    return ['short', 'gesture'].flatMap(speech => [false, true].map(life =>
+        hear(setup({ speech, life, foundation: false }), 'おはようございます！')));
+}
+module.exports = { examples, scopedExamples, aliasExamples };
