@@ -4843,6 +4843,19 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・c3b8eea後のユーザー「はい、どちらも採用でOKです」でDI／DJの各対象＋三不足状態別条件付き本文を双方採用。bp基本文・各short/gesture、DI shore入力注目なし・五活動fatigue=.15、DJ初期clearing／berry:1注目・idle・疲労五値、単純記録有無mask1/2/3だけ。前回必要原資料条件・三文言・全除外を保持し、活動疲労から重要性理解／必要性／選択出所／実行完了／回復等を補わない。従前全採用維持・再採用不要。bp全体や4e全体の完了ではなく、下のDI／DJ未採用は履歴。
+- **次の相談DK／DL（双方未採用）**：[ax所有条件](#diary-rest-explanation-reports-ax)と既存fixtureのeight-settings内foundation=true／life=trueの二設定だけを静的参照。ここでのDK／DLは4e相談ラベルで既存4d12dk/dl部品変更ではない。直前原入力がちょうど「休むことは大事」、今回原入力がちょうど「体力や眠気が回復するから」。両入力ともplayer／日本語／単独／条件順序なし・接頭語尾／空白記号なし。inputContextはclearing／attention=[{id:berry:1,meaning:berry}]、今回beforeWorld.mode=idle／attention=null・fatigue=.15の既存初期系統で、直前原資料と今回原資料を別保持する。
+- 直前当時はrest/report適用可能だがimportance未理解（report／known={meaning:rest}／relations=[report]／unresolved=[detail(importance)]／complete=false・原speaker_reportあり）。今回当時はrest/report/reason適用可能だがrecovery_explanation detailだけ未理解（kind=report／known={meaning:rest}／relations=[report,reason]／unresolved=[{type:detail,token:recovery_explanation}]／complete=false・subject=player／positive／unspecified・aspect/conditionStatus=null・今回原speaker_reportあり）。必要三引数原receipt、直前の平坦antecedent原result／receipt、双方の独立input/knowledge/context・前後state/world・実reply整合、直前IDと今回直前turn全文一致、直前当時known.meaning=restを確認できる場合だけ、次の各対象＋本文を個別相談する。欠けた直前資料を今回beforeStateや後知識で復元しない。
+
+| 相談案（各未採用） | 対象設定／実応答（直前と今回） | 条件付き日記本文（今回分） |
+| --- | --- | --- |
+| DK | speech=short、直前／今回とも実reply.message=heard_rest_partial・observationなし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| DL | speech=gesture、直前／今回とも実reply.message=attend・observationなし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- reason適用可能を具体的な体力／眠気の回復内容・回復因果の理解へ変換せず、「休むと体力や眠気が回復すると聞いた」等へ全文理解を補わない。直前importance未理解を今回説明で埋めず、直前への明示因果参照／納得／同意や本人休息開始完了／実回復／真偽確認を新造しない。直前と今回の同文本文を統合せず、原入力・当時理解・未解決理由・原出所・実応答別保持。今回antecedent照合条件を他全例へ直前world不変の新制限として一般化しない。
+- 他の直前rest発言／別話者・別表記接頭語尾／空白記号・scene注目活動疲労変化・rest/report/reason不足（bq）／scope不適用・条件順序複数節は今回非包含。六資料分離・原当時非書戻し・欠落非補完、ax captured原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元、status=reported／verified=false・newTeaching/newLearning/newExperience=falseを継承。同文のaw/bp等とも当時理解／未解決理由を別保持、反復集約非採用。
+- 今回実読取は現行先頭routing／最初継続文・VALIDATION・OWNERS ax行・ax所有条件／本体のreplay/captureとfixture、catalog rest_explanationとworld実応答枝の限定箇所。初回出力省略部分／残候補全所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体量削減なし・今後増減理由記録・固定総数未確定、他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットDK／DL個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・ad517bc後のユーザー「はい、どちらも採用でOKです」でDG／DHの各対象＋三不足状態別条件付き本文を双方採用。基本文のDG前後半角空白各一個／DH単一終端「。／！」・初期条件・各short/gesture・単純記録有無mask1/2/3だけ。前回必要原資料条件・各文言・全除外、原空白記号／当時理解／原出所有無／実応答別保持を維持。従前全採用維持・再採用不要、下のDG／DH未採用は履歴。
 - **次の相談DI／DJ（双方未採用）**：[bp所有条件](#diary-incomplete-rest-value-reports-bp)と既存fixtureのmissing-knowledge-activity-empty-attention／missing-knowledge-fatigue-no-importance-inferenceを静的参照。ここでのDI／DJは4e相談ラベルで既存4d12di/dj部品変更ではない。共通は原入力がちょうど「休むことは大事」・player／日本語／単独／条件順序なし・空白記号なし、各short/gesture・単純記録有無mask1/2/3だけ、beforeWorld.attention=null。原frame report/rest_value/rest/importanceと当時理解を分け、complete=false・importance未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・独立input/knowledge/context・前後state/world・原understanding／実reply全文整合を確認できる場合だけ、各対象へ下の三不足状態別本文を適用することを個別相談する。
 

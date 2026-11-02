@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- [4e現行相談](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・c3b8eea後、DI／DJ双方採用・前回三不足状態別文言／全条件除外維持。次はax直前「休むことは大事」・今回「体力や眠気が回復するから」の既存初期系統、recovery_explanation detailだけ未理解をDK short／実heard_rest_partial、DL gesture／実attendの各対象＋休む部分理解文で個別相談、双方未採用。4e相談ラベルで既存4d12dk/dl非変更。直前平坦原資料との別照合・原資料条件・文言・全除外は正本、reason既知を具体回復因果理解へ変換しない。六資料分離・原資料未供給未照合・文章化実装未着手、全体量削減なし・今後増減理由記録・固定総数未確定。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - [4e現行相談](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・ad517bc後、DG／DH双方採用・前回三不足状態別文言／全条件除外維持。次はbp基本文のDI shore入力注目なし・五活動状態fatigue=.15／DJ初期clearing・idle・疲労五値を各short/gesture・三不足状態別本文で個別相談、双方未採用。4e相談ラベルで既存4d12di/dj非変更。原資料条件・文言・全除外は正本。六資料分離・原当時非書戻し・欠落非補完・同文でも別保持、原資料未供給未照合・文章化実装未着手、全体量削減なし・今後増減理由記録・固定総数未確定。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - [4e現行相談](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・db76b36後、DD／DE／DF三案採用・前回全条件除外維持。次はbp基本文のDG前後半角空白各一個／DH単一終端「。／！」を、既存初期条件・各short/gesture・単純記録有無三不足状態別本文で個別相談、双方未採用。4e相談ラベルで既存4d12dg/dh非変更。原資料条件・文言・全除外は正本。六資料分離・原当時非書戻し・欠落非補完・同文でも別保持、原資料未供給未照合・文章化実装未着手、全体量削減なし・今後増減理由記録・固定総数未確定。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャット回答待ち・冒頭文非出力。以下は過去状態。
