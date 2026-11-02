@@ -4843,6 +4843,22 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・58cdbff後のユーザー「はい、どちらも採用でOKです」でGH／GIの各追加対象への既採用不足別本文適用を双方採用。基本「木の実が好き」・初期入力注目・一般berry対象解決済み・各三不足配置各short/gesture、GH五活動hunger=.35／GI idle空腹五値。前回必要原資料・活動空腹と当時理解／原出所有無／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のGH／GI未採用は履歴。
+- **次の相談GJ／GK／GL（三案とも未採用）**：[bs好悪報告の意味・report関係不足の所有条件](#diary-incomplete-preference-reports-bs)と既存fixture missing-target-meaning-not-sufficientのmask=1/2/3枝を静的参照。原入力はちょうど「木の実が好き」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。入力前berry意味記録なし・原対応根拠なし、当時target={candidates:[],adopted:null}。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と対象未解決を確認できる場合だけ適用。対象未解決だけのmask=0はbs非成立・保留のまま、今回は好悪意味／report不足との併存だけを個別相談する。
+
+| 相談案（各未採用） | 当時の不足配置・理解と実応答 | 条件付き日記本文 |
+| --- | --- | --- |
+| GJ | mask=1＋berry記録なし。like意味記録なし、report適用可能。report／known={}／relations=[report]／subject=player／aspect=preference・原speaker_reportあり。unresolvedはmeaning token=好き、次にtarget candidates=[]。実replyは両設定attend | 何かを伝えられたけれど、何のことか分からなかった。 |
+| GK | mask=2＋berry記録なし。like意味既知、report関係記録なし。partial／known={meaning:like}／relations=[]／subject/aspect=null・原reportSource欠落。unresolvedはreport関係、次にtarget candidates=[]。実replyはshort uncertain／gesture attend | 「好き」の意味は分かったけれど、言われたことは全部は分からなかった。 |
+| GL | mask=3＋berry記録なし。like意味とreport関係の両記録なし。partial／known={}／relations=[]／subject/aspect=null・原reportSource欠落。unresolvedはreport関係、meaning token=好き、target candidates=[]の原順。実replyは両設定attend | 言われたことが分からなかった。 |
+
+- 全案単独frame report／catalogRule=preference／aspect=preferenceと当時理解を分離、complete=false／polarity=positive／eventTime=unspecified／conditionStatus=null／observationなし。GJ原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}ありとGK/GL欠落を別保持。原unresolvedのmeaningは{type:meaning,field:meaning,token:好き}、targetは{type:target,candidates:[]}で、berry意味記録なしを別のmeaning unresolvedへ新造しない。targetオブジェクトのadopted:nullをtarget全体nullや一般berry採用へ変えず、原候補なしを個体候補ありへ補わない。
+- 入力注目のberry:1／meaning:berry、原文「木の実」、現在知識や後名付けから対象理解を補わず、「木の実のことは分かった」とは書かない。GKもlike語義の当時理解だけを本文にし、何が好きか・主体／好悪aspect／出所・好悪報告全体理解を補わない。GJ/GLは原「好き」から語義理解を補わない。単純な原記録なしと学習scope不適用を統合せず、本人好悪／満腹／食事欲求／味経験／真偽／拒否行動／食事中止／予定実不実行／完了／同意受諾／共同参加／相互好意・unspecifiedへの現在過去／継続性を補わない。同文でも原資料／当時理解／不足／原出所有無／実応答別保持、反復集約なし。
+- bs原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。actualSpeechは入力前short設定由来でGJ/GLを実発話にしない。azのstatus=reported／verified=falseをbsへ新造しない。captureのnewTeaching/newLearning/newExperience=falseは捕捉時非追加で先行経験消去にしない。
+- GJ／GK／GL併用・対象だけ未解決／他対象語／個体名根拠や競合・嫌い／GD-GE残表記／GF-GG空白記号／GH-GI活動空腹との組合せ・他scene注目活動空腹疲労値／他話者他言語／scope不適用／否定好悪ba/bt・条件順序複数節等は非包含。対象だけ未解決はbs非成立・保留のまま。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS bs行と指定・bs所有条件／capture意味関係不足guardと保持欄・incomplete preference fixture make／berry意味記録除去の対象不足枝・core resolveTarget/understand/express限定枝。出力省略部分／全残候補所有節未読、初期world／実応答末尾は既読条件参照。取得／生成／再生・receive/respond/capture未実行。同チャットGJ／GK／GL回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・1d3c333後のユーザー「はい、どちらも採用でOKです。」でGF／GGの各追加対象への既採用不足別本文適用を双方採用。基本「木の実が好き」・初期系統・一般berry対象解決済み・各三不足配置・各short/gesture、GF前後U+0020各一個／GG単一終端句点または半角! U+0021。前回必要原資料・原空白記号／当時理解／原出所有無／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のGF／GG未採用は履歴。
 - **次の相談GH／GI（双方未採用）**：[bs好悪報告の意味・report関係不足の所有条件](#diary-incomplete-preference-reports-bs)と既存fixture activity-not-preference-or-action／hunger-not-speaker-truthの不足枝を静的参照。原入力はちょうど「木の実が好き」、player／日本語／単独／条件順序なし・空白記号なし、各三不足配置mask=1/2/3・各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=null・fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と対象解決を確認できる場合だけ適用。berry意味既知・target候補/採用とも{id:berry,source:explicit}の一般対象を要求。
 
