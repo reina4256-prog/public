@@ -4843,6 +4843,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・7b986b8後のユーザー「はい、どちらも採用でOKです」でCX／CYの各対象＋条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。CX基本文・五活動状態fatigue=.15・各short/gesture、CY基本文idle・疲労五値shortだけ。前回必要原資料条件・全除外を維持し、活動疲労から重要性理解・休息の必要性／選択出所／実行完了／回復等を補わない。従前全採用維持・再採用不要、下のCX／CY未採用は履歴。
+- **次の相談CZ／DA（双方未採用）**：[bp所有条件](#diary-incomplete-rest-value-reports-bp)・既存fixtureのexisting-forms-knowledge-matrixから基本文二不足配置だけを静的参照。ここでのCZ／DAは4e相談ラベルで既存4d12cz/da部品変更ではない。共通は原入力がちょうど「休むことは大事」・player／日本語／単独／条件順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・fatigue=.15、各short/gesture。単純な記録有無だけで、scope不適用を含めない。単独原frame.kind=report／catalogRule=rest_value／meaning=rest／detail=importanceと本人理解を分け、importanceは双方未理解・complete=false・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・独立input/knowledge/context・前後state/world・原understanding／実reply全文の整合で確認できる場合だけ、次の各対象＋本文を個別相談する。
+
+| 相談案（各未採用） | 追加する対象範囲と当時理解 | 条件付き日記本文 |
+| --- | --- | --- |
+| CZ | rest意味記録だけなし・report関係は適用可能（mask1）。kind=report／known={}／relations=[report]／subject=player・原speaker_reportあり。unresolvedはmeaning(field=meaning,token=rest)、detail(token=importance)の原順。short/gestureとも実reply=attend | 何かを伝えられたけれど、何のことか分からなかった。 |
+| DA | report関係記録だけなし・rest意味は適用可能（mask2）。kind=partial／known={meaning:rest}／relations=[]／subject=null・原reportSource欠落。unresolvedはrelation(id=report)、detail(token=importance)の原順。short実reply=uncertain／gesture実reply=attend | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- CZの報告理解とDAの出所欠落を混ぜず、候補kind=reportを本人の報告理解成立にしない。原frameや実話者からDAの主体／出所を復元せず、importance未理解・回復因果・本人休息選択開始継続完了・真偽等を補わない。同文のaw等とも原資料／当時理解／未解決理由を別保持。両前提不足mask3・scope不適用・他表記／空白記号／scene注目活動疲労との組合せは今回非包含、bp全体完了ではない。
+- 六資料分離・原当時非書戻し・欠落非補完を継承。bp capturedは原expression欄なし・別資料未供給未確認、実reply／現在coreから具体発話身振りを復元しない。actualSpeechは入力前speech設定由来で、CZのshortも実発話の証明にしない。newTeaching/newLearning/newExperience=falseを保持し、bpにawのstatus=reported／verified=falseを新造しない。今回実読取は現行先頭routing／最初継続文・VALIDATION・OWNERS bp行・bp所有条件／本体／fixture・関連test部分、継承aw/setupとcore understand／reportSource／express・world応答の限定枝。出力省略部分／全残候補所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体像の増減可・理由記録・固定総数未確定を維持。他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットCZ／DA個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・1bf6f8d後のユーザー「はい、どちらもさいようでOKです。」でCV／CWの各対象＋条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。CV前後半角空白各一個／CW単一終端「。／！」、既存初期系統・short／実heard_rest_partialだけ。前回必要原資料条件・全除外を維持し、空白記号から重要性理解／同意／感情等を補わない。従前全採用維持・再採用不要、下のCV／CW未採用は履歴。
 - **次の相談CX／CY（双方未採用）**：[aw所有条件](#diary-rest-value-reports-aw)と既存fixtureのactivity-does-not-prove-importance／fatigue-does-not-resolve-importance-or-causeを静的参照。ここでのCX／CYは4e相談ラベルで、既存4d12cx/cy部品変更ではない。共通は原入力がちょうど「休むことは大事」・player／日本語／単独／条件順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=null。当時rest意味とreport関係は適用可能、kind=report／complete=false／known={meaning:rest}／relations=[report]、unresolved=[{type:detail,token:importance}]だけ、subject=player／positive／unspecified・aspect/conditionStatus=null・原speaker_reportあり。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で確認できる場合だけ、次の各対象＋本文を個別相談する。
 
