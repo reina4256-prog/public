@@ -4843,6 +4843,27 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・ced3ccc後のユーザー「はい、いずれも採用でOKです」でFD／FEの各追加対象への不足配置別三文適用を双方採用。二基礎原文・各十五不足配置・各short/gesture、FD前後U+0020各一個／FE単一終端「。／！」。前回必要原資料・三文言・原空白記号／表記と当時理解別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFD／FE未採用は履歴。
+- **次の相談FF／FG（双方未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と既存fixture missing-knowledge-activity-empty-attention／missing-knowledge-hunger-no-satiety-inferenceを静的参照。原入力はちょうど「今は食べたくない」、player／日本語／単独／条件順序なし・空白記号なし、各十五不足配置mask=1〜15・各short/gesture。beforeWorld.attention=null・fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で各当時理解と実応答を確認できる場合だけ適用。単独frame report／catalogRule=not_now／meaning=eat／aspect=desireと当時理解を分離する。
+
+| 相談案（各未採用） | 今回追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| FF | inputContext.scene=shore／attention=[]、beforeWorld.mode=observe/eat/rest/work/walkの五状態・hunger=.35。各十五不足配置・各short/gesture | 下表の不足配置別三文を適用 |
+| FG | inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle・hunger=0/.25/.5/.75/1の五値。各十五不足配置・各short/gesture | 下表の不足配置別三文を適用 |
+
+| 当時の不足配置 | 保持する理解・実応答 | 条件付き日記本文 |
+| --- | --- | --- |
+| mask=1 | eat意味だけ記録なし。report／known={}／relations=[report,negation,time]／subject=player／negative／now／desire・原speaker_reportあり。実replyは両設定attend | 何かを伝えられたけれど、何のことか分からなかった。 |
+| mask=2/4/6/8/10/12/14 | eat意味既知・関係一つ以上記録なし。partial／known={meaning:eat}／subject/aspect=null・原reportSource欠落。実replyはshort uncertain／gesture attend | 食べることは分かったけれど、言われたことは全部は分からなかった。 |
+| mask=3/5/7/9/11/13/15 | eat意味と関係一つ以上記録なし。partial／known={}／subject/aspect=null・原reportSource欠落。実replyは両設定attend | 言われたことが分からなかった。 |
+
+- 全配置complete=false・target/conditionStatus=null・observationなし。mask bit1=eat、2=report、4=negation、8=timeの記録なし。relationsは[report,negation,time]のうち不足でないものを原順、polarityはnegation不足ならunknown／他negative、eventTimeはtime不足ならunspecified／他原発言時点now。unresolvedは不足関係report→negation→time、eat不足時はその後に{type:meaning,field:meaning,token:eat}を原順保持。同文でも場面・活動・空腹の原資料／当時理解／実応答を別保持し、本文反復集約にしない。
+- world活動や空腹値を原発言主体playerの欲求／満腹／真偽の証拠にせず、eat状態でも拒否行動／食事中止／完了／食べない予定／実不実行を補わない。shore場面差を移動到着や無視の経験にせず、rest/work/walk等の開始継続完了・選択出所を新造しない。道への移動開始と散策開始完了を分け、休息選択出所を散策へ転用しない。意味／否定／時点／主体／欲求aspect／出所の欠落を原frame・実話者・原文・原時刻・後知識から補わず、nowを再読時現在／継続不要にしない。本人欲求好悪／同意受諾／具体対象を補わずtarget=nullを注目sceneから埋めない。「今は食べたくないと聞いた。」へ完全理解化しない。
+- br原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。actualSpeechは入力前short設定由来で実発話の証明にせず、ayのstatus=reported／verified=falseをbrへ新造しない。captureのnewTeaching/newLearning/newExperience=falseは捕捉時非追加で先行学習経験を消さない。
+- FF／FG併用・別原文「今はいらない」／FD-FE空白記号との組合せ・他scene注目活動空腹疲労値／scope不適用／他話者他言語／条件順序複数節等は非包含。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS br行と指定・br所有条件／capture保持欄・ay原文定義／br fixture基本行列と活動空注目／空腹枝・greeting setup/hear・core understand/express/react/reportSource・world初期値／応答末尾限定枝。全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットFF／FG回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・09af345後のユーザー「はい、いずれも採用でOKです」でFA／FB／FCの各対象への条件付き本文適用を三案とも採用。第二原文「今はいらない」のFA eatだけ不足／FB eat既知で関係不足七配置／FC eatと関係不足七配置。前回必要原資料・三文言・全配置別の当時理解／原出所有無／実応答・原表記別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFA／FB／FC未採用は履歴。
 - **次の相談FD／FE（双方未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と既存fixture missing-knowledge-single-punctuationを静的参照。基礎原文は「今は食べたくない」「今はいらない」の二つだけ、player／日本語／単独／条件順序なし、各short/gesture、各十五不足配置mask=1〜15。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と各不足配置を確認できる場合だけ適用。単独frame report／catalogRule=not_now／meaning=eat／aspect=desireと当時理解を分離する。
 
