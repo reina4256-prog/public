@@ -4843,6 +4843,21 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・4a82b56後のユーザー「いずれも採用でOKです。」でFQ／FR／FSの各追加対象への既採用本文適用を三案とも採用。基本「木の実が好き」・当時完全理解、FQ shore注目なしidle原時刻987654321 short／FR初期入力注目五活動各short/gesture／FS初期入力注目idle空腹五値short。前回必要原資料・一般対象／当時理解／場面活動空腹／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFQ／FR／FS未採用は履歴。
+- **次の相談FT／FU（双方未採用）**：[az好悪報告の所有条件](#diary-preference-reports-az)と既存fixture existing-lexical-target-resolution／real-name-single-targetを静的参照。player／日本語／単独／条件順序なし・空白記号なし。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context（名付け例は原対応根拠を含む）・前後state/world・実reply全文整合で当時理解と対象解決を確認できる場合だけ適用。
+
+| 相談案（各未採用） | 今回の原入力・対象と設定 | 条件付き日記本文 |
+| --- | --- | --- |
+| FT | ちょうど「食べ物が好き」、shortだけ。like意味・food意味・report関係が今回適用可能。target候補/採用とも{id:food,source:explicit}の一般対象。実reply=acknowledge・observationなし | 食べ物が好きだと聞いた。 |
+| FU | ちょうど「ポポが好き」、各short/gesture。like意味・report関係が今回適用可能。入力前、既存named({speech})の「これを「ポポ」と呼ぼう」に由来するplayerの原対応がberry:1に一つだけ成立し、撤回されていない原根拠がある。target候補/採用とも{id:berry:1,source:experience,evidence:原根拠input ID配列}。実replyはshort acknowledge／gesture attend・observationなし | ポポが好きだと聞いた。 |
+
+- 両案単独frame report／catalogRule=preference／aspect=preference、understanding.kind=report／complete=true／known={meaning:like}／relations=[report]／unresolved=[]／subject=player／polarity=positive／eventTime=unspecified／aspect=preference／conditionStatus=null、原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}を必要条件とする。FTの一般foodを木の実や注目個体に限定せず、FUの個体berry:1を一般berryや一般foodへ広げない。FU原入力の「ポポ」を原表記のまま使い、後名付けや現在知識で原対応・原evidenceを補わず、原候補/採用/source/evidenceを別保持する。名付けは当時の原対応根拠であり、今回の新名付け／語義新学習ではない。今回相談は好悪報告本文だけで、先行名付け回の日記本文は新採用しない。
+- 原発言主体playerの報告と日記主体本人の好悪・欲求・選択を分ける。FTの食べ物好きを食べる意味の理解／食事希望や実食へ変換せず、FUの個体名から人物や相互好意を作らない。本人好悪／味経験／満腹／真偽確認／拒否行動／食事中止／予定実不実行／完了・acknowledgeから同意受諾／同じ好悪／共同参加を補わず、unspecifiedを現在過去／継続好悪へ補わない。同じ本文でも原資料／当時理解／対象と原根拠／実応答別保持、反復集約なし。
+- az原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。status=reported／verified=false・newTeaching/newLearning/newExperience=falseを保持。捕捉時非追加を先行名付け学習／経験消去にしない。
+- FT／FU併用・FT gesture・FU別原名／複数対応／競合／撤回／別speaker根拠／入力注目なし／別場面・嫌い／別表記／空白記号／他scene注目活動空腹疲労値／他話者他言語／不足理解bs／scope不適用／否定好悪ba・条件順序複数節等は非包含。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS az行と指定・az所有条件／capture理解応答保持欄・preference fixture named単一根拠と一般food／実名単一枝・core resolveTarget・catalog food既存語義限定枝。初期world条件と実応答分岐は既読条件参照、全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットFT／FU回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・8cb502a後のユーザー「どちらも採用でＯＫです」でFO／FPの各追加対象への既採用本文適用を双方採用。基本「木の実が好き」・初期系統・shortだけ、FO前後U+0020各一個／FP単一終端句点または半角! U+0021。前回必要原資料・当時完全理解／原空白記号／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFO／FP未採用は履歴。
 - **次の相談FQ／FR／FS（三案とも未採用）**：[az好悪報告の所有条件](#diary-preference-reports-az)と既存fixture general-meaning-not-an-attended-individual／activity-not-preference-or-cancellation／hunger-not-satiety-or-speaker-verificationのja基本例を静的参照。原入力はちょうど「木の実が好き」、player／日本語／単独／条件順序なし・空白記号なし。beforeWorld.attention=null・fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と実応答を確認できる場合だけ適用。
 
