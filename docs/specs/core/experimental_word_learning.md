@@ -4843,6 +4843,22 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・9702756後のユーザー「はい、いずれも採用でＯＫです」でFX／FY／FZの各対象＋条件付き本文を三案とも採用。基本「木の実が好き」・初期系統・一般berry対象解決済み・各short/gesture、FX likeだけ不足／FY reportだけ不足／FZ両方不足。前回必要原資料・三配置の当時理解／主体aspect原出所有無／原不足／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFX／FY／FZ未採用は履歴。
+- **次の相談GA／GB／GC（三案とも未採用）**：[bs好悪報告の意味・report関係不足の所有条件](#diary-incomplete-preference-reports-bs)と既存fixture japanese-preference-matrixの基本嫌い三不足を静的参照。原入力はちょうど「木の実が嫌い」、player／日本語／単独／条件順序なし・空白記号なし、shortだけ。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と対象解決を確認できる場合だけ適用。berry意味既知・target候補/採用とも{id:berry,source:explicit}の一般対象を要求する。単独frame report／catalogRule=preference／aspect=preferenceと当時理解を分離する。
+
+| 相談案（各未採用） | 当時の不足配置・理解と実応答 | 条件付き日記本文 |
+| --- | --- | --- |
+| GA | mask=1、dislike意味記録だけなし、report適用可能。report／known={}／relations=[report]／unresolved=[{type:meaning,field:meaning,token:嫌い}]、subject=player／aspect=preference・原speaker_reportあり。実reply=attend・observationなし | 木の実のことは分かったけれど、言われたことは全部は分からなかった。 |
+| GB | mask=2、report関係記録だけなし、dislike意味既知。partial／known={meaning:dislike}／relations=[]／unresolved=[{type:relation,id:report}]、subject/aspect=null・原reportSource欠落。実reply=uncertain・observationなし | 木の実と「嫌い」の意味は分かったけれど、言われたことは全部は分からなかった。 |
+| GC | mask=3、dislike意味とreport関係の両記録なし。partial／known={}／relations=[]／unresolvedはreport関係、次にmeaning token=嫌いの原順。subject/aspect=null・原reportSource欠落。実reply=attend・observationなし | 木の実のことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- 全案complete=false／polarity=positive／eventTime=unspecified／conditionStatus=null。GA原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}ありとGB/GC欠落を別保持。嫌いはdislike意味の肯定報告で、negation不足や「嫌いではない」へ変換しない。GBは語義dislikeと対象berryの当時解決だけを本文にし、「木の実が嫌い」という結び付いた報告理解や好悪aspect／主体／出所を補わない。GA/GCは原文に「嫌い」があっても意味理解済みにしない。同文のGA/GCもkind/relations/主体aspect出所／原不足／実応答別保持、反復集約なし。「木の実が嫌いだと聞いた。」へ完全理解化しない。
+- 一般対象berryを注目berry:1や名付け個体にせず、単純記録なしと学習記録存在だがscope不適用を統合しない。本人好悪／食事欲求／味経験／満腹／真偽確認／拒否行動／食事中止／予定実不実行／完了／相互好意／同意受諾／共同参加を補わない。unspecifiedを現在過去／継続好悪へ補わず、後知識や後名付けで原理解／対象を書き戻さない。
+- bs原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。actualSpeechは入力前short設定由来で、GA/GCのshort設定を実発話にしない。azのstatus=reported／verified=falseをbsへ新造しない。captureのnewTeaching/newLearning/newExperience=falseは捕捉時非追加で先行経験消去にしない。
+- GA／GB／GC併用・gesture・対象不足併存／対象だけ未解決／個体名競合／他表記空白記号／他scene注目活動空腹疲労値／他話者他言語／scope不適用／否定好悪ba/bt・条件順序複数節等は非包含。対象だけ未解決はbs非成立・保留のまま。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS bs行と指定・bs所有条件／capture保持欄・incomplete preference fixture make(mask,speech,meaning)と日本語行列のshort/dislike枝・core understand/express/react/reportSource限定枝。初期world／一般対象解決は既読条件参照、全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットGA／GB／GC回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・4d3d962後のユーザー「はい、どちらも採用でＯＫです。」でFV／FWの各対象＋条件付き本文を双方採用。FV単一原対応／shore無注目の「ポポは嫌い」／FW二候補とberry:1一注目の「ポポが好き」、各short/gesture・当時完全理解。前回必要原資料・原候補／採用／source experience／各evidence／当時理解／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFV／FW未採用は履歴。
 - **次の相談FX／FY／FZ（三案とも未採用）**：[bs好悪報告の意味・report関係不足の所有条件](#diary-incomplete-preference-reports-bs)と既存fixture seven-locales-knowledge-matrixのja基本三不足を静的参照。4e内別所有系統の個別文章化相談でaz全体完了や残候補永久対象外化ではない。原入力はちょうど「木の実が好き」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と対象解決を確認できる場合だけ適用。今回はberry意味既知・target候補/採用とも{id:berry,source:explicit}の一般対象を要求し、対象だけ未解決はbs非成立・保留のまま。単独frame report／catalogRule=preference／aspect=preferenceと当時理解を分離する。
 
