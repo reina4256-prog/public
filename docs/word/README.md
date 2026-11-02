@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- [4e現行相談](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・db81641後、EM／EN双方採用・前回全条件除外維持。次はay「今はいらない」・当時eat/report/negation/time完全理解・各short/gestureを、EO初期系統／EP shore入力注目なし・原時刻987654321の各本文「今はいらないと聞いた。」で個別相談、双方未採用。「今」は原発言時点、本人満腹好悪／拒否行動／食事中止／対象補完等なし。必要原資料・文言・全除外は正本。六資料分離・原資料未供給未照合・文章化実装未着手、全体量削減なし・今後増減理由記録・固定総数未確定。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - [4e現行相談](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・152f891後、EK／EL双方採用・前回全条件除外維持。次はay基本文「今は食べたくない」・既存初期系統・当時eat/report/negation/time完全理解をEM short／実acknowledge、EN gesture／実attendの各対象＋本文「今は食べたくないと聞いた。」で個別相談、双方未採用。「今」は原発言時点、本人欲求満腹／好悪／食事中止／実不実行等非補完。必要原資料・文言・全除外は正本。4e内継続でbq／4e全体完了や次大工程移行なし。六資料分離・原資料未供給未照合・文章化実装未着手、全体量削減なし・今後増減理由記録・固定総数未確定。B停止／供給進展0・全維持条件／保留／集計・4d12全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - [4e現行相談](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・ff4dfd1後、EI／EJ双方採用・前回七不足配置別文言／全条件除外維持。次はbq既存学習後基本文・各short/gestureのEK実経験report scope不適用＋reason記録なし／EL実経験reason scope不適用＋report適用可能を各休む部分理解文で個別相談、双方未採用。直前資料の理解出所有無と今回partial欠落を別保持、単純記録なしへ統合しない。必要原資料・文言・全除外は正本。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。六資料分離・原資料未供給未照合・文章化実装未着手、全体量削減なし・今後増減理由記録・固定総数未確定。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャット回答待ち・冒頭文非出力。以下は過去状態。
