@@ -4843,6 +4843,21 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・a170b9d後のユーザー「はい、いずれも採用でOKです。」でFH／FI／FJの各対象への食べる部分理解本文適用を三案とも採用。実経験report／negation／timeの原学習記録存在と今回不適用、FHのnegation/time記録なしを区別。前回必要原資料・各学習履歴／当時理解／原出所欠落／実応答・原値／全条件除外を維持。従前全採用維持・再採用不要、下のFH／FI／FJ未採用は履歴。
+- **次の相談FK／FL（双方未採用）**：[az好悪報告の所有条件](#diary-preference-reports-az)と既存fixture seven-existing-locales-and-expressionのja基本例／japanese-existing-preference-formsの基本嫌い例を静的参照。4e内の別所有系統での個別文章化相談で、ay/br残候補の永久対象外化・両系統全体完了・次大工程移行ではない。player／日本語／単独／条件順序なし・空白記号なし。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解と実応答を確認できる場合だけ適用。
+
+| 相談案（各未採用） | 原入力・設定と当時理解 | 条件付き日記本文 |
+| --- | --- | --- |
+| FK | ちょうど「木の実が好き」、short/gesture。入力当時like意味・berry意味・report関係が今回適用可能、known={meaning:like}。実replyはshort acknowledge／gesture attend・observationなし | 木の実が好きだと聞いた。 |
+| FL | ちょうど「木の実が嫌い」、shortだけ。入力当時dislike意味・berry意味・report関係が今回適用可能、known={meaning:dislike}。実replyはacknowledge・observationなし | 木の実が嫌いだと聞いた。 |
+
+- 両案単独frame report／catalogRule=preference／aspect=preferenceと当時理解を別保持。understanding.kind=report／complete=true／relations=[report]／unresolved=[]／subject=player／polarity=positive／eventTime=unspecified／aspect=preference／conditionStatus=null。target={candidates:[{id:berry,source:explicit}],adopted:{id:berry,source:explicit}}、原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}を要求。一般意味berryを入力注目berry:1や名付け個体へ限定せず、source=experienceや個体evidenceを新造しない。FLの嫌いはdislike意味の肯定報告であり、否定文や「嫌いではない」へ変換しない。unspecifiedを現在／過去／継続好悪へ補わない。
+- 原発言主体playerの報告と日記主体本人の好悪・食事欲求・選択を分け、木の実を好き／嫌いになった、食べたい／食べたくない、食べる予定／拒否行動／食事中止／実不実行／完了・話者真偽確認へ変換しない。acknowledgeを同意受諾・同じ好悪・共同参加にせず、本人の味経験や満腹を足さない。同じ本文でも原資料／当時理解／実応答別保持、後知識／後名付けで原対象や理解を遡及変更しない。
+- az原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。status=reported／verified=false・newTeaching/newLearning/newExperience=falseを保持。捕捉時非追加を先行経験消去にしない。
+- FK／FL併用・FL gesture・他既存日本語表記／空白記号／他scene注目活動空腹疲労値・個体名／食べ物等別対象・他話者他言語／不足理解bs／scope不適用／否定好悪ba・条件順序複数節等は非包含。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS az行と指定・az所有条件／capture・preference fixture基本二原文と設定／対象解決一覧・greeting setup/hear・core resolveTarget/解析/express/react/reportSource・catalog ja preference定義・world初期値／応答末尾限定枝。出力省略部分／全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットFK／FL回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・e016550後のユーザー「どちらも採用でOKです」でFF／FGの各追加対象への不足配置別三文適用を双方採用。基本原文「今は食べたくない」・各十五不足配置・各short/gesture、FF shore入力注目なし五活動hunger=.35／FG初期clearing/berry:1入力注目idle空腹五値。前回必要原資料・三文言・場面差／活動空腹と当時理解／実応答別保持・全条件除外を維持。従前全採用維持・再採用不要、下のFF／FG未採用は履歴。
 - **次の相談FH／FI／FJ（三案とも未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と継承するay fixtureのreal-experienced-report/negation/time-scope-not-transferredを静的参照。原入力はちょうど「今は食べたくない」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合と、原学習記録の存在／今回scope不適用を確認できる場合だけ適用。学習済み記録があるが今回適用不能と、単純な記録なしを別保持する。単独frame report／catalogRule=not_now／meaning=eat／aspect=desireと当時理解を分離する。
 
