@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・79d8e43後、[4e BT／BU](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文の二意味既知・BV report関係だけ不足／BW condition関係だけ不足を、各対象＋本文「休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。」として個別相談（双方未採用）。有限範囲・必要原資料条件・除外は正本。BWも原partial／主体aspect=null・出所欠落を補わず、六資料分離・条件成立unknown、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・9a9e3ee後、[4e BR／BS](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のBT comfortable意味だけ不足／BU rest意味だけ不足、report/condition適用可能・各short/gestureの対象＋条件付き本文を個別相談（双方未採用）。有限範囲・原資料条件・文言は正本。原known欠落を原文から補わず、条件成立unknown・六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・1a81623後、[4e BP／BQ](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はBR av完全理解・疲労五値shortの「横になると気持ちいいと聞いた。」、BS bo基本文の二意味二関係すべて不足・short/gestureの「言われたことが分からなかった。」を個別相談（双方未採用）。有限範囲・原資料条件・除外は正本。疲労から条件成立や快感を補わず、BS欠落理解出所非補完。六資料分離・原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
