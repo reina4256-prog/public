@@ -15049,5 +15049,6 @@
   "下へ見る": "Mirar abajo",
   "星座の移動と拡大縮小": "Movimiento y zoom de la constelación",
   "空いている場所をドラッグして移動。ホイールやボタンで拡大縮小できます。星を選ぶと周囲に注目し、ほかの星と線も薄く残します。": "Arrastra una zona vacía para moverte. Usa la rueda o los botones para cambiar el zoom. Elige una estrella para destacar sus vecinas; las demás estrellas y líneas siguen visibles, atenuadas.",
-  "注目している言葉：{{0}}": "Palabra destacada: {{0}}"
+  "注目している言葉：{{0}}": "Palabra destacada: {{0}}",
+  "言われたことが分からなかった。": "No entendí lo que me dijeron."
 }

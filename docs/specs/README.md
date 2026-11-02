@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- [4e段階実装・BD／BE](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・91ad885続き。既採用dgの単独未完理解「おはよう」・既存shade休息初期条件だけを独立文章化。専用5テスト・七言語14959・別権限renderer4正例／4改変拒否／28翻訳通過。全回帰の確定結果は現行handoffへ記録。AV〜BC・全既採用／六資料分離／全維持条件／保留／未検証、B具体的取得参照まで再確認停止／供給進展0を維持。他本文・本接続等未実装、4d12／4e全体未完・4f非移行。下記は過去状態。
+
 - [4e残検証の整理](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・d3eee45続き。147登録ファイルを維持した全回帰の分割実行へ検証工具を補修。各区間の最終件数・完了／未完を保存し、確定結果は現行handoffを参照。AV〜BCの文章化実装・全既採用／全維持条件／保留・B再確認停止／供給進展0を維持。他本文未実装、4d12／4e全体未完、4f移行なし。下のtimeoutは旧runの結果。
 
 - [4e現行実装](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・c86d5ae後、段階実装承認。採用済みat AV〜BCの独立文章化部品を追加、専用検証と七言語表示通過。全回帰は1029248msでtimed_out／incomplete（監査含む全完了未確認、別runの工具14テスト通過）、最終結果は現行handoff。ゲーム本接続等は未実装、4e全体未完。既採用・全維持条件／保留・B再確認停止／供給進展0を保持。下の切替未承認／未着手は過去状態。

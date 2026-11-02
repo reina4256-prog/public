@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-11-02・91ad885続き：[4e正本](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の既採用BD／BEだけを独立文章化。専用5・七言語14959・別権限renderer通過、全回帰は現行handoff参照。AV〜BC・全既採用・六資料分離・原当時非書戻し／欠落非補完・全14保留・未検証を維持。新fixtureは歴史原本供給ではなく、BのS6EUsK／session58391は具体的既存取得参照まで再確認停止／供給進展0。ゲーム本接続／保存／反復集約／途中記録未実装、4d12／4e全体未完・4f非移行。以下は過去状態。
+
 - 2026-11-02・d3eee45続き：4e挨拶AV〜BCの残検証を先に整理し、147登録ファイルを保持した分割全回帰へ工具補修。確定結果は現行handoffと[正本4e](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)参照。既採用本文の再採用なし、新対象未実装。六資料分離・全14保留・未検証とBのS6EUsK／session58391具体的取得参照まで再確認停止／供給進展0、4d12／4e全体未完・4f非移行を維持。下のtimeoutは旧runの結果。
 
 - 2026-11-02現行：4e段階実装承認、at AV〜BCの独立文章化部品を追加。専用検証通過、全回帰は1029248msでtimed_out／incomplete（監査含む全完了未確認、別runの工具14テスト通過）。ゲーム本接続・保存等は未実装。4d12／4e全体未完、他採用済み本文は未実装。全保留・未検証とBのp最終S6EUsK／session58391再確認停止・供給進展0を維持。下の再確認予定／文章化未着手は過去状態。詳細は[正本](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)と現行handoff。
