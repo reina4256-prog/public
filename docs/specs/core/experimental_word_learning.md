@@ -4843,6 +4843,23 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・db76b36後のユーザー「はい、いずれも採用でOKです」でDD／DE／DFの各対象＋条件付き本文を三案とも採用。既存十九別表記・初期条件・各short/gestureで、DD rest意味だけ記録なしに「何かを伝えられたけれど、何のことか分からなかった。」、DE report関係だけ記録なしに「休むことは分かったけれど、言われたことは全部は分からなかった。」、DF両記録なしに「言われたことが分からなかった。」。前回必要原資料条件・全除外、原表記語尾・当時理解・原出所有無・実応答別保持を維持。従前全採用維持・再採用不要、下のDD／DE／DF未採用は履歴。
+- **次の相談DG／DH（双方未採用）**：[bp所有条件](#diary-incomplete-rest-value-reports-bp)と既存fixtureのmissing-knowledge-single-punctuationを静的参照。ここでのDG／DHは4e相談ラベルで既存4d12dg/dh部品変更ではない。共通はplayer／日本語／単独／条件順序なし、inputContext=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・fatigue=.15、各short/gesture・単純記録有無mask1/2/3だけ。原frame report/rest_value/rest/importanceと当時理解を分け、complete=false・importance未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・独立input/knowledge/context・前後state/world・原understanding／実reply全文の整合を確認できる場合だけ、次の各対象へ下の三不足状態別本文を適用することを個別相談する。
+
+| 相談案（各未採用） | 今回追加する原入力 |
+| --- | --- |
+| DG | ちょうど「 休むことは大事 」。基本文の前後に半角空白U+0020各一個、記号・内部空白なし |
+| DH | ちょうど「休むことは大事。」または「休むことは大事！」。基本文末尾に単一記号、外側・内部空白なし |
+
+| 各案内で別保持する不足状態 | 当時理解／実応答の条件 | 条件付き日記本文 |
+| --- | --- | --- |
+| rest意味だけ記録なしmask1 | report／known={}／relations=[report]／subject=player・原speaker_reportあり、unresolvedはmeaning(rest)、detail(importance)の原順。両設定実attend | 何かを伝えられたけれど、何のことか分からなかった。 |
+| report関係だけ記録なしmask2 | partial／known={meaning:rest}／relations=[]／subject=null・原出所欠落、unresolvedはrelation(report)、detail(importance)の原順。short実uncertain／gesture実attend | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| 両記録なしmask3 | partial／known={}／relations=[]／subject=null・原出所欠落、unresolvedはrelation(report)、meaning(rest)、detail(importance)の原順。両設定実attend | 言われたことが分からなかった。 |
+
+- meaning不足の原field=meaning／token=restを含むunresolved全文と原順を保持。空白記号は原input.rawへ保持し、強調感情・重要性理解／同意・本人休息選択開始完了／回復因果・真偽を補わない。原出所あり／欠落を分け、候補kind=reportを本人理解成立にしない。同文でも原資料／当時理解／実応答別保持、反復集約非採用。DG／DH併用・片側空白／全角空白／複数記号・十九別表記との組合せ・scope不適用／DC学習後・他scene注目活動疲労等への展開非包含。有限条件は供給／照合成功数ではなく、bpや4e全体完了ではない。
+- 六資料分離・原当時非書戻し・欠落非補完、bp原expression欄欠落／別資料未供給未確認・実reply／現在coreから非復元、actualSpeech設定由来（known={}のshortを実発話にしない）・newTeaching/newLearning/newExperience=false・aw status/verified非新造を維持。今回実読取は現行先頭routing／最初継続文・VALIDATION・OWNERS bp行・bp所有条件／本体／fixtureのmake／単独空白記号枝と4e直前条件。全残候補所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体量削減なし・今後増減理由記録・固定総数未確定、他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットDG／DH個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・3966987後のユーザー「はい、どちらも採用でOKです」でDB／DCの各対象＋条件付き本文を双方採用。DB初期基本文・両前提記録なしに「言われたことが分からなかった。」、DC基本文・既存実経験report限定scope今回不適用／rest既知に「休むことは分かったけれど、言われたことは全部は分からなかった。」、各short/gesture。前回必要原資料条件・全除外を維持し、DC学習履歴をDA記録なしへ統合せず先行経験を今回経験にしない。従前全採用維持・再採用不要、下のDB／DC未採用は履歴。
 - **次の相談DD／DE／DF（三案未採用）**：[bp所有条件](#diary-incomplete-rest-value-reports-bp)・既存fixtureのexisting-forms-knowledge-matrixを静的参照。ここでのDD／DE／DFは4e相談ラベルで既存4d12dd/de/df部品変更ではない。共通対象は「休む／やすむ」＋「こと／の」＋「は大事」＋語尾なし／「だよ／だね／だ／です」の二十表記から基本文「休むことは大事」を除く十九だけ。player／日本語／単独／条件順序なし・空白記号なし、inputContext=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・fatigue=.15、各short/gesture・単純な記録有無だけ。原frame report/rest_value/rest/importanceと当時理解を分け、全案complete=false・importance未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・独立input/knowledge/context・前後state/world・原understanding／実reply全文整合を確認できる場合だけ、各対象＋本文を個別相談する。
 
