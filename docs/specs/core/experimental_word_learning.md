@@ -4843,6 +4843,21 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・a1259f8後のユーザー「はい、どちらも採用でOKです」でEY／EZの各対象＋条件付き本文を双方採用。基本原文「今は食べたくない」のEY mask6/10/12/14は食べる部分理解文／EZ mask3/5/7/9/11/13/15は「言われたことが分からなかった。」。前回必要原資料・全配置別の当時理解／不足／否定時点／主体aspect出所欠落／実応答・全条件除外を維持。従前全採用維持・再採用不要、下のEY／EZ未採用は履歴。
+- **次の相談FA／FB／FC（三案とも未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と既存fixture existing-two-forms-knowledge-matrixの第二原文だけを静的参照。原入力はちょうど「今はいらない」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解を確認できる場合だけ適用。原「いらない」を原「食べたくない」へ置換せず、当時の単独frame report／catalogRule=not_now／meaning=eat／aspect=desireおよび当時理解と別保持する。maskのbit=1はeat意味記録なし、2はreport関係記録なし、4はnegation関係記録なし、8はtime関係記録なし。今回は単純記録なしだけでscope不適用を含めない。
+
+| 相談案（各未採用） | 今回の不足配置・当時理解・実応答 | 条件付き日記本文 |
+| --- | --- | --- |
+| FA | mask=1、eat意味記録だけなし、report/negation/time適用可能。report／complete=false／known={}／relations=[report,negation,time]、subject=player／negative／now／desire・原speaker_reportあり。実replyは両設定attend・observationなし | 何かを伝えられたけれど、何のことか分からなかった。 |
+| FB | mask=2/4/6/8/10/12/14の七配置。eat意味既知・関係一つ以上不足。partial／complete=false／known={meaning:eat}、subject/aspect=null・原reportSource欠落。実replyはshort uncertain／gesture attend・observationなし | 食べることは分かったけれど、言われたことは全部は分からなかった。 |
+| FC | mask=3/5/7/9/11/13/15の七配置。eat意味と関係一つ以上不足。partial／complete=false／known={}、subject/aspect=null・原reportSource欠落。実replyは両設定attend・observationなし | 言われたことが分からなかった。 |
+
+- 全配置target/conditionStatus=null。relationsは[report,negation,time]のうち記録不足でない関係だけを原順保持。polarityはnegation不足ならunknown、そうでなければnegative、eventTimeはtime不足ならunspecified、そうでなければ原発言時点now。unresolvedは不足関係をreport→negation→timeの原順、FA／FCではその後に{type:meaning,field:meaning,token:eat}を保持。各maskの原理解と実応答を統合しない。FAも何が不要か分かったとはせず、FB／FCはreport既知でも他関係不足時の主体／aspect／出所を補わない。原文や原時刻から不明な意味／否定／時点を補わず、nowを再読時現在や継続不要にしない。「今はいらないと聞いた。」へ完全理解化しない。本人欲求／満腹／好悪／真偽確認／同意受諾／拒否行動／食事中止／予定実不実行／活動開始完了／具体対象を補わずtarget=null維持。同文でも原資料／当時理解／実応答を別保持し反復集約しない。
+- br原expression欄欠落／別資料未供給未確認・実reply／現在coreから具体発話身振り非復元。actualSpeechは入力前short設定由来で、特にFA／FCのshort設定を実発話の証明にしない。ayのstatus=reported／verified=falseをbrへ新造しない。captureのnewTeaching/newLearning/newExperience=falseは捕捉時非追加で先行学習経験を消さない。
+- FA／FB／FCの条件拡張や併用・scope不適用・空白記号／他scene注目活動空腹疲労条件組合せ／他話者他言語／条件順序複数節等は非包含。既採用の第一原文EU〜EZを再採用対象にしない。残候補永久対象外化なし。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用なし。反復集約／途中記録・保存形式・ゲーム本接続・新理解規則・実装一括採用なし。六資料分離・原当時非書戻し・欠落非補完、am／cp／cq／散策区別・全維持条件／保留／集計を保持。個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完・次大工程移行なし。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含。全14保留・140/140枠・129子・138登録API・ao〜dy人間OK等保持。全体量削減なし・今後増減理由記録・固定総数未確定。文書検証のみ・ゲーム検証未実行、過去全回帰incomplete／実UI未確認非昇格。
+- 実読取は現行handoff先頭／最初継続文・routing先頭・OPEN_ITEMS先頭・VALIDATION・OWNERS br行と指定・br所有条件／capture保持欄・ay二原文定義／br fixture基本行列・core understand/express/reportSource・catalog ja not_now定義の限定枝。初期条件と実応答分岐は既読条件の参照で今回再実行せず、全残候補所有節未読。取得／生成／再生・receive/respond/capture未実行。同チャットFA／FB／FC回答待ち・冒頭文非出力。以下は過去状態。
+
+
 - 2026-11-02・66b6e4d後のユーザー「はい、どちらも採用でOKです」でEW／EXの各対象への既採用本文適用を双方採用。EW negationだけ不足／EX timeだけ不足の初期系統・各short/gesture、本文「食べることは分かったけれど、言われたことは全部は分からなかった。」。前回必要原資料・不足配置／unknown/unspecified・主体aspect出所欠落・実応答・全条件除外を維持。従前全採用維持・再採用不要、下のEW／EX未採用は履歴。
 - **次の相談EY／EZ（双方未採用）**：[br所有条件](#diary-incomplete-desire-reports-br)と既存fixture make(mask,speech)／existing-two-forms-knowledge-matrixを静的参照。原入力はちょうど「今は食べたくない」、player／日本語／単独／条件順序なし・空白記号なし、各short/gesture。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・hunger=.35／fatigue=.15。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply全文整合で当時理解を確認できる場合だけ適用。単独frame report／catalogRule=not_now／meaning=eat／aspect=desireと当時理解を分離する。maskのbit=1はeat意味記録なし、2はreport関係記録なし、4はnegation関係記録なし、8はtime関係記録なし。今回は単純記録なしだけで、記録存在だがscope不適用は別相談。
 
