@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・74dac85後のユーザー「はい、どちらも採用でOKです」でCN／COの各対象への当時不足状態別五文案の適用を双方採用。CNは基本文・shore／inputContext.attention=[]／world.attention=null・五活動状態・fatigue=.15、COは基本文・初期系統idle・疲労五値、各short/gesture・単純有無十五不足配置だけ。前回必要原資料条件・五文案・全除外（CN／CO併用／別表記や空白記号との組合せ非包含を含む）を保持。場所活動疲労から本人経験／条件成立／快適さを足さず、従前全採用維持・再採用不要。下のCN／CO未採用は履歴。
+- **次の相談CP／CQ（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureが継承するav:real-experienced-report-scope-not-transferred／av:real-experienced-condition-scope-not-transferredを静的参照。ここでのCP／CQは4e相談ラベルで、既存4d12cp/cq提案部品の変更・再採用や新部品追加ではない。原入力がちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし・各short/gesture、既存学習完了後のinputContext.scene=clearing／attention=[{id:shade,meaning:rest}]とbeforeWorld.mode=idle／attention=nullを別保持する系統だけ。comfortable/rest意味は今回適用可能、known.meaning=comfortable／known.conditionMeaning=rest。当時kind=partial／complete=false／subject/aspect=null・reportSource欠落、positive／unspecified・conditionStatus=unknownを必要原資料で確認できる場合だけ、次の対象＋条件付き本文を個別相談する。
+
+| 相談案（各未採用） | 追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| CP | 入力前に休息の実経験から学んだreport（source=experienced_relation）のscope付き記録があるがrest_comfortへ不適用、他に今回適用可能なreportなし。condition関係の記録もなし。原relations=[]、未解決はreport/condition関係だけ | 休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。 |
+| CQ | 入力前conditionに、既存の疲労条件付き休息提案で実経験から学んだscope付き記録があるがrest_comfortへ不適用、他に今回適用可能なconditionなし。reportは初期関係として今回適用可能。原relations=[report]、未解決はcondition関係だけ | 休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- 必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を要求し、short実reply.message=uncertain／gesture実attend・observationなしの既存枝を対象とする。scope／学習由来と原known／relations／unresolved原順・原出所欠落を保持し、関係IDの記録ありと今回への適用可能性を分ける。記録なしのBY／BW等と統合せず、同文でも各原資料／当時理解を別保持。CQのreport適用可能性から原出所主体aspectを補わず、原frame／話者・別時点理解／現在coreによる当時理解の復元・書戻しをしない。
+- 既存fixtureの学習履歴や当時の条件該当／非該当教示を、今回報告の条件成立／非成立や本人快適さ・休息開始継続完了・回復因果／真偽確認へ移さない。学習時のrestと今回入力時world／contextを混同しない。六資料分離・欠落非補完・原expression別資料未供給未確認、実reply／現在coreから具体発話／身振り非復元、actualSpeech設定由来と実発話の区別、newTeaching/newLearning/newExperience=falseを継承。候補統合・反復集約非採用。
+- 今回はbo現所有条件・本体保持欄／fixture継承、元rest_comfort fixtureの実学習二枝、negation／condition fixtureの学習準備、core初期知識／scope適用枝を静的読取しただけ。切詰め箇所を読了にしない。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。他の意味／関係不足・scope併存、別表記／空白記号・新scene注目活動・他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットCP／CQ個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・a454e3a後のユーザー「はい、どちらも採用でOKです」でCL／CMの各対象への当時不足状態別五文案の適用を双方採用。CLは基本文の前後各一個U+0020・記号なし、CMは基本文末尾「。／！」一個・空白なし、各short/gesture・初期系統・単純有無十五不足配置だけ。前回原資料条件・五文案・原出所有無分離・全除外（併用／十一別表記等との組合せ非包含を含む）を保持。原空白記号／不足配置／原資料・当時理解別保持、従前全採用維持・再採用不要。下のCL／CM未採用は履歴。
 - **次の相談CN／CO（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureのmissing-knowledge-activity-empty-attention／missing-knowledge-fatigue-condition-unknownを静的参照。共通の原入力はちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし、各short/gesture。comfortable/rest/report/conditionの入力前単純記録有無の十五不足配置（mask=1〜15、scope不適用非包含）で当時complete=false、必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を確認できる場合だけ、次の二対象へ下記五文案を適用することを個別相談する。
 
