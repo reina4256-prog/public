@@ -57,6 +57,23 @@ if (!process.versions.electron || process.type !== 'browser') {
             for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
                 assert.equal(answer.translations[locale], require('../../locales/' + locale + '.json')[sentence]);
         }
+        // BN variants in BO's shore context are valid av reports, outside this prose scope.
+        const { setup, hearComfort, core } = require('./diary_rest_comfort_report_fixtures');
+        let combinedRejected = 0;
+        for (const value of values.slice(2, 24)) {
+            const v = setup({ speech: value.receipt.beforeState.settings.speech });
+            core.perceive(v.state, { scene: 'shore', attention: [] });
+            const combined = hearComfort(v, value.result.input.raw);
+            const answer = await js(`(() => {
+                const v=${JSON.stringify(combined)}, before=JSON.stringify(v);
+                const buffer=ExperimentalWordDiaryCandidates.create();
+                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('combined capture');
+                const record=buffer.read()[0], original=JSON.stringify(record);
+                return {text:ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt),
+                    stable:before===JSON.stringify(v)&&original===JSON.stringify(record)};
+            })()`);
+            assert.deepEqual(answer, { text: null, stable: true }); combinedRejected++;
+        }
         const state = await js(`(() => {
             const names=['ExperimentalWordLearning','ExperimentalWordCareers','ExperimentalWordLifeLearning',
                 'ExperimentalWordRelationLearning','ExperimentalWordFeelingLearning','ExperimentalWordWorld',
@@ -67,7 +84,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         })()`);
         assert.deepEqual(state, { removed: true, local: { '4e-sentinel': 'keep' },
             session: { '4e-sentinel': 'keep' }, bridge: 'undefined' });
-        console.log(JSON.stringify({ restComfortProse: { examples: values.length, rejected,
+        console.log(JSON.stringify({ restComfortProse: { examples: values.length, rejected, combinedRejected,
             translations: values.length * 7, sourceStable: true, storageUnchanged: true, directory } }));
         win.destroy(); server.close(); app.quit();
     }).catch(error => { console.error(error); if (server) server.close(); app.exit(1); });
