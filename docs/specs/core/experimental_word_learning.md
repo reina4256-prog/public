@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・a3ba9f7後のユーザー「はい、どちらも採用でOKです」でBZ／CAの各対象＋条件付き本文を双方採用。基本文・既存初期系統・各short/gesture、BZはcomfortable意味＋report記録なしに「休むことは分かったけれど、言われたことは全部は分からなかった。」、CAはrest意味＋report記録なしに「気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。」。残る意味／condition適用可能・partial／relations=[condition]／主体aspect=null・出所欠落、前回原資料条件・全除外を保持し、同文のBT／BUとは別保持。従前全採用維持・再採用不要。下のBZ／CA未採用は履歴。
+- **次の相談CB／CC（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureのexisting-forms-knowledge-matrixのmask=9／10を静的参照。原入力がちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。各short/gesture・当時kind=partial／complete=false／relations=[report]／subject/aspect=null・reportSource欠落、polarity=positive／eventTime=unspecified／conditionStatus=unknown。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合で次の不足配置を確認できる場合だけ、各対象＋条件付き本文を個別相談する。
+
+| 相談案（各未採用） | 追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| CB | 入力前comfortable意味とcondition関係の記録なし、rest意味とreport関係は今回適用可能。known.meaning欠落／known.conditionMeaning=rest、未解決はcomfortable意味とcondition関係だけ | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| CC | 入力前rest意味とcondition関係の記録なし、comfortable意味とreport関係は今回適用可能。known.meaning=comfortable／known.conditionMeaning欠落、未解決はrest意味とcondition関係だけ | 気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- 両者short設定の実reply.message=uncertain／gesture設定はattend・observationなしの既存枝を対象とする。実replyだけで不足を認定せず、原known／relations／unresolved原順・入力前根拠を保持。report関係適用可能でも原kind=partial・null主体aspect／出所欠落を維持し、原frame／実話者・別時点の完全理解・現在coreから補完しない。CBに未知の快適さ、CCに未知の休む意味や条件理解・本人動作／快感・回復因果／条件成立／真偽確認を本文へ足さない。同文のBT／BU・BZ／CAとも不足関係／原資料／当時理解／出所有無を別保持し、候補統合や反復集約を採用しない。
+- bo原expression別資料未供給未確認、実reply／現在coreから具体発話／身振り非復元。actualSpeech設定由来と実発話を区別し、六資料分離・原当時非書戻し・欠落非補完・conditionStatus=unknown・newTeaching/newLearning/newExperience=falseを継承。scope不適用や他不足配置・原表記／空白記号・新scene注目活動は今回非包含。資料区分reportを本人の報告理解成功へ変換しない。
+- 今回はbo現所有条件・本体保持欄／fixture意味と条件関係の複合不足定義、core理解／reportSource付与の静的読取だけ。reply／express等の前ターン読取を今回再読へ昇格しない。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットCB／CC個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・9b5e5b7後のユーザー「はい、どちらも採用でOKです」でBX／BYの各対象＋条件付き本文を双方採用。基本文・既存初期系統・各short/gesture、BXは二意味記録ともなし／二関係適用可能・report／known={}・原出所あり／実attendに「何かを伝えられたけれど、何のことか分からなかった。」、BYは二関係記録ともなし／二意味適用可能・partial／relations=[]・主体aspect=null／出所欠落に「休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。」。前回必要原資料条件・全除外、従前全採用を維持し再採用不要。下のBX／BY未採用は履歴。
 - **次の相談BZ／CA（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureのexisting-forms-knowledge-matrixのmask=5／6を静的参照。原入力がちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。各short/gesture・当時kind=partial／complete=false／relations=[condition]／subject/aspect=null・reportSource欠落、polarity=positive／eventTime=unspecified／conditionStatus=unknown。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合で次の不足配置を確認できる場合だけ、各対象＋条件付き本文を個別相談する。
 
