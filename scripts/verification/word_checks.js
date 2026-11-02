@@ -88,7 +88,18 @@ function plan(files, options = {}) {
     const checks = [{ id: 'document-links', kind: 'documentation', args: ['scripts/verification/docs_check.js'] }];
     for (const file of files.filter(file => file.endsWith('.js') && exists(file)))
         checks.push({ id: 'syntax:' + file, kind: 'syntax', args: ['--check', file] });
-    checks.push({ id: 'node-tests', kind: 'tests', args: ['--test', '--test-concurrency=2', '--test-reporter=tap', ...selectedTests] });
+    if (selectedTests.includes(AUDIT_TEST))
+        checks.push({ id: 'diary-audit', kind: 'audit', args: ['scripts/experimental/diary_audit.js'] });
+    // Preserve the complete inventory, but give each bounded group its own final
+    // TAP summary and logs. A timeout must not erase completed groups' receipts.
+    const batchSize = options.testBatchSize ?? 8;
+    if (!Number.isInteger(batchSize) || batchSize < 1) throw new Error('Invalid test batch size');
+    const ordinary = selectedTests.filter(test => test !== AUDIT_TEST && test !== SELF_TEST);
+    const groups = [];
+    for (let index = 0; index < ordinary.length; index += batchSize) groups.push(ordinary.slice(index, index + batchSize));
+    for (const test of [AUDIT_TEST, SELF_TEST]) if (selectedTests.includes(test)) groups.push([test]);
+    groups.forEach((testFiles, index) => checks.push({ id: 'node-tests:' + String(index + 1).padStart(3, '0'),
+        kind: 'tests', testFiles, args: ['--test', '--test-concurrency=2', '--test-reporter=tap', ...testFiles] }));
     if (full || files.some(file => /^(localization|scripts\/i18n\/|locales\/)/.test(file)))
         checks.push({ id: 'localization', kind: 'localization', args: ['scripts/i18n/check_localization.js'] });
     for (const smoke of [...new Set(renderers)]) checks.push({ id: 'renderer:' + smoke, kind: 'renderer', args: [smoke] });
@@ -150,6 +161,7 @@ async function execute(check, directory, options = {}) {
     const failurePath = path.join(directory, 'failures.log');
     fs.writeFileSync(failurePath, excerpts.length ? excerpts.join('\n\n') : status !== 'passed' ? tail : '');
     return { id: check.id, status, ...result, error, durationMs: Date.now() - started, counts,
+        ...(check.testFiles ? { testFiles: check.testFiles } : {}),
         stdout: stdoutPath, stderr: stderrPath, failures: failurePath,
         sha256: { stdout: hashes.stdout.digest('hex'), stderr: hashes.stderr.digest('hex') } };
 }
@@ -164,22 +176,35 @@ async function run(selection, options = {}) {
     fs.writeFileSync(path.join(directory, 'plan.json'), JSON.stringify(manifest, null, 2));
     const summary = { schemaVersion: 1, status: 'running', directory, head: manifest.head, results: [],
         reviewRequired: selection.reviewRequired, unexecutedChecks: selection.checks.map(check => check.id), unexecutedTests: selection.unexecutedTests,
-        reading: selection.reading, unverified: selection.unverified };
+        reading: selection.reading, unverified: selection.unverified,
+        activeCheck: null, completedTests: [], pendingTests: selection.selectedTests || [],
+        completedTestCounts: {} };
     const save = () => fs.writeFileSync(path.join(directory, 'summary.json'), JSON.stringify(summary, null, 2));
     save();
     try {
         for (const [index, check] of selection.checks.entries()) {
             if (summary.results.some(result => result.status !== 'passed')) continue;
+            summary.activeCheck = check.id; save();
             const result = await execute(check, path.join(directory, String(index).padStart(3, '0')), options);
-            summary.results.push(result); summary.unexecutedChecks = summary.unexecutedChecks.filter(id => id !== check.id); save();
+            summary.results.push(result); summary.activeCheck = null;
+            summary.unexecutedChecks = summary.unexecutedChecks.filter(id => id !== check.id);
+            if (check.kind === 'tests' && result.status === 'passed') {
+                summary.completedTests.push(...(check.testFiles || []));
+                summary.pendingTests = summary.pendingTests.filter(test => !summary.completedTests.includes(test));
+                for (const [key, count] of Object.entries(result.counts))
+                    summary.completedTestCounts[key] = (summary.completedTestCounts[key] || 0) + count;
+            }
+            save();
             if (!options.quiet) console.log(`${check.id}: ${result.status} (${result.durationMs}ms)`);
         }
-        summary.status = summary.results.every(result => result.status === 'passed') && !summary.reviewRequired.length ? 'passed' : 'incomplete';
+        summary.status = summary.results.every(result => result.status === 'passed') && !summary.reviewRequired.length
+            && !summary.pendingTests.length && !summary.unexecutedChecks.length ? 'passed' : 'incomplete';
     } catch (error) { summary.status = 'incomplete'; summary.error = error.message; }
     summary.finishedAt = new Date().toISOString(); save();
     fs.writeFileSync(path.join(directory, 'summary.md'), `# Word verification\n\nStatus: ${summary.status}\n\n`
         + summary.results.map(result => `- ${result.id}: ${result.status}; ${JSON.stringify(result.counts)}; ${result.durationMs}ms`).join('\n')
         + `\n\nUnexecuted checks: ${JSON.stringify(summary.unexecutedChecks)}\nUnexecuted tests: ${JSON.stringify(summary.unexecutedTests)}\n`
+        + `Completed test files: ${summary.completedTests.length}\nPending selected tests: ${JSON.stringify(summary.pendingTests)}\nCompleted groups' final counts: ${JSON.stringify(summary.completedTestCounts)}\n`
         + `Reading: ${JSON.stringify(summary.reading)}\nUnverified: ${JSON.stringify(summary.unverified)}\nReview required: ${JSON.stringify(summary.reviewRequired)}\n`);
     return summary;
 }

@@ -51,6 +51,40 @@ test('the registered full inventory remains the existing package inventory plus 
     assert.ok(p.selectedTests.includes('tests/word_verification.test.js'));
     assert.equal(new Set(p.selectedTests).size, p.selectedTests.length);
 });
+
+test('bounded groups cover every selected file exactly once and isolate audit and tooling', () => {
+    const p = api.plan([], { full: true });
+    const groups = p.checks.filter(check => check.kind === 'tests');
+    const covered = groups.flatMap(check => check.testFiles);
+    assert.deepEqual([...covered].sort(), [...p.selectedTests].sort());
+    assert.equal(new Set(covered).size, covered.length);
+    assert.ok(groups.every(check => check.testFiles.length <= 8));
+    assert.ok(groups.every(check => check.args.includes('--test-concurrency=2')));
+    for (const file of ['tests/experimental_word_diary_audit.test.js', 'tests/word_verification.test.js'])
+        assert.deepEqual(groups.find(check => check.testFiles.includes(file)).testFiles, [file]);
+    assert.ok(p.checks.some(check => check.id === 'diary-audit'));
+    assert.throws(() => api.plan([], { full: true, testBatchSize: 0 }), /Invalid test batch size/);
+});
+
+test('failed groups preserve final counts from completed groups and leave remaining files pending', async t => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'word-verifier-test-'));
+    t.after(() => cleanup(dir));
+    const files = ['first.test.js', 'second.test.js', 'third.test.js'];
+    const p = { changedFiles: [], selectedTests: files, reviewRequired: [], unexecutedTests: [],
+        reading: { status: 'not_recorded' }, unverified: ['UI'], checks: files.map((file, index) => ({
+            id: file, kind: 'tests', testFiles: [file], args: ['-e', index === 0
+                ? "console.log('# tests 2\\n# pass 2\\n# fail 0\\n# cancelled 0\\n# skipped 0\\n# todo 0')"
+                : "console.log('interrupted without final summary')"] })) };
+    const result = await api.run(p, { directory: dir, quiet: true });
+    assert.equal(result.status, 'incomplete');
+    assert.deepEqual(result.completedTests, files.slice(0, 1));
+    assert.deepEqual(result.pendingTests, files.slice(1));
+    assert.equal(result.completedTestCounts.tests, 2);
+    assert.equal(result.completedTestCounts.pass, 2);
+    assert.deepEqual(result.unexecutedChecks, files.slice(2));
+    assert.deepEqual(result.results[1].testFiles, files.slice(1, 2));
+    assert.equal(result.activeCheck, null);
+});
 test('diary changes include dynamic cross-owner tests and their real renderer', () => {
     const p = api.plan(['experimental_word_diary_incomplete_desire_reports.js']);
     assert.ok(p.selectedTests.includes('tests/experimental_word_diary_incomplete_rest_explanation_reports.test.js'));

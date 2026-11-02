@@ -27,7 +27,7 @@ npm run verify:words -- --full
 - `--files`省略時はGitのtracked差分・untracked通常状態から取得。対象外`%SystemDrive%/`を読まない。未追跡ディレクトリは勝手に再帰せず、具体ファイル指定を要求する。
 - requireの静的な推移的依存に加え、日記部品の動的横断依存を補う。静的解析が完全だと主張せず、未知の変更は`reviewRequired`付き全回帰にする。
 - 全回帰の登録元は既存`package.json`の`test:words`。監査と工具テストを追加して実行。既存`npm run test:words`の対象は変更しない。
-- Nodeテストの並列数は2。各コマンド15分を上限とし、timeoutは成功扱いにしない。必要な上限変更は工具側で明示的に行う。
+- Nodeテストの並列数は2。登録範囲を保持したまま通常テストは最大8ファイルずつ、監査テストと工具テストは各単独コマンドへ分割する。構造監査も独立実行する。各コマンド15分を上限とし、timeoutは成功扱いにしない。必要な上限変更は工具側で明示的に行う。
 - rendererは既存の非表示・専用一時profile工具を使う。制限内で起動不能なら失敗記録を残し、権限付き再実行は別runとして保存。実ユーザー保存は使わない。
 
 ## 結果を読む場所
@@ -42,6 +42,8 @@ npm run verify:words -- --full
 | 000等のfailures.log | TAP失敗箇所周辺の抜粋。抜粋で足りなければ原ログを読む |
 
 最初にsummaryを読み、不通過があればfailuresとstderr、必要な原ログだけを読む。途中停止ではsummaryのrunning／未実行予定を保持し、完了集計のないexit 0もテスト成功にしない。fail/cancelled/skipped/todoがあればこの工具の完了判定は通さない。
+
+分割実行では各checkの`testFiles`をplan／結果へ保存し、`completedTests`は最終TAP集計を伴い通過した区間のファイルだけ、`pendingTests`は選択済みだが未完了のファイルを示す。`unexecutedTests`は従来どおり選択対象外であり、空でも全完了を意味しない。`completedTestCounts`は通過済み区間の最終件数の合計で、全体成功や監査の意味読了とは別。起動前に`activeCheck`を保存するため、異常停止でも実行中区間と残りを確認できる。旧timeout runは上書きせず、新runの完了・未完を別に記録する。
 
 読取記録は自動テストとは別。工具の`reading.status=not_recorded`は自動昇格しない。handoffには今回直接読んだ節／コード、未読、実行した範囲と未実行、過去の成功結果を引用した範囲を短く記す。
 

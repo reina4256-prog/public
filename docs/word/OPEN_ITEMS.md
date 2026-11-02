@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-11-02・d3eee45続き：4e挨拶AV〜BCの残検証を先に整理し、147登録ファイルを保持した分割全回帰へ工具補修。確定結果は現行handoffと[正本4e](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)参照。既採用本文の再採用なし、新対象未実装。六資料分離・全14保留・未検証とBのS6EUsK／session58391具体的取得参照まで再確認停止／供給進展0、4d12／4e全体未完・4f非移行を維持。下のtimeoutは旧runの結果。
+
 - 2026-11-02現行：4e段階実装承認、at AV〜BCの独立文章化部品を追加。専用検証通過、全回帰は1029248msでtimed_out／incomplete（監査含む全完了未確認、別runの工具14テスト通過）。ゲーム本接続・保存等は未実装。4d12／4e全体未完、他採用済み本文は未実装。全保留・未検証とBのp最終S6EUsK／session58391再確認停止・供給進展0を維持。下の再確認予定／文章化未着手は過去状態。詳細は[正本](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)と現行handoff。
 
 - 2026-11-01最新：a9cb1cfの続きとして[p旧一時実Electron最終S6EUsK一群の所在確認範囲](../specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位進めた。保存目録から最終S6EUsK／session58391だけに限定。同名Temp profile直下10ディレクトリ・通常ファイル0を確認したが、名前一致はrun真正性／B原資料同一性を証明しない。個別原receipt所在未確認・未供給・未照合、内部cache／storage・原session出力未読。602ケース661入力は過去集計でB件数へ変換せず、再生成・再生なし。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ、ゲーム検証未実行・過去不完了非昇格。次は同じ最終runの原出力保存先を一経路だけ限定し確認する。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
