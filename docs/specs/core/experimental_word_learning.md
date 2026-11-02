@@ -4843,6 +4843,24 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・45c4b7f後のユーザー「はい、どちらも採用でOKです」でEE／EFの各追加対象への七不足配置別条件付き文言の適用を双方採用。bq基本文のEE前後半角空白各一個／EF単一終端「。／！」・既存初期条件・各short/gesture。前回必要原資料条件・三文言・全除外、原空白記号／七配置／主体出所有無／直前今回の当時理解・未解決理由別保持を維持。従前全採用維持・再採用不要、下のEE／EF未採用は履歴。
+- **次の相談EG／EH（双方未採用）**：[bq所有条件](#diary-incomplete-rest-explanation-reports-bq)と既存fixtureのmissing-knowledge-activity-empty-attention／missing-knowledge-fatigue-no-causal-inferenceを静的参照。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用ではない。直前原入力はちょうど「休むことは大事」、今回原入力はちょうど「体力や眠気が回復するから」、両player／日本語／単独／条件順序なし・接頭語尾／空白記号なし・各short/gesture。今回beforeWorld.attention=null、直前当時rest/report適用可能・importanceだけ未理解／complete=false・原speaker_reportあり、直前実replyはshort heard_rest_partial／gesture attend。今回原frame report/rest_explanation/rest/recovery_explanationと本人理解を分け、単純記録有無七不足配置だけ・complete=false／recovery_explanation未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・直前平坦antecedent原result／receipt、双方の独立input/knowledge/context・前後state/world・実reply全文整合、直前ID／今回直前turn全文一致・直前当時known.meaning=restを確認できる場合だけ、各追加対象へ下表の既採用三文案を不足配置別に適用することを個別相談する。
+
+| 相談案（各未採用） | 今回追加する対象条件（各short/gesture・七不足配置） |
+| --- | --- |
+| EG | 今回inputContext.scene=shore／attention=[]、beforeWorld.mode=observe/eat/rest/work/walkの五状態・fatigue=.15。直前原資料は初期clearing／berry:1注目のまま別保持 |
+| EH | 今回inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle・fatigue=0/.2/.4/.8/1の五値 |
+
+| 各案内で別保持する不足配置 | 当時理解／原出所／実応答の条件 | 条件付き日記本文（今回分） |
+| --- | --- | --- |
+| rest意味だけなしmask1 | report／known={}／relations=[report,reason]／subject=player・今回原speaker_reportあり。両設定今回実attend | 何かを伝えられたけれど、何のことか分からなかった。 |
+| rest既知、reportだけなしmask2／reasonだけなしmask4／両関係なしmask6 | partial／known={meaning:rest}／subject=null・今回原出所欠落。relationsは順に[reason]／[report]／[]。今回short実uncertain／gesture実attend | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| restも不足、reportも不足mask3／reasonも不足mask5／両関係も不足mask7 | partial／known={}／subject=null・今回原出所欠落。relationsは順に[reason]／[report]／[]。両設定今回実attend | 言われたことが分からなかった。 |
+
+- 原unresolvedは不足relationをreport→reason順、次に不足meaning(field=meaning,token=rest)、最後detail(recovery_explanation)の各配置の全文原順で保持。原scene／inputContext空配列とworld.attention=null・活動疲労値／七不足配置／主体出所有無・直前今回の原資料／当時理解／未解決理由／実応答を別保持。同文でも各配置を統合せず、report既知でもreason不足なら主体出所欠落を補わない。
+- 場面差から移動到着／無視、活動疲労から選択出所／開始継続完了・休息の必要性／実回復／具体回復因果理解・直前不足解消／明示因果参照・重要性理解／同意／真偽を補わない。walk状態から道への移動開始／散策開始完了を補わず、休息選択出所を新造しない。EG／EH併用・九別表記／EE-EF空白記号／scope不適用／別直前発言／他scene注目活動疲労値等との組合せは非包含。直前全world不変の新制限を置かず、直前理解と今回知識差は資料条件として別保持・過去理解非書戻し・今回不足非補完・忘却／記録削除／新理解規則非採用。有限条件を供給／照合成功数・反復集約やbq／4e全体完了にしない。
+- 六資料分離・原当時非書戻し・欠落非補完、bq原expression欄欠落／別資料未供給未確認・実reply／現在coreから非復元、actualSpeech設定由来（known={}のshortを実発話の証明にしない）・newTeaching/newLearning/newExperience=false・ax status/verified非新造を維持。今回実読取は現行先頭routing／最初継続文・VALIDATION・OWNERS bq行・bq所有条件／本体capture／fixture makeと活動空注目／疲労枝、setup／world初期値・4e直前条件。残候補全所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体量削減なし・今後増減理由記録・固定総数未確定、他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットEG／EH個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・9265998後のユーザー「はい、いずれも採用でOKです」でEB／EC／EDの各対象＋今回分の条件付き本文を三案とも採用。bq既存残九表記・初期条件・各short/gesture、EB mask1に伝達内容不明文、EC mask2/4/6に休む部分理解文、ED mask3/5/7に全不明文。前回必要原資料条件・各文言・全除外、原表記／不足配置／主体出所有無／直前理解と今回不足別保持を維持。従前全採用維持・再採用不要、下のEB／EC／ED未採用は履歴。有限十表記の単純七不足配置定義採用はそろったが、個別原資料未供給未照合・bq／4e全体未完・文章化実装未着手。
 - **次の相談EE／EF（双方未採用）**：[bq所有条件](#diary-incomplete-rest-explanation-reports-bq)と既存fixtureのmissing-knowledge-single-punctuationを静的参照。4e相談ラベルで既存部品変更・4d12dz追加／新部品採用ではない。共通は直前原入力がちょうど「休むことは大事」、両player／日本語／単独／条件順序なし・各short/gesture、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、今回beforeWorld.mode=idle／attention=null・fatigue=.15。直前当時rest/report適用可能・importanceだけ未理解／complete=false・原speaker_reportあり、直前実replyはshort heard_rest_partial／gesture attend。今回原frame report/rest_explanation/rest/recovery_explanationと本人理解を分け、単純記録有無七不足配置だけ・complete=false／recovery_explanation未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・直前平坦antecedent原result／receipt、双方の独立input/knowledge/context・前後state/world・実reply全文整合、直前ID／今回直前turn全文一致・直前当時known.meaning=restを確認できる場合だけ、各追加対象へ下表の既採用三文案を不足配置別に適用することを個別相談する。
 
