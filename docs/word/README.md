@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- 2026-11-02・f313f5f後、[4e BD／BE](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はdgの休息限定report scope不適用のBF short設定／BG gesture設定、各本文「言われたことが分からなかった。」を個別相談（双方未採用）。原入力「おはよう」・当時不足・学習後の原状態・必要原資料条件は正本。六資料分離・原当時非書戻し・欠落非補完、個別原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・8068133後、[4e BB／BC](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はdg単独未理解「おはよう」のBD short設定／BE gesture設定、各本文「言われたことが分からなかった。」を個別相談（双方未採用）。原expression／実reply・当時不足条件・既存休息中scene注目等は正本。原frameから挨拶理解非補完、六資料分離・原当時非書戻し・欠落非補完、個別原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・f5a7ea0後、[4e AZ／BA](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はat既存休息中「おはよう」のBB短い実応答／BC身振り設定、各本文「挨拶された。」を個別相談（双方未採用）。shore／注目対象なし・当時完全理解・必要原資料条件等は正本。未完理解／複数節等へ採用波及なし。六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。

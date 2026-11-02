@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・f313f5f後のユーザー「はい、どちらも採用でOKです」でBD／BEの各対象＋条件付き本文「言われたことが分からなかった。」を双方採用。入力前report記録なし・原入力「おはよう」・player／日本語／単独／条件順序なし・clearing／shade注目休息中・当時report関係だけ不足、原expression=gesture/attend・実reply=attend／actualSpeech=falseのBD short設定／BE gesture設定に限る。前回全原資料条件・除外・六資料分離を維持し、原frameから本人の挨拶理解を足さない。通常提案群・au S〜AH・bn AI〜AU・at AV〜BCも採用済み、再採用不要。下のBD／BE未採用は履歴。
+- **次の相談BF／BG（双方未採用）**：[dg所有条件](#diary-greeting-materials-dg)・既存fixtureのat-existing-control:real-experienced-report-scope-not-transferredを静的参照。原入力がちょうど「おはよう」・player／日本語／単独／条件順序なし、既存report.setup→learnReport完了後に入力する系統だけ。入力前knowledgeには休息で実経験から学んだreport（source=experienced_relation）のscope付き記録があるが、今回のgreeting_morningには適用できず、他に今回適用可能なreportもない。当時kind=partial／complete=false／known={}／relations=[]／unresolvedはreport関係だけ、subject/aspect=nullを必要原資料で確認する。既存学習完了後のbeforeWorld.mode=idle／attention=nullと、inputContext.scene=clearing／attention=[{id:shade,meaning:rest}]を別保持し、学習時の休息と今回入力時を混同しない。
+
+| 相談案（各未採用） | 対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| BF | 上記共通条件・speech設定short。ただし原expression.channel=gesture／message=attend、実reply.message=attend・observationなし／actualSpeech=false | 言われたことが分からなかった。 |
+| BG | 上記共通条件・speech設定gesture。原expression.channel=gesture／message=attend、実reply.message=attend・observationなし／actualSpeech=false | 言われたことが分からなかった。 |
+
+- 必要三引数原receipt・独立input/knowledge/context・前後state/world・原expression・実reply／実turnを整合確認し、scope・学習由来・原known/unresolved順を保持する。report IDの記録ありと今回への適用可能性を分け、「記録なし」のBD／BEと統合しない。設定life/foundationや現在coreで当時理解を復元しない。dgが保持する原expressionをat等の欠落欄と混同せず、原expressionの存在を個別原資料供給済みにもしない。attendから理解成功／具体身振りを作らず、原frameから「挨拶された」「おはようと言われた」等を本文へ足さない。同文でも原資料／当時理解別保持、六資料分離・原当時非書戻し・欠落非補完を維持。
+- 休息の学習履歴・shade注目から今回の休息開始継続完了・木陰への移動等を作らない。原learning/transfer／associations実変化とcaptureAddsTeaching/captureAddsLearning/captureAddsExperience=falseを区別し、morningVerified=false、compliance=null／actionDecisionRecorded=falseから実不実行／am判断を作らない。今回の根拠は所有条件・dg継承fixture・元greeting/negation fixtureとcore適用／express・world完了／応答枝の静的読取だけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。
+- 別表記／空白記号・新scene注目活動・他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットBF／BG個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・8068133後のユーザー「はい、どちらも採用でOKです」でBB／BCの各対象＋条件付き本文「挨拶された。」を双方採用。原入力「おはよう」・player／日本語／単独／条件順序なし・shore／inputContext.attention=[]／world.attention=null／mode=rest・当時完全理解・必要原資料整合、BB short／実good_morning、BC gesture／実attendだけ。前回全条件・除外を維持し、休息開始継続完了をこの入力から本文へ足さない。通常提案群・au S〜AH・bn AI〜AU・at AV〜BAも採用済み、再採用不要。下のBB／BC未採用は履歴。
 - **次の相談BD／BE（双方未採用）**：[dg所有条件](#diary-greeting-materials-dg)・既存greeting_material fixtureのsingle-eight-settingsを静的参照。原入力がちょうど「おはよう」・player／日本語／単独／条件順序なし、inputContext.scene=clearing／attention=[{id:shade,meaning:rest}]、beforeWorld.mode=rest／attention=shadeの既存系統だけ。入力前report記録なし（休息限定scope不適用は今回非包含）、原frame=greeting_morningだが当時understandingはkind=partial／complete=false／known={}／relations=[]／unresolvedはreport関係だけ、subject/aspect=null。設定foundationだけで不足を認定せず、この原当時理解を必要原資料で確認できる場合に限る。
 
