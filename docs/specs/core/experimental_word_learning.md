@@ -4843,6 +4843,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・c62a26f後のユーザー「はい、どちらも採用でOKです」でDM／DNの各対象＋今回分の条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。DM既存残九表記・初期系統、DN今回基本文・shore入力注目なし・原時刻987654321、各short/gesture。前回必要原資料条件・全除外、直前平坦原資料と今回の分離照合・原表記／場面／当時理解／未解決理由／実応答別保持を維持。従前全採用維持・再採用不要、下のDM／DN未採用は履歴。
+- **次の相談DO／DP（双方未採用）**：[ax所有条件](#diary-rest-explanation-reports-ax)と既存fixtureのsingle-trim-and-terminal-punctuation三例を静的参照。ここでのDO／DPは4e相談ラベルで既存4d12do/dp部品変更ではない。共通は直前原入力がちょうど「休むことは大事」、直前と今回ともplayer／日本語／単独／条件順序なし・speech=shortだけ、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、今回beforeWorld.mode=idle／attention=null・fatigue=.15。直前当時rest/report適用可能・importanceだけ未理解／complete=false・原speaker_reportあり、今回rest/report/reason適用可能・report／known={meaning:rest}／relations=[report,reason]／unresolved=[{type:detail,token:recovery_explanation}]だけ・complete=false／subject=player／positive／unspecified・aspect/conditionStatus=null・今回原speaker_reportあり。必要三引数原receipt・直前平坦antecedent原result／receipt、双方の独立input/knowledge/context・前後state/world・実reply全文整合、直前ID／今回直前turn全文一致・直前当時known.meaning=restを確認できる場合だけ、各対象＋本文を個別相談する。直前／今回とも実reply.message=heard_rest_partial・observationなし。
+
+| 相談案（各未採用） | 今回原入力（shortだけ） | 条件付き日記本文（今回分） |
+| --- | --- | --- |
+| DO | ちょうど「 体力や眠気が回復するから 」。基本文の前後に半角空白U+0020各一個、接頭語尾／記号／内部空白なし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| DP | ちょうど「体力や眠気が回復するから。」または「体力や眠気が回復するから！」。基本文末尾に単一記号、接頭語尾／外側内部空白なし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- 原input.rawの空白記号を保持し、強調感情／理解促進／納得や同意・具体回復内容／因果理解・直前importance不足の解消・明示因果参照／本人休息開始完了／実回復／真偽を補わない。同文でも直前と今回・各原入力の原資料／当時理解／未解決理由／実応答別保持、反復集約非採用。DO／DP併用・片側／全角空白／複数記号・gesture・DM九表記やDN shoreとの組合せ・別直前発言／別話者／他scene注目活動疲労・bq不足／scope不適用等は今回非包含。直前資料を今回beforeState／後知識から復元せず、場面変化の一般禁止や全world不変の新制限を作らない。
+- 六資料分離・原当時非書戻し・欠落非補完、ax原expression欄欠落／別資料未供給未確認・実reply／現在coreから非復元、status=reported／verified=false・newTeaching/newLearning/newExperience=falseを維持。今回実読取は現行先頭routing／最初継続文・VALIDATION・OWNERS ax行・ax所有条件と本体capture／fixture prior/prepared・単独空白記号枝、setup／core speech既定値／world初期値と4e直前条件。出力省略部分／残候補全所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体量削減なし・今後増減理由記録・固定総数未確定、他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットDO／DP個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・ffad388後のユーザー「はい、どちらも採用でOKです」でDK／DLの各対象＋今回分の条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。ax既存初期系統・直前「休むことは大事」／今回「体力や眠気が回復するから」、DK short／DL gesture、今回recovery_explanationだけ未理解。前回必要原資料条件・全除外、直前平坦原資料と今回の分離照合・原出所／当時理解／未解決理由／実応答別保持を維持。従前全採用維持・再採用不要、下のDK／DL未採用は履歴。
 - **次の相談DM／DN（双方未採用）**：[ax所有条件](#diary-rest-explanation-reports-ax)と既存fixtureのexisting-japanese-forms／changed-scene-and-no-targetを静的参照。ここでのDM／DNは4e相談ラベルで既存4d12dm/dn部品変更ではない。共通は直前原入力がちょうど「休むことは大事」・直前当時rest/report適用可能／importanceだけ未理解・complete=false・原speaker_reportあり。直前と今回ともplayer／日本語／単独／条件順序なし・各short/gesture、今回world.mode=idle／attention=null・fatigue=.15。今回当時rest/report/reason適用可能、kind=report／known={meaning:rest}／relations=[report,reason]／unresolved=[{type:detail,token:recovery_explanation}]だけ・complete=false、subject=player／positive／unspecified・aspect/conditionStatus=null・今回原speaker_reportあり。必要三引数原receipt・直前平坦antecedent原result／receipt、双方の独立input/knowledge/context・前後state/world・実reply整合、直前ID／今回直前turn全文一致・直前当時known.meaning=restを確認できる場合だけ、各対象＋本文を個別相談する。直前資料の欠損は補完しない。
 
