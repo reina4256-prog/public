@@ -4843,6 +4843,27 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・9c76b17後のユーザー「はい、どちらも採用でOKです。」でCR／CSの各対象＋条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。aw基本文「休むことは大事」・初期系統・rest/report適用可能だがimportance detailだけ未理解・complete=false、CR short／実heard_rest_partial、CS gesture／実attendだけ。原report／speaker_reportあり・aspect/conditionStatus=null、前回必要原資料条件・全除外を保持し重要性を本人理解へ移さない。従前全採用維持・再採用不要。下のCR／CS未採用は履歴。
+- **現時点の4e全体像（今回ユーザー依頼）**：4eの工程範囲は本文の文章化・反復集約・途中記録。現在はその中の「既存資料のどの条件なら、当時理解・実応答・実判断・実経験を超えず、どの文章にできるか」の仕様相談を進行中。相談ラベルやfixture定義の件数は4e全体の固定分母ではない。ユーザーは全体量の削減を求めておらず、今後の追加・削減・分割・統合を許容すると明示した。これを未検討範囲の一括採用／省略や終了保証へ変換せず、増減する場合は対象・理由・他範囲への影響を記録する。既採用の再採用は求めない。
+
+| 4e内の作業 | 現時点 |
+| --- | --- |
+| 個別条件と文章の対応 | 継続相談中。通常休息／散策提案、木の実報告、挨拶、休息快適さ報告、今回の休息大事さ報告で限定範囲を採用。各原入力・知識適用・未解決・応答・活動等の許可条件を別保持 |
+| 残る資料系統・入口条件の文章化 | 所有条件から順次個別相談。回復説明、希望・好悪、問いと答え、名付け・訂正、感情・出来事、条件／順序／複数節・他話者／他言語等が確認候補。全て未採用という意味ではなく、既存資料部品の実装／確認と4e本文規則の採用を区別し、各範囲の既採用・未相談を次の所有照合で確定する |
+| 反復集約 | 基本方針はあるが、何が同一ならまとめてよいか等の具体一致条件は別相談・未実装。同文というだけで原資料／当時理解を統合しない |
+| 日中の途中記録 | 日中も少しずつ本文が増え途中で読める基本方針はあるが、いつ何を確定・追記するか等の具体ルールは別相談・未実装 |
+
+- 個別原資料は未供給未照合で、現在の採用は必要資料整合時の条件付き文章規則。原文の取得／照合済み実例や生成済み日記ではない。文章化実装未着手、未検討入口の網羅・4e完了・次大工程移行なし。絵の印象比較／選択は4f、暦・保存再開・ゲーム本接続は4g、記憶／ノート／表現成長の残件は4h、全体通し確認は4iの別範囲。4e相談の採用でそれらを承認／実装済みにしない。4d12全体未完・B停止／供給進展0も独立して保持し、従前の4d12残2〜3工程中心2・低確度の目安を4eやゲーム完成までの残回数へ流用しない。全体進捗率・固定総数・残相談回数は現時点で未確定。
+- **次の相談CT／CU（双方未採用）**：[aw所有条件](#diary-rest-value-reports-aw)と既存fixtureのexisting-japanese-forms／no-target-requiredを静的参照。共通はplayer／日本語／単独／条件順序なし・空白記号なし・各short/gesture。当時rest意味とreport関係は適用可能、kind=report／complete=false／known={meaning:rest}／relations=[report]、unresolved=[{type:detail,token:importance}]だけ・subject=player／positive／unspecified・aspect/conditionStatus=null・原speaker_reportあり。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合でこの原理解を確認できる場合だけ、各対象＋条件付き本文を個別相談する。short実heard_rest_partial／gesture実attend、observationなしの既存枝だけ。
+
+| 相談案（各未採用） | 追加する対象範囲（各short/gesture） | 条件付き日記本文 |
+| --- | --- | --- |
+| CT | 「休む／やすむ」＋「こと／の」＋「は大事」＋語尾なし／「だよ／だね／だ／です」の二十表記から既採用基本文を除く十九。inputContext=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統 | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| CU | 原入力がちょうど「休むことは大事」。inputContext.scene=shore／attention=[]、beforeWorld.mode=idle／attention=nullの既存no-target-required系統 | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- CTは原input.rawの表記・語尾を保持し、原文の大事さ／丁寧さや語尾から重要性理解・同意・感情等を補わない。CUは原scene／注目空配列とworld.attention=nullを別保持し、移動到着／無視等を足さない。原importance未理解・原出所あり・aspect/conditionStatus=nullは各資料のまま。同文のCR／CSやbo群とも原資料／当時理解／未解決理由別保持、候補統合／反復集約非採用。CT／CU併用、他の語尾／空白記号・bpのrest/report不足・scope不適用等は今回非包含。有限表記数は原資料供給／照合成功数ではない。
+- 六資料分離・原当時非書戻し・欠落非補完・原expression別資料未供給未確認、実reply／現在coreから具体発話／身振り非復元、status=reported／verified=false・newTeaching/newLearning/newExperience=falseを継承。今回実読取はaw現所有条件・本体／fixture、関連OWNERS行・4e基本合意／工程骨格の限定範囲で、残候補全所有節の意味読了ではない。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットCT／CU個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・e7fa73c後のユーザー「はい、どちらも採用でOKです」で相談案CP／CQの各対象＋条件付き本文「休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。bo基本文・既存実学習後・二意味既知、CPはreport scope不適用＋condition記録なし、CQはcondition scope不適用＋report初期関係適用可能。原partial／主体aspect=null／出所欠落、各short/gesture、学習履歴と今回適用可能性の分離・前回必要原資料条件・全除外を維持。4e相談ラベルで既存4d12cp/cq部品の変更ではない。従前全採用維持・再採用不要、bo全範囲や4e全体の完了ではない。下のCP／CQ未採用は履歴。
 - **次の相談CR／CS（双方未採用）**：[aw休息大事さ報告の所有条件](#diary-rest-value-reports-aw)と既存rest_value fixtureのeight-settingsを静的参照。原入力がちょうど「休むことは大事」・player／日本語／単独／条件順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。入力当時rest意味とreport関係は今回適用可能だが、重要性detailは未理解のまま。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合で下の当時理解を確認できる場合だけ、各対象＋条件付き本文を個別相談する。
 - CR／CS共通の当時理解：単独rest_value frameの原meaning=rest／detail=importanceを本人理解へ移さず、understanding.kind=report／complete=false／known={meaning:rest}／relations=[report]、unresolved=[{type:detail,token:importance}]だけ。subject=player／polarity=positive／eventTime=unspecified／aspect=null／conditionStatus=null、原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}を保持。未理解detailを欠落資料やcomfortable意味不足と同一視しない。
