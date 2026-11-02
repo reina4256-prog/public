@@ -4843,6 +4843,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・8e99603後のユーザー「はい、どちらも採用でOKです」でAV／AWの各対象＋条件付き本文「挨拶された。」を双方採用。原入力「おはよう」・player／日本語／単独／条件順序なし・既存初期scene注目・当時完全理解・必要原資料整合と、AVのshort／実good_morning・AWのgesture／実attendを前回共通条件のまま維持。at資料部品の再採用ではなく本文方針だけ。通常提案群・au S〜AH・bn AI〜AUも全採用済み、再採用不要。下のAV／AW未採用は履歴。
+- **次の相談AX／AY（双方未採用）**：[at所有条件](#diary-greetings-at)・既存greeting fixtureのexisting-japanese-aliases・catalogのgreeting_morningを静的参照し、次表の有限原入力集合にだけ対象を広げる案。共通はplayer／日本語／単独／条件順序なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=nullの既存初期系統。当時greeting／complete=true／unresolved=[]、shortなら実good_morning、gestureなら実attend、いずれもobservationなし。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合確認時だけとし、AV／AW採用を自動転用しない。
+
+| 相談案（各未採用） | 追加する原入力（各short/gesture） | 条件付き日記本文 |
+| --- | --- | --- |
+| AX | ちょうど「おはよ」「おはよー」「おはよ～」「おはよ〜」「おはようございます」の五表記。空白・句読点なし | 挨拶された。 |
+| AY | ちょうど「おはよう。」「おはよう！」の二表記。末尾記号一個・空白なし | 挨拶された。 |
+
+- 原input.rawの省略・長音／波線の文字差・丁寧形・終端記号を保持し、同文でも原資料／当時理解／実応答は別保持。AXの語調から親密さ／敬意／感情、AYの「！」から喜び／強調意図を作らない。newTeaching/newLearning/newExperience/morningVerified=false、六資料分離・原当時非書戻し・欠落非補完・原expression別資料未供給未確認を維持し、実replyや現在coreから具体発話／身振り・実際に朝だった事実等を復元しない。注目から本人観察／木の実の存在確認・挨拶から受諾／予定／共同参加／実行／完了を補わない。
+- AX／AYの併用、別の長音／波線の反復組合せ、外側／内部空白、タブ改行、半角!・疑問符・複数／途中記号は今回非包含。「 おはよう。 」の未知空節も単独理解へ修復しない。有限表記数は供給／照合成功数ではない。未完理解・別scene注目・他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。am／cp／cq・散策区別・B停止／供給進展0・帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。今回文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットAX／AY個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・d41c311後のユーザー「どちらも採用でOKです」でAT／AUの各対象＋条件付き文言を双方採用。休息限定の実経験report scopeが今回へ不適用の既存系統に限り、ATはberry意味既知「木の実のことは分かったけれど、言われたことは全部は分からなかった。」、AUは意味も不足「言われたことが分からなかった。」。直下のAT／AU共通範囲・原資料条件・全除外を維持し、report IDの存在と今回適用可能性を別保持する。通常提案群・au S〜AH・bn AI〜ASも全採用済み、再採用不要。下のAT／AU未採用は履歴。
 - **次の相談AV／AW（双方未採用）**：[at挨拶所有条件](#diary-greetings-at)と既存greeting fixtureのeight-settingsを参照。player・日本語・原入力がちょうど「おはよう」・単独・条件順序なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.attention=nullの既存初期系統だけ。当時単独greeting_morningをgreeting／complete=true／unresolved=[]として理解し、必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を確認できる場合だけ、各対象＋条件付き本文を相談する。朝挨拶の理解と現在時刻／実際に朝だった事実を分離する。
 
