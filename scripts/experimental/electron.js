@@ -27,7 +27,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         }
     });
     app.whenReady().then(async () => {
-        server = createServer();
+        server = createServer({ autoRecord: !app.isPackaged });
         // The window owns this server. No fixed port and no separately orphaned process.
         await new Promise((resolve, reject) => {
             server.once('error', reject);
@@ -41,6 +41,12 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         window.setMenu(null);
         const url = `http://127.0.0.1:${server.address().port}/`;
         const store = createStore(userData);
+        ipcMain.on('word-personal-log-append', (event, value) => {
+            if (event.sender !== window.webContents || event.senderFrame?.url !== url) {
+                event.returnValue = { ok: false }; return;
+            }
+            event.returnValue = server.personalRecording.append(value);
+        });
         ipcMain.handle('word-life-export', (event, payload) => {
             if (event.sender !== window.webContents || event.senderFrame?.url !== url) return { ok: false };
             return exportReport(dialog, window, payload);

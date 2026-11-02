@@ -164,6 +164,12 @@
         reportDownload: 'レポートのダウンロードを開始しました。保存したファイルを添付して共有できます。',
         reportFailed: 'レポートを保存できませんでした。もう一度お試しください。',
         reportCanceled: 'レポートの保存を取りやめました。',
+        personalActive: '自分用の自動記録：保存済み',
+        personalPending: '自分用の自動記録：保存待ち',
+        personalFailed: '自分用の自動記録：保存できていません',
+        personalPaused: '自分用の自動記録：停止中',
+        personalPause: '自動記録を停止', personalResume: '自動記録を再開',
+        personalHelp: 'このPCの開発用フォルダに会話と動作状況を自動保存します。外部へ送信しません。',
         note_name_confirmed: 'この呼び方で合っていると、あなたに確かめた。ほかのものにも使えるかは、まだ確かめていない。',
         name_known: '。',
         tasted_good: 'うん、甘くておいしかった。', tastes_good: 'うん、甘くておいしい。',
@@ -256,11 +262,13 @@
     let saveBlocked = false;
     let controlFeedback = null;
     let report = null;
+    let personalLog = null;
     let exporting = false;
     let screen = window.WordIslandMode ? 'logo' : 'setup';
     let environmentVolume = .5;
     function record(kind, data) {
         report?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
+        personalLog?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
     }
     const displayText = key => window.GameI18n.translate(t(key));
     const worldApi = window.ExperimentalWordWorld;
@@ -579,6 +587,31 @@
     exportButton.setAttribute('title', t('reportScope'));
     const reportHelp = node('p', t('reportScope'), setupCopy);
     reportHelp.className = 'intro';
+    const personalControls = node('div', undefined, controls); personalControls.hidden = true;
+    const personalStatus = node('small', '', personalControls); personalStatus.id = 'word-personal-log-status';
+    personalStatus.setAttribute('role', 'status');
+    personalStatus.setAttribute('title', t('personalHelp'));
+    const personalToggle = node('button', t('personalPause'), personalControls); personalToggle.type = 'button';
+    personalToggle.id = 'word-personal-log-toggle'; personalToggle.disabled = true;
+    function logBaseline() {
+        return { state, world, appearance: appearance.value, locale: window.GameI18n.language, resumed: !!restored };
+    }
+    personalLog = window.ExperimentalWordAutoRecord?.create({ onStatus(value) {
+        personalControls.hidden = !value.enabled;
+        personalStatus.dataset.status = value.status;
+        personalStatus.textContent = t({ saved: 'personalActive', pending: 'personalPending',
+            failed: 'personalFailed', paused: 'personalPaused' }[value.status]);
+        personalToggle.textContent = t(value.paused ? 'personalResume' : 'personalPause');
+    } });
+    personalToggle.addEventListener('click', () => {
+        if (!state || !personalLog) return;
+        if (personalLog.status().paused) personalLog.resume(logBaseline());
+        else personalLog.pause();
+    });
+    window.addEventListener('error', event => personalLog?.record('error', { message: String(event.message),
+        filename: event.filename, line: event.lineno, column: event.colno }));
+    window.addEventListener('unhandledrejection', event => personalLog?.record('error', {
+        message: String(event.reason?.message || event.reason) }));
     exportButton.addEventListener('click', async () => {
         if (!report || exporting) return;
         exporting = true; exportButton.disabled = true;
@@ -903,6 +936,7 @@
         if (volume) volume.value = String(world.island.volume ?? .5);
         updatePerception();
         report = window.ExperimentalWordReport.create({ state, world, appearance: appearance.value, locale: window.GameI18n.language, resumed: !!restored });
+        personalLog?.start(logBaseline()); personalToggle.disabled = false;
         settings.hidden = true; setupCopy.hidden = true; session.hidden = false;
         titleScreen.hidden = true; screen = 'playing';
         app.classList.remove('title-active');
@@ -957,6 +991,10 @@
         event.preventDefault();
         if (!input.value.trim() || document.hidden || paused) return;
         updatePerception();
+        // Capture originals at the actual input boundary, not by replaying a fixture later.
+        const recording = personalLog?.status();
+        const original = (recording?.enabled || recording?.checking) && !recording.paused ? personalLog.snapshot({
+            beforeState: state, beforeWorld: world, inputKnowledge: state.knowledge, inputContext: state.context }) : null;
         record('player', { text: input.value, context: state.context, situation: { mode: world.mode, attention: world.attention,
             destination: world.destination, hunger: world.hunger, fatigue: world.fatigue } });
         const result = api.receive(state, input.value, catalog, { locale: window.GameI18n.language });
@@ -964,6 +1002,8 @@
         const message = node('p', input.value, conversation);
         message.dataset.speaker = 'player'; message.setAttribute('data-i18n-skip', '');
         const reply = worldApi.respond(world, result, state, catalog);
+        if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
+            afterState: state, afterWorld: world, reply } });
         showReply(reply);
         window.ExperimentalWordNotebook.rememberQuestion(state, result, reply);
         const partialReportExplained = result.understandings.length === 1

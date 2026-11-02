@@ -1,4 +1,11 @@
 {
+  "自分用の自動記録：保存済み": "Personal auto-recording: saved",
+  "自分用の自動記録：保存待ち": "Personal auto-recording: pending",
+  "自分用の自動記録：保存できていません": "Personal auto-recording: unable to save",
+  "自分用の自動記録：停止中": "Personal auto-recording: paused",
+  "自動記録を停止": "Pause auto-recording",
+  "自動記録を再開": "Resume auto-recording",
+  "このPCの開発用フォルダに会話と動作状況を自動保存します。外部へ送信しません。": "Automatically saves conversations and activity details in this PC's development folder. Nothing is sent externally.",
   "挨拶された。": "I was greeted.",
   "ゴーレム": "Golem",
   "ぜんまい": "Wind-up",

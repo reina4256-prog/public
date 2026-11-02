@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- [自分用の自動試遊記録](core/word_playtest_autorecord.md)：2026-11-02・b091307続き。新方式ローカル開発版の入力・当時資料・実反応を私用フォルダへ保存し、各作業開始時に未確認分を実読する。公開URL収集・外部送信・4e本接続への拡張なし。旧run／B停止／供給進展0等は保持、検証・発行結果は現行handoff。
+
 - [4e段階実装・BH／BI](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・a13bd4b続き。既採用の別原入力「おはようございます！」・report記録なし・既存shade休息条件だけを独立文章化。BF／BGのscope不適用と組み合わせない。専用11テスト通過、必要検証の確定結果は現行handoff。六資料分離・全既採用／全維持条件／全14保留／未検証・B停止／供給進展0維持。旧6R0llK／ff1Qioのincompleteと別成功・手動照合を非置換保持。4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。
 
 - [4e段階実装・BF／BG](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・09fa7ca続き。reportの休息限定scope記録あり・今回不適用の既採用単位を独立文章化へ追加、BD／BEの記録なしと分離。専用8テスト通過、必要検証の最終結果は現行handoff。六資料分離・全既採用・全14保留・全維持条件／未検証・B停止／供給進展0維持、4d12／4e全体未完・4f非移行。本接続／保存／集約／途中記録へ拡張しない。以下は過去状態。

@@ -1,4 +1,11 @@
 {
+  "自分用の自動記録：保存済み": "Persönliche automatische Aufzeichnung: gespeichert",
+  "自分用の自動記録：保存待ち": "Persönliche automatische Aufzeichnung: ausstehend",
+  "自分用の自動記録：保存できていません": "Persönliche automatische Aufzeichnung: Speichern fehlgeschlagen",
+  "自分用の自動記録：停止中": "Persönliche automatische Aufzeichnung: pausiert",
+  "自動記録を停止": "Automatische Aufzeichnung pausieren",
+  "自動記録を再開": "Automatische Aufzeichnung fortsetzen",
+  "このPCの開発用フォルダに会話と動作状況を自動保存します。外部へ送信しません。": "Speichert Gespräche und Spielaktivitäten automatisch im Entwicklungsordner auf diesem PC. Es werden keine Daten nach außen gesendet.",
   "挨拶された。": "Ich wurde begrüßt.",
   "ゴーレム": "Golem",
   "ぜんまい": "Aufziehfigur",

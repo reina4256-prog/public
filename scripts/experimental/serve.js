@@ -2,6 +2,8 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
+const { createRecorder, versionSources, LIMIT } = require('./playtest_store');
 const ROOT = path.resolve(__dirname, '../..');
 const files = new Set(['experimental_word_learning.html', 'experimental_word_learning.css',
     'experimental_word_constellation.html', 'experimental_word_constellation.css', 'experimental_word_constellation.js',
@@ -12,6 +14,7 @@ const files = new Set(['experimental_word_learning.html', 'experimental_word_lea
     'experimental_word_careers.js', 'experimental_word_life_learning.js', 'experimental_word_relation_learning.js', 'experimental_word_feeling_learning.js',
     'experimental_word_learning_notebook.js',
     'experimental_word_learning_report.js',
+    'experimental_word_learning_autorecord.js',
     'experimental_word_learning_ui.js', 'experimental_word_start_questions.js', 'experimental_word_learning_core.js',
     'experimental_word_learning_catalog.json', 'localization_core.js', 'localization_catalog.js',
     'experimental_word_learning_world.js', 'experimental_word_learning_view.js', 'experimental_word_learning_visuals.json',
@@ -20,7 +23,64 @@ const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
     '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
 const encounterVideos = new Set(Object.values(require('../../experimental_word_careers').VIDEOS));
 function createServer(options = {}) {
-    return http.createServer((request, response) => {
+    const personal = options.autoRecord;
+    const token = personal ? crypto.randomBytes(32).toString('hex') : null;
+    let recorder, recordingError = false;
+    if (personal) {
+        try {
+            recorder = createRecorder(typeof personal === 'object' ? personal : {});
+        } catch (_) { recordingError = true; }
+    }
+    function recordingConfig() {
+        let version;
+        try {
+            if (recorder) version = typeof personal === 'object' && personal.version ? personal.version
+                : versionSources([...files].filter(file => /\.(js|css|html|json)$/.test(file))
+                    .concat(['scripts/experimental/serve.js', 'scripts/experimental/playtest_store.js',
+                        'scripts/experimental/electron.js', 'scripts/experimental/preload.js']), recorder.directory);
+        } catch (_) { recordingError = true; }
+        return { enabled: !!personal, available: !!recorder && !recordingError, token, version };
+    }
+    const server = http.createServer((request, response) => {
+        if (personal && request.url?.startsWith('/__word_playtest/')) {
+            const origin = `http://${request.headers.host}`;
+            const local = ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(request.socket.remoteAddress);
+            let host;
+            try { host = new URL(origin).hostname; } catch (_) { host = ''; }
+            const allowed = local && ['127.0.0.1', 'localhost', '[::1]'].includes(host)
+                && request.headers['sec-fetch-site'] !== 'cross-site'
+                && (!request.headers.origin || request.headers.origin === origin);
+            const reply = (status, value) => {
+                response.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store',
+                    'X-Content-Type-Options': 'nosniff' }); response.end(JSON.stringify(value));
+            };
+            if (!allowed) { reply(403, { ok: false }); return; }
+            if (request.url === '/__word_playtest/config' && request.method === 'GET') {
+                reply(200, recordingConfig()); return;
+            }
+            if (request.url !== '/__word_playtest/events' || request.method !== 'POST' || request.headers.origin !== origin) {
+                reply(403, { ok: false }); return;
+            }
+            let bytes = 0, rejected = false;
+            const chunks = [];
+            request.on('data', chunk => {
+                bytes += chunk.length;
+                if (bytes > LIMIT) {
+                    if (!rejected) reply(413, { ok: false, reason: 'capacity' });
+                    rejected = true; chunks.length = 0;
+                } else if (!rejected) chunks.push(chunk);
+            });
+            request.on('end', () => {
+                if (rejected) return;
+                try {
+                    const packet = JSON.parse(Buffer.concat(chunks).toString('utf8'));
+                    if (packet.token !== token) { reply(403, { ok: false }); return; }
+                    const result = recorder?.append(packet) || { ok: false, reason: 'write' };
+                    reply(result.ok ? 200 : 409, result);
+                } catch (_) { reply(400, { ok: false }); }
+            });
+            return;
+        }
         let name;
         try { name = decodeURIComponent(new URL(request.url, 'http://localhost').pathname).slice(1) || 'experimental_word_island.html'; }
         catch (_) { response.writeHead(400).end(); return; }
@@ -59,9 +119,12 @@ function createServer(options = {}) {
             stream.pipe(response);
         });
     });
+    server.personalRecording = { config: recordingConfig,
+        append: packet => recorder?.append(packet) || { ok: false, reason: 'write' } };
+    return server;
 }
 if (require.main === module) {
-    const server = createServer();
+    const server = createServer({ autoRecord: true });
     const argument = process.argv.find(arg => arg.startsWith('--port='));
     const port = argument ? Number(argument.slice(7)) : 4175;
     if (!Number.isInteger(port) || port < 0 || port > 65535) throw new Error('Invalid port');

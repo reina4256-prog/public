@@ -1,4 +1,11 @@
 {
+  "自分用の自動記録：保存済み": "Registro automático personal: guardado",
+  "自分用の自動記録：保存待ち": "Registro automático personal: pendiente",
+  "自分用の自動記録：保存できていません": "Registro automático personal: no se pudo guardar",
+  "自分用の自動記録：停止中": "Registro automático personal: en pausa",
+  "自動記録を停止": "Pausar el registro automático",
+  "自動記録を再開": "Reanudar el registro automático",
+  "このPCの開発用フォルダに会話と動作状況を自動保存します。外部へ送信しません。": "Guarda automáticamente las conversaciones y la actividad en la carpeta de desarrollo de este equipo. No se envía nada al exterior.",
   "挨拶された。": "Me saludaron.",
   "ゴーレム": "Gólem",
   "ぜんまい": "Muñeco de cuerda",
