@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・2c021a2後、[4e BF／BG](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はdg既存単独「おはようございます！」・入力前report記録なし／当時reportだけ不足のBH short設定／BI gesture設定、各本文「言われたことが分からなかった。」を個別相談（双方未採用）。原expression／実reply、既存休息中scene注目・必要原資料条件・除外は正本。六資料分離・原当時非書戻し・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・f313f5f後、[4e BD／BE](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はdgの休息限定report scopeが単独「おはよう」へ不適用のBF short設定／BG gesture設定、各本文「言われたことが分からなかった。」を個別相談（双方未採用）。学習完了後の原前後状態と必要資料条件は正本。report記録なしと統合せず、六資料分離・欠落非補完、個別原資料未供給未照合・実装未着手。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・8068133後、[4e BB／BC](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はdg単独「おはよう」・当時report関係不足のBD short設定／BE gesture設定、各本文「言われたことが分からなかった。」を個別相談（双方未採用）。両設定とも原expression=gesture/attend・実reply=attendの系統で、設定と実発話を混同しない。既存clearing／shade休息中・必要原資料条件と除外は正本。六資料分離・欠落非補完、原資料未供給未照合・実装未着手。B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行、同チャット回答待ち・冒頭文非出力。以下は過去状態。

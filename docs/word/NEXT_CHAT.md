@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（2c021a2後・BF／BG採用、BH／BI相談中）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、4e仕様相談を続けてください。正本はdocs/specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BGは全採用済み、再採用不要。現在はdgの原入力がちょうど「おはようございます！」・player／日本語／単独／条件順序なし・clearing／shade注目休息中・入力前report記録なし・当時partial／known={}／relations=[]／reportだけ未解決のBH short設定／BI gesture設定を、各本文「言われたことが分からなかった。」として個別相談中、双方未採用です。両設定とも原expression=gesture/attend・実reply=attend／actualSpeech=false、必要原資料条件・除外は正本。原丁寧形／記号は保持し、挨拶理解・感情・具体返答や身振りを補わない。六資料分離・原当時非書戻し・欠落非補完・同文でも別保持、dg原expression保持とat等欠落、原learning/transferとcapture非生成、判断欠落と不実行を区別。am／cp／cq／散策区別の全条件、個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完を維持。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計を保持。他表記／scope不適用／他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・本接続・実装へ一括採用しない。文書検証のみ・ゲーム検証未実行、前回公開全回帰incomplete／実UI未確認非昇格。同チャット回答待ちにつき今回冒頭文非出力。以下は過去状態です。
+
 ## 現行継続文（f313f5f後・BD／BE採用、BF／BG相談中）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、4e仕様相談を続けてください。正本はdocs/specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD／BEは全採用済み、再採用不要。現在はdgで休息限定の実経験report scopeが原入力「おはよう」へ不適用のBF short設定／BG gesture設定を、各本文「言われたことが分からなかった。」として個別相談中、双方未採用です。player／日本語／単独／条件順序なし、当時partial／known={}／relations=[]／reportだけ未解決、原expression=gesture/attend・実reply=attend／actualSpeech=false、既存学習完了後world=idle／attention=nullとinputContext=clearing／shade注目を別保持。必要原資料条件・除外は正本。六資料分離・原当時非書戻し・欠落非補完・同文でも別保持、report記録ありと今回適用可能性を分け、BD／BEと統合しない。原expression保持はat等の欠落と区別し、原learning/transferとcapture非生成を混同せず、compliance=null／actionDecisionRecorded=falseから不実行非推定。am／cp／cq／散策区別の全条件、個別原資料未供給未照合・文章化実装未着手、4d12／4e全体未完を維持。Bのp最終S6EUsK／session58391は具体的既存取得参照まで再確認停止、所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含、全維持条件／保留／集計を保持。他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・本接続・実装へ一括採用しない。今回文書検証のみ・ゲーム検証未実行、前回公開全回帰incomplete／実UI未確認非昇格。同チャット回答待ちにつき今回冒頭文非出力。以下は過去状態です。

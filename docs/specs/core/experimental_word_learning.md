@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・2c021a2後のユーザー「はい、どちらも採用でOKです」でBF／BGの各対象＋条件付き本文「言われたことが分からなかった。」を双方採用。原入力「おはよう」・player／日本語／単独／条件順序なし、休息限定実経験report scopeは記録ありだが今回には不適用、当時reportだけ未解決。BF short設定／BG gesture設定とも原expression=gesture/attend・実reply=attend／actualSpeech=false。学習完了後world=idle／attention=nullとinputContext=clearing／shadeを別保持し、前回必要原資料条件・全除外を維持。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD／BEも採用済み、再採用不要。下のBF／BG未採用は履歴。
+- **次の相談BH／BI（双方未採用）**：[dg所有条件](#diary-greeting-materials-dg)・既存fixtureのunknown-repetition-existing-aliasesに明示された単独「おはようございます！」だけを静的参照。player／日本語／条件順序なし、原入力はこの文字列ちょうど・末尾全角「！」一個・空白なし。inputContext.scene=clearing／attention=[{id:shade,meaning:rest}]、beforeWorld.mode=rest／attention=shadeの既存系統。入力前report記録なし（scope不適用は今回非包含）、greeting_morning一frameだが当時kind=partial／complete=false／known={}／relations=[]／unresolvedはreport関係だけ・subject/aspect=nullを必要原資料で確認できる場合だけ、次の対象＋条件付き本文を個別相談する。
+
+| 相談案（各未採用） | 対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| BH | 上記共通条件・speech設定short。ただし原expression.channel=gesture／message=attend、実reply.message=attend・observationなし／actualSpeech=false | 言われたことが分からなかった。 |
+| BI | 上記共通条件・speech設定gesture。原expression.channel=gesture／message=attend、実reply.message=attend・observationなし／actualSpeech=false | 言われたことが分からなかった。 |
+
+- 必要三引数原receipt・独立input/knowledge/context・前後state/world・原result.expression・実reply／実turnの整合を要求する。原input.rawの「ございます」と「！」を保持し、本人の丁寧さ理解／敬意／喜び／強調意図を作らない。原frameから挨拶理解を足さず、本文へ「挨拶された」「おはようと言われた」「挨拶を返した」「頷いた」等を補わない。speech設定と原expression／実reply／actualSpeechを分離し、attendだけで未理解を認定しない。dg原expression保持はat等の欠落と区別し、個別原資料供給済みとはしない。同文でも原資料／当時理解別保持、六資料分離・原当時非書戻し・欠落非補完を維持。
+- 既採用AX／AYの完全理解表記方針を未完理解へ自動転用せず、BD／BEやBF／BGへ候補統合しない。原learning/transfer・associationsの実変化とcaptureAddsTeaching/captureAddsLearning/captureAddsExperience=falseを区別し、morningVerified=false、compliance=null／actionDecisionRecorded=falseから不実行／am判断を作らない。休息中だったことからこの入力による休息開始継続完了・移動等を本文へ足さない。原入力が一つでも他の丁寧形／記号付き表記・疑問・反復や複数節を一括採用せず、「 おはよう。 」等の未知空節を単独理解へ修復しない。
+- 今回はdg現所有条件・本体該当保持欄／fixtureとcatalog挨拶パターン・core expressを静的読取しただけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。他表記／空白記号・scope不適用・他scene注目活動・他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・B停止／供給進展0・帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットBH／BI個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・f313f5f後のユーザー「はい、どちらも採用でOKです」でBD／BEの各対象＋条件付き本文「言われたことが分からなかった。」を双方採用。入力前report記録なし・原入力「おはよう」・player／日本語／単独／条件順序なし・clearing／shade注目休息中・当時report関係だけ不足、原expression=gesture/attend・実reply=attend／actualSpeech=falseのBD short設定／BE gesture設定に限る。前回全原資料条件・除外・六資料分離を維持し、原frameから本人の挨拶理解を足さない。通常提案群・au S〜AH・bn AI〜AU・at AV〜BCも採用済み、再採用不要。下のBD／BE未採用は履歴。
 - **次の相談BF／BG（双方未採用）**：[dg所有条件](#diary-greeting-materials-dg)・既存fixtureのat-existing-control:real-experienced-report-scope-not-transferredを静的参照。原入力がちょうど「おはよう」・player／日本語／単独／条件順序なし、既存report.setup→learnReport完了後に入力する系統だけ。入力前knowledgeには休息で実経験から学んだreport（source=experienced_relation）のscope付き記録があるが、今回のgreeting_morningには適用できず、他に今回適用可能なreportもない。当時kind=partial／complete=false／known={}／relations=[]／unresolvedはreport関係だけ、subject/aspect=nullを必要原資料で確認する。既存学習完了後のbeforeWorld.mode=idle／attention=nullと、inputContext.scene=clearing／attention=[{id:shade,meaning:rest}]を別保持し、学習時の休息と今回入力時を混同しない。
 
