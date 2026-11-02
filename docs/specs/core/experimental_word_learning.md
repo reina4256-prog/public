@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・3b14429後のユーザー「はい、どちらも採用でOKです」でBJ／BKの各対象＋条件付き本文「言われたことが分からなかった。」を双方採用。原入力「おはよう」・player／日本語／単独／条件順序なし・初期inputContext=clearing／berry:1注目、world=idle／attention=null・入力前report記録なし／当時reportだけ不足、BJ short設定／BK gesture設定とも原expression=gesture/attend・実reply=attend／actualSpeech=false。前回原資料条件・全除外を維持。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BIも採用済み、再採用不要。下のBJ／BK未採用は履歴。
+- **次の相談BL／BM（双方未採用）**：[av休息快適さ報告の所有条件](#diary-rest-comfort-reports-av)と既存rest_comfort fixtureのeight-settingsを静的参照。原入力がちょうど「横になると気持ちいい」・player／日本語／単独・順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。既存の条件を含む一報告の本文案であり、条件付き提案／条件成立判断・他条件や複数節を一括採用しない。
+- BL／BM共通の当時理解条件：comfortable/rest意味とreport/condition関係が今回適用可能、単独rest_comfortをkind=report／complete=true／unresolved=[]／known.meaning=comfortable／known.conditionMeaning=rest／aspect=rest_comfort、subject=player／polarity=positive／eventTime=unspecifiedとして理解。原reportSource={kind:speaker_report,inputId:今回ID,heardAt:原時刻}を保持し、conditionStatus=unknownのまま。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を確認できる場合だけ、各対象＋条件付き本文を相談する。設定だけで理解を認定しない。
+
+| 相談案（各未採用） | 対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| BL | 上記共通条件・speech=short、実reply.message=heard_rest_comfort・observationなし | 横になると気持ちいいと聞いた。 |
+| BM | 上記共通条件・speech=gesture、実reply.message=attend・observationなし | 横になると気持ちいいと聞いた。 |
+
+- 本文は条件を含む報告を聞いて理解した範囲だけ。本人が横になった／快適だった／休息を選択開始継続完了した・回復因果を確認した・話者の経験を検証したという内容へ変換しない。conditionStatus=unknown・status=reported／verified=falseを別保持し、当時completeを条件成立や真偽確認にしない。原文の「横になる」を当時本人の実動作にせず、注目／疲労／現在活動で欠ける経験を埋めない。av capturedに原expression欄はなく別資料未供給未確認、実reply／現在coreから具体返答や身振りを復元しない。newTeaching/newLearning/newExperience=false、六資料分離・原当時非書戻し・欠落非補完・同文でも原資料／当時理解別保持を維持。
+- 今回はrouting／OWNERSとav所有条件・本体／fixture・greeting setup依存・worldの実応答枝を静的読取しただけ。bo未完理解／aw大事さ報告等は今回未採用、原入力別表記／空白記号・別scene注目活動・他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。挨拶全範囲の完了や4e全体完了・全入口網羅・次の大工程移行ではない。am／cp／cq・散策区別・B停止／供給進展0・帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットBL／BM個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・80aef44後のユーザー「はい、どちらも採用でOKです」でBH／BIの各対象＋条件付き本文「言われたことが分からなかった。」を双方採用。原入力「おはようございます！」・player／日本語／単独／条件順序なし・clearing／shade注目休息中・入力前report記録なし／当時reportだけ不足、BH short設定／BI gesture設定とも原expression=gesture/attend・実reply=attend／actualSpeech=false。前回必要原資料条件・全除外を保持し、丁寧形／記号を当時理解や感情へ補わない。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BGも採用済み、再採用不要。下のBH／BI未採用は履歴。
 - **次の相談BJ／BK（双方未採用）**：[dg所有条件](#diary-greeting-materials-dg)・既存fixtureが継承するat-existing-control:eight-settingsの未完理解側を静的参照。原入力がちょうど「おはよう」・player／日本語／単独／条件順序なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。入力前report記録なし（scope不適用は今回非包含）、原frame=greeting_morning一つだが当時kind=partial／complete=false／known={}／relations=[]／unresolvedはreport関係だけ・subject/aspect=null。foundation/life設定だけでなく、必要原資料でこの当時理解を確認できる場合だけ、各対象＋条件付き本文を個別相談する。
 
