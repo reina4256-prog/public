@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+- [4e段階実装・BF／BG](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・09fa7ca続き。既採用の休息限定report scope記録あり・今回不適用を独立文章化へ追加し、BD／BEの記録なしと分離。専用8テスト通過、必要検証の最終結果は現行handoff。全既採用・六資料分離・全14保留・全維持条件／未検証・B停止／供給進展0維持。4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。
+
 - [4e段階実装・BD／BE](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・91ad885続き。次単位を既採用dg BD／BEへ限定し独立文章化。原record/result/receipt照合と当時report関係だけ不足・原expression／実reply等の条件で「言われたことが分からなかった。」を返す。専用5・七言語14959・別権限renderer4正例／4改変拒否／28翻訳通過、全回帰結果は現行handoff。AV〜BC・全既採用・六資料分離・全維持条件／全14保留／未検証・B停止／供給進展0維持。4d12／4e全体未完・4f非移行。以下は過去状態。
 
 - [4e残検証の整理](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・d3eee45続き。147登録ファイルを維持し、全回帰を最大8ファイルずつ・監査／工具各単独に分割する検証工具へ補修。最終件数・完了／未完を区間ごとに保存、確定結果は現行handoffを参照。AV〜BC・全既採用／六資料分離／全保留・B再確認停止／供給進展0維持。他本文未実装、4d12／4e全体未完・4f非移行。下のtimeoutは旧runの結果。

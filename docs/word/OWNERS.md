@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-11-02・09fa7ca続き：[4e BF／BG](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)は既存incomplete_greeting_prose.renderへ限定追加。dg三資料照合に加えreportの二休息scopeと前後の既存relationLearning.validを要求し、記録なしBD／BEと分離する。旧4d12の140/140枠・129子・138登録API・ao〜dy人間OKへ加算しない。専用8テスト通過、最終検証は現行handoff。全既採用・全維持条件／保留／未検証・B停止／供給進展0、4d12／4e全体未完を保持。以下は過去状態。
+
 - 2026-11-02・91ad885続き：[4e正本](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の既採用BD／BEを[独立表示部品](../../experimental_word_diary_incomplete_greeting_prose.js)のrender(record,result,receipt)として追加。[dg所有部品](../../experimental_word_diary_greeting_materials.js)を原資料照合に使用し、既存shade休息初期条件の単独未完理解だけを文章化する。[専用テスト](../../tests/experimental_word_diary_incomplete_greeting_prose.test.js)5件・別権限renderer通過、全回帰の確定結果はhandoff。旧4d12の140/140枠・129子・138登録APIへ表示APIを加算しない。六資料分離・全既採用／全保留／未検証・B停止／供給進展0、4d12／4e全体未完・4f非移行維持。BF〜BK等は本文未実装。
 
 - 2026-11-02現行：4eの採用済みAV〜BCを[挨拶文章化](../../experimental_word_diary_greeting_prose.js)で独立実装。`render(record,result,receipt)`は[at原候補所有部品](../../experimental_word_diary_greetings.js)の照合を再利用し、既採用範囲だけ「挨拶された。」を返す読取専用表示API。原capture所有・138登録APIの集計は変更しない。[仕様](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)・[テスト](../../tests/experimental_word_diary_greeting_prose.test.js)。Bのp最終S6EUsK／session58391は具体的取得参照まで再確認停止・供給進展0。下の再確認予定は過去状態。
