@@ -11,10 +11,14 @@ function scopedExamples() {
 }
 function examples() {
     return ['short', 'gesture'].flatMap(speech => [false, true].map(life =>
-        hear(setup({ speech, life, foundation: false }), 'おはよう'))).concat(scopedExamples(), aliasExamples());
+        hear(setup({ speech, life, foundation: false }), 'おはよう'))).concat(scopedExamples(), aliasExamples(), initialExamples());
 }
 function aliasExamples() {
     return ['short', 'gesture'].flatMap(speech => [false, true].map(life =>
         hear(setup({ speech, life, foundation: false }), 'おはようございます！')));
 }
-module.exports = { examples, scopedExamples, aliasExamples };
+function initialExamples() {
+    return ['short', 'gesture'].flatMap(speech => [false, true].map(life =>
+        greeting.hear(greeting.setup({ speech, life, foundation: false }))));
+}
+module.exports = { examples, scopedExamples, aliasExamples, initialExamples };

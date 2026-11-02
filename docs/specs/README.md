@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- [4e段階実装・BJ／BK](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・ff8d35a続き。既採用の初期berry:1入力注目・world idle/null・report記録なしだけを独立文章化へ追加。六資料分離・全維持条件／全14保留・B停止／供給進展0、旧四runのincomplete／自動reviewRequiredを非置換保持。必要検証・発行は現行handoff参照。4d12／4e全体未完・4f非移行、本接続等への拡張なし。以下は過去状態。
+
 - [自分用の自動試遊記録](core/word_playtest_autorecord.md)：2026-11-02・b091307続き。新方式ローカル開発版の入力・当時資料・実反応を私用フォルダへ保存し、各作業開始時に未確認分を実読する。公開URL収集・外部送信・4e本接続への拡張なし。旧run／B停止／供給進展0等は保持、検証・発行結果は現行handoff。
 
 - [4e段階実装・BH／BI](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・a13bd4b続き。既採用の別原入力「おはようございます！」・report記録なし・既存shade休息条件だけを独立文章化。BF／BGのscope不適用と組み合わせない。専用11テスト通過、必要検証の確定結果は現行handoff。六資料分離・全既採用／全維持条件／全14保留／未検証・B停止／供給進展0維持。旧6R0llK／ff1Qioのincompleteと別成功・手動照合を非置換保持。4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。

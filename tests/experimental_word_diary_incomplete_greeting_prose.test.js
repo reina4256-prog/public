@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const materials = require('../experimental_word_diary_greeting_materials');
 const prose = require('../experimental_word_diary_incomplete_greeting_prose');
 const { setup, hear, core, fixtures } = require('../scripts/experimental/diary_greeting_material_fixtures');
-const { examples, scopedExamples, aliasExamples } = require('../scripts/experimental/diary_incomplete_greeting_prose_fixtures');
+const { examples, scopedExamples, aliasExamples, initialExamples } = require('../scripts/experimental/diary_incomplete_greeting_prose_fixtures');
 const copy = value => JSON.parse(JSON.stringify(value));
 const sentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
 function material(v) {
@@ -12,8 +12,8 @@ function material(v) {
     return materials.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
 }
 const render = v => prose.render(material(v), v.result, v.receipt);
-test('BD/BE, BF/BG and BH/BI: both speech and life settings retain six sources and only display the adopted sentence', () => {
-    const values = examples(); assert.equal(values.length, 12);
+test('BD through BK: both speech and life settings retain six sources and only display the adopted sentence', () => {
+    const values = examples(); assert.equal(values.length, 16);
     for (const v of values) {
         const record = material(v), before = JSON.stringify({ record, v });
         for (let n = 0; n < 2; n++) assert.equal(prose.render(record, v.result, v.receipt), sentence);
@@ -25,18 +25,19 @@ test('BD/BE, BF/BG and BH/BI: both speech and life settings retain six sources a
         assert.equal(record.captured.morningVerified, false);
     }
 });
-test('all existing dg materials outside BD/BE, BF/BG and BH/BI remain outside this prose unit', () => {
+test('all existing dg materials outside BD through BK remain outside this prose unit', () => {
     let accepted = 0;
     for (const f of fixtures()) {
         const allowed = f.group === 'single-eight-settings' && f.expected
             && f.value.result.input.speaker === 'player'
             || f.group === 'at-existing-control:real-experienced-report-scope-not-transferred'
+            || f.group === 'at-existing-control:eight-settings' && f.expected
             || f.group === 'unknown-repetition-existing-aliases'
                 && f.value.result.input.raw === 'おはようございます！' && f.value.result.input.speaker === 'player';
         assert.equal(render(f.value), allowed ? sentence : null, f.group + ': ' + f.value.result.input.raw);
         if (allowed) accepted++;
     }
-    assert.equal(accepted, 10);
+    assert.equal(accepted, 14);
 });
 test('valid owner material cannot widen exact input, scene, activity or numeric scope', () => {
     for (const raw of ['おはよ', 'おはようございます', ' おはよう ', 'おはよう。', 'おはよう\n',
@@ -211,5 +212,85 @@ test('BH/BI later report knowledge cannot rewrite the original lack of understan
         assert.equal(prose.render(record, later.result, first.receipt), null);
         assert.equal(prose.render(record, first.result, first.receipt), sentence);
         assert.equal(JSON.stringify({ first, record }), before);
+    }
+});
+
+test('BJ/BK keep initial input attention, world attention and original learning separate', () => {
+    const values = initialExamples(); assert.equal(values.length, 4);
+    for (const v of values) {
+        const record = material(v), original = JSON.stringify({ v, record });
+        assert.deepEqual(v.receipt.inputContext.attention, [{ id: 'berry:1', meaning: 'berry' }]);
+        assert.equal(v.receipt.beforeWorld.mode, 'idle');
+        assert.equal(v.receipt.beforeWorld.attention, null);
+        assert.equal(v.receipt.beforeWorld.hunger, .35);
+        assert.equal(v.receipt.beforeWorld.fatigue, .15);
+        assert.deepEqual(v.receipt.inputKnowledge.relations.filter(r => r.id === 'report'), []);
+        assert.deepEqual(record.captured.originalResult, v.result);
+        assert.deepEqual(record.captured.originalLearning, v.result.learning);
+        assert.deepEqual(record.captured.originalTransfer, v.result.transfer);
+        assert.equal(record.captured.knowledgeChanged,
+            JSON.stringify(v.receipt.beforeState.knowledge) !== JSON.stringify(v.receipt.afterState.knowledge));
+        for (const field of ['captureAddsTeaching', 'captureAddsLearning', 'captureAddsExperience',
+            'morningVerified', 'actualSpeech', 'actionDecisionRecorded']) assert.equal(record.captured[field], false);
+        assert.equal(record.captured.compliance, null);
+        assert.equal(record.captured.completedExperience, null);
+        assert.equal(prose.render(record, v.result, v.receipt), sentence);
+        const shade = hear(setup({ foundation: false, speech: v.receipt.beforeState.settings.speech }), 'おはよう');
+        assert.equal(prose.render(record, shade.result, shade.receipt), null);
+        assert.equal(JSON.stringify({ v, record }), original);
+    }
+});
+
+test('BJ/BK reject self-consistent evidence outside the adopted initial combination', () => {
+    const greeting = require('../scripts/experimental/diary_greeting_fixtures');
+    const edits = [
+        v => { v.world.mode = 'rest'; },
+        v => { v.world.mode = 'observe'; },
+        v => { v.world.mode = 'walk'; },
+        v => { v.world.attention = 'berry:1'; },
+        v => { v.world.hunger = .8; },
+        v => { v.world.fatigue = .7; },
+        v => { core.perceive(v.state, { scene: 'shore', attention: [] }); },
+        v => { core.perceive(v.state, { scene: 'clearing', attention: [] }); },
+        v => { core.perceive(v.state, { scene: 'clearing', attention: [{ id: 'shade', meaning: 'rest' }] }); },
+        v => { v.state.knowledge.relations.push({ id: 'report', source: 'initial' }); }
+    ];
+    for (const speech of ['short', 'gesture']) {
+        for (const edit of edits) {
+            const v = greeting.setup({ foundation: false, speech }); edit(v);
+            assert.equal(render(greeting.hear(v)), null);
+        }
+        for (const raw of ['おはようございます！', ' おはよう ', 'おはよう。', 'おはよう！', 'おはよう\n休んでね'])
+            assert.equal(render(greeting.hear(greeting.setup({ foundation: false, speech }), raw)), null);
+        for (const options of [{ speaker: 'visitor' }, { locale: 'en' }])
+            assert.equal(render(greeting.hear(greeting.setup({ foundation: false, speech }), 'おはよう', options)), null);
+        // BF/BG's learned scopes must not combine with BJ/BK's input attention.
+        const report = require('../scripts/experimental/diary_negation_fixtures');
+        const scoped = report.setup({ speech }); report.learnReport(scoped, 'ja');
+        core.perceive(scoped.state, { scene: 'clearing', attention: [{ id: 'berry:1', meaning: 'berry' }] });
+        assert.equal(render(greeting.hear(scoped)), null);
+    }
+});
+
+test('BJ/BK require every original and never repair earlier understanding with later knowledge', () => {
+    const greeting = require('../scripts/experimental/diary_greeting_fixtures');
+    for (const speech of ['short', 'gesture']) {
+        const v = greeting.setup({ foundation: false, speech }), first = greeting.hear(v);
+        const record = material(first), original = JSON.stringify({ first, record });
+        for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'beforeWorld', 'afterState', 'afterWorld', 'reply']) {
+            const receipt = copy(first.receipt); delete receipt[field];
+            assert.equal(prose.render(record, first.result, receipt), null);
+        }
+        const result = copy(first.result); delete result.expression;
+        assert.equal(prose.render(record, result, first.receipt), null);
+        const altered = copy(record); altered.captured.compliance = false;
+        assert.equal(prose.render(altered, first.result, first.receipt), null);
+        v.state.knowledge.relations.push({ id: 'report', source: 'initial' });
+        const later = greeting.hear(v);
+        assert.equal(later.result.understandings[0].complete, true);
+        assert.equal(render(later), null);
+        assert.equal(prose.render(record, later.result, first.receipt), null);
+        assert.equal(prose.render(record, first.result, first.receipt), sentence);
+        assert.equal(JSON.stringify({ first, record }), original);
     }
 });

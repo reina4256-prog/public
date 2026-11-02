@@ -11,11 +11,20 @@
     function missingReportScope(receipt) {
         const reports = receipt.inputKnowledge.relations.filter(item => item.id === 'report');
         const world = receipt.beforeWorld;
-        // BD/BE and BH/BI: no report record. BF/BG: the two original, rest-only learned
+        // BD/BE, BH/BI and BJ/BK: no report record. BF/BG: the two original, rest-only learned
         // scopes with their experience evidence; a matching ID alone is insufficient.
-        if (!reports.length) return world.mode === 'rest' && world.attention === 'shade'
-            && world.hunger === .8 && world.fatigue === .7;
+        if (!reports.length) {
+            const attention = receipt.inputContext.attention;
+            return equal(attention, [{ id: 'shade', meaning: 'rest' }])
+                && world.mode === 'rest' && world.attention === 'shade'
+                && world.hunger === .8 && world.fatigue === .7
+                || /^おはよう$/u.exec(receipt.input.raw)?.[0] === receipt.input.raw
+                && equal(attention, [{ id: 'berry:1', meaning: 'berry' }])
+                && world.mode === 'idle' && world.attention === null
+                && world.hunger === .35 && world.fatigue === .15;
+        }
         return /^おはよう$/u.exec(receipt.input.raw)?.[0] === receipt.input.raw
+            && equal(receipt.inputContext.attention, [{ id: 'shade', meaning: 'rest' }])
             && world.mode === 'idle' && world.attention === null && reports.length === 2
             && ['self', 'player'].every(subject => reports.filter(item => item.source === 'experienced_relation'
                 && equal(item.scope, { kind: 'report', locale: 'ja', speaker: 'player', meaning: 'rest',
@@ -30,7 +39,9 @@
         return typeof input.raw === 'string'
             && /^(?:おはよう|おはようございます！)$/u.exec(input.raw)?.[0] === input.raw
             && input.speaker === 'player' && input.locale === 'ja'
-            && context.scene === 'clearing' && equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
+            && context.scene === 'clearing'
+            && (equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
+                || equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }]))
             && ['short', 'gesture'].includes(receipt.beforeState.settings.speech)
             && missingReportScope(receipt)
             && result.interpretations.length === 1 && result.interpretations[0].catalogRule === 'greeting_morning'
@@ -39,7 +50,7 @@
             && equal(result.expression, { channel: 'gesture', message: 'attend' })
             && equal(receipt.reply, { message: 'attend' });
     }
-    // Read-only BD/BE, BF/BG and BH/BI display projection. The existing owner verifies all six
+    // Read-only BD through BK display projection. The existing owner verifies all six
     // source categories on copies; missing originals are never inferred here.
     function render(record, result, receipt) {
         try {

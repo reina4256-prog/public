@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-11-02・ff8d35a続き：[4e BJ／BK](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化へ追加。初期berry:1入力注目・world idle/null・report記録なしを従前shade系統から分離し、必要検証・発行結果は現行handoffを参照。六資料分離・全既採用／全維持条件／全14保留／未検証・B停止／供給進展0、旧6R0llK／ff1Qio／kxTjkT／iRNci6のincomplete・自動reviewRequiredを非置換保持。140/140枠・129子・138登録API・ao〜dy人間OK維持、従前4d12残2〜3中心2・低確度・減算0を4eへ転用しない。4d12／4e全体未完・4f非移行、本接続／保存／反復集約／途中記録未実装。全体量削減なし・固定総数未確定、以下は過去状態。
+
 - 2026-11-02・a13bd4b続き：[4e BH／BI](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の既採用別原入力だけを独立文章化。report記録なし・既存shade休息条件、BF／BGのscope不適用とは組み合わせない。専用11テスト通過、横断回帰・監査・関連renderer等の確定結果は現行handoff。六資料分離・全既採用・全維持条件／全14保留／未検証・am／cp／cq／散策区別、BのS6EUsK／session58391具体的既存取得参照まで再確認停止／供給進展0維持。旧6R0llK／ff1Qioのincompleteと別成功／手動照合を非置換保持。140/140枠・129子・138登録API・ao〜dy人間OK維持、新表示APIを旧母数に加算しない。従前4d12残2〜3中心2・低確度・減算0を4eへ転用しない。4d12／4e全体未完・4f非移行、本接続／保存／反復集約／途中記録未実装。全体量削減なし・今後増減理由記録・固定総数未確定、以下は過去状態。
 
 - 2026-11-01最新：a9cb1cfの続きとして[p旧一時実Electron最終S6EUsK一群の所在確認範囲](specs/core/experimental_word_diary_audit.md#entry-other-speaker-sequential-rest-row-mapping)を一単位進めた。保存目録から最終S6EUsK／session58391だけに限定。同名Temp profile直下10ディレクトリ・通常ファイル0を確認したが、名前一致はrun真正性／B原資料同一性を証明しない。個別原receipt所在未確認・未供給・未照合、内部cache／storage・原session出力未読。602ケース661入力は過去集計でB件数へ変換せず、再生成・再生なし。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含。全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ、ゲーム検証未実行・過去不完了非昇格。次は同じ最終runの原出力保存先を一経路だけ限定し確認する。読取／未読／証拠／発行は現行handoff参照。以下は過去状態。
