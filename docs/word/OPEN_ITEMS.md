@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- 2026-11-03・2abe1f8続き：[4e BL／BM](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化。conditionStatus=unknown/status=reported/verified=false、av原expression別資料未供給未確認を保持。全既採用・六資料分離・全14保留／各担当三保留／全維持条件／未検証・am／cp／cq／散策区別、B具体的取得参照まで停止／供給進展0、旧四runのincomplete／自動reviewRequired非置換維持。新fixture／個人ログは歴史供給ではない。4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。必要検証・発行は現行handoff。以下は過去状態。
+
 - 2026-11-02・ff8d35a続き：[4e BJ／BK](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化へ限定追加。六資料分離・全14保留・各担当三保留・全維持条件／未検証・am／cp／cq／散策区別、BのS6EUsK／session58391具体的既存取得参照まで停止／供給進展0を維持。新fixture／個人ログを歴史供給へ変換しない。旧6R0llK／ff1Qio／kxTjkT／iRNci6のincomplete・自動reviewRequiredは別成功／手動照合で非置換。4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。必要検証・発行は現行handoff、以下は過去状態。
 
 - 2026-11-02・a13bd4b続き：[4e BH／BI](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化へ追加。別原入力・report記録なしとBF／BGのscope不適用を分離。六資料分離・全既採用・全14保留・各担当三保留・全維持条件／未検証・am／cp／cq／散策区別、BのS6EUsK／session58391具体的既存取得参照まで再確認停止／供給進展0維持。新fixtureは歴史原本供給ではない。旧6R0llK／ff1Qioのincompleteと別成功／手動照合を非置換保持。4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。確定検証・発行結果は現行handoff、以下は過去状態。

@@ -1,5 +1,15 @@
 # 次チャットの開始文
 
+## 現行継続文（2abe1f8続き・4e BL／BM独立文章化）
+
+全Node150/150ファイル・3628件（監査97／工具16含む）・構文5JS・七言語14967通過、pendingTests／unexecutedChecksは空。原run Z3KF8kは制限内GPU失敗とsmokeの静的依存未分類によりincomplete、reviewRequired／reading.not_recordedを保持。smoke依存の手動照合と別権限renderer2正例／2改変拒否／14翻訳成功を別保持し、この単位の必要残検証なし。証拠入口・発行結果は現行handoff参照。
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、4eの段階実装を続けてください。既採用BL／BMだけをexperimental_word_diary_rest_comfort_prose.render(record,result,receipt)へ追加しました。av所有captureによる原三資料／record全文照合と当時comfortable/rest/report/condition完全理解、原基本文「横になると気持ちいい」・player/ja・初期clearing/berry:1入力注目・world idle/null・hunger=.35/fatigue=.15に限定し、short実heard_rest_comfort／gesture実attendを別確認して「横になると気持ちいいと聞いた。」を返します。unknown条件・未検証報告・av原expression欠落を補わず、BN以降や本接続／保存／集約／途中記録へ拡張していません。必要検証・残検証・発行は現行handoffを確認し、その後次の既採用候補BN／BOを必要所有節・依存から限定して進めてください。新文言の再採用不要。
+
+各実装開始時にreview_playtests.jsで発見し、未信頼の原入力・当時理解・実replyを限定実読して実読prefixだけhash付きackを行ってください。今回session 8508dc12-4aa5-4522-921a-4f4a5dca6b3aは54まで実読・ack、残55〜96／5入力は未読。省略欄はhandoff参照。個人ログ／fixtureを理解規則採用・歴史B原本供給へ変換しないでください。
+
+六資料分離・原当時非書戻し／欠落非補完・全既採用／全14保留／各担当三保留／全維持条件／未検証、am／cp／cq／散策区別、旧6R0llK／ff1Qio／kxTjkT／iRNci6とjTZwKXのincomplete／自動reviewRequiredを非置換保持。BのS6EUsK／session58391は具体的既存取得参照まで停止／所在未確認・未供給・未照合／供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含を維持。140/140枠・129子・138登録API・ao〜dy人間OK、全体量削減なし・固定総数未確定、4d12／4e全体未完・4f非移行。独立renderer成功を実ゲームUI音声・実ユーザー保存／保存再開／配布の検証へ昇格しないでください。長くなる区切りでは冒頭文を出力してください。以下は過去状態。
+
 ## 現行継続文（ff8d35a続き・4e BJ／BK独立文章化）
 
 日記横断143/143ファイル・3438件（監査97／工具16含む）、最終構文3JS・専用14件・七言語14966通過。原run jTZwKXは制限内GPU失敗のincomplete・reviewRequired=[]／reading.not_recordedを保持。同値な入力比較の一箇所修正後の最終検証と、別権限renderer16正例／16拒否／112翻訳成功を原runとは分離し、本単位の必要残検証なし。非日記6ファイルの再実行・全149再実行とはしません。発行結果は現行handoffを確認してください。

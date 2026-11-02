@@ -4841,6 +4841,9 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 <a id="diary-prose-first-target-consultation-4e"></a>
 
+- 2026-11-03・2abe1f8続き：既採用BL／BMだけを[独立文章化部品](../../../experimental_word_diary_rest_comfort_prose.js)のrender(record,result,receipt)へ実装。[av所有条件](#diary-rest-comfort-reports-av)のcaptureを使い捨てコピー上で再照合し、candidates.retainによるJSON検査とrecord全文一致を要求する。原入力がちょうど「横になると気持ちいい」・player/ja・単独、inputContext=clearing/berry:1（meaning=berry）注目、beforeWorld=idle/attention=null・初期hunger=.35/fatigue=.15だけ。comfortable/rest/report/conditionの当時完全理解、subject=player/positive/unspecified・aspect=rest_comfort・原speaker_report出所・conditionStatus=unknown、shortの実heard_rest_comfort／gestureの実attend・observationなしを所有部品で確認した場合だけ「横になると気持ちいいと聞いた。」を返す。欠損／不整合／対象外はnull、原資料非変更。
+- BL／BMはstatus=reported/verified=false/newTeaching=false/newLearning=false/newExperience=falseを保持する。av原recordにないexpressionを実reply／現在coreから補わず、条件成立・本人快適さ／動作・休息開始継続完了・回復因果／真偽確認を足さない。同文でも原資料／当時理解／実応答を別保持する。別表記／場面／活動／疲労などBN以降は今回非包含。fixtureは既存setup/hearComfortの使い捨て検証例で歴史原本供給ではない。七言語catalogへ採用文一件を追加しruntimeを再構築、専用4テスト・必要全回帰／rendererの確定結果は現行handoff。全既採用・六資料分離／原当時非書戻し／欠落非補完・全14保留／各担当三保留／全維持条件／未検証・am／cp／cq／散策区別、BのS6EUsK／session58391具体的既存取得参照まで停止／供給進展0、旧四runのincomplete／自動reviewRequiredを非置換保持。140/140枠・129子・138登録API・ao〜dy人間OKへ表示APIを加算しない。4d12／4e全体未完・4f非移行、本接続／保存／反復集約／途中記録へ拡張しない。全体量削減なし・固定総数未確定。以下のBL／BM未実装は過去状態。
+
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
 ##### 現在の実装仕様（2026-11-02・c86d5ae後、AV〜BC独立文章化）

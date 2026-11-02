@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-11-03・2abe1f8続き：[4e BL／BM](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化。av所有照合・初期基本文／当時完全理解／実replyのshortとgestureを別保持、採用文一件の七言語追加。必要検証・発行は現行handoff。全既採用・六資料分離・全維持条件／全14保留／未検証・B停止／供給進展0・旧四run非置換、140/140枠・129子・138登録API・ao〜dy人間OK維持。従前4d12残2〜3中心2・低確度・減算0を4eへ転用しない。全体量削減なし・固定総数未確定、4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。以下は過去状態。
+
 - 2026-11-02・ff8d35a続き：[4e BJ／BK](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化へ追加。初期berry:1入力注目・world idle/null・report記録なしを従前shade系統から分離し、必要検証・発行結果は現行handoffを参照。六資料分離・全既採用／全維持条件／全14保留／未検証・B停止／供給進展0、旧6R0llK／ff1Qio／kxTjkT／iRNci6のincomplete・自動reviewRequiredを非置換保持。140/140枠・129子・138登録API・ao〜dy人間OK維持、従前4d12残2〜3中心2・低確度・減算0を4eへ転用しない。4d12／4e全体未完・4f非移行、本接続／保存／反復集約／途中記録未実装。全体量削減なし・固定総数未確定、以下は過去状態。
 
 - 2026-11-02・a13bd4b続き：[4e BH／BI](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の既採用別原入力だけを独立文章化。report記録なし・既存shade休息条件、BF／BGのscope不適用とは組み合わせない。専用11テスト通過、横断回帰・監査・関連renderer等の確定結果は現行handoff。六資料分離・全既採用・全維持条件／全14保留／未検証・am／cp／cq／散策区別、BのS6EUsK／session58391具体的既存取得参照まで再確認停止／供給進展0維持。旧6R0llK／ff1Qioのincompleteと別成功／手動照合を非置換保持。140/140枠・129子・138登録API・ao〜dy人間OK維持、新表示APIを旧母数に加算しない。従前4d12残2〜3中心2・低確度・減算0を4eへ転用しない。4d12／4e全体未完・4f非移行、本接続／保存／反復集約／途中記録未実装。全体量削減なし・今後増減理由記録・固定総数未確定、以下は過去状態。

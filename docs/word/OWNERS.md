@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- 2026-11-03・2abe1f8続き：[4e BL／BM](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)の[独立表示部品](../../experimental_word_diary_rest_comfort_prose.js)を追加。avのcaptureとcandidatesのJSON検査／record全文一致を再利用し、初期clearing/berry:1・world idle/nullの原基本文／当時完全理解だけを文章化。[専用テスト](../../tests/experimental_word_diary_rest_comfort_prose.test.js)。原capture所有・138登録API等の集計は非変更、BN以降・本接続等へ拡張しない。必要検証／発行は現行handoff、全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。以下は過去状態。
+
 - 2026-11-02・ff8d35a続き：[4e BJ／BK](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を[既存独立表示部品](../../experimental_word_diary_incomplete_greeting_prose.js)のrenderへ限定追加。dg三資料／record全文照合を維持し、初期berry:1入力注目・world idle/null・report記録なしを従前shade／休息scope系統から分離する。[専用テスト](../../tests/experimental_word_diary_incomplete_greeting_prose.test.js)、必要検証・発行は現行handoff。140/140枠・129子・138登録API・ao〜dy人間OKへ加算しない。六資料分離・全保留／維持条件・B停止／供給進展0、4d12／4e全体未完を保持。以下は過去状態。
 
 - 2026-11-02・09fa7ca続き：[4e BF／BG](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)は既存incomplete_greeting_prose.renderへ限定追加。dg三資料照合に加えreportの二休息scopeと前後の既存relationLearning.validを要求し、記録なしBD／BEと分離する。旧4d12の140/140枠・129子・138登録API・ao〜dy人間OKへ加算しない。専用8テスト通過、最終検証は現行handoff。全既採用・全維持条件／保留／未検証・B停止／供給進展0、4d12／4e全体未完を保持。以下は過去状態。

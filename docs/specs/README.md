@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- [4e段階実装・BL／BM](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-03・2abe1f8続き。採用済み単独休息快適さ報告の初期基本文・当時完全理解を独立文章化。av所有照合／原record全文一致・unknown条件／未検証報告保持、七言語追加。必要検証・発行は現行handoff。全維持条件／保留・B停止／供給進展0・旧run非置換、4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。
+
 - [4e段階実装・BJ／BK](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-02・ff8d35a続き。既採用の初期berry:1入力注目・world idle/null・report記録なしだけを独立文章化へ追加。六資料分離・全維持条件／全14保留・B停止／供給進展0、旧四runのincomplete／自動reviewRequiredを非置換保持。必要検証・発行は現行handoff参照。4d12／4e全体未完・4f非移行、本接続等への拡張なし。以下は過去状態。
 
 - [自分用の自動試遊記録](core/word_playtest_autorecord.md)：2026-11-02・b091307続き。新方式ローカル開発版の入力・当時資料・実反応を私用フォルダへ保存し、各作業開始時に未確認分を実読する。公開URL収集・外部送信・4e本接続への拡張なし。旧run／B停止／供給進展0等は保持、検証・発行結果は現行handoff。
