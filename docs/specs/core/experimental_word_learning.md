@@ -4843,6 +4843,18 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・9a9e3ee後のユーザー「はい、どちらも採用でOKです」でBR／BSの各対象＋条件付き文言を双方採用。BRはav基本文の疲労五値short・当時完全理解「横になると気持ちいいと聞いた。」、BSはbo基本文の二意味二関係すべて記録なし・当時四不足・short/gesture「言われたことが分からなかった。」。前回有限範囲・必要原資料条件・全除外を保持し、疲労から条件成立や快感を補わず、BS原理解／出所欠落も補わない。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BK・av BL〜BQも採用済み、再採用不要。下のBR／BS未採用は履歴。
+- **次の相談BT／BU（双方未採用）**：[bo所有条件](#diary-incomplete-rest-comfort-reports-bo)と既存fixtureのexisting-forms-knowledge-matrixの意味不足mask=1／2を静的参照。原入力がちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存初期系統だけ。report/condition関係は今回適用可能、当時kind=report／complete=false／relations=[report,condition]／subject=player／polarity=positive／eventTime=unspecified／aspect=rest_comfort・conditionStatus=unknown、原speaker_report出所あり。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合で不足配置を確認できる場合だけ、各対象＋条件付き本文を相談する。
+
+| 相談案（各未採用） | 追加する対象範囲（各short/gesture） | 条件付き日記本文 |
+| --- | --- | --- |
+| BT | 入力前comfortable意味の記録だけなし、rest意味とreport/conditionは今回適用可能。known.meaning欠落／known.conditionMeaning=rest、未解決はcomfortable意味だけ | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| BU | 入力前rest意味の記録だけなし、comfortable意味とreport/conditionは今回適用可能。known.meaning=comfortable／known.conditionMeaning欠落、未解決はrest意味だけ | 気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- BT／BUともshort設定の実reply.message=uncertain、gesture設定はattend、observationなしの既存枝を対象とする。ただし実replyだけで不足を決めず、原known/unresolved順と入力前根拠を確認する。meaningKnownBefore（comfortable）とconditionMeaningKnownBefore（rest）を別保持し、原frameの「横になる」「気持ちいい」を欠落した本人理解へ移さない。BTに未知の気持ちよさ、BUに未知の休む内容を本文へ足さず、報告を聞いたことから本人快感・休息開始継続完了・条件成立・回復因果／真偽確認を作らない。原reportSourceがあることは完全理解や真偽確認ではない。
+- bo原expression欄はなく別資料未供給未確認、実reply／現在coreから具体発話や身振りを復元しない。actualSpeechは入力前speech設定由来で、原expressionや本人が何と言ったかの証拠にしない。原資料未供給を意味不足と混同せず、同文でも原資料／当時理解別保持、六資料分離・原当時非書戻し・欠落非補完、conditionStatus=unknown・newTeaching/newLearning/newExperience=falseを維持。四不足のBSや他原入力・不足配置へ候補統合しない。
+- 今回はbo現所有条件・本体／fixtureの意味不足定義、core理解／reportSource付与／react/expressとworld実応答枝の静的読取だけ。個別原資料未供給未照合、取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。他表記／空白記号・scope不適用・他scene注目活動・他話者／他言語・他条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用しない。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／未確認非昇格。同チャットBT／BU個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・1a81623後のユーザー「はい、どちらも採用でOKです」でBP／BQの各対象＋条件付き本文「横になると気持ちいいと聞いた。」を双方採用。BPは前回明示の空白／記号三表記・short／idleのみ、BQは基本文のobserve/eat/rest/work/walk五状態・short/gestureだけ。前回有限範囲・必要原資料条件・全除外（BP gesture／BP-BQ併用／BNやBOとの組合せ等の非包含を含む）を維持し、原表記活動と本人経験／条件成立を分ける。通常提案群・au S〜AH・bn AI〜AU・at AV〜BC・dg BD〜BK・av BL〜BOも採用済み、再採用不要。下のBP／BQ未採用は履歴。
 - **次の相談BR／BS（双方未採用）**：現行所有条件と既存fixtureに従い、[av](#diary-rest-comfort-reports-av)完全理解側と[bo](#diary-incomplete-rest-comfort-reports-bo)未完理解側を別相談する。共通の原入力はちょうど「横になると気持ちいい」・player／日本語／単独／順序なし・空白記号なし。inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=nullの既存系統。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply整合を確認できる場合だけ、各対象＋条件付き本文を相談する。設定や疲労値だけで当時理解を認定しない。
 
