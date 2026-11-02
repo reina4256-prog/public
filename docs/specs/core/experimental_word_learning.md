@@ -4843,6 +4843,23 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・ad517bc後のユーザー「はい、どちらも採用でOKです」でDG／DHの各対象＋三不足状態別条件付き本文を双方採用。基本文のDG前後半角空白各一個／DH単一終端「。／！」・初期条件・各short/gesture・単純記録有無mask1/2/3だけ。前回必要原資料条件・各文言・全除外、原空白記号／当時理解／原出所有無／実応答別保持を維持。従前全採用維持・再採用不要、下のDG／DH未採用は履歴。
+- **次の相談DI／DJ（双方未採用）**：[bp所有条件](#diary-incomplete-rest-value-reports-bp)と既存fixtureのmissing-knowledge-activity-empty-attention／missing-knowledge-fatigue-no-importance-inferenceを静的参照。ここでのDI／DJは4e相談ラベルで既存4d12di/dj部品変更ではない。共通は原入力がちょうど「休むことは大事」・player／日本語／単独／条件順序なし・空白記号なし、各short/gesture・単純記録有無mask1/2/3だけ、beforeWorld.attention=null。原frame report/rest_value/rest/importanceと当時理解を分け、complete=false・importance未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・独立input/knowledge/context・前後state/world・原understanding／実reply全文整合を確認できる場合だけ、各対象へ下の三不足状態別本文を適用することを個別相談する。
+
+| 相談案（各未採用） | 今回追加する対象条件（各short/gesture・三不足状態） |
+| --- | --- |
+| DI | inputContext.scene=shore／attention=[]、beforeWorld.mode=observe/eat/rest/work/walkの五状態・fatigue=.15 |
+| DJ | inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle・fatigue=0/.2/.4/.8/1の五値 |
+
+| 各案内で別保持する不足状態 | 当時理解／実応答の条件 | 条件付き日記本文 |
+| --- | --- | --- |
+| rest意味だけ記録なしmask1 | report／known={}／relations=[report]／subject=player・原speaker_reportあり。unresolvedはmeaning(field=meaning,token=rest)、detail(importance)の原順。両設定実attend | 何かを伝えられたけれど、何のことか分からなかった。 |
+| report関係だけ記録なしmask2 | partial／known={meaning:rest}／relations=[]／subject=null・原出所欠落。unresolvedはrelation(report)、detail(importance)の原順。short実uncertain／gesture実attend | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| 両記録なしmask3 | partial／known={}／relations=[]／subject=null・原出所欠落。unresolvedはrelation(report)、meaning(field=meaning,token=rest)、detail(importance)の原順。両設定実attend | 言われたことが分からなかった。 |
+
+- 原scene／inputContext.attention=[]とworld.attention=null・活動／疲労値を別保持し、移動到着・無視・本人活動の選択出所／開始継続完了・休息の必要性／実回復／重要性理解／因果確認を補わない。walk状態から道への移動開始／散策開始完了を補わず、休息の選択出所を新造しない。原出所有無・原understandingと未解決理由を各資料のまま保持し、同文でも原資料／当時理解／実応答別保持。DI／DJ併用・別表記／空白記号／scope不適用／DC学習後・他scene注目活動疲労値との組合せは非包含。有限条件を供給／照合成功数にせず、反復集約・bpや4e全体完了へ変換しない。
+- 六資料分離・原当時非書戻し・欠落非補完、bp原expression欄欠落／別資料未供給未確認・実reply／現在coreから非復元、actualSpeech設定由来（known={}のshortを実発話にしない）・newTeaching/newLearning/newExperience=false・aw status/verified非新造を維持。今回実読取は現行先頭routing／最初継続文・VALIDATION・OWNERS bp行・bp所有条件／本体／fixtureのmake／活動空注目／疲労枝、setup／world既定値と4e直前条件。出力省略部分／全残候補所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体量削減なし・今後増減理由記録・固定総数未確定、他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットDI／DJ個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・db76b36後のユーザー「はい、いずれも採用でOKです」でDD／DE／DFの各対象＋条件付き本文を三案とも採用。既存十九別表記・初期条件・各short/gestureで、DD rest意味だけ記録なしに「何かを伝えられたけれど、何のことか分からなかった。」、DE report関係だけ記録なしに「休むことは分かったけれど、言われたことは全部は分からなかった。」、DF両記録なしに「言われたことが分からなかった。」。前回必要原資料条件・全除外、原表記語尾・当時理解・原出所有無・実応答別保持を維持。従前全採用維持・再採用不要、下のDD／DE／DF未採用は履歴。
 - **次の相談DG／DH（双方未採用）**：[bp所有条件](#diary-incomplete-rest-value-reports-bp)と既存fixtureのmissing-knowledge-single-punctuationを静的参照。ここでのDG／DHは4e相談ラベルで既存4d12dg/dh部品変更ではない。共通はplayer／日本語／単独／条件順序なし、inputContext=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・fatigue=.15、各short/gesture・単純記録有無mask1/2/3だけ。原frame report/rest_value/rest/importanceと当時理解を分け、complete=false・importance未理解・positive／unspecified・aspect/conditionStatus=null。必要三引数原receipt・独立input/knowledge/context・前後state/world・原understanding／実reply全文の整合を確認できる場合だけ、次の各対象へ下の三不足状態別本文を適用することを個別相談する。
 
