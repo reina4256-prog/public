@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- 2026-11-02・9b5e5b7後、[4e BX／BY](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のBZ comfortable意味＋report関係不足／CA rest意味＋report関係不足を各対象＋条件付き本文として個別相談（双方未採用）。残る意味とcondition関係は適用可能、partial／主体aspect=null／原出所欠落、初期系統・原資料条件・文言と除外は正本。同文のBT／BUとも別保持し、六資料分離・欠落非補完、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・d74784b後、[4e BV／BW](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文のBX二意味とも不足・二関係適用可能／BY二関係とも不足・二意味適用可能を各対象＋条件付き本文として個別相談（双方未採用）。有限範囲・必要原資料条件・文言は正本。原出所有無・当時known／relationsは別保持し、六資料分離・欠落非補完・条件成立unknown、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
 
 - 2026-11-02・79d8e43後、[4e BT／BU](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)を双方採用。次はbo基本文の二意味既知・BV report関係だけ不足／BW condition関係だけ不足を、各対象＋本文「休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。」として個別相談（双方未採用）。有限範囲・必要原資料条件・除外は正本。BWも原partial／主体aspect=null・出所欠落を補わず、六資料分離・条件成立unknown、原資料未供給未照合・実装未着手、B停止／供給進展0・全維持条件／保留／集計・4d12／4e全体未完。文書検証のみ・ゲーム検証未実行。同チャット回答待ち・冒頭文非出力。以下は過去状態。
