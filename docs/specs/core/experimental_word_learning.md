@@ -4843,6 +4843,17 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 
 #### 4e最初の文章化対象・保持方針（2026-11-01・二点採用、具体文言未採用）
 
+- 2026-11-02・9319177後のユーザー「はい、どちらも採用でOKです」でCT／CUの各対象＋条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。CT十九別表記・既存初期系統、CU基本文・shore／inputContext.attention=[]・world=idle／attention=null、各short/gesture・importance detailだけ未理解。前回必要原資料条件・全除外（CT／CU併用非包含を含む）を保持。従前全採用維持・再採用不要、下のCT／CU未採用は履歴。
+- **次の相談CV／CW（双方未採用）**：[aw所有条件](#diary-rest-value-reports-aw)・既存fixtureのsingle-trim-and-terminal-punctuation三例を静的参照。共通はplayer／日本語／単独／条件順序なし・speech=shortだけ、inputContext.scene=clearing／attention=[{id:berry:1,meaning:berry}]、beforeWorld.mode=idle／attention=null・fatigue=.15の既存初期系統。当時rest意味とreport関係は適用可能、kind=report／complete=false／known={meaning:rest}／relations=[report]、unresolved=[{type:detail,token:importance}]だけ、subject=player／positive／unspecified・aspect/conditionStatus=null、原speaker_reportあり。必要三引数原receipt・独立input/knowledge/context・前後state/world・実reply.message=heard_rest_partial／observationなしの整合を確認できる場合だけ、次の各対象＋本文を個別相談する。
+
+| 相談案（各未採用） | 追加する対象範囲 | 条件付き日記本文 |
+| --- | --- | --- |
+| CV | 原入力がちょうど「 休むことは大事 」。基本文の前後に半角空白U+0020各一個、記号・内部空白なし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+| CW | 原入力がちょうど「休むことは大事。」または「休むことは大事！」。基本文の末尾に単一記号、外側・内部空白なし | 休むことは分かったけれど、言われたことは全部は分からなかった。 |
+
+- CVの空白とCWの記号は原input.rawへ保持し、重要性理解・同意・強調感情・本人の休息／回復等を補わない。同文の既採用群とも原資料／当時理解／未解決理由別保持。CV／CW併用・片側空白／全角空白／複数記号／他別表記／shore等との組合せ・gesture・bp不足／scope不適用は今回非包含。既存fixtureは有限条件の静的参照で、個別原資料の供給／照合成功ではない。
+- 六資料分離・原当時非書戻し・欠落非補完、aw原expression欄欠落／別資料未供給未確認・実reply／現在coreから非復元、status=reported／verified=false・newTeaching/newLearning/newExperience=falseを維持。今回実読取は現行routing・OWNERS該当行・aw所有条件／本体／fixtureとsetup・core/world既定値の限定箇所、初回まとめ出力の省略部分／残候補全所有節は未読。個別原資料未供給未照合・取得／生成／再生・receive/respond/capture未実行、文章化実装未着手。全体像の増減可・理由記録・固定総数未確定を保持。他話者／他言語・条件／順序・複数節・新理解規則、反復集約・途中記録・保存形式・ゲーム本接続・実装へ一括採用なし。am／cp／cq・散策区別・Bのp最終S6EUsK／session58391具体的既存取得参照まで再確認停止・所在未確認未供給未照合・供給進展0、帰属／新部品必要／dz追加未決定・cy／条件／複数節非包含・全維持条件／保留／集計・4d12／4e全体未完を保持。文書検証のみ・ゲーム検証未実行、過去incomplete／実UI未確認非昇格。同チャットCV／CW個別回答待ち・冒頭文非出力。以下は過去状態。
+
 - 2026-11-02・9c76b17後のユーザー「はい、どちらも採用でOKです。」でCR／CSの各対象＋条件付き本文「休むことは分かったけれど、言われたことは全部は分からなかった。」を双方採用。aw基本文「休むことは大事」・初期系統・rest/report適用可能だがimportance detailだけ未理解・complete=false、CR short／実heard_rest_partial、CS gesture／実attendだけ。原report／speaker_reportあり・aspect/conditionStatus=null、前回必要原資料条件・全除外を保持し重要性を本人理解へ移さない。従前全採用維持・再採用不要。下のCR／CS未採用は履歴。
 - **現時点の4e全体像（今回ユーザー依頼）**：4eの工程範囲は本文の文章化・反復集約・途中記録。現在はその中の「既存資料のどの条件なら、当時理解・実応答・実判断・実経験を超えず、どの文章にできるか」の仕様相談を進行中。相談ラベルやfixture定義の件数は4e全体の固定分母ではない。ユーザーは全体量の削減を求めておらず、今後の追加・削減・分割・統合を許容すると明示した。これを未検討範囲の一括採用／省略や終了保証へ変換せず、増減する場合は対象・理由・他範囲への影響を記録する。既採用の再採用は求めない。
 
