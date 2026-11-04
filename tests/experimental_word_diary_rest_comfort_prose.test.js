@@ -5,7 +5,7 @@ const candidates = require('../experimental_word_diary_candidates');
 const reports = require('../experimental_word_diary_rest_comfort_reports');
 const prose = require('../experimental_word_diary_rest_comfort_prose');
 const { fixtures, setup, hearComfort, raw, core } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
-const { examples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
+const { examples, excludedExamples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
 const copy = value => JSON.parse(JSON.stringify(value));
 const sentence = '\u6a2a\u306b\u306a\u308b\u3068\u6c17\u6301\u3061\u3044\u3044\u3068\u805e\u3044\u305f\u3002';
 function material(v) {
@@ -13,12 +13,13 @@ function material(v) {
     return reports.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
 }
 const render = v => prose.render(material(v), v.result, v.receipt);
-test('BL-BO: original complete reports and distinct actual replies yield only the adopted heard sentence', () => {
-    const values = examples(); assert.equal(values.length, 26);
-    for (const [index, v] of values.entries()) {
+test('BL-BQ: original complete reports and distinct actual replies yield only the adopted heard sentence', () => {
+    const values = examples(); assert.equal(values.length, 39);
+    for (const v of values) {
         const record = material(v), original = JSON.stringify({ record, v });
-        assert.equal(v.receipt.reply.message, index % 2 === 0 ? 'heard_rest_comfort' : 'attend');
-        assert.equal(record.captured.actualSpeech, index % 2 === 0);
+        const short = v.receipt.beforeState.settings.speech === 'short';
+        assert.equal(v.receipt.reply.message, short ? 'heard_rest_comfort' : 'attend');
+        assert.equal(record.captured.actualSpeech, short);
         assert.equal(prose.render(record, v.result, v.receipt), sentence);
         assert.equal(prose.render(record, v.result, v.receipt), sentence);
         assert.equal(JSON.stringify({ record, v }), original);
@@ -29,17 +30,18 @@ test('BL-BO: original complete reports and distinct actual replies yield only th
         assert.equal(Object.hasOwn(record.captured, 'expression'), false);
     }
 });
-test('av owner acceptance does not extend BL-BO prose to other forms, contexts, settings, speakers or activities', () => {
+test('av owner acceptance does not extend BL-BQ prose beyond the adopted settings and contexts', () => {
     for (const f of fixtures()) {
         const v = f.value, w = v.receipt.beforeWorld, c = v.receipt.inputContext;
         const allowed = f.expected && ['eight-settings', 'existing-japanese-forms',
-            'seven-input-locales-no-new-grammar', 'no-target-required'].includes(f.group)
+            'seven-input-locales-no-new-grammar', 'no-target-required',
+            'single-trim-and-terminal-punctuation', 'activity-does-not-prove-personal-comfort'].includes(f.group)
             && v.result.input.locale === 'ja'
             && v.result.input.speaker === 'player' && ['clearing', 'shore'].includes(c.scene)
-            && w.mode === 'idle' && w.attention === null && w.hunger === .35 && w.fatigue === .15;
+            && w.attention === null && w.hunger === .35 && w.fatigue === .15;
         assert.equal(render(v), allowed ? sentence : null, f.group);
     }
-    for (const text of [raw + '\n', raw + '\r\n', raw + ' ', ' ' + raw, raw + '\u3002', raw + '\uff01'])
+    for (const text of [raw + '\n', raw + '\r\n', raw + ' ', ' ' + raw])
         assert.equal(render(hearComfort(setup(), text)), null);
     for (const field of ['hunger', 'fatigue']) {
         const v = setup(); v.world[field] = .5;
@@ -49,7 +51,7 @@ test('av owner acceptance does not extend BL-BO prose to other forms, contexts, 
     assert.equal(render(hearComfort(v)), null);
 });
 test('BN eleven forms stay separate from BO basic shore report and preserve raw source spelling', () => {
-    const values = examples(), variants = values.slice(2, 24), shore = values.slice(24);
+    const values = examples(), variants = values.slice(2, 24), shore = values.slice(24, 26);
     assert.equal(new Set(variants.map(v => v.result.input.raw)).size, 11);
     for (const v of variants) {
         const record = material(v);
@@ -70,6 +72,35 @@ test('BN eleven forms stay separate from BO basic shore report and preserve raw 
         assert.equal(v.receipt.beforeWorld.attention, null);
         assert.equal(render(v), sentence);
     }
+});
+test('BP/BQ preserve original punctuation and activity without combining finite adoption scopes', () => {
+    const values = examples(), bp = values.slice(26, 29), bq = values.slice(29);
+    assert.deepEqual(bp.map(v => v.result.input.raw), [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]);
+    for (const v of bp) {
+        assert.equal(v.receipt.beforeState.settings.speech, 'short');
+        assert.equal(v.receipt.beforeWorld.mode, 'idle');
+        assert.equal(material(v).captured.sources.input.raw, v.result.input.raw);
+    }
+    assert.equal(bq.length, 10);
+    assert.deepEqual([...new Set(bq.map(v => v.receipt.beforeWorld.mode))], ['observe', 'eat', 'rest', 'work', 'walk']);
+    for (const v of bq) {
+        assert.equal(v.result.input.raw, raw);
+        const record = material(v);
+        assert.equal(record.captured.sources.activity.before.mode, v.receipt.beforeWorld.mode);
+        assert.equal(record.captured.sources.activity.after.mode, v.receipt.afterWorld.mode);
+        for (const field of ['hunger', 'fatigue']) {
+            const s = setup(); s.world.mode = v.receipt.beforeWorld.mode; s.world[field] = .5;
+            assert.equal(render(hearComfort(s)), null);
+        }
+    }
+    const excluded = excludedExamples(); assert.equal(excluded.length, 156);
+    for (const v of excluded) {
+        assert.ok(material(v));
+        assert.equal(render(v), null);
+    }
+    for (const text of [`  ${raw}  `, `\u3000${raw}\u3000`, `\t${raw}\t`, `${raw}!`, `${raw}\uff01\uff01`,
+        ` ${raw}\u3002 `, `${raw}\u3002 `, `${raw}\uff01\n`, `\u6a2a\u306b \u306a\u308b\u3068\u6c17\u6301\u3061\u3044\u3044`])
+        assert.equal(render(hearComfort(setup(), text)), null);
 });
 test('missing, altered and cross-occurrence original materials never get repaired', () => {
     for (const v of examples()) {

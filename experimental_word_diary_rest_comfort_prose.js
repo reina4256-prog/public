@@ -10,17 +10,23 @@
     function inScope(result, receipt) {
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
         const match = /^横になると(?:気持ちいい|きもちいい|心地よい)(?:よね|ね|よ)?$/u.exec(input.raw);
+        const plain = typeof input.raw === 'string' && match?.[0] === input.raw;
+        const basicMatch = /^横になると気持ちいい$/u.exec(input.raw);
+        const basic = typeof input.raw === 'string' && basicMatch?.[0] === input.raw;
+        const punctuation = /^(?: 横になると気持ちいい |横になると気持ちいい[。！])$/u.exec(input.raw);
+        const shortForm = typeof input.raw === 'string' && punctuation?.[0] === input.raw
+            && receipt.beforeState.settings.speech === 'short';
         const initial = context.scene === 'clearing'
             && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }]);
-        const noTarget = /^横になると気持ちいい$/u.test(input.raw)
+        const noTarget = basic && world.mode === 'idle'
             && context.scene === 'shore' && equal(context.attention, []);
-        return typeof input.raw === 'string' && match?.[0] === input.raw
-            && input.speaker === 'player' && input.locale === 'ja'
-            && (initial || noTarget)
-            && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15;
+        const initialScope = initial && (world.mode === 'idle' ? plain || shortForm
+            : basic && ['observe', 'eat', 'rest', 'work', 'walk'].includes(world.mode));
+        return input.speaker === 'player' && input.locale === 'ja' && (initialScope || noTarget)
+            && world.attention === null && world.hunger === .35 && world.fatigue === .15;
     }
-    // Read-only BL-BO display projection, using the av owner's full receipt check.
-    // BN forms and BO's separate no-target scene cannot be combined.
+    // Read-only BL-BQ display projection, using the av owner's full receipt check.
+    // BP is short/idle only; BQ cannot combine with BN, BO or BP.
     // Missing original expression material remains missing in the av record.
     // UI callers translate this source through GameI18n; no game/save connection.
     function render(record, result, receipt) {

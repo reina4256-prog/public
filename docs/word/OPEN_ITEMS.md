@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- [4e段階実装・BP／BQ](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-04・6004d47続き。既存独立文章化へBPの空白／記号三表記・short/idle、BQの基本文・五活動各short/gestureを追加。BP gesture／BP-BQ併用／BN・BOとの組合せは非包含。av所有照合・原record全文一致・原表記／活動・unknown条件／未検証報告・原expression欠落を保持し既存七言語表示を再利用。必要検証・発行は現行handoff。全既採用・六資料分離・全維持条件／全14保留／各担当三保留／未検証・am／cp／cq／散策区別・B停止／供給進展0・旧run非置換、140/140枠・129子・138登録API・ao〜dy人間OKを維持。表示APIを旧母数へ加算せず、従前4d12残目安を4eへ転用しない。fixture／個人ログは歴史供給ではない。全体量削減なし・固定総数未確定、4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。以下は過去状態。
+
 - [4e段階実装・BN／BO](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-03・dde2982続き。既存独立文章化へ初期系統の残十一表記と基本文shore／入力注目なしを各short/gestureで追加、両者の組合せ非包含。av所有照合・原record全文一致・unknown条件／未検証報告・原expression欠落を保持し既存七言語表示を再利用。必要検証・発行は現行handoff。全既採用・六資料分離・全維持条件／全14保留／各担当三保留／未検証・am／cp／cq／散策区別・B停止／供給進展0・旧run非置換、140/140枠・129子・138登録API・ao〜dy人間OKを維持。表示APIを旧母数へ加算せず、従前4d12残目安を4eへ転用しない。fixture／個人ログは歴史供給ではない。全体量削減なし・固定総数未確定、4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。以下は過去状態。
 
 - 2026-11-03・2abe1f8続き：[4e BL／BM](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)だけ独立文章化。conditionStatus=unknown/status=reported/verified=false、av原expression別資料未供給未確認を保持。全既採用・六資料分離・全14保留／各担当三保留／全維持条件／未検証・am／cp／cq／散策区別、B具体的取得参照まで停止／供給進展0、旧四runのincomplete／自動reviewRequired非置換維持。新fixture／個人ログは歴史供給ではない。4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。必要検証・発行は現行handoff。以下は過去状態。

@@ -74,6 +74,18 @@ if (!process.versions.electron || process.type !== 'browser') {
             })()`);
             assert.deepEqual(answer, { text: null, stable: true }); combinedRejected++;
         }
+        let scopeRejected = 0;
+        for (const value of require('./diary_rest_comfort_prose_fixtures').excludedExamples()) {
+            const answer = await js(`(() => {
+                const v=${JSON.stringify(value)}, before=JSON.stringify(v);
+                const buffer=ExperimentalWordDiaryCandidates.create();
+                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('scope capture');
+                const record=buffer.read()[0], original=JSON.stringify(record);
+                return {text:ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt),
+                    stable:before===JSON.stringify(v)&&original===JSON.stringify(record)};
+            })()`);
+            assert.deepEqual(answer, { text: null, stable: true }); scopeRejected++;
+        }
         const state = await js(`(() => {
             const names=['ExperimentalWordLearning','ExperimentalWordCareers','ExperimentalWordLifeLearning',
                 'ExperimentalWordRelationLearning','ExperimentalWordFeelingLearning','ExperimentalWordWorld',
@@ -84,7 +96,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         })()`);
         assert.deepEqual(state, { removed: true, local: { '4e-sentinel': 'keep' },
             session: { '4e-sentinel': 'keep' }, bridge: 'undefined' });
-        console.log(JSON.stringify({ restComfortProse: { examples: values.length, rejected, combinedRejected,
+        console.log(JSON.stringify({ restComfortProse: { examples: values.length, rejected, combinedRejected, scopeRejected,
             translations: values.length * 7, sourceStable: true, storageUnchanged: true, directory } }));
         win.destroy(); server.close(); app.quit();
     }).catch(error => { console.error(error); if (server) server.close(); app.exit(1); });

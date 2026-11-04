@@ -14,6 +14,31 @@ function examples() {
         v.world.attention = null;
         values.push(hearComfort(v, raw, { at: 987654321 }));
     }
+    for (const text of [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`])
+        values.push(hearComfort(setup(), text));
+    for (const mode of ['observe', 'eat', 'rest', 'work', 'walk']) for (const speech of ['short', 'gesture']) {
+        const v = setup({ speech }); v.world.mode = mode;
+        values.push(hearComfort(v));
+    }
     return values;
 }
-module.exports = { examples };
+function excludedExamples() {
+    const values = [], forms = examples().slice(2, 24).filter(v => v.receipt.beforeState.settings.speech === 'short')
+        .map(v => v.result.input.raw);
+    const punctuation = [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`];
+    for (const text of punctuation) {
+        values.push(hearComfort(setup({ speech: 'gesture' }), text));
+        const shore = setup(); core.perceive(shore.state, { scene: 'shore', attention: [] });
+        values.push(hearComfort(shore, text));
+    }
+    for (const mode of ['observe', 'eat', 'rest', 'work', 'walk']) for (const speech of ['short', 'gesture']) {
+        for (const text of [...forms, ...punctuation]) {
+            const v = setup({ speech }); v.world.mode = mode;
+            values.push(hearComfort(v, text));
+        }
+        const shore = setup({ speech }); core.perceive(shore.state, { scene: 'shore', attention: [] });
+        shore.world.mode = mode; values.push(hearComfort(shore));
+    }
+    return values;
+}
+module.exports = { examples, excludedExamples };
