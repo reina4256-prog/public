@@ -118,7 +118,34 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-CC display projection. av and bo each own full receipt checks.
+    function threeMissingSentence(result, receipt) {
+        const u = result.understandings[0], knowledge = receipt.inputKnowledge;
+        if (!initialIncompleteScope(result, receipt) || u.kind !== 'partial' || u.complete !== false
+            || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
+            || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
+            || receipt.reply.observation) return null;
+        if (!knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
+            && equal(u.known, {}) && receipt.reply.message === 'attend') {
+            for (const [missing, present] of [['report', 'condition'], ['condition', 'report']]) {
+                if (!knowledge.relations.some(item => item.id === missing) && equal(u.relations, [present])
+                    && equal(u.unresolved, [{ type: 'relation', id: missing },
+                        { type: 'meaning', field: 'meaning', token: 'comfortable' },
+                        { type: 'meaning', field: 'conditionMeaning', token: 'rest' }]))
+                    return '言われたことが分からなかった。';
+            }
+        }
+        if (knowledge.relations.some(item => ['report', 'condition'].includes(item.id)) || !equal(u.relations, [])
+            || receipt.reply.message !== (receipt.beforeState.settings.speech === 'short' ? 'uncertain' : 'attend')) return null;
+        const relations = [{ type: 'relation', id: 'report' }, { type: 'relation', id: 'condition' }];
+        if (!knowledge.meanings.some(item => item.id === 'comfortable') && equal(u.known, { conditionMeaning: 'rest' })
+            && equal(u.unresolved, [...relations, { type: 'meaning', field: 'meaning', token: 'comfortable' }]))
+            return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+        if (!knowledge.meanings.some(item => item.id === 'rest') && equal(u.known, { meaning: 'comfortable' })
+            && equal(u.unresolved, [...relations, { type: 'meaning', field: 'conditionMeaning', token: 'rest' }]))
+            return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
+        return null;
+    }
+    // Read-only BL-CF display projection. av and bo each own full receipt checks.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.
@@ -135,7 +162,8 @@
                 || !equal(supplied.read()[0], checked.read()[0])) return null;
             return incompleteScope(result, receipt) ? '言われたことが分からなかった。'
                 : partialSentence(result, receipt) || missingRelationSentence(result, receipt)
-                    || missingBothMeaningsSentence(result, receipt) || missingMeaningAndRelationSentence(result, receipt);
+                    || missingBothMeaningsSentence(result, receipt) || missingMeaningAndRelationSentence(result, receipt)
+                        || threeMissingSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });

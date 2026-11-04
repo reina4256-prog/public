@@ -207,6 +207,42 @@ function mixedConditionExcludedExamples() {
     }
     return values;
 }
+function threeMissingExamples() {
+    const values = [];
+    for (const mask of [7, 11, 13, 14]) for (const speech of ['short', 'gesture']) {
+        const v = setup({ speech });
+        for (const [bit, id] of ['comfortable', 'rest', 'report', 'condition'].entries()) if (mask & (1 << bit)) {
+            const key = bit < 2 ? 'meanings' : 'relations';
+            v.state.knowledge[key] = v.state.knowledge[key].filter(e => e.id !== id);
+        }
+        values.push(hearComfort(v));
+    }
+    return values;
+}
+function threeMissingExcludedExamples() {
+    const values = [], scopes = require('./diary_rest_comfort_report_fixtures').fixtures()
+        .filter(f => f.group.includes('scope-not-transferred'));
+    for (const prior of threeMissingExamples()) {
+        for (const variation of examples().slice(2)) {
+            const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+            v.state.knowledge = prior.receipt.inputKnowledge;
+            v.world.mode = variation.receipt.beforeWorld.mode; v.world.fatigue = variation.receipt.beforeWorld.fatigue;
+            core.perceive(v.state, variation.receipt.inputContext);
+            values.push(hearComfort(v, variation.result.input.raw));
+        }
+        for (const missing of prior.result.understandings[0].unresolved.filter(e => e.type === 'relation')) {
+            const scope = scopes.find(f => f.group.includes(missing.id)
+                && f.value.receipt.beforeState.settings.speech === prior.receipt.beforeState.settings.speech);
+            const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+            v.state.knowledge = JSON.parse(JSON.stringify(prior.receipt.inputKnowledge));
+            const learned = scope.value.receipt.inputKnowledge.relations.find(e => e.id === missing.id);
+            v.state.knowledge.relations.push(JSON.parse(JSON.stringify(learned)));
+            values.push(hearComfort(v));
+        }
+    }
+    return values;
+}
 module.exports = { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples, mixedReportExamples,
-    mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples, excludedExamples, fatigueExcludedExamples };
+    mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples, threeMissingExamples,
+    threeMissingExcludedExamples, excludedExamples, fatigueExcludedExamples };
