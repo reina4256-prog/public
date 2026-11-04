@@ -15058,5 +15058,7 @@
   "星座の移動と拡大縮小": "Movimento e zoom da constelação",
   "空いている場所をドラッグして移動。ホイールやボタンで拡大縮小できます。星を選ぶと周囲に注目し、ほかの星と線も薄く残します。": "Arraste uma área vazia para se mover. Use a roda ou os botões para alterar o zoom. Selecione uma estrela para destacar suas vizinhas; as demais estrelas e linhas continuam visíveis, atenuadas.",
   "注目している言葉：{{0}}": "Palavra em destaque: {{0}}",
-  "言われたことが分からなかった。": "Não entendi o que me disseram."
+  "言われたことが分からなかった。": "Não entendi o que me disseram.",
+  "休むことは分かったけれど、言われたことは全部は分からなかった。": "Entendi a parte sobre descansar, mas não entendi tudo o que foi dito.",
+  "気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。": "Entendi a parte sobre sentir-se bem, mas não entendi tudo o que foi dito."
 }

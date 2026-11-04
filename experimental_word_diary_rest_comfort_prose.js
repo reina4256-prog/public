@@ -28,20 +28,42 @@
         return input.speaker === 'player' && input.locale === 'ja' && (initialScope || noTarget)
             && world.attention === null && world.hunger === .35 && (world.fatigue === .15 || fatigueScope);
     }
-    function incompleteScope(result, receipt) {
+    function initialIncompleteScope(result, receipt) {
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
-        const knowledge = receipt.inputKnowledge, u = result.understandings[0];
         const basic = /^横になると気持ちいい$/u.exec(input.raw);
         return basic?.[0] === input.raw && input.speaker === 'player' && input.locale === 'ja'
             && context.scene === 'clearing' && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
-            && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15
+            && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15;
+    }
+    function incompleteScope(result, receipt) {
+        const knowledge = receipt.inputKnowledge, u = result.understandings[0];
+        return initialIncompleteScope(result, receipt)
             && !knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
             && !knowledge.relations.some(item => ['report', 'condition'].includes(item.id))
             && u.kind === 'partial' && u.complete === false && equal(u.known, {}) && equal(u.relations, [])
             && u.subject === null && u.aspect === null && u.conditionStatus === 'unknown'
             && !Object.hasOwn(u, 'reportSource') && receipt.reply.message === 'attend' && !receipt.reply.observation;
     }
-    // Read-only BL-BS display projection. av and bo each own full receipt checks.
+    function partialSentence(result, receipt) {
+        const u = result.understandings[0], input = result.input;
+        const short = receipt.beforeState.settings.speech === 'short';
+        if (!initialIncompleteScope(result, receipt) || u.kind !== 'report' || u.complete !== false
+            || !equal(u.relations, ['report', 'condition']) || u.subject !== 'player'
+            || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.aspect !== 'rest_comfort'
+            || u.conditionStatus !== 'unknown'
+            || !equal(u.reportSource, { kind: 'speaker_report', inputId: input.id, heardAt: input.at })
+            || receipt.reply.message !== (short ? 'uncertain' : 'attend') || receipt.reply.observation) return null;
+        if (!receipt.inputKnowledge.meanings.some(item => item.id === 'comfortable')
+            && equal(u.known, { conditionMeaning: 'rest' })
+            && equal(u.unresolved, [{ type: 'meaning', field: 'meaning', token: 'comfortable' }]))
+            return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+        if (!receipt.inputKnowledge.meanings.some(item => item.id === 'rest')
+            && equal(u.known, { meaning: 'comfortable' })
+            && equal(u.unresolved, [{ type: 'meaning', field: 'conditionMeaning', token: 'rest' }]))
+            return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
+        return null;
+    }
+    // Read-only BL-BU display projection. av and bo each own full receipt checks.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.
@@ -55,8 +77,8 @@
                     ? '横になると気持ちいいと聞いた。' : null;
             }
             if (!incompleteReports.capture(checked, result, receipt)
-                || !equal(supplied.read()[0], checked.read()[0]) || !incompleteScope(result, receipt)) return null;
-            return '言われたことが分からなかった。';
+                || !equal(supplied.read()[0], checked.read()[0])) return null;
+            return incompleteScope(result, receipt) ? '言われたことが分からなかった。' : partialSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });

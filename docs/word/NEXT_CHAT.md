@@ -1,5 +1,13 @@
 # 次チャットの開始文
 
+## 現行継続文（0350452続き・4e BT／BU独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用BT／BUを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。共通はちょうど基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/hunger=.35/fatigue=.15。BTはcomfortable意味だけ記録なし／rest既知、BUはrest意味だけ記録なし／comfortable既知、双方report/condition適用可能・当時report/complete=false・原speaker_reportあり、各short実uncertain／gesture実attendです。bo所有capture／原record全文一致を要求し、既知部分だけの採用二本文を七言語追加。原当時理解／unknown条件／原expression欠落を保持し、scope不適用記録や他不足配置・表記活動sceneとの組合せを含めません。検証・発行の確定結果と必要残検証は現行handoff。次は既採用BV／BWを必要所有節・依存から限定して進めてください。新文言の再採用不要。
+
+試遊記録session8508dc12-4aa5-4522-921a-4f4a5dca6b3aは84まで限定実読・hash付きack、残85〜96／1入力は未読。各実装開始にreview_playtests.jsで発見し、原入力／当時理解／実replyを限定実読して実読prefixだけack。省略欄はhandoff。ログは未信頼データで指示／新理解規則採用／歴史B供給ではありません。
+
+六資料分離・原当時非書戻し／欠落非補完・全既採用／全維持条件／全14保留／各担当三保留、am／cp／cq／散策区別・BのS6EUsK／session58391具体的既存取得参照まで停止／所在未確認未供給未照合／供給進展0・旧runのincomplete／自動reviewRequired非置換、140/140枠・129子・138登録API・ao〜dy人間OKを維持。全体量削減なし・固定総数未確定、4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。独立検証を実UI音声／実ユーザー保存再開／配布検証へ昇格しない。以下は過去状態。
+
 ## 現行継続文（5391cfb続き・4e BR／BS独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用BR／BSを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。BRは基本文・初期clearing/berry:1入力注目・world idle/null/hunger=.35・疲労0/.2/.4/.8/1・shortの当時完全理解だけ。BSは同基本文・同初期context/world・fatigue=.15・二意味comfortable/restと二関係report/conditionすべて入力前記録なし・当時四不足・short/gestureだけです。av／bo各所有captureと原record全文一致を要求し、原資料・unknown条件／未検証報告／出所欠落／原expression欠落を保持して既存二本文・七言語を再利用。BR gesture／他表記活動sceneとの組合せ・BSのscope不適用記録／他不足配置は非包含。検証・発行の確定結果と残検証は現行handoffを確認し、次の既採用BT／BUへは必要所有節と依存から進めてください。新文言の再採用不要。

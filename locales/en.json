@@ -15058,5 +15058,7 @@
   "星座の移動と拡大縮小": "Constellation movement and zoom",
   "空いている場所をドラッグして移動。ホイールやボタンで拡大縮小できます。星を選ぶと周囲に注目し、ほかの星と線も薄く残します。": "Drag an empty area to move. Zoom with the wheel or buttons. Select a star to focus on its neighbors; other stars and lines remain faintly visible.",
   "注目している言葉：{{0}}": "Focused word: {{0}}",
-  "言われたことが分からなかった。": "I did not understand what was said."
+  "言われたことが分からなかった。": "I did not understand what was said.",
+  "休むことは分かったけれど、言われたことは全部は分からなかった。": "I understood the part about resting, but I did not understand everything that was said.",
+  "気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。": "I understood the part about feeling good, but I did not understand everything that was said."
 }

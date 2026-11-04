@@ -36,9 +36,13 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js('globalThis.ExperimentalWordDiaryIncompleteRestComfortReportsCatalog=ExperimentalWordDiaryRestComfortReportsCatalog;void 0');
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_comfort_prose_fixtures');
-        const values = [...fixtures.examples(), ...fixtures.incompleteExamples()];
+        const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
         const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
+        const partialSentences = [
+            '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002',
+            '\u6c17\u6301\u3061\u3088\u3055\u306e\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002'
+        ];
         let rejected = 0;
         for (const value of values) {
             const answer = await js(`(() => {
@@ -57,7 +61,9 @@ if (!process.versions.electron || process.type !== 'browser') {
                 const altered=ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt);
                 return {text,translations,stable,altered};
             })()`);
-            const expected = value.result.understandings[0].complete ? sentence : unknownSentence;
+            const u = value.result.understandings[0];
+            const expected = u.complete ? sentence : u.kind === 'partial' ? unknownSentence
+                : u.known.conditionMeaning === 'rest' ? partialSentences[0] : partialSentences[1];
             assert.equal(answer.text, expected); assert.equal(answer.stable, true);
             assert.equal(answer.altered, null); rejected++;
             for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
@@ -81,7 +87,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.deepEqual(answer, { text: null, stable: true }); combinedRejected++;
         }
         let scopeRejected = 0;
-        for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples()]) {
+        for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();
