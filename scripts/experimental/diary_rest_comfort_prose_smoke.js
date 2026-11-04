@@ -37,7 +37,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_comfort_prose_fixtures');
         const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples(),
-            ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples()];
+            ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples(), ...fixtures.mixedReportExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
         const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
         const relationSentence = '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
@@ -66,7 +66,9 @@ if (!process.versions.electron || process.type !== 'browser') {
             })()`);
             const u = value.result.understandings[0];
             const expected = u.complete ? sentence : u.kind === 'partial'
-                ? (u.known.meaning === 'comfortable' ? relationSentence : unknownSentence)
+                ? (Object.keys(u.known).length === 2 ? relationSentence
+                    : u.known.conditionMeaning === 'rest' ? partialSentences[0]
+                        : u.known.meaning === 'comfortable' ? partialSentences[1] : unknownSentence)
                 : !Object.keys(u.known).length ? missingBothMeaningsSentence
                     : u.known.conditionMeaning === 'rest' ? partialSentences[0] : partialSentences[1];
             assert.equal(answer.text, expected); assert.equal(answer.stable, true);
@@ -93,7 +95,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         let scopeRejected = 0;
         for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples(),
-            ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples()]) {
+            ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples(), ...fixtures.mixedReportExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();

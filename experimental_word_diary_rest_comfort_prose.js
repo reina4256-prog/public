@@ -95,7 +95,27 @@
             || receipt.reply.message !== 'attend' || receipt.reply.observation) return null;
         return '何かを伝えられたけれど、何のことか分からなかった。';
     }
-    // Read-only BL-BY display projection. av and bo each own full receipt checks.
+    function missingMeaningAndReportSentence(result, receipt) {
+        const u = result.understandings[0], knowledge = receipt.inputKnowledge;
+        const short = receipt.beforeState.settings.speech === 'short';
+        if (!initialIncompleteScope(result, receipt) || u.kind !== 'partial' || u.complete !== false
+            || knowledge.relations.some(item => item.id === 'report') || !equal(u.relations, ['condition'])
+            || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
+            || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
+            || receipt.reply.message !== (short ? 'uncertain' : 'attend') || receipt.reply.observation) return null;
+        if (!knowledge.meanings.some(item => item.id === 'comfortable')
+            && equal(u.known, { conditionMeaning: 'rest' })
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' },
+                { type: 'meaning', field: 'meaning', token: 'comfortable' }]))
+            return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+        if (!knowledge.meanings.some(item => item.id === 'rest')
+            && equal(u.known, { meaning: 'comfortable' })
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' },
+                { type: 'meaning', field: 'conditionMeaning', token: 'rest' }]))
+            return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
+        return null;
+    }
+    // Read-only BL-CA display projection. av and bo each own full receipt checks.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.
@@ -112,7 +132,7 @@
                 || !equal(supplied.read()[0], checked.read()[0])) return null;
             return incompleteScope(result, receipt) ? '言われたことが分からなかった。'
                 : partialSentence(result, receipt) || missingRelationSentence(result, receipt)
-                    || missingBothMeaningsSentence(result, receipt);
+                    || missingBothMeaningsSentence(result, receipt) || missingMeaningAndReportSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });
