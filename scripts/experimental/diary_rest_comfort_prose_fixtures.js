@@ -20,7 +20,18 @@ function examples() {
         const v = setup({ speech }); v.world.mode = mode;
         values.push(hearComfort(v));
     }
+    for (const fatigue of [0, .2, .4, .8, 1]) {
+        const v = setup(); v.world.fatigue = fatigue; values.push(hearComfort(v));
+    }
     return values;
+}
+function incompleteExamples() {
+    return ['short', 'gesture'].map(speech => {
+        const v = setup({ speech });
+        v.state.knowledge.meanings = v.state.knowledge.meanings.filter(e => !['comfortable', 'rest'].includes(e.id));
+        v.state.knowledge.relations = v.state.knowledge.relations.filter(e => !['report', 'condition'].includes(e.id));
+        return hearComfort(v);
+    });
 }
 function excludedExamples() {
     const values = [], forms = examples().slice(2, 24).filter(v => v.receipt.beforeState.settings.speech === 'short')
@@ -41,4 +52,24 @@ function excludedExamples() {
     }
     return values;
 }
-module.exports = { examples, excludedExamples };
+function fatigueExcludedExamples() {
+    const values = [];
+    for (const fatigue of [0, .2, .4, .8, 1]) {
+        const gesture = setup({ speech: 'gesture' }); gesture.world.fatigue = fatigue;
+        values.push(hearComfort(gesture));
+        // Every previously adopted variation is outside BR's basic/short/idle scope.
+        for (const prior of examples().slice(2, 39)) {
+            const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+            v.world.fatigue = fatigue; v.world.mode = prior.receipt.beforeWorld.mode;
+            core.perceive(v.state, prior.receipt.inputContext);
+            values.push(hearComfort(v, prior.result.input.raw));
+        }
+        for (const prior of incompleteExamples()) {
+            const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+            v.state.knowledge = prior.receipt.inputKnowledge; v.world.fatigue = fatigue;
+            values.push(hearComfort(v));
+        }
+    }
+    return values;
+}
+module.exports = { examples, incompleteExamples, excludedExamples, fatigueExcludedExamples };

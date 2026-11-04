@@ -28,19 +28,24 @@ if (!process.versions.electron || process.type !== 'browser') {
         const files = ['experimental_word_learning_core.js', 'experimental_word_careers.js',
             'experimental_word_life_learning.js', 'experimental_word_relation_learning.js',
             'experimental_word_feeling_learning.js', 'experimental_word_learning_world.js',
-            'experimental_word_diary_candidates.js', 'experimental_word_diary_rest_comfort_reports.js', 'experimental_word_diary_rest_comfort_prose.js',
+            'experimental_word_diary_candidates.js', 'experimental_word_diary_rest_comfort_reports.js',
+            'experimental_word_diary_incomplete_rest_comfort_reports.js', 'experimental_word_diary_rest_comfort_prose.js',
             'localization_catalog.js', 'localization_core.js'];
         await js('globalThis.ExperimentalWordDiaryRestComfortReportsCatalog='
             + JSON.stringify(require('../../experimental_word_learning_catalog.json')) + ';void 0');
+        await js('globalThis.ExperimentalWordDiaryIncompleteRestComfortReportsCatalog=ExperimentalWordDiaryRestComfortReportsCatalog;void 0');
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
-        const values = require('./diary_rest_comfort_prose_fixtures').examples();
+        const fixtures = require('./diary_rest_comfort_prose_fixtures');
+        const values = [...fixtures.examples(), ...fixtures.incompleteExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
+        const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
         let rejected = 0;
         for (const value of values) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();
-                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('capture');
+                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)
+                    &&!ExperimentalWordDiaryIncompleteRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('capture');
                 const record=buffer.read()[0], original=JSON.stringify(record);
                 const text=ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt);
                 const translations={};
@@ -48,14 +53,15 @@ if (!process.versions.electron || process.type !== 'browser') {
                     GameI18n.setLanguage(locale);translations[locale]=GameI18n.translate(text);
                 }
                 const stable=before===JSON.stringify(v)&&original===JSON.stringify(record);
-                record.captured.verified=true;
+                record.captured.newLearning=true;
                 const altered=ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt);
                 return {text,translations,stable,altered};
             })()`);
-            assert.equal(answer.text, sentence); assert.equal(answer.stable, true);
+            const expected = value.result.understandings[0].complete ? sentence : unknownSentence;
+            assert.equal(answer.text, expected); assert.equal(answer.stable, true);
             assert.equal(answer.altered, null); rejected++;
             for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
-                assert.equal(answer.translations[locale], require('../../locales/' + locale + '.json')[sentence]);
+                assert.equal(answer.translations[locale], require('../../locales/' + locale + '.json')[expected]);
         }
         // BN variants in BO's shore context are valid av reports, outside this prose scope.
         const { setup, hearComfort, core } = require('./diary_rest_comfort_report_fixtures');
@@ -75,11 +81,12 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.deepEqual(answer, { text: null, stable: true }); combinedRejected++;
         }
         let scopeRejected = 0;
-        for (const value of require('./diary_rest_comfort_prose_fixtures').excludedExamples()) {
+        for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();
-                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('scope capture');
+                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)
+                    &&!ExperimentalWordDiaryIncompleteRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('scope capture');
                 const record=buffer.read()[0], original=JSON.stringify(record);
                 return {text:ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt),
                     stable:before===JSON.stringify(v)&&original===JSON.stringify(record)};
@@ -89,7 +96,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         const state = await js(`(() => {
             const names=['ExperimentalWordLearning','ExperimentalWordCareers','ExperimentalWordLifeLearning',
                 'ExperimentalWordRelationLearning','ExperimentalWordFeelingLearning','ExperimentalWordWorld',
-                'ExperimentalWordDiaryCandidates','ExperimentalWordDiaryRestComfortReports','ExperimentalWordDiaryRestComfortProse'];
+                'ExperimentalWordDiaryCandidates','ExperimentalWordDiaryRestComfortReports',
+                'ExperimentalWordDiaryIncompleteRestComfortReports','ExperimentalWordDiaryRestComfortProse'];
             names.forEach(name=>delete globalThis[name]);
             return {removed:names.every(name=>typeof globalThis[name]==='undefined'),
                 local:{...localStorage},session:{...sessionStorage},bridge:typeof wordLifeStorage};
