@@ -63,7 +63,22 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-BU display projection. av and bo each own full receipt checks.
+    function missingRelationSentence(result, receipt) {
+        const u = result.understandings[0], knowledge = receipt.inputKnowledge;
+        const short = receipt.beforeState.settings.speech === 'short';
+        if (!initialIncompleteScope(result, receipt) || u.kind !== 'partial' || u.complete !== false
+            || !equal(u.known, { meaning: 'comfortable', conditionMeaning: 'rest' })
+            || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
+            || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
+            || receipt.reply.message !== (short ? 'uncertain' : 'attend') || receipt.reply.observation) return null;
+        for (const [missing, present] of [['report', 'condition'], ['condition', 'report']]) {
+            if (!knowledge.relations.some(item => item.id === missing)
+                && equal(u.relations, [present]) && equal(u.unresolved, [{ type: 'relation', id: missing }]))
+                return '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
+        }
+        return null;
+    }
+    // Read-only BL-BW display projection. av and bo each own full receipt checks.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.
@@ -78,7 +93,8 @@
             }
             if (!incompleteReports.capture(checked, result, receipt)
                 || !equal(supplied.read()[0], checked.read()[0])) return null;
-            return incompleteScope(result, receipt) ? '言われたことが分からなかった。' : partialSentence(result, receipt);
+            return incompleteScope(result, receipt) ? '言われたことが分からなかった。'
+                : partialSentence(result, receipt) || missingRelationSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });

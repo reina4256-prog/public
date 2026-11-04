@@ -55,6 +55,28 @@ function partialExcludedExamples() {
     }
     return values;
 }
+function relationExamples() {
+    const values = [];
+    for (const missing of ['report', 'condition']) for (const speech of ['short', 'gesture']) {
+        const v = setup({ speech });
+        v.state.knowledge.relations = v.state.knowledge.relations.filter(e => e.id !== missing);
+        values.push(hearComfort(v));
+    }
+    return values;
+}
+function relationExcludedExamples() {
+    const values = [];
+    for (const prior of relationExamples()) {
+        for (const variation of examples().slice(2)) {
+            const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+            v.state.knowledge = prior.receipt.inputKnowledge;
+            v.world.mode = variation.receipt.beforeWorld.mode; v.world.fatigue = variation.receipt.beforeWorld.fatigue;
+            core.perceive(v.state, variation.receipt.inputContext);
+            values.push(hearComfort(v, variation.result.input.raw));
+        }
+    }
+    return values;
+}
 function excludedExamples() {
     const values = [], forms = examples().slice(2, 24).filter(v => v.receipt.beforeState.settings.speech === 'short')
         .map(v => v.result.input.raw);
@@ -94,4 +116,5 @@ function fatigueExcludedExamples() {
     }
     return values;
 }
-module.exports = { examples, incompleteExamples, partialExamples, partialExcludedExamples, excludedExamples, fatigueExcludedExamples };
+module.exports = { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
+    relationExcludedExamples, excludedExamples, fatigueExcludedExamples };

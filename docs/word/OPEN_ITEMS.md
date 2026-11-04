@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- [4e段階実装・BV／BW](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-04・8719fa0続き。基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15の二意味既知、BVはreport記録だけなし／BWはcondition記録だけなしを既存独立文章化へ限定追加。bo所有照合／原record全文一致・partial/complete=false・主体aspect=null／出所欠落、short実uncertain／gesture実attendを要求し、共通採用本文を七言語追加。scope不適用や他不足配置／表記活動sceneとの組合せは非包含。六資料分離・原当時非書戻し／欠落非補完・全既採用／維持条件／全14保留・B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行は現行handoff、次は既採用BX／BYを限定確認。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。以下は過去状態。
+
 - [4e段階実装・BT／BU](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-04・0350452続き。基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15の意味一つだけ未記録を既存独立文章化へ追加。BTはcomfortable不足／rest既知、BUはrest不足／comfortable既知、双方report/condition適用可能・当時report/complete=false・原speaker_reportあり、各short/uncertain・gesture/attend。bo所有capture／原record全文一致を要求し、原known／unresolved・unknown条件／原expression欠落を保持。二本文を七言語追加し、新理解規則・他不足配置／表記活動sceneとの組合せは非包含。必要検証・発行は現行handoff。六資料分離・全既採用／維持条件／全14保留・B停止／供給進展0・旧run非置換・既存集計を維持。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。以下は過去状態。
 
 - [4e段階実装・BR／BS](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-04・5391cfb続き。既存独立文章化へBR（基本文・short・idle・疲労五値）とBS（基本文・二意味二関係すべて記録なし・short/gesture）を限定追加。av／boの各所有capture・原record全文一致を要求し、既存七言語本文を再利用する。原当時理解・unknown条件／出所欠落／expression欠落を保持し、疲労／実attendから理解や本人快感を補わない。組合せ・scope不適用・他不足配置は非包含。必要検証・発行結果は現行handoff。六資料分離・全既採用／維持条件／全14保留・B停止／供給進展0・旧run非置換・140/140枠／129子／138登録API／ao〜dy人間OKを維持。4d12／4e全体未完・4f非移行、本接続／保存／集約／途中記録未実装。以下は過去状態。
