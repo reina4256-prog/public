@@ -71,6 +71,10 @@
             || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
             || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
             || receipt.reply.message !== (short ? 'uncertain' : 'attend') || receipt.reply.observation) return null;
+        if (!knowledge.relations.some(item => ['report', 'condition'].includes(item.id))
+            && equal(u.relations, [])
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' }, { type: 'relation', id: 'condition' }]))
+            return '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         for (const [missing, present] of [['report', 'condition'], ['condition', 'report']]) {
             if (!knowledge.relations.some(item => item.id === missing)
                 && equal(u.relations, [present]) && equal(u.unresolved, [{ type: 'relation', id: missing }]))
@@ -78,7 +82,20 @@
         }
         return null;
     }
-    // Read-only BL-BW display projection. av and bo each own full receipt checks.
+    function missingBothMeaningsSentence(result, receipt) {
+        const u = result.understandings[0], input = result.input;
+        if (!initialIncompleteScope(result, receipt) || u.kind !== 'report' || u.complete !== false
+            || receipt.inputKnowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
+            || !equal(u.known, {}) || !equal(u.relations, ['report', 'condition'])
+            || !equal(u.unresolved, [{ type: 'meaning', field: 'meaning', token: 'comfortable' },
+                { type: 'meaning', field: 'conditionMeaning', token: 'rest' }])
+            || u.subject !== 'player' || u.aspect !== 'rest_comfort' || u.polarity !== 'positive'
+            || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
+            || !equal(u.reportSource, { kind: 'speaker_report', inputId: input.id, heardAt: input.at })
+            || receipt.reply.message !== 'attend' || receipt.reply.observation) return null;
+        return '何かを伝えられたけれど、何のことか分からなかった。';
+    }
+    // Read-only BL-BY display projection. av and bo each own full receipt checks.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.
@@ -94,7 +111,8 @@
             if (!incompleteReports.capture(checked, result, receipt)
                 || !equal(supplied.read()[0], checked.read()[0])) return null;
             return incompleteScope(result, receipt) ? '言われたことが分からなかった。'
-                : partialSentence(result, receipt) || missingRelationSentence(result, receipt);
+                : partialSentence(result, receipt) || missingRelationSentence(result, receipt)
+                    || missingBothMeaningsSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });

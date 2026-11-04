@@ -7,7 +7,8 @@ const incompleteReports = require('../experimental_word_diary_incomplete_rest_co
 const prose = require('../experimental_word_diary_rest_comfort_prose');
 const { fixtures, setup, hearComfort, raw, core } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
 const { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
-    relationExcludedExamples, excludedExamples, fatigueExcludedExamples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
+    relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples,
+    excludedExamples, fatigueExcludedExamples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
 const copy = value => JSON.parse(JSON.stringify(value));
 const sentence = '\u6a2a\u306b\u306a\u308b\u3068\u6c17\u6301\u3061\u3044\u3044\u3068\u805e\u3044\u305f\u3002';
 function material(v) {
@@ -149,7 +150,8 @@ test('later knowledge cannot rewrite old partial understanding or merge separate
     const v = setup({ foundation: false }), early = hearComfort(v);
     v.state.knowledge = copy(setup().state.knowledge);
     const first = hearComfort(v), second = hearComfort(v), record = material(first), saved = JSON.stringify(record);
-    assert.equal(render(early), null);
+    assert.equal(render(early), relationSentence); // Original foundation=false is now adopted BY.
+    assert.equal(early.result.understandings[0].complete, false);
     assert.equal(prose.render(record, first.result, first.receipt), sentence);
     assert.equal(render(second), sentence);
     assert.equal(prose.render(record, second.result, second.receipt), null);
@@ -208,7 +210,7 @@ test('BS preserves four original absences, unresolved order and missing source w
     }
 });
 
-test('BS-BW reject all other bo prerequisite layouts, scopes, forms, scenes, activities, fatigue and speakers', () => {
+test('BS-BY reject all other bo prerequisite layouts, scopes, forms, scenes, activities, fatigue and speakers', () => {
     const all = require('../scripts/experimental/diary_incomplete_rest_comfort_report_fixtures').fixtures();
     let accepted = 0;
     for (const f of all) {
@@ -230,10 +232,92 @@ test('BS-BW reject all other bo prerequisite layouts, scopes, forms, scenes, act
         if (contextAllowed && u.known.meaning === 'comfortable' && u.known.conditionMeaning === 'rest'
             && u.relations.length === 1 && u.unresolved.length === 1
             && !k.relations.some(e => e.id === u.unresolved[0].id)) expected = relationSentence;
+        if (contextAllowed && !k.meanings.some(e => ['comfortable', 'rest'].includes(e.id))
+            && u.relations.length === 2 && u.unresolved.length === 2) expected = doubleMissingSentence;
+        if (contextAllowed && !k.relations.some(e => ['report', 'condition'].includes(e.id))
+            && u.known.meaning === 'comfortable' && u.known.conditionMeaning === 'rest'
+            && u.relations.length === 0 && u.unresolved.length === 2) expected = relationSentence;
         assert.equal(prose.render(b.read()[0], v.result, v.receipt), expected, f.group);
         if (expected) accepted++;
     }
-    assert.equal(accepted, 26); // six BS, ten BT/BU and ten BV/BW owner fixtures
+    assert.equal(accepted, 38); // previous 26 plus twelve BX/BY owner fixtures
+});
+
+const doubleMissingSentence = '何かを伝えられたけれど、何のことか分からなかった。';
+test('BX/BY keep two absent meanings or relations distinct, including source and actual attend vs speech setting', () => {
+    const values = doubleMissingExamples(); assert.equal(values.length, 4);
+    for (const [index, v] of values.entries()) {
+        const bx = index < 2, record = material(v), c = record.captured, original = JSON.stringify({ record, v });
+        assert.equal(render(v), bx ? doubleMissingSentence : relationSentence);
+        assert.equal(c.meaningKnownBefore, !bx); assert.equal(c.conditionMeaningKnownBefore, !bx);
+        assert.equal(c.relationsKnownBefore, bx);
+        assert.deepEqual(c.missingRelationsBefore, bx ? [] : ['report', 'condition']);
+        assert.deepEqual(c.missingMeaningsBefore, bx ? [
+            { type: 'meaning', field: 'meaning', token: 'comfortable' },
+            { type: 'meaning', field: 'conditionMeaning', token: 'rest' }
+        ] : []);
+        assert.deepEqual(c.understanding.known, bx ? {} : { meaning: 'comfortable', conditionMeaning: 'rest' });
+        assert.deepEqual(c.understanding.relations, bx ? ['report', 'condition'] : []);
+        assert.deepEqual(c.understanding.unresolved, bx ? c.missingMeaningsBefore
+            : [{ type: 'relation', id: 'report' }, { type: 'relation', id: 'condition' }]);
+        assert.equal(c.understanding.kind, bx ? 'report' : 'partial'); assert.equal(c.understanding.complete, false);
+        assert.equal(c.understanding.subject, bx ? 'player' : null);
+        assert.equal(c.understanding.aspect, bx ? 'rest_comfort' : null);
+        assert.equal(c.understanding.conditionStatus, 'unknown');
+        if (bx) assert.deepEqual(c.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        else {
+            assert.equal(Object.hasOwn(c, 'reportSource'), false);
+            assert.equal(Object.hasOwn(c.understanding, 'reportSource'), false);
+        }
+        assert.equal(Object.hasOwn(c, 'expression'), false);
+        assert.equal(c.actualSpeech, index % 2 === 0);
+        assert.equal(c.response.message, bx || index % 2 ? 'attend' : 'uncertain');
+        for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    const excluded = doubleMissingExcludedExamples(); assert.equal(excluded.length, 168);
+    for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
+});
+
+test('BX/BY cannot repair missing evidence, reorder absences or rewrite old understanding with later knowledge', () => {
+    for (const v of doubleMissingExamples()) {
+        const record = material(v), original = JSON.stringify({ record, v });
+        for (const edit of [
+            x => { x.record.captured.understanding.known.meaning = 'rest'; },
+            x => { x.record.captured.reportSource = { kind: 'speaker_report' }; },
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.actualSpeech = !x.record.captured.actualSpeech; },
+            x => { x.record.captured.understanding.unresolved.reverse(); },
+            x => { x.v.result.understandings[0].unresolved.reverse(); },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.result.understandings[0].complete = true; },
+            x => { x.v.receipt.reply.message = 'heard_rest_comfort'; },
+            x => { x.v.receipt.reply.observation = true; },
+            x => { x.v.receipt.inputKnowledge = copy(setup().state.knowledge); },
+            x => { x.v.receipt.afterWorld.elapsed++; },
+            x => { delete x.v.receipt.beforeState; },
+            x => { delete x.v.receipt.afterState; },
+            x => { delete x.v.receipt.inputContext; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const altered = JSON.stringify(x);
+            assert.equal(prose.render(x.record, x.v.result, x.v.receipt), null);
+            assert.equal(JSON.stringify(x), altered);
+        }
+        for (const args of [[null, v.result, v.receipt], [record, null, v.receipt], [record, v.result, null]])
+            assert.equal(prose.render(...args), null);
+        const s = setup(); s.state.knowledge = copy(v.receipt.inputKnowledge);
+        const early = hearComfort(s); s.state.knowledge = copy(setup().state.knowledge);
+        const later = hearComfort(s);
+        assert.equal(render(early), render(v)); assert.equal(render(later), sentence);
+        assert.equal(prose.render(record, later.result, later.receipt), null);
+        assert.equal(prose.render(material(later), v.result, v.receipt), null);
+        assert.equal(prose.render(record, v.result, v.receipt), render(v));
+        const cycle = copy(record); cycle.extra = cycle;
+        assert.equal(prose.render(cycle, v.result, v.receipt), null);
+        const nonJson = copy(record); nonJson.extra = undefined;
+        assert.equal(prose.render(nonJson, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
 });
 
 const relationSentence = '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';

@@ -36,10 +36,12 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js('globalThis.ExperimentalWordDiaryIncompleteRestComfortReportsCatalog=ExperimentalWordDiaryRestComfortReportsCatalog;void 0');
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_comfort_prose_fixtures');
-        const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples(), ...fixtures.relationExamples()];
+        const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples(),
+            ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
         const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
         const relationSentence = '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
+        const missingBothMeaningsSentence = '何かを伝えられたけれど、何のことか分からなかった。';
         const partialSentences = [
             '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002',
             '\u6c17\u6301\u3061\u3088\u3055\u306e\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002'
@@ -63,8 +65,10 @@ if (!process.versions.electron || process.type !== 'browser') {
                 return {text,translations,stable,altered};
             })()`);
             const u = value.result.understandings[0];
-            const expected = u.complete ? sentence : u.kind === 'partial' ? (u.relations.length === 1 ? relationSentence : unknownSentence)
-                : u.known.conditionMeaning === 'rest' ? partialSentences[0] : partialSentences[1];
+            const expected = u.complete ? sentence : u.kind === 'partial'
+                ? (u.known.meaning === 'comfortable' ? relationSentence : unknownSentence)
+                : !Object.keys(u.known).length ? missingBothMeaningsSentence
+                    : u.known.conditionMeaning === 'rest' ? partialSentences[0] : partialSentences[1];
             assert.equal(answer.text, expected); assert.equal(answer.stable, true);
             assert.equal(answer.altered, null); rejected++;
             for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
@@ -88,7 +92,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.deepEqual(answer, { text: null, stable: true }); combinedRejected++;
         }
         let scopeRejected = 0;
-        for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples(), ...fixtures.relationExcludedExamples()]) {
+        for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples(),
+            ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();

@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 現行継続文（a9715d5続き・4e BX／BY独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用BX／BYを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/hunger=.35/fatigue=.15だけ。BXは二意味記録なし／二関係適用可能・report/known={}・原出所あり・両設定実attend、BYは二関係記録なし／二意味適用可能・partial/relations=[]・主体aspect=null／出所欠落・short実uncertain／gesture実attend。bo所有captureと原record全文一致で照合し採用本文を返します。BX本文だけ七言語追加、BYは既存本文を再利用。未知内容や欠落出所／原expressionを補わず、scope不適用／他不足配置・他表記活動sceneとの組合せは非包含。必要検証・発行は現行handoff。次は既採用BZ／CAを必要所有節・依存から限定して進めてください。新文言の再採用不要。
+
+試遊記録は今回発見結果pendingなし、過去96までの限定実読・未読欄はhandoff。六資料分離・原当時非書戻し／欠落非補完・全既採用／全維持条件／全14保留／各担当三保留、am／cp／cq／散策区別・B停止／供給進展0・旧run非置換・既存集計を維持。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。以下は過去状態。
+
 ## 現行継続文（8719fa0続き・4e BV／BW独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用BV／BWを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/hunger=.35/fatigue=.15・二意味既知だけ。BVはreport記録だけなし／condition適用可能、BWはcondition記録だけなし／report適用可能。双方partial/complete=false・subject/aspect=null／reportSource欠落、各short実uncertain／gesture実attendをbo所有captureと原record全文一致で照合し、共通採用本文を七言語追加。BWのreport既知から欠落出所・原expressionを補わず、scope不適用／他不足配置・他表記活動sceneとの組合せを含めません。必要検証・発行は現行handoff。次は既採用BX／BYを必要所有節・依存から限定して進めてください。新文言の再採用不要。
