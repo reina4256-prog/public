@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 現行継続文（c3636d3続き・4e CB／CC独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用CB／CCを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/hunger=.35/fatigue=.15だけ。CBはcomfortable意味＋condition記録なし／restとreport適用可能、CCはrest意味＋condition記録なし／comfortableとreport適用可能。partial/relations=[report]・主体aspect=null／出所欠落・short実uncertain／gesture実attendをbo所有capture／原record全文一致で確認し既存部分理解二本文・七言語entryを再利用。意味＋関係不足の共通表示判定はmissingMeaningAndRelationSentence、BZ/CAの既存枝も維持しています。同文のBT/BU・BZ/CAとも原当時理解／不足根拠／出所有無を別保持し、未知意味／条件理解・欠落出所／原expression非補完。scope不適用／他不足配置・表記活動sceneとの組合せ非包含。必要検証／発行は現行handoff。次は既採用CD／CE／CFを必要所有節・依存から限定して進めてください。新文言の再採用不要。
+
+予定確認の回答は日記本接続が既存4g、星座本接続の具体工程番号／時期は未確定。今回の質問は接続依頼／前倒し指示ではなく工程変更なし。試遊発見pendingなし、過去96までの限定実読・未読欄はhandoff。六資料分離・原当時非書戻し／欠落非補完・全既採用／全維持条件／全14保留／各担当三保留、am／cp／cq／散策区別・B停止／供給進展0・旧run非置換・既存集計を維持。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。以下は過去状態。
+
 ## 現行継続文（03ec54b続き・4e BZ／CA独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用BZ／CAを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/hunger=.35/fatigue=.15だけ。BZはcomfortable意味＋report記録なし／restとcondition適用可能、CAはrest意味＋report記録なし／comfortableとcondition適用可能。partial/relations=[condition]・主体aspect=null／出所欠落・short実uncertain／gesture実attendをbo所有capture／原record全文一致で確認し、既存BT/BUと同じ二本文・七言語entryを再利用。原当時理解／不足根拠／出所有無を別保持し、未知意味や報告理解・欠落出所／原expressionを補いません。scope不適用・他不足配置／他表記活動sceneとの組合せ非包含。必要検証／発行は現行handoff。次は既採用CB／CCを必要所有節・依存から限定して進めてください。新文言の再採用不要。

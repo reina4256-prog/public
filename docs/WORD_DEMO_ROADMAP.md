@@ -1,5 +1,9 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- 2026-11-05の予定確認への回答（工程変更なし）：日記のゲーム接続は既存4g（暦・保存・旧ノート移行）で扱う。現在4e、後続4fは本人の印象比較・絵選択。星座は独立見本の確認済みを維持するが、正式な学習参照規則・可視履歴範囲・本接続の具体工程番号／時期は未確定。本接続時に操作性を相談する既存方針を保持。「現時点の目安」の質問であり、接続依頼・前倒し・追加採用ではない。残チャット数／日数は未確定。根拠は下の4a〜4i表と正本の星座節。
+
+- [4e段階実装・CB／CC](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-05・c3636d3続き。基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15だけ。CBはcomfortable意味＋condition記録なし、CCはrest意味＋condition記録なし、残る意味／report適用可能・partial/relations=[report]／主体aspect=null／出所欠落をbo原照合／record全文一致で確認。short実uncertain／gesture実attendに既存部分理解二本文・七言語entryを再利用。同文のBT/BU・BZ/CAとも原当時理解／不足根拠／出所有無は別保持、scope不適用や他不足配置／表記活動sceneとの組合せ非包含。全既採用・六資料分離／原当時非書戻し／欠落非補完・全維持条件／全14保留・B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行は現行handoff。次は既採用CD／CE／CFを限定確認、4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。
+
 - [4e段階実装・BZ／CA](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-04・03ec54b続き。基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15だけ。BZはcomfortable意味＋report記録なし、CAはrest意味＋report記録なし、残る意味／condition適用可能・partial/relations=[condition]／主体aspect=null／出所欠落をbo原照合／record全文一致で確認。short実uncertain／gesture実attendに既存BT/BUと同じ二本文を返し、原当時理解・不足根拠／出所有無は別保持。七言語既存entryを再利用、scope不適用や他不足配置／表記活動sceneとの組合せ非包含。全既採用・六資料分離／原当時非書戻し／欠落非補完・全維持条件／全14保留・B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行は現行handoff。次は既採用CB／CCを限定確認、4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。
 
 - [4e段階実装・BX／BY](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-04・a9715d5続き。基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15だけ。BXは二意味記録なし／二関係適用可能・report/known={}／原出所あり／実attend、BYは二関係記録なし／二意味適用可能・partial／主体aspect=null／出所欠落・short実uncertain／gesture実attend。bo原照合／record全文一致後に採用二本文を返し、BXだけ七言語追加。未知内容・欠落出所／expression非補完、scope不適用や他不足配置／表記活動sceneとの組合せ非包含。全既採用・六資料分離／原当時非書戻し・全維持条件／全14保留・B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行は現行handoff。次は既採用BZ／CAを限定確認、4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。

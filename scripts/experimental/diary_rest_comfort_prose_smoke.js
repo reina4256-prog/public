@@ -37,7 +37,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_comfort_prose_fixtures');
         const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples(),
-            ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples(), ...fixtures.mixedReportExamples()];
+            ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples(), ...fixtures.mixedReportExamples(),
+            ...fixtures.mixedConditionExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
         const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
         const relationSentence = '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
@@ -95,7 +96,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         let scopeRejected = 0;
         for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples(),
-            ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples(), ...fixtures.mixedReportExcludedExamples()]) {
+            ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples(), ...fixtures.mixedReportExcludedExamples(),
+            ...fixtures.mixedConditionExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();

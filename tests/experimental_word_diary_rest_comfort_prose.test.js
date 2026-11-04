@@ -8,7 +8,8 @@ const prose = require('../experimental_word_diary_rest_comfort_prose');
 const { fixtures, setup, hearComfort, raw, core } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
 const { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples,
-    mixedReportExamples, mixedReportExcludedExamples, excludedExamples, fatigueExcludedExamples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
+    mixedReportExamples, mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples,
+    excludedExamples, fatigueExcludedExamples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
 const copy = value => JSON.parse(JSON.stringify(value));
 const sentence = '\u6a2a\u306b\u306a\u308b\u3068\u6c17\u6301\u3061\u3044\u3044\u3068\u805e\u3044\u305f\u3002';
 function material(v) {
@@ -210,7 +211,7 @@ test('BS preserves four original absences, unresolved order and missing source w
     }
 });
 
-test('BS-CA reject all other bo prerequisite layouts, scopes, forms, scenes, activities, fatigue and speakers', () => {
+test('BS-CC reject all other bo prerequisite layouts, scopes, forms, scenes, activities, fatigue and speakers', () => {
     const all = require('../scripts/experimental/diary_incomplete_rest_comfort_report_fixtures').fixtures();
     let accepted = 0;
     for (const f of all) {
@@ -242,10 +243,82 @@ test('BS-CA reject all other bo prerequisite layouts, scopes, forms, scenes, act
             if (!k.meanings.some(e => e.id === 'comfortable') && u.known.conditionMeaning === 'rest') expected = partialSentences[0];
             if (!k.meanings.some(e => e.id === 'rest') && u.known.meaning === 'comfortable') expected = partialSentences[1];
         }
+        if (contextAllowed && !k.relations.some(e => e.id === 'condition')
+            && u.relations.length === 1 && u.relations[0] === 'report' && u.unresolved.length === 2) {
+            if (!k.meanings.some(e => e.id === 'comfortable') && u.known.conditionMeaning === 'rest') expected = partialSentences[0];
+            if (!k.meanings.some(e => e.id === 'rest') && u.known.meaning === 'comfortable') expected = partialSentences[1];
+        }
         assert.equal(prose.render(b.read()[0], v.result, v.receipt), expected, f.group);
         if (expected) accepted++;
     }
-    assert.equal(accepted, 46); // previous 38 plus eight BZ/CA owner fixtures
+    assert.equal(accepted, 54); // previous 46 plus eight CB/CC owner fixtures
+});
+
+test('CB/CC preserve missing condition and one meaning with applicable report but no original source', () => {
+    const values = mixedConditionExamples(); assert.equal(values.length, 4);
+    for (const [index, v] of values.entries()) {
+        const cb = index < 2, record = material(v), c = record.captured, original = JSON.stringify({ record, v });
+        assert.equal(render(v), partialSentences[cb ? 0 : 1]);
+        assert.equal(c.meaningKnownBefore, !cb); assert.equal(c.conditionMeaningKnownBefore, cb);
+        assert.equal(c.relationsKnownBefore, false); assert.deepEqual(c.missingRelationsBefore, ['condition']);
+        assert.deepEqual(c.missingMeaningsBefore, [{ type: 'meaning', field: cb ? 'meaning' : 'conditionMeaning', token: cb ? 'comfortable' : 'rest' }]);
+        assert.deepEqual(c.understanding.known, cb ? { conditionMeaning: 'rest' } : { meaning: 'comfortable' });
+        assert.deepEqual(c.understanding.relations, ['report']);
+        assert.deepEqual(c.understanding.unresolved, [{ type: 'relation', id: 'condition' }, ...c.missingMeaningsBefore]);
+        assert.equal(c.understanding.kind, 'partial'); assert.equal(c.understanding.complete, false);
+        assert.equal(c.understanding.subject, null); assert.equal(c.understanding.aspect, null);
+        assert.equal(c.understanding.conditionStatus, 'unknown');
+        for (const key of ['expression', 'reportSource']) assert.equal(Object.hasOwn(c, key), false);
+        assert.equal(Object.hasOwn(c.understanding, 'reportSource'), false);
+        assert.equal(c.response.message, index % 2 ? 'attend' : 'uncertain');
+        assert.equal(c.actualSpeech, index % 2 === 0);
+        for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    const excluded = mixedConditionExcludedExamples(); assert.equal(excluded.length, 176);
+    for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
+});
+
+test('CB/CC reject source repair and cannot exchange same-text BT/BU or BZ/CA records or later understanding', () => {
+    for (const [index, v] of mixedConditionExamples().entries()) {
+        const record = material(v), original = JSON.stringify({ record, v });
+        for (const edit of [
+            x => { x.record.captured.reportSource = { kind: 'speaker_report' }; },
+            x => { x.record.captured.understanding.subject = 'player'; },
+            x => { x.record.captured.understanding.aspect = 'rest_comfort'; },
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.missingRelationsBefore = ['report']; },
+            x => { x.record.captured.understanding.unresolved.reverse(); },
+            x => { x.v.result.understandings[0].kind = 'report'; },
+            x => { x.v.result.understandings[0].unresolved.reverse(); },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.receipt.reply.message = 'heard_rest_comfort'; },
+            x => { x.v.receipt.inputKnowledge.relations.push({ id: 'condition', source: 'initial' }); },
+            x => { x.v.receipt.afterWorld.elapsed++; },
+            x => { delete x.v.receipt.inputContext; },
+            x => { delete x.v.receipt.beforeState; },
+            x => { delete x.v.receipt.afterState; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const altered = JSON.stringify(x);
+            assert.equal(prose.render(x.record, x.v.result, x.v.receipt), null);
+            assert.equal(JSON.stringify(x), altered);
+        }
+        for (const args of [[null, v.result, v.receipt], [record, null, v.receipt], [record, v.result, null]])
+            assert.equal(prose.render(...args), null);
+        for (const other of [partialExamples()[index], mixedReportExamples()[index]]) {
+            assert.equal(render(other), render(v));
+            assert.equal(prose.render(material(other), v.result, v.receipt), null);
+            assert.equal(prose.render(record, other.result, other.receipt), null);
+        }
+        const s = setup(); s.state.knowledge = copy(v.receipt.inputKnowledge);
+        const early = hearComfort(s); s.state.knowledge = copy(setup().state.knowledge);
+        const later = hearComfort(s);
+        assert.equal(render(early), render(v)); assert.equal(render(later), sentence);
+        assert.equal(prose.render(record, later.result, later.receipt), null);
+        const nonJson = copy(record); nonJson.extra = undefined;
+        assert.equal(prose.render(nonJson, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
 });
 
 test('BZ/CA retain missing report and exactly one missing meaning without restoring subject or source', () => {

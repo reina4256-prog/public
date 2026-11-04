@@ -173,6 +173,40 @@ function mixedReportExcludedExamples() {
     }
     return values;
 }
+function mixedConditionExamples() {
+    const values = [];
+    for (const missing of ['comfortable', 'rest']) for (const speech of ['short', 'gesture']) {
+        const v = setup({ speech });
+        v.state.knowledge.meanings = v.state.knowledge.meanings.filter(e => e.id !== missing);
+        v.state.knowledge.relations = v.state.knowledge.relations.filter(e => e.id !== 'condition');
+        values.push(hearComfort(v));
+    }
+    return values;
+}
+function mixedConditionExcludedExamples() {
+    const values = [];
+    for (const prior of mixedConditionExamples()) {
+        for (const variation of examples().slice(2)) {
+            const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+            v.state.knowledge = prior.receipt.inputKnowledge;
+            v.world.mode = variation.receipt.beforeWorld.mode; v.world.fatigue = variation.receipt.beforeWorld.fatigue;
+            core.perceive(v.state, variation.receipt.inputContext);
+            values.push(hearComfort(v, variation.result.input.raw));
+        }
+    }
+    for (const prior of require('./diary_rest_comfort_report_fixtures').fixtures()
+        .filter(f => f.group.includes('scope-not-transferred'))) {
+        for (const missing of ['comfortable', 'rest']) {
+            const v = setup({ speech: prior.value.receipt.beforeState.settings.speech });
+            v.state.knowledge = JSON.parse(JSON.stringify(prior.value.receipt.inputKnowledge));
+            v.state.knowledge.meanings = v.state.knowledge.meanings.filter(e => e.id !== missing);
+            if (prior.group.includes('report'))
+                v.state.knowledge.relations = v.state.knowledge.relations.filter(e => e.id !== 'condition');
+            values.push(hearComfort(v));
+        }
+    }
+    return values;
+}
 module.exports = { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples, mixedReportExamples,
-    mixedReportExcludedExamples, excludedExamples, fatigueExcludedExamples };
+    mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples, excludedExamples, fatigueExcludedExamples };
