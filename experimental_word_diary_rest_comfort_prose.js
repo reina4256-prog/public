@@ -28,9 +28,10 @@
         return input.speaker === 'player' && input.locale === 'ja' && (initialScope || noTarget)
             && world.attention === null && world.hunger === .35 && (world.fatigue === .15 || fatigueScope);
     }
-    function initialIncompleteScope(result, receipt) {
+    function initialIncompleteScope(result, receipt, alternateForms = false) {
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
-        const basic = /^横になると気持ちいい$/u.exec(input.raw);
+        const basic = (alternateForms ? /^横になると(?:気持ちいい|きもちいい|心地よい)(?:よね|ね|よ)?$/u
+            : /^横になると気持ちいい$/u).exec(input.raw);
         return basic?.[0] === input.raw && input.speaker === 'player' && input.locale === 'ja'
             && context.scene === 'clearing' && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
             && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15;
@@ -47,7 +48,7 @@
     function partialSentence(result, receipt) {
         const u = result.understandings[0], input = result.input;
         const short = receipt.beforeState.settings.speech === 'short';
-        if (!initialIncompleteScope(result, receipt) || u.kind !== 'report' || u.complete !== false
+        if (!initialIncompleteScope(result, receipt, true) || u.kind !== 'report' || u.complete !== false
             || !equal(u.relations, ['report', 'condition']) || u.subject !== 'player'
             || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.aspect !== 'rest_comfort'
             || u.conditionStatus !== 'unknown'
@@ -66,7 +67,7 @@
     function missingRelationSentence(result, receipt) {
         const u = result.understandings[0], knowledge = receipt.inputKnowledge;
         const short = receipt.beforeState.settings.speech === 'short';
-        if (!initialIncompleteScope(result, receipt) || u.kind !== 'partial' || u.complete !== false
+        if (!initialIncompleteScope(result, receipt, true) || u.kind !== 'partial' || u.complete !== false
             || !equal(u.known, { meaning: 'comfortable', conditionMeaning: 'rest' })
             || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
             || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
@@ -101,7 +102,7 @@
         const missingRelation = !knowledge.relations.some(item => item.id === 'report') && equal(u.relations, ['condition'])
             ? 'report' : !knowledge.relations.some(item => item.id === 'condition') && equal(u.relations, ['report'])
                 ? 'condition' : null;
-        if (!initialIncompleteScope(result, receipt) || u.kind !== 'partial' || u.complete !== false
+        if (!initialIncompleteScope(result, receipt, true) || u.kind !== 'partial' || u.complete !== false
             || !missingRelation
             || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
             || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
@@ -120,11 +121,12 @@
     }
     function threeMissingSentence(result, receipt) {
         const u = result.understandings[0], knowledge = receipt.inputKnowledge;
-        if (!initialIncompleteScope(result, receipt) || u.kind !== 'partial' || u.complete !== false
+        if (!initialIncompleteScope(result, receipt, true) || u.kind !== 'partial' || u.complete !== false
             || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
             || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
             || receipt.reply.observation) return null;
-        if (!knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
+        if (initialIncompleteScope(result, receipt)
+            && !knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
             && equal(u.known, {}) && receipt.reply.message === 'attend') {
             for (const [missing, present] of [['report', 'condition'], ['condition', 'report']]) {
                 if (!knowledge.relations.some(item => item.id === missing) && equal(u.relations, [present])
@@ -145,7 +147,8 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-CF display projection. av and bo each own full receipt checks.
+    // Read-only BL-CI display projection. av and bo each own full receipt checks.
+    // CG/CH/CI extend only known-meaning branches to the eleven finite forms.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.
