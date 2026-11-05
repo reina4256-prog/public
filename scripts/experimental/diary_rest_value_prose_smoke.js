@@ -33,7 +33,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             'experimental_word_diary_rest_value_prose.js', 'localization_catalog.js', 'localization_core.js'];
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_value_prose_fixtures');
-        const values = [...fixtures.examples(), ...fixtures.addedExamples()], excluded = fixtures.excludedExamples();
+        const values = [...fixtures.examples(), ...fixtures.addedExamples(), ...fixtures.punctuationExamples()], excluded = fixtures.excludedExamples();
         const sentence = require('../../experimental_word_diary_rest_value_prose').render(
             (() => { const buffer = require('../../experimental_word_diary_candidates').create();
                 require('../../experimental_word_diary_rest_value_reports').capture(buffer, values[0].result, values[0].receipt);

@@ -14,13 +14,16 @@
             && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }]);
         const basic = /^休むことは大事$/u.exec(input.raw);
         const shore = basic?.[0] === input.raw && context.scene === 'shore' && equal(context.attention, []);
-        return typeof input.raw === 'string' && match?.[0] === input.raw
+        const speech = receipt.beforeState.settings.speech;
+        const decorated = /^(?: 休むことは大事 |休むことは大事[。！])$/u.exec(input.raw);
+        return typeof input.raw === 'string'
             && input.speaker === 'player' && input.locale === 'ja'
-            && (initial || shore)
+            && (match?.[0] === input.raw && (initial || shore)
+                || decorated?.[0] === input.raw && initial && speech === 'short')
             && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15
-            && ['short', 'gesture'].includes(receipt.beforeState.settings.speech);
+            && ['short', 'gesture'].includes(speech);
     }
-    // Read-only CR/CS and CT/CU display projection; form/shore combinations stay out.
+    // Read-only CR..CW display projection; CV/CW are initial/short only.
     // The aw owner validates the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.

@@ -33,8 +33,8 @@ test('CR/CS preserve original rest-value detail, source, reply and six-material 
         assert.equal(prose.render(record, v.result, v.receipt), null);
     }
 });
-test('CR/CS/CT/CU reject each absent receipt field, changed original and material substitution', () => {
-    const values = [...valueFixtures.examples(), ...valueFixtures.addedExamples()];
+test('CR..CW reject each absent receipt field, changed original and material substitution', () => {
+    const values = [...valueFixtures.examples(), ...valueFixtures.addedExamples(), ...valueFixtures.punctuationExamples()];
     for (const v of values) {
         const record = valueMaterial(v);
         for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
@@ -74,7 +74,7 @@ test('CR/CS/CT/CU reject each absent receipt field, changed original and materia
         assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
     }
 });
-test('CR/CS/CT/CU reject combined forms/shore, scopes, missing knowledge and unadopted contexts', () => {
+test('CR..CW reject combined forms/shore, scopes, missing knowledge and unadopted contexts', () => {
     const excluded = valueFixtures.excludedExamples(); assert.ok(excluded.length > 100);
     for (const v of excluded) {
         const record = valueMaterial(v), original = JSON.stringify({ record, v });
@@ -122,7 +122,37 @@ test('CT/CU preserve nineteen original spellings and the separate basic shore so
     }
     assert.equal(forms.size, 19); assert.equal(shore, 2);
 });
-test('CR/CS reuse the existing seven locale entries without fallback or rest-comfort source substitution', () => {
+test('CV/CW preserve exact original whitespace and punctuation with initial short evidence only', () => {
+    const values = valueFixtures.punctuationExamples(); assert.equal(values.length, 3);
+    const raw = '\u4f11\u3080\u3053\u3068\u306f\u5927\u4e8b';
+    assert.deepEqual(values.map(v => v.result.input.raw), [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]);
+    for (const v of values) {
+        const record = valueMaterial(v), original = JSON.stringify({ record, v }), c = record.captured;
+        assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
+        assert.equal(c.sources.input.raw, v.result.input.raw);
+        assert.deepEqual(c.sources.attention, [{ id: 'berry:1', meaning: 'berry' }]);
+        assert.equal(c.sources.scene, 'clearing'); assert.equal(c.sources.activity.before.attention, null);
+        assert.deepEqual(c.understanding, v.result.understandings[0]);
+        assert.deepEqual(c.understanding.known, { meaning: 'rest' }); assert.deepEqual(c.understanding.relations, ['report']);
+        assert.deepEqual(c.understanding.unresolved, [{ type: 'detail', token: 'importance' }]);
+        assert.equal(c.understanding.complete, false); assert.equal(c.understanding.kind, 'report');
+        assert.equal(c.understanding.subject, 'player'); assert.equal(c.understanding.aspect, null);
+        assert.equal(c.understanding.conditionStatus, null);
+        assert.deepEqual(c.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        assert.equal(c.actualSpeech, true); assert.equal(c.response.message, 'heard_rest_partial');
+        assert.equal(c.status, 'reported');
+        for (const field of ['verified', 'newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        assert.equal(Object.hasOwn(c, 'expression'), false); assert.equal(Object.hasOwn(c.response, 'observation'), false);
+        for (const field of ['knowledge', 'experiences', 'selectionSources'])
+            assert.deepEqual(v.receipt.beforeState[field], v.receipt.afterState[field]);
+        assert.deepEqual(v.receipt.beforeWorld.experiences, v.receipt.afterWorld.experiences);
+        for (const other of values.filter(item => item !== v))
+            assert.equal(valueProse.render(record, other.result, other.receipt), null);
+        assert.equal(prose.render(record, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+});
+test('CR..CW reuse the existing seven locale entries without fallback or rest-comfort source substitution', () => {
     for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de']) {
         const entries = require('../locales/' + locale + '.json');
         assert.equal(Object.hasOwn(entries, valueSentence), true);

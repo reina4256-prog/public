@@ -8,11 +8,15 @@ function addedExamples() {
     return fixtures().filter(({ group, value }) => group === 'no-target-required'
         || group === 'existing-japanese-forms' && value.result.input.raw !== raw).map(({ value }) => value);
 }
+function punctuationExamples() {
+    return fixtures().filter(({ group }) => group === 'single-trim-and-terminal-punctuation').map(({ value }) => value);
+}
 function excludedExamples() {
     const all = fixtures().filter(({ group }) => group !== 'eight-settings'
         && group !== 'seven-input-locales-no-new-grammar'
         && group !== 'existing-japanese-forms'
-        && group !== 'no-target-required').map(({ value }) => value);
+        && group !== 'no-target-required'
+        && group !== 'single-trim-and-terminal-punctuation').map(({ value }) => value);
     for (const speech of ['short', 'gesture']) {
         for (const verb of ['\u4f11\u3080', '\u3084\u3059\u3080']) for (const noun of ['\u3053\u3068', '\u306e'])
             for (const suffix of ['', '\u3060\u3088', '\u3060\u306d', '\u3060', '\u3067\u3059']) {
@@ -24,8 +28,16 @@ function excludedExamples() {
                         all.push(hearValue(setup({ speech }), wrapped));
                 }
             }
-        for (const text of [` ${raw}`, `${raw} `, ` ${raw} `, `${raw}\u3002`, `${raw}\uff01`, `${raw}\n`, ` ${raw}\u3002 `])
+        for (const text of [` ${raw}`, `${raw} `, `${raw}\n`, ` ${raw}\u3002 `,
+            `  ${raw}  `, `\u3000${raw}\u3000`, `\t${raw}\t`, `${raw}!`, `${raw}\u3002\u3002`, `${raw}\uff01\uff01`, `${raw}\u3002\n`])
             all.push(hearValue(setup({ speech }), text));
+        for (const text of [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]) {
+            if (speech === 'gesture') all.push(hearValue(setup({ speech }), text));
+            const shore = setup({ speech }); core.perceive(shore.state, { scene: 'shore', attention: [] });
+            all.push(hearValue(shore, text));
+            const noAttention = setup({ speech }); core.perceive(noAttention.state, { scene: 'clearing', attention: [] });
+            all.push(hearValue(noAttention, text));
+        }
         for (const locale of ['en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
             all.push(hearValue(setup({ speech }), raw, { locale }));
         for (const missing of ['rest', 'report', 'both']) {
@@ -46,7 +58,7 @@ function excludedExamples() {
         const hunger = setup({ speech }); hunger.world.hunger = .4; all.push(hearValue(hunger));
     }
     const scoped = fixtures().find(({ group }) => group === 'real-experienced-report-scope-not-transferred').value;
-    for (const value of addedExamples()) {
+    for (const value of [...addedExamples(), ...punctuationExamples()]) {
         const { raw: text } = value.result.input, speech = value.receipt.beforeState.settings.speech;
         const fresh = () => {
             const v = setup({ speech });
@@ -76,4 +88,4 @@ function excludedExamples() {
     }
     return all;
 }
-module.exports = { examples, addedExamples, excludedExamples };
+module.exports = { examples, addedExamples, punctuationExamples, excludedExamples };
