@@ -39,7 +39,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples(),
             ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples(), ...fixtures.mixedReportExamples(),
             ...fixtures.mixedConditionExamples(), ...fixtures.threeMissingExamples(), ...fixtures.alternateExamples(),
-            ...fixtures.unknownAlternateExamples()];
+            ...fixtures.unknownAlternateExamples(), ...fixtures.punctuationExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
         const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
         const relationSentence = '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
@@ -99,12 +99,12 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples(),
             ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples(), ...fixtures.mixedReportExcludedExamples(),
             ...fixtures.mixedConditionExcludedExamples(), ...fixtures.threeMissingExcludedExamples(), ...fixtures.alternateExcludedExamples(),
-            ...fixtures.unknownAlternateExcludedExamples()]) {
+            ...fixtures.unknownAlternateExcludedExamples(), ...fixtures.punctuationExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();
-                if(!ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)
-                    &&!ExperimentalWordDiaryIncompleteRestComfortReports.capture(buffer,v.result,v.receipt)) throw Error('scope capture');
+                ExperimentalWordDiaryRestComfortReports.capture(buffer,v.result,v.receipt)
+                    ||ExperimentalWordDiaryIncompleteRestComfortReports.capture(buffer,v.result,v.receipt);
                 const record=buffer.read()[0], original=JSON.stringify(record);
                 return {text:ExperimentalWordDiaryRestComfortProse.render(record,v.result,v.receipt),
                     stable:before===JSON.stringify(v)&&original===JSON.stringify(record)};

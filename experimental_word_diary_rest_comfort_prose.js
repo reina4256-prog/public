@@ -30,7 +30,7 @@
     }
     function initialIncompleteScope(result, receipt, alternateForms = false) {
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
-        const basic = (alternateForms ? /^横になると(?:気持ちいい|きもちいい|心地よい)(?:よね|ね|よ)?$/u
+        const basic = (alternateForms ? /^(?:横になると(?:気持ちいい|きもちいい|心地よい)(?:よね|ね|よ)?| 横になると気持ちいい |横になると気持ちいい[。！])$/u
             : /^横になると気持ちいい$/u).exec(input.raw);
         return basic?.[0] === input.raw && input.speaker === 'player' && input.locale === 'ja'
             && context.scene === 'clearing' && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
@@ -150,7 +150,7 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-CK display projection. av and bo each own full receipt checks.
+    // Read-only BL-CM display projection. av and bo each own full receipt checks.
     // Finite alternate spellings preserve every prerequisite layout separately.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.

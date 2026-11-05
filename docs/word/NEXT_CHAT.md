@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 現行継続文（846c453続き・4e CL／CM独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CN／COを必要所有節・依存から限定して実装してください。2026-11-05・846c453続き。既採用CL／CMをrest_comfort_prose.renderへ限定追加。CLは基本文前後各一個U+0020、CMは末尾「。／！」一個、player/ja・初期clearing/berry:1注目・world idle/null/.35/.15・各short/gesture・単純有無十五不足配置だけ。bo原再照合／record全文一致後に既存五本文を再利用し、原空白記号・不足順・出所有無／当時理解を別保持。scope不適用・併用・十一別表記やscene活動疲労等との組合せ非包含。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留、B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行・実読未読は現行handoff。次は既採用CN／COを必要所有節・依存から限定確認（今回未着手）。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。日記接続4g・星座時期未確定／前倒しなし。以下は過去状態。
+
+開始時の試遊記録発見と必要検証を行い、未読／未検証・旧runを別保持してください。新文言の再採用不要。CL／CMの必要検証／発行結果は現行handoff。以下は過去状態。
+
 ## 現行継続文（a0f50b3続き・4e CJ／CK独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用CJ／CKを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文以外の既存十一表記・player/ja・初期clearing/berry:1注目・world idle/null/hunger=.35/fatigue=.15だけ。二意味記録なし／known={}、CJ mask=3のreport／出所ありに未知内容文、CK mask=7/11/15のpartial／主体aspect=null／出所欠落に不明文を返します。両設定実attend・bo原照合／原record全文一致・原unresolved順を要求。CK三配置・各原表記／不足根拠／当時理解と基本文BX/BS/CD等を別保持し、未知意味・原expression／欠落出所・条件成立を補いません。七言語既存二本文を再利用、scope不適用・空白記号・場面活動疲労等との組合せ非包含。必要検証／発行は現行handoff。次は既採用CL／CMを必要所有節・依存から限定して進めてください。新文言の再採用不要。
