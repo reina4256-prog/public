@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（3a466ea続き・4e CT／CU独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CV／CWをaw必要所有節・依存から限定実装してください。CT／CUは十九別表記の初期clearing/berry:1系統／基本文shore・入力注目なしを各short/gestureだけrest_value_prose.renderへ追加。aw原receipt照合／record全文一致と既存七言語本文を再利用し、原report/complete=false・importanceだけ未理解・speaker_reportあり・aspect/conditionStatus=null・CR／CSを維持。CT／CU併用や空白記号／他活動疲労／scope不適用／他不足は非包含。開始時試遊発見・必要検証を行い、六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧run失敗／incomplete・修正前run中断の非置換・既存集計を保持。4d12／4e全体未完・4f非移行・ゲーム接続前倒しなし、日記接続4g・星座工程時期未確定。検証・発行・実読未読は現行handoff。関連変更のみcommit・既存remoteへ通常pushし、次実装内容と次チャット用引き継ぎ文を回答してください。以下は過去状態。
+
 ## 現行継続文（e441ea1続き・4e CR／CS独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CT／CUをaw必要所有節・依存から限定実装してください。2026-11-05・e441ea1続き。既採用CR／CSをexperimental_word_diary_rest_value_prose.renderへ限定実装。aw基本文「休むことは大事」・player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・各short/gestureだけ。aw原再照合とrecord全文一致後、七言語既存の休む部分理解本文を再利用。原report/complete=false・rest/report適用可能・importance detailだけ未理解・speaker_reportあり・aspect/conditionStatus=nullを保持し、boのcomfortable不足やunknown条件へ移さない。別表記／空白記号／他scene注目活動／scope不適用／他不足は非包含。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別、B停止／供給進展0・旧run非置換・既存集計維持。検証／発行・実読未読は現行handoff。次は既採用CT／CUをaw必要所有節・依存から限定実装。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。日記接続4g・星座工程時期未確定・前倒しなし。以下は過去状態。

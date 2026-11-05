@@ -33,8 +33,8 @@ test('CR/CS preserve original rest-value detail, source, reply and six-material 
         assert.equal(prose.render(record, v.result, v.receipt), null);
     }
 });
-test('CR/CS reject each absent receipt field, changed original and material substitution', () => {
-    const values = valueFixtures.examples();
+test('CR/CS/CT/CU reject each absent receipt field, changed original and material substitution', () => {
+    const values = [...valueFixtures.examples(), ...valueFixtures.addedExamples()];
     for (const v of values) {
         const record = valueMaterial(v);
         for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
@@ -54,7 +54,7 @@ test('CR/CS reject each absent receipt field, changed original and material subs
             x => { delete x.v.result.understandings[0].reportSource; },
             x => { x.v.result.expression = {}; },
             x => { x.v.receipt.inputKnowledge.relations = []; },
-            x => { x.v.receipt.inputContext.attention = []; },
+            x => { x.v.receipt.inputContext.scene = 'invalid'; },
             x => { x.v.receipt.reply.message = 'uncertain'; },
             x => { x.v.receipt.afterState.serial++; },
             x => { x.v.receipt.afterWorld.elapsed++; }
@@ -74,7 +74,7 @@ test('CR/CS reject each absent receipt field, changed original and material subs
         assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
     }
 });
-test('CR/CS reject aw forms, scopes, missing knowledge, other owners and contexts outside the adopted initial pair', () => {
+test('CR/CS/CT/CU reject combined forms/shore, scopes, missing knowledge and unadopted contexts', () => {
     const excluded = valueFixtures.excludedExamples(); assert.ok(excluded.length > 100);
     for (const v of excluded) {
         const record = valueMaterial(v), original = JSON.stringify({ record, v });
@@ -88,6 +88,39 @@ test('CR/CS reject aw forms, scopes, missing knowledge, other owners and context
             assert.equal(valueProse.render(record, changed.result, changed.receipt), null);
         }
     }
+});
+test('CT/CU preserve nineteen original spellings and the separate basic shore source in both speech settings', () => {
+    const values = valueFixtures.addedExamples(); assert.equal(values.length, 40);
+    const forms = new Set(); let shore = 0;
+    for (const v of values) {
+        const record = valueMaterial(v), original = JSON.stringify({ record, v }), c = record.captured;
+        assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
+        assert.deepEqual(c.understanding, v.result.understandings[0]);
+        assert.deepEqual(c.understanding.unresolved, [{ type: 'detail', token: 'importance' }]);
+        assert.deepEqual(c.understanding.known, { meaning: 'rest' });
+        assert.deepEqual(c.understanding.relations, ['report']);
+        assert.equal(c.understanding.kind, 'report'); assert.equal(c.understanding.complete, false);
+        assert.equal(c.understanding.subject, 'player'); assert.equal(c.understanding.aspect, null);
+        assert.equal(c.understanding.conditionStatus, null);
+        assert.deepEqual(c.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        assert.equal(c.sources.input.raw, v.result.input.raw);
+        assert.deepEqual(c.sources.attention, v.receipt.inputContext.attention);
+        if (v.receipt.inputContext.scene === 'shore') {
+            shore++; assert.deepEqual(c.sources.attention, []);
+            assert.equal(/^休むことは大事$/u.exec(c.sources.input.raw)?.[0], c.sources.input.raw);
+        } else forms.add(c.sources.input.raw);
+        assert.equal(c.sources.activity.before.attention, null);
+        assert.equal(c.actualSpeech, v.receipt.beforeState.settings.speech === 'short');
+        assert.equal(c.response.message, c.actualSpeech ? 'heard_rest_partial' : 'attend');
+        assert.equal(Object.hasOwn(c, 'expression'), false); assert.equal(Object.hasOwn(c.response, 'observation'), false);
+        for (const field of ['verified', 'newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        for (const field of ['knowledge', 'experiences', 'selectionSources'])
+            assert.deepEqual(v.receipt.beforeState[field], v.receipt.afterState[field]);
+        assert.deepEqual(v.receipt.beforeWorld.experiences, v.receipt.afterWorld.experiences);
+        assert.equal(prose.render(record, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    assert.equal(forms.size, 19); assert.equal(shore, 2);
 });
 test('CR/CS reuse the existing seven locale entries without fallback or rest-comfort source substitution', () => {
     for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de']) {
