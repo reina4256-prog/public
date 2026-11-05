@@ -5,6 +5,100 @@ const candidates = require('../experimental_word_diary_candidates');
 const reports = require('../experimental_word_diary_rest_comfort_reports');
 const incompleteReports = require('../experimental_word_diary_incomplete_rest_comfort_reports');
 const prose = require('../experimental_word_diary_rest_comfort_prose');
+const valueProse = require('../experimental_word_diary_rest_value_prose');
+const valueReports = require('../experimental_word_diary_rest_value_reports');
+const valueFixtures = require('../scripts/experimental/diary_rest_value_prose_fixtures');
+const valueSentence = '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
+function valueMaterial(v) {
+    const buffer = candidates.create();
+    return valueReports.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
+}
+test('CR/CS preserve original rest-value detail, source, reply and six-material boundaries', () => {
+    const values = valueFixtures.examples(); assert.equal(values.length, 2);
+    for (const [i, v] of values.entries()) {
+        const record = valueMaterial(v), before = JSON.stringify({ record, v }), u = v.result.understandings[0];
+        assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
+        assert.equal(u.kind, 'report'); assert.equal(u.complete, false);
+        assert.deepEqual(u.known, { meaning: 'rest' }); assert.deepEqual(u.relations, ['report']);
+        assert.deepEqual(u.unresolved, [{ type: 'detail', token: 'importance' }]);
+        assert.equal(u.subject, 'player'); assert.equal(u.polarity, 'positive'); assert.equal(u.eventTime, 'unspecified');
+        assert.equal(u.aspect, null); assert.equal(u.conditionStatus, null);
+        assert.deepEqual(u.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        assert.equal(record.captured.response.message, i ? 'attend' : 'heard_rest_partial');
+        assert.equal(record.captured.actualSpeech, !i); assert.equal(Object.hasOwn(record.captured, 'expression'), false);
+        assert.equal(record.captured.status, 'reported'); assert.equal(record.captured.verified, false);
+        for (const field of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(record.captured[field], false);
+        assert.equal(Object.hasOwn(v.receipt.reply, 'observation'), false);
+        assert.equal(JSON.stringify({ record, v }), before);
+        assert.equal(prose.render(record, v.result, v.receipt), null);
+    }
+});
+test('CR/CS reject each absent receipt field, changed original and material substitution', () => {
+    const values = valueFixtures.examples();
+    for (const v of values) {
+        const record = valueMaterial(v);
+        for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
+            const receipt = copy(v.receipt); delete receipt[field];
+            assert.equal(valueProse.render(record, v.result, receipt), null, field);
+        }
+        for (const edit of [
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.newLearning = true; },
+            x => { x.record.captured.understanding.complete = true; },
+            x => { x.record.captured.reportSource.heardAt++; },
+            x => { x.record.captured.inputKnowledge.meanings = []; },
+            x => { x.v.result.input.raw += '\n'; },
+            x => { x.v.result.understandings[0].unresolved = []; },
+            x => { x.v.result.understandings[0].aspect = 'rest_comfort'; },
+            x => { x.v.result.understandings[0].conditionStatus = 'unknown'; },
+            x => { delete x.v.result.understandings[0].reportSource; },
+            x => { x.v.result.expression = {}; },
+            x => { x.v.receipt.inputKnowledge.relations = []; },
+            x => { x.v.receipt.inputContext.attention = []; },
+            x => { x.v.receipt.reply.message = 'uncertain'; },
+            x => { x.v.receipt.afterState.serial++; },
+            x => { x.v.receipt.afterWorld.elapsed++; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const original = JSON.stringify(x);
+            assert.equal(valueProse.render(x.record, x.v.result, x.v.receipt), null);
+            assert.equal(JSON.stringify(x), original);
+        }
+        const other = values.find(item => item !== v);
+        assert.equal(valueProse.render(record, other.result, other.receipt), null);
+        for (const bad of [null, {}, [], undefined, { ...record, extra: true }])
+            assert.equal(valueProse.render(bad, v.result, v.receipt), null);
+        const cyclic = {}; cyclic.self = cyclic;
+        assert.equal(valueProse.render(record, cyclic, v.receipt), null);
+        const later = copy(v); later.receipt.beforeState.knowledge.meanings = [];
+        assert.equal(valueProse.render(record, later.result, later.receipt), null);
+        assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
+    }
+});
+test('CR/CS reject aw forms, scopes, missing knowledge, other owners and contexts outside the adopted initial pair', () => {
+    const excluded = valueFixtures.excludedExamples(); assert.ok(excluded.length > 100);
+    for (const v of excluded) {
+        const record = valueMaterial(v), original = JSON.stringify({ record, v });
+        assert.equal(valueProse.render(record, v.result, v.receipt), null, v.result.input.raw);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    for (const v of valueFixtures.examples()) {
+        const record = valueMaterial(v);
+        for (const speech of [null, '', 'other']) {
+            const changed = copy(v); changed.receipt.beforeState.settings.speech = speech;
+            assert.equal(valueProse.render(record, changed.result, changed.receipt), null);
+        }
+    }
+});
+test('CR/CS reuse the existing seven locale entries without fallback or rest-comfort source substitution', () => {
+    for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de']) {
+        const entries = require('../locales/' + locale + '.json');
+        assert.equal(Object.hasOwn(entries, valueSentence), true);
+        assert.equal(typeof entries[valueSentence], 'string'); assert.ok(entries[valueSentence].length);
+    }
+    const { setup, hearComfort } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
+    const v = hearComfort(setup());
+    assert.equal(valueProse.render(material(v), v.result, v.receipt), null);
+});
 const { fixtures, setup, hearComfort, raw, core } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
 const { scopedExamples, scopedExcludedExamples, contextExamples, contextExcludedExamples, examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples,
