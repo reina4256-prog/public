@@ -39,7 +39,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         const values = [...fixtures.examples(), ...fixtures.incompleteExamples(), ...fixtures.partialExamples(),
             ...fixtures.relationExamples(), ...fixtures.doubleMissingExamples(), ...fixtures.mixedReportExamples(),
             ...fixtures.mixedConditionExamples(), ...fixtures.threeMissingExamples(), ...fixtures.alternateExamples(),
-            ...fixtures.unknownAlternateExamples(), ...fixtures.punctuationExamples(), ...fixtures.contextExamples()];
+            ...fixtures.unknownAlternateExamples(), ...fixtures.punctuationExamples(), ...fixtures.contextExamples(), ...fixtures.scopedExamples()];
         const sentence = "横になると気持ちいいと聞いた。";
         const unknownSentence = '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
         const relationSentence = '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
@@ -99,7 +99,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const value of [...fixtures.excludedExamples(), ...fixtures.fatigueExcludedExamples(), ...fixtures.partialExcludedExamples(),
             ...fixtures.relationExcludedExamples(), ...fixtures.doubleMissingExcludedExamples(), ...fixtures.mixedReportExcludedExamples(),
             ...fixtures.mixedConditionExcludedExamples(), ...fixtures.threeMissingExcludedExamples(), ...fixtures.alternateExcludedExamples(),
-            ...fixtures.unknownAlternateExcludedExamples(), ...fixtures.punctuationExcludedExamples(), ...fixtures.contextExcludedExamples()]) {
+            ...fixtures.unknownAlternateExcludedExamples(), ...fixtures.punctuationExcludedExamples(), ...fixtures.contextExcludedExamples(),
+            ...fixtures.scopedExcludedExamples()]) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v);
                 const buffer=ExperimentalWordDiaryCandidates.create();

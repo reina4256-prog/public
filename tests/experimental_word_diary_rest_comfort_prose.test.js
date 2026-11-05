@@ -6,7 +6,7 @@ const reports = require('../experimental_word_diary_rest_comfort_reports');
 const incompleteReports = require('../experimental_word_diary_incomplete_rest_comfort_reports');
 const prose = require('../experimental_word_diary_rest_comfort_prose');
 const { fixtures, setup, hearComfort, raw, core } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
-const { contextExamples, contextExcludedExamples, examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
+const { scopedExamples, scopedExcludedExamples, contextExamples, contextExcludedExamples, examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples,
     mixedReportExamples, mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples,
     threeMissingExamples, threeMissingExcludedExamples, alternateExamples, alternateExcludedExamples,
@@ -20,6 +20,51 @@ function material(v) {
         ? buffer.read()[0] : null;
 }
 const render = v => prose.render(material(v), v.result, v.receipt);
+test('CP/CQ preserve learned scope, absent source and original incomplete understanding without replay writes', () => {
+    const values = scopedExamples(); assert.equal(values.length, 4);
+    for (const [index, v] of values.entries()) {
+        const record = material(v), original = JSON.stringify({ record, v }), u = v.result.understandings[0];
+        assert.equal(render(v), relationSentence);
+        assert.equal(u.kind, 'partial'); assert.equal(u.complete, false);
+        assert.deepEqual(u.known, { meaning: 'comfortable', conditionMeaning: 'rest' });
+        assert.deepEqual(u.relations, index < 2 ? [] : ['report']);
+        assert.deepEqual(u.unresolved, (index < 2 ? ['report', 'condition'] : ['condition']).map(id => ({ type: 'relation', id })));
+        assert.equal(u.subject, null); assert.equal(u.aspect, null); assert.equal(u.conditionStatus, 'unknown');
+        assert.equal(Object.hasOwn(u, 'reportSource'), false); assert.equal(Object.hasOwn(record.captured, 'reportSource'), false);
+        assert.equal(Object.hasOwn(record.captured, 'expression'), false);
+        assert.equal(record.captured.response.message, index % 2 ? 'attend' : 'uncertain');
+        assert.equal(record.captured.actualSpeech, index % 2 === 0);
+        assert.deepEqual(record.captured.inputKnowledge, v.receipt.inputKnowledge);
+        assert.deepEqual(record.captured.sources.activity.before, v.receipt.beforeWorld);
+        assert.deepEqual(record.captured.understanding, u);
+        for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(record.captured[key], false);
+        for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
+            const receipt = copy(v.receipt); delete receipt[field]; assert.equal(prose.render(record, v.result, receipt), null);
+        }
+        for (const edit of [
+            x => { x.record.captured.reportSource = { kind: 'speaker_report' }; },
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.result.understandings[0].subject = 'player'; },
+            x => { x.v.receipt.reply.message = 'heard_rest_comfort'; },
+            x => { x.v.receipt.inputKnowledge.relations = []; },
+            x => { x.v.receipt.afterWorld.elapsed++; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const altered = JSON.stringify(x);
+            assert.equal(prose.render(x.record, x.v.result, x.v.receipt), null); assert.equal(JSON.stringify(x), altered);
+        }
+        const other = values[(index + 2) % 4];
+        assert.equal(prose.render(record, other.result, other.receipt), null);
+        assert.equal(prose.render(material(other), v.result, v.receipt), null);
+        const later = { state: copy(v.receipt.beforeState), world: copy(v.receipt.beforeWorld) };
+        later.state.knowledge.relations = copy(setup().state.knowledge.relations);
+        const complete = hearComfort(later); assert.equal(complete.result.understandings[0].complete, true);
+        assert.equal(prose.render(record, complete.result, complete.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    const excluded = scopedExcludedExamples(); assert.equal(excluded.length, 134);
+    for (const v of excluded) assert.equal(render(v), null);
+});
 test('CN/CO preserve all fifteen absence layouts across ten separate activity/fatigue contexts', () => {
     const values = contextExamples(), seen = new Set(); assert.equal(values.length, 300);
     for (const [index, v] of values.entries()) {
@@ -352,7 +397,7 @@ test('BS preserves four original absences, unresolved order and missing source w
     }
 });
 
-test('BS-CO accept only adopted prerequisite layouts and finite forms, rejecting other scopes and contexts', () => {
+test('BS-CQ accept only adopted prerequisite layouts and finite forms, rejecting other scopes and contexts', () => {
     const all = require('../scripts/experimental/diary_incomplete_rest_comfort_report_fixtures').fixtures();
     let accepted = 0;
     for (const f of all) {
@@ -402,10 +447,11 @@ test('BS-CO accept only adopted prerequisite layouts and finite forms, rejecting
             else if (u.known.meaning === 'comfortable') expected = partialSentences[1];
             else expected = u.kind === 'report' ? doubleMissingSentence : unknownSentence;
         }
+        if (f.group.includes('scope-not-transferred')) expected = relationSentence;
         assert.equal(prose.render(b.read()[0], v.result, v.receipt), expected, f.group);
         if (expected) accepted++;
     }
-    assert.equal(accepted, 790); // previous 490 plus ten CN/CO contexts x fifteen layouts x two settings
+    assert.equal(accepted, 794); // previous 790 plus four CP/CQ learned-scope examples
 });
 
 test('CD/CE/CF preserve four distinct three-absence layouts, including both CD branches and actual replies', () => {

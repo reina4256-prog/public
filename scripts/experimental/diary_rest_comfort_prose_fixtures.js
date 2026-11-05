@@ -402,7 +402,56 @@ function contextExcludedExamples() {
     }
     return values;
 }
-module.exports = { contextExamples, contextExcludedExamples, examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
+function scopedExamples() {
+    return require('./diary_rest_comfort_report_fixtures').fixtures()
+        .filter(f => f.group.includes('scope-not-transferred')).map(f => f.value);
+}
+function scopedExcludedExamples() {
+    const values = [];
+    for (const prior of scopedExamples()) {
+        const fresh = () => ({ state: JSON.parse(JSON.stringify(prior.receipt.beforeState)),
+            world: JSON.parse(JSON.stringify(prior.receipt.beforeWorld)) });
+        for (const text of [...examples().slice(2, 24).filter(v => v.receipt.beforeState.settings.speech === 'short')
+            .map(v => v.result.input.raw), ` ${raw} `, `${raw}\u3002`, `${raw}\uff01`, `${raw}\n`])
+            values.push(hearComfort(fresh(), text));
+        for (const mode of ['observe', 'eat', 'rest', 'work', 'walk']) {
+            const v = fresh(); v.world.mode = mode; values.push(hearComfort(v));
+        }
+        for (const context of [{ scene: 'shore', attention: [] },
+            { scene: 'clearing', attention: [{ id: 'berry:1', meaning: 'berry' }] },
+            { scene: 'clearing', attention: [] }]) {
+            const v = fresh(); core.perceive(v.state, context); values.push(hearComfort(v));
+        }
+        for (const id of ['comfortable', 'rest']) {
+            const v = fresh(); v.state.knowledge.meanings = v.state.knowledge.meanings.filter(e => e.id !== id);
+            values.push(hearComfort(v));
+        }
+        const attention = fresh(); attention.world.attention = 'shade'; values.push(hearComfort(attention));
+        values.push(hearComfort(fresh(), raw, { speaker: 'visitor' }));
+        values.push(hearComfort(fresh(), raw, { locale: 'en' }));
+        const other = scopedExamples().find(v => v.receipt.beforeState.settings.speech === prior.receipt.beforeState.settings.speech
+            && v.result.understandings[0].relations.length !== prior.result.understandings[0].relations.length);
+        const combined = fresh(), otherId = prior.result.understandings[0].relations.length ? 'report' : 'condition';
+        combined.state.knowledge.relations = combined.state.knowledge.relations.filter(e => e.id !== otherId)
+            .concat(JSON.parse(JSON.stringify(other.receipt.inputKnowledge.relations.filter(e => e.id === otherId))));
+        values.push(hearComfort(combined));
+        // Full matching receipts cannot make an unrelated or evidence-free scope adopted.
+        for (const edit of [entry => { entry.evidence = []; }, entry => { entry.scope.form = 'other'; },
+            entry => { delete entry.scope.form; },
+            entry => { entry.scope.roles.status = 'other'; }]) {
+            const v = fresh();
+            for (const entry of v.state.knowledge.relations.filter(e => e.source === 'experienced_relation')) edit(entry);
+            values.push(hearComfort(v));
+        }
+        if (prior.result.understandings[0].relations.length) {
+            const v = fresh();
+            delete v.state.knowledge.relations.find(e => e.id === 'condition').scope.proposalForm;
+            values.push(hearComfort(v));
+        }
+    }
+    return values;
+}
+module.exports = { scopedExamples, scopedExcludedExamples, contextExamples, contextExcludedExamples, examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples, mixedReportExamples,
     mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples, threeMissingExamples,
     threeMissingExcludedExamples, alternateExamples, alternateExcludedExamples, unknownAlternateExamples,

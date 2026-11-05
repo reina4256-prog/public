@@ -156,7 +156,46 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-CO display projection. av and bo each own full receipt checks.
+    function scopedRelationSentence(result, receipt) {
+        const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
+        const u = result.understandings[0], relations = receipt.inputKnowledge.relations;
+        if (/^横になると気持ちいい$/u.exec(input.raw)?.[0] !== input.raw
+            || input.speaker !== 'player' || input.locale !== 'ja'
+            || context.scene !== 'clearing' || !equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
+            || world.mode !== 'idle' || world.attention !== null
+            || !['short', 'gesture'].includes(receipt.beforeState.settings.speech)
+            || u.kind !== 'partial' || u.complete !== false
+            || !equal(u.known, { meaning: 'comfortable', conditionMeaning: 'rest' })
+            || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
+            || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
+            || receipt.reply.message !== (receipt.beforeState.settings.speech === 'short' ? 'uncertain' : 'attend')
+            || receipt.reply.observation) return null;
+        const learned = (entry, id) => entry.id === id && entry.source === 'experienced_relation'
+            && entry.scope?.kind === (id === 'report' ? 'report' : 'conditional_proposal')
+            && entry.scope.locale === 'ja' && entry.scope.speaker === 'player' && entry.scope.meaning === 'rest'
+            && typeof entry.scope.form === 'string'
+            && Array.isArray(entry.evidence) && entry.evidence.length > 0
+            && (id === 'report' ? /^(?:あなたは|私は)休んでいる$/u.exec(entry.scope.form)?.[0] === entry.scope.form
+                && equal(entry.scope.roles, { reporter: 'player', contentSubject: /^あなたは/u.test(entry.scope.form) ? 'self' : 'player',
+                    status: 'reported', verified: false })
+                : /^あなたが疲れていたら、休んでね$/u.exec(entry.scope.form)?.[0] === entry.scope.form
+                    && typeof entry.scope.proposalForm === 'string'
+                    && /^休んでね$/u.exec(entry.scope.proposalForm)?.[0] === entry.scope.proposalForm
+                    && entry.scope.conditionMeaning === 'tired' && entry.scope.conditionSubject === 'self'
+                    && entry.scope.application === 'when_met' && entry.scope.duration === 'unspecified'
+                    && equal(entry.scope.roles, { proposer: 'player', addressee: 'self', actors: ['self'],
+                        status: 'proposed', actualParticipation: false }));
+        const report = relations.filter(entry => entry.id === 'report');
+        const condition = relations.filter(entry => entry.id === 'condition');
+        const cp = report.length > 0 && report.every(entry => learned(entry, 'report')) && condition.length === 0
+            && equal(u.relations, [])
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' }, { type: 'relation', id: 'condition' }]);
+        const cq = condition.length > 0 && condition.every(entry => learned(entry, 'condition'))
+            && report.length === 1 && report[0].source === 'initial' && equal(u.relations, ['report'])
+            && equal(u.unresolved, [{ type: 'relation', id: 'condition' }]);
+        return cp || cq ? '休むことと気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。' : null;
+    }
+    // Read-only BL-CQ display projection. av and bo each own full receipt checks.
     // Finite alternate spellings preserve every prerequisite layout separately.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
@@ -175,7 +214,7 @@
             return incompleteScope(result, receipt) ? '言われたことが分からなかった。'
                 : partialSentence(result, receipt) || missingRelationSentence(result, receipt)
                     || missingBothMeaningsSentence(result, receipt) || missingMeaningAndRelationSentence(result, receipt)
-                        || threeMissingSentence(result, receipt);
+                        || threeMissingSentence(result, receipt) || scopedRelationSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });
