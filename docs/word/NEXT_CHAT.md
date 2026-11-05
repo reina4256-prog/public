@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（b2b7abf続き・4e CN／CO独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CP／CQを必要所有節・依存から限定して実装してください。2026-11-05・b2b7abf続き。既採用CN／COをrest_comfort_prose.renderへ限定追加。CNは基本文・shore／inputContext.attention=[]・world五活動observe/eat/rest/work/walk・fatigue=.15、COは基本文・初期clearing/berry:1注目・world idle・疲労0/.2/.4/.8/1。共通player/ja・world.attention=null/hunger=.35・各short/gesture・単純有無十五不足配置だけ。bo原再照合／record全文一致後に既存五本文を再利用し、各場面活動疲労・不足根拠／原出所有無・当時理解を別保持。scope不適用・CN/CO併用・十一別表記／空白記号との組合せ非包含。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留、B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行・実読未読は現行handoff。次は既採用CP／CQを必要所有節・依存から限定確認（今回未着手）。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。日記接続4g・星座接続工程／時期未確定・前倒しなし。以下は過去状態。
+
 ## 現行継続文（846c453続き・4e CL／CM独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CN／COを必要所有節・依存から限定して実装してください。2026-11-05・846c453続き。既採用CL／CMをrest_comfort_prose.renderへ限定追加。CLは基本文前後各一個U+0020、CMは末尾「。／！」一個、player/ja・初期clearing/berry:1注目・world idle/null/.35/.15・各short/gesture・単純有無十五不足配置だけ。bo原再照合／record全文一致後に既存五本文を再利用し、原空白記号・不足順・出所有無／当時理解を別保持。scope不適用・併用・十一別表記やscene活動疲労等との組合せ非包含。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留、B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行・実読未読は現行handoff。次は既採用CN／COを必要所有節・依存から限定確認（今回未着手）。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。日記接続4g・星座時期未確定／前倒しなし。以下は過去状態。

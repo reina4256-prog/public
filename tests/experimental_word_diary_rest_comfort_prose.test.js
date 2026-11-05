@@ -6,7 +6,7 @@ const reports = require('../experimental_word_diary_rest_comfort_reports');
 const incompleteReports = require('../experimental_word_diary_incomplete_rest_comfort_reports');
 const prose = require('../experimental_word_diary_rest_comfort_prose');
 const { fixtures, setup, hearComfort, raw, core } = require('../scripts/experimental/diary_rest_comfort_report_fixtures');
-const { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
+const { contextExamples, contextExcludedExamples, examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples,
     mixedReportExamples, mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples,
     threeMissingExamples, threeMissingExcludedExamples, alternateExamples, alternateExcludedExamples,
@@ -20,6 +20,79 @@ function material(v) {
         ? buffer.read()[0] : null;
 }
 const render = v => prose.render(material(v), v.result, v.receipt);
+test('CN/CO preserve all fifteen absence layouts across ten separate activity/fatigue contexts', () => {
+    const values = contextExamples(), seen = new Set(); assert.equal(values.length, 300);
+    for (const [index, v] of values.entries()) {
+        const mask = Math.floor(index % 30 / 2) + 1, record = material(v), c = record.captured;
+        const original = JSON.stringify({ v, record }), u = v.result.understandings[0];
+        const expected = !(mask & 3) ? relationSentence : !(mask & 2) ? partialSentences[0]
+            : !(mask & 1) ? partialSentences[1] : mask === 3 ? doubleMissingSentence : unknownSentence;
+        assert.equal(prose.render(record, v.result, v.receipt), expected);
+        assert.equal(c.sources.input.raw, raw); assert.deepEqual(c.inputContext, v.receipt.inputContext);
+        assert.deepEqual(c.sources.activity.before, v.receipt.beforeWorld);
+        assert.deepEqual(c.understanding, u); assert.deepEqual(c.inputKnowledge, v.receipt.inputKnowledge);
+        const relations = ['report', 'condition'].filter((_, bit) => mask & (4 << bit));
+        const meanings = ['comfortable', 'rest'].filter((_, bit) => mask & (1 << bit))
+            .map(token => ({ type: 'meaning', field: token === 'rest' ? 'conditionMeaning' : 'meaning', token }));
+        assert.deepEqual(c.missingRelationsBefore, relations); assert.deepEqual(c.missingMeaningsBefore, meanings);
+        assert.deepEqual(u.unresolved, [...relations.map(id => ({ type: 'relation', id })), ...meanings]);
+        assert.deepEqual(u.relations, ['report', 'condition'].filter(id => !relations.includes(id)));
+        assert.deepEqual(u.known, { ...(!(mask & 1) ? { meaning: 'comfortable' } : {}),
+            ...(!(mask & 2) ? { conditionMeaning: 'rest' } : {}) });
+        assert.equal(u.kind, mask < 4 ? 'report' : 'partial'); assert.equal(u.complete, false);
+        assert.equal(u.subject, mask < 4 ? 'player' : null); assert.equal(u.aspect, mask < 4 ? 'rest_comfort' : null);
+        assert.equal(u.polarity, 'positive'); assert.equal(u.eventTime, 'unspecified'); assert.equal(u.conditionStatus, 'unknown');
+        if (mask < 4) assert.deepEqual(c.reportSource,
+            { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        else for (const obj of [c, u]) assert.equal(Object.hasOwn(obj, 'reportSource'), false);
+        assert.equal(c.meaningKnownBefore, !(mask & 1)); assert.equal(c.conditionMeaningKnownBefore, !(mask & 2));
+        assert.equal(c.relationsKnownBefore, !(mask & 12)); assert.equal(c.actualSpeech, index % 2 === 0);
+        assert.equal(c.response.message, (mask & 3) === 3 || index % 2 ? 'attend' : 'uncertain');
+        assert.equal(Object.hasOwn(c, 'expression'), false); assert.equal(Boolean(c.response.observation), false);
+        for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
+        seen.add(`${v.receipt.inputContext.scene}:${v.receipt.beforeWorld.mode}:${v.receipt.beforeWorld.fatigue}:${mask}:${index % 2}`);
+        assert.equal(JSON.stringify({ v, record }), original);
+    }
+    assert.equal(seen.size, 300);
+    const excluded = contextExcludedExamples(); assert.equal(excluded.length, 7520);
+    for (const v of excluded) assert.equal(render(v), null);
+});
+test('CN/CO reject missing evidence, altered sources, context/layout exchanges and later knowledge', () => {
+    const values = contextExamples();
+    for (const [index, v] of values.entries()) {
+        const record = material(v), original = JSON.stringify({ record, v });
+        for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
+            const receipt = copy(v.receipt); delete receipt[field];
+            assert.equal(prose.render(record, v.result, receipt), null);
+        }
+        for (const edit of [
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.newExperience = true; },
+            x => { x.record.captured.reportSource = { kind: 'speaker_report' }; },
+            x => { x.record.captured.understanding.unresolved.push({ type: 'relation', id: 'other' }); },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.result.understandings[0].complete = true; },
+            x => { x.v.receipt.inputKnowledge = copy(setup().state.knowledge); },
+            x => { x.v.receipt.reply.message = 'heard_rest_comfort'; },
+            x => { x.v.receipt.afterWorld.elapsed++; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const altered = JSON.stringify(x);
+            assert.equal(prose.render(x.record, x.v.result, x.v.receipt), null); assert.equal(JSON.stringify(x), altered);
+        }
+        for (const other of [values[(index + 30) % 300], values[Math.floor(index / 30) * 30 + (index + 2) % 30]]) {
+            assert.equal(prose.render(record, other.result, other.receipt), null);
+            assert.equal(prose.render(material(other), v.result, v.receipt), null);
+        }
+        const later = setup({ speech: v.receipt.beforeState.settings.speech });
+        core.perceive(later.state, v.receipt.inputContext); later.world.mode = v.receipt.beforeWorld.mode;
+        later.world.fatigue = v.receipt.beforeWorld.fatigue;
+        const complete = hearComfort(later);
+        assert.equal(complete.result.understandings[0].complete, true);
+        assert.equal(prose.render(record, complete.result, complete.receipt), null);
+        assert.equal(prose.render(material(complete), v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+});
 test('CL/CM preserve ninety original forms/layouts, independent evidence and actual replies', () => {
     const values = punctuationExamples(); assert.equal(values.length, 90);
     const seen = new Set();
@@ -231,7 +304,7 @@ test('later knowledge cannot rewrite old partial understanding or merge separate
 
 test('BR fatigue values preserve unknown conditions and cannot combine with other adopted variations or BS', () => {
     assert.deepEqual(examples().slice(39).map(v => v.receipt.beforeWorld.fatigue), [0, .2, .4, .8, 1]);
-    const excluded = fatigueExcludedExamples(); assert.equal(excluded.length, 200);
+    const excluded = fatigueExcludedExamples(); assert.equal(excluded.length, 190);
     for (const v of excluded) {
         assert.ok(material(v)); assert.equal(render(v), null);
     }
@@ -279,7 +352,7 @@ test('BS preserves four original absences, unresolved order and missing source w
     }
 });
 
-test('BS-CM accept only adopted prerequisite layouts and finite forms, rejecting other scopes and contexts', () => {
+test('BS-CO accept only adopted prerequisite layouts and finite forms, rejecting other scopes and contexts', () => {
     const all = require('../scripts/experimental/diary_incomplete_rest_comfort_report_fixtures').fixtures();
     let accepted = 0;
     for (const f of all) {
@@ -321,7 +394,8 @@ test('BS-CM accept only adopted prerequisite layouts and finite forms, rejecting
         if (contextAllowed && absentCount === 3 && u.unresolved.length === 3)
             expected = u.known.conditionMeaning === 'rest' ? partialSentences[0]
                 : u.known.meaning === 'comfortable' ? partialSentences[1] : unknownSentence;
-        if (f.group === 'missing-knowledge-single-punctuation'
+        if (['missing-knowledge-single-punctuation', 'missing-knowledge-activity-empty-attention',
+            'missing-knowledge-fatigue-condition-unknown'].includes(f.group)
             || f.group === 'existing-forms-knowledge-matrix' && v.result.input.raw !== raw) {
             if (u.known.meaning === 'comfortable' && u.known.conditionMeaning === 'rest') expected = relationSentence;
             else if (u.known.conditionMeaning === 'rest') expected = partialSentences[0];
@@ -331,7 +405,7 @@ test('BS-CM accept only adopted prerequisite layouts and finite forms, rejecting
         assert.equal(prose.render(b.read()[0], v.result, v.receipt), expected, f.group);
         if (expected) accepted++;
     }
-    assert.equal(accepted, 490); // previous 400 plus three CL/CM forms x fifteen layouts x two settings
+    assert.equal(accepted, 790); // previous 490 plus ten CN/CO contexts x fifteen layouts x two settings
 });
 
 test('CD/CE/CF preserve four distinct three-absence layouts, including both CD branches and actual replies', () => {
@@ -363,7 +437,7 @@ test('CD/CE/CF preserve four distinct three-absence layouts, including both CD b
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = threeMissingExcludedExamples(); assert.equal(excluded.length, 148);
+    const excluded = threeMissingExcludedExamples(); assert.equal(excluded.length, 108);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -432,7 +506,7 @@ test('CB/CC preserve missing condition and one meaning with applicable report bu
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = mixedConditionExcludedExamples(); assert.equal(excluded.length, 76);
+    const excluded = mixedConditionExcludedExamples(); assert.equal(excluded.length, 56);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -499,7 +573,7 @@ test('BZ/CA retain missing report and exactly one missing meaning without restor
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = mixedReportExcludedExamples(); assert.equal(excluded.length, 76);
+    const excluded = mixedReportExcludedExamples(); assert.equal(excluded.length, 56);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -576,7 +650,7 @@ test('BX/BY keep two absent meanings or relations distinct, including source and
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = doubleMissingExcludedExamples(); assert.equal(excluded.length, 68);
+    const excluded = doubleMissingExcludedExamples(); assert.equal(excluded.length, 48);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -644,7 +718,7 @@ test('BV/BW preserve distinct missing relations and null subject/aspect/source i
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = relationExcludedExamples(); assert.equal(excluded.length, 68);
+    const excluded = relationExcludedExamples(); assert.equal(excluded.length, 48);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -871,7 +945,7 @@ test('BT/BU preserve exactly one missing meaning and report source, independentl
     for (const v of partialExcludedExamples()) {
         assert.ok(material(v)); assert.equal(render(v), null);
     }
-    assert.equal(partialExcludedExamples().length, 68);
+    assert.equal(partialExcludedExamples().length, 48);
 });
 
 test('BT/BU reject changed sources, missing materials and cross-occurrence substitution without repairing knowledge', () => {

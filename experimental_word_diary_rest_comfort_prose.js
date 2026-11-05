@@ -32,9 +32,15 @@
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
         const basic = (alternateForms ? /^(?:横になると(?:気持ちいい|きもちいい|心地よい)(?:よね|ね|よ)?| 横になると気持ちいい |横になると気持ちいい[。！])$/u
             : /^横になると気持ちいい$/u).exec(input.raw);
+        const initial = context.scene === 'clearing'
+            && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }]) && world.mode === 'idle';
+        const exactBasic = /^横になると気持ちいい$/u.exec(input.raw)?.[0] === input.raw;
+        const shoreActivity = exactBasic && context.scene === 'shore' && equal(context.attention, [])
+            && ['observe', 'eat', 'rest', 'work', 'walk'].includes(world.mode) && world.fatigue === .15;
+        const initialFatigue = exactBasic && initial && [0, .2, .4, .8, 1].includes(world.fatigue);
         return basic?.[0] === input.raw && input.speaker === 'player' && input.locale === 'ja'
-            && context.scene === 'clearing' && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
-            && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15;
+            && (initial && world.fatigue === .15 || shoreActivity || initialFatigue)
+            && world.attention === null && world.hunger === .35;
     }
     function incompleteScope(result, receipt) {
         const knowledge = receipt.inputKnowledge, u = result.understandings[0];
@@ -150,7 +156,7 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-CM display projection. av and bo each own full receipt checks.
+    // Read-only BL-CO display projection. av and bo each own full receipt checks.
     // Finite alternate spellings preserve every prerequisite layout separately.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
