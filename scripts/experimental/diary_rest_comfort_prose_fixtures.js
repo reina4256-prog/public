@@ -108,7 +108,7 @@ function doubleMissingExamples() {
 function doubleMissingExcludedExamples() {
     const values = [];
     for (const prior of doubleMissingExamples()) {
-        for (const variation of examples().slice(prior.result.understandings[0].kind === 'report' ? 2 : 24)) {
+        for (const variation of examples().slice(24)) {
             const v = setup({ speech: prior.receipt.beforeState.settings.speech });
             v.state.knowledge = prior.receipt.inputKnowledge;
             v.world.mode = variation.receipt.beforeWorld.mode; v.world.fatigue = variation.receipt.beforeWorld.fatigue;
@@ -223,7 +223,7 @@ function threeMissingExcludedExamples() {
     const values = [], scopes = require('./diary_rest_comfort_report_fixtures').fixtures()
         .filter(f => f.group.includes('scope-not-transferred'));
     for (const prior of threeMissingExamples()) {
-        for (const variation of examples().slice(Object.keys(prior.result.understandings[0].known).length ? 24 : 2)) {
+        for (const variation of examples().slice(24)) {
             const v = setup({ speech: prior.receipt.beforeState.settings.speech });
             v.state.knowledge = prior.receipt.inputKnowledge;
             v.world.mode = variation.receipt.beforeWorld.mode; v.world.fatigue = variation.receipt.beforeWorld.fatigue;
@@ -254,10 +254,10 @@ function alternateExamples() {
     }
     return values;
 }
-function alternateExcludedExamples() {
+function alternateExcludedExamples(priors = alternateExamples()) {
     const values = [], scopes = require('./diary_rest_comfort_report_fixtures').fixtures()
         .filter(f => f.group.includes('scope-not-transferred'));
-    for (const prior of alternateExamples()) {
+    for (const prior of priors) {
         const fresh = () => {
             const v = setup({ speech: prior.receipt.beforeState.settings.speech });
             v.state.knowledge = JSON.parse(JSON.stringify(prior.receipt.inputKnowledge));
@@ -283,14 +283,24 @@ function alternateExcludedExamples() {
             values.push(hearComfort(v, text));
         }
     }
-    // CJ/CK's two-unknown-meaning branches remain outside this implementation.
-    for (const f of require('./diary_incomplete_rest_comfort_report_fixtures').fixtures()) {
-        if (f.group === 'existing-forms-knowledge-matrix' && f.value.result.input.raw !== raw
-            && !Object.keys(f.value.result.understandings[0].known).length) values.push(f.value);
+    return values;
+}
+function unknownAlternateExamples() {
+    const values = [], forms = examples().slice(2, 24).filter(v => v.receipt.beforeState.settings.speech === 'short')
+        .map(v => v.result.input.raw);
+    const layouts = [...doubleMissingExamples().slice(0, 2), ...threeMissingExamples().slice(0, 4), ...incompleteExamples()];
+    for (const text of forms) for (const prior of layouts) {
+        const v = setup({ speech: prior.receipt.beforeState.settings.speech });
+        v.state.knowledge = JSON.parse(JSON.stringify(prior.receipt.inputKnowledge));
+        values.push(hearComfort(v, text));
     }
     return values;
+}
+function unknownAlternateExcludedExamples() {
+    return alternateExcludedExamples(unknownAlternateExamples());
 }
 module.exports = { examples, incompleteExamples, partialExamples, partialExcludedExamples, relationExamples,
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples, mixedReportExamples,
     mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples, threeMissingExamples,
-    threeMissingExcludedExamples, alternateExamples, alternateExcludedExamples, excludedExamples, fatigueExcludedExamples };
+    threeMissingExcludedExamples, alternateExamples, alternateExcludedExamples, unknownAlternateExamples,
+    unknownAlternateExcludedExamples, excludedExamples, fatigueExcludedExamples };

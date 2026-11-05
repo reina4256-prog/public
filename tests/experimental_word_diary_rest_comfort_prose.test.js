@@ -10,6 +10,7 @@ const { examples, incompleteExamples, partialExamples, partialExcludedExamples, 
     relationExcludedExamples, doubleMissingExamples, doubleMissingExcludedExamples,
     mixedReportExamples, mixedReportExcludedExamples, mixedConditionExamples, mixedConditionExcludedExamples,
     threeMissingExamples, threeMissingExcludedExamples, alternateExamples, alternateExcludedExamples,
+    unknownAlternateExamples, unknownAlternateExcludedExamples,
     excludedExamples, fatigueExcludedExamples } = require('../scripts/experimental/diary_rest_comfort_prose_fixtures');
 const copy = value => JSON.parse(JSON.stringify(value));
 const sentence = '\u6a2a\u306b\u306a\u308b\u3068\u6c17\u6301\u3061\u3044\u3044\u3068\u805e\u3044\u305f\u3002';
@@ -212,7 +213,7 @@ test('BS preserves four original absences, unresolved order and missing source w
     }
 });
 
-test('BS-CI accept only adopted prerequisite layouts and finite forms, rejecting other scopes and contexts', () => {
+test('BS-CK accept only adopted prerequisite layouts and finite forms, rejecting other scopes and contexts', () => {
     const all = require('../scripts/experimental/diary_incomplete_rest_comfort_report_fixtures').fixtures();
     let accepted = 0;
     for (const f of all) {
@@ -258,11 +259,12 @@ test('BS-CI accept only adopted prerequisite layouts and finite forms, rejecting
             if (u.known.meaning === 'comfortable' && u.known.conditionMeaning === 'rest') expected = relationSentence;
             else if (u.known.conditionMeaning === 'rest') expected = partialSentences[0];
             else if (u.known.meaning === 'comfortable') expected = partialSentences[1];
+            else expected = u.kind === 'report' ? doubleMissingSentence : unknownSentence;
         }
         assert.equal(prose.render(b.read()[0], v.result, v.receipt), expected, f.group);
         if (expected) accepted++;
     }
-    assert.equal(accepted, 312); // previous 70 plus eleven forms x eleven layouts x two speech settings
+    assert.equal(accepted, 400); // previous 312 plus eleven forms x four two-unknown layouts x two settings
 });
 
 test('CD/CE/CF preserve four distinct three-absence layouts, including both CD branches and actual replies', () => {
@@ -294,7 +296,7 @@ test('CD/CE/CF preserve four distinct three-absence layouts, including both CD b
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = threeMissingExcludedExamples(); assert.equal(excluded.length, 260);
+    const excluded = threeMissingExcludedExamples(); assert.equal(excluded.length, 172);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -507,7 +509,7 @@ test('BX/BY keep two absent meanings or relations distinct, including source and
         for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
         assert.equal(JSON.stringify({ record, v }), original);
     }
-    const excluded = doubleMissingExcludedExamples(); assert.equal(excluded.length, 124);
+    const excluded = doubleMissingExcludedExamples(); assert.equal(excluded.length, 80);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
 });
 
@@ -659,8 +661,87 @@ test('CG/CH/CI preserve eleven spellings and eleven absence layouts without merg
     }
     assert.deepEqual([...layouts.keys()].sort((a, b) => a - b), [1, 2, 4, 5, 6, 8, 9, 10, 12, 13, 14]);
     for (const count of layouts.values()) assert.equal(count, 22);
-    const excluded = alternateExcludedExamples(); assert.equal(excluded.length, 3256);
+    const excluded = alternateExcludedExamples(); assert.equal(excluded.length, 3168);
     for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
+});
+
+test('CJ/CK preserve two unknown meanings and four distinct relation/source layouts across eleven spellings', () => {
+    const values = unknownAlternateExamples(); assert.equal(values.length, 88);
+    const masks = new Map();
+    assert.equal(new Set(values.map(v => v.result.input.raw)).size, 11);
+    for (const [index, v] of values.entries()) {
+        const layout = Math.floor(index % 8 / 2), mask = [3, 7, 11, 15][layout], cj = layout === 0;
+        masks.set(mask, (masks.get(mask) || 0) + 1);
+        const record = material(v), c = record.captured, u = c.understanding, original = JSON.stringify({ record, v });
+        assert.equal(render(v), cj ? doubleMissingSentence : unknownSentence);
+        assert.deepEqual(u.known, {}); assert.deepEqual(u, v.result.understandings[0]);
+        assert.equal(c.sources.input.raw, v.result.input.raw); assert.notEqual(c.sources.input.raw, raw);
+        assert.equal(c.meaningKnownBefore, false); assert.equal(c.conditionMeaningKnownBefore, false);
+        const missing = ['report', 'condition'].filter((id, i) => mask & (1 << (i + 2)));
+        assert.deepEqual(c.missingRelationsBefore, missing);
+        assert.deepEqual(u.relations, ['report', 'condition'].filter(id => !missing.includes(id)));
+        assert.deepEqual(c.missingMeaningsBefore, [{ type: 'meaning', field: 'meaning', token: 'comfortable' },
+            { type: 'meaning', field: 'conditionMeaning', token: 'rest' }]);
+        assert.deepEqual(u.unresolved, [...missing.map(id => ({ type: 'relation', id })), ...c.missingMeaningsBefore]);
+        assert.equal(u.kind, cj ? 'report' : 'partial'); assert.equal(u.complete, false);
+        assert.equal(u.subject, cj ? 'player' : null); assert.equal(u.aspect, cj ? 'rest_comfort' : null);
+        assert.equal(u.conditionStatus, 'unknown'); assert.equal(u.polarity, 'positive'); assert.equal(u.eventTime, 'unspecified');
+        assert.equal(c.relationsKnownBefore, cj);
+        if (cj) assert.deepEqual(c.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        else for (const obj of [c, u]) assert.equal(Object.hasOwn(obj, 'reportSource'), false);
+        assert.equal(Object.hasOwn(c, 'expression'), false);
+        assert.equal(c.actualSpeech, index % 2 === 0); assert.equal(c.response.message, 'attend');
+        assert.equal(Boolean(c.response.observation), false);
+        for (const key of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[key], false);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    assert.deepEqual([...masks.keys()], [3, 7, 11, 15]);
+    for (const count of masks.values()) assert.equal(count, 22);
+    const excluded = unknownAlternateExcludedExamples(); assert.equal(excluded.length, 1144);
+    for (const v of excluded) { assert.ok(material(v)); assert.equal(render(v), null); }
+});
+
+test('CJ/CK cannot restore unknown content/source or substitute same-text layouts and later knowledge', () => {
+    const values = unknownAlternateExamples();
+    for (const [index, v] of values.entries()) {
+        const record = material(v), original = JSON.stringify({ record, v });
+        for (const edit of [
+            x => { x.record.captured.reportSource = { kind: 'speaker_report' }; },
+            x => { x.record.captured.understanding.known = { meaning: 'comfortable', conditionMeaning: 'rest' }; },
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.understanding.unresolved.reverse(); },
+            x => { x.v.result.understandings[0].unresolved.reverse(); },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.receipt.inputKnowledge = copy(setup().state.knowledge); },
+            x => { x.v.receipt.reply.message = 'heard_rest_comfort'; },
+            x => { x.v.receipt.afterWorld.elapsed++; },
+            x => { delete x.v.receipt.inputContext; },
+            x => { delete x.v.receipt.beforeState; },
+            x => { delete x.v.receipt.afterState; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const altered = JSON.stringify(x);
+            assert.equal(prose.render(x.record, x.v.result, x.v.receipt), null); assert.equal(JSON.stringify(x), altered);
+        }
+        for (const args of [[null, v.result, v.receipt], [record, null, v.receipt], [record, v.result, null]])
+            assert.equal(prose.render(...args), null);
+        const other = values[(index + 8) % values.length];
+        assert.equal(render(other), render(v));
+        assert.equal(prose.render(record, other.result, other.receipt), null);
+        assert.equal(prose.render(material(other), v.result, v.receipt), null);
+        if (index % 8 >= 2) {
+            const base = index - index % 8, branch = values[base + (index % 8 + 2 > 7 ? 2 : index % 8 + 2)];
+            assert.equal(render(branch), render(v));
+            assert.equal(prose.render(record, branch.result, branch.receipt), null);
+        }
+        const s = setup(); s.state.knowledge = copy(v.receipt.inputKnowledge);
+        const early = hearComfort(s, v.result.input.raw); s.state.knowledge = copy(setup().state.knowledge);
+        const later = hearComfort(s, v.result.input.raw);
+        assert.equal(render(early), render(v)); assert.equal(render(later), sentence);
+        assert.equal(prose.render(record, later.result, later.receipt), null);
+        const nonJson = copy(record); nonJson.extra = undefined;
+        assert.equal(prose.render(nonJson, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
 });
 
 test('CG/CH/CI reject altered evidence, same-text substitutions and later-knowledge repair across every adopted layout', () => {

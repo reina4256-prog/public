@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- [4e段階実装・CJ／CK](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-05・a0f50b3続き。既存十一別表記・初期clearing/berry:1注目・world idle/null/.35/.15だけ、CJ mask=3の原report／出所ありに既存未知内容文、CK mask=7/11/15の原partial／主体aspect=null／出所欠落に既存不明文を返す。両設定実attend・known={}／unresolved原順を要求、CK三配置・各原表記／不足根拠を別保持。七言語既存二本文を再利用。scope不適用・空白記号・場面活動等との組合せ非包含。必要検証／発行・実読未読は現行handoff。次は既採用CL／CM。全維持条件・全14保留／各担当三保留・B停止／供給進展0・旧run非置換・既存集計を維持。4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。以下は過去状態。
+
 - [4e段階実装・CG／CH／CI](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-05・b8352ab続き。既存十一別表記・初期条件だけ、CG restだけ既知四配置／CH comfortableだけ既知四配置／CI二意味既知で関係不足三配置を既存部分理解文へ表示。bo原照合・原record全文一致、出所有無／不足根拠／表記を別保持。二意味とも不明な別表記・scope不適用・場面活動等との組合せは非包含。七言語既存本文を再利用。次は既採用CJ／CK、4e全体未完・4f非移行。必要検証／発行・実読未読は現行handoff、全維持条件・保留・旧run非置換・既存集計を維持。以下は過去状態。
 
 - [4e段階実装・CD／CE／CF](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-05・e02cfe4続き。基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15だけ。CDは二意味記録なし＋片関係記録なしの二枝・known={}／実attendに既存不明文、CEはrestだけ既知、CFはcomfortableだけ既知・両関係記録なし／short実uncertain・gesture実attendに既存部分理解文を返す。bo原照合／record全文一致・partial／主体aspect=null／出所欠落を要求。CD二枝・同文の既存範囲とも原資料／不足根拠を別保持、七言語三本文を再利用。scope不適用／表記活動sceneとの組合せ非包含。全既採用・六資料分離／原当時非書戻し／欠落非補完・全維持条件／全14保留・B停止／供給進展0・旧run非置換・既存集計を維持。必要検証／発行は現行handoff。次は既採用CG／CH／CIを限定確認、4d12／4e全体未完・4f非移行、本接続等未実装。以下は過去状態。

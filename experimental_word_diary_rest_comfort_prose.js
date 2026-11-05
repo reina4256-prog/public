@@ -38,10 +38,14 @@
     }
     function incompleteScope(result, receipt) {
         const knowledge = receipt.inputKnowledge, u = result.understandings[0];
-        return initialIncompleteScope(result, receipt)
+        return initialIncompleteScope(result, receipt, true)
             && !knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
             && !knowledge.relations.some(item => ['report', 'condition'].includes(item.id))
             && u.kind === 'partial' && u.complete === false && equal(u.known, {}) && equal(u.relations, [])
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' }, { type: 'relation', id: 'condition' },
+                { type: 'meaning', field: 'meaning', token: 'comfortable' },
+                { type: 'meaning', field: 'conditionMeaning', token: 'rest' }])
+            && u.polarity === 'positive' && u.eventTime === 'unspecified'
             && u.subject === null && u.aspect === null && u.conditionStatus === 'unknown'
             && !Object.hasOwn(u, 'reportSource') && receipt.reply.message === 'attend' && !receipt.reply.observation;
     }
@@ -85,7 +89,7 @@
     }
     function missingBothMeaningsSentence(result, receipt) {
         const u = result.understandings[0], input = result.input;
-        if (!initialIncompleteScope(result, receipt) || u.kind !== 'report' || u.complete !== false
+        if (!initialIncompleteScope(result, receipt, true) || u.kind !== 'report' || u.complete !== false
             || receipt.inputKnowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
             || !equal(u.known, {}) || !equal(u.relations, ['report', 'condition'])
             || !equal(u.unresolved, [{ type: 'meaning', field: 'meaning', token: 'comfortable' },
@@ -125,8 +129,7 @@
             || u.subject !== null || u.aspect !== null || Object.hasOwn(u, 'reportSource')
             || u.polarity !== 'positive' || u.eventTime !== 'unspecified' || u.conditionStatus !== 'unknown'
             || receipt.reply.observation) return null;
-        if (initialIncompleteScope(result, receipt)
-            && !knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
+        if (!knowledge.meanings.some(item => ['comfortable', 'rest'].includes(item.id))
             && equal(u.known, {}) && receipt.reply.message === 'attend') {
             for (const [missing, present] of [['report', 'condition'], ['condition', 'report']]) {
                 if (!knowledge.relations.some(item => item.id === missing) && equal(u.relations, [present])
@@ -147,8 +150,8 @@
             return '気持ちよさのことは分かったけれど、言われたことは全部は分からなかった。';
         return null;
     }
-    // Read-only BL-CI display projection. av and bo each own full receipt checks.
-    // CG/CH/CI extend only known-meaning branches to the eleven finite forms.
+    // Read-only BL-CK display projection. av and bo each own full receipt checks.
+    // Finite alternate spellings preserve every prerequisite layout separately.
     // Finite form/context/fatigue scopes cannot combine; BS requires absent records,
     // not merely inapplicable scope or an attend reply. Original expression stays absent.
     // UI callers translate this source through GameI18n; no game/save connection.

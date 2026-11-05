@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 現行継続文（a0f50b3続き・4e CJ／CK独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用CJ／CKを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文以外の既存十一表記・player/ja・初期clearing/berry:1注目・world idle/null/hunger=.35/fatigue=.15だけ。二意味記録なし／known={}、CJ mask=3のreport／出所ありに未知内容文、CK mask=7/11/15のpartial／主体aspect=null／出所欠落に不明文を返します。両設定実attend・bo原照合／原record全文一致・原unresolved順を要求。CK三配置・各原表記／不足根拠／当時理解と基本文BX/BS/CD等を別保持し、未知意味・原expression／欠落出所・条件成立を補いません。七言語既存二本文を再利用、scope不適用・空白記号・場面活動疲労等との組合せ非包含。必要検証／発行は現行handoff。次は既採用CL／CMを必要所有節・依存から限定して進めてください。新文言の再採用不要。
+
+ユーザーは今回の長さに応じ次チャットへ移る場合の冒頭文出力を希望。次回も現handoff・最初の継続文・現在routing・必要所有節／依存だけ読み、検証／原文保持は削減しない。日記本接続は既存4g、星座の接続工程／時期未確定・前倒しなしを維持。試遊開始時pendingなし、過去96の限定実読・未読欄はhandoff。六資料分離・原当時非書戻し／欠落非補完・全既採用／全維持条件／全14保留／各担当三保留、am／cp／cq／散策区別・B停止／供給進展0・旧run非置換・既存集計を維持。4d12／4e全体未完・4f非移行、本接続／生成／保存／集約／途中記録未実装。以下は過去状態。
+
 ## 現行継続文（b8352ab続き・4e CG／CH／CI独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、必要所有節・依存から限定して4eを続けてください。既採用CG／CH／CIを既存experimental_word_diary_rest_comfort_prose.renderへ追加しました。基本文以外の既存十一表記・player/ja・初期clearing/berry:1注目・world idle/null/hunger=.35/fatigue=.15だけ。CG restだけ既知mask=1/5/9/13、CH comfortableだけ既知mask=2/6/10/14、CI二意味既知mask=4/8/12へ既存部分理解三本文と七言語entryを再利用。bo原照合・原record全文一致、原known／relations／unresolved順・report出所ありとpartial主体aspect=null／出所欠落を別保持。各表記・不足配置を統合せず、未知意味／原expression／欠落出所／条件成立を補いません。二意味とも不明な十一別表記・scope不適用・空白記号・場面活動疲労等との組合せは今回非包含。必要検証／発行は現行handoff。次は既採用CJ／CKを必要所有節・依存から限定して進めてください。新文言の再採用不要。
