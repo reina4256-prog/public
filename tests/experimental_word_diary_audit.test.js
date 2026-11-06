@@ -1189,6 +1189,8 @@ test('existing diary adapters and the new audit remain outside the game server a
             }).on('error', reject);
         });
         for (const name of [...inventory().map(row => row.file), ...supplementalInventory().map(row => row.file),
+            'experimental_word_diary_rest_explanation_prose.js',
+            'scripts/experimental/diary_rest_explanation_prose_fixtures.js', 'scripts/experimental/diary_rest_explanation_prose_smoke.js',
             'scripts/experimental/diary_answer_fixtures.js', 'scripts/experimental/diary_answer_smoke.js',
             'scripts/experimental/diary_followup_fixtures.js', 'scripts/experimental/diary_followup_smoke.js', 'scripts/experimental/diary_audit.js',
             'scripts/experimental/diary_reference_fixtures.js', 'scripts/experimental/diary_reference_smoke.js',

@@ -7,6 +7,115 @@ const { fixtures, prepared: setup, hearExplanation: hear } = require('../scripts
 const copy = value => JSON.parse(JSON.stringify(value));
 const values = fixtures();
 const capture = (buffer, value) => api.capture(buffer, value.result, value.receipt);
+const explanationProse = require('../experimental_word_diary_rest_explanation_prose');
+const proseFixtures = require('../scripts/experimental/diary_rest_explanation_prose_fixtures');
+const proseSentence = '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
+function proseMaterial(v) {
+    const buffer = candidates.create(); api.capture(buffer, v.result, v.receipt); return buffer.read()[0];
+}
+test('DK/DL preserve separate original importance and recovery-explanation evidence without completing either', () => {
+    const examples = proseFixtures.examples(); assert.equal(examples.length, 2);
+    for (const v of examples) {
+        const record = proseMaterial(v), c = record.captured, a = v.receipt.antecedent;
+        const original = JSON.stringify({ record, v });
+        assert.equal(explanationProse.render(record, v.result, v.receipt), proseSentence);
+        assert.deepEqual(c.sources.antecedent, a);
+        assert.notEqual(v.result.input.id, a.result.input.id);
+        assert.deepEqual(a.result.understandings[0].unresolved, [{ type: 'detail', token: 'importance' }]);
+        assert.deepEqual(v.result.understandings[0].unresolved, [{ type: 'detail', token: 'recovery_explanation' }]);
+        assert.deepEqual(a.result.understandings[0].relations, ['report']);
+        assert.deepEqual(v.result.understandings[0].relations, ['report', 'reason']);
+        for (const item of [a, v]) {
+            const u = item.result.understandings[0];
+            assert.equal(u.complete, false); assert.deepEqual(u.known, { meaning: 'rest' });
+            assert.equal(u.subject, 'player'); assert.equal(u.polarity, 'positive');
+            assert.equal(u.eventTime, 'unspecified'); assert.equal(u.aspect, null); assert.equal(u.conditionStatus, null);
+            assert.deepEqual(u.reportSource, { kind: 'speaker_report', inputId: item.result.input.id, heardAt: item.result.input.at });
+            assert.equal(item.receipt.reply.message, c.actualSpeech ? 'heard_rest_partial' : 'attend');
+            assert.equal(Object.hasOwn(item.receipt.reply, 'observation'), false);
+            for (const field of ['knowledge', 'experiences', 'selectionSources'])
+                assert.deepEqual(item.receipt.beforeState[field], item.receipt.afterState[field]);
+            assert.deepEqual(item.receipt.beforeWorld.experiences, item.receipt.afterWorld.experiences);
+        }
+        assert.equal(Object.hasOwn(c, 'expression'), false);
+        assert.equal(Object.hasOwn(a.receipt, 'antecedent'), false);
+        assert.equal(c.actualSpeech, v.receipt.beforeState.settings.speech === 'short');
+        assert.equal(c.status, 'reported'); assert.equal(c.verified, false);
+        for (const field of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+});
+test('DK/DL reject missing current or flat prior evidence and never reconstruct an antecedent', () => {
+    for (const v of proseFixtures.examples()) {
+        const record = proseMaterial(v);
+        for (const phase of ['current', 'prior']) for (const field of ['input', 'inputKnowledge', 'inputContext',
+            'beforeState', 'beforeWorld', 'afterState', 'afterWorld', 'reply']) {
+            const changed = copy(v), receipt = phase === 'current' ? changed.receipt : changed.receipt.antecedent.receipt;
+            delete receipt[field];
+            assert.equal(explanationProse.render(record, changed.result, changed.receipt), null, `${phase}:${field}`);
+        }
+        const missing = copy(v); delete missing.receipt.antecedent;
+        assert.equal(explanationProse.render(record, missing.result, missing.receipt), null);
+        const recursive = copy(v); recursive.receipt.antecedent.receipt.antecedent = {};
+        assert.equal(explanationProse.render(record, recursive.result, recursive.receipt), null);
+        for (const bad of [null, undefined, {}, [], { ...record, extra: true }])
+            assert.equal(explanationProse.render(bad, v.result, v.receipt), null);
+        const cyclic = copy(v); cyclic.receipt.antecedent.receipt.antecedent = cyclic;
+        assert.equal(explanationProse.render(record, cyclic.result, cyclic.receipt), null);
+    }
+});
+test('DK/DL reject changed originals, expression repair, invented truth and later knowledge', () => {
+    for (const v of proseFixtures.examples()) {
+        const record = proseMaterial(v);
+        for (const edit of [
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.status = 'understood'; }, x => { x.record.captured.verified = true; },
+            x => { x.record.captured.newLearning = true; },
+            x => { x.record.captured.sources.antecedent.result.input.at++; },
+            x => { x.v.result.understandings[0].known.detail = 'recovery_explanation'; },
+            x => { x.v.result.understandings[0].subject = 'self'; },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.receipt.antecedent.result.understandings[0].unresolved = []; },
+            x => { x.v.receipt.antecedent.result.understandings[0].known.meaning = 'eat'; },
+            x => { x.v.receipt.antecedent.receipt.inputKnowledge.meanings.push({ id: 'later' }); },
+            x => { x.v.receipt.inputKnowledge.relations.push({ id: 'later' }); },
+            x => { x.v.receipt.beforeState.context.turns.at(-1).speaker = 'invented'; },
+            x => { x.v.receipt.reply.message = 'invented'; },
+            x => { x.v.receipt.afterWorld.elapsed++; },
+            x => { x.v.receipt.antecedent.receipt.afterWorld.elapsed++; },
+            x => { x.v.result.input.raw += '\n'; },
+            x => { x.v.receipt.antecedent.result.input.raw += '\n'; }
+        ]) {
+            const x = copy({ record, v }), before = JSON.stringify(x); edit(x);
+            const changed = JSON.stringify(x); assert.notEqual(changed, before);
+            assert.equal(explanationProse.render(x.record, x.v.result, x.v.receipt), null);
+            assert.equal(JSON.stringify(x), changed);
+        }
+    }
+});
+test('DK/DL exclude other ax scopes and keep identical aw prose as separate original material in all seven locales', () => {
+    const aw = require('../experimental_word_diary_rest_value_reports');
+    const awProse = require('../experimental_word_diary_rest_value_prose');
+    for (const v of proseFixtures.excludedExamples()) {
+        const record = proseMaterial(v), before = JSON.stringify({ record, v });
+        assert.equal(explanationProse.render(record, v.result, v.receipt), null, JSON.stringify(v.result.input));
+        assert.equal(JSON.stringify({ record, v }), before);
+    }
+    const examples = proseFixtures.examples();
+    for (const v of examples) {
+        const record = proseMaterial(v), a = v.receipt.antecedent, buffer = candidates.create();
+        assert.equal(aw.capture(buffer, a.result, a.receipt), true);
+        const priorRecord = buffer.read()[0];
+        assert.equal(awProse.render(priorRecord, a.result, a.receipt), proseSentence);
+        assert.equal(explanationProse.render(priorRecord, v.result, v.receipt), null);
+        assert.equal(explanationProse.render(record, a.result, a.receipt), null);
+        assert.equal(awProse.render(record, v.result, v.receipt), null);
+        const other = examples.find(item => item !== v);
+        assert.equal(explanationProse.render(record, other.result, other.receipt), null);
+        for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
+            assert.equal(typeof require('../locales/' + locale + '.json')[proseSentence], 'string');
+    }
+});
 for (const group of new Set(values.map(f => f.group))) test(`rest explanation report candidate: ${group}`, () => {
     for (const f of values.filter(item => item.group === group)) {
         const v = copy(f.value), source = JSON.stringify(v), buffer = candidates.create();
