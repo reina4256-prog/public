@@ -20,7 +20,7 @@
             && receipt.reply.message === (speech === 'short' ? 'heard_rest_partial' : 'attend')
             && !Object.hasOwn(receipt.reply, 'observation');
     }
-    // Read-only DK through DN projection. The ax and aw owners replay separate original
+    // Read-only DK through DP projection. The ax and aw owners replay separate original
     // receipts; no missing antecedent is rebuilt from current or later knowledge.
     function render(record, result, receipt) {
         try {
@@ -29,11 +29,13 @@
             if (!reports.capture(checked, result, receipt) || !equal(supplied.read()[0], checked.read()[0])) return null;
             const antecedent = receipt.antecedent, speech = receipt.beforeState.settings.speech;
             const shore = receipt.inputContext.scene === 'shore';
+            const currentForm = shore ? /^体力や眠気が回復するから$/u
+                : speech === 'short' ? /^(?:(?:うん[、, ]?)?体力や眠気が回復するから(?:ね)?| 体力や眠気が回復するから |体力や眠気が回復するから[。！])$/u
+                : /^(?:うん[、, ]?)?体力や眠気が回復するから(?:ね)?$/u;
             if (!['short', 'gesture'].includes(speech)
                 || !priorReports.capture(candidates.create(), antecedent.result, antecedent.receipt)
                 || !initial(antecedent.result, antecedent.receipt, /^休むことは大事$/u, speech)
-                || !initial(result, receipt, shore ? /^体力や眠気が回復するから$/u
-                    : /^(?:うん[、, ]?)?体力や眠気が回復するから(?:ね)?$/u, speech, shore)) return null;
+                || !initial(result, receipt, currentForm, speech, shore)) return null;
             // Existing seven-locale text. Reason knowledge never fills either
             // original importance or recovery_explanation detail.
             return '休むことは分かったけれど、言われたことは全部は分からなかった。';

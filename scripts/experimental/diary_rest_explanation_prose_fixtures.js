@@ -4,13 +4,34 @@ const { fixtures, setup, prepared, prior, hearExplanation, core, raw, topic } = 
 function examples() {
     const values = fixtures().filter(({ group, value }) => group === 'eight-settings'
         && value.receipt.beforeState.settings.foundation && value.receipt.beforeState.settings.life
-        || group === 'existing-japanese-forms' || group === 'changed-scene-and-no-target')
+        || group === 'existing-japanese-forms' || group === 'changed-scene-and-no-target'
+        || group === 'single-trim-and-terminal-punctuation')
         .map(({ value }) => value);
     return [...new Map(values.map(value => [JSON.stringify(value), value])).values()];
 }
 function excludedExamples() {
     const all = fixtures().map(({ value }) => value);
     for (const speech of ['short', 'gesture']) {
+        for (const text of [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]) {
+            // The existing owner fixture group has short only; gesture stays outside DO/DP.
+            all.push(hearExplanation(prepared({ speech }), text));
+            for (const edit of [v => { v.world.mode = 'rest'; }, v => { v.world.fatigue = .4; },
+                v => { v.world.attention = 'berry:1'; }, v => { v.world.hunger = .4; },
+                v => { v.state.settings.foundation = false; }, v => { v.state.settings.life = false; },
+                v => { core.perceive(v.state, { scene: 'clearing', attention: [] }); },
+                v => { core.perceive(v.state, { scene: 'shore', attention: [] }); }]) {
+                const v = prepared({ speech }); edit(v); all.push(hearExplanation(v, text, { at: 987654321 }));
+            }
+            for (const options of [{ speaker: 'visitor' }, { locale: 'en' }]) {
+                const v = setup({ speech }); prior(v, topic, options); all.push(hearExplanation(v, text));
+                all.push(hearExplanation(prepared({ speech }), text, options));
+            }
+            const v = setup({ speech }); prior(v, ` ${topic} `); all.push(hearExplanation(v, text));
+        }
+        for (const text of [` ${raw}`, `${raw} `, `\u3000${raw}\u3000`, `  ${raw}  `,
+            `\t${raw}\t`, ` ${raw}\u3002 `, `${raw}\u3002\uff01`, `${raw}\u3002\u3002`,
+            `${raw}\uff01\uff01`, ` ${raw} \n`, `${raw}\u3002\n`])
+            all.push(hearExplanation(prepared({ speech }), text));
         for (const prefix of ['', '\u3046\u3093', '\u3046\u3093\u3001', '\u3046\u3093,', '\u3046\u3093 '])
             for (const suffix of ['', '\u306d']) {
                 const text = prefix + raw + suffix;

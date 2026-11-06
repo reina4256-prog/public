@@ -13,8 +13,8 @@ const proseSentence = '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3
 function proseMaterial(v) {
     const buffer = candidates.create(); api.capture(buffer, v.result, v.receipt); return buffer.read()[0];
 }
-test('DK/DL/DM/DN preserve separate original importance and recovery-explanation evidence without completing either', () => {
-    const examples = proseFixtures.examples(); assert.equal(examples.length, 22);
+test('DK/DL/DM/DN/DO/DP preserve separate original importance and recovery-explanation evidence without completing either', () => {
+    const examples = proseFixtures.examples(); assert.equal(examples.length, 25);
     for (const v of examples) {
         const record = proseMaterial(v), c = record.captured, a = v.receipt.antecedent;
         const original = JSON.stringify({ record, v });
@@ -118,7 +118,8 @@ test('DK/DL exclude other ax scopes and keep identical aw prose as separate orig
 });
 test('DM/DN preserve the nine original forms and the separate shore input clock without inferring assent or arrival', () => {
     const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
-    const examples = proseFixtures.examples();
+    const examples = proseFixtures.examples().filter(v => v.result.input.raw === v.result.input.raw.trim()
+        && !/[。！]$/u.test(v.result.input.raw));
     const clearing = examples.filter(v => v.receipt.inputContext.scene === 'clearing');
     const shore = examples.filter(v => v.receipt.inputContext.scene === 'shore');
     assert.equal(clearing.length, 20); assert.equal(shore.length, 2);
@@ -159,6 +160,30 @@ test('DM/DN reject replayable combined scopes, changed shore clocks and current-
     for (const v of proseFixtures.examples()) {
         const changed = copy(v); delete changed.receipt.antecedent.receipt.inputKnowledge;
         assert.equal(explanationProse.render(proseMaterial(v), changed.result, changed.receipt), null);
+    }
+});
+test('DO/DP retain three exact short-only raw forms as separate materials without resolving either detail', () => {
+    const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
+    const texts = [` ${owner.raw} `, `${owner.raw}\u3002`, `${owner.raw}\uff01`];
+    const additions = proseFixtures.examples().filter(v => texts.includes(v.result.input.raw));
+    assert.equal(additions.length, 3);
+    assert.deepEqual(new Set(additions.map(v => v.result.input.raw)), new Set(texts));
+    for (const v of additions) {
+        const record = proseMaterial(v), before = JSON.stringify({ record, v });
+        assert.equal(explanationProse.render(record, v.result, v.receipt), proseSentence);
+        assert.equal(record.captured.sources.input.raw, v.result.input.raw);
+        assert.equal(v.receipt.beforeState.settings.speech, 'short');
+        assert.equal(v.receipt.antecedent.receipt.beforeState.settings.speech, 'short');
+        assert.equal(record.captured.response.message, 'heard_rest_partial');
+        assert.equal(record.captured.actualSpeech, true);
+        for (const other of additions.filter(item => item !== v))
+            assert.equal(explanationProse.render(record, other.result, other.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), before);
+    }
+    for (const text of texts) {
+        const value = owner.hearExplanation(owner.prepared({ speech: 'gesture' }), text);
+        assert.ok(proseMaterial(value));
+        assert.equal(explanationProse.render(proseMaterial(value), value.result, value.receipt), null);
     }
 });
 for (const group of new Set(values.map(f => f.group))) test(`rest explanation report candidate: ${group}`, () => {
