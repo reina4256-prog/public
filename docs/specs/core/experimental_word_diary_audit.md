@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- [4e現行実装・DS／DT](experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-07・25ab405続き。既採用DS／DTを独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とax所有節。直前選択・移動／報告と今回理解を分離し、原資料・全維持条件／保留・B停止／供給進展0・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DU／DV（bq）。以下は過去状態。
+
 - [4e現行実装・DQ／DR](experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-07・112cfb9続き。既採用DQ／DRを独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とax所有節。旧資料・全維持条件／保留・B停止／供給進展0・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DS／DT。以下は過去状態。
 
 - [4e現行実装・DO／DP](experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-07・3624a02続き。既採用DO／DPをrest_explanation_prose.renderへ限定追加。shortだけ、DOは今回基本文の前後U+0020各一個、DPは単一終端「。／！」だけ。直前基本文・両方player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15を保持。ax双方原receipt／aw直前importanceを再照合し、原record全文一致後に既存七言語本文を再利用。原空白記号と直前importance／今回recovery_explanationの不足・当時理解／出所／実replyを別保持。強調感情・理解促進／納得／同意・具体回復因果／本人休息／真偽を補わず、DO／DP併用・片側全角複数空白／複数記号・gesture・DM／DNとの組合せ・他場面注目活動疲労・bq不足／scope不適用は非包含。DK〜DN・DB／DC区別・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧失敗／incomplete／中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。次は既採用DQ／DR。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。以下は過去状態。

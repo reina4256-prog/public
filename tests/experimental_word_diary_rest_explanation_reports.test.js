@@ -14,7 +14,9 @@ function proseMaterial(v) {
     const buffer = candidates.create(); api.capture(buffer, v.result, v.receipt); return buffer.read()[0];
 }
 test('DK/DL/DM/DN/DO/DP/DQ/DR preserve separate original importance and recovery-explanation evidence without completing either', () => {
-    const examples = proseFixtures.examples(); assert.equal(examples.length, 40);
+    const examples = proseFixtures.examples().filter(v => v.receipt.antecedent.result.input.raw
+        === require('../scripts/experimental/diary_rest_explanation_report_fixtures').topic);
+    assert.equal(examples.length, 40);
     for (const v of examples) {
         const record = proseMaterial(v), c = record.captured, a = v.receipt.antecedent;
         const original = JSON.stringify({ record, v });
@@ -75,7 +77,8 @@ test('DK/DL reject changed originals, expression repair, invented truth and late
             x => { x.v.result.understandings[0].known.detail = 'recovery_explanation'; },
             x => { x.v.result.understandings[0].subject = 'self'; },
             x => { x.v.result.understandings[0].conditionStatus = 'met'; },
-            x => { x.v.receipt.antecedent.result.understandings[0].unresolved = []; },
+            x => { const u = x.v.receipt.antecedent.result.understandings[0];
+                u.unresolved = u.unresolved.length ? [] : [{ type: 'detail', token: 'invented' }]; },
             x => { x.v.receipt.antecedent.result.understandings[0].known.meaning = 'eat'; },
             x => { x.v.receipt.antecedent.receipt.inputKnowledge.meanings.push({ id: 'later' }); },
             x => { x.v.receipt.inputKnowledge.relations.push({ id: 'later' }); },
@@ -101,7 +104,8 @@ test('DK/DL exclude other ax scopes and keep identical aw prose as separate orig
         assert.equal(explanationProse.render(record, v.result, v.receipt), null, JSON.stringify(v.result.input));
         assert.equal(JSON.stringify({ record, v }), before);
     }
-    const examples = proseFixtures.examples();
+    const examples = proseFixtures.examples().filter(v => v.receipt.antecedent.result.input.raw
+        === require('../scripts/experimental/diary_rest_explanation_report_fixtures').topic);
     for (const v of examples) {
         const record = proseMaterial(v), a = v.receipt.antecedent, buffer = candidates.create();
         assert.equal(aw.capture(buffer, a.result, a.receipt), true);
@@ -120,7 +124,7 @@ test('DM/DN preserve the nine original forms and the separate shore input clock 
     const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
     const examples = proseFixtures.examples().filter(v => v.result.input.raw === v.result.input.raw.trim()
         && !/[。！]$/u.test(v.result.input.raw) && v.receipt.beforeWorld.mode === 'idle'
-        && v.receipt.beforeWorld.fatigue === .15);
+        && v.receipt.beforeWorld.fatigue === .15 && v.receipt.antecedent.result.input.raw === owner.topic);
     const clearing = examples.filter(v => v.receipt.inputContext.scene === 'clearing');
     const shore = examples.filter(v => v.receipt.inputContext.scene === 'shore');
     assert.equal(clearing.length, 20); assert.equal(shore.length, 2);
@@ -188,8 +192,9 @@ test('DO/DP retain three exact short-only raw forms as separate materials withou
     }
 });
 test('DQ/DR preserve current activity and fatigue apart from the initial antecedent without inventing selection or recovery', () => {
-    const additions = proseFixtures.examples().filter(v => v.receipt.beforeWorld.mode !== 'idle'
-        || v.receipt.beforeWorld.fatigue !== .15);
+    const additions = proseFixtures.examples().filter(v => v.receipt.antecedent.result.input.raw
+        === require('../scripts/experimental/diary_rest_explanation_report_fixtures').topic
+        && (v.receipt.beforeWorld.mode !== 'idle' || v.receipt.beforeWorld.fatigue !== .15));
     assert.equal(additions.length, 15);
     const activity = additions.filter(v => v.receipt.beforeWorld.mode !== 'idle');
     const fatigue = additions.filter(v => v.receipt.beforeWorld.mode === 'idle');
@@ -208,6 +213,74 @@ test('DQ/DR preserve current activity and fatigue apart from the initial anteced
         if (v.receipt.beforeWorld.mode === 'idle') assert.equal(v.receipt.beforeState.settings.speech, 'short');
         else assert.equal(v.receipt.beforeWorld.fatigue, .15);
         assert.equal(JSON.stringify({ record, v }), before);
+    }
+});
+test('DS/DT preserve prior selection or self-report separately from the incomplete current player report', () => {
+    const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
+    const examples = proseFixtures.examples(); assert.equal(examples.length, 44);
+    const additions = examples.filter(v => v.receipt.antecedent.result.input.raw !== owner.topic);
+    assert.equal(additions.length, 4);
+    for (const v of additions) {
+        const a = v.receipt.antecedent, record = proseMaterial(v), u = v.result.understandings[0];
+        const before = JSON.stringify({ record, v });
+        assert.equal(explanationProse.render(record, v.result, v.receipt), proseSentence);
+        assert.deepEqual(record.captured.sources.antecedent, a);
+        assert.equal(a.result.understandings[0].complete, true);
+        assert.equal(u.complete, false); assert.equal(u.subject, 'player');
+        assert.deepEqual(u.unresolved, [{ type: 'detail', token: 'recovery_explanation' }]);
+        assert.equal(record.captured.status, 'reported'); assert.equal(record.captured.verified, false);
+        assert.equal(Object.hasOwn(record.captured, 'expression'), false);
+        for (const field of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(record.captured[field], false);
+        for (const field of ['knowledge', 'experiences', 'selectionSources'])
+            assert.deepEqual(v.receipt.beforeState[field], v.receipt.afterState[field]);
+        assert.deepEqual(v.receipt.beforeWorld.experiences, v.receipt.afterWorld.experiences);
+        if (a.result.understandings[0].kind === 'invitation') {
+            assert.equal(v.receipt.beforeWorld.mode, 'move'); assert.equal(v.receipt.beforeWorld.destination, 'shade');
+            assert.equal(a.receipt.reply.message, record.captured.actualSpeech ? 'join' : 'attend');
+            assert.equal(a.receipt.afterState.selectionSources.length, 1);
+            assert.deepEqual(v.receipt.beforeState.selectionSources, a.receipt.afterState.selectionSources);
+            assert.deepEqual(v.receipt.beforeWorld.reasons, a.receipt.afterWorld.reasons);
+            assert.equal(v.receipt.beforeState.selectionSources[0].input.id, a.result.input.id);
+        } else {
+            assert.equal(a.result.understandings[0].subject, 'self');
+            assert.equal(a.result.understandings[0].aspect, 'activity_report');
+            assert.equal(a.receipt.reply.message, record.captured.actualSpeech ? 'heard_report_self' : 'attend');
+            assert.equal(v.receipt.beforeWorld.mode, 'idle');
+            assert.deepEqual(record.captured.sources.antecedent.result.understandings[0].reportSource,
+                a.result.understandings[0].reportSource);
+            assert.notDeepEqual(a.result.understandings[0].reportSource, u.reportSource);
+        }
+        assert.equal(JSON.stringify({ record, v }), before);
+        for (const other of additions.filter(item => item !== v))
+            assert.equal(explanationProse.render(record, other.result, other.receipt), null);
+    }
+});
+test('DS/DT reject repaired prior selection, replaced report subjects and invented current truth', () => {
+    const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
+    const additions = proseFixtures.examples().filter(v => v.receipt.antecedent.result.input.raw !== owner.topic);
+    for (const v of additions) for (const edit of [
+        x => { x.v.receipt.antecedent.result.understandings[0].subject = 'invented'; },
+        x => { x.v.receipt.antecedent.result.understandings[0].complete = false; },
+        x => { delete x.v.receipt.antecedent.receipt.afterState; },
+        x => { x.record.captured.sources.antecedent.receipt.afterWorld.reasons.push({ kind: 'invented' }); },
+        x => { x.record.captured.verified = true; },
+        x => { x.v.result.understandings[0].known.detail = 'recovery_explanation'; }
+    ]) {
+        const x = copy({ record: proseMaterial(v), v }), before = JSON.stringify(x); edit(x);
+        assert.notEqual(JSON.stringify(x), before);
+        assert.equal(explanationProse.render(x.record, x.v.result, x.v.receipt), null);
+    }
+    for (const speech of ['short', 'gesture']) {
+        const v = owner.setup({ speech }); owner.prior(v, '\u4f11\u3082\u3046');
+        v.state.selectionSources = []; v.world.reasons = [];
+        const value = owner.hearExplanation(v), record = proseMaterial(value);
+        assert.ok(record);
+        assert.equal(explanationProse.render(record, value.result, value.receipt), null);
+    }
+    for (const speech of ['short', 'gesture']) for (const text of ['\u4f11\u3082\u3046', owner.catalog.reportTeaching.ja.self.utterance]) {
+        const v = owner.setup({ speech }); owner.prior(v, text); v.world.elapsed += 50;
+        const value = owner.hearExplanation(v);
+        assert.equal(explanationProse.render(proseMaterial(value), value.result, value.receipt), proseSentence);
     }
 });
 for (const group of new Set(values.map(f => f.group))) test(`rest explanation report candidate: ${group}`, () => {

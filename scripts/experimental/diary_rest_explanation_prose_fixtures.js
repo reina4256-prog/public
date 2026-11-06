@@ -1,18 +1,44 @@
 'use strict';
 // Disposable current-code evidence, never historical supply or player storage.
-const { fixtures, setup, prepared, prior, hearExplanation, core, raw, topic } = require('./diary_rest_explanation_report_fixtures');
+const { fixtures, setup, prepared, prior, hearExplanation, core, catalog, raw, topic } = require('./diary_rest_explanation_report_fixtures');
 function examples() {
     const values = fixtures().filter(({ group, value }) => group === 'eight-settings'
         && value.receipt.beforeState.settings.foundation && value.receipt.beforeState.settings.life
         || group === 'existing-japanese-forms' || group === 'changed-scene-and-no-target'
         || group === 'single-trim-and-terminal-punctuation'
-        || group === 'activity-does-not-prove-recovery-or-cause' || group === 'fatigue-does-not-resolve-explanation')
+        || group === 'activity-does-not-prove-recovery-or-cause' || group === 'fatigue-does-not-resolve-explanation'
+        || group === 'different-known-rest-antecedents')
         .map(({ value }) => value);
     return [...new Map(values.map(value => [JSON.stringify(value), value])).values()];
 }
 function excludedExamples() {
     const all = fixtures().map(({ value }) => value);
     for (const speech of ['short', 'gesture']) {
+        for (const text of ['\u4f11\u3082\u3046', catalog.reportTeaching.ja.self.utterance]) {
+            const prepare = () => { const v = setup({ speech }); prior(v, text); return v; };
+            for (const current of [raw + '\u306d', '\u3046\u3093' + raw, ` ${raw} `, `${raw}\u3002`, `${raw}\uff01`])
+                all.push(hearExplanation(prepare(), current));
+            for (const edit of [
+                ...['idle', 'observe', 'eat', 'rest', 'work', 'walk'].map(mode => v => { v.world.mode = mode; }),
+                ...[0, .2, .4, .8, 1].map(fatigue => v => { v.world.fatigue = fatigue; }),
+                v => { v.world.attention = 'berry:1'; },
+                v => { v.world.hunger = .4; }, v => { v.state.settings.foundation = false; },
+                v => { v.state.settings.life = false; },
+                ...(text === catalog.reportTeaching.ja.self.utterance ? [] : [
+                    v => { v.world.destination = 'path'; },
+                    v => { v.state.selectionSources = []; v.world.reasons = []; }]),
+                v => { core.perceive(v.state, { scene: 'shore', attention: [] }); },
+                v => { core.perceive(v.state, { scene: 'clearing', attention: [] }); }]) {
+                const v = prepare(); edit(v); all.push(hearExplanation(v));
+            }
+            for (const options of [{ speaker: 'visitor' }, { locale: 'en' }]) {
+                const v = setup({ speech }); prior(v, text, options); all.push(hearExplanation(v));
+                all.push(hearExplanation(prepare(), raw, options));
+            }
+            for (const decorated of [` ${text} `, text + '\u3002']) {
+                const v = setup({ speech }); prior(v, decorated); all.push(hearExplanation(v));
+            }
+        }
         for (const mode of ['idle', 'observe', 'eat', 'rest', 'work', 'walk'])
             for (const fatigue of [0, .2, .4, .8, 1]) {
                 const v = prepared({ speech }); Object.assign(v.world, { mode, fatigue });
