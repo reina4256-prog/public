@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（c5fc2da続き・4e DB／DC独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DD／DE／DFをbp必要所有節・依存から限定実装してください。DBは基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15・rest/report両記録なし、DCは基本文・既存実経験report限定scope今回不適用／rest適用可能・clearing/shade入力注目・学習後world原値、各short/gestureだけrest_value_prose.renderへ追加済み。bp原receipt再照合／原record全文一致・既存七言語本文再利用、記録なしとscope不適用・先行学習と今回理解／経験を別保持。DB／DC併用・DC rest不足・別表記装飾／他scene注目活動疲労への展開は非包含。開始時試遊発見を行い、CZ／DA・CX／CY・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。必要検証・引き継ぎ更新後、関連変更だけcommit・通常pushし、次実装内容と次チャット用引き継ぎ文を回答してください。検証・発行／実読未読は現行handoff。以下は過去状態。
+
 ## 現行継続文（c6a4996続き・4e CZ／DA独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DB／DCをbp必要所有節・依存から限定実装してください。CZ／DAは基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15・各short/gestureだけrest_value_prose.renderへ追加済み。CZ rest意味記録なし／report適用可能、DA report関係記録なし／rest適用可能。bp原receipt再照合／原record全文一致・既存七言語本文再利用、原出所有無／当時理解／実reply／expression欠落を保持。両方不足／scope不適用・別表記装飾／他scene活動疲労との組合せは今回非包含。開始時試遊発見・必要検証・引き継ぎ更新を行い、CX／CY・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。検証・発行／実読未読は現行handoff。関連変更のみcommit・通常pushし、次実装内容と次チャット用引き継ぎ文を回答してください。以下は過去状態。

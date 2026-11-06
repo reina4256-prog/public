@@ -36,7 +36,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_value_prose_fixtures');
         const values = [...fixtures.examples(), ...fixtures.addedExamples(), ...fixtures.punctuationExamples(),
-            ...fixtures.activityFatigueExamples(), ...fixtures.incompleteExamples()], excluded = fixtures.excludedExamples();
+            ...fixtures.activityFatigueExamples(), ...fixtures.incompleteExamples(),
+            ...fixtures.bothMissingAndScopedExamples()], excluded = fixtures.excludedExamples();
         const material = value => {
             const buffer = require('../../experimental_word_diary_candidates').create();
             require('../../experimental_word_diary_rest_value_reports').capture(buffer, value.result, value.receipt)

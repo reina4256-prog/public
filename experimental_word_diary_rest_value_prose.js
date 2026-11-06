@@ -33,27 +33,51 @@
         const u = result.understandings[0], knowledge = receipt.inputKnowledge;
         if (typeof input.raw !== 'string' || /^休むことは大事$/u.exec(input.raw)?.[0] !== input.raw
             || input.speaker !== 'player' || input.locale !== 'ja'
-            || context.scene !== 'clearing' || !equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
-            || world.mode !== 'idle' || world.attention !== null || world.hunger !== .35 || world.fatigue !== .15
+            || context.scene !== 'clearing'
+            || world.mode !== 'idle' || world.attention !== null
             || !['short', 'gesture'].includes(receipt.beforeState.settings.speech)
             || u.complete !== false || u.polarity !== 'positive' || u.eventTime !== 'unspecified'
             || u.aspect !== null || u.conditionStatus !== null || Object.hasOwn(receipt.reply, 'observation')) return null;
-        if (!knowledge.meanings.some(item => item.id === 'rest')
+        const initial = equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
+            && world.hunger === .35 && world.fatigue === .15;
+        const scoped = equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
+            && world.hunger === .8005555555555556 && world.fatigue === .6964285714285714
+            && learnedReport(knowledge);
+        if (!initial && !scoped) return null;
+        if (initial && !knowledge.meanings.some(item => item.id === 'rest')
             && u.kind === 'report' && equal(u.known, {}) && equal(u.relations, ['report'])
             && u.subject === 'player'
             && equal(u.reportSource, { kind: 'speaker_report', inputId: input.id, heardAt: input.at })
             && equal(u.unresolved, [{ type: 'meaning', field: 'meaning', token: 'rest' }, { type: 'detail', token: 'importance' }])
             && receipt.reply.message === 'attend')
             return '何かを伝えられたけれど、何のことか分からなかった。';
-        if (!knowledge.relations.some(item => item.id === 'report')
+        if ((initial && !knowledge.relations.some(item => item.id === 'report') || scoped)
             && u.kind === 'partial' && equal(u.known, { meaning: 'rest' }) && equal(u.relations, [])
             && u.subject === null && !Object.hasOwn(u, 'reportSource')
             && equal(u.unresolved, [{ type: 'relation', id: 'report' }, { type: 'detail', token: 'importance' }])
             && receipt.reply.message === (receipt.beforeState.settings.speech === 'short' ? 'uncertain' : 'attend'))
             return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+        if (initial && !knowledge.meanings.some(item => item.id === 'rest')
+            && !knowledge.relations.some(item => item.id === 'report')
+            && u.kind === 'partial' && equal(u.known, {}) && equal(u.relations, [])
+            && u.subject === null && !Object.hasOwn(u, 'reportSource')
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' },
+                { type: 'meaning', field: 'meaning', token: 'rest' }, { type: 'detail', token: 'importance' }])
+            && receipt.reply.message === 'attend') return '言われたことが分からなかった。';
         return null;
     }
-    // Read-only CR..DA projection; activity/fatigue never supply understanding.
+    function learnedReport(knowledge) {
+        const entries = knowledge.relations.filter(entry => entry.id === 'report');
+        return entries.length === 2 && ['self', 'player'].every(subject => entries.some(entry =>
+            entry.source === 'experienced_relation' && entry.scope?.kind === 'report'
+            && entry.scope.locale === 'ja' && entry.scope.speaker === 'player' && entry.scope.meaning === 'rest'
+            && typeof entry.scope.form === 'string'
+            && /^(?:あなたは|私は)休んでいる$/u.exec(entry.scope.form)?.[0] === entry.scope.form
+            && equal(entry.scope.roles, { reporter: 'player', contentSubject: subject, status: 'reported', verified: false })
+            && (/^あなたは/u.test(entry.scope.form) ? subject === 'self' : subject === 'player')
+            && Array.isArray(entry.evidence) && entry.evidence.length > 0));
+    }
+    // Read-only CR..DC projection; prior learning never supplies current understanding.
     // The aw owner validates the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.

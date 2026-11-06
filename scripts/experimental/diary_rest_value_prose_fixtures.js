@@ -22,6 +22,39 @@ function incompleteExamples() {
             && value.result.understandings[0].unresolved.filter(item => item.type !== 'detail').length === 1)
         .map(({ value }) => value);
 }
+function bothMissingAndScopedExamples() {
+    return require('./diary_incomplete_rest_value_report_fixtures').fixtures()
+        .filter(({ group, value }) => group === 'aw:real-experienced-report-scope-not-transferred'
+            || ['existing-forms-knowledge-matrix', 'aw:eight-settings'].includes(group)
+                && value.result.input.raw === raw
+                && value.result.understandings[0].unresolved.filter(item => item.type !== 'detail').length === 2)
+        .map(({ value }) => value);
+}
+function scopedExcludedExamples() {
+    const all = [];
+    for (const value of bothMissingAndScopedExamples().filter(v =>
+        v.receipt.inputKnowledge.relations.some(entry => entry.id === 'report'))) {
+        const fresh = () => ({ state: JSON.parse(JSON.stringify(value.receipt.beforeState)),
+            world: JSON.parse(JSON.stringify(value.receipt.beforeWorld)) });
+        for (const text of [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`, raw.replace('\u4f11\u3080', '\u3084\u3059\u3080')])
+            all.push(hearValue(fresh(), text));
+        for (const edit of [
+            v => { v.state.knowledge.meanings = v.state.knowledge.meanings.filter(e => e.id !== 'rest'); },
+            v => { v.state.knowledge.relations = []; },
+            v => { core.perceive(v.state, { scene: 'shore', attention: [] }); },
+            v => { core.perceive(v.state, { scene: 'clearing', attention: [{ id: 'berry:1', meaning: 'berry' }] }); },
+            v => { v.world.fatigue = .15; }, v => { v.world.hunger = .35; },
+            v => { v.world.mode = 'rest'; }, v => { v.world.attention = 'shade'; },
+            v => { v.state.knowledge.relations[0].evidence = []; },
+            v => { delete v.state.knowledge.relations[1].scope.form; },
+            v => { v.state.knowledge.relations[0].scope.roles.contentSubject = 'invented'; }
+        ]) { const v = fresh(); edit(v); all.push(hearValue(v)); }
+        all.push(hearValue(fresh(), raw, { speaker: 'visitor' }));
+        for (const locale of ['en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
+            all.push(hearValue(fresh(), raw, { locale }));
+    }
+    return all;
+}
 function excludedExamples() {
     const all = fixtures().filter(({ group }) => group !== 'eight-settings'
         && group !== 'seven-input-locales-no-new-grammar'
@@ -126,10 +159,12 @@ function excludedExamples() {
         const attention = fresh(); attention.world.attention = 'berry:1'; all.push(hearValue(attention, text));
         const hunger = fresh(); hunger.world.hunger = .4; all.push(hearValue(hunger, text));
     }
-    const adopted = new Set(incompleteExamples().map(value => JSON.stringify(value)));
+    const adopted = new Set([...incompleteExamples(), ...bothMissingAndScopedExamples()].map(value => JSON.stringify(value)));
+    all.push(...scopedExcludedExamples());
     all.push(...require('./diary_incomplete_rest_value_report_fixtures').fixtures()
         .filter(({ value }) => value.result.understandings[0]?.unresolved.some(item => ['meaning', 'relation'].includes(item.type)))
         .map(({ value }) => value));
     return all.filter(value => !adopted.has(JSON.stringify(value)));
 }
-module.exports = { examples, addedExamples, punctuationExamples, activityFatigueExamples, incompleteExamples, excludedExamples };
+module.exports = { examples, addedExamples, punctuationExamples, activityFatigueExamples, incompleteExamples,
+    bothMissingAndScopedExamples, scopedExcludedExamples, excludedExamples };

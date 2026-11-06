@@ -15,6 +15,39 @@ function valueMaterial(v) {
     return valueReports.capture(buffer, v.result, v.receipt)
         || incompleteValueReports.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
 }
+test('DB/DC separate absent records from learned but inapplicable scope without rewriting evidence', () => {
+    const values = valueFixtures.bothMissingAndScopedExamples(); assert.equal(values.length, 6);
+    for (const v of values) {
+        const record = valueMaterial(v), c = record.captured, u = v.result.understandings[0];
+        const scoped = v.receipt.inputKnowledge.relations.some(entry => entry.id === 'report');
+        const before = JSON.stringify({ record, v });
+        assert.equal(valueProse.render(record, v.result, v.receipt), scoped ? valueSentence
+            : '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002');
+        assert.equal(u.kind, 'partial'); assert.equal(u.complete, false);
+        assert.deepEqual(u.known, scoped ? { meaning: 'rest' } : {});
+        assert.deepEqual(u.relations, []); assert.equal(u.subject, null);
+        assert.deepEqual(u.unresolved, [{ type: 'relation', id: 'report' },
+            ...(!scoped ? [{ type: 'meaning', field: 'meaning', token: 'rest' }] : []),
+            { type: 'detail', token: 'importance' }]);
+        assert.equal(u.aspect, null); assert.equal(u.conditionStatus, null);
+        assert.equal(u.polarity, 'positive'); assert.equal(u.eventTime, 'unspecified');
+        assert.equal(c.meaningKnownBefore, scoped); assert.equal(c.relationsKnownBefore, false);
+        assert.deepEqual(c.missingRelationsBefore, ['report']);
+        assert.equal(c.response.message, scoped && c.actualSpeech ? 'uncertain' : 'attend');
+        for (const field of ['expression', 'reportSource', 'status', 'verified']) assert.equal(Object.hasOwn(c, field), false);
+        for (const field of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        assert.equal(Object.hasOwn(u, 'reportSource'), false);
+        assert.deepEqual(c.inputKnowledge, v.receipt.inputKnowledge);
+        assert.deepEqual(c.sources.activity.before, v.receipt.beforeWorld);
+        assert.deepEqual(c.sources.activity.after.experiences, v.receipt.beforeWorld.experiences);
+        if (scoped) {
+            assert.equal(v.receipt.beforeState.experiences.length, 2);
+            assert.equal(v.receipt.inputKnowledge.relations.filter(e => e.id === 'report').length, 2);
+            assert.ok(v.receipt.inputKnowledge.relations.every(e => e.source === 'experienced_relation'));
+        }
+        assert.equal(JSON.stringify({ record, v }), before);
+    }
+});
 test('CZ/DA preserve separate missing meaning/relation, original source and actual reply', () => {
     const values = valueFixtures.incompleteExamples(); assert.equal(values.length, 8);
     for (const v of values) {
@@ -49,8 +82,8 @@ test('CZ/DA preserve separate missing meaning/relation, original source and actu
         assert.equal(JSON.stringify({ record, v }), original);
     }
 });
-test('CZ/DA reject missing receipts, changed evidence, later knowledge and cross-source records', () => {
-    const values = valueFixtures.incompleteExamples();
+test('CZ..DC reject missing receipts, changed evidence, later knowledge and cross-source records', () => {
+    const values = [...valueFixtures.incompleteExamples(), ...valueFixtures.bothMissingAndScopedExamples()];
     for (const v of values) {
         const record = valueMaterial(v);
         for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
