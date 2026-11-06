@@ -31,7 +31,8 @@
     function incompleteSentence(result, receipt) {
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
         const u = result.understandings[0], knowledge = receipt.inputKnowledge;
-        if (typeof input.raw !== 'string' || /^休むことは大事$/u.exec(input.raw)?.[0] !== input.raw
+        if (typeof input.raw !== 'string'
+            || /^(?:休む|やすむ)(?:こと|の)は大事(?:だよ|だね|だ|です)?$/u.exec(input.raw)?.[0] !== input.raw
             || input.speaker !== 'player' || input.locale !== 'ja'
             || context.scene !== 'clearing'
             || world.mode !== 'idle' || world.attention !== null
@@ -40,7 +41,8 @@
             || u.aspect !== null || u.conditionStatus !== null || Object.hasOwn(receipt.reply, 'observation')) return null;
         const initial = equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
             && world.hunger === .35 && world.fatigue === .15;
-        const scoped = equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
+        const scoped = /^休むことは大事$/u.exec(input.raw)?.[0] === input.raw
+            && equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
             && world.hunger === .8005555555555556 && world.fatigue === .6964285714285714
             && learnedReport(knowledge);
         if (!initial && !scoped) return null;
@@ -77,7 +79,7 @@
             && (/^あなたは/u.test(entry.scope.form) ? subject === 'self' : subject === 'player')
             && Array.isArray(entry.evidence) && entry.evidence.length > 0));
     }
-    // Read-only CR..DC projection; prior learning never supplies current understanding.
+    // Read-only CR..DF projection; prior learning never supplies current understanding.
     // The aw owner validates the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.
