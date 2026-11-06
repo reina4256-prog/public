@@ -15,6 +15,57 @@ function valueMaterial(v) {
     return valueReports.capture(buffer, v.result, v.receipt)
         || incompleteValueReports.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
 }
+test('DI/DJ keep ten activity/fatigue contexts and three absence layouts without inventing execution or recovery', () => {
+    const values = valueFixtures.activityIncompleteExamples(); assert.equal(values.length, 60);
+    const counts = { 1: 0, 2: 0, 3: 0 }, contexts = new Set();
+    for (const v of values) {
+        const record = valueMaterial(v), c = record.captured, u = v.result.understandings[0];
+        const original = JSON.stringify({ record, v }), w = v.receipt.beforeWorld;
+        const mask = (c.meaningKnownBefore ? 0 : 1) | (c.relationsKnownBefore ? 0 : 2);
+        counts[mask]++; contexts.add(`${v.receipt.inputContext.scene}:${w.mode}:${w.fatigue}`);
+        assert.equal(valueProse.render(record, v.result, v.receipt), mask === 1
+            ? '\u4f55\u304b\u3092\u4f1d\u3048\u3089\u308c\u305f\u3051\u308c\u3069\u3001\u4f55\u306e\u3053\u3068\u304b\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002'
+            : mask === 2 ? valueSentence : '\u8a00\u308f\u308c\u305f\u3053\u3068\u304c\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002');
+        assert.deepEqual(c.inputContext, v.receipt.inputContext);
+        assert.deepEqual(c.sources.activity, { before: w, after: v.receipt.afterWorld });
+        assert.equal(w.attention, null); assert.equal(w.hunger, .35);
+        if (v.receipt.inputContext.scene === 'shore') {
+            assert.deepEqual(c.inputContext.attention, []); assert.equal(w.fatigue, .15);
+            assert.ok(['observe', 'eat', 'rest', 'work', 'walk'].includes(w.mode));
+        } else {
+            assert.equal(c.inputContext.scene, 'clearing'); assert.equal(w.mode, 'idle');
+            assert.deepEqual(c.inputContext.attention, [{ id: 'berry:1', meaning: 'berry' }]);
+            assert.ok([0, .2, .4, .8, 1].includes(w.fatigue));
+        }
+        assert.equal(u.kind, mask === 1 ? 'report' : 'partial');
+        assert.deepEqual(u.known, mask === 2 ? { meaning: 'rest' } : {});
+        assert.deepEqual(u.relations, mask === 1 ? ['report'] : []);
+        assert.equal(u.subject, mask === 1 ? 'player' : null);
+        assert.deepEqual(u.unresolved, [...(mask & 2 ? [{ type: 'relation', id: 'report' }] : []),
+            ...(mask & 1 ? [{ type: 'meaning', field: 'meaning', token: 'rest' }] : []),
+            { type: 'detail', token: 'importance' }]);
+        assert.equal(u.complete, false); assert.equal(u.aspect, null); assert.equal(u.conditionStatus, null);
+        assert.equal(u.polarity, 'positive'); assert.equal(u.eventTime, 'unspecified');
+        assert.equal(Object.hasOwn(c, 'reportSource'), mask === 1);
+        assert.equal(Object.hasOwn(u, 'reportSource'), mask === 1);
+        if (mask === 1) assert.deepEqual(c.reportSource,
+            { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        assert.equal(c.actualSpeech, v.receipt.beforeState.settings.speech === 'short');
+        assert.equal(c.response.message, mask === 2 && c.actualSpeech ? 'uncertain' : 'attend');
+        for (const field of ['expression', 'status', 'verified']) assert.equal(Object.hasOwn(c, field), false);
+        for (const field of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        for (const field of ['knowledge', 'experiences', 'selectionSources'])
+            assert.deepEqual(v.receipt.beforeState[field], v.receipt.afterState[field]);
+        assert.deepEqual(w.experiences, v.receipt.afterWorld.experiences);
+        assert.equal(Object.hasOwn(c.response, 'observation'), false);
+        assert.equal(valueReports.capture(candidates.create(), v.result, v.receipt), false);
+        assert.equal(prose.render(record, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    assert.deepEqual(counts, { 1: 20, 2: 20, 3: 20 }); assert.equal(contexts.size, 10);
+    for (const v of valueFixtures.activityIncompleteExcludedExamples())
+        assert.equal(valueProse.render(valueMaterial(v), v.result, v.receipt), null);
+});
 test('DG/DH preserve exact original spaces/punctuation and each of three absence layouts', () => {
     const values = valueFixtures.decoratedIncompleteExamples(); assert.equal(values.length, 18);
     const counts = { 1: 0, 2: 0, 3: 0 }, forms = new Set();
@@ -170,9 +221,10 @@ test('CZ/DA preserve separate missing meaning/relation, original source and actu
         assert.equal(JSON.stringify({ record, v }), original);
     }
 });
-test('CZ..DH reject missing receipts, changed evidence, later knowledge and cross-source records', () => {
+test('CZ..DJ reject missing receipts, changed evidence, later knowledge and cross-source records', () => {
     const values = [...valueFixtures.incompleteExamples(), ...valueFixtures.bothMissingAndScopedExamples(),
-        ...valueFixtures.alternateIncompleteExamples(), ...valueFixtures.decoratedIncompleteExamples()];
+        ...valueFixtures.alternateIncompleteExamples(), ...valueFixtures.decoratedIncompleteExamples(),
+        ...valueFixtures.activityIncompleteExamples()];
     for (const v of values) {
         const record = valueMaterial(v);
         for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
@@ -192,12 +244,14 @@ test('CZ..DH reject missing receipts, changed evidence, later knowledge and cros
             x => { x.v.result.expression = {}; },
             x => { x.v.result.input.raw += '\n'; },
             x => { x.v.receipt.inputKnowledge.meanings.push({ id: 'later' }); },
-            x => { x.v.receipt.inputContext.attention = []; },
+            x => { x.v.receipt.inputContext.attention = x.v.receipt.inputContext.attention.length
+                ? [] : [{ id: 'invented', meaning: 'berry' }]; },
             x => { x.v.receipt.afterState.serial++; },
             x => { x.v.receipt.afterWorld.elapsed++; },
             x => { x.v.receipt.reply.message = 'invented'; }
         ]) {
-            const x = copy({ record, v }); edit(x); const before = JSON.stringify(x);
+            const x = copy({ record, v }), original = JSON.stringify(x); edit(x); const before = JSON.stringify(x);
+            assert.notEqual(before, original, 'evidence mutation must change the supplied data');
             assert.equal(valueProse.render(x.record, x.v.result, x.v.receipt), null);
             assert.equal(JSON.stringify(x), before);
         }

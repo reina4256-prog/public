@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（2cfa41b続き・4e DI／DJ独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DK／DLをax必要所有節・依存から限定実装してください。DIは基本文・shore／入力注目なし・五活動fatigue=.15、DJは基本文・初期clearing/berry:1注目・idle・疲労0/.2/.4/.8/1、共通world.attention=null/hunger=.35・各short/gesture・単純mask1/2/3だけ追加済み。bp原receipt再照合／原record全文一致後、既存七言語三本文を再利用し、scene／入力注目とworld注目・活動疲労／当時理解／不足根拠／出所有無・実replyを別保持。DI／DJ併用・別表記／空白記号／scope不適用／DC学習後・他scene注目活動疲労値との組合せ非包含。開始時試遊発見を行い、DG／DH・DD／DE／DF・DB／DCの記録なしとscope不適用・CZ／DA・CX／CY・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧失敗／incomplete／修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。検証・引き継ぎ更新後、関連変更だけcommit・通常pushしてください。検証・発行／実読未読は現行handoff。以下は過去状態。
+
 ## 現行継続文（0ba7836続き・4e DG／DH独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DI／DJをbp必要所有節・依存から限定実装してください。DG前後U+0020各一個／DH単一末尾「。／！」は基本文・初期clearing/berry:1入力注目・world idle/null/.35/.15・各short/gesture・単純mask1/2/3だけ追加済み。bp原receipt再照合／原record全文一致後、既存七言語三本文を再利用し、原空白記号／当時理解／不足根拠／出所有無・実replyを別保持。片側／全角空白・複数記号／併用・十九別表記／scope不適用／DC学習後・他scene活動疲労との組合せ非包含。開始時試遊発見を行い、DD／DE／DF・DB／DCの記録なしとscope不適用・CZ／DA・CX／CY・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧失敗／incomplete／修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。検証・引き継ぎ更新後、関連変更だけcommit・通常pushしてください。検証・発行／実読未読は現行handoff。以下は過去状態。

@@ -42,6 +42,44 @@ function decoratedIncompleteExamples() {
         .filter(({ group }) => group === 'missing-knowledge-single-punctuation')
         .map(({ value }) => value);
 }
+function activityIncompleteExamples() {
+    return require('./diary_incomplete_rest_value_report_fixtures').fixtures()
+        .filter(({ group }) => ['missing-knowledge-activity-empty-attention',
+            'missing-knowledge-fatigue-no-importance-inference'].includes(group))
+        .map(({ value }) => value);
+}
+function activityIncompleteExcludedExamples() {
+    const all = [];
+    const scoped = bothMissingAndScopedExamples().find(v =>
+        v.receipt.inputKnowledge.relations.some(entry => entry.id === 'report'));
+    const forms = [...new Set(addedExamples().map(v => v.result.input.raw))].filter(text => text !== raw);
+    for (const value of activityIncompleteExamples()) {
+        const shore = value.receipt.inputContext.scene === 'shore';
+        const fresh = () => ({ state: JSON.parse(JSON.stringify(value.receipt.beforeState)),
+            world: JSON.parse(JSON.stringify(value.receipt.beforeWorld)) });
+        for (const text of [...forms, ` ${raw} `, `${raw}\u3002`, `${raw}\uff01`, `${raw}\n`])
+            all.push(hearValue(fresh(), text));
+        for (const context of [
+            { scene: 'clearing', attention: [] },
+            shore ? { scene: 'clearing', attention: [{ id: 'berry:1', meaning: 'berry' }] }
+                : { scene: 'shore', attention: [] },
+            { scene: 'shore', attention: [{ id: 'berry:1', meaning: 'berry' }] }
+        ]) { const v = fresh(); core.perceive(v.state, context); all.push(hearValue(v)); }
+        for (const edit of [
+            v => { v.world.attention = 'berry:1'; }, v => { v.world.hunger = .4; },
+            ...(shore ? [0, .2, .4, .8, 1] : [.1, .3, .6]).map(fatigue => v => { v.world.fatigue = fatigue; }),
+            ...(shore ? ['idle', 'move', 'unknown'] : ['observe', 'eat', 'rest', 'work', 'walk'])
+                .map(mode => v => { v.world.mode = mode; })
+        ]) { const v = fresh(); edit(v); all.push(hearValue(v)); }
+        all.push(hearValue(fresh(), raw, { speaker: 'visitor' }));
+        for (const locale of ['en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
+            all.push(hearValue(fresh(), raw, { locale }));
+        const v = fresh(); v.state = JSON.parse(JSON.stringify(scoped.receipt.beforeState));
+        v.state.settings.speech = value.receipt.beforeState.settings.speech;
+        core.perceive(v.state, value.receipt.inputContext); all.push(hearValue(v));
+    }
+    return all;
+}
 function decoratedIncompleteExcludedExamples() {
     const all = [];
     const scoped = bothMissingAndScopedExamples().find(v =>
@@ -228,10 +266,12 @@ function excludedExamples() {
         const hunger = fresh(); hunger.world.hunger = .4; all.push(hearValue(hunger, text));
     }
     const adopted = new Set([...incompleteExamples(), ...bothMissingAndScopedExamples(),
-        ...alternateIncompleteExamples(), ...decoratedIncompleteExamples()].map(value => JSON.stringify(value)));
+        ...alternateIncompleteExamples(), ...decoratedIncompleteExamples(),
+        ...activityIncompleteExamples()].map(value => JSON.stringify(value)));
     all.push(...scopedExcludedExamples());
     all.push(...alternateIncompleteExcludedExamples());
     all.push(...decoratedIncompleteExcludedExamples());
+    all.push(...activityIncompleteExcludedExamples());
     all.push(...require('./diary_incomplete_rest_value_report_fixtures').fixtures()
         .filter(({ value }) => value.result.understandings[0]?.unresolved.some(item => ['meaning', 'relation'].includes(item.type)))
         .map(({ value }) => value));
@@ -240,4 +280,5 @@ function excludedExamples() {
 module.exports = { examples, addedExamples, punctuationExamples, activityFatigueExamples, incompleteExamples,
     bothMissingAndScopedExamples, alternateIncompleteExamples, alternateIncompleteExcludedExamples,
     decoratedIncompleteExamples, decoratedIncompleteExcludedExamples,
+    activityIncompleteExamples, activityIncompleteExcludedExamples,
     scopedExcludedExamples, excludedExamples };

@@ -35,32 +35,38 @@
             || (/^(?:休む|やすむ)(?:こと|の)は大事(?:だよ|だね|だ|です)?$/u.exec(input.raw)?.[0] !== input.raw
                 && /^(?: 休むことは大事 |休むことは大事[。！])$/u.exec(input.raw)?.[0] !== input.raw)
             || input.speaker !== 'player' || input.locale !== 'ja'
-            || context.scene !== 'clearing'
-            || world.mode !== 'idle' || world.attention !== null
+            || world.attention !== null
             || !['short', 'gesture'].includes(receipt.beforeState.settings.speech)
             || u.complete !== false || u.polarity !== 'positive' || u.eventTime !== 'unspecified'
             || u.aspect !== null || u.conditionStatus !== null || Object.hasOwn(receipt.reply, 'observation')) return null;
-        const initial = equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
-            && world.hunger === .35 && world.fatigue === .15;
-        const scoped = /^休むことは大事$/u.exec(input.raw)?.[0] === input.raw
+        const basic = /^休むことは大事$/u.exec(input.raw)?.[0] === input.raw;
+        const clearing = context.scene === 'clearing'
+            && equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }]);
+        const ordinary = world.mode === 'idle' && world.fatigue === .15;
+        const activity = ['observe', 'eat', 'rest', 'work', 'walk'].includes(world.mode) && world.fatigue === .15;
+        const fatigue = world.mode === 'idle' && [0, .2, .4, .8, 1].includes(world.fatigue);
+        const simple = world.hunger === .35 && (clearing && ordinary
+            || basic && (context.scene === 'shore' && equal(context.attention, []) && activity
+                || clearing && fatigue));
+        const scoped = basic && context.scene === 'clearing' && world.mode === 'idle'
             && equal(context.attention, [{ id: 'shade', meaning: 'rest' }])
             && world.hunger === .8005555555555556 && world.fatigue === .6964285714285714
             && learnedReport(knowledge);
-        if (!initial && !scoped) return null;
-        if (initial && !knowledge.meanings.some(item => item.id === 'rest')
+        if (!simple && !scoped) return null;
+        if (simple && !knowledge.meanings.some(item => item.id === 'rest')
             && u.kind === 'report' && equal(u.known, {}) && equal(u.relations, ['report'])
             && u.subject === 'player'
             && equal(u.reportSource, { kind: 'speaker_report', inputId: input.id, heardAt: input.at })
             && equal(u.unresolved, [{ type: 'meaning', field: 'meaning', token: 'rest' }, { type: 'detail', token: 'importance' }])
             && receipt.reply.message === 'attend')
             return '何かを伝えられたけれど、何のことか分からなかった。';
-        if ((initial && !knowledge.relations.some(item => item.id === 'report') || scoped)
+        if ((simple && !knowledge.relations.some(item => item.id === 'report') || scoped)
             && u.kind === 'partial' && equal(u.known, { meaning: 'rest' }) && equal(u.relations, [])
             && u.subject === null && !Object.hasOwn(u, 'reportSource')
             && equal(u.unresolved, [{ type: 'relation', id: 'report' }, { type: 'detail', token: 'importance' }])
             && receipt.reply.message === (receipt.beforeState.settings.speech === 'short' ? 'uncertain' : 'attend'))
             return '休むことは分かったけれど、言われたことは全部は分からなかった。';
-        if (initial && !knowledge.meanings.some(item => item.id === 'rest')
+        if (simple && !knowledge.meanings.some(item => item.id === 'rest')
             && !knowledge.relations.some(item => item.id === 'report')
             && u.kind === 'partial' && equal(u.known, {}) && equal(u.relations, [])
             && u.subject === null && !Object.hasOwn(u, 'reportSource')
@@ -80,7 +86,7 @@
             && (/^あなたは/u.test(entry.scope.form) ? subject === 'self' : subject === 'player')
             && Array.isArray(entry.evidence) && entry.evidence.length > 0));
     }
-    // Read-only CR..DH projection; prior learning never supplies current understanding.
+    // Read-only CR..DJ projection; prior learning never supplies current understanding.
     // The aw/bp owners validate the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.

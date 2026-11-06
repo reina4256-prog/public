@@ -38,7 +38,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         const values = [...fixtures.examples(), ...fixtures.addedExamples(), ...fixtures.punctuationExamples(),
             ...fixtures.activityFatigueExamples(), ...fixtures.incompleteExamples(),
             ...fixtures.bothMissingAndScopedExamples(), ...fixtures.alternateIncompleteExamples(),
-            ...fixtures.decoratedIncompleteExamples()], excluded = fixtures.excludedExamples();
+            ...fixtures.decoratedIncompleteExamples(), ...fixtures.activityIncompleteExamples()], excluded = fixtures.excludedExamples();
         const material = value => {
             const buffer = require('../../experimental_word_diary_candidates').create();
             require('../../experimental_word_diary_rest_value_reports').capture(buffer, value.result, value.receipt)
