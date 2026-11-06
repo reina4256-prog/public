@@ -32,7 +32,8 @@
         const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
         const u = result.understandings[0], knowledge = receipt.inputKnowledge;
         if (typeof input.raw !== 'string'
-            || /^(?:休む|やすむ)(?:こと|の)は大事(?:だよ|だね|だ|です)?$/u.exec(input.raw)?.[0] !== input.raw
+            || (/^(?:休む|やすむ)(?:こと|の)は大事(?:だよ|だね|だ|です)?$/u.exec(input.raw)?.[0] !== input.raw
+                && /^(?: 休むことは大事 |休むことは大事[。！])$/u.exec(input.raw)?.[0] !== input.raw)
             || input.speaker !== 'player' || input.locale !== 'ja'
             || context.scene !== 'clearing'
             || world.mode !== 'idle' || world.attention !== null
@@ -79,8 +80,8 @@
             && (/^あなたは/u.test(entry.scope.form) ? subject === 'self' : subject === 'player')
             && Array.isArray(entry.evidence) && entry.evidence.length > 0));
     }
-    // Read-only CR..DF projection; prior learning never supplies current understanding.
-    // The aw owner validates the original
+    // Read-only CR..DH projection; prior learning never supplies current understanding.
+    // The aw/bp owners validate the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.
     function render(record, result, receipt) {

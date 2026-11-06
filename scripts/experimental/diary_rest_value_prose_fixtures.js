@@ -37,6 +37,40 @@ function alternateIncompleteExamples() {
             && value.result.understandings[0].unresolved.some(item => ['meaning', 'relation'].includes(item.type)))
         .map(({ value }) => value);
 }
+function decoratedIncompleteExamples() {
+    return require('./diary_incomplete_rest_value_report_fixtures').fixtures()
+        .filter(({ group }) => group === 'missing-knowledge-single-punctuation')
+        .map(({ value }) => value);
+}
+function decoratedIncompleteExcludedExamples() {
+    const all = [];
+    const scoped = bothMissingAndScopedExamples().find(v =>
+        v.receipt.inputKnowledge.relations.some(entry => entry.id === 'report'));
+    for (const value of decoratedIncompleteExamples()) {
+        const text = value.result.input.raw;
+        const fresh = () => ({ state: JSON.parse(JSON.stringify(value.receipt.beforeState)),
+            world: JSON.parse(JSON.stringify(value.receipt.beforeWorld)) });
+        for (const outside of [` ${raw}`, `${raw} `, `  ${raw}  `, `\u3000${raw}\u3000`,
+            `\t${raw}\t`, `${raw}!`, `${raw}\u3002\u3002`, `${raw}\uff01\uff01`,
+            ` ${raw}\u3002 `, ` ${raw}\uff01 `, `${text}\n`])
+            all.push(hearValue(fresh(), outside));
+        for (const edit of [
+            v => { core.perceive(v.state, { scene: 'shore', attention: [] }); },
+            v => { core.perceive(v.state, { scene: 'clearing', attention: [] }); },
+            v => { v.world.attention = 'berry:1'; }, v => { v.world.hunger = .4; },
+            ...['observe', 'eat', 'rest', 'work', 'walk'].map(mode => v => { v.world.mode = mode; }),
+            ...[0, .2, .4, .8, 1].map(fatigue => v => { v.world.fatigue = fatigue; })
+        ]) { const v = fresh(); edit(v); all.push(hearValue(v, text)); }
+        all.push(hearValue(fresh(), text, { speaker: 'visitor' }));
+        for (const locale of ['en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
+            all.push(hearValue(fresh(), text, { locale }));
+        const v = { state: JSON.parse(JSON.stringify(scoped.receipt.beforeState)),
+            world: JSON.parse(JSON.stringify(scoped.receipt.beforeWorld)) };
+        v.state.settings.speech = value.receipt.beforeState.settings.speech;
+        all.push(hearValue(v, text));
+    }
+    return all;
+}
 function alternateIncompleteExcludedExamples() {
     const all = [];
     const scoped = bothMissingAndScopedExamples().find(v =>
@@ -194,9 +228,10 @@ function excludedExamples() {
         const hunger = fresh(); hunger.world.hunger = .4; all.push(hearValue(hunger, text));
     }
     const adopted = new Set([...incompleteExamples(), ...bothMissingAndScopedExamples(),
-        ...alternateIncompleteExamples()].map(value => JSON.stringify(value)));
+        ...alternateIncompleteExamples(), ...decoratedIncompleteExamples()].map(value => JSON.stringify(value)));
     all.push(...scopedExcludedExamples());
     all.push(...alternateIncompleteExcludedExamples());
+    all.push(...decoratedIncompleteExcludedExamples());
     all.push(...require('./diary_incomplete_rest_value_report_fixtures').fixtures()
         .filter(({ value }) => value.result.understandings[0]?.unresolved.some(item => ['meaning', 'relation'].includes(item.type)))
         .map(({ value }) => value));
@@ -204,4 +239,5 @@ function excludedExamples() {
 }
 module.exports = { examples, addedExamples, punctuationExamples, activityFatigueExamples, incompleteExamples,
     bothMissingAndScopedExamples, alternateIncompleteExamples, alternateIncompleteExcludedExamples,
+    decoratedIncompleteExamples, decoratedIncompleteExcludedExamples,
     scopedExcludedExamples, excludedExamples };
