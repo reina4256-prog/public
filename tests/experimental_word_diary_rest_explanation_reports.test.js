@@ -13,8 +13,8 @@ const proseSentence = '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3
 function proseMaterial(v) {
     const buffer = candidates.create(); api.capture(buffer, v.result, v.receipt); return buffer.read()[0];
 }
-test('DK/DL preserve separate original importance and recovery-explanation evidence without completing either', () => {
-    const examples = proseFixtures.examples(); assert.equal(examples.length, 2);
+test('DK/DL/DM/DN preserve separate original importance and recovery-explanation evidence without completing either', () => {
+    const examples = proseFixtures.examples(); assert.equal(examples.length, 22);
     for (const v of examples) {
         const record = proseMaterial(v), c = record.captured, a = v.receipt.antecedent;
         const original = JSON.stringify({ record, v });
@@ -114,6 +114,51 @@ test('DK/DL exclude other ax scopes and keep identical aw prose as separate orig
         assert.equal(explanationProse.render(record, other.result, other.receipt), null);
         for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
             assert.equal(typeof require('../locales/' + locale + '.json')[proseSentence], 'string');
+    }
+});
+test('DM/DN preserve the nine original forms and the separate shore input clock without inferring assent or arrival', () => {
+    const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
+    const examples = proseFixtures.examples();
+    const clearing = examples.filter(v => v.receipt.inputContext.scene === 'clearing');
+    const shore = examples.filter(v => v.receipt.inputContext.scene === 'shore');
+    assert.equal(clearing.length, 20); assert.equal(shore.length, 2);
+    assert.equal(new Set(clearing.map(v => v.result.input.raw)).size, 10);
+    for (const v of examples) {
+        const record = proseMaterial(v), before = JSON.stringify({ record, v });
+        assert.equal(explanationProse.render(record, v.result, v.receipt), proseSentence);
+        assert.equal(record.captured.sources.input.raw, v.result.input.raw);
+        assert.equal(record.captured.sources.antecedent.result.input.raw, owner.topic);
+        assert.equal(Object.hasOwn(record.captured, 'expression'), false);
+        if (v.receipt.inputContext.scene === 'shore') {
+            assert.equal(v.result.input.raw, owner.raw); assert.equal(v.result.input.at, 987654321);
+            assert.deepEqual(v.receipt.inputContext.attention, []);
+            assert.equal(v.receipt.beforeWorld.attention, null);
+            assert.equal(v.receipt.antecedent.receipt.inputContext.scene, 'clearing');
+            assert.deepEqual(v.receipt.antecedent.receipt.inputContext.attention, [{ id: 'berry:1', meaning: 'berry' }]);
+        }
+        assert.equal(JSON.stringify({ record, v }), before);
+    }
+    // A different elapsed world clock does not invalidate the retained prior turn.
+    for (const speech of ['short', 'gesture']) {
+        const v = owner.prepared({ speech });
+        owner.core.perceive(v.state, { scene: 'shore', attention: [] }); v.world.elapsed += 50;
+        const value = owner.hearExplanation(v, owner.raw, { at: 987654321 });
+        assert.equal(explanationProse.render(proseMaterial(value), value.result, value.receipt), proseSentence);
+    }
+});
+test('DM/DN reject replayable combined scopes, changed shore clocks and current-only restoration', () => {
+    const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
+    for (const speech of ['short', 'gesture']) {
+        for (const text of [owner.raw + '\u306d', '\u3046\u3093' + owner.raw]) {
+            const v = owner.prepared({ speech }); owner.core.perceive(v.state, { scene: 'shore', attention: [] });
+            const value = owner.hearExplanation(v, text, { at: 987654321 });
+            assert.ok(proseMaterial(value));
+            assert.equal(explanationProse.render(proseMaterial(value), value.result, value.receipt), null);
+        }
+    }
+    for (const v of proseFixtures.examples()) {
+        const changed = copy(v); delete changed.receipt.antecedent.receipt.inputKnowledge;
+        assert.equal(explanationProse.render(proseMaterial(v), changed.result, changed.receipt), null);
     }
 });
 for (const group of new Set(values.map(f => f.group))) test(`rest explanation report candidate: ${group}`, () => {

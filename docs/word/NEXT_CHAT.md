@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（6de11b5続き・4e DM／DN独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DO／DPをax必要所有節・依存から限定実装してください。開始時試遊発見を行い、検証・引き継ぎ更新後、関連変更だけcommit・通常pushしてください。2026-11-06・6de11b5続き。既採用DM／DNをrest_explanation_prose.renderへ限定追加。DMは今回残九表記・初期clearing/berry:1、DNは今回基本文・shore／入力注目なし・原時刻987654321、各short/gestureだけ。直前基本文と初期条件を保持し、ax双方原receipt／aw直前importanceを再照合、原record全文一致後に既存七言語本文を再利用。原接頭語尾／場面時刻・直前importanceと今回recovery_explanationの不足・当時理解／実replyを別保持。同意・納得・移動到着／無視・具体回復／因果理解を補わず、DM／DN併用・他表記空白記号・他scene注目活動疲労・bq不足／scope不適用は非包含。DK／DL以下・DB／DC区別・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧失敗／incomplete／中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。次は既採用DO／DP（shortのみの単独空白／終端記号）。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。以下は過去状態。
+
 ## 現行継続文（ed1ffe3続き・4e DK／DL独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DM／DNをax必要所有節・依存から限定実装してください。DK／DLは独立rest_explanation_prose.renderへ追加済み。直前基本文／今回回復説明・両方player/ja・foundation/life=true・初期clearing/berry:1入力注目・world idle/null/.35/.15、DK short／DL gestureだけ。axで双方の原receipt、awで直前importance未理解を再照合し、原record全文一致後に既存七言語の休む部分理解本文を再利用。直前importanceと今回recovery_explanationの不足・原出所／当時理解／実replyを別保持し、欠損非復元・同文非集約。別表記接頭語尾／空白記号・他直前rest／話者・scene注目活動疲労変更・bq不足／scope不適用は非包含。開始時試遊発見を行い、DI／DJ以下の既存文章化・DB／DCの記録なしとscope不適用・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧失敗／incomplete／修正前run中断非置換・既存集計を保持。表示APIを旧母数へ加算せず、4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。検証・引き継ぎ更新後、関連変更だけcommit・通常pushしてください。検証・発行／実読未読は現行handoff。以下は過去状態。

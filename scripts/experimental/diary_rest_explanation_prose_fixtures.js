@@ -2,13 +2,40 @@
 // Disposable current-code evidence, never historical supply or player storage.
 const { fixtures, setup, prepared, prior, hearExplanation, core, raw, topic } = require('./diary_rest_explanation_report_fixtures');
 function examples() {
-    return fixtures().filter(({ group, value }) => group === 'eight-settings'
-        && value.receipt.beforeState.settings.foundation && value.receipt.beforeState.settings.life)
+    const values = fixtures().filter(({ group, value }) => group === 'eight-settings'
+        && value.receipt.beforeState.settings.foundation && value.receipt.beforeState.settings.life
+        || group === 'existing-japanese-forms' || group === 'changed-scene-and-no-target')
         .map(({ value }) => value);
+    return [...new Map(values.map(value => [JSON.stringify(value), value])).values()];
 }
 function excludedExamples() {
     const all = fixtures().map(({ value }) => value);
     for (const speech of ['short', 'gesture']) {
+        for (const prefix of ['', '\u3046\u3093', '\u3046\u3093\u3001', '\u3046\u3093,', '\u3046\u3093 '])
+            for (const suffix of ['', '\u306d']) {
+                const text = prefix + raw + suffix;
+                const shore = prepared({ speech }); core.perceive(shore.state, { scene: 'shore', attention: [] });
+                if (text !== raw) all.push(hearExplanation(shore, text, { at: 987654321 }));
+                for (const decorated of [` ${text} `, `${text}\u3002`, `${text}\uff01`, `${text}\n`])
+                    all.push(hearExplanation(prepared({ speech }), decorated));
+                for (const edit of [v => { v.world.mode = 'rest'; }, v => { v.world.fatigue = .4; },
+                    v => { v.world.attention = 'berry:1'; }, v => { v.world.hunger = .4; },
+                    v => { v.state.settings.foundation = false; }, v => { v.state.settings.life = false; }]) {
+                    const v = prepared({ speech }); edit(v); all.push(hearExplanation(v, text));
+                }
+            }
+        for (const at of [101, 987654320, 987654322]) {
+            const v = prepared({ speech }); core.perceive(v.state, { scene: 'shore', attention: [] });
+            all.push(hearExplanation(v, raw, { at }));
+        }
+        for (const edit of [v => { v.world.mode = 'rest'; }, v => { v.world.fatigue = .4; },
+            v => { v.world.attention = 'berry:1'; }, v => { v.world.hunger = .4; },
+            v => { v.state.settings.foundation = false; }, v => { v.state.settings.life = false; },
+            v => { core.perceive(v.state, { scene: 'shore', attention: [{ id: 'berry:1', meaning: 'berry' }] }); },
+            v => { v.state.settings.speech = speech === 'short' ? 'gesture' : 'short'; }]) {
+            const v = prepared({ speech }); core.perceive(v.state, { scene: 'shore', attention: [] });
+            edit(v); all.push(hearExplanation(v, raw, { at: 987654321 }));
+        }
         const edits = [
             ...['observe', 'eat', 'rest', 'work', 'walk'].map(mode => v => { v.world.mode = mode; }),
             ...[0, .2, .4, .8, 1].map(fatigue => v => { v.world.fatigue = fatigue; }),
