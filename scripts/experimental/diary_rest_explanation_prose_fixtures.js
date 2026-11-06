@@ -5,13 +5,39 @@ function examples() {
     const values = fixtures().filter(({ group, value }) => group === 'eight-settings'
         && value.receipt.beforeState.settings.foundation && value.receipt.beforeState.settings.life
         || group === 'existing-japanese-forms' || group === 'changed-scene-and-no-target'
-        || group === 'single-trim-and-terminal-punctuation')
+        || group === 'single-trim-and-terminal-punctuation'
+        || group === 'activity-does-not-prove-recovery-or-cause' || group === 'fatigue-does-not-resolve-explanation')
         .map(({ value }) => value);
     return [...new Map(values.map(value => [JSON.stringify(value), value])).values()];
 }
 function excludedExamples() {
     const all = fixtures().map(({ value }) => value);
     for (const speech of ['short', 'gesture']) {
+        for (const mode of ['idle', 'observe', 'eat', 'rest', 'work', 'walk'])
+            for (const fatigue of [0, .2, .4, .8, 1]) {
+                const v = prepared({ speech }); Object.assign(v.world, { mode, fatigue });
+                all.push(hearExplanation(v));
+            }
+        for (const mode of ['observe', 'eat', 'rest', 'work', 'walk']) {
+            for (const text of [raw + '\u306d', '\u3046\u3093' + raw, ` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]) {
+                const v = prepared({ speech }); v.world.mode = mode; all.push(hearExplanation(v, text));
+            }
+            for (const edit of [v => { v.world.attention = 'berry:1'; }, v => { v.world.hunger = .4; },
+                v => { core.perceive(v.state, { scene: 'shore', attention: [] }); },
+                v => { core.perceive(v.state, { scene: 'clearing', attention: [] }); },
+                v => { v.state.settings.foundation = false; }, v => { v.state.settings.life = false; }]) {
+                const v = prepared({ speech }); v.world.mode = mode; edit(v);
+                all.push(hearExplanation(v, raw, { at: 987654321 }));
+            }
+        }
+        for (const fatigue of [0, .2, .4, .8, 1]) {
+            for (const text of [raw + '\u306d', '\u3046\u3093' + raw, ` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]) {
+                const v = prepared({ speech }); v.world.fatigue = fatigue; all.push(hearExplanation(v, text));
+            }
+        }
+        for (const fatigue of [-.1, .1, .3, .6, 1.1]) {
+            const v = prepared({ speech }); v.world.fatigue = fatigue; all.push(hearExplanation(v));
+        }
         for (const text of [` ${raw} `, `${raw}\u3002`, `${raw}\uff01`]) {
             // The existing owner fixture group has short only; gesture stays outside DO/DP.
             all.push(hearExplanation(prepared({ speech }), text));

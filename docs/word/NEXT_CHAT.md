@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（112cfb9続き・4e DQ／DR独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DS／DTをax必要所有節・依存から限定実装してください。開始時試遊発見を行い、検証・引き継ぎ更新後、関連変更だけcommit・通常pushしてください。DQは今回基本文の五活動fatigue=.15・各short/gesture、DRは今回基本文idle疲労五値・shortだけ追加済み。直前基本文と初期条件・双方独立原receipt照合を保持。活動疲労／当時理解／不足根拠／出所／実replyを別保持し、本人選択開始継続完了・道への移動／散策開始完了・休息必要性／実回復／具体回復因果を補わない。DQ／DR併用・DR gesture・DM／DN／DO／DPとの組合せは非包含。DK〜DP・DB／DCの記録なしとscope不適用・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧失敗／incomplete／修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。検証・発行／実読未読は現行handoff、詳細条件は4e所有節。以下は過去状態。
+
 ## 現行継続文（3624a02続き・4e DO／DP独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用DQ／DRをax必要所有節・依存から限定実装してください。開始時試遊発見を行い、検証・引き継ぎ更新後、関連変更だけcommit・通常pushしてください。2026-11-07・3624a02続き。既採用DO／DPをrest_explanation_prose.renderへ限定追加。shortだけ、DOは今回基本文の前後U+0020各一個、DPは単一終端「。／！」だけ。直前基本文・両方player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15を保持。ax双方原receipt／aw直前importanceを再照合し、原record全文一致後に既存七言語本文を再利用。原空白記号と直前importance／今回recovery_explanationの不足・当時理解／出所／実replyを別保持。強調感情・理解促進／納得／同意・具体回復因果／本人休息／真偽を補わず、DO／DP併用・片側全角複数空白／複数記号・gesture・DM／DNとの組合せ・他場面注目活動疲労・bq不足／scope不適用は非包含。DK〜DN・DB／DC区別・六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧失敗／incomplete／中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記4g・星座工程／時期未確定・前倒しなし。次は既採用DQ／DR。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。以下は過去状態。

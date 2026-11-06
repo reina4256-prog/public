@@ -13,8 +13,8 @@ const proseSentence = '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3
 function proseMaterial(v) {
     const buffer = candidates.create(); api.capture(buffer, v.result, v.receipt); return buffer.read()[0];
 }
-test('DK/DL/DM/DN/DO/DP preserve separate original importance and recovery-explanation evidence without completing either', () => {
-    const examples = proseFixtures.examples(); assert.equal(examples.length, 25);
+test('DK/DL/DM/DN/DO/DP/DQ/DR preserve separate original importance and recovery-explanation evidence without completing either', () => {
+    const examples = proseFixtures.examples(); assert.equal(examples.length, 40);
     for (const v of examples) {
         const record = proseMaterial(v), c = record.captured, a = v.receipt.antecedent;
         const original = JSON.stringify({ record, v });
@@ -119,7 +119,8 @@ test('DK/DL exclude other ax scopes and keep identical aw prose as separate orig
 test('DM/DN preserve the nine original forms and the separate shore input clock without inferring assent or arrival', () => {
     const owner = require('../scripts/experimental/diary_rest_explanation_report_fixtures');
     const examples = proseFixtures.examples().filter(v => v.result.input.raw === v.result.input.raw.trim()
-        && !/[。！]$/u.test(v.result.input.raw));
+        && !/[。！]$/u.test(v.result.input.raw) && v.receipt.beforeWorld.mode === 'idle'
+        && v.receipt.beforeWorld.fatigue === .15);
     const clearing = examples.filter(v => v.receipt.inputContext.scene === 'clearing');
     const shore = examples.filter(v => v.receipt.inputContext.scene === 'shore');
     assert.equal(clearing.length, 20); assert.equal(shore.length, 2);
@@ -184,6 +185,29 @@ test('DO/DP retain three exact short-only raw forms as separate materials withou
         const value = owner.hearExplanation(owner.prepared({ speech: 'gesture' }), text);
         assert.ok(proseMaterial(value));
         assert.equal(explanationProse.render(proseMaterial(value), value.result, value.receipt), null);
+    }
+});
+test('DQ/DR preserve current activity and fatigue apart from the initial antecedent without inventing selection or recovery', () => {
+    const additions = proseFixtures.examples().filter(v => v.receipt.beforeWorld.mode !== 'idle'
+        || v.receipt.beforeWorld.fatigue !== .15);
+    assert.equal(additions.length, 15);
+    const activity = additions.filter(v => v.receipt.beforeWorld.mode !== 'idle');
+    const fatigue = additions.filter(v => v.receipt.beforeWorld.mode === 'idle');
+    assert.equal(activity.length, 10); assert.equal(fatigue.length, 5);
+    assert.deepEqual(new Set(activity.map(v => v.receipt.beforeWorld.mode)), new Set(['observe', 'eat', 'rest', 'work', 'walk']));
+    assert.deepEqual(new Set(fatigue.map(v => v.receipt.beforeWorld.fatigue)), new Set([0, .2, .4, .8, 1]));
+    for (const v of additions) {
+        const record = proseMaterial(v), before = JSON.stringify({ record, v });
+        assert.equal(explanationProse.render(record, v.result, v.receipt), proseSentence);
+        assert.equal(v.receipt.antecedent.receipt.beforeWorld.mode, 'idle');
+        assert.equal(v.receipt.antecedent.receipt.beforeWorld.fatigue, .15);
+        assert.deepEqual(record.captured.sources.activity, { before: v.receipt.beforeWorld, after: v.receipt.afterWorld });
+        assert.deepEqual(record.captured.sources.antecedent, v.receipt.antecedent);
+        assert.deepEqual(v.receipt.beforeState.selectionSources, v.receipt.afterState.selectionSources);
+        assert.deepEqual(v.receipt.beforeWorld.experiences, v.receipt.afterWorld.experiences);
+        if (v.receipt.beforeWorld.mode === 'idle') assert.equal(v.receipt.beforeState.settings.speech, 'short');
+        else assert.equal(v.receipt.beforeWorld.fatigue, .15);
+        assert.equal(JSON.stringify({ record, v }), before);
     }
 });
 for (const group of new Set(values.map(f => f.group))) test(`rest explanation report candidate: ${group}`, () => {
