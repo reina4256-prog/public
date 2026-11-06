@@ -1,10 +1,11 @@
 (function (root, factory) {
     const node = typeof module === 'object' && module.exports;
     const api = factory(node ? require('./experimental_word_diary_candidates') : root.ExperimentalWordDiaryCandidates,
-        node ? require('./experimental_word_diary_rest_value_reports') : root.ExperimentalWordDiaryRestValueReports);
+        node ? require('./experimental_word_diary_rest_value_reports') : root.ExperimentalWordDiaryRestValueReports,
+        node ? require('./experimental_word_diary_incomplete_rest_value_reports') : root.ExperimentalWordDiaryIncompleteRestValueReports);
     if (node) module.exports = api;
     else root.ExperimentalWordDiaryRestValueProse = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (candidates, reports) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (candidates, reports, incompleteReports) {
     'use strict';
     const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     function inScope(result, receipt) {
@@ -27,7 +28,32 @@
             && world.attention === null && world.hunger === .35
             && ['short', 'gesture'].includes(speech);
     }
-    // Read-only CR..CY projection; activity/fatigue never supply understanding.
+    function incompleteSentence(result, receipt) {
+        const input = result.input, context = receipt.inputContext, world = receipt.beforeWorld;
+        const u = result.understandings[0], knowledge = receipt.inputKnowledge;
+        if (typeof input.raw !== 'string' || /^休むことは大事$/u.exec(input.raw)?.[0] !== input.raw
+            || input.speaker !== 'player' || input.locale !== 'ja'
+            || context.scene !== 'clearing' || !equal(context.attention, [{ id: 'berry:1', meaning: 'berry' }])
+            || world.mode !== 'idle' || world.attention !== null || world.hunger !== .35 || world.fatigue !== .15
+            || !['short', 'gesture'].includes(receipt.beforeState.settings.speech)
+            || u.complete !== false || u.polarity !== 'positive' || u.eventTime !== 'unspecified'
+            || u.aspect !== null || u.conditionStatus !== null || Object.hasOwn(receipt.reply, 'observation')) return null;
+        if (!knowledge.meanings.some(item => item.id === 'rest')
+            && u.kind === 'report' && equal(u.known, {}) && equal(u.relations, ['report'])
+            && u.subject === 'player'
+            && equal(u.reportSource, { kind: 'speaker_report', inputId: input.id, heardAt: input.at })
+            && equal(u.unresolved, [{ type: 'meaning', field: 'meaning', token: 'rest' }, { type: 'detail', token: 'importance' }])
+            && receipt.reply.message === 'attend')
+            return '何かを伝えられたけれど、何のことか分からなかった。';
+        if (!knowledge.relations.some(item => item.id === 'report')
+            && u.kind === 'partial' && equal(u.known, { meaning: 'rest' }) && equal(u.relations, [])
+            && u.subject === null && !Object.hasOwn(u, 'reportSource')
+            && equal(u.unresolved, [{ type: 'relation', id: 'report' }, { type: 'detail', token: 'importance' }])
+            && receipt.reply.message === (receipt.beforeState.settings.speech === 'short' ? 'uncertain' : 'attend'))
+            return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+        return null;
+    }
+    // Read-only CR..DA projection; activity/fatigue never supply understanding.
     // The aw owner validates the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.
@@ -35,9 +61,13 @@
         try {
             const supplied = candidates.create(), checked = candidates.create();
             supplied.retain(record);
-            if (!reports.capture(checked, result, receipt)
-                || !equal(supplied.read()[0], checked.read()[0]) || !inScope(result, receipt)) return null;
-            return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+            if (reports.capture(checked, result, receipt)) {
+                if (!equal(supplied.read()[0], checked.read()[0]) || !inScope(result, receipt)) return null;
+                return '休むことは分かったけれど、言われたことは全部は分からなかった。';
+            }
+            if (!incompleteReports.capture(checked, result, receipt)
+                || !equal(supplied.read()[0], checked.read()[0])) return null;
+            return incompleteSentence(result, receipt);
         } catch (_) { return null; }
     }
     return Object.freeze({ render });

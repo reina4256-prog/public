@@ -26,25 +26,29 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js("localStorage.setItem('4e-sentinel','keep');sessionStorage.setItem('4e-sentinel','keep');void 0");
         await js('globalThis.ExperimentalWordDiaryRestValueReportsCatalog='
             + JSON.stringify(require('../../experimental_word_learning_catalog.json')) + ';void 0');
+        await js('globalThis.ExperimentalWordDiaryIncompleteRestValueReportsCatalog=ExperimentalWordDiaryRestValueReportsCatalog;void 0');
         const files = ['experimental_word_learning_core.js', 'experimental_word_careers.js',
             'experimental_word_life_learning.js', 'experimental_word_relation_learning.js',
             'experimental_word_feeling_learning.js', 'experimental_word_learning_world.js',
             'experimental_word_diary_candidates.js', 'experimental_word_diary_rest_value_reports.js',
+            'experimental_word_diary_incomplete_rest_value_reports.js',
             'experimental_word_diary_rest_value_prose.js', 'localization_catalog.js', 'localization_core.js'];
         for (const file of files) await js(fs.readFileSync(path.resolve(__dirname, '../..', file), 'utf8'));
         const fixtures = require('./diary_rest_value_prose_fixtures');
         const values = [...fixtures.examples(), ...fixtures.addedExamples(), ...fixtures.punctuationExamples(),
-            ...fixtures.activityFatigueExamples()], excluded = fixtures.excludedExamples();
-        const sentence = require('../../experimental_word_diary_rest_value_prose').render(
-            (() => { const buffer = require('../../experimental_word_diary_candidates').create();
-                require('../../experimental_word_diary_rest_value_reports').capture(buffer, values[0].result, values[0].receipt);
-                return buffer.read()[0]; })(), values[0].result, values[0].receipt);
-        assert.equal(typeof sentence, 'string');
+            ...fixtures.activityFatigueExamples(), ...fixtures.incompleteExamples()], excluded = fixtures.excludedExamples();
+        const material = value => {
+            const buffer = require('../../experimental_word_diary_candidates').create();
+            require('../../experimental_word_diary_rest_value_reports').capture(buffer, value.result, value.receipt)
+                || require('../../experimental_word_diary_incomplete_rest_value_reports').capture(buffer, value.result, value.receipt);
+            return buffer.read()[0];
+        };
         let rejected = 0;
         for (const [index, value] of [...values, ...excluded].entries()) {
             const answer = await js(`(() => {
                 const v=${JSON.stringify(value)}, before=JSON.stringify(v), buffer=ExperimentalWordDiaryCandidates.create();
-                ExperimentalWordDiaryRestValueReports.capture(buffer,v.result,v.receipt);
+                ExperimentalWordDiaryRestValueReports.capture(buffer,v.result,v.receipt)
+                    || ExperimentalWordDiaryIncompleteRestValueReports.capture(buffer,v.result,v.receipt);
                 const record=buffer.read()[0], original=JSON.stringify(record);
                 const text=ExperimentalWordDiaryRestValueProse.render(record,v.result,v.receipt), translations={};
                 if(text!==null) for(const locale of Object.keys(GameI18n.languages)) {
@@ -54,7 +58,10 @@ if (!process.versions.electron || process.type !== 'browser') {
                 if(record) record.captured.newLearning=true;
                 return {text,translations,stable,altered:ExperimentalWordDiaryRestValueProse.render(record,v.result,v.receipt)};
             })()`);
-            assert.equal(answer.text, index < values.length ? sentence : null);
+            const sentence = index < values.length
+                ? require('../../experimental_word_diary_rest_value_prose').render(material(value), value.result, value.receipt) : null;
+            if (index < values.length) assert.equal(typeof sentence, 'string');
+            assert.equal(answer.text, sentence);
             assert.equal(answer.stable, true); assert.equal(answer.altered, null);
             if (index < values.length) {
                 rejected++;

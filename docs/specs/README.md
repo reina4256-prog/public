@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+- [4e現行実装・CZ／DA](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-06・c6a4996続き。bp原receipt再照合／原record全文一致後、基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・各short/gestureのCZ rest意味記録だけなし／DA report関係記録だけなしをrest_value_prose.renderへ限定追加。既存七言語二本文を再利用。CR〜CY維持、両方不足／scope不適用／別表記装飾／他scene注目活動疲労との組合せは非包含。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run非置換を維持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DB／DCをbp必要所有節・依存から限定実装。4d12／4e全体未完・4f非移行、日記接続4g・星座工程／時期未確定・前倒しなし。以下は過去状態。
+
 - [4e現行実装・CX／CY](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-06・1c37bb0続き。既採用の基本文・初期入力でCX五活動fatigue=.15／各short/gesture、CY idle疲労五値／shortだけをaw独立文章化へ追加。所有条件・除外・全維持条件／保留はリンク先、検証・発行・実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CZ／DAをbp必要所有節・依存から限定実装。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。以下は過去状態。
 
 - [4e現行実装・CV／CW](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-06・93141df続き。既採用CV／CWをrest_value_prose.renderへ限定追加。基本文の前後U+0020各一個／単一末尾「。／！」、player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・shortだけ。aw原receipt再照合／原record全文一致後、既存七言語本文を再利用。CR〜CU維持、gesture／併用／別表記／shore／活動疲労／scope不適用／他不足は非包含。必要検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CX／CYをaw必要所有節・依存から限定実装。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計維持。4d12／4e全体未完・4f非移行、日記接続4g・星座工程時期未確定・前倒しなし。以下は過去状態。

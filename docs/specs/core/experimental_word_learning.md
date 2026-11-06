@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+- [4e現行実装・CZ／DA](#diary-prose-first-target-consultation-4e)：2026-11-06・c6a4996続き。bp原receipt再照合／原record全文一致後、基本文・player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・各short/gestureのCZ rest意味記録だけなし／DA report関係記録だけなしをrest_value_prose.renderへ限定追加。既存七言語二本文を再利用。CR〜CY維持、両方不足／scope不適用／別表記装飾／他scene注目活動疲労との組合せは非包含。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run非置換を維持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DB／DCをbp必要所有節・依存から限定実装。4d12／4e全体未完・4f非移行、日記接続4g・星座工程／時期未確定・前倒しなし。以下は過去状態。
+
 - [4e現行実装・CX／CY](#diary-prose-first-target-consultation-4e)：2026-11-06・1c37bb0続き。既採用aw限定文章化の対象・除外・保持は所有節へ。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CZ／DAをbp必要所有節・依存から限定実装。4d12／4e全体未完・日記接続4g・星座接続工程／時期未確定・前倒しなし。以下は過去状態。
 
 - [4e現行実装・CV／CW](#diary-prose-first-target-consultation-4e)：2026-11-06・93141df続き。既採用CV／CWをrest_value_prose.renderへ限定追加。基本文の前後U+0020各一個／単一末尾「。／！」、player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・shortだけ。aw原receipt再照合／原record全文一致後、既存七言語本文を再利用。CR〜CU維持、gesture／併用／別表記／shore／活動疲労／scope不適用／他不足は非包含。必要検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CX／CYをaw必要所有節・依存から限定実装。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計維持。4d12／4e全体未完・4f非移行、日記接続4g・星座工程時期未確定・前倒しなし。以下は過去状態。
@@ -4848,6 +4850,10 @@ LLMを搭載しない疑似AIの新しい言葉学習方式について、壁打
 - 報告は共通描画／ページ試作でできることと、ゲーム未接続・暫定・未対応を明示。Codexが専用一時環境で実働と七言語／狭い画面／長文／ページ操作を確認し、同じ実装チャットでユーザーの自由フィードバックを受けてから次へ進む。
 
 <a id="diary-prose-first-target-consultation-4e"></a>
+
+- 2026-11-06・c6a4996続き：既採用CZ／DAを`experimental_word_diary_rest_value_prose.render(record,result,receipt)`へ限定追加。bp `incomplete_rest_value_reports.capture`による独立input/knowledge/context・前後state/world・実replyの再照合と原record全文一致後だけ既存七言語本文を返す。共通は基本文「休むことは大事」・player/ja・clearing/berry:1入力注目・world idle/attention=null/hunger=.35/fatigue=.15・各short/gesture。
+- CZはrest意味記録なし・report適用可能、原report/known={}/relations=[report]/subject=player・speaker_reportあり、meaning(rest)→detail(importance)の原不足順・実両attendを保持して既採用未知内容文を返す。DAはreport関係記録なし・rest適用可能、原partial/known={meaning:rest}/relations=[]/subject=null・reportSource欠落、relation(report)→detail(importance)の原不足順・short実uncertain／gesture実attendを保持して既採用休む部分理解文を返す。初期設定のfoundation／life差も同じ必要不足配置を満たす資料として扱い、設定名から理解を補わない。
+- 原positive/unspecified・complete=false・aspect/conditionStatus=null・原expression欠落を保持。bpへawのstatus/verifiedを新造せず、actualSpeechは設定由来、newTeaching/newLearning/newExperience=false。原当時非書戻し／欠落非補完・重要性理解／同意・主体出所／本人休息選択開始継続完了／回復因果／真偽の非補完、六資料分離を維持。両方不足mask3・scope不適用・別表記装飾／他scene注目活動疲労等は非包含。CR〜CYの60正例維持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md、fixtureは歴史供給ではない。次は既採用DB／DCを必要所有節・依存から限定実装。全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換、4d12／4e全体未完・日記接続4g・星座工程／時期未確定・前倒しなし。
 
 - 2026-11-06・1c37bb0続き：既採用CX／CYを[rest_value_prose.render](../../../experimental_word_diary_rest_value_prose.js)へ限定追加。原入力はちょうど「休むことは大事」、player/ja・clearing／入力attention=[{id:berry:1,meaning:berry}]・world.attention=null/hunger=.35。CXは五活動observe/eat/rest/work/walk・fatigue=.15の各short／実heard_rest_partialとgesture／実attend、CYはidle・fatigue=0/.2/.4/.8/1のshort／実heard_rest_partialだけ。observationなし。CR〜CW維持、CX／CY併用・CY gesture・別表記／空白記号／shore・他活動疲労／他入力注目・scope不適用／他不足は非包含。
 - aw原receipt再照合／原record全文一致後、既存七言語本文を再利用。原report/complete=false・known={meaning:rest}／relations=[report]・importance detailだけ未理解・subject=player/positive/unspecified・aspect/conditionStatus=null・speaker_reportあり、status=reported/verified=false・新教示学習経験false・原expression欠落を保持。原活動疲労・入力注目とworld注目・当時理解／実replyは別保持し、重要性理解／同意感情・休息の必要性／選択出所／開始継続完了／回復因果／真偽・道への移動／散策開始完了を補わない。六資料分離・原当時非書戻し／欠落非補完、fixtureは歴史供給ではない。

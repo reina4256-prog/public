@@ -15,6 +15,13 @@ function activityFatigueExamples() {
     return fixtures().filter(({ group }) => group === 'activity-does-not-prove-importance'
         || group === 'fatigue-does-not-resolve-importance-or-cause').map(({ value }) => value);
 }
+function incompleteExamples() {
+    return require('./diary_incomplete_rest_value_report_fixtures').fixtures()
+        .filter(({ group, value }) => ['existing-forms-knowledge-matrix', 'aw:eight-settings'].includes(group)
+            && value.result.input.raw === raw
+            && value.result.understandings[0].unresolved.filter(item => item.type !== 'detail').length === 1)
+        .map(({ value }) => value);
+}
 function excludedExamples() {
     const all = fixtures().filter(({ group }) => group !== 'eight-settings'
         && group !== 'seven-input-locales-no-new-grammar'
@@ -119,6 +126,10 @@ function excludedExamples() {
         const attention = fresh(); attention.world.attention = 'berry:1'; all.push(hearValue(attention, text));
         const hunger = fresh(); hunger.world.hunger = .4; all.push(hearValue(hunger, text));
     }
-    return all;
+    const adopted = new Set(incompleteExamples().map(value => JSON.stringify(value)));
+    all.push(...require('./diary_incomplete_rest_value_report_fixtures').fixtures()
+        .filter(({ value }) => value.result.understandings[0]?.unresolved.some(item => ['meaning', 'relation'].includes(item.type)))
+        .map(({ value }) => value));
+    return all.filter(value => !adopted.has(JSON.stringify(value)));
 }
-module.exports = { examples, addedExamples, punctuationExamples, activityFatigueExamples, excludedExamples };
+module.exports = { examples, addedExamples, punctuationExamples, activityFatigueExamples, incompleteExamples, excludedExamples };

@@ -7,12 +7,86 @@ const incompleteReports = require('../experimental_word_diary_incomplete_rest_co
 const prose = require('../experimental_word_diary_rest_comfort_prose');
 const valueProse = require('../experimental_word_diary_rest_value_prose');
 const valueReports = require('../experimental_word_diary_rest_value_reports');
+const incompleteValueReports = require('../experimental_word_diary_incomplete_rest_value_reports');
 const valueFixtures = require('../scripts/experimental/diary_rest_value_prose_fixtures');
 const valueSentence = '\u4f11\u3080\u3053\u3068\u306f\u5206\u304b\u3063\u305f\u3051\u308c\u3069\u3001\u8a00\u308f\u308c\u305f\u3053\u3068\u306f\u5168\u90e8\u306f\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002';
 function valueMaterial(v) {
     const buffer = candidates.create();
-    return valueReports.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
+    return valueReports.capture(buffer, v.result, v.receipt)
+        || incompleteValueReports.capture(buffer, v.result, v.receipt) ? buffer.read()[0] : null;
 }
+test('CZ/DA preserve separate missing meaning/relation, original source and actual reply', () => {
+    const values = valueFixtures.incompleteExamples(); assert.equal(values.length, 8);
+    for (const v of values) {
+        const record = valueMaterial(v), c = record.captured, u = v.result.understandings[0];
+        const original = JSON.stringify({ record, v }), missingRest = !c.meaningKnownBefore;
+        const text = missingRest ? '\u4f55\u304b\u3092\u4f1d\u3048\u3089\u308c\u305f\u3051\u308c\u3069\u3001\u4f55\u306e\u3053\u3068\u304b\u5206\u304b\u3089\u306a\u304b\u3063\u305f\u3002' : valueSentence;
+        assert.equal(valueProse.render(record, v.result, v.receipt), text);
+        assert.deepEqual(c.understanding, u); assert.equal(u.complete, false);
+        assert.equal(u.kind, missingRest ? 'report' : 'partial');
+        assert.deepEqual(u.known, missingRest ? {} : { meaning: 'rest' });
+        assert.deepEqual(u.relations, missingRest ? ['report'] : []);
+        assert.deepEqual(u.unresolved, [missingRest ? { type: 'meaning', field: 'meaning', token: 'rest' }
+            : { type: 'relation', id: 'report' }, { type: 'detail', token: 'importance' }]);
+        assert.equal(u.subject, missingRest ? 'player' : null);
+        assert.equal(Object.hasOwn(c, 'reportSource'), missingRest);
+        assert.equal(Object.hasOwn(u, 'reportSource'), missingRest);
+        if (missingRest) assert.deepEqual(c.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        assert.equal(u.aspect, null); assert.equal(u.conditionStatus, null);
+        assert.equal(u.polarity, 'positive'); assert.equal(u.eventTime, 'unspecified');
+        assert.equal(c.response.message, !missingRest && c.actualSpeech ? 'uncertain' : 'attend');
+        assert.equal(c.actualSpeech, v.receipt.beforeState.settings.speech === 'short');
+        for (const field of ['expression', 'status', 'verified']) assert.equal(Object.hasOwn(c, field), false);
+        for (const field of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        assert.equal(Object.hasOwn(c.response, 'observation'), false);
+        for (const field of ['knowledge', 'experiences', 'selectionSources'])
+            assert.deepEqual(v.receipt.beforeState[field], v.receipt.afterState[field]);
+        assert.deepEqual(v.receipt.beforeWorld.experiences, v.receipt.afterWorld.experiences);
+        assert.equal(valueReports.capture(candidates.create(), v.result, v.receipt), false);
+        assert.equal(prose.render(record, v.result, v.receipt), null);
+        for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'])
+            assert.equal(typeof require('../locales/' + locale + '.json')[text], 'string');
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+});
+test('CZ/DA reject missing receipts, changed evidence, later knowledge and cross-source records', () => {
+    const values = valueFixtures.incompleteExamples();
+    for (const v of values) {
+        const record = valueMaterial(v);
+        for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
+            const receipt = copy(v.receipt); delete receipt[field];
+            assert.equal(valueProse.render(record, v.result, receipt), null, field);
+        }
+        for (const edit of [
+            x => { x.record.captured.expression = x.v.result.expression; },
+            x => { x.record.captured.status = 'reported'; },
+            x => { x.record.captured.verified = false; },
+            x => { x.record.captured.newLearning = true; },
+            x => { x.record.captured.reportSource = { kind: 'speaker_report', inputId: 'invented', heardAt: 0 }; },
+            x => { x.v.result.understandings[0].subject = 'self'; },
+            x => { x.v.result.understandings[0].known.detail = 'importance'; },
+            x => { x.v.result.understandings[0].unresolved.reverse(); },
+            x => { x.v.result.understandings[0].conditionStatus = 'met'; },
+            x => { x.v.result.expression = {}; },
+            x => { x.v.result.input.raw += '\n'; },
+            x => { x.v.receipt.inputKnowledge.meanings.push({ id: 'later' }); },
+            x => { x.v.receipt.inputContext.attention = []; },
+            x => { x.v.receipt.afterState.serial++; },
+            x => { x.v.receipt.afterWorld.elapsed++; },
+            x => { x.v.receipt.reply.message = 'invented'; }
+        ]) {
+            const x = copy({ record, v }); edit(x); const before = JSON.stringify(x);
+            assert.equal(valueProse.render(x.record, x.v.result, x.v.receipt), null);
+            assert.equal(JSON.stringify(x), before);
+        }
+        for (const other of values.filter(item => item !== v))
+            assert.equal(valueProse.render(record, other.result, other.receipt), null);
+        const later = copy(v);
+        later.receipt.beforeState.knowledge = copy(valueFixtures.examples()[0].receipt.inputKnowledge);
+        later.receipt.inputKnowledge = copy(later.receipt.beforeState.knowledge);
+        assert.equal(valueProse.render(record, later.result, later.receipt), null);
+    }
+});
 test('CR/CS preserve original rest-value detail, source, reply and six-material boundaries', () => {
     const values = valueFixtures.examples(); assert.equal(values.length, 2);
     for (const [i, v] of values.entries()) {
