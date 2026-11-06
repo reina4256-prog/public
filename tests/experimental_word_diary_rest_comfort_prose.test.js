@@ -33,8 +33,9 @@ test('CR/CS preserve original rest-value detail, source, reply and six-material 
         assert.equal(prose.render(record, v.result, v.receipt), null);
     }
 });
-test('CR..CW reject each absent receipt field, changed original and material substitution', () => {
-    const values = [...valueFixtures.examples(), ...valueFixtures.addedExamples(), ...valueFixtures.punctuationExamples()];
+test('CR..CY reject each absent receipt field, changed original and material substitution', () => {
+    const values = [...valueFixtures.examples(), ...valueFixtures.addedExamples(), ...valueFixtures.punctuationExamples(),
+        ...valueFixtures.activityFatigueExamples()];
     for (const v of values) {
         const record = valueMaterial(v);
         for (const field of ['input', 'inputKnowledge', 'inputContext', 'beforeState', 'afterState', 'beforeWorld', 'afterWorld', 'reply']) {
@@ -74,7 +75,7 @@ test('CR..CW reject each absent receipt field, changed original and material sub
         assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
     }
 });
-test('CR..CW reject combined forms/shore, scopes, missing knowledge and unadopted contexts', () => {
+test('CR..CY reject combined forms/shore, scopes, missing knowledge and unadopted contexts', () => {
     const excluded = valueFixtures.excludedExamples(); assert.ok(excluded.length > 100);
     for (const v of excluded) {
         const record = valueMaterial(v), original = JSON.stringify({ record, v });
@@ -152,7 +153,50 @@ test('CV/CW preserve exact original whitespace and punctuation with initial shor
         assert.equal(JSON.stringify({ record, v }), original);
     }
 });
-test('CR..CW reuse the existing seven locale entries without fallback or rest-comfort source substitution', () => {
+test('CX/CY preserve fifteen activity/fatigue sources without inventing importance, rest or movement evidence', () => {
+    const values = valueFixtures.activityFatigueExamples(); assert.equal(values.length, 15);
+    const modes = new Map(), fatigues = [];
+    for (const v of values) {
+        const record = valueMaterial(v), original = JSON.stringify({ record, v }), c = record.captured;
+        const w = v.receipt.beforeWorld, speech = v.receipt.beforeState.settings.speech;
+        assert.equal(valueProse.render(record, v.result, v.receipt), valueSentence);
+        if (w.mode === 'idle') { fatigues.push(w.fatigue); assert.equal(speech, 'short'); }
+        else { modes.set(w.mode, (modes.get(w.mode) || 0) + 1); assert.equal(w.fatigue, .15); }
+        assert.equal(/^休むことは大事$/u.exec(c.sources.input.raw)?.[0], c.sources.input.raw);
+        assert.equal(c.sources.scene, 'clearing');
+        assert.deepEqual(c.sources.attention, [{ id: 'berry:1', meaning: 'berry' }]);
+        assert.deepEqual(c.sources.activity, { before: w, after: v.receipt.afterWorld });
+        assert.equal(w.attention, null); assert.equal(w.hunger, .35);
+        assert.deepEqual(c.inputKnowledge, v.receipt.inputKnowledge);
+        assert.deepEqual(c.understanding, v.result.understandings[0]);
+        assert.deepEqual(c.understanding.known, { meaning: 'rest' });
+        assert.deepEqual(c.understanding.relations, ['report']);
+        assert.deepEqual(c.understanding.unresolved, [{ type: 'detail', token: 'importance' }]);
+        assert.equal(c.understanding.kind, 'report'); assert.equal(c.understanding.complete, false);
+        assert.equal(c.understanding.subject, 'player'); assert.equal(c.understanding.polarity, 'positive');
+        assert.equal(c.understanding.eventTime, 'unspecified');
+        assert.equal(c.understanding.aspect, null); assert.equal(c.understanding.conditionStatus, null);
+        assert.deepEqual(c.reportSource, { kind: 'speaker_report', inputId: v.result.input.id, heardAt: v.result.input.at });
+        assert.equal(c.actualSpeech, speech === 'short');
+        assert.equal(c.response.message, speech === 'short' ? 'heard_rest_partial' : 'attend');
+        assert.equal(c.status, 'reported');
+        for (const field of ['verified', 'newTeaching', 'newLearning', 'newExperience']) assert.equal(c[field], false);
+        assert.equal(Object.hasOwn(c, 'expression'), false); assert.equal(Object.hasOwn(c.response, 'observation'), false);
+        for (const field of ['knowledge', 'experiences', 'selectionSources'])
+            assert.deepEqual(v.receipt.beforeState[field], v.receipt.afterState[field]);
+        for (const field of ['mode', 'hunger', 'fatigue', 'attention', 'experiences', 'reasons', 'recovery', 'destination'])
+            assert.deepEqual(v.receipt.beforeWorld[field], v.receipt.afterWorld[field]);
+        for (const other of values.filter(item => item !== v))
+            assert.equal(valueProse.render(record, other.result, other.receipt), null);
+        assert.equal(prose.render(record, v.result, v.receipt), null);
+        assert.equal(JSON.stringify({ record, v }), original);
+    }
+    assert.deepEqual([...modes.keys()], ['observe', 'eat', 'rest', 'work', 'walk']);
+    assert.deepEqual([...modes.values()], [2, 2, 2, 2, 2]);
+    assert.deepEqual(fatigues, [0, .2, .4, .8, 1]);
+});
+
+test('CR..CY reuse the existing seven locale entries without fallback or rest-comfort source substitution', () => {
     for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de']) {
         const entries = require('../locales/' + locale + '.json');
         assert.equal(Object.hasOwn(entries, valueSentence), true);

@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（1c37bb0続き・4e CX／CY独立文章化）
+
+docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CZ／DAをbp必要所有節・依存から限定実装してください。CXは基本文・初期clearing/berry:1入力注目・五活動fatigue=.15の各short/gesture、CYは同入力・idle疲労0/.2/.4/.8/1のshortだけrest_value_prose.renderへ追加済み。aw原receipt再照合／原record全文一致・既存七言語本文再利用、CR〜CW・原importanceだけ未理解／speaker_reportあり・aspect/conditionStatus=null／原expression欠落を保持。CX／CY併用・別表記装飾／shore／CY gesture／scope不適用／他不足非包含。開始時試遊発見・必要検証・引き継ぎ更新を行い、六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。検証・発行／実読未読は現行handoff。関連変更のみcommit・通常pushし、次実装内容と次チャット用引き継ぎ文を回答してください。以下は過去状態。
+
 ## 現行継続文（93141df続き・4e CV／CW独立文章化）
 
 docs/CURRENT_IMPLEMENTATION.mdとこの最初の現行継続文を読み、既採用CX／CYをaw必要所有節・依存から限定実装してください。CV／CWは基本文の前後U+0020各一個／単一末尾「。／！」、player/ja・初期clearing/berry:1入力注目・world idle/attention=null/hunger=.35/fatigue=.15・shortだけrest_value_prose.renderへ追加。aw原receipt再照合／原record全文一致後に既存七言語本文を再利用、CR〜CUと原report/complete=false・importanceだけ未理解・speaker_reportあり・aspect/conditionStatus=null・原expression欠落を保持。gesture／併用／他別表記・shore／活動疲労／scope不適用／他不足は非包含。開始時試遊発見・必要検証を行い、六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・am/cp/cqと散策区別・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計を保持。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。検証・発行／実読未読は現行handoff。関連変更のみcommit・既存remoteへ通常pushし、次実装内容と次チャット用引き継ぎ文を回答してください。以下は過去状態。

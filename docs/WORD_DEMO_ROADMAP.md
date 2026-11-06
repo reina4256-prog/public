@@ -1,5 +1,7 @@
 # 新方式Steam体験版の残作業とチャット単位の進行
 
+- [4e現行実装・CX／CY](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：1c37bb0続きの既採用aw限定文章化。対象・除外・全維持条件／保留は所有節、検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CZ／DAをbp必要所有節・依存から限定実装。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。以下は過去状態。
+
 - [4e現行実装・CV／CW](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-06・93141df続き。既採用CV／CWをrest_value_prose.renderへ限定追加。基本文の前後U+0020各一個／単一末尾「。／！」、player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・shortだけ。aw原receipt再照合／原record全文一致後、既存七言語本文を再利用。CR〜CU維持、gesture／併用／別表記／shore／活動疲労／scope不適用／他不足は非包含。必要検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CX／CYをaw必要所有節・依存から限定実装。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計維持。4d12／4e全体未完・4f非移行、日記接続4g・星座工程時期未確定・前倒しなし。以下は過去状態。
 
 - [4e現行実装・CT／CU](specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-05・3a466ea続き。aw十九別表記の初期系統／基本文shore無注目を各short/gestureだけ独立文章化へ追加。詳細は所有節、検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CV／CWをaw必要所有節・依存から限定実装。六資料分離・原当時非書戻し／欠落非補完・全維持条件／保留・B停止／供給進展0・旧run非置換・既存集計維持。4d12／4e全体未完、日記接続4g・星座工程時期未確定・前倒しなし。以下は過去状態。

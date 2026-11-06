@@ -16,14 +16,18 @@
         const shore = basic?.[0] === input.raw && context.scene === 'shore' && equal(context.attention, []);
         const speech = receipt.beforeState.settings.speech;
         const decorated = /^(?: 休むことは大事 |休むことは大事[。！])$/u.exec(input.raw);
+        const ordinaryWorld = world.mode === 'idle' && world.fatigue === .15;
+        const activity = ['observe', 'eat', 'rest', 'work', 'walk'].includes(world.mode) && world.fatigue === .15;
+        const fatigue = world.mode === 'idle' && [0, .2, .4, .8, 1].includes(world.fatigue) && speech === 'short';
         return typeof input.raw === 'string'
             && input.speaker === 'player' && input.locale === 'ja'
-            && (match?.[0] === input.raw && (initial || shore)
+            && (ordinaryWorld && (match?.[0] === input.raw && (initial || shore)
                 || decorated?.[0] === input.raw && initial && speech === 'short')
-            && world.mode === 'idle' && world.attention === null && world.hunger === .35 && world.fatigue === .15
+                || basic?.[0] === input.raw && initial && (activity || fatigue))
+            && world.attention === null && world.hunger === .35
             && ['short', 'gesture'].includes(speech);
     }
-    // Read-only CR..CW display projection; CV/CW are initial/short only.
+    // Read-only CR..CY projection; activity/fatigue never supply understanding.
     // The aw owner validates the original
     // report, unresolved importance, source and independent before/after receipt.
     // UI callers translate the existing Japanese source through GameI18n.

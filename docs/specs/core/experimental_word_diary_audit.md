@@ -1,5 +1,7 @@
 # 4d12ao：入口照合・未対応保留一覧
 
+- [4e現行実装・CX／CY](experimental_word_learning.md#diary-prose-first-target-consultation-4e)：1c37bb0続きの既採用aw限定文章化。対象・除外・全維持条件／全14保留／各担当三保留は所有節、検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計維持。4d12／4e全体未完・4f非移行、日記接続4g・星座接続工程／時期未確定・前倒しなし。以下は過去状態。
+
 - [4e現行実装・CV／CW](experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-06・93141df続き。既採用CV／CWをrest_value_prose.renderへ限定追加。基本文の前後U+0020各一個／単一末尾「。／！」、player/ja・初期clearing/berry:1入力注目・world idle/null/.35/.15・shortだけ。aw原receipt再照合／原record全文一致後、既存七言語本文を再利用。CR〜CU維持、gesture／併用／別表記／shore／活動疲労／scope不適用／他不足は非包含。必要検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用CX／CYをaw必要所有節・依存から限定実装。六資料分離・原当時非書戻し／欠落非補完・全維持条件／全14保留／各担当三保留・B停止／供給進展0・旧run失敗／incomplete・修正前run中断非置換・既存集計維持。4d12／4e全体未完・4f非移行、日記接続4g・星座工程時期未確定・前倒しなし。以下は過去状態。
 
 - 2026-11-01最新：a9cb1cfの続きとして[p最終S6EUsK／session58391一群の所在確認範囲](#entry-other-speaker-sequential-rest-row-mapping)を一単位進めた。保存目録→p最終識別子と同名Temp profile直下10ディレクトリ・通常ファイル0まで確認。原session出力・内部未読、B個別原receipt所在未確認・未供給・未照合。名前一致／過去602ケース661入力をB同一性／前件供給へ昇格しない。帰属・新部品必要・dz追加未決定、cy・条件・複数節非包含、全維持条件・保留・集計・全体未完・残2〜3工程中心2／減算0／低確度・上限終了保証なしを保持。文書検証のみ。次は同じ最終run原出力の保存経路を一経路だけ限定。以下は過去状態。
