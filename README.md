@@ -2,6 +2,8 @@
 
 [ブラウザで遊ぶ](https://reina4256-prog.github.io/public/experimental_word_island.html)
 
+[ダンジョンの独立試作](https://reina4256-prog.github.io/public/experimental_word_dungeon.html)：一部屋で、理解状態を切り替えながら指示と自主判断を比べられます。指示と異なる行動の理由も表示します。本編の知識・保存には未接続で、再読み込みすると初期化されます。ローカル起動は `npm run start:words:dungeon`。範囲は[独立試作仕様](docs/specs/dungeon/word_dungeon_preview.md)を参照してください。
+
 インストールせず、ロゴを押して「はじめから」で始められます。設問に答え、出会った子にサインすると、島での暮らしが始まります。チャットで声をかけ、反応やノートを見ながら遊べます。
 
 このリンクは `npm run start:word` と同じ `experimental_word_island.html` を開きます。ブラウザ版は開いている間だけの試遊で、ページを閉じたり再読み込みしたりすると続きは残りません。専用アプリの保存とは共有しません。試遊レポートはゲーム内のボタンから保存できます。

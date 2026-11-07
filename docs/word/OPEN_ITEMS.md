@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+- [別URLダンジョン独立試作](../specs/dungeon/word_dungeon_preview.md)：一部屋・理解状態切替・指示と異なる選択の通知をユーザー承認範囲で実装。試作の有限判断を本編理解／本人記録にせず、全14保留・各担当三保留・B停止／供給進展0・4d12／4e全体未完を保持。実装後フィードバック未受領。次候補DW／DXは今回未着手、検証・発行結果は現行handoff。
+
 - [4e現行実装・DU／DV](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。
 
 - [4e現行実装・DS／DT](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-07・25ab405続き。既採用DS／DTを独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とax所有節。直前選択・移動／報告と今回理解を分離し、原資料・全維持条件／保留・B停止／供給進展0・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DU／DV（bq）。以下は過去状態。

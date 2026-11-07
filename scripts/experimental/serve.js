@@ -6,6 +6,7 @@ const crypto = require('node:crypto');
 const { createRecorder, versionSources, LIMIT } = require('./playtest_store');
 const ROOT = path.resolve(__dirname, '../..');
 const files = new Set(['experimental_word_learning.html', 'experimental_word_learning.css',
+    'experimental_word_dungeon.html', 'experimental_word_dungeon.css', 'experimental_word_dungeon.js', 'experimental_word_dungeon_core.js',
     'experimental_word_constellation.html', 'experimental_word_constellation.css', 'experimental_word_constellation.js',
     'assets/fonts/diary/Yomogi-Regular.ttf', 'assets/fonts/diary/LXGWWenKai-Regular.ttf', 'assets/fonts/diary/Caveat.ttf',
     'experimental_word_diary.html', 'experimental_word_diary.css', 'experimental_word_diary.js',
