@@ -2,10 +2,11 @@
     const node = typeof module === 'object' && module.exports;
     const api = factory(node ? require('./experimental_word_diary_candidates') : root.ExperimentalWordDiaryCandidates,
         node ? require('./experimental_word_diary_rest_explanation_reports') : root.ExperimentalWordDiaryRestExplanationReports,
-        node ? require('./experimental_word_diary_rest_value_reports') : root.ExperimentalWordDiaryRestValueReports);
+        node ? require('./experimental_word_diary_rest_value_reports') : root.ExperimentalWordDiaryRestValueReports,
+        node ? require('./experimental_word_diary_incomplete_rest_explanation_reports') : root.ExperimentalWordDiaryIncompleteRestExplanationReports);
     if (node) module.exports = api;
     else root.ExperimentalWordDiaryRestExplanationProse = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (candidates, reports, priorReports) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (candidates, reports, priorReports, incompleteReports) {
     'use strict';
     const equal = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     function boundary(result, receipt, speech, shore = false) {
@@ -59,10 +60,36 @@
                 raw: input.raw, locale: input.locale, reporter: input.speaker, contentSubject: 'self' })
             && world.mode === 'idle';
     }
-    // Read-only DK through DT projection. The ax owner replays both original
+    function incomplete(record, result, receipt) {
+        const checked = candidates.create(), supplied = candidates.create();
+        supplied.retain(record);
+        if (!incompleteReports.capture(checked, result, receipt)
+            || !equal(supplied.read()[0], checked.read()[0])) return null;
+        const speech = receipt.beforeState.settings.speech, a = receipt.antecedent;
+        if (!['short', 'gesture'].includes(speech)
+            || !priorReports.capture(candidates.create(), a.result, a.receipt)
+            || !initial(a.result, a.receipt, /^休むことは大事$/u, speech)
+            || !boundary(result, receipt, speech)
+            || /^体力や眠気が回復するから$/u.exec(result.input.raw)?.[0] !== result.input.raw
+            || receipt.beforeWorld.mode !== 'idle' || receipt.beforeWorld.fatigue !== .15) return null;
+        const captured = checked.read()[0].captured, knowledge = receipt.inputKnowledge;
+        const meaningMissing = equal(captured.missingMeaningsBefore, [{ type: 'meaning', field: 'meaning', token: 'rest' }])
+            && equal(captured.missingRelationsBefore, []) && !knowledge.meanings.some(item => item.id === 'rest');
+        const reportMissing = equal(captured.missingMeaningsBefore, [])
+            && equal(captured.missingRelationsBefore, ['report']) && !knowledge.relations.some(item => item.id === 'report');
+        if (!meaningMissing && !reportMissing || !equal(receipt.reply,
+            { message: reportMissing && speech === 'short' ? 'uncertain' : 'attend' })) return null;
+        // Missing records are distinct from inapplicable scope. Original prior
+        // knowledge is never copied into this input or changed by its shortage.
+        return meaningMissing ? '何かを伝えられたけれど、何のことか分からなかった。'
+            : '休むことは分かったけれど、言われたことは全部は分からなかった。';
+    }
+    // Read-only DK through DV projection. Each owner replays both original
     // receipts; no missing antecedent is rebuilt from current or later knowledge.
     function render(record, result, receipt) {
         try {
+            if (record?.occurrenceId?.startsWith('incomplete_rest_explanation_report:'))
+                return incomplete(record, result, receipt);
             const supplied = candidates.create(), checked = candidates.create();
             supplied.retain(record);
             if (!reports.capture(checked, result, receipt) || !equal(supplied.read()[0], checked.read()[0])) return null;

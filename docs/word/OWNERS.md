@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- [4e現行実装・DU／DV](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。
+
 - [4e現行実装・DS／DT](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-07・25ab405続き。既採用DS／DTを独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とax所有節。直前選択・移動／報告と今回理解を分離し、原資料・全維持条件／保留・B停止／供給進展0・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DU／DV（bq）。以下は過去状態。
 
 - [4e現行実装・DQ／DR](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-07・112cfb9続き。既採用DQ／DRを独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とax所有節。旧資料・全維持条件／保留・B停止／供給進展0・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DS／DT。以下は過去状態。

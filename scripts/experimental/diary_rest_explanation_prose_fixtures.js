@@ -12,7 +12,16 @@ function examples() {
     return [...new Map(values.map(value => [JSON.stringify(value), value])).values()];
 }
 function excludedExamples() {
-    const all = fixtures().map(({ value }) => value);
+    const incomplete = require('./diary_incomplete_rest_explanation_report_fixtures');
+    const all = [...fixtures(), ...incomplete.fixtures()].map(({ value }) => value);
+    for (const speech of ['short', 'gesture']) for (const mask of [1, 2]) {
+        for (const edit of [v => { v.world.hunger = .4; }, v => { v.world.attention = 'berry:1'; },
+            v => { core.perceive(v.state, { scene: 'clearing', attention: [] }); }]) {
+            const v = incomplete.make(mask, speech); edit(v); all.push(hearExplanation(v));
+        }
+        for (const text of [` ${topic} `, topic + '\u3002', topic + '\n'])
+            all.push(hearExplanation(incomplete.make(mask, speech, text)));
+    }
     for (const speech of ['short', 'gesture']) {
         for (const text of ['\u4f11\u3082\u3046', catalog.reportTeaching.ja.self.utterance]) {
             const prepare = () => { const v = setup({ speech }); prior(v, text); return v; };
@@ -140,7 +149,11 @@ function excludedExamples() {
             const v = setup({ speech }); prior(v, topic, { locale }); all.push(hearExplanation(v));
         }
     }
-    const accepted = new Set(examples().map(value => JSON.stringify(value)));
+    const accepted = new Set([...examples(), ...incompleteExamples()].map(value => JSON.stringify(value)));
     return all.filter(value => !accepted.has(JSON.stringify(value)));
 }
-module.exports = { examples, excludedExamples };
+function incompleteExamples() {
+    const owner = require('./diary_incomplete_rest_explanation_report_fixtures');
+    return [1, 2].flatMap(mask => ['short', 'gesture'].map(speech => owner.hearExplanation(owner.make(mask, speech))));
+}
+module.exports = { examples, incompleteExamples, excludedExamples };

@@ -8,6 +8,64 @@ const { fixtures, make, hearExplanation: hear } = require('../scripts/experiment
 const copy = value => JSON.parse(JSON.stringify(value));
 const values = fixtures();
 const capture = (buffer, value) => api.capture(buffer, value.result, value.receipt);
+const prose = require('../experimental_word_diary_rest_explanation_prose');
+const proseFixtures = require('../scripts/experimental/diary_rest_explanation_prose_fixtures');
+function material(value) { const buffer = candidates.create(); capture(buffer, value); return buffer.read()[0]; }
+test('DU/DV preserve prior rest understanding, distinct current shortages and original source presence', () => {
+    const examples = proseFixtures.incompleteExamples();
+    assert.equal(examples.length, 4);
+    for (const [index, value] of examples.entries()) {
+        const record = material(value), prior = value.receipt.antecedent;
+        const original = JSON.stringify({ record, value });
+        const du = index < 2, u = record.captured.understanding;
+        assert.equal(prose.render(record, value.result, value.receipt), du
+            ? '何かを伝えられたけれど、何のことか分からなかった。'
+            : '休むことは分かったけれど、言われたことは全部は分からなかった。');
+        assert.equal(prior.result.understandings[0].known.meaning, 'rest');
+        assert.equal(prior.result.understandings[0].complete, false);
+        assert.ok(prior.result.understandings[0].reportSource);
+        assert.equal(u.kind, du ? 'report' : 'partial');
+        assert.deepEqual(u.known, du ? {} : { meaning: 'rest' });
+        assert.equal(u.subject, du ? 'player' : null);
+        assert.equal(Object.hasOwn(record.captured, 'reportSource'), du);
+        assert.equal(Object.hasOwn(u, 'reportSource'), du);
+        assert.deepEqual(u.unresolved, [du ? { type: 'meaning', field: 'meaning', token: 'rest' }
+            : { type: 'relation', id: 'report' }, { type: 'detail', token: 'recovery_explanation' }]);
+        assert.equal(record.captured.response.message, !du && record.captured.actualSpeech ? 'uncertain' : 'attend');
+        for (const field of ['expression', 'status', 'verified']) assert.equal(Object.hasOwn(record.captured, field), false);
+        for (const flag of ['newTeaching', 'newLearning', 'newExperience']) assert.equal(record.captured[flag], false);
+        assert.equal(JSON.stringify({ record, value }), original);
+        for (const other of examples.filter(item => item !== value))
+            assert.equal(prose.render(record, other.result, other.receipt), null);
+    }
+    // Independently replayed worlds need not have identical clocks.
+    for (const mask of [1, 2]) for (const speech of ['short', 'gesture']) {
+        const v = make(mask, speech); v.world.elapsed += 50;
+        const value = hear(v); assert.equal(typeof prose.render(material(value), value.result, value.receipt), 'string');
+    }
+});
+test('DU/DV reject scope, expanded boundaries, missing original receipts and repaired understanding', () => {
+    for (const value of proseFixtures.excludedExamples()) {
+        const record = material(value);
+        assert.equal(prose.render(record, value.result, value.receipt), null);
+    }
+    for (const value of proseFixtures.incompleteExamples()) for (const edit of [
+        x => { delete x.value.receipt.antecedent; },
+        x => { delete x.value.receipt.antecedent.receipt.beforeState; },
+        x => { x.value.receipt.antecedent.result.understandings[0].known = {}; },
+        x => { x.value.receipt.antecedent.receipt.input.at++; },
+        x => { x.value.receipt.inputKnowledge.meanings = []; },
+        x => { x.value.result.understandings[0].subject = 'invented'; },
+        x => { x.value.receipt.reply.message = 'heard_rest_partial'; },
+        x => { x.record.captured.status = 'reported'; },
+        x => { x.record.captured.reportSource = { kind: 'repaired' }; },
+        x => { x.record.captured.understanding.known.detail = 'recovery_explanation'; }
+    ]) {
+        const x = copy({ record: material(value), value }), before = JSON.stringify(x); edit(x);
+        assert.notEqual(JSON.stringify(x), before);
+        assert.equal(prose.render(x.record, x.value.result, x.value.receipt), null);
+    }
+});
 for (const group of new Set(values.map(f => f.group))) test(`incomplete rest explanation report: ${group}`, () => {
     for (const f of values.filter(item => item.group === group)) {
         const v = copy(f.value), source = JSON.stringify(v), buffer = candidates.create();
