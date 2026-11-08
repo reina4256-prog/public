@@ -15,7 +15,6 @@
         const auto = make('dungeon-auto', 'dungeonAuto', buttons, () => { if (!canAct()) return; running = !running; auto.setAttribute('aria-pressed', String(running)); });
         const panel = document.createElement('div'); panel.className = 'word-dungeon-controls'; panel.hidden = true; controls.prepend(panel);
         make('dungeon-step', 'dungeonStep', panel, () => { if (!canAct()) return; running = false; onAction(model.advance(session)); });
-        for (const [index, key] of ['dungeonOpponent', 'dungeonStairs'].entries()) make('dungeon-point-' + index, key, panel, () => point(model.objects[index].id));
         const guide = document.createElement('p'); guide.textContent = text('dungeonGuide'); panel.append(guide);
         function point(id) { running = false; model.perceive(session, id); draw(); onPoint(); }
         function sprite(id, x, y, enemy) {
@@ -46,10 +45,9 @@
                 exit.x - tile / 2, exit.y - tile / 2, tile, tile);
             const enemy = center(model.objects[0]); sprite(appearance, enemy.x, enemy.y, true);
             const actor = center(session.position); sprite(appearance, actor.x, actor.y, false);
-            const focus = model.objects.find(o => o.id === session.attention);
+            const focus = model.objects.find(o => o.id === (session.proposal || session.attention));
             if (focus) { const p = center(focus); ctx.strokeStyle = '#00d8ed'; ctx.lineWidth = 3; ctx.strokeRect(p.x - 48, p.y - 72, 96, 110); }
-            selection.textContent = text(session.attention === model.objects[0].id ? 'dungeonOpponent'
-                : session.attention === model.objects[1].id ? 'dungeonStairs' : 'dungeonPoint');
+            selection.textContent = text(session.proposal ? 'dungeonProposal' : 'dungeonPoint');
             auto.disabled = session.complete; document.getElementById('dungeon-step').disabled = session.complete;
             auto.setAttribute('aria-pressed', String(running));
         }
@@ -61,6 +59,7 @@
                 if (running && !session.complete) { elapsed += Math.min(dt, .1); if (elapsed >= .85) { elapsed = 0; onAction(model.advance(session)); } }
                 if (session.complete) running = false; draw(); },
             stop() { running = false; },
+            bubbleTop() { return Math.max(stage.clientHeight * .18, hud.offsetTop + hud.offsetHeight + 12); },
             refresh: draw,
             hit(event) { const rect = canvas.getBoundingClientRect(), scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);
                 const x = (event.clientX - rect.left - (rect.width - canvas.width * scale) / 2) / scale;

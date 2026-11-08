@@ -4,15 +4,28 @@
     const app = document.getElementById('app');
     const labels = {
         dungeonEnter: 'ダンジョンへ行く', dungeonReturn: '島へ戻る', dungeonTitle: 'スカルダンジョン B1F',
-        dungeonAuto: 'AUTO 開始／停止', dungeonStep: '本人の判断で1ターン', dungeonOpponent: '赤い相手を指す', dungeonStairs: '階段を指す',
-        dungeonPoint: '見えている相手や階段を指して教えられます。',
-        dungeonGuide: '指した対象に「これはポポだよ」「これは危ない」と教えたり、「そこへ行って」と頼んでみよう。戦闘はまだ行いません。',
-        dungeonNote: 'ダンジョンで聞いた警告', dungeonScope: '指した個体への警告として覚えています。ほかの相手には広げません。',
+        dungeonAuto: 'AUTO 開始／停止', dungeonStep: '本人の判断で1ターン',
+        dungeonPoint: '見えているものについて、会話で教えたりお願いしたりできます。',
+        dungeonGuide: '知らない呼び名やお願いは、その意味や対象を聞き返します。見た目や位置も言葉で伝えられます。戦闘はまだ行いません。',
+        dungeonProposal: '聞き返している対象の候補を、輪郭で示しています。',
+        dungeonWhich: 'どれのことかな？ 見た目や、今の自分から見た位置を言葉で教えて。まだ分からない呼び名：',
+        dungeonConfirmTarget: '輪郭を光らせたものを、こう呼ぶということ？ 違っていたら教えてね。',
+        dungeonConfirmGo: 'その場所へ歩いて近づいてほしい、というお願いかな？',
+        dungeonConfirmAvoid: 'その相手や場所に近づかず、距離を取ってほしい、というお願いかな？',
+        dungeonConfirmWarning: 'その相手には近づかない方がよい、という警告かな？',
+        dungeonWordLearned: '教えてくれてありがとう。今回の場所で使う意味として覚えたよ。お願いはもう一度伝えてね。',
+        dungeonNotLearned: 'その意味では覚えないでおくね。どういう意味か、改めて教えて。',
+        dungeonNeedBasis: '対象だけでなく、説明やお願いの関係、歩くことにも、まだ分からない部分があるよ。島での学びも必要みたい。',
+        dungeonVocabulary: 'ダンジョンの会話で教わった言葉',
+        dungeonTeachingScope: 'この場所でプレイヤーに確認して教わりました。別の個体や言語、実体験の知識には広げません。',
+        dungeonAvoid: 'お願いされた相手や場所から距離を取るね。',
+        dungeonUnparsed: 'この文のどこが呼び名で、どこがお願いなのか、まだ分からない。見えているものの説明や、してほしいことを教えて。',
+        dungeonNote: 'ダンジョンで聞いた警告', dungeonScope: '教わった個体への警告として覚えています。ほかの相手には広げません。',
         dungeonUnknown: 'まだ警告の関係や対象が分からず、行動の判断には使っていません。',
         dungeonLearned: 'この相手についての警告として覚えておくね。',
         dungeonDiverged: 'その相手は危ないと教わったから、指示とは違うけれど距離を取るね。',
         dungeonRetreat: '危ないと教わった相手から離れている。', dungeonExplore: '周囲を見ながら出口を探している。',
-        dungeonObey: '指された場所へ近づいてみるね。', dungeonArrived: '階段に着いた。島へ戻れます。',
+        dungeonObey: '頼まれた場所へ近づいてみるね。', dungeonArrived: '階段に着いた。島へ戻れます。',
         dungeonLimit: '言葉は受け取ったよ。ここでその行動ができるかは、まだ分からない。',
         gameTitle: 'AIテラリウム', gameSubtitle: '- 観測者の島 -',
         logoStart: '- クリックして開始 -', newGame: 'はじめから',
@@ -770,7 +783,7 @@
                     : action.reason === 'retreat' ? 'dungeonRetreat' : action.reason === 'obey' ? 'dungeonObey' : 'dungeonExplore' });
                     record('dungeon_action', { action }); updateDungeonStatus(); dungeonView.refresh(); },
                 () => { bubble.hidden = true; record('dungeon_point', { target: dungeon.attention }); }, () => toggleDungeon(false),
-                () => !paused && !exporting && !input.value.trim() && !document.hidden);
+                () => !paused && !exporting && !input.value.trim() && !document.hidden && !dungeon?.pending);
             dungeonView.enter(dungeon, dungeonVisuals, appearance.value);
         } else { dungeonView.leave(); dungeon = null; }
         state.context.pendingQuestion = null; state.context.lastOutput = null;
@@ -789,7 +802,8 @@
     }
     function updateDungeonStatus() {
         status.textContent = t(dungeon.complete ? 'dungeonArrived' : dungeon.last?.reason === 'diverged' ? 'dungeonDiverged'
-            : dungeon.last?.reason === 'retreat' ? 'dungeonRetreat' : 'dungeonExplore') + ' · ' + dungeon.turn;
+            : dungeon.last?.reason === 'retreat' ? 'dungeonRetreat' : dungeon.last?.reason === 'avoid' ? 'dungeonAvoid'
+            : dungeon.last?.reason === 'obey' ? 'dungeonObey' : 'dungeonExplore') + ' · ' + dungeon.turn;
     }
     window.addEventListener('popstate', event => { if (event.state?.wordContent) toggleDungeon(event.state.wordContent === 'dungeon', false); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) dungeonView?.stop(); });
@@ -946,17 +960,17 @@
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
             const holding = paused || masterDialog.open || exporting || !!input.value.trim();
-            if (dungeon) {
-                dungeonView.tick(dt, holding);
-                updateDungeonStatus();
-                bubble.style.left = '50%'; bubble.style.top = '18%';
-                requestAnimationFrame(animate); return;
-            }
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
                 bodyMeters[index].value.textContent = `${percent}%`;
             });
+            if (dungeon) {
+                dungeonView.tick(dt, holding || !!dungeon.pending);
+                updateDungeonStatus();
+                bubble.style.left = '50%'; bubble.style.top = dungeonView.bubbleTop() + 'px';
+                requestAnimationFrame(animate); return;
+            }
             const event = worldApi.tick(world, dt, holding);
             if (event) record('life', { event });
             updatePerception();
@@ -1064,7 +1078,8 @@
             const u = result.understandings.at(-1), link = state.knowledge.associations.find(a => a.target === u.target?.adopted?.id
                 && a.speaker === result.input.speaker && a.evidence.some(e => !e.retractedBy));
             const learnedName = result.learning.flatMap(item => item.updated).at(-1);
-            reply = { message: !u.complete ? dungeonResult.kind === 'warning' ? 'dungeonUnknown' : 'uncertain' : dungeonResult.learned ? 'dungeonLearned'
+            reply = dungeonResult.reply || { message: !u.complete ? dungeonResult.kind === 'warning' ? 'dungeonUnknown' : 'dungeonUnparsed' : dungeonResult.learned ? 'dungeonLearned'
+                : dungeonResult.kind === 'avoid' ? 'dungeonAvoid'
                 : dungeonResult.kind === 'go' ? dungeon.complete ? 'dungeonArrived'
                     : dungeon.last?.reason === 'diverged' ? 'dungeonDiverged' : 'dungeonObey'
                 : u.kind === 'greeting' ? 'good_morning' : learnedName || link && ['reference', 'question'].includes(u.kind) ? 'name_echo'
@@ -1076,10 +1091,15 @@
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
         showReply(reply);
+        if (dungeonResult?.reply && state.settings.speech !== 'short') {
+            const guidance = node('p', t(dungeonResult.reply.message), conversation); guidance.className = 'conversation-help';
+            if (dungeonResult.reply.literal) node('span', dungeonResult.reply.literal, guidance).setAttribute('data-i18n-skip', '');
+            record('guidance', { key: dungeonResult.reply.message, literal: dungeonResult.reply.literal || '' });
+        }
         window.ExperimentalWordNotebook.rememberQuestion(state, result, reply);
         const partialReportExplained = result.understandings.length === 1
             && ['heard_feeling_partial', 'heard_event_partial'].includes(reply.message);
-        const hint = result.learning.some(item => item.updated.length) ? 'receivedName'
+        const hint = dungeonResult ? null : result.learning.some(item => item.updated.length) ? 'receivedName'
             : !result.lifeLearning && !result.relationLearning && !result.feelingLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
         if (hint) record('guidance', { key: hint, text: displayText(hint) });

@@ -15128,5 +15128,22 @@
   "そこへ行って": "Geh dorthin",
   "去那里": "Geh dorthin",
   "这个很危险": "Das ist gefährlich",
-  "这个对手很危险": "Dieser Gegner ist gefährlich"
+  "这个对手很危险": "Dieser Gegner ist gefährlich",
+  "見えているものについて、会話で教えたりお願いしたりできます。": "Du kannst über sichtbare Dinge sprechen, Bezeichnungen erklären und Bitten äußern.",
+  "知らない呼び名やお願いは、その意味や対象を聞き返します。見た目や位置も言葉で伝えられます。戦闘はまだ行いません。": "Bei unbekannten Bezeichnungen und Bitten wird nach Bedeutung oder Ziel gefragt. Aussehen und Position lassen sich mit Worten beschreiben. Kämpfe gibt es noch nicht.",
+  "聞き返している対象の候補を、輪郭で示しています。": "Die Umrandung zeigt das mögliche Ziel der Rückfrage.",
+  "どれのことかな？ 見た目や、今の自分から見た位置を言葉で教えて。まだ分からない呼び名：": "Welches meinst du? Beschreibe das Aussehen oder die Position von mir aus gesehen. Unbekannte Bezeichnung: ",
+  "輪郭を光らせたものを、こう呼ぶということ？ 違っていたら教えてね。": "Nennst du das umrandete Ding so? Sag mir, falls das falsch ist. ",
+  "その場所へ歩いて近づいてほしい、というお願いかな？": "Bittest du mich, zu diesem Ort zu gehen? ",
+  "その相手や場所に近づかず、距離を取ってほしい、というお願いかな？": "Bittest du mich, von dieser Gestalt oder diesem Ort Abstand zu halten? ",
+  "その相手には近づかない方がよい、という警告かな？": "Warnst du mich davor, mich dieser Gestalt zu nähern? ",
+  "教えてくれてありがとう。今回の場所で使う意味として覚えたよ。お願いはもう一度伝えてね。": "Danke für die Erklärung. Ich habe mir diese Bedeutung für diesen Ort gemerkt. Bitte wiederhole deine Bitte. ",
+  "その意味では覚えないでおくね。どういう意味か、改めて教えて。": "Diese Bedeutung merke ich mir nicht. Erkläre bitte noch einmal, was du meinst. ",
+  "対象だけでなく、説明やお願いの関係、歩くことにも、まだ分からない部分があるよ。島での学びも必要みたい。": "Neben dem Ziel verstehe ich Teile des Erklärens, Bittens oder Gehens noch nicht. Lernen auf der Insel kann helfen.",
+  "ダンジョンの会話で教わった言葉": "In Gesprächen im Verlies erklärte Wörter",
+  "この場所でプレイヤーに確認して教わりました。別の個体や言語、実体験の知識には広げません。": "An diesem Ort durch Rückfrage beim Spieler gelernt. Daraus entsteht kein Wissen über andere Individuen, andere Sprachen oder eigene Erfahrungen.",
+  "お願いされた相手や場所から距離を取るね。": "Ich halte Abstand von der genannten Gestalt oder dem genannten Ort.",
+  "この文のどこが呼び名で、どこがお願いなのか、まだ分からない。見えているものの説明や、してほしいことを教えて。": "Ich erkenne noch nicht, welcher Teil eine Bezeichnung und welcher eine Bitte ist. Erkläre, was du siehst oder was ich tun soll.",
+  "頼まれた場所へ近づいてみるね。": "Ich versuche, mich dem Ort zu nähern, um den du gebeten hast.",
+  "教わった個体への警告として覚えています。ほかの相手には広げません。": "Als Warnung über das beschriebene Individuum gemerkt. Sie gilt nicht für andere Gegner."
 }

@@ -1,6 +1,6 @@
 # 日記部品の担当・参照索引
 
-- [ダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)の所有はexperimental_word_dungeon_learning.js／experimental_word_dungeon_view.jsと共通experimental_word_learning_ui.js。日記capture登録とは別で、旧140/140枠・129子・138登録APIへ加算しない。初版core単独APIは保持。日記4g・星座工程時期未確定・全保留を維持。
+- [ダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)の所有はexperimental_word_dungeon_learning.js（参照／説明／依頼の組立・確認教示・出所）／experimental_word_dungeon_view.js（候補輪郭・旧素材）と共通experimental_word_learning_ui.js（往復・会話／案内）。日記capture登録とは別で、旧140/140枠・129子・138登録APIへ加算しない。初版core単独APIは保持。日記4g・星座工程時期未確定・全保留を維持。
 
 - [4e現行実装・DU／DV](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。
 

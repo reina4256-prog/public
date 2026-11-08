@@ -15128,5 +15128,22 @@
   "そこへ行って": "Ve allí",
   "去那里": "Ve allí",
   "这个很危险": "Esto es peligroso",
-  "这个对手很危险": "Este rival es peligroso"
+  "这个对手很危险": "Este rival es peligroso",
+  "見えているものについて、会話で教えたりお願いしたりできます。": "Puedes hablar de lo que ves, enseñar nombres y hacer peticiones.",
+  "知らない呼び名やお願いは、その意味や対象を聞き返します。見た目や位置も言葉で伝えられます。戦闘はまだ行いません。": "Si no entiende un nombre o una petición, preguntará por su significado o su objetivo. Puedes describir el aspecto y la posición con palabras. Aún no hay combate.",
+  "聞き返している対象の候補を、輪郭で示しています。": "El contorno señala el posible objetivo de la pregunta.",
+  "どれのことかな？ 見た目や、今の自分から見た位置を言葉で教えて。まだ分からない呼び名：": "¿A cuál te refieres? Describe su aspecto o su posición respecto a mí ahora. Nombre desconocido: ",
+  "輪郭を光らせたものを、こう呼ぶということ？ 違っていたら教えてね。": "¿Así llamas a lo que está resaltado? Dime si me equivoco. ",
+  "その場所へ歩いて近づいてほしい、というお願いかな？": "¿Me pides que camine hacia ese lugar? ",
+  "その相手や場所に近づかず、距離を取ってほしい、というお願いかな？": "¿Me pides que mantenga la distancia con esa figura o ese lugar? ",
+  "その相手には近づかない方がよい、という警告かな？": "¿Me adviertes que es mejor no acercarme a esa figura? ",
+  "教えてくれてありがとう。今回の場所で使う意味として覚えたよ。お願いはもう一度伝えてね。": "Gracias por explicarlo. He aprendido ese significado para este lugar. Repite tu petición, por favor. ",
+  "その意味では覚えないでおくね。どういう意味か、改めて教えて。": "No guardaré ese significado. Explícame de nuevo qué quieres decir. ",
+  "対象だけでなく、説明やお願いの関係、歩くことにも、まだ分からない部分があるよ。島での学びも必要みたい。": "Además del objetivo, aún me faltan cosas por entender sobre explicar, pedir o caminar. Aprender en la isla puede ayudar.",
+  "ダンジョンの会話で教わった言葉": "Palabras aprendidas en conversaciones de la mazmorra",
+  "この場所でプレイヤーに確認して教わりました。別の個体や言語、実体験の知識には広げません。": "Aprendido tras consultarlo con el jugador en este lugar. No establece conocimientos sobre otros individuos, otros idiomas ni experiencias propias.",
+  "お願いされた相手や場所から距離を取るね。": "Mantendré la distancia con la figura o el lugar que has mencionado.",
+  "この文のどこが呼び名で、どこがお願いなのか、まだ分からない。見えているものの説明や、してほしいことを教えて。": "Aún no distingo qué parte es un nombre y cuál es una petición. Explícame lo que ves o lo que quieres que haga.",
+  "頼まれた場所へ近づいてみるね。": "Intentaré acercarme al lugar que me has indicado.",
+  "教わった個体への警告として覚えています。ほかの相手には広げません。": "Se recuerda como una advertencia sobre el individuo que has descrito. No se aplica a otros rivales."
 }

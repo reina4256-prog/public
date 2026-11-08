@@ -29,7 +29,8 @@
     const distance = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
     function create(state) {
         state.dungeonLearning ||= { inputs: [], warnings: [], actions: [] };
-        return { state, position: { x: 5, y: 3 }, attention: null, turn: 0, complete: false, last: null };
+        state.dungeonLearning.lexicon ||= [];
+        return { state, position: { x: 5, y: 3 }, attention: null, pending: null, proposal: null, turn: 0, complete: false, last: null };
     }
     function perceive(session, target = session.attention) {
         session.attention = objects.some(o => o.id === target) ? target : null;
@@ -42,12 +43,17 @@
         return vectors.map(([dx, dy]) => ({ x: position.x + dx, y: position.y + dy }))
             .filter(p => preview.grid[p.y]?.[p.x] === '.' && distance(p, objects[0]) !== 0 && (!avoid || distance(p, objects[0]) > 1));
     }
-    function advance(session, requested = null, inputId = null) {
+    function advance(session, requested = null, inputId = null, intent = 'go') {
         if (session.complete) return null;
+        session.pending = session.proposal = null;
         const before = copy(session.position), danger = warned(session);
         let after = before, reason = 'explore';
         const target = objects.find(o => o.id === requested) || objects[1];
-        if (danger && (distance(before, objects[0]) <= 1 || requested === objects[0].id)) {
+        if (intent === 'avoid' && requested) {
+            after = neighbors(before, danger).filter(p => distance(p, target) > distance(before, target))
+                .sort((a, b) => distance(b, target) - distance(a, target))[0] || before;
+            reason = 'avoid';
+        } else if (danger && (distance(before, objects[0]) <= 1 || requested === objects[0].id)) {
             after = neighbors(before, false).sort((a, b) => distance(b, objects[0]) - distance(a, objects[0]))[0] || before;
             reason = requested ? 'diverged' : 'retreat';
         } else {
@@ -64,48 +70,234 @@
         }
         session.position = { x: after.x, y: after.y }; session.turn++;
         session.complete = distance(after, objects[1]) === 0;
-        session.last = { id: session.state.dungeonLearning.actions.length + 1, scene, inputId, requested,
-            reason, before, after: copy(session.position), warningSources: danger ? session.state.dungeonLearning.warnings.map(w => w.inputId) : [] };
+        session.last = { id: session.state.dungeonLearning.actions.length + 1, scene, subject: 'self', inputId, requested,
+            intent, reason, before, after: copy(session.position), warningSources: danger ? session.state.dungeonLearning.warnings.map(w => w.inputId) : [] };
         session.state.dungeonLearning.actions.push(copy(session.last));
         return session.last;
     }
+    // These grammars propose readings; matching one never supplies the child's knowledge.
+    // Grounding comes from a player's subsequent answer, with both original inputs retained.
+    const grammar = {
+        ja: { yes: /^(?:はい|うん|そう|そうだよ|そうです|合ってる|それでいい)$/u, no: /^(?:いいえ|違う|ちがう|そうじゃない)$/u,
+            split: /(?:だから|なので|(?<=い)から)[、,\s]*/u, declaration: /^(.+?)(?:のは|は)(.{1,24}?)(?:だよ|です|だ|のこと)?$/u,
+            go: /^(.+?)(?:へ|に)(?:行って|いって|向かって|進んで)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
+            avoid: /^(.+?)(?:を)(?:避けて|よけて)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
+            away: /^(.+?)(?:から離れて|には近づかないで|に近づかないで)(?:ください)?(?:ね|よ)?$/u,
+            bareGo: /^(?:行って|いって|向かって|進んで)(?:ね|ください)?$/u,
+            bareAvoid: /^(?:避けて|よけて|離れて|近づかないで)(?:ね|ください)?$/u,
+            warning: /^(?:危ない|危険|危険だ|危険です)(?:よ|ね)?$/u, deictic: /^(?:これ|それ|ここ|そこ|この相手)$/u,
+            red: /赤(?:い|く)/u, side: /横/u, near: /(?:隣|となり|そば|近く)/u, upper: /(?:右上|上の方|上にある)/u },
+        en: { yes: /^(?:yes|yeah|that's right|correct)$/iu, no: /^(?:no|wrong|not that)$/iu, split: /(?:,?\s+so\s+)/iu,
+            declaration: /^(.+?) (?:is called|is|means) (.+)$/iu, go: /^(?:please )?(?:go|walk|head|move) to (.+?)(?: please)?$/iu,
+            avoid: /^(?:please )?(?:avoid|stay away from|move away from) (.+?)(?: please)?$/iu,
+            bareGo: /^(?:go|walk|head)(?: there)?$/iu, bareAvoid: /^(?:avoid it|stay away|move away)$/iu,
+            warning: /^(?:dangerous|unsafe)$/iu, deictic: /^(?:this|that|there|this opponent)$/iu,
+            red: /\bred\b/iu, near: /(?:next to|beside|near you)/iu, upper: /(?:upper right|top right)/iu },
+        'zh-CN': { yes: /^(?:是|是的|对|对的|没错)$/u, no: /^(?:不对|不是|错了)$/u, split: /(?:所以|因此)/u,
+            declaration: /^(.+?)(?:是|叫)(.+)$/u, go: /^(?:请)?(?:去|走向|走到)(.+)$/u,
+            avoid: /^(?:请)?(?:避开|远离)(.+)$/u, bareGo: /^(?:去那里|过去)$/u, bareAvoid: /^(?:避开它|离远点)$/u,
+            warning: /^(?:很危险|危险|不安全)$/u, deictic: /^(?:这|这个|那个|那里|这个对手)$/u,
+            red: /红色/u, near: /(?:旁边|身边|附近)/u, upper: /右上/u },
+        ru: { yes: /^(?:да|верно|правильно)$/iu, no: /^(?:нет|неверно)$/iu, split: /(?:,?\s+поэтому\s+)/iu,
+            declaration: /^(.+?) (?:это|называется|—) (.+)$/iu, go: /^(?:иди|подойди|двигайся) (?:к|в сторону) (.+)$/iu,
+            avoid: /^(?:избегай|отойди от|держись подальше от) (.+)$/iu,
+            bareGo: /^иди туда$/iu, bareAvoid: /^отойди$/iu, warning: /^(?:опасно|опасен|опасный)$/iu,
+            deictic: /^(?:это|туда|этот противник)$/iu, red: /красн/iu, near: /(?:рядом|сбоку)/iu, upper: /(?:справа вверху|вверху справа)/iu },
+        'es-ES': { yes: /^(?:sí|si|correcto|así es)$/iu, no: /^(?:no|incorrecto)$/iu, split: /(?:,?\s+(?:así que|por eso)\s+)/iu,
+            declaration: /^(.+?) (?:es|se llama) (.+)$/iu, go: /^(?:ve|camina|dirígete) (?:a|hacia) (.+)$/iu,
+            avoid: /^(?:evita|aléjate de) (.+)$/iu, bareGo: /^ve allí$/iu, bareAvoid: /^aléjate$/iu,
+            warning: /^(?:peligroso|peligrosa)$/iu, deictic: /^(?:esto|eso|allí|este rival)$/iu,
+            red: /roj[oa]/iu, near: /(?:al lado|cerca de ti)/iu, upper: /arriba a la derecha/iu },
+        'pt-BR': { yes: /^(?:sim|certo|isso mesmo)$/iu, no: /^(?:não|errado)$/iu, split: /(?:,?\s+(?:então|por isso)\s+)/iu,
+            declaration: /^(.+?) (?:é|se chama) (.+)$/iu, go: /^(?:vá|ande|caminhe) (?:até|para) (.+)$/iu,
+            avoid: /^(?:evite|afaste-se de) (.+)$/iu, bareGo: /^vá até lá$/iu, bareAvoid: /^afaste-se$/iu,
+            warning: /^(?:perigoso|perigosa)$/iu, deictic: /^(?:isto|isso|lá|este oponente)$/iu,
+            red: /vermelh[oa]/iu, near: /(?:ao lado|perto de você)/iu, upper: /(?:alto à direita|canto superior direito)/iu },
+        de: { yes: /^(?:ja|richtig|genau)$/iu, no: /^(?:nein|falsch)$/iu, split: /(?:,?\s+(?:also|deshalb)\s+)/iu,
+            declaration: /^(.+?) (?:ist|heißt) (.+)$/iu, go: /^(?:geh|laufe) (?:zu|zum|zur) (.+)$/iu,
+            avoid: /^(?:meide|entferne dich von) (.+)$/iu, bareGo: /^geh dorthin$/iu, bareAvoid: /^geh weg$/iu,
+            warning: /^gefährlich$/iu, deictic: /^(?:das|dies|dorthin|dieser Gegner)$/iu,
+            red: /rot/iu, near: /(?:neben dir|in deiner Nähe)/iu, upper: /(?:oben rechts|rechts oben)/iu }
+    };
+    // Only neutral reference words may accompany sensory selectors. Do not discard
+    // an unknown negation, alternative or another command merely because "red" occurs.
+    const descriptionWords = {
+        ja: /(?:横|隣|となり|そば|近く|右上|上の方|上|赤い|赤く見える|にいる|にある|いる|ある|もの|物|やつ|相手|ひと|人|自分|あなた|きみ|君|いま|今|すぐ|だよ|です|の|に|は)/gu,
+        en: /\b(?:the|this|that|one|figure|opponent|thing|object|standing|right|to|at|of|in|next|beside|near|you|your|me|red|upper|top|side)\b/giu,
+        'zh-CN': /(?:红色|旁边|身边|附近|右上|那个|这个|对手|东西|物体|的|在|你|我)/gu,
+        ru: /(?:красн(?:ый|ая|ое|ого)|противник|существо|предмет|рядом|сбоку|справа|вверху|со|с|мной|тобой|этот|эта|это)/giu,
+        'es-ES': /\b(?:el|la|esa|ese|figura|rival|cosa|objeto|rojo|roja|al|lado|cerca|de|ti|arriba|a|derecha)\b/giu,
+        'pt-BR': /(?<![\p{L}\p{N}])(?:o|a|essa|esse|figura|oponente|coisa|objeto|vermelho|vermelha|ao|lado|perto|de|você|alto|à|direita|canto|superior)(?![\p{L}\p{N}])/giu,
+        de: /\b(?:der|die|das|diese|dieser|rote|roter|rotes|roten|Gestalt|Gegner|Ding|Objekt|neben|dir|in|deiner|Nähe|oben|rechts)\b/giu
+    };
+    const clean = text => text.normalize('NFKC').trim().replace(/[。.!！]+$/u, '').trim();
+    const equal = (a, b) => clean(a).toLocaleLowerCase() === clean(b).toLocaleLowerCase();
+    function parse(raw, locale) {
+        const g = grammar[locale] || grammar.ja, text = clean(raw);
+        if (text.length > 250 || /[?？]|(?:じゃない|ではない|もし|だったら)/u.test(text)) return null;
+        const pieces = text.split(g.split);
+        if (pieces.length > 2) return null;
+        const command = value => {
+            const go = g.go.exec(value), avoid = g.avoid.exec(value) || g.away?.exec(value);
+            return go ? { kind: 'go', reference: go[1] } : avoid ? { kind: 'avoid', reference: avoid[1] }
+                : g.bareGo.test(value) ? { kind: 'go', reference: null } : g.bareAvoid.test(value) ? { kind: 'avoid', reference: null } : null;
+        };
+        // Match the complete noun before considering a nominalizing particle.
+        const declaration = (locale === 'ja' && /^(.+?もの)は(.{1,24}?)(?:だよ|です|だ|のこと)?$/u.exec(pieces[0])) || g.declaration.exec(pieces[0]);
+        if (pieces.length === 2) {
+            const action = command(pieces[1]);
+            if (!declaration || !action) return null;
+            return { ...action, reference: declaration[1], label: declaration[2], because: true,
+                warning: g.warning.test(declaration[2]) };
+        }
+        const action = command(text);
+        if (action) return action;
+        if (declaration) return { kind: g.warning.test(declaration[2]) ? 'warning' : 'name', reference: declaration[1], label: declaration[2], warning: g.warning.test(declaration[2]) };
+        if ((forms[locale] || forms.ja).warning.some(form => equal(form, text))) return { kind: 'warning', reference: null };
+        const name = naming[locale]?.exec(text);
+        if (name) return { kind: 'name', reference: null, label: name[1] };
+        return null;
+    }
+    function references(session, word, locale) {
+        const state = session.state, g = grammar[locale] || grammar.ja;
+        if (!word || g.deictic.test(clean(word))) return { target: session.attention, candidates: session.attention ? [session.attention] : [] };
+        const words = [word, locale === 'ja' ? word.replace(/(?:の方|のほう|のところ|の場所)$/u, '')
+            : locale === 'en' ? word.replace(/^the /iu, '') : word];
+        const names = state.dungeonLearning.lexicon.filter(e => e.locale === locale && e.scene === scene && e.meaning === 'reference'
+            && words.some(value => equal(e.word, value))).map(e => e.target);
+        const island = state.knowledge.associations.filter(e => words.some(value => equal(e.word, value)) && e.speaker === 'player'
+            && e.evidence.some(source => !source.retractedBy)).map(e => e.target);
+        const named = [...new Set([...names, ...island])];
+        if (named.length) return { target: named.length === 1 && objects.some(o => o.id === named[0]) ? named[0] : null, candidates: named };
+        if (clean(word).replace(descriptionWords[locale] || descriptionWords.ja, '').trim()) return { target: null, candidates: [] };
+        const selectors = ['red', 'side', 'near', 'upper'].filter(key => g[key]?.test(word));
+        let candidates = objects;
+        for (const selector of selectors) candidates = candidates.filter(o => selector === 'red' ? o.id === objects[0].id
+            : selector === 'side' ? o.y === session.position.y && Math.abs(o.x - session.position.x) === 1
+            : selector === 'near' ? distance(o, session.position) === 1 : o.y < session.position.y
+                && (!/(?:右|right|справа|derecha|direita|rechts)/iu.test(word) || o.x > session.position.x));
+        const confirmed = selectors.length && selectors.every(selector => state.dungeonLearning.lexicon.some(e => e.locale === locale
+            && e.scene === scene && e.meaning === 'selector' && e.word === selector));
+        return { target: confirmed && candidates.length === 1 ? candidates[0].id : null,
+            candidates: selectors.length ? candidates.map(o => o.id) : [], selectors };
+    }
     function receive(session, raw, catalog, locale = 'ja', at = Date.now()) {
         perceive(session);
-        const normalized = raw.trim().replace(/[。.!！?？]$/u, '').toLocaleLowerCase(locale);
-        const table = forms[locale] || forms.ja;
-        const name = naming[locale]?.exec(raw.trim().replace(/[。.!！?？]$/u, ''));
-        const kind = ['warning', 'go'].find(key => table[key].some(form => form.toLocaleLowerCase(locale) === normalized)) || (name ? 'name' : null);
-        if (!kind) {
-            const result = core.receive(session.state, raw, catalog, { locale, speaker: 'player', at });
-            return { result, special: false };
+        const state = session.state, data = state.dungeonLearning, g = grammar[locale] || grammar.ja;
+        let parsed = parse(raw, locale), pending = session.pending;
+        const answer = pending?.locale === locale && (g.yes.test(clean(raw)) ? 'yes' : g.no.test(clean(raw)) ? 'no' : null);
+        // An unrelated message cancels the proposal. Bare yes can never revive an old question.
+        let refinement = null;
+        if (pending?.locale === locale && pending.meaning === 'reference' && !answer && !parsed) {
+            const ref = references(session, raw, locale);
+            if (ref.candidates.length === 1) refinement = ref;
         }
-        const input = { id: 'input:' + (++session.state.serial), raw, locale, speaker: 'player', at,
-            scene, attention: copy(session.state.context.attention) };
-        const frame = kind === 'name' ? { kind: 'naming', word: name[1], span: raw, relations: ['naming'] }
-            : kind === 'warning' ? { kind: 'report', relations: ['report'] }
-            : { kind: 'request', meaning: 'walk', relations: ['request'] };
-        const understanding = core.understand(session.state, frame, 'player', catalog, locale);
-        if (!session.attention) { understanding.complete = false; understanding.unresolved.push({ type: 'target', id: 'attention' }); }
-        if (kind === 'warning' && session.attention && session.attention !== objects[0].id) {
-            understanding.complete = false; understanding.unresolved.push({ type: 'dungeon_scope', target: session.attention });
+        if (!parsed && !answer && !refinement) {
+            const ref = references(session, clean(raw), locale);
+            if (ref.target) parsed = { kind: 'reference', reference: clean(raw) };
         }
-        const result = { input, interpretations: [{ ...frame, dungeonIntent: kind }], understandings: [copy(understanding)], learning: [],
-            expression: { message: understanding.complete ? 'acknowledge' : 'uncertain' }, reaction: { intent: understanding.complete ? 'acknowledge' : 'uncertain' } };
-        const knowledgeBefore = copy(session.state.knowledge);
-        if (kind === 'name') {
-            const candidates = core.formCandidates(session.state, frame, understanding, input, catalog), adopted = core.adoptCandidate(candidates);
-            result.learning.push({ candidates, adopted, updated: core.updateLinks(session.state, candidates, adopted, input) });
+        if (!parsed && !answer && !refinement) {
+            session.pending = session.proposal = null;
+            return { result: core.receive(state, raw, catalog, { locale, speaker: 'player', at }), special: false };
         }
-        session.state.dungeonLearning.inputs.push(copy({ kind, target: session.attention, result,
-            knowledgeBefore, warningsBefore: session.state.dungeonLearning.warnings }));
-        if (understanding.complete && kind === 'warning') session.state.dungeonLearning.warnings.push({ scene, target: session.attention, inputId: input.id });
-        if (understanding.complete && kind === 'go') advance(session, session.attention, input.id);
-        return { result, special: true, kind, learned: understanding.complete && kind === 'warning' };
+        const input = { id: 'input:' + (++state.serial), raw, locale, speaker: 'player', at, scene,
+            attention: copy(state.context.attention), position: copy(session.position) };
+        const before = { knowledgeBefore: copy(state.knowledge), lexiconBefore: copy(data.lexicon), warningsBefore: copy(data.warnings), dialogueBefore: copy(pending) };
+        let reply, acquired = [], ref, frame, u;
+        if (answer || refinement) {
+            frame = { kind: 'dungeon_clarification', relations: [], sourceInputId: pending.sourceInputId };
+            u = core.understand(state, frame, 'player', catalog, locale);
+            if (answer === 'no') {
+                session.pending = pending.meaning === 'reference' ? { ...pending, target: null, selectors: [] } : null; session.proposal = null;
+                reply = { message: session.pending ? 'dungeonWhich' : 'dungeonNotLearned', literal: pending.word };
+            } else if (refinement) {
+                session.pending = { ...pending, target: refinement.candidates[0], selectors: refinement.selectors, proposalInputId: input.id };
+                session.proposal = refinement.candidates[0]; reply = { message: 'dungeonConfirmTarget', literal: pending.word };
+            } else if (!pending.target && pending.meaning === 'reference') {
+                u.complete = false; u.unresolved.push({ type: 'target', token: pending.word }); reply = { message: 'dungeonWhich', literal: pending.word };
+            } else {
+                const relation = pending.meaning === 'reference' ? 'naming' : pending.meaning === 'warning' ? 'report' : 'request';
+                const check = core.understand(state, { kind: relation === 'naming' ? 'naming' : relation,
+                    relations: [relation], ...(relation === 'request' ? { meaning: 'walk' } : {}) }, 'player', catalog, locale);
+                // Naming needs the explicitly proposed object, not the previous attention.
+                const missing = check.unresolved.filter(e => !(relation === 'naming' && e.type === 'target'));
+                if (missing.length) { u.complete = false; u.unresolved.push(...missing); reply = { message: 'dungeonNeedBasis' }; }
+                else {
+                    const entry = { word: pending.word, meaning: pending.meaning, target: pending.target || null, scene, locale,
+                        speaker: 'player', source: 'confirmed_teaching', sourceInputId: pending.sourceInputId,
+                        proposalInputId: pending.proposalInputId || pending.sourceInputId, inputId: input.id };
+                    const entries = [...(entry.word ? [entry] : []), ...(pending.selectors || []).map(word => ({ ...entry, word, meaning: 'selector' }))];
+                    for (const e of entries) if (!data.lexicon.some(old => old.word === e.word && old.meaning === e.meaning
+                        && old.target === e.target && old.locale === locale && old.scene === scene)) { data.lexicon.push(copy(e)); acquired.push(copy(e)); }
+                    reply = { message: 'dungeonWordLearned', literal: pending.word };
+                    if (pending.meaning === 'reference') {
+                        perceive(session, pending.target);
+                        u.target = { adopted: { id: pending.target, source: 'confirmed_proposal', sourceInputId: pending.sourceInputId }, candidates: [{ id: pending.target }] };
+                    }
+                    session.pending = session.proposal = null;
+                }
+            }
+        } else {
+            session.pending = session.proposal = null;
+            ref = references(session, parsed.reference, locale);
+            frame = { kind: parsed.kind === 'name' ? 'naming' : parsed.kind === 'warning' ? 'report'
+                : parsed.kind === 'reference' ? 'reference' : 'request', relations: parsed.kind === 'name' ? ['naming']
+                    : parsed.kind === 'warning' ? ['report'] : parsed.kind === 'reference' ? [] : ['request'],
+                ...(parsed.because ? { relations: ['naming', 'report', 'reason', 'request'] } : {}),
+                ...(['go', 'avoid'].includes(parsed.kind) ? { meaning: 'walk', subject: 'self', roles: { proposer: 'player', actors: ['self'] } } : {}), dungeonIntent: parsed.kind };
+            u = core.understand(state, frame, 'player', catalog, locale);
+            u.unresolved = u.unresolved.filter(e => e.type !== 'target');
+            u.complete = u.unresolved.length === 0;
+            if (ref.target) u.target = { adopted: { id: ref.target, source: 'dungeon_reference' }, candidates: [{ id: ref.target }],
+                references: data.lexicon.filter(e => e.meaning === 'reference' && e.target === ref.target && e.locale === locale).map(e => e.inputId) };
+            if (!ref.target) {
+                u.complete = false; u.unresolved.push({ type: 'target', token: parsed.reference, candidates: ref.candidates });
+                session.pending = { meaning: 'reference', word: parsed.label && !parsed.warning ? parsed.label : parsed.reference || '',
+                    target: ref.candidates.length === 1 && objects.some(o => o.id === ref.candidates[0]) ? ref.candidates[0] : null,
+                    selectors: ref.selectors || [], sourceInputId: input.id, locale };
+                session.proposal = session.pending.target;
+                reply = { message: session.proposal ? 'dungeonConfirmTarget' : 'dungeonWhich', literal: session.pending.word };
+            } else if (parsed.kind === 'name' || parsed.label && !parsed.warning) {
+                const named = references(session, parsed.label, locale);
+                if (named.target !== ref.target) {
+                    u.complete = false; u.unresolved.push({ type: 'meaning', token: parsed.label });
+                    session.pending = { meaning: 'reference', word: parsed.label, target: ref.target, sourceInputId: input.id, locale };
+                    session.proposal = ref.target; reply = { message: 'dungeonConfirmTarget', literal: parsed.label };
+                }
+            }
+            const semantics = [...(parsed.kind === 'warning' || parsed.warning ? ['warning'] : []), ...(['go', 'avoid'].includes(parsed.kind) ? [parsed.kind] : [])];
+            const semantic = semantics.find(meaning => !data.lexicon.some(e => e.meaning === meaning && e.locale === locale && e.scene === scene));
+            if (u.complete && semantic) {
+                u.complete = false; u.unresolved.push({ type: 'dungeon_meaning', id: semantic });
+                session.pending = { meaning: semantic, word: parsed.kind === 'warning' ? parsed.label || clean(raw) : clean(raw),
+                    target: null, sourceInputId: input.id, locale };
+                reply = { message: semantic === 'go' ? 'dungeonConfirmGo' : semantic === 'avoid' ? 'dungeonConfirmAvoid' : 'dungeonConfirmWarning', literal: session.pending.word };
+            }
+            if (u.unresolved.some(e => e.type === 'relation' || e.type === 'meaning' && e.token === 'walk')) {
+                session.pending = session.proposal = null; reply = { message: 'dungeonNeedBasis' };
+            }
+            if (u.complete && (parsed.kind === 'warning' || parsed.warning)) {
+                if (ref.target !== objects[0].id) {
+                    u.complete = false; u.unresolved.push({ type: 'dungeon_scope', target: ref.target }); reply = { message: 'dungeonUnknown' };
+                } else if (!data.warnings.some(e => e.target === ref.target && e.scene === scene)) data.warnings.push({ scene, target: ref.target, inputId: input.id });
+            }
+            if (u.complete && ['go', 'avoid'].includes(parsed.kind)) advance(session, ref.target, input.id, parsed.kind);
+            if (u.complete) perceive(session, ref.target);
+        }
+        const result = { input, interpretations: [{ ...frame, ...(parsed ? { reading: copy(parsed) } : {}) }], understandings: [copy(u)], learning: [],
+            expression: { message: u.complete ? 'acknowledge' : 'uncertain' }, reaction: { intent: u.complete ? 'acknowledge' : 'uncertain' } };
+        data.inputs.push(copy({ kind: parsed?.kind || 'clarification', target: ref?.target || null, result, ...before,
+            acquired, dialogueAfter: session.pending }));
+        return { result, special: true, kind: parsed?.kind || 'clarification', reply,
+            learned: u.complete && parsed?.kind === 'warning' };
     }
     function notes(state) {
-        return (state.dungeonLearning?.inputs || []).filter(e => e.kind === 'warning').map(e => ({ group: 'names',
+        const learned = (state.dungeonLearning?.lexicon || []).filter(e => e.meaning !== 'selector').map(e => ({ group: 'names',
+            message: 'dungeonVocabulary', detail: 'dungeonTeachingScope', literal: e.word, target: e.target,
+            sourceId: e.inputId, organized: false }));
+        return [...learned, ...(state.dungeonLearning?.inputs || []).filter(e => e.kind === 'warning').map(e => ({ group: 'names',
             message: 'dungeonNote', detail: e.result.understandings[0].complete ? 'dungeonScope' : 'dungeonUnknown',
-            literal: e.result.input.raw, target: e.target, sourceId: e.result.input.id, organized: false }));
+            literal: e.result.input.raw, target: e.target, sourceId: e.result.input.id, organized: false }))];
     }
     return Object.freeze({ create, perceive, receive, advance, warned, notes, objects, forms, grid: preview.grid });
 });

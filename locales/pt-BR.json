@@ -15128,5 +15128,22 @@
   "そこへ行って": "Vá até lá",
   "去那里": "Vá até lá",
   "这个很危险": "Isto é perigoso",
-  "这个对手很危险": "Este oponente é perigoso"
+  "这个对手很危险": "Este oponente é perigoso",
+  "見えているものについて、会話で教えたりお願いしたりできます。": "Você pode conversar sobre o que vê, ensinar nomes e fazer pedidos.",
+  "知らない呼び名やお願いは、その意味や対象を聞き返します。見た目や位置も言葉で伝えられます。戦闘はまだ行いません。": "Nomes e pedidos desconhecidos levam a perguntas sobre o significado ou o alvo. Você pode descrever a aparência e a posição com palavras. Ainda não há combate.",
+  "聞き返している対象の候補を、輪郭で示しています。": "O contorno mostra o possível alvo da pergunta.",
+  "どれのことかな？ 見た目や、今の自分から見た位置を言葉で教えて。まだ分からない呼び名：": "De qual você está falando? Descreva a aparência ou a posição em relação a mim agora. Nome desconhecido: ",
+  "輪郭を光らせたものを、こう呼ぶということ？ 違っていたら教えてね。": "É assim que você chama o que está destacado? Me avise se entendi errado. ",
+  "その場所へ歩いて近づいてほしい、というお願いかな？": "Você está pedindo para eu caminhar até esse lugar? ",
+  "その相手や場所に近づかず、距離を取ってほしい、というお願いかな？": "Você está pedindo para eu manter distância dessa figura ou desse lugar? ",
+  "その相手には近づかない方がよい、という警告かな？": "Você está avisando que é melhor não me aproximar dessa figura? ",
+  "教えてくれてありがとう。今回の場所で使う意味として覚えたよ。お願いはもう一度伝えてね。": "Obrigado por explicar. Aprendi esse significado para este lugar. Faça seu pedido de novo, por favor. ",
+  "その意味では覚えないでおくね。どういう意味か、改めて教えて。": "Não vou guardar esse significado. Explique de novo o que você quer dizer. ",
+  "対象だけでなく、説明やお願いの関係、歩くことにも、まだ分からない部分があるよ。島での学びも必要みたい。": "Além do alvo, ainda preciso entender partes de explicar, pedir ou andar. Aprender na ilha pode ajudar.",
+  "ダンジョンの会話で教わった言葉": "Palavras ensinadas em conversas na masmorra",
+  "この場所でプレイヤーに確認して教わりました。別の個体や言語、実体験の知識には広げません。": "Aprendido ao confirmar com o jogador neste lugar. Isso não estabelece conhecimentos sobre outros indivíduos, outros idiomas ou experiências próprias.",
+  "お願いされた相手や場所から距離を取るね。": "Vou manter distância da figura ou do lugar que você mencionou.",
+  "この文のどこが呼び名で、どこがお願いなのか、まだ分からない。見えているものの説明や、してほしいことを教えて。": "Ainda não consigo distinguir qual parte é um nome e qual é um pedido. Explique o que você vê ou o que quer que eu faça.",
+  "頼まれた場所へ近づいてみるね。": "Vou tentar me aproximar do lugar que você pediu.",
+  "教わった個体への警告として覚えています。ほかの相手には広げません。": "Guardado como um aviso sobre o indivíduo que você descreveu. Não se aplica a outros oponentes."
 }

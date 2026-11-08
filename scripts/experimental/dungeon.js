@@ -32,20 +32,42 @@ if (!process.versions.electron || process.type !== 'browser') {
         await send('ぽぽは休むことだよ');
         await js(`document.querySelector('[aria-controls="notebook"]').click();void 0`);
         assert.ok((await js("document.getElementById('notebook').textContent")).includes('ぽぽ'));
-        await js(`document.querySelector('[aria-controls="conversation"]').click();window.__islandRecords=null;const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state){window.__child=state;if(!window.__islandRecords)window.__islandRecords=JSON.stringify(state.records);return original.create(state);}};document.getElementById('word-dungeon').click();document.getElementById('dungeon-point-0').click();void 0`);
-        await send('これはアカだよ');
-        await send('そこへ行って');
+        await js(`document.querySelector('[aria-controls="conversation"]').click();window.__islandRecords=null;const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state){window.__child=state;if(!window.__islandRecords)window.__islandRecords=JSON.stringify(state.records);return original.create(state);}};document.getElementById('word-dungeon').click();void 0`);
+        assert.equal(await js("document.querySelector('[id^=dungeon-point-]')===null"), true);
+        await send('階段にいって');
+        assert.ok((await js("document.getElementById('conversation').textContent")).includes('どれのことかな'));
+        await send('はい？');
+        assert.equal(await js('window.__child.dungeonLearning.lexicon.length'), 0);
+        await send('階段にいって');
+        await js("document.getElementById('dungeon-step').click();document.getElementById('dungeon-auto').click();new Promise(resolve=>setTimeout(resolve,1000))");
+        assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
+        await send('右上にあるもの'); await send('はい');
+        await send('階段へ向かって'); await send('はい');
+        await send('横にいるのは敵だから避けてね');
+        const firstOriginal = await js('JSON.stringify(window.__child.dungeonLearning.inputs.at(-1))');
+        const firstIndex = await js('window.__child.dungeonLearning.inputs.length-1');
+        await send('そうだよ'); await send('横にいるのは敵だから避けてね'); await send('うん');
+        assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
+        await send('敵をよけてください');
+        assert.equal(await js("window.__child.dungeonLearning.actions.at(-1).reason"), 'avoid');
+        assert.equal(await js('JSON.stringify(window.__child.dungeonLearning.inputs[' + firstIndex + '])'), firstOriginal);
+        await send('敵はアカだよ'); await send('はい');
+        await send('アカに行って');
         assert.equal(await js("window.__child.dungeonLearning.actions.at(-1).reason"), 'obey');
-        await send('これは危ない');
-        await send('そこへ行って');
+        const questionActions = await js('window.__child.dungeonLearning.actions.length');
+        await send('階段に行って？');
+        assert.equal(await js('window.__child.dungeonLearning.actions.length'), questionActions);
+        await send('アカは危ない'); await send('はい'); await send('アカは危ない');
+        await send('アカに行って');
         assert.equal(await js("window.__child.dungeonLearning.actions.at(-1).reason"), 'diverged');
         const divergence = await js("document.querySelector('.status').textContent");
         assert.ok(divergence.includes(await js("GameI18n.translate('その相手は危ないと教わったから、指示とは違うけれど距離を取るね。')")), divergence);
         assert.equal(await js("JSON.stringify(window.__child.records.slice(0,JSON.parse(window.__islandRecords).length))===window.__islandRecords"), true);
-        assert.equal(await js("window.__child.knowledge.associations.some(a=>a.word==='アカ')"), true);
+        assert.equal(await js("window.__child.dungeonLearning.lexicon.some(a=>a.word==='アカ')"), true);
         await js(`document.querySelector('[aria-controls="notebook"]').click();void 0`);
-        assert.ok((await js("document.getElementById('notebook').textContent")).includes('これは危ない'));
+        assert.ok((await js("document.getElementById('notebook').textContent")).includes('アカは危ない'));
         assert.ok((await js("document.getElementById('notebook').textContent")).includes('ぽぽ'));
+        await js("document.querySelector('[aria-controls=conversation]').click();void 0");
         const artifactArg = process.argv.find(a => a.startsWith('--artifacts='));
         const artifacts = artifactArg ? path.resolve(artifactArg.slice('--artifacts='.length)) : directory;
         fs.mkdirSync(artifacts, { recursive: true });
@@ -57,6 +79,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             for (const width of [1440,390]) {
                 win.setContentSize(width, 1000); await settle();
                 assert.equal(await js('document.documentElement.scrollWidth>innerWidth'), false, locale + ':' + width);
+                assert.equal(await js("document.querySelector('.bubble').getBoundingClientRect().top>=document.querySelector('.word-dungeon-hud').getBoundingClientRect().bottom"), true, 'bubble clears HUD: ' + locale + ':' + width);
+                assert.deepEqual(await js("Array.from(document.querySelectorAll('.body-status meter'),meter=>meter.value)"), [35,85], 'body meters: ' + locale + ':' + width);
             }
             checked++;
         }
@@ -68,7 +92,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         await js("document.getElementById('dungeon-return').click();void 0"); await settle();
         assert.equal(await js("location.pathname.endsWith('experimental_word_island.html')"),true);
-        assert.ok((await js("document.getElementById('notebook').textContent")).includes('これは危ない'));
+        assert.ok((await js("document.getElementById('notebook').textContent")).includes('アカは危ない'));
         await js("window.__sameChild=window.__child;document.getElementById('word-dungeon').click();void 0"); await settle();
         assert.equal(await js("window.__sameChild===window.__child"), true);
         await js("history.back();new Promise(resolve=>setTimeout(resolve,500))");
@@ -92,13 +116,22 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         assert.equal(await js("document.getElementById('dungeon-step').disabled"), true);
         const arrivedActions = await js('window.__child.dungeonLearning.actions.length');
-        await js("document.getElementById('dungeon-point-1').click();void 0"); await send('そこへ行って');
+        await send('階段にいって');
         assert.equal(await js('window.__child.dungeonLearning.actions.length'), arrivedActions);
         assert.ok((await js("document.querySelector('.status').textContent")).includes('階段に着いた'));
+        await js("window.__child.settings.speech='gesture';void 0");
+        await send('赤いものはミミだよ');
+        assert.equal(await js("document.getElementById('conversation').lastElementChild.classList.contains('conversation-help')"), true);
+        assert.equal(await js("document.querySelector('.bubble').textContent.includes('輪郭')"), false);
+        await send('はい');
+        assert.equal(await js("window.__child.dungeonLearning.lexicon.some(e=>e.word==='ミミ')"), true);
+        assert.equal(await js('window.__child.dungeonLearning.actions.length'), arrivedActions);
         assert.equal(await js("localStorage.getItem('dungeon-sentinel')==='keep'&&sessionStorage.getItem('dungeon-sentinel')==='keep'"), true);
         assert.deepEqual(errors,[]);
         console.log(JSON.stringify({ dungeonSession: { locales:checked,viewports:14,sameChild:true,islandRecordsPreserved:true,
             nameAndWarningRetained:true,warningChangesDecision:true,returnAndReentry:true,historyBackForward:true,autoAdvances:true,
+            freeTargetDescription:true,noTargetButtons:true,clarificationStopsMovement:true,paraphrases:true,originalPartialPreserved:true,
+            gestureGuidanceSeparate:true,bubbleClearsHud:true,bodyMetersVisible:true,
             pauseStable:true,exitReached:true,noMovementAfterArrival:true,errors,directory,artifacts } }));
         server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); server=null;
         app.removeAllListeners('window-all-closed'); win.destroy(); app.exit(0);
