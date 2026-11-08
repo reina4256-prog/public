@@ -79,7 +79,7 @@
     // Grounding comes from a player's subsequent answer, with both original inputs retained.
     const grammar = {
         ja: { yes: /^(?:はい|うん|そう|そうだよ|そうです|合ってる|それでいい)$/u, no: /^(?:いいえ|違う|ちがう|そうじゃない)$/u,
-            split: /(?:だから|なので|(?<=い)から)[、,\s]*/u, declaration: /^(.+?)(?:のは|は)(.{1,24}?)(?:だよ|です|だ|のこと)?$/u,
+            split: /(?:だから|なので|(?<=い)から|(?<=いる)から|(?<=ある)から|ので)[、,\s]*/u, declaration: /^(.+?)(?:のは|は)(.{1,24}?)(?:だよ|です|だ|のこと)?$/u,
             go: /^(.+?)(?:へ|に)(?:行って|いって|向かって|進んで)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
             avoid: /^(.+?)(?:を)(?:避けて|よけて)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
             away: /^(.+?)(?:から離れて|には近づかないで|に近づかないで)(?:ください)?(?:ね|よ)?$/u,
@@ -122,28 +122,68 @@
     // Only neutral reference words may accompany sensory selectors. Do not discard
     // an unknown negation, alternative or another command merely because "red" occurs.
     const descriptionWords = {
-        ja: /(?:横|隣|となり|そば|近く|右上|上の方|上|赤い|赤く見える|にいる|にある|いる|ある|もの|物|やつ|相手|ひと|人|自分|あなた|きみ|君|いま|今|すぐ|だよ|です|の|に|は)/gu,
-        en: /\b(?:the|this|that|one|figure|opponent|thing|object|standing|right|to|at|of|in|next|beside|near|you|your|me|red|upper|top|side)\b/giu,
-        'zh-CN': /(?:红色|旁边|身边|附近|右上|那个|这个|对手|东西|物体|的|在|你|我)/gu,
-        ru: /(?:красн(?:ый|ая|ое|ого)|противник|существо|предмет|рядом|сбоку|справа|вверху|со|с|мной|тобой|этот|эта|это)/giu,
-        'es-ES': /\b(?:el|la|esa|ese|figura|rival|cosa|objeto|rojo|roja|al|lado|cerca|de|ti|arriba|a|derecha)\b/giu,
-        'pt-BR': /(?<![\p{L}\p{N}])(?:o|a|essa|esse|figura|oponente|coisa|objeto|vermelho|vermelha|ao|lado|perto|de|você|alto|à|direita|canto|superior)(?![\p{L}\p{N}])/giu,
-        de: /\b(?:der|die|das|diese|dieser|rote|roter|rotes|roten|Gestalt|Gegner|Ding|Objekt|neben|dir|in|deiner|Nähe|oben|rechts)\b/giu
+        ja: /(?:横|隣|となり|そば|近く|右|左|上|下|方|赤い|赤く見える|にいる|にある|いる|ある|もの|物|やつ|相手|ひと|人|自分|あなた|きみ|君|いま|今|すぐ|だよ|です|の|に|は)/gu,
+        en: /\b(?:the|this|that|one|figure|opponent|thing|object|standing|right|left|above|below|bottom|lower|to|at|of|in|next|beside|near|you|your|me|red|upper|top|side)\b/giu,
+        'zh-CN': /(?:红色|旁边|身边|附近|右|左|上|下|那个|这个|对手|东西|物体|的|在|你|我)/gu,
+        ru: /(?:красн(?:ый|ая|ое|ого)|противник|существо|предмет|рядом|сбоку|справа|слева|вверху|внизу|со|с|мной|тобой|этот|эта|это)/giu,
+        'es-ES': /\b(?:el|la|esa|ese|figura|rival|cosa|objeto|rojo|roja|al|lado|cerca|de|ti|arriba|abajo|a|derecha|izquierda)\b/giu,
+        'pt-BR': /(?<![\p{L}\p{N}])(?:o|a|essa|esse|figura|oponente|coisa|objeto|vermelho|vermelha|ao|lado|perto|de|você|alto|baixo|à|direita|esquerda|canto|superior|inferior)(?![\p{L}\p{N}])/giu,
+        de: /\b(?:der|die|das|diese|dieser|rote|roter|rotes|roten|Gestalt|Gegner|Ding|Objekt|neben|dir|in|deiner|Nähe|oben|unten|rechts|links)\b/giu
     };
+    const directions = {
+        ja: [/右/u, /左/u, /上/u, /下/u], en: [/\bright\b/iu, /\bleft\b/iu, /\b(?:upper|top|above)\b/iu, /\b(?:lower|bottom|below)\b/iu],
+        'zh-CN': [/右/u, /左/u, /上/u, /下/u], ru: [/справа/iu, /слева/iu, /вверху/iu, /внизу/iu],
+        'es-ES': [/\bderecha\b/iu, /\bizquierda\b/iu, /\barriba\b/iu, /\babajo\b/iu],
+        'pt-BR': [/\bdireita\b/iu, /\besquerda\b/iu, /\b(?:alto|superior)\b/iu, /\b(?:baixo|inferior)\b/iu],
+        de: [/\brechts\b/iu, /\blinks\b/iu, /\boben\b/iu, /\bunten\b/iu]
+    };
+    const knowledgeQuestions = {
+        ja: /^(.{1,24}?)(?:って何|ってなに|(?:は|を)?(?:わかる|分かる|知ってる|知っている))[?？]?$/u,
+        en: /^(?:do you know|what is) (.{1,24}?)[?？]?$/iu, 'zh-CN': /^(?:你知道|你懂)(.{1,24}?)(?:吗)?[?？]?$/u,
+        ru: /^(?:ты знаешь|что такое) (.{1,24}?)[?？]?$/iu, 'es-ES': /^(?:¿)?(?:conoces|qué es) (.{1,24}?)[?？]?$/iu,
+        'pt-BR': /^(?:você conhece|o que é) (.{1,24}?)[?？]?$/iu, de: /^(?:kennst du|was ist) (.{1,24}?)[?？]?$/iu
+    };
+    // Definitions are answers to the current meaning question, never standalone commands.
+    const definitions = {
+        ja: { avoid: /^(?:近づかずに離れる|距離を取る|近づかない)(?:こと|ということ|ってこと)?(?:だよ|です)?$/u,
+            go: /^(?:その場所へ|そこへ)(?:歩いて)?(?:行く|近づく)(?:こと|ということ|ってこと)?(?:だよ|です)?$/u },
+        en: { avoid: /^(?:it means )?(?:keep your distance|move away|stay away)$/iu, go: /^(?:it means )?(?:walk there|walk to that place)$/iu },
+        'zh-CN': { avoid: /^(?:就是|意思是)?(?:保持距离|离远一点|不要靠近)$/u, go: /^(?:就是|意思是)?(?:走到那里|走向那个地方)$/u },
+        ru: { avoid: /^(?:это значит )?(?:держать дистанцию|отойти подальше)$/iu, go: /^(?:это значит )?идти туда$/iu },
+        'es-ES': { avoid: /^(?:significa )?(?:mantener la distancia|alejarse)$/iu, go: /^(?:significa )?caminar hasta allí$/iu },
+        'pt-BR': { avoid: /^(?:significa )?(?:manter distância|se afastar)$/iu, go: /^(?:significa )?andar até lá$/iu },
+        de: { avoid: /^(?:das bedeutet )?(?:Abstand halten|weggehen)$/iu, go: /^(?:das bedeutet )?dorthin gehen$/iu }
+    };
+    function targetReply(pending, candidates) {
+        return { message: pending.target ? pending.word ? 'dungeonConfirmTarget' : 'dungeonConfirmUnnamed'
+            : candidates?.length > 1 ? 'dungeonMoreDetail' : 'dungeonWhich', literal: pending.word };
+    }
+    function candidatesFor(session, selectors) {
+        return objects.filter(o => selectors.every(selector => selector === 'red' ? o.id === objects[0].id
+            : selector === 'side' ? o.y === session.position.y && Math.abs(o.x - session.position.x) === 1
+            : selector === 'near' ? distance(o, session.position) === 1
+            : selector === 'right' ? o.x > session.position.x : selector === 'left' ? o.x < session.position.x
+            : selector === 'upper' ? o.y < session.position.y : o.y > session.position.y)).map(o => o.id);
+    }
     const clean = text => text.normalize('NFKC').trim().replace(/[。.!！]+$/u, '').trim();
     const equal = (a, b) => clean(a).toLocaleLowerCase() === clean(b).toLocaleLowerCase();
     function parse(raw, locale) {
         const g = grammar[locale] || grammar.ja, text = clean(raw);
+        const question = knowledgeQuestions[locale]?.exec(text);
+        if (question) return { kind: 'reference', reference: question[1].trim(), question: true };
         if (text.length > 250 || /[?？]|(?:じゃない|ではない|もし|だったら)/u.test(text)) return null;
         const pieces = text.split(g.split);
         if (pieces.length > 2) return null;
         const command = value => {
+            if (g.bareGo.test(value)) return { kind: 'go', reference: null };
+            if (g.bareAvoid.test(value)) return { kind: 'avoid', reference: null };
             const go = g.go.exec(value), avoid = g.avoid.exec(value) || g.away?.exec(value);
             return go ? { kind: 'go', reference: go[1] } : avoid ? { kind: 'avoid', reference: avoid[1] }
                 : g.bareGo.test(value) ? { kind: 'go', reference: null } : g.bareAvoid.test(value) ? { kind: 'avoid', reference: null } : null;
         };
         // Match the complete noun before considering a nominalizing particle.
-        const declaration = (locale === 'ja' && /^(.+?もの)は(.{1,24}?)(?:だよ|です|だ|のこと)?$/u.exec(pieces[0])) || g.declaration.exec(pieces[0]);
+        const declaration = (locale === 'ja' && (/^(.+?)(?:には|に)(.{1,24}?)(?:が|は)(?:いる|ある)$/u.exec(pieces[0])
+            || /^(.+?もの)は(.{1,24}?)(?:だよ|です|だ|のこと)?$/u.exec(pieces[0]))) || g.declaration.exec(pieces[0]);
         if (pieces.length === 2) {
             const action = command(pieces[1]);
             if (!declaration || !action) return null;
@@ -170,31 +210,53 @@
         const named = [...new Set([...names, ...island])];
         if (named.length) return { target: named.length === 1 && objects.some(o => o.id === named[0]) ? named[0] : null, candidates: named };
         if (clean(word).replace(descriptionWords[locale] || descriptionWords.ja, '').trim()) return { target: null, candidates: [] };
-        const selectors = ['red', 'side', 'near', 'upper'].filter(key => g[key]?.test(word));
-        let candidates = objects;
-        for (const selector of selectors) candidates = candidates.filter(o => selector === 'red' ? o.id === objects[0].id
-            : selector === 'side' ? o.y === session.position.y && Math.abs(o.x - session.position.x) === 1
-            : selector === 'near' ? distance(o, session.position) === 1 : o.y < session.position.y
-                && (!/(?:右|right|справа|derecha|direita|rechts)/iu.test(word) || o.x > session.position.x));
+        const selectors = ['red', 'side', 'near'].filter(key => g[key]?.test(word));
+        ['right', 'left', 'upper', 'lower'].forEach((key, i) => { if ((directions[locale] || directions.ja)[i].test(word)) selectors.push(key); });
+        const candidates = candidatesFor(session, selectors);
         const confirmed = selectors.length && selectors.every(selector => state.dungeonLearning.lexicon.some(e => e.locale === locale
             && e.scene === scene && e.meaning === 'selector' && e.word === selector));
-        return { target: confirmed && candidates.length === 1 ? candidates[0].id : null,
-            candidates: selectors.length ? candidates.map(o => o.id) : [], selectors };
+        return { target: confirmed && candidates.length === 1 ? candidates[0] : null,
+            candidates: selectors.length ? candidates : [], selectors };
     }
     function receive(session, raw, catalog, locale = 'ja', at = Date.now()) {
         perceive(session);
         const state = session.state, data = state.dungeonLearning, g = grammar[locale] || grammar.ja;
+        // A known greeting belongs to the shared conversation, even if a particle
+        // inside it happens to resemble the local naming grammar.
+        if (core.interpret(raw, locale, catalog).some(frame => frame.kind === 'greeting')) {
+            session.pending = session.proposal = null;
+            return { result: core.receive(state, raw, catalog, { locale, speaker: 'player', at }), special: false };
+        }
         let parsed = parse(raw, locale), pending = session.pending;
-        const answer = pending?.locale === locale && (g.yes.test(clean(raw)) ? 'yes' : g.no.test(clean(raw)) ? 'no' : null);
+        let answer = pending?.locale === locale && (g.yes.test(clean(raw)) ? 'yes' : g.no.test(clean(raw)) ? 'no' : null);
+        const definition = pending?.locale === locale && definitions[locale]?.[pending.meaning]?.test(clean(raw));
+        if (definition) { answer = 'yes'; parsed = null; }
         // An unrelated message cancels the proposal. Bare yes can never revive an old question.
         let refinement = null;
-        if (pending?.locale === locale && pending.meaning === 'reference' && !answer && !parsed) {
-            const ref = references(session, raw, locale);
-            if (ref.candidates.length === 1) refinement = ref;
+        if (pending?.locale === locale && pending.meaning === 'reference' && !answer) {
+            const repeated = parsed && (parsed.question && equal(parsed.reference, pending.word)
+                || ['go', 'avoid'].includes(parsed.kind) && !parsed.reference);
+            if (!parsed || repeated) {
+                const ref = references(session, raw, locale);
+                if (!parsed && ref.selectors?.length) {
+                    const selectors = [...new Set([...(pending.selectors || []), ...ref.selectors])];
+                    refinement = { selectors, candidates: candidatesFor(session, selectors) };
+                } else if (!parsed && pending.target && pending.word && equal(raw, pending.word)) answer = 'yes';
+                else if (!parsed && pending.target && !pending.word && /^[\p{L}\p{N}]{1,24}$/u.test(clean(raw))
+                    && !g.no.test(clean(raw)) && !core.interpret(raw, locale, catalog).some(frame => frame.kind !== 'unknown')) {
+                    pending = { ...pending, word: clean(raw) }; answer = 'yes';
+                }
+                else if (repeated || !core.interpret(raw, locale, catalog).some(frame => frame.kind !== 'unknown')) refinement = { retained: true };
+                if (refinement || answer) parsed = null;
+            }
         }
+        if (pending?.locale === locale && pending.meaning !== 'reference' && !answer && !parsed
+            && !core.interpret(raw, locale, catalog).some(frame => frame.kind !== 'unknown')) refinement = { retained: true };
         if (!parsed && !answer && !refinement) {
             const ref = references(session, clean(raw), locale);
             if (ref.target) parsed = { kind: 'reference', reference: clean(raw) };
+            else if (!g.yes.test(clean(raw)) && !g.no.test(clean(raw)) && /^[\p{L}\p{N}]{1,24}$/u.test(clean(raw))
+                && !core.interpret(raw, locale, catalog).some(frame => frame.kind !== 'unknown')) parsed = { kind: 'reference', reference: clean(raw) };
         }
         if (!parsed && !answer && !refinement) {
             session.pending = session.proposal = null;
@@ -202,7 +264,7 @@
         }
         const input = { id: 'input:' + (++state.serial), raw, locale, speaker: 'player', at, scene,
             attention: copy(state.context.attention), position: copy(session.position) };
-        const before = { knowledgeBefore: copy(state.knowledge), lexiconBefore: copy(data.lexicon), warningsBefore: copy(data.warnings), dialogueBefore: copy(pending) };
+        const before = { knowledgeBefore: copy(state.knowledge), lexiconBefore: copy(data.lexicon), warningsBefore: copy(data.warnings), dialogueBefore: copy(session.pending) };
         let reply, acquired = [], ref, frame, u;
         if (answer || refinement) {
             frame = { kind: 'dungeon_clarification', relations: [], sourceInputId: pending.sourceInputId };
@@ -211,20 +273,28 @@
                 session.pending = pending.meaning === 'reference' ? { ...pending, target: null, selectors: [] } : null; session.proposal = null;
                 reply = { message: session.pending ? 'dungeonWhich' : 'dungeonNotLearned', literal: pending.word };
             } else if (refinement) {
-                session.pending = { ...pending, target: refinement.candidates[0], selectors: refinement.selectors, proposalInputId: input.id };
-                session.proposal = refinement.candidates[0]; reply = { message: 'dungeonConfirmTarget', literal: pending.word };
+                const target = refinement.retained ? pending.target : refinement.candidates.length === 1 ? refinement.candidates[0] : null;
+                session.pending = { ...pending, target, selectors: refinement.selectors || pending.selectors,
+                    clarificationInputIds: [...(pending.clarificationInputIds || []), input.id],
+                    ...(!refinement.retained ? { proposalInputId: input.id } : {}) };
+                session.proposal = target;
+                u.complete = false; u.unresolved.push({ type: 'target', token: pending.word });
+                reply = pending.meaning === 'reference' ? targetReply(session.pending, refinement.candidates)
+                    : { message: pending.meaning === 'go' ? 'dungeonConfirmGo' : pending.meaning === 'avoid' ? 'dungeonConfirmAvoid' : 'dungeonConfirmWarning', literal: pending.word };
             } else if (!pending.target && pending.meaning === 'reference') {
                 u.complete = false; u.unresolved.push({ type: 'target', token: pending.word }); reply = { message: 'dungeonWhich', literal: pending.word };
             } else {
                 const relation = pending.meaning === 'reference' ? 'naming' : pending.meaning === 'warning' ? 'report' : 'request';
                 const check = core.understand(state, { kind: relation === 'naming' ? 'naming' : relation,
-                    relations: [relation], ...(relation === 'request' ? { meaning: 'walk' } : {}) }, 'player', catalog, locale);
+                    relations: [relation, ...(definition ? ['naming'] : [])], ...(relation === 'request' ? { meaning: 'walk' } : {}) }, 'player', catalog, locale);
                 // Naming needs the explicitly proposed object, not the previous attention.
                 const missing = check.unresolved.filter(e => !(relation === 'naming' && e.type === 'target'));
                 if (missing.length) { u.complete = false; u.unresolved.push(...missing); reply = { message: 'dungeonNeedBasis' }; }
                 else {
                     const entry = { word: pending.word, meaning: pending.meaning, target: pending.target || null, scene, locale,
                         speaker: 'player', source: 'confirmed_teaching', sourceInputId: pending.sourceInputId,
+                        confirmationKind: definition ? 'meaning_explanation' : !g.yes.test(clean(raw)) ? 'naming_answer' : 'affirmation',
+                        clarificationInputIds: copy(pending.clarificationInputIds || []),
                         proposalInputId: pending.proposalInputId || pending.sourceInputId, inputId: input.id };
                     const entries = [...(entry.word ? [entry] : []), ...(pending.selectors || []).map(word => ({ ...entry, word, meaning: 'selector' }))];
                     for (const e of entries) if (!data.lexicon.some(old => old.word === e.word && old.meaning === e.meaning
@@ -250,13 +320,14 @@
             u.complete = u.unresolved.length === 0;
             if (ref.target) u.target = { adopted: { id: ref.target, source: 'dungeon_reference' }, candidates: [{ id: ref.target }],
                 references: data.lexicon.filter(e => e.meaning === 'reference' && e.target === ref.target && e.locale === locale).map(e => e.inputId) };
+            if (ref.target && parsed.question) reply = { message: 'dungeonReferenceKnown', literal: parsed.reference };
             if (!ref.target) {
                 u.complete = false; u.unresolved.push({ type: 'target', token: parsed.reference, candidates: ref.candidates });
                 session.pending = { meaning: 'reference', word: parsed.label && !parsed.warning ? parsed.label : parsed.reference || '',
                     target: ref.candidates.length === 1 && objects.some(o => o.id === ref.candidates[0]) ? ref.candidates[0] : null,
                     selectors: ref.selectors || [], sourceInputId: input.id, locale };
                 session.proposal = session.pending.target;
-                reply = { message: session.proposal ? 'dungeonConfirmTarget' : 'dungeonWhich', literal: session.pending.word };
+                reply = targetReply(session.pending, ref.candidates);
             } else if (parsed.kind === 'name' || parsed.label && !parsed.warning) {
                 const named = references(session, parsed.label, locale);
                 if (named.target !== ref.target) {

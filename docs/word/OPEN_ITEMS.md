@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+実試遊の聞返し停滞への最新対応は[ダンジョン所有仕様](../specs/dungeon/word_dungeon_preview.md)。位置・外見の説明継続を修正するが、任意自然文／戦闘／永続保存／日記本接続の保留は解消しない。検証と公開状況は現行handoffを参照。
+
 - [ダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)：対象指定ボタン／定型文依存への最新指摘を反映。未知対象名・お願いを自由会話の確認教示から学ぶ限定試作で、任意自然文全般は未完。原当時理解・島共通知識と現地教示／警告を分離。戦闘・永続保存・日記未接続、全14保留／各担当三保留・B停止／供給進展0・4d12／4e全体未完を維持。DW／DXへ自動移行しない。
 
 - [4e現行実装・DU／DV](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。

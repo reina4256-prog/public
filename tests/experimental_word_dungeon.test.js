@@ -260,6 +260,143 @@ test('an unnamed target clarification establishes conversational attention witho
     learning.receive(session, 'うん', catalog); assert.equal(session.turn, 0);
     learning.receive(session, '離れてね', catalog); assert.equal(session.last.reason, 'avoid');
 });
+test('the reported seven-input conversation keeps clarification context and learns only the confirmed individual', () => {
+    const state = core.create({}, catalog), session = learning.create(state);
+    const raws = ['右に敵がいるから避けて', '避けて', '右', '右の赤いやつ', '敵', '階段', '階段わかる？'];
+    const originals = [];
+    for (const [i, raw] of raws.entries()) {
+        const result = learning.receive(session, raw, catalog, 'ja', i + 1);
+        assert.equal(result.special, true, raw);
+        if (i < 3) { assert.equal(session.pending.word, '敵'); assert.equal(session.proposal, null); }
+        if (i === 3) assert.equal(session.proposal, learning.objects[0].id);
+        if (i === 4) {
+            const entry = state.dungeonLearning.lexicon.find(e => e.word === '敵');
+            assert.equal(entry.target, learning.objects[0].id);
+            assert.equal(entry.sourceInputId, originals[0].result.input.id);
+            assert.equal(entry.proposalInputId, originals[3].result.input.id);
+            assert.deepEqual(entry.clarificationInputIds, originals.slice(1, 4).map(e => e.result.input.id));
+            assert.equal(entry.confirmationKind, 'naming_answer');
+        }
+        if (i > 4) { assert.equal(session.pending.word, '階段'); assert.equal(session.proposal, null); }
+        assert.equal(session.turn, 0); assert.equal(learning.warned(session), false);
+        originals.push(structuredClone(state.dungeonLearning.inputs.at(-1)));
+    }
+    assert.deepEqual(state.dungeonLearning.inputs, originals);
+    assert(!state.dungeonLearning.lexicon.some(e => e.word === '階段'));
+    learning.receive(session, '右上にあるもの', catalog); learning.receive(session, 'うん', catalog);
+    assert.equal(session.turn, 0);
+    assert.equal(learning.receive(session, '階段わかる？', catalog).reply.message, 'dungeonReferenceKnown');
+    assert.equal(session.turn, 0);
+    assert.equal(learning.receive(session, '敵を避けて', catalog).reply.message, 'dungeonConfirmAvoid');
+    learning.receive(session, '距離を取ることだよ', catalog);
+    assert.equal(session.turn, 0);
+    assert.equal(state.dungeonLearning.lexicon.find(e => e.meaning === 'avoid').confirmationKind, 'meaning_explanation');
+    learning.receive(session, '敵から離れて', catalog);
+    assert.equal(session.last.reason, 'avoid');
+    assert.deepEqual(state.dungeonLearning.inputs.slice(0, originals.length), originals);
+});
+
+test('existence reports and cumulative descriptions compose with new labels without guessing their category', () => {
+    for (const raw of ['右にアオがいるのでよけて', '右にはミドリがいるから離れて', '上にピカがあるので避けてね']) {
+        const state = core.create({}, catalog), session = learning.create(state);
+        learning.receive(session, raw, catalog);
+        const source = session.pending.sourceInputId, label = session.pending.word;
+        learning.receive(session, raw.startsWith('上') ? '右' : '赤いもの', catalog);
+        assert.equal(session.pending.sourceInputId, source);
+        assert(session.proposal);
+        learning.receive(session, label, catalog);
+        assert(state.dungeonLearning.lexicon.some(e => e.word === label));
+        assert.equal(learning.warned(session), false); assert.equal(session.turn, 0);
+    }
+});
+
+test('all locales preserve ambiguous direction replies, combine another clue and answer learned-name questions', () => {
+    const variants = {
+        ja: ['右', '赤い', 'ナナ', 'ナナわかる？', '避けて', '距離を取ること', 'ナナを避けて'],
+        en: ['right', 'red', 'Nana', 'Do you know Nana?', 'stay away', 'keep your distance', 'avoid Nana'],
+        'zh-CN': ['右', '红色', '娜娜', '你知道娜娜吗？', '避开它', '保持距离', '避开娜娜'],
+        ru: ['справа', 'красный', 'Нана', 'ты знаешь Нана?', 'отойди', 'держать дистанцию', 'избегай Нана'],
+        'es-ES': ['derecha', 'roja', 'Nana', '¿conoces Nana?', 'aléjate', 'mantener la distancia', 'evita Nana'],
+        'pt-BR': ['direita', 'vermelha', 'Nana', 'você conhece Nana?', 'afaste-se', 'manter distância', 'evite Nana'],
+        de: ['rechts', 'rote', 'Nana', 'kennst du Nana?', 'geh weg', 'Abstand halten', 'meide Nana']
+    };
+    for (const [locale, [right, red, label, question, avoid, definition, command]] of Object.entries(variants)) {
+        const state = core.create({}, catalog), session = learning.create(state);
+        learning.receive(session, avoid, catalog, locale);
+        assert.equal(session.pending.word, '', locale);
+        learning.receive(session, right, catalog, locale);
+        assert.equal(session.proposal, null, locale);
+        learning.receive(session, red, catalog, locale);
+        assert.equal(session.proposal, learning.objects[0].id, locale);
+        learning.receive(session, label, catalog, locale);
+        assert(state.dungeonLearning.lexicon.some(e => e.word === label), locale);
+        assert.equal(learning.receive(session, question, catalog, locale).reply.message, 'dungeonReferenceKnown', locale);
+        learning.receive(session, command, catalog, locale);
+        learning.receive(session, definition, catalog, locale);
+        assert.equal(session.turn, 0, locale);
+        learning.receive(session, command, catalog, locale);
+        assert.equal(session.last.reason, 'avoid', locale);
+        assert.equal(state.dungeonLearning.warnings.length, 0, locale);
+    }
+});
+
+test('contradictory or unknown clarification never silently discards a clue or confirms a proposal', () => {
+    const state = core.create({}, catalog), session = learning.create(state);
+    learning.receive(session, '階段に行って', catalog);
+    const source = session.pending.sourceInputId;
+    learning.receive(session, '右', catalog); learning.receive(session, '左', catalog);
+    assert.equal(session.proposal, null); assert.deepEqual(session.pending.selectors, ['right', 'left']);
+    learning.receive(session, 'まだうまく説明できない', catalog);
+    assert.equal(session.pending.sourceInputId, source); assert.equal(session.proposal, null);
+    learning.receive(session, 'はい', catalog);
+    assert.equal(state.dungeonLearning.lexicon.length, 0);
+    learning.receive(session, '違う', catalog); learning.receive(session, '上にあるもの', catalog);
+    assert.equal(session.proposal, learning.objects[1].id);
+    learning.receive(session, 'おはよう', catalog); learning.receive(session, 'はい', catalog);
+    assert.equal(session.pending, null); assert.equal(state.dungeonLearning.lexicon.length, 0);
+    assert.equal(session.turn, 0);
+});
+
+test('definition answers do not replace missing relations, cross locales, or accept contradictory explanations', () => {
+    for (const [foundation, life] of [[false, true], [true, false], [true, true]]) {
+        const state = core.create({ foundation, life }, catalog), session = learning.create(state);
+        learning.perceive(session, learning.objects[0].id);
+        learning.receive(session, '避けて', catalog);
+        const snapshot = structuredClone(state.knowledge);
+        learning.receive(session, '近づかずに離れることだけど近づく', catalog);
+        assert.equal(state.dungeonLearning.lexicon.length, 0);
+        learning.receive(session, 'keep your distance', catalog, 'en');
+        assert.equal(state.dungeonLearning.lexicon.length, 0);
+        learning.receive(session, '避けて', catalog);
+        learning.receive(session, '近づかずに離れること', catalog);
+        assert.equal(state.dungeonLearning.lexicon.some(e => e.meaning === 'avoid'), foundation && life);
+        assert.deepEqual(state.knowledge, snapshot); assert.equal(session.turn, 0);
+    }
+});
+
+test('left, upper and lower descriptions are relative to the current actor in every language', () => {
+    const variants = {
+        ja: ['左', '上', '下', '赤い'], en: ['left', 'above', 'below', 'red'], 'zh-CN': ['左', '上', '下', '红色'],
+        ru: ['слева', 'вверху', 'внизу', 'красный'], 'es-ES': ['izquierda', 'arriba', 'abajo', 'roja'],
+        'pt-BR': ['esquerda', 'alto', 'baixo', 'vermelha'], de: ['links', 'oben', 'unten', 'rote']
+    };
+    for (const [locale, [left, upper, lower, red]] of Object.entries(variants)) {
+        for (const [word, position, expected] of [[left, { x: 8, y: 3 }, learning.objects[0].id],
+            [upper, { x: 5, y: 3 }, learning.objects[1].id], [lower, { x: 5, y: 1 }, learning.objects[0].id]]) {
+            const state = core.create({}, catalog), session = learning.create(state);
+            session.position = position;
+            learning.receive(session, learning.forms[locale].go[0], catalog, locale);
+            learning.receive(session, word, catalog, locale);
+            if (word === left) learning.receive(session, red, catalog, locale);
+            assert.equal(session.proposal, expected, locale + ':' + word);
+            assert.equal(state.dungeonLearning.lexicon.length, 0);
+            learning.receive(session, answer[locale], catalog, locale);
+            assert(state.dungeonLearning.lexicon.some(e => e.meaning === 'selector'), locale);
+            assert.equal(session.turn, 0);
+        }
+    }
+});
+
 test('unknown instructions do not move, consume a turn or teach; autonomous ability stays separate', () => {
     const original = api.setKnown(api.create(), 'move', false), snapshot = JSON.stringify(original);
     const result = api.step(original, 'right');

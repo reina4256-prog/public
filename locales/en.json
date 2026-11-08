@@ -15145,5 +15145,8 @@
   "お願いされた相手や場所から距離を取るね。": "I will keep my distance from the figure or place you mentioned.",
   "この文のどこが呼び名で、どこがお願いなのか、まだ分からない。見えているものの説明や、してほしいことを教えて。": "I cannot yet tell which part is a name and which is a request. Tell me about what you see or what you want me to do.",
   "頼まれた場所へ近づいてみるね。": "I will try moving toward the place you asked about.",
-  "教わった個体への警告として覚えています。ほかの相手には広げません。": "Remembered as a warning about the individual you described. It does not apply to other opponents."
+  "教わった個体への警告として覚えています。ほかの相手には広げません。": "Remembered as a warning about the individual you described. It does not apply to other opponents.",
+  "輪郭を光らせたもののことかな？ 合っているか、またはその呼び名を教えて。": "Do you mean the outlined thing? Tell me whether that is right, or tell me its name.",
+  "その位置だけでは、候補が複数あるよ。色や見た目も教えて。まだ分からない呼び名：": "There is more than one possibility at that position. Tell me its color or appearance too. Unfamiliar name: ",
+  "その呼び名は、前に教えてくれた、輪郭を光らせたもののことだと覚えているよ。": "I remember that name as referring to the outlined thing you taught me about."
 }

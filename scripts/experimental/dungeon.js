@@ -26,7 +26,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         };
         const settle = () => js('document.fonts.ready.then(()=>new Promise(resolve=>setTimeout(resolve,150)))');
         await js(`new Promise((resolve,reject)=>{let n=0;const timer=setInterval(()=>{if(document.getElementById('word-new-game')&&!document.getElementById('word-new-game').disabled){clearInterval(timer);resolve();}else if(++n>100){clearInterval(timer);reject(new Error('startup timeout'));}},100);})`);
-        await js(`localStorage.setItem('dungeon-sentinel','keep');sessionStorage.setItem('dungeon-sentinel','keep');document.querySelector('.word-logo').click();document.getElementById('word-new-game').click();document.getElementById('word-reset-accept').click();const settings=document.querySelector('form');settings.querySelector('select').value='seed';settings.dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true}));void 0`);
+        await js(`localStorage.setItem('dungeon-sentinel','keep');sessionStorage.setItem('dungeon-sentinel','keep');document.querySelector('.word-logo').click();document.getElementById('word-new-game').click();document.getElementById('word-reset-accept').click();const settings=document.querySelector('form');settings.querySelector('select').value='beetle';settings.dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true}));void 0`);
         await settle();
         const send = async raw => { await js(`const input=document.querySelector('.chat-form textarea');input.value=${JSON.stringify(raw)};document.querySelector('.chat-form').requestSubmit();void 0`); await settle(); };
         await send('ぽぽは休むことだよ');
@@ -34,10 +34,23 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.ok((await js("document.getElementById('notebook').textContent")).includes('ぽぽ'));
         await js(`document.querySelector('[aria-controls="conversation"]').click();window.__islandRecords=null;const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state){window.__child=state;if(!window.__islandRecords)window.__islandRecords=JSON.stringify(state.records);return original.create(state);}};document.getElementById('word-dungeon').click();void 0`);
         assert.equal(await js("document.querySelector('[id^=dungeon-point-]')===null"), true);
+        await send('右に敵がいるから避けて');
+        const reportedOriginal = await js('JSON.stringify(window.__child.dungeonLearning.inputs.at(-1))');
+        const reportedIndex = await js('window.__child.dungeonLearning.inputs.length-1');
+        await send('避けて'); await send('右');
+        assert.ok((await js("document.getElementById('conversation').lastElementChild.textContent")).includes('候補が複数'));
+        await send('右の赤いやつ'); await send('敵');
+        assert.equal(await js("window.__child.dungeonLearning.lexicon.some(e=>e.word==='敵'&&e.target==='dungeon:enemy:1')"), true);
+        await send('階段'); await send('階段わかる？');
+        assert.ok((await js("document.getElementById('conversation').lastElementChild.textContent")).includes('階段'));
+        assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
+        assert.equal(await js('JSON.stringify(window.__child.dungeonLearning.inputs[' + reportedIndex + '])'), reportedOriginal);
+        // Reentry keeps confirmed vocabulary but invalidates the unfinished question.
+        await js("document.getElementById('dungeon-return').click();document.getElementById('word-dungeon').click();void 0");
         await send('階段にいって');
         assert.ok((await js("document.getElementById('conversation').textContent")).includes('どれのことかな'));
         await send('はい？');
-        assert.equal(await js('window.__child.dungeonLearning.lexicon.length'), 0);
+        assert.equal(await js("window.__child.dungeonLearning.lexicon.some(e=>e.word==='階段')"), false);
         await send('階段にいって');
         await js("document.getElementById('dungeon-step').click();document.getElementById('dungeon-auto').click();new Promise(resolve=>setTimeout(resolve,1000))");
         assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
@@ -46,7 +59,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         await send('横にいるのは敵だから避けてね');
         const firstOriginal = await js('JSON.stringify(window.__child.dungeonLearning.inputs.at(-1))');
         const firstIndex = await js('window.__child.dungeonLearning.inputs.length-1');
-        await send('そうだよ'); await send('横にいるのは敵だから避けてね'); await send('うん');
+        await send('そうだよ'); await send('横にいるのは敵だから避けてね'); await send('近づかずに離れること');
         assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
         await send('敵をよけてください');
         assert.equal(await js("window.__child.dungeonLearning.actions.at(-1).reason"), 'avoid');
@@ -56,6 +69,9 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js("window.__child.dungeonLearning.actions.at(-1).reason"), 'obey');
         const questionActions = await js('window.__child.dungeonLearning.actions.length');
         await send('階段に行って？');
+        assert.equal(await js('window.__child.dungeonLearning.actions.length'), questionActions);
+        await send('階段わかる？');
+        assert.ok((await js("document.getElementById('conversation').lastElementChild.textContent")).includes('前に教えて'));
         assert.equal(await js('window.__child.dungeonLearning.actions.length'), questionActions);
         await send('アカは危ない'); await send('はい'); await send('アカは危ない');
         await send('アカに行って');
@@ -132,6 +148,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             nameAndWarningRetained:true,warningChangesDecision:true,returnAndReentry:true,historyBackForward:true,autoAdvances:true,
             freeTargetDescription:true,noTargetButtons:true,clarificationStopsMovement:true,paraphrases:true,originalPartialPreserved:true,
             gestureGuidanceSeparate:true,bubbleClearsHud:true,bodyMetersVisible:true,
+            reportedSevenInputs:true,cumulativeClues:true,meaningExplanation:true,knowledgeQuestionNonmoving:true,
             pauseStable:true,exitReached:true,noMovementAfterArrival:true,errors,directory,artifacts } }));
         server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); server=null;
         app.removeAllListeners('window-all-closed'); win.destroy(); app.exit(0);

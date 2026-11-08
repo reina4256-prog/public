@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+実試遊からの最新修正：[ダンジョン所有仕様](../specs/dungeon/word_dungeon_preview.md)の聞返し継続・方向と外見の累積説明・対象知識質問。任意自然文全般の完成とは分け、検証・発行は現行handoffを参照。
+
 - [別URLダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)：2026-11-08、対象指定ボタン依存を改修。知らない呼び名／お願いは自由入力の位置・外見説明と確認教示で学び、新しい依頼へ適用。島の同じ子・知識／原記録と個体警告を保持し、未理解当時へ書き戻さない。戦闘・永続保存・日記は未接続、4eのDW／DXへ自動移行しない。検証・発行は現行handoff。
 
 - [4e現行実装・DU／DV](../specs/core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。
