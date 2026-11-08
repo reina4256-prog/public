@@ -1603,6 +1603,22 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="ao-source-review-record"></a>
 
+<a id="walking-owner-reconciliation"></a>
+### 2026-11-08：歩行追加に伴う共有所有元の差分照合
+
+7aa7e45からの[2b歩行追補](experimental_word_learning.md#walking-experience-learning)により、共有所有元三件の指紋が変更された。旧ownerReviews・50部品のboundaryReviewsと原読取記録は非置換とし、今回の限定差分照合をownerReconciliationsとして別保持する。構造検査が読了や採用を自動認定した記録ではない。
+
+| 所有元 | 旧照合済み指紋（維持） | 今回差分照合後の指紋 |
+| --- | --- | --- |
+| experimental_word_learning_core.js | 11fbbadbbe852d409287ca1035f7371e1309169d0ad65a3e033f376c8ee90bf8 | 3d0506748f280cc33d756d11453a37eb686b59416ab0b1fbf29e1f57c1b13c98 |
+| experimental_word_learning_world.js | 3239a443ed64f8df04a1a8bc09e68d8d9e7ffa2bacdb08c14b46d88282cdc8f7 | aea3f03193b70fda686b1d94eed188aec31a44b3a937870c464c26fc7c53586c |
+| experimental_word_life_learning.js | 59f1c70a38a6666128fa3fd74e4cd19cfac2f35d9703cb9ffee0c1f8684811e8 | 6fe5c6875f0e4b60c94212d3b7ae70b9c207c49c4e79128bcdc78053014e0e20 |
+
+- 直接照合は三所有元の7aa7e45原文との差分全文、coreの初期化／interpret／understand／receive・lifeLabel／経験学習と検証、worldの移動／onArrival／respond／休息開始順と選択検証の必要範囲、life全体、storageの既存valid／実store、旧life_labels.capture。ほか四所有元と全50既存adapterの原指紋を維持する。旧42部品等の全原文を今回再読したとはしない。
+- core追加は歩行候補とwalking_teachingのpartial保持、world追加は教示付き実移動完了だけの別経験と原arrival維持、life追加はwalkの実座標／教示照合・中断取消・保存検証。既存八意味・関係／感情・職・休息開始順の規則は変更しない。旧life_labelsの原labelにはwalking出所がなく新walk規則は成立しない。実教示8合成controlで旧captureへの非拡張を確認し、新歩行を旧母数・日記capture・歴史供給へ加算しない。
+- 新しいゲーム実装の全登録ゲーム149ファイル／3604テストはword-verification-mMWCLcで通過。後続の旧監査は所有元不一致により失敗した原runを非置換保持する。差分照合後の監査／工具／七言語・最終画面とsource照合は今回handoff／検証証拠へ別記し、原summaryを成功へ書き換えない。任意自然文の全帰属、歴史B供給、全意味読了、全体工程完了を認定しない。
+- 三件は上表の完全一致だけ再利用可とし、次の未知の変更は従来どおりowner=pending／依存50件未照合へ戻す。元のscope採用・14保留・4d12／4e全体未完・日記4g／星座工程時期未確定・前倒しなしは保持する。以下は当時の原読取記録。
+
 ### 2026-10-15の追加直接照合（最新）
 
 既存の下の八行の記録はそのまま保持し、追加42部品の全文読取と該当所有枝の意味照合を補完した。原本文はca35c7e時点（八行の従前読取原文はb260bac時点）で、ゲーム実装936df00の成立条件を変更しない。所有側はcoreの入力・解釈・理解・学習・原資料保持、world全文、relationの全成立枝・候補・習得・検証、life／feeling／careers全文、storage全文を直接確認した。下の表のまとめは正本の条件・全API内訳の置換ではない。

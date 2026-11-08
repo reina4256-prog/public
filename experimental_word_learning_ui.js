@@ -13,6 +13,9 @@
         dungeonConfirmUnnamed: '輪郭を光らせたもののことかな？ 合っているか、またはその呼び名を教えて。',
         dungeonMoreDetail: 'その位置だけでは、候補が複数あるよ。色や見た目も教えて。まだ分からない呼び名：',
         dungeonReferenceKnown: 'その呼び名は、前に教えてくれた、輪郭を光らせたもののことだと覚えているよ。',
+        walkingLearned: '今の移動と、教えてくれた「歩く」が結び付いたよ。お願いは改めて伝えてね。',
+        walking_learned_gesture: '実際に動いたことと、教わった「歩く」が結び付いた。',
+        walkingNeedExperience: 'まだ「歩く」という言葉と、自分の動きを結び付けられていないよ。島で歩いている間か、ダンジョンで自分の判断で一歩動いた直後に、その動きを言葉で教えて。',
         dungeonConfirmGo: 'その場所へ歩いて近づいてほしい、というお願いかな？',
         dungeonConfirmAvoid: 'その相手や場所に近づかず、距離を取ってほしい、というお願いかな？',
         dungeonConfirmWarning: 'その相手には近づかない方がよい、という警告かな？',
@@ -780,10 +783,16 @@
     function toggleDungeon(enter, history = true) {
         if (!state || !dungeonButton || enter === !!dungeon) return;
         if (enter) {
-            dungeon = window.ExperimentalWordDungeonLearning.create(state);
+            window.ExperimentalWordLifeLearning.cancelWalking(world);
+            dungeon = window.ExperimentalWordDungeonLearning.create(state, world);
             if (!dungeonView) dungeonView = new window.ExperimentalWordDungeonView(canvas, stage, controls, t,
-                action => { if (!action) return; showReply({ message: action.reason === 'diverged' ? 'dungeonDiverged'
-                    : action.reason === 'retreat' ? 'dungeonRetreat' : action.reason === 'obey' ? 'dungeonObey' : 'dungeonExplore' });
+                action => { if (!action) return; const key = action.reason === 'diverged' ? 'dungeonDiverged'
+                    : action.reason === 'retreat' ? 'dungeonRetreat' : action.reason === 'obey' ? 'dungeonObey' : 'dungeonExplore';
+                    showReply({ message: state.settings.speech === 'short' ? key : 'attend' });
+                    if (state.settings.speech !== 'short') {
+                        const guidance = node('p', t(key), conversation); guidance.className = 'conversation-help';
+                        record('guidance', { key, literal: '' });
+                    }
                     record('dungeon_action', { action }); updateDungeonStatus(); dungeonView.refresh(); },
                 () => { bubble.hidden = true; record('dungeon_point', { target: dungeon.attention }); }, () => toggleDungeon(false),
                 () => !paused && !exporting && !input.value.trim() && !document.hidden && !dungeon?.pending);
@@ -1070,6 +1079,7 @@
             beforeState: state, beforeWorld: world, inputKnowledge: state.knowledge, inputContext: state.context }) : null;
         record('player', { text: input.value, context: state.context, situation: { mode: world.mode, attention: world.attention,
             destination: world.destination, hunger: world.hunger, fatigue: world.fatigue } });
+        if (dungeon) dungeonView.stop();
         const dungeonResult = dungeon ? window.ExperimentalWordDungeonLearning.receive(dungeon, input.value, catalog, window.GameI18n.language) : null;
         const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language });
         record('understanding', { result });
@@ -1077,7 +1087,6 @@
         message.dataset.speaker = 'player'; message.setAttribute('data-i18n-skip', '');
         let reply;
         if (dungeon) {
-            dungeonView.stop();
             const u = result.understandings.at(-1), link = state.knowledge.associations.find(a => a.target === u.target?.adopted?.id
                 && a.speaker === result.input.speaker && a.evidence.some(e => !e.retractedBy));
             const learnedName = result.learning.flatMap(item => item.updated).at(-1);

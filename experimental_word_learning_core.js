@@ -328,7 +328,26 @@
             && entry.scope.time === frame.time;
     }
 
+    function walkingLabel(raw, locale, catalog, explicitOnly = false) {
+        const text = normalize(raw).replace(/[。.!！]+$/u, '');
+        const forms = {
+            ja: /^(?:(?:今の動き|いまの動き|その動き|この動き|それ|これ)(?:が|は))(.+?)(?:ということ|ってこと|こと)?(?:だよ|だね|です|だ)?$/u,
+            en: /^(?:this is|that is|you are) (.+)$/u,
+            'zh-CN': /^(?:这就是|这叫|你在)(.+)$/u,
+            ru: /^(?:это|ты сейчас) (.+)$/u,
+            'es-ES': /^(?:esto es|estás) (.+)$/u,
+            'pt-BR': /^(?:isso é|você está) (.+)$/u,
+            de: /^(?:das ist|du bist am) (.+)$/u
+        };
+        const extra = { 'zh-CN': /^(?:走路|正在走路)$/u, ru: /^(?:ходьба|идёшь)$/u,
+            'es-ES': /^(?:caminar|caminando)$/u, 'pt-BR': /^(?:andar|caminhando)$/u, de: /^gehen$/u };
+        const match = forms[locale]?.exec(text);
+        const word = match ? match[1] : text.replace(/^[「“"]|[」”"]$/gu, '');
+        return (!explicitOnly || !!match) && ([...(catalog.meanings.walk || []), ...(catalog.contextAliases.walk || [])]
+            .some(alias => normalize(alias) === word) || !!extra[locale]?.test(word));
+    }
     function interpret(text, locale, catalog) {
+        if (walkingLabel(text, locale, catalog, true)) return [{ kind: 'walking_teaching', span: text, relations: [] }];
         const teaching = feelingTeaching(text, locale, catalog);
         if (teaching) return [teaching];
         const feelings = feelingContrast(text, locale, catalog);
@@ -630,7 +649,7 @@
     }
 
     function understand(state, frame, speaker, catalog, locale) {
-        if (frame.kind === 'feeling_teaching') return { kind: 'partial', known: {}, target: null,
+        if (['feeling_teaching', 'walking_teaching'].includes(frame.kind)) return { kind: 'partial', known: {}, target: null,
             relations: [], unresolved: [{ type: 'teaching_operation' }], complete: false,
             subject: null, polarity: 'positive', eventTime: 'unspecified', aspect: null,
             conditionStatus: null, questionSlot: null };
@@ -1060,6 +1079,7 @@
             .filter(([id, forms]) => (quotedLabel || !['hungry', 'tired'].includes(id))
                 && forms.some(form => normalize(form) === normalize(labelText)))
             .map(([id]) => id) : [];
+        if (input.speaker === 'player' && walkingLabel(raw, input.locale, catalog) && !lifeLabel.includes('walk')) lifeLabel.push('walk');
         return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression, lifeLabel };
     }
 
@@ -1086,7 +1106,7 @@
         return true;
     }
 
-    return Object.freeze({ RULES, create, perceive, interpret, receive, formCandidates,
+    return Object.freeze({ RULES, create, perceive, interpret, receive, walkingLabel, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
         wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame, feelingContrast, feelingTeaching, feelingBasis, validClauseSources });
 });

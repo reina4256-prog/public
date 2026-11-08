@@ -659,6 +659,24 @@ test('an owner change invalidates source reconciliation without revoking confirm
     assert.equal(report.eligibleForAoCompletion, false);
 });
 
+test('walking owner delta reviews retain original fingerprints and reject any further unreviewed change', () => {
+    const current = audit(), reconciled = current.ownerBoundaries.filter(owner => owner.reconciliationRecord);
+    assert.deepEqual(reconciled.map(owner => owner.file).sort(), ['experimental_word_learning_core.js',
+        'experimental_word_learning_world.js', 'experimental_word_life_learning.js'].sort());
+    assert.equal(current.counts.reviewedCaptureBoundaries, 50);
+    assert.equal(current.whole4d12Complete, false);
+    for (const owner of reconciled) {
+        assert.notEqual(owner.reconciledFrom, owner.reconciledTo);
+        assert(owner.reconciliationRecord.endsWith('#walking-owner-reconciliation'));
+        const changed = audit(inventory(), file => fs.readFileSync(localFile(file), 'utf8')
+            + (file === owner.file ? '\n// Unreviewed follow-up change\n' : ''));
+        assert.equal(changed.counts.reviewedCaptureBoundaries, 0);
+        assert.equal(changed.ownerBoundaries.find(item => item.file === owner.file).review, 'pending');
+        assert.equal(changed.counts.confirmedScopes, 51);
+        assert.equal(changed.eligibleForAoCompletion, false);
+    }
+});
+
 test('at supplemental ownership checks separate greeting material while preserving previous acceptance snapshots', () => {
     const report = audit();
     assert.equal(report.supplementalOwners[4].id, '4d12at');

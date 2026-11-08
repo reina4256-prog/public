@@ -73,6 +73,14 @@ const ownerReviews = new Map([
     ['experimental_word_careers.js', 'f980ea45b147b57d27a6a9fdbdfea1ca9a23cb59e61b267d3cc3a8347f2426bc'],
     ['scripts/experimental/storage.js', '6fb5526cea767bac466edd41a4c84908e61e8955abf7fb0863d17b6215777f08'],
 ]);
+// Delta reviews are recorded separately; the original owner fingerprints and
+// adapter reviews above remain the historical baseline. Unknown changes still
+// invalidate every dependent capture-boundary review.
+const ownerReconciliations = new Map([
+    ['experimental_word_learning_core.js', '3d0506748f280cc33d756d11453a37eb686b59416ab0b1fbf29e1f57c1b13c98'],
+    ['experimental_word_learning_world.js', 'aea3f03193b70fda686b1d94eed188aec31a44b3a937870c464c26fc7c53586c'],
+    ['experimental_word_life_learning.js', '6fe5c6875f0e4b60c94212d3b7ae70b9c207c49c4e79128bcdc78053014e0e20']
+]);
 const earlierReviews = new Set(['4d11', '4d12a', '4d12b', '4d12c', '4d12d', '4d12e', '4d12f', '4d12g']);
 const definitions = [
     ['4d1', 'candidates', 'create', 0],
@@ -347,9 +355,13 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
     const packageScripts = JSON.parse(read('package.json')).scripts;
     const roadmap = read('docs/WORD_DEMO_ROADMAP.md');
     const fingerprint = source => createHash('sha256').update(source.replace(/\r\n/g, '\n')).digest('hex');
-    const ownerBoundaries = [...ownerReviews].map(([file, hash]) => ({ file,
-        review: fingerprint(readAdapterSource ? readAdapterSource(file) : read(file)) === hash
-            ? 'owner_boundary_reviewed' : 'pending' }));
+    const ownerBoundaries = [...ownerReviews].map(([file, hash]) => {
+        const current = fingerprint(readAdapterSource ? readAdapterSource(file) : read(file));
+        const reconciled = ownerReconciliations.get(file) === current;
+        return { file, review: current === hash || reconciled ? 'owner_boundary_reviewed' : 'pending',
+            ...(reconciled ? { reconciledFrom: hash, reconciledTo: current,
+                reconciliationRecord: AUDIT_SPEC + '#walking-owner-reconciliation' } : {}) };
+    });
     const ownersUnchanged = ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed');
     const ids = new Set(), files = new Set();
     const checked = rows.map(row => {

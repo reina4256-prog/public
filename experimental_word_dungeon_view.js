@@ -12,11 +12,11 @@
         const make = (id, label, parent, click) => { const button = document.createElement('button'); button.type = 'button';
             button.id = id; button.textContent = text(label); button.addEventListener('click', click); parent.append(button); return button; };
         make('dungeon-return', 'dungeonReturn', buttons, onReturn);
-        const auto = make('dungeon-auto', 'dungeonAuto', buttons, () => { if (!canAct()) return; running = !running; auto.setAttribute('aria-pressed', String(running)); });
+        const auto = make('dungeon-auto', 'dungeonAuto', buttons, () => { if (!canAct()) return; running = session.goal ? false : !running; session.goal = null; auto.setAttribute('aria-pressed', String(running)); });
         const panel = document.createElement('div'); panel.className = 'word-dungeon-controls'; panel.hidden = true; controls.prepend(panel);
-        make('dungeon-step', 'dungeonStep', panel, () => { if (!canAct()) return; running = false; onAction(model.advance(session)); });
+        make('dungeon-step', 'dungeonStep', panel, () => { if (!canAct()) return; running = false; session.goal = null; onAction(model.advance(session)); });
         const guide = document.createElement('p'); guide.textContent = text('dungeonGuide'); panel.append(guide);
-        function point(id) { running = false; model.perceive(session, id); draw(); onPoint(); }
+        function point(id) { running = false; session.goal = session.walkingAction = null; model.perceive(session, id); draw(); onPoint(); }
         function sprite(id, x, y, enemy) {
             const entry = visuals[id] || visuals.robot;
             if (!sprites.has(entry.image)) { const img = new Image(); img.src = entry.image; sprites.set(entry.image, img); }
@@ -49,16 +49,17 @@
             if (focus) { const p = center(focus); ctx.strokeStyle = '#00d8ed'; ctx.lineWidth = 3; ctx.strokeRect(p.x - 48, p.y - 72, 96, 110); }
             selection.textContent = text(session.proposal ? 'dungeonProposal' : 'dungeonPoint');
             auto.disabled = session.complete; document.getElementById('dungeon-step').disabled = session.complete;
-            auto.setAttribute('aria-pressed', String(running));
+            auto.setAttribute('aria-pressed', String(running || !!session.goal));
         }
         return {
             enter(value, images, actor) { session = value; visuals = images; appearance = actor; running = false; elapsed = 0;
                 hud.hidden = buttons.hidden = panel.hidden = false; stage.classList.add('word-dungeon-stage'); draw(); },
             leave() { running = false; session = null; hud.hidden = buttons.hidden = panel.hidden = true; stage.classList.remove('word-dungeon-stage'); },
-            tick(dt, holding) { if (holding || document.hidden) running = false;
-                if (running && !session.complete) { elapsed += Math.min(dt, .1); if (elapsed >= .85) { elapsed = 0; onAction(model.advance(session)); } }
+            tick(dt, holding) { if (holding || document.hidden) { running = false; session.goal = null; }
+                if ((running || session.goal) && !session.complete) { elapsed += Math.min(dt, .1); if (elapsed >= .85) { elapsed = 0;
+                    onAction(model.advance(session, session.goal?.requested || null, session.goal?.inputId || null)); } }
                 if (session.complete) running = false; draw(); },
-            stop() { running = false; },
+            stop() { running = false; if (session) session.goal = null; },
             bubbleTop() { return Math.max(stage.clientHeight * .18, hud.offsetTop + hud.offsetHeight + 12); },
             refresh: draw,
             hit(event) { const rect = canvas.getBoundingClientRect(), scale = Math.min(rect.width / canvas.width, rect.height / canvas.height);

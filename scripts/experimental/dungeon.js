@@ -9,7 +9,8 @@ if (!process.versions.electron || process.type !== 'browser') {
     const { app, BrowserWindow } = require('electron'), assert = require('node:assert/strict');
     const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'word-dungeon-session-'));
     app.setPath('userData', directory); app.disableHardwareAcceleration();
-    const smoke = process.argv.includes('--smoke'); let server;
+    const walkingSmoke = process.argv.includes('--walking-smoke');
+    const smoke = process.argv.includes('--smoke') || walkingSmoke; let server;
     app.whenReady().then(async () => {
         server = require('./serve').createServer();
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -26,13 +27,83 @@ if (!process.versions.electron || process.type !== 'browser') {
         };
         const settle = () => js('document.fonts.ready.then(()=>new Promise(resolve=>setTimeout(resolve,150)))');
         await js(`new Promise((resolve,reject)=>{let n=0;const timer=setInterval(()=>{if(document.getElementById('word-new-game')&&!document.getElementById('word-new-game').disabled){clearInterval(timer);resolve();}else if(++n>100){clearInterval(timer);reject(new Error('startup timeout'));}},100);})`);
-        await js(`localStorage.setItem('dungeon-sentinel','keep');sessionStorage.setItem('dungeon-sentinel','keep');document.querySelector('.word-logo').click();document.getElementById('word-new-game').click();document.getElementById('word-reset-accept').click();const settings=document.querySelector('form');settings.querySelector('select').value='beetle';settings.dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true}));void 0`);
+        const startNew = async () => {
+            await js(`localStorage.setItem('dungeon-sentinel','keep');sessionStorage.setItem('dungeon-sentinel','keep');document.querySelector('.word-logo').click();document.getElementById('word-new-game').click();document.getElementById('word-reset-accept').click();const settings=document.querySelector('form');settings.querySelector('select').value=${JSON.stringify(walkingSmoke ? 'robot' : 'beetle')};${walkingSmoke ? "settings.querySelectorAll('select')[2].value='no';settings.querySelectorAll('select')[3].value='gesture';" : ''}settings.dispatchEvent(new SubmitEvent('submit',{bubbles:true,cancelable:true}));void 0`);
+            await settle();
+        };
+        await startNew();
         await settle();
         const send = async raw => { await js(`const input=document.querySelector('.chat-form textarea');input.value=${JSON.stringify(raw)};document.querySelector('.chat-form').requestSubmit();void 0`); await settle(); };
+        if (walkingSmoke) {
+            const capture = () => js(`const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state,world){window.__child=state;window.__world=world;window.__session=original.create(state,world);return window.__session;}};document.getElementById('word-dungeon').click();void 0`);
+            const waitFor = condition => js(`new Promise((resolve,reject)=>{let n=0;const timer=setInterval(()=>{if(${condition}){clearInterval(timer);resolve();}else if(++n>400){clearInterval(timer);reject(new Error('walking flow timeout'));}},200);})`);
+            await capture();
+            assert.equal(await js('window.__child.settings.life'), false);
+            for (const raw of ['横にいる敵を避けて','避けて','階段わかる？','右上','それであっているよ','うん','階段まで動いて','階段に移動して']) await send(raw);
+            assert.equal(await js("window.__child.dungeonLearning.lexicon.some(e=>e.word==='階段')"), true);
+            assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
+            assert.equal(await js("window.__child.knowledge.meanings.some(e=>e.id==='walk')"), false);
+            const originalIndex = await js("window.__child.dungeonLearning.inputs.findIndex(e=>e.result.input.raw==='階段まで動いて')");
+            const originalInput = await js('JSON.stringify(window.__child.dungeonLearning.inputs['+originalIndex+'])');
+            let checked=0;
+            for (const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de']) {
+                await js('GameI18n.setLanguage('+JSON.stringify(locale)+');void 0'); await settle();
+                for (const width of [1440,390]) { win.setContentSize(width,1000);await settle();assert.equal(await js('document.documentElement.scrollWidth>innerWidth'),false,locale+':'+width); }
+                checked++;
+            }
+            await js("GameI18n.setLanguage('ja');void 0");win.setContentSize(1440,1000);await settle();
+            await js("document.getElementById('dungeon-step').click();void 0");
+            await send('今の動きが歩くことだよ');
+            assert.equal(await js("window.__child.knowledge.meanings.some(e=>e.id==='walk'&&e.source==='experienced_life')"),true);
+            assert.equal(await js("document.getElementById('conversation').lastElementChild.classList.contains('conversation-help')"),true);
+            assert.equal(await js('window.__child.dungeonLearning.actions.length'),1);
+            await send('階段まで動いて'); await send('それであっているよ');
+            assert.equal(await js('window.__child.dungeonLearning.actions.length'),1);
+            await send('階段に移動して');
+            assert.equal(await js('!!window.__session.goal'),true);
+            const beforeTyping=await js('window.__child.dungeonLearning.actions.length');
+            await js("document.querySelector('.chat-form textarea').value='待って';new Promise(resolve=>setTimeout(resolve,1200))");
+            assert.equal(await js('window.__child.dungeonLearning.actions.length'),beforeTyping);
+            assert.equal(await js('window.__session.goal'),null);
+            await js("document.querySelector('.chat-form textarea').value='';void 0");
+            await send('階段まで進んで');await waitFor('window.__session.complete');
+            assert.equal(await js("(()=>{const lines=Array.from(document.querySelectorAll('#conversation > p:not([data-speaker=player]):not(.conversation-help)'));return lines.length>0&&lines.every(e=>!e.textContent.includes('頼まれた場所へ'));})()"),true);
+            assert.equal(await js('JSON.stringify(window.__child.dungeonLearning.inputs['+originalIndex+'])'),originalInput);
+            await js("document.getElementById('dungeon-return').click();void 0");await send('散歩しよう');
+            assert.equal(await js("JSON.parse(document.querySelector('pre').textContent).result.understandings[0].complete"),true);
+            assert.equal(await js('window.__world.destination'),'path');
+            // A fresh public session tests the opposite direction with actual autonomous island movement.
+            await win.loadURL(url);
+            await js(`new Promise((resolve,reject)=>{let n=0;const timer=setInterval(()=>{if(document.getElementById('word-new-game')&&!document.getElementById('word-new-game').disabled){clearInterval(timer);resolve();}else if(++n>100){clearInterval(timer);reject(new Error('restart timeout'));}},100);})`);
+            await startNew();await capture();await js("document.getElementById('dungeon-return').click();void 0");
+            await waitFor("window.__world.mode==='move'");
+            await send('その動きが歩くことだよ');
+            assert.equal(await js("window.__child.knowledge.meanings.some(e=>e.id==='walk')"),false);
+            await waitFor("window.__child.knowledge.meanings.some(e=>e.id==='walk')");
+            assert.equal(await js("window.__child.experiences.some(e=>e.activity==='walk'&&e.walking.space==='island')"),true);
+            await js("document.getElementById('word-dungeon').click();void 0");
+            await send('階段に移動して');await send('右上');await send('それであっているよ');
+            await send('階段まで動いて');await send('うん');await send('階段まで動いて');
+            await waitFor('window.__session.complete');
+            await js('new Promise(resolve=>setTimeout(resolve,1200))');
+            assert.equal(await js("document.querySelector('.status').textContent.includes('階段に着いた')"),true);
+            assert.equal(await js("document.querySelector('.bubble').textContent.includes('頼まれた場所へ')"),false);
+            assert.equal(await js('window.__child.dungeonLearning.warnings.length'),0);
+            const artifactArg=process.argv.find(a=>a.startsWith('--artifacts='));
+            const artifacts=artifactArg?path.resolve(artifactArg.slice('--artifacts='.length)):directory;fs.mkdirSync(artifacts,{recursive:true});
+            await js("document.querySelector('pre').parentElement.style.display='none';void 0");
+            for(const[name,width]of[['desktop',1440],['mobile',390]]){win.setContentSize(width,1000);await settle();fs.writeFileSync(path.join(artifacts,'walking-'+name+'.png'),(await win.capturePage()).toPNG());}
+            assert.deepEqual(errors,[]);
+            console.log(JSON.stringify({walkingSession:{locales:checked,viewports:14,lifeInitiallyOff:true,reportedEightInputs:true,
+                actualDungeonStep:true,actualIslandWalk:true,dungeonToIsland:true,islandToDungeon:true,oldUnderstandingPreserved:true,
+                goalReachesStairs:true,typingStopsGoal:true,confirmationDoesNotMove:true,gestureGuidanceSeparate:true,errors,directory,artifacts}}));
+            server.closeAllConnections();await new Promise(resolve=>server.close(resolve));server=null;
+            app.removeAllListeners('window-all-closed');win.destroy();app.exit(0);return;
+        }
         await send('ぽぽは休むことだよ');
         await js(`document.querySelector('[aria-controls="notebook"]').click();void 0`);
         assert.ok((await js("document.getElementById('notebook').textContent")).includes('ぽぽ'));
-        await js(`document.querySelector('[aria-controls="conversation"]').click();window.__islandRecords=null;const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state){window.__child=state;if(!window.__islandRecords)window.__islandRecords=JSON.stringify(state.records);return original.create(state);}};document.getElementById('word-dungeon').click();void 0`);
+        await js(`document.querySelector('[aria-controls="conversation"]').click();window.__islandRecords=null;const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state,world){window.__child=state;if(!window.__islandRecords)window.__islandRecords=JSON.stringify(state.records);return original.create(state,world);}};document.getElementById('word-dungeon').click();void 0`);
         assert.equal(await js("document.querySelector('[id^=dungeon-point-]')===null"), true);
         await send('右に敵がいるから避けて');
         const reportedOriginal = await js('JSON.stringify(window.__child.dungeonLearning.inputs.at(-1))');

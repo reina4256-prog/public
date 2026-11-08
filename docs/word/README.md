@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+最新：[2b歩行追補](../specs/core/experimental_word_learning.md#walking-experience-learning)は初期生活語なしでも実歩行＋声かけから学び、同じ子の島／ダンジョンで使う。移動依頼と継続の現地所有は[ダンジョン](../specs/dungeon/word_dungeon_preview.md)。検証・公開状態は現行handoff。
+
 実試遊からの最新修正：[ダンジョン所有仕様](../specs/dungeon/word_dungeon_preview.md)の聞返し継続・方向と外見の累積説明・対象知識質問。任意自然文全般の完成とは分け、検証・発行は現行handoffを参照。
 
 - [別URLダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)：2026-11-08、対象指定ボタン依存を改修。知らない呼び名／お願いは自由入力の位置・外見説明と確認教示で学び、新しい依頼へ適用。島の同じ子・知識／原記録と個体警告を保持し、未理解当時へ書き戻さない。戦闘・永続保存・日記は未接続、4eのDW／DXへ自動移行しない。検証・発行は現行handoff。

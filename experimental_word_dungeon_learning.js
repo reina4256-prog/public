@@ -1,9 +1,10 @@
 (function (root, factory) {
     const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_learning_core') : root.ExperimentalWordLearning,
-        typeof module === 'object' && module.exports ? require('./experimental_word_dungeon_core') : root.ExperimentalWordDungeonPreview);
+        typeof module === 'object' && module.exports ? require('./experimental_word_dungeon_core') : root.ExperimentalWordDungeonPreview,
+        typeof module === 'object' && module.exports ? require('./experimental_word_life_learning') : root.ExperimentalWordLifeLearning);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordDungeonLearning = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (core, preview) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (core, preview, lifeLearning) {
     'use strict';
     const copy = value => JSON.parse(JSON.stringify(value));
     const scene = 'dungeon:room:1';
@@ -27,10 +28,10 @@
         'pt-BR': /^Isto se chama ([\p{L}\p{N}ー]{1,16})$/iu, de: /^Das heißt ([\p{L}\p{N}ー]{1,16})$/iu
     };
     const distance = (a, b) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-    function create(state) {
+    function create(state, world = null) {
         state.dungeonLearning ||= { inputs: [], warnings: [], actions: [] };
         state.dungeonLearning.lexicon ||= [];
-        return { state, position: { x: 5, y: 3 }, attention: null, pending: null, proposal: null, turn: 0, complete: false, last: null };
+        return { state, world, goal: null, walkingAction: null, position: { x: 5, y: 3 }, attention: null, pending: null, proposal: null, turn: 0, complete: false, last: null };
     }
     function perceive(session, target = session.attention) {
         session.attention = objects.some(o => o.id === target) ? target : null;
@@ -73,17 +74,20 @@
         session.last = { id: session.state.dungeonLearning.actions.length + 1, scene, subject: 'self', inputId, requested,
             intent, reason, before, after: copy(session.position), warningSources: danger ? session.state.dungeonLearning.warnings.map(w => w.inputId) : [] };
         session.state.dungeonLearning.actions.push(copy(session.last));
+        session.walkingAction = distance(before, session.position) === 1 ? copy(session.last) : null;
+        if (session.goal && (session.last.reason !== 'obey' || !session.walkingAction
+            || distance(session.position, objects.find(o => o.id === session.goal.requested)) <= (session.goal.requested === objects[0].id ? 1 : 0))) session.goal = null;
         return session.last;
     }
     // These grammars propose readings; matching one never supplies the child's knowledge.
     // Grounding comes from a player's subsequent answer, with both original inputs retained.
     const grammar = {
-        ja: { yes: /^(?:はい|うん|そう|そうだよ|そうです|合ってる|それでいい)$/u, no: /^(?:いいえ|違う|ちがう|そうじゃない)$/u,
+        ja: { yes: /^(?:はい|うん|そう|そうだよ|そうです|(?:それで)?(?:合ってる|あっている|合っている)(?:よ)?|それでいい)$/u, no: /^(?:いいえ|違う|ちがう|そうじゃない)$/u,
             split: /(?:だから|なので|(?<=い)から|(?<=いる)から|(?<=ある)から|ので)[、,\s]*/u, declaration: /^(.+?)(?:のは|は)(.{1,24}?)(?:だよ|です|だ|のこと)?$/u,
-            go: /^(.+?)(?:へ|に)(?:行って|いって|向かって|進んで)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
+            go: /^(.+?)(?:へ|に|まで)(?:歩いて(?:行って|いって)?|行って|いって|向かって|進んで|動いて|移動して)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
             avoid: /^(.+?)(?:を)(?:避けて|よけて)(?:ください|ほしい|欲しい)?(?:ね|よ)?$/u,
             away: /^(.+?)(?:から離れて|には近づかないで|に近づかないで)(?:ください)?(?:ね|よ)?$/u,
-            bareGo: /^(?:行って|いって|向かって|進んで)(?:ね|ください)?$/u,
+            bareGo: /^(?:歩いて(?:行って|いって)?|行って|いって|向かって|進んで|動いて|移動して)(?:ね|ください)?$/u,
             bareAvoid: /^(?:避けて|よけて|離れて|近づかないで)(?:ね|ください)?$/u,
             warning: /^(?:危ない|危険|危険だ|危険です)(?:よ|ね)?$/u, deictic: /^(?:これ|それ|ここ|そこ|この相手)$/u,
             red: /赤(?:い|く)/u, side: /横/u, near: /(?:隣|となり|そば|近く)/u, upper: /(?:右上|上の方|上にある)/u },
@@ -221,6 +225,20 @@
     function receive(session, raw, catalog, locale = 'ja', at = Date.now()) {
         perceive(session);
         const state = session.state, data = state.dungeonLearning, g = grammar[locale] || grammar.ja;
+        session.goal = null;
+        const walkingAction = session.walkingAction; session.walkingAction = null;
+        if (core.walkingLabel(raw, locale, catalog)) {
+            const before = { knowledgeBefore: copy(state.knowledge), lexiconBefore: copy(data.lexicon), warningsBefore: copy(data.warnings), dialogueBefore: copy(session.pending) };
+            const input = { id: 'input:' + (++state.serial), raw, locale, speaker: 'player', at, scene,
+                attention: copy(state.context.attention), position: copy(session.position) };
+            const frame = { kind: 'walking_teaching', relations: [], span: raw };
+            const result = { input, interpretations: [frame], understandings: [core.understand(state, frame, 'player', catalog, locale)],
+                learning: [], lifeLabel: ['walk'], expression: { message: 'uncertain' }, reaction: { intent: 'uncertain' } };
+            const accepted = lifeLearning.teachWalkingStep(session.world, state, result, walkingAction);
+            session.pending = session.proposal = null;
+            data.inputs.push(copy({ kind: 'walking_teaching', target: null, result, ...before, acquired: [], dialogueAfter: null }));
+            return { result, special: true, kind: 'walking_teaching', reply: { message: accepted ? 'walkingLearned' : 'walkingNeedExperience' } };
+        }
         // A known greeting belongs to the shared conversation, even if a particle
         // inside it happens to resemble the local naming grammar.
         if (core.interpret(raw, locale, catalog).some(frame => frame.kind === 'greeting')) {
@@ -345,14 +363,20 @@
                 reply = { message: semantic === 'go' ? 'dungeonConfirmGo' : semantic === 'avoid' ? 'dungeonConfirmAvoid' : 'dungeonConfirmWarning', literal: session.pending.word };
             }
             if (u.unresolved.some(e => e.type === 'relation' || e.type === 'meaning' && e.token === 'walk')) {
-                session.pending = session.proposal = null; reply = { message: 'dungeonNeedBasis' };
+                session.pending = session.proposal = null; reply = { message: u.unresolved.some(e => e.type === 'meaning' && e.token === 'walk') ? 'walkingNeedExperience' : 'dungeonNeedBasis' };
             }
             if (u.complete && (parsed.kind === 'warning' || parsed.warning)) {
                 if (ref.target !== objects[0].id) {
                     u.complete = false; u.unresolved.push({ type: 'dungeon_scope', target: ref.target }); reply = { message: 'dungeonUnknown' };
                 } else if (!data.warnings.some(e => e.target === ref.target && e.scene === scene)) data.warnings.push({ scene, target: ref.target, inputId: input.id });
             }
-            if (u.complete && ['go', 'avoid'].includes(parsed.kind)) advance(session, ref.target, input.id, parsed.kind);
+            if (u.complete && ['go', 'avoid'].includes(parsed.kind)) {
+                advance(session, ref.target, input.id, parsed.kind);
+                if (parsed.kind === 'go' && session.last?.reason === 'obey' && session.walkingAction
+                    && distance(session.position, objects.find(o => o.id === ref.target)) > (ref.target === objects[0].id ? 1 : 0)) {
+                    session.goal = { requested: ref.target, inputId: input.id };
+                }
+            }
             if (u.complete) perceive(session, ref.target);
         }
         const result = { input, interpretations: [{ ...frame, ...(parsed ? { reading: copy(parsed) } : {}) }], understandings: [copy(u)], learning: [],

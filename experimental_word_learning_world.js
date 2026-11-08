@@ -70,6 +70,7 @@
                 world.route.shift();
                 if (world.route.length) return null;
             }
+            const walkingExperience = lifeLearning.finishWalking(world);
             world.history.push({ mode: 'move', target: target.id, start: world.activityStart, end: world.elapsed,
                 reasons: JSON.parse(JSON.stringify(world.reasons)) });
             world.activityStart = world.elapsed;
@@ -78,7 +79,8 @@
             world.attention = target.id === 'berry:1' ? (world.fruit ? `berry:${world.harvest + 1}` : null) : target.id;
             world.visited[target.id] = world.elapsed; world.dwell = target.id === 'shade' ? 11 : 9;
             if (target.id === 'shade') world.lastRest = world.elapsed;
-            return { id: ++world.event, kind: 'arrive', target: world.attention, reasons: world.reasons };
+            return { id: ++world.event, kind: 'arrive', target: world.attention, reasons: world.reasons,
+                ...(walkingExperience ? { walkingExperience } : {}) };
         }
         world.dwell -= dt;
         const careerEvent = world.island && careers?.tick(world);
@@ -583,6 +585,13 @@
                     h.reasons.find(r => r.selectionSource).selectionSource)));
     }
     function onArrival(world, state, event) {
+        let learnedWalking = false;
+        if (event?.walkingExperience && world.experiences.some(e => e.id === event.walkingExperience.id
+            && e.kind === 'walk' && JSON.stringify({ ...e, kind: 'experience', activity: 'walk' }) === JSON.stringify(event.walkingExperience))) {
+            state.experiences ||= [];
+            if (!state.experiences.some(e => e.id === event.walkingExperience.id)) state.experiences.push(copy(event.walkingExperience));
+            learnedWalking = lifeLearning.learn(state, event.walkingExperience.id).updated.some(e => e.id === 'walk');
+        }
         // Record reception order only for an actual arrival. Re-reading an
         // event cannot move its start past a later teaching or answer.
         if (event?.kind === 'arrive' && event.target === 'shade' && world.mode === 'rest'
@@ -593,7 +602,9 @@
             && world.restStartOrder === undefined) {
             world.restStartOrder = { start: world.activityStart, inputSerial: state.serial, eventId: event.id };
         }
-        const response = arrivalReply(world, state, event);
+        const arrival = arrivalReply(world, state, event);
+        const response = learnedWalking ? { message: state.settings.speech === 'short' ? 'walkingLearned' : 'walking_learned_gesture',
+            observation: state.settings.speech !== 'short' } : arrival;
         if (response) {
             if (['ate_gesture', 'woke_gesture'].includes(response.message)) response.observation = true;
             rememberOutput(world, state, response, null, event);

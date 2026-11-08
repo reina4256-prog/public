@@ -5,6 +5,9 @@ const api = require('../experimental_word_dungeon_core');
 const learning = require('../experimental_word_dungeon_learning');
 const core = require('../experimental_word_learning_core');
 const catalog = require('../experimental_word_learning_catalog.json');
+const worldApi = require('../experimental_word_learning_world');
+const lifeLearning = require('../experimental_word_life_learning');
+const storage = require('../scripts/experimental/storage');
 const answer = { ja: 'はい', en: 'yes', 'zh-CN': '是的', ru: 'да', 'es-ES': 'sí', 'pt-BR': 'sim', de: 'ja' };
 function teach(session, raw, locale = 'ja') {
     const first = learning.receive(session, raw, catalog, locale);
@@ -395,6 +398,187 @@ test('left, upper and lower descriptions are relative to the current actor in ev
             assert.equal(session.turn, 0);
         }
     }
+});
+
+function teachIslandWalk(state, world, raw = 'それが歩くことだよ', locale = 'ja') {
+    worldApi.approach(world, 'path'); worldApi.tick(world, .1);
+    core.perceive(state, worldApi.perception(world));
+    const result = core.receive(state, raw, catalog, { locale, at: 500 });
+    worldApi.respond(world, result, state, catalog);
+    assert(result.lifeLearning, raw);
+    let arrival;
+    for (let i = 0; i < 500 && !arrival; i++) {
+        const event = worldApi.tick(world, .1);
+        if (event) { worldApi.onArrival(world, state, event); if (event.kind === 'arrive') arrival = event; }
+    }
+    assert(arrival?.walkingExperience, raw);
+    return { result, arrival };
+}
+
+test('walking is acquired from a spoken label and an actual completed displacement in all eight starts', () => {
+    for (const foundation of [false, true]) for (const life of [false, true]) for (const speech of ['short', 'gesture']) {
+        const state = core.create({ foundation, life, speech }, catalog), world = worldApi.create();
+        const relations = structuredClone(state.knowledge.relations);
+        const { result, arrival } = teachIslandWalk(state, world);
+        const meaning = state.knowledge.meanings.find(e => e.id === 'walk');
+        assert.equal(meaning.source, life ? 'initial' : 'experienced_life');
+        assert.equal(result.understandings[0].complete, false);
+        assert.deepEqual(state.knowledge.relations, relations);
+        assert.equal(state.experiences[0].activity, 'walk');
+        assert.equal(state.experiences[0].lifeLabels[0].raw, result.input.raw);
+        assert(lifeLearning.valid(state, world));
+        assert(storage.valid({ version: 1, appearance: 'seed', state, world }));
+        const before = structuredClone(state);
+        worldApi.onArrival(world, state, arrival); lifeLearning.learn(state, arrival.walkingExperience.id);
+        assert.deepEqual(state, before);
+        const request = core.receive(state, '散歩しよう', catalog);
+        assert.equal(request.understandings[0].complete, foundation);
+    }
+});
+
+test('all seven locales can explain observed walking without learning from a question, negation or idle naming', () => {
+    const labels = { ja: 'その動きが歩いているということだよ', en: 'You are walking', 'zh-CN': '这就是走路',
+        ru: 'Это ходьба', 'es-ES': 'Estás caminando', 'pt-BR': 'Você está caminhando', de: 'Das ist gehen' };
+    for (const [locale, raw] of Object.entries(labels)) {
+        const state = core.create({ foundation: true, life: false }, catalog), world = worldApi.create();
+        teachIslandWalk(state, world, raw, locale);
+        assert(state.knowledge.meanings.some(e => e.id === 'walk'), locale);
+    }
+    for (const raw of ['それが歩くことだよ？', 'それは歩くことではない', 'もし歩くなら休む', '私は歩いている', 'それが歩くことだよ、それから食べて']) {
+        const state = core.create({ life: false }, catalog), world = worldApi.create();
+        worldApi.approach(world, 'path');
+        const result = core.receive(state, raw, catalog);
+        worldApi.respond(world, result, state, catalog);
+        assert(!result.lifeLabel.includes('walk'), raw); assert.equal(world.lifeLabels.length, 0, raw);
+    }
+    const state = core.create({ life: false }, catalog), world = worldApi.create();
+    const result = core.receive(state, 'それが歩くことだよ', catalog);
+    worldApi.respond(world, result, state, catalog);
+    assert(!result.lifeLearning); assert.equal(state.knowledge.meanings.length, 0);
+});
+
+test('pending walking teaching survives a validated save but interruption or no movement cannot teach', () => {
+    const state = core.create({ life: false }, catalog), world = worldApi.create();
+    worldApi.approach(world, 'path'); worldApi.tick(world, .1);
+    const result = core.receive(state, '歩く', catalog); worldApi.respond(world, result, state, catalog);
+    assert.equal(state.knowledge.meanings.length, 0);
+    const saved = { version: 1, appearance: 'seed', state: structuredClone(state), world: structuredClone(world) };
+    assert(storage.valid(saved));
+    const fs = require('node:fs'), path = require('node:path');
+    const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'word-walking-save-'));
+    const store = storage.createStore(directory);
+    assert.equal(store.save(saved).ok, true);
+    assert.equal(store.load().ok, true);
+    const resumed = structuredClone(saved);
+    for (let i = 0; i < 500; i++) { const event = worldApi.tick(resumed.world, .1); if (event) worldApi.onArrival(resumed.world, resumed.state, event); }
+    assert(resumed.state.knowledge.meanings.some(e => e.id === 'walk'));
+    assert(storage.valid(resumed));
+    const altered = structuredClone(saved); altered.world.lifeLabels[0].before.x = NaN;
+    assert.equal(storage.valid(altered), false);
+    worldApi.approach(world, 'shade');
+    for (let i = 0; i < 1000; i++) { const event = worldApi.tick(world, .1); if (event) worldApi.onArrival(world, state, event); }
+    assert(!state.knowledge.meanings.some(e => e.id === 'walk'));
+    const frozen = structuredClone(saved.world);
+    assert.equal(worldApi.tick(frozen, 10, true), null); assert.deepEqual(frozen, saved.world);
+    lifeLearning.cancelWalking(saved.world);
+    assert.equal(saved.world.lifeLabels.length, 0);
+    const stationary = worldApi.create(); stationary.x = worldApi.PLACES[2].x; stationary.y = worldApi.PLACES[2].y;
+    worldApi.approach(stationary, 'path');
+    const idleState = core.create({ life: false }, catalog);
+    worldApi.respond(stationary, core.receive(idleState, '歩く', catalog), idleState, catalog);
+    const event = worldApi.tick(stationary, .1); worldApi.onArrival(stationary, idleState, event);
+    assert.equal(event.walkingExperience, undefined); assert.equal(idleState.knowledge.meanings.length, 0);
+    for (let i = 0; i < 500; i++) { const event = worldApi.tick(saved.world, .1); if (event) worldApi.onArrival(saved.world, saved.state, event); }
+    assert(!saved.state.knowledge.meanings.some(e => e.id === 'walk'));
+});
+
+test('a dungeon step can ground walking once, preserving the unknown input and actual action source', () => {
+    const state = core.create({ foundation: true, life: false, speech: 'gesture' }, catalog), world = worldApi.create();
+    const session = learning.create(state, world);
+    const unknown = learning.receive(session, '階段まで動いて', catalog);
+    const original = structuredClone(unknown.result);
+    assert.equal(unknown.reply.message, 'walkingNeedExperience');
+    learning.advance(session);
+    const action = structuredClone(session.last);
+    const lesson = learning.receive(session, '今の動きが歩くことだよ', catalog);
+    assert.equal(lesson.reply.message, 'walkingLearned');
+    assert.equal(session.turn, 1); assert.deepEqual(unknown.result, original);
+    assert.deepEqual(state.experiences[0].walking.action, action);
+    assert(state.knowledge.meanings.some(e => e.id === 'walk' && e.source === 'experienced_life'));
+    assert(lifeLearning.valid(state, world));
+    assert(storage.valid({ version: 1, appearance: 'robot', state, world }));
+    const originalState = structuredClone(state);
+    const repeat = learning.receive(session, '今の動きが歩くことだよ', catalog);
+    assert.equal(repeat.reply.message, 'walkingNeedExperience');
+    assert.deepEqual(state.experiences, originalState.experiences);
+    const broken = structuredClone({ state, world }); broken.state.dungeonLearning.actions[0].after.x++;
+    assert.equal(lifeLearning.valid(broken.state, broken.world), false);
+});
+
+test('an old or interrupted dungeon action cannot supply a new walking lesson', () => {
+    for (const interrupt of ['message', 'scene', 'no-displacement']) {
+        const state = core.create({ life: false }, catalog), world = worldApi.create();
+        let session = learning.create(state, world);
+        learning.advance(session);
+        if (interrupt === 'message') learning.receive(session, 'おはよう', catalog);
+        else if (interrupt === 'scene') session = learning.create(state, world);
+        else { session.position = { ...learning.objects[1] }; learning.advance(session, learning.objects[1].id); }
+        assert.equal(learning.receive(session, 'それが歩くことだよ', catalog).reply.message, 'walkingNeedExperience');
+        assert(!state.knowledge.meanings.some(e => e.id === 'walk'));
+    }
+});
+
+test('island walking knowledge enables composed dungeon commands and a retained goal reaches the stairs', () => {
+    for (const raw of ['階段まで動いて', '階段に移動して', '階段へ歩いていって', '階段まで進んでください']) {
+        const state = core.create({ life: false }, catalog), world = worldApi.create();
+        teachIslandWalk(state, world);
+        const records = structuredClone(state.records), session = learning.create(state, world);
+        learning.receive(session, '階段わかる？', catalog); learning.receive(session, '右上', catalog);
+        learning.receive(session, 'それであっているよ', catalog);
+        assert(state.dungeonLearning.lexicon.some(e => e.word === '階段'));
+        const question = learning.receive(session, raw, catalog);
+        assert.equal(question.reply.message, 'dungeonConfirmGo', raw);
+        learning.receive(session, 'うん', catalog); assert.equal(session.turn, 0);
+        learning.receive(session, raw, catalog);
+        assert(session.goal, raw);
+        for (let i = 0; i < 20 && session.goal; i++) learning.advance(session, session.goal.requested, session.goal.inputId);
+        assert.equal(session.complete, true, raw); assert.equal(session.goal, null);
+        assert.deepEqual(state.records.slice(0, records.length), records);
+        assert.equal(state.dungeonLearning.warnings.length, 0);
+    }
+});
+
+test('dungeon walking knowledge works back on the island without supplying request relations or a warning', () => {
+    for (const foundation of [false, true]) {
+        const state = core.create({ foundation, life: false }, catalog), world = worldApi.create();
+        const session = learning.create(state, world);
+        learning.advance(session); learning.receive(session, '歩く', catalog);
+        assert(state.knowledge.meanings.some(e => e.id === 'walk'));
+        core.perceive(state, worldApi.perception(world));
+        const result = core.receive(state, '散歩しよう', catalog);
+        assert.equal(result.understandings[0].complete, foundation);
+        assert.equal(state.dungeonLearning.warnings.length, 0);
+        assert.equal(state.knowledge.meanings.length, 1);
+    }
+});
+
+test('a new input stops an old goal and a warning changes an approach without continuing that goal', () => {
+    const state = core.create({}, catalog), session = learning.create(state);
+    learning.receive(session, '階段わかる？', catalog); learning.receive(session, '右上', catalog); learning.receive(session, 'うん', catalog);
+    learning.receive(session, '階段まで動いて', catalog); learning.receive(session, 'うん', catalog);
+    learning.receive(session, '階段まで動いて', catalog);
+    assert(session.goal);
+    learning.receive(session, '階段わかる？', catalog);
+    assert.equal(session.goal, null);
+    learning.perceive(session, learning.objects[0].id);
+    teach(session, 'これは危ない');
+    learning.receive(session, 'そこへ行って', catalog);
+    assert.equal(session.last.reason, 'diverged'); assert.equal(session.goal, null);
+    const idleState = core.create({ life: false }, catalog), world = worldApi.create();
+    worldApi.approach(world, 'path'); world.pause = 1;
+    const result = core.receive(idleState, 'それが歩くことだよ', catalog);
+    worldApi.respond(world, result, idleState, catalog);
+    assert(!result.lifeLearning);
 });
 
 test('unknown instructions do not move, consume a turn or teach; autonomous ability stays separate', () => {

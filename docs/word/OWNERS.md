@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+[歩行の経験教示](../specs/core/experimental_word_learning.md#walking-experience-learning)はcore候補／life_learning照合／world実経験が所有し、直後一歩・goal・同一worldの往復は[ダンジョン所有](../specs/dungeon/word_dungeon_preview.md)。日記capture登録・既存140/129/138母数とは別。六資料・全保留と工程境界を維持。
+
 実試遊の聞返し停滞の修正も[ダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)が所有する。四方向と外見の累積、途中説明の出所、対象知識質問／意味説明を追加し、日記captureや既存母数へ加算しない。
 
 - [ダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)の所有はexperimental_word_dungeon_learning.js（参照／説明／依頼の組立・確認教示・出所）／experimental_word_dungeon_view.js（候補輪郭・旧素材）と共通experimental_word_learning_ui.js（往復・会話／案内）。日記capture登録とは別で、旧140/140枠・129子・138登録APIへ加算しない。初版core単独APIは保持。日記4g・星座工程時期未確定・全保留を維持。
