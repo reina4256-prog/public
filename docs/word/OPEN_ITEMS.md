@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+2026-11-09最新：星座接続・音声入出力はユーザーが実装を依頼。[限定した所有と境界](../specs/core/word_constellation_and_voice.md)を優先し、旧時期未定は今回範囲だけ更新する。ダンジョン本接続は2点後の最優先へ保留。他保留・DW／DX未着手を維持。
+
 最新採用は[初期生活語なしの歩行学習](../specs/core/experimental_word_learning.md#walking-experience-learning)。実変位と教示の出所を結び、[現地移動](../specs/dungeon/word_dungeon_preview.md)へ使う。生活語／関係の一括付与や日記接続へ拡張せず、4d12／4e全体未完・B停止／供給進展0・全保留を維持。
 
 実試遊の聞返し停滞への最新対応は[ダンジョン所有仕様](../specs/dungeon/word_dungeon_preview.md)。位置・外見の説明継続を修正するが、任意自然文／戦闘／永続保存／日記本接続の保留は解消しない。検証と公開状況は現行handoffを参照。

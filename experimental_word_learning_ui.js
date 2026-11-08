@@ -3,6 +3,19 @@
     const api = window.ExperimentalWordLearning;
     const app = document.getElementById('app');
     const labels = {
+        constellation: '言葉の星座', starsClose: '会話へ戻る',
+        voiceStart: '音声で入力', voiceStop: '音声を止める', voiceRead: '返答を読み上げる', voiceVolume: '読み上げ音量',
+        voiceListening: '聞いています。もう一度押すと取り消します。',
+        voiceReview: '聞き取った文を確認して、送信してください。',
+        voiceUnsupportedInput: 'この環境では音声入力を利用できません。文字で入力できます。',
+        voiceUnsupportedOutput: 'この環境では読み上げを利用できません。返答は文字で表示します。',
+        voiceDenied: 'マイクの利用が許可されていません。ブラウザーの設定を確認してください。',
+        voiceNoSpeech: '声を聞き取れませんでした。もう一度試すか、文字で入力してください。',
+        voiceFailedInput: '音声入力を開始・継続できませんでした。文字入力はそのまま使えます。',
+        voiceFailedOutput: '読み上げができませんでした。返答は文字で確認できます。',
+        voiceLong: '聞き取った文が長すぎます。短く分けて話してください。',
+        voiceNotice: '音声入力では、ブラウザーの音声認識サービスへ音声が送信される場合があります。聞き取った文は送信前に直せます。',
+        voiceNarration: 'しぐさの読み上げ：', voiceSettings: '音声の設定',
         dungeonEnter: 'ダンジョンへ行く', dungeonReturn: '島へ戻る', dungeonTitle: 'スカルダンジョン B1F',
         dungeonAuto: 'AUTO 開始／停止', dungeonStep: '本人の判断で1ターン',
         dungeonPoint: '見えているものについて、会話で教えたりお願いしたりできます。',
@@ -297,6 +310,7 @@
     let screen = window.WordIslandMode ? 'logo' : 'setup';
     let dungeon = null, dungeonView = null, dungeonVisuals;
     let environmentVolume = .5;
+    let voice, lastReplyIsNarration = false;
     function record(kind, data) {
         report?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
         personalLog?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
@@ -516,6 +530,7 @@
         header.querySelector('h1').textContent = t('gameTitle'); document.title = t('gameTitle');
     } else app.classList.add('onboarding-active');
     function showTitle() {
+        voice?.stop();
         app.classList.remove('onboarding-active');
         app.classList.add('title-active');
         screen = 'title'; settings.hidden = setupCopy.hidden = true; titleScreen.hidden = false;
@@ -547,6 +562,7 @@
     resetCancel.addEventListener('click', () => resetDialog.close());
     resetDialog.addEventListener('close', () => { if (screen === 'title') newGame.focus(); });
     resetAccept.addEventListener('click', () => {
+        voice?.stop();
         const pending = { version: 1, pendingNewGame: true, volume: environmentVolume };
         let written = true;
         try { if (window.wordStorage) written = window.wordStorage.save(pending).ok; }
@@ -676,12 +692,27 @@
     const panelButtons = node('div', undefined, chatPanel); panelButtons.className = 'panel-buttons';
     const conversationButton = node('button', t('conversation'), panelButtons); conversationButton.type = 'button';
     const notebookButton = node('button', t('notebook'), panelButtons); notebookButton.type = 'button';
+    const starsButton = node('button', t('constellation'), panelButtons); starsButton.type = 'button'; starsButton.id = 'word-stars';
+    starsButton.setAttribute('aria-pressed', 'false');
     conversationButton.setAttribute('aria-pressed', 'true'); notebookButton.setAttribute('aria-pressed', 'false');
     const panelBody = node('div', undefined, chatPanel); panelBody.className = 'panel-body';
     const conversation = node('div', undefined, panelBody);
     conversation.id = 'conversation'; conversation.setAttribute('role', 'log');
     conversation.setAttribute('aria-live', 'polite');
     const notebook = node('section', undefined, panelBody); notebook.id = 'notebook'; notebook.hidden = true;
+    const starsDialog = node('dialog', undefined, app); starsDialog.className = 'word-stars-dialog';
+    const starsClose = node('button', t('starsClose'), starsDialog); starsClose.type = 'button';
+    const stars = node('section', undefined, starsDialog); stars.id = 'word-constellation'; stars.hidden = true;
+    starsDialog.setAttribute('aria-label', t('constellation'));
+    starsClose.addEventListener('click', () => starsDialog.close());
+    starsDialog.addEventListener('close', () => {
+        stars.hidden = true; starsButton.setAttribute('aria-pressed', 'false'); starsButton.focus();
+    });
+    starsButton.setAttribute('aria-controls', stars.id);
+    const liveStars = window.ExperimentalWordConstellationLive.mount(stars, { state: () => state, catalog: () => catalog,
+        languageName: locale => window.GameI18n.languages[locale]?.label || locale,
+        inputs: () => report?.build({}, []).timeline.filter(entry => entry.kind === 'understanding').map(entry => entry.result) || [],
+        translate: text => window.GameI18n.translate(text) });
     notebook.setAttribute('aria-label', t('notebook'));
     conversationButton.setAttribute('aria-controls', 'conversation'); notebookButton.setAttribute('aria-controls', 'notebook');
     let noteLimit = 12;
@@ -731,6 +762,7 @@
         notebook.scrollTop = scroll;
     }
     function setNotebook(open) {
+        stars.hidden = true; starsButton.setAttribute('aria-pressed', 'false');
         notebook.hidden = !open; conversation.hidden = open;
         notebookButton.setAttribute('aria-pressed', String(open)); conversationButton.setAttribute('aria-pressed', String(!open));
         if (open) renderNotebook(true);
@@ -738,6 +770,11 @@
     }
     notebookButton.addEventListener('click', () => setNotebook(true));
     conversationButton.addEventListener('click', () => setNotebook(false));
+    starsButton.addEventListener('click', () => {
+        voice.stop(); stars.hidden = false;
+        starsButton.setAttribute('aria-pressed', 'true'); liveStars.refresh();
+        starsDialog.showModal(); starsClose.focus();
+    });
     const guide = node('div', undefined, conversation); guide.className = 'play-guide';
     node('strong', t('playGuide'), guide); node('p', t(window.WordIslandMode ? 'islandGuide' : 'playGuideText'), guide);
     if (window.WordIslandMode) node('p', t('playGuideText'), guide);
@@ -757,6 +794,54 @@
     input.setAttribute('data-i18n-skip', '');
     const send = node('button', t('send'), form);
     node('small', t('inputHint'), form);
+    const voiceTools = node('div', undefined, form); voiceTools.className = 'word-voice-tools';
+    const microphone = node('button', t('voiceStart'), voiceTools); microphone.type = 'button'; microphone.id = 'word-microphone';
+    microphone.setAttribute('aria-pressed', 'false');
+    const readLabel = node('label', undefined, voiceTools);
+    const readAloud = node('input', undefined, readLabel); readAloud.type = 'checkbox'; readAloud.id = 'word-read-aloud';
+    node('span', t('voiceRead'), readLabel);
+    const voiceVolumeLabel = node('label', t('voiceVolume'), voiceTools);
+    const voiceVolume = node('input', undefined, voiceVolumeLabel); voiceVolume.type = 'range';
+    voiceVolume.min = '0'; voiceVolume.max = '1'; voiceVolume.step = '.1'; voiceVolume.value = '.8';
+    const voiceStop = node('button', t('voiceStop'), voiceTools); voiceStop.type = 'button';
+    const voiceStatus = node('p', '', form); voiceStatus.id = 'word-voice-status'; voiceStatus.setAttribute('role', 'status');
+    const voiceHelp = node('details', undefined, form); node('summary', t('voiceStart'), voiceHelp); node('p', t('voiceNotice'), voiceHelp);
+    voiceHelp.querySelector('summary').textContent = t('voiceSettings');
+    voiceHelp.append(voiceVolumeLabel, voiceStop);
+    let voiceDraft = '', recognized = '', recognizedLocale = null;
+    const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
+        unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
+        failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput' };
+    voice = window.ExperimentalWordVoice.create(window, {
+        locale: () => window.GameI18n.language, volume: () => Number(voiceVolume.value),
+        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open,
+        status: key => { voiceStatus.textContent = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; },
+        listening: active => microphone.setAttribute('aria-pressed', String(active)),
+        transcript: text => {
+            if (screen !== 'playing' || paused || document.hidden || input.value !== voiceDraft) return false;
+            const combined = voiceDraft + (voiceDraft ? '\n' : '') + text;
+            if (combined.length > input.maxLength) { voice.stop(); voiceStatus.textContent = t('voiceLong'); return false; }
+            input.value = combined; recognized = text; recognizedLocale = window.GameI18n.language;
+            input.dataset.inputMethod = 'speech'; input.focus();
+        }
+    });
+    microphone.disabled = !voice.supportedInput;
+    readAloud.disabled = !voice.supportedOutput;
+    if (!voice.supportedInput) voiceStatus.textContent = t('voiceUnsupportedInput');
+    microphone.addEventListener('click', () => {
+        if (paused || screen !== 'playing') return;
+        dungeonView?.stop();
+        voiceDraft = input.value; voice.listen();
+    });
+    readAloud.addEventListener('change', () => {
+        voice.setEnabled(readAloud.checked);
+        if (readAloud.checked && !bubble.hidden) voice.speak((lastReplyIsNarration ? displayText('voiceNarration') : '') + bubble.textContent);
+    });
+    voiceStop.addEventListener('click', () => voice.stop());
+    input.addEventListener('input', () => { voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
+    window.addEventListener('game-language-changed', () => { voice.stop(); liveStars.languageChanged(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) voice.stop(); });
+    window.addEventListener('pagehide', () => voice.stop());
     input.addEventListener('keydown', event => {
         if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
             event.preventDefault(); if (!paused) form.requestSubmit();
@@ -964,6 +1049,9 @@
         world.speech = { until: world.elapsed + 7, target: reply.target || null };
         if (reply.target) { world.reaction = 'recognize'; world.reactionTime = 5; }
         conversation.scrollTop = conversation.scrollHeight;
+        lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
+            || reply.message === 'attend' || reply.message.endsWith('_gesture');
+        voice.speak((lastReplyIsNarration ? displayText('voiceNarration') : '') + bubble.textContent);
     }
     function animate(time) {
         drawLogo(time);
@@ -971,7 +1059,7 @@
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
-            const holding = paused || masterDialog.open || exporting || !!input.value.trim();
+            const holding = paused || masterDialog.open || exporting || voice.listening || !stars.hidden || !!input.value.trim();
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -1006,6 +1094,7 @@
     }
     function beginSession() {
         if (!catalog || screen === 'playing' || saveBlocked) return;
+        voice.stop(); recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
         if (newMeeting) state.startOrigin = { version: 4, answers: answers.slice() };
@@ -1062,6 +1151,7 @@
         if (target) pointAt(target, target.startsWith('master:') ? 'pointed_master' : target === 'shade' ? 'pointed_shade' : 'pointed_berry');
     });
     pause.addEventListener('click', () => {
+        voice.stop();
         paused = !paused; pause.setAttribute('aria-pressed', String(paused));
         record('pause', { paused });
         send.disabled = paused; point.disabled = paused; shade.disabled = paused;
@@ -1072,12 +1162,14 @@
     form.addEventListener('submit', event => {
         event.preventDefault();
         if (!input.value.trim() || document.hidden || paused) return;
+        voice.stop();
         updatePerception();
         // Capture originals at the actual input boundary, not by replaying a fixture later.
         const recording = personalLog?.status();
         const original = (recording?.enabled || recording?.checking) && !recording.paused ? personalLog.snapshot({
             beforeState: state, beforeWorld: world, inputKnowledge: state.knowledge, inputContext: state.context }) : null;
-        record('player', { text: input.value, context: state.context, situation: { mode: world.mode, attention: world.attention,
+        record('player', { text: input.value, inputMethod: input.dataset.inputMethod || 'text',
+            ...(recognized ? { recognizedText: recognized, recognizedLocale } : {}), context: state.context, situation: { mode: world.mode, attention: world.attention,
             destination: world.destination, hunger: world.hunger, fatigue: world.fatigue } });
         if (dungeon) dungeonView.stop();
         const dungeonResult = dungeon ? window.ExperimentalWordDungeonLearning.receive(dungeon, input.value, catalog, window.GameI18n.language) : null;
@@ -1116,8 +1208,10 @@
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
         if (hint) record('guidance', { key: hint, text: displayText(hint) });
         renderNotebook();
+        if (!stars.hidden) liveStars.refresh();
         trace.textContent = JSON.stringify({ result, knowledge: state.knowledge, records: state.records }, null, 2);
         input.value = ''; input.focus(); conversation.scrollTop = conversation.scrollHeight;
+        recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
         save();
     });
     Promise.all(['experimental_word_learning_catalog.json', 'experimental_word_learning_visuals.json'].map(file =>

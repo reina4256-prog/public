@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+最新優先順（2026-11-09）：[同じ子の星座と音声入出力](../specs/core/word_constellation_and_voice.md)を先行。通常島から橋を渡るダンジョン接続は両方終了後の最優先へ保留。DW／DXへ自動移行しない。
+
 最新：[2b歩行追補](../specs/core/experimental_word_learning.md#walking-experience-learning)は初期生活語なしでも実歩行＋声かけから学び、同じ子の島／ダンジョンで使う。移動依頼と継続の現地所有は[ダンジョン](../specs/dungeon/word_dungeon_preview.md)。検証・公開状態は現行handoff。
 
 実試遊からの最新修正：[ダンジョン所有仕様](../specs/dungeon/word_dungeon_preview.md)の聞返し継続・方向と外見の累積説明・対象知識質問。任意自然文全般の完成とは分け、検証・発行は現行handoffを参照。

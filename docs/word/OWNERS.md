@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+- [本人の星座と音声入出力](../specs/core/word_constellation_and_voice.md)はexperimental_word_constellation_live.js／experimental_word_voice.jsと共通UIが所有。独立見本・日記captureを置換せず学習正本へ書込まない。最新依頼でダンジョン本接続より優先。
+
 [歩行の経験教示](../specs/core/experimental_word_learning.md#walking-experience-learning)はcore候補／life_learning照合／world実経験が所有し、直後一歩・goal・同一worldの往復は[ダンジョン所有](../specs/dungeon/word_dungeon_preview.md)。日記capture登録・既存140/129/138母数とは別。六資料・全保留と工程境界を維持。
 
 実試遊の聞返し停滞の修正も[ダンジョン仮接続](../specs/dungeon/word_dungeon_preview.md)が所有する。四方向と外見の累積、途中説明の出所、対象知識質問／意味説明を追加し、日記captureや既存母数へ加算しない。

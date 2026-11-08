@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+最新優先順（2026-11-09）：[同じ子の星座と音声入出力](core/word_constellation_and_voice.md)を先行。通常島→橋→各ダンジョン入口の接続は2点の後の最優先へ保留。DW／DXへ自動移行しない。検証・発行は現行handoff。
+
 最新：[初期知識なしでの歩行学習](core/experimental_word_learning.md#walking-experience-learning)を実際の移動と声かけへ結び、[ダンジョン](dungeon/word_dungeon_preview.md)と同じ子で共有する。新しい理解済み移動依頼の目的地への継続も同所有。発行／検証の確定状態は現行handoff。
 
 実試遊からの最新修正：[ダンジョン所有仕様](dungeon/word_dungeon_preview.md)の聞返し継続・四方向／外見の累積説明・未知語の参照質問。検証・発行状態は現行handoffを参照。

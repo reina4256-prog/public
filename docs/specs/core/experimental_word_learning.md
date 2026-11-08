@@ -1,5 +1,7 @@
 # 言葉の経験学習・比較実験版
 
+2026-11-09最新依頼：[本人の星座と音声入出力](word_constellation_and_voice.md)を先行実装する。星座の旧本接続未指定／時期未定は今回の読取接続範囲のみ更新。通常島→橋→各ダンジョン入口接続は両方終了後の最優先へ保留し、DW／DXへ自動移行しない。その他の学習規則・日記4g・全保留は保持。
+
 - [4e現行実装・DU／DV](#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。
 
 - [4e現行実装・DS／DT](#diary-prose-first-target-consultation-4e)：2026-11-07・25ab405続き。既採用DS／DTを独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とax所有節。直前選択・移動／報告と今回理解を分離し、原資料・全維持条件／保留・B停止／供給進展0・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DU／DV（bq）。以下は過去状態。
