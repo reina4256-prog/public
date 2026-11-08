@@ -34,6 +34,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         await startNew();
         await settle();
         const send = async raw => { await js(`const input=document.querySelector('.chat-form textarea');input.value=${JSON.stringify(raw)};document.querySelector('.chat-form').requestSubmit();void 0`); await settle(); };
+        // Exercise the public exploration control; there is no manual turn button.
+        const exploreOnce = () => js(`new Promise((resolve,reject)=>{const before=window.__child.dungeonLearning.actions.length;document.getElementById('dungeon-auto').click();let n=0;const timer=setInterval(()=>{if(window.__child.dungeonLearning.actions.length>before){clearInterval(timer);document.getElementById('dungeon-auto').click();resolve();}else if(++n>500){clearInterval(timer);reject(new Error('exploration timeout'));}},20);})`);
         if (walkingSmoke) {
             const capture = () => js(`const original=ExperimentalWordDungeonLearning;window.ExperimentalWordDungeonLearning={...original,create(state,world){window.__child=state;window.__world=world;window.__session=original.create(state,world);return window.__session;}};document.getElementById('word-dungeon').click();void 0`);
             const waitFor = condition => js(`new Promise((resolve,reject)=>{let n=0;const timer=setInterval(()=>{if(${condition}){clearInterval(timer);resolve();}else if(++n>400){clearInterval(timer);reject(new Error('walking flow timeout'));}},200);})`);
@@ -52,7 +54,8 @@ if (!process.versions.electron || process.type !== 'browser') {
                 checked++;
             }
             await js("GameI18n.setLanguage('ja');void 0");win.setContentSize(1440,1000);await settle();
-            await js("document.getElementById('dungeon-step').click();void 0");
+            assert.equal(await js("document.getElementById('dungeon-step')"), null);
+            await exploreOnce();
             await send('今の動きが歩くことだよ');
             assert.equal(await js("window.__child.knowledge.meanings.some(e=>e.id==='walk'&&e.source==='experienced_life')"),true);
             assert.equal(await js("document.getElementById('conversation').lastElementChild.classList.contains('conversation-help')"),true);
@@ -123,7 +126,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         await send('はい？');
         assert.equal(await js("window.__child.dungeonLearning.lexicon.some(e=>e.word==='階段')"), false);
         await send('階段にいって');
-        await js("document.getElementById('dungeon-step').click();document.getElementById('dungeon-auto').click();new Promise(resolve=>setTimeout(resolve,1000))");
+        assert.equal(await js("document.getElementById('dungeon-step')"), null);
+        await js("document.getElementById('dungeon-auto').click();new Promise(resolve=>setTimeout(resolve,1000))");
         assert.equal(await js('window.__child.dungeonLearning.actions.length'), 0);
         await send('右上にあるもの'); await send('はい');
         await send('階段へ向かって'); await send('はい');
@@ -186,7 +190,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js("document.querySelector('.word-dungeon-stage')===null"), true);
         await js("history.forward();new Promise(resolve=>setTimeout(resolve,500))");
         assert.equal(await js("window.__sameChild===window.__child&&!!document.querySelector('.word-dungeon-stage')"), true);
-        await js("document.getElementById('dungeon-step').click();void 0"); await settle();
+        await exploreOnce(); await settle();
         assert.equal(await js("window.__child.dungeonLearning.actions.at(-1).reason"), 'retreat');
         const autoBefore = await js('window.__child.dungeonLearning.actions.length');
         await js("document.getElementById('dungeon-auto').click();void 0");
@@ -195,13 +199,11 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js("document.getElementById('dungeon-auto').click();void 0");
         await js("document.getElementById('word-pause').click();void 0"); await settle();
         const before = await js("window.__child.dungeonLearning.actions.length");
-        await js("document.getElementById('dungeon-step').click();void 0");
         await js("document.getElementById('dungeon-auto').click();new Promise(resolve=>setTimeout(resolve,1000))");
         assert.equal(await js("window.__child.dungeonLearning.actions.length"), before);
-        for (let i=0;i<40 && !(await js("document.getElementById('dungeon-step').disabled"));i++) {
-            await js("document.getElementById('word-pause').getAttribute('aria-pressed')==='true'&&document.getElementById('word-pause').click();document.getElementById('dungeon-step').click();void 0");
-        }
-        assert.equal(await js("document.getElementById('dungeon-step').disabled"), true);
+        await js("document.getElementById('word-pause').getAttribute('aria-pressed')==='true'&&document.getElementById('word-pause').click();void 0");
+        await js("document.getElementById('dungeon-auto').click();new Promise((resolve,reject)=>{let n=0;const timer=setInterval(()=>{if(document.getElementById('dungeon-auto').disabled){clearInterval(timer);resolve();}else if(++n>200){clearInterval(timer);reject(new Error('arrival timeout'));}},100);})");
+        assert.equal(await js("document.getElementById('dungeon-auto').disabled"), true);
         const arrivedActions = await js('window.__child.dungeonLearning.actions.length');
         await send('階段にいって');
         assert.equal(await js('window.__child.dungeonLearning.actions.length'), arrivedActions);
