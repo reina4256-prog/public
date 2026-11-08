@@ -1,14 +1,33 @@
 <!doctype html>
-<html lang="ja" data-i18n-ephemeral>
+<html lang="ja">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Dungeon exploration preview</title>
+  <title>Word learning island and dungeon</title>
+  <link rel="stylesheet" href="experimental_word_learning.css">
   <link rel="stylesheet" href="experimental_word_dungeon.css">
+  <script defer src="experimental_word_island_boot.js"></script>
   <script defer src="localization_catalog.js"></script>
   <script defer src="localization_core.js"></script>
+  <script defer src="data.js"></script>
+  <script defer src="island_shared.js"></script>
+  <script defer src="experimental_word_learning_core.js"></script>
+  <script defer src="experimental_word_careers.js"></script>
+  <script defer src="experimental_word_life_learning.js"></script>
+  <script defer src="experimental_word_relation_learning.js"></script>
+  <script defer src="experimental_word_feeling_learning.js"></script>
+  <script defer src="experimental_word_learning_world.js"></script>
+  <script defer src="experimental_word_learning_notebook.js"></script>
+  <script defer src="experimental_word_learning_report.js"></script>
+  <script defer src="experimental_word_learning_autorecord.js"></script>
+  <script defer src="experimental_word_island_navigation.js"></script>
+  <script defer src="experimental_word_island_view.js"></script>
+  <script defer src="view_renderer.js"></script>
+  <script defer src="experimental_word_start_questions.js"></script>
   <script defer src="experimental_word_dungeon_core.js"></script>
-  <script defer src="experimental_word_dungeon.js"></script>
+  <script defer src="experimental_word_dungeon_learning.js"></script>
+  <script defer src="experimental_word_dungeon_view.js"></script>
+  <script defer src="experimental_word_learning_ui.js"></script>
 </head>
-<body><main id="dungeon-preview" data-i18n-skip></main></body>
+<body><canvas id="gameCanvas" hidden></canvas><main id="app"></main></body>
 </html>

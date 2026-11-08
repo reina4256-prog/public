@@ -3,6 +3,17 @@
     const api = window.ExperimentalWordLearning;
     const app = document.getElementById('app');
     const labels = {
+        dungeonEnter: 'ダンジョンへ行く', dungeonReturn: '島へ戻る', dungeonTitle: 'スカルダンジョン B1F',
+        dungeonAuto: 'AUTO 開始／停止', dungeonStep: '本人の判断で1ターン', dungeonOpponent: '赤い相手を指す', dungeonStairs: '階段を指す',
+        dungeonPoint: '見えている相手や階段を指して教えられます。',
+        dungeonGuide: '指した対象に「これはポポだよ」「これは危ない」と教えたり、「そこへ行って」と頼んでみよう。戦闘はまだ行いません。',
+        dungeonNote: 'ダンジョンで聞いた警告', dungeonScope: '指した個体への警告として覚えています。ほかの相手には広げません。',
+        dungeonUnknown: 'まだ警告の関係や対象が分からず、行動の判断には使っていません。',
+        dungeonLearned: 'この相手についての警告として覚えておくね。',
+        dungeonDiverged: 'その相手は危ないと教わったから、指示とは違うけれど距離を取るね。',
+        dungeonRetreat: '危ないと教わった相手から離れている。', dungeonExplore: '周囲を見ながら出口を探している。',
+        dungeonObey: '指された場所へ近づいてみるね。', dungeonArrived: '階段に着いた。島へ戻れます。',
+        dungeonLimit: '言葉は受け取ったよ。ここでその行動ができるかは、まだ分からない。',
         gameTitle: 'AIテラリウム', gameSubtitle: '- 観測者の島 -',
         logoStart: '- クリックして開始 -', newGame: 'はじめから',
         continueGame: 'つづきから', backTitle: 'タイトルへ戻る',
@@ -265,6 +276,7 @@
     let personalLog = null;
     let exporting = false;
     let screen = window.WordIslandMode ? 'logo' : 'setup';
+    let dungeon = null, dungeonView = null, dungeonVisuals;
     let environmentVolume = .5;
     function record(kind, data) {
         report?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
@@ -554,6 +566,9 @@
     const bubble = node('div', undefined, stage); bubble.className = 'bubble'; bubble.hidden = true;
     const status = node('p', t('idle'), session); status.className = 'status'; status.setAttribute('aria-live', 'polite');
     const controls = node('div', undefined, session); controls.className = 'scene-controls';
+    const dungeonButton = window.WordIslandMode && window.ExperimentalWordDungeonLearning && !window.wordStorage
+        ? node('button', t('dungeonEnter'), controls) : null;
+    if (dungeonButton) { dungeonButton.type = 'button'; dungeonButton.id = 'word-dungeon'; dungeonButton.addEventListener('click', () => toggleDungeon(!dungeon)); }
     const debugControls = new URLSearchParams(location.search).get('debug') === '1';
     const navigationControls = node('div', undefined, controls); navigationControls.hidden = !debugControls;
     const point = node('button', t('point'), navigationControls); point.type = 'button';
@@ -617,7 +632,7 @@
         exporting = true; exportButton.disabled = true;
         let feedback;
         try {
-            const notes = window.ExperimentalWordNotebook.groupedEntries(state).map(entry => ({ ...entry,
+            const notes = [...window.ExperimentalWordNotebook.groupedEntries(state), ...(window.ExperimentalWordDungeonLearning?.notes(state) || [])].map(entry => ({ ...entry,
                 text: displayText(entry.message), detailText: displayText(entry.detail) }));
             const value = report.build({ state, world }, notes, { appearance: appearance.value,
                 locale: window.GameI18n.language, saveStatus: saveBlocked ? 'stopped' : window.wordStorage ? 'autosave' : 'session-only' });
@@ -654,7 +669,7 @@
     let notebookSignature = '';
     function renderNotebook(force = false) {
         if (!state || notebook.hidden) return;
-        const entries = window.ExperimentalWordNotebook.groupedEntries(state);
+        const entries = [...window.ExperimentalWordNotebook.groupedEntries(state), ...(window.ExperimentalWordDungeonLearning?.notes(state) || [])];
         const signature = JSON.stringify(entries);
         if (!force && signature === notebookSignature) return;
         notebookSignature = signature;
@@ -743,8 +758,41 @@
     setInterval(save, 5000);
     window.addEventListener('beforeunload', save);
     function updatePerception() {
+        if (dungeon) { window.ExperimentalWordDungeonLearning.perceive(dungeon); return; }
         api.perceive(state, worldApi.perception(world));
     }
+    function toggleDungeon(enter, history = true) {
+        if (!state || !dungeonButton || enter === !!dungeon) return;
+        if (enter) {
+            dungeon = window.ExperimentalWordDungeonLearning.create(state);
+            if (!dungeonView) dungeonView = new window.ExperimentalWordDungeonView(canvas, stage, controls, t,
+                action => { if (!action) return; showReply({ message: action.reason === 'diverged' ? 'dungeonDiverged'
+                    : action.reason === 'retreat' ? 'dungeonRetreat' : action.reason === 'obey' ? 'dungeonObey' : 'dungeonExplore' });
+                    record('dungeon_action', { action }); updateDungeonStatus(); dungeonView.refresh(); },
+                () => { bubble.hidden = true; record('dungeon_point', { target: dungeon.attention }); }, () => toggleDungeon(false),
+                () => !paused && !exporting && !input.value.trim() && !document.hidden);
+            dungeonView.enter(dungeon, dungeonVisuals, appearance.value);
+        } else { dungeonView.leave(); dungeon = null; }
+        state.context.pendingQuestion = null; state.context.lastOutput = null;
+        bubble.hidden = true; paused = false; pause.setAttribute('aria-pressed', 'false'); send.disabled = false;
+        dungeonButton.textContent = t(dungeon ? 'dungeonReturn' : 'dungeonEnter');
+        canvas.setAttribute('aria-label', t(dungeon ? 'dungeonTitle' : 'islandLabel'));
+        point.disabled = shade.disabled = false;
+        if (walk) walk.disabled = false;
+        if (masterVisit) masterVisit.disabled = false;
+        controls.classList.toggle('in-dungeon', !!dungeon);
+        navigationControls.hidden = !!dungeon || !debugControls;
+        updatePerception(); lastStatus = ''; lastFrame = null;
+        if (history) window.history.pushState({ wordContent: dungeon ? 'dungeon' : 'island' }, '', dungeon ? 'experimental_word_dungeon.html' : 'experimental_word_island.html');
+        record('content_change', { content: dungeon ? 'dungeon' : 'island' }); renderNotebook();
+        if (dungeon) updateDungeonStatus();
+    }
+    function updateDungeonStatus() {
+        status.textContent = t(dungeon.complete ? 'dungeonArrived' : dungeon.last?.reason === 'diverged' ? 'dungeonDiverged'
+            : dungeon.last?.reason === 'retreat' ? 'dungeonRetreat' : 'dungeonExplore') + ' · ' + dungeon.turn;
+    }
+    window.addEventListener('popstate', event => { if (event.state?.wordContent) toggleDungeon(event.state.wordContent === 'dungeon', false); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) dungeonView?.stop(); });
     // Keep the modal out of the playing grid and its clipped/scrolling ancestors.
     const masterDialog = node('dialog', undefined, document.body); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
     const masterLeft = node('div', undefined, masterDialog); masterLeft.className = 'word-master-left';
@@ -898,6 +946,12 @@
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
             const holding = paused || masterDialog.open || exporting || !!input.value.trim();
+            if (dungeon) {
+                dungeonView.tick(dt, holding);
+                updateDungeonStatus();
+                bubble.style.left = '50%'; bubble.style.top = '18%';
+                requestAnimationFrame(animate); return;
+            }
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -942,6 +996,7 @@
         app.classList.remove('title-active');
         app.classList.remove('onboarding-active');
         app.classList.add('playing'); input.focus({ preventScroll: true });
+        if (dungeonButton) window.history.replaceState({ wordContent: 'island' }, '', location.href);
         save();
     }
     settings.addEventListener('submit', event => {
@@ -975,6 +1030,7 @@
     shade.addEventListener('click', () => pointAt('shade', 'pointed_shade'));
     walk?.addEventListener('click', () => pointAt('path', 'join'));
     canvas.addEventListener('click', event => {
+        if (dungeon) { if (!paused && !exporting) dungeonView.hit(event); return; }
         if (!world || !view.hit || exporting) return;
         const target = view.hit(world, event);
         if (target) pointAt(target, target.startsWith('master:') ? 'pointed_master' : target === 'shade' ? 'pointed_shade' : 'pointed_berry');
@@ -997,11 +1053,26 @@
             beforeState: state, beforeWorld: world, inputKnowledge: state.knowledge, inputContext: state.context }) : null;
         record('player', { text: input.value, context: state.context, situation: { mode: world.mode, attention: world.attention,
             destination: world.destination, hunger: world.hunger, fatigue: world.fatigue } });
-        const result = api.receive(state, input.value, catalog, { locale: window.GameI18n.language });
+        const dungeonResult = dungeon ? window.ExperimentalWordDungeonLearning.receive(dungeon, input.value, catalog, window.GameI18n.language) : null;
+        const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language });
         record('understanding', { result });
         const message = node('p', input.value, conversation);
         message.dataset.speaker = 'player'; message.setAttribute('data-i18n-skip', '');
-        const reply = worldApi.respond(world, result, state, catalog);
+        let reply;
+        if (dungeon) {
+            dungeonView.stop();
+            const u = result.understandings.at(-1), link = state.knowledge.associations.find(a => a.target === u.target?.adopted?.id
+                && a.speaker === result.input.speaker && a.evidence.some(e => !e.retractedBy));
+            const learnedName = result.learning.flatMap(item => item.updated).at(-1);
+            reply = { message: !u.complete ? dungeonResult.kind === 'warning' ? 'dungeonUnknown' : 'uncertain' : dungeonResult.learned ? 'dungeonLearned'
+                : dungeonResult.kind === 'go' ? dungeon.complete ? 'dungeonArrived'
+                    : dungeon.last?.reason === 'diverged' ? 'dungeonDiverged' : 'dungeonObey'
+                : u.kind === 'greeting' ? 'good_morning' : learnedName || link && ['reference', 'question'].includes(u.kind) ? 'name_echo'
+                : ['request', 'invitation'].includes(u.kind) ? 'dungeonLimit' : result.expression.message,
+                ...(learnedName || link ? { word: learnedName?.word || link.word } : {}) };
+            if (state.settings.speech !== 'short') reply = { message: 'attend' };
+            updateDungeonStatus(); dungeonView.refresh();
+        } else reply = worldApi.respond(world, result, state, catalog);
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
         showReply(reply);
@@ -1021,6 +1092,7 @@
         fetch(file).then(response => { if (!response.ok) throw new Error('Load failed'); return response.json(); })
     )).then(([data, visuals]) => {
         catalog = data;
+        dungeonVisuals = visuals;
         meetingVisuals = visuals;
         const feelingForms = catalog.feelingTeaching[window.GameI18n.language];
         const feelingPair = catalog.feelingContrast[window.GameI18n.language];

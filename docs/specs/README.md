@@ -1,6 +1,6 @@
 # ゲーム仕様書インデックス
 
-- [新方式ダンジョン・別URL独立試作](dungeon/word_dungeon_preview.md)：2026-11-08、理解状態切替・指示／自主判断と、指示と異なる選択の通知を追加。本編／旧保存・教示学習・日記未接続、4d12／4e全体未完と各本接続時期を維持。
+- [新方式ダンジョン・同じ子の仮接続](dungeon/word_dungeon_preview.md)：2026-11-08、公開島から共通知識／ノートを保持して往復。旧マップ素材・同じ姿の赤い相手、共通自由入力、個体名／警告の教示と接近回避を追加。戦闘・永続保存・日記本接続は未実装。4d12／4e全体未完・日記4g／星座工程時期未確定を維持。
 
 - [4e現行実装・DU／DV](core/experimental_word_learning.md#diary-prose-first-target-consultation-4e)：2026-11-08・54f52bf続き。既採用DU／DV（bq）を独立rest_explanation_prose.renderへ限定追加。対象・成立条件・全除外はリンク先の4e現行実装とbq所有節。直前理解と今回不足、DU原出所あり／DV主体出所欠落を別保持。忘却／記録削除仕様は非採用。全維持条件／保留・B停止／供給進展0・旧run非置換・4d12／4e全体未完を保持。検証・発行／実読未読はCURRENT_IMPLEMENTATION.md。次は既採用DW／DX（bq）。以下は過去状態。
 
