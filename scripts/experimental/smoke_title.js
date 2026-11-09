@@ -15,6 +15,12 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     };
     const reload = async () => { await window.loadURL(url); await paintClock(); await waitReady(); };
     const click = selector => js(`document.querySelector(${JSON.stringify(selector)}).click()`);
+    const finishVoiceSelection = async () => {
+        assert.equal(await js('document.querySelector("#word-voice-choice").open'), true);
+        assert.equal(await js('document.querySelector(".word-meeting").open'), false);
+        assert.equal(await js('document.querySelector("#word-voice-species").options.length'), 11);
+        await click('#word-voice-continue');
+    };
     const sign = async () => {
         assert.equal(await js('document.querySelector("#word-meeting-begin").disabled'), true);
         await js('document.querySelector("#word-signature").scrollIntoView({block:"center"})');
@@ -74,6 +80,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         for (const answer of answers) {
             await click(`.word-questions fieldset button[data-answer="${answer}"]`);
         }
+        await finishVoiceSelection();
         assert.equal(await js('document.querySelector(".word-meeting").open'), true);
         const before = structuredClone(saved());
         assert.equal(before.pendingNewGame, true);
@@ -87,6 +94,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         assert.equal(await js('document.querySelector(".question-count").textContent'), '1 / 7');
         assert.deepEqual(saved(), before);
         for (const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
+        await finishVoiceSelection();
         await confirmSignature();
         assert.deepEqual(read().state.startOrigin.answers, answers);
     };
@@ -199,6 +207,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         for (const answer of answers) {
             await click(`fieldset button[data-answer="${answer}"]`);
         }
+        await finishVoiceSelection();
         const pending = structuredClone(saved()); assert.equal(pending.pendingNewGame, true);
         // Empty cannot start; erasing affects only the signature and keeps the partner.
         await click('#word-meeting-begin'); assert.deepEqual(saved(), pending);
@@ -233,6 +242,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         await click('#word-new-game'); await click('#word-reset-accept');
         const answers=answersFor(skin,{foundation:!!(i&1),life:!!(i&2),speech:i&4?'short':'gesture'});
         for(const answer of answers) await click(`fieldset button[data-answer="${answer}"]`);
+        await finishVoiceSelection();
         assert.equal(await js('document.querySelector(".word-questions select").value'),skin);
         await confirmSignature();
         for(let j=0;j<60 && !await js(`images[${JSON.stringify(skin)}]?.complete && images[${JSON.stringify(skin)}]?.naturalWidth && audioManager.currentAudio?.readyState>=2`);j++) await sleep(100);
@@ -269,9 +279,11 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     await js('window.originalQuestionRandom=Math.random; Math.random=()=>0; void 0');
     const tied = [0,0,0,2,0,1,1], pending = structuredClone(saved());
     for (const answer of tied) await click(`fieldset button[data-answer="${answer}"]`);
+    await finishVoiceSelection();
     const first = await js('document.querySelector(".word-questions select").value');
     await click('#word-meeting-retry'); await js('Math.random=()=>.99; void 0');
     for (const answer of tied) await click(`fieldset button[data-answer="${answer}"]`);
+    await finishVoiceSelection();
     assert.equal(await js('document.querySelector(".word-questions select").value'), first);
     assert.deepEqual(saved(), pending);
     assert.equal(await js('audioManager.currentBGMType'), 'personality');

@@ -15,7 +15,17 @@
         voiceFailedOutput: '読み上げができませんでした。返答は文字で確認できます。',
         voiceLong: '聞き取った文が長すぎます。短く分けて話してください。',
         voiceNotice: '音声入力では、ブラウザーの音声認識サービスへ音声が送信される場合があります。聞き取った文は送信前に直せます。',
-        voiceNarration: 'しぐさの読み上げ：', voiceSettings: '音声の設定',
+        voiceSettings: '音声の設定', voiceChoose: '種族ごとの声を選ぶ',
+        voiceChoiceHelp: '11種族それぞれの会話の声を選べます。しぐさは別の声で読み上げます。',
+        voiceSpecies: '試聴する種族', voiceDialogue: '会話の声', voiceNarrator: 'しぐさを読む声',
+        voiceAuditionHelp: '試聴は声の確認だけです。この子が言葉を覚えたり、話した記録にはなりません。',
+        voiceSample1: 'こんにちは。よろしくね。', voiceSample2: 'あそこに何かあるみたい。',
+        voiceSample3: 'いっしょに行ってみよう。', voiceSampleGesture: 'こちらを見て、小さくうなずいた。',
+        voicePreview: 'このセリフを聞く', voicePreviewGesture: 'しぐさの声を聞く',
+        voiceContinue: 'この声で進む', voiceChoiceBack: '設問に戻る', voiceChoiceClose: '声の選択を閉じる',
+        voiceUnavailable: '別々の声で読むには、この言語の声が2つ以上必要です。端末の音声設定を確認してください。文字だけでも続けられます。',
+        voiceMissing: '保存した声が見つかりません。声を選び直してください。',
+        voiceReset: 'この端末の声で選び直す', voiceUnsaved: '声の設定を保存できませんでした。今回の起動中は選んだ声を使います。',
         dungeonEnter: 'ダンジョンへ行く', dungeonReturn: '島へ戻る', dungeonTitle: 'スカルダンジョン B1F',
         dungeonAuto: 'AUTO 開始／停止', dungeonStep: '本人の判断で1ターン',
         dungeonPoint: '見えているものについて、会話で教えたりお願いしたりできます。',
@@ -808,14 +818,83 @@
     const voiceHelp = node('details', undefined, form); node('summary', t('voiceStart'), voiceHelp); node('p', t('voiceNotice'), voiceHelp);
     voiceHelp.querySelector('summary').textContent = t('voiceSettings');
     voiceHelp.append(voiceVolumeLabel, voiceStop);
+    const voiceChoose = node('button', t('voiceChoose'), voiceHelp); voiceChoose.type = 'button'; voiceChoose.id = 'word-voice-choose';
+    const voiceChoice = node('dialog', undefined, app); voiceChoice.className = 'word-reset word-voice-choice';
+    voiceChoice.id = 'word-voice-choice';
+    const choiceHeading = node('h2', t('voiceChoose'), voiceChoice); choiceHeading.id = 'word-voice-choice-heading';
+    voiceChoice.setAttribute('aria-labelledby', choiceHeading.id);
+    node('p', t('voiceChoiceHelp'), voiceChoice);
+    const speciesLabel = node('label', t('voiceSpecies'), voiceChoice);
+    const voiceSpecies = node('select', undefined, speciesLabel); voiceSpecies.id = 'word-voice-species';
+    window.ExperimentalWordVoice.species.forEach(id => { const option = node('option', t(id), voiceSpecies); option.value = id; });
+    const dialogueLabel = node('label', t('voiceDialogue'), voiceChoice);
+    const dialogueVoice = node('select', undefined, dialogueLabel); dialogueVoice.id = 'word-dialogue-voice';
+    dialogueVoice.setAttribute('data-i18n-skip', '');
+    const narratorLabel = node('p', t('voiceNarrator'), voiceChoice);
+    const narratorName = node('span', undefined, narratorLabel); narratorName.setAttribute('data-i18n-skip', '');
+    const choiceStatus = node('p', '', voiceChoice); choiceStatus.setAttribute('role', 'status');
+    const choiceSaveStatus = node('p', '', voiceChoice); choiceSaveStatus.setAttribute('role', 'status'); choiceSaveStatus.hidden = true;
+    node('p', t('voiceAuditionHelp'), voiceChoice);
+    const previewButtons = [];
+    for (const key of ['voiceSample1', 'voiceSample2', 'voiceSample3', 'voiceSampleGesture']) {
+        const row = node('div', undefined, voiceChoice); row.className = 'word-voice-sample';
+        node('p', t(key), row);
+        const button = node('button', t(key === 'voiceSampleGesture' ? 'voicePreviewGesture' : 'voicePreview'), row);
+        button.type = 'button'; previewButtons.push(button);
+        button.addEventListener('click', () => voice.speak(displayText(key), {
+            preview: true, species: voiceSpecies.value, role: key === 'voiceSampleGesture' ? 'narration' : 'dialogue'
+        }));
+    }
+    const resetVoices = node('button', t('voiceReset'), voiceChoice); resetVoices.type = 'button';
+    const choiceStop = node('button', t('voiceStop'), voiceChoice); choiceStop.type = 'button';
+    const choiceContinue = node('button', t('voiceContinue'), voiceChoice); choiceContinue.type = 'button'; choiceContinue.id = 'word-voice-continue';
+    const choiceBack = node('button', t('voiceChoiceBack'), voiceChoice); choiceBack.type = 'button';
+    let choosingInitialVoice = false;
+    function renderVoiceChoices() {
+        if (!voiceChoice.open) return;
+        const bank = voice.voices(), selected = bank.profile.dialogue[voiceSpecies.value];
+        dialogueVoice.replaceChildren();
+        if (!bank.dialogue.some(v => window.ExperimentalWordVoice.voiceId(v) === selected)) {
+            const missing = node('option', '', dialogueVoice); missing.value = ''; missing.disabled = true;
+        }
+        for (const v of bank.dialogue) {
+            const option = node('option', `${v.name || v.voiceURI} (${v.lang})`, dialogueVoice);
+            option.value = window.ExperimentalWordVoice.voiceId(v);
+        }
+        dialogueVoice.value = selected || ''; dialogueVoice.disabled = !bank.dialogue.length;
+        narratorName.textContent = bank.narrator ? ` — ${bank.narrator.name || bank.narrator.voiceURI} (${bank.narrator.lang})` : '';
+        const ready = !!bank.narrator && !!bank.dialogue.length;
+        choiceStatus.textContent = bank.available.length < 2 ? t('voiceUnavailable') : !ready || !dialogueVoice.value ? t('voiceMissing') : '';
+        choiceSaveStatus.hidden = voice.preferencesSaved;
+        choiceSaveStatus.textContent = voice.preferencesSaved ? '' : t('voiceUnsaved');
+        previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || !ready || (index < 3 && !dialogueVoice.value); });
+    }
+    function openVoiceChoices(initial) {
+        voice.stop(); choosingInitialVoice = initial; voiceSpecies.value = appearance.value;
+        if (initial) { screen = 'voice-selection'; settings.hidden = true; }
+        choiceContinue.textContent = t(initial ? 'voiceContinue' : 'voiceChoiceClose');
+        choiceBack.hidden = !initial;
+        voiceChoice.showModal(); renderVoiceChoices(); voiceSpecies.focus();
+    }
+    voiceChoose.addEventListener('click', () => openVoiceChoices(false));
+    voiceSpecies.addEventListener('change', () => { voice.stop(); renderVoiceChoices(); });
+    dialogueVoice.addEventListener('change', () => { voice.selectVoice(voiceSpecies.value, dialogueVoice.value); renderVoiceChoices(); });
+    resetVoices.addEventListener('click', () => { voice.resetVoices(); renderVoiceChoices(); });
+    choiceStop.addEventListener('click', () => voice.stop());
+    voiceChoice.addEventListener('cancel', event => { event.preventDefault(); if (!choosingInitialVoice) { voice.stop(); voiceChoice.close(); } });
+    choiceContinue.addEventListener('click', () => { voice.stop(); voiceChoice.close(); if (choosingInitialVoice) openMeeting(); });
+    choiceBack.addEventListener('click', () => { voice.stop(); voiceChoice.close(); showSetup(); });
+    window.speechSynthesis?.addEventListener('voiceschanged', renderVoiceChoices);
     let voiceDraft = '', recognized = '', recognizedLocale = null;
     const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
         unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
-        failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput' };
+        failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved' };
     voice = window.ExperimentalWordVoice.create(window, {
         locale: () => window.GameI18n.language, volume: () => Number(voiceVolume.value),
-        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open,
-        status: key => { voiceStatus.textContent = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; },
+        species: () => appearance.value,
+        canPreview: () => voiceChoice.open && !document.hidden,
+        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !voiceChoice.open,
+        status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text; if (voiceChoice.open && text) choiceStatus.textContent = text; },
         listening: active => microphone.setAttribute('aria-pressed', String(active)),
         transcript: text => {
             if (screen !== 'playing' || paused || document.hidden || input.value !== voiceDraft) return false;
@@ -835,11 +914,11 @@
     });
     readAloud.addEventListener('change', () => {
         voice.setEnabled(readAloud.checked);
-        if (readAloud.checked && !bubble.hidden) voice.speak((lastReplyIsNarration ? displayText('voiceNarration') : '') + bubble.textContent);
+        if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
     voiceStop.addEventListener('click', () => voice.stop());
     input.addEventListener('input', () => { voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
-    window.addEventListener('game-language-changed', () => { voice.stop(); liveStars.languageChanged(); });
+    window.addEventListener('game-language-changed', () => { voice.stop(); renderVoiceChoices(); liveStars.languageChanged(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) voice.stop(); });
     window.addEventListener('pagehide', () => voice.stop());
     input.addEventListener('keydown', event => {
@@ -1051,7 +1130,7 @@
         conversation.scrollTop = conversation.scrollHeight;
         lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
-        voice.speak((lastReplyIsNarration ? displayText('voiceNarration') : '') + bubble.textContent);
+        voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     }
     function animate(time) {
         drawLogo(time);
@@ -1059,7 +1138,7 @@
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
-            const holding = paused || masterDialog.open || exporting || voice.listening || !stars.hidden || !!input.value.trim();
+            const holding = paused || masterDialog.open || exporting || voice.listening || voiceChoice.open || !stars.hidden || !!input.value.trim();
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -1126,14 +1205,17 @@
         appearance.value = initial.appearance;
         foundation.value = initial.settings.foundation ? 'yes' : 'no';
         life.value = initial.settings.life ? 'yes' : 'no'; speech.value = initial.settings.speech;
+        openVoiceChoices(true);
+    });
+    function openMeeting() {
         screen = 'meeting'; settings.hidden = true;
         meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
         meetingImage.onerror = () => { imageFailure = true; };
-        meetingVoice.textContent = t(initial.settings.speech === 'short' ? 'meetingWords' : 'meetingSound');
+        meetingVoice.textContent = t(speech.value === 'short' ? 'meetingWords' : 'meetingSound');
         meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value] || 'meetingOther');
         signatureStrokes = []; activeSignaturePointer = null; meetingRetry.disabled = false;
         meeting.showModal(); drawMeetingFrame(); drawSignature(); signatureCanvas.focus();
-    });
+    }
     function pointAt(target, key) {
         if (!debugControls || paused) return;
         const accepted = worldApi.approach(world, target, 'pointing');

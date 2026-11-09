@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { create, locales } = require('../experimental_word_voice');
+const { create, locales, species, voiceId } = require('../experimental_word_voice');
 function setup(supported = true) {
     const statuses = [], transcripts = [], spoken = [], listening = [];
     let recognition, locale = 'ja', allowed = true;
@@ -10,11 +10,14 @@ function setup(supported = true) {
         start() { this.started = true; }
         abort() { this.aborted = true; }
     }
-    const host = supported ? { SpeechRecognition: Recognition, SpeechSynthesisUtterance: class { constructor(text) { this.text = text; } },
-        speechSynthesis: { getVoices: () => [{ lang: 'ja-JP' }], cancel() { spoken.push('cancel'); }, speak(u) { spoken.push(u); } } } : {};
+    let available = [0,1,2].map(i => ({ lang: 'ja-JP', voiceURI: 'voice-'+i, name: 'Voice '+i }));
+    const storage = new Map();
+    const host = supported ? { localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value) },
+        SpeechRecognition: Recognition, SpeechSynthesisUtterance: class { constructor(text) { this.text = text; } },
+        speechSynthesis: { getVoices: () => available, cancel() { spoken.push('cancel'); }, speak(u) { spoken.push(u); } } } : {};
     const voice = create(host, { locale: () => locale, volume: () => .4, canSpeak: () => allowed,
-        status: k => statuses.push(k), transcript: text => transcripts.push(text), listening: x => listening.push(x) });
-    return { voice, statuses, transcripts, spoken, listening, get recognition() { return recognition; }, setLocale(x) { locale = x; }, allow(x) { allowed = x; } };
+        canPreview: () => allowed, status: k => statuses.push(k), transcript: text => transcripts.push(text), listening: x => listening.push(x) });
+    return { voice, host, statuses, transcripts, spoken, listening, setVoices(v) { available = v; }, get recognition() { return recognition; }, setLocale(x) { locale = x; }, allow(x) { allowed = x; } };
 }
 test('recognition drafts text, uses all supported locales, and never submits', () => {
     const s = setup();
@@ -24,6 +27,55 @@ test('recognition drafts text, uses all supported locales, and never submits', (
         assert.equal(s.statuses.at(-1), 'review'); s.recognition.onend(); assert.equal(s.voice.listening, false);
     }
     assert.equal(s.transcripts.length, 7);
+});
+
+test('all eleven species select dialogue voices distinct from the narrator, without spoken labels', () => {
+    const s = setup(); s.voice.setEnabled(true);
+    const bank = s.voice.voices();
+    assert.equal(species.length, 11);
+    for (const id of species) {
+        assert.equal(s.voice.selectVoice(id, voiceId(bank.narrator)), false);
+        assert.equal(s.voice.selectVoice(id, voiceId(bank.dialogue[1])), true);
+        s.voice.speak('こんにちは。', { species: id });
+        assert.equal(s.spoken.at(-1).voice, bank.dialogue[1]);
+        s.voice.speak('うなずいた。', { role: 'narration' });
+        assert.equal(s.spoken.at(-1).text, 'うなずいた。');
+        assert.equal(s.spoken.at(-1).voice, bank.narrator);
+    }
+    const restored = create(s.host, { locale: () => 'ja' });
+    assert.deepEqual(restored.voices().profile, s.voice.voices().profile);
+});
+
+test('preview works with read-aloud off, obeys its own visibility gate, and never recognizes text', () => {
+    const s = setup(); s.voice.speak('sample', { preview: true });
+    assert.equal(s.spoken.at(-1).text, 'sample'); assert.deepEqual(s.transcripts, []);
+    s.allow(false); const before = s.spoken.length; s.voice.speak('hidden', { preview: true });
+    assert.equal(s.spoken.length, before);
+});
+
+test('delayed, insufficient and disappearing voices never collapse both roles to a default voice', () => {
+    const s = setup(); const available = s.host.speechSynthesis.getVoices();
+    s.setVoices([]); s.voice.setEnabled(true); s.voice.speak('none'); assert.equal(s.statuses.at(-1), 'voicesUnavailable');
+    s.setVoices([available[0]]); s.voice.speak('one', { role: 'narration' }); assert.deepEqual(s.spoken, []);
+    s.setVoices(available); s.voice.speak('ready'); assert.equal(s.spoken.at(-1).voice, available[1]);
+    s.setVoices([available[0], available[2]]); const before = s.spoken.length;
+    s.voice.speak('missing'); assert.equal(s.spoken.length, before);
+    assert.equal(s.voice.selectVoice('robot', voiceId(available[2])), true);
+    s.voice.speak('chosen'); assert.equal(s.spoken.at(-1).voice, available[2]);
+    s.setVoices([available[1], available[2]]); s.voice.speak('missing narrator');
+    assert.equal(s.statuses.at(-1), 'voiceMissing');
+    s.voice.resetVoices(); s.voice.speak('reset'); assert.equal(s.spoken.at(-1).voice, available[2]);
+});
+
+test('preferences are separate by language and unavailable storage leaves in-memory choices usable', () => {
+    const s = setup(); const bank = s.voice.voices(); s.voice.selectVoice('robot', voiceId(bank.dialogue[1]));
+    s.setLocale('en'); assert.equal(s.voice.voices().dialogue.length, 0);
+    s.setLocale('ja'); assert.equal(s.voice.voices().profile.dialogue.robot, voiceId(bank.dialogue[1]));
+    s.host.localStorage.setItem = () => { throw new Error('blocked'); };
+    assert.equal(s.voice.selectVoice('robot', voiceId(bank.dialogue[0])), true);
+    assert.equal(s.statuses.at(-1), 'preferencesUnsaved');
+    assert.equal(s.voice.preferencesSaved, false);
+    assert.equal(s.voice.voices().profile.dialogue.robot, voiceId(bank.dialogue[0]));
 });
 test('cancellation invalidates late recognition and clears pressed state', () => {
     const s = setup(); s.voice.listen(); const old = s.recognition; s.voice.listen();

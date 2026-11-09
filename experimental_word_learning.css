@@ -119,6 +119,13 @@ summary { cursor: pointer; }
 .word-reset { max-width: min(550px, 92vw); max-height: 90dvh; overflow: auto; background: #fffdf7; color: #294c43; border: 2px solid #96aca0; border-radius: 14px; padding: 22px; }
 .word-reset::backdrop { background: #000b; }
 .word-reset button { margin: 5px; }
+.word-voice-choice { width: min(620px, 92vw); box-sizing: border-box; }
+.word-voice-choice label { display: block; margin: 14px 0; }
+.word-voice-choice select { display: block; width: 100%; min-width: 0; margin-top: 6px; }
+.word-voice-choice p { overflow-wrap: anywhere; line-height: 1.6; }
+.word-voice-sample { border-top: 1px solid #96aca060; padding: 6px 0; }
+.word-voice-sample p { margin: 5px; }
+.word-voice-choice button { min-height: 44px; max-width: 100%; white-space: normal; }
 .word-master { width: min(700px, 96vw); height: min(520px, 94dvh); max-height: 94dvh; overflow: auto; padding: 0; border: 2px solid #aaa; border-radius: 12px; background: #141414; color: #333; box-shadow: 0 0 25px #000e; }
 .word-master[open] { display: grid; grid-template-columns: 1fr 1.3fr; }
 .word-master::backdrop { background: #000b; }

@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-10の最新依頼は[音声所有仕様](../specs/core/word_constellation_and_voice.md)の読み上げだけ。しぐさは専用音声、会話は11種族別に全設問後に声選択／試聴。他の音声入力・星座はユーザー未試用。ダンジョン接続保留・DW／DX非移行を継続する。
+
 最新優先順（2026-11-09）：[同じ子の星座と音声入出力](../specs/core/word_constellation_and_voice.md)を先行。通常島から橋を渡るダンジョン接続は両方終了後の最優先へ保留。DW／DXへ自動移行しない。
 
 最新：[2b歩行追補](../specs/core/experimental_word_learning.md#walking-experience-learning)は初期生活語なしでも実歩行＋声かけから学び、同じ子の島／ダンジョンで使う。移動依頼と継続の現地所有は[ダンジョン](../specs/dungeon/word_dungeon_preview.md)。検証・公開状態は現行handoff。
