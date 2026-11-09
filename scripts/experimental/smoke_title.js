@@ -16,10 +16,10 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const reload = async () => { await window.loadURL(url); await paintClock(); await waitReady(); };
     const click = selector => js(`document.querySelector(${JSON.stringify(selector)}).click()`);
     const finishVoiceSelection = async () => {
-        assert.equal(await js('document.querySelector("#word-voice-choice").open'), true);
-        assert.equal(await js('document.querySelector(".word-meeting").open'), false);
-        assert.equal(await js('document.querySelector("#word-voice-species").options.length'), 11);
-        await click('#word-voice-continue');
+        assert.equal(await js('document.querySelector(".word-meeting").open'), true);
+        assert.equal(await js('document.querySelector("#word-voice-species")'), null);
+        assert.equal(await js('document.querySelector("#word-voice-pitch").value'), '1');
+        assert.equal(await js('document.querySelector("#word-voice-rate").value'), '1');
     };
     const sign = async () => {
         assert.equal(await js('document.querySelector("#word-meeting-begin").disabled'), true);
@@ -220,6 +220,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         if (i === 7) await capture('word-document-signature-smoke.png');
         await sleep(100); await js('window.dispatchEvent(new Event("beforeunload"))');
         assert.deepEqual(saved(), pending);
+        await js('document.querySelector("#word-meeting-begin").scrollIntoView({block:"nearest"})');
         assert.equal(await js('document.querySelector("#word-meeting-begin").getBoundingClientRect().bottom <= innerHeight'), true);
         await click('#word-meeting-begin');
         await click('#word-meeting-begin'); // repeated confirmation is ignored

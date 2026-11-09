@@ -15242,5 +15242,11 @@
   "別々の声で読むには、この言語の声が2つ以上必要です。端末の音声設定を確認してください。文字だけでも続けられます。": "Für getrennte Stimmen werden mindestens zwei Stimmen in dieser Sprache benötigt. Prüfe die Spracheinstellungen deines Geräts. Du kannst auch nur mit Text fortfahren.",
   "保存した声が見つかりません。声を選び直してください。": "Eine gespeicherte Stimme ist nicht verfügbar. Bitte wähle die Stimmen erneut.",
   "この端末の声で選び直す": "Mit den Stimmen dieses Geräts neu wählen",
-  "声の設定を保存できませんでした。今回の起動中は選んだ声を使います。": "Die Stimmwahl konnte nicht gespeichert werden. Sie gilt für diese Sitzung."
+  "声の設定を保存できませんでした。今回の起動中は選んだ声を使います。": "Die Stimmwahl konnte nicht gespeichert werden. Sie gilt für diese Sitzung.",
+  "この子の声を選ぶ": "Stimme dieses Kindes wählen",
+  "声を選んで、この子に似合う高さや速さを試してみてください。しぐさは別の声で読み上げます。": "Wähle eine Stimme und probiere eine passende Tonhöhe und Sprechgeschwindigkeit aus. Gesten werden mit einer anderen Stimme vorgelesen.",
+  "声の高さ": "Tonhöhe",
+  "話す速さ": "Sprechgeschwindigkeit",
+  "高さ・速さを標準に戻す": "Tonhöhe und Tempo zurücksetzen",
+  "標準は1.00です。声や端末によって、調整できる幅や聞こえ方は異なります。": "Der Standardwert ist 1.00. Einstellbereich und Klang hängen von Stimme und Gerät ab."
 }

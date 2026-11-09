@@ -77,6 +77,37 @@ test('preferences are separate by language and unavailable storage leaves in-mem
     assert.equal(s.voice.preferencesSaved, false);
     assert.equal(s.voice.voices().profile.dialogue.robot, voiceId(bank.dialogue[0]));
 });
+
+test('pitch and rate persist per species and language, affect dialogue and preview, and leave narration standard', () => {
+    const s = setup();
+    s.voice.setTuning('robot', { pitch: 1.25, rate: .8 });
+    s.voice.setTuning('spirit', { pitch: .75, rate: 1.3 });
+    s.voice.speak('preview', { preview: true, species: 'robot' });
+    assert.equal(s.spoken.at(-1).pitch, 1.25); assert.equal(s.spoken.at(-1).rate, .8);
+    s.voice.setEnabled(true); s.voice.speak('reply', { species: 'spirit' });
+    assert.equal(s.spoken.at(-1).pitch, .75); assert.equal(s.spoken.at(-1).rate, 1.3);
+    s.voice.speak('gesture', { role: 'narration' });
+    assert.equal(s.spoken.at(-1).pitch, 1); assert.equal(s.spoken.at(-1).rate, 1);
+    const restored = create(s.host, { locale: () => 'ja' });
+    assert.deepEqual(restored.voices().profile.tuning.robot, { pitch: 1.25, rate: .8 });
+    s.setLocale('en'); assert.equal(s.voice.voices().profile.tuning.robot, undefined);
+    s.setLocale('ja'); s.voice.resetVoices('robot');
+    assert.deepEqual(s.voice.voices().profile.tuning.spirit, { pitch: .75, rate: 1.3 });
+    assert.deepEqual(s.voice.voices().profile.tuning.robot, { pitch: 1.25, rate: .8 });
+});
+
+test('old preferences migrate with standard tuning; malformed or excessive tuning cannot reach synthesis', () => {
+    const s = setup(); s.voice.voices();
+    const saved = JSON.parse(s.host.localStorage.getItem('wordVoiceProfiles:v1'));
+    delete saved.ja.tuning;
+    s.host.localStorage.setItem('wordVoiceProfiles:v1', JSON.stringify(saved));
+    const old = create(s.host, { locale: () => 'ja' }); assert.deepEqual(old.voices().profile.tuning, {});
+    s.voice.setTuning('robot', { pitch: 99, rate: -8 });
+    assert.deepEqual(s.voice.voices().profile.tuning.robot, { pitch: 1.5, rate: .6 });
+    s.voice.setTuning('robot', { pitch: NaN, rate: 'bad' });
+    assert.deepEqual(s.voice.voices().profile.tuning.robot, { pitch: 1, rate: 1 });
+    assert.equal(s.voice.setTuning('not-a-species', { pitch: 1.2, rate: 1.2 }), false);
+});
 test('cancellation invalidates late recognition and clears pressed state', () => {
     const s = setup(); s.voice.listen(); const old = s.recognition; s.voice.listen();
     assert.equal(old.aborted, true); assert.equal(s.listening.at(-1), false);

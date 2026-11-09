@@ -9,6 +9,7 @@
     const species = ['robot', 'spirit', 'seed', 'ghost', 'stone', 'magician', 'beetle', 'balloon', 'bird', 'machine', 'dragon'];
     const profileKey = 'wordVoiceProfiles:v1';
     const voiceId = voice => JSON.stringify([voice.voiceURI || voice.name || '', voice.lang]);
+    const tuningValue = (value, min, max) => typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : 1;
     // Transport only: recognition never submits a turn or changes the child's knowledge.
     function create(host, options) {
         const Recognition = host.SpeechRecognition || host.webkitSpeechRecognition;
@@ -20,9 +21,12 @@
             for (const locale of Object.keys(locales)) {
                 const item = saved?.[locale];
                 if (!item || typeof item !== 'object') continue;
-                const profile = { dialogue: {} };
+                const profile = { dialogue: {}, tuning: {} };
                 if (typeof item.narrator === 'string' && item.narrator.length < 1000) profile.narrator = item.narrator;
                 for (const id of species) if (typeof item.dialogue?.[id] === 'string' && item.dialogue[id].length < 1000) profile.dialogue[id] = item.dialogue[id];
+                for (const id of species) if (item.tuning?.[id]) profile.tuning[id] = {
+                    pitch: tuningValue(item.tuning[id].pitch, .5, 1.5), rate: tuningValue(item.tuning[id].rate, .6, 1.4)
+                };
                 profiles[locale] = profile;
             }
         } catch (_) { /* Preferences must never block the game. */ }
@@ -34,7 +38,7 @@
             const locale = options.locale(), language = (locales[locale] || locale).split('-')[0].toLowerCase();
             const available = Array.from(new Map((host.speechSynthesis?.getVoices() || [])
                 .filter(v => v.lang?.split('-')[0].toLowerCase() === language).map(v => [voiceId(v), v])).values());
-            const profile = profiles[locale] || (profiles[locale] = { dialogue: {} });
+            const profile = profiles[locale] || (profiles[locale] = { dialogue: {}, tuning: {} });
             let changed = false;
             if (!profile.narrator && available.length) { profile.narrator = voiceId(available[0]); changed = true; }
             const narrator = available.find(v => voiceId(v) === profile.narrator);
@@ -51,8 +55,19 @@
             if (!species.includes(id) || !bank.dialogue.some(v => voiceId(v) === identity)) return false;
             stop(); bank.profile.dialogue[id] = identity; persist(); return true;
         }
-        function resetVoices() {
-            stop(); delete profiles[options.locale()]; persist(); return voices();
+        function setTuning(id, values) {
+            if (!species.includes(id)) return false;
+            const bank = voices(); stop();
+            bank.profile.tuning[id] = { pitch: tuningValue(values?.pitch, .5, 1.5), rate: tuningValue(values?.rate, .6, 1.4) };
+            persist(); return true;
+        }
+        function resetVoices(id) {
+            stop();
+            if (species.includes(id)) {
+                const bank = voices(); delete bank.profile.dialogue[id];
+                if (!bank.narrator) delete bank.profile.narrator;
+            } else delete profiles[options.locale()];
+            persist(); return voices();
         }
         function stop() {
             generation++;
@@ -106,6 +121,8 @@
             current.lang = locales[options.locale()] || options.locale();
             current.volume = options.volume();
             current.voice = voice;
+            const tuning = settings.role === 'narration' ? null : bank.profile.tuning[settings.species || options.species?.() || 'robot'];
+            current.pitch = tuning?.pitch ?? 1; current.rate = tuning?.rate ?? 1;
             current.onerror = event => {
                 if (utterance === current && !['canceled', 'interrupted'].includes(event.error)) status('failedOutput');
             };
@@ -113,7 +130,7 @@
             utterance = current;
             try { host.speechSynthesis.speak(current); } catch (_) { utterance = null; status('failedOutput'); }
         }
-        return { listen, speak, stop, voices, selectVoice, resetVoices,
+        return { listen, speak, stop, voices, selectVoice, setTuning, resetVoices,
             setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); },
             supportedInput: !!Recognition, supportedOutput: !!(host.speechSynthesis && host.SpeechSynthesisUtterance),
             get preferencesSaved() { return preferencesSaved; },

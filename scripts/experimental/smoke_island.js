@@ -55,7 +55,6 @@ if (!process.versions.electron || process.type !== 'browser') {
                     for (const answer of [0,1,1,1,0,0,0]) {
                         document.querySelector('.word-questions fieldset button[data-answer="'+answer+'"]').click();
                     }
-                    document.querySelector('#word-voice-continue').click();
                     const signature = document.querySelector('#word-signature'), r = signature.getBoundingClientRect();
                     signature.setPointerCapture = () => {};
                     for (const type of ['pointerdown','pointerup']) signature.dispatchEvent(new PointerEvent(type,

@@ -119,13 +119,6 @@ summary { cursor: pointer; }
 .word-reset { max-width: min(550px, 92vw); max-height: 90dvh; overflow: auto; background: #fffdf7; color: #294c43; border: 2px solid #96aca0; border-radius: 14px; padding: 22px; }
 .word-reset::backdrop { background: #000b; }
 .word-reset button { margin: 5px; }
-.word-voice-choice { width: min(620px, 92vw); box-sizing: border-box; }
-.word-voice-choice label { display: block; margin: 14px 0; }
-.word-voice-choice select { display: block; width: 100%; min-width: 0; margin-top: 6px; }
-.word-voice-choice p { overflow-wrap: anywhere; line-height: 1.6; }
-.word-voice-sample { border-top: 1px solid #96aca060; padding: 6px 0; }
-.word-voice-sample p { margin: 5px; }
-.word-voice-choice button { min-height: 44px; max-width: 100%; white-space: normal; }
 .word-master { width: min(700px, 96vw); height: min(520px, 94dvh); max-height: 94dvh; overflow: auto; padding: 0; border: 2px solid #aaa; border-radius: 12px; background: #141414; color: #333; box-shadow: 0 0 25px #000e; }
 .word-master[open] { display: grid; grid-template-columns: 1fr 1.3fr; }
 .word-master::backdrop { background: #000b; }
@@ -180,6 +173,27 @@ main.onboarding-active > .game-header { display: none; }
 .word-meeting #word-signature-clear { display: block; margin: 0 auto 12px; font-size: 13px; min-height: 32px; padding: 5px 12px; }
 .word-meeting button:disabled { opacity: .35; cursor: default; }
 .word-meeting.signed { animation: document-seal .45s ease-out; }
+.word-reset.word-meeting { width: min(960px, 92vw); padding: 0; box-sizing: border-box; }
+.word-meeting-content { position: relative; isolation: isolate; padding: 56px 28px 20px; }
+.word-meeting-body { display: grid; grid-template-columns: minmax(160px, .8fr) minmax(0, 1.2fr); gap: 28px; margin-top: 18px; align-items: start; }
+.word-meeting-partner { min-width: 0; padding-top: 24px; }
+.word-meeting .word-voice-choice { min-width: 0; text-align: left; padding-left: 24px; border-left: 1px solid #6bcde933; }
+.word-voice-choice h3 { color: #b6f2ff; font-size: 18px; font-weight: normal; margin: 0 0 10px; }
+.word-meeting .word-voice-choice p { font-size: 13px; line-height: 1.5; margin: 8px 0; overflow-wrap: anywhere; }
+.word-meeting .word-voice-choice label { margin: 10px 0; letter-spacing: 0; font-size: 14px; }
+.word-voice-choice select { display: block; width: 100%; min-width: 0; margin-top: 5px; padding: 8px; border: 1px solid #77d9f35c; background: #0b1f2b; color: #eafaff; }
+.word-voice-tuning output { float: right; color: #eafaff; }
+.word-voice-tuning input { display: block; width: 100%; accent-color: #83d8ef; }
+.word-meeting .word-voice-choice button { min-height: 36px; max-width: 100%; white-space: normal; font-size: 13px; padding: 7px 10px; margin: 4px 0; }
+.word-voice-sample button { display: block; width: 100%; text-align: left; }
+.word-voice-choice .word-voice-narration { position: static; width: auto; max-width: none; max-height: none; padding: 0; border: 0; background: transparent; color: #bdd8e2; box-shadow: none; }
+.word-voice-narration summary { cursor: pointer; margin: 10px 0 4px; font-size: 13px; }
+@media (max-width: 650px) {
+    .word-meeting-content { padding: 62px 24px 18px; }
+    .word-meeting .word-meeting-body { grid-template-columns: 1fr; gap: 16px; }
+    .word-meeting .word-meeting-partner { padding-top: 0; }
+    .word-meeting .word-voice-choice { padding: 16px 0 0; border-left: 0; border-top: 1px solid #6bcde933; }
+}
 @keyframes document-seal { 45% { box-shadow: 0 0 100px #8feaff88; border-color: #dcfaff; } }
 @media (max-width: 650px), (max-height: 650px) {
     main.onboarding-active { padding: 10px; }

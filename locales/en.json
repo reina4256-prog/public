@@ -15242,5 +15242,11 @@
   "別々の声で読むには、この言語の声が2つ以上必要です。端末の音声設定を確認してください。文字だけでも続けられます。": "At least two voices in this language are needed to keep the voices separate. Check your device’s speech settings. You can continue with text only.",
   "保存した声が見つかりません。声を選び直してください。": "A saved voice is unavailable. Please choose voices again.",
   "この端末の声で選び直す": "Reset to this device’s voices",
-  "声の設定を保存できませんでした。今回の起動中は選んだ声を使います。": "Voice preferences could not be saved. Your choices will be used for this session."
+  "声の設定を保存できませんでした。今回の起動中は選んだ声を使います。": "Voice preferences could not be saved. Your choices will be used for this session.",
+  "この子の声を選ぶ": "Choose your companion’s voice",
+  "声を選んで、この子に似合う高さや速さを試してみてください。しぐさは別の声で読み上げます。": "Choose a voice and try a pitch and speed that suit your companion. Gestures use a separate voice.",
+  "声の高さ": "Voice pitch",
+  "話す速さ": "Speaking speed",
+  "高さ・速さを標準に戻す": "Reset pitch and speed",
+  "標準は1.00です。声や端末によって、調整できる幅や聞こえ方は異なります。": "The standard value is 1.00. The adjustment range and sound vary by voice and device."
 }

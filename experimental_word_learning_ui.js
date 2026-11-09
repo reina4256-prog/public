@@ -15,9 +15,11 @@
         voiceFailedOutput: '読み上げができませんでした。返答は文字で確認できます。',
         voiceLong: '聞き取った文が長すぎます。短く分けて話してください。',
         voiceNotice: '音声入力では、ブラウザーの音声認識サービスへ音声が送信される場合があります。聞き取った文は送信前に直せます。',
-        voiceSettings: '音声の設定', voiceChoose: '種族ごとの声を選ぶ',
-        voiceChoiceHelp: '11種族それぞれの会話の声を選べます。しぐさは別の声で読み上げます。',
-        voiceSpecies: '試聴する種族', voiceDialogue: '会話の声', voiceNarrator: 'しぐさを読む声',
+        voiceSettings: '音声の設定', voiceChoose: 'この子の声を選ぶ',
+        voiceChoiceHelp: '声を選んで、この子に似合う高さや速さを試してみてください。しぐさは別の声で読み上げます。',
+        voicePitch: '声の高さ', voiceRate: '話す速さ', voiceTuningReset: '高さ・速さを標準に戻す',
+        voiceTuningHelp: '標準は1.00です。声や端末によって、調整できる幅や聞こえ方は異なります。',
+        voiceDialogue: '会話の声', voiceNarrator: 'しぐさを読む声',
         voiceAuditionHelp: '試聴は声の確認だけです。この子が言葉を覚えたり、話した記録にはなりません。',
         voiceSample1: 'こんにちは。よろしくね。', voiceSample2: 'あそこに何かあるみたい。',
         voiceSample3: 'いっしょに行ってみよう。', voiceSampleGesture: 'こちらを見て、小さくうなずいた。',
@@ -433,20 +435,24 @@
     }
     renderQuestion();
     const meeting = node('dialog'); meeting.className = 'word-reset word-meeting';
-    const drawMeetingFrame = documentFrame(meeting, () => questionsApi.questions.length);
-    const meetingHeading = node('h2', t('meetingHeading'), meeting); meetingHeading.id = 'word-meeting-heading';
+    const meetingContent = node('div', undefined, meeting); meetingContent.className = 'word-meeting-content';
+    const drawMeetingFrame = documentFrame(meetingContent, () => questionsApi.questions.length);
+    const meetingHeading = node('h2', t('meetingHeading'), meetingContent); meetingHeading.id = 'word-meeting-heading';
     meeting.setAttribute('aria-labelledby', meetingHeading.id);
-    const meetingCanvas = node('canvas', undefined, meeting); meetingCanvas.width = 300; meetingCanvas.height = 210;
+    const meetingBody = node('div', undefined, meetingContent); meetingBody.className = 'word-meeting-body';
+    const meetingPartner = node('div', undefined, meetingBody); meetingPartner.className = 'word-meeting-partner';
+    const meetingCanvas = node('canvas', undefined, meetingPartner); meetingCanvas.width = 300; meetingCanvas.height = 210;
     meetingCanvas.className = 'meeting-character';
     meetingCanvas.setAttribute('aria-hidden', 'true');
-    const meetingVoice = node('p', '', meeting), meetingGesture = node('p', '', meeting);
-    const signatureLabel = node('label', t('signature'), meeting); signatureLabel.htmlFor = 'word-signature';
-    const signatureCanvas = node('canvas', undefined, meeting); signatureCanvas.id = 'word-signature';
+    const meetingVoice = node('p', '', meetingPartner), meetingGesture = node('p', '', meetingPartner);
+    const signatureLabel = node('label', t('signature'), meetingContent); signatureLabel.htmlFor = 'word-signature';
+    const signatureCanvas = node('canvas', undefined, meetingContent); signatureCanvas.id = 'word-signature';
     signatureCanvas.width = 720; signatureCanvas.height = 160; signatureCanvas.tabIndex = 0;
     signatureCanvas.setAttribute('aria-label', t('signature'));
-    const signatureClear = node('button', t('signatureClear'), meeting); signatureClear.type = 'button'; signatureClear.id = 'word-signature-clear';
-    const meetingBegin = node('button', t('meetingBegin'), meeting); meetingBegin.type = 'button'; meetingBegin.id = 'word-meeting-begin';
-    const meetingRetry = node('button', t('meetingRetry'), meeting); meetingRetry.type = 'button'; meetingRetry.id = 'word-meeting-retry';
+    const signatureClear = node('button', t('signatureClear'), meetingContent); signatureClear.type = 'button'; signatureClear.id = 'word-signature-clear';
+    const meetingBegin = node('button', t('meetingBegin'), meetingContent); meetingBegin.type = 'button'; meetingBegin.id = 'word-meeting-begin';
+    const meetingRetry = node('button', t('meetingRetry'), meetingContent); meetingRetry.type = 'button'; meetingRetry.id = 'word-meeting-retry';
+    let choosingInitialVoice = true;
     // Signature is transient ceremony data, never knowledge, experience, or a name.
     // Keeping normalized strokes also preserves the drawing when the layout changes.
     let signatureStrokes = [], activeSignaturePointer = null;
@@ -500,9 +506,10 @@
         context.drawImage(meetingImage, f.sx, f.sy, f.sw, f.sh, -f.sw * scale / 2, -f.sh * scale, f.sw * scale, f.sh * scale);
         context.restore();
     }
-    meeting.addEventListener('cancel', event => event.preventDefault());
+    meeting.addEventListener('cancel', event => { event.preventDefault(); if (!choosingInitialVoice) closeVoiceChoices(); });
     meetingBegin.addEventListener('click', () => {
         if (screen !== 'meeting' || !signatureStrokes.length || activeSignaturePointer !== null) return;
+        voice.stop();
         screen = 'signing'; drawSignature(); meetingRetry.disabled = true;
         meeting.classList.add('signed');
         setTimeout(() => {
@@ -512,6 +519,7 @@
     });
     meetingRetry.addEventListener('click', () => {
         if (screen !== 'meeting') return;
+        voice.stop();
         meeting.close(); meetingImage = null; answers = []; questionIndex = 0; showSetup();
         signatureStrokes = []; activeSignaturePointer = null; drawSignature();
     });
@@ -819,40 +827,52 @@
     voiceHelp.querySelector('summary').textContent = t('voiceSettings');
     voiceHelp.append(voiceVolumeLabel, voiceStop);
     const voiceChoose = node('button', t('voiceChoose'), voiceHelp); voiceChoose.type = 'button'; voiceChoose.id = 'word-voice-choose';
-    const voiceChoice = node('dialog', undefined, app); voiceChoice.className = 'word-reset word-voice-choice';
+    const voiceChoice = node('section', undefined, meetingBody); voiceChoice.className = 'word-voice-choice';
     voiceChoice.id = 'word-voice-choice';
-    const choiceHeading = node('h2', t('voiceChoose'), voiceChoice); choiceHeading.id = 'word-voice-choice-heading';
-    voiceChoice.setAttribute('aria-labelledby', choiceHeading.id);
+    const choiceHeading = node('h3', t('voiceChoose'), voiceChoice);
     node('p', t('voiceChoiceHelp'), voiceChoice);
-    const speciesLabel = node('label', t('voiceSpecies'), voiceChoice);
-    const voiceSpecies = node('select', undefined, speciesLabel); voiceSpecies.id = 'word-voice-species';
-    window.ExperimentalWordVoice.species.forEach(id => { const option = node('option', t(id), voiceSpecies); option.value = id; });
     const dialogueLabel = node('label', t('voiceDialogue'), voiceChoice);
     const dialogueVoice = node('select', undefined, dialogueLabel); dialogueVoice.id = 'word-dialogue-voice';
     dialogueVoice.setAttribute('data-i18n-skip', '');
-    const narratorLabel = node('p', t('voiceNarrator'), voiceChoice);
-    const narratorName = node('span', undefined, narratorLabel); narratorName.setAttribute('data-i18n-skip', '');
+    const tuningControls = {};
+    for (const [key, min, max] of [['pitch', .5, 1.5], ['rate', .6, 1.4]]) {
+        const label = node('label', undefined, voiceChoice); label.className = 'word-voice-tuning';
+        node('span', t(key === 'pitch' ? 'voicePitch' : 'voiceRate'), label);
+        const output = node('output', '1.00', label); output.setAttribute('data-i18n-skip', '');
+        const control = node('input', undefined, label); control.type = 'range'; control.min = min; control.max = max;
+        control.step = '.05'; control.value = '1'; control.id = 'word-voice-' + key; output.htmlFor = control.id;
+        tuningControls[key] = { control, output };
+        control.addEventListener('input', () => {
+            voice.setTuning(appearance.value, { pitch: Number(tuningControls.pitch.control.value), rate: Number(tuningControls.rate.control.value) });
+            renderVoiceChoices();
+        });
+    }
+    const tuningReset = node('button', t('voiceTuningReset'), voiceChoice); tuningReset.type = 'button';
+    tuningReset.addEventListener('click', () => { voice.setTuning(appearance.value, { pitch: 1, rate: 1 }); renderVoiceChoices(); });
+    node('p', t('voiceTuningHelp'), voiceChoice).className = 'word-voice-help';
+    node('p', t('voiceAuditionHelp'), voiceChoice).className = 'word-voice-help';
     const choiceStatus = node('p', '', voiceChoice); choiceStatus.setAttribute('role', 'status');
     const choiceSaveStatus = node('p', '', voiceChoice); choiceSaveStatus.setAttribute('role', 'status'); choiceSaveStatus.hidden = true;
-    node('p', t('voiceAuditionHelp'), voiceChoice);
     const previewButtons = [];
-    for (const key of ['voiceSample1', 'voiceSample2', 'voiceSample3', 'voiceSampleGesture']) {
+    for (const key of ['voiceSample1', 'voiceSample2', 'voiceSample3']) {
         const row = node('div', undefined, voiceChoice); row.className = 'word-voice-sample';
-        node('p', t(key), row);
-        const button = node('button', t(key === 'voiceSampleGesture' ? 'voicePreviewGesture' : 'voicePreview'), row);
-        button.type = 'button'; previewButtons.push(button);
-        button.addEventListener('click', () => voice.speak(displayText(key), {
-            preview: true, species: voiceSpecies.value, role: key === 'voiceSampleGesture' ? 'narration' : 'dialogue'
-        }));
+        const button = node('button', undefined, row); button.type = 'button'; previewButtons.push(button);
+        node('span', '▶ ', button).setAttribute('aria-hidden', 'true'); node('span', t(key), button);
+        button.addEventListener('click', () => voice.speak(displayText(key), { preview: true, species: appearance.value }));
     }
-    const resetVoices = node('button', t('voiceReset'), voiceChoice); resetVoices.type = 'button';
+    const narration = node('details', undefined, voiceChoice); narration.className = 'word-voice-narration';
+    node('summary', t('voiceNarrator'), narration);
+    const narratorName = node('p', '', narration); narratorName.setAttribute('data-i18n-skip', '');
+    const gestureRow = node('div', undefined, narration); gestureRow.className = 'word-voice-sample';
+    node('p', t('voiceSampleGesture'), gestureRow);
+    const gesturePreview = node('button', t('voicePreviewGesture'), gestureRow); gesturePreview.type = 'button'; previewButtons.push(gesturePreview);
+    gesturePreview.addEventListener('click', () => voice.speak(displayText('voiceSampleGesture'), { preview: true, role: 'narration' }));
+    const resetVoices = node('button', t('voiceReset'), narration); resetVoices.type = 'button';
     const choiceStop = node('button', t('voiceStop'), voiceChoice); choiceStop.type = 'button';
-    const choiceContinue = node('button', t('voiceContinue'), voiceChoice); choiceContinue.type = 'button'; choiceContinue.id = 'word-voice-continue';
-    const choiceBack = node('button', t('voiceChoiceBack'), voiceChoice); choiceBack.type = 'button';
-    let choosingInitialVoice = false;
+    const choiceContinue = node('button', t('voiceChoiceClose'), meetingContent); choiceContinue.type = 'button'; choiceContinue.id = 'word-voice-continue'; choiceContinue.hidden = true;
     function renderVoiceChoices() {
-        if (!voiceChoice.open) return;
-        const bank = voice.voices(), selected = bank.profile.dialogue[voiceSpecies.value];
+        if (!meeting.open) return;
+        const bank = voice.voices(), selected = bank.profile.dialogue[appearance.value];
         dialogueVoice.replaceChildren();
         if (!bank.dialogue.some(v => window.ExperimentalWordVoice.voiceId(v) === selected)) {
             const missing = node('option', '', dialogueVoice); missing.value = ''; missing.disabled = true;
@@ -862,28 +882,36 @@
             option.value = window.ExperimentalWordVoice.voiceId(v);
         }
         dialogueVoice.value = selected || ''; dialogueVoice.disabled = !bank.dialogue.length;
-        narratorName.textContent = bank.narrator ? ` — ${bank.narrator.name || bank.narrator.voiceURI} (${bank.narrator.lang})` : '';
+        narratorName.textContent = bank.narrator ? `${bank.narrator.name || bank.narrator.voiceURI} (${bank.narrator.lang})` : '';
         const ready = !!bank.narrator && !!bank.dialogue.length;
         choiceStatus.textContent = bank.available.length < 2 ? t('voiceUnavailable') : !ready || !dialogueVoice.value ? t('voiceMissing') : '';
-        choiceSaveStatus.hidden = voice.preferencesSaved;
-        choiceSaveStatus.textContent = voice.preferencesSaved ? '' : t('voiceUnsaved');
+        choiceStatus.hidden = !choiceStatus.textContent;
+        choiceSaveStatus.hidden = voice.preferencesSaved; choiceSaveStatus.textContent = voice.preferencesSaved ? '' : t('voiceUnsaved');
+        const tuning = bank.profile.tuning[appearance.value] || { pitch: 1, rate: 1 };
+        for (const key of ['pitch', 'rate']) {
+            tuningControls[key].control.value = tuning[key]; tuningControls[key].output.value = tuning[key].toFixed(2);
+        }
         previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || !ready || (index < 3 && !dialogueVoice.value); });
     }
-    function openVoiceChoices(initial) {
-        voice.stop(); choosingInitialVoice = initial; voiceSpecies.value = appearance.value;
-        if (initial) { screen = 'voice-selection'; settings.hidden = true; }
-        choiceContinue.textContent = t(initial ? 'voiceContinue' : 'voiceChoiceClose');
-        choiceBack.hidden = !initial;
-        voiceChoice.showModal(); renderVoiceChoices(); voiceSpecies.focus();
+    function prepareMeetingVoice(initial) {
+        choosingInitialVoice = initial;
+        choiceHeading.hidden = !initial;
+        meetingHeading.textContent = t(initial ? 'meetingHeading' : 'voiceChoose');
+        [signatureLabel, signatureCanvas, signatureClear, meetingBegin, meetingRetry].forEach(element => { element.hidden = !initial; });
+        choiceContinue.hidden = initial; meetingVoice.hidden = meetingGesture.hidden = !initial;
+        meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
+        meetingImage.onerror = () => { imageFailure = true; };
+        renderVoiceChoices(); drawMeetingFrame();
     }
-    voiceChoose.addEventListener('click', () => openVoiceChoices(false));
-    voiceSpecies.addEventListener('change', () => { voice.stop(); renderVoiceChoices(); });
-    dialogueVoice.addEventListener('change', () => { voice.selectVoice(voiceSpecies.value, dialogueVoice.value); renderVoiceChoices(); });
-    resetVoices.addEventListener('click', () => { voice.resetVoices(); renderVoiceChoices(); });
+    function openVoiceChoices() {
+        voice.stop(); meeting.showModal(); prepareMeetingVoice(false); dialogueVoice.focus({ preventScroll: true }); meeting.scrollTop = 0;
+    }
+    function closeVoiceChoices() { voice.stop(); meeting.close(); voiceChoose.focus(); lastFrame = null; }
+    voiceChoose.addEventListener('click', openVoiceChoices);
+    dialogueVoice.addEventListener('change', () => { voice.selectVoice(appearance.value, dialogueVoice.value); renderVoiceChoices(); });
+    resetVoices.addEventListener('click', () => { voice.resetVoices(appearance.value); renderVoiceChoices(); });
     choiceStop.addEventListener('click', () => voice.stop());
-    voiceChoice.addEventListener('cancel', event => { event.preventDefault(); if (!choosingInitialVoice) { voice.stop(); voiceChoice.close(); } });
-    choiceContinue.addEventListener('click', () => { voice.stop(); voiceChoice.close(); if (choosingInitialVoice) openMeeting(); });
-    choiceBack.addEventListener('click', () => { voice.stop(); voiceChoice.close(); showSetup(); });
+    choiceContinue.addEventListener('click', closeVoiceChoices);
     window.speechSynthesis?.addEventListener('voiceschanged', renderVoiceChoices);
     let voiceDraft = '', recognized = '', recognizedLocale = null;
     const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
@@ -892,9 +920,9 @@
     voice = window.ExperimentalWordVoice.create(window, {
         locale: () => window.GameI18n.language, volume: () => Number(voiceVolume.value),
         species: () => appearance.value,
-        canPreview: () => voiceChoice.open && !document.hidden,
-        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !voiceChoice.open,
-        status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text; if (voiceChoice.open && text) choiceStatus.textContent = text; },
+        canPreview: () => meeting.open && screen !== 'signing' && !document.hidden,
+        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
+        status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text; if (meeting.open && text) { choiceStatus.textContent = text; choiceStatus.hidden = false; } },
         listening: active => microphone.setAttribute('aria-pressed', String(active)),
         transcript: text => {
             if (screen !== 'playing' || paused || document.hidden || input.value !== voiceDraft) return false;
@@ -1138,7 +1166,7 @@
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
-            const holding = paused || masterDialog.open || exporting || voice.listening || voiceChoice.open || !stars.hidden || !!input.value.trim();
+            const holding = paused || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -1205,16 +1233,14 @@
         appearance.value = initial.appearance;
         foundation.value = initial.settings.foundation ? 'yes' : 'no';
         life.value = initial.settings.life ? 'yes' : 'no'; speech.value = initial.settings.speech;
-        openVoiceChoices(true);
+        openMeeting();
     });
     function openMeeting() {
         screen = 'meeting'; settings.hidden = true;
-        meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
-        meetingImage.onerror = () => { imageFailure = true; };
         meetingVoice.textContent = t(speech.value === 'short' ? 'meetingWords' : 'meetingSound');
         meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value] || 'meetingOther');
         signatureStrokes = []; activeSignaturePointer = null; meetingRetry.disabled = false;
-        meeting.showModal(); drawMeetingFrame(); drawSignature(); signatureCanvas.focus();
+        meeting.showModal(); prepareMeetingVoice(true); drawSignature(); dialogueVoice.focus({ preventScroll: true }); meeting.scrollTop = 0;
     }
     function pointAt(target, key) {
         if (!debugControls || paused) return;

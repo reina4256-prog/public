@@ -27,7 +27,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         };
         window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
         Object.defineProperty(window, 'speechSynthesis', { value: {
-            speak(u) { window.__spoken.push({ text: u.text, lang: u.lang, volume: u.volume, voice: u.voice.voiceURI }); },
+            speak(u) { window.__spoken.push({ text: u.text, lang: u.lang, volume: u.volume, voice: u.voice.voiceURI, pitch: u.pitch, rate: u.rate }); },
             addEventListener() {}, cancel() {}, getVoices() { return ['ja-JP','en-US','zh-CN','ru-RU','es-ES','pt-BR','de-DE'].flatMap(lang =>
                 [0,1,2].map(i => ({lang, name: lang+' voice '+i, voiceURI: lang+'-'+i}))); }
         }});`;
@@ -173,21 +173,27 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js(`document.querySelector('#word-voice-choose').click(); void 0`);
         for (const locale of locales) {
             await js(`GameI18n.setLanguage('${locale}'); void 0`); await sleep(80);
-            for (const id of require('../../experimental_word_voice').species) {
-                await js(`(() => { const species = document.querySelector('#word-voice-species'); species.value = '${id}'; species.dispatchEvent(new Event('change'));
-                    const voices = document.querySelector('#word-dialogue-voice'); voices.selectedIndex = 1; voices.dispatchEvent(new Event('change'));
+            assert.equal(await js(`document.querySelector('#word-voice-species')`), null);
+            assert.equal(await js(`/11種族|種族ごと/.test(document.querySelector('.word-meeting').textContent)`), false);
+            {
+                await js(`(() => { const voices = document.querySelector('#word-dialogue-voice'); voices.selectedIndex = 1; voices.dispatchEvent(new Event('change'));
+                    const pitch = document.querySelector('#word-voice-pitch'), rate = document.querySelector('#word-voice-rate');
+                    pitch.value = '1.25'; pitch.dispatchEvent(new Event('input')); rate.value = '.8'; rate.dispatchEvent(new Event('input'));
                     document.querySelector('.word-voice-sample button').click(); })(); void 0`);
                 assert.equal(await js(`window.__spoken.at(-1).voice`), require('../../experimental_word_voice').locales[locale] + '-2');
+                assert.equal(await js(`window.__spoken.at(-1).pitch`), 1.25); assert.equal(await js(`window.__spoken.at(-1).rate`), .8);
                 await js(`document.querySelectorAll('.word-voice-sample button')[3].click(); void 0`);
                 assert.equal(await js(`window.__spoken.at(-1).voice`), require('../../experimental_word_voice').locales[locale] + '-0');
+                assert.equal(await js(`window.__spoken.at(-1).pitch`), 1); assert.equal(await js(`window.__spoken.at(-1).rate`), 1);
             }
             for (const width of [1280,390]) {
                 window.setContentSize(width,900); await sleep(100);
                 assert.ok(await js(`(() => { const r = document.querySelector('#word-voice-choice').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1; })()`));
                 assert.equal(await js(`document.documentElement.scrollWidth <= innerWidth + 1`), true);
+                assert.ok(await js(`(() => { const a = document.querySelector('.meeting-character').getBoundingClientRect(), b = document.querySelector('#word-voice-choice').getBoundingClientRect(); return innerWidth > 650 ? a.right <= b.left : a.bottom <= b.top; })()`));
                 if (locale !== 'ja') assert.equal(await js(`/[\u3040-\u30ff]/u.test(document.querySelector('#word-voice-choice').textContent)`), false);
                 if (['ja','de'].includes(locale)) {
-                    await window.webContents.capturePage(); await sleep(250);
+                    await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
                     fs.writeFileSync(path.join(evidence, `voices-${locale}-${width}.png`), (await window.webContents.capturePage()).toPNG());
                 }
             }
@@ -195,22 +201,33 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(JSON.stringify(snapshot.state), beforeAudition);
         const profiles = await js(`localStorage.getItem('wordVoiceProfiles:v1')`);
         await js(`document.querySelector('#word-voice-continue').click(); void 0`);
-        // Public question flow: all questions, voice audition, then signature; no early child/save creation.
+        await load(true, true);
+        await js(`GameI18n.setLanguage('ja'); document.querySelector('#word-voice-choose').click(); void 0`);
+        assert.equal(await js(`document.querySelector('#word-voice-pitch').value`), '1.25');
+        assert.equal(await js(`document.querySelector('#word-voice-rate').value`), '0.8');
+        await js(`document.querySelector('#word-voice-continue').click(); document.querySelector('#word-read-aloud').click();
+            document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); void 0`);
+        assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-2');
+        assert.equal(await js(`window.__spoken.at(-1).pitch`), 1.25); assert.equal(await js(`window.__spoken.at(-1).rate`), .8);
+        // Public question flow reveals only the chosen child; voice tuning shares its signature screen.
         nextLoad = null; await window.loadURL(url); await sleep(450);
         assert.equal(await js(`localStorage.getItem('wordVoiceProfiles:v1')`), profiles);
         await js(`GameI18n.setLanguage('ja'); void 0`);
         for (let i=0;i<7;i++) {
-            assert.equal(await js(`document.querySelector('#word-voice-choice').open`), false);
+            assert.equal(await js(`document.querySelector('.word-meeting').open`), false);
             await js(`document.querySelector('.word-questions fieldset button[data-answer="0"]').click(); void 0`);
         }
-        assert.equal(await js(`document.querySelector('#word-voice-choice').open && !document.querySelector('.word-meeting').open`), true);
-        assert.equal(await js(`document.querySelector('#word-voice-species').value === document.querySelector('.word-questions select').value`), true);
-        await js(`document.querySelector('#word-voice-choice').requestClose(); void 0`);
-        assert.equal(await js(`document.querySelector('#word-voice-choice').open`), true);
-        await js(`document.querySelector('#word-voice-continue').click(); void 0`);
+        assert.equal(await js(`document.querySelector('.word-meeting').open && document.querySelector('#word-voice-choice').checkVisibility()`), true);
+        assert.equal(await js(`document.querySelector('#word-voice-species')`), null);
+        await js(`document.querySelector('.word-meeting').requestClose(); void 0`);
         assert.equal(await js(`document.querySelector('.word-meeting').open && document.querySelector('#word-meeting-begin').disabled`), true);
-        checks.push({ elevenSpeciesBySevenLanguages: true, separateNarrator: true, previewDoesNotMutate: true,
-            preferencesSurviveReload: true, questionsThenVoicesThenSignature: true, voiceViewports: 2 });
+        for (const width of [1280,390]) {
+            window.setContentSize(width, 900);
+            await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
+            fs.writeFileSync(path.join(evidence, 'meeting-'+width+'.png'), (await window.webContents.capturePage()).toPNG());
+        }
+        checks.push({ chosenChildOnly: true, pitchAndRateBySevenLanguages: true, narratorUntuned: true, separateNarrator: true, previewDoesNotMutate: true,
+            preferencesSurviveReload: true, actualDialogueUsesTuning: true, questionsThenMeetingWithVoiceAndSignature: true, voiceViewports: 2 });
         assert.deepEqual(failures, []);
         checks.push({ temporarySaveReload: true, failures });
         fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ ok: true, profile: directory, checks }, null, 2));
