@@ -16,6 +16,15 @@
         voiceLong: '聞き取った文が長すぎます。短く分けて話してください。',
         voiceNotice: '音声入力では、ブラウザーの音声認識サービスへ音声が送信される場合があります。聞き取った文は送信前に直せます。',
         voiceSettings: '音声の設定', voiceChoose: 'この子の声を選ぶ',
+        voiceSource: '声を作る方法', voiceDevice: '端末の声（従来の方式）', voiceLocal: 'PC内のVOICEVOX（演出付き）',
+        voiceConnect: 'VOICEVOXに接続・声を更新', voiceLocalHelp: 'VOICEVOXをこのPCで起動してから接続してください。試聴・読み上げ時の文だけをPC内のVOICEVOXへ渡します。外部の音声サービスは使いません。',
+        voiceConnectHelp: '接続できない場合は、VOICEVOXの起動、ブラウザーのローカルネットワーク許可、VOICEVOXの接続元許可を確認してください。',
+        voiceProviderConnecting: 'VOICEVOXの声を確認しています。', voiceProviderReady: 'VOICEVOXに接続しました。声を選んで試聴できます。',
+        voiceProviderFailed: 'VOICEVOXとの通信・音声生成ができませんでした。接続設定を確認し、再接続してください。',
+        voiceProviderFirst: 'VOICEVOXに接続して声を選んでください。', voiceProviderLanguage: 'この音声生成は日本語とWeb Audio対応ブラウザーで利用できます。ほかの言語では端末の声を選んでください。',
+        voiceProviderGenerating: '声を作っています。停止ボタンで取り消せます。',
+        voiceEffect: 'この子らしい響きの強さ', voiceEffectHelp: '0で演出なし。声に響きや揺れを加えます。声の選択は生成元ごとに、演出は共通で保存するので、方式を戻しても設定は残ります。',
+        voiceLocalGuide: 'VOICEVOXの導入・利用条件', voiceOrigin: '接続元：',
         voiceChoiceHelp: '声を選んで、この子に似合う高さや速さを試してみてください。しぐさは別の声で読み上げます。',
         voicePitch: '声の高さ', voiceRate: '話す速さ', voiceTuningReset: '高さ・速さを標準に戻す',
         voiceTuningHelp: '標準は1.00です。声や端末によって、調整できる幅や聞こえ方は異なります。',
@@ -827,10 +836,25 @@
     voiceHelp.querySelector('summary').textContent = t('voiceSettings');
     voiceHelp.append(voiceVolumeLabel, voiceStop);
     const voiceChoose = node('button', t('voiceChoose'), voiceHelp); voiceChoose.type = 'button'; voiceChoose.id = 'word-voice-choose';
+    const activeVoiceCredit = node('p', '', voiceHelp); activeVoiceCredit.setAttribute('data-i18n-skip', ''); activeVoiceCredit.hidden = true;
     const voiceChoice = node('section', undefined, meetingBody); voiceChoice.className = 'word-voice-choice';
     voiceChoice.id = 'word-voice-choice';
     const choiceHeading = node('h3', t('voiceChoose'), voiceChoice);
     node('p', t('voiceChoiceHelp'), voiceChoice);
+    const sourceLabel = node('label', t('voiceSource'), voiceChoice);
+    const voiceSource = node('select', undefined, sourceLabel); voiceSource.id = 'word-voice-source';
+    for (const [value, key] of [['device', 'voiceDevice'], ['voicevox', 'voiceLocal']]) {
+        const option = node('option', t(key), voiceSource); option.value = value;
+    }
+    const localPanel = node('div', undefined, voiceChoice); localPanel.hidden = true;
+    node('p', t('voiceLocalHelp'), localPanel).className = 'word-voice-help';
+    const localConnect = node('button', t('voiceConnect'), localPanel); localConnect.type = 'button'; localConnect.id = 'word-voice-connect';
+    const localMessage = node('p', '', localPanel); localMessage.setAttribute('role', 'status');
+    node('p', t('voiceConnectHelp'), localPanel).className = 'word-voice-help';
+    const origin = node('p', undefined, localPanel); node('span', t('voiceOrigin'), origin);
+    node('span', window.location.origin, origin).setAttribute('data-i18n-skip', '');
+    const localGuide = node('a', t('voiceLocalGuide'), localPanel); localGuide.href = 'https://voicevox.hiroshiba.jp/';
+    localGuide.target = '_blank'; localGuide.rel = 'noopener noreferrer';
     const dialogueLabel = node('label', t('voiceDialogue'), voiceChoice);
     const dialogueVoice = node('select', undefined, dialogueLabel); dialogueVoice.id = 'word-dialogue-voice';
     dialogueVoice.setAttribute('data-i18n-skip', '');
@@ -850,6 +874,14 @@
     const tuningReset = node('button', t('voiceTuningReset'), voiceChoice); tuningReset.type = 'button';
     tuningReset.addEventListener('click', () => { voice.setTuning(appearance.value, { pitch: 1, rate: 1 }); renderVoiceChoices(); });
     node('p', t('voiceTuningHelp'), voiceChoice).className = 'word-voice-help';
+    const effectLabel = node('label', undefined, voiceChoice); effectLabel.className = 'word-voice-tuning';
+    node('span', t('voiceEffect'), effectLabel);
+    const effectOutput = node('output', '.65', effectLabel); effectOutput.setAttribute('data-i18n-skip', '');
+    const effectControl = node('input', undefined, effectLabel); effectControl.type = 'range'; effectControl.min = '0'; effectControl.max = '1';
+    effectControl.step = '.05'; effectControl.id = 'word-voice-effect'; effectOutput.htmlFor = effectControl.id;
+    const effectHelp = node('p', t('voiceEffectHelp'), voiceChoice); effectHelp.className = 'word-voice-help';
+    const voiceCredit = node('p', '', voiceChoice); voiceCredit.setAttribute('data-i18n-skip', '');
+    effectControl.addEventListener('input', () => { voice.setEffect(appearance.value, Number(effectControl.value)); renderVoiceChoices(); });
     node('p', t('voiceAuditionHelp'), voiceChoice).className = 'word-voice-help';
     const choiceStatus = node('p', '', voiceChoice); choiceStatus.setAttribute('role', 'status');
     const choiceSaveStatus = node('p', '', voiceChoice); choiceSaveStatus.setAttribute('role', 'status'); choiceSaveStatus.hidden = true;
@@ -872,7 +904,15 @@
     const choiceContinue = node('button', t('voiceChoiceClose'), meetingContent); choiceContinue.type = 'button'; choiceContinue.id = 'word-voice-continue'; choiceContinue.hidden = true;
     function renderVoiceChoices() {
         if (!meeting.open) return;
-        const bank = voice.voices(), selected = bank.profile.dialogue[appearance.value];
+        const bank = voice.voices(), selected = bank.choices[appearance.value], local = bank.source !== 'device';
+        activeVoiceCredit.textContent = local ? bank.dialogue.find(v => window.ExperimentalWordVoice.voiceId(v) === selected)?.credit || '' : '';
+        activeVoiceCredit.hidden = !activeVoiceCredit.textContent;
+        voiceSource.value = bank.source; localPanel.hidden = !local;
+        effectLabel.hidden = effectHelp.hidden = !local;
+        effectControl.value = bank.effect[appearance.value] ?? .65; effectOutput.value = Number(effectControl.value).toFixed(2);
+        effectControl.disabled = !bank.providerSupported;
+        localConnect.disabled = !bank.providerSupported;
+        resetVoices.hidden = local;
         dialogueVoice.replaceChildren();
         if (!bank.dialogue.some(v => window.ExperimentalWordVoice.voiceId(v) === selected)) {
             const missing = node('option', '', dialogueVoice); missing.value = ''; missing.disabled = true;
@@ -883,15 +923,18 @@
         }
         dialogueVoice.value = selected || ''; dialogueVoice.disabled = !bank.dialogue.length;
         narratorName.textContent = bank.narrator ? `${bank.narrator.name || bank.narrator.voiceURI} (${bank.narrator.lang})` : '';
-        const ready = !!bank.narrator && !!bank.dialogue.length;
-        choiceStatus.textContent = bank.available.length < 2 ? t('voiceUnavailable') : !ready || !dialogueVoice.value ? t('voiceMissing') : '';
+        const ready = !!bank.narrator && !!bank.dialogue.length && bank.providerSupported;
+        voiceCredit.textContent = local ? bank.dialogue.find(v => window.ExperimentalWordVoice.voiceId(v) === selected)?.credit || '' : '';
+        voiceCredit.hidden = !voiceCredit.textContent;
+        choiceStatus.textContent = local ? !bank.providerSupported ? t('voiceProviderLanguage') : !bank.dialogue.length ? t('voiceProviderFirst') : !ready || !dialogueVoice.value ? t('voiceMissing') : ''
+            : bank.available.length < 2 ? t('voiceUnavailable') : !ready || !dialogueVoice.value ? t('voiceMissing') : '';
         choiceStatus.hidden = !choiceStatus.textContent;
         choiceSaveStatus.hidden = voice.preferencesSaved; choiceSaveStatus.textContent = voice.preferencesSaved ? '' : t('voiceUnsaved');
         const tuning = bank.profile.tuning[appearance.value] || { pitch: 1, rate: 1 };
         for (const key of ['pitch', 'rate']) {
             tuningControls[key].control.value = tuning[key]; tuningControls[key].output.value = tuning[key].toFixed(2);
         }
-        previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || !ready || (index < 3 && !dialogueVoice.value); });
+        previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || (index < 3 ? !ready || !dialogueVoice.value : !bank.narrator || (!local && !ready)); });
     }
     function prepareMeetingVoice(initial) {
         choosingInitialVoice = initial;
@@ -909,6 +952,11 @@
     function closeVoiceChoices() { voice.stop(); meeting.close(); voiceChoose.focus(); lastFrame = null; }
     voiceChoose.addEventListener('click', openVoiceChoices);
     dialogueVoice.addEventListener('change', () => { voice.selectVoice(appearance.value, dialogueVoice.value); renderVoiceChoices(); });
+    voiceSource.addEventListener('change', () => { voice.setSource(voiceSource.value); localMessage.textContent = ''; renderVoiceChoices(); });
+    localConnect.addEventListener('click', async () => {
+        localConnect.disabled = true;
+        await voice.connectProvider(); renderVoiceChoices();
+    });
     resetVoices.addEventListener('click', () => { voice.resetVoices(appearance.value); renderVoiceChoices(); });
     choiceStop.addEventListener('click', () => voice.stop());
     choiceContinue.addEventListener('click', closeVoiceChoices);
@@ -916,13 +964,17 @@
     let voiceDraft = '', recognized = '', recognizedLocale = null;
     const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
         unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
-        failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved' };
+        failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved',
+        providerConnecting: 'voiceProviderConnecting', providerReady: 'voiceProviderReady', providerFailed: 'voiceProviderFailed',
+        providerLanguage: 'voiceProviderLanguage', providerConnectFirst: 'voiceProviderFirst', providerGenerating: 'voiceProviderGenerating' };
     voice = window.ExperimentalWordVoice.create(window, {
         locale: () => window.GameI18n.language, volume: () => Number(voiceVolume.value),
         species: () => appearance.value,
         canPreview: () => meeting.open && screen !== 'signing' && !document.hidden,
         canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
-        status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text; if (meeting.open && text) { choiceStatus.textContent = text; choiceStatus.hidden = false; } },
+        status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
+            localMessage.textContent = key.startsWith('provider') ? text : '';
+            if (meeting.open && text) { choiceStatus.textContent = text; choiceStatus.hidden = false; } },
         listening: active => microphone.setAttribute('aria-pressed', String(active)),
         transcript: text => {
             if (screen !== 'playing' || paused || document.hidden || input.value !== voiceDraft) return false;

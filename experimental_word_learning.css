@@ -182,6 +182,7 @@ main.onboarding-active > .game-header { display: none; }
 .word-meeting .word-voice-choice p { font-size: 13px; line-height: 1.5; margin: 8px 0; overflow-wrap: anywhere; }
 .word-meeting .word-voice-choice label { margin: 10px 0; letter-spacing: 0; font-size: 14px; }
 .word-voice-choice select { display: block; width: 100%; min-width: 0; margin-top: 5px; padding: 8px; border: 1px solid #77d9f35c; background: #0b1f2b; color: #eafaff; }
+.word-voice-choice a { color: #b6f2ff; text-underline-offset: 3px; overflow-wrap: anywhere; }
 .word-voice-tuning output { float: right; color: #eafaff; }
 .word-voice-tuning input { display: block; width: 100%; accent-color: #83d8ef; }
 .word-meeting .word-voice-choice button { min-height: 36px; max-width: 100%; white-space: normal; font-size: 13px; padding: 7px 10px; margin: 4px 0; }

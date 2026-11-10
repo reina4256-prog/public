@@ -2,6 +2,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { create, locales, species, voiceId } = require('../experimental_word_voice');
+const { voicevox } = require('../experimental_word_audio_provider');
+const { presets } = require('../experimental_word_voice_effects');
 function setup(supported = true) {
     const statuses = [], transcripts = [], spoken = [], listening = [];
     let recognition, locale = 'ja', allowed = true;
@@ -128,4 +130,97 @@ test('speech is optional, localized, cancellable and suppressed while listening 
     s.voice.listen(); const length = s.spoken.length; s.voice.speak('feedback'); assert.equal(s.spoken.length, length);
     s.voice.stop(); s.allow(false); s.voice.speak('hidden'); assert.equal(s.spoken.length, length);
     s.voice.setEnabled(false); s.allow(true); s.voice.speak('off again'); assert.equal(s.spoken.length, length);
+});
+
+function audioSetup() {
+    const s = setup(); s.host.AbortController = AbortController;
+    const rendered = [], requests = [], connections = [];
+    const audioVoices = [{ name: 'Test A', voiceURI: 'local:a', lang: 'ja-JP', styleId: 0 }, { name: 'Test B', voiceURI: 'local:b', lang: 'ja-JP', styleId: 1 }];
+    const effects = { supported: true, async prepare() {}, async decode(data) { return data; }, play(buffer, settings) { rendered.push({ buffer, settings }); }, stop() {} };
+    const provider = { supports: locale => locale === 'ja', async listVoices(params) { connections.push(params); return audioVoices; },
+        async synthesize(params) { requests.push(params); return new ArrayBuffer(8); } };
+    const options = { locale: () => s.locale || 'ja', species: () => 'robot', volume: () => .4, canSpeak: () => true, canPreview: () => true,
+        status: key => s.statuses.push(key), listening() {}, transcript() {}, effects, audioProviders: { voicevox: provider, future: provider } };
+    const voice = create(s.host, options);
+    return { ...s, voice, options, provider, rendered, requests, connections, audioVoices, effects };
+}
+
+test('audio providers share effects and preserve separate voice choices through local / future / local and reload', async () => {
+    const s = audioSetup(); const native = s.voice.voices().profile.dialogue.robot;
+    assert.equal(s.voice.setSource('unregistered'), false);
+    s.voice.setSource('voicevox'); assert.equal(s.connections.length, 0);
+    assert.equal(await s.voice.connectProvider(), true);
+    s.voice.selectVoice('robot', voiceId(s.audioVoices[1])); s.voice.setEffect('robot', .3);
+    s.voice.setTuning('robot', { pitch: 1.2, rate: .8 });
+    await s.voice.speak('preview', { preview: true });
+    assert.equal(s.requests.at(-1).voice, s.audioVoices[1]); assert.equal(s.requests.at(-1).pitch, 1.2);
+    assert.equal(s.rendered.at(-1).settings.amount, .3);
+    s.voice.setSource('future'); await s.voice.connectProvider();
+    assert.equal(s.voice.voices().choices.robot, voiceId(s.audioVoices[0]));
+    await s.voice.speak('other provider', { preview: true });
+    assert.equal(s.rendered.at(-1).settings.amount, .3);
+    s.voice.setSource('voicevox'); assert.equal(s.voice.voices().choices.robot, voiceId(s.audioVoices[1]));
+    s.voice.setSource('device'); assert.equal(s.voice.voices().profile.dialogue.robot, native);
+    s.voice.setSource('voicevox');
+    const restored = create(s.host, s.options);
+    assert.equal(restored.voices().source, 'voicevox'); assert.equal(restored.voices().dialogue.length, 0);
+    await restored.connectProvider(); assert.equal(restored.voices().choices.robot, voiceId(s.audioVoices[1]));
+    assert.equal(restored.voices().effect.robot, .3);
+    const count = s.requests.length; restored.speak('gesture', { preview: true, role: 'narration' });
+    assert.equal(s.requests.length, count); assert.equal(s.spoken.at(-1).voice, restored.voices().narrator);
+    assert.equal(s.spoken.at(-1).pitch, 1);
+});
+
+test('pending synthesis and decoding cannot play after stop, source change or a newer utterance', async () => {
+    const s = audioSetup(); s.voice.setSource('voicevox'); await s.voice.connectProvider();
+    let resolve;
+    s.provider.synthesize = params => { s.requests.push(params); return new Promise(r => { resolve = r; }); };
+    const first = s.voice.speak('first', { preview: true }); await Promise.resolve();
+    s.voice.stop(); assert.equal(s.requests[0].signal.aborted, true); resolve(new ArrayBuffer(8)); await first;
+    assert.equal(s.rendered.length, 0);
+    const second = s.voice.speak('second', { preview: true }); await Promise.resolve();
+    s.voice.setSource('device'); resolve(new ArrayBuffer(8)); await second; assert.equal(s.rendered.length, 0);
+    s.voice.setSource('voicevox'); s.provider.synthesize = async () => new ArrayBuffer(8);
+    s.effects.decode = () => new Promise(r => { resolve = r; });
+    const third = s.voice.speak('third', { preview: true }); await Promise.resolve(); await Promise.resolve();
+    s.voice.speak('narration', { preview: true, role: 'narration' }); resolve({ duration: 1 }); await third;
+    assert.equal(s.rendered.length, 0);
+});
+
+test('unsupported language, unavailable service and missing saved styles never fall back silently', async () => {
+    const s = audioSetup(); s.voice.setSource('voicevox');
+    await s.voice.speak('not connected', { preview: true }); assert.equal(s.statuses.at(-1), 'providerConnectFirst');
+    s.provider.listVoices = async () => { throw new Error('network'); };
+    assert.equal(await s.voice.connectProvider(), false); assert.equal(s.statuses.at(-1), 'providerFailed');
+    assert.equal(s.spoken.length, 0); assert.equal(s.rendered.length, 0);
+    s.options.locale = () => 'en';
+    const english = create(s.host, s.options); english.setSource('voicevox');
+    assert.equal(await english.connectProvider(), false); assert.equal(s.statuses.at(-1), 'providerLanguage');
+    s.options.locale = () => 'ja'; s.provider.listVoices = async () => s.audioVoices;
+    await s.voice.connectProvider(); s.voice.selectVoice('robot', voiceId(s.audioVoices[1]));
+    s.provider.listVoices = async () => [s.audioVoices[0]]; await s.voice.connectProvider();
+    await s.voice.speak('missing', { preview: true }); assert.equal(s.statuses.at(-1), 'voiceMissing');
+    assert.equal(s.requests.length, 0);
+});
+
+test('VOICEVOX adapter filters singing styles, escapes text, adjusts synthesis and returns audio without storing it', async () => {
+    const calls = [];
+    const host = { async fetch(url, init) {
+        calls.push({ url: new URL(url), init });
+        return { ok: true, async json() { return url.includes('/speakers') ? [{ name: 'Test', speaker_uuid: 'uuid', styles: [
+            { id: 0, name: 'Talk', type: 'talk' }, { id: 1, name: 'Song', type: 'sing' }] }] : { accent_phrases: [], speedScale: 1 }; },
+        async arrayBuffer() { return new ArrayBuffer(44); } };
+    } };
+    const provider = voicevox(host), controller = new AbortController();
+    const available = await provider.listVoices({ locale: 'ja', signal: controller.signal });
+    assert.equal(available.length, 1); assert.equal(available[0].credit, 'VOICEVOX:Test');
+    const text = 'hello & speaker=999? こんにちは';
+    const data = await provider.synthesize({ text, voice: available[0], locale: 'ja', rate: .8, pitch: 1.5, signal: controller.signal });
+    assert.equal(data.byteLength, 44); assert.equal(calls[1].url.searchParams.get('text'), text);
+    assert.equal(calls[1].url.searchParams.get('speaker'), '0');
+    const query = JSON.parse(calls[2].init.body); assert.equal(query.speedScale, .8); assert.ok(query.pitchScale > 0);
+    assert.equal(query.volumeScale, 1); assert.equal(query.outputStereo, false);
+    for (const call of calls) { assert.equal(call.url.origin, 'http://127.0.0.1:50021'); assert.equal(call.init.credentials, 'omit'); assert.equal(call.init.signal, controller.signal); }
+    await assert.rejects(provider.listVoices({ locale: 'en' }), /providerLanguage/);
+    assert.deepEqual(Object.keys(presets).sort(), [...species].sort());
 });

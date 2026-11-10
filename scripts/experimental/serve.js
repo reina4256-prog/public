@@ -21,7 +21,7 @@ const files = new Set(['experimental_word_learning.html', 'experimental_word_lea
     'experimental_word_learning_world.js', 'experimental_word_learning_view.js', 'experimental_word_learning_visuals.json',
     'robot.png', 'spirit.png', 'seed.png', 'field_2.png']);
 for (const file of ['experimental_word_dungeon_learning.js', 'experimental_word_dungeon_view.js']) files.add(file);
-for (const file of ['experimental_word_voice.js', 'experimental_word_constellation_live.js']) files.add(file);
+for (const file of ['experimental_word_voice.js', 'experimental_word_audio_provider.js', 'experimental_word_voice_effects.js', 'experimental_word_constellation_live.js']) files.add(file);
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
     '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
 const encounterVideos = new Set(Object.values(require('../../experimental_word_careers').VIDEOS));

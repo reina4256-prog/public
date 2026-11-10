@@ -17,9 +17,29 @@ if (!process.versions.electron || process.type !== 'browser') {
     const evidence = path.resolve(__dirname, '../../docs/.local-history/verification-runs', 'voice-stars-renderer-' + Date.now());
     fs.mkdirSync(evidence, { recursive: true });
     let server, window, snapshot = null, nextLoad = null, mockEnabled = false;
+    const audioRequests = [];
+    // Synthetic PCM, not evidence of successful real VOICEVOX synthesis.
+    const pcm = Buffer.alloc(44 + 4800 * 2);
+    pcm.write('RIFF'); pcm.writeUInt32LE(pcm.length - 8, 4); pcm.write('WAVEfmt ', 8); pcm.writeUInt32LE(16, 16);
+    pcm.writeUInt16LE(1, 20); pcm.writeUInt16LE(1, 22); pcm.writeUInt32LE(24000, 24); pcm.writeUInt32LE(48000, 28);
+    pcm.writeUInt16LE(2, 32); pcm.writeUInt16LE(16, 34); pcm.write('data', 36); pcm.writeUInt32LE(9600, 40);
+    for (let i = 0; i < 4800; i++) pcm.writeInt16LE(Math.round(3000 * Math.sin(i * 2 * Math.PI * 440 / 24000)), 44 + i * 2);
     const failures = [], checks = [];
     const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const mock = `window.__spoken = []; window.__recognition = null;
+        window.__audioStarted = 0; window.__audioStopped = 0;
+        const NativeAudioContext = window.AudioContext;
+        window.AudioContext = class extends NativeAudioContext {
+            createBufferSource() {
+                const source = super.createBufferSource(), start = source.start.bind(source), stop = source.stop.bind(source);
+                source.start = (...args) => { window.__audioStarted++; return start(...args); };
+                source.stop = (...args) => { window.__audioStopped++; return stop(...args); };
+                return source;
+            }
+        };
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (url, init) => originalFetch(typeof url === 'string' && url.startsWith('http://127.0.0.1:50021/')
+            ? '/__voicevox_test' + new URL(url).pathname + new URL(url).search : url, init);
         window.SpeechRecognition = class {
             constructor() { window.__recognition = this; }
             start() { this.started = true; }
@@ -35,7 +55,18 @@ if (!process.versions.electron || process.type !== 'browser') {
         server = require('./serve').createServer();
         const serve = server.listeners('request')[0]; server.removeAllListeners('request');
         server.on('request', (request, response) => {
-            if (mockEnabled && request.url.startsWith('/experimental_word_learning.html')) {
+            if (mockEnabled && request.url.startsWith('/__voicevox_test/')) {
+                const record = { url: request.url, method: request.method }; audioRequests.push(record);
+                if (request.url.startsWith('/__voicevox_test/synthesis')) {
+                    let body = ''; request.on('data', data => { body += data; });
+                    request.on('end', () => { record.query = JSON.parse(body); response.writeHead(200, { 'Content-Type': 'audio/wav' }); response.end(pcm); });
+                } else {
+                    response.writeHead(200, { 'Content-Type': 'application/json' });
+                    response.end(JSON.stringify(request.url.startsWith('/__voicevox_test/speakers')
+                        ? [{ name: 'Fixture voice', speaker_uuid: 'fixture', styles: [{ id: 0, name: 'A', type: 'talk' }, { id: 1, name: 'B', type: 'talk' }] }]
+                        : { accent_phrases: [], speedScale: 1, pitchScale: 0, volumeScale: 1 }));
+                }
+            } else if (mockEnabled && request.url.startsWith('/experimental_word_learning.html')) {
                 const html = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_learning.html'), 'utf8');
                 response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
                 response.end(html.replace('<head>', '<head><script>' + mock + '</script>'));
@@ -209,6 +240,70 @@ if (!process.versions.electron || process.type !== 'browser') {
             document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); void 0`);
         assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-2');
         assert.equal(await js(`window.__spoken.at(-1).pitch`), 1.25); assert.equal(await js(`window.__spoken.at(-1).rate`), .8);
+        // Real Web Audio, with the HTTP provider replaced by a named fixture.
+        const audioBefore = JSON.stringify(snapshot.state);
+        assert.equal(audioRequests.length, 0);
+        await js(`document.querySelector('#word-voice-choose').click();
+            document.querySelector('#word-voice-source').value = 'voicevox'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change')); void 0`);
+        assert.equal(audioRequests.length, 0);
+        await js(`document.querySelector('#word-voice-connect').click(); void 0`);
+        for (let i=0; i<100 && await js(`document.querySelector('#word-dialogue-voice').options.length !== 2`); i++) await sleep(30);
+        assert.equal(audioRequests.length, 1);
+        await js(`document.querySelector('#word-dialogue-voice').selectedIndex = 1; document.querySelector('#word-dialogue-voice').dispatchEvent(new Event('change'));
+            document.querySelector('#word-voice-effect').value = '.3'; document.querySelector('#word-voice-effect').dispatchEvent(new Event('input'));
+            document.querySelector('.word-voice-sample button').click(); void 0`);
+        for (let i=0; i<100 && (audioRequests.length < 3 || !audioRequests.at(-1).query); i++) await sleep(30);
+        assert.equal(audioRequests.length, 3);
+        assert.equal(audioRequests.at(-1).query.speedScale, .8);
+        assert.equal(audioRequests.at(-1).query.volumeScale, 1);
+        for (let i=0; i<100 && await js(`window.__audioStarted === 0`); i++) await sleep(30);
+        assert.equal(await js(`window.__audioStarted`), 1);
+        await js(`document.querySelector('#word-voice-choice > button:last-child').click(); void 0`);
+        assert.ok(await js(`window.__audioStopped > 0`));
+        assert.ok(await js(`document.querySelector('.word-voice-choice').textContent.includes('VOICEVOX:Fixture voice')`));
+        const sourceSettings = await js(`localStorage.getItem('wordAudioSources:v1')`);
+        await js(`document.querySelector('#word-voice-source').value = 'device'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change'));
+            document.querySelector('#word-voice-source').value = 'voicevox'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change')); void 0`);
+        assert.equal(await js(`document.querySelector('#word-dialogue-voice').selectedIndex`), 1);
+        assert.equal(await js(`document.querySelector('#word-voice-effect').value`), '0.3');
+        assert.equal(await js(`localStorage.getItem('wordAudioSources:v1')`), sourceSettings);
+        for (const width of [1280,390]) {
+            window.setContentSize(width,900);
+            await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
+            fs.writeFileSync(path.join(evidence, 'voicevox-'+width+'.png'), (await window.webContents.capturePage()).toPNG());
+            assert.ok(await js(`document.querySelector('.word-meeting').scrollWidth <= document.querySelector('.word-meeting').clientWidth + 2`));
+            await js(`document.querySelector('.word-meeting').scrollTop = document.querySelector('.word-meeting').scrollHeight; void 0`);
+            await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
+            assert.ok(await js(`document.querySelector('.word-meeting').scrollTop > 0`));
+            fs.writeFileSync(path.join(evidence, 'voicevox-bottom-'+width+'.png'), (await window.webContents.capturePage()).toPNG());
+            await js(`document.querySelector('.word-meeting').scrollTop = 0; void 0`);
+        }
+        assert.equal(JSON.stringify(snapshot.state), audioBefore);
+        const dsp = await js(`(async () => {
+            const summaries = [];
+            for (const species of Object.keys(ExperimentalWordVoiceEffects.presets)) {
+                const outputs = [];
+                for (const amount of [0, .65]) {
+                    const ctx = new OfflineAudioContext(1, 24000, 24000), facade = { state: 'running', destination: ctx.destination };
+                    for (const key of ['createBufferSource','createGain','createDynamicsCompressor','createBiquadFilter','createOscillator','createDelay']) facade[key] = ctx[key].bind(ctx);
+                    const fx = ExperimentalWordVoiceEffects.create({ AudioContext: function () { return facade; } });
+                    await fx.prepare();
+                    const buffer = ctx.createBuffer(1, 4800, 24000), samples = buffer.getChannelData(0);
+                    for (let i=0;i<samples.length;i++) samples[i] = .1 * Math.sin(i * 2 * Math.PI * 440 / 24000);
+                    fx.play(buffer, { species, amount, volume: 1 });
+                    const rendered = await ctx.startRendering(); outputs.push(Array.from(rendered.getChannelData(0))); fx.stop();
+                }
+                const difference = outputs[0].reduce((n, x, i) => n + Math.abs(x - outputs[1][i]), 0);
+                const peak = Math.max(...outputs[1].map(Math.abs));
+                summaries.push({ species, difference, peak, finite: outputs[1].every(Number.isFinite) });
+            }
+            return summaries;
+        })()`);
+        assert.equal(dsp.length, 11);
+        for (const row of dsp) { assert.ok(row.difference > 1, JSON.stringify(row)); assert.ok(row.finite); assert.ok(row.peak < 1); }
+        checks.push({ localHttpFixture: true, actualWebAudioPlaybackAndStop: true, actualWebAudioOffline: dsp, sourceRoundTrip: true, audioPreviewDoesNotMutate: true });
+        await js(`document.querySelector('#word-voice-source').value = 'device'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change'));
+            document.querySelector('#word-voice-continue').click(); void 0`);
         // Public question flow reveals only the chosen child; voice tuning shares its signature screen.
         nextLoad = null; await window.loadURL(url); await sleep(450);
         assert.equal(await js(`localStorage.getItem('wordVoiceProfiles:v1')`), profiles);
