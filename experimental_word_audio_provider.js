@@ -26,7 +26,8 @@
                 for (const speaker of speakers) {
                     if (typeof speaker.name !== 'string' || typeof speaker.speaker_uuid !== 'string' || !Array.isArray(speaker.styles)) continue;
                     for (const style of speaker.styles) {
-                        if (!Number.isSafeInteger(style.id) || style.id < 0 || typeof style.name !== 'string' || (style.type && style.type !== 'talk')) continue;
+                        if (!Number.isSafeInteger(style.id) || style.id < 0 || typeof style.name !== 'string'
+                            || (style.type && !['talk', 'streaming_talk'].includes(style.type))) continue;
                         result.push({ name: `${speaker.name} / ${style.name}`, lang: 'ja-JP',
                             voiceURI: `voicevox:${speaker.speaker_uuid}:${style.id}`, styleId: style.id, credit: `VOICEVOX:${speaker.name}` });
                     }

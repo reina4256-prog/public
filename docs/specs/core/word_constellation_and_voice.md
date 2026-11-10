@@ -6,7 +6,7 @@
 
 - ユーザーはPC内生成①で試し、将来の外部生成②を追加しても①へ戻せる方式を依頼。`experimental_word_audio_provider.js`が生成、`experimental_word_voice_effects.js`がデコード／加工／再生、既存voiceが停止・設定・入力との排他を所有する。音声生成元の契約は`listVoices({signal,locale})`と`synthesize({text,voice,locale,pitch,rate,signal}) -> encoded audio ArrayBuffer`。外部サービス／サーバー／課金／鍵は今回追加せず、②の実装済みとはしない。
 - 端末音声は既定のまま残し、同じ子の声欄で「PC内のVOICEVOX（演出付き）」を明示選択、接続ボタンで`http://127.0.0.1:50021/speakers`を取得。ページ表示／方式切替だけでは接続・文章送信をしない。VOICEVOXの別途起動が必要。接続許可の設定は自動変更しない。[試用手順](../../word/VOICE_TRIAL.md)を参照。
-- VOICEVOXは日本語だけ。talkのstyle ID・speaker UUIDで声を識別し、歌唱styleは候補にしない。明示した試聴／読み上げの表示文のみを`audio_query`、返されたqueryを`synthesis`へ渡す。ログ／本人state／ノートを一括送信せず、生成音声を永続保存しない。しぐさは端末の専用ナレーター・標準pitch/rate・無加工を維持し、会話と別の実声を使う。現在言語の端末声が少なくとも1つ必要。
+- VOICEVOXは日本語だけ。`talk`／`streaming_talk`（0.26.1の会話音声）と旧版のtype省略を受け付け、style ID・speaker UUIDで声を識別する。歌唱用の`sing`／`singing_teacher`／`frame_decode`と未知typeは候補にしない。`streaming_talk`も通常の`audio_query`→`synthesis`に対応するため、分割ストリーム再生への変更は不要。明示した試聴／読み上げの表示文のみを`audio_query`、返されたqueryを`synthesis`へ渡す。ログ／本人state／ノートを一括送信せず、生成音声を永続保存しない。しぐさは端末の専用ナレーター・標準pitch/rate・無加工を維持し、会話と別の実声を使う。現在言語の端末声が少なくとも1つ必要。
 - 姿に応じたfilter・金属的な振幅変調・有限3tapのecho・低域補強を組合せ、dryの声を残す。「この子らしい響きの強さ」0〜1・.05刻み、初期.65、0は演出なし。会話試聴と実会話へ同じ加工を適用。ピーク抑制と0〜1音量を最後に適用する。別種族一覧／種族数は表示しない。
 - `wordAudioSources:v1`は言語ごとのsource、生成元別・外見別のvoice identity、生成元共通・外見別のeffects強度を独立保存。既存`wordVoiceProfiles:v1`の端末声・ナレーター・pitch/rateは維持。①→将来②→①でも選択声を上書きせず、再選択不要で復帰できる設計。再読込後は明示的な接続が必要。声の欠落／言語非対応／失敗では無言で別声や生成元へfallbackしない。文字経路を維持する。
 - 接続15秒・生成120秒で通信を打切り、停止・非表示・入力／認識開始・画面／言語／声／方式／演出変更でAbortControllerと世代番号により遅延再生を防ぐ。Web Audioのsource・oscillator・echo接続も停止／切断する。本人の理解・試聴記録にはしない。

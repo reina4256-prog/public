@@ -208,12 +208,15 @@ test('VOICEVOX adapter filters singing styles, escapes text, adjusts synthesis a
     const host = { async fetch(url, init) {
         calls.push({ url: new URL(url), init });
         return { ok: true, async json() { return url.includes('/speakers') ? [{ name: 'Test', speaker_uuid: 'uuid', styles: [
-            { id: 0, name: 'Talk', type: 'talk' }, { id: 1, name: 'Song', type: 'sing' }] }] : { accent_phrases: [], speedScale: 1 }; },
+            { id: 0, name: 'Talk', type: 'talk' }, { id: 1, name: 'Song', type: 'sing' },
+            { id: 3, name: 'Streaming talk', type: 'streaming_talk' }, { id: 4, name: 'Legacy talk' },
+            { id: 5, name: 'Teacher', type: 'singing_teacher' }, { id: 6, name: 'Frame', type: 'frame_decode' },
+            { id: 7, name: 'Unknown', type: 'future_unknown' }] }] : { accent_phrases: [], speedScale: 1 }; },
         async arrayBuffer() { return new ArrayBuffer(44); } };
     } };
     const provider = voicevox(host), controller = new AbortController();
     const available = await provider.listVoices({ locale: 'ja', signal: controller.signal });
-    assert.equal(available.length, 1); assert.equal(available[0].credit, 'VOICEVOX:Test');
+    assert.deepEqual(available.map(voice => voice.styleId), [0, 3, 4]); assert.equal(available[0].credit, 'VOICEVOX:Test');
     const text = 'hello & speaker=999? こんにちは';
     const data = await provider.synthesize({ text, voice: available[0], locale: 'ja', rate: .8, pitch: 1.5, signal: controller.signal });
     assert.equal(data.byteLength, 44); assert.equal(calls[1].url.searchParams.get('text'), text);
