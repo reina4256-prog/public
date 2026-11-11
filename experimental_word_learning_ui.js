@@ -54,6 +54,7 @@
         voiceTuningHelp: '標準は1.00です。声や端末によって、調整できる幅や聞こえ方は異なります。',
         voiceDialogue: '会話の声', voiceNarrator: 'しぐさを読む声',
         voiceCastHelp: '師匠の会話としぐさは専用のVOICEVOX音声で読み上げます。初対面ムービー中は待ち、終了・スキップ後に読み上げます。',
+        voiceCacheHelp: '師匠としぐさの定型音声はPC内に保存して再利用します。ムービー中や読み上げ中に次の音声を準備します。',
         voiceCastCredits: '師匠・しぐさの音声クレジット',
         voiceCastLanguage: '師匠としぐさの読み上げは、日本語とVOICEVOX接続が利用できる環境で使えます。',
         voiceAuditionHelp: '試聴は声の確認だけです。この子が言葉を覚えたり、話した記録にはなりません。',
@@ -868,6 +869,7 @@
     voiceHelp.querySelector('summary').textContent = t('voiceSettings');
     voiceHelp.append(voiceVolumeLabel, voiceStop);
     node('p', t('voiceCastHelp'), voiceHelp);
+    node('p', t('voiceCacheHelp'), voiceHelp);
     const castCredits = node('details', undefined, voiceHelp); node('summary', t('voiceCastCredits'), castCredits);
     for (const preset of Object.values(window.ExperimentalWordVoice.cast)) {
         node('p', t(preset.credit), castCredits);
@@ -1031,6 +1033,7 @@
         species: () => appearance.value,
         captureProcessing: () => captureProcessing.checked,
         canPreview: () => meeting.open && screen !== 'signing' && !document.hidden,
+        canPrepare: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
         canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open
             && (!masterDialog.open || ['silhouette', 'conversation'].includes(masterPhase)),
         status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
@@ -1080,6 +1083,12 @@
         }
     });
     microphone.disabled = !voice.supportedInput;
+    voice.registerFixedLines([
+        ...Object.keys(window.ExperimentalWordVoice.cast).filter(id => id !== 'narration').flatMap(master =>
+            ['master_intro_', 'work_label_'].map(prefix => ({ text: t(prefix + master), role: 'master', master }))),
+        ...Object.keys(labels).filter(key => /_gesture$|^master_(meet|return|try|defer|result_)|^(masterPresence|attend|work)$/.test(key))
+            .map(key => ({ text: t(key), role: 'narration' }))
+    ]);
     readAloud.disabled = !voice.supportedOutput;
     if (!voice.supportedInput) voiceStatus.textContent = t('voiceUnsupportedInput');
     microphone.addEventListener('click', () => {
@@ -1101,7 +1110,10 @@
     recordingAudio.addEventListener('play', () => { if (voice.listening || paused || screen !== 'playing' || document.hidden) recordingAudio.pause(); });
     readAloud.addEventListener('change', () => {
         voice.setEnabled(readAloud.checked);
-        if (readAloud.checked && masterDialog.open) playMasterVoices();
+        if (readAloud.checked && masterDialog.open) {
+            if (['loading', 'video'].includes(masterPhase)) prepareMasterVoices();
+            else playMasterVoices();
+        }
         else if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
     voiceStop.addEventListener('click', () => voice.stop());
@@ -1215,6 +1227,12 @@
             { text: masterThought.textContent, role: 'narration' }
         ]);
     }
+    function prepareMasterVoices() {
+        if (masterReply) void voice.prepareScene([
+            { text: t(masterReply.npc), role: 'master', master: dialogMaster },
+            { text: t(masterReply.message), role: 'narration' }
+        ]);
+    }
     function advanceMaster() {
         if (!masterDialog.open) return;
         if (masterPhase === 'silhouette') masterConversation();
@@ -1271,6 +1289,7 @@
         masterFocus = document.activeElement; masterDialog.showModal(); masterClose.focus();
         if (reply.message === 'master_meet') {
             masterPhase = 'loading'; masterDialog.dataset.phase = masterPhase;
+            prepareMasterVoices();
             masterLeft.hidden = masterRight.hidden = true; masterVideo.hidden = true;
             masterSkip.hidden = false; masterSkip.focus({ preventScroll: true });
             void masterIntroduction(masterToken);
@@ -1328,6 +1347,8 @@
         conversation.scrollTop = conversation.scrollHeight;
         lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
+        if (lastReplyIsNarration && !reply.word && !reply.literal && Object.hasOwn(labels, reply.message))
+            voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
         if (reply.npc && window.WordIslandMode) openMaster(reply);
         else if (reply.npc) void voice.speakScene([
             { text: t(reply.npc), role: 'master', master: reply.master },

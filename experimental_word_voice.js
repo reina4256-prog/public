@@ -1,9 +1,10 @@
 (function (root, factory) {
     'use strict';
-    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_speech_input') : root.ExperimentalWordSpeechInput);
+    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_speech_input') : root.ExperimentalWordSpeechInput,
+        typeof module === 'object' && module.exports ? require('./experimental_word_voice_cache') : root.ExperimentalWordVoiceCache);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordVoice = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (speechInput) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (speechInput, audioCache) {
     'use strict';
     const locales = { ja: 'ja-JP', en: 'en-US', 'zh-CN': 'zh-CN', ru: 'ru-RU', 'es-ES': 'es-ES', 'pt-BR': 'pt-BR', de: 'de-DE' };
     const species = ['robot', 'spirit', 'seed', 'ghost', 'stone', 'magician', 'beetle', 'balloon', 'bird', 'machine', 'dragon'];
@@ -33,6 +34,137 @@
         const providers = options.audioProviders || (host.ExperimentalWordAudioProvider ? { voicevox: host.ExperimentalWordAudioProvider.voicevox(host) } : {});
         const effects = options.effects || host.ExperimentalWordVoiceEffects?.create(host);
         const providerVoices = new Map();
+        const cache = audioCache.create(host), fixedLines = new Map(), audioJobs = new Map();
+        let audioQueue = [], worker = null, preparationEpoch = 0, warmRevision = 0, warmTimer = null;
+        const linePreset = line => line.role === 'narration' ? cast.narration : line.role === 'master' ? cast[line.master] : null;
+        const lineKey = (line, locale) => JSON.stringify(['voicevox-cast-wav-v1', locale, linePreset(line)?.speaker,
+            linePreset(line)?.styleId, linePreset(line)?.pitch, linePreset(line)?.rate, line.text]);
+        const canPrepare = () => enabled && !active && !comparison && (options.canPrepare || options.canSpeak)();
+        function cancelPreparation() {
+            preparationEpoch++; warmRevision++; clearTimeout(warmTimer); warmTimer = null;
+            for (const job of audioJobs.values()) { job.controller.abort(); job.finish({ error: 'cancelled' }); }
+            audioJobs.clear(); audioQueue = []; worker = null;
+        }
+        function abortable(promise, signal) {
+            return new Promise((resolve, reject) => {
+                const abort = () => { signal.removeEventListener('abort', abort); reject(new Error('cancelled')); };
+                if (signal.aborted) { abort(); return; }
+                signal.addEventListener('abort', abort, { once: true });
+                Promise.resolve(promise).then(value => { signal.removeEventListener('abort', abort); resolve(value); }, error => {
+                    signal.removeEventListener('abort', abort); reject(error);
+                });
+            });
+        }
+        function pumpAudio() {
+            if (worker) return;
+            audioQueue.sort((a, b) => b.priority - a.priority);
+            const job = audioQueue.shift(); if (!job) return;
+            if (job.controller.signal.aborted) { pumpAudio(); return; }
+            worker = job;
+            void (async () => {
+                const signal = job.controller.signal, provider = providers.voicevox;
+                const timer = setTimeout(() => job.controller.abort(), 120000);
+                try {
+                    let available = providerVoices.get('voicevox:' + job.locale);
+                    if (!available) {
+                        const connection = setTimeout(() => job.controller.abort(), 15000);
+                        try { available = await abortable(provider.listVoices({ locale: job.locale, signal }), signal); }
+                        finally { clearTimeout(connection); }
+                        if (signal.aborted) return;
+                        providerVoices.set('voicevox:' + job.locale, available);
+                    }
+                    const preset = linePreset(job.line), chosen = available.find(v => v.voiceURI === castVoice(preset).voiceURI);
+                    if (!chosen) throw new Error('voiceMissing');
+                    const data = await abortable(provider.synthesize({ text: job.line.text, voice: chosen, locale: job.locale,
+                        pitch: preset.pitch, rate: preset.rate, signal }), signal);
+                    if (signal.aborted) return;
+                    cache.put(job.key, data, fixedLines.has(job.key)); job.finish({ data });
+                } catch (error) { job.finish({ error: error.message === 'voiceMissing' ? 'voiceMissing' : 'providerFailed' }); }
+                finally {
+                    clearTimeout(timer);
+                    if (audioJobs.get(job.key) === job) audioJobs.delete(job.key);
+                    if (worker === job) { worker = null; pumpAudio(); }
+                }
+            })();
+        }
+        function requestAudio(line, locale, priority, skipCache = false) {
+            const preset = linePreset(line);
+            if (!preset || typeof line.text !== 'string' || !line.text.length || line.text.length > 5000) return Promise.resolve({ error: 'voiceMissing' });
+            const key = lineKey(line, locale), existing = audioJobs.get(key);
+            if (existing) {
+                existing.priority = Math.max(existing.priority, priority);
+                if (worker && worker !== existing && (priority === 2 || priority > worker.priority)) {
+                    const previous = worker; previous.controller.abort(); previous.finish({ error: 'cancelled' });
+                    if (audioJobs.get(previous.key) === previous) audioJobs.delete(previous.key);
+                    worker = null; pumpAudio();
+                }
+                return existing.promise;
+            }
+            const job = { line: { ...line }, key, locale, priority, controller: new host.AbortController() };
+            job.promise = new Promise(resolve => { job.finish = value => { if (!job.finished) { job.finished = true; resolve(value); } }; });
+            audioJobs.set(key, job);
+            void (async () => {
+                const data = skipCache ? null : await cache.get(key, fixedLines.has(key));
+                if (job.controller.signal.aborted) return;
+                if (data) { job.finish({ data, cached: true }); if (audioJobs.get(key) === job) audioJobs.delete(key); return; }
+                audioQueue.push(job);
+                if (worker && (job.priority === 2 || job.priority > worker.priority)) {
+                    const previous = worker; previous.controller.abort(); previous.finish({ error: 'cancelled' });
+                    if (audioJobs.get(previous.key) === previous) audioJobs.delete(previous.key);
+                    worker = null;
+                }
+                pumpAudio();
+            })().catch(() => { job.finish({ error: 'providerFailed' }); if (audioJobs.get(key) === job) audioJobs.delete(key); });
+            return job.promise;
+        }
+        async function prepareLine(line, locale, priority) {
+            const key = lineKey(line, locale), decoded = cache.getDecoded(key);
+            if (decoded) return { buffer: decoded };
+            const result = await requestAudio(line, locale, priority);
+            if (!result.data) return result;
+            try {
+                const buffer = await effects.decode(result.data.slice(0)); cache.putDecoded(key, buffer); return { buffer };
+            } catch (_) {
+                if (result.cached) {
+                    const fresh = await requestAudio(line, locale, priority, true);
+                    if (!fresh.data) return fresh;
+                    try { const buffer = await effects.decode(fresh.data.slice(0)); cache.putDecoded(key, buffer); return { buffer }; }
+                    catch (_) { /* A bad cache is regenerated once, without a voice fallback. */ }
+                }
+                return { error: 'providerFailed' };
+            }
+        }
+        function registerFixedLines(lines) {
+            for (const line of lines.slice(0, 128)) if (linePreset(line) && typeof line.text === 'string' && line.text.length && line.text.length <= 5000)
+                fixedLines.set(lineKey(line, 'ja'), { ...line });
+            while (fixedLines.size > 128) fixedLines.delete(fixedLines.keys().next().value);
+        }
+        function warmFixed() {
+            clearTimeout(warmTimer);
+            const revision = ++warmRevision;
+            if (!fixedLines.size || !effects?.supported || !canPrepare() || !providers.voicevox?.supports(options.locale())) return;
+            const epoch = preparationEpoch, locale = options.locale();
+            warmTimer = setTimeout(() => {
+                warmTimer = null;
+                void (async () => {
+                    for (const line of fixedLines.values()) {
+                        if (revision !== warmRevision || epoch !== preparationEpoch || locale !== options.locale() || !canPrepare()) return;
+                        if (cache.getDecoded(lineKey(line, locale))) continue;
+                        const result = await requestAudio(line, locale, 0);
+                        if (result.error) return;
+                    }
+                })();
+            }, 750);
+        }
+        async function prepareScene(lines) {
+            if (!canPrepare() || !effects?.supported || !providers.voicevox?.supports(options.locale())) return false;
+            const epoch = preparationEpoch, locale = options.locale();
+            for (const line of lines.slice(0, 2)) {
+                if (epoch !== preparationEpoch || locale !== options.locale() || !canPrepare()) return false;
+                const result = await prepareLine(line, locale, 1); if (result.error) return false;
+            }
+            return true;
+        }
         const audioKey = 'wordAudioSources:v1';
         let audioProfiles = {}, pending = null;
         try {
@@ -147,8 +279,10 @@
             } else delete profiles[options.locale()];
             persist(); return voices();
         }
-        function stop() {
+        function stop(keepPreparation = false) {
             generation++;
+            if (keepPreparation !== true) cancelPreparation();
+            else { warmRevision++; clearTimeout(warmTimer); warmTimer = null; }
             clearTimeout(castTimer); castTimer = null;
             if (playbackWait) { clearTimeout(playbackWait.timer); playbackWait.resolve(); playbackWait = null; }
             if (comparison) { void host.wordSpeech.cancel(comparison.id).catch(() => {}); comparison = null; }
@@ -264,39 +398,33 @@
             if ((preview ? !options.canPreview?.() : !enabled || !options.canSpeak()) || active || comparison) return;
             const locale = options.locale(), provider = providers.voicevox;
             if (!effects?.supported || !provider?.supports(locale)) { status('castLanguage'); return; }
-            stop(); const token = generation, controller = new host.AbortController(); pending = controller;
+            stop(true); const token = generation, controller = new host.AbortController(); pending = controller;
             const current = () => token === generation && !controller.signal.aborted && locale === options.locale()
                 && !active && !comparison && (preview ? options.canPreview?.() : enabled && options.canSpeak());
             const timer = setTimeout(() => {
                 if (token !== generation) return;
                 controller.abort(); effects.stop();
+                cancelPreparation();
                 if (playbackWait) { clearTimeout(playbackWait.timer); playbackWait.resolve(); playbackWait = null; }
                 status('providerFailed');
             }, 120000);
             castTimer = timer;
             try {
-                await effects.prepare(); if (!current()) return;
-                let available = providerVoices.get('voicevox:' + locale);
-                if (!available) {
-                    available = await provider.listVoices({ locale, signal: controller.signal });
+                await abortable(effects.prepare(), controller.signal); if (!current()) return;
+                const sequence = lines.slice(0, 2).filter(line => line.text);
+                let upcoming = sequence.length ? prepareLine(sequence[0], locale, 2) : null;
+                for (let index = 0; index < sequence.length; index++) {
                     if (!current()) return;
-                    providerVoices.set('voicevox:' + locale, available);
-                }
-                for (const line of lines.slice(0, 2)) {
-                    if (!current() || !line.text) return;
-                    const preset = line.role === 'narration' ? cast.narration : line.role === 'master' ? cast[line.master] : null;
-                    const chosen = preset && available.find(voice => voice.voiceURI === castVoice(preset).voiceURI);
-                    if (!chosen) { status('voiceMissing'); return; }
                     status('providerGenerating');
-                    const data = await provider.synthesize({ text: line.text, voice: chosen, locale, pitch: preset.pitch, rate: preset.rate, signal: controller.signal });
-                    if (!current()) return;
-                    const buffer = await effects.decode(data); if (!current()) return;
-                    const playing = effects.play(buffer, { species: 'robot', amount: 0, volume: options.volume() });
+                    const result = await abortable(upcoming, controller.signal); if (!current()) return;
+                    if (!result.buffer) { status(result.error === 'voiceMissing' ? 'voiceMissing' : 'providerFailed'); return; }
+                    upcoming = index + 1 < sequence.length ? prepareLine(sequence[index + 1], locale, 1) : null;
+                    const playing = effects.play(result.buffer, { species: 'robot', amount: 0, volume: options.volume() });
                     await new Promise(resolve => {
-                        playbackWait = { resolve, timer: setTimeout(() => { playbackWait = null; resolve(); }, (playing?.duration ?? buffer.duration ?? 0) * 1000) };
+                        playbackWait = { resolve, timer: setTimeout(() => { playbackWait = null; resolve(); }, (playing?.duration ?? result.buffer.duration ?? 0) * 1000) };
                     });
                 }
-                if (current()) status('ready');
+                if (current()) { status('ready'); warmFixed(); }
             } catch (_) { if (token === generation) status('providerFailed'); }
             finally { clearTimeout(timer); if (castTimer === timer) castTimer = null; if (pending === controller) pending = null; }
         }
@@ -323,8 +451,8 @@
             } catch (_) { if (token === generation) status('providerFailed'); }
             finally { clearTimeout(timer); if (pending === controller) pending = null; }
         }
-        return { listen, speak, speakScene, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
-            setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); else void effects?.prepare().catch(() => status('failedOutput')); },
+        return { listen, speak, speakScene, prepareScene, registerFixedLines, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
+            setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); else { if (effects?.supported) void effects.prepare().catch(() => status('failedOutput')); warmFixed(); } },
             supportedInput: !!Recognition, supportedOutput: !!((host.speechSynthesis && host.SpeechSynthesisUtterance) || effects?.supported),
             get preferencesSaved() { return preferencesSaved; },
             get listening() { return !!active || !!comparison; } };

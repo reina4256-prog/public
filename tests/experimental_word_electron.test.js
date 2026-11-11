@@ -46,6 +46,7 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         }) }
         : name === './export_report' ? { exportReport: async () => ({ ok: true }) }
         : name === './storage' ? { createStore: () => store }
+        : name === './voice_cache_store' ? { createStore: () => ({ get: async () => ({ ok: true }), put: async () => ({ ok: true }) }) }
         : name === 'node:fs' ? { mkdirSync() {} }
         : name === './serve' ? { createServer() { const server = require('../scripts/experimental/serve').createServer(); servers.push(server); return server; } }
         : require(name);
@@ -67,6 +68,9 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         assert.equal(stranger.returnValue.ok, false);
         assert.equal((await handlers.get('word-life-export')(stranger, {})).ok, false);
         assert.equal((await handlers.get('word-life-export')(request, {})).ok, true);
+        assert.equal((await handlers.get('word-voice-cache-get')(stranger, 'a'.repeat(64))).ok, false);
+        assert.equal((await handlers.get('word-voice-cache-put')(stranger, 'a'.repeat(64), new Uint8Array())).ok, false);
+        assert.equal((await handlers.get('word-voice-cache-get')(request, 'a'.repeat(64))).ok, true);
         assert.equal((await handlers.get('word-speech-transcribe')(stranger, {})).error, 'sender');
         assert.equal((await handlers.get('word-speech-prepare')(stranger)).error, 'sender');
         assert.deepEqual(await handlers.get('word-speech-prepare')(request), { ok: true });

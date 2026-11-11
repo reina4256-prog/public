@@ -440,16 +440,103 @@ test('cast speakers including alternate styles are reserved; master then narrati
     s.voice.setSource('device'); s.voice.setEnabled(true);
     for (const master of Object.keys(cast).filter(key => key !== 'narration')) {
         const before = s.requests.length;
-        await s.voice.speakScene([{ text: 'master', role: 'master', master }, { text: 'gesture', role: 'narration' }]);
+        await s.voice.speakScene([{ text: 'master', role: 'master', master }, { text: 'gesture ' + master, role: 'narration' }]);
         assert.deepEqual(s.requests.slice(before).map(x => x.voice.styleId), [cast[master].styleId, cast.narration.styleId]);
         assert.equal(s.requests[before].pitch, cast[master].pitch); assert.equal(s.requests[before].rate, cast[master].rate);
     }
     assert.equal(s.spoken.filter(x => typeof x === 'object').length, 0);
-    s.effects.play = () => ({ duration: 10 });
+    let plays = 0; s.effects.play = () => { plays++; return { duration: 10 }; };
     const before = s.requests.length;
-    const scene = s.voice.speakScene([{ text: 'master', role: 'master', master: 'explore' }, { text: 'gesture', role: 'narration' }]);
+    const scene = s.voice.speakScene([{ text: 'cancel master', role: 'master', master: 'explore' }, { text: 'gesture', role: 'narration' }]);
     await new Promise(resolve => setImmediate(resolve)); s.voice.stop(); await scene;
-    assert.equal(s.requests.length, before + 1); assert.equal(s.requests.at(-1).signal.aborted, true);
+    assert.equal(s.requests.length, before + 2); assert.equal(plays, 1); // The next voice may be prepared, never played after stop.
+});
+
+test('master and narrator audio reuse exact keys; movie preparation never plays and survives the playback transition', async () => {
+    const s = audioSetup(); let speaking = false;
+    s.options.canSpeak = () => speaking; s.options.canPrepare = () => true;
+    s.voice.setEnabled(true);
+    const lines = [{ text: 'fixed greeting', role: 'master', master: 'farming' }, { text: 'fixed gesture', role: 'narration' }];
+    s.voice.registerFixedLines(lines);
+    assert.equal(await s.voice.prepareScene(lines), true); assert.equal(s.requests.length, 2); assert.equal(s.rendered.length, 0);
+    speaking = true; await s.voice.speakScene(lines); await s.voice.speakScene(lines);
+    assert.equal(s.requests.length, 2); assert.equal(s.rendered.length, 4);
+    await s.voice.speakScene([{ ...lines[0], master: 'building' }]); assert.equal(s.requests.length, 3);
+    s.voice.stop();
+});
+
+test('lookahead starts during the first voice; stop cancels it and late synthesis cannot play', async () => {
+    const s = audioSetup(); let resolveNext, nextSignal;
+    s.provider.synthesize = params => {
+        s.requests.push(params);
+        if (params.text === 'next') { nextSignal = params.signal; return new Promise(resolve => { resolveNext = resolve; }); }
+        return Promise.resolve(new ArrayBuffer(8));
+    };
+    s.effects.play = (buffer, settings) => { s.rendered.push({buffer,settings}); return { duration: 10 }; };
+    s.voice.setEnabled(true);
+    const task = s.voice.speakScene([{text:'first',role:'master',master:'explore'},{text:'next',role:'narration'}]);
+    for(let i=0;i<10&&!resolveNext;i++) await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(s.rendered.length,1); assert.ok(resolveNext); s.voice.stop(); await task;
+    assert.equal(nextSignal.aborted,true); resolveNext(new ArrayBuffer(8)); await new Promise(resolve=>setImmediate(resolve));
+    assert.equal(s.rendered.length,1);
+});
+
+test('fixed master and gesture lines pre-generate only after enablement without playback', async () => {
+    const s=audioSetup(); const lines=[{text:'warm master',role:'master',master:'smithing'},{text:'warm gesture',role:'narration'}];
+    s.voice.registerFixedLines(lines); assert.equal(await s.voice.prepareScene(lines),false); assert.equal(s.requests.length,0);
+    s.voice.setEnabled(true); await new Promise(resolve=>setTimeout(resolve,800));
+    assert.equal(s.requests.length,2); assert.equal(s.rendered.length,0);
+    await s.voice.speakScene(lines); assert.equal(s.requests.length,2); assert.equal(s.rendered.length,2); s.voice.stop();
+});
+
+test('current speech preempts background generation even when the provider ignores abort', async () => {
+    const s=audioSetup(); let late, signal;
+    s.options.canPrepare=()=>true;
+    s.provider.synthesize=params=>{
+        s.requests.push(params);
+        if(params.text==='background'){signal=params.signal;return new Promise(resolve=>{late=resolve;});}
+        return Promise.resolve(new ArrayBuffer(8));
+    };
+    s.voice.setEnabled(true); const preparing=s.voice.prepareScene([{text:'background',role:'master',master:'building'}]);
+    for(let i=0;i<10&&!late;i++)await new Promise(resolve=>setImmediate(resolve));
+    await s.voice.speakScene([{text:'urgent',role:'narration'}]);
+    assert.equal(signal.aborted,true); assert.equal(await preparing,false); assert.equal(s.rendered.length,1);
+    late(new ArrayBuffer(8)); await new Promise(resolve=>setImmediate(resolve)); assert.equal(s.rendered.length,1); s.voice.stop();
+});
+
+test('only registered fixed audio persists; another cache instance can reuse it independently of the origin', async () => {
+    const {create}=require('../experimental_word_voice_cache'), entries=new Map();
+    const host={crypto:require('node:crypto').webcrypto,wordVoiceCache:{async get(key){return {ok:entries.has(key),data:entries.get(key)};},async put(key,data){entries.set(key,data);return {ok:true};}}};
+    const first=create(host), bytes=new ArrayBuffer(44); new Uint8Array(bytes)[0]=82;
+    first.put('fixed',bytes,true); first.put('private player phrase',bytes,false);
+    for(let i=0;i<30&&!entries.size;i++)await new Promise(resolve=>setTimeout(resolve,5));
+    assert.equal(entries.size,1); assert.match(entries.keys().next().value,/^[a-f0-9]{64}$/);
+    const second=create(host); assert.deepEqual(await second.get('fixed',true),bytes); assert.equal(await second.get('private player phrase',false),null);
+});
+
+test('desktop audio cache bounds files and rejects traversal, invalid audio and non-file targets', async () => {
+    const fs=require('node:fs/promises'),os=require('node:os'),path=require('node:path');
+    const dir=await fs.mkdtemp(path.join(os.tmpdir(),'word-voice-cache-test-'));
+    try {
+        const store=require('../scripts/experimental/voice_cache_store').createStore(dir,{maxEntries:2,maxBytes:100});
+        const wav=Buffer.alloc(44); wav.write('RIFF');wav.writeUInt32LE(36,4);wav.write('WAVE',8);
+        await fs.writeFile(path.join(dir,'f'.repeat(64)+'.00000000-0000-0000-0000-000000000000.tmp'),'interrupted write');
+        assert.equal((await store.put('../escape',wav)).ok,false);assert.equal((await store.put('0'.repeat(64),Buffer.alloc(44))).ok,false);
+        for(const key of ['a','b','c'])assert.equal((await store.put(key.repeat(64),wav)).ok,true);
+        assert.equal((await fs.readdir(dir)).filter(name=>name.endsWith('.wav')).length,2);
+        assert.equal((await fs.readdir(dir)).some(name=>name.endsWith('.tmp')),false);
+        assert.deepEqual(Buffer.from((await store.get('c'.repeat(64))).data),wav);
+        await fs.mkdir(path.join(dir,'d'.repeat(64)+'.wav'));assert.equal((await store.get('d'.repeat(64))).ok,false);assert.equal((await store.put('d'.repeat(64),wav)).ok,false);
+    } finally { assert.ok(path.resolve(dir).startsWith(path.resolve(os.tmpdir())+path.sep));await fs.rm(dir,{recursive:true,force:true}); }
+});
+
+test('an undecodable persistent cache is regenerated once rather than blocking the fixed voice forever', async () => {
+    const s=audioSetup(), line={text:'repair fixed cache',role:'narration'};
+    s.host.crypto=require('node:crypto').webcrypto;
+    s.host.wordVoiceCache={async get(){return {ok:true,data:new Uint8Array(44)};},async put(){return {ok:true};}};
+    s.effects.decode=async data=>{if(data.byteLength===44)throw Error('bad cached audio');return {duration:0};};
+    s.voice.registerFixedLines([line]);s.voice.setEnabled(true);await s.voice.speakScene([line]);
+    assert.equal(s.requests.length,1);assert.equal(s.rendered.length,1);assert.equal(s.statuses.at(-1),'ready');s.voice.stop();
 });
 
 test('pending synthesis and decoding cannot play after stop, source change or a newer utterance', async () => {

@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-12 待ち時間短縮：[師匠・しぐさの生成とキャッシュ](../specs/core/word_constellation_and_voice.md)を追加。ムービー中は準備だけ、次音声は発声中に生成し、定型WAVを再起動後も再利用。[操作](VOICE_TRIAL.md)。本人／録音・各保留は維持。
+
 2026-11-12：[音声所有仕様](../specs/core/word_constellation_and_voice.md)の6師匠・しぐさを固定VOICEVOX配役へ変更。初対面動画終了／スキップ後に会話→しぐさ。[配役と操作](VOICE_TRIAL.md)を参照。認識精度調整は一旦保留、本人と橋／DW／DX等の維持条件は継続。
 
 2026-11-11 手動録音・比較：[音声所有仕様](../specs/core/word_constellation_and_voice.md)の再押下終了・録音聞き返し・同一録音モデル比較を追加。[操作／導入](VOICE_INPUT.md)を参照。実mic精度受入は未確認、本人・橋／DW／DX保留を維持。

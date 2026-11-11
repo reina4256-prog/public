@@ -32,6 +32,9 @@ if (!process.versions.electron || process.type !== 'browser') {
             nextLoad = null;
         });
         ipcMain.on('word-life-save', (event, value) => { snapshot = value; event.returnValue = store.save(value); });
+        // This renderer fixture exercises the optional-cache miss path; real disk IPC has its own smoke.
+        ipcMain.handle('word-voice-cache-get', () => ({ ok: false }));
+        ipcMain.handle('word-voice-cache-put', () => ({ ok: false }));
         window = new BrowserWindow({ width: 1280, height: 800, show: false,
             webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false,
                 preload: path.join(__dirname, 'preload.js') } });

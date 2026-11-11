@@ -1,4 +1,5 @@
 {
+  "師匠としぐさの定型音声はPC内に保存して再利用します。ムービー中や読み上げ中に次の音声を準備します。": "Las frases fijas de los maestros y los gestos se guardan en este PC para reutilizarlas. El siguiente audio se prepara durante los vídeos y el habla.",
   "この言語の端末音声が見つかりません。端末の音声設定を確認してください。文字だけでも続けられます。": "No se encontró una voz del dispositivo para este idioma. Revisa los ajustes de voz del dispositivo. Puedes continuar con texto.",
   "師匠の会話としぐさは専用のVOICEVOX音声で読み上げます。初対面ムービー中は待ち、終了・スキップ後に読み上げます。": "Los maestros y las descripciones de gestos usan voces exclusivas de VOICEVOX. La lectura comienza al terminar u omitir el vídeo de presentación.",
   "師匠・しぐさの音声クレジット": "Créditos de voces de maestros y gestos",

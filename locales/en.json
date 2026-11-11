@@ -1,4 +1,5 @@
 {
+  "師匠としぐさの定型音声はPC内に保存して再利用します。ムービー中や読み上げ中に次の音声を準備します。": "Fixed master and gesture speech is cached on this PC for reuse. The next audio is prepared during movies and speech.",
   "この言語の端末音声が見つかりません。端末の音声設定を確認してください。文字だけでも続けられます。": "No device voice was found for this language. Check your device speech settings. You can continue with text.",
   "師匠の会話としぐさは専用のVOICEVOX音声で読み上げます。初対面ムービー中は待ち、終了・スキップ後に読み上げます。": "Masters and gestures use dedicated VOICEVOX voices. Speech waits until an introduction movie ends or is skipped.",
   "師匠・しぐさの音声クレジット": "Master and gesture voice credits",

@@ -5,9 +5,15 @@ const path = require('node:path');
 const storage = require('./storage');
 module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
     const clickButton = async (selector = '#word-master-close', touch = false) => {
-        const at = await js(`(() => { const b=document.querySelector(${JSON.stringify(selector)}); b.scrollIntoView({block:'nearest'});
+        let at;
+        for (let i=0;i<100;i++) {
+            at = await js(`(() => { const b=document.querySelector(${JSON.stringify(selector)}); b.scrollIntoView({block:'nearest'});
             const r=b.getBoundingClientRect(), x=r.left+r.width/2, y=r.top+r.height/2;
-            return {x,y,hit:document.elementFromPoint(x,y)?.id, disabled:b.disabled}; })()`);
+            return {x,y,hit:document.elementFromPoint(x,y)?.id, disabled:b.disabled, phase:document.querySelector('#word-master-dialog').dataset.phase}; })()`);
+            if (selector === '#word-master-skip' && at.phase === 'conversation') return; // Movie ended naturally before the pointer reached Skip.
+            if (at.hit === selector.slice(1) && !at.disabled) break;
+            await sleep(50);
+        }
         assert.equal(at.hit, selector.slice(1), 'button receives real pointer hit'); assert.equal(at.disabled,false);
         window.webContents.debugger.attach('1.3');
         if (touch) {
@@ -21,8 +27,9 @@ module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
         await sleep(100);
     }
     await js('window.smokeBeginSession()');
+    for (let i=0;i<100&&!read()?.world?.island;i++) await sleep(50);
     const base = structuredClone(read());
-    assert.ok(base.world.island);
+    assert.ok(base?.world?.island,JSON.stringify(await js(`({screen:document.querySelector('#app').className,text:document.body.innerText.slice(-1200)})`)));
     // All fixture writes stay inside smoke_island's disposable profile.
     // Place the actor one arrival away; the production tick owns the encounter.
     let savedMeeting;
@@ -43,9 +50,22 @@ module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
                 assert.ok(storage.valid(fixture), `${locale}/${id} fixture`);
                 await window.loadURL('about:blank'); load(fixture);
                 await window.loadURL(url); await paintClock();
+                // Wait for bootstrap, then reveal the menu that computes Continue availability.
+                for (let i=0;i<200;i++) {
+                    if (await js('!document.querySelector("#word-new-game").disabled')) break;
+                    await sleep(50);
+                }
+                await js('document.querySelector(".word-logo").click()');
+                assert.ok(await js('!document.querySelector("#word-continue").disabled'), `${locale}/${id} fixture loaded`);
                 if (locale === 'ja') await js(`(() => {
                     const original = window.fetch.bind(window), cast = Object.values(ExperimentalWordVoice.cast);
                     window.masterVoiceRequests = [];
+                    window.masterAudioStarts = [];
+                    const nativeStart = AudioBufferSourceNode.prototype.start;
+                    AudioBufferSourceNode.prototype.start = function(...args) {
+                        window.masterAudioStarts.push({phase:document.querySelector('#word-master-dialog').dataset.phase});
+                        return nativeStart.apply(this,args);
+                    };
                     const pcm = new ArrayBuffer(44 + 2400 * 2), view = new DataView(pcm);
                     const word = (at, value) => [...value].forEach((c, i) => view.setUint8(at+i, c.charCodeAt(0)));
                     word(0,'RIFF'); view.setUint32(4,pcm.byteLength-8,true); word(8,'WAVEfmt ');
@@ -79,7 +99,7 @@ module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
                 assert.ok(await js('document.querySelector("#word-master-dialog").open'), `${locale}/${id} opens`);
                 if (!returning && locale === 'ja' && id === 'building') {
                     assert.equal(await js('document.querySelector("#word-master-dialog").dataset.phase'),'loading');
-                    assert.equal(await js('window.masterVoiceRequests.length'),0,'no voice while movie configuration loads');
+                    assert.equal(await js('window.masterAudioStarts.length'),0,'no playback while movie configuration loads');
                     await clickButton('#word-master-skip');
                     for (let i=0;i<100 && !(await js('window.masterConfigDelivered === true'));i++) await sleep(50);
                     assert.equal(await js('window.masterConfigDelivered'),true,'late configuration really resolves despite cancellation');
@@ -103,7 +123,8 @@ module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
                         }
                         await clickButton();
                     } else if (phase === 'video') {
-                        if (locale === 'ja') assert.equal(await js('window.masterVoiceRequests.length'),0,'no voice during movie');
+                        if (locale === 'ja') assert.equal(await js('window.masterAudioStarts.length'),0,'preparation never plays during movie');
+                        if (locale === 'ja') assert.ok(await js('window.masterVoiceRequests.length > 0'),'movie time is used for preparation');
                         if (locale==='ja' && id==='explore') {
                             if (process.argv.includes('--voice-cast')) await js(`document.querySelector('.word-master-video').dispatchEvent(new Event('ended')); void 0`);
                             for(let i=0;i<300;i++) {
@@ -118,16 +139,15 @@ module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
                 if (locale === 'ja') {
                     const expected = require('../../experimental_word_voice').cast[id];
                     for (let i=0;i<100;i++) {
-                        if (await js(`(() => { const rows = window.masterVoiceRequests.filter(r => new URL(r.url).pathname === '/synthesis');
-                            return rows.length >= 2 && new URL(rows.at(-2).url).searchParams.get('speaker') === '${expected.styleId}'
-                                && new URL(rows.at(-1).url).searchParams.get('speaker') === '2'; })()`)) break;
+                        if (await js(`window.masterAudioStarts.length >= 2`)) break;
                         await sleep(30);
                     }
                     const requests = await js('window.masterVoiceRequests');
                     const spoken = requests.filter(r => new URL(r.url).pathname === '/synthesis');
-                    assert.equal(new URL(spoken.at(-2).url).searchParams.get('speaker'), String(expected.styleId));
-                    assert.equal(new URL(spoken.at(-1).url).searchParams.get('speaker'),'2');
-                    assert.ok(spoken.every(r => ['conversation','silhouette'].includes(r.phase)),'only speak after movie or fallback');
+                    const first = spoken.findIndex(row => new URL(row.url).searchParams.get('speaker') === String(expected.styleId));
+                    assert.ok(first >= 0);
+                    assert.ok(spoken.slice(first+1).some(row => new URL(row.url).searchParams.get('speaker') === '2'));
+                    assert.ok((await js('window.masterAudioStarts')).every(row=>['conversation','silhouette'].includes(row.phase)), 'only play after movie or fallback');
                 }
                 const before = await js(`(() => { dispatchEvent(new Event('beforeunload')); return {
                     focused:document.activeElement.id, paused:document.querySelector('#word-pause').getAttribute('aria-pressed'),

@@ -52,6 +52,9 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         speech = require('./speech_process').createSpeechProcess(app.isPackaged
             ? { directory: path.join(process.resourcesPath, 'word-speech') } : {});
         const isWindow = event => event.sender === window.webContents && event.senderFrame?.url === url;
+        const voiceCache = require('./voice_cache_store').createStore(path.join(userData, 'voice-cache-v1'));
+        ipcMain.handle('word-voice-cache-get', (event, key) => isWindow(event) ? voiceCache.get(key) : { ok: false });
+        ipcMain.handle('word-voice-cache-put', (event, key, data) => isWindow(event) ? voiceCache.put(key, data) : { ok: false });
         ipcMain.handle('word-speech-prepare', event => isWindow(event)
             ? speech.prepare() : { ok: false, error: 'sender' });
         ipcMain.handle('word-speech-transcribe', (event, packet) => isWindow(event)

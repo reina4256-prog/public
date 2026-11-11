@@ -89,6 +89,9 @@ if (!process.versions.electron || process.type !== 'browser') {
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
         ipcMain.on('word-life-load', event => { event.returnValue = { ok: true, value: nextLoad }; });
         ipcMain.on('word-life-save', (event, value) => { snapshot = value; event.returnValue = { ok: true }; });
+        // Keep this UI fixture independent of persistent audio; smoke_voice_cache covers disk reuse.
+        ipcMain.handle('word-voice-cache-get', () => ({ ok: false }));
+        ipcMain.handle('word-voice-cache-put', () => ({ ok: false }));
         window = new BrowserWindow({ width: 1280, height: 900, show: false, webPreferences: {
             contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false,
             preload: path.join(__dirname, 'preload.js') } });
