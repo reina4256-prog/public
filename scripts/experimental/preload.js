@@ -1,6 +1,7 @@
 'use strict';
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('wordSpeech', {
+    prepare: () => ipcRenderer.invoke('word-speech-prepare'),
     transcribe: packet => ipcRenderer.invoke('word-speech-transcribe', packet),
     cancel: id => ipcRenderer.invoke('word-speech-cancel', id)
 });

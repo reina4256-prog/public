@@ -5,7 +5,8 @@
     const labels = {
         constellation: '言葉の星座', starsClose: '会話へ戻る',
         voiceStart: '音声で入力', voiceStop: '音声を止める', voiceRead: '返答を読み上げる', voiceVolume: '読み上げ音量',
-        voiceListening: '聞いています。もう一度押すと取り消します。',
+        voiceListening: '聞いています。途中の文を入力欄へ表示します。もう一度押すと取り消します。',
+        voicePreparingInput: '音声入力を準備しています。「聞いています」と表示されてから話してください。',
         voiceReview: '聞き取った文を確認して、送信してください。',
         voiceUnsupportedInput: 'この環境では音声入力を利用できません。文字で入力できます。',
         voiceUnsupportedOutput: 'この環境では読み上げを利用できません。返答は文字で表示します。',
@@ -964,9 +965,9 @@
     choiceStop.addEventListener('click', () => voice.stop());
     choiceContinue.addEventListener('click', closeVoiceChoices);
     window.speechSynthesis?.addEventListener('voiceschanged', renderVoiceChoices);
-    let voiceDraft = '', recognized = '', recognizedLocale = null;
+    let voiceDraft = '', voiceOwnedValue = '', recognized = '', recognizedLocale = null;
     const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
-        processingInput: 'voiceProcessingInput', missingRecognizer: 'voiceMissingRecognizer', networkInput: 'voiceNetworkInput',
+        preparingInput: 'voicePreparingInput', processingInput: 'voiceProcessingInput', missingRecognizer: 'voiceMissingRecognizer', networkInput: 'voiceNetworkInput',
         unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
         failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved',
         providerConnecting: 'voiceProviderConnecting', providerReady: 'voiceProviderReady', providerFailed: 'voiceProviderFailed',
@@ -981,10 +982,10 @@
             if (meeting.open && text) { choiceStatus.textContent = text; choiceStatus.hidden = false; } },
         listening: active => microphone.setAttribute('aria-pressed', String(active)),
         transcript: text => {
-            if (screen !== 'playing' || paused || document.hidden || input.value !== voiceDraft) return false;
+            if (screen !== 'playing' || paused || document.hidden || input.value !== voiceOwnedValue) return false;
             const combined = voiceDraft + (voiceDraft ? '\n' : '') + text;
             if (combined.length > input.maxLength) { voice.stop(); voiceStatus.textContent = t('voiceLong'); return false; }
-            input.value = combined; recognized = text; recognizedLocale = window.GameI18n.language;
+            input.value = combined; voiceOwnedValue = combined; recognized = text; recognizedLocale = window.GameI18n.language;
             input.dataset.inputMethod = 'speech'; input.focus();
         }
     });
@@ -994,7 +995,7 @@
     microphone.addEventListener('click', () => {
         if (paused || screen !== 'playing') return;
         dungeonView?.stop();
-        voiceDraft = input.value; voice.listen();
+        voiceDraft = input.value; voiceOwnedValue = input.value; voice.listen();
     });
     readAloud.addEventListener('change', () => {
         voice.setEnabled(readAloud.checked);

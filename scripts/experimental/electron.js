@@ -52,6 +52,8 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         speech = require('./speech_process').createSpeechProcess(app.isPackaged
             ? { directory: path.join(process.resourcesPath, 'word-speech') } : {});
         const isWindow = event => event.sender === window.webContents && event.senderFrame?.url === url;
+        ipcMain.handle('word-speech-prepare', event => isWindow(event)
+            ? speech.prepare() : { ok: false, error: 'sender' });
         ipcMain.handle('word-speech-transcribe', (event, packet) => isWindow(event)
             ? speech.transcribe(packet) : { ok: false, error: 'sender' });
         ipcMain.handle('word-speech-cancel', (event, id) => {

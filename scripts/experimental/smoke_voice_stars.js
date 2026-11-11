@@ -42,7 +42,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             ? '/__voicevox_test' + new URL(url).pathname + new URL(url).search : url, init);
         window.SpeechRecognition = class {
             constructor() { window.__recognition = this; }
-            start() { this.started = true; }
+            start() { this.started = true; this.onstart?.(); }
             abort() { this.aborted = true; }
         };
         window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
@@ -126,6 +126,22 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js(`document.querySelector('.word-stars-dialog').close(); void 0`);
         assert.equal(JSON.stringify(snapshot.state), original);
         const serial = snapshot.state.serial;
+        await js(`document.querySelector('.chat-form textarea').value = '下書き'; document.querySelector('#word-microphone').click();
+            window.__recognition.onresult({ results: [{ isFinal: false, 0: { transcript: '何をし' } }] }); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '下書き\n何をし');
+        assert.equal(snapshot.state.serial, serial);
+        await js(`window.__recognition.onresult({ results: [{ isFinal: false, 0: { transcript: '何をしている' } }] }); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '下書き\n何をしている');
+        await js(`window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: '何をしているの' } }] }); window.__recognition.onend(); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '下書き\n何をしているの');
+        await js(`document.querySelector('#word-microphone').click(); window.__old = window.__recognition;
+            document.querySelector('.chat-form textarea').value = '手で修正';
+            document.querySelector('.chat-form textarea').dispatchEvent(new Event('input'));
+            window.__old.onresult({ results: [{ isFinal: false, 0: { transcript: 'late' } }] }); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '手で修正');
+        assert.equal(snapshot.state.serial, serial);
+        await js(`document.querySelector('.chat-form textarea').value = ''; void 0`);
+        checks.push({ liveDraftReplacesPrefixAndRespectsEditing: true });
         await js(`document.querySelector('#word-microphone').click();
             window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: 'おはよう' } }] });
             window.__recognition.onend(); void 0`);

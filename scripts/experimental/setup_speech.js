@@ -7,7 +7,7 @@ const cp = require('node:child_process');
 const directory = path.resolve(__dirname, '../../docs/.local-history/voice-input-engine');
 const assets = [
     ['whisper.zip', 'https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-bin-x64.zip', '6ba69e3482d7826214f90a6a9c84ca07782aec1e1d0c6a7c30c994fd5d816ccb'],
-    ['ggml-base.bin', 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin', '60ed5bc3dd14eea856493d334349b405782ddcaf0028d4b5df4088345fba2efe']
+    ['ggml-small-q5_1.bin', 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin', 'ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb']
 ];
 async function install() {
     if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('This setup is for Windows x64.');

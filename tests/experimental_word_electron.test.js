@@ -38,6 +38,7 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
     const store = { load: () => ({ ok: true, value: null }), save: value => ({ ok: value.version === 1 }) };
     const requireMock = name => name === 'electron' ? { app, BrowserWindow: Window, ipcMain }
         : name === './speech_process' ? { createSpeechProcess: () => ({
+            prepare: async () => ({ ok: true }),
             transcribe: async () => ({ ok: true, text: 'draft' }), cancel() {}, dispose() {}
         }) }
         : name === './voicevox_process' ? { createVoicevoxProcess: () => ({
@@ -67,6 +68,8 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         assert.equal((await handlers.get('word-life-export')(stranger, {})).ok, false);
         assert.equal((await handlers.get('word-life-export')(request, {})).ok, true);
         assert.equal((await handlers.get('word-speech-transcribe')(stranger, {})).error, 'sender');
+        assert.equal((await handlers.get('word-speech-prepare')(stranger)).error, 'sender');
+        assert.deepEqual(await handlers.get('word-speech-prepare')(request), { ok: true });
         assert.deepEqual(await handlers.get('word-speech-transcribe')(request, {}), { ok: true, text: 'draft' });
         assert.equal((await fetch(window.url)).status, 200);
         window.emit('ready-to-show'); assert.equal(window.shown, true);

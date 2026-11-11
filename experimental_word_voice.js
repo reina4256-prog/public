@@ -149,13 +149,16 @@
             try {
                 const recognition = new Recognition(); active = recognition;
                 recognition.lang = locales[options.locale()] || options.locale();
-                recognition.continuous = false; recognition.interimResults = false; recognition.maxAlternatives = 1;
+                recognition.continuous = false; recognition.interimResults = true; recognition.maxAlternatives = 1;
                 let received = false, failed = false;
+                recognition.onstart = () => { if (token === generation) status('listening'); };
                 recognition.onprocessing = () => { if (token === generation) status('processingInput'); };
                 recognition.onresult = event => {
                     if (token !== generation || active !== recognition) return;
-                    const text = Array.from(event.results).filter(result => result.isFinal).map(result => result[0]?.transcript || '').join(' ').trim();
-                    if (text) { received = true; if (options.transcript(text) !== false) status('review'); }
+                    const results = Array.from(event.results);
+                    const text = results.map(result => result[0]?.transcript || '').join(' ').trim();
+                    const final = results.every(result => result.isFinal);
+                    if (text) { received = true; if (options.transcript(text, { final }) !== false && final) status('review'); }
                 };
                 recognition.onerror = event => {
                     if (token !== generation) return;
@@ -171,7 +174,7 @@
                     if (!received && !failed) status('noSpeech');
                     options.listening(false);
                 };
-                recognition.start(); options.listening(true); status('listening');
+                options.listening(true); status('preparingInput'); recognition.start();
             } catch (_) { active = null; options.listening(false); status('failedInput'); }
         }
         function speak(text, settings = {}) {

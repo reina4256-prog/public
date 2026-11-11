@@ -2,13 +2,15 @@
 
 ## 現在の実装仕様
 
-### 2026-11-11：デスクトップのPC内音声認識と終了修正
+### 2026-11-11：デスクトップの発話中文字起こしと終了修正
 
 - ユーザーは音声入力の接続失敗とゲーム終了時の未知dialog／VS Code終了を報告。dialog原文とVS Code終了の原因は未確定。Chromium合成micでgetUserMedia成功後にWeb Speechのnetwork失敗を再現し、マイク未検出と分離した。旧ゲームもWeb Speech APIを使用していたが、過去の実成功環境は未特定。ユーザー指定によりデスクトップ版を維持し、ブラウザー移行を代替解決にしない。
-- 開発Electronのpreloadが`wordSpeech`を提供する場合、`experimental_word_speech_input.js`でマイク取得・無音終端／最大20秒・16kHz mono PCM WAV化し、`speech_process.js`へ専用IPCで渡す。読み上げ用VOICEVOXと入力認識用Whisper.cppは別。ブラウザー版のWeb Speech経路は残すが、デスクトップではそこへ無言fallbackしない。
-- Whisper.cpp公式b5454 Windows x64 CPU版と多言語baseモデルを一度だけ`node scripts/experimental/setup_speech.js`で導入し、公開SHA256を検証する。通常起動ではダウンロードしない。開発用実体／モデル／licenseはGit・既存配布対象外の`docs/.local-history/voice-input-engine/`。この端末はVC runtime不足を既存VOICEVOXのMicrosoft runtimeのapp-localコピーで補った。OS／VS Code設定は変更しない。
-- 七言語の認識言語を明示し、renderer→mainの送信元／frame URL・request ID・WAV header／サイズを検証。最大20秒・main認識上限90秒・同時1件。認識childだけを直接cancelし、プロセスツリー／他アプリを操作しない。一時WAV／結果txtは成功／失敗／取消の終了後に削除する。音声・モデル推論を外部サービスへ送らず、認識は既存下書きへ戻すだけで、自動送信・本人学習・ノート追記をしない。停止／入力編集／非表示／言語・画面変更後の遅延結果は既存世代番号とadapterのabortで破棄する。
-- 話し終わった後は「PC内で音声を文字にしています」を表示し、未導入・拒否・無音・失敗を文字入力から分離する。ブラウザーのnetwork失敗も専用説明を表示する。七言語表示を更新し、入力／声設定／本人stateを共用する。実マイク・実音質のユーザー受入と合成mic検証を区別する。[導入・操作手順](../../word/VOICE_INPUT.md)を参照。
+- ユーザー実試用の「なにをしているの？」→「何をし？」とゆっくりでないと認識できない報告を受け、録音終了後の一回認識を発話中の暫定文字起こしへ変更。開発Electronのpreloadが`wordSpeech`を提供する場合、`experimental_word_speech_input.js`→専用IPC→`speech_process.js`でPC内認識する。読み上げ用VOICEVOXとは別。ブラウザー版のWeb Speech経路もinterimResultsを使用するが、デスクトップではそちらへ無言fallbackしない。
+- 明示mic押下でAudioContextを再開し、認識準備・マイク取得・音声graph接続の後に「聞いています」を表示する。準備中は話し始める案内を出さない。固定RMS .008／1.2秒終端から、.002／3秒無音へ変更し、小さい音も全sampleを保持する。無音のみ5秒・録音最大20秒は維持。1.5秒以上増えた最新の録音prefixを同時1件だけ推論し、処理待ちprefixをキューへ積まない。暫定は短いencoder窓・beam1、最後は録音全体・標準encoder窓・beam5で再認識する。文字ごとの即時性や実マイク精度を保証せず、更新時間はPC性能・発話長に依存する。
+- 暫定文は開始前の下書きを保ち、その後の認識範囲だけを置き換える。確定で重複追記しない。1000文字上限は維持し、本人へ渡すのはプレイヤーが手動送信した最終文だけ。暫定更新だけでは送信・学習・ノート追記・入力記録を作らない。手編集／停止／非表示／言語・画面変更／送信時に取り消し、世代番号・入力欄の所有値照合・adapterのabortで古い結果を拒否する。
+- Whisper.cpp公式b5454 Windows x64 CPU版と多言語small-q5_1モデル（約190MB）を一度だけ`node scripts/experimental/setup_speech.js`で導入し、公開SHA256を検証する。旧baseからの更新も同じコマンドで行う。通常起動ではダウンロードしない。開発用実体／モデル／licenseはGit・既存配布対象外の`docs/.local-history/voice-input-engine/`。不足したVC runtimeは既存VOICEVOXのMicrosoft runtimeのapp-localコピーで補い、OS／VS Code設定は変更しない。
+- `whisper-server`を自身のchildとして127.0.0.1の一時port・192bitランダムrequest pathで起動し、最大60秒のhealth確認後に再利用する。接続先はmainだけが保持しrendererから変更不可。変換機能／ffmpegを使わず、検査済みWAVをメモリ内で処理して一時音声を保存しない。空の自身専用作業directoryだけを終了時に除去する。七言語・送信元／frame URL・request ID・WAV header／上限640044bytesを検証し、main推論上限90秒・同時1件。取消中の推論／ゲーム終了は自身の認識childだけを直接停止し、他アプリ／プロセスツリー／VOICEVOXを停止しない。音声・推論を外部へ送らない。
+- 話し終わった後は「PC内で音声を文字にしています」を表示し、確定後に確認・送信を案内する。未導入・拒否・無音・サービス失敗は本人の未理解と分離する。七言語表示・共通入力／声設定／本人stateを保持し、実マイクのユーザー受入と合成mic検証を区別する。[導入・操作手順](../../word/VOICE_INPUT.md)を参照。
 - `taskkill /T /F`と全プロセスツリー終了を撤去。VOICEVOXは`detached:true`／`stdio:ignore`／`unref()`で独立常駐し、ゲーム×／Ctrl+Cで停止せず次回再利用。終了中の遅延起動は取り消す。launcherの停止は直接のElectron childだけ。VS Code終了の根本原因が確定・再現したとはしない。
 - Steam向けのデスクトップ方針を維持するが、本試作を販売版配布完了とはしない。packaged認識資産の参照先は`resources/word-speech`。エンジン／モデル／licenseの実同梱と正式VC++ prerequisite、実パッケージ通し確認は配布工程で別途必要。
 
@@ -34,7 +36,7 @@
 
 - learning／island／dungeonの3入口で同じ本人のstate・知識・ノート・自由入力を保持。旧AI／通常ゲームの保存形式は変更しない。
 - `experimental_word_voice.js`は音声認識と読み上げを独立提供する。文字→文字、音声→文字、文字→音声、音声→音声を選べ、文字の会話は常に表示する。読み上げは初期オフ・音量／停止付き。オン／オフ・音量は今回起動中だけ。声・高さ・速さは同一originの端末内独立localStorage `wordVoiceProfiles:v1`へ言語・外見別に保存し、本人state・知識・ノート・共通自由入力・旧ゲーム保存は変更しない。
-- 明示押下でSpeechRecognition／webkitSpeechRecognitionを一度開始し、確定認識文を下書きへ追記する。修正後に共通送信でき、自動送信・常時録音・音声ファイル保存はしない。1000文字を超える追記は下書きを変えず案内する。
+- 明示押下で音声入力を一度開始し、暫定／確定認識文を下書きへ反映する（デスクトップの経路・置換・準備表示は上記）。修正後に共通送信でき、自動送信・常時録音・音声ファイル保存はしない。1000文字を超える更新は下書きを変えず案内する。
 - 認識／読み上げは既存7言語設定に従う。認識と本人の理解を分け、拒否・無音・未対応・サービス失敗は本人の未理解として記録しない。送信時のplayer記録に入力手段・認識文／認識言語を添える。本人へ渡す原文は最終送信文。新解釈規則は追加しない。
 - 音声がブラウザーの認識サービスへ送信される場合がある旨を画面に示す。未対応環境では機能を個別に無効表示し、文字経路を維持。APIの存在だけで認識サービス成功とはしない。外部有料API・鍵・モデルは追加しない。
 - 2026-11-10の読み上げ修正依頼：表示済み返答をそのまま読み、「しぐさの読み上げ」という接頭辞は発声しない。しぐさ・観察・attendは専用ナレーター、本人の会話は出会った種族の選択声で読む。ナレーターに確保した実音声は全11種族の会話候補から除外する。種族間の会話声は共有できる。音程変更だけで別音声と扱わない。
