@@ -7,7 +7,8 @@ const cp = require('node:child_process');
 const directory = path.resolve(__dirname, '../../docs/.local-history/voice-input-engine');
 const assets = [
     ['whisper.zip', 'https://github.com/ggml-org/whisper.cpp/releases/download/b5454/whisper-bin-x64.zip', '6ba69e3482d7826214f90a6a9c84ca07782aec1e1d0c6a7c30c994fd5d816ccb'],
-    ['ggml-small-q5_1.bin', 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin', 'ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb']
+    ['ggml-small-q5_1.bin', 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin', 'ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb'],
+    ['ggml-silero-v5.1.2.bin', 'https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin', '29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf']
 ];
 async function install() {
     if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('This setup is for Windows x64.');
@@ -36,7 +37,8 @@ async function install() {
     // Keep upstream license notices alongside the locally installed binaries.
     for (const [name, url] of [
         ['LICENSE-whisper.cpp.txt', 'https://raw.githubusercontent.com/ggml-org/whisper.cpp/b5454/LICENSE'],
-        ['LICENSE-model.txt', 'https://raw.githubusercontent.com/openai/whisper/main/LICENSE']
+        ['LICENSE-model.txt', 'https://raw.githubusercontent.com/openai/whisper/main/LICENSE'],
+        ['LICENSE-vad.txt', 'https://raw.githubusercontent.com/snakers4/silero-vad/master/LICENSE']
     ]) {
         const response = await fetch(url); if (!response.ok) throw new Error('License HTTP ' + response.status);
         fs.writeFileSync(path.join(directory, name), await response.text());

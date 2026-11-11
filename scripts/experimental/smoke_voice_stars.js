@@ -69,7 +69,8 @@ if (!process.versions.electron || process.type !== 'browser') {
             } else if (mockEnabled && request.url === '/experimental_word_speech_input.js') {
                 // Real microphone/CLI is checked by a separate live input run.
                 response.writeHead(200, { 'Content-Type': 'application/javascript' });
-                response.end('window.ExperimentalWordSpeechInput = { create: () => window.SpeechRecognition };');
+                response.end(fs.readFileSync(path.resolve(__dirname, '../../experimental_word_speech_input.js'), 'utf8')
+                    + '\nwindow.ExperimentalWordSpeechInput.create = () => window.SpeechRecognition;');
             } else if (mockEnabled && request.url.startsWith('/experimental_word_learning.html')) {
                 const html = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_learning.html'), 'utf8');
                 response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
@@ -142,6 +143,19 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(snapshot.state.serial, serial);
         await js(`document.querySelector('.chat-form textarea').value = ''; void 0`);
         checks.push({ liveDraftReplacesPrefixAndRespectsEditing: true });
+        await js(`document.querySelector('#word-microphone').click();
+            window.__recognition.onresult({ results: [{ isFinal: false, 0: { transcript: 'こんち' } }] });
+            window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: '[音楽]' } }] });
+            window.__recognition.onend(); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), 'こんち');
+        assert.ok(await js(`document.querySelector('#word-voice-status').textContent.includes('確定できませんでした')`));
+        assert.equal(await js(`document.querySelector('#word-microphone').getAttribute('aria-pressed')`), 'false');
+        assert.equal(snapshot.state.serial, serial);
+        await js(`document.querySelector('.chat-form textarea').value = ''; document.querySelector('#word-microphone').click();
+            window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: '[音楽]' } }] }); window.__recognition.onend(); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '');
+        assert.equal(snapshot.state.serial, serial);
+        checks.push({ musicCannotOverwriteOrConfirmInterim: true });
         await js(`document.querySelector('#word-microphone').click();
             window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: 'おはよう' } }] });
             window.__recognition.onend(); void 0`);

@@ -1,9 +1,9 @@
 (function (root, factory) {
     'use strict';
-    const api = factory();
+    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_speech_input') : root.ExperimentalWordSpeechInput);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordVoice = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (speechInput) {
     'use strict';
     const locales = { ja: 'ja-JP', en: 'en-US', 'zh-CN': 'zh-CN', ru: 'ru-RU', 'es-ES': 'es-ES', 'pt-BR': 'pt-BR', de: 'de-DE' };
     const species = ['robot', 'spirit', 'seed', 'ghost', 'stone', 'magician', 'beetle', 'balloon', 'bird', 'machine', 'dragon'];
@@ -156,15 +156,17 @@
                 recognition.onresult = event => {
                     if (token !== generation || active !== recognition) return;
                     const results = Array.from(event.results);
-                    const text = results.map(result => result[0]?.transcript || '').join(' ').trim();
+                    const raw = results.map(result => result[0]?.transcript || '').join(' ').trim();
+                    const text = speechInput.speechText(raw);
                     const final = results.every(result => result.isFinal);
+                    if (!text && raw && final) { failed = true; status(received ? 'unconfirmedInput' : 'noSpeech'); return; }
                     if (text) { received = true; if (options.transcript(text, { final }) !== false && final) status('review'); }
                 };
                 recognition.onerror = event => {
                     if (token !== generation) return;
                     failed = true;
                     status(['not-allowed', 'service-not-allowed'].includes(event.error) ? 'denied'
-                        : event.error === 'no-speech' ? 'noSpeech'
+                        : event.error === 'no-speech' ? received ? 'unconfirmedInput' : 'noSpeech'
                         : event.error === 'recognizer-missing' ? 'missingRecognizer'
                         : event.error === 'network' ? 'networkInput' : 'failedInput');
                 };

@@ -3,6 +3,15 @@ window.audioManager = {
     currentAudio: null,
     currentBGMType: null,
     isPlayingTitle: false,
+    speechInputActive: false,
+
+    getPlaybackVolume: function() {
+        return this.getVolume() * (this.speechInputActive ? 0.15 : 1);
+    },
+    setSpeechInputActive: function(active) {
+        this.speechInputActive = active === true;
+        if (this.currentAudio) this.currentAudio.volume = this.getPlaybackVolume();
+    },
 
     getVolume: function() {
         if (window.GameSettings && typeof window.GameSettings.getBgmVolume === 'function') {
@@ -55,7 +64,7 @@ window.audioManager = {
         
         this.currentAudio = new Audio(src);
         this.currentAudio.loop = true; 
-        this.currentAudio.volume = this.getVolume();
+        this.currentAudio.volume = this.getPlaybackVolume();
 
         let playPromise = this.currentAudio.play();
         if (playPromise !== undefined) {
@@ -98,7 +107,7 @@ window.audioManager = {
         
         this.currentAudio = new Audio(src);
         this.currentAudio.loop = options.loop !== false;
-        this.currentAudio.volume = this.getVolume();
+        this.currentAudio.volume = this.getPlaybackVolume();
         let targetAudioRef = this.currentAudio; // ★追加：今のオーディオ参照を記憶しておく
         if (!targetAudioRef.loop) {
             targetAudioRef.addEventListener('ended', () => {
@@ -142,10 +151,11 @@ window.audioManager = {
         const volume = Math.max(0, Math.min(1, Number(v) || 0));
         if (window.GameSettings && typeof window.GameSettings.setBgmVolume === 'function') {
             window.GameSettings.setBgmVolume(volume);
+            if (this.currentAudio) this.currentAudio.volume = this.getPlaybackVolume();
             return;
         }
         if (typeof aiPet !== 'undefined') aiPet.bgmVolume = volume;
-        if (this.currentAudio) this.currentAudio.volume = volume;
+        if (this.currentAudio) this.currentAudio.volume = this.getPlaybackVolume();
     },
     
     restoreMainBGM: function() {

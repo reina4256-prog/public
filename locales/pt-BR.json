@@ -1,4 +1,5 @@
 {
+  "最後の認識を確定できませんでした。途中の候補を残しています。内容を確認して修正してください。": "Não foi possível confirmar o reconhecimento final. O texto provisório foi mantido. Confira e corrija o conteúdo.",
   "音声入力を準備しています。「聞いています」と表示されてから話してください。": "Preparando a entrada de voz. Espere aparecer Ouvindo antes de falar.",
   "聞いています。途中の文を入力欄へ表示します。もう一度押すと取り消します。": "Ouvindo. O texto provisório aparece no campo de entrada. Pressione novamente para cancelar.",
   "PC内で音声を文字にしています。": "Convertendo a fala em texto neste computador.",

@@ -5,6 +5,7 @@ const os = require('node:os');
 const cp = require('node:child_process');
 const net = require('node:net');
 const crypto = require('node:crypto');
+const { speechText } = require('../../experimental_word_speech_input');
 const languages = { 'ja-JP': 'ja', 'en-US': 'en', 'zh-CN': 'zh', 'ru-RU': 'ru', 'es-ES': 'es', 'pt-BR': 'pt', 'de-DE': 'de' };
 function validWav(bytes) {
     return bytes.length >= 46 && bytes.length <= 640044 && bytes.toString('ascii', 0, 4) === 'RIFF'
@@ -24,6 +25,7 @@ function createSpeechProcess(options = {}) {
     const directory = options.directory || path.resolve(__dirname, '../../docs/.local-history/voice-input-engine');
     const executable = path.join(directory, 'bin', 'Release', 'whisper-server.exe');
     const model = path.join(directory, 'ggml-small-q5_1.bin');
+    const vad = path.join(directory, 'ggml-silero-v5.1.2.bin');
     const spawn = options.spawn || cp.spawn, request = options.fetch || fetch;
     let service = null, starting = null, current = null, disposed = false;
     function stopService() {
@@ -34,7 +36,7 @@ function createSpeechProcess(options = {}) {
         if (disposed) return { ok: false, error: 'cancelled' };
         if (service?.ready) return { ok: true };
         if (starting) return starting;
-        if (!fs.existsSync(executable) || !fs.existsSync(model)) return { ok: false, error: 'missing' };
+        if (![executable, model, vad].every(file => fs.existsSync(file))) return { ok: false, error: 'missing' };
         starting = (async () => {
             const job = { ready: false, stopped: false, child: null }; service = job;
             try {
@@ -44,7 +46,8 @@ function createSpeechProcess(options = {}) {
                 job.temp = fs.mkdtempSync(path.join(os.tmpdir(), 'word-speech-'));
                 job.child = spawn(executable, ['-m', model, '--host', '127.0.0.1', '--port', String(port),
                     '--request-path', new URL(job.url).pathname, '--public', job.temp,
-                    '-ng', '-t', '4', '-bs', '5', '-nt'],
+                    '-ng', '-t', '4', '-bs', '5', '-nt', '-sns', '--vad', '-vm', vad,
+                    '-vt', '0.5', '-vspd', '150', '-vsd', '500', '-vp', '250'],
                 { cwd: job.temp, shell: false, windowsHide: true, stdio: 'ignore' });
                 const closed = () => {
                     job.stopped = true; if (service === job) service = null;
@@ -95,15 +98,15 @@ function createSpeechProcess(options = {}) {
             form.set('language', languages[packet.locale]); form.set('response_format', 'json');
             form.set('temperature', '0'); form.set('temperature_inc', '0');
             if (packet.interim === true) {
-                // A shorter encoder window speeds provisional prefixes. Final decoding keeps the full context.
-                form.set('audio_ctx', String(Math.min(1500, Math.max(256, Math.ceil(((bytes.length - 44) / 32000 * 50 + 100) / 128) * 128))));
+                // VAD needs a generous encoder window; tiny windows caused repeated short phrases.
+                form.set('audio_ctx', String(Math.min(1500, Math.max(768, Math.ceil(((bytes.length - 44) / 32000 * 50 + 100) / 128) * 128))));
                 form.set('beam_size', '1'); form.set('best_of', '1');
             }
             timeout = setTimeout(() => { job.abort.abort(); stopService(); }, 90000);
             const response = await request(service.url + '/inference', { method: 'POST', body: form,
                 signal: job.abort.signal, redirect: 'error', credentials: 'omit' });
             if (!response.ok) throw new Error('inference');
-            const text = (await response.json()).text?.trim();
+            const text = speechText((await response.json()).text);
             if (job.cancelled || disposed) return { ok: false, error: 'cancelled' };
             return typeof text === 'string' && text.length <= 4096 && text && !/^\[(BLANK_AUDIO|SILENCE)\]$/i.test(text)
                 ? { ok: true, text } : { ok: false, error: 'noSpeech' };

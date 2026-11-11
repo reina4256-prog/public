@@ -1,4 +1,5 @@
 {
+  "最後の認識を確定できませんでした。途中の候補を残しています。内容を確認して修正してください。": "The final recognition could not be confirmed. The interim draft has been kept. Please check and edit it.",
   "音声入力を準備しています。「聞いています」と表示されてから話してください。": "Preparing voice input. Please wait until Listening appears before speaking.",
   "聞いています。途中の文を入力欄へ表示します。もう一度押すと取り消します。": "Listening. Interim text appears in the input box. Press again to cancel.",
   "PC内で音声を文字にしています。": "Transcribing speech on this PC.",

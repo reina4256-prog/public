@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const { create, locales, species, voiceId } = require('../experimental_word_voice');
 const { voicevox } = require('../experimental_word_audio_provider');
 const { presets } = require('../experimental_word_voice_effects');
-const { encodeWav, create: createLocalRecognition } = require('../experimental_word_speech_input');
+const { encodeWav, speechText, create: createLocalRecognition } = require('../experimental_word_speech_input');
 const { createSpeechProcess, validWav } = require('../scripts/experimental/speech_process');
 function setup(supported = true) {
     const statuses = [], transcripts = [], spoken = [], listening = [];
@@ -64,12 +64,14 @@ test('desktop recognition reuses a private warm model, validates audio, and canc
     fs.mkdirSync(path.join(directory, 'bin/Release'), { recursive: true });
     fs.writeFileSync(path.join(directory, 'bin/Release/whisper-server.exe'), 'test');
     fs.writeFileSync(path.join(directory, 'ggml-small-q5_1.bin'), 'test');
+    fs.writeFileSync(path.join(directory, 'ggml-silero-v5.1.2.bin'), 'test');
     let temp, child, killed = 0, spawned = 0, pending, inference = 0;
     const provider = createSpeechProcess({ directory, freePort: async () => 49123, spawn(file, args, options) {
         assert.equal(options.shell, false); assert.equal(options.windowsHide, true);
         assert.equal(args[args.indexOf('--host') + 1], '127.0.0.1');
         assert.match(args[args.indexOf('--request-path') + 1], /^\/[a-f0-9]{48}$/);
         assert.equal(args.includes('--convert'), false); temp = options.cwd; spawned++;
+        assert.ok(args.includes('--vad')); assert.ok(args.includes('-sns'));
         child = new EventEmitter(); child.kill = () => { killed++; queueMicrotask(() => child.emit('close', 1)); };
         return child;
     }, fetch: async (url, options) => {
@@ -78,7 +80,7 @@ test('desktop recognition reuses a private warm model, validates audio, and canc
         assert.equal(options.body.get('language'), 'ja');
         assert.equal(options.body.get('file').size, 32044);
         if (++inference === 1) {
-            assert.equal(options.body.get('audio_ctx'), '256');
+            assert.equal(options.body.get('audio_ctx'), '768');
             return { ok: true, json: async () => ({ text: 'こんにちは' }) };
         }
         assert.equal(options.body.get('audio_ctx'), null);
@@ -97,7 +99,7 @@ test('desktop recognition reuses a private warm model, validates audio, and canc
     assert.equal((await waiting).error, 'cancelled'); assert.equal(killed, 1);
     await new Promise(resolve => setImmediate(resolve)); assert.equal(fs.existsSync(temp), false);
     provider.dispose(); assert.equal((await provider.prepare()).error, 'cancelled');
-    for (const name of ['bin/Release/whisper-server.exe', 'ggml-small-q5_1.bin']) fs.unlinkSync(path.join(directory, name));
+    for (const name of ['bin/Release/whisper-server.exe', 'ggml-small-q5_1.bin', 'ggml-silero-v5.1.2.bin']) fs.unlinkSync(path.join(directory, name));
     fs.rmdirSync(path.join(directory, 'bin/Release')); fs.rmdirSync(path.join(directory, 'bin')); fs.rmdirSync(directory);
 });
 
@@ -112,6 +114,41 @@ test('interim recognition drafts provisional text and only a final result asks f
     const previous = s.recognition; s.voice.stop();
     previous.onresult({ results: [Object.assign([{ transcript: 'late' }], { isFinal: false })] });
     assert.equal(s.transcripts.at(-1), '何をしているの');
+});
+
+test('non-speech labels cannot overwrite an interim draft or become a confirmed message', () => {
+    for (const label of ['[音楽]', '（音楽）', '[Music]', '[Música]', '[Musik]', '[Музыка]', '[音乐]', '[SILENCE]', '[ruído]', '[Geräusche]', '[шум]', '♪']) {
+        assert.equal(speechText(label), '');
+        const s = setup(); s.voice.listen();
+        s.recognition.onresult({ results: [Object.assign([{ transcript: 'こんち' }], { isFinal: false })] });
+        s.recognition.onresult({ results: [Object.assign([{ transcript: label }], { isFinal: true })] });
+        s.recognition.onend(); assert.deepEqual(s.transcripts, ['こんち']);
+        assert.equal(s.statuses.at(-1), 'unconfirmedInput'); assert.equal(s.voice.listening, false);
+    }
+    assert.equal(speechText('[音楽] こんにちは [音楽]'), 'こんにちは');
+    assert.equal(speechText('音楽について教えて'), '音楽について教えて');
+    assert.equal(speechText('[あお]'), '[あお]');
+    const s = setup(); s.voice.listen();
+    s.recognition.onresult({ results: [Object.assign([{ transcript: '[音楽]' }], { isFinal: true })] });
+    assert.deepEqual(s.transcripts, []); assert.equal(s.statuses.at(-1), 'noSpeech');
+});
+
+test('BGM ducking affects playback only and restores the latest requested volume, including track changes', () => {
+    const vm = require('node:vm'), fs = require('node:fs');
+    class Audio { constructor(src) { this.src = src; } play() {} pause() {} addEventListener() {} }
+    const pet = { bgmVolume: .6 }, window = { aiPet: pet };
+    vm.runInNewContext(fs.readFileSync(require.resolve('../island_shared.js'), 'utf8'), { window, aiPet: pet, Audio, console });
+    const manager = window.audioManager; manager.playBGM('robot');
+    manager.setSpeechInputActive(true); assert.equal(manager.currentAudio.volume, .09); assert.equal(pet.bgmVolume, .6);
+    manager.setVolume(.8); assert.equal(manager.currentAudio.volume, .12); assert.equal(pet.bgmVolume, .8);
+    manager.playBGM('spirit'); assert.equal(manager.currentAudio.volume, .12);
+    manager.setSpeechInputActive(false); assert.equal(manager.currentAudio.volume, .8);
+    manager.setVolume(0); manager.setSpeechInputActive(true); manager.setSpeechInputActive(false);
+    assert.equal(manager.currentAudio.volume, 0);
+    let setting = .4;
+    window.GameSettings = { getBgmVolume: () => setting, setBgmVolume(value) { setting = value; manager.currentAudio.volume = value; } };
+    manager.setSpeechInputActive(true); manager.setVolume(.8); assert.equal(manager.currentAudio.volume, .12);
+    manager.setSpeechInputActive(false); assert.equal(manager.currentAudio.volume, .8);
 });
 
 test('live capture waits for readiness, keeps quiet endings and pauses, coalesces prefixes, then redecodes the entire recording', async () => {
@@ -132,8 +169,9 @@ test('live capture waits for readiness, keeps quiet endings and pauses, coalesce
     recognition.onstart = () => { started++; }; recognition.onresult = e => emitted.push(e.results[0]);
     const capturing = recognition.capture(); await new Promise(resolve => setImmediate(resolve));
     assert.equal(started, 0); assert.equal(processor, undefined);
-    ready({ ok: true }); await capturing; assert.equal(started, 1);
+    ready({ ok: true }); await capturing; assert.equal(started, 0);
     const feed = (seconds, value) => processor.onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(seconds * 16000).fill(value) } });
+    feed(.4, 0); assert.equal(started, 1);
     feed(2, .1); assert.equal(requests.length, 1);
     feed(1.5, 0); assert.equal(recognition.finished, false);
     feed(1, .003); assert.equal(recognition.silence, 0); assert.equal(requests.length, 1);
@@ -144,9 +182,18 @@ test('live capture waits for readiness, keeps quiet endings and pauses, coalesce
     assert.equal(stopped, 1); assert.equal(requests.length, 2);
     deferred.shift()({ ok: true, text: '何をしている' }); await new Promise(resolve => setImmediate(resolve));
     assert.equal(requests.length, 3); assert.equal(requests[2].interim, false);
-    assert.equal(requests[2].wav.length, 44 + 4600 * 32);
+    assert.equal(requests[2].wav.length, 44 + 5000 * 32);
     deferred.shift()({ ok: true, text: '何をしているの' }); await finalizing;
     assert.equal(emitted.at(-1).isFinal, true); assert.equal(emitted.at(-1)[0].transcript, '何をしているの');
+    // Continuous background sound below the calibrated level must not keep resetting the endpoint.
+    host.wordSpeech.transcribe = async () => ({ ok: true, text: 'こんにちは' });
+    const background = new (createLocalRecognition(host))();
+    const preparing = background.capture(); await new Promise(resolve => setImmediate(resolve));
+    ready({ ok: true }); await preparing;
+    feed(.4, .01); assert.ok(background.threshold > .02 && background.threshold < .03);
+    feed(1, .1); feed(.3, .005); feed(2.6, .01); assert.equal(background.finished, false);
+    feed(.2, .01); await new Promise(resolve => setImmediate(resolve));
+    assert.equal(background.finished, true); assert.equal(stopped, 2);
 });
 test('recognition drafts text, uses all supported locales, and never submits', () => {
     const s = setup();

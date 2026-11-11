@@ -5,6 +5,12 @@
     else root.ExperimentalWordSpeechInput = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
     'use strict';
+    function speechText(value) {
+        if (typeof value !== 'string') return '';
+        // Only known non-speech annotations. Spoken words and player-created names stay intact.
+        const labels = /[\[［(（【]\s*(?:音楽|拍手|無音|雑音|music|musique|música|musik|музыка|音乐|音樂|applause|silence|noise|blank_audio|bgm|шум|тишина|аплодисменты|掌声|静音|噪声|aplausos|silencio|ruido|silêncio|ruído|applaus|stille|geräusche)\s*[\]］)）】]/giu;
+        return value.replace(labels, '').replace(/[♪♫♬]+/gu, '').trim();
+    }
     function encodeWav(samples, rate) {
         const length = Math.min(320000, Math.floor(samples.length * 16000 / rate));
         const bytes = new Uint8Array(44 + length * 2), view = new DataView(bytes.buffer);
@@ -43,7 +49,7 @@
                 const ready = await host.wordSpeech.prepare?.();
                 if (this.aborted) { await this.cleanup(); return; }
                 if (ready && !ready.ok) { this.fail(ready.error === 'missing' ? 'recognizer-missing' : 'recognizer-failed'); return; }
-                this.stream = await host.navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true }, video: false });
+                this.stream = await host.navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
                 if (this.aborted) { await this.cleanup(); return; }
                 this.source = this.context.createMediaStreamSource(this.stream);
                 // The graph is muted; microphone samples are never played through the speakers.
@@ -51,23 +57,30 @@
                 this.mute = this.context.createGain(); this.mute.gain.value = 0;
                 this.source.connect(this.processor); this.processor.connect(this.mute); this.mute.connect(this.context.destination);
                 this.chunks = []; this.count = 0; this.heard = false; this.silence = 0; this.finished = false; this.lastSnapshot = 0;
+                this.noiseLevels = []; this.threshold = .002; this.calibrated = false;
                 this.processor.onaudioprocess = event => {
                     if (this.aborted || this.finished) return;
                     const data = event.inputBuffer.getChannelData(0);
                     this.chunks.push(new Float32Array(data)); this.count += data.length;
                     const rms = Math.sqrt(data.reduce((sum, sample) => sum + sample * sample, 0) / data.length);
+                    if (!this.calibrated) {
+                        this.noiseLevels.push(rms);
+                        if (this.count < this.context.sampleRate * .4) return;
+                        const levels = this.noiseLevels.slice().sort((a, b) => a - b);
+                        this.threshold = Math.max(.002, Math.min(.05, levels[Math.floor(levels.length / 2)] * 2.5));
+                        this.calibrated = true; this.onstart?.(); return;
+                    }
                     // Never discard quiet samples. Allow a pause and quieter sentence endings.
-                    if (rms > .002) { this.heard = true; this.silence = 0; } else this.silence += data.length / this.context.sampleRate;
+                    if (rms > this.threshold) { this.heard = true; this.silence = 0; } else this.silence += data.length / this.context.sampleRate;
                     if ((this.heard && this.silence >= 3) || this.count >= this.context.sampleRate * 20
                         || (!this.heard && this.count >= this.context.sampleRate * 5)) void this.finishCapture();
-                    else if (this.heard && !this.pending && this.count - this.lastSnapshot >= this.context.sampleRate * 1.5) {
+                    else if (!this.pending && this.count - this.lastSnapshot >= this.context.sampleRate * 1.5) {
                         this.lastSnapshot = this.count;
                         // At most one request; take the newest complete prefix on the next update.
                         this.pending = this.recognize(false).finally(() => { this.pending = null; });
                     }
                 };
                 this.timer = setTimeout(() => { void this.finishCapture(); }, 20000);
-                this.onstart?.();
             }
             snapshot() {
                 const rate = this.context.sampleRate, samples = new Float32Array(this.count);
@@ -83,7 +96,9 @@
                         this.fail(result.error === 'missing' ? 'recognizer-missing' : result.error === 'noSpeech' ? 'no-speech' : 'recognizer-failed');
                         this.abort(); return;
                     }
-                    this.onresult?.({ results: [Object.assign([{ transcript: result.text }], { isFinal: final })] });
+                    const text = speechText(result.text);
+                    if (!text) { if (final) this.fail('no-speech'); return; }
+                    this.onresult?.({ results: [Object.assign([{ transcript: text }], { isFinal: final })] });
                     if (final) this.onend?.();
                 } catch (_) { this.fail('recognizer-failed'); this.abort(); }
             }
@@ -93,7 +108,6 @@
                 const wav = this.snapshot();
                 await this.cleanup();
                 if (this.aborted) return;
-                if (!this.heard) { this.fail('no-speech'); return; }
                 this.onprocessing?.();
                 await this.pending;
                 this.chunks = [];
@@ -101,5 +115,5 @@
             }
         };
     }
-    return { create, encodeWav };
+    return { create, encodeWav, speechText };
 });

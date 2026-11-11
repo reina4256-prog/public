@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+2026-11-11 BGM対策：[音声所有仕様](core/word_constellation_and_voice.md)へ非発話の上書き防止・人声検出・入力中BGM音量低減を追加。[VAD導入／更新](../word/VOICE_INPUT.md)とhandoffの実認識／未確認を参照。本人・手動送信・橋／DW／DX保留を維持。
+
 2026-11-11追補：[音声所有仕様](core/word_constellation_and_voice.md)のPC内認識を発話中の暫定文字起こしへ変更。入力欄の同じ範囲を更新し、最後に全文を確定する。準備表示・3秒無音・多言語smallモデルを採用。[導入／更新](../word/VOICE_INPUT.md)と現行handoffの実機・未確認を参照。手動送信・同じ子・橋／DW／DX保留を維持。
 
 2026-11-11最新：[音声所有仕様](core/word_constellation_and_voice.md)へデスクトップのPC内音声認識を追加し、VOICEVOX終了時のツリー強制終了を撤去。エンジンは独立常駐して再利用する。[入力の導入](../word/VOICE_INPUT.md)／[読み上げの試用](../word/VOICE_TRIAL.md)を参照。生成と加工の分離／①への復帰を維持し、②の実サービス・販売版同梱は未完。実機／公開と未確認は現行handoff、橋・DW／DX等の保留は維持。

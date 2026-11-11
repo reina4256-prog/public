@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-11 BGM対策：[音声所有仕様](../specs/core/word_constellation_and_voice.md)の非発話上書き防止・人声検出・入力中BGM低減を優先。[VAD導入／更新](VOICE_INPUT.md)とhandoffを参照。実BGM混合の合成検証と実内蔵マイク受入は分け、本人／橋／DW／DX保留を維持。
+
 2026-11-11追補：[音声所有仕様](../specs/core/word_constellation_and_voice.md)の発話中文字起こし・語尾欠け改善を優先。[導入／更新と操作](VOICE_INPUT.md)を参照。暫定文は同じ入力範囲を置換し、手動送信を維持。実物理マイク受入は合成mic検証と分離し、橋／DW／DX保留を保持。
 
 2026-11-11最新：[音声所有仕様](../specs/core/word_constellation_and_voice.md)へデスクトップのPC内認識を追加し、ゲーム終了時のプロセスツリー強制終了を撤去。VOICEVOXは独立常駐して再利用する。[音声入力](VOICE_INPUT.md)／[読み上げ](VOICE_TRIAL.md)と現行handoffの実機・未確認を参照。生成／加工分離・①への復帰・同じ子を保持し、②サービス／販売版同梱は未完、橋・DW／DX等の保留は維持。
