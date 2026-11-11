@@ -56,31 +56,21 @@
                 this.processor = this.context.createScriptProcessor(4096, 1, 1);
                 this.mute = this.context.createGain(); this.mute.gain.value = 0;
                 this.source.connect(this.processor); this.processor.connect(this.mute); this.mute.connect(this.context.destination);
-                this.chunks = []; this.count = 0; this.heard = false; this.silence = 0; this.finished = false; this.lastSnapshot = 0;
-                this.noiseLevels = []; this.threshold = .002; this.calibrated = false;
+                this.chunks = []; this.count = 0; this.finished = false; this.lastSnapshot = 0;
                 this.processor.onaudioprocess = event => {
                     if (this.aborted || this.finished) return;
                     const data = event.inputBuffer.getChannelData(0);
                     this.chunks.push(new Float32Array(data)); this.count += data.length;
-                    const rms = Math.sqrt(data.reduce((sum, sample) => sum + sample * sample, 0) / data.length);
-                    if (!this.calibrated) {
-                        this.noiseLevels.push(rms);
-                        if (this.count < this.context.sampleRate * .4) return;
-                        const levels = this.noiseLevels.slice().sort((a, b) => a - b);
-                        this.threshold = Math.max(.002, Math.min(.05, levels[Math.floor(levels.length / 2)] * 2.5));
-                        this.calibrated = true; this.onstart?.(); return;
-                    }
-                    // Never discard quiet samples. Allow a pause and quieter sentence endings.
-                    if (rms > this.threshold) { this.heard = true; this.silence = 0; } else this.silence += data.length / this.context.sampleRate;
-                    if ((this.heard && this.silence >= 3) || this.count >= this.context.sampleRate * 20
-                        || (!this.heard && this.count >= this.context.sampleRate * 5)) void this.finishCapture();
+                    // Silence and volume never end a recording. Keep every sample until the second press.
+                    if (this.count >= this.context.sampleRate * 20) void this.finishCapture(true);
                     else if (!this.pending && this.count - this.lastSnapshot >= this.context.sampleRate * 1.5) {
                         this.lastSnapshot = this.count;
                         // At most one request; take the newest complete prefix on the next update.
                         this.pending = this.recognize(false).finally(() => { this.pending = null; });
                     }
                 };
-                this.timer = setTimeout(() => { void this.finishCapture(); }, 20000);
+                this.timer = setTimeout(() => { void this.finishCapture(true); }, 20000);
+                this.onstart?.();
             }
             snapshot() {
                 const rate = this.context.sampleRate, samples = new Float32Array(this.count);
@@ -92,7 +82,8 @@
                     const result = await host.wordSpeech.transcribe({ id: this.id, locale: this.lang, wav, interim: !final });
                     if (this.aborted) return;
                     if (!result.ok) {
-                        if (!final && result.error === 'noSpeech') return;
+                        // Interim failure must not stop a manual recording or lose diagnostic audio.
+                        if (!final) return;
                         this.fail(result.error === 'missing' ? 'recognizer-missing' : result.error === 'noSpeech' ? 'no-speech' : 'recognizer-failed');
                         this.abort(); return;
                     }
@@ -100,12 +91,14 @@
                     if (!text) { if (final) this.fail('no-speech'); return; }
                     this.onresult?.({ results: [Object.assign([{ transcript: text }], { isFinal: final })] });
                     if (final) this.onend?.();
-                } catch (_) { this.fail('recognizer-failed'); this.abort(); }
+                } catch (_) { if (final) { this.fail('recognizer-failed'); this.abort(); } }
             }
-            async finishCapture() {
+            async finishCapture(limited = false) {
                 if (this.finished || this.aborted) return;
+                if (!this.chunks) { this.abort(); this.onend?.(); return; }
                 this.finished = true;
                 const wav = this.snapshot();
+                this.onrecording?.({ wav: wav.slice(), locale: this.lang, limited });
                 await this.cleanup();
                 if (this.aborted) return;
                 this.onprocessing?.();

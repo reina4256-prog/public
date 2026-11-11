@@ -15,6 +15,7 @@
         const Recognition = host.wordSpeech
             ? host.ExperimentalWordSpeechInput?.create(host) : host.SpeechRecognition || host.webkitSpeechRecognition;
         let active = null, generation = 0, enabled = false, utterance = null;
+        let lastRecording = null, comparison = null;
         const status = key => options.status(key);
         const providers = options.audioProviders || (host.ExperimentalWordAudioProvider ? { voicevox: host.ExperimentalWordAudioProvider.voicevox(host) } : {});
         const effects = options.effects || host.ExperimentalWordVoiceEffects?.create(host);
@@ -134,6 +135,8 @@
         }
         function stop() {
             generation++;
+            if (comparison) { void host.wordSpeech.cancel(comparison.id).catch(() => {}); comparison = null; }
+            options.comparing?.(false); options.stopPlayback?.();
             pending?.abort(); pending = null; effects?.stop();
             const previous = active; active = null;
             if (previous) { try { previous.abort(); } catch (_) { /* already ended */ } }
@@ -142,8 +145,14 @@
             status('ready');
         }
         function listen() {
-            if (active) { stop(); return; }
+            if (active) {
+                if (typeof active.finishCapture === 'function') { void active.finishCapture(); return; }
+                if (typeof active.stop === 'function') { active.stop(); return; }
+                stop(); return;
+            }
+            if (comparison) return;
             stop();
+            lastRecording = null; options.recording?.(null); options.comparison?.(null);
             if (!Recognition) { status('unsupportedInput'); return; }
             const token = generation;
             try {
@@ -152,6 +161,11 @@
                 recognition.continuous = false; recognition.interimResults = true; recognition.maxAlternatives = 1;
                 let received = false, failed = false;
                 recognition.onstart = () => { if (token === generation) status('listening'); };
+                recognition.onrecording = recording => {
+                    if (token !== generation || recording.wav.length < 46) return;
+                    lastRecording = { wav: recording.wav.slice(), locale: recording.locale };
+                    options.recording?.(lastRecording.wav.slice(), { locale: recording.locale, limited: recording.limited });
+                };
                 recognition.onprocessing = () => { if (token === generation) status('processingInput'); };
                 recognition.onresult = event => {
                     if (token !== generation || active !== recognition) return;
@@ -179,9 +193,33 @@
                 options.listening(true); status('preparingInput'); recognition.start();
             } catch (_) { active = null; options.listening(false); status('failedInput'); }
         }
+        function clearRecording() {
+            stop(); lastRecording = null; options.recording?.(null); options.comparison?.(null);
+        }
+        async function compareRecording(profile) {
+            if (active || comparison || !lastRecording || !host.wordSpeech
+                || !['standard', 'whole', 'medium'].includes(profile)) return;
+            stop(); options.comparison?.(null);
+            const token = generation, recording = lastRecording;
+            const job = { id: host.crypto.randomUUID() }; comparison = job;
+            options.comparing?.(true); options.listening(true); status('comparingInput');
+            try {
+                const result = await host.wordSpeech.transcribe({ id: job.id, locale: recording.locale,
+                    wav: recording.wav.slice(), profile });
+                if (token !== generation || comparison !== job) return;
+                if (result.ok && speechInput.speechText(result.text)) {
+                    options.comparison?.({ text: speechInput.speechText(result.text), profile, locale: recording.locale });
+                    status('comparisonReady');
+                } else status(result.error === 'missing' ? 'missingComparison'
+                    : result.error === 'noSpeech' ? 'comparisonNoSpeech' : 'failedInput');
+            } catch (_) { if (token === generation) status('failedInput'); }
+            finally {
+                if (comparison === job) { comparison = null; options.comparing?.(false); options.listening(false); }
+            }
+        }
         function speak(text, settings = {}) {
             const preview = settings.preview === true;
-            if ((!preview && (!enabled || !options.canSpeak())) || (preview && !options.canPreview?.()) || active || !text) return;
+            if ((!preview && (!enabled || !options.canSpeak())) || (preview && !options.canPreview?.()) || active || comparison || !text) return;
             const bank = voices();
             if (settings.role !== 'narration' && bank.source !== 'device') return speakAudio(text, settings, bank);
             if (!host.speechSynthesis || !host.SpeechSynthesisUtterance) { status('unsupportedOutput'); return; }
@@ -228,11 +266,11 @@
             } catch (_) { if (token === generation) status('providerFailed'); }
             finally { clearTimeout(timer); if (pending === controller) pending = null; }
         }
-        return { listen, speak, stop, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
+        return { listen, speak, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
             setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); },
             supportedInput: !!Recognition, supportedOutput: !!(host.speechSynthesis && host.SpeechSynthesisUtterance),
             get preferencesSaved() { return preferencesSaved; },
-            get listening() { return !!active; } };
+            get listening() { return !!active || !!comparison; } };
     }
     return { create, locales, species, voiceId };
 });

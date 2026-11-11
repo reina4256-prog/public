@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+2026-11-11 手動録音・比較：[音声所有仕様](core/word_constellation_and_voice.md)へ再押下で終了、直近録音の聞き返し、同じ音のsmall／medium比較を追加。無音終端を撤去し最大20秒だけ維持。[操作／比較モデル導入](../word/VOICE_INPUT.md)とhandoffを参照。実内蔵mic受入は未確認、橋／DW／DX保留を維持。
+
 2026-11-11 BGM対策：[音声所有仕様](core/word_constellation_and_voice.md)へ非発話の上書き防止・人声検出・入力中BGM音量低減を追加。[VAD導入／更新](../word/VOICE_INPUT.md)とhandoffの実認識／未確認を参照。本人・手動送信・橋／DW／DX保留を維持。
 
 2026-11-11追補：[音声所有仕様](core/word_constellation_and_voice.md)のPC内認識を発話中の暫定文字起こしへ変更。入力欄の同じ範囲を更新し、最後に全文を確定する。準備表示・3秒無音・多言語smallモデルを採用。[導入／更新](../word/VOICE_INPUT.md)と現行handoffの実機・未確認を参照。手動送信・同じ子・橋／DW／DX保留を維持。

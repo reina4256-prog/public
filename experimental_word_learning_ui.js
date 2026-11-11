@@ -5,7 +5,21 @@
     const labels = {
         constellation: '言葉の星座', starsClose: '会話へ戻る',
         voiceStart: '音声で入力', voiceStop: '音声を止める', voiceRead: '返答を読み上げる', voiceVolume: '読み上げ音量',
-        voiceListening: '聞いています。途中の文を入力欄へ表示します。もう一度押すと取り消します。',
+        voiceListening: '聞いています。話し終えたら「録音を終える」を押してください。無音では終了しません。最大20秒です。',
+        voiceFinish: '録音を終える', voiceRecordingCheck: '録音の確認・認識の比較',
+        voiceRecordingHelp: '認識へ渡した直近1件の録音を聞き返せます。人声の区間を選ぶ前の音です。録音はメモリだけに保持し、次の録音・言語変更・新規開始・終了時に消えます。',
+        voiceRecordingEmpty: '録音を終えると、ここで聞き返しと比較ができます。',
+        voiceRecordingLimit: '最大20秒で録音を終了しました。続きは分けて録音してください。',
+        voiceRecordingDelete: '録音を消す', voiceRecordingAudio: '認識に渡した録音',
+        voiceCompareProfile: '同じ録音を認識する方法', voiceCompareStandard: '標準（small・人声の区間）',
+        voiceCompareWhole: 'small・録音全体', voiceCompareMedium: '別モデル（medium・録音全体）',
+        voiceCompare: '同じ録音で認識する', voiceCompareHelp: '録り直さず比較します。mediumは追加導入が必要で、時間がかかる場合があります。別モデルでも精度は保証されません。',
+        voiceComparingInput: '同じ録音をPC内で認識しています。停止ボタンで取り消せます。',
+        voiceComparisonReady: '比較結果を表示しました。入力欄と送信内容は変更していません。',
+        voiceComparisonNoSpeech: 'この方法では声を聞き取れませんでした。録音と入力欄は残しています。',
+        voiceMissingComparison: '比較用モデルが未導入です。音声入力の導入手順にある比較用コマンドを実行してください。',
+        voiceComparisonApply: '比較結果を入力欄に使う',
+        voiceComparisonEdited: '入力欄が編集されているため置き換えませんでした。必要な部分を比較結果からコピーしてください。',
         voicePreparingInput: '音声入力を準備しています。「聞いています」と表示されてから話してください。',
         voiceReview: '聞き取った文を確認して、送信してください。',
         voiceUnconfirmedInput: '最後の認識を確定できませんでした。途中の候補を残しています。内容を確認して修正してください。',
@@ -835,11 +849,29 @@
     const voiceVolumeLabel = node('label', t('voiceVolume'), voiceTools);
     const voiceVolume = node('input', undefined, voiceVolumeLabel); voiceVolume.type = 'range';
     voiceVolume.min = '0'; voiceVolume.max = '1'; voiceVolume.step = '.1'; voiceVolume.value = '.8';
-    const voiceStop = node('button', t('voiceStop'), voiceTools); voiceStop.type = 'button';
+    const voiceStop = node('button', t('voiceStop'), voiceTools); voiceStop.type = 'button'; voiceStop.id = 'word-voice-stop';
     const voiceStatus = node('p', '', form); voiceStatus.id = 'word-voice-status'; voiceStatus.setAttribute('role', 'status');
     const voiceHelp = node('details', undefined, form); node('summary', t('voiceStart'), voiceHelp); node('p', t('voiceNotice'), voiceHelp);
     voiceHelp.querySelector('summary').textContent = t('voiceSettings');
     voiceHelp.append(voiceVolumeLabel, voiceStop);
+    const recordingCheck = node('details', undefined, form); recordingCheck.id = 'word-recording-check'; recordingCheck.hidden = !window.wordSpeech;
+    node('summary', t('voiceRecordingCheck'), recordingCheck);
+    node('p', t('voiceRecordingHelp'), recordingCheck);
+    const recordingInfo = node('p', t('voiceRecordingEmpty'), recordingCheck); recordingInfo.setAttribute('role', 'status');
+    const recordingAudio = node('audio', undefined, recordingCheck); recordingAudio.controls = true; recordingAudio.hidden = true;
+    recordingAudio.id = 'word-recording-audio'; recordingAudio.setAttribute('aria-label', t('voiceRecordingAudio'));
+    recordingAudio.setAttribute('controlslist', 'nodownload'); recordingAudio.style.maxWidth = '100%';
+    const recordingDelete = node('button', t('voiceRecordingDelete'), recordingCheck); recordingDelete.type = 'button'; recordingDelete.disabled = true;
+    const comparisonLabel = node('label', t('voiceCompareProfile'), recordingCheck);
+    const comparisonProfile = node('select', undefined, comparisonLabel); comparisonProfile.id = 'word-comparison-profile';
+    for (const [value, key] of [['standard', 'voiceCompareStandard'], ['whole', 'voiceCompareWhole'], ['medium', 'voiceCompareMedium']]) {
+        const option = node('option', t(key), comparisonProfile); option.value = value;
+    }
+    comparisonProfile.value = 'whole';
+    node('p', t('voiceCompareHelp'), recordingCheck);
+    const comparisonRun = node('button', t('voiceCompare'), recordingCheck); comparisonRun.type = 'button'; comparisonRun.disabled = true; comparisonRun.id = 'word-comparison-run';
+    const comparisonResult = node('p', '', recordingCheck); comparisonResult.id = 'word-comparison-result'; comparisonResult.setAttribute('data-i18n-skip', ''); comparisonResult.style.whiteSpace = 'pre-wrap';
+    const comparisonApply = node('button', t('voiceComparisonApply'), recordingCheck); comparisonApply.type = 'button'; comparisonApply.hidden = true; comparisonApply.id = 'word-comparison-apply';
     const voiceChoose = node('button', t('voiceChoose'), voiceHelp); voiceChoose.type = 'button'; voiceChoose.id = 'word-voice-choose';
     const activeVoiceCredit = node('p', '', voiceHelp); activeVoiceCredit.setAttribute('data-i18n-skip', ''); activeVoiceCredit.hidden = true;
     const voiceChoice = node('section', undefined, meetingBody); voiceChoice.className = 'word-voice-choice';
@@ -967,8 +999,10 @@
     choiceContinue.addEventListener('click', closeVoiceChoices);
     window.speechSynthesis?.addEventListener('voiceschanged', renderVoiceChoices);
     let voiceDraft = '', voiceOwnedValue = '', recognized = '', recognizedLocale = null;
+    let recordingURL = null, comparisonText = null;
     const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
         preparingInput: 'voicePreparingInput', processingInput: 'voiceProcessingInput', unconfirmedInput: 'voiceUnconfirmedInput', missingRecognizer: 'voiceMissingRecognizer', networkInput: 'voiceNetworkInput',
+        comparingInput: 'voiceComparingInput', comparisonReady: 'voiceComparisonReady', comparisonNoSpeech: 'voiceComparisonNoSpeech', missingComparison: 'voiceMissingComparison',
         unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
         failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved',
         providerConnecting: 'voiceProviderConnecting', providerReady: 'voiceProviderReady', providerFailed: 'voiceProviderFailed',
@@ -979,11 +1013,33 @@
         canPreview: () => meeting.open && screen !== 'signing' && !document.hidden,
         canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
         status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
+            if (['preparingInput', 'processingInput', 'comparingInput'].includes(key)) microphone.disabled = true;
+            if (key === 'listening') { microphone.disabled = false; microphone.textContent = t('voiceFinish'); }
             localMessage.textContent = key.startsWith('provider') ? text : '';
             if (meeting.open && text) { choiceStatus.textContent = text; choiceStatus.hidden = false; } },
         listening: active => {
             microphone.setAttribute('aria-pressed', String(active));
+            if (!active) { microphone.disabled = !voice.supportedInput; microphone.textContent = t('voiceStart'); }
+            comparisonRun.disabled = active || !recordingURL;
+            comparisonProfile.disabled = active; recordingAudio.hidden = active || !recordingURL;
+            comparisonApply.disabled = active;
             window.audioManager?.setSpeechInputActive?.(active);
+        },
+        stopPlayback: () => recordingAudio.pause(),
+        recording: (wav, info) => {
+            recordingAudio.pause(); recordingAudio.removeAttribute('src'); recordingAudio.load();
+            if (recordingURL) URL.revokeObjectURL(recordingURL);
+            recordingURL = wav ? URL.createObjectURL(new Blob([wav], { type: 'audio/wav' })) : null;
+            if (recordingURL) recordingAudio.src = recordingURL;
+            recordingAudio.hidden = !recordingURL || voice.listening;
+            recordingDelete.disabled = !recordingURL; comparisonRun.disabled = !recordingURL || voice.listening;
+            recordingInfo.textContent = info?.limited ? t('voiceRecordingLimit') : recordingURL ? t('voiceRecordingAudio') : t('voiceRecordingEmpty');
+            if (recordingURL) recordingCheck.open = true;
+        },
+        comparison: result => {
+            comparisonText = result?.text || null;
+            comparisonResult.textContent = result ? comparisonProfile.querySelector(`option[value="${result.profile}"]`).textContent + '\n' + result.text : '';
+            comparisonApply.hidden = !comparisonText;
         },
         transcript: text => {
             if (screen !== 'playing' || paused || document.hidden || input.value !== voiceOwnedValue) return false;
@@ -999,17 +1055,29 @@
     microphone.addEventListener('click', () => {
         if (paused || screen !== 'playing') return;
         dungeonView?.stop();
-        voiceDraft = input.value; voiceOwnedValue = input.value; voice.listen();
+        if (!voice.listening) { voiceDraft = input.value; voiceOwnedValue = input.value; }
+        voice.listen();
     });
+    recordingDelete.addEventListener('click', () => voice.clearRecording());
+    comparisonRun.addEventListener('click', () => { if (!paused && screen === 'playing') void voice.compareRecording(comparisonProfile.value); });
+    comparisonApply.addEventListener('click', () => {
+        if (!comparisonText || voice.listening || paused || screen !== 'playing') return;
+        if (input.value !== voiceOwnedValue) { voiceStatus.textContent = t('voiceComparisonEdited'); return; }
+        const combined = voiceDraft + (voiceDraft ? '\n' : '') + comparisonText;
+        if (combined.length > input.maxLength) { voiceStatus.textContent = t('voiceLong'); return; }
+        input.value = combined; voiceOwnedValue = combined; recognized = comparisonText; recognizedLocale = window.GameI18n.language;
+        input.dataset.inputMethod = 'speech'; voiceStatus.textContent = t('voiceReview'); input.focus();
+    });
+    recordingAudio.addEventListener('play', () => { if (voice.listening || paused || screen !== 'playing' || document.hidden) recordingAudio.pause(); });
     readAloud.addEventListener('change', () => {
         voice.setEnabled(readAloud.checked);
         if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
     voiceStop.addEventListener('click', () => voice.stop());
     input.addEventListener('input', () => { voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
-    window.addEventListener('game-language-changed', () => { voice.stop(); renderVoiceChoices(); liveStars.languageChanged(); });
+    window.addEventListener('game-language-changed', () => { voice.clearRecording(); renderVoiceChoices(); liveStars.languageChanged(); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) voice.stop(); });
-    window.addEventListener('pagehide', () => voice.stop());
+    window.addEventListener('pagehide', () => voice.clearRecording());
     input.addEventListener('keydown', event => {
         if (event.key === 'Enter' && !event.shiftKey && !event.isComposing && event.keyCode !== 229) {
             event.preventDefault(); if (!paused) form.requestSubmit();
@@ -1262,7 +1330,7 @@
     }
     function beginSession() {
         if (!catalog || screen === 'playing' || saveBlocked) return;
-        voice.stop(); recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
+        voice.clearRecording(); recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
         if (newMeeting) state.startOrigin = { version: 4, answers: answers.slice() };

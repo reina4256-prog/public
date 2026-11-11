@@ -169,12 +169,12 @@ test('live capture waits for readiness, keeps quiet endings and pauses, coalesce
     recognition.onstart = () => { started++; }; recognition.onresult = e => emitted.push(e.results[0]);
     const capturing = recognition.capture(); await new Promise(resolve => setImmediate(resolve));
     assert.equal(started, 0); assert.equal(processor, undefined);
-    ready({ ok: true }); await capturing; assert.equal(started, 0);
+    ready({ ok: true }); await capturing; assert.equal(started, 1);
     const feed = (seconds, value) => processor.onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(seconds * 16000).fill(value) } });
     feed(.4, 0); assert.equal(started, 1);
     feed(2, .1); assert.equal(requests.length, 1);
     feed(1.5, 0); assert.equal(recognition.finished, false);
-    feed(1, .003); assert.equal(recognition.silence, 0); assert.equal(requests.length, 1);
+    feed(1, .003); assert.equal(recognition.finished, false); assert.equal(requests.length, 1);
     deferred.shift()({ ok: true, text: '何をし' }); await new Promise(resolve => setImmediate(resolve));
     assert.equal(emitted[0].isFinal, false);
     feed(.1, .003); assert.equal(requests.length, 2);
@@ -185,15 +185,72 @@ test('live capture waits for readiness, keeps quiet endings and pauses, coalesce
     assert.equal(requests[2].wav.length, 44 + 5000 * 32);
     deferred.shift()({ ok: true, text: '何をしているの' }); await finalizing;
     assert.equal(emitted.at(-1).isFinal, true); assert.equal(emitted.at(-1)[0].transcript, '何をしているの');
-    // Continuous background sound below the calibrated level must not keep resetting the endpoint.
+    // Long silence and background sound must not terminate manual recording.
     host.wordSpeech.transcribe = async () => ({ ok: true, text: 'こんにちは' });
     const background = new (createLocalRecognition(host))();
     const preparing = background.capture(); await new Promise(resolve => setImmediate(resolve));
     ready({ ok: true }); await preparing;
-    feed(.4, .01); assert.ok(background.threshold > .02 && background.threshold < .03);
-    feed(1, .1); feed(.3, .005); feed(2.6, .01); assert.equal(background.finished, false);
-    feed(.2, .01); await new Promise(resolve => setImmediate(resolve));
+    feed(.4, .01); feed(1, .1); feed(8, 0); feed(2.6, .01);
+    assert.equal(background.finished, false);
+    let recorded;
+    background.onrecording = result => { recorded = result; };
+    feed(8, 0); await new Promise(resolve => setImmediate(resolve));
     assert.equal(background.finished, true); assert.equal(stopped, 2);
+    assert.equal(recorded.limited, true); assert.equal(recorded.wav.length, 640044);
+});
+
+test('second press finalizes without cancelling; comparison reuses exact audio, never changes draft and rejects late results', async () => {
+    let recognition, resolve, request;
+    const transcripts = [], recordings = [], results = [], statuses = [], cancelled = [];
+    class Recognition {
+        constructor() { recognition = this; }
+        start() { this.onstart(); }
+        finishCapture() { this.finished = true; }
+        abort() { this.aborted = true; }
+    }
+    const host = { crypto: { randomUUID: () => 'comparison-test' },
+        ExperimentalWordSpeechInput: { create: () => Recognition },
+        wordSpeech: { cancel: async id => cancelled.push(id), transcribe: packet => {
+            request = packet; return new Promise(done => { resolve = done; });
+        } } };
+    const voice = create(host, { locale: () => 'ja', status: key => statuses.push(key), listening() {},
+        transcript: text => transcripts.push(text), recording: wav => recordings.push(wav), comparison: result => results.push(result) });
+    voice.listen(); voice.listen(); assert.equal(recognition.finished, true); assert.equal(recognition.aborted, undefined);
+    const wav = encodeWav(new Float32Array(16000).fill(.1), 16000), expected = wav.slice();
+    recognition.onrecording({ wav, locale: 'ja-JP', limited: false });
+    wav.fill(0); recordings.at(-1).fill(0); // UI and caller cannot mutate the retained sample.
+    recognition.onerror({ error: 'no-speech' }); recognition.onend();
+    const comparing = voice.compareRecording('medium');
+    assert.equal(request.profile, 'medium'); assert.deepEqual(request.wav, expected); assert.equal(voice.listening, true);
+    resolve({ ok: true, text: 'こんにちは' }); await comparing;
+    assert.deepEqual(transcripts, []); assert.equal(results.at(-1).text, 'こんにちは'); assert.equal(voice.listening, false);
+    const late = voice.compareRecording('whole'); voice.stop(); resolve({ ok: true, text: 'late' }); await late;
+    assert.deepEqual(transcripts, []); assert.equal(results.at(-1), null); assert.deepEqual(cancelled, ['comparison-test']);
+    voice.clearRecording(); assert.equal(recordings.at(-1), null);
+    request = null; await voice.compareRecording('standard'); assert.equal(request, null);
+});
+
+test('interim service failure cannot end manual capture; final failure still exposes the exact recording', async () => {
+    let processor, stopped = 0, audio, error;
+    class Context {
+        constructor() { this.sampleRate = 16000; this.state = 'running'; }
+        async resume() {} async close() { this.state = 'closed'; }
+        createMediaStreamSource() { return { connect() {}, disconnect() {} }; }
+        createGain() { return { gain: {}, connect() {}, disconnect() {} }; }
+        createScriptProcessor() { return processor = { connect() {}, disconnect() {} }; }
+    }
+    const requests = [];
+    const host = { crypto: { randomUUID: () => 'failed-manual' }, AudioContext: Context,
+        navigator: { mediaDevices: { getUserMedia: async () => ({ getTracks: () => [{ stop() { stopped++; } }] }) } },
+        wordSpeech: { cancel: async () => {}, transcribe: async packet => { requests.push(packet); return { ok: false, error: 'failed' }; } } };
+    const recognition = new (createLocalRecognition(host))();
+    recognition.onrecording = result => { audio = result.wav; }; recognition.onerror = result => { error = result.error; };
+    await recognition.capture();
+    processor.onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(32000).fill(.002) } });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(recognition.finished, false); assert.equal(stopped, 0); assert.equal(error, undefined);
+    await recognition.finishCapture(); assert.ok(stopped >= 1); assert.equal(error, 'recognizer-failed');
+    assert.deepEqual(audio, requests.at(-1).wav); assert.equal(audio.length, 64044);
 });
 test('recognition drafts text, uses all supported locales, and never submits', () => {
     const s = setup();

@@ -10,10 +10,11 @@ const assets = [
     ['ggml-small-q5_1.bin', 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small-q5_1.bin', 'ae85e4a935d7a567bd102fe55afc16bb595bdb618e11b2fc7591bc08120411bb'],
     ['ggml-silero-v5.1.2.bin', 'https://huggingface.co/ggml-org/whisper-vad/resolve/main/ggml-silero-v5.1.2.bin', '29940d98d42b91fbd05ce489f3ecf7c72f0a42f027e4875919a28fb4c04ea2cf']
 ];
-async function install() {
+const comparisonAsset = ['ggml-medium-q5_0.bin', 'https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-medium-q5_0.bin', '19fea4b380c3a618ec4723c3eef2eb785ffba0d0538cf43f8f235e7b3b34220f'];
+async function install(comparison = false) {
     if (process.platform !== 'win32' || process.arch !== 'x64') throw new Error('This setup is for Windows x64.');
     fs.mkdirSync(directory, { recursive: true });
-    for (const [name, url, expected] of assets) {
+    for (const [name, url, expected] of [...assets, ...(comparison ? [comparisonAsset] : [])]) {
         const destination = path.join(directory, name);
         const hash = file => crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex');
         if (fs.existsSync(destination) && hash(destination) === expected) continue;
@@ -45,5 +46,5 @@ async function install() {
     }
     console.log('Local speech input installed: ' + directory);
 }
-if (require.main === module) install().catch(error => { console.error(error.message); process.exitCode = 1; });
+if (require.main === module) install(process.argv.includes('--comparison')).catch(error => { console.error(error.message); process.exitCode = 1; });
 module.exports = { install, directory };

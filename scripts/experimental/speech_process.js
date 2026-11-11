@@ -7,6 +7,12 @@ const net = require('node:net');
 const crypto = require('node:crypto');
 const { speechText } = require('../../experimental_word_speech_input');
 const languages = { 'ja-JP': 'ja', 'en-US': 'en', 'zh-CN': 'zh', 'ru-RU': 'ru', 'es-ES': 'es', 'pt-BR': 'pt', 'de-DE': 'de' };
+// Renderer chooses only these fixed profiles, never a path, executable or URL.
+const profiles = {
+    standard: { model: 'ggml-small-q5_1.bin', vad: true },
+    whole: { model: 'ggml-small-q5_1.bin', vad: false },
+    medium: { model: 'ggml-medium-q5_0.bin', vad: false }
+};
 function validWav(bytes) {
     return bytes.length >= 46 && bytes.length <= 640044 && bytes.toString('ascii', 0, 4) === 'RIFF'
         && bytes.readUInt32LE(4) === bytes.length - 8 && bytes.toString('ascii', 8, 16) === 'WAVEfmt '
@@ -24,7 +30,6 @@ function freePort() {
 function createSpeechProcess(options = {}) {
     const directory = options.directory || path.resolve(__dirname, '../../docs/.local-history/voice-input-engine');
     const executable = path.join(directory, 'bin', 'Release', 'whisper-server.exe');
-    const model = path.join(directory, 'ggml-small-q5_1.bin');
     const vad = path.join(directory, 'ggml-silero-v5.1.2.bin');
     const spawn = options.spawn || cp.spawn, request = options.fetch || fetch;
     let service = null, starting = null, current = null, disposed = false;
@@ -32,13 +37,16 @@ function createSpeechProcess(options = {}) {
         const previous = service; service = null;
         if (previous) { previous.stopped = true; previous.child?.kill(); }
     }
-    async function prepare() {
-        if (disposed) return { ok: false, error: 'cancelled' };
-        if (service?.ready) return { ok: true };
-        if (starting) return starting;
-        if (![executable, model, vad].every(file => fs.existsSync(file))) return { ok: false, error: 'missing' };
+    async function prepare(profile = 'standard') {
+        if (!Object.hasOwn(profiles, profile)) return { ok: false, error: 'invalid' };
+        const config = profiles[profile], model = path.join(directory, config.model);
+        if (disposed || current?.cancelled) return { ok: false, error: 'cancelled' };
+        if (service?.ready && service.profile === profile) return { ok: true };
+        if (starting) { await starting; return prepare(profile); }
+        if (![executable, model, ...(config.vad ? [vad] : [])].every(file => fs.existsSync(file))) return { ok: false, error: 'missing' };
+        stopService();
         starting = (async () => {
-            const job = { ready: false, stopped: false, child: null }; service = job;
+            const job = { ready: false, stopped: false, child: null, profile }; service = job;
             try {
                 const port = await (options.freePort || freePort)();
                 if (disposed || job.stopped) throw new Error('cancelled');
@@ -46,8 +54,8 @@ function createSpeechProcess(options = {}) {
                 job.temp = fs.mkdtempSync(path.join(os.tmpdir(), 'word-speech-'));
                 job.child = spawn(executable, ['-m', model, '--host', '127.0.0.1', '--port', String(port),
                     '--request-path', new URL(job.url).pathname, '--public', job.temp,
-                    '-ng', '-t', '4', '-bs', '5', '-nt', '-sns', '--vad', '-vm', vad,
-                    '-vt', '0.5', '-vspd', '150', '-vsd', '500', '-vp', '250'],
+                    '-ng', '-t', '4', '-bs', '5', '-nt', '-sns',
+                    ...(config.vad ? ['--vad', '-vm', vad, '-vt', '0.5', '-vspd', '150', '-vsd', '500', '-vp', '250'] : [])],
                 { cwd: job.temp, shell: false, windowsHide: true, stdio: 'ignore' });
                 const closed = () => {
                     job.stopped = true; if (service === job) service = null;
@@ -83,14 +91,15 @@ function createSpeechProcess(options = {}) {
     async function transcribe(packet) {
         if (!packet || typeof packet.id !== 'string' || !/^[a-z0-9-]{1,80}$/.test(packet.id)
             || !Object.hasOwn(languages, packet.locale) || !(packet.wav instanceof Uint8Array)
-            || packet.wav.byteLength < 46 || packet.wav.byteLength > 640044) return { ok: false, error: 'invalid' };
+            || packet.wav.byteLength < 46 || packet.wav.byteLength > 640044
+            || !Object.hasOwn(profiles, packet.profile ?? 'standard')) return { ok: false, error: 'invalid' };
         const bytes = Buffer.from(packet.wav);
         if (!validWav(bytes)) return { ok: false, error: 'invalid' };
         if (current) return { ok: false, error: 'busy' };
         const job = { id: packet.id, cancelled: false, abort: new AbortController() }; current = job;
         let timeout;
         try {
-            const ready = await prepare();
+            const ready = await prepare(packet.profile ?? 'standard');
             if (job.cancelled || disposed) return { ok: false, error: 'cancelled' };
             if (!ready.ok) return ready;
             const form = new FormData();
@@ -102,7 +111,7 @@ function createSpeechProcess(options = {}) {
                 form.set('audio_ctx', String(Math.min(1500, Math.max(768, Math.ceil(((bytes.length - 44) / 32000 * 50 + 100) / 128) * 128))));
                 form.set('beam_size', '1'); form.set('best_of', '1');
             }
-            timeout = setTimeout(() => { job.abort.abort(); stopService(); }, 90000);
+            timeout = setTimeout(() => { job.abort.abort(); stopService(); }, packet.profile === 'medium' ? 180000 : 90000);
             const response = await request(service.url + '/inference', { method: 'POST', body: form,
                 signal: job.abort.signal, redirect: 'error', credentials: 'omit' });
             if (!response.ok) throw new Error('inference');
@@ -113,6 +122,7 @@ function createSpeechProcess(options = {}) {
         } catch (_) { return { ok: false, error: job.cancelled || disposed ? 'cancelled' : 'failed' }; }
         finally { clearTimeout(timeout); if (current === job) current = null; }
     }
-    return { prepare, transcribe, cancel, dispose() { disposed = true; cancel(); stopService(); }, directory };
+    return { prepare: () => current ? Promise.resolve({ ok: false, error: 'busy' }) : prepare(),
+        transcribe, cancel, dispose() { disposed = true; cancel(); stopService(); }, directory };
 }
-module.exports = { createSpeechProcess, validWav, languages };
+module.exports = { createSpeechProcess, validWav, languages, profiles };

@@ -18,6 +18,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     fs.mkdirSync(evidence, { recursive: true });
     let server, window, snapshot = null, nextLoad = null, mockEnabled = false;
     const audioRequests = [];
+    const comparisonRequests = [];
     // Synthetic PCM, not evidence of successful real VOICEVOX synthesis.
     const pcm = Buffer.alloc(44 + 4800 * 2);
     pcm.write('RIFF'); pcm.writeUInt32LE(pcm.length - 8, 4); pcm.write('WAVEfmt ', 8); pcm.writeUInt32LE(16, 16);
@@ -44,6 +45,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             constructor() { window.__recognition = this; }
             start() { this.started = true; this.onstart?.(); }
             abort() { this.aborted = true; }
+            finishCapture() { this.finished = true; this.onprocessing?.(); }
         };
         window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
         Object.defineProperty(window, 'speechSynthesis', { value: {
@@ -52,6 +54,11 @@ if (!process.versions.electron || process.type !== 'browser') {
                 [0,1,2].map(i => ({lang, name: lang+' voice '+i, voiceURI: lang+'-'+i}))); }
         }});`;
     app.whenReady().then(async () => {
+        ipcMain.handle('word-speech-cancel', () => ({ ok: true }));
+        ipcMain.handle('word-speech-transcribe', async (_event, packet) => {
+            comparisonRequests.push({ profile: packet.profile, wav: Array.from(packet.wav) });
+            return { ok: true, text: packet.profile === 'medium' ? 'こんにちは' : '何をしているの' };
+        });
         server = require('./serve').createServer();
         const serve = server.listeners('request')[0]; server.removeAllListeners('request');
         server.on('request', (request, response) => {
@@ -156,6 +163,40 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '');
         assert.equal(snapshot.state.serial, serial);
         checks.push({ musicCannotOverwriteOrConfirmInterim: true });
+        // Explicitly mocked recorder/model responses; exact audio transport and draft ownership are real.
+        await js(`document.querySelector('#word-microphone').click();
+            window.__recognition.onresult({ results: [{ isFinal: false, 0: { transcript: 'こんち' } }] });
+            document.querySelector('#word-microphone').click(); void 0`);
+        assert.equal(await js(`window.__recognition.finished && !window.__recognition.aborted`), true);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), 'こんち');
+        await js(`window.__recording = window.ExperimentalWordSpeechInput.encodeWav(new Float32Array(16000).fill(.1), 16000);
+            window.__recognition.onrecording({ wav: window.__recording, locale: 'ja-JP', limited: false });
+            window.__recognition.onerror({ error: 'no-speech' }); window.__recognition.onend(); void 0`);
+        assert.equal(await js(`document.querySelector('#word-recording-audio').src.startsWith('blob:')`), true);
+        assert.equal(await js(`document.querySelector('#word-recording-check').open`), true);
+        assert.equal(await js(`(async () => (await fetch(document.querySelector('#word-recording-audio').src).then(r=>r.arrayBuffer())).byteLength)()`), 32044);
+        await js(`document.querySelector('#word-comparison-profile').value = 'medium'; document.querySelector('#word-comparison-run').click(); void 0`);
+        for (let i=0; i<30 && !(await js(`document.querySelector('#word-comparison-result').textContent.includes('こんにちは')`)); i++) await sleep(50);
+        assert.equal(comparisonRequests.at(-1).profile, 'medium');
+        assert.deepEqual(comparisonRequests.at(-1).wav, await js(`Array.from(window.__recording)`));
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), 'こんち');
+        assert.equal(snapshot.state.serial, serial);
+        await js(`document.querySelector('#word-comparison-apply').click(); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), 'こんにちは');
+        await js(`document.querySelector('.chat-form textarea').value = '手で修正'; document.querySelector('.chat-form textarea').dispatchEvent(new Event('input'));
+            document.querySelector('#word-comparison-apply').click(); void 0`);
+        assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '手で修正');
+        for (const width of [1280, 390]) {
+            window.setContentSize(width, 900); await sleep(100);
+            assert.equal(await js(`document.documentElement.scrollWidth <= innerWidth + 1`), true);
+            fs.writeFileSync(path.join(evidence, `recording-${width}.png`), (await window.webContents.capturePage()).toPNG());
+        }
+        await js(`window.GameI18n.setLanguage('en'); void 0`);
+        assert.equal(await js(`document.querySelector('#word-recording-audio').hasAttribute('src')`), false);
+        assert.equal(await js(`document.querySelector('#word-comparison-result').textContent`), '');
+        await js(`window.GameI18n.setLanguage('ja'); document.querySelector('.chat-form textarea').value = ''; void 0`);
+        checks.push({ manualFinishRetainsDraft: true, replayExactWav: true, sameAudioComparison: true,
+            comparisonRequiresExplicitApply: true, editedInputPreserved: true, languageChangeClearsAudio: true, recordingViewports: 2 });
         await js(`document.querySelector('#word-microphone').click();
             window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: 'おはよう' } }] });
             window.__recognition.onend(); void 0`);
@@ -173,7 +214,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(snapshot.state.serial, serial + 3);
         const after = snapshot.state.serial;
         await js(`document.querySelector('#word-microphone').click(); window.__old = window.__recognition;
-            document.querySelector('#word-microphone').click(); window.__old.onresult({results:[{isFinal:true,0:{transcript:'late'}}]}); void 0`);
+            document.querySelector('#word-voice-stop').click(); window.__old.onresult({results:[{isFinal:true,0:{transcript:'late'}}]}); void 0`);
         assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '');
         assert.equal(snapshot.state.serial, after);
         checks.push({ fourTransportModes: true, draftBeforeSend: true, lateRecognitionIgnored: true });
