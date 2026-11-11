@@ -163,6 +163,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelector('.chat-form textarea').value`), '');
         assert.equal(snapshot.state.serial, serial);
         checks.push({ musicCannotOverwriteOrConfirmInterim: true });
+        assert.equal(await js(`document.querySelector('#word-capture-processing').checked`), true);
         // Explicitly mocked recorder/model responses; exact audio transport and draft ownership are real.
         await js(`document.querySelector('#word-microphone').click();
             window.__recognition.onresult({ results: [{ isFinal: false, 0: { transcript: 'こんち' } }] });
@@ -170,10 +171,17 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`window.__recognition.finished && !window.__recognition.aborted`), true);
         assert.equal(await js(`document.querySelector('.chat-form textarea').value`), 'こんち');
         await js(`window.__recording = window.ExperimentalWordSpeechInput.encodeWav(new Float32Array(16000).fill(.1), 16000);
-            window.__recognition.onrecording({ wav: window.__recording, locale: 'ja-JP', limited: false });
+            window.__recognition.onrecording({ wav: window.__recording, locale: 'ja-JP', limited: false,
+                captureProcessing: window.__recognition.captureProcessing,
+                captureSettings: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
             window.__recognition.onerror({ error: 'no-speech' }); window.__recognition.onend(); void 0`);
         assert.equal(await js(`document.querySelector('#word-recording-audio').src.startsWith('blob:')`), true);
         assert.equal(await js(`document.querySelector('#word-recording-check').open`), true);
+        assert.equal(await js(`document.querySelector('#word-recording-mode').textContent`), '補正ありで録音');
+        await js(`window.__beforeToggleURL = document.querySelector('#word-recording-audio').src;
+            document.querySelector('#word-capture-processing').click(); void 0`);
+        assert.equal(await js(`document.querySelector('#word-recording-audio').src === window.__beforeToggleURL`), true);
+        assert.equal(await js(`document.querySelector('#word-recording-mode').textContent`), '補正ありで録音');
         assert.equal(await js(`(async () => (await fetch(document.querySelector('#word-recording-audio').src).then(r=>r.arrayBuffer())).byteLength)()`), 32044);
         await js(`document.querySelector('#word-comparison-profile').value = 'medium'; document.querySelector('#word-comparison-run').click(); void 0`);
         for (let i=0; i<30 && !(await js(`document.querySelector('#word-comparison-result').textContent.includes('こんにちは')`)); i++) await sleep(50);
@@ -197,6 +205,20 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js(`window.GameI18n.setLanguage('ja'); document.querySelector('.chat-form textarea').value = ''; void 0`);
         checks.push({ manualFinishRetainsDraft: true, replayExactWav: true, sameAudioComparison: true,
             comparisonRequiresExplicitApply: true, editedInputPreserved: true, languageChangeClearsAudio: true, recordingViewports: 2 });
+        await js(`document.querySelector('#word-microphone').click(); void 0`);
+        assert.equal(await js(`window.__recognition.captureProcessing`), false);
+        assert.equal(await js(`document.querySelector('#word-capture-processing').disabled`), true);
+        await js(`window.__recognition.onrecording({ wav: window.__recording, locale: 'ja-JP', limited: false,
+            captureProcessing: false, captureSettings: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+            window.__recognition.onend(); void 0`);
+        assert.equal(await js(`document.querySelector('#word-recording-mode').textContent`), '補正なしで録音');
+        await js(`window.__recognition.onrecording({ wav: window.__recording, locale: 'ja-JP', captureProcessing: false,
+            captureSettings: { echoCancellation: true, noiseSuppression: false, autoGainControl: false } }); void 0`);
+        assert.ok(await js(`document.querySelector('#word-recording-mode').textContent.includes('異なる補正設定')`));
+        await js(`window.__recognition.onrecording({ wav: window.__recording, locale: 'ja-JP', captureProcessing: false }); void 0`);
+        assert.ok(await js(`document.querySelector('#word-recording-mode').textContent.includes('不明')`));
+        checks.push({ correctionDefaultOn: true, togglePreservesPreviousAudio: true, correctionOffNextCapture: true,
+            correctionDisabledWhileActive: true, appliedMismatchAndUnknownDisclosed: true });
         await js(`document.querySelector('#word-microphone').click();
             window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: 'おはよう' } }] });
             window.__recognition.onend(); void 0`);

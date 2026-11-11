@@ -252,6 +252,32 @@ test('interim service failure cannot end manual capture; final failure still exp
     await recognition.finishCapture(); assert.ok(stopped >= 1); assert.equal(error, 'recognizer-failed');
     assert.deepEqual(audio, requests.at(-1).wav); assert.equal(audio.length, 64044);
 });
+test('capture correction selection reaches all three microphone constraints and recording metadata', async () => {
+    for (const enabled of [true, false]) {
+        let processor, requested, recording;
+        class Context {
+            constructor() { this.sampleRate = 16000; this.state = 'running'; }
+            async resume() {} async close() { this.state = 'closed'; }
+            createMediaStreamSource() { return { connect() {}, disconnect() {} }; }
+            createGain() { return { gain: {}, connect() {}, disconnect() {} }; }
+            createScriptProcessor() { return processor = { connect() {}, disconnect() {} }; }
+        }
+        const settings = { echoCancellation: enabled, noiseSuppression: enabled, autoGainControl: enabled };
+        const host = { crypto: { randomUUID: () => 'correction-test' }, AudioContext: Context,
+            navigator: { mediaDevices: { getUserMedia: async constraints => {
+                requested = constraints; return { getTracks: () => [{ stop() {} }], getAudioTracks: () => [{ getSettings: () => settings }] };
+            } } }, wordSpeech: { cancel: async () => {}, transcribe: async () => ({ ok: false, error: 'noSpeech' }) } };
+        const recognition = new (createLocalRecognition(host))(); recognition.captureProcessing = enabled;
+        recognition.onrecording = value => { recording = value; };
+        await recognition.capture();
+        assert.deepEqual(requested, { audio: { channelCount: 1, ...settings }, video: false });
+        processor.onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(8000).fill(.1) } });
+        await recognition.finishCapture();
+        assert.equal(recording.captureProcessing, enabled); assert.deepEqual(recording.captureSettings, settings);
+        assert.equal(validWav(Buffer.from(recording.wav)), true);
+    }
+});
+
 test('recognition drafts text, uses all supported locales, and never submits', () => {
     const s = setup();
     for (const [locale, tag] of Object.entries(locales)) {

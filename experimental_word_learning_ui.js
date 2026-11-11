@@ -7,6 +7,11 @@
         voiceStart: '音声で入力', voiceStop: '音声を止める', voiceRead: '返答を読み上げる', voiceVolume: '読み上げ音量',
         voiceListening: '聞いています。話し終えたら「録音を終える」を押してください。無音では終了しません。最大20秒です。',
         voiceFinish: '録音を終える', voiceRecordingCheck: '録音の確認・認識の比較',
+        voiceCaptureProcessing: '録音時の補正を使う',
+        voiceCaptureHelp: 'ノイズ抑制・エコー除去・自動音量調整を切り替えます。変更は次の録音から適用され、small／mediumの選択とは別です。端末側の補正は残る場合があります。',
+        voiceCapturedOn: '補正ありで録音', voiceCapturedOff: '補正なしで録音',
+        voiceCaptureMismatch: '端末が要求と異なる補正設定を報告しています。選んだ設定が反映されているとは限りません。',
+        voiceCaptureUnknown: '端末から補正設定を確認できませんでした。実際の適用状態は不明です。',
         voiceRecordingHelp: '認識へ渡した直近1件の録音を聞き返せます。人声の区間を選ぶ前の音です。録音はメモリだけに保持し、次の録音・言語変更・新規開始・終了時に消えます。',
         voiceRecordingEmpty: '録音を終えると、ここで聞き返しと比較ができます。',
         voiceRecordingLimit: '最大20秒で録音を終了しました。続きは分けて録音してください。',
@@ -846,6 +851,11 @@
     const readLabel = node('label', undefined, voiceTools);
     const readAloud = node('input', undefined, readLabel); readAloud.type = 'checkbox'; readAloud.id = 'word-read-aloud';
     node('span', t('voiceRead'), readLabel);
+    const captureLabel = node('label', undefined, voiceTools); captureLabel.hidden = !window.wordSpeech;
+    const captureProcessing = node('input', undefined, captureLabel); captureProcessing.type = 'checkbox'; captureProcessing.checked = true;
+    captureProcessing.id = 'word-capture-processing'; node('span', t('voiceCaptureProcessing'), captureLabel);
+    const captureHelp = node('p', t('voiceCaptureHelp'), form); captureHelp.hidden = !window.wordSpeech;
+    captureHelp.id = 'word-capture-help'; captureProcessing.setAttribute('aria-describedby', captureHelp.id);
     const voiceVolumeLabel = node('label', t('voiceVolume'), voiceTools);
     const voiceVolume = node('input', undefined, voiceVolumeLabel); voiceVolume.type = 'range';
     voiceVolume.min = '0'; voiceVolume.max = '1'; voiceVolume.step = '.1'; voiceVolume.value = '.8';
@@ -858,6 +868,7 @@
     node('summary', t('voiceRecordingCheck'), recordingCheck);
     node('p', t('voiceRecordingHelp'), recordingCheck);
     const recordingInfo = node('p', t('voiceRecordingEmpty'), recordingCheck); recordingInfo.setAttribute('role', 'status');
+    const recordingMode = node('p', '', recordingCheck); recordingMode.id = 'word-recording-mode';
     const recordingAudio = node('audio', undefined, recordingCheck); recordingAudio.controls = true; recordingAudio.hidden = true;
     recordingAudio.id = 'word-recording-audio'; recordingAudio.setAttribute('aria-label', t('voiceRecordingAudio'));
     recordingAudio.setAttribute('controlslist', 'nodownload'); recordingAudio.style.maxWidth = '100%';
@@ -1010,6 +1021,7 @@
     voice = window.ExperimentalWordVoice.create(window, {
         locale: () => window.GameI18n.language, volume: () => Number(voiceVolume.value),
         species: () => appearance.value,
+        captureProcessing: () => captureProcessing.checked,
         canPreview: () => meeting.open && screen !== 'signing' && !document.hidden,
         canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
         status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
@@ -1022,6 +1034,7 @@
             if (!active) { microphone.disabled = !voice.supportedInput; microphone.textContent = t('voiceStart'); }
             comparisonRun.disabled = active || !recordingURL;
             comparisonProfile.disabled = active; recordingAudio.hidden = active || !recordingURL;
+            captureProcessing.disabled = active;
             comparisonApply.disabled = active;
             window.audioManager?.setSpeechInputActive?.(active);
         },
@@ -1034,6 +1047,14 @@
             recordingAudio.hidden = !recordingURL || voice.listening;
             recordingDelete.disabled = !recordingURL; comparisonRun.disabled = !recordingURL || voice.listening;
             recordingInfo.textContent = info?.limited ? t('voiceRecordingLimit') : recordingURL ? t('voiceRecordingAudio') : t('voiceRecordingEmpty');
+            recordingMode.textContent = '';
+            if (recordingURL && typeof info?.captureProcessing === 'boolean') {
+                const settings = info.captureSettings || {}, keys = ['echoCancellation', 'noiseSuppression', 'autoGainControl'];
+                const mismatch = keys.some(key => typeof settings[key] === 'boolean' && settings[key] !== info.captureProcessing);
+                const unknown = keys.some(key => typeof settings[key] !== 'boolean');
+                recordingMode.textContent = t(info.captureProcessing ? 'voiceCapturedOn' : 'voiceCapturedOff')
+                    + (mismatch ? '\n' + t('voiceCaptureMismatch') : unknown ? '\n' + t('voiceCaptureUnknown') : '');
+            }
             if (recordingURL) recordingCheck.open = true;
         },
         comparison: result => {

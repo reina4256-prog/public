@@ -49,8 +49,14 @@
                 const ready = await host.wordSpeech.prepare?.();
                 if (this.aborted) { await this.cleanup(); return; }
                 if (ready && !ready.ok) { this.fail(ready.error === 'missing' ? 'recognizer-missing' : 'recognizer-failed'); return; }
-                this.stream = await host.navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1, echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+                this.captureProcessing = this.captureProcessing !== false;
+                this.stream = await host.navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1,
+                    echoCancellation: this.captureProcessing, noiseSuppression: this.captureProcessing,
+                    autoGainControl: this.captureProcessing }, video: false });
                 if (this.aborted) { await this.cleanup(); return; }
+                const settings = this.stream.getAudioTracks?.()[0]?.getSettings?.() || {};
+                this.captureSettings = Object.fromEntries(['echoCancellation', 'noiseSuppression', 'autoGainControl']
+                    .filter(key => typeof settings[key] === 'boolean').map(key => [key, settings[key]]));
                 this.source = this.context.createMediaStreamSource(this.stream);
                 // The graph is muted; microphone samples are never played through the speakers.
                 this.processor = this.context.createScriptProcessor(4096, 1, 1);
@@ -98,7 +104,8 @@
                 if (!this.chunks) { this.abort(); this.onend?.(); return; }
                 this.finished = true;
                 const wav = this.snapshot();
-                this.onrecording?.({ wav: wav.slice(), locale: this.lang, limited });
+                this.onrecording?.({ wav: wav.slice(), locale: this.lang, limited,
+                    captureProcessing: this.captureProcessing, captureSettings: { ...this.captureSettings } });
                 await this.cleanup();
                 if (this.aborted) return;
                 this.onprocessing?.();

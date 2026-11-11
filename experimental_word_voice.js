@@ -158,13 +158,15 @@
             try {
                 const recognition = new Recognition(); active = recognition;
                 recognition.lang = locales[options.locale()] || options.locale();
+                recognition.captureProcessing = options.captureProcessing?.() !== false;
                 recognition.continuous = false; recognition.interimResults = true; recognition.maxAlternatives = 1;
                 let received = false, failed = false;
                 recognition.onstart = () => { if (token === generation) status('listening'); };
                 recognition.onrecording = recording => {
                     if (token !== generation || recording.wav.length < 46) return;
                     lastRecording = { wav: recording.wav.slice(), locale: recording.locale };
-                    options.recording?.(lastRecording.wav.slice(), { locale: recording.locale, limited: recording.limited });
+                    options.recording?.(lastRecording.wav.slice(), { locale: recording.locale, limited: recording.limited,
+                        captureProcessing: recording.captureProcessing, captureSettings: recording.captureSettings });
                 };
                 recognition.onprocessing = () => { if (token === generation) status('processingInput'); };
                 recognition.onresult = event => {
