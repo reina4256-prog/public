@@ -1,7 +1,6 @@
 'use strict';
 const { spawn } = require('node:child_process');
 const path = require('node:path');
-const { stopProcessTree } = require('./voicevox_process');
 const environment = { ...process.env };
 // Some development hosts use Electron as Node; this entry always launches the GUI.
 delete environment.ELECTRON_RUN_AS_NODE;
@@ -14,6 +13,6 @@ let stopping = false;
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
     if (stopping || !child.pid || child.exitCode != null || child.signalCode != null) return;
     stopping = true;
-    try { stopProcessTree(child); }
+    try { child.kill(); }
     catch (error) { console.error(error.message); process.exitCode = 1; }
 });

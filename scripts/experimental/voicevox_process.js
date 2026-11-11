@@ -28,12 +28,6 @@ function isRunning() {
     });
 }
 
-function stopProcessTree(child, platform = process.platform) {
-    if (platform === 'win32') cp.execFileSync('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'],
-        { windowsHide: true, stdio: 'ignore', timeout: 5000 });
-    else child.kill();
-}
-
 function createVoicevoxProcess(options = {}) {
     const platform = options.platform || process.platform;
     const executable = options.executable || path.resolve(__dirname, '../../../voicevox_engine/run.exe');
@@ -41,7 +35,6 @@ function createVoicevoxProcess(options = {}) {
     const exists = options.exists || fs.existsSync;
     const spawn = options.spawn || cp.spawn;
     const log = options.log || (message => console.log('[VOICEVOX] ' + message));
-    const terminate = options.terminate || (child => stopProcessTree(child, platform));
     let child = null;
     let stopped = false;
     let started = false;
@@ -54,21 +47,20 @@ function createVoicevoxProcess(options = {}) {
                 if (stopped || platform !== 'win32') return;
                 if (!exists(executable)) { log('Engine not found: ' + executable + '. Continuing with the game.'); return; }
                 child = spawn(executable, ['--host', '127.0.0.1', '--port', '50021'], {
-                    cwd: path.dirname(executable), windowsHide: true, stdio: 'inherit', shell: false
+                    cwd: path.dirname(executable), windowsHide: true, stdio: 'ignore', shell: false, detached: true
                 });
                 const owned = child;
                 child.on('error', error => { if (child === owned) child = null; log('Could not start the engine: ' + error.message); });
                 child.on('exit', code => { if (child === owned) child = null; if (!stopped) log('Engine exited (' + code + '). The game remains available.'); });
-                log('Starting the engine in the background. Connect in the voice settings after startup completes.');
+                child.unref();
+                log('Starting the engine in the background. It stays running for the next game session.');
             } catch (error) { log('Engine startup failed: ' + error.message + '. Continuing with the game.'); }
         },
         stop() {
+            // Release ownership only. Never kill a PID or an OS process tree on quit.
             stopped = true;
-            if (!child || !child.pid || child.exitCode != null || child.signalCode != null) return;
-            try { terminate(child); }
-            catch (error) { log('Could not stop the engine started by this game: ' + error.message); }
             child = null;
         }
     };
 }
-module.exports = { createVoicevoxProcess, isRunning, stopProcessTree };
+module.exports = { createVoicevoxProcess, isRunning };

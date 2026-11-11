@@ -1,4 +1,8 @@
 {
+  "PC内で音声を文字にしています。": "Sprache wird auf diesem PC in Text umgewandelt.",
+  "PC内の音声認識エンジンが未導入です。導入手順を確認してください。文字入力は使えます。": "Die lokale Spracherkennung ist nicht installiert. Siehe die Installationsanleitung. Du kannst weiterhin tippen.",
+  "音声認識サービスに接続できません。マイクの未検出とは別のエラーです。文字入力は使えます。": "Keine Verbindung zum Spracherkennungsdienst. Dies ist etwas anderes als ein nicht erkanntes Mikrofon. Du kannst weiterhin tippen.",
+  "デスクトップ版の音声入力はPC内で認識します。ブラウザー版では音声認識サービスへ送信される場合があります。聞き取った文は送信前に直せます。": "Die Desktop-Version erkennt Sprache auf diesem PC. Die Browser-Version kann Sprache an einen Erkennungsdienst senden. Du kannst den Text vor dem Senden bearbeiten.",
   "声を作る方法": "Sprachquelle",
   "端末の声（従来の方式）": "Gerätestimme (bisherige Methode)",
   "PC内のVOICEVOX（演出付き）": "VOICEVOX auf diesem PC (mit Effekten)",

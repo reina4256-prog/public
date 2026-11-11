@@ -4,6 +4,8 @@ const assert = require('node:assert/strict');
 const { create, locales, species, voiceId } = require('../experimental_word_voice');
 const { voicevox } = require('../experimental_word_audio_provider');
 const { presets } = require('../experimental_word_voice_effects');
+const { encodeWav, create: createLocalRecognition } = require('../experimental_word_speech_input');
+const { createSpeechProcess, validWav } = require('../scripts/experimental/speech_process');
 function setup(supported = true) {
     const statuses = [], transcripts = [], spoken = [], listening = [];
     let recognition, locale = 'ja', allowed = true;
@@ -21,6 +23,67 @@ function setup(supported = true) {
         canPreview: () => allowed, status: k => statuses.push(k), transcript: text => transcripts.push(text), listening: x => listening.push(x) });
     return { voice, host, statuses, transcripts, spoken, listening, setVoices(v) { available = v; }, get recognition() { return recognition; }, setLocale(x) { locale = x; }, allow(x) { allowed = x; } };
 }
+
+test('local input resamples mono PCM to a bounded 16 kHz WAV accepted by the process boundary', () => {
+    const wav = encodeWav(new Float32Array(48000).fill(.5), 48000);
+    assert.equal(wav.length, 32044); assert.equal(validWav(Buffer.from(wav)), true);
+    assert.equal(validWav(Buffer.from(wav.slice(1))), false);
+    const huge = encodeWav(new Float32Array(48000 * 25), 48000);
+    assert.equal(huge.length, 640044); assert.equal(validWav(Buffer.from(huge)), true);
+    const broken = Buffer.from(wav); broken.writeUInt32LE(44100, 24); assert.equal(validWav(broken), false);
+});
+
+test('local recognition sends only a draft and cancellation discards late results and releases the microphone', async () => {
+    let pending, processor, stopped = 0, cancelled = [], transcript = [];
+    const media = { getTracks: () => [{ stop() { stopped++; } }] };
+    class Context {
+        constructor() { this.sampleRate = 16000; this.state = 'running'; }
+        async resume() {} async close() { this.state = 'closed'; }
+        createMediaStreamSource() { return { connect() {}, disconnect() {} }; }
+        createGain() { return { gain: {}, connect() {}, disconnect() {} }; }
+        createScriptProcessor() { processor = { connect() {}, disconnect() {} }; return processor; }
+    }
+    const host = { crypto: { randomUUID: () => 'test-request' }, AudioContext: Context,
+        navigator: { mediaDevices: { getUserMedia: async () => media } }, wordSpeech: {
+            cancel: async id => { cancelled.push(id); }, transcribe: () => new Promise(resolve => { pending = resolve; })
+        } };
+    const Recognition = createLocalRecognition(host), recognition = new Recognition();
+    recognition.onresult = e => transcript.push(e.results[0][0].transcript);
+    await recognition.capture();
+    processor.onaudioprocess({ inputBuffer: { getChannelData: () => new Float32Array(4096).fill(.1) } });
+    const finishing = recognition.finishCapture();
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(stopped, 1); recognition.abort(); pending({ ok: true, text: 'late' }); await finishing;
+    assert.deepEqual(transcript, []); assert.deepEqual(cancelled, ['test-request']);
+});
+
+test('desktop recognition validates audio, isolates temporary files, and cancels only its own request', async () => {
+    const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
+    const { EventEmitter } = require('node:events');
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'word-speech-test-'));
+    fs.mkdirSync(path.join(directory, 'bin/Release'), { recursive: true });
+    fs.writeFileSync(path.join(directory, 'bin/Release/whisper-cli.exe'), 'test');
+    fs.writeFileSync(path.join(directory, 'ggml-base.bin'), 'test');
+    let wavFile, output, child, killed = 0;
+    const provider = createSpeechProcess({ directory, spawn(file, args, options) {
+        assert.equal(options.shell, false); assert.equal(options.windowsHide, true);
+        assert.equal(args[args.indexOf('-l') + 1], 'ja');
+        wavFile = args[args.indexOf('-f') + 1]; output = args[args.indexOf('-of') + 1];
+        child = new EventEmitter(); child.kill = () => { killed++; queueMicrotask(() => child.emit('close', 1)); };
+        return child;
+    } });
+    const wav = encodeWav(new Float32Array(16000).fill(.1), 16000);
+    assert.equal((await provider.transcribe({ id: '../escape', locale: 'ja-JP', wav })).error, 'invalid');
+    const ready = provider.transcribe({ id: 'request-1', locale: 'ja-JP', wav });
+    fs.writeFileSync(output + '.txt', 'こんにちは'); child.emit('close', 0);
+    assert.deepEqual(await ready, { ok: true, text: 'こんにちは' }); assert.equal(fs.existsSync(path.dirname(wavFile)), false);
+    const pending = provider.transcribe({ id: 'request-2', locale: 'ja-JP', wav });
+    provider.cancel('unrelated'); assert.equal(killed, 0); provider.cancel('request-2');
+    assert.equal((await pending).error, 'cancelled'); assert.equal(killed, 1);
+    assert.equal(fs.existsSync(path.dirname(wavFile)), false);
+    for (const name of ['bin/Release/whisper-cli.exe', 'ggml-base.bin']) fs.unlinkSync(path.join(directory, name));
+    fs.rmdirSync(path.join(directory, 'bin/Release')); fs.rmdirSync(path.join(directory, 'bin')); fs.rmdirSync(directory);
+});
 test('recognition drafts text, uses all supported locales, and never submits', () => {
     const s = setup();
     for (const [locale, tag] of Object.entries(locales)) {

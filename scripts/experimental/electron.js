@@ -18,6 +18,7 @@ try {
 let server;
 let window;
 let voicevox;
+let speech;
 if (storageReady && !app.requestSingleInstanceLock()) {
     app.quit();
 } else if (storageReady) {
@@ -28,7 +29,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         }
     });
     app.whenReady().then(async () => {
-        // The primary development instance owns only the engine it starts.
+        // The engine is independent and stays available for the next session.
         // Start alongside the window; an absent or slow engine never blocks play.
         if (app.isPackaged === false) {
             voicevox = require('./voicevox_process').createVoicevoxProcess();
@@ -48,6 +49,15 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         window.setMenu(null);
         const url = `http://127.0.0.1:${server.address().port}/`;
         const store = createStore(userData);
+        speech = require('./speech_process').createSpeechProcess(app.isPackaged
+            ? { directory: path.join(process.resourcesPath, 'word-speech') } : {});
+        const isWindow = event => event.sender === window.webContents && event.senderFrame?.url === url;
+        ipcMain.handle('word-speech-transcribe', (event, packet) => isWindow(event)
+            ? speech.transcribe(packet) : { ok: false, error: 'sender' });
+        ipcMain.handle('word-speech-cancel', (event, id) => {
+            if (isWindow(event) && typeof id === 'string' && /^[a-z0-9-]{1,80}$/.test(id)) speech.cancel(id);
+            return { ok: true };
+        });
         ipcMain.on('word-personal-log-append', (event, value) => {
             if (event.sender !== window.webContents || event.senderFrame?.url !== url) {
                 event.returnValue = { ok: false }; return;
@@ -79,6 +89,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => {
         if (voicevox) voicevox.stop();
+        if (speech) speech.dispose();
         if (server) { server.closeAllConnections(); server.close(); server = null; }
     });
 }

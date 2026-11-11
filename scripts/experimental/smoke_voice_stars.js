@@ -66,6 +66,10 @@ if (!process.versions.electron || process.type !== 'browser') {
                         ? [{ name: 'Fixture voice', speaker_uuid: 'fixture', styles: [{ id: 0, name: 'A', type: 'talk' }, { id: 1, name: 'B', type: 'talk' }] }]
                         : { accent_phrases: [], speedScale: 1, pitchScale: 0, volumeScale: 1 }));
                 }
+            } else if (mockEnabled && request.url === '/experimental_word_speech_input.js') {
+                // Real microphone/CLI is checked by a separate live input run.
+                response.writeHead(200, { 'Content-Type': 'application/javascript' });
+                response.end('window.ExperimentalWordSpeechInput = { create: () => window.SpeechRecognition };');
             } else if (mockEnabled && request.url.startsWith('/experimental_word_learning.html')) {
                 const html = fs.readFileSync(path.resolve(__dirname, '../../experimental_word_learning.html'), 'utf8');
                 response.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });

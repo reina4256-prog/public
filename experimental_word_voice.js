@@ -12,7 +12,8 @@
     const tuningValue = (value, min, max) => typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : 1;
     // Transport only: recognition never submits a turn or changes the child's knowledge.
     function create(host, options) {
-        const Recognition = host.SpeechRecognition || host.webkitSpeechRecognition;
+        const Recognition = host.wordSpeech
+            ? host.ExperimentalWordSpeechInput?.create(host) : host.SpeechRecognition || host.webkitSpeechRecognition;
         let active = null, generation = 0, enabled = false, utterance = null;
         const status = key => options.status(key);
         const providers = options.audioProviders || (host.ExperimentalWordAudioProvider ? { voicevox: host.ExperimentalWordAudioProvider.voicevox(host) } : {});
@@ -150,6 +151,7 @@
                 recognition.lang = locales[options.locale()] || options.locale();
                 recognition.continuous = false; recognition.interimResults = false; recognition.maxAlternatives = 1;
                 let received = false, failed = false;
+                recognition.onprocessing = () => { if (token === generation) status('processingInput'); };
                 recognition.onresult = event => {
                     if (token !== generation || active !== recognition) return;
                     const text = Array.from(event.results).filter(result => result.isFinal).map(result => result[0]?.transcript || '').join(' ').trim();
@@ -159,7 +161,9 @@
                     if (token !== generation) return;
                     failed = true;
                     status(['not-allowed', 'service-not-allowed'].includes(event.error) ? 'denied'
-                        : event.error === 'no-speech' ? 'noSpeech' : 'failedInput');
+                        : event.error === 'no-speech' ? 'noSpeech'
+                        : event.error === 'recognizer-missing' ? 'missingRecognizer'
+                        : event.error === 'network' ? 'networkInput' : 'failedInput');
                 };
                 recognition.onend = () => {
                     if (token !== generation) return;

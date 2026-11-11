@@ -1,6 +1,6 @@
 # ゲーム仕様書インデックス
 
-2026-11-11最新：[音声所有仕様](core/word_constellation_and_voice.md)へPC内VOICEVOX①の生成adapterと種族演出を分離追加。将来②を追加しても①の声へ戻せる独立設定を保持する。②の実サービスは未追加。[試用手順](../word/VOICE_TRIAL.md)を参照。検証・公開／未確認は現行handoff。橋・DW／DX等の保留は維持。
+2026-11-11最新：[音声所有仕様](core/word_constellation_and_voice.md)へデスクトップのPC内音声認識を追加し、VOICEVOX終了時のツリー強制終了を撤去。エンジンは独立常駐して再利用する。[入力の導入](../word/VOICE_INPUT.md)／[読み上げの試用](../word/VOICE_TRIAL.md)を参照。生成と加工の分離／①への復帰を維持し、②の実サービス・販売版同梱は未完。実機／公開と未確認は現行handoff、橋・DW／DX等の保留は維持。
 
 2026-11-10最新：[音声所有仕様](core/word_constellation_and_voice.md)の読み上げだけ。全設問後の姿の右へ声選択・高さ／速さ・試聴を組込み、他種族一覧／種族数を出さない。専用ナレーターを維持。他の音声入力・星座はユーザー未試用。接続保留とDW／DX非移行を維持する。
 

@@ -12,9 +12,12 @@
         voiceDenied: 'マイクの利用が許可されていません。ブラウザーの設定を確認してください。',
         voiceNoSpeech: '声を聞き取れませんでした。もう一度試すか、文字で入力してください。',
         voiceFailedInput: '音声入力を開始・継続できませんでした。文字入力はそのまま使えます。',
+        voiceProcessingInput: 'PC内で音声を文字にしています。',
+        voiceMissingRecognizer: 'PC内の音声認識エンジンが未導入です。導入手順を確認してください。文字入力は使えます。',
+        voiceNetworkInput: '音声認識サービスに接続できません。マイクの未検出とは別のエラーです。文字入力は使えます。',
         voiceFailedOutput: '読み上げができませんでした。返答は文字で確認できます。',
         voiceLong: '聞き取った文が長すぎます。短く分けて話してください。',
-        voiceNotice: '音声入力では、ブラウザーの音声認識サービスへ音声が送信される場合があります。聞き取った文は送信前に直せます。',
+        voiceNotice: 'デスクトップ版の音声入力はPC内で認識します。ブラウザー版では音声認識サービスへ送信される場合があります。聞き取った文は送信前に直せます。',
         voiceSettings: '音声の設定', voiceChoose: 'この子の声を選ぶ',
         voiceSource: '声を作る方法', voiceDevice: '端末の声（従来の方式）', voiceLocal: 'PC内のVOICEVOX（演出付き）',
         voiceConnect: 'VOICEVOXに接続・声を更新', voiceLocalHelp: 'VOICEVOXをこのPCで起動してから接続してください。試聴・読み上げ時の文だけをPC内のVOICEVOXへ渡します。外部の音声サービスは使いません。',
@@ -963,6 +966,7 @@
     window.speechSynthesis?.addEventListener('voiceschanged', renderVoiceChoices);
     let voiceDraft = '', recognized = '', recognizedLocale = null;
     const voiceStatuses = { listening: 'voiceListening', review: 'voiceReview', unsupportedInput: 'voiceUnsupportedInput',
+        processingInput: 'voiceProcessingInput', missingRecognizer: 'voiceMissingRecognizer', networkInput: 'voiceNetworkInput',
         unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
         failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved',
         providerConnecting: 'voiceProviderConnecting', providerReady: 'voiceProviderReady', providerFailed: 'voiceProviderFailed',

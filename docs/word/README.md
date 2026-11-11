@@ -1,6 +1,6 @@
 # 新方式：普段読む入口
 
-2026-11-11最新：[音声所有仕様](../specs/core/word_constellation_and_voice.md)へPC内VOICEVOX①と独立した種族演出を追加。将来②との往復で声設定を保持する設計、外部サービスは今回未追加。[試用手順](VOICE_TRIAL.md)と現行handoffの検証／未確認を参照。橋・DW／DX等の保留は維持。
+2026-11-11最新：[音声所有仕様](../specs/core/word_constellation_and_voice.md)へデスクトップのPC内認識を追加し、ゲーム終了時のプロセスツリー強制終了を撤去。VOICEVOXは独立常駐して再利用する。[音声入力](VOICE_INPUT.md)／[読み上げ](VOICE_TRIAL.md)と現行handoffの実機・未確認を参照。生成／加工分離・①への復帰・同じ子を保持し、②サービス／販売版同梱は未完、橋・DW／DX等の保留は維持。
 
 2026-11-10最新：[音声所有仕様](../specs/core/word_constellation_and_voice.md)の読み上げだけ。全設問で決まった子の横に声選択・高さ／速さ・試聴を置き、他種族一覧／種族数は出さない。しぐさは専用音声。他の音声入力・星座はユーザー未試用。ダンジョン接続保留・DW／DX非移行を継続する。
 

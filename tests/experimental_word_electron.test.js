@@ -37,6 +37,9 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
     const handlers = new Map(); ipcMain.handle = (name, handler) => handlers.set(name, handler);
     const store = { load: () => ({ ok: true, value: null }), save: value => ({ ok: value.version === 1 }) };
     const requireMock = name => name === 'electron' ? { app, BrowserWindow: Window, ipcMain }
+        : name === './speech_process' ? { createSpeechProcess: () => ({
+            transcribe: async () => ({ ok: true, text: 'draft' }), cancel() {}, dispose() {}
+        }) }
         : name === './voicevox_process' ? { createVoicevoxProcess: () => ({
             async start() { engineStarted++; }, stop() { engineStopped++; }
         }) }
@@ -63,6 +66,8 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         assert.equal(stranger.returnValue.ok, false);
         assert.equal((await handlers.get('word-life-export')(stranger, {})).ok, false);
         assert.equal((await handlers.get('word-life-export')(request, {})).ok, true);
+        assert.equal((await handlers.get('word-speech-transcribe')(stranger, {})).error, 'sender');
+        assert.deepEqual(await handlers.get('word-speech-transcribe')(request, {}), { ok: true, text: 'draft' });
         assert.equal((await fetch(window.url)).status, 200);
         window.emit('ready-to-show'); assert.equal(window.shown, true);
         app.emit('second-instance'); assert.equal(window.focused, true);
@@ -77,7 +82,9 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
 const { createVoicevoxProcess } = require('../scripts/experimental/voicevox_process');
 function engineFixture(overrides = {}) {
     const calls = { spawn: [], terminate: [], logs: [] };
-    const child = Object.assign(new EventEmitter(), { pid: 12345, exitCode: null, signalCode: null });
+    const child = Object.assign(new EventEmitter(), { pid: 12345, exitCode: null, signalCode: null,
+        unref() { calls.unref = (calls.unref || 0) + 1; },
+        kill() { throw new Error('An engine must never be killed on game exit'); } });
     const manager = createVoicevoxProcess({ platform: 'win32', executable: 'C:/engine with spaces/run.exe',
         probe: async () => false, exists: () => true,
         spawn: (...args) => { calls.spawn.push(args); return child; },
@@ -85,7 +92,7 @@ function engineFixture(overrides = {}) {
     return { manager, calls, child };
 }
 
-test('VOICEVOX starts with its resources directory, loopback only, and no terminal or shell', async () => {
+test('VOICEVOX starts independently and game exit leaves the engine alive without killing any PID', async () => {
     const { manager, calls, child } = engineFixture();
     await manager.start(); await manager.start();
     assert.equal(calls.spawn.length, 1);
@@ -94,8 +101,9 @@ test('VOICEVOX starts with its resources directory, loopback only, and no termin
     assert.deepEqual(args, ['--host', '127.0.0.1', '--port', '50021']);
     assert.equal(options.cwd, path.dirname(file));
     assert.equal(options.windowsHide, true); assert.equal(options.shell, false);
+    assert.equal(options.detached, true); assert.equal(options.stdio, 'ignore'); assert.equal(calls.unref, 1);
     manager.stop(); manager.stop();
-    assert.deepEqual(calls.terminate, [child]);
+    assert.deepEqual(calls.terminate, []);
 });
 
 test('VOICEVOX reuse, missing engine, and unsupported OS never start or stop another process', async () => {

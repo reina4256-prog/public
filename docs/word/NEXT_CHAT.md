@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（2026-11-11・デスクトップ音声入力と終了障害）
+
+現行handoffから続けてください。ユーザー実試用の音声入力接続失敗は合成micで音声取得成功→Web Speech network失敗を再現し、PC内Whisper.cppの認識へ接続しました。Steam向けデスクトップを維持します。音声は既存下書きへ戻すだけで自動送信・学習しません。導入／操作はVOICE_INPUT.md。×終了時の未知dialog・VS Code終了の原因は未確定ですが、前回のtaskkill／ツリー終了を全面撤去し、VOICEVOXは独立常駐して次回再利用する方針に修正済みです。旧「ゲーム終了でVOICEVOXも終了」は現行仕様ではありません。実機／全回帰／commit・push状態はhandoffを確認してください。新方式本人・知識・ノート・自由入力、橋接続保留／DW・DX非移行を維持します。以下は過去の継続文として保持します。
+
 ## 現行継続文（2026-11-11・開発コマンドでVOICEVOXも起動）
 
 現行handoffから続けてください。Windowsのnpm run start:word／start:wordsは既存コマンドのまま、game/voicevox_engine/run.exeをゲームと並行して起動します。主開発Electronだけが所有し、既存50021エンジンは再利用・終了対象外、自身が起動したツリーだけ通常終了／launcher Ctrl+Cで終了します。初期化完了後に既存の接続ボタンを使い、未配置／起動失敗でもゲーム継続。公開Web・パッケージ版の自動起動／モデル同梱／許可の変更はありません。配置はVOICE_TRIAL.md、所有は音声仕様・voicevox_process.js／electron.js／launch.js。検証・commit／push状態はhandoffを参照。本人・知識・ノート・自由入力・ナレーターと音声加工、橋接続／DW／DX等の全保留を維持します。以下は過去の継続文として保持します。

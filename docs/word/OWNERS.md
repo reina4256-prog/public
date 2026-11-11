@@ -1,6 +1,6 @@
 # 日記部品の担当・参照索引
 
-- [本人の星座と音声入出力](../specs/core/word_constellation_and_voice.md)はexperimental_word_constellation_live.js／experimental_word_voice.jsと共通UIが所有。音声生成adapterはexperimental_word_audio_provider.js、加工・再生はexperimental_word_voice_effects.jsが所有。独立見本・日記captureを置換せず学習正本へ書込まない。最新依頼でダンジョン本接続より優先。
+- [本人の星座と音声入出力](../specs/core/word_constellation_and_voice.md)はexperimental_word_constellation_live.js／experimental_word_voice.jsと共通UIが所有。デスクトップ入力はexperimental_word_speech_input.js→preload／electronの専用IPC→speech_process.js、導入はsetup_speech.js。音声生成adapterはexperimental_word_audio_provider.js、加工・再生はexperimental_word_voice_effects.jsが所有。voicevox_process.jsは独立起動／再利用のみでゲーム終了時にツリーを停止しない。独立見本・日記captureを置換せず学習正本へ書込まない。最新依頼でダンジョン本接続より優先。
 
 [歩行の経験教示](../specs/core/experimental_word_learning.md#walking-experience-learning)はcore候補／life_learning照合／world実経験が所有し、直後一歩・goal・同一worldの往復は[ダンジョン所有](../specs/dungeon/word_dungeon_preview.md)。日記capture登録・既存140/129/138母数とは別。六資料・全保留と工程境界を維持。
 
