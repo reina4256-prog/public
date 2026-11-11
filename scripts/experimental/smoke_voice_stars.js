@@ -70,7 +70,9 @@ if (!process.versions.electron || process.type !== 'browser') {
                 } else {
                     response.writeHead(200, { 'Content-Type': 'application/json' });
                     response.end(JSON.stringify(request.url.startsWith('/__voicevox_test/speakers')
-                        ? [{ name: 'Fixture voice', speaker_uuid: 'fixture', styles: [{ id: 0, name: 'A', type: 'talk' }, { id: 1, name: 'B', type: 'talk' }] }]
+                        ? [{ name: 'Fixture voice', speaker_uuid: 'fixture', styles: [{ id: 0, name: 'A', type: 'talk' }, { id: 1, name: 'B', type: 'talk' }] },
+                            ...Object.values(require('../../experimental_word_voice').cast).map(p => ({ name: p.credit.slice(9), speaker_uuid: p.speaker,
+                                styles: [{ id: p.styleId, name: 'Normal', type: 'talk' }, { id: p.styleId + 1000, name: 'Alternate', type: 'talk' }] }))]
                         : { accent_phrases: [], speedScale: 1, pitchScale: 0, volumeScale: 1 }));
                 }
             } else if (mockEnabled && request.url === '/experimental_word_speech_input.js') {
@@ -231,7 +233,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); void 0`);
         assert.ok(await js(`window.__spoken.at(-1).text.includes(document.querySelector('.bubble').textContent)`));
         assert.equal(await js(`window.__spoken.at(-1).lang`), 'ja-JP');
-        assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-1');
+        assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-0');
         await js(`document.querySelector('#word-microphone').click(); window.__recognition.onresult({ results: [{ isFinal: true, 0: { transcript: 'おはよう' } }] }); window.__recognition.onend(); document.querySelector('.chat-form').requestSubmit(); void 0`);
         assert.equal(snapshot.state.serial, serial + 3);
         const after = snapshot.state.serial;
@@ -294,8 +296,9 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         nextLoad = null; await load(false, false, 'gesture');
         await js(`window.GameI18n.setLanguage('ja'); document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); document.querySelector('#word-read-aloud').click(); void 0`);
-        assert.equal(await js(`window.__spoken.at(-1).text`), await js(`document.querySelector('.bubble').textContent`));
-        assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-0');
+        for (let i=0; i<100 && !audioRequests.some(r => r.url.startsWith('/__voicevox_test/synthesis')); i++) await sleep(30);
+        assert.equal(await js(`window.__spoken.length`), 0);
+        assert.ok(audioRequests.some(r => r.url.startsWith('/__voicevox_test/audio_query') && new URL(r.url, 'http://test').searchParams.get('speaker') === '2'));
         checks.push({ gestureReadAloudRemainsNarration: true });
         const beforeAudition = JSON.stringify(snapshot.state);
         await js(`document.querySelector('#word-voice-choose').click(); void 0`);
@@ -308,11 +311,12 @@ if (!process.versions.electron || process.type !== 'browser') {
                     const pitch = document.querySelector('#word-voice-pitch'), rate = document.querySelector('#word-voice-rate');
                     pitch.value = '1.25'; pitch.dispatchEvent(new Event('input')); rate.value = '.8'; rate.dispatchEvent(new Event('input'));
                     document.querySelector('.word-voice-sample button').click(); })(); void 0`);
-                assert.equal(await js(`window.__spoken.at(-1).voice`), require('../../experimental_word_voice').locales[locale] + '-2');
+                assert.equal(await js(`window.__spoken.at(-1).voice`), require('../../experimental_word_voice').locales[locale] + '-1');
                 assert.equal(await js(`window.__spoken.at(-1).pitch`), 1.25); assert.equal(await js(`window.__spoken.at(-1).rate`), .8);
+                const count = await js(`window.__spoken.length`);
                 await js(`document.querySelectorAll('.word-voice-sample button')[3].click(); void 0`);
-                assert.equal(await js(`window.__spoken.at(-1).voice`), require('../../experimental_word_voice').locales[locale] + '-0');
-                assert.equal(await js(`window.__spoken.at(-1).pitch`), 1); assert.equal(await js(`window.__spoken.at(-1).rate`), 1);
+                assert.equal(await js(`window.__spoken.length`), count);
+                if (locale !== 'ja') assert.equal(await js(`document.querySelectorAll('.word-voice-sample button')[3].disabled`), true);
             }
             for (const width of [1280,390]) {
                 window.setContentSize(width,900); await sleep(100);
@@ -335,16 +339,18 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelector('#word-voice-rate').value`), '0.8');
         await js(`document.querySelector('#word-voice-continue').click(); document.querySelector('#word-read-aloud').click();
             document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); void 0`);
-        assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-2');
+        assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-1');
         assert.equal(await js(`window.__spoken.at(-1).pitch`), 1.25); assert.equal(await js(`window.__spoken.at(-1).rate`), .8);
         // Real Web Audio, with the HTTP provider replaced by a named fixture.
         const audioBefore = JSON.stringify(snapshot.state);
-        assert.equal(audioRequests.length, 0);
+        audioRequests.length = 0;
+        await js(`window.__audioStarted = 0; window.__audioStopped = 0; void 0`);
         await js(`document.querySelector('#word-voice-choose').click();
             document.querySelector('#word-voice-source').value = 'voicevox'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change')); void 0`);
         assert.equal(audioRequests.length, 0);
         await js(`document.querySelector('#word-voice-connect').click(); void 0`);
         for (let i=0; i<100 && await js(`document.querySelector('#word-dialogue-voice').options.length !== 2`); i++) await sleep(30);
+        assert.equal(await js(`Array.from(document.querySelector('#word-dialogue-voice').options).some(o=>o.value.includes('7ffcb7ce-00ec-4bdc-82cd-45a8889e43ff'))`), false);
         assert.equal(audioRequests.length, 1);
         await js(`document.querySelector('#word-dialogue-voice').selectedIndex = 1; document.querySelector('#word-dialogue-voice').dispatchEvent(new Event('change'));
             document.querySelector('#word-voice-effect').value = '.3'; document.querySelector('#word-voice-effect').dispatchEvent(new Event('input'));
@@ -418,7 +424,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
             fs.writeFileSync(path.join(evidence, 'meeting-'+width+'.png'), (await window.webContents.capturePage()).toPNG());
         }
-        checks.push({ chosenChildOnly: true, pitchAndRateBySevenLanguages: true, narratorUntuned: true, separateNarrator: true, previewDoesNotMutate: true,
+        checks.push({ chosenChildOnly: true, pitchAndRateBySevenLanguages: true, narratorFixedCast: true, separateNarrator: true, previewDoesNotMutate: true,
             preferencesSurviveReload: true, actualDialogueUsesTuning: true, questionsThenMeetingWithVoiceAndSignature: true, voiceViewports: 2 });
         assert.deepEqual(failures, []);
         checks.push({ temporarySaveReload: true, failures });

@@ -53,12 +53,15 @@
         voicePitch: '声の高さ', voiceRate: '話す速さ', voiceTuningReset: '高さ・速さを標準に戻す',
         voiceTuningHelp: '標準は1.00です。声や端末によって、調整できる幅や聞こえ方は異なります。',
         voiceDialogue: '会話の声', voiceNarrator: 'しぐさを読む声',
+        voiceCastHelp: '師匠の会話としぐさは専用のVOICEVOX音声で読み上げます。初対面ムービー中は待ち、終了・スキップ後に読み上げます。',
+        voiceCastCredits: '師匠・しぐさの音声クレジット',
+        voiceCastLanguage: '師匠としぐさの読み上げは、日本語とVOICEVOX接続が利用できる環境で使えます。',
         voiceAuditionHelp: '試聴は声の確認だけです。この子が言葉を覚えたり、話した記録にはなりません。',
         voiceSample1: 'こんにちは。よろしくね。', voiceSample2: 'あそこに何かあるみたい。',
         voiceSample3: 'いっしょに行ってみよう。', voiceSampleGesture: 'こちらを見て、小さくうなずいた。',
         voicePreview: 'このセリフを聞く', voicePreviewGesture: 'しぐさの声を聞く',
         voiceContinue: 'この声で進む', voiceChoiceBack: '設問に戻る', voiceChoiceClose: '声の選択を閉じる',
-        voiceUnavailable: '別々の声で読むには、この言語の声が2つ以上必要です。端末の音声設定を確認してください。文字だけでも続けられます。',
+        voiceUnavailable: 'この言語の端末音声が見つかりません。端末の音声設定を確認してください。文字だけでも続けられます。',
         voiceMissing: '保存した声が見つかりません。声を選び直してください。',
         voiceReset: 'この端末の声で選び直す', voiceUnsaved: '声の設定を保存できませんでした。今回の起動中は選んだ声を使います。',
         dungeonEnter: 'ダンジョンへ行く', dungeonReturn: '島へ戻る', dungeonTitle: 'スカルダンジョン B1F',
@@ -864,6 +867,11 @@
     const voiceHelp = node('details', undefined, form); node('summary', t('voiceStart'), voiceHelp); node('p', t('voiceNotice'), voiceHelp);
     voiceHelp.querySelector('summary').textContent = t('voiceSettings');
     voiceHelp.append(voiceVolumeLabel, voiceStop);
+    node('p', t('voiceCastHelp'), voiceHelp);
+    const castCredits = node('details', undefined, voiceHelp); node('summary', t('voiceCastCredits'), castCredits);
+    for (const preset of Object.values(window.ExperimentalWordVoice.cast)) {
+        node('p', t(preset.credit), castCredits);
+    }
     const recordingCheck = node('details', undefined, form); recordingCheck.id = 'word-recording-check'; recordingCheck.hidden = !window.wordSpeech;
     node('summary', t('voiceRecordingCheck'), recordingCheck);
     node('p', t('voiceRecordingHelp'), recordingCheck);
@@ -971,18 +979,18 @@
         }
         dialogueVoice.value = selected || ''; dialogueVoice.disabled = !bank.dialogue.length;
         narratorName.textContent = bank.narrator ? `${bank.narrator.name || bank.narrator.voiceURI} (${bank.narrator.lang})` : '';
-        const ready = !!bank.narrator && !!bank.dialogue.length && bank.providerSupported;
+        const ready = !!bank.dialogue.length && bank.providerSupported;
         voiceCredit.textContent = local ? bank.dialogue.find(v => window.ExperimentalWordVoice.voiceId(v) === selected)?.credit || '' : '';
         voiceCredit.hidden = !voiceCredit.textContent;
         choiceStatus.textContent = local ? !bank.providerSupported ? t('voiceProviderLanguage') : !bank.dialogue.length ? t('voiceProviderFirst') : !ready || !dialogueVoice.value ? t('voiceMissing') : ''
-            : bank.available.length < 2 ? t('voiceUnavailable') : !ready || !dialogueVoice.value ? t('voiceMissing') : '';
+            : !bank.available.length ? t('voiceUnavailable') : !ready || !dialogueVoice.value ? t('voiceMissing') : '';
         choiceStatus.hidden = !choiceStatus.textContent;
         choiceSaveStatus.hidden = voice.preferencesSaved; choiceSaveStatus.textContent = voice.preferencesSaved ? '' : t('voiceUnsaved');
         const tuning = bank.profile.tuning[appearance.value] || { pitch: 1, rate: 1 };
         for (const key of ['pitch', 'rate']) {
             tuningControls[key].control.value = tuning[key]; tuningControls[key].output.value = tuning[key].toFixed(2);
         }
-        previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || (index < 3 ? !ready || !dialogueVoice.value : !bank.narrator || (!local && !ready)); });
+        previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || (index < 3 ? !ready || !dialogueVoice.value : !bank.narrator); });
     }
     function prepareMeetingVoice(initial) {
         choosingInitialVoice = initial;
@@ -1017,13 +1025,14 @@
         unsupportedOutput: 'voiceUnsupportedOutput', denied: 'voiceDenied', noSpeech: 'voiceNoSpeech',
         failedInput: 'voiceFailedInput', failedOutput: 'voiceFailedOutput', voicesUnavailable: 'voiceUnavailable', voiceMissing: 'voiceMissing', preferencesUnsaved: 'voiceUnsaved',
         providerConnecting: 'voiceProviderConnecting', providerReady: 'voiceProviderReady', providerFailed: 'voiceProviderFailed',
-        providerLanguage: 'voiceProviderLanguage', providerConnectFirst: 'voiceProviderFirst', providerGenerating: 'voiceProviderGenerating' };
+        providerLanguage: 'voiceProviderLanguage', providerConnectFirst: 'voiceProviderFirst', providerGenerating: 'voiceProviderGenerating', castLanguage: 'voiceCastLanguage' };
     voice = window.ExperimentalWordVoice.create(window, {
         locale: () => window.GameI18n.language, volume: () => Number(voiceVolume.value),
         species: () => appearance.value,
         captureProcessing: () => captureProcessing.checked,
         canPreview: () => meeting.open && screen !== 'signing' && !document.hidden,
-        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
+        canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open
+            && (!masterDialog.open || ['silhouette', 'conversation'].includes(masterPhase)),
         status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
             if (['preparingInput', 'processingInput', 'comparingInput'].includes(key)) microphone.disabled = true;
             if (key === 'listening') { microphone.disabled = false; microphone.textContent = t('voiceFinish'); }
@@ -1092,7 +1101,8 @@
     recordingAudio.addEventListener('play', () => { if (voice.listening || paused || screen !== 'playing' || document.hidden) recordingAudio.pause(); });
     readAloud.addEventListener('change', () => {
         voice.setEnabled(readAloud.checked);
-        if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
+        if (readAloud.checked && masterDialog.open) playMasterVoices();
+        else if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
     voiceStop.addEventListener('click', () => voice.stop());
     input.addEventListener('input', () => { voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
@@ -1187,6 +1197,7 @@
     }
     function masterConversation(silhouette = false) {
         if (!masterDialog.open) return;
+        if (masterPhase === (silhouette ? 'silhouette' : 'conversation')) return;
         masterPhase = silhouette ? 'silhouette' : 'conversation';
         masterDialog.dataset.phase = masterPhase; clearMasterVideo();
         masterLeft.hidden = masterRight.hidden = false;
@@ -1195,6 +1206,14 @@
         masterThought.textContent = t(masterReply.message);
         masterClose.textContent = t(silhouette ? 'masterReveal' : 'masterContinue');
         masterClose.disabled = false; masterClose.focus({ preventScroll: true }); drawMaster(performance.now());
+        playMasterVoices();
+    }
+    function playMasterVoices() {
+        if (masterPhase === 'silhouette') voice.speak(masterText.textContent, { role: 'narration' });
+        else if (masterPhase === 'conversation') void voice.speakScene([
+            { text: masterText.textContent, role: 'master', master: dialogMaster },
+            { text: masterThought.textContent, role: 'narration' }
+        ]);
     }
     function advanceMaster() {
         if (!masterDialog.open) return;
@@ -1211,6 +1230,7 @@
         if (masterPhase !== 'conversation') { event.preventDefault(); masterConversation(); }
     });
     masterDialog.addEventListener('close', () => {
+        voice.stop();
         masterPhase = 'closed'; masterToken++; clearMasterVideo();
         lastFrame = null;
         if (masterFocus?.isConnected) masterFocus.focus({ preventScroll: true });
@@ -1223,7 +1243,7 @@
         try {
             const response = await fetch('experimental_word_encounter_videos.json', { signal: videoAbort.signal, cache: 'no-store' });
             const available = response.ok ? await response.json() : [];
-            if (token !== masterToken || !masterDialog.open) return;
+            if (token !== masterToken || !masterDialog.open || masterPhase !== 'loading') return;
             if (!Array.isArray(available) || !available.includes(src)) { masterConversation(true); return; }
             masterVideo.src = src; masterVideo.volume = environmentVolume;
             masterPhase = 'video'; masterDialog.dataset.phase = masterPhase;
@@ -1241,6 +1261,7 @@
     masterVideo.addEventListener('ended', () => { if (masterPhase === 'video') masterConversation(); });
     masterVideo.addEventListener('error', () => { if (masterPhase === 'video') masterConversation(true); });
     function openMaster(reply) {
+        voice.stop();
         dialogMaster = reply.master; masterReply = reply; masterToken++;
         masterName.textContent = t(`master_${reply.master}`);
         masterImage = new Image(); masterImage.onerror = () => { imageFailure = true; };
@@ -1286,7 +1307,6 @@
             node('strong', t(`master_${reply.master}`), line); node('br', undefined, line);
             node('span', t(reply.npc), line);
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
-            if (window.WordIslandMode) openMaster(reply);
         }
         record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + displayText(reply.message) + (reply.literal || '') });
         bubble.replaceChildren(); bubble.hidden = false;
@@ -1308,7 +1328,12 @@
         conversation.scrollTop = conversation.scrollHeight;
         lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
-        voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
+        if (reply.npc && window.WordIslandMode) openMaster(reply);
+        else if (reply.npc) void voice.speakScene([
+            { text: t(reply.npc), role: 'master', master: reply.master },
+            { text: bubble.textContent, role: 'narration' }
+        ]);
+        else voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     }
     function animate(time) {
         drawLogo(time);

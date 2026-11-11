@@ -7,6 +7,17 @@
     'use strict';
     const locales = { ja: 'ja-JP', en: 'en-US', 'zh-CN': 'zh-CN', ru: 'ru-RU', 'es-ES': 'es-ES', 'pt-BR': 'pt-BR', de: 'de-DE' };
     const species = ['robot', 'spirit', 'seed', 'ghost', 'stone', 'magician', 'beetle', 'balloon', 'bird', 'machine', 'dragon'];
+    const cast = Object.freeze(Object.fromEntries(Object.entries({
+        narration: { speaker: '7ffcb7ce-00ec-4bdc-82cd-45a8889e43ff', styleId: 2, pitch: .98, rate: .94, credit: 'VOICEVOX:四国めたん' },
+        explore: { speaker: '8eaad775-3119-417e-8cf4-2a10bfd592c8', styleId: 14, pitch: 1.04, rate: 1.05, credit: 'VOICEVOX:冥鳴ひまり' },
+        farming: { speaker: 'c30dc15a-0992-4f8d-8bb8-ad3b314e6a6f', styleId: 11, pitch: .98, rate: .98, credit: 'VOICEVOX:玄野武宏' },
+        fishing: { speaker: '7d1e7ba7-f957-40e5-a3fc-da49f769ab65', styleId: 53, pitch: .92, rate: 1.08, credit: 'VOICEVOX:麒ヶ島宗麟' },
+        cooking: { speaker: '4f51116a-d9ee-4516-925d-21f183e2afad', styleId: 13, pitch: 1.08, rate: 1.12, credit: 'VOICEVOX:青山龍星' },
+        smithing: { speaker: '1a17ca16-7ee5-4ea5-b191-2f02ace24d21', styleId: 21, pitch: .90, rate: .88, credit: 'VOICEVOX:剣崎雌雄' },
+        building: { speaker: '0acebdee-a4a5-4e12-a695-e19609728e30', styleId: 52, pitch: 1, rate: .96, credit: 'VOICEVOX:雀松朱司' }
+    }).map(([key, value]) => [key, Object.freeze(value)])));
+    const reserved = voice => Object.values(cast).some(item => voice.voiceURI?.startsWith('voicevox:' + item.speaker + ':'));
+    const castVoice = item => ({ name: item.credit, lang: 'ja-JP', voiceURI: `voicevox:${item.speaker}:${item.styleId}`, styleId: item.styleId, credit: item.credit });
     const profileKey = 'wordVoiceProfiles:v1';
     const voiceId = voice => JSON.stringify([voice.voiceURI || voice.name || '', voice.lang]);
     const tuningValue = (value, min, max) => typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : 1;
@@ -16,6 +27,8 @@
             ? host.ExperimentalWordSpeechInput?.create(host) : host.SpeechRecognition || host.webkitSpeechRecognition;
         let active = null, generation = 0, enabled = false, utterance = null;
         let lastRecording = null, comparison = null;
+        let playbackWait = null;
+        let castTimer = null;
         const status = key => options.status(key);
         const providers = options.audioProviders || (host.ExperimentalWordAudioProvider ? { voicevox: host.ExperimentalWordAudioProvider.voicevox(host) } : {});
         const effects = options.effects || host.ExperimentalWordVoiceEffects?.create(host);
@@ -70,16 +83,16 @@
                 .filter(v => v.lang?.split('-')[0].toLowerCase() === language).map(v => [voiceId(v), v])).values());
             const profile = profiles[locale] || (profiles[locale] = { dialogue: {}, tuning: {} });
             let changed = false;
-            if (!profile.narrator && available.length) { profile.narrator = voiceId(available[0]); changed = true; }
-            const narrator = available.find(v => voiceId(v) === profile.narrator);
-            // A missing saved narrator is not silently replaced by a dialogue voice.
-            const dialogue = narrator ? available.filter(v => voiceId(v) !== profile.narrator) : [];
+            // Narration has a dedicated VOICEVOX speaker, independent of the child's source.
+            const narrator = locale === 'ja' ? castVoice(cast.narration) : null;
+            const dialogue = available;
             species.forEach((id, index) => {
                 if (!profile.dialogue[id] && dialogue.length) { profile.dialogue[id] = voiceId(dialogue[index % dialogue.length]); changed = true; }
             });
             if (changed) persist();
             const audio = audioProfile(), source = audio.source;
-            const chosenDialogue = source === 'device' ? dialogue : providerVoices.get(source + ':' + locale) || [];
+            const chosenDialogue = source === 'device' ? dialogue : (providerVoices.get(source + ':' + locale) || [])
+                .filter(voice => source !== 'voicevox' || !reserved(voice));
             const choices = source === 'device' ? profile.dialogue : audio.voices[source] || (audio.voices[source] = {});
             return { available, narrator, dialogue: chosenDialogue, profile, source, choices, effect: audio.effects,
                 providerSupported: source === 'device' || !!(effects?.supported && providers[source]?.supports(locale)) };
@@ -112,7 +125,8 @@
                 if (token !== generation || locale !== options.locale()) return false;
                 providerVoices.set(source + ':' + locale, available);
                 const profile = audioProfile(), choices = profile.voices[source] || (profile.voices[source] = {});
-                for (const id of species) if (!choices[id] && available.length) choices[id] = voiceId(available[0]);
+                const dialogue = available.filter(voice => source !== 'voicevox' || !reserved(voice));
+                for (const id of species) if (!choices[id] && dialogue.length) choices[id] = voiceId(dialogue[0]);
                 persistAudio(); status('providerReady'); return true;
             } catch (_) {
                 if (token === generation) { providerVoices.delete(source + ':' + locale); status('providerFailed'); }
@@ -135,6 +149,8 @@
         }
         function stop() {
             generation++;
+            clearTimeout(castTimer); castTimer = null;
+            if (playbackWait) { clearTimeout(playbackWait.timer); playbackWait.resolve(); playbackWait = null; }
             if (comparison) { void host.wordSpeech.cancel(comparison.id).catch(() => {}); comparison = null; }
             options.comparing?.(false); options.stopPlayback?.();
             pending?.abort(); pending = null; effects?.stop();
@@ -222,21 +238,19 @@
         function speak(text, settings = {}) {
             const preview = settings.preview === true;
             if ((!preview && (!enabled || !options.canSpeak())) || (preview && !options.canPreview?.()) || active || comparison || !text) return;
+            if (settings.role === 'narration' || settings.role === 'master') return speakScene([{ text, ...settings }], settings);
             const bank = voices();
-            if (settings.role !== 'narration' && bank.source !== 'device') return speakAudio(text, settings, bank);
+            if (bank.source !== 'device') return speakAudio(text, settings, bank);
             if (!host.speechSynthesis || !host.SpeechSynthesisUtterance) { status('unsupportedOutput'); return; }
-            const voice = settings.role === 'narration' ? bank.narrator
-                : bank.dialogue.find(v => voiceId(v) === bank.profile.dialogue[settings.species || options.species?.() || 'robot']);
-            // Both roles require a separate real voice. Never fall back to the browser default.
-            if (!bank.narrator || (bank.source === 'device' && !bank.dialogue.length) || !voice) { status(bank.available.length < 2 ? 'voicesUnavailable' : 'voiceMissing'); return; }
+            const voice = bank.dialogue.find(v => voiceId(v) === bank.profile.dialogue[settings.species || options.species?.() || 'robot']);
+            if (!voice) { status(bank.available.length ? 'voiceMissing' : 'voicesUnavailable'); return; }
             // A new narration also cancels pending generated speech and all effect tails.
-            pending?.abort(); pending = null; effects?.stop(); generation++;
-            if (utterance) host.speechSynthesis.cancel();
+            stop();
             const current = new host.SpeechSynthesisUtterance(text);
             current.lang = locales[options.locale()] || options.locale();
             current.volume = options.volume();
             current.voice = voice;
-            const tuning = settings.role === 'narration' ? null : bank.profile.tuning[settings.species || options.species?.() || 'robot'];
+            const tuning = bank.profile.tuning[settings.species || options.species?.() || 'robot'];
             current.pitch = tuning?.pitch ?? 1; current.rate = tuning?.rate ?? 1;
             current.onerror = event => {
                 if (utterance === current && !['canceled', 'interrupted'].includes(event.error)) status('failedOutput');
@@ -245,11 +259,52 @@
             utterance = current;
             try { host.speechSynthesis.speak(current); } catch (_) { utterance = null; status('failedOutput'); }
         }
+        async function speakScene(lines, settings = {}) {
+            const preview = settings.preview === true;
+            if ((preview ? !options.canPreview?.() : !enabled || !options.canSpeak()) || active || comparison) return;
+            const locale = options.locale(), provider = providers.voicevox;
+            if (!effects?.supported || !provider?.supports(locale)) { status('castLanguage'); return; }
+            stop(); const token = generation, controller = new host.AbortController(); pending = controller;
+            const current = () => token === generation && !controller.signal.aborted && locale === options.locale()
+                && !active && !comparison && (preview ? options.canPreview?.() : enabled && options.canSpeak());
+            const timer = setTimeout(() => {
+                if (token !== generation) return;
+                controller.abort(); effects.stop();
+                if (playbackWait) { clearTimeout(playbackWait.timer); playbackWait.resolve(); playbackWait = null; }
+                status('providerFailed');
+            }, 120000);
+            castTimer = timer;
+            try {
+                await effects.prepare(); if (!current()) return;
+                let available = providerVoices.get('voicevox:' + locale);
+                if (!available) {
+                    available = await provider.listVoices({ locale, signal: controller.signal });
+                    if (!current()) return;
+                    providerVoices.set('voicevox:' + locale, available);
+                }
+                for (const line of lines.slice(0, 2)) {
+                    if (!current() || !line.text) return;
+                    const preset = line.role === 'narration' ? cast.narration : line.role === 'master' ? cast[line.master] : null;
+                    const chosen = preset && available.find(voice => voice.voiceURI === castVoice(preset).voiceURI);
+                    if (!chosen) { status('voiceMissing'); return; }
+                    status('providerGenerating');
+                    const data = await provider.synthesize({ text: line.text, voice: chosen, locale, pitch: preset.pitch, rate: preset.rate, signal: controller.signal });
+                    if (!current()) return;
+                    const buffer = await effects.decode(data); if (!current()) return;
+                    const playing = effects.play(buffer, { species: 'robot', amount: 0, volume: options.volume() });
+                    await new Promise(resolve => {
+                        playbackWait = { resolve, timer: setTimeout(() => { playbackWait = null; resolve(); }, (playing?.duration ?? buffer.duration ?? 0) * 1000) };
+                    });
+                }
+                if (current()) status('ready');
+            } catch (_) { if (token === generation) status('providerFailed'); }
+            finally { clearTimeout(timer); if (castTimer === timer) castTimer = null; if (pending === controller) pending = null; }
+        }
         async function speakAudio(text, settings, bank) {
             if (!bank.providerSupported) { status('providerLanguage'); return; }
             const id = settings.species || options.species?.() || 'robot';
             const chosen = bank.dialogue.find(v => voiceId(v) === bank.choices[id]);
-            if (!bank.narrator || !chosen) { status(bank.dialogue.length ? 'voiceMissing' : 'providerConnectFirst'); return; }
+            if (!chosen) { status(bank.dialogue.length ? 'voiceMissing' : 'providerConnectFirst'); return; }
             stop(); const token = generation, locale = options.locale(), controller = new host.AbortController(); pending = controller;
             const tuning = bank.profile.tuning[id] || { pitch: 1, rate: 1 };
             const timer = setTimeout(() => controller.abort(), 120000);
@@ -268,11 +323,11 @@
             } catch (_) { if (token === generation) status('providerFailed'); }
             finally { clearTimeout(timer); if (pending === controller) pending = null; }
         }
-        return { listen, speak, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
-            setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); },
-            supportedInput: !!Recognition, supportedOutput: !!(host.speechSynthesis && host.SpeechSynthesisUtterance),
+        return { listen, speak, speakScene, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
+            setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); else void effects?.prepare().catch(() => status('failedOutput')); },
+            supportedInput: !!Recognition, supportedOutput: !!((host.speechSynthesis && host.SpeechSynthesisUtterance) || effects?.supported),
             get preferencesSaved() { return preferencesSaved; },
             get listening() { return !!active || !!comparison; } };
     }
-    return { create, locales, species, voiceId };
+    return { create, locales, species, voiceId, cast, reserved };
 });

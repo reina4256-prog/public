@@ -1,7 +1,7 @@
 'use strict';
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { create, locales, species, voiceId } = require('../experimental_word_voice');
+const { create, locales, species, voiceId, cast, reserved } = require('../experimental_word_voice');
 const { voicevox } = require('../experimental_word_audio_provider');
 const { presets } = require('../experimental_word_voice_effects');
 const { encodeWav, speechText, create: createLocalRecognition } = require('../experimental_word_speech_input');
@@ -297,9 +297,10 @@ test('all eleven species select dialogue voices distinct from the narrator, with
         assert.equal(s.voice.selectVoice(id, voiceId(bank.dialogue[1])), true);
         s.voice.speak('こんにちは。', { species: id });
         assert.equal(s.spoken.at(-1).voice, bank.dialogue[1]);
+        const before = s.spoken.length;
         s.voice.speak('うなずいた。', { role: 'narration' });
-        assert.equal(s.spoken.at(-1).text, 'うなずいた。');
-        assert.equal(s.spoken.at(-1).voice, bank.narrator);
+        assert.equal(s.spoken.length, before); // No PC fallback when VOICEVOX is unavailable.
+        assert.equal(s.statuses.at(-1), 'castLanguage');
     }
     const restored = create(s.host, { locale: () => 'ja' });
     assert.deepEqual(restored.voices().profile, s.voice.voices().profile);
@@ -316,14 +317,14 @@ test('delayed, insufficient and disappearing voices never collapse both roles to
     const s = setup(); const available = s.host.speechSynthesis.getVoices();
     s.setVoices([]); s.voice.setEnabled(true); s.voice.speak('none'); assert.equal(s.statuses.at(-1), 'voicesUnavailable');
     s.setVoices([available[0]]); s.voice.speak('one', { role: 'narration' }); assert.deepEqual(s.spoken, []);
-    s.setVoices(available); s.voice.speak('ready'); assert.equal(s.spoken.at(-1).voice, available[1]);
-    s.setVoices([available[0], available[2]]); const before = s.spoken.length;
+    s.setVoices(available); s.voice.speak('ready'); assert.equal(s.spoken.at(-1).voice, available[0]);
+    s.setVoices([available[1], available[2]]); const before = s.spoken.length;
     s.voice.speak('missing'); assert.equal(s.spoken.length, before);
     assert.equal(s.voice.selectVoice('robot', voiceId(available[2])), true);
     s.voice.speak('chosen'); assert.equal(s.spoken.at(-1).voice, available[2]);
-    s.setVoices([available[1], available[2]]); s.voice.speak('missing narrator');
+    s.setVoices([available[0], available[1]]); s.voice.speak('missing selected voice');
     assert.equal(s.statuses.at(-1), 'voiceMissing');
-    s.voice.resetVoices(); s.voice.speak('reset'); assert.equal(s.spoken.at(-1).voice, available[2]);
+    s.voice.resetVoices(); s.voice.speak('reset'); assert.equal(s.spoken.at(-1).voice, available[0]);
 });
 
 test('preferences are separate by language and unavailable storage leaves in-memory choices usable', () => {
@@ -346,7 +347,7 @@ test('pitch and rate persist per species and language, affect dialogue and previ
     s.voice.setEnabled(true); s.voice.speak('reply', { species: 'spirit' });
     assert.equal(s.spoken.at(-1).pitch, .75); assert.equal(s.spoken.at(-1).rate, 1.3);
     s.voice.speak('gesture', { role: 'narration' });
-    assert.equal(s.spoken.at(-1).pitch, 1); assert.equal(s.spoken.at(-1).rate, 1);
+    assert.equal(s.spoken.at(-1).text, 'reply'); assert.equal(s.statuses.at(-1), 'castLanguage');
     const restored = create(s.host, { locale: () => 'ja' });
     assert.deepEqual(restored.voices().profile.tuning.robot, { pitch: 1.25, rate: .8 });
     s.setLocale('en'); assert.equal(s.voice.voices().profile.tuning.robot, undefined);
@@ -392,7 +393,8 @@ test('speech is optional, localized, cancellable and suppressed while listening 
 function audioSetup() {
     const s = setup(); s.host.AbortController = AbortController;
     const rendered = [], requests = [], connections = [];
-    const audioVoices = [{ name: 'Test A', voiceURI: 'local:a', lang: 'ja-JP', styleId: 0 }, { name: 'Test B', voiceURI: 'local:b', lang: 'ja-JP', styleId: 1 }];
+    const audioVoices = [{ name: 'Test A', voiceURI: 'local:a', lang: 'ja-JP', styleId: 0 }, { name: 'Test B', voiceURI: 'local:b', lang: 'ja-JP', styleId: 1 },
+        ...Object.values(cast).map(p => ({ name: p.credit, voiceURI: `voicevox:${p.speaker}:${p.styleId}`, lang: 'ja-JP', styleId: p.styleId }))];
     const effects = { supported: true, async prepare() {}, async decode(data) { return data; }, play(buffer, settings) { rendered.push({ buffer, settings }); }, stop() {} };
     const provider = { supports: locale => locale === 'ja', async listVoices(params) { connections.push(params); return audioVoices; },
         async synthesize(params) { requests.push(params); return new ArrayBuffer(8); } };
@@ -423,9 +425,31 @@ test('audio providers share effects and preserve separate voice choices through 
     assert.equal(restored.voices().source, 'voicevox'); assert.equal(restored.voices().dialogue.length, 0);
     await restored.connectProvider(); assert.equal(restored.voices().choices.robot, voiceId(s.audioVoices[1]));
     assert.equal(restored.voices().effect.robot, .3);
-    const count = s.requests.length; restored.speak('gesture', { preview: true, role: 'narration' });
-    assert.equal(s.requests.length, count); assert.equal(s.spoken.at(-1).voice, restored.voices().narrator);
-    assert.equal(s.spoken.at(-1).pitch, 1);
+    const count = s.requests.length; await restored.speak('gesture', { preview: true, role: 'narration' });
+    assert.equal(s.requests.length, count + 1); assert.equal(s.requests.at(-1).voice.styleId, cast.narration.styleId);
+    assert.equal(s.requests.at(-1).pitch, cast.narration.pitch); assert.equal(s.requests.at(-1).rate, cast.narration.rate);
+    assert.equal(s.rendered.at(-1).settings.amount, 0);
+});
+
+test('cast speakers including alternate styles are reserved; master then narration is cancellable and never uses PC speech', async () => {
+    const s = audioSetup();
+    s.audioVoices.push({ name: 'Alternate', voiceURI: `voicevox:${cast.narration.speaker}:999`, styleId: 999, lang: 'ja-JP' });
+    s.voice.setSource('voicevox'); await s.voice.connectProvider();
+    assert.equal(s.voice.voices().dialogue.some(reserved), false);
+    for (const voice of s.audioVoices.filter(reserved)) assert.equal(s.voice.selectVoice('robot', voiceId(voice)), false);
+    s.voice.setSource('device'); s.voice.setEnabled(true);
+    for (const master of Object.keys(cast).filter(key => key !== 'narration')) {
+        const before = s.requests.length;
+        await s.voice.speakScene([{ text: 'master', role: 'master', master }, { text: 'gesture', role: 'narration' }]);
+        assert.deepEqual(s.requests.slice(before).map(x => x.voice.styleId), [cast[master].styleId, cast.narration.styleId]);
+        assert.equal(s.requests[before].pitch, cast[master].pitch); assert.equal(s.requests[before].rate, cast[master].rate);
+    }
+    assert.equal(s.spoken.filter(x => typeof x === 'object').length, 0);
+    s.effects.play = () => ({ duration: 10 });
+    const before = s.requests.length;
+    const scene = s.voice.speakScene([{ text: 'master', role: 'master', master: 'explore' }, { text: 'gesture', role: 'narration' }]);
+    await new Promise(resolve => setImmediate(resolve)); s.voice.stop(); await scene;
+    assert.equal(s.requests.length, before + 1); assert.equal(s.requests.at(-1).signal.aborted, true);
 });
 
 test('pending synthesis and decoding cannot play after stop, source change or a newer utterance', async () => {
@@ -442,6 +466,7 @@ test('pending synthesis and decoding cannot play after stop, source change or a 
     const third = s.voice.speak('third', { preview: true }); await Promise.resolve(); await Promise.resolve();
     s.voice.speak('narration', { preview: true, role: 'narration' }); resolve({ duration: 1 }); await third;
     assert.equal(s.rendered.length, 0);
+    s.voice.stop();
 });
 
 test('unsupported language, unavailable service and missing saved styles never fall back silently', async () => {
