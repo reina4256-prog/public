@@ -17,6 +17,7 @@ try {
 }
 let server;
 let window;
+let voicevox;
 if (storageReady && !app.requestSingleInstanceLock()) {
     app.quit();
 } else if (storageReady) {
@@ -27,6 +28,12 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         }
     });
     app.whenReady().then(async () => {
+        // The primary development instance owns only the engine it starts.
+        // Start alongside the window; an absent or slow engine never blocks play.
+        if (app.isPackaged === false) {
+            voicevox = require('./voicevox_process').createVoicevoxProcess();
+            void voicevox.start();
+        }
         server = createServer({ autoRecord: !app.isPackaged });
         // The window owns this server. No fixed port and no separately orphaned process.
         await new Promise((resolve, reject) => {
@@ -71,6 +78,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
     }).catch(error => { console.error(error); app.quit(); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => {
+        if (voicevox) voicevox.stop();
         if (server) { server.closeAllConnections(); server.close(); server = null; }
     });
 }

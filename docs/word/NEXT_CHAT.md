@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（2026-11-11・開発コマンドでVOICEVOXも起動）
+
+現行handoffから続けてください。Windowsのnpm run start:word／start:wordsは既存コマンドのまま、game/voicevox_engine/run.exeをゲームと並行して起動します。主開発Electronだけが所有し、既存50021エンジンは再利用・終了対象外、自身が起動したツリーだけ通常終了／launcher Ctrl+Cで終了します。初期化完了後に既存の接続ボタンを使い、未配置／起動失敗でもゲーム継続。公開Web・パッケージ版の自動起動／モデル同梱／許可の変更はありません。配置はVOICE_TRIAL.md、所有は音声仕様・voicevox_process.js／electron.js／launch.js。検証・commit／push状態はhandoffを参照。本人・知識・ノート・自由入力・ナレーターと音声加工、橋接続／DW／DX等の全保留を維持します。以下は過去の継続文として保持します。
+
 ## 現行継続文（2026-11-11・VOICEVOX 0.26.1接続エラー修正）
 
 現行handoffから続けてください。ユーザーの実エンジンはGET /speakers 200・Origin許可済みでしたが、44話者／128声すべてがstreaming_talkで、旧adapterがtalkだけに限定し全除外していました。ゲーム側をtalk／streaming_talk／旧type省略へ対応し、歌唱用・未知typeの除外は維持します。通常のaudio_query→synthesisを使い、ユーザーの配置／起動方法や接続元許可を変更しません。実機検証・発行状態はhandoffを参照。音声生成と演出の分離、①への復帰、同じ子・知識・ノート・共通自由入力、ナレーター別声、橋／DW／DX等の保留を維持します。以下は過去の継続文として保持します。

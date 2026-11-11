@@ -5,6 +5,7 @@
 ## 実行環境
 
 - `npm start` はElectron/Steam向けの標準起動。
+- 新方式の開発起動 `npm run start:word`／`start:words` はWindowsで導入済みVOICEVOXも起動し、起動済みなら再利用する。配置・所有プロセスの終了条件・適用範囲は[音声所有仕様](../core/word_constellation_and_voice.md)を参照。
 - 版別ビルド、オンライン有無、体験版の開発起動コマンドは [Steam体験版・製品版仕様](steam_demo_and_full_release.md) を参照する。
 - `npm run start:web` は `127.0.0.1:4173` で同じゲームを配信する。
 - `npm run start:web:lan` はLAN検証用に `0.0.0.0` へバインドする。

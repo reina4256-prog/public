@@ -11,6 +11,9 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
     const app = new EventEmitter();
     const paths = {};
     let quit = false;
+    let engineStarted = 0;
+    let engineStopped = 0;
+    app.isPackaged = false;
     Object.assign(app, { getPath: () => 'test-app-data', setPath: (key, value) => { paths[key] = value; },
         requestSingleInstanceLock: () => true, whenReady: () => Promise.resolve(), quit: () => { quit = true; } });
     let window;
@@ -34,6 +37,9 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
     const handlers = new Map(); ipcMain.handle = (name, handler) => handlers.set(name, handler);
     const store = { load: () => ({ ok: true, value: null }), save: value => ({ ok: value.version === 1 }) };
     const requireMock = name => name === 'electron' ? { app, BrowserWindow: Window, ipcMain }
+        : name === './voicevox_process' ? { createVoicevoxProcess: () => ({
+            async start() { engineStarted++; }, stop() { engineStopped++; }
+        }) }
         : name === './export_report' ? { exportReport: async () => ({ ok: true }) }
         : name === './storage' ? { createStore: () => store }
         : name === 'node:fs' ? { mkdirSync() {} }
@@ -42,6 +48,7 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
     vm.runInNewContext(source, { require: requireMock, console, __dirname: path.resolve(__dirname, '../scripts/experimental') });
     try {
         await loaded;
+        assert.equal(engineStarted, 1);
         assert.match(paths.userData, /AIPetGame-WordLearning$/);
         assert.equal(window.options.webPreferences.nodeIntegration, false);
         assert.equal(window.options.webPreferences.sandbox, true);
@@ -62,8 +69,66 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         assert.equal(window.openHandler().action, 'deny');
         app.emit('window-all-closed'); assert.equal(quit, true);
         app.emit('before-quit');
+        assert.equal(engineStopped, 1);
         assert.equal(servers[0].listening, false);
     } finally { for (const server of servers) { server.closeAllConnections(); server.close(); } }
+});
+
+const { createVoicevoxProcess } = require('../scripts/experimental/voicevox_process');
+function engineFixture(overrides = {}) {
+    const calls = { spawn: [], terminate: [], logs: [] };
+    const child = Object.assign(new EventEmitter(), { pid: 12345, exitCode: null, signalCode: null });
+    const manager = createVoicevoxProcess({ platform: 'win32', executable: 'C:/engine with spaces/run.exe',
+        probe: async () => false, exists: () => true,
+        spawn: (...args) => { calls.spawn.push(args); return child; },
+        terminate: value => calls.terminate.push(value), log: value => calls.logs.push(value), ...overrides });
+    return { manager, calls, child };
+}
+
+test('VOICEVOX starts with its resources directory, loopback only, and no terminal or shell', async () => {
+    const { manager, calls, child } = engineFixture();
+    await manager.start(); await manager.start();
+    assert.equal(calls.spawn.length, 1);
+    const [file, args, options] = calls.spawn[0];
+    assert.equal(file, 'C:/engine with spaces/run.exe');
+    assert.deepEqual(args, ['--host', '127.0.0.1', '--port', '50021']);
+    assert.equal(options.cwd, path.dirname(file));
+    assert.equal(options.windowsHide, true); assert.equal(options.shell, false);
+    manager.stop(); manager.stop();
+    assert.deepEqual(calls.terminate, [child]);
+});
+
+test('VOICEVOX reuse, missing engine, and unsupported OS never start or stop another process', async () => {
+    for (const overrides of [{ probe: async () => true }, { exists: () => false }, { platform: 'linux' }]) {
+        const { manager, calls } = engineFixture(overrides);
+        await manager.start(); manager.stop();
+        assert.equal(calls.spawn.length, 0); assert.equal(calls.terminate.length, 0);
+    }
+});
+
+test('quit during the engine probe cancels a late start', async () => {
+    let finish;
+    const { manager, calls } = engineFixture({ probe: () => new Promise(resolve => { finish = resolve; }) });
+    const starting = manager.start(); manager.stop(); finish(false); await starting;
+    assert.equal(calls.spawn.length, 0); assert.equal(calls.terminate.length, 0);
+});
+
+test('engine errors and an early exit leave the game available and do not kill stale PIDs', async () => {
+    for (const event of ['error', 'exit']) {
+        const { manager, calls, child } = engineFixture();
+        await manager.start(); child.emit(event, event === 'error' ? new Error('cannot launch') : 1);
+        manager.stop(); assert.equal(calls.terminate.length, 0); assert.ok(calls.logs.length >= 2);
+    }
+    const { manager, calls } = engineFixture({ spawn() { throw new Error('launch denied'); } });
+    await manager.start(); manager.stop(); assert.match(calls.logs[0], /launch denied/);
+});
+
+test('a second game instance does not start an engine', () => {
+    const app = Object.assign(new EventEmitter(), { getPath: () => 'test-app-data', setPath() {},
+        requestSingleInstanceLock: () => false, isPackaged: false, quit() {} });
+    vm.runInNewContext(source, { __dirname: path.resolve(__dirname, '../scripts/experimental'), console,
+        require: name => name === 'electron' ? { app } : name === 'node:fs' ? { mkdirSync() {} }
+            : name.startsWith('./') ? {} : require(name) });
 });
 
 test('singular and plural launch commands both target Electron; web stays explicit', () => {

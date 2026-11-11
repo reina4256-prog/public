@@ -2,10 +2,16 @@
 
 ## 現在の実装仕様
 
+### 2026-11-11：開発起動時のVOICEVOX同時起動
+
+- Windowsの `npm run start:word`／`start:words` は従来コマンドのまま、主開発Electronインスタンスから `scripts/experimental/voicevox_process.js` で `game/voicevox_engine/run.exe` を起動する。作業ディレクトリはエンジンのフォルダ、引数は `--host 127.0.0.1 --port 50021`、別ターミナルを表示せずshellを経由しない。エンジン／モデルの同梱やダウンロード、接続元許可の自動変更はしない。
+- `/version` を最大1秒で確認して既存エンジンを再利用。第二ゲームインスタンスは起動処理を持たない。起動はゲーム画面と並行し、初期化完了後に既存の明示的な接続ボタンを使う。未配置／起動失敗でも文字のゲームは継続する。公開Web・Web開発サーバー・パッケージ版は自動起動しない。
+- 通常終了時は自身が起動したプロセスと子プロセスだけを停止し、既存エンジンは停止しない。開発launcherのCtrl+C／SIGTERMでも自身のElectron子ツリーを終了する。起動確認中に終了した場合は遅延起動しない。強制終了／OS障害時のcleanupは保証しない。[配置・操作手順](../../word/VOICE_TRIAL.md)を参照。
+
 ### 2026-11-11：加工可能な音声・生成元の分離
 
 - ユーザーはPC内生成①で試し、将来の外部生成②を追加しても①へ戻せる方式を依頼。`experimental_word_audio_provider.js`が生成、`experimental_word_voice_effects.js`がデコード／加工／再生、既存voiceが停止・設定・入力との排他を所有する。音声生成元の契約は`listVoices({signal,locale})`と`synthesize({text,voice,locale,pitch,rate,signal}) -> encoded audio ArrayBuffer`。外部サービス／サーバー／課金／鍵は今回追加せず、②の実装済みとはしない。
-- 端末音声は既定のまま残し、同じ子の声欄で「PC内のVOICEVOX（演出付き）」を明示選択、接続ボタンで`http://127.0.0.1:50021/speakers`を取得。ページ表示／方式切替だけでは接続・文章送信をしない。VOICEVOXの別途起動が必要。接続許可の設定は自動変更しない。[試用手順](../../word/VOICE_TRIAL.md)を参照。
+- 端末音声は既定のまま残し、同じ子の声欄で「PC内のVOICEVOX（演出付き）」を明示選択、接続ボタンで`http://127.0.0.1:50021/speakers`を取得。ページ表示／方式切替だけでは声一覧取得・文章送信をしない（開発起動時の`/version`疎通確認は上記の別処理）。開発用同時起動または別途起動したVOICEVOXを使う。接続許可の設定は自動変更しない。[試用手順](../../word/VOICE_TRIAL.md)を参照。
 - VOICEVOXは日本語だけ。`talk`／`streaming_talk`（0.26.1の会話音声）と旧版のtype省略を受け付け、style ID・speaker UUIDで声を識別する。歌唱用の`sing`／`singing_teacher`／`frame_decode`と未知typeは候補にしない。`streaming_talk`も通常の`audio_query`→`synthesis`に対応するため、分割ストリーム再生への変更は不要。明示した試聴／読み上げの表示文のみを`audio_query`、返されたqueryを`synthesis`へ渡す。ログ／本人state／ノートを一括送信せず、生成音声を永続保存しない。しぐさは端末の専用ナレーター・標準pitch/rate・無加工を維持し、会話と別の実声を使う。現在言語の端末声が少なくとも1つ必要。
 - 姿に応じたfilter・金属的な振幅変調・有限3tapのecho・低域補強を組合せ、dryの声を残す。「この子らしい響きの強さ」0〜1・.05刻み、初期.65、0は演出なし。会話試聴と実会話へ同じ加工を適用。ピーク抑制と0〜1音量を最後に適用する。別種族一覧／種族数は表示しない。
 - `wordAudioSources:v1`は言語ごとのsource、生成元別・外見別のvoice identity、生成元共通・外見別のeffects強度を独立保存。既存`wordVoiceProfiles:v1`の端末声・ナレーター・pitch/rateは維持。①→将来②→①でも選択声を上書きせず、再選択不要で復帰できる設計。再読込後は明示的な接続が必要。声の欠落／言語非対応／失敗では無言で別声や生成元へfallbackしない。文字経路を維持する。
