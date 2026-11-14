@@ -1603,6 +1603,22 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="ao-source-review-record"></a>
 
+<a id="identity-owner-reconciliation"></a>
+### 2026-11-15：自己紹介設定に伴う共有所有元の差分照合
+
+[名前・一人称・呼び方](word_character_identity.md)の追加に伴い、6907378からのcore／world／storage差分全文と新identityの全体、入力入口・返信・保存検証・通常島／訓練の共有接続を直接照合した。旧ownerReviews・歩行ownerReconciliations・50部品のboundaryReviewsと過去の読取記録は置換しない。今回だけのidentityOwnerReconciliationsで、改行をLFに揃えた下記指紋の完全一致を照合する。
+
+| 所有元 | 今回差分照合後の指紋 |
+| --- | --- |
+| experimental_word_learning_core.js | 38370db45954785d3092fedce88a85d94662024891fc9a2490006df6be5d2142 |
+| experimental_word_learning_world.js | 967dff18b35b258d95a6ed58fff0e9983563f2113fa15b70a66ff286474743ff |
+| scripts/experimental/storage.js | f978219b147c39812e635dfc117343af35cf70b1270635a3b2c9770bf25155ab |
+
+- coreは設定済み本人の現在／旧名単独と有限の自己紹介質問のみ別入口へ渡す。それ以外は旧処理を維持し、設定情報を一般意味・関係・命名associationへ加えない。入力serialは実入力ごとに進むため、自己紹介入力を挟んだ後の返事は旧名付け確認のexpiresを越え、以前の対象を誤確認しない。
+- worldは本人返信を実出力として残し、既存の成立済み朝の挨拶に呼び方を添える。既知語の成立条件・行動・日記captureは拡張しない。storageは旧未設定を許容し、新プロフィール／履歴の形式を追加検査する。旧日記adapter全50件と残る所有元の指紋・読取記録は不変。旧adapter原文全体の再読や任意自然文理解を認定したものではない。
+- word-verification-Vy7yNsはゲーム151ファイル／3655テスト通過後、旧共有所有元指紋の不一致により監査7件が失敗した原runを保持する。今回照合後の監査・工具・未実行項目は別runで補完し、失敗summaryを成功へ書き換えない。実UI・保存・七言語・本人情報が一般知識を増やさない検証もhandoffの別原証拠に保持する。
+- 今回照合後も未知の所有元変更はpending／依存50件未照合へ戻る。scope採用、歴史B供給・ao受入・14保留・全体工程未完、橋接続保留と4e DW／DXへの非移行は不変。
+
 <a id="walking-owner-reconciliation"></a>
 ### 2026-11-08：歩行追加に伴う共有所有元の差分照合
 

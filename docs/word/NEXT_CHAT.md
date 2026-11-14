@@ -1,5 +1,9 @@
 # 次チャットの開始文
 
+## 現行継続文（2026-11-15・名前／一人称／プレイヤーの呼び方）
+
+現行handoffと[名前の所有仕様](../specs/core/word_character_identity.md)から継続してください。ユーザーは声の読み込みを実試用OKとし、名前とプレイヤーへの呼び方に候補3つ＋自由入力を依頼、名乗り合った情報として最初から覚える案を承認。一人称も追加し「ご主人様」「あなた」等の非固有名の呼び方を明示希望。experimental_word_identity.jsがstate.identity／identityHistoryと有限照合を所有し、core／world／dungeonと共通UI／storageへ接続。全設問後の既存画面と既存の子の音声設定で3欄を編集、サイン／明示保存だけで確定。言語変更で原名を翻訳せず、試聴・旧理解／記録・同じ子・知識／ノートと音声配役／cache・橋保留／DW・DX非移行を維持。検証・未完・commit／pushはhandoffを確認し、以下の旧継続文は保持してください。
+
 ## 現行継続文（2026-11-12・師匠としぐさの待ち時間短縮）
 
 現行handoffから続けてください。ユーザーは事前生成・音声再利用・動画中の準備・次音声の先行生成を師匠としぐさの両方へ依頼。voiceのregisterFixedLines／prepareScene／warmFixed／優先job queue、voice_cacheのencoded／decoded LRU、デスクトップ専用wordVoiceCache IPC／voice_cache_storeの定型WAV保存を追加。ムービー中は準備だけ、終了／スキップ後に師匠→しぐさ、発声中は次の音声だけを準備し、停止／入力等で取消。定型文のみuserData/voice-cache-v1でport／再起動を越え再利用し、自由入力文や録音を永続化しません。Webはメモリのみ。初回未準備分の待ちは残ります。配役・七話者予約・初期オフ・本人／共通知識／ノート／自由入力と精度保留・橋保留／DW・DX非移行を維持。検証と未完／commit／pushはhandoff、所有仕様とVOICE_TRIALを参照し、以下の旧継続文を保持してください。

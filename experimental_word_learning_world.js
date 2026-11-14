@@ -251,6 +251,12 @@
     }
 
     function respond(world, result, state, catalog) {
+        if (result.identityReply) {
+            world.reaction = 'attend'; world.reactionTime = 5;
+            const response = JSON.parse(JSON.stringify(result.identityReply));
+            rememberOutput(world, state, response, result.input);
+            return response;
+        }
         if (result.interpretations[0]?.kind === 'feeling_teaching') {
             const accepted = catalog && feelingLearning.offer(world, state, result, catalog);
             const contrast = ['retain', 'difference', 'noncausal'].includes(result.interpretations[0].stage);
@@ -352,7 +358,8 @@
             return { message: !canSpeak ? 'attend' : u.unresolved.length ? 'heard_feeling_partial'
                 : u.known.meaning === 'sad' ? 'receive_sadness' : 'heard_feeling' };
         }
-        if (u.kind === 'greeting' && u.complete) return { message: canSpeak ? 'good_morning' : 'attend' };
+        if (u.kind === 'greeting' && u.complete) return canSpeak && state.identity
+            ? { message: 'identity_greeted', identity: copy(state.identity) } : { message: canSpeak ? 'good_morning' : 'attend' };
         if (u.kind === 'question' && u.questionSlot === 'sour_evaluation' && u.known.meaning === 'eat'
             && u.relations.includes('negation')) {
             const meal = [...world.experiences].reverse().find(e => e.kind === 'eat');

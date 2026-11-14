@@ -326,7 +326,13 @@ if (!process.versions.electron || process.type !== 'browser') {
                 assert.ok(await js(`(() => { const r = document.querySelector('#word-voice-choice').getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth + 1; })()`));
                 assert.equal(await js(`document.documentElement.scrollWidth <= innerWidth + 1`), true);
                 assert.ok(await js(`(() => { const a = document.querySelector('.meeting-character').getBoundingClientRect(), b = document.querySelector('#word-voice-choice').getBoundingClientRect(); return innerWidth > 650 ? a.right <= b.left : a.bottom <= b.top; })()`));
-                if (locale !== 'ja') assert.equal(await js(`/[\u3040-\u30ff]/u.test(document.querySelector('#word-voice-choice').textContent)`), false);
+                if (locale !== 'ja') assert.equal(await js(`(() => {
+                    const walker=document.createTreeWalker(document.querySelector('#word-voice-choice'),NodeFilter.SHOW_TEXT);
+                    let text='',item;while(item=walker.nextNode())if(!item.parentElement.closest('[data-i18n-skip]'))text+=item.textContent;
+                    return /[\u3040-\u30ff]/u.test(text);
+                })()`), false, 'interface text is translated; chosen literal names remain unchanged');
+                assert.deepEqual(await js(`Object.fromEntries(ExperimentalWordIdentity.fields.map(field=>[field,Array.from(document.querySelector('#word-identity-'+field).parentElement.nextElementSibling.children,button=>button.textContent)]))`),
+                    await js(`ExperimentalWordIdentity.suggestions(${JSON.stringify(snapshot.appearance)},text=>GameI18n.translate(text))`), 'all three suggestion groups use the current locale');
                 if (['ja','de'].includes(locale)) {
                     await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
                     fs.writeFileSync(path.join(evidence, `voices-${locale}-${width}.png`), (await window.webContents.capturePage()).toPNG());

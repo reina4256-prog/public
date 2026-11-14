@@ -179,6 +179,13 @@ main.onboarding-active > .game-header { display: none; }
 .word-meeting-partner { min-width: 0; padding-top: 24px; }
 .word-meeting .word-voice-choice { min-width: 0; text-align: left; padding-left: 24px; border-left: 1px solid #6bcde933; }
 .word-voice-choice h3 { color: #b6f2ff; font-size: 18px; font-weight: normal; margin: 0 0 10px; }
+.word-identity { padding-bottom: 16px; margin-bottom: 18px; border-bottom: 1px solid #72d5ea33; min-width: 0; }
+.word-identity input[type=text] { display: block; box-sizing: border-box; width: 100%; min-width: 0; margin-top: 5px; padding: 8px; border: 1px solid #77d9f35c; background: #0b1f2b; color: #eafaff; font: inherit; unicode-bidi: plaintext; }
+.word-identity input[aria-invalid=true] { border-color: #e4ac79; }
+.word-identity-choices { display: flex; flex-wrap: wrap; gap: 5px; }
+.word-identity-choices button[aria-pressed=true] { border-color: #b6f2ff; background: #22516a; }
+.word-identity p, #word-character-name { overflow-wrap: anywhere; unicode-bidi: plaintext; }
+#word-character-name { font-weight: bold; margin: 8px 0; text-align: center; }
 .word-meeting .word-voice-choice p { font-size: 13px; line-height: 1.5; margin: 8px 0; overflow-wrap: anywhere; }
 .word-meeting .word-voice-choice label { margin: 10px 0; letter-spacing: 0; font-size: 14px; }
 .word-voice-choice select { display: block; width: 100%; min-width: 0; margin-top: 5px; padding: 8px; border: 1px solid #77d9f35c; background: #0b1f2b; color: #eafaff; }

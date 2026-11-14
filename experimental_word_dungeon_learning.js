@@ -227,6 +227,11 @@
         const state = session.state, data = state.dungeonLearning, g = grammar[locale] || grammar.ja;
         session.goal = null;
         const walkingAction = session.walkingAction; session.walkingAction = null;
+        if (core.identityFrame(state, raw, locale)) {
+            session.pending = session.proposal = null;
+            const result = core.receive(state, raw, catalog, { locale, speaker: 'player', at });
+            return { result, special: false, reply: result.identityReply };
+        }
         if (core.walkingLabel(raw, locale, catalog)) {
             const before = { knowledgeBefore: copy(state.knowledge), lexiconBefore: copy(data.lexicon), warningsBefore: copy(data.warnings), dialogueBefore: copy(session.pending) };
             const input = { id: 'input:' + (++state.serial), raw, locale, speaker: 'player', at, scene,

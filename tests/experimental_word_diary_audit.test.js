@@ -659,15 +659,16 @@ test('an owner change invalidates source reconciliation without revoking confirm
     assert.equal(report.eligibleForAoCompletion, false);
 });
 
-test('walking owner delta reviews retain original fingerprints and reject any further unreviewed change', () => {
+test('walking and identity owner delta reviews retain original fingerprints and reject further unreviewed changes', () => {
     const current = audit(), reconciled = current.ownerBoundaries.filter(owner => owner.reconciliationRecord);
     assert.deepEqual(reconciled.map(owner => owner.file).sort(), ['experimental_word_learning_core.js',
-        'experimental_word_learning_world.js', 'experimental_word_life_learning.js'].sort());
+        'experimental_word_learning_world.js', 'experimental_word_life_learning.js', 'scripts/experimental/storage.js'].sort());
     assert.equal(current.counts.reviewedCaptureBoundaries, 50);
     assert.equal(current.whole4d12Complete, false);
     for (const owner of reconciled) {
         assert.notEqual(owner.reconciledFrom, owner.reconciledTo);
-        assert(owner.reconciliationRecord.endsWith('#walking-owner-reconciliation'));
+        assert(owner.reconciliationRecord.endsWith(owner.file === 'experimental_word_life_learning.js'
+            ? '#walking-owner-reconciliation' : '#identity-owner-reconciliation'));
         const changed = audit(inventory(), file => fs.readFileSync(localFile(file), 'utf8')
             + (file === owner.file ? '\n// Unreviewed follow-up change\n' : ''));
         assert.equal(changed.counts.reviewedCaptureBoundaries, 0);

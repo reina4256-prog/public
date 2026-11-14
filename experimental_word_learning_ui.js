@@ -1,8 +1,18 @@
 (function () {
     'use strict';
     const api = window.ExperimentalWordLearning;
+    const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
+        identityHeading: '名前と呼び方', identityName: 'この子の名前', identityFirstPerson: 'この子の一人称', identityPlayerAddress: 'あなたを呼ぶときの呼び方',
+        identityHelp: '候補を選ぶか、好きな言葉を入力してください。「ご主人様」「あなた」など、名前ではない呼び方も使えます。',
+        identityLimits: '名前と呼び方は32文字、一人称は16文字以内で入力してください。空欄にはできません。',
+        identitySave: '名前と呼び方を保存', identitySaved: '名前と呼び方を覚えました。', identityPreview: 'この呼び方であいさつを聞く',
+        identityGreeting: '{firstPerson}は{characterName}。{playerAddress}、よろしくね。',
+        identity_called: '{playerAddress}、呼んだ？', identity_named: '{firstPerson}は{characterName}だよ。',
+        identity_greeted: '{playerAddress}、おはよう。',
+        identity_first_person: '自分のことは「{firstPerson}」って呼ぶよ。', identity_player_address: '{playerAddress}って呼ぶね。',
+        identity_called_gesture: '聞き覚えのある呼びかけに気づき、こちらを向いた。',
         constellation: '言葉の星座', starsClose: '会話へ戻る',
         voiceStart: '音声で入力', voiceStop: '音声を止める', voiceRead: '返答を読み上げる', voiceVolume: '読み上げ音量',
         voiceListening: '聞いています。話し終えたら「録音を終える」を押してください。無音では終了しません。最大20秒です。',
@@ -194,6 +204,9 @@
         note_negation_pairing: '自分の活動と教示を対応付けた。休むことの肯定と否定の違いは、まだ確かめている途中。',
         note_negation_learned: '休むことの肯定と否定を区別できた。同じ相手・言語・自分についての二表現に限る。休んでいないことから、別の行動や希望は決めない。',
         heard_report_not_resting: 'ぼくが休んでいない、という話だね。',
+        identity_report_not_resting: '{firstPerson}が休んでいない、という話だね。',
+        identity_report_self: '{firstPerson}が休んでいる、という話だね。',
+        identity_report_player: '{playerAddress}が休んでいる、という話だね。',
         negation_help: '報告の主体と食べる・休むを知ったあと、休息中に【否定対照・肯定】「あなたは休んでいる」、別の食事中に【否定対照・否定】「あなたは休んでいない」と教えられます。これは場面の対照で、停止命令や時点の教示ではありません。',
         report_pairing: '誰についての報告かを、示された役割と自分の休息に照らして確かめている。相手の体験を確かめたことにはしない。',
         note_report_demo: '報告の主体を示して教わった言葉：',
@@ -492,7 +505,7 @@
     let choosingInitialVoice = true;
     // Signature is transient ceremony data, never knowledge, experience, or a name.
     // Keeping normalized strokes also preserves the drawing when the layout changes.
-    let signatureStrokes = [], activeSignaturePointer = null;
+    let signatureStrokes = [], activeSignaturePointer = null, signedIdentity = null;
     function drawSignature() {
         const c = signatureCanvas.getContext('2d'); c.clearRect(0, 0, 720, 160);
         c.strokeStyle = '#b0f2ff'; c.fillStyle = '#b0f2ff'; c.lineWidth = 2.8;
@@ -501,7 +514,8 @@
             if (stroke.length === 1) { c.beginPath(); c.arc(stroke[0].x*720,stroke[0].y*160,1.4,0,Math.PI*2); c.fill(); }
             else { c.beginPath(); stroke.forEach((p,i) => c[i ? 'lineTo' : 'moveTo'](p.x*720,p.y*160)); c.stroke(); }
         }
-        meetingBegin.disabled = signatureStrokes.length === 0 || activeSignaturePointer !== null || screen !== 'meeting';
+        meetingBegin.disabled = signatureStrokes.length === 0 || activeSignaturePointer !== null || screen !== 'meeting'
+            || !identityApi.valid(readIdentityDraft());
         signatureClear.disabled = signatureStrokes.length === 0 || screen !== 'meeting';
     }
     function signaturePoint(event) {
@@ -546,8 +560,11 @@
     meeting.addEventListener('cancel', event => { event.preventDefault(); if (!choosingInitialVoice) closeVoiceChoices(); });
     meetingBegin.addEventListener('click', () => {
         if (screen !== 'meeting' || !signatureStrokes.length || activeSignaturePointer !== null) return;
+        const introduction = readIdentityDraft(); if (!identityApi.valid(introduction)) return;
+        signedIdentity = introduction;
         voice.stop();
         screen = 'signing'; drawSignature(); meetingRetry.disabled = true;
+        for (const control of identityPanel.querySelectorAll('input,button')) control.disabled = true;
         meeting.classList.add('signed');
         setTimeout(() => {
             meeting.close(); meeting.classList.remove('signed');
@@ -648,6 +665,8 @@
         ctx.fillText(displayText('logoStart'), cx, 670);
     }
     const session = node('section'); session.hidden = true;
+    const identityBadge = node('p', '', session); identityBadge.id = 'word-character-name'; identityBadge.hidden = true;
+    identityBadge.setAttribute('data-i18n-skip', '');
     session.className = 'living-space';
     const stage = node('div', undefined, session); stage.className = 'stage';
     const canvas = document.getElementById('gameCanvas') || node('canvas', undefined, stage);
@@ -894,9 +913,77 @@
     const comparisonResult = node('p', '', recordingCheck); comparisonResult.id = 'word-comparison-result'; comparisonResult.setAttribute('data-i18n-skip', ''); comparisonResult.style.whiteSpace = 'pre-wrap';
     const comparisonApply = node('button', t('voiceComparisonApply'), recordingCheck); comparisonApply.type = 'button'; comparisonApply.hidden = true; comparisonApply.id = 'word-comparison-apply';
     const voiceChoose = node('button', t('voiceChoose'), voiceHelp); voiceChoose.type = 'button'; voiceChoose.id = 'word-voice-choose';
+    const identityChoose = node('button', t('identityHeading'), voiceHelp); identityChoose.type = 'button'; identityChoose.id = 'word-identity-choose';
     const activeVoiceCredit = node('p', '', voiceHelp); activeVoiceCredit.setAttribute('data-i18n-skip', ''); activeVoiceCredit.hidden = true;
     const voiceChoice = node('section', undefined, meetingBody); voiceChoice.className = 'word-voice-choice';
     voiceChoice.id = 'word-voice-choice';
+    const identityPanel = node('section', undefined, voiceChoice); identityPanel.className = 'word-identity'; identityPanel.id = 'word-identity';
+    node('h3', t('identityHeading'), identityPanel);
+    node('p', t('identityHelp'), identityPanel);
+    const identityInputs = {}, identityChoices = {};
+    for (const [field, key] of [['characterName', 'identityName'], ['firstPerson', 'identityFirstPerson'], ['playerAddress', 'identityPlayerAddress']]) {
+        const label = node('label', t(key), identityPanel);
+        const control = node('input', undefined, label); control.type = 'text'; control.id = 'word-identity-' + field;
+        control.maxLength = identityApi.limit(field) * 2; control.autocomplete = 'off'; control.spellcheck = false;
+        control.setAttribute('data-i18n-skip', ''); control.setAttribute('aria-describedby', 'word-identity-limits');
+        identityInputs[field] = control;
+        identityChoices[field] = node('div', undefined, identityPanel); identityChoices[field].className = 'word-identity-choices';
+        identityChoices[field].setAttribute('role', 'group'); identityChoices[field].setAttribute('aria-label', t(key));
+        control.addEventListener('input', () => { voice.stop(); refreshIdentityPreview(); });
+    }
+    const identityLimits = node('p', t('identityLimits'), identityPanel); identityLimits.id = 'word-identity-limits';
+    const identityPreview = node('p', '', identityPanel); identityPreview.id = 'word-identity-preview'; identityPreview.setAttribute('data-i18n-skip', '');
+    const identityAudition = node('button', t('identityPreview'), identityPanel); identityAudition.type = 'button'; identityAudition.id = 'word-identity-audition';
+    const identitySave = node('button', t('identitySave'), identityPanel); identitySave.type = 'button'; identitySave.id = 'word-identity-save';
+    const identityStatus = node('p', '', identityPanel); identityStatus.id = 'word-identity-status'; identityStatus.setAttribute('role', 'status');
+    function readIdentityDraft() { return identityApi.draft(Object.fromEntries(identityApi.fields.map(field => [field, identityInputs[field].value]))); }
+    function updateIdentityBadge() {
+        identityBadge.textContent = state?.identity?.characterName || ''; identityBadge.hidden = !identityBadge.textContent;
+    }
+    function refreshIdentityPreview() {
+        const value = readIdentityDraft(), valid = identityApi.valid(value);
+        identityPreview.textContent = valid ? identityApi.format(displayText('identityGreeting'), value) : '';
+        identitySave.disabled = !valid || !state || saveBlocked;
+        for (const field of identityApi.fields) {
+            const fieldValid = !!value[field] && [...value[field]].length <= identityApi.limit(field)
+                && identityApi.valid({ ...value, ...Object.fromEntries(identityApi.fields.filter(other => other !== field).map(other => [other, 'a'])) });
+            identityInputs[field].setAttribute('aria-invalid', String(!fieldValid));
+            for (const button of identityChoices[field].children) button.setAttribute('aria-pressed', String(button.textContent === value[field]));
+        }
+        identityStatus.textContent = valid ? '' : t('identityLimits');
+        if (choosingInitialVoice) {
+            meetingVoice.textContent = speech.value === 'short' && valid ? identityPreview.textContent : displayText(speech.value === 'short' ? 'meetingWords' : 'meetingSound');
+            meetingVoice.setAttribute('data-i18n-skip', '');
+            drawSignature();
+        }
+        renderVoiceChoices();
+    }
+    function prepareIdentity(initial, preserve = false) {
+        const choices = identityApi.suggestions(appearance.value, text => window.GameI18n.translate(text));
+        const value = preserve ? readIdentityDraft() : !initial && state?.identity || Object.fromEntries(identityApi.fields.map(field => [field, choices[field][0]]));
+        for (const field of identityApi.fields) {
+            identityInputs[field].value = value[field]; identityInputs[field].disabled = screen === 'signing'; identityChoices[field].replaceChildren();
+            for (const text of choices[field]) {
+                const button = node('button', text, identityChoices[field]); button.type = 'button'; button.setAttribute('data-i18n-skip', '');
+                button.disabled = screen === 'signing';
+                button.addEventListener('click', () => { voice.stop(); identityInputs[field].value = text; refreshIdentityPreview(); });
+            }
+        }
+        identitySave.hidden = initial; refreshIdentityPreview();
+    }
+    window.addEventListener('game-language-changed', () => {
+        if (meeting.open) { voice.stop(); prepareIdentity(choosingInitialVoice, true); }
+    });
+    identityAudition.addEventListener('click', () => {
+        const value = readIdentityDraft();
+        if (identityApi.valid(value)) voice.speak(identityApi.format(displayText('identityGreeting'), value), { preview: true, species: appearance.value });
+    });
+    identitySave.addEventListener('click', () => {
+        if (choosingInitialVoice || !state || saveBlocked || !identityApi.configure(state, readIdentityDraft())) return;
+        voice.stop(); updateIdentityBadge(); save();
+        record('identity', { identity: state.identity });
+        identityStatus.textContent = t(saveBlocked ? 'saveFailed' : 'identitySaved'); identitySave.disabled = saveBlocked;
+    });
     const choiceHeading = node('h3', t('voiceChoose'), voiceChoice);
     node('p', t('voiceChoiceHelp'), voiceChoice);
     const sourceLabel = node('label', t('voiceSource'), voiceChoice);
@@ -993,6 +1080,7 @@
             tuningControls[key].control.value = tuning[key]; tuningControls[key].output.value = tuning[key].toFixed(2);
         }
         previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || (index < 3 ? !ready || !dialogueVoice.value : !bank.narrator); });
+        identityAudition.disabled = screen === 'signing' || !voice.supportedOutput || !ready || !dialogueVoice.value || !identityApi.valid(readIdentityDraft());
     }
     function prepareMeetingVoice(initial) {
         choosingInitialVoice = initial;
@@ -1000,6 +1088,7 @@
         meetingHeading.textContent = t(initial ? 'meetingHeading' : 'voiceChoose');
         [signatureLabel, signatureCanvas, signatureClear, meetingBegin, meetingRetry].forEach(element => { element.hidden = !initial; });
         choiceContinue.hidden = initial; meetingVoice.hidden = meetingGesture.hidden = !initial;
+        prepareIdentity(initial);
         meetingImage = new Image(); meetingImage.src = meetingVisuals[appearance.value].image;
         meetingImage.onerror = () => { imageFailure = true; };
         renderVoiceChoices(); drawMeetingFrame();
@@ -1009,6 +1098,7 @@
     }
     function closeVoiceChoices() { voice.stop(); meeting.close(); voiceChoose.focus(); lastFrame = null; }
     voiceChoose.addEventListener('click', openVoiceChoices);
+    identityChoose.addEventListener('click', () => { openVoiceChoices(); identityInputs.characterName.focus({ preventScroll: true }); });
     dialogueVoice.addEventListener('change', () => { voice.selectVoice(appearance.value, dialogueVoice.value); renderVoiceChoices(); });
     voiceSource.addEventListener('change', () => { voice.setSource(voiceSource.value); localMessage.textContent = ''; renderVoiceChoices(); });
     localConnect.addEventListener('click', async () => {
@@ -1321,13 +1411,17 @@
         }
     }
     function showReply(reply) {
+        const personalReport = state.identity && { heard_report_self: 'identity_report_self',
+            heard_report_not_resting: 'identity_report_not_resting', heard_report_player: 'identity_report_player' }[reply.message];
+        const identityText = reply.identity ? identityApi.format(displayText(reply.message), reply.identity)
+            : personalReport ? identityApi.format(displayText(personalReport), state.identity) : null;
         if (reply.npc) {
             const line = node('p', undefined, conversation); line.className = 'master-line';
             node('strong', t(`master_${reply.master}`), line); node('br', undefined, line);
             node('span', t(reply.npc), line);
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
         }
-        record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + displayText(reply.message) + (reply.literal || '') });
+        record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + (identityText ?? displayText(reply.message)) + (reply.literal || '') });
         bubble.replaceChildren(); bubble.hidden = false;
         const line = node('p', undefined, conversation);
         if (reply.observation) line.className = 'observation-line';
@@ -1336,6 +1430,9 @@
             node('span', t(reply.message), bubble);
             const logName = node('span', reply.word, line); logName.setAttribute('data-i18n-skip', '');
             node('span', t(reply.message), line);
+        } else if (identityText !== null) {
+            node('span', identityText, bubble).setAttribute('data-i18n-skip', '');
+            line.textContent = identityText; line.setAttribute('data-i18n-skip', '');
         } else {
             node('span', t(reply.message), bubble); line.textContent = t(reply.message);
             if (reply.literal) for (const parent of [bubble, line]) {
@@ -1401,8 +1498,11 @@
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
         if (newMeeting) state.startOrigin = { version: 4, answers: answers.slice() };
+        if (newMeeting) identityApi.configure(state, signedIdentity || readIdentityDraft());
+        signedIdentity = null;
         world = restored?.world || worldApi.create();
         if (restored) appearance.value = restored.appearance;
+        updateIdentityBadge();
         view.start?.(world, appearance.value);
         if (!restored && volume) view.volume(world, environmentVolume);
         if (volume) volume.value = String(world.island.volume ?? .5);
@@ -1433,6 +1533,7 @@
     });
     function openMeeting() {
         screen = 'meeting'; settings.hidden = true;
+        signedIdentity = null;
         meetingVoice.textContent = t(speech.value === 'short' ? 'meetingWords' : 'meetingSound');
         meetingGesture.textContent = t({ robot: 'meetingRobot', spirit: 'meetingSpirit', seed: 'meetingSeed' }[appearance.value] || 'meetingOther');
         signatureStrokes = []; activeSignaturePointer = null; meetingRetry.disabled = false;
@@ -1493,7 +1594,7 @@
                 : u.kind === 'greeting' ? 'good_morning' : learnedName || link && ['reference', 'question'].includes(u.kind) ? 'name_echo'
                 : ['request', 'invitation'].includes(u.kind) ? 'dungeonLimit' : result.expression.message,
                 ...(learnedName || link ? { word: learnedName?.word || link.word } : {}) };
-            if (state.settings.speech !== 'short') reply = { message: 'attend' };
+            if (state.settings.speech !== 'short' && !result.identityReply) reply = { message: 'attend' };
             updateDungeonStatus(); dungeonView.refresh();
         } else reply = worldApi.respond(world, result, state, catalog);
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,

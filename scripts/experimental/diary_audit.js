@@ -81,6 +81,13 @@ const ownerReconciliations = new Map([
     ['experimental_word_learning_world.js', 'aea3f03193b70fda686b1d94eed188aec31a44b3a937870c464c26fc7c53586c'],
     ['experimental_word_life_learning.js', '6fe5c6875f0e4b60c94212d3b7ae70b9c207c49c4e79128bcdc78053014e0e20']
 ]);
+// Keep the walking review intact. Identity introduces a separate, finite entry
+// path without broadening the existing vocabulary or diary capture adapters.
+const identityOwnerReconciliations = new Map([
+    ['experimental_word_learning_core.js', '38370db45954785d3092fedce88a85d94662024891fc9a2490006df6be5d2142'],
+    ['experimental_word_learning_world.js', '967dff18b35b258d95a6ed58fff0e9983563f2113fa15b70a66ff286474743ff'],
+    ['scripts/experimental/storage.js', 'f978219b147c39812e635dfc117343af35cf70b1270635a3b2c9770bf25155ab']
+]);
 const earlierReviews = new Set(['4d11', '4d12a', '4d12b', '4d12c', '4d12d', '4d12e', '4d12f', '4d12g']);
 const definitions = [
     ['4d1', 'candidates', 'create', 0],
@@ -357,10 +364,11 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
     const fingerprint = source => createHash('sha256').update(source.replace(/\r\n/g, '\n')).digest('hex');
     const ownerBoundaries = [...ownerReviews].map(([file, hash]) => {
         const current = fingerprint(readAdapterSource ? readAdapterSource(file) : read(file));
-        const reconciled = ownerReconciliations.get(file) === current;
+        const identityReconciled = identityOwnerReconciliations.get(file) === current;
+        const reconciled = identityReconciled || ownerReconciliations.get(file) === current;
         return { file, review: current === hash || reconciled ? 'owner_boundary_reviewed' : 'pending',
             ...(reconciled ? { reconciledFrom: hash, reconciledTo: current,
-                reconciliationRecord: AUDIT_SPEC + '#walking-owner-reconciliation' } : {}) };
+                reconciliationRecord: AUDIT_SPEC + (identityReconciled ? '#identity-owner-reconciliation' : '#walking-owner-reconciliation') } : {}) };
     });
     const ownersUnchanged = ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed');
     const ids = new Set(), files = new Set();

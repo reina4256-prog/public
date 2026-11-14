@@ -1,9 +1,9 @@
 (function (root, factory) {
     'use strict';
-    const api = factory();
+    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_identity') : root.ExperimentalWordIdentity);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordLearning = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (identity) {
     'use strict';
 
     // Trial parameters, not agreed gameplay constants. No random comprehension failures.
@@ -901,6 +901,8 @@
         if (typeof raw !== 'string' || !raw.trim() || raw.length > 1000) throw new Error('Invalid input');
         const input = { id: `input:${++state.serial}`, raw, locale: options.locale || 'ja',
             speaker: options.speaker || 'player', at: options.at ?? Date.now(), scene: state.context.scene };
+        const introduction = identity.receive(state, input, RULES.contextLimit);
+        if (introduction) return introduction;
         const repeatForms = {
             ja: /^(?:さっきの(?:話|答え)を)?(?:もう一度|もういちど|もう一回)(?:教えて|言って|聞かせて)(?:くれる|ください)?[？?。]?$/u,
             en: /^(?:please )?(?:say|tell me) (?:that|it) again[?.]?$/iu,
@@ -1106,7 +1108,7 @@
         return true;
     }
 
-    return Object.freeze({ RULES, create, perceive, interpret, receive, walkingLabel, formCandidates,
+    return Object.freeze({ RULES, create, perceive, interpret, receive, identityFrame: identity.identify, walkingLabel, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
         wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame, feelingContrast, feelingTeaching, feelingBasis, validClauseSources });
 });

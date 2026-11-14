@@ -4,6 +4,125 @@ const assert = require('node:assert/strict');
 const questions = require('../experimental_word_start_questions');
 const core = require('../experimental_word_learning_core');
 const catalog = require('../experimental_word_learning_catalog.json');
+const identity = require('../experimental_word_identity');
+const worldApi = require('../experimental_word_learning_world');
+const introduced = (options = {}) => {
+    const state = core.create({ foundation: false, life: false, speech: 'short', ...options }, catalog);
+    assert.equal(identity.configure(state, { characterName: 'ピコ', firstPerson: 'おれ', playerAddress: 'ご主人様' }), true);
+    return state;
+};
+
+test('introductions keep names, first person and forms of address separate from general knowledge', () => {
+    const state = introduced(), knowledge = structuredClone(state.knowledge);
+    assert.deepEqual(state.identity, { version: 1, characterName: 'ピコ', firstPerson: 'おれ', playerAddress: 'ご主人様' });
+    assert.deepEqual(state.records, []); assert.deepEqual(state.notes, []); assert.equal(state.serial, 0);
+    assert.equal(identity.configure(state, state.identity), true); assert.equal(state.identityHistory, undefined);
+    for (const appearance of questions.appearances) for (const values of Object.values(identity.suggestions(appearance))) assert.equal(values.length, 3);
+    assert.deepEqual(identity.suggestions('robot').playerAddress, ['ご主人様', 'あなた', '相棒']);
+    assert.deepEqual(state.knowledge, knowledge);
+});
+
+test('names are literal Unicode values; invalid or oversized introductions never replace the current one', () => {
+    const state = introduced(), before = structuredClone(state);
+    for (const value of ['', 'x'.repeat(33), 'a\nb', 'a\u202eb']) {
+        assert.equal(identity.configure(state, { ...state.identity, characterName: value }), false);
+        assert.deepEqual(state, before);
+    }
+    assert.equal(identity.configure(state, { ...state.identity, firstPerson: 'x'.repeat(17) }), false);
+    const name = 'A.$&<b>🌸';
+    assert.equal(identity.configure(state, { ...state.identity, characterName: name, playerAddress: 'あなた' }), true);
+    assert.equal(identity.format('{firstPerson}:{characterName}:{playerAddress}', state.identity), 'おれ:' + name + ':あなた');
+    assert.ok(identity.identify(state, name + '！', 'ja'));
+    assert.equal(identity.identify(state, 'Axxxxxxxxb', 'ja'), null);
+});
+
+test('an exact self-call is understood from the introduction without granting walking or question vocabulary', () => {
+    const state = introduced(), world = worldApi.create(), before = structuredClone(state.knowledge);
+    const unknown = core.receive(state, 'ピコの新しいお願いです', catalog, { at: 1 });
+    const old = structuredClone(unknown.understandings);
+    const result = core.receive(state, 'ピコ！', catalog, { at: 2 });
+    assert.equal(result.input.raw, 'ピコ！'); assert.equal(result.understandings[0].complete, true);
+    assert.equal(result.understandings[0].identitySource.kind, 'introduction');
+    assert.equal(worldApi.respond(world, result, state, catalog).message, 'identity_called');
+    assert.equal(worldApi.validContext(state, world), true);
+    assert.deepEqual(state.knowledge, before); assert.deepEqual(unknown.understandings, old);
+    identity.configure(state, { ...state.identity, characterName: '歩く' });
+    const walk = core.receive(state, '歩く', catalog, { at: 3 });
+    assert.equal(walk.understandings[0].kind, 'identity'); assert.deepEqual(walk.lifeLabel, []);
+    assert.equal(identity.identify(state, '歩く', 'ja', 'another-player'), null);
+    assert.equal(core.receive(state, '休む？', catalog).understandings[0].complete, false);
+});
+
+test('seven locales answer only bounded introduction questions and preserve selected literal forms of address', () => {
+    const forms = { ja: ['名前は？', '一人称は？', '私の呼び方は？'], en: ['What is your name?', 'What do you call yourself?', 'What do you call me?'],
+        'zh-CN': ['你叫什么名字？', '你怎么称呼自己？', '你怎么称呼我？'], ru: ['Как тебя зовут?', 'Как ты называешь себя?', 'Как ты называешь меня?'],
+        'es-ES': ['¿Cómo te llamas?', '¿Cómo te refieres a ti?', '¿Cómo me llamas?'], 'pt-BR': ['Como você se chama?', 'Como você se refere a si?', 'Como você me chama?'],
+        de: ['Wie heißt du?', 'Wie nennst du dich selbst?', 'Wie nennst du mich?'] };
+    for (const [locale, inputs] of Object.entries(forms)) {
+        const state = introduced(), world = worldApi.create();
+        for (const [i, raw] of inputs.entries()) {
+            const result = core.receive(state, raw, catalog, { locale, at: i });
+            const response = worldApi.respond(world, result, state, catalog);
+            assert.equal(response.message, ['identity_named', 'identity_first_person', 'identity_player_address'][i]);
+            assert.deepEqual(response.identity, state.identity); assert.equal(worldApi.validContext(state, world), true);
+        }
+        assert.deepEqual(state.knowledge.meanings, []); assert.deepEqual(state.knowledge.relations, []);
+    }
+});
+
+test('gesture-only children recognize their introductions without acquiring spoken dialogue', () => {
+    const state = introduced({ speech: 'gesture' }), world = worldApi.create();
+    for (const raw of ['ピコ', '名前は？']) {
+        const result = core.receive(state, raw, catalog);
+        assert.equal(result.understandings[0].complete, true); assert.equal(result.expression.channel, 'gesture');
+        assert.deepEqual(worldApi.respond(world, result, state, catalog), { message: 'identity_called_gesture', observation: true });
+    }
+});
+
+test('an understood greeting uses the chosen address without changing the greeting prerequisites', () => {
+    for (const speech of ['short', 'gesture']) {
+        const state = introduced({ foundation: true, life: true, speech }), world = worldApi.create();
+        const result = core.receive(state, 'おはよう', catalog);
+        const response = worldApi.respond(world, result, state, catalog);
+        assert.equal(response.message, speech === 'short' ? 'identity_greeted' : 'attend');
+        if (speech === 'short') assert.equal(response.identity.playerAddress, 'ご主人様');
+        assert.equal(state.knowledge.relations.every(entry => entry.source === 'initial'), true);
+    }
+});
+
+test('revising introductions retains old names and actual past understandings without rewriting them', () => {
+    const state = introduced();
+    const result = core.receive(state, '名前は？', catalog), previous = structuredClone(state.context.turns);
+    identity.configure(state, { ...state.identity, characterName: 'コロ', firstPerson: 'わたし', playerAddress: 'あなた' });
+    assert.deepEqual(state.context.turns, previous); assert.equal(result.identityReply.identity.characterName, 'ピコ');
+    assert.equal(identity.identify(state, 'ピコ', 'ja').slot, 'call');
+    assert.equal(identity.identify(state, 'あなた', 'ja'), null, 'player address is not a self-name or a universal pronoun rule');
+    assert.equal(state.identityHistory[0].characterName, 'ピコ');
+});
+
+test('old saves remain unchanged, while configured introductions and history survive validated storage', () => {
+    const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
+    const storage = require('../scripts/experimental/storage'), directory = fs.mkdtempSync(path.join(os.tmpdir(), 'word-identity-store-'));
+    const value = { version: 1, appearance: 'robot', state: core.create({}, catalog), world: worldApi.create() };
+    assert.ok(storage.valid(value)); const legacy = structuredClone(value);
+    assert.equal(identity.validState(value.state), true); assert.deepEqual(value, legacy);
+    identity.configure(value.state, { characterName: 'ピコ', firstPerson: 'ぼく', playerAddress: 'ご主人様' });
+    identity.configure(value.state, { ...value.state.identity, playerAddress: 'あなた' });
+    const store = storage.createStore(directory); assert.equal(store.save(value).ok, true); assert.deepEqual(store.load().value, value);
+    for (const invalid of [{ ...value.state.identity, extra: true }, { ...value.state.identity, firstPerson: '' }])
+        assert.equal(storage.valid({ ...value, state: { ...value.state, identity: invalid } }), false);
+    assert.equal(storage.valid({ ...value, state: { ...value.state, identityHistory: [null] } }), false);
+});
+
+test('the dungeon shares the same introduction and never turns a self-name into an object definition', () => {
+    const dungeonApi = require('../experimental_word_dungeon_learning');
+    const state = introduced(), world = worldApi.create();
+    const session = dungeonApi.create(state, world), before = structuredClone(state.knowledge);
+    const answer = dungeonApi.receive(session, 'ピコ', catalog);
+    assert.equal(answer.result.understandings[0].kind, 'identity'); assert.equal(answer.reply.message, 'identity_called');
+    assert.equal(session.state, state); assert.deepEqual(state.knowledge, before);
+    assert.equal(session.goal, null); assert.equal(core.validClauseSources(state, catalog), true);
+});
 
 test('all everyday answer combinations preserve independent starts without invented experience', () => {
     const combinations = new Set(), appearances = new Set();
