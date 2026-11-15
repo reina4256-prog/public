@@ -30,6 +30,7 @@ module.exports = async ({ js, window, url, paintClock, sleep, read, load }) => {
     for (let i=0;i<100&&!read()?.world?.island;i++) await sleep(50);
     const base = structuredClone(read());
     assert.ok(base?.world?.island,JSON.stringify(await js(`({screen:document.querySelector('#app').className,text:document.body.innerText.slice(-1200)})`)));
+    if (process.argv.includes('--auto-masters')) return require('./smoke_auto_masters')({ js, window, url, paintClock, sleep, read, load, base });
     // All fixture writes stay inside smoke_island's disposable profile.
     // Place the actor one arrival away; the production tick owns the encounter.
     let savedMeeting;

@@ -903,6 +903,7 @@
     const autoProgress = node('p', '', autoPanel); autoProgress.id = 'word-auto-progress'; autoProgress.setAttribute('data-i18n-skip', '');
     node('p', t('autoContinue'), autoPanel);
     function stopAuto() {
+        masterAutoElapsed = masterAutoQuiet = 0;
         if (autoActive) record('auto_training', { action: 'stop', weights: autoMemory.weights });
         autoActive = false; autoPlan = null; autoPreview.textContent = '';
         autoToggle.textContent = t('autoStart'); autoToggle.setAttribute('aria-pressed', 'false'); autoStatus.textContent = displayText('autoStopped');
@@ -923,7 +924,7 @@
             if (autoProgress.textContent !== progress) autoProgress.textContent = progress;
         }
         if (!autoActive) return;
-        if (holding) { autoPlan = null; autoPreview.textContent = ''; autoDue = world.elapsed + 2; autoStatus.textContent = displayText('autoPaused'); return; }
+        if (holding) { autoPlan = null; autoPreview.textContent = ''; autoDue = world.elapsed + 2; autoStatus.textContent = displayText(masterDialog.open ? 'autoWaiting' : 'autoPaused'); return; }
         if (world.elapsed < autoDue) return;
         const candidate = autoApi.next(autoMemory, state, world, window.GameI18n.language);
         if (!candidate) { autoPlan = null; autoPreview.textContent = ''; autoStatus.textContent = displayText('autoWaiting'); autoDue = world.elapsed + 1; return; }
@@ -1374,6 +1375,7 @@
     const masterSkip = node('button', t('masterSkip'), masterDialog); masterSkip.type = 'button'; masterSkip.id = 'word-master-skip'; masterSkip.className = 'word-master-skip'; masterSkip.hidden = true;
     let masterFocus = null, masterImage = null, dialogMaster = null, masterBackground = null;
     let masterPhase = 'closed', masterReply = null, masterToken = 0, videoAbort = null, videoWatch = null;
+    let masterSpeechToken = 0, masterSpeechPending = false, masterAutoElapsed = 0, masterAutoQuiet = 0;
     function clearMasterVideo() {
         videoAbort?.abort(); videoAbort = null;
         clearInterval(videoWatch); videoWatch = null;
@@ -1384,6 +1386,7 @@
         if (!masterDialog.open) return;
         if (masterPhase === (silhouette ? 'silhouette' : 'conversation')) return;
         masterPhase = silhouette ? 'silhouette' : 'conversation';
+        masterAutoElapsed = masterAutoQuiet = 0;
         masterDialog.dataset.phase = masterPhase; clearMasterVideo();
         masterLeft.hidden = masterRight.hidden = false;
         masterText.textContent = t(silhouette ? 'masterPresence' : masterReply.npc);
@@ -1393,12 +1396,30 @@
         masterClose.disabled = false; masterClose.focus({ preventScroll: true }); drawMaster(performance.now());
         playMasterVoices();
     }
-    function playMasterVoices() {
-        if (masterPhase === 'silhouette') voice.speak(masterText.textContent, { role: 'narration' });
-        else if (masterPhase === 'conversation') void voice.speakScene([
-            { text: masterText.textContent, role: 'master', master: dialogMaster },
-            { text: masterThought.textContent, role: 'narration' }
-        ]);
+    async function playMasterVoices() {
+        const token = ++masterSpeechToken;
+        masterSpeechPending = true; masterAutoQuiet = 0;
+        try {
+            if (masterPhase === 'silhouette') await voice.speak(masterText.textContent, { role: 'narration' });
+            else if (masterPhase === 'conversation') await voice.speakScene([
+                { text: masterText.textContent, role: 'master', master: dialogMaster },
+                { text: masterThought.textContent, role: 'narration' }
+            ]);
+        } finally { if (token === masterSpeechToken) masterSpeechPending = false; }
+    }
+    function tickAutoMaster(dt) {
+        if (!autoActive || paused || exporting || voice.listening || meeting.open || !stars.hidden || input.value.trim()
+            || !masterDialog.open || !['silhouette', 'conversation'].includes(masterPhase)) {
+            masterAutoElapsed = masterAutoQuiet = 0; return;
+        }
+        // Visible frame time only: movie/loading phases never advance, nor do background gaps.
+        masterAutoElapsed += dt;
+        masterAutoQuiet = masterSpeechPending ? 0 : masterAutoQuiet + dt;
+        const readingTime = Math.max(4, Math.min(15, Array.from(masterText.textContent + masterThought.textContent).length / 12));
+        if (masterAutoElapsed >= readingTime && masterAutoQuiet >= 1) {
+            record('auto_training', { action: 'master_continue', master: dialogMaster, phase: masterPhase });
+            advanceMaster();
+        }
     }
     function prepareMasterVoices() {
         if (masterReply) void voice.prepareScene([
@@ -1421,6 +1442,7 @@
         if (masterPhase !== 'conversation') { event.preventDefault(); masterConversation(); }
     });
     masterDialog.addEventListener('close', () => {
+        masterSpeechToken++; masterSpeechPending = false; masterAutoElapsed = masterAutoQuiet = 0;
         voice.stop();
         masterPhase = 'closed'; masterToken++; clearMasterVideo();
         lastFrame = null;
@@ -1462,6 +1484,7 @@
         masterFocus = document.activeElement; masterDialog.showModal(); masterClose.focus();
         if (reply.message === 'master_meet') {
             masterPhase = 'loading'; masterDialog.dataset.phase = masterPhase;
+            masterAutoElapsed = masterAutoQuiet = 0;
             prepareMasterVoices();
             masterLeft.hidden = masterRight.hidden = true; masterVideo.hidden = true;
             masterSkip.hidden = false; masterSkip.focus({ preventScroll: true });
@@ -1542,6 +1565,7 @@
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
+            tickAutoMaster(Math.max(0, Math.min(.1, dt)));
             const holding = paused || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
             [world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
