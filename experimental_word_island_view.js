@@ -13,7 +13,7 @@ window.aiPet = aiPet;
 window.ExperimentalWordView = function (surface, visuals, onError) {
     surface.width = 800; surface.height = 480;
     const sources = { ...imageSources };
-    // Load only the island and supported base appearances; no evolution or old AI.
+    // Evolved images load on demand through the shared renderer's dynamic catalog.
     for (const key of ['field', 'terrain', 'field_3', 'field_4', 'field_5', 'field_6', ...Object.keys(visuals)]) {
         const img = new Image(); images[key] = img; totalImages++;
         img.onload = () => { imagesLoaded++; };
@@ -31,6 +31,7 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         window.audioManager.playBGM(skin);
     };
     this.draw = function (world, skin, reducedMotion) {
+        skin = window.ExperimentalWordGrowth?.visualSkin(skin) || skin;
         aiPet.x = world.x * 800; aiPet.y = world.y * 480;
         aiPet.currentSkin = skin;
         aiPet.actionState = world.mode === 'move' ? 'moving' : 'idle';

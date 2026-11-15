@@ -1,9 +1,10 @@
 (function (root, factory) {
     'use strict';
-    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_identity') : root.ExperimentalWordIdentity);
+    const api = factory(typeof module === 'object' && module.exports ? require('./experimental_word_identity') : root.ExperimentalWordIdentity,
+        typeof module === 'object' && module.exports ? require('./experimental_word_growth') : root.ExperimentalWordGrowth);
     if (typeof module === 'object' && module.exports) module.exports = api;
     else root.ExperimentalWordLearning = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (identity) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (identity, growth) {
     'use strict';
 
     // Trial parameters, not agreed gameplay constants. No random comprehension failures.
@@ -1013,6 +1014,7 @@
             understandings[0].answerReference = { turnId: previous.id, subject: answer.subject,
                 eventTime: answer.eventTime, source: answer.source };
         }
+        const processing = options.body ? growth.constrain(understandings, interpretations, raw, growth.budget(state, options.body)) : null;
         understandings.forEach((u, index) => {
             const frame = interpretations[index];
             if (frame.kind !== 'reply' || u.kind !== 'reply' || !u.complete) return;
@@ -1030,6 +1032,7 @@
             state.context.pendingQuestion = null;
         });
         const learning = interpretations.map((frame, index) => {
+            if (understandings[index].unresolved.some(x => x.type === 'processing_limit')) return { candidates: [], adopted: null, updated: [] };
             if (['word_explanation', 'word_correction'].includes(frame.kind)) {
                 const result = updateWordExplanation(state, frame, understandings[index], input, catalog);
                 const entry = state.knowledge.wordExplanations?.find(e => e.inputId === input.id);
@@ -1042,7 +1045,7 @@
             const updated = updateLinks(state, candidates, adopted, input);
             return { candidates, adopted, updated };
         });
-        const recalled = [...new Set(understandings.flatMap(u => recall(state, u)))].slice(-RULES.recallLimit);
+        const recalled = [...new Set(understandings.flatMap(u => recall(state, u)))].slice(-Math.min(RULES.recallLimit, processing?.depth ?? RULES.recallLimit));
         // Retraction applies only to the latest understood naming explanation, never
         // to all past knowledge. A missing or ambiguous antecedent remains unresolved.
         understandings.forEach((u, index) => {
@@ -1082,7 +1085,8 @@
                 && forms.some(form => normalize(form) === normalize(labelText)))
             .map(([id]) => id) : [];
         if (input.speaker === 'player' && walkingLabel(raw, input.locale, catalog) && !lifeLabel.includes('walk')) lifeLabel.push('walk');
-        return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression, lifeLabel };
+        return { input, interpretations, understandings, learning, transfer, recalled, reaction, expression, lifeLabel,
+            ...(processing ? { processing } : {}) };
     }
 
     function validClauseSources(state, catalog) {
@@ -1108,7 +1112,7 @@
         return true;
     }
 
-    return Object.freeze({ RULES, create, perceive, interpret, receive, identityFrame: identity.identify, walkingLabel, formCandidates,
+    return Object.freeze({ RULES, create, perceive, interpret, receive, consumeProcessing: growth.consume, identityFrame: identity.identify, walkingLabel, formCandidates,
         adoptCandidate, updateLinks, assessTransfer, experienceCandidates, learnExperience, validExperienceLearning,
         wordFrame, wordScope, correctionFrame, understand, wordApplication, validWordLearning, lexicalMeaning, questionDemonstration, proposalFrame, reportFrame, negationFrame, timeFrame, conditionFrame, sequenceFrame, reasonFrame, feelingContrast, feelingTeaching, feelingBasis, validClauseSources });
 });

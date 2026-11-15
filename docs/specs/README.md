@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+2026-11-16：[認知資源](core/experimental_word_learning.md#word-processing-resources)と[新方式進化](core/evolution_lifecycle_inheritance.md)の初期実装。体力＝扱える量、満腹度＝比較深度、旧ルートの明示進化・必須変身演出・姿／中身の独立選択。既存本人／音声／おまかせ／星座と本接続／DW・DX保留を継承。検証状態はCURRENT_IMPLEMENTATIONを参照。
+
 2026-11-16：[育った星空と会話の道筋](core/word_constellation_and_voice.md)。知識／経験の常設表示と当時の実理解・候補・返答の一時表示。配置とカメラを分離し平面／奥行きに対応。本接続／DW・DXの保留を維持。
 
 2026-11-15：[おまかせ育成](core/word_auto_training.md)。暮らし／会話／探索の優先度を個別設定し、声かけと体験を見ながら同じ子を育てる。師匠会話も動画・読み上げ後に自動確認して継続する。

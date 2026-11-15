@@ -181,7 +181,15 @@
                     original.feelingBasis = core.feelingBasis(before);
                     if (original.kind === 'report') original.reportSource = { kind: 'speaker_report', inputId: input.id, heardAt: input.at };
                 }
-                if (!equal(original, u)) return false;
+                if (!equal(original, u)) {
+                    // Resource-limited processing may only add this exact incompleteness.
+                    // Preserve all original source/basis/knowledge checks above, and never
+                    // accept a changed feeling, reporter, time, or invented reference.
+                    const limited = copy(original);
+                    limited.unresolved.push({ type: 'processing_limit' }); limited.complete = false;
+                    if (limited.target) limited.target.adopted = null;
+                    if (!equal(limited, u)) return false;
+                }
             }
             return true;
         } catch (_) { return false; }

@@ -11,6 +11,7 @@ const feelingLearning = require('../../experimental_word_feeling_learning');
 const startQuestions = require('../../experimental_word_start_questions');
 const identity = require('../../experimental_word_identity');
 const autoTraining = require('../../experimental_word_auto_training');
+const growth = require('../../experimental_word_growth');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
     // Persist the confirmed reset even if the player quits before choosing a child.
@@ -24,6 +25,7 @@ function valid(value) {
         && startQuestions.validOrigin(s.startOrigin, s.settings, value.appearance)
         && identity.validState(s)
         && autoTraining.validPreferences(s.autoTraining)
+        && growth.valid(s, value.appearance)
         && ['meanings', 'relations', 'associations', 'relationEvidence'].every(k => Array.isArray(s.knowledge?.[k]))
         && [...s.knowledge.meanings, ...s.knowledge.relations].every(e => typeof e?.id === 'string')
         && s.knowledge.associations.every(e => typeof e?.word === 'string' && typeof e.target === 'string' && Array.isArray(e.evidence) && e.evidence.every(item => item && typeof item === 'object'))

@@ -251,6 +251,16 @@
     }
 
     function respond(world, result, state, catalog) {
+        if (result.processing) {
+            // Knowledge stays intact. Limited comparison never becomes a new true lesson.
+            core.consumeProcessing(world, result.processing);
+            if (result.processing.omitted.length) {
+                const response = { message: state.settings.speech === 'short' ? 'uncertain' : 'attend' };
+                world.reaction = 'uncertain'; world.reactionTime = 5;
+                rememberOutput(world, state, response, result.input);
+                return response;
+            }
+        }
         if (result.identityReply) {
             world.reaction = 'attend'; world.reactionTime = 5;
             const response = JSON.parse(JSON.stringify(result.identityReply));

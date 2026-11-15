@@ -37,7 +37,10 @@
         traceBoundary: '実際に記録された理解・候補・返答をたどります。LLM内部の再現や、確率の表示ではありません。',
         candidateGuide: '候補は、対象や学ぶ結び付きについての記録です。返答文の確率を計算したものではありません。',
         replay: '道筋をもう一度見る', stop: '動きを止める', flat: '平面', depth: '奥行き', left: '左へ回す', right: '右へ回す',
-        latest: '今の返答を星で見る', details: '詳しく見る', newLinks: '今回増えた結び付き', noUnderstanding: '理解できた意味・関係の記録はありません。'
+        latest: '今の返答を星で見る', details: '詳しく見る', newLinks: '今回増えた結び付き', noUnderstanding: '理解できた意味・関係の記録はありません。',
+        processing: '当時の処理範囲', quantity: '体力による情報量の制限', comparison: '満腹度による比較の制限',
+        preserved: '知識は残っています。今回は道筋の一部をたどりきれませんでした。',
+        used: '扱った量／上限', depthLimit: '比較の深さ／候補数の上限'
     };
     // Read-only projection. Shared evidence is shown through a record node, never
     // interpreted as a new semantic relation, truth judgment, or acquired word.
@@ -218,6 +221,12 @@
             }
         };
         for (const u of result.understandings || []) {
+            if (u.unresolved?.some(m => m.type === 'processing_limit')) {
+                // Retain actual unresolved candidates without lighting an unused path.
+                for (const c of u.target?.candidates || []) candidates.push({
+                    label: c.word || meanings[c.id] || messages.object, literal: !!c.word, selected: false, target: c.id });
+                continue;
+            }
             for (const n of before.nodes) {
                 const explicit = [...(u.relationReferences || []), ...(u.feelingReferences || [])].some(e => JSON.stringify(e) === n.signature);
                 const basic = n.id.startsWith(n.kind + '/') && (n.kind === 'meaning'
@@ -265,7 +274,8 @@
             && after.nodes.some(n => n.id === edge.from && !['record', 'object'].includes(n.kind))) fresh.add(edge.from);
         return copy({ id: result.input.id, raw: result.input.raw, locale: result.input.locale, graph: after,
             understood: [...understood], outputNodes, situation, refs: [...refs], replyRefs: [...new Set(replyRefs)], candidates, missing, fresh: [...fresh],
-            complete: !!result.understandings?.length && result.understandings.every(u => u.complete), reply, text });
+            complete: !!result.understandings?.length && result.understandings.every(u => u.complete), reply, text,
+            ...(result.processing ? { processing: result.processing } : {}) });
     }
     function mount(root, options) {
         let model, selected = null, query = '', zoom = 1, depth = false, yaw = 0, traceId = null, positions;
@@ -297,6 +307,15 @@
             el('strong', messages.history, heading);
             if (options.compact) button(messages.details, heading, () => options.inspect?.(trace.id));
             else { button(messages.replay, heading, play); button(messages.stop, heading, stop); }
+            if (trace.processing) {
+                const p = trace.processing, detail = el('aside', undefined, path); detail.className = 'word-processing';
+                el('strong', messages.processing, detail);
+                el('p', `${tr(messages.used)}: ${p.used}/${p.units} · ${tr(messages.depthLimit)}: ${p.depth}/${p.candidates}`, detail, true);
+                if (p.omitted.length) {
+                    el('p', messages.preserved, detail);
+                    for (const reason of new Set(p.omitted.flatMap(x => x.reasons))) el('p', messages[reason], detail);
+                }
+            }
             const flow = el('ol', undefined, path); flow.className = 'word-trace-flow';
             function step(title, index) { const li = el('li', undefined, flow); li.dataset.traceStage = index; el('strong', title, li); return li; }
             el('p', trace.raw, step(messages.input, 0), true);

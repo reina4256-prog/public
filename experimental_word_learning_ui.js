@@ -152,7 +152,7 @@
         note_reason_learned: '問いから実際に選んだ声かけへのつながりを理解した。この相手・言語・表現と休息に限る。すべての動機が分かったわけではない。',
         selected_reason: 'この声かけを選んで休んだことは、思い出せるよ：',
         reason_help: '休む・お願い・誘いを先に学びます。印なしのお願いを選んで休息を完了したら、その声かけを右側にした理由質問の例を教えます。誘いでも別の休息を完了して同じ手順を行います。問いを学んだら、理由説明の印で両方の選択を別々の完了休息に照合します。次の休息へ向かう前に教えてください。印は教示操作で、本人の回答や当時の理由を後付けするものではありません。',
-        bodyHunger: '空腹',
+        bodyHunger: '満腹度',
         bodyEnergy: '体力',
         word_situated: 'ここで教わった意味と結び付けて考えているよ。ほかでも同じかは、まだ分からない。',
         word_corrected: '前の説明を言い直したんだね。自分で経験したことは残して、今の説明と分けて考えるよ。',
@@ -698,7 +698,7 @@
     const bodyMeters = ['bodyHunger', 'bodyEnergy'].map(key => {
         const label = node('label', t(key), bodyStatus);
         const meter = node('meter', undefined, label); meter.min = 0; meter.max = 100;
-        meter.low = 35; meter.high = 65; meter.optimum = key === 'bodyHunger' ? 0 : 100;
+        meter.low = 35; meter.high = 65; meter.optimum = 100;
         meter.setAttribute('aria-label', t(key));
         const value = node('span', '', label); value.setAttribute('data-i18n-skip', '');
         return { meter, value };
@@ -779,6 +779,103 @@
     const conversationButton = node('button', t('conversation'), panelButtons); conversationButton.type = 'button';
     const notebookButton = node('button', t('notebook'), panelButtons); notebookButton.type = 'button';
     const starsButton = node('button', t('constellation'), panelButtons); starsButton.type = 'button'; starsButton.id = 'word-stars';
+    const growthApi = window.ExperimentalWordGrowth;
+    const growthMessages = {
+        title: '育ちと進化', skin: '姿を選ぶ', mind: '中身を選ぶ', evolve: 'この進化を選ぶ',
+        guide: '姿と中身は別々に選べます。進化履歴は戻りません。別ルートは引退後の次の子で選びます。',
+        ceremony: '姿が変わっています。変身が終わると姿と中身を選べるようになります。',
+        later: '後で続ける', retry: '演出を再開する', failed: '姿の画像を読み込めませんでした。演出を再開してください。',
+        conditions: '必要な育ち', extra: '活力は2種類以上の活動、老化は600秒の生活・活力の経験6回も必要です。',
+        capacity: '処理できる量', comparison: '比較の深さ', efficiency: '消耗効率',
+        base: '出会ったときの中身', power: '活力：慣れた経験を省エネで使う', intel: '賢さ：広く参照し深く比較する',
+        beauty: '美しさ：相手や場面に合う表現を使う', old: '老化：振り返った経験と要点を使う', dark: '闇：不確かさと別の可能性を調べる',
+        resources: '体力は扱える情報量、満腹度は比較の深さに影響します。知識はそのまま残ります。'
+    };
+    // Keep Japanese source text for the shared DOM localizer's language changes.
+    const gt = key => growthMessages[key];
+    const growthButton = node('button', gt('title'), panelButtons); growthButton.type = 'button'; growthButton.id = 'word-growth';
+    growthButton.hidden = !window.WordIslandMode;
+    const growthDialog = node('dialog', undefined, document.body); growthDialog.id = 'word-growth-dialog'; growthDialog.className = 'word-growth-dialog';
+    growthDialog.setAttribute('aria-label', gt('title'));
+    let ceremonyToken = 0;
+    const skinLabel = id => {
+        if (!id.includes('_')) return t(id);
+        return Object.values(window.evolutionRequirements || {}).flat().find(x => x.next === id)?.name || id;
+    };
+    function growthClose() { ceremonyToken++; growthDialog.close(); input.focus(); }
+    growthDialog.addEventListener('cancel', event => { event.preventDefault(); growthClose(); });
+    function growthAction(label, action) {
+        const b = node('button', label, growthDialog); b.type = 'button'; b.addEventListener('click', action); return b;
+    }
+    function renderGrowth() {
+        if (!state?.evolution) return;
+        growthDialog.replaceChildren();
+        node('h2', gt('title'), growthDialog); node('p', gt('guide'), growthDialog);
+        node('p', gt('resources'), growthDialog);
+        for (const kind of ['skin', 'mind']) {
+            const label = node('label', gt(kind), growthDialog), chooser = node('select', undefined, label);
+            chooser.id = 'word-growth-' + kind;
+            for (const id of state.evolution.path) {
+                const option = node('option', skinLabel(id), chooser); option.value = id;
+            }
+            chooser.value = state.evolution[kind]; chooser.disabled = !!state.evolution.pending;
+            chooser.addEventListener('change', () => {
+                growthApi.select(state, kind, chooser.value); save(); renderGrowth();
+            });
+        }
+        const p = growthApi.profile(state), b = growthApi.budget(state, world);
+        node('p', gt(growthApi.family(state.evolution.mind)), growthDialog);
+        node('p', `${gt('capacity')}: ${b.units} / ${gt('comparison')}: ${b.depth} / ${gt('efficiency')}: ${p.efficiency}`, growthDialog);
+        node('p', gt('extra'), growthDialog);
+        for (const c of growthApi.choices(state, world)) {
+            node('p', `${skinLabel(c.next)} · ${gt('conditions')}: ${c.count}/${c.required} · ${gt(c.family)}`, growthDialog);
+            const button = growthAction(gt('evolve'), () => {
+                if (!growthApi.begin(state, world, c.next)) return;
+                save(); startCeremony();
+            });
+            button.dataset.evolve = c.next; button.disabled = !c.ready;
+        }
+        if (state.evolution.pending) growthAction(gt('retry'), startCeremony);
+        growthAction(t('starsClose'), growthClose);
+    }
+    async function startCeremony() {
+        const pending = state.evolution?.pending; if (!pending) return;
+        const token = ++ceremonyToken;
+        growthDialog.replaceChildren(); node('h2', gt('title'), growthDialog); node('p', gt('ceremony'), growthDialog);
+        const surface = node('canvas', undefined, growthDialog); surface.width = 360; surface.height = 300;
+        surface.setAttribute('aria-label', gt('ceremony'));
+        growthAction(gt('later'), growthClose);
+        if (!growthDialog.open) growthDialog.showModal();
+        const sources = [pending.from, pending.next].map(id => {
+            const visual = growthApi.visualSkin(id), config = aiConfigs[visual], image = new Image(); image.src = imageSources[config.img || visual] || window.dynamicImageCatalog[config.img || visual];
+            return { config, image };
+        });
+        try { await Promise.all(sources.map(s => s.image.decode())); }
+        catch (_) { if (token === ceremonyToken) { node('p', gt('failed'), growthDialog); growthAction(gt('retry'), startCeremony); } return; }
+        let elapsed = 0, last = null;
+        const frame = time => {
+            if (token !== ceremonyToken || !growthDialog.open) return;
+            const dt = last === null || document.hidden ? 0 : Math.max(0, Math.min(.1, (time - last) / 1000)); last = time;
+            elapsed += dt;
+            const ratio = Math.min(1, elapsed / growthApi.RULES.ceremonySeconds), index = ratio < .5 ? 0 : 1;
+            const { config, image } = sources[index], rect = config.actions.idle[0], ctx = surface.getContext('2d');
+            ctx.clearRect(0, 0, 360, 300); ctx.fillStyle = '#142337'; ctx.fillRect(0, 0, 360, 300);
+            const scale = Math.min(220 / rect.sw, 220 / rect.sh);
+            if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                ctx.strokeStyle = '#fae9a2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(180, 150, 35 + 105 * ratio, 0, 2 * Math.PI); ctx.stroke();
+            }
+            ctx.drawImage(image, rect.sx, rect.sy, rect.sw, rect.sh, 180 - rect.sw * scale / 2, 260 - rect.sh * scale, rect.sw * scale, rect.sh * scale);
+            surface.dataset.skin = index ? pending.next : pending.from;
+            if (ratio < 1 || document.hidden) { requestAnimationFrame(frame); return; }
+            // A final painted target frame precedes the save/unlock, including reduced motion.
+            requestAnimationFrame(() => {
+                if (token !== ceremonyToken || document.hidden || !growthDialog.open) { last = null; requestAnimationFrame(frame); return; }
+                growthApi.complete(state, pending.next); save(); record('evolution', { path: state.evolution.path }); renderGrowth();
+            });
+        };
+        requestAnimationFrame(frame);
+    }
+    growthButton.addEventListener('click', () => { stopAuto(); voice.stop(); renderGrowth(); growthDialog.showModal(); if (state.evolution.pending) startCeremony(); });
     const constellationApi = window.ExperimentalWordConstellationLive;
     let starTraces = [];
     starsButton.setAttribute('aria-pressed', 'false');
@@ -1424,7 +1521,7 @@
         } finally { if (token === masterSpeechToken) masterSpeechPending = false; }
     }
     function tickAutoMaster(dt) {
-        if (!autoActive || paused || exporting || voice.listening || meeting.open || !stars.hidden || input.value.trim()
+        if (!autoActive || paused || growthDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || input.value.trim()
             || !masterDialog.open || !['silhouette', 'conversation'].includes(masterPhase)) {
             masterAutoElapsed = masterAutoQuiet = 0; return;
         }
@@ -1582,8 +1679,8 @@
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
-            const holding = paused || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
-            [world.hunger, 1 - world.fatigue].forEach((value, index) => {
+            const holding = paused || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
+            [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
                 bodyMeters[index].value.textContent = `${percent}%`;
@@ -1598,6 +1695,7 @@
             if (event) record('life', { event });
             updatePerception();
             const spontaneous = worldApi.onArrival(world, state, event);
+            if (event) growthApi.observe(state, world, null, event);
             if (spontaneous) showReply(spontaneous);
             if (event) renderNotebook();
             tickAuto(holding);
@@ -1608,7 +1706,7 @@
             point.setAttribute('aria-pressed', String(world.mode === 'move' && world.destination === 'berry:1'));
             shade.setAttribute('aria-pressed', String(world.mode === 'move' && world.destination === 'shade'));
             if (key !== lastStatus) { status.textContent = t(key); lastStatus = key; }
-            view.draw(world, appearance.value, matchMedia('(prefers-reduced-motion: reduce)').matches);
+            view.draw(world, state.evolution?.skin || appearance.value, matchMedia('(prefers-reduced-motion: reduce)').matches);
             const scale = Math.min(canvas.clientWidth / canvas.width, canvas.clientHeight / canvas.height);
             const position = view.bubblePosition?.() || { x: world.x, y: world.y - .39 };
             bubble.style.left = `${(canvas.clientWidth - canvas.width * scale) / 2 + Math.max(.23, Math.min(.77, position.x)) * canvas.width * scale}px`;
@@ -1628,6 +1726,7 @@
         stopAuto(); autoMemory = autoApi.create(state.autoTraining?.weights); autoBaseline = null; autoProgress.textContent = '';
         for (const axis of autoApi.axes) { autoSliders[axis].slider.value = String(autoMemory.weights[axis]); autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]); }
         if (restored) appearance.value = restored.appearance;
+        growthApi.init(state, appearance.value);
         updateIdentityBadge();
         view.start?.(world, appearance.value);
         if (!restored && volume) view.volume(world, environmentVolume);
@@ -1645,6 +1744,7 @@
         app.classList.add('playing'); input.focus({ preventScroll: true });
         if (dungeonButton) window.history.replaceState({ wordContent: 'island' }, '', location.href);
         save();
+        if (state.evolution.pending && window.WordIslandMode) requestAnimationFrame(startCeremony);
     }
     settings.addEventListener('submit', event => {
         event.preventDefault();
@@ -1697,7 +1797,7 @@
     canvas.addEventListener('pointerdown', stopAuto);
     form.addEventListener('submit', event => {
         event.preventDefault();
-        if (!input.value.trim() || document.hidden || paused) return;
+        if (!input.value.trim() || document.hidden || paused || growthDialog.open) return;
         if (!automaticSubmission) stopAuto();
         voice.stop();
         updatePerception();
@@ -1711,7 +1811,7 @@
             destination: world.destination, hunger: world.hunger, fatigue: world.fatigue } });
         if (dungeon) dungeonView.stop();
         const dungeonResult = dungeon ? window.ExperimentalWordDungeonLearning.receive(dungeon, input.value, catalog, window.GameI18n.language) : null;
-        const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language });
+        const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language, body: world });
         record('understanding', { result });
         const message = node('p', input.value, conversation);
         message.dataset.speaker = automaticSubmission ? 'auto' : 'player'; message.setAttribute('data-i18n-skip', '');
@@ -1731,6 +1831,7 @@
             if (state.settings.speech !== 'short' && !result.identityReply) reply = { message: 'attend' };
             updateDungeonStatus(); dungeonView.refresh();
         } else reply = worldApi.respond(world, result, state, catalog);
+        growthApi.observe(state, world, result, null, reply);
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
         showReply(reply);

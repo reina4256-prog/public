@@ -89,6 +89,13 @@ const identityOwnerReconciliations = new Map([
     ['scripts/experimental/storage.js', 'f978219b147c39812e635dfc117343af35cf70b1270635a3b2c9770bf25155ab']
 ]);
 const autoTrainingStorageReview = 'a67c54a53f587d4336d269dcb08e6f0448ea70e04417d7c924ac335f488c850c';
+// Reviewed resource/evolution delta only; preserve every earlier fingerprint.
+const processingOwnerReconciliations = new Map([
+    ['experimental_word_learning_core.js', '896b934a4cee6af9c1a78590587ae479cc60d9ebff304bb65982bf9d8f3cf97d'],
+    ['experimental_word_learning_world.js', 'c03544d246f736feae016fbe00d9d95c43eb97c43a8b7ae2441a11d650752f2e'],
+    ['experimental_word_feeling_learning.js', '11bdb5a3fb34b5caf141126a4022a47f0b07488a80b2b0b8749d70b02ade48f1'],
+    ['scripts/experimental/storage.js', '2fdbe54ddc848dcfd220bd08bbb8f17949674be4869a415747447326b4ada480']
+]);
 const earlierReviews = new Set(['4d11', '4d12a', '4d12b', '4d12c', '4d12d', '4d12e', '4d12f', '4d12g']);
 const definitions = [
     ['4d1', 'candidates', 'create', 0],
@@ -367,10 +374,11 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
         const current = fingerprint(readAdapterSource ? readAdapterSource(file) : read(file));
         const identityReconciled = identityOwnerReconciliations.get(file) === current;
         const autoReconciled = file === 'scripts/experimental/storage.js' && current === autoTrainingStorageReview;
-        const reconciled = autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
+        const processingReconciled = processingOwnerReconciliations.get(file) === current;
+        const reconciled = processingReconciled || autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
         return { file, review: current === hash || reconciled ? 'owner_boundary_reviewed' : 'pending',
             ...(reconciled ? { reconciledFrom: hash, reconciledTo: current,
-                reconciliationRecord: AUDIT_SPEC + (autoReconciled ? '#auto-training-storage-reconciliation'
+                reconciliationRecord: AUDIT_SPEC + (processingReconciled ? '#processing-owner-reconciliation' : autoReconciled ? '#auto-training-storage-reconciliation'
                     : identityReconciled ? '#identity-owner-reconciliation' : '#walking-owner-reconciliation') } : {}) };
     });
     const ownersUnchanged = ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed');

@@ -1,5 +1,7 @@
 # 同じ子の言葉の星座と音声入出力
 
+2026-11-16資源接続：captureは実result.processingを当時snapshotへ複製する。使用量／容量・比較深度／候補上限と、体力による量制限／満腹度による比較制限を道筋に表示する。制限節は理解済み経路へ加えず、常設の知識グラフは保持する。式と処理制限の判断は[認知所有節](experimental_word_learning.md#word-processing-resources)、進化／中身は[進化所有](evolution_lifecycle_inheritance.md)。起動中24件・当時資料の非補完／非書戻し・本人声／音声の保存を維持。
+
 名前・一人称・プレイヤーへの呼び方は[専用所有仕様](word_character_identity.md)。同じ初対面UIと選択声を使い、個人別の文字を含む本人会話は定型WAVキャッシュへ登録しない。
 
 ## 現在の実装仕様

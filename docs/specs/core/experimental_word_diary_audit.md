@@ -1603,6 +1603,20 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="ao-source-review-record"></a>
 
+<a id="processing-owner-reconciliation"></a>
+### 2026-11-16：認知資源と進化保存の所有差分照合
+
+2c1a023からのcore／world／feeling／storage差分全文とgrowth全体、旧ツリー投影、共通UIの実送信・演出・保存入口を直接照合した。body未指定のreceiveと旧capture引数は従来通り。指定時だけ上限超過をprocessing_limitとして実応答・学習の未実行へ分け、知識を削除しない。worldは該当resultの消耗と未完応答だけを追加。feeling保存は元の意味・主体・時点・出所・basisを照合してから、制限一件追加／不完全化／対象採用なしだけを許容し、教示replayを緩めない。storageは旧未設定を許容した個体内のpath／選択／pendingと育成情報だけを追加検査する。原当時理解を後知識で書き直さず、日記capture／歴史供給を追加しない。
+
+| 今回所有元 | LF正規化した完全一致指紋 |
+| --- | --- |
+| experimental_word_learning_core.js | 896b934a4cee6af9c1a78590587ae479cc60d9ebff304bb65982bf9d8f3cf97d |
+| experimental_word_learning_world.js | c03544d246f736feae016fbe00d9d95c43eb97c43a8b7ae2441a11d650752f2e |
+| experimental_word_feeling_learning.js | 11bdb5a3fb34b5caf141126a4022a47f0b07488a80b2b0b8749d70b02ade48f1 |
+| scripts/experimental/storage.js | 2fdbe54ddc848dcfd220bd08bbb8f17949674be4869a415747447326b4ada480 |
+
+元ownerReviews／歩行／自己紹介／おまかせの指紋と50adapter原照合を置換せず、processingOwnerReconciliationsを別保持。未知変更は依存50境界pendingへ戻す。七言語の制限感情保存と意味改竄拒否、旧ルート一致、演出前未解放・切替／保存を個別検証し、全回帰／rendererはhandoffへ別記する。q2jkmqの旧指紋不一致による監査テスト失敗は非置換保存。旧scope／全保留・歴史B供給0・全体工程未完・DW／DX非移行は不変。
+
 <a id="auto-training-storage-reconciliation"></a>
 ### 2026-11-15：おまかせ育成設定の保存差分照合
 
