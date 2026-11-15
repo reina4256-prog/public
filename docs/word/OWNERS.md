@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-15：[おまかせ育成](../specs/core/word_auto_training.md)が3方針の優先度と教示計画／表示／中断を所有する。実学習は既存2b／関係と通常のcore/worldを参照し、日記部品／採用範囲を追加しない。
+
 - [名前・一人称・呼び方](../specs/core/word_character_identity.md)はexperimental_word_identity.jsが設定／履歴／有限照合、coreとworld／dungeonが共通会話、共通UIが入力・原文字列補間・試聴、storageが検査／保存を所有する。一般単語知識や日記captureとは分離する。
 
 2026-11-11 手動録音終了・WAV通知はspeech_input、直近録音と取消／比較transportはvoice、Blob再生／比較結果と明示適用は共通UI、固定profileとmodel切替はspeech_processが所有。[所有仕様](../specs/core/word_constellation_and_voice.md)・[操作／追加導入](VOICE_INPUT.md)へ集約する。

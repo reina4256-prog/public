@@ -88,6 +88,7 @@ const identityOwnerReconciliations = new Map([
     ['experimental_word_learning_world.js', '967dff18b35b258d95a6ed58fff0e9983563f2113fa15b70a66ff286474743ff'],
     ['scripts/experimental/storage.js', 'f978219b147c39812e635dfc117343af35cf70b1270635a3b2c9770bf25155ab']
 ]);
+const autoTrainingStorageReview = 'a67c54a53f587d4336d269dcb08e6f0448ea70e04417d7c924ac335f488c850c';
 const earlierReviews = new Set(['4d11', '4d12a', '4d12b', '4d12c', '4d12d', '4d12e', '4d12f', '4d12g']);
 const definitions = [
     ['4d1', 'candidates', 'create', 0],
@@ -365,10 +366,12 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
     const ownerBoundaries = [...ownerReviews].map(([file, hash]) => {
         const current = fingerprint(readAdapterSource ? readAdapterSource(file) : read(file));
         const identityReconciled = identityOwnerReconciliations.get(file) === current;
-        const reconciled = identityReconciled || ownerReconciliations.get(file) === current;
+        const autoReconciled = file === 'scripts/experimental/storage.js' && current === autoTrainingStorageReview;
+        const reconciled = autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
         return { file, review: current === hash || reconciled ? 'owner_boundary_reviewed' : 'pending',
             ...(reconciled ? { reconciledFrom: hash, reconciledTo: current,
-                reconciliationRecord: AUDIT_SPEC + (identityReconciled ? '#identity-owner-reconciliation' : '#walking-owner-reconciliation') } : {}) };
+                reconciliationRecord: AUDIT_SPEC + (autoReconciled ? '#auto-training-storage-reconciliation'
+                    : identityReconciled ? '#identity-owner-reconciliation' : '#walking-owner-reconciliation') } : {}) };
     });
     const ownersUnchanged = ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed');
     const ids = new Set(), files = new Set();

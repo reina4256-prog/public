@@ -5,12 +5,84 @@ const questions = require('../experimental_word_start_questions');
 const core = require('../experimental_word_learning_core');
 const catalog = require('../experimental_word_learning_catalog.json');
 const identity = require('../experimental_word_identity');
+const autoTraining = require('../experimental_word_auto_training');
 const worldApi = require('../experimental_word_learning_world');
 const introduced = (options = {}) => {
     const state = core.create({ foundation: false, life: false, speech: 'short', ...options }, catalog);
     assert.equal(identity.configure(state, { characterName: 'ピコ', firstPerson: 'おれ', playerAddress: 'ご主人様' }), true);
     return state;
 };
+
+test('automatic training preferences preserve legacy saves and reject malformed priorities', () => {
+    assert.equal(autoTraining.validPreferences(undefined), true);
+    assert.equal(autoTraining.validPreferences({version:1,weights:{life:0,conversation:2,exploration:3}}), true);
+    for(const value of [{}, {version:1,weights:{life:4,conversation:1,exploration:1}},
+        {version:1,weights:{life:1,conversation:NaN,exploration:1}}, {version:1,weights:{life:1,conversation:1}}])
+        assert.equal(autoTraining.validPreferences(value),false);
+    const storage=require('../scripts/experimental/storage'),value={version:1,appearance:'robot',state:core.create({},catalog),world:worldApi.create()};
+    value.state.autoTraining={version:1,weights:{life:0,conversation:2,exploration:3}};assert.ok(storage.valid(value));
+    value.state.autoTraining.weights.life=-1;assert.equal(storage.valid(value),false);
+});
+
+test('automatic teacher speaks the existing grammar in every supported language', () => {
+    for(const locale of Object.keys(autoTraining.questions)){
+        const state=core.create({foundation:false,life:false},catalog);
+        for(const [id,word]of Object.entries(autoTraining.wordsFor(locale)))
+            assert.deepEqual(core.receive(state,'「'+word+'」',catalog,{locale}).lifeLabel,[id],locale+':'+id);
+        assert.equal(core.interpret(autoTraining.questions[locale],locale,catalog)[0].slot,'current_activity');
+        const example='「'+autoTraining.questions[locale]+'」→「'+autoTraining.wordsFor(locale).rest+'」';
+        assert.equal(core.questionDemonstration(example,locale,catalog).kind,'question_demonstration');
+        assert.deepEqual(state.knowledge.meanings,[]);
+    }
+});
+
+test('weighted priorities change teaching opportunities without mutating the child or world', () => {
+    const state=core.create({foundation:false,life:false},catalog),world=worldApi.create();
+    state.knowledge.meanings.push({id:'eat',source:'initial'});
+    Object.assign(world,{mode:'eat',attention:'berry:1',activityStart:1,activityBefore:{hunger:.6,fatigue:.2}});
+    const memory=autoTraining.create({life:3,conversation:1,exploration:0}),before=JSON.stringify({state,world});
+    const plans=[];for(let i=0;i<4;i++){world.activityStart=1+i;const plan=autoTraining.next(memory,state,world,'ja');plans.push(plan.axis);autoTraining.committed(memory,plan);}
+    assert.deepEqual(plans,['life','conversation','life','life']);world.activityStart=1;
+    assert.equal(JSON.stringify({state,world}),before);
+    assert.equal(autoTraining.next(autoTraining.create({life:0,conversation:0,exploration:0}),state,world,'ja'),null);
+});
+
+test('the automatic teacher does not repeat one label within one physical activity', () => {
+    const state=core.create({foundation:false,life:false},catalog),world=worldApi.create();
+    Object.assign(world,{mode:'rest',attention:'shade',activityStart:1,activityBefore:{hunger:.2,fatigue:.2}});
+    const memory=autoTraining.create({life:1,conversation:0,exploration:0});
+    for(const id of ['rest','sleep']){const plan=autoTraining.next(memory,state,world,'ja');assert.equal(plan.id,id);autoTraining.committed(memory,plan);}
+    assert.equal(autoTraining.next(memory,state,world,'ja'),null);assert.deepEqual(state.knowledge.meanings,[]);
+});
+
+test('automatic walking teaching requires real displacement and normal experience completion', () => {
+    const state=core.create({foundation:false,life:false},catalog),world=worldApi.create(),memory=autoTraining.create({life:0,conversation:0,exploration:1});
+    assert.equal(worldApi.approach(world,'path'),true);
+    const plan=autoTraining.next(memory,state,world,'ja');assert.equal(plan.id,'walk');
+    core.perceive(state,worldApi.perception(world));const result=core.receive(state,plan.text,catalog);
+    worldApi.respond(world,result,state,catalog);autoTraining.committed(memory,plan);
+    assert.deepEqual(state.knowledge.meanings,[]);
+    for(let i=0;i<300&&world.mode==='move';i++){const event=worldApi.tick(world,.1);core.perceive(state,worldApi.perception(world));worldApi.onArrival(world,state,event);}
+    assert.ok(state.knowledge.meanings.some(entry=>entry.id==='walk'&&entry.source==='experienced_life'));
+    assert.ok(state.experiences.some(entry=>entry.activity==='walk'&&entry.after.x!==entry.before.x));
+});
+
+test('from no foundation, normal automatic inputs and completed experiences can teach action questions', () => {
+    const state=core.create({foundation:false,life:false,speech:'gesture'},catalog),world=worldApi.create(),memory=autoTraining.create();
+    let due=0;
+    for(let i=0;i<12000;i++){
+        const event=worldApi.tick(world,.1);core.perceive(state,worldApi.perception(world));worldApi.onArrival(world,state,event);
+        if(world.elapsed<due)continue;due=world.elapsed+2;
+        const plan=autoTraining.next(memory,state,world,'ja');if(!plan)continue;
+        if(plan.kind==='move')worldApi.approach(world,plan.target,'pointing');
+        else worldApi.respond(world,core.receive(state,plan.text,catalog),state,catalog);
+        autoTraining.committed(memory,plan);
+    }
+    assert.ok(['walk','eat','rest'].every(id=>state.knowledge.meanings.some(entry=>entry.id===id&&entry.source==='experienced_life')));
+    assert.ok(state.knowledge.relations.some(entry=>entry.id==='question'&&entry.source!=='initial'));
+    assert.equal(state.settings.foundation,false);assert.equal(state.settings.speech,'gesture');
+    assert.equal(core.validExperienceLearning(state,require('../experimental_word_life_learning').rules),true);
+});
 
 test('introductions keep names, first person and forms of address separate from general knowledge', () => {
     const state = introduced(), knowledge = structuredClone(state.knowledge);

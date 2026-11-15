@@ -4,6 +4,16 @@
     const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
+        autoHeading: 'おまかせ育成', autoLife: '暮らし', autoConversation: '会話', autoExploration: '探索',
+        autoHelp: '今の場面と理解に合わせて、ゲーム内の育成補助が声かけを選びます。外部AIサービスは使いません。方針は性格を固定せず、教える機会の優先度を変えます。',
+        autoLevels0: '見送る', autoLevels1: '控えめ', autoLevels2: 'ふつう', autoLevels3: '優先',
+        autoStart: 'おまかせを始める', autoStop: 'おまかせを止める', autoTeacher: 'おまかせの声かけ',
+        autoStopped: '停止中。自分で声をかけられます。', autoWaiting: '言葉と体験を結べる場面を待っています。',
+        autoPaused: '画面の操作が終わるまで、声かけを待っています。', autoDraft: '入力中の文を送るか、消してから始めてください。',
+        autoZero: '優先度を1つ以上、見送る以外にしてください。', autoPreview: '次の声かけ', autoMove: '歩く体験のために、島の中を移動します。',
+        autoExperience: '実際の動作や感覚に、短い言葉を添えます。', autoExample: '今の活動を使って、質問と答えの例を見せます。',
+        autoPractice: '覚えた言葉を使って、今していることを尋ねます。', autoPending: '伝えました。経験の完了や、この子の反応を見守ります。',
+        autoGrowth: '今回、新しく覚えた言葉', autoContinue: '開始・停止は自分で選べます。入力やマイク操作でおまかせは止まり、入力途中の文は残ります。再起動時は停止しています。',
         identityHeading: '名前と呼び方', identityName: 'この子の名前', identityFirstPerson: 'この子の一人称', identityPlayerAddress: 'あなたを呼ぶときの呼び方',
         identityHelp: '候補を選ぶか、好きな言葉を入力してください。「ご主人様」「あなた」など、名前ではない呼び方も使えます。',
         identityLimits: '名前と呼び方は32文字、一人称は16文字以内で入力してください。空欄にはできません。',
@@ -371,6 +381,8 @@
     let exporting = false;
     let screen = window.WordIslandMode ? 'logo' : 'setup';
     let dungeon = null, dungeonView = null, dungeonVisuals;
+    const autoApi = window.ExperimentalWordAutoTraining;
+    let autoMemory = autoApi.create(), autoActive = false, autoPlan = null, autoDue = 0, autoBaseline = null, automaticSubmission = false;
     let environmentVolume = .5;
     let voice, lastReplyIsNarration = false;
     function record(kind, data) {
@@ -867,6 +879,71 @@
     const input = node('textarea', undefined, label); input.maxLength = 1000; input.required = true;
     input.setAttribute('data-i18n-skip', '');
     const send = node('button', t('send'), form);
+    const autoPanel = node('details', undefined, form); autoPanel.id = 'word-auto-training';
+    form.insertBefore(autoPanel, form.firstChild);
+    autoPanel.addEventListener('toggle', () => app.classList.toggle('auto-training-open', autoPanel.open));
+    node('summary', t('autoHeading'), autoPanel);
+    node('p', t('autoHelp'), autoPanel);
+    const autoSliders = {};
+    for (const [axis, key] of [['life', 'autoLife'], ['conversation', 'autoConversation'], ['exploration', 'autoExploration']]) {
+        const row = node('label', t(key), autoPanel); row.className = 'word-auto-axis';
+        const slider = node('input', undefined, row); slider.type = 'range'; slider.min = '0'; slider.max = '3'; slider.step = '1';
+        slider.id = 'word-auto-' + axis; slider.value = String(autoMemory.weights[axis]);
+        const value = node('output', t('autoLevels' + slider.value), row); value.htmlFor = slider.id;
+        slider.addEventListener('input', () => {
+            stopAuto(); autoMemory.weights[axis] = Number(slider.value); autoMemory.counts = { life: 0, conversation: 0, exploration: 0 };
+            value.textContent = t('autoLevels' + slider.value);
+            if (state) { state.autoTraining = { version: 1, weights: { ...autoMemory.weights } }; save(); }
+        });
+        autoSliders[axis] = { slider, value };
+    }
+    const autoToggle = node('button', t('autoStart'), autoPanel); autoToggle.type = 'button'; autoToggle.id = 'word-auto-toggle'; autoToggle.setAttribute('aria-pressed', 'false');
+    const autoStatus = node('p', displayText('autoStopped'), autoPanel); autoStatus.id = 'word-auto-status'; autoStatus.setAttribute('role', 'status'); autoStatus.setAttribute('data-i18n-skip', '');
+    const autoPreview = node('p', '', autoPanel); autoPreview.id = 'word-auto-preview'; autoPreview.setAttribute('data-i18n-skip', '');
+    const autoProgress = node('p', '', autoPanel); autoProgress.id = 'word-auto-progress'; autoProgress.setAttribute('data-i18n-skip', '');
+    node('p', t('autoContinue'), autoPanel);
+    function stopAuto() {
+        if (autoActive) record('auto_training', { action: 'stop', weights: autoMemory.weights });
+        autoActive = false; autoPlan = null; autoPreview.textContent = '';
+        autoToggle.textContent = t('autoStart'); autoToggle.setAttribute('aria-pressed', 'false'); autoStatus.textContent = displayText('autoStopped');
+    }
+    autoToggle.addEventListener('click', () => {
+        if (autoActive) { stopAuto(); return; }
+        if (!state || dungeon || screen !== 'playing') return;
+        if (input.value.trim() || voice.listening) { autoStatus.textContent = displayText('autoDraft'); return; }
+        if (!Object.values(autoMemory.weights).some(value => value > 0)) { autoStatus.textContent = displayText('autoZero'); return; }
+        autoActive = true; autoPlan = null; autoDue = world.elapsed + 2; autoBaseline = state.knowledge.meanings.length;
+        state.autoTraining = { version: 1, weights: { ...autoMemory.weights } }; save();
+        autoToggle.textContent = t('autoStop'); autoToggle.setAttribute('aria-pressed', 'true'); autoStatus.textContent = displayText('autoWaiting');
+        record('auto_training', { action: 'start', weights: autoMemory.weights });
+    });
+    function tickAuto(holding) {
+        if (autoBaseline !== null) {
+            const progress = displayText('autoGrowth') + ': ' + Math.max(0, state.knowledge.meanings.length - autoBaseline);
+            if (autoProgress.textContent !== progress) autoProgress.textContent = progress;
+        }
+        if (!autoActive) return;
+        if (holding) { autoPlan = null; autoPreview.textContent = ''; autoDue = world.elapsed + 2; autoStatus.textContent = displayText('autoPaused'); return; }
+        if (world.elapsed < autoDue) return;
+        const candidate = autoApi.next(autoMemory, state, world, window.GameI18n.language);
+        if (!candidate) { autoPlan = null; autoPreview.textContent = ''; autoStatus.textContent = displayText('autoWaiting'); autoDue = world.elapsed + 1; return; }
+        if (!autoPlan || JSON.stringify(autoPlan.plan) !== JSON.stringify(candidate)) {
+            autoPlan = { plan: candidate, at: world.elapsed }; autoDue = world.elapsed + 2;
+            autoStatus.textContent = displayText({ experience: 'autoExperience', example: 'autoExample', practice: 'autoPractice', movement: 'autoMove' }[candidate.purpose]);
+            autoPreview.textContent = candidate.kind === 'say' ? displayText('autoPreview') + ': ' + candidate.text : displayText('autoMove'); return;
+        }
+        autoPlan = null; autoPreview.textContent = '';
+        if (candidate.kind === 'move') {
+            if (!worldApi.approach(world, candidate.target, 'pointing')) { autoDue = world.elapsed + 3; return; }
+            record('auto_training', { action: 'move', target: candidate.target, axis: candidate.axis });
+        } else {
+            // No timer writes to a draft. These checks also guard synchronous UI changes.
+            if (input.value.trim() || voice.listening) { stopAuto(); return; }
+            try { automaticSubmission = true; input.value = candidate.text; input.dataset.inputMethod = 'auto'; form.requestSubmit(); }
+            finally { automaticSubmission = false; }
+        }
+        autoApi.committed(autoMemory, candidate); autoStatus.textContent = displayText('autoPending'); autoDue = world.elapsed + (candidate.kind === 'move' ? .5 : 6);
+    }
     node('small', t('inputHint'), form);
     const voiceTools = node('div', undefined, form); voiceTools.className = 'word-voice-tools';
     const microphone = node('button', t('voiceStart'), voiceTools); microphone.type = 'button'; microphone.id = 'word-microphone';
@@ -1183,6 +1260,7 @@
     if (!voice.supportedInput) voiceStatus.textContent = t('voiceUnsupportedInput');
     microphone.addEventListener('click', () => {
         if (paused || screen !== 'playing') return;
+        stopAuto();
         dungeonView?.stop();
         if (!voice.listening) { voiceDraft = input.value; voiceOwnedValue = input.value; }
         voice.listen();
@@ -1207,8 +1285,12 @@
         else if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
     voiceStop.addEventListener('click', () => voice.stop());
-    input.addEventListener('input', () => { voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
-    window.addEventListener('game-language-changed', () => { voice.clearRecording(); renderVoiceChoices(); liveStars.languageChanged(); });
+    input.addEventListener('input', () => { stopAuto(); voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
+    window.addEventListener('game-language-changed', () => {
+        stopAuto(); for (const axis of autoApi.axes) autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]);
+        if (autoBaseline !== null && state) autoProgress.textContent = displayText('autoGrowth') + ': ' + Math.max(0, state.knowledge.meanings.length - autoBaseline);
+        voice.clearRecording(); renderVoiceChoices(); liveStars.languageChanged();
+    });
     document.addEventListener('visibilitychange', () => { if (document.hidden) voice.stop(); });
     window.addEventListener('pagehide', () => voice.clearRecording());
     input.addEventListener('keydown', event => {
@@ -1236,6 +1318,7 @@
     }
     function toggleDungeon(enter, history = true) {
         if (!state || !dungeonButton || enter === !!dungeon) return;
+        stopAuto(); autoPanel.hidden = enter;
         if (enter) {
             window.ExperimentalWordLifeLearning.cancelWalking(world);
             dungeon = window.ExperimentalWordDungeonLearning.create(state, world);
@@ -1477,6 +1560,7 @@
             const spontaneous = worldApi.onArrival(world, state, event);
             if (spontaneous) showReply(spontaneous);
             if (event) renderNotebook();
+            tickAuto(holding);
             if (world.speech && world.elapsed > world.speech.until) bubble.hidden = true;
             const feedback = controlFeedback && time < controlFeedback.until ? controlFeedback.key : null;
             const key = imageFailure ? 'imagesFailed' : paused ? 'paused' : feedback || (input.value.trim() ? 'typing' : world.mode === 'observe'
@@ -1501,6 +1585,8 @@
         if (newMeeting) identityApi.configure(state, signedIdentity || readIdentityDraft());
         signedIdentity = null;
         world = restored?.world || worldApi.create();
+        stopAuto(); autoMemory = autoApi.create(state.autoTraining?.weights); autoBaseline = null; autoProgress.textContent = '';
+        for (const axis of autoApi.axes) { autoSliders[axis].slider.value = String(autoMemory.weights[axis]); autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]); }
         if (restored) appearance.value = restored.appearance;
         updateIdentityBadge();
         view.start?.(world, appearance.value);
@@ -1564,9 +1650,12 @@
         if (masterVisit) masterVisit.disabled = paused;
     });
     document.addEventListener('visibilitychange', () => { lastFrame = null; });
+    [point, shade, walk, masterVisit, pause, voiceChoose].filter(Boolean).forEach(button => button.addEventListener('click', stopAuto));
+    canvas.addEventListener('pointerdown', stopAuto);
     form.addEventListener('submit', event => {
         event.preventDefault();
         if (!input.value.trim() || document.hidden || paused) return;
+        if (!automaticSubmission) stopAuto();
         voice.stop();
         updatePerception();
         // Capture originals at the actual input boundary, not by replaying a fixture later.
@@ -1581,7 +1670,8 @@
         const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language });
         record('understanding', { result });
         const message = node('p', input.value, conversation);
-        message.dataset.speaker = 'player'; message.setAttribute('data-i18n-skip', '');
+        message.dataset.speaker = automaticSubmission ? 'auto' : 'player'; message.setAttribute('data-i18n-skip', '');
+        if (automaticSubmission) message.textContent = displayText('autoTeacher') + ': ' + input.value;
         let reply;
         if (dungeon) {
             const u = result.understandings.at(-1), link = state.knowledge.associations.find(a => a.target === u.target?.adopted?.id

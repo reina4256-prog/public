@@ -15,8 +15,8 @@ if (!process.versions.electron || process.type !== 'browser') {
     let server, window, snapshot; const failures = [], checks = [];
     const store = require('./storage').createStore(directory), sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const js = code => window.webContents.executeJavaScript(code, true);
-    async function wait(code, label) {
-        for (let i = 0; i < 150; i++) { if (await js(code)) return; await sleep(50); }
+    async function wait(code, label, limit = 150) {
+        for (let i = 0; i < limit; i++) { if (await js(code)) return; await sleep(50); }
         throw new Error(label + ': ' + JSON.stringify(await js('({text:document.body.innerText.slice(-800),screen:document.querySelector("#app")?.className})')));
     }
     const pcm = Buffer.alloc(44 + 2400 * 2);
@@ -135,6 +135,57 @@ if (!process.versions.electron || process.type !== 'browser') {
         await say('Gesti');assert.equal(snapshot.state.context.turns.at(-1).expression.channel,'gesture');
         assert.equal(snapshot.state.settings.speech,'gesture');assert.deepEqual(snapshot.state.knowledge.meanings,[]);assert.deepEqual(snapshot.state.knowledge.relations,[]);
         checks.push({legacyChildConfigurable:true,noNewGameRequired:true,gestureOnlyPreserved:true,noVocabularyGranted:true});
+        const learner={version:1,appearance:'stone',state:core.create({foundation:false,life:false,speech:'gesture'},catalog),world:worldApi.create()};
+        Object.assign(learner.world,{mode:'rest',attention:'shade',dwell:30,activityBefore:{hunger:.35,fatigue:.9},fatigue:.9,activityStart:0});
+        await window.loadURL('about:blank');assert.ok(store.save(learner).ok);snapshot=learner;
+        await window.loadURL(url);await wait('!!document.querySelector("#word-new-game:not(:disabled)")','auto bootstrap');
+        // A fully hidden Windows window may throttle native rAF to one frame/s.
+        // Use real wall-clock callbacks at 16ms; no world-time acceleration.
+        await js('window.requestAnimationFrame=callback=>setTimeout(()=>callback(performance.now()),16);void 0');
+        await js('document.querySelector(".word-logo").click();document.querySelector("#word-continue").click()');await wait('document.querySelector("#app").classList.contains("playing")','auto continue');
+        await js('document.querySelector("#word-auto-training").open=true;for(const axis of ["life","conversation","exploration"]){const s=document.querySelector("#word-auto-"+axis);s.value="0";s.dispatchEvent(new Event("input",{bubbles:true}));}document.querySelector("#word-auto-toggle").click()');
+        assert.equal(await js('document.querySelector("#word-auto-toggle").getAttribute("aria-pressed")'),'false');
+        await js('const life=document.querySelector("#word-auto-life");life.value="3";life.dispatchEvent(new Event("input",{bubbles:true}));document.querySelector("#word-auto-toggle").click()');
+        await wait('document.querySelector("#word-auto-preview").textContent.includes("休む")','visible auto preview',600);
+        assert.equal(snapshot.state.serial,0);assert.deepEqual(snapshot.state.knowledge.meanings,[]);
+        await wait('document.querySelectorAll("#conversation [data-speaker=auto]").length>=2','two real auto inputs',800);
+        assert.ok(snapshot.state.context.turns.length>=2);assert.equal(snapshot.state.knowledge.meanings.length,0);
+        assert.ok(snapshot.world.lifeLabels.length>=2);assert.ok(snapshot.world.lifeLabels[1].heardAt-snapshot.world.lifeLabels[0].heardAt>=7000);
+        await js('const draft=document.querySelector(".chat-form textarea");draft.value="My draft";draft.dispatchEvent(new Event("input",{bubbles:true}))');
+        const serial=snapshot.state.serial;await sleep(2500);
+        assert.equal(await js('document.querySelector("#word-auto-toggle").getAttribute("aria-pressed")'),'false');
+        assert.equal(await js('document.querySelector(".chat-form textarea").value'),'My draft');assert.equal(snapshot.state.serial,serial);
+        assert.equal(await js('document.querySelector("#word-auto-preview").textContent'),'');
+        await js('document.querySelector("#word-auto-toggle").click()');assert.equal(await js('document.querySelector("#word-auto-toggle").getAttribute("aria-pressed")'),'false');
+        await js('document.querySelector(".chat-form textarea").value=""');
+        for(let i=0;i<800&&!snapshot.state.knowledge.meanings.some(m=>m.id==='rest');i++)await sleep(50);
+        assert.ok(snapshot.state.knowledge.meanings.some(m=>m.id==='rest'&&m.source==='experienced_life'));
+        await js('GameI18n.setLanguage("en")');await sleep(100);
+        assert.ok((await js('document.querySelector("#word-auto-progress").textContent')).startsWith(await js('GameI18n.translate("今回、新しく覚えた言葉")')));
+        assert.ok(Number((await js('document.querySelector("#word-auto-progress").textContent')).split(': ').at(-1))>=1);
+        await js('GameI18n.setLanguage("ja")');
+        assert.equal(snapshot.state.settings.foundation,false);assert.equal(snapshot.state.settings.speech,'gesture');
+        assert.deepEqual(snapshot.state.autoTraining,{version:1,weights:{life:3,conversation:0,exploration:0}});
+        await window.loadURL(url);await wait('!!document.querySelector("#word-new-game:not(:disabled)")','auto restart bootstrap');
+        await js('document.querySelector(".word-logo").click();document.querySelector("#word-continue").click()');await wait('document.querySelector("#app").classList.contains("playing")','auto restart continue');
+        assert.equal(await js('document.querySelector("#word-auto-life").value'),'3');assert.equal(await js('document.querySelector("#word-auto-conversation").value'),'0');
+        assert.equal(await js('document.querySelector("#word-auto-toggle").getAttribute("aria-pressed")'),'false');
+        await js('document.querySelector("#word-auto-training").open=true');
+        assert.equal(await js('getComputedStyle(document.querySelector("#word-auto-training")).position'),'static');
+        assert.equal(await js('document.querySelector("#word-auto-training").parentNode.classList.contains("chat-form")'),true);
+        for(const locale of locales){
+            await js('GameI18n.setLanguage('+JSON.stringify(locale)+')');await sleep(100);
+            assert.equal(await js('document.querySelector("#word-auto-training summary").textContent'),await js('GameI18n.translate("おまかせ育成")'));
+            assert.equal(await js('document.querySelector("#word-auto-status").textContent'),await js('GameI18n.translate("停止中。自分で声をかけられます。")'));
+            assert.equal(await js('document.querySelector("#word-auto-life").parentNode.querySelector("output").textContent'),await js('GameI18n.translate("優先")'));
+            for(const width of [1280,390]){
+                window.setContentSize(width,900);await sleep(150);await js('document.querySelector("#word-auto-training").scrollTop=0;document.querySelector("#word-auto-training").scrollIntoView({block:"center"})');
+                assert.equal(await js('(()=>{const r=document.querySelector("#word-auto-training summary").getBoundingClientRect();return r.top>=0&&r.bottom<=innerHeight})()'),true,locale+'/auto-visible/'+width);
+                assert.equal(await js('document.documentElement.scrollWidth>document.documentElement.clientWidth+1'),false,locale+'/auto/'+width);
+                fs.writeFileSync(path.join(evidence,'auto-'+locale+'-'+width+'.png'),(await window.webContents.capturePage()).toPNG());
+            }
+        }
+        checks.push({autoTraining:true,threeIndependentPriorities:true,zeroDoesNotStart:true,visiblePreviewBeforeSend:true,realInputsAndCompletedExperience:true,noInstantKnowledge:true,manualDraftPreserved:true,preferencesSaved:true,restartStopped:true,sevenLocales:true,twoWidths:true});
         assert.deepEqual(failures,[]);const result={ok:true,directory,checks,failures};
         fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({evidence,...result}));
     }).catch(error=>{fs.writeFileSync(path.join(evidence,'failure.txt'),String(error.stack)+'\n'+JSON.stringify(failures));console.error(error);console.error(evidence);process.exitCode=1;})

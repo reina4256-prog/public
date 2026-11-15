@@ -1603,6 +1603,11 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="ao-source-review-record"></a>
 
+<a id="auto-training-storage-reconciliation"></a>
+### 2026-11-15：おまかせ育成設定の保存差分照合
+
+cb2a24bからのstorage差分全文と、新`experimental_word_auto_training.js`の設定検証／候補選択全体、UIの設定・実送信・実移動入口を直接照合した。追加は旧未設定を許容した`state.autoTraining`のversion／3整数優先度検証だけであり、本人知識・日記capture・全体工程の採用を変更しない。新しい補助は既存receive／respond／実経験へ接続する。core/world／旧adapter原文と指紋は不変。元ownerReviews・歩行／自己紹介の照合は置換せず、storageの今回完全一致指紋`a67c54a53f587d4336d269dcb08e6f0448ea70e04417d7c924ac335f488c850c`だけをautoTrainingStorageReviewとして別保持する。未知の追加変更は依存50境界pendingへ戻す。旧読取／scope採用／保留／未受入・4e DW／DX非移行は不変。検証の確定結果は現行handoffに別記する。
+
 <a id="identity-owner-reconciliation"></a>
 ### 2026-11-15：自己紹介設定に伴う共有所有元の差分照合
 
