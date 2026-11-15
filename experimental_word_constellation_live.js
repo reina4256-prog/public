@@ -27,7 +27,17 @@
         noMatch: '一致する星がありません。', zoomIn: '拡大', zoomOut: '縮小', withdrawn: '言い直された説明の記録',
         scope: 'この表現・相手・場面など、教わった範囲で結び付いています。',
         noLinks: '結び付きの元になる記録は、まだありません。',
-        meaning: '意味', relation: '言葉どうしの関係', name: '教わった呼び名'
+        meaning: '意味', relation: '言葉どうしの関係', name: '教わった呼び名',
+        mapGuide: '近さは意味の似かよいではありません。線で結ばれた言葉と記録を、見やすく配置しています。',
+        processGuide: '残る結び付きと、今回だけ光る道筋を分けて見られます。光るだけでは新しい学習になりません。',
+        history: '会話の道筋', current: '育った星空', session: '直近24件・今回の起動中だけの記録です。過去の道筋は当時の情報で表示します。',
+        input: '受け取った言葉', understood: '分かったこと', candidates: '今回の候補', references: '明示された参照先', output: '実際の返答・しぐさ',
+        noCandidates: 'この入力には、記録された候補がありません。', chosen: '今回選んだ候補', retained: '候補として残ったもの',
+        unresolved: 'まだ分からなかった部分', noReferences: '返答に使った経験は、この記録からは特定できません。', situation: 'そのときの状況',
+        traceBoundary: '実際に記録された理解・候補・返答をたどります。LLM内部の再現や、確率の表示ではありません。',
+        candidateGuide: '候補は、対象や学ぶ結び付きについての記録です。返答文の確率を計算したものではありません。',
+        replay: '道筋をもう一度見る', stop: '動きを止める', flat: '平面', depth: '奥行き', left: '左へ回す', right: '右へ回す',
+        latest: '今の返答を星で見る', details: '詳しく見る', newLinks: '今回増えた結び付き', noUnderstanding: '理解できた意味・関係の記録はありません。'
     };
     // Read-only projection. Shared evidence is shown through a record node, never
     // interpreted as a new semantic relation, truth judgment, or acquired word.
@@ -37,10 +47,10 @@
         const attach = (node, ref) => {
             if (!ref || !records.has(ref)) return;
             const record = records.get(ref);
-            const anchor = add({ id: ref, label: record.kind === 'experience' ? messages.experience : messages.lesson,
+            const anchor = add({ id: ref, label: record.kind === 'experience' ? messages.experience : messages.original,
                 kind: 'record', source: 'learned', refs: [ref], literal: false });
             const id = JSON.stringify([node.id, anchor.id]);
-            if (node.id !== anchor.id && !edges.some(edge => edge.id === id)) edges.push({ id, from: node.id, to: anchor.id });
+            if (node.id !== anchor.id && !edges.some(edge => edge.id === id)) edges.push({ id, from: node.id, to: anchor.id, kind: node.source === 'initial' ? 'use' : 'evidence' });
             if (!node.refs.includes(ref)) node.refs.push(ref);
         };
         for (const record of state.records || []) records.set('input/' + record.id, { kind: 'input', value: copy(record) });
@@ -67,7 +77,7 @@
         function semantic(entry, kind, id) {
             const label = kind === 'relation' ? words[entry.id] || entry.id
                 : meanings[entry.id] || catalog.meanings?.[entry.id]?.[0] || catalog.experienceMeanings?.[entry.id]?.[0] || entry.id;
-            const node = add({ id, label, literal: false, kind, source: entry.source === 'initial' ? 'initial' : 'learned',
+            const node = add({ id, label, literal: false, kind, semanticId: entry.id, signature: JSON.stringify(entry), source: entry.source === 'initial' ? 'initial' : 'learned',
                 scoped: !!entry.scope || entry.source !== 'initial', scopes: entry.scope ? [copy(entry.scope)] : [], refs: [] });
             evidence(node, entry); return node;
         }
@@ -79,12 +89,13 @@
         }
         for (const [index, entry] of (state.knowledge?.associations || []).entries()) {
             const node = add({ id: 'name/' + index, label: entry.word, literal: true, kind: 'name', source: 'learned',
+                candidate: entry.status === 'candidate' || !(entry.evidence || []).some(e => !e.retractedBy),
                 scoped: true, scopes: [{ locale: entry.locale, speaker: entry.speaker, scene: entry.scene }], refs: [],
                 withdrawn: (entry.evidence || []).length > 0 && entry.evidence.every(e => !!e.retractedBy) });
             evidence(node, entry);
             const object = add({ id: 'target/' + entry.target, label: messages.object, literal: false,
                 kind: 'object', source: 'learned', refs: [], scopes: [] });
-            edges.push({ id: node.id + '/target', from: node.id, to: object.id });
+            edges.push({ id: node.id + '/target', from: node.id, to: object.id, kind: 'naming' });
             for (const ref of node.refs) attach(object, ref);
         }
         for (const [index, entry] of (state.dungeonLearning?.lexicon || []).entries()) {
@@ -108,14 +119,171 @@
                 }
             }
         }
+        // Initial knowledge was already available when these completed events
+        // occurred. Show an actual use/experience, never a fabricated lesson.
+        // Acquired scoped knowledge still uses only its explicit owner evidence.
+        for (const event of state.experiences || []) {
+            const used = new Set([event.activity, ...(event.lifeLabels || []).map(label => label.meaning)]);
+            for (const node of nodes.filter(n => n.source === 'initial' && n.kind === 'meaning')) {
+                if (used.has(node.semanticId)) attach(node, 'experience/' + event.id);
+            }
+        }
         const unknown = [...records.values()].filter(r => r.kind === 'input').map(r => r.value)
             .filter(r => typeof r.raw === 'string' && r.understandings?.some(u => !u.complete)).map(r => ({
             raw: r.raw, ref: 'input/' + r.id
         }));
         return { nodes, edges, records: Object.fromEntries(records), unknown, foundation: !!state.settings?.foundation, life: !!state.settings?.life };
     }
+
+    // Topology, world coordinates and camera projection stay independent. No
+    // coordinate or distance is used by comprehension, learning or reply choice.
+    function arrange(graph) {
+        const nodes = [...graph.nodes].sort((a, b) => a.id.localeCompare(b.id, 'en'));
+        const adjacency = new Map(nodes.map(n => [n.id, []]));
+        for (const e of graph.edges) if (adjacency.has(e.from) && adjacency.has(e.to)) {
+            adjacency.get(e.from).push(e.to); adjacency.get(e.to).push(e.from);
+        }
+        const visited = new Set(), groups = [], loose = [];
+        for (const n of nodes) {
+            if (visited.has(n.id)) continue;
+            if (!adjacency.get(n.id).length) { loose.push(n.id); continue; }
+            const ids = [n.id]; visited.add(n.id);
+            for (let i = 0; i < ids.length; i++) for (const id of adjacency.get(ids[i])) if (!visited.has(id)) {
+                visited.add(id); ids.push(id);
+            }
+            groups.push(ids);
+        }
+        if (loose.length) groups.push(loose);
+        const positions = {}, boxes = [];
+        for (const ids of groups) {
+            if (ids === loose) {
+                const size = Math.max(760, Math.ceil(ids.length / 4) * 100 + 100);
+                ids.forEach((id, i) => { positions[id] = { x: 100 + i % 4 * 180 - size / 2, y: 70 + Math.floor(i / 4) * 100 - size / 2, z: (i % 3 - 1) * 65 }; });
+                boxes.push({ ids, size }); continue;
+            }
+            const root = [...ids].sort((a, b) => adjacency.get(b).length - adjacency.get(a).length || a.localeCompare(b, 'en'))[0];
+            const levels = new Map([[root, 0]]), queue = [root];
+            for (let i = 0; i < queue.length; i++) for (const id of adjacency.get(queue[i])) if (!levels.has(id)) {
+                levels.set(id, levels.get(queue[i]) + 1); queue.push(id);
+            }
+            const rows = new Map();
+            for (const id of ids) { const level = levels.get(id) || 0; if (!rows.has(level)) rows.set(level, []); rows.get(level).push(id); }
+            let radius = 0;
+            for (const [level, members] of rows) {
+                members.sort();
+                const r = members.length === 1 && level === 0 ? 0 : Math.max(level * 170, members.length * 170 / (2 * Math.PI));
+                radius = Math.max(radius, r);
+                members.forEach((id, i) => {
+                    const angle = i * 2 * Math.PI / members.length + level * .41;
+                    positions[id] = { x: Math.cos(angle) * r, y: Math.sin(angle) * r,
+                        z: ((i % 3) - 1) * 65 + level * 28 };
+                });
+            }
+            boxes.push({ ids, size: Math.max(240, radius * 2 + 190) });
+        }
+        // Shelf packing keeps disconnected knowledge visible without adding links.
+        for (const box of boxes) {
+            const points = box.ids.map(id => positions[id]);
+            box.minX = Math.min(...points.map(p => p.x)); box.minY = Math.min(...points.map(p => p.y));
+            box.width = Math.max(...points.map(p => p.x)) - box.minX + 180;
+            box.height = Math.max(...points.map(p => p.y)) - box.minY + 120;
+        }
+        const width = Math.max(760, ...boxes.map(b => b.width), Math.sqrt(boxes.reduce((s, b) => s + b.width * b.height, 0)) * 1.3);
+        let x = 0, y = 0, row = 0;
+        for (const box of boxes) {
+            if (x && x + box.width > width) { x = 0; y += row; row = 0; }
+            for (const id of box.ids) { positions[id].x += x + 90 - box.minX; positions[id].y += y + 60 - box.minY; }
+            x += box.width; row = Math.max(row, box.height);
+        }
+        return positions;
+    }
+    function camera(positions, { yaw = 0, depth = false, zoom = 1 } = {}) {
+        const points = Object.fromEntries(Object.entries(positions).map(([id, p]) => [id, {
+            x: depth ? p.x * Math.cos(yaw) + p.z * Math.sin(yaw) : p.x,
+            y: p.y + (depth ? p.z * .4 : 0), z: depth ? p.z * Math.cos(yaw) - p.x * Math.sin(yaw) : 0
+        }]));
+        const values = Object.values(points), minX = Math.min(0, ...values.map(p => p.x)), minY = Math.min(0, ...values.map(p => p.y));
+        for (const p of values) { p.x = (p.x - minX + 95) * zoom; p.y = (p.y - minY + 60) * zoom; }
+        return { points, width: Math.max(620, ...values.map(p => p.x + 95 * zoom)), height: Math.max(340, ...values.map(p => p.y + 60 * zoom)) };
+    }
+
+    // Capture the actual result and the knowledge present at the input boundary.
+    // Historical selection never re-runs receive/respond or consults later state.
+    function capture(before, after, result, reply, text, focus = null) {
+        const understood = new Set(), refs = new Set(), candidates = [], missing = [];
+        const addEvidence = entry => {
+            for (const e of entry?.evidence || []) {
+                if (typeof e === 'string') refs.add('input/' + e);
+                else if (e) { if (e.inputId) refs.add('input/' + e.inputId); if (e.experienceId !== undefined) refs.add('experience/' + e.experienceId); }
+            }
+        };
+        for (const u of result.understandings || []) {
+            for (const n of before.nodes) {
+                const explicit = [...(u.relationReferences || []), ...(u.feelingReferences || [])].some(e => JSON.stringify(e) === n.signature);
+                const basic = n.id.startsWith(n.kind + '/') && (n.kind === 'meaning'
+                    ? Object.values(u.known || {}).includes(n.semanticId) : n.kind === 'relation' && n.source === 'initial' && u.relations?.includes(n.semanticId));
+                if (explicit || basic) { understood.add(n.id); if (n.source !== 'initial') for (const ref of n.refs) refs.add(ref); }
+            }
+            for (const e of [...(u.relationReferences || []), ...(u.feelingReferences || [])]) addEvidence(e);
+            for (const application of u.applications || []) for (const c of application.candidates || []) {
+                addEvidence(c);
+                if (c.inputId) {
+                    const ref = 'input/' + c.inputId; refs.add(ref);
+                    for (const n of before.nodes) if (n.kind === 'name' && n.refs.includes(ref)) understood.add(n.id);
+                }
+            }
+            for (const c of u.target?.candidates || []) {
+                candidates.push({ label: c.word || meanings[c.id] || messages.object, literal: !!c.word,
+                    selected: u.target.adopted?.id === c.id, target: c.id });
+                for (const id of c.evidence || []) refs.add('input/' + id);
+                if (before.nodes.some(n => n.id === 'target/' + c.id)) understood.add('target/' + c.id);
+            }
+            for (const m of u.unresolved || []) missing.push({ label: m.token || words[m.id] || meanings[m.id] || messages.unresolved, literal: !!m.token });
+        }
+        for (const group of [...(result.learning || []), result.wordLearning, result.relationLearning, result.feelingLearning, result.lifeLearning, result.walkingLearning].filter(Boolean)) {
+            for (const c of group.candidates || []) {
+                candidates.push({ label: typeof c === 'string' ? meanings[c] || words[c] || messages.scoped
+                    : c.word || words[c.relation] || meanings[c.meaning] || meanings[c.id] || words[c.id] || messages.scoped, literal: !!c.word,
+                    selected: !!group.adopted && (Array.isArray(group.adopted) ? group.adopted : [group.adopted]).some(a =>
+                        typeof c === 'string' ? a === c : a && typeof a === 'object' && Object.entries(c).every(([key, value]) => JSON.stringify(a[key]) === JSON.stringify(value))) });
+            }
+        }
+        // Reply references are distinct from evidence for understanding a word.
+        const replyRefs = [];
+        if (reply.experienceId != null) replyRefs.push('experience/' + reply.experienceId);
+        const outputMeanings = new Set();
+        let situation = null;
+        if (focus?.inputId === result.input.id && focus.topic && focus.response?.message === reply.message) {
+            for (const id of focus.requiredMeanings || []) outputMeanings.add(id);
+            if (focus.evidence?.experienceId != null) replyRefs.push('experience/' + focus.evidence.experienceId);
+            else if (focus.evidence?.activity) situation = copy(focus.evidence.activity);
+        }
+        const outputNodes = before.nodes.filter(n => n.kind === 'meaning' && outputMeanings.has(n.semanticId)).map(n => n.id);
+        for (const ref of replyRefs) refs.add(ref);
+        const fresh = new Set(after.nodes.filter(n => n.source !== 'initial' && !['record', 'object'].includes(n.kind) && !before.nodes.some(old => old.id === n.id)).map(n => n.id));
+        for (const edge of after.edges) if (edge.kind !== 'use' && !before.edges.some(old => old.id === edge.id)
+            && after.nodes.some(n => n.id === edge.from && !['record', 'object'].includes(n.kind))) fresh.add(edge.from);
+        return copy({ id: result.input.id, raw: result.input.raw, locale: result.input.locale, graph: after,
+            understood: [...understood], outputNodes, situation, refs: [...refs], replyRefs: [...new Set(replyRefs)], candidates, missing, fresh: [...fresh],
+            complete: !!result.understandings?.length && result.understandings.every(u => u.complete), reply, text });
+    }
     function mount(root, options) {
-        let model, selected = null, query = '', zoom = 1;
+        let model, selected = null, query = '', zoom = 1, depth = false, yaw = 0, traceId = null, positions;
+        let timers = [];
+        const stop = () => { timers.forEach(clearTimeout); timers = []; root.classList.remove('trace-playing'); };
+        const traces = () => options.traces?.() || [];
+        const activeTrace = () => traces().find(t => t.id === traceId);
+        function play() {
+            stop(); if (!activeTrace() || document.hidden || options.canAnimate?.() === false) return;
+            root.classList.add('trace-playing');
+            const phases = root.querySelectorAll('[data-trace-stage]');
+            phases.forEach(n => n.classList.remove('trace-lit'));
+            const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+            phases.forEach(n => { timers.push(setTimeout(() => {
+                if (!document.hidden && root.isConnected && !root.closest('[hidden]') && options.canAnimate?.() !== false) n.classList.add('trace-lit'); else stop();
+            }, reduced ? 0 : Number(n.dataset.traceStage) * 650)); });
+            timers.push(setTimeout(() => root.classList.remove('trace-playing'), reduced ? 0 : 3600));
+        }
         const tr = value => options.translate(value);
         const el = (tag, text, parent, literal = false) => {
             const item = document.createElement(tag);
@@ -123,7 +291,76 @@
             item.setAttribute('data-i18n-skip', ''); parent.append(item); return item;
         };
         const button = (text, parent, action) => { const b = el('button', text, parent); b.type = 'button'; b.addEventListener('click', action); return b; };
+        function showTrace(trace, parent) {
+            const path = el('section', undefined, parent); path.className = 'word-trace';
+            const heading = el('div', undefined, path); heading.className = options.compact ? 'word-trace-tools' : 'word-stars-tools';
+            el('strong', messages.history, heading);
+            if (options.compact) button(messages.details, heading, () => options.inspect?.(trace.id));
+            else { button(messages.replay, heading, play); button(messages.stop, heading, stop); }
+            const flow = el('ol', undefined, path); flow.className = 'word-trace-flow';
+            function step(title, index) { const li = el('li', undefined, flow); li.dataset.traceStage = index; el('strong', title, li); return li; }
+            el('p', trace.raw, step(messages.input, 0), true);
+            const known = step(messages.understood, 1);
+            for (const id of trace.understood) {
+                const n = trace.graph.nodes.find(n => n.id === id); if (n) el('span', n.label, known, n.literal);
+            }
+            if (!trace.understood.length) el('p', messages.noUnderstanding, known);
+            if (trace.missing.length) { el('p', messages.unresolved, known); for (const m of trace.missing) el('span', m.label, known, m.literal); }
+            const choices = step(messages.candidates, 2);
+            if (!options.compact) el('p', messages.candidateGuide, choices);
+            for (const c of trace.candidates) { const p = el('p', c.selected ? messages.chosen : messages.retained, choices); el('span', c.label, p, c.literal); }
+            if (!trace.candidates.length) el('p', messages.noCandidates, choices);
+            const references = step(messages.references, 3);
+            const refs = [...new Set(trace.refs)];
+            if (!refs.length) el('p', messages.noLinks, references);
+            for (const ref of refs) {
+                const b = button(trace.graph.records[ref]?.kind === 'experience' ? messages.experience : messages.original, references,
+                    () => { if (options.compact) options.inspect?.(trace.id, ref); else { selected = ref; render(); } }); b.dataset.ref = ref;
+            }
+            if (trace.situation) {
+                el('p', messages.situation, references);
+                const meaning = { move: 'walk', rest: 'rest', eat: 'eat' }[trace.situation.mode];
+                if (meaning) el('span', meanings[meaning], references);
+            } else if (!trace.replyRefs.length) el('p', messages.noReferences, references);
+            const output = step(messages.output, 4); el('p', trace.text, output, true);
+            for (const id of trace.outputNodes) { const n = trace.graph.nodes.find(n => n.id === id); if (n) el('span', n.label, output, n.literal); }
+            if (trace.fresh.length) el('p', messages.newLinks, path);
+            if (!options.compact) {
+                const explanation = el('details', undefined, path); el('summary', messages.details, explanation);
+                el('p', messages.traceBoundary, explanation); el('p', messages.session, explanation);
+            }
+        }
         function render() {
+            stop();
+            const trace = activeTrace();
+            model = trace ? trace.graph : project(options.state(), options.catalog(), options.inputs?.() || []);
+            positions = arrange(model);
+            if (options.compact) {
+                root.replaceChildren(); if (!trace) return;
+                const ids = new Set([...trace.understood, ...trace.outputNodes, ...trace.refs]);
+                const graph = { nodes: model.nodes.filter(n => ids.has(n.id)), edges: model.edges.filter(e => ids.has(e.from) && ids.has(e.to)) };
+                const view = camera(arrange(graph));
+                const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                const dots = Object.values(view.points);
+                const minX = dots.length ? Math.min(...dots.map(p => p.x)) - 80 : 0, minY = dots.length ? Math.min(...dots.map(p => p.y)) - 30 : 0;
+                const width = dots.length ? Math.max(200, Math.max(...dots.map(p => p.x)) - minX + 80) : view.width;
+                const height = dots.length ? Math.max(90, Math.max(...dots.map(p => p.y)) - minY + 50) : view.height;
+                svg.setAttribute('viewBox', `${minX} ${minY} ${width} ${height}`); svg.setAttribute('aria-hidden', 'true'); svg.classList.add('word-trace-sky');
+                for (const edge of graph.edges) {
+                    const a = view.points[edge.from], b = view.points[edge.to], line = document.createElementNS(svg.namespaceURI, 'line');
+                    for (const [key, value] of Object.entries({ x1: a.x, y1: a.y, x2: b.x, y2: b.y })) line.setAttribute(key, value);
+                    svg.append(line);
+                }
+                for (const n of graph.nodes) {
+                    const p = view.points[n.id], group = document.createElementNS(svg.namespaceURI, 'g');
+                    group.dataset.traceStage = trace.outputNodes.includes(n.id) && !trace.understood.includes(n.id) ? 4 : n.kind === 'record' ? 3 : 1;
+                    const circle = document.createElementNS(svg.namespaceURI, 'circle'); circle.setAttribute('cx', p.x); circle.setAttribute('cy', p.y); circle.setAttribute('r', 6);
+                    const text = document.createElementNS(svg.namespaceURI, 'text'); text.setAttribute('x', p.x); text.setAttribute('y', p.y + 28);
+                    text.textContent = n.literal ? n.label : tr(n.label); group.append(circle, text); svg.append(group);
+                }
+                root.append(svg); showTrace(trace, root);
+                return;
+            }
             const focused = document.activeElement?.dataset.star;
             const old = root.querySelector('.word-stars-viewport');
             const scroll = old ? [old.scrollLeft, old.scrollTop] : [0, 0];
@@ -131,47 +368,77 @@
             el('h2', messages.title, root);
             const help = el('details', undefined, root); help.className = 'word-stars-help';
             el('summary', messages.help, help); el('p', messages.guide, help);
+            el('p', messages.mapGuide, help); el('p', messages.processGuide, help);
             el('p', model.foundation || model.life ? messages.prepared : messages.seed, help);
             const tools = el('div', undefined, root); tools.className = 'word-stars-tools';
+            if (!options.compact) {
+                const historyLabel = el('label', messages.history, tools), history = el('select', undefined, historyLabel);
+                el('option', messages.current, history).value = '';
+                for (const item of [...traces()].reverse()) { const o = el('option', item.raw, history, true); o.value = item.id; }
+                history.value = traceId || '';
+                history.addEventListener('change', () => { traceId = history.value || null; selected = null; query = ''; render(); play(); });
+            }
             const label = el('label', messages.search, tools), search = el('input', undefined, label);
             search.type = 'search'; search.value = query; search.id = 'word-stars-search';
             const searchNow = () => { query = search.value; render(); root.querySelector('input').focus(); };
             search.addEventListener('input', event => { if (!event.isComposing) searchNow(); });
             search.addEventListener('compositionend', searchNow);
-            button(messages.all, tools, () => { selected = null; query = ''; zoom = 1; render(); root.querySelector('.word-stars-viewport').scrollTo(0, 0); });
+            button(messages.all, tools, () => { selected = null; query = ''; zoom = 1; traceId = null; render(); root.querySelector('.word-stars-viewport').scrollTo(0, 0); });
             button(messages.zoomIn, tools, () => { zoom = Math.min(2, zoom + .25); render(); });
             button(messages.zoomOut, tools, () => { zoom = Math.max(.75, zoom - .25); render(); });
+            const mode = button(depth ? messages.flat : messages.depth, tools, () => { depth = !depth; render(); }); mode.dataset.camera = 'mode';
+            mode.setAttribute('aria-pressed', String(depth));
+            for (const [label, delta] of [[messages.left, -.25], [messages.right, .25]]) {
+                const b = button(label, tools, () => { yaw = Math.max(-.8, Math.min(.8, yaw + delta)); render(); }); b.disabled = !depth;
+            }
             const legend = el('div', undefined, root); legend.className = 'word-stars-legend';
             el('span', messages.initial, legend); el('span', messages.learned, legend);
             const layout = el('div', undefined, root); layout.className = 'word-stars-layout';
             const viewport = el('div', undefined, layout); viewport.className = 'word-stars-viewport'; viewport.tabIndex = 0;
             viewport.setAttribute('aria-label', tr(messages.title));
             const sky = el('div', undefined, viewport); sky.className = 'word-stars-sky';
-            const connected = new Set(model.edges.flatMap(e => [e.from, e.to]));
-            const visible = model.nodes.filter(n => !query || (n.literal ? n.label : tr(n.label)).toLocaleLowerCase().includes(query.toLocaleLowerCase()))
-                .sort((a, b) => Number(connected.has(b.id)) - Number(connected.has(a.id)));
-            const height = Math.max(340, Math.ceil(visible.length / 4) * 105 + 40) * zoom;
-            sky.style.width = Math.max(620, 760 * zoom) + 'px'; sky.style.height = height + 'px';
-            const positions = new Map(visible.map((n, i) => [n.id, { x: 13 + (i % 4) * 24, y: (50 + Math.floor(i / 4) * 105) * zoom }]));
+            const visible = model.nodes.filter(n => !query || (n.literal ? n.label : tr(n.label)).toLocaleLowerCase().includes(query.toLocaleLowerCase()));
+            const view = camera(positions, { depth, yaw, zoom });
+            if (trace) { for (const p of Object.values(view.points)) p.y += 140; view.height += 140; }
+            sky.style.width = view.width + 'px'; sky.style.height = view.height + 'px';
+            const points = view.points;
+            const visibleIds = new Set(visible.map(n => n.id));
             const neighbors = new Set(selected ? [selected] : []);
             for (const edge of model.edges) if (edge.from === selected || edge.to === selected) { neighbors.add(edge.from); neighbors.add(edge.to); }
             const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); sky.append(svg);
             svg.setAttribute('aria-hidden', 'true');
+            if (trace) {
+                for (const [title, text, x, stage] of [[messages.input, trace.raw, 115, 0], [messages.output, trace.text, view.width - 115, 4]]) {
+                    const token = el('div', undefined, sky); token.className = 'word-trace-token'; token.dataset.traceStage = stage;
+                    token.style.left = x + 'px'; el('strong', title, token); el('p', text, token, true);
+                    const ids = stage === 0 ? trace.understood : [...trace.replyRefs, ...trace.outputNodes];
+                    for (const id of ids) if (points[id]) {
+                        const line = document.createElementNS(svg.namespaceURI, 'line');
+                        for (const [key, value] of Object.entries({ x1: x, y1: 110, x2: points[id].x, y2: points[id].y })) line.setAttribute(key, value);
+                        line.classList.add('trace-link'); svg.append(line);
+                    }
+                }
+            }
             for (const edge of model.edges) {
-                const a = positions.get(edge.from), b = positions.get(edge.to); if (!a || !b) continue;
+                const a = points[edge.from], b = points[edge.to]; if (!a || !b || !visibleIds.has(edge.from) || !visibleIds.has(edge.to)) continue;
                 const line = document.createElementNS(svg.namespaceURI, 'line');
-                for (const [key, value] of Object.entries({ x1: a.x + '%', y1: a.y, x2: b.x + '%', y2: b.y })) line.setAttribute(key, value);
+                for (const [key, value] of Object.entries({ x1: a.x, y1: a.y, x2: b.x, y2: b.y })) line.setAttribute(key, value);
                 line.classList.toggle('focused', edge.from === selected || edge.to === selected); svg.append(line);
+                line.classList.toggle('trace-link', !!trace && trace.understood.includes(edge.from) && trace.refs.includes(edge.to));
             }
             for (const star of visible) {
-                const pos = positions.get(star.id);
+                const pos = points[star.id];
                 const b = button('', sky, () => { selected = star.id; render(); });
                 b.textContent = star.literal ? star.label : tr(star.label); b.dataset.star = star.id;
                 b.className = 'word-star ' + star.kind + (star.source === 'initial' ? ' initial' : ' learned');
                 b.classList.toggle('dim', !!selected && !neighbors.has(star.id));
+                b.classList.toggle('trace-used', !!trace && (trace.understood.includes(star.id) || trace.outputNodes.includes(star.id) || trace.refs.includes(star.id)));
+                b.classList.toggle('trace-new', !!trace && trace.fresh.includes(star.id));
+                b.classList.toggle('candidate', !!star.candidate);
                 b.setAttribute('aria-pressed', String(selected === star.id));
-                b.style.left = pos.x + '%'; b.style.top = pos.y + 'px';
-                b.title = tr(star.source === 'initial' ? messages.initial : messages.learned);
+                b.style.left = pos.x + 'px'; b.style.top = pos.y + 'px';
+                b.style.zIndex = String(Math.round(pos.z) + 10000);
+                b.title = tr(star.kind === 'record' ? messages.original : star.source === 'initial' ? messages.initial : messages.learned);
             }
             if (!visible.length) el('p', model.nodes.length ? messages.noMatch : messages.empty, sky);
             const detail = el('section', undefined, layout); detail.className = 'word-stars-detail';
@@ -180,8 +447,8 @@
             if (!star) el('p', messages.choose, detail);
             else {
                 el('h3', star.label, detail, star.literal);
-                el('p', star.source === 'initial' ? messages.initial : messages.learned, detail);
-                if (!star.withdrawn && star.kind !== 'record' && star.kind !== 'object') el('p', star.scoped ? messages.scoped : messages.known, detail);
+                el('p', star.kind === 'record' ? messages.original : star.source === 'initial' ? messages.initial : messages.learned, detail);
+                if (!star.withdrawn && star.kind !== 'record' && star.kind !== 'object') el('p', star.candidate ? messages.retained : star.scoped ? messages.scoped : messages.known, detail);
                 if (star.withdrawn) el('p', messages.withdrawn, detail);
                 if (star.scopes?.length) {
                     el('p', messages.scope, detail);
@@ -196,6 +463,8 @@
                 if (!star.refs.length) el('p', star.source === 'initial' ? messages.noLinks : messages.missing, detail);
                 for (const ref of star.refs) showRecord(ref, detail);
             }
+            if (!star && selected) showRecord(selected, detail);
+            if (trace) showTrace(trace, root);
             const pending = el('details', undefined, root); el('summary', messages.unknown, pending);
             for (const item of model.unknown) {
                 const p = el('details', undefined, pending); el('summary', item.raw, p, true); showRecord(item.ref, p);
@@ -226,8 +495,20 @@
                 if (neighbor) { const b = button('', details, () => { selected = neighbor.id; query = ''; render(); }); b.textContent = neighbor.literal ? neighbor.label : tr(neighbor.label); }
             }
         }
-        return { refresh() { model = project(options.state(), options.catalog(), options.inputs?.() || []); render(); },
+        const visibility = () => { if (document.hidden) stop(); };
+        document.addEventListener('visibilitychange', visibility);
+        return { refresh(id, focus) {
+            if (id !== undefined) traceId = id; if (focus !== undefined) selected = focus; render();
+            if (id) {
+                play();
+                const trace = activeTrace(), first = focus || trace?.understood[0] || trace?.outputNodes[0];
+                const star = Array.from(root.querySelectorAll('[data-star]')).find(b => b.dataset.star === first);
+                const viewport = root.querySelector('.word-stars-viewport');
+                if (star && viewport) viewport.scrollTo(Math.max(0, star.offsetLeft - viewport.clientWidth / 2), Math.max(0, star.offsetTop - viewport.clientHeight / 2));
+            }
+        }, stop,
+            reset() { stop(); traceId = null; selected = null; query = ''; root.replaceChildren(); model = null; },
             languageChanged() { if (model) render(); } };
     }
-    return { project, mount, messages, words, meanings };
+    return { project, arrange, camera, capture, mount, messages, words, meanings };
 });

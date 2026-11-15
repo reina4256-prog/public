@@ -779,12 +779,20 @@
     const conversationButton = node('button', t('conversation'), panelButtons); conversationButton.type = 'button';
     const notebookButton = node('button', t('notebook'), panelButtons); notebookButton.type = 'button';
     const starsButton = node('button', t('constellation'), panelButtons); starsButton.type = 'button'; starsButton.id = 'word-stars';
+    const constellationApi = window.ExperimentalWordConstellationLive;
+    let starTraces = [];
     starsButton.setAttribute('aria-pressed', 'false');
     conversationButton.setAttribute('aria-pressed', 'true'); notebookButton.setAttribute('aria-pressed', 'false');
     const panelBody = node('div', undefined, chatPanel); panelBody.className = 'panel-body';
     const conversation = node('div', undefined, panelBody);
     conversation.id = 'conversation'; conversation.setAttribute('role', 'log');
     conversation.setAttribute('aria-live', 'polite');
+    const tracePreview = node('details', undefined, conversation); tracePreview.className = 'word-trace-preview'; tracePreview.hidden = true;
+    node('summary', constellationApi.messages.latest, tracePreview);
+    const previewBody = node('section', undefined, tracePreview);
+    const previewStars = constellationApi.mount(previewBody, { compact: true, state: () => state, catalog: () => catalog,
+        traces: () => starTraces, canAnimate: () => screen === 'playing' && !paused,
+        inspect: (id, ref) => openStarTrace(id, ref), translate: text => window.GameI18n.translate(text) });
     const notebook = node('section', undefined, panelBody); notebook.id = 'notebook'; notebook.hidden = true;
     const starsDialog = node('dialog', undefined, app); starsDialog.className = 'word-stars-dialog';
     const starsClose = node('button', t('starsClose'), starsDialog); starsClose.type = 'button';
@@ -792,13 +800,20 @@
     starsDialog.setAttribute('aria-label', t('constellation'));
     starsClose.addEventListener('click', () => starsDialog.close());
     starsDialog.addEventListener('close', () => {
+        liveStars.stop();
         stars.hidden = true; starsButton.setAttribute('aria-pressed', 'false'); starsButton.focus();
     });
     starsButton.setAttribute('aria-controls', stars.id);
     const liveStars = window.ExperimentalWordConstellationLive.mount(stars, { state: () => state, catalog: () => catalog,
+        traces: () => starTraces,
         languageName: locale => window.GameI18n.languages[locale]?.label || locale,
         inputs: () => report?.build({}, []).timeline.filter(entry => entry.kind === 'understanding').map(entry => entry.result) || [],
         translate: text => window.GameI18n.translate(text) });
+    tracePreview.addEventListener('toggle', () => { if (!tracePreview.open) previewStars.stop(); });
+    function openStarTrace(id, ref) {
+        voice.stop(); previewStars.stop(); stars.hidden = false; starsButton.setAttribute('aria-pressed', 'true');
+        starsDialog.showModal(); liveStars.refresh(id, ref); starsClose.focus();
+    }
     notebook.setAttribute('aria-label', t('notebook'));
     conversationButton.setAttribute('aria-controls', 'conversation'); notebookButton.setAttribute('aria-controls', 'notebook');
     let noteLimit = 12;
@@ -848,6 +863,7 @@
         notebook.scrollTop = scroll;
     }
     function setNotebook(open) {
+        previewStars.stop();
         stars.hidden = true; starsButton.setAttribute('aria-pressed', 'false');
         notebook.hidden = !open; conversation.hidden = open;
         notebookButton.setAttribute('aria-pressed', String(open)); conversationButton.setAttribute('aria-pressed', String(!open));
@@ -857,8 +873,8 @@
     notebookButton.addEventListener('click', () => setNotebook(true));
     conversationButton.addEventListener('click', () => setNotebook(false));
     starsButton.addEventListener('click', () => {
-        voice.stop(); stars.hidden = false;
-        starsButton.setAttribute('aria-pressed', 'true'); liveStars.refresh();
+        voice.stop(); previewStars.stop(); stars.hidden = false;
+        starsButton.setAttribute('aria-pressed', 'true'); liveStars.refresh(null);
         starsDialog.showModal(); starsClose.focus();
     });
     const guide = node('div', undefined, conversation); guide.className = 'play-guide';
@@ -1290,7 +1306,7 @@
     window.addEventListener('game-language-changed', () => {
         stopAuto(); for (const axis of autoApi.axes) autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]);
         if (autoBaseline !== null && state) autoProgress.textContent = displayText('autoGrowth') + ': ' + Math.max(0, state.knowledge.meanings.length - autoBaseline);
-        voice.clearRecording(); renderVoiceChoices(); liveStars.languageChanged();
+        voice.clearRecording(); renderVoiceChoices(); liveStars.languageChanged(); previewStars.languageChanged();
     });
     document.addEventListener('visibilitychange', () => { if (document.hidden) voice.stop(); });
     window.addEventListener('pagehide', () => voice.clearRecording());
@@ -1618,6 +1634,9 @@
         if (volume) volume.value = String(world.island.volume ?? .5);
         updatePerception();
         report = window.ExperimentalWordReport.create({ state, world, appearance: appearance.value, locale: window.GameI18n.language, resumed: !!restored });
+        starTraces = []; liveStars.reset(); previewStars.reset(); tracePreview.hidden = true;
+        conversation.querySelectorAll('.word-trace-open').forEach(button => button.remove());
+        app.classList.remove('constellation-trace-ready');
         personalLog?.start(logBaseline()); personalToggle.disabled = false;
         settings.hidden = true; setupCopy.hidden = true; session.hidden = false;
         titleScreen.hidden = true; screen = 'playing';
@@ -1666,7 +1685,7 @@
         if (target) pointAt(target, target.startsWith('master:') ? 'pointed_master' : target === 'shade' ? 'pointed_shade' : 'pointed_berry');
     });
     pause.addEventListener('click', () => {
-        voice.stop();
+        voice.stop(); previewStars.stop(); liveStars.stop();
         paused = !paused; pause.setAttribute('aria-pressed', String(paused));
         record('pause', { paused });
         send.disabled = paused; point.disabled = paused; shade.disabled = paused;
@@ -1682,6 +1701,7 @@
         if (!automaticSubmission) stopAuto();
         voice.stop();
         updatePerception();
+        const starBefore = constellationApi.project(state, catalog);
         // Capture originals at the actual input boundary, not by replaying a fixture later.
         const recording = personalLog?.status();
         const original = (recording?.enabled || recording?.checking) && !recording.paused ? personalLog.snapshot({
@@ -1714,6 +1734,16 @@
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
         showReply(reply);
+        const trace = constellationApi.capture(starBefore, constellationApi.project(state, catalog, [result]), result, reply, bubble.textContent, state.context.lastOutput);
+        starTraces.push(trace); if (starTraces.length > 24) starTraces.shift();
+        conversation.append(tracePreview); tracePreview.hidden = false; tracePreview.open = true; previewStars.refresh(trace.id);
+        app.classList.add('constellation-trace-ready');
+        conversation.scrollTop = conversation.scrollHeight;
+        const inspect = node('button', constellationApi.messages.history, conversation); inspect.type = 'button'; inspect.className = 'word-trace-open';
+        message.after(inspect);
+        inspect.dataset.traceId = trace.id;
+        inspect.addEventListener('click', openStarTrace.bind(null, trace.id, undefined));
+        for (const b of conversation.querySelectorAll('[data-trace-id]')) b.disabled = !starTraces.some(t => t.id === b.dataset.traceId);
         if (dungeonResult?.reply && state.settings.speech !== 'short') {
             const guidance = node('p', t(dungeonResult.reply.message), conversation); guidance.className = 'conversation-help';
             if (dungeonResult.reply.literal) node('span', dungeonResult.reply.literal, guidance).setAttribute('data-i18n-skip', '');
