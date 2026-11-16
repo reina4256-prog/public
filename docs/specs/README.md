@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+2026-11-16：[箱庭と操作パネル](core/word_terrarium_ui.md)を木・真鍮・ガラスへ改修し、設定を分離。紙の図鑑と、実際の節目で取得する[思い出アルバム](core/word_memory_card_game.md)を接続。カード能力／対戦・ダンジョン本接続・DW／DXは保留。
+
 2026-11-16：[新版の図鑑・タイトル履歴](collections/pokedex_and_grazing.md)と進化入口の非表示を接続。初期姿／実進化済みのみ、当時名の来歴と旧説明／配置を保持。[思い出カードの壁打ち](core/word_memory_card_game.md)は店／スターターなし、カジノ開設でカード化・本人が遊び自由チャットで導く・体験内容ごとの能力を合意。カード／ダンジョン本接続・DW／DXは未着手。
 
 2026-11-16：[認知資源](core/experimental_word_learning.md#word-processing-resources)と[新方式進化](core/evolution_lifecycle_inheritance.md)の初期実装。体力＝扱える量、満腹度＝比較深度、旧ルートの明示進化・必須変身演出・姿／中身の独立選択。既存本人／音声／おまかせ／星座と本接続／DW・DX保留を継承。検証状態はCURRENT_IMPLEMENTATIONを参照。

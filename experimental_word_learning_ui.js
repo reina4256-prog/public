@@ -407,6 +407,19 @@
         return input;
     }
     const header = node('header'); header.className = 'game-header';
+    const shellMessages = { settings: '設定', close: '閉じる', album: '思い出アルバム', empty: 'これから、思い出を集めよう。',
+        guide: '出会いや初めての体験など、暮らしの節目がここに残ります。', acquired: '新しい思い出が増えました。',
+        meeting: 'この子との出会い', encounter: '初めての出会い', meal: '食事の思い出', rest: 'ひと休みの思い出',
+        work: 'お手伝いの思い出', evolution: '新しい姿になった日', previous: '前のページ', next: '次のページ',
+        rememberedName: 'この思い出のときの名前' };
+    const st = key => shellMessages[key];
+    const settingsButton = node('button', st('settings'), header); settingsButton.type = 'button'; settingsButton.id = 'word-settings';
+    const settingsDialog = node('dialog', undefined, document.body); settingsDialog.id = 'word-settings-dialog'; settingsDialog.className = 'word-settings-dialog';
+    settingsDialog.setAttribute('aria-label', st('settings')); node('h2', st('settings'), settingsDialog);
+    const settingsBody = node('div', undefined, settingsDialog); settingsBody.className = 'word-settings-body';
+    const settingsClose = node('button', st('close'), settingsDialog); settingsClose.type = 'button';
+    settingsButton.addEventListener('click', () => { stopAuto(); voice.stop(); settingsDialog.showModal(); settingsClose.focus(); });
+    settingsClose.addEventListener('click', () => settingsDialog.close());
     node('h1', t('title'), header);
     document.title = t('title');
     const saveBadge = node('span', t(window.wordStorage ? 'autosave' : 'sessionOnly'), header); saveBadge.className = 'session-badge';
@@ -520,8 +533,8 @@
     let signatureStrokes = [], activeSignaturePointer = null, signedIdentity = null;
     function drawSignature() {
         const c = signatureCanvas.getContext('2d'); c.clearRect(0, 0, 720, 160);
-        c.strokeStyle = '#b0f2ff'; c.fillStyle = '#b0f2ff'; c.lineWidth = 2.8;
-        c.lineCap = c.lineJoin = 'round'; c.shadowColor = '#56d8ff'; c.shadowBlur = 7;
+        c.strokeStyle = '#42573d'; c.fillStyle = '#42573d'; c.lineWidth = 2.8;
+        c.lineCap = c.lineJoin = 'round'; c.shadowColor = '#42573d'; c.shadowBlur = 0;
         for (const stroke of signatureStrokes) {
             if (stroke.length === 1) { c.beginPath(); c.arc(stroke[0].x*720,stroke[0].y*160,1.4,0,Math.PI*2); c.fill(); }
             else { c.beginPath(); stroke.forEach((p,i) => c[i ? 'lineTo' : 'moveTo'](p.x*720,p.y*160)); c.stroke(); }
@@ -619,7 +632,7 @@
         const visual = window.ExperimentalWordGrowth.visualSkin(skin), config = aiConfigs[visual], image = new Image();
         image.src = imageSources[config.img || visual] || window.dynamicImageCatalog[config.img || visual];
         const draw = () => {
-            const c = surface.getContext('2d'), f = config.actions.idle[0], scale = Math.min(110 / f.sw, 110 / f.sh);
+            const c = surface.getContext('2d'), f = config.actions.idle[0], scale = Math.min((surface.width - 24) / f.sw, (surface.height - 20) / f.sh);
             c.clearRect(0, 0, surface.width, surface.height);
             c.drawImage(image, f.sx, f.sy, f.sw, f.sh, surface.width / 2 - f.sw * scale / 2, surface.height - f.sh * scale, f.sw * scale, f.sh * scale);
         };
@@ -627,7 +640,9 @@
     }
     function renderBook(selected = collection.entries[0]?.skin) {
         bookDialog.replaceChildren(); node('h2', ct('title'), bookDialog);
-        const grid = node('div', undefined, bookDialog); grid.className = 'word-book-grid';
+        const spread = node('div', undefined, bookDialog); spread.className = 'word-book-spread';
+        const index = node('section', undefined, spread); index.className = 'word-book-index';
+        const grid = node('div', undefined, index); grid.className = 'word-book-grid';
         for (const entry of collection.entries) {
             const button = node('button', undefined, grid); button.type = 'button'; button.dataset.bookSkin = entry.skin;
             const surface = node('canvas', undefined, button); surface.width = 140; surface.height = 120; bookSprite(surface, entry.skin);
@@ -637,15 +652,24 @@
         }
         const entry = collection.entries.find(e => e.skin === selected);
         if (entry) {
-            node('h3', ct('history'), bookDialog); const history = node('ul', undefined, bookDialog);
+            const page = node('section', undefined, spread); page.className = 'word-book-page';
+            const portrait = node('canvas', undefined, page); portrait.width = 400; portrait.height = 230; bookSprite(portrait, selected);
+            node('h3', ct('history'), page); const history = node('ul', undefined, page);
             for (const person of entry.people) {
                 const item = node('li', undefined, history), name = node('span', person.name || ct('unnamed'), item);
                 if (person.name) name.setAttribute('data-i18n-skip', '');
                 if (person.source === 'legacy') node('small', ct('migration'), item);
             }
-            node('p', collectionData[selected].description, bookDialog);
+            node('p', collectionData[selected].description, page);
+            const navigation = node('nav', undefined, page); navigation.className = 'word-page-turn';
+            const position = collection.entries.indexOf(entry);
+            for (const [delta, key] of [[-1, 'previous'], [1, 'next']]) {
+                const turn = node('button', st(key), navigation); turn.type = 'button'; turn.disabled = !collection.entries[position + delta];
+                turn.addEventListener('click', () => { renderBook(collection.entries[position + delta].skin); bookDialog.querySelector('.word-book-page').focus(); });
+            }
+            page.tabIndex = -1;
         }
-        const close = node('button', t('starsClose'), bookDialog); close.type = 'button'; close.addEventListener('click', () => bookDialog.close());
+        const close = node('button', st('close'), bookDialog); close.type = 'button'; close.addEventListener('click', () => bookDialog.close());
     }
     function openBook() { stopAuto(); voice.stop(); renderBook(); bookDialog.showModal(); }
     titleBook.addEventListener('click', openBook);
@@ -868,6 +892,35 @@
     growthButton.hidden = true;
     const bookButton = node('button', ct('title'), panelButtons); bookButton.type = 'button'; bookButton.id = 'word-book'; bookButton.hidden = !window.WordIslandMode;
     bookButton.addEventListener('click', openBook);
+    const albumButton = node('button', st('album'), panelButtons); albumButton.type = 'button'; albumButton.id = 'word-album'; albumButton.hidden = !window.WordIslandMode;
+    const albumDialog = node('dialog', undefined, document.body); albumDialog.id = 'word-album-dialog'; albumDialog.className = 'word-album-dialog';
+    albumDialog.setAttribute('aria-label', st('album'));
+    const memoryToast = node('button', undefined, stage); memoryToast.type = 'button'; memoryToast.id = 'word-memory-toast'; memoryToast.hidden = true;
+    memoryToast.setAttribute('aria-live', 'polite'); let memoryToastTimer;
+    function openAlbum() {
+        stopAuto(); voice.stop(); memoryToast.hidden = true; albumDialog.replaceChildren();
+        node('h2', st('album'), albumDialog); node('p', st('guide'), albumDialog);
+        const memories = collection.memories || [];
+        if (!memories.length) node('p', st('empty'), albumDialog);
+        const pages = node('div', undefined, albumDialog); pages.className = 'word-memory-pages';
+        for (const memory of [...memories].reverse()) {
+            const page = node('article', undefined, pages); page.className = 'word-memory-card'; page.dataset.memoryKind = memory.kind;
+            const portrait = node('canvas', undefined, page); portrait.width = 200; portrait.height = 140; bookSprite(portrait, memory.skin);
+            node('h3', st(memory.kind), page); node('small', st('rememberedName'), page);
+            const name = node('p', memory.name || ct('unnamed'), page); if (memory.name) name.setAttribute('data-i18n-skip', '');
+            if (['encounter', 'work'].includes(memory.kind)) node('p', t('master_' + memory.subject), page);
+            if (memory.kind === 'work') node('p', t('master_result_' + memory.subject), page);
+        }
+        const close = node('button', st('close'), albumDialog); close.type = 'button'; close.addEventListener('click', () => albumDialog.close());
+        albumDialog.showModal(); close.focus(); albumButton.classList.remove('has-new-memory');
+    }
+    albumButton.addEventListener('click', openAlbum); memoryToast.addEventListener('click', openAlbum);
+    function acquired(memory) {
+        if (!memory) return;
+        albumButton.classList.add('has-new-memory'); memoryToast.textContent = st('acquired'); memoryToast.hidden = false;
+        clearTimeout(memoryToastTimer); memoryToastTimer = setTimeout(() => { memoryToast.hidden = true; }, 4500);
+        save();
+    }
     const evolveButton = node('button', gt('evolve'), panelButtons); evolveButton.type = 'button'; evolveButton.id = 'word-evolve';
     evolveButton.hidden = true; evolveButton.disabled = true;
     const growthDialog = node('dialog', undefined, document.body); growthDialog.id = 'word-growth-dialog'; growthDialog.className = 'word-growth-dialog';
@@ -981,6 +1034,7 @@
                 if (!alive()) return;
                 if (document.hidden) { requestAnimationFrame(complete); return; }
                 growthApi.complete(state, pending.next); collectionApi.register(collection, state, pending.next);
+                acquired(collectionApi.remember(collection, state, world, 'evolution', pending.next));
                 save(); record('evolution', { path: state.evolution.path }); renderGrowth();
             }));
         };
@@ -1580,6 +1634,11 @@
     details.hidden = new URLSearchParams(location.search).get('debug') !== '1';
     node('summary', t('diagnostics'), details);
     const trace = node('pre', undefined, details); trace.setAttribute('data-i18n-skip', '');
+    // Keep game actions beside the terrarium; preferences and diagnostics live in Settings.
+    settingsBody.append(language);
+    if (volume) settingsBody.append(volume.parentElement);
+    settingsBody.append(readLabel, captureLabel, captureHelp, voiceHelp, recordingCheck, exportButton, personalControls, details);
+    voiceTools.append(voiceStop);
     function save() {
         if (!window.wordStorage || !state || saveBlocked) return;
         try {
@@ -1849,7 +1908,7 @@
             evolveButton.disabled = !ready && !state.evolution.pending;
             evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
-            const holding = paused || bookDialog.open || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
+            const holding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -1866,6 +1925,7 @@
             updatePerception();
             const spontaneous = worldApi.onArrival(world, state, event);
             if (event) growthApi.observe(state, world, null, event);
+            if (event) acquired(collectionApi.observe(collection, state, world, event));
             if (spontaneous) showReply(spontaneous);
             if (event) renderNotebook();
             tickAuto(holding);
@@ -1898,6 +1958,7 @@
         if (restored) appearance.value = restored.appearance;
         growthApi.init(state, appearance.value);
         collectionApi.join(collection, state, appearance.value, !!restored);
+        if (!restored && window.WordIslandMode) acquired(collectionApi.remember(collection, state, world, 'meeting'));
         updateIdentityBadge();
         view.start?.(world, appearance.value);
         if (!restored && volume) view.volume(world, environmentVolume);

@@ -1,5 +1,7 @@
 # 維持条件と保留の入口
 
+2026-11-16：[箱庭UI](../specs/core/word_terrarium_ui.md)と[実節目の思い出アルバム](../specs/core/word_memory_card_game.md)を接続。過去ログからの補完なし、当時名・出所を世代保持。カード能力／対戦・カジノ開設・ダンジョン本接続・DW／DXは保留。
+
 2026-11-16：[新版図鑑／タイトル](../specs/collections/pokedex_and_grazing.md)を進化入口非表示と合わせて接続。[思い出カード](../specs/core/word_memory_card_game.md)は店／スターター不要、カジノ開設でカード化、本人プレイ／共通自由チャット指導、体験ごとの個別能力を合意。具体ルール・能力式・解放工程・カード実装は未着手。ダンジョン本接続・DW／DX保留。
 
 2026-11-16：認知資源／進化の初期実装は[所有仕様](../specs/core/evolution_lifecycle_inheritance.md)。値・到達速度・しぐさ／学習なしの育ちやすさ、段階／分岐ごとの処理差は試用調整対象。旧ルートは維持し、ghost_type3_3だけユーザー選択で既存ghost_type3_2素材へ表示対応。ダンジョン本接続／4e DW・DX／旧引退引継ぎの新方式本接続は保留。

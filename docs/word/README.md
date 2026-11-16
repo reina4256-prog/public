@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-16：[箱庭UI](../specs/core/word_terrarium_ui.md)が木・真鍮・ガラスの枠／操作台・設定分離・紙の図鑑を所有。[思い出](../specs/core/word_memory_card_game.md)は実節目の取得・通知・世代保持・アルバムまで接続、カード能力／対戦は未実装。
+
 2026-11-16：図鑑とタイトルは[図鑑所有](../specs/collections/pokedex_and_grazing.md)の新版節、今後のカードは[思い出カード所有](../specs/core/word_memory_card_game.md)。進化入口は初回以降も条件達成時だけ表示し、初進化前の育成画面も隠す。実装／検証結果はCURRENT_IMPLEMENTATION。
 
 2026-11-16：[認知資源](../specs/core/experimental_word_learning.md#word-processing-resources)と[進化](../specs/core/evolution_lifecycle_inheritance.md)へ体力／満腹度・育ち・旧ルート・必須演出・独立切替・旧保存移行を集約。実装／検証の確定状態はCURRENT_IMPLEMENTATION。

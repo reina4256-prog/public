@@ -6,6 +6,60 @@ const worldApi = require('../experimental_word_learning_world'), catalog = requi
 const storage = require('../scripts/experimental/storage');
 const fixture = () => { const state = core.create({}, catalog), world = worldApi.create(); growth.init(state, 'robot'); return { state, world }; };
 const collectionApi = require('../experimental_word_collection');
+
+test('memories require completed retained experiences, deduplicate milestones, and preserve original evidence', () => {
+    const c = collectionApi.create(), { state, world } = fixture(); collectionApi.join(c, state, 'robot');
+    const event = { id: 8, kind: 'experience', activity: 'eat', target: 'berry:1', start: 1, end: 6,
+        before: { hunger: .8, fatigue: .1 }, after: { hunger: .2, fatigue: .12 }, taste: { quality: 'sweet', pleasant: true } };
+    assert.equal(collectionApi.observe(c, state, world, event), false);
+    worldApi.onArrival(world, state, event);
+    assert.equal(collectionApi.observe(c, state, world, { ...event, activity: 'work', master: 'building' }), false);
+    const memory = collectionApi.observe(c, state, world, event); assert.equal(memory.kind, 'meal');
+    assert.deepEqual(memory.evidence, event); event.after.hunger = .9; assert.equal(memory.evidence.after.hunger, .2);
+    assert.equal(collectionApi.observe(c, state, world, event), false);
+    assert.ok(collectionApi.valid(c)); assert.equal(c.memories.length, 1);
+    assert.equal(collectionApi.observe(c, state, world, { id: 9, kind: 'work_start', master: 'building' }), false);
+});
+
+test('memory names and owners survive renaming, pending reset, and the next child without importing old history', () => {
+    const c = collectionApi.create(), { state, world } = fixture(); collectionApi.join(c, state, 'robot', true);
+    assert.equal(c.memories, undefined);
+    const identity = require('../experimental_word_identity');
+    identity.configure(state, { characterName: '<Old & One>', firstPerson: '私', playerAddress: 'あなた' });
+    collectionApi.remember(c, state, world, 'meeting');
+    identity.configure(state, { characterName: 'Changed', firstPerson: '私', playerAddress: 'あなた' });
+    const next = fixture(); collectionApi.join(c, next.state, 'robot'); collectionApi.remember(c, next.state, next.world, 'meeting');
+    assert.equal(c.memories[0].name, '<Old & One>'); assert.notEqual(c.memories[0].owner, c.memories[1].owner);
+    assert.ok(storage.valid({ version: 1, pendingNewGame: true, volume: .5, collection: c }));
+    assert.ok(storage.valid({ version: 1, appearance: 'robot', ...next, collection: c }));
+    assert.equal(c.memories.length, 2);
+});
+
+test('encounters and each first completed job receive distinct memories; malformed archive blocks saving', () => {
+    const c = collectionApi.create(), { state, world } = fixture(); collectionApi.join(c, state, 'robot');
+    const arrival = { id: 1, kind: 'arrive', target: 'master:building' };
+    assert.equal(collectionApi.observe(c, state, world, arrival), false);
+    state.encounters = [{ eventId: 1, master: 'building', target: arrival.target, at: 0 }];
+    assert.ok(collectionApi.observe(c, state, world, arrival));
+    const work = { id: 2, kind: 'experience', activity: 'work', master: 'building', result: 'plan_copied' };
+    state.experiences = [work]; assert.ok(collectionApi.observe(c, state, world, work));
+    for (const mutate of [m => m[0] = null, m => m[0].owner = c.nextId, m => m[0].kind = 'victory',
+        m => m[0].name = '\u0000', m => m[0].evidence.id = 500, m => m.push(m[0]), m => m[1].evidence.master = 'fishing']) {
+        const bad = structuredClone(c); mutate(bad.memories); assert.equal(collectionApi.valid(bad), false);
+    }
+    assert.ok(collectionApi.valid(c));
+});
+
+test('evolution memories are separate from discovery migration and keep the exact unlocked appearance', () => {
+    const c = collectionApi.create(), { state, world } = fixture(); collectionApi.join(c, state, 'robot', true);
+    assert.equal(c.memories, undefined);
+    assert.equal(collectionApi.remember(c, state, world, 'evolution', 'robot_type3'), false);
+    state.evolution.path.push('robot_type3');
+    state.evolution.skin = 'robot_type3';
+    const memory = collectionApi.remember(c, state, world, 'evolution', 'robot_type3');
+    assert.equal(memory.skin, 'robot_type3'); assert.equal(memory.evidence, null);
+    assert.equal(collectionApi.remember(c, state, world, 'evolution', 'robot_type3'), false);
+});
 test('collection records actual unlocks and immutable names across children, with one entry per appearance', () => {
     const c = collectionApi.create(), { state } = fixture(); state.identity = { characterName: '<Alice>' };
     collectionApi.join(c, state, 'robot'); assert.equal(c.entries.length, 1);

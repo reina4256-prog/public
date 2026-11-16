@@ -71,6 +71,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         await wait('!!document.querySelector("#word-growth-skin")', 'ceremony completes');
         assert.deepEqual(snapshot.state.evolution.path, ['robot', 'robot_type3']);
         assert.equal(snapshot.state.evolution.skin, 'robot_type3'); assert.equal(snapshot.state.evolution.mind, 'robot_type3');
+        assert.ok(snapshot.collection.memories.some(m => m.kind === 'evolution' && m.subject === 'robot_type3' && m.skin === 'robot_type3'));
         await wait('document.querySelector("#word-evolve").hidden', 'button disappears until next conditions');
         assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);
         assert.equal(await js('!!document.querySelector("[data-evolve=robot_type3_2]")'), false);
