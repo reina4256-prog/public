@@ -1603,6 +1603,14 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="ao-source-review-record"></a>
 
+<a id="collection-storage-reconciliation"></a>
+
+#### 図鑑・タイトル履歴の保存差分照合（2026-11-16）
+
+- storageの直前の認知資源／進化照合を保持し、今回はcollectionの独立検査と新しい子の開始待ち保存へのcollection保持だけを直接照合。既存core／生活／関係／感情／本人／育成・原資料の検査、atomic本体／backup／破損時停止は変更しない。
+- collectionは新版で実解放した姿と個体ID／登録時名の履歴だけ。旧ゲームの発見履歴や試遊ログを取込まない。旧新版saveは省略を許容し、開始時に明示pathから移行し当時名が不明な対応をlegacyとして明示。collection.validSaveが未知ID／不正名／重複枠／個体ID不整合を拒否する。
+- LF正規化SHA256はstorage `0623f0ea4f8089e00fd597678b86384e88a4c0ef28c2b5d4ac0f877211cc333f`。別指紋collectionStorageReviewで保持し、原指紋・既存4ownerのprocessing差分・以前の照合は置換しない。未知の追補で全50境界がpendingへ戻る既存テストを維持。今回50adapter原本全文の再読／日記採用拡張は行わない。
+
 <a id="processing-owner-reconciliation"></a>
 ### 2026-11-16：認知資源と進化保存の所有差分照合
 

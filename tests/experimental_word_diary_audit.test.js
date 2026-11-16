@@ -668,7 +668,8 @@ test('walking, identity and processing owner delta reviews preserve fingerprints
     for (const owner of reconciled) {
         assert.notEqual(owner.reconciledFrom, owner.reconciledTo);
         assert(owner.reconciliationRecord.endsWith(owner.file === 'experimental_word_life_learning.js'
-            ? '#walking-owner-reconciliation' : '#processing-owner-reconciliation'));
+            ? '#walking-owner-reconciliation' : owner.file === 'scripts/experimental/storage.js'
+                ? '#collection-storage-reconciliation' : '#processing-owner-reconciliation'));
         const changed = audit(inventory(), file => fs.readFileSync(localFile(file), 'utf8')
             + (file === owner.file ? '\n// Unreviewed follow-up change\n' : ''));
         assert.equal(changed.counts.reviewedCaptureBoundaries, 0);

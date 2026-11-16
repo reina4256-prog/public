@@ -12,11 +12,12 @@ const startQuestions = require('../../experimental_word_start_questions');
 const identity = require('../../experimental_word_identity');
 const autoTraining = require('../../experimental_word_auto_training');
 const growth = require('../../experimental_word_growth');
+const collection = require('../../experimental_word_collection');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
     // Persist the confirmed reset even if the player quits before choosing a child.
-    if (value?.pendingNewGame === true) return value.version === 1
-        && Object.keys(value).every(key => ['version', 'pendingNewGame', 'volume'].includes(key))
+    if (value?.pendingNewGame === true) return value.version === 1 && collection.valid(value.collection)
+        && Object.keys(value).every(key => ['version', 'pendingNewGame', 'volume', 'collection'].includes(key))
         && Number.isFinite(value.volume) && value.volume >= 0 && value.volume <= 1;
     const s = value?.state, w = value?.world;
     return value?.version === 1 && startQuestions.appearances.includes(value.appearance)
@@ -26,6 +27,7 @@ function valid(value) {
         && identity.validState(s)
         && autoTraining.validPreferences(s.autoTraining)
         && growth.valid(s, value.appearance)
+        && collection.validSave(value)
         && ['meanings', 'relations', 'associations', 'relationEvidence'].every(k => Array.isArray(s.knowledge?.[k]))
         && [...s.knowledge.meanings, ...s.knowledge.relations].every(e => typeof e?.id === 'string')
         && s.knowledge.associations.every(e => typeof e?.word === 'string' && typeof e.target === 'string' && Array.isArray(e.evidence) && e.evidence.every(item => item && typeof item === 'object'))

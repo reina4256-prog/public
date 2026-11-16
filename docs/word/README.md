@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-16：図鑑とタイトルは[図鑑所有](../specs/collections/pokedex_and_grazing.md)の新版節、今後のカードは[思い出カード所有](../specs/core/word_memory_card_game.md)。進化入口は初回以降も条件達成時だけ表示し、初進化前の育成画面も隠す。実装／検証結果はCURRENT_IMPLEMENTATION。
+
 2026-11-16：[認知資源](../specs/core/experimental_word_learning.md#word-processing-resources)と[進化](../specs/core/evolution_lifecycle_inheritance.md)へ体力／満腹度・育ち・旧ルート・必須演出・独立切替・旧保存移行を集約。実装／検証の確定状態はCURRENT_IMPLEMENTATION。
 
 2026-11-16：[星空と会話の道筋](../specs/core/word_constellation_and_voice.md)。常設の結び付きと今回の道筋、直近24入力の起動中履歴、平面／奥行き表示の所有を参照。

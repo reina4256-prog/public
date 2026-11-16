@@ -5,6 +5,52 @@ const growth = require('../experimental_word_growth'), core = require('../experi
 const worldApi = require('../experimental_word_learning_world'), catalog = require('../experimental_word_learning_catalog.json');
 const storage = require('../scripts/experimental/storage');
 const fixture = () => { const state = core.create({}, catalog), world = worldApi.create(); growth.init(state, 'robot'); return { state, world }; };
+const collectionApi = require('../experimental_word_collection');
+test('collection records actual unlocks and immutable names across children, with one entry per appearance', () => {
+    const c = collectionApi.create(), { state } = fixture(); state.identity = { characterName: '<Alice>' };
+    collectionApi.join(c, state, 'robot'); assert.equal(c.entries.length, 1);
+    assert.equal(collectionApi.register(c, state, 'robot'), false);
+    collectionApi.register(c, state, 'robot_type3'); state.identity.characterName = 'Renamed';
+    collectionApi.register(c, state, 'robot_type3_3');
+    const second = fixture().state; second.identity = { characterName: 'Second' }; collectionApi.join(c, second, 'robot');
+    assert.equal(c.entries.length, 3); assert.deepEqual(c.entries[0].people.map(p => p.name), ['<Alice>', 'Second']);
+    assert.equal(c.entries[1].people[0].name, '<Alice>'); assert.equal(c.entries[2].people[0].name, 'Renamed');
+    assert.equal(collectionApi.valid(c), true);
+});
+test('collection survives atomic new-child pending save; malformed collection and dangling individual IDs fail', () => {
+    const c = collectionApi.create(), { state, world } = fixture(); collectionApi.join(c, state, 'robot');
+    const folder = fs.mkdtempSync(require('node:path').join(require('node:os').tmpdir(), 'word-collection-'));
+    const store = storage.createStore(folder);
+    assert.ok(store.save({ version: 1, state, world, appearance: 'robot', collection: c }).ok);
+    assert.ok(store.save({ version: 1, pendingNewGame: true, volume: .5, collection: c }).ok);
+    const pending = store.load().value; assert.deepEqual(pending.collection, c);
+    const next = fixture(); collectionApi.join(pending.collection, next.state, 'robot');
+    assert.equal(pending.collection.entries[0].people.length, 2);
+    assert.ok(store.save({ version: 1, ...next, appearance: 'robot', collection: pending.collection }).ok);
+    const saved = store.load().value;
+    for (const change of [v => v.collection.entries.push(v.collection.entries[0]), v => v.collection.entries[0].skin = 'unknown',
+        v => v.state.collectionId = v.collection.nextId, v => v.collection.entries[0].people[0].name = '\u0000bad',
+        v => v.collection.entries[0] = null, v => v.collection.entries[0].people[0] = null]) {
+        const bad = structuredClone(saved); change(bad); assert.equal(storage.valid(bad), false);
+    }
+});
+test('collection migration uses only explicit new-mode paths and labels migrated names', () => {
+    const c = collectionApi.create(), { state } = fixture(); state.identity = { characterName: 'Current name' };
+    state.evolution.path.push('robot_type3'); state.discoveredMonsters = ['dragon'];
+    collectionApi.join(c, state, 'robot', true); collectionApi.join(c, state, 'robot', true);
+    assert.deepEqual(c.entries.map(e => e.skin), ['robot', 'robot_type3']);
+    assert.ok(c.entries.every(e => e.people.length === 1 && e.people[0].source === 'legacy'));
+});
+test('collection projection preserves legacy descriptions and title placements for all actual route IDs', () => {
+    const data = require('../experimental_word_collection_data');
+    const source = fs.readFileSync(require.resolve('../data.js'), 'utf8'), start = source.indexOf('const monsterBookData = ') + 'const monsterBookData = '.length;
+    const book = vm.runInNewContext('(' + source.slice(start, source.indexOf('\n};', start) + 2) + ')');
+    for (const [skin, entry] of Object.entries(data)) {
+        assert.equal(entry.description, (book[skin] || book[growth.visualSkin(skin)]).desc);
+        assert.ok(entry.layout && Number.isFinite(entry.layout.x));
+        assert.ok(fs.existsSync(require('node:path').join(__dirname, '..', entry.layout.img)));
+    }
+});
 test('evolution movies use the legacy transition paths, retaining the approved ghost visual alias', () => {
     const source = fs.readFileSync(require.resolve('../ui_controller.js'), 'utf8');
     const legacy = vm.runInNewContext(source.slice(source.indexOf('function getEvolutionVideoPath('), source.indexOf('function cleanupEvolutionVideo(')) + ';getEvolutionVideoPath');

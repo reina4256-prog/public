@@ -604,9 +604,73 @@
     const logoCanvas = node('canvas', undefined, logoButton); logoCanvas.width = 1280; logoCanvas.height = 720;
     logoCanvas.setAttribute('aria-hidden', 'true');
     const titleMenu = node('div', undefined, titleScreen); titleMenu.className = 'word-title-menu'; titleMenu.hidden = true;
+    const collectionApi = window.ExperimentalWordCollection;
+    let collection = collectionApi.create();
+    const collectionData = window.ExperimentalWordCollectionData;
+    const titleActors = node('canvas', undefined, titleScreen); titleActors.width = 1280; titleActors.height = 720;
+    titleActors.className = 'word-title-actors'; titleActors.setAttribute('aria-hidden', 'true');
+    const titleImages = new Map();
+    const collectionMessages = { title: '図鑑', history: '当時の名前', unnamed: '名前の記録なし', migration: '移行時の名前（当時名の対応記録なし）' };
+    const ct = key => collectionMessages[key];
+    const titleBook = node('button', ct('title'), titleMenu); titleBook.type = 'button'; titleBook.id = 'word-title-book'; titleBook.hidden = true;
+    const bookDialog = node('dialog', undefined, document.body); bookDialog.className = 'word-growth-dialog word-book-dialog'; bookDialog.id = 'word-book-dialog';
+    bookDialog.setAttribute('aria-label', ct('title'));
+    function bookSprite(surface, skin) {
+        const visual = window.ExperimentalWordGrowth.visualSkin(skin), config = aiConfigs[visual], image = new Image();
+        image.src = imageSources[config.img || visual] || window.dynamicImageCatalog[config.img || visual];
+        const draw = () => {
+            const c = surface.getContext('2d'), f = config.actions.idle[0], scale = Math.min(110 / f.sw, 110 / f.sh);
+            c.clearRect(0, 0, surface.width, surface.height);
+            c.drawImage(image, f.sx, f.sy, f.sw, f.sh, surface.width / 2 - f.sw * scale / 2, surface.height - f.sh * scale, f.sw * scale, f.sh * scale);
+        };
+        image.addEventListener('load', draw, { once: true }); if (image.complete && image.naturalWidth) draw();
+    }
+    function renderBook(selected = collection.entries[0]?.skin) {
+        bookDialog.replaceChildren(); node('h2', ct('title'), bookDialog);
+        const grid = node('div', undefined, bookDialog); grid.className = 'word-book-grid';
+        for (const entry of collection.entries) {
+            const button = node('button', undefined, grid); button.type = 'button'; button.dataset.bookSkin = entry.skin;
+            const surface = node('canvas', undefined, button); surface.width = 140; surface.height = 120; bookSprite(surface, entry.skin);
+            const name = entry.people.find(p => p.name)?.name;
+            const caption = node('span', name || ct('unnamed'), button); if (name) caption.setAttribute('data-i18n-skip', '');
+            button.setAttribute('aria-pressed', String(entry.skin === selected)); button.addEventListener('click', () => renderBook(entry.skin));
+        }
+        const entry = collection.entries.find(e => e.skin === selected);
+        if (entry) {
+            node('h3', ct('history'), bookDialog); const history = node('ul', undefined, bookDialog);
+            for (const person of entry.people) {
+                const item = node('li', undefined, history), name = node('span', person.name || ct('unnamed'), item);
+                if (person.name) name.setAttribute('data-i18n-skip', '');
+                if (person.source === 'legacy') node('small', ct('migration'), item);
+            }
+            node('p', collectionData[selected].description, bookDialog);
+        }
+        const close = node('button', t('starsClose'), bookDialog); close.type = 'button'; close.addEventListener('click', () => bookDialog.close());
+    }
+    function openBook() { stopAuto(); voice.stop(); renderBook(); bookDialog.showModal(); }
+    titleBook.addEventListener('click', openBook);
+    function drawTitleActors() {
+        if (screen !== 'title') return;
+        titleBook.hidden = !collection.entries.length;
+        const context = titleActors.getContext('2d'); context.clearRect(0, 0, 1280, 720);
+        const drawn = [];
+        const entries = collection.entries.map(e => ({ skin: e.skin, ...collectionData[e.skin].layout }))
+            .sort((a, b) => Number(a.skin.startsWith('dragon')) - Number(b.skin.startsWith('dragon')) || (a.y + (a.z || 0) * 10000) - (b.y + (b.z || 0) * 10000));
+        for (const entry of entries) {
+            if (!titleImages.has(entry.img)) { const image = new Image(); image.src = entry.img; titleImages.set(entry.img, image); }
+            const image = titleImages.get(entry.img); if (!image.complete || !image.naturalWidth) continue;
+            context.save(); context.translate(entry.x, entry.y); context.rotate((entry.rotation || 0) * Math.PI / 180);
+            context.scale((entry.flip ? -1 : 1) * entry.scale, entry.scale);
+            context.drawImage(image, entry.sx, entry.sy, entry.sw, entry.sh, -entry.sw / 2, -entry.sh / 2, entry.sw, entry.sh); context.restore();
+            drawn.push(entry.skin);
+        }
+        titleActors.dataset.skins = JSON.stringify(entries.map(e => e.skin));
+        titleActors.dataset.drawn = JSON.stringify(drawn);
+    }
     node('h2', t('gameTitle'), titleMenu); node('p', t('gameSubtitle'), titleMenu);
     const newGame = node('button', t('newGame'), titleMenu); newGame.id = 'word-new-game'; newGame.disabled = true;
     const continueGame = node('button', t('continueGame'), titleMenu); continueGame.id = 'word-continue'; continueGame.disabled = true;
+    titleMenu.appendChild(titleBook);
     const titleStatus = node('span', '', titleMenu); titleStatus.className = 'word-title-error';
     titleStatus.setAttribute('role', 'status'); titleStatus.hidden = true;
     const resetDialog = node('dialog'); resetDialog.className = 'word-reset'; resetDialog.id = 'word-reset-dialog';
@@ -655,7 +719,7 @@
     resetDialog.addEventListener('close', () => { if (screen === 'title') newGame.focus(); });
     resetAccept.addEventListener('click', () => {
         voice?.stop();
-        const pending = { version: 1, pendingNewGame: true, volume: environmentVolume };
+        const pending = { version: 1, pendingNewGame: true, volume: environmentVolume, collection };
         let written = true;
         try { if (window.wordStorage) written = window.wordStorage.save(pending).ok; }
         catch (_) { written = false; }
@@ -801,9 +865,11 @@
     // Keep Japanese source text for the shared DOM localizer's language changes.
     const gt = key => growthMessages[key];
     const growthButton = node('button', gt('title'), panelButtons); growthButton.type = 'button'; growthButton.id = 'word-growth';
-    growthButton.hidden = !window.WordIslandMode;
+    growthButton.hidden = true;
+    const bookButton = node('button', ct('title'), panelButtons); bookButton.type = 'button'; bookButton.id = 'word-book'; bookButton.hidden = !window.WordIslandMode;
+    bookButton.addEventListener('click', openBook);
     const evolveButton = node('button', gt('evolve'), panelButtons); evolveButton.type = 'button'; evolveButton.id = 'word-evolve';
-    evolveButton.hidden = !window.WordIslandMode; evolveButton.disabled = true;
+    evolveButton.hidden = true; evolveButton.disabled = true;
     const growthDialog = node('dialog', undefined, document.body); growthDialog.id = 'word-growth-dialog'; growthDialog.className = 'word-growth-dialog';
     growthDialog.setAttribute('aria-label', gt('title'));
     let ceremonyToken = 0;
@@ -847,8 +913,7 @@
         node('p', gt(growthApi.family(state.evolution.mind)), growthDialog);
         node('p', `${gt('capacity')}: ${b.units} / ${gt('comparison')}: ${b.depth} / ${gt('efficiency')}: ${p.efficiency}`, growthDialog);
         const ready = growthApi.choices(state, world).some(c => c.ready);
-        const button = growthAction(gt('evolve'), chooseEvolution);
-        button.dataset.evolve = 'ready'; button.disabled = !ready; button.classList.toggle('word-evolution-ready', ready);
+        if (ready) { const button = growthAction(gt('evolve'), chooseEvolution); button.dataset.evolve = 'ready'; button.classList.add('word-evolution-ready'); }
         if (state.evolution.pending) growthAction(gt('retry'), startCeremony);
         growthAction(t('starsClose'), growthClose);
     }
@@ -915,7 +980,8 @@
             requestAnimationFrame(() => requestAnimationFrame(() => {
                 if (!alive()) return;
                 if (document.hidden) { requestAnimationFrame(complete); return; }
-                growthApi.complete(state, pending.next); save(); record('evolution', { path: state.evolution.path }); renderGrowth();
+                growthApi.complete(state, pending.next); collectionApi.register(collection, state, pending.next);
+                save(); record('evolution', { path: state.evolution.path }); renderGrowth();
             }));
         };
         function movie() {
@@ -1517,7 +1583,7 @@
     function save() {
         if (!window.wordStorage || !state || saveBlocked) return;
         try {
-            const result = window.wordStorage.save({ version: 1, appearance: appearance.value, state, world });
+            const result = window.wordStorage.save({ version: 1, appearance: appearance.value, state, world, collection });
             if (!result.ok) throw new Error('save');
         } catch (_) { saveBlocked = true; saveBadge.textContent = t('saveFailed'); }
     }
@@ -1772,15 +1838,18 @@
     }
     function animate(time) {
         drawLogo(time);
+        drawTitleActors();
         drawMeeting(time);
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
             const ready = !state.evolution.pending && growthApi.choices(state, world).some(c => c.ready);
+            growthButton.hidden = !window.WordIslandMode || state.evolution.path.length < 2;
+            evolveButton.hidden = !window.WordIslandMode || (!ready && !state.evolution.pending);
             evolveButton.disabled = !ready && !state.evolution.pending;
             evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
-            const holding = paused || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
+            const holding = paused || bookDialog.open || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -1828,6 +1897,7 @@
         for (const axis of autoApi.axes) { autoSliders[axis].slider.value = String(autoMemory.weights[axis]); autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]); }
         if (restored) appearance.value = restored.appearance;
         growthApi.init(state, appearance.value);
+        collectionApi.join(collection, state, appearance.value, !!restored);
         updateIdentityBadge();
         view.start?.(world, appearance.value);
         if (!restored && volume) view.volume(world, environmentVolume);
@@ -2005,6 +2075,11 @@
                 const result = window.wordStorage.load();
                 if (!result.ok) throw new Error('load');
                 restored = result.value;
+                collection = restored?.collection || collectionApi.create();
+                if (restored && !restored.pendingNewGame) {
+                    // Migrate only the new-mode path, never old-game discovery or guessed past names.
+                    collectionApi.join(collection, restored.state, restored.appearance, true);
+                }
                 if (restored?.pendingNewGame) { environmentVolume = restored.volume; restored = null; }
                 if (restored) {
                     environmentVolume = restored.world.island?.volume ?? .5;

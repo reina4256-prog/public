@@ -6,6 +6,8 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     const path = require('node:path');
     const { valid } = require('./storage');
     const questions = require('../../experimental_word_start_questions');
+    const evidence = path.resolve(__dirname, '../../docs/.local-history/verification-runs/title-renderer-' + Date.now());
+    fs.mkdirSync(evidence, { recursive: true }); console.log(JSON.stringify({ titleEvidence: evidence }));
     const waitReady = async () => {
         for (let i = 0; i < 100; i++) {
             if (await js('!document.querySelector("#word-new-game").disabled')) return;
@@ -102,7 +104,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         // First capture wakes the hidden compositor; capture its subsequent paint.
         await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true });
         await sleep(1200);
-        fs.writeFileSync(path.resolve(__dirname, '../../tests/' + name),
+        fs.writeFileSync(path.join(evidence, name),
             (await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true })).toPNG());
     };
     const saved = () => JSON.parse(fs.readFileSync(path.join(directory, 'word-life.json'), 'utf8'));
@@ -127,7 +129,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     await click('#word-new-game'); await click('#word-reset-accept');
     assert.equal(await js('document.querySelector(".game-header").checkVisibility()'), false);
     assert.equal(await js('audioManager.currentBGMType'), 'personality');
-    assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .5 });
+    assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .5, collection: require('../../experimental_word_collection').create() });
     assert.ok(valid(saved()));
     assert.equal(await js('document.querySelectorAll(".word-questions > button[type=button]").length'),0);
     await reload(); await click('.word-logo');
@@ -166,7 +168,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     await click('#word-new-game'); await capture('word-reset-smoke.png');
     assert.ok(await js('document.querySelector("#word-reset-dialog").getBoundingClientRect().right <= innerWidth'));
     await click('#word-reset-accept');
-    assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .25 });
+    assert.deepEqual(saved(), { version: 1, pendingNewGame: true, volume: .25, collection: resumed.collection });
     await reload(); await click('.word-logo');
     assert.equal(await js('GameI18n.language'), 'de');
     assert.equal(await js('document.querySelector("#word-continue").disabled'), true);
@@ -266,6 +268,9 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
         const compatible=questions.resolve(answers,version===1?0:draw,version);
         fixture.appearance=compatible.appearance; fixture.state.settings=compatible.settings;
         fixture.state.startOrigin={version,answers}; if(version!==1)fixture.state.startOrigin.draw=draw;
+        // These provenance versions predate new-mode evolution and collection.
+        // Do not graft the previous test child's species-bound path onto them.
+        delete fixture.state.evolution; delete fixture.state.collectionId; delete fixture.collection;
         assert.ok(valid(fixture));
         // Unload the prior test child first: its beforeunload save must not
         // overwrite the compatibility fixture we are about to install.
@@ -301,4 +306,7 @@ module.exports = async function ({ js, window, url, paintClock, sleep, directory
     assert.equal(await js('document.querySelector("#word-new-game").disabled && document.querySelector("#word-continue").disabled'), true);
     assert.equal(await js('document.querySelector(".word-title-error").checkVisibility()'), true);
     assert.equal(fs.readFileSync(path.join(directory, 'word-life.json'), 'utf8'), '{invalid');
+    fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ titleChecksCompleted: true, profile: directory,
+        checks: ['title/reset/cancel/continue', 'collection retained in reset marker', 'seven locales',
+            'eleven species and settings', 'signed identity before save', 'pending restart and invalid save retained'] }, null, 2));
 };

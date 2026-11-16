@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-16：[新版図鑑](../specs/collections/pokedex_and_grazing.md)はcollection（個体IDと姿／当時名の来歴）、collection_data／build_collection_data（旧説明とタイトル配置投影）、共通UI（閲覧／配置／解放後登録）、storage（独立履歴の保存検査）が所有。[カードの合意と未決定](../specs/core/word_memory_card_game.md)は別所有で、図鑑からカード所持を生成しない。
+
 2026-11-16：[進化所有](../specs/core/evolution_lifecycle_inheritance.md)はgrowth（育ち／係数／ルート状態）、evolution_routes（旧ツリー投影）、UI（必須変身と選択）、storage（検査）、island_view（既存座標と表示alias）。[認知所有](../specs/core/experimental_word_learning.md#word-processing-resources)はcoreのbody指定とworldの消耗、星座は実processingの当時snapshotと表示。日記部品／集計／DW・DXの対象を増やさない。
 
 2026-11-16：[星座](../specs/core/word_constellation_and_voice.md)はliveのproject／arrange／camera／capture／mountと共通UIが読取グラフ・xyz配置・描画・当時snapshot・会話接続を所有。理解／学習／応答の判定正本と本人保存は変更しない。

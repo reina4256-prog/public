@@ -16,7 +16,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     let server, window, snapshot; const errors = [], checks = [];
     const store = require('./storage').createStore(profile), sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
     const state = core.create({}, catalog), world = worldApi.create(); growth.init(state, 'robot');
-    state.evolution.growth.intel = Array.from({ length: 12 }, (_, i) => 'fixture:' + i);
+    state.evolution.growth.intel = Array.from({ length: 8 }, (_, i) => 'fixture:' + i);
     assert.ok(store.save({ version: 1, appearance: 'robot', state, world }).ok);
     const js = code => window.webContents.executeJavaScript(code, true);
     async function wait(code, label, count = 1200) {
@@ -51,17 +51,17 @@ if (!process.versions.electron || process.type !== 'browser') {
         await resume(url);
         const knowledge = JSON.stringify(snapshot.state.knowledge);
         await wait('document.querySelector("#word-evolve").classList.contains("word-evolution-ready")', 'readiness glow');
-        await js('GameI18n.setLanguage("ja");document.querySelector("#word-growth").click();void 0');
-        assert.equal(await js('document.querySelectorAll("#word-growth-skin option").length'), 1);
-        assert.ok(await js('!document.querySelector("[data-evolve]").disabled'));
-        assert.ok(await js('!document.querySelector("#word-growth-dialog").textContent.includes("必要な育ち") && !document.querySelector("#word-growth-dialog").textContent.includes("600") && !document.querySelector("#word-growth-dialog").textContent.includes("賢さ")'));
+        assert.ok(await js('document.querySelector("#word-growth").hidden && !document.querySelector("#word-evolve").hidden'));
+        await js('GameI18n.setLanguage("ja");document.querySelector("#word-book").click();void 0');
+        assert.equal(await js('document.querySelectorAll("[data-book-skin]").length'), 1);
         const elapsed = snapshot.world.elapsed;
         await sleep(400);
         assert.equal(snapshot.world.elapsed, elapsed);
-        await js('const initialRandom=Math.random;Math.random=()=>0;document.querySelector("[data-evolve]").click();Math.random=initialRandom;void 0');
+        await js('document.querySelector("#word-book-dialog button:last-child").click();const initialRandom=Math.random;Math.random=()=>0;document.querySelector("#word-evolve").click();Math.random=initialRandom;void 0');
         assert.equal(snapshot.state.evolution.pending.next, 'robot_type3'); assert.deepEqual(snapshot.state.evolution.path, ['robot']);
         await image('ceremony-before'); await sleep(350);
         await js('document.querySelector("#word-growth-dialog button").click();void 0');
+        await wait('!document.querySelector("#word-evolve").hidden', 'interrupted first evolution remains resumable');
         assert.deepEqual(store.load().value.state.evolution.path, ['robot']);
         await resume(url);
         await wait('document.querySelector("#word-growth-dialog").open && !!document.querySelector("#word-growth-dialog canvas")', 'pending ceremony');
@@ -71,6 +71,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         await wait('!!document.querySelector("#word-growth-skin")', 'ceremony completes');
         assert.deepEqual(snapshot.state.evolution.path, ['robot', 'robot_type3']);
         assert.equal(snapshot.state.evolution.skin, 'robot_type3'); assert.equal(snapshot.state.evolution.mind, 'robot_type3');
+        await wait('document.querySelector("#word-evolve").hidden', 'button disappears until next conditions');
         assert.equal(JSON.stringify(snapshot.state.knowledge), knowledge);
         assert.equal(await js('!!document.querySelector("[data-evolve=robot_type3_2]")'), false);
         checks.push('no condition/route spoilers, readiness glow, legacy roulette/movie, interrupted ceremony, automatic resume, irreversible route');
@@ -126,14 +127,15 @@ if (!process.versions.electron || process.type !== 'browser') {
         // Fresh child: no eligible routes or future names exposed. Missing ghost movie uses the legacy effect.
         await window.loadURL('about:blank');
         const ghost = { version: 1, appearance: 'ghost', state: core.create({}, catalog), world: worldApi.create() };
+        require('../../experimental_word_identity').configure(ghost.state, { characterName: '<Ghost & One>', firstPerson: 'ぼく', playerAddress: '相棒' });
         growth.init(ghost.state, 'ghost'); assert.ok(store.save(ghost).ok); await resume(url);
-        await js('document.querySelector("#word-growth").click();void 0');
-        assert.ok(await js('document.querySelector("[data-evolve]").disabled && !document.querySelector("#word-evolve").classList.contains("word-evolution-ready")'));
-        assert.equal(await js('document.querySelectorAll("#word-growth-skin option").length'), 1);
-        assert.ok(await js('!document.querySelector("#word-growth-dialog").textContent.includes("賢さ")'));
+        await js('document.querySelector("#word-book").click();void 0');
+        assert.ok(await js('document.querySelector("#word-growth").hidden && document.querySelector("#word-evolve").hidden'));
+        assert.equal(await js('document.querySelectorAll("[data-book-skin]").length'), 1);
+        assert.ok(await js('!document.querySelector("#word-book-dialog").textContent.includes("進化")'));
         await image('unready-no-spoilers');
         await window.loadURL('about:blank');
-        ghost.state.evolution.growth.intel = Array.from({ length: 12 }, (_, i) => 'fixture:' + i);
+        ghost.state.evolution.growth.intel = Array.from({ length: 8 }, (_, i) => 'fixture:' + i);
         assert.ok(store.save(ghost).ok); await resume(url);
         await wait('!document.querySelector("#word-evolve").disabled', 'ghost eligible');
         await js('const random=Math.random;Math.random=()=>.999;document.querySelector("#word-evolve").click();Math.random=random;void 0');
@@ -141,7 +143,36 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.deepEqual(snapshot.state.evolution.path, ['ghost']); await image('legacy-fallback-before-unlock');
         await wait('!!document.querySelector("#word-growth-skin")', 'fallback completes');
         assert.deepEqual(snapshot.state.evolution.path, ['ghost', 'ghost_type3_2']);
-        checks.push('unready button disabled/no glow/no future spoilers, actual missing movie legacy fallback, no early unlock');
+        checks.push('unready buttons absent, only registered book entries, actual missing movie legacy fallback, no early unlock');
+        assert.equal(snapshot.collection.entries.length, 2);
+        assert.equal(snapshot.collection.entries[1].people[0].name, '<Ghost & One>');
+        assert.equal(snapshot.collection.entries[1].people[0].source, 'observed');
+        await window.loadURL(url); await wait('!document.querySelector("#word-new-game").disabled', 'title loaded');
+        await js('document.querySelector(".word-logo").click();void 0');
+        await wait('document.querySelector(".word-title-actors").dataset.drawn?.includes("ghost_type3_2")', 'unlocked title sprites loaded and drawn');
+        assert.ok(await js('Array.from(document.querySelector(".word-title-actors").getContext("2d").getImageData(0,0,1280,720).data).some((v,i)=>i%4===3&&v>0)'));
+        assert.deepEqual((await js('JSON.parse(document.querySelector(".word-title-actors").dataset.skins)')).sort(), ['ghost', 'ghost_type3_2']);
+        await image('unlocked-title');
+        await js('document.querySelector("#word-title-book").click();void 0');
+        assert.equal(await js('document.querySelectorAll("[data-book-skin]").length'), 2);
+        await js('document.querySelector("[data-book-skin=ghost_type3_2]").click();void 0');
+        assert.ok(await js('document.querySelector("#word-book-dialog").textContent.includes("<Ghost & One>")'));
+        assert.equal(await js('document.querySelector("#word-book-dialog script")'), null);
+        for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de']) for (const width of [1280, 390]) {
+            window.setContentSize(width, 900); await js(`GameI18n.setLanguage(${JSON.stringify(locale)});void 0`); await sleep(80);
+            assert.equal(await js('document.documentElement.scrollWidth > innerWidth + 1'), false);
+            assert.ok(await js('document.querySelector("#word-book-dialog").textContent.includes("<Ghost & One>")'));
+            assert.equal(await js('document.querySelector("#word-book-dialog h2").textContent'), require('../../locales/' + locale + '.json')['図鑑']);
+            if (['ja', 'de'].includes(locale)) await image('book-' + locale + '-' + width);
+        }
+        await js('document.querySelector("#word-book-dialog button:last-child").click();document.querySelector("#word-new-game").click();document.querySelector("#word-reset-accept").click();void 0');
+        assert.ok(store.load().value.pendingNewGame); assert.equal(store.load().value.collection.entries.length, 2);
+        await window.loadURL(url); await wait('!document.querySelector("#word-new-game").disabled', 'pending new child reload');
+        await js('document.querySelector(".word-logo").click();void 0');
+        await wait('document.querySelector(".word-title-actors").dataset.skins?.includes("ghost_type3_2")', 'collection retained without active child');
+        await js('document.querySelector("#word-title-book").click();void 0');
+        assert.equal(await js('document.querySelectorAll("[data-book-skin]").length'), 2);
+        checks.push('title only unlocked poses, historical literal names, seven-locale book at two widths, actual new-child reset/pending/restart retains collection');
         assert.deepEqual(errors, []);
         fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ ok: true, profile, checks, errors }, null, 2));
         console.log(JSON.stringify({ ok: true, evidence, checks }));
