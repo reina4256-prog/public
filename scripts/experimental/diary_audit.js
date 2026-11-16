@@ -90,6 +90,8 @@ const identityOwnerReconciliations = new Map([
 ]);
 const autoTrainingStorageReview = 'a67c54a53f587d4336d269dcb08e6f0448ea70e04417d7c924ac335f488c850c';
 const collectionStorageReview = '0623f0ea4f8089e00fd597678b86384e88a4c0ef28c2b5d4ac0f877211cc333f';
+const adventureStorageReview = 'fc48ae4b108f53e247409c00a8eff2faae527b73f49513bda2aa66dfdfd8530c';
+const adventureWorldReview = '2659a0e3a367f395e7715d4b5e572138f90e473f1812b4ef2db074fe88244c7f';
 // Reviewed resource/evolution delta only; preserve every earlier fingerprint.
 const processingOwnerReconciliations = new Map([
     ['experimental_word_learning_core.js', '896b934a4cee6af9c1a78590587ae479cc60d9ebff304bb65982bf9d8f3cf97d'],
@@ -377,10 +379,12 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
         const autoReconciled = file === 'scripts/experimental/storage.js' && current === autoTrainingStorageReview;
         const processingReconciled = processingOwnerReconciliations.get(file) === current;
         const collectionReconciled = file === 'scripts/experimental/storage.js' && current === collectionStorageReview;
-        const reconciled = collectionReconciled || processingReconciled || autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
+        const adventureReconciled = file === 'scripts/experimental/storage.js' && current === adventureStorageReview
+            || file === 'experimental_word_learning_world.js' && current === adventureWorldReview;
+        const reconciled = adventureReconciled || collectionReconciled || processingReconciled || autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
         return { file, review: current === hash || reconciled ? 'owner_boundary_reviewed' : 'pending',
             ...(reconciled ? { reconciledFrom: hash, reconciledTo: current,
-                reconciliationRecord: AUDIT_SPEC + (collectionReconciled ? '#collection-storage-reconciliation' : processingReconciled ? '#processing-owner-reconciliation' : autoReconciled ? '#auto-training-storage-reconciliation'
+                reconciliationRecord: AUDIT_SPEC + (adventureReconciled ? '#adventure-storage-reconciliation' : collectionReconciled ? '#collection-storage-reconciliation' : processingReconciled ? '#processing-owner-reconciliation' : autoReconciled ? '#auto-training-storage-reconciliation'
                     : identityReconciled ? '#identity-owner-reconciliation' : '#walking-owner-reconciliation') } : {}) };
     });
     const ownersUnchanged = ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed');

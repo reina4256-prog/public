@@ -67,7 +67,7 @@ function fixtures() {
         const v = setup(); hear(v, `ぽぽは${catalog.meanings[meaning][0]}のことだよ`);
         add('eight-life-meanings', hear(v, 'ぽぽ'), true);
     }
-    for (const meaning of Object.keys(catalog.experienceMeanings)) {
+    for (const meaning of ['work', 'work:explore', 'work:farming', 'work:fishing', 'work:cooking', 'work:smithing', 'work:building']) {
         const v = setup(); require('./diary_answer_fixtures').completeWork(v, meaning.split(':')[1] || 'farming');
         hear(v, `ぽぽは${catalog.experienceMeanings[meaning][0]}のことだよ`);
         add('seven-demonstrated-work-meanings', hear(v, 'ぽぽ'), true);

@@ -13,6 +13,7 @@ const identity = require('../../experimental_word_identity');
 const autoTraining = require('../../experimental_word_auto_training');
 const growth = require('../../experimental_word_growth');
 const collection = require('../../experimental_word_collection');
+const adventure = require('../../experimental_word_adventure_connection');
 const LIMIT = 16 * 1024 * 1024;
 function valid(value) {
     // Persist the confirmed reset even if the player quits before choosing a child.
@@ -47,6 +48,7 @@ function valid(value) {
         && Array.isArray(w.reasons) && Number.isFinite(w.activityStart) && Number.isFinite(w.reactionTime)
         && w.hunger >= 0 && w.hunger <= 1 && w.fatigue >= 0 && w.fatigue <= 1
         && Number.isInteger(w.fruit) && w.fruit >= 0 && w.fruit <= 3
+        && adventure.valid(s, w)
         && careers.valid(w)
         && careers.validLearning(s)
         && lifeLearning.valid(s, w)

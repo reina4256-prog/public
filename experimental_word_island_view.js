@@ -30,13 +30,13 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         camera.y = world.y * 480 - surface.height / 2;
         window.audioManager.playBGM(skin);
     };
-    this.draw = function (world, skin, reducedMotion) {
+    this.draw = function (world, skin, reducedMotion, practice) {
         skin = window.ExperimentalWordGrowth?.visualSkin(skin) || skin;
         aiPet.x = world.x * 800; aiPet.y = world.y * 480;
         aiPet.currentSkin = skin;
         aiPet.actionState = world.mode === 'move' ? 'moving' : 'idle';
-        aiPet.visualAction = world.mode === 'work' ? window.ExperimentalWordCareers.JOBS[world.careers.current].action
-            : world.mode === 'rest' ? 'sleep' : world.mode === 'eat' ? 'eat_raw' : 'idle';
+        aiPet.visualAction = practice || (world.mode === 'work' ? window.ExperimentalWordCareers.JOBS[world.careers.current].action
+            : world.mode === 'rest' ? 'sleep' : world.mode === 'eat' ? 'eat_raw' : 'idle');
         const action = world.mode === 'move' ? 'move' : aiPet.visualAction;
         const frames = aiConfigs[skin].actions[action] || aiConfigs[skin].actions.idle;
         aiPet.frameIndex = reducedMotion ? 0 : Math.floor(world.elapsed / .25) % frames.length;
@@ -44,6 +44,17 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         if (world.mode === 'move' && target) aiPet.flip = target.x < world.x;
         render();
         const context = surface.getContext('2d');
+        if (world.island.bridgeOpen) for (const key of world.island.crossing || []) {
+            const a = world.island.assets[key], x = a.dx + a.sw * a.scale / 2 - camera.x, y = a.dy + a.sh * a.scale / 2 - camera.y;
+            context.fillStyle = '#a67b46'; context.fillRect(x - 26, y - 13, 52, 26);
+            context.strokeStyle = '#604025'; context.lineWidth = 2;
+            for (let dx = -24; dx < 26; dx += 8) { context.beginPath(); context.moveTo(x + dx,y - 13); context.lineTo(x + dx,y + 13); context.stroke(); }
+        }
+        for (const p of world.island.places.filter(p => p.id.startsWith('adventure:'))) {
+            if(p.id.startsWith('adventure:item:')) { context.fillStyle='#e1b66e';context.fillRect(p.x*800-camera.x-6,p.y*480-camera.y+4,12,9); }
+            context.beginPath(); context.strokeStyle = '#e9cc91'; context.lineWidth = 2;
+            context.ellipse(p.x * 800-camera.x,p.y * 480-camera.y+12,13,7,0,0,Math.PI*2); context.stroke();
+        }
         for (const place of world.island.places.slice(3)) {
             if (world.destination === place.id && world.mode === 'move') {
                 context.beginPath(); context.strokeStyle = '#ffe08a'; context.lineWidth = 2;

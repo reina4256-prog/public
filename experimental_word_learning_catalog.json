@@ -210,6 +210,13 @@
     "walk": ["歩いている", "歩いてる", "walking"]
   },
   "experienceMeanings": {
+    "action:attack": ["攻撃する","attack","攻击","атаковать","atacar","atacar","angreifen"],
+    "action:avoid": ["かわす","evade","闪避","уклониться","esquivar","desviar","ausweichen"],
+    "action:pick": ["拾う","pick up","拾取","подобрать","recoger","pegar","aufheben"],
+    "action:equip": ["装備する","equip","装备","экипировать","equipar","equipar","ausrüsten"],
+    "action:use": ["使う","use","使用","использовать","usar","usar","benutzen"],
+    "action:store": ["しまう","store","存放","убрать","guardar","guardar","verstauen"],
+    "action:take": ["取り出す","take out","取出","достать","sacar","retirar","herausnehmen"],
     "work": ["仕事", "手伝い", "work", "helping", "帮工", "работа", "trabajo", "trabalho", "Arbeit"],
     "work:explore": ["荷物運び", "荷物を運ぶ", "carrying supplies", "搬运物资", "переноска припасов", "llevar provisiones", "carregar suprimentos", "Vorräte tragen"],
     "work:farming": ["石拾い", "畑の石を拾う", "picking up stones", "捡石头", "сбор камней", "recoger piedras", "recolher pedras", "Steine sammeln"],

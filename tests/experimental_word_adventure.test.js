@@ -22,6 +22,18 @@ function explore() {
     const a = qualified(); a.training.completed = true;
     assert.equal(api.enter(a, 'skull'), true); return a;
 }
+test('picking requires a real item on the current floor underfoot, never a carried item',()=>{
+    const a=qualified(),wood=gather(a,'wood','forest');api.deliver(a,wood.id,'bag');api.craft(a,'bag');api.craft(a,'cloth');
+    const cloth=a.items.find(i=>i.type==='cloth');a.training.completed=true;api.enter(a,'skull');
+    const body={fatigue:0,hunger:0},serial=a.serial;
+    assert.equal(api.step(a,body,'pick',cloth.id),null);
+    assert.equal(a.serial,serial);assert.equal(cloth.location,'hand');assert.equal(body.fatigue,0);
+    api.rescue(a,'injury');api.enter(a,'skull');
+    assert.equal(api.step(a,body,'pick',cloth.id),null,'a distant floor item is not picked remotely');
+    a.run.position={...cloth.position};
+    assert.equal(api.step(a,body,'pick',cloth.id).kind,'action');assert.equal(cloth.location,'hand');
+    assert.equal(a.events.filter(e=>e.kind==='action' && e.action==='pick').length,1);
+});
 test('bridge may precede mastery, consumes delivered materials once and never grants words', () => {
     const a = qualified();
     assert.equal(api.craft(a, 'bridge'), null);

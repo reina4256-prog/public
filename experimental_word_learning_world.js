@@ -121,7 +121,7 @@
                 delete world.restStartOrder;
                 return { ...experience, kind: 'experience', activity: kind };
             }
-            const candidates = places(world).filter(p => p.id !== world.attention);
+            const candidates = places(world).filter(p => p.id !== world.attention && !p.id.startsWith('adventure:'));
             candidates.sort((a, b) => (world.visited[a.id] ?? -100) - (world.visited[b.id] ?? -100));
             const need = world.fatigue > .55 && world.recovery.rest ? 'shade'
                 : world.hunger > .5 && world.fruit && world.recovery.eat ? 'berry:1' : null;

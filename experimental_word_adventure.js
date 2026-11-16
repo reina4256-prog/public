@@ -33,11 +33,13 @@
     const limit = a => equipped(a, 'shield') ? RULES.armoredHits : RULES.hits;
     const capacity = a => a.items.some(i => i.type === 'bag' && i.location === 'body') ? RULES.capacity : 0;
     const used = a => a.items.filter(i => i.location === 'bag').reduce((n, i) => n + size(i), 0);
-    function transfer(a, id, location) {
+    function transfer(a, id, location, world) {
         const value = a.items.find(i => i.id === id);
         if (!value || !['hand', 'body', 'bag', 'home'].includes(location)) return false;
         if (value.location === location) return false;
-        if (!['hand', 'body', 'bag', 'home', 'floor'].includes(value.location)) return false;
+        if (value.type === 'bag' && value.location === 'body' && location !== 'body' && used(a) > 0) return false;
+        if (!['hand', 'body', 'bag', 'home', 'floor', 'ground'].includes(value.location)) return false;
+        if (value.location === 'ground' && (a.run || !world || Math.hypot(world.x-value.position.x,world.y-value.position.y)>1e-6)) return false;
         if ((value.location === 'home' || location === 'home') && (!a.building.home || a.run)) return false;
         if (value.location === 'floor' && (!a.run || value.dungeon !== a.run.dungeon || value.floor !== a.run.floor
             || !same(value.position, a.run.position))) return false;
@@ -48,6 +50,13 @@
         const before = value.location; value.location = location;
         delete value.dungeon; delete value.floor; delete value.position;
         event(a, 'transfer', { item: id, before, after: location }); return true;
+    }
+    function drop(a, world, id) {
+        const i=a.items.find(i=>i.id===id);
+        if(a.run || !world?.island || !i || !['hand','bag'].includes(i.location)
+            || !Number.isFinite(world.x) || !Number.isFinite(world.y))return false;
+        const before=i.location; i.location='ground'; i.position={x:world.x,y:world.y};
+        event(a,'drop',{item:id,before,position:i.position}); return true;
     }
     function discover(a, type, place, objectId) {
         if (!['wood', 'stone', 'berry'].includes(type) || typeof objectId !== 'string' || !objectId
@@ -131,6 +140,7 @@
                 item(a, type, source, location, { loan: true });
         }
         a.run = { ...floor(dungeon, training ? a.training.floor : 1, ++a.serial), training };
+        if (training && a.training.evidence.some(e => e.floor === a.run.floor)) a.run.lesson = 1;
         placeRecoveries(a); event(a, 'enter', { dungeon, training, floor: a.run.floor }); return true;
     }
     function placeRecoveries(a) {
@@ -151,7 +161,7 @@
         const run = a.run;
         if (!run) return null;
         if (run.training) {
-            for (const i of a.items.filter(i => i.loan)) i.location = 'returned';
+            for (const i of a.items.filter(i => i.loan && i.location !== 'consumed')) i.location = 'returned';
             for (const p of a.training.personal || []) {
                 const i = a.items.find(i => i.id === p.id); if (i) i.location = p.location;
             }
@@ -218,7 +228,10 @@
             const i = a.items.find(i => i.id === target && ['hand', 'bag'].includes(i.location));
             if (i) applied = transfer(a, i.id, i.type === 'stick' ? 'hand' : 'body');
         } else if (action === 'use') { effect = consume(a, world, target); applied = !!effect; }
-        else if (action === 'pick') applied = transfer(a, target, used(a) + size(a.items.find(i => i.id === target) || {}) <= capacity(a) ? 'bag' : 'hand');
+        else if (action === 'pick') {
+            const i=a.items.find(i=>i.id===target && i.location==='floor' && i.dungeon===run.dungeon && i.floor===run.floor);
+            if(i)applied=transfer(a,target,used(a)+size(i)<=capacity(a)?'bag':'hand');
+        }
         else if (action === 'attack') {
             if (!enemy.defeated && distance(run.position, enemy) === 1) {
                 const armed = equipped(a, 'stick');
@@ -239,7 +252,7 @@
             if (action === 'return') run.retreating = true;
             const goal = action === 'avoid' ? null : action === 'return' || run.retreating ? run.entry : target || run.exit;
             let next;
-            if (goal && Number.isInteger(goal.x) && Number.isInteger(goal.y)) next = toward(run, goal, enemy.observed && !enemy.defeated);
+            if (goal && Number.isInteger(goal.x) && Number.isInteger(goal.y)) next = toward(run, goal, enemy.observed && !enemy.defeated && !target);
             else if (action === 'avoid') next = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([dx, dy]) => ({ x: run.position.x + dx, y: run.position.y + dy }))
                 .find(p => run.grid[p.y]?.[p.x] === '.' && distance(p, enemy) > distance(run.position, enemy));
             if (next) { run.position = next; applied = true; }
@@ -251,7 +264,13 @@
         // A visible preparation always precedes an attack. The same turn cannot
         // both prepare and hit. Moving out of reach makes the prepared hit miss.
         if (a.run === run && !enemy.defeated) {
-            if (enemy.phase === 'ready') { if (distance(run.position, enemy) === 1) a.damage++; enemy.phase = 'idle'; }
+            if (enemy.phase === 'ready') {
+                if (distance(run.position, enemy) === 1) {
+                    if (run.training && a.damage >= limit(a) - 1) event(a, 'master_intervention', { floor: run.floor, reason: 'injury' });
+                    else a.damage++;
+                }
+                enemy.phase = 'idle';
+            }
             else if (distance(run.position, enemy) === 1) enemy.phase = 'ready';
             else if (distance(run.position, enemy) > 1) {
                 const options = [[1, 0], [0, 1], [-1, 0], [0, -1]].map(([dx, dy]) => ({ x: enemy.x + dx, y: enemy.y + dy }))
@@ -261,7 +280,8 @@
             }
         }
         const result = event(a, 'action', { action, inputId, dungeon: run.dungeon, floor: run.floor, training: run.training, before, after: a.run?.position || null,
-            effect, damageBefore, damage: a.damage, enemy: copy(enemy), fatigue: world.fatigue, hunger: world.hunger });
+            effect, damageBefore, damage: a.damage, equipment: { shield: equipped(a,'shield'), stick: equipped(a,'stick') },
+            enemy: copy(enemy), fatigue: world.fatigue, hunger: world.hunger });
         if (a.run) { a.run.turn++; a.run.last = result.id; }
         if (a.damage >= limit(a) || world.fatigue >= 1) rescue(a, a.damage >= limit(a) ? 'injury' : 'exhaustion');
         return result;
@@ -276,8 +296,7 @@
         const success = run.floor === 1 ? did('observe') && did('walk')
             : run.floor === 2 ? did('attack') && did('avoid')
             : run.floor === 3 ? actions.some(e => e.action === 'attack' && e.effect?.armed)
-                && actions.some(e => e.damage > e.damageBefore && a.items.some(i => i.loan && i.type === 'shield'
-                    && a.events.some(t => t.kind === 'transfer' && t.item === i.id && t.after === 'body' && t.id < e.id)))
+                && actions.some(e => e.damage > e.damageBefore && e.equipment?.shield === true)
                 && uses('ration') && uses('cloth')
             : run.floor === 4 ? actions.some(e => e.action === 'return' && (e.damage > 0 || e.fatigue >= .55 || e.hunger >= .45))
             : did('walk') && did('return');
@@ -321,7 +340,8 @@
             && a.events.some(e => e.id === i.source && (e.kind === 'loan' && i.loan === true
                 || e.kind === 'gather' && e.type === i.type || e.kind === 'craft' && e.project === i.type))
             && (i.loan === true || a.items.filter(other => other.source === i.source).length === 1)
-            && ['hand', 'body', 'bag', 'home', 'floor', 'project', 'consumed', 'returned', 'training_hold'].includes(i.location)
+            && ['hand', 'body', 'bag', 'home', 'floor', 'ground', 'project', 'consumed', 'returned', 'training_hold'].includes(i.location)
+            && (i.location !== 'ground' || i.position && Number.isFinite(i.position.x) && Number.isFinite(i.position.y) && Math.abs(i.position.x)<10 && Math.abs(i.position.y)<10)
             && (i.location !== 'home' || a.building.home)
             && (i.location !== 'floor' || ['skull', 'crystal'].includes(i.dungeon) && Number.isInteger(i.floor) && i.floor >= 1 && i.floor <= RULES.floors
                 && Number.isInteger(i.position?.x) && Number.isInteger(i.position?.y))
@@ -345,5 +365,5 @@
     }
     function valid(a) { try { return validate(a); } catch (_) { return false; } }
     return Object.freeze({ RULES, TYPES, RECIPES, create, ensure, event, discover, collect, deliver, craft, transfer, recordLesson, certify,
-        enter, step, decide, rescue, care, reviewTraining, carried, capacity, used, limit, valid });
+        enter, step, decide, rescue, care, drop, use: consume, reviewTraining, carried, capacity, used, limit, valid });
 });

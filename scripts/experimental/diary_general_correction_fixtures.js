@@ -11,7 +11,9 @@ const { hear } = require('./diary_correction_fixtures');
 const copy = v => JSON.parse(JSON.stringify(v));
 const locales = Object.keys(catalog.correctionTeaching);
 const life = ['berry', 'food', 'eat', 'sweet', 'hungry', 'rest', 'sleep', 'tired'];
-const ids = [...life, ...Object.keys(catalog.experienceMeanings)];
+// Preserve this historical fixture's seven adopted work meanings. New action
+// meanings require their own original practical evidence, not work completion.
+const ids = [...life, 'work', 'work:explore', 'work:farming', 'work:fishing', 'work:cooking', 'work:smithing', 'work:building'];
 const indices = {
     berry: [0, 2, 4, 5, 7, 9, 10], food: [0, 1, 2, 3, 4, 4, 5], eat: [0, 1, 2, 3, 4, 4, 6],
     sweet: [0, 1, 2, 3, 4, 5, 6], hungry: [0, 2, 3, 4, 5, 6, 7], rest: [0, 2, 3, 4, 5, 5, 6],

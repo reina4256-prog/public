@@ -4,6 +4,56 @@
     const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
+        advTitle: "ダンジョンへの道",
+        advHelp: "冒険家の課題から始めよう。橋は先に建築士へ依頼しても大丈夫。",
+        advAsk: "声をかける",
+        advStop: "実地作業を止める",
+        advBusy: "今の作業を終えてからにしよう。",
+        advStarted: "行き先と帰り道を確かめ、実際に移動・採集・作業を進めている。",
+        advMastery: "冒険家が実地課題の往復と判断を確かめ、皆伝を認めた。",
+        advReviewed: "師匠が実行を見届けた。次の課題へ進もう。",
+        advBuilt: "材料を使う実作業を終え、完成した。",
+        advFull: "持てる場所がない。納入するか、完成した家にしまおう。",
+        advNoMaterial: "この場所で集められる材料が残っていない。",
+        advNeedMastery: "まず冒険家と森・山の実地課題を終えよう。",
+        advNeedBridge: "橋がまだない。建築士へ材料を運んで依頼しよう。",
+        advNeedBuilding: "自力の橋建設は、建築士との実作業で学ぼう。",
+        advEntered: "橋を渡って入口に到着。初回は冒険家と五階の訓練をする。",
+        advObserved: "相手の動きと階段を見ている。",
+        advReady: "相手が身構えた。次の動きに気をつけよう。",
+        advMoved: "足元と相手を確かめながら進んだ。",
+        advHit: "攻撃が当たり、相手の動きが変わった。",
+        advAvoided: "距離を取り、相手の攻撃をかわした。",
+        advHurt: "傷ついている。手当てや帰還を考えよう。",
+        advUsed: "実際に使い、変化を確かめた。",
+        advEquipped: "装備を身につけた。実際に使って確かめよう。",
+        advPicked: "空いている持ち物の場所へ拾った。",
+        adv_drop: "地面に置く",
+        advLocation_ground: "島の地面",
+        advReturned: "階段をたどって島へ帰った。食事と休息で体をいたわろう。",
+        advRescued: "救助されて島へ戻った。持ち物は同じ階に残っている。",
+        advSafety: "冒険家が危険を止め、島へ付き添った。貸与品を返してケアをしよう。",
+        advTraining: "冒険家がこの階の実行を見届けた。次の階へ進める。",
+        advGraduated: "五階の訓練と帰還を終え、貸与品を返した。本探索に備えよう。",
+        advCannot: "今はその動作を実行できない。位置と持ち物を確かめよう。",
+        advUnknown: "その動作の言葉はまだ分からない。実際に動いたときに声をかけよう。",
+        advItems: "持ち物・装備・家の保管",
+        advTrainingTitle: "冒険家同行の実地訓練",
+        advExploreTitle: "本探索",
+        advWell: "動ける様子",
+        advItem_bag: "布のかばん",
+        advItem_stick: "木の棒",
+        advItem_shield: "木の盾",
+        advItem_ration: "携行食",
+        advItem_cloth: "手当て布",
+        advItem_wood: "木材",
+        advItem_stone: "石",
+        advItem_berry: "木の実",
+        advLocation_hand: "手",
+        advLocation_body: "身につけている",
+        advLocation_bag: "かばんの中",
+        advLocation_home: "家の保管場所",
+        advLocation_floor: "その階の床",
         autoHeading: 'おまかせ育成', autoLife: '暮らし', autoConversation: '会話', autoExploration: '探索',
         autoHelp: '今の場面と理解に合わせて、ゲーム内の育成補助が声かけを選びます。外部AIサービスは使いません。方針は性格を固定せず、教える機会の優先度を変えます。',
         autoLevels0: '見送る', autoLevels1: '控えめ', autoLevels2: 'ふつう', autoLevels3: '優先',
@@ -380,7 +430,9 @@
     let personalLog = null;
     let exporting = false;
     let screen = window.WordIslandMode ? 'logo' : 'setup';
-    let dungeon = null, dungeonView = null, dungeonVisuals;
+    let dungeon = null, dungeonView = null, dungeonVisuals, adventureView;
+    const adventureApi = window.ExperimentalWordAdventureConnection;
+    let adventureLabelOnly = false;
     const autoApi = window.ExperimentalWordAutoTraining;
     let autoMemory = autoApi.create(), autoActive = false, autoPlan = null, autoDue = 0, autoBaseline = null, automaticSubmission = false;
     let environmentVolume = .5;
@@ -391,6 +443,10 @@
     }
     const displayText = key => window.GameI18n.translate(t(key));
     const worldApi = window.ExperimentalWordWorld;
+    if (adventureApi) {
+        adventureApi.actions.forEach((id, i) => { labels['adv_' + id] = adventureApi.words.ja[i]; });
+        ['observe', 'walk', 'return', 'down', 'up'].forEach((id, i) => { labels['adv_' + id] = adventureApi.commands.ja[i + 11]; });
+    }
     // Keep Japanese source text in the DOM so localization_core can re-render it
     // on every language switch, including when the initial language is not Japanese.
     const t = key => labels[key];
@@ -783,7 +839,7 @@
     const bubble = node('div', undefined, stage); bubble.className = 'bubble'; bubble.hidden = true;
     const status = node('p', t('idle'), session); status.className = 'status'; status.setAttribute('aria-live', 'polite');
     const controls = node('div', undefined, session); controls.className = 'scene-controls';
-    const dungeonButton = window.WordIslandMode && window.ExperimentalWordDungeonLearning && !window.wordStorage
+    const dungeonButton = window.WordIslandMode && new URLSearchParams(location.search).get('dungeon-preview') === '1' && window.ExperimentalWordDungeonLearning && !window.wordStorage
         ? node('button', t('dungeonEnter'), controls) : null;
     if (dungeonButton) { dungeonButton.type = 'button'; dungeonButton.id = 'word-dungeon'; dungeonButton.addEventListener('click', () => toggleDungeon(!dungeon)); }
     const debugControls = new URLSearchParams(location.search).get('debug') === '1';
@@ -1237,6 +1293,7 @@
     const autoProgress = node('p', '', autoPanel); autoProgress.id = 'word-auto-progress'; autoProgress.setAttribute('data-i18n-skip', '');
     node('p', t('autoContinue'), autoPanel);
     function stopAuto() {
+        adventureView?.stop();
         masterAutoElapsed = masterAutoQuiet = 0;
         if (autoActive) record('auto_training', { action: 'stop', weights: autoMemory.weights });
         autoActive = false; autoPlan = null; autoPreview.textContent = '';
@@ -1260,7 +1317,14 @@
         if (!autoActive) return;
         if (holding) { autoPlan = null; autoPreview.textContent = ''; autoDue = world.elapsed + 2; autoStatus.textContent = displayText(masterDialog.open ? 'autoWaiting' : 'autoPaused'); return; }
         if (world.elapsed < autoDue) return;
-        const candidate = autoApi.next(autoMemory, state, world, window.GameI18n.language);
+        if (state.adventure?.connection.task) { autoDue = world.elapsed + 1; return; }
+        const adventureCommand = adventureApi && autoMemory.weights.exploration > 0 && ['idle','observe'].includes(world.mode) && world.hunger < .6 && world.fatigue < .6
+            ? adventureApi.autoCommand(state, window.GameI18n.language) : null;
+        const ordinary = autoApi.next(autoMemory, state, world, window.GameI18n.language);
+        const candidate = adventureCommand && (!ordinary || ordinary.axis === 'exploration'
+            || autoMemory.counts.exploration / autoMemory.weights.exploration <= autoMemory.counts[ordinary.axis] / autoMemory.weights[ordinary.axis])
+            ? { kind: 'say', text: adventureCommand, purpose: 'experience', axis: 'exploration', id: 'adventure:' + adventureCommand,
+                activity: `${world.mode}:${world.activityStart}:${world.attention || ''}`, locale: window.GameI18n.language } : ordinary;
         if (!candidate) { autoPlan = null; autoPreview.textContent = ''; autoStatus.textContent = displayText('autoWaiting'); autoDue = world.elapsed + 1; return; }
         if (!autoPlan || JSON.stringify(autoPlan.plan) !== JSON.stringify(candidate)) {
             autoPlan = { plan: candidate, at: world.elapsed }; autoDue = world.elapsed + 2;
@@ -1274,6 +1338,11 @@
         } else {
             // No timer writes to a draft. These checks also guard synchronous UI changes.
             if (input.value.trim() || voice.listening) { stopAuto(); return; }
+            if(candidate.id?.startsWith('adventure:') && adventureApi.parse(candidate.text,window.GameI18n.language)==='equip'
+                && !state.knowledge.meanings.some(m=>m.id==='action:equip')) {
+                const item=state.adventure.items.find(i=>i.type==='stick' && i.location==='bag');
+                if(item)adventureAction('equip',item.id,true);
+            }
             try { automaticSubmission = true; input.value = candidate.text; input.dataset.inputMethod = 'auto'; form.requestSubmit(); }
             finally { automaticSubmission = false; }
         }
@@ -1653,6 +1722,7 @@
     setInterval(save, 5000);
     window.addEventListener('beforeunload', save);
     function updatePerception() {
+        if (adventureApi && state.adventure?.run && adventureApi.perceive(state)) return;
         if (dungeon) { window.ExperimentalWordDungeonLearning.perceive(dungeon); return; }
         api.perceive(state, worldApi.perception(world));
     }
@@ -1696,6 +1766,45 @@
     }
     window.addEventListener('popstate', event => { if (event.state?.wordContent) toggleDungeon(event.state.wordContent === 'dungeon', false); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) dungeonView?.stop(); });
+    function submitAdventure(text) {
+        if (!state || paused || input.value.trim() || voice.listening) return;
+        recognized='';recognizedLocale=null;delete input.dataset.inputMethod;
+        input.value = text; form.requestSubmit();
+    }
+    function adventureAction(action, target, automatic = false) {
+        if (!state || paused || exporting || input.value.trim() || document.hidden) return;
+        if (!automatic) { stopAuto(); adventureView.stop(); }
+        if (state.adventure.run) {
+            const reply = adventureApi.hand(state, world, action, target);
+            record('adventure_action', { action, target, event: state.adventure.events.at(-1) });
+            showReply(reply); updatePerception(); renderNotebook(); save();
+            if (automatic && autoActive && adventureApi.teachable.includes(action)
+                && !state.knowledge.meanings.some(m => m.id === adventureApi.meaningFor(action))) {
+                const n = adventureApi.actions.indexOf(action), locale = window.GameI18n.language;
+                const word = action === 'walk' ? (adventureApi.commands[locale] || adventureApi.commands.en)[12]
+                    : (adventureApi.words[locale] || adventureApi.words.en)[n];
+                try { automaticSubmission = true; adventureLabelOnly = true; input.value = word; input.dataset.inputMethod = 'auto'; form.requestSubmit(); }
+                finally { automaticSubmission = adventureLabelOnly = false; }
+            }
+        } else if(action==='drop') { showReply(adventureApi.drop(state,world,target)); save();
+        } else if(action==='pick') { showReply(adventureApi.start(state,world,'pickup',{item:target})); save();
+        } else if (['store', 'take'].includes(action)) {
+            const a = state.adventure;
+            const item = a.items.find(i => i.id === target);
+            if (item && a.building.home) showReply(adventureApi.start(state, world, 'storage', { action, item: item.id }));
+            save();
+        } else if (action === 'use') {
+            const e = window.ExperimentalWordAdventure.use(state.adventure, world, target);
+            showReply({ message: e ? 'advUsed' : 'advCannot', observation: true }); save();
+        } else if (action === 'equip') {
+            const a = state.adventure, item = a.items.find(i => i.id === target);
+            if(item?.type==='stick') { const held=a.items.find(i=>i.location==='hand');if(held)window.ExperimentalWordAdventure.transfer(a,held.id,'bag'); }
+            const ok = item && window.ExperimentalWordAdventure.transfer(a, item.id, item.type === 'stick' ? 'hand' : 'body');
+            showReply({ message: ok ? 'advEquipped' : 'advCannot', observation: true }); save();
+        }
+    }
+    if (window.WordIslandMode && adventureApi) adventureView = new window.ExperimentalWordAdventureView(canvas, controls, t,
+        submitAdventure, adventureAction, () => { stopAuto(); adventureApi.stop(state, world); adventureView.stop(); save(); });
     // Keep the modal out of the playing grid and its clipped/scrolling ancestors.
     const masterDialog = node('dialog', undefined, document.body); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
     const masterLeft = node('div', undefined, masterDialog); masterLeft.className = 'word-master-left';
@@ -1924,10 +2033,23 @@
                 bubble.style.left = '50%'; bubble.style.top = dungeonView.bubbleTop() + 'px';
                 requestAnimationFrame(animate); return;
             }
+            if (adventureApi && state.adventure?.run) {
+                if (!holding) world.elapsed += Math.min(.1, Math.max(0, dt));
+                adventureView.tick(dt, holding, autoActive, state, world);
+                adventureView.update(state, world, dungeonVisuals, state.evolution.skin || appearance.value);
+                bubble.style.left = '50%'; bubble.style.top = '16%';
+                requestAnimationFrame(animate); return;
+            }
             const event = worldApi.tick(world, dt, holding);
             if (event) record('life', { event });
             updatePerception();
             const spontaneous = worldApi.onArrival(world, state, event);
+            if (adventureApi && state.adventure) {
+                const serial = state.adventure.serial;
+                const reply = adventureApi.tick(state, world, dt, holding, event);
+                if (reply) { showReply(reply); record('adventure', { reply, event: state.adventure.events.at(-1) }); }
+                if (serial !== state.adventure.serial || event) save();
+            }
             if (event) growthApi.observe(state, world, null, event);
             if (event) acquired(collectionApi.observe(collection, state, world, event));
             if (spontaneous) showReply(spontaneous);
@@ -1940,7 +2062,10 @@
             point.setAttribute('aria-pressed', String(world.mode === 'move' && world.destination === 'berry:1'));
             shade.setAttribute('aria-pressed', String(world.mode === 'move' && world.destination === 'shade'));
             if (key !== lastStatus) { status.textContent = t(key); lastStatus = key; }
-            view.draw(world, state.evolution?.skin || appearance.value, matchMedia('(prefers-reduced-motion: reduce)').matches);
+            const task=state.adventure?.connection.task, step=task?.steps[task.index];
+            const practice=step?.effect==='gather' ? 'farm_plow' : step?.effect==='craft' ? task.project==='ration'?'cook':'study' : null;
+            view.draw(world, state.evolution?.skin || appearance.value, matchMedia('(prefers-reduced-motion: reduce)').matches, practice);
+            if (adventureView) adventureView.update(state, world, dungeonVisuals, state.evolution.skin || appearance.value);
             const scale = Math.min(canvas.clientWidth / canvas.width, canvas.clientHeight / canvas.height);
             const position = view.bubblePosition?.() || { x: world.x, y: world.y - .39 };
             bubble.style.left = `${(canvas.clientWidth - canvas.width * scale) / 2 + Math.max(.23, Math.min(.77, position.x)) * canvas.width * scale}px`;
@@ -1965,6 +2090,12 @@
         if (!restored && window.WordIslandMode) acquired(collectionApi.remember(collection, state, world, 'meeting'));
         updateIdentityBadge();
         view.start?.(world, appearance.value);
+        if (window.WordIslandMode && adventureApi) {
+            const a = adventureApi.init(state, world);
+            // Resume the exact layout and work position, with all clocks stopped.
+            if (restored && (a.run || a.connection.task)) { paused = true; pause.setAttribute('aria-pressed', 'true'); send.disabled = true; }
+            adventureView.update(state, world, dungeonVisuals, state.evolution.skin || appearance.value);
+        }
         if (!restored && volume) view.volume(world, environmentVolume);
         if (volume) volume.value = String(world.island.volume ?? .5);
         updatePerception();
@@ -2015,6 +2146,7 @@
     shade.addEventListener('click', () => pointAt('shade', 'pointed_shade'));
     walk?.addEventListener('click', () => pointAt('path', 'join'));
     canvas.addEventListener('click', event => {
+        if (state?.adventure?.run) { if (!paused && !exporting) adventureView.hit(event, state); return; }
         if (dungeon) { if (!paused && !exporting) dungeonView.hit(event); return; }
         if (!world || !view.hit || exporting) return;
         const target = view.hit(world, event);
@@ -2035,6 +2167,7 @@
         event.preventDefault();
         if (!input.value.trim() || document.hidden || paused || growthDialog.open) return;
         if (!automaticSubmission) stopAuto();
+        if (!automaticSubmission) adventureView?.stop();
         voice.stop();
         updatePerception();
         const starBefore = constellationApi.project(state, catalog);
@@ -2066,7 +2199,8 @@
                 ...(learnedName || link ? { word: learnedName?.word || link.word } : {}) };
             if (state.settings.speech !== 'short' && !result.identityReply) reply = { message: 'attend' };
             updateDungeonStatus(); dungeonView.refresh();
-        } else reply = worldApi.respond(world, result, state, catalog);
+        } else reply = adventureApi && state.adventure ? adventureApi.receive(state, world, result, window.GameI18n.language, adventureLabelOnly) || worldApi.respond(world, result, state, catalog)
+            : worldApi.respond(world, result, state, catalog);
         growthApi.observe(state, world, result, null, reply);
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });

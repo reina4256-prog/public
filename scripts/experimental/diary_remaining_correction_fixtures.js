@@ -8,7 +8,7 @@ const existing = require('./diary_negation_fixtures');
 const { hear: receive } = require('./diary_correction_fixtures');
 const copy = v => JSON.parse(JSON.stringify(v));
 const locales = Object.keys(catalog.correctionTeaching);
-const ids = ['berry', 'food', 'eat', 'sweet', 'hungry', 'rest', 'sleep', 'tired', ...Object.keys(catalog.experienceMeanings)];
+const ids = ['berry', 'food', 'eat', 'sweet', 'hungry', 'rest', 'sleep', 'tired', 'work', 'work:explore', 'work:farming', 'work:fishing', 'work:cooking', 'work:smithing', 'work:building'];
 function hear(v, raw, locale = 'ja', speaker = 'player') {
     const receipt = receive(v, raw, locale, speaker), beforeReceipts = copy(v.receipts || []);
     receipt.beforeKnowledge.wordExplanations ||= [];

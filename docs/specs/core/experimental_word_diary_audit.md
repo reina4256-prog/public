@@ -1605,6 +1605,14 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="collection-storage-reconciliation"></a>
 
+<a id="adventure-storage-reconciliation"></a>
+
+#### ダンジョン任意状態の保存差分照合（2026-11-17）
+
+- storageの差分全文を照合。追加はadventure_connectionのrequireとvalid内の任意adventure検査の2行のみ。本人／原資料／生活／関係／感情／日記／進化／図鑑の既存検査、atomic保存・backup・破損時停止は保持。未設定の旧saveを許容し、皆伝／建築／訓練を補完しない。
+- LF正規化SHA256 `fc48ae4b108f53e247409c00a8eff2faae527b73f49513bda2aa66dfdfd8530c`をadventureStorageReviewへ別保持。原指紋、全既存照合、未知変更で全50境界がpendingになる条件を置換しない。通常島／戦闘の原実経験と入力による動作知識は新adapterの所有であり、日記capture／4e DW・DXの追加ではない。詳細は[新方式ダンジョン](../dungeon/word_dungeon_preview.md)。
+- 通常島worldの差分も全文照合した。通常の好奇心候補からadventure:接頭辞の専用地点だけを除外する1行で、閉じた入口を選び続ける停止を防ぐ。専用地点への実移動は明示した課題／依頼のcontrollerがworld.approachで行い、旧9地点と食事・休息・教示／本人・原記録は保持する。LF正規化SHA256 `2659a0e3a367f395e7715d4b5e572138f90e473f1812b4ef2db074fe88244c7f`をadventureWorldReviewへ別保持。既存指紋を置換せず未知差分を許可しない。新方式15地点を有効にした通常生活の継続と、旧8設定の回帰を別に確認する。
+
 #### 図鑑・タイトル履歴の保存差分照合（2026-11-16）
 
 - storageの直前の認知資源／進化照合を保持し、今回はcollectionの独立検査と新しい子の開始待ち保存へのcollection保持だけを直接照合。既存core／生活／関係／感情／本人／育成・原資料の検査、atomic本体／backup／破損時停止は変更しない。
