@@ -558,6 +558,14 @@
     let meetingImage = null;
     let meetingVisuals = null;
     function drawMeeting(time) {
+        if (!meeting.open) return;
+        if (window.WordIslandMode && screen === 'playing' && state?.evolution) {
+            const { skin, config, image } = selectedSprite();
+            if (!image.complete || !image.naturalWidth) return;
+            const context = meetingCanvas.getContext('2d'), f = config.actions.idle[0], scale = Math.min(130 / f.sw, 150 / f.sh);
+            context.clearRect(0, 0, 300, 210); context.drawImage(image, f.sx, f.sy, f.sw, f.sh, 150 - f.sw * scale / 2, 185 - f.sh * scale, f.sw * scale, f.sh * scale);
+            meetingCanvas.dataset.skin = skin; return;
+        }
         if (!meeting.open || !meetingImage?.complete || !meetingImage.naturalWidth) return;
         const context = meetingCanvas.getContext('2d'), skin = appearance.value;
         const f = meetingVisuals[skin].actions.idle[0];
@@ -781,11 +789,10 @@
     const starsButton = node('button', t('constellation'), panelButtons); starsButton.type = 'button'; starsButton.id = 'word-stars';
     const growthApi = window.ExperimentalWordGrowth;
     const growthMessages = {
-        title: '育ちと進化', skin: '姿を選ぶ', mind: '中身を選ぶ', evolve: 'この進化を選ぶ',
+        title: '育ちと進化', skin: '姿を選ぶ', mind: '中身を選ぶ', evolve: '進化する',
         guide: '姿と中身は別々に選べます。進化履歴は戻りません。別ルートは引退後の次の子で選びます。',
         ceremony: '姿が変わっています。変身が終わると姿と中身を選べるようになります。',
         later: '後で続ける', retry: '演出を再開する', failed: '姿の画像を読み込めませんでした。演出を再開してください。',
-        conditions: '必要な育ち', extra: '活力は2種類以上の活動、老化は600秒の生活・活力の経験6回も必要です。',
         capacity: '処理できる量', comparison: '比較の深さ', efficiency: '消耗効率',
         base: '出会ったときの中身', power: '活力：慣れた経験を省エネで使う', intel: '賢さ：広く参照し深く比較する',
         beauty: '美しさ：相手や場面に合う表現を使う', old: '老化：振り返った経験と要点を使う', dark: '闇：不確かさと別の可能性を調べる',
@@ -795,14 +802,27 @@
     const gt = key => growthMessages[key];
     const growthButton = node('button', gt('title'), panelButtons); growthButton.type = 'button'; growthButton.id = 'word-growth';
     growthButton.hidden = !window.WordIslandMode;
+    const evolveButton = node('button', gt('evolve'), panelButtons); evolveButton.type = 'button'; evolveButton.id = 'word-evolve';
+    evolveButton.hidden = !window.WordIslandMode; evolveButton.disabled = true;
     const growthDialog = node('dialog', undefined, document.body); growthDialog.id = 'word-growth-dialog'; growthDialog.className = 'word-growth-dialog';
     growthDialog.setAttribute('aria-label', gt('title'));
     let ceremonyToken = 0;
+    let ceremonyVideo = null;
+    function selectedSprite() {
+        const skin = growthApi.visualSkin(state?.evolution?.skin || appearance.value), config = aiConfigs[skin];
+        const key = config.img || skin;
+        if (!images[key]) { images[key] = new Image(); images[key].src = imageSources[key] || window.dynamicImageCatalog[key]; }
+        return { skin, config, image: images[key] };
+    }
     const skinLabel = id => {
         if (!id.includes('_')) return t(id);
         return Object.values(window.evolutionRequirements || {}).flat().find(x => x.next === id)?.name || id;
     };
-    function growthClose() { ceremonyToken++; growthDialog.close(); input.focus(); }
+    function growthClose() {
+        ceremonyToken++;
+        if (ceremonyVideo) { ceremonyVideo.pause(); ceremonyVideo.removeAttribute('src'); ceremonyVideo.load(); ceremonyVideo = null; }
+        growthDialog.close(); input.focus();
+    }
     growthDialog.addEventListener('cancel', event => { event.preventDefault(); growthClose(); });
     function growthAction(label, action) {
         const b = node('button', label, growthDialog); b.type = 'button'; b.addEventListener('click', action); return b;
@@ -826,56 +846,133 @@
         const p = growthApi.profile(state), b = growthApi.budget(state, world);
         node('p', gt(growthApi.family(state.evolution.mind)), growthDialog);
         node('p', `${gt('capacity')}: ${b.units} / ${gt('comparison')}: ${b.depth} / ${gt('efficiency')}: ${p.efficiency}`, growthDialog);
-        node('p', gt('extra'), growthDialog);
-        for (const c of growthApi.choices(state, world)) {
-            node('p', `${skinLabel(c.next)} · ${gt('conditions')}: ${c.count}/${c.required} · ${gt(c.family)}`, growthDialog);
-            const button = growthAction(gt('evolve'), () => {
-                if (!growthApi.begin(state, world, c.next)) return;
-                save(); startCeremony();
-            });
-            button.dataset.evolve = c.next; button.disabled = !c.ready;
-        }
+        const ready = growthApi.choices(state, world).some(c => c.ready);
+        const button = growthAction(gt('evolve'), chooseEvolution);
+        button.dataset.evolve = 'ready'; button.disabled = !ready; button.classList.toggle('word-evolution-ready', ready);
         if (state.evolution.pending) growthAction(gt('retry'), startCeremony);
         growthAction(t('starsClose'), growthClose);
     }
+    function chooseEvolution() {
+        if (state.evolution.pending) { startCeremony(); return; }
+        const candidates = growthApi.choices(state, world).filter(c => c.ready);
+        if (!candidates.length) return;
+        // The player chooses when to evolve; the legacy roulette selects among eligible routes.
+        const next = candidates[Math.floor(Math.random() * candidates.length)].next;
+        if (!growthApi.begin(state, world, next)) return;
+        stopAuto(); voice.stop(); save(); startCeremony();
+    }
+    evolveButton.addEventListener('click', chooseEvolution);
     async function startCeremony() {
         const pending = state.evolution?.pending; if (!pending) return;
         const token = ++ceremonyToken;
         growthDialog.replaceChildren(); node('h2', gt('title'), growthDialog); node('p', gt('ceremony'), growthDialog);
-        const surface = node('canvas', undefined, growthDialog); surface.width = 360; surface.height = 300;
+        const surface = node('canvas', undefined, growthDialog); surface.width = 400; surface.height = 300;
         surface.setAttribute('aria-label', gt('ceremony'));
         growthAction(gt('later'), growthClose);
         if (!growthDialog.open) growthDialog.showModal();
-        const sources = [pending.from, pending.next].map(id => {
+        // Resume the saved result, never reroll an interrupted evolution.
+        const available = growthApi.choices({ ...state, evolution: { ...state.evolution, pending: null } }, world).filter(c => c.ready).map(c => c.next);
+        if (!available.includes(pending.next)) available.push(pending.next);
+        const ids = [...new Set([pending.from, ...available])];
+        const sources = ids.map(id => {
             const visual = growthApi.visualSkin(id), config = aiConfigs[visual], image = new Image(); image.src = imageSources[config.img || visual] || window.dynamicImageCatalog[config.img || visual];
             return { config, image };
         });
         try { await Promise.all(sources.map(s => s.image.decode())); }
         catch (_) { if (token === ceremonyToken) { node('p', gt('failed'), growthDialog); growthAction(gt('retry'), startCeremony); } return; }
-        let elapsed = 0, last = null;
-        const frame = time => {
-            if (token !== ceremonyToken || !growthDialog.open) return;
-            const dt = last === null || document.hidden ? 0 : Math.max(0, Math.min(.1, (time - last) / 1000)); last = time;
-            elapsed += dt;
-            const ratio = Math.min(1, elapsed / growthApi.RULES.ceremonySeconds), index = ratio < .5 ? 0 : 1;
-            const { config, image } = sources[index], rect = config.actions.idle[0], ctx = surface.getContext('2d');
-            ctx.clearRect(0, 0, 360, 300); ctx.fillStyle = '#142337'; ctx.fillRect(0, 0, 360, 300);
-            const scale = Math.min(220 / rect.sw, 220 / rect.sh);
-            if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                ctx.strokeStyle = '#fae9a2'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(180, 150, 35 + 105 * ratio, 0, 2 * Math.PI); ctx.stroke();
-            }
-            ctx.drawImage(image, rect.sx, rect.sy, rect.sw, rect.sh, 180 - rect.sw * scale / 2, 260 - rect.sh * scale, rect.sw * scale, rect.sh * scale);
-            surface.dataset.skin = index ? pending.next : pending.from;
-            if (ratio < 1 || document.hidden) { requestAnimationFrame(frame); return; }
-            // A final painted target frame precedes the save/unlock, including reduced motion.
-            requestAnimationFrame(() => {
-                if (token !== ceremonyToken || document.hidden || !growthDialog.open) { last = null; requestAnimationFrame(frame); return; }
+        const sprites = Object.fromEntries(ids.map((id, i) => [id, sources[i]]));
+        const ctx = surface.getContext('2d'), reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        function sprite(id, x, y, size, silhouette = false, alpha = 1) {
+            const { config, image } = sprites[id], rect = config.actions.idle[0], scale = Math.min(size / rect.sw, size / rect.sh);
+            ctx.save(); ctx.globalAlpha = alpha; if (silhouette) ctx.filter = 'brightness(0)';
+            ctx.drawImage(image, rect.sx, rect.sy, rect.sw, rect.sh, x - rect.sw * scale / 2, y - rect.sh * scale / 2, rect.sw * scale, rect.sh * scale); ctx.restore();
+        }
+        const colors = ['#f44336', '#4caf50', '#2196f3', '#ffeb3b', '#9c27b0', '#00bcd4', '#ff9800', '#8bc34a'];
+        const slice = Math.PI * 2 / available.length;
+        let speed = .4 + Math.random() * .2, travel = 0;
+        for (let s = speed; s >= .002; s *= .985) travel += s;
+        // Match legacy speed/decay while landing on the result saved before the animation.
+        let rotation = -Math.PI / 2 - (available.indexOf(pending.next) + .5) * slice + travel;
+        function wheel(alpha = 1) {
+            ctx.save(); ctx.globalAlpha = alpha; ctx.translate(200, 150); ctx.rotate(reduced ? 0 : rotation);
+            available.forEach((id, i) => {
+                ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 120, i * slice, (i + 1) * slice); ctx.closePath();
+                ctx.fillStyle = colors[i % colors.length]; ctx.fill(); ctx.strokeStyle = '#222'; ctx.lineWidth = 2; ctx.stroke();
+                const angle = (i + .5) * slice;
+                ctx.save(); ctx.translate(Math.cos(angle) * 72, Math.sin(angle) * 72); ctx.rotate(angle + Math.PI / 2);
+                sprite(id, 0, 0, 50, true); ctx.restore();
+            }); ctx.restore();
+            ctx.beginPath(); ctx.moveTo(200, 35); ctx.lineTo(190, 15); ctx.lineTo(210, 15); ctx.closePath(); ctx.fillStyle = '#FFD700'; ctx.fill();
+        }
+        let phase = 'spinning', ticks = 0, last = null, movieStarted = false, spinTicks = 0;
+        const alive = () => token === ceremonyToken && growthDialog.open;
+        const complete = () => {
+            if (!alive()) return;
+            if (document.hidden) { requestAnimationFrame(complete); return; }
+            if (ceremonyVideo) { ceremonyVideo.pause(); ceremonyVideo.removeAttribute('src'); ceremonyVideo.load(); ceremonyVideo.remove(); ceremonyVideo = null; }
+            surface.hidden = false; ctx.clearRect(0, 0, 400, 300); sprite(pending.next, 200, 150, 180); surface.dataset.skin = pending.next;
+            // Reveal the selected sprite before granting either unlocked selection.
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+                if (!alive()) return;
+                if (document.hidden) { requestAnimationFrame(complete); return; }
                 growthApi.complete(state, pending.next); save(); record('evolution', { path: state.evolution.path }); renderGrowth();
-            });
+            }));
+        };
+        function movie() {
+            if (!alive() || movieStarted) return;
+            movieStarted = true; phase = 'video';
+            const video = node('video', undefined, growthDialog); ceremonyVideo = video; video.id = 'word-evolution-video';
+            video.playsInline = true; video.preload = 'auto'; video.src = growthApi.videoPath(pending.from, pending.next);
+            surface.hidden = true;
+            let playing = false, failed = false;
+            const fallback = () => {
+                if (!alive() || failed) return; failed = true; clearTimeout(timer);
+                video.pause(); video.removeAttribute('src'); video.load(); video.remove(); ceremonyVideo = null;
+                surface.hidden = false; phase = 'effect'; ticks = 0; last = null; requestAnimationFrame(frame);
+            };
+            const timer = setTimeout(fallback, 5000);
+            video.addEventListener('error', fallback, { once: true });
+            video.addEventListener('playing', () => { playing = true; clearTimeout(timer); }, { once: true });
+            video.addEventListener('ended', () => { if (playing && !failed) complete(); }, { once: true });
+            video.addEventListener('canplay', () => {
+                if (!alive() || failed) return;
+                video.play().catch(() => { video.muted = true; video.play().catch(fallback); });
+            }, { once: true });
+            video.load();
+        }
+        const frame = time => {
+            if (!alive()) return;
+            const dt = last === null || document.hidden ? 0 : Math.max(0, Math.min(.1, (time - last) / 1000)); last = time;
+            ctx.clearRect(0, 0, 400, 300);
+            if (phase === 'spinning') {
+                wheel();
+                spinTicks += dt * 60;
+                while (spinTicks >= 1 && speed >= .002) { rotation -= speed; speed *= .985; spinTicks--; }
+                if (speed < .002) { movie(); return; }
+            } else if (phase === 'effect') {
+                ticks += dt * 60;
+                if (ticks < 30) wheel(1 - ticks / 30);
+                if (ticks > 30 && ticks < 140) sprite(pending.from, 200, 150, 180, true, ticks < 80 ? 1 : (140 - ticks) / 60);
+                if (ticks > 80 && ticks < 180) sprite(pending.next, 200, 150, 180, true, Math.min(1, (ticks - 80) / 60));
+                const flash = ticks > 140 && ticks <= 160 ? (ticks - 140) / 20 : ticks > 160 ? Math.max(0, 1 - (ticks - 160) / 40) : 0;
+                if (flash && !reduced) {
+                    ctx.fillStyle = `rgba(255,255,255,${flash})`; ctx.fillRect(0, 0, 400, 300);
+                    ctx.save(); ctx.translate(200, 150); ctx.globalAlpha = flash;
+                    for (let i = 0; i < 12; i++) { ctx.rotate(Math.PI * 2 / 12 + ticks * .05); ctx.fillStyle = '#FFF'; ctx.beginPath(); ctx.moveTo(-3, 0); ctx.lineTo(3, 0); ctx.lineTo(0, 300); ctx.fill(); } ctx.restore();
+                }
+                if (ticks > 160) { sprite(pending.next, 200, 150, 180, false, Math.min(1, (ticks - 160) / 10)); surface.dataset.skin = pending.next; }
+                if (ticks > 240) { complete(); return; }
+            }
+            if (phase !== 'video') requestAnimationFrame(frame);
         };
         requestAnimationFrame(frame);
     }
     growthButton.addEventListener('click', () => { stopAuto(); voice.stop(); renderGrowth(); growthDialog.showModal(); if (state.evolution.pending) startCeremony(); });
+    document.addEventListener('visibilitychange', () => {
+        if (!ceremonyVideo) return;
+        if (document.hidden) ceremonyVideo.pause();
+        else ceremonyVideo.play().catch(() => {});
+    });
     const constellationApi = window.ExperimentalWordConstellationLive;
     let starTraces = [];
     starsButton.setAttribute('aria-pressed', 'false');
@@ -1607,9 +1704,10 @@
     function drawMaster(time = performance.now()) {
         if (!masterDialog.open || !['silhouette','conversation'].includes(masterPhase)) return;
         const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        const frames = aiConfigs[appearance.value].actions.idle;
+        const { skin, config, image: hero } = selectedSprite(), frames = config.actions.idle;
         const frame = reduced ? 0 : Math.floor(time / 250) % frames.length;
         masterHero.dataset.frame = String(frame);
+        masterHero.dataset.skin = skin;
         const c = masterHero.getContext('2d'); c.clearRect(0, 0, 280, 200);
         if (masterBackground?.complete && masterBackground.naturalWidth) {
             const w = masterBackground.naturalWidth, h = masterBackground.naturalHeight;
@@ -1617,7 +1715,7 @@
                 : dialogMaster === 'farming' ? [w/2,0,w/2,h/2] : dialogMaster === 'smithing' ? [0,h/2,w/2,h/2] : [w/2,h/2,w/2,h/2];
             c.drawImage(masterBackground, ...crop, 0, 0, 280, 200);
         }
-        const hero = images[appearance.value], f = frames[frame];
+        const f = frames[frame];
         if (hero?.complete && hero.naturalWidth) {
             const scale = Math.min(150 / f.sw, 160 / f.sh);
             c.drawImage(hero, f.sx, f.sy, f.sw, f.sh, 140 - f.sw * scale / 2, 190 - f.sh * scale, f.sw * scale, f.sh * scale);
@@ -1678,6 +1776,9 @@
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
+            const ready = !state.evolution.pending && growthApi.choices(state, world).some(c => c.ready);
+            evolveButton.disabled = !ready && !state.evolution.pending;
+            evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
             const holding = paused || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {

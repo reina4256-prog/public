@@ -5,6 +5,14 @@ const growth = require('../experimental_word_growth'), core = require('../experi
 const worldApi = require('../experimental_word_learning_world'), catalog = require('../experimental_word_learning_catalog.json');
 const storage = require('../scripts/experimental/storage');
 const fixture = () => { const state = core.create({}, catalog), world = worldApi.create(); growth.init(state, 'robot'); return { state, world }; };
+test('evolution movies use the legacy transition paths, retaining the approved ghost visual alias', () => {
+    const source = fs.readFileSync(require.resolve('../ui_controller.js'), 'utf8');
+    const legacy = vm.runInNewContext(source.slice(source.indexOf('function getEvolutionVideoPath('), source.indexOf('function cleanupEvolutionVideo(')) + ';getEvolutionVideoPath');
+    for (const [from, edges] of Object.entries(growth.tree)) for (const { next } of edges)
+        assert.equal(growth.videoPath(from, next), legacy(growth.visualSkin(from), growth.visualSkin(next)));
+    assert.equal(growth.videoPath('robot', 'robot_type3'), 'robot_evol_to_type3.mp4');
+    assert.equal(growth.videoPath('robot_type3', 'robot_type3_3'), 'robot_evol_from_type3_to_type3_3.mp4');
+});
 test('all legacy routes, cross edges and stage counts stay identical', () => {
     const source = fs.readFileSync(require.resolve('../data.js'), 'utf8');
     const start = source.indexOf('const evolutionRequirements = '), end = source.indexOf('// ★全キャラクター', start);

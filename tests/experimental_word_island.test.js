@@ -178,7 +178,11 @@ test('master intro videos are discoverable and range-served, with a missing-vide
                 assert.equal(response.status,available.includes(video)?206:404);
                 if(available.includes(video)) { assert.equal(response.headers.get('content-type'),'video/mp4'); assert.equal((await response.arrayBuffer()).byteLength,32); }
             }
-            assert.equal((await fetch(`${url}/robot_evol_to_type1.mp4`)).status,404,'unrelated legacy video stays excluded');
+            const evolution = await fetch(`${url}/robot_evol_to_type1.mp4`, { headers: { Range: 'bytes=0-31' } });
+            assert.equal(evolution.status, 206, 'route-owned legacy evolution movie is available independently of encounter movies');
+            assert.equal(evolution.headers.get('content-type'), 'video/mp4');
+            assert.equal((await evolution.arrayBuffer()).byteLength, 32);
+            assert.equal((await fetch(`${url}/robot_evol_to_unrelated.mp4`)).status, 404, 'unregistered transition stays excluded');
         } finally { server.closeAllConnections(); await new Promise(resolve=>server.close(resolve)); }
     }
 });

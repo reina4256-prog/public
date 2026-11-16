@@ -26,6 +26,8 @@ for (const file of ['experimental_word_voice.js', 'experimental_word_voice_cache
 const mime = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
     '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8', '.png': 'image/png', '.ttf': 'font/ttf', '.mp3': 'audio/mpeg', '.mp4': 'video/mp4' };
 const encounterVideos = new Set(Object.values(require('../../experimental_word_careers').VIDEOS));
+const growth = require('../../experimental_word_growth');
+const evolutionVideos = new Set(Object.entries(growth.tree).flatMap(([from, edges]) => edges.map(edge => growth.videoPath(from, edge.next))));
 function createServer(options = {}) {
     const personal = options.autoRecord;
     const token = personal ? crypto.randomBytes(32).toString('hex') : null;
@@ -95,7 +97,7 @@ function createServer(options = {}) {
             response.end(request.method === 'HEAD' ? undefined : body); return;
         }
         const sharedAsset = /^[a-zA-Z0-9_-]+\.png$/.test(name) || /^bgm_(robot|spirit|seed|ghost|stone|magician|beetle|balloon|bird|machine|dragon|title_main|personality)\.mp3$/.test(name);
-        if (!['GET', 'HEAD'].includes(request.method) || (!files.has(name) && !sharedAsset && !(encounterVideos.has(name) && options.encounterVideos !== false))) {
+        if (!['GET', 'HEAD'].includes(request.method) || (!files.has(name) && !sharedAsset && !evolutionVideos.has(name) && !(encounterVideos.has(name) && options.encounterVideos !== false))) {
             response.writeHead(404).end(); return;
         }
         fs.stat(path.join(ROOT, name), (error, stat) => {

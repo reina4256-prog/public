@@ -9,7 +9,7 @@
     const families = ['power', 'intel', 'beauty', 'old', 'dark'];
     // Trial balance, independent capacity and per-unit cost; language-neutral save IDs.
     const RULES = Object.freeze({ units: 160, frames: 8, candidates: 4, depth: 4, unitCost: .00012,
-        compareCost: .0005, ceremonySeconds: 3, first: { power: 8, intel: 6, beauty: 6, old: 4, dark: 4 },
+        compareCost: .0005, first: { power: 8, intel: 6, beauty: 6, old: 4, dark: 4 },
         secondMultiplier: 2, reflectionSeconds: 600 });
     const profiles = Object.freeze({ base: { capacity: 1, efficiency: 1, depth: 0, comparisons: 0 },
         power: { capacity: 1.1, efficiency: 1.5, depth: 0, comparisons: 0 },
@@ -26,6 +26,15 @@
     function family(skin) { return Object.values(tree).flat().find(e => e.next === skin)?.family || 'base'; }
     // User-approved asset alias; route IDs and history retain the legacy tree.
     function visualSkin(skin) { return skin === 'ghost_type3_3' ? 'ghost_type3_2' : skin; }
+    // Same transition movie naming as the legacy evolution presentation.
+    function videoPath(from, to) {
+        from = visualSkin(from); to = visualSkin(to);
+        const base = to.split('_')[0];
+        if (!to.startsWith(base + '_')) return '';
+        if (!from || from === base || !from.includes('_')) return `${base}_evol_to_${to.slice(base.length + 1)}.mp4`;
+        if (!from.startsWith(base + '_')) return '';
+        return `${base}_evol_from_${from.slice(base.length + 1)}_to_${to.slice(base.length + 1)}.mp4`;
+    }
     function profile(state) { return profiles[family(state.evolution?.mind)]; }
     function budget(state, body) {
         const p = profile(state), energy = 1 - body.fatigue, satiety = 1 - body.hunger;
@@ -128,5 +137,5 @@
         return e.pending === null || e.pending?.phase === 'ceremony' && e.pending.from === e.path.at(-1)
             && !!tree[e.pending.from]?.some(r => r.next === e.pending.next);
     }
-    return { tree, RULES, profiles, init, family, visualSkin, profile, budget, constrain, consume, observe, choices, begin, complete, select, valid, copy };
+    return { tree, RULES, profiles, init, family, visualSkin, videoPath, profile, budget, constrain, consume, observe, choices, begin, complete, select, valid, copy };
 });
