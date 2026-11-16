@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-17：[ダンジョン本接続](../specs/dungeon/word_dungeon_preview.md)を実装中。追加採用は同書、実装／検証の途中状態はCURRENTを参照。独立土台を追加した段階で、通常島・共通入力・おまかせ・保存との本接続は未完。既存本人／知識／音声／星座／進化／箱庭／図鑑と他保留を維持。
+
 2026-11-16：[箱庭UI](../specs/core/word_terrarium_ui.md)が木・真鍮・ガラスの枠／操作台・設定分離・紙の図鑑を所有。[思い出](../specs/core/word_memory_card_game.md)は実節目の取得・通知・世代保持・アルバムまで接続、カード能力／対戦は未実装。
 
 2026-11-16：図鑑とタイトルは[図鑑所有](../specs/collections/pokedex_and_grazing.md)の新版節、今後のカードは[思い出カード所有](../specs/core/word_memory_card_game.md)。進化入口は初回以降も条件達成時だけ表示し、初進化前の育成画面も隠す。実装／検証結果はCURRENT_IMPLEMENTATION。
