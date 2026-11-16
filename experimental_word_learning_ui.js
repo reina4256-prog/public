@@ -933,10 +933,6 @@
         if (!images[key]) { images[key] = new Image(); images[key].src = imageSources[key] || window.dynamicImageCatalog[key]; }
         return { skin, config, image: images[key] };
     }
-    const skinLabel = id => {
-        if (!id.includes('_')) return t(id);
-        return Object.values(window.evolutionRequirements || {}).flat().find(x => x.next === id)?.name || id;
-    };
     function growthClose() {
         ceremonyToken++;
         if (ceremonyVideo) { ceremonyVideo.pause(); ceremonyVideo.removeAttribute('src'); ceremonyVideo.load(); ceremonyVideo = null; }
@@ -952,18 +948,26 @@
         node('h2', gt('title'), growthDialog); node('p', gt('guide'), growthDialog);
         node('p', gt('resources'), growthDialog);
         for (const kind of ['skin', 'mind']) {
-            const label = node('label', gt(kind), growthDialog), chooser = node('select', undefined, label);
-            chooser.id = 'word-growth-' + kind;
-            for (const id of state.evolution.path) {
-                const option = node('option', skinLabel(id), chooser); option.value = id;
+            const heading = node('h3', gt(kind), growthDialog); heading.id = 'word-growth-heading-' + kind;
+            const choices = node('div', undefined, growthDialog); choices.id = 'word-growth-' + kind; choices.className = 'word-growth-options';
+            choices.setAttribute('role', 'group'); choices.setAttribute('aria-labelledby', heading.id);
+            for (const [index, id] of state.evolution.path.entries()) {
+                const button = node('button', undefined, choices); button.type = 'button';
+                button.dataset.growthValue = id; button.dataset.growthKind = kind;
+                button.disabled = !!state.evolution.pending; button.setAttribute('aria-pressed', String(state.evolution[kind] === id));
+                const portrait = node('canvas', undefined, button); portrait.width = 180; portrait.height = 140;
+                portrait.setAttribute('aria-hidden', 'true'); bookSprite(portrait, id);
+                const number = node('span', '#' + (index + 1), button); number.setAttribute('data-i18n-skip', '');
+                number.id = 'word-growth-number-' + kind + '-' + index;
+                button.setAttribute('aria-labelledby', heading.id + ' ' + number.id);
+                button.addEventListener('click', () => {
+                    if (!growthApi.select(state, kind, id)) return;
+                    const scroll = growthDialog.scrollTop; save(); renderGrowth(); growthDialog.scrollTop = scroll;
+                    growthDialog.querySelector(`[data-growth-kind="${kind}"][data-growth-value="${id}"]`).focus({ preventScroll: true });
+                });
             }
-            chooser.value = state.evolution[kind]; chooser.disabled = !!state.evolution.pending;
-            chooser.addEventListener('change', () => {
-                growthApi.select(state, kind, chooser.value); save(); renderGrowth();
-            });
         }
         const p = growthApi.profile(state), b = growthApi.budget(state, world);
-        node('p', gt(growthApi.family(state.evolution.mind)), growthDialog);
         node('p', `${gt('capacity')}: ${b.units} / ${gt('comparison')}: ${b.depth} / ${gt('efficiency')}: ${p.efficiency}`, growthDialog);
         const ready = growthApi.choices(state, world).some(c => c.ready);
         if (ready) { const button = growthAction(gt('evolve'), chooseEvolution); button.dataset.evolve = 'ready'; button.classList.add('word-evolution-ready'); }

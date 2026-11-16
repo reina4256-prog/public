@@ -91,9 +91,15 @@ if (!process.versions.electron || process.type !== 'browser') {
         await image('evolved-voice-preview');
         await js('document.querySelector(".word-meeting").dispatchEvent(new Event("cancel", {cancelable:true}));document.querySelector("#word-growth").click();void 0');
         checks.push('selected evolved appearance in master conversation after atomic reload');
-        await js('document.querySelector("#word-growth-skin").value="robot";document.querySelector("#word-growth-skin").dispatchEvent(new Event("change"));void 0');
+        assert.equal(await js('document.querySelectorAll("#word-growth-skin button canvas").length'), 2);
+        assert.equal(await js('document.querySelectorAll("#word-growth-mind button canvas").length'), 2);
+        assert.equal(await js('!!document.querySelector("#word-growth-dialog select")'), false);
+        assert.equal(await js('/活力|賢さ|美しさ|老化|闇/.test(document.querySelector("#word-growth-dialog").textContent)'), false);
+        await js('document.querySelector("#word-growth-skin [data-growth-value=robot]").click();void 0');
         assert.equal(snapshot.state.evolution.skin, 'robot'); assert.equal(snapshot.state.evolution.mind, 'robot_type3');
-        await js('document.querySelector("#word-growth-mind").value="robot";document.querySelector("#word-growth-mind").dispatchEvent(new Event("change"));void 0');
+        assert.equal(await js('document.querySelector("#word-growth-skin [data-growth-value=robot]").getAttribute("aria-pressed")'), 'true');
+        assert.equal(await js('document.activeElement.dataset.growthValue'), 'robot');
+        await js('document.querySelector("#word-growth-mind [data-growth-value=robot]").click();void 0');
         assert.equal(snapshot.state.evolution.mind, 'robot'); assert.equal(snapshot.state.evolution.path.at(-1), 'robot_type3');
         for (const locale of ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de']) for (const width of [1280, 390]) {
             window.setContentSize(width, 900); await js(`GameI18n.setLanguage(${JSON.stringify(locale)});void 0`); await sleep(80);
@@ -103,12 +109,12 @@ if (!process.versions.electron || process.type !== 'browser') {
             if (['ja', 'de'].includes(locale)) await image('gallery-' + locale + '-' + width);
         }
         // Rebuild while already in a translated locale, then change language again.
-        await js('document.querySelector("#word-growth-dialog button:last-child").click();GameI18n.setLanguage("en");document.querySelector("#word-growth").click();void 0');
+        await js('document.querySelector("#word-growth-dialog > button:last-child").click();GameI18n.setLanguage("en");document.querySelector("#word-growth").click();void 0');
         await sleep(120);
         assert.equal(await js('document.querySelector("#word-growth-dialog h2").textContent'), 'Growth and evolution');
         await js('GameI18n.setLanguage("de");void 0'); await sleep(120);
         assert.equal(await js('document.querySelector("#word-growth-dialog h2").textContent'), 'Wachstum und Entwicklung');
-        await js('document.querySelector("#word-growth-dialog button:last-child").click();void 0');
+        await js('document.querySelector("#word-growth-dialog > button:last-child").click();void 0');
         await resume(url); assert.equal(snapshot.state.evolution.skin, 'robot'); assert.equal(snapshot.state.evolution.mind, 'robot');
         assert.equal(snapshot.state.evolution.path.at(-1), 'robot_type3');
         checks.push('independent appearance/mind, atomic store reload, seven locales, two widths, unchanged knowledge');

@@ -281,6 +281,12 @@ main.playing.auto-training-open { overflow: auto; }
 .word-growth-dialog::backdrop { background: #101b2fcc; }
 .word-growth-dialog label { display: grid; gap: 6px; margin: 12px 0; }
 .word-growth-dialog select { max-width: 100%; }
+.word-growth-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+.word-growth-dialog .word-growth-options button { position: relative; min-width: 0; margin: 0; padding: 10px; color: #4b3b25; background: linear-gradient(#fbefcf, #d8bd86); border: 1px solid #b08a4d; border-bottom: 3px solid #826237; border-radius: 8px; }
+.word-growth-options button[aria-pressed=true] { outline: 3px solid #66844b; outline-offset: 1px; background: #e4eacb; }
+.word-growth-options button[aria-pressed=true]::after { content: '✓'; position: absolute; top: 6px; right: 8px; color: #3e5c30; font-size: 1.25rem; font-weight: bold; }
+.word-growth-options canvas { width: 100%; max-width: 180px; }
+.word-growth-options span { display: block; margin-top: 8px; color: #594a2f; }
 .word-growth-dialog button { display: block; margin: 8px 0; }
 .word-book-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
 .word-book-grid button { min-width: 0; overflow-wrap: anywhere; }
