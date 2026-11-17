@@ -22,6 +22,89 @@ function explore() {
     const a = qualified(); a.training.completed = true;
     assert.equal(api.enter(a, 'skull'), true); return a;
 }
+
+test('a corner blocked by the observed enemy uses a real observation instead of repeating an impossible walk, including retreat', () => {
+    for(const retreating of [false,true]) {
+        const a=explore(),world={hunger:.2,fatigue:0};
+        a.run.position={x:3,y:3};a.run.enemy.x=4;a.run.enemy.y=3;
+        for(let hit=0;hit<3;hit++)assert.ok(api.step(a,world,'attack'));
+        for(const i of a.items.filter(i=>i.location==='floor')) {
+            a.run.position={...i.position};assert.ok(api.step(a,world,'pick',i.id));assert.ok(api.step(a,world,'use',i.id));
+        }
+        Object.assign(a.run,{position:{x:7,y:1},retreating});
+        Object.assign(a.run.enemy,{x:6,y:2,phase:'idle',hits:1.5,observed:true,defeated:false});
+        assert.equal(api.decide(a,world).action,'observe');
+        let turns=0;
+        while(a.run && a.run.floor===1 && turns++<60) {
+            const next=api.decide(a,world);assert.ok(api.step(a,world,next.action,next.target),'every planned hand is executable');
+        }
+        assert.ok(!a.run || a.run.floor===2,'the same observed corner cannot hold exploration or return forever');
+        if(retreating)assert.equal(a.events.at(-1).reason,'walked_out');
+    }
+});
+
+test('stopping automatic play or starting microphone input during an action report discards its stale teaching', async () => {
+    const vm=require('node:vm'),fs=require('node:fs'),source=fs.readFileSync('experimental_word_learning_ui.js','utf8');
+    const start=source.indexOf('    async function adventureAction('),end=source.indexOf('    if (window.WordIslandMode && adventureApi)',start);
+    const context={state:{adventure:{run:{training:true},events:[]},knowledge:{meanings:[]}},world:{},paused:false,exporting:false,input:{value:''},document:{hidden:false},
+        adventureActionToken:0,adventureSpeechToken:0,readAloud:{checked:true},voice:{listening:false},window:{GameI18n:{language:'ja'}},
+        autoActive:true,teaching:0,record(){},updatePerception(){},renderNotebook(){},save(){},labelAdventureAction(){context.teaching++;},
+        adventureApi:{hand:()=>({message:'advHit'}),teachable:['attack'],meaningFor:()=> 'action:attack'}};
+    let release;context.showReply=()=>{context.adventureSpeechPromise=new Promise(resolve=>{release=resolve;});};
+    vm.createContext(context);vm.runInContext(source.slice(start,end),context);
+    for (const kind of ['stop','microphone']) {
+        const pending=context.adventureAction('attack',null,true);
+        if(kind==='stop')context.adventureActionToken++;else context.voice.listening=true;
+        release();await pending;
+        assert.equal(context.teaching,0,'a cancelled report must not submit a lesson: '+kind);
+        context.voice.listening=false;
+    }
+    context.voice.listening=false;const next=context.adventureAction('attack',null,true);release();await next;
+    assert.equal(context.teaching,1,'an uninterrupted actual action still teaches through the usual input');
+});
+
+test('renderer projects original dungeon stairs, floor items and travel-facing sprites without controls', async () => {
+    const vm=require('node:vm'),fs=require('node:fs');
+    const sprites=JSON.parse(fs.readFileSync('experimental_word_dungeon_visuals.json','utf8'));
+    const draws=[],texts=[],children=[];
+    const ctx={fillRect(){},save(){},restore(){},strokeRect(){},measureText:()=>({width:180}),fillText:t=>texts.push(t),drawImage:(...args)=>draws.push(args)};
+    class Image {constructor(){this.complete=true;this.naturalWidth=4096;}}
+    const context={window:{ExperimentalWordAdventure:api,ExperimentalWordAdventureConnection:{dungeonName:id=>id,taskStatus(){}},ExperimentalWordGrowth:{visualSkin:id=>id},GameI18n:{translate:x=>x,language:'en'}},
+        document:{createElement:()=>({setAttribute(){}})},Image,fetch:async()=>({ok:true,json:async()=>sprites})};
+    vm.runInNewContext(fs.readFileSync('experimental_word_adventure_view.js','utf8'),context);
+    const view=new context.window.ExperimentalWordAdventureView({width:800,height:480,getContext:()=>ctx,setAttribute(){}},{append:x=>children.push(x)},x=>x,()=>{});
+    await new Promise(resolve=>setImmediate(resolve));
+    const a=explore();a.events.push({id:++a.serial,kind:'action',action:'walk',dungeon:'skull',floor:1,before:{x:1,y:1},after:{x:2,y:1}});
+    view.update({adventure:a},null,null,'robot');
+    const count=key=>draws.filter(d=>d[0].src===sprites[key].img&&d[1]===sprites[key].sx&&d[2]===sprites[key].sy).length;
+    assert.equal(count('skull_stair'),2);assert.equal(count('spr_item_bag'),2);assert.equal(count('spr_item_herb'),0);assert.ok(count('robot_right')>0);
+    assert.ok(texts.includes('skull B1F'));assert.equal(children.length,1);assert.equal(children[0].id,'word-adventure-status');
+    api.rescue(a,'injury');api.enter(a,'crystal');draws.length=0;
+    view.update({adventure:a},null,null,'robot');assert.equal(count('crystal_stair'),2);assert.ok(count('crystal_floor')>0);
+});
+
+test('each exploration floor supplies two real items once, without training supplies or refill after save, use and rescue', () => {
+    const tutorial=qualified();api.enter(tutorial,'skull');
+    assert.equal(tutorial.events.some(e=>e.kind==='floor_supply'),false);
+    let a=explore();const world={hunger:.8,fatigue:0};
+    const ration=a.items.find(i=>i.type==='ration' && i.location==='floor');
+    assert.ok(ration);assert.equal(api.step(a,world,'pick',ration.id),null);
+    a.run.position={...ration.position};assert.ok(api.step(a,world,'pick',ration.id));
+    assert.ok(api.step(a,world,'use',ration.id));assert.equal(ration.location,'consumed');
+    assert.equal(api.valid(a),true);a=JSON.parse(JSON.stringify(a));
+    api.rescue(a,'injury');api.enter(a,'skull');
+    assert.equal(a.events.filter(e=>e.kind==='floor_supply').length,2);
+    assert.equal(a.items.find(i=>i.id===ration.id).location,'consumed');
+    for(let floor=2;floor<=5;floor++) {
+        a.run.position={...a.run.exit};api.step(a,world,'down');
+        assert.equal(a.run.floor,floor);assert.equal(api.valid(a),true);
+    }
+    assert.equal(a.events.filter(e=>e.kind==='floor_supply').length,10);
+    api.rescue(a,'injury');api.enter(a,'crystal');
+    assert.equal(a.events.filter(e=>e.kind==='floor_supply').length,12);
+    const corrupt=JSON.parse(JSON.stringify(a));corrupt.events.find(e=>e.kind==='floor_supply').type='stick';
+    assert.equal(api.valid(corrupt),false);
+});
 test('autonomous recovery recognises only retained own items and uses actual pickup and equipment hands',()=>{
     const a=qualified(),wood=gather(a,'wood','forest');api.deliver(a,wood.id,'bag');api.craft(a,'bag');api.craft(a,'cloth');
     const ids=a.items.filter(i=>['hand','body','bag'].includes(i.location)).map(i=>i.id),body={fatigue:0,hunger:0};

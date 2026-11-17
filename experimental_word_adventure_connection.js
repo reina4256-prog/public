@@ -335,6 +335,7 @@
         if (!a?.run) return say('advCannot');
         if (action === 'return') { a.run.retreating=true; if(same(a.run.position,a.run.entry))action='up'; }
         const oldCompleted = a.training.completed;
+        const oldFloor = a.run.floor, held = a.items.find(i => i.id === (itemFor(a, action, target) || target));
         const result = physical.step(a, world, action, itemFor(a, action, target) || target, input?.id);
         if (!result) return say('advCannot');
         if (result.kind === 'action' && teachable.includes(action)) teach(state, world, result, input, action, locale);
@@ -350,6 +351,15 @@
             return a.training.completed && !oldCompleted ? progress({ ...reply, npc:'advCourseComplete',master:'explore',inline:true,npcAfter:true }, 'advReturnedSaid','advGraduated',{source:result.id}) : reply;
         }
         if (reviewed) return { ...say('advTraining'), npc:a.run.floor===5?'advCourseReturn':'advCourse'+(a.run.floor+1), master:'explore', inline:true };
+        if (a.run.floor !== oldFloor) return progress(say('advMoved'), null, action === 'down' ? 'advDescended' : 'advAscended', {floor:a.run.floor});
+        if (result.damage > result.damageBefore) return say('advHurt');
+        if (action === 'pick' && held) return progress(say('advPicked'), null, 'advPickedItem', {item:held.type});
+        if (action === 'use' && held) return progress(say('advUsed'), null, held.type === 'ration' ? 'advAteRation' : 'advUsedCloth');
+        if (action === 'attack' && result.effect?.defeated) return progress(say('advHit'), null, 'advDefeated');
+        if (action === 'walk' && a.run.enemy.phase !== 'ready') {
+            const direction = result.after.x > result.before.x ? 'Right' : result.after.x < result.before.x ? 'Left' : result.after.y > result.before.y ? 'Down' : 'Up';
+            return progress(say('advMoved'), null, 'advWalk'+direction);
+        }
         return say(result.damage > result.damageBefore ? 'advHurt' : a.run.enemy.phase === 'ready' ? 'advReady'
             : ({ observe: 'advObserved', attack: 'advHit', avoid: 'advAvoided', use: 'advUsed', equip: 'advEquipped', pick: 'advPicked' })[action] || 'advMoved');
     }
@@ -396,7 +406,7 @@
         if (teachable.includes(label) && (labelOnly || !state.knowledge.meanings.some(m=>m.id===meaningFor(label)))) {
             const matches = last?.kind === 'action' && last.action === label || label === 'use' && last?.kind === 'use'
                 || label === 'equip' && equipTransfer(a,last) || label==='drop' && last?.kind==='drop' || last?.kind==='transfer' && (label==='pick' && last.before==='ground' || label==='store' && last.after==='home' || label==='take' && last.before==='home');
-            if (matches) {if(result.processing)core.consumeProcessing(world,result.processing);result.adventureLearning=teach(state,world,last,result.input,label,locale);return say('advUsed');}
+            if (matches) {if(result.processing)core.consumeProcessing(world,result.processing);result.adventureLearning=teach(state,world,last,result.input,label,locale);return progress(say('advUsed'),null,'advActionLabel');}
         }
         const walkingInvitation=!!a.run && frame?.catalogRule==='walk_invitation' && u?.kind==='invitation';
         const relevant = walkingInvitation || frame?.aspect?.startsWith('adventure_') || ['adventure_opportunity','adventure_scene','adventure_destination'].includes(u?.questionSlot);
@@ -562,7 +572,7 @@
         if(g && (!r || g.dungeon!==r.dungeon || g.action==='walk' && g.floor!==r.floor))delete a.connection.goal;
         else if(g) {
             if(g.action==='explore')return {...physical.decide(a,world),input:g.input};
-            if(g.action==='return')return {action:same(r.position,r.entry)?'up':'return',input:g.input};
+            if(g.action==='return'){r.retreating=true;return {...physical.decide(a,world),input:g.input};}
             if(same(r.position,g.target)){delete a.connection.goal;return {action:g.after,input:g.input};}
             return {action:'walk',target:g.target,input:g.input};
         }

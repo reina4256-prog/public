@@ -160,7 +160,8 @@ test('five-floor practical training, common action teaching and stopped JSON sta
     assert.ok(a.items.some(i=>i.location==='floor'&&i.floor===1&&i.dungeon==='skull'));
     assert.ok(storage.valid({version:1,appearance:'robot',state:p.state,world:p.world}));
     heal();say(p,'クリスタルへ行く');finish(p);assert.equal(a.run.dungeon,'crystal');
-    assert.equal(a.items.some(i=>i.location==='floor'&&i.dungeon==='crystal'),false);
+    assert.equal(a.recoveries.some(r=>r.dungeon==='crystal'),false);
+    assert.deepEqual(a.items.filter(i=>i.location==='floor'&&i.dungeon==='crystal').map(i=>i.type),['ration','cloth']);
     connection.hand(p.state,p.world,'up');say(p,'スカルへ行く');finish(p);
     connection.hand(p.state,p.world,'walk',{x:2,y:1});
     const bag=a.items.find(i=>i.type==='bag'&&i.location==='floor');

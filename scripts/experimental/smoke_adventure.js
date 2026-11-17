@@ -19,6 +19,12 @@ if (!process.versions.electron || process.type !== 'browser') {
     const layoutOnly=process.argv.includes('--layout');
     const normalMode=process.argv.includes('--normal');
     const inputCheck=process.argv.includes('--input-check');
+    const speechCheck=process.argv.includes('--speech-check');
+    const pcm=Buffer.alloc(44+24000*3*2);
+    pcm.write('RIFF');pcm.writeUInt32LE(pcm.length-8,4);pcm.write('WAVEfmt ',8);pcm.writeUInt32LE(16,16);
+    pcm.writeUInt16LE(1,20);pcm.writeUInt16LE(1,22);pcm.writeUInt32LE(24000,24);pcm.writeUInt32LE(48000,28);
+    pcm.writeUInt16LE(2,32);pcm.writeUInt16LE(16,34);pcm.write('data',36);pcm.writeUInt32LE(pcm.length-44,40);
+    for(let i=0;i<72000;i++)pcm.writeInt16LE(Math.round(1200*Math.sin(i*2*Math.PI*440/24000)),44+i*2);
     fs.writeFileSync(path.join(directory,'configuration.json'),JSON.stringify({layoutOnly,normalMode,inputCheck,checkpoint:checkpointAt>=0?process.argv[checkpointAt+1]:null},null,2));
     if(checkpointAt>=0){
         const file=path.resolve(process.argv[checkpointAt+1]),root=path.resolve(__dirname,'../../docs/.local-history/verification-runs')+path.sep;
@@ -36,9 +42,19 @@ if (!process.versions.electron || process.type !== 'browser') {
         server=require('./serve').createServer();
         const serve=server.listeners('request')[0];server.removeAllListeners('request');
         server.on('request',(request,response)=>{
-            if(request.url==='/experimental_word_voice.js') {
+            if(speechCheck && request.url.startsWith('/__adventure_voice/')) {
+                if(request.url.startsWith('/__adventure_voice/synthesis')) {
+                    request.resume();request.on('end',()=>setTimeout(()=>{response.writeHead(200,{'Content-Type':'audio/wav'});response.end(pcm);},300));
+                } else {
+                    response.writeHead(200,{'Content-Type':'application/json'});
+                    response.end(JSON.stringify(request.url.startsWith('/__adventure_voice/speakers')
+                        ? Object.values(require('../../experimental_word_voice').cast).map(p=>({name:p.credit,speaker_uuid:p.speaker,styles:[{id:p.styleId,name:'Normal',type:'talk'}]}))
+                        : {accent_phrases:[],speedScale:1,pitchScale:0,volumeScale:1}));
+                }
+            } else if(request.url==='/experimental_word_voice.js') {
                 response.writeHead(200,{'Content-Type':'application/javascript'});
-                response.end(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_voice.js'),'utf8')+`
+                response.end(`(()=>{const NativeImage=Image;window.__dungeonImages=[];window.Image=class extends NativeImage{constructor(...args){super(...args);window.__dungeonImages.push(this);}};})();`+(speechCheck?`(()=>{const originalFetch=window.fetch.bind(window);window.fetch=(url,init)=>originalFetch(typeof url==='string'&&url.startsWith('http://127.0.0.1:50021/')?'/__adventure_voice'+new URL(url).pathname+new URL(url).search:url,init);
+                    window.__playback=[];const Native=window.AudioContext;window.AudioContext=class extends Native{createBufferSource(){const s=super.createBufferSource(),start=s.start.bind(s);s.start=(...args)=>{window.__playback.push({kind:'start',time:performance.now()});s.addEventListener('ended',()=>window.__playback.push({kind:'end',time:performance.now()}));return start(...args);};return s;}};})();`:'')+fs.readFileSync(path.resolve(__dirname,'../../experimental_word_voice.js'),'utf8')+`
                     (()=>{window.__adventureScenes=[];const create=ExperimentalWordVoice.create;
                     ExperimentalWordVoice.create=(...args)=>{const voice=create(...args),scene=voice.speakScene;
                     voice.speakScene=(lines,...rest)=>{window.__adventureScenes.push(structuredClone(lines));return scene(lines,...rest);};return voice;};})();`);
@@ -114,8 +130,29 @@ if (!process.versions.electron || process.type !== 'browser') {
             const conversationTurn=snapshot.state.adventure.run.turn;await frames(30);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);assert.equal(snapshot.state.adventure.run.turn,conversationTurn,'conversation interrupts automatic walking');
             await js(`document.querySelector('#word-pause').click();void 0`);
         }
+        if(speechCheck) {
+            assert.ok(layoutOnly && snapshot.state.adventure.run && !snapshot.state.adventure.run.training);
+            await js(`GameI18n.setLanguage('ja');document.querySelector('#word-read-aloud').checked=true;document.querySelector('#word-read-aloud').dispatchEvent(new Event('change'));document.querySelector('#word-pause').click();void 0`);
+            await submit('自分で歩いてみて');
+            assert.equal(snapshot.state.adventure.connection.goal.action,'explore');
+            const initialTurn=snapshot.state.adventure.run.turn;
+            const started=Date.now();while(!await js(`window.__playback.some(e=>e.kind==='start')`)){assert.ok(Date.now()-started<15000);await sleep(50);}
+            await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            assert.equal(snapshot.state.adventure.run.turn,initialTurn,'initial spoken reply holds exploration');
+            await sleep(3400);await frames(13);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            assert.equal(snapshot.state.adventure.run.turn,initialTurn+1,'one physical action after the full reply');
+            const reportStart=Date.now();while(!await js(`window.__playback.filter(e=>e.kind==='start').length>=2`)){assert.ok(Date.now()-reportStart<15000,'action report begins playback');await sleep(50);}
+            await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            assert.equal(snapshot.state.adventure.run.turn,initialTurn+1,'action report holds the next turn throughout real three-second WebAudio');
+            fs.writeFileSync(path.join(directory,'speech-wait.json'),JSON.stringify({initialTurn,heldTurn:snapshot.state.adventure.run.turn,playback:await js(`window.__playback`),syntheticPCM:true},null,2));
+            await submit('おはよう');const interruptedTurn=snapshot.state.adventure.run.turn;
+            await sleep(3500);await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            assert.equal(snapshot.state.adventure.run.turn,interruptedTurn,'manual conversation cancels the old action continuation');
+            await js(`document.querySelector('#word-read-aloud').checked=false;document.querySelector('#word-read-aloud').dispatchEvent(new Event('change'));document.querySelector('#word-pause').click();void 0`);
+        }
         if(!layoutOnly) {
             await js(`for(const axis of ['life','conversation','exploration']){const slider=document.querySelector('#word-auto-'+axis);slider.value=axis==='exploration'?'3':'0';slider.dispatchEvent(new Event('input'));}document.querySelector('#word-auto-toggle').click();void 0`);
+            if(checkpointAt<0) {
             await wait(()=>snapshot?.state.adventure.mastery.stage===4,'actual mentor lessons');console.log('mastery complete');
             const lessonDialogue=await js(`document.querySelector('#conversation').textContent`);
             for(const number of ['①','②','③'])assert.ok(lessonDialogue.includes('課題'+number),'visible lesson '+number);
@@ -138,6 +175,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             fs.writeFileSync(path.join(directory,'bridge-visual.json'),JSON.stringify(bridgeVisual));
             await wait(()=>snapshot?.state.adventure.training.completed,'five-floor mentor training');console.log('training complete');
             assert.ok(snapshot.state.adventure.connection.receipts.some(r=>r.input.speaker==='master:explore'),'original mentor speech paired with real actions');
+            } else assert.ok(snapshot.state.adventure.training.completed,'resume the actual trained temporary checkpoint without granting milestones');
             await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase exploration');
             await wait(()=>snapshot?.state.adventure.events.some(e=>e.kind==='return'&&!e.training&&e.reason==='walked_out'),'omakase walked return');console.log('walked return');
             await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase reentry');
@@ -145,6 +183,11 @@ if (!process.versions.electron || process.type !== 'browser') {
             await js(`document.querySelector('#word-auto-toggle').click();document.querySelector('#word-pause').click();window.dispatchEvent(new Event('beforeunload'));void 0`);
         }
         assert.ok(snapshot.state.adventure.run);const retained=JSON.stringify(snapshot.state.adventure.run);
+        const imagesStart=Date.now();while(!await js(`window.__dungeonImages.filter(i=>i.src.includes('dungeon')).every(i=>i.complete&&i.naturalWidth)`)){assert.ok(Date.now()-imagesStart<20000,'dungeon PNG decode completes');await sleep(80);}
+        await frames(2);
+        const dungeonPng=await js(`document.querySelector('#gameCanvas').toDataURL('image/png').split(',')[1]`);
+        fs.writeFileSync(path.join(directory,'original-dungeon-canvas.png'),Buffer.from(dungeonPng,'base64'));
+        fs.writeFileSync(path.join(directory,'dungeon-images.json'),JSON.stringify(await js(`window.__dungeonImages.filter(i=>i.src.includes('dungeon')).map(i=>({src:i.src,complete:i.complete,width:i.naturalWidth,height:i.naturalHeight}))`),null,2));
         // Inspect the actual retained island scene without moving the actor or
         // changing its save. Read canvas pixels synchronously, avoiding a stale
         // compositor screenshot when the accelerated fixture clock is held.
@@ -172,7 +215,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(JSON.stringify(snapshot.state.adventure.run),retained);
         assert.equal(await js(`document.querySelector('#word-pause').getAttribute('aria-pressed')`),'true');
         assert.deepEqual(errors,[]);
-        const summary=layoutOnly ? {ok:true,errors,layoutOnly:true,normalMode,inputCheck,sameFloorStopped:true,locales:7,viewports:2}
+        const summary=layoutOnly ? {ok:true,errors,layoutOnly:true,normalMode,inputCheck,speechCheck,sameFloorStopped:true,locales:7,viewports:2}
             : {ok:true,errors,fresh:checkpointAt<0,mastery:4,bridge:true,training:true,omakase:true,walkedReturn:true,sameFloorStopped:true,locales:7};
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(summary,null,2));
         console.log(JSON.stringify({ok:true,directory}));

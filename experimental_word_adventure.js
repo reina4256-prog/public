@@ -141,11 +141,20 @@
         }
         a.run = { ...floor(dungeon, training ? a.training.floor : 1, ++a.serial), training };
         if (training && a.training.evidence.some(e => e.floor === a.run.floor)) a.run.lesson = 1;
-        placeRecoveries(a); event(a, 'enter', { dungeon, training, floor: a.run.floor }); return true;
+        placeRecoveries(a); placeSupplies(a); event(a, 'enter', { dungeon, training, floor: a.run.floor }); return true;
+    }
+    function placeSupplies(a) {
+        const run = a.run;
+        if (run.training) return;
+        for (const [type, x] of [['ration', 2], ['cloth', 3]]) {
+            if (a.events.some(e => e.kind === 'floor_supply' && e.dungeon === run.dungeon && e.floor === run.floor && e.type === type)) continue;
+            const position = { x, y: 1 }, source = event(a, 'floor_supply', { dungeon: run.dungeon, floor: run.floor, type, position });
+            item(a, type, source.id, 'floor', { dungeon: run.dungeon, floor: run.floor, position: { ...position } });
+        }
     }
     function placeRecoveries(a) {
         for (const i of a.items.filter(i => i.location === 'floor' && i.dungeon === a.run.dungeon && i.floor === a.run.floor))
-            i.position = { x: 2, y: 1 };
+            if (a.recoveries.some(r => r.items.includes(i.id))) i.position = { x: 2, y: 1 };
     }
     function changeFloor(a, number, upstairs) {
         const current = a.run, rooms = current.rooms || {};
@@ -155,7 +164,7 @@
         a.run = { ...next, training: current.training, retreating: current.retreating, rooms };
         a.run.position = { ...(upstairs ? a.run.exit : a.run.entry) };
         if (current.training && a.training.evidence.some(e => e.floor === number)) a.run.lesson = 1;
-        placeRecoveries(a);
+        placeRecoveries(a); placeSupplies(a);
     }
     function returnIsland(a, reason) {
         const run = a.run;
@@ -307,7 +316,9 @@
     function decide(a, world) {
         const run = a.run; if (!run) return null;
         if (world.fatigue >= .7 || world.hunger >= .75 || a.damage >= limit(a) - 1) run.retreating = true;
-        if (run.retreating) return { action: same(run.position, run.entry) ? 'up' : 'return' };
+        if (run.retreating) return { action: same(run.position, run.entry) ? 'up'
+            : toward(run, run.entry, true) ? 'return'
+            : run.enemy.phase === 'ready' && distance(run.position, run.enemy) === 1 ? 'avoid' : 'observe' };
         if (!run.enemy.observed) return { action: 'observe' };
         if (run.enemy.phase === 'ready' && distance(run.position, run.enemy) === 1) return { action: 'avoid' };
         const learnedAttack = a.events.some(e => e.kind === 'action' && e.action === 'attack' && e.effect);
@@ -317,7 +328,8 @@
         const held=carried(a).find(i=>['bag','shield'].includes(i.type) && i.location!=='body');
         if(held)return {action:'equip',target:held.id};
         const recoverable=a.items.filter(i=>i.location==='floor' && i.dungeon===run.dungeon && i.floor===run.floor
-            && a.recoveries.some(r=>r.items.includes(i.id)) && (!a.items.some(h=>h.location==='hand') || used(a)+size(i)<=capacity(a)))
+            && (a.recoveries.some(r=>r.items.includes(i.id)) || a.events.some(e=>e.id===i.source && e.kind==='floor_supply'))
+            && (!a.items.some(h=>h.location==='hand') || used(a)+size(i)<=capacity(a)))
             .sort((a,b)=>Number(b.type==='bag')-Number(a.type==='bag'));
         const recovered=recoverable[0];
         if(recovered)return same(run.position,recovered.position)?{action:'pick',target:recovered.id}:{action:'walk',target:recovered.position};
@@ -325,7 +337,7 @@
             if (run.floor === RULES.floors) { run.retreating = true; return { action: 'return' }; }
             return { action: 'down' };
         }
-        return { action: 'walk' };
+        return { action: toward(run, run.exit, run.enemy.observed && !run.enemy.defeated) ? 'walk' : 'observe' };
     }
     function validate(a) {
         if (a === undefined) return true;
@@ -347,7 +359,8 @@
             || new Set(a.training.evidence.map(e => e.floor)).size !== a.training.evidence.length) return false;
         if (!a.items.every(i => TYPES.includes(i.type) && typeof i.id === 'string' && events.has(i.source)
             && a.events.some(e => e.id === i.source && (e.kind === 'loan' && i.loan === true
-                || e.kind === 'gather' && e.type === i.type || e.kind === 'craft' && e.project === i.type))
+                || e.kind === 'gather' && e.type === i.type || e.kind === 'craft' && e.project === i.type
+                || e.kind === 'floor_supply' && e.type === i.type))
             && (i.loan === true || a.items.filter(other => other.source === i.source).length === 1)
             && ['hand', 'body', 'bag', 'home', 'floor', 'ground', 'project', 'consumed', 'returned', 'training_hold'].includes(i.location)
             && (i.location !== 'ground' || i.position && Number.isFinite(i.position.x) && Number.isFinite(i.position.y) && Math.abs(i.position.x)<10 && Math.abs(i.position.y)<10)
@@ -355,6 +368,12 @@
             && (i.location !== 'floor' || ['skull', 'crystal'].includes(i.dungeon) && Number.isInteger(i.floor) && i.floor >= 1 && i.floor <= RULES.floors
                 && Number.isInteger(i.position?.x) && Number.isInteger(i.position?.y))
             && (i.location !== 'project' || Object.hasOwn(RECIPES, i.project)))) return false;
+        const supplies = a.events.filter(e => e.kind === 'floor_supply');
+        if (new Set(supplies.map(e => e.dungeon + ':' + e.floor + ':' + e.type)).size !== supplies.length
+            || !supplies.every(e => a.training.completed && ['skull','crystal'].includes(e.dungeon)
+                && Number.isInteger(e.floor) && e.floor >= 1 && e.floor <= RULES.floors && ['ration','cloth'].includes(e.type)
+                && e.position?.x === (e.type === 'ration' ? 2 : 3) && e.position.y === 1
+                && a.items.some(i => i.source === e.id && i.type === e.type))) return false;
         if (a.items.filter(i => i.location === 'hand').length > 1 || used(a) > capacity(a)
             || ['bag', 'shield'].some(type => a.items.filter(i => i.location === 'body' && i.type === type).length > 1)) return false;
         if (!a.recoveries.every(r => events.has(r.event) && Array.isArray(r.items) && r.items.every(id => ids.has(id)))

@@ -404,6 +404,26 @@ function audioSetup() {
     return { ...s, voice, options, provider, rendered, requests, connections, audioVoices, effects };
 }
 
+test('waiting child speech resolves on actual device end, error or explicit cancellation', async () => {
+    const s=setup();s.voice.setEnabled(true);
+    let done=false;const first=s.voice.speak('a full action report',{wait:true}).then(()=>{done=true;});
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(done,false);
+    s.spoken.at(-1).onend();await first;assert.equal(done,true);
+    const second=s.voice.speak('cancelled report',{wait:true});s.voice.stop();await second;
+    const third=s.voice.speak('failed report',{wait:true});s.spoken.at(-1).onerror({error:'network'});await third;
+    assert.equal(s.statuses.at(-1),'failedOutput');
+});
+
+test('waiting generated child speech includes generation and playback, and stop releases the waiter', async () => {
+    const s=audioSetup();s.voice.setSource('voicevox');await s.voice.connectProvider();s.voice.setEnabled(true);
+    let release,done=false;s.provider.synthesize=()=>new Promise(resolve=>{release=resolve;});
+    s.effects.play=()=>({duration:10});
+    const pending=s.voice.speak('actual action',{wait:true}).then(()=>{done=true;});
+    await new Promise(resolve=>setImmediate(resolve));assert.equal(done,false);
+    release({duration:10});await new Promise(resolve=>setImmediate(resolve));assert.equal(done,false);
+    s.voice.stop();await pending;assert.equal(done,true);
+});
+
 test('mixed mentor and child scenes keep the chosen child voice and tuning, and stop before the next speaker', async()=>{
     const s=audioSetup();s.voice.setSource('voicevox');await s.voice.connectProvider();
     s.voice.selectVoice('robot',voiceId(s.audioVoices[1]));s.voice.setTuning('robot',{pitch:1.2,rate:.8});s.voice.setEffect('robot',.3);s.voice.setEnabled(true);

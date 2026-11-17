@@ -70,6 +70,17 @@
         advObserved: "相手の動きと階段を見ている。",
         advReady: "相手が身構えた。次の動きに気をつけよう。",
         advMoved: "足元と相手を確かめながら進んだ。",
+        advWalkRight: "右へ一歩進んだ。",
+        advWalkLeft: "左へ一歩進んだ。",
+        advWalkDown: "下へ一歩進んだ。",
+        advWalkUp: "上へ一歩進んだ。",
+        advDescended: "階段を下り、地下{floor}階に着いた。",
+        advAscended: "階段を上り、地下{floor}階に戻った。",
+        advPickedItem: "床の{item}を拾い、持ち物に加えた。",
+        advAteRation: "携行食を食べ、空腹がやわらいだ。",
+        advUsedCloth: "手当て布を使い、傷の手当てをした。",
+        advDefeated: "攻撃が当たり、相手を倒した。",
+        advActionLabel: "今の動作を振り返り、声かけと結びつけている。",
         advHit: "攻撃が当たり、相手の動きが変わった。",
         advAvoided: "距離を取り、相手の攻撃をかわした。",
         advHurt: "傷ついている。手当てや帰還を考えよう。",
@@ -485,6 +496,16 @@
     let autoMemory = autoApi.create(), autoActive = false, autoPlan = null, autoDue = 0, autoBaseline = null, automaticSubmission = false;
     let environmentVolume = .5;
     let voice, lastReplyIsNarration = false, adventureSpeechToken = 0, adventureSpeechPending = false;
+    let adventureSpeechPromise = Promise.resolve();
+    let adventureActionToken = 0;
+    function holdAdventureSpeech(play) {
+        const token = ++adventureSpeechToken;
+        adventureSpeechPending = readAloud.checked;
+        adventureSpeechPromise = Promise.resolve(play()).finally(() => {
+            if (token === adventureSpeechToken) adventureSpeechPending = false;
+        });
+        return adventureSpeechPromise;
+    }
     function record(kind, data) {
         report?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
         personalLog?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
@@ -1340,6 +1361,7 @@
     const autoProgress = node('p', '', autoPanel); autoProgress.id = 'word-auto-progress'; autoProgress.setAttribute('data-i18n-skip', '');
     node('p', t('autoContinue'), autoPanel);
     function stopAuto() {
+        ++adventureActionToken;
         adventureView?.stop();
         masterAutoElapsed = masterAutoQuiet = 0;
         if (autoActive) record('auto_training', { action: 'stop', weights: autoMemory.weights });
@@ -1736,7 +1758,7 @@
         }
         else if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
-    voiceStop.addEventListener('click', () => voice.stop());
+    voiceStop.addEventListener('click', () => { ++adventureActionToken; voice.stop(); });
     input.addEventListener('input', () => {
         stopAuto();voice.stop();
         if(state?.adventure?.connection) {
@@ -1828,17 +1850,24 @@
         try {automaticSubmission=true;adventureLabelOnly=true;adventureMentorSpeech=master;input.value=word;input.dataset.inputMethod='auto';form.requestSubmit();}
         finally {automaticSubmission=adventureLabelOnly=adventureMentorSpeech=false;}
     }
-    function adventureAction(action, target, automatic = false, reason = null, instruction = null) {
+    async function adventureAction(action, target, automatic = false, reason = null, instruction = null) {
         if (!automatic || !state?.adventure.run || paused || exporting || input.value.trim() || document.hidden) return;
         const guided = state.adventure.run.training;
+        const continuation = adventureActionToken;
         const reply = adventureApi.hand(state, world, action, target, instruction, window.GameI18n.language);
         if(reason==='body' && reply.message==='advMoved')reply.message='advRetreatReason';
         record('adventure_action', {action,target,event:state.adventure.events.at(-1)});
         if (!reply.npc) showReply(reply);
         updatePerception();renderNotebook();save();
+        const token = adventureSpeechToken;
+        if (readAloud.checked && !reply.npc) await adventureSpeechPromise;
+        if (continuation !== adventureActionToken || token !== adventureSpeechToken || paused || voice.listening || input.value.trim() || document.hidden) return;
         if ((guided || autoActive) && adventureApi.teachable.includes(action)
             && !state.knowledge.meanings.some(m=>m.id===adventureApi.meaningFor(action))) {
             labelAdventureAction(action,guided?'master:explore':null);
+            const teachingToken = adventureSpeechToken;
+            if (readAloud.checked) await adventureSpeechPromise;
+            if (continuation !== adventureActionToken || teachingToken !== adventureSpeechToken || paused || voice.listening || input.value.trim() || document.hidden) return;
         }
         if (reply.npc) showReply(reply);
     }
@@ -2021,7 +2050,8 @@
             message: state.settings.speech === 'short' && progress.spoken ? progress.spoken : progress.observed,
             observation: !(state.settings.speech === 'short' && progress.spoken),
             npc: progress.npc || reply.npc };
-        const progressText = progress?.item ? displayText(reply.message).replace('{item}', displayText('advItem_' + progress.item)) : null;
+        const progressText = progress?.item ? displayText(reply.message).replace('{item}', displayText('advItem_' + progress.item))
+            : progress?.floor ? displayText(reply.message).replace('{floor}', String(progress.floor)) : null;
         const personalReport = state.identity && { heard_report_self: 'identity_report_self',
             heard_report_not_resting: 'identity_report_not_resting', heard_report_player: 'identity_report_player' }[reply.message];
         const identityText = progressText ?? (reply.identity ? identityApi.format(displayText(reply.message), reply.identity)
@@ -2057,7 +2087,7 @@
         conversation.scrollTop = conversation.scrollHeight;
         lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
-        if (lastReplyIsNarration && !reply.word && !reply.literal && !progress?.item && Object.hasOwn(labels, reply.message))
+        if (lastReplyIsNarration && !reply.word && !reply.literal && !progress?.item && !progress?.floor && Object.hasOwn(labels, reply.message))
             voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
         if (reply.npc && window.WordIslandMode) openMaster({ ...reply,
             dialogueText: bubble.textContent, dialogueRole: lastReplyIsNarration ? 'narration' : 'dialogue' });
@@ -2070,7 +2100,10 @@
                 if (token === adventureSpeechToken) adventureSpeechPending = false;
             });
         }
-        else voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
+        else if (!adventureMentorSpeech) {
+            const play = () => voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: !!state.adventure?.run });
+            if (state.adventure?.run) holdAdventureSpeech(play); else play();
+        }
     }
     function animate(time) {
         drawLogo(time);
@@ -2238,6 +2271,7 @@
         if (!input.value.trim() || document.hidden || paused || growthDialog.open) return;
         if (!automaticSubmission) stopAuto();
         if (!automaticSubmission) adventureView?.stop();
+        ++adventureSpeechToken; adventureSpeechPending = false;
         voice.stop();
         updatePerception();
         const starBefore = constellationApi.project(state, catalog);
@@ -2275,10 +2309,10 @@
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
         showReply(reply);
-        if(adventureMentorSpeech) void voice.speakScene([
+        if(adventureMentorSpeech) holdAdventureSpeech(() => voice.speakScene([
             {text:input.value,role:'master',master:adventureMentorSpeech.split(':')[1]},
             {text:bubble.textContent,role:'narration'}
-        ]);
+        ]));
         const trace = constellationApi.capture(starBefore, constellationApi.project(state, catalog, [result]), result, reply, bubble.textContent, state.context.lastOutput);
         starTraces.push(trace); if (starTraces.length > 24) starTraces.shift();
         conversation.append(tracePreview); tracePreview.hidden = false; tracePreview.open = true; previewStars.refresh(trace.id);

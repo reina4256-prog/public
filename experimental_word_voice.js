@@ -388,10 +388,21 @@
             current.pitch = tuning?.pitch ?? 1; current.rate = tuning?.rate ?? 1;
             current.onerror = event => {
                 if (utterance === current && !['canceled', 'interrupted'].includes(event.error)) status('failedOutput');
+                finish();
             };
-            current.onend = () => { if (utterance === current) utterance = null; };
+            let finish = () => { if (utterance === current) utterance = null; }, completion;
+            if (settings.wait) completion = new Promise(resolve => {
+                finish = () => {
+                    if (utterance === current) utterance = null;
+                    if (playbackWait?.resolve === resolve) { clearTimeout(playbackWait.timer); playbackWait = null; }
+                    resolve();
+                };
+                playbackWait = { resolve, timer: setTimeout(finish, 120000) };
+            });
+            current.onend = finish;
             utterance = current;
-            try { host.speechSynthesis.speak(current); } catch (_) { utterance = null; status('failedOutput'); }
+            try { host.speechSynthesis.speak(current); } catch (_) { finish(); status('failedOutput'); }
+            return completion;
         }
         async function speakScene(lines, settings = {}) {
             const preview = settings.preview === true;
@@ -472,8 +483,11 @@
                 const buffer = await effects.decode(data);
                 if (token !== generation || locale !== options.locale() || controller.signal.aborted) return;
                 if ((settings.preview ? !options.canPreview?.() : !enabled || !options.canSpeak()) || active) return;
-                effects.play(buffer, { species: id, amount: bank.effect[id] ?? .65, volume: options.volume() });
-                status('ready');
+                const playing = effects.play(buffer, { species: id, amount: bank.effect[id] ?? .65, volume: options.volume() });
+                if (settings.wait) await new Promise(resolve => {
+                    playbackWait = { resolve, timer: setTimeout(() => { playbackWait = null; resolve(); }, (playing?.duration ?? buffer.duration ?? 0) * 1000) };
+                });
+                if (token === generation) status('ready');
             } catch (_) { if (token === generation) status('providerFailed'); }
             finally { clearTimeout(timer); if (pending === controller) pending = null; }
         }
