@@ -4,6 +4,22 @@
     const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
+        advDropped: "持っていた現物を、今いる場所の地面へ置いた。",
+        advStopped: "今の作業と探索の目的を取り消し、その場で止まった。",
+        advOffer_crystal: "実地課題は修了したね。橋を渡り、クリスタルの入口へ案内しよう。初めてなら私と五階の訓練をしよう。",
+        advOffer_storage: "家で、現物をしまい、取り出す練習に付き添おう。複数あるときは、どの物を運ぶか呼び名で教えてね。",
+        advRetreatReason: "体の余力を見て、探索を続けず階段へ引き返すことにした。",
+        advAvoidReason: "相手が身構えたので、学んだ回避を選び、距離を取った。",
+        advOffered: "師匠が、次に一緒に行う実地の仕事を話している。",
+        advOffer_lesson: "森と山で、行き先と帰り道を確かめよう。実際に集めて運び、体の様子を見て戻る練習をしよう。",
+        advOffer_enter: "実地課題は修了したね。橋を渡り、スカルの入口へ案内しよう。初めてなら私と五階の訓練をしよう。",
+        advOffer_bridge: "川を渡る橋を作れるよ。森の木材四つと山の石二つを運んで、一緒に工事をしよう。",
+        advOffer_home: "家を作るなら、木材六つと石四つを運んで一緒に建てよう。完成したら、そこに現物を保管できるよ。",
+        advOffer_bag: "布のかばんを一緒に作ろう。木材一つを運んで、製作を手伝ってくれるかな。",
+        advOffer_stick: "木材一つで木の棒を作ろう。材料を運び、実際に製作を手伝おう。",
+        advOffer_shield: "木材二つを使って木の盾を作ろう。運んだ材料で、一緒に形にしよう。",
+        advOffer_cloth: "手当て布を一緒に作ろう。私の布を使うけれど、実際の製作を手伝ってもらうよ。",
+        advOffer_ration: "森で木の実を一つ集めて運んでおいで。一緒に調理して携行食にしよう。",
         advTitle: "ダンジョンへの道",
         advHelp: "冒険家の課題から始めよう。橋は先に建築士へ依頼しても大丈夫。",
         advAsk: "声をかける",
@@ -36,7 +52,7 @@
         advTraining: "冒険家がこの階の実行を見届けた。次の階へ進める。",
         advGraduated: "五階の訓練と帰還を終え、貸与品を返した。本探索に備えよう。",
         advCannot: "今はその動作を実行できない。位置と持ち物を確かめよう。",
-        advUnknown: "その動作の言葉はまだ分からない。実際に動いたときに声をかけよう。",
+        advUnknown: "まだ分からない言葉や対象がある。何を指すか、実際の経験と声かけで確かめよう。",
         advItems: "持ち物・装備・家の保管",
         advTrainingTitle: "冒険家同行の実地訓練",
         advExploreTitle: "本探索",
@@ -432,7 +448,7 @@
     let screen = window.WordIslandMode ? 'logo' : 'setup';
     let dungeon = null, dungeonView = null, dungeonVisuals, adventureView;
     const adventureApi = window.ExperimentalWordAdventureConnection;
-    let adventureLabelOnly = false;
+    let adventureLabelOnly = false, adventureMentorSpeech = false;
     const autoApi = window.ExperimentalWordAutoTraining;
     let autoMemory = autoApi.create(), autoActive = false, autoPlan = null, autoDue = 0, autoBaseline = null, automaticSubmission = false;
     let environmentVolume = .5;
@@ -445,7 +461,6 @@
     const worldApi = window.ExperimentalWordWorld;
     if (adventureApi) {
         adventureApi.actions.forEach((id, i) => { labels['adv_' + id] = adventureApi.words.ja[i]; });
-        ['observe', 'walk', 'return', 'down', 'up'].forEach((id, i) => { labels['adv_' + id] = adventureApi.commands.ja[i + 11]; });
     }
     // Keep Japanese source text in the DOM so localization_core can re-render it
     // on every language switch, including when the initial language is not Japanese.
@@ -1305,6 +1320,7 @@
         if (input.value.trim() || voice.listening) { autoStatus.textContent = displayText('autoDraft'); return; }
         if (!Object.values(autoMemory.weights).some(value => value > 0)) { autoStatus.textContent = displayText('autoZero'); return; }
         autoActive = true; autoPlan = null; autoDue = world.elapsed + 2; autoBaseline = state.knowledge.meanings.length;
+        if(state.adventure?.run?.training)state.adventure.connection.trainingPaused=false;
         state.autoTraining = { version: 1, weights: { ...autoMemory.weights } }; save();
         autoToggle.textContent = t('autoStop'); autoToggle.setAttribute('aria-pressed', 'true'); autoStatus.textContent = displayText('autoWaiting');
         record('auto_training', { action: 'start', weights: autoMemory.weights });
@@ -1318,31 +1334,31 @@
         if (holding) { autoPlan = null; autoPreview.textContent = ''; autoDue = world.elapsed + 2; autoStatus.textContent = displayText(masterDialog.open ? 'autoWaiting' : 'autoPaused'); return; }
         if (world.elapsed < autoDue) return;
         if (state.adventure?.connection.task) { autoDue = world.elapsed + 1; return; }
-        const adventureCommand = adventureApi && autoMemory.weights.exploration > 0 && ['idle','observe'].includes(world.mode) && world.hunger < .6 && world.fatigue < .6
-            ? adventureApi.autoCommand(state, window.GameI18n.language) : null;
+        const adventureCommand = adventureApi && autoMemory.weights.exploration > 0 && ['idle','observe'].includes(world.mode) && (state.adventure?.connection.proposal || world.hunger < .6 && world.fatigue < .6)
+            ? adventureApi.autoConversation(state, world, window.GameI18n.language) : null;
         const ordinary = autoApi.next(autoMemory, state, world, window.GameI18n.language);
         const candidate = adventureCommand && (!ordinary || ordinary.axis === 'exploration'
             || autoMemory.counts.exploration / autoMemory.weights.exploration <= autoMemory.counts[ordinary.axis] / autoMemory.weights[ordinary.axis])
-            ? { kind: 'say', text: adventureCommand, purpose: 'experience', axis: 'exploration', id: 'adventure:' + adventureCommand,
+            ? { ...adventureCommand, purpose: 'experience', axis: 'exploration', id: 'adventure:' + (adventureCommand.text || adventureCommand.target),
                 activity: `${world.mode}:${world.activityStart}:${world.attention || ''}`, locale: window.GameI18n.language } : ordinary;
         if (!candidate) { autoPlan = null; autoPreview.textContent = ''; autoStatus.textContent = displayText('autoWaiting'); autoDue = world.elapsed + 1; return; }
         if (!autoPlan || JSON.stringify(autoPlan.plan) !== JSON.stringify(candidate)) {
             autoPlan = { plan: candidate, at: world.elapsed }; autoDue = world.elapsed + 2;
             autoStatus.textContent = displayText({ experience: 'autoExperience', example: 'autoExample', practice: 'autoPractice', movement: 'autoMove' }[candidate.purpose]);
-            autoPreview.textContent = candidate.kind === 'say' ? displayText('autoPreview') + ': ' + candidate.text : displayText('autoMove'); return;
+            autoPreview.textContent = candidate.kind === 'say' ? displayText('autoPreview') + ': ' + candidate.text : displayText(candidate.kind==='watch'?'autoWaiting':'autoMove'); return;
         }
         autoPlan = null; autoPreview.textContent = '';
         if (candidate.kind === 'move') {
             if (!worldApi.approach(world, candidate.target, 'pointing')) { autoDue = world.elapsed + 3; return; }
             record('auto_training', { action: 'move', target: candidate.target, axis: candidate.axis });
+        } else if(candidate.kind==='watch') {
+            record('auto_training',{action:'observe_master',target:candidate.target,axis:candidate.axis});
+        } else if(candidate.kind==='recover') {
+            showReply(adventureApi.recover(state,world,candidate.target));save();
+            record('auto_training',{action:'recover',target:candidate.target,axis:candidate.axis});
         } else {
             // No timer writes to a draft. These checks also guard synchronous UI changes.
             if (input.value.trim() || voice.listening) { stopAuto(); return; }
-            if(candidate.id?.startsWith('adventure:') && adventureApi.parse(candidate.text,window.GameI18n.language)==='equip'
-                && !state.knowledge.meanings.some(m=>m.id==='action:equip')) {
-                const item=state.adventure.items.find(i=>i.type==='stick' && i.location==='bag');
-                if(item)adventureAction('equip',item.id,true);
-            }
             try { automaticSubmission = true; input.value = candidate.text; input.dataset.inputMethod = 'auto'; form.requestSubmit(); }
             finally { automaticSubmission = false; }
         }
@@ -1689,7 +1705,14 @@
         else if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     });
     voiceStop.addEventListener('click', () => voice.stop());
-    input.addEventListener('input', () => { stopAuto(); voice.stop(); if (recognized) input.dataset.inputMethod = 'speech-edited'; });
+    input.addEventListener('input', () => {
+        stopAuto();voice.stop();
+        if(state?.adventure?.connection) {
+            delete state.adventure.connection.goal;
+            if(state.adventure.run?.training)state.adventure.connection.trainingPaused=true;
+        }
+        if (recognized) input.dataset.inputMethod = 'speech-edited';
+    });
     window.addEventListener('game-language-changed', () => {
         stopAuto(); for (const axis of autoApi.axes) autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]);
         if (autoBaseline !== null && state) autoProgress.textContent = displayText('autoGrowth') + ': ' + Math.max(0, state.knowledge.meanings.length - autoBaseline);
@@ -1722,7 +1745,7 @@
     setInterval(save, 5000);
     window.addEventListener('beforeunload', save);
     function updatePerception() {
-        if (adventureApi && state.adventure?.run && adventureApi.perceive(state)) return;
+        if (adventureApi && state.adventure && adventureApi.perceive(state, world)) return;
         if (dungeon) { window.ExperimentalWordDungeonLearning.perceive(dungeon); return; }
         api.perceive(state, worldApi.perception(world));
     }
@@ -1766,45 +1789,26 @@
     }
     window.addEventListener('popstate', event => { if (event.state?.wordContent) toggleDungeon(event.state.wordContent === 'dungeon', false); });
     document.addEventListener('visibilitychange', () => { if (document.hidden) dungeonView?.stop(); });
-    function submitAdventure(text) {
-        if (!state || paused || input.value.trim() || voice.listening) return;
-        recognized='';recognizedLocale=null;delete input.dataset.inputMethod;
-        input.value = text; form.requestSubmit();
+    function labelAdventureAction(action, master = null) {
+        if(input.value.trim() || voice.listening)return;
+        const locale=window.GameI18n.language, n=adventureApi.actions.indexOf(action);
+        const word=action==='walk' ? (adventureApi.walkLabels[locale]||adventureApi.walkLabels.en) : (adventureApi.words[locale]||adventureApi.words.en)[n];
+        try {automaticSubmission=true;adventureLabelOnly=true;adventureMentorSpeech=master;input.value=word;input.dataset.inputMethod='auto';form.requestSubmit();}
+        finally {automaticSubmission=adventureLabelOnly=adventureMentorSpeech=false;}
     }
-    function adventureAction(action, target, automatic = false) {
-        if (!state || paused || exporting || input.value.trim() || document.hidden) return;
-        if (!automatic) { stopAuto(); adventureView.stop(); }
-        if (state.adventure.run) {
-            const reply = adventureApi.hand(state, world, action, target);
-            record('adventure_action', { action, target, event: state.adventure.events.at(-1) });
-            showReply(reply); updatePerception(); renderNotebook(); save();
-            if (automatic && autoActive && adventureApi.teachable.includes(action)
-                && !state.knowledge.meanings.some(m => m.id === adventureApi.meaningFor(action))) {
-                const n = adventureApi.actions.indexOf(action), locale = window.GameI18n.language;
-                const word = action === 'walk' ? (adventureApi.commands[locale] || adventureApi.commands.en)[12]
-                    : (adventureApi.words[locale] || adventureApi.words.en)[n];
-                try { automaticSubmission = true; adventureLabelOnly = true; input.value = word; input.dataset.inputMethod = 'auto'; form.requestSubmit(); }
-                finally { automaticSubmission = adventureLabelOnly = false; }
-            }
-        } else if(action==='drop') { showReply(adventureApi.drop(state,world,target)); save();
-        } else if(action==='pick') { showReply(adventureApi.start(state,world,'pickup',{item:target})); save();
-        } else if (['store', 'take'].includes(action)) {
-            const a = state.adventure;
-            const item = a.items.find(i => i.id === target);
-            if (item && a.building.home) showReply(adventureApi.start(state, world, 'storage', { action, item: item.id }));
-            save();
-        } else if (action === 'use') {
-            const e = window.ExperimentalWordAdventure.use(state.adventure, world, target);
-            showReply({ message: e ? 'advUsed' : 'advCannot', observation: true }); save();
-        } else if (action === 'equip') {
-            const a = state.adventure, item = a.items.find(i => i.id === target);
-            if(item?.type==='stick') { const held=a.items.find(i=>i.location==='hand');if(held)window.ExperimentalWordAdventure.transfer(a,held.id,'bag'); }
-            const ok = item && window.ExperimentalWordAdventure.transfer(a, item.id, item.type === 'stick' ? 'hand' : 'body');
-            showReply({ message: ok ? 'advEquipped' : 'advCannot', observation: true }); save();
+    function adventureAction(action, target, automatic = false, reason = null, instruction = null) {
+        if (!automatic || !state?.adventure.run || paused || exporting || input.value.trim() || document.hidden) return;
+        const guided = state.adventure.run.training;
+        const reply = adventureApi.hand(state, world, action, target, instruction, window.GameI18n.language);
+        if(reason==='body' && reply.message==='advMoved')reply.message='advRetreatReason';
+        record('adventure_action', {action,target,event:state.adventure.events.at(-1)});
+        showReply(reply);updatePerception();renderNotebook();save();
+        if ((guided || autoActive) && adventureApi.teachable.includes(action)
+            && !state.knowledge.meanings.some(m=>m.id===adventureApi.meaningFor(action))) {
+            labelAdventureAction(action,guided?'master:explore':null);
         }
     }
-    if (window.WordIslandMode && adventureApi) adventureView = new window.ExperimentalWordAdventureView(canvas, controls, t,
-        submitAdventure, adventureAction, () => { stopAuto(); adventureApi.stop(state, world); adventureView.stop(); save(); });
+    if (window.WordIslandMode && adventureApi) adventureView = new window.ExperimentalWordAdventureView(canvas, controls, t, adventureAction);
     // Keep the modal out of the playing grid and its clipped/scrolling ancestors.
     const masterDialog = node('dialog', undefined, document.body); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
     const masterLeft = node('div', undefined, masterDialog); masterLeft.className = 'word-master-left';
@@ -2001,7 +2005,7 @@
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
         if (lastReplyIsNarration && !reply.word && !reply.literal && Object.hasOwn(labels, reply.message))
             voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
-        if (reply.npc && window.WordIslandMode) openMaster(reply);
+        if (reply.npc && window.WordIslandMode && !reply.inline) openMaster(reply);
         else if (reply.npc) void voice.speakScene([
             { text: t(reply.npc), role: 'master', master: reply.master },
             { text: bubble.textContent, role: 'narration' }
@@ -2015,6 +2019,7 @@
         if (window.WordIslandMode) drawMaster(time);
         const dt = lastFrame === null ? 0 : (time - lastFrame) / 1000; lastFrame = time;
         if (world && view && screen === 'playing' && !document.hidden) {
+            navigationControls.hidden=!!dungeon || !!state.adventure?.run || !debugControls;
             const ready = !state.evolution.pending && growthApi.choices(state, world).some(c => c.ready);
             growthButton.hidden = !window.WordIslandMode || state.evolution.path.length < 2;
             evolveButton.hidden = !window.WordIslandMode || (!ready && !state.evolution.pending);
@@ -2047,7 +2052,9 @@
             if (adventureApi && state.adventure) {
                 const serial = state.adventure.serial;
                 const reply = adventureApi.tick(state, world, dt, holding, event);
-                if (reply) { showReply(reply); record('adventure', { reply, event: state.adventure.events.at(-1) }); }
+                if (reply) { showReply(reply); record('adventure', { reply, event: state.adventure.events.at(-1) });
+                    if(reply.teaching && (reply.mentor || autoActive))labelAdventureAction(reply.teaching,reply.mentor || null);
+                }
                 if (serial !== state.adventure.serial || event) save();
             }
             if (event) growthApi.observe(state, world, null, event);
@@ -2136,7 +2143,7 @@
         meeting.showModal(); prepareMeetingVoice(true); drawSignature(); dialogueVoice.focus({ preventScroll: true }); meeting.scrollTop = 0;
     }
     function pointAt(target, key) {
-        if (!debugControls || paused) return;
+        if (!debugControls || paused || state?.adventure?.run) return;
         const accepted = worldApi.approach(world, target, 'pointing');
         record('point', { target, accepted, mode: world.mode });
         controlFeedback = { key: accepted ? key : world.mode === 'work' ? 'finish_work' : 'finish_meal', until: performance.now() + 2500 };
@@ -2146,7 +2153,7 @@
     shade.addEventListener('click', () => pointAt('shade', 'pointed_shade'));
     walk?.addEventListener('click', () => pointAt('path', 'join'));
     canvas.addEventListener('click', event => {
-        if (state?.adventure?.run) { if (!paused && !exporting) adventureView.hit(event, state); return; }
+        if (state?.adventure?.run) { if (!paused && !exporting) adventureView.stop(); return; }
         if (dungeon) { if (!paused && !exporting) dungeonView.hit(event); return; }
         if (!world || !view.hit || exporting) return;
         const target = view.hit(world, event);
@@ -2175,16 +2182,16 @@
         const recording = personalLog?.status();
         const original = (recording?.enabled || recording?.checking) && !recording.paused ? personalLog.snapshot({
             beforeState: state, beforeWorld: world, inputKnowledge: state.knowledge, inputContext: state.context }) : null;
-        record('player', { text: input.value, inputMethod: input.dataset.inputMethod || 'text',
+        record(adventureMentorSpeech ? 'master' : 'player', { text: input.value, inputMethod: input.dataset.inputMethod || 'text',
             ...(recognized ? { recognizedText: recognized, recognizedLocale } : {}), context: state.context, situation: { mode: world.mode, attention: world.attention,
             destination: world.destination, hunger: world.hunger, fatigue: world.fatigue } });
         if (dungeon) dungeonView.stop();
         const dungeonResult = dungeon ? window.ExperimentalWordDungeonLearning.receive(dungeon, input.value, catalog, window.GameI18n.language) : null;
-        const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language, body: world });
+        const result = dungeonResult?.result || api.receive(state, input.value, catalog, { locale: window.GameI18n.language, body: world, speaker: adventureMentorSpeech || 'player' });
         record('understanding', { result });
         const message = node('p', input.value, conversation);
         message.dataset.speaker = automaticSubmission ? 'auto' : 'player'; message.setAttribute('data-i18n-skip', '');
-        if (automaticSubmission) message.textContent = displayText('autoTeacher') + ': ' + input.value;
+        if (automaticSubmission) message.textContent = displayText(adventureMentorSpeech ? 'master_'+adventureMentorSpeech.split(':')[1] : 'autoTeacher') + ': ' + input.value;
         let reply;
         if (dungeon) {
             const u = result.understandings.at(-1), link = state.knowledge.associations.find(a => a.target === u.target?.adopted?.id
@@ -2205,6 +2212,10 @@
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
         showReply(reply);
+        if(adventureMentorSpeech) void voice.speakScene([
+            {text:input.value,role:'master',master:adventureMentorSpeech.split(':')[1]},
+            {text:bubble.textContent,role:'narration'}
+        ]);
         const trace = constellationApi.capture(starBefore, constellationApi.project(state, catalog, [result]), result, reply, bubble.textContent, state.context.lastOutput);
         starTraces.push(trace); if (starTraces.length > 24) starTraces.shift();
         conversation.append(tracePreview); tracePreview.hidden = false; tracePreview.open = true; previewStars.refresh(trace.id);
@@ -2237,7 +2248,7 @@
     Promise.all(['experimental_word_learning_catalog.json', 'experimental_word_learning_visuals.json'].map(file =>
         fetch(file).then(response => { if (!response.ok) throw new Error('Load failed'); return response.json(); })
     )).then(([data, visuals]) => {
-        catalog = data;
+        catalog = adventureApi ? adventureApi.language(data) : data;
         dungeonVisuals = visuals;
         meetingVisuals = visuals;
         const feelingForms = catalog.feelingTeaching[window.GameI18n.language];

@@ -223,7 +223,8 @@
     "work:fishing": ["網修理", "網を直す", "mending nets", "修补渔网", "починка сетей", "reparar redes", "consertar redes", "Netze flicken"],
     "work:cooking": ["皿洗い", "器を洗う", "washing dishes", "洗碗", "мытьё посуды", "lavar platos", "lavar louça", "Geschirr spülen"],
     "work:smithing": ["ふいご", "火を保つ", "tending the fire", "维持炉火", "поддержание огня", "avivar el fuego", "manter o fogo", "das Feuer schüren"],
-    "work:building": ["図面写し", "図面を書き写す", "copying plans", "临摹图纸", "копирование чертежей", "copiar planos", "copiar plantas", "Baupläne abzeichnen"]
+    "work:building": ["図面写し", "図面を書き写す", "copying plans", "临摹图纸", "копирование чертежей", "copiar planos", "copiar plantas", "Baupläne abzeichnen"],
+    "action:drop": ["地面に置く", "put on the ground", "放到地上", "положить на землю", "dejar en el suelo", "colocar no chão", "auf den Boden legen"]
   },
   "meanings": {
     "berry": ["木の実", "きのみ", "berry", "berries", "浆果", "ягода", "ягоды", "baya", "bayas", "fruta", "Beere"],

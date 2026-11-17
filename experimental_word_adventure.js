@@ -312,6 +312,15 @@
         if (run.enemy.phase === 'ready' && distance(run.position, run.enemy) === 1) return { action: 'avoid' };
         const learnedAttack = a.events.some(e => e.kind === 'action' && e.action === 'attack' && e.effect);
         if (!run.enemy.defeated && distance(run.position, run.enemy) === 1 && learnedAttack) return { action: 'attack' };
+        // This is the actor's memory of its own belongings, not word knowledge.
+        // Picking them up and putting equipment on still take physical hands.
+        const held=carried(a).find(i=>['bag','shield'].includes(i.type) && i.location!=='body');
+        if(held)return {action:'equip',target:held.id};
+        const recoverable=a.items.filter(i=>i.location==='floor' && i.dungeon===run.dungeon && i.floor===run.floor
+            && a.recoveries.some(r=>r.items.includes(i.id)) && (!a.items.some(h=>h.location==='hand') || used(a)+size(i)<=capacity(a)))
+            .sort((a,b)=>Number(b.type==='bag')-Number(a.type==='bag'));
+        const recovered=recoverable[0];
+        if(recovered)return same(run.position,recovered.position)?{action:'pick',target:recovered.id}:{action:'walk',target:recovered.position};
         if (same(run.position, run.exit)) {
             if (run.floor === RULES.floors) { run.retreating = true; return { action: 'return' }; }
             return { action: 'down' };

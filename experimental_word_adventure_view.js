@@ -1,25 +1,9 @@
 (function () {
     'use strict';
-    window.ExperimentalWordAdventureView = function (canvas, controls, text, submit, act, stop) {
+    window.ExperimentalWordAdventureView = function (canvas, controls, text, act) {
         const api = window.ExperimentalWordAdventureConnection, physical = window.ExperimentalWordAdventure;
-        const panel = document.createElement('details'); panel.id = 'word-adventure'; controls.append(panel);
-        const heading = document.createElement('summary'); heading.textContent = text('advTitle'); panel.append(heading);
-        const line = document.createElement('p'); line.textContent = text('advHelp'); panel.append(line);
-        const select = document.createElement('select'); select.id = 'adventure-command'; select.setAttribute('aria-label', text('advTitle')); panel.append(select);
-        const button = (id, label, fn) => { const b = document.createElement('button'); b.id = id; b.type = 'button'; b.textContent = text(label); b.addEventListener('click', fn); panel.append(b); return b; };
-        button('adventure-request', 'advAsk', () => submit(select.value));
-        button('adventure-stop', 'advStop', stop);
-        const inventory = document.createElement('select'); inventory.id = 'adventure-inventory'; inventory.setAttribute('aria-label', text('advItems')); panel.append(inventory);
-        const itemActions = document.createElement('span'); panel.append(itemActions);
-        for (const action of ['equip', 'use', 'pick', 'drop', 'store', 'take']) {
-            const b = button('adventure-' + action, 'adv_' + action, () => act(action, inventory.value)); itemActions.append(b);
-        }
-        const dungeonControls = document.createElement('span'); panel.append(dungeonControls);
-        for (const action of ['observe', 'walk', 'attack', 'avoid', 'return', 'down', 'up']) {
-            const b = button('adventure-' + action, 'adv_' + action, () => act(action)); dungeonControls.append(b);
-        }
-        const auto = button('adventure-auto', 'dungeonAuto', () => { running = !running; auto.setAttribute('aria-pressed', String(running)); });
-        let running = false, elapsed = 0, visuals = {}, skin = 'robot', lastInventory = '', lastLocale = '', active = false;
+        const line = document.createElement('p'); line.id = 'word-adventure-status'; line.setAttribute('role','status'); controls.append(line);
+        let elapsed = 0, visuals = {}, skin = 'robot';
         const images = new Map(), atlas = new Image(); atlas.src = 'dungeon_scull_mapchip.png';
         const itemLabel = type => text('advItem_' + type);
         const local = value => window.GameI18n.translate(value);
@@ -54,51 +38,25 @@
         }
         return {
             update(state, world, assets, appearance) {
-                visuals = assets || visuals; skin = appearance; active = !!state.adventure.run;
-                const a = state.adventure, locale = window.GameI18n.language;
-                if (locale !== lastLocale) {
-                    const value = select.selectedIndex; select.replaceChildren();
-                    for (const value of api.commands[locale] || api.commands.en) { const o = document.createElement('option'); o.value = value; o.textContent = value; o.setAttribute('data-i18n-skip', ''); select.append(o); }
-                    select.selectedIndex = Math.max(0,value); lastLocale = locale; lastInventory = '';
-                }
-                const items = a.items.filter(i => ['hand','body','bag','home'].includes(i.location) || !a.run && i.location==='ground' || a.run && i.location === 'floor' && i.dungeon === a.run.dungeon && i.floor === a.run.floor);
-                const signature = JSON.stringify(items);
-                if (signature !== lastInventory) {
-                    const value = inventory.value; inventory.replaceChildren();
-                    for (const i of items) { const o = document.createElement('option'); o.value = i.id;
-                        o.textContent = local(itemLabel(i.type)) + ' · ' + local(text('advLocation_' + i.location)); o.setAttribute('data-i18n-skip',''); inventory.append(o); }
-                    if (items.some(i => i.id === value)) inventory.value = value;
-                    lastInventory = signature;
-                }
-                dungeonControls.hidden = auto.hidden = !active;
-                auto.setAttribute('aria-pressed', String(running));
-                if (active) { panel.open = true; draw(state); }
-                else running = false;
-                line.textContent = active ? local(text(a.run.training ? 'advTrainingTitle' : 'advExploreTitle')) + ' · ' + a.run.floor
+                visuals = assets || visuals; skin = appearance;
+                const a = state.adventure, active = !!a.run;
+                line.hidden = !active && !a.connection.task && !physical.carried(a).length;
+                if (active) draw(state);
+                line.textContent = active ? api.dungeonName(a.run.dungeon,window.GameI18n.language) + ' · ' + local(text(a.run.training ? 'advTrainingTitle' : 'advExploreTitle')) + ' · ' + a.run.floor
                     + ' · ' + local(text(a.damage ? 'advHurt' : 'advWell')) : local(text(a.connection.task ? 'advStarted' : a.mastery.stage === 4 ? 'advMastery' : 'advHelp'));
-                if(active && a.run.training) {
-                    const lessons={1:['adv_observe','adv_walk'],2:['adv_observe','adv_attack','adv_avoid'],
-                        3:['adv_equip','advItem_stick','advItem_shield','adv_use','advItem_ration','advItem_cloth'],
-                        4:['adv_return'],5:['adv_walk','adv_use','adv_return']};
-                    line.textContent+=' · '+lessons[a.run.floor].map(key=>local(text(key))).join(' / ');
-                }
+                const items = a.items.filter(i => ['hand','body','bag'].includes(i.location));
+                if (items.length) line.textContent += ' / ' + items.map(i => local(itemLabel(i.type)) + ' (' + local(text('advLocation_'+i.location)) + ')').join(', ');
                 line.setAttribute('data-i18n-skip','');
-                canvas.setAttribute('aria-label', local(text(active ? 'dungeonTitle' : 'islandLabel')));
+                canvas.setAttribute('aria-label', active ? line.textContent : local(text('islandLabel')));
             },
             tick(dt, holding, omakase, state, world) {
                 if (holding) { elapsed = 0; return; }
-                if (!state.adventure.run || !(running || omakase)) { elapsed = 0; return; }
+                if (!state.adventure.run || !(state.adventure.run.training && !state.adventure.connection.trainingPaused || state.adventure.connection.goal || omakase)) { elapsed = 0; return; }
                 elapsed += Math.min(.1, Math.max(0,dt));
-                if (elapsed >= 1.2) { elapsed = 0; const next = api.choice(state, world); if (next) act(next.action, next.target, true); }
+                if (elapsed >= 1.2) { elapsed = 0; const next = api.choice(state, world); if (next) act(next.action, next.target, true, next.reason, next.input); }
             },
-            hit(event, state) {
-                const r = state.adventure.run; if (!r) return;
-                const rect = canvas.getBoundingClientRect(), scale = Math.min(rect.width/canvas.width,rect.height/canvas.height), tile = Math.min(canvas.width/9,canvas.height/7);
-                const x = (event.clientX-rect.left-(rect.width-canvas.width*scale)/2)/scale, y = (event.clientY-rect.top-(rect.height-canvas.height*scale)/2)/scale;
-                act('walk', { x:Math.floor((x-(canvas.width-tile*9)/2)/tile),y:Math.floor(y/tile) });
-            },
-            stop() { running = false; elapsed = 0; auto.setAttribute('aria-pressed','false'); },
-            get selection() { return inventory.value; }
+            stop() { elapsed = 0; }
+
         };
     };
 })();

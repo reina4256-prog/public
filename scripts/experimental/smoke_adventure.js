@@ -17,6 +17,9 @@ if (!process.versions.electron || process.type !== 'browser') {
     const store=require('./storage').createStore(directory);
     const checkpointAt=process.argv.indexOf('--checkpoint');
     const layoutOnly=process.argv.includes('--layout');
+    const normalMode=process.argv.includes('--normal');
+    const inputCheck=process.argv.includes('--input-check');
+    fs.writeFileSync(path.join(directory,'configuration.json'),JSON.stringify({layoutOnly,normalMode,inputCheck,checkpoint:checkpointAt>=0?process.argv[checkpointAt+1]:null},null,2));
     if(checkpointAt>=0){
         const file=path.resolve(process.argv[checkpointAt+1]),root=path.resolve(__dirname,'../../docs/.local-history/verification-runs')+path.sep;
         assert.ok(file.startsWith(root)&&path.basename(file)==='word-life.json'&&path.basename(path.dirname(file)).startsWith('adventure-renderer-'),'only this smoke tool’s prior real temporary snapshots');
@@ -28,7 +31,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         ipcMain.on('word-life-save',(e,v)=>{const result=store.save(v);if(result.ok)snapshot=v;else errors.push('invalid-save');e.returnValue=result;});
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
         server=require('./serve').createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
-        const url=`http://127.0.0.1:${server.address().port}/experimental_word_island.html?debug=1`;
+        const url=`http://127.0.0.1:${server.address().port}/experimental_word_island.html${normalMode?'':'?debug=1'}`;
         window=new BrowserWindow({show:false,width:1280,height:900,webPreferences:{contextIsolation:true,sandbox:true,nodeIntegration:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
         window.webContents.on('console-message',(_e,level,message)=>{if(level>=3)errors.push(message);});
         const js=code=>window.webContents.executeJavaScript(code,true);
@@ -40,7 +43,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             const start=Date.now();let changed=Date.now(),serial=-1;
             while(Date.now()-start<720000 && Date.now()-changed<90000){
                 await frames();
-                if(snapshot?.state.adventure.serial!==serial){serial=snapshot?.state.adventure.serial;changed=Date.now();}
+                if(snapshot?.world.elapsed!==serial){serial=snapshot?.world.elapsed;changed=Date.now();}
                 await js(`if(document.querySelector('#word-master-dialog[open]'))document.querySelector('#word-master-dialog').close();void 0`);
                 if(await predicate())return;
                 await sleep(30);
@@ -54,66 +57,61 @@ if (!process.versions.electron || process.type !== 'browser') {
         if(checkpointAt>=0)await js(`document.querySelector('.word-logo').click();document.querySelector('#word-continue').click();${layoutOnly?'':"document.querySelector('#word-pause').click();"}void 0`);
         else await js(`document.querySelector('.word-logo').click();document.querySelector('#word-new-game').click();document.querySelector('#word-reset-accept').click();document.querySelector('main form').requestSubmit();void 0`);
         await wait(()=>!!snapshot?.state?.adventure,'start');
-        if(layoutOnly) {
-            const retained=JSON.stringify(snapshot.state.adventure.run);
-            assert.ok(snapshot.state.adventure.training.completed && snapshot.state.adventure.run);
-            const physicalSerial=snapshot.state.adventure.serial;
-            const carriedItem=snapshot.state.adventure.items.find(i=>['hand','body','bag'].includes(i.location));
-            await js(`document.querySelector('#word-pause').click();document.querySelector('#adventure-inventory').value=${JSON.stringify(carriedItem.id)};document.querySelector('#adventure-pick').click();document.querySelector('#word-pause').click();window.dispatchEvent(new Event('beforeunload'));void 0`);
-            assert.equal(snapshot.state.adventure.serial,physicalSerial);assert.equal(JSON.stringify(snapshot.state.adventure.run),retained);
-            for(const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de'])for(const width of [1280,390]) {
-                window.setSize(width,900);
-                await wait(()=>js(`innerWidth<=${width} && innerWidth>${width-40}`),'viewport '+width);
-                await js(`GameI18n.setLanguage(${JSON.stringify(locale)});document.querySelector('#word-adventure').open=true;void 0`);
-                await frames();await sleep(120);
-                const bounds=await js(`(()=>{const p=document.querySelector('#word-adventure'),s=document.querySelector('.stage').getBoundingClientRect(),r=p.getBoundingClientRect(),t=document.querySelector('.chat-form textarea').getBoundingClientRect();return {position:getComputedStyle(p).position,left:r.left,right:r.right,top:r.top,stageBottom:s.bottom,screen:innerWidth,chat:t.height,paused:document.querySelector('#word-pause').getAttribute('aria-pressed')};})()`);
-                assert.equal(bounds.position,'static');assert.ok(bounds.top>=bounds.stageBottom-1,JSON.stringify(bounds));
-                assert.ok(bounds.left>=0 && bounds.right<=bounds.screen+1 && bounds.chat>=50,JSON.stringify(bounds));assert.equal(bounds.paused,'true');
-                if(width===390) {
-                    assert.equal(await js(`getComputedStyle(document.querySelector('main.playing')).overflow`),'visible',JSON.stringify(bounds));
-                    await js(`document.querySelector('#word-microphone').scrollIntoView({block:'end'});void 0`);await frames();await sleep(250);
-                    assert.ok(await js(`(()=>{const m=document.querySelector('#word-microphone'),r=m.getBoundingClientRect();return m.checkVisibility() && r.height>0 && r.top>=0 && r.bottom<=innerHeight+1;})()`));
-                    if(locale==='ja')fs.writeFileSync(path.join(directory,'layout-chat-390.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
-                    await js(`window.scrollTo(0,0);void 0`);await sleep(80);
-                }
-                if(locale==='ja')fs.writeFileSync(path.join(directory,'layout-'+width+'.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
+        assert.equal(await js(`document.querySelectorAll('#word-adventure, #adventure-command, #adventure-inventory, [id^="adventure-"]').length`),0,'no dedicated adventure controls');
+        if(normalMode)assert.ok(await js(`document.querySelector('.scene-controls select')?.parentElement.hidden`),'normal play hides the pre-existing debug navigation controls');
+        if(inputCheck) {
+            assert.ok(layoutOnly && snapshot.state.adventure.run && !snapshot.state.adventure.run.training);
+            await js(`GameI18n.setLanguage('ja');void 0`);
+            await js(`document.querySelector('#word-pause').click();void 0`);
+            await submit('自分で歩いてみて');assert.equal(snapshot.state.adventure.connection.goal.action,'explore');
+            const inputId=snapshot.state.adventure.connection.goal.input.id;await frames(26);
+            await submit('止まって');assert.equal(snapshot.state.adventure.connection.goal,undefined);
+            const turn=snapshot.state.adventure.run.turn;await frames(40);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            assert.equal(snapshot.state.adventure.run.turn,turn);assert.ok(snapshot.state.adventure.events.some(e=>e.kind==='action'&&e.inputId===inputId),'continuation retains the understood original input');
+            await submit('休んでね');assert.equal(snapshot.world.destination,null);assert.equal(snapshot.world.mode,'idle','island care cannot run off-screen');
+            await submit('散歩しよう');assert.equal(snapshot.state.adventure.connection.goal.action,'explore');await frames(26);
+            await submit('おはよう');assert.equal(snapshot.state.adventure.connection.goal,undefined);
+            const conversationTurn=snapshot.state.adventure.run.turn;await frames(30);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);assert.equal(snapshot.state.adventure.run.turn,conversationTurn,'conversation interrupts automatic walking');
+            await js(`document.querySelector('#word-pause').click();void 0`);
+        }
+        if(!layoutOnly) {
+            await js(`for(const axis of ['life','conversation','exploration']){const slider=document.querySelector('#word-auto-'+axis);slider.value=axis==='exploration'?'3':'0';slider.dispatchEvent(new Event('input'));}document.querySelector('#word-auto-toggle').click();void 0`);
+            await wait(()=>snapshot?.state.adventure.mastery.stage===4,'actual mentor lessons');console.log('mastery complete');
+            await wait(()=>snapshot?.state.adventure.building.bridge,'actual bridge construction');console.log('bridge complete');
+            await wait(()=>snapshot?.state.adventure.training.completed,'five-floor mentor training');console.log('training complete');
+            assert.ok(snapshot.state.adventure.connection.receipts.some(r=>r.input.speaker==='master:explore'),'original mentor speech paired with real actions');
+            await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase exploration');
+            await wait(()=>snapshot?.state.adventure.events.some(e=>e.kind==='return'&&!e.training&&e.reason==='walked_out'),'omakase walked return');console.log('walked return');
+            await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase reentry');
+            assert.ok(await js(`document.querySelector('.scene-controls select')?.parentElement.hidden`),'island debug navigation is hidden inside the actual dungeon');
+            await js(`document.querySelector('#word-auto-toggle').click();document.querySelector('#word-pause').click();window.dispatchEvent(new Event('beforeunload'));void 0`);
+        }
+        assert.ok(snapshot.state.adventure.run);const retained=JSON.stringify(snapshot.state.adventure.run);
+        const serial=snapshot.state.adventure.serial;
+        await js(`document.querySelector('canvas').dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:300,clientY:250}));void 0`);await frames();
+        assert.equal(snapshot.state.adventure.serial,serial,'canvas click cannot perform a dungeon action');
+        for(const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de'])for(const width of [1280,390]) {
+            window.setSize(width,900);await wait(()=>js(`innerWidth<=${width}&&innerWidth>${width-40}`),'resize');
+            await js(`GameI18n.setLanguage(${JSON.stringify(locale)});void 0`);await frames();await sleep(150);
+            const layout=await js(`(()=>{const t=document.querySelector('.chat-form textarea').getBoundingClientRect();return {chat:t.height,controls:document.querySelectorAll('#word-adventure, [id^="adventure-"]').length,paused:document.querySelector('#word-pause').getAttribute('aria-pressed')};})()`);
+            assert.equal(layout.controls,0);assert.equal(layout.paused,'true');assert.ok(layout.chat>=50,JSON.stringify(layout));
+            if(locale==='ja')fs.writeFileSync(path.join(directory,'free-input-'+width+'.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
+            if(width===390) {
+                await js(`document.querySelector('#word-microphone').scrollIntoView({block:'end'});void 0`);await frames();await sleep(120);
+                assert.ok(await js(`(()=>{const m=document.querySelector('#word-microphone'),r=m.getBoundingClientRect();return m.checkVisibility()&&r.top>=0&&r.bottom<=innerHeight+1;})()`),'microphone remains reachable');
+                await js(`window.scrollTo(0,0);void 0`);
             }
-            await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);assert.equal(JSON.stringify(snapshot.state.adventure.run),retained);assert.deepEqual(errors,[]);
-            fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,layout:true,locales:7,widths:[1280,390],pausedSameFloor:true,rejectedCarriedPickWithoutHand:true,errors},null,2));console.log(JSON.stringify({ok:true,directory}));return;
         }
-        if(checkpointAt<0){
-            await submit('橋を依頼する');await wait(()=>snapshot?.state.adventure.building.bridge,'bridge');console.log('bridge complete');
-            for(let n=1;n<=4;n++){await submit('冒険家の課題');await wait(()=>snapshot?.state.adventure.mastery.stage===n,'lesson '+n);console.log('mastery '+n);}
-            await submit('スカルへ行く');await wait(()=>!!snapshot?.state.adventure.run,'entrance');
-        }
-        assert.equal(snapshot.state.adventure.run.training,true);
-        await js(`document.querySelector('#word-adventure').open=true;document.querySelector('#adventure-auto').click();void 0`);
-        await wait(()=>snapshot?.state.adventure.training.completed,'five-floor training');console.log('training complete');
-        assert.equal(snapshot.state.adventure.run,null);
-        // Omakase uses ordinary common input to label actual actions, with no extra hand.
-        await js(`document.querySelector('#word-auto-toggle').click();void 0`);
-        await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase exploration');
-        await wait(()=>snapshot?.state.adventure.events.some(e=>e.kind==='return' && !e.training && e.reason==='walked_out'),'omakase walked return');
-        console.log('omakase walked return');
-        await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase reentry');
-        await js(`document.querySelector('#word-auto-toggle').click();document.querySelector('#word-pause').click();window.dispatchEvent(new Event('beforeunload'));void 0`);
-        assert.ok(snapshot.state.adventure.run); const retained=JSON.stringify(snapshot.state.adventure.run);
-        fs.writeFileSync(path.join(directory,'exploration.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
         await window.loadURL(url);await clock();await wait(()=>js(`!!document.querySelector('#word-new-game:not(:disabled)')`),'resume ready');
-        await js(`document.querySelector('.word-logo').click();void 0`);
-        assert.equal(await js(`document.querySelector('#word-continue').disabled`),false);
-        await js(`document.querySelector('#word-continue').click();void 0`);
+        await js(`document.querySelector('.word-logo').click();document.querySelector('#word-continue').click();void 0`);
         await wait(()=>js(`document.querySelector('#app').classList.contains('playing')`),'resume');
         await frames(40);await sleep(300);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
         assert.equal(JSON.stringify(snapshot.state.adventure.run),retained);
         assert.equal(await js(`document.querySelector('#word-pause').getAttribute('aria-pressed')`),'true');
-        assert.equal(await js(`document.querySelector('#adventure-auto').getAttribute('aria-pressed')`),'false');
-        for(const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de']){
-            await js(`GameI18n.setLanguage(${JSON.stringify(locale)});void 0`);await sleep(80);
-            assert.ok(await js(`document.querySelector('#adventure-command').options.length>=17`));
-        }
         assert.deepEqual(errors,[]);
-        fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,errors,mastery:4,bridge:true,training:true,omakase:true,walkedReturn:true,sameFloorStopped:true,locales:7},null,2));
+        const summary=layoutOnly ? {ok:true,errors,layoutOnly:true,normalMode,inputCheck,sameFloorStopped:true,locales:7,viewports:2}
+            : {ok:true,errors,fresh:checkpointAt<0,mastery:4,bridge:true,training:true,omakase:true,walkedReturn:true,sameFloorStopped:true,locales:7};
+        fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(summary,null,2));
         console.log(JSON.stringify({ok:true,directory}));
     }).catch(e=>{fs.writeFileSync(path.join(directory,'failure.txt'),String(e.stack));console.error(e);process.exitCode=1;}).finally(()=>{
         if(window)window.destroy();if(server){server.closeAllConnections();server.close();}app.exit(process.exitCode||0);

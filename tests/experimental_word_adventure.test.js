@@ -22,6 +22,18 @@ function explore() {
     const a = qualified(); a.training.completed = true;
     assert.equal(api.enter(a, 'skull'), true); return a;
 }
+test('autonomous recovery recognises only retained own items and uses actual pickup and equipment hands',()=>{
+    const a=qualified(),wood=gather(a,'wood','forest');api.deliver(a,wood.id,'bag');api.craft(a,'bag');api.craft(a,'cloth');
+    const ids=a.items.filter(i=>['hand','body','bag'].includes(i.location)).map(i=>i.id),body={fatigue:0,hunger:0};
+    a.training.completed=true;api.enter(a,'skull');api.rescue(a,'injury');api.enter(a,'skull');
+    for(let i=0;i<30 && ids.some(id=>a.items.find(i=>i.id===id).location==='floor');i++) {
+        const decision=api.decide(a,body);api.step(a,body,decision.action,decision.target);
+    }
+    assert.equal(a.items.find(i=>i.type==='bag').location,'body');
+    assert.ok(a.items.some(i=>ids.includes(i.id)&&i.location==='floor'),'an untrained actor may leave an item under a prepared enemy attack');
+    assert.ok(a.events.some(e=>e.kind==='action'&&e.action==='pick'));
+    assert.equal(a.recoveries.length,1);assert.equal(a.items.filter(i=>ids.includes(i.id)).length,ids.length);
+});
 test('picking requires a real item on the current floor underfoot, never a carried item',()=>{
     const a=qualified(),wood=gather(a,'wood','forest');api.deliver(a,wood.id,'bag');api.craft(a,'bag');api.craft(a,'cloth');
     const cloth=a.items.find(i=>i.type==='cloth');a.training.completed=true;api.enter(a,'skull');

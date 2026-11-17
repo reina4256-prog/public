@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-17自由入力への修正：[ダンジョン正本](../specs/dungeon/word_dungeon_preview.md)の接続はadventure_connection.languageが共通coreへ構文候補を渡し、receiveが当時の意味／関係／対象理解から実地処理へ接続する。専用パネル／固定命令は撤去。原会話・師匠の提案はconnection.dialogues/offers/proposal、実動作と原発話は既存のexperience／receiptで保持する。語彙の初期付与や、日記・関係教示の適用範囲の拡張はしない。
+
 2026-11-17：[ダンジョン本接続](../specs/dungeon/word_dungeon_preview.md)はadventureが現物／所在・戦闘／被害・救助とケア、adventure_connectionが実地工程／共通動作教示・保存原照合、navigationが橋の実経路、adventure_viewと共通UIが表示／入力／同じ一手時計を所有する。新動作語の取得はcore.learnExperienceを使い、既存core／日記の所有を置換しない。
 
 2026-11-16：[箱庭UI](../specs/core/word_terrarium_ui.md)は共通UI／CSSが外装・設定分離・紙の図鑑を所有。[思い出](../specs/core/word_memory_card_game.md)はcollection.remember／observe／validMemoriesが記録・初回重複防止・検査、UIの実出会い／実イベント／進化完了境界が取得、collection既存保存が歴代保持を所有。知識／日記captureへは接続しない。
