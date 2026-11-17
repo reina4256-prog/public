@@ -12,7 +12,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.disableHardwareAcceleration();
     const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/adventure-renderer-'));
     app.setPath('userData',path.join(directory,'profile'));
-    let window,server,snapshot;const errors=[];
+    let window,server,snapshot,inspectedQuestWindow=false;const errors=[],questWindows=[];
     const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const store=require('./storage').createStore(directory);
     const checkpointAt=process.argv.indexOf('--checkpoint');
@@ -28,7 +28,10 @@ if (!process.versions.electron || process.type !== 'browser') {
     }
     app.whenReady().then(async()=>{
         ipcMain.on('word-life-load',e=>{e.returnValue=store.load();});
-        ipcMain.on('word-life-save',(e,v)=>{const result=store.save(v);if(result.ok)snapshot=v;else errors.push('invalid-save');e.returnValue=result;});
+        ipcMain.on('word-life-save',(e,v)=>{const result=store.save(v);if(result.ok)snapshot=v;else {
+            errors.push('invalid-save');
+            if(!fs.existsSync(path.join(directory,'rejected-save.json')))fs.writeFileSync(path.join(directory,'rejected-save.json'),JSON.stringify({result,value:v}));
+        }e.returnValue=result;});
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
         server=require('./serve').createServer();
         const serve=server.listeners('request')[0];server.removeAllListeners('request');
@@ -55,7 +58,33 @@ if (!process.versions.electron || process.type !== 'browser') {
             while(Date.now()-start<720000 && Date.now()-changed<90000){
                 await frames();
                 if(snapshot?.world.elapsed!==serial){serial=snapshot?.world.elapsed;changed=Date.now();}
-                await js(`if(document.querySelector('#word-master-dialog[open]'))document.querySelector('#word-master-dialog').close();void 0`);
+                const dialogue=await js(`(()=>{const d=document.querySelector('#word-master-dialog[open]');return d?{phase:d.dataset.phase,text:d.querySelector('#word-master-text')?.textContent,thought:d.querySelector('.word-master-thought')?.textContent}:null;})()`);
+                // Skip only the existing introduction movie through its own control.
+                // Quest conversations must finish through the actual omakase timer.
+                if(dialogue && ['loading','video'].includes(dialogue.phase))await js(`document.querySelector('#word-master-skip').click();void 0`);
+                if(dialogue?.phase==='conversation' && dialogue.text && !questWindows.some(d=>d.text===dialogue.text)) {
+                    questWindows.push(dialogue);
+                    fs.writeFileSync(path.join(directory,'master-windows.json'),JSON.stringify(questWindows,null,2));
+                    if(dialogue.text.includes('課題①') && !inspectedQuestWindow) {
+                        inspectedQuestWindow=true;
+                        await js(`document.querySelector('#word-auto-toggle').click();window.dispatchEvent(new Event('beforeunload'));void 0`);
+                        const elapsed=snapshot.world.elapsed, layouts=[];
+                        for(const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de'])for(const width of [1280,390]) {
+                            window.setSize(width,900);
+                            await js(`GameI18n.setLanguage(${JSON.stringify(locale)});void 0`);
+                            await sleep(160);await frames(2);await sleep(100);
+                            const layout=await js(`(()=>{const d=document.querySelector('#word-master-dialog'),r=d.getBoundingClientRect();return {open:d.open,phase:d.dataset.phase,text:document.querySelector('#word-master-text').textContent,left:r.left,right:r.right,width:innerWidth,overflow:d.scrollWidth-d.clientWidth};})()`);
+                            assert.equal(layout.open,true);assert.equal(layout.phase,'conversation');assert.ok(layout.text.length>20);
+                            assert.ok(layout.left>=0&&layout.right<=layout.width+1&&layout.overflow<=2,JSON.stringify(layout));
+                            layouts.push({locale,width,...layout});
+                            if(locale==='ja')fs.writeFileSync(path.join(directory,'quest-window-'+width+'.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
+                        }
+                        await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+                        assert.equal(snapshot.world.elapsed,elapsed,'actual island clock holds during the quest window');
+                        fs.writeFileSync(path.join(directory,'quest-window-layouts.json'),JSON.stringify(layouts,null,2));
+                        window.setSize(1280,900);await js(`GameI18n.setLanguage('ja');document.querySelector('#word-auto-toggle').click();void 0`);
+                    }
+                }
                 if(await predicate())return;
                 await sleep(30);
             }
@@ -98,10 +127,15 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.ok(review,'actual UI produces the final mentor dialogue');
             assert.equal(review.at(-1).role,'master');
             assert.equal(review[0].role,snapshot.state.settings.speech==='short'?'dialogue':'narration');
+            assert.ok(questWindows.some(d=>d.text.includes('課題①')),'first quest opens the existing conversation window');
+            assert.ok(questWindows.some(d=>d.text.includes('最後の課題も修了')),'actual review opens the window and omakase continues');
             fs.writeFileSync(path.join(directory,'lesson-voice-scenes.json'),JSON.stringify(scenes,null,2));
             fs.writeFileSync(path.join(directory,'lesson-dialogue.txt'),lessonDialogue);
             fs.writeFileSync(path.join(directory,'lesson-dialogue.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
             await wait(()=>snapshot?.state.adventure.building.bridge,'actual bridge construction');console.log('bridge complete');
+            const bridgeVisual=await js(`(()=>{const b=Object.values(assets).filter(a=>a.type==='bridge');return {count:b.length,original:b.every(a=>['img','sx','sy','sw','sh','scale'].every(k=>a[k]===defaultCatalog.bridge[k]))};})()`);
+            assert.ok(bridgeVisual.count>0 && bridgeVisual.original,'original bridge chip is in the shared island scene');
+            fs.writeFileSync(path.join(directory,'bridge-visual.json'),JSON.stringify(bridgeVisual));
             await wait(()=>snapshot?.state.adventure.training.completed,'five-floor mentor training');console.log('training complete');
             assert.ok(snapshot.state.adventure.connection.receipts.some(r=>r.input.speaker==='master:explore'),'original mentor speech paired with real actions');
             await wait(()=>!!snapshot?.state.adventure.run&&!snapshot.state.adventure.run.training,'omakase exploration');
@@ -111,6 +145,11 @@ if (!process.versions.electron || process.type !== 'browser') {
             await js(`document.querySelector('#word-auto-toggle').click();document.querySelector('#word-pause').click();window.dispatchEvent(new Event('beforeunload'));void 0`);
         }
         assert.ok(snapshot.state.adventure.run);const retained=JSON.stringify(snapshot.state.adventure.run);
+        // Inspect the actual retained island scene without moving the actor or
+        // changing its save. Read canvas pixels synchronously, avoiding a stale
+        // compositor screenshot when the accelerated fixture clock is held.
+        const bridgePng=await js(`(()=>{const b=Object.values(assets).find(a=>a.type==='bridge');if(!b)return null;const previous={...camera};camera.x=b.dx+b.sw*b.scale/2-400;camera.y=b.dy+b.sh*b.scale/2-240;render();const png=document.querySelector('#gameCanvas').toDataURL('image/png').split(',')[1];Object.assign(camera,previous);return png;})()`);
+        assert.ok(bridgePng);fs.writeFileSync(path.join(directory,'original-bridge-canvas.png'),Buffer.from(bridgePng,'base64'));
         const serial=snapshot.state.adventure.serial;
         await js(`document.querySelector('canvas').dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:300,clientY:250}));void 0`);await frames();
         assert.equal(snapshot.state.adventure.serial,serial,'canvas click cannot perform a dungeon action');

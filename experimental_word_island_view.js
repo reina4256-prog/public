@@ -21,9 +21,27 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         img.src = sources[key];
     }
     window.ExperimentalWordWorld.setNavigation(window.WordIslandNavigation.route);
+    let renderedIsland = null, renderedBridge = null;
+    function sceneAssets(world) {
+        const island = world.island;
+        if (renderedIsland === island && renderedBridge === island.bridgeOpen) return;
+        renderedIsland = island; renderedBridge = island.bridgeOpen;
+        assets = island.assets;
+        if (!island.bridgeOpen) return;
+        // Reuse the original bridge chip in the shared scene, below the actor.
+        // Keep the retained water tiles and saved navigation graph unchanged.
+        assets = { ...island.assets };
+        const bridge = defaultCatalog.bridge, w = bridge.sw * bridge.scale, h = bridge.sh * bridge.scale;
+        for (const key of island.crossing || []) {
+            const tile = island.assets[key];
+            assets['adventure_bridge_' + key] = { ...bridge, type: 'bridge',
+                dx: tile.dx + tile.sw * tile.scale / 2 - w / 2,
+                dy: tile.dy + tile.sh * tile.scale / 2 - h / 2 };
+        }
+    }
     this.start = function (world, skin) {
         const island = window.WordIslandNavigation.attach(world, world.island?.assets || generateNatureMap());
-        assets = island.assets;
+        renderedIsland = null; sceneAssets(world);
         aiPet.type = aiPet.currentSkin = aiPet.baseType = skin;
         aiPet.bgmVolume = world.island.volume ?? .5;
         camera.x = world.x * 800 - surface.width / 2;
@@ -31,6 +49,7 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         window.audioManager.playBGM(skin);
     };
     this.draw = function (world, skin, reducedMotion, practice) {
+        sceneAssets(world);
         skin = window.ExperimentalWordGrowth?.visualSkin(skin) || skin;
         aiPet.x = world.x * 800; aiPet.y = world.y * 480;
         aiPet.currentSkin = skin;
@@ -44,12 +63,6 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         if (world.mode === 'move' && target) aiPet.flip = target.x < world.x;
         render();
         const context = surface.getContext('2d');
-        if (world.island.bridgeOpen) for (const key of world.island.crossing || []) {
-            const a = world.island.assets[key], x = a.dx + a.sw * a.scale / 2 - camera.x, y = a.dy + a.sh * a.scale / 2 - camera.y;
-            context.fillStyle = '#a67b46'; context.fillRect(x - 26, y - 13, 52, 26);
-            context.strokeStyle = '#604025'; context.lineWidth = 2;
-            for (let dx = -24; dx < 26; dx += 8) { context.beginPath(); context.moveTo(x + dx,y - 13); context.lineTo(x + dx,y + 13); context.stroke(); }
-        }
         for (const p of world.island.places.filter(p => p.id.startsWith('adventure:'))) {
             if(p.id.startsWith('adventure:item:')) { context.fillStyle='#e1b66e';context.fillRect(p.x*800-camera.x-6,p.y*480-camera.y+4,12,9); }
             context.beginPath(); context.strokeStyle = '#e9cc91'; context.lineWidth = 2;

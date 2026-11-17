@@ -44,6 +44,37 @@ function context() {
     vm.runInContext('var catalog = defaultCatalog;', context);
     return context;
 }
+test('completed bridge uses the retained original chip inside the shared scene without mutating saved terrain', () => {
+    const env = context(), scenes = [];
+    Object.assign(env, { Image: class {}, camera: { x: 0, y: 0 },
+        render() { scenes.push(env.assets); } });
+    env.window.ExperimentalWordWorld = { setNavigation() {} };
+    env.window.ExperimentalWordGrowth = null;
+    env.window.WordIslandNavigation = navigation;
+    vm.runInContext(fs.readFileSync(path.join(root, 'experimental_word_island_view.js'), 'utf8'), env);
+    const ctx = { beginPath() {}, ellipse() {}, stroke() {}, arc() {}, fill() {} };
+    const view = new env.window.ExperimentalWordView({ getContext: () => ctx }, {}, () => {});
+    const world = worldApi.create();
+    navigation.attach(world, vm.runInContext('generateNatureMap()', env));
+    navigation.adventurePlaces(world.island);
+    const retained = JSON.stringify(world.island.assets);
+    view.draw(world, 'robot', true);
+    assert.equal(Object.values(scenes.at(-1)).filter(a => a.type === 'bridge').length, 0);
+    world.island.bridgeOpen = true;
+    view.draw(world, 'robot', true);
+    const source = vm.runInContext('defaultCatalog.bridge', env);
+    for (const key of world.island.crossing) {
+        const tile = world.island.assets[key], chip = scenes.at(-1)['adventure_bridge_' + key];
+        assert.equal(chip.type, 'bridge');
+        for (const field of ['img', 'sx', 'sy', 'sw', 'sh', 'scale']) assert.equal(chip[field], source[field]);
+        assert.equal(chip.dx + chip.sw * chip.scale / 2, tile.dx + tile.sw * tile.scale / 2);
+        assert.equal(chip.dy + chip.sh * chip.scale / 2, tile.dy + tile.sh * tile.scale / 2);
+    }
+    assert.equal(JSON.stringify(world.island.assets), retained);
+    world.island.bridgeOpen = false;
+    view.draw(world, 'robot', true);
+    assert.equal(scenes.at(-1), world.island.assets);
+});
 function island() { return vm.runInContext('generateNatureMap()', context()); }
 function until(world, state, predicate) {
     for (let i = 0; i < 5000; i++) {

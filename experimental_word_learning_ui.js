@@ -1860,7 +1860,7 @@
     masterVideo.playsInline = true; masterVideo.preload = 'auto'; masterVideo.hidden = true;
     const masterSkip = node('button', t('masterSkip'), masterDialog); masterSkip.type = 'button'; masterSkip.id = 'word-master-skip'; masterSkip.className = 'word-master-skip'; masterSkip.hidden = true;
     let masterFocus = null, masterImage = null, dialogMaster = null, masterBackground = null;
-    let masterPhase = 'closed', masterReply = null, masterToken = 0, videoAbort = null, videoWatch = null;
+    let masterPhase = 'closed', masterReply = null, masterToken = 0, videoAbort = null, videoWatch = null, masterClosing = false;
     let masterSpeechToken = 0, masterSpeechPending = false, masterAutoElapsed = 0, masterAutoQuiet = 0;
     function clearMasterVideo() {
         videoAbort?.abort(); videoAbort = null;
@@ -1877,7 +1877,7 @@
         masterLeft.hidden = masterRight.hidden = false;
         masterText.textContent = t(silhouette ? 'masterPresence' : masterReply.npc);
         // Show the existing observed reaction; don't invent understanding or a new preference.
-        masterThought.textContent = t(masterReply.message);
+        masterThought.textContent = masterReply.dialogueText ?? t(masterReply.message);
         masterClose.textContent = t(silhouette ? 'masterReveal' : 'masterContinue');
         masterClose.disabled = false; masterClose.focus({ preventScroll: true }); drawMaster(performance.now());
         playMasterVoices();
@@ -1887,10 +1887,13 @@
         masterSpeechPending = true; masterAutoQuiet = 0;
         try {
             if (masterPhase === 'silhouette') await voice.speak(masterText.textContent, { role: 'narration' });
-            else if (masterPhase === 'conversation') await voice.speakScene([
+            else if (masterPhase === 'conversation') {
+                const parts = [
                 { text: masterText.textContent, role: 'master', master: dialogMaster },
-                { text: masterThought.textContent, role: 'narration' }
-            ]);
+                { text: masterThought.textContent, role: masterReply.dialogueRole || 'narration' }
+                ];
+                await voice.speakScene(masterReply.npcAfter ? parts.reverse() : parts);
+            }
         } finally { if (token === masterSpeechToken) masterSpeechPending = false; }
     }
     function tickAutoMaster(dt) {
@@ -1916,21 +1919,30 @@
     function advanceMaster() {
         if (!masterDialog.open) return;
         if (masterPhase === 'silhouette') masterConversation();
-        else if (masterPhase === 'conversation') masterDialog.close();
+        else if (masterPhase === 'conversation') closeMaster();
+    }
+    function closeMaster() {
+        if (!masterDialog.open) return;
+        // HTMLDialogElement dispatches close asynchronously. Do not open the next
+        // conversation before this one's voice/phase cleanup has completed.
+        masterClosing = true; masterDialog.close();
     }
     masterClose.addEventListener('click', advanceMaster);
     // Touch/pointer activation stays independent of life simulation and click synthesis.
     masterClose.addEventListener('pointerup', event => {
-        if (event.button === 0 && masterPhase === 'conversation') masterDialog.close();
+        if (event.button === 0 && masterPhase === 'conversation') closeMaster();
     });
     masterSkip.addEventListener('click', () => masterConversation());
     masterDialog.addEventListener('cancel', event => {
-        if (masterPhase !== 'conversation') { event.preventDefault(); masterConversation(); }
+        event.preventDefault();
+        if (masterPhase !== 'conversation') masterConversation();
+        else closeMaster();
     });
     masterDialog.addEventListener('close', () => {
         masterSpeechToken++; masterSpeechPending = false; masterAutoElapsed = masterAutoQuiet = 0;
         voice.stop();
         masterPhase = 'closed'; masterToken++; clearMasterVideo();
+        masterClosing = false;
         lastFrame = null;
         if (masterFocus?.isConnected) masterFocus.focus({ preventScroll: true });
         else input.focus({ preventScroll: true });
@@ -2047,7 +2059,8 @@
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
         if (lastReplyIsNarration && !reply.word && !reply.literal && !progress?.item && Object.hasOwn(labels, reply.message))
             voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
-        if (reply.npc && window.WordIslandMode && !reply.inline) openMaster(reply);
+        if (reply.npc && window.WordIslandMode) openMaster({ ...reply,
+            dialogueText: bubble.textContent, dialogueRole: lastReplyIsNarration ? 'narration' : 'dialogue' });
         else if (reply.npc) {
             const parts = [{ text: t(reply.npc), role: 'master', master: reply.master },
                 { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }];
@@ -2073,7 +2086,7 @@
             evolveButton.disabled = !ready && !state.evolution.pending;
             evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
-            const holding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim() || adventureSpeechPending;
+            const holding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || masterClosing || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim() || adventureSpeechPending;
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -2111,7 +2124,7 @@
             // when returning to report a lesson or deliver project materials.
             if (spontaneous && (!taskAtArrival || !spontaneous.master || spontaneous.message === 'master_meet')) showReply(spontaneous);
             if (event) renderNotebook();
-            tickAuto(holding);
+            tickAuto(holding || masterDialog.open);
             if (world.speech && world.elapsed > world.speech.until) bubble.hidden = true;
             const feedback = controlFeedback && time < controlFeedback.until ? controlFeedback.key : null;
             const key = imageFailure ? 'imagesFailed' : paused ? 'paused' : feedback || (input.value.trim() ? 'typing' : world.mode === 'observe'
