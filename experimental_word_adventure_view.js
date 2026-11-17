@@ -43,7 +43,7 @@
                 line.hidden = !active && !a.connection.task && !physical.carried(a).length;
                 if (active) draw(state);
                 line.textContent = active ? api.dungeonName(a.run.dungeon,window.GameI18n.language) + ' · ' + local(text(a.run.training ? 'advTrainingTitle' : 'advExploreTitle')) + ' · ' + a.run.floor
-                    + ' · ' + local(text(a.damage ? 'advHurt' : 'advWell')) : local(text(a.connection.task ? 'advStarted' : a.mastery.stage === 4 ? 'advMastery' : 'advHelp'));
+                    + ' · ' + local(text(a.damage ? 'advHurt' : 'advWell')) : local(text(api.taskStatus(a) || (a.connection.task ? 'advStarted' : a.mastery.stage === 4 ? 'advMastery' : 'advHelp')));
                 const items = a.items.filter(i => ['hand','body','bag'].includes(i.location));
                 if (items.length) line.textContent += ' / ' + items.map(i => local(itemLabel(i.type)) + ' (' + local(text('advLocation_'+i.location)) + ')').join(', ');
                 line.setAttribute('data-i18n-skip','');

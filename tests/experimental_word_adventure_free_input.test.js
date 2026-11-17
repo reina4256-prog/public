@@ -14,12 +14,47 @@ function setup(options={}) {
 }
 function tick(p) {
     const e=worldApi.tick(p.world,.1);worldApi.onArrival(p.world,p.state,e);const reply=connection.tick(p.state,p.world,.1,false,e);
+    if(reply && p.replies)p.replies.push(reply);
     if(p.guidance && reply?.teaching) {
         if(!connection.perceive(p.state,p.world))core.perceive(p.state,worldApi.perception(p.world));
         const result=core.receive(p.state,connection.words.ja[connection.actions.indexOf(reply.teaching)],catalog,{locale:'ja',body:p.world,speaker:reply.mentor||'player'});
         connection.receive(p.state,p.world,result,'ja',true);
     }
 }
+
+test('lesson dialogue reports actual stages and completed events without ending ongoing work or teaching words',()=>{
+    const p=setup();learnWork(p);visit(p,'master:explore');p.replies=[];
+    for(let stage=0;stage<4;stage++) {
+        const offered=speak(p,'何を手伝える？');
+        assert.equal(offered.reply.progress.npc,'advLessonGoal'+stage);
+        assert.equal(p.state.adventure.connection.task,null,'an explanation does not accept the task');
+        const accepted=speak(p,'手伝って');
+        assert.equal(accepted.reply.npc,'advLessonGoal'+stage);
+        assert.equal(accepted.reply.progress.spoken,'advAccepted');
+        assert.equal(connection.taskStatus(p.state.adventure),'advLessonGoal'+stage);
+        assert.equal(p.state.adventure.mastery.stage,stage,'acceptance is not completion');
+        finish(p);
+        assert.equal(p.state.adventure.mastery.stage,stage+1);
+        const review=p.replies.at(-1);
+        assert.equal(review.npc,'advLessonReview'+stage);
+        assert.equal(review.npcAfter,true,'the child reports before the mentor reviews');
+        assert.equal(review.progress.spoken,'advReportedSaid');
+    }
+    const gathered=p.replies.filter(r=>r.progress?.spoken==='advFoundSaid');
+    assert.equal(gathered.length,2);
+    for(const r of gathered) {
+        const event=p.state.adventure.events.find(e=>e.id===r.progress.source);
+        assert.equal(event.kind,'gather');assert.equal(r.progress.item,'wood');
+    }
+    assert.equal(p.replies.filter(r=>r.progress?.spoken==='advDeliveredSaid').length,2);
+    assert.equal(p.state.knowledge.meanings.some(m=>m.id.startsWith('action:')),false,'progress speech alone does not teach adventure actions');
+    visit(p,'master:building');speak(p,'何を手伝える？');speak(p,'手伝って');
+    assert.equal(connection.taskStatus(p.state.adventure),'advMaking');finish(p);
+    const built=p.replies.at(-1);
+    assert.equal(built.progress.spoken,'advFinishedSaid');assert.equal(built.progress.item,'bridge');
+    assert.equal(p.state.adventure.events.find(e=>e.id===built.progress.source).kind,'craft');
+    assert.ok(storage.valid({version:1,appearance:'robot',state:p.state,world:p.world}));
+});
 function until(p,condition,label) {for(let i=0;i<150000&&!condition();i++)tick(p);assert.ok(condition(),label);}
 function visit(p,id) {worldApi.approach(p.world,id,'pointing');until(p,()=>p.world.attention===id&&p.world.mode!=='move','visit '+id);}
 function speak(p,text,locale='ja') {
@@ -28,6 +63,20 @@ function speak(p,text,locale='ja') {
     return {result,reply:connection.receive(p.state,p.world,result,locale)||worldApi.respond(p.world,result,p.state,catalog)};
 }
 function finish(p) {until(p,()=>!p.state.adventure.connection.task,'actual task finishes');}
+function restForJourney(p) {
+    until(p,()=>!['eat','work'].includes(p.world.mode),'finish the current activity');
+    for(let round=0;round<3;round++) {
+        const previous=p.world.experiences.filter(e=>e.kind==='rest').length;
+        assert.ok(worldApi.approach(p.world,'shade','pointing'));
+        until(p,()=>p.world.experiences.filter(e=>e.kind==='rest').length>previous,'complete a real rest');
+    }
+    assert.ok(p.world.fatigue<.05,'real rests prepare the journey; entry still handles actual hunger');
+    if(p.world.hunger>=.45) {
+        const previous=p.world.experiences.filter(e=>e.kind==='eat').length;
+        assert.ok(worldApi.approach(p.world,'berry:1','pointing'));
+        until(p,()=>p.world.experiences.filter(e=>e.kind==='eat').length>previous,'complete a real meal after resting');
+    }
+}
 function learnWork(p) {visit(p,'master:explore');until(p,()=>p.state.knowledge.meanings.some(m=>m.id==='work'),'completed original mentor work');}
 
 test('old exact shortcuts do not execute; grammar recognition never grants knowledge',()=>{
@@ -60,6 +109,7 @@ test('common understood conversation, actual mentor work and retained proposals 
     const known=speak(p,'わたるものを作ってください');assert.equal(known.result.understandings[0].complete,true);assert.equal(known.reply.message,'advStarted');
     finish(p);assert.equal(p.state.adventure.building.bridge,true);assert.equal(p.state.adventure.mastery.stage,4);
     assert.ok(storage.valid({version:1,appearance:'robot',state:p.state,world:p.world}));
+    restForJourney(p);
     visit(p,'master:explore');speak(p,'何を手伝える？');speak(p,'手伝って');finish(p);
     assert.ok(p.state.adventure.run?.training);
     assert.ok(storage.valid({version:1,appearance:'robot',state:p.state,world:p.world}));
@@ -82,11 +132,18 @@ test('common understood conversation, actual mentor work and retained proposals 
     assert.equal(p.state.adventure.training.completed,true);
     assert.ok(p.state.adventure.connection.receipts.some(r=>r.input.speaker==='master:explore' && r.action==='attack'));
     assert.ok(storage.valid({version:1,appearance:'robot',state:p.state,world:p.world}));
-    until(p,()=>p.world.fatigue<.2 && p.world.hunger<.3 && ['idle','observe'].includes(p.world.mode),'actual care before the second journey');
+    restForJourney(p);
+    // A long random island route may consume the preparation meal. Carry and
+    // actually use crafted food before checking language processing in Crystal.
+    visit(p,'master:cooking');speak(p,'何を手伝える？');speak(p,'手伝って');
+    assert.equal(p.state.adventure.connection.task?.project,'ration');finish(p);
+    const ration=p.state.adventure.items.find(i=>i.type==='ration' && ['hand','bag'].includes(i.location));assert.ok(ration);
     visit(p,'master:explore');const crystal=speak(p,'クリスタルへ行ける？');
     assert.equal(crystal.reply.npc,'advOffer_crystal');
     assert.equal(crystal.result.understandings[0].complete,false,'a mentor answer does not repair the child’s unknown noun');
     speak(p,'手伝って');finish(p);assert.equal(p.state.adventure.run.dungeon,'crystal');
+    connection.hand(p.state,p.world,'use',ration.id);
+    assert.equal(ration.location,'consumed');assert.ok(p.world.hunger<.45,'actual food leaves room for the language assertions');
     speak(p,'何が見える？');speak(p,'これを「こわい子」と呼ぼう');
     const definition=speak(p,'「ぱしっ」は攻撃することだよ');
     assert.equal(definition.result.understandings[0].complete,true);

@@ -412,17 +412,43 @@
             try {
                 await abortable(effects.prepare(), controller.signal); if (!current()) return;
                 const sequence = lines.slice(0, 2).filter(line => line.text);
-                let upcoming = sequence.length ? prepareLine(sequence[0], locale, 2) : null;
+                // Child speech uses the child's selected transport and tuning.
+                // It must never enter the persistent fixed-cast WAV cache.
+                const prepare = async (line, priority) => {
+                    if (line.role !== 'dialogue') return prepareLine(line, locale, priority);
+                    const bank = voices(), id = line.species || options.species?.() || 'robot';
+                    const tuning = bank.profile.tuning[id] || { pitch: 1, rate: 1 };
+                    const chosen = bank.dialogue.find(v => voiceId(v) === (bank.source === 'device' ? bank.profile.dialogue[id] : bank.choices[id]));
+                    if (!chosen) return { error: 'voiceMissing' };
+                    if (bank.source === 'device') return { device: true, chosen, tuning };
+                    if (!bank.providerSupported) return { error: 'providerLanguage' };
+                    const data = await providers[bank.source].synthesize({ text: line.text, voice: chosen, locale, ...tuning, signal: controller.signal });
+                    return { buffer: await effects.decode(data), species: id, amount: bank.effect[id] ?? .65 };
+                };
+                const prepareSafely = (line, priority) => prepare(line, priority).catch(() => ({ error: 'providerFailed' }));
+                let upcoming = sequence.length ? prepareSafely(sequence[0], 2) : null;
                 for (let index = 0; index < sequence.length; index++) {
                     if (!current()) return;
                     status('providerGenerating');
                     const result = await abortable(upcoming, controller.signal); if (!current()) return;
-                    if (!result.buffer) { status(result.error === 'voiceMissing' ? 'voiceMissing' : 'providerFailed'); return; }
-                    upcoming = index + 1 < sequence.length ? prepareLine(sequence[index + 1], locale, 1) : null;
-                    const playing = effects.play(result.buffer, { species: 'robot', amount: 0, volume: options.volume() });
-                    await new Promise(resolve => {
-                        playbackWait = { resolve, timer: setTimeout(() => { playbackWait = null; resolve(); }, (playing?.duration ?? result.buffer.duration ?? 0) * 1000) };
-                    });
+                    if (!result.buffer && !result.device) { status(result.error === 'voiceMissing' ? 'voiceMissing' : 'providerFailed'); return; }
+                    upcoming = index + 1 < sequence.length ? prepareSafely(sequence[index + 1], 1) : null;
+                    if (result.device) {
+                        if (!host.speechSynthesis || !host.SpeechSynthesisUtterance) { status('unsupportedOutput'); return; }
+                        const speech = new host.SpeechSynthesisUtterance(sequence[index].text);
+                        Object.assign(speech, { voice: result.chosen, lang: locales[locale] || locale, volume: options.volume(), pitch: result.tuning.pitch, rate: result.tuning.rate });
+                        await new Promise(resolve => {
+                            const finish = () => { if (utterance === speech) utterance = null; if (playbackWait?.resolve === resolve) { clearTimeout(playbackWait.timer); playbackWait = null; } resolve(); };
+                            speech.onend = finish; speech.onerror = finish; utterance = speech;
+                            playbackWait = { resolve, timer: setTimeout(finish, 120000) };
+                            try { host.speechSynthesis.speak(speech); } catch (_) { finish(); }
+                        });
+                    } else {
+                        const playing = effects.play(result.buffer, { species: result.species || 'robot', amount: result.amount || 0, volume: options.volume() });
+                        await new Promise(resolve => {
+                            playbackWait = { resolve, timer: setTimeout(() => { playbackWait = null; resolve(); }, (playing?.duration ?? result.buffer.duration ?? 0) * 1000) };
+                        });
+                    }
                 }
                 if (current()) { status('ready'); warmFixed(); }
             } catch (_) { if (token === generation) status('providerFailed'); }

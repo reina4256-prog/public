@@ -33,6 +33,17 @@
         return normalize(walkLabels[locale] || walkLabels.en)===text ? 'walk' : i >= 0 ? actions[i] : null;
     }
     const say = message => ({ message, observation: true });
+    // Presentation of actual work, never a teaching receipt or completion proof.
+    function progress(reply, spoken, observed, data = {}) {
+        return { ...reply, progress: { spoken, observed, ...data } };
+    }
+    function taskStatus(a) {
+        const task = a.connection.task;
+        if (!task) return null;
+        if (task.kind === 'lesson') return 'advLessonGoal' + Math.min(3, a.mastery.stage);
+        if (task.kind === 'craft') return 'advMaking';
+        return task.kind === 'enter' ? 'advJourney' : null;
+    }
     const mentor = input => input?.speaker === 'player' || ['master:explore','master:building'].includes(input?.speaker);
     const projects = {
         bridge:['橋','bridge','桥','мост','puente','ponte','Brücke'], home:['家','home','家','дом','casa','casa','Haus'],
@@ -140,6 +151,7 @@
         a.connection.task = { kind, phase: 'start', start: world.elapsed, steps: [], index: 0, remaining: 0,
             input: input ? copy(input) : null, ...data };
         if (['idle','observe'].includes(world.mode)) world.dwell = 1000000;
+        if (kind === 'lesson') return progress({ ...say('advStarted'), npc: 'advLessonGoal' + a.mastery.stage, master: 'explore', inline: true }, 'advAccepted', 'advAcceptedGesture');
         return say('advStarted');
     }
     const go = id => ({ go: id });
@@ -182,7 +194,10 @@
     }
     function effect(state, world, task, step) {
         const a = state.adventure;
-        if (step.effect === 'survey') physical.event(a, 'survey', { place: world.attention, at: world.elapsed, start: task.start });
+        if (step.effect === 'survey') {
+            const e = physical.event(a, 'survey', { place: world.attention, at: world.elapsed, start: task.start });
+            task.feedback = progress(say('advObserved'), 'advSurveySaid', 'advSurveyDone', { source: e.id });
+        }
         if (step.effect === 'gather') {
             const size=['wood','stone'].includes(step.type)?2:1;
             if(physical.used(a)+size>physical.capacity(a)) {
@@ -193,8 +208,13 @@
             const s = a.sources.find(s => s.type === step.type && !s.collected);
             if (!s) return 'advNoMaterial';
             if (!physical.collect(a, s.type, s.place, s.objectId)) return 'advFull';
+            task.feedback = progress(say('advPicked'), 'advFoundSaid', 'advFoundDone', { item: s.type, source: a.events.at(-1).id });
         }
-        if (step.effect === 'deliver') for (const i of physical.carried(a)) if (Object.hasOwn(physical.RECIPES[step.project], i.type)) physical.deliver(a, i.id, step.project);
+        if (step.effect === 'deliver') {
+            let delivered = false;
+            for (const i of physical.carried(a)) if (Object.hasOwn(physical.RECIPES[step.project], i.type)) delivered = !!physical.deliver(a, i.id, step.project) || delivered;
+            if (delivered) task.feedback = progress(say('advUsed'), 'advDeliveredSaid', 'advDeliveredDone', { source: a.events.at(-1).id });
+        }
         if (step.effect === 'decide') {
             const target = world.hunger >= .45 ? 'berry:1' : world.fatigue >= .55 ? 'shade' : null;
             physical.event(a, 'field_decision', { target, hunger: world.hunger, fatigue: world.fatigue, at: world.elapsed });
@@ -208,7 +228,9 @@
                 || stage === 3 && (!recent.some(e => e.kind === 'gather') || !recent.some(e => e.kind === 'deliver') || !recent.some(e => e.kind === 'field_decision'))) return 'advCannot';
             const e = physical.event(a, ['survey', 'deliver', 'preparation', 'field_return'][stage], { at: world.elapsed, start: task.start,
                 originals: recent.map(e => e.id), life: world.experiences.filter(e => e.start >= task.start).map(e => e.id) });
-            physical.certify(a, e.id); return a.mastery.stage === 4 ? 'advMastery' : 'advReviewed';
+            physical.certify(a, e.id);
+            task.feedback = progress({ ...say(a.mastery.stage === 4 ? 'advMastery' : 'advReviewed'), npc: 'advLessonReview' + stage, master: 'explore', inline: true, npcAfter: true }, 'advReportedSaid', 'advReportedDone', { source: e.id });
+            return a.mastery.stage === 4 ? 'advMastery' : 'advReviewed';
         }
         if (step.effect === 'craft') {
             const coached=task.coached && task.project==='bridge' && !a.building.learned;
@@ -219,14 +241,18 @@
             const made=a.items.find(i=>i.source===e.id);
             if(made)a.connection.focus={item:made.id,source:e.id,place:world.attention};
             if(coached)e.coached=true;
-            world.island.bridgeOpen = a.building.bridge; return 'advBuilt';
+            world.island.bridgeOpen = a.building.bridge;
+            task.feedback = progress(say('advBuilt'), 'advFinishedSaid', 'advFinishedDone', { item: task.project, source: e.id });
+            return 'advBuilt';
         }
         if (step.effect === 'replan') { task.steps = plan(a, world, task); task.index = -1; }
         if (step.effect === 'enter') {
             if (!physical.enter(a, task.dungeon)) return 'advCannot';
             a.connection.trainingPaused=false;
             state.context.pendingQuestion = null; delete state.context.lastOutput; perceive(state);
-            world.mode = 'idle'; world.destination = null; world.attention = null; return 'advEntered';
+            world.mode = 'idle'; world.destination = null; world.attention = null;
+            if (a.run.training) task.feedback = { ...say('advEntered'), npc: 'advCourse1', master: 'explore', inline: true };
+            return 'advEntered';
         }
         if (['store', 'take'].includes(step.effect)) {
             if (!physical.transfer(a, step.item, step.effect === 'store' ? 'home' : physical.used(a) < physical.capacity(a) ? 'bag' : 'hand')) return 'advFull';
@@ -264,11 +290,13 @@
         task.remaining += Math.min(.1, Math.max(0, dt));
         if (task.remaining < step.seconds) return null;
         task.remaining = 0;
+        delete task.feedback;
         const message = effect(state, world, task, step); task.index++;
         if (message || !task.steps[task.index]) stop(state,world);
         if (!a.connection.task && !a.run) { world.mode = 'idle'; if(!world.attention?.startsWith('master:'))world.attention = null; world.dwell = 3; }
         const observed=a.connection.observedDrop;
-        return message ? {...say(message),...(task.kind==='storage' && task.coached && message==='advUsed' ? {teaching:task.action,mentor:'master:building'}:{}),...(task.kind==='pickup' && task.recovery && message==='advPicked'?{teaching:'pick'}:{})}
+        const feedback = task.feedback; delete task.feedback;
+        return message || feedback ? {...(feedback || say(message)),...(task.kind==='storage' && task.coached && message==='advUsed' ? {teaching:task.action,mentor:'master:building'}:{}),...(task.kind==='pickup' && task.recovery && message==='advPicked'?{teaching:'pick'}:{}),...(observed?.at===world.elapsed?{teaching:'drop'}:{})}
             : observed?.at===world.elapsed ? {...say('advDropped'),teaching:'drop'} : null;
     }
     const rules = teachable.map(action => ({ id: meaningFor(action), source: 'experienced_adventure', requireScope: true,
@@ -317,10 +345,11 @@
             delete a.connection.goal;
             world.mode = 'idle'; world.attention = null; world.destination = null; world.dwell = 0;
             world.activityStart = world.elapsed; world.reasons = []; world.route = [];
-            return say(a.training.completed && !oldCompleted ? 'advGraduated'
+            const reply = say(a.training.completed && !oldCompleted ? 'advGraduated'
                 : a.events.at(-1)?.reason === 'walked_out' ? 'advReturned' : a.events.at(-1)?.reason === 'master_safety' ? 'advSafety' : 'advRescued');
+            return a.training.completed && !oldCompleted ? progress({ ...reply, npc:'advCourseComplete',master:'explore',inline:true,npcAfter:true }, 'advReturnedSaid','advGraduated',{source:result.id}) : reply;
         }
-        if (reviewed) return say('advTraining');
+        if (reviewed) return { ...say('advTraining'), npc:a.run.floor===5?'advCourseReturn':'advCourse'+(a.run.floor+1), master:'explore', inline:true };
         return say(result.damage > result.damageBefore ? 'advHurt' : a.run.enemy.phase === 'ready' ? 'advReady'
             : ({ observe: 'advObserved', attack: 'advHit', avoid: 'advAvoided', use: 'advUsed', equip: 'advEquipped', pick: 'advPicked' })[action] || 'advMoved');
     }
@@ -348,7 +377,8 @@
         state.adventure.connection.offers.push({inputId:input.id,at:world.elapsed,proposal:copy(p)});
         world.dwell=Math.max(world.dwell,12);
         perceive(state,world);
-        return {...say('advOffered'),npc:'advOffer_' + (p.dungeon==='crystal'?'crystal':p.project || p.kind),master:p.master,inline:true};
+        return {...say('advOffered'),npc:'advOffer_' + (p.dungeon==='crystal'?'crystal':p.project || p.kind),master:p.master,inline:true,
+            ...(p.kind==='lesson'?{progress:{observed:'advOffered',npc:'advLessonGoal'+state.adventure.mastery.stage}}:{})};
     }
     function receive(state, world, result, locale = 'ja', labelOnly = false) {
         const a = init(state,world), u = result.understandings?.[0], frame = result.interpretations?.[0];
@@ -690,5 +720,5 @@
         return true;
     }
     function valid(state, world) { try { return validate(state,world); } catch (_) { return false; } }
-    return { init, start, stop, drop, tick, receive, hand, choice, autoConversation, recover, perceive, valid, rules, words, walkLabels, parse, actions, teachable, meaningFor, language, dungeonName };
+    return { init, start, stop, drop, tick, receive, hand, choice, autoConversation, recover, perceive, valid, rules, words, walkLabels, parse, actions, teachable, meaningFor, language, dungeonName, taskStatus };
 });

@@ -4,6 +4,38 @@
     const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
+        advCourse1: "ここからは同行訓練の一階だよ。まず周りを見て、足元を確かめながら歩いてみよう。",
+        advCourse2: "一階の観察と歩行は見届けたよ。二階では相手の予備動作を見て、攻撃と回避の両方を試そう。",
+        advCourse3: "二階の攻撃と回避は見届けたよ。三階では武器・防具・食料・手当て布を実際に使い、変化を確かめよう。",
+        advCourse4: "三階の実使用は見届けたよ。四階では疲れ・空腹・被害を見て、危険になる前に引き返す練習をしよう。",
+        advCourse5: "四階の撤退判断は見届けたよ。五階では学んだことを組み合わせて探索し、入口まで戻って帰ろう。",
+        advCourseComplete: "五階の探索と帰還まで見届けたよ。同行訓練は修了だ。貸した道具を返して、本探索に備えよう。",
+        advCourseReturn: "五階の探索と引き返す判断を見届けたよ。上り階段をたどって、島まで帰ろう。",
+        advReturnedSaid: "入口まで戻って、島に帰ってきたよ。",
+        advLessonGoal0: "冒険家の実地課題①だよ。森と山で地形を見て、行き先と帰り道を確かめたら、ここへ報告に戻ろう。",
+        advLessonGoal1: "冒険家の実地課題②だよ。森で木材を集め、建築士へ運んで渡したら、ここへ報告に戻ろう。",
+        advLessonGoal2: "冒険家の実地課題③だよ。体の疲れと空腹を確かめ、木陰で実際に休んでから、ここへ報告に戻ろう。",
+        advLessonGoal3: "冒険家の最終課題だよ。森で集めて運び、体の様子から食事や休息を判断して、自分で一巡して戻っておいで。",
+        advLessonReview0: "地形の確認と往復を見届けたよ。課題①は修了。次は、集めた材料を運ぶ課題だよ。",
+        advLessonReview1: "材料を集め、建築士へ渡して戻れたね。課題②は修了。次は、体をいたわる課題だよ。",
+        advLessonReview2: "実際に休み、戻って報告できたね。課題③は修了。次は、自分で判断する最後の一巡だよ。",
+        advLessonReview3: "採集、運搬、体の判断、帰還まで確かめたよ。最後の課題も修了、冒険家皆伝だ。橋の先の入口へ進めるよ。",
+        advAccepted: "この課題をやってみるね。終わったら、ここに戻ってくるよ。",
+        advAcceptedGesture: "課題を受け、師匠にうなずいてから出発した。",
+        advFoundSaid: "{item}を見つけたよ。持って帰るね。",
+        advFoundDone: "{item}を見つけ、実際に手に取った。",
+        advSurveySaid: "行き先と帰り道を確かめたよ。",
+        advSurveyDone: "地形を見て、行き先と帰り道を確かめた。",
+        advDeliveredSaid: "材料を運んできたよ。これを渡すね。",
+        advDeliveredDone: "運んできた材料を、建築・製作のために渡した。",
+        advFinishedSaid: "{item}の作業がおわったよ。できたものを確かめよう。",
+        advFinishedDone: "{item}の実作業が終わり、完成したものを確かめた。",
+        advReportedSaid: "戻ってきたよ。課題でやってきたことを報告するね。",
+        advReportedDone: "師匠のもとへ戻り、課題で実行したことを示した。",
+        advMaking: "材料を集めて納入し、実際の製作を進めている。",
+        advJourney: "橋を渡り、ダンジョンの入口へ向かっている。",
+        advItem_bridge: "橋",
+        advItem_home: "家",
         advDropped: "持っていた現物を、今いる場所の地面へ置いた。",
         advStopped: "今の作業と探索の目的を取り消し、その場で止まった。",
         advOffer_crystal: "実地課題は修了したね。橋を渡り、クリスタルの入口へ案内しよう。初めてなら私と五階の訓練をしよう。",
@@ -452,7 +484,7 @@
     const autoApi = window.ExperimentalWordAutoTraining;
     let autoMemory = autoApi.create(), autoActive = false, autoPlan = null, autoDue = 0, autoBaseline = null, automaticSubmission = false;
     let environmentVolume = .5;
-    let voice, lastReplyIsNarration = false;
+    let voice, lastReplyIsNarration = false, adventureSpeechToken = 0, adventureSpeechPending = false;
     function record(kind, data) {
         report?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
         personalLog?.record(kind, { elapsed: world?.elapsed ?? 0, locale: window.GameI18n.language, ...data });
@@ -1802,11 +1834,13 @@
         const reply = adventureApi.hand(state, world, action, target, instruction, window.GameI18n.language);
         if(reason==='body' && reply.message==='advMoved')reply.message='advRetreatReason';
         record('adventure_action', {action,target,event:state.adventure.events.at(-1)});
-        showReply(reply);updatePerception();renderNotebook();save();
+        if (!reply.npc) showReply(reply);
+        updatePerception();renderNotebook();save();
         if ((guided || autoActive) && adventureApi.teachable.includes(action)
             && !state.knowledge.meanings.some(m=>m.id===adventureApi.meaningFor(action))) {
             labelAdventureAction(action,guided?'master:explore':null);
         }
+        if (reply.npc) showReply(reply);
     }
     if (window.WordIslandMode && adventureApi) adventureView = new window.ExperimentalWordAdventureView(canvas, controls, t, adventureAction);
     // Keep the modal out of the playing grid and its clipped/scrolling ancestors.
@@ -1970,16 +2004,23 @@
         }
     }
     function showReply(reply) {
+        const progress = reply.progress;
+        if (progress) reply = { ...reply,
+            message: state.settings.speech === 'short' && progress.spoken ? progress.spoken : progress.observed,
+            observation: !(state.settings.speech === 'short' && progress.spoken),
+            npc: progress.npc || reply.npc };
+        const progressText = progress?.item ? displayText(reply.message).replace('{item}', displayText('advItem_' + progress.item)) : null;
         const personalReport = state.identity && { heard_report_self: 'identity_report_self',
             heard_report_not_resting: 'identity_report_not_resting', heard_report_player: 'identity_report_player' }[reply.message];
-        const identityText = reply.identity ? identityApi.format(displayText(reply.message), reply.identity)
-            : personalReport ? identityApi.format(displayText(personalReport), state.identity) : null;
-        if (reply.npc) {
+        const identityText = progressText ?? (reply.identity ? identityApi.format(displayText(reply.message), reply.identity)
+            : personalReport ? identityApi.format(displayText(personalReport), state.identity) : null);
+        const appendMentor = () => {
             const line = node('p', undefined, conversation); line.className = 'master-line';
             node('strong', t(`master_${reply.master}`), line); node('br', undefined, line);
             node('span', t(reply.npc), line);
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
-        }
+        };
+        if (reply.npc && !reply.npcAfter) appendMentor();
         record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + (identityText ?? displayText(reply.message)) + (reply.literal || '') });
         bubble.replaceChildren(); bubble.hidden = false;
         const line = node('p', undefined, conversation);
@@ -1998,18 +2039,24 @@
                 const quotation = node('span', reply.literal, parent); quotation.setAttribute('data-i18n-skip', '');
             }
         }
+        if (reply.npc && reply.npcAfter) appendMentor();
         world.speech = { until: world.elapsed + 7, target: reply.target || null };
         if (reply.target) { world.reaction = 'recognize'; world.reactionTime = 5; }
         conversation.scrollTop = conversation.scrollHeight;
         lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
             || reply.message === 'attend' || reply.message.endsWith('_gesture');
-        if (lastReplyIsNarration && !reply.word && !reply.literal && Object.hasOwn(labels, reply.message))
+        if (lastReplyIsNarration && !reply.word && !reply.literal && !progress?.item && Object.hasOwn(labels, reply.message))
             voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
         if (reply.npc && window.WordIslandMode && !reply.inline) openMaster(reply);
-        else if (reply.npc) void voice.speakScene([
-            { text: t(reply.npc), role: 'master', master: reply.master },
-            { text: bubble.textContent, role: 'narration' }
-        ]);
+        else if (reply.npc) {
+            const parts = [{ text: t(reply.npc), role: 'master', master: reply.master },
+                { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }];
+            const token = ++adventureSpeechToken;
+            adventureSpeechPending = reply.inline && readAloud.checked;
+            void voice.speakScene(reply.npcAfter ? parts.reverse() : parts).finally(() => {
+                if (token === adventureSpeechToken) adventureSpeechPending = false;
+            });
+        }
         else voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
     }
     function animate(time) {
@@ -2026,7 +2073,7 @@
             evolveButton.disabled = !ready && !state.evolution.pending;
             evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
-            const holding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim();
+            const holding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim() || adventureSpeechPending;
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -2048,6 +2095,7 @@
             const event = worldApi.tick(world, dt, holding);
             if (event) record('life', { event });
             updatePerception();
+            const taskAtArrival = state.adventure?.connection.task;
             const spontaneous = worldApi.onArrival(world, state, event);
             if (adventureApi && state.adventure) {
                 const serial = state.adventure.serial;
@@ -2059,7 +2107,9 @@
             }
             if (event) growthApi.observe(state, world, null, event);
             if (event) acquired(collectionApi.observe(collection, state, world, event));
-            if (spontaneous) showReply(spontaneous);
+            // Keep first-meeting films, but do not announce an unrelated chore
+            // when returning to report a lesson or deliver project materials.
+            if (spontaneous && (!taskAtArrival || !spontaneous.master || spontaneous.message === 'master_meet')) showReply(spontaneous);
             if (event) renderNotebook();
             tickAuto(holding);
             if (world.speech && world.elapsed > world.speech.until) bubble.hidden = true;

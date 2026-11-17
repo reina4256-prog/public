@@ -404,6 +404,21 @@ function audioSetup() {
     return { ...s, voice, options, provider, rendered, requests, connections, audioVoices, effects };
 }
 
+test('mixed mentor and child scenes keep the chosen child voice and tuning, and stop before the next speaker', async()=>{
+    const s=audioSetup();s.voice.setSource('voicevox');await s.voice.connectProvider();
+    s.voice.selectVoice('robot',voiceId(s.audioVoices[1]));s.voice.setTuning('robot',{pitch:1.2,rate:.8});s.voice.setEffect('robot',.3);s.voice.setEnabled(true);
+    await s.voice.speakScene([{text:'mentor briefing',role:'master',master:'explore'},{text:'child acceptance',role:'dialogue'}]);
+    assert.equal(s.requests[0].voice.styleId,cast.explore.styleId);
+    assert.equal(s.requests[1].voice,s.audioVoices[1]);assert.equal(s.requests[1].pitch,1.2);assert.equal(s.requests[1].rate,.8);
+    assert.equal(s.rendered[1].settings.amount,.3);
+    await s.voice.speakScene([{text:'child report',role:'dialogue'},{text:'mentor review',role:'master',master:'explore'}]);
+    assert.equal(s.requests[2].voice,s.audioVoices[1]);assert.equal(s.requests[3].voice.styleId,cast.explore.styleId);
+    s.voice.setSource('device');const scene=s.voice.speakScene([{text:'native child report',role:'dialogue'},{text:'later review',role:'master',master:'explore'}]);
+    for(let i=0;i<10 && !s.spoken.some(x=>x.text==='native child report');i++)await new Promise(resolve=>setImmediate(resolve));
+    const spoken=s.spoken.find(x=>x.text==='native child report');assert.ok(spoken);assert.equal(voiceId(spoken.voice),s.voice.voices().profile.dialogue.robot);assert.equal(spoken.pitch,1.2);assert.equal(spoken.rate,.8);
+    const before=s.rendered.length;s.voice.stop();await scene;assert.equal(s.rendered.length,before,'stopping the child prevents the next mentor playback');
+});
+
 test('audio providers share effects and preserve separate voice choices through local / future / local and reload', async () => {
     const s = audioSetup(); const native = s.voice.voices().profile.dialogue.robot;
     assert.equal(s.voice.setSource('unregistered'), false);

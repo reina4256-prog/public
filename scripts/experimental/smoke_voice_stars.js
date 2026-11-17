@@ -435,6 +435,17 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         checks.push({ chosenChildOnly: true, pitchAndRateBySevenLanguages: true, narratorFixedCast: true, separateNarrator: true, previewDoesNotMutate: true,
             preferencesSurviveReload: true, actualDialogueUsesTuning: true, questionsThenMeetingWithVoiceAndSignature: true, voiceViewports: 2 });
+        const mixedBefore=JSON.stringify(snapshot.state),audioCount=await js(`window.__audioStarted`);
+        await js(`(async()=>{window.mixedVoice=ExperimentalWordVoice.create(window,{locale:()=> 'ja',species:()=> 'robot',volume:()=>.4,canSpeak:()=>true,status(){},listening(){},transcript(){}});
+            mixedVoice.setSource('voicevox');await mixedVoice.connectProvider();mixedVoice.selectVoice('robot',ExperimentalWordVoice.voiceId(mixedVoice.voices().dialogue[1]));
+            mixedVoice.setTuning('robot',{pitch:1.2,rate:.8});mixedVoice.setEnabled(true);
+            await mixedVoice.speakScene([{text:'mixed mentor briefing',role:'master',master:'explore'},{text:'mixed child acceptance',role:'dialogue'}]);
+            await mixedVoice.speakScene([{text:'mixed child report',role:'dialogue'},{text:'mixed mentor review',role:'master',master:'explore'}]);mixedVoice.stop();})()`);
+        assert.equal(await js(`window.__audioStarted`),audioCount+4,'all four mixed scene lines play through real Web Audio');
+        const mixedQueries=audioRequests.filter(r=>r.url.startsWith('/__voicevox_test/audio_query')&&new URL(r.url,'http://test').searchParams.get('text')?.startsWith('mixed '));
+        assert.deepEqual(mixedQueries.map(r=>new URL(r.url,'http://test').searchParams.get('speaker')),['14','1','1','14']);
+        assert.equal(JSON.stringify(snapshot.state),mixedBefore,'transport does not teach or change the child');
+        checks.push({mixedMentorChildScene:true,actualWebAudioLines:4,selectedChildVoice:true,reportBeforeReview:true,stateUnchanged:true});
         assert.deepEqual(failures, []);
         checks.push({ temporarySaveReload: true, failures });
         fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ ok: true, profile: directory, checks }, null, 2));

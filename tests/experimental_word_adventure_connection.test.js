@@ -104,7 +104,24 @@ test('real island round trips, delivered materials and timed work unlock bridge 
 test('five-floor practical training, common action teaching and stopped JSON state share actual hands',()=>{
     const p=setup(),a=p.state.adventure;
     for(let i=0;i<4;i++){say(p,'冒険家の課題');finish(p);}
-    say(p,'橋を依頼する');finish(p);say(p,'スカルへ行く');finish(p);
+    say(p,'橋を依頼する');finish(p);
+    // Explicitly finish real rests. Autonomous meal/rest thresholds need not
+    // produce both low hunger and low fatigue at the same instant on every map.
+    // Three complete rests suffice even after a long route at maximum fatigue.
+    for(let round=0;round<3;round++) {
+        for(let i=0;i<1000 && ['eat','work'].includes(p.world.mode);i++) {
+            const e=worldApi.tick(p.world,.1);worldApi.onArrival(p.world,p.state,e);connection.tick(p.state,p.world,.1,false,e);
+        }
+        assert.ok(worldApi.approach(p.world,'shade','pointing'));
+        const start=p.world.elapsed;let rested=false;
+        for(let i=0;i<50000 && !rested;i++) {
+            const e=worldApi.tick(p.world,.1);worldApi.onArrival(p.world,p.state,e);connection.tick(p.state,p.world,.1,false,e);
+            rested=e?.kind==='experience' && e.activity==='rest' && e.start>=start;
+        }
+        assert.ok(rested,'the complete rest is witnessed');
+    }
+    assert.ok(p.world.fatigue<.05,'actual rest prepares the course');
+    say(p,'スカルへ行く');finish(p);
     assert.ok(a.run?.training);
     for(let i=0;i<1500 && a.run;i++){
         const c=connection.choice(p.state,p.world); assert.ok(c);

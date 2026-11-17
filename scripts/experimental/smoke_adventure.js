@@ -30,7 +30,18 @@ if (!process.versions.electron || process.type !== 'browser') {
         ipcMain.on('word-life-load',e=>{e.returnValue=store.load();});
         ipcMain.on('word-life-save',(e,v)=>{const result=store.save(v);if(result.ok)snapshot=v;else errors.push('invalid-save');e.returnValue=result;});
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
-        server=require('./serve').createServer();await new Promise(r=>server.listen(0,'127.0.0.1',r));
+        server=require('./serve').createServer();
+        const serve=server.listeners('request')[0];server.removeAllListeners('request');
+        server.on('request',(request,response)=>{
+            if(request.url==='/experimental_word_voice.js') {
+                response.writeHead(200,{'Content-Type':'application/javascript'});
+                response.end(fs.readFileSync(path.resolve(__dirname,'../../experimental_word_voice.js'),'utf8')+`
+                    (()=>{window.__adventureScenes=[];const create=ExperimentalWordVoice.create;
+                    ExperimentalWordVoice.create=(...args)=>{const voice=create(...args),scene=voice.speakScene;
+                    voice.speakScene=(lines,...rest)=>{window.__adventureScenes.push(structuredClone(lines));return scene(lines,...rest);};return voice;};})();`);
+            } else serve(request,response);
+        });
+        await new Promise(r=>server.listen(0,'127.0.0.1',r));
         const url=`http://127.0.0.1:${server.address().port}/experimental_word_island.html${normalMode?'':'?debug=1'}`;
         window=new BrowserWindow({show:false,width:1280,height:900,webPreferences:{contextIsolation:true,sandbox:true,nodeIntegration:false,backgroundThrottling:false,preload:path.join(__dirname,'preload.js')}});
         window.webContents.on('console-message',(_e,level,message)=>{if(level>=3)errors.push(message);});
@@ -77,6 +88,19 @@ if (!process.versions.electron || process.type !== 'browser') {
         if(!layoutOnly) {
             await js(`for(const axis of ['life','conversation','exploration']){const slider=document.querySelector('#word-auto-'+axis);slider.value=axis==='exploration'?'3':'0';slider.dispatchEvent(new Event('input'));}document.querySelector('#word-auto-toggle').click();void 0`);
             await wait(()=>snapshot?.state.adventure.mastery.stage===4,'actual mentor lessons');console.log('mastery complete');
+            const lessonDialogue=await js(`document.querySelector('#conversation').textContent`);
+            for(const number of ['①','②','③'])assert.ok(lessonDialogue.includes('課題'+number),'visible lesson '+number);
+            assert.ok(lessonDialogue.includes('最後の課題も修了'),'mentor confirms the actual final lesson');
+            assert.ok(lessonDialogue.includes(snapshot.state.settings.speech==='short'?'木材を見つけたよ':'木材を見つけ、実際に手に取った'),'actual gathered material is named');
+            assert.ok(!lessonDialogue.includes('{item}'),'all event placeholders are resolved');
+            const scenes=await js(`window.__adventureScenes`);
+            const review=scenes.find(lines=>lines.some(l=>l.text.includes('最後の課題も修了')));
+            assert.ok(review,'actual UI produces the final mentor dialogue');
+            assert.equal(review.at(-1).role,'master');
+            assert.equal(review[0].role,snapshot.state.settings.speech==='short'?'dialogue':'narration');
+            fs.writeFileSync(path.join(directory,'lesson-voice-scenes.json'),JSON.stringify(scenes,null,2));
+            fs.writeFileSync(path.join(directory,'lesson-dialogue.txt'),lessonDialogue);
+            fs.writeFileSync(path.join(directory,'lesson-dialogue.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
             await wait(()=>snapshot?.state.adventure.building.bridge,'actual bridge construction');console.log('bridge complete');
             await wait(()=>snapshot?.state.adventure.training.completed,'five-floor mentor training');console.log('training complete');
             assert.ok(snapshot.state.adventure.connection.receipts.some(r=>r.input.speaker==='master:explore'),'original mentor speech paired with real actions');
