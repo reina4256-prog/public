@@ -49,6 +49,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         window.setMenu(null);
         const url = `http://127.0.0.1:${server.address().port}/`;
         const store = createStore(userData);
+        const audioPreferences = require('./audio_preferences').createAudioPreferences(userData);
         speech = require('./speech_process').createSpeechProcess(app.isPackaged
             ? { directory: path.join(process.resourcesPath, 'word-speech') } : {});
         const isWindow = event => event.sender === window.webContents && event.senderFrame?.url === url;
@@ -78,6 +79,12 @@ if (storageReady && !app.requestSingleInstanceLock()) {
                 event.returnValue = { ok: false, reason: 'sender' }; return;
             }
             event.returnValue = store[operation](value);
+        });
+        for (const operation of ['load', 'save']) ipcMain.on(`word-audio-preferences-${operation}`, (event, value) => {
+            if (event.sender !== window.webContents || event.senderFrame?.url !== url) {
+                event.returnValue = { ok: false }; return;
+            }
+            event.returnValue = audioPreferences[operation](value);
         });
         window.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
         window.webContents.on('will-navigate', (event, destination) => {

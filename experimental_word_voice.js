@@ -26,7 +26,15 @@
     function create(host, options) {
         const Recognition = host.wordSpeech
             ? host.ExperimentalWordSpeechInput?.create(host) : host.SpeechRecognition || host.webkitSpeechRecognition;
-        let active = null, generation = 0, enabled = false, utterance = null;
+        let active = null, generation = 0, enabled = true, utterance = null;
+        const enabledKey = 'wordReadAloud:v1';
+        let enabledSaved = true;
+        try {
+            const result = host.wordStorage?.loadAudioPreferences?.();
+            if (result && !result.ok) enabledSaved = false;
+            const saved = result ? result.value?.readAloud : JSON.parse(host.localStorage?.getItem(enabledKey) || 'null');
+            if (typeof saved === 'boolean') enabled = saved;
+        } catch (_) { enabledSaved = false; }
         let lastRecording = null, comparison = null;
         let playbackWait = null;
         let castTimer = null;
@@ -408,25 +416,28 @@
             const preview = settings.preview === true;
             if ((preview ? !options.canPreview?.() : !enabled || !options.canSpeak()) || active || comparison) return;
             const locale = options.locale(), provider = providers.voicevox;
-            if (!effects?.supported || !provider?.supports(locale)) { status('castLanguage'); return; }
+            const sequence = lines.slice(0, 3).filter(line => line.text);
+            const hasChild = sequence.some(line => line.role === 'dialogue');
+            if (!hasChild && (!effects?.supported || !provider?.supports(locale))) { status('castLanguage'); return; }
             stop(true); const token = generation, controller = new host.AbortController(); pending = controller;
             const current = () => token === generation && !controller.signal.aborted && locale === options.locale()
                 && !active && !comparison && (preview ? options.canPreview?.() : enabled && options.canSpeak());
             const timer = setTimeout(() => {
                 if (token !== generation) return;
-                controller.abort(); effects.stop();
+                controller.abort(); effects?.stop();
                 cancelPreparation();
                 if (playbackWait) { clearTimeout(playbackWait.timer); playbackWait.resolve(); playbackWait = null; }
                 status('providerFailed');
             }, 120000);
             castTimer = timer;
             try {
-                await abortable(effects.prepare(), controller.signal); if (!current()) return;
-                const sequence = lines.slice(0, 2).filter(line => line.text);
+                if (effects?.supported) await abortable(effects.prepare(), controller.signal);
+                if (!current()) return;
                 // Child speech uses the child's selected transport and tuning.
                 // It must never enter the persistent fixed-cast WAV cache.
                 const prepare = async (line, priority) => {
-                    if (line.role !== 'dialogue') return prepareLine(line, locale, priority);
+                    if (line.role !== 'dialogue') return effects?.supported && provider?.supports(locale)
+                        ? prepareLine(line, locale, priority) : { error: 'castLanguage' };
                     const bank = voices(), id = line.species || options.species?.() || 'robot';
                     const tuning = bank.profile.tuning[id] || { pitch: 1, rate: 1 };
                     const chosen = bank.dialogue.find(v => voiceId(v) === (bank.source === 'device' ? bank.profile.dialogue[id] : bank.choices[id]));
@@ -437,12 +448,19 @@
                     return { buffer: await effects.decode(data), species: id, amount: bank.effect[id] ?? .65 };
                 };
                 const prepareSafely = (line, priority) => prepare(line, priority).catch(() => ({ error: 'providerFailed' }));
-                let upcoming = sequence.length ? prepareSafely(sequence[0], 2) : null;
+                let upcoming = sequence.length ? prepareSafely(sequence[0], 2) : null, failureStatus = null;
                 for (let index = 0; index < sequence.length; index++) {
                     if (!current()) return;
                     status('providerGenerating');
                     const result = await abortable(upcoming, controller.signal); if (!current()) return;
-                    if (!result.buffer && !result.device) { status(result.error === 'voiceMissing' ? 'voiceMissing' : 'providerFailed'); return; }
+                    if (!result.buffer && !result.device) {
+                        failureStatus = ['voiceMissing', 'castLanguage', 'providerLanguage'].includes(result.error) ? result.error : 'providerFailed';
+                        status(failureStatus);
+                        // A missing cast service must not suppress the child's inner voice.
+                        if (!hasChild) return;
+                        upcoming = index + 1 < sequence.length ? prepareSafely(sequence[index + 1], 1) : null;
+                        continue;
+                    }
                     upcoming = index + 1 < sequence.length ? prepareSafely(sequence[index + 1], 1) : null;
                     if (result.device) {
                         if (!host.speechSynthesis || !host.SpeechSynthesisUtterance) { status('unsupportedOutput'); return; }
@@ -461,7 +479,7 @@
                         });
                     }
                 }
-                if (current()) { status('ready'); warmFixed(); }
+                if (current()) { status(failureStatus || 'ready'); warmFixed(); }
             } catch (_) { if (token === generation) status('providerFailed'); }
             finally { clearTimeout(timer); if (castTimer === timer) castTimer = null; if (pending === controller) pending = null; }
         }
@@ -492,9 +510,22 @@
             finally { clearTimeout(timer); if (pending === controller) pending = null; }
         }
         return { listen, speak, speakScene, prepareScene, registerFixedLines, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
-            setEnabled(value) { enabled = !!value; if (!enabled) this.stop(); else { if (effects?.supported) void effects.prepare().catch(() => status('failedOutput')); warmFixed(); } },
+            setEnabled(value) {
+                enabled = !!value;
+                try {
+                    if (host.wordStorage?.saveAudioPreferences) {
+                        if (!host.wordStorage.saveAudioPreferences({ readAloud: enabled })?.ok) throw new Error('write');
+                    } else {
+                        if (!host.localStorage) throw new Error('storage');
+                        host.localStorage.setItem(enabledKey, JSON.stringify(enabled));
+                    }
+                    enabledSaved = true;
+                } catch (_) { enabledSaved = false; status('preferencesUnsaved'); }
+                if (!enabled) this.stop(); else { if (effects?.supported) void effects.prepare().catch(() => status('failedOutput')); warmFixed(); }
+            },
+            get enabled() { return enabled; },
             supportedInput: !!Recognition, supportedOutput: !!((host.speechSynthesis && host.SpeechSynthesisUtterance) || effects?.supported),
-            get preferencesSaved() { return preferencesSaved; },
+            get preferencesSaved() { return preferencesSaved && enabledSaved; },
             get listening() { return !!active || !!comparison; } };
     }
     return { create, locales, species, voiceId, cast, reserved };

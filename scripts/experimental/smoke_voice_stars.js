@@ -49,7 +49,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         };
         window.SpeechSynthesisUtterance = class { constructor(text) { this.text = text; } };
         Object.defineProperty(window, 'speechSynthesis', { value: {
-            speak(u) { window.__spoken.push({ text: u.text, lang: u.lang, volume: u.volume, voice: u.voice.voiceURI, pitch: u.pitch, rate: u.rate }); },
+            speak(u) { window.__spoken.push({ text: u.text, lang: u.lang, volume: u.volume, voice: u.voice.voiceURI, pitch: u.pitch, rate: u.rate }); setTimeout(() => u.onend?.(), 20); },
             addEventListener() {}, cancel() {}, getVoices() { return ['ja-JP','en-US','zh-CN','ru-RU','es-ES','pt-BR','de-DE'].flatMap(lang =>
                 [0,1,2].map(i => ({lang, name: lang+' voice '+i, voiceURI: lang+'-'+i}))); }
         }});`;
@@ -87,6 +87,9 @@ if (!process.versions.electron || process.type !== 'browser') {
             } else serve(request, response);
         });
         await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+        const preferences = require('./audio_preferences').createAudioPreferences(directory);
+        ipcMain.on('word-audio-preferences-load', event => { event.returnValue = preferences.load(); });
+        ipcMain.on('word-audio-preferences-save', (event, value) => { event.returnValue = preferences.save(value); });
         ipcMain.on('word-life-load', event => { event.returnValue = { ok: true, value: nextLoad }; });
         ipcMain.on('word-life-save', (event, value) => { snapshot = value; event.returnValue = { ok: true }; });
         // Keep this UI fixture independent of persistent audio; smoke_voice_cache covers disk reuse.
@@ -103,6 +106,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         const url = `http://127.0.0.1:${server.address().port}/experimental_word_learning.html?debug=1`;
         async function load(foundation, life, speech = 'short') {
             await window.loadURL(url); await sleep(450);
+            assert.equal(await js(`document.querySelector('#word-read-aloud').checked`), preferences.load().value?.readAloud ?? true);
+            if (await js(`document.querySelector('#word-read-aloud').checked`)) await js(`document.querySelector('#word-read-aloud').click(); void 0`);
             for (let i=0;i<100 && await js(`document.querySelector('#word-new-game').disabled`);i++) await sleep(100);
             await js(`document.querySelectorAll('form select')[1].value = '${foundation ? 'yes' : 'no'}';
                 document.querySelectorAll('form select')[2].value = '${life ? 'yes' : 'no'}';
@@ -124,6 +129,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`document.querySelectorAll('.word-star').length`), 0);
         await js(`document.querySelector('.word-stars-dialog').close(); void 0`);
         await js(`document.querySelector('.chat-form textarea').value = '木の実がある'; document.querySelector('.chat-form').requestSubmit(); void 0`);
+        assert.match(await js(`document.querySelector('#conversation .word-inner-voice').textContent`), /心の声.*まだ分からない/);
+        assert.doesNotMatch(await js(`document.querySelector('#conversation .word-inner-voice').textContent`), /berry|意味は分かる/);
         const unknownState = JSON.stringify(snapshot.state);
         await js(`document.querySelector('#word-stars').click(); void 0`);
         assert.equal(await js(`document.querySelectorAll('.word-star').length`), 0);
@@ -234,6 +241,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(await js(`window.__spoken.length`), 0);
         await js(`document.querySelector('#word-read-aloud').click();
             document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); void 0`);
+        for (let i=0;i<100 && !(await js(`window.__spoken.at(-1)?.text.includes(document.querySelector('.bubble').textContent)`));i++) await sleep(20);
         assert.ok(await js(`window.__spoken.at(-1).text.includes(document.querySelector('.bubble').textContent)`));
         assert.equal(await js(`window.__spoken.at(-1).lang`), 'ja-JP');
         assert.equal(await js(`window.__spoken.at(-1).voice`), 'ja-JP-0');
@@ -300,9 +308,9 @@ if (!process.versions.electron || process.type !== 'browser') {
         nextLoad = null; await load(false, false, 'gesture');
         await js(`window.GameI18n.setLanguage('ja'); document.querySelector('.chat-form textarea').value = 'おはよう'; document.querySelector('.chat-form').requestSubmit(); document.querySelector('#word-read-aloud').click(); void 0`);
         for (let i=0; i<100 && !audioRequests.some(r => r.url.startsWith('/__voicevox_test/synthesis')); i++) await sleep(30);
-        assert.equal(await js(`window.__spoken.length`), 0);
+        assert.ok(await js(`window.__spoken.some(u => u.text === document.querySelector('#conversation .word-inner-voice p').textContent)`));
         assert.ok(audioRequests.some(r => r.url.startsWith('/__voicevox_test/audio_query') && new URL(r.url, 'http://test').searchParams.get('speaker') === '2'));
-        checks.push({ gestureReadAloudRemainsNarration: true });
+        checks.push({ gestureReadAloudRemainsNarration: true, innerVoiceUsesSelectedChild: true, readAloudDefaultAndSavedPreference: true });
         const beforeAudition = JSON.stringify(snapshot.state);
         await js(`document.querySelector('#word-voice-choose').click(); void 0`);
         for (const locale of locales) {
@@ -358,7 +366,9 @@ if (!process.versions.electron || process.type !== 'browser') {
             document.querySelector('#word-voice-source').value = 'voicevox'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change')); void 0`);
         assert.equal(audioRequests.length, 0);
         await js(`document.querySelector('#word-voice-connect').click(); void 0`);
-        for (let i=0; i<100 && await js(`document.querySelector('#word-dialogue-voice').options.length !== 2`); i++) await sleep(30);
+        for (let i=0; i<1000 && await js(`document.querySelector('#word-dialogue-voice').options.length !== 2 || document.querySelector('.word-voice-sample button').disabled`); i++) await sleep(30);
+        assert.equal(await js(`document.querySelector('#word-dialogue-voice').options.length`), 2, 'provider voices have actually loaded');
+        assert.equal(await js(`document.querySelector('.word-voice-sample button').disabled`), false, 'provider preview is ready');
         assert.equal(await js(`Array.from(document.querySelector('#word-dialogue-voice').options).some(o=>o.value.includes('7ffcb7ce-00ec-4bdc-82cd-45a8889e43ff'))`), false);
         assert.equal(audioRequests.length, 1);
         await js(`document.querySelector('#word-dialogue-voice').selectedIndex = 1; document.querySelector('#word-dialogue-voice').dispatchEvent(new Event('change'));
@@ -448,10 +458,48 @@ if (!process.versions.electron || process.type !== 'browser') {
         checks.push({mixedMentorChildScene:true,actualWebAudioLines:4,selectedChildVoice:true,reportBeforeReview:true,stateUnchanged:true});
         assert.deepEqual(failures, []);
         checks.push({ temporarySaveReload: true, failures });
+        await load(false, false, 'gesture');
+        await js(`document.querySelector('#word-voice-choose').click();
+            document.querySelector('#word-voice-source').value='device'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change'));
+            document.querySelector('#word-voice-continue').click(); void 0`);
+        await js(`document.querySelector('#word-read-aloud').click(); void 0`);
+        const innerLocales = [];
+        for (const locale of locales) {
+            await js(`GameI18n.setLanguage('${locale}'); void 0`);
+            const count = await js(`window.__spoken.length`);
+            await js(`document.querySelector('.chat-form textarea').value = '<original player words>'; document.querySelector('.chat-form').requestSubmit(); void 0`);
+            for (let i=0;i<100 && (await js(`window.__spoken.length`)) === count;i++) await sleep(20);
+            const shown = await js(`Array.from(document.querySelectorAll('#conversation .word-inner-voice p')).at(-1).textContent`);
+            assert.equal(shown, await js(`GameI18n.translate(ExperimentalWordConstellationLive.innerMessages.unknown)`));
+            assert.equal(await js(`document.querySelector('#word-inner-voice-current p').textContent`), shown);
+            const spoken = await js(`window.__spoken.slice(${count}).find(u => u.text === ${JSON.stringify(shown)})`);
+            assert.ok(spoken, locale + ' inner voice is spoken');
+            const profile = await js(`JSON.parse(localStorage.getItem('wordVoiceProfiles:v1'))[${JSON.stringify(locale)}]`);
+            assert.equal(spoken.voice, JSON.parse(profile.dialogue.robot)[0]);
+            assert.equal(spoken.pitch, profile.tuning.robot.pitch); assert.equal(spoken.rate, profile.tuning.robot.rate);
+            if (locale !== 'ja') assert.doesNotMatch(shown, /[\u3040-\u30ff]/u);
+            for (const width of [1280,390]) {
+                window.setContentSize(width,900); await sleep(100);
+                await js(`document.querySelector('#word-inner-voice-current').scrollIntoView({block:'center'}); void 0`);
+                assert.equal(await js(`document.documentElement.scrollWidth <= innerWidth + 1`), true);
+                fs.writeFileSync(path.join(evidence, `inner-${locale}-${width}.png`), (await window.webContents.capturePage()).toPNG());
+            }
+            innerLocales.push({ locale, text: shown, voice: spoken.voice });
+        }
+        assert.deepEqual(require('./audio_preferences').createAudioPreferences(directory).load().value, { readAloud: true });
+        checks.push({ innerVoiceSevenLocales: innerLocales, lowFoundationGesture: true, selectedVoiceAndTuning: true,
+            appPreferenceStoreRecreated: true, screenshots: 14 });
         fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ ok: true, profile: directory, checks }, null, 2));
         console.log(JSON.stringify({ ok: true, evidence, checks }));
-    }).catch(error => {
+    }).catch(async error => {
         fs.writeFileSync(path.join(evidence, 'failure.txt'), String(error.stack) + '\n' + JSON.stringify(failures));
+        if(window&&!window.isDestroyed())try {
+            const diagnostic=await window.webContents.executeJavaScript(`({locale:GameI18n.language,source:document.querySelector('#word-voice-source')?.value,
+                choices:Array.from(document.querySelector('#word-dialogue-voice')?.options||[]).map(o=>({value:o.value,disabled:o.disabled,selected:o.selected})),
+                previewDisabled:document.querySelector('.word-voice-sample button')?.disabled,status:document.querySelector('#word-voice-status')?.textContent,
+                audio:localStorage.getItem('wordAudioSources:v1')})`);
+            fs.writeFileSync(path.join(evidence,'failure-diagnostic.json'),JSON.stringify({diagnostic,audioRequests},null,2));
+        }catch(_){}
         console.error(error); console.error(evidence); process.exitCode = 1;
     }).finally(() => {
         window?.destroy(); if (server) { server.closeAllConnections(); server.close(); }

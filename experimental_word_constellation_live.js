@@ -12,7 +12,9 @@
         sit: '座る', sleep: '眠る', wake: '起きる', walk: '歩く', sweet: '甘い', bitter: '苦い', comfortable: '心地よい',
         painful: 'つらい', happy: 'うれしい', sad: '悲しい', like: '好き', dislike: '嫌い', success: 'うまくいく', failure: 'うまくいかない',
         work: '仕事', 'work:explore': '荷物運び', 'work:farming': '石拾い', 'work:fishing': '網修理',
-        'work:cooking': '皿洗い', 'work:smithing': 'ふいご', 'work:building': '図面写し' };
+        'work:cooking': '皿洗い', 'work:smithing': 'ふいご', 'work:building': '図面写し',
+        'action:attack': '攻撃する', 'action:avoid': 'かわす', 'action:pick': '拾う', 'action:equip': '装備する',
+        'action:use': '使う', 'action:store': 'しまう', 'action:take': '取り出す', 'action:drop': '地面に置く' };
     const messages = {
         title: '言葉の星座', help: '星の見方', guide: '星を選ぶと、理解している意味と、結び付いた対象や元の記録をたどれます。線は記録との結び付きです。',
         initial: '出会ったときから知っている土台', learned: '暮らしの中で学んだこと', empty: 'まだ星はありません。経験に言葉を添えると、少しずつつながりが育ちます。',
@@ -277,6 +279,56 @@
             complete: !!result.understandings?.length && result.understandings.every(u => u.complete), reply, text,
             ...(result.processing ? { processing: result.processing } : {}) });
     }
+    const innerMessages = {
+        title: '心の声',
+        unknown: '声は届いた。でも、言葉の意味はまだつかめない……。',
+        known: '「{words}」の意味は分かる。',
+        relation: '「{words}」というつながりは分かる。',
+        target: '「{words}」のことを指しているんだね。',
+        targetKnown: 'どれを指しているのかは分かった。',
+        missingWord: 'でも、「{words}」の意味はまだ分からない……。',
+        missingRelation: 'でも、「{words}」というつながりはまだ分からない……。',
+        missingTarget: 'でも、どれを指しているのかはまだ決められない……。',
+        missingDetail: 'まだ読み取れていない部分がある……。',
+        complete: 'この話は読み取れた。',
+        limited: '聞いたことを全部たどる余裕がない……。',
+        clause: '{number}つめの話は……'
+    };
+    // A player-readable account of the received result, not a new interpretation.
+    // Never consult current knowledge: later learning must not rewrite this voice.
+    function innerVoice(result, translate = text => text) {
+        const format = (key, values = {}) => translate(innerMessages[key]).replace(/\{(words|number)\}/g, (_, k) => values[k] ?? '');
+        const list = items => [...new Set(items.filter(Boolean))].join(' / ');
+        const meaning = id => Object.hasOwn(meanings, id) ? translate(meanings[id]) : null;
+        const relation = id => Object.hasOwn(words, id) ? translate(words[id]) : null;
+        const clauses = result?.understandings || [];
+        if (!clauses.length) return format('unknown');
+        return clauses.map((u, index) => {
+            const parts = [], missing = u.unresolved || [];
+            if (clauses.length > 1) parts.push(format('clause', { number: index + 1 }));
+            if (missing.some(m => m.type === 'processing_limit')) {
+                parts.push(format('limited')); return parts.join(' ');
+            }
+            const known = list(Object.values(u.known || {}).map(meaning));
+            const links = list((u.relations || []).map(relation));
+            if (known) parts.push(format('known', { words: known }));
+            if (links) parts.push(format('relation', { words: links }));
+            // Only the adopted referent is understood. Candidates/tentative learning aren't.
+            const target = u.target?.adopted;
+            const targetName = target?.word || meaning(target?.meaning);
+            if (targetName) parts.push(format('target', { words: targetName }));
+            else if (target) parts.push(format('targetKnown'));
+            const unknownWords = list(missing.filter(m => m.type === 'meaning' && m.token).map(m => meaning(m.token) || m.token));
+            const unknownLinks = list(missing.filter(m => m.type === 'relation').map(m => relation(m.id)));
+            if (unknownWords) parts.push(format('missingWord', { words: unknownWords }));
+            if (unknownLinks) parts.push(format('missingRelation', { words: unknownLinks }));
+            if (missing.some(m => m.type === 'target')) parts.push(format('missingTarget'));
+            if (u.complete && missing.length === 0) parts.push(format('complete'));
+            else if (!known && !links && !target && !unknownWords && !unknownLinks && !missing.some(m => m.type === 'target')) parts.push(format('unknown'));
+            else if (missing.some(m => !['meaning', 'relation', 'target'].includes(m.type))) parts.push(format('missingDetail'));
+            return parts.join(' ');
+        }).join('\n');
+    }
     function mount(root, options) {
         let model, selected = null, query = '', zoom = 1, depth = false, yaw = 0, traceId = null, positions;
         let timers = [];
@@ -529,5 +581,5 @@
             reset() { stop(); traceId = null; selected = null; query = ''; root.replaceChildren(); model = null; },
             languageChanged() { if (model) render(); } };
     }
-    return { project, arrange, camera, capture, mount, messages, words, meanings };
+    return { project, arrange, camera, capture, innerVoice, innerMessages, mount, messages, words, meanings };
 });

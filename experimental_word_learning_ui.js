@@ -498,6 +498,7 @@
     let voice, lastReplyIsNarration = false, adventureSpeechToken = 0, adventureSpeechPending = false;
     let adventureSpeechPromise = Promise.resolve();
     let adventureActionToken = 0;
+    let lastInnerText = '';
     function holdAdventureSpeech(play) {
         const token = ++adventureSpeechToken;
         adventureSpeechPending = readAloud.checked;
@@ -1225,6 +1226,10 @@
     let starTraces = [];
     starsButton.setAttribute('aria-pressed', 'false');
     conversationButton.setAttribute('aria-pressed', 'true'); notebookButton.setAttribute('aria-pressed', 'false');
+    const currentInner = node('aside', undefined, chatPanel); currentInner.className = 'word-inner-voice';
+    currentInner.id = 'word-inner-voice-current'; currentInner.hidden = true; currentInner.setAttribute('role', 'note');
+    node('strong', constellationApi.innerMessages.title, currentInner);
+    const currentInnerText = node('p', '', currentInner); currentInnerText.setAttribute('data-i18n-skip', '');
     const panelBody = node('div', undefined, chatPanel); panelBody.className = 'panel-body';
     const conversation = node('div', undefined, panelBody);
     conversation.id = 'conversation'; conversation.setAttribute('role', 'log');
@@ -1731,6 +1736,8 @@
             .map(key => ({ text: t(key), role: 'narration' }))
     ]);
     readAloud.disabled = !voice.supportedOutput;
+    readAloud.checked = voice.enabled;
+    if (!voice.preferencesSaved) voiceStatus.textContent = t('voiceUnsaved');
     if (!voice.supportedInput) voiceStatus.textContent = t('voiceUnsupportedInput');
     microphone.addEventListener('click', () => {
         if (paused || screen !== 'playing') return;
@@ -1756,7 +1763,10 @@
             if (['loading', 'video'].includes(masterPhase)) prepareMasterVoices();
             else playMasterVoices();
         }
-        else if (readAloud.checked && !bubble.hidden) voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue' });
+        else if (readAloud.checked && !bubble.hidden) holdAdventureSpeech(() => lastInnerText
+            ? voice.speakScene([{ text: lastInnerText, role: 'dialogue' },
+                { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }])
+            : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: true }));
     });
     voiceStop.addEventListener('click', () => { ++adventureActionToken; voice.stop(); });
     input.addEventListener('input', () => {
@@ -1824,6 +1834,7 @@
         } else { dungeonView.leave(); dungeon = null; }
         state.context.pendingQuestion = null; state.context.lastOutput = null;
         bubble.hidden = true; paused = false; pause.setAttribute('aria-pressed', 'false'); send.disabled = false;
+        currentInner.hidden = true; currentInnerText.textContent = ''; lastInnerText = '';
         dungeonButton.textContent = t(dungeon ? 'dungeonReturn' : 'dungeonEnter');
         canvas.setAttribute('aria-label', t(dungeon ? 'dungeonTitle' : 'islandLabel'));
         point.disabled = shade.disabled = false;
@@ -1876,6 +1887,8 @@
     const masterDialog = node('dialog', undefined, document.body); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
     const masterLeft = node('div', undefined, masterDialog); masterLeft.className = 'word-master-left';
     const masterThought = node('p', '', masterLeft); masterThought.className = 'word-master-thought';
+    const masterInner = node('p', '', masterLeft); masterInner.className = 'word-inner-voice'; masterInner.hidden = true;
+    masterInner.setAttribute('data-i18n-skip', '');
     const masterHero = node('canvas', undefined, masterLeft); masterHero.width = 280; masterHero.height = 200;
     masterHero.setAttribute('aria-hidden', 'true');
     const masterRight = node('div', undefined, masterDialog); masterRight.className = 'word-master-right';
@@ -1907,6 +1920,9 @@
         masterText.textContent = t(silhouette ? 'masterPresence' : masterReply.npc);
         // Show the existing observed reaction; don't invent understanding or a new preference.
         masterThought.textContent = masterReply.dialogueText ?? t(masterReply.message);
+        masterInner.hidden = !masterReply.innerText;
+        masterInner.textContent = masterReply.innerText
+            ? window.GameI18n.translate(constellationApi.innerMessages.title) + '\n' + masterReply.innerText : '';
         masterClose.textContent = t(silhouette ? 'masterReveal' : 'masterContinue');
         masterClose.disabled = false; masterClose.focus({ preventScroll: true }); drawMaster(performance.now());
         playMasterVoices();
@@ -1921,7 +1937,9 @@
                 { text: masterText.textContent, role: 'master', master: dialogMaster },
                 { text: masterThought.textContent, role: masterReply.dialogueRole || 'narration' }
                 ];
-                await voice.speakScene(masterReply.npcAfter ? parts.reverse() : parts);
+                if (masterReply.npcAfter) parts.reverse();
+                if (masterReply.innerText) parts.splice(masterReply.npcAfter ? 0 : 1, 0, { text: masterReply.innerText, role: 'dialogue' });
+                await voice.speakScene(parts);
             }
         } finally { if (token === masterSpeechToken) masterSpeechPending = false; }
     }
@@ -1933,7 +1951,7 @@
         // Visible frame time only: movie/loading phases never advance, nor do background gaps.
         masterAutoElapsed += dt;
         masterAutoQuiet = masterSpeechPending ? 0 : masterAutoQuiet + dt;
-        const readingTime = Math.max(4, Math.min(15, Array.from(masterText.textContent + masterThought.textContent).length / 12));
+        const readingTime = Math.max(4, Math.min(25, Array.from(masterText.textContent + masterThought.textContent + masterInner.textContent).length / 12));
         if (masterAutoElapsed >= readingTime && masterAutoQuiet >= 1) {
             record('auto_training', { action: 'master_continue', master: dialogMaster, phase: masterPhase });
             advanceMaster();
@@ -2044,7 +2062,14 @@
             portrait.drawImage(masterImage, job.sx, 0, job.sw, 1536, (400-w)/2, 400-h, w, h); portrait.restore();
         }
     }
-    function showReply(reply) {
+    function showReply(reply, innerText = '') {
+        lastInnerText = innerText;
+        if (innerText) { currentInner.hidden = false; currentInnerText.textContent = innerText; }
+        if (innerText) {
+            const thought = node('aside', undefined, conversation); thought.className = 'word-inner-voice';
+            node('strong', constellationApi.innerMessages.title, thought);
+            const text = node('p', innerText, thought); text.setAttribute('data-i18n-skip', '');
+        }
         const progress = reply.progress;
         if (progress) reply = { ...reply,
             message: state.settings.speech === 'short' && progress.spoken ? progress.spoken : progress.observed,
@@ -2090,19 +2115,23 @@
         if (lastReplyIsNarration && !reply.word && !reply.literal && !progress?.item && !progress?.floor && Object.hasOwn(labels, reply.message))
             voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
         if (reply.npc && window.WordIslandMode) openMaster({ ...reply,
-            dialogueText: bubble.textContent, dialogueRole: lastReplyIsNarration ? 'narration' : 'dialogue' });
+            dialogueText: bubble.textContent, dialogueRole: lastReplyIsNarration ? 'narration' : 'dialogue', innerText });
         else if (reply.npc) {
             const parts = [{ text: t(reply.npc), role: 'master', master: reply.master },
                 { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }];
+            if (reply.npcAfter) parts.reverse();
+            if (innerText) parts.splice(reply.npcAfter ? 0 : 1, 0, { text: innerText, role: 'dialogue' });
             const token = ++adventureSpeechToken;
             adventureSpeechPending = reply.inline && readAloud.checked;
-            void voice.speakScene(reply.npcAfter ? parts.reverse() : parts).finally(() => {
+            void voice.speakScene(parts).finally(() => {
                 if (token === adventureSpeechToken) adventureSpeechPending = false;
             });
         }
         else if (!adventureMentorSpeech) {
-            const play = () => voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: !!state.adventure?.run });
-            if (state.adventure?.run) holdAdventureSpeech(play); else play();
+            const play = () => innerText ? voice.speakScene([{ text: innerText, role: 'dialogue' },
+                { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }])
+                : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: !!state.adventure?.run });
+            if (innerText || state.adventure?.run) holdAdventureSpeech(play); else play();
         }
     }
     function animate(time) {
@@ -2178,6 +2207,7 @@
     }
     function beginSession() {
         if (!catalog || screen === 'playing' || saveBlocked) return;
+        currentInner.hidden = true; currentInnerText.textContent = ''; lastInnerText = '';
         voice.clearRecording(); recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
         const newMeeting = !restored && questionsApi.validAnswers(answers);
@@ -2308,9 +2338,12 @@
         growthApi.observe(state, world, result, null, reply);
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
-        showReply(reply);
+        const innerText = constellationApi.innerVoice(result, text => window.GameI18n.translate(text));
+        record('guidance', { key: 'inner_voice', inputId: result.input.id, text: innerText });
+        showReply(reply, innerText);
         if(adventureMentorSpeech) holdAdventureSpeech(() => voice.speakScene([
             {text:input.value,role:'master',master:adventureMentorSpeech.split(':')[1]},
+            {text:innerText,role:'dialogue'},
             {text:bubble.textContent,role:'narration'}
         ]));
         const trace = constellationApi.capture(starBefore, constellationApi.project(state, catalog, [result]), result, reply, bubble.textContent, state.context.lastOutput);

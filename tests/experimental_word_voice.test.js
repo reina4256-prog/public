@@ -24,6 +24,61 @@ function setup(supported = true) {
     return { voice, host, statuses, transcripts, spoken, listening, setVoices(v) { available = v; }, get recognition() { return recognition; }, setLocale(x) { locale = x; }, allow(x) { allowed = x; } };
 }
 
+test('read-aloud defaults on and persists explicit off and on independently of the child', () => {
+    const s = setup(); assert.equal(s.voice.enabled, true);
+    const options = { locale: () => 'ja', status() {}, listening() {}, canSpeak: () => true, volume: () => .4 };
+    s.voice.setEnabled(false); assert.equal(create(s.host, options).enabled, false);
+    s.voice.setEnabled(true); assert.equal(create(s.host, options).enabled, true);
+    const values = [];
+    const bridge = { loadAudioPreferences: () => ({ ok: true, value: { readAloud: false } }),
+        saveAudioPreferences: value => { values.push(value); return { ok: true }; } };
+    const desktop = create({ ...s.host, wordStorage: bridge }, options);
+    assert.equal(desktop.enabled, false); desktop.setEnabled(true);
+    assert.deepEqual(values, [{ readAloud: true }]);
+    const failed = create({ ...s.host, wordStorage: { loadAudioPreferences: () => ({ ok: false }),
+        saveAudioPreferences: () => ({ ok: false }) } }, options);
+    assert.equal(failed.enabled, true); assert.equal(failed.preferencesSaved, false);
+    failed.setEnabled(false); assert.equal(failed.enabled, false); assert.equal(failed.preferencesSaved, false);
+});
+
+test('inner voice uses the selected native child voice without a cast service and cancellation drops later lines', async () => {
+    const s = setup(); s.host.AbortController = AbortController;
+    s.voice.selectVoice('robot', voiceId(s.voice.voices().dialogue[1]));
+    s.voice.setTuning('robot', { pitch: 1.2, rate: .8 });
+    const lines = [{ text: 'inner thought', role: 'dialogue' }, { text: 'gesture', role: 'narration' }, { text: 'actual reply', role: 'dialogue' }];
+    const scene = s.voice.speakScene(lines);
+    await new Promise(resolve => setImmediate(resolve));
+    let said = s.spoken.filter(x => x.text);
+    assert.equal(said.length, 1); assert.equal(said[0].text, 'inner thought');
+    assert.equal(said[0].voice.voiceURI, 'voice-1'); assert.equal(said[0].pitch, 1.2); assert.equal(said[0].rate, .8);
+    said[0].onend(); await new Promise(resolve => setImmediate(resolve));
+    said = s.spoken.filter(x => x.text); assert.deepEqual(said.map(x => x.text), ['inner thought', 'actual reply']);
+    said.at(-1).onend(); await scene;
+    assert.equal(s.statuses.at(-1), 'castLanguage', 'unavailable narration remains disclosed after child speech');
+    const cancelled = s.voice.speakScene(lines); await new Promise(resolve => setImmediate(resolve));
+    const count = s.spoken.filter(x => x.text).length; s.voice.stop(); await cancelled;
+    assert.equal(s.spoken.filter(x => x.text).length, count);
+});
+
+test('desktop read-aloud preferences survive store recreation and reject invalid writes without changing game saves', () => {
+    const fs = require('node:fs'), path = require('node:path');
+    const { createAudioPreferences } = require('../scripts/experimental/audio_preferences');
+    const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'word-audio-preferences-'));
+    const file = path.join(directory, 'word-audio-preferences.json');
+    try {
+        const store = createAudioPreferences(directory);
+        assert.deepEqual(store.load(), { ok: true, value: null });
+        assert.equal(store.save({ readAloud: false }).ok, true);
+        assert.deepEqual(createAudioPreferences(directory).load().value, { readAloud: false });
+        for (const value of [{ readAloud: 'true' }, { readAloud: true, state: {} }, null]) assert.equal(store.save(value).ok, false);
+        assert.deepEqual(store.load().value, { readAloud: false });
+        assert.equal(store.save({ readAloud: true }).ok, true);
+        assert.deepEqual(createAudioPreferences(directory).load().value, { readAloud: true });
+        assert.deepEqual(fs.readdirSync(directory), ['word-audio-preferences.json']);
+        fs.writeFileSync(file, '{bad'); assert.equal(store.load().ok, false);
+    } finally { if (fs.existsSync(file)) fs.unlinkSync(file); fs.rmdirSync(directory); }
+});
+
 test('local input resamples mono PCM to a bounded 16 kHz WAV accepted by the process boundary', () => {
     const wav = encodeWav(new Float32Array(48000).fill(.5), 48000);
     assert.equal(wav.length, 32044); assert.equal(validWav(Buffer.from(wav)), true);
@@ -382,7 +437,8 @@ test('recognition errors are transport status and do not deliver text', () => {
     assert.equal(unsupported.statuses.at(-1), 'unsupportedOutput');
 });
 test('speech is optional, localized, cancellable and suppressed while listening or hidden', () => {
-    const s = setup(); s.voice.speak('off'); assert.deepEqual(s.spoken, []);
+    const s = setup(); assert.equal(s.voice.enabled, true); s.voice.setEnabled(false);
+    const silent = s.spoken.length; s.voice.speak('off'); assert.equal(s.spoken.length, silent);
     s.voice.setEnabled(true); s.voice.speak('reply');
     assert.equal(s.spoken.at(-1).text, 'reply'); assert.equal(s.spoken.at(-1).lang, 'ja-JP'); assert.equal(s.spoken.at(-1).volume, .4);
     s.voice.listen(); const length = s.spoken.length; s.voice.speak('feedback'); assert.equal(s.spoken.length, length);
@@ -517,7 +573,7 @@ test('lookahead starts during the first voice; stop cancels it and late synthesi
 });
 
 test('fixed master and gesture lines pre-generate only after enablement without playback', async () => {
-    const s=audioSetup(); const lines=[{text:'warm master',role:'master',master:'smithing'},{text:'warm gesture',role:'narration'}];
+    const s=audioSetup(); s.voice.setEnabled(false); const lines=[{text:'warm master',role:'master',master:'smithing'},{text:'warm gesture',role:'narration'}];
     s.voice.registerFixedLines(lines); assert.equal(await s.voice.prepareScene(lines),false); assert.equal(s.requests.length,0);
     s.voice.setEnabled(true); await new Promise(resolve=>setTimeout(resolve,800));
     assert.equal(s.requests.length,2); assert.equal(s.rendered.length,0);

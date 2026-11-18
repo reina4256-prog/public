@@ -15643,5 +15643,18 @@
   "戻ってきたよ。課題でやってきたことを報告するね。": "I'm back. I'll tell you what I did for the lesson.",
   "師匠のもとへ戻り、課題で実行したことを示した。": "Returned to the mentor and showed what was actually done for the lesson.",
   "材料を集めて納入し、実際の製作を進めている。": "Gathering and delivering materials, then doing the actual crafting work.",
-  "橋を渡り、ダンジョンの入口へ向かっている。": "Crossing the bridge and heading to the dungeon entrance."
+  "橋を渡り、ダンジョンの入口へ向かっている。": "Crossing the bridge and heading to the dungeon entrance.",
+  "心の声": "Inner voice",
+  "声は届いた。でも、言葉の意味はまだつかめない……。": "I heard the voice, but I cannot make sense of the words yet…",
+  "「{words}」の意味は分かる。": "I understand what “{words}” means.",
+  "「{words}」というつながりは分かる。": "I understand the connection “{words}”.",
+  "「{words}」のことを指しているんだね。": "You mean “{words}”, then.",
+  "どれを指しているのかは分かった。": "I know which thing is being pointed out.",
+  "でも、「{words}」の意味はまだ分からない……。": "But I do not understand “{words}” yet…",
+  "でも、「{words}」というつながりはまだ分からない……。": "But I do not understand the connection “{words}” yet…",
+  "でも、どれを指しているのかはまだ決められない……。": "But I cannot tell which thing is meant yet…",
+  "まだ読み取れていない部分がある……。": "There is still a part I cannot make sense of…",
+  "この話は読み取れた。": "I could make sense of this part.",
+  "聞いたことを全部たどる余裕がない……。": "I cannot work through everything I heard right now…",
+  "{number}つめの話は……": "As for part {number}…"
 }

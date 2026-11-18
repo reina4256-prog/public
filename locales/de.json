@@ -15643,5 +15643,18 @@
   "戻ってきたよ。課題でやってきたことを報告するね。": "Ich bin zurück. Ich berichte dir, was ich für die Aufgabe getan habe.",
   "師匠のもとへ戻り、課題で実行したことを示した。": "Ist zum Meister zurückgekehrt und hat gezeigt, was bei der Aufgabe getan wurde.",
   "材料を集めて納入し、実際の製作を進めている。": "Sammelt und liefert Material und führt die Herstellungsarbeit aus.",
-  "橋を渡り、ダンジョンの入口へ向かっている。": "Überquert die Brücke und geht zum Verlieseingang."
+  "橋を渡り、ダンジョンの入口へ向かっている。": "Überquert die Brücke und geht zum Verlieseingang.",
+  "心の声": "Innere Stimme",
+  "声は届いた。でも、言葉の意味はまだつかめない……。": "Ich höre die Stimme, aber verstehe die Wörter noch nicht…",
+  "「{words}」の意味は分かる。": "Ich verstehe, was „{words}“ bedeutet.",
+  "「{words}」というつながりは分かる。": "Ich verstehe den Zusammenhang „{words}“.",
+  "「{words}」のことを指しているんだね。": "Gemeint ist also „{words}“.",
+  "どれを指しているのかは分かった。": "Ich verstehe, worauf gezeigt wird.",
+  "でも、「{words}」の意味はまだ分からない……。": "Aber ich verstehe noch nicht, was „{words}“ bedeutet…",
+  "でも、「{words}」というつながりはまだ分からない……。": "Aber ich verstehe den Zusammenhang „{words}“ noch nicht…",
+  "でも、どれを指しているのかはまだ決められない……。": "Aber ich kann noch nicht erkennen, welches Ding gemeint ist…",
+  "まだ読み取れていない部分がある……。": "Einen Teil verstehe ich noch nicht…",
+  "この話は読み取れた。": "Diesen Teil konnte ich verstehen.",
+  "聞いたことを全部たどる余裕がない……。": "Gerade schaffe ich es nicht, alles Gehörte zu verarbeiten…",
+  "{number}つめの話は……": "Zum Teil {number}…"
 }

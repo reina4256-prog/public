@@ -10,6 +10,8 @@ contextBridge.exposeInMainWorld('wordSpeech', {
     cancel: id => ipcRenderer.invoke('word-speech-cancel', id)
 });
 contextBridge.exposeInMainWorld('wordStorage', {
+    loadAudioPreferences: () => ipcRenderer.sendSync('word-audio-preferences-load'),
+    saveAudioPreferences: value => ipcRenderer.sendSync('word-audio-preferences-save', value),
     load: () => ipcRenderer.sendSync('word-life-load'),
     save: value => ipcRenderer.sendSync('word-life-save', value),
     exportReport: payload => ipcRenderer.invoke('word-life-export', payload),

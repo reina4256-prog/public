@@ -46,6 +46,9 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         }) }
         : name === './export_report' ? { exportReport: async () => ({ ok: true }) }
         : name === './storage' ? { createStore: () => store }
+        : name === './audio_preferences' ? { createAudioPreferences: () => ({
+            load: () => ({ ok: true, value: { readAloud: false } }), save: value => ({ ok: typeof value.readAloud === 'boolean' })
+        }) }
         : name === './voice_cache_store' ? { createStore: () => ({ get: async () => ({ ok: true }), put: async () => ({ ok: true }) }) }
         : name === 'node:fs' ? { mkdirSync() {} }
         : name === './serve' ? { createServer() { const server = require('../scripts/experimental/serve').createServer(); servers.push(server); return server; } }
@@ -63,9 +66,18 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         assert.equal(request.returnValue.ok, true);
         ipcMain.emit('word-life-save', request, { version: 1 });
         assert.equal(request.returnValue.ok, true);
+        ipcMain.emit('word-audio-preferences-load', request);
+        assert.equal(request.returnValue.value.readAloud, false);
+        ipcMain.emit('word-audio-preferences-save', request, { readAloud: true });
+        assert.equal(request.returnValue.ok, true);
         const stranger = { sender: {}, senderFrame: { url: window.url } };
         ipcMain.emit('word-life-load', stranger);
         assert.equal(stranger.returnValue.ok, false);
+        ipcMain.emit('word-audio-preferences-save', stranger, { readAloud: false });
+        assert.equal(stranger.returnValue.ok, false);
+        const subframe = { sender: window.webContents, senderFrame: { url: window.url + '?other' } };
+        ipcMain.emit('word-audio-preferences-load', subframe);
+        assert.equal(subframe.returnValue.ok, false);
         assert.equal((await handlers.get('word-life-export')(stranger, {})).ok, false);
         assert.equal((await handlers.get('word-life-export')(request, {})).ok, true);
         assert.equal((await handlers.get('word-voice-cache-get')(stranger, 'a'.repeat(64))).ok, false);

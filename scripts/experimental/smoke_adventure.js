@@ -33,6 +33,9 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(store.save(value).ok,true);fs.writeFileSync(path.join(directory,'checkpoint.json'),JSON.stringify({file,hash:require('node:crypto').createHash('sha256').update(fs.readFileSync(file)).digest('hex')}));
     }
     app.whenReady().then(async()=>{
+        const preferences=require('./audio_preferences').createAudioPreferences(directory);
+        ipcMain.on('word-audio-preferences-load',e=>{e.returnValue=preferences.load();});
+        ipcMain.on('word-audio-preferences-save',(e,v)=>{e.returnValue=preferences.save(v);});
         ipcMain.on('word-life-load',e=>{e.returnValue=store.load();});
         ipcMain.on('word-life-save',(e,v)=>{const result=store.save(v);if(result.ok)snapshot=v;else {
             errors.push('invalid-save');
@@ -48,7 +51,8 @@ if (!process.versions.electron || process.type !== 'browser') {
                 } else {
                     response.writeHead(200,{'Content-Type':'application/json'});
                     response.end(JSON.stringify(request.url.startsWith('/__adventure_voice/speakers')
-                        ? Object.values(require('../../experimental_word_voice').cast).map(p=>({name:p.credit,speaker_uuid:p.speaker,styles:[{id:p.styleId,name:'Normal',type:'talk'}]}))
+                        ? [{name:'Child fixture',speaker_uuid:'inner-child-fixture',styles:[{id:0,name:'Normal',type:'talk'}]},
+                            ...Object.values(require('../../experimental_word_voice').cast).map(p=>({name:p.credit,speaker_uuid:p.speaker,styles:[{id:p.styleId,name:'Normal',type:'talk'}]}))]
                         : {accent_phrases:[],speedScale:1,pitchScale:0,volumeScale:1}));
                 }
             } else if(request.url==='/experimental_word_voice.js') {
@@ -110,6 +114,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         async function submit(text){await js(`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)};document.querySelector('.chat-form').requestSubmit();void 0`);}
         await window.loadURL(url);await clock();
         await wait(()=>js(`!!document.querySelector('#word-new-game:not(:disabled)')`),'ready');
+        assert.equal(await js(`document.querySelector('#word-read-aloud').checked`),true,'new app preference defaults on');
+        await js(`document.querySelector('#word-read-aloud').click();void 0`);
         if(checkpointAt>=0)await js(`document.querySelector('.word-logo').click();document.querySelector('#word-continue').click();${layoutOnly?'':"document.querySelector('#word-pause').click();"}void 0`);
         else await js(`document.querySelector('.word-logo').click();document.querySelector('#word-new-game').click();document.querySelector('#word-reset-accept').click();document.querySelector('main form').requestSubmit();void 0`);
         await wait(()=>!!snapshot?.state?.adventure,'start');
@@ -132,6 +138,12 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         if(speechCheck) {
             assert.ok(layoutOnly && snapshot.state.adventure.run && !snapshot.state.adventure.run.training);
+            await js(`GameI18n.setLanguage('ja');document.querySelector('#word-voice-choose').click();
+                document.querySelector('#word-voice-source').value='voicevox';document.querySelector('#word-voice-source').dispatchEvent(new Event('change'));
+                document.querySelector('#word-voice-connect').click();void 0`);
+            const connected=Date.now();while(!await js(`Array.from(document.querySelector('#word-dialogue-voice').options).some(o=>!o.disabled&&o.value.includes('inner-child-fixture'))`)){assert.ok(Date.now()-connected<15000);await sleep(30);}
+            await js(`document.querySelector('#word-dialogue-voice').selectedIndex=0;document.querySelector('#word-dialogue-voice').dispatchEvent(new Event('change'));document.querySelector('#word-voice-continue').click();void 0`);
+            assert.ok(await js(`JSON.parse(localStorage.getItem('wordAudioSources:v1')).ja.voices.voicevox.robot.includes('inner-child-fixture')`));
             await js(`GameI18n.setLanguage('ja');document.querySelector('#word-read-aloud').checked=true;document.querySelector('#word-read-aloud').dispatchEvent(new Event('change'));document.querySelector('#word-pause').click();void 0`);
             await submit('自分で歩いてみて');
             assert.equal(snapshot.state.adventure.connection.goal.action,'explore');
@@ -139,12 +151,15 @@ if (!process.versions.electron || process.type !== 'browser') {
             const started=Date.now();while(!await js(`window.__playback.some(e=>e.kind==='start')`)){assert.ok(Date.now()-started<15000);await sleep(50);}
             await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
             assert.equal(snapshot.state.adventure.run.turn,initialTurn,'initial spoken reply holds exploration');
-            await sleep(3400);await frames(13);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            await sleep(3400);await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+            assert.equal(snapshot.state.adventure.run.turn,initialTurn,'reply after the inner voice also holds exploration');
+            const bothEnded=Date.now();while(!await js(`window.__playback.filter(e=>e.kind==='end').length>=2`)){assert.ok(Date.now()-bothEnded<15000);await sleep(50);}
+            await sleep(50);await frames(13);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
             assert.equal(snapshot.state.adventure.run.turn,initialTurn+1,'one physical action after the full reply');
-            const reportStart=Date.now();while(!await js(`window.__playback.filter(e=>e.kind==='start').length>=2`)){assert.ok(Date.now()-reportStart<15000,'action report begins playback');await sleep(50);}
+            const reportStart=Date.now();while(!await js(`window.__playback.filter(e=>e.kind==='start').length>=3`)){assert.ok(Date.now()-reportStart<15000,'action report begins playback');await sleep(50);}
             await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
             assert.equal(snapshot.state.adventure.run.turn,initialTurn+1,'action report holds the next turn throughout real three-second WebAudio');
-            fs.writeFileSync(path.join(directory,'speech-wait.json'),JSON.stringify({initialTurn,heldTurn:snapshot.state.adventure.run.turn,playback:await js(`window.__playback`),syntheticPCM:true},null,2));
+            fs.writeFileSync(path.join(directory,'speech-wait.json'),JSON.stringify({initialTurn,heldTurn:snapshot.state.adventure.run.turn,playback:await js(`window.__playback`),scenes:await js(`window.__adventureScenes`),innerVoiceThenReply:true,syntheticPCM:true},null,2));
             await submit('おはよう');const interruptedTurn=snapshot.state.adventure.run.turn;
             await sleep(3500);await frames(100);await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
             assert.equal(snapshot.state.adventure.run.turn,interruptedTurn,'manual conversation cancels the old action continuation');
@@ -219,7 +234,16 @@ if (!process.versions.electron || process.type !== 'browser') {
             : {ok:true,errors,fresh:checkpointAt<0,mastery:4,bridge:true,training:true,omakase:true,walkedReturn:true,sameFloorStopped:true,locales:7};
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(summary,null,2));
         console.log(JSON.stringify({ok:true,directory}));
-    }).catch(e=>{fs.writeFileSync(path.join(directory,'failure.txt'),String(e.stack));console.error(e);process.exitCode=1;}).finally(()=>{
+    }).catch(async e=>{
+        fs.writeFileSync(path.join(directory,'failure.txt'),String(e.stack));
+        if(window&&!window.isDestroyed())try{
+            const diagnostic=await window.webContents.executeJavaScript(`({playback:window.__playback,scenes:window.__adventureScenes,
+                voiceStatus:document.querySelector('#word-voice-status')?.textContent,
+                audio:localStorage.getItem('wordAudioSources:v1'),thought:document.querySelector('#word-inner-voice-current')?.textContent})`);
+            fs.writeFileSync(path.join(directory,'failure-diagnostic.json'),JSON.stringify(diagnostic,null,2));
+        }catch(_){}
+        console.error(e);process.exitCode=1;
+    }).finally(()=>{
         if(window)window.destroy();if(server){server.closeAllConnections();server.close();}app.exit(process.exitCode||0);
     });
 }

@@ -4,6 +4,42 @@ const assert = require('node:assert/strict');
 const { project, arrange, camera, capture } = require('../experimental_word_constellation_live');
 const core = require('../experimental_word_learning_core');
 const catalog = require('../experimental_word_learning_catalog.json');
+const { innerVoice } = require('../experimental_word_constellation_live');
+
+test('inner voice uses actual understanding without promoting tentative learning or later knowledge', () => {
+    const state = core.create({ foundation: false, life: false }, catalog);
+    core.perceive(state, { scene: 'clearing', attention: [{ id: 'berry:1', meaning: 'berry' }] });
+    const result = core.receive(state, 'その木の実が気になる？', catalog, { locale: 'ja' });
+    const original = JSON.stringify(result), initialVoice = innerVoice(result);
+    assert.match(initialVoice, /言葉の意味はまだつかめない/);
+    assert.doesNotMatch(initialVoice, /木の実.*分かる/);
+    state.knowledge.meanings.push({ id: 'berry', source: 'initial' });
+    const before = JSON.stringify(state);
+    assert.equal(innerVoice(result), initialVoice);
+    assert.equal(JSON.stringify(result), original); assert.equal(JSON.stringify(state), before);
+});
+
+test('inner voice distinguishes meanings, missing relations, adopted targets and unprocessed clauses', () => {
+    const state = core.create({ foundation: true, life: true }, catalog);
+    const understood = core.receive(state, '休んで', catalog, { locale: 'ja' });
+    assert.equal(understood.understandings[0].complete, true);
+    assert.match(innerVoice(understood), /休む.*意味は分かる/);
+    assert.doesNotMatch(innerVoice(understood), /休んだ|休みます/);
+    const result = { understandings: [
+        { known: { meaning: 'rest' }, relations: [], unresolved: [{ type: 'relation', id: 'negation' }], complete: false,
+            target: { candidates: [{ word: 'unselected' }], adopted: { id: 'berry:1', word: '<原名>' } } },
+        { known: { meaning: 'eat' }, unresolved: [{ type: 'processing_limit' }], complete: false }
+    ] };
+    const text = innerVoice(result);
+    assert.match(text, /否定.*まだ分からない/); assert.match(text, /<原名>/);
+    assert.doesNotMatch(text, /unselected|食べる|この話は読み取れた/);
+    assert.match(text, /2つめ/); assert.match(text, /余裕がない/);
+    const translated = innerVoice(result, value => value.replace('休む', 'rest'));
+    assert.match(translated, /rest/); assert.match(translated, /<原名>/);
+    const unusual = innerVoice({ understandings: [{ known: { meaning: 'constructor' }, relations: ['toString'],
+        unresolved: [{ type: 'meaning', token: '__proto__' }], complete: false }] });
+    assert.match(unusual, /__proto__/); assert.doesNotMatch(unusual, /function|native code|object Object/);
+});
 test('initial foundations appear without fabricated teaching or semantic links', () => {
     const state = core.create({}, catalog), before = JSON.stringify(state);
     const graph = project(state, catalog);
