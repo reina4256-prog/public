@@ -348,7 +348,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             }
         }
         assert.equal(JSON.stringify(snapshot.state), beforeAudition);
-        const profiles = await js(`localStorage.getItem('wordVoiceProfiles:v1')`);
+        const profiles = await js(`JSON.stringify(wordStorage.loadAudioPreferences().value.profiles)`);
         await js(`document.querySelector('#word-voice-continue').click(); void 0`);
         await load(true, true);
         await js(`GameI18n.setLanguage('ja'); document.querySelector('#word-voice-choose').click(); void 0`);
@@ -383,12 +383,12 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js(`document.querySelector('#word-voice-choice > button:last-child').click(); void 0`);
         assert.ok(await js(`window.__audioStopped > 0`));
         assert.ok(await js(`document.querySelector('.word-voice-choice').textContent.includes('VOICEVOX:Fixture voice')`));
-        const sourceSettings = await js(`localStorage.getItem('wordAudioSources:v1')`);
+        const sourceSettings = await js(`JSON.stringify(wordStorage.loadAudioPreferences().value.audioProfiles)`);
         await js(`document.querySelector('#word-voice-source').value = 'device'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change'));
             document.querySelector('#word-voice-source').value = 'voicevox'; document.querySelector('#word-voice-source').dispatchEvent(new Event('change')); void 0`);
         assert.equal(await js(`document.querySelector('#word-dialogue-voice').selectedIndex`), 1);
         assert.equal(await js(`document.querySelector('#word-voice-effect').value`), '0.3');
-        assert.equal(await js(`localStorage.getItem('wordAudioSources:v1')`), sourceSettings);
+        assert.equal(await js(`JSON.stringify(wordStorage.loadAudioPreferences().value.audioProfiles)`), sourceSettings);
         for (const width of [1280,390]) {
             window.setContentSize(width,900);
             await window.webContents.capturePage(undefined, { stayHidden: true, stayAwake: true }); await sleep(1200);
@@ -428,7 +428,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             document.querySelector('#word-voice-continue').click(); void 0`);
         // Public question flow reveals only the chosen child; voice tuning shares its signature screen.
         nextLoad = null; await window.loadURL(url); await sleep(450);
-        assert.equal(await js(`localStorage.getItem('wordVoiceProfiles:v1')`), profiles);
+        assert.equal(await js(`JSON.stringify(wordStorage.loadAudioPreferences().value.profiles)`), profiles);
         await js(`GameI18n.setLanguage('ja'); void 0`);
         for (let i=0;i<7;i++) {
             assert.equal(await js(`document.querySelector('.word-meeting').open`), false);
@@ -474,7 +474,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             assert.equal(await js(`document.querySelector('#word-inner-voice-current p').textContent`), shown);
             const spoken = await js(`window.__spoken.slice(${count}).find(u => u.text === ${JSON.stringify(shown)})`);
             assert.ok(spoken, locale + ' inner voice is spoken');
-            const profile = await js(`JSON.parse(localStorage.getItem('wordVoiceProfiles:v1'))[${JSON.stringify(locale)}]`);
+            const profile = await js(`wordStorage.loadAudioPreferences().value.profiles[${JSON.stringify(locale)}]`);
             assert.equal(spoken.voice, JSON.parse(profile.dialogue.robot)[0]);
             assert.equal(spoken.pitch, profile.tuning.robot.pitch); assert.equal(spoken.rate, profile.tuning.robot.rate);
             if (locale !== 'ja') assert.doesNotMatch(shown, /[\u3040-\u30ff]/u);
@@ -486,7 +486,10 @@ if (!process.versions.electron || process.type !== 'browser') {
             }
             innerLocales.push({ locale, text: shown, voice: spoken.voice });
         }
-        assert.deepEqual(require('./audio_preferences').createAudioPreferences(directory).load().value, { readAloud: true });
+        const restoredPreferences = require('./audio_preferences').createAudioPreferences(directory).load().value;
+        assert.equal(restoredPreferences.readAloud, true);
+        assert.deepEqual(restoredPreferences, await js(`wordStorage.loadAudioPreferences().value`));
+        assert.equal(Object.keys(restoredPreferences.profiles).length, 7);
         checks.push({ innerVoiceSevenLocales: innerLocales, lowFoundationGesture: true, selectedVoiceAndTuning: true,
             appPreferenceStoreRecreated: true, screenshots: 14 });
         fs.writeFileSync(path.join(evidence, 'result.json'), JSON.stringify({ ok: true, profile: directory, checks }, null, 2));
@@ -497,7 +500,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             const diagnostic=await window.webContents.executeJavaScript(`({locale:GameI18n.language,source:document.querySelector('#word-voice-source')?.value,
                 choices:Array.from(document.querySelector('#word-dialogue-voice')?.options||[]).map(o=>({value:o.value,disabled:o.disabled,selected:o.selected})),
                 previewDisabled:document.querySelector('.word-voice-sample button')?.disabled,status:document.querySelector('#word-voice-status')?.textContent,
-                audio:localStorage.getItem('wordAudioSources:v1')})`);
+                audio:wordStorage.loadAudioPreferences().value?.audioProfiles})`);
             fs.writeFileSync(path.join(evidence,'failure-diagnostic.json'),JSON.stringify({diagnostic,audioRequests},null,2));
         }catch(_){}
         console.error(error); console.error(evidence); process.exitCode = 1;

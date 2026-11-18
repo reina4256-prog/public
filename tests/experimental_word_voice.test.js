@@ -34,7 +34,9 @@ test('read-aloud defaults on and persists explicit off and on independently of t
         saveAudioPreferences: value => { values.push(value); return { ok: true }; } };
     const desktop = create({ ...s.host, wordStorage: bridge }, options);
     assert.equal(desktop.enabled, false); desktop.setEnabled(true);
-    assert.deepEqual(values, [{ readAloud: true }]);
+    assert.equal(values.length, 1);
+    assert.equal(values.at(-1).readAloud, true);
+    assert.deepEqual(values.at(-1).profiles, {});
     const failed = create({ ...s.host, wordStorage: { loadAudioPreferences: () => ({ ok: false }),
         saveAudioPreferences: () => ({ ok: false }) } }, options);
     assert.equal(failed.enabled, true); assert.equal(failed.preferencesSaved, false);
@@ -70,13 +72,108 @@ test('desktop read-aloud preferences survive store recreation and reject invalid
         assert.deepEqual(store.load(), { ok: true, value: null });
         assert.equal(store.save({ readAloud: false }).ok, true);
         assert.deepEqual(createAudioPreferences(directory).load().value, { readAloud: false });
-        for (const value of [{ readAloud: 'true' }, { readAloud: true, state: {} }, null]) assert.equal(store.save(value).ok, false);
+        for (const value of [{ readAloud: 'true' }, { readAloud: true, state: {} }, null, Object.assign([], { readAloud: true })])
+            assert.equal(store.save(value).ok, false);
         assert.deepEqual(store.load().value, { readAloud: false });
         assert.equal(store.save({ readAloud: true }).ok, true);
         assert.deepEqual(createAudioPreferences(directory).load().value, { readAloud: true });
         assert.deepEqual(fs.readdirSync(directory), ['word-audio-preferences.json']);
         fs.writeFileSync(file, '{bad'); assert.equal(store.load().ok, false);
     } finally { if (fs.existsSync(file)) fs.unlinkSync(file); fs.rmdirSync(directory); }
+});
+
+test('desktop voice selections, sources and tuning survive a fresh origin for every locale and species', async () => {
+    const s = audioSetup(), fs = require('node:fs'), path = require('node:path');
+    const { createAudioPreferences } = require('../scripts/experimental/audio_preferences');
+    const directory = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'word-voice-resume-'));
+    let locale = 'ja';
+    const deviceVoices = Object.values(locales).flatMap(lang => [0, 1].map(i => ({ name: lang + i, voiceURI: lang + i, lang })));
+    const options = { ...s.options, locale: () => locale };
+    s.provider.supports = () => true;
+    s.provider.listVoices = async () => s.audioVoices.slice(0, 2).map(v => ({ ...v, lang: locales[locale] }));
+    const boot = () => {
+        const store = createAudioPreferences(directory);
+        const host = { ...s.host, localStorage: { getItem: () => null, setItem() { throw Error('origin storage must not be needed'); } },
+            speechSynthesis: { ...s.host.speechSynthesis, getVoices: () => deviceVoices },
+            wordStorage: { loadAudioPreferences: () => store.load(), saveAudioPreferences: value => store.save(value) } };
+        return create(host, options);
+    };
+    try {
+        let voice = boot(); voice.setEnabled(false);
+        for (locale of Object.keys(locales)) {
+            for (const id of species) {
+                assert.equal(voice.selectVoice(id, voiceId(deviceVoices.find(v => v.lang === locales[locale] && v.voiceURI.endsWith('1')))), true);
+                voice.setTuning(id, { pitch: 1.2, rate: .8 }); voice.setEffect(id, .3);
+            }
+            voice.setSource('voicevox'); await voice.connectProvider();
+            for (const id of species) assert.equal(voice.selectVoice(id, voiceId({ ...s.audioVoices[1], lang: locales[locale] })), true);
+        }
+        voice = boot(); assert.equal(voice.enabled, false);
+        for (locale of Object.keys(locales)) {
+            let bank = voice.voices();
+            assert.equal(bank.source, 'voicevox'); assert.equal(bank.dialogue.length, 0, 'no silent device fallback before connecting');
+            for (const id of species) assert.equal(bank.choices[id], voiceId({ ...s.audioVoices[1], lang: locales[locale] }));
+            await voice.connectProvider(); bank = voice.voices();
+            for (const id of species) {
+                assert.equal(bank.choices[id], voiceId(bank.dialogue[1]));
+                assert.deepEqual(bank.profile.tuning[id], { pitch: 1.2, rate: .8 }); assert.equal(bank.effect[id], .3);
+            }
+            voice.setSource('device');
+            for (const id of species) assert.equal(voice.voices().choices[id], voiceId(deviceVoices.find(v => v.lang === locales[locale] && v.voiceURI.endsWith('1'))));
+        }
+        voice.setEnabled(true); voice = boot(); assert.equal(voice.enabled, true);
+        assert.equal(voice.voices().source, 'device');
+        assert.equal(voice.preferencesSaved, true);
+        const store = createAudioPreferences(directory), before = store.load().value;
+        for (const invalid of [ { ...before, profiles: { xx: {} } },
+            { ...before, profiles: { ja: { dialogue: { robot: 'x'.repeat(1000) }, tuning: {} } } },
+            { ...before, profiles: { ja: { dialogue: {}, tuning: { robot: { pitch: Infinity, rate: 1 } } } } },
+            { ...before, audioProfiles: { ja: { source: 'voicevox', voices: {}, effects: { robot: 2 } } } } ])
+            assert.equal(store.save(invalid).ok, false);
+        assert.deepEqual(store.load().value, before);
+    } finally { fs.unlinkSync(path.join(directory, 'word-audio-preferences.json')); fs.rmdirSync(directory); }
+});
+
+test('legacy local voice preferences migrate once and the durable selection wins over a later origin', () => {
+    const s = setup(), selected = voiceId(s.voice.voices().dialogue[1]);
+    s.voice.selectVoice('robot', selected); s.voice.setTuning('robot', { pitch: 1.1, rate: .9 });
+    let stored = { readAloud: false };
+    const host = { ...s.host, wordStorage: { loadAudioPreferences: () => ({ ok: true, value: stored }),
+        saveAudioPreferences: value => { stored = structuredClone(value); return { ok: true }; } } };
+    const statuses = [];
+    const options = { locale: () => 'ja', status: key => statuses.push(key), listening() {}, canSpeak: () => true, volume: () => .4 };
+    let voice = create(host, options);
+    assert.equal(voice.voices().choices.robot, selected); assert.equal(voice.enabled, false);
+    assert.equal(stored.profiles.ja.dialogue.robot, selected);
+    s.voice.selectVoice('robot', voiceId(s.voice.voices().dialogue[0]));
+    voice = create(host, options); assert.equal(voice.voices().choices.robot, selected);
+    assert.deepEqual(voice.voices().profile.tuning.robot, { pitch: 1.1, rate: .9 });
+    s.setVoices([]); assert.equal(voice.voices().choices.robot, selected);
+    voice.setEnabled(true); voice.speak('unavailable');
+    assert.equal(statuses.at(-1), 'voicesUnavailable');
+    assert.equal(s.spoken.filter(x => x.text).length, 0, 'a missing saved voice is never replaced');
+});
+
+test('resumed generated speech reconnects the saved voice on demand and cancellation cannot speak later', async () => {
+    const s = audioSetup(); s.voice.setSource('voicevox'); await s.voice.connectProvider();
+    s.voice.selectVoice('robot', voiceId(s.audioVoices[1])); s.voice.setTuning('robot', { pitch: 1.2, rate: .8 }); s.voice.setEffect('robot', .3);
+    let resumed = create(s.host, s.options), count = s.connections.length;
+    assert.equal(s.connections.length, count, 'restoring preferences alone never connects');
+    await resumed.speak('after restarting');
+    assert.equal(s.connections.length, count + 1);
+    assert.equal(s.requests.at(-1).voice, s.audioVoices[1]);
+    assert.equal(s.requests.at(-1).pitch, 1.2); assert.equal(s.requests.at(-1).rate, .8);
+    assert.equal(s.rendered.at(-1).settings.amount, .3);
+    resumed = create(s.host, s.options); count = s.requests.length;
+    let release;
+    s.provider.listVoices = () => new Promise(resolve => { release = resolve; });
+    const pending = resumed.speakScene([{ text: 'cancelled thought', role: 'dialogue' }]);
+    await new Promise(resolve => setImmediate(resolve)); resumed.stop(); release(s.audioVoices); await pending;
+    assert.equal(s.requests.length, count);
+    s.provider.listVoices = async () => [s.audioVoices[0]];
+    resumed = create(s.host, s.options); await resumed.speakScene([{ text: 'missing saved voice', role: 'dialogue' }]);
+    assert.equal(s.requests.length, count); assert.equal(s.statuses.at(-1), 'voiceMissing');
+    assert.equal(resumed.voices().choices.robot, voiceId(s.audioVoices[1]));
 });
 
 test('local input resamples mono PCM to a bounded 16 kHz WAV accepted by the process boundary', () => {

@@ -28,9 +28,10 @@
             ? host.ExperimentalWordSpeechInput?.create(host) : host.SpeechRecognition || host.webkitSpeechRecognition;
         let active = null, generation = 0, enabled = true, utterance = null;
         const enabledKey = 'wordReadAloud:v1';
-        let enabledSaved = true;
+        let enabledSaved = true, savedPreferences = null;
         try {
             const result = host.wordStorage?.loadAudioPreferences?.();
+            if (result?.ok) savedPreferences = result.value;
             if (result && !result.ok) enabledSaved = false;
             const saved = result ? result.value?.readAloud : JSON.parse(host.localStorage?.getItem(enabledKey) || 'null');
             if (typeof saved === 'boolean') enabled = saved;
@@ -176,7 +177,7 @@
         const audioKey = 'wordAudioSources:v1';
         let audioProfiles = {}, pending = null;
         try {
-            const saved = JSON.parse(host.localStorage?.getItem(audioKey) || '{}');
+            const saved = savedPreferences?.audioProfiles ?? JSON.parse(host.localStorage?.getItem(audioKey) || '{}');
             for (const locale of Object.keys(locales)) {
                 const item = saved?.[locale];
                 if (!item || typeof item !== 'object') continue;
@@ -195,12 +196,11 @@
             return audioProfiles[options.locale()] || (audioProfiles[options.locale()] = { source: 'device', voices: {}, effects: {} });
         }
         function persistAudio() {
-            try { host.localStorage?.setItem(audioKey, JSON.stringify(audioProfiles)); preferencesSaved = true; }
-            catch (_) { preferencesSaved = false; status('preferencesUnsaved'); }
+            persistPreferences(audioKey, audioProfiles);
         }
         let profiles = {}, preferencesSaved = true;
         try {
-            const saved = JSON.parse(host.localStorage?.getItem(profileKey) || '{}');
+            const saved = savedPreferences?.profiles ?? JSON.parse(host.localStorage?.getItem(profileKey) || '{}');
             for (const locale of Object.keys(locales)) {
                 const item = saved?.[locale];
                 if (!item || typeof item !== 'object') continue;
@@ -214,9 +214,24 @@
             }
         } catch (_) { /* Preferences must never block the game. */ }
         function persist() {
-            try { host.localStorage?.setItem(profileKey, JSON.stringify(profiles)); preferencesSaved = true; }
+            persistPreferences(profileKey, profiles);
+        }
+        function persistPreferences(key, value) {
+            try {
+                if (host.wordStorage?.saveAudioPreferences) {
+                    if (!host.wordStorage.saveAudioPreferences({ readAloud: enabled, profiles, audioProfiles })?.ok) throw new Error('write');
+                    enabledSaved = true;
+                } else {
+                    if (!host.localStorage) throw new Error('storage');
+                    host.localStorage.setItem(key, JSON.stringify(value));
+                }
+                preferencesSaved = true;
+            }
             catch (_) { preferencesSaved = false; status('preferencesUnsaved'); }
         }
+        // Migrate this origin's existing selections before any default voices are seeded.
+        if (host.wordStorage?.saveAudioPreferences && ((!savedPreferences?.profiles && Object.keys(profiles).length)
+            || (!savedPreferences?.audioProfiles && Object.keys(audioProfiles).length))) persist();
         function voices() {
             const locale = options.locale(), language = (locales[locale] || locale).split('-')[0].toLowerCase();
             const available = Array.from(new Map((host.speechSynthesis?.getVoices() || [])
@@ -272,6 +287,18 @@
                 if (token === generation) { providerVoices.delete(source + ':' + locale); status('providerFailed'); }
                 return false;
             } finally { clearTimeout(timer); if (pending === controller) pending = null; }
+        }
+        async function resumeProvider(bank, id, locale, controller) {
+            const key = bank.source + ':' + locale;
+            if (bank.source === 'device' || !bank.providerSupported || !bank.choices[id] || providerVoices.has(key)) return bank;
+            // Reconnect a saved source only when speech is actually requested.
+            const timer = setTimeout(() => controller.abort(), 15000);
+            try {
+                const available = await abortable(providers[bank.source].listVoices({ locale, signal: controller.signal }), controller.signal);
+                if (controller.signal.aborted || options.locale() !== locale) throw new Error('cancelled');
+                providerVoices.set(key, available);
+                return voices();
+            } finally { clearTimeout(timer); }
         }
         function setTuning(id, values) {
             if (!species.includes(id)) return false;
@@ -438,7 +465,9 @@
                 const prepare = async (line, priority) => {
                     if (line.role !== 'dialogue') return effects?.supported && provider?.supports(locale)
                         ? prepareLine(line, locale, priority) : { error: 'castLanguage' };
-                    const bank = voices(), id = line.species || options.species?.() || 'robot';
+                    const id = line.species || options.species?.() || 'robot';
+                    let bank = voices();
+                    if (bank.source !== 'device' && !providerVoices.has(bank.source + ':' + locale)) bank = await resumeProvider(bank, id, locale, controller);
                     const tuning = bank.profile.tuning[id] || { pitch: 1, rate: 1 };
                     const chosen = bank.dialogue.find(v => voiceId(v) === (bank.source === 'device' ? bank.profile.dialogue[id] : bank.choices[id]));
                     if (!chosen) return { error: 'voiceMissing' };
@@ -486,8 +515,7 @@
         async function speakAudio(text, settings, bank) {
             if (!bank.providerSupported) { status('providerLanguage'); return; }
             const id = settings.species || options.species?.() || 'robot';
-            const chosen = bank.dialogue.find(v => voiceId(v) === bank.choices[id]);
-            if (!chosen) { status(bank.dialogue.length ? 'voiceMissing' : 'providerConnectFirst'); return; }
+            if (!bank.choices[id]) { status(bank.dialogue.length ? 'voiceMissing' : 'providerConnectFirst'); return; }
             stop(); const token = generation, locale = options.locale(), controller = new host.AbortController(); pending = controller;
             const tuning = bank.profile.tuning[id] || { pitch: 1, rate: 1 };
             const timer = setTimeout(() => controller.abort(), 120000);
@@ -496,6 +524,10 @@
                 // Resume inside the user gesture before awaiting synthesis.
                 await effects.prepare();
                 if (token !== generation) return;
+                if (!providerVoices.has(bank.source + ':' + locale)) bank = await resumeProvider(bank, id, locale, controller);
+                if (token !== generation || controller.signal.aborted) return;
+                const chosen = bank.dialogue.find(v => voiceId(v) === bank.choices[id]);
+                if (!chosen) { status('voiceMissing'); return; }
                 const data = await providers[bank.source].synthesize({ text, voice: chosen, locale, ...tuning, signal: controller.signal });
                 if (token !== generation || locale !== options.locale() || controller.signal.aborted) return;
                 const buffer = await effects.decode(data);
@@ -514,7 +546,8 @@
                 enabled = !!value;
                 try {
                     if (host.wordStorage?.saveAudioPreferences) {
-                        if (!host.wordStorage.saveAudioPreferences({ readAloud: enabled })?.ok) throw new Error('write');
+                        persist();
+                        if (!preferencesSaved) throw new Error('write');
                     } else {
                         if (!host.localStorage) throw new Error('storage');
                         host.localStorage.setItem(enabledKey, JSON.stringify(enabled));

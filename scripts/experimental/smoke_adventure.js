@@ -143,7 +143,7 @@ if (!process.versions.electron || process.type !== 'browser') {
                 document.querySelector('#word-voice-connect').click();void 0`);
             const connected=Date.now();while(!await js(`Array.from(document.querySelector('#word-dialogue-voice').options).some(o=>!o.disabled&&o.value.includes('inner-child-fixture'))`)){assert.ok(Date.now()-connected<15000);await sleep(30);}
             await js(`document.querySelector('#word-dialogue-voice').selectedIndex=0;document.querySelector('#word-dialogue-voice').dispatchEvent(new Event('change'));document.querySelector('#word-voice-continue').click();void 0`);
-            assert.ok(await js(`JSON.parse(localStorage.getItem('wordAudioSources:v1')).ja.voices.voicevox.robot.includes('inner-child-fixture')`));
+            assert.ok(await js(`wordStorage.loadAudioPreferences().value.audioProfiles.ja.voices.voicevox.robot.includes('inner-child-fixture')`));
             await js(`GameI18n.setLanguage('ja');document.querySelector('#word-read-aloud').checked=true;document.querySelector('#word-read-aloud').dispatchEvent(new Event('change'));document.querySelector('#word-pause').click();void 0`);
             await submit('自分で歩いてみて');
             assert.equal(snapshot.state.adventure.connection.goal.action,'explore');
@@ -239,7 +239,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         if(window&&!window.isDestroyed())try{
             const diagnostic=await window.webContents.executeJavaScript(`({playback:window.__playback,scenes:window.__adventureScenes,
                 voiceStatus:document.querySelector('#word-voice-status')?.textContent,
-                audio:localStorage.getItem('wordAudioSources:v1'),thought:document.querySelector('#word-inner-voice-current')?.textContent})`);
+                audio:wordStorage.loadAudioPreferences().value?.audioProfiles,thought:document.querySelector('#word-inner-voice-current')?.textContent})`);
             fs.writeFileSync(path.join(directory,'failure-diagnostic.json'),JSON.stringify(diagnostic,null,2));
         }catch(_){}
         console.error(e);process.exitCode=1;
