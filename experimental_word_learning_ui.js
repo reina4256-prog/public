@@ -4,6 +4,11 @@
     const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
+        llmMode: 'Gemini比較版：返答はGemini、理解と行動は既存方式です。',
+        llmNotice: '入力・直近の会話・本人の設定をGoogleへ送ります。通常版とは別に保存します。',
+        llmWaiting: 'Geminiの返答を待っています…',
+        llmFailed: 'Geminiに接続できませんでした。今回は通常方式の返答です。ログインや利用枠を確認してください。',
+        llmLogin: 'Gemini CLIへのログインが必要です。npm run setup:word:gemini を実行してください。今回は通常方式の返答です。',
         advCourse1: "ここからは同行訓練の一階だよ。まず周りを見て、足元を確かめながら歩いてみよう。",
         advCourse2: "一階の観察と歩行は見届けたよ。二階では相手の予備動作を見て、攻撃と回避の両方を試そう。",
         advCourse3: "二階の攻撃と回避は見届けたよ。三階では武器・防具・食料・手当て布を実際に使い、変化を確かめよう。",
@@ -499,6 +504,16 @@
     let adventureSpeechPromise = Promise.resolve();
     let adventureActionToken = 0;
     let lastInnerText = '';
+    let generatedPending = false, generatedId = null, generatedRevision = 0, generatedRecent = [];
+    function cancelGeneratedReply() {
+        const wasPending = generatedPending;
+        generatedRevision++;
+        if (generatedId) window.wordReply?.cancel(generatedId);
+        generatedPending = false; generatedId = null;
+        if (wasPending) { const waiting = document.querySelector('.stage .bubble'); if (waiting) waiting.hidden = true; }
+        const status = document.getElementById('word-reply-status');
+        if (window.wordReply?.enabled && status) status.textContent = displayText('llmMode');
+    }
     function holdAdventureSpeech(play) {
         const token = ++adventureSpeechToken;
         adventureSpeechPending = readAloud.checked;
@@ -548,6 +563,10 @@
     node('h1', t('title'), header);
     document.title = t('title');
     const saveBadge = node('span', t(window.wordStorage ? 'autosave' : 'sessionOnly'), header); saveBadge.className = 'session-badge';
+    const replyModeStatus = node('p', window.wordReply?.enabled ? t('llmMode') : '', header);
+    header.classList.toggle('word-gemini-header', !!window.wordReply?.enabled);
+    replyModeStatus.id = 'word-reply-status'; replyModeStatus.hidden = !window.wordReply?.enabled;
+    if (window.wordReply?.enabled) node('p', t('llmNotice'), header);
     saveBadge.setAttribute('role', 'status');
     const setupCopy = node('div'); setupCopy.className = 'setup-copy';
     setupCopy.hidden = true;
@@ -1366,6 +1385,7 @@
     const autoProgress = node('p', '', autoPanel); autoProgress.id = 'word-auto-progress'; autoProgress.setAttribute('data-i18n-skip', '');
     node('p', t('autoContinue'), autoPanel);
     function stopAuto() {
+        cancelGeneratedReply();
         ++adventureActionToken;
         adventureView?.stop();
         masterAutoElapsed = masterAutoQuiet = 0;
@@ -1759,6 +1779,7 @@
     recordingAudio.addEventListener('play', () => { if (voice.listening || paused || screen !== 'playing' || document.hidden) recordingAudio.pause(); });
     readAloud.addEventListener('change', () => {
         voice.setEnabled(readAloud.checked);
+        if (generatedPending) return;
         if (readAloud.checked && masterDialog.open) {
             if (['loading', 'video'].includes(masterPhase)) prepareMasterVoices();
             else playMasterVoices();
@@ -1768,7 +1789,7 @@
                 { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }])
             : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: true }));
     });
-    voiceStop.addEventListener('click', () => { ++adventureActionToken; voice.stop(); });
+    voiceStop.addEventListener('click', () => { cancelGeneratedReply(); ++adventureActionToken; voice.stop(); });
     input.addEventListener('input', () => {
         stopAuto();voice.stop();
         if(state?.adventure?.connection) {
@@ -2062,7 +2083,55 @@
             portrait.drawImage(masterImage, job.sx, 0, job.sw, 1536, (400-w)/2, 400-h, w, h); portrait.restore();
         }
     }
-    function showReply(reply, innerText = '') {
+    function replyPresentation(reply) {
+        const progress = reply.progress;
+        if (progress) reply = { ...reply,
+            message: state.settings.speech === 'short' && progress.spoken ? progress.spoken : progress.observed,
+            observation: !(state.settings.speech === 'short' && progress.spoken), npc: progress.npc || reply.npc };
+        const progressText = progress?.item ? displayText(reply.message).replace('{item}', displayText('advItem_' + progress.item))
+            : progress?.floor ? displayText(reply.message).replace('{floor}', String(progress.floor)) : null;
+        const personalReport = state.identity && { heard_report_self: 'identity_report_self',
+            heard_report_not_resting: 'identity_report_not_resting', heard_report_player: 'identity_report_player' }[reply.message];
+        const identityText = progressText ?? (reply.identity ? identityApi.format(displayText(reply.message), reply.identity)
+            : personalReport ? identityApi.format(displayText(personalReport), state.identity) : null);
+        const text = (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '')
+            + (identityText ?? displayText(reply.message)) + (reply.literal || '');
+        const visibleText = reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word + displayText(reply.message)
+            : identityText ?? (displayText(reply.message) + (reply.literal || ''));
+        return { reply, progress, identityText, text, visibleText };
+    }
+    function presentInputReply(reply, innerText, inputEntry) {
+        const native = replyPresentation(reply);
+        if (!window.wordReply?.enabled || adventureMentorSpeech) { showReply(reply, innerText); return bubble.textContent; }
+        cancelGeneratedReply(); const revision = generatedRevision, currentState = state, locale = window.GameI18n.language;
+        const id = window.crypto.randomUUID(); generatedId = id; generatedPending = true;
+        replyModeStatus.textContent = displayText('llmWaiting');
+        bubble.textContent = displayText('llmWaiting'); bubble.hidden = false;
+        currentInner.hidden = !innerText; currentInnerText.textContent = innerText; lastInnerText = innerText;
+        const identity = state.identity || {};
+        const packet = { id, locale, input: inputEntry.raw, nativeText: native.visibleText,
+            character: { name: identity.characterName || '', self: identity.firstPerson || '', player: identity.playerAddress || '', species: appearance.value },
+            recent: generatedRecent.slice(-6) };
+        void window.wordReply.generate(packet).catch(() => ({ ok: false, error: 'failed' })).then(result => {
+            if (revision !== generatedRevision) return;
+            generatedPending = false; generatedId = null;
+            if (state !== currentState || locale !== window.GameI18n.language || screen !== 'playing' || paused || document.hidden || meeting.open || settingsDialog.open) {
+                cancelGeneratedReply(); return;
+            }
+            if (result?.ok && typeof result.text === 'string' && result.text.length <= 1200) {
+                generatedRecent.push({ role: 'user', text: inputEntry.raw.slice(0,1200) }, { role: 'assistant', text: result.text });
+                generatedRecent = generatedRecent.slice(-6);
+                replyModeStatus.textContent = displayText('llmMode');
+                showReply(reply, innerText, { text: result.text, inputId: inputEntry.id });
+            } else {
+                replyModeStatus.textContent = displayText(result?.error === 'login' ? 'llmLogin' : 'llmFailed');
+                record('guidance', { key: 'llm_unavailable', inputId: inputEntry.id, error: result?.error || 'failed' });
+                showReply(reply, innerText);
+            }
+        });
+        return native.visibleText;
+    }
+    function showReply(reply, innerText = '', generated = null) {
         lastInnerText = innerText;
         if (innerText) { currentInner.hidden = false; currentInnerText.textContent = innerText; }
         if (innerText) {
@@ -2070,17 +2139,7 @@
             node('strong', constellationApi.innerMessages.title, thought);
             const text = node('p', innerText, thought); text.setAttribute('data-i18n-skip', '');
         }
-        const progress = reply.progress;
-        if (progress) reply = { ...reply,
-            message: state.settings.speech === 'short' && progress.spoken ? progress.spoken : progress.observed,
-            observation: !(state.settings.speech === 'short' && progress.spoken),
-            npc: progress.npc || reply.npc };
-        const progressText = progress?.item ? displayText(reply.message).replace('{item}', displayText('advItem_' + progress.item))
-            : progress?.floor ? displayText(reply.message).replace('{floor}', String(progress.floor)) : null;
-        const personalReport = state.identity && { heard_report_self: 'identity_report_self',
-            heard_report_not_resting: 'identity_report_not_resting', heard_report_player: 'identity_report_player' }[reply.message];
-        const identityText = progressText ?? (reply.identity ? identityApi.format(displayText(reply.message), reply.identity)
-            : personalReport ? identityApi.format(displayText(personalReport), state.identity) : null);
+        const native = replyPresentation(reply), { progress, identityText } = native; reply = native.reply;
         const appendMentor = () => {
             const line = node('p', undefined, conversation); line.className = 'master-line';
             node('strong', t(`master_${reply.master}`), line); node('br', undefined, line);
@@ -2088,11 +2147,15 @@
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
         };
         if (reply.npc && !reply.npcAfter) appendMentor();
-        record('character', { reply, text: (reply.word && ['name_echo', 'name_known'].includes(reply.message) ? reply.word : '') + (identityText ?? displayText(reply.message)) + (reply.literal || '') });
-        bubble.replaceChildren(); bubble.hidden = false;
+        if (generated) record('guidance', { key: 'llm_response', inputId: generated.inputId, text: generated.text, nativeReply: reply, nativeText: native.text, source: 'gemini-cli' });
+        else record('character', { reply, text: native.text });
+        bubble.replaceChildren(); bubble.removeAttribute('data-i18n-skip'); bubble.hidden = false;
         const line = node('p', undefined, conversation);
-        if (reply.observation) line.className = 'observation-line';
-        if (reply.message === 'name_echo' || reply.message === 'name_known') {
+        if (reply.observation && !generated) line.className = 'observation-line';
+        if (generated) {
+            bubble.textContent = generated.text; bubble.setAttribute('data-i18n-skip', '');
+            line.textContent = generated.text; line.setAttribute('data-i18n-skip', '');
+        } else if (reply.message === 'name_echo' || reply.message === 'name_known') {
             const name = node('span', reply.word, bubble); name.setAttribute('data-i18n-skip', '');
             node('span', t(reply.message), bubble);
             const logName = node('span', reply.word, line); logName.setAttribute('data-i18n-skip', '');
@@ -2110,8 +2173,8 @@
         world.speech = { until: world.elapsed + 7, target: reply.target || null };
         if (reply.target) { world.reaction = 'recognize'; world.reactionTime = 5; }
         conversation.scrollTop = conversation.scrollHeight;
-        lastReplyIsNarration = !!reply.observation || state.settings.speech !== 'short'
-            || reply.message === 'attend' || reply.message.endsWith('_gesture');
+        lastReplyIsNarration = !generated && (!!reply.observation || state.settings.speech !== 'short'
+            || reply.message === 'attend' || reply.message.endsWith('_gesture'));
         if (lastReplyIsNarration && !reply.word && !reply.literal && !progress?.item && !progress?.floor && Object.hasOwn(labels, reply.message))
             voice.registerFixedLines([{ text: t(reply.message), role: 'narration' }]);
         if (reply.npc && window.WordIslandMode) openMaster({ ...reply,
@@ -2148,7 +2211,7 @@
             evolveButton.disabled = !ready && !state.evolution.pending;
             evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
-            const holding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || masterClosing || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim() || adventureSpeechPending;
+            const holding = paused || generatedPending || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || masterClosing || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim() || adventureSpeechPending;
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -2206,6 +2269,7 @@
         requestAnimationFrame(animate);
     }
     function beginSession() {
+        cancelGeneratedReply(); generatedRecent = [];
         if (!catalog || screen === 'playing' || saveBlocked) return;
         currentInner.hidden = true; currentInnerText.textContent = ''; lastInnerText = '';
         voice.clearRecording(); recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
@@ -2293,7 +2357,7 @@
         if (walk) walk.disabled = paused;
         if (masterVisit) masterVisit.disabled = paused;
     });
-    document.addEventListener('visibilitychange', () => { lastFrame = null; });
+    document.addEventListener('visibilitychange', () => { lastFrame = null; if (document.hidden) cancelGeneratedReply(); });
     [point, shade, walk, masterVisit, pause, voiceChoose].filter(Boolean).forEach(button => button.addEventListener('click', stopAuto));
     canvas.addEventListener('pointerdown', stopAuto);
     form.addEventListener('submit', event => {
@@ -2340,13 +2404,13 @@
             afterState: state, afterWorld: world, reply } });
         const innerText = constellationApi.innerVoice(result, text => window.GameI18n.translate(text));
         record('guidance', { key: 'inner_voice', inputId: result.input.id, text: innerText });
-        showReply(reply, innerText);
+        const nativeReplyText = presentInputReply(reply, innerText, result.input);
         if(adventureMentorSpeech) holdAdventureSpeech(() => voice.speakScene([
             {text:input.value,role:'master',master:adventureMentorSpeech.split(':')[1]},
             {text:innerText,role:'dialogue'},
             {text:bubble.textContent,role:'narration'}
         ]));
-        const trace = constellationApi.capture(starBefore, constellationApi.project(state, catalog, [result]), result, reply, bubble.textContent, state.context.lastOutput);
+        const trace = constellationApi.capture(starBefore, constellationApi.project(state, catalog, [result]), result, reply, nativeReplyText, state.context.lastOutput);
         starTraces.push(trace); if (starTraces.length > 24) starTraces.shift();
         conversation.append(tracePreview); tracePreview.hidden = false; tracePreview.open = true; previewStars.refresh(trace.id);
         app.classList.add('constellation-trace-ready');

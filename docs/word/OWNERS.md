@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-20：[Gemini応答比較](../specs/core/word_llm_reply_comparison.md)はgemini.jsが別起動／初回認証、gemini_reply.jsが応答専用CLIと取消、Electron／preloadが別userDataと検査付きIPC、共通UIのpresentInputReplyが生成待ち／別表示・別記録を所有する。core/world・日記の採用範囲を変更せず、通常版はLLMなしを保持する。
+
 2026-11-19：[心の声](../specs/core/word_constellation_and_voice.md)はconstellation_live.innerVoiceが原当時resultの読取文章化、共通UIが別欄と音声順序、voiceが本人の選択声／読み上げ状態、audio_preferences.createAudioPreferencesとElectron／preloadが独立設定保存を所有する。core理解・日記部品・本人知識の所有は変更しない。
 
 2026-11-17自由入力への修正：[ダンジョン正本](../specs/dungeon/word_dungeon_preview.md)の接続はadventure_connection.languageが共通coreへ構文候補を渡し、receiveが当時の意味／関係／対象理解から実地処理へ接続する。専用パネル／固定命令は撤去。原会話・師匠の提案はconnection.dialogues/offers/proposal、実動作と原発話は既存のexperience／receiptで保持する。語彙の初期付与や、日記・関係教示の適用範囲の拡張はしない。

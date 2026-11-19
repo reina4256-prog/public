@@ -1,4 +1,9 @@
 {
+  "Gemini比較版：返答はGemini、理解と行動は既存方式です。": "Gemini comparison: Gemini writes replies; understanding and actions use the existing system.",
+  "入力・直近の会話・本人の設定をGoogleへ送ります。通常版とは別に保存します。": "Your input, recent conversation and character settings are sent to Google. Saves are separate from the regular edition.",
+  "Geminiの返答を待っています…": "Waiting for Gemini’s reply…",
+  "Geminiに接続できませんでした。今回は通常方式の返答です。ログインや利用枠を確認してください。": "Could not connect to Gemini. This reply uses the regular system. Check your login and quota.",
+  "Gemini CLIへのログインが必要です。npm run setup:word:gemini を実行してください。今回は通常方式の返答です。": "Log in to Gemini CLI with npm run setup:word:gemini. This reply uses the regular system.",
   "右へ一歩進んだ。": "Took one step right.",
   "左へ一歩進んだ。": "Took one step left.",
   "下へ一歩進んだ。": "Took one step down.",

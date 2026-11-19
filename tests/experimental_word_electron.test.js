@@ -7,12 +7,13 @@ const vm = require('node:vm');
 const { EventEmitter } = require('node:events');
 const source = fs.readFileSync(path.join(__dirname, '../scripts/experimental/electron.js'), 'utf8');
 
-test('Electron owns an ephemeral server, isolated storage, and window lifecycle', async () => {
+for (const geminiMode of [false, true]) test('Electron owns an ephemeral server, isolated storage, and window lifecycle: ' + geminiMode, async () => {
     const app = new EventEmitter();
     const paths = {};
     let quit = false;
     let engineStarted = 0;
     let engineStopped = 0;
+    let responderDisposed = false;
     app.isPackaged = false;
     Object.assign(app, { getPath: () => 'test-app-data', setPath: (key, value) => { paths[key] = value; },
         requestSingleInstanceLock: () => true, whenReady: () => Promise.resolve(), quit: () => { quit = true; } });
@@ -46,6 +47,7 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         }) }
         : name === './export_report' ? { exportReport: async () => ({ ok: true }) }
         : name === './storage' ? { createStore: () => store }
+        : name === './gemini_reply' ? { createResponder: () => ({ reply: async () => ({ ok: true, text: 'fixture reply' }), cancel() {}, dispose() { responderDisposed = true; } }) }
         : name === './audio_preferences' ? { createAudioPreferences: () => ({
             load: () => ({ ok: true, value: { readAloud: false } }), save: value => ({ ok: typeof value.readAloud === 'boolean' })
         }) }
@@ -53,11 +55,12 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         : name === 'node:fs' ? { mkdirSync() {} }
         : name === './serve' ? { createServer() { const server = require('../scripts/experimental/serve').createServer(); servers.push(server); return server; } }
         : require(name);
-    vm.runInNewContext(source, { require: requireMock, console, __dirname: path.resolve(__dirname, '../scripts/experimental') });
+    vm.runInNewContext(source, { require: requireMock, console, process: { env: geminiMode ? { WORD_REPLY_MODE: 'gemini-cli' } : {} }, __dirname: path.resolve(__dirname, '../scripts/experimental') });
     try {
         await loaded;
         assert.equal(engineStarted, 1);
-        assert.match(paths.userData, /AIPetGame-WordLearning$/);
+        assert.equal(path.basename(paths.userData), geminiMode ? 'AIPetGame-WordLearning-Gemini' : 'AIPetGame-WordLearning');
+        assert.equal(window.options.webPreferences.additionalArguments.includes('--word-reply=gemini-cli'), geminiMode);
         assert.equal(window.options.webPreferences.nodeIntegration, false);
         assert.equal(window.options.webPreferences.sandbox, true);
         assert.match(window.options.webPreferences.preload, /preload\.js$/);
@@ -71,6 +74,8 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         ipcMain.emit('word-audio-preferences-save', request, { readAloud: true });
         assert.equal(request.returnValue.ok, true);
         const stranger = { sender: {}, senderFrame: { url: window.url } };
+        assert.equal((await handlers.get('word-reply-generate')(stranger, {})).ok, false);
+        assert.equal((await handlers.get('word-reply-generate')(request, {})).ok, geminiMode);
         ipcMain.emit('word-life-load', stranger);
         assert.equal(stranger.returnValue.ok, false);
         ipcMain.emit('word-audio-preferences-save', stranger, { readAloud: false });
@@ -93,6 +98,7 @@ test('Electron owns an ephemeral server, isolated storage, and window lifecycle'
         assert.equal(window.openHandler().action, 'deny');
         app.emit('window-all-closed'); assert.equal(quit, true);
         app.emit('before-quit');
+        assert.equal(responderDisposed, geminiMode);
         assert.equal(engineStopped, 1);
         assert.equal(servers[0].listening, false);
     } finally { for (const server of servers) { server.closeAllConnections(); server.close(); } }
@@ -153,7 +159,7 @@ test('engine errors and an early exit leave the game available and do not kill s
 test('a second game instance does not start an engine', () => {
     const app = Object.assign(new EventEmitter(), { getPath: () => 'test-app-data', setPath() {},
         requestSingleInstanceLock: () => false, isPackaged: false, quit() {} });
-    vm.runInNewContext(source, { __dirname: path.resolve(__dirname, '../scripts/experimental'), console,
+    vm.runInNewContext(source, { __dirname: path.resolve(__dirname, '../scripts/experimental'), console, process: { env: {} },
         require: name => name === 'electron' ? { app } : name === 'node:fs' ? { mkdirSync() {} }
             : name.startsWith('./') ? {} : require(name) });
 });

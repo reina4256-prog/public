@@ -7,7 +7,8 @@ const { createStore } = require('./storage');
 const { exportReport } = require('./export_report');
 
 // Independent app storage and instance lock, without loading Steam or the legacy game.
-const userData = path.join(app.getPath('appData'), 'AIPetGame-WordLearning');
+const geminiMode = !app.isPackaged && process.env.WORD_REPLY_MODE === 'gemini-cli';
+const userData = path.join(app.getPath('appData'), geminiMode ? 'AIPetGame-WordLearning-Gemini' : 'AIPetGame-WordLearning');
 let storageReady = true;
 try {
     fs.mkdirSync(userData, { recursive: true });
@@ -19,6 +20,7 @@ let server;
 let window;
 let voicevox;
 let speech;
+let responder;
 if (storageReady && !app.requestSingleInstanceLock()) {
     app.quit();
 } else if (storageReady) {
@@ -45,7 +47,8 @@ if (storageReady && !app.requestSingleInstanceLock()) {
             useContentSize: true, autoHideMenuBar: true, show: false,
             webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true,
                 preload: path.join(__dirname, 'preload.js'),
-                backgroundThrottling: true, partition: 'persist:word-learning' } });
+                backgroundThrottling: true, partition: 'persist:word-learning',
+                additionalArguments: geminiMode ? ['--word-reply=gemini-cli'] : [] } });
         window.setMenu(null);
         const url = `http://127.0.0.1:${server.address().port}/`;
         const store = createStore(userData);
@@ -53,6 +56,9 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         speech = require('./speech_process').createSpeechProcess(app.isPackaged
             ? { directory: path.join(process.resourcesPath, 'word-speech') } : {});
         const isWindow = event => event.sender === window.webContents && event.senderFrame?.url === url;
+        if (geminiMode) responder = require('./gemini_reply').createResponder(userData);
+        ipcMain.handle('word-reply-generate', (event, packet) => isWindow(event) && responder ? responder.reply(packet) : { ok: false, error: 'disabled' });
+        ipcMain.on('word-reply-cancel', (event, id) => { if (isWindow(event)) responder?.cancel(id); });
         const voiceCache = require('./voice_cache_store').createStore(path.join(userData, 'voice-cache-v1'));
         ipcMain.handle('word-voice-cache-get', (event, key) => isWindow(event) ? voiceCache.get(key) : { ok: false });
         ipcMain.handle('word-voice-cache-put', (event, key, data) => isWindow(event) ? voiceCache.put(key, data) : { ok: false });
@@ -100,6 +106,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
     }).catch(error => { console.error(error); app.quit(); });
     app.on('window-all-closed', () => app.quit());
     app.on('before-quit', () => {
+        responder?.dispose();
         if (voicevox) voicevox.stop();
         if (speech) speech.dispose();
         if (server) { server.closeAllConnections(); server.close(); server = null; }

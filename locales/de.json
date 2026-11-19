@@ -1,4 +1,9 @@
 {
+  "Gemini比較版：返答はGemini、理解と行動は既存方式です。": "Gemini-Vergleich: Gemini formuliert Antworten; Verständnis und Handlungen nutzen das bisherige System.",
+  "入力・直近の会話・本人の設定をGoogleへ送ります。通常版とは別に保存します。": "Deine Eingabe, der jüngste Gesprächsverlauf und die Figureneinstellungen werden an Google gesendet. Spielstände sind von der normalen Version getrennt.",
+  "Geminiの返答を待っています…": "Warte auf Geminis Antwort…",
+  "Geminiに接続できませんでした。今回は通常方式の返答です。ログインや利用枠を確認してください。": "Verbindung zu Gemini fehlgeschlagen. Diese Antwort stammt vom normalen System. Prüfe Anmeldung und Kontingent.",
+  "Gemini CLIへのログインが必要です。npm run setup:word:gemini を実行してください。今回は通常方式の返答です。": "Melde dich mit npm run setup:word:gemini bei Gemini CLI an. Diese Antwort stammt vom normalen System.",
   "右へ一歩進んだ。": "Ging einen Schritt nach rechts.",
   "左へ一歩進んだ。": "Ging einen Schritt nach links.",
   "下へ一歩進んだ。": "Ging einen Schritt nach unten.",

@@ -1,5 +1,10 @@
 'use strict';
 const { contextBridge, ipcRenderer } = require('electron');
+contextBridge.exposeInMainWorld('wordReply', {
+    enabled: process.argv.includes('--word-reply=gemini-cli'),
+    generate: packet => ipcRenderer.invoke('word-reply-generate', packet),
+    cancel: id => ipcRenderer.send('word-reply-cancel', id)
+});
 contextBridge.exposeInMainWorld('wordVoiceCache', {
     get: key => ipcRenderer.invoke('word-voice-cache-get', key),
     put: (key, data) => ipcRenderer.invoke('word-voice-cache-put', key, data)
