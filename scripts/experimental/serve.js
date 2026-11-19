@@ -45,7 +45,8 @@ function createServer(options = {}) {
                 : versionSources([...files].filter(file => /\.(js|css|html|json)$/.test(file))
                     .concat(['scripts/experimental/serve.js', 'scripts/experimental/playtest_store.js',
                         'scripts/experimental/electron.js', 'scripts/experimental/preload.js',
-                        'scripts/experimental/gemini.js', 'scripts/experimental/gemini_reply.js']), recorder.directory);
+                        'scripts/experimental/gemini.js', 'scripts/experimental/gemini_reply.js',
+                        'scripts/experimental/antigravity_install.js']), recorder.directory);
         } catch (_) { recordingError = true; }
         return { enabled: !!personal, available: !!recorder && !recordingError, token, version };
     }

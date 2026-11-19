@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-20接続修正：[Gemini比較正本](../specs/core/word_llm_reply_comparison.md)のantigravity_installが公式native版の固定取得／検証、gemini.jsが専用homeでの手動認証、gemini_replyが毎回の追加クレジットOFF・NDJSON／取消・認証／quota／サポート終了分類を所有する。既存IPC・保存先と原理解の所有を保持し、APIキー／Cloud課金へ変更しない。
+
 2026-11-20：[Gemini応答比較](../specs/core/word_llm_reply_comparison.md)はgemini.jsが別起動／初回認証、gemini_reply.jsが応答専用CLIと取消、Electron／preloadが別userDataと検査付きIPC、共通UIのpresentInputReplyが生成待ち／別表示・別記録を所有する。core/world・日記の採用範囲を変更せず、通常版はLLMなしを保持する。
 
 2026-11-19：[心の声](../specs/core/word_constellation_and_voice.md)はconstellation_live.innerVoiceが原当時resultの読取文章化、共通UIが別欄と音声順序、voiceが本人の選択声／読み上げ状態、audio_preferences.createAudioPreferencesとElectron／preloadが独立設定保存を所有する。core理解・日記部品・本人知識の所有は変更しない。

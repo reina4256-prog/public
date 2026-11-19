@@ -2,30 +2,35 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawn } = require('node:child_process');
+const { cliEntry, installed } = require('./antigravity_install');
 const locales = ['ja', 'en', 'zh-CN', 'ru', 'es-ES', 'pt-BR', 'de'];
-const cliEntry = path.resolve(__dirname, '../../node_modules/@google/gemini-cli/bundle/gemini.js');
+function sessionSettings() {
+    return { useG1Credits: false, modelProvider: '', agentMode: '', toolPermission: 'strict',
+        allowNonWorkspaceAccess: false, disableSlashCommands: true, historySize: 0,
+        permissions: { allow: [], ask: [], deny: ['command','read_file','write_file','read_url','execute_url','mcp','unsandboxed'].map(action => action + '(*)') },
+        statusLine: { enabled: false }, title: { enabled: false }, gcp: {} };
+}
+function writeSettings(config) { fs.writeFileSync(config.session, JSON.stringify(sessionSettings())); }
 function configuration(directory, environment = process.env) {
-    const home = path.join(directory, 'gemini-cli'), cwd = path.join(home, 'workspace');
-    const config = path.join(home, '.gemini'), policies = path.join(config, 'policies');
-    fs.mkdirSync(cwd, { recursive: true }); fs.mkdirSync(policies, { recursive: true });
-    const settings = {
-        advanced: { autoConfigureMemory: false, ignoreLocalEnv: true },
-        security: { auth: { selectedType: 'oauth-personal', enforcedType: 'oauth-personal' } },
-        tools: { core: [] }, mcpServers: {}, mcp: { allowed: [] }, skills: { enabled: false },
-        experimental: { enableAgents: false, autoMemory: false }, hooks: {}, hooksConfig: { enabled: false },
-        telemetry: { enabled: false, logPrompts: false }, privacy: { usageStatisticsEnabled: false },
-        context: { fileName: '__word_reply_no_context__.md' }
-    };
-    const policy = path.join(policies, 'response-only.toml');
-    fs.writeFileSync(policy, '[[rule]]\ntoolName = "*"\ndecision = "deny"\npriority = 999\n');
-    const system = path.join(home, 'system-settings.json');
-    fs.writeFileSync(system, JSON.stringify({ ...settings, adminPolicyPaths: [policy] }));
-    // The CLI bootstrap reads this before loading normal settings.
-    fs.writeFileSync(path.join(home, 'settings.json'), JSON.stringify({ advanced: settings.advanced }));
-    if (!fs.existsSync(path.join(config, 'settings.json'))) fs.writeFileSync(path.join(config, 'settings.json'), JSON.stringify(settings));
-    const env = { ...environment, GEMINI_CLI_HOME: home, GEMINI_CLI_SYSTEM_SETTINGS_PATH: system, ELECTRON_RUN_AS_NODE: '1' };
-    for (const key of Object.keys(env)) if (/^(GEMINI_API_KEY|GOOGLE_API_KEY|GOOGLE_GENAI_USE_VERTEXAI|GOOGLE_APPLICATION_CREDENTIALS|GOOGLE_CLOUD_PROJECT|GCLOUD_PROJECT|GEMINI_SYSTEM_MD|GEMINI_SETTINGS|GEMINI_CLI_SYSTEM_DEFAULTS_PATH|GEMINI_CLI_TRUSTED_FOLDERS_PATH)$/.test(key)) delete env[key];
-    return { cwd, env, home, policy, credential: path.join(config, 'oauth_creds.json') };
+    const home = path.join(directory, 'antigravity-home'), cwd = path.join(home, 'workspace');
+    fs.mkdirSync(cwd, { recursive: true });
+    const env = { ...environment, HOME: home, USERPROFILE: home, APPDATA: path.join(home, 'AppData', 'Roaming'),
+        LOCALAPPDATA: path.join(home, 'AppData', 'Local'), XDG_CONFIG_HOME: path.join(home, '.config'),
+        AGY_CLI_DISABLE_AUTO_UPDATE: 'true', ELECTRON_RUN_AS_NODE: '1',
+        // Use the CLI's documented manual/SSH authentication transport, whose token
+        // lives in this private home rather than the OS-wide shared keyring.
+        SSH_CONNECTION: '127.0.0.1 0 127.0.0.1 0', SSH_CLIENT: '127.0.0.1 0 0', SSH_TTY: 'word-reply' };
+    for (const key of Object.keys(env)) if (/^(?:GEMINI_|GOOGLE_|GCLOUD_|AGY_)/i.test(key) && key !== 'AGY_CLI_DISABLE_AUTO_UPDATE') delete env[key];
+    const config = { cwd, env, home, session: path.join(home, 'response-only-settings.json'),
+        credential: path.join(home, '.gemini', 'antigravity-cli', 'antigravity-oauth-token') };
+    writeSettings(config); return config;
+}
+function errorKind(value) {
+    const text = typeof value === 'string' ? value : '';
+    if (/no longer supported|unsupported.client/i.test(text)) return 'unsupported';
+    if (/quota[^\n]{0,60}(?:exceed|exhaust|reach|deplet)|(?:exceed|exhaust|insufficien)[^\n]{0,60}quota|resource.exhausted|rate.limit|usage.limit|credits?.exhausted/i.test(text)) return 'quota';
+    if (/authentication required|unauthenticated|not.authenticated|sign.in|log.?in|token.*expired/i.test(text)) return 'login';
+    return 'failed';
 }
 function valid(packet) {
     return packet && typeof packet.id === 'string' && /^[a-z0-9-]{1,80}$/.test(packet.id)
@@ -52,10 +57,12 @@ function createResponder(directory, options = {}) {
     async function reply(packet) {
         if (!valid(packet)) return { ok: false, error: 'input' };
         cancel();
+        // Override account-credit fallback on EVERY invocation, including after setup or user edits.
+        try { writeSettings(config); } catch (_) { return { ok: false, error: 'settings' }; }
         if (!options.skipAuthCheck && !fs.existsSync(config.credential)) return { ok: false, error: 'login' };
-        if (!fs.existsSync(options.entry || cliEntry)) return { ok: false, error: 'missing' };
+        if (options.entry ? !fs.existsSync(options.entry) : !installed()) return { ok: false, error: 'missing' };
         return new Promise(resolve => {
-            let output = '', size = 0, child, timer;
+            let output = '', size = 0, child, timer, failure = 'failed', tail = '';
             const job = { id: packet.id, finish(result) {
                 if (job.done) return; job.done = true; clearTimeout(timer);
                 if (active === job) active = null;
@@ -63,29 +70,37 @@ function createResponder(directory, options = {}) {
                 resolve(result);
             } };
             active = job;
-            const args = [options.entry || cliEntry, '--output-format', 'json', '--prompt', 'Respond to the supplied dialogue.', '--extensions', 'none', '--admin-policy', config.policy];
+            const args = [...(options.entry ? [options.entry] : []), '--output-format', 'stream-json', '--input-format', 'stream-json', '--disable-slash-commands',
+                '--print-timeout', '60s', '--settings', config.session];
             const model = options.model || process.env.WORD_GEMINI_MODEL;
             if (model && /^[a-z0-9][a-z0-9._-]{0,100}$/.test(model)) args.push('--model', model);
             try {
-                child = spawnChild(options.executable || process.execPath, args, { cwd: config.cwd, env: config.env, windowsHide: true, shell: false, stdio: ['pipe','pipe','pipe'] });
+                child = spawnChild(options.executable || (options.entry ? process.execPath : cliEntry), args, { cwd: config.cwd, env: config.env, windowsHide: true, shell: false, stdio: ['pipe','pipe','pipe'] });
                 timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.timeout || 60000);
                 child.on('error', () => job.finish({ ok: false, error: 'failed' }));
                 child.stdin.on('error', () => {});
                 child.stdout.setEncoding('utf8');
                 child.stdout.on('data', data => { size += data.length; if (size > 1024 * 1024) job.finish({ ok: false, error: 'output' }); else output += data.toString('utf8'); });
                 // Never expose raw CLI diagnostics, auth URLs, environment or tokens to the renderer/log.
-                child.stderr.on('data', () => {});
+                child.stderr.on('data', data => {
+                    tail = (tail + data.toString('utf8')).slice(-1024); const kind = errorKind(tail);
+                    if (kind !== 'failed') { failure = kind; job.finish({ ok: false, error: kind }); }
+                });
                 child.on('close', code => {
                     if (job.done) return;
                     try {
-                        const value = JSON.parse(output);
+                        const events = output.trim().split(/\r?\n/).map(line => JSON.parse(line));
+                        const results = events.filter(event => event.event === 'result');
+                        if (results.length !== 1 || events.some(event => event.step_update?.step_type === 'tool')) throw Error('output');
+                        const value = results[0].result;
+                        if (value.error) { const kind = errorKind(typeof value.error === 'string' ? value.error : ''); if (kind !== 'failed') failure = kind; }
                         const text = value.response?.trim();
-                        if (code !== 0 || value.error || typeof text !== 'string' || !text || text.length > 1200
+                        if (code !== 0 || value.status !== 'SUCCESS' || value.error || typeof text !== 'string' || !text || text.length > 1200
                             || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text) || value.stats?.tools?.totalCalls > 0) throw Error('output');
-                        job.finish({ ok: true, text, source: 'gemini-cli' });
-                    } catch (_) { job.finish({ ok: false, error: 'failed' }); }
+                        job.finish({ ok: true, text, source: 'antigravity-cli' });
+                    } catch (_) { job.finish({ ok: false, error: failure }); }
                 });
-                child.stdin.end(prompt(packet));
+                child.stdin.end(JSON.stringify({ event: 'user', message: { content: prompt(packet) } }) + '\n');
             } catch (_) { job.finish({ ok: false, error: 'failed' }); }
         });
     }

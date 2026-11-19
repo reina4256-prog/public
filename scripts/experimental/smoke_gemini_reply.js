@@ -17,7 +17,8 @@ if (!process.versions.electron || process.type !== 'browser') {
     const seed = { version: 1, appearance: 'robot', state: require('../../experimental_word_learning_core').create({ foundation: false, life: false, speech: 'gesture' }, catalog),
         world: require('../../experimental_word_learning_world').create() };
     const stores = {}, snapshots = {};
-    const mock = `window.__frames=[];window.__clock=0;
+    const mock = `window.__frames=[];window.__clock=performance.now();
+        window.requestAnimationFrame=fn=>(window.__frames.push(fn),window.__frames.length);
         window.Audio=class extends EventTarget{play(){return Promise.resolve();}pause(){}};
         window.__step=n=>{for(let i=0;i<n;i++){window.__clock+=100;const frames=window.__frames.splice(0);for(const fn of frames)fn(window.__clock);}};
         window.__spoken=[];window.SpeechSynthesisUtterance=class{constructor(text){this.text=text;}};
@@ -30,7 +31,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         }
         const fixture = path.join(directory,'reply-fixture.cjs');
         fs.writeFileSync(fixture,`let input='';process.stdin.setEncoding('utf8');process.stdin.on('data',s=>input+=s);process.stdin.on('end',()=>{
-            const p=JSON.parse(input.slice(input.indexOf(String.fromCharCode(10))+1));const finish=()=>console.log(JSON.stringify({response:p.playerInput.startsWith('TO_CANCEL')?'STALE_REPLY':p.playerInput.startsWith('SECOND')?'SELECTED_VOICE_REPLY':'MOON_FIXTURE_REPLY',stats:{tools:{totalCalls:0}}}));
+            const content=JSON.parse(input).message.content,p=JSON.parse(content.slice(content.indexOf(String.fromCharCode(10))+1));const finish=()=>console.log(JSON.stringify({event:'result',result:p.playerInput.startsWith('QUOTA')?{status:'ERROR',error:'RESOURCE_EXHAUSTED: quota reached'}:p.playerInput.startsWith('UNSUPPORTED')?{status:'ERROR',error:'This client is no longer supported'}:{status:'SUCCESS',response:p.playerInput.startsWith('TO_CANCEL')?'STALE_REPLY':p.playerInput.startsWith('SECOND')?'SELECTED_VOICE_REPLY':'MOON_FIXTURE_REPLY',stats:{tools:{totalCalls:0}}}}));
             if(p.playerInput.startsWith('TO_CANCEL')||p.playerInput.startsWith('SECOND'))setTimeout(finish,p.playerInput.startsWith('TO_CANCEL')?3000:700);
             else {const timer=setInterval(()=>{if(require('node:fs').existsSync(require('node:path').join(__dirname,'release-moon'))){clearInterval(timer);finish();}},25);}});`);
         responder=require('./gemini_reply').createResponder(path.join(directory,'gemini'),{entry:fixture,skipAuthCheck:true});
@@ -56,7 +57,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         ipcMain.on('word-reply-cancel',(event,id)=>{if(valid(event)){cancelled.push(id);responder.cancel(id);}});
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
         const js=async code=>{fs.appendFileSync(path.join(directory,'scripts.log'),'start '+code+'\n');try{const value=await window.webContents.executeJavaScript(code,true);fs.appendFileSync(path.join(directory,'scripts.log'),'done\n');return value;}catch(error){fs.writeFileSync(path.join(directory,'script-error.json'),JSON.stringify({code,errors}));throw error;}};
-        const wait=async(code,label)=>{for(let i=0;i<500;i++){if(await js(code))return;await sleep(30);}throw Error('timeout: '+label);};
+        const wait=async(code,label)=>{for(let i=0;i<500;i++){if(await js(code))return;await sleep(30);}fs.writeFileSync(path.join(directory,'wait-timeout.json'),JSON.stringify({label,packets,ui:await js(`({locale:GameI18n.language,status:document.querySelector('#word-reply-status').textContent})`)}));throw Error('timeout: '+label);};
         async function load(kind){
             mode=kind;window=new BrowserWindow({show:false,width:1280,height:900,webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,
                 backgroundThrottling:false,partition:'persist:gemini-fixture-'+kind,preload:path.join(__dirname,'preload.js'),additionalArguments:kind==='gemini'?['--word-reply=gemini-cli']:[]}});
@@ -110,8 +111,15 @@ if (!process.versions.electron || process.type !== 'browser') {
             fs.writeFileSync(path.join(directory,'layout-current.json'),JSON.stringify({locale,width,...layout}));
             assert.ok(layout.scroll<=layout.width+1,JSON.stringify({locale,width,...layout}));layouts.push({locale,width,status});
             if(locale==='ja')fs.writeFileSync(path.join(directory,'comparison-'+width+'.png'),(await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true})).toPNG());
+            if(width===390){
+                await submit('QUOTA');await wait(`document.querySelector('#word-reply-status').textContent===GameI18n.translate('契約内の利用枠に達しました。追加クレジットは使わず、今回は通常方式の返答です。枠の回復を待ってください。')`,'localized quota');
+                assert.equal(await js(`document.documentElement.scrollWidth<=innerWidth+1`),true);
+                layouts.at(-1).quota=await js(`document.querySelector('#word-reply-status').textContent`);
+            }
         }
         checks.push({sevenLocalesTwoWidths:layouts});
+        await js(`GameI18n.setLanguage('ja');void 0`);await submit('UNSUPPORTED');
+        await wait(`document.querySelector('#word-reply-status').textContent.includes('サポートされていません')`,'unsupported client');checks.push({unsupportedClientExplicit:true});
         responder.dispose();responder=require('./gemini_reply').createResponder(path.join(directory,'logged-out'));
         await js(`GameI18n.setLanguage('ja');void 0`);await submit('login missing');
         await wait(`document.querySelector('#word-reply-status').textContent.includes('ログインが必要')`,'missing login notice');

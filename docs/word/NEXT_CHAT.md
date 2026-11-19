@@ -1,5 +1,7 @@
 # 次チャットの開始文
 
+2026-11-20接続修正：[Gemini応答比較版](../specs/core/word_llm_reply_comparison.md)の旧CLIは個人Pro／Ultraのサポート終了で実接続不可だった。最新条件は「別途課金が必要なら比較を中止」。公式後継Antigravity CLIの既存契約枠だけを使い、毎回のsession設定で追加クレジットOFF、APIキー／Cloud従量課金へ切替しない方式へ修正した。同じ比較版保存先・本人の理解／学習／行動・実理解の心の声を保持。Google OAuthの認証完了後、実helperで追加クレジットOFFの実応答取得に成功。認証コードはCLIへだけ入力する。実Google応答とfixtureの七言語／本人声・状態一致の検証を混同しない。最終検証／発行はCURRENT、手順はGEMINI_REPLY。以下の旧CLI採用・初期接続完了を実Google成功として再採用しない。
+
 2026-11-20最新依頼：[Geminiの応答比較版](../specs/core/word_llm_reply_comparison.md)。通常版を保持し、別起動コマンド／保存先で、Gemini自身の一般知識を使う本人応答だけを比較する。接続は契約GoogleアカウントのGemini CLIを採用。既存理解／学習／行動と実理解の心の声は維持し、生成文を本人知識・経験・ノートへ自動取得しない。原reply／星座の原理解と生成表示を分ける。初回認証・起動はGEMINI_REPLY、実装／検証・実ログイン／実モデルの未確認と発行はCURRENTを参照。カード／カジノ・DW／DXと他維持条件を保持し、再承認待ちへ戻さない。
 
 2026-11-19最新修正：[本人声の復元](../specs/core/word_constellation_and_voice.md)はElectronの一時portごとのlocalStorage保存を解消し、選択声・生成元・高さ／速さ・種族加工量を読み上げON／OFFと同じ独立設定へ保存する。「つづきから」の前に復元し、生成声は実発声時に再接続、欠落声の標準声置換はしない。旧boolean-only互換と現在originの旧profile移行を保持する。本人storage／知識・原reply・ノートと全維持条件／保留を変えない。検証・発行と未確認はCURRENTを参照。

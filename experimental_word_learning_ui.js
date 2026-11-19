@@ -5,10 +5,12 @@
     const app = document.getElementById('app');
     const labels = {
         llmMode: 'Gemini比較版：返答はGemini、理解と行動は既存方式です。',
-        llmNotice: '入力・直近の会話・本人の設定をGoogleへ送ります。通常版とは別に保存します。',
+        llmNotice: '入力・直近の会話・本人の設定をGoogleへ送ります。通常版とは別に保存します。追加クレジットは使用しません。',
         llmWaiting: 'Geminiの返答を待っています…',
-        llmFailed: 'Geminiに接続できませんでした。今回は通常方式の返答です。ログインや利用枠を確認してください。',
-        llmLogin: 'Gemini CLIへのログインが必要です。npm run setup:word:gemini を実行してください。今回は通常方式の返答です。',
+        llmFailed: 'Geminiへの接続に失敗しました。今回は通常方式の返答です。接続・認証状態を確認してください。',
+        llmLogin: 'Antigravity CLIの準備・ログインが必要です。npm run setup:word:gemini を実行してください。今回は通常方式の返答です。',
+        llmQuota: '契約内の利用枠に達しました。追加クレジットは使わず、今回は通常方式の返答です。枠の回復を待ってください。',
+        llmUnsupported: '接続先のCLIがサポートされていません。今回は通常方式の返答です。接続版の更新が必要です。',
         advCourse1: "ここからは同行訓練の一階だよ。まず周りを見て、足元を確かめながら歩いてみよう。",
         advCourse2: "一階の観察と歩行は見届けたよ。二階では相手の予備動作を見て、攻撃と回避の両方を試そう。",
         advCourse3: "二階の攻撃と回避は見届けたよ。三階では武器・防具・食料・手当て布を実際に使い、変化を確かめよう。",
@@ -2105,7 +2107,7 @@
         if (!window.wordReply?.enabled || adventureMentorSpeech) { showReply(reply, innerText); return bubble.textContent; }
         cancelGeneratedReply(); const revision = generatedRevision, currentState = state, locale = window.GameI18n.language;
         const id = window.crypto.randomUUID(); generatedId = id; generatedPending = true;
-        replyModeStatus.textContent = displayText('llmWaiting');
+        replyModeStatus.textContent = t('llmWaiting');
         bubble.textContent = displayText('llmWaiting'); bubble.hidden = false;
         currentInner.hidden = !innerText; currentInnerText.textContent = innerText; lastInnerText = innerText;
         const identity = state.identity || {};
@@ -2121,10 +2123,11 @@
             if (result?.ok && typeof result.text === 'string' && result.text.length <= 1200) {
                 generatedRecent.push({ role: 'user', text: inputEntry.raw.slice(0,1200) }, { role: 'assistant', text: result.text });
                 generatedRecent = generatedRecent.slice(-6);
-                replyModeStatus.textContent = displayText('llmMode');
-                showReply(reply, innerText, { text: result.text, inputId: inputEntry.id });
+                replyModeStatus.textContent = t('llmMode');
+                showReply(reply, innerText, { text: result.text, inputId: inputEntry.id, source: result.source });
             } else {
-                replyModeStatus.textContent = displayText(result?.error === 'login' ? 'llmLogin' : 'llmFailed');
+                const errorLabel = { login: 'llmLogin', missing: 'llmLogin', quota: 'llmQuota', unsupported: 'llmUnsupported' }[result?.error] || 'llmFailed';
+                replyModeStatus.textContent = t(errorLabel);
                 record('guidance', { key: 'llm_unavailable', inputId: inputEntry.id, error: result?.error || 'failed' });
                 showReply(reply, innerText);
             }
@@ -2147,7 +2150,7 @@
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
         };
         if (reply.npc && !reply.npcAfter) appendMentor();
-        if (generated) record('guidance', { key: 'llm_response', inputId: generated.inputId, text: generated.text, nativeReply: reply, nativeText: native.text, source: 'gemini-cli' });
+        if (generated) record('guidance', { key: 'llm_response', inputId: generated.inputId, text: generated.text, nativeReply: reply, nativeText: native.text, source: generated.source });
         else record('character', { reply, text: native.text });
         bubble.replaceChildren(); bubble.removeAttribute('data-i18n-skip'); bubble.hidden = false;
         const line = node('p', undefined, conversation);

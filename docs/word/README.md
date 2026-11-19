@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-20接続修正：[Gemini比較](../specs/core/word_llm_reply_comparison.md)は旧CLIでは実接続できなかった。公式後継CLIへ修正し、最新条件「追加課金が必要なら中止」に従い、契約内quota・追加クレジットOFFだけを使う。[新しいsetup手順](GEMINI_REPLY.md)でGoogle OAuthを使い、CLIへだけ認証コードを入力する。既存理解／学習／行動・心の声と保存先を保持。検証／実応答／発行はCURRENT。
+
 2026-11-20：[Geminiの応答比較](../specs/core/word_llm_reply_comparison.md)を、通常版と別コマンド／保存で用意する。一般知識で自由に答えるGemini CLI方式を採用し、既存理解・行動・心の声と本人知識を維持する。[初回ログインと起動](GEMINI_REPLY.md)。検証と発行はCURRENTを参照。
 
 2026-11-19：[心の声](../specs/core/word_constellation_and_voice.md)は当時の実理解／未理解を本人の発話力と別に表示し、本人の選択声で読む。読み上げは初期ON・変更を保存。通常島／おまかせ・ダンジョンと既存の本人／知識／ノート・星座を保持し、表示から学習を追加しない。検証／発行・未確認はCURRENTを参照。
