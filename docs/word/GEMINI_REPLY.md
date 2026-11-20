@@ -1,5 +1,29 @@
 # Geminiの返答と比較する
 
+## 現在の本人試用：Hydrogen Low・文字のみ（2026-11-20）
+
+ユーザー承認で、比較版の同じ本人をHydrogen Lowで文字だけ試す段階です。モデルの恒久採用ではありません。既存の`WORD_GEMINI_MODEL=gemini-4-hydrogen-low`を今回の起動プロセスだけへ渡し、文字のみの起動経路を使用します。CLIの既定モデルは保存変更せず、通常版／比較版の保存先、本人・原文ノート・保存済みの声設定、追加クレジットOFFを維持します。製品コード変更はありません。
+
+今回はこちらで起動し、比較版のタイトル画面と「つづきから」を確認しました。「つづきから」で同じ本人を再開して、まず5～10往復ほど、待ち時間・話し方・教わった内容への反応を確かめます。助手から実本人への入力は送っていません。最初の起動をユーザーが手動で閉じたと確認し、再起動しているため、起動失敗やクラッシュの証拠にはしません。
+
+再度試す場合は、比較版を閉じてからPowerShellで次を実行します。終了時にこのターミナルの元のモデル指定を復元します。既に比較版が開いている場合、別の起動では既存ウィンドウへ戻るだけでモデル指定が変わらないため、強制終了せず通常の終了を先に行います。
+
+```powershell
+$trialModelBefore = $env:WORD_GEMINI_MODEL
+try {
+    $env:WORD_GEMINI_MODEL = 'gemini-4-hydrogen-low'
+    npm run start:word:gemini:text
+} finally {
+    if ($null -eq $trialModelBefore) {
+        Remove-Item Env:WORD_GEMINI_MODEL -ErrorAction SilentlyContinue
+    } else {
+        $env:WORD_GEMINI_MODEL = $trialModelBefore
+    }
+}
+```
+
+一時指定のない従来の起動はCLIの既定を使います。音声・下書き送信・4修正候補は引き続き保留です。Hydrogen Lowでの実会話の速さや本人らしさ、再起動後のノート参照は、まだ受入確認前です。
+
 ## 3候補の合成会話比較（2026-11-20、採用未確定）
 
 ユーザー承認でNeon Low→Flash Low→Hydrogen Lowの順に、各3場面を計9件試しました。既存契約・追加クレジットOFF・未変更の返答helperで、診断プロセスだけにモデルIDを指定。実本人の保存・声・ノートは読まず、既定モデルも変更していません。永続settings.jsonの前後SHA一致を確認しました。下記の比較前調査で未測定だった候補は、この合成3場面では全て生成成功です。実本人の受入・採用は別途相談します。
