@@ -1,5 +1,37 @@
 # Geminiの返答と比較する
 
+## 契約内モデル・入力途中の先送り・音声の調査（2026-11-20）
+
+固定CLI1.5.12の組込み`models`、headlessの`/model`と`/effort`を読み取り専用で照会しました。現在は`gemini-4-neon-high`／`high`。3照会とも終了0、生成リクエストなし、永続settings.jsonの前後SHA一致です。ゲームのモデル・処理設定は変更していません。
+
+短い雑談向けの比較候補は以下です。すべてこのアカウントのCLI一覧に掲載され、[公式のモデル表](https://antigravity.google/docs/models)でもGoogle AI Proの対象ですが、個別の生成成功・残りquota・応答速度／日本語の品質は今回未確認です。
+
+| 比較候補 | CLIのID | 比較する目的 |
+| --- | --- | --- |
+| 現NeonをLowにする | `gemini-4-neon-low` | モデル系統を保ち、思考量を抑える効果を見る |
+| Gemini 3.8 Flash Low | `gemini-3.8-flash-low` | Flash系で短い会話の速度と本人らしさを比較する |
+| Gemini 4 Hydrogen Low | `gemini-4-hydrogen-low` | 速度重視の別系統も比較する |
+
+[公式のeffort説明](https://antigravity.google/docs/cli/commands/effort)ではLowは軽い推論向けで、`--effort`はその起動だけに適用され、既定を永続変更しません。現helperはモデル指定に対応しますがeffort指定は未接続で、今回は追加しません。API専用のthinkingBudget等をGoogle OAuth CLIへそのまま渡せるとは扱いません。Orchestratorの計画／実行分担は今回の短い雑談の第一候補にしません。いずれも採用・合成比較は次の合意後です。
+
+入力途中の先送りには次の違いがあります。
+
+- 接続／プロセスの準備だけを先行させ、下書き本文は送らない：起動負担を入力時間と重ねられる可能性があります。前回のinit通知4.5～6.3秒が全て削れる保証はありません。継続プロセスの履歴・取消条件は別途設計が必要です。
+- 下書きから推測生成する：送信後の待ちを隠せる場合はありますが、IME変換・削除・語尾の否定によって意味が変わり、作り直しやquota消費が増えます。確定文との一致を検査し、未送信・取消済み内容を本人の原文ノート／理解／行動へ混ぜないことが必要です。今回は外部送信も生成も行いません。
+- [現CLIのstdin](https://antigravity.google/docs/cli/headless/)は一行ごとに一ターンを実行します。文章を少しずつ送って同じ入力の編集として扱う機能ではありません。[Live APIの増分context](https://aistudio.google.com/docs/live-api/capabilities#incremental-updates)には未完了ターンの送信手段がありますが、未完文の計算先行や具体的な短縮量の保証とは区別します。下書き送信は現在の送信範囲の拡張なので、先に相談します。
+
+音声は次の3経路を区別します。今回マイク・音声engine・音声APIは起動していません。
+
+| 経路 | 費用・組込み | 待ち時間と保持条件 |
+| --- | --- | --- |
+| 既存のPC内認識→確定文字→CLI→本人の選択声 | 現契約内CLIとローカル音声。現在は保留 | 途中認識は入力欄用で、現方式は確定／手動送信後に返答生成。音声化だけではCLI本文前の待ちはなくならず、認識／読み上げのPC負荷も残る |
+| Antigravity内の音声会話 | [公式voice mode](https://antigravity.google/docs/voice-mode/)はGemini Liveを使い、雑談／割込み／継続に対応。実アカウントの音声利用可否・枠は未確認 | 公式にprint mode非対応。現在のゲームtransportからそのまま使える音声APIではない。CLI内で選ぶ声はゲームの保存済みの声とは別 |
+| ゲームからDeveloper Live APIへ接続 | [料金表](https://aistudio.google.com/docs/pricing#gemini-3.8-live)に無料枠あり。CLI契約と別。請求有効化・有料API・追加購入は禁止、枠不足なら停止 | 日本語・音声逐次送信・割込み・文字起こしに対応。会話用モデルで、ローカル認識／読み上げを省ける可能性がある。現声の同一再現・PC負荷／応答時間は未確認 |
+
+Live APIの第一調査候補は`gemini-3.8-live`。[公式の用途比較](https://aistudio.google.com/docs/live-api/thinking)は通常Liveを低遅延の会話に、Extended Thinkingを複雑な分析／長いtool処理に推奨しています。3.8通常LiveにはthinkingLevelを設定しません。3.1 Flash Liveはlegacy previewのため新規第一候補にしません。実際の無料枠は[AI Studioの対象project／model](https://aistudio.google.com/docs/rate-limits)で確認する必要があり、無料で無制限とは扱いません。
+
+音声逐次送信では、発話中に転送／音声理解を進め、話し終わり後の待ちを減らせる可能性があります。ただし語尾の確定と発話終了検出の待ちは残ります。[VAD設定](https://aistudio.google.com/docs/live-api/capabilities#configure-automatic-vad)を短くしすぎると考え中の間や日本語の途中で切れます。押して話す方式なら明示終了で区切る案もありますが、未採用です。Live APIの再接続／会話継続はゲームの原文ノートの永続化とは別で、本人設定・ノートはゲーム側を正本とし、生成文／暫定認識を習得や実績へ採用しません。マイク原音の外部送信・無料枠の製品改善利用・声の変更・セッション履歴の範囲を合意してから試します。現音声の再導入と4修正候補は保留を維持します。
+
 ## 文字応答の初回遅延調査（2026-11-20）
 
 既存契約の追加クレジットOFF・既定モデル・毎回別CLI起動の現方式を変えず、未変更の返答helperを合成の同一日本語入力3件で計測しました。実際の本人の保存・ノート・声設定は使用していません。本人の設定やノートを含む実会話の速度を保証する値ではありません。
