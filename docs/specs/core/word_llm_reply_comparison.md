@@ -2,6 +2,9 @@
 
 ## 現在の実装仕様
 
+- 2026-11-20待ち時間の内訳計測：比較版Electronの返答helperだけ`measure:true`とし、単調時計の相対msを返す。CLI起動要求／process spawn通知／stdin投入／init受信／最初の空でないagent_response本文delta／本文DONE／terminal result受信／process close／検査後返却を区別する。initは接続準備全体の観測点であり純粋なPC起動時間・通信・サービス待ち・推論を分離した値ではない。欠けた通知は欠測で、result本文を初deltaの代用にしない。本文・思考・認証情報・raw診断出力は計測値へ含めず、prompt／モデル／課金／取消・表示方針は変更しない。
+- 共通UIは比較版の同じrequestId/inputIdへ`guidance:llm_timing`を記録する。送信submit受付（自発会話は生成処理入口）から呼出前のprepareMs、IPC往復roundTripMs、結果受取receivedMs、成功時DOM更新後domUpdatedMsと、helper内の相対時刻を保持。差引き`roundTripMs - helper.marks.returned`はIPC／スケジューリング等の合計で片道通信の断定には使わない。取消／破棄／失敗も区別する。成功後の二回目requestAnimationFrameで`llm_timing_frame.frameOpportunityMs`を別記録するが、画面が非表示・会話が置換済みなら記録せず、物理画面へのpaint完了や音声開始の証明にしない。Node／rendererの時計の絶対値は直接引かない。診断は本人セーブ・知識・原文ノートへ入れず、既存の私用試遊記録／レポートへ分離する。
+
 - 2026-11-20本人試用の承認：比較版の同じ本人を、今回の起動だけ`WORD_GEMINI_MODEL=gemini-4-hydrogen-low`で文字のみ試す。既存の環境指定と文字起動経路を使い、恒久の既定変更・保存先変更・声設定変更はしない。ゲームコード／追加クレジットOFF／理解・学習・行動・限定送信は維持し、音声再導入・下書き送信・4修正候補や他保留は解除しない。[起動と試用手順](../../word/GEMINI_REPLY.md#現在の本人試用hydrogen-low文字のみ2026-11-20)。タイトルと「つづきから」表示まで確認し、助手は実本人の再開・入力を操作していない。実会話の速度・品質・保存復元の受入はユーザーの試遊後に別評価する。
 
 - 2026-11-20文字のみ実試遊後：ユーザーは音声サービス停止でスムーズに会話できたと確認。文字のみを最終完成とはせず、音声込みの会話を最終目標として保持し、音声の安定化・再導入対応は一旦保留する。本人・声設定を保持して現在の文字のみ起動を使う。音声停止を白画面の直接原因の確定や、音声対応完了と扱わない。

@@ -2117,7 +2117,7 @@
             : identityText ?? (displayText(reply.message) + (reply.literal || ''));
         return { reply, progress, identityText, text, visibleText };
     }
-    function presentInputReply(reply, innerText, inputEntry, initiative = false) {
+    function presentInputReply(reply, innerText, inputEntry, initiative = false, inputStarted = performance.now()) {
         if (window.wordReply?.enabled) innerText = '';
         const native = replyPresentation(reply);
         if (!window.wordReply?.enabled || adventureMentorSpeech) { showReply(reply, innerText); return bubble.textContent; }
@@ -2132,11 +2132,16 @@
             inviteQuestion: initiative || !automaticSubmission && conversationTurns > 0 && conversationTurns % 3 === 0,
             character: { name: identity.characterName || '', self: identity.firstPerson || '', player: identity.playerAddress || '', species: appearance.value },
             recent: generatedRecent.slice(-6), memories: window.ExperimentalWordReplyMemory.context(state, inputEntry.raw, inputEntry.id) };
+        const invoked = performance.now();
         void window.wordReply.generate(packet).catch(() => ({ ok: false, error: 'failed' })).then(result => {
-            if (revision !== generatedRevision) return;
+            const received = performance.now();
+            const timing = { requestId: id, inputId: inputEntry.id, initiative, helper: result?.timing || null,
+                prepareMs: invoked - inputStarted, roundTripMs: received - invoked, receivedMs: received - inputStarted };
+            const logTiming = outcome => record('guidance', { key: 'llm_timing', ...timing, outcome });
+            if (revision !== generatedRevision) { logTiming('discarded'); return; }
             generatedPending = false; generatedId = null;
             if (state !== currentState || locale !== window.GameI18n.language || screen !== 'playing' || paused || document.hidden || meeting.open || settingsDialog.open) {
-                cancelGeneratedReply(); return;
+                logTiming('discarded'); cancelGeneratedReply(); return;
             }
             if (result?.ok && typeof result.text === 'string' && result.text.length <= 1200) {
                 if (!initiative) generatedRecent.push({ role: 'user', text: inputEntry.raw.slice(0,1200) });
@@ -2144,11 +2149,20 @@
                 generatedRecent = generatedRecent.slice(-6);
                 replyModeStatus.textContent = t('llmMode');
                 showReply(reply, innerText, { text: result.text, inputId: inputEntry.id, source: result.source, initiative });
+                timing.domUpdatedMs = performance.now() - inputStarted;
+                logTiming('displayed');
+                // Two frame callbacks provide a rendering opportunity, not proof of physical display paint.
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    if (revision !== generatedRevision || state !== currentState || document.hidden || screen !== 'playing') return;
+                    record('guidance', { key: 'llm_timing_frame', requestId: id, inputId: inputEntry.id,
+                        frameOpportunityMs: performance.now() - inputStarted });
+                }));
             } else {
                 const errorLabel = { login: 'llmLogin', missing: 'llmLogin', quota: 'llmQuota', unsupported: 'llmUnsupported' }[result?.error] || 'llmFailed';
                 replyModeStatus.textContent = t(initiative ? 'llmMode' : errorLabel);
                 record('guidance', { key: 'llm_unavailable', inputId: inputEntry.id, error: result?.error || 'failed' });
                 if (!initiative) showReply(reply, innerText);
+                logTiming(result?.error || 'failed');
             }
         });
         return native.visibleText;
@@ -2397,6 +2411,7 @@
     form.addEventListener('submit', event => {
         event.preventDefault();
         if (!input.value.trim() || document.hidden || paused || growthDialog.open) return;
+        const inputStarted = performance.now();
         if (window.wordReply?.enabled && !automaticSubmission && !adventureMentorSpeech) {
             selfAwareness.playerSpoke(world.elapsed); conversationTurns++;
         }
@@ -2442,7 +2457,7 @@
         if (window.wordReply?.enabled && !automaticSubmission) window.ExperimentalWordReplyMemory.remember(state, result.input);
         const innerText = window.wordReply?.enabled ? '' : constellationApi.innerVoice(result, text => window.GameI18n.translate(text));
         if (innerText) record('guidance', { key: 'inner_voice', inputId: result.input.id, text: innerText });
-        const nativeReplyText = presentInputReply(reply, innerText, result.input);
+        const nativeReplyText = presentInputReply(reply, innerText, result.input, false, inputStarted);
         if(adventureMentorSpeech) holdAdventureSpeech(() => voice.speakScene([
             {text:input.value,role:'master',master:adventureMentorSpeech.split(':')[1]},
             {text:innerText,role:'dialogue'},

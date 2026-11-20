@@ -74,19 +74,35 @@ function createResponder(directory, options = {}) {
     const spawnChild = options.spawn || spawn;
     function cancel(id) { if (active && (!id || active.id === id)) active.finish({ ok: false, error: 'cancelled' }); }
     async function reply(packet) {
+        const started = performance.now(), marks = {};
+        const mark = name => { if (marks[name] === undefined) marks[name] = performance.now() - started; };
+        const measured = result => options.measure ? { ...result, timing: { version: 1, marks: { ...marks, returned: performance.now() - started } } } : result;
         if (!valid(packet)) return { ok: false, error: 'input' };
         cancel();
         // Override account-credit fallback on EVERY invocation, including after setup or user edits.
-        try { writeSettings(config); } catch (_) { return { ok: false, error: 'settings' }; }
-        if (!options.skipAuthCheck && !fs.existsSync(config.credential)) return { ok: false, error: 'login' };
-        if (options.entry ? !fs.existsSync(options.entry) : !installed()) return { ok: false, error: 'missing' };
+        try { writeSettings(config); } catch (_) { return measured({ ok: false, error: 'settings' }); }
+        if (!options.skipAuthCheck && !fs.existsSync(config.credential)) return measured({ ok: false, error: 'login' });
+        if (options.entry ? !fs.existsSync(options.entry) : !installed()) return measured({ ok: false, error: 'missing' });
         return new Promise(resolve => {
-            let output = '', size = 0, child, timer, failure = 'failed', tail = '';
+            let output = '', size = 0, child, timer, failure = 'failed', tail = '', observed = '';
+            // Observe only event types and nonempty reply deltas. Never retain diagnostics or reasoning in timing data.
+            const observe = line => {
+                if (!options.measure) return;
+                try {
+                    const event = JSON.parse(line);
+                    if (event.event === 'init') mark('initialized');
+                    if (event.event === 'step_update' && event.step_update?.step_type === 'agent_response') {
+                        if (typeof event.step_update.text_delta === 'string' && event.step_update.text_delta.length) mark('firstText');
+                        if (event.step_update.state === 'DONE') mark('replyDone');
+                    }
+                    if (event.event === 'result') mark('result');
+                } catch (_) { /* The existing final parser remains authoritative. */ }
+            };
             const job = { id: packet.id, finish(result) {
                 if (job.done) return; job.done = true; clearTimeout(timer);
                 if (active === job) active = null;
                 if (child && child.exitCode == null) child.kill();
-                resolve(result);
+                resolve(measured(result));
             } };
             active = job;
             const args = [...(options.entry ? [options.entry] : []), '--output-format', 'stream-json', '--input-format', 'stream-json', '--disable-slash-commands',
@@ -94,12 +110,26 @@ function createResponder(directory, options = {}) {
             const model = options.model || process.env.WORD_GEMINI_MODEL;
             if (model && /^[a-z0-9][a-z0-9._-]{0,100}$/.test(model)) args.push('--model', model);
             try {
+                mark('spawnRequested');
                 child = spawnChild(options.executable || (options.entry ? process.execPath : cliEntry), args, { cwd: config.cwd, env: config.env, windowsHide: true, shell: false, stdio: ['pipe','pipe','pipe'] });
+                child.on('spawn', () => mark('spawned'));
                 timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.timeout || 60000);
                 child.on('error', () => job.finish({ ok: false, error: 'failed' }));
                 child.stdin.on('error', () => {});
                 child.stdout.setEncoding('utf8');
-                child.stdout.on('data', data => { size += data.length; if (size > 1024 * 1024) job.finish({ ok: false, error: 'output' }); else output += data.toString('utf8'); });
+                child.stdout.on('data', data => {
+                    if (job.done) return;
+                    size += data.length;
+                    if (size > 1024 * 1024) { job.finish({ ok: false, error: 'output' }); return; }
+                    output += data.toString('utf8');
+                    if (options.measure) {
+                        observed += data.toString('utf8');
+                        let boundary;
+                        while ((boundary = observed.indexOf('\n')) >= 0) {
+                            observe(observed.slice(0, boundary)); observed = observed.slice(boundary + 1);
+                        }
+                    }
+                });
                 // Never expose raw CLI diagnostics, auth URLs, environment or tokens to the renderer/log.
                 child.stderr.on('data', data => {
                     tail = (tail + data.toString('utf8')).slice(-1024); const kind = errorKind(tail);
@@ -107,6 +137,8 @@ function createResponder(directory, options = {}) {
                 });
                 child.on('close', code => {
                     if (job.done) return;
+                    mark('closed');
+                    if (observed.trim()) observe(observed);
                     try {
                         const events = output.trim().split(/\r?\n/).map(line => JSON.parse(line));
                         const results = events.filter(event => event.event === 'result');
@@ -120,6 +152,7 @@ function createResponder(directory, options = {}) {
                     } catch (_) { job.finish({ ok: false, error: failure }); }
                 });
                 child.stdin.end(JSON.stringify({ event: 'user', message: { content: prompt(packet) } }) + '\n');
+                mark('inputQueued');
             } catch (_) { job.finish({ ok: false, error: 'failed' }); }
         });
     }

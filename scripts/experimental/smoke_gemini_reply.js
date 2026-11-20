@@ -35,13 +35,19 @@ if (!process.versions.electron || process.type !== 'browser') {
             const content=JSON.parse(input).message.content,p=JSON.parse(content.slice(content.indexOf(String.fromCharCode(10))+1)),query=p.playerInput||'';const finish=()=>console.log(JSON.stringify({event:'result',result:query.startsWith('QUOTA')?{status:'ERROR',error:'RESOURCE_EXHAUSTED: quota reached'}:query.startsWith('UNSUPPORTED')?{status:'ERROR',error:'This client is no longer supported'}:{status:'SUCCESS',response:p.playerInput===null?'INITIATIVE_REPLY':query.startsWith('REST')?(p.selfState.activity==='rest'?'RESTING_REPLY':'NOT_RESTING'):query.startsWith('REMEMBER')?(p.playerMemories.some(m=>m.text==='月について教えて')?'MEMORY_RECALLED':'NO_MEMORY'):query.startsWith('TO_CANCEL')?'STALE_REPLY':query.startsWith('SECOND')?'SELECTED_VOICE_REPLY':'MOON_FIXTURE_REPLY',stats:{tools:{totalCalls:0}}}}));
             if(query.startsWith('TO_CANCEL')||query.startsWith('SECOND'))setTimeout(finish,query.startsWith('TO_CANCEL')?3000:700);
             else {const timer=setInterval(()=>{if(require('node:fs').existsSync(require('node:path').join(__dirname,'release-moon'))){clearInterval(timer);finish();}},25);}});`);
-        responder=require('./gemini_reply').createResponder(path.join(directory,'gemini'),{entry:fixture,skipAuthCheck:true});
+        responder=require('./gemini_reply').createResponder(path.join(directory,'gemini'),{entry:fixture,skipAuthCheck:true,measure:true});
         server=require('./serve').createServer();const serve=server.listeners('request')[0];server.removeAllListeners('request');
         server.on('request',(request,response)=>{
             fs.appendFileSync(path.join(directory,'requests.log'),request.url+'\n');
             if(request.url==='/experimental_word_island.html'){
                 response.writeHead(200,{'Content-Type':'text/html; charset=utf-8'});
                 response.end(fs.readFileSync(path.join(root,'experimental_word_island.html'),'utf8').replace('<head>','<head><script>'+mock+'</script>'));
+            } else if(request.url==='/experimental_word_learning_report.js'){
+                response.writeHead(200,{'Content-Type':'text/javascript'});
+                response.end(fs.readFileSync(path.join(root,'experimental_word_learning_report.js'),'utf8')+`;window.__timings=[];
+                    const originalCreate=ExperimentalWordReport.create;
+                    window.ExperimentalWordReport={...ExperimentalWordReport,create:(...args)=>{const report=originalCreate(...args);
+                        return {...report,record:(kind,data)=>{if(kind==='guidance'&&data.key.startsWith('llm_timing'))window.__timings.push(structuredClone(data));return report.record(kind,data);}};}};`);
             } else if(request.url==='/experimental_word_audio_provider.js'){
                 response.writeHead(200,{'Content-Type':'text/javascript'});
                 response.end(fs.readFileSync(path.join(root,'experimental_word_audio_provider.js'),'utf8')+';ExperimentalWordAudioProvider.voicevox=()=>({supports:()=>false});');
@@ -94,6 +100,17 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(snapshots.gemini.world.elapsed,before.elapsed);assert.equal(snapshots.gemini.world.fatigue,before.fatigue);
         fs.writeFileSync(path.join(directory,'release-moon'),'release');
         await wait(`document.querySelector('.stage .bubble').textContent==='MOON_FIXTURE_REPLY'`,'generated reply');
+        const timing = await js(`window.__timings.find(x=>x.key==='llm_timing'&&x.outcome==='displayed')`);
+        assert.equal(timing.requestId,packets.at(-1).id);
+        assert.ok(timing.prepareMs>=0 && timing.roundTripMs>=timing.helper.marks.returned);
+        assert.ok(timing.domUpdatedMs>=timing.receivedMs);
+        assert.equal(timing.helper.marks.firstText,undefined,'fixture sends only terminal reply');
+        // Run only the two diagnostic callbacks; advancing the world here would invalidate the native/comparison control.
+        await js(`window.__frames.pop()(performance.now());window.__frames.pop()(performance.now());void 0`);
+        const frame = await js(`window.__timings.find(x=>x.key==='llm_timing_frame')`);
+        assert.equal(frame.requestId,timing.requestId);assert.ok(frame.frameOpportunityMs>=timing.domUpdatedMs);
+        fs.writeFileSync(path.join(directory,'timing.json'),JSON.stringify({timing,frame},null,2));
+        checks.push({rendererTimingCorrelated:true,missingDeltaNotInvented:true,frameOpportunityMeasured:true});
         await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
         const {replyMemory,...coreState}=snapshots.gemini.state;
         assert.deepEqual(coreState,control.state);assert.deepEqual(snapshots.gemini.world,control.world);

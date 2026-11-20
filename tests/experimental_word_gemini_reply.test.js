@@ -48,6 +48,36 @@ test('a new input cancels the older process and late output cannot replace its r
     old.stdout.write(JSON.stringify({ response: 'stale' })); old.emit('close', 0);
     s.finish({ response: 'current' }); assert.equal((await second).text, 'current');
 });
+
+test('timing observes fragmented NDJSON without returning raw content or changing the prompt', async t => {
+    const s = setup(t, { measure: true }), input = packet(), pending = s.responder.reply(input), call = s.calls[0];
+    call.child.emit('spawn');
+    const events = [ { event: 'init', secret: 'private-auth' },
+        { event: 'step_update', step_update: { step_type: 'thinking', text_delta: 'private-thought' } },
+        { event: 'step_update', step_update: { step_type: 'agent_response', text_delta: 'hello' } },
+        { event: 'step_update', step_update: { step_type: 'agent_response', state: 'DONE' } } ];
+    const stream = events.map(x => JSON.stringify(x)).join('\n') + '\n';
+    for (let i = 0; i < stream.length; i += 7) call.child.stdout.write(stream.slice(i, i + 7));
+    assert.equal(JSON.parse(call.input).message.content, prompt(input));
+    s.finish({ response: 'hello' }); const result = await pending, m = result.timing.marks;
+    assert.equal(result.text, 'hello');
+    for (const key of ['spawnRequested','inputQueued','spawned','initialized','firstText','replyDone','result','closed','returned']) assert.ok(Number.isFinite(m[key]), key);
+    for (const [a,b] of [['initialized','firstText'],['firstText','replyDone'],['replyDone','result'],['result','closed'],['closed','returned']]) assert.ok(m[a] <= m[b]);
+    assert.ok(!JSON.stringify(result.timing).includes('private'));
+});
+
+test('missing stream milestones stay absent and cancellation timing belongs to its own request', async t => {
+    const s = setup(t, { measure: true });
+    const first = s.responder.reply(packet()), old = s.calls[0].child;
+    const second = s.responder.reply({ ...packet(), id: 'fixture-2' });
+    const cancelled = await first;
+    assert.equal(cancelled.error, 'cancelled'); assert.ok(Number.isFinite(cancelled.timing.marks.returned));
+    old.stdout.write(JSON.stringify({event:'init'})+'\n');
+    s.finish({ response: 'second' }); const result = await second;
+    assert.equal(result.text, 'second');
+    assert.equal(result.timing.marks.initialized, undefined); assert.equal(result.timing.marks.firstText, undefined);
+    assert.equal(cancelled.timing.marks.initialized, undefined);
+});
 test('failure, excessive response, tool activity, timeout and explicit stop never produce a generated reply', async t => {
     const s = setup(t, { timeout: 15 });
     for (const value of [{ response: 'x'.repeat(1201) }, { response: 'unsafe', stats: { tools: { totalCalls: 1 } } }, { error: { message: 'private diagnostic' } }]) {
