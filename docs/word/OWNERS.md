@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-21：[LLM中心の新システム](../specs/core/word_llm_native_system.md)が新しい設計方針・旧版保持・未決定の分担を所有する。以下の既存部品所有表を新システムでの再利用必須条件にしない。新システムの実装部品と接続所有は未決定。現行[Gemini応答比較版](../specs/core/word_llm_reply_comparison.md)の境界は既存方式のものとして保持する。
+
 2026-11-20本人活動：[比較版正本](../specs/core/word_llm_reply_comparison.md)の`experimental_word_reply_awareness`が会話専用の活動／直前体験投影と自発会話の間隔・返事待ちを所有。共通UIが既存実イベントを渡し生成を表示、gemini_replyが送信値を検査する。保存／理解／行動は変更しない。描画用時計の所有は[箱庭UI](../specs/core/word_terrarium_ui.md)。
 
 2026-11-20会話記憶：[比較版正本](../specs/core/word_llm_reply_comparison.md)の`experimental_word_reply_memory`が原player入力の保存形式・重複防止・ノート投影・返答用抜粋を所有。storageが検査・永続化、共通UIが比較版だけの記録・心の声非表示と中立案内、gemini_replyが出所付きcontextと返答方針を所有。既存の習得／行動判定やノートの整理は置換しない。

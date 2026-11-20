@@ -1,5 +1,7 @@
 # 新方式：普段読む入口
 
+2026-11-21：[LLM中心の新システム](../specs/core/word_llm_native_system.md)の設計方針を採用。旧版は比較用に残し、必要な既存部品を選ぶ。新システム未実装、既存Gemini応答比較版と区別する。次は入力・解釈・記憶・発言・行動の分担を具体化する。
+
 2026-11-20会話記憶：[比較版正本](../specs/core/word_llm_reply_comparison.md)へプレイヤー原文の会話用ノート保存・参照を追加。行動に使う知識は既存判定のまま、世界情報の自動供給なし。比較版の心の声と裏のAI名の表示を外し、通常版は維持する。操作は[GEMINI_REPLY](GEMINI_REPLY.md)、検証・発行はCURRENT。
 
 2026-11-20接続修正：[Gemini比較](../specs/core/word_llm_reply_comparison.md)は旧CLIでは実接続できなかった。公式後継CLIへ修正し、最新条件「追加課金が必要なら中止」に従い、契約内quota・追加クレジットOFFだけを使う。[新しいsetup手順](GEMINI_REPLY.md)でGoogle OAuthを使い、CLIへだけ認証コードを入力する。既存理解／学習／行動・心の声と保存先を保持。検証／実応答／発行はCURRENT。

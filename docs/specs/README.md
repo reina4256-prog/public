@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+2026-11-21新方針：[LLM中心の新システム](core/word_llm_native_system.md)は、LLM中心に設計して必要な既存部品を選ぶ進め方を採用。旧版はそのまま比較用に保持。方針合意のみで新システム未実装、具体的な判断・記憶・送信範囲は設計で相談する。
+
 2026-11-20安定性切り分け：[比較版](core/word_llm_reply_comparison.md)に保存済みの声設定を変えない文字のみ起動を追加。[音声](core/word_constellation_and_voice.md)の通常起動・常駐は維持する。実試遊の白画面・接続失敗は原因調査中。
 
 2026-11-20最新実装：[比較版](core/word_llm_reply_comparison.md)に自身の活動／直前の休息・食事・移動と本人発会話を接続。[箱庭UI](core/word_terrarium_ui.md)は入力／返答待ちも描画だけ継続する。検証・発行状況はCURRENT。
