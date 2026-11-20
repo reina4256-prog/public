@@ -135,7 +135,7 @@ test('reply context distinguishes heard memories from knowledge, forbids invente
     assert.equal(sent.playerMemories[0].text, input.memories[0].text);
     assert.match(text, /never invent a location/); assert.match(text, /not verified facts/);
     assert.match(text, /Output no inner voice/); assert.match(text, /Never mention a backend/);
-    assert.match(text, /Ask a follow-up only when the missing detail is essential for the present reply/);
+    assert.match(text, /Ask for clarification only when the missing detail is essential for the present reply/);
     assert.match(text, /A reply may end naturally without a question/);
     assert.match(text, /avoid repeating the form of address every turn/);
     assert.match(text, /unless the native outcome explicitly confirms that action has started/);
@@ -143,4 +143,44 @@ test('reply context distinguishes heard memories from knowledge, forbids invente
         [{ ...input.memories[0], text: 'x'.repeat(1201) }], Array(13).fill(input.memories[0]), Array(12).fill({ ...input.memories[0], text: 'x'.repeat(1200) })]) {
         assert.equal(valid({ ...input, memories }), false);
     }
+});
+
+test('self awareness projects only current body and session experiences, without world identities or restored history', () => {
+    const api = require('../experimental_word_reply_awareness'), session = api.create(10);
+    const world = { mode: 'rest', fatigue: .3, hunger: .7, elapsed: 15, destination: 'secret-place',
+        experiences: [{ kind: 'rest', end: 5 }], history: [{ target: 'secret-person' }] };
+    const before = JSON.stringify(world);
+    assert.deepEqual(session.context(world), { activity: 'rest', fatigue: .3, hunger: .7, recent: [] });
+    session.observe({ kind: 'experience', activity: 'rest', target: 'secret-place', before: { fatigue: .8, hunger: .6 }, after: { fatigue: .3, hunger: .7 } }, 12);
+    const value = session.context(world); assert.ok(api.valid(value));
+    assert.equal(value.recent[0].fatigueChange, -.5); assert.equal(value.recent[0].secondsAgo, 3);
+    assert.equal(JSON.stringify(world), before); assert.ok(!JSON.stringify(value).includes('secret'));
+    world.elapsed = 200; assert.deepEqual(session.context(world).recent, []);
+    assert.deepEqual(api.create(200).context(world).recent, []);
+    assert.equal(api.valid({ ...value, destination: 'hidden' }), false);
+    assert.equal(api.valid({ ...value, fatigue: Infinity }), false);
+    assert.equal(api.valid({ ...value, recent: [{ ...value.recent[0], target: 'hidden' }] }), false);
+    const input = { ...packet(), selfState: value, inviteQuestion: true };
+    assert.ok(valid(input)); assert.equal(valid({ ...input, selfState: { ...value, location: 'hidden' } }), false);
+    const text = prompt(input), sent = JSON.parse(text.slice(text.indexOf('\n') + 1));
+    assert.deepEqual(sent.selfState, value); assert.match(text, /negative fatigueChange means fatigue eased/);
+    assert.match(text, /one warm, relevant question about the player/);
+});
+
+test('initiative requires a recent experience, quiet cooldown and player re-engagement before another attempt', () => {
+    const session = require('../experimental_word_reply_awareness').create(0);
+    const event = { kind: 'experience', activity: 'eat', before: { fatigue: .4, hunger: .8 }, after: { fatigue: .42, hunger: .25 }, taste: { quality: 'sweet' } };
+    assert.equal(session.take(100, false), false);
+    session.observe(event, 85); assert.equal(session.take(89, false), false);
+    assert.equal(session.take(95, true), false); assert.equal(session.take(95, false), true);
+    session.observe(event, 185); assert.equal(session.take(200, false), false);
+    session.playerSpoke(200); assert.equal(session.take(300, false), false);
+    session.observe(event, 300); assert.equal(session.take(308, false), true);
+    session.playerSpoke(400); session.observe(event, 401); assert.equal(session.take(600, false), false);
+    const input = { ...packet(), kind: 'initiative', input: '', inviteQuestion: true,
+        selfState: { activity: 'other', fatigue: .2, hunger: .4, recent: [{ activity: 'eat', secondsAgo: 8, fatigueChange: .02, hungerChange: -.55, taste: 'sweet' }] } };
+    assert.equal(valid({ ...input, selfState: undefined }), false);
+    assert.ok(valid(input)); const text = prompt(input);
+    assert.equal(JSON.parse(text.slice(text.indexOf('\n') + 1)).playerInput, null);
+    assert.match(text, /no new player utterance/); assert.equal(valid({ ...input, kind: 'unknown' }), false);
 });

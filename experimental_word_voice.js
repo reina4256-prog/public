@@ -557,6 +557,7 @@
                 if (!enabled) this.stop(); else { if (effects?.supported) void effects.prepare().catch(() => status('failedOutput')); warmFixed(); }
             },
             get enabled() { return enabled; },
+            get speaking() { return !!utterance || !!playbackWait || !!pending; },
             supportedInput: !!Recognition, supportedOutput: !!((host.speechSynthesis && host.SpeechSynthesisUtterance) || effects?.supported),
             get preferencesSaved() { return preferencesSaved && enabledSaved; },
             get listening() { return !!active || !!comparison; } };

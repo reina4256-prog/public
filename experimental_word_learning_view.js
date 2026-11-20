@@ -13,7 +13,7 @@
             ctx.drawImage(image, frame.sx, frame.sy, frame.sw, frame.sh,
                 x - frame.sw * scale / 2, y - frame.sh * scale, frame.sw * scale, frame.sh * scale);
         }
-        this.draw = function (world, skin, reducedMotion = false) {
+        this.draw = function (world, skin, reducedMotion = false, practice = null, visualElapsed = world.elapsed) {
             const w = 900, h = 470;
             ctx.clearRect(0, 0, w, h);
             const sky = ctx.createLinearGradient(0, 0, 0, h);
@@ -39,7 +39,7 @@
             ctx.fillStyle = '#35563d33'; ctx.beginPath(); ctx.ellipse(x, y + 6, 32, 10, 0, 0, 7); ctx.fill();
             const action = world.mode === 'move' ? 'move' : world.mode === 'rest' ? 'sleep' : 'idle';
             const frames = visuals[skin].actions[action];
-            const frame = frames[reducedMotion ? 0 : Math.floor(world.elapsed / .25) % frames.length];
+            const frame = frames[reducedMotion ? 0 : Math.floor(visualElapsed / .25) % frames.length];
             ctx.save();
             if (world.reactionTime > 0 && world.reaction === 'recognize' && world.speech?.target?.startsWith('berry:')) {
                 ctx.strokeStyle = '#fff8b3'; ctx.lineWidth = 3;
@@ -54,7 +54,7 @@
                     && world.speech?.target?.startsWith('berry:') && world.x > .28;
             if (faceLeft) { ctx.translate(x * 2, 0); ctx.scale(-1, 1); }
             if (world.reactionTime > 0 && world.reaction === 'uncertain' && !reducedMotion) {
-                ctx.translate(x, y); ctx.rotate(Math.sin(world.elapsed * 3) * .07); ctx.translate(-x, -y);
+                ctx.translate(x, y); ctx.rotate(Math.sin(visualElapsed * 3) * .07); ctx.translate(-x, -y);
             }
             if (world.fatigue > .55 && action !== 'sleep' && !reducedMotion) {
                 ctx.translate(x, y); ctx.rotate(.08); ctx.translate(-x, -y);
@@ -62,7 +62,7 @@
             sprite(images[skin], frame, x, y, action === 'sleep' ? 105 : 85, action === 'sleep' ? 55 : 105);
             if (world.mode === 'eat') {
                 ctx.fillStyle = '#ac4562'; ctx.beginPath();
-                ctx.arc(x + 12, y - 35, reducedMotion ? 7 : 6 + Math.sin(world.elapsed * 5) * 2, 0, 7); ctx.fill();
+                ctx.arc(x + 12, y - 35, reducedMotion ? 7 : 6 + Math.sin(visualElapsed * 5) * 2, 0, 7); ctx.fill();
             }
             ctx.restore();
             if (world.reactionTime > 0) {

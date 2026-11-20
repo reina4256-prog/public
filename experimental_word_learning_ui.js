@@ -5,7 +5,7 @@
     const app = document.getElementById('app');
     const labels = {
         llmMode: '声をかけて、お話ししてみましょう。',
-        llmNotice: '会話のために、入力・関連するノート・直近の会話・本人の設定を外部サービスへ送ります。通常版とは別に保存します。追加クレジットは使用しません。',
+        llmNotice: '会話のために、入力・関連するノート・直近の会話・本人の設定と活動・直前の体験を外部サービスへ送ります。通常版とは別に保存します。追加クレジットは使用しません。',
         llmWaiting: 'お返事を待っています…',
         llmFailed: 'お話の接続に失敗しました。今回はいつもの返答です。接続状態を確認してください。',
         llmLogin: 'お話の接続準備が必要です。起動手順を確認してください。今回はいつもの返答です。',
@@ -510,6 +510,7 @@
     let adventureActionToken = 0;
     let lastInnerText = '';
     let generatedPending = false, generatedId = null, generatedRevision = 0, generatedRecent = [];
+    let selfAwareness = null, conversationTurns = 0, visualElapsed = 0, inputComposing = false;
     function cancelGeneratedReply() {
         const wasPending = generatedPending;
         generatedRevision++;
@@ -1796,6 +1797,9 @@
             : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: true }));
     });
     voiceStop.addEventListener('click', () => { cancelGeneratedReply(); ++adventureActionToken; voice.stop(); });
+    input.addEventListener('compositionstart', () => { inputComposing = true; stopAuto(); voice.stop(); });
+    input.addEventListener('compositionend', () => { inputComposing = false; });
+    input.addEventListener('blur', () => { inputComposing = false; });
     input.addEventListener('input', () => {
         stopAuto();voice.stop();
         if(state?.adventure?.connection) {
@@ -2106,17 +2110,19 @@
             : identityText ?? (displayText(reply.message) + (reply.literal || ''));
         return { reply, progress, identityText, text, visibleText };
     }
-    function presentInputReply(reply, innerText, inputEntry) {
+    function presentInputReply(reply, innerText, inputEntry, initiative = false) {
         if (window.wordReply?.enabled) innerText = '';
         const native = replyPresentation(reply);
         if (!window.wordReply?.enabled || adventureMentorSpeech) { showReply(reply, innerText); return bubble.textContent; }
         cancelGeneratedReply(); const revision = generatedRevision, currentState = state, locale = window.GameI18n.language;
         const id = window.crypto.randomUUID(); generatedId = id; generatedPending = true;
         replyModeStatus.textContent = t('llmWaiting');
-        bubble.textContent = displayText('llmWaiting'); bubble.hidden = false;
+        if (!initiative) { bubble.textContent = displayText('llmWaiting'); bubble.hidden = false; }
         currentInner.hidden = !innerText; currentInnerText.textContent = innerText; lastInnerText = innerText;
         const identity = state.identity || {};
-        const packet = { id, locale, input: inputEntry.raw, nativeText: native.visibleText,
+        const packet = { id, locale, input: inputEntry.raw, nativeText: initiative ? '' : native.visibleText,
+            kind: initiative ? 'initiative' : 'reply', selfState: selfAwareness.context(world),
+            inviteQuestion: initiative || !automaticSubmission && conversationTurns > 0 && conversationTurns % 3 === 0,
             character: { name: identity.characterName || '', self: identity.firstPerson || '', player: identity.playerAddress || '', species: appearance.value },
             recent: generatedRecent.slice(-6), memories: window.ExperimentalWordReplyMemory.context(state, inputEntry.raw, inputEntry.id) };
         void window.wordReply.generate(packet).catch(() => ({ ok: false, error: 'failed' })).then(result => {
@@ -2126,15 +2132,16 @@
                 cancelGeneratedReply(); return;
             }
             if (result?.ok && typeof result.text === 'string' && result.text.length <= 1200) {
-                generatedRecent.push({ role: 'user', text: inputEntry.raw.slice(0,1200) }, { role: 'assistant', text: result.text });
+                if (!initiative) generatedRecent.push({ role: 'user', text: inputEntry.raw.slice(0,1200) });
+                generatedRecent.push({ role: 'assistant', text: result.text });
                 generatedRecent = generatedRecent.slice(-6);
                 replyModeStatus.textContent = t('llmMode');
-                showReply(reply, innerText, { text: result.text, inputId: inputEntry.id, source: result.source });
+                showReply(reply, innerText, { text: result.text, inputId: inputEntry.id, source: result.source, initiative });
             } else {
                 const errorLabel = { login: 'llmLogin', missing: 'llmLogin', quota: 'llmQuota', unsupported: 'llmUnsupported' }[result?.error] || 'llmFailed';
-                replyModeStatus.textContent = t(errorLabel);
+                replyModeStatus.textContent = t(initiative ? 'llmMode' : errorLabel);
                 record('guidance', { key: 'llm_unavailable', inputId: inputEntry.id, error: result?.error || 'failed' });
-                showReply(reply, innerText);
+                if (!initiative) showReply(reply, innerText);
             }
         });
         return native.visibleText;
@@ -2156,7 +2163,7 @@
             record('master', { master: reply.master, message: reply.npc, text: displayText(reply.npc) });
         };
         if (reply.npc && !reply.npcAfter) appendMentor();
-        if (generated) record('guidance', { key: 'llm_response', inputId: generated.inputId, text: generated.text, nativeReply: reply, nativeText: native.text, source: generated.source });
+        if (generated) record('guidance', { key: generated.initiative ? 'llm_initiative' : 'llm_response', inputId: generated.inputId, text: generated.text, nativeReply: generated.initiative ? null : reply, nativeText: generated.initiative ? '' : native.text, source: generated.source });
         else record('character', { reply, text: native.text });
         bubble.replaceChildren(); bubble.removeAttribute('data-i18n-skip'); bubble.hidden = false;
         const line = node('p', undefined, conversation);
@@ -2202,7 +2209,7 @@
         else if (!adventureMentorSpeech) {
             const play = () => innerText ? voice.speakScene([{ text: innerText, role: 'dialogue' },
                 { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }])
-                : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: !!state.adventure?.run });
+                : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: !!state.adventure?.run || !!window.wordReply?.enabled });
             if (innerText || state.adventure?.run) holdAdventureSpeech(play); else play();
         }
     }
@@ -2221,6 +2228,10 @@
             evolveButton.classList.toggle('word-evolution-ready', ready || !!state.evolution.pending);
             tickAutoMaster(Math.max(0, Math.min(.1, dt)));
             const holding = paused || generatedPending || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open || masterDialog.open || masterClosing || exporting || voice.listening || meeting.open || !stars.hidden || !!input.value.trim() || adventureSpeechPending;
+            // Rendering has its own clock; input/response holds must not advance simulation.
+            const visualHolding = paused || settingsDialog.open || albumDialog.open || bookDialog.open || growthDialog.open
+                || masterDialog.open || masterClosing || exporting || meeting.open || !stars.hidden;
+            if (!visualHolding) visualElapsed += Math.min(.1, Math.max(0, dt));
             [1 - world.hunger, 1 - world.fatigue].forEach((value, index) => {
                 const percent = Math.round(value * 100);
                 bodyMeters[index].meter.value = percent;
@@ -2241,6 +2252,7 @@
             }
             const event = worldApi.tick(world, dt, holding);
             if (event) record('life', { event });
+            if (event && window.wordReply?.enabled) selfAwareness.observe(event, world.elapsed);
             updatePerception();
             const taskAtArrival = state.adventure?.connection.task;
             const spontaneous = worldApi.onArrival(world, state, event);
@@ -2259,6 +2271,11 @@
             if (spontaneous && (!taskAtArrival || !spontaneous.master || spontaneous.message === 'master_meet')) showReply(spontaneous);
             if (event) renderNotebook();
             tickAuto(holding || masterDialog.open);
+            const speechActive = !!world.speech && world.elapsed <= world.speech.until;
+            if (window.wordReply?.enabled && selfAwareness.take(world.elapsed, holding || inputComposing || generatedPending || speechActive || autoActive
+                || masterDialog.open || masterClosing || !!state.adventure?.connection.task || voice.speaking)) {
+                void presentInputReply({ message: 'attend' }, '', { raw: '', id: null }, true);
+            }
             if (world.speech && world.elapsed > world.speech.until) bubble.hidden = true;
             const feedback = controlFeedback && time < controlFeedback.until ? controlFeedback.key : null;
             const key = imageFailure ? 'imagesFailed' : paused ? 'paused' : feedback || (input.value.trim() ? 'typing' : world.mode === 'observe'
@@ -2268,7 +2285,7 @@
             if (key !== lastStatus) { status.textContent = t(key); lastStatus = key; }
             const task=state.adventure?.connection.task, step=task?.steps[task.index];
             const practice=step?.effect==='gather' ? 'farm_plow' : step?.effect==='craft' ? task.project==='ration'?'cook':'study' : null;
-            view.draw(world, state.evolution?.skin || appearance.value, matchMedia('(prefers-reduced-motion: reduce)').matches, practice);
+            view.draw(world, state.evolution?.skin || appearance.value, matchMedia('(prefers-reduced-motion: reduce)').matches, practice, visualElapsed);
             if (adventureView) adventureView.update(state, world, dungeonVisuals, state.evolution.skin || appearance.value);
             const scale = Math.min(canvas.clientWidth / canvas.width, canvas.clientHeight / canvas.height);
             const position = view.bubblePosition?.() || { x: world.x, y: world.y - .39 };
@@ -2288,6 +2305,7 @@
         if (newMeeting) identityApi.configure(state, signedIdentity || readIdentityDraft());
         signedIdentity = null;
         world = restored?.world || worldApi.create();
+        selfAwareness = window.ExperimentalWordReplyAwareness.create(world.elapsed); conversationTurns = 0; visualElapsed = world.elapsed;
         stopAuto(); autoMemory = autoApi.create(state.autoTraining?.weights); autoBaseline = null; autoProgress.textContent = '';
         for (const axis of autoApi.axes) { autoSliders[axis].slider.value = String(autoMemory.weights[axis]); autoSliders[axis].value.textContent = t('autoLevels' + autoMemory.weights[axis]); }
         if (restored) appearance.value = restored.appearance;
@@ -2372,6 +2390,9 @@
     form.addEventListener('submit', event => {
         event.preventDefault();
         if (!input.value.trim() || document.hidden || paused || growthDialog.open) return;
+        if (window.wordReply?.enabled && !automaticSubmission && !adventureMentorSpeech) {
+            selfAwareness.playerSpoke(world.elapsed); conversationTurns++;
+        }
         if (!automaticSubmission) stopAuto();
         if (!automaticSubmission) adventureView?.stop();
         ++adventureSpeechToken; adventureSpeechPending = false;

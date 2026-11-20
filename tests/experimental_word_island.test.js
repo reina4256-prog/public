@@ -27,11 +27,16 @@ test('island view keeps master place pointing without loading or drawing master 
         getBoundingClientRect:() => ({ left:0, top:0, width:800, height:480 }) };
     const env = vm.createContext({ window:{ ExperimentalWordCareers:require('../experimental_word_careers'), ExperimentalWordWorld:{ setNavigation() {} }, WordIslandNavigation:{ route() {} } },
         defaultCatalog:{}, imageSources:{ robot:'robot.png' }, camera:{ x:0, y:0 }, render() {},
-        aiConfigs:{ robot:{ actions:{ idle:[{}] } } }, Image:class { set src(value) { loaded.push(value); } } });
+        aiConfigs:{ robot:{ actions:{ idle:[{},{}] } } }, Image:class { set src(value) { loaded.push(value); } } });
     vm.runInContext(fs.readFileSync(path.join(root, 'experimental_word_island_view.js'), 'utf8'), env);
     const view = new env.window.ExperimentalWordView(surface, {robot:{}}, () => {});
     const world = { x:.5,y:.5,mode:'idle',elapsed:0,fruit:0,island:{places:[{id:'berry:1',x:.1,y:.1},{id:'shade',x:.2,y:.2},{id:'path'}, {id:'master:farming',x:.5,y:.5}] } };
     view.draw(world, 'robot', true);
+    const saved = JSON.stringify(world);
+    view.draw(world, 'robot', false, null, .25); assert.equal(env.aiPet.frameIndex, 1);
+    view.draw(world, 'robot', false, null, .5); assert.equal(env.aiPet.frameIndex, 0);
+    view.draw(world, 'robot', true, null, .25); assert.equal(env.aiPet.frameIndex, 0);
+    assert.equal(JSON.stringify(world), saved);
     assert.equal(loaded.some(file => file?.includes('battle_enemy')), false);
     assert.deepEqual(drawn, []);
     assert.equal(view.hit(world, {clientX:400,clientY:255}), 'master:farming');

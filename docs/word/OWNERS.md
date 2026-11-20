@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-20本人活動：[比較版正本](../specs/core/word_llm_reply_comparison.md)の`experimental_word_reply_awareness`が会話専用の活動／直前体験投影と自発会話の間隔・返事待ちを所有。共通UIが既存実イベントを渡し生成を表示、gemini_replyが送信値を検査する。保存／理解／行動は変更しない。描画用時計の所有は[箱庭UI](../specs/core/word_terrarium_ui.md)。
+
 2026-11-20会話記憶：[比較版正本](../specs/core/word_llm_reply_comparison.md)の`experimental_word_reply_memory`が原player入力の保存形式・重複防止・ノート投影・返答用抜粋を所有。storageが検査・永続化、共通UIが比較版だけの記録・心の声非表示と中立案内、gemini_replyが出所付きcontextと返答方針を所有。既存の習得／行動判定やノートの整理は置換しない。
 
 2026-11-20接続修正：[Gemini比較正本](../specs/core/word_llm_reply_comparison.md)のantigravity_installが公式native版の固定取得／検証、gemini.jsが専用homeでの手動認証、gemini_replyが毎回の追加クレジットOFF・NDJSON／取消・認証／quota／サポート終了分類を所有する。既存IPC・保存先と原理解の所有を保持し、APIキー／Cloud課金へ変更しない。

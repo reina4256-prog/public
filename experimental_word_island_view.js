@@ -48,7 +48,7 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
         camera.y = world.y * 480 - surface.height / 2;
         window.audioManager.playBGM(skin);
     };
-    this.draw = function (world, skin, reducedMotion, practice) {
+    this.draw = function (world, skin, reducedMotion, practice, visualElapsed = world.elapsed) {
         sceneAssets(world);
         skin = window.ExperimentalWordGrowth?.visualSkin(skin) || skin;
         aiPet.x = world.x * 800; aiPet.y = world.y * 480;
@@ -58,7 +58,7 @@ window.ExperimentalWordView = function (surface, visuals, onError) {
             : world.mode === 'rest' ? 'sleep' : world.mode === 'eat' ? 'eat_raw' : 'idle');
         const action = world.mode === 'move' ? 'move' : aiPet.visualAction;
         const frames = aiConfigs[skin].actions[action] || aiConfigs[skin].actions.idle;
-        aiPet.frameIndex = reducedMotion ? 0 : Math.floor(world.elapsed / .25) % frames.length;
+        aiPet.frameIndex = reducedMotion ? 0 : Math.floor(visualElapsed / .25) % frames.length;
         const target = world.route?.[0] || world.island.places.find(p => p.id === world.destination);
         if (world.mode === 'move' && target) aiPet.flip = target.x < world.x;
         render();
