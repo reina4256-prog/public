@@ -70,50 +70,75 @@ function prompt(packet) {
             playerMemories: packet.memories || [], recent: packet.recent, playerInput: packet.kind === 'initiative' ? null : packet.input });
 }
 function createResponder(directory, options = {}) {
-    const config = configuration(directory, options.env); let active = null;
+    const config = configuration(directory, options.env); let active = null, prepared = null, disposed = false;
     const spawnChild = options.spawn || spawn;
-    function cancel(id) { if (active && (!id || active.id === id)) active.finish({ ok: false, error: 'cancelled' }); }
-    async function reply(packet) {
-        const started = performance.now(), marks = {};
+    const modelChoice = () => {
+        const model = options.model || process.env.WORD_GEMINI_MODEL;
+        return model && /^[a-z0-9][a-z0-9._-]{0,100}$/.test(model) ? model : null;
+    };
+    function cancel(id) {
+        if (active && (!id || active.id === id)) active.finish({ ok: false, error: 'cancelled' });
+        if (!id && prepared) prepared.finish({ ok: false, error: 'cancelled' });
+    }
+    function preflight() {
+        if (disposed) return 'disabled';
+        // Keep paid fallback disabled both when preparing and when actually sending.
+        try { writeSettings(config); } catch (_) { return 'settings'; }
+        if (!options.skipAuthCheck && !fs.existsSync(config.credential)) return 'login';
+        if (options.entry ? !fs.existsSync(options.entry) : !installed()) return 'missing';
+        return null;
+    }
+    function createJob(started, prestarted) {
+        const marks = {}, model = modelChoice();
         const mark = name => { if (marks[name] === undefined) marks[name] = performance.now() - started; };
-        const measured = result => options.measure ? { ...result, timing: { version: 1, marks: { ...marks, returned: performance.now() - started } } } : result;
-        if (!valid(packet)) return { ok: false, error: 'input' };
-        cancel();
-        // Override account-credit fallback on EVERY invocation, including after setup or user edits.
-        try { writeSettings(config); } catch (_) { return measured({ ok: false, error: 'settings' }); }
-        if (!options.skipAuthCheck && !fs.existsSync(config.credential)) return measured({ ok: false, error: 'login' });
-        if (options.entry ? !fs.existsSync(options.entry) : !installed()) return measured({ ok: false, error: 'missing' });
-        return new Promise(resolve => {
+        let job;
+        const promise = new Promise(resolve => {
             let output = '', size = 0, child, timer, failure = 'failed', tail = '', observed = '';
             // Observe only event types and nonempty reply deltas. Never retain diagnostics or reasoning in timing data.
             const observe = line => {
-                if (!options.measure) return;
                 try {
                     const event = JSON.parse(line);
+                    // A prepared process must remain an empty conversation until an explicit send.
+                    if (!job.id && event.event !== 'init') { job.finish({ ok: false, error: 'failed' }); return; }
                     if (event.event === 'init') mark('initialized');
                     if (event.event === 'step_update' && event.step_update?.step_type === 'agent_response') {
                         if (typeof event.step_update.text_delta === 'string' && event.step_update.text_delta.length) mark('firstText');
                         if (event.step_update.state === 'DONE') mark('replyDone');
                     }
                     if (event.event === 'result') mark('result');
-                } catch (_) { /* The existing final parser remains authoritative. */ }
+                } catch (_) { if (!job.id) job.finish({ ok: false, error: 'failed' }); }
             };
-            const job = { id: packet.id, finish(result) {
+            job = { id: null, model, started, requestStarted: started, prestarted, done: false, promise: null,
+                send(packet, requestStarted) {
+                    if (job.done) return;
+                    job.id = packet.id; job.requestStarted = requestStarted; active = job;
+                    clearTimeout(timer);
+                    timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.timeout || 60000);
+                    try {
+                        child.stdin.end(JSON.stringify({ event: 'user', message: { content: prompt(packet) } }) + '\n');
+                        mark('inputQueued');
+                    } catch (_) { job.finish({ ok: false, error: 'failed' }); }
+                }, finish(result) {
                 if (job.done) return; job.done = true; clearTimeout(timer);
                 if (active === job) active = null;
+                if (prepared === job) prepared = null;
                 if (child && child.exitCode == null) child.kill();
-                resolve(measured(result));
+                const offset = job.requestStarted - started;
+                resolve(options.measure ? { ...result, timing: { version: 2,
+                    prestart: { used: prestarted, ageMs: prestarted ? offset : 0,
+                        initializedBeforeRequest: prestarted && marks.initialized !== undefined && marks.initialized < offset },
+                    marks: { ...Object.fromEntries(Object.entries(marks).map(([key,value]) => [key,value-offset])),
+                        returned: performance.now() - job.requestStarted } } } : result);
             } };
-            active = job;
             const args = [...(options.entry ? [options.entry] : []), '--output-format', 'stream-json', '--input-format', 'stream-json', '--disable-slash-commands',
                 '--print-timeout', '60s', '--settings', config.session];
-            const model = options.model || process.env.WORD_GEMINI_MODEL;
-            if (model && /^[a-z0-9][a-z0-9._-]{0,100}$/.test(model)) args.push('--model', model);
+            if (model) args.push('--model', model);
             try {
                 mark('spawnRequested');
                 child = spawnChild(options.executable || (options.entry ? process.execPath : cliEntry), args, { cwd: config.cwd, env: config.env, windowsHide: true, shell: false, stdio: ['pipe','pipe','pipe'] });
                 child.on('spawn', () => mark('spawned'));
-                timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.timeout || 60000);
+                timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.idleTimeout || 120000);
+                timer.unref?.();
                 child.on('error', () => job.finish({ ok: false, error: 'failed' }));
                 child.stdin.on('error', () => {});
                 child.stdout.setEncoding('utf8');
@@ -122,12 +147,10 @@ function createResponder(directory, options = {}) {
                     size += data.length;
                     if (size > 1024 * 1024) { job.finish({ ok: false, error: 'output' }); return; }
                     output += data.toString('utf8');
-                    if (options.measure) {
-                        observed += data.toString('utf8');
-                        let boundary;
-                        while ((boundary = observed.indexOf('\n')) >= 0) {
-                            observe(observed.slice(0, boundary)); observed = observed.slice(boundary + 1);
-                        }
+                    observed += data.toString('utf8');
+                    let boundary;
+                    while (!job.done && (boundary = observed.indexOf('\n')) >= 0) {
+                        observe(observed.slice(0, boundary)); observed = observed.slice(boundary + 1);
                     }
                 });
                 // Never expose raw CLI diagnostics, auth URLs, environment or tokens to the renderer/log.
@@ -151,11 +174,28 @@ function createResponder(directory, options = {}) {
                         job.finish({ ok: true, text, source: 'antigravity-cli' });
                     } catch (_) { job.finish({ ok: false, error: failure }); }
                 });
-                child.stdin.end(JSON.stringify({ event: 'user', message: { content: prompt(packet) } }) + '\n');
-                mark('inputQueued');
             } catch (_) { job.finish({ ok: false, error: 'failed' }); }
         });
+        job.promise = promise; return job;
     }
-    return { reply, cancel, dispose: () => cancel(), config };
+    function prepare() {
+        if (disposed || active || prepared) return { ok: !disposed };
+        const error = preflight(); if (error) return { ok: false, error };
+        const job = createJob(performance.now(), true);
+        if (!job.done) prepared = job;
+        return { ok: !job.done };
+    }
+    async function reply(packet) {
+        const started = performance.now();
+        if (!valid(packet)) return { ok: false, error: 'input' };
+        if (active) active.finish({ ok: false, error: 'cancelled' });
+        const error = preflight();
+        if (error) { cancel(); return { ok: false, error }; }
+        if (prepared && prepared.model !== modelChoice()) cancel();
+        const job = prepared || createJob(started, false); prepared = null;
+        job.send(packet, started);
+        return job.promise;
+    }
+    return { reply, prepare, cancel, dispose: () => { disposed = true; cancel(); }, config };
 }
 module.exports = { createResponder, configuration, cliEntry, valid, prompt };

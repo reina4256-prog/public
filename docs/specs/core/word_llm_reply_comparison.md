@@ -2,6 +2,11 @@
 
 ## 現在の実装仕様
 
+- 2026-11-20ユーザー採用：比較版で1回使い切りCLIを事前起動する。`createResponder.prepare()`は追加クレジットOFF／専用home／tool denyを確認し、stdinを開いた空のCLIを最大1件準備する。会話文・本人設定・状態・下書き・ノートは渡さず、無意味な生成によるwarmupもしない。開始／再開時、成功返答後、入力開始／表示復帰／一時停止解除時にUIが引数なしのprepare IPCを呼ぶ。生成中／準備済みなら新しい待機CLIを増やさない。通常版では呼ばない。モデルの恒久既定は変更せず、Hydrogen Lowの一時指定を保持する。
+- 送信確定時に従来と同じ最新packetを作り、空の待機CLIへ1回だけ渡してstdinを閉じる。準備が未完でも固定秒数を待たず送信し、待機CLIがなければ従来どおり即時起動する。毎回新しいprocess／会話なので、前の生成文・取消済み履歴・古い本人状態をCLIの継続文脈へ持ち越さない。送信時にも追加クレジットOFFを再設定し、準備時からmodel指定が変わっていれば準備を破棄する。返答は引き続きprocess close／exit code／単一SUCCESS result／toolなし等の検査後に表示し、段階表示へ変更しない。
+- 未使用の待機CLIは最大120秒で破棄し、自動生成／無限の再準備は行わない。次の入力等で再準備できる。新しい本人の開始／タイトル・設定導入画面への移動／非表示／一時停止／明示停止／pagehide／アプリ終了で自身の準備を破棄する。生成中の取消は従来のrequestId／revisionで破棄し、下書き開始による取消の保留修正は再開しない。空の準備中にinit以外の出力を受けた場合も破棄する。待機CPU／メモリの増分と長時間の安定性は実環境で別確認する。
+- 計測version2は`timing.prestart.used/ageMs/initializedBeforeRequest`を追加。helperのmarksは返答要求受付を0とし、準備中に起きたspawn／initは負の相対msを取り得る。負数を欠測や送信後の待ちとして扱わず、旧version1と分けて集計する。`returned`は受付後の実経過、rendererの総待ち・DOM更新／描画機会の意味は従前どおり。準備による短縮は入力までの時間やPC／通信状況に依存し、合成試験の約3.6秒短縮を実本人の保証にしない。
+
 - 2026-11-20待ち時間の内訳計測：比較版Electronの返答helperだけ`measure:true`とし、単調時計の相対msを返す。CLI起動要求／process spawn通知／stdin投入／init受信／最初の空でないagent_response本文delta／本文DONE／terminal result受信／process close／検査後返却を区別する。initは接続準備全体の観測点であり純粋なPC起動時間・通信・サービス待ち・推論を分離した値ではない。欠けた通知は欠測で、result本文を初deltaの代用にしない。本文・思考・認証情報・raw診断出力は計測値へ含めず、prompt／モデル／課金／取消・表示方針は変更しない。
 - 共通UIは比較版の同じrequestId/inputIdへ`guidance:llm_timing`を記録する。送信submit受付（自発会話は生成処理入口）から呼出前のprepareMs、IPC往復roundTripMs、結果受取receivedMs、成功時DOM更新後domUpdatedMsと、helper内の相対時刻を保持。差引き`roundTripMs - helper.marks.returned`はIPC／スケジューリング等の合計で片道通信の断定には使わない。取消／破棄／失敗も区別する。成功後の二回目requestAnimationFrameで`llm_timing_frame.frameOpportunityMs`を別記録するが、画面が非表示・会話が置換済みなら記録せず、物理画面へのpaint完了や音声開始の証明にしない。Node／rendererの時計の絶対値は直接引かない。診断は本人セーブ・知識・原文ノートへ入れず、既存の私用試遊記録／レポートへ分離する。
 

@@ -49,6 +49,45 @@ test('a new input cancels the older process and late output cannot replace its r
     s.finish({ response: 'current' }); assert.equal((await second).text, 'current');
 });
 
+test('prestart sends nothing, consumes one process with the latest packet, and never retains a prior turn', async t => {
+    const s = setup(t, { measure: true });
+    assert.equal(s.responder.prepare().ok,true);s.responder.prepare();
+    assert.equal(s.calls.length,1);assert.equal(s.calls[0].input,'');
+    s.calls[0].child.stdout.write(JSON.stringify({event:'init'})+'\n');
+    await new Promise(r=>setTimeout(r,5));
+    const fresh=packet();fresh.input='fresh confirmed input';fresh.character.name='latest identity';
+    fresh.selfState={activity:'rest',fatigue:.2,hunger:.1,recent:[]};
+    const pending=s.responder.reply(fresh);assert.equal(s.calls.length,1);
+    assert.equal(JSON.parse(s.calls[0].input).message.content,prompt(fresh));
+    s.responder.prepare();assert.equal(s.calls.length,1,'no standby while active');
+    s.finish({response:'one reply'});const result=await pending;
+    assert.equal(result.timing.prestart.used,true);assert.equal(result.timing.prestart.initializedBeforeRequest,true);
+    assert.ok(result.timing.marks.initialized<0);assert.ok(result.timing.marks.returned>=0);
+    s.responder.prepare();assert.equal(s.calls.length,2);assert.equal(s.calls[1].input,'');
+    const next=s.responder.reply({...packet(),id:'fixture-2'});s.finish({response:'new process'});
+    assert.equal((await next).text,'new process');assert.ok(!s.calls[1].input.includes('fresh confirmed input'));
+});
+
+test('reset, disposal, expiration and failed idle output discard the unused process without generation', async t => {
+    const s=setup(t,{idleTimeout:15});
+    s.responder.prepare();const first=s.calls[0];s.responder.cancel();assert.equal(first.child.killed,true);assert.equal(first.input,'');
+    s.responder.prepare();const expired=s.calls[1];await new Promise(r=>setTimeout(r,30));assert.equal(expired.child.killed,true);
+    s.responder.prepare();const invalid=s.calls[2];invalid.child.stdout.write(JSON.stringify({event:'result',result:{status:'SUCCESS',response:'unsolicited'}})+'\n');assert.equal(invalid.child.killed,true);
+    s.responder.prepare();const pending=s.responder.reply(packet());s.responder.cancel('fixture-1');assert.equal((await pending).error,'cancelled');
+    s.responder.prepare();const final=s.calls.at(-1);s.responder.dispose();assert.equal(final.child.killed,true);
+    assert.equal(s.responder.prepare().ok,false);assert.equal((await s.responder.reply(packet())).error,'disabled');
+});
+
+test('prestart failures and setting changes cannot bypass login, credit bans or final exit validation',async t=>{
+    const loggedOut=setup(t,{skipAuthCheck:false});assert.equal(loggedOut.responder.prepare().error,'login');assert.equal(loggedOut.calls.length,0);
+    const s=setup(t);s.responder.prepare();
+    fs.writeFileSync(s.responder.config.session,JSON.stringify({useG1Credits:true}));
+    const pending=s.responder.reply(packet());assert.equal(JSON.parse(fs.readFileSync(s.responder.config.session)).useG1Credits,false);
+    s.finish({response:'must not accept failed exit'},1);assert.equal((await pending).ok,false);
+    s.responder.prepare();s.calls.at(-1).child.stderr.write('RESOURCE_EXHAUSTED quota');
+    assert.equal(s.calls.at(-1).child.killed,true);assert.equal(s.calls.at(-1).input,'');
+});
+
 test('timing observes fragmented NDJSON without returning raw content or changing the prompt', async t => {
     const s = setup(t, { measure: true }), input = packet(), pending = s.responder.reply(input), call = s.calls[0];
     call.child.emit('spawn');

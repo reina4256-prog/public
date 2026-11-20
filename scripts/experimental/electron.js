@@ -59,6 +59,8 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         const isWindow = event => event.sender === window.webContents && event.senderFrame?.url === url;
         if (geminiMode) responder = require('./gemini_reply').createResponder(userData, { measure: true });
         ipcMain.handle('word-reply-generate', (event, packet) => isWindow(event) && responder ? responder.reply(packet) : { ok: false, error: 'disabled' });
+        ipcMain.handle('word-reply-prepare', event => isWindow(event) && responder ? responder.prepare() : { ok: false, error: 'disabled' });
+        ipcMain.on('word-reply-reset', event => { if (isWindow(event)) responder?.cancel(); });
         ipcMain.on('word-reply-cancel', (event, id) => { if (isWindow(event)) responder?.cancel(id); });
         const voiceCache = require('./voice_cache_store').createStore(path.join(userData, 'voice-cache-v1'));
         ipcMain.handle('word-voice-cache-get', (event, key) => isWindow(event) ? voiceCache.get(key) : { ok: false });

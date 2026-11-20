@@ -521,6 +521,10 @@
         const status = document.getElementById('word-reply-status');
         if (window.wordReply?.enabled && status) status.textContent = displayText('llmMode');
     }
+    function prepareGeneratedReply() {
+        if (window.wordReply?.enabled && screen === 'playing' && !paused && !document.hidden)
+            void window.wordReply.prepare?.().catch(() => {});
+    }
     function holdAdventureSpeech(play) {
         const token = ++adventureSpeechToken;
         adventureSpeechPending = readAloud.checked;
@@ -861,6 +865,7 @@
         header.querySelector('h1').textContent = t('gameTitle'); document.title = t('gameTitle');
     } else app.classList.add('onboarding-active');
     function showTitle() {
+        window.wordReply?.reset?.();
         voice?.stop();
         app.classList.remove('onboarding-active');
         app.classList.add('title-active');
@@ -872,6 +877,7 @@
         if (window.audioManager) { window.aiPet.bgmVolume = environmentVolume; window.audioManager.playTitleMusic(); }
     }
     function showSetup() {
+        window.wordReply?.reset?.();
         app.classList.remove('title-active');
         app.classList.add('onboarding-active');
         screen = 'setup'; titleScreen.hidden = true; settings.hidden = false; setupCopy.hidden = true;
@@ -1803,7 +1809,7 @@
                 { text: bubble.textContent, role: lastReplyIsNarration ? 'narration' : 'dialogue' }])
             : voice.speak(bubble.textContent, { role: lastReplyIsNarration ? 'narration' : 'dialogue', wait: true }));
     });
-    voiceStop.addEventListener('click', () => { cancelGeneratedReply(); ++adventureActionToken; voice.stop(); });
+    voiceStop.addEventListener('click', () => { cancelGeneratedReply(); window.wordReply?.reset?.(); ++adventureActionToken; voice.stop(); });
     input.addEventListener('compositionstart', () => { inputComposing = true; stopAuto(); voice.stop(); });
     input.addEventListener('compositionend', () => { inputComposing = false; });
     input.addEventListener('blur', () => { inputComposing = false; });
@@ -1846,6 +1852,7 @@
     }
     setInterval(save, 5000);
     window.addEventListener('beforeunload', save);
+    window.addEventListener('pagehide', () => window.wordReply?.reset?.());
     function updatePerception() {
         if (adventureApi && state.adventure && adventureApi.perceive(state, world)) return;
         if (dungeon) { window.ExperimentalWordDungeonLearning.perceive(dungeon); return; }
@@ -2157,6 +2164,7 @@
                     record('guidance', { key: 'llm_timing_frame', requestId: id, inputId: inputEntry.id,
                         frameOpportunityMs: performance.now() - inputStarted });
                 }));
+                prepareGeneratedReply();
             } else {
                 const errorLabel = { login: 'llmLogin', missing: 'llmLogin', quota: 'llmQuota', unsupported: 'llmUnsupported' }[result?.error] || 'llmFailed';
                 replyModeStatus.textContent = t(initiative ? 'llmMode' : errorLabel);
@@ -2318,6 +2326,7 @@
     function beginSession() {
         cancelGeneratedReply(); generatedRecent = [];
         if (!catalog || screen === 'playing' || saveBlocked) return;
+        window.wordReply?.reset?.();
         currentInner.hidden = true; currentInnerText.textContent = ''; lastInnerText = '';
         voice.clearRecording(); recognized = ''; recognizedLocale = null; delete input.dataset.inputMethod;
         state = restored?.state || api.create({ foundation: foundation.value === 'yes', life: life.value === 'yes', speech: speech.value }, catalog);
@@ -2356,6 +2365,7 @@
         app.classList.add('playing'); input.focus({ preventScroll: true });
         if (dungeonButton) window.history.replaceState({ wordContent: 'island' }, '', location.href);
         save();
+        prepareGeneratedReply();
         if (state.evolution.pending && window.WordIslandMode) requestAnimationFrame(startCeremony);
     }
     settings.addEventListener('submit', event => {
@@ -2400,12 +2410,18 @@
     pause.addEventListener('click', () => {
         voice.stop(); previewStars.stop(); liveStars.stop();
         paused = !paused; pause.setAttribute('aria-pressed', String(paused));
+        if (paused) window.wordReply?.reset?.(); else prepareGeneratedReply();
         record('pause', { paused });
         send.disabled = paused; point.disabled = paused; shade.disabled = paused;
         if (walk) walk.disabled = paused;
         if (masterVisit) masterVisit.disabled = paused;
     });
-    document.addEventListener('visibilitychange', () => { lastFrame = null; if (document.hidden) cancelGeneratedReply(); });
+    document.addEventListener('visibilitychange', () => {
+        lastFrame = null;
+        if (document.hidden) { cancelGeneratedReply(); window.wordReply?.reset?.(); }
+        else prepareGeneratedReply();
+    });
+    input.addEventListener('input', prepareGeneratedReply);
     [point, shade, walk, masterVisit, pause, voiceChoose].filter(Boolean).forEach(button => button.addEventListener('click', stopAuto));
     canvas.addEventListener('pointerdown', stopAuto);
     form.addEventListener('submit', event => {

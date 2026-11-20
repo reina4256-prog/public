@@ -4,6 +4,8 @@ contextBridge.exposeInMainWorld('wordReply', {
     enabled: process.argv.includes('--word-reply=gemini-cli'),
     textOnly: process.argv.includes('--word-reply=gemini-cli') && process.argv.includes('--word-text-only'),
     generate: packet => ipcRenderer.invoke('word-reply-generate', packet),
+    prepare: () => ipcRenderer.invoke('word-reply-prepare'),
+    reset: () => ipcRenderer.send('word-reply-reset'),
     cancel: id => ipcRenderer.send('word-reply-cancel', id)
 });
 contextBridge.exposeInMainWorld('wordVoiceCache', {

@@ -10,7 +10,7 @@ if (!process.versions.electron || process.type !== 'browser') {
     const root = path.resolve(__dirname,'../..');
     const directory = fs.mkdtempSync(path.join(root,'docs/.local-history/verification-runs/gemini-reply-renderer-'));
     app.disableHardwareAcceleration(); app.setPath('userData',path.join(directory,'profile'));
-    let window, server, mode, responder, textOnlySession = false, audioWrites = 0; const windows = [], errors = [], packets = [], cancelled = [], checks = [];
+    let window, server, mode, responder, textOnlySession = false, audioWrites = 0, preparations = 0, resets = 0; const windows = [], errors = [], packets = [], cancelled = [], checks = [];
     const watchdog = setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({mode,errors}));app.exit(1);},300000);
     const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
     const catalog = require('../../experimental_word_learning_catalog.json');
@@ -31,7 +31,7 @@ if (!process.versions.electron || process.type !== 'browser') {
             stores[kind]=require('./storage').createStore(data);
         }
         const fixture = path.join(directory,'reply-fixture.cjs');
-        fs.writeFileSync(fixture,`let input='';process.stdin.setEncoding('utf8');process.stdin.on('data',s=>input+=s);process.stdin.on('end',()=>{
+        fs.writeFileSync(fixture,`console.log(JSON.stringify({event:'init'}));let input='';process.stdin.setEncoding('utf8');process.stdin.on('data',s=>input+=s);process.stdin.on('end',()=>{
             const content=JSON.parse(input).message.content,p=JSON.parse(content.slice(content.indexOf(String.fromCharCode(10))+1)),query=p.playerInput||'';const finish=()=>console.log(JSON.stringify({event:'result',result:query.startsWith('QUOTA')?{status:'ERROR',error:'RESOURCE_EXHAUSTED: quota reached'}:query.startsWith('UNSUPPORTED')?{status:'ERROR',error:'This client is no longer supported'}:{status:'SUCCESS',response:p.playerInput===null?'INITIATIVE_REPLY':query.startsWith('REST')?(p.selfState.activity==='rest'?'RESTING_REPLY':'NOT_RESTING'):query.startsWith('REMEMBER')?(p.playerMemories.some(m=>m.text==='月について教えて')?'MEMORY_RECALLED':'NO_MEMORY'):query.startsWith('TO_CANCEL')?'STALE_REPLY':query.startsWith('SECOND')?'SELECTED_VOICE_REPLY':'MOON_FIXTURE_REPLY',stats:{tools:{totalCalls:0}}}}));
             if(query.startsWith('TO_CANCEL')||query.startsWith('SECOND'))setTimeout(finish,query.startsWith('TO_CANCEL')?3000:700);
             else {const timer=setInterval(()=>{if(require('node:fs').existsSync(require('node:path').join(__dirname,'release-moon'))){clearInterval(timer);finish();}},25);}});`);
@@ -61,6 +61,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         ipcMain.on('word-audio-preferences-load',event=>{event.returnValue={ok:true,value:{readAloud:textOnlySession}};});
         ipcMain.on('word-audio-preferences-save',event=>{audioWrites++;event.returnValue={ok:true};});
         ipcMain.handle('word-reply-generate',(event,packet)=>{assert.ok(valid(event));packets.push(structuredClone(packet));return responder.reply(packet);});
+        ipcMain.handle('word-reply-prepare',event=>{assert.ok(valid(event));preparations++;return responder.prepare();});
+        ipcMain.on('word-reply-reset',event=>{if(valid(event)){resets++;responder.cancel();}});
         ipcMain.on('word-reply-cancel',(event,id)=>{if(valid(event)){cancelled.push(id);responder.cancel(id);}});
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
         const js=async code=>{fs.appendFileSync(path.join(directory,'scripts.log'),'start '+code+'\n');try{const value=await window.webContents.executeJavaScript(code,true);fs.appendFileSync(path.join(directory,'scripts.log'),'done\n');return value;}catch(error){fs.writeFileSync(path.join(directory,'script-error.json'),JSON.stringify({code,errors}));throw error;}};
@@ -84,6 +86,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         const submitCode=text=>`document.querySelector('.chat-form textarea').value=${JSON.stringify(text)};document.querySelector('.chat-form').requestSubmit();`;
         async function submit(text){await js(submitCode(text)+'void 0');}
         await load('native');fs.writeFileSync(path.join(directory,'progress.txt'),'native input');await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+        assert.equal(preparations,0,'normal mode never prestarts a CLI');
         assert.equal(stores.gemini.save(structuredClone(snapshots.native)).ok,true);
         await submit('月について教えて');await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
         const control=structuredClone(snapshots.native);assert.equal(packets.length,0);checks.push({regularModeNoRequests:true});
@@ -102,6 +105,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         await wait(`document.querySelector('.stage .bubble').textContent==='MOON_FIXTURE_REPLY'`,'generated reply');
         const timing = await js(`window.__timings.find(x=>x.key==='llm_timing'&&x.outcome==='displayed')`);
         assert.equal(timing.requestId,packets.at(-1).id);
+        assert.equal(timing.helper.prestart.used,true,'UI start prepares the first single-use process');
         assert.ok(timing.prepareMs>=0 && timing.roundTripMs>=timing.helper.marks.returned);
         assert.ok(timing.domUpdatedMs>=timing.receivedMs);
         assert.equal(timing.helper.marks.firstText,undefined,'fixture sends only terminal reply');
@@ -228,6 +232,10 @@ if (!process.versions.electron || process.type !== 'browser') {
         fs.writeFileSync(path.join(directory,'text-only-live-metrics.json'),JSON.stringify({live,processes:app.getAppMetrics().map(p=>({type:p.type,memory:p.memory,cpu:p.cpu}))},null,2));
         await window.capturePage().then(img=>fs.writeFileSync(path.join(directory,'text-only-1280.png'),img.toPNG()));
         checks.push({textOnlyVoiceDisabled:true,textOnlyReply:true,realAnimationCallbacks:live.frames,typingHeldDuringRealAnimation:true});
+        assert.ok(preparations>2 && resets>0);
+        await js(`window.dispatchEvent(new Event('pagehide'));void 0`);
+        await sleep(50);
+        checks.push({singleUsePrestartIPC:true,lifecycleResetIPC:true});
         assert.deepEqual(errors,[]);const result={ok:true,directory,checks,errors,packets:packets.map(x=>({id:x.id,locale:x.locale,recent:x.recent.length,memories:x.memories.length}))};
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(result,null,2));
         console.log(JSON.stringify({ok:true,directory,checks:checks.length}));
