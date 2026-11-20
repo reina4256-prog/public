@@ -87,3 +87,56 @@ test('authentication prompts stop the process immediately without exposing a URL
     child.stderr.write('Authentication required. Please visit the URL to log in: private-auth-url');
     assert.deepEqual(await pending,{ok:false,error:'login'});assert.equal(child.killed,true);
 });
+
+test('player memory survives save and restart as original notes without teaching the action engine', t => {
+    const memory = require('../experimental_word_reply_memory');
+    const catalog = require('../experimental_word_learning_catalog.json');
+    const core = require('../experimental_word_learning_core'), worldApi = require('../experimental_word_learning_world');
+    const state = core.create({ foundation: false, life: false, speech: 'gesture' }, catalog), world = worldApi.create();
+    const result = core.receive(state, 'ここはテラリウムです。', catalog, { locale: 'ja', speaker: 'player', body: world });
+    const before = structuredClone(state), body = structuredClone(world);
+    assert.equal(memory.remember(state, result.input), true);
+    assert.equal(memory.remember(state, result.input), false);
+    assert.equal(memory.remember(state, { ...result.input, id: 'input:999', speaker: 'master:farming' }), false);
+    const { replyMemory, ...unchanged } = state;
+    assert.deepEqual(unchanged, before); assert.deepEqual(world, body);
+    assert.equal(memory.notes(state)[0].literal, result.input.raw);
+    const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'word-memory-save-'));
+    t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
+    const { createStore, valid: validSave } = require('../scripts/experimental/storage');
+    const save = { version: 1, appearance: 'robot', state, world };
+    assert.equal(createStore(directory).save(save).ok, true);
+    const loaded = createStore(directory).load(); assert.equal(loaded.ok, true);
+    assert.deepEqual(loaded.value.state.replyMemory, replyMemory);
+    assert.equal(memory.context(loaded.value.state, 'ここはどこ？')[0].text, result.input.raw);
+    assert.equal(memory.context(state, 'ここ', result.input.id).length, 0);
+    const corrupt = structuredClone(save); corrupt.state.replyMemory.entries.push(corrupt.state.replyMemory.entries[0]);
+    assert.equal(validSave(corrupt), false);
+    assert.ok(validSave({ ...save, state: before }));
+});
+
+test('memory retrieval finds old teaching among recent talk, is bounded, and never rewrites stored originals', () => {
+    const memory = require('../experimental_word_reply_memory'), state = {};
+    for (let i = 1; i <= 40; i++) memory.remember(state, { id: 'input:' + i, raw: i === 1 ? 'テラリウムという場所にいるんだよ' : '別の話' + i + 'a'.repeat(2000),
+        locale: 'ja', at: i, speaker: 'player' });
+    const before = JSON.stringify(state), selected = memory.context(state, 'テラリウムについて覚えている？');
+    assert.ok(selected.some(e => e.inputId === 'input:1'));
+    assert.ok(selected.some(e => e.inputId === 'input:40'));
+    assert.ok(selected.length <= 12); assert.ok(selected.every(e => e.text.length <= 1200));
+    assert.ok(selected.reduce((n,e) => n+e.text.length,0) <= 8000);
+    assert.equal(JSON.stringify(state), before); assert.equal(memory.notes(state).length, 40);
+    assert.equal(memory.valid({ version: 99, entries: [] }), false);
+});
+
+test('reply context distinguishes heard memories from knowledge, forbids invented surroundings, and rejects extra memory data', () => {
+    const input = packet(); input.memories = [{ inputId: 'input:1', speaker: 'player', locale: 'ja', at: 1, text: 'ここは庭です。', truncated: false }];
+    assert.equal(valid(input), true);
+    const text = prompt(input), sent = JSON.parse(text.slice(text.indexOf('\n') + 1));
+    assert.equal(sent.playerMemories[0].text, input.memories[0].text);
+    assert.match(text, /never invent a location/); assert.match(text, /not verified facts/);
+    assert.match(text, /Output no inner voice/); assert.match(text, /Never mention a backend/);
+    for (const memories of [[{ ...input.memories[0], speaker: 'assistant' }], [{ ...input.memories[0], secret: 'not allowed' }],
+        [{ ...input.memories[0], text: 'x'.repeat(1201) }], Array(13).fill(input.memories[0]), Array(12).fill({ ...input.memories[0], text: 'x'.repeat(1200) })]) {
+        assert.equal(valid({ ...input, memories }), false);
+    }
+});

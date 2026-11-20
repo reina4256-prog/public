@@ -1607,6 +1607,13 @@ Bだけを継続し、既存の **word/PRESERVATION.json → localHandoff.file�
 
 <a id="adventure-storage-reconciliation"></a>
 
+<a id="reply-memory-storage-reconciliation"></a>
+
+#### 会話用ノートの任意保存差分照合（2026-11-20）
+
+- 直前のstorage全文と比較し、変更は任意の`state.replyMemory`を新部品のvalidで検査する1行だけと確認。既存の本人／生活／関係／感情／日記／進化／図鑑／ダンジョンの検査、atomic保存・backup・破損時停止を保持する。新部品は原player入力の保持・ノート投影・返答用抜粋だけで、習得知識／行動／日記captureへ採用しない。保存再開と既存core/worldの一致は専用Node／rendererで検証。内容仕様は[比較版の所有](word_llm_reply_comparison.md)。
+- LF正規化SHA256はstorage `c4dc72f463f6a28ed85f50a152592d616c8e73e0d598c6484a8825c1e66b244f`、依存するreply_memory `4e971041f8f5a9c04b5a326d44189a32e74446a7b8b36a0bfe9d42f754f5bc56`。別指紋で両方の一致を要求し、既存の原指紋／照合記録を置換しない。どちらかに未知変更があれば50境界をpendingへ戻す。50adapterの意味再読や過去原本供給の認定ではない。
+
 #### ダンジョン任意状態の保存差分照合（2026-11-17）
 
 - storageの差分全文を照合。追加はadventure_connectionのrequireとvalid内の任意adventure検査の2行のみ。本人／原資料／生活／関係／感情／日記／進化／図鑑の既存検査、atomic保存・backup・破損時停止は保持。未設定の旧saveを許容し、皆伝／建築／訓練を補完しない。

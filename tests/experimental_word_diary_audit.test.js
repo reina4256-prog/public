@@ -659,6 +659,14 @@ test('an owner change invalidates source reconciliation without revoking confirm
     assert.equal(report.eligibleForAoCompletion, false);
 });
 
+test('conversation-note validation cannot reuse boundary reviews after an unknown memory dependency change', () => {
+    const report = audit(inventory(), file => fs.readFileSync(localFile(file), 'utf8')
+        + (file === 'experimental_word_reply_memory.js' ? '\n// unreviewed memory change' : ''));
+    assert.equal(report.counts.reviewedCaptureBoundaries, 0);
+    assert.equal(report.ownerBoundaries.find(owner => owner.file === 'scripts/experimental/storage.js').review, 'pending');
+    assert.equal(report.eligibleForAoCompletion, false);
+});
+
 test('walking, identity and processing owner delta reviews preserve fingerprints and reject unknown changes', () => {
     const current = audit(), reconciled = current.ownerBoundaries.filter(owner => owner.reconciliationRecord);
     assert.deepEqual(reconciled.map(owner => owner.file).sort(), ['experimental_word_learning_core.js',
@@ -668,8 +676,9 @@ test('walking, identity and processing owner delta reviews preserve fingerprints
     for (const owner of reconciled) {
         assert.notEqual(owner.reconciledFrom, owner.reconciledTo);
         assert(owner.reconciliationRecord.endsWith(owner.file === 'experimental_word_life_learning.js'
-            ? '#walking-owner-reconciliation' : ['scripts/experimental/storage.js','experimental_word_learning_world.js'].includes(owner.file)
-                ? '#adventure-storage-reconciliation' : '#processing-owner-reconciliation'));
+            ? '#walking-owner-reconciliation' : owner.file === 'scripts/experimental/storage.js'
+                ? '#reply-memory-storage-reconciliation' : owner.file === 'experimental_word_learning_world.js'
+                    ? '#adventure-storage-reconciliation' : '#processing-owner-reconciliation'));
         const changed = audit(inventory(), file => fs.readFileSync(localFile(file), 'utf8')
             + (file === owner.file ? '\n// Unreviewed follow-up change\n' : ''));
         assert.equal(changed.counts.reviewedCaptureBoundaries, 0);

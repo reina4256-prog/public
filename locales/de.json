@@ -15663,5 +15663,14 @@
   "まだ読み取れていない部分がある……。": "Einen Teil verstehe ich noch nicht…",
   "この話は読み取れた。": "Diesen Teil konnte ich verstehen.",
   "聞いたことを全部たどる余裕がない……。": "Gerade schaffe ich es nicht, alles Gehörte zu verarbeiten…",
-  "{number}つめの話は……": "Zum Teil {number}…"
+  "{number}つめの話は……": "Zum Teil {number}…",
+  "声をかけて、お話ししてみましょう。": "Sag Hallo und unterhalte dich.",
+  "会話のために、入力・関連するノート・直近の会話・本人の設定を外部サービスへ送ります。通常版とは別に保存します。追加クレジットは使用しません。": "Für das Gespräch werden deine Eingaben, passende Notizen, der letzte Gesprächsverlauf und die Figureneinstellungen an einen externen Dienst gesendet. Spielstände sind von der regulären Version getrennt. Zusätzliche Credits werden nicht verwendet.",
+  "お返事を待っています…": "Warten auf eine Antwort…",
+  "お話の接続に失敗しました。今回はいつもの返答です。接続状態を確認してください。": "Die Verbindung für das Gespräch ist fehlgeschlagen. Diesmal wird die gewohnte Antwort verwendet. Bitte prüfe die Verbindung.",
+  "お話の接続準備が必要です。起動手順を確認してください。今回はいつもの返答です。": "Die Gesprächsverbindung muss eingerichtet werden. Bitte lies die Startanleitung. Diesmal wird die gewohnte Antwort verwendet.",
+  "お話の接続方式が利用できません。今回はいつもの返答です。接続版の更新が必要です。": "Diese Gesprächsverbindung ist nicht verfügbar. Diesmal wird die gewohnte Antwort verwendet. Die Verbindungssoftware muss aktualisiert werden.",
+  "お話の記録": "Gesprächsnotizen",
+  "聞いたこと：": "Was du mir erzählt hast: ",
+  "あなたから聞いたことを、そのまま書き留めています。": "Deine Worte werden so aufgeschrieben, wie du sie gesagt hast."
 }

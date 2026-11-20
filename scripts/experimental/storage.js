@@ -26,6 +26,7 @@ function valid(value) {
         && typeof s.settings?.life === 'boolean' && ['short', 'gesture'].includes(s.settings.speech)
         && startQuestions.validOrigin(s.startOrigin, s.settings, value.appearance)
         && identity.validState(s)
+        && require('../../experimental_word_reply_memory').valid(s.replyMemory)
         && autoTraining.validPreferences(s.autoTraining)
         && growth.valid(s, value.appearance)
         && collection.validSave(value)

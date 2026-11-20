@@ -92,6 +92,9 @@ const autoTrainingStorageReview = 'a67c54a53f587d4336d269dcb08e6f0448ea70e04417d
 const collectionStorageReview = '0623f0ea4f8089e00fd597678b86384e88a4c0ef28c2b5d4ac0f877211cc333f';
 const adventureStorageReview = 'fc48ae4b108f53e247409c00a8eff2faae527b73f49513bda2aa66dfdfd8530c';
 const adventureWorldReview = '2659a0e3a367f395e7715d4b5e572138f90e473f1812b4ef2db074fe88244c7f';
+// Optional conversation notes add one validation gate; retain every earlier review.
+const replyMemoryStorageReview = 'c4dc72f463f6a28ed85f50a152592d616c8e73e0d598c6484a8825c1e66b244f';
+const replyMemorySourceReview = '4e971041f8f5a9c04b5a326d44189a32e74446a7b8b36a0bfe9d42f754f5bc56';
 // Reviewed resource/evolution delta only; preserve every earlier fingerprint.
 const processingOwnerReconciliations = new Map([
     ['experimental_word_learning_core.js', '896b934a4cee6af9c1a78590587ae479cc60d9ebff304bb65982bf9d8f3cf97d'],
@@ -381,10 +384,12 @@ function audit(rows = inventory(), readAdapterSource = null, supplemental = supp
         const collectionReconciled = file === 'scripts/experimental/storage.js' && current === collectionStorageReview;
         const adventureReconciled = file === 'scripts/experimental/storage.js' && current === adventureStorageReview
             || file === 'experimental_word_learning_world.js' && current === adventureWorldReview;
-        const reconciled = adventureReconciled || collectionReconciled || processingReconciled || autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
+        const replyMemoryReconciled = file === 'scripts/experimental/storage.js' && current === replyMemoryStorageReview
+            && fingerprint(readAdapterSource ? readAdapterSource('experimental_word_reply_memory.js') : read('experimental_word_reply_memory.js')) === replyMemorySourceReview;
+        const reconciled = replyMemoryReconciled || adventureReconciled || collectionReconciled || processingReconciled || autoReconciled || identityReconciled || ownerReconciliations.get(file) === current;
         return { file, review: current === hash || reconciled ? 'owner_boundary_reviewed' : 'pending',
             ...(reconciled ? { reconciledFrom: hash, reconciledTo: current,
-                reconciliationRecord: AUDIT_SPEC + (adventureReconciled ? '#adventure-storage-reconciliation' : collectionReconciled ? '#collection-storage-reconciliation' : processingReconciled ? '#processing-owner-reconciliation' : autoReconciled ? '#auto-training-storage-reconciliation'
+                reconciliationRecord: AUDIT_SPEC + (replyMemoryReconciled ? '#reply-memory-storage-reconciliation' : adventureReconciled ? '#adventure-storage-reconciliation' : collectionReconciled ? '#collection-storage-reconciliation' : processingReconciled ? '#processing-owner-reconciliation' : autoReconciled ? '#auto-training-storage-reconciliation'
                     : identityReconciled ? '#identity-owner-reconciliation' : '#walking-owner-reconciliation') } : {}) };
     });
     const ownersUnchanged = ownerBoundaries.every(owner => owner.review === 'owner_boundary_reviewed');

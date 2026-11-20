@@ -16,6 +16,7 @@ const files = new Set(['experimental_word_learning.html', 'experimental_word_lea
     'experimental_word_island_navigation.js', 'data.js', 'island_shared.js', 'view_renderer.js',
     'experimental_word_careers.js', 'experimental_word_life_learning.js', 'experimental_word_relation_learning.js', 'experimental_word_feeling_learning.js',
     'experimental_word_learning_notebook.js',
+    'experimental_word_reply_memory.js',
     'experimental_word_learning_report.js',
     'experimental_word_learning_autorecord.js',
     'experimental_word_learning_ui.js', 'experimental_word_start_questions.js', 'experimental_word_learning_core.js', 'experimental_word_identity.js', 'experimental_word_auto_training.js',

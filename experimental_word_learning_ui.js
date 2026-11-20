@@ -4,13 +4,15 @@
     const identityApi = window.ExperimentalWordIdentity;
     const app = document.getElementById('app');
     const labels = {
-        llmMode: 'Gemini比較版：返答はGemini、理解と行動は既存方式です。',
-        llmNotice: '入力・直近の会話・本人の設定をGoogleへ送ります。通常版とは別に保存します。追加クレジットは使用しません。',
-        llmWaiting: 'Geminiの返答を待っています…',
-        llmFailed: 'Geminiへの接続に失敗しました。今回は通常方式の返答です。接続・認証状態を確認してください。',
-        llmLogin: 'Antigravity CLIの準備・ログインが必要です。npm run setup:word:gemini を実行してください。今回は通常方式の返答です。',
+        llmMode: '声をかけて、お話ししてみましょう。',
+        llmNotice: '会話のために、入力・関連するノート・直近の会話・本人の設定を外部サービスへ送ります。通常版とは別に保存します。追加クレジットは使用しません。',
+        llmWaiting: 'お返事を待っています…',
+        llmFailed: 'お話の接続に失敗しました。今回はいつもの返答です。接続状態を確認してください。',
+        llmLogin: 'お話の接続準備が必要です。起動手順を確認してください。今回はいつもの返答です。',
         llmQuota: '契約内の利用枠に達しました。追加クレジットは使わず、今回は通常方式の返答です。枠の回復を待ってください。',
-        llmUnsupported: '接続先のCLIがサポートされていません。今回は通常方式の返答です。接続版の更新が必要です。',
+        llmUnsupported: 'お話の接続方式が利用できません。今回はいつもの返答です。接続版の更新が必要です。',
+        conversations: 'お話の記録', conversation_note: '聞いたこと：',
+        conversation_note_detail: 'あなたから聞いたことを、そのまま書き留めています。',
         advCourse1: "ここからは同行訓練の一階だよ。まず周りを見て、足元を確かめながら歩いてみよう。",
         advCourse2: "一階の観察と歩行は見届けたよ。二階では相手の予備動作を見て、攻撃と回避の両方を試そう。",
         advCourse3: "二階の攻撃と回避は見届けたよ。三階では武器・防具・食料・手当て布を実際に使い、変化を確かめよう。",
@@ -1288,7 +1290,8 @@
     let notebookSignature = '';
     function renderNotebook(force = false) {
         if (!state || notebook.hidden) return;
-        const entries = [...window.ExperimentalWordNotebook.groupedEntries(state), ...(window.ExperimentalWordDungeonLearning?.notes(state) || [])];
+        const entries = [...window.ExperimentalWordNotebook.groupedEntries(state), ...(window.ExperimentalWordDungeonLearning?.notes(state) || []),
+            ...(window.wordReply?.enabled ? window.ExperimentalWordReplyMemory.notes(state) : [])];
         const signature = JSON.stringify(entries);
         if (!force && signature === notebookSignature) return;
         notebookSignature = signature;
@@ -1297,7 +1300,7 @@
         notebook.replaceChildren();
         node('p', t('noteGuide'), notebook).className = 'note-guide';
         if (!entries.length) node('p', t('note_empty'), notebook);
-        for (const group of ['names', 'experiences', 'questions']) {
+        for (const group of ['names', 'experiences', 'questions', 'conversations']) {
             const items = entries.filter(entry => entry.group === group);
             if (!items.length) continue;
             node('h3', t(group), notebook);
@@ -1324,7 +1327,7 @@
                 }
             }
         }
-        if (['names', 'experiences', 'questions'].some(group => entries.filter(entry => entry.group === group).length > noteLimit)) {
+        if (['names', 'experiences', 'questions', 'conversations'].some(group => entries.filter(entry => entry.group === group).length > noteLimit)) {
             const more = node('button', t('note_more'), notebook); more.type = 'button';
             more.addEventListener('click', () => { noteLimit += 12; renderNotebook(true); });
         }
@@ -2103,6 +2106,7 @@
         return { reply, progress, identityText, text, visibleText };
     }
     function presentInputReply(reply, innerText, inputEntry) {
+        if (window.wordReply?.enabled) innerText = '';
         const native = replyPresentation(reply);
         if (!window.wordReply?.enabled || adventureMentorSpeech) { showReply(reply, innerText); return bubble.textContent; }
         cancelGeneratedReply(); const revision = generatedRevision, currentState = state, locale = window.GameI18n.language;
@@ -2113,7 +2117,7 @@
         const identity = state.identity || {};
         const packet = { id, locale, input: inputEntry.raw, nativeText: native.visibleText,
             character: { name: identity.characterName || '', self: identity.firstPerson || '', player: identity.playerAddress || '', species: appearance.value },
-            recent: generatedRecent.slice(-6) };
+            recent: generatedRecent.slice(-6), memories: window.ExperimentalWordReplyMemory.context(state, inputEntry.raw, inputEntry.id) };
         void window.wordReply.generate(packet).catch(() => ({ ok: false, error: 'failed' })).then(result => {
             if (revision !== generatedRevision) return;
             generatedPending = false; generatedId = null;
@@ -2135,6 +2139,7 @@
         return native.visibleText;
     }
     function showReply(reply, innerText = '', generated = null) {
+        if (window.wordReply?.enabled) innerText = '';
         lastInnerText = innerText;
         if (innerText) { currentInner.hidden = false; currentInnerText.textContent = innerText; }
         if (innerText) {
@@ -2405,8 +2410,9 @@
         growthApi.observe(state, world, result, null, reply);
         if (original) personalLog.record('interaction', { result, receipt: { ...original, input: result.input,
             afterState: state, afterWorld: world, reply } });
-        const innerText = constellationApi.innerVoice(result, text => window.GameI18n.translate(text));
-        record('guidance', { key: 'inner_voice', inputId: result.input.id, text: innerText });
+        if (window.wordReply?.enabled && !automaticSubmission) window.ExperimentalWordReplyMemory.remember(state, result.input);
+        const innerText = window.wordReply?.enabled ? '' : constellationApi.innerVoice(result, text => window.GameI18n.translate(text));
+        if (innerText) record('guidance', { key: 'inner_voice', inputId: result.input.id, text: innerText });
         const nativeReplyText = presentInputReply(reply, innerText, result.input);
         if(adventureMentorSpeech) holdAdventureSpeech(() => voice.speakScene([
             {text:input.value,role:'master',master:adventureMentorSpeech.split(':')[1]},
