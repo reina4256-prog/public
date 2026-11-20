@@ -78,6 +78,7 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.equal(stores.gemini.save(structuredClone(snapshots.native)).ok,true);
         await submit('月について教えて');await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
         const control=structuredClone(snapshots.native);assert.equal(packets.length,0);checks.push({regularModeNoRequests:true});
+        assert.ok(await js(`[...document.querySelectorAll('.conversation-help')].some(e=>e.textContent===GameI18n.translate('今回の声かけは、まだ十分には伝わっていません。短く言い換えたり、指さしてから話しかけたりしてみてください。'))`));
         assert.equal(await js(`document.querySelector('#word-inner-voice-current').hidden`),false);
         await load('gemini');fs.writeFileSync(path.join(directory,'progress.txt'),'gemini input');assert.equal(await js(`wordReply.enabled`),true);await submit('月について教えて');
         await wait(`document.querySelector('#word-reply-status').textContent===GameI18n.translate('お返事を待っています…')`,'pending');
@@ -93,6 +94,9 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.ok(!JSON.stringify(snapshots.gemini.state).includes('MOON_FIXTURE_REPLY'));assert.equal(await js(`document.querySelector('#word-inner-voice-current').hidden`),true);
         assert.equal(await js(`document.querySelectorAll('#conversation .word-inner-voice').length`),0);
         checks.push({sameInputSameCoreState:true,sameWorld:true,generationHoldsClock:true,comparisonInnerVoiceHidden:true,regularInnerVoicePreserved:true,noGeneratedKnowledge:true});
+        assert.ok(await js(`[...document.querySelectorAll('.conversation-help')].some(e=>e.textContent===GameI18n.translate('聞いたことはノートに残しました。行動につながる理解には、まだ分からない部分があります。'))`));
+        assert.equal(await js(`[...document.querySelectorAll('.conversation-help')].some(e=>e.textContent===GameI18n.translate('今回の声かけは、まだ十分には伝わっていません。短く言い換えたり、指さしてから話しかけたりしてみてください。'))`),false);
+        checks.push({comparisonSeparatesConversationFromActionLearning:true,regularGuidancePreserved:true});
         await js(`document.querySelector('[aria-controls="notebook"]').click();void 0`);
         assert.ok(await js(`document.querySelector('#notebook').textContent.includes('月について教えて')`));
         for (const width of [1280,390]) {
@@ -121,6 +125,10 @@ if (!process.versions.electron || process.type !== 'browser') {
         const layouts=[];
         for(const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de'])for(const width of [1280,390]){
             window.setContentSize(width,900);await js(`GameI18n.setLanguage('${locale}');void 0`);await sleep(80);
+            if(width===1280){
+                await submit('SECOND notice '+locale);await wait(`document.querySelector('.stage .bubble').textContent==='SELECTED_VOICE_REPLY'`,'localized reply and guidance');
+                assert.equal(await js(`[...document.querySelectorAll('.conversation-help')].at(-1).textContent===GameI18n.translate('聞いたことはノートに残しました。行動につながる理解には、まだ分からない部分があります。')`),true);
+            }
             const status=await js(`document.querySelector('#word-reply-status').textContent`);assert.doesNotMatch(await js(`document.body.innerText`),/Gemini|Antigravity|Google/);if(locale!=='ja')assert.doesNotMatch(status,/[\u3040-\u30ff]/);
             const layout=await js(`({width:innerWidth,scroll:document.documentElement.scrollWidth,overflow:[...document.querySelectorAll('body *')].filter(e=>{const r=e.getBoundingClientRect();return r.width&&r.right>innerWidth+1;}).slice(0,12).map(e=>({tag:e.tagName,id:e.id,cls:e.className,right:e.getBoundingClientRect().right}))})`);
             fs.writeFileSync(path.join(directory,'layout-current.json'),JSON.stringify({locale,width,...layout}));

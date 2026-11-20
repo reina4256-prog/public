@@ -135,6 +135,10 @@ test('reply context distinguishes heard memories from knowledge, forbids invente
     assert.equal(sent.playerMemories[0].text, input.memories[0].text);
     assert.match(text, /never invent a location/); assert.match(text, /not verified facts/);
     assert.match(text, /Output no inner voice/); assert.match(text, /Never mention a backend/);
+    assert.match(text, /Ask a follow-up only when the missing detail is essential for the present reply/);
+    assert.match(text, /A reply may end naturally without a question/);
+    assert.match(text, /avoid repeating the form of address every turn/);
+    assert.match(text, /unless the native outcome explicitly confirms that action has started/);
     for (const memories of [[{ ...input.memories[0], speaker: 'assistant' }], [{ ...input.memories[0], secret: 'not allowed' }],
         [{ ...input.memories[0], text: 'x'.repeat(1201) }], Array(13).fill(input.memories[0]), Array(12).fill({ ...input.memories[0], text: 'x'.repeat(1200) })]) {
         assert.equal(valid({ ...input, memories }), false);

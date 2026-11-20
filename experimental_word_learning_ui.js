@@ -431,6 +431,7 @@
         noteGuide: 'この子に残った経験や考えを、読める文にしています。開いたり読み返したりしても、学習は増えません。',
         receivedName: '呼び方として受け取りました。ノートで確かめられます。',
         receivedPartial: '今回の声かけは、まだ十分には伝わっていません。短く言い換えたり、指さしてから話しかけたりしてみてください。',
+        receivedConversationLearning: '聞いたことはノートに残しました。行動につながる理解には、まだ分からない部分があります。',
         autosave: '試作・自動保存', continue: 'この子との暮らしを続ける',
         savedNotice: '暮らしと学習は、この試作専用に自動保存します。不在中は時間を進めません。',
         saveFailed: '保存を停止しました。以前のデータは残しています。',
@@ -2437,10 +2438,13 @@
         window.ExperimentalWordNotebook.rememberQuestion(state, result, reply);
         const partialReportExplained = result.understandings.length === 1
             && ['heard_feeling_partial', 'heard_event_partial'].includes(reply.message);
-        const hint = dungeonResult ? null : result.learning.some(item => item.updated.length) ? 'receivedName'
+        const nativeHint = dungeonResult ? null : result.learning.some(item => item.updated.length) ? 'receivedName'
             : !result.lifeLearning && !result.relationLearning && !result.feelingLearning && !partialReportExplained && result.understandings.some(item => !item.complete) ? 'receivedPartial' : null;
+        const hint = window.wordReply?.enabled && !adventureMentorSpeech && nativeHint === 'receivedPartial'
+            ? state.replyMemory?.entries.some(entry => entry.inputId === result.input.id) ? 'receivedConversationLearning' : null
+            : nativeHint;
         if (hint) { const feedback = node('p', t(hint), conversation); feedback.className = 'conversation-help'; }
-        if (hint) record('guidance', { key: hint, text: displayText(hint) });
+        if (hint) record('guidance', { key: hint, text: displayText(hint), ...(hint !== nativeHint ? { nativeKey: nativeHint } : {}) });
         renderNotebook();
         if (!stars.hidden) liveStars.refresh();
         trace.textContent = JSON.stringify({ result, knowledge: state.knowledge, records: state.records }, null, 2);
