@@ -24,7 +24,8 @@
     const tuningValue = (value, min, max) => typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : 1;
     // Transport only: recognition never submits a turn or changes the child's knowledge.
     function create(host, options) {
-        const Recognition = host.wordSpeech
+        const textOnly = host.wordReply?.enabled === true && host.wordReply?.textOnly === true;
+        const Recognition = textOnly ? null : host.wordSpeech
             ? host.ExperimentalWordSpeechInput?.create(host) : host.SpeechRecognition || host.webkitSpeechRecognition;
         let active = null, generation = 0, enabled = true, utterance = null;
         const enabledKey = 'wordReadAloud:v1';
@@ -36,12 +37,13 @@
             const saved = result ? result.value?.readAloud : JSON.parse(host.localStorage?.getItem(enabledKey) || 'null');
             if (typeof saved === 'boolean') enabled = saved;
         } catch (_) { enabledSaved = false; }
+        if (textOnly) enabled = false;
         let lastRecording = null, comparison = null;
         let playbackWait = null;
         let castTimer = null;
         const status = key => options.status(key);
-        const providers = options.audioProviders || (host.ExperimentalWordAudioProvider ? { voicevox: host.ExperimentalWordAudioProvider.voicevox(host) } : {});
-        const effects = options.effects || host.ExperimentalWordVoiceEffects?.create(host);
+        const providers = textOnly ? {} : options.audioProviders || (host.ExperimentalWordAudioProvider ? { voicevox: host.ExperimentalWordAudioProvider.voicevox(host) } : {});
+        const effects = textOnly ? null : options.effects || host.ExperimentalWordVoiceEffects?.create(host);
         const providerVoices = new Map();
         const cache = audioCache.create(host), fixedLines = new Map(), audioJobs = new Map();
         let audioQueue = [], worker = null, preparationEpoch = 0, warmRevision = 0, warmTimer = null;
@@ -217,6 +219,8 @@
             persistPreferences(profileKey, profiles);
         }
         function persistPreferences(key, value) {
+            // A diagnostic session must never replace the saved voice or read-aloud choice.
+            if (textOnly) return;
             try {
                 if (host.wordStorage?.saveAudioPreferences) {
                     if (!host.wordStorage.saveAudioPreferences({ readAloud: enabled, profiles, audioProfiles })?.ok) throw new Error('write');
@@ -405,6 +409,7 @@
             }
         }
         function speak(text, settings = {}) {
+            if (textOnly) return;
             const preview = settings.preview === true;
             if ((!preview && (!enabled || !options.canSpeak())) || (preview && !options.canPreview?.()) || active || comparison || !text) return;
             if (settings.role === 'narration' || settings.role === 'master') return speakScene([{ text, ...settings }], settings);
@@ -440,6 +445,7 @@
             return completion;
         }
         async function speakScene(lines, settings = {}) {
+            if (textOnly) return;
             const preview = settings.preview === true;
             if ((preview ? !options.canPreview?.() : !enabled || !options.canSpeak()) || active || comparison) return;
             const locale = options.locale(), provider = providers.voicevox;
@@ -543,6 +549,7 @@
         }
         return { listen, speak, speakScene, prepareScene, registerFixedLines, stop, clearRecording, compareRecording, voices, selectVoice, setTuning, resetVoices, setSource, setEffect, connectProvider,
             setEnabled(value) {
+                if (textOnly) return;
                 enabled = !!value;
                 try {
                     if (host.wordStorage?.saveAudioPreferences) {
@@ -558,7 +565,8 @@
             },
             get enabled() { return enabled; },
             get speaking() { return !!utterance || !!playbackWait || !!pending; },
-            supportedInput: !!Recognition, supportedOutput: !!((host.speechSynthesis && host.SpeechSynthesisUtterance) || effects?.supported),
+            textOnly,
+            supportedInput: !!Recognition, supportedOutput: !textOnly && !!((host.speechSynthesis && host.SpeechSynthesisUtterance) || effects?.supported),
             get preferencesSaved() { return preferencesSaved && enabledSaved; },
             get listening() { return !!active || !!comparison; } };
     }

@@ -1,5 +1,7 @@
 # ゲーム仕様書インデックス
 
+2026-11-20安定性切り分け：[比較版](core/word_llm_reply_comparison.md)に保存済みの声設定を変えない文字のみ起動を追加。[音声](core/word_constellation_and_voice.md)の通常起動・常駐は維持する。実試遊の白画面・接続失敗は原因調査中。
+
 2026-11-20最新実装：[比較版](core/word_llm_reply_comparison.md)に自身の活動／直前の休息・食事・移動と本人発会話を接続。[箱庭UI](core/word_terrarium_ui.md)は入力／返答待ちも描画だけ継続する。検証・発行状況はCURRENT。
 
 2026-11-20最新合意：[比較版](core/word_llm_reply_comparison.md)は本人の現在活動／直前の実体験を会話に使う方針を確定将来仕様に記録。未実装で、経験の種類・期間・長期保存は整理待ち。周囲の名前／場所の自動供給と行動判定変更は含まない。

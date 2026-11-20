@@ -8,6 +8,7 @@ const { exportReport } = require('./export_report');
 
 // Independent app storage and instance lock, without loading Steam or the legacy game.
 const geminiMode = !app.isPackaged && process.env.WORD_REPLY_MODE === 'gemini-cli';
+const textOnly = geminiMode && process.env.WORD_TEXT_ONLY === '1';
 const userData = path.join(app.getPath('appData'), geminiMode ? 'AIPetGame-WordLearning-Gemini' : 'AIPetGame-WordLearning');
 let storageReady = true;
 try {
@@ -33,7 +34,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
     app.whenReady().then(async () => {
         // The engine is independent and stays available for the next session.
         // Start alongside the window; an absent or slow engine never blocks play.
-        if (app.isPackaged === false) {
+        if (app.isPackaged === false && !textOnly) {
             voicevox = require('./voicevox_process').createVoicevoxProcess();
             void voicevox.start();
         }
@@ -48,7 +49,7 @@ if (storageReady && !app.requestSingleInstanceLock()) {
             webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true,
                 preload: path.join(__dirname, 'preload.js'),
                 backgroundThrottling: true, partition: 'persist:word-learning',
-                additionalArguments: geminiMode ? ['--word-reply=gemini-cli'] : [] } });
+                additionalArguments: geminiMode ? ['--word-reply=gemini-cli', ...(textOnly ? ['--word-text-only'] : [])] : [] } });
         window.setMenu(null);
         const url = `http://127.0.0.1:${server.address().port}/`;
         const store = createStore(userData);
@@ -63,9 +64,9 @@ if (storageReady && !app.requestSingleInstanceLock()) {
         ipcMain.handle('word-voice-cache-get', (event, key) => isWindow(event) ? voiceCache.get(key) : { ok: false });
         ipcMain.handle('word-voice-cache-put', (event, key, data) => isWindow(event) ? voiceCache.put(key, data) : { ok: false });
         ipcMain.handle('word-speech-prepare', event => isWindow(event)
-            ? speech.prepare() : { ok: false, error: 'sender' });
+            ? textOnly ? { ok: false, error: 'disabled' } : speech.prepare() : { ok: false, error: 'sender' });
         ipcMain.handle('word-speech-transcribe', (event, packet) => isWindow(event)
-            ? speech.transcribe(packet) : { ok: false, error: 'sender' });
+            ? textOnly ? { ok: false, error: 'disabled' } : speech.transcribe(packet) : { ok: false, error: 'sender' });
         ipcMain.handle('word-speech-cancel', (event, id) => {
             if (isWindow(event) && typeof id === 'string' && /^[a-z0-9-]{1,80}$/.test(id)) speech.cancel(id);
             return { ok: true };

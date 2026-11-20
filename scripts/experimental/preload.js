@@ -2,6 +2,7 @@
 const { contextBridge, ipcRenderer } = require('electron');
 contextBridge.exposeInMainWorld('wordReply', {
     enabled: process.argv.includes('--word-reply=gemini-cli'),
+    textOnly: process.argv.includes('--word-reply=gemini-cli') && process.argv.includes('--word-text-only'),
     generate: packet => ipcRenderer.invoke('word-reply-generate', packet),
     cancel: id => ipcRenderer.send('word-reply-cancel', id)
 });

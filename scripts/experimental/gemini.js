@@ -13,5 +13,6 @@ if (process.argv.includes('--login')) {
     }).catch(() => { console.error('Antigravity CLI setup failed. Check the download connection and retry.'); process.exitCode = 1; });
 } else {
     process.env.WORD_REPLY_MODE = 'gemini-cli';
+    if (process.argv.includes('--text-only')) process.env.WORD_TEXT_ONLY = '1';
     require('./launch');
 }

@@ -7,7 +7,7 @@ const vm = require('node:vm');
 const { EventEmitter } = require('node:events');
 const source = fs.readFileSync(path.join(__dirname, '../scripts/experimental/electron.js'), 'utf8');
 
-for (const geminiMode of [false, true]) test('Electron owns an ephemeral server, isolated storage, and window lifecycle: ' + geminiMode, async () => {
+for (const [geminiMode, textOnly] of [[false, false], [true, false], [true, true]]) test('Electron owns an ephemeral server, isolated storage, and window lifecycle: ' + geminiMode + '/' + textOnly, async () => {
     const app = new EventEmitter();
     const paths = {};
     let quit = false;
@@ -55,12 +55,13 @@ for (const geminiMode of [false, true]) test('Electron owns an ephemeral server,
         : name === 'node:fs' ? { mkdirSync() {} }
         : name === './serve' ? { createServer() { const server = require('../scripts/experimental/serve').createServer(); servers.push(server); return server; } }
         : require(name);
-    vm.runInNewContext(source, { require: requireMock, console, process: { env: geminiMode ? { WORD_REPLY_MODE: 'gemini-cli' } : {} }, __dirname: path.resolve(__dirname, '../scripts/experimental') });
+    vm.runInNewContext(source, { require: requireMock, console, process: { env: geminiMode ? { WORD_REPLY_MODE: 'gemini-cli', WORD_TEXT_ONLY: textOnly ? '1' : '0' } : {} }, __dirname: path.resolve(__dirname, '../scripts/experimental') });
     try {
         await loaded;
-        assert.equal(engineStarted, 1);
+        assert.equal(engineStarted, textOnly ? 0 : 1);
         assert.equal(path.basename(paths.userData), geminiMode ? 'AIPetGame-WordLearning-Gemini' : 'AIPetGame-WordLearning');
         assert.equal(window.options.webPreferences.additionalArguments.includes('--word-reply=gemini-cli'), geminiMode);
+        assert.equal(window.options.webPreferences.additionalArguments.includes('--word-text-only'), textOnly);
         assert.equal(window.options.webPreferences.nodeIntegration, false);
         assert.equal(window.options.webPreferences.sandbox, true);
         assert.match(window.options.webPreferences.preload, /preload\.js$/);
@@ -90,8 +91,12 @@ for (const geminiMode of [false, true]) test('Electron owns an ephemeral server,
         assert.equal((await handlers.get('word-voice-cache-get')(request, 'a'.repeat(64))).ok, true);
         assert.equal((await handlers.get('word-speech-transcribe')(stranger, {})).error, 'sender');
         assert.equal((await handlers.get('word-speech-prepare')(stranger)).error, 'sender');
-        assert.deepEqual(await handlers.get('word-speech-prepare')(request), { ok: true });
-        assert.deepEqual(await handlers.get('word-speech-transcribe')(request, {}), { ok: true, text: 'draft' });
+        const prepared = await handlers.get('word-speech-prepare')(request);
+        const transcribed = await handlers.get('word-speech-transcribe')(request, {});
+        assert.equal(prepared.ok, !textOnly);
+        assert.equal(transcribed.ok, !textOnly);
+        if (textOnly) { assert.equal(prepared.error, 'disabled'); assert.equal(transcribed.error, 'disabled'); }
+        else assert.deepEqual(transcribed, { ok: true, text: 'draft' });
         assert.equal((await fetch(window.url)).status, 200);
         window.emit('ready-to-show'); assert.equal(window.shown, true);
         app.emit('second-instance'); assert.equal(window.focused, true);
@@ -99,7 +104,7 @@ for (const geminiMode of [false, true]) test('Electron owns an ephemeral server,
         app.emit('window-all-closed'); assert.equal(quit, true);
         app.emit('before-quit');
         assert.equal(responderDisposed, geminiMode);
-        assert.equal(engineStopped, 1);
+        assert.equal(engineStopped, textOnly ? 0 : 1);
         assert.equal(servers[0].listening, false);
     } finally { for (const server of servers) { server.closeAllConnections(); server.close(); } }
 });

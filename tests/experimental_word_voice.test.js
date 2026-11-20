@@ -24,6 +24,31 @@ function setup(supported = true) {
     return { voice, host, statuses, transcripts, spoken, listening, setVoices(v) { available = v; }, get recognition() { return recognition; }, setLocale(x) { locale = x; }, allow(x) { allowed = x; } };
 }
 
+test('text-only diagnostics suppress all speech paths without overwriting saved preferences', async () => {
+    const s = setup(); let writes = 0, effectCreates = 0, providerCreates = 0;
+    const saved = { readAloud: true, profiles: { ja: { dialogue: { robot: voiceId(s.voice.voices().dialogue[1]) }, tuning: { robot: { pitch: 1.2, rate: .8 } } } } };
+    const before = structuredClone(saved);
+    const host = { ...s.host, wordReply: { enabled: true, textOnly: true },
+        wordStorage: { loadAudioPreferences: () => ({ ok: true, value: saved }), saveAudioPreferences: () => { writes++; return { ok: true }; } },
+        ExperimentalWordVoiceEffects: { create() { effectCreates++; } },
+        ExperimentalWordAudioProvider: { voicevox() { providerCreates++; } } };
+    const options = { locale: () => 'ja', species: () => 'robot', status() {}, listening() {}, canSpeak: () => true, canPreview: () => true, volume: () => .4 };
+    const diagnostic = create(host, options);
+    assert.equal(diagnostic.enabled, false); assert.equal(diagnostic.supportedInput, false); assert.equal(diagnostic.supportedOutput, false);
+    diagnostic.setEnabled(true); diagnostic.listen();
+    diagnostic.speak('preview', { preview: true });
+    await diagnostic.speakScene([{ text: 'mentor', role: 'master', master: 'explore' }], { preview: true });
+    await diagnostic.prepareScene([{ text: 'mentor', role: 'master', master: 'explore' }]);
+    diagnostic.setTuning('robot', { pitch: .6, rate: 1.3 });
+    assert.equal(diagnostic.enabled, false); assert.equal(diagnostic.speaking, false);
+    assert.equal(effectCreates, 0); assert.equal(providerCreates, 0); assert.equal(writes, 0);
+    assert.deepEqual(saved, before); assert.equal(s.spoken.length, 0);
+    const regular = create({ ...host, wordReply: { enabled: true, textOnly: false } }, options);
+    assert.equal(regular.enabled, true);
+    assert.equal(regular.voices().choices.robot, before.profiles.ja.dialogue.robot);
+    assert.deepEqual(regular.voices().profile.tuning.robot, { pitch: 1.2, rate: .8 });
+});
+
 test('read-aloud defaults on and persists explicit off and on independently of the child', () => {
     const s = setup(); assert.equal(s.voice.enabled, true);
     const options = { locale: () => 'ja', status() {}, listening() {}, canSpeak: () => true, volume: () => .4 };

@@ -10,14 +10,14 @@ if (!process.versions.electron || process.type !== 'browser') {
     const root = path.resolve(__dirname,'../..');
     const directory = fs.mkdtempSync(path.join(root,'docs/.local-history/verification-runs/gemini-reply-renderer-'));
     app.disableHardwareAcceleration(); app.setPath('userData',path.join(directory,'profile'));
-    let window, server, mode, responder; const windows = [], errors = [], packets = [], cancelled = [], checks = [];
+    let window, server, mode, responder, textOnlySession = false, audioWrites = 0; const windows = [], errors = [], packets = [], cancelled = [], checks = [];
     const watchdog = setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({mode,errors}));app.exit(1);},300000);
     const sleep = ms => new Promise(resolve=>setTimeout(resolve,ms));
     const catalog = require('../../experimental_word_learning_catalog.json');
     const seed = { version: 1, appearance: 'robot', state: require('../../experimental_word_learning_core').create({ foundation: false, life: false, speech: 'gesture' }, catalog),
         world: require('../../experimental_word_learning_world').create() };
     const stores = {}, snapshots = {};
-    const mock = `window.__frames=[];window.__clock=performance.now();
+    const mock = `window.__frames=[];window.__clock=performance.now();window.__realRAF=window.requestAnimationFrame.bind(window);
         window.addEventListener('error',e=>console.error(e.error?.stack||e.message));
         window.requestAnimationFrame=fn=>(window.__frames.push(fn),window.__frames.length);
         window.Audio=class extends EventTarget{play(){return Promise.resolve();}pause(){}};
@@ -52,16 +52,17 @@ if (!process.versions.electron || process.type !== 'browser') {
         const valid=event=>event.sender===window.webContents&&event.senderFrame?.url===url;
         ipcMain.on('word-life-load',event=>{event.returnValue=valid(event)?stores[mode].load():{ok:false};});
         ipcMain.on('word-life-save',(event,value)=>{const result=valid(event)?stores[mode].save(value):{ok:false};if(result.ok)snapshots[mode]=structuredClone(value);event.returnValue=result;});
-        ipcMain.on('word-audio-preferences-load',event=>{event.returnValue={ok:true,value:{readAloud:false}};});
-        ipcMain.on('word-audio-preferences-save',event=>{event.returnValue={ok:true};});
+        ipcMain.on('word-audio-preferences-load',event=>{event.returnValue={ok:true,value:{readAloud:textOnlySession}};});
+        ipcMain.on('word-audio-preferences-save',event=>{audioWrites++;event.returnValue={ok:true};});
         ipcMain.handle('word-reply-generate',(event,packet)=>{assert.ok(valid(event));packets.push(structuredClone(packet));return responder.reply(packet);});
         ipcMain.on('word-reply-cancel',(event,id)=>{if(valid(event)){cancelled.push(id);responder.cancel(id);}});
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
         const js=async code=>{fs.appendFileSync(path.join(directory,'scripts.log'),'start '+code+'\n');try{const value=await window.webContents.executeJavaScript(code,true);fs.appendFileSync(path.join(directory,'scripts.log'),'done\n');return value;}catch(error){fs.writeFileSync(path.join(directory,'script-error.json'),JSON.stringify({code,errors}));throw error;}};
         const wait=async(code,label)=>{for(let i=0;i<500;i++){if(await js(code))return;await sleep(30);}fs.writeFileSync(path.join(directory,'wait-timeout.json'),JSON.stringify({label,packets,ui:await js(`({locale:GameI18n.language,status:document.querySelector('#word-reply-status').textContent})`)}));throw Error('timeout: '+label);};
-        async function load(kind){
+        async function load(kind, textOnly = false){
+            textOnlySession = textOnly;
             mode=kind;window=new BrowserWindow({show:false,width:1280,height:900,webPreferences:{contextIsolation:true,nodeIntegration:false,sandbox:true,
-                backgroundThrottling:false,partition:'persist:gemini-fixture-'+kind,preload:path.join(__dirname,'preload.js'),additionalArguments:kind==='gemini'?['--word-reply=gemini-cli']:[]}});
+                backgroundThrottling:false,offscreen:textOnly,partition:'persist:gemini-fixture-'+kind,preload:path.join(__dirname,'preload.js'),additionalArguments:kind==='gemini'?['--word-reply=gemini-cli',...(textOnly?['--word-text-only']:[])]:[]}});
             windows.push(window);
             window.webContents.on('console-message',(_event,level,message,line,source)=>{if(level>=3){errors.push(message);fs.writeFileSync(path.join(directory,'console-errors.json'),JSON.stringify(errors));fs.appendFileSync(path.join(directory,'console-locations.log'),JSON.stringify({message,line,source})+'\n');}});
             window.webContents.on('render-process-gone',(_event,details)=>fs.writeFileSync(path.join(directory,'renderer-gone.json'),JSON.stringify(details)));
@@ -187,6 +188,29 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.ok(!snapshots.gemini.state.replyMemory.entries.some(e=>e.raw==='INITIATIVE_REPLY'||e.raw===''));
         assert.equal(Object.hasOwn(snapshots.gemini.state,'selfState'),false);
         checks.push({actualRestContext:true,experienceInitiatesConversation:true,noUnansweredFollowup:true,noSyntheticPlayerMemory:true});
+        const writesBeforeText = audioWrites;
+        await load('gemini', true);
+        assert.equal(await js(`wordReply.textOnly`),true);
+        assert.equal(await js(`document.querySelector('#word-read-aloud').disabled && !document.querySelector('#word-read-aloud').checked`),true);
+        await submit('TO_CANCEL text only pending');
+        const waitingClock = packets.at(-1).selfState;
+        await js(`window.__liveFrames=0;window.requestAnimationFrame=fn=>window.__realRAF(t=>{window.__liveFrames++;fn(t);});for(const fn of window.__frames.splice(0))requestAnimationFrame(fn);void 0`);
+        await sleep(1200);
+        await js(`window.dispatchEvent(new Event('beforeunload'));void 0`);
+        assert.equal(snapshots.gemini.world.fatigue,waitingClock.fatigue);
+        assert.equal(snapshots.gemini.world.hunger,waitingClock.hunger);
+        await wait(`document.querySelector('.stage .bubble').textContent==='STALE_REPLY'`,'text-only reply');
+        await js(`document.querySelector('.chat-form textarea').value='typing during live animation';void 0`);
+        const liveStart = await js(`({elapsed:window.__world?.elapsed,frame:aiPet.frameIndex})`);
+        await sleep(15000);
+        const live = await js(`({elapsed:window.__world?.elapsed,frames:window.__liveFrames,spoken:window.__spoken.length})`);
+        fs.writeFileSync(path.join(directory,'text-only-live-observed.json'),JSON.stringify({liveStart,live},null,2));
+        assert.ok(live.frames>30,'real animation callbacks continue');
+        assert.equal(live.elapsed,liveStart.elapsed);assert.equal(live.spoken,0);
+        assert.equal(audioWrites,writesBeforeText,'saved audio preferences remain untouched');
+        fs.writeFileSync(path.join(directory,'text-only-live-metrics.json'),JSON.stringify({live,processes:app.getAppMetrics().map(p=>({type:p.type,memory:p.memory,cpu:p.cpu}))},null,2));
+        await window.capturePage().then(img=>fs.writeFileSync(path.join(directory,'text-only-1280.png'),img.toPNG()));
+        checks.push({textOnlyVoiceDisabled:true,textOnlyReply:true,realAnimationCallbacks:live.frames,typingHeldDuringRealAnimation:true});
         assert.deepEqual(errors,[]);const result={ok:true,directory,checks,errors,packets:packets.map(x=>({id:x.id,locale:x.locale,recent:x.recent.length,memories:x.memories.length}))};
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(result,null,2));
         console.log(JSON.stringify({ok:true,directory,checks:checks.length}));

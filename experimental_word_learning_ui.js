@@ -5,6 +5,7 @@
     const app = document.getElementById('app');
     const labels = {
         llmMode: '声をかけて、お話ししてみましょう。',
+        textOnlyMode: '音声を使わない確認モードです。保存済みの声設定は変更しません。',
         llmNotice: '会話のために、入力・関連するノート・直近の会話・本人の設定と活動・直前の体験を外部サービスへ送ります。通常版とは別に保存します。追加クレジットは使用しません。',
         llmWaiting: 'お返事を待っています…',
         llmFailed: 'お話の接続に失敗しました。今回はいつもの返答です。接続状態を確認してください。',
@@ -1664,6 +1665,11 @@
         }
         previewButtons.forEach((button, index) => { button.disabled = !voice.supportedOutput || (index < 3 ? !ready || !dialogueVoice.value : !bank.narrator); });
         identityAudition.disabled = screen === 'signing' || !voice.supportedOutput || !ready || !dialogueVoice.value || !identityApi.valid(readIdentityDraft());
+        if (voice.textOnly) {
+            [voiceSource, effectControl, localConnect, dialogueVoice, resetVoices,
+                ...Object.values(tuningControls).map(item => item.control)].forEach(control => { control.disabled = true; });
+            choiceStatus.textContent = t('textOnlyMode'); choiceStatus.hidden = false;
+        }
     }
     function prepareMeetingVoice(initial) {
         choosingInitialVoice = initial;
@@ -1709,7 +1715,7 @@
         canPrepare: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open,
         canSpeak: () => screen === 'playing' && !paused && !document.hidden && !starsDialog.open && !meeting.open
             && (!masterDialog.open || ['silhouette', 'conversation'].includes(masterPhase)),
-        status: key => { const text = voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
+        status: key => { const text = window.wordReply?.textOnly ? t('textOnlyMode') : voiceStatuses[key] ? t(voiceStatuses[key]) : ''; voiceStatus.textContent = text;
             if (['preparingInput', 'processingInput', 'comparingInput'].includes(key)) microphone.disabled = true;
             if (key === 'listening') { microphone.disabled = false; microphone.textContent = t('voiceFinish'); }
             localMessage.textContent = key.startsWith('provider') ? text : '';
@@ -1766,6 +1772,7 @@
     readAloud.checked = voice.enabled;
     if (!voice.preferencesSaved) voiceStatus.textContent = t('voiceUnsaved');
     if (!voice.supportedInput) voiceStatus.textContent = t('voiceUnsupportedInput');
+    if (voice.textOnly) voiceStatus.textContent = t('textOnlyMode');
     microphone.addEventListener('click', () => {
         if (paused || screen !== 'playing') return;
         stopAuto();
