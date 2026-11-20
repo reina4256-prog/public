@@ -70,6 +70,8 @@ function prompt(packet) {
             playerMemories: packet.memories || [], recent: packet.recent, playerInput: packet.kind === 'initiative' ? null : packet.input });
 }
 function createResponder(directory, options = {}) {
+    // Internal protocol adapters share transport restrictions, never renderer-supplied code.
+    const protocol = options.protocol || { valid, prompt, maxLength: 1200, decode: text => ({ text }) };
     const config = configuration(directory, options.env); let active = null, prepared = null, disposed = false;
     const spawnChild = options.spawn || spawn;
     const modelChoice = () => {
@@ -115,7 +117,7 @@ function createResponder(directory, options = {}) {
                     clearTimeout(timer);
                     timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.timeout || 60000);
                     try {
-                        child.stdin.end(JSON.stringify({ event: 'user', message: { content: prompt(packet) } }) + '\n');
+                        child.stdin.end(JSON.stringify({ event: 'user', message: { content: protocol.prompt(packet) } }) + '\n');
                         mark('inputQueued');
                     } catch (_) { job.finish({ ok: false, error: 'failed' }); }
                 }, finish(result) {
@@ -169,9 +171,11 @@ function createResponder(directory, options = {}) {
                         const value = results[0].result;
                         if (value.error) { const kind = errorKind(typeof value.error === 'string' ? value.error : ''); if (kind !== 'failed') failure = kind; }
                         const text = value.response?.trim();
-                        if (code !== 0 || value.status !== 'SUCCESS' || value.error || typeof text !== 'string' || !text || text.length > 1200
+                        if (code !== 0 || value.status !== 'SUCCESS' || value.error || typeof text !== 'string' || !text || text.length > protocol.maxLength
                             || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text) || value.stats?.tools?.totalCalls > 0) throw Error('output');
-                        job.finish({ ok: true, text, source: 'antigravity-cli' });
+                        const decoded = protocol.decode(text);
+                        if (!decoded) throw Error('output');
+                        job.finish({ ...decoded, ok: true, source: 'antigravity-cli' });
                     } catch (_) { job.finish({ ok: false, error: failure }); }
                 });
             } catch (_) { job.finish({ ok: false, error: 'failed' }); }
@@ -187,7 +191,7 @@ function createResponder(directory, options = {}) {
     }
     async function reply(packet) {
         const started = performance.now();
-        if (!valid(packet)) return { ok: false, error: 'input' };
+        if (!protocol.valid(packet)) return { ok: false, error: 'input' };
         if (active) active.finish({ ok: false, error: 'cancelled' });
         const error = preflight();
         if (error) { cancel(); return { ok: false, error }; }

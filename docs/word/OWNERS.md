@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-21：[LLM中心の第1単位](../specs/core/word_llm_native_system.md)はexperimental_word_llm_native.jsが原資料・packet・LLM提案検査・保存形式、scripts/experimental/native_store.jsがmain側session／安全保存、native_window.jsがIPC境界、native_electron.jsが専用profile／接続／私用記録、native_preload.jsが限定bridge、専用HTML／CSS／UIが会話・日記・星座を所有。native.jsが別起動。既存gemini_replyは内部protocol adapterを加えtransport安全条件と従前defaultを共有する。旧日記担当群の所有や採用範囲は増やさない。
+
 2026-11-21：[LLM中心の新システム](../specs/core/word_llm_native_system.md)が新しい設計方針・旧版保持・未決定の分担を所有する。以下の既存部品所有表を新システムでの再利用必須条件にしない。新システムの実装部品と接続所有は未決定。現行[Gemini応答比較版](../specs/core/word_llm_reply_comparison.md)の境界は既存方式のものとして保持する。
 
 2026-11-20本人活動：[比較版正本](../specs/core/word_llm_reply_comparison.md)の`experimental_word_reply_awareness`が会話専用の活動／直前体験投影と自発会話の間隔・返事待ちを所有。共通UIが既存実イベントを渡し生成を表示、gemini_replyが送信値を検査する。保存／理解／行動は変更しない。描画用時計の所有は[箱庭UI](../specs/core/word_terrarium_ui.md)。

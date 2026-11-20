@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ja" data-i18n-ephemeral>
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>ことばと記憶の試遊</title>
+<link rel="stylesheet" href="experimental_word_llm_native.css">
+<script defer src="localization_catalog.js"></script><script defer src="localization_core.js"></script>
+<script defer src="experimental_word_llm_native_ui.js"></script>
+</head>
+<body>
+<main>
+<header><div><p class="eyebrow">ことばと記憶の試遊</p><h1 id="heading">教わったことから、少しずつ。</h1></div>
+<select id="locale" aria-label="言語"><option value="ja">日本語</option><option value="en">English</option><option value="zh-CN">简体中文</option><option value="ru">Русский</option><option value="es-ES">Español</option><option value="pt-BR">Português</option><option value="de">Deutsch</option></select></header>
+<p class="notice">入力・本人の呼称・直近の会話・選んだ原文と受け取り方をGoogleへ送ります。旧版とは別保存で、追加クレジットは使いません。</p>
+<form id="setup" class="paper">
+<h2>この子とのはじまり</h2>
+<div class="identity"><label>名前<input id="name" maxlength="100" required autocomplete="off"></label><label>一人称<input id="self" maxlength="100" required autocomplete="off"></label><label>あなたの呼び方<input id="player" maxlength="100" required autocomplete="off"></label></div>
+<button type="submit">はじめる</button>
+</form>
+<section id="play" hidden>
+<nav aria-label="記憶の表示"><button id="tab-chat" aria-controls="chat-view" aria-pressed="true">会話</button><button id="tab-diary" aria-controls="diary-view" aria-pressed="false">日記</button><button id="tab-stars" aria-controls="stars-view" aria-pressed="false">星座</button></nav>
+<section id="chat-view" class="paper"><h2 id="character-name" data-i18n-skip></h2><p>教わった内容は、まだ自分では確かめていない記憶として残ります。</p>
+<div id="conversation" role="log" aria-live="polite"></div>
+<form id="compose"><label for="input">この子に話しかける</label><textarea id="input" maxlength="4000" rows="3" required></textarea><div class="actions"><button id="send" type="submit">送信</button><button id="cancel" type="button" hidden>中止</button></div></form></section>
+<section id="diary-view" class="paper" hidden><h2>日記</h2><div id="diary"></div></section>
+<section id="stars-view" class="night" hidden><h2>星座</h2><p>原発言・受け取り方・教わった記憶を結びます。線は保存記録の関係で、LLM内部の思考ではありません。</p><p>星図は直近24件を表示します。記録は日記に残ります。</p><div id="stars"></div><div id="star-record"></div></section>
+</section>
+<p id="status" role="status" aria-live="polite"></p>
+</main>
+</body></html>
