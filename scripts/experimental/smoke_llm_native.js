@@ -29,7 +29,7 @@ if(!process.versions.electron || process.type!=='browser'){
             const responder=require('./gemini_reply').createResponder(path.join(directory,'connection'),{entry:fixture,skipAuthCheck:true,protocol:core.protocol});
             const reply=responder.reply;responder.reply=p=>{packets.push(structuredClone(p));return reply(p);};
             const session=createSession({store:createStore(path.join(directory,'save')),responder});
-            window=require('./native_window').openWindow(session,{show:false});
+            window=require('./native_window').openWindow(session,{show:false,legacy:true});
             window.webContents.on('console-message',(_event,level,message)=>{if(level===3)errors.push(message);});
             return session;
         }

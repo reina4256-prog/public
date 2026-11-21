@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-22再構築：[島版の正本](../specs/core/word_llm_native_system.md#島で試す再構築単位2026-11-22)が最新。experimental_word_llm_native_runtime.jsはversion2／packet／解釈・短語・行動案の検査、native_game.jsは限定世界・移動／食事／休息・実結果、native_scene.jsは既存地形・姿の描画、native_book.js／native_drawing.jsは実根拠の絵日記、native_stars.jsは短語星座。scripts/experimental/native_island.jsは既存地形生成の隔離実行、native_store／window／preload／electronはmain所有・保存・IPC・起動・接続。旧自由入力解析／共起／大量日記部品は新理解の前提にしない。検証・発行はCURRENT。
+
 2026-11-21：[LLM中心の第1単位](../specs/core/word_llm_native_system.md)はexperimental_word_llm_native.jsが原資料・packet・LLM提案検査・保存形式、scripts/experimental/native_store.jsがmain側session／安全保存、native_window.jsがIPC境界、native_electron.jsが専用profile／接続／私用記録、native_preload.jsが限定bridge、専用HTML／CSS／UIが会話・日記・星座を所有。native.jsが別起動。既存gemini_replyは内部protocol adapterを加えtransport安全条件と従前defaultを共有する。旧日記担当群の所有や採用範囲は増やさない。
 
 2026-11-21：[LLM中心の新システム](../specs/core/word_llm_native_system.md)が新しい設計方針・旧版保持・未決定の分担を所有する。以下の既存部品所有表を新システムでの再利用必須条件にしない。新システムの実装部品と接続所有は未決定。現行[Gemini応答比較版](../specs/core/word_llm_reply_comparison.md)の境界は既存方式のものとして保持する。

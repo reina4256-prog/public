@@ -2,6 +2,20 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const core=require('../experimental_word_llm_native'),{createStore,createSession}=require('../scripts/experimental/native_store');
 const character={name:'A',self:'I',player:'you'};
+test('interactive launcher uses a visible Windows startup and reports spawn and abnormal exit failures',()=>{
+    const {EventEmitter}=require('node:events'),{launch}=require('../scripts/experimental/native');
+    const oldExit=process.exitCode,env={ELECTRON_RUN_AS_NODE:'1',KEEP:'yes'},messages=[];let actual;
+    try{
+        const child=launch({executable:'test-electron',env,report:message=>messages.push(message),spawn:(exe,args,settings)=>{
+            actual={exe,args,settings};return new EventEmitter();
+        }});
+        assert.equal(actual.settings.windowsHide,false);assert.equal(actual.settings.stdio,'inherit');
+        assert.equal(actual.settings.env.ELECTRON_RUN_AS_NODE,undefined);assert.equal(env.ELECTRON_RUN_AS_NODE,'1');
+        child.emit('error',new Error('spawn denied'));assert.equal(process.exitCode,1);assert.match(messages[0],/spawn denied/);
+        child.emit('exit',null,'SIGTERM');assert.equal(process.exitCode,1);assert.match(messages.at(-1),/SIGTERM/);
+        child.emit('exit',0,null);assert.equal(process.exitCode,0);
+    }finally{process.exitCode=oldExit;}
+});
 const start=()=>core.begin(core.create(character,'en'),'Koro is sweet.','en',1);
 function result(p,kind='teaching') {return {reply:'You told me that.',interpretation:{kind,summary:'The player explained Koro.'},memories:kind==='teaching'?[{sourceId:p.id,quote:p.input,text:'The player says Koro is sweet; unverified.'}]:[],references:[]};}
 function directory(t) {const dir=fs.mkdtempSync(path.join(os.tmpdir(),'native-memory-test-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return dir;}

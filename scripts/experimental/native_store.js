@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('node:fs'), path = require('node:path');
-const core = require('../../experimental_word_llm_native');
+const base = require('../../experimental_word_llm_native');
+const core = require('../../experimental_word_llm_native_runtime');
 const MAX_BYTES = 16*1024*1024;
 function createStore(directory) {
     fs.mkdirSync(directory,{recursive:true});
@@ -32,8 +33,9 @@ function createStore(directory) {
     }
     return {load,save,file};
 }
-function createSession({store,responder,record=()=>{}}) {
+function createSession({store,responder,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
     let state=null,loaded=false,blocked=false,busy=false;
+    let lastClock=clock(),lastSave=lastClock;
     const copy=()=>state ? structuredClone(state) : null;
     const log=(kind,data)=>{ try { record({kind,at:Date.now(),...data}); } catch (_) { /* Save remains the primary evidence. */ } };
     function load() {
@@ -46,14 +48,32 @@ function createSession({store,responder,record=()=>{}}) {
         }
         return blocked ? {ok:false,error:'save'} : {ok:true,state:copy()};
     }
-    function create(character,locale) {
+    function create(character,locale,answers) {
         load();
         if (blocked || state || busy) return {ok:false,error:'input'};
         try {
-            const value=core.create(character,locale);
+            const value=answers?core.create(character,locale,answers,islandFactory()):base.create(character,locale);
             if (!store.save(value).ok) return {ok:false,error:'save'};
             state=value;return {ok:true,state:copy()};
         } catch (_) { return {ok:false,error:'input'}; }
+    }
+    function prepare(answers){
+        load();if(blocked||!state||state.game||busy)return {ok:false,error:'input'};
+        try{const value=core.adopt(state,answers,islandFactory());if(!store.save(value).ok)return {ok:false,error:'save'};
+            state=value;lastClock=clock();return {ok:true,state:copy()};}catch(_){return {ok:false,error:'input'};}
+    }
+    function pulse(paused=true){
+        const now=clock(),seconds=Math.min(.1,Math.max(0,(now-lastClock)/1000));lastClock=now;
+        if(blocked)return {ok:false,error:'save'};
+        if(!loaded||!state?.game)return {ok:true};
+        if(!busy&&paused===false){
+            const before=state.game.receipts.length;core.game.tick(state.game,seconds);
+            if(state.game.receipts.length!==before||now-lastSave>10000){
+                if(!store.save(state).ok){blocked=true;return {ok:false,error:'save'};}lastSave=now;
+                if(state.game.receipts.length!==before)log('world',{results:state.game.receipts.slice(before)});
+            }
+        }
+        const {island,...dynamic}=state.game;return {ok:true,game:structuredClone(dynamic)};
     }
     async function submit(input,locale) {
         load();if (blocked || !state || busy) return {ok:false,error:blocked?'save':'input'};
@@ -75,8 +95,11 @@ function createSession({store,responder,record=()=>{}}) {
             if (store.save(updated).ok) state=updated;else blocked=true;
             log('result',{id:next.packet.id,error:'failed',result:null});
             return {ok:false,error:blocked?'save':'failed',state:copy()};
-        } finally { busy=false; }
+        } finally { busy=false;lastClock=clock(); }
     }
-    return {load,create,submit,cancel:()=>responder.cancel(),dispose:()=>responder.dispose()};
+    return {load,create,prepare,pulse,submit,cancel:()=>responder.cancel(),dispose:()=>{
+        if(loaded&&state&&!blocked&&!busy&&!store.save(state).ok)blocked=true;
+        responder.dispose();
+    }};
 }
 module.exports={createStore,createSession,MAX_BYTES};
