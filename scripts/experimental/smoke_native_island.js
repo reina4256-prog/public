@@ -35,6 +35,12 @@ if(!process.versions.electron){
         await capture('island-desktop.png');
         async function send(text){await evaluate(`document.getElementById('input').value=${JSON.stringify(text)};document.getElementById('compose').requestSubmit();`);await until('!document.getElementById("send").disabled');}
         await send('Where are you?');assert.equal(packets.at(-1).world.location,'island');assert.ok(packets.at(-1).world.visible.length<=6);assert.ok(JSON.stringify(packets.at(-1).world).length<=2000);
+        const targetIds=await evaluate('(async()=>NativeScene.visible((await nativeMemory.load()).state.game).map(p=>p.id))()');
+        assert.deepEqual(targetIds,packets.at(-1).world.visible.map(p=>p.id));
+        const drawn=await evaluate(`(async()=>{const g=(await nativeMemory.load()).state.game,ids=[],original=NativeScene.drawTarget;try{NativeScene.drawTarget=p=>ids.push(p.id);NativeScene.draw(g,0,true);return ids;}finally{NativeScene.drawTarget=original;}})()`);
+        assert.deepEqual(drawn,targetIds,'Only supplied visible targets are drawn');
+        assert.equal(await evaluate('document.querySelectorAll("#scene-targets, [data-target]").length'),0,'No target-control buttons');
+        await capture('targets-island.png');checks.push('visible target names exactly match supplied IDs without target-control buttons or extra objects');
         await send('この実はコロです。');checks.push('world supplied and exact quoted teaching');
         // Exercise actual authority and movement ticks, without waiting in wall-clock time.
         const result=await evaluate(`(async()=>{let s=await nativeMemory.load();if(!s.state.game.seen.includes('berry:1'))return {unseen:true};return {unseen:false};})()`);
@@ -42,6 +48,7 @@ if(!process.versions.electron){
         await send('eat');const meal=await evaluate(`(async()=>{let result;for(let i=0;i<12000;i++){result=await nativeMemory.pulse(false);if(result.game.mode==='idle')break;}return result.game;})()`);
         assert.ok(meal.receipts.some(r=>r.kind==='eat'&&r.taste==='sweet'));checks.push('game checked proposal, routed movement and actual meal receipt');
         await send('What did that taste like?');assert.ok(packets.at(-1).world.results.some(r=>r.kind==='eat'));checks.push('completed result supplied to following conversation');
+        assert.deepEqual(await evaluate('(async()=>NativeScene.visible((await nativeMemory.load()).state.game).map(p=>p.id))()'),packets.at(-1).world.visible.map(p=>p.id));
         await evaluate('document.getElementById("tab-diary").click()');await evaluate('document.fonts.ready');await sleep(100);
         assert.ok(await evaluate('!!document.querySelector(".book-drawing")'));assert.ok((await evaluate('document.getElementById("diary").textContent')).includes('甘い'));
         assert.equal(await evaluate('document.querySelector(".book-body").style.fontSize'), '');
@@ -50,6 +57,7 @@ if(!process.versions.electron){
         assert.ok(await evaluate('[...document.querySelectorAll("#stars text")].every(n=>n.textContent.length<=24)'));await evaluate('document.querySelector("#stars .word-node").dispatchEvent(new Event("click"))');assert.ok(await evaluate('document.getElementById("star-record").textContent.length>0'));checks.push('short word stars, distinct actual-experience edges, selectable evidence');
         for(const width of [1160,420]){window.setContentSize(width,850);for(const locale of core.locales){await evaluate(`document.getElementById('locale').value=${JSON.stringify(locale)};document.getElementById('locale').dispatchEvent(new Event('change'));`);
                 for(const tab of ['chat','diary','stars']){await evaluate(`document.getElementById('tab-${tab}').click()`);await sleep(35);assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),locale+':'+tab);}
+                await evaluate('document.getElementById("tab-chat").click()');await capture('targets-'+width+'-'+locale+'.png');
             }
             await evaluate(`document.getElementById('locale').value='ja';document.getElementById('locale').dispatchEvent(new Event('change'));document.getElementById('tab-diary').click();`);await sleep(100);
             await capture('diary-'+width+'.png');

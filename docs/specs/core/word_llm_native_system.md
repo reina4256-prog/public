@@ -6,6 +6,7 @@
 
 ### 島で試す再構築単位（2026-11-22）
 
+- 同日の本人試遊後、「画面と本人が同じ対象を指せること」を次の一単位として承認・実装。既存の島の道・木陰・木の実の対象位置に七言語の控えめな名前を添える。rendererも`native_game.visible`を直接使い、送信時の`packet.world.visible`と同じ対象・距離条件に限定し、本人の移動で範囲外になれば表示を外す。途中画面へのユーザー指摘により、対象確認ボタンや円の上に置く簡易物体は不採用・撤去。既存の景色を使い、対象用の人工的な道／木／実の図形を追加しない。既存の外部packet／2000文字上限は変更せず、座標・方向・選択状態・山や職業などの追加供給を行わない。注目・教示・習得・行動命令や会話の自動送信も追加しない。背景地形全体を本人が認識できるようにしたものではない。検証結果はCURRENT。
 - 起動は引き続き`npm run start:word:native`。`native_window.js`の通常入口は`experimental_word_llm_native_island.html`。元の`experimental_word_start_questions.js`の7設問・version4の姿対応をそのまま使い、回答後に姿と名前・一人称・呼び方を確認して島へ進む。設問回答や初期設定の旧学習値をLLMへ自動供給せず、原回答・対応したsettingsをoriginへ保持する。音声は今回接続しない。
 - `experimental_word_llm_native_runtime.js`が新しいversion2本人形式・packet・構造出力検査を所有し、旧第1版coreの原文保持／有限検索・引用検査を使う。`native_store.js`がmainで所有する状態にgameを追加。旧version1の本人は原turn・呼称を消さず、7設問を経て`prepare`でgameを追加する。既存呼称はそのまま確認し、新本人へ黙って初期化しない。保存先・16MiB制限・一時書込／backup／失敗停止は従前どおり。島の地形・姿・原文・実結果を保存再開し、終了中の時間を追いつき計算しない。
 - `native_island.js`はチェックイン済みdata.js／island_shared.jsだけを隔離VMで評価して既存の島を作り、既存navigationで移動経路を求める。プレイヤー入力のevalはない。`native_scene.js`は既存view_renderer・地形画像・11種族のスプライトを描画する。旧自由入力解析・全文共起・旧学習更新／日記部品群を理解入口にしない。
