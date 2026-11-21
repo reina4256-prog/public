@@ -3,6 +3,7 @@
     const $=id=>document.getElementById(id),api=window.nativeMemory,t=(s,...a)=>window.GameI18n.translate(s).replace(/\{\{(\d+)\}\}/g,(_,n)=>String(a[Number(n)]??''));
     let state=null,busy=false,blocked=false,paused=false,answers=[],question=0,lastPulse=0,pulsing=false;
     const status=s=>{$('status').textContent=t(s);};
+    const warmup=()=>{if(!blocked&&!busy&&!paused&&!document.hidden&&state?.game&&!$('chat-view').hidden)void api.warmup().catch(()=>{});};
     function el(tag,parent,text,cls,literal=false){const n=document.createElement(tag);if(text!==undefined)n.textContent=literal?text:t(text);if(cls)n.className=cls;if(literal)n.dataset.i18nSkip='';parent.append(n);return n;}
     function record(turn){
         const article=document.createElement('article');article.className='record';
@@ -42,14 +43,15 @@
     $('setup').onsubmit=async event=>{event.preventDefault();if(blocked||busy||answers.length!==7)return;busy=true;
         try{const result=state?await api.prepare(answers):await api.create({name:$('name').value,self:$('self').value,player:$('player').value},$('locale').value,answers);
             if(result.ok){state=result.state;status('');render();$('input').focus();}else status(errors[result.error]||errors.failed);
-        }catch(_){status(errors.failed);}finally{busy=false;}};
+        }catch(_){status(errors.failed);}finally{busy=false;warmup();}};
     $('compose').onsubmit=async event=>{event.preventDefault();if(busy||blocked||!state?.game)return;const input=$('input').value;if(!input.trim())return;
         busy=true;$('send').disabled=true;$('locale').disabled=true;$('cancel').hidden=false;status('返答を待っています…');
         try{const result=await api.submit(input,$('locale').value);if(result.state){state=result.state;if($('input').value===input)$('input').value='';render();}
             if(result.error==='save')blocked=true;status(result.ok?(state.turns.at(-1)?.actionCheck?.accepted===false?'行動案は実行条件を満たさず、実行していません。':''):errors[result.error]||errors.failed);
-        }catch(_){status(errors.failed);}finally{busy=false;$('send').disabled=blocked;$('locale').disabled=false;$('cancel').hidden=true;if(!blocked)$('input').focus();}};
-    $('cancel').onclick=()=>api.cancel();$('pause').onclick=()=>{paused=!paused;meters();};
-    for(const tab of ['chat','diary','stars'])$('tab-'+tab).onclick=()=>{for(const name of ['chat','diary','stars']){$(name+'-view').hidden=name!==tab;$('tab-'+name).setAttribute('aria-pressed',String(name===tab));}$('workspace').classList.toggle('reading',tab!=='chat');renderPanels();};
+        }catch(_){status(errors.failed);}finally{busy=false;$('send').disabled=blocked;$('locale').disabled=false;$('cancel').hidden=true;if(!blocked)$('input').focus();warmup();}};
+    $('cancel').onclick=()=>api.cancel();$('pause').onclick=()=>{paused=!paused;meters();if(paused&&!busy)api.cancel();else warmup();};
+    for(const tab of ['chat','diary','stars'])$('tab-'+tab).onclick=()=>{for(const name of ['chat','diary','stars']){$(name+'-view').hidden=name!==tab;$('tab-'+name).setAttribute('aria-pressed',String(name===tab));}$('workspace').classList.toggle('reading',tab!=='chat');renderPanels();if(tab!=='chat'&&!busy)api.cancel();else warmup();};
+    $('input').addEventListener('focus',warmup);$('input').addEventListener('input',warmup);
     $('locale').value=window.GameI18n.language;$('locale').onchange=()=>{window.GameI18n.setLanguage($('locale').value);if(state?.game)render();else if(!$('questions').hidden)showQuestion();};
     window.NativeScene.load();const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     async function frame(time){
@@ -59,7 +61,7 @@
         }
         requestAnimationFrame(frame);
     }
-    requestAnimationFrame(frame);window.addEventListener('pagehide',()=>api.cancel());document.addEventListener('visibilitychange',()=>{if(document.hidden)void api.pulse(true);});
+    requestAnimationFrame(frame);window.addEventListener('pagehide',()=>api.cancel());document.addEventListener('visibilitychange',()=>{if(document.hidden){void api.pulse(true);api.cancel();}else warmup();});
     let resize;window.addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>state?.game&&renderPanels(),160);});
-    void api.load().then(result=>{if(!result.ok){blocked=true;$('questions').hidden=$('setup').hidden=true;status(errors.save);return;}state=result.state;if(state){$('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);}render();}).catch(()=>{blocked=true;status(errors.failed);});
+    void api.load().then(result=>{if(!result.ok){blocked=true;$('questions').hidden=$('setup').hidden=true;status(errors.save);return;}state=result.state;if(state){$('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);}render();warmup();}).catch(()=>{blocked=true;status(errors.failed);});
 })();

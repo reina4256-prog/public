@@ -126,7 +126,7 @@ function createResponder(directory, options = {}) {
                 if (prepared === job) prepared = null;
                 if (child && child.exitCode == null) child.kill();
                 const offset = job.requestStarted - started;
-                resolve(options.measure ? { ...result, timing: { version: 2,
+                resolve(options.measure ? { ...result, timing: { version: 2,modelRequested:model,
                     prestart: { used: prestarted, ageMs: prestarted ? offset : 0,
                         initializedBeforeRequest: prestarted && marks.initialized !== undefined && marks.initialized < offset },
                     marks: { ...Object.fromEntries(Object.entries(marks).map(([key,value]) => [key,value-offset])),

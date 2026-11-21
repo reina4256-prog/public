@@ -15732,5 +15732,8 @@
   "星を選ぶと、原発言や実体験の根拠を読めます。語の候補は習得済みの知識とは分けています。": "Select a star to read its original source or actual experience. Word candidates are separate from acquired knowledge.",
   "今回つながっている行動：歩く・木の実を食べる・休む。": "Connected actions: walking, eating berries and resting.",
   "会話の原文を見る": "Read the original conversation",
-  "道": "path"
+  "道": "path",
+  "実際のマップを見ながら話します。場所を確かめるときだけ、そのチップを丸で示します。": "Talk while looking at the actual map. A chip is circled only when checking which place you mean.",
+  "過去の試作の記録": "Earlier prototype records",
+  "現在地・画面内のマップチップの種類と位置・確認中の対象・状態・直近の観察を、上限を決めてGoogleへ送ります。旧版とは別保存で、追加クレジットは使いません。": "Location, visible map chip types and positions, the place being checked, status and recent observations are sent to Google within fixed limits. Separate saves; no extra credits."
 }

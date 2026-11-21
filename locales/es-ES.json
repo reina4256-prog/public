@@ -15732,5 +15732,8 @@
   "星を選ぶと、原発言や実体験の根拠を読めます。語の候補は習得済みの知識とは分けています。": "Elige una estrella para ver su fuente o experiencia real. Las palabras candidatas se distinguen del conocimiento adquirido.",
   "今回つながっている行動：歩く・木の実を食べる・休む。": "Acciones conectadas: caminar, comer bayas y descansar.",
   "会話の原文を見る": "Ver conversación original",
-  "道": "camino"
+  "道": "camino",
+  "実際のマップを見ながら話します。場所を確かめるときだけ、そのチップを丸で示します。": "Conversen mirando el mapa real. Solo se rodea una pieza al confirmar a qué lugar te refieres.",
+  "過去の試作の記録": "Registros del prototipo anterior",
+  "現在地・画面内のマップチップの種類と位置・確認中の対象・状態・直近の観察を、上限を決めてGoogleへ送ります。旧版とは別保存で、追加クレジットは使いません。": "Se envían a Google la ubicación, tipos y posiciones de las piezas visibles, el objeto que se confirma, el estado y observaciones recientes, con límites fijos. Guardado separado; sin créditos extra."
 }

@@ -8,19 +8,21 @@ if(!process.versions.electron){
     const assert=require('node:assert/strict'),{app}=require('electron'),core=require('../../experimental_word_llm_native_runtime');
     const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/native-island-'));
     app.disableHardwareAcceleration();app.setPath('userData',path.join(directory,'profile'));
-    let window,time=0;const errors=[],checks=[],packets=[];const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    let window,time=0,preparations=0;const errors=[],checks=[],packets=[];const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     const evaluate=code=>window.webContents.executeJavaScript(code);
     async function capture(name){await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');await sleep(250);fs.writeFileSync(path.join(directory,name),(await window.webContents.capturePage()).toPNG());}
     async function until(code){for(let i=0;i<200;i++){if(await evaluate(code))return;await sleep(50);}throw Error('Timed out: '+code);}
     const timer=setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({checks,errors}));app.exit(1);},180000);
     function open(){
         const responder={async reply(p){packets.push(p);if(p.input==='QUOTA')return {ok:false,error:'quota'};
-            const teaching=p.input==='この実はコロです。';const action=['eat','rest','walk'].includes(p.input)?p.input:null;
-            const proposal={reply:action?'I will try.':'I am on the island. '+p.world.currentAction,
-                interpretation:{kind:teaching?'teaching':action?'request':'question',summary:teaching?'実をコロと呼ぶと教わった。まだ自分では確かめていない。':'島でのいまの様子を聞かれた。'},
-                memories:teaching?[{sourceId:p.id,quote:p.input,text:'The player calls this berry Koro; unverified.'}]:[],references:p.memories.slice(-1).map(m=>m.sourceId),
-                terms:teaching?[{word:'実',quote:p.input},{word:'コロ',quote:p.input}]:[],action};
-            if(p.input==='BAD')proposal.terms=[{word:'forged',quote:p.input}];return {ok:true,proposal};},cancel(){},dispose(){}};
+            const teaching=p.input==='この場所はコロです。';const focus=p.input==='FOCUS'?{targetId:p.world.visible[0].id,quote:p.input}:null;
+            const proposal={reply:focus?'Do you mean this place?':'I am on the island. '+p.world.currentAction,
+                interpretation:{kind:teaching?'teaching':'question',summary:teaching?'場所をコロと呼ぶと教わった。まだ自分では確かめていない。':'島でのいまの様子を聞かれた。'},
+                memories:teaching?[{sourceId:p.id,quote:p.input,text:'The player calls this place Koro; unverified.'}]:[],references:p.memories.slice(-1).map(m=>m.sourceId),
+                terms:teaching?[{word:'場所',quote:p.input},{word:'コロ',quote:p.input}]:[],action:null,focus};
+            if(p.input==='BAD')proposal.terms=[{word:'forged',quote:p.input}];
+            if(p.input==='BAD_ACTION')proposal.action='eat';
+            return {ok:true,proposal};},prepare(...args){assert.deepEqual(args,[]);preparations++;return {ok:true};},cancel(){},dispose(){}};
         const {createSession,createStore}=require('./native_store');
         const session=createSession({store:createStore(path.join(directory,'save')),responder,clock:()=>time+=100});
         window=require('./native_window').openWindow(session,{show:true});
@@ -37,23 +39,25 @@ if(!process.versions.electron){
         await send('Where are you?');assert.equal(packets.at(-1).world.location,'island');assert.ok(packets.at(-1).world.visible.length<=6);assert.ok(JSON.stringify(packets.at(-1).world).length<=2000);
         const targetIds=await evaluate('(async()=>NativeScene.visible((await nativeMemory.load()).state.game).map(p=>p.id))()');
         assert.deepEqual(targetIds,packets.at(-1).world.visible.map(p=>p.id));
-        const drawn=await evaluate(`(async()=>{const g=(await nativeMemory.load()).state.game,ids=[],original=NativeScene.drawTarget;try{NativeScene.drawTarget=p=>ids.push(p.id);NativeScene.draw(g,0,true);return ids;}finally{NativeScene.drawTarget=original;}})()`);
-        assert.deepEqual(drawn,targetIds,'Only supplied visible targets are drawn');
+        const drawn=()=>evaluate(`(async()=>{const g=(await nativeMemory.load()).state.game,ids=[],original=NativeScene.drawTarget;try{NativeScene.drawTarget=p=>ids.push(p.id);NativeScene.draw(g,0,true);return ids;}finally{NativeScene.drawTarget=original;}})()`);
+        assert.deepEqual(await drawn(),[],'No permanent target circles');
         assert.equal(await evaluate('document.querySelectorAll("#scene-targets, [data-target]").length'),0,'No target-control buttons');
-        await capture('targets-island.png');checks.push('visible target names exactly match supplied IDs without target-control buttons or extra objects');
-        await send('この実はコロです。');checks.push('world supplied and exact quoted teaching');
-        // Exercise actual authority and movement ticks, without waiting in wall-clock time.
-        const result=await evaluate(`(async()=>{let s=await nativeMemory.load();if(!s.state.game.seen.includes('berry:1'))return {unseen:true};return {unseen:false};})()`);
-        assert.equal(result.unseen,false,'Seeded scene must make food visible for this playtest');
-        await send('eat');const meal=await evaluate(`(async()=>{let result;for(let i=0;i<12000;i++){result=await nativeMemory.pulse(false);if(result.game.mode==='idle')break;}return result.game;})()`);
-        assert.ok(meal.receipts.some(r=>r.kind==='eat'&&r.taste==='sweet'));checks.push('game checked proposal, routed movement and actual meal receipt');
-        await send('What did that taste like?');assert.ok(packets.at(-1).world.results.some(r=>r.kind==='eat'));checks.push('completed result supplied to following conversation');
+        await capture('targets-island.png');checks.push('no invented path/food markers or permanent labels/buttons');
+        const before=await evaluate('(async()=>(await nativeMemory.load()).state.game)()');
+        await send('FOCUS');const chipId=packets.at(-1).world.visible[0].id;
+        assert.deepEqual(await drawn(),[chipId]);assert.ok(chipId.startsWith('chip:'));
+        await capture('chip-confirmation.png');
+        const after=await evaluate('(async()=>(await nativeMemory.load()).state.game)()');
+        assert.equal(after.mode,'idle');assert.equal(after.x,before.x);assert.equal(after.y,before.y);
+        assert.deepEqual(packets.at(-1).world.availableActions,[]);checks.push('one verified actual map chip circled for conversational confirmation without movement');
+        await send('この場所はコロです。');assert.equal(packets.at(-1).world.focus,chipId);
+        assert.deepEqual(await drawn(),[]);checks.push('confirmation target supplied next turn; ordinary reply clears circle; quoted teaching remains unverified');
         assert.deepEqual(await evaluate('(async()=>NativeScene.visible((await nativeMemory.load()).state.game).map(p=>p.id))()'),packets.at(-1).world.visible.map(p=>p.id));
         await evaluate('document.getElementById("tab-diary").click()');await evaluate('document.fonts.ready');await sleep(100);
-        assert.ok(await evaluate('!!document.querySelector(".book-drawing")'));assert.ok((await evaluate('document.getElementById("diary").textContent')).includes('甘い'));
+        assert.ok(await evaluate('!!document.querySelector(".book-drawing")'));assert.equal((await evaluate('document.getElementById("diary").textContent')).includes('甘い'),false);
         assert.equal(await evaluate('document.querySelector(".book-body").style.fontSize'), '');
-        await capture('diary-desktop.png');checks.push('pencil illustration, handwritten vertical paper, actual meal evidence and originals');
-        await evaluate('document.getElementById("tab-stars").click()');assert.ok(await evaluate('!!document.querySelector("#stars .teaching")'));assert.ok(await evaluate('!!document.querySelector("#stars .experience")'));
+        await capture('diary-desktop.png');checks.push('illustrated handwritten diary from actual seen map chips, not invented meals');
+        await evaluate('document.getElementById("tab-stars").click()');assert.ok(await evaluate('!!document.querySelector("#stars .teaching")'));assert.ok(await evaluate('!!document.querySelector("#stars .actual")'));assert.equal(await evaluate('!!document.querySelector("#stars .experience")'),false);
         assert.ok(await evaluate('[...document.querySelectorAll("#stars text")].every(n=>n.textContent.length<=24)'));await evaluate('document.querySelector("#stars .word-node").dispatchEvent(new Event("click"))');assert.ok(await evaluate('document.getElementById("star-record").textContent.length>0'));checks.push('short word stars, distinct actual-experience edges, selectable evidence');
         for(const width of [1160,420]){window.setContentSize(width,850);for(const locale of core.locales){await evaluate(`document.getElementById('locale').value=${JSON.stringify(locale)};document.getElementById('locale').dispatchEvent(new Event('change'));`);
                 for(const tab of ['chat','diary','stars']){await evaluate(`document.getElementById('tab-${tab}').click()`);await sleep(35);assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'),locale+':'+tab);}
@@ -63,7 +67,8 @@ if(!process.versions.electron){
             await capture('diary-'+width+'.png');
             await evaluate('document.getElementById("tab-stars").click()');await capture('stars-'+width+'.png');}
         checks.push('seven locales, desktop/mobile three views, no horizontal clipping');
-        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("play").hidden');await send('Where are you?');assert.ok(packets.at(-1).memories.some(m=>m.raw==='この実はコロです。'));checks.push('restart preserves original sources, individual and island/results');
+        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("play").hidden');await send('Where are you?');assert.ok(packets.at(-1).memories.some(m=>m.raw==='この場所はコロです。'));checks.push('restart preserves original sources, individual and island/results');
+        await send('BAD_ACTION');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));assert.ok(preparations>0);checks.push('empty CLI warmup lifecycle and disconnected action rejected');
         await send('BAD');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));await send('QUOTA');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('利用枠'));checks.push('forged words rejected and quota has no paid fallback');
         const saved=JSON.parse(fs.readFileSync(path.join(directory,'save/native-memory.json'),'utf8'));assert.ok(core.validState(saved));assert.deepEqual(errors,[]);
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,checks,errors,packets},null,2));console.log(JSON.stringify({ok:true,directory,checks,errors}));clearTimeout(timer);window.close();app.quit();

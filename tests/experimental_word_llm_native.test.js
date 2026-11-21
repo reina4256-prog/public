@@ -17,6 +17,13 @@ test('interactive launcher uses a visible Windows startup and reports spawn and 
     }finally{process.exitCode=oldExit;}
 });
 const start=()=>core.begin(core.create(character,'en'),'Koro is sweet.','en',1);
+test('fast trial sets the low-latency model only in the child environment and honors an explicit choice',()=>{
+    const {EventEmitter}=require('node:events'),{launch}=require('../scripts/experimental/native');let actual;
+    const spawn=(_exe,_args,settings)=>{actual=settings;return new EventEmitter();};
+    const env={EXAMPLE:'preserved'};launch({env,spawn,executable:'test-electron'});assert.equal(actual.env.WORD_GEMINI_MODEL,undefined);
+    launch({env,spawn,executable:'test-electron',fastTrial:true});assert.equal(actual.env.WORD_GEMINI_MODEL,'gemini-4-hydrogen-low');assert.equal(env.WORD_GEMINI_MODEL,undefined);
+    launch({env:{WORD_GEMINI_MODEL:'explicit-model'},spawn,executable:'test-electron',fastTrial:true});assert.equal(actual.env.WORD_GEMINI_MODEL,'explicit-model');
+});
 function result(p,kind='teaching') {return {reply:'You told me that.',interpretation:{kind,summary:'The player explained Koro.'},memories:kind==='teaching'?[{sourceId:p.id,quote:p.input,text:'The player says Koro is sweet; unverified.'}]:[],references:[]};}
 function directory(t) {const dir=fs.mkdtempSync(path.join(os.tmpdir(),'native-memory-test-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));return dir;}
 test('teaching keeps the exact original, a separate interpretation, and quoted unverified claim',()=>{

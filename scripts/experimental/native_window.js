@@ -9,6 +9,7 @@ function openWindow(session,{show=true,legacy=false}={}) {
     ipcMain.handle('native-load',event=>allowed(event)?session.load():{ok:false,error:'input'});
     ipcMain.handle('native-create',(event,character,locale,answers)=>allowed(event)?session.create(character,locale,answers):{ok:false,error:'input'});
     ipcMain.handle('native-prepare',(event,answers)=>allowed(event)?session.prepare(answers):{ok:false,error:'input'});
+    ipcMain.handle('native-warmup',event=>allowed(event)?session.warmup():{ok:false,error:'input'});
     ipcMain.handle('native-pulse',(event,paused)=>allowed(event)?session.pulse(paused):{ok:false,error:'input'});
     ipcMain.handle('native-submit',(event,input,locale)=>allowed(event)?session.submit(input,locale):{ok:false,error:'input'});
     const cancel=event=>{if(allowed(event))session.cancel();};
@@ -19,7 +20,7 @@ function openWindow(session,{show=true,legacy=false}={}) {
     window.on('hide',()=>session.cancel());
     window.on('closed',()=>{
         session.dispose();
-        for(const name of ['native-load','native-create','native-prepare','native-pulse','native-submit'])ipcMain.removeHandler(name);
+        for(const name of ['native-load','native-create','native-prepare','native-warmup','native-pulse','native-submit'])ipcMain.removeHandler(name);
         ipcMain.removeListener('native-cancel',cancel);
     });
     void window.loadURL(url).catch(error=>{

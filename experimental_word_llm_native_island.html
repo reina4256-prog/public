@@ -8,21 +8,21 @@
 <script defer src="experimental_word_island_boot.js"></script>
 <script defer src="localization_catalog.js"></script><script defer src="localization_core.js"></script>
 <script defer src="data.js"></script><script defer src="experimental_word_start_questions.js"></script>
-<script defer src="experimental_word_island_navigation.js"></script><script defer src="experimental_word_llm_native_game.js"></script>
+<script defer src="experimental_word_island_navigation.js"></script><script defer src="experimental_word_llm_native_perception.js"></script><script defer src="experimental_word_llm_native_game.js"></script>
 <script defer src="experimental_word_llm_native_scene.js"></script><script defer src="view_renderer.js"></script>
 <script defer src="experimental_word_llm_native_drawing.js"></script><script defer src="experimental_word_llm_native_book.js"></script><script defer src="experimental_word_llm_native_stars.js"></script>
 <script defer src="experimental_word_llm_native_island_ui.js"></script>
 </head>
 <body><main>
 <header><div><p class="eyebrow">ことばと記憶の試遊</p><h1>この子と、島で暮らす。</h1></div><select id="locale" aria-label="言語"><option value="ja">日本語</option><option value="en">English</option><option value="zh-CN">简体中文</option><option value="ru">Русский</option><option value="es-ES">Español</option><option value="pt-BR">Português</option><option value="de">Deutsch</option></select></header>
-<p class="notice">現在地・見える対象・活動・体力／満腹度・直近の実結果も、上限を決めてGoogleへ送ります。旧版とは別保存で、追加クレジットは使いません。</p>
+<p class="notice">現在地・画面内のマップチップの種類と位置・確認中の対象・状態・直近の観察を、上限を決めてGoogleへ送ります。旧版とは別保存で、追加クレジットは使いません。</p>
 <section id="questions" class="paper" hidden><p id="question-count"></p><h2>まず、いくつかの質問から。</h2><p id="question-text"></p><div id="question-choices" class="question-options"></div><button id="question-back" type="button">前へ</button></section>
 <form id="setup" class="paper" hidden><h2>はじめまして</h2><canvas id="appearance" width="200" height="180" aria-hidden="true"></canvas><div class="identity"><label>名前<input id="name" maxlength="100" required autocomplete="off"></label><label>一人称<input id="self" maxlength="100" required autocomplete="off"></label><label>あなたの呼び方<input id="player" maxlength="100" required autocomplete="off"></label></div><button type="submit">はじめる</button></form>
 <section id="play" hidden>
 <nav aria-label="記憶の表示"><button id="tab-chat" aria-controls="chat-view" aria-pressed="true">会話</button><button id="tab-diary" aria-controls="diary-view" aria-pressed="false">日記</button><button id="tab-stars" aria-controls="stars-view" aria-pressed="false">星座</button></nav>
 <div id="workspace" class="world-layout">
 <section id="terrarium"><div id="nameplate" data-i18n-skip></div><canvas id="gameCanvas" width="800" height="480"></canvas><div id="bubble" data-i18n-skip></div><div class="console"><label>体力<meter id="energy" min="0" max="1"></meter></label><label>満腹度<meter id="fullness" min="0" max="1"></meter></label><p id="activity"></p><button id="pause" type="button">一時停止</button></div></section>
-<section id="chat-view" class="paper"><h2 id="character-name" data-i18n-skip></h2><p>今回つながっている行動：歩く・木の実を食べる・休む。</p><div id="conversation" role="log" aria-live="polite"></div><form id="compose"><label for="input">この子に話しかける</label><textarea id="input" maxlength="4000" rows="3" required></textarea><div class="actions"><button id="send" type="submit">送信</button><button id="cancel" type="button" hidden>中止</button></div></form></section>
+<section id="chat-view" class="paper"><h2 id="character-name" data-i18n-skip></h2><p>実際のマップを見ながら話します。場所を確かめるときだけ、そのチップを丸で示します。</p><div id="conversation" role="log" aria-live="polite"></div><form id="compose"><label for="input">この子に話しかける</label><textarea id="input" maxlength="4000" rows="3" required></textarea><div class="actions"><button id="send" type="submit">送信</button><button id="cancel" type="button" hidden>中止</button></div></form></section>
 <section id="diary-view" class="paper" hidden><h2>日記</h2><div id="diary"></div><details><summary>会話の原文を見る</summary><div id="diary-originals"></div></details></section>
 <section id="stars-view" class="night" hidden><h2>見えたものと、教わった言葉。</h2><p>星を選ぶと、原発言や実体験の根拠を読めます。語の候補は習得済みの知識とは分けています。</p><div id="stars"></div><div id="star-record" class="star-detail"></div></section>
 </div></section><p id="status" role="status" aria-live="polite"></p>
