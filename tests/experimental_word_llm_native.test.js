@@ -6,6 +6,15 @@ const voiceRules=require('../experimental_word_llm_native_voice');
 const nativeVoice=require('../scripts/experimental/native_voice');
 function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(pcm.length,40);return b;}
 const voiceResponse=()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:voiceWav().toString('base64')}]}]}));
+test('voice key setup opens visibly without changing the caller environment or starting a game',()=>{
+    const {EventEmitter}=require('node:events'),{launch}=require('../scripts/experimental/setup_native_voice');let actual;
+    const env={ELECTRON_RUN_AS_NODE:'1',EXAMPLE:'keep'},oldExit=process.exitCode,messages=[];
+    try{const child=launch({env,executable:'test-electron',report:m=>messages.push(m),spawn:(exe,args,options)=>{actual={exe,args,options};return new EventEmitter();}});
+        assert.equal(actual.options.windowsHide,false);assert.equal(actual.options.env.ELECTRON_RUN_AS_NODE,undefined);assert.equal(env.ELECTRON_RUN_AS_NODE,'1');
+        assert.ok(actual.args[0].endsWith('setup_native_voice.js'));assert.equal(actual.args.length,1);assert.equal(actual.options.env.EXAMPLE,'keep');
+        child.emit('error',Error('test'));assert.equal(process.exitCode,1);assert.equal(messages.length,1);child.emit('exit',0);assert.equal(process.exitCode,0);
+    }finally{process.exitCode=oldExit;}
+});
 test('native voice: eleven species have distinct selectable defaults, seven samples and bounded independent preferences',t=>{
     assert.equal(voiceRules.species.length,11);assert.equal(new Set(Object.values(voiceRules.defaults)).size,11);
     for(const s of voiceRules.species)assert.ok(voiceRules.validVoice(voiceRules.defaults[s]));
