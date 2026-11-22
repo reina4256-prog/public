@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-23音声：[native声の正本](../specs/core/word_llm_native_system.md#声を選んで同じ子と話す2026-11-23)。native_voice rulesが11声／固定七言語サンプル、voice_uiが選択／再生／取消、mainのnative_voiceが限定生成／独立prefs／固定サンプルcacheを所有。native_window／preloadは既存検査付きIPC、voice_credentials／setup_native_voiceはゲーム外の鍵暗号化入力だけ。native_store／理解・学習・本人保存と旧audio_preferencesの所有は変更しない。
+
 2026-11-23：[入口復元の正本](../specs/core/word_llm_native_system.md#開始導線と近未来書面の復元2026-11-23)はnative_island.html／island_ui.js／island.cssがロゴ・タイトル・七問・本人情報・手描き署名を所有。従来版はlearning.cssとlearning_ui.jsの署名線を復元。署名は一時演出で、store／学習／worldへの新データを追加しない。近傍歩行は承認済み・未実装でgame／perception／navigationをまだ変更していない。
 
 2026-11-22最新：[実chip確認](../specs/core/word_llm_native_system.md#実チップの確認保存停止修正事前起動2026-11-22)ではnative_perception.jsが実chip／画面内位置／確認中ID／引用付きfocusを所有し、runtime.packetは歴史prefixで参照検査する。gameのperception:2は旧合成目的地を使わず、sceneは検査済み実chipに一つだけ丸を出す。store／warmup IPC／responderは安全保存・無送信事前起動・時間診断、book／starsは実chip観察を担当。旧3行動は互換履歴として残し、新試遊へ戻さない。

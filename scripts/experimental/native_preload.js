@@ -7,5 +7,9 @@ contextBridge.exposeInMainWorld('nativeMemory',Object.freeze({
     warmup:()=>ipcRenderer.invoke('native-warmup'),
     pulse:paused=>ipcRenderer.invoke('native-pulse',paused),
     submit:(input,locale)=>ipcRenderer.invoke('native-submit',input,locale),
-    cancel:()=>ipcRenderer.send('native-cancel')
+    cancel:()=>ipcRenderer.send('native-cancel'),
+    voiceLoad:()=>ipcRenderer.invoke('native-voice-load'),
+    voiceSave:value=>ipcRenderer.invoke('native-voice-save',value),
+    voiceGenerate:request=>ipcRenderer.invoke('native-voice-generate',request),
+    voiceCancel:()=>ipcRenderer.send('native-voice-cancel')
 }));

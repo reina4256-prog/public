@@ -1,0 +1,23 @@
+# nativeの声選び・開発接続
+
+正本は[声の所有仕様](../specs/core/word_llm_native_system.md#声を選んで同じ子と話す2026-11-23)。旧版／比較版の声設定・VOICEVOX停止を保持する。Live／マイクの追加ではない。
+
+## 一度だけ行う開発用接続
+
+1. AI Studioの既存`ai-pet-game`のAPIキーを本人がコピーする。新規キーの自動作成は行わない。キーをチャット／Git／本人ノートへ貼らない。
+2. `public`で`node scripts/experimental/setup_native_voice.js`を実行する。これはゲーム外の開発用窓でありゲーム内には表示しない。
+3. API key欄へ本人が貼り付け、Save connectionを押す。Saved表示後に窓を閉じる。この操作は鍵のOS暗号化保存だけで、API生成／課金変更／購入はしない。Windowsの同じアカウントでだけ使う。環境に暗号化機能がなければ保存しない。
+4. 起動中の本人のゲームは本人が×で閉じ、`npm run start:word:native -- --fast-trial`で再起動する。本人セーブを消さず、既存本人は「つづきから」。ゲームの「この子の声」から選び、声をきく／この声にするで確認する。新規本人は設問後のキャラクター画面で選び、従来どおり手描きサインする。
+
+接続キーはmain専用`native-voice-key.bin`、声とON/OFFは`native-voice-preferences.json`。どちらも専用userData内で、旧`word-audio-preferences.json`や本人セーブを変更しない。開発用の`WORD_GEMINI_TTS_KEY`指定も可（main取得後CLIへ継承せず削除）。キーをコマンド履歴に直接書かない。
+
+## 費用と送信範囲
+
+- ユーザーが設定した月1000円上限／前払い800円／自動補充OFFを保持。上限はAI Studio側のもので、反映遅延の超過をアプリが厳密に防ぐものではない。アプリは購入／自動補充／課金設定を変更しない。
+- 声を選ぶだけでは生成せず、明示した試聴または新しい会話の保存済み返答だけを送る。固定試聴は七言語の同じ短文をcacheし、個人別の本文は音声の永続cacheへ入れない。音声に失敗しても保存済み文字返答を残す。
+- 返答TTSには確定返答文と声を送る。原入力／受け取り方／履歴／日記／世界全体／署名／マイク音声を新たに送らない。生成音声を学習根拠や実績へ戻さない。
+- 公式：[TTS](https://aistudio.google.com/docs/speech-generation)、[課金と上限](https://aistudio.google.com/docs/billing)。会話CLIの契約内利用・追加クレジットOFFは従来どおり。
+
+## 検証上の区別
+
+専用Node／rendererの合成WAVによる接続・停止・保存確認と、実キーによるクラウド生成・実際の声質／遅延は別。実キー未設定の実装検証を、ゲーム内での実試聴成功として報告しない。最新の検証結果と未確認はCURRENT_IMPLEMENTATIONを参照。

@@ -15,6 +15,7 @@ else {
     app.whenReady().then(()=>{
         console.log('[word-native] Preparing the native window.');
         const store=createStore(directory);
+        const voiceKey=process.env.WORD_GEMINI_TTS_KEY||require('./native_voice_credentials').credentials(directory,require('electron').safeStorage).load();delete process.env.WORD_GEMINI_TTS_KEY;
         // Reuse the existing CLI's dedicated login. Never copy/read its token or a game save.
         const responder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:core.protocol,measure:true});
         const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
@@ -26,14 +27,17 @@ else {
             'experimental_word_llm_native_drawing.js','experimental_word_llm_native_stars.js','scripts/experimental/native_island.js',
             'experimental_word_llm_native_book.css','experimental_word_llm_native_island.css','experimental_word_start_questions.js',
             'experimental_word_island_boot.js','experimental_word_island_navigation.js','data.js','island_shared.js',
-            'view_renderer.js','localization_core.js','localization_catalog.js']});
+            'view_renderer.js','localization_core.js','localization_catalog.js','experimental_word_llm_native_voice.js',
+            'experimental_word_llm_native_voice_ui.js','scripts/experimental/native_voice.js','scripts/experimental/native_voice_credentials.js']});
         const sessionId=randomUUID();let sequence=0;
         recorder.append({sessionId,sequence:++sequence,event:{kind:'session',at:Date.now(),mode:'llm-native',runtime:recorder.version}});
         session=createSession({store,responder,record:event=>{
             fs.appendFileSync(path.join(directory,'native-playtest.jsonl'),JSON.stringify(event)+'\n','utf8');
             recorder.append({sessionId,sequence:++sequence,event:event.kind==='input'?{...event,kind:'player',text:event.packet.input}:{...event,kind:'native_result'}});
         }});
-        window=require('./native_window').openWindow(session);
+        // The cloud voice key belongs to this main process, never the CLI or renderer.
+        const voice=require('./native_voice').createVoice({directory,session,key:()=>voiceKey});
+        window=require('./native_window').openWindow(session,{voice});
         window.on('show',()=>console.log('[word-native] Window visibility: '+String(window.isVisible())));
         window.webContents.on('did-fail-load',(_event,code)=>console.error('[word-native] Page load failed: '+code));
         window.webContents.on('render-process-gone',(_event,details)=>console.error('[word-native] Renderer stopped: '+details.reason+', code='+details.exitCode));

@@ -8,7 +8,8 @@ if(!process.versions.electron){
     const assert=require('node:assert/strict'),{app}=require('electron'),core=require('../../experimental_word_llm_native_runtime');
     const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/native-island-'));
     app.disableHardwareAcceleration();app.setPath('userData',path.join(directory,'profile'));
-    let window,time=0,preparations=0;const errors=[],checks=[],packets=[];const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    let window,time=0,preparations=0;const errors=[],checks=[],packets=[],voiceRequests=[];const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    function sampleWav(){const b=Buffer.alloc(4844);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(4800,40);return b;}
     const evaluate=code=>window.webContents.executeJavaScript(code);
     async function capture(name){await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');await sleep(250);fs.writeFileSync(path.join(directory,name),(await window.webContents.capturePage()).toPNG());}
     async function until(code){for(let i=0;i<200;i++){if(await evaluate(code))return;await sleep(50);}throw Error('Timed out: '+code);}
@@ -25,7 +26,10 @@ if(!process.versions.electron){
             return {ok:true,proposal};},prepare(...args){assert.deepEqual(args,[]);preparations++;return {ok:true};},cancel(){},dispose(){}};
         const {createSession,createStore}=require('./native_store');
         const session=createSession({store:createStore(path.join(directory,'save')),responder,clock:()=>time+=100});
-        window=require('./native_window').openWindow(session,{show:true});
+        const voice=require('./native_voice').createVoice({directory:path.join(directory,'save'),session,key:()=> 'fixture-only',fetcher:async(_url,options)=>{
+            voiceRequests.push(JSON.parse(options.body));return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:sampleWav().toString('base64')}]}]}));
+        }});
+        window=require('./native_window').openWindow(session,{show:true,voice});
         window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});return session;
     }
     app.whenReady().then(async()=>{
@@ -37,6 +41,13 @@ if(!process.versions.electron){
         await evaluate(`document.getElementById('locale').value='ja';document.getElementById('locale').dispatchEvent(new Event('change'));`);
         for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
         assert.equal(await evaluate('document.getElementById("setup").hidden'),false);
+        await evaluate('(()=>{window.voiceStarts=0;const original=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){window.voiceStarts++;return original.apply(this,args)};})()');
+        const rules=require('../../experimental_word_llm_native_voice');
+        for(const species of rules.species){await evaluate(`NativeVoiceUI.mount(document.getElementById('setup-voice'),${JSON.stringify(species)},'ja')`);assert.equal(await evaluate('document.getElementById("voice-choice").value'),rules.defaults[species]);assert.equal(await evaluate('document.getElementById("voice-choice").options.length'),11);}
+        await evaluate(`NativeVoiceUI.mount(document.getElementById('setup-voice'),ExperimentalWordStartQuestions.resolve([0,0,0,0,0,0,0]).appearance,'ja');document.getElementById('voice-choice').value='Kore';document.getElementById('voice-listen').click();`);
+        await until('window.voiceStarts>0');assert.equal(voiceRequests.length,1);assert.equal(voiceRequests[0].input[0].content[0].text,rules.samples.ja);
+        await evaluate('document.getElementById("voice-listen").click()');await until('window.voiceStarts>1');assert.equal(voiceRequests.length,1);
+        checks.push('eleven character voice defaults and free choice; explicit audition decodes/plays and reuses fixed sample without another request');
         await evaluate(`document.getElementById('name').value='ピコ';document.getElementById('self').value='ぼく';document.getElementById('player').value='きみ';document.getElementById('setup').requestSubmit();`);
         assert.equal(await evaluate('(async()=>(await nativeMemory.load()).state)()'),null,'Unsigned form cannot create an individual');
         async function sign(){
@@ -53,14 +64,22 @@ if(!process.versions.electron){
         await evaluate('document.getElementById("question-retry").click()');
         assert.ok(await evaluate('!document.getElementById("questions").hidden'));
         for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
-        for(const width of [1160,420]){window.setContentSize(width,850);for(const locale of core.locales){await evaluate(`document.getElementById('locale').value=${JSON.stringify(locale)};document.getElementById('locale').dispatchEvent(new Event('change'));`);assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));await capture('meeting-'+width+'-'+locale+'.png');}}
+        for(const width of [1160,420]){window.setContentSize(width,850);for(const locale of core.locales){await evaluate(`document.getElementById('locale').value=${JSON.stringify(locale)};document.getElementById('locale').dispatchEvent(new Event('change'));`);assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));assert.ok(await evaluate('document.getElementById("voice-choice").getBoundingClientRect().width>document.getElementById("voice-panel").getBoundingClientRect().width*.6'));await evaluate('document.getElementById("voice-panel").scrollIntoView({block:"center"})');await capture('meeting-'+width+'-'+locale+'.png');}}
         window.setContentSize(1160,850);await evaluate(`document.getElementById('locale').value='ja';document.getElementById('locale').dispatchEvent(new Event('change'));`);
+        await evaluate('document.getElementById("voice-choice").value="Kore"');
         await sign();await capture('signature.png');await evaluate('document.getElementById("setup").requestSubmit();document.getElementById("setup").requestSubmit()');
         await until('!document.getElementById("play").hidden');await until('imagesLoaded===totalImages');await sleep(150);checks.push('original seven questions, appearance, separate identity and real island renderer');
         checks.push('logo/title, cyan document, actual pointer signature, unsigned rejection, clear/retry, seven locales at two widths, single creation');
         await capture('island-desktop.png');
+        await evaluate('document.getElementById("voice-menu").open=true');
+        assert.equal(await evaluate('getComputedStyle(document.querySelector("#voice-menu>summary")).color'),'rgb(226, 213, 177)');
+        assert.equal(await evaluate('/Gemini|Google|API|VOICEVOX/i.test(document.body.innerText)'),false);
+        assert.equal(await evaluate('document.getElementById("voice-status").parentElement.id'),'play');
+        await capture('voice-in-play.png');await evaluate('document.getElementById("voice-menu").open=false');
         async function send(text){await evaluate(`document.getElementById('input').value=${JSON.stringify(text)};document.getElementById('compose').requestSubmit();`);await until('!document.getElementById("send").disabled');}
-        await send('Where are you?');assert.equal(packets.at(-1).world.location,'island');assert.ok(packets.at(-1).world.visible.length<=6);assert.ok(JSON.stringify(packets.at(-1).world).length<=2000);
+        await send('Where are you?');await until('window.voiceStarts>2');assert.equal(voiceRequests.at(-1).input[0].content[0].text,packets.at(-1)?'I am on the island. idle':'');assert.equal(voiceRequests.at(-1).generation_config.speech_config[0].voice,'Kore');
+        assert.equal(packets.at(-1).world.location,'island');assert.ok(packets.at(-1).world.visible.length<=6);assert.ok(JSON.stringify(packets.at(-1).world).length<=2000);
+        assert.equal(JSON.stringify(packets).includes('speech_config'),false);checks.push('saved chosen voice reads only the newly persisted reply; text and understanding packets remain unchanged');
         const targetIds=await evaluate('(async()=>NativeScene.visible((await nativeMemory.load()).state.game).map(p=>p.id))()');
         assert.deepEqual(targetIds,packets.at(-1).world.visible.map(p=>p.id));
         const drawn=()=>evaluate(`(async()=>{const g=(await nativeMemory.load()).state.game,ids=[],original=NativeScene.drawTarget;try{NativeScene.drawTarget=p=>ids.push(p.id);NativeScene.draw(g,0,true);return ids;}finally{NativeScene.drawTarget=original;}})()`);
@@ -91,10 +110,14 @@ if(!process.versions.electron){
             await capture('diary-'+width+'.png');
             await evaluate('document.getElementById("tab-stars").click()');await capture('stars-'+width+'.png');}
         checks.push('seven locales, desktop/mobile three views, no horizontal clipping');
-        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("play").hidden');await send('Where are you?');assert.ok(packets.at(-1).memories.some(m=>m.raw==='この場所はコロです。'));checks.push('restart via logo/title/continue preserves original sources, individual and island/results without questions or signature replay');
+        await evaluate('document.getElementById("voice-enabled").click()');await until('document.getElementById("voice-status").textContent.includes("決まり")');
+        const voiceCount=voiceRequests.length;
+        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("play").hidden');
+        assert.equal(await evaluate('document.getElementById("voice-choice").value'),'Kore');assert.equal(await evaluate('document.getElementById("voice-enabled").checked'),false);assert.equal(voiceRequests.length,voiceCount);
+        await send('Where are you?');assert.equal(voiceRequests.length,voiceCount);assert.ok(packets.at(-1).memories.some(m=>m.raw==='この場所はコロです。'));checks.push('restart preserves character and voice/mute independently; no startup replay/request, no questions or signature replay');
         await send('BAD_ACTION');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));assert.ok(preparations>0);checks.push('empty CLI warmup lifecycle and disconnected action rejected');
-        await send('BAD');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));await send('QUOTA');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('利用枠'));checks.push('forged words rejected and quota has no paid fallback');
+        await send('BAD');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));await send('QUOTA');assert.equal(await evaluate('document.getElementById("status").textContent'),'今日はお話をひと休み。またあとで話そうね。');checks.push('forged words rejected and quota has no paid fallback');
         const saved=JSON.parse(fs.readFileSync(path.join(directory,'save/native-memory.json'),'utf8'));assert.ok(core.validState(saved));assert.deepEqual(errors,[]);
-        fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,checks,errors,packets},null,2));console.log(JSON.stringify({ok:true,directory,checks,errors}));clearTimeout(timer);window.close();app.quit();
+        fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,checks,errors,packets,voiceRequests},null,2));console.log(JSON.stringify({ok:true,directory,checks,errors}));clearTimeout(timer);window.close();app.quit();
     }).catch(error=>{fs.writeFileSync(path.join(directory,'failure.json'),JSON.stringify({error:error.stack,checks,errors},null,2));console.error(directory,error.stack);clearTimeout(timer);app.exit(1);});
 }

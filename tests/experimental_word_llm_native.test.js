@@ -2,6 +2,81 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const core=require('../experimental_word_llm_native'),{createStore,createSession}=require('../scripts/experimental/native_store');
 const character={name:'A',self:'I',player:'you'};
+const voiceRules=require('../experimental_word_llm_native_voice');
+const nativeVoice=require('../scripts/experimental/native_voice');
+function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(pcm.length,40);return b;}
+const voiceResponse=()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:voiceWav().toString('base64')}]}]}));
+test('native voice: eleven species have distinct selectable defaults, seven samples and bounded independent preferences',t=>{
+    assert.equal(voiceRules.species.length,11);assert.equal(new Set(Object.values(voiceRules.defaults)).size,11);
+    for(const s of voiceRules.species)assert.ok(voiceRules.validVoice(voiceRules.defaults[s]));
+    assert.deepEqual(Object.keys(voiceRules.samples).sort(),core.locales.toSorted());
+    const dir=directory(t),prefs=nativeVoice.createPreferences(dir),value={version:1,enabled:false,voices:{dragon:'Kore',robot:'Puck'}};
+    assert.ok(prefs.save(value).ok);assert.deepEqual(nativeVoice.createPreferences(dir).load().value,value);
+    assert.equal(prefs.save({...value,apiKey:'secret'}).ok,false);assert.equal(prefs.save({...value,voices:{dragon:'arbitrary-voice'}}).ok,false);
+    fs.writeFileSync(path.join(dir,'native-voice-preferences.json'),'invalid');assert.equal(prefs.load().ok,false);assert.equal(prefs.save(value).ok,false);
+});
+test('native voice: preview only sends a fixed sample, cached across restarts, with no state or key in the result',async t=>{
+    const dir=directory(t),calls=[];let loaded=0;
+    const opts={directory:dir,session:{load(){loaded++;throw Error('must not read child for a sample');}},key:()=> 'test-secret',fetcher:async(url,o)=>{calls.push({url,o});return voiceResponse();}};
+    const service=nativeVoice.createVoice(opts),req={kind:'preview',voice:'Kore',locale:'ja'};
+    const r=await service.generate(req);assert.ok(r.ok);assert.ok(nativeVoice.validWav(Buffer.from(r.audio)));assert.equal(loaded,0);
+    const body=JSON.parse(calls[0].o.body);assert.equal(body.input[0].content[0].text,voiceRules.samples.ja);assert.equal(body.store,false);assert.equal(body.model,voiceRules.model);
+    assert.deepEqual(Object.keys(body).sort(),['model','input','response_format','generation_config','store'].sort());
+    assert.equal(calls[0].o.headers['x-goog-api-key'],'test-secret');assert.equal(calls[0].o.redirect,'error');assert.equal(JSON.stringify(r).includes('test-secret'),false);
+    assert.ok((await service.generate(req)).ok);assert.ok((await nativeVoice.createVoice(opts).generate(req)).ok);assert.equal(calls.length,1);
+    assert.equal((await service.generate({...req,text:'private original'})).ok,false);assert.equal(calls.length,1);
+});
+test('native voice: only the latest saved complete reply can be spoken; no history, input, notes or interpretation are sent',async t=>{
+    const dir=directory(t),calls=[],state={locale:'en',game:{origin:{appearance:'dragon'}},turns:[{id:'turn-1',world:{},status:'complete',input:'private original',result:{reply:'A short reply.',interpretation:{summary:'private understanding'}}}]};
+    const service=nativeVoice.createVoice({directory:dir,session:{load:()=>({ok:true,state})},key:()=> 'test-secret',fetcher:async(_url,o)=>{calls.push(JSON.parse(o.body));return voiceResponse();}});
+    assert.ok(service.save({version:1,enabled:true,voices:{dragon:'Puck'}}).ok);
+    assert.ok((await service.generate({kind:'reply',turnId:'turn-1'})).ok);assert.equal(calls[0].generation_config.speech_config[0].voice,'Puck');
+    assert.equal(calls[0].input[0].content[0].text,'A short reply.');assert.equal(JSON.stringify(calls).includes('private'),false);
+    assert.ok((await service.generate({kind:'reply',turnId:'turn-1'})).ok);assert.equal(calls.length,1);
+    state.turns.push({id:'turn-2',status:'pending'});assert.equal((await service.generate({kind:'reply',turnId:'turn-1'})).ok,false);
+    assert.equal((await service.generate({kind:'reply',turnId:'turn-2'})).ok,false);assert.equal(calls.length,1);
+    state.turns.pop();service.save({version:1,enabled:false,voices:{}});assert.equal((await service.generate({kind:'reply',turnId:'turn-1'})).ok,false);
+    assert.equal(calls.length,1);assert.equal(fs.existsSync(path.join(dir,'native-memory.json')),false);
+    assert.equal(fs.existsSync(path.join(dir,'native-voice-samples-v1')),false,'personal replies are not persisted as audio');
+});
+test('native voice: missing key, payment/quota failures, malformed audio and redirects never retry or fall back',async t=>{
+    for(const code of [402,403,429,500]){let calls=0;const service=nativeVoice.createVoice({directory:directory(t),session:{},key:()=> 'test',fetcher:async()=>{calls++;return new Response('',{status:code});}});
+        assert.equal((await service.generate({kind:'preview',voice:'Kore',locale:'en'})).ok,false);assert.equal(calls,1);}
+    let calls=0;const service=nativeVoice.createVoice({directory:directory(t),session:{},key:()=>'',fetcher:async()=>{calls++;return voiceResponse();}});
+    assert.equal((await service.generate({kind:'preview',voice:'Kore',locale:'en'})).error,'missing');assert.equal(calls,0);
+    const bad=nativeVoice.createVoice({directory:directory(t),session:{},key:()=> 'test',fetcher:async()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:Buffer.from('not WAV').toString('base64')}]}]}))});
+    assert.equal((await bad.generate({kind:'preview',voice:'Kore',locale:'en'})).error,'output');
+    const wrong=voiceWav();wrong.writeUInt32LE(48000,24);assert.equal(nativeVoice.validWav(wrong),false);assert.equal(nativeVoice.validWav(voiceWav().subarray(0,40)),false);
+});
+test('native voice: concurrent, cancelled and timed-out generations cannot cache or return late audio',async t=>{
+    let release;const dir=directory(t),service=nativeVoice.createVoice({directory:dir,session:{},key:()=> 'test',fetcher:()=>new Promise(r=>release=r)}),req={kind:'preview',voice:'Kore',locale:'en'};
+    const first=service.generate(req);assert.equal((await service.generate(req)).error,'busy');service.cancel();release(voiceResponse());assert.equal((await first).error,'cancelled');
+    assert.equal(fs.existsSync(path.join(dir,'native-voice-samples-v1')),false);
+    const timed=nativeVoice.createVoice({directory:directory(t),session:{},key:()=> 'test',timeout:10,fetcher:async(_u,o)=>new Promise((_resolve,reject)=>o.signal.addEventListener('abort',()=>reject(Error('aborted'))))});
+    assert.equal((await timed.generate(req)).error,'cancelled');service.dispose();assert.equal((await service.generate(req)).error,'busy');
+});
+test('native voice credentials stay encrypted outside game saves and fail closed without OS encryption',t=>{
+    const dir=directory(t),{credentials}=require('../scripts/experimental/native_voice_credentials'),key='AIza'+'x'.repeat(32);
+    const safe={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s.split('').reverse().join('')),decryptString:b=>b.toString().split('').reverse().join('')};
+    const store=credentials(dir,safe);assert.ok(store.save(key));assert.equal(store.load(),key);assert.equal(fs.readFileSync(path.join(dir,'native-voice-key.bin')).includes(key),false);
+    assert.equal(credentials(dir,{isEncryptionAvailable:()=>false}).load(),'');assert.equal(credentials(dir,{isEncryptionAvailable:()=>false}).save(key),false);
+});
+test('native voice IPC rejects other senders, subframes and URLs and releases all handlers on close',()=>{
+    const vm=require('node:vm'),{EventEmitter}=require('node:events'),handlers=new Map(),ipcMain=new EventEmitter(),calls=[];
+    ipcMain.handle=(name,fn)=>handlers.set(name,fn);ipcMain.removeHandler=name=>handlers.delete(name);
+    class Window extends EventEmitter{constructor(){super();this.webContents=new EventEmitter();this.webContents.mainFrame={};this.webContents.setWindowOpenHandler=()=>{};}
+        isDestroyed(){return false;}loadURL(url){this.webContents.mainFrame.url=url;return Promise.resolve();}}
+    const fixture={exports:{}};
+    vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../scripts/experimental/native_window.js'),'utf8'),{module:fixture,__dirname:path.resolve(__dirname,'../scripts/experimental'),console,require:name=>name==='electron'?{BrowserWindow:Window,ipcMain}:require(name)});
+    const voice={load(){calls.push('load');return {ok:true};},save(){calls.push('save');return {ok:true};},generate(){calls.push('generate');return {ok:true};},cancel(){calls.push('cancel');},dispose(){calls.push('dispose');}};
+    const window=fixture.exports.openWindow({cancel(){},dispose(){}},{show:false,voice}),event={sender:window.webContents,senderFrame:window.webContents.mainFrame};
+    for(const channel of ['native-voice-load','native-voice-save','native-voice-generate']){
+        const fn=handlers.get(channel);assert.equal(fn({...event,sender:{}}).ok,false);assert.equal(fn({...event,senderFrame:{url:event.senderFrame.url}}).ok,false);
+        const url=event.senderFrame.url;event.senderFrame.url='https://example.com/';assert.equal(fn(event).ok,false);event.senderFrame.url=url;assert.equal(fn(event).ok,true);
+    }
+    assert.deepEqual(calls,['load','save','generate']);ipcMain.emit('native-voice-cancel',{...event,sender:{}});assert.equal(calls.length,3);
+    ipcMain.emit('native-voice-cancel',event);assert.equal(calls.at(-1),'cancel');window.emit('hide');window.emit('closed');assert.equal(calls.at(-1),'dispose');assert.equal(handlers.size,0);assert.equal(ipcMain.listenerCount('native-voice-cancel'),0);
+});
 test('interactive launcher uses a visible Windows startup and reports spawn and abnormal exit failures',()=>{
     const {EventEmitter}=require('node:events'),{launch}=require('../scripts/experimental/native');
     const oldExit=process.exitCode,env={ELECTRON_RUN_AS_NODE:'1',KEEP:'yes'},messages=[];let actual;
