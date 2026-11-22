@@ -1,3 +1,31 @@
 main{max-width:1360px;padding-top:22px}header{padding-bottom:14px}.notice{margin:12px 0;font-size:.78rem}.world-layout{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(320px,1fr);gap:22px;align-items:start}.world-layout.reading{display:block}.reading #terrarium{display:none}.reading>.paper,.reading>.night{max-width:900px;margin:auto}
 #terrarium{border:12px solid #775337;outline:2px solid #b79b62;border-radius:16px;background:#1e393e;box-shadow:inset 0 0 0 2px #c1a66b,0 15px 35px #0005;overflow:hidden;position:relative}#gameCanvas{display:block;width:100%;height:auto;aspect-ratio:5/3;object-fit:contain;background:#284651}#nameplate{position:absolute;top:12px;left:15px;background:#c6ae75;color:#263c3a;padding:5px 18px;border-radius:4px;font-family:serif;max-width:80%;overflow-wrap:anywhere}#bubble{white-space:pre-wrap;overflow-wrap:anywhere;background:#fff8e9;color:#3a4640;padding:14px 18px;margin:12px;border-radius:12px;font-size:.9rem;max-height:150px;overflow:auto}#bubble:empty{display:none}.console{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:12px 16px;background:#523e2e;color:#ecdfbf}.console label{font-size:.8rem}.console meter{display:block;width:100%;margin-top:4px}.console button{grid-column:2;grid-row:2}.console p{font-size:.85rem;margin:10px 0}.world-layout .paper{padding:18px}#conversation{max-height:280px}.question-options{display:grid;gap:14px;margin:25px 0}.question-options button{text-align:left;background:#fff9e9;color:#344c48;min-height:60px}#questions{max-width:760px;margin:30px auto}#question-count{font-size:.85rem;color:#72745f}#question-text{line-height:1.7}#setup{max-width:850px;margin:30px auto}#appearance{display:block;margin:0 auto 20px;width:200px;height:180px}.question-options button:hover{background:#e6e2c8}.night text{font-size:15px}.night svg{min-height:360px}.night .word-node{cursor:pointer}.night .word-node:focus{outline:none}.night .word-node:focus circle{stroke:#fff;stroke-width:4}.night .actual circle{fill:#a4ded9}.night .source circle{fill:#e0b76a}.night .experience{stroke:#91d7cc;stroke-width:2}.night .teaching{stroke:#e0b76a;stroke-dasharray:5 5}.star-detail{max-height:350px;overflow:auto}
 @media(max-width:1000px){.world-layout{grid-template-columns:minmax(0,1fr)}#terrarium{max-width:800px;width:100%;margin:auto}#conversation{max-height:260px}}@media(max-width:600px){#terrarium{border-width:7px}.console{padding:10px}#bubble{max-height:110px}.night{padding:12px}.night text{font-size:18px}}
+
+/* The opening document keeps its original cyan treatment, separate from the island. */
+body.entry-active{background:radial-gradient(ellipse at 50% 40%,#102635,#030912 70%)}
+.entry-active main{max-width:none;min-height:100dvh;padding:12px;display:grid;place-content:center}
+.entry-active header,.entry-active .notice{display:none}
+#entry{position:fixed;inset:0;background:#050505 url('bg_game_title.png') center/100% 100% no-repeat}
+#logo{position:absolute;inset:0;border:0;border-radius:0;padding:0;width:100%;height:100%;background:#050505}
+#logo-canvas{display:block;width:100%;height:100%;object-fit:contain}
+#title-menu{height:100%;display:flex;flex-direction:column;align-items:flex-end;padding:8% 5% 5%;color:white;text-shadow:3px 3px 2px black,-2px -2px 2px black}
+#title-menu h1{font-size:clamp(25px,6.25vw,80px);font-weight:bold;margin:0;line-height:1.3}
+#title-menu p{font-style:italic;font-size:clamp(14px,2.35vw,30px);margin:0 0 auto}
+#title-menu button{background:transparent;border:0;color:white;text-shadow:inherit;font-size:clamp(18px,2.8vw,36px);font-weight:bold}
+#title-menu button:hover{color:#ffd700}
+#questions.cyber-document,#setup.cyber-document{position:relative;isolation:isolate;width:min(850px,calc(100vw - 24px));max-height:94dvh;overflow:auto;margin:0;padding:70px 38px 26px;background:#080f1b;color:#eafaff;border:1px solid #6bcde949;border-radius:2px;box-shadow:0 0 70px #28b8ef12}
+.cyber-document .document-frame{position:absolute;inset:0;width:100%;height:100%;z-index:-1;pointer-events:none}
+.cyber-document h2{color:#b6f2ff;text-align:center;text-shadow:0 0 20px #74daff60}
+#question-count{color:#a7c8d6;text-align:center}
+#question-text{font-size:21px;text-align:center;text-shadow:0 0 22px #83e8ff40}
+#question-text:focus{outline:none}
+#questions .question-options button,.cyber-document button{background:#16313e;color:#eafaff;border:1px solid #77d9f34a;border-radius:1px;white-space:normal}
+#questions .question-options button:hover,.cyber-document button:focus-visible{background:#23546c;border-color:#91e6fa;outline-color:#91e6fa}
+.cyber-document label{color:#8cc9db}.cyber-document input{background:#040d18;color:#eafaff;border-color:#79d5ed55}
+#signature{display:block;width:100%;height:88px;margin:10px 0 12px;background:#040d18;border:1px solid #79d5ed55;border-bottom-color:#b4edff;touch-action:none;cursor:crosshair}
+#signature-clear,#question-retry{background:transparent;color:#a7c8d6}
+.cyber-document.signed{animation:native-document-seal .45s ease-out}
+@keyframes native-document-seal{45%{box-shadow:0 0 100px #8feaff88;border-color:#dcfaff}}
+@media(max-width:600px){#questions.cyber-document,#setup.cyber-document{padding:62px 22px 20px}#question-text{font-size:18px}.cyber-document .identity{display:block}#signature{height:66px}}
+@media(prefers-reduced-motion:reduce){.cyber-document.signed{animation:none}}

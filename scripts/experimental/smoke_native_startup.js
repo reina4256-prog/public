@@ -19,7 +19,7 @@ if(!process.versions.electron){
             window.webContents.once('did-fail-load',(_event,code)=>reject(Error('load '+code)));
         });
         assert.ok(window.isVisible(),'The interactive application must actually be visible.');
-        assert.ok(await window.webContents.executeJavaScript('!!document.getElementById("questions") && !document.getElementById("questions").hidden'));
+        assert.ok(await window.webContents.executeJavaScript('!document.getElementById("entry").hidden && !document.getElementById("logo").hidden && document.getElementById("questions").hidden'));
         fs.writeFileSync(path.join(directory,'visible.png'),(await window.webContents.capturePage()).toPNG());
         events.push({kind:'passed',visible:window.isVisible()});save();
         console.log(JSON.stringify({ok:true,directory,events}));clearTimeout(timer);window.destroy();app.quit();

@@ -354,21 +354,11 @@ main.playing button:not(:disabled):active, .word-book-dialog button:not(:disable
 .word-settings-body { display: grid; gap: 12px; margin-bottom: 20px; }
 .word-settings-body details, .word-settings-body details:not([hidden]) { position: static; max-width: none; max-height: none; overflow: visible; background: #fbf1d7; color: #443a27; padding: 12px; }
 .word-settings-body label { flex-direction: row; align-items: center; flex-wrap: wrap; }
-main.onboarding-active { background: radial-gradient(ellipse at 50% 40%, #6c6344, #252b21 80%); }
-.word-questions, .word-meeting, .word-growth-dialog:not(.word-book-dialog) { color: #4c402b; background: #f2e4c4; border: 5px solid #755438; outline: 1px solid #c8a465; border-radius: 10px; box-shadow: 0 12px 45px #0008; }
-.word-questions .document-frame, .word-meeting .document-frame { opacity: .2; filter: sepia(1); }
-.word-meeting::backdrop { background: #19251ee8; }
-.word-questions h2, .word-meeting h2, .word-voice-choice h3 { color: #5f4e2c; text-shadow: none; }
-.word-questions legend, .word-meeting p, .word-meeting label { color: #5b513d; text-shadow: none; }
-.word-questions fieldset button, .word-questions > button, .word-meeting button { color: #4d3d24; background: linear-gradient(#fbefcf, #d8bd86); border: 1px solid #b08a4d; border-bottom: 3px solid #826237; border-radius: 6px; }
-.word-questions fieldset button:hover, .word-questions fieldset button:focus-visible { background: #fff7de; border-color: #7e9b69; outline-color: #7e9b69; box-shadow: inset 3px 0 #7e9b69; }
-.word-meeting #word-meeting-retry, .word-meeting #word-signature-clear { color: #74613c; }
-.word-meeting .word-voice-choice, .word-identity { border-color: #bba478; }
-.word-identity input[type=text], #word-signature { color: #4b412d; background: #fff7df; border-color: #b29a6b; }
-.word-identity-choices button[aria-pressed=true] { background: #d0daba; border-color: #728556; }
-.word-meeting .word-voice-choice select { color: #4b412d; background: #fff7df; border-color: #b29a6b; }
-.word-meeting .word-voice-choice a, .word-meeting .word-voice-tuning output, .word-meeting .word-voice-narration { color: #536c44; }
-.word-meeting .word-voice-tuning input { accent-color: #71845c; }
+.word-growth-dialog:not(.word-book-dialog) { color: #4c402b; background: #f2e4c4; border: 5px solid #755438; outline: 1px solid #c8a465; border-radius: 10px; box-shadow: 0 12px 45px #0008; }
+/* Existing-child identity dialogs also stay cyan while the island is playing. */
+main.playing .word-meeting button { color: #eafaff; background: #204758; border: 1px solid #77d9f35c; border-radius: 1px; box-shadow: none; }
+main.playing .word-meeting button:not(:disabled):active { transform: none; border-bottom-width: 1px; box-shadow: none; }
+main.playing .word-meeting .word-identity-choices button[aria-pressed=true] { background: #22516a; border-color: #b6f2ff; }
 .word-master { border-color: #bf9b5b; background: #f2e4c4; }
 .word-master-left { background: #263c31; border-right-color: #8b713f; }
 .word-master-right { background: #ede1c3; }

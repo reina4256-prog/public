@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-23：[入口復元の正本](../specs/core/word_llm_native_system.md#開始導線と近未来書面の復元2026-11-23)はnative_island.html／island_ui.js／island.cssがロゴ・タイトル・七問・本人情報・手描き署名を所有。従来版はlearning.cssとlearning_ui.jsの署名線を復元。署名は一時演出で、store／学習／worldへの新データを追加しない。近傍歩行は承認済み・未実装でgame／perception／navigationをまだ変更していない。
+
 2026-11-22最新：[実chip確認](../specs/core/word_llm_native_system.md#実チップの確認保存停止修正事前起動2026-11-22)ではnative_perception.jsが実chip／画面内位置／確認中ID／引用付きfocusを所有し、runtime.packetは歴史prefixで参照検査する。gameのperception:2は旧合成目的地を使わず、sceneは検査済み実chipに一つだけ丸を出す。store／warmup IPC／responderは安全保存・無送信事前起動・時間診断、book／starsは実chip観察を担当。旧3行動は互換履歴として残し、新試遊へ戻さない。
 
 2026-11-22再構築：[島版の正本](../specs/core/word_llm_native_system.md#島で試す再構築単位2026-11-22)が最新。experimental_word_llm_native_runtime.jsはversion2／packet／解釈・短語・行動案の検査、native_game.jsは限定世界・移動／食事／休息・実結果、native_scene.jsは既存地形・姿の描画、native_book.js／native_drawing.jsは実根拠の絵日記、native_stars.jsは短語星座。scripts/experimental/native_island.jsは既存地形生成の隔離実行、native_store／window／preload／electronはmain所有・保存・IPC・起動・接続。旧自由入力解析／共起／大量日記部品は新理解の前提にしない。検証・発行はCURRENT。

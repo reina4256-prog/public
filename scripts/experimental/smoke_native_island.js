@@ -29,11 +29,35 @@ if(!process.versions.electron){
         window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});return session;
     }
     app.whenReady().then(async()=>{
-        open();await until('!document.getElementById("questions").hidden');
+        open();await until('!document.getElementById("entry").hidden');
+        await capture('logo.png');await evaluate('document.getElementById("logo").click()');await capture('title.png');
+        await evaluate('document.getElementById("new-game").click()');await until('!document.getElementById("questions").hidden');
+        assert.equal(await evaluate('getComputedStyle(document.getElementById("questions")).backgroundColor'),'rgb(8, 15, 27)');
+        for(const locale of core.locales){await evaluate(`document.getElementById('locale').value=${JSON.stringify(locale)};document.getElementById('locale').dispatchEvent(new Event('change'));`);await capture('question-'+locale+'.png');}
+        await evaluate(`document.getElementById('locale').value='ja';document.getElementById('locale').dispatchEvent(new Event('change'));`);
         for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
         assert.equal(await evaluate('document.getElementById("setup").hidden'),false);
         await evaluate(`document.getElementById('name').value='ピコ';document.getElementById('self').value='ぼく';document.getElementById('player').value='きみ';document.getElementById('setup').requestSubmit();`);
+        assert.equal(await evaluate('(async()=>(await nativeMemory.load()).state)()'),null,'Unsigned form cannot create an individual');
+        async function sign(){
+            await evaluate('document.getElementById("signature").scrollIntoView({block:"center"})');
+            const p=await evaluate('(()=>{const r=document.getElementById("signature").getBoundingClientRect();return{x:Math.round(r.x+r.width*.2),y:Math.round(r.y+r.height*.5)}})()');
+            window.webContents.sendInputEvent({type:'mouseDown',...p,button:'left',clickCount:1});
+            window.webContents.sendInputEvent({type:'mouseMove',x:p.x+80,y:p.y-10,button:'left'});
+            window.webContents.sendInputEvent({type:'mouseUp',x:p.x+80,y:p.y-10,button:'left',clickCount:1});
+            await until('!document.getElementById("sign").disabled');
+        }
+        await sign();await evaluate('document.getElementById("signature-clear").click()');
+        assert.equal(await evaluate('document.getElementById("sign").disabled'),true);
+        assert.equal(await evaluate('document.getElementById("name").value'),'ピコ');
+        await evaluate('document.getElementById("question-retry").click()');
+        assert.ok(await evaluate('!document.getElementById("questions").hidden'));
+        for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
+        for(const width of [1160,420]){window.setContentSize(width,850);for(const locale of core.locales){await evaluate(`document.getElementById('locale').value=${JSON.stringify(locale)};document.getElementById('locale').dispatchEvent(new Event('change'));`);assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));await capture('meeting-'+width+'-'+locale+'.png');}}
+        window.setContentSize(1160,850);await evaluate(`document.getElementById('locale').value='ja';document.getElementById('locale').dispatchEvent(new Event('change'));`);
+        await sign();await capture('signature.png');await evaluate('document.getElementById("setup").requestSubmit();document.getElementById("setup").requestSubmit()');
         await until('!document.getElementById("play").hidden');await until('imagesLoaded===totalImages');await sleep(150);checks.push('original seven questions, appearance, separate identity and real island renderer');
+        checks.push('logo/title, cyan document, actual pointer signature, unsigned rejection, clear/retry, seven locales at two widths, single creation');
         await capture('island-desktop.png');
         async function send(text){await evaluate(`document.getElementById('input').value=${JSON.stringify(text)};document.getElementById('compose').requestSubmit();`);await until('!document.getElementById("send").disabled');}
         await send('Where are you?');assert.equal(packets.at(-1).world.location,'island');assert.ok(packets.at(-1).world.visible.length<=6);assert.ok(JSON.stringify(packets.at(-1).world).length<=2000);
@@ -67,7 +91,7 @@ if(!process.versions.electron){
             await capture('diary-'+width+'.png');
             await evaluate('document.getElementById("tab-stars").click()');await capture('stars-'+width+'.png');}
         checks.push('seven locales, desktop/mobile three views, no horizontal clipping');
-        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("play").hidden');await send('Where are you?');assert.ok(packets.at(-1).memories.some(m=>m.raw==='この場所はコロです。'));checks.push('restart preserves original sources, individual and island/results');
+        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("play").hidden');await send('Where are you?');assert.ok(packets.at(-1).memories.some(m=>m.raw==='この場所はコロです。'));checks.push('restart via logo/title/continue preserves original sources, individual and island/results without questions or signature replay');
         await send('BAD_ACTION');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));assert.ok(preparations>0);checks.push('empty CLI warmup lifecycle and disconnected action rejected');
         await send('BAD');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));await send('QUOTA');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('利用枠'));checks.push('forged words rejected and quota has no paid fallback');
         const saved=JSON.parse(fs.readFileSync(path.join(directory,'save/native-memory.json'),'utf8'));assert.ok(core.validState(saved));assert.deepEqual(errors,[]);

@@ -3,7 +3,7 @@
 const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
 if (!process.versions.electron || process.type !== 'browser') {
     const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE;
-    const child = require('node:child_process').spawn(require('electron'), [__filename], { env, stdio: 'inherit', windowsHide: true });
+    const child = require('node:child_process').spawn(require('electron'), [__filename, ...process.argv.slice(2)], { env, stdio: 'inherit', windowsHide: true });
     child.on('error', error => { console.error(error); process.exitCode = 1; });
     child.on('exit', code => { process.exitCode = typeof code === 'number' ? code : 1; });
 } else {
@@ -14,6 +14,8 @@ if (!process.versions.electron || process.type !== 'browser') {
     app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required');
     let server, window, snapshot; const failures = [], checks = [];
     const store = require('./storage').createStore(directory), sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+    const preferences = require('./audio_preferences').createAudioPreferences(directory);
+    const deadline = setTimeout(() => { fs.writeFileSync(path.join(evidence,'timeout.json'),JSON.stringify({checks,failures})); app.exit(1); },180000);
     const js = code => window.webContents.executeJavaScript(code, true);
     async function wait(code, label, limit = 150) {
         for (let i = 0; i < limit; i++) { if (await js(code)) return; await sleep(50); }
@@ -51,6 +53,8 @@ if (!process.versions.electron || process.type !== 'browser') {
         const url = `http://127.0.0.1:${server.address().port}/experimental_word_island.html?debug=1`;
         ipcMain.on('word-life-load', event => { event.returnValue = store.load(); });
         ipcMain.on('word-life-save', (event, value) => { const result=store.save(value); if(result.ok)snapshot=value;event.returnValue=result; });
+        ipcMain.on('word-audio-preferences-load', event => { event.returnValue=preferences.load(); });
+        ipcMain.on('word-audio-preferences-save', (event,value) => { event.returnValue=preferences.save(value); });
         ipcMain.handle('word-voice-cache-get',()=>({ok:false}));ipcMain.handle('word-voice-cache-put',()=>({ok:false}));
         window = new BrowserWindow({ width: 1280, height: 900, show: false,
             webPreferences: { contextIsolation: true, sandbox: true, nodeIntegration: false, backgroundThrottling: false, preload: path.join(__dirname, 'preload.js') } });
@@ -59,6 +63,10 @@ if (!process.versions.electron || process.type !== 'browser') {
         await js(`GameI18n.setLanguage('ja');document.querySelector('.word-logo').click();document.querySelector('#word-new-game').click();document.querySelector('#word-reset-accept').click();
             for(const a of [0,1,1,1,0,0,0])document.querySelector('.word-questions fieldset button[data-answer="'+a+'"]').click();`);
         await wait('document.querySelector(".word-meeting").open','meeting');
+        assert.equal(await js('getComputedStyle(document.querySelector(".word-meeting")).backgroundColor'),'rgb(8, 15, 27)');
+        assert.equal(await js('getComputedStyle(document.querySelector("#word-signature")).backgroundColor'),'rgb(4, 13, 24)');
+        await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true});await sleep(100);
+        fs.writeFileSync(path.join(evidence,'cyber-meeting.png'),(await window.webContents.capturePage()).toPNG());
         assert.equal(await js('document.querySelectorAll("#word-identity input").length'),3);
         assert.equal(await js('document.querySelectorAll(".word-identity-choices button").length'),9);
         const chosen={characterName:'<b>ピコ$&</b>',firstPerson:'わたし',playerAddress:'ご主人様'};
@@ -116,6 +124,7 @@ if (!process.versions.electron || process.type !== 'browser') {
                 window.setContentSize(width,900);await sleep(150);await js('document.querySelector(".word-meeting").scrollTop=0');
                 assert.equal(await js('document.querySelector(".word-meeting").scrollWidth>document.querySelector(".word-meeting").clientWidth+1'),false,locale+'/'+width);
                 await window.webContents.capturePage(undefined,{stayHidden:true,stayAwake:true});await sleep(100);
+                assert.equal(await js('getComputedStyle(document.querySelector("#word-identity-save")).backgroundColor'),'rgb(32, 71, 88)');
                 fs.writeFileSync(path.join(evidence,locale+'-'+width+'.png'),(await window.webContents.capturePage()).toPNG());
             }
         }
@@ -135,6 +144,10 @@ if (!process.versions.electron || process.type !== 'browser') {
         await say('Gesti');assert.equal(snapshot.state.context.turns.at(-1).expression.channel,'gesture');
         assert.equal(snapshot.state.settings.speech,'gesture');assert.deepEqual(snapshot.state.knowledge.meanings,[]);assert.deepEqual(snapshot.state.knowledge.relations,[]);
         checks.push({legacyChildConfigurable:true,noNewGameRequired:true,gestureOnlyPreserved:true,noVocabularyGranted:true});
+        if(process.argv.includes('--identity-only')){
+            assert.deepEqual(failures,[]);const result={ok:true,directory,checks,failures,scope:'identity-only; auto-training checks not selected'};
+            fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({evidence,...result}));return;
+        }
         const learner={version:1,appearance:'stone',state:core.create({foundation:false,life:false,speech:'gesture'},catalog),world:worldApi.create()};
         Object.assign(learner.world,{mode:'rest',attention:'shade',dwell:30,activityBefore:{hunger:.35,fatigue:.9},fatigue:.9,activityStart:0});
         await window.loadURL('about:blank');assert.ok(store.save(learner).ok);snapshot=learner;
@@ -189,5 +202,5 @@ if (!process.versions.electron || process.type !== 'browser') {
         assert.deepEqual(failures,[]);const result={ok:true,directory,checks,failures};
         fs.writeFileSync(path.join(evidence,'result.json'),JSON.stringify(result,null,2));console.log(JSON.stringify({evidence,...result}));
     }).catch(error=>{fs.writeFileSync(path.join(evidence,'failure.txt'),String(error.stack)+'\n'+JSON.stringify(failures));console.error(error);console.error(evidence);process.exitCode=1;})
-      .finally(()=>{window?.destroy();if(server){server.closeAllConnections();server.close();}app.exit(process.exitCode||0)});
+      .finally(()=>{clearTimeout(deadline);window?.destroy();if(server){server.closeAllConnections();server.close();}app.exit(process.exitCode||0)});
 }

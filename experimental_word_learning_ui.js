@@ -688,8 +688,8 @@
     let signatureStrokes = [], activeSignaturePointer = null, signedIdentity = null;
     function drawSignature() {
         const c = signatureCanvas.getContext('2d'); c.clearRect(0, 0, 720, 160);
-        c.strokeStyle = '#42573d'; c.fillStyle = '#42573d'; c.lineWidth = 2.8;
-        c.lineCap = c.lineJoin = 'round'; c.shadowColor = '#42573d'; c.shadowBlur = 0;
+        c.strokeStyle = '#b4edff'; c.fillStyle = '#b4edff'; c.lineWidth = 2.8;
+        c.lineCap = c.lineJoin = 'round'; c.shadowColor = '#49ceff'; c.shadowBlur = 2;
         for (const stroke of signatureStrokes) {
             if (stroke.length === 1) { c.beginPath(); c.arc(stroke[0].x*720,stroke[0].y*160,1.4,0,Math.PI*2); c.fill(); }
             else { c.beginPath(); stroke.forEach((p,i) => c[i ? 'lineTo' : 'moveTo'](p.x*720,p.y*160)); c.stroke(); }

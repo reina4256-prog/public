@@ -1,9 +1,10 @@
 'use strict';
 (()=>{
     const $=id=>document.getElementById(id),api=window.nativeMemory,t=(s,...a)=>window.GameI18n.translate(s).replace(/\{\{(\d+)\}\}/g,(_,n)=>String(a[Number(n)]??''));
-    let state=null,busy=false,blocked=false,paused=false,answers=[],question=0,lastPulse=0,pulsing=false;
+    let state=null,busy=false,blocked=false,paused=false,answers=[],question=0,lastPulse=0,pulsing=false,screen='logo';
+    let strokes=[],pointer=null;
     const status=s=>{$('status').textContent=t(s);};
-    const warmup=()=>{if(!blocked&&!busy&&!paused&&!document.hidden&&state?.game&&!$('chat-view').hidden)void api.warmup().catch(()=>{});};
+    const warmup=()=>{if(screen==='play'&&!blocked&&!busy&&!paused&&!document.hidden&&state?.game&&!$('chat-view').hidden)void api.warmup().catch(()=>{});};
     function el(tag,parent,text,cls,literal=false){const n=document.createElement(tag);if(text!==undefined)n.textContent=literal?text:t(text);if(cls)n.className=cls;if(literal)n.dataset.i18nSkip='';parent.append(n);return n;}
     function record(turn){
         const article=document.createElement('article');article.className='record';
@@ -17,12 +18,43 @@
         return article;
     }
     function showQuestion(){
+        screen='questions';$('entry').hidden=true;document.body.classList.add('entry-active');
         $('questions').hidden=false;$('setup').hidden=true;$('play').hidden=true;
         const data=ExperimentalWordStartQuestions.questions[question];$('question-count').textContent=t('{{0}} / {{1}}',question+1,7);$('question-text').textContent=t(data.text);
         $('question-choices').replaceChildren();data.choices.forEach((choice,index)=>{const b=el('button',$('question-choices'),choice);b.type='button';b.onclick=()=>{answers[question]=index;if(question===6){$('questions').hidden=true;$('setup').hidden=false;
                     if(state){$('name').value=state.character.name;$('self').value=state.character.self;$('player').value=state.character.player;for(const id of ['name','self','player'])$(id).readOnly=true;}
-                    preview();}else{question++;showQuestion();}};});
-        $('question-back').disabled=question===0;window.GameI18n.localizeTree($('questions'));
+                    screen='setup';preview();drawDocument($('setup'),7);drawSignature();}else{question++;showQuestion();}};});
+        drawDocument($('questions'),question);window.GameI18n.localizeTree($('questions'));$('question-text').focus();
+    }
+    // Same cyan document geometry as the original onboarding. Never a game object.
+    function drawDocument(parent,completed){
+        if(parent.hidden)return;const canvas=parent.querySelector('.document-frame'),{width,height}=parent.getBoundingClientRect(),ratio=Math.min(devicePixelRatio||1,2);
+        canvas.width=Math.round(width*ratio);canvas.height=Math.round(height*ratio);const c=canvas.getContext('2d');c.scale(ratio,ratio);
+        const wash=c.createLinearGradient(0,0,width,height);wash.addColorStop(0,'#102733');wash.addColorStop(1,'#080f1b');c.fillStyle=wash;c.fillRect(0,0,width,height);
+        c.strokeStyle='#70d9f038';c.strokeRect(12.5,12.5,width-25,height-25);c.strokeStyle='#83e8ff';c.shadowColor='#49ceff';c.shadowBlur=9;
+        for(const [x,y,sx,sy]of [[12,12,1,1],[width-12,12,-1,1],[12,height-12,1,-1],[width-12,height-12,-1,-1]]){c.beginPath();c.moveTo(x,y+sy*24);c.lineTo(x,y);c.lineTo(x+sx*24,y);c.stroke();}
+        for(let i=0;i<7;i++){c.fillStyle=i<completed?'#a5efff':'#254351';c.shadowBlur=i<completed?12:0;c.fillRect(width/2+(i-3)*25-6,32,12,3);}
+    }
+    for(const id of ['questions','setup'])new ResizeObserver(()=>drawDocument($(id),id==='setup'?7:question)).observe($(id));
+    function drawSignature(){
+        const c=$('signature').getContext('2d');c.clearRect(0,0,720,160);c.strokeStyle=c.fillStyle='#b4edff';c.lineWidth=2.8;c.lineCap=c.lineJoin='round';
+        for(const stroke of strokes){c.beginPath();if(stroke.length===1){c.arc(stroke[0].x*720,stroke[0].y*160,1.4,0,Math.PI*2);c.fill();}else{stroke.forEach((p,i)=>c[i?'lineTo':'moveTo'](p.x*720,p.y*160));c.stroke();}}
+        $('sign').disabled=blocked||busy||pointer!==null||!strokes.length;$('signature-clear').disabled=busy||!strokes.length;
+    }
+    function point(e){const r=$('signature').getBoundingClientRect();return{x:Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)),y:Math.max(0,Math.min(1,(e.clientY-r.top)/r.height))};}
+    $('signature').onpointerdown=e=>{if(screen!=='setup'||busy||blocked||pointer!==null||e.button!==0)return;e.preventDefault();pointer=e.pointerId;$('signature').setPointerCapture(pointer);strokes.push([point(e)]);drawSignature();};
+    $('signature').onpointermove=e=>{if(e.pointerId!==pointer)return;for(const sample of e.getCoalescedEvents?.().length?e.getCoalescedEvents():[e])strokes.at(-1).push(point(sample));drawSignature();};
+    for(const type of ['pointerup','pointercancel','lostpointercapture'])$('signature').addEventListener(type,e=>{if(e.pointerId===pointer){pointer=null;drawSignature();}});
+    $('signature-clear').onclick=()=>{if(busy||blocked)return;strokes=[];pointer=null;drawSignature();};
+    $('question-retry').onclick=()=>{if(busy||blocked)return;answers=[];question=0;strokes=[];pointer=null;showQuestion();};
+    function showTitle(){screen='title';$('logo').hidden=true;$('title-menu').hidden=false;$('continue-game').hidden=!state;$('new-game').hidden=!!state;$(state?'continue-game':'new-game').focus();}
+    $('logo').onclick=showTitle;
+    $('new-game').onclick=()=>{if(!blocked)showQuestion();};
+    $('continue-game').onclick=()=>{if(blocked||!state)return;if(state.game){render();warmup();}else showQuestion();};
+    function drawLogo(time){
+        const c=$('logo-canvas').getContext('2d');c.fillStyle='#050505';c.fillRect(0,0,1280,720);c.textAlign='center';c.textBaseline='middle';c.font='bold 50px serif';c.fillStyle='#ffffffe6';c.fillText('Two-Sided Studio',640,330);
+        c.beginPath();c.moveTo(390,360);c.lineTo(890,360);c.strokeStyle='#ffffff4d';c.stroke();c.save();c.translate(640,390);c.scale(1,-1);c.fillStyle='#ffffff26';c.fillText('Two-Sided Studio',0,0);c.restore();
+        c.font='16px sans-serif';c.fillStyle=`rgba(200,200,200,${reduced.matches?.85:.35+.65*(Math.sin(time/400)+1)/2})`;c.fillText(t('- クリックして開始 -'),640,670);
     }
     function preview(){
         const skin=ExperimentalWordStartQuestions.resolve(answers).appearance,source=images[skin],frame=aiConfigs[skin].actions.idle[0],c=$('appearance').getContext('2d');c.clearRect(0,0,200,180);
@@ -30,6 +62,7 @@
     }
     function render(){
         if(!state?.game){showQuestion();return;}
+        screen='play';$('entry').hidden=true;document.body.classList.remove('entry-active');
         $('questions').hidden=$('setup').hidden=true;$('play').hidden=false;$('character-name').textContent=state.character.name;$('nameplate').textContent=state.character.name;
         $('conversation').replaceChildren();for(const turn of state.turns.filter(t=>t.world)){el('p',$('conversation'),turn.input,'utterance',true);if(turn.result)el('p',$('conversation'),turn.result.reply,'utterance assistant',true);}
         $('bubble').textContent=state.turns.findLast(x=>x.result&&x.world)?.result.reply||'';
@@ -39,11 +72,13 @@
     const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};
     function meters(){if(!state?.game)return;const g=state.game;$('energy').value=1-g.fatigue;$('fullness').value=1-g.hunger;$('activity').textContent=t(activity[g.mode]);$('pause').textContent=t(paused?'再開':'一時停止');}
     const errors={login:'接続のログインが必要です。導入手順を確認してください。',missing:'接続の準備が必要です。導入手順を確認してください。',quota:'契約内の利用枠に達しました。追加クレジットは使わず、枠の回復を待ってください。',save:'記録を安全に保存できませんでした。終了して保存先を確認してください。',cancelled:'返答を中止しました。原発言は残っています。',output:'返答の形式や出所を確認できませんでした。記憶候補は採用していません。',input:'入力を確認してください。',failed:'返答を受け取れませんでした。接続状態を確認してください。'};
-    $('question-back').onclick=()=>{if(question>0){question--;showQuestion();}};
-    $('setup').onsubmit=async event=>{event.preventDefault();if(blocked||busy||answers.length!==7)return;busy=true;
-        try{const result=state?await api.prepare(answers):await api.create({name:$('name').value,self:$('self').value,player:$('player').value},$('locale').value,answers);
+    $('setup').onsubmit=async event=>{event.preventDefault();if(blocked||busy||answers.length!==7||!strokes.length||pointer!==null||screen!=='setup')return;
+        const character={name:$('name').value,self:$('self').value,player:$('player').value},chosen=[...answers],locale=$('locale').value;
+        busy=true;drawSignature();$('question-retry').disabled=true;for(const id of ['name','self','player'])$(id).readOnly=true;$('setup').classList.add('signed');
+        try{await new Promise(resolve=>setTimeout(resolve,reduced.matches?0:450));const result=state?await api.prepare(chosen):await api.create(character,locale,chosen);
             if(result.ok){state=result.state;status('');render();$('input').focus();}else status(errors[result.error]||errors.failed);
-        }catch(_){status(errors.failed);}finally{busy=false;warmup();}};
+            if(result.error==='save')blocked=true;
+        }catch(_){status(errors.failed);}finally{busy=false;$('setup').classList.remove('signed');$('question-retry').disabled=blocked;for(const id of ['name','self','player'])$(id).readOnly=!!state;drawSignature();warmup();}};
     $('compose').onsubmit=async event=>{event.preventDefault();if(busy||blocked||!state?.game)return;const input=$('input').value;if(!input.trim())return;
         busy=true;$('send').disabled=true;$('locale').disabled=true;$('cancel').hidden=false;status('返答を待っています…');
         try{const result=await api.submit(input,$('locale').value);if(result.state){state=result.state;if($('input').value===input)$('input').value='';render();}
@@ -55,7 +90,8 @@
     $('locale').value=window.GameI18n.language;$('locale').onchange=()=>{window.GameI18n.setLanguage($('locale').value);if(state?.game)render();else if(!$('questions').hidden)showQuestion();};
     window.NativeScene.load();const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     async function frame(time){
-        if(state?.game&&!document.hidden){window.NativeScene.draw(state.game,time/1000,reduced.matches);
+        if(screen==='logo'&&!document.hidden)drawLogo(time);
+        if(screen==='play'&&state?.game&&!document.hidden){window.NativeScene.draw(state.game,time/1000,reduced.matches);
             const stop=paused||busy||!$('chat-view').hidden&&document.activeElement===$('input')&&$('input').value.length>0||$('chat-view').hidden;
             if(time-lastPulse>100&&!pulsing){lastPulse=time;pulsing=true;try{const r=await api.pulse(stop);if(r.game){const island=state.game.island;state.game={...r.game,island};meters();}if(!r.ok&&r.error==='save'){blocked=true;$('send').disabled=true;status(errors.save);}}catch(_){status(errors.failed);}finally{pulsing=false;}}
         }
@@ -63,5 +99,5 @@
     }
     requestAnimationFrame(frame);window.addEventListener('pagehide',()=>api.cancel());document.addEventListener('visibilitychange',()=>{if(document.hidden){void api.pulse(true);api.cancel();}else warmup();});
     let resize;window.addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>state?.game&&renderPanels(),160);});
-    void api.load().then(result=>{if(!result.ok){blocked=true;$('questions').hidden=$('setup').hidden=true;status(errors.save);return;}state=result.state;if(state){$('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);}render();warmup();}).catch(()=>{blocked=true;status(errors.failed);});
+    void api.load().then(result=>{if(!result.ok){blocked=true;$('questions').hidden=$('setup').hidden=true;status(errors.save);return;}state=result.state;if(state){$('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);}$('entry').hidden=false;}).catch(()=>{blocked=true;status(errors.failed);});
 })();
