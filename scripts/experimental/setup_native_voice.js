@@ -18,8 +18,8 @@ if(!process.versions.electron){
         window.once('ready-to-show',()=>{window.show();console.log('[voice-setup] Window visibility: '+String(window.isVisible()));});
         const url=pathToFileURL(path.join(__dirname,'native_voice_setup.html')).href;
         ipcMain.handle('native-voice-key-save',(event,key)=>{
-            if(event.sender!==window.webContents||event.senderFrame!==window.webContents.mainFrame||event.senderFrame.url!==url)return false;
-            return require('./native_voice_credentials').credentials(directory,safeStorage).save(key);
+            if(event.sender!==window.webContents||event.senderFrame!==window.webContents.mainFrame||event.senderFrame.url!==url)return {ok:false,error:'window'};
+            return require('./native_voice_credentials').credentials(directory,safeStorage).saveResult(key);
         });
         window.webContents.setWindowOpenHandler(()=>({action:'deny'}));window.webContents.on('will-navigate',e=>e.preventDefault());
         window.on('closed',()=>{ipcMain.removeHandler('native-voice-key-save');app.quit();});void window.loadURL(url);

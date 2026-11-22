@@ -70,6 +70,28 @@ test('native voice credentials stay encrypted outside game saves and fail closed
     const store=credentials(dir,safe);assert.ok(store.save(key));assert.equal(store.load(),key);assert.equal(fs.readFileSync(path.join(dir,'native-voice-key.bin')).includes(key),false);
     assert.equal(credentials(dir,{isEncryptionAvailable:()=>false}).load(),'');assert.equal(credentials(dir,{isEncryptionAvailable:()=>false}).save(key),false);
 });
+test('native voice credentials accept auth keys without truncation and report non-secret local failures',t=>{
+    const dir=directory(t),{credentials}=require('../scripts/experimental/native_voice_credentials');
+    const safe={isEncryptionAvailable:()=>true,encryptString:s=>Buffer.from(s.split('').reverse().join('')),decryptString:b=>b.toString().split('').reverse().join('')};
+    const store=credentials(dir,safe),key='AQ.'+'x'.repeat(280);
+    assert.deepEqual(store.saveResult(key),{ok:true});assert.equal(store.load(),key);
+    for(const invalid of ['key name','https://example.com/key','x'.repeat(513),'AQ.'+'x'.repeat(20)+'\n',null])assert.deepEqual(store.saveResult(invalid),{ok:false,error:'format'});
+    assert.equal(store.load(),key,'invalid input preserves the previously saved key');
+    assert.deepEqual(credentials(dir,{isEncryptionAvailable:()=>false}).saveResult(key),{ok:false,error:'encryption'});
+    assert.deepEqual(credentials(dir,{isEncryptionAvailable:()=>true,encryptString(){throw Error(key);}}).saveResult(key),{ok:false,error:'encryption'});
+    const blocked=path.join(dir,'file');fs.writeFileSync(blocked,'occupied');
+    assert.deepEqual(credentials(blocked,safe).saveResult(key),{ok:false,error:'storage'});
+});
+test('voice setup clears secret input and handles structured success and specific failures',async()=>{
+    const vm=require('node:vm'),code=fs.readFileSync(path.join(__dirname,'../scripts/experimental/native_voice_setup_ui.js'),'utf8');
+    for(const result of [{ok:true},{ok:false,error:'format'},{ok:false,error:'encryption'},{ok:false,error:'storage'},{ok:false,error:'window'},true]){
+        const input={value:'  AQ.'+'x'.repeat(280)+'  '},button={},status={},form={};let sent;
+        vm.runInNewContext(code,{document:{querySelector:s=>s==='form'?form:button,getElementById:id=>id==='key'?input:status},window:{voiceSetup:{save:async key=>{sent=key;assert.equal(input.value,'');return result;}}}});
+        await form.onsubmit({preventDefault(){}});assert.equal(sent.length,283);assert.equal(input.value,'');assert.equal(Boolean(input.disabled),result.ok===true);
+        assert.equal(status.textContent.startsWith('Saved.'),result.ok===true);assert.equal(status.textContent.includes(sent),false);
+        if(!result.ok)assert.equal(button.disabled,false);
+    }
+});
 test('native voice IPC rejects other senders, subframes and URLs and releases all handlers on close',()=>{
     const vm=require('node:vm'),{EventEmitter}=require('node:events'),handlers=new Map(),ipcMain=new EventEmitter(),calls=[];
     ipcMain.handle=(name,fn)=>handlers.set(name,fn);ipcMain.removeHandler=name=>handlers.delete(name);
