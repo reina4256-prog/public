@@ -8,6 +8,36 @@ function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b
 const voiceResponse=()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:voiceWav().toString('base64')}]}]}));
 const designResponse=(id='voice_fixture')=>new Response(JSON.stringify({type:'prompted',id,sample_audio:{mime_type:'audio/wav',data:voiceWav().toString('base64')}}));
 
+test('voice diagnostics retain fixed hints for unfamiliar and localized explanations without leaking echoes',async t=>{
+    const settings={...voiceRules.design.fresh(),extra:'age copyright child unsupported language'},secret='safety policy billing token';
+    const body={error:{status:'INVALID_ARGUMENT',message:'Synthesis could not proceed: this voice description uses an unsupported language. Echo: "'+settings.extra+'". '+secret,details:[{'@type':'type.googleapis.com/google.rpc.LocalizedMessage',locale:'ja',message:'入力の音声生成に失敗しました。言語は未対応です。'},{'@type':'private-unknown-type',message:'private-message'}]}};
+    const dir=directory(t);let calls=0;const service=nativeVoice.createVoice({directory:dir,session:{},key:()=>secret,fetcher:async()=>{calls++;return new Response(JSON.stringify(body),{status:400});}});
+    assert.equal((await service.generate({kind:'design',species:'dragon',locale:'ja',settings})).ok,false);assert.equal(calls,1);
+    const raw=fs.readFileSync(path.join(dir,'native-voice-diagnostics.jsonl'),'utf8'),entry=JSON.parse(raw);
+    assert.equal(entry.classifierVersion,2);assert.equal(entry.errorBodyState,'parsed');assert.equal(entry.explanationPresent,true);
+    assert.deepEqual(entry.explanationClasses,['unclassified']);
+    for(const signal of ['generation','failure','voice','prompt','unsupported','language'])assert.ok(entry.explanationSignals.includes(signal));
+    for(const signal of ['age','rights','safety','policy','billing','authentication'])assert.equal(entry.explanationSignals.includes(signal),false);
+    assert.deepEqual(entry.detailTypes,['localized_message','other']);
+    for(const forbidden of [secret,settings.extra,'Synthesis could not proceed','入力の音声生成','private-message','private-unknown-type'])assert.equal(raw.includes(forbidden),false);
+});
+
+test('voice diagnostics distinguish generic or missing explanations and body-reading failures',async t=>{
+    const cases=[
+        {body:JSON.stringify({error:{message:'Request contains an invalid argument.'}}),state:'parsed',classes:['generic_invalid_request'],present:true},
+        {body:JSON.stringify({error:{status:'INVALID_ARGUMENT'}}),state:'parsed',classes:['unclassified'],present:false},
+        {body:'broken private JSON',state:'invalid_json'},
+        {body:'x'.repeat(17000),state:'too_large'}
+    ];
+    for(const item of cases){const dir=directory(t);const service=nativeVoice.createVoice({directory:dir,session:{},key:()=> 'secret',fetcher:async()=>new Response(item.body,{status:400})});
+        await service.generate({kind:'preview',voice:'Kore',locale:'ja'});const entry=JSON.parse(fs.readFileSync(path.join(dir,'native-voice-diagnostics.jsonl'),'utf8'));
+        assert.equal(entry.errorBodyState,item.state);if(item.classes){assert.deepEqual(entry.explanationClasses,item.classes);assert.equal(entry.explanationPresent,item.present);}
+    }
+    const dir=directory(t),service=nativeVoice.createVoice({directory:dir,session:{},key:()=> 'secret',fetcher:async()=>({ok:false,status:400,body:new ReadableStream({start(controller){controller.error(Error('private error'));}})})});
+    assert.equal((await service.generate({kind:'preview',voice:'Kore',locale:'ja'})).error,'failed');
+    const raw=fs.readFileSync(path.join(dir,'native-voice-diagnostics.jsonl'),'utf8');assert.equal(JSON.parse(raw).errorBodyState,'unreadable');assert.equal(raw.includes('private error'),false);
+});
+
 test('voice HTTP explanations classify provider templates without treating echoed prompt words as a cause',async t=>{
     const secret='private-api-key',extra='private-input-text',request={kind:'design',species:'dragon',locale:'ja',settings:{...voiceRules.design.fresh(),extra}};
     const cases=[

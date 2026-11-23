@@ -3,13 +3,42 @@ const fs=require('node:fs'),path=require('node:path'),{createHash}=require('node
 const rules=require('../../experimental_word_llm_native_voice');
 const endpoint='https://generativelanguage.googleapis.com/v1beta/interactions';
 const MAX_AUDIO=5760044,MAX_RESPONSE=8*1024*1024;
-function classifyExplanation(error){
+function classifyExplanation(error,privateTexts=[]){
     // Recognize provider templates, never retain text or arbitrary field names from the body.
     // A generation failure is not evidence of a policy refusal or of a particular forbidden trait.
-    const classes=new Set(),fields=new Set();
+    const classes=new Set(),fields=new Set(),signals=new Set(),detailTypes=new Set();let messagePresent=false;
     const knownFields=new Set(['voice','store','voice.model','voice.type','voice.gender','voice.language_code','voice.display_name','voice.prompted','voice.prompted.input','voice.prompted.base_voice']);
+    const signalRules={
+        voice:/\bvoic(?:e|es)\b|音声|声の/u,prompt:/\b(?:prompt|description|input)\b|指示|入力/u,
+        generation:/\b(?:generat\w*|synthesi\w*|creat\w*)\b|生成/u,
+        failure:/\b(?:fail\w*|unable|cannot|incomplete|can't|couldn't)\b|could not|did not complete|失敗|できません/u,
+        safety:/\b(?:safety|unsafe|harmful)\b|安全/u,policy:/\b(?:policy|policies|prohibited|disallowed|blocked|restricted)\b|ポリシー|禁止|制限/u,
+        age:/\b(?:age|ages|child|children|minor|minors|underage)\b|年齢|未成年|子供|子ども/u,
+        rights:/\b(?:copyright|impersonat\w*|intellectual property|consent)\b|著作権|同意/u,
+        permission:/\b(?:permission|access|denied|forbidden|unauthorized)\b|権限/u,
+        parameter:/\b(?:parameter|field|argument|payload|schema)\b|パラメータ|引数|項目/u,
+        invalid:/\b(?:invalid|incorrect|malformed|bad request)\b|不正|無効/u,
+        unsupported:/\bunsupported\b|not supported|not available|非対応|未対応/u,
+        missing:/\b(?:missing|required|empty)\b|必須|空欄/u,
+        length:/\b(?:length|size|long|short|characters)\b|文字数|長さ/u,
+        language:/\b(?:language|locale|english|japanese)\b|言語|英語|日本語/u,
+        gender:/\b(?:gender|male|female|neutral)\b|性別/u,model:/\bmodel\b|モデル/u,
+        format:/\b(?:format|encoding|json|mime)\b|形式/u,
+        authentication:/\b(?:authentication|credential\w*|api key|token)\b|認証/u,
+        billing:/\b(?:billing|credit\w*|payment|balance|spend)\b|請求|残高|支払/u,
+        quota:/\b(?:quota|rate limit|resource exhausted|too many requests)\b|割り当て/u,
+        retry:/\b(?:retry|try again|rephras\w*)\b|再試行|言い換/u,
+        internal:/\b(?:internal|backend|server|unavailable)\b|内部|サーバー/u
+    };
     function classify(message){
         if(typeof message!=='string')return;
+        if(message.trim())messagePresent=true;
+        // Suppress exact current input/key echoes, then quoted fragments, before looking for hints.
+        for(const privateText of privateTexts)if(typeof privateText==='string'&&privateText)message=message.split(privateText).join(' ');
+        const match=/^Invalid value at ['"]([^'"]{1,80})['"]/i.exec(message);
+        if(match&&knownFields.has(match[1])){fields.add(match[1]);classes.add('parameter_rejected');}
+        message=message.replace(/"[^"\n]*"|「[^」]*」|“[^”]*”/gu,' ').replace(/(^|\s)'[^'\n]*'(?=$|[\s.,;:)])/gu,'$1 ').toLowerCase();
+        for(const [name,pattern]of Object.entries(signalRules))if(pattern.test(message))signals.add(name);
         if(/^Voice generation did not complete(?:[.,!]|$)/i.test(message))classes.add('generation_incomplete');
         else if(/^(?:The )?(?:request|prompt|voice generation) (?:was |is )?(?:blocked|rejected) (?:due to|because of) (?:safety|policy|prohibited)/i.test(message))classes.add('policy_rejection');
         else if(/^Invalid JSON payload received\. Unknown name /i.test(message))classes.add('unknown_parameter');
@@ -17,18 +46,20 @@ function classifyExplanation(error){
         else if(/^(?:Billing (?:is |has been )?(?:disabled|not enabled|not active)|Insufficient (?:credits|balance))\b/i.test(message))classes.add('billing_unavailable');
         else if(/^(?:API key (?:not valid|is invalid|has expired)|Request had invalid authentication credentials)\b/i.test(message))classes.add('authentication');
         else if(/^Model (?:is not supported|not found|is not available)\b/i.test(message))classes.add('model_unavailable');
-        const match=/^Invalid value at ['"]([^'"]{1,80})['"]/i.exec(message);
-        if(match&&knownFields.has(match[1])){fields.add(match[1]);classes.add('parameter_rejected');}
+        if(/^(?:request contains an invalid argument|invalid request|invalid argument)(?:[.!:]|$)/i.test(message.trim()))classes.add('generic_invalid_request');
     }
     classify(error?.message);
     for(const detail of (Array.isArray(error?.details)?error.details:[])){
+        const type={'type.googleapis.com/google.rpc.BadRequest':'bad_request','type.googleapis.com/google.rpc.ErrorInfo':'error_info','type.googleapis.com/google.rpc.QuotaFailure':'quota_failure','type.googleapis.com/google.rpc.PreconditionFailure':'precondition_failure','type.googleapis.com/google.rpc.RetryInfo':'retry_info','type.googleapis.com/google.rpc.LocalizedMessage':'localized_message'}[detail?.['@type']];
+        detailTypes.add(typeof type==='string'?type:'other');
+        if(type==='localized_message')classify(detail.message);
         if(detail?.['@type']!=='type.googleapis.com/google.rpc.BadRequest')continue;
         for(const violation of (Array.isArray(detail.fieldViolations)?detail.fieldViolations:[])){
             if(knownFields.has(violation?.field)){fields.add(violation.field);classes.add('parameter_rejected');}
             classify(violation?.description);
         }
     }
-    return {explanationClasses:classes.size?[...classes].sort():['unclassified'],...(fields.size?{rejectedFields:[...fields].sort()}:{})};
+    return {classifierVersion:2,explanationPresent:messagePresent,explanationClasses:classes.size?[...classes].sort():['unclassified'],explanationSignals:[...signals].sort(),detailTypes:[...detailTypes].sort(),...(fields.size?{rejectedFields:[...fields].sort()}:{})};
 }
 function validWav(b){
     if(!Buffer.isBuffer(b)||b.length<44||b.length>MAX_AUDIO||b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WAVE'||b.readUInt32LE(4)+8!==b.length)return false;
@@ -119,16 +150,18 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
             if(!response.ok){
                 diagnostic.stage='http';
                 // Error messages may echo the player's prompt or key. Extract enums only, within 16 KiB.
+                diagnostic.errorBodyState='reading';
                 try{const reader=response.body.getReader(),chunks=[];let size=0;
-                    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>16384){await reader.cancel();break;}chunks.push(Buffer.from(value));}
+                    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>16384){diagnostic.errorBodyState='too_large';await reader.cancel();break;}chunks.push(Buffer.from(value));}
                         if(size<=16384){const error=JSON.parse(Buffer.concat(chunks).toString('utf8')).error;
-                            Object.assign(diagnostic,classifyExplanation(error));
+                            diagnostic.errorBodyState='parsed';
+                            Object.assign(diagnostic,classifyExplanation(error,[secret,creating?rules.design.prompt(request.settings):text,creating?request.settings.extra:'']));
                             if(['INVALID_ARGUMENT','UNAUTHENTICATED','PERMISSION_DENIED','RESOURCE_EXHAUSTED','FAILED_PRECONDITION','NOT_FOUND','INTERNAL','UNAVAILABLE','DEADLINE_EXCEEDED'].includes(error?.status))diagnostic.providerStatus=error.status;
                             const reasons=(Array.isArray(error?.details)?error.details:[]).map(d=>d?.reason).filter(r=>['RATE_LIMIT_EXCEEDED','QUOTA_EXCEEDED','BILLING_DISABLED','BILLING_NOT_ACTIVE','API_KEY_INVALID','API_KEY_EXPIRED','API_KEY_SERVICE_BLOCKED','ACCESS_DENIED','SERVICE_DISABLED','CONSUMER_INVALID','SAFETY','PROHIBITED_CONTENT'].includes(r));
                             if(reasons.length)diagnostic.providerReasons=[...new Set(reasons)];
                         }
                     }finally{reader.releaseLock();}
-                }catch(_){/* Preserve the HTTP classification even if its body cannot be read. */}
+                }catch(error){if(diagnostic.errorBodyState!=='too_large')diagnostic.errorBodyState=error instanceof SyntaxError?'invalid_json':'unreadable';}
                 return {ok:false,error:[402,403,429].includes(response.status)?'limit':'failed'};
             }
             diagnostic.stage='response_size';
