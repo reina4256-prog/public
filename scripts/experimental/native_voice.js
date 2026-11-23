@@ -24,9 +24,14 @@ function createPreferences(directory){
 }
 function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY||'',fetcher=globalThis.fetch,timeout=60000}){
     const preferences=createPreferences(directory),cacheDir=path.join(directory,'native-voice-samples-v1');
-    let current=null,closed=false,replyCache=null;
-    function load(){const r=preferences.load();return r.ok?{ok:true,value:r.value}:r;}
-    function save(value){cancel();replyCache=null;return preferences.save(value);}
+    const designs=require('./native_voice_designs').createDesigns(directory),cloudId=require('./native_voice_designs').cloudId;
+    let current=null,closed=false,replyCache=null,designAudio=null;
+    const view=e=>({id:e.id,species:e.species,locale:e.locale,settings:e.settings});
+    function load(){const r=preferences.load(),d=designs.load();return r.ok&&d.ok&&Object.entries(r.value.voices).every(([species,id])=>!rules.design.validId(id)||d.entries.some(e=>e.id===id&&e.species===species))?{ok:true,value:r.value,designs:d.entries.map(view)}:{ok:false,error:'save'};}
+    function save(value){cancel();replyCache=null;const prior=load();if(!prior.ok)return prior;
+        if(!rules.valid(value)||Object.entries(value.voices).some(([species,id])=>rules.design.validId(id)&&!prior.designs.some(e=>e.id===id&&e.species===species)))return {ok:false,error:'input'};
+        return preferences.save(value);}
+    function resolveVoice(id){if(rules.validVoice(id))return id;const d=designs.load();return d.ok?d.entries.find(e=>e.id===id)?.cloudId:null;}
     function cancel(){current?.abort();}
     function cacheFile(voice,locale){return path.join(cacheDir,createHash('sha256').update(JSON.stringify([rules.model,voice,locale,rules.samples[locale]])).digest('hex')+'.wav');}
     function readSample(file){try{if(fs.statSync(file).size>MAX_AUDIO)return null;const b=fs.readFileSync(file);return validWav(b)?b:null;}catch(_){return null;}}
@@ -37,29 +42,52 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
     }catch(_){/* A sample cache failure never changes the child or retries a request. */}}
     async function generate(request){
         if(closed||current)return {ok:false,error:'busy'};
-        if(!request||typeof request!=='object'||Object.keys(request).some(k=>!['kind','voice','locale','turnId'].includes(k)))return {ok:false,error:'input'};
-        let text,voice,locale,cacheId=null,file=null;
-        if(request.kind==='preview'&&Object.keys(request).length===3&&rules.validVoice(request.voice)&&Object.hasOwn(rules.samples,request.locale)){
-            ({voice,locale}=request);text=rules.samples[locale];file=cacheFile(voice,locale);const b=readSample(file);if(b)return {ok:true,audio:new Uint8Array(b)};
-        }else if(request.kind==='reply'&&Object.keys(request).length===2){
+        if(!request||typeof request!=='object'||Array.isArray(request))return {ok:false,error:'input'};
+        let text,voice,locale,cacheId=null,file=null,creating=false;
+        if(request.kind==='design'){
+            if(Object.keys(request).sort().join(',')!=='kind,locale,settings,species'||!rules.species.includes(request.species)||!Object.hasOwn(rules.samples,request.locale)||!rules.design.valid(request.settings))return {ok:false,error:'input'};
+            const p=load(),d=designs.load();if(!p.ok||!d.ok)return {ok:false,error:'save'};
+            const existing=d.entries.find(e=>e.species===request.species&&e.locale===request.locale&&rules.design.prompt(e.settings)===rules.design.prompt(request.settings));
+            if(existing){
+                if(designAudio?.id===existing.id)return {ok:true,audio:new Uint8Array(designAudio.audio),design:view(existing)};
+                return {...await generate({kind:'preview',voice:existing.id,locale:request.locale}),design:view(existing)};
+            }
+            if(d.entries.length>=200)return {ok:false,error:'limit'};
+            creating=true;locale=request.locale;
+        }else if(request.kind==='preview'&&Object.keys(request).sort().join(',')==='kind,locale,voice'&&Object.hasOwn(rules.samples,request.locale)){
+            locale=request.locale;voice=resolveVoice(request.voice);if(!voice)return {ok:false,error:'input'};
+            text=rules.samples[locale];file=cacheFile(voice,locale);const b=readSample(file);if(b)return {ok:true,audio:new Uint8Array(b)};
+        }else if(request.kind==='reply'&&Object.keys(request).sort().join(',')==='kind,turnId'){
             const s=session.load(),p=load(),state=s.state,turn=state?.turns.at(-1);
             if(!s.ok||!p.ok)return {ok:false,error:'save'};
             if(!p.value.enabled||!state?.game||turn?.status!=='complete'||turn.id!==request.turnId||!turn.world)return {ok:false,error:'input'};
             const species=state.game.origin.appearance;
-            text=turn.result.reply;locale=state.locale;voice=p.value.voices[species]||rules.defaults[species];
+            text=turn.result.reply;locale=state.locale;voice=resolveVoice(p.value.voices[species]||rules.defaults[species]);
             cacheId=JSON.stringify([turn.id,text,locale,voice]);if(replyCache?.id===cacheId)return {ok:true,audio:new Uint8Array(replyCache.audio)};
         }else return {ok:false,error:'input'};
-        if(typeof text!=='string'||!text.trim()||text.length>1200||!rules.validVoice(voice))return {ok:false,error:'input'};
+        if(!creating&&(typeof text!=='string'||!text.trim()||text.length>1200||!(rules.validVoice(voice)||cloudId(voice))))return {ok:false,error:'input'};
         const secret=key();if(typeof secret!=='string'||!secret.trim()||secret.length>512)return {ok:false,error:'missing'};
         const controller=new AbortController();current=controller;const timer=setTimeout(()=>controller.abort(),timeout);
         try{
-            const response=await fetcher(endpoint,{method:'POST',redirect:'error',signal:controller.signal,headers:{'Content-Type':'application/json','x-goog-api-key':secret},
-                body:JSON.stringify({model:rules.model,input:[{type:'user_input',content:[{type:'text',text}]}],response_format:{type:'audio'},generation_config:{speech_config:[{voice}]},store:false})});
+            const language={ja:'ja-JP',en:'en-US','zh-CN':'zh-CN',ru:'ru-RU','es-ES':'es-ES','pt-BR':'pt-BR',de:'de-DE'};
+            const body=creating?{store:true,voice:{model:rules.model,type:'prompted',display_name:'Companion voice',language_code:language[locale],gender:'neutral',prompted:{input:rules.design.prompt(request.settings)}}}
+                :{model:rules.model,input:[{type:'user_input',content:[{type:'text',text}]}],response_format:{type:'audio'},generation_config:{speech_config:[{voice}]},store:false};
+            const response=await fetcher(creating?'https://generativelanguage.googleapis.com/v1beta/voices':endpoint,{method:'POST',redirect:'error',signal:controller.signal,headers:{'Content-Type':'application/json','x-goog-api-key':secret},body:JSON.stringify(body)});
             if(!response.ok)return {ok:false,error:[402,403,429].includes(response.status)?'limit':'failed'};
             if(Number(response.headers.get('content-length'))>MAX_RESPONSE)return {ok:false,error:'output'};
             const reader=response.body.getReader(),chunks=[];let size=0;
             try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>MAX_RESPONSE){await reader.cancel();return {ok:false,error:'output'};}chunks.push(Buffer.from(value));}}finally{reader.releaseLock();}
             const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+            if(creating){
+                if(!result||result.type!=='prompted'||!cloudId(result.id))return {ok:false,error:'output'};
+                const saved=designs.add({voice:result.id,species:request.species,locale,settings:request.settings});if(!saved.ok)return saved;
+                // A request may already have created a remote voice when stopped. Preserve its ID, never apply it automatically.
+                if(controller.signal.aborted||closed)return {ok:false,error:'cancelled'};
+                const part=result.sample_audio;
+                if(!part||part.mime_type!=='audio/wav'||typeof part.data!=='string'||part.data.length>MAX_RESPONSE||!/^[A-Za-z0-9+/]+={0,2}$/.test(part.data))return {ok:false,error:'output',design:view(saved.entry)};
+                const audio=Buffer.from(part.data,'base64');if(!validWav(audio))return {ok:false,error:'output',design:view(saved.entry)};
+                designAudio={id:saved.entry.id,audio};return {ok:true,audio:new Uint8Array(audio),design:view(saved.entry)};
+            }
             const parts=(result.outputs||[]).filter(p=>p.type==='audio');
             // REST interactions return audio blocks in output steps; never accept URLs or text as audio.
             const stepParts=(result.steps||[]).filter(s=>s.type==='model_output').flatMap(s=>s.content||[]).filter(p=>p.type==='audio');
@@ -72,6 +100,6 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
         }catch(_){return {ok:false,error:controller.signal.aborted?'cancelled':'failed'};}
         finally{clearTimeout(timer);if(current===controller)current=null;}
     }
-    return {load,save,generate,cancel,dispose(){closed=true;cancel();replyCache=null;}};
+    return {load,save,generate,cancel,dispose(){closed=true;cancel();replyCache=null;designAudio=null;}};
 }
 module.exports={createVoice,createPreferences,validWav,MAX_AUDIO};

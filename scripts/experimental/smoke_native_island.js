@@ -26,8 +26,10 @@ if(!process.versions.electron){
             return {ok:true,proposal};},prepare(...args){assert.deepEqual(args,[]);preparations++;return {ok:true};},cancel(){},dispose(){}};
         const {createSession,createStore}=require('./native_store');
         const session=createSession({store:createStore(path.join(directory,'save')),responder,clock:()=>time+=100});
-        const voice=require('./native_voice').createVoice({directory:path.join(directory,'save'),session,key:()=> 'fixture-only',fetcher:async(_url,options)=>{
-            voiceRequests.push(JSON.parse(options.body));return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:sampleWav().toString('base64')}]}]}));
+        const voice=require('./native_voice').createVoice({directory:path.join(directory,'save'),session,key:()=> 'fixture-only',fetcher:async(url,options)=>{
+            voiceRequests.push(JSON.parse(options.body));
+            if(url.endsWith('/voices'))return new Response(JSON.stringify({type:'prompted',id:'voice_fixture_'+voiceRequests.length,sample_audio:{mime_type:'audio/wav',data:sampleWav().toString('base64')}}));
+            return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:sampleWav().toString('base64')}]}]}));
         }});
         window=require('./native_window').openWindow(session,{show:true,voice});
         window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});return session;
@@ -48,6 +50,23 @@ if(!process.versions.electron){
         await until('window.voiceStarts>0');assert.equal(voiceRequests.length,1);assert.equal(voiceRequests[0].input[0].content[0].text,rules.samples.ja);
         await evaluate('document.getElementById("voice-listen").click()');await until('window.voiceStarts>1');assert.equal(voiceRequests.length,1);
         checks.push('eleven character voice defaults and free choice; explicit audition decodes/plays and reuses fixed sample without another request');
+        assert.equal(await evaluate('document.querySelectorAll("#voice-traits select").length'),8);
+        const beforeDesign=voiceRequests.length;
+        await evaluate('document.getElementById("voice-design").open=true');assert.equal(voiceRequests.length,beforeDesign);
+        for(const width of [1160,420]){window.setContentSize(width,850);for(const language of core.locales){
+            await evaluate(`document.getElementById('locale').value=${JSON.stringify(language)};document.getElementById('locale').dispatchEvent(new Event('change'));`);
+            assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));
+            assert.ok(await evaluate('Array.from(document.querySelectorAll("#voice-traits select")).every(el=>el.value)'));
+            await evaluate('document.getElementById("voice-design").scrollIntoView({block:"center"})');await capture('design-'+width+'-'+language+'.png');
+        }}
+        window.setContentSize(1160,850);await evaluate(`document.getElementById('locale').value='ja';document.getElementById('locale').dispatchEvent(new Event('change'));document.getElementById('voice-extra').value='鈴のような響き <b>そのまま</b>';document.getElementById('voice-extra').dispatchEvent(new Event('input'));document.getElementById('voice-make').click();`);
+        await until('document.getElementById("voice-choice").value.startsWith("design:")');await until('!document.getElementById("voice-make").disabled');
+        const customId=await evaluate('document.getElementById("voice-choice").value'),customSpecies=await evaluate('(async()=>(await nativeMemory.voiceLoad()).designs[0].species)()');
+        const customCloud=voiceRequests.at(-1).voice?'voice_fixture_'+voiceRequests.length:null;assert.ok(customCloud);
+        assert.equal(voiceRequests.at(-1).store,true);assert.ok(voiceRequests.at(-1).voice.prompted.input.includes('鈴のような響き <b>そのまま</b>'));
+        assert.deepEqual(await evaluate('(async()=>(await nativeMemory.voiceLoad()).value.voices)()'),{});
+        const firstDesignCount=voiceRequests.length;await evaluate('document.getElementById("voice-make").click()');await until('!document.getElementById("voice-make").disabled');assert.equal(voiceRequests.length,firstDesignCount);
+        checks.push('guided design in seven locales at two widths; optional original text only; explicit create/audition; duplicate reuse and no automatic selection');
         await evaluate(`document.getElementById('name').value='ピコ';document.getElementById('self').value='ぼく';document.getElementById('player').value='きみ';document.getElementById('setup').requestSubmit();`);
         assert.equal(await evaluate('(async()=>(await nativeMemory.load()).state)()'),null,'Unsigned form cannot create an individual');
         async function sign(){
@@ -110,7 +129,7 @@ if(!process.versions.electron){
             await capture('diary-'+width+'.png');
             await evaluate('document.getElementById("tab-stars").click()');await capture('stars-'+width+'.png');}
         checks.push('seven locales, desktop/mobile three views, no horizontal clipping');
-        await evaluate('document.getElementById("voice-enabled").click()');await until('document.getElementById("voice-status").textContent.includes("決まり")');
+        await evaluate('document.getElementById("voice-enabled").click()');await until('(async()=>(await nativeMemory.voiceLoad()).value.enabled===false)()');
         const voiceCount=voiceRequests.length;
         await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("play").hidden');
         assert.equal(await evaluate('document.getElementById("voice-choice").value'),'Kore');assert.equal(await evaluate('document.getElementById("voice-enabled").checked'),false);assert.equal(voiceRequests.length,voiceCount);
@@ -118,6 +137,20 @@ if(!process.versions.electron){
         await send('BAD_ACTION');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));assert.ok(preparations>0);checks.push('empty CLI warmup lifecycle and disconnected action rejected');
         await send('BAD');assert.ok((await evaluate('document.getElementById("status").textContent')).includes('記憶候補'));await send('QUOTA');assert.equal(await evaluate('document.getElementById("status").textContent'),'今日はお話をひと休み。またあとで話そうね。');checks.push('forged words rejected and quota has no paid fallback');
         const saved=JSON.parse(fs.readFileSync(path.join(directory,'save/native-memory.json'),'utf8'));assert.ok(core.validState(saved));assert.deepEqual(errors,[]);
+        assert.equal(saved.game.origin.appearance,customSpecies);
+        await evaluate(`document.getElementById('voice-choice').value=${JSON.stringify(customId)};document.getElementById('voice-choice').dispatchEvent(new Event('change'));document.getElementById('voice-enabled').checked=true;document.getElementById('voice-enabled').dispatchEvent(new Event('change'));`);
+        await until('(async()=>(await nativeMemory.voiceLoad()).value.enabled)()');
+        assert.equal(await evaluate(`(async()=>(await nativeMemory.voiceLoad()).value.voices[${JSON.stringify(customSpecies)}])()`),'Kore','mute toggle alone does not apply the candidate');
+        await evaluate('document.getElementById("voice-apply").click()');await until(`(async()=>(await nativeMemory.voiceLoad()).value.voices[${JSON.stringify(customSpecies)}]===${JSON.stringify(customId)})()`);
+        const beforeCustomReply=voiceRequests.length;await send('Where are you?');await until('!document.getElementById("voice-listen").disabled');
+        assert.ok(voiceRequests.length>beforeCustomReply);assert.equal(voiceRequests.at(-1).generation_config.speech_config[0].voice,customCloud);
+        assert.equal(voiceRequests.at(-1).input[0].content[0].text,'I am on the island. idle');
+        assert.equal(JSON.stringify(voiceRequests.at(-1)).includes('鈴のような響き'),false);
+        const beforeCustomRestart=voiceRequests.length;await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("play").hidden');
+        assert.equal(await evaluate('document.getElementById("voice-choice").value'),customId);assert.equal(await evaluate('document.getElementById("voice-extra").value'),'鈴のような響き <b>そのまま</b>');assert.equal(voiceRequests.length,beforeCustomRestart);
+        await evaluate('document.getElementById("voice-menu").open=true;document.getElementById("voice-design").open=true;document.getElementById("voice-panel").scrollIntoView({block:"start"})');
+        assert.equal(await evaluate('/Gemini|Google|API|VOICEVOX/i.test(document.body.innerText)'),false);await capture('custom-voice-in-play.png');
+        checks.push('explicit custom voice confirmation, persisted reply uses its cloud ID only, restart preserves original settings and never generates automatically');
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,checks,errors,packets,voiceRequests},null,2));console.log(JSON.stringify({ok:true,directory,checks,errors}));clearTimeout(timer);window.close();app.quit();
     }).catch(error=>{fs.writeFileSync(path.join(directory,'failure.json'),JSON.stringify({error:error.stack,checks,errors},null,2));console.error(directory,error.stack);clearTimeout(timer);app.exit(1);});
 }

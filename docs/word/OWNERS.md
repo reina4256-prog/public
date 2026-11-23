@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-24声づくり：[選択式／自由入力の正本](../specs/core/word_llm_native_system.md#選択式と自由入力でこの子の声をつくる2026-11-24)。root native_voice_designが8特徴と原文検査・説明組立、main native_voice_designsが独立候補registryとcloud ID参照を所有。native_voice.generateのdesign分岐は固定voice作成APIだけ、voice_uiは選択／任意原文／明示作成・試聴・確定を所有。本人store／学習／会話CLIの送信所有は非変更。
+
 2026-11-24読出：[native声の正本](../specs/core/word_llm_native_system.md#声を選んで同じ子と話す2026-11-23)。native_voice_key.jsが登録時と同じvoice-setup profileでの短命復号プロセスと親main専用pipeを所有し、native_electronが起動時に一度だけawaitする。本人保存・旧版audio設定・ゲームrendererの所有を変更しない。PC再起動後のキー再入力／VOICEVOX起動は不要。
 
 2026-11-23音声：[native声の正本](../specs/core/word_llm_native_system.md#声を選んで同じ子と話す2026-11-23)。native_voice rulesが11声／固定七言語サンプル、voice_uiが選択／再生／取消、mainのnative_voiceが限定生成／独立prefs／固定サンプルcacheを所有。native_window／preloadは既存検査付きIPC、voice_credentials／setup_native_voiceはゲーム外の鍵暗号化入力だけ。native_store／理解・学習・本人保存と旧audio_preferencesの所有は変更しない。

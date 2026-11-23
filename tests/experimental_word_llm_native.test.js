@@ -6,6 +6,55 @@ const voiceRules=require('../experimental_word_llm_native_voice');
 const nativeVoice=require('../scripts/experimental/native_voice');
 function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(pcm.length,40);return b;}
 const voiceResponse=()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:voiceWav().toString('base64')}]}]}));
+const designResponse=(id='voice_fixture')=>new Response(JSON.stringify({type:'prompted',id,sample_audio:{mime_type:'audio/wav',data:voiceWav().toString('base64')}}));
+test('voice design uses eight bounded language-neutral choices and optional original text',()=>{
+    const d=voiceRules.design,s=d.fresh();assert.ok(d.valid(s));assert.equal(d.fields.length,8);assert.equal(s.extra,'');
+    assert.match(d.prompt(s),/small, round creature/);assert.match(d.prompt(s),/Reduce breathiness/);assert.match(d.prompt(s),/never scream/);
+    s.extra='鈴のような響き';assert.ok(d.prompt(s).includes(s.extra));assert.equal(d.valid({...s,extra:'x'.repeat(301)}),false);
+    assert.equal(d.valid({...s,model:'other'}),false);assert.equal(d.valid({...s,traits:{...s.traits,pitch:'arbitrary'}}),false);
+    assert.equal(d.valid({...s,extra:'bad\u0000text'}),false);assert.equal(d.fresh().extra,'');
+});
+test('voice design sends only an explicit description, persists a candidate, and uses its saved ID after restart',async t=>{
+    const dir=directory(t),calls=[],settings=voiceRules.design.fresh();settings.extra='鈴のような響き';
+    const fetcher=async(url,o)=>{calls.push({url,body:JSON.parse(o.body),headers:o.headers});return url.endsWith('/voices')?designResponse():voiceResponse();};
+    const options={directory:dir,key:()=> 'test-secret',session:{load(){throw Error('must not read character');}},fetcher};
+    const service=nativeVoice.createVoice(options);assert.ok(service.load().ok);assert.equal(calls.length,0);
+    const request={kind:'design',species:'dragon',locale:'ja',settings},made=await service.generate(request);
+    assert.ok(made.ok);assert.equal(calls.length,1);assert.equal(calls[0].url,'https://generativelanguage.googleapis.com/v1beta/voices');
+    assert.deepEqual(calls[0].body,{store:true,voice:{model:voiceRules.model,type:'prompted',display_name:'Companion voice',language_code:'ja-JP',gender:'neutral',prompted:{input:voiceRules.design.prompt(settings)}}});
+    assert.deepEqual(service.load().value.voices,{},'creation/audition does not select a voice');
+    assert.ok(voiceRules.design.validId(made.design.id));assert.equal(JSON.stringify(made).includes('test-secret'),false);assert.equal(made.design.cloudId,undefined);
+    assert.ok((await service.generate(request)).ok);assert.equal(calls.length,1,'same explicit design reuses the candidate sample');
+    assert.equal(service.save({version:1,enabled:true,voices:{robot:made.design.id}}).ok,false,'cannot assign another species registry entry');
+    assert.ok(service.save({version:1,enabled:true,voices:{dragon:made.design.id}}).ok);
+    const reopened=nativeVoice.createVoice(options);assert.deepEqual(reopened.load().designs[0].settings,settings);
+    assert.equal(reopened.load().value.voices.dragon,made.design.id);assert.equal(calls.length,1,'restart does not generate');
+    assert.ok((await reopened.generate(request)).ok);assert.equal(calls.filter(c=>c.url.endsWith('/voices')).length,1,'never create the same design again after restart');
+    assert.equal(calls.at(-1).body.input[0].content[0].text,voiceRules.samples.ja);assert.equal(calls.at(-1).body.generation_config.speech_config[0].voice,'voice_fixture');
+    const state={locale:'ja',game:{origin:{appearance:'dragon'}},turns:[{id:'latest',status:'complete',world:{},input:'private original',result:{reply:'Saved final reply.'}}]};
+    const reply=nativeVoice.createVoice({...options,session:{load:()=>({ok:true,state})}});
+    assert.ok((await reply.generate({kind:'reply',turnId:'latest'})).ok);
+    assert.equal(calls.at(-1).body.input[0].content[0].text,'Saved final reply.');assert.equal(calls.at(-1).body.generation_config.speech_config[0].voice,'voice_fixture');
+    assert.equal(JSON.stringify(calls.at(-1)).includes(settings.extra),false);assert.equal(JSON.stringify(calls.at(-1)).includes('private original'),false);
+    assert.equal(fs.existsSync(path.join(dir,'native-memory.json')),false);
+});
+test('voice design rejects expanded input, unknown voice IDs and corrupt registries before any API call',async t=>{
+    const dir=directory(t);let calls=0;const service=nativeVoice.createVoice({directory:dir,key:()=> 'test',session:{},fetcher:async()=>{calls++;return designResponse();}});
+    const request={kind:'design',species:'dragon',locale:'ja',settings:voiceRules.design.fresh()};
+    for(const bad of [{...request,text:'arbitrary script'},{...request,species:'unknown'},{...request,locale:'unknown'},{...request,settings:{...request.settings,extra:'x'.repeat(301)}}])assert.equal((await service.generate(bad)).error,'input');
+    assert.equal((await service.generate({kind:'preview',voice:'voice_arbitrary',locale:'ja'})).ok,false);
+    assert.equal(service.save({version:1,enabled:true,voices:{dragon:'design:00000000-0000-4000-8000-000000000000'}}).ok,false);
+    assert.equal(calls,0);fs.writeFileSync(path.join(dir,'native-voice-designs.json'),'invalid');
+    assert.equal(service.load().ok,false);assert.equal((await service.generate(request)).error,'save');assert.equal(calls,0);
+});
+test('voice design failure and late cancellation never retry, auto-apply or fall back',async t=>{
+    const request={kind:'design',species:'dragon',locale:'ja',settings:voiceRules.design.fresh()};
+    for(const status of [400,401,403,429,500]){let calls=0;const service=nativeVoice.createVoice({directory:directory(t),session:{},key:()=> 'test',fetcher:async()=>{calls++;return new Response('',{status});}});
+        assert.equal((await service.generate(request)).ok,false);assert.equal(calls,1);assert.deepEqual(service.load().value.voices,{});}
+    let release;const service=nativeVoice.createVoice({directory:directory(t),session:{},key:()=> 'test',fetcher:()=>new Promise(r=>release=r)});
+    const pending=service.generate(request);service.cancel();release(designResponse('voice_cancelled'));
+    assert.equal((await pending).error,'cancelled');assert.deepEqual(service.load().value.voices,{});assert.equal(service.load().designs.length,1,'already-created ID is preserved without selection');
+});
 test('voice key setup opens visibly without changing the caller environment or starting a game',()=>{
     const {EventEmitter}=require('node:events'),{launch}=require('../scripts/experimental/setup_native_voice');let actual;
     const env={ELECTRON_RUN_AS_NODE:'1',EXAMPLE:'keep'},oldExit=process.exitCode,messages=[];

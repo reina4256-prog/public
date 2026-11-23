@@ -1,6 +1,6 @@
 (function(root,factory){
-    const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeVoiceRules=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(){
+    const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_llm_native_voice_design'):root.NativeVoiceDesign);if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeVoiceRules=api;
+})(typeof globalThis!=='undefined'?globalThis:this,function(design){
     'use strict';
     const model='gemini-3.8-flash-tts';
     const choices=[
@@ -23,7 +23,7 @@
     const object=o=>o&&typeof o==='object'&&!Array.isArray(o);
     const validVoice=id=>choices.some(v=>v.id===id);
     function valid(p){return object(p)&&Object.keys(p).every(k=>['version','enabled','voices'].includes(k))&&p.version===1
-        &&typeof p.enabled==='boolean'&&object(p.voices)&&Object.keys(p.voices).every(k=>species.includes(k)&&validVoice(p.voices[k]));}
+        &&typeof p.enabled==='boolean'&&object(p.voices)&&Object.keys(p.voices).every(k=>species.includes(k)&&(validVoice(p.voices[k])||design.validId(p.voices[k])));}
     const fresh=()=>({version:1,enabled:true,voices:{}});
-    return {model,choices,species,defaults,samples,validVoice,valid,fresh};
+    return {model,choices,species,defaults,samples,validVoice,valid,fresh,design};
 });
