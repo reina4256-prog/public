@@ -7,6 +7,41 @@ const nativeVoice=require('../scripts/experimental/native_voice');
 function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(pcm.length,40);return b;}
 const voiceResponse=()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:voiceWav().toString('base64')}]}]}));
 const designResponse=(id='voice_fixture')=>new Response(JSON.stringify({type:'prompted',id,sample_audio:{mime_type:'audio/wav',data:voiceWav().toString('base64')}}));
+
+test('voice diagnostics distinguish HTTP rejection, bad response, timeout and network without recording secrets',async t=>{
+    const secret='private-key-never-log',settings=voiceRules.design.fresh();settings.extra='private-player-prompt-never-log';
+    const request={kind:'design',species:'dragon',locale:'ja',settings};
+    const cases=[
+        {stage:'http',status:429,fetcher:async()=>new Response(JSON.stringify({error:{status:'RESOURCE_EXHAUSTED',message:secret,details:[{reason:'QUOTA_EXCEEDED',metadata:{prompt:settings.extra}},{reason:secret}]}}),{status:429})},
+        {stage:'http',status:400,fetcher:async()=>new Response(JSON.stringify({error:{status:'INVALID_ARGUMENT',message:settings.extra}}),{status:400})},
+        {stage:'response_json',fetcher:async()=>new Response(secret)},
+        {stage:'sample_format',fetcher:async()=>new Response(JSON.stringify({type:'prompted',id:'voice_private',sample_audio:{mime_type:'audio/l16',data:'AAAA'}}))},
+        {stage:'sample_wav',fetcher:async()=>new Response(JSON.stringify({type:'prompted',id:'voice_private',sample_audio:{mime_type:'audio/wav',data:'AAAA'}}))},
+        {stage:'network',fetcher:async()=>{throw Error(secret);}},
+        {stage:'timeout',fetcher:async(_u,o)=>new Promise((_r,reject)=>o.signal.addEventListener('abort',()=>reject(Error(secret))))}
+    ];
+    for(const item of cases){const dir=directory(t);let calls=0;
+        const service=nativeVoice.createVoice({directory:dir,session:{},key:()=>secret,timeout:25,fetcher:(...args)=>{calls++;return item.fetcher(...args);}});
+        assert.equal((await service.generate(request)).ok,false);assert.equal(calls,1);
+        const raw=fs.readFileSync(path.join(dir,'native-voice-diagnostics.jsonl'),'utf8'),entry=JSON.parse(raw);
+        assert.equal(entry.stage,item.stage);if(item.status)assert.equal(entry.httpStatus,item.status);
+        if(item.status===429){assert.equal(entry.providerStatus,'RESOURCE_EXHAUSTED');assert.deepEqual(entry.providerReasons,['QUOTA_EXCEEDED']);}
+        for(const forbidden of [secret,settings.extra,'voice_private','sample_audio','metadata','message'])assert.equal(raw.includes(forbidden),false);
+        assert.equal(entry.kind,'design');assert.ok(entry.elapsedMs>=0);
+    }
+});
+
+test('voice diagnostics preserve successful audio, explicit cancellation and operation when the diagnostic file is unwritable',async t=>{
+    const dir=directory(t),request={kind:'preview',voice:'Kore',locale:'ja'};
+    const service=nativeVoice.createVoice({directory:dir,session:{},key:()=> 'private',fetcher:async()=>voiceResponse()});
+    assert.ok((await service.generate(request)).ok);const file=path.join(dir,'native-voice-diagnostics.jsonl');
+    assert.equal(JSON.parse(fs.readFileSync(file,'utf8')).stage,'complete');
+    const blocked=directory(t);fs.mkdirSync(path.join(blocked,'native-voice-diagnostics.jsonl'));
+    assert.ok((await nativeVoice.createVoice({directory:blocked,session:{},key:()=> 'private',fetcher:async()=>voiceResponse()}).generate(request)).ok);
+    const cancelledDir=directory(t),cancelled=nativeVoice.createVoice({directory:cancelledDir,session:{},key:()=> 'private',fetcher:async(_u,o)=>new Promise((_r,reject)=>o.signal.addEventListener('abort',()=>reject(Error('private'))))});
+    const pending=cancelled.generate(request);cancelled.cancel();assert.equal((await pending).error,'cancelled');
+    assert.equal(JSON.parse(fs.readFileSync(path.join(cancelledDir,'native-voice-diagnostics.jsonl'),'utf8')).stage,'cancelled');
+});
 test('voice design uses eight bounded language-neutral choices and optional original text',()=>{
     const d=voiceRules.design,s=d.fresh();assert.ok(d.valid(s));assert.equal(d.fields.length,8);assert.equal(s.extra,'');
     assert.match(d.prompt(s),/small, round creature/);assert.match(d.prompt(s),/Reduce breathiness/);assert.match(d.prompt(s),/never scream/);

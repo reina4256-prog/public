@@ -41,6 +41,18 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
         fs.writeFileSync(file+'.tmp',audio);fs.renameSync(file+'.tmp',file);
     }catch(_){/* A sample cache failure never changes the child or retries a request. */}}
     async function generate(request){
+        // Only fixed classifications enter this local log: never request/response text, IDs or exceptions.
+        const started=Date.now(),diagnostic={version:1,at:new Date().toISOString(),kind:['design','preview','reply'].includes(request?.kind)?request.kind:'invalid',stage:'preflight'};
+        let result;
+        try{result=await runGenerate(request,diagnostic);return result;}
+        finally{
+            const entry={...diagnostic,elapsedMs:Math.max(0,Date.now()-started),outcome:result?.ok?'ok':(['busy','input','save','limit','missing','output','cancelled','failed'].includes(result?.error)?result.error:'failed')};
+            const line=JSON.stringify(entry);
+            try{fs.mkdirSync(directory,{recursive:true});fs.appendFileSync(path.join(directory,'native-voice-diagnostics.jsonl'),line+'\n',{encoding:'utf8',flush:true});}catch(_){console.error('[word-native-voice] diagnostic_write_failed');}
+            if(!result?.ok)console.error('[word-native-voice] '+line);
+        }
+    }
+    async function runGenerate(request,diagnostic){
         if(closed||current)return {ok:false,error:'busy'};
         if(!request||typeof request!=='object'||Array.isArray(request))return {ok:false,error:'input'};
         let text,voice,locale,cacheId=null,file=null,creating=false;
@@ -49,56 +61,77 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
             const p=load(),d=designs.load();if(!p.ok||!d.ok)return {ok:false,error:'save'};
             const existing=d.entries.find(e=>e.species===request.species&&e.locale===request.locale&&rules.design.prompt(e.settings)===rules.design.prompt(request.settings));
             if(existing){
-                if(designAudio?.id===existing.id)return {ok:true,audio:new Uint8Array(designAudio.audio),design:view(existing)};
+                if(designAudio?.id===existing.id){diagnostic.stage='cache';return {ok:true,audio:new Uint8Array(designAudio.audio),design:view(existing)};}
+                diagnostic.stage='reuse';
                 return {...await generate({kind:'preview',voice:existing.id,locale:request.locale}),design:view(existing)};
             }
             if(d.entries.length>=200)return {ok:false,error:'limit'};
             creating=true;locale=request.locale;
         }else if(request.kind==='preview'&&Object.keys(request).sort().join(',')==='kind,locale,voice'&&Object.hasOwn(rules.samples,request.locale)){
             locale=request.locale;voice=resolveVoice(request.voice);if(!voice)return {ok:false,error:'input'};
-            text=rules.samples[locale];file=cacheFile(voice,locale);const b=readSample(file);if(b)return {ok:true,audio:new Uint8Array(b)};
+            text=rules.samples[locale];file=cacheFile(voice,locale);const b=readSample(file);if(b){diagnostic.stage='cache';return {ok:true,audio:new Uint8Array(b)};}
         }else if(request.kind==='reply'&&Object.keys(request).sort().join(',')==='kind,turnId'){
             const s=session.load(),p=load(),state=s.state,turn=state?.turns.at(-1);
             if(!s.ok||!p.ok)return {ok:false,error:'save'};
             if(!p.value.enabled||!state?.game||turn?.status!=='complete'||turn.id!==request.turnId||!turn.world)return {ok:false,error:'input'};
             const species=state.game.origin.appearance;
             text=turn.result.reply;locale=state.locale;voice=resolveVoice(p.value.voices[species]||rules.defaults[species]);
-            cacheId=JSON.stringify([turn.id,text,locale,voice]);if(replyCache?.id===cacheId)return {ok:true,audio:new Uint8Array(replyCache.audio)};
+            cacheId=JSON.stringify([turn.id,text,locale,voice]);if(replyCache?.id===cacheId){diagnostic.stage='cache';return {ok:true,audio:new Uint8Array(replyCache.audio)};}
         }else return {ok:false,error:'input'};
         if(!creating&&(typeof text!=='string'||!text.trim()||text.length>1200||!(rules.validVoice(voice)||cloudId(voice))))return {ok:false,error:'input'};
         const secret=key();if(typeof secret!=='string'||!secret.trim()||secret.length>512)return {ok:false,error:'missing'};
-        const controller=new AbortController();current=controller;const timer=setTimeout(()=>controller.abort(),timeout);
+        const controller=new AbortController();current=controller;let timedOut=false;
+        const timer=setTimeout(()=>{timedOut=true;controller.abort();},timeout);
         try{
             const language={ja:'ja-JP',en:'en-US','zh-CN':'zh-CN',ru:'ru-RU','es-ES':'es-ES','pt-BR':'pt-BR',de:'de-DE'};
             const body=creating?{store:true,voice:{model:rules.model,type:'prompted',display_name:'Companion voice',language_code:language[locale],gender:'neutral',prompted:{input:rules.design.prompt(request.settings)}}}
                 :{model:rules.model,input:[{type:'user_input',content:[{type:'text',text}]}],response_format:{type:'audio'},generation_config:{speech_config:[{voice}]},store:false};
+            diagnostic.stage='network';
             const response=await fetcher(creating?'https://generativelanguage.googleapis.com/v1beta/voices':endpoint,{method:'POST',redirect:'error',signal:controller.signal,headers:{'Content-Type':'application/json','x-goog-api-key':secret},body:JSON.stringify(body)});
-            if(!response.ok)return {ok:false,error:[402,403,429].includes(response.status)?'limit':'failed'};
+            diagnostic.httpStatus=response.status;
+            if(!response.ok){
+                diagnostic.stage='http';
+                // Error messages may echo the player's prompt or key. Extract enums only, within 16 KiB.
+                try{const reader=response.body.getReader(),chunks=[];let size=0;
+                    try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>16384){await reader.cancel();break;}chunks.push(Buffer.from(value));}
+                        if(size<=16384){const error=JSON.parse(Buffer.concat(chunks).toString('utf8')).error;
+                            if(['INVALID_ARGUMENT','UNAUTHENTICATED','PERMISSION_DENIED','RESOURCE_EXHAUSTED','FAILED_PRECONDITION','NOT_FOUND','INTERNAL','UNAVAILABLE','DEADLINE_EXCEEDED'].includes(error?.status))diagnostic.providerStatus=error.status;
+                            const reasons=(Array.isArray(error?.details)?error.details:[]).map(d=>d?.reason).filter(r=>['RATE_LIMIT_EXCEEDED','QUOTA_EXCEEDED','BILLING_DISABLED','BILLING_NOT_ACTIVE','API_KEY_INVALID','API_KEY_EXPIRED','API_KEY_SERVICE_BLOCKED','ACCESS_DENIED','SERVICE_DISABLED','CONSUMER_INVALID','SAFETY','PROHIBITED_CONTENT'].includes(r));
+                            if(reasons.length)diagnostic.providerReasons=[...new Set(reasons)];
+                        }
+                    }finally{reader.releaseLock();}
+                }catch(_){/* Preserve the HTTP classification even if its body cannot be read. */}
+                return {ok:false,error:[402,403,429].includes(response.status)?'limit':'failed'};
+            }
+            diagnostic.stage='response_size';
             if(Number(response.headers.get('content-length'))>MAX_RESPONSE)return {ok:false,error:'output'};
-            const reader=response.body.getReader(),chunks=[];let size=0;
+            diagnostic.stage='response_body';const reader=response.body.getReader(),chunks=[];let size=0;
             try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>MAX_RESPONSE){await reader.cancel();return {ok:false,error:'output'};}chunks.push(Buffer.from(value));}}finally{reader.releaseLock();}
-            const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
+            diagnostic.stage='response_json';const result=JSON.parse(Buffer.concat(chunks).toString('utf8'));
             if(creating){
+                diagnostic.stage='voice_response';
                 if(!result||result.type!=='prompted'||!cloudId(result.id))return {ok:false,error:'output'};
-                const saved=designs.add({voice:result.id,species:request.species,locale,settings:request.settings});if(!saved.ok)return saved;
+                diagnostic.stage='registry';const saved=designs.add({voice:result.id,species:request.species,locale,settings:request.settings});if(!saved.ok)return saved;
                 // A request may already have created a remote voice when stopped. Preserve its ID, never apply it automatically.
                 if(controller.signal.aborted||closed)return {ok:false,error:'cancelled'};
-                const part=result.sample_audio;
+                diagnostic.stage='sample_format';const part=result.sample_audio;
+                diagnostic.audioFormat=['audio/wav','audio/l16','audio/pcm'].includes(part?.mime_type)?part.mime_type:(part?.mime_type?'other':'missing');
                 if(!part||part.mime_type!=='audio/wav'||typeof part.data!=='string'||part.data.length>MAX_RESPONSE||!/^[A-Za-z0-9+/]+={0,2}$/.test(part.data))return {ok:false,error:'output',design:view(saved.entry)};
-                const audio=Buffer.from(part.data,'base64');if(!validWav(audio))return {ok:false,error:'output',design:view(saved.entry)};
-                designAudio={id:saved.entry.id,audio};return {ok:true,audio:new Uint8Array(audio),design:view(saved.entry)};
+                diagnostic.stage='sample_wav';const audio=Buffer.from(part.data,'base64');if(!validWav(audio))return {ok:false,error:'output',design:view(saved.entry)};
+                diagnostic.stage='complete';designAudio={id:saved.entry.id,audio};return {ok:true,audio:new Uint8Array(audio),design:view(saved.entry)};
             }
+            diagnostic.stage='speech_format';
             const parts=(result.outputs||[]).filter(p=>p.type==='audio');
             // REST interactions return audio blocks in output steps; never accept URLs or text as audio.
             const stepParts=(result.steps||[]).filter(s=>s.type==='model_output').flatMap(s=>s.content||[]).filter(p=>p.type==='audio');
             const part=stepParts.at(-1)||parts.at(-1)||result.output_audio;
             if(!part||typeof part.data!=='string'||part.data.length>MAX_RESPONSE||!/^[A-Za-z0-9+/]+={0,2}$/.test(part.data))return {ok:false,error:'output'};
-            const audio=Buffer.from(part.data,'base64');if(!validWav(audio))return {ok:false,error:'output'};
+            diagnostic.stage='speech_wav';const audio=Buffer.from(part.data,'base64');if(!validWav(audio))return {ok:false,error:'output'};
             if(controller.signal.aborted||closed)return {ok:false,error:'cancelled'};
             if(file)writeSample(file,audio);else replyCache={id:cacheId,audio};
-            return {ok:true,audio:new Uint8Array(audio)};
+            diagnostic.stage='complete';return {ok:true,audio:new Uint8Array(audio)};
         }catch(_){return {ok:false,error:controller.signal.aborted?'cancelled':'failed'};}
-        finally{clearTimeout(timer);if(current===controller)current=null;}
+        finally{if(controller.signal.aborted)diagnostic.stage=timedOut?'timeout':'cancelled';clearTimeout(timer);if(current===controller)current=null;}
     }
     return {load,save,generate,cancel,dispose(){closed=true;cancel();replyCache=null;designAudio=null;}};
 }
