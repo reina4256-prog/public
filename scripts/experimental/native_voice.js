@@ -3,6 +3,33 @@ const fs=require('node:fs'),path=require('node:path'),{createHash}=require('node
 const rules=require('../../experimental_word_llm_native_voice');
 const endpoint='https://generativelanguage.googleapis.com/v1beta/interactions';
 const MAX_AUDIO=5760044,MAX_RESPONSE=8*1024*1024;
+function classifyExplanation(error){
+    // Recognize provider templates, never retain text or arbitrary field names from the body.
+    // A generation failure is not evidence of a policy refusal or of a particular forbidden trait.
+    const classes=new Set(),fields=new Set();
+    const knownFields=new Set(['voice','store','voice.model','voice.type','voice.gender','voice.language_code','voice.display_name','voice.prompted','voice.prompted.input','voice.prompted.base_voice']);
+    function classify(message){
+        if(typeof message!=='string')return;
+        if(/^Voice generation did not complete(?:[.,!]|$)/i.test(message))classes.add('generation_incomplete');
+        else if(/^(?:The )?(?:request|prompt|voice generation) (?:was |is )?(?:blocked|rejected) (?:due to|because of) (?:safety|policy|prohibited)/i.test(message))classes.add('policy_rejection');
+        else if(/^Invalid JSON payload received\. Unknown name /i.test(message))classes.add('unknown_parameter');
+        else if(/^(?:Quota exceeded|Resource has been exhausted|Rate limit exceeded|Too many requests)\b/i.test(message))classes.add('usage_limit');
+        else if(/^(?:Billing (?:is |has been )?(?:disabled|not enabled|not active)|Insufficient (?:credits|balance))\b/i.test(message))classes.add('billing_unavailable');
+        else if(/^(?:API key (?:not valid|is invalid|has expired)|Request had invalid authentication credentials)\b/i.test(message))classes.add('authentication');
+        else if(/^Model (?:is not supported|not found|is not available)\b/i.test(message))classes.add('model_unavailable');
+        const match=/^Invalid value at ['"]([^'"]{1,80})['"]/i.exec(message);
+        if(match&&knownFields.has(match[1])){fields.add(match[1]);classes.add('parameter_rejected');}
+    }
+    classify(error?.message);
+    for(const detail of (Array.isArray(error?.details)?error.details:[])){
+        if(detail?.['@type']!=='type.googleapis.com/google.rpc.BadRequest')continue;
+        for(const violation of (Array.isArray(detail.fieldViolations)?detail.fieldViolations:[])){
+            if(knownFields.has(violation?.field)){fields.add(violation.field);classes.add('parameter_rejected');}
+            classify(violation?.description);
+        }
+    }
+    return {explanationClasses:classes.size?[...classes].sort():['unclassified'],...(fields.size?{rejectedFields:[...fields].sort()}:{})};
+}
 function validWav(b){
     if(!Buffer.isBuffer(b)||b.length<44||b.length>MAX_AUDIO||b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WAVE'||b.readUInt32LE(4)+8!==b.length)return false;
     let fmt=false,data=false;
@@ -95,6 +122,7 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
                 try{const reader=response.body.getReader(),chunks=[];let size=0;
                     try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.length;if(size>16384){await reader.cancel();break;}chunks.push(Buffer.from(value));}
                         if(size<=16384){const error=JSON.parse(Buffer.concat(chunks).toString('utf8')).error;
+                            Object.assign(diagnostic,classifyExplanation(error));
                             if(['INVALID_ARGUMENT','UNAUTHENTICATED','PERMISSION_DENIED','RESOURCE_EXHAUSTED','FAILED_PRECONDITION','NOT_FOUND','INTERNAL','UNAVAILABLE','DEADLINE_EXCEEDED'].includes(error?.status))diagnostic.providerStatus=error.status;
                             const reasons=(Array.isArray(error?.details)?error.details:[]).map(d=>d?.reason).filter(r=>['RATE_LIMIT_EXCEEDED','QUOTA_EXCEEDED','BILLING_DISABLED','BILLING_NOT_ACTIVE','API_KEY_INVALID','API_KEY_EXPIRED','API_KEY_SERVICE_BLOCKED','ACCESS_DENIED','SERVICE_DISABLED','CONSUMER_INVALID','SAFETY','PROHIBITED_CONTENT'].includes(r));
                             if(reasons.length)diagnostic.providerReasons=[...new Set(reasons)];

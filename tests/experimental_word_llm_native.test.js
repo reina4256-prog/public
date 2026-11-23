@@ -8,6 +8,47 @@ function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b
 const voiceResponse=()=>new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:voiceWav().toString('base64')}]}]}));
 const designResponse=(id='voice_fixture')=>new Response(JSON.stringify({type:'prompted',id,sample_audio:{mime_type:'audio/wav',data:voiceWav().toString('base64')}}));
 
+test('voice HTTP explanations classify provider templates without treating echoed prompt words as a cause',async t=>{
+    const secret='private-api-key',extra='private-input-text',request={kind:'design',species:'dragon',locale:'ja',settings:{...voiceRules.design.fresh(),extra}};
+    const cases=[
+        ['Voice generation did not complete, so no voice was created. Try rephrasing the prompt.','generation_incomplete'],
+        ['The request was blocked due to safety restrictions.','policy_rejection'],
+        ['Invalid JSON payload received. Unknown name "private-input-text" at voice.','unknown_parameter'],
+        ['Invalid value at \'voice.gender\': '+secret,'parameter_rejected'],
+        ['Quota exceeded for '+secret,'usage_limit'],
+        ['Billing is not enabled for '+secret,'billing_unavailable'],
+        ['API key not valid. '+secret,'authentication'],
+        ['Model is not supported. '+secret,'model_unavailable'],
+        ['Input was "The request was blocked due to safety restrictions. '+extra+'"','unclassified'],
+        [extra+' policy safety quota gender invalid','unclassified']
+    ];
+    for(const [message,expected]of cases){const dir=directory(t);let calls=0;
+        const service=nativeVoice.createVoice({directory:dir,session:{},key:()=>secret,fetcher:async()=>{calls++;return new Response(JSON.stringify({error:{status:'INVALID_ARGUMENT',message}}),{status:400});}});
+        assert.equal((await service.generate(request)).ok,false);assert.equal(calls,1);
+        const raw=fs.readFileSync(path.join(dir,'native-voice-diagnostics.jsonl'),'utf8'),entry=JSON.parse(raw);
+        assert.deepEqual(entry.explanationClasses,[expected]);assert.equal(entry.httpStatus,400);
+        if(expected==='generation_incomplete')assert.equal(entry.explanationClasses.includes('policy_rejection'),false);
+        if(expected==='parameter_rejected')assert.deepEqual(entry.rejectedFields,['voice.gender']);
+        for(const forbidden of [secret,extra,'Try rephrasing','message','description'])assert.equal(raw.includes(forbidden),false);
+    }
+});
+
+test('voice explanation diagnostics bound and allowlist structured fields, ignore oversized or malformed error bodies',async t=>{
+    const bodies=[
+        JSON.stringify({error:{message:'private-original-text',details:[{'@type':'type.googleapis.com/google.rpc.BadRequest',fieldViolations:[{field:'voice.prompted.input',description:'private-original-text'},{field:'private-original-text',description:'private-api-key'}]},{fieldViolations:[{field:'store'}]}]}}),
+        JSON.stringify({error:{message:'Voice generation did not complete. '+ 'x'.repeat(17000)}}),
+        'private-original-text invalid JSON'
+    ];
+    for(const [i,body]of bodies.entries()){const dir=directory(t),service=nativeVoice.createVoice({directory:dir,session:{},key:()=> 'private-api-key',fetcher:async()=>new Response(body,{status:400})});
+        assert.equal((await service.generate({kind:'preview',voice:'Kore',locale:'ja'})).error,'failed');
+        const raw=fs.readFileSync(path.join(dir,'native-voice-diagnostics.jsonl'),'utf8'),entry=JSON.parse(raw);
+        assert.equal(entry.stage,'http');assert.equal(entry.httpStatus,400);
+        if(i===0){assert.deepEqual(entry.explanationClasses,['parameter_rejected']);assert.deepEqual(entry.rejectedFields,['voice.prompted.input']);}
+        else assert.equal(entry.explanationClasses,undefined);
+        assert.equal(raw.includes('private-original-text'),false);assert.equal(raw.includes('private-api-key'),false);
+    }
+});
+
 test('voice diagnostics distinguish HTTP rejection, bad response, timeout and network without recording secrets',async t=>{
     const secret='private-key-never-log',settings=voiceRules.design.fresh();settings.extra='private-player-prompt-never-log';
     const request={kind:'design',species:'dragon',locale:'ja',settings};

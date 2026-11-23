@@ -2,6 +2,8 @@
 
 ## 声が出ないときのローカル診断
 
+追加の説明分類：`explanationClasses`には既知のエラー定型句に応じた分類だけ、`rejectedFields`には既知の送信項目名だけを記録する。`generation_incomplete`はGoogleが生成未完了と説明した場合で、指示のどの語が原因か／安全方針による拒否かを示さない。`parameter_rejected`と項目名はパラメータ検査の手掛かり、`policy_rejection`は明示的な安全／方針拒否の定型句、`unclassified`は分類不能を示す。全文・自由な要約・未知の項目名は保存しない。改修後に再起動して一度試す必要があり、助手からの追加生成は行わない。
+
 2026-11-24：ゲームを再起動して本人が一度試すと、mainの処理段階・HTTP番号・固定分類・所要時間を`%APPDATA%/AIPetGame-WordLearning-LLMNative/native-voice-diagnostics.jsonl`へ追記する。失敗分類は起動した端末にも出る。APIキー、指示文、会話文、声ID、エラー本文は保存しない。追加通信／自動再送／予算変更なし。HTTP429は回数・金額など複数の制限を含むため、1000円到達を単独で証明しない。`sample_format`／`sample_wav`は受信音声、`timeout`は60秒待ち、`network`は応答前の通信失敗、`http`は応答番号を併せて確認する。`complete`はmainでの音声検査完了で、画面側の再生完了を保証しない。改修前の失敗の詳細は残っていないため復元できない。ゲーム内の自然な案内は維持し、診断表示をプレイヤー画面へ追加しない。
 
 正本は[声の所有仕様](../specs/core/word_llm_native_system.md#声を選んで同じ子と話す2026-11-23)。旧版／比較版の声設定・VOICEVOX停止を保持する。Live／マイクの追加ではない。
