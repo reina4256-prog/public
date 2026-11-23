@@ -2,16 +2,25 @@
 const fs=require('node:fs'),path=require('node:path');
 if(!process.versions.electron){
     const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;
-    const child=require('node:child_process').spawn(require('electron'),[__filename],{env,stdio:'inherit',windowsHide:false});
-    child.on('exit',code=>{process.exitCode=code??1;});child.on('error',()=>{process.exitCode=1;});
+    const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/native-voice-setup-'));
+    const child=require('node:child_process').spawn(require('electron'),[__filename,directory],{env,stdio:'inherit',windowsHide:false});
+    child.on('close',async code=>{
+        process.exitCode=code??1;if(code!==0)return;
+        const summary=JSON.parse(fs.readFileSync(path.join(directory,'summary.json'),'utf8'));
+        const key=await require('./native_voice_key').loadKey(path.join(directory,'AIPetGame-WordLearning-LLMNative'));
+        summary.ok=key==='AQ.'+'x'.repeat(280);
+        summary.checks.push(summary.ok?'separate game process reads key after setup closes and restarts':'separate-process key read failed');
+        fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(summary,null,2));
+        console.log(JSON.stringify({ok:summary.ok,checks:summary.checks,directory}));process.exitCode=summary.ok?0:1;
+    });child.on('error',()=>{process.exitCode=1;});
 }else{
     const {app,safeStorage}=require('electron'),assert=require('node:assert/strict');
-    const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/native-voice-setup-'));
+    const directory=process.argv[2];
     // Isolate the actual setup window and Windows encryption from all personal data.
     app.disableHardwareAcceleration();app.setPath('appData',directory);
     const checks=[];let window;
     const timer=setTimeout(()=>finish(false,'timeout'),30000);
-    function finish(ok,error){clearTimeout(timer);fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok,checks,error},null,2));console.log(JSON.stringify({ok,checks,error,directory}));app.exit(ok?0:1);}
+    function finish(ok,error){clearTimeout(timer);fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok,checks,error},null,2));console.log(JSON.stringify({ok,checks,error,directory}));if(ok)app.quit();else app.exit(1);}
     app.on('browser-window-created',(_event,created)=>{
         window=created;
         window.webContents.once('did-finish-load',async()=>{

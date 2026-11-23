@@ -12,10 +12,11 @@ if(!app.requestSingleInstanceLock()){
 else {
     let window,session;
     app.on('second-instance',()=>{if(window){window.show();window.focus();}});
-    app.whenReady().then(()=>{
+    app.whenReady().then(async()=>{
         console.log('[word-native] Preparing the native window.');
         const store=createStore(directory);
-        const voiceKey=process.env.WORD_GEMINI_TTS_KEY||require('./native_voice_credentials').credentials(directory,require('electron').safeStorage).load();delete process.env.WORD_GEMINI_TTS_KEY;
+        const suppliedVoiceKey=process.env.WORD_GEMINI_TTS_KEY;delete process.env.WORD_GEMINI_TTS_KEY;
+        const voiceKey=suppliedVoiceKey||await require('./native_voice_key').loadKey(directory,{executable:process.execPath});
         // Reuse the existing CLI's dedicated login. Never copy/read its token or a game save.
         const responder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:core.protocol,measure:true});
         const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
@@ -28,7 +29,7 @@ else {
             'experimental_word_llm_native_book.css','experimental_word_llm_native_island.css','experimental_word_start_questions.js',
             'experimental_word_island_boot.js','experimental_word_island_navigation.js','data.js','island_shared.js',
             'view_renderer.js','localization_core.js','localization_catalog.js','experimental_word_llm_native_voice.js',
-            'experimental_word_llm_native_voice_ui.js','scripts/experimental/native_voice.js','scripts/experimental/native_voice_credentials.js']});
+            'experimental_word_llm_native_voice_ui.js','scripts/experimental/native_voice.js','scripts/experimental/native_voice_credentials.js','scripts/experimental/native_voice_key.js']});
         const sessionId=randomUUID();let sequence=0;
         recorder.append({sessionId,sequence:++sequence,event:{kind:'session',at:Date.now(),mode:'llm-native',runtime:recorder.version}});
         session=createSession({store,responder,record:event=>{

@@ -15,6 +15,21 @@ test('voice key setup opens visibly without changing the caller environment or s
         child.emit('error',Error('test'));assert.equal(process.exitCode,1);assert.equal(messages.length,1);child.emit('exit',0);assert.equal(process.exitCode,0);
     }finally{process.exitCode=oldExit;}
 });
+test('voice key reader keeps secrets off arguments, inherited environment and logs, and fails closed',async()=>{
+    const {EventEmitter}=require('node:events'),{loadKey}=require('../scripts/experimental/native_voice_key'),key='AQ.'+'x'.repeat(280);
+    for(const mode of ['ok','exit','oversize','error','timeout']){
+        let actual,killed=false;
+        const result=await loadKey('C:/fixture',{executable:'fixture-electron',timeout:mode==='timeout'?5:1000,spawn:(exe,args,options)=>{
+            actual={exe,args,options};const child=new EventEmitter();child.stdout=new EventEmitter();child.kill=()=>{killed=true;};
+            if(mode!=='timeout')queueMicrotask(()=>{if(mode==='error')child.emit('error',Error(key));else{child.stdout.emit('data',Buffer.from(mode==='oversize'?'x'.repeat(1025):'\r\n'+key));child.emit('close',mode==='exit'?1:0);}});
+            return child;
+        }});
+        assert.equal(result,mode==='ok'?key:'');assert.equal(JSON.stringify(actual.args).includes(key),false);
+        assert.equal(actual.options.env.WORD_GEMINI_TTS_KEY,undefined);assert.equal(actual.options.env.ELECTRON_RUN_AS_NODE,undefined);
+        assert.deepEqual(actual.options.stdio,['ignore','pipe','ignore']);assert.equal(actual.options.windowsHide,true);
+        if(['timeout','oversize'].includes(mode))assert.ok(killed);
+    }
+});
 test('native voice: eleven species have distinct selectable defaults, seven samples and bounded independent preferences',t=>{
     assert.equal(voiceRules.species.length,11);assert.equal(new Set(Object.values(voiceRules.defaults)).size,11);
     for(const s of voiceRules.species)assert.ok(voiceRules.validVoice(voiceRules.defaults[s]));
