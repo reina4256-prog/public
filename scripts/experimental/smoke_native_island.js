@@ -24,8 +24,8 @@ if(!process.versions.electron){
             if(p.input==='BAD')proposal.terms=[{word:'forged',quote:p.input}];
             if(p.input==='BAD_ACTION')proposal.action='eat';
             return {ok:true,proposal};},prepare(...args){assert.deepEqual(args,[]);preparations++;return {ok:true};},cancel(){},dispose(){}};
-        const {createSession,createStore}=require('./native_store');
-        const session=createSession({store:createStore(path.join(directory,'save')),responder,clock:()=>time+=100});
+        const {createSession,createProfiles}=require('./native_store');
+        const session=createSession({store:createProfiles(path.join(directory,'save')),responder,clock:()=>time+=100});
         const voice=require('./native_voice').createVoice({directory:path.join(directory,'save'),session,key:()=> 'fixture-only',fetcher:async(url,options)=>{
             voiceRequests.push(JSON.parse(options.body));
             if(url.endsWith('/voices'))return new Response(JSON.stringify({type:'prompted',id:'voice_fixture_'+voiceRequests.length,sample_audio:{mime_type:'audio/wav',data:sampleWav().toString('base64')}}));
@@ -151,6 +151,40 @@ if(!process.versions.electron){
         await evaluate('document.getElementById("voice-menu").open=true;document.getElementById("voice-design").open=true;document.getElementById("voice-panel").scrollIntoView({block:"start"})');
         assert.equal(await evaluate('/Gemini|Google|API|VOICEVOX/i.test(document.body.innerText)'),false);await capture('custom-voice-in-play.png');
         checks.push('explicit custom voice confirmation, persisted reply uses its cloud ID only, restart preserves original settings and never generates automatically');
+        const originalState=JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8'));
+        const sharedVoices=fs.readFileSync(path.join(directory,'save','native-voice-designs.json'),'utf8');
+        const voicesBeforeCharacters=voiceRequests.length;
+        await evaluate('document.getElementById("back-title").click()');await until('!document.getElementById("title-menu").hidden');
+        assert.equal(await evaluate('document.getElementById("new-game").hidden'),false);
+        await evaluate('document.getElementById("new-game").click();document.getElementById("questions-title").click()');
+        assert.equal(JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8')).character.name,originalState.character.name);
+        await evaluate('document.getElementById("new-game").click()');
+        for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
+        await until('!document.getElementById("setup").hidden');
+        assert.equal(await evaluate('document.getElementById("name").readOnly'),false);
+        await evaluate('document.getElementById("name").value="Second <name>";document.getElementById("self").value="I";document.getElementById("player").value="you";document.getElementById("signature").scrollIntoView({block:"center"})');
+        const signBox=await evaluate('(()=>{const r=document.getElementById("signature").getBoundingClientRect();return{x:Math.round(r.x+r.width*.3),y:Math.round(r.y+r.height*.5)}})()');
+        window.webContents.sendInputEvent({type:'mouseDown',x:signBox.x,y:signBox.y,button:'left',clickCount:1});window.webContents.sendInputEvent({type:'mouseMove',x:signBox.x+50,y:signBox.y+4});window.webContents.sendInputEvent({type:'mouseUp',x:signBox.x+50,y:signBox.y+4,button:'left',clickCount:1});
+        await until('!document.getElementById("sign").disabled');await evaluate('document.getElementById("sign").click()');await until('!document.getElementById("play").hidden');
+        assert.equal(await evaluate('document.getElementById("character-name").textContent'),'Second <name>');
+        assert.equal(fs.readFileSync(path.join(directory,'save','native-voice-designs.json'),'utf8'),sharedVoices);assert.equal(voiceRequests.length,voicesBeforeCharacters);
+        await evaluate('document.getElementById("back-title").click();document.getElementById("continue-game").click()');await until('!document.getElementById("character-picker").hidden');
+        assert.equal(await evaluate('document.querySelectorAll("#character-list button").length'),2);
+        for(const locale of ['ja','en','zh-CN','ru','es-ES','pt-BR','de'])for(const width of [1160,420]){window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(locale)+');GameI18n.localizeTree(document.body)');await sleep(50);assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));}
+        await evaluate('GameI18n.setLanguage("ja");GameI18n.localizeTree(document.body)');await capture('character-picker-420.png');window.setSize(1160,850);await capture('character-picker-1160.png');
+        await evaluate('document.querySelector("#character-list button").click()');await until('!document.getElementById("play").hidden');
+        assert.equal(await evaluate('document.getElementById("character-name").textContent'),originalState.character.name);
+        assert.equal(await evaluate('document.getElementById("voice-choice").value'),customId);
+        assert.equal(JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8')).turns.length,originalState.turns.length);
+        await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("character-picker").hidden');
+        await evaluate('document.querySelectorAll("#character-list button")[1].click()');await until('!document.getElementById("play").hidden');assert.equal(await evaluate('document.getElementById("character-name").textContent'),'Second <name>');
+        assert.equal(voiceRequests.length,voicesBeforeCharacters);assert.deepEqual(errors,[]);
+        checks.push('new game preserves original and created voices; two independent saves selectable after restart; abandon onboarding; seven-locale responsive character picker and literal names');
+        const primaryFile=path.join(directory,'save','native-memory.json'),originalBytes=fs.readFileSync(primaryFile);fs.writeFileSync(primaryFile,'corrupt fixture');
+        await evaluate('document.getElementById("back-title").click();document.getElementById("continue-game").click()');await until('document.getElementById("title-status").textContent.length>0');
+        assert.equal(await evaluate('document.getElementById("title-status").getBoundingClientRect().height>0'),true);
+        window.setSize(420,850);await capture('character-save-error-420.png');fs.writeFileSync(primaryFile,originalBytes);
+        checks.push('corrupt saved character blocks selection safely with a visible natural title-screen error');
         fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify({ok:true,checks,errors,packets,voiceRequests},null,2));console.log(JSON.stringify({ok:true,directory,checks,errors}));clearTimeout(timer);window.close();app.quit();
     }).catch(error=>{fs.writeFileSync(path.join(directory,'failure.json'),JSON.stringify({error:error.stack,checks,errors},null,2));console.error(directory,error.stack);clearTimeout(timer);app.exit(1);});
 }

@@ -9,6 +9,9 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
     ipcMain.handle('native-load',event=>allowed(event)?session.load():{ok:false,error:'input'});
     ipcMain.handle('native-create',(event,character,locale,answers)=>allowed(event)?session.create(character,locale,answers):{ok:false,error:'input'});
     ipcMain.handle('native-prepare',(event,answers)=>allowed(event)?session.prepare(answers):{ok:false,error:'input'});
+    ipcMain.handle('native-characters',event=>allowed(event)?session.characters():{ok:false,error:'input'});
+    ipcMain.handle('native-select-character',(event,id)=>allowed(event)?session.selectCharacter(id):{ok:false,error:'input'});
+    ipcMain.handle('native-create-character',(event,character,locale,answers)=>allowed(event)?session.createCharacter(character,locale,answers):{ok:false,error:'input'});
     ipcMain.handle('native-warmup',event=>allowed(event)?session.warmup():{ok:false,error:'input'});
     ipcMain.handle('native-pulse',(event,paused)=>allowed(event)?session.pulse(paused):{ok:false,error:'input'});
     ipcMain.handle('native-submit',(event,input,locale)=>allowed(event)?session.submit(input,locale):{ok:false,error:'input'});
@@ -25,7 +28,7 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
     window.on('hide',()=>{session.cancel();voice?.cancel();});
     window.on('closed',()=>{
         session.dispose();voice?.dispose();
-        for(const name of ['native-load','native-create','native-prepare','native-warmup','native-pulse','native-submit','native-voice-load','native-voice-save','native-voice-generate'])ipcMain.removeHandler(name);
+        for(const name of ['native-load','native-create','native-prepare','native-characters','native-select-character','native-create-character','native-warmup','native-pulse','native-submit','native-voice-load','native-voice-save','native-voice-generate'])ipcMain.removeHandler(name);
         ipcMain.removeListener('native-cancel',cancel);
         ipcMain.removeListener('native-voice-cancel',voiceCancel);
     });

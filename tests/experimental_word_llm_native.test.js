@@ -2,6 +2,40 @@
 const {test}=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const core=require('../experimental_word_llm_native'),{createStore,createSession}=require('../scripts/experimental/native_store');
 const character={name:'A',self:'I',player:'you'};
+
+test('native profiles preserve the original save and shared voice data across new characters and restart',t=>{
+    const {createProfiles}=require('../scripts/experimental/native_store'),dir=directory(t),first=core.create(character,'en'),second=core.create({...character,name:'B'},'ja');
+    const original=createStore(dir);assert.ok(original.save(first).ok);const oldBytes=fs.readFileSync(original.file);
+    const voiceFile=path.join(dir,'native-voice-designs.json');fs.writeFileSync(voiceFile,'shared-voice-fixture');
+    const profiles=createProfiles(dir);assert.deepEqual(profiles.load().value,first);assert.deepEqual(profiles.list().characters,[{id:'original',name:'A'}]);
+    assert.ok(profiles.create(second).ok);const secondId=profiles.list().selected;assert.notEqual(secondId,'original');
+    assert.equal(profiles.list().characters.length,2);assert.deepEqual(fs.readFileSync(original.file),oldBytes);
+    const reopened=createProfiles(dir);assert.deepEqual(reopened.load().value,second);assert.ok(reopened.select('original').ok);assert.deepEqual(reopened.load().value,first);
+    assert.ok(reopened.select(secondId).ok);assert.deepEqual(reopened.load().value,second);assert.equal(fs.readFileSync(voiceFile,'utf8'),'shared-voice-fixture');
+    assert.equal(reopened.select('../outside').ok,false);assert.equal(reopened.select('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa').ok,false);assert.deepEqual(reopened.load().value,second);
+});
+
+test('native profile corruption and failed pointer writes never reset or discard saved characters',t=>{
+    const {createProfiles}=require('../scripts/experimental/native_store'),dir=directory(t),value=core.create(character,'en');
+    createStore(dir).save(value);fs.writeFileSync(path.join(dir,'native-active-character.json'),'{bad');
+    const broken=createProfiles(dir);assert.equal(broken.load().ok,false);assert.equal(broken.create(value).ok,false);assert.equal(broken.select('original').ok,false);
+    assert.deepEqual(createStore(dir).load().value,value);
+    const clean=directory(t);createStore(clean).save(value);const profiles=createProfiles(clean);fs.mkdirSync(path.join(clean,'native-active-character.json.tmp'));
+    assert.equal(profiles.create(core.create({...character,name:'B'},'en')).ok,false);assert.equal(profiles.list().characters.length,2);assert.deepEqual(profiles.load().value,value);
+    assert.deepEqual(createStore(clean).load().value,value);
+    const missing=directory(t);fs.writeFileSync(path.join(missing,'native-active-character.json'),JSON.stringify({version:1,id:'original'}));assert.equal(createProfiles(missing).load().ok,false);
+});
+
+test('native session creates and selects separate characters without mixing original memories',t=>{
+    const {createProfiles}=require('../scripts/experimental/native_store'),store=createProfiles(directory(t));
+    let cancelFails=false;const session=createSession({store,responder:{cancel(){if(cancelFails)throw Error('cancel');},dispose(){}}});session.create(character,'en');const original=session.load().state;
+    assert.equal(session.createCharacter({...character,name:'B'},'en',[0,0,0,0,0,0,0]).ok,true);
+    assert.equal(session.load().state.character.name,'B');assert.equal(session.characters().characters.length,2);
+    assert.ok(session.selectCharacter('original').ok);assert.deepEqual(session.load().state,original);
+    assert.equal(session.create(character,'en').ok,false);cancelFails=true;
+    assert.equal(session.createCharacter({...character,name:'C'},'en',[0,0,0,0,0,0,0]).ok,false);
+    assert.deepEqual(session.load().state,original);assert.equal(store.list().selected,'original');assert.equal(store.list().characters.length,2);session.dispose();
+});
 const voiceRules=require('../experimental_word_llm_native_voice');
 const nativeVoice=require('../scripts/experimental/native_voice');
 function voiceWav(){const pcm=Buffer.alloc(4800),b=Buffer.alloc(44+pcm.length);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(pcm.length,40);return b;}
@@ -270,12 +304,12 @@ test('native voice IPC rejects other senders, subframes and URLs and releases al
     const fixture={exports:{}};
     vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../scripts/experimental/native_window.js'),'utf8'),{module:fixture,__dirname:path.resolve(__dirname,'../scripts/experimental'),console,require:name=>name==='electron'?{BrowserWindow:Window,ipcMain}:require(name)});
     const voice={load(){calls.push('load');return {ok:true};},save(){calls.push('save');return {ok:true};},generate(){calls.push('generate');return {ok:true};},cancel(){calls.push('cancel');},dispose(){calls.push('dispose');}};
-    const window=fixture.exports.openWindow({cancel(){},dispose(){}},{show:false,voice}),event={sender:window.webContents,senderFrame:window.webContents.mainFrame};
-    for(const channel of ['native-voice-load','native-voice-save','native-voice-generate']){
+    const window=fixture.exports.openWindow({cancel(){},dispose(){},characters(){calls.push('characters');return {ok:true};},selectCharacter(){calls.push('select-character');return {ok:true};},createCharacter(){calls.push('create-character');return {ok:true};}},{show:false,voice}),event={sender:window.webContents,senderFrame:window.webContents.mainFrame};
+    for(const channel of ['native-voice-load','native-voice-save','native-voice-generate','native-characters','native-select-character','native-create-character']){
         const fn=handlers.get(channel);assert.equal(fn({...event,sender:{}}).ok,false);assert.equal(fn({...event,senderFrame:{url:event.senderFrame.url}}).ok,false);
         const url=event.senderFrame.url;event.senderFrame.url='https://example.com/';assert.equal(fn(event).ok,false);event.senderFrame.url=url;assert.equal(fn(event).ok,true);
     }
-    assert.deepEqual(calls,['load','save','generate']);ipcMain.emit('native-voice-cancel',{...event,sender:{}});assert.equal(calls.length,3);
+    assert.deepEqual(calls,['load','save','generate','characters','select-character','create-character']);ipcMain.emit('native-voice-cancel',{...event,sender:{}});assert.equal(calls.length,6);
     ipcMain.emit('native-voice-cancel',event);assert.equal(calls.at(-1),'cancel');window.emit('hide');window.emit('closed');assert.equal(calls.at(-1),'dispose');assert.equal(handlers.size,0);assert.equal(ipcMain.listenerCount('native-voice-cancel'),0);
 });
 test('interactive launcher uses a visible Windows startup and reports spawn and abnormal exit failures',()=>{

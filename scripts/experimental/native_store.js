@@ -36,6 +36,30 @@ function createStore(directory) {
     }
     return {load,save,file};
 }
+function createProfiles(directory){
+    const root=path.join(directory,'native-characters'),pointer=path.join(directory,'native-active-character.json');
+    const validId=id=>id==='original'||typeof id==='string'&&id.length===36&&/^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id);
+    const at=id=>createStore(id==='original'?directory:path.join(root,id));
+    let selected='original',store=null,blocked=false;
+    try{const hasPointer=fs.existsSync(pointer);if(hasPointer){if(fs.statSync(pointer).size>256)throw Error('pointer');const p=JSON.parse(fs.readFileSync(pointer,'utf8'));
+        if(!p||Object.keys(p).sort().join(',')!=='id,version'||p.version!==1||!validId(p.id))throw Error('pointer');selected=p.id;}
+        store=at(selected);if(hasPointer&&!fs.existsSync(store.file))throw Error('missing');
+    }catch(_){blocked=true;}
+    const fail=()=>({ok:false,error:'save',reason:'profiles'});
+    function activate(id){fs.writeFileSync(pointer+'.tmp',JSON.stringify({version:1,id}),{encoding:'utf8',flush:true});fs.renameSync(pointer+'.tmp',pointer);}
+    function list(){try{if(blocked)return fail();const ids=[];
+        if(fs.existsSync(at('original').file)||fs.existsSync(at('original').file+'.backup'))ids.push('original');
+        if(fs.existsSync(root))for(const entry of fs.readdirSync(root,{withFileTypes:true}).sort((a,b)=>a.name.localeCompare(b.name)))if(entry.isDirectory()&&entry.name!=='original'&&validId(entry.name)&&fs.existsSync(at(entry.name).file))ids.push(entry.name);
+        const characters=[];for(const id of ids){const r=at(id).load();if(!r.ok||!r.value)return fail();characters.push({id,name:r.value.character.name});}
+        return {ok:true,selected,characters};
+    }catch(_){return fail();}}
+    function select(id){try{if(blocked||!validId(id))return fail();const target=at(id);if(!fs.existsSync(target.file))return fail();const r=target.load();if(!r.ok||!r.value)return fail();activate(id);selected=id;store=target;return r;}catch(_){return fail();}}
+    function create(value){try{if(blocked||!core.validState(value)||!list().ok)return fail();const id=require('node:crypto').randomUUID(),target=at(id),r=target.save(value);if(!r.ok)return r;
+        // Keep the previous character intact. If pointer persistence fails the new save remains recoverable in the list.
+        activate(id);selected=id;store=target;return {ok:true};
+    }catch(_){return fail();}}
+    return {load:()=>blocked?fail():store.load(),save:value=>blocked?fail():store.save(value),list,select,create,get file(){return store?.file;}};
+}
 function createSession({store,responder,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
     let state=null,loaded=false,blocked=false,busy=false;
     let lastClock=clock(),lastSave=lastClock;
@@ -66,6 +90,21 @@ function createSession({store,responder,record=()=>{},clock=()=>performance.now(
         load();if(blocked||!state||state.game||busy)return {ok:false,error:'input'};
         try{const value=core.adopt(state,answers,islandFactory());if(!persist(value,'adopt').ok)return {ok:false,error:'save'};
             state=value;lastClock=clock();return {ok:true,state:copy()};}catch(_){return {ok:false,error:'input'};}
+    }
+    function characters(){load();return blocked?{ok:false,error:'save'}:store.list?.()||{ok:true,characters:[]};}
+    function selectCharacter(id){
+        load();if(blocked||busy||!store.select)return {ok:false,error:'input'};
+        if(state&&!persist(state,'character-switch').ok)return {ok:false,error:'save'};
+        responder.cancel();const result=store.select(id);if(!result.ok)return result;
+        state=null;loaded=false;lastClock=lastSave=clock();return load();
+    }
+    function createCharacter(character,locale,answers){
+        load();if(blocked||busy||!state||!store.create)return {ok:false,error:'input'};
+        try{const value=core.create(character,locale,answers,islandFactory());
+            if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};
+            responder.cancel();const result=store.create(value);if(!result.ok)return result;
+            state=value;lastClock=lastSave=clock();return {ok:true,state:copy()};
+        }catch(_){return {ok:false,error:'input'};}
     }
     function pulse(paused=true){
         const now=clock(),seconds=Math.min(.1,Math.max(0,(now-lastClock)/1000));lastClock=now;
@@ -106,9 +145,9 @@ function createSession({store,responder,record=()=>{},clock=()=>performance.now(
         } finally { busy=false;lastClock=clock(); }
     }
     function warmup(){if(!loaded)load();if(blocked||busy||!state?.game)return {ok:false};return responder.prepare?.()||{ok:true};}
-    return {load,create,prepare,warmup,pulse,submit,cancel:()=>responder.cancel(),dispose:()=>{
+    return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,cancel:()=>responder.cancel(),dispose:()=>{
         if(loaded&&state&&!blocked&&!busy&&!persist(state,'close').ok)blocked=true;
         responder.dispose();
     }};
 }
-module.exports={createStore,createSession,MAX_BYTES};
+module.exports={createStore,createProfiles,createSession,MAX_BYTES};

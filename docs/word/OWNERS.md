@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-24複数セーブ：native_store.createProfilesが保存場所と選択ID、createSessionが切替前保存／新規確定を所有。native_window／preloadは検査付きローカルIPC、island_uiは常設開始／選択／タイトル復帰を所有。声のregistryと姿別共通設定は既存native_voiceのまま。[正本](../specs/core/word_llm_native_system.md#複数のセーブとはじめから2026-11-24)。
+
 2026-11-24声づくり：[選択式／自由入力の正本](../specs/core/word_llm_native_system.md#選択式と自由入力でこの子の声をつくる2026-11-24)。root native_voice_designが8特徴と原文検査・説明組立、main native_voice_designsが独立候補registryとcloud ID参照を所有。native_voice.generateのdesign分岐は固定voice作成APIだけ、voice_uiは選択／任意原文／明示作成・試聴・確定を所有。本人store／学習／会話CLIの送信所有は非変更。
 
 2026-11-24読出：[native声の正本](../specs/core/word_llm_native_system.md#声を選んで同じ子と話す2026-11-23)。native_voice_key.jsが登録時と同じvoice-setup profileでの短命復号プロセスと親main専用pipeを所有し、native_electronが起動時に一度だけawaitする。本人保存・旧版audio設定・ゲームrendererの所有を変更しない。PC再起動後のキー再入力／VOICEVOX起動は不要。

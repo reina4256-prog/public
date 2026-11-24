@@ -3,7 +3,7 @@ const {app}=require('electron');
 const fs=require('node:fs'),path=require('node:path');
 const core=require('../../experimental_word_llm_native_runtime');
 const {randomUUID}=require('node:crypto');
-const {createStore,createSession}=require('./native_store');
+const {createProfiles,createSession}=require('./native_store');
 const directory=path.join(app.getPath('appData'),'AIPetGame-WordLearning-LLMNative');
 app.setPath('userData',directory);
 if(!app.requestSingleInstanceLock()){
@@ -14,7 +14,7 @@ else {
     app.on('second-instance',()=>{if(window){window.show();window.focus();}});
     app.whenReady().then(async()=>{
         console.log('[word-native] Preparing the native window.');
-        const store=createStore(directory);
+        const store=createProfiles(directory);
         const suppliedVoiceKey=process.env.WORD_GEMINI_TTS_KEY;delete process.env.WORD_GEMINI_TTS_KEY;
         const voiceKey=suppliedVoiceKey||await require('./native_voice_key').loadKey(directory,{executable:process.execPath});
         // Reuse the existing CLI's dedicated login. Never copy/read its token or a game save.
