@@ -15,6 +15,100 @@ function arrived(s,target){s=directed(s,'walk there',{action:{kind:'walk',target
     for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);
     assert.equal(s.game.mode,'idle');assert.equal(s.game.walk.encounter.phase,'pending');assert.ok(runtime.validState(s));return s;}
 
+function practiceFixture(choice='accept'){
+    const {createSession}=require('../scripts/experimental/native_store'),protocol=require('../scripts/experimental/native_practice'),calls=[];
+    const first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let saved=arrived(first.state,first.target),time=0,replyChoice=null;
+    let hold=null,release=null,saveFailure=null,holdChat=false,releaseChat=null;
+    const make=()=>createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{
+        if(saveFailure?.(s))return {ok:false,reason:'io'};assert.ok(runtime.validState(s),'saved practice state must be valid');saved=structuredClone(s);return {ok:true};}},clock:()=>time,
+        responder:{cancel(){},dispose(){},async reply(p){calls.push(p);if(holdChat)await new Promise(r=>releaseChat=r);return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,practiceChoice:replyChoice?{choice:replyChoice,quote:p.input}:null}};}},
+        practiceResponder:{cancel(){},dispose(){},async reply(p){assert.ok(protocol.protocol.valid(p));calls.push(p);const result={ok:true,proposal:{text:p.stage==='decision'&&choice==='ask'?'Should I take part in this survey?':'Actual '+p.stage,choice:p.stage==='decision'?choice:null}};
+            if(hold===p.stage)await new Promise(r=>release=r);return result;}}});
+    const session=make(),arrival=saved.game.walk.encounter.id,intro=session.mentorIntro(arrival);assert.ok(intro.practice,'reachable real survey candidate');
+    return {session,calls,id:intro.practice,make,get saved(){return saved;},get time(){return time;},advance(n=1){for(let i=0;i<n;i++){time+=100;const r=session.pulse(false);assert.ok(r.ok);}},
+        choice:value=>replyChoice=value,hold:stage=>hold=stage,release:()=>release(),holdChat:()=>holdChat=true,releaseChat:()=>releaseChat(),fail:fn=>saveFailure=fn};
+}
+
+test('a mentor proposal and independent companion choice drive a real survey circuit, two observations, return and report in six bounded calls',async()=>{
+    const f=practiceFixture(),practice=runtime.game.practice,past=structuredClone(f.saved.turns),receipts=structuredClone(f.saved.game.receipts),home={x:f.saved.game.x,y:f.saved.game.y};
+    assert.equal(f.calls.length,0);assert.equal(f.saved.game.practices[0].phase,'offer');
+    for(const stage of ['offer','decision']){const r=await f.session.practiceNext(f.id);assert.ok(r.ok);assert.equal(r.line.slot,stage);}
+    assert.equal(practice.current(f.saved.game).phase,'outbound');assert.equal(f.calls[0].stage,'offer');assert.equal(f.calls[1].stage,'decision');
+    assert.equal(f.calls[1].recent[0].speaker,'mentor');assert.equal(f.calls[1].input,undefined);assert.equal(f.calls[1].memories,undefined);
+    assert.equal((await f.session.practiceNext(f.id)).ok,false,'no speculative extra generation');
+    const stages=[];for(let i=0;i<1800&&practice.current(f.session.load().state.game).phase!=='done';i++){
+        f.advance();const state=f.session.load().state,p=practice.current(state.game),slot=practice.due(p);
+        if(slot){const r=await f.session.practiceNext(f.id);assert.ok(r.ok,slot+' '+r.error);stages.push(slot);}
+    }
+    const state=f.session.load().state,p=practice.current(state.game);assert.equal(p.phase,'done');assert.deepEqual(stages,['observe1','observe2','report','feedback']);
+    assert.deepEqual(p.events.map(e=>e.kind),['departed','arrived','observed','observed','returned']);assert.equal(p.lines.length,6);
+    assert.deepEqual({x:state.game.x,y:state.game.y},home);assert.deepEqual(state.turns,past);assert.ok(state.game.receipts.length>=receipts.length);
+    assert.equal(state.game.harvest,0);assert.ok(runtime.validState(state));assert.equal(f.calls.length,6);
+    for(const packet of f.calls){assert.ok(JSON.stringify(packet.context).length<=1200);assert.ok(JSON.stringify({context:packet.context,recent:packet.recent,previous:packet.previous}).length<=4000);assert.equal(packet.context.route,undefined);}
+    const next=runtime.begin(state,'What did you do?','en');assert.ok(runtime.validPacket(next.packet));assert.equal(next.packet.practice.context.phase,'done');
+    assert.equal(next.packet.practice.speech.at(-1).slot,'feedback');assert.equal(runtime.packet(state,past.at(-1)).practice,undefined);
+    assert.equal(f.session.practiceLine(f.id,'offer'),null);assert.equal(f.session.practiceLine(f.id,'feedback').speaker,'mentor');f.session.dispose();
+});
+
+test('uncertain participation asks in ordinary free chat; yes alone does not start, an explicit response can participate',async()=>{
+    const f=practiceFixture('ask'),practice=runtime.game.practice;await f.session.practiceNext(f.id);await f.session.practiceNext(f.id);
+    assert.equal(practice.current(f.saved.game).phase,'consult');assert.match(practice.current(f.saved.game).lines.at(-1).text,/Should I/);
+    assert.equal((await f.session.practiceNext(f.id)).ok,false);f.choice('accept');
+    const no=await f.session.submit('yes','en');assert.equal(no.ok,false);assert.equal(practice.current(f.saved.game).phase,'consult');
+    f.choice(null);assert.ok((await f.session.submit('I am thinking about it.','en')).ok);assert.equal(practice.current(f.saved.game).phase,'consult');
+    f.choice('accept');const yes=await f.session.submit('Please take part in the forest survey and come back.','en');assert.ok(yes.ok);
+    assert.equal(practice.current(f.saved.game).phase,'outbound');assert.deepEqual(f.calls.filter(p=>p.stage).map(p=>p.stage),['offer','decision']);
+    assert.ok(runtime.validState(f.saved));assert.ok(yes.state.turns.at(-1).practice);f.session.dispose();
+});
+
+test('declining a proposal has no travel, observation or achievement and cannot be restarted by yes',async()=>{
+    const f=practiceFixture('decline'),before={x:f.saved.game.x,y:f.saved.game.y};await f.session.practiceNext(f.id);await f.session.practiceNext(f.id);f.advance(100);
+    const s=f.session.load().state,p=runtime.game.practice.current(s.game);assert.equal(p.phase,'declined');assert.deepEqual(p.events,[]);assert.deepEqual({x:s.game.x,y:s.game.y},before);
+    assert.equal((await f.session.practiceNext(f.id)).ok,false);assert.equal(f.calls.length,2);assert.ok(runtime.validState(s));f.session.dispose();
+});
+
+test('practice restart preserves exact progress without offline movement, startup generation or replay; explicit chat can resume',async()=>{
+    const f=practiceFixture(),practice=runtime.game.practice;await f.session.practiceNext(f.id);await f.session.practiceNext(f.id);f.advance(3);
+    const before=f.session.load().state;f.session.dispose();const restarted=f.make(),r=restarted.load();
+    assert.ok(r.ok);assert.equal(practice.current(r.state.game).suspended,true);assert.deepEqual({x:r.state.game.x,y:r.state.game.y},{x:before.game.x,y:before.game.y});assert.equal(f.calls.length,2);
+    assert.equal((await restarted.practiceNext(f.id)).ok,false);assert.equal(restarted.practiceLine(f.id,'decision'),null);
+    f.choice('resume');assert.equal((await restarted.submit('yes','en')).ok,false);assert.equal(practice.current(restarted.load().state.game).suspended,true);
+    assert.ok((await restarted.submit('Please continue this survey.','en')).ok);assert.equal(practice.current(restarted.load().state.game).suspended,false);
+    assert.equal(f.calls.filter(p=>p.stage==='decision').length,1);assert.ok(runtime.validState(restarted.load().state));restarted.dispose();
+});
+
+test('closing during a practice generation rejects late text and voice and never retries the consumed slot',async()=>{
+    const f=practiceFixture();f.hold('decision');await f.session.practiceNext(f.id);const pending=f.session.practiceNext(f.id);
+    f.session.cancel();f.release();const result=await pending;assert.equal(result.error,'cancelled');const s=f.session.load().state,p=runtime.game.practice.current(s.game);
+    assert.equal(p.phase,'failed');assert.deepEqual(p.lines.map(l=>l.slot),['offer']);assert.equal(p.attempts.decision,'cancelled');assert.equal(f.session.practiceLine(f.id,'offer'),null);
+    assert.equal((await f.session.practiceNext(f.id)).ok,false);assert.equal(f.calls.length,2);assert.ok(runtime.validState(s));f.session.dispose();
+});
+
+test('practice input is saved before generation; a failed completion is not displayed or resumed automatically',async()=>{
+    for(const stage of ['input','completion']){const f=practiceFixture();f.fail(s=>{const p=runtime.game.practice.current(s.game);return stage==='input'?p?.attempts.offer==='pending':p?.attempts.offer==='complete';});
+        const r=await f.session.practiceNext(f.id);assert.equal(r.error,'save');assert.equal(r.line,undefined);assert.equal(f.calls.length,stage==='input'?0:1);
+        assert.equal(runtime.game.practice.current(f.saved.game).lines.length,0);f.fail(null);f.session.dispose();const next=f.make();assert.ok(next.load().ok);assert.equal((await next.practiceNext(f.id)).ok,false);next.dispose();}
+});
+
+test('a cancelled practice completion cannot unlock a newer pending ordinary chat',async()=>{
+    const f=practiceFixture();await f.session.practiceNext(f.id);f.hold('decision');const old=f.session.practiceNext(f.id);
+    f.session.cancel();f.holdChat();const chat=f.session.submit('What happened just now?','en');
+    f.release();assert.equal((await old).error,'cancelled');
+    const count=f.calls.length;assert.equal((await f.session.submit('Another question','en')).error,'input');assert.equal(f.calls.length,count);
+    f.releaseChat();assert.ok((await chat).ok);assert.ok(runtime.validState(f.saved));f.session.dispose();
+});
+
+test('practice facts and route evidence cannot be forged; observation/report calls follow actual progress only',async()=>{
+    const f=practiceFixture(),s=f.saved,p=runtime.game.practice.current(s.game),proto=require('../scripts/experimental/native_practice');
+    const invalid=structuredClone(s);runtime.game.practice.current(invalid.game).phase='done';assert.equal(runtime.validState(invalid),false);
+    const forged=structuredClone(s);runtime.game.practice.current(forged.game).route=[{x:999,y:999}];assert.equal(runtime.validState(forged),false);
+    assert.equal(proto.protocol.valid({...proto.packet(s,p,'offer'),privateDiary:'private'}),false);
+    assert.equal(proto.validResult({text:'I return.',choice:null,action:'finish'},'report'),false);
+    assert.equal(proto.validResult({text:'I will.',choice:'accept'},'offer'),false);
+    assert.equal(proto.validResult({text:'x'.repeat(301),choice:null},'observe1'),false);
+    assert.equal((await f.session.practiceNext('event-999999')).ok,false);assert.equal(f.calls.length,0);f.session.dispose();
+});
+
 test('mentor originals survive restart and separate saves; chat snapshots and reunion use only actual bounded dialogue',async t=>{
     const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{createProfiles,createSession}=require('../scripts/experimental/native_store');
     const dir=fs.mkdtempSync(path.join(os.tmpdir(),'native-mentor-memory-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));

@@ -100,7 +100,7 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
     }catch(_){/* A sample cache failure never changes the child or retries a request. */}}
     async function generate(request){
         // Only fixed classifications enter this local log: never request/response text, IDs or exceptions.
-        const started=Date.now(),diagnostic={version:1,at:new Date().toISOString(),kind:['design','preview','reply','mentor'].includes(request?.kind)?request.kind:'invalid',stage:'preflight'};
+        const started=Date.now(),diagnostic={version:1,at:new Date().toISOString(),kind:['design','preview','reply','mentor','practice'].includes(request?.kind)?request.kind:'invalid',stage:'preflight'};
         let result;
         try{result=await runGenerate(request,diagnostic);return result;}
         finally{
@@ -135,6 +135,12 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
             const species=state.game.origin.appearance;
             text=turn.result.reply;locale=state.locale;voice=resolveVoice(p.value.voices[species]||rules.defaults[species]);
             cacheId=JSON.stringify([turn.id,text,locale,voice]);if(replyCache?.id===cacheId){diagnostic.stage='cache';return {ok:true,audio:new Uint8Array(replyCache.audio)};}
+        }else if(request.kind==='practice'&&Object.keys(request).sort().join(',')==='id,kind,slot'){
+            const line=session.practiceLine?.(request.id,request.slot),s=session.load(),p=load();
+            if(!line||!s.ok||!p.ok||!p.value.enabled||!s.state?.game)return {ok:false,error:'input'};
+            const subject=line.speaker==='mentor'?'mentor-adventurer':s.state.game.origin.appearance;
+            voice=resolveVoice(p.value.voices[subject]||rules.defaults[subject]);text=line.text;locale=line.locale;
+            cacheId=JSON.stringify(['practice',request.id,request.slot,voice,text]);if(replyCache?.id===cacheId)return {ok:true,audio:new Uint8Array(replyCache.audio)};
         }else if(request.kind==='mentor'&&Object.keys(request).sort().join(',')==='id,kind,round,speaker'){
             const line=session.mentorLine?.(request.id,request.round,request.speaker),s=session.load(),p=load();
             if(!line||!s.ok||!p.ok||!p.value.enabled||!s.state?.game)return {ok:false,error:'input'};

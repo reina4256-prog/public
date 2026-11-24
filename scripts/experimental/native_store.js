@@ -60,8 +60,10 @@ function createProfiles(directory){
     }catch(_){return fail();}}
     return {load:()=>blocked?fail():store.load(),save:value=>blocked?fail():store.save(value),list,select,create,get file(){return store?.file;}};
 }
-function createSession({store,responder,mentorResponder=null,recoverMentor=null,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
+function createSession({store,responder,mentorResponder=null,practiceResponder=null,recoverMentor=null,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
     const talk=require('./native_mentor').createTalk(mentorResponder,(kind,data)=>log(kind,data));
+    const practice=core.game.practice,practiceProtocol=require('./native_practice');
+    let practiceArmed=false,practicePending=false,practiceTicket=0;
     let introOwner=null;
     let state=null,loaded=false,blocked=false,busy=false;
     let lastClock=clock(),lastSave=lastClock;
@@ -76,6 +78,7 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
                 if (!persist(state,'resume').ok) blocked=true;
             }
             if(state&&!blocked){const upgraded=core.upgrade(state);if(upgraded!==state){if(persist(upgraded,'map-upgrade').ok)state=upgraded;else blocked=true;}}
+            if(state&&!blocked&&practice.active(state.game)){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-resume').ok)state=next;else blocked=true;}}
             if(state&&!blocked&&recoverMentor&&!state.mentorConversations?.length){const recovered=recoverMentor(copy());
                 if(recovered&&core.validState(recovered)){if(persist(recovered,'mentor-recovery').ok)state=recovered;else blocked=true;}}
         }
@@ -98,14 +101,14 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
     function characters(){load();return blocked?{ok:false,error:'save'}:store.list?.()||{ok:true,characters:[]};}
     function selectCharacter(id){
         load();if(blocked||busy||!store.select)return {ok:false,error:'input'};
-        if(state&&!persist(state,'character-switch').ok)return {ok:false,error:'save'};
+        if(state){practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};}practiceArmed=false;
         responder.cancel();const result=store.select(id);if(!result.ok)return result;
         state=null;loaded=false;lastClock=lastSave=clock();return load();
     }
     function createCharacter(character,locale,answers){
         load();if(blocked||busy||!state||!store.create)return {ok:false,error:'input'};
         try{const value=core.create(character,locale,answers,islandFactory());
-            if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};
+            practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};practiceArmed=false;
             responder.cancel();const result=store.create(value);if(!result.ok)return result;
             state=value;lastClock=lastSave=clock();return {ok:true,state:copy()};
         }catch(_){return {ok:false,error:'input'};}
@@ -115,8 +118,9 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
         if(blocked)return {ok:false,error:'save'};
         if(!loaded||!state?.game)return {ok:true};
         if(!busy&&paused===false){
-            const before=state.game.receipts.length;core.game.tick(state.game,seconds);
-            if(state.game.receipts.length!==before||now-lastSave>10000){
+            const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events.length;core.game.tick(state.game,seconds);
+            const current=practice.current(state.game),changed=current&&current.phase+'|'+current.events.length!==stage;
+            if(state.game.receipts.length!==before||changed||now-lastSave>10000){
                 if(!persist(state,'world').ok){blocked=true;return {ok:false,error:'save'};}lastSave=now;
                 if(state.game.receipts.length!==before)log('world',{results:state.game.receipts.slice(before)});
             }
@@ -125,6 +129,7 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
     }
     async function submit(input,locale) {
         const started=performance.now();
+        if(practicePending){practiceCancel();introOwner=null;busy=false;}
         load();if (blocked || !state || busy) return {ok:false,error:blocked?'save':'input'};
         let next;
         try { next=core.begin(state,input,locale); } catch (_) { return {ok:false,error:'input'}; }
@@ -137,6 +142,7 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
             const updated=core.finish(state,next.packet.id,next.state.revision,accepted?result.proposal:null);
             if (!persist(updated,'completion',next.packet.id,accepted?result.proposal:null).ok) { blocked=true;return {ok:false,error:'save',state:copy()}; }
             state=updated;
+            if(accepted&&result.proposal.practiceChoice&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
             const error=accepted?null:(result.ok?'output':result.error || 'failed');
             log('result',{id:next.packet.id,error,result:accepted?result.proposal:null,supplied:next.packet.memories.map(m=>m.sourceId),
                 timing:{helper:result.timing||null,receivedMs,totalMs:performance.now()-started}});
@@ -151,12 +157,14 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
     function warmup(){if(!loaded)load();if(blocked||busy||!state?.game)return {ok:false};return responder.prepare?.()||{ok:true};}
     function mentorIntro(id){load();const e=state?.game?.walk?.encounter;
         if(blocked||busy||!e||e.id!==id||e.phase!=='pending'||state.game.mode!=='idle')return {ok:false,error:'input'};
-        const next=copy();next.game.walk.encounter.phase='video';if(!persist(next,'encounter-intro').ok){blocked=true;return {ok:false,error:'save'};}
-        state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:state.game.walk.met,video:e.target.startsWith('chip:mountain_')?'mountain':'forest'};}
+        const next=copy();next.game.walk.encounter.phase='video';
+        const p=practiceResponder?(practice.current(next.game)?.id===id?practice.current(next.game):practice.create(next.game,e)):null;
+        if(!persist(next,'encounter-intro').ok){blocked=true;return {ok:false,error:'save'};}
+        state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:state.game.walk.met,video:e.target.startsWith('chip:mountain_')?'mountain':'forest',...(p?{practice:p.id,game:structuredClone(state.game)}:{})};}
     function mentorStart(locale){load();if(blocked||!introOwner||talk.active||state?.game?.walk?.encounter?.id!==introOwner)return {ok:false,error:'input'};
         const r=talk.start(state.character,locale===undefined?state.locale:locale,core.latestConversation(state));if(!r.ok)return r;
         const next=copy();next.game.walk.met=true;next.game.walk.encounter.phase='conversation';if(!persist(next,'encounter-conversation').ok){talk.stop();blocked=true;return {ok:false,error:'save'};}state=next;return r;}
-    function mentorStop(){if(talk.active||introOwner){talk.stop();introOwner=null;busy=false;lastClock=clock();
+    function mentorStop(){if(introOwner&&practice.current(state?.game)?.id===introOwner)practiceCancel();if(talk.active||introOwner){talk.stop();introOwner=null;busy=false;lastClock=clock();
         if(state?.game?.walk?.encounter){const next=copy();next.game.walk.encounter.phase='done';if(persist(next,'encounter-close').ok)state=next;else blocked=true;}}}
     async function mentorNext(id,round){if(blocked||!talk.active)return {ok:false,error:blocked?'save':'input'};
         const arrival=state.game.walk.encounter,owner=introOwner,r=await talk.next(id,round);
@@ -167,7 +175,28 @@ function createSession({store,responder,mentorResponder=null,recoverMentor=null,
             }catch(_){blocked=true;mentorStop();return {ok:false,error:'save'};}
         }
         if(!talk.active)mentorStop();return r;}
-    return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,mentorIntro,mentorStart,mentorNext,mentorStop,mentorLine:talk.line,cancel:()=>{mentorStop();responder.cancel();},dispose:()=>{
+    function practiceCancel(){practiceTicket++;practiceArmed=false;practiceResponder?.cancel();if(practicePending)busy=false;
+        if(state&&!blocked){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-pause').ok)state=next;else blocked=true;}}}
+    async function practiceNext(id){load();const p=practice.current(state?.game);
+        if(blocked||!practiceResponder||practicePending||!p||p.id!==id||(!practiceArmed&&!(introOwner===id&&p.phase==='offer'&&!p.attempts.offer)))return {ok:false,error:blocked?'save':'input'};
+        if(introOwner===id&&p.phase==='offer')p.suspended=false;
+        const stage=practice.due(p);if(!stage)return {ok:false,error:'input'};
+        const ticket=practiceTicket;practicePending=true;practiceArmed=true;busy=true;
+        try{const request=practiceProtocol.packet(state,p,stage),next=copy();practice.current(next.game).attempts[stage]='pending';next.game.walk.met=true;if(['offer','decision'].includes(stage))next.game.walk.encounter.phase='conversation';next.revision++;
+            if(!persist(next,'practice-input',request.id).ok){blocked=true;return {ok:false,error:'save'};}state=next;log('practice_input',{packet:request});
+            const result=await practiceResponder.reply(request);if(ticket!==practiceTicket)return {ok:false,error:'cancelled'};
+            const accepted=result.ok&&practiceProtocol.validResult(result.proposal,stage,request.context),updated=copy();
+            if(accepted)practice.finish(updated.game,stage,result.proposal);else{practice.current(updated.game).attempts[stage]='failed';practice.stop(updated.game,true);}
+            if(stage==='decision'||!accepted){updated.game.walk.encounter.phase='done';introOwner=null;}
+            updated.revision++;if(!persist(updated,'practice-completion',request.id).ok){blocked=true;practiceArmed=false;return {ok:false,error:'save'};}state=updated;
+            log('practice_result',{id:request.id,error:accepted?null:result.error||'output',result:accepted?result.proposal:null});
+            return {ok:!!accepted,error:accepted?null:result.error||'output',id,line:accepted?structuredClone(practice.current(state.game).lines.at(-1)):null,game:structuredClone(state.game)};
+        }catch(_){if(ticket===practiceTicket&&!blocked){const next=copy();practice.stop(next.game,true);next.revision++;if(persist(next,'practice-failure').ok)state=next;else blocked=true;introOwner=null;}
+            return {ok:false,error:blocked?'save':'failed'};
+        }finally{practicePending=false;if(ticket===practiceTicket)busy=!!introOwner;lastClock=clock();}}
+    function practiceLine(id,slot){const p=practice.current(state?.game),line=p?.lines.at(-1);return practiceArmed&&!p.suspended&&p.id===id&&line?.slot===slot?{...line,locale:state.locale}:null;}
+    return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,mentorIntro,mentorStart,mentorNext,mentorStop,mentorLine:talk.line,practiceNext,practiceLine,cancel:()=>{practiceCancel();mentorStop();responder.cancel();},dispose:()=>{
+        practiceCancel();practiceResponder?.dispose();
         mentorStop();
         talk.dispose();
         if(loaded&&state&&!blocked&&!busy&&!persist(state,'close').ok)blocked=true;

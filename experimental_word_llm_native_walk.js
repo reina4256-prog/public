@@ -65,5 +65,5 @@
         const a=perception.asset(g,g.destination),end=g.route.at(-1);
         return Math.hypot(g.route[0].x*800-g.x*800,g.route[0].y*480-g.y*480)<=51&&Math.hypot(end.x*800-(a.dx+a.sw*a.scale/2),end.y*480-(a.dy+a.sh*a.scale))<=85;
     }
-    return {install,plan,directive,apply,tick,valid,movementKinds};
+    return {install,plan,directive,apply,tick,valid,movementKinds,graph};
 });

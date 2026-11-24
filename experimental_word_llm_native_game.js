@@ -2,9 +2,10 @@
     const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_start_questions'):root.ExperimentalWordStartQuestions,
         typeof module==='object'&&module.exports?require('./experimental_word_island_navigation'):root.WordIslandNavigation,
         typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception,
-        typeof module==='object'&&module.exports?require('./experimental_word_llm_native_walk'):root.NativeWalk);
+        typeof module==='object'&&module.exports?require('./experimental_word_llm_native_walk'):root.NativeWalk,
+        typeof module==='object'&&module.exports?require('./experimental_word_llm_native_practice'):root.NativePractice);
     if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeGame=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(questions,navigation,perception,walk){
+})(typeof globalThis!=='undefined'?globalThis:this,function(questions,navigation,perception,walk,practice){
     'use strict';
     const actions=['walk','eat','rest'], targets={walk:'path',eat:'berry:1',rest:'shade'};
     const copy=x=>structuredClone(x), finite=x=>Number.isFinite(x);
@@ -28,7 +29,7 @@
         if(!g||g.version!==1||!questions.validAnswers(g.origin?.answers))return false;
         const origin=questions.resolve(g.origin.answers);
         if(origin.appearance!==g.origin.appearance||JSON.stringify(origin.settings)!==JSON.stringify(g.origin.settings))return false;
-        return (g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
+        return practice.valid(g)&&(g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
             &&(g.perception!==2||navigation.valid(g.island)&&Array.isArray(g.route)&&Array.isArray(g.receipts)&&walk.valid(g))
             &&navigation.valid(g.island)&&['x','y','elapsed','hunger','fatigue','remaining','growth'].every(k=>finite(g[k]))&&g.growth>=0&&g.growth<65
             &&g.elapsed>=0&&g.hunger>=0&&g.hunger<=1&&g.fatigue>=0&&g.fatigue<=1&&g.remaining>=0
@@ -51,6 +52,7 @@
     }
     function apply(g,action,cause,packet){
         if(action===null)return {accepted:true};
+        if(practice.active(g))return {accepted:false,reason:'busy'};
         if(g.perception===2)return typeof action==='object'&&packet?walk.apply(g,action,cause,packet):{accepted:false,reason:'unavailable'};
         if(!actions.includes(action)||!/^turn-[1-9]\d*$/.test(cause)||g.mode!=='idle')return {accepted:false,reason:'busy'};
         const target=targets[action];
@@ -60,7 +62,7 @@
     }
     function tick(g,seconds){
         const dt=Math.min(.1,Math.max(0,seconds));if(!finite(dt)||dt===0)return;
-        if(g.perception===2){g.elapsed+=dt;walk.tick(g,dt);perception.observe(g);return;}
+        if(g.perception===2){g.elapsed+=dt;if(practice.active(g))practice.tick(g,dt);else walk.tick(g,dt);perception.observe(g);return;}
         g.elapsed+=dt;g.hunger=Math.min(1,g.hunger+dt/180);g.fatigue=Math.min(1,Math.max(0,g.fatigue+(g.mode==='rest'?-dt/28:dt/220)));
         if(g.fruit<3){g.growth+=dt;if(g.growth>=65){g.fruit++;g.growth=0;}}else g.growth=0;
         if(g.mode==='move'){
@@ -83,5 +85,5 @@
         }
         observe(g);
     }
-    return {create,valid,supply,apply,tick,visible,actions,targets,perception,walk};
+    return {create,valid,supply,apply,tick,visible,actions,targets,perception,walk,practice};
 });

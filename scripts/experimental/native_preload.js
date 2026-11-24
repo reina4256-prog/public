@@ -14,6 +14,7 @@ contextBridge.exposeInMainWorld('nativeMemory',Object.freeze({
     mentorStart:locale=>ipcRenderer.invoke('native-mentor-start',locale),
     mentorIntro:id=>ipcRenderer.invoke('native-mentor-intro',id),
     mentorNext:(id,round)=>ipcRenderer.invoke('native-mentor-next',id,round),
+    practiceNext:id=>ipcRenderer.invoke('native-practice-next',id),
     mentorStop:()=>ipcRenderer.send('native-mentor-stop'),
     voiceLoad:()=>ipcRenderer.invoke('native-voice-load'),
     voiceSave:value=>ipcRenderer.invoke('native-voice-save',value),

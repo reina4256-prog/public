@@ -7,7 +7,7 @@ window.aiPet=aiPet;
 window.NativeScene={
     visible(game){return game.perception===2?window.NativePerception.chips(game):window.NativeGame.supply(game).visible;},
     load(){
-        for(const key of ['field','terrain','field_3','field_4','field_5','field_6',...ExperimentalWordStartQuestions.appearances]){
+        for(const key of ['field','terrain','field_3','field_4','field_5','field_6','field_bg',...ExperimentalWordStartQuestions.appearances]){
             const img=new Image();images[key]=img;totalImages++;
             img.onload=()=>imagesLoaded++;img.onerror=()=>{imagesLoaded++;console.error('Island asset could not load: '+key);};img.src=imageSources[key];
         }
@@ -16,14 +16,19 @@ window.NativeScene={
         if(!game)return;
         assets=game.island.assets;const skin=game.origin.appearance;
         aiPet.type=aiPet.baseType=aiPet.currentSkin=skin;aiPet.x=game.x*800;aiPet.y=game.y*480;
-        aiPet.actionState=game.mode==='move'?'moving':'idle';aiPet.visualAction=game.mode==='rest'?'sleep':game.mode==='eat'?'eat_raw':'idle';
-        const frames=aiConfigs[skin].actions[game.mode==='move'?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
+        const practice=window.NativePractice.current(game),travel=practice&&!practice.suspended&&['outbound','return'].includes(practice.phase);
+        aiPet.actionState=game.mode==='move'||travel?'moving':'idle';aiPet.visualAction=game.mode==='rest'?'sleep':game.mode==='eat'?'eat_raw':'idle';
+        const frames=aiConfigs[skin].actions[game.mode==='move'||travel?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
         aiPet.frameIndex=reduced?0:Math.floor(time/.25)%frames.length;
         if(game.route[0])aiPet.flip=game.route[0].x<game.x;
         camera.x=aiPet.x-canvas.width/2;camera.y=aiPet.y-canvas.height/2;render();
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);
+        if(practice?.phase==='survey'){
+            aiPet.indoorTarget=NativePerception.asset(game,practice.target);aiPet.exploreState={currentFacility:practice.target.startsWith('chip:mountain_')?'mountain':'palms'};
+            drawActionWindow(practice.suspended?'idle':'move','inside');
+        }
     },
     drawTarget(p){
         ctx.save();ctx.strokeStyle='#ffe08a';ctx.lineWidth=3;

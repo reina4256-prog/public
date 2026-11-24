@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-24探検練習：[正本](../specs/core/word_llm_native_system.md#冒険家の探検練習と本人の参加判断2026-11-24)。root native_practiceが実往復・観察・原結果／状態・上限、main native_practiceが単独話者protocol、storeが保存／取消／再開ゲート、runtimeが相談と当時snapshot、mentor_ui／sceneが既存窓・drawActionWindow、voiceが最新main台詞を所有。旧版探検・職業報酬・知識／日記／星座の取得条件は変更しない。
+
 2026-11-24会話保持：[正本](../specs/core/word_llm_native_system.md#冒険家との会話の保存と振り返り2026-11-24)。native_runtimeが原会話検査／保存形／当時snapshot／通常packet、native_storeが保存後返却／取消／セーブ分離、native_mentorが再会packet上限と旧ログ照合、native_electronが同端末ログの接続を所有。知識／日記／星座の取得条件は変更しない。
 
 2026-11-24歩行・遭遇：[正本](../specs/core/word_llm_native_system.md#実chipへの歩行と冒険家との出会い2026-11-24)。native_walkが実地graph／経路／歩行／到着・失敗・停止、runtimeが対象確認と後続指示、perceptionが限定worldを所有。native_storeが到着根拠の遭遇ゲート／取消／保存、island_uiが到着から動画・窓への接続を所有。WordMasterWindowのJS／CSSは従来版とnative共通のDOM／描画部品、旧職業進行は旧UIのまま。book／starsは実到着だけ体験化し、生成会話は入れない。
