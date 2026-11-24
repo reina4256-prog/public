@@ -5,7 +5,7 @@ var aiPet={x:300,y:200,baseType:'robot',currentSkin:'robot',visualScale:1,action
 var floatingTexts=[],images={},imagesLoaded=0,totalImages=0;
 window.aiPet=aiPet;
 window.NativeScene={
-    visible(game){return window.NativeGame.supply(game).visible;},
+    visible(game){return game.perception===2?window.NativePerception.chips(game):window.NativeGame.supply(game).visible;},
     load(){
         for(const key of ['field','terrain','field_3','field_4','field_5','field_6',...ExperimentalWordStartQuestions.appearances]){
             const img=new Image();images[key]=img;totalImages++;

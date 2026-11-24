@@ -4,7 +4,7 @@ window.NativeBook=(()=>{
     const t=(s,...args)=>window.GameI18n.translate(s).replace(/\{\{(\d+)\}\}/g,(_,n)=>String(args[Number(n)]??''));
     const names={'berry:1':'木の実',shade:'木陰',path:'道'};
     function description(r){
-        if(r.target.startsWith('chip:'))return t('{{0}}が見えた。',t(r.label));
+        if(r.target.startsWith('chip:'))return r.kind==='walk'?t('歩いて{{0}}のそばに着いた。',t(r.label)):t('{{0}}が見えた。',t(r.label));
         const name=t(names[r.target]||'人影');
         if(r.kind==='eat')return t('木の実を食べた。甘い味がした。');
         if(r.kind==='rest')return t('木陰で休んだ。');
@@ -15,7 +15,7 @@ window.NativeBook=(()=>{
         parent.replaceChildren();const g=state.game;
         if(!g){el('p',parent,t('まだ記録がありません。'));return;}
         const byDay=new Map(),put=(at,item)=>{const day=Math.floor(at/1500)+1;if(!byDay.has(day))byDay.set(day,[]);byDay.get(day).push(item);};
-        const active=g.perception===2?g.receipts.filter(r=>r.target.startsWith('chip:')):g.receipts;
+        const active=g.perception===2?g.receipts.filter(r=>r.target.startsWith('chip:')&&['observe','walk'].includes(r.kind)):g.receipts;
         for(const r of active)put(r.at,{at:r.at,text:description(r),receipt:r});
         for(const turn of state.turns.filter(t=>t.status==='complete'&&t.world&&['teaching','correction'].includes(t.result.interpretation.kind)))put(turn.gameAt||0,{at:turn.gameAt||0,text:turn.result.interpretation.summary,turn});
         const nav=el('div',parent,undefined,'book-nav'),previous=el('button',nav,t('前へ')),counter=el('span',nav),next=el('button',nav,t('次へ'));
@@ -43,7 +43,7 @@ window.NativeBook=(()=>{
         previous.onclick=()=>{selected--;show();};next.onclick=()=>{selected++;show();};show();
         const evidence=el('details',parent);el('summary',evidence,t('記録の根拠'));const records=el('div',evidence);
         for(const r of active){const p=el('p',records,r.id+' · '+description(r));p.dataset.i18nSkip='';}
-        const previousRecords=g.receipts.filter(r=>!active.includes(r));
+        const previousRecords=g.receipts.filter(r=>!r.target.startsWith('chip:')&&!active.includes(r));
         if(previousRecords.length){const old=el('details',parent);el('summary',old,t('過去の試作の記録'));for(const r of previousRecords)el('p',old,r.id+' · '+description(r));}
     }
     function drawChip(canvas,g,target){

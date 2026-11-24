@@ -1,9 +1,10 @@
 (function(root,factory){
     const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_start_questions'):root.ExperimentalWordStartQuestions,
         typeof module==='object'&&module.exports?require('./experimental_word_island_navigation'):root.WordIslandNavigation,
-        typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception);
+        typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception,
+        typeof module==='object'&&module.exports?require('./experimental_word_llm_native_walk'):root.NativeWalk);
     if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeGame=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(questions,navigation,perception){
+})(typeof globalThis!=='undefined'?globalThis:this,function(questions,navigation,perception,walk){
     'use strict';
     const actions=['walk','eat','rest'], targets={walk:'path',eat:'berry:1',rest:'shade'};
     const copy=x=>structuredClone(x), finite=x=>Number.isFinite(x);
@@ -21,35 +22,36 @@
         const result=questions.resolve(answers);
         const g={version:1,origin:{answers:[...answers],...result},island:copy(island),...island.spawn,elapsed:0,
             mode:'idle',destination:null,route:[],intent:null,cause:null,remaining:0,hunger:.35,fatigue:.15,fruit:2,growth:0,harvest:0,receipts:[],seen:[]};
-        if(actual){g.perception=2;g.focus=null;perception.observe(g);}else observe(g);return g;
+        if(actual){g.perception=2;g.focus=null;walk.install(g);perception.observe(g);}else observe(g);return g;
     }
     function valid(g){
         if(!g||g.version!==1||!questions.validAnswers(g.origin?.answers))return false;
         const origin=questions.resolve(g.origin.answers);
         if(origin.appearance!==g.origin.appearance||JSON.stringify(origin.settings)!==JSON.stringify(g.origin.settings))return false;
         return (g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
-            &&(g.perception!==2||g.mode==='idle'&&g.destination===null&&g.intent===null&&Array.isArray(g.route)&&g.route.length===0&&g.remaining===0)
+            &&(g.perception!==2||navigation.valid(g.island)&&Array.isArray(g.route)&&Array.isArray(g.receipts)&&walk.valid(g))
             &&navigation.valid(g.island)&&['x','y','elapsed','hunger','fatigue','remaining','growth'].every(k=>finite(g[k]))&&g.growth>=0&&g.growth<65
             &&g.elapsed>=0&&g.hunger>=0&&g.hunger<=1&&g.fatigue>=0&&g.fatigue<=1&&g.remaining>=0
-            &&['idle','move','eat','rest'].includes(g.mode)&&[null,...Object.values(targets)].includes(g.destination)
+            &&['idle','move','eat','rest'].includes(g.mode)&&([null,...Object.values(targets)].includes(g.destination)||g.perception===2&&!!perception.asset(g,g.destination))
             &&[null,...actions].includes(g.intent)&&Array.isArray(g.route)&&g.route.every(p=>finite(p.x)&&finite(p.y))
             &&Number.isInteger(g.fruit)&&g.fruit>=0&&g.fruit<=3&&Number.isInteger(g.harvest)&&g.harvest>=0
             &&Array.isArray(g.seen)&&g.seen.every(id=>g.island.places.some(p=>p.id===id)||perception.asset(g,id))
-            &&Array.isArray(g.receipts)&&g.receipts.every((r,i)=>r.id==='event-'+(i+1)&&['observe','walk','eat','rest'].includes(r.kind)
-                &&(g.island.places.some(p=>p.id===r.target)||r.kind==='observe'&&perception.asset(g,r.target)&&typeof r.label==='string'&&r.label.length<=80)&&finite(r.at)&&r.at>=0&&r.at<=g.elapsed
+            &&Array.isArray(g.receipts)&&g.receipts.every((r,i)=>r.id==='event-'+(i+1)&&['observe','walk','eat','rest','walk_start','walk_failed','walk_interrupted'].includes(r.kind)
+                &&(g.island.places.some(p=>p.id===r.target)||(r.kind==='observe'||walk.movementKinds.includes(r.kind))&&perception.asset(g,r.target)&&typeof r.label==='string'&&r.label.length<=80)&&finite(r.at)&&r.at>=0&&r.at<=g.elapsed
+                &&(r.reason===undefined||['stopped','busy','unconfirmed','unavailable','unreachable'].includes(r.reason))
                 &&finite(r.hunger)&&finite(r.fatigue)&&(r.cause===null||/^turn-[1-9]\d*$/.test(r.cause))
                 &&(r.kind==='eat'?r.taste==='sweet':r.taste===undefined));
     }
     function supply(g){
-        if(g.perception===2)return perception.supply(g);
+        if(g.perception===2)return perception.supply(g,walk);
         const result={location:'island',currentAction:g.mode,target:g.destination,hunger:g.hunger,fatigue:g.fatigue,
             visible:visible(g).map(p=>({id:p.id,kind:p.meaning,...(p.id==='berry:1'?{appearance:'red berries',count:g.fruit}:{})})),
             results:g.receipts.slice(-3).map(copy),availableActions:actions.filter(a=>g.seen.includes(targets[a])&&(a!=='eat'||g.fruit>0))};
         if(JSON.stringify(result).length>2000)throw Error('world_budget');return result;
     }
-    function apply(g,action,cause){
+    function apply(g,action,cause,packet){
         if(action===null)return {accepted:true};
-        if(g.perception===2)return {accepted:false,reason:'unavailable'};
+        if(g.perception===2)return typeof action==='object'&&packet?walk.apply(g,action,cause,packet):{accepted:false,reason:'unavailable'};
         if(!actions.includes(action)||!/^turn-[1-9]\d*$/.test(cause)||g.mode!=='idle')return {accepted:false,reason:'busy'};
         const target=targets[action];
         if(!g.seen.includes(target)||(action==='eat'&&g.fruit<1))return {accepted:false,reason:'unavailable'};
@@ -58,7 +60,7 @@
     }
     function tick(g,seconds){
         const dt=Math.min(.1,Math.max(0,seconds));if(!finite(dt)||dt===0)return;
-        if(g.perception===2){g.elapsed+=dt;perception.observe(g);return;}
+        if(g.perception===2){g.elapsed+=dt;walk.tick(g,dt);perception.observe(g);return;}
         g.elapsed+=dt;g.hunger=Math.min(1,g.hunger+dt/180);g.fatigue=Math.min(1,Math.max(0,g.fatigue+(g.mode==='rest'?-dt/28:dt/220)));
         if(g.fruit<3){g.growth+=dt;if(g.growth>=65){g.fruit++;g.growth=0;}}else g.growth=0;
         if(g.mode==='move'){
@@ -81,5 +83,5 @@
         }
         observe(g);
     }
-    return {create,valid,supply,apply,tick,visible,actions,targets,perception};
+    return {create,valid,supply,apply,tick,visible,actions,targets,perception,walk};
 });

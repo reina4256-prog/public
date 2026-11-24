@@ -16,7 +16,8 @@ window.NativeStars=(()=>{
         const g=state.game;
         const show=r=>{const p=document.createElement('p');p.dataset.i18nSkip='';p.textContent=r.id+' · '+window.NativeBook.description(r);details.replaceChildren(p);};
         for(const r of g?.receipts||[]){
-            if(g.perception===2){if(r.target.startsWith('chip:'))add('actual:'+r.target,t(r.label),()=>show(r),'actual');continue;}
+            if(g.perception===2){if(r.target.startsWith('chip:')&&['observe','walk'].includes(r.kind)){add('actual:'+r.target,t(r.label),()=>show(r),'actual');
+                if(r.kind==='walk'){add('arrival:'+r.id,t('到着'),()=>show(r),'actual');edges.push(['arrival:'+r.id,'actual:'+r.target,'experience']);}}continue;}
             const key={'berry:1':'木の実',shade:'木陰',path:'道'}[r.target];if(!key)continue;
             add('actual:'+r.target,t(key),()=>show(r),'actual');
             if(r.kind==='eat'){add('actual:sweet',t('甘い'),()=>show(r),'actual');edges.push(['actual:berry:1','actual:sweet','experience']);}

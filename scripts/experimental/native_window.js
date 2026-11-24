@@ -16,6 +16,7 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
     ipcMain.handle('native-pulse',(event,paused)=>allowed(event)?session.pulse(paused):{ok:false,error:'input'});
     ipcMain.handle('native-submit',(event,input,locale)=>allowed(event)?session.submit(input,locale):{ok:false,error:'input'});
     ipcMain.handle('native-mentor-start',(event,locale)=>allowed(event)?session.mentorStart(locale):{ok:false,error:'input'});
+    ipcMain.handle('native-mentor-intro',(event,id)=>allowed(event)?session.mentorIntro(id):{ok:false,error:'input'});
     ipcMain.handle('native-mentor-next',(event,id,round)=>allowed(event)?session.mentorNext(id,round):{ok:false,error:'input'});
     const mentorStop=event=>{if(allowed(event)){session.mentorStop();voice?.cancel();}};
     ipcMain.on('native-mentor-stop',mentorStop);
@@ -36,6 +37,7 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
         ipcMain.removeListener('native-cancel',cancel);
         ipcMain.removeListener('native-voice-cancel',voiceCancel);
         ipcMain.removeHandler('native-mentor-start');ipcMain.removeHandler('native-mentor-next');ipcMain.removeListener('native-mentor-stop',mentorStop);
+        ipcMain.removeHandler('native-mentor-intro');
     });
     void window.loadURL(url).catch(error=>{
         console.error('[word-native] Could not load the native page:',error.message);

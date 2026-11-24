@@ -1,0 +1,27 @@
+.word-master { width: min(700px, 96vw); height: min(520px, 94dvh); max-height: 94dvh; overflow: auto; padding: 0; border: 2px solid #aaa; border-radius: 12px; background: #141414; color: #333; box-shadow: 0 0 25px #000e; }
+.word-master[open] { display: grid; grid-template-columns: 1fr 1.3fr; }
+.word-master::backdrop { background: #000b; }
+.word-master-left { position: relative; display: flex; justify-content: center; align-items: center; background: #111; border-right: 3px solid #444; min-width: 0; padding-top: 50px; }
+.word-master-left canvas { width: 100%; max-width: 280px; height: auto; border: 4px solid white; border-radius: 8px; pointer-events: none; }
+.word-master .word-master-thought { position: absolute; top: 25px; left: 7.5%; width: 85%; margin: 0; padding: 12px; border-radius: 20px; background: white; font-size: 14px; font-weight: bold; text-align: center; z-index: 2; }
+.word-master-thought::after { content: ''; position: absolute; bottom: -14px; left: 50%; width: 12px; height: 12px; background: white; border-radius: 50%; box-shadow: -7px 17px 0 -2px white, -13px 31px 0 -3px white; }
+.word-master-right { position: relative; min-width: 0; overflow: hidden; background: #2a2a2a; padding: 35px; display: flex; flex-direction: column; justify-content: space-between; }
+.word-master .word-master-speech { position: relative; margin: 0; padding: 25px; width: 65%; min-width: 180px; background: white; border-radius: 20px 0 20px 20px; font-size: 17px; font-weight: bold; line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; z-index: 3; }
+.word-master-speech::after { content: ''; position: absolute; right: -17px; top: 32px; border-left: 18px solid white; border-top: 17px solid transparent; pointer-events: none; }
+.word-master-right canvas { position: absolute; top: 115px; right: -25px; width: 280px; height: 280px; object-fit: contain; pointer-events: none; z-index: 1; }
+.word-master-right button { position: relative; width: 65%; min-width: 180px; margin-top: 20px; background: #ff9800; border: 2px solid #e57700; font-weight: bold; z-index: 5; touch-action: manipulation; pointer-events: auto; }
+.word-master[data-phase='silhouette'] .word-master-speech::after { display: none; }
+.word-master-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; background: black; z-index: 8; }
+.word-master-skip { position: absolute; right: 20px; bottom: 20px; z-index: 9; touch-action: manipulation; }
+.word-master .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 620px) {
+    .word-master-right { padding: 18px; }
+    .word-master .word-master-speech { width: 85%; min-width: 0; padding: 16px; font-size: 14px; }
+    .word-master .word-master-thought { font-size: 12px; padding: 10px; }
+    .word-master-right canvas { top: 160px; right: 0; width: min(230px, 100%); height: 230px; }
+    .word-master-right button { width: 100%; min-width: 0; }
+}
+@media (max-height: 580px) {
+    .word-master-right { min-height: 430px; }
+    .word-master-left { min-height: 430px; }
+}

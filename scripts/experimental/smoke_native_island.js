@@ -8,25 +8,28 @@ if(!process.versions.electron){
     const assert=require('node:assert/strict'),{app}=require('electron'),core=require('../../experimental_word_llm_native_runtime');
     const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/native-island-'));
     app.disableHardwareAcceleration();app.setPath('userData',path.join(directory,'profile'));
-    let window,time=0,preparations=0;const errors=[],checks=[],packets=[],voiceRequests=[],mentorPackets=[];const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+    let window,activeSession,masterTarget=null,holdMentor=false,releaseMentor,time=0,preparations=0;const errors=[],checks=[],packets=[],voiceRequests=[],mentorPackets=[];const sleep=ms=>new Promise(r=>setTimeout(r,ms));
     function sampleWav(){const b=Buffer.alloc(4844);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(4800,40);return b;}
     const evaluate=code=>window.webContents.executeJavaScript(code);
     async function capture(name){await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');await sleep(250);fs.writeFileSync(path.join(directory,name),(await window.webContents.capturePage()).toPNG());}
-    async function until(code){for(let i=0;i<200;i++){if(await evaluate(code))return;await sleep(50);}throw Error('Timed out: '+code);}
+    async function until(code){for(let i=0;i<400;i++){if(await evaluate(code))return;await sleep(50);}const video=await evaluate('(()=>{const v=document.querySelector(".word-master-video");return v?{phase:document.querySelector("#word-master-dialog").dataset.phase,time:v.currentTime,duration:v.duration,paused:v.paused,ended:v.ended,ready:v.readyState,seeking:v.seeking,error:v.error?.code}:null})()');fs.writeFileSync(path.join(directory,'wait-failure.json'),JSON.stringify({condition:code,video}));throw Error('Timed out: '+code);}
     const timer=setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({checks,errors}));app.exit(1);},180000);
     function open(){
         const responder={async reply(p){packets.push(p);if(p.input==='QUOTA')return {ok:false,error:'quota'};
-            const teaching=p.input==='この場所はコロです。';const focus=p.input==='FOCUS'?{targetId:p.world.visible[0].id,quote:p.input}:null;
+            const teaching=p.input==='この場所はコロです。';const focus=p.input==='FOCUS'?{targetId:p.world.visible[0].id,quote:p.input}:p.input==='FIND_MASTER'?{targetId:masterTarget,quote:p.input}:null;
             const proposal={reply:focus?'Do you mean this place?':'I am on the island. '+p.world.currentAction,
                 interpretation:{kind:teaching?'teaching':'question',summary:teaching?'場所をコロと呼ぶと教わった。まだ自分では確かめていない。':'島でのいまの様子を聞かれた。'},
                 memories:teaching?[{sourceId:p.id,quote:p.input,text:'The player calls this place Koro; unverified.'}]:[],references:p.memories.slice(-1).map(m=>m.sourceId),
                 terms:teaching?[{word:'場所',quote:p.input},{word:'コロ',quote:p.input}]:[],action:null,focus};
             if(p.input==='BAD')proposal.terms=[{word:'forged',quote:p.input}];
             if(p.input==='BAD_ACTION')proposal.action='eat';
+            if(p.input==='Yes'&&p.world.focus)proposal.confirmation={targetId:p.world.focus,quote:p.input};
+            if(p.input==='walk there'){proposal.interpretation.kind='request';proposal.action={kind:'walk',targetId:p.world.confirmed,quote:p.input};}
             return {ok:true,proposal};},prepare(...args){assert.deepEqual(args,[]);preparations++;return {ok:true};},cancel(){},dispose(){}};
         const {createSession,createProfiles}=require('./native_store');
-        const mentorResponder={async reply(p){mentorPackets.push(p);return {ok:true,proposal:{mentor:'Welcome, little explorer.',companion:'Hello, I am curious.'}};},cancel(){},dispose(){}};
+        const mentorResponder={async reply(p){mentorPackets.push(p);if(holdMentor)await new Promise(r=>releaseMentor=r);return {ok:true,proposal:{mentor:'Welcome, little explorer.',companion:'Hello, I am curious.'}};},cancel(){},dispose(){}};
         const session=createSession({store:createProfiles(path.join(directory,'save')),responder,mentorResponder,clock:()=>time+=100});
+        activeSession=session;
         const voice=require('./native_voice').createVoice({directory:path.join(directory,'save'),session,key:()=> 'fixture-only',fetcher:async(url,options)=>{
             voiceRequests.push(JSON.parse(options.body));
             if(url.endsWith('/voices'))return new Response(JSON.stringify({type:'prompted',id:'voice_fixture_'+voiceRequests.length,sample_audio:{mime_type:'audio/wav',data:sampleWav().toString('base64')}}));
@@ -152,23 +155,36 @@ if(!process.versions.electron){
         await evaluate('document.getElementById("voice-menu").open=true;document.getElementById("voice-design").open=true;document.getElementById("voice-panel").scrollIntoView({block:"start"})');
         assert.equal(await evaluate('/Gemini|Google|API|VOICEVOX/i.test(document.body.innerText)'),false);await capture('custom-voice-in-play.png');
         checks.push('explicit custom voice confirmation, persisted reply uses its cloud ID only, restart preserves original settings and never generates automatically');
-        const turnsBeforeMentor=await evaluate('(async()=>JSON.stringify((await nativeMemory.load()).state.turns))()');
-        const callsBeforeMentor=voiceRequests.length;
+        assert.equal(await evaluate('document.getElementById("mentor-open")===null'),true);
+        const beforeWalk=activeSession.load().state.game;
+        masterTarget=core.game.supply(beforeWalk).visible.filter(v=>/^chip:(mountain_|palms_)/.test(v.id)).map(v=>({id:v.id,n:core.game.walk.plan(beforeWalk,v.id)?.length||0})).sort((a,b)=>b.n-a.n)[0].id;
         await evaluate('document.getElementById("locale").value="en";document.getElementById("locale").dispatchEvent(new Event("change"))');
-        await evaluate('document.getElementById("mentor-open").click()');
+        await send('FIND_MASTER');assert.equal(activeSession.load().state.game.mode,'idle');
+        await send('Yes');assert.equal(activeSession.load().state.game.mode,'idle');assert.equal(activeSession.load().state.game.walk.confirmed.targetId,masterTarget);
+        await send('walk there');await until('aiPet.actionState==="moving"');await capture('actual-chip-walking.png');
+        await until('document.getElementById("word-master-dialog").open && document.getElementById("word-master-dialog").dataset.phase==="video"');
+        assert.equal(activeSession.load().state.game.mode,'idle');assert.equal(mentorPackets.length,0);
+        assert.equal(activeSession.load().state.game.receipts.filter(r=>r.kind==='walk'&&r.target===masterTarget).length,1);
+        await evaluate('document.querySelector(".word-master-video").muted=true;document.querySelector(".word-master-video").play()');
+        await until('document.querySelector(".word-master-video").readyState>=2 && document.querySelector(".word-master-video").currentTime>0');await capture('actual-encounter-movie.png');
+        await until('document.getElementById("word-master-dialog").dataset.phase==="conversation"');
+        assert.equal(mentorPackets.length,0);assert.equal(await evaluate('document.getElementById("mentor-hero").dataset.skin'),customSpecies);
+        assert.ok(await evaluate('document.getElementById("mentor-hero").getContext("2d").getImageData(0,0,280,200).data.some((v,i)=>i%4===3&&v>0)'));
+        const turnsBeforeMentor=JSON.stringify(activeSession.load().state.turns),callsBeforeMentor=voiceRequests.length;
+        await evaluate('document.getElementById("mentor-next").click()');
         await until('document.querySelectorAll("#mentor-log p").length===2 && !document.getElementById("mentor-next").disabled');
         assert.equal(voiceRequests.length,callsBeforeMentor+2);
         assert.equal(mentorPackets[0].locale,'en');
         assert.equal(voiceRequests.at(-2).generation_config.speech_config[0].voice,'Kore');
         const customCloudId=JSON.parse(fs.readFileSync(path.join(directory,'save','native-voice-designs.json'),'utf8')).entries.find(e=>e.id===customId).cloudId;
         assert.equal(voiceRequests.at(-1).generation_config.speech_config[0].voice,customCloudId);
-        for(const locale of core.locales)for(const width of [1160,420]){window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(locale)+');GameI18n.localizeTree(document.body)');assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));}
+        for(const locale of core.locales)for(const width of [1160,420]){window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(locale)+');GameI18n.localizeTree(document.body)');assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../locales',locale+'.json'),'utf8'));for(const [id,key]of [['mentor-close','話を終える'],['mentor-next','つづける'],['mentor-history-title','会話をふりかえる']])assert.equal(await evaluate('document.getElementById('+JSON.stringify(id)+').textContent'),locale==='ja'?key:catalog[key]);}
         await evaluate('GameI18n.setLanguage("ja");GameI18n.localizeTree(document.body)');await capture('mentor-conversation-420.png');window.setSize(1160,850);await capture('mentor-conversation-1160.png');
         for(const count of [4,6]){await evaluate('document.getElementById("mentor-next").click()');await until('document.querySelectorAll("#mentor-log p").length==='+count);
             await until(count===4?'!document.getElementById("mentor-next").disabled':'document.getElementById("mentor-status").textContent==="またお話ししよう。"');}
         assert.equal(await evaluate('document.getElementById("mentor-next").disabled'),true);assert.equal(mentorPackets.length,3);
         assert.deepEqual(mentorPackets.map(p=>p.recent.length),[0,2,4]);assert.ok(mentorPackets.every(p=>Object.keys(p).sort().join(',')==='character,id,locale,mentor,recent'));
-        await evaluate('document.getElementById("mentor-close").click()');await until('document.getElementById("encounterOverlay").hidden');
+        await evaluate('document.getElementById("mentor-close").click()');await until('!document.getElementById("word-master-dialog").open');
         await evaluate('document.getElementById("locale").value="ja";document.getElementById("locale").dispatchEvent(new Event("change"))');
         assert.equal(await evaluate('(async()=>JSON.stringify((await nativeMemory.load()).state.turns))()'),turnsBeforeMentor);
         assert.equal(await evaluate('document.getElementById("voice-choice").value'),customId);
@@ -180,11 +196,14 @@ if(!process.versions.electron){
         const prefsAfterMentor=JSON.parse(fs.readFileSync(path.join(directory,'save','native-voice-preferences.json'),'utf8'));
         assert.ok(prefsAfterMentor.voices['mentor-adventurer'].startsWith('design:'));assert.equal(prefsAfterMentor.voices[customSpecies],customId);
         await evaluate('document.getElementById("voice-menu").open=false');await sleep(50);await evaluate('document.getElementById("voice-menu").open=true');await until('document.getElementById("voice-panel").parentElement.id==="play-voice"');
-        checks.push('mentor encounter window with separate voices, three bounded rounds, seven locales/two widths, no memories or player history supplied, no learning, separate custom mentor voice');
-        const afterConversationCalls=voiceRequests.length;
-        await evaluate('document.getElementById("mentor-open").click();document.getElementById("mentor-close").click()');await sleep(250);
-        assert.equal(await evaluate('document.getElementById("encounterOverlay").hidden'),true);assert.equal(voiceRequests.length,afterConversationCalls);
-        checks.push('closing before mentor start returns prevents late dialogue, audio requests and normal-screen lock');
+        checks.push('chat-confirmed real-chip walk and actual arrival gate, real local movie playback, shared original master window with both actors, three voiced rounds, seven locales/two widths, separate saved voices and no learning');
+        const revisit=activeSession.load().state.game;masterTarget=core.game.supply(revisit).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)&&core.game.walk.plan(revisit,v.id)).id;
+        await send('FIND_MASTER');await send('Yes');await send('walk there');await until('document.getElementById("word-master-dialog").open && document.getElementById("word-master-dialog").dataset.phase==="conversation"');
+        holdMentor=true;const afterConversationCalls=voiceRequests.length;await evaluate('document.getElementById("mentor-next").click()');for(let i=0;i<100&&!releaseMentor;i++)await sleep(20);assert.ok(releaseMentor);
+        await evaluate('document.getElementById("mentor-close").click()');releaseMentor();holdMentor=false;await sleep(250);
+        assert.equal(await evaluate('document.getElementById("word-master-dialog").open'),false);assert.equal(voiceRequests.length,afterConversationCalls);
+        assert.equal((await activeSession.mentorStart('en')).ok,false);assert.equal(activeSession.mentorIntro('forged').ok,false);
+        checks.push('closing encounter discards delayed dialogue without audio; direct or forged meeting rejected; no automatic movie replay for met mentor');
         const originalState=JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8'));
         const sharedVoices=fs.readFileSync(path.join(directory,'save','native-voice-designs.json'),'utf8');
         const voicesBeforeCharacters=voiceRequests.length;

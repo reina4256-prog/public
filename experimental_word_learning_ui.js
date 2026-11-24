@@ -1929,23 +1929,7 @@
     }
     if (window.WordIslandMode && adventureApi) adventureView = new window.ExperimentalWordAdventureView(canvas, controls, t, adventureAction);
     // Keep the modal out of the playing grid and its clipped/scrolling ancestors.
-    const masterDialog = node('dialog', undefined, document.body); masterDialog.className = 'word-master'; masterDialog.id = 'word-master-dialog';
-    const masterLeft = node('div', undefined, masterDialog); masterLeft.className = 'word-master-left';
-    const masterThought = node('p', '', masterLeft); masterThought.className = 'word-master-thought';
-    const masterInner = node('p', '', masterLeft); masterInner.className = 'word-inner-voice'; masterInner.hidden = true;
-    masterInner.setAttribute('data-i18n-skip', '');
-    const masterHero = node('canvas', undefined, masterLeft); masterHero.width = 280; masterHero.height = 200;
-    masterHero.setAttribute('aria-hidden', 'true');
-    const masterRight = node('div', undefined, masterDialog); masterRight.className = 'word-master-right';
-    const masterName = node('h2', '', masterRight); masterName.id = 'word-master-name'; masterName.className = 'visually-hidden';
-    const masterText = node('p', '', masterRight); masterText.id = 'word-master-text'; masterText.className = 'word-master-speech';
-    const masterPortrait = node('canvas', undefined, masterRight); masterPortrait.width = 400; masterPortrait.height = 400;
-    masterPortrait.setAttribute('aria-hidden', 'true');
-    masterDialog.setAttribute('aria-labelledby', masterName.id); masterDialog.setAttribute('aria-describedby', masterText.id);
-    const masterClose = node('button', t('masterContinue'), masterRight); masterClose.type = 'button'; masterClose.id = 'word-master-close';
-    const masterVideo = node('video', undefined, masterDialog); masterVideo.className = 'word-master-video';
-    masterVideo.playsInline = true; masterVideo.preload = 'auto'; masterVideo.hidden = true;
-    const masterSkip = node('button', t('masterSkip'), masterDialog); masterSkip.type = 'button'; masterSkip.id = 'word-master-skip'; masterSkip.className = 'word-master-skip'; masterSkip.hidden = true;
+    const {dialog:masterDialog,left:masterLeft,thought:masterThought,inner:masterInner,hero:masterHero,right:masterRight,name:masterName,text:masterText,portrait:masterPortrait,close:masterClose,video:masterVideo,skip:masterSkip}=window.WordMasterWindow.create(t);
     let masterFocus = null, masterImage = null, dialogMaster = null, masterBackground = null;
     let masterPhase = 'closed', masterReply = null, masterToken = 0, videoAbort = null, videoWatch = null, masterClosing = false;
     let masterSpeechToken = 0, masterSpeechPending = false, masterAutoElapsed = 0, masterAutoQuiet = 0;

@@ -53,9 +53,11 @@
     $('logo').onclick=showTitle;
     $('new-game').onclick=()=>{if(blocked||busy)return;startingNew=true;answers=[];question=0;strokes=[];pointer=null;for(const id of ['name','self','player']){$(id).value='';$(id).readOnly=false;}showQuestion();};
     for(const id of ['back-title','picker-back'])$(id).onclick=showTitle;
-    $('mentor-open').onclick=()=>{if(busy||blocked||screen!=='play')return;window.NativeVoiceUI.stop();busy=true;$('play').inert=true;$('locale').disabled=true;void window.NativeMentorUI.open(state.character.name,$('locale').value);};
+    const encounters=new Set();
+    function encounter(){const e=state?.game?.walk?.encounter,key=e?.target+'|'+e?.id;if(screen!=='play'||busy||paused||document.hidden||!e||e.phase!=='pending'||encounters.has(key))return;
+        encounters.add(key);window.NativeVoiceUI.stop();busy=true;$('play').inert=true;$('locale').disabled=true;void window.NativeMentorUI.open(state.character.name,$('locale').value,state.game,e.id);}
     window.addEventListener('native-mentor-close',()=>{busy=false;$('play').inert=false;$('locale').disabled=false;
-        if(state?.game)window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);$('mentor-open').focus();warmup();});
+        if(state?.game)window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);$('input').focus();const owner=state;void api.load().then(r=>{if(r.ok&&r.state&&state===owner&&screen==='play'){state=r.state;$('mentor-voice-menu').hidden=!state.game?.walk?.met;}});warmup();});
     $('mentor-voice-menu').ontoggle=()=>{if($('mentor-voice-menu').open&&!busy)window.NativeVoiceUI.mount($('mentor-voice'),'mentor-adventurer',$('locale').value);};
     $('voice-menu').ontoggle=()=>{if($('voice-menu').open&&!busy&&state?.game&&$('voice-panel').parentElement!==$('play-voice'))window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);};
     async function resumeCharacter(id){if(busy||blocked)return;busy=true;window.NativeVoiceUI.stop();try{const r=await api.selectCharacter(id);if(!r.ok){status(errors[r.error]||errors.failed);return;}state=r.state;startingNew=false;answers=[];question=0;strokes=[];pointer=null;
@@ -79,6 +81,7 @@
     function render(){
         if(!state?.game){showQuestion();return;}
         screen='play';$('entry').hidden=true;document.body.classList.remove('entry-active');
+        $('mentor-voice-menu').hidden=!state.game.walk?.met;
         $('questions').hidden=$('setup').hidden=true;$('play').hidden=false;$('character-name').textContent=state.character.name;$('nameplate').textContent=state.character.name;
         window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);
         $('conversation').replaceChildren();for(const turn of state.turns.filter(t=>t.world)){el('p',$('conversation'),turn.input,'utterance',true);if(turn.result)el('p',$('conversation'),turn.result.reply,'utterance assistant',true);}
@@ -112,7 +115,7 @@
         if(screen==='logo'&&!document.hidden)drawLogo(time);
         if(screen==='play'&&state?.game&&!document.hidden){window.NativeScene.draw(state.game,time/1000,reduced.matches);
             const stop=paused||busy||!$('chat-view').hidden&&document.activeElement===$('input')&&$('input').value.length>0||$('chat-view').hidden;
-            if(time-lastPulse>100&&!pulsing){lastPulse=time;pulsing=true;const owner=state;try{const r=await api.pulse(stop);if(screen==='play'&&state===owner){if(r.game){const island=state.game.island;state.game={...r.game,island};meters();}if(!r.ok&&r.error==='save'){blocked=true;$('send').disabled=true;status(errors.save);}}}catch(_){status(errors.failed);}finally{pulsing=false;}}
+            if(time-lastPulse>100&&!pulsing){lastPulse=time;pulsing=true;const owner=state;try{const r=await api.pulse(stop);if(screen==='play'&&state===owner){if(r.game){const island=state.game.island;state.game={...r.game,island};meters();encounter();}if(!r.ok&&r.error==='save'){blocked=true;$('send').disabled=true;status(errors.save);}}}catch(_){status(errors.failed);}finally{pulsing=false;}}
         }
         requestAnimationFrame(frame);
     }

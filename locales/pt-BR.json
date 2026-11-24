@@ -15811,5 +15811,9 @@
   "またお話ししよう。": "Vamos conversar de novo outro dia.",
   "今はお話を続けられないみたい。また今度にしよう。": "Não dá para continuar a conversa agora. Vamos tentar outra hora.",
   "話を終える": "Encerrar a conversa",
-  "つづける": "Continuar"
+  "つづける": "Continuar",
+  "歩いて{{0}}のそばに着いた。": "Caminhei até um lugar perto de {{0}}.",
+  "到着": "Chegada",
+  "会話をふりかえる": "Rever a conversa",
+  "冒険家と出会った。": "Encontrei a aventureira."
 }

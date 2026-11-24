@@ -24,12 +24,15 @@
         g.perception=2;g.focus=null;g.mode='idle';g.destination=null;g.route=[];g.intent=null;g.cause=null;g.remaining=0;
         observe(g);return g;
     }
-    function supply(g){
+    function supply(g,walk){
         const visible=chips(g),focus=visible.some(p=>p.id===g.focus?.targetId)?g.focus.targetId:null;
-        const result={perception:'map-chips',location:'island',currentAction:'idle',target:null,hunger:g.hunger,fatigue:g.fatigue,
+        const result={perception:'map-chips',location:'island',currentAction:g.mode,target:g.destination,hunger:g.hunger,fatigue:g.fatigue,
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
+        if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&visible.some(p=>p.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
+            result.availableActions=g.mode==='move'?['stop']:result.walkable?['walk']:[];}
         while(JSON.stringify(result).length>2000&&visible.length)visible.pop();
         if(!visible.some(p=>p.id===result.focus))result.focus=null;
+        if(Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)){result.walkable=false;result.availableActions=g.mode==='move'?['stop']:[];}
         if(JSON.stringify(result).length>2000)throw Error('world_budget');return result;
     }
     function validFocus(f,p){return f===null||!!(f&&typeof f==='object'&&!Array.isArray(f)

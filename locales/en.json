@@ -15811,5 +15811,9 @@
   "またお話ししよう。": "Let’s talk again sometime.",
   "今はお話を続けられないみたい。また今度にしよう。": "We can’t carry on talking right now. Let’s try another time.",
   "話を終える": "End conversation",
-  "つづける": "Continue"
+  "つづける": "Continue",
+  "歩いて{{0}}のそばに着いた。": "I walked to a spot near {{0}}.",
+  "到着": "Arrival",
+  "会話をふりかえる": "Look back at the conversation",
+  "冒険家と出会った。": "I met the adventurer."
 }
