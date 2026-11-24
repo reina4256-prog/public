@@ -156,9 +156,14 @@ if(!process.versions.electron){
         const voicesBeforeCharacters=voiceRequests.length;
         await evaluate('document.getElementById("back-title").click()');await until('!document.getElementById("title-menu").hidden');
         assert.equal(await evaluate('document.getElementById("new-game").hidden'),false);
-        await evaluate('document.getElementById("new-game").click();document.getElementById("questions-title").click()');
-        assert.equal(JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8')).character.name,originalState.character.name);
         await evaluate('document.getElementById("new-game").click()');
+        assert.equal(await evaluate('document.getElementById("questions-title")===null'),true);
+        assert.equal(JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8')).character.name,originalState.character.name);
+        for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
+        await until('!document.getElementById("setup").hidden');
+        assert.equal(await evaluate('Array.from(document.querySelectorAll("#setup button")).some(button=>button.textContent==="タイトルにもどる")'),false);
+        await evaluate('document.getElementById("question-retry").click()');
+        assert.equal(await evaluate('document.getElementById("setup").hidden && document.getElementById("question-count").textContent==="1 / 7"'),true);
         for(let i=0;i<7;i++)await evaluate('document.querySelector("#question-choices button").click()');
         await until('!document.getElementById("setup").hidden');
         assert.equal(await evaluate('document.getElementById("name").readOnly'),false);
@@ -179,7 +184,7 @@ if(!process.versions.electron){
         await new Promise(r=>{window.once('closed',r);window.close();});open();await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click();document.getElementById("continue-game").click()');await until('!document.getElementById("character-picker").hidden');
         await evaluate('document.querySelectorAll("#character-list button")[1].click()');await until('!document.getElementById("play").hidden');assert.equal(await evaluate('document.getElementById("character-name").textContent'),'Second <name>');
         assert.equal(voiceRequests.length,voicesBeforeCharacters);assert.deepEqual(errors,[]);
-        checks.push('new game preserves original and created voices; two independent saves selectable after restart; abandon onboarding; seven-locale responsive character picker and literal names');
+        checks.push('new game preserves original and created voices; two independent saves selectable after restart; retry questions only before signing; seven-locale responsive character picker and literal names');
         const primaryFile=path.join(directory,'save','native-memory.json'),originalBytes=fs.readFileSync(primaryFile);fs.writeFileSync(primaryFile,'corrupt fixture');
         await evaluate('document.getElementById("back-title").click();document.getElementById("continue-game").click()');await until('document.getElementById("title-status").textContent.length>0');
         assert.equal(await evaluate('document.getElementById("title-status").getBoundingClientRect().height>0'),true);

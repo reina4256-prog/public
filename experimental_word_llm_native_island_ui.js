@@ -52,8 +52,7 @@
         $('logo').hidden=true;$('title-menu').hidden=false;$('continue-game').hidden=!state;$('new-game').hidden=false;status('');$(state?'continue-game':'new-game').focus();}
     $('logo').onclick=showTitle;
     $('new-game').onclick=()=>{if(blocked||busy)return;startingNew=true;answers=[];question=0;strokes=[];pointer=null;for(const id of ['name','self','player']){$(id).value='';$(id).readOnly=false;}showQuestion();};
-    for(const id of ['back-title','questions-title','picker-back'])$(id).onclick=showTitle;
-    const setupTitle=el('button',$('setup'),'タイトルにもどる');setupTitle.type='button';setupTitle.onclick=showTitle;
+    for(const id of ['back-title','picker-back'])$(id).onclick=showTitle;
     async function resumeCharacter(id){if(busy||blocked)return;busy=true;window.NativeVoiceUI.stop();try{const r=await api.selectCharacter(id);if(!r.ok){status(errors[r.error]||errors.failed);return;}state=r.state;startingNew=false;answers=[];question=0;strokes=[];pointer=null;
         $('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);if(state.game){paused=false;render();}else showQuestion();
         }catch(_){status(errors.failed);}finally{busy=false;warmup();}}
