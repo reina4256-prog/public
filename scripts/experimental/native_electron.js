@@ -34,7 +34,8 @@ else {
             'scripts/experimental/native_mentor.js','experimental_word_llm_native_mentor_ui.js','experimental_word_llm_native_mentor.css','experimental_word_master_window.js','experimental_word_master_window.css','experimental_word_llm_native_walk.js']});
         const sessionId=randomUUID();let sequence=0;
         recorder.append({sessionId,sequence:++sequence,event:{kind:'session',at:Date.now(),mode:'llm-native',runtime:recorder.version}});
-        session=createSession({store,responder,mentorResponder,record:event=>{
+        session=createSession({store,responder,mentorResponder,
+            recoverMentor:state=>require('./native_mentor').recoverLegacyFile(state,path.join(directory,'native-playtest.jsonl')),record:event=>{
             fs.appendFileSync(path.join(directory,'native-playtest.jsonl'),JSON.stringify(event)+'\n','utf8');
             recorder.append({sessionId,sequence:++sequence,event:event.kind.startsWith('mentor_')?event:event.kind==='input'?{...event,kind:'player',text:event.packet.input}:{...event,kind:'native_result'}});
         }});

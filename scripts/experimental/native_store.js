@@ -60,7 +60,7 @@ function createProfiles(directory){
     }catch(_){return fail();}}
     return {load:()=>blocked?fail():store.load(),save:value=>blocked?fail():store.save(value),list,select,create,get file(){return store?.file;}};
 }
-function createSession({store,responder,mentorResponder=null,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
+function createSession({store,responder,mentorResponder=null,recoverMentor=null,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
     const talk=require('./native_mentor').createTalk(mentorResponder,(kind,data)=>log(kind,data));
     let introOwner=null;
     let state=null,loaded=false,blocked=false,busy=false;
@@ -76,6 +76,8 @@ function createSession({store,responder,mentorResponder=null,record=()=>{},clock
                 if (!persist(state,'resume').ok) blocked=true;
             }
             if(state&&!blocked){const upgraded=core.upgrade(state);if(upgraded!==state){if(persist(upgraded,'map-upgrade').ok)state=upgraded;else blocked=true;}}
+            if(state&&!blocked&&recoverMentor&&!state.mentorConversations?.length){const recovered=recoverMentor(copy());
+                if(recovered&&core.validState(recovered)){if(persist(recovered,'mentor-recovery').ok)state=recovered;else blocked=true;}}
         }
         return blocked ? {ok:false,error:'save'} : {ok:true,state:copy()};
     }
@@ -152,11 +154,19 @@ function createSession({store,responder,mentorResponder=null,record=()=>{},clock
         const next=copy();next.game.walk.encounter.phase='video';if(!persist(next,'encounter-intro').ok){blocked=true;return {ok:false,error:'save'};}
         state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:state.game.walk.met,video:e.target.startsWith('chip:mountain_')?'mountain':'forest'};}
     function mentorStart(locale){load();if(blocked||!introOwner||talk.active||state?.game?.walk?.encounter?.id!==introOwner)return {ok:false,error:'input'};
-        const r=talk.start(state.character,locale===undefined?state.locale:locale);if(!r.ok)return r;
+        const r=talk.start(state.character,locale===undefined?state.locale:locale,core.latestConversation(state));if(!r.ok)return r;
         const next=copy();next.game.walk.met=true;next.game.walk.encounter.phase='conversation';if(!persist(next,'encounter-conversation').ok){talk.stop();blocked=true;return {ok:false,error:'save'};}state=next;return r;}
     function mentorStop(){if(talk.active||introOwner){talk.stop();introOwner=null;busy=false;lastClock=clock();
         if(state?.game?.walk?.encounter){const next=copy();next.game.walk.encounter.phase='done';if(persist(next,'encounter-close').ok)state=next;else blocked=true;}}}
-    async function mentorNext(id,round){if(!talk.active)return {ok:false,error:'input'};const r=await talk.next(id,round);if(!talk.active)mentorStop();return r;}
+    async function mentorNext(id,round){if(blocked||!talk.active)return {ok:false,error:blocked?'save':'input'};
+        const arrival=state.game.walk.encounter,owner=introOwner,r=await talk.next(id,round);
+        if(r.ok){
+            if(!owner||owner!==introOwner||state.game.walk.encounter?.id!==arrival.id)return {ok:false,error:'cancelled'};
+            try{const next=core.rememberConversation(state,arrival,talk.lines);
+                if(!persist(next,'mentor-dialogue',id).ok)throw Error('save');state=next;
+            }catch(_){blocked=true;mentorStop();return {ok:false,error:'save'};}
+        }
+        if(!talk.active)mentorStop();return r;}
     return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,mentorIntro,mentorStart,mentorNext,mentorStop,mentorLine:talk.line,cancel:()=>{mentorStop();responder.cancel();},dispose:()=>{
         mentorStop();
         talk.dispose();

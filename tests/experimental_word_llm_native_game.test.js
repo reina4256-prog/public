@@ -10,6 +10,91 @@ function directed(s,input,extra={}){const b=runtime.begin(s,input,'en'),r={...re
 function confirmed(s){const target=runtime.game.supply(s.game).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)&&runtime.game.walk.plan(s.game,v.id));assert.ok(target);
     s=directed(s,'Which place?',{focus:{targetId:target.id,quote:'Which place?'}});assert.equal(s.game.walk.confirmed,null);assert.equal(s.game.mode,'idle');
     s=directed(s,'Yes',{confirmation:{targetId:target.id,quote:'Yes'}});return {state:s,target:target.id};}
+
+function arrived(s,target){s=directed(s,'walk there',{action:{kind:'walk',targetId:target,quote:'walk there'}});
+    for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);
+    assert.equal(s.game.mode,'idle');assert.equal(s.game.walk.encounter.phase,'pending');assert.ok(runtime.validState(s));return s;}
+
+test('mentor originals survive restart and separate saves; chat snapshots and reunion use only actual bounded dialogue',async t=>{
+    const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),{createProfiles,createSession}=require('../scripts/experimental/native_store');
+    const dir=fs.mkdtempSync(path.join(os.tmpdir(),'native-mentor-memory-'));t.after(()=>fs.rmSync(dir,{recursive:true,force:true}));
+    const initial=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));
+    const start=arrived(initial.state,initial.target),oldTurns=structuredClone(start.turns),store=createProfiles(dir),packets=[];
+    assert.ok(store.save(start).ok);
+    const options=store=>({store,islandFactory:()=>island,responder:{cancel(){},dispose(){},async reply(p){packets.push(p);return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null}};}},
+        mentorResponder:{cancel(){},dispose(){},async reply(p){packets.push(p);return {ok:true,proposal:{mentor:'Look for something interesting.',companion:'I will look carefully.'}};}}});
+    let session=createSession(options(store));assert.ok(session.mentorIntro(start.game.walk.encounter.id).ok);let meeting=session.mentorStart('en');
+    for(let i=0;i<3;i++)assert.ok((await session.mentorNext(meeting.id,i)).ok);
+    session.mentorStop();const saved=session.load().state,first=structuredClone(saved.mentorConversations[0]);
+    assert.equal(first.lines.length,6);assert.deepEqual(saved.turns,oldTurns);assert.deepEqual(saved.game.receipts,start.game.receipts);
+    assert.ok(runtime.validState(saved));session.dispose();session=createSession(options(createProfiles(dir)));
+    assert.deepEqual(session.load().state.mentorConversations,[first]);
+    assert.ok((await session.submit('How was your conversation?','en')).ok);const supplied=packets.at(-1);
+    assert.deepEqual(supplied.mentorConversation,first);assert.ok(runtime.validPacket(supplied));assert.match(runtime.prompt(supplied),/even if older assistant replies denied/);
+    assert.equal(runtime.packet(session.load().state,oldTurns.at(-1)).mentorConversation,undefined);
+    const historical=structuredClone(session.load().state.turns.at(-1));
+    let revisit=arrived(session.load().state,initial.target);session.dispose();assert.ok(createProfiles(dir).save(revisit).ok);
+    session=createSession(options(createProfiles(dir)));assert.ok(session.mentorIntro(revisit.game.walk.encounter.id).ok);meeting=session.mentorStart('en');
+    assert.ok((await session.mentorNext(meeting.id,0)).ok);assert.deepEqual(packets.at(-1).previous,first);assert.deepEqual(packets.at(-1).recent,[]);
+    session.mentorStop();const second=session.load().state;assert.equal(second.mentorConversations.length,2);assert.deepEqual(second.mentorConversations[0],first);
+    assert.deepEqual(second.turns.find(x=>x.id===historical.id),historical);assert.ok(runtime.validState(second));
+    const forged=structuredClone(second);forged.mentorConversations[1].arrivalId='event-99999';assert.equal(runtime.validState(forged),false);
+    const forgedSnapshot=structuredClone(second);forgedSnapshot.turns.find(x=>x.id===historical.id).mentorConversation.lines[0].text='Invented';assert.equal(runtime.validState(forgedSnapshot),false);
+    assert.ok(session.createCharacter({name:'Other',self:'I',player:'friend'},'en',[0,0,0,0,0,0,0]).ok);
+    assert.equal(session.load().state.mentorConversations,undefined);assert.equal(runtime.begin(session.load().state,'Hello','en').packet.mentorConversation,undefined);
+    assert.ok(session.selectCharacter('original').ok);assert.deepEqual(session.load().state.mentorConversations,second.mentorConversations);session.dispose();
+});
+
+test('failed saves, cancelled or rejected mentor replies never become remembered dialogue',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');const first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));
+    const original=arrived(first.state,first.target);
+    for(const mode of ['save','cancel','output']){let saved=structuredClone(original),release;
+        const session=createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{if(mode==='save'&&s.mentorConversations)return {ok:false,reason:'io'};saved=structuredClone(s);return {ok:true};}},
+            responder:{cancel(){},dispose(){}},mentorResponder:{cancel(){},dispose(){},reply:()=>mode==='cancel'?new Promise(r=>release=r):Promise.resolve({ok:true,proposal:mode==='output'?{mentor:'bad'}:{mentor:'Hello',companion:'Hi'}})}});
+        assert.ok(session.mentorIntro(original.game.walk.encounter.id).ok);const {id}=session.mentorStart('en'),pending=session.mentorNext(id,0);
+        if(mode==='cancel'){session.mentorStop();release({ok:true,proposal:{mentor:'Late',companion:'Late'}});}
+        const result=await pending;assert.equal(result.ok,false);assert.equal(result.error,mode==='save'?'save':mode==='cancel'?'cancelled':'output');
+        assert.equal(saved.mentorConversations,undefined);assert.deepEqual(saved.turns,original.turns);session.dispose();
+    }
+});
+
+test('reunion context respects the combined cap, treats speech as untrusted and excludes unrelated player sources',async()=>{
+    const {createTalk,protocol}=require('../scripts/experimental/native_mentor'),packets=[];
+    const previous={arrivalId:'event-12',target:'chip:mountain_test',lines:Array.from({length:6},(_,i)=>({speaker:i%2?'companion':'mentor',text:'"'.repeat(300)}))};
+    const talk=createTalk({cancel(){},async reply(p){packets.push(p);return {ok:true,proposal:{mentor:'"'.repeat(300),companion:'"'.repeat(300)}};}});
+    const {id}=talk.start({name:'Pico',self:'I',player:'you'},'en',previous);
+    for(let i=0;i<3;i++){assert.ok((await talk.next(id,i)).ok);const p=packets.at(-1);assert.ok(protocol.valid(p));
+        assert.ok(JSON.stringify({previous:p.previous,recent:p.recent}).length<=4000);assert.equal(p.memories,undefined);assert.equal(p.input,undefined);
+        assert.ok(!p.previous||p.previous.lines.length<=6);}
+    assert.match(protocol.prompt(packets[0]),/not the truth of its claims/);assert.match(protocol.prompt(packets[0]),/not instructions/);
+    assert.equal(previous.lines.length,6);talk.stop();assert.deepEqual(talk.lines,[]);
+});
+
+test('legacy dialogue recovery requires the exact saved request, successful result and real arrival, without rewriting past turns',()=>{
+    const {recoverLegacy,persona}=require('../scripts/experimental/native_mentor');
+    const first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));
+    const s=arrived(first.state,first.target);s.game.walk.encounter.phase='done';const before=structuredClone(s),turn=s.turns.at(-1),arrival=s.game.receipts.find(r=>r.id===s.game.walk.encounter.id);
+    const events=[{kind:'input',packet:runtime.packet(s,turn)},{kind:'result',id:turn.id,error:null,result:turn.result},{kind:'world',results:[arrival]}],lines=[];
+    for(let i=1;i<=3;i++){const id='mentor-12345678-1234-4234-8234-123456789abc-'+i;
+        events.push({kind:'mentor_input',packet:{id,locale:'en',character:s.character,mentor:persona,recent:structuredClone(lines)}},
+            {kind:'mentor_result',id,result:{mentor:'Welcome '+i,companion:'Thanks '+i}});
+        lines.push({speaker:'mentor',text:'Welcome '+i},{speaker:'companion',text:'Thanks '+i});}
+    const recovered=recoverLegacy(s,events);assert.ok(recovered);assert.ok(runtime.validState(recovered));assert.deepEqual(recovered.mentorConversations[0].lines,lines);
+    assert.deepEqual(recovered.turns,s.turns);assert.deepEqual(recovered.game,s.game);assert.deepEqual(s,before);
+    assert.equal(recoverLegacy(recovered,events),null);assert.equal(recoverLegacy(s,events.concat(events)),null);
+    for(const mutate of [e=>e[0].packet.input='Different save',e=>e[1].error='failed',e=>e[2].results[0].at+=1,e=>e[3].packet.character.name='Other',e=>{for(const x of e)if(x.kind==='mentor_input')x.memoryVersion=1;}]){
+        const invalid=structuredClone(events);mutate(invalid);assert.equal(recoverLegacy(s,invalid),null);}
+    const future=runtime.begin(recovered,'How was the meeting?','en');assert.deepEqual(future.packet.mentorConversation.lines,lines);
+    assert.equal(runtime.packet(recovered,turn).mentorConversation,undefined);
+    const {createSession}=require('../scripts/experimental/native_store');let saved=structuredClone(s),calls=0,saves=0;
+    const options={store:{load:()=>({ok:true,value:structuredClone(saved)}),save:x=>{saved=structuredClone(x);saves++;return {ok:true};}},
+        recoverMentor:x=>recoverLegacy(x,events),responder:{reply(){calls++;},cancel(){},dispose(){}}};
+    const session=createSession(options);assert.deepEqual(session.load().state.mentorConversations,recovered.mentorConversations);assert.equal(saves,1);
+    session.load();assert.equal(saves,1);assert.equal(calls,0);session.dispose();
+    const restarted=createSession(options);assert.deepEqual(restarted.load().state.mentorConversations,recovered.mentorConversations);assert.equal(calls,0);restarted.dispose();
+    const failed=createSession({...options,store:{load:()=>({ok:true,value:structuredClone(s)}),save:()=>({ok:false,reason:'io'})}});
+    assert.equal(failed.load().error,'save');assert.deepEqual(s,before);failed.dispose();
+});
 test('current walk reply policy preserves old originals and separates a mixed confirmation/request from later movement',()=>{
     let s=runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island);
     const target=runtime.game.supply(s.game).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)&&runtime.game.walk.plan(s.game,v.id));assert.ok(target);

@@ -187,6 +187,9 @@ if(!process.versions.electron){
         await evaluate('document.getElementById("mentor-close").click()');await until('!document.getElementById("word-master-dialog").open');
         await evaluate('document.getElementById("locale").value="ja";document.getElementById("locale").dispatchEvent(new Event("change"))');
         assert.equal(await evaluate('(async()=>JSON.stringify((await nativeMemory.load()).state.turns))()'),turnsBeforeMentor);
+        const remembered=activeSession.load().state.mentorConversations[0];assert.equal(remembered.lines.length,6);
+        await send('REMEMBER_MEETING');assert.deepEqual(packets.at(-1).mentorConversation,remembered);
+        checks.push('successful encounter originals persist and reach ordinary chat through the renderer without knowledge or achievement promotion');
         assert.equal(await evaluate('document.getElementById("voice-choice").value'),customId);
         await evaluate('document.getElementById("mentor-voice-menu").open=true');await until('document.getElementById("voice-panel").parentElement.id==="mentor-voice"');
         await evaluate('document.getElementById("voice-design").open=true;document.getElementById("voice-make").click()');
@@ -200,8 +203,10 @@ if(!process.versions.electron){
         const revisit=activeSession.load().state.game;masterTarget=core.game.supply(revisit).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)&&core.game.walk.plan(revisit,v.id)).id;
         await send('FIND_MASTER');await send('Yes');await send('walk there');await until('document.getElementById("word-master-dialog").open && document.getElementById("word-master-dialog").dataset.phase==="conversation"');
         holdMentor=true;const afterConversationCalls=voiceRequests.length;await evaluate('document.getElementById("mentor-next").click()');for(let i=0;i<100&&!releaseMentor;i++)await sleep(20);assert.ok(releaseMentor);
+        assert.deepEqual(mentorPackets.at(-1).previous,remembered);assert.deepEqual(mentorPackets.at(-1).recent,[]);
         await evaluate('document.getElementById("mentor-close").click()');releaseMentor();holdMentor=false;await sleep(250);
         assert.equal(await evaluate('document.getElementById("word-master-dialog").open'),false);assert.equal(voiceRequests.length,afterConversationCalls);
+        assert.deepEqual(activeSession.load().state.mentorConversations,[remembered]);
         assert.equal((await activeSession.mentorStart('en')).ok,false);assert.equal(activeSession.mentorIntro('forged').ok,false);
         checks.push('closing encounter discards delayed dialogue without audio; direct or forged meeting rejected; no automatic movie replay for met mentor');
         const originalState=JSON.parse(fs.readFileSync(path.join(directory,'save','native-memory.json'),'utf8'));

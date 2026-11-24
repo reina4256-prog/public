@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-24会話保持：[正本](../specs/core/word_llm_native_system.md#冒険家との会話の保存と振り返り2026-11-24)。native_runtimeが原会話検査／保存形／当時snapshot／通常packet、native_storeが保存後返却／取消／セーブ分離、native_mentorが再会packet上限と旧ログ照合、native_electronが同端末ログの接続を所有。知識／日記／星座の取得条件は変更しない。
+
 2026-11-24歩行・遭遇：[正本](../specs/core/word_llm_native_system.md#実chipへの歩行と冒険家との出会い2026-11-24)。native_walkが実地graph／経路／歩行／到着・失敗・停止、runtimeが対象確認と後続指示、perceptionが限定worldを所有。native_storeが到着根拠の遭遇ゲート／取消／保存、island_uiが到着から動画・窓への接続を所有。WordMasterWindowのJS／CSSは従来版とnative共通のDOM／描画部品、旧職業進行は旧UIのまま。book／starsは実到着だけ体験化し、生成会話は入れない。
 
 2026-11-24師匠会話：[正本](../specs/core/word_llm_native_system.md#冒険家との音声会話2026-11-24)。main native_mentorが公開persona／限定protocol／三往復／一時会話、native_storeが同時操作停止、native_window／preloadが検査付きIPC、mentor_ui／CSSが既存窓の限定移植と声の順送り。voice subject／registryは既存native_voice系を再利用しmentor-adventurerへ分離。本人知識／日記／星座／旧版職業進行の所有は変更しない。
