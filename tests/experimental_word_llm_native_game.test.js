@@ -78,6 +78,29 @@ test('native facing follows the immediate real segment in outbound, survey and r
     g.practices=[];g.mode='move';g.route=[{x:.4,y:.5}];scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.flip,true);
 });
 
+test('only a new instruction and actual arrival in this session authorize automatic greeting; meeting distinction stays bounded',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');
+    for(const met of [false,true]){
+        const first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let saved=first.state,time=0;const calls=[];saved.game.walk.met=met;
+        const create=()=>createSession({clock:()=>time,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}},
+            responder:{cancel(){},dispose(){},async reply(p){return {ok:true,proposal:{...response(p,{kind:'walk',targetId:p.world.confirmed,quote:p.input}),focus:null,confirmation:null}};}},
+            practiceResponder:{cancel(){},dispose(){},async reply(p){calls.push(p);return {ok:true,proposal:{text:'A greeting and one invitation.',choice:null}};}}});
+        const session=create();assert.ok((await session.submit('walk there','en')).ok);const traveling=structuredClone(saved);
+        for(let i=0;i<2000&&session.load().state.game.mode==='move';i++){time+=100;session.pulse(false);}
+        const arrival=session.load().state.game.walk.encounter.id,intro=session.mentorIntro(arrival);assert.equal(intro.automatic,true);assert.equal(calls.length,0,'intro itself never calls the responder');
+        assert.equal(session.mentorIntro(arrival).ok,false,'same arrival cannot open twice');assert.ok((await session.practiceNext(arrival)).ok);
+        assert.equal(calls[0].context.meeting,met?'again':'first');assert.ok(JSON.stringify(calls[0].context).length<=1200);
+        assert.ok(JSON.stringify({context:calls[0].context,recent:calls[0].recent,previous:calls[0].previous}).length<=4000);
+        session.dispose();saved=traveling;const restored=create();assert.equal(calls.length,1);
+        for(let i=0;i<2000&&restored.load().state.game.mode==='move';i++){time+=100;restored.pulse(false);}
+        assert.equal(restored.mentorIntro(restored.load().state.game.walk.encounter.id).automatic,false,'restored in-progress walk is not a newly authorized greeting');
+        assert.equal(calls.length,1);restored.dispose();
+    }
+    const f=practiceFixture();assert.equal(f.calls.length,0,'saved pending encounter does not generate at load');
+    const packet=require('../scripts/experimental/native_practice').packet(f.saved,runtime.game.practice.current(f.saved.game),'offer');
+    assert.equal(runtime.game.practice.validContext({...packet.context,meeting:'invented'}),false);f.session.dispose();
+});
+
 test('uncertain participation asks in ordinary free chat; yes alone does not start, an explicit response can participate',async()=>{
     const f=practiceFixture('ask'),practice=runtime.game.practice;await f.session.practiceNext(f.id);await f.session.practiceNext(f.id);
     assert.equal(practice.current(f.saved.game).phase,'consult');assert.match(practice.current(f.saved.game).lines.at(-1).text,/Should I/);

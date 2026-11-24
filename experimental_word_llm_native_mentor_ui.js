@@ -7,10 +7,8 @@
     const end=node('button',w.dialog,'mentor-close','話を終える');end.type='button';
     const status=node('p',w.right,'mentor-status');status.dataset.i18nSkip='';status.setAttribute('role','status');
     const history=node('details',w.right,'mentor-history');node('summary',history,'mentor-history-title','会話をふりかえる');const log=node('div',history,'mentor-log');log.dataset.i18nSkip='';
-    const bubbleNext=node('button',document.getElementById('bubble').parentElement,'practice-line-next','つづける');bubbleNext.type='button';bubbleNext.hidden=true;
-    document.getElementById('bubble').after(bubbleNext);
     w.right.append(w.close);
-    function controls(){end.textContent=t('話を終える');document.getElementById('mentor-history-title').textContent=t('会話をふりかえる');w.skip.textContent=t('スキップ');w.close.textContent=bubbleNext.textContent=t('つづける');}
+    function controls(){end.textContent=t('話を終える');document.getElementById('mentor-history-title').textContent=t('会話をふりかえる');w.skip.textContent=t('スキップ');w.close.textContent=t('つづける');}
     window.addEventListener('game-language-changed',controls);
     function line(element,text){element.hidden=!text;element.replaceChildren();const span=document.createElement('span');span.className='mentor-line';span.textContent=text;element.append(span);}
     // Presentation only: preserve the exact original in history and request its audio once.
@@ -28,25 +26,41 @@
         }return result;
     }
     let pageState=null;
-    function cancelPages(){if(pageState){const done=pageState.done;pageState=null;done();}bubbleNext.hidden=true;w.close.disabled=true;delete w.close.dataset.paging;}
-    function advancePage(){if(!pageState)return;const p=pageState;
-        if(++p.index<p.parts.length)line(p.element,p.parts[p.index]);else cancelPages();}
-    function present(element,text){cancelPages();const parts=pages(text);line(element,parts[0]||'');
-        return new Promise(done=>{pageState={element,parts,index:0,done};
-            if(w.dialog.open){w.close.disabled=false;w.close.dataset.paging='true';}else bubbleNext.hidden=false;});}
-    bubbleNext.onclick=advancePage;
+    function cancelPages(){if(pageState){const p=pageState;pageState=null;cancelAnimationFrame(p.frame);delete p.element.dataset.reading;p.done();}w.close.disabled=true;}
+    function present(element,text){cancelPages();line(element,'');w.close.hidden=true;
+        return new Promise(done=>{pageState={element,parts:pages(text).map(s=>Array.from(new Intl.Segmenter(locale,{granularity:'grapheme'}).segment(s),x=>x.segment)),done,frame:0,started:false};});}
+    function startPages(audioMs=null,clock=()=>performance.now()){
+        const p=pageState;if(!p||p.started)return;p.started=true;
+        const weight=c=>/[.!?。！？,、，…]/u.test(c)?3:/\s/u.test(c)?.5:1;
+        const weights=p.parts.map(part=>part.reduce((n,c)=>n+weight(c),0)),total=weights.reduce((n,x)=>n+x,0),start=clock();
+        const reveal=Math.max((audioMs??total*55)-Math.max(0,p.parts.length-1)*350,total*35);
+        p.element.dataset.reading='true';
+        function frame(){if(pageState!==p)return;let elapsed=clock()-start;
+            for(let index=0;index<p.parts.length;index++){
+                const duration=reveal*weights[index]/total,pause=index===p.parts.length-1?700:350;
+                if(elapsed<duration+pause){const limit=Math.min(1,elapsed/duration)*weights[index];let units=0,count=0;
+                    for(const char of p.parts[index]){units+=weight(char);if(units>limit)break;count++;}
+                    const value=p.parts[index].slice(0,count).join('');
+                    if(p.rendered!==value){line(p.element,value);p.rendered=value;}p.element.dataset.page=String(index);
+                    p.frame=requestAnimationFrame(frame);return;}
+                elapsed-=duration+pause;
+            }cancelPages();
+        }p.frame=requestAnimationFrame(frame);
+    }
     let encounter=null,round=0,sequence=0,waiting=false,context=null,source=null,finishAudio=null,game=null,name='',locale='ja',phase='closed',master=null,background=null;
-    let practiceId=null,practiceArmed=false,practiceWaiting=false,lastPracticeLine='';
+    let practiceId=null,practiceArmed=false,practiceWaiting=false,lastPracticeLine='',automaticIntro=false,introStarted=false;
     function stopAudio(){cancelPages();api.voiceCancel();try{source?.stop();}catch(_){}source=null;finishAudio?.();finishAudio=null;}
     function clearVideo(){w.video.pause();w.video.removeAttribute('src');w.video.load();w.video.hidden=w.skip.hidden=true;}
     function close(){sequence++;practiceArmed=false;practiceId=null;phase='closed';stopAudio();clearVideo();api.mentorStop();api.cancel();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new Event('native-mentor-close'));}
     function handoff(){phase='closed';clearVideo();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new Event('native-mentor-close'));}
-    function introReady(){if(!w.dialog.open||phase==='closed')return;phase='intro';clearVideo();w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;
-        w.name.textContent=t('冒険家');line(w.text,t('こんにちは。'));line(w.thought,practiceId?'':t('冒険家と出会った。'));w.close.disabled=false;w.close.textContent=t('つづける');w.close.focus();}
+    function introReady(){if(!w.dialog.open||phase==='closed'||introStarted)return;introStarted=true;phase='intro';clearVideo();w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;
+        w.name.textContent=t('冒険家');line(w.text,'');line(w.thought,'');w.close.disabled=false;w.close.hidden=automaticIntro;w.close.textContent=t('つづける');
+        if(automaticIntro)void next();else w.close.focus();}
     async function speak(speaker,ticket){const id=encounter,number=round,p=await api.voiceLoad();if(ticket!==sequence||document.hidden||!p.ok||!p.value.enabled)return;
         const r=await api.voiceGenerate({kind:'mentor',id,round:number,speaker});if(ticket!==sequence||document.hidden)return;if(!r.ok)throw Error('voice');
         const bytes=new Uint8Array(r.audio),buffer=await context.decodeAudioData(bytes.buffer);if(ticket!==sequence||document.hidden)return;
         source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);await context.resume();if(ticket!==sequence||document.hidden)return;
+        startPages(buffer.duration*1000,()=>context.currentTime*1000);
         await new Promise(resolve=>{finishAudio=resolve;source.onended=resolve;source.start();});source=null;finishAudio=null;}
     async function next(){if(practiceId){practiceArmed=true;return drainPractice();}if(waiting||phase==='video'||phase==='closed'||round>=3)return;waiting=true;w.close.disabled=true;const ticket=sequence;
         try{context ||= new AudioContext();void context.resume().catch(()=>{});}catch(_){}
@@ -57,16 +71,16 @@
             for(const line of r.lines){if(ticket!==sequence)return;
                 const speaker=line.speaker==='mentor'?t('冒険家'):name,reading=present(line.speaker==='mentor'?w.text:w.thought,line.text);
                 const p=node('p',log,'');p.textContent=speaker+'：'+line.text;
-                try{await speak(line.speaker,ticket);}catch(_){if(ticket===sequence)status.textContent=t('今は声が出せないみたい。文字でお話ししよう。');}await reading;}
+                try{await speak(line.speaker,ticket);}catch(_){if(ticket===sequence)status.textContent=t('今は声が出せないみたい。文字でお話ししよう。');}if(ticket===sequence)startPages();await reading;}
             if(ticket===sequence&&!status.textContent)status.textContent=round===3?t('またお話ししよう。'):'';
         }catch(_){if(ticket===sequence){status.textContent=t('今はお話を続けられないみたい。また今度にしよう。');phase='failed';api.mentorStop();}}
-        finally{if(ticket===sequence){waiting=false;w.close.disabled=round>=3||phase==='failed';}}}
-    w.close.onclick=()=>{if(pageState)advancePage();else void next();};end.onclick=close;w.skip.onclick=introReady;w.dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
+        finally{if(ticket===sequence){waiting=false;w.close.hidden=round>=3;w.close.disabled=round>=3||phase==='failed';}}}
+    w.close.onclick=()=>void next();end.onclick=close;w.skip.onclick=introReady;w.dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
     w.video.addEventListener('ended',introReady);w.video.addEventListener('error',()=>{if(phase==='video'){w.video.controls=true;w.skip.focus();}});
     window.NativeMentorUI={async open(characterName,language,world,arrival){if(w.dialog.open)return;sequence++;const ticket=sequence;name=characterName;locale=language;game=world;round=0;encounter=null;
         controls();
         phase='loading';const r=await api.mentorIntro(arrival);if(ticket!==sequence){api.mentorStop();return;}if(!r.ok){close();return;}
-        practiceId=r.practice||null;if(r.game)game=r.game;practiceArmed=false;
+        practiceId=r.practice||null;if(r.game)game=r.game;practiceArmed=false;automaticIntro=r.automatic===true;introStarted=false;
         log.replaceChildren();status.textContent='';w.text.textContent=w.thought.textContent='';w.name.textContent=t('冒険家');w.dialog.showModal();
         master=new Image();master.src='adventurer_battle_enemy.png';background=new Image();background.src=imageSources.field_bg;
         phase='intro';if(r.met){introReady();return;}phase='video';w.dialog.dataset.phase='video';w.left.hidden=w.right.hidden=true;w.video.hidden=w.skip.hidden=false;w.video.controls=false;
@@ -84,6 +98,7 @@
         const r=await api.voiceGenerate({kind:'practice',id,slot:l.slot});if(ticket!==sequence||document.hidden)return;if(!r.ok)throw Error('voice');
         const buffer=await context.decodeAudioData(new Uint8Array(r.audio).buffer);if(ticket!==sequence||document.hidden)return;
         source=context.createBufferSource();source.buffer=buffer;source.connect(context.destination);await context.resume();if(ticket!==sequence||document.hidden)return;
+        startPages(buffer.duration*1000,()=>context.currentTime*1000);
         await new Promise(resolve=>{finishAudio=resolve;source.onended=resolve;source.start();});source=null;finishAudio=null;
     }
     async function drainPractice(){if(practiceWaiting||!practiceArmed||!practiceId||document.hidden)return;
@@ -103,6 +118,7 @@
                 const reading=present(w.dialog.open?(r.line.speaker==='mentor'?w.text:w.thought):document.getElementById('bubble'),r.line.text);
                 if(w.dialog.open){const entry=node('p',log,'');entry.textContent=(r.line.speaker==='mentor'?t('冒険家'):name)+'：'+r.line.text;}
                 try{await speakPractice(id,r.line,ticket);}catch(_){if(ticket===sequence){status.textContent=t('今は声が出せないみたい。文字でお話ししよう。');document.getElementById('status').textContent=status.textContent;}}
+                if(ticket===sequence)startPages();
                 await reading;
                 if(ticket!==sequence||!practiceArmed)return;
                 const current=NativePractice.current(game);

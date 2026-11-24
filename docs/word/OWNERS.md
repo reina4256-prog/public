@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-25自動会話：[正本](../specs/core/word_llm_native_system.md#有声の挨拶段階表示と自動文送り2026-11-25)。native_storeの起動中だけのfreshWalkCause／freshArrivalが新規指示→実到着の自動開始権限、main practice.packetがmet由来のoffer meeting一項目と送信枠、root practice.validContextが限定検査を所有。mentor_uiは初回動画後の一回開始・原音声時計に合わせた文字／ページ／話者の自動送りと取消を所有。知識／技能／日記／星座の取得所有は変更しない。
+
 2026-11-25表示改善：[正本](../specs/core/word_llm_native_system.md#探検の表示向き会話相手と文送り2026-11-25)。root practice.tickは観察slot待機、main practiceは段階別聞き手の生成指示、mentor_uiは空欄非表示・原文を保持する文送り／声と読了の待機、island_uiは待機中pulse停止、sceneは実経路の向きと待機中idleを所有。view_rendererは明示native引数時だけ探索窓の姿も反転し、旧版は既存描画を維持。
 
 2026-11-24探検練習：[正本](../specs/core/word_llm_native_system.md#冒険家の探検練習と本人の参加判断2026-11-24)。root native_practiceが実往復・観察・原結果／状態・上限、main native_practiceが単独話者protocol、storeが保存／取消／再開ゲート、runtimeが相談と当時snapshot、mentor_ui／sceneが既存窓・drawActionWindow、voiceが最新main台詞を所有。旧版探検・職業報酬・知識／日記／星座の取得条件は変更しない。

@@ -1,7 +1,6 @@
 .word-master[data-native] .mentor-line{display:block;overflow-wrap:anywhere}
 .word-master[data-native] .word-master-thought[hidden],.word-master[data-native] .word-master-speech[hidden]{display:none}
 #bubble:has(.mentor-line){max-height:none;overflow:visible}
-#practice-line-next{margin:0 12px 12px}
 .word-master[data-native] .word-master-right{justify-content:flex-start;padding-top:42px}
 .word-master[data-native] #mentor-next{margin-top:12px}
 .word-master[data-native] #mentor-close{position:absolute;top:4px;right:4px;z-index:10;width:auto;padding:6px 10px;margin:0;font-size:12px}

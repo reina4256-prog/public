@@ -64,7 +64,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     const talk=require('./native_mentor').createTalk(mentorResponder,(kind,data)=>log(kind,data));
     const practice=core.game.practice,practiceProtocol=require('./native_practice');
     let practiceArmed=false,practicePending=false,practiceTicket=0;
-    let introOwner=null;
+    let introOwner=null,freshArrival=null,freshWalkCause=null;
     let state=null,loaded=false,blocked=false,busy=false;
     let lastClock=clock(),lastSave=lastClock;
     const copy=()=>state ? structuredClone(state) : null;
@@ -103,14 +103,14 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         load();if(blocked||busy||!store.select)return {ok:false,error:'input'};
         if(state){practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};}practiceArmed=false;
         responder.cancel();const result=store.select(id);if(!result.ok)return result;
-        state=null;loaded=false;lastClock=lastSave=clock();return load();
+        state=null;loaded=false;freshArrival=freshWalkCause=null;lastClock=lastSave=clock();return load();
     }
     function createCharacter(character,locale,answers){
         load();if(blocked||busy||!state||!store.create)return {ok:false,error:'input'};
         try{const value=core.create(character,locale,answers,islandFactory());
             practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};practiceArmed=false;
             responder.cancel();const result=store.create(value);if(!result.ok)return result;
-            state=value;lastClock=lastSave=clock();return {ok:true,state:copy()};
+            state=value;freshArrival=freshWalkCause=null;lastClock=lastSave=clock();return {ok:true,state:copy()};
         }catch(_){return {ok:false,error:'input'};}
     }
     function pulse(paused=true){
@@ -124,6 +124,8 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
                 if(!persist(state,'world').ok){blocked=true;return {ok:false,error:'save'};}lastSave=now;
                 if(state.game.receipts.length!==before)log('world',{results:state.game.receipts.slice(before)});
             }
+            const arrival=state.game.walk?.encounter;
+            if(arrival?.phase==='pending'&&state.game.receipts.slice(before).some(r=>r.kind==='walk'&&r.id===arrival.id&&r.cause===freshWalkCause)){freshArrival=arrival.id;freshWalkCause=null;}
         }
         const {island,...dynamic}=state.game;return {ok:true,game:structuredClone(dynamic)};
     }
@@ -142,6 +144,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             const updated=core.finish(state,next.packet.id,next.state.revision,accepted?result.proposal:null);
             if (!persist(updated,'completion',next.packet.id,accepted?result.proposal:null).ok) { blocked=true;return {ok:false,error:'save',state:copy()}; }
             state=updated;
+            if(accepted&&state.game?.receipts.some(r=>r.kind==='walk_start'&&r.cause===next.packet.id))freshWalkCause=next.packet.id;
             if(accepted&&result.proposal.practiceChoice&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
             const error=accepted?null:(result.ok?'output':result.error || 'failed');
             log('result',{id:next.packet.id,error,result:accepted?result.proposal:null,supplied:next.packet.memories.map(m=>m.sourceId),
@@ -160,7 +163,8 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         const next=copy();next.game.walk.encounter.phase='video';
         const p=practiceResponder?(practice.current(next.game)?.id===id?practice.current(next.game):practice.create(next.game,e)):null;
         if(!persist(next,'encounter-intro').ok){blocked=true;return {ok:false,error:'save'};}
-        state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:state.game.walk.met,video:e.target.startsWith('chip:mountain_')?'mountain':'forest',...(p?{practice:p.id,game:structuredClone(state.game)}:{})};}
+        const automatic=!!p&&freshArrival===id&&!p.suspended&&!p.attempts.offer;freshArrival=null;
+        state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:state.game.walk.met,automatic,video:e.target.startsWith('chip:mountain_')?'mountain':'forest',...(p?{practice:p.id,game:structuredClone(state.game)}:{})};}
     function mentorStart(locale){load();if(blocked||!introOwner||talk.active||state?.game?.walk?.encounter?.id!==introOwner)return {ok:false,error:'input'};
         const r=talk.start(state.character,locale===undefined?state.locale:locale,core.latestConversation(state));if(!r.ok)return r;
         const next=copy();next.game.walk.met=true;next.game.walk.encounter.phase='conversation';if(!persist(next,'encounter-conversation').ok){talk.stop();blocked=true;return {ok:false,error:'save'};}state=next;return r;}
@@ -175,7 +179,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             }catch(_){blocked=true;mentorStop();return {ok:false,error:'save'};}
         }
         if(!talk.active)mentorStop();return r;}
-    function practiceCancel(){practiceTicket++;practiceArmed=false;practiceResponder?.cancel();if(practicePending)busy=false;
+    function practiceCancel(){practiceTicket++;practiceArmed=false;freshArrival=freshWalkCause=null;practiceResponder?.cancel();if(practicePending)busy=false;
         if(state&&!blocked){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-pause').ok)state=next;else blocked=true;}}}
     async function practiceNext(id){load();const p=practice.current(state?.game);
         if(blocked||!practiceResponder||practicePending||!p||p.id!==id||(!practiceArmed&&!(introOwner===id&&p.phase==='offer'&&!p.attempts.offer)))return {ok:false,error:blocked?'save':'input'};
