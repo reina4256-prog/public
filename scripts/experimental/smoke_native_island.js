@@ -12,7 +12,7 @@ if(!process.versions.electron){
     function sampleWav(){const b=Buffer.alloc(4844);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(4800,40);return b;}
     const evaluate=code=>window.webContents.executeJavaScript(code);
     async function capture(name){await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');await sleep(250);fs.writeFileSync(path.join(directory,name),(await window.webContents.capturePage()).toPNG());}
-    async function until(code){for(let i=0;i<400;i++){if(await evaluate(code))return;await sleep(50);}const video=await evaluate('(()=>{const v=document.querySelector(".word-master-video");return v?{phase:document.querySelector("#word-master-dialog").dataset.phase,time:v.currentTime,duration:v.duration,paused:v.paused,ended:v.ended,ready:v.readyState,seeking:v.seeking,error:v.error?.code}:null})()');fs.writeFileSync(path.join(directory,'wait-failure.json'),JSON.stringify({condition:code,video}));throw Error('Timed out: '+code);}
+    async function until(code){for(let i=0;i<400;i++){if(await evaluate(code))return;await evaluate('document.querySelector("#mentor-next[data-paging]")?.click()');await sleep(50);}const video=await evaluate('(()=>{const v=document.querySelector(".word-master-video");return v?{phase:document.querySelector("#word-master-dialog").dataset.phase,time:v.currentTime,duration:v.duration,paused:v.paused,ended:v.ended,ready:v.readyState,seeking:v.seeking,error:v.error?.code}:null})()');fs.writeFileSync(path.join(directory,'wait-failure.json'),JSON.stringify({condition:code,video}));throw Error('Timed out: '+code);}
     const timer=setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({checks,errors}));app.exit(1);},180000);
     function open(){
         const responder={async reply(p){packets.push(p);if(p.input==='QUOTA')return {ok:false,error:'quota'};
@@ -172,7 +172,7 @@ if(!process.versions.electron){
         assert.ok(await evaluate('document.getElementById("mentor-hero").getContext("2d").getImageData(0,0,280,200).data.some((v,i)=>i%4===3&&v>0)'));
         const turnsBeforeMentor=JSON.stringify(activeSession.load().state.turns),callsBeforeMentor=voiceRequests.length;
         await evaluate('document.getElementById("mentor-next").click()');
-        await until('document.querySelectorAll("#mentor-log p").length===2 && !document.getElementById("mentor-next").disabled');
+        await until('document.querySelectorAll("#mentor-log p").length===2 && !NativeMentorUI.pending');
         assert.equal(voiceRequests.length,callsBeforeMentor+2);
         assert.equal(mentorPackets[0].locale,'en');
         assert.equal(voiceRequests.at(-2).generation_config.speech_config[0].voice,'Kore');
@@ -180,7 +180,7 @@ if(!process.versions.electron){
         assert.equal(voiceRequests.at(-1).generation_config.speech_config[0].voice,customCloudId);
         for(const locale of core.locales)for(const width of [1160,420]){window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(locale)+');GameI18n.localizeTree(document.body)');assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../locales',locale+'.json'),'utf8'));for(const [id,key]of [['mentor-close','話を終える'],['mentor-next','つづける'],['mentor-history-title','会話をふりかえる']])assert.equal(await evaluate('document.getElementById('+JSON.stringify(id)+').textContent'),locale==='ja'?key:catalog[key]);}
         await evaluate('GameI18n.setLanguage("ja");GameI18n.localizeTree(document.body)');await capture('mentor-conversation-420.png');window.setSize(1160,850);await capture('mentor-conversation-1160.png');
-        for(const count of [4,6]){await evaluate('document.getElementById("mentor-next").click()');await until('document.querySelectorAll("#mentor-log p").length==='+count);
+        for(const count of [4,6]){await evaluate('document.getElementById("mentor-next").click()');await until('document.querySelectorAll("#mentor-log p").length==='+count+' && !NativeMentorUI.pending');
             await until(count===4?'!document.getElementById("mentor-next").disabled':'document.getElementById("mentor-status").textContent==="またお話ししよう。"');}
         assert.equal(await evaluate('document.getElementById("mentor-next").disabled'),true);assert.equal(mentorPackets.length,3);
         assert.deepEqual(mentorPackets.map(p=>p.recent.length),[0,2,4]);assert.ok(mentorPackets.every(p=>Object.keys(p).sort().join(',')==='character,id,locale,mentor,recent'));

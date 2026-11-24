@@ -713,7 +713,7 @@ function drawSpeechBubble(text, x, y) {
     ctx.fillText(text, x, boxY + (boxH / 2)); ctx.restore();
 }
 
-function drawActionWindow(animType, sceneType) {
+function drawActionWindow(animType, sceneType, faceDirection = false) {
     const winW = 300; const winH = 200;
     const cx = canvas.width / 2; const cy = canvas.height / 2;
     const bx = cx - winW/2; const by = cy - winH/2;
@@ -802,7 +802,7 @@ function drawActionWindow(animType, sceneType) {
 
     ctx.strokeStyle = "#fff"; ctx.lineWidth = 4; ctx.strokeRect(bx, by, winW, winH);
 
-    drawCharacterInWindow(animType, cx, cy);
+    drawCharacterInWindow(animType, cx, cy, undefined, undefined, faceDirection);
     
     // ★プログレスゲージの描画
     const isShowingProgress = (animType === 'cook' || animType === 'smith' || animType === 'mix' || sceneType === 'building' || (aiPet.schedule && aiPet.schedule.length > 0 && (aiPet.schedule[0].type === 'mix' || aiPet.schedule[0].type === 'tailor')));
@@ -934,7 +934,7 @@ function drawActionWindow(animType, sceneType) {
 // ==========================================
 // ★ワイプ内描画も動的ロード対応！
 // ==========================================
-function drawCharacterInWindow(action, cx, cy, targetPet, renderCtx) {
+function drawCharacterInWindow(action, cx, cy, targetPet, renderCtx, faceDirection = false) {
     const characterCtx = renderCtx || ctx;
     if (!targetPet) targetPet = typeof aiPet !== 'undefined' ? aiPet : window.aiPet;
     if (!targetPet) return; 
@@ -979,6 +979,7 @@ function drawCharacterInWindow(action, cx, cy, targetPet, renderCtx) {
     let sc = 0.3; const drawW = (f.sw || 300) * sc; const drawH = (f.sh || 300) * sc;
     if (img && img.complete && img.naturalWidth !== 0) {
         characterCtx.save(); characterCtx.translate(cx, cy);
+        if (faceDirection && targetPet.flip) characterCtx.scale(-1, 1);
 
         // ★追加：行動済みの場合はPIP（ワイプ）内でも暗くする
         const baseFilter = (currentMode === 'defense' && targetPet.hasActed) ? 'brightness(0.4)' : 'none';

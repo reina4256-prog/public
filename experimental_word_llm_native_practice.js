@@ -76,6 +76,8 @@
         if(decision.choice==='accept'&&p.phase==='consult'){p.suspended=false;return decide(g,p,'accept');}return false;}
     function tick(g,dt){const p=current(g);if(!p||p.suspended||!['outbound','survey','return'].includes(p.phase))return;
         if(!perception.asset(g,p.target)||!perception.asset(g,p.homeTarget)){stop(g,true);return;}
+        // An actual observation owns its remark before any subsequent movement.
+        const remark=due(p);if(remark==='observe1'||remark==='observe2')return;
         if(p.route.length){const next=p.route[0],d=distance(g,next),step=dt*(p.phase==='survey'?26:52);
             if(d>step){g.x+=(next.x-g.x)*step/d;g.y+=(next.y-g.y)*step/d;return;}g.x=next.x;g.y=next.y;p.route.shift();if(p.route.length)return;}
         if(p.phase==='outbound'){event(g,p,'arrived');p.phase='survey';return;}

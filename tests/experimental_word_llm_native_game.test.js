@@ -50,6 +50,34 @@ test('a mentor proposal and independent companion choice drive a real survey cir
     assert.equal(f.session.practiceLine(f.id,'offer'),null);assert.equal(f.session.practiceLine(f.id,'feedback').speaker,'mentor');f.session.dispose();
 });
 
+test('each actual observation holds its position and survey phase until its own saved remark exists',async()=>{
+    const f=practiceFixture(),practice=runtime.game.practice;await f.session.practiceNext(f.id);await f.session.practiceNext(f.id);
+    for(const slot of ['observe1','observe2']){
+        for(let i=0;i<1800&&practice.due(practice.current(f.session.load().state.game))!==slot;i++)f.advance();
+        const before=f.session.load().state.game;assert.equal(practice.due(practice.current(before)),slot);assert.equal(practice.current(before).phase,'survey');
+        f.advance(200);const held=f.session.load().state.game;assert.deepEqual({x:held.x,y:held.y},{x:before.x,y:before.y});
+        assert.deepEqual(practice.current(held),practice.current(before));assert.ok((await f.session.practiceNext(f.id)).ok);
+        assert.equal(f.calls.at(-1).context.phase,'survey');assert.equal(f.calls.at(-1).context.results.some(e=>e.kind==='returned'),false);
+    }f.session.dispose();
+});
+
+test('native facing follows the immediate real segment in outbound, survey and return; vertical travel keeps facing',()=>{
+    const vm=require('node:vm'),fs=require('node:fs'),practice=runtime.game.practice,draws=[];
+    const scope={NativePractice:practice,NativePerception:{asset:()=>({})},defaultCatalog:{},aiConfigs:{robot:{actions:{idle:[{}],move:[{}]}}},
+        camera:{},canvas:{width:800,height:480},render(){},drawActionWindow:(...args)=>draws.push(args)};scope.window=scope;
+    vm.runInNewContext(fs.readFileSync(require.resolve('../experimental_word_llm_native_scene'),'utf8'),scope);
+    const g={origin:{appearance:'robot'},island:{assets:[]},x:.5,y:.5,route:[],perception:2,practices:[]};
+    scope.NativePerception.chips=()=>[];
+    for(const phase of ['outbound','survey','return'])for(const x of [.4,.6]){
+        g.practices=[{phase,target:'chip:palms_1',suspended:false,route:[{x:.5,y:.5},{x,y:.5}],events:[],attempts:{}}];
+        scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.flip,x<.5);assert.equal(scope.aiPet.actionState,'moving');
+        if(phase==='survey')assert.deepEqual(draws.at(-1),['move','inside',true]);
+        const facing=scope.aiPet.flip;g.practices[0].route=[{x:.5,y:.6},{x:x<.5?.6:.4,y:.6}];scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.flip,facing);
+    }
+    scope.NativePracticeUI={pending:true};scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.actionState,'idle');
+    g.practices=[];g.mode='move';g.route=[{x:.4,y:.5}];scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.flip,true);
+});
+
 test('uncertain participation asks in ordinary free chat; yes alone does not start, an explicit response can participate',async()=>{
     const f=practiceFixture('ask'),practice=runtime.game.practice;await f.session.practiceNext(f.id);await f.session.practiceNext(f.id);
     assert.equal(practice.current(f.saved.game).phase,'consult');assert.match(practice.current(f.saved.game).lines.at(-1).text,/Should I/);

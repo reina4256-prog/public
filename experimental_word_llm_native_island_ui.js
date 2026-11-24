@@ -118,7 +118,7 @@
     async function frame(time){
         if(screen==='logo'&&!document.hidden)drawLogo(time);
         if(screen==='play'&&state?.game&&!document.hidden){window.NativeScene.draw(state.game,time/1000,reduced.matches);
-            const stop=paused||busy||!$('chat-view').hidden&&document.activeElement===$('input')&&$('input').value.length>0||$('chat-view').hidden;
+            const stop=paused||busy||window.NativePracticeUI?.pending||!$('chat-view').hidden&&document.activeElement===$('input')&&$('input').value.length>0||$('chat-view').hidden;
             if(time-lastPulse>100&&!pulsing){lastPulse=time;pulsing=true;const owner=state;try{const r=await api.pulse(stop);if(screen==='play'&&state===owner){if(r.game){const island=state.game.island;state.game={...r.game,island};meters();encounter();window.NativePracticeUI?.poll(state.game,!stop&&!document.hidden);}if(!r.ok&&r.error==='save'){blocked=true;$('send').disabled=true;status(errors.save);}}}catch(_){status(errors.failed);}finally{pulsing=false;}}
         }
         requestAnimationFrame(frame);

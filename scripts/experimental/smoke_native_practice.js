@@ -8,10 +8,10 @@ if(!process.versions.electron){
     const assert=require('node:assert/strict'),{app}=require('electron'),core=require('../../experimental_word_llm_native_runtime');
     const directory=fs.mkdtempSync(path.resolve(__dirname,'../../docs/.local-history/verification-runs/native-practice-'));
     app.disableHardwareAcceleration();app.setPath('userData',path.join(directory,'profile'));
-    const sleep=ms=>new Promise(r=>setTimeout(r,ms)),checks=[],errors=[],requests=[],voiceRequests=[];let window,session,scenario='accept',release=null;
+    const sleep=ms=>new Promise(r=>setTimeout(r,ms)),checks=[],errors=[],requests=[],voiceRequests=[];let window,session,scenario='accept',release=null,releaseObservation=null;
     const evaluate=code=>window.webContents.executeJavaScript(code);
     const timer=setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({checks,errors}));app.exit(1);},240000);
-    async function until(code){for(let i=0;i<600;i++){if(await evaluate(code))return;await sleep(50);}throw Error('Timed out: '+code);}
+    async function until(code){for(let i=0;i<1200;i++){if(await evaluate(code))return;await evaluate('document.querySelector("#mentor-next[data-paging]")?.click();if(!document.getElementById("practice-line-next").hidden)document.getElementById("practice-line-next").click()');await sleep(50);}throw Error('Timed out: '+code);}
     async function capture(name){await sleep(150);fs.writeFileSync(path.join(directory,name),(await window.webContents.capturePage()).toPNG());}
     function wav(){const b=Buffer.alloc(4844);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(4800,40);return b;}
     function initial(){let s=core.create({name:'Test <name>',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],require('./native_island').createIsland());
@@ -25,7 +25,8 @@ if(!process.versions.electron){
             const choice=p.input==='Please explore and return.'?'accept':null;
             return {ok:true,proposal:{reply:choice?'I will take part and return.':'I remember the actual survey.',interpretation:{kind:'request',summary:'Received.'},memories:[],references:[],terms:[],action:null,focus:null,confirmation:null,practiceChoice:choice?{choice,quote:p.input}:null}};}},
             practiceResponder:{cancel(){},dispose(){},async reply(p){requests.push(p);if(kind==='late'&&p.stage==='decision')await new Promise(r=>release=r);
-                return {ok:true,proposal:{text:p.stage==='decision'&&kind==='consult'?'Should I explore and return?':'Actual '+p.stage+' at the '+p.context.target.kind+'.',choice:p.stage==='decision'?(kind==='consult'?'ask':'accept'):null}};}}});
+                if(kind==='accept'&&p.stage==='observe2')await new Promise(r=>releaseObservation=r);
+                return {ok:true,proposal:{text:p.stage==='decision'&&kind==='consult'?'Should I explore and return?':'Actual '+p.stage+' at the '+p.context.target.kind+'. This second sentence stays in the original history and uses the same audio request.',choice:p.stage==='decision'?(kind==='consult'?'ask':'accept'):null}};}}});
         const voice=require('./native_voice').createVoice({directory:saveDir,session,key:()=> 'fixture-only',fetcher:async(_url,options)=>{voiceRequests.push(JSON.parse(options.body));return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:wav().toString('base64')}]}]}));}});
         window=require('./native_window').openWindow(session,{show:true,voice});window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});
         await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click()');
@@ -36,13 +37,35 @@ if(!process.versions.electron){
     async function close(){await new Promise(resolve=>{window.once('closed',resolve);window.close();});}
     app.whenReady().then(async()=>{
         await open('accept');await until('document.getElementById("word-master-dialog").open && !document.getElementById("mentor-next").disabled');
+        assert.equal(await evaluate('document.getElementById("word-master-text").textContent'), 'Hello.');
+        assert.equal(await evaluate('document.querySelector(".word-master-thought").hidden'),true);
+        await capture('practice-greeting-1160.png');
+        for(const language of core.locales){assert.ok(await evaluate('(()=>{const text="First sentence. Second sentence, with a longer clause to check the bounded reading pages. "+"山の様子を確かめた。".repeat(12)+" 👩🏽‍🚀";const p=NativeMentorUI.pages(text,'+JSON.stringify(language)+');return p.join("")===text && p.length>2 && p.every(x=>x.length<100)})()'));}
         await evaluate('window.oldActionDraws=0;const original=drawActionWindow;drawActionWindow=function(...args){window.oldActionDraws++;return original(...args)};window.practiceVoiceStarts=0;const start=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){window.practiceVoiceStarts++;return start.apply(this,args)};void 0;');
         assert.equal(requests.length,0,'opening alone never generates');await evaluate('document.getElementById("mentor-next").click()');
-        await until('(async()=>{const s=await nativeMemory.load();return s.state.game.practices.at(-1).phase==="outbound" && !document.getElementById("word-master-dialog").open})()');
+        await until('document.querySelector("#mentor-next[data-paging]")!==null');
+        const held=session.load().state.game;await sleep(350);assert.deepEqual(session.load().state.game,held,'text reading holds the stage');
+        const original=requests.length;await evaluate('document.getElementById("mentor-next").click()');assert.equal(requests.length,original,'page advance never generates');
+        await capture('practice-page-1160.png');
+        for(const language of core.locales)for(const width of [1160,420]){
+            window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(language)+');GameI18n.localizeTree(document.body)');
+            const translations=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../locales',language+'.json'),'utf8'));
+            assert.equal(await evaluate('document.getElementById("mentor-next").textContent'),translations['つづける']);
+            assert.ok(await evaluate('(()=>{const n=document.querySelector(".word-master-speech .mentor-line");return n.scrollHeight<=n.clientHeight+1 && getComputedStyle(n).overflowY!=="auto" && document.documentElement.scrollWidth<=innerWidth+1})()'));
+        }
+        await capture('practice-page-420.png');window.setSize(1160,850);await evaluate('GameI18n.setLanguage("en");GameI18n.localizeTree(document.body)');
+        checks.push('sentence and long-clause pages preserve exact multilingual originals, fit both widths without internal scrolling and never start extra requests');
+        await until('(async()=>{const s=await nativeMemory.load();return ["outbound","survey"].includes(s.state.game.practices.at(-1).phase) && !document.getElementById("word-master-dialog").open})()');
         checks.push('one explicit continue starts a concrete proposal and separate autonomous decision, followed by departure without action/choice buttons');
         await until('window.oldActionDraws>0');assert.ok(await evaluate('(()=>{const c=document.getElementById("gameCanvas");return c.getContext("2d").getImageData(250,140,300,200).data.some((v,i)=>i%4===3&&v>0)})()'));
         window.setSize(420,850);await capture('practice-survey-420.png');window.setSize(1160,850);await capture('practice-survey-1160.png');
         checks.push('real terrain traversal opens the original forest/mountain action window with the actual companion sprite');
+        await until('(async()=>{const s=await nativeMemory.load();return s.state.game.practices.at(-1).attempts.observe2==="pending"})()');
+        const atObservation=session.load().state.game;await sleep(400);assert.deepEqual(session.load().state.game,atObservation);assert.equal(atObservation.practices.at(-1).phase,'survey');
+        releaseObservation();await until('!document.getElementById("practice-line-next").hidden');
+        const atReading=session.load().state.game;await sleep(400);assert.deepEqual(session.load().state.game,atReading);
+        window.setSize(420,850);await capture('practice-monologue-page-420.png');window.setSize(1160,850);
+        checks.push('observation generation and reading hold the actual survey position and phase, before any return movement');
         await until('(async()=>{const s=await nativeMemory.load();return s.state.game.practices.at(-1).phase==="done" && document.getElementById("mentor-status").textContent!==""})()');
         const complete=session.load().state,p=core.game.practice.current(complete.game);assert.deepEqual(p.lines.map(l=>l.slot),core.game.practice.slots);
         assert.deepEqual(p.events.map(e=>e.kind),['departed','arrived','observed','observed','returned']);assert.ok(core.validState(complete));
@@ -60,7 +83,7 @@ if(!process.versions.electron){
         const stopped=core.game.practice.current(session.load().state.game);assert.equal(stopped.phase,'stopped');assert.equal(stopped.events.some(e=>e.kind==='returned'),false);
         checks.push('uncertainty uses normal free chat; bare yes keeps waiting, explicit input participates, stop works even when its subsequent CLI response fails');await close();
         await open('late');await until('document.getElementById("word-master-dialog").open');await evaluate('document.getElementById("mentor-next").click()');
-        for(let i=0;i<400&&!release;i++)await sleep(20);assert.ok(release);const before=voiceRequests.length;
+        for(let i=0;i<400&&!release;i++){await evaluate('document.querySelector("#mentor-next[data-paging]")?.click()');await sleep(20);}assert.ok(release);const before=voiceRequests.length;
         await evaluate('document.getElementById("mentor-close").click()');release();await sleep(300);assert.equal(voiceRequests.length,before);
         assert.equal(core.game.practice.current(session.load().state.game).lines.length,1);checks.push('closing during the decision rejects late text/audio and leaves no automatic restart');
         assert.deepEqual(errors,[]);const summary={ok:true,directory,checks,errors,requests,voiceRequests};fs.writeFileSync(path.join(directory,'summary.json'),JSON.stringify(summary,null,2));
