@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-24師匠会話：[正本](../specs/core/word_llm_native_system.md#冒険家との音声会話2026-11-24)。main native_mentorが公開persona／限定protocol／三往復／一時会話、native_storeが同時操作停止、native_window／preloadが検査付きIPC、mentor_ui／CSSが既存窓の限定移植と声の順送り。voice subject／registryは既存native_voice系を再利用しmentor-adventurerへ分離。本人知識／日記／星座／旧版職業進行の所有は変更しない。
+
 2026-11-24複数セーブ：native_store.createProfilesが保存場所と選択ID、createSessionが切替前保存／新規確定を所有。native_window／preloadは検査付きローカルIPC、island_uiは常設開始／選択／タイトル復帰を所有。声のregistryと姿別共通設定は既存native_voiceのまま。[正本](../specs/core/word_llm_native_system.md#複数のセーブとはじめから2026-11-24)。
 
 2026-11-24声づくり：[選択式／自由入力の正本](../specs/core/word_llm_native_system.md#選択式と自由入力でこの子の声をつくる2026-11-24)。root native_voice_designが8特徴と原文検査・説明組立、main native_voice_designsが独立候補registryとcloud ID参照を所有。native_voice.generateのdesign分岐は固定voice作成APIだけ、voice_uiは選択／任意原文／明示作成・試聴・確定を所有。本人store／学習／会話CLIの送信所有は非変更。

@@ -13,6 +13,8 @@
     ];
     const species=['robot','seed','spirit','ghost','stone','magician','beetle','balloon','bird','machine','dragon'];
     const defaults=Object.fromEntries(species.map((id,i)=>[id,choices[i].id]));
+    defaults['mentor-adventurer']='Kore';
+    const subjects=[...species,'mentor-adventurer'];
     const samples={ja:'こんにちは。今日は、どんな一日だった？ よかったら、聞かせてね。',
         en:'Hello. How was your day? Tell me about it, if you like.',
         'zh-CN':'你好。今天过得怎么样？愿意的话，讲给我听吧。',
@@ -23,7 +25,7 @@
     const object=o=>o&&typeof o==='object'&&!Array.isArray(o);
     const validVoice=id=>choices.some(v=>v.id===id);
     function valid(p){return object(p)&&Object.keys(p).every(k=>['version','enabled','voices'].includes(k))&&p.version===1
-        &&typeof p.enabled==='boolean'&&object(p.voices)&&Object.keys(p.voices).every(k=>species.includes(k)&&(validVoice(p.voices[k])||design.validId(p.voices[k])));}
+        &&typeof p.enabled==='boolean'&&object(p.voices)&&Object.keys(p.voices).every(k=>subjects.includes(k)&&(validVoice(p.voices[k])||design.validId(p.voices[k])));}
     const fresh=()=>({version:1,enabled:true,voices:{}});
-    return {model,choices,species,defaults,samples,validVoice,valid,fresh,design};
+    return {model,choices,species,subjects,defaults,samples,validVoice,valid,fresh,design};
 });

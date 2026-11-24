@@ -10,7 +10,8 @@
     function readDraft(){return {version:1,traits:Object.fromEntries(rules.design.fields.map(f=>[f.id,$('voice-trait-'+f.id).value])),extra:$('voice-extra').value};}
     function rememberDraft(){drafts[species]=readDraft();stop();}
     function drawDesign(){
-        const draft=drafts[species]||designs.find(d=>d.id===prefs.voices[species])?.settings||rules.design.fresh();
+        const initial=freshDraft();
+        const draft=drafts[species]||designs.find(d=>d.id===prefs.voices[species])?.settings||initial;
         $('voice-traits').replaceChildren();
         for(const field of rules.design.fields){const label=document.createElement('label'),text=document.createElement('span'),select=document.createElement('select');
             select.id='voice-trait-'+field.id;label.htmlFor=select.id;text.textContent=t(field.label);text.dataset.i18nSkip='';label.append(text,select);
@@ -19,6 +20,7 @@
         }$('voice-extra').value=draft.extra;
     }
     function prime(){try{context ||= new AudioContext();void context.resume().catch(()=>{});}catch(_){} }
+    function freshDraft(){const value=rules.design.fresh();if(species==='mentor-adventurer')Object.assign(value.traits,{pitch:'medium',size:'full',melody:'gentle',ending:'soft',mood:'calm',breath:'natural'});return value;}
     function draw(){
         $('voice-choice').replaceChildren();
         for(const choice of rules.choices){const option=document.createElement('option');option.value=choice.id;option.textContent=t(choice.label)+(rules.defaults[species]===choice.id?' '+t('（おすすめ）'):'');option.dataset.i18nSkip='';$('voice-choice').append(option);}
@@ -47,13 +49,14 @@
     }
     $('voice-choice').onchange=()=>{stop();const d=designs.find(d=>d.id===$('voice-choice').value);if(d){drafts[species]=d.settings;drawDesign();buttons();}};$('voice-enabled').onchange=()=>void save(false);
     $('voice-extra').oninput=rememberDraft;
-    $('voice-reset').onclick=()=>{stop();drafts[species]=rules.design.fresh();drawDesign();buttons();};
+    $('voice-reset').onclick=()=>{stop();drafts[species]=freshDraft();drawDesign();buttons();};
     $('voice-make').onclick=()=>{if(!waiting&&!broken&&!locked){const settings=readDraft();drafts[species]=settings;void play({kind:'design',species,locale,settings});}};
     $('voice-listen').onclick=()=>{if(!waiting&&!broken&&!locked)void play({kind:'preview',voice:$('voice-choice').value,locale});};
     $('voice-stop').onclick=stop;$('voice-apply').onclick=()=>void save();
     const ready=load();
     window.NativeVoiceUI={ready,stop,prime,save,lock(value){locked=value;buttons();},
         mount(container,appearance,language){stop();species=appearance;locale=language;container.append($('voice-panel'));
+            $('voice-description').textContent=t(species==='mentor-adventurer'?'冒険家の声の特徴をえらぼう。':'小さく丸い、不思議な生き物の声をもとに、好きな特徴をえらぼう。');
             // A failed reply voice must remain visible even with the voice menu closed.
             if(container.id==='play-voice')container.parentElement.after($('voice-status'));else $('voice-panel').append($('voice-status'));
             draw();if(broken)message('声の約束を読み出せませんでした。');},

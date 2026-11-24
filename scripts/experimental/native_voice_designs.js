@@ -3,7 +3,7 @@ const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node
 const cloudId=id=>typeof id==='string'&&/^voice_[A-Za-z0-9_-]{1,160}$/.test(id);
 function createDesigns(directory){
     const file=path.join(directory,'native-voice-designs.json');let blocked=false;
-    function validEntry(e){return e&&Object.keys(e).sort().join(',')==='cloudId,createdAt,id,locale,settings,species'&&rules.design.validId(e.id)&&cloudId(e.cloudId)&&rules.species.includes(e.species)&&Object.hasOwn(rules.samples,e.locale)&&rules.design.valid(e.settings)&&Number.isSafeInteger(e.createdAt)&&e.createdAt>=0;}
+    function validEntry(e){return e&&Object.keys(e).sort().join(',')==='cloudId,createdAt,id,locale,settings,species'&&rules.design.validId(e.id)&&cloudId(e.cloudId)&&rules.subjects.includes(e.species)&&Object.hasOwn(rules.samples,e.locale)&&rules.design.valid(e.settings)&&Number.isSafeInteger(e.createdAt)&&e.createdAt>=0;}
     function load(){try{if(!fs.existsSync(file))return {ok:true,entries:[]};if(fs.statSync(file).size>1024*1024)throw Error('size');
         const data=JSON.parse(fs.readFileSync(file,'utf8'));
         if(!data||Object.keys(data).sort().join(',')!=='entries,version'||data.version!==1||!Array.isArray(data.entries)||data.entries.length>200||!data.entries.every(validEntry)||new Set(data.entries.map(e=>e.id)).size!==data.entries.length)throw Error('invalid');

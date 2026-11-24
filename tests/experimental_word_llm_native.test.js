@@ -3,6 +3,51 @@ const {test}=require('node:test'),assert=require('node:assert/strict'),fs=requir
 const core=require('../experimental_word_llm_native'),{createStore,createSession}=require('../scripts/experimental/native_store');
 const character={name:'A',self:'I',player:'you'};
 
+test('mentor dialogue is bounded, sends only public persona and this encounter, and rejects forged or stale lines',async()=>{
+    const {createTalk,protocol}=require('../scripts/experimental/native_mentor'),packets=[];
+    const talk=createTalk({async reply(packet){packets.push(packet);return {ok:true,proposal:{mentor:'Hello.',companion:'Hello back.'}};},cancel(){}});
+    const {id}=talk.start(character,'en');assert.ok(id);
+    assert.equal((await talk.next('forged',0)).ok,false);
+    for(let i=0;i<3;i++){assert.ok((await talk.next(id,i)).ok);assert.equal(packets[i].recent.length,i*2);assert.ok(protocol.valid(packets[i]));
+        assert.deepEqual(Object.keys(packets[i]).sort(),['character','id','locale','mentor','recent']);}
+    assert.equal((await talk.next(id,3)).ok,false);assert.equal(packets.length,3);
+    assert.equal(talk.line(id,2,'mentor'),null);assert.equal(talk.line(id,3,'companion').text,'Hello back.');
+    assert.equal(protocol.valid({...packets[0],memories:['private']}),false);
+    assert.equal(protocol.decode('{"mentor":"Hello","companion":"Hi","quest":"done"}'),null);
+    assert.equal(protocol.decode(JSON.stringify({mentor:'x'.repeat(301),companion:'Hi'})),null);
+    talk.stop();assert.equal(talk.line(id,3,'mentor'),null);
+    const next=talk.start({...character,name:'B'},'en');await talk.next(next.id,0);assert.deepEqual(packets.at(-1).recent,[]);
+});
+test('mentor cancellation discards late results; session locks normal conversation and keeps saved knowledge untouched',async t=>{
+    const {createTalk}=require('../scripts/experimental/native_mentor');let release;
+    const talk=createTalk({reply:()=>new Promise(r=>release=r),cancel(){}}),{id}=talk.start(character,'en'),pending=talk.next(id,0);
+    talk.stop();release({ok:true,proposal:{mentor:'Late',companion:'Late'}});assert.equal((await pending).error,'cancelled');assert.equal(talk.line(id,1,'mentor'),null);
+    const store=createStore(directory(t)),state=require('../experimental_word_llm_native_runtime').create(character,'en',[0,0,0,0,0,0,0],require('../scripts/experimental/native_island').createIsland());
+    assert.ok(store.save(state).ok);const before=fs.readFileSync(store.file,'utf8');
+    const session=createSession({store,responder:{cancel(){},dispose(){}},mentorResponder:{async reply(p){assert.equal(p.locale,'de');return {ok:true,proposal:{mentor:'Hallo',companion:'Hallo'}};},cancel(){},dispose(){}}});
+    assert.equal(session.mentorStart('invalid').ok,false);
+    const start=session.mentorStart('de');assert.ok(start.ok);assert.equal((await session.submit('secret','en')).ok,false);assert.equal(session.selectCharacter('original').ok,false);
+    assert.ok((await session.mentorNext(start.id,0)).ok);assert.equal(fs.readFileSync(store.file,'utf8'),before);assert.deepEqual(session.load().state,state);
+    session.mentorStop();assert.equal(session.mentorLine(start.id,1,'mentor'),null);session.dispose();
+});
+
+test('mentor TTS accepts only the latest main-owned line and keeps companion and mentor designs separate',async t=>{
+    const dir=directory(t),calls=[],state={locale:'en',game:{origin:{appearance:'robot'}}};let active=true;
+    const session={load:()=>({ok:true,state}),mentorLine:(id,round,speaker)=>active&&id==='encounter'&&round===1&&speaker==='mentor'?{text:'Welcome.',locale:'en'}:null};
+    const service=nativeVoice.createVoice({directory:dir,session,key:()=> 'fixture-only',fetcher:async(_url,o)=>{calls.push(JSON.parse(o.body));return voiceResponse();}});
+    assert.equal((await service.generate({kind:'mentor',id:'encounter',round:1,speaker:'mentor',text:'forged'})).ok,false);
+    assert.equal((await service.generate({kind:'mentor',id:'encounter',round:0,speaker:'mentor'})).ok,false);
+    assert.ok((await service.generate({kind:'mentor',id:'encounter',round:1,speaker:'mentor'})).ok);assert.equal(calls.length,1);
+    assert.deepEqual(calls[0].input,[{type:'user_input',content:[{type:'text',text:'Welcome.'}]}]);assert.equal(calls[0].generation_config.speech_config[0].voice,'Kore');
+    active=false;assert.equal((await service.generate({kind:'mentor',id:'encounter',round:1,speaker:'mentor'})).ok,false);assert.equal(calls.length,1);
+    const designs=require('../scripts/experimental/native_voice_designs').createDesigns(dir),settings=voiceRules.design.fresh();
+    assert.ok(designs.add({voice:'voice_mentor',species:'mentor-adventurer',locale:'en',settings}).ok);
+    const id=designs.load().entries[0].id;
+    assert.equal(service.save({version:1,enabled:true,voices:{robot:id}}).ok,false);
+    assert.ok(service.save({version:1,enabled:true,voices:{'mentor-adventurer':id}}).ok);
+    assert.match(voiceRules.design.prompt(settings,'mentor-adventurer'),/adult woman adventurer/);
+});
+
 test('native profiles preserve the original save and shared voice data across new characters and restart',t=>{
     const {createProfiles}=require('../scripts/experimental/native_store'),dir=directory(t),first=core.create(character,'en'),second=core.create({...character,name:'B'},'ja');
     const original=createStore(dir);assert.ok(original.save(first).ok);const oldBytes=fs.readFileSync(original.file);
@@ -304,12 +349,13 @@ test('native voice IPC rejects other senders, subframes and URLs and releases al
     const fixture={exports:{}};
     vm.runInNewContext(fs.readFileSync(path.resolve(__dirname,'../scripts/experimental/native_window.js'),'utf8'),{module:fixture,__dirname:path.resolve(__dirname,'../scripts/experimental'),console,require:name=>name==='electron'?{BrowserWindow:Window,ipcMain}:require(name)});
     const voice={load(){calls.push('load');return {ok:true};},save(){calls.push('save');return {ok:true};},generate(){calls.push('generate');return {ok:true};},cancel(){calls.push('cancel');},dispose(){calls.push('dispose');}};
-    const window=fixture.exports.openWindow({cancel(){},dispose(){},characters(){calls.push('characters');return {ok:true};},selectCharacter(){calls.push('select-character');return {ok:true};},createCharacter(){calls.push('create-character');return {ok:true};}},{show:false,voice}),event={sender:window.webContents,senderFrame:window.webContents.mainFrame};
-    for(const channel of ['native-voice-load','native-voice-save','native-voice-generate','native-characters','native-select-character','native-create-character']){
+    const window=fixture.exports.openWindow({cancel(){},dispose(){},characters(){calls.push('characters');return {ok:true};},selectCharacter(){calls.push('select-character');return {ok:true};},createCharacter(){calls.push('create-character');return {ok:true};},mentorStart(){calls.push('mentor-start');return {ok:true};},mentorNext(){calls.push('mentor-next');return {ok:true};},mentorStop(){calls.push('mentor-stop');}},{show:false,voice}),event={sender:window.webContents,senderFrame:window.webContents.mainFrame};
+    for(const channel of ['native-voice-load','native-voice-save','native-voice-generate','native-characters','native-select-character','native-create-character','native-mentor-start','native-mentor-next']){
         const fn=handlers.get(channel);assert.equal(fn({...event,sender:{}}).ok,false);assert.equal(fn({...event,senderFrame:{url:event.senderFrame.url}}).ok,false);
         const url=event.senderFrame.url;event.senderFrame.url='https://example.com/';assert.equal(fn(event).ok,false);event.senderFrame.url=url;assert.equal(fn(event).ok,true);
     }
-    assert.deepEqual(calls,['load','save','generate','characters','select-character','create-character']);ipcMain.emit('native-voice-cancel',{...event,sender:{}});assert.equal(calls.length,6);
+    assert.deepEqual(calls,['load','save','generate','characters','select-character','create-character','mentor-start','mentor-next']);ipcMain.emit('native-voice-cancel',{...event,sender:{}});assert.equal(calls.length,8);
+    ipcMain.emit('native-mentor-stop',{...event,sender:{}});assert.equal(calls.length,8);ipcMain.emit('native-mentor-stop',event);assert.deepEqual(calls.slice(-2),['mentor-stop','cancel']);
     ipcMain.emit('native-voice-cancel',event);assert.equal(calls.at(-1),'cancel');window.emit('hide');window.emit('closed');assert.equal(calls.at(-1),'dispose');assert.equal(handlers.size,0);assert.equal(ipcMain.listenerCount('native-voice-cancel'),0);
 });
 test('interactive launcher uses a visible Windows startup and reports spawn and abnormal exit failures',()=>{

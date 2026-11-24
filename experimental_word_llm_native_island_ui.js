@@ -53,6 +53,11 @@
     $('logo').onclick=showTitle;
     $('new-game').onclick=()=>{if(blocked||busy)return;startingNew=true;answers=[];question=0;strokes=[];pointer=null;for(const id of ['name','self','player']){$(id).value='';$(id).readOnly=false;}showQuestion();};
     for(const id of ['back-title','picker-back'])$(id).onclick=showTitle;
+    $('mentor-open').onclick=()=>{if(busy||blocked||screen!=='play')return;window.NativeVoiceUI.stop();busy=true;$('play').inert=true;$('locale').disabled=true;void window.NativeMentorUI.open(state.character.name,$('locale').value);};
+    window.addEventListener('native-mentor-close',()=>{busy=false;$('play').inert=false;$('locale').disabled=false;
+        if(state?.game)window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);$('mentor-open').focus();warmup();});
+    $('mentor-voice-menu').ontoggle=()=>{if($('mentor-voice-menu').open&&!busy)window.NativeVoiceUI.mount($('mentor-voice'),'mentor-adventurer',$('locale').value);};
+    $('voice-menu').ontoggle=()=>{if($('voice-menu').open&&!busy&&state?.game&&$('voice-panel').parentElement!==$('play-voice'))window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);};
     async function resumeCharacter(id){if(busy||blocked)return;busy=true;window.NativeVoiceUI.stop();try{const r=await api.selectCharacter(id);if(!r.ok){status(errors[r.error]||errors.failed);return;}state=r.state;startingNew=false;answers=[];question=0;strokes=[];pointer=null;
         $('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);if(state.game){paused=false;render();}else showQuestion();
         }catch(_){status(errors.failed);}finally{busy=false;warmup();}}

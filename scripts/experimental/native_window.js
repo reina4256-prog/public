@@ -15,6 +15,10 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
     ipcMain.handle('native-warmup',event=>allowed(event)?session.warmup():{ok:false,error:'input'});
     ipcMain.handle('native-pulse',(event,paused)=>allowed(event)?session.pulse(paused):{ok:false,error:'input'});
     ipcMain.handle('native-submit',(event,input,locale)=>allowed(event)?session.submit(input,locale):{ok:false,error:'input'});
+    ipcMain.handle('native-mentor-start',(event,locale)=>allowed(event)?session.mentorStart(locale):{ok:false,error:'input'});
+    ipcMain.handle('native-mentor-next',(event,id,round)=>allowed(event)?session.mentorNext(id,round):{ok:false,error:'input'});
+    const mentorStop=event=>{if(allowed(event)){session.mentorStop();voice?.cancel();}};
+    ipcMain.on('native-mentor-stop',mentorStop);
     ipcMain.handle('native-voice-load',event=>allowed(event)&&voice?voice.load():{ok:false,error:'missing'});
     ipcMain.handle('native-voice-save',(event,value)=>allowed(event)&&voice?voice.save(value):{ok:false,error:'missing'});
     ipcMain.handle('native-voice-generate',(event,request)=>allowed(event)&&voice?voice.generate(request):{ok:false,error:'missing'});
@@ -31,6 +35,7 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
         for(const name of ['native-load','native-create','native-prepare','native-characters','native-select-character','native-create-character','native-warmup','native-pulse','native-submit','native-voice-load','native-voice-save','native-voice-generate'])ipcMain.removeHandler(name);
         ipcMain.removeListener('native-cancel',cancel);
         ipcMain.removeListener('native-voice-cancel',voiceCancel);
+        ipcMain.removeHandler('native-mentor-start');ipcMain.removeHandler('native-mentor-next');ipcMain.removeListener('native-mentor-stop',mentorStop);
     });
     void window.loadURL(url).catch(error=>{
         console.error('[word-native] Could not load the native page:',error.message);

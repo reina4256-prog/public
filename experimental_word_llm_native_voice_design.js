@@ -14,7 +14,7 @@
     const fresh=()=>({version:1,traits:Object.fromEntries(fields.map(f=>[f.id,f.initial])),extra:''});
     function valid(s){return object(s)&&Object.keys(s).length===3&&s.version===1&&object(s.traits)&&Object.keys(s.traits).length===fields.length
         &&fields.every(f=>f.options.some(o=>o[0]===s.traits[f.id]))&&typeof s.extra==='string'&&s.extra.length<=300&&!/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(s.extra);}
-    function prompt(s){if(!valid(s))return null;return ['A mysterious non-human companion creature voice. Speech must be clear and intelligible; never scream or overact.',
+    function prompt(s,subject){if(!valid(s))return null;return [subject==='mentor-adventurer'?'An original adult woman adventurer mentor voice. Calm, warm and encouraging. Speech must be clear; never scream or overact.':'A mysterious non-human companion creature voice. Speech must be clear and intelligible; never scream or overact.',
         ...fields.map(f=>f.options.find(o=>o[0]===s.traits[f.id])[2]),s.extra.trim()?'Additional desired voice traits: '+s.extra:''].filter(Boolean).join(' ');}
     const validId=id=>typeof id==='string'&&/^design:[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/.test(id);
     return {fields,fresh,valid,prompt,validId};

@@ -19,6 +19,7 @@ else {
         const voiceKey=suppliedVoiceKey||await require('./native_voice_key').loadKey(directory,{executable:process.execPath});
         // Reuse the existing CLI's dedicated login. Never copy/read its token or a game save.
         const responder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:core.protocol,measure:true});
+        const mentorResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_mentor').protocol});
         const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
             'experimental_word_llm_native.html','experimental_word_llm_native.css','scripts/experimental/native_store.js',
             'scripts/experimental/native_electron.js','scripts/experimental/native.js','scripts/experimental/native_preload.js','scripts/experimental/native_window.js','scripts/experimental/gemini_reply.js',
@@ -29,12 +30,13 @@ else {
             'experimental_word_llm_native_book.css','experimental_word_llm_native_island.css','experimental_word_start_questions.js',
             'experimental_word_island_boot.js','experimental_word_island_navigation.js','data.js','island_shared.js',
             'view_renderer.js','localization_core.js','localization_catalog.js','experimental_word_llm_native_voice.js',
-            'experimental_word_llm_native_voice_ui.js','experimental_word_llm_native_voice_design.js','scripts/experimental/native_voice_designs.js','scripts/experimental/native_voice.js','scripts/experimental/native_voice_credentials.js','scripts/experimental/native_voice_key.js']});
+            'experimental_word_llm_native_voice_ui.js','experimental_word_llm_native_voice_design.js','scripts/experimental/native_voice_designs.js','scripts/experimental/native_voice.js','scripts/experimental/native_voice_credentials.js','scripts/experimental/native_voice_key.js',
+            'scripts/experimental/native_mentor.js','experimental_word_llm_native_mentor_ui.js','experimental_word_llm_native_mentor.css']});
         const sessionId=randomUUID();let sequence=0;
         recorder.append({sessionId,sequence:++sequence,event:{kind:'session',at:Date.now(),mode:'llm-native',runtime:recorder.version}});
-        session=createSession({store,responder,record:event=>{
+        session=createSession({store,responder,mentorResponder,record:event=>{
             fs.appendFileSync(path.join(directory,'native-playtest.jsonl'),JSON.stringify(event)+'\n','utf8');
-            recorder.append({sessionId,sequence:++sequence,event:event.kind==='input'?{...event,kind:'player',text:event.packet.input}:{...event,kind:'native_result'}});
+            recorder.append({sessionId,sequence:++sequence,event:event.kind.startsWith('mentor_')?event:event.kind==='input'?{...event,kind:'player',text:event.packet.input}:{...event,kind:'native_result'}});
         }});
         // The cloud voice key belongs to this main process, never the CLI or renderer.
         const voice=require('./native_voice').createVoice({directory,session,key:()=>voiceKey});

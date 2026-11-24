@@ -60,7 +60,8 @@ function createProfiles(directory){
     }catch(_){return fail();}}
     return {load:()=>blocked?fail():store.load(),save:value=>blocked?fail():store.save(value),list,select,create,get file(){return store?.file;}};
 }
-function createSession({store,responder,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
+function createSession({store,responder,mentorResponder=null,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
+    const talk=require('./native_mentor').createTalk(mentorResponder,(kind,data)=>log(kind,data));
     let state=null,loaded=false,blocked=false,busy=false;
     let lastClock=clock(),lastSave=lastClock;
     const copy=()=>state ? structuredClone(state) : null;
@@ -145,7 +146,11 @@ function createSession({store,responder,record=()=>{},clock=()=>performance.now(
         } finally { busy=false;lastClock=clock(); }
     }
     function warmup(){if(!loaded)load();if(blocked||busy||!state?.game)return {ok:false};return responder.prepare?.()||{ok:true};}
-    return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,cancel:()=>responder.cancel(),dispose:()=>{
+    function mentorStart(locale){load();if(blocked||busy||!state?.game)return {ok:false,error:'input'};responder.cancel();const r=talk.start(state.character,locale===undefined?state.locale:locale);if(r.ok)busy=true;return r;}
+    function mentorStop(){if(talk.active){talk.stop();busy=false;lastClock=clock();}}
+    async function mentorNext(id,round){if(!talk.active)return {ok:false,error:'input'};const r=await talk.next(id,round);if(!talk.active){busy=false;lastClock=clock();}return r;}
+    return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,mentorStart,mentorNext,mentorStop,mentorLine:talk.line,cancel:()=>{mentorStop();responder.cancel();},dispose:()=>{
+        talk.dispose();
         if(loaded&&state&&!blocked&&!busy&&!persist(state,'close').ok)blocked=true;
         responder.dispose();
     }};
