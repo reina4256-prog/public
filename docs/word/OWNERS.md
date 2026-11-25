@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-26好感度・紹介・住まい：[nativeの将来要望と未採用案](../specs/core/word_llm_native_system.md#人物との好感度と建築士への紹介最初の住まい2026-11-26)。関係進展／紹介と接続境界は同正本で決める。屋内所有はmyhome_map_core.jsを保持し、旧建築士Rankや旧小屋解放をnativeへ一括適用しない。実装owner／状態・送信設計は未決定。実ログ／次の判断点はCURRENT。
+
 2026-11-26課題欄：[正本](../specs/core/word_llm_native_system.md#会話で開閉する島内の課題欄2026-11-26)。runtimeのtaskView検査／採用、game.taskPanelOpenの保存型、island_uiの最新実practice読取、CSSの島内配置が所有。新しい供給snapshot／観察や進行は追加せず、旧保存を保持する。検証・発行はCURRENT。
 
 2026-11-26返答失敗と声：[正本](../specs/core/word_llm_native_system.md#冒険家の返答失敗の分類と標準声2026-11-26)。gemini_replyは固定失敗分類と診断値の限定、native_storeは通常／探検の私用失敗ログ、native_voice rulesは冒険家の標準声Ledaを所有。理解／取得・保存済み原文や送信開始条件は変更しない。過去原因は未確定、検証・残件はCURRENT。
