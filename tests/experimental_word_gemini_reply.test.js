@@ -7,6 +7,23 @@ const { PassThrough } = require('node:stream');
 const { configuration, createResponder, valid, prompt } = require('../scripts/experimental/gemini_reply');
 const packet = () => ({ id: 'fixture-1', locale: 'ja', input: 'What is the moon?', nativeText: 'The child is looking at you.',
     character: { name: 'Raw name', self: 'I', player: 'you', species: 'robot' }, recent: [] });
+
+test('CLI failures distinguish invalid replies from transport errors without retaining raw data or retrying',async t=>{
+    for(const [value,code,error,reason]of [
+        [{response:'secret invalid reply'},0,'output','protocol_decode'],
+        [{response:null},0,'output','response_text'],
+        [{response:'secret',stats:{tools:{totalCalls:1}}},0,'output','tool_use'],
+        [{status:'ERROR',error:'private error and token'},0,'failed','cli_error'],
+        [{status:'ERROR'},0,'failed','cli_status'],
+        [{response:'secret'},1,'failed','cli_exit']
+    ]){const s=setup(t,{protocol:{valid:()=>true,prompt:()=>'',maxLength:2000,decode:()=>null}});
+        const pending=s.responder.reply(packet());s.finish(value,code);const r=await pending;
+        assert.equal(r.ok,false);assert.equal(r.error,error);assert.deepEqual(r.diagnostic,{version:1,reason,exitCode:code});
+        assert.equal(s.calls.length,1);assert.ok(!JSON.stringify(r).includes('secret'));assert.ok(!JSON.stringify(r).includes('token'));s.responder.dispose();}
+    const {safeDiagnostic}=require('../scripts/experimental/gemini_reply');
+    assert.equal(safeDiagnostic({version:1,reason:'secret arbitrary error'}),null);
+    assert.deepEqual(safeDiagnostic({version:1,reason:'cli_exit',exitCode:'secret',raw:'secret'}),{version:1,reason:'cli_exit',exitCode:null});
+});
 function setup(t, options = {}) {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'word-gemini-fixture-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
@@ -137,7 +154,7 @@ test('a modified credit setting is reset before every request; quota, authentica
         fs.writeFileSync(s.responder.config.session,JSON.stringify({useG1Credits:true,modelProvider:'gemini'}));
         const pending=s.responder.reply(packet());const settings=JSON.parse(fs.readFileSync(s.responder.config.session));
         assert.equal(settings.useG1Credits,false);assert.equal(settings.modelProvider,'');
-        s.finish({status:'ERROR',error:message},1);assert.deepEqual(await pending,{ok:false,error});
+        s.finish({status:'ERROR',error:message},1);assert.deepEqual(await pending,{ok:false,error,diagnostic:{version:1,reason:'cli_exit',exitCode:1}});
     }
     const pending=s.responder.reply(packet());s.calls.at(-1).child.stderr.write('RESOURCE_EXHAUSTED quota');s.finish({status:'ERROR',error:'Request failed'},1);
     assert.equal((await pending).error,'quota');
@@ -154,7 +171,7 @@ test('a settings write failure, tool step, duplicate result or incomplete result
 test('authentication prompts stop the process immediately without exposing a URL or waiting for interactive sign-in',async t=>{
     const s=setup(t),pending=s.responder.reply(packet()),child=s.calls.at(-1).child;
     child.stderr.write('Authentication required. Please visit the URL to log in: private-auth-url');
-    assert.deepEqual(await pending,{ok:false,error:'login'});assert.equal(child.killed,true);
+    assert.deepEqual(await pending,{ok:false,error:'login',diagnostic:{version:1,reason:'stderr',exitCode:null}});assert.equal(child.killed,true);
 });
 
 test('player memory survives save and restart as original notes without teaching the action engine', t => {

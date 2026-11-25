@@ -65,19 +65,48 @@ test('forest and mountain collection keep separate actual material types; fabric
         assert.equal(practice.context(s.game).collection.type,type);}
 });
 
+test('task status opens and closes by explicit quoted requests in all seven languages without changing gameplay',()=>{
+    const commands=[['ja','練習の状況を教えて','課題をしまって'],['en','Show me my task','Close my task'],['zh-CN','给我看任务','收起任务'],['ru','Покажи задание','Закрой задание'],['es-ES','Abre mi tarea','Cierra mi tarea'],['pt-BR','Mostre a tarefa','Feche a tarefa'],['de','Zeige meine Aufgabe','Schließe meine Aufgabe']];
+    for(const [locale,open,close]of commands){let s=runtime.create({name:'Pico',self:'I',player:'you'},locale,[0,0,0,0,0,0,0],island);const before=structuredClone(s.game);
+        for(const [input,kind]of [[open,'open'],[close,'close']]){const b=runtime.begin(s,input,locale),r={...response(b.packet),terms:[],focus:null,confirmation:null,taskView:{kind,quote:input}};
+            assert.ok(runtime.validResult(r,b.packet),input);s=runtime.finish(b.state,b.packet.id,b.state.revision,r);assert.equal(s.game.taskPanelOpen,kind==='open');assert.ok(runtime.validState(s));
+            assert.equal(b.packet.taskPanelOpen,undefined,'no extra context field is sent');}
+        const after=structuredClone(s.game);delete after.taskPanelOpen;assert.deepEqual(after,before,'no movement, participation, acquisition or practice progress');
+        const bad=structuredClone(s);bad.game.taskPanelOpen='yes';assert.equal(runtime.validState(bad),false);}
+    const s=runtime.create({name:'Pico',self:'I',player:'you'},'ja',[0,0,0,0,0,0,0],island);
+    for(const input of ['はい','課題を見せないで','「課題をみせて」','課題とは何ですか','Show me my task?','Do not show my task','Show me the mountain','練習の意味を教えて','課題をみせてと言って']){
+        const b=runtime.begin(s,input,'ja'),r={...response(b.packet),terms:[],focus:null,confirmation:null,taskView:{kind:'open',quote:input}};assert.equal(runtime.validResult(r,b.packet),false,input);}
+    const b=runtime.begin(s,'課題をみせて','ja'),r={...response(b.packet),terms:[],focus:null,confirmation:null,taskView:{kind:'open',quote:'練習の状況を教えて'}};assert.equal(runtime.validResult(r,b.packet),false);
+    assert.ok(runtime.validResult({...r,taskView:{kind:'open',quote:'課題をみせて'}},b.packet));
+    assert.equal(runtime.validResult({...r,taskView:{kind:'open',quote:'課題をみせて'},inventoryView:{kind:'open',quote:'課題をみせて'}},b.packet),false);
+});
+
 function practiceFixture(choice='accept'){
     const {createSession}=require('../scripts/experimental/native_store'),protocol=require('../scripts/experimental/native_practice'),calls=[];
     const first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let saved=arrived(first.state,first.target),time=0,replyChoice=null;
-    let hold=null,release=null,saveFailure=null,holdChat=false,releaseChat=null;
-    const make=()=>createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{
+    let hold=null,release=null,saveFailure=null,holdChat=false,releaseChat=null,replyFailure=null;const records=[];
+    const make=()=>createSession({record:e=>records.push(e),store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{
         if(saveFailure?.(s))return {ok:false,reason:'io'};assert.ok(runtime.validState(s),'saved practice state must be valid');saved=structuredClone(s);return {ok:true};}},clock:()=>time,
         responder:{cancel(){},dispose(){},async reply(p){calls.push(p);if(holdChat)await new Promise(r=>releaseChat=r);return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,practiceChoice:replyChoice?{choice:replyChoice,quote:p.input}:null}};}},
         practiceResponder:{cancel(){},dispose(){},async reply(p){assert.ok(protocol.protocol.valid(p));calls.push(p);const result={ok:true,proposal:{text:p.stage==='decision'&&choice==='ask'?'Should I take part in this survey?':'Actual '+p.stage,choice:p.stage==='decision'?choice:null}};
-            if(hold===p.stage)await new Promise(r=>release=r);return result;}}});
+            if(hold===p.stage)await new Promise(r=>release=r);return replyFailure?.(p)||result;}}});
     const session=make(),arrival=saved.game.walk.encounter.id,intro=session.mentorIntro(arrival);assert.ok(intro.practice,'reachable real survey candidate');
     return {session,calls,id:intro.practice,make,get saved(){return saved;},get time(){return time;},advance(n=1){for(let i=0;i<n;i++){time+=100;const r=session.pulse(false);assert.ok(r.ok);}},
-        choice:value=>replyChoice=value,hold:stage=>hold=stage,release:()=>release(),holdChat:()=>holdChat=true,releaseChat:()=>releaseChat(),fail:fn=>saveFailure=fn};
+        records,replyFailure:fn=>replyFailure=fn,choice:value=>replyChoice=value,hold:stage=>hold=stage,release:()=>release(),holdChat:()=>holdChat=true,releaseChat:()=>releaseChat(),fail:fn=>saveFailure=fn};
 }
+
+test('a failed final reply keeps the actual report, records only fixed failure facts and never retries',async()=>{
+    const f=practiceFixture(),practice=runtime.game.practice;
+    f.replyFailure(p=>p.stage==='feedback'?{ok:false,error:'output',diagnostic:{version:1,reason:'protocol_decode',exitCode:0,raw:'never retain this'}}:null);
+    for(let i=0;i<2400&&practice.current(f.saved.game).phase!=='failed';i++){
+        const p=practice.current(f.saved.game);if(practice.due(p))await f.session.practiceNext(f.id);else f.advance();}
+    const p=practice.current(f.saved.game);assert.equal(p.phase,'failed');assert.equal(p.lines.at(-1).slot,'report');
+    assert.equal(p.lines.length,5);assert.equal(f.calls.length,6);assert.ok(p.events.some(e=>e.kind==='returned'));
+    const event=f.records.filter(e=>e.kind==='practice_result').at(-1);
+    assert.deepEqual(event.diagnostic,{version:1,reason:'protocol_decode',exitCode:0});assert.equal(event.result,null);
+    assert.equal((await f.session.practiceNext(f.id)).ok,false);assert.equal(f.calls.length,6);
+    f.session.dispose();const next=f.make();assert.ok(next.load().ok);assert.equal((await next.practiceNext(f.id)).ok,false);next.dispose();
+});
 
 test('a mentor proposal and independent companion choice drive a real survey circuit, two observations, return and report in six bounded calls',async()=>{
     const f=practiceFixture(),practice=runtime.game.practice,past=structuredClone(f.saved.turns),receipts=structuredClone(f.saved.game.receipts),home={x:f.saved.game.x,y:f.saved.game.y};

@@ -175,7 +175,7 @@ if(!process.versions.electron){
         await until('document.querySelectorAll("#mentor-log p").length===2 && !NativeMentorUI.pending');
         assert.equal(voiceRequests.length,callsBeforeMentor+2);
         assert.equal(mentorPackets[0].locale,'en');
-        assert.equal(voiceRequests.at(-2).generation_config.speech_config[0].voice,'Kore');
+        assert.equal(voiceRequests.at(-2).generation_config.speech_config[0].voice,'Leda');
         const customCloudId=JSON.parse(fs.readFileSync(path.join(directory,'save','native-voice-designs.json'),'utf8')).entries.find(e=>e.id===customId).cloudId;
         assert.equal(voiceRequests.at(-1).generation_config.speech_config[0].voice,customCloudId);
         for(const locale of core.locales)for(const width of [1160,420]){window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(locale)+');GameI18n.localizeTree(document.body)');assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../locales',locale+'.json'),'utf8'));for(const [id,key]of [['mentor-close','話を終える'],['mentor-next','つづける'],['mentor-history-title','会話をふりかえる']])assert.equal(await evaluate('document.getElementById('+JSON.stringify(id)+').textContent'),locale==='ja'?key:catalog[key]);}

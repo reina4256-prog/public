@@ -9,7 +9,7 @@ test('practice audio uses only a current saved main-owned line and preserves the
     const service=nativeVoice.createVoice({directory:directory(t),session,key:()=> 'fixture-only',fetcher:async(_url,o)=>{calls.push(JSON.parse(o.body));return voiceResponse();}});
     assert.equal((await service.generate({kind:'practice',id:'event-11',slot:'offer',text:'Injected'})).ok,false);
     assert.equal((await service.generate({kind:'practice',id:'event-11',slot:'report'})).ok,false);
-    assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.length,1);assert.equal(calls[0].generation_config.speech_config[0].voice,'Kore');
+    assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.length,1);assert.equal(calls[0].generation_config.speech_config[0].voice,'Leda');
     assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.length,1,'same saved line reuses the reply cache');
     active=false;assert.equal((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok,false);assert.equal(calls.length,1);
     active=true;speaker='companion';assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.at(-1).generation_config.speech_config[0].voice,voiceRules.defaults.robot);service.dispose();
@@ -55,7 +55,7 @@ test('mentor TTS accepts only the latest main-owned line and keeps companion and
     assert.equal((await service.generate({kind:'mentor',id:'encounter',round:1,speaker:'mentor',text:'forged'})).ok,false);
     assert.equal((await service.generate({kind:'mentor',id:'encounter',round:0,speaker:'mentor'})).ok,false);
     assert.ok((await service.generate({kind:'mentor',id:'encounter',round:1,speaker:'mentor'})).ok);assert.equal(calls.length,1);
-    assert.deepEqual(calls[0].input,[{type:'user_input',content:[{type:'text',text:'Welcome.'}]}]);assert.equal(calls[0].generation_config.speech_config[0].voice,'Kore');
+    assert.deepEqual(calls[0].input,[{type:'user_input',content:[{type:'text',text:'Welcome.'}]}]);assert.equal(calls[0].generation_config.speech_config[0].voice,'Leda');
     active=false;assert.equal((await service.generate({kind:'mentor',id:'encounter',round:1,speaker:'mentor'})).ok,false);assert.equal(calls.length,1);
     const designs=require('../scripts/experimental/native_voice_designs').createDesigns(dir),settings=voiceRules.design.fresh();
     assert.ok(designs.add({voice:'voice_mentor',species:'mentor-adventurer',locale:'en',settings}).ok);
@@ -282,6 +282,7 @@ test('voice key reader keeps secrets off arguments, inherited environment and lo
     }
 });
 test('native voice: eleven species have distinct selectable defaults, seven samples and bounded independent preferences',t=>{
+    assert.equal(voiceRules.defaults['mentor-adventurer'],'Leda');
     assert.equal(voiceRules.species.length,11);assert.equal(new Set(Object.values(voiceRules.defaults)).size,11);
     for(const s of voiceRules.species)assert.ok(voiceRules.validVoice(voiceRules.defaults[s]));
     assert.deepEqual(Object.keys(voiceRules.samples).sort(),core.locales.toSorted());

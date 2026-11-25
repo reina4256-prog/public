@@ -91,14 +91,27 @@
         window.NativePracticeUI?.sync(state.game,state.character.name);$('conversation').scrollTop=$('conversation').scrollHeight;renderPanels();meters();window.GameI18n.localizeTree(document.body);
     }
     function renderPanels(){if(!$('diary-view').hidden){window.NativeBook.render($('diary'),state);$('diary-originals').replaceChildren(...state.turns.map(record));}if(!$('stars-view').hidden)window.NativeStars.render($('stars'),$('star-record'),state,record);}
-    const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};let inventoryKey='';
+    const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};let inventoryKey='',taskKey='';
+    const taskPanel=el('section',$('world-stage'));taskPanel.id='task-panel';taskPanel.hidden=true;taskPanel.setAttribute('aria-labelledby','task-title');
+    const taskTitle=el('h3',taskPanel,'今の課題');taskTitle.id='task-title';
+    const taskDetails=el('div',taskPanel);taskDetails.id='task-details';taskDetails.setAttribute('aria-live','polite');
+    function renderTask(g){const p=NativePractice.current(g),key=JSON.stringify([g.taskPanelOpen,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,$('locale').value]);if(key===taskKey)return;taskKey=key;
+        taskPanel.hidden=g.taskPanelOpen!==true;taskDetails.replaceChildren();
+        if(!p){el('p',taskDetails,'今は課題がありません。');return;}
+        const mountain=p.target.startsWith('chip:mountain_'),goal=p.gather?(mountain?'山で石を2個探し、冒険家に報告する':'森で木材を2個探し、冒険家に報告する'):(mountain?'山を探索し、冒険家に報告する':'森を探索し、冒険家に報告する');
+        const phases={offer:'冒険家の提案を聞いている',decision:'参加するか考えている',consult:'相談を待っている',outbound:'探索場所へ向かっている',survey:'探している',return:'戻っている',report:'冒険家に報告している',feedback:'冒険家の返事を待っている',done:'完了',declined:'今回は見送った',stopped:'進行が止まっています。',failed:'進行が止まっています。'};
+        const stage=t(p.suspended?'中断しています。':phases[p.phase])+(p.phase==='failed'&&p.lines.at(-1)?.slot==='report'?' / '+t('冒険家の返事を待っている'):'');
+        el('p',taskDetails,t('内容：{{0}}',t(goal)),'',true);el('p',taskDetails,t('進行：{{0}}',stage),'',true);
+        el('p',taskDetails,t('探索した場所：{{0}} / 2',p.events.filter(e=>e.kind==='observed').length),'',true);
+        if(p.gather)el('p',taskDetails,t('今回見つけた数：{{0}} / 2',(g.inventory?.items||[]).filter(i=>i.practice===p.id).length),'',true);
+    }
     function materialIcon(type){const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 72 64');svg.setAttribute('aria-hidden','true');svg.setAttribute('focusable','false');svg.classList.add('inventory-icon');
         // Fixed display art only. No player text or generated markup enters the SVG.
         svg.innerHTML=type==='wood'
             ?'<g stroke="#59351f" stroke-width="2" stroke-linejoin="round"><path fill="#9d6337" d="m8 35 31-20 24 15-31 21z"/><path fill="#704225" d="m8 35 24 16v8L8 44z"/><path fill="#ba8050" d="m32 51 31-21v9L32 59z"/><path fill="#bb8754" d="m12 23 30-16 19 12-30 19z"/><path fill="#8b522c" d="m12 23 19 15v11L12 34z"/><path fill="#a66b3b" d="m31 38 30-19v12L31 49z"/><ellipse fill="#edc78e" cx="22" cy="35" rx="9" ry="12" transform="rotate(-35 22 35)"/><ellipse fill="none" stroke="#ae7741" cx="22" cy="35" rx="4" ry="7" transform="rotate(-35 22 35)"/><path fill="none" stroke="#754225" d="m38 20 15-8m-15 17 16-9m-9 26 13-8"/></g>'
             :'<g stroke="#4e5656" stroke-width="2" stroke-linejoin="round"><path fill="#8f9894" d="m9 34 10-20 22-4 15 14-3 24-27 8z"/><path fill="#c3c8bd" d="m9 34 10-20 22-4-6 21z"/><path fill="#adb5ac" d="m35 31 6-21 15 14-3 24z"/><path fill="#687774" d="m9 34 26-3 18 17-27 8z"/><path fill="#a6afa7" d="m39 43 8-13 15 2 6 17-16 9-15-5z"/><path fill="#d1d3c4" d="m39 43 8-13 15 2-9 12z"/><path fill="#788681" d="m53 44 9-12 6 17-16 9z"/></g>';
         return svg;}
-    function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);let label=activity[g.mode];
+    function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);renderTask(g);let label=activity[g.mode];
         const bag=NativePractice.possessions(g),key=JSON.stringify(bag)+'|'+$('locale').value;
         if(key!==inventoryKey){inventoryKey=key;$('inventory').hidden=!bag.open;$('inventory-items').replaceChildren();
             for(const [type,itemLabel]of [['wood','木材'],['stone','石']])if(bag[type]){const slot=el('figure',$('inventory-items'),undefined,'inventory-item');slot.append(materialIcon(type));el('figcaption',slot,t(itemLabel)+' × '+bag[type],'',true);}

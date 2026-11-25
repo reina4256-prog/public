@@ -29,7 +29,7 @@
         if(!g||g.version!==1||!questions.validAnswers(g.origin?.answers))return false;
         const origin=questions.resolve(g.origin.answers);
         if(origin.appearance!==g.origin.appearance||JSON.stringify(origin.settings)!==JSON.stringify(g.origin.settings))return false;
-        return practice.valid(g)&&(g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
+        return practice.valid(g)&&(g.taskPanelOpen===undefined||typeof g.taskPanelOpen==='boolean')&&(g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
             &&(g.perception!==2||navigation.valid(g.island)&&Array.isArray(g.route)&&Array.isArray(g.receipts)&&walk.valid(g))
             &&navigation.valid(g.island)&&['x','y','elapsed','hunger','fatigue','remaining','growth'].every(k=>finite(g[k]))&&g.growth>=0&&g.growth<65
             &&g.elapsed>=0&&g.hunger>=0&&g.hunger<=1&&g.fatigue>=0&&g.fatigue<=1&&g.remaining>=0

@@ -13,7 +13,7 @@
     ];
     const species=['robot','seed','spirit','ghost','stone','magician','beetle','balloon','bird','machine','dragon'];
     const defaults=Object.fromEntries(species.map((id,i)=>[id,choices[i].id]));
-    defaults['mentor-adventurer']='Kore';
+    defaults['mentor-adventurer']='Leda';
     const subjects=[...species,'mentor-adventurer'];
     const samples={ja:'こんにちは。今日は、どんな一日だった？ よかったら、聞かせてね。',
         en:'Hello. How was your day? Tell me about it, if you like.',

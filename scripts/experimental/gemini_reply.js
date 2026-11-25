@@ -33,6 +33,10 @@ function errorKind(value) {
     if (/authentication required|unauthenticated|not.authenticated|sign.in|log.?in|token.*expired/i.test(text)) return 'login';
     return 'failed';
 }
+// Fixed local failure facts only: never copy CLI text, diagnostics, tokens or a prompt.
+const failureReasons=['spawn','send','prestart_output','timeout','cancelled','output_size','stderr','stream_json','result_count','tool_use','cli_exit','cli_status','cli_error','response_text','protocol_decode'];
+function safeDiagnostic(value){return value&&value.version===1&&failureReasons.includes(value.reason)
+    ?{version:1,reason:value.reason,exitCode:Number.isInteger(value.exitCode)&&Math.abs(value.exitCode)<=2147483648?value.exitCode:null}:null;}
 function valid(packet) {
     return packet && typeof packet.id === 'string' && /^[a-z0-9-]{1,80}$/.test(packet.id)
         && locales.includes(packet.locale) && typeof packet.input === 'string' && (packet.input.trim().length > 0 || packet.kind === 'initiative') && packet.input.length <= 4000
@@ -101,31 +105,32 @@ function createResponder(directory, options = {}) {
                 try {
                     const event = JSON.parse(line);
                     // A prepared process must remain an empty conversation until an explicit send.
-                    if (!job.id && event.event !== 'init') { job.finish({ ok: false, error: 'failed' }); return; }
+                    if (!job.id && event.event !== 'init') { job.finish({ ok: false, error: 'failed' },'prestart_output'); return; }
                     if (event.event === 'init') mark('initialized');
                     if (event.event === 'step_update' && event.step_update?.step_type === 'agent_response') {
                         if (typeof event.step_update.text_delta === 'string' && event.step_update.text_delta.length) mark('firstText');
                         if (event.step_update.state === 'DONE') mark('replyDone');
                     }
                     if (event.event === 'result') mark('result');
-                } catch (_) { if (!job.id) job.finish({ ok: false, error: 'failed' }); }
+                } catch (_) { if (!job.id) job.finish({ ok: false, error: 'failed' },'prestart_output'); }
             };
             job = { id: null, model, started, requestStarted: started, prestarted, done: false, promise: null,
                 send(packet, requestStarted) {
                     if (job.done) return;
                     job.id = packet.id; job.requestStarted = requestStarted; active = job;
                     clearTimeout(timer);
-                    timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.timeout || 60000);
+                    timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' },'timeout'), options.timeout || 60000);
                     try {
                         child.stdin.end(JSON.stringify({ event: 'user', message: { content: protocol.prompt(packet) } }) + '\n');
                         mark('inputQueued');
-                    } catch (_) { job.finish({ ok: false, error: 'failed' }); }
-                }, finish(result) {
+                    } catch (_) { job.finish({ ok: false, error: 'failed' },'send'); }
+                }, finish(result,reason=null,exitCode=null) {
                 if (job.done) return; job.done = true; clearTimeout(timer);
                 if (active === job) active = null;
                 if (prepared === job) prepared = null;
                 if (child && child.exitCode == null) child.kill();
                 const offset = job.requestStarted - started;
+                if(!result.ok)result={...result,diagnostic:safeDiagnostic({version:1,reason:reason||result.error,exitCode})};
                 resolve(options.measure ? { ...result, timing: { version: 2,modelRequested:model,
                     prestart: { used: prestarted, ageMs: prestarted ? offset : 0,
                         initializedBeforeRequest: prestarted && marks.initialized !== undefined && marks.initialized < offset },
@@ -139,15 +144,15 @@ function createResponder(directory, options = {}) {
                 mark('spawnRequested');
                 child = spawnChild(options.executable || (options.entry ? process.execPath : cliEntry), args, { cwd: config.cwd, env: config.env, windowsHide: true, shell: false, stdio: ['pipe','pipe','pipe'] });
                 child.on('spawn', () => mark('spawned'));
-                timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' }), options.idleTimeout || 120000);
+                timer = setTimeout(() => job.finish({ ok: false, error: 'timeout' },'timeout'), options.idleTimeout || 120000);
                 timer.unref?.();
-                child.on('error', () => job.finish({ ok: false, error: 'failed' }));
+                child.on('error', () => job.finish({ ok: false, error: 'failed' },'spawn'));
                 child.stdin.on('error', () => {});
                 child.stdout.setEncoding('utf8');
                 child.stdout.on('data', data => {
                     if (job.done) return;
                     size += data.length;
-                    if (size > 1024 * 1024) { job.finish({ ok: false, error: 'output' }); return; }
+                    if (size > 1024 * 1024) { job.finish({ ok: false, error: 'output' },'output_size'); return; }
                     output += data.toString('utf8');
                     observed += data.toString('utf8');
                     let boundary;
@@ -158,27 +163,36 @@ function createResponder(directory, options = {}) {
                 // Never expose raw CLI diagnostics, auth URLs, environment or tokens to the renderer/log.
                 child.stderr.on('data', data => {
                     tail = (tail + data.toString('utf8')).slice(-1024); const kind = errorKind(tail);
-                    if (kind !== 'failed') { failure = kind; job.finish({ ok: false, error: kind }); }
+                    if (kind !== 'failed') { failure = kind; job.finish({ ok: false, error: kind },'stderr'); }
                 });
                 child.on('close', code => {
                     if (job.done) return;
                     mark('closed');
                     if (observed.trim()) observe(observed);
+                    let reason='stream_json';
                     try {
                         const events = output.trim().split(/\r?\n/).map(line => JSON.parse(line));
                         const results = events.filter(event => event.event === 'result');
-                        if (results.length !== 1 || events.some(event => event.step_update?.step_type === 'tool')) throw Error('output');
+                        const reject=(why,error='output')=>job.finish({ok:false,error},why,code);
+                        if (events.some(event => event.step_update?.step_type === 'tool')) return reject('tool_use');
+                        if (results.length !== 1) return reject('result_count',code===0?'output':failure);
                         const value = results[0].result;
+                        if(!value||typeof value!=='object')return reject('cli_status');
                         if (value.error) { const kind = errorKind(typeof value.error === 'string' ? value.error : ''); if (kind !== 'failed') failure = kind; }
-                        const text = value.response?.trim();
-                        if (code !== 0 || value.status !== 'SUCCESS' || value.error || typeof text !== 'string' || !text || text.length > protocol.maxLength
-                            || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text) || value.stats?.tools?.totalCalls > 0) throw Error('output');
+                        if(code!==0)return reject('cli_exit',failure);
+                        if(value.error)return reject('cli_error',failure);
+                        if(value.status!=='SUCCESS')return reject('cli_status',failure);
+                        if(value.stats?.tools?.totalCalls>0)return reject('tool_use');
+                        const text = typeof value.response==='string'?value.response.trim():null;
+                        if (typeof text !== 'string' || !text || text.length > protocol.maxLength
+                            || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text))return reject('response_text');
+                        reason='protocol_decode';
                         const decoded = protocol.decode(text);
-                        if (!decoded) throw Error('output');
+                        if (!decoded)return reject(reason);
                         job.finish({ ...decoded, ok: true, source: 'antigravity-cli' });
-                    } catch (_) { job.finish({ ok: false, error: failure }); }
+                    } catch (_) { job.finish({ ok: false, error: 'output' },reason,code); }
                 });
-            } catch (_) { job.finish({ ok: false, error: 'failed' }); }
+            } catch (_) { job.finish({ ok: false, error: 'failed' },'spawn'); }
         });
         job.promise = promise; return job;
     }
@@ -202,4 +216,4 @@ function createResponder(directory, options = {}) {
     }
     return { reply, prepare, cancel, dispose: () => { disposed = true; cancel(); }, config };
 }
-module.exports = { createResponder, configuration, cliEntry, valid, prompt };
+module.exports = { createResponder, configuration, cliEntry, valid, prompt, safeDiagnostic };

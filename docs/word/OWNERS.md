@@ -1,5 +1,9 @@
 # 日記部品の担当・参照索引
 
+2026-11-26課題欄：[正本](../specs/core/word_llm_native_system.md#会話で開閉する島内の課題欄2026-11-26)。runtimeのtaskView検査／採用、game.taskPanelOpenの保存型、island_uiの最新実practice読取、CSSの島内配置が所有。新しい供給snapshot／観察や進行は追加せず、旧保存を保持する。検証・発行はCURRENT。
+
+2026-11-26返答失敗と声：[正本](../specs/core/word_llm_native_system.md#冒険家の返答失敗の分類と標準声2026-11-26)。gemini_replyは固定失敗分類と診断値の限定、native_storeは通常／探検の私用失敗ログ、native_voice rulesは冒険家の標準声Ledaを所有。理解／取得・保存済み原文や送信開始条件は変更しない。過去原因は未確定、検証・残件はCURRENT。
+
 2026-11-25島内表示：[正本](../specs/core/word_llm_native_system.md#島の中の所持品表示と探索の見回し2026-11-25)。island HTML／CSSのworld-stageが島内の所持品領域、island_uiが既存現物数の読取・固定SVGアイコン、sceneが静止位置での見回しを所有。新しい送信項目や保存・取得／理解規則は追加しない。実ログレビュー・検証／発行はCURRENT。
 
 2026-11-25採集依頼：[正本](../specs/core/word_llm_native_system.md#採集依頼と会話で開閉する所持品2026-11-25)。root native_practiceがgather付き新依頼・chip個体ID／実探索取得・game.inventoryの現物と保存検査・限定collectionを所有。native_runtimeは通常chatの所持数／開閉snapshotと引用付きinventoryViewの検査・保存、island_uiは操作ボタンを持たない所持品表示、sceneは探索動作、main practiceは実発見と聞き手の生成指示を所有。既存の知識／技能／日記／星座の取得条件は非変更。検証・本人試遊／発行はCURRENT。

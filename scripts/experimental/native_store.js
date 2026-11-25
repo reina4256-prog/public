@@ -148,6 +148,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             if(accepted&&result.proposal.practiceChoice&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
             const error=accepted?null:(result.ok?'output':result.error || 'failed');
             log('result',{id:next.packet.id,error,result:accepted?result.proposal:null,supplied:next.packet.memories.map(m=>m.sourceId),
+                ...(!accepted?{diagnostic:require('./gemini_reply').safeDiagnostic(result.diagnostic)}:{}),
                 timing:{helper:result.timing||null,receivedMs,totalMs:performance.now()-started}});
             return {ok:!!accepted,error,state:copy()};
         } catch (_) {
@@ -193,7 +194,8 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             if(accepted)practice.finish(updated.game,stage,result.proposal);else{practice.current(updated.game).attempts[stage]='failed';practice.stop(updated.game,true);}
             if(stage==='decision'||!accepted){updated.game.walk.encounter.phase='done';introOwner=null;}
             updated.revision++;if(!persist(updated,'practice-completion',request.id).ok){blocked=true;practiceArmed=false;return {ok:false,error:'save'};}state=updated;
-            log('practice_result',{id:request.id,error:accepted?null:result.error||'output',result:accepted?result.proposal:null});
+            log('practice_result',{id:request.id,error:accepted?null:result.error||'output',result:accepted?result.proposal:null,
+                ...(!accepted?{diagnostic:require('./gemini_reply').safeDiagnostic(result.diagnostic)}:{})});
             return {ok:!!accepted,error:accepted?null:result.error||'output',id,line:accepted?structuredClone(practice.current(state.game).lines.at(-1)):null,game:structuredClone(state.game)};
         }catch(_){if(ticket===practiceTicket&&!blocked){const next=copy();practice.stop(next.game,true);next.revision++;if(persist(next,'practice-failure').ok)state=next;else blocked=true;introOwner=null;}
             return {ok:false,error:blocked?'save':'failed'};
