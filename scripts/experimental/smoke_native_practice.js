@@ -87,6 +87,9 @@ if(!process.versions.electron){
         assert.equal(requests.at(-1).practice.context.phase,'done');assert.equal(requests.at(-1).practice.speech.length,6);assert.equal(complete.game.harvest,0);
         assert.equal(await evaluate('document.getElementById("inventory").hidden'),true);await send('Show me my tools');
         assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);assert.equal(requests.at(-1).inventory.open,false);
+        assert.ok(await evaluate('document.getElementById("world-stage").contains(document.getElementById("inventory")) && !document.getElementById("chat-view").contains(document.getElementById("inventory"))'));
+        assert.equal(await evaluate('document.querySelectorAll("#inventory .inventory-item svg[aria-hidden=true] path").length>0'),true);
+        assert.equal(await evaluate('document.querySelectorAll("#inventory .inventory-item").length'),1,'only actually held material is drawn');
         assert.equal(await evaluate('document.querySelectorAll("#inventory button,#inventory a,#inventory input,#inventory summary").length'),0);
         await evaluate('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));document.getElementById("inventory-title").click()');
         assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);
@@ -94,8 +97,9 @@ if(!process.versions.electron){
             const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../locales',language+'.json'),'utf8'));
             assert.equal(await evaluate('document.getElementById("inventory-title").textContent'),catalog['インベントリ']);
             assert.ok((await evaluate('document.getElementById("inventory-items").textContent')).includes(catalog[complete.game.inventory.items[0].type==='wood'?'木材':'石']+' × 2'));
+            assert.ok(await evaluate('(()=>{const a=document.getElementById("inventory").getBoundingClientRect(),b=document.getElementById("gameCanvas").getBoundingClientRect();return a.left>=b.left&&a.right<=b.right&&a.top>=b.top&&a.bottom<=b.bottom&&a.height>0})()'),'inventory stays inside the actual island image');
             assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));}
-        await capture('inventory-420.png');window.setSize(1160,850);await send('Put away my inventory');assert.equal(await evaluate('document.getElementById("inventory").hidden'),true);
+        await capture('inventory-420.png');window.setSize(1160,850);await capture('inventory-1160.png');await send('Put away my inventory');assert.equal(await evaluate('document.getElementById("inventory").hidden'),true);
         await send('Show me my tools');checks.push('inventory opens/closes only via quoted chat request, has actual counts in seven languages/two widths and no direct controls');
         await sleep(250);const count=requests.length,voices=voiceRequests.length;await close();await open('accept',false);await sleep(200);assert.equal(requests.length,count);assert.equal(voiceRequests.length,voices);
         assert.equal(await evaluate('document.getElementById("word-master-dialog").open'),false);assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);assert.equal(session.load().state.game.inventory.items.length,2);checks.push('ordinary chat receives actual history and bounded possessions; restart keeps objects/open panel without generation, audio replay or automatic re-entry');await close();

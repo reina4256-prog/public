@@ -17,22 +17,20 @@ window.NativeScene={
         assets=game.island.assets;const skin=game.origin.appearance;
         aiPet.type=aiPet.baseType=aiPet.currentSkin=skin;aiPet.x=game.x*800;aiPet.y=game.y*480;
         const practice=window.NativePractice.current(game),practiceRoute=practice&&!practice.suspended?practice.route:[],travel=practiceRoute?.length>0&&!window.NativePracticeUI?.pending&&!window.NativePractice.due(practice);
+        const searching=practice?.phase==='survey'&&practice.gather&&!practice.suspended&&!practiceRoute.length&&practice.surveyIndex<2&&!window.NativePracticeUI?.pending&&!NativePractice.due(practice);
         aiPet.actionState=game.mode==='move'||travel?'moving':'idle';aiPet.visualAction=game.mode==='rest'?'sleep':game.mode==='eat'?'eat_raw':'idle';
         const frames=aiConfigs[skin].actions[game.mode==='move'||travel?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
         aiPet.frameIndex=reduced?0:Math.floor(time/.25)%frames.length;
         const next=(practiceRoute?.length?practiceRoute:game.route).find(p=>Math.hypot(p.x-game.x,p.y-game.y)>.00001);
         if(next&&Math.abs(next.x-game.x)>.00001)aiPet.flip=next.x<game.x;
+        if(searching&&!reduced)aiPet.flip=Math.floor(time/1.1)%2===1;
         camera.x=aiPet.x-canvas.width/2;camera.y=aiPet.y-canvas.height/2;render();
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);
         if(practice?.phase==='survey'){
             aiPet.indoorTarget=NativePerception.asset(game,practice.target);aiPet.exploreState={currentFacility:practice.target.startsWith('chip:mountain_')?'mountain':'palms'};
-            const searching=practice.gather&&!practice.suspended&&!practiceRoute.length&&practice.surveyIndex<2&&!window.NativePracticeUI?.pending&&!NativePractice.due(practice);
-            drawActionWindow(travel||searching?'move':'idle','inside',true);
-            if(searching){ctx.save();ctx.strokeStyle='#ffe08a';ctx.lineWidth=2;const x=canvas.width/2+(reduced?0:Math.sin(time*2)*65),y=canvas.height/2+44;
-                ctx.beginPath();ctx.ellipse(x,y,28,10,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#122936';ctx.fillRect(canvas.width/2-120,canvas.height/2+76,240,17);
-                ctx.fillStyle='#e6f6ff';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText(GameI18n.translate('探している'),canvas.width/2,canvas.height/2+89);ctx.restore();}
+            drawActionWindow(travel?'move':'idle','inside',true);
         }
     },
     drawTarget(p){

@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-25島内表示：[正本](../specs/core/word_llm_native_system.md#島の中の所持品表示と探索の見回し2026-11-25)。island HTML／CSSのworld-stageが島内の所持品領域、island_uiが既存現物数の読取・固定SVGアイコン、sceneが静止位置での見回しを所有。新しい送信項目や保存・取得／理解規則は追加しない。実ログレビュー・検証／発行はCURRENT。
+
 2026-11-25採集依頼：[正本](../specs/core/word_llm_native_system.md#採集依頼と会話で開閉する所持品2026-11-25)。root native_practiceがgather付き新依頼・chip個体ID／実探索取得・game.inventoryの現物と保存検査・限定collectionを所有。native_runtimeは通常chatの所持数／開閉snapshotと引用付きinventoryViewの検査・保存、island_uiは操作ボタンを持たない所持品表示、sceneは探索動作、main practiceは実発見と聞き手の生成指示を所有。既存の知識／技能／日記／星座の取得条件は非変更。検証・本人試遊／発行はCURRENT。
 
 2026-11-25自動会話：[正本](../specs/core/word_llm_native_system.md#有声の挨拶段階表示と自動文送り2026-11-25)。native_storeの起動中だけのfreshWalkCause／freshArrivalが新規指示→実到着の自動開始権限、main practice.packetがmet由来のoffer meeting一項目と送信枠、root practice.validContextが限定検査を所有。mentor_uiは初回動画後の一回開始・原音声時計に合わせた文字／ページ／話者の自動送りと取消を所有。知識／技能／日記／星座の取得所有は変更しない。

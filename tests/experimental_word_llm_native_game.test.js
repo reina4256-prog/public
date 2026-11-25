@@ -50,9 +50,13 @@ test('inventory open and close are quoted current requests in seven languages, n
     const b=runtime.begin(s,'Open inventory','en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,inventoryView:{kind:'open',quote:'Show tools'}};assert.equal(runtime.validResult(r,b.packet),false);
 });
 test('forest and mountain collection keep separate actual material types; fabricated and missing objects fail save validation',()=>{
-    for(const [prefix,type]of [['palms','wood'],['mountain','stone']]){const fixture=structuredClone(island);
-        for(const key of Object.keys(fixture.assets))if(key.startsWith((prefix==='palms'?'mountain':'palms')+'_'))delete fixture.assets[key];
-        for(const place of fixture.places.slice(0,2))if(!fixture.assets[place.assetKey])place.assetKey=Object.keys(fixture.assets)[0];
+    // Both materials use the same bounded connected ground, independent of the
+    // random map's distant resources. This fixture tests physical item integrity.
+    for(const [prefix,type]of [['palms','wood'],['mountain','stone']]){const assets={};
+        for(let x=100;x<=650;x+=50)assets['ground_'+x]={dx:x-10,dy:190,sx:0,sy:0,sw:20,sh:20,scale:1,img:'fixture',type:'ground'};
+        const key=prefix+'_material';assets[key]={dx:420,dy:75,sx:0,sy:0,sw:60,sh:80,scale:1,img:'fixture',type:prefix==='palms'?'nature':'mountain'};
+        const fixture={version:1,assets,spawn:{x:300/800,y:200/480},places:[{id:'berry:1',meaning:'berry',assetKey:key,x:450/800,y:200/480},
+            {id:'shade',meaning:'rest',assetKey:key,x:500/800,y:200/480},{id:'path',meaning:'walk',x:600/800,y:200/480}]};
         let s=runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],fixture);
         const first=confirmed(s);s=arrived(first.state,first.target);const practice=runtime.game.practice;practice.create(s.game,s.game.receipts.findLast(r=>r.kind==='walk'));completeCollection(s.game);
         assert.ok(s.game.inventory.items.every(i=>i.type===type));assert.equal(s.game.inventory.items.length,2);assert.ok(runtime.validState(s));
@@ -121,6 +125,12 @@ test('native facing follows the immediate real segment in outbound, survey and r
         const facing=scope.aiPet.flip;g.practices[0].route=[{x:.5,y:.6},{x:x<.5?.6:.4,y:.6}];scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.flip,facing);
     }
     scope.NativePracticeUI={pending:true};scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.actionState,'idle');
+    scope.NativePracticeUI.pending=false;g.route=[];g.practices=[{phase:'survey',target:'chip:palms_1',gather:true,suspended:false,route:[],surveyIndex:0,events:[],attempts:{}}];
+    const position={x:g.x,y:g.y};scope.NativeScene.draw(g,0,false);const left=scope.aiPet.flip;
+    scope.NativeScene.draw(g,1.2,false);assert.notEqual(scope.aiPet.flip,left,'searching looks both ways');assert.deepEqual({x:g.x,y:g.y},position);
+    assert.deepEqual(draws.at(-1),['idle','inside',true],'stationary search does not walk in place or draw an extra circle');
+    const facing=scope.aiPet.flip;scope.NativeScene.draw(g,2.4,true);assert.equal(scope.aiPet.flip,facing,'reduced motion keeps a stable direction');
+    scope.NativePracticeUI.pending=true;scope.NativeScene.draw(g,2.4,false);assert.equal(scope.aiPet.flip,facing,'speaking and generation hold the search motion');
     g.practices=[];g.mode='move';g.route=[{x:.4,y:.5}];scope.NativeScene.draw(g,0,false);assert.equal(scope.aiPet.flip,true);
 });
 
