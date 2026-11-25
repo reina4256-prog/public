@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-25採集依頼：[正本](../specs/core/word_llm_native_system.md#採集依頼と会話で開閉する所持品2026-11-25)。root native_practiceがgather付き新依頼・chip個体ID／実探索取得・game.inventoryの現物と保存検査・限定collectionを所有。native_runtimeは通常chatの所持数／開閉snapshotと引用付きinventoryViewの検査・保存、island_uiは操作ボタンを持たない所持品表示、sceneは探索動作、main practiceは実発見と聞き手の生成指示を所有。既存の知識／技能／日記／星座の取得条件は非変更。検証・本人試遊／発行はCURRENT。
+
 2026-11-25自動会話：[正本](../specs/core/word_llm_native_system.md#有声の挨拶段階表示と自動文送り2026-11-25)。native_storeの起動中だけのfreshWalkCause／freshArrivalが新規指示→実到着の自動開始権限、main practice.packetがmet由来のoffer meeting一項目と送信枠、root practice.validContextが限定検査を所有。mentor_uiは初回動画後の一回開始・原音声時計に合わせた文字／ページ／話者の自動送りと取消を所有。知識／技能／日記／星座の取得所有は変更しない。
 
 2026-11-25表示改善：[正本](../specs/core/word_llm_native_system.md#探検の表示向き会話相手と文送り2026-11-25)。root practice.tickは観察slot待機、main practiceは段階別聞き手の生成指示、mentor_uiは空欄非表示・原文を保持する文送り／声と読了の待機、island_uiは待機中pulse停止、sceneは実経路の向きと待機中idleを所有。view_rendererは明示native引数時だけ探索窓の姿も反転し、旧版は既存描画を維持。

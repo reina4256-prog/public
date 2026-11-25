@@ -91,8 +91,12 @@
         window.NativePracticeUI?.sync(state.game,state.character.name);$('conversation').scrollTop=$('conversation').scrollHeight;renderPanels();meters();window.GameI18n.localizeTree(document.body);
     }
     function renderPanels(){if(!$('diary-view').hidden){window.NativeBook.render($('diary'),state);$('diary-originals').replaceChildren(...state.turns.map(record));}if(!$('stars-view').hidden)window.NativeStars.render($('stars'),$('star-record'),state,record);}
-    const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};
+    const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};let inventoryKey='';
     function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);let label=activity[g.mode];
+        const bag=NativePractice.possessions(g),key=JSON.stringify(bag)+'|'+$('locale').value;
+        if(key!==inventoryKey){inventoryKey=key;$('inventory').hidden=!bag.open;$('inventory-items').replaceChildren();
+            for(const [type,itemLabel]of [['wood','木材'],['stone','石']])if(bag[type])el('p',$('inventory-items'),t(itemLabel)+' × '+bag[type],'',true);
+            if(!bag.wood&&!bag.stone)el('p',$('inventory-items'),'まだ持ち物はありません。');}
         if(NativePractice.active(g))label=p.suspended?'一時停止':p.phase==='survey'?'探検している':p.phase==='return'?'戻っている':p.phase==='outbound'?'歩いている':p.phase==='consult'?'相談を待っている':label;
         $('energy').value=1-g.fatigue;$('fullness').value=1-g.hunger;$('activity').textContent=t(label);$('pause').textContent=t(paused?'再開':'一時停止');}
     const errors={login:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。',missing:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。',quota:'今日はお話をひと休み。またあとで話そうね。',save:'記録を安全に保存できませんでした。終了して保存先を確認してください。',cancelled:'返答を中止しました。原発言は残っています。',output:'返答の形式や出所を確認できませんでした。記憶候補は採用していません。',input:'入力を確認してください。',failed:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。'};

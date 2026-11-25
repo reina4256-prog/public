@@ -11,6 +11,7 @@
     function controls(){end.textContent=t('話を終える');document.getElementById('mentor-history-title').textContent=t('会話をふりかえる');w.skip.textContent=t('スキップ');w.close.textContent=t('つづける');}
     window.addEventListener('game-language-changed',controls);
     function line(element,text){element.hidden=!text;element.replaceChildren();const span=document.createElement('span');span.className='mentor-line';span.textContent=text;element.append(span);}
+    line(w.text,'');line(w.thought,'');
     // Presentation only: preserve the exact original in history and request its audio once.
     function pages(text,language=locale){
         const result=[],sentences=new Intl.Segmenter(language,{granularity:'sentence'}).segment(text);
@@ -27,7 +28,7 @@
     }
     let pageState=null;
     function cancelPages(){if(pageState){const p=pageState;pageState=null;cancelAnimationFrame(p.frame);delete p.element.dataset.reading;p.done();}w.close.disabled=true;}
-    function present(element,text){cancelPages();line(element,'');w.close.hidden=true;
+    function present(element,text){cancelPages();line(element,'');if(element===w.text)line(w.thought,'');else if(element===w.thought)line(w.text,'');w.close.hidden=true;
         return new Promise(done=>{pageState={element,parts:pages(text).map(s=>Array.from(new Intl.Segmenter(locale,{granularity:'grapheme'}).segment(s),x=>x.segment)),done,frame:0,started:false};});}
     function startPages(audioMs=null,clock=()=>performance.now()){
         const p=pageState;if(!p||p.started)return;p.started=true;
@@ -107,7 +108,7 @@
             for(let count=0;count<6&&ticket===sequence&&practiceArmed;count++){
                 const p=NativePractice.current(game),slot=NativePractice.due(p);if(!slot)break;
                 if(['offer','decision','report','feedback'].includes(slot)){
-                    if(!w.dialog.open){phase='conversation';w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;
+                    if(!w.dialog.open){phase='conversation';w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;line(w.text,'');line(w.thought,'');
                         if(!master){master=new Image();master.src='adventurer_battle_enemy.png';}if(!background){background=new Image();background.src=imageSources.field_bg;}
                         w.name.textContent=t('冒険家');w.dialog.showModal();window.dispatchEvent(new Event('native-practice-modal'));}
                     status.textContent=t('返答を待っています…');

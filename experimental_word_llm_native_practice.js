@@ -11,6 +11,26 @@
     const distance=(a,b)=>Math.hypot((a.x-b.x)*800,(a.y-b.y)*480);
     const current=g=>g?.practices?.at(-1)||null;
     const active=g=>!!current(g)&&!terminal.includes(current(g).phase);
+    const material=target=>typeof target==='string'&&target.startsWith('chip:mountain_')?'stone':'wood';
+    const inventory=g=>g.inventory||(g.inventory={version:1,open:false,items:[]});
+    function possessions(g){const items=g.inventory?.items||[];return {open:g.inventory?.open||false,wood:items.filter(i=>i.type==='wood').length,stone:items.filter(i=>i.type==='stone').length};}
+    function validPossessions(v){return keys(v,['open','wood','stone'])&&typeof v.open==='boolean'&&['wood','stone'].every(k=>Number.isSafeInteger(v[k])&&v[k]>=0);}
+    function finding(g,p,step){return g.inventory?.items.find(i=>i.practice===p.id&&i.step===step)||null;}
+    function collect(g,p,step){if(!p.gather)return;const bag=inventory(g),index=[0,1].find(n=>!bag.items.some(i=>i.id===p.target+':material:'+n));
+        if(index===undefined)return;bag.items.push({id:p.target+':material:'+index,type:material(p.target),target:p.target,practice:p.id,step,at:g.elapsed});}
+    function validInventory(g){const expected=[],counts=new Map();
+        if(g.practices!==undefined&&!Array.isArray(g.practices))return false;
+        for(const p of g.practices||[]){if(!p?.gather)continue;if(!Array.isArray(p.events))return false;
+            for(const [index,e]of p.events.filter(e=>e?.kind==='observed').entries()){const n=counts.get(p.target)||0;if(n>=2)continue;counts.set(p.target,n+1);
+                expected.push({id:p.target+':material:'+n,type:material(p.target),target:p.target,practice:p.id,step:index+1,at:e.at});}}
+        if(g.inventory===undefined)return expected.length===0;const bag=g.inventory;
+        return keys(bag,['version','open','items'])&&bag.version===1&&typeof bag.open==='boolean'&&Array.isArray(bag.items)&&bag.items.length===expected.length
+            &&expected.every(e=>bag.items.some(i=>i&&Object.keys(e).every(k=>i[k]===e[k])))
+            &&new Set(bag.items.map(i=>i?.id)).size===bag.items.length&&bag.items.length<=Object.keys(g.island.assets).length*2
+            &&bag.items.every(i=>keys(i,['id','type','target','practice','step','at'])&&typeof i.target==='string'&&/^chip:(?:mountain_|palms_)/.test(i.target)
+                &&!!perception.asset(g,i.target)&&[0,1].some(n=>i.id===i.target+':material:'+n)&&i.type===material(i.target)&&[1,2].includes(i.step)
+                &&Number.isFinite(i.at)&&i.at>=0&&i.at<=g.elapsed);
+    }
     function route(g,to){const nodes=walk.graph(g),nearest=p=>nodes.reduce((best,n,i)=>distance(p,{x:n.x/800,y:n.y/480})<distance(p,{x:nodes[best].x/800,y:nodes[best].y/480})?i:best,0);
         if(!nodes.length)return null;const start=nearest(g),end=nearest(to);
         if(distance(g,{x:nodes[start].x/800,y:nodes[start].y/480})>50||distance(to,{x:nodes[end].x/800,y:nodes[end].y/480})>.01)return null;
@@ -24,7 +44,7 @@
         const chosen=candidates[0]||{id:arrival.target,path:walk.plan(g,arrival.target)};if(!chosen.path||!route({...g,...chosen.path.at(-1)},home))return null;
         const end=chosen.path.at(-1),nodes=walk.graph(g),at=nodes.find(n=>distance(end,{x:n.x/800,y:n.y/480})<.01);
         if(!at?.edges.length)return null;const neighbor=nodes[at.edges[0]],p={id:arrival.id,homeTarget:arrival.target,home,target:chosen.id,phase:'offer',suspended:false,
-            route:[],tour:[{x:neighbor.x/800,y:neighbor.y/480},end],surveyIndex:0,timer:0,events:[],attempts:{},lines:[],choice:null};
+            route:[],tour:[{x:neighbor.x/800,y:neighbor.y/480},end],surveyIndex:0,timer:0,events:[],attempts:{},lines:[],choice:null,gather:true};
         (g.practices||(g.practices=[])).push(p);return p;
     }
     function context(g,p=current(g)){
@@ -35,11 +55,16 @@
             experience:g.receipts.filter(r=>['observe','walk'].includes(r.kind)).slice(-2).map(r=>({kind:r.kind,targetKind:r.target.startsWith('chip:mountain_')?'mountain':r.target.startsWith('chip:palms_')?'forest':'other'}))};
         const prior=g.practices?.slice(0,-1).findLast(record=>record.events.some(e=>e.kind==='returned'));
         if(prior)c.experience.push({kind:'survey-return',targetKind:prior.target.startsWith('chip:mountain_')?'mountain':'forest'});
+        if(p.gather){c.goal='gather-and-return';c.collection={type:material(p.target),goal:2,found:[1,2].filter(step=>p.events.filter(e=>e.kind==='observed').length>=step)
+            .map(step=>({step,count:finding(g,p,step)?1:0})),obtained:(g.inventory?.items||[]).filter(i=>i.practice===p.id).length};}
         if(JSON.stringify(c).length>1200)throw Error('practice_budget');return c;
     }
-    function validContext(c){return keys(c,['id','goal','phase','suspended','target','home','hunger','fatigue','reachable','returnable','choice','results','experience','meeting'])
+    function validContext(c){return keys(c,['id','goal','phase','suspended','target','home','hunger','fatigue','reachable','returnable','choice','results','experience','meeting','collection'])
+        &&(c.goal==='survey-and-return'?c.collection===undefined:c.goal==='gather-and-return'&&keys(c.collection,['type','goal','found','obtained'])
+            &&c.collection.type===material(c.target?.id||'')&&c.collection.goal===2&&Array.isArray(c.collection.found)&&c.collection.found.length<=2
+            &&c.collection.found.every((f,i)=>keys(f,['step','count'])&&f.step===i+1&&[0,1].includes(f.count))&&c.collection.obtained===c.collection.found.reduce((n,f)=>n+f.count,0))
         &&(c.meeting===undefined||c.phase==='offer'&&['first','again'].includes(c.meeting))
-        &&/^event-[1-9]\d*$/.test(c.id)&&c.goal==='survey-and-return'&&phases.includes(c.phase)&&typeof c.suspended==='boolean'
+        &&/^event-[1-9]\d*$/.test(c.id)&&phases.includes(c.phase)&&typeof c.suspended==='boolean'
         &&keys(c.target,['id','kind'])&&/^chip:(?:mountain_|palms_)/.test(c.target.id)&&c.target.id.length<=80&&['forest','mountain'].includes(c.target.kind)
         &&typeof c.home==='string'&&c.home.length<=80&&/^chip:(?:mountain_|palms_)/.test(c.home)
         &&['hunger','fatigue'].every(k=>Number.isFinite(c[k])&&c[k]>=0&&c[k]<=1)&&typeof c.reachable==='boolean'&&typeof c.returnable==='boolean'
@@ -84,12 +109,12 @@
         if(p.phase==='outbound'){event(g,p,'arrived');p.phase='survey';return;}
         if(p.phase==='return'){if(distance(g,p.home)>.01){stop(g,true);return;}event(g,p,'returned');p.phase='report';return;}
         if(p.surveyIndex===2){travel(g,p,'return',p.home);return;}
-        p.timer+=dt;if(p.timer<6)return;p.timer=0;event(g,p,'observed');p.route=route(g,p.tour[p.surveyIndex++])||[];
+        p.timer+=dt;if(p.timer<6)return;p.timer=0;event(g,p,'observed');collect(g,p,p.surveyIndex+1);p.route=route(g,p.tour[p.surveyIndex++])||[];
         if(!p.route.length)stop(g,true);
     }
-    function valid(g){if(g.practices===undefined)return true;if(!Array.isArray(g.practices))return false;const ids=new Set(),nodes=walk.graph(g);
+    function valid(g){if(!validInventory(g))return false;if(g.practices===undefined)return true;if(!Array.isArray(g.practices))return false;const ids=new Set(),nodes=walk.graph(g);
         const onNode=p=>point(p)&&nodes.some(n=>distance(p,{x:n.x/800,y:n.y/480})<.01);
-        return g.practices.every(p=>{if(!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice'])
+        return g.practices.every(p=>{if(!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice','gather'])||!(p.gather===undefined||p.gather===true)
             ||ids.has(p.id)||!/^event-[1-9]\d*$/.test(p.id)||!g.receipts.some(r=>r.id===p.id&&r.kind==='walk'&&r.target===p.homeTarget)
             ||!/^chip:(?:mountain_|palms_)/.test(p.target)||!perception.asset(g,p.target)||!onNode(p.home)||!phases.includes(p.phase)||typeof p.suspended!=='boolean'
             ||!Array.isArray(p.route)||p.route.length>2000||!p.route.every(onNode)||!Array.isArray(p.tour)||p.tour.length!==2||!p.tour.every(onNode)
@@ -102,5 +127,5 @@
             if(p.route.length){for(let i=1;i<p.route.length;i++){const a=nodes.find(n=>distance(p.route[i-1],{x:n.x/800,y:n.y/480})<.01),j=nodes.findIndex(n=>distance(p.route[i],{x:n.x/800,y:n.y/480})<.01);if(!a.edges.includes(j))return false;}
                 if(p===current(g)&&distance(g,p.route[0])>51)return false;}
             return true;});}
-    return {slots,current,active,create,context,due,finish,decide,stop,suspend,resolve,tick,valid,route,ackOnly,supply,validSupply,validContext,validSpeech};
+    return {slots,current,active,create,context,due,finish,decide,stop,suspend,resolve,tick,valid,route,ackOnly,supply,validSupply,validContext,validSpeech,inventory,possessions,validPossessions};
 });

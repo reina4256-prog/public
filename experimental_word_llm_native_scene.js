@@ -28,7 +28,11 @@ window.NativeScene={
         if(game.perception===2&&target)this.drawTarget(target);
         if(practice?.phase==='survey'){
             aiPet.indoorTarget=NativePerception.asset(game,practice.target);aiPet.exploreState={currentFacility:practice.target.startsWith('chip:mountain_')?'mountain':'palms'};
-            drawActionWindow(travel?'move':'idle','inside',true);
+            const searching=practice.gather&&!practice.suspended&&!practiceRoute.length&&practice.surveyIndex<2&&!window.NativePracticeUI?.pending&&!NativePractice.due(practice);
+            drawActionWindow(travel||searching?'move':'idle','inside',true);
+            if(searching){ctx.save();ctx.strokeStyle='#ffe08a';ctx.lineWidth=2;const x=canvas.width/2+(reduced?0:Math.sin(time*2)*65),y=canvas.height/2+44;
+                ctx.beginPath();ctx.ellipse(x,y,28,10,0,0,Math.PI*2);ctx.stroke();ctx.fillStyle='#122936';ctx.fillRect(canvas.width/2-120,canvas.height/2+76,240,17);
+                ctx.fillStyle='#e6f6ff';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.fillText(GameI18n.translate('探している'),canvas.width/2,canvas.height/2+89);ctx.restore();}
         }
     },
     drawTarget(p){

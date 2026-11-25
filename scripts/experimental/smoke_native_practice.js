@@ -10,7 +10,7 @@ if(!process.versions.electron){
     app.disableHardwareAcceleration();app.setPath('userData',path.join(directory,'profile'));
     const sleep=ms=>new Promise(r=>setTimeout(r,ms)),checks=[],errors=[],requests=[],voiceRequests=[];let window,session,scenario='accept',release=null,releaseObservation=null,releaseOffer=null;
     const evaluate=code=>window.webContents.executeJavaScript(code);
-    const timer=setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({checks,errors}));app.exit(1);},240000);
+    const timer=setTimeout(()=>{fs.writeFileSync(path.join(directory,'timeout.json'),JSON.stringify({checks,errors}));app.exit(1);},360000);
     async function until(code){for(let i=0;i<1200;i++){if(await evaluate(code))return;await sleep(50);}throw Error('Timed out: '+code);}
     async function capture(name){await sleep(150);fs.writeFileSync(path.join(directory,name),(await window.webContents.capturePage()).toPNG());}
     function wav(){const b=Buffer.alloc(4844);b.write('RIFF');b.writeUInt32LE(b.length-8,4);b.write('WAVEfmt ',8);b.writeUInt32LE(16,16);b.writeUInt16LE(1,20);b.writeUInt16LE(1,22);b.writeUInt32LE(24000,24);b.writeUInt32LE(48000,28);b.writeUInt16LE(2,32);b.writeUInt16LE(16,34);b.write('data',36);b.writeUInt32LE(4800,40);return b;}
@@ -23,11 +23,13 @@ if(!process.versions.electron){
         if(fresh)assert.ok(store.save(initial(kind)).ok);
         session=createSession({store,responder:{cancel(){},dispose(){},async reply(p){requests.push(p);if(p.input==='stop')return {ok:false,error:'quota'};
             const choice=p.input==='Please explore and return.'?'accept':null;
-            return {ok:true,proposal:{reply:choice?'I will take part and return.':'I remember the actual survey.',interpretation:{kind:'request',summary:'Received.'},memories:[],references:[],terms:[],action:p.input==='walk there'?{kind:'walk',targetId:p.world.confirmed,quote:p.input}:null,focus:null,confirmation:null,...(p.practice?{practiceChoice:choice?{choice,quote:p.input}:null}:{})}};}},
+            const view=p.input==='Show me my tools'?'open':p.input==='Put away my inventory'?'close':null;
+            return {ok:true,proposal:{reply:choice?'I will take part and return.':'I remember the actual survey.',interpretation:{kind:'request',summary:'Received.'},memories:[],references:[],terms:[],action:p.input==='walk there'?{kind:'walk',targetId:p.world.confirmed,quote:p.input}:null,focus:null,confirmation:null,...(p.inventory?{inventoryView:view?{kind:view,quote:p.input}:null}:{}),...(p.practice?{practiceChoice:choice?{choice,quote:p.input}:null}:{})}};}},
             practiceResponder:{cancel(){},dispose(){},async reply(p){requests.push(p);if(kind==='late'&&p.stage==='decision')await new Promise(r=>release=r);
                 if(kind==='accept'&&p.stage==='offer')await new Promise(r=>releaseOffer=r);
                 if(kind==='accept'&&p.stage==='observe2')await new Promise(r=>releaseObservation=r);
-                return {ok:true,proposal:{text:p.stage==='decision'&&kind==='consult'?'Should I explore and return?':'Actual '+p.stage+' at the '+p.context.target.kind+'. I will finish this sentence.',choice:p.stage==='decision'?(kind==='consult'?'ask':['first','off','voicefail'].includes(kind)?'decline':'accept'):null}};}}});
+                const found=p.context.collection?.found.at(-1);
+                return {ok:true,proposal:{text:p.stage==='decision'&&kind==='consult'?'Should I explore and return?':'Actual '+p.stage+' at the '+p.context.target.kind+'. '+(found?'I found '+found.count+' '+p.context.collection.type+'.':'I will finish this sentence.'),choice:p.stage==='decision'?(kind==='consult'?'ask':['first','off','voicefail'].includes(kind)?'decline':'accept'):null}};}}});
         const voice=require('./native_voice').createVoice({directory:saveDir,session,key:()=> 'fixture-only',fetcher:async(_url,options)=>{voiceRequests.push(JSON.parse(options.body));if(kind==='voicefail')return new Response('{}',{status:503});return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:wav().toString('base64')}]}]}));}});
         if(kind==='off')assert.ok(voice.save({version:1,enabled:false,voices:{}}).ok);
         window=require('./native_window').openWindow(session,{show:true,voice});window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});
@@ -44,6 +46,7 @@ if(!process.versions.electron){
         assert.equal(requests.find(p=>p.stage).context.meeting,'again');
         assert.equal(await evaluate('document.getElementById("mentor-next").hidden'),true);
         assert.equal(await evaluate('document.querySelector(".word-master-thought").hidden'),true);
+        assert.equal(await evaluate('document.getElementById("word-master-text").hidden'),true,'waiting for offer has no empty speech bubble');
         await capture('practice-greeting-1160.png');
         for(const language of core.locales){assert.ok(await evaluate('(()=>{const text="First sentence. Second sentence, with a longer clause to check the bounded reading pages. "+"山の様子を確かめた。".repeat(12)+" 👩🏽‍🚀";const p=NativeMentorUI.pages(text,'+JSON.stringify(language)+');return p.join("")===text && p.length>2 && p.every(x=>x.length<100)})()'));}
         await evaluate('window.oldActionDraws=0;const original=drawActionWindow;drawActionWindow=function(...args){window.oldActionDraws++;return original(...args)};window.practiceVoiceStarts=0;const start=AudioBufferSourceNode.prototype.start;AudioBufferSourceNode.prototype.start=function(...args){window.practiceVoiceStarts++;return start.apply(this,args)};void 0;');
@@ -77,11 +80,25 @@ if(!process.versions.electron){
         assert.equal(requests.filter(p=>p.stage).length,6);await until('window.practiceVoiceStarts===6');
         const spoken=new Set(p.lines.map(l=>l.text));assert.equal(voiceRequests.filter(r=>spoken.has(r.input[0].content[0].text)).length,6);
         assert.equal(await evaluate('document.querySelectorAll("#practice-conversation p").length'),6);
-        await capture('practice-report-1160.png');checks.push('two actual observation monologues, physical return and report/feedback produce exactly six saved lines and six main-owned voice requests');
+        assert.equal(complete.game.inventory.items.length,2);assert.equal(requests.find(p=>p.stage==='observe1').context.collection.obtained,1);assert.equal(requests.find(p=>p.stage==='observe2').context.collection.obtained,2);
+        assert.equal(await evaluate('Array.from(document.querySelectorAll(".word-master-speech,.word-master-thought")).some(n=>!n.hidden&&!n.textContent.trim())'),false);
+        await capture('practice-report-1160.png');checks.push('two actual collection receipts precede discovery speech, physical return and report/feedback produce exactly six saved lines and six main-owned voice requests');
         await evaluate('document.getElementById("mentor-close").click()');await until('!document.getElementById("word-master-dialog").open');await send('How was your survey?');
         assert.equal(requests.at(-1).practice.context.phase,'done');assert.equal(requests.at(-1).practice.speech.length,6);assert.equal(complete.game.harvest,0);
+        assert.equal(await evaluate('document.getElementById("inventory").hidden'),true);await send('Show me my tools');
+        assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);assert.equal(requests.at(-1).inventory.open,false);
+        assert.equal(await evaluate('document.querySelectorAll("#inventory button,#inventory a,#inventory input,#inventory summary").length'),0);
+        await evaluate('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));document.getElementById("inventory-title").click()');
+        assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);
+        for(const language of core.locales)for(const width of [1160,420]){window.setSize(width,850);await evaluate('GameI18n.setLanguage('+JSON.stringify(language)+');document.getElementById("locale").value='+JSON.stringify(language)+';document.getElementById("locale").dispatchEvent(new Event("change"))');
+            const catalog=JSON.parse(fs.readFileSync(path.resolve(__dirname,'../../locales',language+'.json'),'utf8'));
+            assert.equal(await evaluate('document.getElementById("inventory-title").textContent'),catalog['インベントリ']);
+            assert.ok((await evaluate('document.getElementById("inventory-items").textContent')).includes(catalog[complete.game.inventory.items[0].type==='wood'?'木材':'石']+' × 2'));
+            assert.ok(await evaluate('document.documentElement.scrollWidth<=innerWidth+1'));}
+        await capture('inventory-420.png');window.setSize(1160,850);await send('Put away my inventory');assert.equal(await evaluate('document.getElementById("inventory").hidden'),true);
+        await send('Show me my tools');checks.push('inventory opens/closes only via quoted chat request, has actual counts in seven languages/two widths and no direct controls');
         await sleep(250);const count=requests.length,voices=voiceRequests.length;await close();await open('accept',false);await sleep(200);assert.equal(requests.length,count);assert.equal(voiceRequests.length,voices);
-        assert.equal(await evaluate('document.getElementById("word-master-dialog").open'),false);checks.push('ordinary chat receives actual survey history, restart keeps it without generation, audio replay or automatic re-entry');await close();
+        assert.equal(await evaluate('document.getElementById("word-master-dialog").open'),false);assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);assert.equal(session.load().state.game.inventory.items.length,2);checks.push('ordinary chat receives actual history and bounded possessions; restart keeps objects/open panel without generation, audio replay or automatic re-entry');await close();
         await open('consult');
         await until('!document.getElementById("word-master-dialog").open && document.getElementById("practice-conversation")?.textContent.includes("Should I")');
         assert.equal(await evaluate('document.getElementById("play").inert'),false);await send('yes');assert.equal(core.game.practice.current(session.load().state.game).phase,'consult');

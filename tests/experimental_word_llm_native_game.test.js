@@ -15,6 +15,52 @@ function arrived(s,target){s=directed(s,'walk there',{action:{kind:'walk',target
     for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);
     assert.equal(s.game.mode,'idle');assert.equal(s.game.walk.encounter.phase,'pending');assert.ok(runtime.validState(s));return s;}
 
+function completeCollection(g){const practice=runtime.game.practice,p=practice.current(g);
+    for(let i=0;i<2400&&p.phase!=='done';i++){const slot=practice.due(p);if(slot){p.attempts[slot]='pending';practice.finish(g,slot,{text:'Actual '+slot,choice:slot==='decision'?'accept':null});}
+        runtime.game.tick(g,.1);}assert.equal(p.phase,'done');return p;}
+test('collection produces two actual finite objects, survives interruption, and never replays old survey receipts',()=>{
+    const first=confirmed(runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let s=arrived(first.state,first.target),g=s.game;
+    const practice=runtime.game.practice,p=practice.create(g,g.receipts.findLast(r=>r.kind==='walk'));
+    assert.equal(practice.context(g).collection.obtained,0);assert.equal(g.inventory,undefined);
+    p.attempts.offer='pending';practice.finish(g,'offer',{text:'Please find materials.',choice:null});
+    p.attempts.decision='pending';practice.finish(g,'decision',{text:'I will try.',choice:'accept'});
+    for(let i=0;i<1600&&!practice.due(p);i++)runtime.game.tick(g,.1);
+    assert.equal(practice.due(p),'observe1');assert.equal(g.inventory.items.length,1);assert.ok(runtime.validState(s));
+    const saved=structuredClone(s);assert.ok(practice.suspend(g));for(let i=0;i<100;i++)runtime.game.tick(g,.1);assert.equal(g.inventory.items.length,1);
+    assert.ok(practice.resolve(g,{choice:'resume',quote:'Resume the collection'},'Resume the collection'));completeCollection(g);
+    assert.equal(g.inventory.items.length,2);assert.equal(new Set(g.inventory.items.map(i=>i.id)).size,2);assert.ok(runtime.validState(s));
+    assert.equal(practice.context(g).collection.obtained,2);assert.deepEqual(practice.context(g).collection.found,[{step:1,count:1},{step:2,count:1}]);
+    assert.equal(saved.game.inventory.items.length,1,'separate snapshot keeps its actual prefix');
+    const forged=structuredClone(s);forged.game.inventory.items[0].step=2;assert.equal(runtime.validState(forged),false);
+    s=arrived(s,first.target);g=s.game;const again=practice.create(g,g.receipts.findLast(r=>r.kind==='walk'));assert.equal(again.target,p.target);
+    completeCollection(g);assert.equal(g.inventory.items.length,2,'same chip never replenishes');assert.equal(practice.context(g).collection.obtained,0);
+    assert.deepEqual(practice.context(g).collection.found,[{step:1,count:0},{step:2,count:0}]);assert.ok(runtime.validState(s));
+    const legacy=structuredClone(saved);delete legacy.game.inventory;delete legacy.game.practices[0].gather;completeCollection(legacy.game);
+    assert.equal(legacy.game.inventory,undefined,'existing survey never gains materials retroactively');assert.ok(runtime.validState(legacy));
+});
+test('inventory open and close are quoted current requests in seven languages, never buttons, replies or teaching',()=>{
+    const commands=[['ja','インベントリを開いて','閉じて'],['en','Show me my tools','Close it'],['zh-CN','打开背包','收起'],['ru','Покажи инвентарь','Закрой'],['es-ES','Abre el inventario','Cierra'],['pt-BR','Mostre o inventário','Guarde'],['de','Zeige das Inventar','Schließe es']];
+    for(const [locale,open,close]of commands){let s=runtime.create({name:'Keep',self:'I',player:'you'},locale,[0,0,0,0,0,0,0],island);
+        for(const [input,kind]of [[open,'open'],[close,'close']]){const b=runtime.begin(s,input,locale),r={...response(b.packet),terms:[],focus:null,confirmation:null,inventoryView:{kind,quote:input}};
+            assert.ok(runtime.validResult(r,b.packet),input);s=runtime.finish(b.state,b.packet.id,b.state.revision,r);assert.equal(s.game.inventory.open,kind==='open');assert.ok(runtime.validState(s));}
+        assert.deepEqual(s.game.inventory.items,[]);assert.equal(s.turns[0].inventory.open,false);assert.equal(s.turns[1].inventory.open,true);}
+    const s=runtime.create({name:'Keep',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island);
+    for(const input of ['yes','Show me my tools?','Do not open inventory','「インベントリを開いて」','インベントリを開かないで','What does open inventory mean','Show me the mountain']){
+        const b=runtime.begin(s,input,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,inventoryView:{kind:'open',quote:input}};assert.equal(runtime.validResult(r,b.packet),false,input);}
+    const b=runtime.begin(s,'Open inventory','en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,inventoryView:{kind:'open',quote:'Show tools'}};assert.equal(runtime.validResult(r,b.packet),false);
+});
+test('forest and mountain collection keep separate actual material types; fabricated and missing objects fail save validation',()=>{
+    for(const [prefix,type]of [['palms','wood'],['mountain','stone']]){const fixture=structuredClone(island);
+        for(const key of Object.keys(fixture.assets))if(key.startsWith((prefix==='palms'?'mountain':'palms')+'_'))delete fixture.assets[key];
+        for(const place of fixture.places.slice(0,2))if(!fixture.assets[place.assetKey])place.assetKey=Object.keys(fixture.assets)[0];
+        let s=runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],fixture);
+        const first=confirmed(s);s=arrived(first.state,first.target);const practice=runtime.game.practice;practice.create(s.game,s.game.receipts.findLast(r=>r.kind==='walk'));completeCollection(s.game);
+        assert.ok(s.game.inventory.items.every(i=>i.type===type));assert.equal(s.game.inventory.items.length,2);assert.ok(runtime.validState(s));
+        const missing=structuredClone(s);missing.game.inventory.items.pop();assert.equal(runtime.validState(missing),false);
+        const fabricated=structuredClone(s);fabricated.game.inventory.items[0].type='berry';assert.equal(runtime.validState(fabricated),false);
+        assert.equal(practice.context(s.game).collection.type,type);}
+});
+
 function practiceFixture(choice='accept'){
     const {createSession}=require('../scripts/experimental/native_store'),protocol=require('../scripts/experimental/native_practice'),calls=[];
     const first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let saved=arrived(first.state,first.target),time=0,replyChoice=null;
