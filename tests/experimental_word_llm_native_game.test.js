@@ -19,11 +19,12 @@ function completeCollection(g){const practice=runtime.game.practice,p=practice.c
     for(let i=0;i<2400&&p.phase!=='done';i++){const slot=practice.due(p);if(slot){p.attempts[slot]='pending';practice.finish(g,slot,{text:'Actual '+slot,choice:slot==='decision'?'accept':null});}
         runtime.game.tick(g,.1);}assert.equal(p.phase,'done');return p;}
 
-function gatheringState(){const assets={};for(let x=100;x<=650;x+=50)assets['ground_'+x]={dx:x-10,dy:190,sx:0,sy:0,sw:20,sh:20,scale:1,img:'fixture',type:'ground'};
+function gatheringState(offset={x:0,y:0}){const assets={};for(let x=100;x<=650;x+=50)assets['ground_'+x]={dx:x-10,dy:190,sx:0,sy:0,sw:20,sh:20,scale:1,img:'fixture',type:'ground'};
     assets.palms_gift={dx:420,dy:75,sx:0,sy:0,sw:60,sh:80,scale:1,img:'fixture',type:'nature'};
     assets.mountain_gift={dx:550,dy:75,sx:0,sy:0,sw:60,sh:80,scale:1,img:'fixture',type:'mountain'};
-    return runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],{version:1,assets,spawn:{x:300/800,y:200/480},places:[
-        {id:'berry:1',meaning:'berry',assetKey:'palms_gift',x:450/800,y:200/480},{id:'shade',meaning:'rest',assetKey:'palms_gift',x:500/800,y:200/480},{id:'path',meaning:'walk',x:600/800,y:200/480}]});}
+    for(const a of Object.values(assets)){a.dx+=offset.x;a.dy+=offset.y;}
+    return runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],{version:1,assets,spawn:{x:(300+offset.x)/800,y:(200+offset.y)/480},places:[
+        {id:'berry:1',meaning:'berry',assetKey:'palms_gift',x:(450+offset.x)/800,y:(200+offset.y)/480},{id:'shade',meaning:'rest',assetKey:'palms_gift',x:(500+offset.x)/800,y:(200+offset.y)/480},{id:'path',meaning:'walk',x:(600+offset.x)/800,y:(200+offset.y)/480}]});}
 function freely(s,type,input='Gather in the forest'){const target=runtime.game.practice.targets(s.game).find(t=>t.types.includes(type)&&t.reachable);assert.ok(target,'available '+type);
     return directed(s,input,{gather:{type,targetId:target.id,quote:input}});}
 function finishLine(g,slot,extra={}){const p=runtime.game.practice.current(g);p.attempts[slot]='pending';runtime.game.practice.finish(g,slot,{text:'Actual '+slot,choice:null,...extra});}
@@ -32,6 +33,31 @@ function giftEncounter(s,type,accepted=true,delta=0){const first=reconfirmed(s);
     finishLine(s.game,'offer');const quote='I would like to give you '+type;finishLine(s.game,'decision',{text:quote,choice:'decline',gift:{type,quote}});assert.equal(p.phase,'feedback');
     const reaction=accepted?'Thank you, I accept it.':'Please keep it, I do not want it.';
     finishLine(s.game,'feedback',{text:reaction,giftResponse:{accepted,quote:reaction},affinity:{delta,kind:'gift',quote,reason:'An actual response to this gift.'}});assert.ok(runtime.validState(s));return s;}
+
+test('collection saves and reloads on real island ground beyond viewport coordinate bounds',()=>{
+    const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
+    const folder=fs.mkdtempSync(path.join(os.tmpdir(),'native-ground-coordinates-'));
+    const store=require('../scripts/experimental/native_store').createStore(folder),practice=runtime.game.practice;
+    try{for(const offset of [{x:900,y:500},{x:-900,y:-500}])for(const free of [false,true]){
+        let s=gatheringState(offset);
+        if(free)s=freely(s,'wood');else{const first=confirmed(s);s=arrived(first.state,first.target);practice.create(s.game,s.game.walk.encounter);}
+        const p=practice.current(s.game);let savedEvents=-1;
+        for(let i=0;i<2400&&p.phase!=='done';i++){
+            const slot=practice.due(p);if(slot)finishLine(s.game,slot,{choice:slot==='decision'?'accept':null});
+            runtime.game.tick(s.game,.1);
+            if(p.events.length!==savedEvents){assert.ok(runtime.validState(s),p.phase);assert.equal(store.save(s).ok,true,p.phase);
+                const loaded=store.load();assert.equal(loaded.ok,true);assert.deepEqual(loaded.value,s);savedEvents=p.events.length;}
+        }
+        assert.equal(p.phase,'done');assert.equal(practice.possessions(s.game)[practice.context(s.game).collection.type],2);
+        assert.ok(p.events.some(e=>e.kind==='arrived'&&(e.y>1||e.y<0)));
+        assert.equal(store.save(s).ok,true);assert.ok(runtime.validState(store.load().value));
+        for(const x of [NaN,Infinity,p.events[0].x+10/800]){
+            const bad=structuredClone(s);practice.current(bad.game).events.find(e=>e.kind==='arrived').x=x;
+            assert.equal(runtime.validState(bad),false,'non-finite and off-ground arrivals remain invalid');
+            assert.equal(store.save(bad).ok,false);
+        }
+    }}finally{fs.rmSync(folder,{recursive:true,force:true});}
+});
 
 test('free collection follows explicit multilingual requests, physically searches twice, waits for remarks and never meets a mentor',()=>{
     const practice=runtime.game.practice;

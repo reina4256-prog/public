@@ -235,7 +235,9 @@
             ||!/^chip:(?:mountain_|palms_)/.test(p.target)||!perception.asset(g,p.target)||!onNode(p.home)||!phases.includes(p.phase)||typeof p.suspended!=='boolean'
             ||!Array.isArray(p.route)||p.route.length>2000||!p.route.every(onNode)||!Array.isArray(p.tour)||p.tour.length!==2||!p.tour.every(onNode)
             ||!Number.isInteger(p.surveyIndex)||p.surveyIndex<0||p.surveyIndex>2||!Number.isFinite(p.timer)||p.timer<0||p.timer>6.1
-            ||!Array.isArray(p.events)||p.events.length>10||!p.events.every(e=>keys(e,['kind','at','x','y'])&&['departed','arrived','observed','returned','stopped','failed','unreachable'].includes(e.kind)&&Number.isFinite(e.at)&&e.at>=0&&e.at<=g.elapsed&&point(e)&&e.x>=0&&e.x<=1&&e.y>=0&&e.y<=1&&(['stopped','failed','unreachable'].includes(e.kind)||onNode(e)||p.free&&e.kind==='departed'&&distance(e,p.home)<=50))
+            // Coordinates are island positions divided by 800/480, not viewport fractions.
+            // Real ground nodes can lie outside 0..1; onNode owns their validation.
+            ||!Array.isArray(p.events)||p.events.length>10||!p.events.every(e=>keys(e,['kind','at','x','y'])&&['departed','arrived','observed','returned','stopped','failed','unreachable'].includes(e.kind)&&Number.isFinite(e.at)&&e.at>=0&&e.at<=g.elapsed&&point(e)&&(['stopped','failed','unreachable'].includes(e.kind)||onNode(e)||p.free&&e.kind==='departed'&&distance(e,p.home)<=50))
             ||!keys(p.attempts,slots)||!Object.values(p.attempts).every(s=>['pending','complete','cancelled','failed'].includes(s))
             ||!Array.isArray(p.lines)||p.lines.length>6||new Set(p.lines.map(l=>l.slot)).size!==p.lines.length||!p.lines.every(l=>keys(l,['slot','speaker','text'])&&slots.includes(l.slot)&&p.attempts[l.slot]==='complete'&&l.speaker===(['offer','feedback'].includes(l.slot)?'mentor':'companion')&&typeof l.text==='string'&&l.text.trim()&&l.text.length<=300&&!/[\u0000-\u001f\u007f]/.test(l.text))
             ||![null,'accept','decline','ask'].includes(p.choice))return false;ids.add(p.id);
