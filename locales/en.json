@@ -15838,5 +15838,16 @@
   "歩いて{{0}}のそばに着いた。": "I walked to a spot near {{0}}.",
   "到着": "Arrival",
   "会話をふりかえる": "Look back at the conversation",
-  "冒険家と出会った。": "I met the adventurer."
+  "冒険家と出会った。": "I met the adventurer.",
+  "みんなとの仲": "Relationships",
+  "まだ知り合いはいません。": "You have not met anyone yet.",
+  "親しさ：{{0}} / 5": "Closeness: {{0}} / 5",
+  "まだ距離がある": "Still distant",
+  "知り合ったばかり": "Recently acquainted",
+  "少し打ち解けている": "Beginning to feel at ease",
+  "親しくなってきた": "Growing close",
+  "信頼し合っている": "Mutual trust",
+  "とても大切な仲": "A cherished bond",
+  "前より親しくなりました。": "You have grown closer.",
+  "少し距離ができました。": "Some distance has grown between you."
 }

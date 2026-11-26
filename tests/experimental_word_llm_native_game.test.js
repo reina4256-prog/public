@@ -32,9 +32,9 @@ test('collection produces two actual finite objects, survives interruption, and 
     assert.equal(practice.context(g).collection.obtained,2);assert.deepEqual(practice.context(g).collection.found,[{step:1,count:1},{step:2,count:1}]);
     assert.equal(saved.game.inventory.items.length,1,'separate snapshot keeps its actual prefix');
     const forged=structuredClone(s);forged.game.inventory.items[0].step=2;assert.equal(runtime.validState(forged),false);
-    s=arrived(s,first.target);g=s.game;const again=practice.create(g,g.receipts.findLast(r=>r.kind==='walk'));assert.equal(again.target,p.target);
-    completeCollection(g);assert.equal(g.inventory.items.length,2,'same chip never replenishes');assert.equal(practice.context(g).collection.obtained,0);
-    assert.deepEqual(practice.context(g).collection.found,[{step:1,count:0},{step:2,count:0}]);assert.ok(runtime.validState(s));
+    s=arrived(s,first.target);g=s.game;const again=practice.create(g,g.receipts.findLast(r=>r.kind==='walk'));assert.notEqual(again.target,p.target,'a fresh request avoids exhausted resources');
+    completeCollection(g);assert.equal(g.inventory.items.length,4);assert.equal(g.inventory.items.filter(i=>i.target===p.target).length,2,'exhausted chip never replenishes');
+    assert.deepEqual(practice.context(g).collection.found,[{step:1,count:1},{step:2,count:1}]);assert.ok(runtime.validState(s));
     const legacy=structuredClone(saved);delete legacy.game.inventory;delete legacy.game.practices[0].gather;completeCollection(legacy.game);
     assert.equal(legacy.game.inventory,undefined,'existing survey never gains materials retroactively');assert.ok(runtime.validState(legacy));
 });
@@ -94,6 +94,60 @@ function practiceFixture(choice='accept'){
     return {session,calls,id:intro.practice,make,get saved(){return saved;},get time(){return time;},advance(n=1){for(let i=0;i<n;i++){time+=100;const r=session.pulse(false);assert.ok(r.ok);}},
         records,replyFailure:fn=>replyFailure=fn,choice:value=>replyChoice=value,hold:stage=>hold=stage,release:()=>release(),holdChat:()=>holdChat=true,releaseChat:()=>releaseChat(),fail:fn=>saveFailure=fn};
 }
+
+test('affinity display has quoted commands in seven locales and never changes the relationship or world',()=>{
+    const commands=[['ja','好感度を教えて','好感度をしまって'],['en','Show relationships','Close relationships'],['zh-CN','给我看好感度','收起好感度'],['ru','Покажи отношения','Закрой отношения'],['es-ES','Abre las relaciones','Cierra las relaciones'],['pt-BR','Mostre as relações','Feche as relações'],['de','Zeige die Beziehungen','Schließe die Beziehungen']];
+    for(const [locale,open,close]of commands){let s=runtime.create({name:'Pico',self:'I',player:'you'},locale,[0,0,0,0,0,0,0],island);const before=structuredClone(s.game);
+        for(const [input,kind]of [[open,'open'],[close,'close']]){const b=runtime.begin(s,input,locale),r={...response(b.packet),terms:[],focus:null,confirmation:null,affinityView:{kind,quote:input}};
+            assert.ok(runtime.validResult(r,b.packet),input);s=runtime.finish(b.state,b.packet.id,b.state.revision,r);assert.equal(s.game.affinityPanelOpen,kind==='open');assert.ok(runtime.validState(s));}
+        const after=structuredClone(s.game);delete after.affinityPanelOpen;assert.deepEqual(after,before);
+        s.game.affinityPanelOpen='open';assert.equal(runtime.validState(s),false);}
+    const s=runtime.create({name:'Pico',self:'I',player:'you'},'ja',[0,0,0,0,0,0,0],island);
+    for(const input of ['はい','好感度を見せないで','「好感度をみせて」','好感度の意味を教えて','Show relationships?','Do not show relationships','Show my task']){
+        const b=runtime.begin(s,input,'ja'),r={...response(b.packet),terms:[],focus:null,confirmation:null,affinityView:{kind:'open',quote:input}};assert.equal(runtime.validResult(r,b.packet),false,input);}
+    const b=runtime.begin(s,'好感度を教えて','ja'),r={...response(b.packet),terms:[],focus:null,confirmation:null,affinityView:{kind:'open',quote:'好感度を教えて'}};
+    assert.equal(runtime.validResult({...r,taskView:{kind:'open',quote:b.packet.input}},b.packet),false);
+    assert.equal(runtime.validResult({...r,affinityView:{kind:'open',quote:'Show relationships'}},b.packet),false);
+});
+
+test('one actual encounter assessment survives reload, excludes private remarks and cannot be replayed',async()=>{
+    const f=practiceFixture(),practice=runtime.game.practice;
+    f.replyFailure(p=>p.stage==='feedback'?{ok:true,proposal:{text:'Thank you for your honest report.',choice:null,affinity:{delta:1,kind:'conduct',quote:'Actual report',reason:'You came back and reported honestly.'}}}:null);
+    for(let i=0;i<2400&&practice.current(f.saved.game).phase!=='done';i++){
+        if(practice.due(practice.current(f.saved.game)))assert.ok((await f.session.practiceNext(f.id)).ok);else f.advance();}
+    const s=f.saved,p=practice.current(s.game);assert.equal(practice.relationship(s.game).hearts,2);assert.equal(p.affinity.slot,'feedback');
+    assert.equal(f.calls.filter(c=>c.stage).length,6);const packet=f.calls.find(c=>c.stage==='feedback');
+    assert.deepEqual(packet.recent.map(l=>l.slot),['offer','decision','report']);assert.equal(packet.context.relationship.hearts,1);
+    assert.deepEqual(packet.context.experience,[],'private world experiences are not supplied to the adventurer');
+    assert.ok(JSON.stringify(packet.context).length<=1200);assert.ok(JSON.stringify({context:packet.context,recent:packet.recent,previous:packet.previous}).length<=4000);
+    assert.equal((await f.session.practiceNext(f.id)).ok,false);assert.equal(practice.relationship(f.saved.game).hearts,2);
+    const chat=runtime.begin(s,'Show relationships','en');assert.equal(chat.packet.practice.context.relationship.hearts,2,'normal chat receives the new value after the encounter');assert.ok(runtime.validState(chat.state));
+    f.session.dispose();const again=f.make();assert.equal(practice.relationship(again.load().state.game).hearts,2);assert.equal((await again.practiceNext(f.id)).ok,false);again.dispose();
+    for(const change of [a=>a.quote='Actual observe1',a=>a.slot='observe1',a=>a.delta=2,a=>a.kind='reward']){const bad=structuredClone(s);change(bad.game.practices.at(-1).affinity);assert.equal(runtime.validState(bad),false);}
+    const protocol=require('../scripts/experimental/native_practice');const privateGame=structuredClone(s);privateGame.game.practices.at(-1).decisionAudience='player';
+    const filtered=protocol.packet(privateGame,privateGame.game.practices.at(-1),'feedback');assert.deepEqual(filtered.recent.map(l=>l.slot),['offer','report','feedback']);
+});
+
+test('hurtful direct speech can lower affinity, apologies can recover it, bounds are clamped without old-history awards',()=>{
+    const practice=runtime.game.practice,first=confirmed(runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let s=first.state;
+    for(const delta of [...Array(7).fill(1),...Array(8).fill(-1),1]){s=arrived(s,first.target);const p=practice.create(s.game,s.game.receipts.findLast(r=>r.kind==='walk'));
+        p.attempts.offer='pending';practice.finish(s.game,'offer',{text:'Would you help?',choice:null});p.attempts.decision='pending';
+        const text=delta>0?'I am sorry; I cannot help today.':'Go away, you are worthless.';
+        practice.finish(s.game,'decision',{text,choice:'decline',affinity:{delta,kind:'conversation',quote:text,reason:delta>0?'A considerate reply.':'A hurtful reply.'}});assert.ok(runtime.validState(s));
+        assert.ok(practice.relationship(s.game).hearts>=0&&practice.relationship(s.game).hearts<=5);}
+    assert.equal(practice.relationship(s.game).hearts,1);
+    const legacy=structuredClone(s);for(const p of legacy.game.practices){delete p.social;delete p.affinity;delete p.decisionAudience;}
+    for(const turn of legacy.turns)if(turn.practice)delete turn.practice.context.relationship;
+    assert.equal(practice.relationship(legacy.game).hearts,1);assert.ok(runtime.validState(legacy));
+});
+
+test('invalid or unperformed affinity evidence and technical failures never reduce hearts',async()=>{
+    const f=practiceFixture(),practice=runtime.game.practice;
+    f.replyFailure(p=>p.stage==='feedback'?{ok:true,proposal:{text:'Thanks for checking.',choice:null,affinity:{delta:-1,kind:'conduct',quote:'Actual report',reason:'No material.'}}}:null);
+    for(let i=0;i<2400&&practice.current(f.saved.game).phase!=='done';i++){if(practice.due(practice.current(f.saved.game)))assert.ok((await f.session.practiceNext(f.id)).ok);else f.advance();}
+    assert.equal(practice.current(f.saved.game).affinity,undefined);assert.equal(practice.relationship(f.saved.game).hearts,1);f.session.dispose();
+    const failure=practiceFixture();failure.replyFailure(()=>({ok:false,error:'output'}));await failure.session.practiceNext(failure.id);assert.equal(practice.relationship(failure.saved.game).hearts,1);failure.session.dispose();
+});
 
 test('a failed final reply keeps the actual report, records only fixed failure facts and never retries',async()=>{
     const f=practiceFixture(),practice=runtime.game.practice;
@@ -360,7 +414,10 @@ test('real-chip walking requires a separate confirmation and later imperative, t
 test('unconfirmed requests fail, stop is immediate even if the model fails, questions/quotes/yes never walk',()=>{
     let s=runtime.create({name:'Pico',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island),target=runtime.game.supply(s.game).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)).id;
     s=directed(s,'walk there',{action:{kind:'walk',targetId:target,quote:'walk there'}});assert.equal(s.game.mode,'idle');assert.equal(s.turns.at(-1).actionCheck.reason,'unconfirmed');assert.equal(s.game.walk.encounter,null);
-    ({state:s,target}=confirmed(s));s=directed(s,'walk there',{action:{kind:'walk',targetId:target,quote:'walk there'}});runtime.game.tick(s.game,.1);
+    ({state:s,target}=confirmed(s));s=directed(s,'walk there',{action:{kind:'walk',targetId:target,quote:'walk there'}});
+    // A random map may put the destination within one tick. Stop the pending
+    // movement before ticking so this test always exercises the stop boundary.
+    assert.equal(s.game.mode,'move');
     for(const input of ['Yes','Can you walk?','「歩いて」と言って','歩かないで'])assert.equal(runtime.game.walk.directive(input,'walk'),false);
     const before=s.game.receipts.filter(r=>r.kind==='walk').length,b=runtime.begin(s,'stop','en');assert.equal(b.state.game.mode,'idle');assert.equal(b.packet.world.currentAction,'idle');
     s=runtime.finish(b.state,b.packet.id,b.state.revision,null);for(let i=0;i<100;i++)runtime.game.tick(s.game,.1);

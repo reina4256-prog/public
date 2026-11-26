@@ -15838,5 +15838,16 @@
   "歩いて{{0}}のそばに着いた。": "Ich bin zu einer Stelle bei {{0}} gegangen.",
   "到着": "Ankunft",
   "会話をふりかえる": "Gespräch nachlesen",
-  "冒険家と出会った。": "Ich habe die Abenteurerin getroffen."
+  "冒険家と出会った。": "Ich habe die Abenteurerin getroffen.",
+  "みんなとの仲": "Beziehungen",
+  "まだ知り合いはいません。": "Du hast noch niemanden kennengelernt.",
+  "親しさ：{{0}} / 5": "Nähe: {{0}} / 5",
+  "まだ距離がある": "Noch auf Abstand",
+  "知り合ったばかり": "Gerade erst kennengelernt",
+  "少し打ち解けている": "Langsam vertrauter",
+  "親しくなってきた": "Einander nähergekommen",
+  "信頼し合っている": "Gegenseitiges Vertrauen",
+  "とても大切な仲": "Eine besonders wertvolle Beziehung",
+  "前より親しくなりました。": "Ihr seid euch nähergekommen.",
+  "少し距離ができました。": "Zwischen euch ist etwas Abstand entstanden."
 }

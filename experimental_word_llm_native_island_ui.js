@@ -91,7 +91,19 @@
         window.NativePracticeUI?.sync(state.game,state.character.name);$('conversation').scrollTop=$('conversation').scrollHeight;renderPanels();meters();window.GameI18n.localizeTree(document.body);
     }
     function renderPanels(){if(!$('diary-view').hidden){window.NativeBook.render($('diary'),state);$('diary-originals').replaceChildren(...state.turns.map(record));}if(!$('stars-view').hidden)window.NativeStars.render($('stars'),$('star-record'),state,record);}
-    const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};let inventoryKey='',taskKey='';
+    const activity={idle:'立ち止まっている',move:'歩いている',eat:'食べている',rest:'休んでいる'};let inventoryKey='',taskKey='',affinityKey='';
+    const affinityPanel=el('section',$('world-stage'));affinityPanel.id='affinity-panel';affinityPanel.hidden=true;affinityPanel.setAttribute('aria-labelledby','affinity-title');
+    const affinityTitle=el('h3',affinityPanel,'みんなとの仲');affinityTitle.id='affinity-title';
+    const affinityDetails=el('div',affinityPanel);affinityDetails.setAttribute('aria-live','polite');
+    function renderAffinity(g){const relation=NativePractice.relationship(g),known=(g.practices||[]).some(p=>p.lines.some(l=>l.slot==='offer'))||g.walk?.met;
+        const key=JSON.stringify([g.affinityPanelOpen,known,relation,$('locale').value]);if(key===affinityKey)return;affinityKey=key;
+        affinityPanel.hidden=g.affinityPanelOpen!==true;$('world-stage').classList.toggle('has-affinity',!affinityPanel.hidden);affinityDetails.replaceChildren();
+        if(!known){el('p',affinityDetails,'まだ知り合いはいません。');return;}
+        const card=el('div',affinityDetails,undefined,'affinity-person'),portrait=el('img',card);portrait.src='adventurer_battle_enemy.png';portrait.alt='';
+        const details=el('div',card);el('p',details,'冒険家');
+        const hearts=el('p',details,'♥'.repeat(relation.hearts)+'♡'.repeat(5-relation.hearts),'affinity-hearts',true);hearts.setAttribute('role','img');hearts.setAttribute('aria-label',t('親しさ：{{0}} / 5',relation.hearts));
+        el('p',details,['まだ距離がある','知り合ったばかり','少し打ち解けている','親しくなってきた','信頼し合っている','とても大切な仲'][relation.hearts]);
+        if(relation.last){el('p',affinityDetails,relation.last.delta>0?'前より親しくなりました。':'少し距離ができました。');el('p',affinityDetails,relation.last.reason,'affinity-reason',true);}}
     const taskPanel=el('section',$('world-stage'));taskPanel.id='task-panel';taskPanel.hidden=true;taskPanel.setAttribute('aria-labelledby','task-title');
     const taskTitle=el('h3',taskPanel,'今の課題');taskTitle.id='task-title';
     const taskDetails=el('div',taskPanel);taskDetails.id='task-details';taskDetails.setAttribute('aria-live','polite');
@@ -111,7 +123,7 @@
             ?'<g stroke="#59351f" stroke-width="2" stroke-linejoin="round"><path fill="#9d6337" d="m8 35 31-20 24 15-31 21z"/><path fill="#704225" d="m8 35 24 16v8L8 44z"/><path fill="#ba8050" d="m32 51 31-21v9L32 59z"/><path fill="#bb8754" d="m12 23 30-16 19 12-30 19z"/><path fill="#8b522c" d="m12 23 19 15v11L12 34z"/><path fill="#a66b3b" d="m31 38 30-19v12L31 49z"/><ellipse fill="#edc78e" cx="22" cy="35" rx="9" ry="12" transform="rotate(-35 22 35)"/><ellipse fill="none" stroke="#ae7741" cx="22" cy="35" rx="4" ry="7" transform="rotate(-35 22 35)"/><path fill="none" stroke="#754225" d="m38 20 15-8m-15 17 16-9m-9 26 13-8"/></g>'
             :'<g stroke="#4e5656" stroke-width="2" stroke-linejoin="round"><path fill="#8f9894" d="m9 34 10-20 22-4 15 14-3 24-27 8z"/><path fill="#c3c8bd" d="m9 34 10-20 22-4-6 21z"/><path fill="#adb5ac" d="m35 31 6-21 15 14-3 24z"/><path fill="#687774" d="m9 34 26-3 18 17-27 8z"/><path fill="#a6afa7" d="m39 43 8-13 15 2 6 17-16 9-15-5z"/><path fill="#d1d3c4" d="m39 43 8-13 15 2-9 12z"/><path fill="#788681" d="m53 44 9-12 6 17-16 9z"/></g>';
         return svg;}
-    function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);renderTask(g);let label=activity[g.mode];
+    function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);renderTask(g);renderAffinity(g);let label=activity[g.mode];
         const bag=NativePractice.possessions(g),key=JSON.stringify(bag)+'|'+$('locale').value;
         if(key!==inventoryKey){inventoryKey=key;$('inventory').hidden=!bag.open;$('inventory-items').replaceChildren();
             for(const [type,itemLabel]of [['wood','木材'],['stone','石']])if(bag[type]){const slot=el('figure',$('inventory-items'),undefined,'inventory-item');slot.append(materialIcon(type));el('figcaption',slot,t(itemLabel)+' × '+bag[type],'',true);}
