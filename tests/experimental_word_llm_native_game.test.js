@@ -701,7 +701,9 @@ test('calendar snapshots remain historical across language and region changes; n
     s=runtime.finish(a.state,a.packet.id,a.state.revision,{...response(a.packet),terms:[],focus:null,confirmation:null});
     s.game.calendarSettings={zone:'Asia/Tokyo',hemisphere:'north'};const b=runtime.begin(s,'hello again','en',at+1000);
     assert.equal(b.packet.calendar.season,'winter');assert.equal(runtime.packet(b.state,b.state.turns[0]).calendar.season,'summer');assert.ok(runtime.validState(b.state));
-    s.game.walk.roaming.target=null;assert.equal(runtime.game.supply(s.game).adventurer,null);
+    assert.equal(Object.hasOwn(runtime.game.supply(s.game),'adventurer'),false,'even an on-screen stay is not observable before entry');
+    const historical=structuredClone(s);historical.turns[0].world.adventurer=historical.game.walk.roaming.target;assert.ok(runtime.validState(historical),'original saved location metadata remains readable without rewriting history');
+    s.game.walk.roaming.target=null;assert.equal(Object.hasOwn(runtime.game.supply(s.game),'adventurer'),false);
     const target=runtime.game.practice.targets(s.game).find(t=>t.reachable).id,id='event-'+(s.game.receipts.length+1);
     s.game.receipts.push({id,kind:'walk',target,label:'Forest',at:s.game.elapsed,cause:null,hunger:.35,fatigue:.15});
     const p=runtime.game.practice.create(s.game,{id,target});assert.ok(p);

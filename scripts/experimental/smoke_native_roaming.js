@@ -27,6 +27,9 @@ if(!process.versions.electron){const env={...process.env};delete env.ELECTRON_RU
         window.webContents.on('console-message',(_event,level,message)=>{if(level===3)errors.push(message);});
         await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click()');await until('!document.getElementById("title-menu").hidden');await evaluate('document.getElementById("continue-game").click()');await until('!document.getElementById("play").hidden');
         const start=session.load().state.game.walk.roaming,deadline=start.nextAt;
+        assert.equal(await evaluate('Boolean(images.adventurer)'),false,'the outdoor renderer never loads an NPC portrait');
+        assert.equal(Object.hasOwn(core.game.supply(session.load().state.game),'adventurer'),false,'no outdoor location is supplied to the companion');
+        checks.push('outdoor field hides the adventurer portrait and location metadata while preserving the private stay');
         await evaluate('document.getElementById("calendar-menu").open=true');
         for(const locale of core.locales)for(const width of [1160,420]){window.setSize(width,850);
             await evaluate('document.getElementById("locale").value='+JSON.stringify(locale)+';document.getElementById("locale").dispatchEvent(new Event("change"))');
@@ -42,12 +45,13 @@ if(!process.versions.electron){const env={...process.env};delete env.ELECTRON_RU
         await evaluate('document.getElementById("input").value="walk there";document.getElementById("compose").requestSubmit()');
         for(let i=0;i<1400&&!release;i++)await sleep(30);assert.ok(release);const normal=requests.find(p=>p.input),offer=requests.find(p=>p.stage==='offer');
         assert.equal(normal.calendar.date,'2026-12-01');assert.equal(normal.calendar.time,'09:00');assert.equal(normal.calendar.season,'summer');assert.deepEqual(offer.context.calendar,normal.calendar);
+        assert.equal(Object.hasOwn(normal.world,'adventurer'),false);
         assert.ok(JSON.stringify(offer.context).length<=1200);assert.equal(offer.context.exchange?.available,undefined);checks.push('normal chat and NPC share the selected local clock and language-based season within existing budgets');
         await capture('encounter-before-departure.png');now=deadline+1000;session.pulse(true);assert.equal(session.load().state.game.walk.roaming.target,start.target);assert.equal(session.load().state.game.walk.roaming.nextAt,deadline);
         await evaluate('document.getElementById("mentor-close").click()');await until('!document.getElementById("word-master-dialog").open');release();
         for(let i=0;i<200&&session.load().state.game.walk.roaming.target===start.target;i++)await sleep(20);assert.notEqual(session.load().state.game.walk.roaming.target,start.target);
         assert.equal(core.game.practice.current(session.load().state.game).lines.length,0,'cancelled delayed greeting is not adopted');assert.equal(requests.length,2);checks.push('overdue real stay is held during speech, then moves on close immediately; cancelled result never applies and no departure call is made');
-        window.setSize(1160,850);await evaluate('document.getElementById("terrarium").scrollIntoView({block:"center"})');await capture('after-departure.png');assert.ok(core.validState(session.load().state));assert.deepEqual(errors,[]);
+        window.setSize(1160,850);await evaluate('document.getElementById("terrarium").scrollIntoView({block:"center"})');await capture('after-departure.png');assert.equal(await evaluate('Boolean(images.adventurer)'),false);assert.ok(core.validState(session.load().state));assert.deepEqual(errors,[]);
         await new Promise(resolve=>{window.once('closed',resolve);window.close();});const count=requests.length;
         const reopened=createSession({store,wallClock:()=>now,responder:{cancel(){},dispose(){},reply(){throw Error('No call on reload');}}});
         const restored=reopened.load();assert.ok(restored.ok);assert.equal(restored.state.game.calendarSettings.zone,'Asia/Tokyo');assert.equal(restored.state.locale,'pt-BR');assert.notEqual(restored.state.game.walk.roaming.target,start.target);reopened.dispose();assert.equal(requests.length,count);

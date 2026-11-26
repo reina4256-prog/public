@@ -7,7 +7,6 @@ window.aiPet=aiPet;
 window.NativeScene={
     visible(game){return game.perception===2?window.NativePerception.chips(game):window.NativeGame.supply(game).visible;},
     load(){
-        const adventurer=new Image();adventurer.src='adventurer_battle_enemy.png';images.adventurer=adventurer;
         for(const key of ['field','terrain','field_3','field_4','field_5','field_6','field_bg',...ExperimentalWordStartQuestions.appearances]){
             const img=new Image();images[key]=img;totalImages++;
             img.onload=()=>imagesLoaded++;img.onerror=()=>{imagesLoaded++;console.error('Island asset could not load: '+key);};img.src=imageSources[key];
@@ -26,9 +25,6 @@ window.NativeScene={
         if(next&&Math.abs(next.x-game.x)>.00001)aiPet.flip=next.x<game.x;
         if(searching&&!reduced)aiPet.flip=Math.floor(time/1.1)%2===1;
         camera.x=aiPet.x-canvas.width/2;camera.y=aiPet.y-canvas.height/2;render();
-        const adventurer=images.adventurer,place=game.walk?.roaming?.target;
-        if(place&&this.visible(game).some(p=>p.id===place)&&adventurer?.complete&&adventurer.naturalWidth){const a=NativePerception.asset(game,place),x=a.dx+a.sw*a.scale/2-camera.x,y=a.dy+a.sh*a.scale-camera.y;
-            ctx.drawImage(adventurer,794,0,1344,1536,x-28,y-64,56,64);}
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);

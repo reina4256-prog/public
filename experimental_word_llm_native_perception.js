@@ -30,9 +30,7 @@
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
         if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&visible.some(p=>p.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
             result.availableActions=g.mode==='move'?['stop']:result.walkable?['walk']:[];}
-        if(g.walk?.roaming){result.adventurer=visible.some(p=>p.id===g.walk.roaming.target)?g.walk.roaming.target:null;}
         while(JSON.stringify(result).length>2000&&visible.length)visible.pop();
-        if(result.adventurer&&!visible.some(p=>p.id===result.adventurer))result.adventurer=null;
         if(!visible.some(p=>p.id===result.focus))result.focus=null;
         if(Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)){result.walkable=false;result.availableActions=g.mode==='move'?['stop']:[];}
         if(JSON.stringify(result).length>2000)throw Error('world_budget');return result;
