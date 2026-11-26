@@ -71,8 +71,10 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     const log=(kind,data)=>{ try { record({kind,at:Date.now(),...data}); } catch (_) { /* Save remains the primary evidence. */ } };
     const persist=(value,stage,id=null,result=null)=>{const saved=store.save(value);if(!saved.ok)log('save_error',{id,stage,reason:saved.reason||'unknown',code:saved.code||null,result});return saved;};
     function syncRoaming(){if(!state?.game||blocked)return;const next=copy(),now=wallClock(),p=practice.current(next.game);let changed=false;
-        if(!busy&&next.game.walk?.roaming&&now>=next.game.walk.roaming.nextAt&&p&&!p.free&&['offer','decision','consult'].includes(p.phase)&&p.choice!=='accept'){practice.stop(next.game);changed=true;}
+        if(!busy&&next.game.walk?.roaming&&now>=next.game.walk.roaming.nextAt&&p&&!p.free&&p.npc!=='building'&&['offer','decision','consult'].includes(p.phase)&&p.choice!=='accept'){practice.stop(next.game);changed=true;}
         if(core.game.walk.roam(next.game,now,busy))changed=true;
+        if(!busy&&p?.npc==='building'&&now>=next.game.walk.builder.nextAt&&practice.active(next.game)){practice.stop(next.game);if(next.game.walk.encounter?.npc==='building')next.game.walk.encounter.phase='done';changed=true;}
+        if(core.game.walk.roamBuilder(next.game,now,busy||next.game.walk?.encounter?.npc==='building'&&['video','conversation'].includes(next.game.walk.encounter.phase)))changed=true;
         if(changed){next.revision++;if(persist(next,'roaming').ok)state=next;else blocked=true;}}
     function calendarSettings(value,locale){load();if(blocked||busy||!state?.game||!core.game.walk.calendar.validSettings(value)||locale!==undefined&&!core.locales.includes(locale))return {ok:false,error:blocked?'save':'input'};
         const next=copy();next.game.calendarSettings=structuredClone(value);if(locale!==undefined)next.locale=locale;next.revision++;if(!persist(next,'calendar-settings').ok){blocked=true;return {ok:false,error:'save'};}state=next;return {ok:true,state:copy()};}
@@ -170,13 +172,15 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     }
     function warmup(){if(!loaded)load();if(blocked||busy||!state?.game)return {ok:false};return responder.prepare?.()||{ok:true};}
     function mentorIntro(id){load();const e=state?.game?.walk?.encounter;
-        if(blocked||busy||!e||e.id!==id||e.phase!=='pending'||state.game.mode!=='idle'||state.game.walk.roaming&&state.game.walk.roaming.target!==e.target)return {ok:false,error:'input'};
+        const npc=e?.npc==='building',roaming=npc?state?.game?.walk?.builder:state?.game?.walk?.roaming;
+        if(blocked||busy||!e||e.id!==id||e.phase!=='pending'||state.game.mode!=='idle'||roaming&&roaming.target!==e.target)return {ok:false,error:'input'};
         const next=copy();next.game.walk.encounter.phase='video';
-        if(next.game.walk.roaming&&e.at===undefined){const at=wallClock();next.game.walk.encounter.at=at;next.game.walk.encounter.previous=structuredClone(next.game.walk.roaming.lastMeeting);next.game.walk.roaming.lastMeeting={at,target:e.target};}
-        const p=practiceResponder?(practice.current(next.game)?.id===id?practice.current(next.game):practice.create(next.game,e)):null;
+        if(roaming&&e.at===undefined){const at=wallClock(),r=npc?next.game.walk.builder:next.game.walk.roaming;next.game.walk.encounter.at=at;next.game.walk.encounter.previous=structuredClone(r.lastMeeting);r.lastMeeting={at,target:e.target};}
+        const p=practiceResponder?(practice.current(next.game)?.id===id?practice.current(next.game):practice.create(next.game,e,freshArrival===id)):null;
+        if(npc&&!p)return {ok:false,error:'input'};
         if(!persist(next,'encounter-intro').ok){blocked=true;return {ok:false,error:'save'};}
         const automatic=!!p&&freshArrival===id&&!p.suspended&&!p.attempts.offer;freshArrival=null;
-        state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:state.game.walk.met,automatic,video:e.target.startsWith('chip:mountain_')?'mountain':'forest',...(p?{practice:p.id,game:structuredClone(state.game)}:{})};}
+        state=next;introOwner=id;busy=true;responder.cancel();return {ok:true,met:npc?state.game.walk.builder.met:state.game.walk.met,automatic,video:npc?'building':e.target.startsWith('chip:mountain_')?'mountain':'forest',...(npc?{npc:'building'}:{}),...(p?{practice:p.id,game:structuredClone(state.game)}:{})};}
     function mentorStart(locale){load();if(blocked||!introOwner||talk.active||state?.game?.walk?.encounter?.id!==introOwner)return {ok:false,error:'input'};
         const r=talk.start(state.character,locale===undefined?state.locale:locale,core.latestConversation(state));if(!r.ok)return r;
         const next=copy();next.game.walk.met=true;next.game.walk.encounter.phase='conversation';if(!persist(next,'encounter-conversation').ok){talk.stop();blocked=true;return {ok:false,error:'save'};}state=next;return r;}
@@ -199,12 +203,12 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(introOwner===id&&p.phase==='offer')p.suspended=false;
         const stage=practice.due(p);if(!stage)return {ok:false,error:'input'};
         const ticket=practiceTicket;practicePending=true;practiceArmed=true;busy=true;
-        try{const request=practiceProtocol.packet(state,p,stage,wallClock()),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free)next.game.walk.met=true;if(['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
+        try{const request=practiceProtocol.packet(state,p,stage,wallClock()),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free&&p.npc!=='building')next.game.walk.met=true;if(['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
             if(!persist(next,'practice-input',request.id).ok){blocked=true;return {ok:false,error:'save'};}state=next;log('practice_input',{packet:request});
             const result=await practiceResponder.reply(request);if(ticket!==practiceTicket)return {ok:false,error:'cancelled'};
             const accepted=result.ok&&practiceProtocol.validResult(result.proposal,stage,request.context),updated=copy();
-            if(accepted)practice.finish(updated.game,stage,result.proposal);else{practice.current(updated.game).attempts[stage]='failed';practice.stop(updated.game,true);}
-            if(stage==='decision'||!accepted){if(!p.free&&updated.game.walk.encounter)updated.game.walk.encounter.phase='done';introOwner=null;}
+            if(accepted)practice.finish(updated.game,stage,result.proposal,wallClock());else{practice.current(updated.game).attempts[stage]='failed';practice.stop(updated.game,true);}
+            if(stage==='decision'&&p.npc!=='building'||!accepted){if(!p.free&&updated.game.walk.encounter)updated.game.walk.encounter.phase='done';introOwner=null;}
             updated.revision++;if(!persist(updated,'practice-completion',request.id).ok){blocked=true;practiceArmed=false;return {ok:false,error:'save'};}state=updated;
             log('practice_result',{id:request.id,error:accepted?null:result.error||'output',result:accepted?result.proposal:null,
                 ...(!accepted?{diagnostic:require('./gemini_reply').safeDiagnostic(result.diagnostic)}:{})});

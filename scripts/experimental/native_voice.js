@@ -138,7 +138,7 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
         }else if(request.kind==='practice'&&Object.keys(request).sort().join(',')==='id,kind,slot'){
             const line=session.practiceLine?.(request.id,request.slot),s=session.load(),p=load();
             if(!line||!s.ok||!p.ok||!p.value.enabled||!s.state?.game)return {ok:false,error:'input'};
-            const subject=line.speaker==='mentor'?'mentor-adventurer':s.state.game.origin.appearance;
+            const subject=line.speaker==='mentor'?(s.state.game.practices?.at(-1)?.npc==='building'?'mentor-builder':'mentor-adventurer'):s.state.game.origin.appearance;
             voice=resolveVoice(p.value.voices[subject]||rules.defaults[subject]);text=line.text;locale=line.locale;
             cacheId=JSON.stringify(['practice',request.id,request.slot,voice,text]);if(replyCache?.id===cacheId)return {ok:true,audio:new Uint8Array(replyCache.audio)};
         }else if(request.kind==='mentor'&&Object.keys(request).sort().join(',')==='id,kind,round,speaker'){

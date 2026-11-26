@@ -27,12 +27,14 @@ if(!process.versions.electron){
             if(await evaluate('document.getElementById("word-master-dialog").open')){await evaluate('document.getElementById("mentor-close").click()');await until('!document.getElementById("word-master-dialog").open');}return p;}await sleep(30);}throw Error('Outing did not finish');}
     app.whenReady().then(async()=>{
         const {createProfiles,createSession}=require('./native_store'),store=createProfiles(path.join(directory,'save'));assert.ok(store.save(initial()).ok);
-        session=createSession({store,responder:{cancel(){},dispose(){},async reply(p){requests.push(p);const type=p.input==='Collect flowers'?'flower':p.input==='Fetch water'?'water':null;
+        // Accelerate only the fixture world clock; utterance/audio waits stay real.
+        session=createSession({store,clock:()=>performance.now()*4,responder:{cancel(){},dispose(){},async reply(p){requests.push(p);const type=p.input==='Collect flowers'?'flower':p.input==='Fetch water'?'water':null;
             const target=type&&p.inventory.targets.find(t=>t.types.includes(type)&&t.reachable);return {ok:true,proposal:{reply:type?'I will go and look.':'Here are my belongings.',interpretation:{kind:'request',summary:'Received.'},memories:[],references:[],terms:[],focus:null,confirmation:null,
                 action:p.input==='walk there'?{kind:'walk',targetId:p.world.confirmed,quote:p.input}:null,
                 gather:target?{targetId:target.id,type,quote:p.input}:null,inventoryView:p.input==='Show inventory'?{kind:'open',quote:p.input}:null}};}},
             practiceResponder:{cancel(){},dispose(){},async reply(p){requests.push(p);const r={text:'I am here.',choice:null};
                 if(p.stage==='offer')r.text=p.context.exchange?.award?'Good to see you. Here is your empty canteen.':'Good to see you. Would you help me?';
+                if(p.stage==='offer'&&p.context.introduce){r.text='The builder surveys trees in the other forest and moves between forests.';r.introduction={quote:r.text};}
                 if(p.stage==='decision'){r.choice='decline';r.text='I will not explore this time.';const available=p.context.exchange.available,memory=p.context.exchange.memory;
                     const type=available.flower?'flower':available.water?'water':null;
                     if(type){r.text='I would like to give you this '+type+'.';r.gift={type,quote:r.text};}

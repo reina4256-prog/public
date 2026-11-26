@@ -12,7 +12,11 @@ test('practice audio uses only a current saved main-owned line and preserves the
     assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.length,1);assert.equal(calls[0].generation_config.speech_config[0].voice,'Leda');
     assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.length,1,'same saved line reuses the reply cache');
     active=false;assert.equal((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok,false);assert.equal(calls.length,1);
-    active=true;speaker='companion';assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.at(-1).generation_config.speech_config[0].voice,voiceRules.defaults.robot);service.dispose();
+    active=true;speaker='companion';assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.at(-1).generation_config.speech_config[0].voice,voiceRules.defaults.robot);
+    state.game.practices=[{npc:'building'}];speaker='mentor';assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.at(-1).generation_config.speech_config[0].voice,'Charon');
+    assert.ok(service.save({version:1,enabled:true,voices:{'mentor-builder':'Schedar','mentor-adventurer':'Kore'}}).ok);
+    assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.at(-1).generation_config.speech_config[0].voice,'Schedar');
+    speaker='companion';assert.ok((await service.generate({kind:'practice',id:'event-11',slot:'offer'})).ok);assert.equal(calls.at(-1).generation_config.speech_config[0].voice,voiceRules.defaults.robot);service.dispose();
 });
 
 test('mentor dialogue is bounded, sends only public persona and this encounter, and rejects forged or stale lines',async()=>{

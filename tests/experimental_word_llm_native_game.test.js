@@ -28,6 +28,102 @@ function gatheringState(offset={x:0,y:0}){const assets={};for(let x=100;x<=650;x
 function freely(s,type,input='Gather in the forest'){const target=runtime.game.practice.targets(s.game).find(t=>t.types.includes(type)&&t.reachable);assert.ok(target,'available '+type);
     return directed(s,input,{gather:{type,targetId:target.id,quote:input}});}
 function finishLine(g,slot,extra={}){const p=runtime.game.practice.current(g);p.attempts[slot]='pending';runtime.game.practice.finish(g,slot,{text:'Actual '+slot,choice:null,...extra});}
+function introductionFixture(){let s=gatheringState();const practice=runtime.game.practice;
+    s.game.island.assets.palms_survey={...s.game.island.assets.palms_gift,dx:270};runtime.game.perception.observe(s.game);
+    const target='chip:palms_gift';s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});
+    for(let i=0;i<2;i++){s=arrived(s,target);const p=practice.create(s.game,s.game.walk.encounter);assert.equal(p.introduce,undefined);finishLine(s.game,'offer');
+        const text='Thank you for your consideration.';finishLine(s.game,'decision',{text,choice:'decline',affinity:{delta:1,kind:'conversation',quote:text,reason:'Considerate direct conversation.'}});assert.ok(runtime.validState(s));}
+    assert.equal(practice.relationship(s.game).hearts,3);s=arrived(s,target);const p=practice.create(s.game,s.game.walk.encounter);assert.equal(p.visit,true);assert.ok(p.introduce);return {s,p};}
+function introduceFixture(){const {s,p}=introductionFixture(),text='The builder surveys trees in the other forest, but moves between forests.';
+    finishLine(s.game,'offer',{text,introduction:{quote:text}});finishLine(s.game,'decision',{text:'Thank you, I may visit him later.',choice:'decline'});assert.ok(runtime.validState(s));return s;}
+
+test('relationship tone, next real encounter introduction, immutable history and bounded audience-specific packets',()=>{
+    const practice=runtime.game.practice,protocol=require('../scripts/experimental/native_practice'),{s,p}=introductionFixture();
+    const packet=protocol.packet(s,p,'offer',Date.UTC(2026,10,27));assert.ok(protocol.protocol.valid(packet));assert.ok(JSON.stringify(packet.context).length<=1200);
+    assert.match(protocol.protocol.prompt(packet),/0 cautious.*1 polite.*2 familiar.*3 trusting.*4 personally considerate.*5 happy/s);
+    assert.equal(protocol.validResult({text:'A greeting only.',choice:null},'offer',packet.context),false);
+    const text='The builder surveys trees in the other forest and moves between forests.',result={text,choice:null,introduction:{quote:text}};
+    assert.ok(protocol.validResult(result,'offer',packet.context));assert.equal(protocol.validResult({...result,introduction:{quote:'fabricated'}},'offer',packet.context),false);
+    finishLine(s.game,'offer',result);finishLine(s.game,'decision',{text:'I do not want to talk to you.',choice:'decline',affinity:{delta:-1,kind:'conversation',quote:'I do not want to talk to you.',reason:'A hurtful direct response.'}});
+    assert.equal(practice.relationship(s.game).hearts,2);const original=structuredClone(practice.introduction(s.game));assert.ok(runtime.validState(s));
+    const saved=JSON.parse(JSON.stringify(s));assert.deepEqual(practice.introduction(saved.game),original);assert.ok(runtime.validState(saved));
+    const chat=runtime.begin(saved,'Where was I told to visit?','en');assert.deepEqual(chat.packet.practice.introduction,original);assert.ok(runtime.validState(chat.state));
+    const future=structuredClone(chat.state);future.turns.at(-1).practice.introduction.met=true;assert.equal(runtime.validState(future),false,'a later meeting cannot appear in an earlier snapshot');
+    assert.equal(Object.hasOwn(chat.packet.world,'builder'),false);assert.equal(Object.hasOwn(chat.packet.world,'adventurer'),false);
+    assert.ok(JSON.stringify(chat.packet.practice).length<=4000);assert.ok(JSON.stringify(chat.packet.world).length<=2000);
+    const next=arrived(saved,p.homeTarget),again=practice.create(next.game,next.game.walk.encounter);assert.equal(again.introduce,undefined);
+    const loaded=introductionFixture();loaded.s.game.practices.pop();assert.equal(practice.create(loaded.s.game,loaded.s.game.walk.encounter,false).introduce,undefined,'a loaded arrival cannot introduce retroactively');
+    for(const change of [q=>q.introduction.quote='unspoken',q=>q.introduce='chip:mountain_gift']){const bad=structuredClone(saved);change(bad.game.practices.at(-1));assert.equal(runtime.validState(bad),false);}
+});
+
+test('builder visit requires a named explicit walk and actual arrival; three lines stay private and preserve every item',()=>{
+    let s=introduceFixture();const practice=runtime.game.practice,target=s.game.walk.builder.target,protocol=require('../scripts/experimental/native_practice'),bag=structuredClone(s.game.inventory);
+    s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});
+    for(const input of ['Yes','Walk to meet the builder?','Do not walk to meet the builder','Say "walk to the builder"']){
+        const b=runtime.begin(s,input,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,action:{kind:'walk',targetId:target,quote:input}};assert.equal(runtime.validResult(r,b.packet),false);}
+    s=directed(s,'Walk to that forest to meet the builder. '+ 'This is a longer original player message. '.repeat(30),{action:{kind:'walk',targetId:target,quote:'Walk to that forest to meet the builder'}});
+    assert.equal(s.game.walk.encounter.npc,undefined,'a request alone is not a meeting');assert.ok(runtime.validState(s));
+    for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);assert.equal(s.game.walk.encounter.npc,'building');assert.ok(runtime.validState(s));
+    runtime.game.walk.roam(s.game,0);runtime.game.walk.roam(s.game,runtime.game.walk.stayMs);assert.equal(s.game.walk.encounter.phase,'pending','an unrelated adventurer departure cannot cancel a builder arrival');
+    const p=practice.create(s.game,s.game.walk.encounter);assert.equal(p.npc,'building');
+    for(const slot of ['offer','decision','feedback']){const packet=protocol.packet(s,p,slot);assert.ok(protocol.protocol.valid(packet));assert.deepEqual(packet.previous,[]);
+        for(const key of ['relationship','exchange','collection','hunger','fatigue'])assert.equal(packet.context[key],undefined);
+        assert.deepEqual(packet.context.experience,[]);assert.ok(JSON.stringify(packet.context).length<=1200);assert.ok(JSON.stringify({context:packet.context,recent:packet.recent,previous:packet.previous}).length<=4000);
+        const result={text:slot==='offer'?'Hello. I survey trees in these forests.':slot==='decision'?'Hello, the adventurer told me about you.':'Nice to meet you.',choice:slot==='decision'?'decline':null};
+        assert.ok(protocol.validResult(result,slot,packet.context));finishLine(s.game,slot,result);assert.ok(runtime.validState(s));}
+    assert.equal(p.phase,'done');assert.equal(practice.due(p),null);assert.equal(p.lines.length,3);assert.deepEqual(s.game.inventory,bag);
+    assert.ok(s.game.walk.builder.met);assert.equal(practice.relationship(s.game).hearts,3);
+    const adventurer=arrived(s,p.homeTarget);practice.create(adventurer.game,adventurer.game.walk.encounter);
+    const packet=protocol.packet(adventurer,practice.current(adventurer.game),'offer');assert.ok(packet.previous.every(l=>!l.text.includes('survey trees in these forests')),'builder dialogue never enters adventurer recall');
+});
+
+test('builder moves only between actual reachable forests, respects holds and never leaks live location or fabricates a meeting',()=>{
+    let s=introduceFixture();const walk=runtime.game.walk,b=s.game.walk.builder,original=structuredClone(practiceIntroduction(s.game));
+    function practiceIntroduction(g){return runtime.game.practice.introduction(g);}
+    const target=b.target,deadline=b.nextAt;assert.equal(walk.roamBuilder(s.game,deadline-1),false);assert.equal(walk.roamBuilder(s.game,deadline,true),false);
+    assert.equal(walk.roamBuilder(s.game,deadline),true);assert.notEqual(b.target,target);assert.ok(walk.forest(b.target));assert.ok(walk.plan(s.game,b.target));
+    assert.deepEqual(practiceIntroduction(s.game),original);assert.ok(runtime.validState(s));
+    s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});
+    s=directed(s,'Walk to the forest to meet the builder',{action:{kind:'walk',targetId:target,quote:'Walk to the forest to meet the builder'}});
+    const previous=s.game.walk.encounter.id;for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);
+    assert.equal(s.game.walk.encounter.id,previous,'the old introduction does not guarantee a meeting');assert.ok(runtime.validState(s));
+    const bad=structuredClone(s);bad.game.walk.builder.target='chip:mountain_gift';assert.equal(runtime.validState(bad),false);
+    assert.ok(!JSON.stringify(runtime.game.supply(s.game)).includes('builder'));
+});
+
+test('builder session preserves three-slot saves, Charon ownership, deadlines and reload without a new call',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store'),protocol=require('../scripts/experimental/native_practice');let saved=introduceFixture(),time=0,now=saved.game.walk.builder.nextAt-runtime.game.walk.stayMs;
+    saved.game.walk.encounter.phase='done';const calls=[],store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}};
+    const make=()=>createSession({store,clock:()=>time,wallClock:()=>now,responder:{cancel(){},dispose(){},async reply(p){const target=p.practice.introduction.target;return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,
+        ...(p.input==='Which forest?'?{focus:{targetId:target,quote:p.input}}:p.input==='Yes'?{confirmation:{targetId:target,quote:p.input}}:{action:{kind:'walk',targetId:target,quote:p.input}})}};}},
+        practiceResponder:{cancel(){},dispose(){},async reply(p){calls.push(p);assert.ok(protocol.protocol.valid(p));return {ok:true,proposal:{text:'Builder '+p.stage,choice:p.stage==='decision'?'decline':null}};}}});
+    const session=make();assert.ok(session.load().ok);const deadline=saved.game.walk.builder.nextAt;
+    for(const text of ['Which forest?','Yes','Walk to the forest to meet the builder'])assert.ok((await session.submit(text,'en')).ok);
+    for(let i=0;i<2000&&session.load().state.game.mode==='move';i++){time+=100;assert.ok(session.pulse(false).ok);}
+    const id=saved.game.walk.encounter.id,intro=session.mentorIntro(id);assert.equal(intro.npc,'building');assert.equal(intro.video,'building');assert.equal(intro.automatic,true);
+    for(const slot of ['offer','decision','feedback']){assert.ok((await session.practiceNext(id)).ok);assert.equal(session.practiceLine(id,slot).slot,slot);}
+    assert.equal(calls.length,3);assert.deepEqual(calls.map(p=>p.stage),['offer','decision','feedback']);assert.equal(saved.game.walk.builder.nextAt,deadline);
+    const first=saved.game.walk.builder.target;now=deadline+1;session.pulse(true);assert.equal(saved.game.walk.builder.target,first);session.mentorStop();assert.notEqual(saved.game.walk.builder.target,first);
+    assert.equal(calls.length,3);assert.equal((await session.practiceNext(id)).ok,false);
+    const kept=structuredClone(saved);session.dispose();const reopened=make();assert.ok(reopened.load().ok);assert.equal(calls.length,3);assert.ok(reopened.load().state.game.walk.builder.met);assert.deepEqual(saved.game.inventory,kept.game.inventory);reopened.dispose();
+});
+
+test('failed introduction persistence and cancelled delayed offers never create introduction history or a builder',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');
+    for(const mode of ['save','cancel']){const f=introductionFixture();let saved=structuredClone(f.s),release,calls=0;
+        const session=createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));if(mode==='save'&&runtime.game.practice.introduction(s.game))return {ok:false,reason:'io'};saved=structuredClone(s);return {ok:true};}},
+            responder:{cancel(){},dispose(){},reply(){throw Error('No normal call expected');}},practiceResponder:{cancel(){},dispose(){},async reply(){calls++;if(mode==='cancel')await new Promise(r=>release=r);const text='The builder surveys trees in the other forest.';return {ok:true,proposal:{text,choice:null,introduction:{quote:text}}};}}});
+        const id=saved.game.walk.encounter.id;assert.ok(session.mentorIntro(id).ok);const pending=session.practiceNext(id);
+        if(mode==='cancel'){session.cancel();release();}
+        const result=await pending;assert.equal(result.ok,false);assert.equal(result.error,mode==='save'?'save':'cancelled');assert.equal(runtime.game.practice.introduction(saved.game),null);assert.equal(saved.game.walk.builder,undefined);
+        assert.equal(calls,1);session.dispose();}
+});
+
+test('builder visit aliases retain explicit movement and forest boundaries in seven languages',()=>{
+    const walk=runtime.game.walk;
+    for(const input of ['建築士に会いにその森へ歩いて行って','Walk to the forest to meet the builder','请去森林找建筑师','Иди в лес к строителю','Ve al bosque a ver al constructor','Vá à floresta encontrar o construtor','Geh in den Wald zum Architekten'])assert.ok(walk.builderDirective(input),input);
+    for(const input of ['Yes','はい','建築士の意味を教えて','建築士に会いに行かないで','Do not walk to the builder','Walk to the builder?'])assert.equal(walk.builderDirective(input),false,input);
+});
 function reconfirmed(s){return s.game.walk.confirmed?{state:s,target:s.game.walk.confirmed.targetId}:confirmed(s);}
 function giftEncounter(s,type,accepted=true,delta=0){const first=reconfirmed(s);s=arrived(first.state,first.target);const p=runtime.game.practice.create(s.game,s.game.walk.encounter);
     finishLine(s.game,'offer');const quote='I would like to give you '+type;finishLine(s.game,'decision',{text:quote,choice:'decline',gift:{type,quote}});assert.equal(p.phase,'feedback');
@@ -285,7 +381,7 @@ test('hurtful direct speech can lower affinity, apologies can recover it, bounds
         practice.finish(s.game,'decision',{text,choice:'decline',affinity:{delta,kind:'conversation',quote:text,reason:delta>0?'A considerate reply.':'A hurtful reply.'}});assert.ok(runtime.validState(s));
         assert.ok(practice.relationship(s.game).hearts>=0&&practice.relationship(s.game).hearts<=5);}
     assert.equal(practice.relationship(s.game).hearts,1);
-    const legacy=structuredClone(s);for(const p of legacy.game.practices){delete p.social;delete p.affinity;delete p.decisionAudience;}
+    const legacy=structuredClone(s);for(const p of legacy.game.practices){delete p.social;delete p.affinity;delete p.decisionAudience;delete p.introduce;}
     for(const turn of legacy.turns)if(turn.practice)delete turn.practice.context.relationship;
     assert.equal(practice.relationship(legacy.game).hearts,1);assert.ok(runtime.validState(legacy));
 });

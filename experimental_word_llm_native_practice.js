@@ -47,6 +47,9 @@
             const next=Math.max(0,Math.min(5,hearts+p.affinity.delta));
             if(next!==hearts)last={delta:next-hearts,reason:p.affinity.reason};hearts=next;}if(p===before)break;}
         return {hearts,last};}
+    const introduced=g=>(g.practices||[]).find(p=>p.introduction);
+    function introduction(g){const p=introduced(g);return p?{id:p.id,target:p.introduce,quote:p.introduction.quote,met:!!g.walk?.builder?.met}:null;}
+    function validIntroduction(i){return keys(i,['id','target','quote','met'])&&/^event-[1-9]\d*$/.test(i.id)&&walk.forest(i.target)&&i.target.length<=80&&short(i.quote,120)&&typeof i.met==='boolean';}
     function validRelationship(r){return keys(r,['hearts','last'])&&Number.isInteger(r.hearts)&&r.hearts>=0&&r.hearts<=5
         &&(r.last===null||keys(r.last,['delta','reason'])&&[-1,1].includes(r.last.delta)&&short(r.last.reason,120));}
     function validAffinity(a,p){if(!p?.social||!Array.isArray(p.lines)||!Array.isArray(p.events)||!p.attempts||!keys(a,['slot','delta','reason','quote','kind'])||![-1,0,1].includes(a.delta)
@@ -105,17 +108,22 @@
         const queue=[start],previous=new Map([[start,null]]);for(let i=0;i<queue.length&&!previous.has(end);i++)for(const n of nodes[queue[i]].edges)if(!previous.has(n)){previous.set(n,queue[i]);queue.push(n);}
         if(!previous.has(end))return null;const result=[];for(let i=end;i!==null;i=previous.get(i))result.unshift({x:nodes[i].x/800,y:nodes[i].y/480});return result;}
     function event(g,p,kind){p.events.push({kind,at:g.elapsed,x:g.x,y:g.y});}
-    function create(g,arrival){
+    function create(g,arrival,allowIntroduction=true){
         if(g.mode!=='idle'||active(g)||!g.receipts.some(r=>r.id===arrival.id&&r.target===arrival.target&&r.kind==='walk'))return null;
+        const builder=arrival.npc==='building';
+        const introduce=allowIntroduction&&!builder&&!introduced(g)&&relationship(g).hearts>=3
+            ?perception.chips(g).find(c=>walk.forest(c.id)&&c.id!==arrival.target&&walk.plan(g,c.id))?.id:null;
         const home={x:g.x,y:g.y},candidates=perception.chips(g).filter(c=>/^chip:(mountain_|palms_)/.test(c.id)&&c.id!==arrival.target
             &&amount(g,c.id,material(c.id))<2)
             .map(c=>({id:c.id,path:walk.plan(g,c.id)})).filter(c=>c.path&&route({...g,...c.path.at(-1)},home));
         const canVisit=!awards(g).length&&(g.practices||[]).some(q=>success(q)&&allItems(g).filter(i=>i.practice===q.id).length===2)||types.some(t=>giftOptions(g,null)[t]>0);
-        const chosen=candidates[0]||((amount(g,arrival.target,material(arrival.target))<2||canVisit)?{id:arrival.target,path:walk.plan(g,arrival.target)}:null);if(!chosen?.path||!route({...g,...chosen.path.at(-1)},home))return null;
+        const chosen=builder||introduce?{id:arrival.target,path:walk.plan(g,arrival.target)}:candidates[0]||((amount(g,arrival.target,material(arrival.target))<2||canVisit)?{id:arrival.target,path:walk.plan(g,arrival.target)}:null);if(!chosen?.path||!route({...g,...chosen.path.at(-1)},home))return null;
         const end=chosen.path.at(-1),nodes=walk.graph(g),at=nodes.find(n=>distance(end,{x:n.x/800,y:n.y/480})<.01);
         if(!at?.edges.length)return null;const neighbor=nodes[at.edges[0]],p={id:arrival.id,homeTarget:arrival.target,home,target:chosen.id,phase:'offer',suspended:false,
             route:[],tour:[{x:neighbor.x/800,y:neighbor.y/480},end],surveyIndex:0,timer:0,events:[],attempts:{},lines:[],choice:null,gather:true,social:true,exchange:true};
         if(amount(g,chosen.id,material(chosen.id))>=2){delete p.gather;p.visit=true;}
+        if(introduce){delete p.gather;p.visit=true;p.introduce=introduce;}
+        if(builder){delete p.gather;delete p.social;delete p.exchange;p.visit=true;p.npc='building';}
         (g.practices||(g.practices=[])).push(p);return p;
     }
     function createFree(g,request,turn,input){if(!/^turn-[1-9]\d*$/.test(turn)||!validGather(g,request,input))return null;
@@ -141,6 +149,7 @@
             if(!types.every(k=>v.reserved[k]===(k===type?Math.min(2,counts[k]):0)))return false;}
         return !v.targets||v.targets.every(target=>t.world.visible.some(o=>o.id===target.id)&&JSON.stringify(target.types)===JSON.stringify(sourceTypes(target.id).filter(type=>allItems(g).filter(i=>records.some(p=>p.id===i.practice)&&i.at<=t.gameAt&&i.target===target.id&&i.type===type).length<2&&(type!=='water'||counts.bottle==='empty'))));}
     function context(g,p=current(g)){
+        if(p?.npc==='building')return {id:p.id,goal:'builder-visit',phase:p.phase,suspended:p.suspended,target:{id:p.target,kind:'forest'},home:p.homeTarget,choice:p.choice,results:[],experience:[]};
         if(!p)return null;const asset=perception.asset(g,p.target),c={id:p.id,goal:'survey-and-return',phase:p.phase,suspended:p.suspended,
             target:{id:p.target,kind:p.target.startsWith('chip:mountain_')?'mountain':'forest'},home:p.homeTarget,
             hunger:g.hunger,fatigue:g.fatigue,reachable:!!asset&&!!walk.plan(g,p.target),returnable:!!route(g,p.home),
@@ -151,10 +160,16 @@
         if(p.gather){c.goal=p.free?'free-gather-and-return':'gather-and-return';c.collection={type:itemType(p),goal:p.free&&itemType(p)==='water'?1:2,found:[1,2].filter(step=>p.events.filter(e=>e.kind==='observed').length>=step)
             .map(step=>({step,count:finding(g,p,step)?1:0})),obtained:allItems(g).filter(i=>i.practice===p.id).length};}
         if(p.visit)c.goal='visit';
+        if(p.introduce)c.introduce={target:p.introduce,role:'building'};
         if(p.social)c.relationship=relationship(g,p,true);
         if(JSON.stringify(c).length>1200)throw Error('practice_budget');return c;
     }
-    function validContext(c){return keys(c,['id','goal','phase','suspended','target','home','hunger','fatigue','reachable','returnable','choice','results','experience','meeting','collection','relationship','exchange','calendar','reunion'])
+    function validContext(c){if(c?.goal==='builder-visit')return keys(c,['id','goal','phase','suspended','target','home','choice','results','experience','calendar','meeting'])
+        &&/^event-[1-9]\d*$/.test(c.id)&&phases.includes(c.phase)&&typeof c.suspended==='boolean'&&keys(c.target,['id','kind'])&&walk.forest(c.target.id)&&c.target.id.length<=80&&c.target.kind==='forest'&&c.home===c.target.id
+        &&[null,'decline'].includes(c.choice)&&Array.isArray(c.results)&&!c.results.length&&Array.isArray(c.experience)&&!c.experience.length
+        &&(c.calendar===undefined||walk.calendar.valid(c.calendar))&&(c.meeting===undefined||c.phase==='offer'&&['first','again'].includes(c.meeting))&&JSON.stringify(c).length<=1200;
+        return keys(c,['id','goal','phase','suspended','target','home','hunger','fatigue','reachable','returnable','choice','results','experience','meeting','collection','relationship','exchange','calendar','reunion','introduce'])
+        &&(c.introduce===undefined||c.goal==='visit'&&keys(c.introduce,['target','role'])&&walk.forest(c.introduce.target)&&c.introduce.target.length<=80&&c.introduce.role==='building')
         &&(c.calendar===undefined||walk.calendar.valid(c.calendar))
         &&(c.reunion===undefined||keys(c.reunion,['minutes','place'])&&Number.isSafeInteger(c.reunion.minutes)&&c.reunion.minutes>=0&&['same','different'].includes(c.reunion.place))
         &&(c.exchange===undefined||validExchange(c.exchange))
@@ -171,8 +186,9 @@
         &&Array.isArray(c.experience)&&c.experience.length<=3&&c.experience.every(e=>keys(e,['kind','targetKind'])&&['observe','walk','survey-return'].includes(e.kind)&&['forest','mountain','other'].includes(e.targetKind))&&JSON.stringify(c).length<=1200;}
     function validSpeech(lines){return Array.isArray(lines)&&lines.length<=6&&new Set(lines.map(l=>l?.slot)).size===lines.length&&lines.every(l=>keys(l,['slot','speaker','text'])&&slots.includes(l.slot)&&l.speaker===(['offer','feedback'].includes(l.slot)?'mentor':'companion')&&typeof l.text==='string'&&l.text.trim()&&l.text.length<=300&&!/[\u0000-\u001f\u007f]/.test(l.text));}
     function supply(g){if(!current(g))return null;const result={context:context(g),speech:clone(current(g).lines)};
+        const i=introduction(g);if(i)result.introduction=i;
         while(result.speech.length&&JSON.stringify({practice:result}).length>4000)result.speech.shift();return result;}
-    const validSupply=s=>keys(s,['context','speech'])&&validContext(s.context)&&validSpeech(s.speech)&&JSON.stringify(s).length<=4000;
+    const validSupply=s=>keys(s,['context','speech','introduction'])&&(!s.introduction||validIntroduction(s.introduction))&&validContext(s.context)&&validSpeech(s.speech)&&JSON.stringify(s).length<=4000;
     function due(p){if(!p||p.suspended||terminal.includes(p.phase))return null;
         if(['offer','decision'].includes(p.phase))return p.attempts[p.phase]?null:p.phase;
         const observed=p.events.filter(e=>e.kind==='observed').length;
@@ -181,12 +197,15 @@
     }
     function travel(g,p,phase,to){const next=phase==='outbound'?walk.plan(g,p.target):route(g,to);
         if(!next){p.phase='failed';p.route=[];event(g,p,'unreachable');return false;}p.phase=phase;p.route=next;return true;}
-    function decide(g,p,choice){if(p.visit&&choice==='accept')choice='decline';p.choice=choice;if(choice==='ask'){p.phase='consult';return true;}
+    function decide(g,p,choice){if(p.npc==='building'){p.choice='decline';p.phase='feedback';return true;}if(p.visit&&choice==='accept')choice='decline';p.choice=choice;if(choice==='ask'){p.phase='consult';return true;}
         if(choice==='decline'){p.phase=p.gift?'feedback':'declined';return true;}
         if(choice!=='accept'||g.hunger>=.8||g.fatigue>=.8){p.phase='consult';p.choice='ask';return false;}
         if(!travel(g,p,'outbound'))return false;event(g,p,'departed');return true;}
-    function finish(g,slot,result){const p=current(g);if(!p||p.attempts[slot]!=='pending')throw Error('stale');
+    function finish(g,slot,result,now=Date.now()){const p=current(g);if(!p||p.attempts[slot]!=='pending')throw Error('stale');
         p.attempts[slot]='complete';p.lines.push({slot,speaker:['offer','feedback'].includes(slot)?'mentor':'companion',text:result.text});
+        if(p.npc==='building'&&slot==='offer')g.walk.builder.met=true;
+        if(slot==='offer'&&p.introduce&&result.introduction&&!introduced(g)&&short(result.introduction.quote,120)&&result.text.includes(result.introduction.quote)){
+            p.introduction={quote:result.introduction.quote,at:now};walk.install(g).builder={target:p.introduce,nextAt:now+walk.stayMs,lastMeeting:null,met:false};}
         if(result.reception&&p.exchange&&!p.reception&&['decision','report'].includes(slot)){const r=result.reception,m=giftMemory(g).find(m=>m.id===r.source);
             if(m&&short(r.quote,120)&&m.text.includes(r.quote)&&short(r.text,120))p.reception={slot,...clone(r)};}
         if(p.exchange&&result.gift&&['decision','report'].includes(slot)&&(slot==='report'||result.choice==='decline')&&!p.gift){const gift=result.gift;
@@ -221,10 +240,14 @@
         p.timer+=dt;if(p.timer<6)return;p.timer=0;event(g,p,'observed');collect(g,p,p.surveyIndex+1);p.route=route(g,p.tour[p.surveyIndex++])||[];
         if(!p.route.length)stop(g,true);
     }
-    function valid(g){if(!validInventory(g))return false;if(g.practices===undefined)return true;if(!Array.isArray(g.practices))return false;const ids=new Set(),nodes=walk.graph(g);
+    function valid(g){if(!validInventory(g))return false;if(g.practices===undefined)return !g.walk?.builder;if(!Array.isArray(g.practices)||(g.practices.filter(p=>p.introduction).length>1)||!!g.walk?.builder!==!!introduced(g)
+        ||g.walk?.builder&&g.walk.builder.met!==(g.practices||[]).some(p=>p.npc==='building'&&p.lines.some(l=>l.slot==='offer')))return false;const ids=new Set(),nodes=walk.graph(g);
         const onNode=p=>point(p)&&nodes.some(n=>distance(p,{x:n.x/800,y:n.y/480})<.01);
-        return g.practices.every(p=>{if(!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice','gather','social','affinity','decisionAudience','exchange','bottleAward','gift','reception','free','material','origin','visit'])||!(p.gather===undefined||p.gather===true)
-            ||!(p.visit===undefined||p.visit===true&&!p.gather&&!p.free&&p.exchange&&p.events.every(e=>['stopped','failed','unreachable'].includes(e.kind))&&p.choice!=='accept')
+        return g.practices.every(p=>{if(!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice','gather','social','affinity','decisionAudience','exchange','bottleAward','gift','reception','free','material','origin','visit','npc','introduce','introduction'])||!(p.gather===undefined||p.gather===true)
+            ||p.npc!==undefined&&(p.npc!=='building'||!p.visit||p.social||p.exchange||p.introduce||p.target!==p.homeTarget||!walk.forest(p.target)||p.lines.some(l=>!['offer','decision','feedback'].includes(l.slot)))
+            ||p.introduce!==undefined&&(!p.visit||!p.social||relationship(g,p).hearts<3||!walk.forest(p.introduce)||!perception.asset(g,p.introduce)||p.introduce===p.homeTarget)
+            ||p.introduction!==undefined&&(!p.introduce||!keys(p.introduction,['quote','at'])||!short(p.introduction.quote,120)||!Number.isSafeInteger(p.introduction.at)||p.introduction.at<0||!p.lines.find(l=>l.slot==='offer')?.text.includes(p.introduction.quote))
+            ||!(p.visit===undefined||p.visit===true&&!p.gather&&!p.free&&(p.exchange||p.npc==='building')&&p.events.every(e=>['stopped','failed','unreachable'].includes(e.kind))&&p.choice!=='accept')
             ||!(p.exchange===undefined||p.exchange===true)||!(p.free===undefined||p.free===true)
             ||(p.free?(!p.gather||p.social||p.exchange||p.bottleAward||p.gift||p.reception||!sourceTypes(p.target).includes(p.material)||!keys(p.origin,['turn','quote'])||p.id!=='gather-'+p.origin.turn||!/^turn-[1-9]\d*$/.test(p.origin.turn)||!gatheringDirective(p.origin.quote)||p.lines.some(l=>!['observe1','observe2'].includes(l.slot))):p.material!==undefined||p.origin!==undefined)
             ||p.reception&&(!p.exchange||!keys(p.reception,['slot','source','quote','text'])||!['decision','report'].includes(p.reception.slot)||p.attempts[p.reception.slot]!=='complete'||!short(p.reception.quote,120)||!short(p.reception.text,120)
@@ -241,10 +264,10 @@
             ||!keys(p.attempts,slots)||!Object.values(p.attempts).every(s=>['pending','complete','cancelled','failed'].includes(s))
             ||!Array.isArray(p.lines)||p.lines.length>6||new Set(p.lines.map(l=>l.slot)).size!==p.lines.length||!p.lines.every(l=>keys(l,['slot','speaker','text'])&&slots.includes(l.slot)&&p.attempts[l.slot]==='complete'&&l.speaker===(['offer','feedback'].includes(l.slot)?'mentor':'companion')&&typeof l.text==='string'&&l.text.trim()&&l.text.length<=300&&!/[\u0000-\u001f\u007f]/.test(l.text))
             ||![null,'accept','decline','ask'].includes(p.choice))return false;ids.add(p.id);
-            if(['report','feedback','done'].includes(p.phase)&&!(p.gift&&p.choice==='decline')&&!p.events.some(e=>e.kind==='returned'&&distance(e,p.home)<.01))return false;
+            if(['report','feedback','done'].includes(p.phase)&&p.npc!=='building'&&!(p.gift&&p.choice==='decline')&&!p.events.some(e=>e.kind==='returned'&&distance(e,p.home)<.01))return false;
             if(p.route.length){for(let i=1;i<p.route.length;i++){const a=nodes.find(n=>distance(p.route[i-1],{x:n.x/800,y:n.y/480})<.01),j=nodes.findIndex(n=>distance(p.route[i],{x:n.x/800,y:n.y/480})<.01);if(!a.edges.includes(j))return false;}
                 if(p===current(g)&&distance(g,p.route[0])>51)return false;}
             return true;});}
     return {slots,current,active,create,createFree,context,due,finish,decide,stop,suspend,resolve,tick,valid,route,ackOnly,supply,validSupply,validContext,validSpeech,inventory,possessions,validPossessions,relationship,validRelationship,validAffinity,heard,
-        types,allItems,bottle,targets,validGather,gatheringDirective,socialContext,validExchange,historicalPossessions,validInventorySnapshot,giftMemory,finding};
+        types,allItems,bottle,targets,validGather,gatheringDirective,socialContext,validExchange,historicalPossessions,validInventorySnapshot,giftMemory,finding,introduction,validIntroduction};
 });

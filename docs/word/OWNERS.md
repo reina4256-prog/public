@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-27関係台詞・建築士：[正本](../specs/core/word_llm_native_system.md#関係に応じた台詞と建築士への紹介森巡回2026-11-27)。root practiceが紹介条件／原引用と人物別3slot、walkが内部森林巡回／明示訪問・実到着、runtimeが歴史snapshot／紹介一件の限定供給、main practiceが段階生成方針／聞き手分離と枠、storeが実時計／保存取消とclose移動、mentor UIが既存窓・画像動画／発話待機、voiceが独立mentor-builder／Charonを所有。旧屋内所有と家づくり保留は維持する。
+
 2026-11-26滞在・暦：[正本](../specs/core/word_llm_native_system.md#冒険家の滞在場所と地域の暦2026-11-26)。native_calendarが暦／設定と検査、walkが内部NPC滞在先／実期限／一致到着、perceptionとsceneがフィールド所在の非供給／人物非描画、runtimeが当時calendarと過去所在の区別、main practice／mentorが限定供給、storeが実時計／保存／close移動、preload／window／island UIが設定入口を所有。旧職業と他人物の一括移植はしない。
 
 2026-11-26自由採集・贈り物：[正本](../specs/core/word_llm_native_system.md#声かけからの自由採集水筒本人の贈り物2026-11-26)。root practiceが有限採集／現物とspent／水筒受取・贈呈／反応・受け取りと当時供給の検査、runtimeが通常返答の引用付きgather、main practiceが既存枠の発話／贈呈選択・相手別限定供給、storeが保存取消、mentor UIが発話待機、island UIが島内の花／水筒絵を所有。新しい一般知識／技能の自動取得や建築士へは進めない。

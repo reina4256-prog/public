@@ -49,13 +49,14 @@
         }p.frame=requestAnimationFrame(frame);
     }
     let encounter=null,round=0,sequence=0,waiting=false,context=null,source=null,finishAudio=null,game=null,name='',locale='ja',phase='closed',master=null,background=null;
-    let practiceId=null,practiceArmed=false,practiceWaiting=false,lastPracticeLine='',automaticIntro=false,introStarted=false;
+    let practiceId=null,practiceArmed=false,practiceWaiting=false,lastPracticeLine='',automaticIntro=false,introStarted=false,npc='explore';
+    const npcName=()=>t(npc==='building'?'建築士':'冒険家');
     function stopAudio(){cancelPages();api.voiceCancel();try{source?.stop();}catch(_){}source=null;finishAudio?.();finishAudio=null;}
     function clearVideo(){w.video.pause();w.video.removeAttribute('src');w.video.load();w.video.hidden=w.skip.hidden=true;}
     function close(){sequence++;practiceArmed=false;practiceId=null;phase='closed';stopAudio();clearVideo();api.mentorStop();api.cancel();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new Event('native-mentor-close'));}
     function handoff(){phase='closed';clearVideo();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new Event('native-mentor-close'));}
     function introReady(){if(!w.dialog.open||phase==='closed'||introStarted)return;introStarted=true;phase='intro';clearVideo();w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;
-        w.name.textContent=t('冒険家');line(w.text,'');line(w.thought,'');w.close.disabled=false;w.close.hidden=automaticIntro;w.close.textContent=t('つづける');
+        w.name.textContent=npcName();line(w.text,'');line(w.thought,'');w.close.disabled=false;w.close.hidden=automaticIntro;w.close.textContent=t('つづける');
         if(automaticIntro)void next();else w.close.focus();}
     async function speak(speaker,ticket){const id=encounter,number=round,p=await api.voiceLoad();if(ticket!==sequence||document.hidden||!p.ok||!p.value.enabled)return;
         const r=await api.voiceGenerate({kind:'mentor',id,round:number,speaker});if(ticket!==sequence||document.hidden)return;if(!r.ok)throw Error('voice');
@@ -82,16 +83,17 @@
         controls();
         phase='loading';const r=await api.mentorIntro(arrival);if(ticket!==sequence){api.mentorStop();return;}if(!r.ok){close();return;}
         practiceId=r.practice||null;if(r.game)game=r.game;practiceArmed=false;automaticIntro=r.automatic===true;introStarted=false;
-        log.replaceChildren();status.textContent='';w.text.textContent=w.thought.textContent='';w.name.textContent=t('冒険家');w.dialog.showModal();
-        master=new Image();master.src='adventurer_battle_enemy.png';background=new Image();background.src=imageSources.field_bg;
+        npc=r.npc||'explore';
+        log.replaceChildren();status.textContent='';w.text.textContent=w.thought.textContent='';w.name.textContent=npcName();w.dialog.showModal();
+        master=new Image();master.src=npc==='building'?'builder_battle_enemy.png':'adventurer_battle_enemy.png';background=new Image();background.src=imageSources.field_bg;
         phase='intro';if(r.met){introReady();return;}phase='video';w.dialog.dataset.phase='video';w.left.hidden=w.right.hidden=true;w.video.hidden=w.skip.hidden=false;w.video.controls=false;
-        w.video.src=r.video==='mountain'?'encount_adventurer_mountain.mp4':'encount_adventurer_forest.mp4';w.skip.focus();try{await w.video.play();}catch(_){if(ticket===sequence)w.video.controls=true;}
+        w.video.src=r.video==='building'?'encount_builder.mp4':r.video==='mountain'?'encount_adventurer_mountain.mp4':'encount_adventurer_forest.mp4';w.skip.focus();try{await w.video.play();}catch(_){if(ticket===sequence)w.video.controls=true;}
     },close,pages,get pending(){return waiting;}};
     function syncPractice(world,characterName){if(characterName!==undefined)name=characterName;const p=NativePractice.current(world);if(!p)return;
         const chat=document.getElementById('conversation');let section=document.getElementById('practice-conversation');
         if(!section){section=document.createElement('div');section.id='practice-conversation';section.dataset.i18nSkip='';chat.append(section);}
         const key=p.id+'|'+p.lines.length;if(section.dataset.lines!==key){section.dataset.lines=key;section.replaceChildren();
-            for(const l of p.lines){const n=document.createElement('p');n.className='utterance assistant';n.textContent=(l.speaker==='mentor'?t('冒険家'):name)+'：'+l.text;section.append(n);}}
+            for(const l of p.lines){const n=document.createElement('p');n.className='utterance assistant';n.textContent=(l.speaker==='mentor'?t(p.npc==='building'?'建築士':'冒険家'):name)+'：'+l.text;section.append(n);}}
         const last=p.lines.at(-1),lineKey=last&&p.id+'|'+last.slot;if(last&&lineKey!==lastPracticeLine){lastPracticeLine=lineKey;
             chat.scrollTop=chat.scrollHeight;}
     }
@@ -110,20 +112,20 @@
                 if(['offer','decision','report','feedback'].includes(slot)){
                     if(!w.dialog.open){phase='conversation';w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;line(w.text,'');line(w.thought,'');
                         if(!master){master=new Image();master.src='adventurer_battle_enemy.png';}if(!background){background=new Image();background.src=imageSources.field_bg;}
-                        w.name.textContent=t('冒険家');w.dialog.showModal();window.dispatchEvent(new Event('native-practice-modal'));}
-                    status.textContent=t('返答を待っています…');
+                        npc=p.npc||'explore';w.name.textContent=npcName();w.dialog.showModal();window.dispatchEvent(new Event('native-practice-modal'));}
+                    status.textContent=t(p.npc==='building'&&slot!=='decision'?'建築士の返事を待っています…':'返答を待っています…');
                 }
                 const r=await api.practiceNext(id);if(ticket!==sequence||document.hidden)return;if(!r.ok)throw Error(r.error||'reply');
                 game=r.game;window.dispatchEvent(new CustomEvent('native-practice-update',{detail:game}));syncPractice(game);
                 status.textContent='';
                 const reading=present(w.dialog.open?(r.line.speaker==='mentor'?w.text:w.thought):document.getElementById('bubble'),r.line.text);
-                if(w.dialog.open){const entry=node('p',log,'');entry.textContent=(r.line.speaker==='mentor'?t('冒険家'):name)+'：'+r.line.text;}
+                if(w.dialog.open){const entry=node('p',log,'');entry.textContent=(r.line.speaker==='mentor'?npcName():name)+'：'+r.line.text;}
                 try{await speakPractice(id,r.line,ticket);}catch(_){if(ticket===sequence){status.textContent=t('今は声が出せないみたい。文字でお話ししよう。');document.getElementById('status').textContent=status.textContent;}}
                 if(ticket===sequence)startPages();
                 await reading;
                 if(ticket!==sequence||!practiceArmed)return;
                 const current=NativePractice.current(game);
-                if(r.line.slot==='decision'){practiceArmed=!['consult','declined','failed','stopped'].includes(current.phase);handoff();}
+                if(r.line.slot==='decision'){practiceArmed=!['consult','declined','failed','stopped'].includes(current.phase);if(current.npc!=='building')handoff();}
                 if(r.line.slot==='feedback'){practiceArmed=false;status.textContent=t('またお話ししよう。');w.close.disabled=true;break;}
             }
         }catch(_){if(ticket===sequence){practiceArmed=false;status.textContent=t('今はお話を続けられないみたい。また今度にしよう。');document.getElementById('status').textContent=status.textContent;api.cancel();}}
@@ -133,6 +135,6 @@
         syncPractice(game);if((choice&&['accept','resume'].includes(choice.choice)||state.turns.at(-1)?.result?.gather)&&NativePractice.active(game)&&!NativePractice.current(game).suspended){practiceId=NativePractice.current(game).id;practiceArmed=true;}},
         poll(world,allowed){game=world;syncPractice(world);if(allowed&&practiceArmed&&NativePractice.current(world)?.id===practiceId&&!practiceWaiting&&NativePractice.due(NativePractice.current(world)))void drainPractice();},
         interrupt(){const wasArmed=practiceArmed;sequence++;practiceArmed=false;stopAudio();return wasArmed;},get pending(){return practiceWaiting;}};
-    function frame(time){if(w.dialog.open&&game&&['intro','conversation','failed'].includes(phase)){const skin=game.origin.appearance;WordMasterWindow.draw({heroCanvas:w.hero,portraitCanvas:w.portrait,skin,config:aiConfigs[skin],hero:images[skin],background,master,job:{sx:794,sw:1344},time,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches});}requestAnimationFrame(frame);}requestAnimationFrame(frame);
+    function frame(time){if(w.dialog.open&&game&&['intro','conversation','failed'].includes(phase)){const skin=game.origin.appearance;WordMasterWindow.draw({heroCanvas:w.hero,portraitCanvas:w.portrait,skin,config:aiConfigs[skin],hero:images[skin],background,master,job:npc==='building'?{sx:839,sw:1248}:{sx:794,sw:1344},time,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches});}requestAnimationFrame(frame);}requestAnimationFrame(frame);
     document.addEventListener('visibilitychange',()=>{if(document.hidden&&(phase!=='closed'||practiceArmed))close();});window.addEventListener('pagehide',()=>{if(phase!=='closed'||practiceArmed)close();});
 })();

@@ -23,7 +23,8 @@ if(!process.versions.electron){
     async function open(kind,fresh=true,walk=true){scenario=kind;const {createProfiles,createSession}=require('./native_store'),saveDir=path.join(directory,kind),store=createProfiles(saveDir);
         const save=store.save;store.save=value=>{const r=save(value);if(!r.ok)fs.writeFileSync(path.join(directory,'failed-save-'+kind+'.json'),JSON.stringify({result:r,value},null,2));return r;};
         if(fresh)assert.ok(store.save(initial(kind)).ok);
-        session=createSession({store,responder:{cancel(){},dispose(){},async reply(p){requests.push(p);if(p.input==='stop')return {ok:false,error:'quota'};
+        // Accelerate only the fixture world clock; reading/audio and all game checks stay real.
+        session=createSession({store,clock:()=>performance.now()*4,responder:{cancel(){},dispose(){},async reply(p){requests.push(p);if(p.input==='stop')return {ok:false,error:'quota'};
             const choice=p.input==='Please explore and return.'?'accept':null;
             const view=p.input==='Show me my tools'?'open':p.input==='Put away my inventory'?'close':null;
             const task=p.input==='Show me my task'?'open':p.input==='Put away my task'?'close':null;
