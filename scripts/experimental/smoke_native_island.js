@@ -35,7 +35,7 @@ if(!process.versions.electron){
             if(url.endsWith('/voices'))return new Response(JSON.stringify({type:'prompted',id:'voice_fixture_'+voiceRequests.length,sample_audio:{mime_type:'audio/wav',data:sampleWav().toString('base64')}}));
             return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:sampleWav().toString('base64')}]}]}));
         }});
-        window=require('./native_window').openWindow(session,{show:true,voice});
+        window=require('./native_window').openWindow(session,{show:true,voice});window.webContents.setBackgroundThrottling(false);
         window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});return session;
     }
     app.whenReady().then(async()=>{
@@ -157,7 +157,7 @@ if(!process.versions.electron){
         checks.push('explicit custom voice confirmation, persisted reply uses its cloud ID only, restart preserves original settings and never generates automatically');
         assert.equal(await evaluate('document.getElementById("mentor-open")===null'),true);
         const beforeWalk=activeSession.load().state.game;
-        masterTarget=core.game.supply(beforeWalk).visible.filter(v=>/^chip:(mountain_|palms_)/.test(v.id)).map(v=>({id:v.id,n:core.game.walk.plan(beforeWalk,v.id)?.length||0})).sort((a,b)=>b.n-a.n)[0].id;
+        masterTarget=beforeWalk.walk.roaming.target;
         await evaluate('document.getElementById("locale").value="en";document.getElementById("locale").dispatchEvent(new Event("change"))');
         await send('FIND_MASTER');assert.equal(activeSession.load().state.game.mode,'idle');
         await send('Yes');assert.equal(activeSession.load().state.game.mode,'idle');assert.equal(activeSession.load().state.game.walk.confirmed.targetId,masterTarget);
@@ -183,7 +183,7 @@ if(!process.versions.electron){
         for(const count of [4,6]){await evaluate('document.getElementById("mentor-next").click()');await until('document.querySelectorAll("#mentor-log p").length==='+count+' && !NativeMentorUI.pending');
             await until(count===4?'!document.getElementById("mentor-next").disabled':'document.getElementById("mentor-status").textContent==="またお話ししよう。"');}
         assert.equal(await evaluate('document.getElementById("mentor-next").disabled'),true);assert.equal(mentorPackets.length,3);
-        assert.deepEqual(mentorPackets.map(p=>p.recent.length),[0,2,4]);assert.ok(mentorPackets.every(p=>Object.keys(p).sort().join(',')==='character,id,locale,mentor,recent'));
+        assert.deepEqual(mentorPackets.map(p=>p.recent.length),[0,2,4]);assert.ok(mentorPackets.every(p=>Object.keys(p).sort().join(',')==='calendar,character,id,locale,mentor,recent'&&core.game.walk.calendar.valid(p.calendar)));
         await evaluate('document.getElementById("mentor-close").click()');await until('!document.getElementById("word-master-dialog").open');
         await evaluate('document.getElementById("locale").value="ja";document.getElementById("locale").dispatchEvent(new Event("change"))');
         assert.equal(await evaluate('(async()=>JSON.stringify((await nativeMemory.load()).state.turns))()'),turnsBeforeMentor);
@@ -200,7 +200,7 @@ if(!process.versions.electron){
         assert.ok(prefsAfterMentor.voices['mentor-adventurer'].startsWith('design:'));assert.equal(prefsAfterMentor.voices[customSpecies],customId);
         await evaluate('document.getElementById("voice-menu").open=false');await sleep(50);await evaluate('document.getElementById("voice-menu").open=true');await until('document.getElementById("voice-panel").parentElement.id==="play-voice"');
         checks.push('chat-confirmed real-chip walk and actual arrival gate, real local movie playback, shared original master window with both actors, three voiced rounds, seven locales/two widths, separate saved voices and no learning');
-        const revisit=activeSession.load().state.game;masterTarget=core.game.supply(revisit).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)&&core.game.walk.plan(revisit,v.id)).id;
+        const revisit=activeSession.load().state.game;masterTarget=revisit.walk.roaming.target;
         await send('FIND_MASTER');await send('Yes');await send('walk there');await until('document.getElementById("word-master-dialog").open && document.getElementById("word-master-dialog").dataset.phase==="conversation"');
         holdMentor=true;const afterConversationCalls=voiceRequests.length;await evaluate('document.getElementById("mentor-next").click()');for(let i=0;i<100&&!releaseMentor;i++)await sleep(20);assert.ok(releaseMentor);
         assert.deepEqual(mentorPackets.at(-1).previous,remembered);assert.deepEqual(mentorPackets.at(-1).recent,[]);

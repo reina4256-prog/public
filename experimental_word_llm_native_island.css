@@ -3,6 +3,8 @@ main{max-width:1360px;padding-top:22px}header{padding-bottom:14px}.notice{margin
 @media(max-width:1000px){.world-layout{grid-template-columns:minmax(0,1fr)}#terrarium{max-width:800px;width:100%;margin:auto}#conversation{max-height:260px}}@media(max-width:600px){#terrarium{border-width:7px}.console{padding:10px}#bubble{max-height:110px}.night{padding:12px}.night text{font-size:18px}}
 
 /* The opening document keeps its original cyan treatment, separate from the island. */
+#calendar-menu select{display:block;max-width:100%;width:min(100%,36rem);margin:8px 0 16px}#calendar-menu p{overflow-wrap:anywhere}
+
 body.entry-active{background:radial-gradient(ellipse at 50% 40%,#102635,#030912 70%)}
 .entry-active main{max-width:none;min-height:100dvh;padding:12px;display:grid;place-content:center}
 .entry-active header,.entry-active .notice{display:none}

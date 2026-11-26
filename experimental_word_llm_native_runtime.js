@@ -39,7 +39,8 @@
         else {if(c.lines.length!==2||records.some(r=>r.arrivalId===c.arrivalId))throw Error('stale');records.push(c);}
         next.revision++;return next;
     }
-    function validWorld(w){const actual=w?.perception==='map-chips',walking=actual&&Object.hasOwn(w,'confirmed');return keys(w,actual?['perception','focus','confirmed','walkable','location','currentAction','target','hunger','fatigue','visible','results','availableActions']:['location','currentAction','target','hunger','fatigue','visible','results','availableActions'])
+    function validWorld(w){const actual=w?.perception==='map-chips',walking=actual&&Object.hasOwn(w,'confirmed');return keys(w,actual?['perception','focus','confirmed','walkable','location','currentAction','target','hunger','fatigue','visible','results','availableActions','adventurer']:['location','currentAction','target','hunger','fatigue','visible','results','availableActions'])
+        &&(w.adventurer===undefined||w.adventurer===null||w.visible?.some(p=>p.id===w.adventurer&&/^chip:(?:mountain_|palms_)/.test(p.id)))
         &&w.location==='island'&&['idle','move','eat','rest'].includes(w.currentAction)
         &&Number.isFinite(w.hunger)&&w.hunger>=0&&w.hunger<=1&&Number.isFinite(w.fatigue)&&w.fatigue>=0&&w.fatigue<=1
         &&Array.isArray(w.visible)&&w.visible.length<=6&&w.visible.every(p=>keys(p,actual?['id','kind','appearance','x','y','width','height']:['id','kind','appearance','count'])&&typeof p.id==='string'&&p.id.length<=80&&typeof p.kind==='string'&&p.kind.length<=80
@@ -54,10 +55,10 @@
         const historical=index<0?s:{...s,turns:s.turns.slice(0,index+1)};
         const p=base.packet(old(historical),t);if(t.world)p.world=clone(t.world);
         if(t.mentorConversation)p.mentorConversation=clone(t.mentorConversation);
-        if(t.practice)p.practice=clone(t.practice);if(t.inventory)p.inventory=clone(t.inventory);return p;
+        if(t.practice)p.practice=clone(t.practice);if(t.inventory)p.inventory=clone(t.inventory);if(t.calendar)p.calendar=clone(t.calendar);return p;
     }
     function validPacket(p){const copy={...p};delete copy.world;delete copy.mentorConversation;
-        delete copy.inventory;delete copy.practice;return base.validPacket(copy)&&(!p.world||validWorld(p.world))&&(!Object.hasOwn(p,'inventory')||p.world?.perception==='map-chips'&&game.practice.validPossessions(p.inventory))&&(!Object.hasOwn(p,'mentorConversation')||!!p.world&&validConversation(p.mentorConversation))
+        delete copy.inventory;delete copy.practice;delete copy.calendar;return (p.calendar===undefined||!!p.world&&game.walk.calendar.valid(p.calendar)&&JSON.stringify(p.calendar).length+JSON.stringify(p.world).length<=2000)&&base.validPacket(copy)&&(!p.world||validWorld(p.world))&&(!Object.hasOwn(p,'inventory')||p.world?.perception==='map-chips'&&game.practice.validPossessions(p.inventory))&&(!Object.hasOwn(p,'mentorConversation')||!!p.world&&validConversation(p.mentorConversation))
             &&(!Object.hasOwn(p,'practice')||!!p.world&&game.practice.validSupply(p.practice)&&JSON.stringify({mentorConversation:p.mentorConversation,practice:p.practice}).length<=4000);}
     function validResult(r,p){
         if(!p.world)return base.validResult(r,p);
@@ -103,6 +104,7 @@
         if(!s.game)return base.begin(s,input,locale,at);
         const b=base.begin(old(s),input,locale,at),next={...clone(s),locale,revision:b.state.revision};
         const turn=b.state.turns.at(-1);turn.world=game.supply(s.game);turn.gameAt=s.game.elapsed;next.turns.push(turn);
+        if(s.game.walk?.roaming)turn.calendar=game.walk.calendar.snapshot(at,s.game.calendarSettings,locale);
         const conversation=latestConversation(s);if(conversation)turn.mentorConversation=clone(conversation);
         if(game.practice.active(next.game)&&game.walk.directive(input,'stop'))game.practice.stop(next.game);
         if(s.game.perception===2)turn.inventory=game.practice.possessions(next.game);
@@ -111,6 +113,9 @@
         if(next.game.walk&&/^(?:違う|違います|違うよ|そこじゃない|no|not that|不是|不对|нет|не то|ese no|não|nein)[。.!！]*$/iu.test(input.trim())){next.game.walk.confirmed=null;turn.world=game.supply(next.game);}
         if(next.game.perception===2&&next.game.mode==='move'&&game.walk.directive(input,'stop')){game.walk.apply(next.game,{kind:'stop'},turn.id,{input,world:turn.world});turn.world=game.supply(next.game);}
         if(next.game.perception===2)next.game.focus=null;
+        if(turn.calendar){const w=turn.world;while(JSON.stringify(w).length+JSON.stringify(turn.calendar).length>2000){if(w.results.length)w.results.shift();else if(w.visible.length)w.visible.pop();else throw Error('world_budget');}
+            if(!w.visible.some(p=>p.id===w.focus))w.focus=null;if(!w.visible.some(p=>p.id===w.adventurer))w.adventurer=null;
+            if(!w.visible.some(p=>p.id===w.confirmed)){w.walkable=false;w.availableActions=w.currentAction==='move'?['stop']:[];}}
         return {state:next,packet:packet(next,turn)};
     }
     function finish(s,id,revision,result){
@@ -136,7 +141,7 @@
         if(!Array.isArray(records)||new Set(records.map(c=>c?.arrivalId)).size!==records.length||!records.every((c,i)=>validConversation(c)
             &&s.game.receipts.some(r=>r.kind==='walk'&&r.id===c.arrivalId&&r.target===c.target)
             &&(!i||Number(c.arrivalId.slice(6))>Number(records[i-1].arrivalId.slice(6)))))return false;
-        return s.turns.every(t=>keys(t,['id','input','at','status','result','supplied','world','gameAt','actionCheck','mentorConversation','practice','inventory'])&&(!t.world||validWorld(t.world))
+        return s.turns.every(t=>keys(t,['id','input','at','status','result','supplied','world','gameAt','actionCheck','mentorConversation','practice','inventory','calendar'])&&(t.calendar===undefined||!!t.world&&game.walk.calendar.valid(t.calendar)&&JSON.stringify(t.calendar).length+JSON.stringify(t.world).length<=2000)&&(!t.world||validWorld(t.world))
             &&(!t.inventory||game.practice.validInventorySnapshot(s.game,t))
             &&(!t.practice||game.practice.validSupply(t.practice)&&s.game.practices?.some(p=>p.id===t.practice.context.id&&p.target===t.practice.context.target.id&&p.homeTarget===t.practice.context.home
                 &&(p.social?JSON.stringify(t.practice.context.relationship)===JSON.stringify(game.practice.relationship(s.game,p,['done','declined'].includes(t.practice.context.phase))):t.practice.context.relationship===undefined)
@@ -155,6 +160,8 @@
     function prompt(p){
         if(!p.world)return base.prompt(p);
         if(p.world.perception==='map-chips')return 'You are the supplied individual in this island, talking naturally with the player. Use the requested locale and supplied name/self/player forms. '
+            +(p.calendar?game.walk.calendar.instruction:'')
+            +(Object.hasOwn(p.world,'adventurer')?' world.adventurer names ONLY a currently visible forest/mountain beside which the actual adventurer is rendered, or null when not visible. A null value does not reveal where she moved. Never promise she is at a remembered place or any forest/mountain without this current evidence. Pointing out her visible place is discussion; actual walking still requires the existing confirmation and later explicit instruction. ':'')
             +'world.visible contains only actual rendered map chips: id, registered appearance/type, and normalized screen x/y/width/height. These describe artwork, NOT people working, edible resources, enterable buildings, skills or achievements. No invented path, berry or fixed food/rest destination exists. '
             +'When the player asks which place/object is meant, asks you to point to one, or the intended visible chip is uncertain, propose focus {targetId,quote} for exactly one matching chip and naturally ask "Do you mean this place?". The game circles it. quote must be an exact substring of the current input. Use focus:null for ordinary chat or when no chip is appropriate. A player confirmation of world.focus should be acknowledged with focus:null, without moving, learning or unlocking anything. Never claim an off-screen chip is visible or speak internal chip IDs/numeric coordinates. world.focus is only the previous chip being discussed. '
             +(Object.hasOwn(p.world,'confirmed')?'A focus circle is only discussion, not confirmation or movement. If the player explicitly agrees that world.focus is the intended chip, output confirmation:{targetId:world.focus,quote:exact current input substring}, focus:null, action:null. Do not confirm a different chip or infer agreement from a movement request. Only a LATER explicit imperative to walk/go/move to world.confirmed may propose action:{kind:"walk",targetId:world.confirmed,quote:exact current instruction}. If unconfirmed or ambiguous, circle one chip and wait for confirmation and then a new instruction. Never move on yes alone, a question, quoted teaching or an explanation. While moving, only an explicit stop request may propose action:{kind:"stop",quote:exact instruction}; no new destination queues. The game checks real terrain and reachable nearby ground. A proposal is not success: say you will try, never claim to have started or arrived until world.results proves it. Walk failures and interruptions are not arrivals. Food, rest, entry, climbing and gathering remain disconnected. ':'All physical actions are disconnected: action must be null. ')

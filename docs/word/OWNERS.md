@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-26滞在・暦：[正本](../specs/core/word_llm_native_system.md#冒険家の滞在場所と地域の暦2026-11-26)。native_calendarが暦／設定と検査、walkが独立NPC滞在先／実期限／一致到着、perceptionとsceneが可視情報／姿、runtimeが当時calendar、main practice／mentorが限定供給、storeが実時計／保存／close移動、preload／window／island UIが設定入口を所有。旧職業と他人物の一括移植はしない。
+
 2026-11-26自由採集・贈り物：[正本](../specs/core/word_llm_native_system.md#声かけからの自由採集水筒本人の贈り物2026-11-26)。root practiceが有限採集／現物とspent／水筒受取・贈呈／反応・受け取りと当時供給の検査、runtimeが通常返答の引用付きgather、main practiceが既存枠の発話／贈呈選択・相手別限定供給、storeが保存取消、mentor UIが発話待機、island UIが島内の花／水筒絵を所有。新しい一般知識／技能の自動取得や建築士へは進めない。
 
 2026-11-26好感度：[正本](../specs/core/word_llm_native_system.md#冒険家との好感度と島内の関係表示2026-11-26)。root practiceが評価根拠・依頼一件の適用記録／復元と未採集対象、main practiceが既存生成の評価案／聞き手filter／上限、runtimeが引用付きaffinityViewと当時snapshot、gameが開閉保存型、island UI／CSSが島内欄を所有。既存storeの保存／取消ゲートを使う。紹介／建築士／小屋は未実装、屋内所有はmyhome_map_core.jsを保持する。

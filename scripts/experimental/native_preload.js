@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld('nativeMemory',Object.freeze({
     createCharacter:(character,locale,answers)=>ipcRenderer.invoke('native-create-character',character,locale,answers),
     warmup:()=>ipcRenderer.invoke('native-warmup'),
     pulse:paused=>ipcRenderer.invoke('native-pulse',paused),
+    calendarSettings:(value,locale)=>ipcRenderer.invoke('native-calendar-settings',value,locale),
     submit:(input,locale)=>ipcRenderer.invoke('native-submit',input,locale),
     cancel:()=>ipcRenderer.send('native-cancel'),
     mentorStart:locale=>ipcRenderer.invoke('native-mentor-start',locale),

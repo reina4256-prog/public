@@ -60,8 +60,8 @@ function createProfiles(directory){
     }catch(_){return fail();}}
     return {load:()=>blocked?fail():store.load(),save:value=>blocked?fail():store.save(value),list,select,create,get file(){return store?.file;}};
 }
-function createSession({store,responder,mentorResponder=null,practiceResponder=null,recoverMentor=null,record=()=>{},clock=()=>performance.now(),islandFactory=()=>require('./native_island').createIsland()}) {
-    const talk=require('./native_mentor').createTalk(mentorResponder,(kind,data)=>log(kind,data));
+function createSession({store,responder,mentorResponder=null,practiceResponder=null,recoverMentor=null,record=()=>{},clock=()=>performance.now(),wallClock=()=>Date.now(),islandFactory=()=>require('./native_island').createIsland()}) {
+    const talk=require('./native_mentor').createTalk(mentorResponder,(kind,data)=>log(kind,data),()=>state?.game?.walk?.roaming?core.game.walk.calendar.snapshot(wallClock(),state.game.calendarSettings,state.locale):null);
     const practice=core.game.practice,practiceProtocol=require('./native_practice');
     let practiceArmed=false,practicePending=false,practiceTicket=0;
     let introOwner=null,freshArrival=null,freshWalkCause=null;
@@ -70,6 +70,12 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     const copy=()=>state ? structuredClone(state) : null;
     const log=(kind,data)=>{ try { record({kind,at:Date.now(),...data}); } catch (_) { /* Save remains the primary evidence. */ } };
     const persist=(value,stage,id=null,result=null)=>{const saved=store.save(value);if(!saved.ok)log('save_error',{id,stage,reason:saved.reason||'unknown',code:saved.code||null,result});return saved;};
+    function syncRoaming(){if(!state?.game||blocked)return;const next=copy(),now=wallClock(),p=practice.current(next.game);let changed=false;
+        if(!busy&&next.game.walk?.roaming&&now>=next.game.walk.roaming.nextAt&&p&&!p.free&&['offer','decision','consult'].includes(p.phase)&&p.choice!=='accept'){practice.stop(next.game);changed=true;}
+        if(core.game.walk.roam(next.game,now,busy))changed=true;
+        if(changed){next.revision++;if(persist(next,'roaming').ok)state=next;else blocked=true;}}
+    function calendarSettings(value,locale){load();if(blocked||busy||!state?.game||!core.game.walk.calendar.validSettings(value)||locale!==undefined&&!core.locales.includes(locale))return {ok:false,error:blocked?'save':'input'};
+        const next=copy();next.game.calendarSettings=structuredClone(value);if(locale!==undefined)next.locale=locale;next.revision++;if(!persist(next,'calendar-settings').ok){blocked=true;return {ok:false,error:'save'};}state=next;return {ok:true,state:copy()};}
     function load() {
         if (!loaded) {
             const result=store.load();loaded=true;blocked=!result.ok;state=result.value || null;
@@ -81,6 +87,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             if(state&&!blocked&&practice.active(state.game)){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-resume').ok)state=next;else blocked=true;}}
             if(state&&!blocked&&recoverMentor&&!state.mentorConversations?.length){const recovered=recoverMentor(copy());
                 if(recovered&&core.validState(recovered)){if(persist(recovered,'mentor-recovery').ok)state=recovered;else blocked=true;}}
+            syncRoaming();
         }
         return blocked ? {ok:false,error:'save'} : {ok:true,state:copy()};
     }
@@ -90,13 +97,13 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         try {
             const value=answers?core.create(character,locale,answers,islandFactory()):base.create(character,locale);
             if (!persist(value,'create').ok) return {ok:false,error:'save'};
-            state=value;return {ok:true,state:copy()};
+            state=value;syncRoaming();return blocked?{ok:false,error:'save'}:{ok:true,state:copy()};
         } catch (_) { return {ok:false,error:'input'}; }
     }
     function prepare(answers){
         load();if(blocked||!state||state.game||busy)return {ok:false,error:'input'};
         try{const value=core.adopt(state,answers,islandFactory());if(!persist(value,'adopt').ok)return {ok:false,error:'save'};
-            state=value;lastClock=clock();return {ok:true,state:copy()};}catch(_){return {ok:false,error:'input'};}
+            state=value;syncRoaming();lastClock=clock();return blocked?{ok:false,error:'save'}:{ok:true,state:copy()};}catch(_){return {ok:false,error:'input'};}
     }
     function characters(){load();return blocked?{ok:false,error:'save'}:store.list?.()||{ok:true,characters:[]};}
     function selectCharacter(id){
@@ -110,13 +117,14 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         try{const value=core.create(character,locale,answers,islandFactory());
             practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};practiceArmed=false;
             responder.cancel();const result=store.create(value);if(!result.ok)return result;
-            state=value;freshArrival=freshWalkCause=null;lastClock=lastSave=clock();return {ok:true,state:copy()};
+            state=value;syncRoaming();freshArrival=freshWalkCause=null;lastClock=lastSave=clock();return blocked?{ok:false,error:'save'}:{ok:true,state:copy()};
         }catch(_){return {ok:false,error:'input'};}
     }
     function pulse(paused=true){
         const now=clock(),seconds=Math.min(.1,Math.max(0,(now-lastClock)/1000));lastClock=now;
         if(blocked)return {ok:false,error:'save'};
         if(!loaded||!state?.game)return {ok:true};
+        if(!busy&&paused===false)syncRoaming();if(blocked)return {ok:false,error:'save'};
         if(!busy&&paused===false){
             const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events.length;core.game.tick(state.game,seconds);
             const current=practice.current(state.game),changed=current&&current.phase+'|'+current.events.length!==stage;
@@ -134,7 +142,8 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(practicePending){practiceCancel();introOwner=null;busy=false;}
         load();if (blocked || !state || busy) return {ok:false,error:blocked?'save':'input'};
         let next;
-        try { next=core.begin(state,input,locale); } catch (_) { return {ok:false,error:'input'}; }
+        syncRoaming();if(blocked)return {ok:false,error:'save'};
+        try { next=core.begin(state,input,locale,wallClock()); } catch (_) { return {ok:false,error:'input'}; }
         if (!persist(next.state,'input',next.packet.id).ok) return {ok:false,error:'save'};
         state=next.state;busy=true;log('input',{packet:next.packet,revision:state.revision});
         try {
@@ -161,8 +170,9 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     }
     function warmup(){if(!loaded)load();if(blocked||busy||!state?.game)return {ok:false};return responder.prepare?.()||{ok:true};}
     function mentorIntro(id){load();const e=state?.game?.walk?.encounter;
-        if(blocked||busy||!e||e.id!==id||e.phase!=='pending'||state.game.mode!=='idle')return {ok:false,error:'input'};
+        if(blocked||busy||!e||e.id!==id||e.phase!=='pending'||state.game.mode!=='idle'||state.game.walk.roaming&&state.game.walk.roaming.target!==e.target)return {ok:false,error:'input'};
         const next=copy();next.game.walk.encounter.phase='video';
+        if(next.game.walk.roaming&&e.at===undefined){const at=wallClock();next.game.walk.encounter.at=at;next.game.walk.encounter.previous=structuredClone(next.game.walk.roaming.lastMeeting);next.game.walk.roaming.lastMeeting={at,target:e.target};}
         const p=practiceResponder?(practice.current(next.game)?.id===id?practice.current(next.game):practice.create(next.game,e)):null;
         if(!persist(next,'encounter-intro').ok){blocked=true;return {ok:false,error:'save'};}
         const automatic=!!p&&freshArrival===id&&!p.suspended&&!p.attempts.offer;freshArrival=null;
@@ -171,7 +181,8 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         const r=talk.start(state.character,locale===undefined?state.locale:locale,core.latestConversation(state));if(!r.ok)return r;
         const next=copy();next.game.walk.met=true;next.game.walk.encounter.phase='conversation';if(!persist(next,'encounter-conversation').ok){talk.stop();blocked=true;return {ok:false,error:'save'};}state=next;return r;}
     function mentorStop(){if(introOwner&&practice.current(state?.game)?.id===introOwner)practiceCancel();if(talk.active||introOwner){talk.stop();introOwner=null;busy=false;lastClock=clock();
-        if(state?.game?.walk?.encounter){const next=copy();next.game.walk.encounter.phase='done';if(persist(next,'encounter-close').ok)state=next;else blocked=true;}}}
+        if(state?.game?.walk?.encounter){const next=copy();next.game.walk.encounter.phase='done';if(persist(next,'encounter-close').ok)state=next;else blocked=true;}}
+        syncRoaming();}
     async function mentorNext(id,round){if(blocked||!talk.active)return {ok:false,error:blocked?'save':'input'};
         const arrival=state.game.walk.encounter,owner=introOwner,r=await talk.next(id,round);
         if(r.ok){
@@ -188,7 +199,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(introOwner===id&&p.phase==='offer')p.suspended=false;
         const stage=practice.due(p);if(!stage)return {ok:false,error:'input'};
         const ticket=practiceTicket;practicePending=true;practiceArmed=true;busy=true;
-        try{const request=practiceProtocol.packet(state,p,stage),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free)next.game.walk.met=true;if(['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
+        try{const request=practiceProtocol.packet(state,p,stage,wallClock()),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free)next.game.walk.met=true;if(['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
             if(!persist(next,'practice-input',request.id).ok){blocked=true;return {ok:false,error:'save'};}state=next;log('practice_input',{packet:request});
             const result=await practiceResponder.reply(request);if(ticket!==practiceTicket)return {ok:false,error:'cancelled'};
             const accepted=result.ok&&practiceProtocol.validResult(result.proposal,stage,request.context),updated=copy();
@@ -202,7 +213,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             return {ok:false,error:blocked?'save':'failed'};
         }finally{practicePending=false;if(ticket===practiceTicket)busy=!!introOwner;lastClock=clock();}}
     function practiceLine(id,slot){const p=practice.current(state?.game),line=p?.lines.at(-1);return practiceArmed&&!p.suspended&&p.id===id&&line?.slot===slot?{...line,locale:state.locale}:null;}
-    return {load,create,prepare,characters,selectCharacter,createCharacter,warmup,pulse,submit,mentorIntro,mentorStart,mentorNext,mentorStop,mentorLine:talk.line,practiceNext,practiceLine,cancel:()=>{practiceCancel();mentorStop();responder.cancel();},dispose:()=>{
+    return {load,create,prepare,characters,selectCharacter,createCharacter,calendarSettings,warmup,pulse,submit,mentorIntro,mentorStart,mentorNext,mentorStop,mentorLine:talk.line,practiceNext,practiceLine,cancel:()=>{practiceCancel();mentorStop();responder.cancel();},dispose:()=>{
         practiceCancel();practiceResponder?.dispose();
         mentorStop();
         talk.dispose();

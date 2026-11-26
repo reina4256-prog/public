@@ -1,8 +1,18 @@
-(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception);if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeWalk=api;})(typeof globalThis!=='undefined'?globalThis:this,function(perception){
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception,typeof module==='object'&&module.exports?require('./experimental_word_llm_native_calendar'):root.NativeCalendar);if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeWalk=api;})(typeof globalThis!=='undefined'?globalThis:this,function(perception,calendar){
     'use strict';
     const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y);
     const movementKinds=['walk_start','walk','walk_failed','walk_interrupted'];
     function install(g){if(!g.walk)g.walk={version:1,confirmed:null,encounter:null,met:false};return g.walk;}
+    const stayMs=30*60*1000;
+    const nature=id=>/^chip:(?:mountain_|palms_)/.test(id);
+    function candidates(g){const visible=perception.chips(g).map(p=>p.id);return [...new Set([...visible,...Object.keys(g.island.assets).map(id=>'chip:'+id)])].filter(id=>nature(id)&&plan(g,id));}
+    function roam(g,now,held=false){if(g.perception!==2||!Number.isSafeInteger(now)||now<0)return false;
+        const w=install(g);if(!w.roaming){const list=candidates(g),old=w.encounter?.target;w.roaming={target:old&&list.includes(old)?old:list[0]||null,nextAt:now+stayMs,lastMeeting:null};return true;}
+        const r=w.roaming;if(now<r.nextAt||held)return false;
+        const p=g.practices?.at(-1);if(p&&!p.free&&!['done','declined','stopped','failed'].includes(p.phase))return false;
+        const list=candidates(g);if(list.length<2)return false;const index=list.indexOf(r.target);
+        r.target=list[(index+1)%list.length];r.nextAt=now+stayMs;if(w.encounter?.phase==='pending')w.encounter.phase='done';return true;}
+    const validMeeting=m=>m===null||m&&Object.keys(m).sort().join(',')==='at,target'&&Number.isSafeInteger(m.at)&&m.at>=0&&nature(m.target)&&m.target.length<=80;
     function graph(g){
         const assets=Object.entries(g.island.assets),blocks=assets.filter(([,a])=>!['ground','road','water'].includes(a.type)).map(([,a])=>({x:a.dx+a.sw*a.scale/2,y:a.dy+a.sh*a.scale-12,rx:Math.max(10,a.sw*a.scale*.28),ry:14}));
         const nodes=assets.filter(([,a])=>['ground','road'].includes(a.type)).map(([key,a])=>({key,x:a.dx+a.sw*a.scale/2,y:a.dy+a.sh*a.scale/2,edges:[]}))
@@ -51,12 +61,13 @@
         const target=g.destination,a=perception.asset(g,target);
         if(Math.hypot(g.x*800-(a.dx+a.sw*a.scale/2),g.y*480-(a.dy+a.sh*a.scale))>85){event(g,'walk_failed',target,g.cause,'unreachable');idle(g);return;}
         const r=event(g,'walk',target,g.cause);idle(g);
-        if(/^chip:(?:mountain_|palms_)/.test(target))install(g).encounter={id:r.id,target,phase:'pending'};
+        if(nature(target)&&(!g.walk.roaming||g.walk.roaming.target===target))install(g).encounter={id:r.id,target,phase:'pending'};
     }
     function valid(g){if(!Array.isArray(g.route)||!Array.isArray(g.receipts))return false;const w=g.walk;if(!w)return g.mode==='idle'&&g.destination===null&&g.intent===null&&g.route.length===0&&g.remaining===0;
-        if(w.version!==1||typeof w.met!=='boolean'||!Object.keys(w).every(k=>['version','met','confirmed','encounter'].includes(k)))return false;
+        if(w.version!==1||typeof w.met!=='boolean'||!Object.keys(w).every(k=>['version','met','confirmed','encounter','roaming'].includes(k)))return false;
+        if(w.roaming){const r=w.roaming;if(Object.keys(r).sort().join(',')!=='lastMeeting,nextAt,target'||!(r.target===null||nature(r.target)&&perception.asset(g,r.target))||!Number.isSafeInteger(r.nextAt)||r.nextAt<0||!validMeeting(r.lastMeeting)||r.lastMeeting&&!perception.asset(g,r.lastMeeting.target))return false;}
         const c=w.confirmed;if(c&&(!perception.asset(g,c.targetId)||!/^turn-[1-9]\d*$/.test(c.turnId)||typeof c.quote!=='string'||c.quote.length>1000))return false;
-        const e=w.encounter;if(e&&(!Object.keys(e).every(k=>['id','target','phase'].includes(k))||!['pending','video','conversation','done'].includes(e.phase)||!/^chip:(?:mountain_|palms_)/.test(e.target)||!g.receipts.some(r=>r.id===e.id&&r.kind==='walk'&&r.target===e.target)))return false;
+        const e=w.encounter;if(e&&(!Object.keys(e).every(k=>['id','target','phase','at','previous'].includes(k))||(e.at!==undefined&&(!Number.isSafeInteger(e.at)||e.at<0||!validMeeting(e.previous)))||!['pending','video','conversation','done'].includes(e.phase)||!/^chip:(?:mountain_|palms_)/.test(e.target)||!g.receipts.some(r=>r.id===e.id&&r.kind==='walk'&&r.target===e.target)))return false;
         if(g.mode==='idle')return g.destination===null&&g.intent===null&&g.route.length===0&&g.remaining===0;
         if(g.mode!=='move'||g.intent!=='walk'||!perception.asset(g,g.destination)||!g.route.length||g.route.length>2000||g.remaining!==0||!/^turn-[1-9]\d*$/.test(g.cause))return false;
         const nodes=graph(g),index=p=>nodes.findIndex(n=>Math.abs(n.x/800-p.x)<1e-8&&Math.abs(n.y/480-p.y)<1e-8);
@@ -65,5 +76,5 @@
         const a=perception.asset(g,g.destination),end=g.route.at(-1);
         return Math.hypot(g.route[0].x*800-g.x*800,g.route[0].y*480-g.y*480)<=51&&Math.hypot(end.x*800-(a.dx+a.sw*a.scale/2),end.y*480-(a.dy+a.sh*a.scale))<=85;
     }
-    return {install,plan,directive,apply,tick,valid,movementKinds,graph};
+    return {install,plan,directive,apply,tick,valid,movementKinds,graph,roam,stayMs,calendar};
 });

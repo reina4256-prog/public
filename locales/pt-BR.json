@@ -15852,5 +15852,15 @@
   "少し距離ができました。": "Surgiu um pouco de distância entre vocês.",
   "空の水筒": "Cantil vazio",
   "水の入った水筒": "Cantil com água",
-  "花": "Flor"
+  "花": "Flor",
+  "日時と季節": "Data, hora e estações",
+  "時刻の基準": "Fuso horário",
+  "端末のタイムゾーン": "Fuso horário do dispositivo",
+  "季節の基準": "Configuração das estações",
+  "言語に合わせる": "Conforme o idioma",
+  "北半球": "Hemisfério norte",
+  "南半球": "Hemisfério sul",
+  "日時は選んだ地域に、季節は選んだ半球に合わせます。": "A data e a hora seguem a região escolhida; as estações, o hemisfério escolhido.",
+  "日時と季節の設定を保存しました。": "Configurações de data, hora e estações salvas.",
+  "設定を保存できませんでした。": "Não foi possível salvar as configurações."
 }

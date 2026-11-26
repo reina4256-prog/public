@@ -33,7 +33,7 @@ else {
             'view_renderer.js','localization_core.js','localization_catalog.js','experimental_word_llm_native_voice.js',
             'experimental_word_llm_native_voice_ui.js','experimental_word_llm_native_voice_design.js','scripts/experimental/native_voice_designs.js','scripts/experimental/native_voice.js','scripts/experimental/native_voice_credentials.js','scripts/experimental/native_voice_key.js',
             'scripts/experimental/native_mentor.js','experimental_word_llm_native_mentor_ui.js','experimental_word_llm_native_mentor.css','experimental_word_master_window.js','experimental_word_master_window.css','experimental_word_llm_native_walk.js',
-            'experimental_word_llm_native_practice.js','scripts/experimental/native_practice.js']});
+            'experimental_word_llm_native_calendar.js','experimental_word_llm_native_practice.js','scripts/experimental/native_practice.js']});
         const sessionId=randomUUID();let sequence=0;
         recorder.append({sessionId,sequence:++sequence,event:{kind:'session',at:Date.now(),mode:'llm-native',runtime:recorder.version}});
         session=createSession({store,responder,mentorResponder,practiceResponder,

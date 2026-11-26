@@ -15852,5 +15852,15 @@
   "少し距離ができました。": "Some distance has grown between you.",
   "空の水筒": "Empty canteen",
   "水の入った水筒": "Water-filled canteen",
-  "花": "Flower"
+  "花": "Flower",
+  "日時と季節": "Date, time and seasons",
+  "時刻の基準": "Time zone",
+  "端末のタイムゾーン": "Device time zone",
+  "季節の基準": "Season setting",
+  "言語に合わせる": "Follow language",
+  "北半球": "Northern hemisphere",
+  "南半球": "Southern hemisphere",
+  "日時は選んだ地域に、季節は選んだ半球に合わせます。": "Date and time follow your chosen region; seasons follow your chosen hemisphere.",
+  "日時と季節の設定を保存しました。": "Date, time and season settings saved.",
+  "設定を保存できませんでした。": "Could not save settings."
 }

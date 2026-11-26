@@ -3,6 +3,15 @@
     const $=id=>document.getElementById(id),api=window.nativeMemory,t=(s,...a)=>window.GameI18n.translate(s).replace(/\{\{(\d+)\}\}/g,(_,n)=>String(a[Number(n)]??''));
     let state=null,busy=false,blocked=false,paused=false,answers=[],question=0,lastPulse=0,pulsing=false,screen='logo',startingNew=false;
     let strokes=[],pointer=null;
+    const calendarZone=$('calendar-zone'),calendarHemisphere=$('calendar-hemisphere');
+    for(const zone of ['UTC',...(Intl.supportedValuesOf?.('timeZone')||[])]){const o=document.createElement('option');o.value=zone;o.textContent=zone;o.dataset.i18nSkip='';calendarZone.append(o);}
+    function renderCalendar(){const settings=state?.game?.calendarSettings||NativeCalendar.defaults();
+        if(![...calendarZone.options].some(o=>o.value===settings.zone)){const o=document.createElement('option');o.value=o.textContent=settings.zone;o.dataset.i18nSkip='';calendarZone.append(o);}
+        calendarZone.value=settings.zone;calendarHemisphere.value=settings.hemisphere;}
+    async function saveCalendar(){if(busy||blocked||!state?.game){renderCalendar();return;}const owner=state;calendarZone.disabled=calendarHemisphere.disabled=true;
+        try{const r=await api.calendarSettings({zone:calendarZone.value,hemisphere:calendarHemisphere.value},$('locale').value);if(state===owner){if(r.ok){state=r.state;$('calendar-status').textContent=t('日時と季節の設定を保存しました。');}else{$('calendar-status').textContent=t('設定を保存できませんでした。');renderCalendar();}}}
+        catch(_){$('calendar-status').textContent=t('設定を保存できませんでした。');renderCalendar();}finally{calendarZone.disabled=calendarHemisphere.disabled=false;}}
+    calendarZone.onchange=calendarHemisphere.onchange=saveCalendar;
     const status=s=>{$('status').textContent=$('title-status').textContent=t(s);$('status').hidden=screen==='title';};
     const warmup=()=>{if(screen==='play'&&!blocked&&!busy&&!paused&&!document.hidden&&state?.game&&!$('chat-view').hidden)void api.warmup().catch(()=>{});};
     function el(tag,parent,text,cls,literal=false){const n=document.createElement(tag);if(text!==undefined)n.textContent=literal?text:t(text);if(cls)n.className=cls;if(literal)n.dataset.i18nSkip='';parent.append(n);return n;}
@@ -84,6 +93,7 @@
         if(!state?.game){showQuestion();return;}
         screen='play';$('entry').hidden=true;document.body.classList.remove('entry-active');
         $('mentor-voice-menu').hidden=!state.game.walk?.met;
+        renderCalendar();
         $('questions').hidden=$('setup').hidden=true;$('play').hidden=false;$('character-name').textContent=state.character.name;$('nameplate').textContent=state.character.name;
         window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);
         $('conversation').replaceChildren();for(const turn of state.turns.filter(t=>t.world)){el('p',$('conversation'),turn.input,'utterance',true);if(turn.result)el('p',$('conversation'),turn.result.reply,'utterance assistant',true);}
@@ -150,7 +160,7 @@
     $('cancel').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();};$('pause').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();paused=!paused;meters();if(paused&&!busy)api.cancel();else warmup();};
     for(const tab of ['chat','diary','stars'])$('tab-'+tab).onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();for(const name of ['chat','diary','stars']){$(name+'-view').hidden=name!==tab;$('tab-'+name).setAttribute('aria-pressed',String(name===tab));}$('workspace').classList.toggle('reading',tab!=='chat');renderPanels();if(tab!=='chat'&&!busy)api.cancel();else warmup();};
     $('input').addEventListener('focus',warmup);$('input').addEventListener('input',()=>{window.NativeVoiceUI.stop();warmup();});
-    $('locale').value=window.GameI18n.language;$('locale').onchange=()=>{window.NativeVoiceUI.stop();window.GameI18n.setLanguage($('locale').value);if(screen==='play'&&state?.game)render();else if(!$('questions').hidden)showQuestion();else if(screen==='setup')window.NativeVoiceUI.mount($('setup-voice'),ExperimentalWordStartQuestions.resolve(answers).appearance,$('locale').value);};
+    $('locale').value=window.GameI18n.language;$('locale').onchange=()=>{window.NativeVoiceUI.stop();window.GameI18n.setLanguage($('locale').value);if(screen==='play'&&state?.game){render();void saveCalendar();}else if(!$('questions').hidden)showQuestion();else if(screen==='setup')window.NativeVoiceUI.mount($('setup-voice'),ExperimentalWordStartQuestions.resolve(answers).appearance,$('locale').value);};
     window.NativeScene.load();const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     async function frame(time){
         if(screen==='logo'&&!document.hidden)drawLogo(time);

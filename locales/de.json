@@ -15852,5 +15852,15 @@
   "少し距離ができました。": "Zwischen euch ist etwas Abstand entstanden.",
   "空の水筒": "Leere Feldflasche",
   "水の入った水筒": "Mit Wasser gefüllte Feldflasche",
-  "花": "Blume"
+  "花": "Blume",
+  "日時と季節": "Datum, Uhrzeit und Jahreszeiten",
+  "時刻の基準": "Zeitzone",
+  "端末のタイムゾーン": "Zeitzone des Geräts",
+  "季節の基準": "Jahreszeiteneinstellung",
+  "言語に合わせる": "An Sprache anpassen",
+  "北半球": "Nordhalbkugel",
+  "南半球": "Südhalbkugel",
+  "日時は選んだ地域に、季節は選んだ半球に合わせます。": "Datum und Uhrzeit richten sich nach der gewählten Region, Jahreszeiten nach der gewählten Halbkugel.",
+  "日時と季節の設定を保存しました。": "Einstellungen für Datum, Uhrzeit und Jahreszeiten gespeichert.",
+  "設定を保存できませんでした。": "Einstellungen konnten nicht gespeichert werden."
 }

@@ -154,7 +154,9 @@
         if(p.social)c.relationship=relationship(g,p,true);
         if(JSON.stringify(c).length>1200)throw Error('practice_budget');return c;
     }
-    function validContext(c){return keys(c,['id','goal','phase','suspended','target','home','hunger','fatigue','reachable','returnable','choice','results','experience','meeting','collection','relationship','exchange'])
+    function validContext(c){return keys(c,['id','goal','phase','suspended','target','home','hunger','fatigue','reachable','returnable','choice','results','experience','meeting','collection','relationship','exchange','calendar','reunion'])
+        &&(c.calendar===undefined||walk.calendar.valid(c.calendar))
+        &&(c.reunion===undefined||keys(c.reunion,['minutes','place'])&&Number.isSafeInteger(c.reunion.minutes)&&c.reunion.minutes>=0&&['same','different'].includes(c.reunion.place))
         &&(c.exchange===undefined||validExchange(c.exchange))
         &&(c.relationship===undefined||validRelationship(c.relationship))
         &&(['survey-and-return','visit'].includes(c.goal)?c.collection===undefined:['gather-and-return','free-gather-and-return'].includes(c.goal)&&keys(c.collection,['type','goal','found','obtained'])

@@ -496,8 +496,8 @@ test('legacy dialogue recovery requires the exact saved request, successful resu
     const {createSession}=require('../scripts/experimental/native_store');let saved=structuredClone(s),calls=0,saves=0;
     const options={store:{load:()=>({ok:true,value:structuredClone(saved)}),save:x=>{saved=structuredClone(x);saves++;return {ok:true};}},
         recoverMentor:x=>recoverLegacy(x,events),responder:{reply(){calls++;},cancel(){},dispose(){}}};
-    const session=createSession(options);assert.deepEqual(session.load().state.mentorConversations,recovered.mentorConversations);assert.equal(saves,1);
-    session.load();assert.equal(saves,1);assert.equal(calls,0);session.dispose();
+    const session=createSession(options);assert.deepEqual(session.load().state.mentorConversations,recovered.mentorConversations);assert.equal(saves,2,'recovery and initial roaming state are saved separately');
+    session.load();assert.equal(saves,2);assert.equal(calls,0);session.dispose();
     const restarted=createSession(options);assert.deepEqual(restarted.load().state.mentorConversations,recovered.mentorConversations);assert.equal(calls,0);restarted.dispose();
     const failed=createSession({...options,store:{load:()=>({ok:true,value:structuredClone(s)}),save:()=>({ok:false,reason:'io'})}});
     assert.equal(failed.load().error,'save');assert.deepEqual(s,before);failed.dispose();
@@ -671,4 +671,106 @@ test('main session keeps world stopped while paused or generating, and adoption 
     const pending=session.submit('rest','en');time+=100;assert.equal(session.pulse(false).game.elapsed,.1);
     resolve({ok:false,error:'cancelled'});await pending;assert.equal(saved.turns[0].input,'rest');assert.equal(saved.turns[0].status,'failed');
     session.dispose();assert.ok(runtime.validState(saved));assert.equal(saved.character.name,'Keep');
+});
+
+test('civil calendar uses the selected time zone and language default hemisphere, with explicit overrides',()=>{
+    const c=runtime.game.walk.calendar,at=Date.UTC(2026,10,30,23,30);
+    const tokyo=c.snapshot(at,{zone:'Asia/Tokyo',hemisphere:'language'},'ja');assert.equal(tokyo.date,'2026-12-01');assert.equal(tokyo.time,'08:30');assert.equal(tokyo.season,'winter');
+    const brazil=c.snapshot(at,{zone:'America/Sao_Paulo',hemisphere:'language'},'pt-BR');assert.equal(brazil.date,'2026-11-30');assert.equal(brazil.season,'spring');assert.ok(c.valid(brazil));
+    assert.equal(c.snapshot(at,{zone:'Asia/Tokyo',hemisphere:'south'},'en').season,'summer');
+    assert.equal(c.snapshot(at,{zone:'UTC',hemisphere:'language'},'en').season,'autumn');
+    assert.equal(c.valid({...tokyo,date:'2026-02-30'}),false);assert.equal(c.valid({...tokyo,season:'summer'}),false);
+    assert.equal(c.validSettings({zone:'missing/place',hemisphere:'north'}),false);assert.equal(c.validSettings({zone:'UTC',hemisphere:'north',location:'private'}),false);
+});
+
+test('roaming changes only to a reachable real place, keeps its deadline, and gates actual arrival',()=>{
+    const s=gatheringState(),g=s.game,w=runtime.game.walk;assert.ok(w.roam(g,100));const first=g.walk.roaming.target,deadline=g.walk.roaming.nextAt;
+    assert.equal(w.roam(g,deadline-1),false);assert.equal(w.roam(g,deadline+1,true),false);assert.equal(g.walk.roaming.nextAt,deadline);
+    assert.ok(w.roam(g,deadline+200));assert.notEqual(g.walk.roaming.target,first);assert.ok(w.plan(g,g.walk.roaming.target));assert.ok(runtime.validState(s));
+    const destination=first;g.mode='move';g.intent='walk';g.destination=destination;g.cause='turn-1';g.route=w.plan(g,destination);
+    for(let i=0;i<2000&&g.mode==='move';i++)runtime.game.tick(g,.1);assert.equal(g.walk.encounter,null,'arrival at an absent adventurer is ordinary arrival');
+    g.mode='move';g.intent='walk';g.destination=g.walk.roaming.target;g.cause='turn-1';g.route=w.plan(g,g.destination);
+    for(let i=0;i<2000&&g.mode==='move';i++)runtime.game.tick(g,.1);assert.equal(g.walk.encounter.target,g.walk.roaming.target);
+    g.mode='move';g.intent='walk';g.destination=first;g.cause='turn-1';g.route=w.plan(g,first);const route=structuredClone(g.route),oldPlace=g.walk.roaming.target;
+    assert.ok(w.roam(g,g.walk.roaming.nextAt+1));assert.notEqual(g.walk.roaming.target,oldPlace);assert.equal(g.mode,'move');assert.deepEqual(g.route,route,'ordinary walking does not pin the NPC or change the companion route');
+});
+
+test('calendar snapshots remain historical across language and region changes; no hidden NPC position leaks',()=>{
+    let s=gatheringState();runtime.game.walk.roam(s.game,100);const at=Date.UTC(2026,11,1,0,1);
+    s.game.calendarSettings={zone:'UTC',hemisphere:'language'};const a=runtime.begin(s,'hello','pt-BR',at);assert.equal(a.packet.calendar.season,'summer');
+    s=runtime.finish(a.state,a.packet.id,a.state.revision,{...response(a.packet),terms:[],focus:null,confirmation:null});
+    s.game.calendarSettings={zone:'Asia/Tokyo',hemisphere:'north'};const b=runtime.begin(s,'hello again','en',at+1000);
+    assert.equal(b.packet.calendar.season,'winter');assert.equal(runtime.packet(b.state,b.state.turns[0]).calendar.season,'summer');assert.ok(runtime.validState(b.state));
+    s.game.walk.roaming.target=null;assert.equal(runtime.game.supply(s.game).adventurer,null);
+    const target=runtime.game.practice.targets(s.game).find(t=>t.reachable).id,id='event-'+(s.game.receipts.length+1);
+    s.game.receipts.push({id,kind:'walk',target,label:'Forest',at:s.game.elapsed,cause:null,hunger:.35,fatigue:.15});
+    const p=runtime.game.practice.create(s.game,{id,target});assert.ok(p);
+    const packet=require('../scripts/experimental/native_practice').packet(s,p,'offer',at);assert.ok(packet.context.calendar);assert.ok(JSON.stringify(packet.context).length<=1200);
+});
+
+test('overdue conversations depart on close, never renew their stay, and reload generates nothing',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=gatheringState(),now=1000,calls=0;
+    // Seed a genuine arrived encounter and preserve its place on the first upgrade.
+    const target=runtime.game.practice.targets(saved.game).find(t=>t.reachable).id;
+    saved.game.receipts.push({id:'event-'+(saved.game.receipts.length+1),kind:'walk',target,label:'Forest',at:saved.game.elapsed,cause:null,hunger:.35,fatigue:.15});
+    const id=saved.game.receipts.at(-1).id;saved.game.walk.encounter={id,target,phase:'pending'};
+    const options={wallClock:()=>now,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}},responder:{cancel(){},dispose(){}},
+        practiceResponder:{cancel(){},dispose(){},async reply(){calls++;return {ok:true,proposal:{text:'Hello.',choice:null}};}}};
+    const session=createSession(options);session.load();const deadline=saved.game.walk.roaming.nextAt;assert.ok(session.mentorIntro(id).ok);assert.ok((await session.practiceNext(id)).ok);
+    now=deadline+5000;session.pulse(true);assert.equal(saved.game.walk.roaming.target,target);assert.equal(saved.game.walk.roaming.nextAt,deadline);
+    session.mentorStop();assert.notEqual(saved.game.walk.roaming.target,target);assert.equal(runtime.game.practice.current(saved.game).phase,'stopped');assert.equal(calls,1);
+    const departed=saved.game.walk.roaming.target;assert.equal(session.mentorIntro(id).ok,false);session.dispose();
+    const reopened=createSession(options);reopened.load();assert.equal(saved.game.walk.roaming.target,departed);assert.equal(calls,1);reopened.dispose();
+});
+
+test('an accepted collection keeps its report place until the final conversation closes',()=>{
+    const s=gatheringState(),g=s.game,w=runtime.game.walk,practice=runtime.game.practice;w.roam(g,0);
+    const id='event-'+(g.receipts.length+1);g.receipts.push({id,kind:'walk',target:g.walk.roaming.target,label:'Forest',at:g.elapsed,cause:null,hunger:.35,fatigue:.15});
+    const p=practice.create(g,{id,target:g.walk.roaming.target});assert.ok(p);p.attempts.offer='pending';practice.finish(g,'offer',{text:'Please help.',choice:null});p.attempts.decision='pending';practice.finish(g,'decision',{text:'I will.',choice:'accept'});
+    const target=g.walk.roaming.target,deadline=g.walk.roaming.nextAt;assert.equal(w.roam(g,deadline+1),false);assert.equal(g.walk.roaming.target,target);
+    for(let i=0;i<2400&&p.phase!=='done';i++){const slot=practice.due(p);if(slot){p.attempts[slot]='pending';practice.finish(g,slot,{text:'Actual '+slot,choice:null});}runtime.game.tick(g,.1);}
+    assert.equal(p.phase,'done');assert.equal(w.roam(g,deadline+1,true),false);assert.ok(w.roam(g,deadline+1));assert.notEqual(g.walk.roaming.target,target);
+});
+
+test('calendar settings save without calls or deadline changes; invalid values and failed saves are rejected',()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=gatheringState(),fail=false;
+    const session=createSession({wallClock:()=>1000,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{if(fail)return {ok:false};saved=structuredClone(s);return {ok:true};}},responder:{cancel(){},dispose(){},reply(){throw Error('No generation');}}});
+    session.load();const deadline=saved.game.walk.roaming.nextAt;assert.ok(session.calendarSettings({zone:'UTC',hemisphere:'south'}).ok);assert.equal(saved.game.walk.roaming.nextAt,deadline);
+    assert.equal(session.calendarSettings({zone:'invalid',hemisphere:'south'}).ok,false);assert.ok(runtime.validState(saved));
+    fail=true;assert.equal(session.calendarSettings({zone:'Asia/Tokyo',hemisphere:'north'}).error,'save');assert.equal(saved.game.calendarSettings.zone,'UTC');session.dispose();
+});
+
+test('current reunion timing uses actual previous encounter and is supplied only for the new greeting',()=>{
+    const s=gatheringState(),g=s.game,practice=runtime.game.practice,w=runtime.game.walk;w.roam(g,1000);
+    const target=g.walk.roaming.target,id='event-'+(g.receipts.length+1);g.receipts.push({id,kind:'walk',target,label:'Forest',at:g.elapsed,cause:null,hunger:.35,fatigue:.15});
+    const p=practice.create(g,{id,target});assert.ok(p);g.walk.met=true;g.walk.encounter={id,target,phase:'video',at:121000,previous:{at:1000,target}};
+    const packets=require('../scripts/experimental/native_practice');assert.deepEqual(packets.packet(s,p,'offer',121000).context.reunion,{minutes:2,place:'same'});
+    g.walk.met=false;assert.equal(packets.packet(s,p,'offer',121000).context.reunion,undefined);g.walk.met=true;
+    g.walk.encounter.previous.target=Object.keys(g.island.assets).map(k=>'chip:'+k).find(k=>/^chip:mountain_/.test(k)&&k!==target)||'chip:palms_gift';
+    if(g.walk.encounter.previous.target===target)g.walk.encounter.previous.target='chip:mountain_gift';
+    assert.equal(packets.packet(s,p,'offer',121000).context.reunion.place,'different');assert.equal(packets.packet(s,p,'decision',121000).context.reunion,undefined);
+});
+
+test('calendar shares the 2000-character world budget even after stop and target rejection; malformed packets fail safely',()=>{
+    let s=runtime.create({name:'Beat',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island);runtime.game.walk.roam(s.game,1000);
+    for(const input of ['hello','no','stop']){const b=runtime.begin(s,input,'en',Date.UTC(2026,11,1));assert.ok(runtime.validPacket(b.packet));assert.ok(JSON.stringify(b.packet.world).length+JSON.stringify(b.packet.calendar).length<=2000);
+        assert.equal(runtime.validPacket({...b.packet,world:undefined}),false);assert.equal(runtime.validPacket({...b.packet,calendar:null}),false);
+        s=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,confirmation:null});assert.ok(runtime.validState(s));}
+});
+
+test('failed departure save blocks progress without adopting a moved location or renewing the original deadline',()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=gatheringState(),now=1000,fail=false;
+    const options={wallClock:()=>now,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{if(fail)return {ok:false};saved=structuredClone(s);return {ok:true};}},responder:{cancel(){},dispose(){},reply(){throw Error('No generation');}}};
+    const session=createSession(options);session.load();const before=structuredClone(saved.game.walk.roaming);now=before.nextAt+1;fail=true;session.mentorStop();assert.equal(session.load().error,'save');assert.deepEqual(saved.game.walk.roaming,before);session.dispose();
+    fail=false;const restarted=createSession(options);assert.ok(restarted.load().ok);assert.notEqual(saved.game.walk.roaming.target,before.target);restarted.dispose();
+});
+
+test('closing before the deadline cannot pin an unaccepted proposal across an overdue reload',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=gatheringState(),now=1000,calls=0;
+    const target=runtime.game.practice.targets(saved.game).find(t=>t.reachable).id,id='event-'+(saved.game.receipts.length+1);
+    saved.game.receipts.push({id,kind:'walk',target,label:'Forest',at:saved.game.elapsed,cause:null,hunger:.35,fatigue:.15});saved.game.walk.encounter={id,target,phase:'pending'};
+    const options={wallClock:()=>now,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}},responder:{cancel(){},dispose(){}},practiceResponder:{cancel(){},dispose(){},async reply(){calls++;return {ok:true,proposal:{text:'Would you help?',choice:null}};}}};
+    const session=createSession(options);session.load();assert.ok(session.mentorIntro(id).ok);assert.ok((await session.practiceNext(id)).ok);const deadline=saved.game.walk.roaming.nextAt;
+    session.mentorStop();assert.equal(saved.game.walk.roaming.target,target);session.dispose();now=deadline+1000;
+    const reopened=createSession(options);assert.ok(reopened.load().ok);assert.notEqual(saved.game.walk.roaming.target,target);assert.equal(runtime.game.practice.current(saved.game).phase,'stopped');assert.equal(calls,1);reopened.dispose();
 });

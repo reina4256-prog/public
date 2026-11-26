@@ -21,6 +21,7 @@ if(!process.versions.electron){
             const b=core.begin(s,input,'en'),r={reply:'Hello.',interpretation:{kind:'request',summary:'Requested.'},memories:[],references:[],terms:[],action:null,focus:null,confirmation:null,...fields};s=core.finish(b.state,b.packet.id,b.state.revision,r);}
         s.game.walk.met=kind!=='first';return s;}
     async function open(kind,fresh=true,walk=true){scenario=kind;const {createProfiles,createSession}=require('./native_store'),saveDir=path.join(directory,kind),store=createProfiles(saveDir);
+        const save=store.save;store.save=value=>{const r=save(value);if(!r.ok)fs.writeFileSync(path.join(directory,'failed-save-'+kind+'.json'),JSON.stringify({result:r,value},null,2));return r;};
         if(fresh)assert.ok(store.save(initial(kind)).ok);
         session=createSession({store,responder:{cancel(){},dispose(){},async reply(p){requests.push(p);if(p.input==='stop')return {ok:false,error:'quota'};
             const choice=p.input==='Please explore and return.'?'accept':null;
@@ -37,7 +38,7 @@ if(!process.versions.electron){
                     ...(p.stage==='feedback'&&p.context.relationship?{affinity:{delta:1,kind:'conduct',quote:p.recent.find(l=>l.slot==='report').text,reason:'An honest report after the actual return.'}}:{})}};}}});
         const voice=require('./native_voice').createVoice({directory:saveDir,session,key:()=> 'fixture-only',fetcher:async(_url,options)=>{voiceRequests.push(JSON.parse(options.body));if(kind==='voicefail')return new Response('{}',{status:503});return new Response(JSON.stringify({steps:[{type:'model_output',content:[{type:'audio',data:wav().toString('base64')}]}]}));}});
         if(kind==='off')assert.ok(voice.save({version:1,enabled:false,voices:{}}).ok);
-        window=require('./native_window').openWindow(session,{show:true,voice});window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});
+        window=require('./native_window').openWindow(session,{show:true,voice});window.webContents.setBackgroundThrottling(false);window.webContents.on('console-message',(_e,level,message)=>{if(level===3)errors.push(message);});
         await until('!document.getElementById("entry").hidden');await evaluate('document.getElementById("logo").click()');
         await until('!document.getElementById("title-menu").hidden && !document.getElementById("continue-game").hidden');await evaluate('document.getElementById("continue-game").click()');
         await until('!document.getElementById("play").hidden');
