@@ -18,6 +18,129 @@ function arrived(s,target){s=directed(s,'walk there',{action:{kind:'walk',target
 function completeCollection(g){const practice=runtime.game.practice,p=practice.current(g);
     for(let i=0;i<2400&&p.phase!=='done';i++){const slot=practice.due(p);if(slot){p.attempts[slot]='pending';practice.finish(g,slot,{text:'Actual '+slot,choice:slot==='decision'?'accept':null});}
         runtime.game.tick(g,.1);}assert.equal(p.phase,'done');return p;}
+
+function gatheringState(){const assets={};for(let x=100;x<=650;x+=50)assets['ground_'+x]={dx:x-10,dy:190,sx:0,sy:0,sw:20,sh:20,scale:1,img:'fixture',type:'ground'};
+    assets.palms_gift={dx:420,dy:75,sx:0,sy:0,sw:60,sh:80,scale:1,img:'fixture',type:'nature'};
+    assets.mountain_gift={dx:550,dy:75,sx:0,sy:0,sw:60,sh:80,scale:1,img:'fixture',type:'mountain'};
+    return runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],{version:1,assets,spawn:{x:300/800,y:200/480},places:[
+        {id:'berry:1',meaning:'berry',assetKey:'palms_gift',x:450/800,y:200/480},{id:'shade',meaning:'rest',assetKey:'palms_gift',x:500/800,y:200/480},{id:'path',meaning:'walk',x:600/800,y:200/480}]});}
+function freely(s,type,input='Gather in the forest'){const target=runtime.game.practice.targets(s.game).find(t=>t.types.includes(type)&&t.reachable);assert.ok(target,'available '+type);
+    return directed(s,input,{gather:{type,targetId:target.id,quote:input}});}
+function finishLine(g,slot,extra={}){const p=runtime.game.practice.current(g);p.attempts[slot]='pending';runtime.game.practice.finish(g,slot,{text:'Actual '+slot,choice:null,...extra});}
+function reconfirmed(s){return s.game.walk.confirmed?{state:s,target:s.game.walk.confirmed.targetId}:confirmed(s);}
+function giftEncounter(s,type,accepted=true,delta=0){const first=reconfirmed(s);s=arrived(first.state,first.target);const p=runtime.game.practice.create(s.game,s.game.walk.encounter);
+    finishLine(s.game,'offer');const quote='I would like to give you '+type;finishLine(s.game,'decision',{text:quote,choice:'decline',gift:{type,quote}});assert.equal(p.phase,'feedback');
+    const reaction=accepted?'Thank you, I accept it.':'Please keep it, I do not want it.';
+    finishLine(s.game,'feedback',{text:reaction,giftResponse:{accepted,quote:reaction},affinity:{delta,kind:'gift',quote,reason:'An actual response to this gift.'}});assert.ok(runtime.validState(s));return s;}
+
+test('free collection follows explicit multilingual requests, physically searches twice, waits for remarks and never meets a mentor',()=>{
+    const practice=runtime.game.practice;
+    for(const input of ['森で花を探して','Collect flowers in the forest','在森林收集花','Собери цветы в лесу','Recoge flores en el bosque','Colete flores na floresta','Sammle Blumen im Wald']){
+        let s=freely(gatheringState(),'flower',input),p=practice.current(s.game);assert.ok(runtime.validState(s));assert.equal(s.game.walk.encounter,null);assert.equal(s.game.walk.met,false);
+        const malformed=structuredClone(s);delete practice.current(malformed.game).target;assert.equal(runtime.validState(malformed),false);
+        for(let i=0;i<1000&&!practice.due(p);i++)runtime.game.tick(s.game,.1);assert.equal(practice.due(p),'observe1');assert.equal(s.game.inventory.items.length,1);
+        const before=structuredClone(s.game);for(let i=0;i<30;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.x,before.x);assert.equal(p.events.length,before.practices.at(-1).events.length);
+        completeCollection(s.game);assert.equal(p.lines.length,2);assert.equal(s.game.inventory.items.length,2);assert.equal(s.game.walk.encounter,null);assert.ok(runtime.validState(s));
+        assert.equal(practice.targets(s.game).find(t=>t.id===p.target).types.includes('flower'),false);assert.equal(practice.relationship(s.game).hearts,1);}
+    for(const input of ['はい','yes','Collect flowers?','Do not collect flowers','「森で花を探して」','森で花を探さないで','Не собирай цветы','Não colete flores','Sammle nicht Blumen','不要收集花','No recojas flores'])assert.equal(practice.gatheringDirective(input),false,input);
+    const s=gatheringState(),b=runtime.begin(s,'Collect water','en'),target=b.packet.inventory.targets[0],r={...response(b.packet),terms:[],focus:null,confirmation:null,gather:{type:'water',targetId:target.id,quote:b.packet.input}};
+    assert.equal(runtime.validResult(r,b.packet),false,'no canteen means no water');assert.equal(s.game.inventory,undefined);
+    assert.equal(runtime.validResult({...r,gather:{type:'flower',targetId:'chip:palms_fake',quote:b.packet.input}},b.packet),false);
+});
+
+test('one canteen is awarded only with actual first collection success and an accepted mentor line, including existing saves',()=>{
+    const practice=runtime.game.practice,first=confirmed(gatheringState());let s=arrived(first.state,first.target),p=practice.create(s.game,s.game.walk.encounter);
+    assert.equal(practice.bottle(s.game),'none');finishLine(s.game,'offer');assert.equal(practice.bottle(s.game),'none');completeCollection(s.game);
+    assert.equal(practice.bottle(s.game),'empty');assert.equal(p.bottleAward.source,p.id);assert.equal(p.bottleAward.slot,'feedback');assert.ok(runtime.validState(s));
+    const old=structuredClone(s);delete old.game.practices[0].bottleAward;delete old.game.practices[0].exchange;assert.ok(runtime.validState(old));
+    assert.equal(practice.bottle(runtime.upgrade(old).game),'none','loading does not award anything');
+    const next=reconfirmed(old);s=arrived(next.state,next.target);p=practice.create(s.game,s.game.walk.encounter);assert.equal(practice.bottle(s.game),'none');
+    const packet=require('../scripts/experimental/native_practice').packet(s,p,'offer');assert.equal(packet.context.exchange.award,true);finishLine(s.game,'offer');assert.equal(practice.bottle(s.game),'empty');assert.ok(runtime.validState(s));
+    finishLine(s.game,'decision',{choice:'decline'});const again=reconfirmed(s);s=arrived(again.state,again.target);p=practice.create(s.game,s.game.walk.encounter);finishLine(s.game,'offer');assert.equal(p.bottleAward,undefined);assert.ok(runtime.validState(s));
+});
+
+test('accepted and refused gifts preserve immutable acquisition evidence, actual history and tentative private memories',()=>{
+    const practice=runtime.game.practice;let s=freely(gatheringState(),'flower');completeCollection(s.game);s=directed(s,'Remember my inventory');
+    const old=structuredClone(s.turns.at(-1));s=giftEncounter(s,'flower',true,1);assert.equal(practice.possessions(s.game).flower,1);assert.equal(s.game.inventory.spent.length,1);
+    assert.equal(practice.allItems(s.game).filter(i=>i.type==='flower').length,2);assert.deepEqual(s.turns.find(t=>t.id===old.id),old);assert.equal(practice.relationship(s.game).hearts,2);
+    const record=practice.current(s.game),protocol=require('../scripts/experimental/native_practice'),self=protocol.packet(s,record,'decision'),npc=protocol.packet(s,record,'feedback');
+    assert.equal(self.context.exchange.taste,undefined);assert.ok(self.context.exchange.memory.length<=3);assert.equal(npc.context.exchange.available,undefined);assert.equal(npc.context.exchange.memory,undefined);assert.equal(npc.context.exchange.offered,'flower');
+    s=giftEncounter(s,'flower',false,-1);assert.equal(practice.possessions(s.game).flower,1);assert.equal(s.game.inventory.spent.length,1);assert.equal(practice.relationship(s.game).hearts,1);
+    assert.equal(practice.giftMemory(s.game).length,2);assert.equal(practice.giftMemory(s.game)[1].accepted,false);
+    const forged=structuredClone(s);forged.game.inventory.spent[0].item.type='wood';assert.equal(runtime.validState(forged),false);
+    const duplicate=structuredClone(s);duplicate.game.inventory.items.push(structuredClone(duplicate.game.inventory.spent[0].item));assert.equal(runtime.validState(duplicate),false);
+    assert.equal(practice.targets(s.game).find(t=>t.types.includes('wood')).types.includes('flower'),false,'giving never replenishes the site');
+});
+
+test('water requires a real awarded empty canteen, fills once, survives reload and leaves the canteen when gifted',()=>{
+    const practice=runtime.game.practice,first=confirmed(gatheringState());let s=arrived(first.state,first.target);practice.create(s.game,s.game.walk.encounter);completeCollection(s.game);
+    s=freely(s,'water','Fetch water in the forest');assert.equal(practice.context(s.game).collection.goal,1);completeCollection(s.game);assert.equal(practice.possessions(s.game).water,1);assert.equal(practice.bottle(s.game),'full');assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+    assert.ok(practice.targets(s.game).every(t=>!t.types.includes('water')),'full canteen cannot be filled again');
+    s=giftEncounter(s,'water',true,0);assert.equal(practice.bottle(s.game),'empty');assert.equal(practice.possessions(s.game).water,0);
+    s=freely(s,'water','Fetch water in the forest');completeCollection(s.game);assert.equal(practice.bottle(s.game),'full');assert.ok(runtime.validState(s));
+    s=giftEncounter(s,'water',true,0);assert.equal(practice.bottle(s.game),'empty');
+    const water=practice.allItems(s.game).filter(i=>i.type==='water');assert.equal(water.length,2);assert.equal(practice.targets(s.game).find(t=>t.id===water[0].target).types.includes('water'),false);
+});
+
+test('gift protocol rejects unavailable, forged, forced acceptance and unquoted outcomes; task material is reserved',()=>{
+    const practice=runtime.game.practice,protocol=require('../scripts/experimental/native_practice'),first=confirmed(gatheringState());let s=arrived(first.state,first.target),p=practice.create(s.game,s.game.walk.encounter);completeCollection(s.game);
+    const again=reconfirmed(s);s=arrived(again.state,again.target);p=practice.create(s.game,s.game.walk.encounter);finishLine(s.game,'offer');finishLine(s.game,'decision',{choice:'accept'});
+    for(let i=0;i<1500&&p.phase!=='report';i++){const slot=practice.due(p);if(slot)finishLine(s.game,slot);runtime.game.tick(s.game,.1);}assert.equal(p.phase,'report');
+    const c=protocol.packet(s,p,'report').context,r={text:'Have a flower',choice:null,gift:{type:'flower',quote:'Have a flower'}};
+    assert.equal(protocol.validResult(r,'report',c),false);assert.ok(c.exchange.available[p.target.startsWith('chip:mountain_')?'stone':'wood']>=0);
+    assert.equal(protocol.validResult({...r,gift:{type:'wood',quote:'fabricated'}},'report',c),false);
+    const feedback={...c,exchange:{offered:'water',taste:1,award:false}};assert.equal(protocol.validResult({text:'Thanks',choice:null},'feedback',feedback),false);
+    assert.equal(protocol.validResult({text:'Thanks',choice:null,giftResponse:{accepted:'yes',quote:'Thanks'}},'feedback',feedback),false);
+});
+
+test('gift transfer is saved atomically and a failed or cancelled response never consumes or scores the item',async()=>{
+    const practice=runtime.game.practice,{createSession}=require('../scripts/experimental/native_store');
+    for(const kind of ['save','cancel']){let saved=freely(gatheringState(),'flower');completeCollection(saved.game);const first=reconfirmed(saved);saved=arrived(first.state,first.target);
+        const id=saved.game.walk.encounter.id;let fail=false,release,calls=0;const store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{if(fail&&practice.current(s.game)?.attempts.feedback==='complete')return {ok:false,reason:'io'};assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}};
+        const responder={cancel(){},dispose(){},async reply(){throw Error('no normal generation');}},practiceResponder={cancel(){},dispose(){},async reply(p){calls++;
+            const quote='I would like to give you a flower.';
+            if(p.stage==='feedback'&&kind==='cancel')await new Promise(resolve=>release=resolve);
+            return {ok:true,proposal:p.stage==='offer'?{text:'Hello.',choice:null}:p.stage==='decision'?{text:quote,choice:'decline',gift:{type:'flower',quote}}:
+                {text:'Thank you.',choice:null,giftResponse:{accepted:true,quote:'Thank you.'},affinity:{delta:1,kind:'gift',quote,reason:'A kind gift.'}}};}};
+        const session=createSession({store,responder,practiceResponder});session.load();assert.ok(session.mentorIntro(id).ok);assert.ok((await session.practiceNext(id)).ok);assert.ok((await session.practiceNext(id)).ok);
+        fail=kind==='save';const pending=session.practiceNext(id);if(kind==='cancel'){for(let i=0;i<50&&!release;i++)await new Promise(resolve=>setImmediate(resolve));assert.ok(release);session.cancel();release();}
+        const result=await pending;assert.equal(result.error,kind==='save'?'save':'cancelled');assert.equal(saved.game.inventory.items.filter(i=>i.type==='flower').length,2);assert.equal(saved.game.inventory.spent,undefined);assert.equal(practice.relationship(saved.game).hearts,1);
+        session.dispose();fail=false;const reopened=createSession({store,responder,practiceResponder});assert.ok(reopened.load().ok);assert.equal(practice.current(saved.game).phase,'failed');assert.equal((await reopened.practiceNext(id)).ok,false);assert.equal(calls,3);reopened.dispose();}
+});
+
+test('gift reception cites only actual earlier reactions and never reveals hidden tastes or creates taught memories',()=>{
+    const practice=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');let s=freely(gatheringState(),'flower');completeCollection(s.game);s=giftEncounter(s,'flower');
+    const first=reconfirmed(s);s=arrived(first.state,first.target);const p=practice.create(s.game,s.game.walk.encounter);finishLine(s.game,'offer');
+    const packet=protocol.packet(s,p,'decision'),memory=packet.context.exchange.memory[0],r={text:'I remember the reaction.',choice:'decline',reception:{source:memory.id,quote:memory.text,text:'Maybe flowers are welcome.'}};
+    assert.ok(protocol.validResult(r,'decision',packet.context));assert.equal(protocol.validResult({...r,reception:{...r.reception,source:p.id}},'decision',packet.context),false);
+    finishLine(s.game,'decision',r);assert.ok(runtime.validState(s));assert.equal(practice.giftMemory(s.game)[0].thought,r.reception.text);assert.equal(packet.context.exchange.taste,undefined);
+    const bad=structuredClone(s);bad.game.practices.at(-1).reception.quote='Invented reaction';assert.equal(runtime.validState(bad),false);
+    assert.ok(s.turns.every(t=>!t.result?.memories.length));
+});
+
+test('free outings can start after a walk stopped between ground nodes and visit-only cancellation stays saveable',()=>{
+    const practice=runtime.game.practice;let s=gatheringState();s.game.x+=.01;assert.ok(runtime.validState(s));s=freely(s,'flower');assert.ok(runtime.validState(s));completeCollection(s.game);assert.ok(runtime.validState(s));
+    const first=reconfirmed(s);s=arrived(first.state,first.target);let p=practice.create(s.game,s.game.walk.encounter);completeCollection(s.game);
+    const second=reconfirmed(s);s=arrived(second.state,second.target);p=practice.create(s.game,s.game.walk.encounter);completeCollection(s.game);
+    const third=reconfirmed(s);s=arrived(third.state,third.target);p=practice.create(s.game,s.game.walk.encounter);assert.equal(p.visit,true);p.attempts.offer='pending';practice.suspend(s.game);assert.equal(p.phase,'failed');assert.ok(runtime.validState(s));
+});
+
+test('an immediate stop snapshots released task reservations even when the following chat generation fails',()=>{
+    const practice=runtime.game.practice;let s=freely(gatheringState(),'wood'),p=practice.current(s.game);
+    for(let i=0;i<1000&&!practice.due(p);i++)runtime.game.tick(s.game,.1);assert.equal(s.game.inventory.items.length,1);practice.stop(s.game);
+    const first=reconfirmed(s);s=arrived(first.state,first.target);p=practice.create(s.game,s.game.walk.encounter);completeCollection(s.game);
+    const again=reconfirmed(s);s=arrived(again.state,again.target);p=practice.create(s.game,s.game.walk.encounter);finishLine(s.game,'offer');finishLine(s.game,'decision',{choice:'accept'});
+    assert.equal(practice.possessions(s.game).reserved.wood,1);const b=runtime.begin(s,'stop','en');assert.equal(b.packet.inventory.reserved.wood,0);s=runtime.finish(b.state,b.packet.id,b.state.revision,null);assert.ok(runtime.validState(s));assert.equal(p.events.some(e=>e.kind==='returned'),false);
+});
+
+test('a later reception in the same encounter cannot rewrite an earlier chat snapshot',()=>{
+    const practice=runtime.game.practice;let s=freely(gatheringState(),'flower');completeCollection(s.game);s=giftEncounter(s,'flower');
+    const first=reconfirmed(s);s=arrived(first.state,first.target);const p=practice.create(s.game,s.game.walk.encounter);finishLine(s.game,'offer');const memory=practice.giftMemory(s.game)[0],reception={source:memory.id,quote:memory.text,text:'Maybe flowers are welcome.'};
+    finishLine(s.game,'decision',{choice:'accept',reception});s=directed(s,'How are you doing?');const original=structuredClone(s.turns.at(-1));
+    for(let i=0;i<1500&&p.phase!=='report';i++){const slot=practice.due(practice.current(s.game));if(slot)finishLine(s.game,slot);runtime.game.tick(s.game,.1);if(practice.current(s.game).phase==='report')break;}
+    assert.equal(practice.current(s.game).phase,'report');finishLine(s.game,'report',{reception:{...reception,text:'A later different interpretation.'}});finishLine(s.game,'feedback');
+    assert.equal(practice.current(s.game).reception.text,reception.text);assert.deepEqual(s.turns.at(-1),original);assert.ok(runtime.validState(s));
+});
 test('collection produces two actual finite objects, survives interruption, and never replays old survey receipts',()=>{
     const first=confirmed(runtime.create({name:'Collector',self:'I',player:'you'},'en',[0,0,0,0,0,0,0],island));let s=arrived(first.state,first.target),g=s.game;
     const practice=runtime.game.practice,p=practice.create(g,g.receipts.findLast(r=>r.kind==='walk'));

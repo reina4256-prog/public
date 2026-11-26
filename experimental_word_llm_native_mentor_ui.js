@@ -130,7 +130,7 @@
         finally{if(ticket===sequence){waiting=false;w.close.disabled=true;}practiceWaiting=false;}
     }
     window.NativePracticeUI={sync:syncPractice,afterChat(state){name=state.character.name;locale=state.locale;game=state.game;const choice=state.turns.at(-1)?.result?.practiceChoice;
-        syncPractice(game);if(choice&&['accept','resume'].includes(choice.choice)&&NativePractice.active(game)&&!NativePractice.current(game).suspended){practiceId=NativePractice.current(game).id;practiceArmed=true;}},
+        syncPractice(game);if((choice&&['accept','resume'].includes(choice.choice)||state.turns.at(-1)?.result?.gather)&&NativePractice.active(game)&&!NativePractice.current(game).suspended){practiceId=NativePractice.current(game).id;practiceArmed=true;}},
         poll(world,allowed){game=world;syncPractice(world);if(allowed&&practiceArmed&&NativePractice.current(world)?.id===practiceId&&!practiceWaiting&&NativePractice.due(NativePractice.current(world)))void drainPractice();},
         interrupt(){const wasArmed=practiceArmed;sequence++;practiceArmed=false;stopAudio();return wasArmed;},get pending(){return practiceWaiting;}};
     function frame(time){if(w.dialog.open&&game&&['intro','conversation','failed'].includes(phase)){const skin=game.origin.appearance;WordMasterWindow.draw({heroCanvas:w.hero,portraitCanvas:w.portrait,skin,config:aiConfigs[skin],hero:images[skin],background,master,job:{sx:794,sw:1344},time,reduced:matchMedia('(prefers-reduced-motion: reduce)').matches});}requestAnimationFrame(frame);}requestAnimationFrame(frame);

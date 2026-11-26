@@ -146,6 +146,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             state=updated;
             if(accepted&&state.game?.receipts.some(r=>r.kind==='walk_start'&&r.cause===next.packet.id))freshWalkCause=next.packet.id;
             if(accepted&&result.proposal.practiceChoice&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
+            if(accepted&&result.proposal.gather&&practice.current(state.game)?.id==='gather-'+next.packet.id&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
             const error=accepted?null:(result.ok?'output':result.error || 'failed');
             log('result',{id:next.packet.id,error,result:accepted?result.proposal:null,supplied:next.packet.memories.map(m=>m.sourceId),
                 ...(!accepted?{diagnostic:require('./gemini_reply').safeDiagnostic(result.diagnostic)}:{}),
@@ -187,12 +188,12 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(introOwner===id&&p.phase==='offer')p.suspended=false;
         const stage=practice.due(p);if(!stage)return {ok:false,error:'input'};
         const ticket=practiceTicket;practicePending=true;practiceArmed=true;busy=true;
-        try{const request=practiceProtocol.packet(state,p,stage),next=copy();practice.current(next.game).attempts[stage]='pending';next.game.walk.met=true;if(['offer','decision'].includes(stage))next.game.walk.encounter.phase='conversation';next.revision++;
+        try{const request=practiceProtocol.packet(state,p,stage),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free)next.game.walk.met=true;if(['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
             if(!persist(next,'practice-input',request.id).ok){blocked=true;return {ok:false,error:'save'};}state=next;log('practice_input',{packet:request});
             const result=await practiceResponder.reply(request);if(ticket!==practiceTicket)return {ok:false,error:'cancelled'};
             const accepted=result.ok&&practiceProtocol.validResult(result.proposal,stage,request.context),updated=copy();
             if(accepted)practice.finish(updated.game,stage,result.proposal);else{practice.current(updated.game).attempts[stage]='failed';practice.stop(updated.game,true);}
-            if(stage==='decision'||!accepted){updated.game.walk.encounter.phase='done';introOwner=null;}
+            if(stage==='decision'||!accepted){if(!p.free&&updated.game.walk.encounter)updated.game.walk.encounter.phase='done';introOwner=null;}
             updated.revision++;if(!persist(updated,'practice-completion',request.id).ok){blocked=true;practiceArmed=false;return {ok:false,error:'save'};}state=updated;
             log('practice_result',{id:request.id,error:accepted?null:result.error||'output',result:accepted?result.proposal:null,
                 ...(!accepted?{diagnostic:require('./gemini_reply').safeDiagnostic(result.diagnostic)}:{})});

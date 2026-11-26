@@ -97,7 +97,7 @@ if(!process.versions.electron){
         assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);assert.equal(requests.at(-1).inventory.open,false);
         assert.ok(await evaluate('document.getElementById("world-stage").contains(document.getElementById("inventory")) && !document.getElementById("chat-view").contains(document.getElementById("inventory"))'));
         assert.equal(await evaluate('document.querySelectorAll("#inventory .inventory-item svg[aria-hidden=true] path").length>0'),true);
-        assert.equal(await evaluate('document.querySelectorAll("#inventory .inventory-item").length'),1,'only actually held material is drawn');
+        assert.equal(await evaluate('document.querySelectorAll("#inventory .inventory-item").length'),2,'actual material and the once-awarded empty canteen are drawn');
         assert.equal(await evaluate('document.querySelectorAll("#inventory button,#inventory a,#inventory input,#inventory summary").length'),0);
         await evaluate('document.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));document.getElementById("inventory-title").click()');
         assert.equal(await evaluate('document.getElementById("inventory").hidden'),false);
