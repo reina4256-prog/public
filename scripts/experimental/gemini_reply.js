@@ -36,7 +36,8 @@ function errorKind(value) {
 // Fixed local failure facts only: never copy CLI text, diagnostics, tokens or a prompt.
 const failureReasons=['spawn','send','prestart_output','timeout','cancelled','output_size','stderr','stream_json','result_count','tool_use','cli_exit','cli_status','cli_error','response_text','protocol_decode'];
 function safeDiagnostic(value){return value&&value.version===1&&failureReasons.includes(value.reason)
-    ?{version:1,reason:value.reason,exitCode:Number.isInteger(value.exitCode)&&Math.abs(value.exitCode)<=2147483648?value.exitCode:null}:null;}
+    ?{version:1,reason:value.reason,exitCode:Number.isInteger(value.exitCode)&&Math.abs(value.exitCode)<=2147483648?value.exitCode:null,
+        ...(value.reason==='protocol_decode'&&['empty','fenced','object','array','quoted','other'].includes(value.shape)?{shape:value.shape}:{})}:null;}
 function valid(packet) {
     return packet && typeof packet.id === 'string' && /^[a-z0-9-]{1,80}$/.test(packet.id)
         && locales.includes(packet.locale) && typeof packet.input === 'string' && (packet.input.trim().length > 0 || packet.kind === 'initiative') && packet.input.length <= 4000
@@ -99,7 +100,7 @@ function createResponder(directory, options = {}) {
         const mark = name => { if (marks[name] === undefined) marks[name] = performance.now() - started; };
         let job;
         const promise = new Promise(resolve => {
-            let output = '', size = 0, child, timer, failure = 'failed', tail = '', observed = '';
+            let output = '', size = 0, child, timer, failure = 'failed', tail = '', observed = '', decodeShape;
             // Observe only event types and nonempty reply deltas. Never retain diagnostics or reasoning in timing data.
             const observe = line => {
                 try {
@@ -130,7 +131,7 @@ function createResponder(directory, options = {}) {
                 if (prepared === job) prepared = null;
                 if (child && child.exitCode == null) child.kill();
                 const offset = job.requestStarted - started;
-                if(!result.ok)result={...result,diagnostic:safeDiagnostic({version:1,reason:reason||result.error,exitCode})};
+                if(!result.ok)result={...result,diagnostic:safeDiagnostic({version:1,reason:reason||result.error,exitCode,shape:decodeShape})};
                 resolve(options.measure ? { ...result, timing: { version: 2,modelRequested:model,
                     prestart: { used: prestarted, ageMs: prestarted ? offset : 0,
                         initializedBeforeRequest: prestarted && marks.initialized !== undefined && marks.initialized < offset },
@@ -187,6 +188,7 @@ function createResponder(directory, options = {}) {
                         if (typeof text !== 'string' || !text || text.length > protocol.maxLength
                             || /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(text))return reject('response_text');
                         reason='protocol_decode';
+                        decodeShape=protocol.failureShape?.(text);
                         const decoded = protocol.decode(text);
                         if (!decoded)return reject(reason);
                         job.finish({ ...decoded, ok: true, source: 'antigravity-cli' });

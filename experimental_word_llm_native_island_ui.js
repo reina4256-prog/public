@@ -121,15 +121,21 @@
     const taskPanel=el('section',$('world-stage'));taskPanel.id='task-panel';taskPanel.hidden=true;taskPanel.setAttribute('aria-labelledby','task-title');
     const taskTitle=el('h3',taskPanel,'今の課題');taskTitle.id='task-title';
     const taskDetails=el('div',taskPanel);taskDetails.id='task-details';taskDetails.setAttribute('aria-live','polite');
-    function renderTask(g){const j=NativePractice.absence.current(g),p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),b=NativePractice.building(g),visit=(g.practices||[]).findLast(p=>p.builderEnabled),key=JSON.stringify([g.taskPanelOpen,j,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,b,g.walk?.builder?.met,visit?.phase,visit?.suspended,$('locale').value]);if(key===taskKey)return;taskKey=key;
+    function renderTask(g){const j=NativePractice.absence.current(g),p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),b=NativePractice.building(g),visit=(g.practices||[]).findLast(p=>p.builderEnabled),key=JSON.stringify([[g.home?.phase,g.home?.site,g.home?.confirmed,g.home?.request,g.home?.inside,g.home?.phase==='building'?Math.ceil((g.home.readyAt-g.home.now)/1000):null],g.taskPanelOpen,j,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,b,g.walk?.builder?.met,visit?.phase,visit?.suspended,$('locale').value]);if(key===taskKey)return;taskKey=key;
         taskPanel.hidden=g.taskPanelOpen!==true;taskDetails.replaceChildren();
+        if(g.walk?.builder?.met){el('p',taskDetails,g.home?'建築相談ができます。':'建築相談には二課題完了と建築士のハート3が必要です。');}
+        if(g.home){const h=g.home,b=NativePractice.building(g),bag=NativePractice.possessions(g,false);el('p',taskDetails,'マイホーム');
+            el('p',taskDetails,h.phase==='ready'?'完成しました。':h.phase==='building'?'建築中です。':h.request?'建築士との対面で了承を受けてください。':h.confirmed?'場所を確認しました。建築は別の明示依頼で頼んでください。':'家の場所は、会話で提案と確認をしてください。');
+            if(h.phase==='planning')el('p',taskDetails,t('追加で必要な材料：木材 {{0}} / 石 {{1}}',Math.max(0,8-b.held.wood-bag.wood),Math.max(0,4-b.held.stone-bag.stone)),'',true);
+            if(h.phase==='building')el('p',taskDetails,t('完成まで：約 {{0}} 秒',Math.max(0,Math.ceil((h.readyAt-h.now)/1000))),'',true);
+            el('p',taskDetails,'総費用は木材8個と石4個。預かり材を含み、工期は実時間10分です。着工後の取消・移築はできません。');}
         if(g.walk?.builder?.met){el('p',taskDetails,'建築士');
             for(const index of [0,1]){const phase=index<b.task.index?'完了':index>b.task.index||b.task.phase==='unstarted'?'未開始':b.task.phase==='partial'?'納入途中':'引受済み';
                 el('p',taskDetails,t('内容：{{0}}',t(index===0?'小屋の柱用の木材2個':'基礎用の石2個')),'',true);
                 el('p',taskDetails,t('進行：{{0}}',t(phase)),'',true);}
             if(visit?.suspended||['stopped','failed'].includes(visit?.phase))el('p',taskDetails,'中断しています。');
             el('p',taskDetails,t('建築預かり材：木材 {{0}} / 石 {{1}}',b.held.wood,b.held.stone),'',true);
-            el('p',taskDetails,'預かり材は将来の家の材料に全数使います。');}
+            if(!g.home?.payment)el('p',taskDetails,'預かり材は将来の家の材料に全数使います。');}
         if(j){el('p',taskDetails,'留守番採集');el('p',taskDetails,t('集めた数：{{0}} {{1}}',t(j.type==='wood'?'木材':'石'),j.total),'',true);
             el('p',taskDetails,j.status==='reserved'?'予約中（本編を離れてから開始）':j.status==='done'?'完了':j.status==='cancelled'?'今回は見送った':'再開のため停止中');
             if(j.reason==='resources')el('p',taskDetails,'資源の回復を待っています。');
@@ -164,6 +170,7 @@
             for(const [type,itemLabel]of [['wood','木材'],['stone','石'],['flower','花'],['water','水の入った水筒'],['canteen','空の水筒'],['compass','旅人の通信コンパス']]){const count=type==='compass'?(bag.compass?.owned?1:0):type==='canteen'?(bag.bottle==='empty'?1:0):bag[type];if(count){const slot=el('figure',$('inventory-items'),undefined,'inventory-item');slot.append(materialIcon(type));el('figcaption',slot,t(itemLabel)+' × '+count,'',true);}}
             if(!NativePractice.types.some(type=>bag[type])&&bag.bottle==='none'&&!bag.compass?.owned)el('p',$('inventory-items'),'まだ持ち物はありません。');}
         if(NativePractice.active(g))label=p.suspended?'一時停止':p.phase==='survey'?'探検している':p.phase==='return'?'戻っている':p.phase==='outbound'?'歩いている':p.phase==='consult'?'相談を待っている':label;
+        if(g.home?.travel)label='歩いている';
         $('energy').value=1-g.fatigue;$('fullness').value=1-g.hunger;$('activity').textContent=t(label);$('pause').textContent=t(paused?'再開':'一時停止');}
     const errors={login:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。',missing:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。',quota:'今日はお話をひと休み。またあとで話そうね。',save:'記録を安全に保存できませんでした。終了して保存先を確認してください。',cancelled:'返答を中止しました。原発言は残っています。',output:'返答の形式や出所を確認できませんでした。記憶候補は採用していません。',input:'入力を確認してください。',failed:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。'};
     $('setup').onsubmit=async event=>{event.preventDefault();if(blocked||busy||answers.length!==7||!strokes.length||pointer!==null||screen!=='setup')return;

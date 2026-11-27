@@ -73,6 +73,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     const log=(kind,data)=>{ try { record({kind,at:Date.now(),...data}); } catch (_) { /* Save remains the primary evidence. */ } };
     const persist=(value,stage,id=null,result=null)=>{const saved=store.save(value);if(!saved.ok)log('save_error',{id,stage,reason:saved.reason||'unknown',code:saved.code||null,result});return saved;};
     function syncRoaming(){if(!state?.game||blocked)return;const next=copy(),now=wallClock(),p=practice.current(next.game);let changed=false;
+        if(!next.game.home&&practice.home.eligible(next.game,practice)||next.game.home?.phase==='building'&&now>=next.game.home.readyAt){practice.home.refresh(next.game,now,practice);changed=true;}
         if(!busy&&next.game.walk?.roaming&&now>=next.game.walk.roaming.nextAt&&p&&!p.free&&!p.remote&&p.npc!=='building'&&['offer','decision','consult'].includes(p.phase)&&p.choice!=='accept'){practice.stop(next.game);changed=true;}
         if(core.game.walk.roam(next.game,now,busy))changed=true;
         if(!busy&&p?.npc==='building'&&now>=next.game.walk.builder.nextAt&&practice.active(next.game)){practice.stop(next.game);if(next.game.walk.encounter?.npc==='building')next.game.walk.encounter.phase='done';changed=true;}
@@ -98,10 +99,10 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         return blocked ? {ok:false,error:'save'} : {ok:true,state:copy()};
     }
     function leave(){load();resumeTicket++;resumeReady=null;resumeAudio=null;resumeResponder?.cancel();if(blocked)return {ok:false,error:'save'};
-        if(!state?.game||!mainActive)return {ok:true};const next=copy();absence.depart(next.game,wallClock());next.game.absence.lastCalendar=core.game.walk.calendar.snapshot(next.game.absence.now,next.game.calendarSettings,next.locale);
+        if(!state?.game||!mainActive)return {ok:true};const next=copy();if(next.game.home)delete next.game.home.travel;absence.depart(next.game,wallClock());next.game.absence.lastCalendar=core.game.walk.calendar.snapshot(next.game.absence.now,next.game.calendarSettings,next.locale);
         if(!persist(next,'leave-main').ok)return {ok:false,error:'save'};state=next;mainActive=false;return {ok:true};}
     function enter(){load();if(blocked||busy||!state?.game)return {ok:false,error:blocked?'save':'input'};
-        if(mainActive)return {ok:true,state:copy()};const next=copy(),now=wallClock();absence.install(next.game,now);
+        if(mainActive)return {ok:true,state:copy()};const next=copy(),now=wallClock();if(next.game.home)delete next.game.home.travel;practice.home.refresh(next.game,now,practice);absence.install(next.game,now);
         const a=next.game.absence,j=absence.current(next.game);
         // A crash has no known exit time. Use only the last successfully saved activity checkpoint.
         if(a.left===null&&a.lastActivity!==null&&j?.status==='reserved'){j.status='working';j.cursor=a.lastActivity;}
@@ -157,6 +158,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(!loaded||!state?.game)return {ok:true};
         if(!busy&&paused===false)syncRoaming();if(blocked)return {ok:false,error:'save'};
         if(!busy&&paused===false){
+            practice.home.refresh(state.game,wallClock(),practice);
             if(!state.game.absence)absence.install(state.game,wallClock());
             if(mainActive){absence.advance(state.game,wallClock());state.game.absence.lastActivity=Math.max(state.game.absence.lastActivity||0,state.game.absence.now);state.game.absence.lastCalendar=core.game.walk.calendar.snapshot(state.game.absence.now,state.game.calendarSettings,state.locale);}
             const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events?.length;core.game.tick(state.game,seconds);

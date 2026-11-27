@@ -1,9 +1,10 @@
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_llm_native_walk'):root.NativeWalk,
     typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception,
     typeof module==='object'&&module.exports?require('./experimental_word_llm_native_compass'):root.NativeCompass,
-    typeof module==='object'&&module.exports?require('./experimental_word_llm_native_absence'):root.NativeAbsence);
+    typeof module==='object'&&module.exports?require('./experimental_word_llm_native_absence'):root.NativeAbsence,
+    typeof module==='object'&&module.exports?require('./experimental_word_llm_native_home'):root.NativeHome);
     if(typeof module==='object'&&module.exports)module.exports=api;else root.NativePractice=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(walk,perception,compass,absence){
+})(typeof globalThis!=='undefined'?globalThis:this,function(walk,perception,compass,absence,home){
     'use strict';
     const slots=['offer','decision','observe1','observe2','report','feedback'];
     const phases=['offer','decision','consult','outbound','survey','return','report','feedback','done','declined','stopped','failed'];
@@ -96,14 +97,16 @@
     function possessions(g,details=true,report=false){const items=g.inventory?.items||[],counts=Object.fromEntries(types.map(t=>[t,items.filter(i=>i.type===t).length])),result={open:g.inventory?.open||false,...counts,bottle:bottle(g)};
         if(g.absence){const info=absence.summary(g);if(info){if(JSON.stringify(info).length>800)throw Error('absence_budget');result.absence=info;}}
         if(report)return result;
+        if(details&&g.home)result.home=home.summary(g,walk,{building,possessions});
         if(g.walk?.builder?.met)result.building=building(g);
         if(!details)return {...result,...(compass.received(g)?{compass:compass.snapshot(g)}:{})};const available=giftOptions(g,current(g));Object.assign(result,{reserved:Object.fromEntries(types.map(t=>[t,counts[t]-available[t]])),memory:giftMemory(g),targets:targets(g),compass:compass.snapshot(g)});
         while(result.memory.length&&JSON.stringify(result).length>1200)result.memory.shift();
+        if(g.home?.inside)result.targets=[];
         while(result.absence?.quote?.length>80&&JSON.stringify(result).length>1200)result.absence.quote=result.absence.quote.slice(0,-10);
         if(result.absence&&JSON.stringify(result).length>1200)delete result.building;
         while(result.absence?.quote?.length>1&&JSON.stringify(result).length>1200)result.absence.quote=result.absence.quote.slice(0,-1);
         while(result.targets.length&&JSON.stringify(result).length>1200)result.targets.pop();if(JSON.stringify(result).length>1200)throw Error('inventory_budget');return result;}
-    function validPossessions(v){return keys(v,['open',...types,'bottle','reserved','memory','targets','compass','building','absence'])&&(v.absence===undefined||absence.validSummary(v.absence))&&(v.building===undefined||validBuilding(v.building))&&(v.compass===undefined||compass.validSnapshot(v.compass))&&typeof v.open==='boolean'&&['wood','stone'].every(k=>Number.isSafeInteger(v[k])&&v[k]>=0)
+    function validPossessions(v){return keys(v,['open',...types,'bottle','reserved','memory','targets','compass','building','absence','home'])&&(v.home===undefined||home.validSummary(v.home))&&(v.absence===undefined||absence.validSummary(v.absence))&&(v.building===undefined||validBuilding(v.building))&&(v.compass===undefined||compass.validSnapshot(v.compass))&&typeof v.open==='boolean'&&['wood','stone'].every(k=>Number.isSafeInteger(v[k])&&v[k]>=0)
         &&['flower','water'].every(k=>v[k]===undefined||Number.isSafeInteger(v[k])&&v[k]>=0)&&(v.bottle===undefined||['none','empty','full'].includes(v.bottle))
         &&(v.reserved===undefined||keys(v.reserved,types)&&types.every(t=>Number.isSafeInteger(v.reserved[t])&&v.reserved[t]>=0))&&(v.memory===undefined||validMemory(v.memory))
         &&(v.targets===undefined||JSON.stringify(v).length<=1200&&Array.isArray(v.targets)&&v.targets.length<=6&&v.targets.every(t=>keys(t,['id','types','reachable'])&&/^chip:(?:mountain_|palms_)/.test(t.id)&&t.id.length<=80&&typeof t.reachable==='boolean'&&Array.isArray(t.types)&&new Set(t.types).size===t.types.length&&t.types.every(type=>sourceTypes(t.id).includes(type))));}
@@ -115,7 +118,7 @@
         bag.items.push({id:p.target+':'+(p.free?type:'material')+':'+index,type,target:p.target,practice:p.id,step,at:g.elapsed});}
     function validInventory(g){const expected=[],counts=new Map();
         if(g.practices!==undefined&&!Array.isArray(g.practices))return false;
-        let ownedBottle=false;const remaining=[];let gifts=0;
+        let ownedBottle=false;const remaining=[];let gifts=0;const legacySpent=(g.inventory?.spent||[]).filter(s=>!s.by?.startsWith('house-'));
         for(const r of g.absence?.acquisitions||[])if(r.item.practice.startsWith('away-')){expected.push(r.item);remaining.push(r.item);}
         for(const p of g.practices||[]){if(p?.remote)continue;if(!p||!Array.isArray(p.events))return false;
             if(p.bottleAward){if(ownedBottle||!p.exchange||!['offer','feedback'].includes(p.bottleAward.slot)||p.attempts?.[p.bottleAward.slot]!=='complete'
@@ -131,16 +134,17 @@
                 const item={id:p.target+':'+(p.free?type:'material')+':'+n,type,target:p.target,practice:p.id,step:index+1,at:e.at};expected.push(item);remaining.push(item);}
             if(p.bottleAward?.slot==='feedback')ownedBottle=true;
             if(builderDelivery(p.builderAction))for(const id of p.builderAction.items){const i=remaining.findIndex(i=>i.id===id&&i.type===(p.builderAction.task===0?'wood':'stone'));if(i<0)return false;
-                const item=remaining.splice(i,1)[0],spent=g.inventory?.spent?.[gifts++];if(!spent||spent.by!==p.id||!keys(spent,['by','item'])||JSON.stringify(spent.item)!==JSON.stringify(item))return false;}
+                const item=remaining.splice(i,1)[0],spent=legacySpent[gifts++];if(!spent||spent.by!==p.id||!keys(spent,['by','item'])||JSON.stringify(spent.item)!==JSON.stringify(item))return false;}
             if(p.gift){const gift=p.gift,line=p.lines?.find(l=>l.slot===gift.slot),i=remaining.findIndex(i=>i.id===gift.itemId&&i.type===gift.type);
                 if(!p.exchange||p.free||!['decision','report'].includes(gift.slot)||gift.slot==='decision'&&p.choice!=='decline'||!line?.text.includes(gift.quote)||!short(gift.quote,300)||i<0||!keys(gift,['itemId','type','slot','quote','response']))return false;
                 if(gift.slot==='report'&&remaining.filter(i=>i.type===gift.type).length-(gift.type===itemType(p)?2:0)<1)return false;
                 if(gift.response){const r=gift.response,reply=p.lines?.find(l=>l.slot==='feedback');
                     if(!keys(r,['accepted','quote'])||typeof r.accepted!=='boolean'||!short(r.quote,120)||!reply?.text.includes(r.quote)||p.attempts.feedback!=='complete')return false;
-                    if(r.accepted){const item=remaining.splice(i,1)[0],spent=g.inventory?.spent?.[gifts++];if(!spent||spent.by!==p.id||JSON.stringify(spent.item)!==JSON.stringify(item)||!keys(spent,['by','item']))return false;}}}}
+                    if(r.accepted){const item=remaining.splice(i,1)[0],spent=legacySpent[gifts++];if(!spent||spent.by!==p.id||JSON.stringify(spent.item)!==JSON.stringify(item)||!keys(spent,['by','item']))return false;}}}}
+        for(const id of g.home?.payment?.items||[]){const i=remaining.findIndex(i=>i.id===id),s=g.inventory?.spent?.find(s=>s.item?.id===id&&s.by==='house-'+g.home.payment.source);if(i<0||!s||!keys(s,['by','item'])||JSON.stringify(s.item)!==JSON.stringify(remaining[i]))return false;remaining.splice(i,1);}
         if(g.inventory===undefined)return expected.length===0;const bag=g.inventory,byId=new Map((bag.items||[]).map(i=>[i.id,i]));
         return keys(bag,['version','open','items','spent'])&&bag.version===1&&typeof bag.open==='boolean'&&Array.isArray(bag.items)&&bag.items.length===remaining.length
-            &&(bag.spent===undefined||Array.isArray(bag.spent)&&bag.spent.length===gifts)&&byId.size===bag.items.length&&remaining.every(e=>{const i=byId.get(e.id);return i&&Object.keys(e).every(k=>i[k]===e[k]);})
+            &&(bag.spent===undefined||Array.isArray(bag.spent)&&bag.spent.length===gifts+(g.home?.payment?.items.length||0))&&byId.size===bag.items.length&&remaining.every(e=>{const i=byId.get(e.id);return i&&Object.keys(e).every(k=>i[k]===e[k]);})
             &&new Set(expected.map(i=>i.id)).size===expected.length&&(g.absence||expected.length<=Object.keys(g.island.assets).length*8)
             &&bag.items.every(i=>keys(i,['id','type','target','practice','step','at'])&&typeof i.target==='string'&&/^chip:(?:mountain_|palms_)/.test(i.target)
                 &&!!perception.asset(g,i.target)&&types.includes(i.type)&&[1,2].includes(i.step)
@@ -153,7 +157,7 @@
         if(!previous.has(end))return null;const result=[];for(let i=end;i!==null;i=previous.get(i))result.unshift({x:nodes[i].x/800,y:nodes[i].y/480});return result;}
     function event(g,p,kind){p.events.push({kind,at:g.elapsed,x:g.x,y:g.y});}
     function create(g,arrival,allowIntroduction=true){
-        if(g.mode!=='idle'||active(g)||!g.receipts.some(r=>r.id===arrival.id&&r.target===arrival.target&&r.kind==='walk'))return null;
+        if(g.mode!=='idle'||active(g)||(g.practices||[]).some(p=>p.id===arrival.id)||!g.receipts.some(r=>r.id===arrival.id&&r.target===arrival.target&&r.kind==='walk'))return null;
         const builder=arrival.npc==='building';
         const introduce=allowIntroduction&&!builder&&!introduced(g)&&relationship(g).hearts>=3
             ?perception.chips(g).find(c=>walk.forest(c.id)&&c.id!==arrival.target&&walk.plan(g,c.id))?.id:null;
@@ -185,7 +189,8 @@
         const spent=[...records.filter(p=>p.gift?.response?.accepted&&seen(p,'feedback')).map(p=>p.gift.itemId),...records.filter(p=>builderDelivery(p.builderAction)&&seen(p,'decision')).flatMap(p=>p.builderAction.items)],owned=records.some(p=>p.bottleAward&&seen(p,p.bottleAward.slot));
         const newer=g.absence?.acquisitions||[],permitted=new Set(newer.slice(0,acquisitionCount).map(r=>r.item.id));
         const items=allItems(g).filter(i=>(records.some(p=>p.id===i.practice)||i.practice.startsWith('away-')&&permitted.has(i.id))&&i.at<=at&&!spent.includes(i.id)&&(!newer.some(r=>r.item.id===i.id)||permitted.has(i.id)));
-        return {...Object.fromEntries(types.map(type=>[type,items.filter(i=>i.type===type).length])),bottle:owned?(items.some(i=>i.type==='water')?'full':'empty'):'none'};}
+        const paid=records.some(p=>p.id===g.home?.payment?.practice&&seen(p,'decision'))?g.home.payment.items:[];
+        return {...Object.fromEntries(types.map(type=>[type,items.filter(i=>i.type===type&&!paid.includes(i.id)).length])),bottle:owned?(items.some(i=>i.type==='water')?'full':'empty'):'none'};}
     function validInventorySnapshot(g,t){const v=t.inventory,evidence=t.inventoryEvidence,counts=historicalPossessions(g,t.gameAt,t.practice,evidence?.count);if(!validPossessions(v)||!types.every(type=>v[type]===undefined||v[type]===counts[type])||v.bottle!==undefined&&v.bottle!==counts.bottle||evidence&&(!keys(evidence,['count','at'])||!Number.isSafeInteger(evidence.count)||evidence.count<0||evidence.count>(g.absence?.acquisitions.length||0)||!Number.isFinite(evidence.at)||evidence.at<g.absence.installed||evidence.at>g.absence.now))return false;
         if(v.absence){const a=v.absence;if(a.source&&!g.absence?.jobs.some(j=>j.source===a.source&&j.quote.startsWith(a.quote)&&j.type===a.type&&a.total===g.absence.acquisitions.slice(0,evidence?.count||0).filter(r=>r.item.practice===j.id).length))return false;
             if(a.current&&![...(g.absence?.reportHistory||[]),g.absence?.report].some(r=>r&&r.at===a.current&&r.from===a.previous&&r.seconds===a.seconds))return false;}
@@ -210,6 +215,7 @@
     function context(g,p=current(g)){
         if(p?.remote)return compass.context(g,p);
         if(p?.npc==='building')return {id:p.id,goal:'builder-visit',phase:p.phase,suspended:p.suspended,target:{id:p.target,kind:'forest'},home:p.homeTarget,choice:p.choice,results:[],experience:[],
+            ...(home.context(g,{building,possessions},p)?{construction:home.context(g,{building,possessions},p)}:{}),
             ...(p.builderEnabled?{building:building(g,p,true),...(p.builderOffer&&p.phase==='decision'?{builderOffer:p.builderOffer.quote}:{})}:{})};
         if(!p)return null;const asset=perception.asset(g,p.target),c={id:p.id,goal:'survey-and-return',phase:p.phase,suspended:p.suspended,
             target:{id:p.target,kind:p.target.startsWith('chip:mountain_')?'mountain':'forest'},home:p.homeTarget,
@@ -226,7 +232,7 @@
         if(JSON.stringify(c).length>1200)throw Error('practice_budget');return c;
     }
     function validContext(c){if(c?.goal==='compass-call')return compass.validContext(c)&&(c.calendar===undefined||walk.calendar.valid(c.calendar));
-        if(c?.goal==='builder-visit')return keys(c,['id','goal','phase','suspended','target','home','choice','results','experience','calendar','meeting','link','building','builderOffer','available','heard','delivery'])&&(!c.link||validLink(c.link))
+        if(c?.goal==='builder-visit')return keys(c,['id','goal','phase','suspended','target','home','choice','results','experience','calendar','meeting','link','building','builderOffer','available','heard','delivery','construction'])&&(!c.construction||home.validContext(c.construction))&&(!c.link||validLink(c.link))
         &&(c.building===undefined||validBuilding(c.building))&&(c.builderOffer===undefined||short(c.builderOffer,120))&&(c.available===undefined||Number.isInteger(c.available)&&c.available>=0&&c.available<=2)
         &&(c.heard===undefined||validSpeech(c.heard)&&c.heard.every(l=>l.slot==='decision'))&&(c.delivery===undefined||keys(c.delivery,['type','count'])&&['wood','stone'].includes(c.delivery.type)&&[1,2].includes(c.delivery.count))
         &&/^event-[1-9]\d*$/.test(c.id)&&phases.includes(c.phase)&&typeof c.suspended==='boolean'&&keys(c.target,['id','kind'])&&walk.forest(c.target.id)&&c.target.id.length<=80&&c.target.kind==='forest'&&c.home===c.target.id
@@ -271,6 +277,9 @@
         if(p.remote){p.lines.pop();compass.finish(g,p,slot,result,now);return;}
         compass.applyFace(g,p,slot,result,now);
         if(p.npc==='building'&&slot==='offer')g.walk.builder.met=true;
+        if(p.npc==='building'&&result.homeConsent&&['offer','decision'].includes(slot)&&g.home?.request&&g.home.phase==='planning'&&short(result.homeConsent.quote,120)&&result.text.includes(result.homeConsent.quote)){
+            (p.homeConsent||(p.homeConsent={}))[slot]={quote:result.homeConsent.quote,source:g.home.request.turn};
+            if(slot==='decision'){home.refresh(g,now,{building,possessions});home.commit(g,p,{building,possessions});}}
         if(p.builderEnabled&&slot==='offer'&&result.builderOffer){const b=building(g,p,false),q=result.builderOffer.quote;
             if(b.task.index<2&&(b.task.phase!=='unstarted'||b.hearts>=1)&&short(q,120)&&result.text.includes(q))p.builderOffer={task:b.task.index,quote:q};}
         if(p.builderEnabled&&slot==='decision'&&result.builderChoice){const b=building(g,p,false),a=result.builderChoice,c={building:b,builderOffer:p.builderOffer?.quote,available:Math.min(2,(g.inventory?.items||[]).filter(i=>i.type===b.task.type).length)};
@@ -318,7 +327,8 @@
     function valid(g){if(!validBuilderRecords(g)||!validInventory(g))return false;if(g.practices===undefined)return !g.walk?.builder;if(!Array.isArray(g.practices)||(g.practices.filter(p=>p.introduction).length>1)||!!g.walk?.builder!==!!introduced(g)
         ||g.walk?.builder&&g.walk.builder.met!==(g.practices||[]).some(p=>p.npc==='building'&&p.lines.some(l=>l.slot==='offer')))return false;const ids=new Set(),nodes=walk.graph(g);
         const onNode=p=>point(p)&&nodes.some(n=>distance(p,{x:n.x/800,y:n.y/480})<.01);
-        return g.practices.every((p,index)=>{if(p.remote)return !ids.has(p.id)&&!!ids.add(p.id)&&compass.validRemote(g,p,index);if(!compass.validFace(g,p,index)||!(p.linkEnabled===undefined||p.linkEnabled===true)||!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice','gather','social','affinity','decisionAudience','exchange','bottleAward','gift','reception','free','material','origin','visit','npc','introduce','introduction','linkOffer','linkAccept','linkEnabled','builderEnabled','builderOffer','builderAction'])||!(p.gather===undefined||p.gather===true)
+        return g.practices.every((p,index)=>{if(p.remote)return !ids.has(p.id)&&!!ids.add(p.id)&&compass.validRemote(g,p,index);if(!compass.validFace(g,p,index)||!(p.linkEnabled===undefined||p.linkEnabled===true)||!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice','gather','social','affinity','decisionAudience','exchange','bottleAward','gift','reception','free','material','origin','visit','npc','introduce','introduction','linkOffer','linkAccept','linkEnabled','builderEnabled','builderOffer','builderAction','homeConsent'])||!(p.gather===undefined||p.gather===true)
+            ||p.homeConsent&&(!p.npc||!keys(p.homeConsent,['offer','decision'])||!Object.entries(p.homeConsent).every(([slot,c])=>keys(c,['source','quote'])&&/^turn-[1-9]\d*$/.test(c.source)&&short(c.quote,120)&&p.attempts[slot]==='complete'&&p.lines.find(l=>l.slot===slot)?.text.includes(c.quote))||p.homeConsent.decision&&!p.homeConsent.offer)
             ||p.npc!==undefined&&(p.npc!=='building'||!p.visit||p.social||p.exchange||p.introduce||p.target!==p.homeTarget||!walk.forest(p.target)||p.lines.some(l=>!['offer','decision','feedback'].includes(l.slot)))
             ||p.introduce!==undefined&&(!p.visit||!p.social||relationship(g,p).hearts<3||!walk.forest(p.introduce)||!perception.asset(g,p.introduce)||p.introduce===p.homeTarget)
             ||p.introduction!==undefined&&(!p.introduce||!keys(p.introduction,['quote','at'])||!short(p.introduction.quote,120)||!Number.isSafeInteger(p.introduction.at)||p.introduction.at<0||!p.lines.find(l=>l.slot==='offer')?.text.includes(p.introduction.quote))
@@ -344,6 +354,6 @@
                 if(p===current(g)&&distance(g,p.route[0])>51)return false;}
             return true;});}
     return {slots,current,active,create,createFree,context,due,finish,decide,stop,suspend,resolve,tick,valid,route,ackOnly,supply,validSupply,validContext,validSpeech,inventory,possessions,validPossessions,relationship,validRelationship,validAffinity,heard,
-        types,allItems,bottle,targets,validGather,gatheringDirective,socialContext,validExchange,historicalPossessions,validInventorySnapshot,giftMemory,finding,introduction,validIntroduction,compass,absence,
+        types,allItems,bottle,targets,validGather,gatheringDirective,socialContext,validExchange,historicalPossessions,validInventorySnapshot,giftMemory,finding,introduction,validIntroduction,compass,absence,home,
         building,validBuilding,validBuilderChoice,validBuilderAffinity,builderDelivery};
 });

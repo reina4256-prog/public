@@ -1,7 +1,8 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.NativePerception=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
     'use strict';
     const id=key=>'chip:'+key;
-    function asset(g,target){return typeof target==='string'&&target.startsWith('chip:')?g?.island?.assets?.[target.slice(5)]:null;}
+    function asset(g,target){if(target==='chip:player_home'&&g.home?.site&&['building','ready'].includes(g.home.phase)){const s=g.home.site;return {type:'building',name:'マイホーム',dx:s.x*800-22,dy:s.y*480-48,sw:44,sh:58,scale:1};}
+        return typeof target==='string'&&target.startsWith('chip:')?g?.island?.assets?.[target.slice(5)]:null;}
     function chips(g){
         const camera={x:g.x*800-400,y:g.y*480-240};
         const all=Object.entries(g.island.assets).flatMap(([key,a])=>{
@@ -30,10 +31,14 @@
         const focus=g.focus&&(visible.some(p=>p.id===g.focus.targetId)||reported?.id===g.focus.targetId)?g.focus.targetId:null;
         const result={perception:'map-chips',location:'island',currentAction:g.mode,target:g.destination,hunger:g.hunger,fatigue:g.fatigue,
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
+        if(g.home?.inside){result.location='home';result.visible=[];result.focus=null;result.results=[];}
+        if(g.home?.travel){result.currentAction='move';result.homeTravel=true;result.target='chip:player_home';}
         if(reported)result.reported=reported;
         if(walk&&g.walk?.search)result.search=walk.searchSupply(g);
         if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&(visible.some(p=>p.id===result.confirmed)||reported?.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
             result.availableActions=g.mode==='move'?['stop']:result.walkable?['walk']:[];}
+        if(g.home?.inside){result.focus=null;result.confirmed=null;result.walkable=false;result.availableActions=[];}
+        if(g.home?.travel){result.focus=null;result.confirmed=null;result.walkable=false;result.availableActions=['stop'];}
         while(JSON.stringify(result).length>2000&&visible.length)visible.pop();
         if(!visible.some(p=>p.id===result.focus)&&reported?.id!==result.focus)result.focus=null;
         if(Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)&&reported?.id!==result.confirmed){result.walkable=false;result.availableActions=g.mode==='move'?['stop']:[];}

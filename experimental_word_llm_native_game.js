@@ -30,7 +30,7 @@
         if(!practice.absence.validRoutes(g,walk,practice))return false;
         const origin=questions.resolve(g.origin.answers);
         if(origin.appearance!==g.origin.appearance||JSON.stringify(origin.settings)!==JSON.stringify(g.origin.settings))return false;
-        return practice.valid(g)&&practice.absence.valid(g)&&(g.calendarSettings===undefined||walk.calendar.validSettings(g.calendarSettings))&&(g.affinityPanelOpen===undefined||typeof g.affinityPanelOpen==='boolean')&&(g.taskPanelOpen===undefined||typeof g.taskPanelOpen==='boolean')&&(g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
+        return practice.valid(g)&&practice.home.valid(g,practice,walk)&&practice.absence.valid(g)&&(g.calendarSettings===undefined||walk.calendar.validSettings(g.calendarSettings))&&(g.affinityPanelOpen===undefined||typeof g.affinityPanelOpen==='boolean')&&(g.taskPanelOpen===undefined||typeof g.taskPanelOpen==='boolean')&&(g.perception===undefined||g.perception===2)&&(!g.focus||(perception.asset(g,g.focus.targetId)&&/^turn-[1-9]\d*$/.test(g.focus.turnId)&&typeof g.focus.quote==='string'))
             &&(g.perception!==2||navigation.valid(g.island)&&Array.isArray(g.route)&&Array.isArray(g.receipts)&&walk.valid(g))
             &&navigation.valid(g.island)&&['x','y','elapsed','hunger','fatigue','remaining','growth'].every(k=>finite(g[k]))&&g.growth>=0&&g.growth<65
             &&g.elapsed>=0&&g.hunger>=0&&g.hunger<=1&&g.fatigue>=0&&g.fatigue<=1&&g.remaining>=0
@@ -53,6 +53,8 @@
     }
     function apply(g,action,cause,packet){
         if(action===null)return {accepted:true};
+        if(g.home?.travel&&action?.kind==='stop'){delete g.home.travel;return {accepted:true};}
+        if(g.home?.inside||g.home?.travel)return {accepted:false,reason:'busy'};
         if(practice.active(g))return {accepted:false,reason:'busy'};
         if(g.perception===2)return typeof action==='object'&&packet?walk.apply(g,action,cause,packet):{accepted:false,reason:'unavailable'};
         if(!actions.includes(action)||!/^turn-[1-9]\d*$/.test(cause)||g.mode!=='idle')return {accepted:false,reason:'busy'};
@@ -63,7 +65,7 @@
     }
     function tick(g,seconds){
         const dt=Math.min(.1,Math.max(0,seconds));if(!finite(dt)||dt===0)return;
-        if(g.perception===2){g.elapsed+=dt;if(practice.active(g))practice.tick(g,dt);else walk.tick(g,dt);perception.observe(g);return;}
+        if(g.perception===2){g.elapsed+=dt;if(g.home?.travel)practice.home.tick(g,dt);else if(!g.home?.inside){if(practice.active(g))practice.tick(g,dt);else walk.tick(g,dt);perception.observe(g);}return;}
         g.elapsed+=dt;g.hunger=Math.min(1,g.hunger+dt/180);g.fatigue=Math.min(1,Math.max(0,g.fatigue+(g.mode==='rest'?-dt/28:dt/220)));
         if(g.fruit<3){g.growth+=dt;if(g.growth>=65){g.fruit++;g.growth=0;}}else g.growth=0;
         if(g.mode==='move'){

@@ -1,4 +1,21 @@
 (function() {
+    // The native game's first hut shares this indoor owner, without unlocking
+    // legacy furniture, concierge, storage, recovery or apprenticeship systems.
+    if(window.NativeHome){
+        window.NativeHomeInterior={draw(context,width,height){
+            context.fillStyle='#24333a';context.fillRect(0,0,width,height);
+            const x=width*.12,y=height*.15,w=width*.76,h=height*.7;
+            context.fillStyle='#b78655';context.fillRect(x,y,w,h);
+            context.strokeStyle='#78553d';context.lineWidth=2;
+            for(let n=1;n<8;n++){context.beginPath();context.moveTo(x,y+h*n/8);context.lineTo(x+w,y+h*n/8);context.stroke();}
+            context.strokeStyle='#e1c299';context.lineWidth=12;context.strokeRect(x,y,w,h);
+            context.fillStyle='#24333a';context.fillRect(width*.46,y+h-8,width*.08,20);
+            context.fillStyle='#684a35';context.fillRect(x+w*.72,y+h*.12,w*.2,h*.35);
+            context.fillStyle='#e9dfc5';context.fillRect(x+w*.74,y+h*.14,w*.16,h*.08);
+            context.fillStyle='#7b9c91';context.fillRect(x+w*.74,y+h*.24,w*.16,h*.2);
+        }};
+        return;
+    }
     const TILE_W = 250;
     const TILE_H = 250;
     const MYHOME_MAP_LV1 = [

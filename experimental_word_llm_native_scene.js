@@ -18,14 +18,20 @@ window.NativeScene={
         aiPet.type=aiPet.baseType=aiPet.currentSkin=skin;aiPet.x=game.x*800;aiPet.y=game.y*480;
         const practice=window.NativePractice.current(game),practiceRoute=practice&&!practice.suspended?practice.route:[],travel=practiceRoute?.length>0&&!window.NativePracticeUI?.pending&&!window.NativePractice.due(practice);
         const searching=practice?.phase==='survey'&&practice.gather&&!practice.suspended&&!practiceRoute.length&&practice.surveyIndex<2&&!window.NativePracticeUI?.pending&&!NativePractice.due(practice);
-        aiPet.actionState=game.mode==='move'||travel?'moving':'idle';aiPet.visualAction=game.mode==='rest'?'sleep':game.mode==='eat'?'eat_raw':'idle';
-        const frames=aiConfigs[skin].actions[game.mode==='move'||travel?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
+        const homeRoute=game.home?.travel?.route||[],moving=game.mode==='move'||travel||homeRoute.length>0;
+        aiPet.actionState=moving?'moving':'idle';aiPet.visualAction=game.mode==='rest'?'sleep':game.mode==='eat'?'eat_raw':'idle';
+        const frames=aiConfigs[skin].actions[moving?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
         aiPet.frameIndex=reduced?0:Math.floor(time/.25)%frames.length;
-        const next=(practiceRoute?.length?practiceRoute:game.route).find(p=>Math.hypot(p.x-game.x,p.y-game.y)>.00001);
+        const next=(homeRoute.length?homeRoute:practiceRoute?.length?practiceRoute:game.route).find(p=>Math.hypot(p.x-game.x,p.y-game.y)>.00001);
+        if(game.home?.inside){camera.x=0;camera.y=0;NativeHomeInterior.draw(ctx,canvas.width,canvas.height);aiPet.x=canvas.width*.5;aiPet.y=canvas.height*.64;drawAICharacter();return;}
         if(next&&Math.abs(next.x-game.x)>.00001)aiPet.flip=next.x<game.x;
         if(searching&&!reduced)aiPet.flip=Math.floor(time/1.1)%2===1;
         const reported=(game.practices||[]).findLast(p=>p.remote?.target)?.remote,targetAsset=reported&&game.focus&&reported.target===game.focus.targetId&&!this.visible(game).some(p=>p.id===game.focus.targetId)?NativePerception.asset(game,reported.target):null;
         camera.x=(targetAsset?targetAsset.dx+targetAsset.sw*targetAsset.scale/2:aiPet.x)-canvas.width/2;camera.y=(targetAsset?targetAsset.dy+targetAsset.sh*targetAsset.scale/2:aiPet.y)-canvas.height/2;render();
+        const house=game.home;if(house?.site){const x=house.site.x*800-camera.x,y=house.site.y*480-camera.y;
+            if(house.phase==='planning'&&!game.focus)this.drawTarget({x:x/800,y:y/480,width:.055,height:.06});
+            else if(house.phase==='building'){ctx.save();ctx.strokeStyle='#e8cf9b';ctx.lineWidth=3;ctx.strokeRect(x-20,y-12,40,20);ctx.restore();}
+            else if(house.phase==='ready'){ctx.save();ctx.fillStyle='#ac7648';ctx.fillRect(x-20,y-32,40,40);ctx.fillStyle='#5f3c37';ctx.beginPath();ctx.moveTo(x-25,y-32);ctx.lineTo(x,y-52);ctx.lineTo(x+25,y-32);ctx.closePath();ctx.fill();ctx.fillStyle='#302c30';ctx.fillRect(x-5,y-12,10,20);ctx.restore();}}
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);

@@ -8,6 +8,23 @@ const { configuration, createResponder, valid, prompt } = require('../scripts/ex
 const packet = () => ({ id: 'fixture-1', locale: 'ja', input: 'What is the moon?', nativeText: 'The child is looking at you.',
     character: { name: 'Raw name', self: 'I', player: 'you', species: 'robot' }, recent: [] });
 
+test('native JSON adapter unwraps only an entire JSON fence and retains semantic validation',()=>{
+    const core=require('../experimental_word_llm_native_runtime'),p=core.protocol,raw=JSON.stringify({reply:'private text',away:{kind:'start',type:'wood'}});
+    for(const s of [raw,'```json\n'+raw+'\n```','```\r\n'+raw+'\r\n```'])assert.deepEqual(p.decode(s),{proposal:JSON.parse(raw)});
+    for(const s of ['Explanation '+raw,'```js\n'+raw+'\n```','```json\n'+raw+'\n``` trailing','```json\n'+raw+'\n```\n```json\n{}\n```','{"away": optional}','[]','null','"text"',raw+raw])assert.equal(p.decode(s),null,s);
+    assert.equal(core.validResult(p.decode(raw).proposal,{world:{}}),false);
+    const {safeDiagnostic}=require('../scripts/experimental/gemini_reply');
+    assert.deepEqual(safeDiagnostic({version:1,reason:'protocol_decode',shape:'fenced',raw:'private text'}),{version:1,reason:'protocol_decode',exitCode:null,shape:'fenced'});
+    assert.deepEqual(safeDiagnostic({version:1,reason:'protocol_decode',shape:'private text'}),{version:1,reason:'protocol_decode',exitCode:null});
+});
+
+test('native decode failure reports a fixed shape without retaining output or retrying',async t=>{
+    const native=require('../experimental_word_llm_native_runtime').protocol;
+    const s=setup(t,{protocol:{...native,valid:()=>true,prompt:()=>''}}),pending=s.responder.reply(packet());
+    s.finish({response:'```json\n{"private text": unfinished}\n```'});const r=await pending;
+    assert.deepEqual(r.diagnostic,{version:1,reason:'protocol_decode',exitCode:0,shape:'fenced'});assert.equal(s.calls.length,1);assert.ok(!JSON.stringify(r).includes('private'));s.responder.dispose();
+});
+
 test('CLI failures distinguish invalid replies from transport errors without retaining raw data or retrying',async t=>{
     for(const [value,code,error,reason]of [
         [{response:'secret invalid reply'},0,'output','protocol_decode'],
