@@ -15863,5 +15863,10 @@
   "南半球": "Southern hemisphere",
   "日時は選んだ地域に、季節は選んだ半球に合わせます。": "Date and time follow your chosen region; seasons follow your chosen hemisphere.",
   "日時と季節の設定を保存しました。": "Date, time and season settings saved.",
-  "設定を保存できませんでした。": "Could not save settings."
+  "設定を保存できませんでした。": "Could not save settings.",
+  "旅人の通信コンパス": "Traveler’s communication compass",
+  "コンパス通信：{{0}}": "Compass call: {{0}}",
+  "受信した場所：{{0}}": "Received location: {{0}}",
+  "受信：{{0}}": "Received: {{0}}",
+  "待ち合わせ期限：{{0}}": "Meeting deadline: {{0}}"
 }

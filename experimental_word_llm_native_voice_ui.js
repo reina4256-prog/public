@@ -54,7 +54,7 @@
     $('voice-listen').onclick=()=>{if(!waiting&&!broken&&!locked)void play({kind:'preview',voice:$('voice-choice').value,locale});};
     $('voice-stop').onclick=stop;$('voice-apply').onclick=()=>void save();
     const ready=load();
-    window.NativeVoiceUI={ready,stop,prime,save,lock(value){locked=value;buttons();},
+    window.NativeVoiceUI={ready,stop,prime,save,get pending(){return waiting||!!source;},lock(value){locked=value;buttons();},
         mount(container,appearance,language){stop();species=appearance;locale=language;container.append($('voice-panel'));
             $('voice-description').textContent=t(species==='mentor-adventurer'?'冒険家の声の特徴をえらぼう。':'小さく丸い、不思議な生き物の声をもとに、好きな特徴をえらぼう。');
             // A failed reply voice must remain visible even with the voice menu closed.

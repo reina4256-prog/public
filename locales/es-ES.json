@@ -15863,5 +15863,10 @@
   "南半球": "Hemisferio sur",
   "日時は選んだ地域に、季節は選んだ半球に合わせます。": "La fecha y la hora siguen la región elegida; las estaciones, el hemisferio elegido.",
   "日時と季節の設定を保存しました。": "Configuración de fecha, hora y estaciones guardada.",
-  "設定を保存できませんでした。": "No se pudo guardar la configuración."
+  "設定を保存できませんでした。": "No se pudo guardar la configuración.",
+  "旅人の通信コンパス": "Brújula de comunicación del viajero",
+  "コンパス通信：{{0}}": "Llamada por brújula: {{0}}",
+  "受信した場所：{{0}}": "Ubicación recibida: {{0}}",
+  "受信：{{0}}": "Recibido: {{0}}",
+  "待ち合わせ期限：{{0}}": "Límite de la cita: {{0}}"
 }

@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-27通信コンパス：[正本](../specs/core/word_llm_native_system.md#旅人の通信コンパスと再会2026-11-27)。root compassが実達成を根拠にする対面提案／本人受取・人物別交換／通信二slotと期限・限定snapshot、practiceが既存slot／当時の所持品検査、runtimeが引用付き本人判断と当時供給、walkが実経路／10分中の巡回保留、perception／sceneが受信した実地点一件の確認表示を所有する。main practice／storeが相手別限定生成／原子的保存と取消、既存mentor UI／voiceが通信表示と人物別声を扱う。NPCを外へ描画せず、生成文から日記／星座の学習根拠を追加しない。資源回復／留守番は次単位。
+
 2026-11-27将来実装：[資源回復と継続留守番・再開報告](../specs/core/word_llm_native_system.md#放置採集と資源回復の実装初期仕様2026-11-27具体化済み未実装)は未実装。root practice／walkの実経路と取得証拠、runtimeの原依頼・独立再開発話と限定供給、main storeの離席時刻／原子的清算・世代別一意取得を接続候補とする。回復／長期計算は別の純粋部品へ分離してよいが、My Home／旧職業所有へ広げない。日記／星座へ生成挨拶から知識や実体験を自動追加しない。具体値と保存／取消・検証境界は正本を読む。
 
 2026-11-27関係台詞・建築士：[正本](../specs/core/word_llm_native_system.md#関係に応じた台詞と建築士への紹介森巡回2026-11-27)。root practiceが紹介条件／原引用と人物別3slot、walkが内部森林巡回／明示訪問・実到着、runtimeが歴史snapshot／紹介一件の限定供給、main practiceが段階生成方針／聞き手分離と枠、storeが実時計／保存取消とclose移動、mentor UIが既存窓・画像動画／発話待機、voiceが独立mentor-builder／Charonを所有。旧屋内所有と家づくり保留は維持する。

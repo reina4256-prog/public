@@ -24,10 +24,12 @@ window.NativeScene={
         const next=(practiceRoute?.length?practiceRoute:game.route).find(p=>Math.hypot(p.x-game.x,p.y-game.y)>.00001);
         if(next&&Math.abs(next.x-game.x)>.00001)aiPet.flip=next.x<game.x;
         if(searching&&!reduced)aiPet.flip=Math.floor(time/1.1)%2===1;
-        camera.x=aiPet.x-canvas.width/2;camera.y=aiPet.y-canvas.height/2;render();
+        const reported=(game.practices||[]).findLast(p=>p.remote?.target)?.remote,targetAsset=reported&&game.focus&&reported.target===game.focus.targetId&&!this.visible(game).some(p=>p.id===game.focus.targetId)?NativePerception.asset(game,reported.target):null;
+        camera.x=(targetAsset?targetAsset.dx+targetAsset.sw*targetAsset.scale/2:aiPet.x)-canvas.width/2;camera.y=(targetAsset?targetAsset.dy+targetAsset.sh*targetAsset.scale/2:aiPet.y)-canvas.height/2;render();
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);
+        if(targetAsset)this.drawTarget({x:.5,y:.5,width:targetAsset.sw*targetAsset.scale/800,height:targetAsset.sh*targetAsset.scale/480});
         if(practice?.phase==='survey'){
             aiPet.indoorTarget=NativePerception.asset(game,practice.target);aiPet.exploreState={currentFacility:practice.target.startsWith('chip:mountain_')?'mountain':'palms'};
             drawActionWindow(travel?'move':'idle','inside',true);

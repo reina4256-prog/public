@@ -8,15 +8,16 @@
     const forest=id=>typeof id==='string'&&id.startsWith('chip:palms_');
     function builderDirective(input){return typeof input==='string'&&directive(input,'walk')
         &&/建築士|建筑师|строител|архитектор|\b(?:builder|architect|constructor|construtor|arquitecto|arquiteto)\b|baumeister|architekt/iu.test(input);}
-    function roamBuilder(g,now,held=false){const b=g.walk?.builder;if(!b||held||!Number.isSafeInteger(now)||now<b.nextAt)return false;
+    const waiting=(g,npc,now)=>(g.practices||[]).some(p=>p.remote?.npc===npc&&p.remote.until>now);
+    function roamBuilder(g,now,held=false){const b=g.walk?.builder;if(!b||held||waiting(g,'building',now)||!Number.isSafeInteger(now)||now<b.nextAt)return false;
         const list=candidates(g).filter(forest);if(list.length<2)return false;
         b.target=list[(list.indexOf(b.target)+1)%list.length];b.nextAt=now+stayMs;
         if(g.walk.encounter?.npc==='building'&&g.walk.encounter.phase==='pending')g.walk.encounter.phase='done';return true;}
     function candidates(g){const visible=perception.chips(g).map(p=>p.id);return [...new Set([...visible,...Object.keys(g.island.assets).map(id=>'chip:'+id)])].filter(id=>nature(id)&&plan(g,id));}
     function roam(g,now,held=false){if(g.perception!==2||!Number.isSafeInteger(now)||now<0)return false;
         const w=install(g);if(!w.roaming){const list=candidates(g),old=w.encounter?.target;w.roaming={target:old&&list.includes(old)?old:list[0]||null,nextAt:now+stayMs,lastMeeting:null};return true;}
-        const r=w.roaming;if(now<r.nextAt||held)return false;
-        const p=g.practices?.at(-1);if(p&&!p.free&&p.npc!=='building'&&!['done','declined','stopped','failed'].includes(p.phase))return false;
+        const r=w.roaming;if(now<r.nextAt||held||waiting(g,'adventurer',now))return false;
+        const p=g.practices?.at(-1);if(p&&!p.free&&!p.remote&&p.npc!=='building'&&!['done','declined','stopped','failed'].includes(p.phase))return false;
         const list=candidates(g);if(list.length<2)return false;const index=list.indexOf(r.target);
         r.target=list[(index+1)%list.length];r.nextAt=now+stayMs;if(w.encounter?.phase==='pending'&&w.encounter.npc!=='building')w.encounter.phase='done';return true;}
     const validMeeting=m=>m===null||m&&Object.keys(m).sort().join(',')==='at,target'&&Number.isSafeInteger(m.at)&&m.at>=0&&nature(m.target)&&m.target.length<=80;
@@ -56,7 +57,7 @@
         const fail=reason=>{event(g,'walk_failed',id,cause,reason);return {accepted:false,reason};};
         if(g.mode!=='idle')return fail('busy');
         if(!packet.world.confirmed||packet.world.confirmed!==id||w.confirmed?.targetId!==id)return fail('unconfirmed');
-        if(!packet.world.visible.some(p=>p.id===id))return fail('unavailable');
+        if(!packet.world.visible.some(p=>p.id===id)&&packet.world.reported?.id!==id)return fail('unavailable');
         const route=plan(g,id);if(!route)return fail('unreachable');
         if(builderDirective(packet.input)){if(!w.builder||!forest(id)||typeof action.quote!=='string'||action.quote.length>1000||!packet.input.includes(action.quote)||!builderDirective(action.quote))return fail('unavailable');w.visit={target:id,turn:cause,quote:action.quote};}else delete w.visit;
         g.mode='move';g.destination=id;g.intent='walk';g.route=route;g.cause=cause;event(g,'walk_start',id,cause);return {accepted:true};

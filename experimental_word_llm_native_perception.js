@@ -25,18 +25,21 @@
         observe(g);return g;
     }
     function supply(g,walk){
-        const visible=chips(g),focus=visible.some(p=>p.id===g.focus?.targetId)?g.focus.targetId:null;
+        const visible=chips(g),last=(g.practices||[]).findLast(p=>p.remote?.target)?.remote,a=last&&asset(g,last.target);
+        const reported=a?{id:last.target,kind:String(a.type).slice(0,80),appearance:String(a.name||a.type).slice(0,80),at:last.replyAt}:null;
+        const focus=g.focus&&(visible.some(p=>p.id===g.focus.targetId)||reported?.id===g.focus.targetId)?g.focus.targetId:null;
         const result={perception:'map-chips',location:'island',currentAction:g.mode,target:g.destination,hunger:g.hunger,fatigue:g.fatigue,
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
-        if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&visible.some(p=>p.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
+        if(reported)result.reported=reported;
+        if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&(visible.some(p=>p.id===result.confirmed)||reported?.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
             result.availableActions=g.mode==='move'?['stop']:result.walkable?['walk']:[];}
         while(JSON.stringify(result).length>2000&&visible.length)visible.pop();
-        if(!visible.some(p=>p.id===result.focus))result.focus=null;
-        if(Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)){result.walkable=false;result.availableActions=g.mode==='move'?['stop']:[];}
+        if(!visible.some(p=>p.id===result.focus)&&reported?.id!==result.focus)result.focus=null;
+        if(Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)&&reported?.id!==result.confirmed){result.walkable=false;result.availableActions=g.mode==='move'?['stop']:[];}
         if(JSON.stringify(result).length>2000)throw Error('world_budget');return result;
     }
     function validFocus(f,p){return f===null||!!(f&&typeof f==='object'&&!Array.isArray(f)
-        &&Object.keys(f).every(k=>['targetId','quote'].includes(k))&&p.visible.some(v=>v.id===f.targetId)
+        &&Object.keys(f).every(k=>['targetId','quote'].includes(k))&&(p.visible.some(v=>v.id===f.targetId)||p.reported?.id===f.targetId)
         &&typeof f.quote==='string'&&f.quote.length>0&&f.quote.length<=1000&&p.input.includes(f.quote));}
     return {asset,chips,observe,upgrade,supply,validFocus};
 });

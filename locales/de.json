@@ -15863,5 +15863,10 @@
   "南半球": "Südhalbkugel",
   "日時は選んだ地域に、季節は選んだ半球に合わせます。": "Datum und Uhrzeit richten sich nach der gewählten Region, Jahreszeiten nach der gewählten Halbkugel.",
   "日時と季節の設定を保存しました。": "Einstellungen für Datum, Uhrzeit und Jahreszeiten gespeichert.",
-  "設定を保存できませんでした。": "Einstellungen konnten nicht gespeichert werden."
+  "設定を保存できませんでした。": "Einstellungen konnten nicht gespeichert werden.",
+  "旅人の通信コンパス": "Reisekompass zur Verständigung",
+  "コンパス通信：{{0}}": "Kompassanruf: {{0}}",
+  "受信した場所：{{0}}": "Empfangener Ort: {{0}}",
+  "受信：{{0}}": "Empfangen: {{0}}",
+  "待ち合わせ期限：{{0}}": "Treffpunktfrist: {{0}}"
 }

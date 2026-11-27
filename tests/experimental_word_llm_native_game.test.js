@@ -28,6 +28,89 @@ function gatheringState(offset={x:0,y:0}){const assets={};for(let x=100;x<=650;x
 function freely(s,type,input='Gather in the forest'){const target=runtime.game.practice.targets(s.game).find(t=>t.types.includes(type)&&t.reachable);assert.ok(target,'available '+type);
     return directed(s,input,{gather:{type,targetId:target.id,quote:input}});}
 function finishLine(g,slot,extra={}){const p=runtime.game.practice.current(g);p.attempts[slot]='pending';runtime.game.practice.finish(g,slot,{text:'Actual '+slot,choice:null,...extra});}
+function compassFixture(){let s=gatheringState();const w=runtime.game.walk,pr=runtime.game.practice;w.roam(s.game,Date.now());const target=s.game.walk.roaming.target;
+    s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});s=arrived(s,target);const p=pr.create(s.game,s.game.walk.encounter);assert.ok(p);
+    for(let i=0;i<3000&&p.phase!=='done';i++){const slot=pr.due(p);if(slot)finishLine(s.game,slot,{choice:slot==='decision'?'accept':null,...(slot==='feedback'?{text:'Take my spare compass and exchange contacts.',linkOffer:{quote:'Take my spare compass and exchange contacts.'}}:{})});runtime.game.tick(s.game,.1);}
+    assert.ok(p.linkOffer);assert.equal(pr.compass.received(s.game),false);assert.ok(runtime.validState(s));
+    s=directed(s,'Receive the compass',{compass:{kind:'receive',contact:'adventurer',quote:'Receive the compass'}});assert.ok(runtime.validState(s));return s;}
+
+test('compass requires completed collection, proposed spare, personal acceptance and separate contacts',()=>{
+    const pr=runtime.game.practice,c=pr.compass,s=compassFixture();assert.equal(c.received(s.game),true);assert.deepEqual(c.contacts(s.game),['adventurer']);
+    assert.equal(pr.bottle(s.game),'empty');assert.equal(s.game.inventory.items.length,2);assert.equal(runtime.game.supply(s.game).reported,undefined);
+    const fresh=gatheringState();assert.equal(c.received(fresh.game),false);assert.equal(c.source(fresh.game),undefined);
+    for(const change of [q=>q.linkOffer.quote='unspoken',q=>q.linkAccept.quote='unspoken',q=>delete q.linkOffer]){const bad=structuredClone(s);change(bad.game.practices[0]);assert.equal(runtime.validState(bad),false);}
+    for(const input of ['Yes','Do not call with the compass','Say "call with the compass"']){const b=runtime.begin(s,input,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,compass:{kind:'call',contact:'adventurer',purpose:'meet',quote:input}};assert.equal(runtime.validResult(r,b.packet),false);}
+    const b=runtime.begin(s,'Call the builder with the compass','en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,compass:{kind:'call',contact:'building',purpose:'location',quote:b.packet.input}};assert.equal(runtime.validResult(r,b.packet),false);
+    const next=runtime.begin(s,'Hello','en');assert.ok(runtime.validState(next.state));assert.ok(JSON.stringify(next.packet.inventory).length<=1200);assert.deepEqual(next.packet.inventory.compass.contacts,['adventurer']);assert.match(runtime.prompt(next.packet),/,"compass":null/);
+});
+
+test('compass location call is bounded, private, saved, and never starts movement or waiting',()=>{
+    let s=compassFixture();const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');s=directed(s,'Call with the compass',{compass:{kind:'call',contact:'adventurer',purpose:'location',quote:'Call with the compass'}});
+    const p=pr.current(s.game);assert.ok(runtime.validState(s));const before=structuredClone(s.game.inventory),at=Date.now();
+    const packet=protocol.packet(s,p,'offer',at);assert.ok(protocol.protocol.valid(packet));assert.equal(packet.recent.length+packet.previous.length,0);assert.equal(packet.context.relationship,undefined);assert.equal(packet.context.collection,undefined);
+    assert.equal(packet.context.location.target,s.game.walk.roaming.target);assert.ok(JSON.stringify(packet.context).length<=1200);assert.ok(JSON.stringify(packet).length<4000);
+    assert.equal(protocol.validResult({text:'Wait.',choice:null,agree:true},'offer',packet.context),false);
+    p.attempts.offer='pending';pr.finish(s.game,'offer',{text:'I am at this forest now.',choice:null,agree:false},at);assert.ok(runtime.validState(s));
+    p.attempts.decision='pending';pr.finish(s.game,'decision',{text:'Thank you for telling me.',choice:null,agree:false},at+1);assert.ok(runtime.validState(s));
+    assert.equal(p.phase,'done');assert.equal(p.remote.until,undefined);assert.equal(s.game.mode,'idle');assert.deepEqual(s.game.inventory,before);assert.deepEqual(pr.compass.contacts(s.game),['adventurer']);
+    const t=runtime.begin(s,'Where was the reply from?','en',at+2);assert.ok(runtime.validState(t.state));assert.equal(t.packet.world.reported.id,p.remote.target);assert.equal(t.packet.inventory.compass.last.at,at);
+    assert.ok(JSON.stringify(t.packet.world).length+JSON.stringify(t.packet.calendar).length<=2000);assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+    for(const change of [c=>c.contact='building',c=>c.location.target='chip:mountain_gift',c=>c.answer='Unspoken answer']){const bad=structuredClone(t.state);change(bad.turns.at(-1).practice.context);assert.equal(runtime.validState(bad),false);}
+});
+
+test('compass meeting waits exactly ten real minutes after both decisions, not the location answer',()=>{
+    let s=compassFixture();const pr=runtime.game.practice,w=runtime.game.walk;s=directed(s,'Call with the compass to meet',{compass:{kind:'call',contact:'adventurer',purpose:'meet',quote:'Call with the compass to meet'}});const p=pr.current(s.game),at=Date.now();
+    p.attempts.offer='pending';pr.finish(s.game,'offer',{text:'Yes, we can meet here.',choice:null,agree:true},at);assert.equal(p.remote.until,undefined);
+    p.attempts.decision='pending';pr.finish(s.game,'decision',{text:'I agree to meet.',choice:null,agree:true},at+1234);assert.equal(p.remote.until,at+1234+600000);assert.equal(s.game.mode,'idle');assert.ok(runtime.validState(s));
+    const target=p.remote.target;assert.equal(w.roam(s.game,p.remote.until-1),false);assert.equal(s.game.walk.roaming.target,target);assert.equal(w.roam(s.game,p.remote.until),true);assert.notEqual(s.game.walk.roaming.target,target);
+    assert.equal(pr.compass.snapshot(s.game).last.target,target,'last answer remains historical after patrol');assert.ok(runtime.validState(s));
+});
+
+test('old completed saves offer only at a new real meeting, decline preserves items, and introductions share slots',()=>{
+    const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');let s=compassFixture();const first=s.game.practices[0];delete first.linkAccept;delete first.linkOffer;delete first.linkEnabled;s.turns.pop();first.affinity={slot:'feedback',delta:1,kind:'conduct',quote:'Actual report',reason:'Actual return.'};
+    assert.ok(runtime.validState(s));assert.equal(pr.compass.face(s.game,first,'feedback'),null,'old completed speech is never replayed as a grant');
+    const target=first.homeTarget;s=arrived(s,target);const p=pr.create(s.game,s.game.walk.encounter);const packet=protocol.packet(s,p,'offer');assert.equal(packet.context.link.grant,true);
+    finishLine(s.game,'offer',{text:'You may have my spare compass.',linkOffer:{quote:'You may have my spare compass.'}});finishLine(s.game,'decision',{text:'Not this time. Thank you.',choice:'decline',affinity:{delta:1,kind:'conversation',quote:'Thank you.',reason:'Polite direct reply.'}});assert.equal(pr.compass.received(s.game),false);assert.ok(runtime.validState(s));
+    s.game.island.assets.palms_survey={...s.game.island.assets.palms_gift,dx:270};runtime.game.perception.observe(s.game);s=arrived(s,target);const next=pr.create(s.game,s.game.walk.encounter),combined=protocol.packet(s,next,'offer');assert.ok(combined.context.introduce);assert.equal(combined.context.link.grant,true);assert.ok(JSON.stringify(combined.context).length<=1200);
+    const offer={text:'The builder surveys that forest. My spare compass is yours if you want it.',choice:null,introduction:{quote:'The builder surveys that forest.'},linkOffer:{quote:'My spare compass is yours if you want it.'}};assert.ok(protocol.validResult(offer,'offer',combined.context));finishLine(s.game,'offer',offer);finishLine(s.game,'decision',{text:'I accept your compass and contact.',choice:'decline',linkAccept:{quote:'I accept your compass and contact.'}});
+    assert.equal(pr.compass.received(s.game),true);assert.equal(next.lines.length,2);assert.equal(pr.allItems(s.game).length,2);assert.ok(runtime.validState(s));
+});
+
+test('actual builder meeting can exchange only his own contact after compass acquisition',()=>{
+    const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');let s=compassFixture();const first=s.game.practices[0];s.game.island.assets.palms_survey={...s.game.island.assets.palms_gift,dx:270};runtime.game.perception.observe(s.game);
+    // Two considerate direct conversations establish the existing introduction threshold.
+    for(let i=0;i<2;i++){s=arrived(s,first.homeTarget);pr.create(s.game,s.game.walk.encounter);finishLine(s.game,'offer');finishLine(s.game,'decision',{text:'Thank you.',choice:'decline',affinity:{delta:1,kind:'conversation',quote:'Thank you.',reason:'Kind direct reply.'}});}
+    s=arrived(s,first.homeTarget);const intro=pr.create(s.game,s.game.walk.encounter);assert.ok(intro.introduce);finishLine(s.game,'offer',{text:'The builder visits that forest.',introduction:{quote:'The builder visits that forest.'}});finishLine(s.game,'decision',{choice:'decline'});
+    assert.deepEqual(pr.compass.contacts(s.game),['adventurer']);const target=s.game.walk.builder.target;
+    s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});s=directed(s,'Walk to meet the builder',{action:{kind:'walk',targetId:target,quote:'Walk to meet the builder'}});
+    for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);const p=pr.create(s.game,s.game.walk.encounter);assert.equal(p.npc,'building');
+    const packet=protocol.packet(s,p,'offer');assert.deepEqual(packet.context.link,{grant:false,contact:'building'});assert.equal(packet.context.relationship,undefined);
+    finishLine(s.game,'offer',{text:'Let us exchange compass contacts.',linkOffer:{quote:'Let us exchange compass contacts.'}});finishLine(s.game,'decision',{text:'Yes, let us exchange contacts.',choice:'decline',linkAccept:{quote:'Yes, let us exchange contacts.'}});finishLine(s.game,'feedback');assert.deepEqual(pr.compass.contacts(s.game),['adventurer','building']);assert.equal(p.lines.length,3);assert.ok(runtime.validState(s));
+    s=directed(s,'Call the builder with the compass',{compass:{kind:'call',contact:'building',purpose:'location',quote:'Call the builder with the compass'}});finishLine(s.game,'offer',{text:'PRIVATE BUILDER ANSWER',agree:false});finishLine(s.game,'decision',{agree:false});assert.ok(runtime.validState(s));
+    s=arrived(s,first.homeTarget);const reunion=pr.create(s.game,s.game.walk.encounter);assert.ok(reunion);assert.doesNotMatch(JSON.stringify(protocol.packet(s,reunion,'offer').previous),/PRIVATE BUILDER ANSWER/,'another person never receives this private call as adventurer history');
+});
+
+test('received offscreen location is one real chip, circle and agreement never walk, later explicit walk follows real ground',()=>{
+    const pr=runtime.game.practice;let s=compassFixture();for(let x=700;x<=1300;x+=50)s.game.island.assets['ground_'+x]={dx:x-10,dy:190,sx:0,sy:0,sw:20,sh:20,scale:1,img:'fixture',type:'ground'};
+    s.game.island.assets.palms_far={...s.game.island.assets.palms_gift,dx:1220};s.game.walk.roaming.target='chip:palms_far';
+    s=directed(s,'Call with the compass',{compass:{kind:'call',contact:'adventurer',purpose:'location',quote:'Call with the compass'}});finishLine(s.game,'offer',{agree:false});finishLine(s.game,'decision',{agree:false});
+    assert.equal(runtime.game.perception.chips(s.game).some(p=>p.id==='chip:palms_far'),false);
+    s=directed(s,'Show the received location',{focus:{targetId:'chip:palms_far',quote:'Show the received location'}});assert.equal(s.game.mode,'idle');s=directed(s,'Yes',{confirmation:{targetId:'chip:palms_far',quote:'Yes'}});assert.equal(s.game.mode,'idle');assert.ok(runtime.validState(s));
+    s=directed(s,'walk there',{action:{kind:'walk',targetId:'chip:palms_far',quote:'walk there'}});assert.equal(s.game.mode,'move');for(let i=0;i<4000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);assert.equal(s.game.walk.encounter.target,'chip:palms_far');assert.ok(runtime.validState(s));
+    const bad=structuredClone(s);bad.turns.at(-1).world.reported.id='chip:mountain_gift';assert.equal(runtime.validState(bad),false);
+});
+
+test('compass session saves two remote lines, cancels late replies, rejects failed persistence and never restarts a call on load',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store'),pr=runtime.game.practice;const initial=compassFixture();let now=Date.now(),saved=structuredClone(initial),calls=0,release,fail=false;
+    const store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));if(fail)return {ok:false,reason:'fixture'};saved=structuredClone(s);return {ok:true};}};
+    const responder={cancel(){},dispose(){},async reply(p){return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,compass:{kind:'call',contact:'adventurer',purpose:'meet',quote:p.input}}};}};
+    const practiceResponder={cancel(){},dispose(){},async reply(p){calls++;if(release!==false)await new Promise(r=>release=r);return {ok:true,proposal:{text:p.stage==='offer'?'We can meet at this forest.':'I agree.',choice:null,agree:true}};}};
+    const options={store,responder,practiceResponder,wallClock:()=>now};let session=createSession(options);assert.ok(session.load().ok);assert.ok((await session.submit('Call with the compass','en')).ok);const id=pr.current(saved.game).id;
+    const pending=session.practiceNext(id);await new Promise(r=>setImmediate(r));session.cancel();release();assert.equal((await pending).ok,false);assert.equal(pr.current(saved.game).remote.target,undefined);assert.equal(pr.current(saved.game).remote.until,undefined);session.dispose();
+    release=false;session=createSession(options);session.load();assert.equal(calls,1);assert.ok((await session.submit('Call with the compass','en')).ok);const nextId=pr.current(saved.game).id;assert.ok((await session.practiceNext(nextId)).ok);now+=500;assert.ok((await session.practiceNext(nextId)).ok);assert.equal(calls,3);const until=pr.current(saved.game).remote.until;assert.equal(until,now+600000);assert.equal(pr.current(saved.game).lines.length,2);session.dispose();
+    session=createSession(options);session.load();assert.equal(calls,3);assert.equal(pr.current(saved.game).remote.until,until);assert.equal((await session.practiceNext(nextId)).ok,false);
+    assert.ok((await session.submit('Call with the compass','en')).ok);const failureId=pr.current(saved.game).id;fail=true;assert.equal((await session.practiceNext(failureId)).ok,false);assert.equal(calls,3,'failure to save input prevents generation');session.dispose();
+});
 function introductionFixture(){let s=gatheringState();const practice=runtime.game.practice;
     s.game.island.assets.palms_survey={...s.game.island.assets.palms_gift,dx:270};runtime.game.perception.observe(s.game);
     const target='chip:palms_gift';s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});

@@ -117,7 +117,7 @@
     const taskPanel=el('section',$('world-stage'));taskPanel.id='task-panel';taskPanel.hidden=true;taskPanel.setAttribute('aria-labelledby','task-title');
     const taskTitle=el('h3',taskPanel,'今の課題');taskTitle.id='task-title';
     const taskDetails=el('div',taskPanel);taskDetails.id='task-details';taskDetails.setAttribute('aria-live','polite');
-    function renderTask(g){const p=(g.practices||[]).findLast(p=>!p.free&&!p.visit),key=JSON.stringify([g.taskPanelOpen,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,$('locale').value]);if(key===taskKey)return;taskKey=key;
+    function renderTask(g){const p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),key=JSON.stringify([g.taskPanelOpen,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,$('locale').value]);if(key===taskKey)return;taskKey=key;
         taskPanel.hidden=g.taskPanelOpen!==true;taskDetails.replaceChildren();
         if(!p){el('p',taskDetails,'今は課題がありません。');return;}
         const mountain=p.target.startsWith('chip:mountain_'),goal=p.gather?(mountain?'山で石を2個探し、冒険家に報告する':'森で木材を2個探し、冒険家に報告する'):(mountain?'山を探索し、冒険家に報告する':'森を探索し、冒険家に報告する');
@@ -139,7 +139,8 @@
         const bag=NativePractice.possessions(g,false),key=JSON.stringify(bag)+'|'+$('locale').value;
         if(key!==inventoryKey){inventoryKey=key;$('inventory').hidden=!bag.open;$('inventory-items').replaceChildren();
             for(const [type,itemLabel]of [['wood','木材'],['stone','石'],['flower','花'],['water','水の入った水筒'],['canteen','空の水筒']]){const count=type==='canteen'?(bag.bottle==='empty'?1:0):bag[type];if(count){const slot=el('figure',$('inventory-items'),undefined,'inventory-item');slot.append(materialIcon(type));el('figcaption',slot,t(itemLabel)+' × '+count,'',true);}}
-            if(!NativePractice.types.some(type=>bag[type])&&bag.bottle==='none')el('p',$('inventory-items'),'まだ持ち物はありません。');}
+            if(bag.compass?.owned)el('p',$('inventory-items'),'旅人の通信コンパス');
+            if(!NativePractice.types.some(type=>bag[type])&&bag.bottle==='none'&&!bag.compass?.owned)el('p',$('inventory-items'),'まだ持ち物はありません。');}
         if(NativePractice.active(g))label=p.suspended?'一時停止':p.phase==='survey'?'探検している':p.phase==='return'?'戻っている':p.phase==='outbound'?'歩いている':p.phase==='consult'?'相談を待っている':label;
         $('energy').value=1-g.fatigue;$('fullness').value=1-g.hunger;$('activity').textContent=t(label);$('pause').textContent=t(paused?'再開':'一時停止');}
     const errors={login:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。',missing:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。',quota:'今日はお話をひと休み。またあとで話そうね。',save:'記録を安全に保存できませんでした。終了して保存先を確認してください。',cancelled:'返答を中止しました。原発言は残っています。',output:'返答の形式や出所を確認できませんでした。記憶候補は採用していません。',input:'入力を確認してください。',failed:'今はお話しできないみたい。少し待ってから、もう一度話しかけてね。'};

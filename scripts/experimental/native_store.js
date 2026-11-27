@@ -71,7 +71,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     const log=(kind,data)=>{ try { record({kind,at:Date.now(),...data}); } catch (_) { /* Save remains the primary evidence. */ } };
     const persist=(value,stage,id=null,result=null)=>{const saved=store.save(value);if(!saved.ok)log('save_error',{id,stage,reason:saved.reason||'unknown',code:saved.code||null,result});return saved;};
     function syncRoaming(){if(!state?.game||blocked)return;const next=copy(),now=wallClock(),p=practice.current(next.game);let changed=false;
-        if(!busy&&next.game.walk?.roaming&&now>=next.game.walk.roaming.nextAt&&p&&!p.free&&p.npc!=='building'&&['offer','decision','consult'].includes(p.phase)&&p.choice!=='accept'){practice.stop(next.game);changed=true;}
+        if(!busy&&next.game.walk?.roaming&&now>=next.game.walk.roaming.nextAt&&p&&!p.free&&!p.remote&&p.npc!=='building'&&['offer','decision','consult'].includes(p.phase)&&p.choice!=='accept'){practice.stop(next.game);changed=true;}
         if(core.game.walk.roam(next.game,now,busy))changed=true;
         if(!busy&&p?.npc==='building'&&now>=next.game.walk.builder.nextAt&&practice.active(next.game)){practice.stop(next.game);if(next.game.walk.encounter?.npc==='building')next.game.walk.encounter.phase='done';changed=true;}
         if(core.game.walk.roamBuilder(next.game,now,busy||next.game.walk?.encounter?.npc==='building'&&['video','conversation'].includes(next.game.walk.encounter.phase)))changed=true;
@@ -128,8 +128,8 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(!loaded||!state?.game)return {ok:true};
         if(!busy&&paused===false)syncRoaming();if(blocked)return {ok:false,error:'save'};
         if(!busy&&paused===false){
-            const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events.length;core.game.tick(state.game,seconds);
-            const current=practice.current(state.game),changed=current&&current.phase+'|'+current.events.length!==stage;
+            const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events?.length;core.game.tick(state.game,seconds);
+            const current=practice.current(state.game),changed=current&&current.phase+'|'+current.events?.length!==stage;
             if(state.game.receipts.length!==before||changed||now-lastSave>10000){
                 if(!persist(state,'world').ok){blocked=true;return {ok:false,error:'save'};}lastSave=now;
                 if(state.game.receipts.length!==before)log('world',{results:state.game.receipts.slice(before)});
@@ -158,6 +158,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             if(accepted&&state.game?.receipts.some(r=>r.kind==='walk_start'&&r.cause===next.packet.id))freshWalkCause=next.packet.id;
             if(accepted&&result.proposal.practiceChoice&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
             if(accepted&&result.proposal.gather&&practice.current(state.game)?.id==='gather-'+next.packet.id&&practice.active(state.game)&&!practice.current(state.game).suspended)practiceArmed=true;
+            if(accepted&&result.proposal.compass?.kind==='call'&&practice.current(state.game)?.id==='compass-'+next.packet.id)practiceArmed=true;
             const error=accepted?null:(result.ok?'output':result.error || 'failed');
             log('result',{id:next.packet.id,error,result:accepted?result.proposal:null,supplied:next.packet.memories.map(m=>m.sourceId),
                 ...(!accepted?{diagnostic:require('./gemini_reply').safeDiagnostic(result.diagnostic)}:{}),
@@ -203,7 +204,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(introOwner===id&&p.phase==='offer')p.suspended=false;
         const stage=practice.due(p);if(!stage)return {ok:false,error:'input'};
         const ticket=practiceTicket;practicePending=true;practiceArmed=true;busy=true;
-        try{const request=practiceProtocol.packet(state,p,stage,wallClock()),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free&&p.npc!=='building')next.game.walk.met=true;if(['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
+        try{const request=practiceProtocol.packet(state,p,stage,wallClock()),next=copy();practice.current(next.game).attempts[stage]='pending';if(!p.free&&!p.remote&&p.npc!=='building')next.game.walk.met=true;if(!p.remote&&['offer','decision'].includes(stage)&&next.game.walk.encounter)next.game.walk.encounter.phase='conversation';next.revision++;
             if(!persist(next,'practice-input',request.id).ok){blocked=true;return {ok:false,error:'save'};}state=next;log('practice_input',{packet:request});
             const result=await practiceResponder.reply(request);if(ticket!==practiceTicket)return {ok:false,error:'cancelled'};
             const accepted=result.ok&&practiceProtocol.validResult(result.proposal,stage,request.context),updated=copy();
