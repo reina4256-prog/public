@@ -1,18 +1,30 @@
 (function() {
+    const HOME_ART = {
+        floor: { img: 'restaurant_mapchip.png', sx: 172, sy: 158, sw: 216, sh: 195, scale: 1, sourceW: 2816, sourceH: 1536 },
+        wall: { img: 'restaurant_mapchip.png', sx: 2395, sy: 548, sw: 142, sh: 194, scale: 1, sourceW: 2816, sourceH: 1536 },
+        bed: { img: 'myhome_mapchip.png', sx: 1180, sy: 1567, sw: 532, sh: 754, scale: 1, x: 0, y: 0, sourceW: 1824, sourceH: 2330 }
+    };
     // The native game's first hut shares this indoor owner, without unlocking
     // legacy furniture, concierge, storage, recovery or apprenticeship systems.
     if(window.NativeHome){
-        window.NativeHomeInterior={draw(context,width,height){
+        const pictures={};
+        const load=()=>{for(const {img}of Object.values(HOME_ART))if(!pictures[img]){
+            const image=new Image();pictures[img]=image;
+            image.onerror=()=>console.error('Home asset could not load: '+img);image.src=img;
+        }};
+        window.NativeHomeInterior={load,draw(context,width,height){
+            load();context.save();context.imageSmoothingEnabled=false;
             context.fillStyle='#24333a';context.fillRect(0,0,width,height);
-            const x=width*.12,y=height*.15,w=width*.76,h=height*.7;
-            context.fillStyle='#b78655';context.fillRect(x,y,w,h);
-            context.strokeStyle='#78553d';context.lineWidth=2;
-            for(let n=1;n<8;n++){context.beginPath();context.moveTo(x,y+h*n/8);context.lineTo(x+w,y+h*n/8);context.stroke();}
-            context.strokeStyle='#e1c299';context.lineWidth=12;context.strokeRect(x,y,w,h);
-            context.fillStyle='#24333a';context.fillRect(width*.46,y+h-8,width*.08,20);
-            context.fillStyle='#684a35';context.fillRect(x+w*.72,y+h*.12,w*.2,h*.35);
-            context.fillStyle='#e9dfc5';context.fillRect(x+w*.74,y+h*.14,w*.16,h*.08);
-            context.fillStyle='#7b9c91';context.fillRect(x+w*.74,y+h*.24,w*.16,h*.2);
+            const tile=Math.min(width*.8/12,height*.8/10),left=(width-tile*12)/2,top=(height-tile*10)/2;
+            const draw=(sprite,x,y,w,h)=>{const image=pictures[sprite.img];if(!image?.complete||!image.naturalWidth)return;
+                context.drawImage(image,sprite.sx,sprite.sy,sprite.sw,sprite.sh,x,y,w,h);};
+            for(let y=0;y<10;y++)for(let x=0;x<12;x++){
+                const wall=y===0||x===0||x===11||y===9&&(x<4||x>6);
+                draw(wall?HOME_ART.wall:HOME_ART.floor,left+x*tile,top+y*tile,tile,tile);
+            }
+            const bedWidth=tile*1.6;
+            draw(HOME_ART.bed,left+tile*8.2,top+tile*2.1,bedWidth,bedWidth*HOME_ART.bed.sh/HOME_ART.bed.sw);
+            context.restore();
         }};
         return;
     }
@@ -40,8 +52,8 @@
     let moveRevision = 0;
 
     window.MYHOME_SPRITES = window.MYHOME_SPRITES || {
-        hmap_floor: { img: "restaurant_mapchip.png", sx: 172, sy: 158, sw: 216, sh: 195, scale: 1, sourceW: 2816, sourceH: 1536 },
-        hmap_wall: { img: "restaurant_mapchip.png", sx: 2395, sy: 548, sw: 142, sh: 194, scale: 1, sourceW: 2816, sourceH: 1536 },
+        hmap_floor: HOME_ART.floor,
+        hmap_wall: HOME_ART.wall,
         "hfur_warehouse": {
             "img": "myhome_mapchip.png",
             "sx": 54,
@@ -90,18 +102,7 @@
             "sourceW": 1824,
             "sourceH": 2330
         },
-        "hfur_bed": {
-            "img": "myhome_mapchip.png",
-            "sx": 1180,
-            "sy": 1567,
-            "sw": 532,
-            "sh": 754,
-            "scale": 1,
-            "x": 0,
-            "y": 0,
-            "sourceW": 1824,
-            "sourceH": 2330
-        },
+        "hfur_bed": HOME_ART.bed,
         "hfur_strategy_board": {
             "img": "myhome_mapchip.png",
             "sx": 1001,

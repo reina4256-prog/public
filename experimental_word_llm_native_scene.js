@@ -11,6 +11,7 @@ window.NativeScene={
             const img=new Image();images[key]=img;totalImages++;
             img.onload=()=>imagesLoaded++;img.onerror=()=>{imagesLoaded++;console.error('Island asset could not load: '+key);};img.src=imageSources[key];
         }
+        window.NativeHomeInterior.load();
     },
     draw(game,time,reduced){
         if(!game)return;
@@ -31,7 +32,9 @@ window.NativeScene={
         const house=game.home;if(house?.site){const x=house.site.x*800-camera.x,y=house.site.y*480-camera.y;
             if(house.phase==='planning'&&!game.focus)this.drawTarget({x:x/800,y:y/480,width:.055,height:.06});
             else if(house.phase==='building'){ctx.save();ctx.strokeStyle='#e8cf9b';ctx.lineWidth=3;ctx.strokeRect(x-20,y-12,40,20);ctx.restore();}
-            else if(house.phase==='ready'){ctx.save();ctx.fillStyle='#ac7648';ctx.fillRect(x-20,y-32,40,40);ctx.fillStyle='#5f3c37';ctx.beginPath();ctx.moveTo(x-25,y-32);ctx.lineTo(x,y-52);ctx.lineTo(x+25,y-32);ctx.closePath();ctx.fill();ctx.fillStyle='#302c30';ctx.fillRect(x-5,y-12,10,20);ctx.restore();}}
+            else if(house.phase==='ready'){const sprite=defaultCatalog.hut,image=images[sprite.img];
+                if(image?.complete&&image.naturalWidth){const scale=Math.min(44/sprite.sw,58/sprite.sh),w=sprite.sw*scale,h=sprite.sh*scale;
+                    ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(image,sprite.sx,sprite.sy,sprite.sw,sprite.sh,x-w/2,y+10-h,w,h);ctx.restore();}}}
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);

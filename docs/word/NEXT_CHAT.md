@@ -1,5 +1,11 @@
 # 次チャットの開始文
 
+## 家の旧版画像への差し替えから続ける（2026-11-27）
+
+```text
+docs/CURRENT_IMPLEMENTATION.mdと正本の家現在節、docs/specs/myhome/myhome_and_concierge.md先頭、docs/word/PLAYER_GUIDE.mdを読み、AGENTS.mdに従ってください。本人の画像修正依頼により、新方式の完成小屋は旧defaultCatalog.hut、屋内は旧床・壁・ベッドの切出しを再利用します。HOME_ARTはmyhome_map_core.js内で旧MYHOME_SPRITESとNativeHomeInteriorが共有し、SHOP_SPRITESは非変更。最小屋内のままで、旧収納やコンシェルジュ等は解放せず、保存／資格／素材／工期／実地点・経路は保持。本人原ログ5bdd90c6原1..52で、うん単独の場所確認→明示再訪→対面双方了承／木6石2の支払→工事中の採集→ready→明示入場の引受まで成功を確認し、52までhash付きack済みです。描画の本人受入は未確認、最新実装・検証・commit／pushはCURRENTを優先してください。自然文の場所確認が狭い問題は別の未修正事項として残し、無断で過去の失敗を成功に読み替えません。全保留と七言語・データ枠・生成回数・試遊原資料実読／prefix ack、説明書リンク、現在ブランチpushを維持します。
+```
+
 ## 建築士から家を提案する流れの本人試遊から続ける（2026-11-27）
 
 ```text
