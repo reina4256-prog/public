@@ -15876,5 +15876,12 @@
   "{{0}}を探しています。": "Procurando: {{0}}.",
   "{{0}}に会えました。": "Encontro: {{0}}.",
   "今回見て回れた範囲では、{{0}}に会えませんでした。": "Não houve encontro na área explorada desta vez ({{0}}).",
-  "{{0}}を探すのを中断しました。": "Busca interrompida: {{0}}."
+  "{{0}}を探すのを中断しました。": "Busca interrompida: {{0}}.",
+  "小屋の柱用の木材2個": "2 unidades de madeira para os pilares da cabana",
+  "基礎用の石2個": "2 pedras para a fundação",
+  "未開始": "Não iniciada",
+  "引受済み": "Aceita",
+  "納入途中": "Entrega parcial",
+  "建築預かり材：木材 {{0}} / 石 {{1}}": "Materiais guardados: madeira {{0}} / pedra {{1}}",
+  "預かり材は将来の家の材料に全数使います。": "Todos os materiais guardados serão usados na futura casa."
 }

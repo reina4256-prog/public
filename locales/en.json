@@ -15876,5 +15876,12 @@
   "{{0}}を探しています。": "Looking for: {{0}}.",
   "{{0}}に会えました。": "Encountered: {{0}}.",
   "今回見て回れた範囲では、{{0}}に会えませんでした。": "No encounter in the area explored this time ({{0}}).",
-  "{{0}}を探すのを中断しました。": "Search stopped: {{0}}."
+  "{{0}}を探すのを中断しました。": "Search stopped: {{0}}.",
+  "小屋の柱用の木材2個": "Two wood for shed posts",
+  "基礎用の石2個": "Two stone for the foundation",
+  "未開始": "Not started",
+  "引受済み": "Accepted",
+  "納入途中": "Partly delivered",
+  "建築預かり材：木材 {{0}} / 石 {{1}}": "Construction materials held: wood {{0}} / stone {{1}}",
+  "預かり材は将来の家の材料に全数使います。": "All held materials will count toward a future home."
 }

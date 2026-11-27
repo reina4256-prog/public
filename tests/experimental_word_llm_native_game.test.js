@@ -217,6 +217,87 @@ test('compass session saves two remote lines, cancels late replies, rejects fail
     session=createSession(options);session.load();assert.equal(calls,3);assert.equal(pr.current(saved.game).remote.until,until);assert.equal((await session.practiceNext(nextId)).ok,false);
     assert.ok((await session.submit('Call with the compass','en')).ok);const failureId=pr.current(saved.game).id;fail=true;assert.equal((await session.practiceNext(failureId)).ok,false);assert.equal(calls,3,'failure to save input prevents generation');session.dispose();
 });
+function builderMeeting(s){const pr=runtime.game.practice,target=s.game.walk.builder.target;
+    if(pr.active(s.game))pr.stop(s.game);s.game.walk.encounter.phase='done';
+    s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});
+    s=directed(s,'Walk to the forest to meet the builder',{action:{kind:'walk',targetId:target,quote:'Walk to the forest to meet the builder'}});
+    for(let i=0;i<2000&&s.game.mode==='move';i++)runtime.game.tick(s.game,.1);
+    const p=pr.create(s.game,s.game.walk.encounter);assert.equal(p.npc,'building');return s;}
+function builderLine(s,slot,result){const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice'),p=pr.current(s.game),packet=protocol.packet(s,p,slot);
+    assert.ok(protocol.protocol.valid(packet));assert.ok(protocol.validResult(result,slot,packet.context),JSON.stringify(result));finishLine(s.game,slot,result);assert.ok(runtime.validState(s),'builder '+slot);return packet;}
+function builderTaskVisit(s,kind,count=0,delta=0){s=builderMeeting(s);const pr=runtime.game.practice,type=pr.building(s.game).task.type;
+    const offer='Please bring the remaining '+type+' for this task.';builderLine(s,'offer',{text:offer,choice:null,builderOffer:{quote:offer}});
+    const text=kind==='accept'?'I accept this materials task.':kind==='accept-deliver'?'I accept the task and hand over '+count+' '+type+' now.':kind==='deliver'?'I hand over '+count+' '+type+' for the task.':'I prefer to leave it for now.';
+    builderLine(s,'decision',{text,choice:'decline',builderChoice:{kind,count,quote:text}});
+    builderLine(s,'feedback',{text:'Thank you for telling me.',choice:null,affinity:{delta,kind:pr.builderDelivery({kind})?'conduct':'conversation',quote:text,reason:'A thoughtful exchange.'}});return s;}
+test('builder may personally accept and deliver old materials together without another trip or extra generation',()=>{
+    const pr=runtime.game.practice;let s=introduceFixture();s=freely(s,'wood');completeCollection(s.game);s=builderTaskVisit(s,'accept-deliver',2,1);
+    assert.deepEqual(pr.building(s.game).held,{wood:2,stone:0});assert.equal(pr.building(s.game).task.index,1);assert.equal(pr.building(s.game).task.phase,'unstarted');
+    assert.equal(pr.current(s.game).lines.length,3);assert.equal(pr.current(s.game).builderAction.kind,'accept-deliver');assert.equal(pr.building(s.game).hearts,2);assert.ok(runtime.validState(s));
+    s=directed(s,'Show tasks',{taskView:{kind:'open',quote:'Show tasks'}});assert.ok(runtime.validState(s));
+});
+test('builder tasks accept once in order, transfer old real items partially and preserve separate relationships and snapshots',()=>{
+    const pr=runtime.game.practice;let s=introduceFixture();const oldHearts=pr.relationship(s.game).hearts;
+    // Real gathering before the builder task; these are old items, not fabricated inventory.
+    for(const [n,type,target]of [[1,'wood','chip:palms_gift'],[2,'stone','chip:mountain_gift']]){
+        s=directed(s,'Collect '+type,{gather:{targetId:target,type,quote:'Collect '+type}});
+        for(let i=0;i<4000&&pr.active(s.game);i++){const p=pr.current(s.game),slot=pr.due(p);if(slot)finishLine(s.game,slot);else runtime.game.tick(s.game,.1);}assert.ok(runtime.validState(s));}
+    assert.equal(s.game.inventory.items.length,4);
+    s=builderTaskVisit(s,'accept');assert.equal(pr.building(s.game).task.phase,'accepted');
+    s=directed(s,'Show tasks',{taskView:{kind:'open',quote:'Show tasks'}});assert.ok(runtime.validState(s));
+    s=builderTaskVisit(s,'deliver',1,1);assert.deepEqual(pr.building(s.game).held,{wood:1,stone:0});assert.equal(pr.building(s.game).task.phase,'partial');
+    const partial=structuredClone(s);s=builderTaskVisit(s,'deliver',1);assert.equal(pr.building(s.game).task.index,1);assert.equal(pr.building(s.game).task.phase,'unstarted');
+    s=builderTaskVisit(s,'accept');s=builderTaskVisit(s,'deliver',2,1);assert.deepEqual(pr.building(s.game).held,{wood:2,stone:2});assert.equal(pr.building(s.game).task.phase,'done');assert.equal(pr.building(s.game).hearts,3);
+    assert.equal(pr.relationship(s.game).hearts,oldHearts);assert.equal(s.game.inventory.items.length,0);assert.equal(s.game.inventory.spent.length,4);assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+    s=directed(s,'Show tasks',{taskView:{kind:'open',quote:'Show tasks'}});assert.ok(runtime.validState(s));
+    const bad=structuredClone(s);bad.turns.at(-1).inventory.building.held.wood=0;assert.equal(runtime.validState(bad),false);
+    for(const alter of [g=>g.inventory.spent.pop(),g=>g.inventory.items.push(g.inventory.spent[0].item),g=>g.practices.find(p=>p.builderAction?.kind==='deliver').builderAction.items.push(g.inventory.spent[0].item.id)]){const b=structuredClone(s);alter(b.game);assert.equal(runtime.validState(b),false);}
+    assert.ok(runtime.validState(partial));assert.deepEqual(pr.building(partial.game).held,{wood:1,stone:0});
+    const final=builderMeeting(s),p=pr.current(final.game),packet=require('../scripts/experimental/native_practice').packet(final,p,'offer');assert.equal(packet.context.building.task.phase,'done');
+    assert.equal(packet.context.available,undefined);assert.equal(packet.context.exchange,undefined);assert.equal(packet.context.relationship,undefined);assert.deepEqual(packet.previous,[]);
+});
+test('builder refuses impossible decisions, bare agreement, duplicate acceptance, private evidence and retroactive scoring',()=>{
+    const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');let s=builderMeeting(introduceFixture()),p=pr.current(s.game);
+    const offer='Please bring two wood for shed posts.';builderLine(s,'offer',{text:offer,choice:null,builderOffer:{quote:offer}});
+    const c=protocol.packet(s,p,'decision').context;
+    for(const a of [{kind:'deliver',count:2,quote:'I hand over wood.'},{kind:'accept',count:1,quote:'I accept.'},{kind:'accept',count:0,quote:'Yes'}])assert.equal(protocol.validResult({text:a.quote,choice:'decline',builderChoice:a},'decision',c),false);
+    builderLine(s,'decision',{text:'I accept the materials task.',choice:'decline',builderChoice:{kind:'accept',count:0,quote:'I accept the materials task.'}});
+    const f=protocol.packet(s,p,'feedback').context;assert.equal(protocol.validResult({text:'Fine.',choice:null,affinity:{delta:1,kind:'conversation',quote:'Private player words',reason:'Private'}},'feedback',f),false);
+    builderLine(s,'feedback',{text:'We can discuss it again.',choice:null});s=builderMeeting(s);p=pr.current(s.game);builderLine(s,'offer',{text:offer,choice:null,builderOffer:{quote:offer}});
+    assert.equal(protocol.validResult({text:'I accept the task.',choice:'decline',builderChoice:{kind:'accept',count:0,quote:'I accept the task.'}},'decision',protocol.packet(s,p,'decision').context),false);
+    const legacy=builderMeeting(introduceFixture());delete pr.current(legacy.game).builderEnabled;finishLine(legacy.game,'offer');finishLine(legacy.game,'decision',{choice:'decline'});finishLine(legacy.game,'feedback',{affinity:{delta:1,kind:'conversation',quote:'Actual decision',reason:'Old'}});
+    assert.equal(pr.building(legacy.game).hearts,1);assert.equal(pr.current(legacy.game).affinity,undefined);assert.ok(runtime.validState(legacy));
+});
+test('builder delivery is atomic on failed saves and cancellation, reload never repeats consumption or calls',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store'),pr=runtime.game.practice;
+    let initial=introduceFixture();initial=freely(initial,'wood');completeCollection(initial.game);initial=builderTaskVisit(initial,'accept');initial.game.walk.encounter.phase='done';
+    for(const mode of ['save','cancel','success']){let saved=structuredClone(initial),time=0,calls=0,release,fail=false;
+        const store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));if(fail&&pr.current(s.game).builderAction?.kind==='deliver')return {ok:false,reason:'fixture'};saved=structuredClone(s);return {ok:true};}};
+        const options={store,clock:()=>time,responder:{cancel(){},dispose(){},async reply(p){const target=saved.game.walk.builder.target;
+            return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,...(p.input==='Which forest?'?{focus:{targetId:target,quote:p.input}}:p.input==='Yes'?{confirmation:{targetId:target,quote:p.input}}:{action:{kind:'walk',targetId:target,quote:p.input}})}};}},
+            practiceResponder:{cancel(){},dispose(){},async reply(p){calls++;if(p.stage==='decision'&&mode==='cancel')await new Promise(r=>release=r);
+                const text=p.stage==='offer'?'Please bring the remaining wood.':p.stage==='decision'?'I hand over two wood for the posts.':'I have stored both pieces.';
+                return {ok:true,proposal:{text,choice:p.stage==='decision'?'decline':null,...(p.stage==='offer'?{builderOffer:{quote:text}}:p.stage==='decision'?{builderChoice:{kind:'deliver',count:2,quote:text}}:{})}};}}};
+        const session=createSession(options);assert.ok(session.load().ok);
+        for(const input of ['Which forest?','Yes','Walk to the forest to meet the builder'])assert.ok((await session.submit(input,'en')).ok);
+        for(let i=0;i<2000&&saved.game.mode==='move';i++){time+=100;session.pulse(false);}const id=saved.game.walk.encounter.id;assert.ok(session.mentorIntro(id).automatic);
+        assert.ok((await session.practiceNext(id)).ok);fail=mode==='save';const pending=session.practiceNext(id);
+        if(mode==='cancel'){await new Promise(r=>setImmediate(r));session.cancel();release();}
+        const r=await pending;assert.equal(r.ok,mode==='success');assert.equal(r.error,mode==='save'?'save':mode==='cancel'?'cancelled':null);
+        assert.equal(pr.building(saved.game).held.wood,mode==='success'?2:0);assert.equal(saved.game.inventory.items.filter(i=>i.type==='wood').length,mode==='success'?0:2);
+        if(mode==='success')assert.ok((await session.practiceNext(id)).ok);const count=calls;session.dispose();fail=false;
+        const reopened=createSession(options);assert.ok(reopened.load().ok);assert.equal(calls,count);assert.equal((await reopened.practiceNext(id)).ok,false);
+        assert.equal(pr.building(saved.game).held.wood,mode==='success'?2:0);assert.ok(runtime.validState(saved));reopened.dispose();}
+});
+test('builder heart bounds, recovery and offer threshold do not touch adventurer history',()=>{
+    const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');let s=introduceFixture();
+    const speak=delta=>{s=builderMeeting(s);builderLine(s,'offer',{text:'Hello again.',choice:null});const text=delta<0?'Your work is worthless.':'I am sorry for my earlier words and appreciate your care.';
+        builderLine(s,'decision',{text,choice:'decline'});builderLine(s,'feedback',{text:'I heard what you said.',choice:null,affinity:{delta,kind:'conversation',quote:text,reason:delta<0?'The remark was hurtful.':'The sincere words helped.'}});};
+    speak(-1);assert.equal(pr.building(s.game).hearts,0);s=builderMeeting(s);let p=pr.current(s.game),c=protocol.packet(s,p,'offer').context;
+    assert.equal(protocol.validResult({text:'Bring wood.',choice:null,builderOffer:{quote:'Bring wood.'}},'offer',c),false);pr.stop(s.game);
+    for(let i=0;i<7;i++)speak(1);assert.equal(pr.building(s.game).hearts,5);for(let i=0;i<7;i++)speak(-1);assert.equal(pr.building(s.game).hearts,0);
+    assert.equal(pr.relationship(s.game).hearts,3);assert.deepEqual(pr.building(s.game).held,{wood:0,stone:0});assert.ok(runtime.validState(s));
+});
 function introductionFixture(){let s=gatheringState();const practice=runtime.game.practice;
     s.game.island.assets.palms_survey={...s.game.island.assets.palms_gift,dx:270};runtime.game.perception.observe(s.game);
     const target='chip:palms_gift';s=directed(s,'Which forest?',{focus:{targetId:target,quote:'Which forest?'}});s=directed(s,'Yes',{confirmation:{targetId:target,quote:'Yes'}});

@@ -105,21 +105,30 @@
     const affinityPanel=el('section',$('world-stage'));affinityPanel.id='affinity-panel';affinityPanel.hidden=true;affinityPanel.setAttribute('aria-labelledby','affinity-title');
     const affinityTitle=el('h3',affinityPanel,'みんなとの仲');affinityTitle.id='affinity-title';
     const affinityDetails=el('div',affinityPanel);affinityDetails.setAttribute('aria-live','polite');
-    function renderAffinity(g){const relation=NativePractice.relationship(g),known=(g.practices||[]).some(p=>p.lines.some(l=>l.slot==='offer'))||g.walk?.met;
-        const key=JSON.stringify([g.affinityPanelOpen,known,relation,$('locale').value]);if(key===affinityKey)return;affinityKey=key;
+    function renderAffinity(g){const relation=NativePractice.relationship(g),known=(g.practices||[]).some(p=>!p.npc&&!p.free&&!p.remote&&p.lines.some(l=>l.slot==='offer'))||g.walk?.met,builder=!!g.walk?.builder?.met;
+        const key=JSON.stringify([g.affinityPanelOpen,known,relation,builder,NativePractice.relationship(g,null,false,'building'),$('locale').value]);if(key===affinityKey)return;affinityKey=key;
         affinityPanel.hidden=g.affinityPanelOpen!==true;$('world-stage').classList.toggle('has-affinity',!affinityPanel.hidden);affinityDetails.replaceChildren();
-        if(!known){el('p',affinityDetails,'まだ知り合いはいません。');return;}
-        const card=el('div',affinityDetails,undefined,'affinity-person'),portrait=el('img',card);portrait.src='adventurer_battle_enemy.png';portrait.alt='';
-        const details=el('div',card);el('p',details,'冒険家');
+        if(!known&&!builder){el('p',affinityDetails,'まだ知り合いはいません。');return;}
+        for(const npc of [...(known?['adventurer']:[]),...(builder?['building']:[])]){const relation=NativePractice.relationship(g,null,false,npc);
+        const card=el('div',affinityDetails,undefined,'affinity-person'),portrait=el('img',card);portrait.src=npc==='building'?'builder_battle_enemy.png':'adventurer_battle_enemy.png';portrait.alt='';
+        const details=el('div',card);el('p',details,npc==='building'?'建築士':'冒険家');
         const hearts=el('p',details,'♥'.repeat(relation.hearts)+'♡'.repeat(5-relation.hearts),'affinity-hearts',true);hearts.setAttribute('role','img');hearts.setAttribute('aria-label',t('親しさ：{{0}} / 5',relation.hearts));
         el('p',details,['まだ距離がある','知り合ったばかり','少し打ち解けている','親しくなってきた','信頼し合っている','とても大切な仲'][relation.hearts]);
-        if(relation.last){el('p',affinityDetails,relation.last.delta>0?'前より親しくなりました。':'少し距離ができました。');el('p',affinityDetails,relation.last.reason,'affinity-reason',true);}}
+        if(relation.last){el('p',details,relation.last.delta>0?'前より親しくなりました。':'少し距離ができました。');el('p',details,relation.last.reason,'affinity-reason',true);}}}
     const taskPanel=el('section',$('world-stage'));taskPanel.id='task-panel';taskPanel.hidden=true;taskPanel.setAttribute('aria-labelledby','task-title');
     const taskTitle=el('h3',taskPanel,'今の課題');taskTitle.id='task-title';
     const taskDetails=el('div',taskPanel);taskDetails.id='task-details';taskDetails.setAttribute('aria-live','polite');
-    function renderTask(g){const p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),key=JSON.stringify([g.taskPanelOpen,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,$('locale').value]);if(key===taskKey)return;taskKey=key;
+    function renderTask(g){const p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),b=NativePractice.building(g),visit=(g.practices||[]).findLast(p=>p.builderEnabled),key=JSON.stringify([g.taskPanelOpen,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,b,g.walk?.builder?.met,visit?.phase,visit?.suspended,$('locale').value]);if(key===taskKey)return;taskKey=key;
         taskPanel.hidden=g.taskPanelOpen!==true;taskDetails.replaceChildren();
-        if(!p){el('p',taskDetails,'今は課題がありません。');return;}
+        if(g.walk?.builder?.met){el('p',taskDetails,'建築士');
+            for(const index of [0,1]){const phase=index<b.task.index?'完了':index>b.task.index||b.task.phase==='unstarted'?'未開始':b.task.phase==='partial'?'納入途中':'引受済み';
+                el('p',taskDetails,t('内容：{{0}}',t(index===0?'小屋の柱用の木材2個':'基礎用の石2個')),'',true);
+                el('p',taskDetails,t('進行：{{0}}',t(phase)),'',true);}
+            if(visit?.suspended||['stopped','failed'].includes(visit?.phase))el('p',taskDetails,'中断しています。');
+            el('p',taskDetails,t('建築預かり材：木材 {{0}} / 石 {{1}}',b.held.wood,b.held.stone),'',true);
+            el('p',taskDetails,'預かり材は将来の家の材料に全数使います。');}
+        if(!p){if(!g.walk?.builder?.met)el('p',taskDetails,'今は課題がありません。');return;}
+        el('p',taskDetails,'冒険家');
         const mountain=p.target.startsWith('chip:mountain_'),goal=p.gather?(mountain?'山で石を2個探し、冒険家に報告する':'森で木材を2個探し、冒険家に報告する'):(mountain?'山を探索し、冒険家に報告する':'森を探索し、冒険家に報告する');
         const phases={offer:'冒険家の提案を聞いている',decision:'参加するか考えている',consult:'相談を待っている',outbound:'探索場所へ向かっている',survey:'探している',return:'戻っている',report:'冒険家に報告している',feedback:'冒険家の返事を待っている',done:'完了',declined:'今回は見送った',stopped:'進行が止まっています。',failed:'進行が止まっています。'};
         const stage=t(p.suspended?'中断しています。':phases[p.phase])+(p.phase==='failed'&&p.lines.at(-1)?.slot==='report'?' / '+t('冒険家の返事を待っている'):'');

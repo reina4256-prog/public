@@ -1,5 +1,7 @@
 # 日記部品の担当・参照索引
 
+2026-11-27建築士①：[現在仕様](../specs/core/word_llm_native_system.md#建築士の好感度二課題材料預かり2026-11-27)。root practiceのbuilding／builderOffer／builderActionが独立好感度と順序・現物納入／専用預かり、inventory.spent照合と当時snapshotを所有。main practiceが三発話内の本人判断／相手別最小供給、runtimeが通常要約と当時の根拠照合、既存storeが一保存での確定／取消、island UIが二課題・預かり数と人物別ハートを所有する。旧段落の「建築士の好感度／課題は未実装」はこの①で置換し、家／資格／屋内と資源回復等は保留を維持。
+
 2026-11-27人物共通の一括探索：[正本](../specs/core/word_llm_native_system.md#人物を近い場所から探す共通の依頼2026-11-27)。root walkのsearchPeopleが公開名／地形・利用条件と実到着時の内部所在を登録し、共通の原文対象検査・実候補／距離順・訪問証拠／停止・保存形を所有。runtimeが本人引受／原引用・当時worldと人物別会話の実到着根拠照合、perceptionが既存枠内の最小探索状態、main storeが保存／取消・ロード中断と新実到着の遭遇権限、island UI／CSSが共通七言語通知を所有する。既存人物別mentor演出／発話枠を使い、地点ごとの生成を追加しない。資源回復等へ連結しない。
 
 2026-11-27通信コンパス：[正本](../specs/core/word_llm_native_system.md#旅人の通信コンパスと再会2026-11-27)。root compassが実達成を根拠にする対面提案／本人受取・人物別交換／通信二slotと期限・限定snapshot、practiceが既存slot／当時の所持品検査、runtimeが引用付き本人判断と当時供給、walkが実経路／10分中の巡回保留、perception／sceneが受信した実地点一件の確認表示を所有する。main practice／storeが相手別限定生成／原子的保存と取消、既存mentor UI／voiceが通信表示と人物別声を扱う。NPCを外へ描画せず、生成文から日記／星座の学習根拠を追加しない。資源回復／留守番は次単位。
