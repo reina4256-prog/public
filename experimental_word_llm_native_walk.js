@@ -29,11 +29,14 @@
             if(Math.abs(dx-50)<1&&dy<1||Math.abs(dx-25)<1&&Math.abs(dy-25)<1){nodes[i].edges.push(j);nodes[j].edges.push(i);}}
         return nodes;
     }
-    function plan(g,id){const a=perception.asset(g,id);if(!a)return null;const nodes=graph(g);if(!nodes.length)return null;
+    function plan(g,id,shortest=false){const a=perception.asset(g,id);if(!a)return null;const nodes=graph(g);if(!nodes.length)return null;
         let start=0;for(let i=1;i<nodes.length;i++)if(Math.hypot(nodes[i].x-g.x*800,nodes[i].y-g.y*480)<Math.hypot(nodes[start].x-g.x*800,nodes[start].y-g.y*480))start=i;
         if(Math.hypot(nodes[start].x-g.x*800,nodes[start].y-g.y*480)>50)return null;
         const queue=[start],previous=new Map([[start,null]]);
         for(let i=0;i<queue.length;i++)for(const next of nodes[queue[i]].edges)if(!previous.has(next)){previous.set(next,queue[i]);queue.push(next);}
+        if(shortest){const costs=new Map([[start,0]]),pending=new Set(queue);while(pending.size){let current=null;for(const i of pending)if(current===null||(costs.get(i)??Infinity)<(costs.get(current)??Infinity))current=i;
+            pending.delete(current);for(const next of nodes[current].edges){const cost=costs.get(current)+Math.hypot(nodes[current].x-nodes[next].x,nodes[current].y-nodes[next].y);
+                if(cost<(costs.get(next)??Infinity)){costs.set(next,cost);previous.set(next,current);}}}}
         const x=a.dx+a.sw*a.scale/2,y=a.dy+a.sh*a.scale;
         const distance=i=>Math.hypot(nodes[i].x-x,nodes[i].y-y);
         const end=queue.sort((i,j)=>distance(i)-distance(j))[0];if(distance(end)>85)return null;
@@ -49,10 +52,59 @@
     function event(g,kind,target,cause,reason){const a=perception.asset(g,target);if(!a)return;
         const r={id:'event-'+(g.receipts.length+1),kind,target,label:String(a.name||a.type).slice(0,80),at:g.elapsed,cause,hunger:g.hunger,fatigue:g.fatigue};if(reason)r.reason=reason;g.receipts.push(r);return r;}
     function idle(g){g.mode='idle';g.destination=null;g.intent=null;g.route=[];g.cause=null;g.remaining=0;}
+    function searchDirective(input){
+        if(typeof input!=='string'||/[「」『』“”"?？]/u.test(input))return false;
+        const s=input.normalize('NFKC').toLowerCase();
+        if(/しない|ないで|行かない|歩かない|とは|意味|言って|言葉|と思|don't|do not|never|\bnot\b|не |no (?:busques|vayas)|não|nicht|不要|别|不用|\b(?:why|how|whether|explain|means?|meaning)\b/u.test(s))return false;
+        return /冒険家|冒险家|adventurer|aventurero|aventureiro|abenteurer|искател|путешественник/iu.test(s)
+            &&/山|森|mountain|forest|montaña|bosque|montanha|floresta|berg|wald|гор|лес/iu.test(s)
+            &&/近い順|近くから|近い.*順|nearest|closest|cercan|mais pert|näch|最近|ближай/iu.test(s)
+            &&(directive(input,'walk')||/歩いて|歩こう|移動して|向かって|行って|進んで/u.test(s)
+                ||/^(?:请)?(?:从|按|依).*(?:走|去|移动)/u.test(s)||/^(?:пожалуйста[ ,]+)?(?:обойди|пройди)(?=\s|$)/u.test(s));
+    }
+    function searchActive(g){return g?.walk?.search?.phase==='active';}
+    function searchSupply(g){const s=g.walk?.search;return s?{phase:s.phase,target:s.target,visited:s.visited.length}:null;}
+    function validSearchSupply(s){return s&&Object.keys(s).sort().join(',')==='phase,target,visited'
+        &&['active','found','exhausted','stopped'].includes(s.phase)&&(s.target===null||typeof s.target==='string'&&nature(s.target)&&s.target.length<=80)
+        &&Number.isSafeInteger(s.visited)&&s.visited>=0&&(s.phase!=='active'||s.target!==null);}
+    function searchStop(g,reason='stopped'){
+        if(!searchActive(g))return false;const s=g.walk.search;
+        if(g.mode==='move'&&g.cause===s.origin.turn){event(g,'walk_interrupted',g.destination,s.origin.turn,'stopped');idle(g);}
+        s.phase='stopped';s.reason=reason;return true;
+    }
+    function searchObserve(g){if(!searchActive(g))return;const s=g.walk.search;
+        for(const p of perception.chips(g))if(nature(p.id)&&!s.candidates.includes(p.id))s.candidates.push(p.id);
+    }
+    function searchNext(g){const s=g.walk.search;searchObserve(g);
+        const distance=route=>{let p={x:g.x,y:g.y},total=0;for(const q of route){total+=Math.hypot((q.x-p.x)*800,(q.y-p.y)*480);p=q;}return total;};
+        const list=s.candidates.filter(id=>!s.visited.some(v=>v.target===id)).map(id=>({id,route:plan(g,id,true)})).filter(v=>v.route);
+        list.sort((a,b)=>distance(a.route)-distance(b.route)||a.id.localeCompare(b.id));
+        if(!list.length){s.phase='exhausted';s.target=null;return;}
+        const next=list[0];s.target=next.id;g.mode='move';g.destination=next.id;g.intent='walk';g.route=next.route;g.cause=s.origin.turn;delete g.walk.visit;
+        event(g,'walk_start',next.id,s.origin.turn);
+    }
+    function searchStart(g,request,turn,input){
+        const p=g.practices?.at(-1);
+        if(g.perception!==2||g.mode!=='idle'||searchActive(g)||p&&!['done','declined','stopped','failed'].includes(p.phase)||!request||!searchDirective(input)||!searchDirective(request.quote)||!input.includes(request.quote))return false;
+        install(g).search={origin:{turn,quote:request.quote},phase:'active',candidates:[],visited:[],target:null,reason:null};
+        g.walk.confirmed=null;g.focus=null;searchNext(g);return true;
+    }
+    function validSearch(g){const s=g.walk?.search;if(s===undefined)return true;
+        if(!s||Object.keys(s).sort().join(',')!=='candidates,origin,phase,reason,target,visited'||!Array.isArray(s.visited)||!s.origin||Object.keys(s.origin).sort().join(',')!=='quote,turn'
+            ||!/^turn-[1-9]\d*$/.test(s.origin.turn)||typeof s.origin.quote!=='string'||s.origin.quote.length>1000||!searchDirective(s.origin.quote)
+            ||!validSearchSupply(searchSupply(g))||![null,'stopped','interrupted','cancelled','load','switch','close'].includes(s.reason)
+            ||!Array.isArray(s.candidates)||new Set(s.candidates).size!==s.candidates.length||!s.candidates.every(id=>nature(id)&&!!perception.asset(g,id))
+            ||new Set(s.visited.map(v=>v?.target)).size!==s.visited.length
+            ||!s.visited.every(v=>v&&Object.keys(v).sort().join(',')==='arrival,target'&&s.candidates.includes(v.target)&&g.receipts.some(r=>r.id===v.arrival&&r.kind==='walk'&&r.target===v.target&&r.cause===s.origin.turn))
+            ||s.target!==null&&!s.candidates.includes(s.target))return false;
+        if(s.phase==='active')return s.reason===null&&g.mode==='move'&&g.destination===s.target&&g.cause===s.origin.turn&&!s.visited.some(v=>v.target===s.target);
+        if(s.phase==='found')return s.reason===null&&s.visited.at(-1)?.target===s.target;
+        return s.phase==='stopped'?s.reason!==null:s.reason===null&&s.target===null;
+    }
     function apply(g,action,cause,packet){
         if(!action)return {accepted:true};const w=install(g);
         if(!directive(packet.input,action.kind))return {accepted:false,reason:'instruction'};
-        if(action.kind==='stop'){if(g.mode!=='move')return {accepted:false,reason:'idle'};event(g,'walk_interrupted',g.destination,cause,'stopped');idle(g);return {accepted:true};}
+        if(action.kind==='stop'){if(searchStop(g))return {accepted:true};if(g.mode!=='move')return {accepted:false,reason:'idle'};event(g,'walk_interrupted',g.destination,cause,'stopped');idle(g);return {accepted:true};}
         const id=action.targetId;
         const fail=reason=>{event(g,'walk_failed',id,cause,reason);return {accepted:false,reason};};
         if(g.mode!=='idle')return fail('busy');
@@ -62,19 +114,21 @@
         if(builderDirective(packet.input)){if(!w.builder||!forest(id)||typeof action.quote!=='string'||action.quote.length>1000||!packet.input.includes(action.quote)||!builderDirective(action.quote))return fail('unavailable');w.visit={target:id,turn:cause,quote:action.quote};}else delete w.visit;
         g.mode='move';g.destination=id;g.intent='walk';g.route=route;g.cause=cause;event(g,'walk_start',id,cause);return {accepted:true};
     }
-    function tick(g,dt){if(g.mode!=='move')return;
-        const p=g.route[0];if(!p||!perception.asset(g,g.destination)){event(g,'walk_interrupted',g.destination,g.cause,'unavailable');idle(g);return;}
+    function tick(g,dt){if(g.mode!=='move')return;searchObserve(g);
+        const p=g.route[0];if(!p||!perception.asset(g,g.destination)){searchStop(g,'interrupted');if(g.mode==='move'){event(g,'walk_interrupted',g.destination,g.cause,'unavailable');idle(g);}return;}
         const dx=p.x*800-g.x*800,dy=p.y*480-g.y*480,d=Math.hypot(dx,dy),step=dt*52;
         if(d>step){g.x+=dx/d*step/800;g.y+=dy/d*step/480;return;}
         g.x=p.x;g.y=p.y;g.route.shift();if(g.route.length)return;
         const target=g.destination,a=perception.asset(g,target);
-        if(Math.hypot(g.x*800-(a.dx+a.sw*a.scale/2),g.y*480-(a.dy+a.sh*a.scale))>85){event(g,'walk_failed',target,g.cause,'unreachable');idle(g);return;}
+        if(Math.hypot(g.x*800-(a.dx+a.sw*a.scale/2),g.y*480-(a.dy+a.sh*a.scale))>85){event(g,'walk_failed',target,g.cause,'unreachable');searchStop(g,'interrupted');idle(g);return;}
         const r=event(g,'walk',target,g.cause);idle(g);
         if(g.walk.visit?.turn===r.cause){if(g.walk.builder?.target===target)install(g).encounter={id:r.id,target,phase:'pending',npc:'building'};}
         else if(nature(target)&&(!g.walk.roaming||g.walk.roaming.target===target))install(g).encounter={id:r.id,target,phase:'pending'};
+        if(searchActive(g)&&r.cause===g.walk.search.origin.turn){const s=g.walk.search;s.visited.push({target,arrival:r.id});
+            if(g.walk.encounter?.id===r.id){s.phase='found';return;}searchNext(g);}
     }
     function valid(g){if(!Array.isArray(g.route)||!Array.isArray(g.receipts))return false;const w=g.walk;if(!w)return g.mode==='idle'&&g.destination===null&&g.intent===null&&g.route.length===0&&g.remaining===0;
-        if(w.version!==1||typeof w.met!=='boolean'||!Object.keys(w).every(k=>['version','met','confirmed','encounter','roaming','builder','visit'].includes(k)))return false;
+        if(w.version!==1||typeof w.met!=='boolean'||!Object.keys(w).every(k=>['version','met','confirmed','encounter','roaming','builder','visit','search'].includes(k))||!validSearch(g))return false;
         if(w.builder){const b=w.builder;if(Object.keys(b).sort().join(',')!=='lastMeeting,met,nextAt,target'||!forest(b.target)||!perception.asset(g,b.target)||!Number.isSafeInteger(b.nextAt)||b.nextAt<0||typeof b.met!=='boolean'||!validMeeting(b.lastMeeting)||b.lastMeeting&&!forest(b.lastMeeting.target))return false;}
         if(w.visit){const v=w.visit;if(Object.keys(v).sort().join(',')!=='quote,target,turn'||!w.builder||!forest(v.target)||!perception.asset(g,v.target)||!/^turn-[1-9]\d*$/.test(v.turn)||typeof v.quote!=='string'||v.quote.length>1000||!builderDirective(v.quote))return false;}
         if(w.roaming){const r=w.roaming;if(Object.keys(r).sort().join(',')!=='lastMeeting,nextAt,target'||!(r.target===null||nature(r.target)&&perception.asset(g,r.target))||!Number.isSafeInteger(r.nextAt)||r.nextAt<0||!validMeeting(r.lastMeeting)||r.lastMeeting&&!perception.asset(g,r.lastMeeting.target))return false;}
@@ -88,5 +142,5 @@
         const a=perception.asset(g,g.destination),end=g.route.at(-1);
         return Math.hypot(g.route[0].x*800-g.x*800,g.route[0].y*480-g.y*480)<=51&&Math.hypot(end.x*800-(a.dx+a.sw*a.scale/2),end.y*480-(a.dy+a.sh*a.scale))<=85;
     }
-    return {install,plan,directive,apply,tick,valid,movementKinds,graph,roam,stayMs,calendar,forest,builderDirective,roamBuilder};
+    return {install,plan,directive,apply,tick,valid,movementKinds,graph,roam,stayMs,calendar,forest,builderDirective,roamBuilder,searchDirective,searchActive,searchStart,searchStop,searchSupply,validSearchSupply};
 });

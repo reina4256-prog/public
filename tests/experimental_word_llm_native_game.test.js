@@ -6,6 +6,69 @@ const island=require('../scripts/experimental/native_island').createIsland();
 const make=()=>({...base.create({name:'Pico',self:'I',player:'you'},'en'),version:2,game:runtime.game.create([0,0,0,0,0,0,0],island)});
 const response=(p,action=null)=>({reply:'I will try.',interpretation:{kind:'request',summary:'A request.'},memories:[],references:[],terms:[{word:p.input,quote:p.input}],action});
 
+const searchInput='Walk through mountains and forests nearest first and find the adventurer';
+function searching(){const s=gatheringState();runtime.game.walk.roam(s.game,1000);return directed(s,searchInput,{search:{quote:searchInput}});}
+test('nearest search needs explicit terrain, order, adventurer and walking in all seven languages',()=>{
+    const inputs=['近い順に山か森に歩いて行って、冒険家さんがいたら教えて',searchInput,'请从最近的山和森林走起，寻找冒险家','Обойди ближайшие горы и леса и найди путешественника','Camina por las montañas y bosques más cercanos y busca al aventurero','Caminhe pelas montanhas e florestas mais perto e procure o aventureiro','Gehe zu den nächsten Bergen und Wäldern und suche den Abenteurer'];
+    for(const input of inputs){assert.ok(runtime.game.walk.searchDirective(input),input);const b=runtime.begin(gatheringState(),input,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,search:{quote:input}};assert.ok(runtime.validResult(r,b.packet),input);}
+    for(const input of ['Yes','冒険家を探そう','近い順に山か森に歩いて行かないで、冒険家さんを探さないで','「近い順に山か森に歩いて行って、冒険家さんがいたら教えて」',searchInput+'?','Do not '+searchInput,'What does '+searchInput+' mean'])assert.equal(runtime.game.walk.searchDirective(input),false,input);
+});
+test('search starts without circle, follows real nearest route and ends at actual encounter only',()=>{
+    const s=searching(),g=s.game,w=runtime.game.walk;
+    assert.equal(g.walk.confirmed,null);assert.equal(g.walk.search.target,'chip:palms_gift');assert.equal(g.mode,'move');assert.ok(runtime.validState(s));
+    g.walk.roaming.target='chip:mountain_gift';
+    for(let i=0;i<1000&&w.searchActive(g);i++){runtime.game.tick(g,.1);assert.ok(runtime.validState(s));}
+    assert.equal(g.walk.search.phase,'found');assert.equal(g.mode,'idle');assert.deepEqual(g.walk.search.visited.map(v=>v.target),['chip:palms_gift','chip:mountain_gift']);assert.equal(g.walk.encounter.id,g.walk.search.visited.at(-1).arrival);
+    const supply=runtime.game.supply(g);assert.deepEqual(supply.search,{phase:'found',target:'chip:mountain_gift',visited:2});assert.equal(supply.adventurer,undefined);assert.equal(supply.search.candidates,undefined);
+    const b=runtime.begin(s,'Tell me what happened','en',2000);assert.ok(runtime.validPacket(b.packet));assert.ok(JSON.stringify(b.packet.world).length+JSON.stringify(b.packet.calendar).length<=2000);
+    assert.match(runtime.prompt(b.packet),/NEAREST ADVENTURER SEARCH IS IMPLEMENTED/);
+});
+test('search exhausts known candidates once without reporting an island-wide absence',()=>{
+    const s=searching(),g=s.game,w=runtime.game.walk;
+    for(let i=0;i<1000&&w.searchActive(g);i++){g.walk.roaming.target=g.destination==='chip:palms_gift'?'chip:mountain_gift':'chip:palms_gift';runtime.game.tick(g,.1);}
+    assert.equal(g.walk.search.phase,'exhausted');assert.equal(g.walk.encounter,null);assert.equal(g.walk.search.visited.length,2);assert.equal(g.mode,'idle');assert.ok(runtime.validState(s));
+    const before=g.receipts.length;for(let i=0;i<10;i++)runtime.game.tick(g,.1);assert.equal(g.receipts.length,before);
+});
+test('explicit stop, failed reply and reload interrupt searches without new movement or generation',()=>{
+    let s=searching();s=directed(s,'stop');assert.equal(s.game.walk.search.phase,'stopped');assert.equal(s.game.mode,'idle');assert.ok(runtime.validState(s));
+    const b=runtime.begin(searching(),'Hello','en');s=runtime.finish(b.state,b.packet.id,b.state.revision,null);assert.equal(s.game.walk.search.phase,'stopped');assert.ok(runtime.validState(s));
+    const {createSession}=require('../scripts/experimental/native_store');let saved=searching(),calls=0;
+    const session=createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:value=>{assert.ok(runtime.validState(value));saved=structuredClone(value);return {ok:true};}},responder:{cancel(){},dispose(){},reply(){calls++;throw Error('unexpected');}}});
+    assert.equal(session.load().state.game.walk.search.reason,'load');session.pulse(false);assert.equal(calls,0);assert.equal(session.load().state.game.mode,'idle');session.dispose();
+});
+test('search rejects forged quotes, simultaneous actions and resuming through bare agreement',()=>{
+    const b=runtime.begin(gatheringState(),searchInput,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,search:{quote:searchInput}};
+    assert.equal(runtime.validResult({...r,search:{quote:'Yes'}},b.packet),false);
+    assert.equal(runtime.validResult({...r,inventoryView:{kind:'open',quote:searchInput}},b.packet),false);
+    const active=searching(),p=runtime.begin(active,searchInput,'en');assert.equal(runtime.validResult({...r},p.packet),false);
+    const bad=structuredClone(active);bad.game.walk.search.visited.push({target:bad.game.destination,arrival:'event-999999'});assert.equal(runtime.validState(bad),false);
+    for(const value of [null,{},[],{...active.game.walk.search,visited:null},{...active.game.walk.search,visited:[null]}]){const broken=structuredClone(active);broken.game.walk.search=value;assert.equal(runtime.validState(broken),false);}
+});
+test('search adds only newly visible actual candidates and uses no shortcut across missing ground',()=>{
+    const s=gatheringState(),g=s.game;
+    for(let x=700;x<=1150;x+=50)g.island.assets['ground_'+x]={...g.island.assets.ground_650,dx:x-10};
+    g.island.assets.palms_distant={...g.island.assets.palms_gift,dx:920};
+    g.island.assets.mountain_unreachable={...g.island.assets.mountain_gift,dx:400,dy:-40};
+    runtime.game.walk.roam(g,1000);g.walk.roaming.target='chip:palms_distant';
+    const next=directed(s,searchInput,{search:{quote:searchInput}}),n=next.game;
+    assert.equal(n.walk.search.candidates.includes('chip:palms_distant'),false);
+    assert.equal(n.walk.search.candidates.includes('chip:mountain_unreachable'),true);
+    for(let i=0;i<2000&&runtime.game.walk.searchActive(n);i++)runtime.game.tick(n,.1);
+    assert.equal(n.walk.search.phase,'found');assert.equal(n.walk.search.target,'chip:palms_distant');assert.ok(n.seen.includes('chip:palms_distant'));
+    assert.equal(n.walk.search.visited.some(v=>v.target==='chip:mountain_unreachable'),false);assert.ok(runtime.validState(next));
+});
+test('search session saves before departure, emits no per-stop generations and arms only fresh real encounter',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=gatheringState(),calls=0,clock=0;
+    runtime.game.walk.roam(saved.game,1000);saved.game.walk.roaming.target='chip:mountain_gift';
+    const session=createSession({clock:()=>clock,wallClock:()=>1000,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:value=>{assert.ok(runtime.validState(value));saved=structuredClone(value);return {ok:true};}},responder:{cancel(){},dispose(){},async reply(p){calls++;return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,search:{quote:p.input}}};}},practiceResponder:{cancel(){},dispose(){}}});
+    assert.ok((await session.submit(searchInput,'en')).ok);assert.equal(saved.game.mode,'move');
+    for(let i=0;i<1000&&runtime.game.walk.searchActive(saved.game);i++){clock+=100;assert.ok(session.pulse(false).ok);}
+    assert.equal(calls,1);assert.equal(saved.game.walk.search.phase,'found');assert.equal(saved.game.walk.search.visited.length,2);
+    const intro=session.mentorIntro(saved.game.walk.encounter.id);assert.ok(intro.ok);assert.equal(intro.automatic,true);session.dispose();
+    let writes=0;const failed=createSession({store:{load:()=>({ok:true,value:gatheringState()}),save:()=>({ok:++writes!==3})},responder:{cancel(){},dispose(){},async reply(p){return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,search:{quote:p.input}}};}}});
+    const result=await failed.submit(searchInput,'en');assert.equal(result.ok,false);assert.equal(result.error,'save');assert.equal(result.state.game.mode,'idle');failed.dispose();
+});
+
 function directed(s,input,extra={}){const b=runtime.begin(s,input,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,...extra};assert.ok(runtime.validResult(r,b.packet));return runtime.finish(b.state,b.packet.id,b.state.revision,r);}
 function confirmed(s){const target=runtime.game.supply(s.game).visible.find(v=>/^chip:(mountain_|palms_)/.test(v.id)&&runtime.game.walk.plan(s.game,v.id));assert.ok(target);
     s=directed(s,'Which place?',{focus:{targetId:target.id,quote:'Which place?'}});assert.equal(s.game.walk.confirmed,null);assert.equal(s.game.mode,'idle');

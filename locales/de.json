@@ -15868,5 +15868,9 @@
   "コンパス通信：{{0}}": "Kompassanruf: {{0}}",
   "受信した場所：{{0}}": "Empfangener Ort: {{0}}",
   "受信：{{0}}": "Empfangen: {{0}}",
-  "待ち合わせ期限：{{0}}": "Treffpunktfrist: {{0}}"
+  "待ち合わせ期限：{{0}}": "Treffpunktfrist: {{0}}",
+  "冒険家を探しています。": "Auf der Suche nach dem Abenteurer.",
+  "冒険家に会えました。": "Wir haben den Abenteurer getroffen.",
+  "今回見て回れた範囲では、冒険家に会えませんでした。": "In dem diesmal erkundeten Gebiet haben wir den Abenteurer nicht getroffen.",
+  "冒険家を探すのを中断しました。": "Die Suche nach dem Abenteurer wurde unterbrochen."
 }

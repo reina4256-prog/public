@@ -31,6 +31,7 @@
         const result={perception:'map-chips',location:'island',currentAction:g.mode,target:g.destination,hunger:g.hunger,fatigue:g.fatigue,
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
         if(reported)result.reported=reported;
+        if(walk&&g.walk?.search)result.search=walk.searchSupply(g);
         if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&(visible.some(p=>p.id===result.confirmed)||reported?.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
             result.availableActions=g.mode==='move'?['stop']:result.walkable?['walk']:[];}
         while(JSON.stringify(result).length>2000&&visible.length)visible.pop();

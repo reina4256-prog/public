@@ -135,7 +135,10 @@
         if(type==='flower')svg.innerHTML='<g stroke="#46653b" stroke-width="2"><path fill="none" d="M36 55V26"/><path fill="#7eaa59" d="M36 45Q12 29 20 47Q29 54 36 49M36 39Q60 25 55 43Q46 48 36 45"/><g fill="#edbdce" stroke="#a35f81"><ellipse cx="36" cy="16" rx="8" ry="11"/><ellipse cx="25" cy="25" rx="11" ry="8"/><ellipse cx="47" cy="25" rx="11" ry="8"/><ellipse cx="29" cy="36" rx="8" ry="10"/><ellipse cx="44" cy="36" rx="8" ry="10"/></g><circle cx="36" cy="27" r="7" fill="#f4d87c"/></g>';
         if(['water','canteen'].includes(type))svg.innerHTML='<g stroke="#654b30" stroke-width="2" stroke-linejoin="round"><path fill="#bd9768" d="M28 6h16v13q13 4 13 18v12q0 11-21 11T15 49V37q0-14 13-18z"/><path fill="'+(type==='water'?'#75bdd1':'#e1cf9e')+'" d="M22 38q0-14 14-14t14 14v10q0 7-14 7t-14-7z"/><path fill="#8c6842" d="M26 6h20v10H26z"/><path fill="none" d="M17 35h38M18 49h36M23 17Q3 8 10 42"/></g>';
         return svg;}
+    const searchNotice=el('p',$('world-stage'));searchNotice.id='search-notice';searchNotice.setAttribute('role','status');searchNotice.hidden=true;
+    const searchLabels={active:'冒険家を探しています。',found:'冒険家に会えました。',exhausted:'今回見て回れた範囲では、冒険家に会えませんでした。',stopped:'冒険家を探すのを中断しました。'};
     function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);renderTask(g);renderAffinity(g);let label=activity[g.mode];
+        searchNotice.hidden=!g.walk?.search;searchNotice.textContent=g.walk?.search?t(searchLabels[g.walk.search.phase]):'';
         const bag=NativePractice.possessions(g,false),key=JSON.stringify(bag)+'|'+$('locale').value;
         if(key!==inventoryKey){inventoryKey=key;$('inventory').hidden=!bag.open;$('inventory-items').replaceChildren();
             for(const [type,itemLabel]of [['wood','木材'],['stone','石'],['flower','花'],['water','水の入った水筒'],['canteen','空の水筒']]){const count=type==='canteen'?(bag.bottle==='empty'?1:0):bag[type];if(count){const slot=el('figure',$('inventory-items'),undefined,'inventory-item');slot.append(materialIcon(type));el('figcaption',slot,t(itemLabel)+' × '+count,'',true);}}

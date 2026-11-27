@@ -86,6 +86,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
                 if (!persist(state,'resume').ok) blocked=true;
             }
             if(state&&!blocked){const upgraded=core.upgrade(state);if(upgraded!==state){if(persist(upgraded,'map-upgrade').ok)state=upgraded;else blocked=true;}}
+            if(state&&!blocked&&core.game.walk.searchActive(state.game)){const next=copy();core.game.walk.searchStop(next.game,'load');next.revision++;if(persist(next,'search-load').ok)state=next;else blocked=true;}
             if(state&&!blocked&&practice.active(state.game)){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-resume').ok)state=next;else blocked=true;}}
             if(state&&!blocked&&recoverMentor&&!state.mentorConversations?.length){const recovered=recoverMentor(copy());
                 if(recovered&&core.validState(recovered)){if(persist(recovered,'mentor-recovery').ok)state=recovered;else blocked=true;}}
@@ -110,14 +111,14 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
     function characters(){load();return blocked?{ok:false,error:'save'}:store.list?.()||{ok:true,characters:[]};}
     function selectCharacter(id){
         load();if(blocked||busy||!store.select)return {ok:false,error:'input'};
-        if(state){practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};}practiceArmed=false;
+        if(state){practice.suspend(state.game);core.game.walk.searchStop(state.game,'switch');if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};}practiceArmed=false;
         responder.cancel();const result=store.select(id);if(!result.ok)return result;
         state=null;loaded=false;freshArrival=freshWalkCause=null;lastClock=lastSave=clock();return load();
     }
     function createCharacter(character,locale,answers){
         load();if(blocked||busy||!state||!store.create)return {ok:false,error:'input'};
         try{const value=core.create(character,locale,answers,islandFactory());
-            practice.suspend(state.game);if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};practiceArmed=false;
+            practice.suspend(state.game);core.game.walk.searchStop(state.game,'switch');if(!persist(state,'character-switch').ok)return {ok:false,error:'save'};practiceArmed=false;
             responder.cancel();const result=store.create(value);if(!result.ok)return result;
             state=value;syncRoaming();freshArrival=freshWalkCause=null;lastClock=lastSave=clock();return blocked?{ok:false,error:'save'}:{ok:true,state:copy()};
         }catch(_){return {ok:false,error:'input'};}
@@ -198,7 +199,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         }
         if(!talk.active)mentorStop();return r;}
     function practiceCancel(){practiceTicket++;practiceArmed=false;freshArrival=freshWalkCause=null;practiceResponder?.cancel();if(practicePending)busy=false;
-        if(state&&!blocked){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-pause').ok)state=next;else blocked=true;}}}
+        if(state&&!blocked){const next=copy(),searchStopped=core.game.walk.searchStop(next.game,'cancelled');if(practice.suspend(next.game)||searchStopped){next.revision++;if(persist(next,'practice-pause').ok)state=next;else blocked=true;}}}
     async function practiceNext(id){load();const p=practice.current(state?.game);
         if(blocked||!practiceResponder||practicePending||!p||p.id!==id||(!practiceArmed&&!(introOwner===id&&p.phase==='offer'&&!p.attempts.offer)))return {ok:false,error:blocked?'save':'input'};
         if(introOwner===id&&p.phase==='offer')p.suspended=false;

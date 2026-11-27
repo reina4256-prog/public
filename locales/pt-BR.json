@@ -15868,5 +15868,9 @@
   "コンパス通信：{{0}}": "Chamada pela bússola: {{0}}",
   "受信した場所：{{0}}": "Local recebido: {{0}}",
   "受信：{{0}}": "Recebido: {{0}}",
-  "待ち合わせ期限：{{0}}": "Prazo do encontro: {{0}}"
+  "待ち合わせ期限：{{0}}": "Prazo do encontro: {{0}}",
+  "冒険家を探しています。": "Procurando o aventureiro.",
+  "冒険家に会えました。": "Encontramos o aventureiro.",
+  "今回見て回れた範囲では、冒険家に会えませんでした。": "Não encontramos o aventureiro na área explorada desta vez.",
+  "冒険家を探すのを中断しました。": "A busca pelo aventureiro foi interrompida."
 }

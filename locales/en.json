@@ -15868,5 +15868,9 @@
   "コンパス通信：{{0}}": "Compass call: {{0}}",
   "受信した場所：{{0}}": "Received location: {{0}}",
   "受信：{{0}}": "Received: {{0}}",
-  "待ち合わせ期限：{{0}}": "Meeting deadline: {{0}}"
+  "待ち合わせ期限：{{0}}": "Meeting deadline: {{0}}",
+  "冒険家を探しています。": "Looking for the adventurer.",
+  "冒険家に会えました。": "We met the adventurer.",
+  "今回見て回れた範囲では、冒険家に会えませんでした。": "We did not meet the adventurer in the area explored this time.",
+  "冒険家を探すのを中断しました。": "The search for the adventurer was stopped."
 }
