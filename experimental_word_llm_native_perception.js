@@ -1,4 +1,4 @@
-(function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.NativePerception=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
+(function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_llm_native_home'):root.NativeHome);if(typeof module==='object'&&module.exports)module.exports=api;else root.NativePerception=api;})(typeof globalThis!=='undefined'?globalThis:this,function(home){
     'use strict';
     const id=key=>'chip:'+key;
     function asset(g,target){if(target==='chip:player_home'&&g.home?.site&&['building','ready'].includes(g.home.phase)){const s=g.home.site;return {type:'building',name:'マイホーム',dx:s.x*800-22,dy:s.y*480-48,sw:44,sh:58,scale:1};}
@@ -26,12 +26,12 @@
         observe(g);return g;
     }
     function supply(g,walk){
-        const visible=chips(g),last=(g.practices||[]).findLast(p=>p.remote?.target)?.remote,a=last&&asset(g,last.target);
+        const visible=g.home?.inside?home.roomVisible(g):chips(g),last=(g.practices||[]).findLast(p=>p.remote?.target)?.remote,a=last&&asset(g,last.target);
         const reported=a?{id:last.target,kind:String(a.type).slice(0,80),appearance:String(a.name||a.type).slice(0,80),at:last.replyAt}:null;
         const focus=g.focus&&(visible.some(p=>p.id===g.focus.targetId)||reported?.id===g.focus.targetId)?g.focus.targetId:null;
         const result={perception:'map-chips',location:'island',currentAction:g.mode,target:g.destination,hunger:g.hunger,fatigue:g.fatigue,
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
-        if(g.home?.inside){result.location='home';result.visible=[];result.focus=null;result.results=[];}
+        if(g.home?.inside){result.location='home';result.focus=null;result.results=[];}
         if(g.home?.travel||g.home?.exit){result.currentAction='move';result.homeTravel=true;result.target='chip:player_home';}
         if(reported)result.reported=reported;
         if(walk&&g.walk?.search)result.search=walk.searchSupply(g);

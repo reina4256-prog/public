@@ -4,6 +4,7 @@
     let state=null,busy=false,blocked=false,paused=false,answers=[],question=0,lastPulse=0,pulsing=false,screen='logo',startingNew=false;
     let strokes=[],pointer=null;
     let resuming=false;
+    const passage=window.NativePassageUI=NativePassage.create();let lastFrame=0;
     function interruptResume(){if(resuming){resuming=false;api.cancel();}}
     const calendarZone=$('calendar-zone'),calendarHemisphere=$('calendar-hemisphere');
     for(const zone of ['UTC',...(Intl.supportedValuesOf?.('timeZone')||[])]){const o=document.createElement('option');o.value=zone;o.textContent=zone;o.dataset.i18nSkip='';calendarZone.append(o);}
@@ -58,7 +59,7 @@
     for(const type of ['pointerup','pointercancel','lostpointercapture'])$('signature').addEventListener(type,e=>{if(e.pointerId===pointer){pointer=null;drawSignature();}});
     $('signature-clear').onclick=()=>{if(busy||blocked)return;strokes=[];pointer=null;drawSignature();};
     $('question-retry').onclick=()=>{if(busy||blocked)return;answers=[];question=0;strokes=[];pointer=null;showQuestion();};
-    async function showTitle(){if(busy)return;window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();const left=await api.leave();if(!left.ok){blocked=true;status(errors.save);return;}void api.pulse(true);screen='title';startingNew=false;
+    async function showTitle(){if(busy)return;passage.cancel();window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();const left=await api.leave();if(!left.ok){blocked=true;status(errors.save);return;}void api.pulse(true);screen='title';startingNew=false;
         document.body.classList.add('entry-active');$('entry').hidden=false;for(const id of ['questions','setup','play','character-picker'])$(id).hidden=true;
         $('logo').hidden=true;$('title-menu').hidden=false;$('continue-game').hidden=!state;$('new-game').hidden=false;status('');$(state?'continue-game':'new-game').focus();}
     $('logo').onclick=showTitle;
@@ -66,8 +67,11 @@
     for(const id of ['back-title','picker-back'])$(id).onclick=showTitle;
     const encounters=new Set();
     function encounter(){const e=state?.game?.walk?.encounter,key=e?.target+'|'+e?.id;if(screen!=='play'||busy||paused||document.hidden||!e||e.phase!=='pending'||encounters.has(key))return;
-        encounters.add(key);window.NativeVoiceUI.stop();busy=true;$('play').inert=true;$('locale').disabled=true;void window.NativeMentorUI.open(state.character.name,$('locale').value,state.game,e.id);}
-    window.addEventListener('native-mentor-close',()=>{busy=false;$('play').inert=false;$('locale').disabled=false;
+        encounters.add(key);window.NativeVoiceUI.stop();busy=true;$('play').inert=true;$('locale').disabled=true;
+        const animation=passage.current;if(animation?.direction==='enter')void window.NativeMentorUI.open(state.character.name,$('locale').value,state.game,e.id,animation.finished);
+        else void window.NativeMentorUI.open(state.character.name,$('locale').value,state.game,e.id);}
+    window.addEventListener('native-mentor-close',event=>{busy=false;$('play').inert=false;$('locale').disabled=false;
+        if(event.detail?.exit&&screen==='play'&&!document.hidden)passage.begin('exit',state.game,state.game.walk?.encounter?.target);else passage.cancel();
         if(state?.game)window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);$('input').focus();const owner=state;void api.load().then(r=>{if(r.ok&&r.state&&state===owner&&screen==='play'){state=r.state;$('mentor-voice-menu').hidden=!state.game?.walk?.met;}});warmup();});
     window.addEventListener('native-practice-modal',()=>{busy=true;$('play').inert=true;$('locale').disabled=true;});
     window.addEventListener('native-practice-update',event=>{if(screen==='play'&&state?.game){state={...state,game:event.detail};window.NativePracticeUI.sync(state.game,state.character.name);meters();}});
@@ -180,27 +184,32 @@
             if(result.ok){state=result.state;startingNew=false;paused=false;status('');render();$('input').focus();}else status(errors[result.error]||errors.failed);
             if(result.error==='save')blocked=true;
         }catch(_){status(errors.failed);}finally{busy=false;window.NativeVoiceUI.lock(false);$('setup').classList.remove('signed');$('question-retry').disabled=blocked;for(const id of ['name','self','player'])$(id).readOnly=!!state&&!startingNew;drawSignature();warmup();}};
-    $('compose').onsubmit=async event=>{event.preventDefault();if(busy||blocked||!state?.game)return;const input=$('input').value;if(!input.trim())return;
+    $('compose').onsubmit=async event=>{event.preventDefault();if(busy||blocked||!state?.game)return;const input=$('input').value;if(!input.trim())return;passage.cancel();
         if(window.NativePracticeUI?.interrupt())api.cancel();window.NativeVoiceUI.stop();window.NativeVoiceUI.prime();
         busy=true;$('send').disabled=true;$('back-title').disabled=true;$('locale').disabled=true;$('cancel').hidden=false;status('返答を待っています…');
         try{const result=await api.submit(input,$('locale').value);if(result.state){state=result.state;if($('input').value===input)$('input').value='';render();if(result.ok)window.NativePracticeUI?.afterChat(state);}
             if(result.error==='save')blocked=true;status(result.ok?(state.turns.at(-1)?.actionCheck?.accepted===false?'行動案は実行条件を満たさず、実行していません。':''):errors[result.error]||errors.failed);
             if(result.ok&&!paused&&!document.hidden&&$('chat-view').hidden===false&&!$('input').value.trim())window.NativeVoiceUI.reply(state.turns.at(-1).id);
         }catch(_){status(errors.failed);}finally{busy=false;$('send').disabled=blocked;$('back-title').disabled=false;$('locale').disabled=false;$('cancel').hidden=true;if(!blocked)$('input').focus();warmup();}};
-    $('cancel').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();};$('pause').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();paused=!paused;meters();if(paused&&!busy)api.cancel();else warmup();};
+    $('cancel').onclick=()=>{passage.cancel();window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();};$('pause').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();paused=!paused;meters();if(paused&&!busy)api.cancel();else warmup();};
     for(const tab of ['chat','diary','stars'])$('tab-'+tab).onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();for(const name of ['chat','diary','stars']){$(name+'-view').hidden=name!==tab;$('tab-'+name).setAttribute('aria-pressed',String(name===tab));}$('workspace').classList.toggle('reading',tab!=='chat');renderPanels();if(tab!=='chat'&&!busy)api.cancel();else warmup();};
     $('input').addEventListener('focus',warmup);$('input').addEventListener('input',()=>{interruptResume();window.NativeVoiceUI.stop();warmup();});
     $('locale').value=window.GameI18n.language;$('locale').onchange=()=>{window.NativeVoiceUI.stop();window.GameI18n.setLanguage($('locale').value);if(screen==='play'&&state?.game){render();void saveCalendar();}else if(!$('questions').hidden)showQuestion();else if(screen==='setup')window.NativeVoiceUI.mount($('setup-voice'),ExperimentalWordStartQuestions.resolve(answers).appearance,$('locale').value);};
     window.NativeScene.load();const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     async function frame(time){
+        const dt=lastFrame?Math.min(.1,(time-lastFrame)/1000):0;lastFrame=time;
+        passage.tick(dt,paused||blocked||document.hidden||screen!=='play'||$('chat-view').hidden||!!$('input').value.trim());
         if(screen==='logo'&&!document.hidden)drawLogo(time);
         if(screen==='play'&&state?.game&&!document.hidden){window.NativeScene.draw(state.game,time/1000,reduced.matches);
-            const stop=paused||busy||window.NativePracticeUI?.pending||!$('chat-view').hidden&&document.activeElement===$('input')&&$('input').value.length>0||$('chat-view').hidden;
-            if(time-lastPulse>100&&!pulsing){lastPulse=time;pulsing=true;const owner=state;try{const r=await api.pulse(stop);if(screen==='play'&&state===owner){if(r.game){const island=state.game.island;state.game={...r.game,island};meters();encounter();window.NativePracticeUI?.poll(state.game,!stop&&!document.hidden);}if(!r.ok&&r.error==='save'){blocked=true;$('send').disabled=true;status(errors.save);}}}catch(_){status(errors.failed);}finally{pulsing=false;}}
+            const suspended=paused||blocked||document.hidden||$('chat-view').hidden||!!$('input').value.trim();
+            const stop=suspended||busy||window.NativePracticeUI?.pending||passage.active&&state.game.home?.exit?.phase!=='in';
+            if(time-lastPulse>100&&!pulsing){lastPulse=time;pulsing=true;const owner=state;try{const r=await api.pulse(stop);if(screen==='play'&&state===owner){if(r.game){const before=state.game,island=before.island;state.game={...r.game,island};passage.observe(before,state.game);meters();encounter();
+                    const prepare=passage.current?.direction==='enter'&&passage.current.elapsed>=.65&&!suspended&&!busy;
+                    window.NativePracticeUI?.poll(state.game,(!stop&&!passage.active||prepare)&&!document.hidden);}if(!r.ok&&r.error==='save'){passage.cancel();blocked=true;$('send').disabled=true;status(errors.save);}}}catch(_){passage.cancel();status(errors.failed);}finally{pulsing=false;}}
         }
         requestAnimationFrame(frame);
     }
-    requestAnimationFrame(frame);window.addEventListener('pagehide',()=>{window.NativeVoiceUI.stop();api.cancel();});document.addEventListener('visibilitychange',()=>{if(document.hidden){window.NativeVoiceUI.stop();void api.pulse(true);api.cancel();}else warmup();});
+    requestAnimationFrame(frame);window.addEventListener('pagehide',()=>{passage.cancel();window.NativeVoiceUI.stop();api.cancel();});document.addEventListener('visibilitychange',()=>{if(document.hidden){window.NativeVoiceUI.stop();void api.pulse(true);api.cancel();}else warmup();});
     let resize;window.addEventListener('resize',()=>{clearTimeout(resize);resize=setTimeout(()=>state?.game&&renderPanels(),160);});
     void api.load().then(async result=>{await window.NativeVoiceUI.ready;if(!result.ok){blocked=true;$('questions').hidden=$('setup').hidden=true;status(errors.save);return;}state=result.state;if(state){$('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);}$('entry').hidden=false;}).catch(()=>{blocked=true;status(errors.failed);});
 })();

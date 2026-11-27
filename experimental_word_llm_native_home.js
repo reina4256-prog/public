@@ -2,6 +2,9 @@
     'use strict';
     const COST={wood:8,stone:4},DURATION=600000,ID='chip:player_home';
     const ROOM_START={x:6,y:6.4,dir:'down'},ROOM_DOOR={x:5.5,y:9.5};
+    const ROOM_LAYOUT={width:12,height:10,bed:{x:8.2,y:2.1,w:1.6,h:1.6*754/532},entrance:{x:4,y:9,w:3,h:1},floor:{x:1,y:1,w:10,h:8},walls:{x:0,y:0,w:12,h:10}};
+    function roomVisible(g){if(!g.home?.inside)return [];const descriptions={bed:['furniture','bed; visible only, resting is not implemented'],entrance:['entrance','entrance; exit on explicit request'],floor:['interior','wooden floor'],walls:['interior','walls']};
+        return Object.entries(descriptions).map(([id,[kind,appearance]])=>{const r=ROOM_LAYOUT[id];return {id:'chip:home_'+id,kind,appearance,x:(r.x+r.w/2)/12,y:(r.y+r.h/2)/10,width:r.w/12,height:r.h/10};});}
     const copy=x=>structuredClone(x),turn=s=>/^turn-[1-9]\d*$/.test(s),quote=s=>typeof s==='string'&&s.trim()&&s.length<=300;
     const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y),keys=(o,a)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>a.includes(k));
     function crosses(a,b,x,y){let low=0,high=1;for(const [axis,center,radius]of [['x',x,8],['y',y,4]]){const d=b[axis]-a[axis],start=a[axis];if(!d){if(start<=center-radius||start>=center+radius)return false;continue;}
@@ -124,5 +127,5 @@
             &&keys(h.payment,['source','practice','items','held'])&&h.payment.source===s&&Array.isArray(h.payment.items)&&new Set(h.payment.items).size===h.payment.items.length
             &&items.length===h.payment.items.length&&items.every(s=>h.payment.items.includes(s.item.id))&&['wood','stone'].every(t=>h.payment.held[t]===2&&items.filter(s=>s.item.type===t).length===COST[t]-2);
     }
-    return {COST,DURATION,ID,ROOM_START,ROOM_DOOR,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,stop,asset,valid,consultation,source};
+    return {COST,DURATION,ID,ROOM_START,ROOM_DOOR,ROOM_LAYOUT,roomVisible,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,stop,asset,valid,consultation,source};
 });

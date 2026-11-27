@@ -27,7 +27,7 @@ else {
             'scripts/experimental/native_electron.js','scripts/experimental/native.js','scripts/experimental/native_preload.js','scripts/experimental/native_window.js','scripts/experimental/gemini_reply.js',
             'scripts/experimental/antigravity_install.js','scripts/experimental/playtest_store.js','experimental_word_reply_awareness.js',
             'experimental_word_llm_native_runtime.js','experimental_word_llm_native_game.js','experimental_word_llm_native_perception.js','experimental_word_llm_native_island.html',
-            'experimental_word_llm_native_island_ui.js','experimental_word_llm_native_scene.js','experimental_word_llm_native_book.js',
+            'experimental_word_llm_native_island_ui.js','experimental_word_llm_native_scene.js','experimental_word_llm_native_passage.js','experimental_word_llm_native_book.js',
             'experimental_word_llm_native_drawing.js','experimental_word_llm_native_stars.js','scripts/experimental/native_island.js',
             'experimental_word_llm_native_book.css','experimental_word_llm_native_island.css','experimental_word_start_questions.js',
             'experimental_word_island_boot.js','experimental_word_island_navigation.js','data.js','island_shared.js',

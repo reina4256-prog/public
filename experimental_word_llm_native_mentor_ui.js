@@ -49,12 +49,12 @@
         }p.frame=requestAnimationFrame(frame);
     }
     let encounter=null,round=0,sequence=0,waiting=false,context=null,source=null,finishAudio=null,game=null,name='',locale='ja',phase='closed',master=null,background=null;
-    let practiceId=null,practiceArmed=false,practiceWaiting=false,lastPracticeLine='',automaticIntro=false,introStarted=false,npc='explore';
+    let practiceId=null,practiceArmed=false,practiceWaiting=false,lastPracticeLine='',automaticIntro=false,introStarted=false,npc='explore',prefetched=null;
     const npcName=()=>{const label=t(npc==='building'?'建築士':'冒険家');return NativePractice.current(game)?.remote?t('コンパス通信：{{0}}').replace('{{0}}',label):label;};
     function stopAudio(){cancelPages();api.voiceCancel();try{source?.stop();}catch(_){}source=null;finishAudio?.();finishAudio=null;}
     function clearVideo(){w.video.pause();w.video.removeAttribute('src');w.video.load();w.video.hidden=w.skip.hidden=true;}
-    function close(){sequence++;practiceArmed=false;practiceId=null;phase='closed';stopAudio();clearVideo();api.mentorStop();api.cancel();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new Event('native-mentor-close'));}
-    function handoff(){phase='closed';clearVideo();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new Event('native-mentor-close'));}
+    function close(){const exit=w.dialog.open&&!NativePractice.current(game)?.remote;sequence++;prefetched=null;practiceArmed=false;practiceId=null;phase='closed';stopAudio();clearVideo();api.mentorStop();api.cancel();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new CustomEvent('native-mentor-close',{detail:{exit}}));}
+    function handoff(){const exit=w.dialog.open&&!NativePractice.current(game)?.remote;phase='closed';clearVideo();encounter=null;waiting=false;if(w.dialog.open)w.dialog.close();window.dispatchEvent(new CustomEvent('native-mentor-close',{detail:{exit}}));}
     function introReady(){if(!w.dialog.open||phase==='closed'||introStarted)return;introStarted=true;phase='intro';clearVideo();w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;
         w.name.textContent=npcName();line(w.text,'');line(w.thought,'');w.close.disabled=false;w.close.hidden=automaticIntro;w.close.textContent=t('つづける');
         if(automaticIntro)void next();else w.close.focus();}
@@ -79,10 +79,14 @@
         finally{if(ticket===sequence){waiting=false;w.close.hidden=round>=3;w.close.disabled=round>=3||phase==='failed';}}}
     w.close.onclick=()=>void next();end.onclick=close;w.skip.onclick=introReady;w.dialog.addEventListener('cancel',e=>{e.preventDefault();close();});
     w.video.addEventListener('ended',introReady);w.video.addEventListener('error',()=>{if(phase==='video'){w.video.controls=true;w.skip.focus();}});
-    window.NativeMentorUI={async open(characterName,language,world,arrival){if(w.dialog.open)return;sequence++;const ticket=sequence;name=characterName;locale=language;game=world;round=0;encounter=null;
+    window.NativeMentorUI={async open(characterName,language,world,arrival,reveal=null){if(w.dialog.open)return;sequence++;const ticket=sequence;name=characterName;locale=language;game=world;round=0;encounter=null;prefetched=null;
         controls();
         phase='loading';const r=await api.mentorIntro(arrival);if(ticket!==sequence){api.mentorStop();return;}if(!r.ok){close();return;}
         practiceId=r.practice||null;if(r.game)game=r.game;practiceArmed=false;automaticIntro=r.automatic===true;introStarted=false;
+        // Consume the existing offer slot once, only after actual saved arrival.
+        // First-meeting video keeps its original generation boundary.
+        if(reveal&&r.met&&automaticIntro&&practiceId)prefetched={id:practiceId,promise:api.practiceNext(practiceId).catch(()=>({ok:false,error:'failed'}))};
+        if(reveal){const shown=await reveal;if(ticket!==sequence)return;if(!shown||document.hidden){close();return;}}
         npc=r.npc||'explore';
         log.replaceChildren();status.textContent='';w.text.textContent=w.thought.textContent='';w.name.classList.add('visually-hidden');w.name.textContent=npcName();w.dialog.showModal();
         master=new Image();master.src=npc==='building'?'builder_battle_enemy.png':'adventurer_battle_enemy.png';background=new Image();background.src=imageSources.field_bg;
@@ -110,14 +114,19 @@
         const ticket=sequence,id=practiceId;practiceWaiting=true;waiting=true;w.close.disabled=true;
         try{try{context ||= new AudioContext();void context.resume().catch(()=>{});}catch(_){}
             for(let count=0;count<6&&ticket===sequence&&practiceArmed;count++){
-                const p=NativePractice.current(game),slot=NativePractice.due(p);if(!slot)break;
+                const p=NativePractice.current(game),slot=prefetched?.id===id?'offer':NativePractice.due(p);if(!slot)break;
+                let prepared=null;
+                if(prefetched?.id===id&&slot==='offer'){prepared=prefetched.promise;prefetched=null;}
+                const entrance=window.NativePassageUI?.current;
+                if(entrance?.direction==='enter'){prepared ||= api.practiceNext(id).catch(()=>({ok:false,error:'failed'}));
+                    if(!await entrance.finished||ticket!==sequence||document.hidden)return;}
                 if(['offer','decision','report','feedback'].includes(slot)){
                     if(!w.dialog.open){phase='conversation';w.dialog.dataset.phase='conversation';w.left.hidden=w.right.hidden=false;line(w.text,'');line(w.thought,'');
                         if(!master){master=new Image();master.src='adventurer_battle_enemy.png';}if(!background){background=new Image();background.src=imageSources.field_bg;}
                         npc=p.npc||p.remote?.npc||'explore';w.name.classList.toggle('visually-hidden',!p.remote);w.name.textContent=npcName();w.dialog.showModal();window.dispatchEvent(new Event('native-practice-modal'));}
                     status.textContent=t(p.npc==='building'&&slot!=='decision'?'建築士の返事を待っています…':'返答を待っています…');
                 }
-                const r=await api.practiceNext(id);if(ticket!==sequence||document.hidden)return;if(!r.ok)throw Error(r.error||'reply');
+                const r=await(prepared||api.practiceNext(id));if(ticket!==sequence||document.hidden)return;if(!r.ok)throw Error(r.error||'reply');
                 game=r.game;window.dispatchEvent(new CustomEvent('native-practice-update',{detail:game}));syncPractice(game);
                 status.textContent='';
                 const reading=present(w.dialog.open?(r.line.speaker==='mentor'?w.text:w.thought):document.getElementById('bubble'),r.line.text);

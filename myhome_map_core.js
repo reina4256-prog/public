@@ -16,15 +16,15 @@
         window.NativeHomeInterior={load,draw(context,width,height,game){
             load();context.save();context.imageSmoothingEnabled=false;
             context.fillStyle='#24333a';context.fillRect(0,0,width,height);
-            const tile=Math.min(width*.8/12,height*.8/10),left=(width-tile*12)/2,top=(height-tile*10)/2;
+            const layout=window.NativeHome.ROOM_LAYOUT,tile=Math.min(width*.8/layout.width,height*.8/layout.height),left=(width-tile*layout.width)/2,top=(height-tile*layout.height)/2;
             const draw=(sprite,x,y,w,h)=>{const image=pictures[sprite.img];if(!image?.complete||!image.naturalWidth)return;
                 context.drawImage(image,sprite.sx,sprite.sy,sprite.sw,sprite.sh,x,y,w,h);};
             for(let y=0;y<10;y++)for(let x=0;x<12;x++){
                 const wall=y===0||x===0||x===11||y===9&&(x<4||x>6);
                 draw(wall?HOME_ART.wall:HOME_ART.floor,left+x*tile,top+y*tile,tile,tile);
             }
-            const bedWidth=tile*1.6;
-            draw(HOME_ART.bed,left+tile*8.2,top+tile*2.1,bedWidth,bedWidth*HOME_ART.bed.sh/HOME_ART.bed.sw);
+            const bed=layout.bed;
+            draw(HOME_ART.bed,left+tile*bed.x,top+tile*bed.y,tile*bed.w,tile*bed.h);
             const room=game.home.room||window.NativeHome.ROOM_START,skin=game.origin.appearance;
             const pose=window.DUNGEON_SPRITES[skin+'_'+room.dir];
             if(pose){const h=tile*1.6,w=h*pose.sw/pose.sh;

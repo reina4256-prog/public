@@ -15,11 +15,15 @@ window.NativeScene={
     },
     draw(game,time,reduced){
         if(!game)return;
+        const passage=window.NativePassageUI?.view();if(passage)game=passage.game;
         assets=game.island.assets;const skin=game.origin.appearance;
         aiPet.type=aiPet.baseType=aiPet.currentSkin=skin;aiPet.x=game.x*800;aiPet.y=game.y*480;
+        aiPet.visualScale=passage?.scale??1;
+        if(passage){const a=passage.target==='chip:player_home'?NativeHome.asset(game):NativePerception.asset(game,passage.target);
+            if(a){const x=a.dx+a.sw*a.scale/2,y=a.dy+a.sh*a.scale/2,f=passage.direction==='enter'?passage.progress:1-passage.progress;aiPet.x+=(x-aiPet.x)*f;aiPet.y+=(y-aiPet.y)*f;}}
         const practice=window.NativePractice.current(game),practiceRoute=practice&&!practice.suspended?practice.route:[],travel=practiceRoute?.length>0&&!window.NativePracticeUI?.pending&&!window.NativePractice.due(practice);
         const searching=practice?.phase==='survey'&&practice.gather&&!practice.suspended&&!practiceRoute.length&&practice.surveyIndex<2&&!window.NativePracticeUI?.pending&&!NativePractice.due(practice);
-        const homeRoute=game.home?.travel?.route||[],moving=game.mode==='move'||travel||homeRoute.length>0;
+        const homeRoute=game.home?.travel?.route||[],moving=!!passage||game.mode==='move'||travel||homeRoute.length>0;
         aiPet.actionState=moving?'moving':'idle';aiPet.visualAction=game.mode==='rest'?'sleep':game.mode==='eat'?'eat_raw':'idle';
         const frames=aiConfigs[skin].actions[moving?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
         aiPet.frameIndex=reduced?0:Math.floor(time/.25)%frames.length;
@@ -41,11 +45,12 @@ window.NativeScene={
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);
         if(targetAsset)this.drawTarget({x:.5,y:.5,width:targetAsset.sw*targetAsset.scale/800,height:targetAsset.sh*targetAsset.scale/480});
-        if(practice?.phase==='survey'){
+        if(practice?.phase==='survey'&&!passage){
             aiPet.indoorTarget=NativePerception.asset(game,practice.target);aiPet.exploreState={currentFacility:practice.target.startsWith('chip:mountain_')?'mountain':'palms'};
             drawActionWindow(travel?'move':'idle','inside',true);
         }
         this.drawHomeFade(game);
+        if(passage){ctx.save();ctx.globalAlpha=passage.alpha;ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();}
     },
     drawHomeFade(game){const e=game.home?.exit;if(!e||e.phase==='walk')return;
         ctx.save();ctx.globalAlpha=e.phase==='out'?Math.min(1,e.elapsed/.3):Math.max(0,1-e.elapsed/.3);ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();},

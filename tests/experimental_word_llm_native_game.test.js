@@ -399,7 +399,12 @@ test('home clock rollback/reload/long absence complete once, real-route entrance
     const invented=structuredClone(s);invented.game.home.inside=true;assert.equal(runtime.validState(invented),false,'indoor state requires an actual explicit entry source');
     s=homeOrder(s,'Enter my house','enter');assert.ok(s.game.home.travel);assert.equal(s.game.home.inside,false);
     for(let i=0;i<2000&&s.game.home.travel;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.home.inside,true);assert.ok(runtime.validState(s));
-    const b=runtime.begin(s,'How are you?','en');assert.equal(b.packet.world.location,'home');assert.deepEqual(b.packet.world.visible,[]);assert.ok(runtime.validPacket(b.packet));assert.ok(runtime.validState(b.state));
+    const b=runtime.begin(s,'How are you?','en');assert.equal(b.packet.world.location,'home');assert.ok(b.packet.world.visible.some(v=>v.id==='chip:home_bed'));assert.ok(runtime.validPacket(b.packet));assert.ok(runtime.validState(b.state));
+    const roomHistory=structuredClone(s.turns),roomInventory=structuredClone(s.game.inventory);
+    for(const locale of runtime.locales){const packet=runtime.begin(s,'What can you see inside? ',locale,s.game.home.now).packet;
+        const calendar=packet.calendar||runtime.game.walk.calendar.snapshot(s.game.home.now,s.game.calendarSettings,locale);assert.ok(runtime.validPacket({...packet,calendar}));assert.deepEqual(packet.world.visible.map(v=>v.id),['chip:home_bed','chip:home_entrance','chip:home_floor','chip:home_walls']);assert.ok(JSON.stringify(packet.world).length+JSON.stringify(calendar).length<=2000);assert.ok(JSON.stringify(packet.inventory).length<=1200);
+        assert.ok(runtime.prompt(packet).includes('resting/sleep recovery is not implemented'));assert.equal(runtime.validResult({...response(packet),focus:{targetId:'chip:home_bed',quote:'inside'}},packet),false);}
+    assert.deepEqual(s.turns,roomHistory);assert.deepEqual(s.game.inventory,roomInventory);
     // An old indoor save without a room position still exits through the real room entrance.
     delete s.game.home.room;const insideSeed=structuredClone(s);s=homeOrder(s,'Exit the house','exit');assert.equal(s.game.home.inside,true);assert.equal(s.game.home.exit.phase,'walk');
     const outdoor={x:s.game.x,y:s.game.y},startRoom=structuredClone(s.game.home.room);
@@ -942,6 +947,19 @@ test('each actual observation holds its position and survey phase until its own 
         assert.deepEqual(practice.current(held),practice.current(before));assert.ok((await f.session.practiceNext(f.id)).ok);
         assert.equal(f.calls.at(-1).context.phase,'survey');assert.equal(f.calls.at(-1).context.results.some(e=>e.kind==='returned'),false);
     }f.session.dispose();
+});
+
+test('cosmetic passages shrink/fade/emerge without moving, saving or replaying game actions',async()=>{
+    const passage=require('../experimental_word_llm_native_passage').create(),g={x:.5,y:.5,home:{inside:false},walk:{},practices:[]};
+    const entered=structuredClone(g);entered.home.inside=true;const original=structuredClone(entered),s=passage.observe(g,entered);
+    assert.equal(s.direction,'enter');assert.equal(passage.view().scale,1);passage.tick(.1,true);assert.equal(passage.view().scale,1);
+    for(let i=0;i<4;i++)passage.tick(.1);assert.ok(passage.view().scale<.01);assert.equal(passage.view().alpha,0);
+    for(let i=0;i<3;i++)passage.tick(.1);assert.equal(await s.blackReady,true);assert.equal(passage.view().alpha,1);
+    for(let i=0;i<2;i++)passage.tick(.1);assert.equal(await s.finished,true);assert.equal(passage.active,false);assert.deepEqual(entered,original);
+    assert.equal(passage.observe(entered,structuredClone(entered)),null,'loading the same indoor save does not replay an entry');
+    const exit=passage.observe(entered,g);assert.equal(exit.direction,'exit');assert.equal(passage.view().alpha,1);assert.ok(passage.view().scale<.01);passage.tick(.1);assert.ok(passage.view().scale>0.1);passage.cancel();assert.equal(await exit.finished,false);
+    for(const target of ['chip:mountain_1','chip:palms_1']){const a=structuredClone(g),b=structuredClone(g);b.walk.encounter={id:'event-1',target,phase:'pending'};assert.equal(passage.observe(a,b).target,target);passage.cancel();assert.equal(passage.observe(b,structuredClone(b)),null);}
+    for(const [from,to,dir]of [['outbound','survey','enter'],['survey','return','exit'],['return','report','enter']]){const a={...g,practices:[{id:'event-1',phase:from}]},b={...g,practices:[{id:'event-1',phase:to,target:'chip:palms_1',homeTarget:'chip:mountain_1'}]};assert.equal(passage.observe(a,b).direction,dir);passage.cancel();}
 });
 
 test('native facing follows the immediate real segment in outbound, survey and return; vertical travel keeps facing',()=>{
