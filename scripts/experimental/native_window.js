@@ -7,6 +7,9 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
     const url=pathToFileURL(path.resolve(__dirname,legacy?'../../experimental_word_llm_native.html':'../../experimental_word_llm_native_island.html')).href;
     const allowed=event=>!window.isDestroyed() && event.sender===window.webContents && event.senderFrame===window.webContents.mainFrame && event.senderFrame.url===url;
     ipcMain.handle('native-load',event=>allowed(event)?session.load():{ok:false,error:'input'});
+    ipcMain.handle('native-enter',event=>allowed(event)?session.enter():{ok:false,error:'input'});
+    ipcMain.handle('native-leave',event=>allowed(event)?session.leave():{ok:false,error:'input'});
+    ipcMain.handle('native-resume-report',event=>allowed(event)?session.resumeReport():{ok:false,error:'input'});
     ipcMain.handle('native-create',(event,character,locale,answers)=>allowed(event)?session.create(character,locale,answers):{ok:false,error:'input'});
     ipcMain.handle('native-prepare',(event,answers)=>allowed(event)?session.prepare(answers):{ok:false,error:'input'});
     ipcMain.handle('native-characters',event=>allowed(event)?session.characters():{ok:false,error:'input'});
@@ -42,6 +45,7 @@ function openWindow(session,{show=true,legacy=false,voice=null}={}) {
         ipcMain.removeHandler('native-mentor-intro');
         ipcMain.removeHandler('native-practice-next');
         ipcMain.removeHandler('native-calendar-settings');
+        for(const name of ['native-enter','native-leave','native-resume-report'])ipcMain.removeHandler(name);
     });
     void window.loadURL(url).catch(error=>{
         console.error('[word-native] Could not load the native page:',error.message);

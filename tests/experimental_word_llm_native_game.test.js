@@ -6,6 +6,115 @@ const island=require('../scripts/experimental/native_island').createIsland();
 const make=()=>({...base.create({name:'Pico',self:'I',player:'you'},'en'),version:2,game:runtime.game.create([0,0,0,0,0,0,0],island)});
 const response=(p,action=null)=>({reply:'I will try.',interpretation:{kind:'request',summary:'A request.'},memories:[],references:[],terms:[{word:p.input,quote:p.input}],action});
 
+const absence=runtime.game.practice.absence,epoch=Date.UTC(2026,10,27);
+function awayFixture(quantity){let s=gatheringState();absence.install(s.game,epoch);const input='Collect wood in known forests while I am away'+(quantity?' '+quantity+' items':'');
+    const b=runtime.begin(s,input,'en',epoch),target=b.packet.inventory.targets.find(t=>t.id.startsWith('chip:palms_')&&t.reachable).id;
+    const away={kind:'start',type:'wood',targets:[target],quote:input,...(quantity?{quantity}:{})};
+    s=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,confirmation:null,away});assert.ok(runtime.validState(s));return s;}
+test('away reservation waits for a real departure; partial gathering and positions survive resume',()=>{
+    const s=awayFixture(),g=s.game,j=absence.current(g);absence.advance(g,epoch+3600000);assert.equal(j.total,0);assert.equal(j.status,'reserved');
+    absence.depart(g,epoch+3600000);absence.resume(g,epoch+3600000+300000);assert.equal(j.total,0);assert.equal(j.status,'paused');assert.equal(j.phase,'gather');assert.ok(j.timer>290000&&j.timer<300000);assert.notDeepEqual({x:g.x,y:g.y},j.home);assert.ok(runtime.validState(s));
+    const timer=j.timer,position={x:g.x,y:g.y};absence.settle(g,epoch+7200000);assert.equal(j.timer,timer);assert.deepEqual({x:g.x,y:g.y},position);assert.ok(runtime.validState(s));
+});
+test('away loops beyond two, waits for resources, returns quantity exactly, and never ages needs',()=>{
+    for(const quantity of [undefined,5]){const s=awayFixture(quantity),g=s.game,j=absence.current(g),needs=[g.hunger,g.fatigue,g.elapsed];absence.depart(g,epoch);absence.resume(g,epoch+8*3600000);
+        assert.equal(j.total,quantity||9);assert.equal(g.inventory.items.length,j.total);assert.equal(new Set(g.inventory.items.map(i=>i.id)).size,j.total);assert.deepEqual([g.hunger,g.fatigue,g.elapsed],needs);assert.equal(j.status,quantity?'done':'paused');if(quantity)assert.deepEqual({x:g.x,y:g.y},j.home);assert.ok(runtime.validState(s));}
+});
+test('resource clocks have no full-bank, retain next recovery after second pickup, and ignore rollback',()=>{
+    const g=awayFixture().game,target=absence.current(g).plans[0].target;absence.acquire(g,target,'wood','away-turn-1',1,epoch);absence.advance(g,epoch+1000);absence.acquire(g,target,'wood','away-turn-1',1,epoch+1000);
+    const r=Object.values(g.absence.resources)[0];assert.equal(r.next,epoch+absence.HOUR);absence.advance(g,epoch+2*absence.HOUR);assert.equal(r.available,2);assert.equal(r.next,null);
+    absence.advance(g,epoch+24*absence.HOUR);absence.acquire(g,target,'wood','away-turn-1',1,g.absence.now);assert.equal(r.next,epoch+25*absence.HOUR);const before=structuredClone(g.absence);absence.advance(g,epoch);assert.deepEqual(g.absence,before);
+});
+test('legacy material and spent IDs stay intact; no adoption-time offline yield',()=>{
+    let s=freely(gatheringState(),'wood');completeCollection(s.game);const before=structuredClone(s.game.inventory);absence.install(s.game,epoch);assert.equal(absence.available(s.game,'chip:palms_gift','wood'),0);assert.deepEqual(s.game.inventory,before);assert.equal(absence.resume(s.game,epoch+24*absence.HOUR),null);assert.equal(s.game.inventory.items.length,2);assert.ok(runtime.validState(s));
+});
+test('regenerated normal gathering uses new IDs at unchanged survey speed and historical packets remain valid',()=>{
+    let s=freely(gatheringState(),'wood');completeCollection(s.game);const old=s.game.inventory.items.map(i=>i.id);absence.install(s.game,epoch);absence.advance(s.game,epoch+2*absence.HOUR);
+    s=freely(s,'wood');completeCollection(s.game);assert.equal(s.game.inventory.items.length,4);assert.deepEqual(s.game.inventory.items.slice(0,2).map(i=>i.id),old);assert.ok(s.game.inventory.items.slice(2).every(i=>i.id.includes(':r')));assert.ok(runtime.validState(s));const b=runtime.begin(s,'Show belongings','en',epoch+2*absence.HOUR);assert.ok(runtime.validState(b.state));assert.ok(runtime.validPacket(b.packet));
+});
+test('one recovered normal resource yields one item and records the second empty observation without fabricating a legacy item',()=>{
+    let s=freely(gatheringState(),'wood');completeCollection(s.game);absence.install(s.game,epoch);absence.advance(s.game,epoch+absence.HOUR);s=freely(s,'wood');completeCollection(s.game);
+    assert.equal(s.game.inventory.items.length,3);assert.equal(s.game.absence.attempts.length,2);assert.equal(s.game.absence.attempts[1].item,null);assert.ok(runtime.validState(s));assert.ok(runtime.validState(runtime.begin(s,'Show inventory','en',epoch+absence.HOUR).state));
+});
+test('long away quotes stay within budget without dropping the received compass location or inventing a quote',()=>{
+    const pr=runtime.game.practice;let s=compassFixture();s=directed(s,'Call with the compass',{compass:{kind:'call',contact:'adventurer',purpose:'location',quote:'Call with the compass'}});finishLine(s.game,'offer',{text:'A'.repeat(300),agree:false});finishLine(s.game,'decision',{agree:false});absence.install(s.game,epoch);
+    const input=('Collect stone while I am away '+'.'.repeat(300)).slice(0,300),b=runtime.begin(s,input,'en',epoch);
+    s=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,away:{kind:'start',type:'stone',targets:['chip:mountain_gift'],quote:input}});absence.depart(s.game,epoch);absence.resume(s.game,epoch+8*absence.HOUR);s.game.absence.report.calendar=runtime.game.walk.calendar.snapshot(epoch,undefined,'en');
+    const next=runtime.begin(s,'Where are we now?','en',epoch+8*absence.HOUR);assert.ok(runtime.validPacket(next.packet));assert.ok(runtime.validState(next.state));assert.ok(JSON.stringify(next.packet.inventory).length<=1200);assert.ok(JSON.stringify(next.packet.inventory.absence).length<=800);assert.ok(next.packet.inventory.compass.last);assert.ok(input.startsWith(next.packet.inventory.absence.quote));assert.ok(next.packet.world.reported);
+});
+test('away request rejects agreement, questions, invented candidates, busy work and ordinary gather conversion',()=>{
+    const s=awayFixture(),b=runtime.begin(s,'Collect wood while I am away','en',epoch),target=absence.current(s.game).target||'chip:palms_gift';
+    for(const input of ['Yes','Collect wood while I am away?','Do not collect wood while I am away','「留守の間に木材を集めて」'])assert.equal(absence.directive(input),false);
+    const r={...response(b.packet),terms:[],focus:null,confirmation:null,away:{kind:'start',type:'wood',targets:['chip:palms_fake'],quote:b.packet.input}};assert.equal(runtime.validResult(r,b.packet),false);
+    assert.equal(runtime.validResult({...r,away:null,gather:{targetId:target,type:'wood',quote:b.packet.input}},b.packet),false);
+    assert.equal(absence.start(s.game,{kind:'start',type:'wood',targets:[target],quote:b.packet.input},b.packet.id,b.packet,runtime.game.walk,runtime.game.practice),false);
+});
+test('away intent and explicit continuation work in all seven languages',()=>{
+    const requests=['留守の間に木材を集めて','Collect wood while I am away','我离开时收集木材','Собери дерево пока меня нет','Recolecta madera mientras estoy fuera','Colete madeira enquanto estou ausente','Sammle Holz während ich weg bin'];for(const input of requests)assert.ok(absence.directive(input),input);
+    assert.ok(absence.directive('留守番採集を続けて','continue'));assert.equal(absence.directive('はい','continue'),false);
+});
+test('resume is once per qualifying main absence and not an old-save fabricated absence',()=>{
+    const g=awayFixture().game;assert.equal(absence.resume(g,epoch),null);absence.depart(g,epoch);const report=absence.resume(g,epoch+300000);assert.ok(report);assert.equal(report.seconds,300);assert.equal(absence.resume(g,epoch+300001),null);assert.equal(g.absence.report.id,report.id);
+});
+test('long absence jumps event times without a day cap, and stone uses its actual mountain route',()=>{
+    let s=awayFixture();absence.depart(s.game,epoch);absence.resume(s.game,epoch+30*24*absence.HOUR);assert.equal(absence.current(s.game).total,721);assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+    s=gatheringState();absence.install(s.game,epoch);const input='Collect stone while I am away 3 items',b=runtime.begin(s,input,'en',epoch);
+    s=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,away:{kind:'start',quote:input,type:'stone',targets:['chip:mountain_gift'],quantity:3}});absence.depart(s.game,epoch);absence.resume(s.game,epoch+4*absence.HOUR);assert.equal(s.game.inventory.items.length,3);assert.ok(s.game.inventory.items.every(i=>i.type==='stone'));assert.deepEqual({x:s.game.x,y:s.game.y},absence.current(s.game).home);assert.ok(runtime.validState(s));
+});
+test('physical record capacity stops safely with an explicit unsettled interval, not a time reward cap',()=>{
+    const s=awayFixture(),until=epoch+100*365*24*absence.HOUR;absence.depart(s.game,epoch);absence.resume(s.game,until);const j=absence.current(s.game);
+    assert.equal(j.reason,'capacity');assert.equal(j.status,'paused');assert.ok(j.total>10000);assert.ok(j.unsettled.from<j.unsettled.to);assert.equal(j.unsettled.to,until);assert.ok(JSON.stringify(s).length<16*1024*1024);assert.ok(runtime.validState(s));
+});
+test('explicit away continuation preserves slow partial time; return and cancellation keep acquired material',()=>{
+    for(const kind of ['continue','return','cancel']){let s=awayFixture();absence.depart(s.game,epoch);absence.resume(s.game,epoch+15*60000);let j=absence.current(s.game);assert.equal(j.total,1);const timer=j.timer;
+        const input=kind==='continue'?'Continue away gathering':kind==='return'?'Return home from gathering':'Cancel gathering';
+        s=directed(s,input,{away:{kind,quote:input}});j=absence.current(s.game);assert.equal(j.total,1);if(kind==='continue')assert.equal(j.timer,timer);assert.ok(runtime.validState(s));
+        absence.depart(s.game,epoch+20*60000);absence.resume(s.game,epoch+26*60000);assert.equal(j.total,kind==='continue'?2:1);if(kind==='return')assert.deepEqual({x:s.game.x,y:s.game.y},j.home);assert.ok(runtime.validState(s));}
+});
+test('after away work actual material can fund builder tasks while prior receipts and hearts remain separate',()=>{
+    let s=introduceFixture();absence.install(s.game,epoch);const input='Collect wood while I am away',b=runtime.begin(s,input,'en',epoch),target=b.packet.inventory.targets.find(t=>t.id.startsWith('chip:palms_')&&t.reachable).id;
+    s=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,away:{kind:'start',quote:input,type:'wood',targets:[target],quantity:undefined}});
+    absence.depart(s.game,epoch);absence.resume(s.game,epoch+2*absence.HOUR);const old=runtime.game.practice.relationship(s.game),ids=s.game.inventory.items.map(i=>i.id);
+    s=directed(s,'Cancel gathering',{away:{kind:'cancel',quote:'Cancel gathering'}});s=builderTaskVisit(s,'accept-deliver',2);assert.equal(runtime.game.practice.building(s.game).held.wood,2);assert.deepEqual(runtime.game.practice.relationship(s.game),old);assert.ok(s.game.inventory.spent.every(e=>ids.includes(e.item.id)));assert.ok(runtime.validState(s));
+});
+test('source, resource serial, stock, original route and duplicate item corruption are rejected',()=>{
+    const s=awayFixture();absence.depart(s.game,epoch);absence.resume(s.game,epoch+2*absence.HOUR);assert.ok(runtime.validState(s));
+    for(const alter of [g=>g.absence.jobs[0].source='turn-999',g=>Object.values(g.absence.resources)[0].serial++,g=>Object.values(g.absence.resources)[0].available=2,g=>g.absence.jobs[0].plans[0].out[1].x+=.1,g=>g.inventory.items.push(structuredClone(g.inventory.items[0]))]){const bad=structuredClone(s);alter(bad.game);assert.equal(runtime.validState(bad),false);}
+});
+test('session resume failure is not retried and a persisted voice is consumed at most once',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');for(const mode of ['failure','success']){let saved=awayFixture(),now=epoch,calls=0;const quiet={cancel(){},dispose(){}};
+        const session=createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}},wallClock:()=>now,responder:quiet,resumeResponder:{...quiet,async reply(){calls++;return mode==='success'?{ok:true,proposal:{text:'Welcome back! I collected two wood.'}}:{ok:false,error:'output'};}}});
+        session.enter();session.leave();now+=25*60000;session.enter();const r=await session.resumeReport();assert.equal(calls,1);assert.equal(saved.game.inventory.items.length,2);assert.equal(saved.game.absence.report.status,mode==='success'?'complete':'failed');
+        if(mode==='success'){assert.ok(session.resumeLine(r.resume));assert.equal(session.resumeLine(r.resume),null);}else assert.equal(session.resumeLine(saved.game.absence.report.id),null);
+        await session.resumeReport();assert.equal(calls,1);session.dispose();}
+});
+test('character switches settle each owner independently; temporary pause never departs',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let selected='a',now=epoch;const saved={a:awayFixture(),b:gatheringState()},quiet={cancel(){},dispose(){}};
+    const store={load:()=>({ok:true,value:structuredClone(saved[selected])}),save:s=>{assert.ok(runtime.validState(s));saved[selected]=structuredClone(s);return {ok:true};},select:id=>{selected=id;return {ok:true,value:structuredClone(saved[id])};}};
+    const session=createSession({store,wallClock:()=>now,responder:quiet});session.enter();session.pulse(true);now+=absence.HOUR;session.pulse(true);assert.equal(absence.current(saved.a.game).total,0);
+    assert.ok(session.selectCharacter('b').ok);session.enter();now+=25*60000;assert.ok(session.selectCharacter('a').ok);assert.ok(session.enter().ok);assert.equal(saved.a.game.inventory.items.length,2);assert.equal(saved.b.game.inventory?.items?.length||0,0);session.dispose();
+});
+test('session atomically settles before one resume generation; failure, cancellation and repeated resume retain items',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=awayFixture(),now=epoch,clock=0,calls=0,release,fail=false;const ordinary={cancel(){},dispose(){},async reply(){return {ok:false,error:'failed'};}};
+    const store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s),'valid persistence');if(fail)return {ok:false,error:'save'};saved=structuredClone(s);return {ok:true};}};
+    const options={store,responder:ordinary,clock:()=>clock,wallClock:()=>now,resumeResponder:{...ordinary,async reply(p){calls++;assert.ok(require('../scripts/experimental/native_resume').valid(p));assert.ok(saved.game.inventory.items.length>0,'settlement committed before generation');await new Promise(r=>release=r);return {ok:true,proposal:{text:'Welcome back. I collected two wood and paused.'}};}}};
+    let session=createSession(options);assert.ok(session.enter().ok);clock+=10000;now+=10000;session.pulse(false);assert.equal(absence.current(saved.game).total,0);assert.ok(session.leave().ok);now+=1500000;
+    fail=true;assert.equal(session.enter().ok,false);assert.equal(saved.game.inventory?.items?.length||0,0);fail=false;assert.ok(session.enter().ok);assert.equal(saved.game.inventory.items.length,2);
+    const pending=session.resumeReport();assert.equal(calls,1);session.cancel();release();await pending;assert.equal(saved.game.inventory.items.length,2);assert.ok((await session.resumeReport()).ok);assert.equal(calls,1);session.dispose();
+    session=createSession(options);assert.ok(session.enter().ok);await session.resumeReport();assert.equal(calls,1);assert.equal(saved.game.inventory.items.length,2);session.dispose();
+});
+test('failed acceptance save never establishes an away reservation or yields materials after reload',async()=>{
+    const {createSession}=require('../scripts/experimental/native_store');let saved=gatheringState(),now=epoch,fail=true;const quiet={cancel(){},dispose(){}};
+    const options={wallClock:()=>now,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{if(fail&&s.game.absence?.jobs.length)return {ok:false,error:'save'};saved=structuredClone(s);return {ok:true};}},responder:{...quiet,async reply(p){return {ok:true,proposal:{...response(p),terms:[],focus:null,away:{kind:'start',quote:p.input,type:'wood',targets:['chip:palms_gift']}}};}}};
+    let session=createSession(options);session.enter();const r=await session.submit('Collect wood while I am away','en');assert.equal(r.ok,false);assert.equal(saved.game.absence.jobs.length,0);session.dispose();fail=false;now+=8*absence.HOUR;session=createSession(options);session.enter();assert.equal(saved.game.absence.jobs.length,0);assert.equal(saved.game.inventory?.items.length||0,0);session.dispose();
+});
+test('partial outbound movement is saved and crash fallback uses only a saved activity checkpoint',()=>{
+    const s=awayFixture();absence.depart(s.game,epoch);absence.resume(s.game,epoch+1000);const j=absence.current(s.game);assert.equal(j.phase,'outbound');assert.ok(j.route.length>0);assert.equal(j.total,0);assert.notDeepEqual({x:s.game.x,y:s.game.y},j.home);assert.ok(runtime.validState(s));
+    const {createSession}=require('../scripts/experimental/native_store');let saved=awayFixture(),now=epoch,clock=0;const quiet={cancel(){},dispose(){}},store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}};
+    let session=createSession({store,wallClock:()=>now,clock:()=>clock,responder:quiet});session.enter();clock+=11000;now+=11000;session.pulse(false);const checkpoint=saved.game.absence.lastActivity;assert.equal(saved.game.absence.left,null);
+    now+=25*60000;session=createSession({store,wallClock:()=>now,responder:quiet});assert.ok(session.enter().ok);assert.equal(saved.game.inventory.items.length,2);assert.equal(saved.game.absence.report.from,checkpoint);session.dispose();
+});
+
 const searchInput='Walk through mountains and forests nearest first and find the adventurer';
 function searching(){const s=gatheringState();runtime.game.walk.roam(s.game,1000);return directed(s,searchInput,{search:{quote:searchInput}});}
 test('nearest search needs explicit terrain, order, adventurer and walking in all seven languages',()=>{
@@ -108,7 +217,7 @@ test('search session saves before departure, emits no per-stop generations and a
     for(let i=0;i<1000&&runtime.game.walk.searchActive(saved.game);i++){clock+=100;assert.ok(session.pulse(false).ok);}
     assert.equal(calls,1);assert.equal(saved.game.walk.search.phase,'found');assert.equal(saved.game.walk.search.visited.length,2);
     const intro=session.mentorIntro(saved.game.walk.encounter.id);assert.ok(intro.ok);assert.equal(intro.automatic,true);session.dispose();
-    let writes=0;const failed=createSession({store:{load:()=>({ok:true,value:gatheringState()}),save:()=>({ok:++writes!==3})},responder:{cancel(){},dispose(){},async reply(p){return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,search:{quote:p.input}}};}}});
+    let writes=0;const failed=createSession({store:{load:()=>({ok:true,value:gatheringState()}),save:()=>({ok:++writes!==4})},responder:{cancel(){},dispose(){},async reply(p){return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,search:{quote:p.input}}};}}});
     const result=await failed.submit(searchInput,'en');assert.equal(result.ok,false);assert.equal(result.error,'save');assert.equal(result.state.game.mode,'idle');failed.dispose();
 });
 
@@ -888,8 +997,8 @@ test('legacy dialogue recovery requires the exact saved request, successful resu
     const {createSession}=require('../scripts/experimental/native_store');let saved=structuredClone(s),calls=0,saves=0;
     const options={store:{load:()=>({ok:true,value:structuredClone(saved)}),save:x=>{saved=structuredClone(x);saves++;return {ok:true};}},
         recoverMentor:x=>recoverLegacy(x,events),responder:{reply(){calls++;},cancel(){},dispose(){}}};
-    const session=createSession(options);assert.deepEqual(session.load().state.mentorConversations,recovered.mentorConversations);assert.equal(saves,2,'recovery and initial roaming state are saved separately');
-    session.load();assert.equal(saves,2);assert.equal(calls,0);session.dispose();
+    const session=createSession(options);assert.deepEqual(session.load().state.mentorConversations,recovered.mentorConversations);assert.equal(saves,3,'recovery, resource installation and initial roaming state are saved separately');
+    session.load();assert.equal(saves,3);assert.equal(calls,0);session.dispose();
     const restarted=createSession(options);assert.deepEqual(restarted.load().state.mentorConversations,recovered.mentorConversations);assert.equal(calls,0);restarted.dispose();
     const failed=createSession({...options,store:{load:()=>({ok:true,value:structuredClone(s)}),save:()=>({ok:false,reason:'io'})}});
     assert.equal(failed.load().error,'save');assert.deepEqual(s,before);failed.dispose();

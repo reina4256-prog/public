@@ -3,6 +3,8 @@
     const $=id=>document.getElementById(id),api=window.nativeMemory,t=(s,...a)=>window.GameI18n.translate(s).replace(/\{\{(\d+)\}\}/g,(_,n)=>String(a[Number(n)]??''));
     let state=null,busy=false,blocked=false,paused=false,answers=[],question=0,lastPulse=0,pulsing=false,screen='logo',startingNew=false;
     let strokes=[],pointer=null;
+    let resuming=false;
+    function interruptResume(){if(resuming){resuming=false;api.cancel();}}
     const calendarZone=$('calendar-zone'),calendarHemisphere=$('calendar-hemisphere');
     for(const zone of ['UTC',...(Intl.supportedValuesOf?.('timeZone')||[])]){const o=document.createElement('option');o.value=zone;o.textContent=zone;o.dataset.i18nSkip='';calendarZone.append(o);}
     function renderCalendar(){const settings=state?.game?.calendarSettings||NativeCalendar.defaults();
@@ -56,7 +58,7 @@
     for(const type of ['pointerup','pointercancel','lostpointercapture'])$('signature').addEventListener(type,e=>{if(e.pointerId===pointer){pointer=null;drawSignature();}});
     $('signature-clear').onclick=()=>{if(busy||blocked)return;strokes=[];pointer=null;drawSignature();};
     $('question-retry').onclick=()=>{if(busy||blocked)return;answers=[];question=0;strokes=[];pointer=null;showQuestion();};
-    function showTitle(){if(busy)return;window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();void api.pulse(true);screen='title';startingNew=false;
+    async function showTitle(){if(busy)return;window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();const left=await api.leave();if(!left.ok){blocked=true;status(errors.save);return;}void api.pulse(true);screen='title';startingNew=false;
         document.body.classList.add('entry-active');$('entry').hidden=false;for(const id of ['questions','setup','play','character-picker'])$(id).hidden=true;
         $('logo').hidden=true;$('title-menu').hidden=false;$('continue-game').hidden=!state;$('new-game').hidden=false;status('');$(state?'continue-game':'new-game').focus();}
     $('logo').onclick=showTitle;
@@ -72,7 +74,7 @@
     $('mentor-voice-menu').ontoggle=()=>{if($('mentor-voice-menu').open&&!busy)window.NativeVoiceUI.mount($('mentor-voice'),'mentor-adventurer',$('locale').value);};
     $('voice-menu').ontoggle=()=>{if($('voice-menu').open&&!busy&&state?.game&&$('voice-panel').parentElement!==$('play-voice'))window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);};
     async function resumeCharacter(id){if(busy||blocked)return;busy=true;window.NativeVoiceUI.stop();try{const r=await api.selectCharacter(id);if(!r.ok){status(errors[r.error]||errors.failed);return;}state=r.state;startingNew=false;answers=[];question=0;strokes=[];pointer=null;
-        $('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);if(state.game){paused=false;render();}else showQuestion();
+        $('locale').value=state.locale;window.GameI18n.setLanguage(state.locale);if(state.game){const entered=await api.enter();if(!entered.ok){status(errors.save);return;}state=entered.state;paused=false;render();const owner=state;resuming=true;void api.resumeReport().then(report=>{const allowed=resuming;resuming=false;if(!allowed||screen!=='play'||state!==owner||document.hidden)return;if(report.state){state=report.state;render();}if(report.resume&&!paused&&!$('input').value.trim())window.NativeVoiceUI.resume(report.resume);}).catch(()=>{resuming=false;status(errors.failed);});}else showQuestion();
         }catch(_){status(errors.failed);}finally{busy=false;warmup();}}
     $('continue-game').onclick=async()=>{if(blocked||busy||!state)return;busy=true;try{const r=await api.characters();if(!r.ok){status(errors.save);return;}
         if(r.characters.length<=1){busy=false;await resumeCharacter(r.characters[0]?.id||'original');return;}
@@ -96,8 +98,9 @@
         renderCalendar();
         $('questions').hidden=$('setup').hidden=true;$('play').hidden=false;$('character-name').textContent=state.character.name;$('nameplate').textContent=state.character.name;
         window.NativeVoiceUI.mount($('play-voice'),state.game.origin.appearance,$('locale').value);
-        $('conversation').replaceChildren();for(const turn of state.turns.filter(t=>t.world)){el('p',$('conversation'),turn.input,'utterance',true);if(turn.result)el('p',$('conversation'),turn.result.reply,'utterance assistant',true);}
-        $('bubble').textContent=state.turns.findLast(x=>x.result&&x.world)?.result.reply||'';
+        const a=state.game.absence,reunions=[...(a?.reportHistory||[]),...(a?.report?[a.report]:[])].filter(r=>r.text),entries=[...state.turns.filter(t=>t.world),...reunions].sort((a,b)=>a.at-b.at);
+        $('conversation').replaceChildren();for(const entry of entries){if(entry.input){el('p',$('conversation'),entry.input,'utterance',true);if(entry.result)el('p',$('conversation'),entry.result.reply,'utterance assistant',true);}else el('p',$('conversation'),entry.text,'utterance assistant',true);}
+        const latest=entries.findLast(e=>e.text||e.result?.reply);$('bubble').textContent=latest?.text||latest?.result?.reply||'';
         window.NativePracticeUI?.sync(state.game,state.character.name);$('conversation').scrollTop=$('conversation').scrollHeight;renderPanels();meters();window.GameI18n.localizeTree(document.body);
     }
     function renderPanels(){if(!$('diary-view').hidden){window.NativeBook.render($('diary'),state);$('diary-originals').replaceChildren(...state.turns.map(record));}if(!$('stars-view').hidden)window.NativeStars.render($('stars'),$('star-record'),state,record);}
@@ -118,7 +121,7 @@
     const taskPanel=el('section',$('world-stage'));taskPanel.id='task-panel';taskPanel.hidden=true;taskPanel.setAttribute('aria-labelledby','task-title');
     const taskTitle=el('h3',taskPanel,'今の課題');taskTitle.id='task-title';
     const taskDetails=el('div',taskPanel);taskDetails.id='task-details';taskDetails.setAttribute('aria-live','polite');
-    function renderTask(g){const p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),b=NativePractice.building(g),visit=(g.practices||[]).findLast(p=>p.builderEnabled),key=JSON.stringify([g.taskPanelOpen,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,b,g.walk?.builder?.met,visit?.phase,visit?.suspended,$('locale').value]);if(key===taskKey)return;taskKey=key;
+    function renderTask(g){const j=NativePractice.absence.current(g),p=(g.practices||[]).findLast(p=>!p.free&&!p.visit&&!p.remote),b=NativePractice.building(g),visit=(g.practices||[]).findLast(p=>p.builderEnabled),key=JSON.stringify([g.taskPanelOpen,j,p?.id,p?.phase,p?.suspended,p?.events,g.inventory?.items,b,g.walk?.builder?.met,visit?.phase,visit?.suspended,$('locale').value]);if(key===taskKey)return;taskKey=key;
         taskPanel.hidden=g.taskPanelOpen!==true;taskDetails.replaceChildren();
         if(g.walk?.builder?.met){el('p',taskDetails,'建築士');
             for(const index of [0,1]){const phase=index<b.task.index?'完了':index>b.task.index||b.task.phase==='unstarted'?'未開始':b.task.phase==='partial'?'納入途中':'引受済み';
@@ -127,7 +130,14 @@
             if(visit?.suspended||['stopped','failed'].includes(visit?.phase))el('p',taskDetails,'中断しています。');
             el('p',taskDetails,t('建築預かり材：木材 {{0}} / 石 {{1}}',b.held.wood,b.held.stone),'',true);
             el('p',taskDetails,'預かり材は将来の家の材料に全数使います。');}
-        if(!p){if(!g.walk?.builder?.met)el('p',taskDetails,'今は課題がありません。');return;}
+        if(j){el('p',taskDetails,'留守番採集');el('p',taskDetails,t('集めた数：{{0}} {{1}}',t(j.type==='wood'?'木材':'石'),j.total),'',true);
+            el('p',taskDetails,j.status==='reserved'?'予約中（本編を離れてから開始）':j.status==='done'?'完了':j.status==='cancelled'?'今回は見送った':'再開のため停止中');
+            if(j.reason==='resources')el('p',taskDetails,'資源の回復を待っています。');
+            if(j.reason==='capacity')el('p',taskDetails,'記録できる量に達したため、途中で止めています。');
+            if(j.unsettled)el('p',taskDetails,t('未清算の期間（UTC）：{{0}} ～ {{1}}',new Date(j.unsettled.from).toISOString(),new Date(j.unsettled.to).toISOString()),'',true);
+            if(j.phase==='gather')el('p',taskDetails,t('採集途中：{{0}} / 600 秒',Math.floor(j.timer/1000)),'',true);
+            if(j.phase==='outbound'||j.phase==='return')el('p',taskDetails,j.phase==='return'?'戻っている':'歩いている');}
+        if(!p){if(!g.walk?.builder?.met&&!j)el('p',taskDetails,'今は課題がありません。');return;}
         el('p',taskDetails,'冒険家');
         const mountain=p.target.startsWith('chip:mountain_'),goal=p.gather?(mountain?'山で石を2個探し、冒険家に報告する':'森で木材を2個探し、冒険家に報告する'):(mountain?'山を探索し、冒険家に報告する':'森を探索し、冒険家に報告する');
         const phases={offer:'冒険家の提案を聞いている',decision:'参加するか考えている',consult:'相談を待っている',outbound:'探索場所へ向かっている',survey:'探している',return:'戻っている',report:'冒険家に報告している',feedback:'冒険家の返事を待っている',done:'完了',declined:'今回は見送った',stopped:'進行が止まっています。',failed:'進行が止まっています。'};
@@ -172,7 +182,7 @@
         }catch(_){status(errors.failed);}finally{busy=false;$('send').disabled=blocked;$('back-title').disabled=false;$('locale').disabled=false;$('cancel').hidden=true;if(!blocked)$('input').focus();warmup();}};
     $('cancel').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();api.cancel();};$('pause').onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();paused=!paused;meters();if(paused&&!busy)api.cancel();else warmup();};
     for(const tab of ['chat','diary','stars'])$('tab-'+tab).onclick=()=>{window.NativePracticeUI?.interrupt();window.NativeVoiceUI.stop();for(const name of ['chat','diary','stars']){$(name+'-view').hidden=name!==tab;$('tab-'+name).setAttribute('aria-pressed',String(name===tab));}$('workspace').classList.toggle('reading',tab!=='chat');renderPanels();if(tab!=='chat'&&!busy)api.cancel();else warmup();};
-    $('input').addEventListener('focus',warmup);$('input').addEventListener('input',()=>{window.NativeVoiceUI.stop();warmup();});
+    $('input').addEventListener('focus',warmup);$('input').addEventListener('input',()=>{interruptResume();window.NativeVoiceUI.stop();warmup();});
     $('locale').value=window.GameI18n.language;$('locale').onchange=()=>{window.NativeVoiceUI.stop();window.GameI18n.setLanguage($('locale').value);if(screen==='play'&&state?.game){render();void saveCalendar();}else if(!$('questions').hidden)showQuestion();else if(screen==='setup')window.NativeVoiceUI.mount($('setup-voice'),ExperimentalWordStartQuestions.resolve(answers).appearance,$('locale').value);};
     window.NativeScene.load();const reduced=window.matchMedia('(prefers-reduced-motion: reduce)');
     async function frame(time){

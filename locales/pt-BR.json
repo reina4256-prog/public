@@ -15883,5 +15883,13 @@
   "引受済み": "Aceita",
   "納入途中": "Entrega parcial",
   "建築預かり材：木材 {{0}} / 石 {{1}}": "Materiais guardados: madeira {{0}} / pedra {{1}}",
-  "預かり材は将来の家の材料に全数使います。": "Todos os materiais guardados serão usados na futura casa."
+  "預かり材は将来の家の材料に全数使います。": "Todos os materiais guardados serão usados na futura casa.",
+  "留守番採集": "Coleta na sua ausência",
+  "集めた数：{{0}} {{1}}": "Coletado: {{0}} {{1}}",
+  "予約中（本編を離れてから開始）": "Reservada (começa ao sair da partida)",
+  "再開のため停止中": "Interrompida ao retomar a partida",
+  "資源の回復を待っています。": "Esperando os recursos se recuperarem.",
+  "記録できる量に達したため、途中で止めています。": "Parou durante o trabalho porque o registro atingiu a capacidade.",
+  "採集途中：{{0}} / 600 秒": "Progresso da coleta: {{0}} / 600 segundos",
+  "未清算の期間（UTC）：{{0}} ～ {{1}}": "Período não calculado (UTC): {{0}} a {{1}}"
 }

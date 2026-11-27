@@ -21,7 +21,8 @@ else {
         const responder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:core.protocol,measure:true});
         const mentorResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_mentor').protocol});
         const practiceResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_practice').protocol});
-        const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
+        const resumeResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_resume').protocol});
+        const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native_absence.js','scripts/experimental/native_resume.js','experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
             'experimental_word_llm_native.html','experimental_word_llm_native.css','scripts/experimental/native_store.js',
             'scripts/experimental/native_electron.js','scripts/experimental/native.js','scripts/experimental/native_preload.js','scripts/experimental/native_window.js','scripts/experimental/gemini_reply.js',
             'scripts/experimental/antigravity_install.js','scripts/experimental/playtest_store.js','experimental_word_reply_awareness.js',
@@ -36,7 +37,7 @@ else {
             'experimental_word_llm_native_calendar.js','experimental_word_llm_native_compass.js','experimental_word_llm_native_practice.js','scripts/experimental/native_practice.js']});
         const sessionId=randomUUID();let sequence=0;
         recorder.append({sessionId,sequence:++sequence,event:{kind:'session',at:Date.now(),mode:'llm-native',runtime:recorder.version}});
-        session=createSession({store,responder,mentorResponder,practiceResponder,
+        session=createSession({store,responder,mentorResponder,practiceResponder,resumeResponder,
             recoverMentor:state=>require('./native_mentor').recoverLegacyFile(state,path.join(directory,'native-playtest.jsonl')),record:event=>{
             fs.appendFileSync(path.join(directory,'native-playtest.jsonl'),JSON.stringify(event)+'\n','utf8');
             recorder.append({sessionId,sequence:++sequence,event:event.kind.startsWith('mentor_')?event:event.kind==='input'?{...event,kind:'player',text:event.packet.input}:{...event,kind:'native_result'}});

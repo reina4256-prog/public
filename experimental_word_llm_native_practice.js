@@ -1,8 +1,9 @@
 (function(root,factory){const api=factory(typeof module==='object'&&module.exports?require('./experimental_word_llm_native_walk'):root.NativeWalk,
     typeof module==='object'&&module.exports?require('./experimental_word_llm_native_perception'):root.NativePerception,
-    typeof module==='object'&&module.exports?require('./experimental_word_llm_native_compass'):root.NativeCompass);
+    typeof module==='object'&&module.exports?require('./experimental_word_llm_native_compass'):root.NativeCompass,
+    typeof module==='object'&&module.exports?require('./experimental_word_llm_native_absence'):root.NativeAbsence);
     if(typeof module==='object'&&module.exports)module.exports=api;else root.NativePractice=api;
-})(typeof globalThis!=='undefined'?globalThis:this,function(walk,perception,compass){
+})(typeof globalThis!=='undefined'?globalThis:this,function(walk,perception,compass,absence){
     'use strict';
     const slots=['offer','decision','observe1','observe2','report','feedback'];
     const phases=['offer','decision','consult','outbound','survey','return','report','feedback','done','declined','stopped','failed'];
@@ -16,7 +17,7 @@
     const types=['wood','stone','flower','water'];
     const itemType=p=>p.material||material(p.target);
     const allItems=g=>[...(Array.isArray(g.inventory?.items)?g.inventory.items:[]),...(Array.isArray(g.inventory?.spent)?g.inventory.spent:[]).map(s=>s?.item).filter(Boolean)];
-    const amount=(g,target,type)=>allItems(g).filter(i=>i.target===target&&i.type===type).length;
+    const amount=(g,target,type)=>g.absence?2-absence.available(g,target,type):allItems(g).filter(i=>i.target===target&&i.type===type).length;
     const awards=g=>(g.practices||[]).filter(p=>p.bottleAward);
     const bottle=g=>awards(g).length?((g.inventory?.items||[]).some(i=>i.type==='water')?'full':'empty'):'none';
     const sourceTypes=id=>typeof id!=='string'?[]:id.startsWith('chip:mountain_')?['stone','water']:id.startsWith('chip:palms_')?['wood','flower','water']:[];
@@ -39,7 +40,7 @@
         const s=input.normalize('NFKC').toLowerCase();
         if(/ないで|しない|なくて|言って|意味|とは|と思|don't|do not|never|\bnot\b|\bno\b|не |não|nicht|不要|别|不用|\b(?:can|could|would|what|why|how|whether|meaning|means|explain)\b|什么|что значит/u.test(s))return false;
         return /探して|集めて|採って|拾って|汲んで|くんで|採集して|\b(?:gather|collect|search|look for|fetch|recoge|recolecta|busca|colete|procure|busque|sammle|suche|hole)\b|采集|收集|寻找|取水|打水|собери|поищи|набери/u.test(s);}
-    function targets(g){return perception.chips(g).filter(c=>/^chip:(?:mountain_|palms_)/.test(c.id)).map(c=>({id:c.id,types:sourceTypes(c.id).filter(type=>amount(g,c.id,type)<2&&(type!=='water'||bottle(g)==='empty')),reachable:!!walk.plan(g,c.id)}));}
+    function targets(g){return perception.chips(g).filter(c=>/^chip:(?:mountain_|palms_)/.test(c.id)).map(c=>({id:c.id,types:sourceTypes(c.id).filter(type=>absence.available(g,c.id,type)>0&&(type!=='water'||bottle(g)==='empty')),reachable:!!walk.plan(g,c.id)}));}
     function validGather(g,request,input){return keys(request,['targetId','type','quote'])&&types.includes(request.type)&&short(request.quote,1000)&&input.includes(request.quote)&&gatheringDirective(input)&&gatheringDirective(request.quote)
         &&g.mode==='idle'&&!active(g)&&g.hunger<.8&&g.fatigue<.8&&targets(g).some(t=>t.id===request.targetId&&t.reachable&&t.types.includes(request.type));}
     const short=(s,n)=>typeof s==='string'&&s.trim().length>0&&s.length<=n&&!/[\u0000-\u001f\u007f]/.test(s);
@@ -92,21 +93,30 @@
     // The mentor heard only direct replies, never a consultation or field remark.
     const heard=(lines,audience)=>lines.filter(l=>['offer','report','feedback'].includes(l.slot)||l.slot==='decision'&&audience==='mentor');
     const inventory=g=>g.inventory||(g.inventory={version:1,open:false,items:[]});
-    function possessions(g,details=true){const items=g.inventory?.items||[],counts=Object.fromEntries(types.map(t=>[t,items.filter(i=>i.type===t).length])),result={open:g.inventory?.open||false,...counts,bottle:bottle(g)};
+    function possessions(g,details=true,report=false){const items=g.inventory?.items||[],counts=Object.fromEntries(types.map(t=>[t,items.filter(i=>i.type===t).length])),result={open:g.inventory?.open||false,...counts,bottle:bottle(g)};
+        if(g.absence){const info=absence.summary(g);if(info){if(JSON.stringify(info).length>800)throw Error('absence_budget');result.absence=info;}}
+        if(report)return result;
         if(g.walk?.builder?.met)result.building=building(g);
         if(!details)return {...result,...(compass.received(g)?{compass:compass.snapshot(g)}:{})};const available=giftOptions(g,current(g));Object.assign(result,{reserved:Object.fromEntries(types.map(t=>[t,counts[t]-available[t]])),memory:giftMemory(g),targets:targets(g),compass:compass.snapshot(g)});
-        while(result.memory.length&&JSON.stringify(result).length>1200)result.memory.shift();while(result.targets.length&&JSON.stringify(result).length>1200)result.targets.pop();if(JSON.stringify(result).length>1200)throw Error('inventory_budget');return result;}
-    function validPossessions(v){return keys(v,['open',...types,'bottle','reserved','memory','targets','compass','building'])&&(v.building===undefined||validBuilding(v.building))&&(v.compass===undefined||compass.validSnapshot(v.compass))&&typeof v.open==='boolean'&&['wood','stone'].every(k=>Number.isSafeInteger(v[k])&&v[k]>=0)
+        while(result.memory.length&&JSON.stringify(result).length>1200)result.memory.shift();
+        while(result.absence?.quote?.length>80&&JSON.stringify(result).length>1200)result.absence.quote=result.absence.quote.slice(0,-10);
+        if(result.absence&&JSON.stringify(result).length>1200)delete result.building;
+        while(result.absence?.quote?.length>1&&JSON.stringify(result).length>1200)result.absence.quote=result.absence.quote.slice(0,-1);
+        while(result.targets.length&&JSON.stringify(result).length>1200)result.targets.pop();if(JSON.stringify(result).length>1200)throw Error('inventory_budget');return result;}
+    function validPossessions(v){return keys(v,['open',...types,'bottle','reserved','memory','targets','compass','building','absence'])&&(v.absence===undefined||absence.validSummary(v.absence))&&(v.building===undefined||validBuilding(v.building))&&(v.compass===undefined||compass.validSnapshot(v.compass))&&typeof v.open==='boolean'&&['wood','stone'].every(k=>Number.isSafeInteger(v[k])&&v[k]>=0)
         &&['flower','water'].every(k=>v[k]===undefined||Number.isSafeInteger(v[k])&&v[k]>=0)&&(v.bottle===undefined||['none','empty','full'].includes(v.bottle))
         &&(v.reserved===undefined||keys(v.reserved,types)&&types.every(t=>Number.isSafeInteger(v.reserved[t])&&v.reserved[t]>=0))&&(v.memory===undefined||validMemory(v.memory))
         &&(v.targets===undefined||JSON.stringify(v).length<=1200&&Array.isArray(v.targets)&&v.targets.length<=6&&v.targets.every(t=>keys(t,['id','types','reachable'])&&/^chip:(?:mountain_|palms_)/.test(t.id)&&t.id.length<=80&&typeof t.reachable==='boolean'&&Array.isArray(t.types)&&new Set(t.types).size===t.types.length&&t.types.every(type=>sourceTypes(t.id).includes(type))));}
     function finding(g,p,step){return allItems(g).find(i=>i.practice===p.id&&i.step===step)||null;}
     function collect(g,p,step){if(!p.gather)return;const bag=inventory(g),type=itemType(p),index=[0,1].find(n=>!allItems(g).some(i=>i.target===p.target&&i.type===type&&i.id.endsWith(':'+n)));
+        if(g.absence){const item=type!=='water'||bottle(g)==='empty'?absence.acquire(g,p.target,type,p.id,step,g.absence.now):null;
+            g.absence.attempts.push({practice:p.id,step,at:g.elapsed,utc:g.absence.now,item:item?.id||null});return;}
         if(index===undefined||type==='water'&&bottle(g)!=='empty')return;
         bag.items.push({id:p.target+':'+(p.free?type:'material')+':'+index,type,target:p.target,practice:p.id,step,at:g.elapsed});}
     function validInventory(g){const expected=[],counts=new Map();
         if(g.practices!==undefined&&!Array.isArray(g.practices))return false;
         let ownedBottle=false;const remaining=[];let gifts=0;
+        for(const r of g.absence?.acquisitions||[])if(r.item.practice.startsWith('away-')){expected.push(r.item);remaining.push(r.item);}
         for(const p of g.practices||[]){if(p?.remote)continue;if(!p||!Array.isArray(p.events))return false;
             if(p.bottleAward){if(ownedBottle||!p.exchange||!['offer','feedback'].includes(p.bottleAward.slot)||p.attempts?.[p.bottleAward.slot]!=='complete'
                 ||!keys(p.bottleAward,['source','slot','at'])||!Number.isFinite(p.bottleAward.at)||p.bottleAward.at<0||p.bottleAward.at>g.elapsed)return false;
@@ -115,6 +125,8 @@
                 if([...prior,...(p.bottleAward.slot==='feedback'?[p]:[])].find(q=>success(q)&&allItems(g).filter(i=>i.practice===q.id).length===2)!==source)return false;
                 if(p.bottleAward.slot==='offer')ownedBottle=true;}
             if(p.gather)for(const [index,e]of p.events.filter(e=>e?.kind==='observed').entries()){const type=itemType(p),key=p.target+'|'+type,n=counts.get(key)||0;
+                const acquired=g.absence?.acquisitions.find(r=>r.item.practice===p.id&&r.item.step===index+1);if(acquired){expected.push(acquired.item);remaining.push(acquired.item);continue;}
+                if(g.absence?.attempts.some(r=>r.practice===p.id&&r.step===index+1))continue;
                 if(n>=2||type==='water'&&(!ownedBottle||remaining.some(i=>i.type==='water')))continue;counts.set(key,n+1);
                 const item={id:p.target+':'+(p.free?type:'material')+':'+n,type,target:p.target,practice:p.id,step:index+1,at:e.at};expected.push(item);remaining.push(item);}
             if(p.bottleAward?.slot==='feedback')ownedBottle=true;
@@ -126,10 +138,10 @@
                 if(gift.response){const r=gift.response,reply=p.lines?.find(l=>l.slot==='feedback');
                     if(!keys(r,['accepted','quote'])||typeof r.accepted!=='boolean'||!short(r.quote,120)||!reply?.text.includes(r.quote)||p.attempts.feedback!=='complete')return false;
                     if(r.accepted){const item=remaining.splice(i,1)[0],spent=g.inventory?.spent?.[gifts++];if(!spent||spent.by!==p.id||JSON.stringify(spent.item)!==JSON.stringify(item)||!keys(spent,['by','item']))return false;}}}}
-        if(g.inventory===undefined)return expected.length===0;const bag=g.inventory;
+        if(g.inventory===undefined)return expected.length===0;const bag=g.inventory,byId=new Map((bag.items||[]).map(i=>[i.id,i]));
         return keys(bag,['version','open','items','spent'])&&bag.version===1&&typeof bag.open==='boolean'&&Array.isArray(bag.items)&&bag.items.length===remaining.length
-            &&(bag.spent===undefined||Array.isArray(bag.spent)&&bag.spent.length===gifts)&&remaining.every(e=>bag.items.some(i=>i&&Object.keys(e).every(k=>i[k]===e[k])))
-            &&new Set(expected.map(i=>i.id)).size===expected.length&&expected.length<=Object.keys(g.island.assets).length*8
+            &&(bag.spent===undefined||Array.isArray(bag.spent)&&bag.spent.length===gifts)&&byId.size===bag.items.length&&remaining.every(e=>{const i=byId.get(e.id);return i&&Object.keys(e).every(k=>i[k]===e[k]);})
+            &&new Set(expected.map(i=>i.id)).size===expected.length&&(g.absence||expected.length<=Object.keys(g.island.assets).length*8)
             &&bag.items.every(i=>keys(i,['id','type','target','practice','step','at'])&&typeof i.target==='string'&&/^chip:(?:mountain_|palms_)/.test(i.target)
                 &&!!perception.asset(g,i.target)&&types.includes(i.type)&&[1,2].includes(i.step)
                 &&Number.isFinite(i.at)&&i.at>=0&&i.at<=g.elapsed);
@@ -167,13 +179,16 @@
             tour:[{x:neighbor.x/800,y:neighbor.y/480},end],surveyIndex:0,timer:0,events:[],attempts:{},lines:[],choice:'accept',gather:true,free:true,material:request.type,origin:{turn,quote:request.quote}};
         (g.practices||(g.practices=[])).push(p);event(g,p,'departed');return p;}
     // Reconstruct the inventory seen at an earlier chat before later gifts/awards.
-    function historicalPossessions(g,at,snapshot){const index=snapshot?(g.practices||[]).findIndex(p=>p.id===snapshot.context.id):-1;
+    function historicalPossessions(g,at,snapshot,acquisitionCount=0){const index=snapshot?(g.practices||[]).findIndex(p=>p.id===snapshot.context.id):-1;
         const records=(g.practices||[]).slice(0,index+1),last=records.at(-1),seen=(p,slot)=>p!==last||snapshot.speech.some(l=>l.slot===slot)
             ||['done','declined'].includes(snapshot.context.phase)&&p.attempts[slot]==='complete';
         const spent=[...records.filter(p=>p.gift?.response?.accepted&&seen(p,'feedback')).map(p=>p.gift.itemId),...records.filter(p=>builderDelivery(p.builderAction)&&seen(p,'decision')).flatMap(p=>p.builderAction.items)],owned=records.some(p=>p.bottleAward&&seen(p,p.bottleAward.slot));
-        const items=allItems(g).filter(i=>records.some(p=>p.id===i.practice)&&i.at<=at&&!spent.includes(i.id));
+        const newer=g.absence?.acquisitions||[],permitted=new Set(newer.slice(0,acquisitionCount).map(r=>r.item.id));
+        const items=allItems(g).filter(i=>(records.some(p=>p.id===i.practice)||i.practice.startsWith('away-')&&permitted.has(i.id))&&i.at<=at&&!spent.includes(i.id)&&(!newer.some(r=>r.item.id===i.id)||permitted.has(i.id)));
         return {...Object.fromEntries(types.map(type=>[type,items.filter(i=>i.type===type).length])),bottle:owned?(items.some(i=>i.type==='water')?'full':'empty'):'none'};}
-    function validInventorySnapshot(g,t){const v=t.inventory,counts=historicalPossessions(g,t.gameAt,t.practice);if(!validPossessions(v)||!types.every(type=>v[type]===undefined||v[type]===counts[type])||v.bottle!==undefined&&v.bottle!==counts.bottle)return false;
+    function validInventorySnapshot(g,t){const v=t.inventory,evidence=t.inventoryEvidence,counts=historicalPossessions(g,t.gameAt,t.practice,evidence?.count);if(!validPossessions(v)||!types.every(type=>v[type]===undefined||v[type]===counts[type])||v.bottle!==undefined&&v.bottle!==counts.bottle||evidence&&(!keys(evidence,['count','at'])||!Number.isSafeInteger(evidence.count)||evidence.count<0||evidence.count>(g.absence?.acquisitions.length||0)||!Number.isFinite(evidence.at)||evidence.at<g.absence.installed||evidence.at>g.absence.now))return false;
+        if(v.absence){const a=v.absence;if(a.source&&!g.absence?.jobs.some(j=>j.source===a.source&&j.quote.startsWith(a.quote)&&j.type===a.type&&a.total===g.absence.acquisitions.slice(0,evidence?.count||0).filter(r=>r.item.practice===j.id).length))return false;
+            if(a.current&&![...(g.absence?.reportHistory||[]),g.absence?.report].some(r=>r&&r.at===a.current&&r.from===a.previous&&r.seconds===a.seconds))return false;}
         const index=t.practice?(g.practices||[]).findIndex(p=>p.id===t.practice.context.id):-1,records=(g.practices||[]).slice(0,index+1),last=records.at(-1),seen=(p,slot)=>p!==last||t.practice.speech.some(l=>l.slot===slot)||['done','declined'].includes(t.practice.context.phase)&&p.attempts[slot]==='complete';
         if(v.building){const past=records.map(p=>{const q={...p};if(!seen(p,'decision'))delete q.builderAction;if(!seen(p,'feedback')&&p.npc==='building')delete q.affinity;return q;});
             if(!records.some(p=>p.npc==='building'&&seen(p,'offer'))||JSON.stringify(v.building)!==JSON.stringify(building({practices:past})))return false;}
@@ -187,7 +202,11 @@
             if(JSON.stringify(v.memory)!==JSON.stringify(v.memory.length?expected.slice(-v.memory.length):[]))return false;}
         if(v.reserved){const c=t.practice?.context,type=c?.goal==='gather-and-return'&&!terminal.includes(c.phase)?c.collection.type:null;
             if(!types.every(k=>v.reserved[k]===(k===type?Math.min(2,counts[k]):0)))return false;}
-        return !v.targets||v.targets.every(target=>t.world.visible.some(o=>o.id===target.id)&&JSON.stringify(target.types)===JSON.stringify(sourceTypes(target.id).filter(type=>allItems(g).filter(i=>records.some(p=>p.id===i.practice)&&i.at<=t.gameAt&&i.target===target.id&&i.type===type).length<2&&(type!=='water'||counts.bottle==='empty'))));}
+        return !v.targets||v.targets.every(target=>{
+            const remaining=type=>evidence?absence.stockAt(g,target.id,type,evidence.at,evidence.count)?.available>0
+                :allItems(g).filter(i=>records.some(p=>p.id===i.practice)&&i.at<=t.gameAt&&i.target===target.id&&i.type===type).length<2;
+            return t.world.visible.some(o=>o.id===target.id)&&JSON.stringify(target.types)===JSON.stringify(sourceTypes(target.id).filter(type=>remaining(type)&&(type!=='water'||counts.bottle==='empty')));
+        });}
     function context(g,p=current(g)){
         if(p?.remote)return compass.context(g,p);
         if(p?.npc==='building')return {id:p.id,goal:'builder-visit',phase:p.phase,suspended:p.suspended,target:{id:p.target,kind:'forest'},home:p.homeTarget,choice:p.choice,results:[],experience:[],
@@ -325,6 +344,6 @@
                 if(p===current(g)&&distance(g,p.route[0])>51)return false;}
             return true;});}
     return {slots,current,active,create,createFree,context,due,finish,decide,stop,suspend,resolve,tick,valid,route,ackOnly,supply,validSupply,validContext,validSpeech,inventory,possessions,validPossessions,relationship,validRelationship,validAffinity,heard,
-        types,allItems,bottle,targets,validGather,gatheringDirective,socialContext,validExchange,historicalPossessions,validInventorySnapshot,giftMemory,finding,introduction,validIntroduction,compass,
+        types,allItems,bottle,targets,validGather,gatheringDirective,socialContext,validExchange,historicalPossessions,validInventorySnapshot,giftMemory,finding,introduction,validIntroduction,compass,absence,
         building,validBuilding,validBuilderChoice,validBuilderAffinity,builderDelivery};
 });

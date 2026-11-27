@@ -135,6 +135,11 @@ function createVoice({directory,session,key=()=>process.env.WORD_GEMINI_TTS_KEY|
             const species=state.game.origin.appearance;
             text=turn.result.reply;locale=state.locale;voice=resolveVoice(p.value.voices[species]||rules.defaults[species]);
             cacheId=JSON.stringify([turn.id,text,locale,voice]);if(replyCache?.id===cacheId){diagnostic.stage='cache';return {ok:true,audio:new Uint8Array(replyCache.audio)};}
+        }else if(request.kind==='resume'&&Object.keys(request).sort().join(',')==='id,kind'){
+            const p=load();if(!p.ok||!p.value.enabled)return {ok:false,error:'input'};
+            const line=session.resumeLine?.(request.id),s=session.load();if(!line||!s.ok||!s.state?.game)return {ok:false,error:'input'};
+            const species=s.state.game.origin.appearance;text=line.text;locale=line.locale;voice=resolveVoice(p.value.voices[species]||rules.defaults[species]);
+            cacheId=JSON.stringify(['resume',request.id,text,locale,voice]);
         }else if(request.kind==='practice'&&Object.keys(request).sort().join(',')==='id,kind,slot'){
             const line=session.practiceLine?.(request.id,request.slot),s=session.load(),p=load();
             if(!line||!s.ok||!p.ok||!p.value.enabled||!s.state?.game)return {ok:false,error:'input'};

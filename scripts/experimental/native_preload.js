@@ -2,6 +2,9 @@
 const {contextBridge,ipcRenderer}=require('electron');
 contextBridge.exposeInMainWorld('nativeMemory',Object.freeze({
     load:()=>ipcRenderer.invoke('native-load'),
+    enter:()=>ipcRenderer.invoke('native-enter'),
+    leave:()=>ipcRenderer.invoke('native-leave'),
+    resumeReport:()=>ipcRenderer.invoke('native-resume-report'),
     create:(character,locale,answers)=>ipcRenderer.invoke('native-create',character,locale,answers),
     prepare:answers=>ipcRenderer.invoke('native-prepare',answers),
     characters:()=>ipcRenderer.invoke('native-characters'),

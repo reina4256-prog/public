@@ -60,6 +60,7 @@
             // A failed reply voice must remain visible even with the voice menu closed.
             if(container.id==='play-voice')container.parentElement.after($('voice-status'));else $('voice-panel').append($('voice-status'));
             draw();if(broken)message('声の約束を読み出せませんでした。');},
-        reply(turnId){if(loaded&&!broken&&prefs.enabled&&!document.hidden)void play({kind:'reply',turnId});}
+        reply(turnId){if(loaded&&!broken&&prefs.enabled&&!document.hidden)void play({kind:'reply',turnId});},
+        resume(id){if(loaded&&!broken&&prefs.enabled&&!document.hidden)void play({kind:'resume',id});}
     };
 })();

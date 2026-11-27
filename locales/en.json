@@ -15883,5 +15883,13 @@
   "引受済み": "Accepted",
   "納入途中": "Partly delivered",
   "建築預かり材：木材 {{0}} / 石 {{1}}": "Construction materials held: wood {{0}} / stone {{1}}",
-  "預かり材は将来の家の材料に全数使います。": "All held materials will count toward a future home."
+  "預かり材は将来の家の材料に全数使います。": "All held materials will count toward a future home.",
+  "留守番採集": "Away gathering",
+  "集めた数：{{0}} {{1}}": "Collected: {{0}} {{1}}",
+  "予約中（本編を離れてから開始）": "Reserved (starts after leaving play)",
+  "再開のため停止中": "Stopped on resuming play",
+  "資源の回復を待っています。": "Waiting for resources to recover.",
+  "記録できる量に達したため、途中で止めています。": "Stopped partway because the record is at capacity.",
+  "採集途中：{{0}} / 600 秒": "Gathering progress: {{0}} / 600 seconds",
+  "未清算の期間（UTC）：{{0}} ～ {{1}}": "Unsettled period (UTC): {{0}} to {{1}}"
 }

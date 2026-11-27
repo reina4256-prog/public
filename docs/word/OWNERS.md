@@ -1,12 +1,14 @@
 # 日記部品の担当・参照索引
 
+2026-11-27資源回復・留守番・再開：[正本の現在仕様](../specs/core/word_llm_native_system.md#放置採集と資源回復の実装初期仕様2026-11-27)。root native_absenceがUTC回復時計・世代ID／取得原証拠・予約／時刻順往復・途中位置と採集時間を所有。practiceは現物とspent／贈呈／預かり材・歴史inventory、runtimeは本人の原文と当時の実候補／判断を検査する。内部inventoryEvidenceは生成へ送らない。main storeがenter／leave・活動checkpoint・原子的清算と報告試行、native_resumeが独立発話とinventory1200内の最大800、window／preloadとisland UIが本編境界／課題欄／再開発話、voiceが確定済み一発話の一回消費を持つ。過去発話と実取得証拠を分け、語彙／日記／星座へ追加認定しない。以下の未実装通知は前段階の履歴、現在の所有は本通知を優先する。
+
 2026-11-27建築士①：[現在仕様](../specs/core/word_llm_native_system.md#建築士の好感度二課題材料預かり2026-11-27)。root practiceのbuilding／builderOffer／builderActionが独立好感度と順序・現物納入／専用預かり、inventory.spent照合と当時snapshotを所有。main practiceが三発話内の本人判断／相手別最小供給、runtimeが通常要約と当時の根拠照合、既存storeが一保存での確定／取消、island UIが二課題・預かり数と人物別ハートを所有する。旧段落の「建築士の好感度／課題は未実装」はこの①で置換し、家／資格／屋内と資源回復等は保留を維持。
 
 2026-11-27人物共通の一括探索：[正本](../specs/core/word_llm_native_system.md#人物を近い場所から探す共通の依頼2026-11-27)。root walkのsearchPeopleが公開名／地形・利用条件と実到着時の内部所在を登録し、共通の原文対象検査・実候補／距離順・訪問証拠／停止・保存形を所有。runtimeが本人引受／原引用・当時worldと人物別会話の実到着根拠照合、perceptionが既存枠内の最小探索状態、main storeが保存／取消・ロード中断と新実到着の遭遇権限、island UI／CSSが共通七言語通知を所有する。既存人物別mentor演出／発話枠を使い、地点ごとの生成を追加しない。資源回復等へ連結しない。
 
 2026-11-27通信コンパス：[正本](../specs/core/word_llm_native_system.md#旅人の通信コンパスと再会2026-11-27)。root compassが実達成を根拠にする対面提案／本人受取・人物別交換／通信二slotと期限・限定snapshot、practiceが既存slot／当時の所持品検査、runtimeが引用付き本人判断と当時供給、walkが実経路／10分中の巡回保留、perception／sceneが受信した実地点一件の確認表示を所有する。main practice／storeが相手別限定生成／原子的保存と取消、既存mentor UI／voiceが通信表示と人物別声を扱う。NPCを外へ描画せず、生成文から日記／星座の学習根拠を追加しない。資源回復／留守番は次単位。
 
-2026-11-27将来実装：[資源回復と継続留守番・再開報告](../specs/core/word_llm_native_system.md#放置採集と資源回復の実装初期仕様2026-11-27具体化済み未実装)は未実装。root practice／walkの実経路と取得証拠、runtimeの原依頼・独立再開発話と限定供給、main storeの離席時刻／原子的清算・世代別一意取得を接続候補とする。回復／長期計算は別の純粋部品へ分離してよいが、My Home／旧職業所有へ広げない。日記／星座へ生成挨拶から知識や実体験を自動追加しない。具体値と保存／取消・検証境界は正本を読む。
+2026-11-27資源回復／継続留守番／再開報告の所有は先頭の現在通知と[正本](../specs/core/word_llm_native_system.md#放置採集と資源回復の実装初期仕様2026-11-27)へ移行済み。旧職業／My Homeへ広げず、生成挨拶を知識や日記／星座の自動認定に使わない。
 
 2026-11-27関係台詞・建築士：[正本](../specs/core/word_llm_native_system.md#関係に応じた台詞と建築士への紹介森巡回2026-11-27)。root practiceが紹介条件／原引用と人物別3slot、walkが内部森林巡回／明示訪問・実到着、runtimeが歴史snapshot／紹介一件の限定供給、main practiceが段階生成方針／聞き手分離と枠、storeが実時計／保存取消とclose移動、mentor UIが既存窓・画像動画／発話待機、voiceが独立mentor-builder／Charonを所有。旧屋内所有と家づくり保留は維持する。
 
