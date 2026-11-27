@@ -15872,5 +15872,9 @@
   "冒険家を探しています。": "Auf der Suche nach dem Abenteurer.",
   "冒険家に会えました。": "Wir haben den Abenteurer getroffen.",
   "今回見て回れた範囲では、冒険家に会えませんでした。": "In dem diesmal erkundeten Gebiet haben wir den Abenteurer nicht getroffen.",
-  "冒険家を探すのを中断しました。": "Die Suche nach dem Abenteurer wurde unterbrochen."
+  "冒険家を探すのを中断しました。": "Die Suche nach dem Abenteurer wurde unterbrochen.",
+  "{{0}}を探しています。": "Suche: {{0}}.",
+  "{{0}}に会えました。": "Begegnung: {{0}}.",
+  "今回見て回れた範囲では、{{0}}に会えませんでした。": "Im diesmal erkundeten Gebiet gab es keine Begegnung ({{0}}).",
+  "{{0}}を探すのを中断しました。": "Suche abgebrochen: {{0}}."
 }

@@ -6,6 +6,18 @@
     const stayMs=30*60*1000;
     const nature=id=>/^chip:(?:mountain_|palms_)/.test(id);
     const forest=id=>typeof id==='string'&&id.startsWith('chip:palms_');
+    // New outdoor people use this same search pipeline; register their public aliases,
+    // habitat, availability gate and private arrival-time location here.
+    const searchPeople={
+        adventurer:{name:'冒険家',names:/冒険家|冒险家|adventurer|aventurero|aventureiro|abenteurer|искател|путешественник/iu,kinds:['forest','mountain'],available:()=>true,supplied:()=>true,location:g=>g.walk?.roaming?.target},
+        building:{name:'建築士',names:/建築士|建築家|建筑师|строител|архитектор|\b(?:builder|architect|constructor|construtor|arquitecto|arquiteto)\b|baumeister|architekt/iu,kinds:['forest'],available:g=>!!g.walk?.builder,supplied:p=>!!p.practice?.introduction,location:g=>g.walk?.builder?.target,npc:'building'}
+    };
+    const searchTerrain={forest:/森|林|forest|bosque|floresta|wald|wäld|лес/iu,mountain:/山|mountain|montaña|montanha|berg|гор/iu};
+    function searchPerson(input){if(typeof input!=='string')return null;const matches=Object.keys(searchPeople).filter(id=>searchPeople[id].names.test(input.normalize('NFKC')));return matches.length===1?matches[0]:null;}
+    function searchOptions(packet){return Object.entries(searchPeople).filter(([,p])=>p.supplied(packet)).map(([npc,p])=>({npc,name:p.name,kinds:p.kinds}));}
+    function searchAllowed(input,packet){const person=searchPeople[searchPerson(input)];return !!person&&person.supplied(packet);}
+    const searchDetails=s=>s.npc===undefined?{npc:'adventurer',kinds:['forest','mountain']}:{npc:s.npc,kinds:s.kinds};
+    const searchLabel=g=>searchPeople[searchDetails(g.walk.search).npc].name;
     function builderDirective(input){return typeof input==='string'&&directive(input,'walk')
         &&/建築士|建筑师|строител|архитектор|\b(?:builder|architect|constructor|construtor|arquitecto|arquiteto)\b|baumeister|architekt/iu.test(input);}
     const waiting=(g,npc,now)=>(g.practices||[]).some(p=>p.remote?.npc===npc&&p.remote.until>now);
@@ -52,19 +64,21 @@
     function event(g,kind,target,cause,reason){const a=perception.asset(g,target);if(!a)return;
         const r={id:'event-'+(g.receipts.length+1),kind,target,label:String(a.name||a.type).slice(0,80),at:g.elapsed,cause,hunger:g.hunger,fatigue:g.fatigue};if(reason)r.reason=reason;g.receipts.push(r);return r;}
     function idle(g){g.mode='idle';g.destination=null;g.intent=null;g.route=[];g.cause=null;g.remaining=0;}
-    function searchDirective(input){
+    // legacy is a read-only compatibility rule for existing adventurer records.
+    // Live requests and starts always use the default person-aware rule.
+    function searchDirective(input,legacy=false){
         if(typeof input!=='string'||/[「」『』“”"?？]/u.test(input))return false;
         const s=input.normalize('NFKC').toLowerCase();
         if(/しない|ないで|行かない|歩かない|とは|意味|言って|言葉|と思|don't|do not|never|\bnot\b|не |no (?:busques|vayas)|não|nicht|不要|别|不用|\b(?:why|how|whether|explain|means?|meaning)\b/u.test(s))return false;
-        return /冒険家|冒险家|adventurer|aventurero|aventureiro|abenteurer|искател|путешественник/iu.test(s)
-            &&/山|森|mountain|forest|montaña|bosque|montanha|floresta|berg|wald|гор|лес/iu.test(s)
+        const npc=searchPerson(s);return (legacy?searchPeople.adventurer.names.test(s)&&/山|森|mountain|forest|montaña|bosque|montanha|floresta|berg|wald|гор|лес/iu.test(s):!!npc&&searchPeople[npc].kinds.some(kind=>searchTerrain[kind].test(s)))
             &&/近い順|近くから|近い.*順|nearest|closest|cercan|mais pert|näch|最近|ближай/iu.test(s)
             &&(directive(input,'walk')||/歩いて|歩こう|移動して|向かって|行って|進んで/u.test(s)
                 ||/^(?:请)?(?:从|按|依).*(?:走|去|移动)/u.test(s)||/^(?:пожалуйста[ ,]+)?(?:обойди|пройди)(?=\s|$)/u.test(s));
     }
+    function searchRequest(input){if(!searchDirective(input))return null;const npc=searchPerson(input);return {npc,kinds:searchPeople[npc].kinds.filter(kind=>searchTerrain[kind].test(input.normalize('NFKC')))};}
     function searchActive(g){return g?.walk?.search?.phase==='active';}
-    function searchSupply(g){const s=g.walk?.search;return s?{phase:s.phase,target:s.target,visited:s.visited.length}:null;}
-    function validSearchSupply(s){return s&&Object.keys(s).sort().join(',')==='phase,target,visited'
+    function searchSupply(g){const s=g.walk?.search;return s?{phase:s.phase,target:s.target,visited:s.visited.length,...(s.npc===undefined?{}:{npc:s.npc})}:null;}
+    function validSearchSupply(s){return s&&['phase,target,visited','npc,phase,target,visited'].includes(Object.keys(s).sort().join(','))&&(s.npc===undefined||Object.hasOwn(searchPeople,s.npc))
         &&['active','found','exhausted','stopped'].includes(s.phase)&&(s.target===null||typeof s.target==='string'&&nature(s.target)&&s.target.length<=80)
         &&Number.isSafeInteger(s.visited)&&s.visited>=0&&(s.phase!=='active'||s.target!==null);}
     function searchStop(g,reason='stopped'){
@@ -73,7 +87,7 @@
         s.phase='stopped';s.reason=reason;return true;
     }
     function searchObserve(g){if(!searchActive(g))return;const s=g.walk.search;
-        for(const p of perception.chips(g))if(nature(p.id)&&!s.candidates.includes(p.id))s.candidates.push(p.id);
+        for(const p of perception.chips(g))if(nature(p.id)&&searchDetails(s).kinds.includes(forest(p.id)?'forest':'mountain')&&!s.candidates.includes(p.id))s.candidates.push(p.id);
     }
     function searchNext(g){const s=g.walk.search;searchObserve(g);
         const distance=route=>{let p={x:g.x,y:g.y},total=0;for(const q of route){total+=Math.hypot((q.x-p.x)*800,(q.y-p.y)*480);p=q;}return total;};
@@ -84,16 +98,18 @@
         event(g,'walk_start',next.id,s.origin.turn);
     }
     function searchStart(g,request,turn,input){
-        const p=g.practices?.at(-1);
+        const p=g.practices?.at(-1),spec=searchRequest(input);
         if(g.perception!==2||g.mode!=='idle'||searchActive(g)||p&&!['done','declined','stopped','failed'].includes(p.phase)||!request||!searchDirective(input)||!searchDirective(request.quote)||!input.includes(request.quote))return false;
-        install(g).search={origin:{turn,quote:request.quote},phase:'active',candidates:[],visited:[],target:null,reason:null};
+        if(JSON.stringify(spec)!==JSON.stringify(searchRequest(request.quote))||!searchPeople[spec.npc].available(g))return false;
+        install(g).search={origin:{turn,quote:request.quote},...spec,phase:'active',candidates:[],visited:[],target:null,reason:null};
         g.walk.confirmed=null;g.focus=null;searchNext(g);return true;
     }
     function validSearch(g){const s=g.walk?.search;if(s===undefined)return true;
-        if(!s||Object.keys(s).sort().join(',')!=='candidates,origin,phase,reason,target,visited'||!Array.isArray(s.visited)||!s.origin||Object.keys(s.origin).sort().join(',')!=='quote,turn'
-            ||!/^turn-[1-9]\d*$/.test(s.origin.turn)||typeof s.origin.quote!=='string'||s.origin.quote.length>1000||!searchDirective(s.origin.quote)
+        if(!s||!['candidates,origin,phase,reason,target,visited','candidates,kinds,npc,origin,phase,reason,target,visited'].includes(Object.keys(s).sort().join(','))||!Array.isArray(s.visited)||!s.origin||Object.keys(s.origin).sort().join(',')!=='quote,turn'
+            ||!/^turn-[1-9]\d*$/.test(s.origin.turn)||typeof s.origin.quote!=='string'||s.origin.quote.length>1000||!searchDirective(s.origin.quote,s.npc===undefined)
+            ||s.npc!==undefined&&(JSON.stringify(searchDetails(s))!==JSON.stringify(searchRequest(s.origin.quote))||!searchPeople[s.npc]?.available(g))
             ||!validSearchSupply(searchSupply(g))||![null,'stopped','interrupted','cancelled','load','switch','close'].includes(s.reason)
-            ||!Array.isArray(s.candidates)||new Set(s.candidates).size!==s.candidates.length||!s.candidates.every(id=>nature(id)&&!!perception.asset(g,id))
+            ||!Array.isArray(s.candidates)||new Set(s.candidates).size!==s.candidates.length||!s.candidates.every(id=>nature(id)&&searchDetails(s).kinds.includes(forest(id)?'forest':'mountain')&&!!perception.asset(g,id))
             ||new Set(s.visited.map(v=>v?.target)).size!==s.visited.length
             ||!s.visited.every(v=>v&&Object.keys(v).sort().join(',')==='arrival,target'&&s.candidates.includes(v.target)&&g.receipts.some(r=>r.id===v.arrival&&r.kind==='walk'&&r.target===v.target&&r.cause===s.origin.turn))
             ||s.target!==null&&!s.candidates.includes(s.target))return false;
@@ -122,10 +138,11 @@
         const target=g.destination,a=perception.asset(g,target);
         if(Math.hypot(g.x*800-(a.dx+a.sw*a.scale/2),g.y*480-(a.dy+a.sh*a.scale))>85){event(g,'walk_failed',target,g.cause,'unreachable');searchStop(g,'interrupted');idle(g);return;}
         const r=event(g,'walk',target,g.cause);idle(g);
+        if(searchActive(g)&&r.cause===g.walk.search.origin.turn){const s=g.walk.search,person=searchPeople[searchDetails(s).npc];s.visited.push({target,arrival:r.id});
+            if(person.location(g)===target||searchDetails(s).npc==='adventurer'&&!g.walk.roaming){install(g).encounter={id:r.id,target,phase:'pending',...(person.npc?{npc:person.npc}:{})};s.phase='found';return;}
+            searchNext(g);return;}
         if(g.walk.visit?.turn===r.cause){if(g.walk.builder?.target===target)install(g).encounter={id:r.id,target,phase:'pending',npc:'building'};}
         else if(nature(target)&&(!g.walk.roaming||g.walk.roaming.target===target))install(g).encounter={id:r.id,target,phase:'pending'};
-        if(searchActive(g)&&r.cause===g.walk.search.origin.turn){const s=g.walk.search;s.visited.push({target,arrival:r.id});
-            if(g.walk.encounter?.id===r.id){s.phase='found';return;}searchNext(g);}
     }
     function valid(g){if(!Array.isArray(g.route)||!Array.isArray(g.receipts))return false;const w=g.walk;if(!w)return g.mode==='idle'&&g.destination===null&&g.intent===null&&g.route.length===0&&g.remaining===0;
         if(w.version!==1||typeof w.met!=='boolean'||!Object.keys(w).every(k=>['version','met','confirmed','encounter','roaming','builder','visit','search'].includes(k))||!validSearch(g))return false;
@@ -142,5 +159,5 @@
         const a=perception.asset(g,g.destination),end=g.route.at(-1);
         return Math.hypot(g.route[0].x*800-g.x*800,g.route[0].y*480-g.y*480)<=51&&Math.hypot(end.x*800-(a.dx+a.sw*a.scale/2),end.y*480-(a.dy+a.sh*a.scale))<=85;
     }
-    return {install,plan,directive,apply,tick,valid,movementKinds,graph,roam,stayMs,calendar,forest,builderDirective,roamBuilder,searchDirective,searchActive,searchStart,searchStop,searchSupply,validSearchSupply};
+    return {install,plan,directive,apply,tick,valid,movementKinds,graph,roam,stayMs,calendar,forest,builderDirective,roamBuilder,searchDirective,searchRequest,searchPerson,searchOptions,searchAllowed,searchLabel,searchActive,searchStart,searchStop,searchSupply,validSearchSupply};
 });

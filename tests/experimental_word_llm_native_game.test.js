@@ -19,9 +19,52 @@ test('search starts without circle, follows real nearest route and ends at actua
     g.walk.roaming.target='chip:mountain_gift';
     for(let i=0;i<1000&&w.searchActive(g);i++){runtime.game.tick(g,.1);assert.ok(runtime.validState(s));}
     assert.equal(g.walk.search.phase,'found');assert.equal(g.mode,'idle');assert.deepEqual(g.walk.search.visited.map(v=>v.target),['chip:palms_gift','chip:mountain_gift']);assert.equal(g.walk.encounter.id,g.walk.search.visited.at(-1).arrival);
-    const supply=runtime.game.supply(g);assert.deepEqual(supply.search,{phase:'found',target:'chip:mountain_gift',visited:2});assert.equal(supply.adventurer,undefined);assert.equal(supply.search.candidates,undefined);
+    const supply=runtime.game.supply(g);assert.deepEqual(supply.search,{phase:'found',target:'chip:mountain_gift',visited:2,npc:'adventurer'});assert.equal(supply.adventurer,undefined);assert.equal(supply.search.candidates,undefined);
     const b=runtime.begin(s,'Tell me what happened','en',2000);assert.ok(runtime.validPacket(b.packet));assert.ok(JSON.stringify(b.packet.world).length+JSON.stringify(b.packet.calendar).length<=2000);
-    assert.match(runtime.prompt(b.packet),/NEAREST ADVENTURER SEARCH IS IMPLEMENTED/);
+    assert.match(runtime.prompt(b.packet),/NEAREST PERSON SEARCH IS IMPLEMENTED/);
+});
+test('shared person search accepts the builder in seven languages only after the real introduction',()=>{
+    const inputs=['近い順に森に歩いて行って、建築士さんがいたら教えて','Walk through forests nearest first and find the builder','请从最近的森林走起，寻找建筑师','Обойди ближайшие леса и найди строителя','Camina por los bosques más cercanos y busca al constructor','Caminhe pelas florestas mais perto e procure o construtor','Gehe zu den nächsten Wäldern und suche den Baumeister'];
+    const introduced=introduceFixture();
+    for(const input of inputs){assert.deepEqual(runtime.game.walk.searchRequest(input),{npc:'building',kinds:['forest']});
+        const b=runtime.begin(introduced,input,'en'),r={...response(b.packet),terms:[],focus:null,confirmation:null,search:{quote:input}};assert.ok(runtime.validResult(r,b.packet),input);
+        const noIntro=runtime.begin(gatheringState(),input,'en');assert.equal(runtime.validResult(r,noIntro.packet),false,input);
+        assert.deepEqual(runtime.game.walk.searchOptions(noIntro.packet).map(p=>p.npc),['adventurer']);assert.deepEqual(runtime.game.walk.searchOptions(b.packet).map(p=>p.npc),['adventurer','building']);assert.ok(runtime.game.walk.searchOptions(b.packet).every(p=>Object.keys(p).sort().join(',')==='kinds,name,npc'));
+    }
+    for(const input of ['近い順に森に歩いて行かないで、建築士さんを探さないで','「近い順に森に歩いて行って、建築士さんがいたら教えて」','近い順に森に歩いて行って、建築士さんがいたら教えて？','Walk through forests nearest first to find the builder and adventurer','Walk through forests nearest first to find the cook','Walk through mountains nearest first to find the builder'])assert.equal(runtime.game.walk.searchDirective(input),false,input);
+});
+test('builder search visits forests by real distance, ignores the adventurer and opens only the real builder encounter',()=>{
+    const w=runtime.game.walk,input='近い順に山か森に歩いて行って、建築士さんがいたら教えて';let s=introduceFixture(),g=s.game;
+    w.roam(g,1000);g.walk.roaming.target='chip:palms_gift';
+    s=directed(s,searchInput,{search:{quote:searchInput}});g=s.game;for(let i=0;i<1000&&w.searchActive(g);i++)runtime.game.tick(g,.1);
+    assert.equal(g.walk.search.phase,'found');assert.equal(g.walk.search.npc,'adventurer');g.walk.encounter.phase='done';g.walk.builder.target='chip:palms_survey';
+    const bag=structuredClone(g.inventory),intro=structuredClone(runtime.game.practice.introduction(g));
+    s=directed(s,input,{search:{quote:input}});g=s.game;assert.equal(g.mode,'move');assert.equal(g.walk.search.target,'chip:palms_gift');assert.equal(g.walk.confirmed,null);
+    for(let i=0;i<2000&&w.searchActive(g);i++){runtime.game.tick(g,.1);assert.ok(runtime.validState(s));}
+    assert.equal(g.walk.search.phase,'found');assert.equal(g.walk.search.npc,'building');assert.deepEqual(g.walk.search.kinds,['forest']);assert.deepEqual(g.walk.search.visited.map(v=>v.target),['chip:palms_gift','chip:palms_survey']);
+    assert.ok(g.walk.search.candidates.every(w.forest));assert.equal(g.walk.encounter.npc,'building');assert.equal(g.walk.encounter.id,g.walk.search.visited.at(-1).arrival);
+    assert.deepEqual(g.inventory,bag);assert.deepEqual(runtime.game.practice.introduction(g),intro);assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+    const b=runtime.begin(s,'Tell me what happened','en',2000);assert.ok(runtime.validPacket(b.packet));assert.equal(b.packet.world.search.npc,'building');assert.equal(b.packet.world.search.candidates,undefined);assert.ok(JSON.stringify(b.packet.world).length+JSON.stringify(b.packet.calendar).length<=2000);
+    const p=runtime.game.practice.create(g,g.walk.encounter);assert.equal(p.npc,'building');assert.equal(p.phase,'offer');assert.ok(runtime.validState(s),'the builder conversation saves after a real search arrival');
+    finishLine(g,'offer',{text:'Hello, I am the builder.'});finishLine(g,'decision',{text:'Good to meet you.',choice:'decline'});finishLine(g,'feedback',{text:'See you again.'});assert.equal(p.phase,'done');assert.equal(g.walk.builder.met,true);assert.ok(runtime.validState(s));
+});
+test('person search preserves requested terrain, validates recipient and scope quotes, and reads old adventurer saves',()=>{
+    const input='Walk through forests nearest first to find the adventurer',w=runtime.game.walk;
+    let s=directed(gatheringState(),input,{search:{quote:input}});assert.deepEqual(s.game.walk.search.kinds,['forest']);assert.ok(s.game.walk.search.candidates.every(w.forest));
+    const b=runtime.begin(introduceFixture(),'Walk through forests nearest first to find the builder, then walk through mountains nearest first to find the adventurer','en');
+    assert.equal(runtime.validResult({...response(b.packet),terms:[],search:{quote:'walk through mountains nearest first to find the adventurer'}},b.packet),false);
+    const scope=runtime.begin(gatheringState(),searchInput+'; Walk through forests nearest first to find the adventurer','en');
+    assert.equal(runtime.validResult({...response(scope.packet),terms:[],search:{quote:'Walk through forests nearest first to find the adventurer'}},scope.packet),false);
+    const forged=structuredClone(s);forged.game.walk.search.npc='building';assert.equal(runtime.validState(forged),false);
+    const builderInput='Walk through forests nearest first to find the builder',builder=directed(introduceFixture(),builderInput,{search:{quote:builderInput}});
+    const stopped=directed(builder,'stop');assert.equal(stopped.game.walk.search.phase,'stopped');assert.equal(stopped.game.walk.search.npc,'building');assert.ok(runtime.validState(stopped));
+    s=searching();delete s.game.walk.search.npc;delete s.game.walk.search.kinds;assert.ok(runtime.validState(s));assert.equal(runtime.game.supply(s.game).search.npc,undefined);
+    const legacyInput=searchInput+' before visiting the builder';s.turns.at(-1).input=legacyInput;s.turns.at(-1).result.search.quote=legacyInput;s.game.walk.search.origin.quote=legacyInput;
+    assert.ok(runtime.validState(s),'old adventurer search wording remains readable under its original rule');
+    const live=runtime.begin(gatheringState(),legacyInput,'en');assert.equal(runtime.validResult({...response(live.packet),terms:[],search:{quote:legacyInput}},live.packet),false,'legacy reading does not permit an ambiguous new search');
+    const fresh=directed(directed(s,'stop'),searchInput,{search:{quote:searchInput}});assert.ok(runtime.validState(fresh),'new search preserves old original input without rewriting it');
+    const {createSession}=require('../scripts/experimental/native_store');let saved=s,calls=0;const session=createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:value=>{saved=structuredClone(value);return {ok:true};}},responder:{cancel(){},dispose(){},reply(){calls++;}}});
+    assert.equal(session.load().state.game.walk.search.reason,'load');assert.equal(session.load().state.game.mode,'idle');assert.equal(calls,0);assert.ok(runtime.validState(session.load().state));session.dispose();
 });
 test('search exhausts known candidates once without reporting an island-wide absence',()=>{
     const s=searching(),g=s.game,w=runtime.game.walk;

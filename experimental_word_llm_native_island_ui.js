@@ -137,9 +137,9 @@
         if(type==='compass')svg.innerHTML='<g stroke="#654b30" stroke-width="2" stroke-linejoin="round"><circle cx="36" cy="9" r="6" fill="none"/><path fill="#9b7040" d="M31 12h10v8H31z"/><circle cx="36" cy="37" r="23" fill="#c59a52"/><circle cx="36" cy="37" r="18" fill="#f5e5b6"/><path fill="none" stroke="#9c7c4f" d="M36 21v5m0 22v5M20 37h5m22 0h5M25 26l3 3m16 16 3 3m0-22-3 3M28 45l-3 3"/><path fill="#b54d42" d="m36 23-6 14 6 3 6-3z"/><path fill="#567d85" d="m36 51 6-14-6 3-6-3z"/><circle cx="36" cy="37" r="3" fill="#d4ac61"/></g>';
         return svg;}
     const searchNotice=el('p',$('world-stage'));searchNotice.id='search-notice';searchNotice.setAttribute('role','status');searchNotice.hidden=true;
-    const searchLabels={active:'冒険家を探しています。',found:'冒険家に会えました。',exhausted:'今回見て回れた範囲では、冒険家に会えませんでした。',stopped:'冒険家を探すのを中断しました。'};
+    const searchLabels={active:'{{0}}を探しています。',found:'{{0}}に会えました。',exhausted:'今回見て回れた範囲では、{{0}}に会えませんでした。',stopped:'{{0}}を探すのを中断しました。'};
     function meters(){if(!state?.game)return;const g=state.game,p=NativePractice.current(g);renderTask(g);renderAffinity(g);let label=activity[g.mode];
-        searchNotice.hidden=!g.walk?.search;searchNotice.textContent=g.walk?.search?t(searchLabels[g.walk.search.phase]):'';
+        searchNotice.hidden=!g.walk?.search;searchNotice.textContent=g.walk?.search?t(searchLabels[g.walk.search.phase],t(NativeWalk.searchLabel(g))):'';
         const bag=NativePractice.possessions(g,false),key=JSON.stringify(bag)+'|'+$('locale').value;
         if(key!==inventoryKey){inventoryKey=key;$('inventory').hidden=!bag.open;$('inventory-items').replaceChildren();
             for(const [type,itemLabel]of [['wood','木材'],['stone','石'],['flower','花'],['water','水の入った水筒'],['canteen','空の水筒'],['compass','旅人の通信コンパス']]){const count=type==='compass'?(bag.compass?.owned?1:0):type==='canteen'?(bag.bottle==='empty'?1:0):bag[type];if(count){const slot=el('figure',$('inventory-items'),undefined,'inventory-item');slot.append(materialIcon(type));el('figcaption',slot,t(itemLabel)+' × '+count,'',true);}}
