@@ -22,7 +22,7 @@ else {
         const mentorResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_mentor').protocol});
         const practiceResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_practice').protocol});
         const resumeResponder=require('./gemini_reply').createResponder(path.join(app.getPath('appData'),'AIPetGame-WordLearning-Gemini'),{protocol:require('./native_resume').protocol});
-        const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native_home.js','myhome_map_core.js','experimental_word_llm_native_absence.js','scripts/experimental/native_resume.js','experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
+        const recorder=require('./playtest_store').createRecorder({files:['experimental_word_llm_native_home.js','myhome_map_core.js','dungeon_render.js','experimental_word_llm_native_absence.js','scripts/experimental/native_resume.js','experimental_word_llm_native.js','experimental_word_llm_native_ui.js',
             'experimental_word_llm_native.html','experimental_word_llm_native.css','scripts/experimental/native_store.js',
             'scripts/experimental/native_electron.js','scripts/experimental/native.js','scripts/experimental/native_preload.js','scripts/experimental/native_window.js','scripts/experimental/gemini_reply.js',
             'scripts/experimental/antigravity_install.js','scripts/experimental/playtest_store.js','experimental_word_reply_awareness.js',

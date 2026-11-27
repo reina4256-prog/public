@@ -99,10 +99,10 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         return blocked ? {ok:false,error:'save'} : {ok:true,state:copy()};
     }
     function leave(){load();resumeTicket++;resumeReady=null;resumeAudio=null;resumeResponder?.cancel();if(blocked)return {ok:false,error:'save'};
-        if(!state?.game||!mainActive)return {ok:true};const next=copy();if(next.game.home)delete next.game.home.travel;absence.depart(next.game,wallClock());next.game.absence.lastCalendar=core.game.walk.calendar.snapshot(next.game.absence.now,next.game.calendarSettings,next.locale);
+        if(!state?.game||!mainActive)return {ok:true};const next=copy();practice.home.stop(next.game);absence.depart(next.game,wallClock());next.game.absence.lastCalendar=core.game.walk.calendar.snapshot(next.game.absence.now,next.game.calendarSettings,next.locale);
         if(!persist(next,'leave-main').ok)return {ok:false,error:'save'};state=next;mainActive=false;return {ok:true};}
     function enter(){load();if(blocked||busy||!state?.game)return {ok:false,error:blocked?'save':'input'};
-        if(mainActive)return {ok:true,state:copy()};const next=copy(),now=wallClock();if(next.game.home)delete next.game.home.travel;practice.home.refresh(next.game,now,practice);absence.install(next.game,now);
+        if(mainActive)return {ok:true,state:copy()};const next=copy(),now=wallClock();practice.home.stop(next.game);practice.home.refresh(next.game,now,practice);absence.install(next.game,now);
         const a=next.game.absence,j=absence.current(next.game);
         // A crash has no known exit time. Use only the last successfully saved activity checkpoint.
         if(a.left===null&&a.lastActivity!==null&&j?.status==='reserved'){j.status='working';j.cursor=a.lastActivity;}
@@ -161,9 +161,10 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             practice.home.refresh(state.game,wallClock(),practice);
             if(!state.game.absence)absence.install(state.game,wallClock());
             if(mainActive){absence.advance(state.game,wallClock());state.game.absence.lastActivity=Math.max(state.game.absence.lastActivity||0,state.game.absence.now);state.game.absence.lastCalendar=core.game.walk.calendar.snapshot(state.game.absence.now,state.game.calendarSettings,state.locale);}
+            const homeStage=JSON.stringify([state.game.home?.phase,state.game.home?.inside,!!state.game.home?.travel,state.game.home?.exit?.phase]);
             const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events?.length;core.game.tick(state.game,seconds);
             const current=practice.current(state.game),changed=current&&current.phase+'|'+current.events?.length!==stage;
-            if(state.game.receipts.length!==before||changed||now-lastSave>10000){
+            if(state.game.receipts.length!==before||changed||homeStage!==JSON.stringify([state.game.home?.phase,state.game.home?.inside,!!state.game.home?.travel,state.game.home?.exit?.phase])||now-lastSave>10000){
                 if(!persist(state,'world').ok){blocked=true;return {ok:false,error:'save'};}lastSave=now;
                 if(state.game.receipts.length!==before)log('world',{results:state.game.receipts.slice(before)});
             }

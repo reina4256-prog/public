@@ -24,17 +24,19 @@ window.NativeScene={
         const frames=aiConfigs[skin].actions[moving?'move':aiPet.visualAction]||aiConfigs[skin].actions.idle;
         aiPet.frameIndex=reduced?0:Math.floor(time/.25)%frames.length;
         const next=(homeRoute.length?homeRoute:practiceRoute?.length?practiceRoute:game.route).find(p=>Math.hypot(p.x-game.x,p.y-game.y)>.00001);
-        if(game.home?.inside){camera.x=0;camera.y=0;NativeHomeInterior.draw(ctx,canvas.width,canvas.height);aiPet.x=canvas.width*.5;aiPet.y=canvas.height*.64;drawAICharacter();return;}
+        if(game.home?.inside){camera.x=0;camera.y=0;NativeHomeInterior.draw(ctx,canvas.width,canvas.height,game);this.drawHomeFade(game);return;}
         if(next&&Math.abs(next.x-game.x)>.00001)aiPet.flip=next.x<game.x;
         if(searching&&!reduced)aiPet.flip=Math.floor(time/1.1)%2===1;
         const reported=(game.practices||[]).findLast(p=>p.remote?.target)?.remote,targetAsset=reported&&game.focus&&reported.target===game.focus.targetId&&!this.visible(game).some(p=>p.id===game.focus.targetId)?NativePerception.asset(game,reported.target):null;
-        camera.x=(targetAsset?targetAsset.dx+targetAsset.sw*targetAsset.scale/2:aiPet.x)-canvas.width/2;camera.y=(targetAsset?targetAsset.dy+targetAsset.sh*targetAsset.scale/2:aiPet.y)-canvas.height/2;render();
+        camera.x=(targetAsset?targetAsset.dx+targetAsset.sw*targetAsset.scale/2:aiPet.x)-canvas.width/2;camera.y=(targetAsset?targetAsset.dy+targetAsset.sh*targetAsset.scale/2:aiPet.y)-canvas.height/2;
+        const objects=[];
+        if(game.home?.phase==='ready'){const h=game.home,sprite=defaultCatalog.hut,scale=Math.min(44/sprite.sw,58/sprite.sh);
+            objects.push({...sprite,scale,dx:h.site.x*800-sprite.sw*scale/2,dy:h.site.y*480+10-sprite.sh*scale});}
+        render(objects);
         const house=game.home;if(house?.site){const x=house.site.x*800-camera.x,y=house.site.y*480-camera.y;
             if(house.phase==='planning'&&!game.focus)this.drawTarget({x:x/800,y:y/480,width:.055,height:.06});
             else if(house.phase==='building'){ctx.save();ctx.strokeStyle='#e8cf9b';ctx.lineWidth=3;ctx.strokeRect(x-20,y-12,40,20);ctx.restore();}
-            else if(house.phase==='ready'){const sprite=defaultCatalog.hut,image=images[sprite.img];
-                if(image?.complete&&image.naturalWidth){const scale=Math.min(44/sprite.sw,58/sprite.sh),w=sprite.sw*scale,h=sprite.sh*scale;
-                    ctx.save();ctx.imageSmoothingEnabled=false;ctx.drawImage(image,sprite.sx,sprite.sy,sprite.sw,sprite.sh,x-w/2,y+10-h,w,h);ctx.restore();}}}
+        }
         // A single circle is shown only for an explicitly proposed real map chip.
         const target=this.visible(game).find(p=>p.id===game.focus?.targetId);
         if(game.perception===2&&target)this.drawTarget(target);
@@ -43,7 +45,10 @@ window.NativeScene={
             aiPet.indoorTarget=NativePerception.asset(game,practice.target);aiPet.exploreState={currentFacility:practice.target.startsWith('chip:mountain_')?'mountain':'palms'};
             drawActionWindow(travel?'move':'idle','inside',true);
         }
+        this.drawHomeFade(game);
     },
+    drawHomeFade(game){const e=game.home?.exit;if(!e||e.phase==='walk')return;
+        ctx.save();ctx.globalAlpha=e.phase==='out'?Math.min(1,e.elapsed/.3):Math.max(0,1-e.elapsed/.3);ctx.fillStyle='#000';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.restore();},
     drawTarget(p){
         ctx.save();ctx.strokeStyle='#ffe08a';ctx.lineWidth=3;
         ctx.shadowColor='#162b2a';ctx.shadowBlur=4;

@@ -7,7 +7,7 @@ if (typeof camera === 'undefined') {
     var camera = { x: 0, y: 0 };
 }
 
-function render() {
+function render(extraAssets = []) {
     if (!ctx || imagesLoaded < totalImages) return;
 
     // ==========================================
@@ -339,6 +339,7 @@ function render() {
     if (!isDefense && currentMode === 'play' && window.ResidentUI) {
         for (const actor of window.ResidentUI.actors()) objectAssets.push({ key: actor.personId, data: { dy: actor.y, residentActor: actor } });
     }
+    for (const data of Array.isArray(extraAssets) ? extraAssets : []) objectAssets.push({ key: 'scene-object', data });
     objectAssets.sort((a, b) => a.data.dy - b.data.dy);
     
     objectAssets.forEach(item => {

@@ -1,6 +1,7 @@
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.NativeHome=api;})(typeof globalThis!=='undefined'?globalThis:this,function(){
     'use strict';
     const COST={wood:8,stone:4},DURATION=600000,ID='chip:player_home';
+    const ROOM_START={x:6,y:6.4,dir:'down'},ROOM_DOOR={x:5.5,y:9.5};
     const copy=x=>structuredClone(x),turn=s=>/^turn-[1-9]\d*$/.test(s),quote=s=>typeof s==='string'&&s.trim()&&s.length<=300;
     const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y),keys=(o,a)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>a.includes(k));
     function crosses(a,b,x,y){let low=0,high=1;for(const [axis,center,radius]of [['x',x,8],['y',y,4]]){const d=b[axis]-a[axis],start=a[axis];if(!d){if(start<=center-radius||start>=center+radius)return false;continue;}
@@ -51,7 +52,7 @@
     }
     function validRequest(r,p){if(r===undefined||r===null)return true;const h=p.inventory?.home;
         if(!h||!keys(r,['kind','quote'])||!['site','confirm','build','cancel','enter','exit'].includes(r.kind)||!quote(r.quote)||!p.input.includes(r.quote)||!directive(p.input,r.kind)||!directive(r.quote,r.kind))return false;
-        if(p.world.currentAction!=='idle'||p.world.search?.phase==='active'||p.practice&&!['done','declined','stopped','failed'].includes(p.practice.context.phase)||p.inventory.absence?.status==='paused'||p.inventory.absence?.status==='reserved')return false;
+        if(p.world.currentAction!=='idle'||p.world.homeTravel||p.world.search?.phase==='active'||p.practice&&!['done','declined','stopped','failed'].includes(p.practice.context.phase)||p.inventory.absence?.status==='paused'||p.inventory.absence?.status==='reserved')return false;
         return r.kind==='site'?h.phase==='planning'&&!!h.site&&!h.proposed&&!h.requested:r.kind==='confirm'?h.phase==='planning'&&h.proposed&&!h.confirmed
             :r.kind==='build'?h.phase==='planning'&&h.confirmed&&!h.requested&&!h.missing.wood&&!h.missing.stone:r.kind==='cancel'?h.phase==='planning'
             :r.kind==='enter'?h.phase==='ready'&&!h.inside:r.kind==='exit'?h.phase==='ready'&&h.inside:false;
@@ -62,7 +63,7 @@
         if(r.kind==='build'){if(!h.confirmed||Number(h.confirmed.turn.slice(5))>=Number(id.slice(5)))return false;h.request={turn:id,quote:r.quote};g.taskPanelOpen=true;}
         if(r.kind==='cancel'){delete h.site;delete h.confirmed;delete h.request;}
         if(r.kind==='enter'){const route=walk.plan(g,ID,true);if(!route)return false;h.travel={turn:id,quote:r.quote,route};}
-        if(r.kind==='exit')h.inside=false;
+        if(r.kind==='exit'){h.room=h.room||copy(ROOM_START);h.exit={turn:id,quote:r.quote,phase:'walk',elapsed:0};}
         h.history.push({turn:id,kind:r.kind,quote:r.quote,...(r.kind==='site'?{site:copy(h.site)}:{})});return true;
     }
     function consultation(g,before=null){const list=g.practices||[];return (before?list.slice(0,list.findIndex(p=>p.id===before)):list).findLast(p=>p.npc==='building'&&p.homeConsent?.offer?.source===p.id&&p.homeConsent?.decision?.source===p.id);}
@@ -81,12 +82,22 @@
         for(const item of items){g.inventory.items.splice(g.inventory.items.findIndex(i=>i.id===item.id),1);(g.inventory.spent||(g.inventory.spent=[])).push({by:'house-'+s,item:copy(item)});}
         h.startedAt=h.now;h.readyAt=h.now+DURATION;h.phase='building';return true;
     }
-    function tick(g,seconds){const h=g.home;if(!h?.travel)return;const p=h.travel.route[0];if(!p){delete h.travel;h.inside=true;return;}
+    function stop(g){if(g.home){delete g.home.travel;delete g.home.exit;}}
+    function tick(g,seconds){const h=g.home;if(!h)return;
+        if(h.exit){const e=h.exit;
+            if(e.phase==='walk'){const r=h.room,dx=ROOM_DOOR.x-r.x,dy=ROOM_DOOR.y-r.y,step=2*seconds;
+                if(Math.abs(dx)>.00001){r.dir=dx<0?'left':'right';r.x+=Math.sign(dx)*Math.min(Math.abs(dx),step);}
+                else if(Math.abs(dy)>.00001){r.dir=dy<0?'up':'down';r.y+=Math.sign(dy)*Math.min(Math.abs(dy),step);}
+                else{e.phase='out';e.elapsed=0;}return;}
+            e.elapsed=Math.min(.3,e.elapsed+seconds);
+            if(e.elapsed>=.3){if(e.phase==='out'){h.inside=false;delete h.room;e.phase='in';e.elapsed=0;}
+                else delete h.exit;}return;}
+        if(!h.travel)return;const p=h.travel.route[0];if(!p){delete h.travel;h.inside=true;h.room=copy(ROOM_START);return;}
         const dx=(p.x-g.x)*800,dy=(p.y-g.y)*480,d=Math.hypot(dx,dy),step=52*seconds;
         if(d<=step){g.x=p.x;g.y=p.y;h.travel.route.shift();}else{g.x+=dx/d*step/800;g.y+=dy/d*step/480;}}
     function asset(g){const h=g.home;if(!h?.site||!['building','ready'].includes(h.phase))return null;return {type:'building',name:'マイホーム',dx:h.site.x*800-22,dy:h.site.y*480-48,sw:44,sh:58,scale:1};}
     function valid(g,practice,walk){const h=g.home;if(h===undefined)return true;
-        if(!keys(h,['version','phase','qualified','history','now','inside','site','confirmed','request','payment','startedAt','readyAt','travel'])||h.version!==1||!['planning','building','ready'].includes(h.phase)||!Number.isSafeInteger(h.now)||h.now<0||typeof h.inside!=='boolean'||!Array.isArray(h.history))return false;
+        if(!keys(h,['version','phase','qualified','history','now','inside','site','confirmed','request','payment','startedAt','readyAt','travel','room','exit'])||h.version!==1||!['planning','building','ready'].includes(h.phase)||!Number.isSafeInteger(h.now)||h.now<0||typeof h.inside!=='boolean'||!Array.isArray(h.history))return false;
         const q=(g.practices||[]).find(p=>p.id===h.qualified),past=q&&{...g,practices:g.practices.slice(0,g.practices.indexOf(q)+1)};if(!q||!eligible(past,practice))return false;
         if(!h.history.every((e,i)=>keys(e,['turn','kind','quote','site'])&&turn(e.turn)&&(!i||Number(e.turn.slice(5))>Number(h.history[i-1].turn.slice(5)))&&quote(e.quote)&&directive(e.quote,e.kind)&&(e.kind==='site'?validSite(g,e.site):e.site===undefined)))return false;
         let chosen=null,confirmed=null,request=null;for(const e of h.history){if(e.kind==='site'){if(request)return false;chosen=e.site;confirmed=null;}if(e.kind==='confirm'){if(!chosen||confirmed)return false;confirmed={turn:e.turn,quote:e.quote};}if(e.kind==='build'){if(!confirmed||request)return false;request={turn:e.turn,quote:e.quote};}if(e.kind==='cancel'){chosen=null;confirmed=null;request=null;}}
@@ -98,9 +109,14 @@
             if(h.travel){const path=h.travel.route,ids=path.map(p=>nodes.findIndex(n=>Math.hypot(n.x-p.x*800,n.y-p.y*480)<.001));
                 if(ids.some((n,i)=>n<0||i&&!nodes[ids[i-1]].edges.includes(n))||new Set(ids).size!==ids.length||path.length&&Math.hypot(path[0].x*800-g.x*800,path[0].y*480-g.y*480)>51)return false;
                 const end=path.at(-1)||g;if(Math.hypot(end.x*800-x,end.y*480-y)>85)return false;}}
-        if(h.phase!=='ready'&&(h.inside||h.travel))return false;
+        if(h.room&&(!h.inside||!keys(h.room,['x','y','dir'])||!point(h.room)||h.room.x<1||h.room.x>11||h.room.y<1||h.room.y>9.5||!['up','down','left','right'].includes(h.room.dir)))return false;
+        if(h.phase!=='ready'&&(h.inside||h.travel||h.exit||h.room))return false;
         const entry=h.history.findLast(e=>['enter','exit'].includes(e.kind));
-        if((h.inside||h.travel)&&entry?.kind!=='enter'||h.travel&&(h.travel.turn!==entry.turn||h.travel.quote!==entry.quote))return false;
+        if(h.exit&&(!keys(h.exit,['turn','quote','phase','elapsed'])||entry?.kind!=='exit'||entry.turn!==h.exit.turn||entry.quote!==h.exit.quote||h.travel
+            ||!['walk','out','in'].includes(h.exit.phase)||!Number.isFinite(h.exit.elapsed)||h.exit.elapsed<0||h.exit.elapsed>.3
+            ||(h.exit.phase==='in'?h.inside||h.room:!h.inside||!h.room)
+            ||h.exit.phase==='walk'&&h.exit.elapsed!==0||h.exit.phase==='out'&&(h.room.x!==ROOM_DOOR.x||h.room.y!==ROOM_DOOR.y)))return false;
+        if(h.inside&&(entry?.kind!=='enter'&&!(entry?.kind==='exit'&&h.room&&h.history.some(e=>e.kind==='enter')))||h.travel&&(entry?.kind!=='enter'||h.travel.turn!==entry.turn||h.travel.quote!==entry.quote))return false;
         if(h.inside&&(!h.site||Math.hypot(g.x*800-h.site.x*800,g.y*480-h.site.y*480)>85||h.travel))return false;
         if(h.phase==='planning')return !h.payment&&!h.startedAt&&!h.readyAt&&!h.inside&&!h.travel;
         const p=g.practices.find(p=>p.id===h.payment?.practice),s=source(g,p),items=g.inventory?.spent?.filter(i=>i.by==='house-'+s)||[];
@@ -108,5 +124,5 @@
             &&keys(h.payment,['source','practice','items','held'])&&h.payment.source===s&&Array.isArray(h.payment.items)&&new Set(h.payment.items).size===h.payment.items.length
             &&items.length===h.payment.items.length&&items.every(s=>h.payment.items.includes(s.item.id))&&['wood','stone'].every(t=>h.payment.held[t]===2&&items.filter(s=>s.item.type===t).length===COST[t]-2);
     }
-    return {COST,DURATION,ID,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,asset,valid,consultation,source};
+    return {COST,DURATION,ID,ROOM_START,ROOM_DOOR,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,stop,asset,valid,consultation,source};
 });

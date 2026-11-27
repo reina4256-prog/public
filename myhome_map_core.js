@@ -8,11 +8,12 @@
     // legacy furniture, concierge, storage, recovery or apprenticeship systems.
     if(window.NativeHome){
         const pictures={};
-        const load=()=>{for(const {img}of Object.values(HOME_ART))if(!pictures[img]){
+        const load=()=>{const poses=Object.entries(window.DUNGEON_SPRITES).filter(([key])=>/^(?:robot|seed|spirit|ghost|stone|magician|beetle|balloon|bird|machine|dragon)_(?:up|down|left|right)$/.test(key)).map(([,sprite])=>sprite);
+            for(const {img}of [...Object.values(HOME_ART),...poses])if(!pictures[img]){
             const image=new Image();pictures[img]=image;
             image.onerror=()=>console.error('Home asset could not load: '+img);image.src=img;
         }};
-        window.NativeHomeInterior={load,draw(context,width,height){
+        window.NativeHomeInterior={load,draw(context,width,height,game){
             load();context.save();context.imageSmoothingEnabled=false;
             context.fillStyle='#24333a';context.fillRect(0,0,width,height);
             const tile=Math.min(width*.8/12,height*.8/10),left=(width-tile*12)/2,top=(height-tile*10)/2;
@@ -24,6 +25,10 @@
             }
             const bedWidth=tile*1.6;
             draw(HOME_ART.bed,left+tile*8.2,top+tile*2.1,bedWidth,bedWidth*HOME_ART.bed.sh/HOME_ART.bed.sw);
+            const room=game.home.room||window.NativeHome.ROOM_START,skin=game.origin.appearance;
+            const pose=window.DUNGEON_SPRITES[skin+'_'+room.dir];
+            if(pose){const h=tile*1.6,w=h*pose.sw/pose.sh;
+                draw(pose,left+room.x*tile-w/2,top+room.y*tile-h,w,h);}
             context.restore();
         }};
         return;

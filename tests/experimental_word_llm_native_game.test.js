@@ -392,7 +392,7 @@ test('home proposal, separate confirmation/request and actual builder/companion 
     const b=runtime.begin(s,'Show inventory','en');assert.ok(runtime.validState(b.state));assert.ok(runtime.validPacket(b.packet));assert.ok(JSON.stringify(b.packet.inventory).length<=1200);
 });
 
-test('home clock rollback/reload/long absence complete once, real-route entrance and explicit exit preserve resources and state',()=>{
+test('home clock rollback/reload/long absence complete once, real-route entrance and explicit exit preserve resources and state',async()=>{
     const pr=runtime.game.practice;let s=homeApprove(homePlan()),h=s.game.home,items=structuredClone(s.game.inventory),start=h.startedAt;
     pr.home.refresh(s.game,start-1000,pr);assert.equal(h.now,start);pr.home.refresh(s.game,start+599999,pr);assert.equal(h.phase,'building');
     s=JSON.parse(JSON.stringify(s));pr.home.refresh(s.game,start+100*86400000,pr);assert.equal(s.game.home.phase,'ready');assert.deepEqual(s.game.inventory,items);assert.ok(runtime.validState(s));
@@ -400,7 +400,26 @@ test('home clock rollback/reload/long absence complete once, real-route entrance
     s=homeOrder(s,'Enter my house','enter');assert.ok(s.game.home.travel);assert.equal(s.game.home.inside,false);
     for(let i=0;i<2000&&s.game.home.travel;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.home.inside,true);assert.ok(runtime.validState(s));
     const b=runtime.begin(s,'How are you?','en');assert.equal(b.packet.world.location,'home');assert.deepEqual(b.packet.world.visible,[]);assert.ok(runtime.validPacket(b.packet));assert.ok(runtime.validState(b.state));
-    s=homeOrder(s,'Exit the house','exit');assert.equal(s.game.home.inside,false);assert.deepEqual(s.game.inventory,items);assert.ok(runtime.validState(s));
+    // An old indoor save without a room position still exits through the real room entrance.
+    delete s.game.home.room;const insideSeed=structuredClone(s);s=homeOrder(s,'Exit the house','exit');assert.equal(s.game.home.inside,true);assert.equal(s.game.home.exit.phase,'walk');
+    const outdoor={x:s.game.x,y:s.game.y},startRoom=structuredClone(s.game.home.room);
+    runtime.game.tick(s.game,.1);assert.notDeepEqual(s.game.home.room,startRoom);assert.deepEqual({x:s.game.x,y:s.game.y},outdoor);assert.ok(runtime.validState(s));
+    const supply=runtime.game.supply(s.game);assert.equal(supply.currentAction,'move');assert.equal(supply.location,'home');assert.deepEqual(supply.availableActions,['stop']);
+    const busy=runtime.begin(s,'Exit the house','en');assert.equal(pr.home.validRequest({kind:'exit',quote:'Exit the house'},busy.packet),false);
+    const stopped=structuredClone(s);runtime.game.apply(stopped.game,{kind:'stop'},'turn-999',{});assert.equal(stopped.game.home.exit,undefined);assert.ok(stopped.game.home.inside);assert.ok(runtime.validState(stopped));
+    for(let i=0;i<100&&s.game.home.exit.phase==='walk';i++)runtime.game.tick(s.game,.1);
+    assert.equal(s.game.home.exit.phase,'out');assert.ok(s.game.home.inside);assert.equal(s.game.home.room.y,pr.home.ROOM_DOOR.y);assert.equal(s.game.home.room.dir,'down');
+    runtime.game.tick(s.game,.1);assert.ok(s.game.home.inside);assert.ok(runtime.validState(s));
+    const mid=JSON.parse(JSON.stringify(s));assert.ok(runtime.validState(mid));
+    runtime.game.tick(s.game,.1);runtime.game.tick(s.game,.1);assert.equal(s.game.home.inside,false);assert.equal(s.game.home.exit.phase,'in');assert.ok(runtime.validState(s));const outsideFade=structuredClone(s);
+    for(let i=0;i<4;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.home.exit,undefined);assert.deepEqual(s.game.inventory,items);assert.deepEqual({x:s.game.x,y:s.game.y},outdoor);assert.ok(runtime.validState(s));
+    // Saved departure boundaries never auto-resume a partial indoor walk or fade.
+    for(const phase of ['walk','out','in']){let saved=structuredClone(phase==='in'?outsideFade:mid);if(phase==='walk'){saved.game.home.exit.phase='walk';saved.game.home.exit.elapsed=0;}
+        const session=require('../scripts/experimental/native_store').createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:v=>{assert.ok(runtime.validState(v));saved=structuredClone(v);return {ok:true};}},clock:()=>0,wallClock:()=>saved.game.home.now,responder:{cancel(){},dispose(){}}});
+        assert.ok(session.enter().ok);assert.equal(saved.game.home.exit,undefined);assert.equal(saved.game.home.inside,phase!=='in');const room=structuredClone(saved.game.home.room);session.pulse(false);assert.deepEqual(saved.game.home.room,room);assert.ok(session.leave().ok);session.dispose();}
+    for(const cancel of [false,true]){let saved=structuredClone(insideSeed),release;const quiet={cancel(){},dispose(){}};
+        const session=require('../scripts/experimental/native_store').createSession({store:{load:()=>({ok:true,value:structuredClone(saved)}),save:v=>{if(v.game.home.exit)return {ok:false,error:'save'};saved=structuredClone(v);return {ok:true};}},clock:()=>0,wallClock:()=>saved.game.home.now,responder:{...quiet,async reply(p){if(cancel)await new Promise(r=>release=r);return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,home:{kind:'exit',quote:p.input}}};}}});
+        assert.ok(session.enter().ok);const pending=session.submit('Exit the house','en');if(cancel){assert.ok(release);session.cancel();release();}assert.equal((await pending).ok,false);assert.ok(saved.game.home.inside);assert.equal(saved.game.home.exit,undefined);assert.deepEqual(saved.game.inventory,items);assert.ok(runtime.validState(saved));session.dispose();}
 });
 
 test('home refusals, cancellation and malformed or forged state cannot start or consume construction',()=>{

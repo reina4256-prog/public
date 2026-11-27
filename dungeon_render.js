@@ -1,3 +1,4 @@
+(function(){
 window.DUNGEON_SPRITES = {
     // スカル
     "skull_floor": { "img": "dungeon_scull_mapchip.png", "sx": 9, "sy": 0, "sw": 341, "sh": 331, "scale": 1 },
@@ -5445,6 +5446,8 @@ window.DUNGEON_SPRITES = {
     }
 };
 
+// Native home reuses only the canonical four-direction atlas definitions.
+if(window.NativeHome)return;
 window.triggerMonsterHouseEffect = function() {
     window.addDungeonLog(`🚨 モンスターハウスだ！！`, '#ff5252');
     
@@ -6624,3 +6627,5 @@ window.updateTacticTelemetryUI = function(s) {
         }
     });
 };
+
+})();
