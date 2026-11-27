@@ -277,8 +277,9 @@
         if(p.remote){p.lines.pop();compass.finish(g,p,slot,result,now);return;}
         compass.applyFace(g,p,slot,result,now);
         if(p.npc==='building'&&slot==='offer')g.walk.builder.met=true;
-        if(p.npc==='building'&&result.homeConsent&&['offer','decision'].includes(slot)&&g.home?.request&&g.home.phase==='planning'&&short(result.homeConsent.quote,120)&&result.text.includes(result.homeConsent.quote)){
-            (p.homeConsent||(p.homeConsent={}))[slot]={quote:result.homeConsent.quote,source:g.home.request.turn};
+        if(p.npc==='building'&&result.homeConsent&&['offer','decision'].includes(slot)&&g.home?.phase==='planning'&&short(result.homeConsent.quote,120)&&result.text.includes(result.homeConsent.quote)){
+            const c=home.context(g,{building,possessions},p);if(!c||slot==='decision'&&!c.offer)throw Error('home_consent');
+            (p.homeConsent||(p.homeConsent={}))[slot]={quote:result.homeConsent.quote,source:c.source};
             if(slot==='decision'){home.refresh(g,now,{building,possessions});home.commit(g,p,{building,possessions});}}
         if(p.builderEnabled&&slot==='offer'&&result.builderOffer){const b=building(g,p,false),q=result.builderOffer.quote;
             if(b.task.index<2&&(b.task.phase!=='unstarted'||b.hearts>=1)&&short(q,120)&&result.text.includes(q))p.builderOffer={task:b.task.index,quote:q};}
@@ -328,7 +329,7 @@
         ||g.walk?.builder&&g.walk.builder.met!==(g.practices||[]).some(p=>p.npc==='building'&&p.lines.some(l=>l.slot==='offer')))return false;const ids=new Set(),nodes=walk.graph(g);
         const onNode=p=>point(p)&&nodes.some(n=>distance(p,{x:n.x/800,y:n.y/480})<.01);
         return g.practices.every((p,index)=>{if(p.remote)return !ids.has(p.id)&&!!ids.add(p.id)&&compass.validRemote(g,p,index);if(!compass.validFace(g,p,index)||!(p.linkEnabled===undefined||p.linkEnabled===true)||!keys(p,['id','homeTarget','home','target','phase','suspended','route','tour','surveyIndex','timer','events','attempts','lines','choice','gather','social','affinity','decisionAudience','exchange','bottleAward','gift','reception','free','material','origin','visit','npc','introduce','introduction','linkOffer','linkAccept','linkEnabled','builderEnabled','builderOffer','builderAction','homeConsent'])||!(p.gather===undefined||p.gather===true)
-            ||p.homeConsent&&(!p.npc||!keys(p.homeConsent,['offer','decision'])||!Object.entries(p.homeConsent).every(([slot,c])=>keys(c,['source','quote'])&&/^turn-[1-9]\d*$/.test(c.source)&&short(c.quote,120)&&p.attempts[slot]==='complete'&&p.lines.find(l=>l.slot===slot)?.text.includes(c.quote))||p.homeConsent.decision&&!p.homeConsent.offer)
+            ||p.homeConsent&&(p.npc!=='building'||!g.home||index<g.practices.findIndex(q=>q.id===g.home.qualified)||!keys(p.homeConsent,['offer','decision'])||!Object.entries(p.homeConsent).every(([slot,c])=>keys(c,['source','quote'])&&(c.source===p.id||/^turn-[1-9]\d*$/.test(c.source))&&short(c.quote,120)&&!ackOnly(c.quote)&&p.attempts[slot]==='complete'&&p.lines.find(l=>l.slot===slot)?.text.includes(c.quote))||p.homeConsent.decision&&(!p.homeConsent.offer||p.homeConsent.decision.source!==p.homeConsent.offer.source))
             ||p.npc!==undefined&&(p.npc!=='building'||!p.visit||p.social||p.exchange||p.introduce||p.target!==p.homeTarget||!walk.forest(p.target)||p.lines.some(l=>!['offer','decision','feedback'].includes(l.slot)))
             ||p.introduce!==undefined&&(!p.visit||!p.social||relationship(g,p).hearts<3||!walk.forest(p.introduce)||!perception.asset(g,p.introduce)||p.introduce===p.homeTarget)
             ||p.introduction!==undefined&&(!p.introduce||!keys(p.introduction,['quote','at'])||!short(p.introduction.quote,120)||!Number.isSafeInteger(p.introduction.at)||p.introduction.at<0||!p.lines.find(l=>l.slot==='offer')?.text.includes(p.introduction.quote))

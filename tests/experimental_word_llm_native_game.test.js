@@ -341,11 +341,12 @@ function builderTaskVisit(s,kind,count=0,delta=0){s=builderMeeting(s);const pr=r
     builderLine(s,'decision',{text,choice:'decline',builderChoice:{kind,count,quote:text}});
     builderLine(s,'feedback',{text:'Thank you for telling me.',choice:null,affinity:{delta,kind:pr.builderDelivery({kind})?'conduct':'conversation',quote:text,reason:'A thoughtful exchange.'}});return s;}
 
-function homeFixture(){const pr=runtime.game.practice;let s=introduceFixture();
+function homeFixture(materials=true){const pr=runtime.game.practice;let s=introduceFixture();
     // Retain the existing graph centres; supply contiguous actual grass for this fixture.
     for(const a of Object.values(s.game.island.assets).filter(a=>a.type==='ground')){a.dx-=15;a.dy-=15;a.sw=50;a.sh=50;}
     for(const type of ['wood','stone']){s=freely(s,type);completeCollection(s.game);s=builderTaskVisit(s,'accept-deliver',2,1);}
     pr.home.refresh(s.game,epoch,pr);assert.ok(s.game.home);absence.install(s.game,epoch);
+    if(!materials)return s;
     for(let n=1;n<=3;n++){absence.advance(s.game,epoch+n*2*absence.HOUR);s=freely(s,'wood');completeCollection(s.game);}
     s=freely(s,'stone');completeCollection(s.game);assert.ok(runtime.validState(s));return s;}
 function homeOrder(s,input,kind){const b=runtime.begin(s,input,'en');assert.ok(runtime.game.practice.home.validRequest({kind,quote:input},b.packet),JSON.stringify({kind,home:b.packet.inventory.home,action:b.packet.world.currentAction,phase:b.packet.practice?.context.phase}));return directed(s,input,{home:{kind,quote:input}});}
@@ -356,6 +357,32 @@ function homeApprove(s,accept=true){s=builderMeeting(s);
     const answer=accept?'I agree to spend the additional six wood and two stone and start construction here.':'I will think about this.';
     builderLine(s,'decision',{text:answer,choice:'decline',homeConsent:accept?{quote:answer}:null});
     builderLine(s,'feedback',{text:accept?'Construction has started.':'No construction started.',choice:null});return s;}
+
+function homeConsult(s,accept=true){s=builderMeeting(s);const offer='Would you like a hut? Total wood8 stone4 includes your deposits; ten minutes to build.';
+    const packet=builderLine(s,'offer',{text:offer,choice:null,homeConsent:{quote:offer}});assert.equal(packet.context.construction.mode,'consult');
+    const answer=accept?'I would like to plan my home and choose an empty site with my player.':'I prefer not to plan a home yet.';
+    builderLine(s,'decision',{text:answer,choice:'decline',homeConsent:accept?{quote:answer}:null});
+    builderLine(s,'feedback',{text:'Choose and confirm an empty site, collect any missing materials, then visit me again to decide.',choice:null});return s;}
+
+test('qualified builder proactively proposes a home without a private build command, then the companion decides within three lines',()=>{
+    const pr=runtime.game.practice;let s=homeFixture(),bag=structuredClone(s.game.inventory);s=homeConsult(s);
+    assert.ok(pr.home.consultation(s.game));assert.equal(pr.current(s.game).lines.length,3);assert.equal(s.game.home.phase,'planning');assert.equal(s.game.home.request,undefined);assert.deepEqual(s.game.inventory,bag);
+    s=JSON.parse(JSON.stringify(s));s=homeOrder(s,'Mark a place for my house','site');s=homeOrder(s,'Yes','confirm');
+    assert.equal(s.game.home.phase,'planning','a circle and yes never start work');assert.deepEqual(s.game.inventory,bag);
+    s=homeApprove(s);assert.equal(s.game.home.request,undefined);assert.equal(s.game.home.phase,'building');assert.equal(s.game.home.payment.source,s.game.home.confirmed.turn);assert.equal(s.game.home.payment.items.length,8);
+    assert.ok(runtime.validState(s));const forged=structuredClone(s),c=pr.home.consultation(forged.game);delete c.homeConsent.decision;assert.equal(runtime.validState(forged),false,'payment needs the actual prior mutual planning proposal');
+});
+
+test('home consultation supports a material shortfall and refusal, without charging, auto-gathering or expanding seven-locale packets',()=>{
+    const pr=runtime.game.practice,protocol=require('../scripts/experimental/native_practice');let s=homeFixture(false),bag=structuredClone(s.game.inventory);s=homeConsult(s,false);assert.equal(pr.home.consultation(s.game),undefined);
+    s=homeConsult(s);assert.ok(pr.home.consultation(s.game));assert.deepEqual(s.game.inventory,bag);assert.equal(s.game.home.phase,'planning');
+    s=homeOrder(s,'Mark a place for my house','site');s=homeOrder(s,'Yes','confirm');s=builderMeeting(s);
+    for(const locale of runtime.locales){s.locale=locale;const p=protocol.packet(s,pr.current(s.game),'offer');assert.ok(protocol.protocol.valid(p));assert.equal(p.context.construction.mode,'build');
+        assert.equal(protocol.validResult({text:'I approve building now.',choice:null,homeConsent:{quote:'I approve building now.'}},'offer',p.context),false);
+        assert.ok(JSON.stringify(p.context).length<=1200);assert.ok(protocol.protocol.prompt(p).includes('Do not stop at saying the materials are ready'));
+        const b=runtime.begin(s,'Hello',locale);assert.ok(JSON.stringify(b.packet.inventory).length<=1200);assert.ok(runtime.validPacket(b.packet));}
+    assert.deepEqual(s.game.inventory,bag);assert.equal(s.game.home.phase,'planning');assert.equal(s.game.mode,'idle');
+});
 
 test('home proposal, separate confirmation/request and actual builder/companion consent charge only remaining real materials once',()=>{
     const pr=runtime.game.practice;let s=homePlan();const ids=pr.allItems(s.game).map(i=>i.id),held=structuredClone(pr.building(s.game).held),hearts=pr.relationship(s.game).hearts;
@@ -395,7 +422,7 @@ test('home completion survives a failed save without a second material payment',
 });
 
 test('home start save failure and cancellation during consent retain materials without automatic retry',async()=>{
-    for(const cancel of [false,true]){let saved=homePlan(),time=0,release,calls=0;saved.game.walk.encounter.phase='done';const original=structuredClone(saved.game.inventory),pr=runtime.game.practice,quiet={cancel(){},dispose(){}};
+    for(const plan of [homePlan,()=>homeOrder(homeOrder(homeConsult(homeFixture()),'Mark a place for my house','site'),'Yes','confirm')])for(const cancel of [false,true]){let saved=plan(),time=0,release,calls=0;saved.game.walk.encounter.phase='done';const original=structuredClone(saved.game.inventory),pr=runtime.game.practice,quiet={cancel(){},dispose(){}};
         const session=require('../scripts/experimental/native_store').createSession({clock:()=>time,wallClock:()=>epoch,store:{load:()=>({ok:true,value:structuredClone(saved)}),save:v=>{if(v.game.home.phase==='building')return {ok:false,error:'save'};assert.ok(runtime.validState(v));saved=structuredClone(v);return {ok:true};}},responder:{...quiet,async reply(p){return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,search:{quote:p.input}}};}},practiceResponder:{...quiet,async reply(p){calls++;if(cancel&&p.stage==='decision')await new Promise(r=>release=r);const text=p.stage==='offer'?'I approve this hut and its ten-minute construction, including the deposited materials.':'I agree to spend the additional six wood and two stone and start building.';return {ok:true,proposal:{text,choice:p.stage==='decision'?'decline':null,homeConsent:{quote:text}}};}}});
         assert.ok((await session.submit('Walk through forests nearest first to find the builder','en')).ok);
         for(let i=0;i<3000&&saved.game.mode==='move';i++){time+=100;session.pulse(false);}const id=saved.game.walk.encounter.id;assert.ok(session.mentorIntro(id).ok);assert.ok((await session.practiceNext(id)).ok);

@@ -34,7 +34,7 @@
             &&!assets.some(a=>!['ground','road'].includes(a.type)&&x+22>a.dx&&x-22<a.dx+a.sw*a.scale&&y+10>a.dy&&y-48<a.dy+a.sh*a.scale);}
     function summary(g,walk,practice){const h=g.home;if(!h)return null;const b=practice.building(g),bag=practice.possessions(g,false);
         const s={phase:h.phase,cost:COST,held:b.held,missing:{wood:Math.max(0,8-b.held.wood-bag.wood),stone:Math.max(0,4-b.held.stone-bag.stone)},minutes:10};
-        if(h.phase==='planning'){const c=h.site||site(g,walk);if(c)s.site={id:c.id,x:c.x,y:c.y};s.proposed=!!h.site;s.confirmed=!!h.confirmed;s.requested=!!h.request;}
+        if(h.phase==='planning'){const c=h.site||site(g,walk);if(c)s.site={id:c.id,x:c.x,y:c.y};s.proposed=!!h.site;s.confirmed=!!h.confirmed;s.requested=!!h.request;s.consulted=!!consultation(g);}
         else{s.remaining=Math.max(0,Math.ceil((h.readyAt-h.now)/1000));s.inside=h.inside;}
         return s;
     }
@@ -65,18 +65,20 @@
         if(r.kind==='exit')h.inside=false;
         h.history.push({turn:id,kind:r.kind,quote:r.quote,...(r.kind==='site'?{site:copy(h.site)}:{})});return true;
     }
-    function context(g,practice,p){const h=g.home;if(!h?.request||h.phase!=='planning'&&h.payment?.practice!==p?.id)return null;const b=practice.building(g),bag=practice.possessions(g,false);
-        return {source:h.request.turn,phase:h.phase,request:h.request.quote.slice(0,120),site:h.site.id,cost:COST,held:b.held,available:{wood:Math.min(6,bag.wood),stone:Math.min(2,bag.stone)},minutes:10,irreversible:true,...(p?.homeConsent?.offer?.source===h.request.turn?{offer:p.homeConsent.offer.quote}:{})};}
-    function validContext(c){return keys(c,['source','phase','request','site','cost','held','available','minutes','irreversible','offer'])&&(c.offer===undefined||quote(c.offer)&&c.offer.length<=120)&&turn(c.source)&&quote(c.request)&&typeof c.site==='string'&&c.site.startsWith('site:')&&['planning','building','ready'].includes(c.phase)
+    function consultation(g,before=null){const list=g.practices||[];return (before?list.slice(0,list.findIndex(p=>p.id===before)):list).findLast(p=>p.npc==='building'&&p.homeConsent?.offer?.source===p.id&&p.homeConsent?.decision?.source===p.id);}
+    function source(g,p){const h=g.home;return h?.request?.turn||(h?.confirmed&&consultation(g,p?.id)?h.confirmed.turn:null);}
+    function context(g,practice,p){const h=g.home;if(!h||h.phase!=='planning'&&h.payment?.practice!==p?.id)return null;const b=practice.building(g),bag=practice.possessions(g,false),s=source(g,p),ready=!!s;
+        return {source:s||p.id,mode:ready?'build':'consult',phase:h.phase,request:ready?(h.request||h.confirmed).quote.slice(0,120):null,site:ready?h.site.id:null,cost:COST,held:b.held,available:{wood:Math.min(6,bag.wood),stone:Math.min(2,bag.stone)},minutes:10,irreversible:true,...(p?.homeConsent?.offer?.source===(s||p.id)?{offer:p.homeConsent.offer.quote}:{})};}
+    function validContext(c){return keys(c,['source','mode','phase','request','site','cost','held','available','minutes','irreversible','offer'])&&(c.offer===undefined||quote(c.offer)&&c.offer.length<=120)&&(c.mode==='consult'?/^event-[1-9]\d*$/.test(c.source)&&c.request===null&&c.site===null&&c.phase==='planning':(c.mode===undefined||c.mode==='build')&&turn(c.source)&&quote(c.request)&&typeof c.site==='string'&&c.site.startsWith('site:'))&&['planning','building','ready'].includes(c.phase)
         &&JSON.stringify(c.cost)===JSON.stringify(COST)&&c.minutes===10&&c.irreversible===true&&keys(c.held,['wood','stone'])&&['wood','stone'].every(t=>c.held[t]===2)&&keys(c.available,['wood','stone'])&&Number.isInteger(c.available.wood)&&c.available.wood>=0&&c.available.wood<=6&&Number.isInteger(c.available.stone)&&c.available.stone>=0&&c.available.stone<=2;}
-    function validSummary(s){return keys(s,['phase','cost','held','missing','minutes','site','confirmed','proposed','requested','remaining','inside'])&&['planning','building','ready'].includes(s.phase)&&JSON.stringify(s.cost)===JSON.stringify(COST)&&s.minutes===10
+    function validSummary(s){return keys(s,['phase','cost','held','missing','minutes','site','confirmed','proposed','requested','consulted','remaining','inside'])&&['planning','building','ready'].includes(s.phase)&&JSON.stringify(s.cost)===JSON.stringify(COST)&&s.minutes===10
         &&keys(s.held,['wood','stone'])&&keys(s.missing,['wood','stone'])&&['wood','stone'].every(t=>s.held[t]===2&&Number.isSafeInteger(s.missing[t])&&s.missing[t]>=0&&s.missing[t]<=COST[t])
         &&(s.site===undefined||keys(s.site,['id','x','y'])&&point(s.site)&&typeof s.site.id==='string'&&s.site.id.startsWith('site:'))
-        &&['confirmed','proposed','requested','inside'].every(k=>s[k]===undefined||typeof s[k]==='boolean')&&(s.remaining===undefined||Number.isSafeInteger(s.remaining)&&s.remaining>=0&&s.remaining<=600);}
-    function commit(g,p,practice){const h=g.home;if(!h?.request||h.phase!=='planning'||p.homeConsent?.offer?.source!==h.request.turn||p.homeConsent?.decision?.source!==h.request.turn)return false;
+        &&['confirmed','proposed','requested','consulted','inside'].every(k=>s[k]===undefined||typeof s[k]==='boolean')&&(s.remaining===undefined||Number.isSafeInteger(s.remaining)&&s.remaining>=0&&s.remaining<=600);}
+    function commit(g,p,practice){const h=g.home,s=source(g,p);if(!s||h.phase!=='planning'||p.homeConsent?.offer?.source!==s||p.homeConsent?.decision?.source!==s)return false;
         const b=practice.building(g),items=[];for(const type of ['wood','stone']){const list=(g.inventory?.items||[]).filter(i=>i.type===type).slice(0,COST[type]-b.held[type]);if(list.length!==COST[type]-b.held[type])return false;items.push(...list);}
-        h.payment={source:h.request.turn,practice:p.id,items:items.map(i=>i.id),held:copy(b.held)};
-        for(const item of items){g.inventory.items.splice(g.inventory.items.findIndex(i=>i.id===item.id),1);(g.inventory.spent||(g.inventory.spent=[])).push({by:'house-'+h.request.turn,item:copy(item)});}
+        h.payment={source:s,practice:p.id,items:items.map(i=>i.id),held:copy(b.held)};
+        for(const item of items){g.inventory.items.splice(g.inventory.items.findIndex(i=>i.id===item.id),1);(g.inventory.spent||(g.inventory.spent=[])).push({by:'house-'+s,item:copy(item)});}
         h.startedAt=h.now;h.readyAt=h.now+DURATION;h.phase='building';return true;
     }
     function tick(g,seconds){const h=g.home;if(!h?.travel)return;const p=h.travel.route[0];if(!p){delete h.travel;h.inside=true;return;}
@@ -101,10 +103,10 @@
         if((h.inside||h.travel)&&entry?.kind!=='enter'||h.travel&&(h.travel.turn!==entry.turn||h.travel.quote!==entry.quote))return false;
         if(h.inside&&(!h.site||Math.hypot(g.x*800-h.site.x*800,g.y*480-h.site.y*480)>85||h.travel))return false;
         if(h.phase==='planning')return !h.payment&&!h.startedAt&&!h.readyAt&&!h.inside&&!h.travel;
-        const p=g.practices.find(p=>p.id===h.payment?.practice),items=g.inventory?.spent?.filter(s=>s.by==='house-'+h.request?.turn)||[];
-        return !!h.request&&p?.homeConsent?.offer?.source===h.request.turn&&p?.homeConsent?.decision?.source===h.request.turn&&Number.isSafeInteger(h.startedAt)&&h.startedAt>=0&&Number.isSafeInteger(h.readyAt)&&h.readyAt===h.startedAt+DURATION&&h.now>=h.startedAt&&(h.phase==='ready'?h.now>=h.readyAt:h.now<h.readyAt)
-            &&keys(h.payment,['source','practice','items','held'])&&h.payment.source===h.request.turn&&Array.isArray(h.payment.items)&&new Set(h.payment.items).size===h.payment.items.length
+        const p=g.practices.find(p=>p.id===h.payment?.practice),s=source(g,p),items=g.inventory?.spent?.filter(i=>i.by==='house-'+s)||[];
+        return !!s&&p?.homeConsent?.offer?.source===s&&p?.homeConsent?.decision?.source===s&&Number.isSafeInteger(h.startedAt)&&h.startedAt>=0&&Number.isSafeInteger(h.readyAt)&&h.readyAt===h.startedAt+DURATION&&h.now>=h.startedAt&&(h.phase==='ready'?h.now>=h.readyAt:h.now<h.readyAt)
+            &&keys(h.payment,['source','practice','items','held'])&&h.payment.source===s&&Array.isArray(h.payment.items)&&new Set(h.payment.items).size===h.payment.items.length
             &&items.length===h.payment.items.length&&items.every(s=>h.payment.items.includes(s.item.id))&&['wood','stone'].every(t=>h.payment.held[t]===2&&items.filter(s=>s.item.type===t).length===COST[t]-2);
     }
-    return {COST,DURATION,ID,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,asset,valid};
+    return {COST,DURATION,ID,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,asset,valid,consultation,source};
 });
