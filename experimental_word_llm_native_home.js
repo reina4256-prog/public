@@ -42,7 +42,16 @@
         else{s.remaining=Math.max(0,Math.ceil((h.readyAt-h.now)/1000));s.inside=h.inside;}
         return s;
     }
-    function directive(input,kind){if(typeof input!=='string'||/[?？「」『』“”"]/u.test(input))return false;const s=input.normalize('NFKC').toLowerCase();
+    function directive(input,kind,historical=false){if(typeof input!=='string'||/[「」『』“”"]/u.test(input))return false;const s=input.normalize('NFKC').toLowerCase();
+        // Old accepted exit records remain readable; this branch never authorizes a live apply.
+        if(historical&&kind==='exit')return directive(input,kind)||!/[?？]/u.test(input)
+            &&!/ないで|しない|やめない|とは|意味|言葉|と言|と思|don't|do not|never|\bnot\b|не |não|nicht|不要|别|no (?:construyas|entres)/u.test(s)
+            &&/出て|外に|退出|leave|exit|salir|sai|raus|verlass|выйди|出去/u.test(s);
+        // A request for the companion to exit can be phrased as a polite question.
+        // Keep capability questions and quoted/reported language outside this exception.
+        const exitRequest=kind==='exit'&&/(?:出て|でて|退出して)(?:ください|くれる|くれますか|もらえる|ほしい(?:んだけど[、,\s]*できる)?)?[。.!！?\s]*$/u.test(s)
+            &&!/ない|なく|ぬ|ません|とは|意味|言葉|と言|って言|と聞|と思|かどうか|例えば/u.test(s);
+        if(/[?？]/u.test(s)&&!exitRequest)return false;
         if(/ないで|しない|やめない|とは|意味|言葉|と言|と思|don't|do not|never|\bnot\b|не |não|nicht|不要|别|no (?:construyas|entres)/u.test(s))return false;
         const home=/家|小屋|建築|建て|home|house|hut|build|casa|cabaña|cabana|haus|hütte|дом|хижин|стро|房|建造/u.test(s);
         if(kind==='site')return home&&/場所|空き地|用地|丸|〇|○|place|site|spot|mark|lugar|terreno|stelle|platz|мест|участ|位置|空地/u.test(s);
@@ -51,10 +60,10 @@
         if(kind==='build')return home&&!/建てている|建てていた|建てています|建てており/u.test(s)&&(/建てて|建てよう|建築を頼|建築して|着工して/u.test(s)
             ||/^(?:please[ ,]+)?(?:build|construct)\b|^(?:por favor[ ,]+)?(?:construye|construa)\b|^(?:bitte[ ,]+)?baue\b|^(?:пожалуйста[ ,]+)?построй(?=\s|$)|^(?:请)?(?:建造|建房)/u.test(s));
         if(kind==='enter')return home&&/入って|入りたい|enter|entra|betritt|hinein|войди|进/u.test(s);
-        if(kind==='exit')return /出て|外に|退出|leave|exit|salir|sai|raus|verlass|выйди|出去/u.test(s);return false;
+        if(kind==='exit')return exitRequest||!/\p{Script=Hiragana}|\p{Script=Katakana}|退出/u.test(s)&&!/^(?:can|could|would|may|is|does)\b/u.test(s.trim())&&/leave|exit|salir|sai|raus|verlass|выйди|出去/u.test(s);return false;
     }
-    function validRequest(r,p){if(r===undefined||r===null)return true;const h=p.inventory?.home;
-        if(!h||!keys(r,['kind','quote'])||!['site','confirm','build','cancel','enter','exit'].includes(r.kind)||!quote(r.quote)||!p.input.includes(r.quote)||!directive(p.input,r.kind)||!directive(r.quote,r.kind))return false;
+    function validRequest(r,p,historical=false){if(r===undefined||r===null)return true;const h=p.inventory?.home;
+        if(!h||!keys(r,['kind','quote'])||!['site','confirm','build','cancel','enter','exit'].includes(r.kind)||!quote(r.quote)||!p.input.includes(r.quote)||!directive(p.input,r.kind,historical)||!directive(r.quote,r.kind,historical))return false;
         if(p.world.currentAction!=='idle'||p.world.homeTravel||p.world.search?.phase==='active'||p.practice&&!['done','declined','stopped','failed'].includes(p.practice.context.phase)||p.inventory.absence?.status==='paused'||p.inventory.absence?.status==='reserved')return false;
         return r.kind==='site'?h.phase==='planning'&&!!h.site&&!h.proposed&&!h.requested:r.kind==='confirm'?h.phase==='planning'&&h.proposed&&!h.confirmed
             :r.kind==='build'?h.phase==='planning'&&h.confirmed&&!h.requested&&!h.missing.wood&&!h.missing.stone:r.kind==='cancel'?h.phase==='planning'
@@ -102,7 +111,7 @@
     function valid(g,practice,walk){const h=g.home;if(h===undefined)return true;
         if(!keys(h,['version','phase','qualified','history','now','inside','site','confirmed','request','payment','startedAt','readyAt','travel','room','exit'])||h.version!==1||!['planning','building','ready'].includes(h.phase)||!Number.isSafeInteger(h.now)||h.now<0||typeof h.inside!=='boolean'||!Array.isArray(h.history))return false;
         const q=(g.practices||[]).find(p=>p.id===h.qualified),past=q&&{...g,practices:g.practices.slice(0,g.practices.indexOf(q)+1)};if(!q||!eligible(past,practice))return false;
-        if(!h.history.every((e,i)=>keys(e,['turn','kind','quote','site'])&&turn(e.turn)&&(!i||Number(e.turn.slice(5))>Number(h.history[i-1].turn.slice(5)))&&quote(e.quote)&&directive(e.quote,e.kind)&&(e.kind==='site'?validSite(g,e.site):e.site===undefined)))return false;
+        if(!h.history.every((e,i)=>keys(e,['turn','kind','quote','site'])&&turn(e.turn)&&(!i||Number(e.turn.slice(5))>Number(h.history[i-1].turn.slice(5)))&&quote(e.quote)&&directive(e.quote,e.kind,true)&&(e.kind==='site'?validSite(g,e.site):e.site===undefined)))return false;
         let chosen=null,confirmed=null,request=null;for(const e of h.history){if(e.kind==='site'){if(request)return false;chosen=e.site;confirmed=null;}if(e.kind==='confirm'){if(!chosen||confirmed)return false;confirmed={turn:e.turn,quote:e.quote};}if(e.kind==='build'){if(!confirmed||request)return false;request={turn:e.turn,quote:e.quote};}if(e.kind==='cancel'){chosen=null;confirmed=null;request=null;}}
         if(JSON.stringify(chosen||undefined)!==JSON.stringify(h.site)||JSON.stringify(confirmed||undefined)!==JSON.stringify(h.confirmed)||JSON.stringify(request||undefined)!==JSON.stringify(h.request))return false;
         if(h.site&&!validSite(g,h.site)||h.confirmed&&(!h.site||!turn(h.confirmed.turn)||!quote(h.confirmed.quote))||h.request&&(!h.confirmed||!turn(h.request.turn)||!quote(h.request.quote)))return false;

@@ -73,6 +73,7 @@
         const npc=searchPerson(s);return (legacy?searchPeople.adventurer.names.test(s)&&/山|森|mountain|forest|montaña|bosque|montanha|floresta|berg|wald|гор|лес/iu.test(s):!!npc&&searchPeople[npc].kinds.some(kind=>searchTerrain[kind].test(s)))
             &&/近い順|近くから|近い.*順|nearest|closest|cercan|mais pert|näch|最近|ближай/iu.test(s)
             &&(directive(input,'walk')||/歩いて|歩こう|移動して|向かって|行って|進んで/u.test(s)
+                ||!legacy&&!/ない|なく|ません/u.test(s)&&/(?:まわって|回って|巡って)[、,\s]*.*(?:探して(?:みて)?|見つけて)[。.!！\s]*$/u.test(s)
                 ||/^(?:请)?(?:从|按|依).*(?:走|去|移动)/u.test(s)||/^(?:пожалуйста[ ,]+)?(?:обойди|пройди)(?=\s|$)/u.test(s));
     }
     function searchRequest(input){if(!searchDirective(input))return null;const npc=searchPerson(input);return {npc,kinds:searchPeople[npc].kinds.filter(kind=>searchTerrain[kind].test(input.normalize('NFKC')))};}

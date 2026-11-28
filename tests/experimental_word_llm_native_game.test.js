@@ -116,6 +116,24 @@ test('partial outbound movement is saved and crash fallback uses only a saved ac
 });
 
 const searchInput='Walk through mountains and forests nearest first and find the adventurer';
+test('go-around search request preserves terrain, personal acceptance and negative/question/quotation boundaries',()=>{
+    const input='近い順に山をまわって、冒険家さんを探してみて',w=runtime.game.walk;
+    assert.deepEqual(w.searchRequest(input),{npc:'adventurer',kinds:['mountain']});
+    assert.equal(w.searchDirective(input,true),false,'legacy read rule remains unchanged');
+    const seed=gatheringState(),before=structuredClone(seed.game.inventory),b=runtime.begin(seed,input,'ja');
+    const result={...response(b.packet),terms:[],focus:null,confirmation:null,search:{quote:input}};
+    assert.ok(runtime.validResult(result,b.packet));
+    assert.equal(runtime.validResult({...result,interpretation:{kind:'question',summary:'A question.'}},b.packet),false);
+    assert.equal(runtime.validResult({...result,search:{quote:'近い順に山をまわって'}},b.packet),false);
+    const declined=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,confirmation:null});assert.equal(declined.game.walk.search,undefined);
+    const s=runtime.finish(b.state,b.packet.id,b.state.revision,result);assert.equal(s.game.walk.search.phase,'active');assert.deepEqual(s.game.walk.search.kinds,['mountain']);assert.deepEqual(s.game.inventory,before);
+    for(let i=0;i<2000&&w.searchActive(s.game);i++)runtime.game.tick(s.game,.1);
+    assert.ok(s.game.walk.search.visited.length);assert.ok(s.game.walk.search.visited.every(v=>v.target.startsWith('chip:mountain_')));assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+    for(const text of [input+'？','近い順に山をまわって、冒険家さんを探してみていいか','近い順に山をまわって、冒険家さんを探せる','近い順に山をまわらないで、冒険家さんを探してみて','近い順に山をまわってほしくない、冒険家さんを探してみて','近い順に山をまわってほしくありません、冒険家さんを探してみて',input+'と言って','「'+input+'」','うん','はい','近い順に山をまわって、冒険家さんと建築士さんを探してみて']){
+        assert.equal(w.searchDirective(text),false,text);const p=runtime.begin(seed,text,'ja').packet;
+        assert.equal(runtime.validResult({...result,search:{quote:input}},p),false,text);
+    }
+});
 function searching(){const s=gatheringState();runtime.game.walk.roam(s.game,1000);return directed(s,searchInput,{search:{quote:searchInput}});}
 test('nearest search needs explicit terrain, order, adventurer and walking in all seven languages',()=>{
     const inputs=['近い順に山か森に歩いて行って、冒険家さんがいたら教えて',searchInput,'请从最近的山和森林走起，寻找冒险家','Обойди ближайшие горы и леса и найди путешественника','Camina por las montañas y bosques más cercanos y busca al aventurero','Caminhe pelas montanhas e florestas mais perto e procure o aventureiro','Gehe zu den nächsten Bergen und Wäldern und suche den Abenteurer'];
@@ -390,6 +408,32 @@ test('home proposal, separate confirmation/request and actual builder/companion 
     assert.equal(s.game.inventory.spent.filter(i=>i.by.startsWith('house-')).length,8);assert.deepEqual([...pr.allItems(s.game).map(i=>i.id)].sort(),[...ids].sort());
     assert.equal(pr.home.commit(s.game,pr.current(s.game),pr),false);assert.ok(runtime.validState(s));
     const b=runtime.begin(s,'Show inventory','en');assert.ok(runtime.validState(b.state));assert.ok(runtime.validPacket(b.packet));assert.ok(JSON.stringify(b.packet.inventory).length<=1200);
+});
+
+test('polite exit requests require personal acceptance and save; capability, negative, quoted and bare replies never exit',async()=>{
+    const pr=runtime.game.practice;let inside=homeApprove(homePlan());pr.home.refresh(inside.game,inside.game.home.readyAt,pr);inside=homeOrder(inside,'Enter my house','enter');
+    for(let i=0;i<2000&&inside.game.home.travel;i++)runtime.game.tick(inside.game,.1);
+    assert.ok(inside.game.home.inside);const bag=structuredClone(inside.game.inventory);
+    const inputs=['一旦家の外にでてほしいんだけど、できる？','家の外にでてくれる？'];
+    for(const input of inputs){
+        const b=runtime.begin(inside,input,'ja'),r={...response(b.packet),terms:[],focus:null,confirmation:null,home:{kind:'exit',quote:input}};
+        assert.ok(runtime.validResult(r,b.packet),input);
+        assert.equal(runtime.validResult({...r,interpretation:{kind:'question',summary:'A question.'}},b.packet),false);
+        const refusal=runtime.finish(b.state,b.packet.id,b.state.revision,{...response(b.packet),terms:[],focus:null,confirmation:null});assert.equal(refusal.game.home.exit,undefined);
+        let saved=structuredClone(inside),calls=0;const store={load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));saved=structuredClone(s);return {ok:true};}};
+        const session=require('../scripts/experimental/native_store').createSession({store,wallClock:()=>inside.game.home.now,responder:{cancel(){},dispose(){},async reply(p){calls++;return {ok:true,proposal:{...r,home:{kind:'exit',quote:p.input}}};}}});
+        assert.ok(session.enter().ok);assert.ok((await session.submit(input,'ja')).ok);assert.equal(calls,1);assert.equal(saved.game.home.exit.phase,'walk');
+        const s=JSON.parse(JSON.stringify(saved));session.dispose();for(let i=0;i<100&&s.game.home.exit;i++)runtime.game.tick(s.game,.1);
+        assert.equal(s.game.home.inside,false);assert.deepEqual(s.game.inventory,bag);assert.ok(runtime.validState(s));
+        const old=structuredClone(s);old.turns.at(-1).input='外に';old.turns.at(-1).result.home.quote='外に';old.game.home.history.at(-1).quote='外に';
+        assert.ok(runtime.validState(old),'legacy accepted exits remain readable without changing original evidence');
+        assert.equal(pr.home.validRequest({kind:'exit',quote:'外に'},runtime.begin(inside,'外に','ja').packet),false);
+    }
+    for(const input of ['外に出られる？','外に出られる','家の外に出ることはできる','家の外にでてくれるか知りたい','家の外にでてほしくない','家の外にでてくれないで','家の外に出ないで','「家の外にでてくれる？」','家の外にでてくれる？と言って','うん','はい','外に','Can I exit the house']){
+        assert.equal(pr.home.directive(input,'exit'),false,input);const p=runtime.begin(inside,input,'ja').packet;
+        assert.equal(runtime.validResult({...response(p),terms:[],home:{kind:'exit',quote:input}},p),false,input);
+        if(input.includes('家の外にでてくれる？'))assert.equal(pr.home.validRequest({kind:'exit',quote:'家の外にでてくれる？'},p),false,'substring cannot bypass whole input guard');
+    }
 });
 
 test('home clock rollback/reload/long absence complete once, real-route entrance and explicit exit preserve resources and state',async()=>{
