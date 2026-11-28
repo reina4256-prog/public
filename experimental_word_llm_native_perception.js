@@ -33,15 +33,17 @@
             visible,focus,results:g.receipts.filter(r=>asset(g,r.target)).slice(-3).map(r=>({...r})),availableActions:[]};
         if(g.home?.inside){result.location='home';result.focus=null;result.results=[];}
         if(g.home?.travel||g.home?.exit){result.currentAction='move';result.homeTravel=true;result.target='chip:player_home';}
+        if(home.resting(g)){result.currentAction=home.sleeping(g)?'rest':'move';result.target=home.sleeping(g)?'chip:home_bed':'chip:player_home';if(!home.sleeping(g))result.homeTravel=true;}
         if(reported)result.reported=reported;
         if(walk&&g.walk?.search)result.search=walk.searchSupply(g);
         if(g.walk&&walk){result.confirmed=g.walk.confirmed?.targetId||null;result.walkable=g.mode==='idle'&&(visible.some(p=>p.id===result.confirmed)||reported?.id===result.confirmed)&&!!walk.plan(g,result.confirmed);
             result.availableActions=g.mode==='move'?['stop']:result.walkable?['walk']:[];}
         if(g.home?.inside){result.focus=null;result.confirmed=null;result.walkable=false;result.availableActions=[];}
         if(g.home?.travel||g.home?.exit){result.focus=null;result.confirmed=null;result.walkable=false;result.availableActions=['stop'];}
+        if(home.resting(g)){result.availableActions=['stop'];result.walkable=false;}
         while(JSON.stringify(result).length>2000&&visible.length)visible.pop();
         if(!visible.some(p=>p.id===result.focus)&&reported?.id!==result.focus)result.focus=null;
-        if(!result.homeTravel&&Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)&&reported?.id!==result.confirmed){result.walkable=false;result.availableActions=g.mode==='move'?['stop']:[];}
+        if(!result.homeTravel&&Object.hasOwn(result,'confirmed')&&!visible.some(p=>p.id===result.confirmed)&&reported?.id!==result.confirmed){result.walkable=false;result.availableActions=g.mode==='move'||home.resting(g)?['stop']:[];}
         if(JSON.stringify(result).length>2000)throw Error('world_budget');return result;
     }
     function validFocus(f,p){return f===null||!!(f&&typeof f==='object'&&!Array.isArray(f)

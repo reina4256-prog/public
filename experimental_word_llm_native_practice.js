@@ -96,7 +96,9 @@
     const inventory=g=>g.inventory||(g.inventory={version:1,open:false,items:[]});
     function possessions(g,details=true,report=false){const items=g.inventory?.items||[],counts=Object.fromEntries(types.map(t=>[t,items.filter(i=>i.type===t).length])),result={open:g.inventory?.open||false,...counts,bottle:bottle(g)};
         if(g.absence){const info=absence.summary(g);if(info){if(JSON.stringify(info).length>800)throw Error('absence_budget');result.absence=info;}}
-        if(report)return result;
+        if(report){if(g.home?.rest){result.home=home.summary(g,walk,{building,possessions});
+                while(result.absence?.quote?.length>1&&JSON.stringify({absence:result.absence,home:result.home}).length>800)result.absence.quote=result.absence.quote.slice(0,-1);
+                if(JSON.stringify({absence:result.absence,home:result.home}).length>800||JSON.stringify(result).length>1200)throw Error('resume_budget');}return result;}
         if(details&&g.home)result.home=home.summary(g,walk,{building,possessions});
         if(g.walk?.builder?.met)result.building=building(g);
         if(!details)return {...result,...(compass.received(g)?{compass:compass.snapshot(g)}:{})};const available=giftOptions(g,current(g));Object.assign(result,{reserved:Object.fromEntries(types.map(t=>[t,counts[t]-available[t]])),memory:giftMemory(g),targets:targets(g),compass:compass.snapshot(g)});

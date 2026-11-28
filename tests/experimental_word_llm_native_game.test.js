@@ -436,6 +436,70 @@ test('polite exit requests require personal acceptance and save; capability, neg
     }
 });
 
+function bedFixture(){const pr=runtime.game.practice;let s=homeApprove(homePlan());pr.home.refresh(s.game,s.game.home.readyAt,pr);s=homeOrder(s,'Enter my house','enter');
+    for(let i=0;i<2000&&s.game.home.travel;i++)runtime.game.tick(s.game,.1);assert.ok(s.game.home.inside);return s;}
+function reachBed(s){for(let i=0;i<300&&s.game.home.rest.stage==='walk';i++)runtime.game.tick(s.game,.1);assert.equal(s.game.home.rest.stage,'sleep');assert.ok(runtime.validState(s));return s;}
+test('bed rest personally accepted in seven languages walks facing actual steps, sleeps, recovers only fatigue and exits facing the door',()=>{
+    const inputs=['ベッドで休んで','Rest in the bed','请在床上休息','Отдохни на кровати','Descansa en la cama','Descanse na cama','Ruhe dich im Bett aus'],h=runtime.game.practice.home,seed=bedFixture();
+    for(const [i,input]of inputs.entries()){const b=runtime.begin(seed,input,runtime.locales[i]),r={...response(b.packet),terms:[],focus:null,confirmation:null,home:{kind:'rest',quote:input}};
+        assert.ok(runtime.validResult(r,b.packet),input);assert.equal(runtime.validResult({...r,interpretation:{kind:'question',summary:'A question.'}},b.packet),false,input);
+        assert.equal(runtime.finish(b.state,b.packet.id,b.state.revision,{...r,home:null}).game.home.rest,undefined);
+    }
+    let s=homeOrder(seed,inputs[0],'rest');const bag=structuredClone(s.game.inventory),hunger=s.game.hunger,hearts=runtime.game.practice.relationship(s.game),fatigue=s.game.fatigue,directions=[];
+    const step=()=>{const before=structuredClone(s.game.home.room);runtime.game.tick(s.game,.1);const after=s.game.home.room;if(!after)return;
+        const dx=after.x-before.x,dy=after.y-before.y;if(dx||dy){const dir=dx?dx<0?'left':'right':dy<0?'up':'down';assert.equal(after.dir,dir);directions.push(dir);assert.ok(Math.hypot(dx,dy)<=.200001);}};
+    for(let i=0;i<200&&s.game.home.rest.stage==='walk';i++)step();assert.deepEqual([...new Set(directions)],['right','up']);assert.equal(s.game.fatigue,fatigue);
+    const packet=runtime.begin(s,'What are you doing?','en').packet;assert.equal(packet.world.currentAction,'rest');assert.equal(packet.inventory.home.rest,'sleep');assert.deepEqual(packet.world.availableActions,['stop']);assert.ok(runtime.validPacket(packet));
+    for(let i=0;i<15;i++)step();assert.ok(Math.abs(s.game.fatigue-(fatigue-.05))<1e-9);const origin=s.game.home.rest.origin;
+    for(let i=0;i<400&&h.resting(s.game);i++)step();assert.equal(s.game.home.rest.status,'done');assert.equal(s.game.fatigue,0);assert.equal(s.game.home.rest.elapsed,fatigue*30);assert.ok(runtime.validState(s));
+    const forged=structuredClone(s);forged.game.home.rest.initial+=.01;assert.equal(runtime.validState(forged),false);assert.equal(s.game.home.rest.origin,origin);
+    s=homeOrder(s,'家から出て','exit');for(let i=0;i<200&&s.game.home.exit;i++)step();assert.equal(s.game.home.inside,false);assert.ok(directions.includes('left'));assert.ok(directions.includes('down'));
+    assert.deepEqual(s.game.inventory,bag);assert.equal(s.game.hunger,hunger);assert.deepEqual(runtime.game.practice.relationship(s.game),hearts);assert.ok(runtime.validState(JSON.parse(JSON.stringify(s))));
+});
+test('bed boundaries reject questions, negative or quoted substrings, bare agreement, outdoors and concurrent requests',()=>{
+    const s=bedFixture(),home=runtime.game.practice.home;
+    for(const input of ['ベッドで休める？','ベッドで休める','ベッドで休まないで','ベッドで寝てほしくない','「ベッドで休んで」','ベッドで休んでと言って','ベッドで休んでって言って','ベッドで休んで？','うん','はい','Can you rest in the bed?']){
+        const p=runtime.begin(s,input,'ja').packet;assert.equal(home.directive(input,'rest'),false,input);
+        const quote=input.includes('ベッドで休んで')?'ベッドで休んで':input;assert.equal(runtime.validResult({...response(p),terms:[],focus:null,confirmation:null,home:{kind:'rest',quote}},p),false,input);
+    }
+    let active=homeOrder(s,'ベッドで休んで','rest');const p=runtime.begin(active,'ベッドで休んで','ja').packet;assert.equal(home.validRequest({kind:'rest',quote:p.input},p),false);
+    const outside=homeApprove(homePlan()),q=runtime.begin(outside,'ベッドで休んで','ja').packet;assert.equal(home.validRequest({kind:'rest',quote:q.input},q),false);
+    const paused=runtime.begin(s,'ベッドで休むのを続けて','ja').packet;assert.equal(home.validRequest({kind:'resume',quote:paused.input},paused),false);
+});
+test('bed stop, resume and early exit retain partial recovery; all seven resumed packets stay within existing budgets',()=>{
+    const h=runtime.game.practice.home;let s=reachBed(homeOrder(bedFixture(),'ベッドで休んで','rest'));for(let i=0;i<10;i++)runtime.game.tick(s.game,.1);
+    const elapsed=s.game.home.rest.elapsed,fatigue=s.game.fatigue;s=homeOrder(s,'休むのをやめて','stopRest');assert.equal(s.game.home.rest.status,'paused');for(let i=0;i<100;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.fatigue,fatigue);
+    const resumes=['ベッドで休むのを続けて','Continue resting in the bed','继续在床上休息','Продолжи отдыхать на кровати','Continúa descansando en la cama','Continue descansando na cama','Setze die Bettruhe fort'];
+    const stops=['休むのをやめて','Stop resting','停止休息','Прекрати отдыхать','Deja de descansar','Pare de descansar','Beende die Bettruhe'];
+    for(const [i,locale]of runtime.locales.entries()){const b=runtime.begin(s,resumes[i],locale,s.game.home.now),p=b.packet,calendar=p.calendar||runtime.game.walk.calendar.snapshot(s.game.home.now,s.game.calendarSettings,locale);
+        assert.ok(runtime.validPacket({...p,calendar}));assert.ok(JSON.stringify(p.world).length+JSON.stringify(calendar).length<=2000);assert.ok(JSON.stringify(p.inventory).length<=1200);
+        assert.ok(runtime.validResult({...response(p),terms:[],focus:null,confirmation:null,home:{kind:'resume',quote:resumes[i]}},p),resumes[i]);
+        const resumed=homeOrder(s,resumes[i],'resume'),q=runtime.begin(resumed,stops[i],locale).packet;assert.ok(h.validRequest({kind:'stopRest',quote:stops[i]},q),stops[i]);}
+    s=homeOrder(s,'ベッドで休むのを続けて','resume');assert.equal(s.game.home.rest.elapsed,elapsed);runtime.game.tick(s.game,.1);assert.ok(s.game.fatigue<fatigue);
+    s=directed(s,'Stop',{action:{kind:'stop',quote:'Stop'}});assert.equal(s.game.home.rest.status,'paused');s=homeOrder(s,'ベッドで休むのを続けて','resume');
+    const kept=s.game.fatigue;s=homeOrder(s,'家の外にでてくれる？','exit');assert.equal(s.game.home.rest.status,'paused');assert.equal(s.game.home.rest.stage,'walk');assert.ok(s.game.home.exit);
+    for(let i=0;i<200&&s.game.home.exit;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.fatigue,kept);assert.ok(runtime.validState(s));
+    s=homeOrder(s,'Enter my house','enter');for(let i=0;i<100&&s.game.home.travel;i++)runtime.game.tick(s.game,.1);s=homeOrder(s,'ベッドで休むのを続けて','resume');assert.equal(s.game.home.rest.stage,'walk');reachBed(s);assert.equal(s.game.fatigue,kept);
+    assert.ok(h.sleeping(s.game));assert.ok(runtime.validState(s));
+});
+test('zero fatigue bed use displays one second without offline recovery or extra events',()=>{
+    let s=reachBed(homeOrder(bedFixture(),'ベッドで休んで','rest'));for(let i=0;i<100&&runtime.game.practice.home.resting(s.game);i++)runtime.game.tick(s.game,.1);
+    const events=structuredClone(s.game.receipts);s=reachBed(homeOrder(s,'ベッドで休んで','rest'));for(let i=0;i<5;i++)runtime.game.tick(s.game,.1);assert.ok(runtime.game.practice.home.sleeping(s.game));assert.equal(s.game.fatigue,0);
+    for(let i=0;i<10;i++)runtime.game.tick(s.game,.1);assert.equal(s.game.home.rest.status,'done');assert.equal(s.game.home.rest.elapsed,1);assert.deepEqual(s.game.receipts,events);assert.ok(runtime.validState(s));
+});
+test('bed session reload, departure, paused pulse and failed save never publish or duplicate recovery',async()=>{
+    const h=runtime.game.practice.home,initial=reachBed(homeOrder(bedFixture(),'ベッドで休んで','rest'));
+    let saved=structuredClone(initial),now=initial.game.home.now,clock=0,fail=false,calls=0;
+    const options={store:{load:()=>({ok:true,value:structuredClone(saved)}),save:s=>{assert.ok(runtime.validState(s));if(fail)return {ok:false,error:'save'};saved=structuredClone(s);return {ok:true};}},clock:()=>clock,wallClock:()=>now,responder:{cancel(){},dispose(){},async reply(p){calls++;return {ok:true,proposal:{...response(p),terms:[],focus:null,confirmation:null,home:{kind:'resume',quote:p.input}}};}}};
+    let session=require('../scripts/experimental/native_store').createSession(options);assert.ok(session.load().ok);assert.equal(saved.game.home.rest.status,'paused');assert.ok(session.enter().ok);
+    assert.ok((await session.submit('ベッドで休むのを続けて','ja')).ok);clock+=100;assert.ok(session.pulse(false).ok);const kept=structuredClone(saved),fatigue=saved.game.fatigue;clock+=1000;session.pulse(true);assert.equal(saved.game.fatigue,fatigue);
+    fail=true;clock+=100;assert.equal(session.pulse(false).ok,false);assert.equal(session.load().ok,false);assert.deepEqual(saved,kept);fail=false;session.dispose();
+    session=require('../scripts/experimental/native_store').createSession(options);assert.ok(session.enter().ok);assert.equal(saved.game.fatigue,fatigue);assert.equal(saved.game.home.rest.status,'paused');
+    assert.ok((await session.submit('ベッドで休むのを続けて','ja')).ok);clock+=100;session.pulse(false);assert.ok(session.leave().ok);const left=structuredClone(saved.game.home.rest),leftFatigue=saved.game.fatigue;now+=86400000;clock+=86400000;assert.ok(session.enter().ok);assert.equal(saved.game.fatigue,leftFatigue);assert.deepEqual(saved.game.home.rest,left);assert.equal(calls,2);
+    const inv=runtime.game.practice.possessions(saved.game,false,true),packet={kind:'resume',id:'resume-bed',locale:'ja',character:saved.character,inventory:inv,calendar:runtime.game.walk.calendar.snapshot(now,saved.game.calendarSettings,'ja')};
+    assert.ok(require('../scripts/experimental/native_resume').valid(packet));assert.equal(inv.home.rest,'paused-sleep');assert.ok(JSON.stringify({absence:inv.absence,home:inv.home}).length<=800);assert.ok(JSON.stringify(inv).length<=1200);session.dispose();assert.ok(h.restState(saved.game).startsWith('paused'));
+});
+
 test('home clock rollback/reload/long absence complete once, real-route entrance and explicit exit preserve resources and state',async()=>{
     const pr=runtime.game.practice;let s=homeApprove(homePlan()),h=s.game.home,items=structuredClone(s.game.inventory),start=h.startedAt;
     pr.home.refresh(s.game,start-1000,pr);assert.equal(h.now,start);pr.home.refresh(s.game,start+599999,pr);assert.equal(h.phase,'building');
@@ -447,7 +511,7 @@ test('home clock rollback/reload/long absence complete once, real-route entrance
     const roomHistory=structuredClone(s.turns),roomInventory=structuredClone(s.game.inventory);
     for(const locale of runtime.locales){const packet=runtime.begin(s,'What can you see inside? ',locale,s.game.home.now).packet;
         const calendar=packet.calendar||runtime.game.walk.calendar.snapshot(s.game.home.now,s.game.calendarSettings,locale);assert.ok(runtime.validPacket({...packet,calendar}));assert.deepEqual(packet.world.visible.map(v=>v.id),['chip:home_bed','chip:home_entrance','chip:home_floor','chip:home_walls']);assert.ok(JSON.stringify(packet.world).length+JSON.stringify(calendar).length<=2000);assert.ok(JSON.stringify(packet.inventory).length<=1200);
-        assert.ok(runtime.prompt(packet).includes('resting/sleep recovery is not implemented'));assert.equal(runtime.validResult({...response(packet),focus:{targetId:'chip:home_bed',quote:'inside'}},packet),false);}
+        assert.ok(runtime.prompt(packet).includes('BED REST IS IMPLEMENTED'));assert.equal(runtime.validResult({...response(packet),focus:{targetId:'chip:home_bed',quote:'inside'}},packet),false);}
     assert.deepEqual(s.turns,roomHistory);assert.deepEqual(s.game.inventory,roomInventory);
     // An old indoor save without a room position still exits through the real room entrance.
     delete s.game.home.room;const insideSeed=structuredClone(s);s=homeOrder(s,'Exit the house','exit');assert.equal(s.game.home.inside,true);assert.equal(s.game.home.exit.phase,'walk');

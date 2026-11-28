@@ -90,6 +90,7 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
             }
             if(state&&!blocked){const upgraded=core.upgrade(state);if(upgraded!==state){if(persist(upgraded,'map-upgrade').ok)state=upgraded;else blocked=true;}}
             if(state&&!blocked&&core.game.walk.searchActive(state.game)){const next=copy();core.game.walk.searchStop(next.game,'load');next.revision++;if(persist(next,'search-load').ok)state=next;else blocked=true;}
+            if(state&&!blocked&&practice.home.resting(state.game)){const next=copy();practice.home.stop(next.game);next.revision++;if(persist(next,'bed-load').ok)state=next;else blocked=true;}
             if(state&&!blocked&&practice.active(state.game)){const next=copy();if(practice.suspend(next.game)){next.revision++;if(persist(next,'practice-resume').ok)state=next;else blocked=true;}}
             if(state&&!blocked&&recoverMentor&&!state.mentorConversations?.length){const recovered=recoverMentor(copy());
                 if(recovered&&core.validState(recovered)){if(persist(recovered,'mentor-recovery').ok)state=recovered;else blocked=true;}}
@@ -158,14 +159,16 @@ function createSession({store,responder,mentorResponder=null,practiceResponder=n
         if(!loaded||!state?.game)return {ok:true};
         if(!busy&&paused===false)syncRoaming();if(blocked)return {ok:false,error:'save'};
         if(!busy&&paused===false){
+            // Bed movement and recovery are published only with the same successful save.
+            const bedFrame=practice.home.resting(state.game),previous=bedFrame?state:null;if(bedFrame)state=copy();
             practice.home.refresh(state.game,wallClock(),practice);
             if(!state.game.absence)absence.install(state.game,wallClock());
             if(mainActive){absence.advance(state.game,wallClock());state.game.absence.lastActivity=Math.max(state.game.absence.lastActivity||0,state.game.absence.now);state.game.absence.lastCalendar=core.game.walk.calendar.snapshot(state.game.absence.now,state.game.calendarSettings,state.locale);}
             const homeStage=JSON.stringify([state.game.home?.phase,state.game.home?.inside,!!state.game.home?.travel,state.game.home?.exit?.phase]);
             const before=state.game.receipts.length,p=practice.current(state.game),stage=p&&p.phase+'|'+p.events?.length;core.game.tick(state.game,seconds);
             const current=practice.current(state.game),changed=current&&current.phase+'|'+current.events?.length!==stage;
-            if(state.game.receipts.length!==before||changed||homeStage!==JSON.stringify([state.game.home?.phase,state.game.home?.inside,!!state.game.home?.travel,state.game.home?.exit?.phase])||now-lastSave>10000){
-                if(!persist(state,'world').ok){blocked=true;return {ok:false,error:'save'};}lastSave=now;
+            if(bedFrame&&seconds>0||state.game.receipts.length!==before||changed||homeStage!==JSON.stringify([state.game.home?.phase,state.game.home?.inside,!!state.game.home?.travel,state.game.home?.exit?.phase])||now-lastSave>10000){
+                if(!persist(state,'world').ok){if(bedFrame)state=previous;blocked=true;return {ok:false,error:'save'};}lastSave=now;
                 if(state.game.receipts.length!==before)log('world',{results:state.game.receipts.slice(before)});
             }
             const arrival=state.game.walk?.encounter;

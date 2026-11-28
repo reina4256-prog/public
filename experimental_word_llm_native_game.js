@@ -53,7 +53,7 @@
     }
     function apply(g,action,cause,packet){
         if(action===null)return {accepted:true};
-        if((g.home?.travel||g.home?.exit)&&action?.kind==='stop'){practice.home.stop(g);return {accepted:true};}
+        if((g.home?.travel||g.home?.exit||practice.home.resting(g))&&action?.kind==='stop'){practice.home.stop(g);return {accepted:true};}
         if(g.home?.inside||g.home?.travel||g.home?.exit)return {accepted:false,reason:'busy'};
         if(practice.active(g))return {accepted:false,reason:'busy'};
         if(g.perception===2)return typeof action==='object'&&packet?walk.apply(g,action,cause,packet):{accepted:false,reason:'unavailable'};
@@ -65,7 +65,7 @@
     }
     function tick(g,seconds){
         const dt=Math.min(.1,Math.max(0,seconds));if(!finite(dt)||dt===0)return;
-        if(g.perception===2){g.elapsed+=dt;if(g.home?.travel||g.home?.exit)practice.home.tick(g,dt);else if(!g.home?.inside){if(practice.active(g))practice.tick(g,dt);else walk.tick(g,dt);perception.observe(g);}return;}
+        if(g.perception===2){g.elapsed+=dt;if(g.home?.travel||g.home?.exit||practice.home.resting(g))practice.home.tick(g,dt);else if(!g.home?.inside){if(practice.active(g))practice.tick(g,dt);else walk.tick(g,dt);perception.observe(g);}return;}
         g.elapsed+=dt;g.hunger=Math.min(1,g.hunger+dt/180);g.fatigue=Math.min(1,Math.max(0,g.fatigue+(g.mode==='rest'?-dt/28:dt/220)));
         if(g.fruit<3){g.growth+=dt;if(g.growth>=65){g.fruit++;g.growth=0;}}else g.growth=0;
         if(g.mode==='move'){

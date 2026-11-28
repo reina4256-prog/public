@@ -27,7 +27,7 @@
             draw(HOME_ART.bed,left+tile*bed.x,top+tile*bed.y,tile*bed.w,tile*bed.h);
             const room=game.home.room||window.NativeHome.ROOM_START,skin=game.origin.appearance;
             const pose=window.DUNGEON_SPRITES[skin+'_'+room.dir];
-            if(pose){const h=tile*1.6,w=h*pose.sw/pose.sh;
+            if(pose&&!window.NativeHome.sleeping(game)){const h=tile*1.6,w=h*pose.sw/pose.sh;
                 draw(pose,left+room.x*tile-w/2,top+room.y*tile-h,w,h);}
             context.restore();
         }};

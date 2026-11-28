@@ -3,7 +3,11 @@
     const COST={wood:8,stone:4},DURATION=600000,ID='chip:player_home';
     const ROOM_START={x:6,y:6.4,dir:'down'},ROOM_DOOR={x:5.5,y:9.5};
     const ROOM_LAYOUT={width:12,height:10,bed:{x:8.2,y:2.1,w:1.6,h:1.6*754/532},entrance:{x:4,y:9,w:3,h:1},floor:{x:1,y:1,w:10,h:8},walls:{x:0,y:0,w:12,h:10}};
-    function roomVisible(g){if(!g.home?.inside)return [];const descriptions={bed:['furniture','bed; visible only, resting is not implemented'],entrance:['entrance','entrance; exit on explicit request'],floor:['interior','wooden floor'],walls:['interior','walls']};
+    const BED_STOP={x:ROOM_LAYOUT.bed.x-.7,y:ROOM_LAYOUT.bed.y+ROOM_LAYOUT.bed.h-.2},REST_SECONDS=30;
+    const restStates=['walk','sleep','paused-walk','paused-sleep','done'];
+    const resting=g=>g?.home?.rest?.status==='active',sleeping=g=>resting(g)&&g.home.rest.stage==='sleep';
+    const restState=g=>g?.home?.rest?(g.home.rest.status==='done'?'done':g.home.rest.status==='paused'?'paused-'+g.home.rest.stage:g.home.rest.stage):null;
+    function roomVisible(g){if(!g.home?.inside)return [];const descriptions={bed:['furniture','bed; resting on explicit accepted request'],entrance:['entrance','entrance; exit on explicit request'],floor:['interior','wooden floor'],walls:['interior','walls']};
         return Object.entries(descriptions).map(([id,[kind,appearance]])=>{const r=ROOM_LAYOUT[id];return {id:'chip:home_'+id,kind,appearance,x:(r.x+r.w/2)/12,y:(r.y+r.h/2)/10,width:r.w/12,height:r.h/10};});}
     const copy=x=>structuredClone(x),turn=s=>/^turn-[1-9]\d*$/.test(s),quote=s=>typeof s==='string'&&s.trim()&&s.length<=300;
     const point=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y),keys=(o,a)=>o&&typeof o==='object'&&!Array.isArray(o)&&Object.keys(o).every(k=>a.includes(k));
@@ -40,6 +44,7 @@
         const s={phase:h.phase,cost:COST,held:b.held,missing:{wood:Math.max(0,8-b.held.wood-bag.wood),stone:Math.max(0,4-b.held.stone-bag.stone)},minutes:10};
         if(h.phase==='planning'){const c=h.site||site(g,walk);if(c)s.site={id:c.id,x:c.x,y:c.y};s.proposed=!!h.site;s.confirmed=!!h.confirmed;s.requested=!!h.request;s.consulted=!!consultation(g);}
         else{s.remaining=Math.max(0,Math.ceil((h.readyAt-h.now)/1000));s.inside=h.inside;}
+        if(h.rest)s.rest=restState(g);
         return s;
     }
     function directive(input,kind,historical=false){if(typeof input!=='string'||/[「」『』“”"]/u.test(input))return false;const s=input.normalize('NFKC').toLowerCase();
@@ -53,6 +58,13 @@
             &&!/ない|なく|ぬ|ません|とは|意味|言葉|と言|って言|と聞|と思|かどうか|例えば/u.test(s);
         if(/[?？]/u.test(s)&&!exitRequest)return false;
         if(/ないで|しない|やめない|とは|意味|言葉|と言|と思|don't|do not|never|\bnot\b|не |não|nicht|不要|别|no (?:construyas|entres)/u.test(s))return false;
+        if(['rest','resume','stopRest'].includes(kind)){
+            if(/ない|なく|ません|can\b|could\b|whether|meaning|можно|можешь|puedes|pode|kannst|可以|能否/u.test(s))return false;
+            const q=s.trim().replace(/[。.!！]+$/u,'');
+            if(kind==='stopRest')return /^(?:休むのをやめて|ベッドで休むのをやめて|ベッドの休息を止めて|stop (?:resting|sleeping)(?: (?:in|on) (?:the )?bed)?|停止休息|прекрати отдыхать|deja de descansar|pare de descansar|beende die bettruhe)$/u.test(q);
+            if(kind==='resume')return /ベッド.*(?:休むのを|休息を|寝るのを)続けて$/u.test(q)||/^(?:continue (?:resting|sleeping) (?:in|on) (?:the )?bed|继续在床上休息|продолжи отдыхать на кровати|continúa descansando en la cama|continue descansando na cama|setze die bettruhe fort)$/u.test(q);
+            return /ベッド.*(?:休んで|寝て|眠って)(?:ください)?$/u.test(q)||/^(?:(?:please[ ,]+)?(?:rest|sleep) (?:in|on) (?:the |my |your )?bed|请(?:去|在)?床上休息|(?:отдохни|спи) на кровати|(?:descansa|duerme) en la cama|(?:descanse|durma) na cama|ruhe dich im bett aus|schlafe? im bett)$/u.test(q);
+        }
         const home=/家|小屋|建築|建て|home|house|hut|build|casa|cabaña|cabana|haus|hütte|дом|хижин|стро|房|建造/u.test(s);
         if(kind==='site')return home&&/場所|空き地|用地|丸|〇|○|place|site|spot|mark|lugar|terreno|stelle|platz|мест|участ|位置|空地/u.test(s);
         if(kind==='confirm')return /^(?:うん|はい|そう|そこでいい|この場所でいい|yes|that's right|sí|sim|ja|да|对|是的)[。.!！、,\s]*$/u.test(s);
@@ -63,8 +75,14 @@
         if(kind==='exit')return exitRequest||!/\p{Script=Hiragana}|\p{Script=Katakana}|退出/u.test(s)&&!/^(?:can|could|would|may|is|does)\b/u.test(s.trim())&&/leave|exit|salir|sai|raus|verlass|выйди|出去/u.test(s);return false;
     }
     function validRequest(r,p,historical=false){if(r===undefined||r===null)return true;const h=p.inventory?.home;
-        if(!h||!keys(r,['kind','quote'])||!['site','confirm','build','cancel','enter','exit'].includes(r.kind)||!quote(r.quote)||!p.input.includes(r.quote)||!directive(p.input,r.kind,historical)||!directive(r.quote,r.kind,historical))return false;
-        if(p.world.currentAction!=='idle'||p.world.homeTravel||p.world.search?.phase==='active'||p.practice&&!['done','declined','stopped','failed'].includes(p.practice.context.phase)||p.inventory.absence?.status==='paused'||p.inventory.absence?.status==='reserved')return false;
+        if(!h||!keys(r,['kind','quote'])||!['site','confirm','build','cancel','enter','exit','rest','resume','stopRest'].includes(r.kind)||!quote(r.quote)||!p.input.includes(r.quote)||!directive(p.input,r.kind,historical)||!directive(r.quote,r.kind,historical))return false;
+        if(p.world.search?.phase==='active'||p.practice&&!['done','declined','stopped','failed'].includes(p.practice.context.phase)||p.inventory.absence?.status==='paused'||p.inventory.absence?.status==='reserved')return false;
+        const active=['walk','sleep'].includes(h.rest);
+        if(r.kind==='stopRest')return h.phase==='ready'&&h.inside&&active;
+        if(r.kind==='exit'&&active)return h.phase==='ready'&&h.inside;
+        if(p.world.currentAction!=='idle'||p.world.homeTravel)return false;
+        if(r.kind==='rest')return h.phase==='ready'&&h.inside&&(!h.rest||h.rest==='done');
+        if(r.kind==='resume')return h.phase==='ready'&&h.inside&&['paused-walk','paused-sleep'].includes(h.rest);
         return r.kind==='site'?h.phase==='planning'&&!!h.site&&!h.proposed&&!h.requested:r.kind==='confirm'?h.phase==='planning'&&h.proposed&&!h.confirmed
             :r.kind==='build'?h.phase==='planning'&&h.confirmed&&!h.requested&&!h.missing.wood&&!h.missing.stone:r.kind==='cancel'?h.phase==='planning'
             :r.kind==='enter'?h.phase==='ready'&&!h.inside:r.kind==='exit'?h.phase==='ready'&&h.inside:false;
@@ -75,7 +93,10 @@
         if(r.kind==='build'){if(!h.confirmed||Number(h.confirmed.turn.slice(5))>=Number(id.slice(5)))return false;h.request={turn:id,quote:r.quote};g.taskPanelOpen=true;}
         if(r.kind==='cancel'){delete h.site;delete h.confirmed;delete h.request;}
         if(r.kind==='enter'){const route=walk.plan(g,ID,true);if(!route)return false;h.travel={turn:id,quote:r.quote,route};}
-        if(r.kind==='exit'){h.room=h.room||copy(ROOM_START);h.exit={turn:id,quote:r.quote,phase:'walk',elapsed:0};}
+        if(r.kind==='exit'){stop(g);if(h.rest?.status==='paused')h.rest.stage='walk';h.room=h.room||copy(ROOM_START);h.exit={turn:id,quote:r.quote,phase:'walk',elapsed:0};}
+        if(r.kind==='rest'){h.room=h.room||copy(ROOM_START);h.rest={origin:id,turn:id,quote:r.quote,stage:'walk',status:'active',elapsed:0,initial:g.fatigue};}
+        if(r.kind==='resume'){h.rest.turn=id;h.rest.quote=r.quote;h.rest.status='active';}
+        if(r.kind==='stopRest')stop(g);
         h.history.push({turn:id,kind:r.kind,quote:r.quote,...(r.kind==='site'?{site:copy(h.site)}:{})});return true;
     }
     function consultation(g,before=null){const list=g.practices||[];return (before?list.slice(0,list.findIndex(p=>p.id===before)):list).findLast(p=>p.npc==='building'&&p.homeConsent?.offer?.source===p.id&&p.homeConsent?.decision?.source===p.id);}
@@ -84,7 +105,7 @@
         return {source:s||p.id,mode:ready?'build':'consult',phase:h.phase,request:ready?(h.request||h.confirmed).quote.slice(0,120):null,site:ready?h.site.id:null,cost:COST,held:b.held,available:{wood:Math.min(6,bag.wood),stone:Math.min(2,bag.stone)},minutes:10,irreversible:true,...(p?.homeConsent?.offer?.source===(s||p.id)?{offer:p.homeConsent.offer.quote}:{})};}
     function validContext(c){return keys(c,['source','mode','phase','request','site','cost','held','available','minutes','irreversible','offer'])&&(c.offer===undefined||quote(c.offer)&&c.offer.length<=120)&&(c.mode==='consult'?/^event-[1-9]\d*$/.test(c.source)&&c.request===null&&c.site===null&&c.phase==='planning':(c.mode===undefined||c.mode==='build')&&turn(c.source)&&quote(c.request)&&typeof c.site==='string'&&c.site.startsWith('site:'))&&['planning','building','ready'].includes(c.phase)
         &&JSON.stringify(c.cost)===JSON.stringify(COST)&&c.minutes===10&&c.irreversible===true&&keys(c.held,['wood','stone'])&&['wood','stone'].every(t=>c.held[t]===2)&&keys(c.available,['wood','stone'])&&Number.isInteger(c.available.wood)&&c.available.wood>=0&&c.available.wood<=6&&Number.isInteger(c.available.stone)&&c.available.stone>=0&&c.available.stone<=2;}
-    function validSummary(s){return keys(s,['phase','cost','held','missing','minutes','site','confirmed','proposed','requested','consulted','remaining','inside'])&&['planning','building','ready'].includes(s.phase)&&JSON.stringify(s.cost)===JSON.stringify(COST)&&s.minutes===10
+    function validSummary(s){return keys(s,['phase','cost','held','missing','minutes','site','confirmed','proposed','requested','consulted','remaining','inside','rest'])&&(s.rest===undefined||s.phase==='ready'&&restStates.includes(s.rest))&&['planning','building','ready'].includes(s.phase)&&JSON.stringify(s.cost)===JSON.stringify(COST)&&s.minutes===10
         &&keys(s.held,['wood','stone'])&&keys(s.missing,['wood','stone'])&&['wood','stone'].every(t=>s.held[t]===2&&Number.isSafeInteger(s.missing[t])&&s.missing[t]>=0&&s.missing[t]<=COST[t])
         &&(s.site===undefined||keys(s.site,['id','x','y'])&&point(s.site)&&typeof s.site.id==='string'&&s.site.id.startsWith('site:'))
         &&['confirmed','proposed','requested','consulted','inside'].every(k=>s[k]===undefined||typeof s[k]==='boolean')&&(s.remaining===undefined||Number.isSafeInteger(s.remaining)&&s.remaining>=0&&s.remaining<=600);}
@@ -94,13 +115,18 @@
         for(const item of items){g.inventory.items.splice(g.inventory.items.findIndex(i=>i.id===item.id),1);(g.inventory.spent||(g.inventory.spent=[])).push({by:'house-'+s,item:copy(item)});}
         h.startedAt=h.now;h.readyAt=h.now+DURATION;h.phase='building';return true;
     }
-    function stop(g){if(g.home){delete g.home.travel;delete g.home.exit;}}
+    function stop(g){if(g.home){delete g.home.travel;delete g.home.exit;if(resting(g))g.home.rest.status='paused';}}
+    // Axis-aligned room routes stay beside the bed; the visible pose follows the actual step.
+    function moveRoom(g,target,seconds){const r=g.home.room,dx=target.x-r.x,dy=target.y-r.y,step=2*seconds;
+        if(Math.abs(dx)>.00001){r.dir=dx<0?'left':'right';r.x+=Math.sign(dx)*Math.min(Math.abs(dx),step);}
+        else if(Math.abs(dy)>.00001){r.dir=dy<0?'up':'down';r.y+=Math.sign(dy)*Math.min(Math.abs(dy),step);}
+        else return true;return false;}
     function tick(g,seconds){const h=g.home;if(!h)return;
+        if(resting(g)){const r=h.rest;if(r.stage==='walk'){if(moveRoom(g,BED_STOP,seconds)){r.stage='sleep';h.room.dir='right';}return;}
+            const duration=r.initial===0?1:r.initial*REST_SECONDS;r.elapsed=Math.min(duration,r.elapsed+seconds);g.fatigue=r.elapsed>=duration?0:Math.max(0,r.initial-r.elapsed/REST_SECONDS);
+            if(r.elapsed>=duration)r.status='done';return;}
         if(h.exit){const e=h.exit;
-            if(e.phase==='walk'){const r=h.room,dx=ROOM_DOOR.x-r.x,dy=ROOM_DOOR.y-r.y,step=2*seconds;
-                if(Math.abs(dx)>.00001){r.dir=dx<0?'left':'right';r.x+=Math.sign(dx)*Math.min(Math.abs(dx),step);}
-                else if(Math.abs(dy)>.00001){r.dir=dy<0?'up':'down';r.y+=Math.sign(dy)*Math.min(Math.abs(dy),step);}
-                else{e.phase='out';e.elapsed=0;}return;}
+            if(e.phase==='walk'){if(moveRoom(g,ROOM_DOOR,seconds)){e.phase='out';e.elapsed=0;}return;}
             e.elapsed=Math.min(.3,e.elapsed+seconds);
             if(e.elapsed>=.3){if(e.phase==='out'){h.inside=false;delete h.room;e.phase='in';e.elapsed=0;}
                 else delete h.exit;}return;}
@@ -109,7 +135,7 @@
         if(d<=step){g.x=p.x;g.y=p.y;h.travel.route.shift();}else{g.x+=dx/d*step/800;g.y+=dy/d*step/480;}}
     function asset(g){const h=g.home;if(!h?.site||!['building','ready'].includes(h.phase))return null;return {type:'building',name:'マイホーム',dx:h.site.x*800-22,dy:h.site.y*480-48,sw:44,sh:58,scale:1};}
     function valid(g,practice,walk){const h=g.home;if(h===undefined)return true;
-        if(!keys(h,['version','phase','qualified','history','now','inside','site','confirmed','request','payment','startedAt','readyAt','travel','room','exit'])||h.version!==1||!['planning','building','ready'].includes(h.phase)||!Number.isSafeInteger(h.now)||h.now<0||typeof h.inside!=='boolean'||!Array.isArray(h.history))return false;
+        if(!keys(h,['version','phase','qualified','history','now','inside','site','confirmed','request','payment','startedAt','readyAt','travel','room','exit','rest'])||h.version!==1||!['planning','building','ready'].includes(h.phase)||!Number.isSafeInteger(h.now)||h.now<0||typeof h.inside!=='boolean'||!Array.isArray(h.history))return false;
         const q=(g.practices||[]).find(p=>p.id===h.qualified),past=q&&{...g,practices:g.practices.slice(0,g.practices.indexOf(q)+1)};if(!q||!eligible(past,practice))return false;
         if(!h.history.every((e,i)=>keys(e,['turn','kind','quote','site'])&&turn(e.turn)&&(!i||Number(e.turn.slice(5))>Number(h.history[i-1].turn.slice(5)))&&quote(e.quote)&&directive(e.quote,e.kind,true)&&(e.kind==='site'?validSite(g,e.site):e.site===undefined)))return false;
         let chosen=null,confirmed=null,request=null;for(const e of h.history){if(e.kind==='site'){if(request)return false;chosen=e.site;confirmed=null;}if(e.kind==='confirm'){if(!chosen||confirmed)return false;confirmed={turn:e.turn,quote:e.quote};}if(e.kind==='build'){if(!confirmed||request)return false;request={turn:e.turn,quote:e.quote};}if(e.kind==='cancel'){chosen=null;confirmed=null;request=null;}}
@@ -122,6 +148,12 @@
                 if(ids.some((n,i)=>n<0||i&&!nodes[ids[i-1]].edges.includes(n))||new Set(ids).size!==ids.length||path.length&&Math.hypot(path[0].x*800-g.x*800,path[0].y*480-g.y*480)>51)return false;
                 const end=path.at(-1)||g;if(Math.hypot(end.x*800-x,end.y*480-y)>85)return false;}}
         if(h.room&&(!h.inside||!keys(h.room,['x','y','dir'])||!point(h.room)||h.room.x<1||h.room.x>11||h.room.y<1||h.room.y>9.5||!['up','down','left','right'].includes(h.room.dir)))return false;
+        if(h.rest){const r=h.rest,e=h.history.findLast(e=>['rest','resume'].includes(e.kind)),duration=r.initial===0?1:r.initial*REST_SECONDS;
+            if(h.phase!=='ready'||!keys(r,['origin','turn','quote','stage','status','elapsed','initial'])||!turn(r.origin)||!h.history.some(e=>e.turn===r.origin&&e.kind==='rest')||e?.turn!==r.turn||e.quote!==r.quote
+                ||!['walk','sleep'].includes(r.stage)||!['active','paused','done'].includes(r.status)||!Number.isFinite(r.initial)||r.initial<0||r.initial>1||!Number.isFinite(r.elapsed)||r.elapsed<0||r.elapsed>duration
+                ||Math.abs(g.fatigue-Math.max(0,r.initial-r.elapsed/REST_SECONDS))>1e-9||r.status==='done'&&(r.elapsed!==duration||r.stage!=='sleep')
+                ||r.status==='active'&&(!h.inside||!h.room||h.travel||h.exit||r.elapsed===duration)
+                ||r.stage==='sleep'&&r.status!=='done'&&(!h.room||Math.hypot(h.room.x-BED_STOP.x,h.room.y-BED_STOP.y)>.00001))return false;}
         if(h.phase!=='ready'&&(h.inside||h.travel||h.exit||h.room))return false;
         const entry=h.history.findLast(e=>['enter','exit'].includes(e.kind));
         if(h.exit&&(!keys(h.exit,['turn','quote','phase','elapsed'])||entry?.kind!=='exit'||entry.turn!==h.exit.turn||entry.quote!==h.exit.quote||h.travel
@@ -136,5 +168,5 @@
             &&keys(h.payment,['source','practice','items','held'])&&h.payment.source===s&&Array.isArray(h.payment.items)&&new Set(h.payment.items).size===h.payment.items.length
             &&items.length===h.payment.items.length&&items.every(s=>h.payment.items.includes(s.item.id))&&['wood','stone'].every(t=>h.payment.held[t]===2&&items.filter(s=>s.item.type===t).length===COST[t]-2);
     }
-    return {COST,DURATION,ID,ROOM_START,ROOM_DOOR,ROOM_LAYOUT,roomVisible,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,stop,asset,valid,consultation,source};
+    return {COST,DURATION,ID,ROOM_START,ROOM_DOOR,ROOM_LAYOUT,BED_STOP,REST_SECONDS,resting,sleeping,restState,moveRoom,roomVisible,eligible,refresh,site,summary,directive,validRequest,apply,context,validContext,validSummary,commit,tick,stop,asset,valid,consultation,source};
 });
